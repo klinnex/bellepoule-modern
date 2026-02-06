@@ -4,13 +4,13 @@
  */
 
 import React from 'react';
-import { useTranslation } from '../hooks/useTranslation';
+import { useTranslation, Language } from '../hooks/useTranslation';
 
 interface LanguageSelectorProps {
   className?: string;
   showLabel?: boolean;
-  onLanguageChange?: (language: 'fr' | 'en' | 'br') => void;
-  value?: 'fr' | 'en' | 'br';
+  onLanguageChange?: (language: Language) => void;
+  value?: Language;
 }
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({ 
@@ -22,7 +22,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   const { language, changeLanguage, availableLanguages, isLoading } = useTranslation();
 
   const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLanguage = event.target.value as 'fr' | 'en' | 'br';
+    const newLanguage = event.target.value as Language;
     
     if (onLanguageChange) {
       // Mode "sélection" - ne pas appliquer immédiatement
