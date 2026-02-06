@@ -251,9 +251,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onMenuReportIssue: (callback: () => void) => 
     ipcRenderer.on('menu:report-issue', callback),
   onFileOpened: (callback: (filepath: string) => void) => 
-    ipcRenderer.on('file:opened', (_, filepath) => callback(filepath)),
+    ipcRenderer.on('file:opened', (_: any, filepath: string) => callback(filepath)),
   onFileSaved: (callback: (filepath: string) => void) => 
-    ipcRenderer.on('file:saved', (_, filepath) => callback(filepath)),
+    ipcRenderer.on('file:saved', (_: any, filepath: string) => callback(filepath)),
   onAutosaveCompleted: (callback: () => void) => 
     ipcRenderer.on('autosave:completed', callback),
   onAutosaveFailed: (callback: () => void) => 
@@ -266,7 +266,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getServerStatus: () => ipcRenderer.invoke('remote:getServerStatus'),
     setPort: (port: number) => ipcRenderer.invoke('remote:setPort', port),
     onServerStatusChanged: (callback: (status: { isRunning: boolean; port: number }) => void) => 
-      ipcRenderer.on('remote:status-changed', (_, status) => callback(status)),
+      ipcRenderer.on('remote:status-changed', (_: any, status: { isRunning: boolean; port: number }) => callback(status)),
   },
 
   // Utility functions
