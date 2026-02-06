@@ -79,19 +79,19 @@ class AutoUpdater {
     }
     async fetchLatestRelease() {
         try {
-            // Essayer d'abord les releases
-            let releases = await this.fetchReleases();
-            if (releases && releases.length > 0) {
-                // Chercher la release la plus récente (pas les pre-releases sauf si beta channel)
-                const latestRelease = this.config.betaChannel
-                    ? releases[0] // Prendre la première (plus récente)
-                    : releases.find((r) => !r.prerelease) || releases[0]; // Chercher non-prerelease sinon prendre la première
-                return latestRelease;
+            // Pour le canal beta, on doit chercher manuellement dans toutes les releases
+            if (this.config.betaChannel) {
+                const releases = await this.fetchReleases();
+                return releases && releases.length > 0 ? releases[0] : null;
             }
-            // Si pas de releases, essayer les tags
+            // Pour le canal stable, utiliser l'endpoint /latest qui ne retourne que la dernière release non-prerelease
+            return await this.fetchLatestReleaseDirect();
+        }
+        catch (error) {
+            console.error('Failed to fetch release:', error);
+            // En cas d'erreur, essayer avec les tags comme fallback
             const tags = await this.fetchTags();
             if (tags && tags.length > 0) {
-                // Créer une structure de release fictive à partir du tag
                 const latestTag = tags[0];
                 return {
                     name: latestTag.name,
@@ -99,18 +99,53 @@ class AutoUpdater {
                     html_url: `https://github.com/klinnex/bellepoule-modern/releases/tag/${latestTag.name}`,
                     body: `Release: ${latestTag.name}`,
                     prerelease: false,
-                    assets: [] // Pas d'assets avec les tags simples
+                    assets: []
                 };
             }
             return null;
         }
-        catch (error) {
-            console.error('Failed to fetch release or tags:', error);
-            return null;
-        }
+    }
+    async fetchLatestReleaseDirect() {
+        return new Promise((resolve) => {
+            const options = {
+                hostname: 'api.github.com',
+                path: '/repos/klinnex/bellepoule-modern/releases/latest',
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'BellePoule-Modern',
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            };
+            const req = https_1.default.request(options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                res.on('end', () => {
+                    try {
+                        if (res.statusCode === 200) {
+                            const release = JSON.parse(data);
+                            resolve(release);
+                        }
+                        else {
+                            resolve(null);
+                        }
+                    }
+                    catch (e) {
+                        resolve(null);
+                    }
+                });
+            });
+            req.on('error', () => resolve(null));
+            req.setTimeout(10000, () => {
+                req.destroy();
+                resolve(null);
+            });
+            req.end();
+        });
     }
     async fetchReleases() {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const options = {
                 hostname: 'api.github.com',
                 path: '/repos/klinnex/bellepoule-modern/releases',
@@ -132,7 +167,7 @@ class AutoUpdater {
                             resolve(releases);
                         }
                         else {
-                            resolve([]); // Retourner tableau vide au lieu de reject
+                            resolve([]);
                         }
                     }
                     catch (e) {

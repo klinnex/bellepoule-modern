@@ -3,7 +3,7 @@
  * Catches JavaScript errors in child component tree
  * Licensed under GPL-3.0
  */
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 interface Props {
     children: ReactNode;
     fallback?: ReactNode;
@@ -19,16 +19,16 @@ export declare class ErrorBoundary extends Component<Props, State> {
     static getDerivedStateFromError(error: Error): State;
     componentDidCatch(error: Error, errorInfo: ErrorInfo): void;
     handleReset: () => void;
-    render(): string | number | bigint | boolean | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | import("react/jsx-runtime").JSX.Element | null | undefined;
+    render(): any;
 }
 export declare class CompetitionErrorBoundary extends Component<Props> {
-    render(): import("react/jsx-runtime").JSX.Element;
+    render(): any;
 }
 export declare class PoolErrorBoundary extends Component<Props> {
-    render(): import("react/jsx-runtime").JSX.Element;
+    render(): any;
 }
 export declare class DatabaseErrorBoundary extends Component<Props> {
-    render(): import("react/jsx-runtime").JSX.Element;
+    render(): any;
 }
 export declare const useErrorHandler: () => (error: Error, errorInfo?: ErrorInfo) => void;
 export {};

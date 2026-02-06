@@ -299,7 +299,7 @@ export class TournamentFlowManager {
     const waitTimes = schedule.map(slot => 
       (slot.scheduledTime.getTime() - Date.now()) / (1000 * 60)
     );
-    const averageWaitTime = waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length;
+    const averageWaitTime = waitTimes.length > 0 ? waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length : 0;
     
     // Calculate total duration
     const totalDuration = schedule.length > 0 
@@ -375,29 +375,33 @@ export class TournamentFlowManager {
     
     // Check for bottleneck arenas
     const arenaUsage = this.calculateCurrentArenaUsage(currentSchedule, currentTime);
-    const busiestArena = Object.entries(arenaUsage).reduce((a, b) => 
-      a[1] > b[1] ? a : b
-    );
-    
-    if (busiestArena[1] > 80) {
-      recommendations.push(`🏟️ Piste ${busiestArena[0]} très utilisée (${busiestArena[1]}%). Envisagez de répartir les matchs.`);
+    const arenaEntries = Object.entries(arenaUsage);
+
+    if (arenaEntries.length > 0) {
+      const busiestArena = arenaEntries.reduce((a, b) =>
+        a[1] > b[1] ? a : b
+      );
+
+      if (busiestArena[1] > 80) {
+        recommendations.push(`🏟️ Piste ${busiestArena[0]} très utilisée (${busiestArena[1]}%). Envisagez de répartir les matchs.`);
+      }
+
+      // Check for idle arenas
+      const idleArenas = arenaEntries.filter(([_, usage]) => usage < 20);
+      if (idleArenas.length > 0) {
+        recommendations.push(`😴 ${idleArenas.length} pistes sous-utilisées. Optimisez la répartition.`);
+      }
     }
-    
+
     // Check for fencers with excessive wait times
     const longWaitMatches = currentSchedule.filter(match =>
       (match.scheduledTime.getTime() - currentTime.getTime()) > this.config.maxWaitTime * 60000
     );
-    
+
     if (longWaitMatches.length > 0) {
       recommendations.push(`⏰ ${longWaitMatches.length} matchs avec temps d'attente excessif. Considérez l'ajout de pistes.`);
     }
-    
-    // Check for idle arenas
-    const idleArenas = Object.entries(arenaUsage).filter(([_, usage]) => usage < 20);
-    if (idleArenas.length > 0) {
-      recommendations.push(`😴 ${idleArenas.length} pistes sous-utilisées. Optimisez la répartition.`);
-    }
-    
+
     return recommendations;
   }
 

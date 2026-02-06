@@ -74,12 +74,13 @@ const CompetitionView = ({ competition, onUpdate }) => {
     const [changePoolData, setChangePoolData] = (0, react_1.useState)(null);
     const [isLoaded, setIsLoaded] = (0, react_1.useState)(false);
     const [isRemoteActive, setIsRemoteActive] = (0, react_1.useState)(false);
+    const [showThirdPlaceDialog, setShowThirdPlaceDialog] = (0, react_1.useState)(false);
     // Récupérer les settings avec valeurs par défaut
     const poolRounds = competition.settings?.poolRounds ?? 1;
     const hasDirectElimination = competition.settings?.hasDirectElimination ?? true;
     const thirdPlaceMatch = competition.settings?.thirdPlaceMatch ?? false;
     const poolMaxScore = competition.settings?.defaultPoolMaxScore ?? 21;
-    const tableMaxScore = competition.settings?.defaultTableMaxScore ?? 0;
+    const tableMaxScore = competition.settings?.defaultTableMaxScore ?? 15;
     const isLaserSabre = competition.weapon === types_1.Weapon.LASER;
     // Export all pools to PDF
     const handleExportAllPoolsPDF = async () => {
@@ -738,10 +739,10 @@ const CompetitionView = ({ competition, onUpdate }) => {
         // Calculer le classement général à partir de toutes les poules
         const ranking = computeOverallRanking(pools);
         setOverallRanking(ranking);
-        // Demander si l'utilisateur veut un match pour la 3ème place
-        const shouldHaveThirdPlace = window.confirm(t('competition.third_place_match_dialog') + '\n\n' +
-            t('competition.third_place_match_ok') + '\n' +
-            t('competition.third_place_match_cancel'));
+        // Afficher le dialogue personnalisé pour le match de 3ème place
+        setShowThirdPlaceDialog(true);
+    };
+    const handleThirdPlaceDecision = (shouldHaveThirdPlace) => {
         // Mettre à jour le paramètre thirdPlaceMatch dans la compétition
         const updatedCompetition = {
             ...competition,
@@ -760,6 +761,7 @@ const CompetitionView = ({ competition, onUpdate }) => {
         // Réinitialiser le tableau pour qu'il soit régénéré avec le nouveau classement
         setTableauMatches([]);
         setCurrentPhase('tableau');
+        setShowThirdPlaceDialog(false);
     };
     const handleNextPoolRound = () => {
         // Sauvegarder les poules actuelles dans l'historique
@@ -904,10 +906,28 @@ const CompetitionView = ({ competition, onUpdate }) => {
                                         }, children: "\uD83D\uDCC4 Exporter toutes les poules en PDF" }) })), (0, jsx_runtime_1.jsx)("div", { style: { display: 'grid', gap: '2rem', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }, children: pools.map((pool, poolIndex) => ((0, jsx_runtime_1.jsx)(PoolView_1.default, { pool: pool, weapon: competition.weapon, maxScore: poolMaxScore, onScoreUpdate: (matchIndex, scoreA, scoreB, winnerOverride) => handleScoreUpdate(poolIndex, matchIndex, scoreA, scoreB, winnerOverride), onFencerChangePool: pools.length > 1 ? (fencer) => setChangePoolData({ fencer, poolIndex }) : undefined }, pool.id))) })] })) })), currentPhase === 'ranking' && ((0, jsx_runtime_1.jsx)(PoolRankingView_1.default, { pools: pools, weapon: competition.weapon, hasDirectElimination: hasDirectElimination, onGoToTableau: handleGoToTableau, onGoToResults: handleGoToResults, onExport: (format) => {
                             // Implémentation de l'export
                             showToast(`Export ${format.toUpperCase()} à implémenter`, 'info');
-                        } })), currentPhase === 'tableau' && ((0, jsx_runtime_1.jsx)(TableauView_1.default, { ranking: overallRanking, matches: tableauMatches, onMatchesChange: setTableauMatches, maxScore: tableMaxScore || 15, thirdPlaceMatch: thirdPlaceMatch, onComplete: (results) => {
+                        } })), currentPhase === 'tableau' && ((0, jsx_runtime_1.jsx)(TableauView_1.default, { ranking: overallRanking, matches: tableauMatches, onMatchesChange: setTableauMatches, maxScore: tableMaxScore === 0 ? 999 : tableMaxScore, thirdPlaceMatch: thirdPlaceMatch, onComplete: (results) => {
                             setFinalResults(results);
                             setCurrentPhase('results');
-                        } })), currentPhase === 'results' && ((0, jsx_runtime_1.jsx)(ResultsView_1.default, { competition: competition, poolRanking: overallRanking, finalResults: finalResults })), currentPhase === 'remote' && ((0, jsx_runtime_1.jsx)(RemoteScoreManager_1.default, { competition: competition, onStartRemote: () => setIsRemoteActive(true), onStopRemote: () => setIsRemoteActive(false), isRemoteActive: isRemoteActive }))] }), showAddFencerModal && (0, jsx_runtime_1.jsx)(AddFencerModal_1.default, { onClose: () => setShowAddFencerModal(false), onAdd: handleAddFencer }), showPropertiesModal && ((0, jsx_runtime_1.jsx)(CompetitionPropertiesModal_1.default, { competition: competition, onSave: handleUpdateCompetition, onClose: () => setShowPropertiesModal(false) })), importData && ((0, jsx_runtime_1.jsx)(ImportModal_1.default, { format: importData.format, filepath: importData.filepath, content: importData.content, onImport: handleImportFencers, onClose: () => setImportData(null) })), changePoolData && ((0, jsx_runtime_1.jsx)(ChangePoolModal_1.default, { fencer: changePoolData.fencer, currentPool: pools[changePoolData.poolIndex], allPools: pools, onMove: handleMoveFencer, onClose: () => setChangePoolData(null) }))] }));
+                        } })), currentPhase === 'results' && ((0, jsx_runtime_1.jsx)(ResultsView_1.default, { competition: competition, poolRanking: overallRanking, finalResults: finalResults })), currentPhase === 'remote' && ((0, jsx_runtime_1.jsx)(RemoteScoreManager_1.default, { competition: competition, onStartRemote: () => setIsRemoteActive(true), onStopRemote: () => setIsRemoteActive(false), isRemoteActive: isRemoteActive }))] }), showAddFencerModal && (0, jsx_runtime_1.jsx)(AddFencerModal_1.default, { onClose: () => setShowAddFencerModal(false), onAdd: handleAddFencer }), showPropertiesModal && ((0, jsx_runtime_1.jsx)(CompetitionPropertiesModal_1.default, { competition: competition, onSave: handleUpdateCompetition, onClose: () => setShowPropertiesModal(false) })), importData && ((0, jsx_runtime_1.jsx)(ImportModal_1.default, { format: importData.format, filepath: importData.filepath, content: importData.content, onImport: handleImportFencers, onClose: () => setImportData(null) })), changePoolData && ((0, jsx_runtime_1.jsx)(ChangePoolModal_1.default, { fencer: changePoolData.fencer, currentPool: pools[changePoolData.poolIndex], allPools: pools, onMove: handleMoveFencer, onClose: () => setChangePoolData(null) })), showThirdPlaceDialog && ((0, jsx_runtime_1.jsx)("div", { style: {
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }, children: (0, jsx_runtime_1.jsxs)("div", { style: {
+                        backgroundColor: 'white',
+                        padding: '2rem',
+                        borderRadius: '8px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
+                        maxWidth: '500px',
+                        width: '90%'
+                    }, children: [(0, jsx_runtime_1.jsx)("h3", { style: { margin: '0 0 1rem 0', color: '#1f2937' }, children: t('competition.third_place_match_dialog') }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }, children: [(0, jsx_runtime_1.jsx)("button", { className: "btn btn-secondary", onClick: () => handleThirdPlaceDecision(false), style: { minWidth: '80px' }, children: "Non" }), (0, jsx_runtime_1.jsx)("button", { className: "btn btn-primary", onClick: () => handleThirdPlaceDecision(true), style: { minWidth: '80px' }, children: "Oui" })] })] }) }))] }));
 };
 exports.default = CompetitionView;
 //# sourceMappingURL=CompetitionView.js.map

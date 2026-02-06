@@ -140,6 +140,11 @@ export class DatabaseManager {
       )
     `);
 
+    // Index pour les requêtes fréquentes
+    this.db.run('CREATE INDEX IF NOT EXISTS idx_fencers_competition ON fencers(competition_id)');
+    this.db.run('CREATE INDEX IF NOT EXISTS idx_matches_pool ON matches(pool_id)');
+    this.db.run('CREATE INDEX IF NOT EXISTS idx_pool_fencers_fencer ON pool_fencers(fencer_id)');
+
     // Table pour stocker l'état de session (persistance au refresh)
     this.db.run(`
       CREATE TABLE IF NOT EXISTS session_state (
@@ -255,6 +260,11 @@ export class DatabaseManager {
 
   public deleteCompetition(id: string): void {
     if (!this.db) throw new Error('Database not open');
+    // Supprimer les associations pool_fencers pour éviter les enregistrements orphelins
+    this.db.run('DELETE FROM pool_fencers WHERE fencer_id IN (SELECT id FROM fencers WHERE competition_id = ?)', [id]);
+    this.db.run('DELETE FROM matches WHERE pool_id IN (SELECT id FROM pools WHERE phase_id LIKE ?)', [`%${id}%`]);
+    this.db.run('DELETE FROM pools WHERE phase_id LIKE ?', [`%${id}%`]);
+    this.db.run('DELETE FROM session_state WHERE competition_id = ?', [id]);
     this.db.run('DELETE FROM fencers WHERE competition_id = ?', [id]);
     this.db.run('DELETE FROM competitions WHERE id = ?', [id]);
     this.save();
@@ -360,8 +370,8 @@ export class DatabaseManager {
     // Vérifier que le tireur existe
     const stmt = this.db.prepare('SELECT id, last_name FROM fencers WHERE id = ?');
     stmt.bind([id]);
-    const row = stmt.getAsObject();
     const exists = stmt.step();
+    const row = exists ? stmt.getAsObject() : null;
     stmt.free();
     
     if (!exists || !row) {
@@ -420,8 +430,8 @@ export class DatabaseManager {
       id: row.id as string, number: row.number as number,
       fencerA: row.fencer_a_id ? this.getFencer(row.fencer_a_id as string) : null,
       fencerB: row.fencer_b_id ? this.getFencer(row.fencer_b_id as string) : null,
-      scoreA: row.score_a ? JSON.parse(row.score_a as string) : null,
-      scoreB: row.score_b ? JSON.parse(row.score_b as string) : null,
+      scoreA: row.score_a ? (() => { try { return JSON.parse(row.score_a as string); } catch { return null; } })() : null,
+      scoreB: row.score_b ? (() => { try { return JSON.parse(row.score_b as string); } catch { return null; } })() : null,
       maxScore: row.max_score as number, status: row.status as MatchStatus,
       poolId: row.pool_id as string, tableId: row.table_id as string, round: row.round as number,
       createdAt: new Date(row.created_at as string), updatedAt: new Date(row.updated_at as string),

@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 const jsx_runtime_1 = require("react/jsx-runtime");
 /**
@@ -6,59 +39,16 @@ const jsx_runtime_1 = require("react/jsx-runtime");
  * Shows ranking after pools with export/print functionality
  * Licensed under GPL-3.0
  */
-const react_1 = require("react");
+const react_1 = __importStar(require("react"));
 const poolCalculations_1 = require("../../shared/utils/poolCalculations");
 const Toast_1 = require("./Toast");
 const PoolRankingView = ({ pools, weapon, onGoToTableau, onGoToResults, hasDirectElimination = true, onExport }) => {
     const { showToast } = (0, Toast_1.useToast)();
     const isLaserSabre = weapon === 'L';
-    // Calculer le classement général
+    // Calculer le classement général selon le type d'arme
     const overallRanking = (0, react_1.useMemo)(() => {
-        const allRankings = [];
-        pools.forEach(pool => {
-            pool.ranking.forEach((r, index) => {
-                allRankings.push({
-                    ...r,
-                    rank: 0 // Sera recalculé
-                });
-            });
-        });
-        // Trier selon les critères FIE
-        allRankings.sort((a, b) => {
-            // 1. Ratio V/M (victoires/matchs)
-            if (a.ratio !== b.ratio)
-                return b.ratio - a.ratio;
-            // 2. Indice (TD - TR)
-            if (a.index !== b.index)
-                return b.index - a.index;
-            // 3. Touches données (TD)
-            if (a.touchesScored !== b.touchesScored)
-                return b.touchesScored - a.touchesScored;
-            // 4. Confrontation directe (pas géré ici pour simplifier)
-            return 0;
-        });
-        // Attribuer les rangs
-        let currentRank = 1;
-        allRankings.forEach((ranking, index) => {
-            if (index > 0) {
-                const prev = allRankings[index - 1];
-                // Même rang si mêmes stats que le précédent
-                if (ranking.ratio === prev.ratio &&
-                    ranking.index === prev.index &&
-                    ranking.touchesScored === prev.touchesScored) {
-                    ranking.rank = prev.rank;
-                }
-                else {
-                    ranking.rank = currentRank;
-                }
-            }
-            else {
-                ranking.rank = 1;
-            }
-            currentRank++;
-        });
-        return allRankings;
-    }, [pools]);
+        return isLaserSabre ? (0, poolCalculations_1.calculateOverallRankingQuest)(pools) : (0, poolCalculations_1.calculateOverallRanking)(pools);
+    }, [pools, isLaserSabre]);
     const handleExport = (format) => {
         if (onExport) {
             onExport(format);

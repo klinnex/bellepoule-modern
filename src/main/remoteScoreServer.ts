@@ -43,7 +43,7 @@ export class RemoteScoreServer {
     this.server = createServer(this.app);
     this.io = new SocketIOServer(this.server, {
       cors: {
-        origin: "*",
+        origin: ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],
         methods: ["GET", "POST"]
       }
     });
@@ -58,7 +58,11 @@ export class RemoteScoreServer {
     this.app.use(express.json());
     this.app.use(express.static(path.join(__dirname, '../remote')));
     this.app.use((req, res, next) => {
-      res.header('Access-Control-Allow-Origin', '*');
+      const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'];
+      const origin = req.headers.origin;
+      if (origin && allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+      }
       res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
       res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
       next();
@@ -530,7 +534,8 @@ export class RemoteScoreServer {
   }
 
   private generateRefereeCode(): string {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
+    const { randomBytes } = require('crypto');
+    return randomBytes(4).toString('hex').substring(0, 6).toUpperCase();
   }
 
   private initializeArenas(): void {
@@ -747,6 +752,12 @@ export class RemoteScoreServer {
   }
 
   public stop(): void {
+    // Nettoyer tous les timers d'arène
+    this.arenaTimers.forEach((timer) => {
+      clearInterval(timer);
+    });
+    this.arenaTimers.clear();
+
     if (this.server) {
       this.server.close();
       console.log('Remote score server stopped');

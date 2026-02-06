@@ -16,21 +16,14 @@ export interface Toast {
         onClick: () => void;
     };
 }
-interface ToastContextType {
-    toasts: Toast[];
-    addToast: (toast: Omit<Toast, 'id'>) => void;
-    removeToast: (id: string) => void;
-    clearToasts: () => void;
-}
-export declare const useToast: () => ToastContextType;
+export declare const useToast: () => any;
 export declare const ToastProvider: React.FC<{
     children: ReactNode;
 }>;
 export declare const useToastHelpers: () => {
-    success: (title: string, message?: string, options?: Partial<Omit<Toast, "id" | "type" | "title" | "message">>) => void;
-    error: (title: string, message?: string, options?: Partial<Omit<Toast, "id" | "type" | "title" | "message">>) => void;
-    warning: (title: string, message?: string, options?: Partial<Omit<Toast, "id" | "type" | "title" | "message">>) => void;
-    info: (title: string, message?: string, options?: Partial<Omit<Toast, "id" | "type" | "title" | "message">>) => void;
+    success: (title: string, message?: string, options?: Partial<Omit<Toast, "id" | "type" | "title" | "message">>) => any;
+    error: (title: string, message?: string, options?: Partial<Omit<Toast, "id" | "type" | "title" | "message">>) => any;
+    warning: (title: string, message?: string, options?: Partial<Omit<Toast, "id" | "type" | "title" | "message">>) => any;
+    info: (title: string, message?: string, options?: Partial<Omit<Toast, "id" | "type" | "title" | "message">>) => any;
 };
-export {};
 //# sourceMappingURL=EnhancedToast.d.ts.map
