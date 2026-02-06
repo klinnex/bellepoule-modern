@@ -34,10 +34,21 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: dev-latest
-          name: "🚀 BellePoule Modern - Development Build"
-          body: "Development build for testing.\n\nBranche: dev-1.1.1\n\nNouveautés:\n- Port configurable (défaut: 8066)\n- QR code pour connexion tablette\n- Affichage URL avec IP"
+          name: "🚀 BellePoule Modern - Development Build #${{ github.run_number }}"
+          body: |
+            Development build for testing.
+            
+            **Branche** : dev-1.1.1
+            **Build** : #${{ github.run_number }}
+            
+            ### 🆕 Nouveautés
+            - Port de connexion distante configurable (défaut: 8066)
+            - Génération de QR code pour connexion tablette
+            - Affichage de l'URL avec IP pour connexion facile
           files: release/*.AppImage
           draft: false
           prerelease: true
+          generate_release_notes: false
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
