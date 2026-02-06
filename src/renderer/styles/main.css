@@ -662,3 +662,65 @@ body {
   --color-border: #E5E7EB;
   --color-border-dark: #D1D5DB;
 }
+
+/* Remote Connection Styles */
+.remote-connection {
+  margin-bottom: 2rem;
+}
+
+.remote-connection h3 {
+  margin-bottom: 1rem;
+  color: var(--color-text);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.input-group .form-control {
+  flex: 1;
+}
+
+.connection-info {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: var(--color-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+
+.qr-code-section {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.qr-code-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qr-code-container img {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  background-color: white;
+}
+
+.qr-code-instructions {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  margin: 0;
+  max-width: 300px;
+}
+
+.text-muted {
+  color: var(--color-text-light);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}

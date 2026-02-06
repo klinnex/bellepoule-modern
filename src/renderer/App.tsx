@@ -32,6 +32,7 @@ const App: React.FC = () => {
   const [showReportIssueModal, setShowReportIssueModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [remoteServerStatus, setRemoteServerStatus] = useState({ isRunning: false, port: 8066 });
 
   // Load competitions on mount
   useEffect(() => {
@@ -41,6 +42,16 @@ const App: React.FC = () => {
     if (window.electronAPI) {
       window.electronAPI.onMenuNewCompetition(() => setShowNewCompetitionModal(true));
       window.electronAPI.onMenuReportIssue(() => setShowReportIssueModal(true));
+      
+      // Listen for remote server status changes
+      if (window.electronAPI.remote) {
+        window.electronAPI.remote.onServerStatusChanged((status) => {
+          setRemoteServerStatus(status);
+        });
+        
+        // Get initial status
+        window.electronAPI.remote.getServerStatus().then(setRemoteServerStatus);
+      }
       
       // Listen for file operations
       window.electronAPI.onFileOpened(async (filepath: string) => {
@@ -64,6 +75,43 @@ const App: React.FC = () => {
       }
     };
   }, []);
+
+  const handleRemotePortChange = async (port: number) => {
+    if (window.electronAPI?.remote) {
+      const result = await window.electronAPI.remote.setPort(port);
+      if (result.success) {
+        setRemoteServerStatus(prev => ({ ...prev, port }));
+        console.log(result.message);
+      } else {
+        console.error(result.message);
+      }
+    }
+  };
+
+  const handleStartRemoteServer = async () => {
+    if (window.electronAPI?.remote) {
+      const result = await window.electronAPI.remote.startServer();
+      if (result.success) {
+        const status = await window.electronAPI.remote.getServerStatus();
+        setRemoteServerStatus(status);
+        console.log(result.message);
+      } else {
+        console.error(result.message);
+      }
+    }
+  };
+
+  const handleStopRemoteServer = async () => {
+    if (window.electronAPI?.remote) {
+      const result = await window.electronAPI.remote.stopServer();
+      if (result.success) {
+        setRemoteServerStatus(prev => ({ ...prev, isRunning: false }));
+        console.log(result.message);
+      } else {
+        console.error(result.message);
+      }
+    }
+  };
 
   const loadCompetitions = async () => {
     setIsLoading(true);
@@ -424,6 +472,10 @@ const App: React.FC = () => {
         <SettingsModal
           onClose={() => setShowSettingsModal(false)}
           onSave={handleSettingsSave}
+          remoteServerSettings={remoteServerStatus}
+          onRemotePortChange={handleRemotePortChange}
+          onStartRemoteServer={handleStartRemoteServer}
+          onStopRemoteServer={handleStopRemoteServer}
         />
       )}
     </div>

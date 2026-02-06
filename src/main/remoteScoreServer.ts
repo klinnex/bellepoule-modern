@@ -36,7 +36,7 @@ export class RemoteScoreServer {
   private arenas: Map<string, Arena> = new Map();
   private arenaTimers: Map<string, NodeJS.Timeout> = new Map();
 
-  constructor(db: DatabaseManager, port: number = 3001) {
+  constructor(db: DatabaseManager, port: number = 8066) {
     this.db = db;
     this.port = port;
     this.app = express();

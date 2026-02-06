@@ -234,6 +234,14 @@ export interface MenuAPI {
   onAutosaveFailed: (callback: () => void) => void;
 }
 
+export interface RemoteAPI {
+  startServer: (port?: number) => Promise<{ success: boolean; message: string }>;
+  stopServer: () => Promise<{ success: boolean; message: string }>;
+  getServerStatus: () => Promise<{ isRunning: boolean; port: number }>;
+  setPort: (port: number) => Promise<{ success: boolean; message: string }>;
+  onServerStatusChanged: (callback: (status: { isRunning: boolean; port: number }) => void) => void;
+}
+
 export interface UtilityAPI {
   openExternal: (url: string) => Promise<void>;
   getVersionInfo: () => Promise<VersionInfo>;
@@ -244,4 +252,5 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   db: DatabaseAPI;
   file: FileAPI;
   dialog: DialogAPI;
+  remote: RemoteAPI;
 }

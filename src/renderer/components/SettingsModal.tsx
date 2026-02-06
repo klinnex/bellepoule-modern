@@ -6,25 +6,41 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import LanguageSelector from './LanguageSelector';
+import RemoteConnection from './RemoteConnection';
 
 interface SettingsModalProps {
   onClose: () => void;
   onSave: (settings: any) => void;
+  remoteServerSettings?: {
+    isRunning: boolean;
+    port: number;
+  };
+  onRemotePortChange?: (port: number) => void;
+  onStartRemoteServer?: () => void;
+  onStopRemoteServer?: () => void;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ 
+  onClose, 
+  onSave, 
+  remoteServerSettings,
+  onRemotePortChange,
+  onStartRemoteServer,
+  onStopRemoteServer 
+}) => {
   const { t, language, theme, changeLanguage, changeTheme } = useTranslation();
   const [settings, setSettings] = useState({
     language: language,
     theme: theme,
+    remotePort: remoteServerSettings?.port || 8066,
     // Ajouter d'autres paramètres ici
   });
 
   // Update local settings when global language/theme changes (e.g., from localStorage)
   useEffect(() => {
     console.log(`🔄 SettingsModal: Global language changed to ${language}, theme to ${theme}, updating local state`);
-    setSettings(prev => ({ ...prev, language, theme }));
-  }, [language, theme]);
+    setSettings(prev => ({ ...prev, language, theme, remotePort: remoteServerSettings?.port || 8066 }));
+  }, [language, theme, remoteServerSettings?.port]);
 
   const handleLanguageChange = (newLanguage: 'fr' | 'en' | 'br') => {
     console.log(`🔄 SettingsModal: Language selected: ${newLanguage} (current: ${settings.language})`);
@@ -51,6 +67,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
       changeTheme(settings.theme);
     } else {
       console.log(`🎨 SettingsModal: No theme change needed`);
+    }
+    
+    // Appliquer le changement de port
+    if (settings.remotePort !== remoteServerSettings?.port && onRemotePortChange) {
+      console.log(`🌐 SettingsModal: Applying remote port change from ${remoteServerSettings?.port} to ${settings.remotePort}`);
+      onRemotePortChange(settings.remotePort);
+    } else {
+      console.log(`🌐 SettingsModal: No remote port change needed`);
     }
     
     onSave(settings);
@@ -86,6 +110,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
               <option value="dark">Dark</option>
             </select>
           </div>
+        </div>
+        
+        {/* Section Connexion distante */}
+        <div className="modal-body">
+          <h4>{t('remote.sectionTitle')}</h4>
+          {remoteServerSettings && onRemotePortChange && onStartRemoteServer && onStopRemoteServer && (
+            <RemoteConnection
+              isServerRunning={remoteServerSettings.isRunning}
+              serverPort={remoteServerSettings.port}
+              onPortChange={onRemotePortChange}
+              onStartServer={onStartRemoteServer}
+              onStopServer={onStopRemoteServer}
+            />
+          )}
         </div>
         
         <div className="modal-footer">

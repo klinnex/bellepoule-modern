@@ -23,6 +23,7 @@ const db = new DatabaseManager();
 
 // Remote score server
 let remoteScoreServer: any = null;
+let remoteServerPort: number = 8066; // Port par défaut
 
 // Auto updater
 let autoUpdater: AutoUpdater | null = null;
@@ -298,13 +299,13 @@ function startRemoteScoreServer(): void {
   }
 
   try {
-    remoteScoreServer = new RemoteScoreServer(db, 3001);
+    remoteScoreServer = new RemoteScoreServer(db, 8066);
     remoteScoreServer.start();
     
     dialog.showMessageBox(mainWindow!, {
       type: 'info',
       title: 'Saisie distante démarrée',
-      message: 'Les arbitres peuvent maintenant se connecter sur http://localhost:3001',
+      message: 'Les arbitres peuvent maintenant se connecter sur http://localhost:8066',
       detail: 'Partagez cette URL avec les arbitres munis de tablettes.',
       buttons: ['OK'],
     });
@@ -577,6 +578,71 @@ ipcMain.handle('shell:openExternal', async (_, url: string) => {
 // App info handlers
 ipcMain.handle('app:getVersionInfo', async () => {
   return getVersionInfo();
+});
+
+// ============================================================================
+// Remote Server IPC Handlers
+// ============================================================================
+
+ipcMain.handle('remote:startServer', async (_, port?: number) => {
+  try {
+    if (remoteScoreServer) {
+      return { success: false, message: 'Le serveur est déjà démarré' };
+    }
+
+    const serverPort = port || remoteServerPort;
+    remoteScoreServer = new RemoteScoreServer(db, serverPort);
+    remoteScoreServer.start();
+    
+    // Notifier le renderer du changement de statut
+    if (mainWindow) {
+      mainWindow.webContents.send('remote:status-changed', { isRunning: true, port: serverPort });
+    }
+    
+    return { success: true, message: `Serveur démarré sur le port ${serverPort}` };
+  } catch (error) {
+    return { success: false, message: `Erreur: ${error}` };
+  }
+});
+
+ipcMain.handle('remote:stopServer', async () => {
+  try {
+    if (!remoteScoreServer) {
+      return { success: false, message: 'Le serveur n\'est pas démarré' };
+    }
+
+    remoteScoreServer.stop();
+    remoteScoreServer = null;
+    
+    // Notifier le renderer du changement de statut
+    if (mainWindow) {
+      mainWindow.webContents.send('remote:status-changed', { isRunning: false, port: remoteServerPort });
+    }
+    
+    return { success: true, message: 'Serveur arrêté' };
+  } catch (error) {
+    return { success: false, message: `Erreur: ${error}` };
+  }
+});
+
+ipcMain.handle('remote:getServerStatus', async () => {
+  return {
+    isRunning: remoteScoreServer !== null,
+    port: remoteServerPort
+  };
+});
+
+ipcMain.handle('remote:setPort', async (_, port: number) => {
+  if (port < 1 || port > 65535) {
+    return { success: false, message: 'Le port doit être entre 1 et 65535' };
+  }
+  
+  if (remoteScoreServer) {
+    return { success: false, message: 'Arrêtez le serveur avant de changer le port' };
+  }
+  
+  remoteServerPort = port;
+  return { success: true, message: `Port changé à ${port}` };
 });
 
 // ============================================================================
