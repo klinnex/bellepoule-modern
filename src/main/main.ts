@@ -433,7 +433,7 @@ async function handleImport(format: string): Promise<void> {
 
 function showAbout(): void {
   const versionInfo = getVersionInfo();
-  const buildDate = new Date(versionInfo.date).toLocaleDateString('fr-FR', {
+  const buildDate = new Date(versionInfo.date).toLocaleString('fr-FR', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -465,82 +465,45 @@ Pour signaler un bug, mentionnez:
 // IPC Handlers - Database Operations
 // ============================================================================
 
+// Helper pour envelopper les handlers IPC avec gestion d'erreurs
+function safeHandler<T>(handler: (...args: any[]) => T): (...args: any[]) => Promise<T> {
+  return async (...args: any[]) => {
+    try {
+      return await handler(...args);
+    } catch (error) {
+      console.error(`IPC handler error:`, error);
+      throw error instanceof Error ? error : new Error(String(error));
+    }
+  };
+}
+
 // Competition handlers
-ipcMain.handle('db:createCompetition', async (_, data) => {
-  return db.createCompetition(data);
-});
-
-ipcMain.handle('db:getCompetition', async (_, id) => {
-  return db.getCompetition(id);
-});
-
-ipcMain.handle('db:getAllCompetitions', async () => {
-  return db.getAllCompetitions();
-});
-
-ipcMain.handle('db:deleteCompetition', async (_, id) => {
-  return db.deleteCompetition(id);
-});
-
-ipcMain.handle('db:updateCompetition', async (_, id, updates) => {
-  return db.updateCompetition(id, updates);
-});
+ipcMain.handle('db:createCompetition', safeHandler((_, data) => db.createCompetition(data)));
+ipcMain.handle('db:getCompetition', safeHandler((_, id) => db.getCompetition(id)));
+ipcMain.handle('db:getAllCompetitions', safeHandler(() => db.getAllCompetitions()));
+ipcMain.handle('db:deleteCompetition', safeHandler((_, id) => db.deleteCompetition(id)));
+ipcMain.handle('db:updateCompetition', safeHandler((_, id, updates) => db.updateCompetition(id, updates)));
 
 // Fencer handlers
-ipcMain.handle('db:addFencer', async (_, competitionId, fencer) => {
-  return db.addFencer(competitionId, fencer);
-});
-
-ipcMain.handle('db:getFencer', async (_, id) => {
-  return db.getFencer(id);
-});
-
-ipcMain.handle('db:getFencersByCompetition', async (_, competitionId) => {
-  return db.getFencersByCompetition(competitionId);
-});
-
-ipcMain.handle('db:updateFencer', async (_, id, updates) => {
-  return db.updateFencer(id, updates);
-});
-
-ipcMain.handle('db:deleteFencer', async (_, id) => {
-  return db.deleteFencer(id);
-});
+ipcMain.handle('db:addFencer', safeHandler((_, competitionId, fencer) => db.addFencer(competitionId, fencer)));
+ipcMain.handle('db:getFencer', safeHandler((_, id) => db.getFencer(id)));
+ipcMain.handle('db:getFencersByCompetition', safeHandler((_, competitionId) => db.getFencersByCompetition(competitionId)));
+ipcMain.handle('db:updateFencer', safeHandler((_, id, updates) => db.updateFencer(id, updates)));
+ipcMain.handle('db:deleteFencer', safeHandler((_, id) => db.deleteFencer(id)));
 
 // Match handlers
-ipcMain.handle('db:createMatch', async (_, match, poolId) => {
-  return db.createMatch(match, poolId);
-});
-
-ipcMain.handle('db:getMatch', async (_, id) => {
-  return db.getMatch(id);
-});
-
-ipcMain.handle('db:getMatchesByPool', async (_, poolId) => {
-  return db.getMatchesByPool(poolId);
-});
-
-ipcMain.handle('db:updateMatch', async (_, id, updates) => {
-  return db.updateMatch(id, updates);
-});
+ipcMain.handle('db:createMatch', safeHandler((_, match, poolId) => db.createMatch(match, poolId)));
+ipcMain.handle('db:getMatch', safeHandler((_, id) => db.getMatch(id)));
+ipcMain.handle('db:getMatchesByPool', safeHandler((_, poolId) => db.getMatchesByPool(poolId)));
+ipcMain.handle('db:updateMatch', safeHandler((_, id, updates) => db.updateMatch(id, updates)));
 
 // Session State handlers
-ipcMain.handle('db:saveSessionState', async (_, competitionId, state) => {
-  return db.saveSessionState(competitionId, state);
-});
-
-ipcMain.handle('db:getSessionState', async (_, competitionId) => {
-  return db.getSessionState(competitionId);
-});
-
-ipcMain.handle('db:clearSessionState', async (_, competitionId) => {
-  return db.clearSessionState(competitionId);
-});
+ipcMain.handle('db:saveSessionState', safeHandler((_, competitionId, state) => db.saveSessionState(competitionId, state)));
+ipcMain.handle('db:getSessionState', safeHandler((_, competitionId) => db.getSessionState(competitionId)));
+ipcMain.handle('db:clearSessionState', safeHandler((_, competitionId) => db.clearSessionState(competitionId)));
 
 // Pool handlers
-ipcMain.handle('db:updatePool', async (_, pool) => {
-  return db.updatePool(pool);
-});
+ipcMain.handle('db:updatePool', safeHandler((_, pool) => db.updatePool(pool)));
 // ipcMain.handle('db:createPool', async (_, phaseId, number) => {
 //   return db.createPool(phaseId, number);
 // });

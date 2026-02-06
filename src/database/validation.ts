@@ -302,7 +302,16 @@ export const validateSessionState = (state: any): void => {
 // ============================================================================
 
 export const sanitizeString = (value: string): string => {
-  return value.trim().replace(/[<>]/g, ''); // Remove potential HTML tags
+  return value.trim().replace(/[&<>"']/g, (char) => {
+    const entities: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    };
+    return entities[char] || char;
+  });
 };
 
 export const sanitizeId = (value: string): string => {

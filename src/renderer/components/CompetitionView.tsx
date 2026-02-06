@@ -124,7 +124,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
       const state = await window.electronAPI.db.getSessionState(competition.id);
       if (state) {
         // Convertir number en Phase depuis SessionState
-        const phaseMap = ['checkin', 'pools', 'ranking', 'tableau', 'results'] as const;
+        const phaseMap = ['checkin', 'pools', 'ranking', 'tableau', 'results', 'remote'] as const;
         const currentPhase = phaseMap[state.currentPhase || 0];
         
         if (currentPhase) setCurrentPhase(currentPhase);
@@ -547,16 +547,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     }
   };
 
-  const handleCheckInAll = () => {
+  const handleCheckInAll = async () => {
     const notCheckedInFencers = fencers.filter(f => f.status === FencerStatus.NOT_CHECKED_IN);
-    const updatedFencers = fencers.map(fencer => 
-      fencer.status === FencerStatus.NOT_CHECKED_IN 
+    const updatedFencers = fencers.map(fencer =>
+      fencer.status === FencerStatus.NOT_CHECKED_IN
         ? { ...fencer, status: FencerStatus.CHECKED_IN }
         : fencer
     );
     setFencers(updatedFencers);
     onUpdate({ ...competition, fencers: updatedFencers } as any);
-    
+
     // Update database
     const updatePromises = notCheckedInFencers.map(async (fencer) => {
       try {
@@ -567,19 +567,19 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
         console.error(`Failed to check in fencer ${fencer.id}:`, error);
       }
     });
-    Promise.allSettled(updatePromises);
+    await Promise.allSettled(updatePromises);
   };
 
-  const handleUncheckAll = () => {
+  const handleUncheckAll = async () => {
     const checkedInFencers = fencers.filter(f => f.status === FencerStatus.CHECKED_IN);
-    const updatedFencers = fencers.map(fencer => 
-      fencer.status === FencerStatus.CHECKED_IN 
+    const updatedFencers = fencers.map(fencer =>
+      fencer.status === FencerStatus.CHECKED_IN
         ? { ...fencer, status: FencerStatus.NOT_CHECKED_IN }
         : fencer
     );
     setFencers(updatedFencers);
     onUpdate({ ...competition, fencers: updatedFencers } as any);
-    
+
     // Update database
     const updatePromises = checkedInFencers.map(async (fencer) => {
       try {
@@ -590,7 +590,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
         console.error(`Failed to uncheck fencer ${fencer.id}:`, error);
       }
     });
-    Promise.allSettled(updatePromises);
+    await Promise.allSettled(updatePromises);
   };
 
   const getCheckedInFencers = () => fencers.filter(f => f.status === FencerStatus.CHECKED_IN);
