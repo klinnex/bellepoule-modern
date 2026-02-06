@@ -40,7 +40,7 @@ const TableauView: React.FC<TableauViewProps> = ({
   ranking, 
   matches, 
   onMatchesChange, 
-  maxScore = 15, 
+  maxScore = 999, 
   onComplete,
   thirdPlaceMatch = false
 }) => {
