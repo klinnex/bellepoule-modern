@@ -6,8 +6,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-dev-release:
+  build-dev:
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Timeout plus court pour éviter les problèmes
     permissions:
       contents: write
 
@@ -20,24 +21,13 @@ jobs:
           node-version: '20'
 
       - name: Install Dependencies
-        run: npm install
+        run: npm install --production  # Installation plus rapide
 
-      - name: Install Wine (for Windows builds)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wine
-
-      - name: Build TypeScript and Webpack
+      - name: Build
         run: npm run build
 
-      # Build Windows
-      - name: Build Windows
-        run: npx electron-builder --win portable --x64
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Build Linux x64
-      - name: Build Linux x64
+      # Build Linux uniquement (pas besoin de Wine)
+      - name: Build Linux
         run: npx electron-builder --linux AppImage --x64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,33 +36,31 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: dev-latest
-          name: "🚀 BellePoule Modern - Development Build (dev-1.1.1)"
+          name: "🚀 BellePoule Modern - Development Build"
           body: |
             ## 🛠️ Development Build
             
             **Branche** : `dev-1.1.1`
             
-            Ceci est une version de développement contenant les dernières fonctionnalités en cours de test.
+            Version de développement rapide - Linux uniquement.
             
-            ### 📥 Téléchargements
-            | Plateforme | Architecture | Fichier |
-            |------------|--------------|---------|
-            | **Windows** | x64 | `.exe` portable |
-            | **Linux** | x64 | `.AppImage` |
+            ### 📥 Téléchargement
+            | Plateforme | Fichier |
+            |------------|---------|
+            | **Linux** | `.AppImage` |
             
-            ### ⚠️ Notes importantes
+            ### ⚠️ Notes
             - Version de développement : peut contenir des bugs
-            - Sauvegardez vos données importantes avant utilisation
             - Reportez les problèmes sur GitHub Issues
             
-            ### 🆕 Nouveautés dans cette version
+            ### 🆕 Nouveautés
             - Port de connexion distante configurable (défaut: 8066)
             - Génération de QR code pour connexion tablette
             - Affichage de l'URL avec IP pour connexion facile
           files: |
-            release/*.exe
             release/*.AppImage
           draft: false
           prerelease: true
+          generate_release_notes: false  # Plus rapide
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
