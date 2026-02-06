@@ -1,0 +1,55 @@
+name: Build Dev Release (Clean)
+
+on:
+  push:
+    branches: [dev-1.1.1]
+  workflow_dispatch:
+
+jobs:
+  build-dev-clean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and Build
+        run: |
+          npm ci --silent
+          npm run build
+
+      - name: Build Linux
+        run: |
+          npx electron-builder --linux AppImage --x64 --publish=never
+
+      - name: Delete Old Release
+        run: |
+          gh release delete dev-latest --yes || true
+
+      - name: Create New Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: dev-latest
+          name: "🚀 BellePoule Modern - Dev Build #${{ github.run_number }}"
+          body: |
+            ## Development Build
+            
+            **Branch**: dev-1.1.1
+            **Build**: #${{ github.run_number }}
+            
+            ### 🆕 Features
+            - Port configurable (8066)
+            - QR code for tablet connection
+            - URL with IP display
+          draft: false
+          prerelease: true
+          files: release/*.AppImage
