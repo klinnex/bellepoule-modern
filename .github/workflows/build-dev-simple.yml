@@ -1,0 +1,43 @@
+name: Build Dev Release (Simple)
+
+on:
+  push:
+    branches: [dev-1.1.1]
+  workflow_dispatch:
+
+jobs:
+  build-dev-simple:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and Build
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+      - name: Build Linux Only
+        run: npx electron-builder --linux AppImage --x64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: dev-latest
+          name: "🚀 BellePoule Modern - Development Build"
+          body: "Development build for testing.\n\nBranche: dev-1.1.1\n\nNouveautés:\n- Port configurable (défaut: 8066)\n- QR code pour connexion tablette\n- Affichage URL avec IP"
+          files: release/*.AppImage
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
