@@ -1,0 +1,88 @@
+name: Build Dev Release
+
+on:
+  push:
+    branches: [dev-1.1.1]
+  workflow_dispatch:
+
+jobs:
+  build-dev-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build TypeScript and Webpack
+        run: npm run build
+
+      # Build Windows
+      - name: Build Windows
+        run: npx electron-builder --win portable --x64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build macOS
+      - name: Build macOS
+        run: npx electron-builder --mac --x64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build Linux x64
+      - name: Build Linux x64
+        run: npx electron-builder --linux AppImage --x64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build Linux ARM64
+      - name: Build Linux ARM64
+        run: npx electron-builder --linux AppImage --arm64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Dev Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: dev-latest
+          name: "🚀 BellePoule Modern - Development Build (dev-1.1.1)"
+          body: |
+            ## 🛠️ Development Build
+            
+            **Branche** : `dev-1.1.1`
+            
+            Ceci est une version de développement contenant les dernières fonctionnalités en cours de test.
+            
+            ### 📥 Téléchargements
+            | Plateforme | Architecture | Fichier |
+            |------------|--------------|---------|
+            | **Windows** | x64 | `.exe` portable |
+            | **macOS** | x64 | `.dmg` |
+            | **Linux** | x64 | `.AppImage` |
+            | **Linux** | ARM64 | `.AppImage` (Raspberry Pi, etc.) |
+            
+            ### ⚠️ Notes importantes
+            - Version de développement : peut contenir des bugs
+            - Sauvegardez vos données importantes avant utilisation
+            - Reportez les problèmes sur GitHub Issues
+            
+            ### 🆕 Nouveautés dans cette version
+            - Port de connexion distante configurable (défaut: 8066)
+            - Génération de QR code pour connexion tablette
+            - Affichage de l'URL avec IP pour connexion facile
+          files: |
+            release/*.exe
+            release/*.dmg
+            release/*.AppImage
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
