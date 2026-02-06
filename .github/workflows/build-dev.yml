@@ -22,30 +22,18 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Install Wine (for Windows builds)
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y wine32 wine64
+
       - name: Build TypeScript and Webpack
         run: npm run build
 
-      # Build Windows
-      - name: Build Windows
-        run: npx electron-builder --win portable --x64
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Build macOS
-      - name: Build macOS
-        run: npx electron-builder --mac --x64
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Build Linux x64
+      # Build Linux x64 (quick test)
       - name: Build Linux x64
         run: npx electron-builder --linux AppImage --x64
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Build Linux ARM64
-      - name: Build Linux ARM64
-        run: npx electron-builder --linux AppImage --arm64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -64,10 +52,9 @@ jobs:
             ### 📥 Téléchargements
             | Plateforme | Architecture | Fichier |
             |------------|--------------|---------|
-            | **Windows** | x64 | `.exe` portable |
-            | **macOS** | x64 | `.dmg` |
             | **Linux** | x64 | `.AppImage` |
-            | **Linux** | ARM64 | `.AppImage` (Raspberry Pi, etc.) |
+            
+            **Note :** Version de développement rapide - Linux uniquement pour le moment
             
             ### ⚠️ Notes importantes
             - Version de développement : peut contenir des bugs
@@ -79,8 +66,6 @@ jobs:
             - Génération de QR code pour connexion tablette
             - Affichage de l'URL avec IP pour connexion facile
           files: |
-            release/*.exe
-            release/*.dmg
             release/*.AppImage
           draft: false
           prerelease: true
