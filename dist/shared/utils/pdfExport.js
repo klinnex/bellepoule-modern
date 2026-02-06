@@ -97,7 +97,7 @@ class OptimizedPDFExporter {
         return {
             index: index + 1,
             fencerA: `${match.fencerA?.lastName || 'N/A'} ${match.fencerA?.firstName?.charAt(0) || ''}.`,
-            fencerB: `${match.fencerB?.firstName?.charAt(0) || ''}. ${match.fencerB?.lastName || 'N/A'}`,
+            fencerB: `${match.fencerB?.lastName || 'N/A'} ${match.fencerB?.firstName?.charAt(0) || ''}.`,
             scoreA,
             scoreB
         };

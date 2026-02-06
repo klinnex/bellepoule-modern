@@ -1,14 +1,6 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const jsx_runtime_1 = require("react/jsx-runtime");
-/**
- * BellePoule Modern - Competition List Component
- * Licensed under GPL-3.0
- */
-const react_1 = __importDefault(require("react"));
 const useTranslation_1 = require("../hooks/useTranslation");
 const CompetitionList = ({ competitions, isLoading, onSelect, onDelete, onNewCompetition }) => {
     const { t } = (0, useTranslation_1.useTranslation)();

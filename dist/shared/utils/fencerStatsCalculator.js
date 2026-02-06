@@ -116,13 +116,13 @@ class FencerStatsCalculator {
      * Calcule les points Quest selon l'écart de score
      */
     static calculateQuestPoints(myScore, oppScore) {
-        const diff = Math.abs(myScore - oppScore);
+        const diff = myScore - oppScore;
+        if (diff >= 12)
+            return 4; // Écart très important (≥12 points)
         if (diff >= 8)
-            return 4; // Écart très grand (≥8 points)
-        if (diff >= 6)
-            return 3; // Écart grand (6-7 points)
+            return 3; // Écart important (8-11 points)
         if (diff >= 4)
-            return 2; // Écart moyen (4-5 points)
+            return 2; // Écart moyen (4-7 points)
         return 1; // Écart faible (≤3 points)
     }
 }

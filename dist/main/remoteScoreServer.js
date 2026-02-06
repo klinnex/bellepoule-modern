@@ -26,7 +26,7 @@ class RemoteScoreServer {
         this.server = (0, http_1.createServer)(this.app);
         this.io = new socket_io_1.Server(this.server, {
             cors: {
-                origin: "*",
+                origin: ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],
                 methods: ["GET", "POST"]
             }
         });
@@ -39,7 +39,11 @@ class RemoteScoreServer {
         this.app.use(express_1.default.json());
         this.app.use(express_1.default.static(path_1.default.join(__dirname, '../remote')));
         this.app.use((req, res, next) => {
-            res.header('Access-Control-Allow-Origin', '*');
+            const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'];
+            const origin = req.headers.origin;
+            if (origin && allowedOrigins.includes(origin)) {
+                res.header('Access-Control-Allow-Origin', origin);
+            }
             res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
             res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
             next();
@@ -448,7 +452,8 @@ class RemoteScoreServer {
         }
     }
     generateRefereeCode() {
-        return Math.random().toString(36).substring(2, 8).toUpperCase();
+        const { randomBytes } = require('crypto');
+        return randomBytes(4).toString('hex').substring(0, 6).toUpperCase();
     }
     initializeArenas() {
         // Créer 4 arènes par défaut
@@ -632,6 +637,11 @@ class RemoteScoreServer {
         });
     }
     stop() {
+        // Nettoyer tous les timers d'arène
+        this.arenaTimers.forEach((timer) => {
+            clearInterval(timer);
+        });
+        this.arenaTimers.clear();
         if (this.server) {
             this.server.close();
             console.log('Remote score server stopped');

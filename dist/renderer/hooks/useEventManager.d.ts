@@ -4,19 +4,19 @@
  * Licensed under GPL-3.0
  */
 export declare const useEventManager: () => {
-    addEventListener: any;
-    removeEventListener: any;
-    setTimeout: any;
-    setInterval: any;
-    clearTimeout: any;
-    clearInterval: any;
-    cleanup: any;
+    addEventListener: (element: EventTarget, event: string, handler: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions) => void;
+    removeEventListener: (element: EventTarget, event: string, handler: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions) => void;
+    setTimeout: (callback: () => void, delay: number) => number;
+    setInterval: (callback: () => void, delay: number) => number;
+    clearTimeout: (id: number) => void;
+    clearInterval: (id: number) => void;
+    cleanup: () => void;
 };
 export declare const useKeyboardEvents: (keyMap: Record<string, () => void>, dependencies?: any[]) => void;
 export declare const useWindowResize: (handler: () => void, debounceMs?: number) => void;
 export declare const useAutoSave: (saveFunction: () => Promise<void>, intervalMs?: number) => {
-    startAutoSave: any;
-    stopAutoSave: any;
+    startAutoSave: () => void;
+    stopAutoSave: () => void;
 };
 export declare const useIPCEvents: (eventHandlers: Record<string, (...args: any[]) => void>) => void;
 //# sourceMappingURL=useEventManager.d.ts.map

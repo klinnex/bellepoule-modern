@@ -2,18 +2,18 @@
  * BellePoule Modern - Internationalization Hook
  * Licensed under GPL-3.0
  */
-export type Language = 'fr' | 'en' | 'br';
+export type Language = 'fr' | 'en' | 'br' | 'eu';
 export type TranslationKey = string;
 export type Theme = 'light' | 'dark' | 'default';
 export declare const useTranslation: () => {
-    language: any;
-    theme: any;
+    language: Language;
+    theme: Theme;
     changeLanguage: (newLanguage: Language) => Promise<void>;
     changeTheme: (newTheme: Theme) => void;
     t: (key: TranslationKey, params?: {
         [key: string]: string | number;
     }) => string;
-    isLoading: any;
+    isLoading: boolean;
     availableLanguages: readonly [{
         readonly code: "fr";
         readonly name: "Français";
@@ -24,8 +24,12 @@ export declare const useTranslation: () => {
         readonly flag: "🇺🇸";
     }, {
         readonly code: "br";
-        readonly name: "Breton";
+        readonly name: "Brezhoneg";
         readonly flag: "🇫🇷";
+    }, {
+        readonly code: "eu";
+        readonly name: "Euskara";
+        readonly flag: "🇪🇸";
     }];
     availableThemes: readonly [{
         readonly code: "default";

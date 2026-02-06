@@ -73568,12 +73568,13 @@ const CompetitionView = ({ competition, onUpdate }) => {
     const [changePoolData, setChangePoolData] = (0, react_1.useState)(null);
     const [isLoaded, setIsLoaded] = (0, react_1.useState)(false);
     const [isRemoteActive, setIsRemoteActive] = (0, react_1.useState)(false);
+    const [showThirdPlaceDialog, setShowThirdPlaceDialog] = (0, react_1.useState)(false);
     // Récupérer les settings avec valeurs par défaut
     const poolRounds = competition.settings?.poolRounds ?? 1;
     const hasDirectElimination = competition.settings?.hasDirectElimination ?? true;
     const thirdPlaceMatch = competition.settings?.thirdPlaceMatch ?? false;
     const poolMaxScore = competition.settings?.defaultPoolMaxScore ?? 21;
-    const tableMaxScore = competition.settings?.defaultTableMaxScore ?? 0;
+    const tableMaxScore = competition.settings?.defaultTableMaxScore ?? 15;
     const isLaserSabre = competition.weapon === types_1.Weapon.LASER;
     // Export all pools to PDF
     const handleExportAllPoolsPDF = async () => {
@@ -73630,7 +73631,7 @@ const CompetitionView = ({ competition, onUpdate }) => {
             const state = await window.electronAPI.db.getSessionState(competition.id);
             if (state) {
                 // Convertir number en Phase depuis SessionState
-                const phaseMap = ['checkin', 'pools', 'ranking', 'tableau', 'results'];
+                const phaseMap = ['checkin', 'pools', 'ranking', 'tableau', 'results', 'remote'];
                 const currentPhase = phaseMap[state.currentPhase || 0];
                 if (currentPhase)
                     setCurrentPhase(currentPhase);
@@ -74009,7 +74010,7 @@ const CompetitionView = ({ competition, onUpdate }) => {
             showToast(`Erreur de mise à jour du statut: ${errorMessage}`, 'error');
         }
     };
-    const handleCheckInAll = () => {
+    const handleCheckInAll = async () => {
         const notCheckedInFencers = fencers.filter(f => f.status === types_1.FencerStatus.NOT_CHECKED_IN);
         const updatedFencers = fencers.map(fencer => fencer.status === types_1.FencerStatus.NOT_CHECKED_IN
             ? { ...fencer, status: types_1.FencerStatus.CHECKED_IN }
@@ -74027,9 +74028,9 @@ const CompetitionView = ({ competition, onUpdate }) => {
                 console.error(`Failed to check in fencer ${fencer.id}:`, error);
             }
         });
-        Promise.allSettled(updatePromises);
+        await Promise.allSettled(updatePromises);
     };
-    const handleUncheckAll = () => {
+    const handleUncheckAll = async () => {
         const checkedInFencers = fencers.filter(f => f.status === types_1.FencerStatus.CHECKED_IN);
         const updatedFencers = fencers.map(fencer => fencer.status === types_1.FencerStatus.CHECKED_IN
             ? { ...fencer, status: types_1.FencerStatus.NOT_CHECKED_IN }
@@ -74047,7 +74048,7 @@ const CompetitionView = ({ competition, onUpdate }) => {
                 console.error(`Failed to uncheck fencer ${fencer.id}:`, error);
             }
         });
-        Promise.allSettled(updatePromises);
+        await Promise.allSettled(updatePromises);
     };
     const getCheckedInFencers = () => fencers.filter(f => f.status === types_1.FencerStatus.CHECKED_IN);
     const handleGeneratePools = () => {
@@ -74232,10 +74233,10 @@ const CompetitionView = ({ competition, onUpdate }) => {
         // Calculer le classement général à partir de toutes les poules
         const ranking = computeOverallRanking(pools);
         setOverallRanking(ranking);
-        // Demander si l'utilisateur veut un match pour la 3ème place
-        const shouldHaveThirdPlace = window.confirm(t('competition.third_place_match_dialog') + '\n\n' +
-            t('competition.third_place_match_ok') + '\n' +
-            t('competition.third_place_match_cancel'));
+        // Afficher le dialogue personnalisé pour le match de 3ème place
+        setShowThirdPlaceDialog(true);
+    };
+    const handleThirdPlaceDecision = (shouldHaveThirdPlace) => {
         // Mettre à jour le paramètre thirdPlaceMatch dans la compétition
         const updatedCompetition = {
             ...competition,
@@ -74254,6 +74255,7 @@ const CompetitionView = ({ competition, onUpdate }) => {
         // Réinitialiser le tableau pour qu'il soit régénéré avec le nouveau classement
         setTableauMatches([]);
         setCurrentPhase('tableau');
+        setShowThirdPlaceDialog(false);
     };
     const handleNextPoolRound = () => {
         // Sauvegarder les poules actuelles dans l'historique
@@ -74398,10 +74400,28 @@ const CompetitionView = ({ competition, onUpdate }) => {
                                         }, children: "\uD83D\uDCC4 Exporter toutes les poules en PDF" }) })), (0, jsx_runtime_1.jsx)("div", { style: { display: 'grid', gap: '2rem', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }, children: pools.map((pool, poolIndex) => ((0, jsx_runtime_1.jsx)(PoolView_1.default, { pool: pool, weapon: competition.weapon, maxScore: poolMaxScore, onScoreUpdate: (matchIndex, scoreA, scoreB, winnerOverride) => handleScoreUpdate(poolIndex, matchIndex, scoreA, scoreB, winnerOverride), onFencerChangePool: pools.length > 1 ? (fencer) => setChangePoolData({ fencer, poolIndex }) : undefined }, pool.id))) })] })) })), currentPhase === 'ranking' && ((0, jsx_runtime_1.jsx)(PoolRankingView_1.default, { pools: pools, weapon: competition.weapon, hasDirectElimination: hasDirectElimination, onGoToTableau: handleGoToTableau, onGoToResults: handleGoToResults, onExport: (format) => {
                             // Implémentation de l'export
                             showToast(`Export ${format.toUpperCase()} à implémenter`, 'info');
-                        } })), currentPhase === 'tableau' && ((0, jsx_runtime_1.jsx)(TableauView_1.default, { ranking: overallRanking, matches: tableauMatches, onMatchesChange: setTableauMatches, maxScore: tableMaxScore || 15, thirdPlaceMatch: thirdPlaceMatch, onComplete: (results) => {
+                        } })), currentPhase === 'tableau' && ((0, jsx_runtime_1.jsx)(TableauView_1.default, { ranking: overallRanking, matches: tableauMatches, onMatchesChange: setTableauMatches, maxScore: tableMaxScore === 0 ? 999 : tableMaxScore, thirdPlaceMatch: thirdPlaceMatch, onComplete: (results) => {
                             setFinalResults(results);
                             setCurrentPhase('results');
-                        } })), currentPhase === 'results' && ((0, jsx_runtime_1.jsx)(ResultsView_1.default, { competition: competition, poolRanking: overallRanking, finalResults: finalResults })), currentPhase === 'remote' && ((0, jsx_runtime_1.jsx)(RemoteScoreManager_1.default, { competition: competition, onStartRemote: () => setIsRemoteActive(true), onStopRemote: () => setIsRemoteActive(false), isRemoteActive: isRemoteActive }))] }), showAddFencerModal && (0, jsx_runtime_1.jsx)(AddFencerModal_1.default, { onClose: () => setShowAddFencerModal(false), onAdd: handleAddFencer }), showPropertiesModal && ((0, jsx_runtime_1.jsx)(CompetitionPropertiesModal_1.default, { competition: competition, onSave: handleUpdateCompetition, onClose: () => setShowPropertiesModal(false) })), importData && ((0, jsx_runtime_1.jsx)(ImportModal_1.default, { format: importData.format, filepath: importData.filepath, content: importData.content, onImport: handleImportFencers, onClose: () => setImportData(null) })), changePoolData && ((0, jsx_runtime_1.jsx)(ChangePoolModal_1.default, { fencer: changePoolData.fencer, currentPool: pools[changePoolData.poolIndex], allPools: pools, onMove: handleMoveFencer, onClose: () => setChangePoolData(null) }))] }));
+                        } })), currentPhase === 'results' && ((0, jsx_runtime_1.jsx)(ResultsView_1.default, { competition: competition, poolRanking: overallRanking, finalResults: finalResults })), currentPhase === 'remote' && ((0, jsx_runtime_1.jsx)(RemoteScoreManager_1.default, { competition: competition, onStartRemote: () => setIsRemoteActive(true), onStopRemote: () => setIsRemoteActive(false), isRemoteActive: isRemoteActive }))] }), showAddFencerModal && (0, jsx_runtime_1.jsx)(AddFencerModal_1.default, { onClose: () => setShowAddFencerModal(false), onAdd: handleAddFencer }), showPropertiesModal && ((0, jsx_runtime_1.jsx)(CompetitionPropertiesModal_1.default, { competition: competition, onSave: handleUpdateCompetition, onClose: () => setShowPropertiesModal(false) })), importData && ((0, jsx_runtime_1.jsx)(ImportModal_1.default, { format: importData.format, filepath: importData.filepath, content: importData.content, onImport: handleImportFencers, onClose: () => setImportData(null) })), changePoolData && ((0, jsx_runtime_1.jsx)(ChangePoolModal_1.default, { fencer: changePoolData.fencer, currentPool: pools[changePoolData.poolIndex], allPools: pools, onMove: handleMoveFencer, onClose: () => setChangePoolData(null) })), showThirdPlaceDialog && ((0, jsx_runtime_1.jsx)("div", { style: {
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }, children: (0, jsx_runtime_1.jsxs)("div", { style: {
+                        backgroundColor: 'white',
+                        padding: '2rem',
+                        borderRadius: '8px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
+                        maxWidth: '500px',
+                        width: '90%'
+                    }, children: [(0, jsx_runtime_1.jsx)("h3", { style: { margin: '0 0 1rem 0', color: '#1f2937' }, children: t('competition.third_place_match_dialog') }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }, children: [(0, jsx_runtime_1.jsx)("button", { className: "btn btn-secondary", onClick: () => handleThirdPlaceDecision(false), style: { minWidth: '80px' }, children: "Non" }), (0, jsx_runtime_1.jsx)("button", { className: "btn btn-primary", onClick: () => handleThirdPlaceDecision(true), style: { minWidth: '80px' }, children: "Oui" })] })] }) }))] }));
 };
 exports["default"] = CompetitionView;
 
@@ -74768,53 +74788,10 @@ const Toast_1 = __webpack_require__(/*! ./Toast */ "./src/renderer/components/To
 const PoolRankingView = ({ pools, weapon, onGoToTableau, onGoToResults, hasDirectElimination = true, onExport }) => {
     const { showToast } = (0, Toast_1.useToast)();
     const isLaserSabre = weapon === 'L';
-    // Calculer le classement général
+    // Calculer le classement général selon le type d'arme
     const overallRanking = (0, react_1.useMemo)(() => {
-        const allRankings = [];
-        pools.forEach(pool => {
-            pool.ranking.forEach((r, index) => {
-                allRankings.push({
-                    ...r,
-                    rank: 0 // Sera recalculé
-                });
-            });
-        });
-        // Trier selon les critères FIE
-        allRankings.sort((a, b) => {
-            // 1. Ratio V/M (victoires/matchs)
-            if (a.ratio !== b.ratio)
-                return b.ratio - a.ratio;
-            // 2. Indice (TD - TR)
-            if (a.index !== b.index)
-                return b.index - a.index;
-            // 3. Touches données (TD)
-            if (a.touchesScored !== b.touchesScored)
-                return b.touchesScored - a.touchesScored;
-            // 4. Confrontation directe (pas géré ici pour simplifier)
-            return 0;
-        });
-        // Attribuer les rangs
-        let currentRank = 1;
-        allRankings.forEach((ranking, index) => {
-            if (index > 0) {
-                const prev = allRankings[index - 1];
-                // Même rang si mêmes stats que le précédent
-                if (ranking.ratio === prev.ratio &&
-                    ranking.index === prev.index &&
-                    ranking.touchesScored === prev.touchesScored) {
-                    ranking.rank = prev.rank;
-                }
-                else {
-                    ranking.rank = currentRank;
-                }
-            }
-            else {
-                ranking.rank = 1;
-            }
-            currentRank++;
-        });
-        return allRankings;
-    }, [pools]);
+        return isLaserSabre ? (0, poolCalculations_1.calculateOverallRankingQuest)(pools) : (0, poolCalculations_1.calculateOverallRanking)(pools);
+    }, [pools, isLaserSabre]);
     const handleExport = (format) => {
         if (onExport) {
             onExport(format);
@@ -75819,12 +75796,25 @@ const jsx_runtime_1 = __webpack_require__(/*! react/jsx-runtime */ "./node_modul
  */
 const react_1 = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 const Toast_1 = __webpack_require__(/*! ./Toast */ "./src/renderer/components/Toast.tsx");
-const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onComplete, thirdPlaceMatch = false }) => {
+const useModalResize_1 = __webpack_require__(/*! ../hooks/useModalResize */ "./src/renderer/hooks/useModalResize.ts");
+const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 999, onComplete, thirdPlaceMatch = false }) => {
     const { showToast } = (0, Toast_1.useToast)();
     const [tableauSize, setTableauSize] = (0, react_1.useState)(0);
     const [editingMatch, setEditingMatch] = (0, react_1.useState)(null);
     const [tempScoreA, setTempScoreA] = (0, react_1.useState)('');
     const [tempScoreB, setTempScoreB] = (0, react_1.useState)('');
+    const [showScoreModal, setShowScoreModal] = (0, react_1.useState)(false);
+    const [editScoreA, setEditScoreA] = (0, react_1.useState)('');
+    const [editScoreB, setEditScoreB] = (0, react_1.useState)('');
+    const [victoryA, setVictoryA] = (0, react_1.useState)(false);
+    const [victoryB, setVictoryB] = (0, react_1.useState)(false);
+    const isUnlimitedScore = maxScore === 999;
+    const { modalRef, dimensions } = (0, useModalResize_1.useModalResize)({
+        defaultWidth: 800,
+        defaultHeight: 350,
+        minWidth: 600,
+        minHeight: 300
+    });
     (0, react_1.useEffect)(() => {
         if (ranking.length > 0) {
             // Vérifier si le tableau existant correspond au classement actuel
@@ -75966,10 +75956,34 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
             });
             currentRound = nextRound;
         }
+        // Gérer le match de 3ème place si activé
+        if (thirdPlaceMatch && size >= 4) {
+            const thirdPlaceMatch = matchList.find(m => m.round === 3);
+            const semiFinalMatches = matchList.filter(m => m.round === 4);
+            if (thirdPlaceMatch && semiFinalMatches.length === 2) {
+                // Assigner les perdants des demi-finales au match de 3ème place
+                const losers = [];
+                semiFinalMatches.forEach(semiFinal => {
+                    if (semiFinal.winner) {
+                        const loser = semiFinal.fencerA?.id === semiFinal.winner.id
+                            ? semiFinal.fencerB
+                            : semiFinal.fencerA;
+                        if (loser)
+                            losers.push(loser);
+                    }
+                });
+                if (losers.length === 2) {
+                    thirdPlaceMatch.fencerA = losers[0];
+                    thirdPlaceMatch.fencerB = losers[1];
+                }
+            }
+        }
     };
     const getRoundName = (round) => {
         if (round === 2)
             return 'Finale';
+        if (round === 3)
+            return 'Petite finale (3ème place)';
         if (round === 4)
             return 'Demi-finales';
         if (round === 8)
@@ -75982,45 +75996,99 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
             return 'Tableau de 64';
         return `Tableau de ${round}`;
     };
-    const handleScoreSubmit = (matchId) => {
-        const scoreA = parseInt(tempScoreA) || 0;
-        const scoreB = parseInt(tempScoreB) || 0;
-        if (scoreA === scoreB) {
+    const handleScoreSubmit = () => {
+        if (!editingMatch)
+            return;
+        const scoreA = parseInt(editScoreA) || 0;
+        const scoreB = parseInt(editScoreB) || 0;
+        // Validation
+        if (scoreA === scoreB && !victoryA && !victoryB) {
             showToast('Les scores ne peuvent pas être égaux en élimination directe', 'error');
             return;
         }
-        const newMatches = matches.map(m => {
-            if (m.id === matchId) {
-                const winner = scoreA > scoreB ? m.fencerA : m.fencerB;
-                return { ...m, scoreA, scoreB, winner };
+        if (!isUnlimitedScore && maxScore > 0) {
+            if (scoreA > maxScore || scoreB > maxScore) {
+                showToast(`Le score ne peut pas dépasser ${maxScore}`, 'error');
+                return;
+            }
+        }
+        // Déterminer le vainqueur
+        let winner = null;
+        if (victoryA) {
+            winner = matches.find(m => m.id === editingMatch)?.fencerA || null;
+        }
+        else if (victoryB) {
+            winner = matches.find(m => m.id === editingMatch)?.fencerB || null;
+        }
+        else if (scoreA > scoreB) {
+            winner = matches.find(m => m.id === editingMatch)?.fencerA || null;
+        }
+        else if (scoreB > scoreA) {
+            winner = matches.find(m => m.id === editingMatch)?.fencerB || null;
+        }
+        const updatedMatches = matches.map(match => {
+            if (match.id === editingMatch) {
+                return {
+                    ...match,
+                    scoreA,
+                    scoreB,
+                    winner
+                };
+            }
+            return match;
+        });
+        onMatchesChange(updatedMatches);
+        setShowScoreModal(false);
+        setEditingMatch(null);
+        setEditScoreA('');
+        setEditScoreB('');
+        setVictoryA(false);
+        setVictoryB(false);
+        // Propager les gagnants
+        propagateWinners(updatedMatches, tableauSize);
+    };
+    const openScoreModal = (match) => {
+        setEditingMatch(match.id);
+        setEditScoreA(match.scoreA?.toString() || '');
+        setEditScoreB(match.scoreB?.toString() || '');
+        setVictoryA(false);
+        setVictoryB(false);
+        setShowScoreModal(true);
+    };
+    const handleSpecialStatus = (status) => {
+        if (!editingMatch)
+            return;
+        const match = matches.find(m => m.id === editingMatch);
+        if (!match)
+            return;
+        let winner = null;
+        if (status === 'abandon' || status === 'forfait') {
+            // Le match est annulé, pas de vainqueur
+            winner = null;
+        }
+        else if (status === 'exclusion') {
+            // Pour l'exclusion, l'adversaire gagne
+            winner = match.fencerA && match.fencerB ? match.fencerB : match.fencerA || match.fencerB;
+        }
+        const updatedMatches = matches.map(m => {
+            if (m.id === editingMatch) {
+                return {
+                    ...m,
+                    winner,
+                    // On pourrait ajouter des champs pour les statuts spéciaux ici
+                };
             }
             return m;
         });
-        // Propager le gagnant
-        const match = newMatches.find(m => m.id === matchId);
-        if (match && match.winner) {
-            const nextRound = match.round / 2;
-            const nextPosition = Math.floor(match.position / 2);
-            const nextMatch = newMatches.find(m => m.round === nextRound && m.position === nextPosition);
-            if (nextMatch) {
-                if (match.position % 2 === 0) {
-                    nextMatch.fencerA = match.winner;
-                }
-                else {
-                    nextMatch.fencerB = match.winner;
-                }
-            }
-        }
-        onMatchesChange(newMatches);
+        onMatchesChange(updatedMatches);
+        setShowScoreModal(false);
         setEditingMatch(null);
-        setTempScoreA('');
-        setTempScoreB('');
-        // Vérifier si le tableau est complet
-        const finalMatch = newMatches.find(m => m.round === 2);
-        if (finalMatch?.winner && onComplete) {
-            const results = calculateFinalResults(newMatches);
-            onComplete(results);
-        }
+        setEditScoreA('');
+        setEditScoreB('');
+        setVictoryA(false);
+        setVictoryB(false);
+        // Propager les gagnants
+        propagateWinners(updatedMatches, tableauSize);
     };
     const calculateFinalResults = (matchList) => {
         const results = [];
@@ -76080,7 +76148,7 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
                 borderRadius: '4px',
                 padding: '0.5rem',
                 margin: '0.25rem 0',
-                background: match.winner ? '#f0fdf4' : 'white',
+                background: match.winner ? '#f0fdf4' : 'var(--color-surface)',
                 minWidth: '180px',
             }, children: [(0, jsx_runtime_1.jsxs)("div", { style: {
                         display: 'flex',
@@ -76088,13 +76156,13 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
                         padding: '0.25rem',
                         background: match.winner === match.fencerA ? '#dcfce7' : 'transparent',
                         borderRadius: '2px',
-                    }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', flexDirection: 'column', gap: '0.125rem' }, children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: '0.875rem', fontWeight: match.winner === match.fencerA ? '600' : '400' }, children: match.fencerA ? `${match.fencerA.lastName} ${match.fencerA.firstName.charAt(0)}.` : '-' }), match.fencerA && ((0, jsx_runtime_1.jsxs)("span", { style: { fontSize: '0.625rem', color: '#6b7280' }, children: [match.fencerA.birthDate && `${match.fencerA.birthDate.getFullYear()}`, match.fencerA.ranking && ` • #${match.fencerA.ranking}`] }))] }), isEditing ? ((0, jsx_runtime_1.jsx)("input", { type: "number", value: tempScoreA, onChange: e => setTempScoreA(e.target.value), style: { width: '40px', textAlign: 'center' }, min: "0", max: maxScore, autoFocus: true })) : ((0, jsx_runtime_1.jsx)("span", { style: { fontWeight: '600' }, children: match.scoreA !== null ? match.scoreA : '' }))] }), (0, jsx_runtime_1.jsxs)("div", { style: {
+                    }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', flexDirection: 'column', gap: '0.125rem' }, children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: '0.875rem', fontWeight: match.winner === match.fencerA ? '600' : '400' }, children: match.fencerA ? `${match.fencerA.lastName} ${match.fencerA.firstName.charAt(0)}.` : '-' }), match.fencerA && ((0, jsx_runtime_1.jsxs)("span", { style: { fontSize: '0.625rem', color: '#6b7280' }, children: [match.fencerA.birthDate && `${match.fencerA.birthDate.getFullYear()}`, match.fencerA.ranking && ` • #${match.fencerA.ranking}`] }))] }), isEditing ? ((0, jsx_runtime_1.jsx)("input", { type: "number", value: tempScoreA, onChange: e => setTempScoreA(e.target.value), style: { width: '40px', textAlign: 'center' }, min: "0", max: isUnlimitedScore ? 999 : maxScore, autoFocus: true })) : ((0, jsx_runtime_1.jsx)("span", { style: { fontWeight: '600' }, children: match.scoreA !== null ? match.scoreA : '' }))] }), (0, jsx_runtime_1.jsxs)("div", { style: {
                         display: 'flex',
                         justifyContent: 'space-between',
                         padding: '0.25rem',
                         background: match.winner === match.fencerB ? '#dcfce7' : 'transparent',
                         borderRadius: '2px',
-                    }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', flexDirection: 'column', gap: '0.125rem' }, children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: '0.875rem', fontWeight: match.winner === match.fencerB ? '600' : '400' }, children: match.fencerB ? `${match.fencerB.lastName} ${match.fencerB.firstName.charAt(0)}.` : '-' }), match.fencerB && ((0, jsx_runtime_1.jsxs)("span", { style: { fontSize: '0.625rem', color: '#6b7280' }, children: [match.fencerB.birthDate && `${match.fencerB.birthDate.getFullYear()}`, match.fencerB.ranking && ` • #${match.fencerB.ranking}`] }))] }), isEditing ? ((0, jsx_runtime_1.jsx)("input", { type: "number", value: tempScoreB, onChange: e => setTempScoreB(e.target.value), style: { width: '40px', textAlign: 'center' }, min: "0", max: maxScore })) : ((0, jsx_runtime_1.jsx)("span", { style: { fontWeight: '600' }, children: match.scoreB !== null ? match.scoreB : '' }))] }), match.isBye && ((0, jsx_runtime_1.jsx)("div", { style: { fontSize: '0.75rem', color: '#6b7280', textAlign: 'center', marginTop: '0.25rem' }, children: "Exempt" })), canEdit && !isEditing && ((0, jsx_runtime_1.jsx)("button", { onClick: () => {
+                    }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', flexDirection: 'column', gap: '0.125rem' }, children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: '0.875rem', fontWeight: match.winner === match.fencerB ? '600' : '400' }, children: match.fencerB ? `${match.fencerB.lastName} ${match.fencerB.firstName.charAt(0)}.` : '-' }), match.fencerB && ((0, jsx_runtime_1.jsxs)("span", { style: { fontSize: '0.625rem', color: '#6b7280' }, children: [match.fencerB.birthDate && `${match.fencerB.birthDate.getFullYear()}`, match.fencerB.ranking && ` • #${match.fencerB.ranking}`] }))] }), isEditing ? ((0, jsx_runtime_1.jsx)("input", { type: "number", value: tempScoreB, onChange: e => setTempScoreB(e.target.value), style: { width: '40px', textAlign: 'center' }, min: "0", max: isUnlimitedScore ? 999 : maxScore })) : ((0, jsx_runtime_1.jsx)("span", { style: { fontWeight: '600' }, children: match.scoreB !== null ? match.scoreB : '' }))] }), match.isBye && ((0, jsx_runtime_1.jsx)("div", { style: { fontSize: '0.75rem', color: '#6b7280', textAlign: 'center', marginTop: '0.25rem' }, children: "Exempt" })), canEdit && !isEditing && ((0, jsx_runtime_1.jsx)("button", { onClick: () => {
                         setEditingMatch(match.id);
                         setTempScoreA('');
                         setTempScoreB('');
@@ -76104,16 +76172,16 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
                         padding: '0.25rem',
                         fontSize: '0.75rem',
                         background: '#3b82f6',
-                        color: 'white',
+                        color: 'var(--color-text-dark)',
                         border: 'none',
                         borderRadius: '4px',
                         cursor: 'pointer',
-                    }, children: "Saisir score" })), isEditing && ((0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }, children: [(0, jsx_runtime_1.jsx)("button", { onClick: () => handleScoreSubmit(match.id), style: {
+                    }, children: "Saisir score" })), isEditing && ((0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }, children: [(0, jsx_runtime_1.jsx)("button", { onClick: () => openScoreModal(match), style: {
                                 flex: 1,
                                 padding: '0.25rem',
                                 fontSize: '0.75rem',
                                 background: '#22c55e',
-                                color: 'white',
+                                color: 'var(--color-text-dark)',
                                 border: 'none',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
@@ -76122,7 +76190,7 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
                                 padding: '0.25rem',
                                 fontSize: '0.75rem',
                                 background: '#ef4444',
-                                color: 'white',
+                                color: 'var(--color-text-dark)',
                                 border: 'none',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
@@ -76167,10 +76235,127 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
                                 display: 'flex',
                                 gap: '0.5rem',
                                 padding: '0.25rem 0.5rem',
-                                background: idx < 8 ? '#dbeafe' : 'white',
+                                background: idx < 8 ? '#dbeafe' : 'var(--color-surface)',
                                 borderRadius: '4px',
                                 fontSize: '0.875rem',
-                            }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { fontWeight: '600', minWidth: '24px' }, children: [idx + 1, "."] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', flexDirection: 'column', gap: '0.125rem' }, children: [(0, jsx_runtime_1.jsxs)("span", { children: [r.fencer.lastName, " ", r.fencer.firstName] }), (0, jsx_runtime_1.jsxs)("span", { style: { fontSize: '0.625rem', color: '#6b7280' }, children: [r.fencer.birthDate && `${r.fencer.birthDate.getFullYear()}`, r.fencer.ranking && ` • #${r.fencer.ranking}`] })] }), (0, jsx_runtime_1.jsxs)("span", { style: { marginLeft: 'auto', color: '#6b7280' }, children: [(r.ratio * 100).toFixed(0), "%"] })] }, r.fencer.id))) })] })] }));
+                            }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { fontWeight: '600', minWidth: '24px' }, children: [idx + 1, "."] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', flexDirection: 'column', gap: '0.125rem' }, children: [(0, jsx_runtime_1.jsxs)("span", { children: [r.fencer.lastName, " ", r.fencer.firstName] }), (0, jsx_runtime_1.jsxs)("span", { style: { fontSize: '0.625rem', color: '#6b7280' }, children: [r.fencer.birthDate && `${r.fencer.birthDate.getFullYear()}`, r.fencer.ranking && ` • #${r.fencer.ranking}`] })] }), (0, jsx_runtime_1.jsxs)("span", { style: { marginLeft: 'auto', color: '#6b7280' }, children: [(r.ratio * 100).toFixed(0), "%"] })] }, r.fencer.id))) })] }), (() => {
+                if (!showScoreModal || !editingMatch)
+                    return null;
+                const match = matches.find(m => m.id === editingMatch);
+                if (!match)
+                    return null;
+                return ((0, jsx_runtime_1.jsx)("div", { className: "modal-overlay", onClick: () => setShowScoreModal(false), children: (0, jsx_runtime_1.jsxs)("div", { ref: modalRef, className: "modal resizable", style: {
+                            width: `${dimensions.width}px`,
+                            height: `${dimensions.height}px`
+                        }, onClick: (e) => e.stopPropagation(), children: [(0, jsx_runtime_1.jsx)("div", { className: "modal-header", style: { cursor: 'move' }, children: (0, jsx_runtime_1.jsx)("h3", { className: "modal-title", children: "Entrer le score" }) }), (0, jsx_runtime_1.jsxs)("div", { className: "modal-body", children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }, children: [(0, jsx_runtime_1.jsx)("h4", { className: "modal-title", style: { margin: 0, fontSize: '1rem', color: 'var(--color-text-light)' }, children: getRoundName(match.round) }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: '0.875rem', color: 'var(--color-text-light)' }, children: !isUnlimitedScore && maxScore > 0 && `Max: ${maxScore} touches` })] }), (0, jsx_runtime_1.jsxs)("div", { style: {
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '2rem',
+                                            padding: '1.5rem',
+                                            backgroundColor: 'var(--color-bg)',
+                                            borderRadius: 'var(--radius-md)',
+                                            border: '1px solid var(--color-border)'
+                                        }, children: [(0, jsx_runtime_1.jsxs)("div", { style: {
+                                                    flex: 1,
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    textAlign: 'center'
+                                                }, children: [(0, jsx_runtime_1.jsx)("div", { style: {
+                                                            fontSize: '1.125rem',
+                                                            fontWeight: '600',
+                                                            marginBottom: '0.5rem',
+                                                            color: 'var(--color-text)'
+                                                        }, children: match.fencerA?.lastName || 'TBD' }), (0, jsx_runtime_1.jsxs)("div", { style: {
+                                                            fontSize: '0.75rem',
+                                                            color: 'var(--color-text-light)',
+                                                            marginBottom: '1rem',
+                                                            height: '2.5rem',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'center',
+                                                            gap: '0.25rem'
+                                                        }, children: [(0, jsx_runtime_1.jsx)("div", { children: match.fencerA?.firstName && `${match.fencerA.firstName.charAt(0)}.` }), (0, jsx_runtime_1.jsxs)("div", { children: [match.fencerA?.birthDate && `${match.fencerA.birthDate.getFullYear()}`, match.fencerA?.ranking && ` • #${match.fencerA.ranking}`] })] }), (0, jsx_runtime_1.jsx)("input", { type: "number", className: "form-input", style: {
+                                                            width: '120px',
+                                                            textAlign: 'center',
+                                                            fontSize: '2.5rem',
+                                                            fontWeight: 'bold',
+                                                            padding: '0.75rem',
+                                                            borderColor: (parseInt(editScoreA, 10) || 0) > (isUnlimitedScore ? 999 : maxScore) ? '#ef4444' : 'var(--color-border)',
+                                                            borderWidth: (parseInt(editScoreA, 10) || 0) > (isUnlimitedScore ? 999 : maxScore) ? '2px' : '1px',
+                                                            backgroundColor: 'var(--color-surface)',
+                                                            color: 'var(--color-text)'
+                                                        }, value: editScoreA, onChange: (e) => setEditScoreA(e.target.value), min: "0", max: isUnlimitedScore ? undefined : maxScore, autoFocus: true, onKeyDown: (e) => {
+                                                            if (e.key === 'Enter') {
+                                                                e.preventDefault();
+                                                                handleScoreSubmit();
+                                                            }
+                                                            else if (e.key === 'Tab' && !e.shiftKey) {
+                                                                e.preventDefault();
+                                                                const modalBody = e.currentTarget.closest('.modal-body');
+                                                                if (modalBody) {
+                                                                    const inputs = modalBody.querySelectorAll('input[type="number"]');
+                                                                    if (inputs.length > 1) {
+                                                                        const nextInput = inputs[1];
+                                                                        nextInput.focus();
+                                                                        nextInput.select();
+                                                                    }
+                                                                }
+                                                            }
+                                                        } })] }), (0, jsx_runtime_1.jsx)("div", { style: {
+                                                    fontSize: '2rem',
+                                                    fontWeight: 'bold',
+                                                    color: 'var(--color-text-light)',
+                                                    padding: '0 1rem'
+                                                }, children: "VS" }), (0, jsx_runtime_1.jsxs)("div", { style: {
+                                                    flex: 1,
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    textAlign: 'center'
+                                                }, children: [(0, jsx_runtime_1.jsx)("div", { style: {
+                                                            fontSize: '1.125rem',
+                                                            fontWeight: '600',
+                                                            marginBottom: '0.5rem',
+                                                            color: 'var(--color-text)'
+                                                        }, children: match.fencerB?.lastName || 'TBD' }), (0, jsx_runtime_1.jsxs)("div", { style: {
+                                                            fontSize: '0.75rem',
+                                                            color: 'var(--color-text-light)',
+                                                            marginBottom: '1rem',
+                                                            height: '2.5rem',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'center',
+                                                            gap: '0.25rem'
+                                                        }, children: [(0, jsx_runtime_1.jsx)("div", { children: match.fencerB?.firstName && `${match.fencerB.firstName.charAt(0)}.` }), (0, jsx_runtime_1.jsxs)("div", { children: [match.fencerB?.birthDate && `${match.fencerB.birthDate.getFullYear()}`, match.fencerB?.ranking && ` • #${match.fencerB.ranking}`] })] }), (0, jsx_runtime_1.jsx)("input", { type: "number", className: "form-input", style: {
+                                                            width: '120px',
+                                                            textAlign: 'center',
+                                                            fontSize: '2.5rem',
+                                                            fontWeight: 'bold',
+                                                            padding: '0.75rem',
+                                                            borderColor: (parseInt(editScoreB, 10) || 0) > (isUnlimitedScore ? 999 : maxScore) ? '#ef4444' : 'var(--color-border)',
+                                                            borderWidth: (parseInt(editScoreB, 10) || 0) > (isUnlimitedScore ? 999 : maxScore) ? '2px' : '1px',
+                                                            backgroundColor: 'var(--color-surface)',
+                                                            color: 'var(--color-text)'
+                                                        }, value: editScoreB, onChange: (e) => setEditScoreB(e.target.value), min: "0", max: isUnlimitedScore ? undefined : maxScore, onKeyDown: (e) => {
+                                                            if (e.key === 'Enter') {
+                                                                e.preventDefault();
+                                                                handleScoreSubmit();
+                                                            }
+                                                            else if (e.key === 'Tab' && e.shiftKey) {
+                                                                e.preventDefault();
+                                                                const modalBody = e.currentTarget.closest('.modal-body');
+                                                                if (modalBody) {
+                                                                    const inputs = modalBody.querySelectorAll('input[type="number"]');
+                                                                    if (inputs.length > 0) {
+                                                                        const prevInput = inputs[0];
+                                                                        prevInput.focus();
+                                                                        prevInput.select();
+                                                                    }
+                                                                }
+                                                            }
+                                                        } })] })] })] }), (0, jsx_runtime_1.jsxs)("div", { className: "modal-footer", style: { display: 'flex', flexDirection: 'column', gap: '0.5rem' }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', gap: '0.5rem' }, children: [(0, jsx_runtime_1.jsx)("button", { className: "btn btn-secondary", onClick: () => setShowScoreModal(false), children: "Annuler" }), (0, jsx_runtime_1.jsx)("button", { className: "btn btn-primary", onClick: handleScoreSubmit, children: "Valider" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', gap: '0.25rem', justifyContent: 'center', borderTop: '1px solid #e5e7eb', paddingTop: '0.5rem' }, children: [(0, jsx_runtime_1.jsx)("button", { className: "btn btn-warning", onClick: () => handleSpecialStatus('abandon'), style: { fontSize: '0.75rem', padding: '0.25rem 0.5rem' }, children: "\uD83D\uDEB4 Abandon" }), (0, jsx_runtime_1.jsx)("button", { className: "btn btn-warning", onClick: () => handleSpecialStatus('forfait'), style: { fontSize: '0.75rem', padding: '0.25rem 0.5rem' }, children: "\uD83D\uDCCB Forfait" }), (0, jsx_runtime_1.jsx)("button", { className: "btn btn-danger", onClick: () => handleSpecialStatus('exclusion'), style: { fontSize: '0.75rem', padding: '0.25rem 0.5rem' }, children: "\uD83D\uDEAB Exclusion" })] })] })] }) }));
+            })()] }));
 };
 exports["default"] = TableauView;
 
@@ -76747,6 +76932,71 @@ const getFallbackTranslations = (language) => {
                 confirm_forfait: "Kadarnaat forfeit {{name}} ?",
                 confirm_reactivate: "Adunvan {{name}} ?"
             }
+        },
+        eu: {
+            app: { title: "BellePoule Modern" },
+            menu: {
+                new_competition: "Lehiaketa berria",
+                import: "Inportatu",
+                export: "Esportatu",
+                competition_properties: "Lehiaketaren propietateak",
+                report_issue: "Arazo baten berri eman",
+                quit: "Irten"
+            },
+            competition: {
+                new: "Lehiaketa berria",
+                title: "Izenburua",
+                date: "Data",
+                location: "Lekua",
+                organizer: "Antolatzailea",
+                weapon: "Arma",
+                gender: "Generoa",
+                category: "Kategoria"
+            },
+            actions: {
+                create: "Sortu",
+                save: "Gorde",
+                cancel: "Utzi",
+                delete: "Ezabatu",
+                edit: "Editatu",
+                add: "Gehitu",
+                check_in: "Izena eman",
+                uncheck: "Izena kendu",
+                check_in_all: "Denak izena eman",
+                uncheck_all: "Denak izena kendu"
+            },
+            fencer: {
+                add: "Esgrimatzailea gehitu",
+                first_name: "Izena",
+                last_name: "Abizena",
+                club: "Kluba",
+                nationality: "Nazionalitatea",
+                license: "Lizentzia",
+                ranking: "Sailkapena",
+                points: "esgrimatzaileak"
+            },
+            status: {
+                checked_in: "Bertan",
+                not_checked_in: "Izena eman gabe",
+                qualified: "Sailkatua",
+                eliminated: "Kanporatua",
+                abandoned: "Abandonatua",
+                excluded: "Kanporatua",
+                forfeit: "Erretiratua"
+            },
+            settings: {
+                title: "Ezarpenak",
+                language: "Hizkuntza",
+                theme: "Gaia",
+                save: "Ezarpenak gorde"
+            },
+            messages: {
+                no_competitions: "Ez dago lehiaketarik",
+                confirm_delete_fencer: "Ziur zaude esgrimatzaile hau ezabatu nahi duzula?",
+                confirm_abandon: "{{name}} abandonatzea berretsi?",
+                confirm_forfait: "{{name}} erretiratzea berretsi?",
+                confirm_reactivate: "{{name}} berraktibatu?"
+            }
         }
     };
     return fallbackTranslations[language] || fallbackTranslations.fr;
@@ -76862,7 +77112,8 @@ const useTranslation = () => {
         availableLanguages: [
             { code: 'fr', name: 'Français', flag: '🇫🇷' },
             { code: 'en', name: 'English', flag: '🇺🇸' },
-            { code: 'br', name: 'Breton', flag: '🇫🇷' }
+            { code: 'br', name: 'Brezhoneg', flag: '🇫🇷' },
+            { code: 'eu', name: 'Euskara', flag: '🇪🇸' }
         ],
         availableThemes: [
             { code: 'default', name: 'Default' },
@@ -77936,7 +78187,7 @@ class OptimizedPDFExporter {
         return {
             index: index + 1,
             fencerA: `${match.fencerA?.lastName || 'N/A'} ${match.fencerA?.firstName?.charAt(0) || ''}.`,
-            fencerB: `${match.fencerB?.firstName?.charAt(0) || ''}. ${match.fencerB?.lastName || 'N/A'}`,
+            fencerB: `${match.fencerB?.lastName || 'N/A'} ${match.fencerB?.firstName?.charAt(0) || ''}.`,
             scoreA,
             scoreB
         };

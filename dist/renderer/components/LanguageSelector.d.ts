@@ -3,11 +3,12 @@
  * Licensed under GPL-3.0
  */
 import React from 'react';
+import { Language } from '../hooks/useTranslation';
 interface LanguageSelectorProps {
     className?: string;
     showLabel?: boolean;
-    onLanguageChange?: (language: 'fr' | 'en' | 'br') => void;
-    value?: 'fr' | 'en' | 'br';
+    onLanguageChange?: (language: Language) => void;
+    value?: Language;
 }
 declare const LanguageSelector: React.FC<LanguageSelectorProps>;
 export default LanguageSelector;

@@ -203,6 +203,71 @@ const getFallbackTranslations = (language) => {
                 confirm_forfait: "Kadarnaat forfeit {{name}} ?",
                 confirm_reactivate: "Adunvan {{name}} ?"
             }
+        },
+        eu: {
+            app: { title: "BellePoule Modern" },
+            menu: {
+                new_competition: "Lehiaketa berria",
+                import: "Inportatu",
+                export: "Esportatu",
+                competition_properties: "Lehiaketaren propietateak",
+                report_issue: "Arazo baten berri eman",
+                quit: "Irten"
+            },
+            competition: {
+                new: "Lehiaketa berria",
+                title: "Izenburua",
+                date: "Data",
+                location: "Lekua",
+                organizer: "Antolatzailea",
+                weapon: "Arma",
+                gender: "Generoa",
+                category: "Kategoria"
+            },
+            actions: {
+                create: "Sortu",
+                save: "Gorde",
+                cancel: "Utzi",
+                delete: "Ezabatu",
+                edit: "Editatu",
+                add: "Gehitu",
+                check_in: "Izena eman",
+                uncheck: "Izena kendu",
+                check_in_all: "Denak izena eman",
+                uncheck_all: "Denak izena kendu"
+            },
+            fencer: {
+                add: "Esgrimatzailea gehitu",
+                first_name: "Izena",
+                last_name: "Abizena",
+                club: "Kluba",
+                nationality: "Nazionalitatea",
+                license: "Lizentzia",
+                ranking: "Sailkapena",
+                points: "esgrimatzaileak"
+            },
+            status: {
+                checked_in: "Bertan",
+                not_checked_in: "Izena eman gabe",
+                qualified: "Sailkatua",
+                eliminated: "Kanporatua",
+                abandoned: "Abandonatua",
+                excluded: "Kanporatua",
+                forfeit: "Erretiratua"
+            },
+            settings: {
+                title: "Ezarpenak",
+                language: "Hizkuntza",
+                theme: "Gaia",
+                save: "Ezarpenak gorde"
+            },
+            messages: {
+                no_competitions: "Ez dago lehiaketarik",
+                confirm_delete_fencer: "Ziur zaude esgrimatzaile hau ezabatu nahi duzula?",
+                confirm_abandon: "{{name}} abandonatzea berretsi?",
+                confirm_forfait: "{{name}} erretiratzea berretsi?",
+                confirm_reactivate: "{{name}} berraktibatu?"
+            }
         }
     };
     return fallbackTranslations[language] || fallbackTranslations.fr;
@@ -318,7 +383,8 @@ const useTranslation = () => {
         availableLanguages: [
             { code: 'fr', name: 'Français', flag: '🇫🇷' },
             { code: 'en', name: 'English', flag: '🇺🇸' },
-            { code: 'br', name: 'Breton', flag: '🇫🇷' }
+            { code: 'br', name: 'Brezhoneg', flag: '🇫🇷' },
+            { code: 'eu', name: 'Euskara', flag: '🇪🇸' }
         ],
         availableThemes: [
             { code: 'default', name: 'Default' },

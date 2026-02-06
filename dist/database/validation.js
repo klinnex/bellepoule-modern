@@ -266,7 +266,16 @@ exports.validateSessionState = validateSessionState;
 // Input Sanitization
 // ============================================================================
 const sanitizeString = (value) => {
-    return value.trim().replace(/[<>]/g, ''); // Remove potential HTML tags
+    return value.trim().replace(/[&<>"']/g, (char) => {
+        const entities = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+        return entities[char] || char;
+    });
 };
 exports.sanitizeString = sanitizeString;
 const sanitizeId = (value) => {

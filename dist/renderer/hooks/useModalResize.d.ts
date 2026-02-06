@@ -9,10 +9,13 @@ interface UseModalResizeOptions {
     minHeight?: number;
 }
 export declare const useModalResize: (options?: UseModalResizeOptions) => {
-    modalRef: any;
-    dimensions: any;
-    isResizing: any;
-    setIsResizing: any;
+    modalRef: import("react").RefObject<HTMLDivElement | null>;
+    dimensions: {
+        width: number;
+        height: number;
+    };
+    isResizing: boolean;
+    setIsResizing: import("react").Dispatch<import("react").SetStateAction<boolean>>;
 };
 export {};
 //# sourceMappingURL=useModalResize.d.ts.map

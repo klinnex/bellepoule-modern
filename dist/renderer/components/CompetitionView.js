@@ -137,7 +137,7 @@ const CompetitionView = ({ competition, onUpdate }) => {
             const state = await window.electronAPI.db.getSessionState(competition.id);
             if (state) {
                 // Convertir number en Phase depuis SessionState
-                const phaseMap = ['checkin', 'pools', 'ranking', 'tableau', 'results'];
+                const phaseMap = ['checkin', 'pools', 'ranking', 'tableau', 'results', 'remote'];
                 const currentPhase = phaseMap[state.currentPhase || 0];
                 if (currentPhase)
                     setCurrentPhase(currentPhase);
@@ -516,7 +516,7 @@ const CompetitionView = ({ competition, onUpdate }) => {
             showToast(`Erreur de mise à jour du statut: ${errorMessage}`, 'error');
         }
     };
-    const handleCheckInAll = () => {
+    const handleCheckInAll = async () => {
         const notCheckedInFencers = fencers.filter(f => f.status === types_1.FencerStatus.NOT_CHECKED_IN);
         const updatedFencers = fencers.map(fencer => fencer.status === types_1.FencerStatus.NOT_CHECKED_IN
             ? { ...fencer, status: types_1.FencerStatus.CHECKED_IN }
@@ -534,9 +534,9 @@ const CompetitionView = ({ competition, onUpdate }) => {
                 console.error(`Failed to check in fencer ${fencer.id}:`, error);
             }
         });
-        Promise.allSettled(updatePromises);
+        await Promise.allSettled(updatePromises);
     };
-    const handleUncheckAll = () => {
+    const handleUncheckAll = async () => {
         const checkedInFencers = fencers.filter(f => f.status === types_1.FencerStatus.CHECKED_IN);
         const updatedFencers = fencers.map(fencer => fencer.status === types_1.FencerStatus.CHECKED_IN
             ? { ...fencer, status: types_1.FencerStatus.NOT_CHECKED_IN }
@@ -554,7 +554,7 @@ const CompetitionView = ({ competition, onUpdate }) => {
                 console.error(`Failed to uncheck fencer ${fencer.id}:`, error);
             }
         });
-        Promise.allSettled(updatePromises);
+        await Promise.allSettled(updatePromises);
     };
     const getCheckedInFencers = () => fencers.filter(f => f.status === types_1.FencerStatus.CHECKED_IN);
     const handleGeneratePools = () => {

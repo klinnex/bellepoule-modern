@@ -429,7 +429,7 @@ async function handleImport(format) {
 }
 function showAbout() {
     const versionInfo = getVersionInfo();
-    const buildDate = new Date(versionInfo.date).toLocaleDateString('fr-FR', {
+    const buildDate = new Date(versionInfo.date).toLocaleString('fr-FR', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -458,65 +458,41 @@ Pour signaler un bug, mentionnez:
 // ============================================================================
 // IPC Handlers - Database Operations
 // ============================================================================
+// Helper pour envelopper les handlers IPC avec gestion d'erreurs
+function safeHandler(handler) {
+    return async (...args) => {
+        try {
+            return await handler(...args);
+        }
+        catch (error) {
+            console.error(`IPC handler error:`, error);
+            throw error instanceof Error ? error : new Error(String(error));
+        }
+    };
+}
 // Competition handlers
-electron_1.ipcMain.handle('db:createCompetition', async (_, data) => {
-    return db.createCompetition(data);
-});
-electron_1.ipcMain.handle('db:getCompetition', async (_, id) => {
-    return db.getCompetition(id);
-});
-electron_1.ipcMain.handle('db:getAllCompetitions', async () => {
-    return db.getAllCompetitions();
-});
-electron_1.ipcMain.handle('db:deleteCompetition', async (_, id) => {
-    return db.deleteCompetition(id);
-});
-electron_1.ipcMain.handle('db:updateCompetition', async (_, id, updates) => {
-    return db.updateCompetition(id, updates);
-});
+electron_1.ipcMain.handle('db:createCompetition', safeHandler((_, data) => db.createCompetition(data)));
+electron_1.ipcMain.handle('db:getCompetition', safeHandler((_, id) => db.getCompetition(id)));
+electron_1.ipcMain.handle('db:getAllCompetitions', safeHandler(() => db.getAllCompetitions()));
+electron_1.ipcMain.handle('db:deleteCompetition', safeHandler((_, id) => db.deleteCompetition(id)));
+electron_1.ipcMain.handle('db:updateCompetition', safeHandler((_, id, updates) => db.updateCompetition(id, updates)));
 // Fencer handlers
-electron_1.ipcMain.handle('db:addFencer', async (_, competitionId, fencer) => {
-    return db.addFencer(competitionId, fencer);
-});
-electron_1.ipcMain.handle('db:getFencer', async (_, id) => {
-    return db.getFencer(id);
-});
-electron_1.ipcMain.handle('db:getFencersByCompetition', async (_, competitionId) => {
-    return db.getFencersByCompetition(competitionId);
-});
-electron_1.ipcMain.handle('db:updateFencer', async (_, id, updates) => {
-    return db.updateFencer(id, updates);
-});
-electron_1.ipcMain.handle('db:deleteFencer', async (_, id) => {
-    return db.deleteFencer(id);
-});
+electron_1.ipcMain.handle('db:addFencer', safeHandler((_, competitionId, fencer) => db.addFencer(competitionId, fencer)));
+electron_1.ipcMain.handle('db:getFencer', safeHandler((_, id) => db.getFencer(id)));
+electron_1.ipcMain.handle('db:getFencersByCompetition', safeHandler((_, competitionId) => db.getFencersByCompetition(competitionId)));
+electron_1.ipcMain.handle('db:updateFencer', safeHandler((_, id, updates) => db.updateFencer(id, updates)));
+electron_1.ipcMain.handle('db:deleteFencer', safeHandler((_, id) => db.deleteFencer(id)));
 // Match handlers
-electron_1.ipcMain.handle('db:createMatch', async (_, match, poolId) => {
-    return db.createMatch(match, poolId);
-});
-electron_1.ipcMain.handle('db:getMatch', async (_, id) => {
-    return db.getMatch(id);
-});
-electron_1.ipcMain.handle('db:getMatchesByPool', async (_, poolId) => {
-    return db.getMatchesByPool(poolId);
-});
-electron_1.ipcMain.handle('db:updateMatch', async (_, id, updates) => {
-    return db.updateMatch(id, updates);
-});
+electron_1.ipcMain.handle('db:createMatch', safeHandler((_, match, poolId) => db.createMatch(match, poolId)));
+electron_1.ipcMain.handle('db:getMatch', safeHandler((_, id) => db.getMatch(id)));
+electron_1.ipcMain.handle('db:getMatchesByPool', safeHandler((_, poolId) => db.getMatchesByPool(poolId)));
+electron_1.ipcMain.handle('db:updateMatch', safeHandler((_, id, updates) => db.updateMatch(id, updates)));
 // Session State handlers
-electron_1.ipcMain.handle('db:saveSessionState', async (_, competitionId, state) => {
-    return db.saveSessionState(competitionId, state);
-});
-electron_1.ipcMain.handle('db:getSessionState', async (_, competitionId) => {
-    return db.getSessionState(competitionId);
-});
-electron_1.ipcMain.handle('db:clearSessionState', async (_, competitionId) => {
-    return db.clearSessionState(competitionId);
-});
+electron_1.ipcMain.handle('db:saveSessionState', safeHandler((_, competitionId, state) => db.saveSessionState(competitionId, state)));
+electron_1.ipcMain.handle('db:getSessionState', safeHandler((_, competitionId) => db.getSessionState(competitionId)));
+electron_1.ipcMain.handle('db:clearSessionState', safeHandler((_, competitionId) => db.clearSessionState(competitionId)));
 // Pool handlers
-electron_1.ipcMain.handle('db:updatePool', async (_, pool) => {
-    return db.updatePool(pool);
-});
+electron_1.ipcMain.handle('db:updatePool', safeHandler((_, pool) => db.updatePool(pool)));
 // ipcMain.handle('db:createPool', async (_, phaseId, number) => {
 //   return db.createPool(phaseId, number);
 // });

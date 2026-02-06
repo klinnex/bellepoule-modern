@@ -141,6 +141,10 @@ class DatabaseManager {
         PRIMARY KEY (pool_id, fencer_id)
       )
     `);
+        // Index pour les requêtes fréquentes
+        this.db.run('CREATE INDEX IF NOT EXISTS idx_fencers_competition ON fencers(competition_id)');
+        this.db.run('CREATE INDEX IF NOT EXISTS idx_matches_pool ON matches(pool_id)');
+        this.db.run('CREATE INDEX IF NOT EXISTS idx_pool_fencers_fencer ON pool_fencers(fencer_id)');
         // Table pour stocker l'état de session (persistance au refresh)
         this.db.run(`
       CREATE TABLE IF NOT EXISTS session_state (
@@ -246,6 +250,11 @@ class DatabaseManager {
     deleteCompetition(id) {
         if (!this.db)
             throw new Error('Database not open');
+        // Supprimer les associations pool_fencers pour éviter les enregistrements orphelins
+        this.db.run('DELETE FROM pool_fencers WHERE fencer_id IN (SELECT id FROM fencers WHERE competition_id = ?)', [id]);
+        this.db.run('DELETE FROM matches WHERE pool_id IN (SELECT id FROM pools WHERE phase_id LIKE ?)', [`%${id}%`]);
+        this.db.run('DELETE FROM pools WHERE phase_id LIKE ?', [`%${id}%`]);
+        this.db.run('DELETE FROM session_state WHERE competition_id = ?', [id]);
         this.db.run('DELETE FROM fencers WHERE competition_id = ?', [id]);
         this.db.run('DELETE FROM competitions WHERE id = ?', [id]);
         this.save();
@@ -348,8 +357,8 @@ class DatabaseManager {
         // Vérifier que le tireur existe
         const stmt = this.db.prepare('SELECT id, last_name FROM fencers WHERE id = ?');
         stmt.bind([id]);
-        const row = stmt.getAsObject();
         const exists = stmt.step();
+        const row = exists ? stmt.getAsObject() : null;
         stmt.free();
         if (!exists || !row) {
             console.error('Tireur non trouvé:', id);
@@ -404,8 +413,18 @@ class DatabaseManager {
             id: row.id, number: row.number,
             fencerA: row.fencer_a_id ? this.getFencer(row.fencer_a_id) : null,
             fencerB: row.fencer_b_id ? this.getFencer(row.fencer_b_id) : null,
-            scoreA: row.score_a ? JSON.parse(row.score_a) : null,
-            scoreB: row.score_b ? JSON.parse(row.score_b) : null,
+            scoreA: row.score_a ? (() => { try {
+                return JSON.parse(row.score_a);
+            }
+            catch {
+                return null;
+            } })() : null,
+            scoreB: row.score_b ? (() => { try {
+                return JSON.parse(row.score_b);
+            }
+            catch {
+                return null;
+            } })() : null,
             maxScore: row.max_score, status: row.status,
             poolId: row.pool_id, tableId: row.table_id, round: row.round,
             createdAt: new Date(row.created_at), updatedAt: new Date(row.updated_at),
