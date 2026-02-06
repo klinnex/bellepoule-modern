@@ -6,14 +6,14 @@ export type Language = 'fr' | 'en' | 'br';
 export type TranslationKey = string;
 export type Theme = 'light' | 'dark' | 'default';
 export declare const useTranslation: () => {
-    language: Language;
-    theme: Theme;
+    language: any;
+    theme: any;
     changeLanguage: (newLanguage: Language) => Promise<void>;
     changeTheme: (newTheme: Theme) => void;
     t: (key: TranslationKey, params?: {
         [key: string]: string | number;
     }) => string;
-    isLoading: boolean;
+    isLoading: any;
     availableLanguages: readonly [{
         readonly code: "fr";
         readonly name: "Français";

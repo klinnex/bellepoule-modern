@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 const jsx_runtime_1 = require("react/jsx-runtime");
 /**
@@ -6,14 +39,27 @@ const jsx_runtime_1 = require("react/jsx-runtime");
  * Direct Elimination Table
  * Licensed under GPL-3.0
  */
-const react_1 = require("react");
+const react_1 = __importStar(require("react"));
 const Toast_1 = require("./Toast");
-const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onComplete, thirdPlaceMatch = false }) => {
+const useModalResize_1 = require("../hooks/useModalResize");
+const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 999, onComplete, thirdPlaceMatch = false }) => {
     const { showToast } = (0, Toast_1.useToast)();
     const [tableauSize, setTableauSize] = (0, react_1.useState)(0);
     const [editingMatch, setEditingMatch] = (0, react_1.useState)(null);
     const [tempScoreA, setTempScoreA] = (0, react_1.useState)('');
     const [tempScoreB, setTempScoreB] = (0, react_1.useState)('');
+    const [showScoreModal, setShowScoreModal] = (0, react_1.useState)(false);
+    const [editScoreA, setEditScoreA] = (0, react_1.useState)('');
+    const [editScoreB, setEditScoreB] = (0, react_1.useState)('');
+    const [victoryA, setVictoryA] = (0, react_1.useState)(false);
+    const [victoryB, setVictoryB] = (0, react_1.useState)(false);
+    const isUnlimitedScore = maxScore === 999;
+    const { modalRef, dimensions } = (0, useModalResize_1.useModalResize)({
+        defaultWidth: 800,
+        defaultHeight: 350,
+        minWidth: 600,
+        minHeight: 300
+    });
     (0, react_1.useEffect)(() => {
         if (ranking.length > 0) {
             // Vérifier si le tableau existant correspond au classement actuel
@@ -155,10 +201,34 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
             });
             currentRound = nextRound;
         }
+        // Gérer le match de 3ème place si activé
+        if (thirdPlaceMatch && size >= 4) {
+            const thirdPlaceMatch = matchList.find(m => m.round === 3);
+            const semiFinalMatches = matchList.filter(m => m.round === 4);
+            if (thirdPlaceMatch && semiFinalMatches.length === 2) {
+                // Assigner les perdants des demi-finales au match de 3ème place
+                const losers = [];
+                semiFinalMatches.forEach(semiFinal => {
+                    if (semiFinal.winner) {
+                        const loser = semiFinal.fencerA?.id === semiFinal.winner.id
+                            ? semiFinal.fencerB
+                            : semiFinal.fencerA;
+                        if (loser)
+                            losers.push(loser);
+                    }
+                });
+                if (losers.length === 2) {
+                    thirdPlaceMatch.fencerA = losers[0];
+                    thirdPlaceMatch.fencerB = losers[1];
+                }
+            }
+        }
     };
     const getRoundName = (round) => {
         if (round === 2)
             return 'Finale';
+        if (round === 3)
+            return 'Petite finale (3ème place)';
         if (round === 4)
             return 'Demi-finales';
         if (round === 8)
@@ -171,45 +241,99 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
             return 'Tableau de 64';
         return `Tableau de ${round}`;
     };
-    const handleScoreSubmit = (matchId) => {
-        const scoreA = parseInt(tempScoreA) || 0;
-        const scoreB = parseInt(tempScoreB) || 0;
-        if (scoreA === scoreB) {
+    const handleScoreSubmit = () => {
+        if (!editingMatch)
+            return;
+        const scoreA = parseInt(editScoreA) || 0;
+        const scoreB = parseInt(editScoreB) || 0;
+        // Validation
+        if (scoreA === scoreB && !victoryA && !victoryB) {
             showToast('Les scores ne peuvent pas être égaux en élimination directe', 'error');
             return;
         }
-        const newMatches = matches.map(m => {
-            if (m.id === matchId) {
-                const winner = scoreA > scoreB ? m.fencerA : m.fencerB;
-                return { ...m, scoreA, scoreB, winner };
+        if (!isUnlimitedScore && maxScore > 0) {
+            if (scoreA > maxScore || scoreB > maxScore) {
+                showToast(`Le score ne peut pas dépasser ${maxScore}`, 'error');
+                return;
+            }
+        }
+        // Déterminer le vainqueur
+        let winner = null;
+        if (victoryA) {
+            winner = matches.find(m => m.id === editingMatch)?.fencerA || null;
+        }
+        else if (victoryB) {
+            winner = matches.find(m => m.id === editingMatch)?.fencerB || null;
+        }
+        else if (scoreA > scoreB) {
+            winner = matches.find(m => m.id === editingMatch)?.fencerA || null;
+        }
+        else if (scoreB > scoreA) {
+            winner = matches.find(m => m.id === editingMatch)?.fencerB || null;
+        }
+        const updatedMatches = matches.map(match => {
+            if (match.id === editingMatch) {
+                return {
+                    ...match,
+                    scoreA,
+                    scoreB,
+                    winner
+                };
+            }
+            return match;
+        });
+        onMatchesChange(updatedMatches);
+        setShowScoreModal(false);
+        setEditingMatch(null);
+        setEditScoreA('');
+        setEditScoreB('');
+        setVictoryA(false);
+        setVictoryB(false);
+        // Propager les gagnants
+        propagateWinners(updatedMatches, tableauSize);
+    };
+    const openScoreModal = (match) => {
+        setEditingMatch(match.id);
+        setEditScoreA(match.scoreA?.toString() || '');
+        setEditScoreB(match.scoreB?.toString() || '');
+        setVictoryA(false);
+        setVictoryB(false);
+        setShowScoreModal(true);
+    };
+    const handleSpecialStatus = (status) => {
+        if (!editingMatch)
+            return;
+        const match = matches.find(m => m.id === editingMatch);
+        if (!match)
+            return;
+        let winner = null;
+        if (status === 'abandon' || status === 'forfait') {
+            // Le match est annulé, pas de vainqueur
+            winner = null;
+        }
+        else if (status === 'exclusion') {
+            // Pour l'exclusion, l'adversaire gagne
+            winner = match.fencerA && match.fencerB ? match.fencerB : match.fencerA || match.fencerB;
+        }
+        const updatedMatches = matches.map(m => {
+            if (m.id === editingMatch) {
+                return {
+                    ...m,
+                    winner,
+                    // On pourrait ajouter des champs pour les statuts spéciaux ici
+                };
             }
             return m;
         });
-        // Propager le gagnant
-        const match = newMatches.find(m => m.id === matchId);
-        if (match && match.winner) {
-            const nextRound = match.round / 2;
-            const nextPosition = Math.floor(match.position / 2);
-            const nextMatch = newMatches.find(m => m.round === nextRound && m.position === nextPosition);
-            if (nextMatch) {
-                if (match.position % 2 === 0) {
-                    nextMatch.fencerA = match.winner;
-                }
-                else {
-                    nextMatch.fencerB = match.winner;
-                }
-            }
-        }
-        onMatchesChange(newMatches);
+        onMatchesChange(updatedMatches);
+        setShowScoreModal(false);
         setEditingMatch(null);
-        setTempScoreA('');
-        setTempScoreB('');
-        // Vérifier si le tableau est complet
-        const finalMatch = newMatches.find(m => m.round === 2);
-        if (finalMatch?.winner && onComplete) {
-            const results = calculateFinalResults(newMatches);
-            onComplete(results);
-        }
+        setEditScoreA('');
+        setEditScoreB('');
+        setVictoryA(false);
+        setVictoryB(false);
+        // Propager les gagnants
+        propagateWinners(updatedMatches, tableauSize);
     };
     const calculateFinalResults = (matchList) => {
         const results = [];
@@ -269,7 +393,7 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
                 borderRadius: '4px',
                 padding: '0.5rem',
                 margin: '0.25rem 0',
-                background: match.winner ? '#f0fdf4' : 'white',
+                background: match.winner ? '#f0fdf4' : 'var(--color-surface)',
                 minWidth: '180px',
             }, children: [(0, jsx_runtime_1.jsxs)("div", { style: {
                         display: 'flex',
@@ -277,13 +401,13 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
                         padding: '0.25rem',
                         background: match.winner === match.fencerA ? '#dcfce7' : 'transparent',
                         borderRadius: '2px',
-                    }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', flexDirection: 'column', gap: '0.125rem' }, children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: '0.875rem', fontWeight: match.winner === match.fencerA ? '600' : '400' }, children: match.fencerA ? `${match.fencerA.lastName} ${match.fencerA.firstName.charAt(0)}.` : '-' }), match.fencerA && ((0, jsx_runtime_1.jsxs)("span", { style: { fontSize: '0.625rem', color: '#6b7280' }, children: [match.fencerA.birthDate && `${match.fencerA.birthDate.getFullYear()}`, match.fencerA.ranking && ` • #${match.fencerA.ranking}`] }))] }), isEditing ? ((0, jsx_runtime_1.jsx)("input", { type: "number", value: tempScoreA, onChange: e => setTempScoreA(e.target.value), style: { width: '40px', textAlign: 'center' }, min: "0", max: maxScore, autoFocus: true })) : ((0, jsx_runtime_1.jsx)("span", { style: { fontWeight: '600' }, children: match.scoreA !== null ? match.scoreA : '' }))] }), (0, jsx_runtime_1.jsxs)("div", { style: {
+                    }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', flexDirection: 'column', gap: '0.125rem' }, children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: '0.875rem', fontWeight: match.winner === match.fencerA ? '600' : '400' }, children: match.fencerA ? `${match.fencerA.lastName} ${match.fencerA.firstName.charAt(0)}.` : '-' }), match.fencerA && ((0, jsx_runtime_1.jsxs)("span", { style: { fontSize: '0.625rem', color: '#6b7280' }, children: [match.fencerA.birthDate && `${match.fencerA.birthDate.getFullYear()}`, match.fencerA.ranking && ` • #${match.fencerA.ranking}`] }))] }), isEditing ? ((0, jsx_runtime_1.jsx)("input", { type: "number", value: tempScoreA, onChange: e => setTempScoreA(e.target.value), style: { width: '40px', textAlign: 'center' }, min: "0", max: isUnlimitedScore ? 999 : maxScore, autoFocus: true })) : ((0, jsx_runtime_1.jsx)("span", { style: { fontWeight: '600' }, children: match.scoreA !== null ? match.scoreA : '' }))] }), (0, jsx_runtime_1.jsxs)("div", { style: {
                         display: 'flex',
                         justifyContent: 'space-between',
                         padding: '0.25rem',
                         background: match.winner === match.fencerB ? '#dcfce7' : 'transparent',
                         borderRadius: '2px',
-                    }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', flexDirection: 'column', gap: '0.125rem' }, children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: '0.875rem', fontWeight: match.winner === match.fencerB ? '600' : '400' }, children: match.fencerB ? `${match.fencerB.lastName} ${match.fencerB.firstName.charAt(0)}.` : '-' }), match.fencerB && ((0, jsx_runtime_1.jsxs)("span", { style: { fontSize: '0.625rem', color: '#6b7280' }, children: [match.fencerB.birthDate && `${match.fencerB.birthDate.getFullYear()}`, match.fencerB.ranking && ` • #${match.fencerB.ranking}`] }))] }), isEditing ? ((0, jsx_runtime_1.jsx)("input", { type: "number", value: tempScoreB, onChange: e => setTempScoreB(e.target.value), style: { width: '40px', textAlign: 'center' }, min: "0", max: maxScore })) : ((0, jsx_runtime_1.jsx)("span", { style: { fontWeight: '600' }, children: match.scoreB !== null ? match.scoreB : '' }))] }), match.isBye && ((0, jsx_runtime_1.jsx)("div", { style: { fontSize: '0.75rem', color: '#6b7280', textAlign: 'center', marginTop: '0.25rem' }, children: "Exempt" })), canEdit && !isEditing && ((0, jsx_runtime_1.jsx)("button", { onClick: () => {
+                    }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', flexDirection: 'column', gap: '0.125rem' }, children: [(0, jsx_runtime_1.jsx)("span", { style: { fontSize: '0.875rem', fontWeight: match.winner === match.fencerB ? '600' : '400' }, children: match.fencerB ? `${match.fencerB.lastName} ${match.fencerB.firstName.charAt(0)}.` : '-' }), match.fencerB && ((0, jsx_runtime_1.jsxs)("span", { style: { fontSize: '0.625rem', color: '#6b7280' }, children: [match.fencerB.birthDate && `${match.fencerB.birthDate.getFullYear()}`, match.fencerB.ranking && ` • #${match.fencerB.ranking}`] }))] }), isEditing ? ((0, jsx_runtime_1.jsx)("input", { type: "number", value: tempScoreB, onChange: e => setTempScoreB(e.target.value), style: { width: '40px', textAlign: 'center' }, min: "0", max: isUnlimitedScore ? 999 : maxScore })) : ((0, jsx_runtime_1.jsx)("span", { style: { fontWeight: '600' }, children: match.scoreB !== null ? match.scoreB : '' }))] }), match.isBye && ((0, jsx_runtime_1.jsx)("div", { style: { fontSize: '0.75rem', color: '#6b7280', textAlign: 'center', marginTop: '0.25rem' }, children: "Exempt" })), canEdit && !isEditing && ((0, jsx_runtime_1.jsx)("button", { onClick: () => {
                         setEditingMatch(match.id);
                         setTempScoreA('');
                         setTempScoreB('');
@@ -293,16 +417,16 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
                         padding: '0.25rem',
                         fontSize: '0.75rem',
                         background: '#3b82f6',
-                        color: 'white',
+                        color: 'var(--color-text-dark)',
                         border: 'none',
                         borderRadius: '4px',
                         cursor: 'pointer',
-                    }, children: "Saisir score" })), isEditing && ((0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }, children: [(0, jsx_runtime_1.jsx)("button", { onClick: () => handleScoreSubmit(match.id), style: {
+                    }, children: "Saisir score" })), isEditing && ((0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }, children: [(0, jsx_runtime_1.jsx)("button", { onClick: () => openScoreModal(match), style: {
                                 flex: 1,
                                 padding: '0.25rem',
                                 fontSize: '0.75rem',
                                 background: '#22c55e',
-                                color: 'white',
+                                color: 'var(--color-text-dark)',
                                 border: 'none',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
@@ -311,7 +435,7 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
                                 padding: '0.25rem',
                                 fontSize: '0.75rem',
                                 background: '#ef4444',
-                                color: 'white',
+                                color: 'var(--color-text-dark)',
                                 border: 'none',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
@@ -356,10 +480,127 @@ const TableauView = ({ ranking, matches, onMatchesChange, maxScore = 15, onCompl
                                 display: 'flex',
                                 gap: '0.5rem',
                                 padding: '0.25rem 0.5rem',
-                                background: idx < 8 ? '#dbeafe' : 'white',
+                                background: idx < 8 ? '#dbeafe' : 'var(--color-surface)',
                                 borderRadius: '4px',
                                 fontSize: '0.875rem',
-                            }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { fontWeight: '600', minWidth: '24px' }, children: [idx + 1, "."] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', flexDirection: 'column', gap: '0.125rem' }, children: [(0, jsx_runtime_1.jsxs)("span", { children: [r.fencer.lastName, " ", r.fencer.firstName] }), (0, jsx_runtime_1.jsxs)("span", { style: { fontSize: '0.625rem', color: '#6b7280' }, children: [r.fencer.birthDate && `${r.fencer.birthDate.getFullYear()}`, r.fencer.ranking && ` • #${r.fencer.ranking}`] })] }), (0, jsx_runtime_1.jsxs)("span", { style: { marginLeft: 'auto', color: '#6b7280' }, children: [(r.ratio * 100).toFixed(0), "%"] })] }, r.fencer.id))) })] })] }));
+                            }, children: [(0, jsx_runtime_1.jsxs)("span", { style: { fontWeight: '600', minWidth: '24px' }, children: [idx + 1, "."] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', flexDirection: 'column', gap: '0.125rem' }, children: [(0, jsx_runtime_1.jsxs)("span", { children: [r.fencer.lastName, " ", r.fencer.firstName] }), (0, jsx_runtime_1.jsxs)("span", { style: { fontSize: '0.625rem', color: '#6b7280' }, children: [r.fencer.birthDate && `${r.fencer.birthDate.getFullYear()}`, r.fencer.ranking && ` • #${r.fencer.ranking}`] })] }), (0, jsx_runtime_1.jsxs)("span", { style: { marginLeft: 'auto', color: '#6b7280' }, children: [(r.ratio * 100).toFixed(0), "%"] })] }, r.fencer.id))) })] }), (() => {
+                if (!showScoreModal || !editingMatch)
+                    return null;
+                const match = matches.find(m => m.id === editingMatch);
+                if (!match)
+                    return null;
+                return ((0, jsx_runtime_1.jsx)("div", { className: "modal-overlay", onClick: () => setShowScoreModal(false), children: (0, jsx_runtime_1.jsxs)("div", { ref: modalRef, className: "modal resizable", style: {
+                            width: `${dimensions.width}px`,
+                            height: `${dimensions.height}px`
+                        }, onClick: (e) => e.stopPropagation(), children: [(0, jsx_runtime_1.jsx)("div", { className: "modal-header", style: { cursor: 'move' }, children: (0, jsx_runtime_1.jsx)("h3", { className: "modal-title", children: "Entrer le score" }) }), (0, jsx_runtime_1.jsxs)("div", { className: "modal-body", children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }, children: [(0, jsx_runtime_1.jsx)("h4", { className: "modal-title", style: { margin: 0, fontSize: '1rem', color: 'var(--color-text-light)' }, children: getRoundName(match.round) }), (0, jsx_runtime_1.jsx)("div", { style: { fontSize: '0.875rem', color: 'var(--color-text-light)' }, children: !isUnlimitedScore && maxScore > 0 && `Max: ${maxScore} touches` })] }), (0, jsx_runtime_1.jsxs)("div", { style: {
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '2rem',
+                                            padding: '1.5rem',
+                                            backgroundColor: 'var(--color-bg)',
+                                            borderRadius: 'var(--radius-md)',
+                                            border: '1px solid var(--color-border)'
+                                        }, children: [(0, jsx_runtime_1.jsxs)("div", { style: {
+                                                    flex: 1,
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    textAlign: 'center'
+                                                }, children: [(0, jsx_runtime_1.jsx)("div", { style: {
+                                                            fontSize: '1.125rem',
+                                                            fontWeight: '600',
+                                                            marginBottom: '0.5rem',
+                                                            color: 'var(--color-text)'
+                                                        }, children: match.fencerA?.lastName || 'TBD' }), (0, jsx_runtime_1.jsxs)("div", { style: {
+                                                            fontSize: '0.75rem',
+                                                            color: 'var(--color-text-light)',
+                                                            marginBottom: '1rem',
+                                                            height: '2.5rem',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'center',
+                                                            gap: '0.25rem'
+                                                        }, children: [(0, jsx_runtime_1.jsx)("div", { children: match.fencerA?.firstName && `${match.fencerA.firstName.charAt(0)}.` }), (0, jsx_runtime_1.jsxs)("div", { children: [match.fencerA?.birthDate && `${match.fencerA.birthDate.getFullYear()}`, match.fencerA?.ranking && ` • #${match.fencerA.ranking}`] })] }), (0, jsx_runtime_1.jsx)("input", { type: "number", className: "form-input", style: {
+                                                            width: '120px',
+                                                            textAlign: 'center',
+                                                            fontSize: '2.5rem',
+                                                            fontWeight: 'bold',
+                                                            padding: '0.75rem',
+                                                            borderColor: (parseInt(editScoreA, 10) || 0) > (isUnlimitedScore ? 999 : maxScore) ? '#ef4444' : 'var(--color-border)',
+                                                            borderWidth: (parseInt(editScoreA, 10) || 0) > (isUnlimitedScore ? 999 : maxScore) ? '2px' : '1px',
+                                                            backgroundColor: 'var(--color-surface)',
+                                                            color: 'var(--color-text)'
+                                                        }, value: editScoreA, onChange: (e) => setEditScoreA(e.target.value), min: "0", max: isUnlimitedScore ? undefined : maxScore, autoFocus: true, onKeyDown: (e) => {
+                                                            if (e.key === 'Enter') {
+                                                                e.preventDefault();
+                                                                handleScoreSubmit();
+                                                            }
+                                                            else if (e.key === 'Tab' && !e.shiftKey) {
+                                                                e.preventDefault();
+                                                                const modalBody = e.currentTarget.closest('.modal-body');
+                                                                if (modalBody) {
+                                                                    const inputs = modalBody.querySelectorAll('input[type="number"]');
+                                                                    if (inputs.length > 1) {
+                                                                        const nextInput = inputs[1];
+                                                                        nextInput.focus();
+                                                                        nextInput.select();
+                                                                    }
+                                                                }
+                                                            }
+                                                        } })] }), (0, jsx_runtime_1.jsx)("div", { style: {
+                                                    fontSize: '2rem',
+                                                    fontWeight: 'bold',
+                                                    color: 'var(--color-text-light)',
+                                                    padding: '0 1rem'
+                                                }, children: "VS" }), (0, jsx_runtime_1.jsxs)("div", { style: {
+                                                    flex: 1,
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    textAlign: 'center'
+                                                }, children: [(0, jsx_runtime_1.jsx)("div", { style: {
+                                                            fontSize: '1.125rem',
+                                                            fontWeight: '600',
+                                                            marginBottom: '0.5rem',
+                                                            color: 'var(--color-text)'
+                                                        }, children: match.fencerB?.lastName || 'TBD' }), (0, jsx_runtime_1.jsxs)("div", { style: {
+                                                            fontSize: '0.75rem',
+                                                            color: 'var(--color-text-light)',
+                                                            marginBottom: '1rem',
+                                                            height: '2.5rem',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'center',
+                                                            gap: '0.25rem'
+                                                        }, children: [(0, jsx_runtime_1.jsx)("div", { children: match.fencerB?.firstName && `${match.fencerB.firstName.charAt(0)}.` }), (0, jsx_runtime_1.jsxs)("div", { children: [match.fencerB?.birthDate && `${match.fencerB.birthDate.getFullYear()}`, match.fencerB?.ranking && ` • #${match.fencerB.ranking}`] })] }), (0, jsx_runtime_1.jsx)("input", { type: "number", className: "form-input", style: {
+                                                            width: '120px',
+                                                            textAlign: 'center',
+                                                            fontSize: '2.5rem',
+                                                            fontWeight: 'bold',
+                                                            padding: '0.75rem',
+                                                            borderColor: (parseInt(editScoreB, 10) || 0) > (isUnlimitedScore ? 999 : maxScore) ? '#ef4444' : 'var(--color-border)',
+                                                            borderWidth: (parseInt(editScoreB, 10) || 0) > (isUnlimitedScore ? 999 : maxScore) ? '2px' : '1px',
+                                                            backgroundColor: 'var(--color-surface)',
+                                                            color: 'var(--color-text)'
+                                                        }, value: editScoreB, onChange: (e) => setEditScoreB(e.target.value), min: "0", max: isUnlimitedScore ? undefined : maxScore, onKeyDown: (e) => {
+                                                            if (e.key === 'Enter') {
+                                                                e.preventDefault();
+                                                                handleScoreSubmit();
+                                                            }
+                                                            else if (e.key === 'Tab' && e.shiftKey) {
+                                                                e.preventDefault();
+                                                                const modalBody = e.currentTarget.closest('.modal-body');
+                                                                if (modalBody) {
+                                                                    const inputs = modalBody.querySelectorAll('input[type="number"]');
+                                                                    if (inputs.length > 0) {
+                                                                        const prevInput = inputs[0];
+                                                                        prevInput.focus();
+                                                                        prevInput.select();
+                                                                    }
+                                                                }
+                                                            }
+                                                        } })] })] })] }), (0, jsx_runtime_1.jsxs)("div", { className: "modal-footer", style: { display: 'flex', flexDirection: 'column', gap: '0.5rem' }, children: [(0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', gap: '0.5rem' }, children: [(0, jsx_runtime_1.jsx)("button", { className: "btn btn-secondary", onClick: () => setShowScoreModal(false), children: "Annuler" }), (0, jsx_runtime_1.jsx)("button", { className: "btn btn-primary", onClick: handleScoreSubmit, children: "Valider" })] }), (0, jsx_runtime_1.jsxs)("div", { style: { display: 'flex', gap: '0.25rem', justifyContent: 'center', borderTop: '1px solid #e5e7eb', paddingTop: '0.5rem' }, children: [(0, jsx_runtime_1.jsx)("button", { className: "btn btn-warning", onClick: () => handleSpecialStatus('abandon'), style: { fontSize: '0.75rem', padding: '0.25rem 0.5rem' }, children: "\uD83D\uDEB4 Abandon" }), (0, jsx_runtime_1.jsx)("button", { className: "btn btn-warning", onClick: () => handleSpecialStatus('forfait'), style: { fontSize: '0.75rem', padding: '0.25rem 0.5rem' }, children: "\uD83D\uDCCB Forfait" }), (0, jsx_runtime_1.jsx)("button", { className: "btn btn-danger", onClick: () => handleSpecialStatus('exclusion'), style: { fontSize: '0.75rem', padding: '0.25rem 0.5rem' }, children: "\uD83D\uDEAB Exclusion" })] })] })] }) }));
+            })()] }));
 };
 exports.default = TableauView;
 //# sourceMappingURL=TableauView.js.map
