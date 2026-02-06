@@ -24,14 +24,19 @@ jobs:
 
       - name: Install Wine (for Windows builds)
         run: |
-          sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y wine32 wine64
+          sudo apt-get install -y wine
 
       - name: Build TypeScript and Webpack
         run: npm run build
 
-      # Build Linux x64 (quick test)
+      # Build Windows
+      - name: Build Windows
+        run: npx electron-builder --win portable --x64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build Linux x64
       - name: Build Linux x64
         run: npx electron-builder --linux AppImage --x64
         env:
@@ -52,9 +57,8 @@ jobs:
             ### 📥 Téléchargements
             | Plateforme | Architecture | Fichier |
             |------------|--------------|---------|
+            | **Windows** | x64 | `.exe` portable |
             | **Linux** | x64 | `.AppImage` |
-            
-            **Note :** Version de développement rapide - Linux uniquement pour le moment
             
             ### ⚠️ Notes importantes
             - Version de développement : peut contenir des bugs
@@ -66,6 +70,7 @@ jobs:
             - Génération de QR code pour connexion tablette
             - Affichage de l'URL avec IP pour connexion facile
           files: |
+            release/*.exe
             release/*.AppImage
           draft: false
           prerelease: true
