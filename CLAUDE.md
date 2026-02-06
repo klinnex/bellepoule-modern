@@ -36,7 +36,7 @@ Renderer Process (src/renderer/)
 ├── App.tsx              # Root React component
 ├── components/          # 22+ React components
 ├── hooks/               # Custom hooks (useTranslation, useEventManager, etc.)
-└── locales/             # i18n files (fr, en, br)
+└── locales/             # i18n files (fr, en, br, eu)
 
 Shared (src/shared/)
 ├── types/index.ts       # All TypeScript definitions
