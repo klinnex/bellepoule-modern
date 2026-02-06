@@ -1,0 +1,56 @@
+name: Build Dev Release (Alternative)
+
+on:
+  push:
+    branches: [dev-1.1.1]
+  workflow_dispatch:
+
+jobs:
+  build-dev-alt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Quick Install
+        run: |
+          npm ci --silent
+
+      - name: Build Only Essential
+        run: |
+          npm run build
+
+      - name: Build Linux (No Compression)
+        run: |
+          npx electron-builder --linux AppImage --x64 --publish=never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Simple Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: dev-latest
+          name: "Dev Build #${{ github.run_number }}"
+          body: |
+            ## Development Build
+            
+            **Branch**: dev-1.1.1
+            **Build**: #${{ github.run_number }}
+            
+            ### Features
+            - Port configurable (8066)
+            - QR code for tablet connection
+            - URL with IP display
+          draft: false
+          prerelease: true
+          files: release/*.AppImage
