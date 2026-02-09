@@ -243,10 +243,10 @@ export class DatabaseManager {
     const id = comp.id || uuidv4();
 
     this.db.run(`
-      INSERT INTO competitions (id, title, date, weapon, gender, category, location, color, settings, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO competitions (id, title, date, weapon, gender, category, color, settings, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [id, comp.title || 'Nouvelle compétition', comp.date?.toISOString() || now,
-        comp.weapon || 'E', comp.gender || 'M', comp.category || 'SEN', comp.location || '',
+        comp.weapon || 'E', comp.gender || 'M', comp.category || 'SEN',
         comp.color || '#3B82F6', JSON.stringify(comp.settings || {}), now, now]);
 
     this.save();
