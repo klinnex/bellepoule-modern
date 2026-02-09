@@ -222,6 +222,7 @@ jobs:
 
   create-dev-release:
     needs: [increment-version, build-windows, build-macos, build-linux-x64, build-linux-arm64]
+    if: ${{ !cancelled() && needs.increment-version.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -231,34 +232,49 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: builds
+          merge-multiple: false
 
       - name: List downloaded files
-        run: find builds -type f
+        run: find builds -type f || echo "No artifacts found"
 
       - name: Delete existing dev release
         run: |
           # Supprimer la release dev existante si elle existe
           gh release delete dev --repo "${{ github.repository }}" --yes --cleanup-tag 2>/dev/null || true
+          # Attendre que la suppression soit propagée
+          sleep 5
           # Nettoyer le tag dev s'il reste
           gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/dev" 2>/dev/null || true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Collect release assets
+        id: assets
+        run: |
+          mkdir -p release-files
+          find builds -type f \( -name "*.exe" -o -name "*.dmg" -o -name "*.AppImage" \) -exec cp {} release-files/ \; 2>/dev/null || true
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          find release-files -type f | sort >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "--- Assets collected ---"
+          ls -la release-files/ || echo "No assets"
+
       - name: Create Dev Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: dev
+          target_commitish: dev
           name: "🧪 BellePoule Modern - Version de Développement (Build #${{ needs.increment-version.outputs.build }})"
           body: |
             ## 🧪 Version de Développement
 
-            **Ceci est une version de test !** 
-            
-            **Version**: `${{ needs.increment-version.outputs.version }}`  
+            **Ceci est une version de test !**
+
+            **Version**: `${{ needs.increment-version.outputs.version }}`
             **Build**: `#${{ needs.increment-version.outputs.build }}`
-            
+
             Cette release contient les dernières modifications de la branche `dev` et est destinée aux tests.
-            
+
             Pour la version stable, utilisez la release principale.
 
             ### 📥 Téléchargements
@@ -278,10 +294,8 @@ jobs:
             ---
             **Build automatique** • Branche: `dev` • Commit: `${{ github.sha }}`
           files: |
-            builds/windows-exe-dev/*.exe
-            builds/macos-dmg-dev/*.dmg
-            builds/linux-x64-appimage-dev/*.AppImage
-            builds/linux-arm64-appimage-dev/*.AppImage
+            release-files/*
+          fail_on_unmatched_files: false
           draft: false
           prerelease: true
         env:
