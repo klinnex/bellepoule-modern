@@ -85,6 +85,23 @@
     "results": "Résultats",
     "remote": "Saisie distante"
   },
+  "pool_config": {
+    "title": "Configuration des poules",
+    "description": "Configurez la r\u00e9partition des tireurs dans les poules avant de les g\u00e9n\u00e9rer.",
+    "checked_in_fencers": "tireurs point\u00e9s",
+    "mode_label": "Mode de configuration",
+    "mode_fencers_per_pool": "Nombre de tireurs par poule",
+    "mode_pool_count": "Nombre de poules",
+    "fencers_per_pool_label": "Tireurs par poule",
+    "pool_count_label": "Nombre de poules",
+    "single_pool_warning": "Tous les tireurs seront dans une seule poule.",
+    "preview_title": "Aper\u00e7u de la r\u00e9partition",
+    "number_of_pools": "Nombre de poules",
+    "fencers_per_pool_preview": "Tireurs par poule",
+    "total_matches": "Nombre de matchs",
+    "fencers_short": "tireurs",
+    "generate_pools": "G\u00e9n\u00e9rer les poules"
+  },
   "pools": {
     "generate": "Générer les poules",
     "next_round": "Tour suivant",

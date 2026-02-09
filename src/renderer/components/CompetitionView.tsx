@@ -15,6 +15,7 @@ import CompetitionPropertiesModal from './CompetitionPropertiesModal';
 import ImportModal from './ImportModal';
 import ChangePoolModal from './ChangePoolModal';
 import RemoteScoreManager from './RemoteScoreManager';
+import PoolConfigurationView from './PoolConfigurationView';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { 
@@ -34,7 +35,7 @@ interface CompetitionViewProps {
   onUpdate: (competition: Competition) => void;
 }
 
-type Phase = 'checkin' | 'pools' | 'ranking' | 'tableau' | 'results' | 'remote';
+type Phase = 'checkin' | 'poolConfig' | 'pools' | 'ranking' | 'tableau' | 'results' | 'remote';
 
 const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate }) => {
   const { showToast } = useToast();
@@ -91,7 +92,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     if (!window.electronAPI?.db?.saveSessionState) return;
     
     // Convertir Phase en number pour SessionState
-    const phaseMap = { checkin: 0, pools: 1, ranking: 2, tableau: 3, results: 4, remote: 5 };
+    const phaseMap = { checkin: 0, poolConfig: 1, pools: 2, ranking: 3, tableau: 4, results: 5, remote: 6 };
     const state = {
       currentPhase: phaseMap[currentPhase],
       pools,
@@ -125,7 +126,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
       const state = await window.electronAPI.db.getSessionState(competition.id);
       if (state) {
         // Convertir number en Phase depuis SessionState
-        const phaseMap = ['checkin', 'pools', 'ranking', 'tableau', 'results'] as const;
+        const phaseMap = ['checkin', 'poolConfig', 'pools', 'ranking', 'tableau', 'results'] as const;
         const currentPhase = phaseMap[state.currentPhase || 0];
         
         if (currentPhase) setCurrentPhase(currentPhase);
@@ -630,14 +631,24 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
 
   const getCheckedInFencers = () => fencers.filter(f => f.status === FencerStatus.CHECKED_IN);
 
-  const handleGeneratePools = () => {
+  // Naviguer vers la page de configuration des poules
+  const handleGoToPoolConfig = () => {
+    const checkedIn = getCheckedInFencers();
+    if (checkedIn.length < 4) {
+      showToast('Il faut au moins 4 tireurs pointés pour créer les poules.', 'warning');
+      return;
+    }
+    setCurrentPhase('poolConfig');
+  };
+
+  const handleGeneratePools = (configuredPoolCount?: number) => {
     const checkedIn = getCheckedInFencers();
     if (checkedIn.length < 4) {
       showToast('Il faut au moins 4 tireurs pointés pour créer les poules.', 'warning');
       return;
     }
 
-    const poolCount = calculateOptimalPoolCount(checkedIn.length, 5, 7);
+    const poolCount = configuredPoolCount ?? calculateOptimalPoolCount(checkedIn.length, 5, 7);
     const distribution = distributeFencersToPoolsSerpentine(checkedIn, poolCount,
       { byClub: true, byLeague: true, byNation: false });
 
@@ -936,6 +947,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
   // Phases dynamiques selon les settings
   const phases = [
     { id: 'checkin', label: 'Appel', icon: '📋' },
+    { id: 'poolConfig', label: t('pool_config.title'), icon: '⚙️' },
     { id: 'pools', label: poolRounds > 1 ? `Poules (${currentPoolRound}/${poolRounds})` : 'Poules', icon: '🎯' },
     { id: 'ranking', label: 'Classement', icon: '📊' },
     ...(hasDirectElimination ? [{ id: 'tableau', label: 'Tableau', icon: '🏆' }] : []),
@@ -966,7 +978,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
 
   // Déterminer l'action du bouton retour
   const getPreviousPhase = () => {
-    const phaseOrder: Phase[] = ['checkin', 'pools', 'ranking', 'tableau', 'results'];
+    const phaseOrder: Phase[] = ['checkin', 'poolConfig', 'pools', 'ranking', 'tableau', 'results'];
     const currentIndex = phaseOrder.indexOf(currentPhase);
     if (currentIndex > 0) {
       return phaseOrder[currentIndex - 1];
@@ -1062,8 +1074,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             </button>
           )}
           {currentPhase === 'checkin' && (
-            <button className="btn btn-primary" onClick={handleGeneratePools} disabled={getCheckedInFencers().length < 4}>
-              Générer les poules →
+            <button className="btn btn-primary" onClick={handleGoToPoolConfig} disabled={getCheckedInFencers().length < 4}>
+              {t('pool_config.title')} →
             </button>
           )}
           {currentPhase === 'pools' && poolsNextAction && (
@@ -1085,6 +1097,14 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             onCheckInAll={handleCheckInAll}
             onUncheckAll={handleUncheckAll}
             onSetFencerStatus={handleSetFencerStatus}
+          />
+        )}
+
+        {currentPhase === 'poolConfig' && (
+          <PoolConfigurationView
+            checkedInFencers={getCheckedInFencers()}
+            onGenerate={(poolCount) => handleGeneratePools(poolCount)}
+            onBack={() => setCurrentPhase('checkin')}
           />
         )}
 

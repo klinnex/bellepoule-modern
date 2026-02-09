@@ -85,6 +85,23 @@
     "results": "Results",
     "remote": "Remote Entry"
   },
+  "pool_config": {
+    "title": "Pool Configuration",
+    "description": "Configure how fencers are distributed into pools before generating them.",
+    "checked_in_fencers": "checked-in fencers",
+    "mode_label": "Configuration mode",
+    "mode_fencers_per_pool": "Fencers per pool",
+    "mode_pool_count": "Number of pools",
+    "fencers_per_pool_label": "Fencers per pool",
+    "pool_count_label": "Number of pools",
+    "single_pool_warning": "All fencers will be in a single pool.",
+    "preview_title": "Distribution preview",
+    "number_of_pools": "Number of pools",
+    "fencers_per_pool_preview": "Fencers per pool",
+    "total_matches": "Total matches",
+    "fencers_short": "fencers",
+    "generate_pools": "Generate pools"
+  },
   "pools": {
     "generate": "Generate Pools",
     "next_round": "Next Round",

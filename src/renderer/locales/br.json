@@ -85,6 +85,23 @@
     "results": "Disoc'hoùezioù",
     "remote": "Enrollañ a-bell"
   },
+  "pool_config": {
+    "title": "Kefluniadur ar poullou",
+    "description": "Kefluniit rannañ ar c'hoarzerion en ar poullou a-raok genelañ.",
+    "checked_in_fencers": "c'hoarzerion enrollet",
+    "mode_label": "Mod kefluniadur",
+    "mode_fencers_per_pool": "Niver a c'hoarzerion dre boull",
+    "mode_pool_count": "Niver a boullou",
+    "fencers_per_pool_label": "C'hoarzerion dre boull",
+    "pool_count_label": "Niver a boullou",
+    "single_pool_warning": "An holl c'hoarzerion a vo en un poull hepken.",
+    "preview_title": "Rakwel ar rannañ",
+    "number_of_pools": "Niver a boullou",
+    "fencers_per_pool_preview": "C'hoarzerion dre boull",
+    "total_matches": "Niver a emgannoù",
+    "fencers_short": "c'hoarzerion",
+    "generate_pools": "Genelañ ar poullou"
+  },
   "pools": {
     "generate": "Genelañ ar poullou",
     "next_round": "Daol-z gemdeñ",
