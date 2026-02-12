@@ -336,7 +336,7 @@ export class AutoUpdater {
           // Notifier l'utilisateur
           if (this.mainWindow) {
             this.mainWindow.webContents.send('update:downloaded', {
-              version: updateInfo.tag_name,
+              version: updateInfo.latestVersion,
               path: downloadPath,
               installOnQuit: true,
             });
@@ -379,7 +379,7 @@ export class AutoUpdater {
 
   private saveDownloadedUpdate(downloadPath: string, updateInfo: UpdateInfo): void {
     const updateData = {
-      version: updateInfo.tag_name,
+      version: updateInfo.latestVersion,
       path: downloadPath,
       downloadedAt: new Date().toISOString(),
     };
