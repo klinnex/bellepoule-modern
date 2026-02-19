@@ -2,387 +2,63 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arbitrage Arène BellePoule Modern</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
+    <title>Arbitrage - Arène BellePoule</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-      .referee-interface {
-        background: #f3f4f6;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+          sans-serif;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         min-height: 100vh;
-        font-family: 'Inter', sans-serif;
+        color: #fff;
+        overflow-x: hidden;
       }
 
       .header {
-        background: #1f2937;
-        color: white;
-        padding: 1rem 2rem;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 1rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
       }
 
       .header h1 {
-        font-size: 1.5rem;
-        font-weight: 700;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
 
       .connection-status {
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        font-size: 0.85rem;
       }
 
       .status-dot {
-        width: 12px;
-        height: 12px;
+        width: 10px;
+        height: 10px;
         border-radius: 50%;
         background: #ef4444;
+        animation: pulse 2s infinite;
       }
 
       .status-dot.connected {
-        background: #10b981;
-      }
-
-      .main-container {
-        padding: 2rem;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-
-      .match-panel {
-        background: white;
-        border-radius: 1rem;
-        padding: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        margin-bottom: 2rem;
-      }
-
-      .match-status {
-        text-align: center;
-        margin-bottom: 2rem;
-      }
-
-      .status-badge {
-        display: inline-block;
-        padding: 0.75rem 1.5rem;
-        border-radius: 2rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 1rem;
-      }
-
-      .status-idle {
-        background: #6b7280;
-        color: white;
-      }
-      .status-ready {
-        background: #3b82f6;
-        color: white;
-      }
-      .status-in_progress {
-        background: #10b981;
-        color: white;
-      }
-      .status-finished {
-        background: #f59e0b;
-        color: white;
-      }
-
-      .fencers-display {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        gap: 2rem;
-        align-items: center;
-        margin-bottom: 2rem;
-      }
-
-      .fencer-card {
-        background: #f9fafb;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        border: 2px solid transparent;
-        text-align: center;
-      }
-
-      .fencer-card.active {
-        border-color: #3b82f6;
-        background: #eff6ff;
-      }
-
-      .fencer-name {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #1f2937;
-      }
-
-      .fencer-club {
-        font-size: 1rem;
-        color: #6b7280;
-        margin-bottom: 1rem;
-      }
-
-      .score-display {
-        font-size: 3rem;
-        font-weight: 700;
-        color: #3b82f6;
-        margin-bottom: 1rem;
-      }
-
-      .score-controls {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
-      }
-
-      .score-btn {
-        background: #e5e7eb;
-        border: none;
-        border-radius: 0.5rem;
-        padding: 0.75rem;
-        font-size: 1.5rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      .score-btn:hover {
-        background: #d1d5db;
-        transform: translateY(-1px);
-      }
-
-      .score-btn:active {
-        transform: translateY(0);
-      }
-
-      .score-btn-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .score-btn-row {
-        display: flex;
-        gap: 0.25rem;
-        justify-content: center;
-      }
-
-      .score-btn-touch {
-        min-width: 50px;
-        background: #3b82f6;
-        color: white;
-      }
-
-      .score-btn-touch:hover {
-        background: #2563eb;
-      }
-
-      .score-btn-touch-3 {
-        background: #8b5cf6;
-      }
-
-      .score-btn-touch-3:hover {
-        background: #7c3aed;
-      }
-
-      .score-btn-touch-5 {
-        background: #ec4899;
-      }
-
-      .score-btn-touch-5:hover {
-        background: #db2777;
-      }
-
-      .card-display {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
-        margin-bottom: 0.75rem;
-        min-height: 24px;
-      }
-
-      .card {
-        width: 24px;
-        height: 24px;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 0.875rem;
-        color: white;
-      }
-
-      .card-white {
-        background: #9ca3af;
-        border: 2px solid #6b7280;
-      }
-
-      .card-yellow {
-        background: #fbbf24;
-        border: 2px solid #d97706;
-      }
-
-      .card-red {
-        background: #ef4444;
-        border: 2px solid #dc2626;
-      }
-
-      .card-buttons {
-        display: flex;
-        gap: 0.25rem;
-        margin-top: 0.5rem;
-      }
-
-      .card-btn {
-        padding: 0.375rem 0.5rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      .card-btn-white {
-        background: #f3f4f6;
-        border: 2px solid #9ca3af;
-        color: #374151;
-      }
-
-      .card-btn-white:hover {
-        background: #e5e7eb;
-      }
-
-      .card-btn-yellow {
-        background: #fef3c7;
-        border: 2px solid #fbbf24;
-        color: #92400e;
-      }
-
-      .card-btn-yellow:hover {
-        background: #fde68a;
-      }
-
-      .card-btn-red {
-        background: #fee2e2;
-        border: 2px solid #ef4444;
-        color: #991b1b;
-      }
-
-      .card-btn-red:hover {
-        background: #fecaca;
-      }
-
-      .vs-separator {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #ef4444;
-        text-align: center;
-      }
-
-      .timer-section {
-        text-align: center;
-        margin-bottom: 2rem;
-      }
-
-      .timer-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      .timer {
-        font-size: 5rem;
-        font-weight: 700;
-        color: #1f2937;
-        font-variant-numeric: tabular-nums;
-        background: #f3f4f6;
-        padding: 1rem 3rem;
-        border-radius: 1rem;
-        display: inline-block;
-        min-width: 280px;
-      }
-
-      .timer.running {
-        border: 3px solid #10b981;
-      }
-
-      .timer.paused {
-        border: 3px solid #f59e0b;
-      }
-
-      .timer.warning {
-        color: #f59e0b;
-        background: #fffbeb;
-        border-color: #f59e0b;
-      }
-
-      .timer.danger {
-        color: #ef4444;
-        background: #fef2f2;
-        border-color: #ef4444;
-        animation: pulse 1s infinite;
-      }
-
-      .timer-controls {
-        display: flex;
-        gap: 0.75rem;
-        justify-content: center;
-      }
-
-      .timer-btn {
-        padding: 0.75rem 1.5rem;
-        font-size: 1rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .timer-btn-start {
-        background: #10b981;
-        color: white;
-      }
-
-      .timer-btn-start:hover {
-        background: #059669;
-      }
-
-      .timer-btn-pause {
-        background: #f59e0b;
-        color: white;
-      }
-
-      .timer-btn-pause:hover {
-        background: #d97706;
-      }
-
-      .timer-btn-reset {
-        background: #6b7280;
-        color: white;
-      }
-
-      .timer-btn-reset:hover {
-        background: #4b5563;
-      }
-
-      .timer-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
+        background: #22c55e;
       }
 
       @keyframes pulse {
@@ -391,31 +67,403 @@
           opacity: 1;
         }
         50% {
-          opacity: 0.7;
+          opacity: 0.5;
         }
       }
 
-      .control-panel {
-        background: white;
-        border-radius: 1rem;
-        padding: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      .main-container {
+        padding: 1rem;
+        max-width: 100%;
       }
 
+      /* Sélection de match */
+      .match-selector {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .match-selector h2 {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.9;
+      }
+
+      .matches-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .match-item {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+      }
+
+      .match-item:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      .match-item.active {
+        background: rgba(34, 197, 94, 0.3);
+        border-color: #22c55e;
+      }
+
+      .match-item.finished {
+        background: rgba(107, 114, 128, 0.3);
+        opacity: 0.6;
+      }
+
+      .match-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .match-fencers {
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .match-status {
+        font-size: 0.75rem;
+        opacity: 0.8;
+      }
+
+      .match-score {
+        font-size: 1.25rem;
+        font-weight: 700;
+      }
+
+      /* Panneau de match actif */
+      .active-match {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 1rem;
+        padding: 1rem;
+        color: #1f2937;
+        margin-bottom: 1rem;
+        display: none;
+      }
+
+      .active-match.visible {
+        display: block;
+      }
+
+      .match-header {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+
+      .match-status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .status-waiting {
+        background: #6b7280;
+        color: white;
+      }
+      .status-progress {
+        background: #3b82f6;
+        color: white;
+      }
+      .status-finished {
+        background: #10b981;
+        color: white;
+      }
+
+      /* Tireurs */
+      .fencers-container {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 0.75rem;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .fencer-box {
+        background: #f3f4f6;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        text-align: center;
+        border: 3px solid transparent;
+        transition: all 0.2s;
+      }
+
+      .fencer-box.red-side {
+        border-color: #ef4444;
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      }
+
+      .fencer-box.green-side {
+        border-color: #22c55e;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      }
+
+      .fencer-color {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        margin: 0 auto 0.5rem;
+      }
+
+      .fencer-color.red {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+      }
+
+      .fencer-color.green {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+      }
+
+      .fencer-name {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .fencer-club {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 0.75rem;
+      }
+
+      /* Cartons */
+      .cards-display {
+        display: flex;
+        justify-content: center;
+        gap: 0.25rem;
+        min-height: 28px;
+        margin-bottom: 0.5rem;
+      }
+
+      .card {
+        width: 22px;
+        height: 28px;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.75rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .card-white {
+        background: #e5e7eb;
+        color: #374151;
+        border: 1px solid #9ca3af;
+      }
+
+      .card-yellow {
+        background: #fbbf24;
+        color: #92400e;
+        border: 1px solid #d97706;
+      }
+
+      .card-red {
+        background: #ef4444;
+        color: white;
+        border: 1px solid #dc2626;
+      }
+
+      /* Score principal */
+      .score-display {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 0.75rem;
+      }
+
+      .score-display.red-score {
+        color: #dc2626;
+      }
+
+      .score-display.green-score {
+        color: #16a34a;
+      }
+
+      /* Boutons de score */
+      .score-buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.35rem;
+      }
+
+      .score-btn {
+        padding: 0.6rem 0.3rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s;
+        touch-action: manipulation;
+      }
+
+      .score-btn:active {
+        transform: scale(0.95);
+      }
+
+      .btn-plus-1 {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .btn-plus-3 {
+        background: #8b5cf6;
+        color: white;
+      }
+
+      .btn-plus-5 {
+        background: #ec4899;
+        color: white;
+      }
+
+      .btn-minus-1 {
+        background: #6b7280;
+        color: white;
+        font-size: 0.9rem;
+      }
+
+      /* Boutons cartons */
+      .card-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 0.35rem;
+        margin-top: 0.5rem;
+      }
+
+      .card-btn {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 2px solid;
+        border-radius: 0.35rem;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .card-btn-white {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+        color: #374151;
+      }
+
+      .card-btn-yellow {
+        background: #fef3c7;
+        border-color: #fbbf24;
+        color: #92400e;
+      }
+
+      .card-btn-red {
+        background: #fee2e2;
+        border-color: #ef4444;
+        color: #991b1b;
+      }
+
+      .vs-divider {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ef4444;
+      }
+
+      /* Chronomètre */
+      .timer-section {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        border-radius: 1rem;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      }
+
+      .timer-display {
+        font-size: 4rem;
+        font-weight: 800;
+        font-family: 'Courier New', monospace;
+        color: #fff;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        margin-bottom: 0.75rem;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        user-select: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.75rem;
+        display: inline-block;
+        transition: all 0.2s;
+        position: relative;
+      }
+
+      .timer-display:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .timer-display.running {
+        color: #22c55e;
+        text-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+        border: 2px solid #22c55e;
+      }
+
+      .timer-display.paused {
+        color: #fbbf24;
+        text-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
+        border: 2px solid #fbbf24;
+      }
+
+      .timer-display.warning {
+        color: #fbbf24;
+        animation: pulse-timer 1s infinite;
+      }
+
+      .timer-display.danger {
+        color: #ef4444;
+        animation: pulse-timer 0.5s infinite;
+      }
+
+      @keyframes pulse-timer {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      .timer-hint {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-top: 0.5rem;
+      }
+
+      /* Boutons de contrôle */
       .control-buttons {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
       }
 
       .control-btn {
-        background: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 0.5rem;
         padding: 1rem;
+        border: none;
+        border-radius: 0.75rem;
         font-size: 1rem;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
         transition: all 0.2s;
         display: flex;
@@ -424,408 +472,821 @@
         gap: 0.5rem;
       }
 
-      .control-btn:hover {
-        background: #2563eb;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+      .control-btn:active {
+        transform: scale(0.98);
       }
 
-      .control-btn:disabled {
-        background: #9ca3af;
+      .btn-start {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: white;
+      }
+
+      .btn-finish {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+      }
+
+      .btn-finish:disabled {
+        background: #6b7280;
         cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
       }
 
-      .control-btn.danger {
-        background: #ef4444;
+      /* Modal de confirmation */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
       }
 
-      .control-btn.danger:hover {
-        background: #dc2626;
+      .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
       }
 
-      .control-btn.warning {
-        background: #f59e0b;
+      .modal-content {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        max-width: 90%;
+        width: 400px;
+        color: #1f2937;
+        transform: scale(0.9);
+        transition: all 0.3s;
       }
 
-      .control-btn.warning:hover {
-        background: #d97706;
+      .modal-overlay.active .modal-content {
+        transform: scale(1);
       }
 
-      .control-btn.success {
-        background: #10b981;
-      }
-
-      .control-btn.success:hover {
-        background: #059669;
-      }
-
-      .no-match {
-        text-align: center;
-        padding: 3rem;
-        color: #6b7280;
+      .modal-title {
         font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #dc2626;
       }
 
-      .quick-score-buttons {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.5rem;
-        margin-top: 1rem;
+      .modal-body {
+        margin-bottom: 1.5rem;
       }
 
-      .quick-score-btn {
+      .final-score {
         background: #f3f4f6;
-        border: 1px solid #d1d5db;
-        border-radius: 0.25rem;
-        padding: 0.5rem;
-        font-size: 0.875rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        text-align: center;
+        margin: 1rem 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+      }
+
+      .modal-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+
+      .modal-btn {
+        padding: 0.75rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
       }
 
-      .quick-score-btn:hover {
+      .modal-btn-cancel {
         background: #e5e7eb;
-        border-color: #9ca3af;
+        color: #374151;
       }
 
-      @media (max-width: 768px) {
-        .fencers-display {
-          grid-template-columns: 1fr;
-          gap: 1rem;
+      .modal-btn-confirm {
+        background: #dc2626;
+        color: white;
+      }
+
+      /* Notification */
+      .notification {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        left: 1rem;
+        background: #22c55e;
+        color: white;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        z-index: 2000;
+        transform: translateY(-150%);
+        transition: transform 0.3s ease-out;
+        text-align: center;
+        font-weight: 600;
+      }
+
+      .notification.show {
+        transform: translateY(0);
+      }
+
+      .notification.error {
+        background: #ef4444;
+      }
+
+      /* Responsive */
+      @media (min-width: 768px) {
+        .main-container {
+          max-width: 800px;
+          margin: 0 auto;
         }
 
-        .vs-separator {
-          margin: 1rem 0;
+        .score-display {
+          font-size: 4rem;
         }
 
-        .control-buttons {
-          grid-template-columns: 1fr;
-        }
-
-        .timer {
-          font-size: 3rem;
-          padding: 0.75rem 1rem;
+        .timer-display {
+          font-size: 5rem;
         }
       }
     </style>
   </head>
   <body>
-    <div class="referee-interface">
-      <header class="header">
-        <h1>⚔️ Arbitrage Arène <span id="arena-number">1</span></h1>
-        <div class="connection-status">
-          <div id="status-dot" class="status-dot"></div>
-          <span id="connection-text">Déconnecté</span>
-        </div>
-      </header>
-
-      <main class="main-container">
-        <div class="match-panel">
-          <div class="match-status">
-            <div id="match-status-badge" class="status-badge status-idle">En attente</div>
-          </div>
-
-          <div id="no-match" class="no-match">
-            <div>🤺</div>
-            <div>En attente du prochain match</div>
-          </div>
-
-          <div id="match-content" style="display: none">
-            <div class="fencers-display">
-              <div class="fencer-card" id="fencer-a-card">
-                <div id="fencer-a-name" class="fencer-name">-</div>
-                <div id="fencer-a-club" class="fencer-club">-</div>
-
-                <!-- Cartons -->
-                <div class="card-display" id="fencer-a-cards"></div>
-
-                <div id="fencer-a-score" class="score-display">0</div>
-
-                <!-- Boutons de score -->
-                <div class="score-controls">
-                  <div class="score-btn-group">
-                    <div class="score-btn-row">
-                      <button class="score-btn score-btn-touch" onclick="addScore('A', 1)">
-                        +1
-                      </button>
-                      <button
-                        class="score-btn score-btn-touch score-btn-touch-3"
-                        onclick="addScore('A', 3)"
-                      >
-                        +3
-                      </button>
-                      <button
-                        class="score-btn score-btn-touch score-btn-touch-5"
-                        onclick="addScore('A', 5)"
-                      >
-                        +5
-                      </button>
-                    </div>
-                    <div class="score-btn-row">
-                      <button class="quick-score-btn" onclick="addScore('A', -1)">-1</button>
-                      <button class="quick-score-btn" onclick="setScore('A', 0)">0</button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Boutons cartons -->
-                <div class="card-buttons">
-                  <button
-                    class="card-btn card-btn-white"
-                    onclick="addCard('A', 'white')"
-                    title="Carton blanc"
-                  >
-                    B
-                  </button>
-                  <button
-                    class="card-btn card-btn-yellow"
-                    onclick="addCard('A', 'yellow')"
-                    title="Carton jaune"
-                  >
-                    J
-                  </button>
-                  <button
-                    class="card-btn card-btn-red"
-                    onclick="addCard('A', 'red')"
-                    title="Carton rouge"
-                  >
-                    R
-                  </button>
-                </div>
-              </div>
-
-              <div class="vs-separator">VS</div>
-
-              <div class="fencer-card" id="fencer-b-card">
-                <div id="fencer-b-name" class="fencer-name">-</div>
-                <div id="fencer-b-club" class="fencer-club">-</div>
-
-                <!-- Cartons -->
-                <div class="card-display" id="fencer-b-cards"></div>
-
-                <div id="fencer-b-score" class="score-display">0</div>
-
-                <!-- Boutons de score -->
-                <div class="score-controls">
-                  <div class="score-btn-group">
-                    <div class="score-btn-row">
-                      <button class="score-btn score-btn-touch" onclick="addScore('B', 1)">
-                        +1
-                      </button>
-                      <button
-                        class="score-btn score-btn-touch score-btn-touch-3"
-                        onclick="addScore('B', 3)"
-                      >
-                        +3
-                      </button>
-                      <button
-                        class="score-btn score-btn-touch score-btn-touch-5"
-                        onclick="addScore('B', 5)"
-                      >
-                        +5
-                      </button>
-                    </div>
-                    <div class="score-btn-row">
-                      <button class="quick-score-btn" onclick="addScore('B', -1)">-1</button>
-                      <button class="quick-score-btn" onclick="setScore('B', 0)">0</button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Boutons cartons -->
-                <div class="card-buttons">
-                  <button
-                    class="card-btn card-btn-white"
-                    onclick="addCard('B', 'white')"
-                    title="Carton blanc"
-                  >
-                    B
-                  </button>
-                  <button
-                    class="card-btn card-btn-yellow"
-                    onclick="addCard('B', 'yellow')"
-                    title="Carton jaune"
-                  >
-                    J
-                  </button>
-                  <button
-                    class="card-btn card-btn-red"
-                    onclick="addCard('B', 'red')"
-                    title="Carton rouge"
-                  >
-                    R
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="timer-section">
-              <div class="timer-container">
-                <div id="timer" class="timer">03:00</div>
-                <div class="timer-controls">
-                  <button
-                    id="timer-start-btn"
-                    class="timer-btn timer-btn-start"
-                    onclick="startTimer()"
-                  >
-                    ▶️ Démarrer
-                  </button>
-                  <button
-                    id="timer-pause-btn"
-                    class="timer-btn timer-btn-pause"
-                    onclick="toggleTimer()"
-                    style="display: none"
-                  >
-                    ⏸️ Pause
-                  </button>
-                  <button
-                    id="timer-reset-btn"
-                    class="timer-btn timer-btn-reset"
-                    onclick="resetTimer()"
-                  >
-                    🔄 Reset
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="control-panel">
-          <div class="control-buttons">
-            <button id="start-btn" class="control-btn success" onclick="startMatch()" disabled>
-              ▶️ Démarrer
-            </button>
-            <button id="pause-btn" class="control-btn warning" onclick="pauseMatch()" disabled>
-              ⏸️ Pause
-            </button>
-            <button id="finish-btn" class="control-btn danger" onclick="finishMatch()" disabled>
-              🔚 Terminer
-            </button>
-            <button id="next-btn" class="control-btn" onclick="nextMatch()" disabled>
-              ⏭️ Match suivant
-            </button>
-            <button id="reset-btn" class="control-btn" onclick="resetScores()">
-              🔄 Réinitialiser scores
-            </button>
-          </div>
-        </div>
-      </main>
+    <div class="header">
+      <h1>
+        <span>⚔️</span>
+        <span>Arène <span id="arena-number">1</span></span>
+      </h1>
+      <div class="connection-status">
+        <div id="status-dot" class="status-dot"></div>
+        <span id="connection-text">Connexion...</span>
+      </div>
     </div>
 
+    <div class="main-container">
+      <!-- Sélecteur de match -->
+      <div class="match-selector" id="match-selector">
+        <h2>📋 Matchs de la poule</h2>
+        <div class="matches-list" id="matches-list">
+          <div class="match-item">Chargement...</div>
+        </div>
+      </div>
+
+      <!-- Match actif -->
+      <div class="active-match" id="active-match">
+        <div class="match-header">
+          <span class="match-status-badge status-waiting" id="match-status">En attente</span>
+        </div>
+
+        <div class="fencers-container">
+          <!-- Tireur A (Rouge) -->
+          <div class="fencer-box red-side" id="fencer-a-box">
+            <div class="fencer-color red"></div>
+            <div class="fencer-name" id="fencer-a-name">-</div>
+            <div class="fencer-club" id="fencer-a-club">-</div>
+            <div class="cards-display" id="fencer-a-cards"></div>
+            <div class="score-display red-score" id="score-a">0</div>
+            <div class="score-buttons">
+              <button class="score-btn btn-plus-1" onclick="refereeApp.addScore('A', 1)">+1</button>
+              <button class="score-btn btn-plus-3" onclick="refereeApp.addScore('A', 3)">+3</button>
+              <button class="score-btn btn-plus-5" onclick="refereeApp.addScore('A', 5)">+5</button>
+              <button class="score-btn btn-minus-1" onclick="refereeApp.addScore('A', -1)">
+                -1
+              </button>
+            </div>
+            <div class="card-buttons">
+              <button
+                class="card-btn card-btn-white"
+                onclick="refereeApp.addCard('A', 'white')"
+                title="Carton blanc"
+              >
+                B
+              </button>
+              <button
+                class="card-btn card-btn-yellow"
+                onclick="refereeApp.addCard('A', 'yellow')"
+                title="Carton jaune (+3 adv)"
+              >
+                J
+              </button>
+              <button
+                class="card-btn card-btn-red"
+                onclick="refereeApp.addCard('A', 'red')"
+                title="Carton rouge (+5 adv)"
+              >
+                R
+              </button>
+            </div>
+          </div>
+
+          <!-- VS -->
+          <div class="vs-divider">VS</div>
+
+          <!-- Tireur B (Vert) -->
+          <div class="fencer-box green-side" id="fencer-b-box">
+            <div class="fencer-color green"></div>
+            <div class="fencer-name" id="fencer-b-name">-</div>
+            <div class="fencer-club" id="fencer-b-club">-</div>
+            <div class="cards-display" id="fencer-b-cards"></div>
+            <div class="score-display green-score" id="score-b">0</div>
+            <div class="score-buttons">
+              <button class="score-btn btn-plus-1" onclick="refereeApp.addScore('B', 1)">+1</button>
+              <button class="score-btn btn-plus-3" onclick="refereeApp.addScore('B', 3)">+3</button>
+              <button class="score-btn btn-plus-5" onclick="refereeApp.addScore('B', 5)">+5</button>
+              <button class="score-btn btn-minus-1" onclick="refereeApp.addScore('B', -1)">
+                -1
+              </button>
+            </div>
+            <div class="card-buttons">
+              <button
+                class="card-btn card-btn-white"
+                onclick="refereeApp.addCard('B', 'white')"
+                title="Carton blanc"
+              >
+                B
+              </button>
+              <button
+                class="card-btn card-btn-yellow"
+                onclick="refereeApp.addCard('B', 'yellow')"
+                title="Carton jaune (+3 adv)"
+              >
+                J
+              </button>
+              <button
+                class="card-btn card-btn-red"
+                onclick="refereeApp.addCard('B', 'red')"
+                title="Carton rouge (+5 adv)"
+              >
+                R
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chronomètre -->
+        <div class="timer-section">
+          <div class="timer-display" id="timer-display">03:00</div>
+          <div class="timer-hint">Tapez pour démarrer/pause - Appui long pour reset</div>
+        </div>
+
+        <!-- Boutons de contrôle -->
+        <div class="control-buttons">
+          <button class="control-btn btn-start" id="btn-start" onclick="refereeApp.startMatch()">
+            ▶️ Démarrer
+          </button>
+          <button
+            class="control-btn btn-finish"
+            id="btn-finish"
+            onclick="refereeApp.showFinishModal()"
+            disabled
+          >
+            🏁 Terminer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de confirmation -->
+    <div class="modal-overlay" id="finish-modal">
+      <div class="modal-content">
+        <div class="modal-title">🏁 Fin de match</div>
+        <div class="modal-body">
+          <p>Confirmez-vous la fin de ce match ?</p>
+          <div class="final-score" id="final-score-display">0 - 0</div>
+          <p style="font-size: 0.875rem; color: #6b7280">
+            Le score sera enregistré dans le tableau de poules.
+          </p>
+        </div>
+        <div class="modal-buttons">
+          <button class="modal-btn modal-btn-cancel" onclick="refereeApp.hideFinishModal()">
+            Annuler
+          </button>
+          <button class="modal-btn modal-btn-confirm" onclick="refereeApp.confirmFinish()">
+            Confirmer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
     <script>
-      class RefereeInterface {
+      class RefereeApp {
         constructor() {
           this.socket = io();
           this.arenaId = this.getArenaId();
-          this.arenaNumber = this.getArenaNumber();
+          this.arenaNumber = this.arenaNumberFromId();
+          this.poolId = null;
+          this.matches = [];
           this.currentMatch = null;
           this.scoreA = 0;
           this.scoreB = 0;
-          this.matchStatus = 'idle';
-          this.connectionStatus = false;
+          this.cardsA = [];
+          this.cardsB = [];
+          this.matchStatus = 'not_started';
+          this.timerSeconds = 180; // 3 minutes
+          this.timerInterval = null;
+          this.timerRunning = false;
+          this.longPressTimer = null;
 
           this.init();
         }
 
         getArenaId() {
           const path = window.location.pathname;
-          if (path.includes('arena1')) return 'arena1';
-          if (path.includes('arena2')) return 'arena2';
-          if (path.includes('arena3')) return 'arena3';
-          if (path.includes('arena4')) return 'arena4';
-          return 'arena1';
+          const match = path.match(/arene(\d+)/i);
+          return match ? `arena${match[1]}` : 'arena1';
         }
 
-        getArenaNumber() {
+        arenaNumberFromId() {
           return this.arenaId.replace('arena', '');
         }
 
         init() {
           document.getElementById('arena-number').textContent = this.arenaNumber;
+          this.setupSocketListeners();
+          this.setupTimerInteractions();
+          this.loadMatches();
+        }
 
+        setupSocketListeners() {
           this.socket.on('connect', () => {
-            this.connectionStatus = true;
-            this.updateConnectionStatus();
+            this.updateConnectionStatus(true);
             this.socket.emit('join_arena', { arenaId: this.arenaId, role: 'referee' });
+            this.showNotification('✅ Connecté au serveur');
           });
 
           this.socket.on('disconnect', () => {
-            this.connectionStatus = false;
-            this.updateConnectionStatus();
+            this.updateConnectionStatus(false);
+            this.showNotification('❌ Déconnecté', true);
           });
 
           this.socket.on(`arena:${this.arenaId}:update`, data => {
             this.handleArenaUpdate(data);
           });
-
-          this.updateDisplay();
         }
 
-        updateConnectionStatus() {
+        setupTimerInteractions() {
+          const timerDisplay = document.getElementById('timer-display');
+
+          // Click simple : play/pause
+          timerDisplay.addEventListener('click', e => {
+            if (this.longPressTimer) {
+              clearTimeout(this.longPressTimer);
+              this.longPressTimer = null;
+            }
+            this.toggleTimer();
+          });
+
+          // Appui long : reset
+          timerDisplay.addEventListener('mousedown', e => {
+            this.longPressTimer = setTimeout(() => {
+              this.resetTimer();
+              this.longPressTimer = null;
+            }, 800);
+          });
+
+          timerDisplay.addEventListener('mouseup', e => {
+            if (this.longPressTimer) {
+              clearTimeout(this.longPressTimer);
+              this.longPressTimer = null;
+            }
+          });
+
+          timerDisplay.addEventListener('mouseleave', e => {
+            if (this.longPressTimer) {
+              clearTimeout(this.longPressTimer);
+              this.longPressTimer = null;
+            }
+          });
+
+          // Touch events pour mobile
+          timerDisplay.addEventListener('touchstart', e => {
+            this.longPressTimer = setTimeout(() => {
+              this.resetTimer();
+              this.longPressTimer = null;
+            }, 800);
+          });
+
+          timerDisplay.addEventListener('touchend', e => {
+            if (this.longPressTimer) {
+              clearTimeout(this.longPressTimer);
+              this.longPressTimer = null;
+            }
+          });
+        }
+
+        updateConnectionStatus(connected) {
           const dot = document.getElementById('status-dot');
           const text = document.getElementById('connection-text');
 
-          if (this.connectionStatus) {
+          if (connected) {
             dot.classList.add('connected');
-            text.textContent = 'Connecté';
+            text.textContent = 'En ligne';
           } else {
             dot.classList.remove('connected');
-            text.textContent = 'Déconnecté';
+            text.textContent = 'Hors ligne';
           }
         }
 
-        handleArenaUpdate(data) {
-          if (data.status) {
-            this.matchStatus = data.status;
-          }
+        async loadMatches() {
+          try {
+            const response = await fetch(`/api/arenas/${this.arenaId}/matches`);
+            if (!response.ok) throw new Error('Erreur de chargement');
 
-          if (data.match) {
-            this.currentMatch = data.match;
-            this.scoreA = data.match.scoreA || 0;
-            this.scoreB = data.match.scoreB || 0;
+            const data = await response.json();
+            this.matches = data.matches || [];
+            this.poolId = data.poolId;
+            this.renderMatchesList();
+          } catch (error) {
+            console.error('Erreur chargement matchs:', error);
+            this.showNotification('Erreur chargement matchs', true);
           }
-
-          if (data.scoreA !== undefined) {
-            this.scoreA = data.scoreA;
-          }
-
-          if (data.scoreB !== undefined) {
-            this.scoreB = data.scoreB;
-          }
-
-          if (data.time !== undefined) {
-            this.updateTimer(data.time);
-          }
-
-          this.updateDisplay();
         }
 
-        updateDisplay() {
-          this.updateMatchStatus();
-          this.updateMatchDisplay();
+        renderMatchesList() {
+          const container = document.getElementById('matches-list');
+
+          if (this.matches.length === 0) {
+            container.innerHTML = '<div class="match-item">Aucun match</div>';
+            return;
+          }
+
+          container.innerHTML = this.matches
+            .map(match => {
+              const isActive = this.currentMatch && this.currentMatch.id === match.id;
+              const isFinished = match.status === 'finished';
+              const scoreA = match.scoreA?.value ?? 0;
+              const scoreB = match.scoreB?.value ?? 0;
+
+              return `
+                        <div class="match-item ${isActive ? 'active' : ''} ${isFinished ? 'finished' : ''}" 
+                             onclick="refereeApp.selectMatch('${match.id}')">
+                            <div class="match-info">
+                                <div class="match-fencers">
+                                    ${match.fencerA?.lastName || '?'} vs ${match.fencerB?.lastName || '?'}
+                                </div>
+                                <div class="match-status">
+                                    ${this.getStatusLabel(match.status)}
+                                </div>
+                            </div>
+                            <div class="match-score">
+                                ${isFinished || isActive ? `${scoreA}-${scoreB}` : '•'}
+                            </div>
+                        </div>
+                    `;
+            })
+            .join('');
+        }
+
+        getStatusLabel(status) {
+          const labels = {
+            not_started: '⏳ En attente',
+            in_progress: '🏃 En cours',
+            finished: '✅ Terminé',
+          };
+          return labels[status] || status;
+        }
+
+        selectMatch(matchId) {
+          const match = this.matches.find(m => m.id === matchId);
+          if (!match || match.status === 'finished') return;
+
+          this.currentMatch = match;
+          this.scoreA = match.scoreA?.value || 0;
+          this.scoreB = match.scoreB?.value || 0;
+          this.cardsA = [];
+          this.cardsB = [];
+          this.matchStatus = match.status;
+          this.timerSeconds = 180;
+          this.stopTimer();
+
+          // Charger les infos du match
+          document.getElementById('fencer-a-name').textContent =
+            `${match.fencerA?.lastName || ''} ${match.fencerA?.firstName || ''}`.trim();
+          document.getElementById('fencer-a-club').textContent = match.fencerA?.club || '';
+
+          document.getElementById('fencer-b-name').textContent =
+            `${match.fencerB?.lastName || ''} ${match.fencerB?.firstName || ''}`.trim();
+          document.getElementById('fencer-b-club').textContent = match.fencerB?.club || '';
+
           this.updateScores();
+          this.updateCardsDisplay();
+          this.updateTimerDisplay();
+          this.updateMatchStatus();
           this.updateControlButtons();
+          this.renderMatchesList();
+
+          // Afficher le panneau de match
+          document.getElementById('active-match').classList.add('visible');
+
+          // Informer le serveur
+          this.socket.emit('arena_control', {
+            arenaId: this.arenaId,
+            action: 'select_match',
+            match: match,
+          });
+        }
+
+        addScore(fencer, points) {
+          if (!this.currentMatch) return;
+          if (this.matchStatus === 'finished') return;
+
+          if (fencer === 'A') {
+            this.scoreA = Math.max(0, this.scoreA + points);
+          } else {
+            this.scoreB = Math.max(0, this.scoreB + points);
+          }
+
+          this.updateScores();
+          this.broadcastUpdate();
+          this.saveScore();
+        }
+
+        addCard(fencer, cardType) {
+          if (!this.currentMatch) return;
+          if (this.matchStatus === 'finished') return;
+
+          const cards = fencer === 'A' ? this.cardsA : this.cardsB;
+          const otherFencer = fencer === 'A' ? 'B' : 'A';
+
+          // Logique des cartons
+          if (cardType === 'white') {
+            const whiteCount = cards.filter(c => c === 'white').length;
+            if (whiteCount >= 1) {
+              // Deuxième blanc = jaune automatique
+              cardType = 'yellow';
+              this.showNotification('⚠️ 2ème blanc = Jaune automatique');
+            }
+          }
+
+          cards.push(cardType);
+
+          // Application des pénalités
+          if (cardType === 'yellow') {
+            // Jaune = +3 pour l'adversaire
+            if (fencer === 'A') {
+              this.scoreB += 3;
+            } else {
+              this.scoreA += 3;
+            }
+            this.showNotification("🟨 +3 points pour l'adversaire");
+          } else if (cardType === 'red') {
+            // Rouge = +5 pour l'adversaire
+            if (fencer === 'A') {
+              this.scoreB += 5;
+            } else {
+              this.scoreA += 5;
+            }
+            this.showNotification("🟥 +5 points pour l'adversaire");
+          }
+
+          this.updateScores();
+          this.updateCardsDisplay();
+          this.broadcastUpdate();
+          this.saveScore();
+        }
+
+        updateScores() {
+          document.getElementById('score-a').textContent = this.scoreA;
+          document.getElementById('score-b').textContent = this.scoreB;
+        }
+
+        updateCardsDisplay() {
+          const renderCards = cards =>
+            cards
+              .map(
+                card =>
+                  `<div class="card card-${card}">${card === 'white' ? 'B' : card === 'yellow' ? 'J' : 'R'}</div>`
+              )
+              .join('');
+
+          document.getElementById('fencer-a-cards').innerHTML = renderCards(this.cardsA);
+          document.getElementById('fencer-b-cards').innerHTML = renderCards(this.cardsB);
+        }
+
+        toggleTimer() {
+          if (this.timerRunning) {
+            this.pauseTimer();
+          } else {
+            this.startTimer();
+          }
+        }
+
+        startTimer() {
+          if (this.timerRunning) return;
+
+          this.timerRunning = true;
+          this.updateTimerDisplay();
+          this.broadcastTimerUpdate();
+
+          this.timerInterval = setInterval(() => {
+            if (this.timerSeconds > 0) {
+              this.timerSeconds--;
+              this.updateTimerDisplay();
+              this.broadcastTimerUpdate();
+
+              if (this.timerSeconds === 0) {
+                this.stopTimer();
+                this.showNotification('⏰ Temps écoulé !');
+              }
+            }
+          }, 1000);
+        }
+
+        pauseTimer() {
+          this.stopTimer();
+          this.updateTimerDisplay();
+          this.broadcastTimerUpdate();
+        }
+
+        stopTimer() {
+          if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+          }
+          this.timerRunning = false;
+        }
+
+        resetTimer() {
+          this.stopTimer();
+          this.timerSeconds = 180;
+          this.updateTimerDisplay();
+          this.broadcastTimerUpdate();
+          this.showNotification('🔄 Chronomètre réinitialisé');
+        }
+
+        updateTimerDisplay() {
+          const minutes = Math.floor(this.timerSeconds / 60);
+          const seconds = this.timerSeconds % 60;
+          const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+          const timerEl = document.getElementById('timer-display');
+          timerEl.textContent = display;
+
+          // Classes visuelles
+          timerEl.className = 'timer-display';
+          if (this.timerRunning) {
+            timerEl.classList.add('running');
+          } else if (this.timerSeconds < 180) {
+            timerEl.classList.add('paused');
+          }
+
+          if (this.timerSeconds <= 10) {
+            timerEl.classList.add('danger');
+          } else if (this.timerSeconds <= 30) {
+            timerEl.classList.add('warning');
+          }
+        }
+
+        broadcastTimerUpdate() {
+          this.socket.emit('arena_control', {
+            arenaId: this.arenaId,
+            action: this.timerRunning ? 'update_timer' : 'pause_timer',
+            time: this.timerSeconds,
+            timerStatus: this.timerRunning ? 'running' : 'paused',
+          });
+        }
+
+        broadcastUpdate() {
+          this.socket.emit('arena_control', {
+            arenaId: this.arenaId,
+            action: 'update_score',
+            scoreA: this.scoreA,
+            scoreB: this.scoreB,
+            cardsA: this.cardsA,
+            cardsB: this.cardsB,
+          });
+        }
+
+        async saveScore() {
+          if (!this.currentMatch) return;
+
+          try {
+            await fetch(`/api/matches/${this.currentMatch.id}/score`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                scoreA: this.scoreA,
+                scoreB: this.scoreB,
+                status: this.matchStatus,
+              }),
+            });
+          } catch (error) {
+            console.error('Erreur sauvegarde:', error);
+          }
+        }
+
+        startMatch() {
+          if (!this.currentMatch) return;
+
+          this.matchStatus = 'in_progress';
+          this.updateMatchStatus();
+          this.updateControlButtons();
+          this.saveScore();
+
+          // Mettre à jour le match dans la liste
+          const match = this.matches.find(m => m.id === this.currentMatch.id);
+          if (match) match.status = 'in_progress';
+          this.renderMatchesList();
+
+          this.socket.emit('arena_control', {
+            arenaId: this.arenaId,
+            action: 'start',
+          });
+
+          this.showNotification('▶️ Match démarré !');
+        }
+
+        showFinishModal() {
+          if (!this.currentMatch || this.matchStatus !== 'in_progress') return;
+
+          document.getElementById('final-score-display').textContent =
+            `${this.scoreA} - ${this.scoreB}`;
+          document.getElementById('finish-modal').classList.add('active');
+        }
+
+        hideFinishModal() {
+          document.getElementById('finish-modal').classList.remove('active');
+        }
+
+        async confirmFinish() {
+          if (!this.currentMatch) return;
+
+          this.matchStatus = 'finished';
+          this.stopTimer();
+          this.hideFinishModal();
+
+          try {
+            await fetch(`/api/matches/${this.currentMatch.id}/finish`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                scoreA: this.scoreA,
+                scoreB: this.scoreB,
+                cardsA: this.cardsA,
+                cardsB: this.cardsB,
+              }),
+            });
+
+            // Mettre à jour le match dans la liste
+            const match = this.matches.find(m => m.id === this.currentMatch.id);
+            if (match) {
+              match.status = 'finished';
+              match.scoreA = { value: this.scoreA };
+              match.scoreB = { value: this.scoreB };
+            }
+
+            this.renderMatchesList();
+            this.updateMatchStatus();
+            this.updateControlButtons();
+
+            this.socket.emit('arena_control', {
+              arenaId: this.arenaId,
+              action: 'finish',
+            });
+
+            this.showNotification('✅ Match terminé et enregistré !');
+
+            // Réinitialiser pour le prochain match
+            setTimeout(() => {
+              this.currentMatch = null;
+              this.scoreA = 0;
+              this.scoreB = 0;
+              this.cardsA = [];
+              this.cardsB = [];
+              this.matchStatus = 'not_started';
+              this.timerSeconds = 180;
+              this.updateTimerDisplay();
+              document.getElementById('active-match').classList.remove('visible');
+              this.renderMatchesList();
+            }, 2000);
+          } catch (error) {
+            console.error('Erreur fin de match:', error);
+            this.showNotification("❌ Erreur lors de l'enregistrement", true);
+          }
         }
 
         updateMatchStatus() {
-          const badge = document.getElementById('match-status-badge');
-          badge.className = 'status-badge';
+          const badge = document.getElementById('match-status');
+          badge.className = 'match-status-badge';
 
           switch (this.matchStatus) {
-            case 'idle':
+            case 'not_started':
               badge.textContent = 'En attente';
-              badge.classList.add('status-idle');
-              break;
-            case 'ready':
-              badge.textContent = 'Prêt';
-              badge.classList.add('status-ready');
+              badge.classList.add('status-waiting');
               break;
             case 'in_progress':
               badge.textContent = 'En cours';
-              badge.classList.add('status-in_progress');
+              badge.classList.add('status-progress');
               break;
             case 'finished':
               badge.textContent = 'Terminé';
@@ -834,313 +1295,37 @@
           }
         }
 
-        updateMatchDisplay() {
-          const noMatch = document.getElementById('no-match');
-          const matchContent = document.getElementById('match-content');
-
-          if (!this.currentMatch) {
-            noMatch.style.display = 'block';
-            matchContent.style.display = 'none';
-            return;
-          }
-
-          noMatch.style.display = 'none';
-          matchContent.style.display = 'block';
-
-          document.getElementById('fencer-a-name').textContent =
-            `${this.currentMatch.fencerA?.lastName || ''} ${this.currentMatch.fencerA?.firstName || ''}`.trim();
-          document.getElementById('fencer-a-club').textContent =
-            this.currentMatch.fencerA?.club || '';
-
-          document.getElementById('fencer-b-name').textContent =
-            `${this.currentMatch.fencerB?.lastName || ''} ${this.currentMatch.fencerB?.firstName || ''}`.trim();
-          document.getElementById('fencer-b-club').textContent =
-            this.currentMatch.fencerB?.club || '';
-        }
-
-        updateScores() {
-          document.getElementById('fencer-a-score').textContent = this.scoreA;
-          document.getElementById('fencer-b-score').textContent = this.scoreB;
-        }
-
         updateControlButtons() {
-          const startBtn = document.getElementById('start-btn');
-          const pauseBtn = document.getElementById('pause-btn');
-          const finishBtn = document.getElementById('finish-btn');
-          const nextBtn = document.getElementById('next-btn');
+          const startBtn = document.getElementById('btn-start');
+          const finishBtn = document.getElementById('btn-finish');
 
-          // Activer/désactiver les boutons selon le statut
-          startBtn.disabled = this.matchStatus !== 'ready' && this.matchStatus !== 'finished';
-          pauseBtn.disabled = this.matchStatus !== 'in_progress';
+          startBtn.disabled = this.matchStatus !== 'not_started';
           finishBtn.disabled = this.matchStatus !== 'in_progress';
-          nextBtn.disabled = this.matchStatus !== 'finished' && this.matchStatus !== 'idle';
         }
 
-        updateTimer(seconds) {
-          const minutes = Math.floor(seconds / 60);
-          const secs = seconds % 60;
-          const timeStr = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-
-          const timerEl = document.getElementById('timer');
-          timerEl.textContent = timeStr;
-
-          timerEl.className = 'timer';
-          if (seconds <= 30) {
-            timerEl.classList.add('danger');
-          } else if (seconds <= 60) {
-            timerEl.classList.add('warning');
+        handleArenaUpdate(data) {
+          // Mise à jour reçue du serveur (si besoin)
+          if (data.match && (!this.currentMatch || data.match.id !== this.currentMatch.id)) {
+            // Un autre match a été sélectionné
           }
         }
 
-        // Méthodes de contrôle appelées par les boutons
-        startMatch() {
-          this.socket.emit('arena_control', {
-            arenaId: this.arenaId,
-            action: 'start',
-          });
-        }
+        showNotification(message, isError = false) {
+          const notif = document.getElementById('notification');
+          notif.textContent = message;
+          notif.className = 'notification' + (isError ? ' error' : '');
+          notif.classList.add('show');
 
-        pauseMatch() {
-          this.socket.emit('arena_control', {
-            arenaId: this.arenaId,
-            action: 'pause',
-          });
-        }
-
-        finishMatch() {
-          this.socket.emit('arena_control', {
-            arenaId: this.arenaId,
-            action: 'finish',
-          });
-        }
-
-        nextMatch() {
-          this.socket.emit('arena_control', {
-            arenaId: this.arenaId,
-            action: 'next',
-          });
-        }
-
-        resetScores() {
-          this.scoreA = 0;
-          this.scoreB = 0;
-          this.updateScores();
-
-          this.socket.emit('arena_control', {
-            arenaId: this.arenaId,
-            action: 'reset_scores',
-          });
+          setTimeout(() => {
+            notif.classList.remove('show');
+          }, 3000);
         }
       }
 
-      // Fonctions globales pour les boutons
-      let refereeInterface;
-
-      // Gestion des cartons
-      let cardsA = [];
-      let cardsB = [];
-
-      function addCard(fencer, cardType) {
-        const cards = fencer === 'A' ? cardsA : cardsB;
-        cards.push(cardType);
-
-        // Limiter à 2 cartons maximum par couleur
-        const whiteCount = cards.filter(c => c === 'white').length;
-        const yellowCount = cards.filter(c => c === 'yellow').length;
-        const redCount = cards.filter(c => c === 'red').length;
-
-        // Pas plus de 2 blancs, 2 jaunes, 1 rouge
-        while (cards.filter(c => c === 'white').length > 2) cards.shift();
-        while (cards.filter(c => c === 'yellow').length > 2) cards.shift();
-        while (cards.filter(c => c === 'red').length > 1) cards.shift();
-
-        updateCardDisplay(fencer);
-
-        refereeInterface.socket.emit('arena_control', {
-          arenaId: refereeInterface.arenaId,
-          action: 'add_card',
-          fencer: fencer,
-          cardType: cardType,
-          cardsA: cardsA,
-          cardsB: cardsB,
-        });
-      }
-
-      function updateCardDisplay(fencer) {
-        const cards = fencer === 'A' ? cardsA : cardsB;
-        const container = document.getElementById(`fencer-${fencer.toLowerCase()}-cards`);
-        container.innerHTML = cards
-          .map(
-            card =>
-              `<div class="card card-${card}">${card === 'white' ? 'B' : card === 'yellow' ? 'J' : 'R'}</div>`
-          )
-          .join('');
-      }
-
-      function addScore(fencer, points) {
-        if (fencer === 'A') {
-          refereeInterface.scoreA = Math.max(0, refereeInterface.scoreA + points);
-        } else {
-          refereeInterface.scoreB = Math.max(0, refereeInterface.scoreB + points);
-        }
-        refereeInterface.updateScores();
-
-        refereeInterface.socket.emit('arena_control', {
-          arenaId: refereeInterface.arenaId,
-          action: 'update_score',
-          scoreA: refereeInterface.scoreA,
-          scoreB: refereeInterface.scoreB,
-        });
-      }
-
-      function setScore(fencer, score) {
-        score = Math.max(0, score);
-        if (fencer === 'A') {
-          refereeInterface.scoreA = score;
-        } else {
-          refereeInterface.scoreB = score;
-        }
-        refereeInterface.updateScores();
-
-        refereeInterface.socket.emit('arena_control', {
-          arenaId: refereeInterface.arenaId,
-          action: 'update_score',
-          scoreA: refereeInterface.scoreA,
-          scoreB: refereeInterface.scoreB,
-        });
-      }
-
-      function startMatch() {
-        refereeInterface.startMatch();
-      }
-      function pauseMatch() {
-        refereeInterface.pauseMatch();
-      }
-      function finishMatch() {
-        refereeInterface.finishMatch();
-      }
-      function nextMatch() {
-        // Reset scores and cards for next match
-        cardsA = [];
-        cardsB = [];
-        updateCardDisplay('A');
-        updateCardDisplay('B');
-        refereeInterface.nextMatch();
-      }
-      function resetScores() {
-        cardsA = [];
-        cardsB = [];
-        updateCardDisplay('A');
-        updateCardDisplay('B');
-        refereeInterface.resetScores();
-      }
-
-      // Gestion du timer (3 minutes)
-      const MATCH_DURATION = 180; // 3 minutes en secondes
-      let timerSeconds = MATCH_DURATION;
-      let timerInterval = null;
-      let timerRunning = false;
-
-      function startTimer() {
-        if (timerRunning) return;
-
-        timerRunning = true;
-        updateTimerButtons();
-
-        timerInterval = setInterval(() => {
-          if (timerSeconds > 0) {
-            timerSeconds--;
-            updateTimerDisplay();
-
-            // Envoyer au serveur pour synchroniser l'affichage
-            refereeInterface.socket.emit('arena_control', {
-              arenaId: refereeInterface.arenaId,
-              action: 'update_timer',
-              time: timerSeconds,
-              timerStatus: 'running',
-            });
-          } else {
-            clearInterval(timerInterval);
-            timerRunning = false;
-            updateTimerButtons();
-          }
-        }, 1000);
-      }
-
-      function toggleTimer() {
-        if (timerRunning) {
-          // Pause
-          clearInterval(timerInterval);
-          timerRunning = false;
-          updateTimerButtons();
-
-          refereeInterface.socket.emit('arena_control', {
-            arenaId: refereeInterface.arenaId,
-            action: 'pause_timer',
-            time: timerSeconds,
-            timerStatus: 'paused',
-          });
-        } else {
-          // Reprendre
-          startTimer();
-        }
-      }
-
-      function resetTimer() {
-        clearInterval(timerInterval);
-        timerRunning = false;
-        timerSeconds = MATCH_DURATION;
-        updateTimerDisplay();
-        updateTimerButtons();
-
-        refereeInterface.socket.emit('arena_control', {
-          arenaId: refereeInterface.arenaId,
-          action: 'reset_timer',
-          time: MATCH_DURATION,
-          timerStatus: 'reset',
-        });
-      }
-
-      function updateTimerDisplay() {
-        const minutes = Math.floor(timerSeconds / 60);
-        const secs = timerSeconds % 60;
-        const timeStr = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-
-        const timerEl = document.getElementById('timer');
-        timerEl.textContent = timeStr;
-
-        // Styles de couleur
-        timerEl.className = 'timer';
-        if (timerSeconds <= 30) {
-          timerEl.classList.add('danger');
-        } else if (timerSeconds <= 60) {
-          timerEl.classList.add('warning');
-        }
-        if (timerRunning) {
-          timerEl.classList.add('running');
-        } else if (timerSeconds < MATCH_DURATION) {
-          timerEl.classList.add('paused');
-        }
-      }
-
-      function updateTimerButtons() {
-        const startBtn = document.getElementById('timer-start-btn');
-        const pauseBtn = document.getElementById('timer-pause-btn');
-
-        if (timerRunning) {
-          startBtn.style.display = 'none';
-          pauseBtn.style.display = 'inline-flex';
-          pauseBtn.textContent = '⏸️ Pause';
-        } else {
-          startBtn.style.display = 'inline-flex';
-          pauseBtn.style.display = 'none';
-        }
-      }
-
-      // Démarrer l'interface d'arbitrage
+      // Initialisation
+      let refereeApp;
       document.addEventListener('DOMContentLoaded', () => {
-        refereeInterface = new RefereeInterface();
-        updateTimerDisplay();
+        refereeApp = new RefereeApp();
       });
     </script>
   </body>

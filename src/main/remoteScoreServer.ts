@@ -309,6 +309,165 @@ export class RemoteScoreServer {
       });
     });
 
+    // Nouveau: Route /arbitre/areneX (format demandé par l'utilisateur)
+    this.app.get('/arbitre/arene:arenaId', (req, res) => {
+      const arenaId = req.params.arenaId;
+      console.log(`[RemoteScoreServer] Accès à l'interface arbitre /arbitre/arene${arenaId}`);
+
+      res.sendFile(getRemotePath('referee.html'), (err: any) => {
+        if (err) {
+          console.error('[RemoteScoreServer] ERREUR envoi referee.html:', err);
+          res.status(500).send("Erreur lors du chargement de l'interface arbitre");
+        }
+      });
+    });
+
+    // API pour récupérer les matchs d'une arène/poule
+    this.app.get('/api/arenas/:arenaId/matches', (req, res) => {
+      try {
+        const { arenaId } = req.params;
+        console.log(`[RemoteScoreServer] GET /api/arenas/${arenaId}/matches`);
+
+        if (!this.session) {
+          return res.status(404).json({ error: 'Aucune session active' });
+        }
+
+        // Récupérer l'arène
+        const arena = this.getArena(arenaId);
+        if (!arena) {
+          return res.status(404).json({ error: 'Arène non trouvée' });
+        }
+
+        // Déterminer la pool associée à cette arène
+        // Pour l'instant, on associe arena1 -> première pool, etc.
+        const arenaNumber = parseInt(arenaId.replace('arena', ''));
+        const competitionId = this.session.competitionId;
+
+        // Récupérer toutes les pools de la compétition via SQL
+        const pools: { id: string; name: string }[] = [];
+        try {
+          // Essayer d'abord via la table phases
+          const phaseStmt = this.db['db'].prepare(`
+            SELECT p.id, p.name FROM pools p
+            INNER JOIN phases ph ON p.phase_id = ph.id
+            WHERE ph.competition_id = ?
+            ORDER BY p.name
+          `);
+          phaseStmt.bind([competitionId]);
+          while (phaseStmt.step()) {
+            const row = phaseStmt.getAsObject();
+            pools.push({ id: row.id as string, name: row.name as string });
+          }
+          phaseStmt.free();
+        } catch (e) {
+          // Fallback: récupérer via pool_fencers
+          try {
+            const fallbackStmt = this.db['db'].prepare(`
+              SELECT DISTINCT p.id, p.name FROM pools p
+              INNER JOIN pool_fencers pf ON p.id = pf.pool_id
+              INNER JOIN fencers f ON pf.fencer_id = f.id
+              WHERE f.competition_id = ?
+              ORDER BY p.name
+            `);
+            fallbackStmt.bind([competitionId]);
+            while (fallbackStmt.step()) {
+              const row = fallbackStmt.getAsObject();
+              pools.push({ id: row.id as string, name: row.name as string });
+            }
+            fallbackStmt.free();
+          } catch (e2) {
+            console.warn('[RemoteScoreServer] Impossible de récupérer les pools:', e2);
+          }
+        }
+
+        if (!pools || pools.length === 0) {
+          return res.json({ matches: [], poolId: null });
+        }
+
+        // Associer l'arène à une pool (arena1 -> pool[0], arena2 -> pool[1], etc.)
+        const poolIndex = Math.min(arenaNumber - 1, pools.length - 1);
+        const pool = pools[poolIndex];
+
+        if (!pool) {
+          return res.json({ matches: [], poolId: null });
+        }
+
+        // Récupérer les matchs de cette pool
+        const matches = this.db.getMatchesByPool(pool.id);
+        console.log(`[RemoteScoreServer] ${matches.length} matchs trouvés pour la pool ${pool.id}`);
+
+        res.json({ matches, poolId: pool.id });
+      } catch (error) {
+        console.error('[RemoteScoreServer] Erreur récupération matchs:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des matchs' });
+      }
+    });
+
+    // API pour terminer un match avec enregistrement final
+    this.app.post('/api/matches/:matchId/finish', async (req, res) => {
+      try {
+        const { matchId } = req.params;
+        const { scoreA, scoreB, cardsA, cardsB } = req.body;
+
+        console.log(`[RemoteScoreServer] POST /api/matches/${matchId}/finish`);
+        console.log(`[RemoteScoreServer] Score final: ${scoreA}-${scoreB}`);
+
+        // Mettre à jour le match dans la base de données
+        const match = this.db.getMatch(matchId);
+        if (!match) {
+          return res.status(404).json({ error: 'Match non trouvé' });
+        }
+
+        // Déterminer le vainqueur
+        const winner = scoreA > scoreB ? 'A' : scoreB > scoreA ? 'B' : null;
+
+        // Créer les objets Score
+        const scoreAObj = {
+          value: scoreA,
+          isVictory: winner === 'A',
+          isAbstention: false,
+          isExclusion: false,
+          isForfait: false,
+        };
+
+        const scoreBObj = {
+          value: scoreB,
+          isVictory: winner === 'B',
+          isAbstention: false,
+          isExclusion: false,
+          isForfait: false,
+        };
+
+        // Mettre à jour le match
+        this.db.updateMatch(matchId, {
+          scoreA: scoreAObj,
+          scoreB: scoreBObj,
+          status: MatchStatus.FINISHED,
+        });
+
+        // Notifier tous les clients
+        this.broadcastMessage({
+          type: 'match_finished',
+          data: {
+            matchId,
+            scoreA,
+            scoreB,
+            winner,
+            cardsA: cardsA || [],
+            cardsB: cardsB || [],
+          },
+          timestamp: new Date(),
+          sender: 'server',
+        });
+
+        console.log(`[RemoteScoreServer] Match ${matchId} terminé et enregistré`);
+        res.json({ success: true, winner });
+      } catch (error) {
+        console.error('[RemoteScoreServer] Erreur fin de match:', error);
+        res.status(500).json({ error: 'Erreur lors de la fin du match' });
+      }
+    });
+
     this.app.post('/api/referees', (req, res) => {
       console.log("[RemoteScoreServer] POST /api/referees - Ajout d'un arbitre");
       console.log('[RemoteScoreServer] Body:', req.body);
@@ -438,15 +597,23 @@ export class RemoteScoreServer {
     this.connectedReferees.delete(socket.id);
   }
 
+  // Stockage des cartons par arène
+  private arenaCards: Map<string, { cardsA: string[]; cardsB: string[] }> = new Map();
+
   private handleArenaControl(
     socket: any,
     data: {
       arenaId: string;
       action: string;
+      match?: ArenaMatch;
       scoreA?: number;
       scoreB?: number;
       time?: number;
       timerStatus?: 'running' | 'paused' | 'reset';
+      fencer?: 'A' | 'B';
+      cardType?: 'white' | 'yellow' | 'red';
+      cardsA?: string[];
+      cardsB?: string[];
     }
   ): void {
     const arena = this.getArena(data.arenaId);
@@ -456,6 +623,14 @@ export class RemoteScoreServer {
     }
 
     switch (data.action) {
+      case 'select_match':
+        // Sélection d'un match par l'arbitre
+        if (data.match) {
+          this.assignMatchToArena(data.arenaId, data.match);
+          // Réinitialiser les cartons
+          this.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
+        }
+        break;
       case 'start':
         this.startArenaMatch(data.arenaId);
         break;
@@ -464,18 +639,67 @@ export class RemoteScoreServer {
         break;
       case 'finish':
         this.finishArenaMatch(data.arenaId);
+        // Réinitialiser les cartons
+        this.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
         break;
       case 'next':
         this.loadNextMatch(data.arenaId);
+        // Réinitialiser les cartons
+        this.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
         break;
       case 'update_score':
         if (data.scoreA !== undefined && data.scoreB !== undefined) {
           this.updateArenaScore(data.arenaId, data.scoreA, data.scoreB);
         }
+        // Mettre à jour aussi les cartons si fournis
+        if (data.cardsA !== undefined || data.cardsB !== undefined) {
+          const currentCards = this.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
+          if (data.cardsA !== undefined) currentCards.cardsA = data.cardsA;
+          if (data.cardsB !== undefined) currentCards.cardsB = data.cardsB;
+          this.arenaCards.set(data.arenaId, currentCards);
+          this.broadcastArenaUpdate(data.arenaId, {
+            arenaId: data.arenaId,
+            match: arena.currentMatch,
+            scoreA: data.scoreA ?? arena.currentMatch?.scoreA,
+            scoreB: data.scoreB ?? arena.currentMatch?.scoreB,
+            cardsA: currentCards.cardsA,
+            cardsB: currentCards.cardsB,
+            status: arena.status,
+          });
+        }
+        break;
+      case 'add_card':
+        // Gestion des cartons
+        if (data.fencer && data.cardType) {
+          const currentCards = this.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
+          const targetCards = data.fencer === 'A' ? currentCards.cardsA : currentCards.cardsB;
+          targetCards.push(data.cardType);
+          this.arenaCards.set(data.arenaId, currentCards);
+          this.broadcastArenaUpdate(data.arenaId, {
+            arenaId: data.arenaId,
+            match: arena.currentMatch,
+            scoreA: arena.currentMatch?.scoreA,
+            scoreB: arena.currentMatch?.scoreB,
+            cardsA: currentCards.cardsA,
+            cardsB: currentCards.cardsB,
+            status: arena.status,
+          });
+        }
         break;
       case 'reset_scores':
         if (arena.currentMatch) {
           this.updateArenaScore(data.arenaId, 0, 0);
+          // Réinitialiser les cartons
+          this.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
+          this.broadcastArenaUpdate(data.arenaId, {
+            arenaId: data.arenaId,
+            match: arena.currentMatch,
+            scoreA: 0,
+            scoreB: 0,
+            cardsA: [],
+            cardsB: [],
+            status: arena.status,
+          });
         }
         break;
       case 'update_timer':

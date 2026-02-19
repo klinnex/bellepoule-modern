@@ -131,6 +131,8 @@ export interface ArenaUpdate {
   fencerA?: Fencer;
   fencerB?: Fencer;
   timerStatus?: 'running' | 'paused' | 'reset';
+  cardsA?: string[];
+  cardsB?: string[];
 }
 
 export interface RefereeControl {
