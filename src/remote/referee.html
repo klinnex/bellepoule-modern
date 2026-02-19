@@ -898,9 +898,18 @@
         }
 
         async loadMatches() {
+          const container = document.getElementById('matches-list');
           try {
             const response = await fetch(`/api/arenas/${this.arenaId}/matches`);
-            if (!response.ok) throw new Error('Erreur de chargement');
+
+            if (response.status === 404) {
+              // Pas de session active — réessayer dans 3s
+              container.innerHTML = '<div class="match-item">En attente de la session...</div>';
+              setTimeout(() => this.loadMatches(), 3000);
+              return;
+            }
+
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const data = await response.json();
             this.matches = data.matches || [];
@@ -908,7 +917,8 @@
             this.renderMatchesList();
           } catch (error) {
             console.error('Erreur chargement matchs:', error);
-            this.showNotification('Erreur chargement matchs', true);
+            container.innerHTML = '<div class="match-item">Erreur de connexion — réessai...</div>';
+            setTimeout(() => this.loadMatches(), 5000);
           }
         }
 
