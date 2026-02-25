@@ -378,13 +378,13 @@ export function distributeFencersToPoolsSerpentine(
     // Avancer dans la serpentine
     poolIndex += direction;
     if (poolIndex >= poolCount) {
-      // On arrive à la fin, on repart en arrière
+      // On arrive à la fin, on repart en arrière (la dernière poule est visitée deux fois)
       direction = -1;
-      poolIndex = poolCount - 2;
+      poolIndex = poolCount - 1;
     } else if (poolIndex < 0) {
-      // On arrive au début, on repart en avant
+      // On arrive au début, on repart en avant (la première poule est visitée deux fois)
       direction = 1;
-      poolIndex = 1;
+      poolIndex = 0;
     }
   }
 
@@ -568,10 +568,12 @@ function rebalancePools(
     rebalanced = false;
     iterations++;
 
-    // Trouver les poules surchargées et sous-chargées
+    // Trouver les poules sources (> idealSize) et sous-chargées (< idealSize)
+    // On utilise idealSize comme seuil source (pas maxSize) pour corriger les cas où
+    // toutes les poules sont à maxSize mais certaines restent sous idealSize
     const overloaded = pools
       .map((pool, idx) => ({ idx, pool, size: pool.length }))
-      .filter(p => p.size > maxSize)
+      .filter(p => p.size > idealSize)
       .sort((a, b) => b.size - a.size);
 
     const underloaded = pools
@@ -584,7 +586,7 @@ function rebalancePools(
     // Déplacer des tireurs des poules surchargées vers les sous-chargées
     for (const source of overloaded) {
       for (const target of underloaded) {
-        if (source.size <= maxSize || target.size >= idealSize) continue;
+        if (source.size <= idealSize || target.size >= idealSize) continue;
 
         // Chercher un tireur à déplacer qui ne crée pas de conflit
         for (let i = source.pool.length - 1; i >= 0; i--) {
