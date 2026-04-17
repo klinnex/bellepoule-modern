@@ -171,9 +171,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
     if (index === 0) return;
     const newRanking = [...editedRanking];
     [newRanking[index], newRanking[index - 1]] = [newRanking[index - 1], newRanking[index]];
-    // Mettre à jour les rangs
-    newRanking.forEach((r, i) => (r.rank = i + 1));
-    setEditedRanking(newRanking);
+    setEditedRanking(newRanking.map((r, i) => ({ ...r, rank: i + 1 })));
   };
 
   // Déplacer un tireur vers le bas
@@ -181,9 +179,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
     if (index === editedRanking.length - 1) return;
     const newRanking = [...editedRanking];
     [newRanking[index], newRanking[index + 1]] = [newRanking[index + 1], newRanking[index]];
-    // Mettre à jour les rangs
-    newRanking.forEach((r, i) => (r.rank = i + 1));
-    setEditedRanking(newRanking);
+    setEditedRanking(newRanking.map((r, i) => ({ ...r, rank: i + 1 })));
   };
 
   // Déplacer un tireur directement à un rang cible (saisie clavier)
@@ -193,20 +189,37 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
     const newRanking = [...editedRanking];
     const [moved] = newRanking.splice(fromIndex, 1);
     newRanking.splice(toIndex, 0, moved);
-    newRanking.forEach((r, i) => (r.rank = i + 1));
-    setEditedRanking(newRanking);
+    setEditedRanking(newRanking.map((r, i) => ({ ...r, rank: i + 1 })));
   };
 
   // Sauvegarder les modifications et propager vers le parent
   const saveChanges = () => {
+    // Appliquer les drafts en attente (cas où onBlur n'a pas précédé le clic "Terminer")
+    const hasPendingDraft = editedRanking.some(r => {
+      const d = parseInt(rankDrafts[r.fencer.id] ?? '');
+      return !isNaN(d) && d !== r.rank;
+    });
+
+    let finalRanking: PoolRanking[];
+    if (hasPendingDraft) {
+      const withDraft = editedRanking.map(r => {
+        const d = parseInt(rankDrafts[r.fencer.id] ?? '');
+        return { ...r, rank: !isNaN(d) ? d : r.rank };
+      });
+      withDraft.sort((a, b) => a.rank - b.rank);
+      finalRanking = withDraft.map((r, i) => ({ ...r, rank: i + 1 }));
+    } else {
+      finalRanking = editedRanking;
+    }
+
     const rankingChanged =
       JSON.stringify(overallRanking.map(r => r.fencer.id)) !==
-      JSON.stringify(editedRanking.map(r => r.fencer.id));
+      JSON.stringify(finalRanking.map(r => r.fencer.id));
 
     if (onPoolsChange) {
       // Propager rang ET questPoints dans chaque pool (les deux peuvent avoir changé)
-      const fencerToGlobalRank = new Map(editedRanking.map(r => [r.fencer.id, r.rank]));
-      const fencerToQuestPoints = new Map(editedRanking.map(r => [r.fencer.id, r.questPoints]));
+      const fencerToGlobalRank = new Map(finalRanking.map(r => [r.fencer.id, r.rank]));
+      const fencerToQuestPoints = new Map(finalRanking.map(r => [r.fencer.id, r.questPoints]));
       const updatedPools = pools.map(pool => ({
         ...pool,
         ranking: pool.ranking.map(pr => ({
@@ -218,8 +231,9 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
       onPoolsChange(updatedPools, rankingChanged);
     }
 
-    onRankingChange?.(editedRanking);
+    onRankingChange?.(finalRanking);
     justSaved.current = true;
+    setEditedRanking(finalRanking);
     setIsEditing(false);
     showToast(
       rankingChanged
