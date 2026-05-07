@@ -1,7 +1,7 @@
 {
   "name": "bellepoule-modern",
   "productName": "BellePoule Modern",
-  "version": "1.0.3-build.698",
+  "version": "1.0.3-build.701",
   "description": "Modern fencing tournament management software - Rewritten from the original BellePoule",
   "main": "dist/main/main.js",
   "scripts": {
