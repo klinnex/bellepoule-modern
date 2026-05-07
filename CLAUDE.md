@@ -45,6 +45,7 @@ npm run package:linux   # Linux (AppImage)
 npm test                # Run Vitest unit tests (watch mode)
 npm run test:run        # Vitest single run (CI)
 npm run test:coverage   # Vitest with coverage report
+npx vitest run src/shared/utils/poolCalculations.test.ts  # Run a single test file
 npm run lint            # ESLint check
 npm run lint:fix        # ESLint auto-fix
 npm run format          # Prettier format
