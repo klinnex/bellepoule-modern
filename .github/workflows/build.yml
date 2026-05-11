@@ -68,7 +68,25 @@ jobs:
           ref: main
 
       - name: Update version files
-        run: git pull origin main || true
+        run: |
+          # Attendre que le commit de version soit propagé
+          for i in 1 2 3 4 5; do
+            echo "Attempt $i/5 to pull latest version..."
+            git fetch origin main
+            git reset --hard origin/main
+            # Vérifier si on a le bon build
+            if [ -f version.json ]; then
+              BUILD=$(cat version.json | python3 -c "import sys,json; print(json.load(sys.stdin)['build'])")
+              EXPECTED="${{ needs.increment-version.outputs.build }}"
+              echo "Current build: $BUILD, Expected: $EXPECTED"
+              if [ "$BUILD" = "$EXPECTED" ]; then
+                echo "✅ Version synced!"
+                exit 0
+              fi
+            fi
+            [ $i -lt 5 ] && sleep 5
+          done
+          echo "⚠️ Could not sync version, using latest available"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -118,7 +136,25 @@ jobs:
           ref: main
 
       - name: Update version files
-        run: git pull origin main || true
+        run: |
+          # Attendre que le commit de version soit propagé
+          for i in 1 2 3 4 5; do
+            echo "Attempt $i/5 to pull latest version..."
+            git fetch origin main
+            git reset --hard origin/main
+            # Vérifier si on a le bon build
+            if [ -f version.json ]; then
+              BUILD=$(cat version.json | python3 -c "import sys,json; print(json.load(sys.stdin)['build'])")
+              EXPECTED="${{ needs.increment-version.outputs.build }}"
+              echo "Current build: $BUILD, Expected: $EXPECTED"
+              if [ "$BUILD" = "$EXPECTED" ]; then
+                echo "✅ Version synced!"
+                exit 0
+              fi
+            fi
+            [ $i -lt 5 ] && sleep 5
+          done
+          echo "⚠️ Could not sync version, using latest available"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -167,7 +203,25 @@ jobs:
           ref: main
 
       - name: Update version files
-        run: git pull origin main || true
+        run: |
+          # Attendre que le commit de version soit propagé
+          for i in 1 2 3 4 5; do
+            echo "Attempt $i/5 to pull latest version..."
+            git fetch origin main
+            git reset --hard origin/main
+            # Vérifier si on a le bon build
+            if [ -f version.json ]; then
+              BUILD=$(cat version.json | python3 -c "import sys,json; print(json.load(sys.stdin)['build'])")
+              EXPECTED="${{ needs.increment-version.outputs.build }}"
+              echo "Current build: $BUILD, Expected: $EXPECTED"
+              if [ "$BUILD" = "$EXPECTED" ]; then
+                echo "✅ Version synced!"
+                exit 0
+              fi
+            fi
+            [ $i -lt 5 ] && sleep 5
+          done
+          echo "⚠️ Could not sync version, using latest available"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -216,7 +270,25 @@ jobs:
           ref: main
 
       - name: Update version files
-        run: git pull origin main || true
+        run: |
+          # Attendre que le commit de version soit propagé
+          for i in 1 2 3 4 5; do
+            echo "Attempt $i/5 to pull latest version..."
+            git fetch origin main
+            git reset --hard origin/main
+            # Vérifier si on a le bon build
+            if [ -f version.json ]; then
+              BUILD=$(cat version.json | python3 -c "import sys,json; print(json.load(sys.stdin)['build'])")
+              EXPECTED="${{ needs.increment-version.outputs.build }}"
+              echo "Current build: $BUILD, Expected: $EXPECTED"
+              if [ "$BUILD" = "$EXPECTED" ]; then
+                echo "✅ Version synced!"
+                exit 0
+              fi
+            fi
+            [ $i -lt 5 ] && sleep 5
+          done
+          echo "⚠️ Could not sync version, using latest available"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -266,7 +338,25 @@ jobs:
           ref: main
 
       - name: Update version files
-        run: git pull origin main || true
+        run: |
+          # Attendre que le commit de version soit propagé
+          for i in 1 2 3 4 5; do
+            echo "Attempt $i/5 to pull latest version..."
+            git fetch origin main
+            git reset --hard origin/main
+            # Vérifier si on a le bon build
+            if [ -f version.json ]; then
+              BUILD=$(cat version.json | python3 -c "import sys,json; print(json.load(sys.stdin)['build'])")
+              EXPECTED="${{ needs.increment-version.outputs.build }}"
+              echo "Current build: $BUILD, Expected: $EXPECTED"
+              if [ "$BUILD" = "$EXPECTED" ]; then
+                echo "✅ Version synced!"
+                exit 0
+              fi
+            fi
+            [ $i -lt 5 ] && sleep 5
+          done
+          echo "⚠️ Could not sync version, using latest available"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
