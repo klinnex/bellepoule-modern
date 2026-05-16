@@ -207,16 +207,22 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     const prev = prevMatchesLengthRef.current;
     prevMatchesLengthRef.current = playable.length;
     if (!autoAssignArenas || arenaCount <= 0 || playable.length === 0) return;
-    // Only auto-assign on initial generation (prev was 0) to avoid overriding manual changes
+    // Only auto-assign on initial generation (prev was 0) to avoid overriding manual changes.
+    // Skip if a champion already exists (returning from results view would otherwise trigger
+    // onMatchesChange → matches ref changes → safety-net effect fires with guard already consumed
+    // → onComplete called → forced redirect back to results).
     if (prev === 0 && playable.length > 0) {
-      const updated = distributeArenasRoundRobin(matches);
-      onMatchesChange(updated);
-      updated.forEach(m => {
-        const orig = matches.find(o => o.id === m.id);
-        if (orig && orig.arena !== m.arena) {
-          onMatchArenaChange?.(m.id, orig.arena ?? null, m.arena ?? null);
-        }
-      });
+      const champion = matches.find(m => m.round === 2)?.winner;
+      if (!champion) {
+        const updated = distributeArenasRoundRobin(matches);
+        onMatchesChange(updated);
+        updated.forEach(m => {
+          const orig = matches.find(o => o.id === m.id);
+          if (orig && orig.arena !== m.arena) {
+            onMatchArenaChange?.(m.id, orig.arena ?? null, m.arena ?? null);
+          }
+        });
+      }
     }
   }, [matches.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
