@@ -651,12 +651,13 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     : canAdvanceFromPools && rankingValidated;
 
   // Réinitialiser la validation du classement si les poules ne sont plus toutes terminées
-  // (sauf en mode quest-sans-poules où c'est la quête qui valide)
+  // (sauf en mode quest-sans-poules ou si on est déjà en phase tableau/résultats)
   useEffect(() => {
-    if (!canAdvanceFromPools && !questNoPool) {
+    const postPoolPhase = ['tableau', 'results', 'remote'].includes(currentPhase);
+    if (!canAdvanceFromPools && !questNoPool && !postPoolPhase) {
       setRankingValidated(false);
     }
-  }, [canAdvanceFromPools, questNoPool]);
+  }, [canAdvanceFromPools, questNoPool, currentPhase]);
 
   const phases = [
     {
