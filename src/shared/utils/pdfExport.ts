@@ -515,6 +515,7 @@ export interface TableauMatchForPDF {
   scoreB: number | null;
   winner: { id: string } | null;
   isBye: boolean;
+  arena?: number | null;
 }
 
 export const MAX_MATCHES_PER_PAGE_TABLEAU = 5;
@@ -541,21 +542,14 @@ export function generateTableauHTML(
   template?: PdfTemplate
 ): string {
   const real = matches.filter(m => !m.isBye && m.fencerA && m.fencerB);
-  const sorted = [...real].sort((a, b) => b.round - a.round || a.position - b.position);
   const now = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
 
-  const pages: TableauMatchForPDF[][] = [];
-  for (let i = 0; i < sorted.length; i += matchesPerPage) {
-    pages.push(sorted.slice(i, i + matchesPerPage));
-  }
-
-  const pagesHTML = pages.map((pageMatches, pageIdx) => {
-    const cards = pageMatches.map((match, matchIdx) => {
-      const roundName = getTableauRoundName(match.round);
-      const nameA = `${match.fencerA!.lastName.toUpperCase()} ${match.fencerA!.firstName ?? ''}`.trim();
-      const nameB = `${match.fencerB!.lastName.toUpperCase()} ${match.fencerB!.firstName ?? ''}`.trim();
-      const num = pageIdx * matchesPerPage + matchIdx + 1;
-      return `
+  const renderMatchCard = (match: TableauMatchForPDF, num: number): string => {
+    const roundName = getTableauRoundName(match.round);
+    const nameA = `${match.fencerA!.lastName.toUpperCase()} ${match.fencerA!.firstName ?? ''}`.trim();
+    const nameB = `${match.fencerB!.lastName.toUpperCase()} ${match.fencerB!.firstName ?? ''}`.trim();
+    const pisteLabel = match.arena != null ? `Piste ${match.arena}` : 'Piste ___';
+    return `
 <div class="match-card">
   <div class="match-card-header">
     <span class="round-label">${roundName}</span>
@@ -592,15 +586,79 @@ export function generateTableauHTML(
     </tbody>
   </table>
   <div class="match-card-footer">
-    <span>Piste ___</span>
+    <span>${pisteLabel}</span>
     <span>Arbitre ________________________________</span>
     <span>Heure ___:___</span>
   </div>
 </div>`;
+  };
+
+  const hasArenas = real.some(m => m.arena != null);
+
+  type PageDef = { matches: TableauMatchForPDF[]; label?: string };
+  const pages: PageDef[] = [];
+
+  if (hasArenas) {
+    // Sort by arena (asc), then round (desc), then position (asc)
+    const sortedByArena = [...real].sort((a, b) => {
+      const aArena = a.arena ?? Infinity;
+      const bArena = b.arena ?? Infinity;
+      if (aArena !== bArena) return aArena < bArena ? -1 : 1;
+      if (b.round !== a.round) return b.round - a.round;
+      return a.position - b.position;
+    });
+
+    // Group by arena
+    const arenaMap = new Map<number | 0, TableauMatchForPDF[]>();
+    for (const m of sortedByArena) {
+      const key = m.arena ?? 0;
+      if (!arenaMap.has(key)) arenaMap.set(key, []);
+      arenaMap.get(key)!.push(m);
+    }
+
+    // Assigned arenas first (ascending), unassigned (key=0) last
+    const keys = [...arenaMap.keys()].sort((a, b) => {
+      if (a === 0) return 1;
+      if (b === 0) return -1;
+      return a - b;
+    });
+
+    for (const key of keys) {
+      const group = arenaMap.get(key)!;
+      const label = key > 0 ? `Piste ${key}` : 'Non assignés';
+      for (let i = 0; i < group.length; i += matchesPerPage) {
+        const chunk = group.slice(i, i + matchesPerPage);
+        const chunkLabel = i === 0 ? label : `${label} (suite)`;
+        pages.push({ matches: chunk, label: chunkLabel });
+      }
+    }
+  } else {
+    // No arenas: simple chunking, first page gets one fewer match to account for the doc header
+    const firstPageCount = Math.max(1, matchesPerPage - 1);
+    const sorted = [...real].sort((a, b) => b.round - a.round || a.position - b.position);
+    let i = 0;
+    if (sorted.length > 0) {
+      pages.push({ matches: sorted.slice(0, firstPageCount) });
+      i = firstPageCount;
+    }
+    for (; i < sorted.length; i += matchesPerPage) {
+      pages.push({ matches: sorted.slice(i, i + matchesPerPage) });
+    }
+  }
+
+  let globalMatchNum = 0;
+  const pagesHTML = pages.map((page, pageIdx) => {
+    const cards = page.matches.map(match => {
+      globalMatchNum++;
+      return renderMatchCard(match, globalMatchNum);
     }).join('');
 
+    const sectionHeader = page.label
+      ? `<div class="piste-section-header">${page.label} — ${page.matches.length} combat${page.matches.length !== 1 ? 's' : ''}</div>`
+      : '';
+
     const isLast = pageIdx === pages.length - 1;
-    return `<div class="page${isLast ? '' : ' page-break'}">${cards}</div>`;
+    return `<div class="page${isLast ? '' : ' page-break'}">${sectionHeader}${cards}</div>`;
   }).join('');
 
   const effectiveTitle = template?.customTitle?.trim() || title;
@@ -640,11 +698,24 @@ export function generateTableauHTML(
 
     .page-break { page-break-after: always; }
 
+    .piste-section-header {
+      background: var(--navy);
+      color: var(--gold-light);
+      font-weight: 700;
+      font-size: 12pt;
+      letter-spacing: 0.5px;
+      padding: 2mm 4mm;
+      border-radius: 4px;
+      margin-bottom: 4mm;
+    }
+
     .match-card {
       border: 2px solid var(--navy);
       border-radius: 5px;
       margin-bottom: 5mm;
       overflow: hidden;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
     .match-card-header {
       background: var(--navy);
