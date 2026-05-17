@@ -437,12 +437,14 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         let scoreA = Math.floor(Math.random() * (maxScore + 1));
         let scoreB = Math.floor(Math.random() * (maxScore + 1));
 
-        // Éviter les égalités en élimination directe
+        // Éviter les égalités en élimination directe sans dépasser maxScore
         if (scoreA === scoreB) {
           if (Math.random() > 0.5) {
-            scoreA += 1;
+            if (scoreA < maxScore) scoreA += 1;
+            else scoreB -= 1;
           } else {
-            scoreB += 1;
+            if (scoreB < maxScore) scoreB += 1;
+            else scoreA -= 1;
           }
         }
 
@@ -479,9 +481,11 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
 
       if (scoreA === scoreB) {
         if (Math.random() > 0.5) {
-          scoreA += 1;
+          if (scoreA < maxScore) scoreA += 1;
+          else scoreB -= 1;
         } else {
-          scoreB += 1;
+          if (scoreB < maxScore) scoreB += 1;
+          else scoreA -= 1;
         }
       }
 
