@@ -619,7 +619,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
   const phaseOrder = useMemo<Phase[]>(() => {
     if (!questEnabled) return ['checkin', 'poolprep', 'pools', 'ranking', 'tableau', 'results'];
     if (questConfig?.hasPreliminaryPools)
-      return ['checkin', 'poolprep', 'pools', 'ranking', 'quest', 'tableau', 'results'];
+      return ['checkin', 'poolprep', 'pools', 'quest', 'ranking', 'tableau', 'results'];
     return ['checkin', 'quest', 'ranking', 'tableau', 'results'];
   }, [questEnabled, questConfig?.hasPreliminaryPools]);
 
@@ -694,16 +694,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
           },
         ]
       : []),
-    // Classement : toujours présent (désactivé en mode quest-sans-poules jusqu'à fin de quête)
-    {
-      id: 'ranking',
-      label: t('phases.ranking'),
-      icon: '📊',
-      disabled: questNoPool && !rankingValidated,
-      title: questNoPool && !rankingValidated
-        ? t('phases.tableau_locked_tooltip')
-        : (undefined as string | undefined),
-    },
     ...(questEnabled
       ? [
           {
@@ -715,6 +705,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
           },
         ]
       : []),
+    // Classement : toujours présent (désactivé en mode quest-sans-poules jusqu'à fin de quête)
+    {
+      id: 'ranking',
+      label: t('phases.ranking'),
+      icon: '📊',
+      disabled: questNoPool && !rankingValidated,
+      title: questNoPool && !rankingValidated
+        ? t('phases.tableau_locked_tooltip')
+        : (undefined as string | undefined),
+    },
     ...(hasDirectElimination
       ? [
           {
