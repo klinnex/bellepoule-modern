@@ -202,7 +202,11 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   id="weapon"
                   className="form-input form-select"
                   value={weapon}
-                  onChange={e => setWeapon(e.target.value as Weapon)}
+                  onChange={e => {
+                    const w = e.target.value as Weapon;
+                    setWeapon(w);
+                    if (w === Weapon.LASER) setGender(Gender.MIXED);
+                  }}
                 >
                   <option value="E">Épée</option>
                   <option value="F">Fleuret</option>

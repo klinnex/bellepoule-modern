@@ -95,7 +95,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                 <select
                   className="form-input form-select"
                   value={weapon}
-                  onChange={e => setWeapon(e.target.value as Weapon)}
+                  onChange={e => {
+                    const w = e.target.value as Weapon;
+                    setWeapon(w);
+                    if (w === Weapon.LASER) setGender(Gender.MIXED);
+                  }}
                 >
                   <option value={Weapon.EPEE}>{t('weapons.epee')}</option>
                   <option value={Weapon.FOIL}>{t('weapons.foil')}</option>
