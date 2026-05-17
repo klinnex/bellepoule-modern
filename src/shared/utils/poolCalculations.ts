@@ -234,9 +234,10 @@ function assignRanks(rankings: PoolRanking[]): void {
       const curr = rankings[i];
       const sameVictories = prev.ratio === curr.ratio;
       const sameQuest = (prev.questPoints ?? 0) === (curr.questPoints ?? 0);
+      const sameCards = (prev.totalCards ?? 0) === (curr.totalCards ?? 0);
       const sameIndex = prev.index === curr.index;
 
-      if (sameVictories && sameQuest && sameIndex) {
+      if (sameVictories && sameQuest && sameCards && sameIndex) {
         rankings[i].rank = rankings[i - 1].rank;
       } else {
         rankings[i].rank = currentRank;

@@ -301,7 +301,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     );
 
   const generateTableau = () => {
-    const qualifiedFencers = getEligibleFencers();
+    const qualifiedFencers = getEligibleFencers().sort((a, b) => a.rank - b.rank);
     const size = getTableauSize(qualifiedFencers.length);
     setTableauSize(size);
 
