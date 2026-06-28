@@ -306,6 +306,38 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('db:getMatchTimeline', matchId),
     getCompetitionTimeline: (competitionId: string) =>
       ipcRenderer.invoke('db:getCompetitionTimeline', competitionId),
+
+    // Classement saisonnier Quest
+    addCompetitionToSeason: (payload: any) =>
+      ipcRenderer.invoke('db:addCompetitionToSeason', payload),
+    getSeasonRanking: () =>
+      ipcRenderer.invoke('db:getSeasonRanking'),
+    getSeasonCompetitions: () =>
+      ipcRenderer.invoke('db:getSeasonCompetitions'),
+    removeCompetitionFromSeason: (competitionId: string) =>
+      ipcRenderer.invoke('db:removeCompetitionFromSeason', competitionId),
+    resetSeason: () =>
+      ipcRenderer.invoke('db:resetSeason'),
+
+    // Équipes
+    createTeam: (competitionId: string, name: string, club: string) =>
+      ipcRenderer.invoke('db:createTeam', competitionId, name, club),
+    getTeamsByCompetition: (competitionId: string) =>
+      ipcRenderer.invoke('db:getTeamsByCompetition', competitionId),
+    deleteTeam: (teamId: string) =>
+      ipcRenderer.invoke('db:deleteTeam', teamId),
+    upsertTeamFencer: (teamId: string, fencerId: string, teamOrder: number, isReserve: boolean) =>
+      ipcRenderer.invoke('db:upsertTeamFencer', teamId, fencerId, teamOrder, isReserve),
+    removeTeamFencer: (teamId: string, fencerId: string) =>
+      ipcRenderer.invoke('db:removeTeamFencer', teamId, fencerId),
+    createTeamMatch: (competitionId: string, poolNumber: number, teamAId: string, teamBId: string) =>
+      ipcRenderer.invoke('db:createTeamMatch', competitionId, poolNumber, teamAId, teamBId),
+    getTeamMatchesByCompetition: (competitionId: string) =>
+      ipcRenderer.invoke('db:getTeamMatchesByCompetition', competitionId),
+    createTeamBout: (matchId: string, boutOrder: number, fencerAId: string, fencerBId: string, maxScore: number) =>
+      ipcRenderer.invoke('db:createTeamBout', matchId, boutOrder, fencerAId, fencerBId, maxScore),
+    updateTeamBout: (boutId: string, scoreA: number, scoreB: number, status: string, winnerId: string | null) =>
+      ipcRenderer.invoke('db:updateTeamBout', boutId, scoreA, scoreB, status, winnerId),
   },
 
   // File operations with validation
@@ -414,6 +446,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('menu:import', (_, format, filepath, content) =>
       callback(format, filepath, content)
     ),
+  onMenuOpenSettings: (callback: () => void) => ipcRenderer.on('menu:open-settings', callback),
   onMenuReportIssue: (callback: () => void) => ipcRenderer.on('menu:report-issue', callback),
   onShowAbout: (callback: () => void) => ipcRenderer.on('menu:show-about', callback),
   onFileOpened: (callback: (filepath: string) => void) =>
@@ -426,6 +459,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Utility functions
   print: () => ipcRenderer.invoke('window:print'),
+  setWindowSize: (width: number, height: number) => ipcRenderer.invoke('window:setSize', width, height),
   openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),
   getVersionInfo: () => ipcRenderer.invoke('app:getVersionInfo'),
 
@@ -460,8 +494,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Remote score server functions
   remote: {
     getNetworkInterfaces: () => ipcRenderer.invoke('remote:getNetworkInterfaces'),
-    startServer: (competitionId: string, port?: number, host?: string) =>
-      ipcRenderer.invoke('remote:startServer', competitionId, port, host),
+    startServer: (competitionId: string, port?: number, host?: string, useHttps?: boolean) =>
+      ipcRenderer.invoke('remote:startServer', competitionId, port, host, useHttps),
+    getCertFingerprint: () => ipcRenderer.invoke('remote:getCertFingerprint'),
     stopServer: (competitionId: string) => ipcRenderer.invoke('remote:stopServer', competitionId),
     getServerInfo: (competitionId: string) => ipcRenderer.invoke('remote:getServerInfo', competitionId),
     startSession: (
@@ -514,6 +549,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     clearOrgNote: (competitionId: string) => ipcRenderer.invoke('remote:clearOrgNote', competitionId),
     updateArenaTheme: (competitionId: string, arenaId: string, theme: string, customTheme?: any) =>
       ipcRenderer.invoke('remote:updateArenaTheme', competitionId, arenaId, theme, customTheme),
+    clearArenaThemeOverride: (competitionId: string, arenaId: string) =>
+      ipcRenderer.invoke('remote:clearArenaThemeOverride', competitionId, arenaId),
+    updateKioskTheme: (competitionId: string, variables: Record<string, string>) =>
+      ipcRenderer.invoke('remote:updateKioskTheme', competitionId, variables),
+    updateArenaScreenTheme: (competitionId: string, arenaId: string, targetType: string, customTheme?: any) =>
+      ipcRenderer.invoke('remote:updateArenaScreenTheme', competitionId, arenaId, targetType, customTheme),
     setWebhookUrl: (url: string | null) => ipcRenderer.invoke('remote:setWebhookUrl', url),
     updateLogo: (logo: string | null) => ipcRenderer.invoke('remote:updateLogo', logo),
     setTtsConfig: (config: unknown) => ipcRenderer.invoke('remote:setTtsConfig', config),
@@ -548,6 +589,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('remote:setClientKioskMode', competitionId, socketId, config),
   },
 
+  training: {
+    startServer: (port?: number, host?: string, useHttps?: boolean) =>
+      ipcRenderer.invoke('training:startServer', port, host, useHttps),
+    stopServer: () => ipcRenderer.invoke('training:stopServer'),
+    startSession: (strips: number, weapon: string, customRules?: any) =>
+      ipcRenderer.invoke('training:startSession', strips, weapon, customRules),
+    stopSession: () => ipcRenderer.invoke('training:stopSession'),
+    getHistory: () => ipcRenderer.invoke('training:getHistory'),
+    getSession: () => ipcRenderer.invoke('training:getSession'),
+    getArenas: () => ipcRenderer.invoke('training:getArenas'),
+    getServerInfo: () => ipcRenderer.invoke('training:getServerInfo'),
+  },
+
   // Remote event listeners (for real-time updates)
   onRemoteArenaUpdate: (callback: (data: any) => void) => {
     const handler = (_: any, data: any) => callback(data);
@@ -562,6 +616,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     };
     ipcRenderer.on('match:finished', handler);
     return () => ipcRenderer.removeListener('match:finished', handler);
+  },
+  onTrainingMatchFinished: (callback: (data: any) => void) => {
+    const handler = (_: any, data: any) => callback(data);
+    ipcRenderer.on('training:match_finished', handler);
+    return () => ipcRenderer.removeListener('training:match_finished', handler);
   },
   onRemoteFencerExcluded: (callback: (data: { fencerId: string; matchId: string }) => void) => {
     const handler = (_: any, data: any) => callback(data);
@@ -602,6 +661,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const handler = (_: any, logo: string | null) => callback(logo);
     ipcRenderer.on('app:logoLoaded', handler);
     return () => ipcRenderer.removeListener('app:logoLoaded', handler);
+  },
+
+  // Bibliothèque de thèmes persistante
+  themes: {
+    list: () => ipcRenderer.invoke('themes:list'),
+    save: (theme: unknown) => ipcRenderer.invoke('themes:save', theme),
+    delete: (id: string) => ipcRenderer.invoke('themes:delete', id),
   },
 
   // Remove listeners

@@ -119,6 +119,19 @@ export class AnalyticsService {
    */
   async exportAnalytics(competitionId: string, format: 'json' | 'csv' | 'pdf'): Promise<Blob> {
     const stats = await this.getCompetitionStats(competitionId);
+
+    if (format === 'csv') {
+      const headers = ['Nom', 'Prénom', 'Club', 'Victoires', 'Touches marquées', 'Touches reçues'];
+      const rows = stats.topFencers.map(f => [
+        f.fencer.lastName, f.fencer.firstName ?? '', f.fencer.club ?? '',
+        f.victories, f.touchesScored, f.touchesReceived,
+      ]);
+      const csv = [headers, ...rows]
+        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+      return new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    }
+
     const content = format === 'json' ? JSON.stringify(stats, null, 2) : '';
     return new Blob([content], { type: format === 'json' ? 'application/json' : 'text/plain' });
   }

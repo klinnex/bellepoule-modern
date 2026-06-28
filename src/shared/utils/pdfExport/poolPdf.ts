@@ -20,6 +20,8 @@ export interface PoolExportOptions {
   logoBase64?: string;
   visibleColumns?: string[];
   signatures?: Record<string, string>; // fencerId → data URL PNG
+  competitionId?: string;              // pour QR code OCR
+  qrDataUrl?: string;                  // data URL QR généré par l'appelant
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -85,7 +87,7 @@ const STAT_COLS: { id: string; header: string; cls: string; render: (d: RankData
 export function generatePoolHTML(pool: Pool, options: PoolExportOptions, template?: PdfTemplate): string {
   const runtimeTitle = `Poule ${pool.number}`;
   const effectiveTitle = template?.customTitle?.trim() || options.title || runtimeTitle;
-  const { competitionName = '', weapon = '', category = '', logoBase64 } = options;
+  const { competitionName = '', weapon = '', category = '', logoBase64, qrDataUrl } = options;
   const fencers = pool.fencers ?? [];
   const matches = pool.matches ?? [];
   const finishedCount = matches.filter(m => m.status === MatchStatus.FINISHED).length;
@@ -206,9 +208,14 @@ export function generatePoolHTML(pool: Pool, options: PoolExportOptions, templat
     <span>BellePoule Modern</span>
     <span>${now}</span>
   </div>`,
+    'ocr-marks': `
+  <div class="ocr-corner ocr-tl" aria-hidden="true"></div>
+  <div class="ocr-corner ocr-tr" aria-hidden="true"></div>
+  <div class="ocr-corner ocr-bl" aria-hidden="true"></div>
+  <div class="ocr-corner ocr-br" aria-hidden="true">${qrDataUrl ? `<img src="${qrDataUrl}" alt="" style="display:block;width:100%;height:100%;" />` : ''}</div>`,
   };
 
-  const defaultOrder = ['header', 'gold-bar', 'competition-name', 'meta-chips', 'score-grid', 'pending-matches', 'finished-matches', 'footer'];
+  const defaultOrder = ['ocr-marks', 'header', 'gold-bar', 'competition-name', 'meta-chips', 'score-grid', 'pending-matches', 'finished-matches', 'footer'];
   const body = assembleBody(sections, template, defaultOrder);
   const cssOverrides = template ? buildCssOverrides(template) : '';
 
@@ -294,6 +301,28 @@ export function generatePoolHTML(pool: Pool, options: PoolExportOptions, templat
       border-left: 2px solid var(--navy-light) !important;
     }
 
+    /* Marqueurs OCR (imprimés uniquement) */
+    @media print {
+      .ocr-corner {
+        position: fixed;
+        z-index: 9999;
+        width: 6mm;
+        height: 6mm;
+        background: #000;
+        box-sizing: border-box;
+      }
+      .ocr-corner.ocr-tl { top: 1mm; left: 1mm; }
+      .ocr-corner.ocr-tr { top: 1mm; right: 1mm; }
+      .ocr-corner.ocr-bl { bottom: 1mm; left: 1mm; }
+      .ocr-corner.ocr-br {
+        bottom: 1mm; right: 1mm;
+        width: 18mm; height: 18mm;
+        background: #fff;
+        border: 1.5mm solid #000;
+        padding: 0.5mm;
+      }
+    }
+
     /* Matchs */
     .match-grid {
       display: grid;
@@ -327,7 +356,17 @@ export async function exportPoolToPDF(pool: Pool, options: PoolExportOptions = {
   if (!pool.matches || pool.matches.length === 0) throw new Error('La poule ne contient aucun match');
 
   const title = options.title ?? `Poule ${pool.number}`;
-  const html = generatePoolHTML(pool, { ...options, title }, template);
+
+  let qrDataUrl: string | undefined;
+  try {
+    const QRCode = (await import('qrcode')).default;
+    const qrPayload = JSON.stringify({ v: 1, pid: pool.id, cid: options.competitionId ?? '' });
+    qrDataUrl = await QRCode.toDataURL(qrPayload, { width: 140, margin: 1, color: { dark: '#000', light: '#fff' } });
+  } catch {
+    // QR silencieusement omis si qrcode indisponible
+  }
+
+  const html = generatePoolHTML(pool, { ...options, title, qrDataUrl }, template);
   await savePDF(html, `poule-${pool.number}.pdf`);
 }
 

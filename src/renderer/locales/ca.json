@@ -1,4 +1,4 @@
-﻿{
+{
   "app": {
     "title": "BellePoule Modern",
     "home": "General",
@@ -209,7 +209,8 @@
     "check_in_all": "Registrar Tots",
     "uncheck_all": "Cancel·lar Tots",
     "view": "Veure",
-    "default": "No especificat"
+    "default": "No especificat",
+    "save_and_add": "Desar i afegir"
   },
   "messages": {
     "confirm_delete_fencer": "Esteu segur que voleu eliminar aquest tirador? Aquesta acció és irreversible.",

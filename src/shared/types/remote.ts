@@ -105,14 +105,20 @@ export interface Arena {
   swapped?: boolean;
 }
 
-export type DisplayTheme = 'dark' | 'light' | 'neon' | 'custom';
+export type DisplayTheme = 'dark' | 'light' | 'neon' | 'unicorn' | 'custom';
+
+export type ThemeTargetType = 'arena' | 'kiosk' | 'public' | 'referee' | 'pool';
 
 /** Variables CSS personnalisées pour un thème d'arène */
 export interface CustomTheme {
   id: string;
   name: string;
+  /** Section cible : arena (piste), kiosk, public, referee (tablette arbitre), pool (poule) */
+  targetType: ThemeTargetType;
   /** Valeurs des variables CSS (ex: { '--bg': '#000', '--score-green': '#0f0' }) */
   variables: Record<string, string>;
+  /** Mode overlay : image en fond, panneaux transparents, suppression des box-shadows */
+  overlayMode?: boolean;
 }
 
 export interface ArenaSettings {
@@ -123,6 +129,8 @@ export interface ArenaSettings {
   cardAnnounce?: boolean; // annoncer les cartons avec raison sur les affichages
   theme?: DisplayTheme; // thème visuel de l'affichage distant
   customTheme?: CustomTheme; // thème personnalisé (si theme === 'custom')
+  /** Thèmes par type d'écran (public, referee, pool) — indépendants du thème arena */
+  screenThemes?: Partial<Record<ThemeTargetType, CustomTheme>>;
 }
 
 export interface ArenaMatch {
@@ -159,6 +167,8 @@ export interface ArenaUpdate {
   cardAnnounce?: boolean; // annoncer les cartons avec raison sur les affichages
   theme?: DisplayTheme; // thème visuel de l'affichage distant
   customTheme?: CustomTheme; // thème personnalisé (si theme === 'custom')
+  /** Thèmes par type d'écran (public, referee, pool) — indépendants du thème arena */
+  screenThemes?: Partial<Record<ThemeTargetType, CustomTheme>>;
   nextMatch?: ArenaMatch | null; // prochain combat (affiché quand status=finished)
   swapped?: boolean;
   refereeFeatureEnabled?: boolean; // fonctionnalité arbitres activée

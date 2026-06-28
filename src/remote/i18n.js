@@ -14,6 +14,7 @@
       'login.error_connection': 'Erreur de connexion au serveur',
       /* commun */
       'remote.arena': 'Arène',
+      'remote.piste': 'Piste',
       'remote.connecting': 'Connexion...',
       'remote.syncing': '⟳ Sync...',
       'remote.connected': 'Connecté',
@@ -114,6 +115,7 @@
       'login.error_connection': 'Server connection error',
       /* commun */
       'remote.arena': 'Arena',
+      'remote.piste': 'Piste',
       'remote.connecting': 'Connecting...',
       'remote.syncing': '⟳ Sync...',
       'remote.connected': 'Connected',
@@ -214,6 +216,7 @@
       'login.error_connection': '伺服器連接錯誤',
       /* commun */
       'remote.arena': '場地',
+      'remote.piste': '場地',
       'remote.connecting': '連接中...',
       'remote.syncing': '⟳ 同步...',
       'remote.connected': '已連接',
@@ -330,12 +333,19 @@
     });
   }
 
+  let _remoteWeapon = null;
+
+  window.getArenaLabel = function () {
+    return _remoteWeapon === 'L' ? window.T('remote.arena') : window.T('remote.piste');
+  };
+
   window.initRemoteI18n = async function () {
     try {
       const resp = await fetch('/api/config');
       const cfg = await resp.json();
       const lang = cfg.lang || 'fr';
       _t = TRANSLATIONS[lang] || TRANSLATIONS.fr;
+      _remoteWeapon = cfg.weapon || null;
       if (document.documentElement) {
         document.documentElement.lang = lang === 'zh-HK' ? 'zh-HK' : lang;
       }

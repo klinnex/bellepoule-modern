@@ -787,19 +787,19 @@ export class DatabaseManager {
   public getCompetitionPools(competitionId: string): { id: string; name: string }[] {
     if (!this.db) throw new Error('Database not open');
     try {
-      const pools = this.queryAll<{ id: string; name: string }>(
-        'SELECT DISTINCT p.id, p.name FROM pools p INNER JOIN pool_fencers pf ON p.id = pf.pool_id INNER JOIN fencers f ON pf.fencer_id = f.id WHERE f.competition_id = ? ORDER BY p.name',
+      const pools = this.queryAll<{ id: string; number: number }>(
+        'SELECT DISTINCT p.id, p.number FROM pools p INNER JOIN pool_fencers pf ON p.id = pf.pool_id INNER JOIN fencers f ON pf.fencer_id = f.id WHERE f.competition_id = ? ORDER BY p.number',
         [competitionId]
       );
-      if (pools.length > 0) return pools;
+      if (pools.length > 0) return pools.map(p => ({ id: p.id, name: 'Poule ' + p.number }));
     } catch (e) {
       console.warn('[Database] Error getting pools:', e);
     }
     try {
-      return this.queryAll<{ id: string; name: string }>(
-        'SELECT p.id, p.name FROM pools p INNER JOIN phases ph ON p.phase_id = ph.id WHERE ph.competition_id = ? ORDER BY p.name',
+      return this.queryAll<{ id: string; number: number }>(
+        'SELECT p.id, p.number FROM pools p INNER JOIN phases ph ON p.phase_id = ph.id WHERE ph.competition_id = ? ORDER BY p.number',
         [competitionId]
-      );
+      ).map(p => ({ id: p.id, name: 'Poule ' + p.number }));
     } catch (e) {
       console.warn('[Database] Error getting pools via phases:', e);
     }
@@ -1822,6 +1822,318 @@ export class DatabaseManager {
       `SELECT match_id, fencer_id, signature_data FROM de_match_signatures WHERE match_id IN (${placeholders})`,
       matchIds
     ).map(row => ({ matchId: row.match_id, fencerId: row.fencer_id, signatureData: row.signature_data }));
+  }
+
+  // ─── Classement saisonnier Quest ────────────────────────────────────────────
+
+  public addCompetitionToSeason(payload: {
+    competitionId: string;
+    competitionTitle: string;
+    competitionDate: string;
+    entries: Array<{
+      fencerId: string;
+      fencerLastName: string;
+      fencerFirstName: string;
+      fencerClub?: string;
+      victories: number;
+      matchesPlayed: number;
+      questPoints: number;
+      questV4: number;
+      questV3: number;
+      questV2: number;
+      questV1: number;
+      touchesScored: number;
+      touchesReceived: number;
+      redCards: number;
+      compRank: number;
+    }>;
+  }): void {
+    if (!this.db) throw new Error('Database not open');
+    const { v4: uuidv4gen } = require('uuid');
+    const now = new Date().toISOString();
+    this.run('DELETE FROM season_results WHERE competition_id = ?', [payload.competitionId]);
+    for (const e of payload.entries) {
+      this.run(
+        `INSERT INTO season_results
+           (id, competition_id, competition_title, competition_date,
+            fencer_id, fencer_last_name, fencer_first_name, fencer_club,
+            victories, matches_played, quest_points,
+            quest_v4, quest_v3, quest_v2, quest_v1,
+            touches_scored, touches_received, red_cards, comp_rank, added_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          uuidv4gen(), payload.competitionId, payload.competitionTitle, payload.competitionDate,
+          e.fencerId, e.fencerLastName, e.fencerFirstName, e.fencerClub ?? null,
+          e.victories, e.matchesPlayed, e.questPoints,
+          e.questV4, e.questV3, e.questV2, e.questV1,
+          e.touchesScored, e.touchesReceived, e.redCards, e.compRank, now,
+        ]
+      );
+    }
+  }
+
+  public getSeasonRanking(): Array<{
+    fencerId: string;
+    fencerLastName: string;
+    fencerFirstName: string;
+    fencerClub: string | null;
+    totalVictories: number;
+    totalMatchesPlayed: number;
+    totalQuestPoints: number;
+    totalQuestV4: number;
+    totalQuestV3: number;
+    totalQuestV2: number;
+    totalQuestV1: number;
+    totalTouchesScored: number;
+    totalTouchesReceived: number;
+    totalRedCards: number;
+    competitionCount: number;
+    ratio: number;
+  }> {
+    if (!this.db) return [];
+    const rows = this.queryAll<any>(
+      `SELECT
+         fencer_id, fencer_last_name, fencer_first_name, fencer_club,
+         SUM(victories)        AS total_victories,
+         SUM(matches_played)   AS total_matches_played,
+         SUM(quest_points)     AS total_quest_points,
+         SUM(quest_v4)         AS total_quest_v4,
+         SUM(quest_v3)         AS total_quest_v3,
+         SUM(quest_v2)         AS total_quest_v2,
+         SUM(quest_v1)         AS total_quest_v1,
+         SUM(touches_scored)   AS total_touches_scored,
+         SUM(touches_received) AS total_touches_received,
+         SUM(red_cards)        AS total_red_cards,
+         COUNT(DISTINCT competition_id) AS competition_count
+       FROM season_results
+       GROUP BY fencer_id
+       ORDER BY
+         CAST(SUM(victories) AS REAL) / MAX(SUM(matches_played), 1) DESC,
+         SUM(quest_points) DESC,
+         SUM(quest_v4) DESC,
+         SUM(quest_v3) DESC,
+         SUM(quest_v2) DESC,
+         SUM(quest_v1) DESC,
+         (SUM(touches_scored) - SUM(touches_received)) DESC`,
+      []
+    );
+    return rows.map(r => ({
+      fencerId: r.fencer_id as string,
+      fencerLastName: r.fencer_last_name as string,
+      fencerFirstName: r.fencer_first_name as string,
+      fencerClub: (r.fencer_club as string) ?? null,
+      totalVictories: Number(r.total_victories),
+      totalMatchesPlayed: Number(r.total_matches_played),
+      totalQuestPoints: Number(r.total_quest_points),
+      totalQuestV4: Number(r.total_quest_v4),
+      totalQuestV3: Number(r.total_quest_v3),
+      totalQuestV2: Number(r.total_quest_v2),
+      totalQuestV1: Number(r.total_quest_v1),
+      totalTouchesScored: Number(r.total_touches_scored),
+      totalTouchesReceived: Number(r.total_touches_received),
+      totalRedCards: Number(r.total_red_cards),
+      competitionCount: Number(r.competition_count),
+      ratio: Number(r.total_matches_played) > 0
+        ? Number(r.total_victories) / Number(r.total_matches_played)
+        : 0,
+    }));
+  }
+
+  public getSeasonCompetitions(): Array<{
+    competitionId: string;
+    competitionTitle: string;
+    competitionDate: string;
+    fencerCount: number;
+    addedAt: string;
+  }> {
+    if (!this.db) return [];
+    return this.queryAll<any>(
+      `SELECT competition_id, competition_title, competition_date,
+              COUNT(fencer_id) AS fencer_count, MAX(added_at) AS added_at
+       FROM season_results
+       GROUP BY competition_id
+       ORDER BY competition_date DESC`,
+      []
+    ).map(r => ({
+      competitionId: r.competition_id as string,
+      competitionTitle: r.competition_title as string,
+      competitionDate: r.competition_date as string,
+      fencerCount: Number(r.fencer_count),
+      addedAt: r.added_at as string,
+    }));
+  }
+
+  public removeCompetitionFromSeason(competitionId: string): void {
+    if (!this.db) return;
+    this.run('DELETE FROM season_results WHERE competition_id = ?', [competitionId]);
+  }
+
+  public resetSeason(): void {
+    if (!this.db) return;
+    this.run('DELETE FROM season_results', []);
+  }
+
+  // ─── Équipes (compétitions par équipes) ─────────────────────────────────────
+
+  public createTeam(competitionId: string, name: string, club: string): { id: string } {
+    if (!this.db) throw new Error('Database not open');
+    const { v4: gen } = require('uuid');
+    const id = gen();
+    const now = new Date().toISOString();
+    this.run(
+      `INSERT INTO teams (id, competition_id, name, club, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
+      [id, competitionId, name, club, now, now]
+    );
+    return { id };
+  }
+
+  public getTeamsByCompetition(competitionId: string): Array<{
+    id: string; name: string; club: string;
+    fencers: Array<{ fencerId: string; fencerLastName: string; fencerFirstName: string; teamOrder: number; isReserve: boolean }>;
+  }> {
+    if (!this.db) return [];
+    const teams = this.queryAll<any>('SELECT * FROM teams WHERE competition_id = ? ORDER BY name', [competitionId]);
+    return teams.map(t => {
+      const fencers = this.queryAll<any>(
+        `SELECT tf.fencer_id, tf.team_order, tf.is_reserve, f.last_name, f.first_name
+         FROM team_fencers tf JOIN fencers f ON tf.fencer_id = f.id
+         WHERE tf.team_id = ? ORDER BY tf.team_order`,
+        [t.id]
+      );
+      return {
+        id: t.id as string,
+        name: t.name as string,
+        club: t.club as string,
+        fencers: fencers.map(f => ({
+          fencerId: f.fencer_id as string,
+          fencerLastName: f.last_name as string,
+          fencerFirstName: f.first_name as string,
+          teamOrder: Number(f.team_order),
+          isReserve: f.is_reserve === 1,
+        })),
+      };
+    });
+  }
+
+  public deleteTeam(teamId: string): void {
+    if (!this.db) return;
+    this.run('DELETE FROM teams WHERE id = ?', [teamId]);
+  }
+
+  public upsertTeamFencer(teamId: string, fencerId: string, teamOrder: number, isReserve: boolean): void {
+    if (!this.db) throw new Error('Database not open');
+    const { v4: gen } = require('uuid');
+    this.run(
+      `INSERT INTO team_fencers (id, team_id, fencer_id, team_order, is_reserve)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(team_id, fencer_id) DO UPDATE SET team_order = excluded.team_order, is_reserve = excluded.is_reserve`,
+      [gen(), teamId, fencerId, teamOrder, isReserve ? 1 : 0]
+    );
+  }
+
+  public removeTeamFencer(teamId: string, fencerId: string): void {
+    if (!this.db) return;
+    this.run('DELETE FROM team_fencers WHERE team_id = ? AND fencer_id = ?', [teamId, fencerId]);
+  }
+
+  public createTeamMatch(competitionId: string, poolNumber: number, teamAId: string, teamBId: string): { id: string } {
+    if (!this.db) throw new Error('Database not open');
+    const { v4: gen } = require('uuid');
+    const matchId = gen();
+    const now = new Date().toISOString();
+    this.run(
+      `INSERT INTO team_matches (id, competition_id, pool_number, team_a_id, team_b_id, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 'not_started', ?, ?)`,
+      [matchId, competitionId, poolNumber, teamAId, teamBId, now, now]
+    );
+    return { id: matchId };
+  }
+
+  public getTeamMatchesByCompetition(competitionId: string): Array<{
+    id: string; poolNumber: number; teamAId: string; teamBId: string;
+    scoreBoutsA: number; scoreBoutsB: number; status: string; winnerId: string | null;
+    currentBoutIndex: number;
+    bouts: Array<{ id: string; boutOrder: number; fencerAId: string; fencerBId: string; scoreA: number; scoreB: number; maxScore: number; status: string; winnerId: string | null }>;
+  }> {
+    if (!this.db) return [];
+    const matches = this.queryAll<any>(
+      'SELECT * FROM team_matches WHERE competition_id = ? ORDER BY pool_number, created_at',
+      [competitionId]
+    );
+    return matches.map(m => {
+      const bouts = this.queryAll<any>(
+        'SELECT * FROM team_bouts WHERE match_id = ? ORDER BY bout_order',
+        [m.id]
+      );
+      return {
+        id: m.id as string, poolNumber: Number(m.pool_number),
+        teamAId: m.team_a_id as string, teamBId: m.team_b_id as string,
+        scoreBoutsA: Number(m.score_bouts_a), scoreBoutsB: Number(m.score_bouts_b),
+        status: m.status as string, winnerId: (m.winner_id as string) ?? null,
+        currentBoutIndex: Number(m.current_bout_index),
+        bouts: bouts.map(b => ({
+          id: b.id as string, boutOrder: Number(b.bout_order),
+          fencerAId: b.fencer_a_id as string, fencerBId: b.fencer_b_id as string,
+          scoreA: Number(b.score_a), scoreB: Number(b.score_b), maxScore: Number(b.max_score),
+          status: b.status as string, winnerId: (b.winner_id as string) ?? null,
+        })),
+      };
+    });
+  }
+
+  public createTeamBout(matchId: string, boutOrder: number, fencerAId: string, fencerBId: string, maxScore: number): { id: string } {
+    if (!this.db) throw new Error('Database not open');
+    const { v4: gen } = require('uuid');
+    const id = gen();
+    const now = new Date().toISOString();
+    this.run(
+      `INSERT INTO team_bouts (id, match_id, bout_order, fencer_a_id, fencer_b_id, max_score, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, 'not_started', ?, ?)`,
+      [id, matchId, boutOrder, fencerAId, fencerBId, maxScore, now, now]
+    );
+    return { id };
+  }
+
+  public updateTeamBout(boutId: string, scoreA: number, scoreB: number, status: string, winnerId: string | null): void {
+    if (!this.db) return;
+    const now = new Date().toISOString();
+    this.run(
+      `UPDATE team_bouts SET score_a = ?, score_b = ?, status = ?, winner_id = ?, updated_at = ? WHERE id = ?`,
+      [scoreA, scoreB, status, winnerId, now, boutId]
+    );
+    // Recompute match bouts score if bout finished
+    if (status === 'finished') {
+      const bout = this.queryOne<any>('SELECT match_id FROM team_bouts WHERE id = ?', [boutId]);
+      if (bout) this.recomputeTeamMatchScore(bout.match_id as string);
+    }
+  }
+
+  private recomputeTeamMatchScore(matchId: string): void {
+    const bouts = this.queryAll<any>(
+      `SELECT winner_id, fencer_a_id, fencer_b_id FROM team_bouts WHERE match_id = ? AND status = 'finished'`,
+      [matchId]
+    );
+    const match = this.queryOne<any>('SELECT team_a_id, team_b_id FROM team_matches WHERE id = ?', [matchId]);
+    if (!match) return;
+
+    const teamAFencers = new Set(
+      this.queryAll<any>('SELECT fencer_id FROM team_fencers WHERE team_id = ?', [match.team_a_id]).map(r => r.fencer_id as string)
+    );
+    let scoreA = 0, scoreB = 0;
+    for (const b of bouts) {
+      if (!b.winner_id) continue;
+      if (teamAFencers.has(b.winner_id as string)) scoreA++;
+      else scoreB++;
+    }
+    const allBouts = this.queryAll<any>('SELECT status FROM team_bouts WHERE match_id = ?', [matchId]);
+    const allFinished = allBouts.every(b => b.status === 'finished');
+    const newStatus = allFinished ? 'finished' : bouts.length > 0 ? 'in_progress' : 'not_started';
+    const winnerId = allFinished ? (scoreA > scoreB ? match.team_a_id : scoreB > scoreA ? match.team_b_id : null) : null;
+    const now = new Date().toISOString();
+    this.run(
+      `UPDATE team_matches SET score_bouts_a = ?, score_bouts_b = ?, status = ?, winner_id = ?, current_bout_index = ?, updated_at = ? WHERE id = ?`,
+      [scoreA, scoreB, newStatus, winnerId, bouts.length, now, matchId]
+    );
   }
 }
 

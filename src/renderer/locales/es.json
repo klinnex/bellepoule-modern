@@ -1,4 +1,4 @@
-﻿{
+{
   "app": {
     "title": "BellePoule Modern",
     "home": "General",
@@ -209,7 +209,8 @@
     "check_in_all": "Registrar Todos",
     "uncheck_all": "Cancelar Todos",
     "view": "Ver",
-    "default": "No Especificado"
+    "default": "No Especificado",
+    "save_and_add": "Guardar y añadir"
   },
   "messages": {
     "confirm_delete_fencer": "¿Está seguro de que desea eliminar a este esgrimista? Esta acción es irreversible.",

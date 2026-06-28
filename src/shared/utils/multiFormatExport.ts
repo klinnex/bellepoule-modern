@@ -228,92 +228,169 @@ export function exportRankingCSV(
   return csv;
 }
 
+/** Sous-ensemble de TableauMatch nécessaire à l'export XML (évite l'import croisé). */
+export interface TableauMatchForXML {
+  round: number; // Taille du tableau : 32, 16, 8, 4, 2 (3 = petite finale)
+  fencerA: { ref: number } | null;
+  fencerB: { ref: number } | null;
+  scoreA: number | null;
+  scoreB: number | null;
+  isBye: boolean;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  U11: 'POUSSIN', U13: 'BENJAMIN', U15: 'MINIME', U17: 'CADET', U20: 'JUNIOR',
+  SEN: 'SENIOR', V1: 'VETERAN1', V2: 'VETERAN2', V3: 'VETERAN3', V4: 'VETERAN4',
+};
+
+const TABLEAU_TITLES: Record<number, string> = {
+  64: 'Tableau de 64', 32: 'Tableau de 32', 16: 'Tableau de 16', 8: 'Tableau de 8',
+  4: 'Demi-finale', 3: 'Petite finale', 2: 'Finale',
+};
+
+function pad2(n: number): string {
+  return n < 10 ? `0${n}` : `${n}`;
+}
+
+function formatDateFR(date?: Date | string): string {
+  const d = date instanceof Date ? date : date ? new Date(date) : undefined;
+  if (!d || isNaN(d.getTime())) return '';
+  return `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}.${d.getFullYear()}`;
+}
+
+function formatTimeFR(date?: Date | string): string {
+  const d = date instanceof Date ? date : date ? new Date(date) : undefined;
+  if (!d || isNaN(d.getTime())) return '';
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
 /**
- * Export results as BellePoule/FIE XML format (BaseCompetition spec).
- * Structure: BaseCompetition attrs → Tireurs → PhaseDePoules (optional).
+ * Export results as BellePoule XML format (CompetitionIndividuelle/CompetitionParEquipe spec).
+ * Structure : racine → Tireurs → Equipes → Arbitres → Phases (TourDePoules, PhaseDeTableaux, ClassementGeneral).
  */
 export function exportResultsXMLFFE(
   competition: Competition,
   poolRanking: PoolRanking[],
   finalResults: any[],
-  pools?: Pool[]
+  pools?: Pool[],
+  tableauMatches?: TableauMatchForXML[]
 ): string {
-  const mapStatut = (status: FencerStatus): string => {
-    switch (status) {
-      case FencerStatus.ABANDONED: return 'Abandonne';
-      case FencerStatus.EXCLUDED:  return 'Exclu';
-      case FencerStatus.FORFAIT:   return 'Forfait';
-      case FencerStatus.ELIMINATED: return 'Elimine';
-      default: return 'Qualifie';
-    }
-  };
-
   const finalRankMap = new Map<string, number>();
   for (const r of finalResults) {
     if (r.fencer?.id) finalRankMap.set(r.fencer.id, r.rank);
   }
 
-  const dateStr =
-    competition.date instanceof Date
-      ? competition.date.toISOString().slice(0, 10)
-      : String(competition.date).slice(0, 10);
+  const rootTag = competition.isTeamEvent ? 'CompetitionParEquipe' : 'CompetitionIndividuelle';
+  const settings = competition.settings;
+  const phaseEnCours = tableauMatches && tableauMatches.length > 0 ? 4 : pools && pools.length > 0 ? 2 : 1;
 
   const lines: string[] = [];
   lines.push('<?xml version="1.0" encoding="UTF-8"?>');
   lines.push(
-    `<BaseCompetition` +
+    `<${rootTag}` +
+    ` Couleur="${escapeXml(competition.color || '')}"` +
+    ` Championnat="${escapeXml(competition.championship || '')}"` +
+    ` ID="${escapeXml(competition.id)}"` +
+    ` Annee="${competition.date instanceof Date ? competition.date.getFullYear() : new Date(competition.date).getFullYear()}"` +
     ` Arme="${escapeXml(competition.weapon)}"` +
     ` Sexe="${escapeXml(competition.gender)}"` +
-    ` Categorie="${escapeXml(competition.category)}"` +
-    ` Format="${competition.isTeamEvent ? 'Equipes' : 'Individuel'}"` +
-    ` ID="${escapeXml(competition.id)}"` +
     ` Organisateur="${escapeXml(competition.organizer || '')}"` +
+    ` Categorie="${escapeXml(CATEGORY_LABELS[competition.category] || competition.category)}"` +
+    ` Niveau=""` +
+    ` Date="${formatDateFR(competition.date)}"` +
+    ` Appel="${formatTimeFR(competition.checkInTime)}"` +
+    ` Scratch="${formatTimeFR(competition.scratchTime)}"` +
+    ` Debut="${formatTimeFR(competition.startTime)}"` +
+    ` TitreLong="${escapeXml(competition.title)}"` +
+    ` URLorganisateur="${escapeXml(competition.organizerUrl || '')}"` +
+    ` ScoreAleatoire="${settings?.randomScore ? '1' : '0'}"` +
+    ` TailleMinimaleEquipe="${settings?.minTeamSize ?? 3}"` +
+    ` ClassementDefautEquipe="${settings?.defaultRanking ?? 9999}"` +
+    ` ClassementManuel="${settings?.manualRanking ? '1' : '0'}"` +
     ` Lieu="${escapeXml(competition.location || '')}"` +
-    ` Date="${dateStr}"` +
-    ` Label="${escapeXml(competition.title)}"` +
-    ` NbTireurs="${poolRanking.length}">`
+    ` Label="${escapeXml(competition.shortTitle || '')}">`
   );
 
-  lines.push('  <Tireurs>');
+  lines.push(' <Tireurs>');
   for (const r of poolRanking) {
     const f = r.fencer;
     const finalRank = finalRankMap.get(f.id) ?? r.rank;
     lines.push(
-      `    <Tireur` +
+      `  <Tireur` +
       ` ID="${f.ref}"` +
+      ` Classement="${finalRank}"` +
       ` Nom="${escapeXml(f.lastName)}"` +
       ` Prenom="${escapeXml(f.firstName)}"` +
+      ` DateNaissance="${formatDateFR(f.birthDate)}"` +
       ` Sexe="${escapeXml(f.gender)}"` +
       ` Nation="${escapeXml(f.nationality || '')}"` +
+      ` Region="${escapeXml(f.region || '')}"` +
       ` Ligue="${escapeXml(f.region || '')}"` +
       ` Club="${escapeXml(f.club || '')}"` +
       ` Licence="${escapeXml(f.license || '')}"` +
-      ` Classement="${f.ranking ?? ''}"` +
-      ` Statut="${mapStatut(f.status)}"` +
-      ` NbVictoires="${r.victories}"` +
-      ` NbDefaites="${r.defeats}"` +
-      ` TD="${r.touchesScored}"` +
-      ` TR="${r.touchesReceived}"` +
-      ` Indice="${r.index}"` +
+      ` Ranking="${f.ranking ?? 0}"` +
+      ` Exporte="0"` +
+      ` Statut="${escapeXml(f.status)}"` +
+      ` Points=""` +
+      ` Lateralite=""` +
+      ` Departement=""` +
       ` RangPoules="${r.rank}"` +
       ` RangFinal="${finalRank}"/>`
     );
   }
-  lines.push('  </Tireurs>');
+  lines.push(' </Tireurs>');
+
+  lines.push(' <Equipes/>');
+
+  lines.push(' <Arbitres>');
+  for (const a of competition.referees || []) {
+    lines.push(
+      `  <Arbitre` +
+      ` ID="${a.ref}"` +
+      ` Nom="${escapeXml(a.lastName)}"` +
+      ` Prenom="${escapeXml(a.firstName)}"` +
+      ` DateNaissance="${formatDateFR(a.birthDate)}"` +
+      ` Sexe="${escapeXml(a.gender)}"` +
+      ` Arme="${escapeXml(competition.weapon)}"` +
+      ` Nation="${escapeXml(a.nationality || '')}"` +
+      ` Region="${escapeXml(a.region || '')}"` +
+      ` Ligue="${escapeXml(a.region || '')}"` +
+      ` Club="${escapeXml(a.club || '')}"` +
+      ` Licence="${escapeXml(a.license || '')}"` +
+      ` Categorie="${escapeXml(a.category || '')}"` +
+      ` Ranking="0"` +
+      ` Exporte="0"` +
+      ` Statut="F"` +
+      ` Departement=""/>`
+    );
+  }
+  lines.push(' </Arbitres>');
+
+  lines.push(` <Phases PhaseEnCours="${phaseEnCours}">`);
+  lines.push('  <Pointage/>');
 
   if (pools && pools.length > 0) {
-    lines.push(`  <PhaseDePoules NbPoules="${pools.length}" NbTours="1">`);
+    const poolScoreMax = pools[0]?.matches[0]?.maxScore ?? 5;
+    lines.push(
+      `  <TourDePoules PhaseID="2" ID="Tour n° 1" ScoreMax="${poolScoreMax}" NbDePoules="${pools.length}">`
+    );
+    let seed = 1;
     for (const pool of pools) {
-      const arbName =
-        pool.referees?.[0]
-          ? escapeXml(`${pool.referees[0].lastName} ${pool.referees[0].firstName}`)
-          : '';
-      lines.push(
-        `    <Poule ID="${pool.number}" Piste="${pool.strip ?? pool.number}" Arbitre="${arbName}">`
-      );
       for (const f of pool.fencers) {
-        lines.push(`      <Tireur REF="${f.ref}"/>`);
+        const overall = poolRanking.find(r => r.fencer.id === f.id);
+        lines.push(`   <Tireur REF="${f.ref}" RangInitial="${seed++}" RangFinal="${overall?.rank ?? ''}" Statut="${escapeXml(f.status)}"/>`);
       }
+    }
+    for (const pool of pools) {
+      lines.push(`   <Poule ID="${pool.number}">`);
+      pool.fencers.forEach((f, idx) => {
+        const pr = pool.ranking.find(r => r.fencer.id === f.id);
+        lines.push(
+          `    <Tireur REF="${f.ref}" NoDansLaPoule="${idx + 1}"` +
+          ` NbVictoires="${pr?.victories ?? 0}" NbMatches="${pr?.matchesPlayed ?? 0}"` +
+          ` TD="${pr?.touchesScored ?? 0}" TR="${pr?.touchesReceived ?? 0}" RangPoule="${pr?.rank ?? ''}"/>`
+        );
+      });
       let matchId = 1;
       for (const match of pool.matches) {
         if (!match.fencerA || !match.fencerB || match.status !== MatchStatus.FINISHED) continue;
@@ -321,17 +398,49 @@ export function exportResultsXMLFFE(
         const sB = match.scoreB;
         const stA = sA?.isAbstention ? 'A' : sA?.isForfait ? 'F' : sA?.isExclusion ? 'E' : sA?.isVictory ? 'V' : 'D';
         const stB = sB?.isAbstention ? 'A' : sB?.isForfait ? 'F' : sB?.isExclusion ? 'E' : sB?.isVictory ? 'V' : 'D';
-        lines.push(`      <Match ID="${matchId++}">`);
-        lines.push(`        <Tireur REF="${match.fencerA.ref}" Score="${sA?.value ?? 0}" Statut="${stA}"/>`);
-        lines.push(`        <Tireur REF="${match.fencerB.ref}" Score="${sB?.value ?? 0}" Statut="${stB}"/>`);
-        lines.push(`      </Match>`);
+        lines.push(`    <Match ID="${matchId++}">`);
+        lines.push(`     <Tireur REF="${match.fencerA.ref}" Score="${sA?.value ?? 0}" Statut="${stA}"/>`);
+        lines.push(`     <Tireur REF="${match.fencerB.ref}" Score="${sB?.value ?? 0}" Statut="${stB}"/>`);
+        lines.push(`    </Match>`);
       }
-      lines.push(`    </Poule>`);
+      lines.push(`   </Poule>`);
     }
-    lines.push(`  </PhaseDePoules>`);
+    lines.push(`  </TourDePoules>`);
   }
 
-  lines.push('</BaseCompetition>');
+  if (tableauMatches && tableauMatches.length > 0) {
+    const tableScoreMax = 15;
+    lines.push(`  <PhaseDeTableaux PhaseID="3" ScoreMax="${tableScoreMax}">`);
+    for (const r of poolRanking) {
+      const finalRank = finalRankMap.get(r.fencer.id) ?? '';
+      lines.push(`   <Tireur REF="${r.fencer.ref}" RangInitial="${r.rank}" RangFinal="${finalRank}"/>`);
+    }
+
+    const rounds = Array.from(new Set(tableauMatches.map(m => m.round))).sort((a, b) => b - a);
+    lines.push(`   <SuiteDeTableaux ID="0" Titre="Place n°1" NbDeTableaux="${rounds.length}">`);
+    for (const round of rounds) {
+      const matchesOfRound = tableauMatches.filter(m => m.round === round && !m.isBye);
+      lines.push(
+        `    <Tableau ID="A${round}" Titre="${escapeXml(TABLEAU_TITLES[round] || `Tableau de ${round}`)}" Taille="${round}">`
+      );
+      matchesOfRound.forEach((m, idx) => {
+        if (!m.fencerA || !m.fencerB) return;
+        const stA = (m.scoreA ?? 0) > (m.scoreB ?? 0) ? 'V' : 'D';
+        const stB = stA === 'V' ? 'D' : 'V';
+        lines.push(`     <Match ID="${idx + 1}">`);
+        lines.push(`      <Tireur REF="${m.fencerA.ref}" Score="${m.scoreA ?? 0}" Statut="${stA}"/>`);
+        lines.push(`      <Tireur REF="${m.fencerB.ref}" Score="${m.scoreB ?? 0}" Statut="${stB}"/>`);
+        lines.push(`     </Match>`);
+      });
+      lines.push(`    </Tableau>`);
+    }
+    lines.push(`   </SuiteDeTableaux>`);
+    lines.push(`  </PhaseDeTableaux>`);
+  }
+
+  lines.push(`  <ClassementGeneral PhaseID="4"/>`);
+  lines.push(' </Phases>');
+  lines.push(`</${rootTag}>`);
   return lines.join('\n');
 }
 

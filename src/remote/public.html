@@ -15,6 +15,17 @@
       font-display: block;
     }
 
+      :root {
+        --pub-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        --pub-header-bg: rgba(0, 0, 0, 0.4);
+        --pub-accent: #fbbf24;
+        --pub-accent2: #3b82f6;
+        --pub-text: #ffffff;
+        --pub-muted: rgba(255,255,255,0.6);
+        --pub-card-bg: rgba(255, 255, 255, 0.05);
+        --pub-border: rgba(255, 255, 255, 0.1);
+      }
+
           * {
         margin: 0;
         padding: 0;
@@ -23,10 +34,10 @@
 
       body {
         font-family: 'ArmadaBold', sans-serif;
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        background: var(--pub-bg);
         height: 100vh;
         overflow: hidden;
-        color: #fff;
+        color: var(--pub-text);
         display: flex;
         flex-direction: column;
       }
@@ -66,7 +77,7 @@
       }
 
       .header {
-        background: rgba(0, 0, 0, 0.4);
+        background: var(--pub-header-bg);
         padding: 0.4rem 1rem;
         display: flex;
         justify-content: space-between;
@@ -755,7 +766,7 @@
     <div class="header">
       <div class="arena-title">
         <span>⚔️</span>
-        <span>Arène <span id="arena-number">1</span></span>
+        <span><span id="arena-word-label">Arène</span> <span id="arena-number">1</span></span>
       </div>
       <div class="status-section">
         <div class="inversion-toggle">
@@ -855,6 +866,18 @@
     </div>
 
     <script>
+      function applyScreenTheme(variables) {
+        if (!variables) {
+          const old = document.getElementById('screen-theme-style');
+          if (old) old.remove();
+          return;
+        }
+        let styleEl = document.getElementById('screen-theme-style');
+        if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'screen-theme-style'; document.head.appendChild(styleEl); }
+        const vars = Object.entries(variables).map(([k, v]) => `  ${k}: ${v};`).join('\n');
+        styleEl.textContent = `:root {\n${vars}\n}`;
+      }
+
       class PublicDisplay {
         constructor() {
           this.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
@@ -890,6 +913,17 @@
           document.getElementById('arena-idle-number').textContent = this.arenaNumber;
           this.setupInversionToggle();
           this.setupSocketListeners();
+          fetch('/api/session')
+            .then(r => (r.ok ? r.json() : null))
+            .then(s => {
+              if (s && ['E', 'F', 'S'].includes(s.weapon)) {
+                const pisteLabel = window.T('remote.piste');
+                document.getElementById('arena-word-label').textContent = pisteLabel;
+                const idleLabel = document.querySelector('.arena-idle-label');
+                if (idleLabel) idleLabel.textContent = pisteLabel;
+              }
+            })
+            .catch(() => {});
         }
 
         setupInversionToggle() {
@@ -952,6 +986,7 @@
               b.textContent = cmd.text; b.style.opacity = '1';
               clearTimeout(b._t); b._t = setTimeout(() => { b.style.opacity = '0'; }, cmd.duration ?? 5000);
             }
+            if (cmd.type === 'public:theme') { applyScreenTheme(cmd.variables); }
           });
 
           setInterval(() => { if (this.socket.connected) this.socket.emit('client:pong'); }, 30000);
@@ -1060,6 +1095,8 @@
         }
 
         handleArenaUpdate(data) {
+          if (data.screenThemes?.public) { applyScreenTheme(data.screenThemes.public.variables); }
+
           if (data.showPhotos !== undefined) {
             this.showPhotos = data.showPhotos;
           }

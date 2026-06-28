@@ -12,6 +12,18 @@ interface PoolScoreMatrixProps {
   onFencerChangePool?: (fencer: Fencer) => void;
   onMatchReset?: (rowFencer: Fencer, colFencer: Fencer) => void;
   isLocked?: boolean;
+  quickMouseScoring?: boolean;
+  highlightedFencerIds?: Set<string>;
+  onHoverCell?: (rowFencer: Fencer, colFencer: Fencer) => void;
+  onHoverLeave?: () => void;
+  onWheelScore?: (rowFencer: Fencer, colFencer: Fencer, shiftKey: boolean, delta: number) => void;
+  simplifiedInputMode?: boolean;
+  inlineEditKey?: string | null;
+  inlineSingleScore?: string;
+  cellScoreBuffer?: Record<string, number>;
+  onInlineSingleScoreChange?: (value: string) => void;
+  onInlineSubmit?: () => void;
+  onInlineCancel?: () => void;
 }
 
 interface ScoreCellProps {
@@ -23,12 +35,34 @@ interface ScoreCellProps {
   isLocked: boolean;
   onCellClick: (rowFencer: Fencer, colFencer: Fencer) => void;
   onMatchReset?: (rowFencer: Fencer, colFencer: Fencer) => void;
+  isHighlighted?: boolean;
+  quickMouseScoring?: boolean;
+  onHoverIn?: () => void;
+  onHoverOut?: () => void;
+  onWheelScore?: (shiftKey: boolean, delta: number) => void;
+  isInlineEditing?: boolean;
+  inlineSingleScore?: string;
+  bufferedScore?: number;
+  onInlineSingleScoreChange?: (value: string) => void;
+  onInlineSubmit?: () => void;
+  onInlineCancel?: () => void;
 }
 
 // Cellule mémoïsée : seules les cellules dont le score/flash change re-rendent
 // (la grille est O(n²), un re-rendu global coûte cher sur les grandes poules).
 const ScoreCell = React.memo<ScoreCellProps>(
-  ({ rowFencer, colFencer, abandoned, score, isFlashing, isLocked, onCellClick, onMatchReset }) => {
+  ({ rowFencer, colFencer, abandoned, score, isFlashing, isLocked, onCellClick, onMatchReset,
+     isHighlighted, quickMouseScoring, onHoverIn, onHoverOut, onWheelScore,
+     isInlineEditing, inlineSingleScore, bufferedScore, onInlineSingleScoreChange, onInlineSubmit, onInlineCancel }) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+      if (isInlineEditing) {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }
+    }, [isInlineEditing]);
+
     if (abandoned) {
       return (
         <div
@@ -51,6 +85,46 @@ const ScoreCell = React.memo<ScoreCellProps>(
         : 'pool-cell-defeat'
       : 'pool-cell-editable';
 
+    const highlightStyle = isHighlighted
+      ? { outline: '2px solid rgba(59,130,246,0.55)', outlineOffset: '-2px', background: 'rgba(59,130,246,0.10)' }
+      : {};
+
+    const inlineInputStyle: React.CSSProperties = {
+      width: '26px',
+      textAlign: 'center',
+      fontSize: '0.7rem',
+      padding: '1px 2px',
+      border: '1px solid #3b82f6',
+      borderRadius: '2px',
+      outline: 'none',
+      background: 'white',
+      color: '#111',
+      MozAppearance: 'textfield',
+    };
+
+    if (isInlineEditing) {
+      return (
+        <div
+          className={`pool-cell pool-cell-editable pool-cell-inline-editing`}
+          style={{ cursor: 'default', position: 'relative', padding: '2px', background: 'rgba(59,130,246,0.08)', outline: '2px solid #3b82f6', outlineOffset: '-2px' }}
+          onClick={e => e.stopPropagation()}
+        >
+          <input
+            ref={inputRef}
+            type="number"
+            min={0}
+            value={inlineSingleScore ?? ''}
+            onChange={e => onInlineSingleScoreChange?.(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); onInlineSubmit?.(); }
+              if (e.key === 'Escape') { e.preventDefault(); onInlineCancel?.(); }
+            }}
+            style={{ ...inlineInputStyle, width: '36px', fontSize: '0.85rem' }}
+          />
+        </div>
+      );
+    }
+
     return (
       <div
         className={`pool-cell ${cellClass} ${isFlashing ? 'pool-cell-flash' : ''}`}
@@ -61,12 +135,20 @@ const ScoreCell = React.memo<ScoreCellProps>(
             onCellClick(rowFencer, colFencer);
           }
         }}
+        onMouseEnter={quickMouseScoring ? onHoverIn : undefined}
+        onMouseLeave={quickMouseScoring ? onHoverOut : undefined}
+        onWheel={quickMouseScoring && onWheelScore && !isLocked ? e => {
+          e.preventDefault();
+          e.stopPropagation();
+          const delta = e.deltaY > 0 ? -1 : 1;
+          onWheelScore(e.shiftKey, delta);
+        } : undefined}
         role="button"
         tabIndex={isLocked ? -1 : 0}
         aria-label={`${rowFencer.lastName} ${rowFencer.firstName} contre ${colFencer.lastName} ${colFencer.firstName}${
           score ? ` : ${score.isVictory ? 'victoire ' : 'défaite '}${score.value}` : ', saisir le score'
         }`}
-        style={{ cursor: isLocked ? 'default' : 'pointer', position: 'relative' }}
+        style={{ cursor: isLocked ? 'default' : 'pointer', position: 'relative', ...highlightStyle }}
       >
         {score ? (
           <>
@@ -105,6 +187,8 @@ const ScoreCell = React.memo<ScoreCellProps>(
               </button>
             )}
           </>
+        ) : bufferedScore !== undefined ? (
+          <span style={{ color: '#3b82f6', fontStyle: 'italic', fontSize: '0.85rem' }}>{bufferedScore}</span>
         ) : (
           <span style={{ color: '#9CA3AF' }}>-</span>
         )}
@@ -123,6 +207,18 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
   onFencerChangePool,
   onMatchReset,
   isLocked = false,
+  quickMouseScoring = false,
+  highlightedFencerIds,
+  onHoverCell,
+  onHoverLeave,
+  onWheelScore,
+  simplifiedInputMode = false,
+  inlineEditKey,
+  inlineSingleScore,
+  cellScoreBuffer,
+  onInlineSingleScoreChange,
+  onInlineSubmit,
+  onInlineCancel,
 }) => {
   const fencers = pool.fencers;
   const [flashCell, setFlashCell] = useState<string | null>(null);
@@ -229,11 +325,18 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
     <div className="pool-grid">
       <div className="pool-row">
         <div className="pool-cell pool-cell-header pool-cell-name"></div>
-        {fencers.map((f, i) => (
-          <div key={f.id} className="pool-cell pool-cell-header">
-            {i + 1}
-          </div>
-        ))}
+        {fencers.map((f, i) => {
+          const colHighlighted = quickMouseScoring && !!highlightedFencerIds?.has(f.id);
+          return (
+            <div
+              key={f.id}
+              className="pool-cell pool-cell-header"
+              style={colHighlighted ? { background: 'rgba(59,130,246,0.15)', fontWeight: 700, color: 'var(--primary, #3b82f6)' } : undefined}
+            >
+              {i + 1}
+            </div>
+          );
+        })}
         {isVisible('victories') && (
           <div
             className="pool-cell pool-cell-header"
@@ -345,7 +448,12 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
             <div
               className="pool-cell pool-cell-header pool-cell-name"
               title={`${rowFencer.firstName} ${rowFencer.lastName}`}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.375rem',
+                ...(quickMouseScoring && highlightedFencerIds?.has(rowFencer.id)
+                  ? { background: 'rgba(59,130,246,0.12)', fontWeight: 700 }
+                  : {}),
+              }}
             >
               {(() => {
                 const avatarColor =
@@ -424,6 +532,10 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               const cellKey = `${rowFencer.id}-${colFencer.id}`;
               const mirrorKey = `${colFencer.id}-${rowFencer.id}`;
 
+              const isHighlighted = quickMouseScoring
+                ? (!!highlightedFencerIds?.has(rowFencer.id) && !!highlightedFencerIds?.has(colFencer.id))
+                : false;
+
               return (
                 <ScoreCell
                   key={colFencer.id}
@@ -435,6 +547,17 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                   isLocked={isLocked}
                   onCellClick={onCellClick}
                   onMatchReset={onMatchReset}
+                  isHighlighted={isHighlighted}
+                  quickMouseScoring={quickMouseScoring}
+                  onHoverIn={onHoverCell ? () => onHoverCell(rowFencer, colFencer) : undefined}
+                  onHoverOut={onHoverLeave}
+                  onWheelScore={onWheelScore ? (shiftKey, delta) => onWheelScore(rowFencer, colFencer, shiftKey, delta) : undefined}
+                  isInlineEditing={simplifiedInputMode && inlineEditKey === cellKey}
+                  inlineSingleScore={inlineSingleScore}
+                  bufferedScore={cellScoreBuffer?.[cellKey]}
+                  onInlineSingleScoreChange={onInlineSingleScoreChange}
+                  onInlineSubmit={onInlineSubmit}
+                  onInlineCancel={onInlineCancel}
                 />
               );
             })}

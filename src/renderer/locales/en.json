@@ -209,7 +209,8 @@
     "check_in_all": "Check in all",
     "uncheck_all": "Uncheck all",
     "view": "View",
-    "default": "Not specified"
+    "default": "Not specified",
+    "save_and_add": "Save and add"
   },
   "messages": {
     "confirm_delete_fencer": "Are you sure you want to delete this fencer? This action is irreversible.",

@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef, useId } from 'react';
-import { CustomTheme } from '../../shared/types/remote';
+import { CustomTheme, ThemeTargetType } from '../../shared/types/remote';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Valeurs par défaut (thème dark)
@@ -44,6 +44,43 @@ const DARK_DEFAULTS: Record<string, string> = {
   '--fencer-name-font-family': 'system-ui, sans-serif',
   '--vs-color': '#ef4444',
   '--vs-font-family': 'system-ui, sans-serif',
+  // Visibilité
+  '--header-display': 'flex',
+  '--vs-divider-display': 'flex',
+  '--timer-label-display': 'none',
+  // Positionnement overlay
+  '--timer-section-position': 'relative',
+  '--timer-section-top': 'auto',
+  '--timer-section-left': 'auto',
+  '--timer-section-right': 'auto',
+  '--timer-section-bottom': 'auto',
+  '--timer-section-width': 'auto',
+  '--timer-section-transform': 'none',
+  '--timer-section-z-index': '1',
+  '--score-a-position': 'relative',
+  '--score-a-top': 'auto',
+  '--score-a-left': 'auto',
+  '--score-a-right': 'auto',
+  '--score-a-bottom': 'auto',
+  '--score-a-transform': 'none',
+  '--score-b-position': 'relative',
+  '--score-b-top': 'auto',
+  '--score-b-left': 'auto',
+  '--score-b-right': 'auto',
+  '--score-b-bottom': 'auto',
+  '--score-b-transform': 'none',
+  '--name-a-position': 'relative',
+  '--name-a-top': 'auto',
+  '--name-a-left': 'auto',
+  '--name-a-right': 'auto',
+  '--name-a-width': 'auto',
+  '--name-a-transform': 'none',
+  '--name-b-position': 'relative',
+  '--name-b-top': 'auto',
+  '--name-b-left': 'auto',
+  '--name-b-right': 'auto',
+  '--name-b-width': 'auto',
+  '--name-b-transform': 'none',
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -125,6 +162,45 @@ const VAR_GROUPS: VarGroup[] = [
       { key: '--vs-font-family',          label: 'Police VS',       type: 'font' },
     ],
   },
+  {
+    label: 'Positionnement',
+    vars: [
+      { key: '--header-display',          label: 'En-tête (flex/none)',       type: 'text' },
+      { key: '--vs-divider-display',      label: 'VS (flex/none)',            type: 'text' },
+      { key: '--timer-label-display',     label: '"Tps restant" (none/block)', type: 'text' },
+      { key: '--timer-section-position',  label: 'Chrono position',           type: 'text' },
+      { key: '--timer-section-top',       label: 'Chrono haut',               type: 'text' },
+      { key: '--timer-section-left',      label: 'Chrono gauche',             type: 'text' },
+      { key: '--timer-section-right',     label: 'Chrono droite',             type: 'text' },
+      { key: '--timer-section-bottom',    label: 'Chrono bas',                type: 'text' },
+      { key: '--timer-section-width',     label: 'Chrono largeur',            type: 'text' },
+      { key: '--timer-section-transform', label: 'Chrono transform',          type: 'text' },
+      { key: '--score-a-position',        label: 'Score G position',          type: 'text' },
+      { key: '--score-a-top',             label: 'Score G haut',              type: 'text' },
+      { key: '--score-a-left',            label: 'Score G gauche',            type: 'text' },
+      { key: '--score-a-right',           label: 'Score G droite',            type: 'text' },
+      { key: '--score-a-bottom',          label: 'Score G bas',               type: 'text' },
+      { key: '--score-a-transform',       label: 'Score G transform',         type: 'text' },
+      { key: '--score-b-position',        label: 'Score D position',          type: 'text' },
+      { key: '--score-b-top',             label: 'Score D haut',              type: 'text' },
+      { key: '--score-b-left',            label: 'Score D gauche',            type: 'text' },
+      { key: '--score-b-right',           label: 'Score D droite',            type: 'text' },
+      { key: '--score-b-bottom',          label: 'Score D bas',               type: 'text' },
+      { key: '--score-b-transform',       label: 'Score D transform',         type: 'text' },
+      { key: '--name-a-position',         label: 'Nom G position',            type: 'text' },
+      { key: '--name-a-top',              label: 'Nom G haut',                type: 'text' },
+      { key: '--name-a-left',             label: 'Nom G gauche',              type: 'text' },
+      { key: '--name-a-right',            label: 'Nom G droite',              type: 'text' },
+      { key: '--name-a-width',            label: 'Nom G largeur',             type: 'text' },
+      { key: '--name-a-transform',        label: 'Nom G transform',           type: 'text' },
+      { key: '--name-b-position',         label: 'Nom D position',            type: 'text' },
+      { key: '--name-b-top',              label: 'Nom D haut',                type: 'text' },
+      { key: '--name-b-left',             label: 'Nom D gauche',              type: 'text' },
+      { key: '--name-b-right',            label: 'Nom D droite',              type: 'text' },
+      { key: '--name-b-width',            label: 'Nom D largeur',             type: 'text' },
+      { key: '--name-b-transform',        label: 'Nom D transform',           type: 'text' },
+    ],
+  },
 ];
 
 const SIZE_PRESETS: Record<string, Record<string, string>> = {
@@ -160,24 +236,179 @@ const FONT_OPTIONS: { label: string; value: string }[] = [
   { label: 'Lucida Console',       value: '"Lucida Console", monospace' },
 ];
 
+// Preset de variables pour le mode Overlay — arène
+const OVERLAY_PRESET: Record<string, string> = {
+  '--match-bg':          'transparent',
+  '--score-bg':          'transparent',
+  '--timer-bg':          'rgba(0, 0, 0, 0.55)',
+  '--green-side-bg':     'rgba(0, 28, 14, 0.50)',
+  '--red-side-bg':       'rgba(58, 0, 28, 0.50)',
+  '--fencer-name-color': '#ffffff',
+  '--fencer-club-color': 'rgba(255, 230, 255, 0.85)',
+};
+
+// Preset de variables pour le mode Overlay — kiosque
+const KIOSK_OVERLAY_PRESET: Record<string, string> = {
+  '--k-card-bg': 'rgba(0, 0, 0, 0.52)',
+  '--k-border':  'rgba(255, 255, 255, 0.18)',
+};
+
 // Canvas virtuel pour le preview scalé (résolution de référence 16:9)
 const VIRTUAL_W = 1280;
 const VIRTUAL_H = 720;
 
+// Compat shim : utilisé par RemoteScoreManager (migré vers IPC)
 const STORAGE_KEY = 'bellepoule-custom-themes';
+function loadSavedThemes(): CustomTheme[] { return []; }
+function saveSavedThemes(_themes: CustomTheme[]): void { /* no-op */ }
 
-function loadSavedThemes(): CustomTheme[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
+// ──────────────────────────────────────────────────────────────────────────────
+// Variables et defaults Arbitre (tablette)
+// ──────────────────────────────────────────────────────────────────────────────
+const REFEREE_DEFAULTS: Record<string, string> = {
+  '--ref-bg':         'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+  '--ref-header-bg':  'rgba(0, 0, 0, 0.3)',
+  '--ref-accent':     '#3b82f6',
+  '--ref-accent2':    '#f59e0b',
+  '--ref-text':       '#ffffff',
+  '--ref-muted':      'rgba(255,255,255,0.6)',
+  '--ref-card-bg':    'rgba(255, 255, 255, 0.05)',
+  '--ref-border':     'rgba(255, 255, 255, 0.1)',
+};
 
-function saveSavedThemes(themes: CustomTheme[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(themes));
-}
+const REFEREE_VAR_GROUPS: VarGroup[] = [
+  {
+    label: 'Arbitre – Arrière-plan',
+    vars: [
+      { key: '--ref-bg',        label: 'Fond page',         type: 'text'  },
+      { key: '--ref-header-bg', label: 'Fond en-tête',      type: 'text'  },
+    ],
+  },
+  {
+    label: 'Arbitre – Couleurs',
+    vars: [
+      { key: '--ref-accent',  label: 'Couleur accent 1',  type: 'color' },
+      { key: '--ref-accent2', label: 'Couleur accent 2',  type: 'color' },
+      { key: '--ref-text',    label: 'Texte principal',   type: 'color' },
+      { key: '--ref-muted',   label: 'Texte discret',     type: 'color' },
+    ],
+  },
+  {
+    label: 'Arbitre – Cartes',
+    vars: [
+      { key: '--ref-card-bg', label: 'Fond cartes',  type: 'text'  },
+      { key: '--ref-border',  label: 'Bordures',     type: 'text'  },
+    ],
+  },
+];
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Variables et defaults Affichage poule
+// ──────────────────────────────────────────────────────────────────────────────
+const POOL_DEFAULTS: Record<string, string> = {
+  '--pool-bg':         '#1a1a2e',
+  '--pool-header-bg':  'rgba(0, 0, 0, 0.5)',
+  '--pool-accent':     '#6366f1',
+  '--pool-accent2':    '#3b82f6',
+  '--pool-text':       '#ffffff',
+  '--pool-muted':      '#64748b',
+  '--pool-card-bg':    'rgba(255, 255, 255, 0.04)',
+  '--pool-border':     'rgba(255, 255, 255, 0.08)',
+};
+
+const POOL_VAR_GROUPS: VarGroup[] = [
+  {
+    label: 'Poule – Arrière-plan',
+    vars: [
+      { key: '--pool-bg',        label: 'Fond page',     type: 'text'  },
+      { key: '--pool-header-bg', label: 'Fond en-tête',  type: 'text'  },
+    ],
+  },
+  {
+    label: 'Poule – Couleurs',
+    vars: [
+      { key: '--pool-accent',  label: 'Couleur accent 1',  type: 'color' },
+      { key: '--pool-accent2', label: 'Couleur accent 2',  type: 'color' },
+      { key: '--pool-text',    label: 'Texte principal',   type: 'color' },
+      { key: '--pool-muted',   label: 'Texte discret',     type: 'color' },
+    ],
+  },
+  {
+    label: 'Poule – Cartes',
+    vars: [
+      { key: '--pool-card-bg', label: 'Fond cartes',  type: 'text'  },
+      { key: '--pool-border',  label: 'Bordures',     type: 'text'  },
+    ],
+  },
+];
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Variables et defaults Public
+// ──────────────────────────────────────────────────────────────────────────────
+const PUBLIC_DEFAULTS: Record<string, string> = {
+  '--pub-bg':         'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+  '--pub-header-bg':  'rgba(0, 0, 0, 0.4)',
+  '--pub-accent':     '#fbbf24',
+  '--pub-accent2':    '#3b82f6',
+  '--pub-text':       '#ffffff',
+  '--pub-muted':      'rgba(255,255,255,0.6)',
+  '--pub-card-bg':    'rgba(255, 255, 255, 0.05)',
+  '--pub-border':     'rgba(255, 255, 255, 0.1)',
+};
+
+const PUBLIC_VAR_GROUPS: VarGroup[] = [
+  {
+    label: 'Public – Arrière-plan',
+    vars: [
+      { key: '--pub-bg',        label: 'Fond page',     type: 'text'  },
+      { key: '--pub-header-bg', label: 'Fond en-tête',  type: 'text'  },
+    ],
+  },
+  {
+    label: 'Public – Couleurs',
+    vars: [
+      { key: '--pub-accent',  label: 'Couleur accent 1',  type: 'color' },
+      { key: '--pub-accent2', label: 'Couleur accent 2',  type: 'color' },
+      { key: '--pub-text',    label: 'Texte principal',   type: 'color' },
+      { key: '--pub-muted',   label: 'Texte discret',     type: 'color' },
+    ],
+  },
+  {
+    label: 'Public – Cartes',
+    vars: [
+      { key: '--pub-card-bg', label: 'Fond cartes',  type: 'text'  },
+      { key: '--pub-border',  label: 'Bordures',     type: 'text'  },
+    ],
+  },
+];
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Variables et defaults Kiosk
+// ──────────────────────────────────────────────────────────────────────────────
+const KIOSK_DEFAULTS: Record<string, string> = {
+  '--k-bg':       '#0f172a',
+  '--k-accent':   '#fbbf24',
+  '--k-accent2':  '#3b82f6',
+  '--k-card-bg':  'rgba(255, 255, 255, 0.04)',
+  '--k-border':   'rgba(255, 255, 255, 0.08)',
+  '--k-muted':    '#64748b',
+  '--k-progress': 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
+};
+
+const KIOSK_VAR_GROUPS: VarGroup[] = [
+  {
+    label: 'Kiosk',
+    vars: [
+      { key: '--k-bg',       label: 'Fond',              type: 'text'  },
+      { key: '--k-accent',   label: 'Couleur accent',    type: 'color' },
+      { key: '--k-accent2',  label: 'Couleur interactive', type: 'color' },
+      { key: '--k-card-bg',  label: 'Fond cartes',       type: 'text'  },
+      { key: '--k-border',   label: 'Bordures',          type: 'text'  },
+      { key: '--k-muted',    label: 'Texte discret',     type: 'color' },
+      { key: '--k-progress', label: 'Barre progression', type: 'text'  },
+    ],
+  },
+];
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Props
@@ -185,6 +416,8 @@ function saveSavedThemes(themes: CustomTheme[]): void {
 interface ThemeEditorProps {
   /** Arène cible (ex: 'arena1') ou 'all' pour toutes les arènes */
   targetArenaId: string;
+  /** Section cible : 'arena' (défaut), 'kiosk', 'public', 'referee', 'pool' */
+  targetType?: ThemeTargetType;
   /** Thème initial à éditer (undefined = nouveau thème depuis dark) */
   initialTheme?: CustomTheme;
   /** Callback quand l'utilisateur applique le thème */
@@ -197,20 +430,49 @@ interface ThemeEditorProps {
 // ──────────────────────────────────────────────────────────────────────────────
 const ThemeEditor: React.FC<ThemeEditorProps> = ({
   targetArenaId,
+  targetType = 'arena',
   initialTheme,
   onApply,
   onClose,
 }) => {
   const instanceId = useId();
+  const effectiveType = (targetType ?? 'arena') as ThemeTargetType;
+  const isKiosk = effectiveType === 'kiosk';
+  const activeDefaults =
+    effectiveType === 'kiosk'    ? KIOSK_DEFAULTS :
+    effectiveType === 'referee'  ? REFEREE_DEFAULTS :
+    effectiveType === 'pool'     ? POOL_DEFAULTS :
+    effectiveType === 'public'   ? PUBLIC_DEFAULTS :
+    DARK_DEFAULTS;
+  const activeVarGroups =
+    effectiveType === 'kiosk'    ? KIOSK_VAR_GROUPS :
+    effectiveType === 'referee'  ? REFEREE_VAR_GROUPS :
+    effectiveType === 'pool'     ? POOL_VAR_GROUPS :
+    effectiveType === 'public'   ? PUBLIC_VAR_GROUPS :
+    VAR_GROUPS;
+  const defaultName =
+    effectiveType === 'kiosk'   ? 'Thème kiosk' :
+    effectiveType === 'referee' ? 'Thème arbitre' :
+    effectiveType === 'pool'    ? 'Thème poule' :
+    effectiveType === 'public'  ? 'Thème public' :
+    'Mon thème';
 
-  const [themeName, setThemeName] = useState(initialTheme?.name ?? 'Mon thème');
+  const [themeName, setThemeName] = useState(initialTheme?.name ?? defaultName);
   const [vars, setVars] = useState<Record<string, string>>(() => ({
-    ...DARK_DEFAULTS,
+    ...activeDefaults,
     ...(initialTheme?.variables ?? {}),
   }));
-  const [savedThemes, setSavedThemes] = useState<CustomTheme[]>(loadSavedThemes);
+  const [savedThemes, setSavedThemes] = useState<CustomTheme[]>([]);
   const [activeGroup, setActiveGroup] = useState(0);
+
+  // Charger les thèmes depuis l'app (filtrés par type)
+  useEffect(() => {
+    window.electronAPI.themes.list().then(all => {
+      setSavedThemes(all.filter(t => (t.targetType ?? 'arena') === effectiveType));
+    }).catch(() => {});
+  }, [effectiveType]);
   const [importError, setImportError] = useState('');
+  const [overlayMode, setOverlayMode] = useState(initialTheme?.overlayMode ?? false);
   const previewStyleId = `theme-preview-${instanceId.replace(/:/g, '')}`;
 
   // Canvas virtuel scalé pour le preview
@@ -251,27 +513,83 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
     setVars(prev => ({ ...prev, [key]: value }));
   };
 
-  // ── Sauvegarde locale ──
+  const handleOverlayToggle = (enabled: boolean) => {
+    setOverlayMode(enabled);
+    if (isKiosk) {
+      if (enabled) {
+        setVars(prev => ({ ...prev, ...KIOSK_OVERLAY_PRESET }));
+      } else {
+        setVars(prev => ({
+          ...prev,
+          '--k-card-bg': KIOSK_DEFAULTS['--k-card-bg'],
+          '--k-border':  KIOSK_DEFAULTS['--k-border'],
+        }));
+      }
+    } else {
+      if (enabled) {
+        setVars(prev => ({ ...prev, ...OVERLAY_PRESET }));
+      } else {
+        setVars(prev => ({
+          ...prev,
+          '--match-bg':          DARK_DEFAULTS['--match-bg'],
+          '--score-bg':          DARK_DEFAULTS['--score-bg'],
+          '--timer-bg':          DARK_DEFAULTS['--timer-bg'],
+          '--green-side-bg':     DARK_DEFAULTS['--green-side-bg'],
+          '--red-side-bg':       DARK_DEFAULTS['--red-side-bg'],
+          '--fencer-name-color': DARK_DEFAULTS['--fencer-name-color'],
+          '--fencer-club-color': DARK_DEFAULTS['--fencer-club-color'],
+        }));
+      }
+    }
+  };
+
+  const bgVar = isKiosk ? '--k-bg' : '--bg';
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 1600;
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        setVar(bgVar, `url("${dataUrl}") center / cover no-repeat`);
+      };
+      img.src = ev.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  // ── Sauvegarde dans l'app ──
   const handleSave = () => {
     const id = initialTheme?.id ?? `custom-${Date.now()}`;
-    const theme: CustomTheme = { id, name: themeName.trim() || 'Sans nom', variables: vars };
-    const existing = savedThemes.findIndex(t => t.id === id);
-    const updated = existing >= 0
-      ? savedThemes.map((t, i) => (i === existing ? theme : t))
-      : [...savedThemes, theme];
-    setSavedThemes(updated);
-    saveSavedThemes(updated);
+    const theme: CustomTheme = { id, name: themeName.trim() || 'Sans nom', targetType: effectiveType, variables: vars, overlayMode };
+    window.electronAPI.themes.save(theme).then(() => {
+      setSavedThemes(prev => {
+        const idx = prev.findIndex(t => t.id === id);
+        return idx >= 0 ? prev.map((t, i) => (i === idx ? theme : t)) : [...prev, theme];
+      });
+    }).catch(() => {});
   };
 
   const handleDeleteSaved = (id: string) => {
-    const updated = savedThemes.filter(t => t.id !== id);
-    setSavedThemes(updated);
-    saveSavedThemes(updated);
+    window.electronAPI.themes.delete(id).then(() => {
+      setSavedThemes(prev => prev.filter(t => t.id !== id));
+    }).catch(() => {});
   };
 
   const handleLoadSaved = (theme: CustomTheme) => {
     setThemeName(theme.name);
-    setVars({ ...DARK_DEFAULTS, ...theme.variables });
+    setVars({ ...activeDefaults, ...theme.variables });
+    setOverlayMode(theme.overlayMode ?? false);
   };
 
   // ── Import / Export (IPC Electron natif) ──
@@ -279,6 +597,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
     const theme: CustomTheme = {
       id: initialTheme?.id ?? `custom-${Date.now()}`,
       name: themeName.trim() || 'Mon thème',
+      targetType: effectiveType,
       variables: vars,
     };
     const json = JSON.stringify(theme, null, 2);
@@ -305,7 +624,8 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
         return;
       }
       setThemeName(parsed.name ?? 'Thème importé');
-      setVars({ ...DARK_DEFAULTS, ...parsed.variables });
+      setVars({ ...activeDefaults, ...parsed.variables });
+      setOverlayMode(parsed.overlayMode ?? false);
       setImportError('');
     } catch {
       setImportError('Fichier JSON invalide');
@@ -317,13 +637,18 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
     const theme: CustomTheme = {
       id: initialTheme?.id ?? `custom-${Date.now()}`,
       name: themeName.trim() || 'Mon thème',
+      targetType: effectiveType,
       variables: vars,
+      overlayMode,
     };
     onApply(targetArenaId, theme);
   };
 
-  const arenaLabel = targetArenaId === 'all'
-    ? 'Toutes les arènes'
+  const arenaLabel = effectiveType === 'kiosk'   ? 'Kiosque'
+    : effectiveType === 'public'   ? 'Affichage public'
+    : effectiveType === 'referee'  ? 'Tablette arbitre'
+    : effectiveType === 'pool'     ? 'Affichage poule'
+    : targetArenaId === 'all' ? 'Toutes les pistes'
     : `Piste ${targetArenaId.replace('arena', '')}`;
 
   return (
@@ -376,7 +701,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
 
             {/* Onglets de groupes */}
             <div className="theme-editor-tabs">
-              {VAR_GROUPS.map((g, i) => (
+              {activeVarGroups.map((g, i) => (
                 <button
                   key={g.label}
                   className={`theme-editor-tab ${activeGroup === i ? 'active' : ''}`}
@@ -389,13 +714,59 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
 
             {/* Variables du groupe actif */}
             <div className="theme-editor-vars">
-              {VAR_GROUPS[activeGroup].vars.map(({ key, label, type }) => (
+              {/* Contrôles image + overlay — Arrière-plans arène et kiosque */}
+              {activeGroup === 0 && (
+                <div style={{ borderBottom: '1px solid #334155', paddingBottom: '0.75rem', marginBottom: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div className="var-row">
+                    <label className="var-label">Image fond</label>
+                    <div className="var-control" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
+                      <label style={{
+                        cursor: 'pointer', padding: '0.3rem 0.6rem', borderRadius: '0.3rem',
+                        border: '1px solid #475569', background: '#1e293b', color: '#94a3b8',
+                        fontSize: '0.8rem', whiteSpace: 'nowrap',
+                      }}>
+                        📷 Choisir image
+                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} />
+                      </label>
+                      {vars[bgVar]?.includes('url(') && (
+                        <button
+                          onClick={() => setVar(bgVar, activeDefaults[bgVar] ?? '')}
+                          style={{
+                            padding: '0.3rem 0.6rem', borderRadius: '0.3rem',
+                            border: '1px solid #475569', background: 'none', color: '#ef4444',
+                            fontSize: '0.8rem', cursor: 'pointer',
+                          }}
+                        >
+                          ✕ Retirer
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="var-row">
+                    <label className="var-label">Mode Overlay</label>
+                    <div className="var-control">
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={overlayMode}
+                          onChange={e => handleOverlayToggle(e.target.checked)}
+                          style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#3b82f6' }}
+                        />
+                        <span style={{ fontSize: '0.8rem', color: overlayMode ? '#60a5fa' : '#94a3b8' }}>
+                          Panneaux transparents sur l'image
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {activeVarGroups[activeGroup]?.vars.map(({ key, label, type }) => (
                 <VarRow
                   key={key}
                   varKey={key}
                   label={label}
                   type={type}
-                  value={vars[key] ?? DARK_DEFAULTS[key] ?? ''}
+                  value={vars[key] ?? activeDefaults[key] ?? ''}
                   onChange={val => setVar(key, val)}
                 />
               ))}
@@ -454,7 +825,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                 flexShrink: 0,
               }}
             >
-              {/* Canvas virtuel 1280×720 — toutes les CSS vars sont résolues ici */}
+              {/* Canvas virtuel 1280×720 */}
               <div
                 className={`theme-preview-scope-${previewStyleId}`}
                 style={{
@@ -464,7 +835,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                   height: `${VIRTUAL_H}px`,
                   transformOrigin: 'top left',
                   transform: `scale(${previewScale})`,
-                  background: 'var(--bg)',
+                  background: isKiosk ? 'var(--k-bg)' : 'var(--bg)',
                   display: 'flex',
                   flexDirection: 'column',
                   padding: '20px',
@@ -472,136 +843,175 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                   boxSizing: 'border-box',
                 }}
               >
-                {/* En-tête arène */}
-                <div style={{
-                  background: 'var(--header-bg)',
-                  borderRadius: '10px',
-                  padding: '14px 28px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: '26px',
-                  color: 'var(--text)',
-                  flexShrink: 0,
-                }}>
-                  <span style={{ fontWeight: 700 }}>⚔ Arène 1</span>
-                  <span style={{ background: '#22c55e', borderRadius: '999px', padding: '4px 18px', fontSize: '20px', fontWeight: 700, color: '#fff' }}>
-                    EN COURS
-                  </span>
-                </div>
-
-                {/* Corps du match */}
-                <div style={{
-                  background: 'var(--match-bg)',
-                  borderRadius: '14px',
-                  flex: 1,
-                  padding: '18px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '14px',
-                  minHeight: 0,
-                }}>
-                  {/* Grille combattants */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', gap: '14px', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-                    {/* Côté vert */}
-                    <div style={{
-                      background: 'var(--green-side-bg)',
-                      border: '6px solid var(--green-side-border)',
-                      borderRadius: '12px',
-                      padding: '14px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      overflow: 'hidden',
-                    }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#22c55e,#16a34a)', flexShrink: 0 }} />
-                      <div style={{ fontSize: 'var(--fencer-name-font-size)', fontFamily: 'var(--fencer-name-font-family)', fontWeight: 800, color: 'var(--fencer-name-color)', textAlign: 'center', lineHeight: 1.1 }}>
-                        DUPONT A.
-                      </div>
-                      <div style={{ fontSize: '22px', color: 'var(--fencer-club-color)' }}>
-                        Escrime Paris
-                      </div>
-                      <div style={{
-                        fontFamily: 'var(--score-font-family)',
-                        fontSize: 'var(--score-font-size)',
-                        fontWeight: 'bold',
-                        color: 'var(--score-green)',
-                        background: 'var(--score-bg)',
-                        padding: '0.05em 0.2em',
-                        borderRadius: '8px',
-                        lineHeight: 1,
+                {isKiosk ? (
+                  // ── Aperçu Kiosk ──
+                  <>
+                    {/* Barre de progression */}
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 8, background: 'var(--k-progress)', borderRadius: '4px 4px 0 0' }} />
+                    {/* En-tête kiosk */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 16, flexShrink: 0 }}>
+                      <span style={{ fontSize: 28, fontWeight: 800, color: 'var(--k-accent)' }}>🏆 Classement provisoire</span>
+                      <span style={{ fontSize: 18, padding: '4px 16px', borderRadius: 20, background: 'var(--k-card-bg)', border: '1px solid var(--k-border)', color: 'var(--k-accent2)' }}>
+                        16 tireurs
+                      </span>
+                    </div>
+                    {/* Lignes de classement */}
+                    {[
+                      { rank: '🥇', name: 'DUPONT A.', club: 'Escrime Paris', v: '5', ind: '+12', gold: true },
+                      { rank: '🥈', name: 'MARTIN B.', club: 'CE Orléans', v: '4', ind: '+8', gold: false },
+                      { rank: '🥉', name: 'LEROY C.', club: 'EC Lyon', v: '4', ind: '+5', gold: false },
+                      { rank: '4', name: 'BERNARD D.', club: 'Fleuret Club', v: '3', ind: '+1', gold: false },
+                    ].map((row, i) => (
+                      <div key={i} style={{
+                        display: 'flex', alignItems: 'center', gap: 20,
+                        padding: '12px 18px',
+                        background: i === 0 ? 'rgba(251,191,36,0.06)' : 'var(--k-card-bg)',
+                        border: `1px solid var(--k-border)`,
+                        borderRadius: 10,
                         flexShrink: 0,
                       }}>
-                        5
+                        <span style={{ fontSize: 26, width: 40, textAlign: 'center', color: row.gold ? 'var(--k-accent)' : '#94a3b8', fontWeight: 700 }}>{row.rank}</span>
+                        <span style={{ flex: 1, fontSize: 22, fontWeight: 600 }}>{row.name} <span style={{ fontSize: 16, color: 'var(--k-muted)' }}>· {row.club}</span></span>
+                        <span style={{ fontSize: 20, color: '#10b981', fontWeight: 700 }}>{row.v}V</span>
+                        <span style={{ fontSize: 20, color: 'var(--k-accent2)', width: 60, textAlign: 'right' }}>{row.ind}</span>
                       </div>
-                    </div>
-
-                    {/* VS */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', fontWeight: 900, color: 'var(--vs-color)', fontFamily: 'var(--vs-font-family)' }}>
-                      VS
-                    </div>
-
-                    {/* Côté rouge */}
+                    ))}
+                  </>
+                ) : (
+                  // ── Aperçu Arène ──
+                  <>
+                    {/* En-tête arène */}
                     <div style={{
-                      background: 'var(--red-side-bg)',
-                      border: '6px solid var(--red-side-border)',
-                      borderRadius: '12px',
-                      padding: '14px',
+                      background: 'var(--header-bg)',
+                      borderRadius: '10px',
+                      padding: '14px 28px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '26px',
+                      color: 'var(--text)',
+                      flexShrink: 0,
+                    }}>
+                      <span style={{ fontWeight: 700 }}>⚔ Arène 1</span>
+                      <span style={{ background: '#22c55e', borderRadius: '999px', padding: '4px 18px', fontSize: '20px', fontWeight: 700, color: '#fff' }}>
+                        EN COURS
+                      </span>
+                    </div>
+
+                    {/* Corps du match */}
+                    <div style={{
+                      background: 'var(--match-bg)',
+                      borderRadius: '14px',
+                      flex: 1,
+                      padding: '18px',
                       display: 'flex',
                       flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      overflow: 'hidden',
+                      gap: '14px',
+                      minHeight: 0,
                     }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#ef4444,#dc2626)', flexShrink: 0 }} />
-                      <div style={{ fontSize: 'var(--fencer-name-font-size)', fontFamily: 'var(--fencer-name-font-family)', fontWeight: 800, color: 'var(--fencer-name-color)', textAlign: 'center', lineHeight: 1.1 }}>
-                        MARTIN B.
+                      {/* Grille combattants */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', gap: '14px', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                        {/* Côté vert */}
+                        <div style={{
+                          background: 'var(--green-side-bg)',
+                          border: '6px solid var(--green-side-border)',
+                          borderRadius: '12px',
+                          padding: '14px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          overflow: 'hidden',
+                        }}>
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#22c55e,#16a34a)', flexShrink: 0 }} />
+                          <div style={{ fontSize: 'var(--fencer-name-font-size)', fontFamily: 'var(--fencer-name-font-family)', fontWeight: 800, color: 'var(--fencer-name-color)', textAlign: 'center', lineHeight: 1.1 }}>
+                            DUPONT A.
+                          </div>
+                          <div style={{ fontSize: '22px', color: 'var(--fencer-club-color)' }}>
+                            Escrime Paris
+                          </div>
+                          <div style={{
+                            fontFamily: 'var(--score-font-family)',
+                            fontSize: 'var(--score-font-size)',
+                            fontWeight: 'bold',
+                            color: 'var(--score-green)',
+                            background: 'var(--score-bg)',
+                            padding: '0.05em 0.2em',
+                            borderRadius: '8px',
+                            lineHeight: 1,
+                            flexShrink: 0,
+                          }}>
+                            5
+                          </div>
+                        </div>
+
+                        {/* VS */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', fontWeight: 900, color: 'var(--vs-color)', fontFamily: 'var(--vs-font-family)' }}>
+                          VS
+                        </div>
+
+                        {/* Côté rouge */}
+                        <div style={{
+                          background: 'var(--red-side-bg)',
+                          border: '6px solid var(--red-side-border)',
+                          borderRadius: '12px',
+                          padding: '14px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          overflow: 'hidden',
+                        }}>
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#ef4444,#dc2626)', flexShrink: 0 }} />
+                          <div style={{ fontSize: 'var(--fencer-name-font-size)', fontFamily: 'var(--fencer-name-font-family)', fontWeight: 800, color: 'var(--fencer-name-color)', textAlign: 'center', lineHeight: 1.1 }}>
+                            MARTIN B.
+                          </div>
+                          <div style={{ fontSize: '22px', color: 'var(--fencer-club-color)' }}>
+                            CE Orléans
+                          </div>
+                          <div style={{
+                            fontFamily: 'var(--score-font-family)',
+                            fontSize: 'var(--score-font-size)',
+                            fontWeight: 'bold',
+                            color: 'var(--score-red)',
+                            background: 'var(--score-bg)',
+                            padding: '0.05em 0.2em',
+                            borderRadius: '8px',
+                            lineHeight: 1,
+                            flexShrink: 0,
+                          }}>
+                            3
+                          </div>
+                        </div>
                       </div>
-                      <div style={{ fontSize: '22px', color: 'var(--fencer-club-color)' }}>
-                        CE Orléans
-                      </div>
+
+                      {/* Chronomètre */}
                       <div style={{
-                        fontFamily: 'var(--score-font-family)',
-                        fontSize: 'var(--score-font-size)',
+                        background: 'var(--timer-bg)',
+                        border: '4px solid var(--timer-run-border)',
+                        borderRadius: '10px',
+                        padding: '10px',
+                        textAlign: 'center',
+                        fontFamily: 'var(--timer-font-family)',
+                        fontSize: 'var(--timer-font-size)',
                         fontWeight: 'bold',
-                        color: 'var(--score-red)',
-                        background: 'var(--score-bg)',
-                        padding: '0.05em 0.2em',
-                        borderRadius: '8px',
-                        lineHeight: 1,
+                        color: 'var(--timer-run-color)',
                         flexShrink: 0,
+                        lineHeight: 1,
                       }}>
-                        3
+                        02:30
                       </div>
                     </div>
-                  </div>
 
-                  {/* Chronomètre */}
-                  <div style={{
-                    background: 'var(--timer-bg)',
-                    border: '4px solid var(--timer-run-border)',
-                    borderRadius: '10px',
-                    padding: '10px',
-                    textAlign: 'center',
-                    fontFamily: 'var(--timer-font-family)',
-                    fontSize: 'var(--timer-font-size)',
-                    fontWeight: 'bold',
-                    color: 'var(--timer-run-color)',
-                    flexShrink: 0,
-                    lineHeight: 1,
-                  }}>
-                    02:30
-                  </div>
-                </div>
-
-                {/* Écran attente */}
-                <div style={{ textAlign: 'center', fontSize: '22px', color: 'var(--idle-label-color)', flexShrink: 0 }}>
-                  <span style={{ fontSize: '36px', fontWeight: 900, color: 'var(--idle-number-color)' }}>2</span>
-                  {' '}— Arène en attente
-                </div>
+                    {/* Écran attente */}
+                    <div style={{ textAlign: 'center', fontSize: '22px', color: 'var(--idle-label-color)', flexShrink: 0 }}>
+                      <span style={{ fontSize: '36px', fontWeight: 900, color: 'var(--idle-number-color)' }}>2</span>
+                      {' '}— Arène en attente
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -758,5 +1168,5 @@ const VarRow: React.FC<VarRowProps> = ({ varKey, label, type, value, onChange })
 };
 
 export default React.memo(ThemeEditor);
-export { DARK_DEFAULTS };
+export { DARK_DEFAULTS, loadSavedThemes, saveSavedThemes, STORAGE_KEY };
 export type { CustomTheme };

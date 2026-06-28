@@ -17,6 +17,8 @@ const LOGO_STORAGE_KEY = 'bellepoule-logo';
 const WEBHOOK_STORAGE_KEY = 'bellepoule-webhook-url';
 const AUDIT_LOG_KEY = 'bellepoule-audit-log-enabled';
 const TTS_CONFIG_KEY = 'bellepoule-tts-config';
+export const QUICK_MOUSE_KEY = 'bellepoule-quick-mouse-scoring';
+export const SIMPLIFIED_INPUT_KEY = 'bellepoule-simplified-input-mode';
 
 interface TtsConfig {
   voiceName: string | null;
@@ -124,6 +126,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
 
   const [auditLogEnabled, setAuditLogEnabled] = useState<boolean>(
     () => localStorage.getItem(AUDIT_LOG_KEY) === 'true'
+  );
+
+  const [quickMouseScoring, setQuickMouseScoring] = useState<boolean>(
+    () => localStorage.getItem(QUICK_MOUSE_KEY) === 'true'
+  );
+
+  const [simplifiedInputMode, setSimplifiedInputMode] = useState<boolean>(
+    () => localStorage.getItem(SIMPLIFIED_INPUT_KEY) === 'true'
   );
 
   const [webhookUrl, setWebhookUrl] = useState<string>(
@@ -292,6 +302,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     localStorage.setItem(AUDIT_LOG_KEY, String(enabled));
   };
 
+  const handleQuickMouseScoringChange = (enabled: boolean) => {
+    setQuickMouseScoring(enabled);
+    localStorage.setItem(QUICK_MOUSE_KEY, String(enabled));
+  };
+
+  const handleSimplifiedInputModeChange = (enabled: boolean) => {
+    setSimplifiedInputMode(enabled);
+    localStorage.setItem(SIMPLIFIED_INPUT_KEY, String(enabled));
+  };
+
   const handleSave = () => {
     if (settings.language !== language) {
       changeLanguage(settings.language);
@@ -402,6 +422,41 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
             >
               {t('pdfTemplate.openButton')}
             </button>
+          </div>
+
+          {/* Saisie rapide souris */}
+          <div className="form-group" style={SECTION_DIVIDER}>
+            <label style={BOLD}>Saisie rapide souris</label>
+            <p style={HINT}>
+              Survol d'une cellule : met en évidence la cellule miroir et les noms.
+              Roulette : ±1 au score du tireur (ligne). Shift+roulette : score de l'adversaire (colonne).
+              Score nul en laser sabre → ouvre la modal de victoire.
+            </p>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={quickMouseScoring}
+                onChange={e => handleQuickMouseScoringChange(e.target.checked)}
+              />
+              <span style={{ fontSize: '0.875rem' }}>Activer la saisie rapide à la souris</span>
+            </label>
+          </div>
+
+          {/* Mode de saisie simplifiée */}
+          <div className="form-group" style={SECTION_DIVIDER}>
+            <label style={BOLD}>Mode de saisie simplifiée</label>
+            <p style={HINT}>
+              Clic sur une cellule de poule : saisie directe des scores dans la case, sans ouverture de modal.
+              Score nul en laser sabre → ouvre tout de même la modal de victoire.
+            </p>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={simplifiedInputMode}
+                onChange={e => handleSimplifiedInputModeChange(e.target.checked)}
+              />
+              <span style={{ fontSize: '0.875rem' }}>Activer la saisie simplifiée dans les cases</span>
+            </label>
           </div>
 
           {/* Journal des scores */}

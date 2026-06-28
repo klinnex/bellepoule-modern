@@ -561,6 +561,12 @@ export interface QuestPhaseConfig {
   opponentConstraint: 'none' | 'club' | 'region' | 'nation';
 }
 
+export interface TrainingCustomRules {
+  matchDurationSeconds: number;
+  allowedZones: TargetZone[];    // vide = toutes les zones autorisées
+  disableSuddenDeath: boolean;
+}
+
 export interface CompetitionSettings {
   defaultPoolMaxScore: number; // Score max en poules (défaut: 5)
   defaultTableMaxScore: number; // Score max en tableau (défaut: 10 ou 15)

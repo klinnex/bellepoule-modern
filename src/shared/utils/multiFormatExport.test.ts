@@ -176,7 +176,7 @@ describe('exportResultsXMLFFE', () => {
   it('includes competition title', () => {
     const comp = makeCompetition({ title: 'Grand Prix' });
     const xml = exportResultsXMLFFE(comp, [], []);
-    expect(xml).toContain('Label="Grand Prix"');
+    expect(xml).toContain('TitreLong="Grand Prix"');
   });
 
   it('includes fencer data', () => {
@@ -200,6 +200,19 @@ describe('exportResultsXMLFFE', () => {
     const finalResults = [{ rank: 1, fencer: f }];
     const xml = exportResultsXMLFFE(makeCompetition(), poolRanking, finalResults);
     expect(xml).toContain('RangFinal="1"');
+  });
+
+  it('uses CompetitionIndividuelle root tag', () => {
+    const xml = exportResultsXMLFFE(makeCompetition(), [], []);
+    expect(xml).toContain('<CompetitionIndividuelle');
+    expect(xml).toContain('</CompetitionIndividuelle>');
+  });
+
+  it('uses CompetitionParEquipe root tag for team events', () => {
+    const comp = makeCompetition({ isTeamEvent: true });
+    const xml = exportResultsXMLFFE(comp, [], []);
+    expect(xml).toContain('<CompetitionParEquipe');
+    expect(xml).toContain('</CompetitionParEquipe>');
   });
 
   it('includes pool phase when pools provided', () => {
@@ -232,38 +245,48 @@ describe('exportResultsXMLFFE', () => {
       updatedAt: new Date(),
     };
     const xml = exportResultsXMLFFE(comp, [makeRanking(f1), makeRanking(f2)], [], [pool]);
-    expect(xml).toContain('<PhaseDePoules');
+    expect(xml).toContain('<TourDePoules');
     expect(xml).toContain('<Match');
   });
 
-  it('maps ABANDONED to Abandonne', () => {
+  it('includes elimination bracket when tableauMatches provided', () => {
+    const f1 = makeFencer('f1', 1, { ref: 1 });
+    const f2 = makeFencer('f2', 2, { ref: 2 });
+    const poolRanking = [makeRanking(f1, { rank: 1 }), makeRanking(f2, { rank: 2 })];
+    const tableauMatches = [
+      { round: 2, fencerA: f1, fencerB: f2, scoreA: 15, scoreB: 10, isBye: false },
+    ];
+    const xml = exportResultsXMLFFE(makeCompetition(), poolRanking, [], undefined, tableauMatches);
+    expect(xml).toContain('<PhaseDeTableaux');
+    expect(xml).toContain('<Tableau ID="A2"');
+    expect(xml).toContain('REF="1" Score="15" Statut="V"');
+    expect(xml).toContain('REF="2" Score="10" Statut="D"');
+  });
+
+  it('maps ABANDONED to A', () => {
     const f = makeFencer('f1', 1, { status: FencerStatus.ABANDONED });
     const xml = exportResultsXMLFFE(makeCompetition(), [makeRanking(f)], []);
-    expect(xml).toContain('Statut="Abandonne"');
+    expect(xml).toContain('Statut="A"');
   });
 
-  it('maps EXCLUDED to Exclu', () => {
+  it('maps EXCLUDED to X', () => {
     const f = makeFencer('f1', 1, { status: FencerStatus.EXCLUDED });
     const xml = exportResultsXMLFFE(makeCompetition(), [makeRanking(f)], []);
-    expect(xml).toContain('Statut="Exclu"');
+    expect(xml).toContain('Statut="X"');
   });
 
-  it('maps FORFAIT to Forfait', () => {
+  it('maps FORFAIT to F', () => {
     const f = makeFencer('f1', 1, { status: FencerStatus.FORFAIT });
     const xml = exportResultsXMLFFE(makeCompetition(), [makeRanking(f)], []);
-    expect(xml).toContain('Statut="Forfait"');
+    expect(xml).toContain('Statut="F"');
   });
 
-  it('maps ELIMINATED to Elimine', () => {
+  it('maps ELIMINATED to E', () => {
     const f = makeFencer('f1', 1, { status: FencerStatus.ELIMINATED });
     const xml = exportResultsXMLFFE(makeCompetition(), [makeRanking(f)], []);
-    expect(xml).toContain('Statut="Elimine"');
+    expect(xml).toContain('Statut="E"');
   });
 
-  it('closes BaseCompetition tag', () => {
-    const xml = exportResultsXMLFFE(makeCompetition(), [], []);
-    expect(xml).toContain('</BaseCompetition>');
-  });
 });
 
 // ============================================================================

@@ -1,7 +1,7 @@
 {
   "name": "bellepoule-modern",
   "productName": "BellePoule Modern",
-  "version": "1.0.3-build.1225",
+  "version": "1.0.3-build.1262",
   "description": "Modern fencing tournament management software - Rewritten from the original BellePoule",
   "main": "dist/main/main.js",
   "scripts": {
@@ -64,7 +64,8 @@
     ],
     "asarUnpack": [
       "dist/remote/**/*",
-      "**/node_modules/better-sqlite3/**/*"
+      "**/node_modules/better-sqlite3/**/*",
+      "**/node_modules/tesseract.js/**/*"
     ],
     "extraResources": [
       {
@@ -127,7 +128,8 @@
   },
   "dependencies": {
     "better-sqlite3": "^12.10.0",
-    "lucide-react": "^1.17.0"
+    "lucide-react": "^1.17.0",
+    "selfsigned": "^2.4.1"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.4",
@@ -167,6 +169,7 @@
     "jszip": "^3.10.1",
     "prettier": "^3.2.0",
     "qrcode": "^1.5.4",
+    "tesseract.js": "^5.1.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "socket.io": "^4.8.3",

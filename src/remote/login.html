@@ -143,8 +143,8 @@
 
         const arenaNum = arenaParam.replace(/^arena/, '');
         if (arenaNum) {
-          document.getElementById('subtitle').textContent = window.T('login.arena_prefix') + ' ' + arenaNum;
-          document.title = window.T('login.arena_prefix') + ' ' + arenaNum + ' – ' + window.T('login.title');
+          document.getElementById('subtitle').textContent = window.getArenaLabel() + ' ' + arenaNum;
+          document.title = window.getArenaLabel() + ' ' + arenaNum + ' – ' + window.T('login.title');
         } else {
           document.title = window.T('login.page_title');
         }

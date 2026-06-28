@@ -7,6 +7,17 @@
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
+      :root {
+        --pool-bg: #1a1a2e;
+        --pool-header-bg: rgba(0, 0, 0, 0.5);
+        --pool-accent: #6366f1;
+        --pool-accent2: #3b82f6;
+        --pool-text: #ffffff;
+        --pool-muted: #64748b;
+        --pool-card-bg: rgba(255, 255, 255, 0.04);
+        --pool-border: rgba(255, 255, 255, 0.08);
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -15,7 +26,7 @@
 
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: #1a1a2e;
+        background: var(--pool-bg);
         min-height: 100vh;
         color: #fff;
         display: flex;
@@ -24,13 +35,13 @@
 
       /* ── Header ── */
       .header {
-        background: rgba(0, 0, 0, 0.5);
+        background: var(--pool-header-bg);
         padding: 0.75rem 1.5rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
         backdrop-filter: blur(8px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid var(--pool-border);
         flex-shrink: 0;
       }
 
@@ -673,6 +684,7 @@
         <div class="header-badge" id="match-count-badge" style="display:none"></div>
       </div>
       <button class="back-to-referee-btn" onclick="goBackToReferee()">← Arbitre</button>
+      <a href="/poule-ocr" class="back-to-referee-btn" style="text-decoration:none;margin-left:6px" title="Saisie par photo (OCR)">📷</a>
       <div class="connection-badge" id="connection-badge">⚡ Connexion…</div>
     </div>
 
@@ -734,6 +746,18 @@
     </div>
 
     <script>
+      function applyScreenTheme(variables) {
+        if (!variables) {
+          const old = document.getElementById('screen-theme-style');
+          if (old) old.remove();
+          return;
+        }
+        let styleEl = document.getElementById('screen-theme-style');
+        if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'screen-theme-style'; document.head.appendChild(styleEl); }
+        const vars = Object.entries(variables).map(([k, v]) => `  ${k}: ${v};`).join('\n');
+        styleEl.textContent = `:root {\n${vars}\n}`;
+      }
+
       window.initRemoteI18n().catch(() => {});
 
       // ── Extraction de l'arenaId depuis l'URL (/areneN/poule → "N") ──
@@ -780,6 +804,11 @@
         poolData = data;
         if (data.signatures) signaturesData = data.signatures;
         renderAll(data);
+      });
+
+      socket.on('server:command', cmd => {
+        if (cmd.type === 'pool:theme') { applyScreenTheme(cmd.variables); }
+        if (cmd.type === 'refresh') { location.reload(); }
       });
 
       // ── Chargement initial ──

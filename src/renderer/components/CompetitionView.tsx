@@ -7,8 +7,8 @@ import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } fr
 import { Competition, Fencer, FencerStatus, Match, MatchStatus, Weapon, QuestPhaseConfig, Referee, Gender } from '../../shared/types';
 import { Arena } from '../../shared/types/remote';
 import { logger, LogCategory } from '@shared/services/logger';
+import { NotificationService } from '../../shared/services/notificationService';
 import { RankingImportResult } from '../../shared/utils/fileParser';
-import type { TableauMatchForPDF } from '../../shared/utils/pdfExport';
 import FencerList from './FencerList';
 import { TableauMatch, FinalResult, propagateWinners, ConsolationBracket } from './tableau/tableauTypes';
 import PoolRankingView from './PoolRankingView';
@@ -39,6 +39,7 @@ import { RefereeManagerComponent } from './RefereeManager';
 import CompetitionHeader from './competition/CompetitionHeader';
 import CompetitionNav from './competition/CompetitionNav';
 import GlobalPoolColumnsMenu from './pool/GlobalPoolColumnsMenu';
+import WindowSizePresets from './pool/WindowSizePresets';
 
 const PoolView = React.lazy(() => import('./PoolView'));
 const TableauView = React.lazy(() => import('./TableauView'));
@@ -47,6 +48,9 @@ const KioskDisplay = React.lazy(() => import('./KioskDisplay'));
 const FencerComparison = React.lazy(() => import('./FencerComparison').then(m => ({ default: m.FencerComparison })));
 const MatchAuditLog = React.lazy(() => import('./MatchAuditLog').then(m => ({ default: m.MatchAuditLog })));
 const AnalyticsDashboard = React.lazy(() => import('./AnalyticsDashboard').then(m => ({ default: m.AnalyticsDashboard })));
+const SeasonRankingView = React.lazy(() => import('./SeasonRankingView').then(m => ({ default: m.SeasonRankingView })));
+const TeamManagerView = React.lazy(() => import('./TeamManagerView').then(m => ({ default: m.TeamManagerView })));
+const FFEConnectModal = React.lazy(() => import('./FFEConnectModal'));
 const PresentationMode = React.lazy(() => import('./PresentationMode').then(m => ({ default: m.PresentationMode })));
 const QuestPhaseView = React.lazy(() => import('./QuestPhaseView'));
 
@@ -130,6 +134,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
   const [tableauEditUnlocked, setTableauEditUnlocked] = useState(false);
   const [showFencerComparison, setShowFencerComparison] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showSeasonRanking, setShowSeasonRanking] = useState(false);
+  const [showTeamManager, setShowTeamManager] = useState(false);
+  const [showFFEConnect, setShowFFEConnect] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
   const [showKiosk, setShowKiosk] = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
@@ -463,6 +470,15 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     return () => unlisten?.();
   }, [isRemoteActive, competition.id]);
 
+  const fireWebhookNotif = useCallback((title: string, body: string) => {
+    try {
+      const webhookUrl = localStorage.getItem('bellepoule-webhook-url');
+      if (!webhookUrl) return;
+      const svc = new NotificationService({ browser: false, webhook: { url: webhookUrl }, events: { matchCompleted: true, matchStarting: false, competitionStarted: false, competitionEnded: false, fencerLate: false } });
+      svc.notify({ title, body }).catch(() => {});
+    } catch { /* non bloquant */ }
+  }, []);
+
   // Écouter les mises à jour des matches distants
   // Note: pas de garde sur currentPhase car la phase 'remote' affiche le panel de saisie distante
   // mais les mises à jour doivent quand même être appliquées aux pools
@@ -482,6 +498,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
         `[CompetitionView] match:finished REÇU matchId=${matchId} score=${scoreA}-${scoreB} tableau=${!!isTableau}`
       );
       applyRemoteScore(matchId, scoreA, scoreB, true, winnerOverride);
+      fireWebhookNotif(
+        `✅ Match terminé — ${competition.title}`,
+        `Score : ${scoreA} – ${scoreB}${isTableau ? ' (tableau)' : ''}`
+      );
     };
 
     const offMatchFinished = window.electronAPI.onRemoteMatchFinished(handleMatchFinished);
@@ -496,7 +516,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
       offMatchFinished?.();
       offExcluded?.();
     };
-  }, [applyRemoteScore, updateFencer]);
+  }, [applyRemoteScore, updateFencer, fireWebhookNotif, competition.title]);
 
   // Sync scores/statuts des matches de poule vers la DB quand ils changent
   const prevPoolsRef = useRef(pools);
@@ -1143,6 +1163,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
         checkedInCount={getCheckedInFencers().length}
         setShowFencerComparison={setShowFencerComparison}
         setShowAnalytics={setShowAnalytics}
+        setShowSeasonRanking={setShowSeasonRanking}
+        setShowTeamManager={setShowTeamManager}
         setShowQRCode={setShowQRCode}
         setShowPresentation={setShowPresentation}
         setShowKiosk={setShowKiosk}
@@ -1183,6 +1205,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             onCheckInAll={checkInAll}
             onUncheckAll={uncheckAll}
             onImport={(type) => handleOpenImportDialog(type)}
+            onImportFFEConnect={() => setShowFFEConnect(true)}
             onFencersImported={loadFencers}
             onAppelStateChange={handleAppelStateChange}
             onSetFencerStatus={(id, status) => {
@@ -1258,6 +1281,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
                   }}
                 >
                   <GlobalPoolColumnsMenu isLaserSabre={isLaserSabre} />
+                  <WindowSizePresets />
                   {pools.length > 1 && (
                     <button className="btn btn-success" onClick={handleExportAllPoolsPDF}>
                       📄 Exporter toutes les poules en PDF
@@ -1284,6 +1308,15 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
                         competitionId={competition.id}
                         onScoreUpdate={(matchIndex, scoreA, scoreB, winner, specialStatus) => {
                           updateScore(poolIndex, matchIndex, scoreA, scoreB, winner, specialStatus);
+                          if (winner) {
+                            const m = pool.matches[matchIndex];
+                            const nameA = m?.fencerA ? `${m.fencerA.lastName}` : 'A';
+                            const nameB = m?.fencerB ? `${m.fencerB.lastName}` : 'B';
+                            fireWebhookNotif(
+                              `✅ Match terminé — ${competition.title}`,
+                              `${nameA} ${scoreA} – ${scoreB} ${nameB} (Poule ${pool.number})`
+                            );
+                          }
                           if (isRemoteActive && competition?.id) {
                             const match = pool.matches[matchIndex];
                             if (match) {
@@ -1338,6 +1371,13 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
                             fencerA ?? undefined,
                             fencerB ?? undefined
                           ).catch(() => {});
+                        }}
+                        onRefereeAssigned={(poolId, referee) => {
+                          setPools(prev => prev.map(p =>
+                            p.id === poolId
+                              ? { ...p, referees: referee ? [referee] : [] }
+                              : p
+                          ));
                         }}
                       />
                     </div>
@@ -1512,7 +1552,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             finalResults={finalResults}
             fencers={fencers}
             pools={[...poolHistory.flat(), ...pools]}
-            tableauMatches={tableauMatches as TableauMatchForPDF[]}
+            tableauMatches={tableauMatches}
             consolationBrackets={consolationBrackets}
             isLaserSabre={isLaserSabre}
             appelFencers={appelFencers.length > 0 ? appelFencers : undefined}
@@ -1572,6 +1612,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
         <AddFencerModal
           onClose={() => setShowAddFencerModal(false)}
           onAdd={fencer => addFencer(fencer as any)}
+          competitionGender={competition.gender}
         />
       )}
 
@@ -1645,6 +1686,35 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
       )}
 
       {showQRCode && <QRCodeShare competition={competition} onClose={() => setShowQRCode(false)} />}
+
+      {showSeasonRanking && (
+        <Suspense fallback={null}>
+          <SeasonRankingView
+            onClose={() => setShowSeasonRanking(false)}
+            availableCompetitions={[competition]}
+            availablePoolsByComp={{ [competition.id]: pools }}
+          />
+        </Suspense>
+      )}
+
+      {showTeamManager && (
+        <Suspense fallback={null}>
+          <TeamManagerView
+            competition={competition}
+            fencers={fencers}
+            onClose={() => setShowTeamManager(false)}
+          />
+        </Suspense>
+      )}
+
+      {showFFEConnect && (
+        <Suspense fallback={null}>
+          <FFEConnectModal
+            onImport={async (imported) => { await handleImportFencers(imported); setShowFFEConnect(false); }}
+            onClose={() => setShowFFEConnect(false)}
+          />
+        </Suspense>
+      )}
 
       {/* Mode Présentation */}
       {showPresentation && (

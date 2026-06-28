@@ -240,85 +240,57 @@ const FencerComparison_: React.FC<FencerComparisonProps> = ({
               <div className="comparison__global-stats">
                 <h4>📊 Statistiques globales</h4>
                 <div className="comparison__stats-grid">
-                  <div className="comparison__stats-column">
-                    <h5>{comparison.fencer1.lastName}</h5>
-                    <div className="comparison__stat-row">
-                      <span className="comparison__stat-label">Matchs joués:</span>
-                      <span className="comparison__stat-value">
-                        {comparison.fencer1GlobalStats.matchesPlayed}
-                      </span>
-                    </div>
-                    <div className="comparison__stat-row">
-                      <span className="comparison__stat-label">Victoires:</span>
-                      <span className="comparison__stat-value">
-                        {comparison.fencer1GlobalStats.victories}
-                      </span>
-                    </div>
-                    <div className="comparison__stat-row">
-                      <span className="comparison__stat-label">Taux de victoire:</span>
-                      <span className="comparison__stat-value">
-                        {(comparison.fencer1GlobalStats.victoryRatio * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="comparison__stat-row">
-                      <span className="comparison__stat-label">Touches données:</span>
-                      <span className="comparison__stat-value">
-                        {comparison.fencer1GlobalStats.touchesScored}
-                      </span>
-                    </div>
-                    <div className="comparison__stat-row">
-                      <span className="comparison__stat-label">Touches reçues:</span>
-                      <span className="comparison__stat-value">
-                        {comparison.fencer1GlobalStats.touchesReceived}
-                      </span>
-                    </div>
-                    <div className="comparison__stat-row">
-                      <span className="comparison__stat-label">Index:</span>
-                      <span className="comparison__stat-value">
-                        {comparison.fencer1GlobalStats.index}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="comparison__stats-column">
-                    <h5>{comparison.fencer2.lastName}</h5>
-                    <div className="comparison__stat-row">
-                      <span className="comparison__stat-label">Matchs joués:</span>
-                      <span className="comparison__stat-value">
-                        {comparison.fencer2GlobalStats.matchesPlayed}
-                      </span>
-                    </div>
-                    <div className="comparison__stat-row">
-                      <span className="comparison__stat-label">Victoires:</span>
-                      <span className="comparison__stat-value">
-                        {comparison.fencer2GlobalStats.victories}
-                      </span>
-                    </div>
-                    <div className="comparison__stat-row">
-                      <span className="comparison__stat-label">Taux de victoire:</span>
-                      <span className="comparison__stat-value">
-                        {(comparison.fencer2GlobalStats.victoryRatio * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="comparison__stat-row">
-                      <span className="comparison__stat-label">Touches données:</span>
-                      <span className="comparison__stat-value">
-                        {comparison.fencer2GlobalStats.touchesScored}
-                      </span>
-                    </div>
-                    <div className="comparison__stat-row">
-                      <span className="comparison__stat-label">Touches reçues:</span>
-                      <span className="comparison__stat-value">
-                        {comparison.fencer2GlobalStats.touchesReceived}
-                      </span>
-                    </div>
-                    <div className="comparison__stat-row">
-                      <span className="comparison__stat-label">Index:</span>
-                      <span className="comparison__stat-value">
-                        {comparison.fencer2GlobalStats.index}
-                      </span>
-                    </div>
-                  </div>
+                  {(['fencer1GlobalStats', 'fencer2GlobalStats'] as const).map((key, idx) => {
+                    const stats = comparison[key];
+                    const otherStats = comparison[idx === 0 ? 'fencer2GlobalStats' : 'fencer1GlobalStats'];
+                    const fencer = idx === 0 ? comparison.fencer1 : comparison.fencer2;
+                    const cmp = (a: number, b: number, lowerIsBetter = false) => {
+                      if (a === b) return 'comparison__stat-value--equal';
+                      const better = lowerIsBetter ? a < b : a > b;
+                      return better ? 'comparison__stat-value--better' : 'comparison__stat-value--worse';
+                    };
+                    return (
+                      <div key={key} className="comparison__stats-column">
+                        <h5>{fencer.lastName}</h5>
+                        <div className="comparison__stat-row">
+                          <span className="comparison__stat-label">Matchs joués:</span>
+                          <span className={`comparison__stat-value ${cmp(stats.matchesPlayed, otherStats.matchesPlayed)}`}>
+                            {stats.matchesPlayed}
+                          </span>
+                        </div>
+                        <div className="comparison__stat-row">
+                          <span className="comparison__stat-label">Victoires:</span>
+                          <span className={`comparison__stat-value ${cmp(stats.victories, otherStats.victories)}`}>
+                            {stats.victories}
+                          </span>
+                        </div>
+                        <div className="comparison__stat-row">
+                          <span className="comparison__stat-label">Taux de victoire:</span>
+                          <span className={`comparison__stat-value ${cmp(stats.victoryRatio, otherStats.victoryRatio)}`}>
+                            {(stats.victoryRatio * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="comparison__stat-row">
+                          <span className="comparison__stat-label">Touches données:</span>
+                          <span className={`comparison__stat-value ${cmp(stats.touchesScored, otherStats.touchesScored)}`}>
+                            {stats.touchesScored}
+                          </span>
+                        </div>
+                        <div className="comparison__stat-row">
+                          <span className="comparison__stat-label">Touches reçues:</span>
+                          <span className={`comparison__stat-value ${cmp(stats.touchesReceived, otherStats.touchesReceived, true)}`}>
+                            {stats.touchesReceived}
+                          </span>
+                        </div>
+                        <div className="comparison__stat-row">
+                          <span className="comparison__stat-label">Index:</span>
+                          <span className={`comparison__stat-value ${cmp(stats.index, otherStats.index)}`}>
+                            {stats.index}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 

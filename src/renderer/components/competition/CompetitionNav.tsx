@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { ChevronLeft, ChevronRight, Swords, Target, Zap, Trophy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Swords, Target, Zap, Trophy, ScrollText } from 'lucide-react';
 import { Competition, MatchStatus, QuestPhaseConfig, Fencer } from '../../../shared/types';
 import { Phase } from '../../hooks/useCompetitionSession';
 import CoachMark from '../CoachMark';
@@ -139,6 +139,14 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
             {poolsNextAction.label}
           </button>
         )}
+        <button
+          className={`btn btn-secondary btn-icon-label${currentPhase === 'logs' ? ' btn-active' : ''}`}
+          onClick={() => setCurrentPhase(currentPhase === 'logs' ? 'checkin' : 'logs')}
+          title="Journal des événements de match"
+          style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
+        >
+          <ScrollText size={14} /> Journal
+        </button>
 
       </div>
     </div>

@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Saisie par photo — BellePoule</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #1a1a2e;
+      --navy2: #16213e;
+      --gold: #c9a227;
+      --green: #22c55e;
+      --red: #ef4444;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #334155;
+      --btn-h: 48px;
+    }
+
+    body {
+      background: var(--navy);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      background: var(--navy2);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar h1 { font-size: 1rem; font-weight: 700; flex: 1; }
+    .topbar .back { color: var(--gold); text-decoration: none; font-size: 0.85rem; }
+
+    /* ── Stages ── */
+    .stage { display: none; flex: 1; flex-direction: column; padding: 16px; gap: 14px; overflow-y: auto; }
+    .stage.active { display: flex; }
+
+    /* ── Scan stage ── */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: var(--gold); }
+    .upload-zone .icon { font-size: 3rem; margin-bottom: 12px; }
+    .upload-zone p { color: var(--muted); font-size: 0.9rem; margin-top: 8px; }
+    #photo-input { display: none; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: var(--btn-h); padding: 0 20px; border-radius: 8px;
+      font-size: 0.95rem; font-weight: 600; cursor: pointer; border: none;
+      transition: opacity .2s;
+    }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-primary   { background: var(--gold); color: var(--navy); }
+    .btn-secondary { background: var(--border); color: var(--text); }
+    .btn-success   { background: var(--green); color: #fff; }
+    .btn-block { width: 100%; }
+
+    /* ── Corners stage ── */
+    .canvas-wrap {
+      position: relative;
+      align-self: center;
+      touch-action: none;
+      cursor: crosshair;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: visible;
+    }
+    #preview-canvas { display: block; max-width: 100%; }
+
+    .handle {
+      position: absolute;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: 2px solid #fff;
+      cursor: grab;
+      transform: translate(-50%, -50%);
+      touch-action: none;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,.5);
+    }
+    .handle:active { cursor: grabbing; }
+    .handle-label {
+      position: absolute;
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--navy);
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .hint-box {
+      background: rgba(201,162,39,.12);
+      border: 1px solid rgba(201,162,39,.35);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: var(--gold);
+      line-height: 1.5;
+    }
+
+    /* ── Processing ── */
+    .processing-center {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 20px;
+    }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Validate stage ── */
+    .pool-info { font-size: 0.85rem; color: var(--muted); }
+    .score-table-wrap { overflow-x: auto; }
+    .score-table {
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      min-width: 100%;
+    }
+    .score-table th, .score-table td {
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .score-table th {
+      background: var(--navy2);
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .score-table .cell-diag { background: var(--navy2); }
+    .score-table .cell-name {
+      text-align: left; max-width: 100px;
+      overflow: hidden; text-overflow: ellipsis;
+      background: rgba(201,162,39,.06);
+    }
+    .score-input {
+      width: 56px; background: rgba(255,255,255,.07);
+      border: 1px solid var(--border); border-radius: 4px;
+      color: var(--text); font-size: 0.8rem; text-align: center;
+      padding: 3px 4px;
+    }
+    .score-input.hi-conf  { border-color: var(--green); }
+    .score-input.low-conf { border-color: var(--gold); }
+    .conf-badge {
+      display: inline-block; font-size: 0.6rem;
+      border-radius: 3px; padding: 1px 3px; margin-left: 2px;
+      vertical-align: middle;
+    }
+    .conf-hi  { background: rgba(34,197,94,.15); color: var(--green); }
+    .conf-low { background: rgba(201,162,39,.2); color: var(--gold); }
+
+    /* ── Done ── */
+    .done-center {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+    }
+    .done-icon { font-size: 4rem; }
+    .done-center h2 { font-size: 1.4rem; }
+    .done-center p { color: var(--muted); }
+
+    /* ── Error toast ── */
+    #toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: var(--red); color: #fff; border-radius: 8px;
+      padding: 10px 20px; font-size: 0.85rem; font-weight: 600;
+      display: none; z-index: 9999; max-width: 90vw; text-align: center;
+    }
+
+    .row-actions { display: flex; gap: 8px; }
+    .label-sm { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="javascript:history.back()">← Retour</a>
+  <h1>📸 Saisie par photo</h1>
+</div>
+
+<!-- ════ STAGE : SCAN ════ -->
+<div id="stage-scan" class="stage active">
+  <label class="upload-zone" for="photo-input" id="upload-zone">
+    <div class="icon">📷</div>
+    <strong>Photographier la feuille de poule</strong>
+    <p>Appuyez pour prendre une photo ou choisir une image</p>
+  </label>
+  <input type="file" id="photo-input" accept="image/*" capture="environment" />
+  <p class="hint-box">
+    La feuille doit avoir été générée par BellePoule (QR code en bas à droite).
+    Posez-la à plat et photographiez-la de face.
+  </p>
+</div>
+
+<!-- ════ STAGE : CORNERS ════ -->
+<div id="stage-corners" class="stage">
+  <div class="hint-box">
+    Déplacez les 4 poignées dorées vers les <strong>4 coins de la grille des scores</strong>
+    (zone des cellules V/D, hors colonnes Nom, #, Stats et Signature).
+  </div>
+  <div class="canvas-wrap" id="canvas-wrap">
+    <canvas id="preview-canvas"></canvas>
+    <div class="handle" id="h0"><span class="handle-label">TL</span></div>
+    <div class="handle" id="h1"><span class="handle-label">TR</span></div>
+    <div class="handle" id="h2"><span class="handle-label">BR</span></div>
+    <div class="handle" id="h3"><span class="handle-label">BL</span></div>
+  </div>
+  <p class="pool-info" id="qr-status">Recherche du QR code…</p>
+  <div class="row-actions">
+    <button class="btn btn-secondary" id="btn-back-scan">← Reprendre</button>
+    <button class="btn btn-primary" id="btn-analyze" style="flex:1" disabled>Analyser →</button>
+  </div>
+</div>
+
+<!-- ════ STAGE : PROCESSING ════ -->
+<div id="stage-processing" class="stage">
+  <div class="processing-center">
+    <div class="spinner"></div>
+    <p id="proc-msg">Correction de perspective…</p>
+  </div>
+</div>
+
+<!-- ════ STAGE : VALIDATE ════ -->
+<div id="stage-validate" class="stage">
+  <div>
+    <p class="label-sm">Poule détectée</p>
+    <p id="val-pool-name" style="font-weight:700;font-size:1rem"></p>
+    <p class="pool-info" id="val-fencer-count"></p>
+  </div>
+  <p class="hint-box">
+    Cases en <span style="color:var(--gold)">jaune</span> = faible confiance OCR — vérifiez.
+    Cases vides = score non reconnu — saisissez manuellement.
+  </p>
+  <div class="score-table-wrap">
+    <table class="score-table" id="val-table"></table>
+  </div>
+  <div class="row-actions">
+    <button class="btn btn-secondary" id="btn-back-corners">← Recadrer</button>
+    <button class="btn btn-success btn-block" id="btn-import">Importer les scores →</button>
+  </div>
+</div>
+
+<!-- ════ STAGE : DONE ════ -->
+<div id="stage-done" class="stage">
+  <div class="done-center">
+    <div class="done-icon">✅</div>
+    <h2>Import terminé</h2>
+    <p id="done-msg"></p>
+    <a href="javascript:history.back()" class="btn btn-secondary">Retour</a>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ── State ───────────────────────────────────────────────────────────────────
+const S = {
+  stage: 'scan',
+  imgEl: null,       // HTMLImageElement
+  imgNat: { w: 0, h: 0 },
+  scale: 1,          // canvas/image ratio
+  handles: [         // [x,y] in canvas coords
+    { x: 0, y: 0 }, { x: 0, y: 0 },
+    { x: 0, y: 0 }, { x: 0, y: 0 }
+  ],
+  qrData: null,      // { v, pid, cid }
+  poolData: null,    // { poolId, poolName, fencers, matches }
+  cellResults: [],   // [{ row, col, text, confidence }]
+};
+
+// ── DOM refs ────────────────────────────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const canvas = $('preview-canvas');
+const ctx    = canvas.getContext('2d');
+const wrap   = $('canvas-wrap');
+const HANDLES = [0,1,2,3].map(i => $(`h${i}`));
+
+// ── Stages ──────────────────────────────────────────────────────────────────
+function showStage(name) {
+  S.stage = name;
+  document.querySelectorAll('.stage').forEach(el => {
+    el.classList.toggle('active', el.id === `stage-${name}`);
+  });
+}
+
+// ── Toast ────────────────────────────────────────────────────────────────────
+function toast(msg, ms = 4000) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.display = 'none'; }, ms);
+}
+
+// ── File input → load image ──────────────────────────────────────────────────
+$('photo-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    S.imgEl = img;
+    S.imgNat.w = img.naturalWidth;
+    S.imgNat.h = img.naturalHeight;
+    initCornersStage();
+    showStage('corners');
+  };
+  img.onerror = () => toast('Impossible de charger l\'image');
+  img.src = url;
+});
+
+$('upload-zone').addEventListener('dragover', e => {
+  e.preventDefault();
+  $('upload-zone').classList.add('drag-over');
+});
+$('upload-zone').addEventListener('dragleave', () => {
+  $('upload-zone').classList.remove('drag-over');
+});
+$('upload-zone').addEventListener('drop', e => {
+  e.preventDefault();
+  $('upload-zone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      S.imgEl = img;
+      S.imgNat.w = img.naturalWidth;
+      S.imgNat.h = img.naturalHeight;
+      initCornersStage();
+      showStage('corners');
+    };
+    img.src = url;
+  }
+});
+
+// ── Corners stage init ───────────────────────────────────────────────────────
+function initCornersStage() {
+  const maxW = Math.min(window.innerWidth - 32, 700);
+  const maxH = window.innerHeight * 0.55;
+  S.scale = Math.min(maxW / S.imgNat.w, maxH / S.imgNat.h);
+  canvas.width  = Math.round(S.imgNat.w * S.scale);
+  canvas.height = Math.round(S.imgNat.h * S.scale);
+
+  ctx.drawImage(S.imgEl, 0, 0, canvas.width, canvas.height);
+
+  // Initial handle positions: 20%/80% margins
+  const mx = canvas.width  * 0.20;
+  const my = canvas.height * 0.20;
+  S.handles[0] = { x: mx,                  y: my };
+  S.handles[1] = { x: canvas.width - mx,   y: my };
+  S.handles[2] = { x: canvas.width - mx,   y: canvas.height - my };
+  S.handles[3] = { x: mx,                  y: canvas.height - my };
+
+  positionHandles();
+  drawOverlay();
+  detectQR();
+}
+
+function positionHandles() {
+  const rect = wrap.getBoundingClientRect();
+  const canRect = canvas.getBoundingClientRect();
+  const offX = canRect.left - rect.left;
+  const offY = canRect.top  - rect.top;
+  S.handles.forEach((h, i) => {
+    HANDLES[i].style.left = (offX + h.x) + 'px';
+    HANDLES[i].style.top  = (offY + h.y) + 'px';
+  });
+}
+
+function drawOverlay() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(S.imgEl, 0, 0, canvas.width, canvas.height);
+
+  // Dim outside quad
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Clear quad interior
+  const [tl, tr, br, bl] = S.handles;
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath();
+  ctx.moveTo(tl.x, tl.y);
+  ctx.lineTo(tr.x, tr.y);
+  ctx.lineTo(br.x, br.y);
+  ctx.lineTo(bl.x, bl.y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Draw quad outline
+  ctx.strokeStyle = '#c9a227';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(tl.x, tl.y);
+  ctx.lineTo(tr.x, tr.y);
+  ctx.lineTo(br.x, br.y);
+  ctx.lineTo(bl.x, bl.y);
+  ctx.closePath();
+  ctx.stroke();
+}
+
+// ── QR detection (BarcodeDetector or canvas scan) ────────────────────────────
+async function detectQR() {
+  $('qr-status').textContent = 'Recherche du QR code…';
+  $('btn-analyze').disabled = true;
+
+  try {
+    if ('BarcodeDetector' in window) {
+      const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+      const codes = await detector.detect(S.imgEl);
+      for (const code of codes) {
+        if (tryParseQR(code.rawValue)) return;
+      }
+    }
+  } catch { /* BarcodeDetector not available or failed */ }
+
+  // BarcodeDetector unavailable or no QR found
+  $('qr-status').textContent = '⚠️ QR non détecté — sélectionnez la poule manuellement';
+  showPoolSelector();
+}
+
+function tryParseQR(raw) {
+  try {
+    const d = JSON.parse(raw);
+    if (d.v === 1 && d.pid) {
+      S.qrData = d;
+      $('qr-status').textContent = `✅ QR détecté (poule ${d.pid.slice(0,8)}…)`;
+      $('btn-analyze').disabled = false;
+      return true;
+    }
+  } catch { /* ignore */ }
+  return false;
+}
+
+// Fallback: manual pool selector
+function showPoolSelector() {
+  fetch('/api/pools', { credentials: 'include' })
+    .then(r => r.ok ? r.json() : [])
+    .then(pools => {
+      if (!pools.length) {
+        $('btn-analyze').disabled = false;
+        return;
+      }
+      const sel = document.createElement('select');
+      sel.style.cssText = 'background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:8px;font-size:.9rem;width:100%;margin-top:8px';
+      sel.innerHTML = '<option value="">— Choisir la poule —</option>';
+      pools.forEach(p => {
+        const label = p.name || `Poule ${p.number || '?'}`;
+        sel.innerHTML += `<option value="${p.id}">${label}</option>`;
+      });
+      sel.addEventListener('change', () => {
+        if (sel.value) {
+          S.qrData = { v: 1, pid: sel.value, cid: '' };
+          $('qr-status').textContent = '✅ Poule sélectionnée manuellement';
+          $('btn-analyze').disabled = false;
+        }
+      });
+      $('qr-status').after(sel);
+    })
+    .catch(() => {
+      $('btn-analyze').disabled = false;
+    });
+}
+
+// ── Handle drag ──────────────────────────────────────────────────────────────
+let dragging = null;
+
+function onHandleDown(e, idx) {
+  e.preventDefault();
+  dragging = idx;
+}
+
+HANDLES.forEach((h, i) => {
+  h.addEventListener('mousedown',  e => onHandleDown(e, i));
+  h.addEventListener('touchstart', e => onHandleDown(e, i), { passive: false });
+});
+
+function getEventPos(e) {
+  const t = e.touches ? e.touches[0] : e;
+  const r = canvas.getBoundingClientRect();
+  return {
+    x: Math.max(0, Math.min(canvas.width,  t.clientX - r.left)),
+    y: Math.max(0, Math.min(canvas.height, t.clientY - r.top))
+  };
+}
+
+window.addEventListener('mousemove', e => {
+  if (dragging === null) return;
+  const p = getEventPos(e);
+  S.handles[dragging] = p;
+  positionHandles();
+  drawOverlay();
+});
+window.addEventListener('touchmove', e => {
+  if (dragging === null) return;
+  e.preventDefault();
+  const p = getEventPos(e);
+  S.handles[dragging] = p;
+  positionHandles();
+  drawOverlay();
+}, { passive: false });
+window.addEventListener('mouseup',  () => { dragging = null; });
+window.addEventListener('touchend', () => { dragging = null; });
+
+// ── Back buttons ─────────────────────────────────────────────────────────────
+$('btn-back-scan').addEventListener('click', () => {
+  $('photo-input').value = '';
+  showStage('scan');
+});
+$('btn-back-corners').addEventListener('click', () => showStage('corners'));
+
+// ── Analyze ──────────────────────────────────────────────────────────────────
+$('btn-analyze').addEventListener('click', async () => {
+  showStage('processing');
+  setProcMsg('Récupération des données de la poule…');
+
+  try {
+    // 1. Fetch pool data
+    const pid = S.qrData?.pid;
+    if (!pid) throw new Error('ID de poule manquant');
+
+    const resp = await fetch(`/api/pools/${encodeURIComponent(pid)}/data`, { credentials: 'include' });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    S.poolData = await resp.json();
+
+    const n = S.poolData.fencers.length;
+    if (n < 2) throw new Error('Données de poule invalides');
+
+    // 2. Warp score grid to canonical N*60 × N*60 canvas
+    setProcMsg('Correction de perspective…');
+    const CELL_PX = 64;
+    const warpedCanvas = warpQuadToCanvas(S.imgEl, S.handles, n * CELL_PX, n * CELL_PX);
+
+    // 3. Extract N×N cell images
+    setProcMsg('Extraction des cellules…');
+    const cells = extractCells(warpedCanvas, n, CELL_PX);
+
+    // 4. Send to server OCR
+    setProcMsg('Reconnaissance OCR (Tesseract)…');
+    const ocrResp = await fetch('/api/ocr/pool-sheet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ cells, n }),
+    });
+    if (!ocrResp.ok) {
+      const err = await ocrResp.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${ocrResp.status}`);
+    }
+    const ocrData = await ocrResp.json();
+    S.cellResults = ocrData.cells || [];
+
+    buildValidationUI();
+    showStage('validate');
+  } catch (err) {
+    toast('Erreur : ' + err.message);
+    showStage('corners');
+  }
+});
+
+function setProcMsg(msg) {
+  $('proc-msg').textContent = msg;
+}
+
+// ── Perspective warp (bilinear) ──────────────────────────────────────────────
+function warpQuadToCanvas(imgEl, handles, outW, outH) {
+  const [tl, tr, br, bl] = handles;
+
+  // Limit source resolution to 1500px to keep processing fast
+  const MAX_SRC = 1500;
+  const srcScale = Math.min(1, MAX_SRC / Math.max(imgEl.naturalWidth, imgEl.naturalHeight));
+  const srcW = Math.round(imgEl.naturalWidth  * srcScale);
+  const srcH = Math.round(imgEl.naturalHeight * srcScale);
+
+  const srcC = document.createElement('canvas');
+  srcC.width  = srcW;
+  srcC.height = srcH;
+  const srcCtx = srcC.getContext('2d');
+  srcCtx.drawImage(imgEl, 0, 0, srcW, srcH);
+  const srcData = srcCtx.getImageData(0, 0, srcW, srcH);
+
+  // Scale handles from display canvas to source image coords
+  const scale = srcW / canvas.width;
+  const stl = { x: tl.x * scale, y: tl.y * scale };
+  const str = { x: tr.x * scale, y: tr.y * scale };
+  const sbr = { x: br.x * scale, y: br.y * scale };
+  const sbl = { x: bl.x * scale, y: bl.y * scale };
+
+  const outC = document.createElement('canvas');
+  outC.width = outW; outC.height = outH;
+  const outCtx = outC.getContext('2d');
+  const outData = outCtx.createImageData(outW, outH);
+  const d = outData.data;
+  const sd = srcData.data;
+
+  for (let oy = 0; oy < outH; oy++) {
+    const ty = oy / outH;
+    for (let ox = 0; ox < outW; ox++) {
+      const tx = ox / outW;
+      // Bilinear inverse mapping
+      const topX = stl.x + tx * (str.x - stl.x);
+      const topY = stl.y + tx * (str.y - stl.y);
+      const botX = sbl.x + tx * (sbr.x - sbl.x);
+      const botY = sbl.y + tx * (sbr.y - sbl.y);
+      const sx = topX + ty * (botX - topX);
+      const sy = topY + ty * (botY - topY);
+
+      const six = Math.round(sx), siy = Math.round(sy);
+      if (six >= 0 && six < srcW && siy >= 0 && siy < srcH) {
+        const si = (siy * srcW + six) * 4;
+        const di = (oy  * outW + ox) * 4;
+        d[di]   = sd[si];
+        d[di+1] = sd[si+1];
+        d[di+2] = sd[si+2];
+        d[di+3] = 255;
+      }
+    }
+  }
+  outCtx.putImageData(outData, 0, 0);
+  return outC;
+}
+
+// ── Cell extraction ───────────────────────────────────────────────────────────
+function extractCells(warpedCanvas, n, cellPx) {
+  const cells = [];
+  const tmp = document.createElement('canvas');
+  tmp.width = cellPx; tmp.height = cellPx;
+  const tc = tmp.getContext('2d');
+  for (let row = 0; row < n; row++) {
+    for (let col = 0; col < n; col++) {
+      if (row === col) continue;
+      tc.clearRect(0, 0, cellPx, cellPx);
+      tc.drawImage(warpedCanvas, col * cellPx, row * cellPx, cellPx, cellPx, 0, 0, cellPx, cellPx);
+      cells.push({ row, col, data: tmp.toDataURL('image/png') });
+    }
+  }
+  return cells;
+}
+
+// ── Validation UI ─────────────────────────────────────────────────────────────
+function buildValidationUI() {
+  const { poolName, fencers, matches } = S.poolData;
+  const n = fencers.length;
+
+  $('val-pool-name').textContent = poolName;
+  $('val-fencer-count').textContent = `${n} tireurs · ${matches.length} matchs`;
+
+  // Build lookup: (fencerAId, fencerBId) → matchId
+  const matchLookup = {};
+  matches.forEach(m => {
+    const fa = m.fencerA?.id || m.fencerAId;
+    const fb = m.fencerB?.id || m.fencerBId;
+    if (fa && fb) {
+      matchLookup[`${fa}__${fb}`] = m.id;
+      matchLookup[`${fb}__${fa}`] = m.id;
+    }
+  });
+
+  // OCR results by (row,col)
+  const ocrMap = {};
+  S.cellResults.forEach(c => { ocrMap[`${c.row},${c.col}`] = c; });
+
+  // Build table
+  const tbl = $('val-table');
+  tbl.innerHTML = '';
+
+  // Header row
+  let hdr = '<tr><th>#</th><th>Tireur</th>';
+  for (let j = 0; j < n; j++) hdr += `<th>${j + 1}</th>`;
+  hdr += '</tr>';
+  tbl.innerHTML = hdr;
+
+  // Data rows
+  for (let row = 0; row < n; row++) {
+    const f = fencers[row];
+    const fname = f ? `${(f.lastName || '').toUpperCase()} ${f.firstName || ''}`.trim() : `T${row+1}`;
+    let tr = `<tr><td>${row+1}</td><td class="cell-name" title="${fname}">${fname}</td>`;
+
+    for (let col = 0; col < n; col++) {
+      if (row === col) {
+        tr += '<td class="cell-diag"></td>';
+        continue;
+      }
+      const ocr = ocrMap[`${row},${col}`];
+      const conf = ocr ? ocr.confidence : 0;
+      const text = ocr ? ocr.text : '';
+      const hiConf = conf >= 70;
+      const cls = hiConf ? 'hi-conf' : 'low-conf';
+      const badge = conf > 0
+        ? `<span class="conf-badge ${cls}">${conf}%</span>`
+        : '';
+
+      // fencerA = fencers[row], fencerB = fencers[col]
+      const fa = fencers[row]?.id;
+      const fb = fencers[col]?.id;
+      const mid = fa && fb ? (matchLookup[`${fa}__${fb}`] || '') : '';
+
+      tr += `<td>
+        <input class="score-input ${cls}"
+          type="text"
+          value="${escHtml(text)}"
+          maxlength="4"
+          data-row="${row}"
+          data-col="${col}"
+          data-mid="${mid}"
+          placeholder="V5"
+          aria-label="Score ${row+1} vs ${col+1}"
+        />${badge}
+      </td>`;
+    }
+    tr += '</tr>';
+    tbl.innerHTML += tr;
+  }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Import scores ─────────────────────────────────────────────────────────────
+$('btn-import').addEventListener('click', async () => {
+  const inputs = $('val-table').querySelectorAll('input.score-input');
+  const { fencers, matches } = S.poolData;
+  const n = fencers.length;
+
+  // Parse all inputs into (matchId, scoreA, scoreB) pairs
+  // Grid cell (row, col): row = fencerA, col = fencerB
+  // We need BOTH cells for a match (row,col) and (col,row) to get scoreA and scoreB
+  const scoreMap = {}; // matchId → { scoreA?, scoreB? }
+
+  inputs.forEach(inp => {
+    const row = +inp.dataset.row;
+    const col = +inp.dataset.col;
+    const mid = inp.dataset.mid;
+    if (!mid) return;
+    const raw = inp.value.trim().toUpperCase();
+    if (!raw) return;
+    const parsed = parseScore(raw);
+    if (parsed === null) return;
+
+    if (!scoreMap[mid]) scoreMap[mid] = {};
+
+    const match = matches.find(m => m.id === mid);
+    if (!match) return;
+    const fa = match.fencerA?.id || match.fencerAId;
+    const myFencer = fencers[row]?.id;
+
+    if (myFencer === fa) {
+      scoreMap[mid].scoreA = parsed.value;
+      scoreMap[mid].isVictoryA = parsed.isVictory;
+    } else {
+      scoreMap[mid].scoreB = parsed.value;
+      scoreMap[mid].isVictoryB = parsed.isVictory;
+    }
+  });
+
+  // Build final list of matches to submit
+  const toSubmit = [];
+  for (const [mid, s] of Object.entries(scoreMap)) {
+    if (s.scoreA === undefined || s.scoreB === undefined) continue;
+    // Determine winner by isVictory flag; fallback: higher score wins
+    const victory = s.isVictoryA !== undefined ? s.isVictoryA : s.scoreA > s.scoreB;
+    toSubmit.push({ mid, scoreA: s.scoreA, scoreB: s.scoreB, victoryA: victory });
+  }
+
+  if (toSubmit.length === 0) {
+    toast('Aucun score valide à importer');
+    return;
+  }
+
+  $('btn-import').disabled = true;
+  $('btn-import').textContent = 'Import en cours…';
+
+  let ok = 0, fail = 0;
+  const pid = S.poolData.poolId;
+
+  for (const { mid, scoreA, scoreB, victoryA } of toSubmit) {
+    try {
+      const r = await fetch(`/api/pools/${encodeURIComponent(pid)}/matches/${encodeURIComponent(mid)}/score`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ scoreA, scoreB }),
+      });
+      if (r.ok) ok++; else fail++;
+    } catch { fail++; }
+  }
+
+  $('done-msg').textContent = `${ok} score${ok > 1 ? 's' : ''} importé${ok > 1 ? 's' : ''}${fail > 0 ? ` · ${fail} échec(s)` : ''}`;
+  showStage('done');
+});
+
+// ── Score parser ──────────────────────────────────────────────────────────────
+function parseScore(raw) {
+  // Accepts: "V5", "D3", "5", "V", "D", "V0", etc.
+  const s = raw.trim().toUpperCase().replace(/\s/g, '');
+  if (!s) return null;
+
+  const vMatch = s.match(/^V(\d{0,2})$/);
+  if (vMatch) return { value: parseInt(vMatch[1] || '0', 10), isVictory: true };
+
+  const dMatch = s.match(/^D?(\d{1,2})$/);
+  if (dMatch) return { value: parseInt(dMatch[1], 10), isVictory: false };
+
+  return null;
+}
+</script>
+</body>
+</html>

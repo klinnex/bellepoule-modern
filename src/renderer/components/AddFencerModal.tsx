@@ -13,9 +13,10 @@ import { useTranslation } from '../contexts/TranslationContext';
 interface AddFencerModalProps {
   onClose: () => void;
   onAdd: (fencer: Partial<Fencer>) => void;
+  competitionGender?: Gender;
 }
 
-const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({ onClose, onAdd }) => {
+const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({ onClose, onAdd, competitionGender }) => {
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const { showToast } = useToast();
   const { t } = useTranslation();
@@ -25,31 +26,54 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({ onClose, onAdd
   const [region, setRegion] = useState('');
   const [license, setLicense] = useState('');
   const [ranking, setRanking] = useState('');
-  const [gender, setGender] = useState<Gender>(Gender.MALE);
+  const lockedGender = competitionGender === Gender.MALE || competitionGender === Gender.FEMALE ? competitionGender : null;
+  const [gender, setGender] = useState<Gender>(lockedGender ?? Gender.MALE);
   const [nationality, setNationality] = useState('FRA');
   const [photo, setPhoto] = useState<string | undefined>();
 
+  const buildFencer = (): Partial<Fencer> => ({
+    lastName: lastName.trim().toUpperCase(),
+    firstName: firstName.trim(),
+    club: club.trim() || undefined,
+    region: region.trim() || undefined,
+    license: license.trim() || undefined,
+    ranking: ranking ? parseInt(ranking, 10) : undefined,
+    gender,
+    nationality,
+    status: FencerStatus.NOT_CHECKED_IN,
+    photo,
+  });
+
+  const resetForm = () => {
+    setLastName('');
+    setFirstName('');
+    setClub('');
+    setRegion('');
+    setLicense('');
+    setRanking('');
+    setGender(Gender.MALE);
+    setNationality('FRA');
+    setPhoto(undefined);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!lastName.trim() || !firstName.trim()) {
       showToast(t('messages.name_required'), 'warning');
       return;
     }
-
-    onAdd({
-      lastName: lastName.trim().toUpperCase(),
-      firstName: firstName.trim(),
-      club: club.trim() || undefined,
-      region: region.trim() || undefined,
-      license: license.trim() || undefined,
-      ranking: ranking ? parseInt(ranking, 10) : undefined,
-      gender,
-      nationality,
-      status: FencerStatus.NOT_CHECKED_IN,
-      photo,
-    });
+    onAdd(buildFencer());
     onClose();
+  };
+
+  const handleSaveAndAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!lastName.trim() || !firstName.trim()) {
+      showToast(t('messages.name_required'), 'warning');
+      return;
+    }
+    onAdd(buildFencer());
+    resetForm();
   };
 
   return (
@@ -108,14 +132,24 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({ onClose, onAdd
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div className="form-group">
                 <label className="form-label">{t('fencer.gender')}</label>
-                <select
-                  className="form-input form-select"
-                  value={gender}
-                  onChange={e => setGender(e.target.value as Gender)}
-                >
-                  <option value={Gender.MALE}>{t('genders.male')}</option>
-                  <option value={Gender.FEMALE}>{t('genders.female')}</option>
-                </select>
+                {lockedGender ? (
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={lockedGender === Gender.MALE ? t('genders.male') : t('genders.female')}
+                    readOnly
+                    style={{ background: 'var(--bg-secondary, #f5f5f5)', cursor: 'not-allowed' }}
+                  />
+                ) : (
+                  <select
+                    className="form-input form-select"
+                    value={gender}
+                    onChange={e => setGender(e.target.value as Gender)}
+                  >
+                    <option value={Gender.MALE}>{t('genders.male')}</option>
+                    <option value={Gender.FEMALE}>{t('genders.female')}</option>
+                  </select>
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label">{t('fencer.nationality')}</label>
@@ -181,8 +215,11 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({ onClose, onAdd
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               {t('actions.cancel')}
             </button>
+            <button type="button" className="btn btn-secondary" onClick={handleSaveAndAdd}>
+              {t('actions.save_and_add')}
+            </button>
             <button type="submit" className="btn btn-primary">
-              {t('fencer.add')}
+              {t('actions.save')}
             </button>
           </div>
         </form>

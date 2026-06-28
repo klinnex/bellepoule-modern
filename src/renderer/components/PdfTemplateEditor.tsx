@@ -1,9 +1,15 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { SM, SUBHEAD, HIDDEN } from './pdfTemplateEditor.styles';
-import type { PdfTemplate, PdfElementConfig } from '../../shared/types/pdfTemplate.types';
+import type { PdfTemplate, PdfElementConfig, PdfColorScheme } from '../../shared/types/pdfTemplate.types';
 
 const LOGO_KEY = 'bellepoule-logo';
+
+const COLOR_PRESETS: { label: string; colors: PdfColorScheme }[] = [
+  { label: 'Classique', colors: { navy: '#1a2e4a', gold: '#c9a227', green: '#166534' } },
+  { label: '⚡ Sabre Laser', colors: { navy: '#1e0a5c', gold: '#6d28d9', green: '#2563eb' } },
+  { label: '🇫🇷 FFE Officielle', colors: { navy: '#990000', gold: '#e30613', green: '#003189' } },
+];
 
 interface Props {
   template: PdfTemplate;
@@ -157,6 +163,22 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
       <div>
         <div style={SUBHEAD}>
           Couleurs
+        </div>
+        {/* Presets */}
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+          {COLOR_PRESETS.map(preset => (
+            <button
+              key={preset.label}
+              className="btn btn-secondary"
+              style={{ ...SM, display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+              onClick={() => onChange({ ...template, colors: { ...preset.colors }, updatedAt: new Date().toISOString() })}
+            >
+              {(['navy', 'gold', 'green'] as const).map(k => (
+                <span key={k} style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: preset.colors[k], border: '1px solid rgba(0,0,0,0.2)' }} />
+              ))}
+              {preset.label}
+            </button>
+          ))}
         </div>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           {(['navy', 'gold', 'green'] as const).map(key => (

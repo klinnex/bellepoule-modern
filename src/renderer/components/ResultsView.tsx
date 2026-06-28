@@ -12,7 +12,7 @@ import { exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import type { TableauMatchForPDF, FinalResultForPDF } from '../../shared/utils/pdfExport';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
-import type { ConsolationBracket } from './tableau/tableauTypes';
+import type { ConsolationBracket, TableauMatch } from './tableau/tableauTypes';
 import { logger, LogCategory } from '@shared/services/logger';
 
 interface FinalResult {
@@ -27,7 +27,7 @@ interface ResultsViewProps {
   finalResults: FinalResult[];
   fencers?: Fencer[];
   pools?: Pool[];
-  tableauMatches?: TableauMatchForPDF[];
+  tableauMatches?: TableauMatch[];
   consolationBrackets?: ConsolationBracket[];
   isLaserSabre?: boolean;
   /** Tireurs triés/filtrés tels qu'affichés dans l'appel */
@@ -188,7 +188,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         fencer: r.fencer,
         eliminatedAt: r.eliminatedAt,
       })),
-      pools
+      pools,
+      tableauMatches
     );
 
     const blob = new Blob([xmlContent], { type: 'application/xml' });

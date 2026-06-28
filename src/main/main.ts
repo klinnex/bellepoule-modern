@@ -10,6 +10,7 @@ import * as os from 'os';
 import JSZip from 'jszip';
 import { DatabaseManager } from '../database';
 import { RemoteScoreServer } from './remoteScoreServer';
+import { ensureCert } from './certManager';
 import { AutoUpdater } from './autoUpdater';
 import { Competition, Fencer, FencerStatus, Match, MatchStatus, Pool } from '../shared/types';
 
@@ -17,7 +18,7 @@ import { Competition, Fencer, FencerStatus, Match, MatchStatus, Pool } from '../
 const db = new DatabaseManager();
 
 // Remote score servers — one per competition (key = competitionId)
-const remoteServers = new Map<string, { server: RemoteScoreServer; port: number; host: string }>();
+const remoteServers = new Map<string, { server: RemoteScoreServer; port: number; host: string; useHttps: boolean; certFingerprint?: string }>();
 const usedPorts = new Set<number>();
 const BASE_REMOTE_PORT = 8066;
 
@@ -190,6 +191,7 @@ const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     importFff: 'Importer liste FFE (.fff)',
     importRanking: 'Importer classement FFE',
     importFencersBpf: 'Importer tireurs + photos (.bpf)',
+    settings: 'Paramètres...',
     quit: 'Quitter',
     edit: 'Édition',
     undo: 'Annuler',
@@ -273,6 +275,7 @@ const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     importFff: 'Import FFE list (.fff)',
     importRanking: 'Import FFE ranking',
     importFencersBpf: 'Import fencers + photos (.bpf)',
+    settings: 'Settings...',
     quit: 'Quit',
     edit: 'Edit',
     undo: 'Undo',
@@ -356,6 +359,7 @@ const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     importFff: 'FFE-Liste importieren (.fff)',
     importRanking: 'FFE-Rangliste importieren',
     importFencersBpf: 'Fechter + Fotos importieren (.bpf)',
+    settings: 'Einstellungen...',
     quit: 'Beenden',
     edit: 'Bearbeiten',
     undo: 'Rückgängig',
@@ -440,6 +444,7 @@ const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     importFff: '匯入 FFE 名單 (.fff)',
     importRanking: '匯入 FFE 排名',
     importFencersBpf: '匯入劍手 + 照片 (.bpf)',
+    settings: '設定...',
     quit: '退出',
     edit: '編輯',
     undo: '復原',
@@ -759,6 +764,12 @@ function createMenu(language?: string): void {
             { label: L.importRanking, click: () => handleImport('ranking') },
             { label: L.importFencersBpf, click: () => handleImport('fencers-bpf') },
           ],
+        },
+        { type: 'separator' },
+        {
+          label: L.settings,
+          accelerator: 'CmdOrCtrl+,',
+          click: () => mainWindow?.webContents.send('menu:open-settings'),
         },
         { type: 'separator' },
         {
@@ -1395,6 +1406,13 @@ ipcMain.handle('dialog:saveFile', async (_, options) => {
   return dialog.showSaveDialog(mainWindow!, options);
 });
 
+// Window resize handler
+ipcMain.handle('window:setSize', (_event, width: number, height: number) => {
+  if (mainWindow) {
+    mainWindow.setSize(Math.max(width, 800), Math.max(height, 600), true);
+  }
+});
+
 // Print handler
 ipcMain.handle('window:print', async () => {
   if (mainWindow) {
@@ -1542,7 +1560,7 @@ ipcMain.handle('remote:getNetworkInterfaces', async () => {
   return { success: true, interfaces: result };
 });
 
-ipcMain.handle('remote:startServer', async (_event, competitionId: string, port?: number, host?: string) => {
+ipcMain.handle('remote:startServer', async (_event, competitionId: string, port?: number, host?: string, useHttps?: boolean) => {
   try {
     if (remoteServers.has(competitionId)) {
       return { success: false, error: 'Le serveur est déjà démarré pour cette compétition' };
@@ -1550,14 +1568,28 @@ ipcMain.handle('remote:startServer', async (_event, competitionId: string, port?
 
     const effectivePort = findAvailablePort(port);
     const effectiveHost = host ?? '0.0.0.0';
-    const server = new RemoteScoreServer(db, effectivePort, effectiveHost);
+
+    let tlsOptions: { cert: string; key: string } | undefined;
+    let certFingerprint: string | undefined;
+    if (useHttps) {
+      try {
+        const bundle = await ensureCert(app.getPath('userData'));
+        tlsOptions = { cert: bundle.cert, key: bundle.key };
+        certFingerprint = bundle.fingerprint;
+      } catch (certError) {
+        console.error('Erreur génération certificat TLS:', certError);
+        return { success: false, error: 'Impossible de générer le certificat TLS' };
+      }
+    }
+
+    const server = new RemoteScoreServer(db, effectivePort, effectiveHost, tlsOptions);
     try {
       await server.start();
     } catch (startError: any) {
       console.error('Error binding remote server port:', startError);
       return { success: false, error: startError?.message ?? 'Port indisponible' };
     }
-    remoteServers.set(competitionId, { server, port: effectivePort, host: effectiveHost });
+    remoteServers.set(competitionId, { server, port: effectivePort, host: effectiveHost, useHttps: !!useHttps, certFingerprint });
     usedPorts.add(effectivePort);
 
     // Appliquer la config TTS persistée aux tablettes de ce nouveau serveur
@@ -1576,6 +1608,8 @@ ipcMain.handle('remote:startServer', async (_event, competitionId: string, port?
         url: server.getServerUrl(),
         ip: server.getLocalIPAddress(),
         port: effectivePort,
+        useHttps: !!useHttps,
+        certFingerprint,
       },
     };
   } catch (error) {
@@ -1614,8 +1648,19 @@ ipcMain.handle('remote:getServerInfo', async (_event, competitionId: string) => 
       url: entry.server.getServerUrl(),
       ip: entry.server.getLocalIPAddress(),
       port: entry.port,
+      useHttps: entry.useHttps,
+      certFingerprint: entry.certFingerprint,
     },
   };
+});
+
+ipcMain.handle('remote:getCertFingerprint', async () => {
+  try {
+    const bundle = await ensureCert(app.getPath('userData'));
+    return { success: true, fingerprint: bundle.fingerprint };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
 });
 
 // Remote session handlers
@@ -1858,6 +1903,20 @@ ipcMain.handle(
 );
 
 ipcMain.handle(
+  'remote:clearArenaThemeOverride',
+  async (_, competitionId: string, arenaId: string) => {
+    try {
+      const entry = remoteServers.get(competitionId);
+      if (!entry) return { success: false, error: 'Le serveur distant n est pas démarré pour cette compétition' };
+      entry.server.clearArenaThemeOverride(arenaId);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+    }
+  }
+);
+
+ipcMain.handle(
   'remote:updateKioskViews',
   async (_, competitionId: string, views: { poules: boolean; classement: boolean; direct: boolean; suivants: boolean }) => {
     try {
@@ -1873,6 +1932,85 @@ ipcMain.handle(
     }
   }
 );
+
+ipcMain.handle(
+  'remote:updateKioskTheme',
+  async (_, competitionId: string, variables: Record<string, string>) => {
+    try {
+      const entry = remoteServers.get(competitionId);
+      if (!entry) {
+        return { success: false, error: 'Le serveur distant n est pas démarré pour cette compétition' };
+      }
+      entry.server.updateKioskTheme(variables);
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating kiosk theme:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+    }
+  }
+);
+
+ipcMain.handle(
+  'remote:updateArenaScreenTheme',
+  async (_, competitionId: string, arenaId: string, targetType: string, customTheme?: any) => {
+    try {
+      const entry = remoteServers.get(competitionId);
+      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      entry.server.updateArenaScreenTheme(arenaId, targetType as any, customTheme);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+    }
+  }
+);
+
+// ── Bibliothèque de thèmes (persistante dans userData) ──────────────────────
+
+function getThemesFilePath(): string {
+  return path.join(app.getPath('userData'), 'themes.json');
+}
+
+function readThemesFile(): unknown[] {
+  try {
+    const raw = fs.readFileSync(getThemesFilePath(), 'utf-8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeThemesFile(themes: unknown[]): void {
+  fs.writeFileSync(getThemesFilePath(), JSON.stringify(themes, null, 2), 'utf-8');
+}
+
+ipcMain.handle('themes:list', () => {
+  return readThemesFile();
+});
+
+ipcMain.handle('themes:save', (_, theme: unknown) => {
+  try {
+    const themes = readThemesFile() as any[];
+    const t = theme as { id: string };
+    const idx = themes.findIndex((x: any) => x.id === t.id);
+    if (idx >= 0) themes[idx] = t;
+    else themes.push(t);
+    writeThemesFile(themes);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
+  }
+});
+
+ipcMain.handle('themes:delete', (_, id: string) => {
+  try {
+    const themes = readThemesFile() as any[];
+    writeThemesFile(themes.filter((x: any) => x.id !== id));
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
+  }
+});
 
 ipcMain.handle('remote:setArenaPassword', async (_, competitionId: string, arenaId: string, password: string) => {
   try {
@@ -1982,12 +2120,21 @@ ipcMain.handle('remote:changePort', async (_, competitionId: string, newPort: nu
     if (usedPorts.has(newPort) && newPort !== entry.port) {
       return { success: false, error: `Le port ${newPort} est déjà utilisé` };
     }
-    const host = entry.host;
+    const { host, useHttps, certFingerprint } = entry;
+    let tlsOptions: { cert: string; key: string } | undefined;
+    if (useHttps && certFingerprint) {
+      try {
+        const bundle = await ensureCert(app.getPath('userData'));
+        tlsOptions = { cert: bundle.cert, key: bundle.key };
+      } catch {
+        /* ignore — redémarre en HTTP si cert inaccessible */
+      }
+    }
     entry.server.stop();
     usedPorts.delete(entry.port);
-    const server = new RemoteScoreServer(db, newPort, host);
+    const server = new RemoteScoreServer(db, newPort, host, tlsOptions);
     server.start();
-    remoteServers.set(competitionId, { server, port: newPort, host });
+    remoteServers.set(competitionId, { server, port: newPort, host, useHttps: !!tlsOptions, certFingerprint });
     usedPorts.add(newPort);
     return {
       success: true,
@@ -1995,6 +2142,8 @@ ipcMain.handle('remote:changePort', async (_, competitionId: string, newPort: nu
         url: server.getServerUrl(),
         ip: server.getLocalIPAddress(),
         port: newPort,
+        useHttps: !!tlsOptions,
+        certFingerprint,
       },
     };
   } catch (error) {
@@ -2085,6 +2234,139 @@ ipcMain.handle('remote:setTtsConfig', async (_, config: unknown) => {
       server.setTtsConfig(config as any);
     }
     return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+});
+
+// Training mode handlers
+const TRAINING_ID = '__training__';
+
+ipcMain.handle('training:startServer', async (_event, port?: number, host?: string, useHttps?: boolean) => {
+  try {
+    if (remoteServers.has(TRAINING_ID)) {
+      return { success: false, error: 'Serveur entraînement déjà démarré' };
+    }
+    const effectivePort = findAvailablePort(port);
+    const effectiveHost = host ?? '0.0.0.0';
+    let tlsOptions: { cert: string; key: string } | undefined;
+    let certFingerprint: string | undefined;
+    if (useHttps) {
+      try {
+        const bundle = await ensureCert(app.getPath('userData'));
+        tlsOptions = { cert: bundle.cert, key: bundle.key };
+        certFingerprint = bundle.fingerprint;
+      } catch (certError) {
+        return { success: false, error: 'Impossible de générer le certificat TLS' };
+      }
+    }
+    const server = new RemoteScoreServer(db, effectivePort, effectiveHost, tlsOptions);
+    try {
+      await server.start();
+    } catch (startError: any) {
+      return { success: false, error: startError?.message ?? 'Port indisponible' };
+    }
+    remoteServers.set(TRAINING_ID, { server, port: effectivePort, host: effectiveHost, useHttps: !!useHttps, certFingerprint });
+    usedPorts.add(effectivePort);
+    try {
+      const ttsPath = path.join(app.getPath('userData'), 'tts-config.json');
+      server.setTtsConfig(JSON.parse(await fs.promises.readFile(ttsPath, 'utf-8')));
+    } catch { /* optionnel */ }
+    (global as any).mainWindow = mainWindow;
+    return {
+      success: true,
+      serverInfo: {
+        url: server.getServerUrl(),
+        ip: server.getLocalIPAddress(),
+        port: effectivePort,
+        useHttps: !!useHttps,
+        certFingerprint,
+      },
+    };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+});
+
+ipcMain.handle('training:stopServer', async () => {
+  try {
+    const entry = remoteServers.get(TRAINING_ID);
+    if (!entry) return { success: false, error: 'Serveur entraînement non démarré' };
+    entry.server.stop();
+    usedPorts.delete(entry.port);
+    remoteServers.delete(TRAINING_ID);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+});
+
+ipcMain.handle('training:startSession', async (_event, strips: number, weapon: string, customRules?: any) => {
+  try {
+    const entry = remoteServers.get(TRAINING_ID);
+    if (!entry) return { success: false, error: 'Serveur entraînement non démarré' };
+    const session = await entry.server.startTrainingSession(strips, weapon, customRules);
+    return { success: true, session };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+});
+
+ipcMain.handle('training:stopSession', async () => {
+  try {
+    const entry = remoteServers.get(TRAINING_ID);
+    if (!entry) return { success: false, error: 'Serveur entraînement non démarré' };
+    entry.server.stopTrainingSession();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+});
+
+ipcMain.handle('training:getHistory', async () => {
+  try {
+    const entry = remoteServers.get(TRAINING_ID);
+    if (!entry) return { success: true, history: [] };
+    return { success: true, history: entry.server.getTrainingHistory() };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+});
+
+ipcMain.handle('training:getSession', async () => {
+  try {
+    const entry = remoteServers.get(TRAINING_ID);
+    if (!entry) return { success: true, session: null };
+    return { success: true, session: entry.server.getSession() };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+});
+
+ipcMain.handle('training:getArenas', async () => {
+  try {
+    const entry = remoteServers.get(TRAINING_ID);
+    if (!entry) return { success: true, arenas: [] };
+    return { success: true, arenas: entry.server.getAllArenas() };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+});
+
+ipcMain.handle('training:getServerInfo', async () => {
+  try {
+    const entry = remoteServers.get(TRAINING_ID);
+    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    return {
+      success: true,
+      serverInfo: {
+        url: entry.server.getServerUrl(),
+        ip: entry.server.getLocalIPAddress(),
+        port: entry.port,
+        useHttps: entry.useHttps,
+        certFingerprint: entry.certFingerprint,
+      },
+    };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
   }
@@ -2186,6 +2468,66 @@ ipcMain.handle('crypto:unprotect', async (_, ciphertextB64: string) => {
   if (typeof ciphertextB64 !== 'string') throw new Error('ciphertext must be a string');
   if (!safeStorage.isEncryptionAvailable()) return null;
   return safeStorage.decryptString(Buffer.from(ciphertextB64, 'base64'));
+});
+
+// ── Classement saisonnier Quest ───────────────────────────────────────────────
+
+ipcMain.handle('db:addCompetitionToSeason', async (_, payload: Parameters<typeof db.addCompetitionToSeason>[0]) => {
+  return db.addCompetitionToSeason(payload);
+});
+
+ipcMain.handle('db:getSeasonRanking', async () => {
+  return db.getSeasonRanking();
+});
+
+ipcMain.handle('db:getSeasonCompetitions', async () => {
+  return db.getSeasonCompetitions();
+});
+
+ipcMain.handle('db:removeCompetitionFromSeason', async (_, competitionId: string) => {
+  return db.removeCompetitionFromSeason(competitionId);
+});
+
+ipcMain.handle('db:resetSeason', async () => {
+  return db.resetSeason();
+});
+
+// ── Équipes ───────────────────────────────────────────────────────────────────
+
+ipcMain.handle('db:createTeam', async (_, competitionId: string, name: string, club: string) => {
+  return db.createTeam(competitionId, name, club);
+});
+
+ipcMain.handle('db:getTeamsByCompetition', async (_, competitionId: string) => {
+  return db.getTeamsByCompetition(competitionId);
+});
+
+ipcMain.handle('db:deleteTeam', async (_, teamId: string) => {
+  return db.deleteTeam(teamId);
+});
+
+ipcMain.handle('db:upsertTeamFencer', async (_, teamId: string, fencerId: string, teamOrder: number, isReserve: boolean) => {
+  return db.upsertTeamFencer(teamId, fencerId, teamOrder, isReserve);
+});
+
+ipcMain.handle('db:removeTeamFencer', async (_, teamId: string, fencerId: string) => {
+  return db.removeTeamFencer(teamId, fencerId);
+});
+
+ipcMain.handle('db:createTeamMatch', async (_, competitionId: string, poolNumber: number, teamAId: string, teamBId: string) => {
+  return db.createTeamMatch(competitionId, poolNumber, teamAId, teamBId);
+});
+
+ipcMain.handle('db:getTeamMatchesByCompetition', async (_, competitionId: string) => {
+  return db.getTeamMatchesByCompetition(competitionId);
+});
+
+ipcMain.handle('db:createTeamBout', async (_, matchId: string, boutOrder: number, fencerAId: string, fencerBId: string, maxScore: number) => {
+  return db.createTeamBout(matchId, boutOrder, fencerAId, fencerBId, maxScore);
+});
+
+ipcMain.handle('db:updateTeamBout', async (_, boutId: string, scoreA: number, scoreB: number, status: string, winnerId: string | null) => {
+  return db.updateTeamBout(boutId, scoreA, scoreB, status, winnerId);
 });
 
 // ============================================================================

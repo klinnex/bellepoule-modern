@@ -13,6 +13,16 @@
       rel="stylesheet"
     />
     <style>
+      :root {
+        --k-bg: #0f172a;
+        --k-accent: #fbbf24;
+        --k-accent2: #3b82f6;
+        --k-card-bg: rgba(255, 255, 255, 0.04);
+        --k-border: rgba(255, 255, 255, 0.08);
+        --k-muted: #64748b;
+        --k-progress: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -21,7 +31,7 @@
 
       body {
         font-family: 'Inter', system-ui, sans-serif;
-        background: #0f172a;
+        background: var(--k-bg);
         min-height: 100vh;
         color: white;
         overflow: hidden;
@@ -40,7 +50,7 @@
 
       #progress-bar {
         height: 100%;
-        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        background: var(--k-progress);
         width: 0%;
         transition: width 0.1s linear;
       }
@@ -72,7 +82,7 @@
       .menu-title {
         font-size: 1rem;
         font-weight: 700;
-        color: #fbbf24;
+        color: var(--k-accent);
       }
 
       .menu-competition {
@@ -100,8 +110,8 @@
 
       .menu-nav button:hover,
       .menu-nav button.active {
-        background: #3b82f6;
-        border-color: #3b82f6;
+        background: var(--k-accent2);
+        border-color: var(--k-accent2);
       }
 
       .menu-status {
@@ -137,7 +147,7 @@
         overflow: hidden;
         display: none;
         flex-direction: column;
-        background: #0f172a;
+        background: var(--k-bg);
       }
 
       .kiosk-view.active {
@@ -156,7 +166,7 @@
       .view-title {
         font-size: 1.2rem;
         font-weight: 800;
-        background: linear-gradient(90deg, #fbbf24, #f59e0b);
+        background: linear-gradient(90deg, var(--k-accent), var(--k-accent));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -189,9 +199,9 @@
       }
 
       .pool-card {
-        background: rgba(255, 255, 255, 0.04);
+        background: var(--k-card-bg);
         border-radius: 0.75rem;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--k-border);
         overflow: hidden;
       }
 
@@ -252,7 +262,7 @@
       }
 
       .rank-col { width: 36px; font-weight: 700; }
-      .rank-1 { color: #fbbf24; }
+      .rank-1 { color: var(--k-accent); }
       .rank-2 { color: #94a3b8; }
       .rank-3 { color: #b45309; }
 
@@ -391,9 +401,9 @@
       }
 
       .arena-card {
-        background: rgba(255, 255, 255, 0.04);
+        background: var(--k-card-bg);
         border-radius: 0.75rem;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--k-border);
         padding: 1.25rem;
       }
 
@@ -1311,6 +1321,7 @@
         arenasData: [],
         upcomingData: [],
         overallRanking: [],
+        trainingHistory: [],
         lastUpdate: null,
         prevArenaScores: {},
         bracketData: null,
@@ -1627,18 +1638,27 @@
           }
           applyLocalViews();
 
-          // 2. Données poules + classements
-          const poolsRes = await fetch('/api/competitions/' + competitionId + '/results-data');
-          if (poolsRes.ok) {
-            const data = await poolsRes.json();
-            state.poolsData = data.pools || [];
-            if (data.overallRanking && data.overallRanking.length > 0) {
-              state.overallRanking = data.overallRanking;
-            } else {
-              buildOverallRanking();
+          // 2. Données poules + classements (ou historique entraînement)
+          if (competitionId === '__training__') {
+            const histRes = await fetch('/api/training/history');
+            if (histRes.ok) {
+              const histData = await histRes.json();
+              state.trainingHistory = histData.history || [];
+              renderRanking();
             }
-            renderPools();
-            renderRanking();
+          } else {
+            const poolsRes = await fetch('/api/competitions/' + competitionId + '/results-data');
+            if (poolsRes.ok) {
+              const data = await poolsRes.json();
+              state.poolsData = data.pools || [];
+              if (data.overallRanking && data.overallRanking.length > 0) {
+                state.overallRanking = data.overallRanking;
+              } else {
+                buildOverallRanking();
+              }
+              renderPools();
+              renderRanking();
+            }
           }
 
           // 3. Arènes
@@ -1739,8 +1759,30 @@
       // ─── Rendu Classement ────────────────────────────────────────────────────
       function renderRanking() {
         const tbody = document.getElementById('ranking-body');
-        const ranking = state.overallRanking;
 
+        // Mode entraînement : afficher l'historique des combats
+        if (state.session?.competitionId === '__training__') {
+          const hist = (state.trainingHistory || []).slice().reverse();
+          document.getElementById('classement-badge').textContent = hist.length + ' combat' + (hist.length !== 1 ? 's' : '');
+          if (!hist.length) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:3rem">Aucun combat terminé</td></tr>';
+            return;
+          }
+          tbody.innerHTML = hist.map(r => {
+            const dur = r.durationSec > 0 ? Math.floor(r.durationSec/60) + ':' + String(r.durationSec % 60).padStart(2,'0') : '—';
+            const t = new Date(r.finishedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            return `<tr>
+              <td style="color:#64748b;font-weight:700">P${r.arenaNumber}</td>
+              <td><div style="font-weight:600;font-size:1.1rem">${r.scoreA} — ${r.scoreB}</div></td>
+              <td style="color:#64748b;font-size:0.85rem">${dur}</td>
+              <td style="text-align:center;color:#94a3b8">${t}</td>
+              <td></td><td></td>
+            </tr>`;
+          }).join('');
+          return;
+        }
+
+        const ranking = state.overallRanking;
         document.getElementById('classement-badge').textContent = ranking.length + ' tireur' + (ranking.length > 1 ? 's' : '');
 
         if (!ranking || ranking.length === 0) {
@@ -2643,6 +2685,12 @@
               const lbl = cmd.screenLabel || localStorage.getItem('bp_screen_label') || _screenId;
               if (cmd.screenLabel) localStorage.setItem('bp_screen_label', cmd.screenLabel);
               _showIdentifyOverlay(lbl, cmd.duration ?? 5000);
+              return;
+            }
+            if (cmd.type === 'kiosk:theme' && cmd.variables) {
+              Object.entries(cmd.variables).forEach(([k, v]) => {
+                document.documentElement.style.setProperty(k, String(v));
+              });
               return;
             }
             if (cmd.type === 'kiosk:config' && cmd.kioskConfig) {

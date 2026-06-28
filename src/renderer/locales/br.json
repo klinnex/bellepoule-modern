@@ -1,4 +1,4 @@
-﻿{
+{
   "app": {
     "title": "BellePoule Modern",
     "home": "Broadel",
@@ -209,7 +209,8 @@
     "check_in_all": "Boukañ pep tra",
     "uncheck_all": "Digoumanañ pep tra",
     "view": "Gwelet",
-    "default": "N'eus ket"
+    "default": "N'eus ket",
+    "save_and_add": "Enrollañ ha ouzhpennañ"
   },
   "messages": {
     "confirm_delete_fencer": "TODO(br): révision par un locuteur natif breton requise — Ha sur oc'h evid ? Fell eo an dilemelañ ar c'hoarzh ? An den dra zo diwezheg. VEOUS anv raoud bezañ.",

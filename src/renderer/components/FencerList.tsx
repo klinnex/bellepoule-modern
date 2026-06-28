@@ -39,6 +39,7 @@ interface FencerListProps {
   onUncheckAll?: () => void;
   onSetFencerStatus?: (id: string, status: FencerStatus) => void;
   onImport?: (type: 'xml' | 'fff' | 'ranking') => void;
+  onImportFFEConnect?: () => void;
   onFencersImported?: () => void;
   /** URL de la page d'inscription distante (ex: http://192.168.x.x:8066/register) */
   registerUrl?: string;
@@ -60,6 +61,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   onUncheckAll,
   onSetFencerStatus,
   onImport,
+  onImportFFEConnect,
   onFencersImported,
   registerUrl,
   onFencersChanged,
@@ -483,6 +485,15 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                   >
                     Importer classement FFE
                   </button>
+                  {onImportFFEConnect && (
+                    <button
+                      className="btn btn-ghost"
+                      style={MENU_ITEM}
+                      onClick={() => { onImportFFEConnect(); setImportMenuOpen(false); }}
+                    >
+                      🔗 Importer depuis FFE Connect
+                    </button>
+                  )}
                   {competitionId && (
                     <>
                       <button

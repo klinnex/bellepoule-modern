@@ -10,6 +10,17 @@
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
+      :root {
+        --ref-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        --ref-header-bg: rgba(0, 0, 0, 0.3);
+        --ref-accent: #3b82f6;
+        --ref-accent2: #f59e0b;
+        --ref-text: #ffffff;
+        --ref-muted: rgba(255,255,255,0.6);
+        --ref-card-bg: rgba(255, 255, 255, 0.05);
+        --ref-border: rgba(255, 255, 255, 0.1);
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -21,14 +32,14 @@
         font-family:
           -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
           sans-serif;
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        background: var(--ref-bg);
         min-height: 100vh;
-        color: #fff;
+        color: var(--ref-text);
         overflow-x: hidden;
       }
 
       .header {
-        background: rgba(0, 0, 0, 0.3);
+        background: var(--ref-header-bg);
         padding: 1rem;
         display: flex;
         justify-content: space-between;
@@ -1466,7 +1477,7 @@
 
       <!-- Écran de sélection de match -->
       <div class="next-matches-screen" id="next-matches-screen">
-        <h2>📋 Matchs — Arène <span id="next-arena-number">1</span></h2>
+        <h2>📋 Matchs — <span id="next-arena-label">Arène</span> <span id="next-arena-number">1</span></h2>
         <input
           type="search"
           id="match-search"
@@ -1546,6 +1557,19 @@
     <div class="notification" id="notification"></div>
 
     <script>
+      function applyScreenTheme(variables) {
+        if (!variables) {
+          document.documentElement.removeAttribute('data-screen-theme');
+          const old = document.getElementById('screen-theme-style');
+          if (old) old.remove();
+          return;
+        }
+        let styleEl = document.getElementById('screen-theme-style');
+        if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'screen-theme-style'; document.head.appendChild(styleEl); }
+        const vars = Object.entries(variables).map(([k, v]) => `  ${k}: ${v};`).join('\n');
+        styleEl.textContent = `:root {\n${vars}\n}`;
+      }
+
       // ─── Utilitaire sécurité : encodage HTML pour éviter les XSS ───────────
       function escHtml(str) {
         if (str === null || str === undefined) return '';
@@ -1744,6 +1768,7 @@
           this.refereesList = []; // Liste des arbitres de la compétition
           this.swapped = false;
           this.pausedForModal = false;
+          this.trainingCustomRules = null; // { matchDurationSeconds, allowedZones, disableSuddenDeath }
           this.offlineQueue = new OfflineQueueInline();
           this.ttsEnabled = false;
           this._ttsAnnouncedSeconds = new Set();
@@ -1781,8 +1806,12 @@
               if (s) {
               this.isLaserSabre = s.weapon === 'L';
               this.isModernFencing = ['E', 'F', 'S'].includes(s.weapon);
+              if (s.trainingCustomRules) this.trainingCustomRules = s.trainingCustomRules;
               if (this.isModernFencing) {
-                document.getElementById('arena-label').textContent = 'Piste';
+                const pisteLabel = window.T('remote.piste');
+                document.getElementById('arena-label').textContent = pisteLabel;
+                const nextLabel = document.getElementById('next-arena-label');
+                if (nextLabel) nextLabel.textContent = pisteLabel;
                 document.querySelectorAll('.btn-plus-3, .btn-plus-5').forEach(b => (b.style.display = 'none'));
               }
             }
@@ -2090,6 +2119,7 @@
               return;
             }
             if (cmd.type === 'message' && cmd.text) { this.showNotification(cmd.text); }
+            if (cmd.type === 'referee:theme') { applyScreenTheme(cmd.variables); }
           });
 
           setInterval(() => { if (this.socket.connected) this.socket.emit('client:pong'); }, 30000);
@@ -2267,6 +2297,19 @@
             return;
           }
 
+          // Restriction de zones en mode entraînement
+          const _zone = points === 1 ? 'A' : points === 3 ? 'B' : 'C';
+          if (
+            this.trainingCustomRules &&
+            this.trainingCustomRules.allowedZones &&
+            this.trainingCustomRules.allowedZones.length > 0 &&
+            !this.trainingCustomRules.allowedZones.includes(_zone)
+          ) {
+            const allowed = this.trainingCustomRules.allowedZones.join(', ');
+            this.showNotification(`Zone ${_zone} non autorisée (entraînement : ${allowed} uniquement)`);
+            return;
+          }
+
           this.pushHistory('score');
           if (navigator.vibrate) navigator.vibrate(points === 5 ? 120 : points === 3 ? 80 : 40);
 
@@ -2287,6 +2330,7 @@
           // Le déclenchement est autorisé hors mort subite ET pendant le temps supplémentaire
           if (
             this.isLaserSabre &&
+            !(this.trainingCustomRules && this.trainingCustomRules.disableSuddenDeath) &&
             (!this.isSuddenDeath || this.overtimeType === 'supplementary')
           ) {
             if (this.scoreA >= 10 && this.scoreB >= 10) {
@@ -2896,11 +2940,12 @@
               if (this.timerSeconds === 0) {
                 this.stopTimer();
                 if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
-                if (this.scoreA === this.scoreB &&
+                const _sdDisabled = this.trainingCustomRules && this.trainingCustomRules.disableSuddenDeath;
+                if (!_sdDisabled && this.scoreA === this.scoreB &&
                     (!this.isSuddenDeath || this.overtimeType === 'challenger')) {
                   // Égalité : attente manuelle de l'arbitre pour lancer les 30s
                   this.prepareSuddenDeath();
-                } else if (this.isSuddenDeath && this.scoreA === this.scoreB) {
+                } else if (!_sdDisabled && this.isSuddenDeath && this.scoreA === this.scoreB) {
                   // Fin des 30s supplémentaires avec égalité → tirage au sort
                   this.triggerTiebreaker();
                 } else {
@@ -3537,8 +3582,14 @@
         }
 
         handleArenaUpdate(data) {
+          if (data.screenThemes?.referee) { applyScreenTheme(data.screenThemes.referee.variables); }
+
           if (data.timerDuration !== undefined && data.timerDuration > 0) {
             this.defaultTimerSeconds = data.timerDuration;
+          }
+
+          if (data.trainingCustomRules !== undefined) {
+            this.trainingCustomRules = data.trainingCustomRules;
           }
 
           if (data.cardAnnounce !== undefined) {

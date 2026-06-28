@@ -90,6 +90,7 @@ interface PoolViewProps {
     fencerA?: Fencer | null,
     fencerB?: Fencer | null
   ) => void;
+  onRefereeAssigned?: (poolId: string, referee: Referee | null) => void;
 }
 
 type ViewMode = 'grid' | 'matches';
@@ -111,6 +112,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   isRemoteActive,
   remoteServerUrl,
   onMatchArenaChange,
+  onRefereeAssigned,
 }) => {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
@@ -137,6 +139,12 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   const [competitionReferees, setCompetitionReferees] = useState<Referee[]>([]);
   const [isLoadingReferees, setIsLoadingReferees] = useState(false);
   const [assignedReferee, setAssignedReferee] = useState<Referee | null>(pool.referees?.[0] ?? null);
+  const [hoveredFencerIds, setHoveredFencerIds] = useState<Set<string>>(new Set());
+  const quickMouseScoring = localStorage.getItem('bellepoule-quick-mouse-scoring') === 'true';
+  const simplifiedInputMode = localStorage.getItem('bellepoule-simplified-input-mode') === 'true';
+  const [inlineEditCell, setInlineEditCell] = useState<{ key: string; rowId: string; colId: string; matchIndex: number; inverted: boolean } | null>(null);
+  const [inlineSingleScore, setInlineSingleScore] = useState('');
+  const [cellScoreBuffer, setCellScoreBuffer] = useState<Record<string, number>>({});
 
   const defaultArena = (pool.strip != null && pool.strip > 0 ? pool.strip : pool.number) ?? 1;
 
@@ -177,7 +185,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     window.electronAPI.db.updatePoolReferee(pool.id, referee?.id ?? null);
     setAssignedReferee(referee);
     setShowRefereeModal(false);
-  }, [pool.id]);
+    onRefereeAssigned?.(pool.id, referee);
+  }, [pool.id, onRefereeAssigned]);
 
   const { addAction, undo, redo, canUndo, canRedo } = useHistory();
   const [showPoolConfetti, setShowPoolConfetti] = useState(false);
@@ -424,15 +433,136 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     setVictoryB(!inverted ? !!match.scoreB?.isVictory : !!match.scoreA?.isVictory);
   };
 
+  const handleHoverCell = (rowFencer: Fencer, colFencer: Fencer) => {
+    setHoveredFencerIds(new Set([rowFencer.id, colFencer.id]));
+  };
+
+  const handleHoverLeave = () => setHoveredFencerIds(new Set());
+
+  const handleWheelScore = (rowFencer: Fencer, colFencer: Fencer, shiftKey: boolean, delta: number) => {
+    if (isLocked) return;
+    const matchIndex = getMatchIndex(rowFencer, colFencer);
+    if (matchIndex === -1) return;
+    const match = pool.matches[matchIndex];
+    if (!match || match.status === MatchStatus.CANCELLED) return;
+    if (match.scoreA?.isAbstention || match.scoreA?.isExclusion || match.scoreA?.isForfait) return;
+
+    const inverted = match.fencerA?.id === colFencer.id;
+    const curA = match.scoreA?.value ?? 0;
+    const curB = match.scoreB?.value ?? 0;
+    let scoreLeft = inverted ? curB : curA;
+    let scoreRight = inverted ? curA : curB;
+
+    const effectiveMax = match.maxScore || maxScore || 5;
+    if (!shiftKey) {
+      scoreLeft = Math.max(0, Math.min(effectiveMax, scoreLeft + delta));
+    } else {
+      scoreRight = Math.max(0, Math.min(effectiveMax, scoreRight + delta));
+    }
+
+    const actualScoreA = inverted ? scoreRight : scoreLeft;
+    const actualScoreB = inverted ? scoreLeft : scoreRight;
+
+    if (actualScoreA === actualScoreB) {
+      if (isLaserSabre) {
+        openScoreModal(matchIndex, inverted);
+      }
+      return;
+    }
+
+    onScoreUpdate(matchIndex, actualScoreA, actualScoreB);
+  };
+
+  const getOrderedCells = () => {
+    const cells: Array<{ rowFencer: Fencer; colFencer: Fencer; key: string; matchIndex: number; inverted: boolean }> = [];
+    for (const rowFencer of fencers) {
+      for (const colFencer of fencers) {
+        if (rowFencer.id === colFencer.id) continue;
+        const isAbandoned =
+          rowFencer.status === FencerStatus.ABANDONED || rowFencer.status === FencerStatus.FORFAIT || rowFencer.status === FencerStatus.EXCLUDED ||
+          colFencer.status === FencerStatus.ABANDONED || colFencer.status === FencerStatus.FORFAIT || colFencer.status === FencerStatus.EXCLUDED;
+        if (isAbandoned) continue;
+        const matchIndex = getMatchIndex(rowFencer, colFencer);
+        if (matchIndex === -1) continue;
+        const match = pool.matches[matchIndex];
+        if (match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED) continue;
+        const inverted = match.fencerA?.id === colFencer.id;
+        cells.push({ rowFencer, colFencer, key: `${rowFencer.id}-${colFencer.id}`, matchIndex, inverted });
+      }
+    }
+    return cells;
+  };
+
+  const openNextCell = (currentKey: string, skipKeys: Set<string>, buffer: Record<string, number>) => {
+    const cells = getOrderedCells().filter(c => !skipKeys.has(c.key));
+    const currentIndex = cells.findIndex(c => c.key === currentKey);
+    const next = currentIndex === -1 ? cells[0] : cells[currentIndex + 1];
+    if (!next) {
+      setInlineEditCell(null);
+      setInlineSingleScore('');
+      return;
+    }
+    setInlineEditCell({ key: next.key, rowId: next.rowFencer.id, colId: next.colFencer.id, matchIndex: next.matchIndex, inverted: next.inverted });
+    setInlineSingleScore(buffer[next.key] !== undefined ? String(buffer[next.key]) : '');
+  };
+
   const handleCellClick = (rowFencer: Fencer, colFencer: Fencer) => {
     if (isLocked) return;
     if (rowFencer.id === colFencer.id) return;
     const matchIndex = getMatchIndex(rowFencer, colFencer);
     if (matchIndex === -1) return;
     const match = pool.matches[matchIndex];
-    // Inversion si le tireur de la ligne est fencerB (pour l'afficher à gauche)
     const inverted = match.fencerA?.id === colFencer.id;
+    if (simplifiedInputMode) {
+      const key = `${rowFencer.id}-${colFencer.id}`;
+      setInlineEditCell({ key, rowId: rowFencer.id, colId: colFencer.id, matchIndex, inverted });
+      setInlineSingleScore(cellScoreBuffer[key] !== undefined ? String(cellScoreBuffer[key]) : '');
+      return;
+    }
     openScoreModal(matchIndex, inverted);
+  };
+
+  const handleInlineSubmit = () => {
+    if (!inlineEditCell) return;
+    const { key, rowId, colId, matchIndex, inverted } = inlineEditCell;
+    const score = parseInt(inlineSingleScore, 10);
+
+    if (isNaN(score) || score < 0) {
+      openNextCell(key, new Set(), cellScoreBuffer);
+      return;
+    }
+
+    const mirrorKey = `${colId}-${rowId}`;
+    const newBuffer = { ...cellScoreBuffer, [key]: score };
+
+    if (newBuffer[mirrorKey] !== undefined) {
+      const mirrorScore = newBuffer[mirrorKey];
+      const actualScoreA = inverted ? mirrorScore : score;
+      const actualScoreB = inverted ? score : mirrorScore;
+
+      const effectiveMax = pool.matches[matchIndex]?.maxScore || maxScore || 0;
+      if (effectiveMax > 0 && (actualScoreA > effectiveMax || actualScoreB > effectiveMax)) {
+        showToast(`Score maximum : ${effectiveMax}`, 'error');
+        return;
+      }
+      if (actualScoreA === actualScoreB && !isLaserSabre) {
+        showToast("Match nul impossible !", 'error');
+        return;
+      }
+
+      const { [key]: _a, [mirrorKey]: _b, ...restBuffer } = newBuffer;
+      setCellScoreBuffer(restBuffer);
+      onScoreUpdate(matchIndex, actualScoreA, actualScoreB);
+      openNextCell(key, new Set([key, mirrorKey]), restBuffer);
+    } else {
+      setCellScoreBuffer(newBuffer);
+      openNextCell(key, new Set(), newBuffer);
+    }
+  };
+
+  const handleInlineCancel = () => {
+    setInlineEditCell(null);
+    setInlineSingleScore('');
   };
 
   const handleScoreSubmit = () => {
@@ -631,6 +761,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           includePoolStats: true,
           logoBase64: logo,
           competitionName,
+          competitionId,
           visibleColumns: getVisibleColumns('pool', pool.id),
           signatures,
         },
@@ -1025,6 +1156,18 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           const matchIndex = getMatchIndex(rowFencer, colFencer);
           if (matchIndex !== -1) onMatchReset(matchIndex);
         } : undefined}
+        quickMouseScoring={quickMouseScoring}
+        highlightedFencerIds={hoveredFencerIds}
+        onHoverCell={quickMouseScoring ? handleHoverCell : undefined}
+        onHoverLeave={quickMouseScoring ? handleHoverLeave : undefined}
+        onWheelScore={quickMouseScoring ? handleWheelScore : undefined}
+        simplifiedInputMode={simplifiedInputMode}
+        inlineEditKey={inlineEditCell?.key ?? null}
+        inlineSingleScore={inlineSingleScore}
+        cellScoreBuffer={cellScoreBuffer}
+        onInlineSingleScoreChange={setInlineSingleScore}
+        onInlineSubmit={handleInlineSubmit}
+        onInlineCancel={handleInlineCancel}
       />
       {orderedMatches.finished.length > 0 && (
         <div style={{ marginTop: '1rem' }}>

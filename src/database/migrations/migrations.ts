@@ -333,4 +333,110 @@ export const ALL_MIGRATIONS: Migration[] = [
       db.run(`CREATE INDEX IF NOT EXISTS idx_de_sigs_match ON de_match_signatures(match_id)`);
     },
   },
+
+  {
+    version: 12,
+    description: 'Table season_results pour classement saisonnier Quest (multi-compétitions)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS season_results (
+          id TEXT PRIMARY KEY,
+          competition_id TEXT NOT NULL,
+          competition_title TEXT NOT NULL,
+          competition_date TEXT NOT NULL,
+          fencer_id TEXT NOT NULL,
+          fencer_last_name TEXT NOT NULL,
+          fencer_first_name TEXT NOT NULL,
+          fencer_club TEXT,
+          victories INTEGER DEFAULT 0,
+          matches_played INTEGER DEFAULT 0,
+          quest_points INTEGER DEFAULT 0,
+          quest_v4 INTEGER DEFAULT 0,
+          quest_v3 INTEGER DEFAULT 0,
+          quest_v2 INTEGER DEFAULT 0,
+          quest_v1 INTEGER DEFAULT 0,
+          touches_scored INTEGER DEFAULT 0,
+          touches_received INTEGER DEFAULT 0,
+          red_cards INTEGER DEFAULT 0,
+          comp_rank INTEGER,
+          added_at TEXT NOT NULL,
+          UNIQUE(competition_id, fencer_id)
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_season_results_fencer ON season_results(fencer_id)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_season_results_comp ON season_results(competition_id)`);
+    },
+  },
+  {
+    version: 13,
+    description: 'Tables équipes pour compétitions par équipes (teams, team_fencers, team_matches, team_bouts)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS teams (
+          id TEXT PRIMARY KEY,
+          competition_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          club TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (competition_id) REFERENCES competitions(id) ON DELETE CASCADE
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_teams_comp ON teams(competition_id)`);
+
+      db.run(`
+        CREATE TABLE IF NOT EXISTS team_fencers (
+          id TEXT PRIMARY KEY,
+          team_id TEXT NOT NULL,
+          fencer_id TEXT NOT NULL,
+          team_order INTEGER NOT NULL,
+          is_reserve INTEGER DEFAULT 0,
+          UNIQUE(team_id, fencer_id),
+          FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+          FOREIGN KEY (fencer_id) REFERENCES fencers(id) ON DELETE CASCADE
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_team_fencers_team ON team_fencers(team_id)`);
+
+      db.run(`
+        CREATE TABLE IF NOT EXISTS team_matches (
+          id TEXT PRIMARY KEY,
+          competition_id TEXT NOT NULL,
+          pool_number INTEGER NOT NULL DEFAULT 1,
+          team_a_id TEXT NOT NULL,
+          team_b_id TEXT NOT NULL,
+          score_bouts_a INTEGER DEFAULT 0,
+          score_bouts_b INTEGER DEFAULT 0,
+          status TEXT DEFAULT 'not_started',
+          winner_id TEXT,
+          current_bout_index INTEGER DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (competition_id) REFERENCES competitions(id) ON DELETE CASCADE,
+          FOREIGN KEY (team_a_id) REFERENCES teams(id),
+          FOREIGN KEY (team_b_id) REFERENCES teams(id)
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_team_matches_comp ON team_matches(competition_id)`);
+
+      db.run(`
+        CREATE TABLE IF NOT EXISTS team_bouts (
+          id TEXT PRIMARY KEY,
+          match_id TEXT NOT NULL,
+          bout_order INTEGER NOT NULL,
+          fencer_a_id TEXT NOT NULL,
+          fencer_b_id TEXT NOT NULL,
+          score_a INTEGER DEFAULT 0,
+          score_b INTEGER DEFAULT 0,
+          max_score INTEGER DEFAULT 5,
+          status TEXT DEFAULT 'not_started',
+          winner_id TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (match_id) REFERENCES team_matches(id) ON DELETE CASCADE
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_team_bouts_match ON team_bouts(match_id)`);
+    },
+  },
 ];

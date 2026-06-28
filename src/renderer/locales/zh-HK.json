@@ -1,4 +1,4 @@
-﻿{
+{
   "app": {
     "title": "BellePoule Modern",
     "home": "主頁",
@@ -209,7 +209,8 @@
     "check_in_all": "全部報到",
     "uncheck_all": "全部取消報到",
     "view": "查看",
-    "default": "未指定"
+    "default": "未指定",
+    "save_and_add": "儲存並新增"
   },
   "messages": {
     "confirm_delete_fencer": "確定要刪除此劍手嗎？此操作不可復原。",
