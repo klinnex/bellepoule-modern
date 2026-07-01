@@ -1,11 +1,11 @@
 {
-  "date": "2026-06-30T09:51:40Z",
+  "date": "2026-07-01T10:00:27Z",
   "releases": [
     {
       "tag": "v1.0.3-build.1263",
       "name": "🚀 BellePoule Modern v1.0.3 Build #1263",
       "published_at": "2026-06-28T11:32:23Z",
-      "total_downloads": 5,
+      "total_downloads": 7,
       "assets": [
         {
           "name": "BellePoule.Modern-1.0.3-build.1263-arm64.AppImage",
@@ -17,11 +17,11 @@
         },
         {
           "name": "BellePoule.Modern-1.0.3-build.1263-portable.exe",
-          "downloads": 2
+          "downloads": 3
         },
         {
           "name": "BellePoule.Modern-1.0.3-build.1263-x64.dmg",
-          "downloads": 2
+          "downloads": 3
         },
         {
           "name": "BellePoule.Modern-1.0.3-build.1263-x86_64.AppImage",
@@ -33,7 +33,7 @@
       "tag": "dev-build-1264",
       "name": "🧪 BellePoule Modern Dev v1.0.3 Build #1264",
       "published_at": "2026-06-28T12:53:11Z",
-      "total_downloads": 0,
+      "total_downloads": 1,
       "assets": [
         {
           "name": "BellePoule.Modern-dev-1.0.3-build.1264-arm64.AppImage",
@@ -45,7 +45,7 @@
         },
         {
           "name": "BellePoule.Modern-dev-1.0.3-build.1264-portable.exe",
-          "downloads": 0
+          "downloads": 1
         },
         {
           "name": "BellePoule.Modern-dev-1.0.3-build.1264-x64.dmg",
