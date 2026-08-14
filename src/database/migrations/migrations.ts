@@ -451,4 +451,28 @@ export const ALL_MIGRATIONS: Migration[] = [
       db.run(`CREATE INDEX IF NOT EXISTS idx_team_matches_table ON team_matches(table_id)`);
     },
   },
+  {
+    version: 15,
+    description:
+      "Cartons d'équipe 'E' (format arène Sabre Laser) : table team_match_cards, traçabilité par rencontre",
+    up(db) {
+      // Un carton "E" (blanc/jaune/rouge/noir) sanctionne un retard de désignation
+      // de combattant, cumulable durant les 9 assauts d'une même rencontre
+      // (règlement épreuve par équipe Sabre Laser). N'affecte pas encore le score
+      // automatiquement (traçabilité uniquement).
+      db.run(`
+        CREATE TABLE IF NOT EXISTS team_match_cards (
+          id TEXT PRIMARY KEY,
+          match_id TEXT NOT NULL,
+          team_id TEXT NOT NULL,
+          type TEXT NOT NULL,
+          reason TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (match_id) REFERENCES team_matches(id) ON DELETE CASCADE,
+          FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_team_match_cards_match ON team_match_cards(match_id)`);
+    },
+  },
 ];

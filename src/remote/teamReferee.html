@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Arbitre équipe — BellePoule</title>
+    <script src="/socket.io.min.js"></script>
+    <style>
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        background: #0f172a;
+        color: #f1f5f9;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      header {
+        padding: 0.75rem 1rem;
+        background: #1e293b;
+        text-align: center;
+        font-size: 0.85rem;
+        color: #94a3b8;
+      }
+      #waiting {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        color: #64748b;
+        padding: 2rem;
+        text-align: center;
+      }
+      #match {
+        display: none;
+        flex: 1;
+        flex-direction: column;
+        padding: 0.75rem;
+        gap: 0.75rem;
+      }
+      .bout-info {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #94a3b8;
+      }
+      .teams {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .team-col { text-align: center; }
+      .team-name { font-weight: 700; font-size: 1rem; }
+      .fencer-name { font-size: 0.85rem; color: #cbd5e1; margin-top: 0.15rem; }
+      .vs { color: #64748b; font-weight: 700; }
+      .timer {
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+        font-size: 2.5rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+      }
+      .timer.running { color: #4ade80; }
+      .timer.warning { color: #f87171; }
+      .timer-controls { display: flex; justify-content: center; gap: 0.5rem; }
+      button {
+        font-family: inherit;
+        border: none;
+        border-radius: 0.6rem;
+        cursor: pointer;
+        color: #f1f5f9;
+        background: #334155;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+      }
+      button:active { filter: brightness(1.3); }
+      button:disabled { opacity: 0.35; cursor: not-allowed; }
+      .score-row {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .score { font-size: 3rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
+      .score-sep { font-size: 2rem; color: #475569; text-align: center; }
+      .cap { text-align: center; font-size: 0.75rem; color: #64748b; }
+      .zone-row { display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap; }
+      .zone-btn { flex: 1; min-width: 4.5rem; padding: 1.2rem 0.5rem; font-size: 1.3rem; font-weight: 700; }
+      .zone-A { background: #1d4ed8; }
+      .zone-B { background: #7c3aed; }
+      .zone-C { background: #be185d; }
+      .touch-btn { flex: 1; padding: 1.4rem; font-size: 1.6rem; font-weight: 700; background: #1d4ed8; }
+      .actions-row { display: flex; gap: 0.5rem; }
+      .advance-btn {
+        flex: 1;
+        padding: 1rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        background: #16a34a;
+      }
+      .advance-btn.ready { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.4); }
+      .reset-btn { background: #7f1d1d; }
+      .cards-section {
+        border-top: 1px solid #334155;
+        padding-top: 0.6rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+      }
+      .cards-team { text-align: center; }
+      .cards-label { font-size: 0.7rem; color: #94a3b8; margin-bottom: 0.3rem; }
+      .card-buttons { display: flex; gap: 0.3rem; justify-content: center; }
+      .card-btn { padding: 0.35rem 0.5rem; font-size: 1rem; background: #1e293b; border: 1px solid #334155; }
+      .cards-log { margin-top: 0.3rem; font-size: 0.9rem; }
+      .match-complete {
+        text-align: center;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #4ade80;
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>Arène <span id="arena-number">—</span> · Format arène Sabre Laser équipe</header>
+    <div id="waiting">En attente d'assignation d'une rencontre depuis l'application…</div>
+    <div id="match">
+      <div class="bout-info" id="bout-info">Assaut —/—</div>
+      <div class="teams">
+        <div class="team-col">
+          <div class="team-name" id="team-a-name">—</div>
+          <div class="fencer-name" id="fencer-a-name">—</div>
+        </div>
+        <div class="vs">vs</div>
+        <div class="team-col">
+          <div class="team-name" id="team-b-name">—</div>
+          <div class="fencer-name" id="fencer-b-name">—</div>
+        </div>
+      </div>
+
+      <div class="score-row">
+        <div class="score" id="score-a">0</div>
+        <div class="score-sep">–</div>
+        <div class="score" id="score-b">0</div>
+      </div>
+      <div class="cap" id="cap-label">/ 5 touches · 3:00</div>
+
+      <div class="timer" id="timer">3:00</div>
+      <div class="timer-controls">
+        <button id="timer-start">▶ Démarrer</button>
+        <button id="timer-pause">⏸ Pause</button>
+      </div>
+
+      <div id="zones-a" class="zone-row"></div>
+      <div id="zones-b" class="zone-row"></div>
+
+      <div class="actions-row">
+        <button class="reset-btn" id="reset-bout">↩ Réinitialiser l'assaut</button>
+        <button class="advance-btn" id="advance-bout">Relais suivant →</button>
+      </div>
+
+      <div class="cards-section">
+        <div class="cards-team">
+          <div class="cards-label" id="cards-label-a">Cartons équipe « E » — A</div>
+          <div class="card-buttons" id="card-buttons-a"></div>
+          <div class="cards-log" id="cards-log-a"></div>
+        </div>
+        <div class="cards-team">
+          <div class="cards-label" id="cards-label-b">Cartons équipe « E » — B</div>
+          <div class="card-buttons" id="card-buttons-b"></div>
+          <div class="cards-log" id="cards-log-b"></div>
+        </div>
+      </div>
+
+      <div class="match-complete" id="match-complete" style="display: none">
+        Rencontre terminée — tous les assauts ont été joués.
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const CARD_BADGE = { white: '⬜', yellow: '🟨', red: '🟥', black: '⬛' };
+        const CARD_TYPES = ['white', 'yellow', 'red', 'black'];
+
+        function getArenaId() {
+          const m = window.location.pathname.match(/equipe(\d+)/i);
+          return m ? m[1] : '1';
+        }
+
+        const arenaId = getArenaId();
+        document.getElementById('arena-number').textContent = arenaId;
+
+        const socket = io({ reconnection: true, reconnectionDelay: 300, reconnectionDelayMax: 5000 });
+        let localTimer = null;
+        let lastState = null;
+
+        socket.on('connect', () => {
+          socket.emit('join_team_arena', { arenaId, role: 'referee' });
+        });
+
+        socket.on('auth_error', () => {
+          window.location.href = `/login?arena=arena${arenaId}&return=${encodeURIComponent(window.location.pathname)}`;
+        });
+
+        function formatTime(sec) {
+          const s = Math.max(0, Math.round(sec));
+          const m = Math.floor(s / 60);
+          const r = s % 60;
+          return `${m}:${r.toString().padStart(2, '0')}`;
+        }
+
+        function renderZones(container, side) {
+          container.innerHTML = '';
+          if (lastState.isLaserPoints) {
+            [
+              ['A', 1, 'zone-A'],
+              ['B', 3, 'zone-B'],
+              ['C', 5, 'zone-C'],
+            ].forEach(([zone, points, cls]) => {
+              const btn = document.createElement('button');
+              btn.className = `zone-btn ${cls}`;
+              btn.textContent = `${zone} (${points})`;
+              btn.disabled = !lastState.currentBout || lastState.boutComplete;
+              btn.onclick = () => socket.emit('team_touch', { arenaId, side, points });
+              container.appendChild(btn);
+            });
+          } else {
+            const btn = document.createElement('button');
+            btn.className = 'touch-btn';
+            btn.textContent = side === 'A' ? '+ Touche (côté A)' : '+ Touche (côté B)';
+            btn.disabled = !lastState.currentBout || lastState.boutComplete;
+            btn.onclick = () => socket.emit('team_touch', { arenaId, side, points: 1 });
+            container.appendChild(btn);
+          }
+        }
+
+        function renderCardButtons(container, teamId) {
+          container.innerHTML = '';
+          CARD_TYPES.forEach(type => {
+            const btn = document.createElement('button');
+            btn.className = 'card-btn';
+            btn.textContent = CARD_BADGE[type];
+            btn.title = `Carton ${type} E`;
+            btn.onclick = () => socket.emit('team_card', { arenaId, teamId, type });
+            container.appendChild(btn);
+          });
+        }
+
+        function render() {
+          const waiting = document.getElementById('waiting');
+          const match = document.getElementById('match');
+          if (!lastState) {
+            waiting.style.display = 'flex';
+            match.style.display = 'none';
+            return;
+          }
+          waiting.style.display = 'none';
+          match.style.display = 'flex';
+
+          document.getElementById('team-a-name').textContent = lastState.teamAName;
+          document.getElementById('team-b-name').textContent = lastState.teamBName;
+          document.getElementById('cards-label-a').textContent = `Cartons équipe « E » — ${lastState.teamAName}`;
+          document.getElementById('cards-label-b').textContent = `Cartons équipe « E » — ${lastState.teamBName}`;
+
+          const complete = document.getElementById('match-complete');
+          if (lastState.matchComplete) {
+            complete.style.display = 'block';
+            document.getElementById('bout-info').textContent = 'Rencontre terminée';
+            document.getElementById('fencer-a-name').textContent = '—';
+            document.getElementById('fencer-b-name').textContent = '—';
+          } else {
+            complete.style.display = 'none';
+            const bout = lastState.currentBout;
+            document.getElementById('bout-info').textContent = bout
+              ? `Assaut ${bout.boutOrder}/${lastState.bouts.length}`
+              : '—';
+            document.getElementById('fencer-a-name').textContent = bout ? bout.fencerAName : '—';
+            document.getElementById('fencer-b-name').textContent = bout ? bout.fencerBName : '—';
+          }
+
+          document.getElementById('score-a').textContent = lastState.liveScoreA;
+          document.getElementById('score-b').textContent = lastState.liveScoreB;
+          document.getElementById('cap-label').textContent = `Plafond : ${lastState.cap.maxTouches} touches · ${formatTime(lastState.cap.maxDurationSec)}`;
+
+          const remaining = Math.max(0, lastState.cap.maxDurationSec - lastState.elapsedSec);
+          const timerEl = document.getElementById('timer');
+          timerEl.textContent = formatTime(remaining);
+          timerEl.classList.toggle('running', lastState.timerRunning);
+          timerEl.classList.toggle('warning', remaining <= 20);
+
+          renderZones(document.getElementById('zones-a'), 'A');
+          renderZones(document.getElementById('zones-b'), 'B');
+          renderCardButtons(document.getElementById('card-buttons-a'), lastState.teamAId);
+          renderCardButtons(document.getElementById('card-buttons-b'), lastState.teamBId);
+
+          const advanceBtn = document.getElementById('advance-bout');
+          advanceBtn.disabled = !lastState.currentBout;
+          advanceBtn.classList.toggle('ready', !!lastState.boutComplete);
+
+          document.getElementById('timer-start').disabled = lastState.timerRunning || !lastState.currentBout;
+          document.getElementById('timer-pause').disabled = !lastState.timerRunning;
+
+          const logA = document.getElementById('cards-log-a');
+          const logB = document.getElementById('cards-log-b');
+          logA.textContent = lastState.cards
+            .filter(c => c.teamId === lastState.teamAId)
+            .map(c => CARD_BADGE[c.type])
+            .join(' ');
+          logB.textContent = lastState.cards
+            .filter(c => c.teamId === lastState.teamBId)
+            .map(c => CARD_BADGE[c.type])
+            .join(' ');
+        }
+
+        socket.on('team_arena_state', state => {
+          lastState = state;
+          render();
+        });
+
+        // Rafraîchit l'affichage du chrono localement entre deux broadcasts serveur.
+        setInterval(() => {
+          if (lastState && lastState.timerRunning) render();
+        }, 1000);
+
+        document.getElementById('timer-start').onclick = () => socket.emit('team_timer_start', { arenaId });
+        document.getElementById('timer-pause').onclick = () => socket.emit('team_timer_pause', { arenaId });
+        document.getElementById('reset-bout').onclick = () => {
+          if (confirm("Réinitialiser le score de cet assaut ?")) socket.emit('team_reset_bout', { arenaId });
+        };
+        document.getElementById('advance-bout').onclick = () => socket.emit('team_advance_bout', { arenaId });
+      })();
+    </script>
+  </body>
+</html>

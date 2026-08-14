@@ -33,6 +33,10 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
   const [teamSize, setTeamSize] = useState(3);
   const [teamReserveCount, setTeamReserveCount] = useState(1);
   const [laserTeamMode, setLaserTeamMode] = useState<'touches' | 'points'>('touches');
+  // Sabre Laser équipe uniquement : relais FIE classique (cible cumulée
+  // progressive) ou format arène (assauts indépendants 5 touches/3min, score
+  // = total de points, règlement épreuve par équipe Sabre Laser).
+  const [teamFormat, setTeamFormat] = useState<'fie-relay' | 'laser-arena'>('fie-relay');
 
   const handleWeaponChange = (w: Weapon) => {
     setWeapon(w);
@@ -45,7 +49,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
     const teamSettings = {
       minTeamSize: teamSize,
       teamReserveCount,
-      ...(weapon === Weapon.LASER ? { laserTeamMode } : {}),
+      ...(weapon === Weapon.LASER ? { laserTeamMode, teamFormat } : {}),
     };
 
     const settings =
@@ -215,7 +219,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                 className="form-group"
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: weapon === Weapon.LASER ? '1fr 1fr 1fr' : '1fr 1fr',
+                  gridTemplateColumns: weapon === Weapon.LASER ? '1fr 1fr 1fr 1fr' : '1fr 1fr',
                   gap: '1rem',
                   background: '#f9fafb',
                   padding: '0.75rem',
@@ -254,6 +258,21 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                     >
                       <option value="touches">Touches (comme les autres armes)</option>
                       <option value="points">Points de zone cumulés (A/B/C)</option>
+                    </select>
+                  </div>
+                )}
+                {weapon === Weapon.LASER && (
+                  <div className="form-group">
+                    <label className="form-label">Format de rencontre</label>
+                    <select
+                      className="form-input form-select"
+                      value={teamFormat}
+                      onChange={e => setTeamFormat(e.target.value as 'fie-relay' | 'laser-arena')}
+                    >
+                      <option value="fie-relay">Relais FIE classique (cible cumulée)</option>
+                      <option value="laser-arena">
+                        Arène équipe (assauts 5 touches/3min, règlement ASL-FFE)
+                      </option>
                     </select>
                   </div>
                 )}

@@ -26,6 +26,51 @@ import {
 } from '../shared/types/remote';
 import { Competition, Match, Fencer, MatchStatus, FencerStatus, Score } from '../shared/types';
 import { DatabaseManager } from '../database';
+import {
+  getLaserArenaBoutCap,
+  isLaserArenaBoutComplete,
+} from '../features/teams/utils/laserArenaCalculations';
+
+// Format arène Sabre Laser équipe : état de saisie temps réel pour une
+// rencontre assignée à une arène. Distinct de `Arena`/`ArenaMatch`
+// (scoring individuel) — aucun champ ni logique partagée.
+interface TeamArenaBout {
+  id: string;
+  boutOrder: number;
+  fencerAId: string;
+  fencerAName: string;
+  fencerBId: string;
+  fencerBName: string;
+  scoreA: number;
+  scoreB: number;
+  maxScore: number;
+  status: string;
+  winnerId: string | null;
+}
+
+interface TeamArenaCard {
+  id: string;
+  teamId: string;
+  type: 'white' | 'yellow' | 'red' | 'black';
+  createdAt: string;
+}
+
+interface TeamArenaState {
+  matchId: string;
+  competitionId: string;
+  teamAId: string;
+  teamAName: string;
+  teamBId: string;
+  teamBName: string;
+  isLaserPoints: boolean; // saisie par zones A/B/C (1/3/5) ou touche simple
+  bouts: TeamArenaBout[];
+  currentBoutIndex: number; // index dans `bouts`
+  liveScoreA: number; // score de l'assaut en cours, pas encore persisté
+  liveScoreB: number;
+  elapsedAccumulatedSec: number; // temps déjà écoulé (assaut en pause)
+  timerStartedAt: number | null; // epoch ms, null = chrono à l'arrêt
+  cards: TeamArenaCard[];
+}
 
 /**
  * Vérifie qu'une origine HTTP appartient au réseau local (localhost + plages LAN privées).
@@ -96,6 +141,10 @@ export class RemoteScoreServer {
   } | null = null;
   private sessionLogo: string | null = null; // Logo organisateur (base64) pour kiosk et affichages publics
   private sessionWallpaper: string | null = null; // Fond d'écran (base64) affiché sur les arènes en attente
+  // Format arène Sabre Laser équipe (assauts 5 touches/3min) : état de saisie
+  // temps réel par arène, entièrement séparé de `this.arenas` (arènes
+  // individuelles) — aucune interférence possible avec le scoring individuel.
+  private teamArenaState: Map<string, TeamArenaState> = new Map();
   // Config TTS (minuteur vocal) poussée aux tablettes d'arbitrage depuis les paramètres globaux
   private ttsConfig: {
     voiceName: string | null;
@@ -290,6 +339,8 @@ export class RemoteScoreServer {
       'overlay.html',
       'overlay-config.html',
       'register.html',
+      'teamArena.html',
+      'teamReferee.html',
     ];
 
     // Essayer plusieurs chemins pour trouver les fichiers
@@ -378,6 +429,74 @@ export class RemoteScoreServer {
       console.error(`[RemoteScoreServer] ERREUR: Fichier ${filename} non trouvé en mémoire`);
       res.status(500).send(`Erreur: fichier ${filename} non trouvé`);
     }
+  }
+
+  // ── Format arène Sabre Laser équipe : saisie temps réel ──────────────────────
+  // API publique appelée depuis les IPC handlers (renderer → main → ici), suivant
+  // le même modèle que les arènes individuelles mais sur un état séparé.
+
+  /** Assigne une rencontre d'équipe à une arène pour saisie temps réel. */
+  public setTeamArenaMatch(arenaId: string, matchId: string, isLaserPoints: boolean): boolean {
+    const detail = this.db.getTeamMatchDetail(matchId);
+    if (!detail) return false;
+    this.teamArenaState.set(arenaId, {
+      matchId: detail.id,
+      competitionId: detail.competitionId,
+      teamAId: detail.teamAId,
+      teamAName: detail.teamAName,
+      teamBId: detail.teamBId,
+      teamBName: detail.teamBName,
+      isLaserPoints,
+      bouts: detail.bouts,
+      currentBoutIndex: detail.bouts.findIndex(b => b.status !== 'finished'),
+      liveScoreA: 0,
+      liveScoreB: 0,
+      elapsedAccumulatedSec: 0,
+      timerStartedAt: null,
+      cards: this.db.getTeamMatchCards(matchId) as TeamArenaCard[],
+    });
+    this.io.to(`team-arena:${arenaId}`).emit('team_arena_state', this.getPublicTeamArenaState(arenaId));
+    return true;
+  }
+
+  /** Retire l'assignation d'une arène (fin de saisie temps réel pour cette arène). */
+  public clearTeamArenaMatch(arenaId: string): void {
+    this.teamArenaState.delete(arenaId);
+    this.io.to(`team-arena:${arenaId}`).emit('team_arena_state', null);
+  }
+
+  private teamArenaElapsedSec(state: TeamArenaState): number {
+    const running = state.timerStartedAt ? (Date.now() - state.timerStartedAt) / 1000 : 0;
+    return state.elapsedAccumulatedSec + running;
+  }
+
+  private getPublicTeamArenaState(arenaId: string): unknown {
+    const state = this.teamArenaState.get(arenaId);
+    if (!state) return null;
+    const cap = getLaserArenaBoutCap();
+    const currentBout = state.bouts[state.currentBoutIndex] ?? null;
+    const elapsedSec = this.teamArenaElapsedSec(state);
+    return {
+      matchId: state.matchId,
+      teamAId: state.teamAId,
+      teamAName: state.teamAName,
+      teamBId: state.teamBId,
+      teamBName: state.teamBName,
+      isLaserPoints: state.isLaserPoints,
+      bouts: state.bouts,
+      currentBoutIndex: state.currentBoutIndex,
+      currentBout,
+      liveScoreA: state.liveScoreA,
+      liveScoreB: state.liveScoreB,
+      elapsedSec,
+      timerRunning: state.timerStartedAt !== null,
+      cap,
+      boutComplete: currentBout
+        ? isLaserArenaBoutComplete(state.liveScoreA, state.liveScoreB, elapsedSec, cap)
+        : false,
+      matchComplete: !currentBout,
+      cards: state.cards,
+    };
   }
 
   private parseCookies(header: string | undefined): Record<string, string> {
@@ -944,6 +1063,26 @@ export class RemoteScoreServer {
         );
       }
       this.sendHtmlFromMemory('referee.html', res);
+    });
+
+    // ── Format arène Sabre Laser équipe : affichage + tablette arbitre ──────────
+    // Routes distinctes des arènes individuelles ci-dessus (aucun chemin partagé),
+    // même modèle d'authentification par arène (checkArenaAuth).
+    this.app.get('/equipe:arenaId', (req, res) => {
+      console.log(`[RemoteScoreServer] Accès affichage équipe /equipe${req.params.arenaId}`);
+      this.sendHtmlFromMemory('teamArena.html', res);
+    });
+
+    this.app.get('/equipe:arenaId/arbitre', (req, res) => {
+      const arenaId = req.params.arenaId;
+      console.log(`[RemoteScoreServer] Accès arbitre équipe /equipe${arenaId}/arbitre`);
+      if (!this.checkArenaAuth(arenaId, req.headers.cookie)) {
+        return res.redirect(
+          302,
+          `/login?arena=arena${arenaId}&return=${encodeURIComponent(req.path)}`
+        );
+      }
+      this.sendHtmlFromMemory('teamReferee.html', res);
     });
 
     // Configurateur d'overlay (interface graphique pour générer l'URL OBS)
@@ -2797,6 +2936,106 @@ export class RemoteScoreServer {
           client.lastSeen = new Date().toISOString();
         }
       });
+
+      // ── Format arène Sabre Laser équipe : saisie temps réel ────────────────────
+      // Room dédiée `team-arena:{arenaId}`, événements `team_*` — aucun recouvrement
+      // avec les événements `arena_control`/`join_arena` du scoring individuel.
+      socket.on('join_team_arena', (data: { arenaId: string; role?: string }) => {
+        if (data.role === 'referee' && !this.checkArenaAuth(data.arenaId, socket.handshake.headers.cookie as string)) {
+          socket.emit('auth_error', { message: 'Authentification requise' });
+          socket.disconnect(true);
+          return;
+        }
+        socket.join(`team-arena:${data.arenaId}`);
+        socket.emit('team_arena_state', this.getPublicTeamArenaState(data.arenaId));
+      });
+
+      const broadcastTeamArena = (arenaId: string) => {
+        this.io.to(`team-arena:${arenaId}`).emit('team_arena_state', this.getPublicTeamArenaState(arenaId));
+      };
+
+      // Touche (simple, ou zone A/B/C = 1/3/5 en mode points) — assaut plafonné
+      // à 5 touches valides cumulées, vérifié après chaque saisie.
+      socket.on('team_touch', (data: { arenaId: string; side: 'A' | 'B'; points: number }) => {
+        const state = this.teamArenaState.get(data.arenaId);
+        if (!state) return;
+        const bout = state.bouts[state.currentBoutIndex];
+        if (!bout || bout.status === 'finished') return;
+        if (data.side === 'A') state.liveScoreA += data.points;
+        else state.liveScoreB += data.points;
+        broadcastTeamArena(data.arenaId);
+      });
+
+      // Réinitialise l'assaut en cours (score et chrono), sans le terminer.
+      socket.on('team_reset_bout', (data: { arenaId: string }) => {
+        const state = this.teamArenaState.get(data.arenaId);
+        if (!state) return;
+        state.liveScoreA = 0;
+        state.liveScoreB = 0;
+        state.elapsedAccumulatedSec = 0;
+        state.timerStartedAt = null;
+        broadcastTeamArena(data.arenaId);
+      });
+
+      socket.on('team_timer_start', (data: { arenaId: string }) => {
+        const state = this.teamArenaState.get(data.arenaId);
+        if (!state || state.timerStartedAt !== null) return;
+        state.timerStartedAt = Date.now();
+        broadcastTeamArena(data.arenaId);
+      });
+
+      socket.on('team_timer_pause', (data: { arenaId: string }) => {
+        const state = this.teamArenaState.get(data.arenaId);
+        if (!state || state.timerStartedAt === null) return;
+        state.elapsedAccumulatedSec = this.teamArenaElapsedSec(state);
+        state.timerStartedAt = null;
+        broadcastTeamArena(data.arenaId);
+      });
+
+      // Termine l'assaut en cours (persiste le score), avance au suivant s'il en reste.
+      socket.on('team_advance_bout', (data: { arenaId: string }) => {
+        const state = this.teamArenaState.get(data.arenaId);
+        if (!state) return;
+        const bout = state.bouts[state.currentBoutIndex];
+        if (!bout || bout.status === 'finished') return;
+        const scoreA = state.liveScoreA;
+        const scoreB = state.liveScoreB;
+        const winnerId =
+          scoreA > scoreB ? bout.fencerAId : scoreB > scoreA ? bout.fencerBId : null;
+        this.db.updateTeamBout(bout.id, scoreA, scoreB, 'finished', winnerId);
+        bout.scoreA = scoreA;
+        bout.scoreB = scoreB;
+        bout.status = 'finished';
+        bout.winnerId = winnerId;
+        state.currentBoutIndex = state.bouts.findIndex(b => b.status !== 'finished');
+        state.liveScoreA = 0;
+        state.liveScoreB = 0;
+        state.elapsedAccumulatedSec = 0;
+        state.timerStartedAt = null;
+        broadcastTeamArena(data.arenaId);
+      });
+
+      // Carton d'équipe "E" (traçabilité, pas d'impact automatique sur le score).
+      socket.on(
+        'team_card',
+        (data: { arenaId: string; teamId: string; type: 'white' | 'yellow' | 'red' | 'black' }) => {
+          const state = this.teamArenaState.get(data.arenaId);
+          if (!state) return;
+          const { id } = this.db.createTeamMatchCard(
+            state.matchId,
+            data.teamId,
+            data.type,
+            'late_designation'
+          );
+          state.cards.push({
+            id,
+            teamId: data.teamId,
+            type: data.type,
+            createdAt: new Date().toISOString(),
+          });
+          broadcastTeamArena(data.arenaId);
+        }
+      );
 
       // Niveau de batterie remonté par les tablettes arbitre
       socket.on('client:battery', (data: { level: number; charging: boolean }) => {

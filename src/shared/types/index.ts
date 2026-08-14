@@ -583,6 +583,9 @@ export interface CompetitionSettings {
   teamReserveCount?: number; // Nombre de réservistes par équipe (défaut: 1)
   laserTeamMode?: 'touches' | 'points'; // Cible équipe Sabre Laser : touches (défaut) ou points de zone cumulés
   teamRelayStepSize?: number; // Palier de progression par relais (défaut: 5, cf. règle FIE)
+  // 'fie-relay' (défaut) = relais classique à cible cumulée progressive. 'laser-arena' = format
+  // arène Sabre Laser (assauts indépendants plafonnés à 5 touches/3min, score = total de points).
+  teamFormat?: 'fie-relay' | 'laser-arena';
   questConfig?: QuestPhaseConfig; // Configuration du Tour Quest (Sabre Laser uniquement)
   refereeFeatureEnabled?: boolean; // Activer la gestion des arbitres sur arènes et saisie distante
   customFormula?: CustomFormulaConfig; // Formule à la carte (arme CUSTOM uniquement)

@@ -2076,15 +2076,23 @@ export class DatabaseManager {
     this.run('DELETE FROM team_fencers WHERE team_id = ? AND fencer_id = ?', [teamId, fencerId]);
   }
 
-  public createTeamMatch(competitionId: string, poolNumber: number, teamAId: string, teamBId: string): { id: string } {
+  // `round` : calendrier de poule figé (format arène Sabre Laser, 8/12 équipes)
+  // — optionnel, reste `NULL` pour la génération round-robin générique existante.
+  public createTeamMatch(
+    competitionId: string,
+    poolNumber: number,
+    teamAId: string,
+    teamBId: string,
+    round?: number
+  ): { id: string } {
     if (!this.db) throw new Error('Database not open');
     const { v4: gen } = require('uuid');
     const matchId = gen();
     const now = new Date().toISOString();
     this.run(
-      `INSERT INTO team_matches (id, competition_id, pool_number, team_a_id, team_b_id, status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, 'not_started', ?, ?)`,
-      [matchId, competitionId, poolNumber, teamAId, teamBId, now, now]
+      `INSERT INTO team_matches (id, competition_id, pool_number, round, team_a_id, team_b_id, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, 'not_started', ?, ?)`,
+      [matchId, competitionId, poolNumber, round ?? null, teamAId, teamBId, now, now]
     );
     return { id: matchId };
   }
@@ -2142,7 +2150,8 @@ export class DatabaseManager {
   }
 
   public getTeamMatchesByCompetition(competitionId: string): Array<{
-    id: string; poolNumber: number; teamAId: string; teamBId: string;
+    id: string; poolNumber: number; round: number | null;
+    teamAId: string; teamBId: string;
     scoreBoutsA: number; scoreBoutsB: number; status: string; winnerId: string | null;
     currentBoutIndex: number;
     bouts: Array<{ id: string; boutOrder: number; fencerAId: string; fencerBId: string; scoreA: number; scoreB: number; maxScore: number; status: string; winnerId: string | null }>;
@@ -2159,6 +2168,7 @@ export class DatabaseManager {
       );
       return {
         id: m.id as string, poolNumber: Number(m.pool_number),
+        round: m.round != null ? Number(m.round) : null,
         teamAId: m.team_a_id as string, teamBId: m.team_b_id as string,
         scoreBoutsA: Number(m.score_bouts_a), scoreBoutsB: Number(m.score_bouts_b),
         status: m.status as string, winnerId: (m.winner_id as string) ?? null,
@@ -2221,6 +2231,112 @@ export class DatabaseManager {
       `UPDATE team_matches SET score_bouts_a = ?, score_bouts_b = ?, status = ?, winner_id = ?, current_bout_index = ?, updated_at = ? WHERE id = ?`,
       [scoreA, scoreB, newStatus, winnerId, finishedCount, now, matchId]
     );
+  }
+
+  // ── Cartons d'équipe "E" (format arène Sabre Laser) ─────────────────────────
+  // Traçabilité uniquement : ces cartons n'affectent pas encore le score
+  // (impact en points pas encore tranché par le règlement).
+
+  public createTeamMatchCard(
+    matchId: string,
+    teamId: string,
+    type: 'white' | 'yellow' | 'red' | 'black',
+    reason: string
+  ): { id: string } {
+    if (!this.db) throw new Error('Database not open');
+    const { v4: gen } = require('uuid');
+    const id = gen();
+    const now = new Date().toISOString();
+    this.run(
+      `INSERT INTO team_match_cards (id, match_id, team_id, type, reason, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [id, matchId, teamId, type, reason, now]
+    );
+    return { id };
+  }
+
+  public getTeamMatchCards(matchId: string): Array<{
+    id: string; matchId: string; teamId: string; type: string; reason: string; createdAt: string;
+  }> {
+    if (!this.db) return [];
+    const rows = this.queryAll<any>(
+      'SELECT * FROM team_match_cards WHERE match_id = ? ORDER BY created_at',
+      [matchId]
+    );
+    return rows.map(r => ({
+      id: r.id as string,
+      matchId: r.match_id as string,
+      teamId: r.team_id as string,
+      type: r.type as string,
+      reason: r.reason as string,
+      createdAt: r.created_at as string,
+    }));
+  }
+
+  // ── Format arène Sabre Laser : saisie temps réel (tablette arbitre) ─────────
+  // Résout un match d'équipe avec noms d'équipes/tireurs pour la diffusion en
+  // direct, sans que le renderer ait à repousser ces données via IPC : le
+  // serveur de score distant lit directement la DB (il en a déjà l'accès).
+
+  public getTeamMatchDetail(matchId: string): {
+    id: string;
+    competitionId: string;
+    teamAId: string;
+    teamAName: string;
+    teamBId: string;
+    teamBName: string;
+    status: string;
+    currentBoutIndex: number;
+    bouts: Array<{
+      id: string;
+      boutOrder: number;
+      fencerAId: string;
+      fencerAName: string;
+      fencerBId: string;
+      fencerBName: string;
+      scoreA: number;
+      scoreB: number;
+      maxScore: number;
+      status: string;
+      winnerId: string | null;
+    }>;
+  } | null {
+    if (!this.db) return null;
+    const m = this.queryOne<any>('SELECT * FROM team_matches WHERE id = ?', [matchId]);
+    if (!m) return null;
+    const teamA = this.queryOne<any>('SELECT name FROM teams WHERE id = ?', [m.team_a_id]);
+    const teamB = this.queryOne<any>('SELECT name FROM teams WHERE id = ?', [m.team_b_id]);
+    const bouts = this.queryAll<any>(
+      `SELECT b.*, fa.last_name AS fa_last, fa.first_name AS fa_first, fb.last_name AS fb_last, fb.first_name AS fb_first
+       FROM team_bouts b
+       JOIN fencers fa ON b.fencer_a_id = fa.id
+       JOIN fencers fb ON b.fencer_b_id = fb.id
+       WHERE b.match_id = ? ORDER BY b.bout_order`,
+      [matchId]
+    );
+    return {
+      id: m.id as string,
+      competitionId: m.competition_id as string,
+      teamAId: m.team_a_id as string,
+      teamAName: (teamA?.name as string) ?? '—',
+      teamBId: m.team_b_id as string,
+      teamBName: (teamB?.name as string) ?? '—',
+      status: m.status as string,
+      currentBoutIndex: Number(m.current_bout_index),
+      bouts: bouts.map(b => ({
+        id: b.id as string,
+        boutOrder: Number(b.bout_order),
+        fencerAId: b.fencer_a_id as string,
+        fencerAName: `${b.fa_last} ${b.fa_first ?? ''}`.trim(),
+        fencerBId: b.fencer_b_id as string,
+        fencerBName: `${b.fb_last} ${b.fb_first ?? ''}`.trim(),
+        scoreA: Number(b.score_a),
+        scoreB: Number(b.score_b),
+        maxScore: Number(b.max_score),
+        status: b.status as string,
+        winnerId: (b.winner_id as string) ?? null,
+      })),
+    };
   }
 }
 
