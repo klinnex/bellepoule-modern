@@ -7,11 +7,15 @@
 
 import React from 'react';
 import { Card, CardReason, TargetZone, ZONE_POINTS } from '../../shared/types';
-import { TeamRow, TeamMatchRow, TeamBoutRow } from '../../features/teams/types/team.types';
+import { TeamRow, TeamMatchRow, TeamBoutRow, TeamMatchCardRow } from '../../features/teams/types/team.types';
 import { TeamTargetRule, getRelayCap } from '../../features/teams/utils/teamCalculations';
+import { LaserArenaBoutCap } from '../../features/teams/utils/laserArenaCalculations';
+import { determineTeamCardEscalation } from '../../features/teams/utils/teamCardEscalation';
 import { CARD_REASON_LABELS, getAvailableReasons } from '../../shared/utils/cardSystem';
 
 const CARD_BADGE: Record<string, string> = { WHITE: '⬜', YELLOW: '🟨', RED: '🟥', BLACK: '⬛' };
+const TEAM_CARD_BADGE: Record<string, string> = { white: '⬜', yellow: '🟨', red: '🟥', black: '⬛' };
+const TEAM_CARD_TYPES: Array<'white' | 'yellow' | 'red' | 'black'> = ['white', 'yellow', 'red', 'black'];
 
 export interface CardTarget {
   boutId: string;
@@ -37,6 +41,14 @@ interface Props {
   onSelectReason: (reason: CardReason | '') => void;
   onAddCard: (matchId: string) => void;
   emptyLabel: string;
+  // Format arène Sabre Laser uniquement (`isLaserArena`) : plafond d'assaut fixe
+  // (5 touches/3min au lieu de la cible progressive FIE) et cartons d'équipe "E"
+  // (retard de désignation), distincts des cartons individuels par tireur.
+  isLaserArena?: boolean;
+  boutCap?: LaserArenaBoutCap;
+  matchCards?: Record<string, TeamMatchCardRow[]>;
+  onAddTeamCard?: (matchId: string, teamId: string, type: 'white' | 'yellow' | 'red' | 'black') => void;
+  onAssignArena?: (matchId: string, arenaId: string) => void;
 }
 
 const TeamPoolView: React.FC<Props> = ({
@@ -58,6 +70,11 @@ const TeamPoolView: React.FC<Props> = ({
   onSelectReason,
   onAddCard,
   emptyLabel,
+  isLaserArena = false,
+  boutCap,
+  matchCards = {},
+  onAddTeamCard,
+  onAssignArena,
 }) => {
   const teamById = new Map(teams.map(t => [t.id, t]));
 
@@ -106,6 +123,20 @@ const TeamPoolView: React.FC<Props> = ({
                   <div className="text-xs text-gray-400">{tb?.club}</div>
                 </div>
               </div>
+              {isLaserArena && onAssignArena && (
+                <button
+                  onClick={() => {
+                    const arenaId = window.prompt(
+                      "Numéro d'arène pour la saisie tablette (ex : 1)"
+                    );
+                    if (arenaId?.trim()) onAssignArena(m.id, arenaId.trim());
+                  }}
+                  title="Envoyer cette rencontre sur une arène pour saisie tablette temps réel"
+                  className="ml-4 text-xs px-3 py-1.5 rounded border border-gray-300 text-gray-600 hover:bg-gray-50"
+                >
+                  📡 Arène
+                </button>
+              )}
               <button
                 onClick={() => onToggleScoring(m.id)}
                 className={`ml-4 text-xs px-3 py-1.5 rounded border ${isScoring ? 'bg-gray-200 border-gray-300 text-gray-700' : 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700'}`}
@@ -126,10 +157,9 @@ const TeamPoolView: React.FC<Props> = ({
                   const fa = fencerName(bout.fencerAId);
                   const fb = fencerName(bout.fencerBId);
                   const done = bout.status === 'finished';
-                  const cap = Math.min(
-                    getRelayCap(bout.boutOrder - 1, targetRule.stepSize),
-                    targetRule.target
-                  );
+                  const cap = isLaserArena
+                    ? (boutCap?.maxTouches ?? 5)
+                    : Math.min(getRelayCap(bout.boutOrder - 1, targetRule.stepSize), targetRule.target);
                   const cardsA = (boutCards[bout.id] ?? []).filter(
                     c => c.fencerId === bout.fencerAId
                   );
@@ -310,6 +340,42 @@ const TeamPoolView: React.FC<Props> = ({
                     </React.Fragment>
                   );
                 })}
+                {isLaserArena && onAddTeamCard && (
+                  <div className="mt-2 pt-2 border-t border-gray-200 grid grid-cols-2 gap-3 text-xs">
+                    {([['A', ta, m.teamAId] as const, ['B', tb, m.teamBId] as const]).map(
+                      ([side, team, teamId]) => {
+                        const cards = (matchCards[m.id] ?? []).filter(c => c.teamId === teamId);
+                        const suggested = determineTeamCardEscalation(cards);
+                        return (
+                          <div key={side} className={side === 'B' ? 'text-right' : ''}>
+                            <div className="text-gray-500 mb-1">
+                              Cartons équipe « E » — {team?.name ?? '—'}
+                            </div>
+                            <div
+                              className={`flex items-center gap-1 flex-wrap ${side === 'B' ? 'justify-end' : ''}`}
+                            >
+                              {TEAM_CARD_TYPES.map(type => (
+                                <button
+                                  key={type}
+                                  onClick={() => onAddTeamCard(m.id, teamId, type)}
+                                  title={`Carton ${type} E${type === suggested ? ' (suggéré)' : ''}`}
+                                  className={`px-1.5 py-0.5 rounded border hover:bg-gray-50 ${type === suggested ? 'border-blue-400 ring-1 ring-blue-300' : 'border-gray-200'}`}
+                                >
+                                  {TEAM_CARD_BADGE[type]}
+                                </button>
+                              ))}
+                              {cards.map(c => (
+                                <span key={c.id} title={c.reason}>
+                                  {TEAM_CARD_BADGE[c.type]}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -332,8 +332,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('db:upsertTeamFencer', teamId, fencerId, teamOrder, isReserve),
     removeTeamFencer: (teamId: string, fencerId: string) =>
       ipcRenderer.invoke('db:removeTeamFencer', teamId, fencerId),
-    createTeamMatch: (competitionId: string, poolNumber: number, teamAId: string, teamBId: string) =>
-      ipcRenderer.invoke('db:createTeamMatch', competitionId, poolNumber, teamAId, teamBId),
+    createTeamMatch: (competitionId: string, poolNumber: number, teamAId: string, teamBId: string, round?: number) =>
+      ipcRenderer.invoke('db:createTeamMatch', competitionId, poolNumber, teamAId, teamBId, round),
     getTeamMatchesByCompetition: (competitionId: string) =>
       ipcRenderer.invoke('db:getTeamMatchesByCompetition', competitionId),
     createTeamBout: (matchId: string, boutOrder: number, fencerAId: string, fencerBId: string, maxScore: number) =>
@@ -344,6 +344,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('db:createTeamTableauMatch', competitionId, tableId, round, position, teamAId, teamBId),
     getTeamTableauMatches: (competitionId: string, tableId: string) =>
       ipcRenderer.invoke('db:getTeamTableauMatches', competitionId, tableId),
+    createTeamMatchCard: (matchId: string, teamId: string, type: 'white' | 'yellow' | 'red' | 'black', reason: string) =>
+      ipcRenderer.invoke('db:createTeamMatchCard', matchId, teamId, type, reason),
+    getTeamMatchCards: (matchId: string) =>
+      ipcRenderer.invoke('db:getTeamMatchCards', matchId),
   },
 
   // File operations with validation
@@ -580,6 +584,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('remote:resetPoolMatch', competitionId, matchId),
     finishPoolMatch: (competitionId: string, matchId: string, scoreA: number, scoreB: number) =>
       ipcRenderer.invoke('remote:finishPoolMatch', competitionId, matchId, scoreA, scoreB),
+    setTeamArenaMatch: (competitionId: string, arenaId: string, matchId: string, isLaserPoints: boolean) =>
+      ipcRenderer.invoke('remote:setTeamArenaMatch', competitionId, arenaId, matchId, isLaserPoints),
+    clearTeamArenaMatch: (competitionId: string, arenaId: string) =>
+      ipcRenderer.invoke('remote:clearTeamArenaMatch', competitionId, arenaId),
     setRegistrationEnabled: (competitionId: string, enabled: boolean) =>
       ipcRenderer.invoke('remote:setRegistrationEnabled', competitionId, enabled),
     getConnectedClients: (competitionId: string) =>

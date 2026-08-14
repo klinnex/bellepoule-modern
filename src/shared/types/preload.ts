@@ -485,6 +485,16 @@ export interface RemoteServerAPI {
     scoreA: number,
     scoreB: number
   ) => Promise<{ success: boolean; error?: string }>;
+  setTeamArenaMatch: (
+    competitionId: string,
+    arenaId: string,
+    matchId: string,
+    isLaserPoints: boolean
+  ) => Promise<{ success: boolean; error?: string }>;
+  clearTeamArenaMatch: (
+    competitionId: string,
+    arenaId: string
+  ) => Promise<{ success: boolean; error?: string }>;
   setRegistrationEnabled: (
     competitionId: string,
     enabled: boolean
@@ -723,9 +733,9 @@ export interface DatabaseAPI {
   deleteTeam: (teamId: string) => Promise<void>;
   upsertTeamFencer: (teamId: string, fencerId: string, teamOrder: number, isReserve: boolean) => Promise<void>;
   removeTeamFencer: (teamId: string, fencerId: string) => Promise<void>;
-  createTeamMatch: (competitionId: string, poolNumber: number, teamAId: string, teamBId: string) => Promise<{ id: string }>;
+  createTeamMatch: (competitionId: string, poolNumber: number, teamAId: string, teamBId: string, round?: number) => Promise<{ id: string }>;
   getTeamMatchesByCompetition: (competitionId: string) => Promise<Array<{
-    id: string; poolNumber: number; teamAId: string; teamBId: string;
+    id: string; poolNumber: number; round: number | null; teamAId: string; teamBId: string;
     scoreBoutsA: number; scoreBoutsB: number; status: string; winnerId: string | null; currentBoutIndex: number;
     bouts: Array<{ id: string; boutOrder: number; fencerAId: string; fencerBId: string; scoreA: number; scoreB: number; maxScore: number; status: string; winnerId: string | null }>;
   }>>;
@@ -736,6 +746,10 @@ export interface DatabaseAPI {
     id: string; round: number; position: number; teamAId: string; teamBId: string;
     scoreBoutsA: number; scoreBoutsB: number; status: string; winnerId: string | null; currentBoutIndex: number;
     bouts: Array<{ id: string; boutOrder: number; fencerAId: string; fencerBId: string; scoreA: number; scoreB: number; maxScore: number; status: string; winnerId: string | null }>;
+  }>>;
+  createTeamMatchCard: (matchId: string, teamId: string, type: 'white' | 'yellow' | 'red' | 'black', reason: string) => Promise<{ id: string }>;
+  getTeamMatchCards: (matchId: string) => Promise<Array<{
+    id: string; matchId: string; teamId: string; type: string; reason: string; createdAt: string;
   }>>;
 }
 

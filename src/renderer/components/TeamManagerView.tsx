@@ -6,7 +6,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { Card, CardReason, Competition, Fencer, Weapon } from '../../shared/types';
-import { TeamRow, TeamMatchRow, TeamBoutRow } from '../../features/teams/types/team.types';
+import { TeamRow, TeamMatchRow, TeamBoutRow, TeamMatchCardRow } from '../../features/teams/types/team.types';
 import {
   generateRelayOrder,
   getTeamTargetRule,
@@ -15,11 +15,26 @@ import {
   placeRankedTeamsInTable,
   resolveTeamTableauSlot,
 } from '../../features/teams/utils/teamCalculations';
+import {
+  getLaserArenaBoutCap,
+  isLaserArenaBoutComplete,
+  calculateLaserArenaPoolRanking,
+} from '../../features/teams/utils/laserArenaCalculations';
+import {
+  applyRematchAvoidanceSwap,
+  buildPoolPairHistory,
+} from '../../features/teams/utils/laserArenaBracketRules';
+import {
+  getLaserArenaPoolSchedule,
+  resolveLaserArenaSchedule,
+} from '../../features/teams/utils/laserArenaPoolSchedules';
 import { createCard } from '../../shared/utils/cardSystem';
 import TeamPoolView, { CardTarget } from './TeamPoolView';
 import TeamTableauView from './TeamTableauView';
 import { useConfirm } from './ConfirmDialog';
 import { useTranslation } from '../hooks/useTranslation';
+
+const LASER_ARENA_POOL_NUMBER_BY_LETTER: Record<string, number> = { A: 1, B: 2, C: 3 };
 
 // ── Composant ─────────────────────────────────────────────────────────────────
 
@@ -42,6 +57,11 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
   );
   const isEpee = competition.weapon === Weapon.EPEE;
   const isLaserPoints = competition.weapon === Weapon.LASER && targetRule.mode === 'points';
+  // Format arène Sabre Laser (assauts indépendants plafonnés à 5 touches/3min,
+  // score = total de points) — distinct du relais FIE classique ci-dessus,
+  // qui reste le comportement par défaut pour tous les autres cas.
+  const isLaserArena = competition.settings?.teamFormat === 'laser-arena';
+  const boutCap = getLaserArenaBoutCap();
   const tableId = competition.id; // Un seul tableau équipes par compétition
   const { confirm } = useConfirm();
   const { t } = useTranslation();
@@ -65,10 +85,14 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
   // Scoring
   const [scoringMatchId, setScoringMatchId] = useState<string | null>(null);
 
-  // Cartons par assaut (en mémoire pour la session — cf. limites connues en documentation)
+  // Cartons individuels par assaut (en mémoire pour la session — cf. limites connues en documentation)
   const [boutCards, setBoutCards] = useState<Record<string, Card[]>>({});
   const [cardTarget, setCardTarget] = useState<CardTarget | null>(null);
   const [selectedReason, setSelectedReason] = useState<CardReason | ''>('');
+
+  // Cartons d'équipe "E" (format arène Sabre Laser uniquement), persistés en DB
+  // par rencontre (matchId), contrairement aux cartons individuels ci-dessus.
+  const [matchCards, setMatchCards] = useState<Record<string, TeamMatchCardRow[]>>({});
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -81,10 +105,21 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
       setTeams(t as TeamRow[]);
       setMatches(m as TeamMatchRow[]);
       setTableauMatches(tm as TeamMatchRow[]);
+      if (isLaserArena) {
+        const allMatchIds = [...(m as TeamMatchRow[]), ...(tm as TeamMatchRow[])].map(x => x.id);
+        const cardsArrays = await Promise.all(
+          allMatchIds.map(id => window.electronAPI.db.getTeamMatchCards(id))
+        );
+        const map: Record<string, TeamMatchCardRow[]> = {};
+        allMatchIds.forEach((id, i) => {
+          map[id] = cardsArrays[i] as TeamMatchCardRow[];
+        });
+        setMatchCards(map);
+      }
     } finally {
       setLoading(false);
     }
-  }, [competition.id, tableId]);
+  }, [competition.id, tableId, isLaserArena]);
 
   useEffect(() => {
     reload();
@@ -96,7 +131,16 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
   useEffect(() => {
     if (loading || teams.length < 2) return;
 
-    const rankedTeams = calculateTeamPoolRanking(teams, matches).map(r => r.team);
+    const baseRankedTeams = isLaserArena
+      ? calculateLaserArenaPoolRanking(teams, matches).map(r => r.team)
+      : calculateTeamPoolRanking(teams, matches).map(r => r.team);
+    // Évitement de revanche (format arène uniquement) : si les équipes classées
+    // 5/6 ou 7/8 tombent contre une équipe déjà rencontrée en poule au 1er tour,
+    // échange leurs places — n'affecte que le placement dans le tableau, pas le
+    // classement de poule affiché dans l'onglet Classement.
+    const rankedTeams = isLaserArena
+      ? applyRematchAvoidanceSwap(baseRankedTeams, buildPoolPairHistory(matches))
+      : baseRankedTeams;
     const tableSize = calculateTableSize(rankedTeams.length);
     const placements = placeRankedTeamsInTable(rankedTeams, tableSize);
     const teamByIdLocal = new Map(teams.map(t => [t.id, t]));
@@ -139,7 +183,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
                   k + 1,
                   mainA[oi].fencerId,
                   mainB[oj].fencerId,
-                  targetRule.stepSize
+                  isLaserArena ? boutCap.maxTouches : targetRule.stepSize
                 );
               }
             }
@@ -175,6 +219,8 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
     tableId,
     teamSize,
     targetRule.stepSize,
+    isLaserArena,
+    boutCap.maxTouches,
   ]);
 
   // ── Créer équipe ──────────────────────────────────────────────────────────────
@@ -225,6 +271,51 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
     if (matches.length > 0 && !(await confirm('Des matchs existent déjà. Supprimer et régénérer ?')))
       return;
 
+    if (isLaserArena) {
+      // Calendrier de poule figé du règlement (uniquement 8 ou 12 équipes) —
+      // aucune génération automatique pour un autre effectif : l'organisateur
+      // reste sur la saisie manuelle des équipes.
+      const schedule = getLaserArenaPoolSchedule(teams.length);
+      if (!schedule) {
+        alert(
+          `Le calendrier de poule figé "Sabre Laser équipe" n'est défini que pour 8 ou 12 équipes (actuellement ${teams.length}).`
+        );
+        return;
+      }
+      const resolved = resolveLaserArenaSchedule(teams, schedule);
+      for (const rm of resolved) {
+        const { id: matchId } = await window.electronAPI.db.createTeamMatch(
+          competition.id,
+          LASER_ARENA_POOL_NUMBER_BY_LETTER[rm.pool] ?? 1,
+          rm.teamA.id,
+          rm.teamB.id,
+          rm.round
+        );
+        const mainA = rm.teamA.fencers
+          .filter(f => !f.isReserve)
+          .sort((x, y) => x.teamOrder - y.teamOrder);
+        const mainB = rm.teamB.fencers
+          .filter(f => !f.isReserve)
+          .sort((x, y) => x.teamOrder - y.teamOrder);
+        if (mainA.length >= teamSize && mainB.length >= teamSize) {
+          const relayOrder = generateRelayOrder(teamSize);
+          for (let k = 0; k < relayOrder.length; k++) {
+            const [oi, oj] = relayOrder[k];
+            await window.electronAPI.db.createTeamBout(
+              matchId,
+              k + 1,
+              mainA[oi].fencerId,
+              mainB[oj].fencerId,
+              boutCap.maxTouches
+            );
+          }
+        }
+      }
+      await reload();
+      setView('pool');
+      return;
+    }
+
     for (let i = 0; i < teams.length; i++) {
       for (let j = i + 1; j < teams.length; j++) {
         const a = teams[i];
@@ -272,23 +363,64 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
     const newScoreA = side === 'A' || side === 'double' ? bout.scoreA + points : bout.scoreA;
     const newScoreB = side === 'B' || side === 'double' ? bout.scoreB + points : bout.scoreB;
 
-    // Cible progressive FIE : le relais s'arrête quand le cumul d'équipe atteint
-    // le palier (5-10-15…) de ce relais, ou la cible finale de la rencontre.
-    const priorBouts = match.bouts.filter(b => b.boutOrder < bout.boutOrder);
-    const cumulA = priorBouts.reduce((s, b) => s + b.scoreA, 0) + newScoreA;
-    const cumulB = priorBouts.reduce((s, b) => s + b.scoreB, 0) + newScoreB;
-    const cap = Math.min(bout.boutOrder * targetRule.stepSize, targetRule.target);
-    const maxReached = cumulA >= cap || cumulB >= cap;
+    let maxReached: boolean;
+    let winnerId: string | null;
+
+    if (isLaserArena) {
+      // Format arène : chaque assaut est indépendant, plafonné à 5 touches
+      // valides cumulées (les deux côtés) — pas de cible d'équipe progressive.
+      // Le plafond de 3 minutes s'applique côté saisie temps réel (tablette).
+      maxReached = isLaserArenaBoutComplete(newScoreA, newScoreB, 0, boutCap);
+      winnerId = maxReached
+        ? newScoreA > newScoreB
+          ? bout.fencerAId
+          : newScoreB > newScoreA
+            ? bout.fencerBId
+            : null
+        : null;
+    } else {
+      // Cible progressive FIE : le relais s'arrête quand le cumul d'équipe atteint
+      // le palier (5-10-15…) de ce relais, ou la cible finale de la rencontre.
+      const priorBouts = match.bouts.filter(b => b.boutOrder < bout.boutOrder);
+      const cumulA = priorBouts.reduce((s, b) => s + b.scoreA, 0) + newScoreA;
+      const cumulB = priorBouts.reduce((s, b) => s + b.scoreB, 0) + newScoreB;
+      const cap = Math.min(bout.boutOrder * targetRule.stepSize, targetRule.target);
+      maxReached = cumulA >= cap || cumulB >= cap;
+      winnerId = maxReached
+        ? cumulA > cumulB
+          ? bout.fencerAId
+          : cumulB > cumulA
+            ? bout.fencerBId
+            : null
+        : null;
+    }
+
     const newStatus = maxReached ? 'finished' : 'in_progress';
-    const winnerId = maxReached
-      ? cumulA > cumulB
-        ? bout.fencerAId
-        : cumulB > cumulA
-          ? bout.fencerBId
-          : null
-      : null;
     await window.electronAPI.db.updateTeamBout(bout.id, newScoreA, newScoreB, newStatus, winnerId);
     await reload();
+  };
+
+  // ── Carton d'équipe "E" (format arène Sabre Laser, persisté, traçabilité seule) ──
+  const handleAddTeamCard = async (
+    matchId: string,
+    teamId: string,
+    type: 'white' | 'yellow' | 'red' | 'black'
+  ) => {
+    await window.electronAPI.db.createTeamMatchCard(matchId, teamId, type, 'late_designation');
+    await reload();
+  };
+
+  // ── Envoyer une rencontre sur une arène pour saisie tablette temps réel ──────
+  const handleAssignArena = async (matchId: string, arenaId: string) => {
+    const result = await window.electronAPI.remote.setTeamArenaMatch(
+      competition.id,
+      arenaId,
+      matchId,
+      isLaserPoints
+    );
+    if (!result.success) {
+      alert(result.error ?? "Impossible d'assigner cette rencontre à l'arène (serveur distant démarré ?).");
+    }
   };
 
   const handleResetBout = async (bout: TeamBoutRow) => {
@@ -328,7 +460,11 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
     return f ? `${f.lastName} ${f.firstName ?? ''}`.trim() : id.slice(0, 8);
   };
 
-  const rankings = calculateTeamPoolRanking(teams, matches);
+  const fieRankings = calculateTeamPoolRanking(teams, matches);
+  const laserRankings = isLaserArena ? calculateLaserArenaPoolRanking(teams, matches) : [];
+  const rankedTeamsForBracket = isLaserArena
+    ? laserRankings.map(r => r.team)
+    : fieRankings.map(r => r.team);
 
   if (loading)
     return (
@@ -610,6 +746,11 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
               onSelectReason={setSelectedReason}
               onAddCard={handleAddCard}
               emptyLabel='Aucun match — cliquez sur "Générer la poule" dans l&apos;onglet Équipes.'
+              isLaserArena={isLaserArena}
+              boutCap={boutCap}
+              matchCards={matchCards}
+              onAddTeamCard={handleAddTeamCard}
+              onAssignArena={handleAssignArena}
             />
           )}
 
@@ -617,7 +758,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
           {view === 'tableau' && (
             <TeamTableauView
               teams={teams}
-              rankedTeams={rankings.map(r => r.team)}
+              rankedTeams={rankedTeamsForBracket}
               tableauMatches={tableauMatches}
               weapon={competition.weapon}
               targetRule={targetRule}
@@ -635,13 +776,131 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
               onSelectReason={setSelectedReason}
               onAddCard={handleAddCard}
               onGenerate={reload}
+              isLaserArena={isLaserArena}
+              boutCap={boutCap}
+              matchCards={matchCards}
+              onAddTeamCard={handleAddTeamCard}
+              onAssignArena={handleAssignArena}
             />
           )}
 
           {/* ── Vue CLASSEMENT ── */}
-          {view === 'ranking' && (
+          {view === 'ranking' && isLaserArena && (
             <div>
-              {rankings.length > 0 && (
+              {laserRankings.length > 0 && (
+                <div
+                  style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}
+                >
+                  <button
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
+                    onClick={() => {
+                      const header = 'Rang,Équipe,Club,V,D,Points+,Points-,Ratio,Égalité\n';
+                      const rows = laserRankings
+                        .map((r, i) =>
+                          [
+                            i + 1,
+                            `"${r.team.name}"`,
+                            `"${r.team.club ?? ''}"`,
+                            r.victories,
+                            r.defeats,
+                            r.pointsFor,
+                            r.pointsAgainst,
+                            r.pointsAgainst === 0
+                              ? r.pointsFor
+                              : (r.pointsFor / r.pointsAgainst).toFixed(2),
+                            r.tied ? 'oui' : '',
+                          ].join(',')
+                        )
+                        .join('\n');
+                      const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'classement-equipes.csv';
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    ↓ Exporter CSV
+                  </button>
+                </div>
+              )}
+              {laserRankings.length === 0 ? (
+                <div className="text-center text-gray-400 py-10">Aucun match joué.</div>
+              ) : (
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center w-8">
+                        #
+                      </th>
+                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-left">
+                        Équipe
+                      </th>
+                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
+                        V
+                      </th>
+                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
+                        D
+                      </th>
+                      <th
+                        className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
+                        title="Critère principal du règlement : total de points marqués sur toutes les rencontres de poule"
+                      >
+                        Points+
+                      </th>
+                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
+                        Points-
+                      </th>
+                      <th
+                        className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
+                        title="1er critère de départage : ratio points marqués / points reçus"
+                      >
+                        Ratio
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {laserRankings.map((r, i) => (
+                      <tr
+                        key={r.team.id}
+                        className={i === 0 ? 'bg-yellow-50' : 'hover:bg-gray-50'}
+                        title={r.tied ? 'Égalité totale avec une équipe voisine — à départager par tirage au sort' : undefined}
+                      >
+                        <td className="px-3 py-2 text-center font-bold text-gray-400">
+                          {i + 1}
+                          {r.tied && <span className="text-yellow-500 ml-1">⚠</span>}
+                        </td>
+                        <td className="px-3 py-2 font-semibold text-gray-900">
+                          {r.team.name}
+                          <span className="text-xs text-gray-400 font-normal ml-2">
+                            {r.team.club}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-center text-green-700 font-bold">
+                          {r.victories}
+                        </td>
+                        <td className="px-3 py-2 text-center text-red-500">{r.defeats}</td>
+                        <td className="px-3 py-2 text-center font-mono font-bold">{r.pointsFor}</td>
+                        <td className="px-3 py-2 text-center font-mono text-gray-400">
+                          {r.pointsAgainst}
+                        </td>
+                        <td className="px-3 py-2 text-center font-mono">
+                          {r.pointsAgainst === 0
+                            ? r.pointsFor
+                            : (r.pointsFor / r.pointsAgainst).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+          {view === 'ranking' && !isLaserArena && (
+            <div>
+              {fieRankings.length > 0 && (
                 <div
                   style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}
                 >
@@ -651,7 +910,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
                     onClick={() => {
                       const header =
                         'Rang,Équipe,Club,V,D,RelaisG,RelaisP,Ind.,Touches+,Touches-\n';
-                      const rows = rankings
+                      const rows = fieRankings
                         .map((r, i) =>
                           [
                             i + 1,
@@ -680,7 +939,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
                   </button>
                 </div>
               )}
-              {rankings.length === 0 ? (
+              {fieRankings.length === 0 ? (
                 <div className="text-center text-gray-400 py-10">Aucun match joué.</div>
               ) : (
                 <table className="min-w-full text-sm">
@@ -728,7 +987,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {rankings.map((r, i) => (
+                    {fieRankings.map((r, i) => (
                       <tr key={r.team.id} className={i === 0 ? 'bg-yellow-50' : 'hover:bg-gray-50'}>
                         <td className="px-3 py-2 text-center font-bold text-gray-400">{i + 1}</td>
                         <td className="px-3 py-2 font-semibold text-gray-900">

@@ -1793,6 +1793,30 @@ ipcMain.handle('remote:finishPoolMatch', async (_, competitionId: string, matchI
   }
 });
 
+// Format arène Sabre Laser équipe : assigne/retire une rencontre d'équipe sur
+// une arène pour saisie temps réel (tablette arbitre + affichage arène).
+ipcMain.handle('remote:setTeamArenaMatch', async (_, competitionId: string, arenaId: string, matchId: string, isLaserPoints: boolean) => {
+  try {
+    const entry = remoteServers.get(competitionId);
+    if (!entry) return { success: false, error: 'Serveur distant non démarré' };
+    const ok = entry.server.setTeamArenaMatch(arenaId, matchId, isLaserPoints);
+    return ok ? { success: true } : { success: false, error: 'Match introuvable' };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
+  }
+});
+
+ipcMain.handle('remote:clearTeamArenaMatch', async (_, competitionId: string, arenaId: string) => {
+  try {
+    const entry = remoteServers.get(competitionId);
+    if (!entry) return { success: true };
+    entry.server.clearTeamArenaMatch(arenaId);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
+  }
+});
+
 ipcMain.handle('remote:stopSession', async (_event, competitionId: string) => {
   try {
     const entry = remoteServers.get(competitionId);
@@ -2527,8 +2551,8 @@ ipcMain.handle('db:removeTeamFencer', async (_, teamId: string, fencerId: string
   return db.removeTeamFencer(teamId, fencerId);
 });
 
-ipcMain.handle('db:createTeamMatch', async (_, competitionId: string, poolNumber: number, teamAId: string, teamBId: string) => {
-  return db.createTeamMatch(competitionId, poolNumber, teamAId, teamBId);
+ipcMain.handle('db:createTeamMatch', async (_, competitionId: string, poolNumber: number, teamAId: string, teamBId: string, round?: number) => {
+  return db.createTeamMatch(competitionId, poolNumber, teamAId, teamBId, round);
 });
 
 ipcMain.handle('db:getTeamMatchesByCompetition', async (_, competitionId: string) => {
@@ -2549,6 +2573,14 @@ ipcMain.handle('db:createTeamTableauMatch', async (_, competitionId: string, tab
 
 ipcMain.handle('db:getTeamTableauMatches', async (_, competitionId: string, tableId: string) => {
   return db.getTeamTableauMatches(competitionId, tableId);
+});
+
+ipcMain.handle('db:createTeamMatchCard', async (_, matchId: string, teamId: string, type: 'white' | 'yellow' | 'red' | 'black', reason: string) => {
+  return db.createTeamMatchCard(matchId, teamId, type, reason);
+});
+
+ipcMain.handle('db:getTeamMatchCards', async (_, matchId: string) => {
+  return db.getTeamMatchCards(matchId);
 });
 
 // ============================================================================

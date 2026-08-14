@@ -139,7 +139,7 @@ export interface TeamBoutRow {
 export interface TeamMatchRow {
   id: string;
   poolNumber?: number;
-  round?: number;
+  round?: number | null;
   position?: number;
   teamAId: string;
   teamBId: string;
@@ -149,4 +149,13 @@ export interface TeamMatchRow {
   winnerId: string | null;
   currentBoutIndex: number;
   bouts: TeamBoutRow[];
+}
+
+export interface TeamMatchCardRow {
+  id: string;
+  matchId: string;
+  teamId: string;
+  type: 'white' | 'yellow' | 'red' | 'black';
+  reason: string;
+  createdAt: string;
 }
