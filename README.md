@@ -30,7 +30,27 @@ Merci pour votre soutien ! / Thank you for your support!
 
 > ⚠️ **Version de test** : Contient les dernières fonctionnalités mais peut être instable
 
-## 🆕 Nouveautés Récentes (Février 2026)
+## 🆕 Nouveautés Récentes
+
+### ⚔️ **Sabre Laser équipe — format arène (Nouveau !)**
+
+Nouveau format de compétition par équipes pour le Sabre Laser, basé sur le
+règlement de l'ASL-FFE :
+
+- 🎯 **Assauts plafonnés** à 5 touches ou 3 minutes (au lieu du relais FIE à
+  cible cumulée progressive)
+- 🏆 **Score de rencontre** = total des points marqués, classement de poule
+  par points cumulés
+- 🟨 **Cartons d'équipe « E »** persistés (blanc/jaune/rouge/noir)
+- 📅 **Calendriers de poule figés** pour 8 ou 12 équipes, avec équipes
+  assesseurs
+- 🔀 **Évitement de revanche** au 1er tour du tableau à élimination directe
+- 📱 **Saisie temps réel sur tablette arbitre** avec compteur de touches
+  déclenchant automatiquement le changement de relayeur, et affichage arène
+  dédié
+
+Voir [docs/TEAM_COMPETITIONS.md](docs/TEAM_COMPETITIONS.md) pour le détail
+complet et les limites connues.
 
 ### 🚀 **Version 2.0 - Mise à jour majeure**
 
@@ -58,7 +78,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 #### 🏆 **En Développement**
 
-- 👥 **Compétitions par Équipes** - Poules et tableau à élimination directe par équipes, relais arme-aware (voir [docs/TEAM_COMPETITIONS.md](docs/TEAM_COMPETITIONS.md) pour le détail et les limites connues)
+- 👥 **Compétitions par Équipes (relais FIE)** - Poules et tableau à élimination directe par équipes, relais arme-aware — le format arène Sabre Laser (ci-dessus) est disponible dès maintenant ; le relais FIE générique (Épée/Fleuret/Sabre) reste en développement (voir [docs/TEAM_COMPETITIONS.md](docs/TEAM_COMPETITIONS.md) pour le détail et les limites connues)
 - ⚖️ **Système de Pénalités** - Cartons jaunes/rouges/noirs avec impact sur scores
 - ⏰ **Gestion des Retardataires** - Auto-forfait après délai configurable
 - 🏅 **Double Élimination** - Brackets gagnants et perdants
@@ -465,5 +485,5 @@ Les contributions sont bienvenues ! Voir [CONTRIBUTING.md](./CONTRIBUTING.md) po
 
 📄 **Développé par** : Yann Deboeuf & communauté  
 📄 **Licence** : GPL-3.0  
-📄 **Dernière mise à jour** : 11 mars 2026  
+📄 **Dernière mise à jour** : 15 août 2026  
 📄 **Version actuelle** : v1.0.2 Build #546

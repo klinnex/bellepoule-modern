@@ -31,6 +31,45 @@ Le système ne traite pas toutes les armes de la même façon :
   - **Points** : chaque touche compte pour la valeur de sa zone (1/3/5), avec un
     sélecteur de zone dédié lors de la saisie.
 
+## Format arène Sabre Laser équipe (ASL-FFE)
+
+Un second format, spécifique au Sabre Laser, est disponible en plus du relais
+FIE ci-dessus : `competition.settings.teamFormat = 'laser-arena'` (défaut :
+`'fie-relay'`, aucun changement de comportement). Il suit le règlement
+épreuve par équipe transmis par l'ASL-FFE, structurellement différent du
+relais FIE :
+
+- **Assaut plafonné** : 5 touches valides cumulées (les deux côtés) ou 3
+  minutes, quel que soit le numéro de l'assaut — pas de cible progressive
+  5→10→…→45.
+- **Score de rencontre** = total des points marqués sur les 9 (ou N²)
+  assauts, pas le nombre d'assauts gagnés.
+- **Classement de poule** trié par points marqués cumulés en premier critère
+  (pas par nombre de victoires), puis ratio marqués/reçus, puis égalité
+  signalée pour tirage au sort manuel (`tied`, jamais résolu par le
+  logiciel).
+- **Cartons d'équipe « E »** (blanc/jaune/rouge/noir) pour retard de
+  désignation d'un combattant : persistés en base (table
+  `team_match_cards`), cumulables sur les 9 assauts d'une rencontre —
+  traçabilité uniquement, sans impact automatique sur le score (le club n'a
+  pas encore tranché la valeur en points).
+- **Calendriers de poule figés** pour 8 ou 12 équipes (3 poules A/B/C de 4
+  ou 2 poules de 4), avec désignation d'équipe(s) assesseur(s) par round,
+  transcrits du règlement.
+- **Évitement de revanche** au 1er tour du tableau : si les équipes classées
+  5/6 ou 7/8 tombent contre une équipe déjà rencontrée en poule, échange de
+  leurs places.
+- **Saisie temps réel** sur tablette : `http://IP:8066/equipe{N}` (affichage
+  arène) et `http://IP:8066/equipe{N}/arbitre` (tablette arbitre — compteur
+  de touches déclenchant automatiquement le passage au relais suivant,
+  boutons cartons E, minuteur 3 min).
+
+Fichiers clés : `src/features/teams/utils/laserArenaCalculations.ts`
+(score/plafond/classement), `laserArenaPoolSchedules.ts` (calendriers
+figés), `laserArenaBracketRules.ts` (évitement de revanche),
+`teamCardEscalation.ts` (échelle blanc→jaune), `src/remote/teamArena.html` /
+`teamReferee.html` (interfaces distantes).
+
 ## Activer une compétition par équipes
 
 Une compétition devient une compétition par équipes en positionnant
@@ -43,8 +82,9 @@ suivantes, dans `competition.settings`, ajustent le format :
 | `teamReserveCount`             | `1`         | Nombre de réservistes autorisés par équipe                        |
 | `laserTeamMode`                | `'touches'` | Sabre Laser uniquement : `'touches'` ou `'points'` (zones)         |
 | `teamRelayStepSize`             | `5`         | Palier de progression par relais (avancé — laisser à 5 sauf besoin spécifique) |
+| `teamFormat`                    | `'fie-relay'` | Sabre Laser + équipe uniquement : `'fie-relay'` (défaut, ci-dessus) ou `'laser-arena'` (règlement ASL-FFE, voir plus haut) |
 
-La cible totale de la rencontre se déduit automatiquement :
+La cible totale de la rencontre se déduit automatiquement (relais FIE uniquement) :
 `teamRelayStepSize × minTeamSize²` (45 pour le format FIE par défaut : 5×3²).
 
 ## Utilisation
@@ -67,15 +107,32 @@ l'en-tête, visible uniquement quand `isTeamEvent` est actif) :
 
 ## Limites connues
 
+**Relais FIE (`teamFormat: 'fie-relay'`, défaut) :**
+
 - **Pas de saisie live arène/tablette** pour les rencontres d'équipe : la saisie des
   scores se fait uniquement dans la fenêtre « Gestion équipes » (pas d'écran arbitre
-  dédié ni de retour temps réel comme pour les matchs individuels).
+  dédié ni de retour temps réel comme pour les matchs individuels). Résolu pour le
+  format arène Sabre Laser (`teamFormat: 'laser-arena'`) — voir plus haut.
 - **Cartons non persistés entre sessions** : les cartons enregistrés pendant un relais
   sont conservés en mémoire le temps de la session ; ils ne sont pas encore stockés en
-  base de données et sont donc perdus à la fermeture de la fenêtre.
+  base de données et sont donc perdus à la fermeture de la fenêtre. Résolu pour le
+  format arène (cartons « E » persistés en base).
+
+**Les deux formats :**
+
 - **Collision de têtes de série connue** : le calcul générique de placement en tableau
   (`generateSeedingChart`, partagé avec le tableau individuel) a un bug documenté qui
   peut faire disparaître la tête de série n°2 pour certaines tailles de tableau — ce
   n'est pas spécifique aux équipes, voir `tableCalculations.test.ts`.
 - Le nombre de réservistes n'est pas encore utilisé pour les remplacements en cours de
   match (affectation uniquement).
+
+**Format arène Sabre Laser (`teamFormat: 'laser-arena'`) uniquement :**
+
+- Les cartons d'équipe « E » n'ont **pas encore d'impact automatique sur le score** —
+  traçabilité seule, en attendant que le club tranche la valeur en points.
+- La génération automatique de la poule (calendrier figé + assesseurs) n'est
+  disponible que pour **8 ou 12 équipes** ; pour tout autre effectif, aucune
+  génération automatique n'est proposée (saisie manuelle des équipes).
+- L'affectation aux poules A/B/C se fait dans l'ordre de création des équipes (pas
+  de champ de poule explicite dans l'UI).

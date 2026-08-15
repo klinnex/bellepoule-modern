@@ -76,19 +76,37 @@ Voir [docs/TEAM_COMPETITIONS.md](docs/TEAM_COMPETITIONS.md) pour le fonctionneme
    directe, têtes de série = classement de poule, tours suivants générés
    automatiquement (`resolveTeamTableauSlot`), migration DB v14
    (`team_matches.table_id/round/position`).
+6. ✅ **Format arène Sabre Laser équipe** (`teamFormat: 'laser-arena'`, règlement
+   ASL-FFE) — assaut plafonné 5 touches/3min, score = total de points, classement de
+   poule par points cumulés, cartons d'équipe « E » persistés (table
+   `team_match_cards`, migration v15), calendriers de poule figés 8/12 équipes avec
+   assesseurs, évitement de revanche au tableau (5↔6/7↔8). Fichiers :
+   `laserArenaCalculations.ts`, `laserArenaPoolSchedules.ts`,
+   `laserArenaBracketRules.ts`, `teamCardEscalation.ts`. Résout les points 7 et 8
+   ci-dessous, **pour ce format uniquement** — le relais FIE générique garde
+   l'ancien comportement (voir `docs/TEAM_COMPETITIONS.md`).
+7. ✅ **Saisie live arène/tablette** — `src/remote/teamArena.html` /
+   `teamReferee.html`, routes `/equipe:id` et `/equipe:id/arbitre` sur
+   `remoteScoreServer.ts` (compteur de touches déclenchant le relais suivant).
+   Format arène Sabre Laser uniquement.
+8. ✅ **Persistance des cartons** d'équipe en base — format arène Sabre Laser
+   uniquement (table `team_match_cards`) ; le relais FIE générique reste en mémoire
+   de session.
 
 ### Reste à faire
 
-6. **Intégration dans le flux de phases `CompetitionView`** — par prudence (fichier de
+9. **Intégration dans le flux de phases `CompetitionView`** — par prudence (fichier de
    1800+ lignes, state machine `currentPhase` fortement couplée aux compétitions
    individuelles/Quest), les vues équipes restent pour l'instant dans la fenêtre
    modale « Gestion équipes » plutôt que dans les phases `pools`/`tableau` normales.
    À terme : soit brancher `phaseOrder` sur `competition.isTeamEvent`, soit accepter
    ce modal comme l'interface équipes définitive.
-7. **Saisie live arène/tablette** pour les rencontres d'équipe (actuellement saisie
-   uniquement dans la fenêtre Gestion équipes, pas d'écran arbitre dédié).
-8. **Persistance des cartons** d'équipe en base (actuellement en mémoire de session).
-9. **PDF export** équipes (extension de `pdfExport.ts`).
+10. **Persistance des cartons + saisie tablette pour le relais FIE générique**
+    (Épée/Fleuret/Sabre/Laser hors format arène) — actuellement résolu uniquement
+    pour `teamFormat: 'laser-arena'` (point 6-8 ci-dessus).
+11. **Impact en points des cartons d'équipe « E »** (format arène) — traçabilité
+    seule pour l'instant, en attendant que le club tranche la valeur.
+12. **PDF export** équipes (extension de `pdfExport.ts`).
 
 ---
 
