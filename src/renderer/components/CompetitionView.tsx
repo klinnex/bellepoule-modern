@@ -496,7 +496,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
               const size = updated.length > 0 ? Math.max(...updated.map(m => m.round)) : 0;
               propagateWinners(updated, size);
             }
-            return { ...bracket, matches: updated };
+            const finalMatch = updated.find(m => m.round === 2);
+            const thirdMatch = updated.find(m => m.round === 3);
+            const isComplete = !!finalMatch?.winner && (!thirdMatch || !!thirdMatch.winner);
+            return { ...bracket, matches: updated, isComplete };
           })
         );
       }
