@@ -214,34 +214,20 @@
         margin-left: 0.25rem;
       }
 
-      /* Score cells */
+      /* Score cells (lecture seule) */
       table.pool-grid .score-cell {
         width: 52px;
         min-width: 52px;
         height: 44px;
-        cursor: pointer;
-        transition: background 0.15s, transform 0.1s;
+        cursor: default;
         font-weight: 700;
         font-size: 0.88rem;
-      }
-
-      table.pool-grid .score-cell:hover {
-        filter: brightness(1.3);
-        transform: scale(1.05);
-        z-index: 1;
-        position: relative;
       }
 
       /* Diagonal */
       table.pool-grid .score-cell.diagonal {
         background: rgba(15, 30, 60, 0.85);
         color: transparent;
-        cursor: default;
-      }
-
-      table.pool-grid .score-cell.diagonal:hover {
-        filter: none;
-        transform: none;
       }
 
       /* Not played */
@@ -252,16 +238,6 @@
 
       table.pool-grid .score-cell.not-played::after {
         content: '–';
-      }
-
-      table.pool-grid .score-cell.not-played:hover {
-        background: rgba(59, 130, 246, 0.25);
-        color: #93c5fd;
-      }
-
-      table.pool-grid .score-cell.not-played:hover::after {
-        content: '+';
-        font-size: 1.1rem;
       }
 
       /* Victory */
@@ -298,23 +274,11 @@
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        cursor: pointer;
-        transition: background 0.15s, border-color 0.15s;
-      }
-
-      .match-item:hover {
-        background: rgba(59, 130, 246, 0.15);
-        border-color: rgba(59, 130, 246, 0.4);
+        cursor: default;
       }
 
       .match-item.finished {
         opacity: 0.65;
-        cursor: default;
-      }
-
-      .match-item.finished:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 255, 255, 0.1);
       }
 
       .match-num {
@@ -408,110 +372,7 @@
         color: #94a3b8;
       }
 
-      /* ── Modal ── */
-      .modal-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.7);
-        z-index: 100;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .modal-overlay.visible {
-        display: flex;
-      }
-
-      .modal {
-        background: #1e293b;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        width: 360px;
-        max-width: 95vw;
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-      }
-
-      .modal h2 {
-        font-size: 1rem;
-        color: #94a3b8;
-        margin-bottom: 1.2rem;
-        text-align: center;
-        font-weight: 500;
-      }
-
-      .modal h2 strong {
-        color: #e2e8f0;
-        display: block;
-        font-size: 1.1rem;
-        margin-top: 0.2rem;
-      }
-
-      .score-inputs {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        gap: 0.5rem;
-        align-items: center;
-        margin-bottom: 1rem;
-      }
-
-      .score-fencer {
-        text-align: center;
-      }
-
-      .score-fencer-name {
-        font-size: 0.8rem;
-        color: #94a3b8;
-        margin-bottom: 0.4rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 120px;
-        margin: 0 auto 0.4rem;
-        display: block;
-        font-weight: 600;
-      }
-
-      .score-fencer input[type='number'] {
-        width: 80px;
-        text-align: center;
-        font-size: 2.2rem;
-        font-weight: 700;
-        background: rgba(255, 255, 255, 0.08);
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        border-radius: 0.5rem;
-        color: #fff;
-        padding: 0.4rem;
-        display: block;
-        margin: 0 auto;
-        -moz-appearance: textfield;
-      }
-
-      .score-fencer input[type='number']::-webkit-inner-spin-button,
-      .score-fencer input[type='number']::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-      }
-
-      .score-fencer input[type='number']:focus {
-        outline: none;
-        border-color: #3b82f6;
-        background: rgba(59, 130, 246, 0.1);
-      }
-
-      .score-vs {
-        font-size: 1.3rem;
-        color: #475569;
-        font-weight: 700;
-      }
-
-      .modal-actions {
-        display: flex;
-        gap: 0.7rem;
-        justify-content: center;
-        margin-top: 1.2rem;
-      }
-
+      /* ── Boutons (réutilisés par la modale de signature) ── */
       .btn {
         padding: 0.55rem 1.2rem;
         border: none;
@@ -527,14 +388,6 @@
 
       .btn-primary { background: #2563eb; color: #fff; }
       .btn-secondary { background: rgba(255, 255, 255, 0.12); color: #cbd5e1; }
-
-      .modal-error {
-        color: #fca5a5;
-        font-size: 0.8rem;
-        text-align: center;
-        margin-top: 0.5rem;
-        min-height: 1.2rem;
-      }
 
       /* ── FIN bandeau ── */
       .fin-overlay {
@@ -701,29 +554,6 @@
       <div class="status-message" id="status-message" data-i18n="pool.loading_pool">Chargement de la poule…</div>
     </main>
 
-    <!-- Modal de saisie de score -->
-    <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-match-label">
-      <div class="modal">
-        <h2><span data-i18n="pool.score_entry">Saisie du score</span><strong id="modal-match-label"></strong></h2>
-        <div class="score-inputs">
-          <div class="score-fencer">
-            <span class="score-fencer-name" id="modal-fencer-a"></span>
-            <input type="number" id="input-score-a" min="0" max="99" value="0" aria-labelledby="modal-fencer-a" />
-          </div>
-          <div class="score-vs" aria-hidden="true">–</div>
-          <div class="score-fencer">
-            <span class="score-fencer-name" id="modal-fencer-b"></span>
-            <input type="number" id="input-score-b" min="0" max="99" value="0" aria-labelledby="modal-fencer-b" />
-          </div>
-        </div>
-        <div class="modal-error" id="modal-error" role="alert"></div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" id="btn-cancel" data-i18n="pool.cancel">Annuler</button>
-          <button class="btn btn-primary" id="btn-submit" data-i18n="pool.validate">Valider</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Overlay fin de poule -->
     <div class="fin-overlay" id="fin-overlay">
       <span class="fin-icon">🏆</span>
@@ -767,7 +597,6 @@
 
       // ── État global ──
       let poolData = null;
-      let pendingMatch = null;
       let currentTab = 'tableau';
       let signaturesData = {};   // { fencerId: dataURL }
       let signingFencer = null;
@@ -1052,17 +881,6 @@
         fencersDiv.appendChild(nameB);
         item.appendChild(fencersDiv);
 
-        if (!locked) {
-          if (!isFinished && fA && fB) {
-            item.addEventListener('click', () => openModal(match, fA, fB));
-          } else if (isFinished) {
-            item.addEventListener('click', () => {
-              if (fA && fB) openModal(match, fA, fB);
-            });
-            item.style.cursor = 'pointer';
-          }
-        }
-
         return item;
       }
 
@@ -1100,7 +918,6 @@
 
         if (!scoreForRow || match.status !== 'finished') {
           td.classList.add('not-played');
-          if (!locked) td.addEventListener('click', () => openModal(match, rowFencer, colFencer));
           return;
         }
 
@@ -1114,11 +931,6 @@
           td.classList.add('victory'); td.textContent = `V${scoreForRow.value ?? ''}`;
         } else {
           td.classList.add('defeat'); td.textContent = `D${scoreForRow.value ?? ''}`;
-        }
-
-        if (!locked) {
-          td.style.cursor = 'pointer';
-          td.addEventListener('click', () => openModal(match, rowFencer, colFencer));
         }
       }
 
@@ -1238,109 +1050,6 @@
         }
       }
 
-      // ── Modal ──
-      function openModal(match, rowFencer, colFencer) {
-        const isRowA = match.fencerA && match.fencerA.id === rowFencer.id;
-        const fA = isRowA ? (match.fencerA || rowFencer) : (match.fencerB || colFencer);
-        const fB = isRowA ? (match.fencerB || colFencer) : (match.fencerA || rowFencer);
-
-        pendingMatch = { match, rowFencer };
-
-        document.getElementById('modal-match-label').textContent =
-          `${shortName(fA)} vs ${shortName(fB)}`;
-        document.getElementById('modal-fencer-a').textContent = fullName(fA);
-        document.getElementById('modal-fencer-b').textContent = fullName(fB);
-
-        const saVal = isRowA ? (match.scoreA?.value ?? 0) : (match.scoreB?.value ?? 0);
-        const sbVal = isRowA ? (match.scoreB?.value ?? 0) : (match.scoreA?.value ?? 0);
-
-        document.getElementById('input-score-a').value = saVal;
-        document.getElementById('input-score-b').value = sbVal;
-        const maxScore = match.maxScore || 5;
-        document.getElementById('input-score-a').max = maxScore;
-        document.getElementById('input-score-b').max = maxScore;
-        document.getElementById('modal-error').textContent = '';
-
-        document.getElementById('modal-overlay').classList.add('visible');
-        document.getElementById('input-score-a').focus();
-        document.getElementById('input-score-a').select();
-      }
-
-      function closeModal() {
-        pendingMatch = null;
-        document.getElementById('modal-overlay').classList.remove('visible');
-      }
-
-      document.getElementById('btn-cancel').addEventListener('click', closeModal);
-
-      document.getElementById('modal-overlay').addEventListener('click', e => {
-        if (e.target === document.getElementById('modal-overlay')) closeModal();
-      });
-
-      document.getElementById('btn-submit').addEventListener('click', submitScore);
-
-      document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') closeModal();
-        if (e.key === 'Enter' && document.getElementById('modal-overlay').classList.contains('visible')) {
-          submitScore();
-        }
-      });
-
-      async function submitScore() {
-        if (!pendingMatch || !poolData) return;
-        const { match, rowFencer } = pendingMatch;
-
-        const rawA = parseInt(document.getElementById('input-score-a').value, 10);
-        const rawB = parseInt(document.getElementById('input-score-b').value, 10);
-
-        if (isNaN(rawA) || isNaN(rawB) || rawA < 0 || rawB < 0) {
-          document.getElementById('modal-error').textContent = 'Scores invalides.';
-          return;
-        }
-
-        const maxScore = pendingMatch.match.maxScore || 5;
-        if (rawA > maxScore || rawB > maxScore) {
-          document.getElementById('modal-error').textContent =
-            `Score maximum dépassé (max : ${maxScore}).`;
-          return;
-        }
-
-        if (rawA === rawB) {
-          document.getElementById('modal-error').textContent =
-            'Égalité non autorisée en poule.';
-          return;
-        }
-
-        const isRowA = match.fencerA && match.fencerA.id === rowFencer.id;
-        const finalScoreA = isRowA ? rawA : rawB;
-        const finalScoreB = isRowA ? rawB : rawA;
-
-        document.getElementById('btn-submit').disabled = true;
-        document.getElementById('modal-error').textContent = '';
-
-        try {
-          const res = await fetch(
-            `/api/pools/${poolData.poolId}/matches/${match.id}/score`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ scoreA: finalScoreA, scoreB: finalScoreB }),
-            }
-          );
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            document.getElementById('modal-error').textContent =
-              err.error || 'Erreur lors de la sauvegarde.';
-            return;
-          }
-          closeModal();
-          setTimeout(() => { if (poolData) loadPoolData(); }, 1500);
-        } catch (e) {
-          document.getElementById('modal-error').textContent = 'Erreur réseau.';
-        } finally {
-          document.getElementById('btn-submit').disabled = false;
-        }
-      }
     </script>
   </body>
 </html>
