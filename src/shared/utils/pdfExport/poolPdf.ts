@@ -166,7 +166,7 @@ export function generatePoolHTML(pool: Pool, options: PoolExportOptions, templat
 
   const assignedReferee = pool.referees?.[0];
   const refereeLabel = assignedReferee
-    ? `<span style="font-size:0.85em;color:#4b5563;">🧑‍⚖️ ${assignedReferee.lastName} ${assignedReferee.firstName}</span>`
+    ? `<span style="font-size:0.85em;color:#ffffff;font-weight:600;">🧑‍⚖️ ${assignedReferee.lastName} ${assignedReferee.firstName}</span>`
     : '';
 
   const sections: Record<string, string> = {
