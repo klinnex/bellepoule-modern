@@ -365,11 +365,9 @@ export function calculatePoolRanking(pool: Pool): PoolRanking[] {
       return bQuest - aQuest;
     }
 
-    // 3. Meilleur score en un match (décroissant)
-    const aMax = a.maxSingleMatchScore ?? 0;
-    const bMax = b.maxSingleMatchScore ?? 0;
-    if (aMax !== bMax) {
-      return bMax - aMax;
+    // 3. Indice TD-TR (décroissant) — critère officiel FIE/FFE de départage
+    if (a.index !== b.index) {
+      return b.index - a.index;
     }
 
     // 4. Confrontation directe — O(1) grâce à la Map

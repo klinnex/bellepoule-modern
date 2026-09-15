@@ -313,22 +313,21 @@ describe('calculatePoolRanking', () => {
     expect(ranking[1].ratio).toBeCloseTo(2 / 3);
   });
 
-  it('should rank by maxSingleMatchScore when V/M ratio is tied', () => {
+  it('should rank by indice (TD-TR) when V/M ratio is tied — règle officielle FIE/FFE', () => {
     // Round-robin à 3 : A vs B, A vs C, B vs C
-    // A : bat B 5-1, perd vs C 4-5  → 1V/2M ratio=0.5, maxSingle=5
-    // B : perd vs A 1-5, bat C 4-3  → 1V/2M ratio=0.5, maxSingle=4
-    // C : bat A 5-4, perd vs B 3-4  → 1V/2M ratio=0.5, maxSingle=5
-    // C et A ont maxSingle=5 mais A a battu B (5-1) et C a perdu vs B →
-    //   en confrontation directe A vs C : C a gagné → C devant A
-    // → classement : C (ratio=0.5,max=5) > A (ratio=0.5,max=5) > B (ratio=0.5,max=4)
+    // A : bat B 5-1, perd vs C 4-5  → 1V/2M ratio=0.5, TD=9, TR=6, indice=+3
+    // B : perd vs A 1-5, bat C 4-3  → 1V/2M ratio=0.5, TD=5, TR=8, indice=-3
+    // C : bat A 5-4, perd vs B 3-4  → 1V/2M ratio=0.5, TD=8, TR=8, indice=0
+    // → classement : A (indice=+3) > C (indice=0) > B (indice=-3)
+    // (A précède C malgré la défaite face à C : l'indice prime sur la confrontation directe)
     const fA = createMockFencer('fA', 1, 'FencerA');
     const fB = createMockFencer('fB', 2, 'FencerB');
     const fC = createMockFencer('fC', 3, 'FencerC');
 
     const matches: Match[] = [
-      createMockMatch('m1', fA, fB, 5, 1), // A beats B (maxA=5, maxB=1)
-      createMockMatch('m2', fC, fA, 5, 4), // C beats A (maxC=5, maxA stays 5)
-      createMockMatch('m3', fB, fC, 4, 3), // B beats C (maxB=4, maxC stays 5)
+      createMockMatch('m1', fA, fB, 5, 1), // A beats B
+      createMockMatch('m2', fC, fA, 5, 4), // C beats A
+      createMockMatch('m3', fB, fC, 4, 3), // B beats C
     ];
 
     const pool: Pool = {
@@ -347,13 +346,12 @@ describe('calculatePoolRanking', () => {
 
     const ranking = calculatePoolRanking(pool);
 
-    // B doit être dernier (maxSingle=4, les deux autres ont 5)
+    expect(ranking[0].fencer.id).toBe(fA.id);
+    expect(ranking[0].index).toBe(3);
+    expect(ranking[1].fencer.id).toBe(fC.id);
+    expect(ranking[1].index).toBe(0);
     expect(ranking[2].fencer.id).toBe(fB.id);
-    expect(ranking[2].maxSingleMatchScore).toBe(4);
-    // A et C sont devant B
-    const posA = ranking.findIndex(r => r.fencer.id === fA.id);
-    const posB = ranking.findIndex(r => r.fencer.id === fB.id);
-    expect(posA).toBeLessThan(posB);
+    expect(ranking[2].index).toBe(-3);
   });
 
   it('should rank active fencer first and append excluded/forfeit/abandoned at the end', () => {
