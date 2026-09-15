@@ -980,6 +980,9 @@ export class DatabaseManager {
 
   public addFencerToPoolMidCompetition(poolId: string, fencerId: string, maxScore: number): Pool {
     if (!this.db) throw new Error('Database not open');
+    const phaseRow = this.queryOne<{ phase_id: string }>('SELECT phase_id FROM pools WHERE id = ?', [poolId]);
+    if (!phaseRow) throw new Error(`Pool ${poolId} introuvable`);
+
     const existingFencers = this.getPoolFencers(poolId);
     if (existingFencers.some(f => f.id === fencerId)) throw new Error('Fencer already in this pool');
 
@@ -1002,8 +1005,6 @@ export class DatabaseManager {
     });
     doInsert();
 
-    const phaseRow = this.queryOne<{ phase_id: string }>('SELECT phase_id FROM pools WHERE id = ?', [poolId]);
-    if (!phaseRow) throw new Error(`Pool ${poolId} introuvable après ajout`);
     const updated = this.getPoolsByPhase(phaseRow.phase_id).find(p => p.id === poolId);
     if (!updated) throw new Error(`Poule mise à jour introuvable`);
     return updated;
