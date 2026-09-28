@@ -1462,10 +1462,13 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             minFencersPerPool={minFencersPerPool}
             maxFencersPerPool={maxFencersPerPool}
             expertMode={expertMode}
-            onPoolsConfirm={confirmedPools => {
+            onPoolsConfirm={async confirmedPools => {
               setPools(confirmedPools);
               setSkipPoolPhase(false);
               setCurrentPhase('pools');
+              // Les poules peuvent avoir été régénérées/modifiées en préparation :
+              // les persister pour que les saisies (tablette, UI) alimentent l'historique (#907)
+              await persistPoolsToDB(confirmedPools);
               confirmedPools.forEach(pool => {
                 if (pool.strip != null) window.electronAPI?.db?.updatePool(pool);
               });

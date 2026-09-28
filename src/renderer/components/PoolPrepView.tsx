@@ -170,9 +170,11 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     const generatedPools: Pool[] = distribution.map((poolFencers, index) => {
       const matchOrder = generatePoolMatchOrder(poolFencers.length);
       const now = new Date();
+      // IDs uniques : persistés en DB (clé primaire globale, toutes compétitions confondues)
+      const poolId = crypto.randomUUID();
 
       const matches: Match[] = matchOrder.map(([a, b], matchIndex) => ({
-        id: `match-${index}-${matchIndex}`,
+        id: crypto.randomUUID(),
         number: matchIndex + 1,
         fencerA: poolFencers[a - 1],
         fencerB: poolFencers[b - 1],
@@ -180,13 +182,13 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
         scoreB: null,
         maxScore,
         status: MatchStatus.NOT_STARTED,
-        poolId: `pool-${index}`,
+        poolId,
         createdAt: now,
         updatedAt: now,
       }));
 
       return {
-        id: `pool-${index}`,
+        id: poolId,
         number: index + 1,
         phaseId: 'phase-pools',
         fencers: poolFencers,
@@ -265,7 +267,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     const now = new Date();
 
     const newMatches: Match[] = matchOrder.map(([a, b], matchIndex) => ({
-      id: `${pool.id}-match-${matchIndex}`,
+      id: crypto.randomUUID(),
       number: matchIndex + 1,
       fencerA: pool.fencers[a - 1],
       fencerB: pool.fencers[b - 1],
