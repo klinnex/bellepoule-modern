@@ -9,6 +9,7 @@ import {
   Fencer,
   Match,
   Pool,
+  PoolSnapshot,
   Referee,
   CompetitionSettings,
   ImportResult,
@@ -19,7 +20,7 @@ import {
 } from '../types';
 
 // Re-export Pool for preload
-export type { Pool } from '../types';
+export type { Pool, PoolSnapshot } from '../types';
 
 // Config TTS (minuteur vocal) des tablettes d'arbitrage, réglée dans les paramètres globaux
 export interface TtsConfig {
@@ -581,7 +582,7 @@ export interface DatabaseAPI {
   createPool: (phaseId: string, number: number, poolId?: string) => Promise<Pool>;
   clearPoolsForPhase: (phaseId: string) => Promise<void>;
   addFencerToPool: (poolId: string, fencerId: string, position: number) => Promise<void>;
-  addFencerToPoolMidCompetition: (poolId: string, fencerId: string, maxScore?: number) => Promise<Pool>;
+  syncPoolSnapshot: (competitionId: string, snapshot: PoolSnapshot) => Promise<void>;
   getPoolFencers: (poolId: string) => Promise<Fencer[]>;
   getPoolsByPhase: (phaseId: string) => Promise<Pool[]>;
   updatePool: (pool: Pool) => Promise<void>;

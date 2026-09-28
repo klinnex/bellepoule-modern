@@ -79,6 +79,7 @@ interface PoolViewProps {
   onFencerChangePool?: (fencer: Fencer) => void;
   onFencerStatusChange?: (fencerId: string, status: 'abandon' | 'forfait' | 'exclusion') => void;
   onFencerAdded?: (updatedPool: Pool) => void;
+  assignedFencerIds?: ReadonlySet<string>;
   arenaCount?: number;
   arenas?: Arena[];
   isRemoteActive?: boolean;
@@ -107,6 +108,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   onFencerChangePool,
   onFencerStatusChange,
   onFencerAdded,
+  assignedFencerIds,
   arenaCount,
   arenas,
   isRemoteActive,
@@ -1638,6 +1640,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         pool={pool}
         competitionId={competitionId}
         maxScore={maxScore}
+        assignedFencerIds={assignedFencerIds}
         onConfirm={updatedPool => {
           setShowAddFencerModal(false);
           onFencerAdded?.(updatedPool);
