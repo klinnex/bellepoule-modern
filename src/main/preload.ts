@@ -590,6 +590,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('remote:clearTeamArenaMatch', competitionId, arenaId),
     setRegistrationEnabled: (competitionId: string, enabled: boolean) =>
       ipcRenderer.invoke('remote:setRegistrationEnabled', competitionId, enabled),
+    setCheckinEnabled: (competitionId: string, enabled: boolean) =>
+      ipcRenderer.invoke('remote:setCheckinEnabled', competitionId, enabled),
+    setCheckinPassword: (competitionId: string, password: string) =>
+      ipcRenderer.invoke('remote:setCheckinPassword', competitionId, password),
     getConnectedClients: (competitionId: string) =>
       ipcRenderer.invoke('remote:getConnectedClients', competitionId),
     sendClientCommand: (competitionId: string, socketId: string, command: any) =>
@@ -646,6 +650,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const handler = (_: any, data: any) => callback(data);
     ipcRenderer.on('remote:fencer_excluded', handler);
     return () => ipcRenderer.removeListener('remote:fencer_excluded', handler);
+  },
+  onRemoteCheckinUpdated: (
+    callback: (data: { kind: 'fencer' | 'referee'; id: string; present: boolean }) => void
+  ) => {
+    const handler = (_: any, data: any) => callback(data);
+    ipcRenderer.on('remote:checkin_updated', handler);
+    return () => ipcRenderer.removeListener('remote:checkin_updated', handler);
   },
   onKioskNoteUpdate: (callback: (note: any) => void) => {
     const handler = (_: any, note: any) => callback(note);

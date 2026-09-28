@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Appel - BellePoule</title>
+    <script src="/i18n.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        min-height: 100vh;
+        color: #fff;
+      }
+
+      .wrap {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.3rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .card {
+        background: rgba(0, 0, 0, 0.35);
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      .message {
+        text-align: center;
+        padding: 2rem 1rem;
+        opacity: 0.9;
+      }
+
+      input[type='password'],
+      input[type='search'] {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        font-size: 1rem;
+        outline: none;
+      }
+
+      input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      button {
+        font: inherit;
+        cursor: pointer;
+        border: none;
+        border-radius: 8px;
+      }
+
+      .btn-primary {
+        width: 100%;
+        margin-top: 1rem;
+        padding: 0.8rem;
+        background: #22c55e;
+        color: #fff;
+        font-weight: 700;
+      }
+
+      .error {
+        color: #fca5a5;
+        margin-top: 0.75rem;
+        min-height: 1.2em;
+        font-size: 0.9rem;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .tab {
+        flex: 1;
+        padding: 0.6rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        font-weight: 600;
+      }
+
+      .tab.active {
+        background: #fff;
+        color: #1e3c72;
+      }
+
+      .counter {
+        margin: 0.75rem 0;
+        font-size: 0.95rem;
+        opacity: 0.9;
+      }
+
+      .list {
+        list-style: none;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .row .who {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .row .name {
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+
+      .row .club {
+        font-size: 0.8rem;
+        opacity: 0.7;
+      }
+
+      .toggle {
+        min-width: 7.5rem;
+        padding: 0.6rem 0.75rem;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+      }
+
+      .toggle.present {
+        background: #22c55e;
+      }
+
+      .toggle:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1 data-i18n="checkin.title">📋 Appel</h1>
+
+      <div id="state-message" class="card message hidden"></div>
+
+      <form id="login-view" class="card hidden">
+        <input
+          type="password"
+          id="password"
+          autocomplete="current-password"
+          data-i18n-placeholder="checkin.password_placeholder"
+          placeholder="Mot de passe d'appel"
+        />
+        <button type="submit" class="btn-primary" data-i18n="login.submit">Valider</button>
+        <div id="login-error" class="error"></div>
+      </form>
+
+      <div id="list-view" class="card hidden">
+        <div class="tabs">
+          <button type="button" class="tab active" data-kind="fencers" data-i18n="checkin.tab_fencers">
+            Tireurs
+          </button>
+          <button type="button" class="tab" data-kind="referees" data-i18n="checkin.tab_referees">
+            Arbitres
+          </button>
+        </div>
+        <input type="search" id="search" data-i18n-placeholder="checkin.search" placeholder="Rechercher" />
+        <div id="counter" class="counter"></div>
+        <ul id="list" class="list"></ul>
+        <div id="list-error" class="error"></div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const POLL_MS = 5000;
+        let kind = 'fencers';
+        let data = { fencers: [], referees: [] };
+        let pollTimer = null;
+
+        const $ = id => document.getElementById(id);
+
+        function show(view) {
+          ['state-message', 'login-view', 'list-view'].forEach(id => {
+            $(id).classList.toggle('hidden', id !== view);
+          });
+        }
+
+        function showMessage(key) {
+          $('state-message').textContent = window.T(key);
+          show('state-message');
+          stopPolling();
+        }
+
+        function stopPolling() {
+          if (pollTimer) clearInterval(pollTimer);
+          pollTimer = null;
+        }
+
+        function normalize(s) {
+          return (s || '')
+            .toString()
+            .normalize('NFD')
+            .replace(/[̀-ͯ]/g, '')
+            .toLowerCase();
+        }
+
+        // Gère les refus de l'API ; retourne true si la réponse a été traitée
+        function handleDenied(res, body) {
+          if (res.status === 401) {
+            stopPolling();
+            show('login-view');
+            return true;
+          }
+          if (res.status === 403) {
+            showMessage(body && body.notConfigured ? 'checkin.not_configured' : 'checkin.closed');
+            return true;
+          }
+          return false;
+        }
+
+        function render() {
+          const items = data[kind] || [];
+          const q = normalize($('search').value);
+          const filtered = q
+            ? items.filter(p =>
+                normalize(p.lastName + ' ' + p.firstName + ' ' + p.club + ' ' + p.ref).includes(q)
+              )
+            : items;
+          const presentCount = items.filter(p => p.present).length;
+          $('counter').textContent = window.T('checkin.counter', {
+            present: presentCount,
+            total: items.length,
+          });
+
+          const list = $('list');
+          list.replaceChildren();
+          if (filtered.length === 0) {
+            const li = document.createElement('li');
+            li.className = 'message';
+            li.textContent = window.T('checkin.empty');
+            list.appendChild(li);
+            return;
+          }
+          filtered.forEach(p => {
+            const li = document.createElement('li');
+            li.className = 'row';
+
+            const who = document.createElement('div');
+            who.className = 'who';
+            const name = document.createElement('div');
+            name.className = 'name';
+            name.textContent = (p.lastName || '') + ' ' + (p.firstName || '');
+            const club = document.createElement('div');
+            club.className = 'club';
+            club.textContent = p.club || '';
+            who.appendChild(name);
+            who.appendChild(club);
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'toggle' + (p.present ? ' present' : '');
+            btn.textContent = window.T(p.present ? 'checkin.present' : 'checkin.absent');
+            btn.disabled = !p.editable;
+            btn.addEventListener('click', () => toggle(p, btn));
+
+            li.appendChild(who);
+            li.appendChild(btn);
+            list.appendChild(li);
+          });
+        }
+
+        async function load() {
+          try {
+            const res = await fetch('/api/checkin/list', { credentials: 'same-origin' });
+            const body = await res.json().catch(() => null);
+            if (handleDenied(res, body)) return;
+            if (!res.ok) {
+              $('list-error').textContent = (body && body.error) || window.T('login.error_connection');
+              return;
+            }
+            data = body;
+            $('list-error').textContent = '';
+            show('list-view');
+            render();
+            if (!pollTimer) pollTimer = setInterval(load, POLL_MS);
+          } catch (e) {
+            $('list-error').textContent = window.T('login.error_connection');
+          }
+        }
+
+        async function toggle(p, btn) {
+          btn.disabled = true;
+          try {
+            const res = await fetch('/api/checkin/' + kind + '/' + encodeURIComponent(p.id), {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ present: !p.present }),
+            });
+            const body = await res.json().catch(() => null);
+            if (handleDenied(res, body)) return;
+            if (!res.ok) {
+              $('list-error').textContent = (body && body.error) || window.T('login.error_connection');
+            } else {
+              p.present = !p.present;
+              $('list-error').textContent = '';
+            }
+          } catch (e) {
+            $('list-error').textContent = window.T('login.error_connection');
+          }
+          render();
+        }
+
+        $('login-view').addEventListener('submit', async e => {
+          e.preventDefault();
+          $('login-error').textContent = '';
+          try {
+            const res = await fetch('/api/checkin/login', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ password: $('password').value }),
+            });
+            const body = await res.json().catch(() => null);
+            if (res.ok && body && body.success) {
+              $('password').value = '';
+              load();
+            } else if (body && body.notConfigured) {
+              showMessage('checkin.not_configured');
+            } else {
+              $('login-error').textContent =
+                res.status === 401 ? window.T('login.error_incorrect') : (body && body.error) || '';
+            }
+          } catch (err) {
+            $('login-error').textContent = window.T('login.error_connection');
+          }
+        });
+
+        document.querySelectorAll('.tab').forEach(tab => {
+          tab.addEventListener('click', () => {
+            kind = tab.getAttribute('data-kind');
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab));
+            render();
+          });
+        });
+
+        $('search').addEventListener('input', render);
+
+        async function init() {
+          if (window.initRemoteI18n) await window.initRemoteI18n();
+          document.title = window.T('checkin.page_title');
+          try {
+            const res = await fetch('/api/checkin/status', { credentials: 'same-origin' });
+            const st = await res.json();
+            if (!st.open) return showMessage('checkin.closed');
+            if (!st.configured) return showMessage('checkin.not_configured');
+            if (!st.authenticated) return show('login-view');
+            load();
+          } catch (e) {
+            showMessage('login.error_connection');
+          }
+        }
+
+        init();
+      })();
+    </script>
+  </body>
+</html>

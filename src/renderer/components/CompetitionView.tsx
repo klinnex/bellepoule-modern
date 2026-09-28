@@ -737,6 +737,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
       // Fermer l'inscription distante dès que les poules sont générées
       if (isRemoteActive && window.electronAPI?.remote?.setRegistrationEnabled) {
         window.electronAPI.remote.setRegistrationEnabled(competition.id, false).catch(() => {});
+        window.electronAPI.remote.setCheckinEnabled?.(competition.id, false).catch(() => {});
       }
       setCurrentPhase('poolprep');
     }
@@ -1016,6 +1017,28 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     const enabled = currentPhase === 'checkin';
     window.electronAPI.remote.setRegistrationEnabled(competition.id, enabled).catch(() => {});
   }, [currentPhase, isRemoteActive, competition.id]);
+
+  // Appel distant (/appel) : ouvert uniquement pendant la phase CHECKIN (#919)
+  useEffect(() => {
+    if (!isRemoteActive || !window.electronAPI?.remote?.setCheckinEnabled) return;
+    const enabled = currentPhase === 'checkin';
+    window.electronAPI.remote.setCheckinEnabled(competition.id, enabled).catch(() => {});
+  }, [currentPhase, isRemoteActive, competition.id]);
+
+  // Pointage reçu depuis la page d'appel distante : recharger depuis la DB
+  useEffect(() => {
+    const off = window.electronAPI?.onRemoteCheckinUpdated?.(({ kind }) => {
+      if (kind === 'fencer') {
+        loadFencers();
+      } else {
+        window.electronAPI.db
+          .getRefereesByCompetition(competition.id)
+          .then((rows: Referee[]) => setReferees(rows))
+          .catch(() => {});
+      }
+    });
+    return () => off?.();
+  }, [loadFencers, competition.id]);
 
   const handleGoBack = () => {
     if (skipPoolPhase && currentPhase === 'ranking') {

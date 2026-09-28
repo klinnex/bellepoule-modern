@@ -132,6 +132,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [activeQR, setActiveQR] = useState<{ url: string; label: string } | null>(null);
   const [arenaPasswords, setArenaPasswords] = useState<Record<string, string>>({});
+  const [checkinPassword, setCheckinPassword] = useState('');
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [showPhotos, setShowPhotos] = useState(false);
   const [cardAnnounce, setCardAnnounce] = useState(false);
@@ -475,6 +476,18 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     }
   };
 
+  const applyCheckinPassword = async () => {
+    const result = await window.electronAPI.remote.setCheckinPassword(competition.id, checkinPassword);
+    if (result.success) {
+      showToast(
+        checkinPassword ? "Mot de passe d'appel défini" : "Mot de passe d'appel supprimé (appel fermé)",
+        'success'
+      );
+    } else {
+      showToast(result.error ?? 'Erreur', 'error');
+    }
+  };
+
   const copyToClipboard = useCallback(async (text: string, index: number) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -594,6 +607,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   const arenaCount = session ? session.strips.length : effectiveCommitted;
   const kioskUrl = `${serverUrl}/kiosk`;
   const lobbyUrl = `${serverUrl}/lobby`;
+  const checkinUrl = `${serverUrl}/appel`;
   const arenaUrls = Array.from({ length: arenaCount }, (_, i) => ({
     number: i + 1,
     refereeUrl: `${serverUrl}/arene${i + 1}/arbitre`,
@@ -1451,6 +1465,46 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
               title="QR code"
             >
               📱
+            </button>
+          </div>
+        </div>
+
+        <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
+          <div className="arena-url-header">
+            <strong>📋 Appel (pointage tireurs / arbitres)</strong>
+          </div>
+          <div className="arena-url-row">
+            <span className="arena-url-label">URL</span>
+            <code className="arena-url-value">{checkinUrl}</code>
+            <button
+              className="btn-copy"
+              onClick={() => copyToClipboard(checkinUrl, 996)}
+              title="Copier l'URL"
+            >
+              {copiedIndex === 996 ? '✓' : '📋'}
+            </button>
+            <button
+              className="btn-qr"
+              onClick={() => setActiveQR({ url: checkinUrl, label: 'Appel – Pointage' })}
+              title="QR code"
+            >
+              📱
+            </button>
+          </div>
+          <div className="arena-url-row">
+            <span className="arena-url-label">🔒 MDP</span>
+            <input
+              type="password"
+              className="arena-password-input"
+              placeholder="Obligatoire pour ouvrir l'appel"
+              value={checkinPassword}
+              onChange={e => setCheckinPassword(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') applyCheckinPassword();
+              }}
+            />
+            <button className="btn-copy" title="Définir le mot de passe" onClick={applyCheckinPassword}>
+              ✓
             </button>
           </div>
         </div>

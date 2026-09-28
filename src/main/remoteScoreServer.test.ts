@@ -40,6 +40,10 @@ const mockDb = {
   logScoreChange: vi.fn(),
   saveArenaState: vi.fn(),
   getArenaState: vi.fn().mockReturnValue(null),
+  getFencersByCompetition: vi.fn().mockReturnValue([]),
+  getRefereesByCompetition: vi.fn().mockReturnValue([]),
+  updateFencer: vi.fn(),
+  updateReferee: vi.fn(),
 };
 
 import express from 'express';
@@ -303,6 +307,121 @@ describe('RemoteScoreServer', () => {
         arenaId,
         expect.objectContaining({ competitionId: 'comp-1' })
       );
+    });
+  });
+
+  describe('appel distant (#919)', () => {
+    // Express 5 expose le routeur via app.router (app._router en v4)
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    function login(password: string): { res: any; cookie: string } {
+      const res = makeRes();
+      findHandler('post', '/api/checkin/login')(
+        makeReq({ body: { password }, socket: { remoteAddress: '10.0.0.' + Math.random() } }),
+        res,
+        vi.fn()
+      );
+      const header = res.setHeader.mock.calls.find((c: any[]) => c[0] === 'Set-Cookie')?.[1] ?? '';
+      return { res, cookie: String(header).split(';')[0] };
+    }
+
+    beforeEach(() => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+      mockDb.getFencersByCompetition.mockReturnValue([
+        { id: 'f1', ref: 1, lastName: 'DUPONT', firstName: 'Jean', club: 'Pontivy', status: 'N' },
+        { id: 'f2', ref: 2, lastName: 'MARTIN', firstName: 'Paul', status: 'E' },
+      ]);
+      mockDb.getRefereesByCompetition.mockReturnValue([
+        { id: 'r1', ref: 1, lastName: 'DURAND', firstName: 'Anne', status: 'unavailable' },
+      ]);
+    });
+
+    it('refuse la connexion tant que le DT n\'a pas défini de mot de passe', () => {
+      const { res } = login('x');
+      expect(res.status).toHaveBeenCalledWith(403);
+    });
+
+    it('refuse un mot de passe incorrect et ne stocke pas le mot de passe en clair', () => {
+      server.setCheckinPassword('appel42');
+      expect((server as any).checkinPassword).not.toBe('appel42');
+      const { res } = login('faux');
+      expect(res.status).toHaveBeenCalledWith(401);
+    });
+
+    it('liste tireurs/arbitres uniquement avec un cookie valide', () => {
+      server.setCheckinPassword('appel42');
+      const list = findHandler('get', '/api/checkin/list');
+
+      const denied = makeRes();
+      list(makeReq(), denied, vi.fn());
+      expect(denied.status).toHaveBeenCalledWith(401);
+
+      const { cookie } = login('appel42');
+      const res = makeRes();
+      list(makeReq({ headers: { cookie } }), res, vi.fn());
+      const body = res.json.mock.calls[0][0];
+      expect(body.fencers).toHaveLength(2);
+      expect(body.fencers[0]).toMatchObject({ id: 'f1', present: false, editable: true });
+      expect(body.fencers[1]).toMatchObject({ id: 'f2', editable: false });
+      expect(body.referees[0]).toMatchObject({ id: 'r1', present: false, editable: true });
+    });
+
+    it('pointe un tireur présent (statut P) et un arbitre disponible', () => {
+      server.setCheckinPassword('appel42');
+      const { cookie } = login('appel42');
+      const update = findHandler('post', '/api/checkin/:kind/:id');
+
+      const res = makeRes();
+      update(
+        makeReq({ params: { kind: 'fencers', id: 'f1' }, body: { present: true }, headers: { cookie } }),
+        res,
+        vi.fn()
+      );
+      expect(mockDb.updateFencer).toHaveBeenCalledWith('f1', { status: 'P' });
+      expect(res.json).toHaveBeenCalledWith({ success: true });
+
+      update(
+        makeReq({ params: { kind: 'referees', id: 'r1' }, body: { present: true }, headers: { cookie } }),
+        makeRes(),
+        vi.fn()
+      );
+      expect(mockDb.updateReferee).toHaveBeenCalledWith('r1', { status: 'available' });
+    });
+
+    it('n\'écrase pas un statut sportif (éliminé)', () => {
+      server.setCheckinPassword('appel42');
+      const { cookie } = login('appel42');
+      const res = makeRes();
+      findHandler('post', '/api/checkin/:kind/:id')(
+        makeReq({ params: { kind: 'fencers', id: 'f2' }, body: { present: true }, headers: { cookie } }),
+        res,
+        vi.fn()
+      );
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(mockDb.updateFencer).not.toHaveBeenCalled();
+    });
+
+    it('ferme l\'appel hors phase CHECKIN', () => {
+      server.setCheckinPassword('appel42');
+      const { cookie } = login('appel42');
+      server.setCheckinEnabled(false);
+      const res = makeRes();
+      findHandler('get', '/api/checkin/list')(makeReq({ headers: { cookie } }), res, vi.fn());
+      expect(res.status).toHaveBeenCalledWith(403);
+    });
+
+    it('invalide les sessions quand le mot de passe change', () => {
+      server.setCheckinPassword('appel42');
+      const { cookie } = login('appel42');
+      server.setCheckinPassword('nouveau');
+      const res = makeRes();
+      findHandler('get', '/api/checkin/list')(makeReq({ headers: { cookie } }), res, vi.fn());
+      expect(res.status).toHaveBeenCalledWith(401);
     });
   });
 });
