@@ -276,7 +276,12 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     [tableauMatches, consolationBrackets]
   );
   useEffect(() => {
-    if (!isRemoteActive || !session || pendingDeMatches.length === 0) return;
+    if (!isRemoteActive || !session) return;
+    // NB : on envoie aussi la liste VIDE quand le dernier match DE vient d'être terminé
+    // (ex. finale saisie dans l'appli alors qu'elle était assignée à une piste). Sans ça,
+    // le serveur garde le match terminé sur la piste / en file d'attente et peut le
+    // renvoyer (0-0) plus tard, écrasant le vainqueur (#909). Le ref initial vaut '' :
+    // aucun envoi tant qu'aucun match DE n'a jamais existé.
     const key = pendingDeMatches.map(m => m.id).join(',');
     if (key === prevDeMatchesKeyRef.current) return;
     prevDeMatchesKeyRef.current = key;

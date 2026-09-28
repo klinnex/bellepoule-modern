@@ -471,10 +471,17 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
           `ids tableau=[${tableauMatchesRef.current.map(m => m.id).join(',')}]`
       );
 
+      // Un match déjà gagné ne doit pas être écrasé par une fin distante sans vainqueur
+      // déterminable (ex. piste qui renvoie un match déjà saisi dans l'appli, score 0-0) :
+      // sinon le vainqueur est effacé et les résultats finaux ne s'affichent plus (#909).
+      const isStaleFinish = (match: TableauMatch) =>
+        finished && !!match.winner && !resolveWinner(match);
+
       if (inTableau) {
         setTableauMatches(prev => {
           const idx = prev.findIndex(idMatches);
           if (idx === -1) return prev;
+          if (isStaleFinish(prev[idx])) return prev;
           const updated = prev.map((m, i) =>
             i === idx ? { ...m, scoreA, scoreB, winner: resolveWinner(m) } : m
           );
@@ -491,6 +498,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
           prev.map(bracket => {
             const idx = bracket.matches.findIndex(idMatches);
             if (idx === -1) return bracket;
+            if (isStaleFinish(bracket.matches[idx])) return bracket;
             const updated = bracket.matches.map((m, i) =>
               i === idx ? { ...m, scoreA, scoreB, winner: resolveWinner(m) } : m
             );
