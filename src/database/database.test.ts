@@ -212,6 +212,36 @@ describe('DatabaseManager', () => {
     });
   });
 
+  describe('syncPoolSnapshot (#905)', () => {
+    const snapshot = {
+      id: 'pool-0', number: 1, fencerIds: ['f1', 'f2'],
+      matches: [{ id: 'm1', number: 1, fencerAId: 'f2', fencerBId: 'f1', maxScore: 5 }],
+    };
+    const sqlCalls = () => mockDb.prepare.mock.calls.map((c: any[]) => String(c[0]));
+
+    beforeEach(async () => {
+      await manager.open();
+    });
+
+    it('recrée phase et poule absentes de la base puis insère tireurs et matchs', () => {
+      mockDb.prepare.mockReturnValue(makeStmt({ get: vi.fn().mockReturnValue(null) }));
+      manager.syncPoolSnapshot('comp-1', snapshot);
+      const sql = sqlCalls();
+      expect(sql.some((s: string) => s.includes('INSERT INTO phases'))).toBe(true);
+      expect(sql.some((s: string) => s.includes('INSERT INTO pools'))).toBe(true);
+      expect(sql.some((s: string) => s.includes('INSERT OR REPLACE INTO pool_fencers'))).toBe(true);
+      expect(sql.some((s: string) => s.includes('INSERT OR IGNORE INTO matches'))).toBe(true);
+    });
+
+    it('ne recrée pas une poule déjà présente', () => {
+      mockDb.prepare.mockReturnValue(makeStmt({ get: vi.fn().mockReturnValue({ id: 'pool-0' }) }));
+      manager.syncPoolSnapshot('comp-1', snapshot);
+      const sql = sqlCalls();
+      expect(sql.some((s: string) => s.includes('INSERT INTO pools'))).toBe(false);
+      expect(sql.some((s: string) => s.includes('INSERT INTO phases'))).toBe(false);
+    });
+  });
+
   describe('Validation – ID invalide', () => {
     beforeEach(async () => {
       await manager.open();

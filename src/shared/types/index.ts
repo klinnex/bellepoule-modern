@@ -304,6 +304,14 @@ export interface Pool extends BaseEntity {
   ranking: PoolRanking[]; // Classement calculé
 }
 
+// Instantané d'une poule pour synchronisation DB (ajout tireur en cours de compétition)
+export interface PoolSnapshot {
+  id: string;
+  number: number;
+  fencerIds: string[];
+  matches: { id: string; number: number; fencerAId: string | null; fencerBId: string | null; maxScore: number }[];
+}
+
 export interface PoolRanking {
   fencer: Fencer;
   rank: number;

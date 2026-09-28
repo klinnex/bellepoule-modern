@@ -17,6 +17,7 @@ import {
   Weapon,
   Category,
   Pool,
+  PoolSnapshot,
   Match,
   MatchStatus,
   Phase,
@@ -978,36 +979,35 @@ export class DatabaseManager {
     this.run(`INSERT OR REPLACE INTO pool_fencers (pool_id, fencer_id, position) VALUES (?, ?, ?)`, [poolId, fencerId, position]);
   }
 
-  public addFencerToPoolMidCompetition(poolId: string, fencerId: string, maxScore: number): Pool {
+  /**
+   * Synchronise une poule (état affiché = source de vérité) vers les tables relationnelles.
+   * Auto-réparant : crée la phase / la poule / les lignes manquantes sans toucher aux existantes.
+   * Utilisé pour l'ajout d'un tireur en cours de compétition (#905).
+   */
+  public syncPoolSnapshot(competitionId: string, snapshot: PoolSnapshot): void {
     if (!this.db) throw new Error('Database not open');
-    const phaseRow = this.queryOne<{ phase_id: string }>('SELECT phase_id FROM pools WHERE id = ?', [poolId]);
-    if (!phaseRow) throw new Error(`Pool ${poolId} introuvable`);
-
-    const existingFencers = this.getPoolFencers(poolId);
-    if (existingFencers.some(f => f.id === fencerId)) throw new Error('Fencer already in this pool');
-
-    const doInsert = this.db.transaction(() => {
-      const nextPosition = existingFencers.length;
-      this.run(`INSERT OR REPLACE INTO pool_fencers (pool_id, fencer_id, position) VALUES (?, ?, ?)`, [poolId, fencerId, nextPosition]);
-      const maxNumRow = this.queryOne<{ max_num: number | null }>(
-        'SELECT COALESCE(MAX(number), 0) AS max_num FROM matches WHERE pool_id = ?',
-        [poolId]
-      );
-      let nextMatchNumber = maxNumRow?.max_num ?? 0;
+    const doSync = this.db.transaction(() => {
       const now = new Date().toISOString();
-      for (const existing of existingFencers) {
-        nextMatchNumber += 1;
+      const exists = this.queryOne<{ id: string }>('SELECT id FROM pools WHERE id = ?', [snapshot.id]);
+      if (!exists) {
+        let phase = this.queryOne<{ id: string }>(
+          `SELECT id FROM phases WHERE competition_id = ? AND type = 'pool' ORDER BY order_index ASC LIMIT 1`,
+          [competitionId]
+        );
+        if (!phase) phase = { id: this.createPhase(competitionId, 'pool', 1, 'Poules').id };
+        this.createPool(phase.id, snapshot.number, snapshot.id);
+      }
+      snapshot.fencerIds.forEach((fencerId, pos) => {
+        this.run(`INSERT OR REPLACE INTO pool_fencers (pool_id, fencer_id, position) VALUES (?, ?, ?)`, [snapshot.id, fencerId, pos]);
+      });
+      for (const m of snapshot.matches) {
         this.run(
-          `INSERT INTO matches (id, number, pool_id, fencer_a_id, fencer_b_id, max_score, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [uuidv4(), nextMatchNumber, poolId, fencerId, existing.id, maxScore, 'not_started', now, now]
+          `INSERT OR IGNORE INTO matches (id, number, pool_id, fencer_a_id, fencer_b_id, max_score, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [m.id, m.number, snapshot.id, m.fencerAId, m.fencerBId, m.maxScore || 5, 'not_started', now, now]
         );
       }
     });
-    doInsert();
-
-    const updated = this.getPoolsByPhase(phaseRow.phase_id).find(p => p.id === poolId);
-    if (!updated) throw new Error(`Poule mise à jour introuvable`);
-    return updated;
+    doSync();
   }
 
   public getPoolsByPhase(phaseId: string): Pool[] {

@@ -25,6 +25,7 @@ import type {
   FileSaveResult,
   VersionInfo,
   Pool,
+  PoolSnapshot,
   MatchTouchData,
   MatchCardData,
   MatchTimingData,
@@ -177,14 +178,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
       }
       return ipcRenderer.invoke('db:addFencerToPool', poolId, fencerId, position);
     },
-    addFencerToPoolMidCompetition: (poolId: string, fencerId: string, maxScore?: number) => {
-      if (!poolId || typeof poolId !== 'string') {
-        throw new Error('Pool ID is required and must be a string');
+    syncPoolSnapshot: (competitionId: string, snapshot: PoolSnapshot) => {
+      if (!competitionId || typeof competitionId !== 'string') {
+        throw new Error('Competition ID is required and must be a string');
       }
-      if (!fencerId || typeof fencerId !== 'string') {
-        throw new Error('Fencer ID is required and must be a string');
+      if (!snapshot || typeof snapshot.id !== 'string' || !Array.isArray(snapshot.fencerIds) || !Array.isArray(snapshot.matches)) {
+        throw new Error('Pool snapshot is invalid');
       }
-      return ipcRenderer.invoke('db:addFencerToPoolMidCompetition', poolId, fencerId, maxScore);
+      return ipcRenderer.invoke('db:syncPoolSnapshot', competitionId, snapshot);
     },
     getPoolFencers: (poolId: string) => {
       if (!poolId || typeof poolId !== 'string') {

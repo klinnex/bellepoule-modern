@@ -1261,6 +1261,12 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     return null;
   }, [pools, tableauMatches]);
 
+  // Tireurs déjà placés dans une poule (exclus de l'ajout en cours de compétition)
+  const assignedPoolFencerIds = useMemo(
+    () => new Set(pools.flatMap(p => p.fencers.map(f => f.id))),
+    [pools]
+  );
+
   // Rendu d'une carte de poule (réutilisé par la vue grille et la vue poule unique)
   const renderPoolCard = (pool: typeof pools[number], poolIndex: number) => (
     <div key={pool.id} style={{ minWidth: 0, overflow: 'auto' }}>
@@ -1315,6 +1321,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             handleFencerForfeit(fencerId, status);
           }
         }}
+        assignedFencerIds={assignedPoolFencerIds}
         onFencerAdded={updatedPool => {
           updatedPool.ranking = computePoolRanking(updatedPool);
           setPools(prev =>

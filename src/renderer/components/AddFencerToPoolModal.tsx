@@ -5,7 +5,8 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Fencer, Pool } from '../../shared/types';
+import { Fencer, Match, MatchStatus, Pool, PoolSnapshot } from '../../shared/types';
+import { logger, LogCategory } from '@shared/services/logger';
 import { useToast } from './Toast';
 import { useDebounce } from '../hooks/useDebounce';
 import { useFocusTrap } from '../hooks/useFocusTrap';
@@ -14,21 +15,67 @@ interface AddFencerToPoolModalProps {
   pool: Pool;
   competitionId: string;
   maxScore?: number;
+  /** Tireurs déjà placés dans une poule (toutes poules confondues) */
+  assignedFencerIds?: ReadonlySet<string>;
   onConfirm: (updatedPool: Pool) => void;
   onClose: () => void;
+}
+
+/**
+ * Ajoute un tireur à la poule affichée (source de vérité = état de la session).
+ * Crée un match contre chaque tireur déjà présent, à la suite des matchs existants.
+ */
+export function buildPoolWithAddedFencer(pool: Pool, fencer: Fencer, maxScore: number): Pool {
+  const now = new Date();
+  let nextNumber = pool.matches.reduce((max, m) => Math.max(max, m.number || 0), 0);
+  const newMatches: Match[] = pool.fencers.map(existing => ({
+    id: crypto.randomUUID(),
+    poolId: pool.id,
+    number: ++nextNumber,
+    fencerA: fencer,
+    fencerB: existing,
+    scoreA: null,
+    scoreB: null,
+    maxScore,
+    status: MatchStatus.NOT_STARTED,
+    createdAt: now,
+    updatedAt: now,
+  }));
+  return {
+    ...pool,
+    fencers: [...pool.fencers, fencer],
+    matches: [...pool.matches, ...newMatches],
+    isComplete: false,
+    updatedAt: now,
+  };
+}
+
+function toSnapshot(pool: Pool): PoolSnapshot {
+  return {
+    id: pool.id,
+    number: pool.number,
+    fencerIds: pool.fencers.map(f => f.id),
+    matches: pool.matches.map(m => ({
+      id: m.id,
+      number: m.number,
+      fencerAId: m.fencerA?.id ?? null,
+      fencerBId: m.fencerB?.id ?? null,
+      maxScore: m.maxScore,
+    })),
+  };
 }
 
 const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
   pool,
   competitionId,
   maxScore = 5,
+  assignedFencerIds,
   onConfirm,
   onClose,
 }) => {
   const { showToast } = useToast();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [allFencers, setAllFencers] = useState<Fencer[]>([]);
-  const [allPoolFencerIds, setAllPoolFencerIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
   const [selectedFencer, setSelectedFencer] = useState<Fencer | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,23 +83,11 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
 
   useEffect(() => {
     setIsFetching(true);
-    Promise.all([
-      window.electronAPI.db.getFencersByCompetition(competitionId),
-      window.electronAPI.db.getPhasesByCompetition(competitionId).then(phases =>
-        Promise.all(
-          phases
-            .filter((p: { type: string }) => p.type === 'pool')
-            .map((p: { id: string }) => window.electronAPI.db.getPoolFencers(p.id))
-        )
-      ),
-    ]).then(([fencers, poolFencerArrays]) => {
-      setAllFencers(fencers);
-      const ids = new Set<string>();
-      for (const arr of poolFencerArrays) {
-        for (const f of arr as Fencer[]) ids.add(f.id);
-      }
-      setAllPoolFencerIds(ids);
-    }).finally(() => setIsFetching(false));
+    window.electronAPI.db
+      .getFencersByCompetition(competitionId)
+      .then(setAllFencers)
+      .catch(err => logger.error(LogCategory.DATABASE, 'getFencersByCompetition failed', err as Error))
+      .finally(() => setIsFetching(false));
   }, [competitionId]);
 
   const debouncedSearch = useDebounce(search, 250);
@@ -62,21 +97,24 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
     return allFencers.filter(
       f =>
         !poolFencerIds.has(f.id) &&
-        !allPoolFencerIds.has(f.id) &&
+        !assignedFencerIds?.has(f.id) &&
         (`${f.firstName} ${f.lastName}`.toLowerCase().includes(q) ||
           f.lastName.toLowerCase().includes(q))
     );
-  }, [allFencers, allPoolFencerIds, pool.fencers, debouncedSearch]);
+  }, [allFencers, assignedFencerIds, pool.fencers, debouncedSearch]);
 
   const handleAdd = async () => {
     if (!selectedFencer) return;
     setIsLoading(true);
     try {
-      const updatedPool = await window.electronAPI.db.addFencerToPoolMidCompetition(
-        pool.id,
-        selectedFencer.id,
-        maxScore
-      );
+      const updatedPool = buildPoolWithAddedFencer(pool, selectedFencer, maxScore);
+      // Synchro DB auto-réparante (crée poule/lignes manquantes) : non bloquante
+      try {
+        await window.electronAPI.db.syncPoolSnapshot(competitionId, toSnapshot(updatedPool));
+      } catch (err) {
+        logger.error(LogCategory.DATABASE, 'syncPoolSnapshot failed', err as Error);
+        showToast('Tireur ajouté, mais la synchronisation en base a échoué', 'warning');
+      }
       onConfirm(updatedPool);
     } catch (err) {
       showToast(
