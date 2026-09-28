@@ -499,6 +499,14 @@ export interface RemoteServerAPI {
     competitionId: string,
     enabled: boolean
   ) => Promise<{ success: boolean; error?: string }>;
+  setCheckinEnabled: (
+    competitionId: string,
+    enabled: boolean
+  ) => Promise<{ success: boolean; error?: string }>;
+  setCheckinPassword: (
+    competitionId: string,
+    password: string
+  ) => Promise<{ success: boolean; error?: string }>;
   getConnectedClients: (competitionId: string) => Promise<{ success: boolean; clients: ConnectedClient[]; error?: string }>;
   sendClientCommand: (competitionId: string, socketId: string, command: TVCommand) => Promise<{ success: boolean; error?: string }>;
   broadcastCommand: (competitionId: string, command: TVCommand) => Promise<{ success: boolean; error?: string }>;
@@ -929,6 +937,9 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   onRemoteArenaUpdate: (callback: (data: any) => void) => () => void;
   onRemoteMatchFinished: (callback: (data: any) => void) => () => void;
   onTrainingMatchFinished: (callback: (data: { record: TrainingMatchRecord | null }) => void) => () => void;
+  onRemoteCheckinUpdated?: (
+    callback: (data: { kind: 'fencer' | 'referee'; id: string; present: boolean }) => void
+  ) => () => void;
   onRemoteFencerExcluded: (callback: (data: { fencerId: string; matchId: string }) => void) => (() => void);
   onKioskNoteUpdate: (
     callback: (note: import('../types/remote').OrgNote | null) => void

@@ -176,6 +176,12 @@ export class RemoteScoreServer {
   // Inscription distante : actif pendant la phase CHECKIN, désactivé après génération des poules
   private registrationEnabled: boolean = true;
 
+  // Appel distant (#919) : pointage tireurs/arbitres depuis un téléphone, phase CHECKIN seulement.
+  // Mot de passe dédié obligatoire (hashé), tokens de session en cookie.
+  private checkinEnabled: boolean = true;
+  private checkinPassword: string | null = null;
+  private checkinTokens: Set<string> = new Set();
+
   // Stocker le contenu des fichiers HTML en mémoire pour éviter les problèmes de chemin
   private htmlFiles: Map<string, string> = new Map();
 
@@ -339,6 +345,7 @@ export class RemoteScoreServer {
       'overlay.html',
       'overlay-config.html',
       'register.html',
+      'checkin.html',
       'teamArena.html',
       'teamReferee.html',
     ];
@@ -1243,33 +1250,140 @@ export class RemoteScoreServer {
       }
     });
 
+    // ── Appel distant tireurs/arbitres (#919) ──────────────────────────────
+    this.app.get('/appel', (_req, res) => {
+      this.sendHtmlFromMemory('checkin.html', res);
+    });
+
+    this.app.get('/checkin', (_req, res) => {
+      this.sendHtmlFromMemory('checkin.html', res);
+    });
+
+    this.app.get('/api/checkin/status', (req, res) => {
+      res.json({
+        open: this.checkinEnabled,
+        configured: !!this.checkinPassword,
+        authenticated: this.checkCheckinAuth(req.headers.cookie),
+      });
+    });
+
+    this.app.post('/api/checkin/login', (req, res) => {
+      const ip = this.getClientIp(req);
+      if (!this.checkLoginRateLimit(ip)) {
+        return res
+          .status(429)
+          .json({ success: false, error: 'Trop de tentatives. Réessayez dans 1 minute.' });
+      }
+      if (!this.checkinPassword) {
+        return res.status(403).json({ success: false, notConfigured: true });
+      }
+      const { password } = (req.body ?? {}) as { password?: unknown };
+      let passwordOk = false;
+      try {
+        passwordOk =
+          typeof password === 'string' &&
+          password.length > 0 &&
+          timingSafeEqual(
+            Buffer.from(this.hashPassword(password)),
+            Buffer.from(this.checkinPassword)
+          );
+      } catch {
+        passwordOk = false;
+      }
+      if (!passwordOk) {
+        return res.status(401).json({ success: false, error: 'Mot de passe incorrect' });
+      }
+      this.loginAttempts.delete(ip);
+      const token = randomBytes(32).toString('hex');
+      this.checkinTokens.add(token);
+      res.setHeader(
+        'Set-Cookie',
+        `bp_checkin_token=${token}; HttpOnly; SameSite=Strict; Max-Age=${8 * 3600}; Path=/${req.secure ? '; Secure' : ''}`
+      );
+      res.json({ success: true });
+    });
+
+    this.app.get('/api/checkin/list', (req, res) => {
+      const denied = this.checkinGuard(req.headers.cookie);
+      if (denied) return res.status(denied.status).json(denied.body);
+      const competitionId = this.session?.competitionId;
+      if (!competitionId) return res.status(503).json({ error: 'Aucune compétition active' });
+      const fencers = this.db.getFencersByCompetition(competitionId).map(f => ({
+        id: f.id,
+        ref: f.ref,
+        lastName: f.lastName,
+        firstName: f.firstName,
+        club: f.club ?? '',
+        present: f.status === 'P',
+        editable: f.status === 'P' || f.status === 'N',
+      }));
+      const referees = this.db.getRefereesByCompetition(competitionId).map(r => ({
+        id: r.id,
+        ref: r.ref,
+        lastName: r.lastName,
+        firstName: r.firstName,
+        club: r.club ?? '',
+        present: r.status !== 'unavailable',
+        editable: r.status !== 'assigned',
+      }));
+      res.json({ fencers, referees });
+    });
+
+    this.app.post('/api/checkin/:kind/:id', (req, res) => {
+      const denied = this.checkinGuard(req.headers.cookie);
+      if (denied) return res.status(denied.status).json(denied.body);
+      const { kind, id } = req.params;
+      const { present } = (req.body ?? {}) as { present?: unknown };
+      if (kind !== 'fencers' && kind !== 'referees') {
+        return res.status(404).json({ error: 'Type inconnu' });
+      }
+      if (typeof present !== 'boolean') {
+        return res.status(400).json({ error: 'Champ "present" invalide' });
+      }
+      const competitionId = this.session?.competitionId;
+      if (!competitionId) return res.status(503).json({ error: 'Aucune compétition active' });
+
+      try {
+        if (kind === 'fencers') {
+          const fencer = this.db.getFencersByCompetition(competitionId).find(f => f.id === id);
+          if (!fencer) return res.status(404).json({ error: 'Tireur introuvable' });
+          // Ne jamais écraser un statut sportif (éliminé, exclu, forfait…)
+          if (fencer.status !== 'P' && fencer.status !== 'N') {
+            return res.status(409).json({ error: 'Statut du tireur non modifiable' });
+          }
+          this.db.updateFencer(id, { status: (present ? 'P' : 'N') as any });
+        } else {
+          const referee = this.db.getRefereesByCompetition(competitionId).find(r => r.id === id);
+          if (!referee) return res.status(404).json({ error: 'Arbitre introuvable' });
+          if (referee.status === 'assigned') {
+            return res.status(409).json({ error: 'Arbitre déjà assigné' });
+          }
+          this.db.updateReferee(id, { status: present ? 'available' : 'unavailable' });
+        }
+      } catch (err) {
+        console.error('[RemoteScoreServer] Erreur appel distant:', err);
+        return res.status(500).json({ error: 'Erreur lors de la mise à jour' });
+      }
+
+      const mainWin = (global as any).mainWindow;
+      if (mainWin && !mainWin.isDestroyed?.()) {
+        mainWin.webContents.send('remote:checkin_updated', {
+          kind: kind === 'fencers' ? 'fencer' : 'referee',
+          id,
+          present,
+        });
+      }
+      res.json({ success: true });
+    });
+
     // API: authentification par mot de passe pour une arène
     this.app.post('/api/auth/login/:arenaId', (req, res) => {
       // Rate limiting : 5 tentatives par IP par minute
-      const ip =
-        (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
-        req.socket.remoteAddress ||
-        'unknown';
-      const now = Date.now();
-      const attempt = this.loginAttempts.get(ip);
-      if (attempt) {
-        if (now < attempt.resetAt) {
-          if (attempt.count >= 5) {
-            return res
-              .status(429)
-              .json({ success: false, error: 'Trop de tentatives. Réessayez dans 1 minute.' });
-          }
-          attempt.count++;
-        } else {
-          this.loginAttempts.set(ip, { count: 1, resetAt: now + 60_000 });
-        }
-      } else {
-        // Plafond : éviction de l'entrée la plus ancienne (ordre d'insertion des Map)
-        if (this.loginAttempts.size >= this.LOGIN_ATTEMPTS_MAX_ENTRIES) {
-          const oldest = this.loginAttempts.keys().next().value;
-          if (oldest !== undefined) this.loginAttempts.delete(oldest);
-        }
-        this.loginAttempts.set(ip, { count: 1, resetAt: now + 60_000 });
+      const ip = this.getClientIp(req);
+      if (!this.checkLoginRateLimit(ip)) {
+        return res
+          .status(429)
+          .json({ success: false, error: 'Trop de tentatives. Réessayez dans 1 minute.' });
       }
 
       const rawId = req.params.arenaId;
@@ -4744,6 +4858,66 @@ export class RemoteScoreServer {
     } catch (err) {
       console.error(`[RemoteScoreServer] Erreur persistance arène ${arenaId}:`, err);
     }
+  }
+
+  public setCheckinEnabled(enabled: boolean): void {
+    this.checkinEnabled = enabled;
+    console.log(`[RemoteScoreServer] Appel distant ${enabled ? 'activé' : 'désactivé'}`);
+  }
+
+  public setCheckinPassword(password: string): void {
+    // Stocké hashé ; tout changement invalide les sessions ouvertes
+    this.checkinPassword = password ? this.hashPassword(password) : null;
+    this.checkinTokens.clear();
+    console.log(`[RemoteScoreServer] Mot de passe appel ${password ? 'défini' : 'supprimé'}`);
+  }
+
+  private checkCheckinAuth(cookieHeader: string | undefined): boolean {
+    if (!this.checkinPassword) return false;
+    const token = this.parseCookies(cookieHeader)['bp_checkin_token'];
+    return !!token && this.checkinTokens.has(token);
+  }
+
+  /** Refus d'accès à l'API d'appel, ou null si autorisé. */
+  private checkinGuard(
+    cookieHeader: string | undefined
+  ): { status: number; body: Record<string, unknown> } | null {
+    if (!this.checkinEnabled) {
+      return { status: 403, body: { closed: true, error: 'Appel fermé' } };
+    }
+    if (!this.checkinPassword) {
+      return { status: 403, body: { notConfigured: true, error: 'Appel non configuré' } };
+    }
+    if (!this.checkCheckinAuth(cookieHeader)) {
+      return { status: 401, body: { unauthorized: true, error: 'Authentification requise' } };
+    }
+    return null;
+  }
+
+  private getClientIp(req: express.Request): string {
+    return (
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      req.socket.remoteAddress ||
+      'unknown'
+    );
+  }
+
+  /** 5 tentatives de connexion par IP et par minute (arènes + appel). */
+  private checkLoginRateLimit(ip: string): boolean {
+    const now = Date.now();
+    const attempt = this.loginAttempts.get(ip);
+    if (attempt && now < attempt.resetAt) {
+      if (attempt.count >= 5) return false;
+      attempt.count++;
+      return true;
+    }
+    if (!attempt && this.loginAttempts.size >= this.LOGIN_ATTEMPTS_MAX_ENTRIES) {
+      // Plafond : éviction de l'entrée la plus ancienne (ordre d'insertion des Map)
+      const oldest = this.loginAttempts.keys().next().value;
+      if (oldest !== undefined) this.loginAttempts.delete(oldest);
+    }
+    this.loginAttempts.set(ip, { count: 1, resetAt: now + 60_000 });
+    return true;
   }
 
   public setRegistrationEnabled(enabled: boolean): void {

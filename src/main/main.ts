@@ -2199,6 +2199,28 @@ ipcMain.handle('remote:setRegistrationEnabled', async (_, competitionId: string,
   }
 });
 
+ipcMain.handle('remote:setCheckinEnabled', async (_, competitionId: string, enabled: boolean) => {
+  try {
+    const entry = remoteServers.get(competitionId);
+    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    entry.server.setCheckinEnabled(enabled);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+});
+
+ipcMain.handle('remote:setCheckinPassword', async (_, competitionId: string, password: string) => {
+  try {
+    const entry = remoteServers.get(competitionId);
+    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    entry.server.setCheckinPassword(typeof password === 'string' ? password : '');
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+});
+
 ipcMain.handle('remote:getConnectedClients', async (_, competitionId: string) => {
   try {
     const entry = remoteServers.get(competitionId);
