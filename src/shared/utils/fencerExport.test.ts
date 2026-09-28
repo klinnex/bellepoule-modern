@@ -23,7 +23,7 @@ const makeFencer = (over: Partial<Fencer> = {}): Fencer => ({
 describe('exportFencersToFFF', () => {
   it('commence par l’en-tête FFF standard', () => {
     const out = exportFencersToFFF([]);
-    expect(out.split('\n')[0]).toBe('FFF;WIN;competition;;individuel');
+    expect(out.split('\n')[0]).toBe('FFF;UTF8;competition;;individuel');
   });
 
   it('met le nom en majuscules et convertit le genre', () => {

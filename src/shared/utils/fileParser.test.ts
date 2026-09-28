@@ -1,6 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { parseSimpleTXTFile, parseFFEFile, parseXMLFile } from './fileParser';
-import { Gender, FencerStatus } from '../types';
+import {
+  parseSimpleTXTFile,
+  parseFFEFile,
+  parseXMLFile,
+  decodeTextFile,
+  resolveFencerFileFormat,
+} from './fileParser';
+import { exportFencersToFFF } from './fencerExport';
+import { Gender, FencerStatus, Fencer } from '../types';
 
 // ============================================================================
 // parseSimpleTXTFile
@@ -278,5 +285,77 @@ describe('parseXMLFile', () => {
     const xml = `<Competition><Tireur Nom="DUPONT" Prenom="Jean" Sexe="M"/></Competition>`;
     const result = parseXMLFile(xml);
     expect(result.fencers[0].nationality).toBe('FRA');
+  });
+});
+
+// ============================================================================
+// Issue #906 — aller-retour export/import .fff
+// ============================================================================
+
+describe('issue #906 — import .fff', () => {
+  const mk = (lastName: string, firstName: string, extra: Partial<Fencer> = {}): Fencer =>
+    ({
+      id: 'x',
+      ref: 1,
+      lastName,
+      firstName,
+      gender: Gender.MIXED,
+      nationality: '',
+      status: FencerStatus.NOT_CHECKED_IN,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...extra,
+    }) as Fencer;
+
+  it('aller-retour avec seulement nom/prénom', () => {
+    const out = exportFencersToFFF([mk('Dupont', 'Jean'), mk('Martin', 'Paul')]);
+    const result = parseFFEFile(out);
+    expect(result.fencers.map(f => f.lastName)).toEqual(['DUPONT', 'MARTIN']);
+  });
+
+  it('nom contenant « nom » / « x » (pas pris pour un en-tête)', () => {
+    const out = exportFencersToFFF([mk('Nomade', 'Alexandre')]);
+    const result = parseFFEFile(out);
+    expect(result.fencers).toHaveLength(1);
+    expect(result.fencers[0].lastName).toBe('NOMADE');
+    expect(result.fencers[0].firstName).toBe('Alexandre');
+  });
+
+  it('fichier sans en-tête : premier tireur conservé', () => {
+    const content =
+      'ALEXANDRE,Max,01/01/2000,M,FRA;,,;1,IDF,CE X,3,,;1,t\nDUPONT,Jean,01/01/2000,M,FRA;,,;2,IDF,CE Y,4,,;2,t';
+    expect(parseFFEFile(content).fencers).toHaveLength(2);
+  });
+
+  it('club contenant une virgule : champs non décalés', () => {
+    const out = exportFencersToFFF([mk('Dupont', 'Jean', { club: 'Cercle, Paris', license: '42' })]);
+    const f = parseFFEFile(out).fencers[0];
+    expect(f.club).toBe('Cercle Paris');
+    expect(f.license).toBe('42');
+  });
+
+  it('fichier FFE réel (Windows-1252, lignes de métadonnées)', () => {
+    const text =
+      'FFF;WIN;competition;;individuel\n28/09/2026;S;Seniors;;\nHÉLÈNE,Zoé,02/03/1995,F,FRA;,,;123456,ILE DE FRANCE,CE PARIS,12,t\n';
+    const bytes = Uint8Array.from([...text].map(c => c.charCodeAt(0)));
+    const content = decodeTextFile(bytes);
+    const result = parseFFEFile(content);
+    expect(result.fencers).toHaveLength(1);
+    expect(result.fencers[0].lastName).toBe('HÉLÈNE');
+    expect(result.fencers[0].firstName).toBe('Zoé');
+    expect(result.fencers[0].license).toBe('123456');
+  });
+
+  it('decodeTextFile garde l’UTF-8 valide', () => {
+    expect(decodeTextFile(new TextEncoder().encode('Zoé'))).toBe('Zoé');
+  });
+
+  it('.fff ouvert via « Importer XML » → parseur FFE', () => {
+    const out = exportFencersToFFF([mk('Dupont', 'Jean')]);
+    expect(resolveFencerFileFormat('xml', out)).toBe('fff');
+    expect(resolveFencerFileFormat('txt', out)).toBe('fff');
+    expect(resolveFencerFileFormat('fff', '<Competition/>')).toBe('xml');
+    expect(resolveFencerFileFormat('txt', 'DUPONT Jean')).toBe('txt');
+    expect(resolveFencerFileFormat('ranking', out)).toBe('ranking');
   });
 });

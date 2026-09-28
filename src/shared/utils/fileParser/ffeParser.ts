@@ -42,30 +42,15 @@ export function parseFFEFile(content: string): ImportResult {
   const formatInfo = detectFormat(lines);
   logger.debug(LogCategory.BUSINESS, 'Format détecté', { type: formatInfo.type, separator: formatInfo.primarySeparator });
 
-  // Vérifier si la première ligne est un en-tête
-  const firstLineLower = lines[0].toLowerCase();
+  // Vérifier si la première ligne est un en-tête (champs entiers, pas de sous-chaîne :
+  // un tireur « ALEXANDRE » ou « NOMADE » ne doit pas être pris pour un en-tête)
   const firstLineParts = parseLine(lines[0], formatInfo.primarySeparator);
-
-  // Détection plus robuste d'en-tête
   const hasHeader =
-    // Vérification par mots-clés classiques
-    firstLineLower.includes('nom') ||
-    firstLineLower.includes('name') ||
-    firstLineLower.includes('prenom') ||
-    firstLineLower.includes('prénom') ||
-    firstLineLower.includes('firstname') ||
-    firstLineLower.includes('lastname') ||
-    // Vérification format FFF spécial (commence par FFF, UTF8, etc.)
-    firstLineLower.includes('fff') ||
-    firstLineLower.includes('utf8') ||
-    (firstLineParts.length >= 3 &&
-      ['fff', 'utf8', 'utf-8', 'x', '-', 'nom', 'prenom', 'sexe', 'club', 'classement'].some(
-        keyword => firstLineParts.some(part => part.toLowerCase().includes(keyword))
-      )) ||
-    // Vérification par structure (tous les champs sont des mots)
-    firstLineParts.every(part => /^[a-zA-ZÀ-ÿ\s\-]+$/.test(part)) ||
-    // Vérification par nombre de champs (typiquement 8-10 champs pour en-tête)
-    (firstLineParts.length >= 8 && firstLineParts.length <= 10);
+    isMetadataLine(lines[0]) ||
+    isHeaderLine(lines[0]) ||
+    firstLineParts.some(part =>
+      ['sexe', 'club', 'licence', 'nation', 'nationalité', 'ligue', 'date'].includes(part.trim().toLowerCase())
+    );
 
   const startIndex = hasHeader ? 1 : 0;
 
@@ -76,8 +61,7 @@ export function parseFFEFile(content: string): ImportResult {
     // Ignorer les lignes qui ne contiennent que des séparateurs ou des métadonnées
     if (
       /^[\t\s\-]+$/g.test(line) ||
-      line.toLowerCase().includes('fff') ||
-      line.toLowerCase().includes('utf8') ||
+      isMetadataLine(line) ||
       line.split(/[;\t,]/).filter(p => p.trim()).length < 2
     ) {
       continue;
@@ -103,6 +87,24 @@ export function parseFFEFile(content: string): ImportResult {
   return result;
 }
 
+/**
+ * Ligne de métadonnées FFF (ex: "FFF;WIN;competition;;individuel", "UTF8;...")
+ */
+function isMetadataLine(line: string): boolean {
+  return /^\s*(fff|utf-?8|win)\s*[;,]/i.test(line);
+}
+
+/**
+ * Ligne d'en-tête de colonnes (ex: "Nom;Prénom;Club;Classement")
+ * Compare des champs entiers pour ne pas écarter un tireur nommé "NOMADE".
+ */
+function isHeaderLine(line: string): boolean {
+  const headerWords = ['nom', 'name', 'prenom', 'prénom', 'firstname', 'lastname', 'classement'];
+  return line
+    .split(/[;,\t]/)
+    .some(part => headerWords.includes(part.trim().toLowerCase()));
+}
+
 interface FormatInfo {
   type: 'standard' | 'mixed';
   primarySeparator: string;
@@ -118,10 +120,8 @@ function detectFormat(lines: string[]): FormatInfo {
     const trimmed = line.trim();
     return (
       trimmed &&
-      !trimmed.toLowerCase().includes('fff') &&
-      !trimmed.toLowerCase().includes('utf8') &&
-      !trimmed.toLowerCase().includes('nom') &&
-      !trimmed.toLowerCase().includes('classem') &&
+      !isMetadataLine(trimmed) &&
+      !isHeaderLine(trimmed) &&
       !trimmed.includes('✓') &&
       // Ignorer les lignes qui ne contiennent que des points-virgules et des chiffres (dates)
       !/^[\d\/;]+$/.test(trimmed) &&
