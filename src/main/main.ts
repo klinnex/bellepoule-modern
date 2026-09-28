@@ -1150,6 +1150,9 @@ ipcMain.handle('db:updatePool', async (_, pool) => {
 ipcMain.handle('db:updatePoolReferee', async (_, poolId, refereeId) => {
   return db.updatePoolReferee(poolId, refereeId);
 });
+ipcMain.handle('db:updatePoolReferees', async (_, poolId, refereeIds) => {
+  return db.updatePoolReferees(poolId, Array.isArray(refereeIds) ? refereeIds : []);
+});
 ipcMain.handle('db:createPool', async (_, phaseId, number, poolId) => {
   return db.createPool(phaseId, number, poolId);
 });

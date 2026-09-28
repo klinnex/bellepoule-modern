@@ -947,8 +947,29 @@ export class DatabaseManager {
   }
 
   public updatePoolReferee(poolId: string, refereeId: string | null): void {
+    this.updatePoolReferees(poolId, refereeId ? [refereeId] : []);
+  }
+
+  // Arbitres multiples (mode expert) : le premier est l'arbitre principal
+  public updatePoolReferees(poolId: string, refereeIds: string[]): void {
     if (!this.db) throw new Error('Database not open');
-    this.run('UPDATE pools SET referee_id = ?, updated_at = ? WHERE id = ?', [refereeId, new Date().toISOString(), poolId]);
+    const ids = Array.from(new Set(refereeIds.filter(Boolean)));
+    this.run('UPDATE pools SET referee_id = ?, referee_ids = ?, updated_at = ? WHERE id = ?', [
+      ids[0] ?? null,
+      ids.length > 0 ? JSON.stringify(ids) : null,
+      new Date().toISOString(),
+      poolId,
+    ]);
+  }
+
+  private parsePoolRefereeIds(row: { referee_id?: unknown; referee_ids?: unknown }): string[] {
+    if (typeof row.referee_ids === 'string' && row.referee_ids) {
+      try {
+        const parsed = JSON.parse(row.referee_ids);
+        if (Array.isArray(parsed)) return parsed.filter((x): x is string => typeof x === 'string');
+      } catch { /* JSON invalide : repli sur referee_id */ }
+    }
+    return row.referee_id ? [row.referee_id as string] : [];
   }
 
   // ─── Pool CRUD ──────────────────────────────────────────────────────────────
@@ -1013,17 +1034,15 @@ export class DatabaseManager {
   public getPoolsByPhase(phaseId: string): Pool[] {
     if (!this.db) throw new Error('Database not open');
     return this.queryAll<any>(
-      'SELECT id, phase_id, number, is_complete, has_error, referee_id, created_at, updated_at FROM pools WHERE phase_id = ? ORDER BY number',
+      'SELECT id, phase_id, number, is_complete, has_error, referee_id, referee_ids, created_at, updated_at FROM pools WHERE phase_id = ? ORDER BY number',
       [phaseId]
     ).map(row => {
       const poolId = row.id as string;
       const fencers = this.getPoolFencers(poolId);
       const matches = this.getMatchesByPool(poolId);
-      let referees: Referee[] = [];
-      if (row.referee_id) {
-        const ref = this.getReferee(row.referee_id as string);
-        if (ref) referees = [ref];
-      }
+      const referees: Referee[] = this.parsePoolRefereeIds(row)
+        .map(id => this.getReferee(id))
+        .filter((r): r is Referee => !!r);
       return {
         id: poolId,
         phaseId: row.phase_id as string,

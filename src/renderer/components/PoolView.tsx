@@ -91,7 +91,9 @@ interface PoolViewProps {
     fencerA?: Fencer | null,
     fencerB?: Fencer | null
   ) => void;
-  onRefereeAssigned?: (poolId: string, referee: Referee | null) => void;
+  onRefereeAssigned?: (poolId: string, referees: Referee[]) => void;
+  /** Nombre max d'arbitres assignables simultanément (mode expert) ; 1 = sélection unique */
+  maxRefereesPerPool?: number;
 }
 
 type ViewMode = 'grid' | 'matches';
@@ -115,6 +117,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   remoteServerUrl,
   onMatchArenaChange,
   onRefereeAssigned,
+  maxRefereesPerPool = 1,
 }) => {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
@@ -140,7 +143,11 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   const [showRefereeModal, setShowRefereeModal] = useState(false);
   const [competitionReferees, setCompetitionReferees] = useState<Referee[]>([]);
   const [isLoadingReferees, setIsLoadingReferees] = useState(false);
-  const [assignedReferee, setAssignedReferee] = useState<Referee | null>(pool.referees?.[0] ?? null);
+  const [assignedReferees, setAssignedReferees] = useState<Referee[]>(pool.referees ?? []);
+  // Sélection en cours dans la modale (mode multi-arbitres)
+  const [pendingRefereeIds, setPendingRefereeIds] = useState<string[]>([]);
+  const isMultiReferee = maxRefereesPerPool > 1;
+  const assignedReferee = assignedReferees[0] ?? null;
   const [hoveredFencerIds, setHoveredFencerIds] = useState<Set<string>>(new Set());
   const quickMouseScoring = localStorage.getItem('bellepoule-quick-mouse-scoring') === 'true';
   const simplifiedInputMode = localStorage.getItem('bellepoule-simplified-input-mode') === 'true';
@@ -171,6 +178,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
 
   const openRefereeModal = useCallback(() => {
+    setPendingRefereeIds(assignedReferees.map(r => r.id));
     setShowRefereeModal(true);
     if (competitionId) {
       setIsLoadingReferees(true);
@@ -178,17 +186,38 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         .then(refs => setCompetitionReferees(refs))
         .finally(() => setIsLoadingReferees(false));
     }
-  }, [competitionId]);
+  }, [competitionId, assignedReferees]);
 
   const closeRefereeModal = useCallback(() => setShowRefereeModal(false), []);
   const refereeModalRef = useFocusTrap<HTMLDivElement>(showRefereeModal, closeRefereeModal);
 
-  const handleAssignReferee = useCallback((referee: Referee | null) => {
-    window.electronAPI.db.updatePoolReferee(pool.id, referee?.id ?? null);
-    setAssignedReferee(referee);
+  const applyReferees = useCallback((referees: Referee[]) => {
+    window.electronAPI.db.updatePoolReferees(pool.id, referees.map(r => r.id));
+    setAssignedReferees(referees);
     setShowRefereeModal(false);
-    onRefereeAssigned?.(pool.id, referee);
+    onRefereeAssigned?.(pool.id, referees);
   }, [pool.id, onRefereeAssigned]);
+
+  const handleAssignReferee = useCallback((referee: Referee | null) => {
+    applyReferees(referee ? [referee] : []);
+  }, [applyReferees]);
+
+  const togglePendingReferee = useCallback((refereeId: string) => {
+    setPendingRefereeIds(prev => {
+      if (prev.includes(refereeId)) return prev.filter(id => id !== refereeId);
+      if (prev.length >= maxRefereesPerPool) return prev;
+      return [...prev, refereeId];
+    });
+  }, [maxRefereesPerPool]);
+
+  const confirmPendingReferees = useCallback(() => {
+    const byId = new Map(
+      [...competitionReferees, ...assignedReferees].map(r => [r.id, r] as const)
+    );
+    applyReferees(
+      pendingRefereeIds.map(id => byId.get(id)).filter((r): r is Referee => !!r)
+    );
+  }, [competitionReferees, assignedReferees, pendingRefereeIds, applyReferees]);
 
   const { addAction, undo, redo, canUndo, canRedo } = useHistory();
 
@@ -1442,7 +1471,9 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           })()}
           <button
             onClick={openRefereeModal}
-            title={assignedReferee ? `Arbitre : ${assignedReferee.lastName} ${assignedReferee.firstName}` : 'Assigner un arbitre'}
+            title={assignedReferees.length > 0
+              ? `${assignedReferees.length > 1 ? 'Arbitres' : 'Arbitre'} : ${assignedReferees.map(r => `${r.lastName} ${r.firstName}`).join(', ')}`
+              : isMultiReferee ? 'Assigner des arbitres' : 'Assigner un arbitre'}
             style={{
               ...BADGE_PILL,
               cursor: 'pointer',
@@ -1451,7 +1482,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               border: `1px solid ${assignedReferee ? '#93c5fd' : '#e5e7eb'}`,
             }}
           >
-            🧑‍⚖️ {assignedReferee ? `${assignedReferee.lastName}` : '+Arbitre'}
+            🧑‍⚖️ {assignedReferees.length > 0 ? assignedReferees.map(r => r.lastName).join(' / ') : '+Arbitre'}
           </button>
         </div>
         <div style={TOOLBAR_GROUP}>
@@ -1665,12 +1696,16 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           aria-labelledby="referee-modal-title"
         >
           <div className="modal-header">
-            <h3 className="modal-title" id="referee-modal-title">Assigner un arbitre</h3>
+            <h3 className="modal-title" id="referee-modal-title">
+              {isMultiReferee ? 'Assigner les arbitres' : 'Assigner un arbitre'}
+            </h3>
             <button className="btn-close" onClick={() => setShowRefereeModal(false)}>&times;</button>
           </div>
           <div className="modal-body" style={{ padding: '1.5rem' }}>
             <p style={{ marginBottom: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
-              Sélectionnez l'arbitre pour la poule {pool.number} :
+              {isMultiReferee
+                ? `Sélectionnez jusqu'à ${maxRefereesPerPool} arbitres pour la poule ${pool.number} (le premier sélectionné est l'arbitre principal) :`
+                : `Sélectionnez l'arbitre pour la poule ${pool.number} :`}
             </p>
             <div style={COL_GAP}>
               <button
@@ -1690,7 +1725,34 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   Aucun arbitre enregistré pour cette compétition
                 </p>
               )}
-              {!isLoadingReferees && competitionReferees.map(ref => (
+              {!isLoadingReferees && isMultiReferee && competitionReferees.map(ref => {
+                const order = pendingRefereeIds.indexOf(ref.id);
+                const selected = order >= 0;
+                const disabled = !selected && pendingRefereeIds.length >= maxRefereesPerPool;
+                return (
+                  <button
+                    key={ref.id}
+                    className={`btn ${selected ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => togglePendingReferee(ref.id)}
+                    disabled={disabled}
+                    aria-pressed={selected}
+                    style={{ ...REF_BTN, textAlign: 'left' }}
+                  >
+                    {selected ? `☑ ${order + 1}.` : '☐'} 🧑‍⚖️ {ref.lastName} {ref.firstName}
+                    {ref.club && <span style={{ marginLeft: '0.5rem', opacity: 0.6, fontSize: '0.8rem' }}>({ref.club})</span>}
+                  </button>
+                );
+              })}
+              {!isLoadingReferees && isMultiReferee && competitionReferees.length > 0 && (
+                <button
+                  className="btn btn-primary"
+                  onClick={confirmPendingReferees}
+                  style={REF_BTN}
+                >
+                  ✓ Valider ({pendingRefereeIds.length}/{maxRefereesPerPool})
+                </button>
+              )}
+              {!isLoadingReferees && !isMultiReferee && competitionReferees.map(ref => (
                 <button
                   key={ref.id}
                   className={`btn ${assignedReferee?.id === ref.id ? 'btn-primary' : 'btn-secondary'}`}

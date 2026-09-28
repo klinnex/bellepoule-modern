@@ -164,9 +164,9 @@ export function generatePoolHTML(pool: Pool, options: PoolExportOptions, templat
   const weaponLabel = weapon ? `<span class="chip"><strong>Arme</strong> ${weapon}</span>` : '';
   const catLabel = category ? `<span class="chip"><strong>Catégorie</strong> ${category}</span>` : '';
 
-  const assignedReferee = pool.referees?.[0];
-  const refereeLabel = assignedReferee
-    ? `<span style="font-size:0.85em;color:#ffffff;font-weight:600;">🧑‍⚖️ ${assignedReferee.lastName} ${assignedReferee.firstName}</span>`
+  const assignedReferees = pool.referees ?? [];
+  const refereeLabel = assignedReferees.length > 0
+    ? `<span style="font-size:0.85em;color:#ffffff;font-weight:600;">🧑‍⚖️ ${assignedReferees.map(r => `${r.lastName} ${r.firstName}`).join(' / ')}</span>`
     : '';
 
   const sections: Record<string, string> = {
