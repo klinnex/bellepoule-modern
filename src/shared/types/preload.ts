@@ -591,6 +591,7 @@ export interface DatabaseAPI {
     matchIds: string[]
   ) => Promise<{ matchId: string; fencerId: string; signatureData: string }[]>;
   updatePoolReferee: (poolId: string, refereeId: string | null) => Promise<void>;
+  updatePoolReferees: (poolId: string, refereeIds: string[]) => Promise<void>;
 
   // Phases
   createPhase: (competitionId: string, type: string, order: number, name: string) => Promise<Phase>;

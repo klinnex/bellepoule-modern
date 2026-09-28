@@ -212,6 +212,57 @@ describe('DatabaseManager', () => {
     });
   });
 
+  describe('arbitres multiples par poule (#908)', () => {
+    const now = new Date().toISOString();
+    const refRow = (id: string) => ({ id, ref: 1, name: `Prénom ${id}`, created_at: now, updated_at: now });
+
+    beforeEach(async () => {
+      await manager.open();
+    });
+
+    it('updatePoolReferees stocke principal + liste JSON dédupliquée', () => {
+      const run = vi.fn().mockReturnValue({ changes: 1 });
+      mockDb.prepare.mockReturnValue(makeStmt({ run }));
+      manager.updatePoolReferees('pool-1', ['r1', 'r2', 'r1']);
+      expect(run).toHaveBeenCalledWith('r1', JSON.stringify(['r1', 'r2']), expect.any(String), 'pool-1');
+    });
+
+    it('updatePoolReferees([]) efface les arbitres', () => {
+      const run = vi.fn().mockReturnValue({ changes: 1 });
+      mockDb.prepare.mockReturnValue(makeStmt({ run }));
+      manager.updatePoolReferees('pool-1', []);
+      expect(run).toHaveBeenCalledWith(null, null, expect.any(String), 'pool-1');
+    });
+
+    it('getPoolsByPhase restitue tous les arbitres de referee_ids dans l\'ordre', () => {
+      const poolRow = {
+        id: 'pool-1', phase_id: 'phase-1', number: 1,
+        is_complete: 0, has_error: 0, referee_id: 'r2', referee_ids: JSON.stringify(['r2', 'r1']),
+        created_at: now, updated_at: now,
+      };
+      mockDb.prepare.mockReturnValue(makeStmt({
+        all: vi.fn().mockReturnValueOnce([poolRow]).mockReturnValue([]),
+        get: vi.fn().mockImplementation((id: string) => refRow(id)),
+      }));
+      const [pool] = manager.getPoolsByPhase('phase-1');
+      expect(pool.referees.map(r => r.id)).toEqual(['r2', 'r1']);
+    });
+
+    it('getPoolsByPhase se replie sur referee_id sans referee_ids', () => {
+      const poolRow = {
+        id: 'pool-1', phase_id: 'phase-1', number: 1,
+        is_complete: 0, has_error: 0, referee_id: 'r1', referee_ids: null,
+        created_at: now, updated_at: now,
+      };
+      mockDb.prepare.mockReturnValue(makeStmt({
+        all: vi.fn().mockReturnValueOnce([poolRow]).mockReturnValue([]),
+        get: vi.fn().mockImplementation((id: string) => refRow(id)),
+      }));
+      const [pool] = manager.getPoolsByPhase('phase-1');
+      expect(pool.referees.map(r => r.id)).toEqual(['r1']);
+    });
+  });
+
   describe('syncPoolSnapshot (#905)', () => {
     const snapshot = {
       id: 'pool-0', number: 1, fencerIds: ['f1', 'f2'],

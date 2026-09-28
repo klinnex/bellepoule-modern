@@ -205,6 +205,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('db:getDEMatchSignaturesByMatchIds', matchIds),
     updatePoolReferee: (poolId: string, refereeId: string | null) =>
       ipcRenderer.invoke('db:updatePoolReferee', poolId, refereeId),
+    updatePoolReferees: (poolId: string, refereeIds: string[]) =>
+      ipcRenderer.invoke('db:updatePoolReferees', poolId, refereeIds),
 
     // Phases
     createPhase: (competitionId: string, type: string, order: number, name: string) =>

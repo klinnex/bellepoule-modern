@@ -94,6 +94,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
   const tableMaxScore = competition.settings?.defaultTableMaxScore ?? 0;
   const isLaserSabre = competition.weapon === Weapon.LASER;
   const expertMode = competition.settings?.expertMode ?? false;
+  // Arbitres simultanés par poule (principal + assistant/vidéo) : mode expert uniquement
+  const maxRefereesPerPool = expertMode ? Math.max(1, competition.settings?.maxRefereesPerPool ?? 1) : 1;
   const poolWinnersOnly = competition.settings?.poolWinnersOnly ?? false;
   const postPoolSplitCriteria = competition.settings?.postPoolSplitCriteria;
 
@@ -1276,6 +1278,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
         competitionName={competition.title}
         maxScore={poolMaxScore}
         competitionId={competition.id}
+        maxRefereesPerPool={maxRefereesPerPool}
         onScoreUpdate={(matchIndex, scoreA, scoreB, winner, specialStatus) => {
           updateScore(poolIndex, matchIndex, scoreA, scoreB, winner, specialStatus);
           if (winner) {
@@ -1343,10 +1346,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             fencerB ?? undefined
           ).catch(() => {});
         }}
-        onRefereeAssigned={(poolId, referee) => {
+        onRefereeAssigned={(poolId, referees) => {
           setPools(prev => prev.map(p =>
             p.id === poolId
-              ? { ...p, referees: referee ? [referee] : [] }
+              ? { ...p, referees }
               : p
           ));
         }}

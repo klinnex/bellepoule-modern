@@ -475,4 +475,13 @@ export const ALL_MIGRATIONS: Migration[] = [
       db.run(`CREATE INDEX IF NOT EXISTS idx_team_match_cards_match ON team_match_cards(match_id)`);
     },
   },
+  {
+    version: 16,
+    description: 'Arbitres multiples par poule (referee_ids JSON sur pools, mode expert)',
+    up(db) {
+      // referee_id reste l'arbitre principal (compatibilité) ; referee_ids stocke
+      // la liste ordonnée complète (principal + assistant/vidéo…) en JSON.
+      try { db.run(`ALTER TABLE pools ADD COLUMN referee_ids TEXT`); } catch { /* colonne déjà présente */ }
+    },
+  },
 ];
