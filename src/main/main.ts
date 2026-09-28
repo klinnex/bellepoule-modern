@@ -13,6 +13,7 @@ import { RemoteScoreServer } from './remoteScoreServer';
 import { ensureCert } from './certManager';
 import { AutoUpdater } from './autoUpdater';
 import { Competition, Fencer, FencerStatus, Match, MatchStatus, Pool } from '../shared/types';
+import { decodeTextFile } from '../shared/utils/fileParser/detect';
 
 // Database instance
 const db = new DatabaseManager();
@@ -997,7 +998,7 @@ async function handleImport(format: string): Promise<void> {
         // Fichier binaire : envoyer uniquement le chemin, le renderer appellera importFencersArchive
         mainWindow?.webContents.send('menu:import', format, filepath, '');
       } else {
-        const content = await fs.promises.readFile(filepath, 'utf-8');
+        const content = decodeTextFile(await fs.promises.readFile(filepath));
         mainWindow?.webContents.send('menu:import', format, filepath, content);
       }
     } catch (error) {
@@ -1394,7 +1395,7 @@ ipcMain.handle('dialog:openFile', async (_, options) => {
   if (!result.canceled && result.filePaths.length > 0) {
     const filePath = result.filePaths[0];
     try {
-      const content = await fs.promises.readFile(filePath, 'utf-8');
+      const content = decodeTextFile(await fs.promises.readFile(filePath));
       return { filePath, content };
     } catch (error) {
       console.error('Error reading file:', error);

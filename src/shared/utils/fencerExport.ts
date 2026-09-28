@@ -19,6 +19,13 @@ function formatDateFFF(date?: Date): string {
 }
 
 /**
+ * Neutralise les séparateurs FFF (, et ;) dans un champ libre
+ */
+function fffField(value?: string): string {
+  return (value || '').replace(/\s*[,;\r\n]+\s*/g, ' ').trim();
+}
+
+/**
  * Convertit le genre interne vers le format FFF (M/F)
  */
 function genderToFFF(gender: Gender): string {
@@ -39,18 +46,18 @@ function genderToFFF(gender: Gender): string {
 export function exportFencersToFFF(fencers: Fencer[]): string {
   const lines: string[] = [];
 
-  // En-tete standard FFF
-  lines.push('FFF;WIN;competition;;individuel');
+  // En-tete standard FFF (fichier écrit en UTF-8)
+  lines.push('FFF;UTF8;competition;;individuel');
 
   let position = 1;
   for (const fencer of fencers) {
     // Section 0: NOM,Prénom,Naissance,Sexe,Nationalité (séparés par virgule)
     const section0 = [
-      fencer.lastName.toUpperCase(),
-      fencer.firstName,
+      fffField(fencer.lastName).toUpperCase(),
+      fffField(fencer.firstName),
       formatDateFFF(fencer.birthDate),
       genderToFFF(fencer.gender),
-      fencer.nationality || 'FRA',
+      fffField(fencer.nationality) || 'FRA',
     ].join(',');
 
     // Section 1: Vide (,,)
@@ -58,9 +65,9 @@ export function exportFencersToFFF(fencers: Fencer[]): string {
 
     // Section 2: Licence,Ligue,Club,Classement,Nationalité?,?
     const section2 = [
-      fencer.license || '',
-      fencer.region || '',
-      fencer.club || '',
+      fffField(fencer.license),
+      fffField(fencer.region),
+      fffField(fencer.club),
       fencer.ranking != null ? String(fencer.ranking) : '',
       '', // Nationalité (doublon)
       '', // ?

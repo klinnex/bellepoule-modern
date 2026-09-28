@@ -754,6 +754,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '1.25rem' }}>
                 {onImport && (
                   <CoachMark id="import-fencers" message="Formats acceptés : XML BellePoule, liste FFE (.fff/.csv/.txt)" position="bottom">
+                    <button className="btn btn-secondary" onClick={() => handleImportFencers('fff')}>
+                      📥 Importer FFE (.fff)
+                    </button>
                     <button className="btn btn-secondary" onClick={() => handleImportFencers('xml')}>
                       📥 Importer XML
                     </button>

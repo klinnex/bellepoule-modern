@@ -14,6 +14,7 @@ import {
   ImportResult,
   importRankingFromFFF,
   RankingImportResult,
+  resolveFencerFileFormat,
 } from '../../shared/utils/fileParser';
 
 interface ImportModalProps {
@@ -51,10 +52,11 @@ const ImportModal: React.FC<ImportModalProps> = ({
   React.useEffect(() => {
     if (!isRankingImport) {
       let parseResult: ImportResult;
+      const effectiveFormat = resolveFencerFileFormat(format, content);
 
-      if (format === 'xml') {
+      if (effectiveFormat === 'xml') {
         parseResult = parseXMLFile(content);
-      } else if (format === 'txt') {
+      } else if (effectiveFormat === 'txt') {
         parseResult = parseSimpleTXTFile(content);
       } else {
         parseResult = parseFFEFile(content);
