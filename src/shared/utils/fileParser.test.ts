@@ -359,3 +359,33 @@ describe('issue #906 — import .fff', () => {
     expect(resolveFencerFileFormat('ranking', out)).toBe('ranking');
   });
 });
+
+describe('issue #906 — lignes .fff avec champs omis', () => {
+  const header = 'FFF;UTF8;competition;;individuel\n';
+
+  it.each([
+    'DUPONT,Jean,,,FRA;;;',
+    'DUPONT,Jean,,,FRA;,,;,,,;1,t',
+    'DUPONT,Jean,,,',
+    'DUPONT,Jean',
+    'DUPONT,Jean;,,;;1,t',
+  ])('tireur conservé : %s', line => {
+    const result = parseFFEFile(header + line);
+    expect(result.fencers).toHaveLength(1);
+    expect(result.fencers[0].lastName).toBe('DUPONT');
+    expect(result.fencers[0].firstName).toBe('Jean');
+  });
+
+  it('section personnelle incomplète : club et licence non décalés', () => {
+    const result = parseFFEFile(header + 'DUPONT,Jean,,M;,,;123,IDF,CE Paris,5,,;1,t');
+    expect(result.fencers[0]).toMatchObject({
+      lastName: 'DUPONT',
+      firstName: 'Jean',
+      gender: Gender.MALE,
+      license: '123',
+      region: 'IDF',
+      club: 'CE Paris',
+      ranking: 5,
+    });
+  });
+});

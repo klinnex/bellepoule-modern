@@ -115,6 +115,11 @@ interface FormatInfo {
  * Détecte le format du fichier FFE
  */
 function detectFormat(lines: string[]): FormatInfo {
+  // En-tête FFF ("FFF;WIN;..." / "FFF;UTF8;...") : format FFF, même si les lignes sont incomplètes
+  if (lines.some(isMetadataLine)) {
+    return { type: 'mixed', primarySeparator: ';', secondarySeparator: ',' };
+  }
+
   // Ignorer les lignes d'en-tête pour l'analyse de format
   const dataLines = lines.filter(line => {
     const trimmed = line.trim();
@@ -241,73 +246,19 @@ function parseLineWithFormat(line: string, formatInfo: FormatInfo): string[] {
       return parts;
     }
 
-    // Format FFF standard : NOM,Prénom,Naissance,Sexe,Nationalité;?,?,?;Licence,Ligue,Club,Classement,?,Nationalité?;Position,Statut
-    // Structure: 4 sections séparées par ;
-    const mainParts = line.split(';').map(p => p.trim());
-
-    // Filtrer les parties vides à la fin (causées par le ; final)
-    while (mainParts.length > 0 && mainParts[mainParts.length - 1] === '') {
-      mainParts.pop();
-    }
-
-    // Format FFF avec 3+ sections: personalInfo;unknown;clubInfo;[positionInfo]
-    if (mainParts.length >= 3) {
-      // Section 0: NOM,Prénom,Naissance,Sexe,Nationalité
-      const personalInfo = parseLine(mainParts[0], ',');
-
-      // Section 1: ?,?,? (champs inconnus)
-      const unknownFields = mainParts[1] ? parseLine(mainParts[1], ',') : [];
-
-      // Section 2: Licence,Ligue,Club,Classement,Nationalité?,?
-      const clubInfo = mainParts[2] ? parseLine(mainParts[2], ',') : [];
-
-      // Section 3 (optionnelle): Position,Statut (ex: "2,t" pour position 2)
-      const positionInfo = mainParts.length >= 4 ? parseLine(mainParts[3], ',') : [];
-
-      // Vérifier si on a les bonnes colonnes (NOM, PRENOM, NAISSANCE, SEXE, NATIONALITÉ)
-      if (personalInfo.length >= 5) {
-        // Format FFF standard: 5 colonnes dans personalInfo
-        const result = [
-          ...personalInfo.slice(0, 5), // NOM, PRENOM, NAISSANCE, SEXE, NATIONALITÉ (indices 0-4)
-          ...unknownFields, // Champs inconnus (?, ?, ?)
-          ...clubInfo, // LICENCE, LIGUE, CLUB, CLASSEMENT, ?, NATIONALITÉ?
-          ...positionInfo, // POSITION, STATUT
+    // Format FFF : NOM,Prénom,Naissance,Sexe,Nationalité;?,?,?;Licence,Ligue,Club,Classement,?,?;Position,Statut
+    // Chaque section est complétée à sa taille fixe : une ligne où des champs vides
+    // (ou des sections entières) ont été omis reste alignée.
+    if (formatInfo.primarySeparator === ';') {
+      const sections = line.split(';').map(p => p.trim());
+      const personalInfo = parseLine(sections[0], ',');
+      if (personalInfo.length >= 2) {
+        return [
+          ...padFields(personalInfo, 5), // NOM, PRENOM, NAISSANCE, SEXE, NATIONALITÉ (0-4)
+          ...padFields(sections[1] ? parseLine(sections[1], ',') : [], 3), // Champs inconnus (5-7)
+          ...padFields(sections[2] ? parseLine(sections[2], ',') : [], 6), // LICENCE, LIGUE, CLUB, CLASSEMENT, ?, ? (8-13)
+          ...padFields(sections[3] ? parseLine(sections[3], ',') : [], 2), // POSITION, STATUT (14-15)
         ];
-
-        // S'assurer qu'on a bien le bon nombre de champs
-        while (result.length < 15) {
-          result.push('');
-        }
-
-        return result;
-      }
-    }
-
-    if (mainParts.length >= 3) {
-      // Format mixte spécial: NOM,PRENOM,DATE,SEXE,NATION;[vide];[vide];LICENCE,RÉGION,CLUB,...
-      const firstSection = mainParts[0];
-      const personalInfo = parseLine(firstSection, ',');
-
-      // La deuxième partie est souvent vide (champ manquant)
-      const middlePart = mainParts[1] || '';
-      // La troisième partie contient licence, région, club séparées par virgules
-      const clubInfo = mainParts[2] ? parseLine(mainParts[2], ',') : [];
-
-      // Vérifier si on a les bonnes colonnes (NOM, PRENOM, DATE, SEXE, NATION)
-      if (personalInfo.length >= 5) {
-        // Format FFF normal: 5 colonnes dans personalInfo
-        const result = [
-          ...personalInfo.slice(0, 5), // NOM, PRENOM, DATE, SEXE, NATION
-          middlePart, // Champ vide (ligue)
-          ...clubInfo, // LICENCE, RÉGION, CLUB, etc.
-        ];
-
-        // S'assurer qu'on a bien le bon nombre de champs
-        while (result.length < 9) {
-          result.push('');
-        }
-
-        return result;
       }
     } else if (formatInfo.primarySeparator === '\t' && formatInfo.secondarySeparator === ',') {
       // Format spécial : tabulations pour séparer les colonnes, virgules dans la première colonne
@@ -352,6 +303,15 @@ function parseLineWithFormat(line: string, formatInfo: FormatInfo): string[] {
 
   // Fallback - parser avec le séparateur principal
   return parseLine(line, formatInfo.primarySeparator);
+}
+
+/**
+ * Tronque ou complète une liste de champs à une taille fixe
+ */
+function padFields(fields: string[], size: number): string[] {
+  const out = fields.slice(0, size);
+  while (out.length < size) out.push('');
+  return out;
 }
 
 /**
