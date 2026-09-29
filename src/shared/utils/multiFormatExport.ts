@@ -239,8 +239,9 @@ export interface TableauMatchForXML {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  U11: 'POUSSIN', U13: 'BENJAMIN', U15: 'MINIME', U17: 'CADET', U20: 'JUNIOR',
-  SEN: 'SENIOR', V1: 'VETERAN1', V2: 'VETERAN2', V3: 'VETERAN3', V4: 'VETERAN4',
+  U11: 'M11', U13: 'M13', U15: 'M15', U17: 'M17', U20: 'M20',
+  SEN: 'Seniors', SENIOR: 'Seniors',
+  V1: 'Vétérans 1', V2: 'Vétérans 2', V3: 'Vétérans 3', V4: 'Vétérans 4',
 };
 
 const TABLEAU_TITLES: Record<number, string> = {
@@ -357,7 +358,7 @@ export function exportResultsXMLFFE(
       ` Ligue="${escapeXml(a.region || '')}"` +
       ` Club="${escapeXml(a.club || '')}"` +
       ` Licence="${escapeXml(a.license || '')}"` +
-      ` Categorie="${escapeXml(a.category || '')}"` +
+      ` Categorie="${escapeXml(a.category ? CATEGORY_LABELS[a.category] || a.category : '')}"` +
       ` Ranking="0"` +
       ` Exporte="0"` +
       ` Statut="F"` +
