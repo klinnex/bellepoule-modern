@@ -865,6 +865,9 @@ export interface ScoreAuditEntry {
   refereeId: string | null;
   refereeName: string | null;
   ipAddress: string | null;
+  /** Tour du tableau (1 = finale, 2 = demies…) ; null pour un match de poule */
+  tableauRound?: number | null;
+  tableauPosition?: number | null;
 }
 
 export interface ScoreIpConflict {
