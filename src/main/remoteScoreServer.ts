@@ -2019,19 +2019,23 @@ export class RemoteScoreServer {
           return res.status(404).json({ error: 'Match non trouvé' });
         }
 
-        // Déterminer le vainqueur : scores égaux + tirage au sort → utiliser winnerOverride
-        const winner =
-          scoreA > scoreB
+        // Carton noir : le combattant fautif est exclu de la compétition
+        const blackCarded =
+          blackCardFencer === 'A' || blackCardFencer === 'B' ? blackCardFencer : null;
+
+        // Déterminer le vainqueur : carton noir → adversaire du fautif,
+        // scores égaux + tirage au sort → utiliser winnerOverride
+        const winner = blackCarded
+          ? blackCarded === 'A'
+            ? 'B'
+            : 'A'
+          : scoreA > scoreB
             ? 'A'
             : scoreB > scoreA
               ? 'B'
               : winnerOverride === 'A' || winnerOverride === 'B'
                 ? winnerOverride
                 : null;
-
-        // Carton noir : le combattant fautif est exclu de la compétition
-        const blackCarded =
-          blackCardFencer === 'A' || blackCardFencer === 'B' ? blackCardFencer : null;
 
         // Créer les objets Score
         const scoreAObj = {
@@ -2145,7 +2149,10 @@ export class RemoteScoreServer {
               : (matchObj?.fencerB?.id ?? matchObj?.fencerBId);
           if (culpritId) {
             try {
-              this.db.updateFencer(culpritId, { status: FencerStatus.EXCLUDED });
+              this.db.updateFencer(culpritId, {
+                status: FencerStatus.EXCLUDED,
+                exclusionReason: 'black_card',
+              });
               console.log(`[RemoteScoreServer] Carton noir : combattant ${culpritId} exclu`);
               // Notifier le renderer pour mettre à jour le statut dans son store
               const mainWin = (global as any).mainWindow;
@@ -2153,6 +2160,23 @@ export class RemoteScoreServer {
                 mainWin.webContents.send('remote:fencer_excluded', {
                   fencerId: culpritId,
                   matchId,
+                  reason: 'black_card',
+                });
+                // Carton noir → appel DT automatique (rapport fédéral)
+                const culprit = blackCarded === 'A' ? matchObj?.fencerA : matchObj?.fencerB;
+                const arena = Array.from(this.arenas.values()).find(
+                  (a: any) => a.currentMatch?.id === matchId
+                );
+                mainWin.webContents.send('remote:dt_call', {
+                  arenaId: arena?.id ?? `match-${matchId}`,
+                  arenaNumber: arena?.number ?? null,
+                  matchNumber: matchObj?.number ?? null,
+                  competitionId: this.session?.competitionId ?? null,
+                  timestamp: Date.now(),
+                  reason: 'black_card',
+                  fencerName: culprit
+                    ? `${culprit.lastName ?? ''} ${culprit.firstName ?? ''}`.trim()
+                    : null,
                 });
               }
             } catch (e) {

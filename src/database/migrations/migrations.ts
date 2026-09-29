@@ -484,4 +484,11 @@ export const ALL_MIGRATIONS: Migration[] = [
       try { db.run(`ALTER TABLE pools ADD COLUMN referee_ids TEXT`); } catch { /* colonne déjà présente */ }
     },
   },
+  {
+    version: 17,
+    description: "Motif d'exclusion des tireurs (carton noir, rapport fédéral)",
+    up(db) {
+      try { db.run(`ALTER TABLE fencers ADD COLUMN exclusion_reason TEXT`); } catch { /* colonne déjà présente */ }
+    },
+  },
 ];

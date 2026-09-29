@@ -183,6 +183,8 @@ export interface BaseEntity {
 // Fencer (Tireur)
 // ============================================================================
 
+export type ExclusionReason = 'black_card';
+
 export interface Fencer extends BaseEntity {
   ref: number; // Numéro de référence unique dans la compétition
   lastName: string; // Nom
@@ -195,6 +197,7 @@ export interface Fencer extends BaseEntity {
   license?: string; // Numéro de licence
   ranking?: number; // Classement
   status: FencerStatus; // Statut dans la compétition
+  exclusionReason?: ExclusionReason | null; // Motif d'exclusion (rapport fédéral)
   seedNumber?: number; // Tête de série
   initialRanking?: number; // Classement initial
   finalRanking?: number; // Classement final

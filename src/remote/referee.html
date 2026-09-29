@@ -193,6 +193,12 @@
         border: 1px solid #dc2626;
       }
 
+      .card-black {
+        background: #111;
+        color: white;
+        border: 1px solid #000;
+      }
+
       /* Score principal */
       .score-display {
         font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif;
@@ -320,6 +326,12 @@
         background: #fee2e2;
         border-color: #ef4444;
         color: #991b1b;
+      }
+
+      .card-btn-black {
+        background: #111;
+        border-color: #000;
+        color: #fff;
       }
 
       .vs-divider {
@@ -1339,6 +1351,14 @@
               >
                 R
               </button>
+              <button
+                id="btn-card-black-a"
+                class="card-btn card-btn-black"
+                title="Carton noir (exclusion)"
+                onclick="refereeApp.requestBlackCard('A')"
+              >
+                N
+              </button>
             </div>
           </div>
 
@@ -1380,6 +1400,14 @@
                 title="Carton rouge (+5 adv)"
               >
                 R
+              </button>
+              <button
+                id="btn-card-black-b"
+                class="card-btn card-btn-black"
+                title="Carton noir (exclusion)"
+                onclick="refereeApp.requestBlackCard('B')"
+              >
+                N
               </button>
             </div>
           </div>
@@ -1544,8 +1572,8 @@
         <div class="modal-title" style="background:#111;color:#fff">⬛ Carton Noir</div>
         <div class="modal-body">
           <p id="black-card-fencer-name" style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:0.5rem">—</p>
-          <p style="text-align:center;color:#dc2626">2ème carton rouge = <strong>CARTON NOIR</strong></p>
-          <p style="text-align:center;font-size:0.875rem;color:#6b7280">Le combattant sera éliminé du match.</p>
+          <p id="black-card-cause" style="text-align:center;color:#dc2626">2ème carton rouge = <strong>CARTON NOIR</strong></p>
+          <p style="text-align:center;font-size:0.875rem;color:#6b7280">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
         </div>
         <div class="modal-buttons">
           <button class="modal-btn modal-btn-cancel" onclick="refereeApp.cancelBlackCard()">Annuler</button>
@@ -2421,7 +2449,9 @@
               const displayPos = this._effectiveFencer(ef); // logique → position affichée
               const nameEl = document.getElementById(`fencer-${displayPos.toLowerCase()}-name`);
               const fencerName = nameEl ? nameEl.textContent.trim() : `Tireur ${ef}`;
+              this._pendingBlackCardDirect = false;
               document.getElementById('black-card-fencer-name').textContent = fencerName;
+              document.getElementById('black-card-cause').innerHTML = '2ème carton rouge = <strong>CARTON NOIR</strong>';
               document.getElementById('black-card-modal').classList.add('active');
               return; // attendre confirmation
             }
@@ -2569,28 +2599,55 @@
           }
         }
 
+        // Carton noir direct (bouton N) : fencer = position affichée
+        requestBlackCard(fencer) {
+          if (!this.currentMatch) return;
+          if (this.matchStatus === 'not_started') {
+            this.showNotification('⏱ Démarrez le match pour saisir des touches');
+            return;
+          }
+          if (this.matchStatus === 'finished') return;
+          const ef = this._effectiveFencer(fencer);
+          this._pendingBlackCardFencer = ef;
+          this._pendingBlackCardDirect = true;
+          const nameEl = document.getElementById(`fencer-${fencer.toLowerCase()}-name`);
+          const fencerName = nameEl ? nameEl.textContent.trim() : `Tireur ${ef}`;
+          document.getElementById('black-card-fencer-name').textContent = fencerName;
+          document.getElementById('black-card-cause').innerHTML = '<strong>CARTON NOIR</strong> direct';
+          document.getElementById('black-card-modal').classList.add('active');
+        }
+
         cancelBlackCard() {
           this._pendingBlackCardFencer = null;
+          this._pendingBlackCardDirect = false;
           document.getElementById('black-card-modal').classList.remove('active');
         }
 
         async confirmBlackCard() {
           const ef = this._pendingBlackCardFencer;
+          const direct = this._pendingBlackCardDirect;
           this._pendingBlackCardFencer = null;
+          this._pendingBlackCardDirect = false;
           document.getElementById('black-card-modal').classList.remove('active');
           if (!ef || !this.currentMatch) return;
 
           const cards = ef === 'A' ? this.cardsA : this.cardsB;
-          cards.push('red'); // 2ème rouge = carton noir
-          if (ef === 'A') this.scoreB += 5;
-          else this.scoreA += 5;
+          if (direct) {
+            cards.push('black'); // carton noir direct : pas de points, fin du combat
+          } else {
+            cards.push('red'); // 2ème rouge = carton noir
+            if (ef === 'A') this.scoreB += 5;
+            else this.scoreA += 5;
+          }
 
           this.updateScores();
           this.updateCardsDisplay();
           this.broadcastUpdate();
 
-          this.showNotification('⬛ Carton noir — combattant éliminé !');
+          this.showNotification('⬛ Carton noir — combattant exclu, DT appelé');
           if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+          // Appel DT émis côté serveur à la réception du carton noir
+          document.getElementById('btn-dt-icon')?.classList.add('dt-active');
 
           // Terminer le match : l'adversaire du fautif est vainqueur
           this.matchStatus = 'finished';
@@ -2936,7 +2993,7 @@
             cards
               .map(
                 card =>
-                  `<div class="card card-${card}">${card === 'white' ? 'B' : card === 'yellow' ? 'J' : 'R'}</div>`
+                  `<div class="card card-${card}">${card === 'white' ? 'B' : card === 'yellow' ? 'J' : card === 'black' ? 'N' : 'R'}</div>`
               )
               .join('');
 

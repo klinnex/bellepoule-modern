@@ -13,6 +13,7 @@ import {
   CompetitionSettings,
   Fencer,
   FencerStatus,
+  ExclusionReason,
   Gender,
   Weapon,
   Category,
@@ -356,6 +357,7 @@ export class DatabaseManager {
       license: row.license as string,
       ranking: row.ranking as number,
       status: row.status as FencerStatus,
+      exclusionReason: (row.exclusion_reason as ExclusionReason) || undefined,
       seedNumber: row.seed_number as number,
       finalRanking: row.final_ranking as number,
       poolStats,
@@ -467,6 +469,7 @@ export class DatabaseManager {
       nationality: 'nationality', club: 'club', region: 'region',
       license: 'license', ranking: 'ranking', status: 'status',
       photo: 'photo', seedNumber: 'seed_number', finalRanking: 'final_ranking',
+      exclusionReason: 'exclusion_reason',
     };
     const setClauses: string[] = [];
     const values: unknown[] = [];

@@ -649,7 +649,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('training:match_finished', handler);
     return () => ipcRenderer.removeListener('training:match_finished', handler);
   },
-  onRemoteFencerExcluded: (callback: (data: { fencerId: string; matchId: string }) => void) => {
+  onRemoteFencerExcluded: (callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void) => {
     const handler = (_: any, data: any) => callback(data);
     ipcRenderer.on('remote:fencer_excluded', handler);
     return () => ipcRenderer.removeListener('remote:fencer_excluded', handler);
@@ -666,7 +666,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('kiosk:note', handler);
     return () => ipcRenderer.removeListener('kiosk:note', handler);
   },
-  onDTCall: (callback: (data: { arenaId: string; arenaNumber: number; matchNumber: number | null; competitionId: string | null; timestamp: number }) => void) => {
+  onDTCall: (callback: (data: { arenaId: string; arenaNumber: number | null; matchNumber: number | null; competitionId: string | null; timestamp: number; reason?: 'black_card'; fencerName?: string | null }) => void) => {
     const handler = (_: any, data: any) => callback(data);
     ipcRenderer.on('remote:dt_call', handler);
     return () => ipcRenderer.removeListener('remote:dt_call', handler);

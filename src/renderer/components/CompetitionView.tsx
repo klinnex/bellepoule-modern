@@ -593,9 +593,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     const offMatchFinished = window.electronAPI.onRemoteMatchFinished(handleMatchFinished);
 
     // Carton noir distant : exclure le combattant fautif dans le store
-    const offExcluded = window.electronAPI.onRemoteFencerExcluded?.(({ fencerId }) => {
+    const offExcluded = window.electronAPI.onRemoteFencerExcluded?.(({ fencerId, reason }) => {
       logger.debug(LogCategory.UI, `[CompetitionView] Combattant exclu (carton noir): ${fencerId}`);
-      updateFencer(fencerId, { status: FencerStatus.EXCLUDED });
+      updateFencer(fencerId, { status: FencerStatus.EXCLUDED, exclusionReason: reason ?? 'black_card' });
     });
 
     return () => {
