@@ -321,11 +321,11 @@ const AppContent: React.FC = () => {
     }
   }, [openCompetitions, activeTabId, confirm]);
 
-  const handleLaunchTraining = useCallback(async (weapon: string, strips: number, customRules?: any) => {
+  const handleLaunchTraining = useCallback(async (weapon: string, strips: number, customRules?: any, host?: string) => {
     if (!window.electronAPI?.training) return;
     setTrainingLaunching(true);
     try {
-      const startRes = await window.electronAPI.training.startServer();
+      const startRes = await window.electronAPI.training.startServer(undefined, host);
       if (!startRes.success || !startRes.serverInfo) {
         showToast(startRes.error ?? 'Impossible de démarrer le serveur', 'error');
         return;

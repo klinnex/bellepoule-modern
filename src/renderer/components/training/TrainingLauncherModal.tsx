@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { X, Swords, Minus, Plus, Clock, Zap } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Swords, Minus, Plus, Clock, Zap, Network } from 'lucide-react';
 import { Weapon, TargetZone, ZONE_POINTS, ZONE_LABELS } from '../../../shared/types';
 import type { TrainingCustomRules } from '../../../shared/types/preload';
 
 interface Props {
   onClose: () => void;
-  onLaunch: (weapon: string, strips: number, customRules: TrainingCustomRules) => void;
+  onLaunch: (weapon: string, strips: number, customRules: TrainingCustomRules, host: string) => void;
   isLoading: boolean;
 }
 
@@ -25,12 +25,45 @@ const DURATION_PRESETS = [
   { label: '5 min', value: 300 },
 ];
 
+const INTERFACE_STORAGE_KEY = 'bellepoule-training-interface';
+const ALL_INTERFACES = '0.0.0.0';
+
+function loadSavedInterface(): string {
+  try {
+    return localStorage.getItem(INTERFACE_STORAGE_KEY) ?? ALL_INTERFACES;
+  } catch {
+    return ALL_INTERFACES;
+  }
+}
+
 const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }) => {
   const [weapon, setWeapon] = useState<string>(Weapon.EPEE);
   const [strips, setStrips] = useState(1);
   const [matchDuration, setMatchDuration] = useState(180);
   const [allowedZones, setAllowedZones] = useState<TargetZone[]>([]);
   const [disableSuddenDeath, setDisableSuddenDeath] = useState(false);
+  const [networkInterfaces, setNetworkInterfaces] = useState<{ name: string; address: string }[]>([
+    { name: 'Toutes les interfaces', address: ALL_INTERFACES },
+  ]);
+  const [selectedInterface, setSelectedInterface] = useState<string>(loadSavedInterface);
+
+  useEffect(() => {
+    window.electronAPI?.remote?.getNetworkInterfaces?.().then(res => {
+      const list = res?.success ? res.interfaces : undefined;
+      if (list?.length) {
+        setNetworkInterfaces(list);
+        // Interface mémorisée disparue (câble débranché, Wi-Fi changé…) → repli sur toutes
+        setSelectedInterface(prev =>
+          list.some(i => i.address === prev) ? prev : ALL_INTERFACES
+        );
+      }
+    }).catch(() => { /* garde la valeur par défaut */ });
+  }, []);
+
+  const handleInterfaceChange = (address: string) => {
+    setSelectedInterface(address);
+    try { localStorage.setItem(INTERFACE_STORAGE_KEY, address); } catch { /* optionnel */ }
+  };
 
   const isLaser = weapon === Weapon.LASER;
 
@@ -54,7 +87,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
       matchDurationSeconds: matchDuration,
       allowedZones: allowedZones.map(z => z as string),
       disableSuddenDeath,
-    });
+    }, selectedInterface);
   };
 
   const durationMin = Math.floor(matchDuration / 60);
@@ -186,6 +219,29 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Interface réseau */}
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label
+              htmlFor="training-interface"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, marginBottom: '0.5rem', fontSize: '0.875rem' }}
+            >
+              <Network size={14} /> Interface réseau
+            </label>
+            <select
+              id="training-interface"
+              value={selectedInterface}
+              onChange={e => handleInterfaceChange(e.target.value)}
+              disabled={isLoading}
+              style={{ width: '100%' }}
+            >
+              {networkInterfaces.map(iface => (
+                <option key={iface.address} value={iface.address}>
+                  {iface.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Options Laser Sabre uniquement */}
