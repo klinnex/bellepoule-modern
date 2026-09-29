@@ -77,6 +77,7 @@ export interface FencerUpdateData {
   ranking?: number;
   status?: string;
   photo?: string;
+  exclusionReason?: 'black_card' | null;
 }
 
 export interface MatchCreateData {
@@ -942,12 +943,12 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   onRemoteCheckinUpdated?: (
     callback: (data: { kind: 'fencer' | 'referee'; id: string; present: boolean }) => void
   ) => () => void;
-  onRemoteFencerExcluded: (callback: (data: { fencerId: string; matchId: string }) => void) => (() => void);
+  onRemoteFencerExcluded: (callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void) => (() => void);
   onKioskNoteUpdate: (
     callback: (note: import('../types/remote').OrgNote | null) => void
   ) => () => void;
   onDTCall: (
-    callback: (data: { arenaId: string; arenaNumber: number; matchNumber: number | null; competitionId: string | null; timestamp: number }) => void
+    callback: (data: { arenaId: string; arenaNumber: number | null; matchNumber: number | null; competitionId: string | null; timestamp: number; reason?: 'black_card'; fencerName?: string | null }) => void
   ) => () => void;
   onDTCallCancel: (callback: (data: { arenaId: string }) => void) => () => void;
   onScoreIpConflict: (callback: (data: ScoreIpConflict) => void) => () => void;

@@ -9,11 +9,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 interface DTCallEntry {
   id: string;
   arenaId: string;
-  arenaNumber: number;
+  arenaNumber: number | null;
   matchNumber: number | null;
   competitionId: string | null;
   timestamp: number;
   acknowledging: boolean;
+  reason?: 'black_card';
+  fencerName?: string | null;
 }
 
 const DTCallNotification: React.FC = () => {
@@ -33,6 +35,8 @@ const DTCallNotification: React.FC = () => {
           competitionId: data.competitionId,
           timestamp: data.timestamp,
           acknowledging: false,
+          reason: data.reason,
+          fencerName: data.fencerName,
         }];
       });
       // Alerte sonore
@@ -88,7 +92,7 @@ const DTCallNotification: React.FC = () => {
       {calls.map(call => (
         <div key={call.id} style={{
           backgroundColor: '#1f2937',
-          borderLeft: '4px solid #f97316',
+          borderLeft: call.reason === 'black_card' ? '4px solid #000' : '4px solid #f97316',
           borderRadius: '8px',
           padding: '14px 16px',
           boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
@@ -96,8 +100,13 @@ const DTCallNotification: React.FC = () => {
           animation: 'slideInRight 0.3s ease-out',
         }}>
           <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px' }}>
-            📣 Appel DT — Piste {call.arenaNumber}
+            📣 Appel DT{call.arenaNumber != null ? ` — Piste ${call.arenaNumber}` : ''}
           </div>
+          {call.reason === 'black_card' && (
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#fca5a5', marginBottom: '4px' }}>
+              ⬛ Carton noir{call.fencerName ? ` — ${call.fencerName}` : ''} (exclusion, rapport fédéral)
+            </div>
+          )}
           {call.matchNumber != null && (
             <div style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '4px' }}>
               Match n° {call.matchNumber}

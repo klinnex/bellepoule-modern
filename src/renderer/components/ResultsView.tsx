@@ -129,14 +129,14 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   const exportCSV = () => {
     const headers = ['Rang', 'Nom', 'Prénom', 'Club', 'Statut', 'Éliminé à'];
 
-    const getStatusLabel = (status: FencerStatus) => {
-      switch (status) {
+    const getStatusLabel = (fencer: Fencer) => {
+      switch (fencer.status) {
         case FencerStatus.ABANDONED:
           return 'A';
         case FencerStatus.FORFAIT:
           return 'F';
         case FencerStatus.EXCLUDED:
-          return 'X';
+          return fencer.exclusionReason === 'black_card' ? 'X (carton noir)' : 'X';
         default:
           return '';
       }
@@ -148,7 +148,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         r.fencer.lastName,
         r.fencer.firstName,
         r.fencer.club || '',
-        getStatusLabel(r.fencer.status),
+        getStatusLabel(r.fencer),
         r.eliminatedAt || '',
       ];
     });
@@ -421,7 +421,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   {result.fencer.firstName} {result.fencer.lastName}
                   {result.fencer.status === FencerStatus.ABANDONED && ' (A)'}
                   {result.fencer.status === FencerStatus.FORFAIT && ' (F)'}
-                  {result.fencer.status === FencerStatus.EXCLUDED && ' (X)'}
+                  {result.fencer.status === FencerStatus.EXCLUDED &&
+                    (result.fencer.exclusionReason === 'black_card' ? ' (X ⬛ carton noir)' : ' (X)')}
                 </td>
                 <td style={RV_STYLES.tdClub}>{result.fencer.club || '-'}</td>
                 <td style={RV_STYLES.tdElim}>{result.eliminatedAt || '-'}</td>
