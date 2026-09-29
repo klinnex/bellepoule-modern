@@ -1049,6 +1049,23 @@
         border-color: #7c3aed;
         color: #fff;
       }
+      /* Mode daltonien : vert remplacé par bleu (paire rouge/bleu lisible deutéranopie/protanopie) */
+      body.colorblind .fencer-box.green-side {
+        border-color: #2563eb;
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      }
+      body.colorblind .fencer-box.red-side { border-color: #ea580c; }
+      body.colorblind .score-display.green-score { color: #2563eb; }
+      body.colorblind .score-display.red-score { color: #ea580c; }
+      body.colorblind .score-display.green-score.not-started { background-color: rgba(37, 99, 235, 0.12); }
+      body.colorblind .score-display.red-score.not-started { background-color: rgba(234, 88, 12, 0.12); }
+      body.colorblind .coin-flip-confirm-winner.winner-green { color: #3b82f6; }
+      body.colorblind .coin-flip-confirm-winner.winner-red { color: #f97316; }
+      body.colorblind .btn-arena-exit-green { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+      body.colorblind .btn-arena-exit-red { background: linear-gradient(135deg, #f97316, #ea580c); }
+      @media (prefers-color-scheme: dark) {
+        body.colorblind .fencer-box.green-side { background: linear-gradient(135deg, #0a1a3b 0%, #10224c 100%); }
+      }
       @media (prefers-color-scheme: dark) {
         .active-match { background: rgba(30,30,40,0.97); color: #f3f4f6; }
         .fencer-box { background: #1f2937; color: #f9fafb; }
@@ -1251,6 +1268,7 @@
       </h1>
       <div class="connection-status">
         <button id="btn-swap" class="swap-btn" onclick="refereeApp.toggleSwap()" data-i18n-title="referee.swap_colors" title="Inverser rouge/vert">⇄</button>
+        <button id="btn-colorblind" class="swap-btn" onclick="refereeApp.toggleColorblind()" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)">👁</button>
         <div id="status-dot" class="status-dot"></div>
         <span id="connection-text" data-i18n="remote.connecting">Connexion...</span>
         <span
@@ -1780,6 +1798,13 @@
           this.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
           this.arenaId = this.getArenaId();
           this.arenaNumber = this.arenaNumberFromId();
+          {
+            const cbParam = new URLSearchParams(window.location.search).get('cb');
+            let cbStored = null;
+            try { cbStored = localStorage.getItem('bp_colorblind'); } catch (_) {}
+            const cbOn = cbParam !== null ? cbParam === '1' : cbStored === '1';
+            if (cbOn) this.toggleColorblind(true);
+          }
           this.poolId = null;
           this.matches = [];
           this.allMatches = [];
@@ -2931,6 +2956,13 @@
           this.saveScore();
           const label = lastCard === 'white' ? 'blanc' : lastCard === 'yellow' ? 'jaune' : 'rouge';
           this.showNotification(`↩ Dernier carton ${label} annulé`);
+        }
+
+        toggleColorblind(force) {
+          const on = typeof force === 'boolean' ? force : !document.body.classList.contains('colorblind');
+          document.body.classList.toggle('colorblind', on);
+          document.getElementById('btn-colorblind')?.classList.toggle('active', on);
+          try { localStorage.setItem('bp_colorblind', on ? '1' : '0'); } catch (_) {}
         }
 
         toggleSwap() {

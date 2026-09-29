@@ -737,6 +737,16 @@
         from { transform: scale(0.5); opacity: 0; }
         to   { transform: scale(1);   opacity: 1; }
       }
+      /* Mode daltonien (?cb=1) : vert → bleu, rouge → orange */
+      body.colorblind .fencer-display.green-side {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border-color: #2563eb;
+      }
+      body.colorblind .fencer-display.red-side { border-color: #ea580c; }
+      body.colorblind .color-badge.green { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+      body.colorblind .color-badge.red { background: linear-gradient(135deg, #f97316, #ea580c); }
+      body.colorblind .score-big.green { color: #2563eb; text-shadow: 0 0 10px rgba(37, 99, 235, 0.7), 0 0 40px rgba(37, 99, 235, 0.4); }
+      body.colorblind .score-big.red { color: #ea580c; text-shadow: 0 0 10px rgba(234, 88, 12, 0.7), 0 0 40px rgba(234, 88, 12, 0.4); }
     </style>
   </head>
   <body>
@@ -880,6 +890,7 @@
 
       class PublicDisplay {
         constructor() {
+          if (new URLSearchParams(window.location.search).get('cb') === '1') document.body.classList.add('colorblind');
           this.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
           this.arenaId = this.getArenaId();
           this.arenaNumber = this.arenaNumberFromId();
