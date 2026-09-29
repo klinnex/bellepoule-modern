@@ -187,9 +187,9 @@ export const ARTICLES: WikiArticle[] = [
         ]},
         { type: 'h2', text: 'Catégories' },
         { type: 'ul', items: [
-          'Poussins (U11), Benjamins (U13), Minimes (U15)',
-          'Cadets (U17), Juniors (U20), Seniors',
-          'Vétérans V1 à V4',
+          'M11, M13, M15',
+          'M17, M20, Seniors',
+          'Vétérans 1 à 4',
         ]},
         { type: 'h2', text: 'Formules' },
         { type: 'p', text: 'BellePoule propose des formules prédéfinies adaptées au nombre de tireurs. Vous pouvez aussi utiliser le Constructeur de formule pour créer des enchaînements de phases (poules → tableau → classement) avec des règles d\'avancement personnalisées.' },

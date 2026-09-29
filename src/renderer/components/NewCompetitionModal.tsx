@@ -189,11 +189,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                   value={category}
                   onChange={e => setCategory(e.target.value as Category)}
                 >
-                  <option value={Category.U11}>{t('categories.U11')} ({t('categories.U11')})</option>
-                  <option value={Category.U13}>{t('categories.U13')} ({t('categories.U13')})</option>
-                  <option value={Category.U15}>{t('categories.U15')} ({t('categories.U15')})</option>
-                  <option value={Category.U17}>{t('categories.U17')} ({t('categories.U17')})</option>
-                  <option value={Category.U20}>{t('categories.U20')} ({t('categories.U20')})</option>
+                  <option value={Category.U11}>{t('categories.U11')}</option>
+                  <option value={Category.U13}>{t('categories.U13')}</option>
+                  <option value={Category.U15}>{t('categories.U15')}</option>
+                  <option value={Category.U17}>{t('categories.U17')}</option>
+                  <option value={Category.U20}>{t('categories.U20')}</option>
                   <option value={Category.SENIOR}>{t('categories.senior')}</option>
                   <option value={Category.V1}>{t('categories.V1')} (40-49)</option>
                   <option value={Category.V2}>{t('categories.V2')} (50-59)</option>
