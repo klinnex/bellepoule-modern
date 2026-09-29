@@ -121,21 +121,21 @@ const VAR_GROUPS: VarGroup[] = [
     ],
   },
   {
-    label: 'Côté gauche (vert)',
-    vars: [
-      { key: '--green-side-bg',     label: 'Fond',           type: 'text'  },
-      { key: '--green-side-border', label: 'Bordure',        type: 'color' },
-      { key: '--score-green',       label: 'Couleur score',  type: 'color' },
-      { key: '--score-green-glow',  label: 'Lueur score',    type: 'text'  },
-    ],
-  },
-  {
-    label: 'Côté droit (rouge)',
+    label: 'Côté gauche (rouge)',
     vars: [
       { key: '--red-side-bg',     label: 'Fond',           type: 'text'  },
       { key: '--red-side-border', label: 'Bordure',        type: 'color' },
       { key: '--score-red',       label: 'Couleur score',  type: 'color' },
       { key: '--score-red-glow',  label: 'Lueur score',    type: 'text'  },
+    ],
+  },
+  {
+    label: 'Côté droit (vert)',
+    vars: [
+      { key: '--green-side-bg',     label: 'Fond',           type: 'text'  },
+      { key: '--green-side-border', label: 'Bordure',        type: 'color' },
+      { key: '--score-green',       label: 'Couleur score',  type: 'color' },
+      { key: '--score-green-glow',  label: 'Lueur score',    type: 'text'  },
     ],
   },
   {
@@ -911,46 +911,6 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                     }}>
                       {/* Grille combattants */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', gap: '14px', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-                        {/* Côté vert */}
-                        <div style={{
-                          background: 'var(--green-side-bg)',
-                          border: '6px solid var(--green-side-border)',
-                          borderRadius: '12px',
-                          padding: '14px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '8px',
-                          overflow: 'hidden',
-                        }}>
-                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#22c55e,#16a34a)', flexShrink: 0 }} />
-                          <div style={{ fontSize: 'var(--fencer-name-font-size)', fontFamily: 'var(--fencer-name-font-family)', fontWeight: 800, color: 'var(--fencer-name-color)', textAlign: 'center', lineHeight: 1.1 }}>
-                            DUPONT A.
-                          </div>
-                          <div style={{ fontSize: '22px', color: 'var(--fencer-club-color)' }}>
-                            Escrime Paris
-                          </div>
-                          <div style={{
-                            fontFamily: 'var(--score-font-family)',
-                            fontSize: 'var(--score-font-size)',
-                            fontWeight: 'bold',
-                            color: 'var(--score-green)',
-                            background: 'var(--score-bg)',
-                            padding: '0.05em 0.2em',
-                            borderRadius: '8px',
-                            lineHeight: 1,
-                            flexShrink: 0,
-                          }}>
-                            5
-                          </div>
-                        </div>
-
-                        {/* VS */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', fontWeight: 900, color: 'var(--vs-color)', fontFamily: 'var(--vs-font-family)' }}>
-                          VS
-                        </div>
-
                         {/* Côté rouge */}
                         <div style={{
                           background: 'var(--red-side-bg)',
@@ -976,6 +936,46 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                             fontSize: 'var(--score-font-size)',
                             fontWeight: 'bold',
                             color: 'var(--score-red)',
+                            background: 'var(--score-bg)',
+                            padding: '0.05em 0.2em',
+                            borderRadius: '8px',
+                            lineHeight: 1,
+                            flexShrink: 0,
+                          }}>
+                            5
+                          </div>
+                        </div>
+
+                        {/* VS */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', fontWeight: 900, color: 'var(--vs-color)', fontFamily: 'var(--vs-font-family)' }}>
+                          VS
+                        </div>
+
+                        {/* Côté vert */}
+                        <div style={{
+                          background: 'var(--green-side-bg)',
+                          border: '6px solid var(--green-side-border)',
+                          borderRadius: '12px',
+                          padding: '14px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          overflow: 'hidden',
+                        }}>
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#22c55e,#16a34a)', flexShrink: 0 }} />
+                          <div style={{ fontSize: 'var(--fencer-name-font-size)', fontFamily: 'var(--fencer-name-font-family)', fontWeight: 800, color: 'var(--fencer-name-color)', textAlign: 'center', lineHeight: 1.1 }}>
+                            DUPONT A.
+                          </div>
+                          <div style={{ fontSize: '22px', color: 'var(--fencer-club-color)' }}>
+                            Escrime Paris
+                          </div>
+                          <div style={{
+                            fontFamily: 'var(--score-font-family)',
+                            fontSize: 'var(--score-font-size)',
+                            fontWeight: 'bold',
+                            color: 'var(--score-green)',
                             background: 'var(--score-bg)',
                             padding: '0.05em 0.2em',
                             borderRadius: '8px',

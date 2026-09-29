@@ -1274,6 +1274,20 @@
         from { transform: scale(0.5); opacity: 0; }
         to   { transform: scale(1);   opacity: 1; }
       }
+      /* Mode daltonien (?cb=1) : vert → bleu, rouge → orange */
+      body.colorblind {
+        --green-side-bg: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        --green-side-border: #2563eb;
+        --score-green: #3b82f6;
+        --score-green-glow: rgba(59, 130, 246, 0.65), rgba(59, 130, 246, 0.3);
+        --red-side-border: #ea580c;
+        --score-red: #f97316;
+        --score-red-glow: rgba(249, 115, 22, 0.65), rgba(249, 115, 22, 0.3);
+      }
+      body.colorblind .color-badge.green { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+      body.colorblind .color-badge.red { background: linear-gradient(135deg, #f97316, #ea580c); }
+      body.colorblind .score-big.green { text-shadow: 0 0 6px rgba(59, 130, 246, 0.95), 0 0 18px var(--score-green-glow); }
+      body.colorblind .score-big.red { text-shadow: 0 0 6px rgba(249, 115, 22, 0.95), 0 0 18px var(--score-red-glow); }
     </style>
   </head>
   <body>
@@ -1501,6 +1515,7 @@
           this.showPhotos = false;
           this.refereeFeatureEnabled = false;
           this.theme = localStorage.getItem('displayTheme') || 'dark';
+          if (new URLSearchParams(window.location.search).get('cb') === '1') document.body.classList.add('colorblind');
           this.currentCustomTheme = null;
 
           this.init();
