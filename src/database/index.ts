@@ -577,9 +577,35 @@ export class DatabaseManager {
         position    = excluded.position,
         updated_at  = excluded.updated_at
     `);
+    // Scores existants : un changement de score alimente l'historique (#927)
+    const existing = new Map<string, { a: any; b: any }>();
+    for (const r of this.queryAll<any>(
+      `SELECT id, score_a, score_b FROM matches WHERE table_id = ? AND round IS NOT NULL`,
+      [competitionId]
+    )) {
+      existing.set(r.id as string, {
+        a: r.score_a ? JSON.parse(r.score_a as string) : null,
+        b: r.score_b ? JSON.parse(r.score_b as string) : null,
+      });
+    }
     const insertMany = this.db.transaction((rows: typeof matches) => {
       for (const m of rows) {
         const dbId = `${competitionId}-${m.matchId}`;
+        const prev = existing.get(dbId);
+        const scoreChanged =
+          (prev?.a?.value ?? null) !== (m.scoreA?.value ?? null) ||
+          (prev?.b?.value ?? null) !== (m.scoreB?.value ?? null);
+        if (!m.isBye && m.scoreA != null && m.scoreB != null && scoreChanged) {
+          this.logScoreChange({
+            matchId: dbId,
+            previousScoreA: prev?.a ?? undefined,
+            previousScoreB: prev?.b ?? undefined,
+            newScoreA: m.scoreA,
+            newScoreB: m.scoreB,
+            changedBy: 'ui',
+            reason: 'tableau_entry',
+          });
+        }
         stmt.run(
           dbId,
           parseInt(m.matchId.replace('-', '')) || 0,
@@ -1622,6 +1648,8 @@ export class DatabaseManager {
       changedBy: r.changed_by as string, changedAt: r.changed_at as string,
       reason: r.reason as string | null, refereeId: r.referee_id as string | null,
       refereeName: r.referee_name as string | null, ipAddress: r.ip_address as string | null,
+      tableauRound: r.tableau_round != null && r.pool_number == null ? Number(r.tableau_round) : null,
+      tableauPosition: r.tableau_position != null && r.pool_number == null ? Number(r.tableau_position) : null,
     };
   }
 
@@ -1636,8 +1664,14 @@ export class DatabaseManager {
   public getScoreAuditLogByCompetition(competitionId: string): any[] {
     if (!this.db) throw new Error('Database not open');
     return this.queryAll<any>(
-      `SELECT sal.*, m.number as match_number, p.number as pool_number FROM score_audit_log sal JOIN matches m ON sal.match_id = m.id JOIN pools p ON m.pool_id = p.id JOIN phases ph ON p.phase_id = ph.id WHERE ph.competition_id = ? ORDER BY sal.changed_at DESC`,
-      [competitionId]
+      `SELECT sal.*, m.number as match_number, p.number as pool_number, m.round as tableau_round, m.position as tableau_position
+       FROM score_audit_log sal
+       JOIN matches m ON sal.match_id = m.id
+       LEFT JOIN pools p ON m.pool_id = p.id
+       LEFT JOIN phases ph ON p.phase_id = ph.id
+       WHERE ph.competition_id = ? OR (m.pool_id IS NULL AND m.table_id = ? AND m.round IS NOT NULL)
+       ORDER BY sal.changed_at DESC`,
+      [competitionId, competitionId]
     ).map(r => this.parseAuditRow(r));
   }
 

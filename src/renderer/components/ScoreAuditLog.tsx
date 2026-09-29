@@ -3,10 +3,11 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect, useCallback , memo} from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { ScoreAuditEntry, ScoreIpConflict } from '../../shared/types/preload';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
+import { getRoundName } from '../../shared/utils/tableCalculations';
 
 interface Props {
   competitionId: string;
@@ -21,6 +22,49 @@ function formatScore(score: any): string {
   return String(v);
 }
 
+type SortMode = 'time' | 'pool' | 'match' | 'referee';
+
+const TABLEAU_FILTER = 'tableau';
+
+function isTableauEntry(e: ScoreAuditEntry): boolean {
+  return e.poolNumber == null && e.tableauRound != null;
+}
+
+function phaseLabel(e: ScoreAuditEntry): string {
+  if (e.poolNumber != null) return `Poule ${e.poolNumber}`;
+  if (e.tableauRound != null) return getRoundName(e.tableauRound);
+  return '—';
+}
+
+function matchLabel(e: ScoreAuditEntry): string {
+  if (isTableauEntry(e)) return e.tableauPosition != null ? `Match ${e.tableauPosition + 1}` : '—';
+  return e.matchNumber != null ? `Match ${e.matchNumber}` : '—';
+}
+
+function refereeOf(e: ScoreAuditEntry): string {
+  return e.refereeName ?? e.changedBy ?? '';
+}
+
+// Poules d'abord (par numéro), puis tableau du premier tour à la finale
+function phaseKey(e: ScoreAuditEntry): number {
+  if (e.poolNumber != null) return e.poolNumber;
+  if (e.tableauRound != null) return 100000 - e.tableauRound;
+  return Number.MAX_SAFE_INTEGER;
+}
+
+function matchKey(e: ScoreAuditEntry): number {
+  return (isTableauEntry(e) ? e.tableauPosition : e.matchNumber) ?? Number.MAX_SAFE_INTEGER;
+}
+
+const byTimeDesc = (a: ScoreAuditEntry, b: ScoreAuditEntry) => b.changedAt.localeCompare(a.changedAt);
+
+const SORTERS: Record<SortMode, (a: ScoreAuditEntry, b: ScoreAuditEntry) => number> = {
+  time: byTimeDesc,
+  pool: (a, b) => phaseKey(a) - phaseKey(b) || matchKey(a) - matchKey(b) || byTimeDesc(a, b),
+  match: (a, b) => matchKey(a) - matchKey(b) || phaseKey(a) - phaseKey(b) || byTimeDesc(a, b),
+  referee: (a, b) => refereeOf(a).localeCompare(refereeOf(b), 'fr') || byTimeDesc(a, b),
+};
+
 const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
   const { showToast } = useToast();
   const { t } = useTranslation();
@@ -28,6 +72,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
   const [loading, setLoading] = useState(false);
   const [filterPool, setFilterPool] = useState('');
   const [filterReferee, setFilterReferee] = useState('');
+  const [sortMode, setSortMode] = useState<SortMode>('time');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -57,22 +102,33 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
 
   const poolNumbers = Array.from(new Set(entries.map(e => e.poolNumber).filter(n => n != null))).sort((a, b) => (a as number) - (b as number));
 
-  const filtered = entries.filter(e => {
-    if (filterPool && String(e.poolNumber) !== filterPool) return false;
-    if (filterReferee) {
-      const ref = (e.refereeName ?? e.changedBy ?? '').toLowerCase();
-      if (!ref.includes(filterReferee.toLowerCase())) return false;
-    }
-    return true;
-  });
+  const hasTableau = entries.some(isTableauEntry);
+
+  const filtered = useMemo(
+    () =>
+      entries
+        .filter(e => {
+          if (filterPool === TABLEAU_FILTER) {
+            if (!isTableauEntry(e)) return false;
+          } else if (filterPool && String(e.poolNumber) !== filterPool) {
+            return false;
+          }
+          if (filterReferee) {
+            if (!refereeOf(e).toLowerCase().includes(filterReferee.toLowerCase())) return false;
+          }
+          return true;
+        })
+        .sort(SORTERS[sortMode]),
+    [entries, filterPool, filterReferee, sortMode]
+  );
 
   const exportCsv = useCallback(async () => {
-    const header = 'timestamp_iso,poule,match,score_avant_a,score_avant_b,score_apres_a,score_apres_b,arbitre,ip,source\n';
+    const header = 'timestamp_iso,phase,match,score_avant_a,score_avant_b,score_apres_a,score_apres_b,arbitre,ip,source\n';
     const rows = filtered.map(e => {
       const cols = [
         new Date(e.changedAt).toISOString(),
-        e.poolNumber != null ? String(e.poolNumber) : '',
-        e.matchNumber != null ? String(e.matchNumber) : '',
+        phaseLabel(e) === '—' ? '' : phaseLabel(e),
+        matchLabel(e) === '—' ? '' : matchLabel(e),
         e.previousScoreA != null ? String(e.previousScoreA.value ?? '') : '',
         e.previousScoreB != null ? String(e.previousScoreB.value ?? '') : '',
         String(e.newScoreA?.value ?? ''),
@@ -109,10 +165,23 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
           onChange={e => setFilterPool(e.target.value)}
           style={{ padding: '0.3rem 0.6rem', borderRadius: 4, border: '1px solid #D1D5DB' }}
         >
-          <option value="">Toutes les poules</option>
+          <option value="">Toutes les phases</option>
           {poolNumbers.map(n => (
             <option key={n} value={String(n)}>Poule {n}</option>
           ))}
+          {hasTableau && <option value={TABLEAU_FILTER}>Tableau</option>}
+        </select>
+
+        <select
+          value={sortMode}
+          onChange={e => setSortMode(e.target.value as SortMode)}
+          aria-label="Trier l'historique"
+          style={{ padding: '0.3rem 0.6rem', borderRadius: 4, border: '1px solid #D1D5DB' }}
+        >
+          <option value="time">Tri : par heure</option>
+          <option value="pool">Tri : par poule / tour</option>
+          <option value="match">Tri : par ordre des matchs</option>
+          <option value="referee">Tri : par arbitre</option>
         </select>
 
         <input
@@ -150,7 +219,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
           <thead>
             <tr style={{ background: '#F3F4F6', textAlign: 'left' }}>
               <th style={th}>Horodatage</th>
-              <th style={th}>Poule</th>
+              <th style={th}>Poule / Tour</th>
               <th style={th}>Match</th>
               <th style={th}>Avant</th>
               <th style={th}>Après</th>
@@ -162,8 +231,8 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
             {filtered.map(e => (
               <tr key={e.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
                 <td style={td}>{new Date(e.changedAt).toLocaleString()}</td>
-                <td style={td}>{e.poolNumber != null ? `Poule ${e.poolNumber}` : '—'}</td>
-                <td style={td}>{e.matchNumber != null ? `Match ${e.matchNumber}` : '—'}</td>
+                <td style={td}>{phaseLabel(e)}</td>
+                <td style={td}>{matchLabel(e)}</td>
                 <td style={td}>
                   {e.previousScoreA != null
                     ? `${formatScore(e.previousScoreA)} / ${formatScore(e.previousScoreB)}`

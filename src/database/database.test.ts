@@ -325,3 +325,57 @@ describe('DatabaseManager', () => {
     });
   });
 });
+
+describe('DatabaseManager — historique tableau (#927)', () => {
+  let manager: DatabaseManager;
+  let auditRuns: unknown[][];
+
+  const setup = async (existingRows: any[]) => {
+    auditRuns = [];
+    mockDb = {
+      pragma: vi.fn(),
+      exec: vi.fn(),
+      prepare: vi.fn().mockImplementation((sql: string) => {
+        if (sql.includes('INSERT INTO score_audit_log')) {
+          return makeStmt({ run: vi.fn().mockImplementation((...args: unknown[]) => { auditRuns.push(args); }) });
+        }
+        if (sql.includes('SELECT id, score_a, score_b FROM matches')) {
+          return makeStmt({ all: vi.fn().mockReturnValue(existingRows) });
+        }
+        return makeStmt();
+      }),
+      close: vi.fn(),
+      backup: vi.fn().mockResolvedValue(undefined),
+      transaction: vi.fn().mockImplementation((fn: any) => (...args: any[]) => fn(...args)),
+    };
+    manager = new DatabaseManager('/tmp/test-bellepoule.db');
+    await manager.open();
+  };
+
+  const match = (scoreA: number | null, scoreB: number | null) => ({
+    matchId: 'm1', round: 4, position: 0, fencerAId: 'a', fencerBId: 'b',
+    scoreA: scoreA != null ? { value: scoreA, isVictory: scoreA > (scoreB ?? 0) } : null,
+    scoreB: scoreB != null ? { value: scoreB, isVictory: (scoreB ?? 0) > (scoreA ?? 0) } : null,
+    status: scoreA != null ? 'finished' : 'not_started',
+  });
+
+  it('journalise une nouvelle saisie de score tableau', async () => {
+    await setup([{ id: 'c1-m1', score_a: null, score_b: null }]);
+    manager.upsertMultipleTableauMatches('c1', [match(15, 10)]);
+    expect(auditRuns).toHaveLength(1);
+    expect(auditRuns[0][1]).toBe('c1-m1');
+    expect(auditRuns[0][9]).toBe('tableau_entry');
+  });
+
+  it('ne journalise pas si le score est inchangé', async () => {
+    await setup([{ id: 'c1-m1', score_a: JSON.stringify({ value: 15 }), score_b: JSON.stringify({ value: 10 }) }]);
+    manager.upsertMultipleTableauMatches('c1', [match(15, 10)]);
+    expect(auditRuns).toHaveLength(0);
+  });
+
+  it('ne journalise pas un match sans score', async () => {
+    await setup([]);
+    manager.upsertMultipleTableauMatches('c1', [match(null, null)]);
+    expect(auditRuns).toHaveLength(0);
+  });
+});
