@@ -485,16 +485,16 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   value={category}
                   onChange={e => setCategory(e.target.value as Category)}
                 >
-                  <option value="U11">U11 (Poussin)</option>
-                  <option value="U13">U13 (Benjamin)</option>
-                  <option value="U15">U15 (Minime)</option>
-                  <option value="U17">U17 (Cadet)</option>
-                  <option value="U20">U20 (Junior)</option>
-                  <option value="SEN">Senior</option>
-                  <option value="V1">Vétéran 1</option>
-                  <option value="V2">Vétéran 2</option>
-                  <option value="V3">Vétéran 3</option>
-                  <option value="V4">Vétéran 4</option>
+                  <option value={Category.U11}>{t('categories.U11')}</option>
+                  <option value={Category.U13}>{t('categories.U13')}</option>
+                  <option value={Category.U15}>{t('categories.U15')}</option>
+                  <option value={Category.U17}>{t('categories.U17')}</option>
+                  <option value={Category.U20}>{t('categories.U20')}</option>
+                  <option value={Category.SENIOR}>{t('categories.senior')}</option>
+                  <option value={Category.V1}>{t('categories.V1')}</option>
+                  <option value={Category.V2}>{t('categories.V2')}</option>
+                  <option value={Category.V3}>{t('categories.V3')}</option>
+                  <option value={Category.V4}>{t('categories.V4')}</option>
                 </select>
               </div>
             </div>

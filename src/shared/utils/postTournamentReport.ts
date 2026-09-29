@@ -30,8 +30,9 @@ function weaponLabel(w: string): string {
 
 function categoryLabel(c: string): string {
   const MAP: Record<string, string> = {
-    U11: 'U11', U13: 'U13', U15: 'U15', U17: 'U17', U20: 'U20',
-    SENIOR: 'Sénior', V1: 'V1', V2: 'V2', V3: 'V3', V4: 'V4',
+    U11: 'M11', U13: 'M13', U15: 'M15', U17: 'M17', U20: 'M20',
+    SEN: 'Seniors', SENIOR: 'Seniors',
+    V1: 'Vétérans 1', V2: 'Vétérans 2', V3: 'Vétérans 3', V4: 'Vétérans 4',
   };
   return MAP[c] ?? c;
 }

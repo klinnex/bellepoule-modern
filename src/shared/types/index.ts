@@ -157,11 +157,11 @@ export enum PhaseType {
 }
 
 export enum Category {
-  U11 = 'U11', // Poussins
-  U13 = 'U13', // Benjamins
-  U15 = 'U15', // Minimes
-  U17 = 'U17', // Cadets
-  U20 = 'U20', // Juniors
+  U11 = 'U11', // M11
+  U13 = 'U13', // M13
+  U15 = 'U15', // M15
+  U17 = 'U17', // M17
+  U20 = 'U20', // M20
   SENIOR = 'SEN', // Seniors
   V1 = 'V1', // Vétérans 1 (40-49)
   V2 = 'V2', // Vétérans 2 (50-59)
