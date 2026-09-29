@@ -22,7 +22,12 @@ export interface PoolExportOptions {
   signatures?: Record<string, string>; // fencerId → data URL PNG
   competitionId?: string;              // pour QR code OCR
   qrDataUrl?: string;                  // data URL QR généré par l'appelant
+  hideStatColumns?: boolean;           // masque V, V/M, TD, TR, Ind, Rg, Quest (feuille à remplir à la main)
+  landscape?: boolean;                 // A4 paysage
 }
+
+/** Colonnes calculées masquées par l'option `hideStatColumns`. */
+export const POOL_PDF_STAT_COLUMN_IDS = ['victories', 'ratio', 'td', 'tr', 'index', 'rank', 'quest'];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -94,9 +99,10 @@ export function generatePoolHTML(pool: Pool, options: PoolExportOptions, templat
   const now = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
 
   const isLaserSabre = options.weapon === 'L';
-  const activeCols = options.visibleColumns
+  const activeCols = (options.visibleColumns
     ? STAT_COLS.filter(c => options.visibleColumns!.includes(c.id) && (c.id !== 'quest' || isLaserSabre))
-    : STAT_COLS.filter(c => c.id !== 'quest' || isLaserSabre);
+    : STAT_COLS.filter(c => c.id !== 'quest' || isLaserSabre)
+  ).filter(c => !options.hideStatColumns || !POOL_PDF_STAT_COLUMN_IDS.includes(c.id));
 
   const rankings = fencers.map(f => ({
     fencer: f,
@@ -227,6 +233,7 @@ export function generatePoolHTML(pool: Pool, options: PoolExportOptions, templat
   <style>
     ${cssOverrides}
     ${BASE_CSS}
+    ${options.landscape ? '@page { size: A4 landscape; margin: 10mm 12mm; }' : ''}
 
     /* Grille scores */
     .score-grid {

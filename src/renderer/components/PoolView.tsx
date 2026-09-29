@@ -131,6 +131,23 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     'abandon' | 'forfait' | 'exclusion' | null
   >(null);
   const [showColumnMenu, setShowColumnMenu] = useState(false);
+  // Options d'export PDF / impression de la feuille de poule (persistées localement)
+  const [pdfHideStatColumns, setPdfHideStatColumns] = useState(
+    () => localStorage.getItem('bellepoule-pool-pdf-hide-stats') === 'true'
+  );
+  const [pdfLandscape, setPdfLandscape] = useState(
+    () => localStorage.getItem('bellepoule-pool-pdf-landscape') === 'true'
+  );
+  const togglePdfHideStatColumns = () => {
+    const next = !pdfHideStatColumns;
+    setPdfHideStatColumns(next);
+    localStorage.setItem('bellepoule-pool-pdf-hide-stats', String(next));
+  };
+  const togglePdfLandscape = () => {
+    const next = !pdfLandscape;
+    setPdfLandscape(next);
+    localStorage.setItem('bellepoule-pool-pdf-landscape', String(next));
+  };
 
   const [editScoreA, setEditScoreA] = useState('');
   const [editScoreB, setEditScoreB] = useState('');
@@ -874,6 +891,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       competitionName,
       competitionId,
       visibleColumns: getVisibleColumns('pool', pool.id),
+      hideStatColumns: pdfHideStatColumns,
+      landscape: pdfLandscape,
       signatures,
     };
   };
@@ -1607,6 +1626,35 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                     {col.label}
                   </label>
                 ))}
+                <div style={{ ...COL_MENU_HEADER, marginTop: '0.5rem' }}>
+                  Export PDF / impression
+                </div>
+                <label
+                  style={COL_MENU_LABEL}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <input
+                    type="checkbox"
+                    checked={pdfHideStatColumns}
+                    onChange={togglePdfHideStatColumns}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  Masquer V, V/M, TD, TR, Ind, Rg
+                </label>
+                <label
+                  style={COL_MENU_LABEL}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <input
+                    type="checkbox"
+                    checked={pdfLandscape}
+                    onChange={togglePdfLandscape}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  Format paysage
+                </label>
               </div>
             )}
           </div>
