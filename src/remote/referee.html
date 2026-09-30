@@ -3738,6 +3738,10 @@
           if (data.referees !== undefined) {
             this.refereesList = data.referees;
           }
+          // Arbitre par défaut fourni par le serveur (arbitre de la poule, #908)
+          if (data.match?.referee && this.currentMatch && this.currentMatch.id === data.match.id && !this.currentMatch.referee) {
+            this.currentMatch.referee = data.match.referee;
+          }
           this.updateRefereeBar();
 
           // Arène libérée par le serveur (match saisi depuis l'application principale)

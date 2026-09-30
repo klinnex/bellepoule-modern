@@ -1884,7 +1884,15 @@ export class RemoteScoreServer {
               const scoreUpdate = this.sessionMatchScores.get(m.id);
               return scoreUpdate ? { ...m, ...scoreUpdate } : m;
             });
-          const poolMatches = this.applySmartMatchOrder(rawPoolMatches as Match[]);
+          // Arbitre affiché sur la tablette : celui du match, sinon celui/ceux de la poule (#908)
+          const poolReferee = this.resolvePoolReferee(currentPoolId);
+          const poolMatches = this.applySmartMatchOrder(rawPoolMatches as Match[]).map(
+            (m: any) => {
+              const referee =
+                this.resolveReferee(m.refereeId ?? m.referee?.id) ?? poolReferee;
+              return referee ? { ...m, referee } : m;
+            }
+          );
           console.log(
             `[RemoteScoreServer] ${poolMatches.length} matchs de pool non terminés pour arène ${arenaId} (pool ${currentPoolId})`
           );
@@ -1931,6 +1939,7 @@ export class RemoteScoreServer {
                   scoreA: arena.currentMatch.scoreA,
                   scoreB: arena.currentMatch.scoreB,
                   status: effectiveStatus,
+                  ...(arena.currentMatch.referee ? { referee: arena.currentMatch.referee } : {}),
                 },
                 ...queueMatches,
               ],
@@ -3962,6 +3971,13 @@ export class RemoteScoreServer {
     // Mettre à jour le flag de sélection arbitre avant le broadcast
     this.arenaRefereeSelected.set(arenaId, fromReferee);
 
+    // Arbitre par défaut : celui du match, sinon celui/ceux de la poule (#908)
+    if (!match.referee) {
+      const defaultRef =
+        this.resolveReferee((match as any).refereeId) ?? this.resolvePoolReferee(match.poolId);
+      if (defaultRef) match = { ...match, referee: defaultRef };
+    }
+
     arena.currentMatch = match;
     arena.status = 'ready';
     if (match.poolId) arena.activePoolId = match.poolId;
@@ -4520,6 +4536,28 @@ export class RemoteScoreServer {
     if (!refereeId || !this.session) return null;
     const ref = this.session.referees.find(r => r.id === refereeId);
     return ref ? { id: ref.id, name: ref.name } : null;
+  }
+
+  /**
+   * Arbitre(s) assigné(s) à la poule (session_state), pour pré-remplir la tablette (#908).
+   * id = arbitre principal ; name = tous les arbitres de la poule.
+   */
+  private resolvePoolReferee(poolId?: string | null): { id: string; name: string } | null {
+    if (!poolId || !this.session) return null;
+    try {
+      const state = this.db.getSessionState(this.session.competitionId);
+      const pool = (state?.pools || []).find((p: any) => p?.id === poolId);
+      const refs: any[] = Array.isArray(pool?.referees) ? pool.referees.filter((r: any) => r?.id) : [];
+      if (refs.length === 0) return null;
+      const names = refs.map(
+        r =>
+          this.resolveReferee(r.id)?.name ??
+          ([r.lastName, r.firstName].filter(Boolean).join(' ') || r.name || '')
+      );
+      return { id: refs[0].id, name: names.filter(Boolean).join(' / ') };
+    } catch {
+      return null;
+    }
   }
 
   private isDeMatchBlocked(matchId: string): boolean {
