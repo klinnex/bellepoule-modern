@@ -44,6 +44,7 @@ const mockDb = {
   getRefereesByCompetition: vi.fn().mockReturnValue([]),
   updateFencer: vi.fn(),
   updateReferee: vi.fn(),
+  getSessionState: vi.fn().mockReturnValue(null),
 };
 
 import express from 'express';
@@ -307,6 +308,66 @@ describe('RemoteScoreServer', () => {
         arenaId,
         expect.objectContaining({ competitionId: 'comp-1' })
       );
+    });
+  });
+
+  describe('ordre des matchs public (#911) et arbitre de poule (#908)', () => {
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    const fA = { id: 'a', lastName: 'Dupont', firstName: 'Jean', license: 'SECRET' };
+    const fB = { id: 'b', lastName: 'Martin', firstName: 'Paul' };
+
+    beforeEach(() => {
+      (server as any).session = {
+        competitionId: 'comp-1',
+        referees: [{ id: 'r1', name: 'DURAND Anne' }],
+      };
+      (server as any).arenas.set('arena1', {
+        id: 'arena1',
+        number: 1,
+        status: 'ready',
+        currentMatch: { id: 'm2', poolId: 'p1', fencerA: fB, fencerB: fA, scoreA: 0, scoreB: 0 },
+        settings: {},
+      });
+      (server as any).sessionMatches = [
+        { id: 'm2', number: 2, poolId: 'p1', fencerA: fB, fencerB: fA, status: 'not_started' },
+        {
+          id: 'm1',
+          number: 1,
+          poolId: 'p1',
+          fencerA: fA,
+          fencerB: fB,
+          status: 'finished',
+          scoreA: { value: 5 },
+          scoreB: { value: 3 },
+        },
+      ];
+    });
+
+    it('expose uniquement noms, ordre, statut et scores, sans authentification', () => {
+      const res = makeRes();
+      findHandler('get', '/api/arenas/:arenaId/pool-order')(makeReq({ params: { arenaId: '1' } }), res, vi.fn());
+      const body = res.json.mock.calls[0][0];
+      expect(body.matches).toEqual([
+        { order: 1, fencerA: 'DUPONT Jean', fencerB: 'MARTIN Paul', scoreA: 5, scoreB: 3, status: 'finished' },
+        { order: 2, fencerA: 'MARTIN Paul', fencerB: 'DUPONT Jean', scoreA: null, scoreB: null, status: 'current' },
+      ]);
+      expect(JSON.stringify(body)).not.toContain('SECRET');
+    });
+
+    it('la liste tablette porte l\'arbitre de la poule quand le match n\'en a pas', () => {
+      mockDb.getSessionState.mockReturnValue({
+        pools: [{ id: 'p1', referees: [{ id: 'r1', lastName: 'DURAND', firstName: 'Anne' }, { id: 'r2', lastName: 'LEROY', firstName: 'Luc' }] }],
+      });
+      const res = makeRes();
+      findHandler('get', '/api/arenas/:arenaId/matches')(makeReq({ params: { arenaId: 'arena1' } }), res, vi.fn());
+      const { matches } = res.json.mock.calls[0][0];
+      expect(matches[0].referee).toEqual({ id: 'r1', name: 'DURAND Anne / LEROY Luc' });
     });
   });
 

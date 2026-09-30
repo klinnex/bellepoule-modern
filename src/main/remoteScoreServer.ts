@@ -346,6 +346,7 @@ export class RemoteScoreServer {
       'overlay-config.html',
       'register.html',
       'checkin.html',
+      'matchs.html',
       'teamArena.html',
       'teamReferee.html',
     ];
@@ -1120,6 +1121,14 @@ export class RemoteScoreServer {
       this.sendHtmlFromMemory('public.html', res);
     });
 
+    // Ordre des matchs de la poule en cours sur l'arène (lecture seule, sans auth, #911)
+    this.app.get('/arene:arenaId/matchs', (_req, res) => {
+      this.sendHtmlFromMemory('matchs.html', res);
+    });
+    this.app.get('/arena:arenaId/matchs', (_req, res) => {
+      this.sendHtmlFromMemory('matchs.html', res);
+    });
+
     // Page saisie OCR feuille poule (pas d'authentification par arène nécessaire)
     this.app.get('/poule-ocr', (req, res) => {
       if (!this.hasAnyValidToken(req.headers.cookie)) {
@@ -1472,6 +1481,56 @@ export class RemoteScoreServer {
         res.json({ poolId, poolName, arenaId, fencers, matches, isComplete, signatures });
       } catch (err) {
         console.error('[RemoteScoreServer] Erreur pool-data:', err);
+        res.status(500).json({ error: 'Erreur interne' });
+      }
+    });
+
+    // API publique : ordre des matchs de la poule de l'arène (noms + scores uniquement, #911)
+    this.app.get('/api/arenas/:arenaId/pool-order', (req, res) => {
+      const rawId = req.params.arenaId;
+      const arenaId = rawId.startsWith('arena') ? rawId : `arena${rawId}`;
+      try {
+        const arena = this.arenas.get(arenaId);
+        const poolId = arena?.currentMatch?.poolId ?? arena?.activePoolId;
+        if (!poolId) return res.json({ poolName: null, matches: [] });
+
+        const inMemory = this.sessionMatches.filter(
+          (m: any) => (m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`) === poolId
+        );
+        const source: any[] =
+          inMemory.length > 0
+            ? inMemory.map((m: any) => {
+                const update = this.sessionMatchScores.get(m.id);
+                return update ? { ...m, ...update } : m;
+              })
+            : this.db.getMatchesByPool(poolId);
+        const fencerName = (f: any) =>
+          f ? [String(f.lastName ?? '').toUpperCase(), f.firstName].filter(Boolean).join(' ') : '—';
+        const scoreValue = (sc: any) => (typeof sc === 'object' ? (sc?.value ?? null) : (sc ?? null));
+        const matches = [...source]
+          .sort((a: any, b: any) => (a.number || 0) - (b.number || 0))
+          .map((m: any, i: number) => {
+            const finished = m.status === MatchStatus.FINISHED || m.status === 'finished';
+            const current = arena?.currentMatch?.id === m.id && !finished;
+            return {
+              order: m.number || i + 1,
+              fencerA: fencerName(m.fencerA),
+              fencerB: fencerName(m.fencerB),
+              scoreA: finished ? scoreValue(m.scoreA) : null,
+              scoreB: finished ? scoreValue(m.scoreB) : null,
+              status: finished ? 'finished' : current ? 'current' : 'pending',
+            };
+          });
+
+        const poolName = (() => {
+          if (!this.session) return 'Poule';
+          const allPools = this.db.getCompetitionPools(this.session.competitionId);
+          return allPools.find(p => p.id === poolId)?.name ?? 'Poule';
+        })();
+
+        res.json({ poolName, matches });
+      } catch (err) {
+        console.error('[RemoteScoreServer] Erreur pool-order:', err);
         res.status(500).json({ error: 'Erreur interne' });
       }
     });
