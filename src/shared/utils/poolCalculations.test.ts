@@ -8,6 +8,7 @@ import {
   generatePoolMatchOrder,
   calculateFencerPoolStats,
   calculatePoolRanking,
+  calculateOverallRanking,
   formatRatio,
   formatIndex,
 } from './poolCalculations';
@@ -391,6 +392,58 @@ describe('calculatePoolRanking', () => {
 // ============================================================================
 // Tests pour formatRatio
 // ============================================================================
+
+describe('calculateOverallRanking', () => {
+  const makePool = (id: string, fencers: Fencer[], matches: Match[]): Pool => ({
+    id,
+    number: 1,
+    phaseId: 'ph1',
+    fencers,
+    matches,
+    referees: [],
+    isComplete: true,
+    hasError: false,
+    ranking: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  it('départage les égalités de V/M par l’indice puis par TD (#910)', () => {
+    // Poule 1 : A bat B 5-0 → A : V/M 1, indice +5, TD 5
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    // Poule 2 : C bat D 5-4 → C : V/M 1, indice +1, TD 5
+    const c = createMockFencer('c', 3, 'C');
+    const d = createMockFencer('d', 4, 'D');
+    // Poule 3 : E bat F 4-3 → E : V/M 1, indice +1, TD 4
+    const e = createMockFencer('e', 5, 'E');
+    const f = createMockFencer('f', 6, 'F');
+
+    const ranking = calculateOverallRanking([
+      makePool('p3', [e, f], [createMockMatch('m3', e, f, 4, 3)]),
+      makePool('p2', [c, d], [createMockMatch('m2', c, d, 5, 4)]),
+      makePool('p1', [a, b], [createMockMatch('m1', a, b, 5, 0)]),
+    ]);
+
+    expect(ranking.slice(0, 3).map(r => r.fencer.id)).toEqual(['a', 'c', 'e']);
+    expect(ranking.slice(0, 3).map(r => r.rank)).toEqual([1, 2, 3]);
+  });
+
+  it('classe ex aequo en cas d’égalité parfaite V/M, indice et TD', () => {
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    const c = createMockFencer('c', 3, 'C');
+    const d = createMockFencer('d', 4, 'D');
+
+    const ranking = calculateOverallRanking([
+      makePool('p1', [a, b], [createMockMatch('m1', a, b, 5, 3)]),
+      makePool('p2', [c, d], [createMockMatch('m2', c, d, 5, 3)]),
+    ]);
+
+    expect(ranking[0].rank).toBe(1);
+    expect(ranking[1].rank).toBe(1);
+  });
+});
 
 describe('formatRatio', () => {
   it('should format perfect ratio', () => {
