@@ -6,6 +6,7 @@
 import React from 'react';
 import { Competition, Weapon, Gender, Category } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
+import { categoryLabel } from '../../shared/utils/categoryLabel';
 import { usePagination } from '../hooks/usePagination';
 import { CompetitionCardSkeleton, SkeletonStyles } from './Skeleton';
 
@@ -169,7 +170,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
 
               <div className="comp-card-pills">
                 <span className="comp-pill">{competition.weapon}</span>
-                <span className="comp-pill">{competition.category}</span>
+                <span className="comp-pill">{categoryLabel(competition.category, t)}</span>
                 <span className="comp-pill">{competition.gender}</span>
                 {competition.location && (
                   <span className="comp-pill comp-pill-location">📍 {competition.location}</span>
