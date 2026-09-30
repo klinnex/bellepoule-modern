@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Competition } from '../../shared/types';
 import { useTranslation } from '../contexts/TranslationContext';
+import { categoryLabel } from '../../shared/utils/categoryLabel';
 
 interface Command {
   id: string;
@@ -58,7 +59,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
     const competitionCommands: Command[] = competitions.map(c => ({
       id: `comp-${c.id}`,
       label: c.title,
-      description: `${c.weapon} · ${c.category} · ${c.fencers.length} tireurs`,
+      description: `${c.weapon} · ${categoryLabel(c.category, t)} · ${c.fencers.length} tireurs`,
       icon: '🏆',
       action: () => { onClose(); onSelectCompetition(c.id); },
       keywords: [c.title.toLowerCase(), c.weapon, c.category],

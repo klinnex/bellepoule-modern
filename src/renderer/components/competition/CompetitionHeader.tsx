@@ -9,6 +9,7 @@ import { Competition, MatchStatus } from '../../../shared/types';
 import Confetti from '../Confetti';
 import CoachMark from '../CoachMark';
 import { Phase } from '../../hooks/useCompetitionSession';
+import { categoryLabel } from '../../../shared/utils/categoryLabel';
 
 interface MatchProgress {
   done: number;
@@ -90,7 +91,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
         <div className="comp-header-info">
           <div className="comp-header-pills">
             <span className="comp-header-pill">{competition.weapon}</span>
-            <span className="comp-header-pill">{competition.category}</span>
+            <span className="comp-header-pill">{categoryLabel(competition.category, t)}</span>
             <span className="comp-header-pill">{competition.gender}</span>
           </div>
           <h1 className="comp-header-title">{competition.title}</h1>
