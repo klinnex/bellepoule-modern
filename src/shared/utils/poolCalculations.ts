@@ -246,7 +246,7 @@ export function calculateFencerPoolStats(fencer: Fencer, matches: Match[]): Pool
 // Ranking Helpers (shared between standard and Quest ranking)
 // ============================================================================
 
-/** Assigne les rangs en gérant les ex aequo (victoires + questPoints + indice identiques) */
+/** Assigne les rangs en gérant les ex aequo (V/M + questPoints + cartons + indice + TD identiques) */
 function assignRanks(rankings: PoolRanking[]): void {
   let currentRank = 1;
   for (let i = 0; i < rankings.length; i++) {
@@ -256,9 +256,10 @@ function assignRanks(rankings: PoolRanking[]): void {
       const sameVictories = prev.ratio === curr.ratio;
       const sameQuest = (prev.questPoints ?? 0) === (curr.questPoints ?? 0);
       const sameCards = (prev.totalCards ?? 0) === (curr.totalCards ?? 0);
-      const sameSingleMatch = (prev.maxSingleMatchScore ?? 0) === (curr.maxSingleMatchScore ?? 0);
+      const sameIndex = prev.index === curr.index;
+      const sameTouches = prev.touchesScored === curr.touchesScored;
 
-      if (sameVictories && sameQuest && sameCards && sameSingleMatch) {
+      if (sameVictories && sameQuest && sameCards && sameIndex && sameTouches) {
         rankings[i].rank = rankings[i - 1].rank;
       } else {
         rankings[i].rank = currentRank;
@@ -368,6 +369,11 @@ export function calculatePoolRanking(pool: Pool): PoolRanking[] {
     // 3. Indice TD-TR (décroissant) — critère officiel FIE/FFE de départage
     if (a.index !== b.index) {
       return b.index - a.index;
+    }
+
+    // 3b. Touches données (décroissant)
+    if (a.touchesScored !== b.touchesScored) {
+      return b.touchesScored - a.touchesScored;
     }
 
     // 4. Confrontation directe — O(1) grâce à la Map
@@ -1011,13 +1017,15 @@ export function calculateOverallRanking(pools: Pool[]): PoolRanking[] {
     if (aQuest !== bQuest) {
       return bQuest - aQuest;
     }
-    // 3. Meilleur score en un match
-    const aMax = a.maxSingleMatchScore ?? 0;
-    const bMax = b.maxSingleMatchScore ?? 0;
-    if (aMax !== bMax) {
-      return bMax - aMax;
+    // 3. Indice TD-TR (critère officiel FIE/FFE)
+    if (a.index !== b.index) {
+      return b.index - a.index;
     }
-    // 4. Égalité parfaite - garder l'ordre
+    // 4. Touches données
+    if (a.touchesScored !== b.touchesScored) {
+      return b.touchesScored - a.touchesScored;
+    }
+    // 5. Égalité parfaite - ex aequo (tirage au sort manuel)
     return 0;
   });
 
