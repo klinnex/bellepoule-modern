@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ordre des matchs – BellePoule</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --accent: #fbbf24;
+        --done: #22c55e;
+        --border: rgba(255, 255, 255, 0.08);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 16px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+      h1 {
+        font-size: 1.25rem;
+      }
+      #pool-name {
+        color: var(--accent);
+      }
+      #updated {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+      ol {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      li {
+        display: grid;
+        grid-template-columns: 2.5rem 1fr auto 1fr;
+        align-items: center;
+        gap: 8px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+      li .num {
+        color: var(--muted);
+        font-weight: 700;
+      }
+      li .b {
+        text-align: right;
+      }
+      li .score {
+        font-variant-numeric: tabular-nums;
+        color: var(--muted);
+        min-width: 3.5rem;
+        text-align: center;
+      }
+      li.finished {
+        opacity: 0.55;
+      }
+      li.finished .score {
+        color: var(--done);
+      }
+      li.current {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px var(--accent);
+      }
+      li.current .score {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .empty {
+        text-align: center;
+        color: var(--muted);
+        margin-top: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Piste <span id="arena-number"></span> – <span id="pool-name">Poule</span></h1>
+      <span id="updated"></span>
+    </header>
+    <ol id="list"></ol>
+    <p class="empty" id="empty" hidden>Aucune poule en cours sur cette piste.</p>
+    <script>
+      (function () {
+        const m = window.location.pathname.match(/\/aren[ae](\d+)/);
+        const arenaNumber = m ? m[1] : '1';
+        document.getElementById('arena-number').textContent = arenaNumber;
+
+        const esc = s =>
+          String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+        async function load() {
+          try {
+            const res = await fetch(`/api/arenas/${arenaNumber}/pool-order`, { cache: 'no-store' });
+            if (!res.ok) return;
+            const data = await res.json();
+            document.getElementById('pool-name').textContent = data.poolName || 'Poule';
+            const list = document.getElementById('list');
+            const matches = data.matches || [];
+            document.getElementById('empty').hidden = matches.length > 0;
+            list.innerHTML = matches
+              .map(x => {
+                const score =
+                  x.status === 'finished'
+                    ? `${esc(x.scoreA)} – ${esc(x.scoreB)}`
+                    : x.status === 'current'
+                      ? 'En cours'
+                      : 'vs';
+                return `<li class="${esc(x.status)}"><span class="num">${esc(x.order)}</span><span class="a">${esc(x.fencerA)}</span><span class="score">${score}</span><span class="b">${esc(x.fencerB)}</span></li>`;
+              })
+              .join('');
+            document.getElementById('updated').textContent =
+              'Mis à jour ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          } catch {
+            /* serveur indisponible : nouvel essai au prochain cycle */
+          }
+        }
+
+        load();
+        setInterval(load, 10000);
+      })();
+    </script>
+  </body>
+</html>

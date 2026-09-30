@@ -618,6 +618,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     refereeUrl: `${serverUrl}/arene${i + 1}/arbitre`,
     displayUrl: `${serverUrl}/arene${i + 1}`,
     poolUrl: `${serverUrl}/arene${i + 1}/poule`,
+    matchOrderUrl: `${serverUrl}/arene${i + 1}/matchs`,
     publicUrl: `${serverUrl}/arene${i + 1}/public`,
     overlayUrl: `${serverUrl}/arene${i + 1}/overlay`,
   }));
@@ -1275,6 +1276,29 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                       setActiveQR({
                         url: arena.poolUrl,
                         label: `Piste ${arena.number} – Poule`,
+                      })
+                    }
+                    title="QR code"
+                  >
+                    📱
+                  </button>
+                </div>
+                <div className="arena-url-row">
+                  <span className="arena-url-label" title="Ordre des matchs de la poule, lecture seule, pour les tireurs">Matchs</span>
+                  <code className="arena-url-value">{arena.matchOrderUrl}</code>
+                  <button
+                    className="btn-copy"
+                    onClick={() => copyToClipboard(arena.matchOrderUrl, arena.number * 10 + 5)}
+                    title="Copier l'URL"
+                  >
+                    {copiedIndex === arena.number * 10 + 5 ? '✓' : '📋'}
+                  </button>
+                  <button
+                    className="btn-qr"
+                    onClick={() =>
+                      setActiveQR({
+                        url: arena.matchOrderUrl,
+                        label: `Piste ${arena.number} – Ordre des matchs`,
                       })
                     }
                     title="QR code"
