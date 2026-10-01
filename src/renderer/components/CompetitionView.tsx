@@ -10,7 +10,7 @@ import { logger, LogCategory } from '@shared/services/logger';
 import { NotificationService } from '../../shared/services/notificationService';
 import { RankingImportResult } from '../../shared/utils/fileParser';
 import FencerList from './FencerList';
-import { TableauMatch, FinalResult, propagateWinners, ConsolationBracket } from './tableau/tableauTypes';
+import { TableauMatch, FinalResult, propagateWinners, ConsolationBracket, isBracketComplete } from './tableau/tableauTypes';
 import { getRoundName } from '../../shared/utils/tableCalculations';
 import type { MatchAuditOption } from './MatchAuditLog';
 import PoolRankingView from './PoolRankingView';
@@ -532,10 +532,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
               const size = updated.length > 0 ? Math.max(...updated.map(m => m.round)) : 0;
               propagateWinners(updated, size);
             }
-            const finalMatch = updated.find(m => m.round === 2);
-            const thirdMatch = updated.find(m => m.round === 3);
-            const isComplete = !!finalMatch?.winner && (!thirdMatch || !!thirdMatch.winner);
-            return { ...bracket, matches: updated, isComplete };
+            return { ...bracket, matches: updated, isComplete: isBracketComplete(updated) };
           })
         );
       }

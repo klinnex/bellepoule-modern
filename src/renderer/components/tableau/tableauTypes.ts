@@ -75,6 +75,15 @@ export function deriveFirstRound(matchList: TableauMatch[]): number {
   return best;
 }
 
+// Bracket terminé : finale jouée et petite finale jouée ou sans objet (moins de
+// 2 demi-finalistes perdants, ex. bracket de consolation à 1 ou 2 tireurs).
+export function isBracketComplete(bracketMatches: TableauMatch[]): boolean {
+  const finalMatch = bracketMatches.find(m => m.round === 2);
+  if (!finalMatch?.winner) return false;
+  const thirdMatch = bracketMatches.find(m => m.round === 3);
+  return !thirdMatch || !!thirdMatch.winner || !thirdMatch.fencerA || !thirdMatch.fencerB;
+}
+
 export function propagateWinners(matchList: TableauMatch[], size: number): void {
   // Normalise les vainqueurs manquants avant toute propagation : un match dont
   // les deux scores sont saisis a forcément un vainqueur (hors égalité).
