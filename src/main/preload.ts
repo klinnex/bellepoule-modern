@@ -656,6 +656,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('remote:fencer_excluded', handler);
     return () => ipcRenderer.removeListener('remote:fencer_excluded', handler);
   },
+  onRemoteFencerReinstated: (
+    callback: (data: { fencerId: string; matchId: string; status: string; scoreA: number; scoreB: number }) => void
+  ) => {
+    const handler = (_: any, data: any) => callback(data);
+    ipcRenderer.on('remote:fencer_reinstated', handler);
+    return () => ipcRenderer.removeListener('remote:fencer_reinstated', handler);
+  },
   onRemoteCheckinUpdated: (
     callback: (data: { kind: 'fencer' | 'referee'; id: string; present: boolean }) => void
   ) => {

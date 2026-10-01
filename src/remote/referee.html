@@ -1556,6 +1556,7 @@
             outline: none;
           "
         />
+        <div id="black-cards-list"></div>
         <div id="next-matches-list">
           <div class="next-matches-empty" data-i18n="remote.loading">Chargement...</div>
         </div>
@@ -3973,9 +3974,67 @@
             const searchInput = document.getElementById('match-search');
             if (searchInput) searchInput.value = '';
             this.renderNextMatchesList(pending);
+            this.loadBlackCards();
           } catch (error) {
             console.error('Erreur chargement prochains matchs:', error);
             container.innerHTML = `<div class="next-matches-empty">${window.T('remote.error_connection')}</div>`;
+          }
+        }
+
+        // Cartons noirs annulables (erreur d'arbitrage) affichés au-dessus de la liste des matchs
+        async loadBlackCards() {
+          const container = document.getElementById('black-cards-list');
+          if (!container) return;
+          let cards = [];
+          try {
+            const resp = await fetch(`/api/arenas/${this.arenaId}/black-cards`);
+            if (resp.ok) cards = (await resp.json()).blackCards || [];
+          } catch (e) {
+            console.error('Erreur chargement cartons noirs:', e);
+          }
+          if (cards.length === 0) {
+            container.innerHTML = '';
+            return;
+          }
+          container.innerHTML = `
+            <div style="margin-bottom:1rem;padding:0.75rem;border:2px solid #111;border-radius:0.75rem;background:rgba(0,0,0,0.35);">
+              <div style="font-weight:700;margin-bottom:0.5rem;">⬛ Cartons noirs</div>
+              ${cards
+                .map(
+                  c => `
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;padding:0.4rem 0;">
+                  <div>
+                    <div style="font-weight:700;">${escHtml(c.fencerName) || '?'}</div>
+                    <div style="font-size:0.8rem;opacity:0.75;">contre ${escHtml(c.opponentName) || '?'}</div>
+                  </div>
+                  <button onclick="refereeApp.cancelBlackCardFromList('${escHtml(c.fencerId)}')"
+                    style="padding:0.6rem 1rem;border:none;border-radius:0.5rem;background:#f9fafb;color:#111;font-weight:700;font-size:0.9rem;cursor:pointer;">
+                    ↩ Annuler le carton
+                  </button>
+                </div>`
+                )
+                .join('')}
+            </div>`;
+        }
+
+        async cancelBlackCardFromList(fencerId) {
+          if (!confirm('Annuler ce carton noir ?\nLe combattant est réintégré : ses résultats et ceux de ses adversaires comptent de nouveau, le match interrompu est rouvert.')) return;
+          try {
+            const resp = await fetch(`/api/arenas/${this.arenaId}/black-cards/${encodeURIComponent(fencerId)}/cancel`, {
+              method: 'POST',
+            });
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok) {
+              this.showNotification(`❌ ${data.error || 'Annulation impossible'}`, true);
+              return;
+            }
+            this.showNotification('✅ Carton noir annulé — combattant réintégré');
+            // Le match rouvert doit être rechargé avec son score
+            this.matches = this.matches.filter(m => m.id !== data.matchId);
+            this.loadNextMatches();
+          } catch (e) {
+            console.error('Erreur annulation carton noir:', e);
+            this.showNotification(`❌ ${window.T('remote.error_connection')}`, true);
           }
         }
 

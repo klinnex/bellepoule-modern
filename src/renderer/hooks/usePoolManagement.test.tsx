@@ -89,3 +89,44 @@ function poolFixture(): Pool {
     createdAt: new Date(), updatedAt: new Date(),
   };
 }
+
+describe('handleBlackCardCancelled', () => {
+  const sc = (value: number, extra: Partial<Match['scoreA']> = {}) => ({
+    value, isVictory: false, isAbstention: false, isExclusion: false, isForfait: false, ...extra,
+  });
+
+  it('réintègre le combattant, rouvre le match du carton et rend ses résultats aux adversaires', () => {
+    const r = setup();
+    const excluded = { ...fencer(1), status: FencerStatus.EXCLUDED, exclusionReason: 'black_card' as const };
+    const f2 = fencer(2), f3 = fencer(3), f4 = fencer(4);
+    const m = (id: string, a: Fencer, b: Fencer, status: MatchStatus, sa: any, sb: any) =>
+      ({ id, number: 1, fencerA: a, fencerB: b, scoreA: sa, scoreB: sb, maxScore: 5, status,
+        createdAt: new Date(), updatedAt: new Date() }) as Match;
+    const pool: Pool = {
+      id: 'p1', number: 1, phaseId: 'ph', fencers: [excluded, f2, f3, f4],
+      matches: [
+        m('played', excluded, f2, MatchStatus.FINISHED, sc(5, { isVictory: true }), sc(1)),
+        m('black', excluded, f3, MatchStatus.FINISHED, sc(3), sc(2, { isVictory: true })),
+        m('next', excluded, f4, MatchStatus.FINISHED, sc(0, { isExclusion: true }), sc(0)),
+      ],
+      referees: [], isComplete: false, hasError: false, ranking: [],
+      createdAt: new Date(), updatedAt: new Date(),
+    };
+    act(() => r.current.setPools([pool]));
+    act(() => r.current.handleBlackCardCancelled('1', 'black', FencerStatus.CHECKED_IN, 3, 2));
+
+    const p = r.current.pools[0];
+    expect(p.fencers[0].status).toBe(FencerStatus.CHECKED_IN);
+    const [played, black, next] = p.matches;
+    expect(played.status).toBe(MatchStatus.FINISHED);
+    expect(played.scoreA?.value).toBe(5);
+    expect(black.status).toBe(MatchStatus.IN_PROGRESS);
+    expect(black.scoreA).toMatchObject({ value: 3, isVictory: false });
+    expect(black.scoreB).toMatchObject({ value: 2, isVictory: false });
+    expect(next.status).toBe(MatchStatus.NOT_STARTED);
+    expect(next.scoreA).toBeNull();
+    // La victoire 5-1 compte de nouveau pour le combattant réintégré
+    const row = p.ranking.find(rk => rk.fencer.id === '1');
+    expect(row?.victories).toBe(1);
+  });
+});
