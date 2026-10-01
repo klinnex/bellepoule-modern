@@ -7,6 +7,7 @@ import {
   toSplitFencerData,
   remapRankingFencers,
 } from './splitCompetition';
+import { validateCompetitionData } from '../../database/validation';
 
 const fencer = (id: string, gender: Gender, status = FencerStatus.QUALIFIED): Fencer =>
   ({
@@ -68,7 +69,32 @@ describe('splitCompetition', () => {
     const data = buildSplitCompetitionData(source, '  Open Dames ', Gender.FEMALE);
     expect(data.title).toBe('Open Dames');
     expect(data.gender).toBe(Gender.FEMALE);
-    expect(data.settings).toEqual({ defaultTableMaxScore: 15, splitFromCompetitionId: 'c1' });
+    expect(data.settings).toEqual({
+      defaultPoolMaxScore: 5,
+      defaultTableMaxScore: 15,
+      poolRounds: 1,
+      defaultRanking: 0,
+      minTeamSize: 3,
+      splitFromCompetitionId: 'c1',
+    });
+    expect(() => validateCompetitionData(data)).not.toThrow();
+  });
+
+  it('borne le score de poule et normalise une date sérialisée', () => {
+    const source = {
+      id: 'c2',
+      title: 'Open',
+      date: '2026-10-01T00:00:00.000Z',
+      weapon: 'E',
+      gender: Gender.MIXED,
+      category: 'SEN',
+      color: '#3B82F6',
+      settings: { defaultPoolMaxScore: 21 },
+    } as unknown as Competition;
+    const data = buildSplitCompetitionData(source, 'Open Dames', Gender.FEMALE);
+    expect(data.date).toBeInstanceOf(Date);
+    expect(data.settings?.defaultPoolMaxScore).toBe(15);
+    expect(() => validateCompetitionData(data)).not.toThrow();
   });
 
   it('extrait et renumérote le classement du groupe', () => {

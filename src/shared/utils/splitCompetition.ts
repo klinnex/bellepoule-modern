@@ -21,6 +21,22 @@ export function defaultSplitCompetitionTitle(baseTitle: string, group: string): 
   return `${baseTitle} – ${suffix}`;
 }
 
+/** Paramètres numériques exigés par la validation DB (absents des compétitions créées sans formule) */
+const REQUIRED_SETTINGS_DEFAULTS = {
+  defaultPoolMaxScore: 5,
+  defaultTableMaxScore: 15,
+  poolRounds: 1,
+  defaultRanking: 0,
+  minTeamSize: 3,
+};
+
+/** Convertit une date éventuellement sérialisée (chaîne ISO) en Date valide */
+function toValidDate(value: unknown): Date | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  const d = value instanceof Date ? value : new Date(value as string);
+  return isNaN(d.getTime()) ? undefined : d;
+}
+
 /** Données de création de la compétition séparée (mêmes paramètres, sans le mode couplé) */
 export function buildSplitCompetitionData(
   source: Competition,
@@ -33,15 +49,21 @@ export function buildSplitCompetitionData(
     poolWinnersOnly: _winners,
     ...settings
   } = source.settings ?? ({} as CompetitionSettings);
+  const merged = { ...REQUIRED_SETTINGS_DEFAULTS, ...settings };
+  // Pas de poules dans la compétition séparée : borner le score de poule à la limite DB (15)
+  if (typeof merged.defaultPoolMaxScore !== 'number' || !(merged.defaultPoolMaxScore >= 1)) {
+    merged.defaultPoolMaxScore = REQUIRED_SETTINGS_DEFAULTS.defaultPoolMaxScore;
+  }
+  merged.defaultPoolMaxScore = Math.min(merged.defaultPoolMaxScore, 15);
   return {
     title: title.trim(),
-    date: source.date,
+    date: toValidDate(source.date) ?? new Date(),
     location: source.location,
     weapon: source.weapon,
     gender: group as Gender,
     category: source.category,
-    color: source.color,
-    settings: { ...settings, splitFromCompetitionId: source.id } as CompetitionSettings,
+    color: source.color && /^#[0-9A-Fa-f]{6}$/.test(source.color) ? source.color : undefined,
+    settings: { ...merged, splitFromCompetitionId: source.id } as CompetitionSettings,
   };
 }
 
@@ -59,7 +81,7 @@ export function toSplitFencerData(r: PoolRanking): Partial<Fencer> {
   return {
     lastName: f.lastName,
     firstName: f.firstName,
-    birthDate: f.birthDate,
+    birthDate: toValidDate(f.birthDate),
     gender: f.gender,
     nationality: f.nationality,
     region: f.region,
