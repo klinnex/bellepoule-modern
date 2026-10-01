@@ -6,6 +6,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Competition, PoolRanking } from '../../shared/types';
 import { calculateOverallRankingQuest } from '../../shared/utils/poolCalculations';
+import { useToast } from './Toast';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -73,6 +74,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
   availableCompetitions = [],
   availablePoolsByComp = {},
 }) => {
+  const { showToast } = useToast();
   const [ranking, setRanking] = useState<SeasonEntry[]>([]);
   const [competitions, setCompetitions] = useState<SeasonCompetition[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,7 +103,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
   const handleAddCompetition = async (comp: Competition) => {
     const pools = availablePoolsByComp[comp.id];
     if (!pools || pools.length === 0) {
-      alert('Aucune poule disponible pour cette compétition.');
+      showToast('Aucune poule disponible pour cette compétition.', 'error');
       return;
     }
     setAdding(true);

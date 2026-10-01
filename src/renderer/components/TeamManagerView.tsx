@@ -32,6 +32,7 @@ import { createCard } from '../../shared/utils/cardSystem';
 import TeamPoolView, { CardTarget } from './TeamPoolView';
 import TeamTableauView from './TeamTableauView';
 import { useConfirm } from './ConfirmDialog';
+import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 
 const LASER_ARENA_POOL_NUMBER_BY_LETTER: Record<string, number> = { A: 1, B: 2, C: 3 };
@@ -64,6 +65,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
   const boutCap = getLaserArenaBoutCap();
   const tableId = competition.id; // Un seul tableau équipes par compétition
   const { confirm } = useConfirm();
+  const { showToast } = useToast();
   const { t } = useTranslation();
   const [view, setView] = useState<ViewMode>('teams');
   const [teams, setTeams] = useState<TeamRow[]>([]);
@@ -277,8 +279,9 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
       // reste sur la saisie manuelle des équipes.
       const schedule = getLaserArenaPoolSchedule(teams.length);
       if (!schedule) {
-        alert(
-          `Le calendrier de poule figé "Sabre Laser équipe" n'est défini que pour 8 ou 12 équipes (actuellement ${teams.length}).`
+        showToast(
+          `Le calendrier de poule figé "Sabre Laser équipe" n'est défini que pour 8 ou 12 équipes (actuellement ${teams.length}).`,
+          'error'
         );
         return;
       }
@@ -419,7 +422,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
       isLaserPoints
     );
     if (!result.success) {
-      alert(result.error ?? "Impossible d'assigner cette rencontre à l'arène (serveur distant démarré ?).");
+      showToast(result.error ?? "Impossible d'assigner cette rencontre à l'arène (serveur distant démarré ?).", 'error');
     }
   };
 

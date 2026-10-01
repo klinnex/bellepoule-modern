@@ -68,6 +68,8 @@ module.exports = [
       '@typescript-eslint/no-unsafe-function-type': 'off',
       '@typescript-eslint/no-wrapper-object-types': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
+      // Dialogues natifs (alert/confirm/prompt) : cassent le focus clavier sous Electron/Windows
+      'no-alert': 'error',
       'no-console': 'off',
       'no-unused-vars': 'off',
       'no-undef': 'off',

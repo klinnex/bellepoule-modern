@@ -9,6 +9,7 @@ import { Fencer, FencerStatus, PoolRanking } from '../../shared/types';
 export { TableauMatch, FinalResult, ConsolationBracket, propagateWinners } from './tableau/tableauTypes';
 import { TableauMatch, FinalResult, ConsolationBracket, propagateWinners, deriveFirstRound, isBracketComplete } from './tableau/tableauTypes';
 import { useToast } from './Toast';
+import { useConfirm } from './ConfirmDialog';
 import { useModalResize } from '../hooks/useModalResize';
 import Bracket from './Bracket';
 // pdfExport (jsPDF) chargé à la demande ; seule la constante reste en import statique léger
@@ -110,6 +111,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   maxRefereesPerMatch = 1,
 }) => {
   const { showToast } = useToast();
+  const { confirm } = useConfirm();
   const tableauTemplate = usePdfTemplateStore(s => s.templates.tableau);
   const [tableauSize, setTableauSize] = useState<number>(0);
   const [editingMatch, setEditingMatch] = useState<string | null>(null);
@@ -512,9 +514,10 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     onMatchesChange(newMatches);
   };
 
-  const handleAutoFillScores = () => {
+  const handleAutoFillScores = async () => {
     if (readOnly) return;
-    const confirmed = window.confirm(
+    // window.confirm natif casse le focus clavier sous Electron/Windows
+    const confirmed = await confirm(
       'Remplir automatiquement tous les scores des matchs non terminés ?\n\nLes scores seront générés aléatoirement pour les tests.'
     );
 
