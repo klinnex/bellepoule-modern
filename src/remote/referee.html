@@ -1832,6 +1832,7 @@
           this.actionHistory = []; // Historique pour undo (max 10)
           this.cardAnnounceEnabled = false; // Réglé depuis les paramètres de saisie distante
           this.refereeFeatureEnabled = false; // Fonctionnalité gestion arbitres
+          this.blackCardEnabled = false; // Carton noir (paramètre compétition, désactivé par défaut)
           this.refereesList = []; // Liste des arbitres de la compétition
           this.swapped = false;
           this.pausedForModal = false;
@@ -1866,6 +1867,7 @@
           this.setupTimerInteractions();
           this.setupLongPressInteractions();
           this.setupBatteryMonitor();
+          this.applyBlackCardSetting();
           this.showNextMatchesScreen();
           // Détecter l'arme de la compétition pour la mort subite Laser Sabre
           fetch('/api/session')
@@ -1875,6 +1877,8 @@
               this.isLaserSabre = s.weapon === 'L';
               this.isModernFencing = ['E', 'F', 'S'].includes(s.weapon);
               if (s.trainingCustomRules) this.trainingCustomRules = s.trainingCustomRules;
+              this.blackCardEnabled = s.blackCardEnabled === true;
+              this.applyBlackCardSetting();
               if (this.isModernFencing) {
                 const pisteLabel = window.T('remote.piste');
                 document.getElementById('arena-label').textContent = pisteLabel;
@@ -1906,6 +1910,15 @@
             this.updateConnectionUI(false);
           });
           this.updateConnectionUI(navigator.onLine);
+        }
+
+        // Affiche/masque les boutons carton noir selon le paramètre de la compétition
+        applyBlackCardSetting() {
+          ['btn-card-black-a', 'btn-card-black-b'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) btn.style.display = this.blackCardEnabled ? '' : 'none';
+          });
+          if (!this.blackCardEnabled && this._pendingBlackCardFencer) this.cancelBlackCard();
         }
 
         updateConnectionUI(online) {
@@ -2467,7 +2480,7 @@
 
           // 2ème rouge (hors escrime moderne) = carton noir → confirmation
           // noBlackEscalation = true quand le rouge vient d'un jaune escaladé (3ème jaune → rouge, pas noir)
-          if (cardType === 'red' && !this.isModernFencing && !noBlackEscalation) {
+          if (cardType === 'red' && this.blackCardEnabled && !this.isModernFencing && !noBlackEscalation) {
             const redCount = cards.filter(c => c === 'red').length;
             if (redCount >= 1) {
               this._pendingBlackCardFencer = ef;
@@ -2626,7 +2639,7 @@
 
         // Carton noir direct (bouton N) : fencer = position affichée
         requestBlackCard(fencer) {
-          if (!this.currentMatch) return;
+          if (!this.blackCardEnabled || !this.currentMatch) return;
           if (this.matchStatus === 'not_started') {
             this.showNotification('⏱ Démarrez le match pour saisir des touches');
             return;
@@ -3736,6 +3749,10 @@
 
           if (data.refereeFeatureEnabled !== undefined) {
             this.refereeFeatureEnabled = data.refereeFeatureEnabled;
+          }
+          if (data.blackCardEnabled !== undefined) {
+            this.blackCardEnabled = data.blackCardEnabled === true;
+            this.applyBlackCardSetting();
           }
           if (data.referees !== undefined) {
             this.refereesList = data.referees;

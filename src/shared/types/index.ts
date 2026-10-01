@@ -599,6 +599,7 @@ export interface CompetitionSettings {
   teamFormat?: 'fie-relay' | 'laser-arena';
   questConfig?: QuestPhaseConfig; // Configuration du Tour Quest (Sabre Laser uniquement)
   refereeFeatureEnabled?: boolean; // Activer la gestion des arbitres sur arènes et saisie distante
+  blackCardEnabled?: boolean; // Carton noir activé sur les tablettes (défaut: false)
   customFormula?: CustomFormulaConfig; // Formule à la carte (arme CUSTOM uniquement)
   playAllPositions?: boolean; // Jouer toutes les places (tableaux de classement)
   expertMode?: boolean; // Mode expert : édition avancée des pistes et arbitres

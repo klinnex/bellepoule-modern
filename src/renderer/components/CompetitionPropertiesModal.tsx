@@ -64,6 +64,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   const [refereeFeatureEnabled, setRefereeFeatureEnabled] = useState(
     competition.settings?.refereeFeatureEnabled ?? false
   );
+  const [blackCardEnabled, setBlackCardEnabled] = useState(
+    competition.settings?.blackCardEnabled ?? false
+  );
   const [expertMode, setExpertMode] = useState(competition.settings?.expertMode ?? false);
   const [poolWinnersOnly, setPoolWinnersOnly] = useState(
     competition.settings?.poolWinnersOnly ?? false
@@ -140,6 +143,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       minTeamSize: competition.settings?.minTeamSize ?? 3,
       questConfig,
       refereeFeatureEnabled,
+      blackCardEnabled,
       expertMode,
       ...(expertMode ? { maxRefereesPerPool, maxRefereesPerMatch } : {}),
       ...(weapon === Weapon.CUSTOM ? { customFormula } : {}),
@@ -661,6 +665,20 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               </label>
               <small style={HINT_INDENT}>
                 Affiche le nom de l'arbitre sur l'arène et permet de le changer depuis la saisie distante
+              </small>
+            </div>
+            <div className="form-group" style={{ marginTop: '0.75rem' }}>
+              <label style={CHECK_LABEL_SM}>
+                <input
+                  type="checkbox"
+                  checked={blackCardEnabled}
+                  onChange={e => setBlackCardEnabled(e.target.checked)}
+                />
+                Activer le carton noir
+              </label>
+              <small style={HINT_INDENT}>
+                Affiche le bouton carton noir sur les tablettes (exclusion) et convertit le 2ème carton
+                rouge en carton noir
               </small>
             </div>
             <div className="form-group" style={{ marginTop: '0.75rem' }}>

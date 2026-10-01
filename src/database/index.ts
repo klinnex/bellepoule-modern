@@ -216,6 +216,7 @@ export class DatabaseManager {
         hasDirectElimination: true,
         thirdPlaceMatch: true,
         signTableauMatches: false,
+        blackCardEnabled: false,
         manualRanking: false,
         defaultRanking: 0,
         randomScore: false,
