@@ -359,6 +359,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           __poolFencers: true,
           poolId: pool.id,
           poolNumber: pool.number,
+          strip: pool.strip,
           fencers: pool.fencers || [],
         },
         ...(pool.matches || []),
@@ -384,8 +385,11 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       );
       if (result.success && result.session) {
         setSession(result.session);
-        setCommittedCount(count);
-        onArenaCountChange?.(count);
+        // Le serveur peut étendre le nombre de pistes (poule assignée au-delà du nombre configuré)
+        const effectiveCount = result.session.strips?.length || count;
+        setPendingCount(effectiveCount);
+        setCommittedCount(effectiveCount);
+        onArenaCountChange?.(effectiveCount);
         showToast('Saisie distante démarrée', 'success');
         // Synchroniser le webhook URL configuré vers le serveur qui vient de démarrer
         const savedWebhook = localStorage.getItem('bellepoule-webhook-url');

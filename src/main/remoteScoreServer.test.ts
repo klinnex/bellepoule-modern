@@ -422,6 +422,65 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('piste assignée aux poules (pool.strip)', () => {
+    const f = (id: string) => ({ id, firstName: id, lastName: id });
+    const poolMatches = (poolId: string) => [
+      {
+        id: `${poolId}-m1`,
+        poolId,
+        number: 1,
+        fencerA: f(`${poolId}a`),
+        fencerB: f(`${poolId}b`),
+        status: 'not_started',
+      },
+    ];
+    const marker = (poolId: string, poolNumber: number, strip?: number) => ({
+      __poolFencers: true,
+      poolId,
+      poolNumber,
+      strip,
+      fencers: [],
+    });
+
+    beforeEach(() => {
+      mockDb.getCompetition.mockReturnValue({ id: 'comp-1', settings: {} });
+      (mockDb as any).getPoolCount = vi.fn().mockReturnValue(1);
+      vi.spyOn(server as any, 'loadSessionReferees').mockReturnValue([]);
+    });
+
+    it('poule assignée piste 3 → match sur arena3, pas arena1', async () => {
+      const session = await server.startSession('comp-1', 4, [
+        marker('p1', 1, 3),
+        ...poolMatches('p1'),
+      ]);
+      const arenas = (server as any).arenas;
+      expect(arenas.get('arena3').currentMatch?.id).toBe('p1-m1');
+      expect(arenas.get('arena1').currentMatch ?? null).toBeNull();
+      expect(session.strips).toHaveLength(4);
+    });
+
+    it('piste au-delà du nombre configuré → arènes étendues', async () => {
+      const session = await server.startSession('comp-1', 1, [
+        marker('p1', 1, 4),
+        ...poolMatches('p1'),
+      ]);
+      expect(session.strips).toHaveLength(4);
+      expect((server as any).arenas.get('arena4').currentMatch?.id).toBe('p1-m1');
+    });
+
+    it('sans piste → ordre des poules sur pistes libres', async () => {
+      await server.startSession('comp-1', 3, [
+        marker('p1', 1, 1),
+        ...poolMatches('p1'),
+        marker('p2', 2),
+        ...poolMatches('p2'),
+      ]);
+      const arenas = (server as any).arenas;
+      expect(arenas.get('arena1').currentMatch?.id).toBe('p1-m1');
+      expect(arenas.get('arena2').currentMatch?.id).toBe('p2-m1');
+    });
+  });
+
   describe('annulation carton noir depuis la tablette', () => {
     function findHandler(method: string, path: string): any {
       const app = (server as any).app;
