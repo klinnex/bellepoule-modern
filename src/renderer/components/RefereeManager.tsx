@@ -24,6 +24,9 @@ import {
   ROW_ALT,
 } from './refereeManager.styles';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (id: string) => UUID_RE.test(id);
+
 interface RefereeManagerProps {
   competition: Competition;
   referees: Referee[];
@@ -86,10 +89,17 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
     if (activeTab === 'history') loadHistory();
   }, [activeTab, loadHistory]);
 
-  const manager = useMemo(() => new RefereeManager(referees, config), [referees, config]);
+  // Instance recréée à chaque assignation auto : l'historique interne (compteur de matchs
+  // consécutifs, assignedMatches) d'un run précédent bloquait tous les arbitres au run suivant.
+  const [manager, setManager] = useState(() => new RefereeManager(referees.map(r => ({ ...r })), config));
+  useEffect(() => {
+    setManager(new RefereeManager(referees.map(r => ({ ...r })), config));
+  }, [referees, config]);
 
   const persistAssignments = async (map: Map<string, Referee>) => {
     for (const [matchId, referee] of map.entries()) {
+      // Matchs de tableau (ID « 64-0 ») : persistés via l'état du tableau (onAssignmentsChange)
+      if (!isUuid(matchId)) continue;
       try {
         await window.electronAPI.db.updateMatch(matchId, { refereeId: referee.id });
       } catch { /* non bloquant */ }
@@ -97,7 +107,10 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
   };
 
   const handleAutoAssign = () => {
-    const newAssignments = manager.assignRefereesToMatches(pendingMatches, pools);
+    // Copies : le service mute les arbitres (assignedMatches, status) — ne pas toucher l'état React
+    const fresh = new RefereeManager(referees.map(r => ({ ...r })), config);
+    const newAssignments = fresh.assignRefereesToMatches(pendingMatches, pools);
+    setManager(fresh);
     setAssignments(newAssignments);
     onAssignmentsChange(newAssignments);
     persistAssignments(newAssignments);
@@ -110,7 +123,9 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
       newAssignments.set(matchId, referee);
       setAssignments(newAssignments);
       onAssignmentsChange(newAssignments);
-      window.electronAPI.db.updateMatch(matchId, { refereeId: referee.id }).catch(() => {});
+      if (isUuid(matchId)) {
+        window.electronAPI.db.updateMatch(matchId, { refereeId: referee.id }).catch(() => {});
+      }
     }
   };
 
@@ -182,7 +197,9 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
   );
 
   const pendingMatches = useMemo(
-    () => matches.filter(m => m.status !== MatchStatus.FINISHED && m.status !== MatchStatus.CANCELLED),
+    () => matches.filter(m =>
+      m.status !== MatchStatus.FINISHED && m.status !== MatchStatus.CANCELLED && !!m.fencerA && !!m.fencerB
+    ),
     [matches]
   );
 
@@ -665,11 +682,15 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     {match.fencerA?.firstName} {match.fencerA?.lastName} vs{' '}
                     {match.fencerB?.firstName} {match.fencerB?.lastName}
                   </div>
-                  {match.poolId && (
+                  {match.poolId ? (
                     <div style={SUB_TEXT}>
                       Poule {pools.find(p => p.id === match.poolId)?.number}
                     </div>
-                  )}
+                  ) : match.round ? (
+                    <div style={SUB_TEXT}>
+                      Tableau {match.round === 2 ? 'Finale' : match.round === 3 ? '3e place' : `T${match.round}`}
+                    </div>
+                  ) : null}
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
