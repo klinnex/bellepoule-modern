@@ -5,6 +5,7 @@
  */
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type RefereeInfo = { id: string; firstName: string; lastName: string };
 
@@ -49,7 +50,8 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
     );
   };
 
-  return (
+  // Portail sur body : échappe aux ancêtres transformés (animations de phase)
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
         <div className="modal-header">
@@ -119,7 +121,8 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
