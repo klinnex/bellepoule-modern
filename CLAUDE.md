@@ -1,10 +1,10 @@
 # CLAUDE.md ─ Instructions permanentes du projet
 
 ## Issues GitHub – règles absolues
-- **Ne jamais clore une issue** directement
-- Quand le problème est corrigé : poster un commentaire @mentionnant le créateur de l'issue, demandant sa validation avant clôture
-- Ne clore l'issue que si le créateur valide explicitement
-- Exemple : "@créateur Corrigé — PR #X créée. Valide et clos si OK."
+- **Ne jamais clore une issue** — jamais, même après validation
+- Quand le problème est corrigé : commenter l'issue en @mentionnant son auteur, lui demander de vérifier et de la clore lui-même
+- La clôture appartient exclusivement à l'auteur de l'issue
+- Exemple : "@auteur Corrigé — PR #X. Vérifie et clos l'issue si OK."
 
 ## Git – règles absolues
 - **TOUJOURS** push sur `dev`, jamais sur `main`
