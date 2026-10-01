@@ -3029,7 +3029,7 @@ export class RemoteScoreServer {
             theme: this.sessionTheme,
             refereeFeatureEnabled: this.sessionRefereeFeatureEnabled,
             blackCardEnabled: this.sessionBlackCardEnabled,
-            referees: this.session?.referees ?? [],
+            referees: this.getSessionReferees(),
           });
         }
         if (arena) {
@@ -3065,7 +3065,7 @@ export class RemoteScoreServer {
             fencerB: arena.currentMatch?.fencerB,
             refereeFeatureEnabled: this.sessionRefereeFeatureEnabled,
             blackCardEnabled: this.sessionBlackCardEnabled,
-            referees: this.session?.referees ?? [],
+            referees: this.getSessionReferees(),
             refereeSelected: this.arenaRefereeSelected.get(data.arenaId) ?? false,
             timerDuration: isPoolMatch
               ? this.sessionPoolTimerSeconds
@@ -3746,7 +3746,7 @@ export class RemoteScoreServer {
         number: i + 1,
         status: pendingMatches[i] ? 'occupied' : 'available',
       })),
-      referees: [],
+      referees: this.loadSessionReferees(competitionId),
       activeMatches: [],
       isRunning: true,
       startTime: new Date(),
@@ -4614,9 +4614,39 @@ export class RemoteScoreServer {
     }, 3000);
   }
 
+  /** Arbitres de la compétition au format session (lus en base). */
+  private loadSessionReferees(competitionId: string): RemoteSession['referees'] {
+    return this.db.getRefereesByCompetition(competitionId).map(r => ({
+      id: r.id,
+      name: `${r.firstName} ${r.lastName}`.trim(),
+      code: r.license ?? r.ref.toString(),
+      isActive: r.status !== 'unavailable',
+      lastActivity: r.updatedAt,
+    }));
+  }
+
+  /**
+   * Liste des arbitres de la session, rafraîchie depuis la base : les arbitres
+   * ajoutés/importés après le démarrage de la session doivent apparaître sur la tablette.
+   */
+  private getSessionReferees(): RemoteSession['referees'] {
+    if (!this.session) return [];
+    const competitionId = this.session.competitionId;
+    if (competitionId && competitionId !== '__training__') {
+      try {
+        this.session.referees = this.loadSessionReferees(competitionId);
+      } catch {
+        // base indisponible → garder la dernière liste connue
+      }
+    }
+    return this.session.referees ?? [];
+  }
+
   private resolveReferee(refereeId?: string | null): { id: string; name: string } | null {
     if (!refereeId || !this.session) return null;
-    const ref = this.session.referees.find(r => r.id === refereeId);
+    const ref =
+      (this.session.referees ?? []).find(r => r.id === refereeId) ??
+      this.getSessionReferees().find(r => r.id === refereeId);
     return ref ? { id: ref.id, name: ref.name } : null;
   }
 
@@ -4979,7 +5009,7 @@ export class RemoteScoreServer {
       screenThemes: this.arenaScreenThemes.get(arenaId),
       refereeFeatureEnabled: this.sessionRefereeFeatureEnabled,
       blackCardEnabled: this.sessionBlackCardEnabled,
-      referees: this.session?.referees ?? [],
+      referees: this.getSessionReferees(),
       timerDuration: isPoolMatch ? this.sessionPoolTimerSeconds : this.sessionTableTimerSeconds,
       refereeSelected: this.arenaRefereeSelected.get(arenaId) ?? false,
     };
@@ -5505,14 +5535,7 @@ export class RemoteScoreServer {
 
     // Créer la session - utiliser allMatches au lieu de pendingMatches
     const assignedMatchCount = Math.min(allMatches.length, strips);
-    const dbReferees = this.db.getRefereesByCompetition(competitionId);
-    const sessionReferees = dbReferees.map(r => ({
-      id: r.id,
-      name: `${r.firstName} ${r.lastName}`.trim(),
-      code: r.license ?? r.ref.toString(),
-      isActive: r.status !== 'unavailable',
-      lastActivity: r.updatedAt,
-    }));
+    const sessionReferees = this.loadSessionReferees(competitionId);
     this.session = {
       competitionId,
       strips: Array.from({ length: strips }, (_, i) => ({

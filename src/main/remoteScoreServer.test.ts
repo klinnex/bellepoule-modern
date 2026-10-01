@@ -311,6 +311,26 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('liste des arbitres de session', () => {
+    it('inclut les arbitres ajoutés après le démarrage de la session', () => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+      mockDb.getRefereesByCompetition.mockReturnValueOnce([
+        { id: 'r1', ref: 1, firstName: 'Anne', lastName: 'DURAND', status: 'available' },
+        { id: 'r2', ref: 2, firstName: 'Luc', lastName: 'LEROY', status: 'available' },
+      ]);
+      const refs = (server as any).getSessionReferees();
+      expect(refs.map((r: any) => r.name)).toEqual(['Anne DURAND', 'Luc LEROY']);
+      expect((server as any).resolveReferee('r2')).toEqual({ id: 'r2', name: 'Luc LEROY' });
+    });
+
+    it('ne lit pas la base en mode entraînement', () => {
+      (server as any).session = { competitionId: '__training__', referees: [] };
+      mockDb.getRefereesByCompetition.mockClear();
+      expect((server as any).getSessionReferees()).toEqual([]);
+      expect(mockDb.getRefereesByCompetition).not.toHaveBeenCalled();
+    });
+  });
+
   describe('ordre des matchs public (#911) et arbitre de poule (#908)', () => {
     function findHandler(method: string, path: string): any {
       const app = (server as any).app;
