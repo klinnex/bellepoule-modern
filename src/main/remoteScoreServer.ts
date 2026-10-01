@@ -4033,7 +4033,9 @@ export class RemoteScoreServer {
     // Arbitre par défaut : celui du match, sinon celui/ceux de la poule (#908)
     if (!match.referee) {
       const defaultRef =
-        this.resolveReferee((match as any).refereeId) ?? this.resolvePoolReferee(match.poolId);
+        this.resolveTableauMatchReferees(match.poolId ? null : match.id) ??
+        this.resolveReferee((match as any).refereeId) ??
+        this.resolvePoolReferee(match.poolId);
       if (defaultRef) match = { ...match, referee: defaultRef };
     }
 
@@ -4608,6 +4610,34 @@ export class RemoteScoreServer {
       const pool = (state?.pools || []).find((p: any) => p?.id === poolId);
       const refs: any[] = Array.isArray(pool?.referees) ? pool.referees.filter((r: any) => r?.id) : [];
       if (refs.length === 0) return null;
+      const names = refs.map(
+        r =>
+          this.resolveReferee(r.id)?.name ??
+          ([r.lastName, r.firstName].filter(Boolean).join(' ') || r.name || '')
+      );
+      return { id: refs[0].id, name: names.filter(Boolean).join(' / ') };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Arbitres multiples d'un match de tableau (session_state, mode expert, #908).
+   * Ne renvoie qu'avec ≥ 2 arbitres ; sinon le refereeId du match suffit.
+   */
+  private resolveTableauMatchReferees(matchId?: string | null): { id: string; name: string } | null {
+    if (!matchId || !this.session) return null;
+    try {
+      const state = this.db.getSessionState(this.session.competitionId);
+      const all: any[] = [
+        ...(Array.isArray(state?.tableauMatches) ? state.tableauMatches : []),
+        ...(Array.isArray(state?.consolationBrackets)
+          ? state.consolationBrackets.flatMap((b: any) => (Array.isArray(b?.matches) ? b.matches : []))
+          : []),
+      ];
+      const m = all.find((x: any) => x?.id === matchId);
+      const refs: any[] = Array.isArray(m?.referees) ? m.referees.filter((r: any) => r?.id) : [];
+      if (refs.length < 2) return null;
       const names = refs.map(
         r =>
           this.resolveReferee(r.id)?.name ??

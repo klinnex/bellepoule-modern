@@ -68,6 +68,8 @@ interface TableauViewProps {
   consolationBrackets?: ConsolationBracket[];
   onConsolationBracketsChange?: (brackets: ConsolationBracket[]) => void;
   readOnly?: boolean;
+  /** Nombre max d'arbitres par match (mode expert) ; 1 = sélection unique */
+  maxRefereesPerMatch?: number;
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
@@ -106,6 +108,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   consolationBrackets: consolationBracketsprop = [],
   onConsolationBracketsChange,
   readOnly = false,
+  maxRefereesPerMatch = 1,
 }) => {
   const { showToast } = useToast();
   const tableauTemplate = usePdfTemplateStore(s => s.templates.tableau);
@@ -1340,27 +1343,33 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       })()}
 
       {showRefereeModal && selectedMatchForReferee && (() => {
-        const currentReferee = matches.find(m => m.id === selectedMatchForReferee)?.referee ?? null;
+        const selectedMatch = matches.find(m => m.id === selectedMatchForReferee);
+        const currentReferees = selectedMatch?.referees?.length
+          ? selectedMatch.referees
+          : selectedMatch?.referee ? [selectedMatch.referee] : [];
 
         const closeModal = () => {
           setShowRefereeModal(false);
           setSelectedMatchForReferee(null);
         };
 
-        const assignReferee = (ref: { id: string; firstName: string; lastName: string } | null) => {
+        // referees[0] = arbitre principal (persisté en DB via refereeId)
+        const assignReferees = (refs: Array<{ id: string; firstName: string; lastName: string }>) => {
+          const principal = refs[0] ?? null;
           const updatedMatches = matches.map(m =>
-            m.id === selectedMatchForReferee ? { ...m, referee: ref } : m
+            m.id === selectedMatchForReferee ? { ...m, referee: principal, referees: refs } : m
           );
           onMatchesChange(updatedMatches);
-          onMatchRefereeChange?.(selectedMatchForReferee!, ref?.id ?? null);
+          onMatchRefereeChange?.(selectedMatchForReferee!, principal?.id ?? null);
           closeModal();
         };
 
         return (
           <TableauRefereeModal
-            currentReferee={currentReferee}
+            currentReferees={currentReferees}
+            maxReferees={Math.max(1, maxRefereesPerMatch)}
             referees={competitionReferees}
-            onAssign={assignReferee}
+            onAssign={assignReferees}
             onClose={closeModal}
           />
         );

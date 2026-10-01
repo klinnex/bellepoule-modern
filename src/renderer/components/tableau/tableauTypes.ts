@@ -17,6 +17,8 @@ export interface TableauMatch {
   isBye: boolean;
   arena?: number | null;
   referee?: { id: string; firstName: string; lastName: string } | null;
+  /** Arbitres multiples (mode expert, #908) : referees[0] = arbitre principal = referee */
+  referees?: Array<{ id: string; firstName: string; lastName: string }>;
 }
 
 export interface FinalResult {

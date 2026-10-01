@@ -96,6 +96,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
   const expertMode = competition.settings?.expertMode ?? false;
   // Arbitres simultanés par poule (principal + assistant/vidéo) : mode expert uniquement
   const maxRefereesPerPool = expertMode ? Math.max(1, competition.settings?.maxRefereesPerPool ?? 1) : 1;
+  const maxRefereesPerMatch = expertMode ? Math.max(1, competition.settings?.maxRefereesPerMatch ?? 1) : 1;
   const poolWinnersOnly = competition.settings?.poolWinnersOnly ?? false;
   const postPoolSplitCriteria = competition.settings?.postPoolSplitCriteria;
 
@@ -1742,6 +1743,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             arenaCount={remoteArenaCount}
             readOnly={finalResults.length > 0}
             competitionId={competition.id}
+            maxRefereesPerMatch={maxRefereesPerMatch}
             onComplete={results => {
               setFinalResults(results);
               setTableauEditUnlocked(false);
