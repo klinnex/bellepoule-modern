@@ -4002,10 +4002,6 @@
           };
           container.innerHTML = matches
             .map(match => {
-              const poolNum = match.poolNumber ?? (match.poolId ? match.poolId.replace(/\D/g, '') || '?' : '');
-              const poolLabel = (match.poolNumber !== undefined || match.poolId)
-                ? `<span style="opacity:0.5;font-size:0.72rem;">Poule ${escHtml(String(poolNum))}</span>`
-                : '';
               const safeId = escHtml(match.id);
               const clubLine =
                 [match.fencerA?.club, match.fencerB?.club]
@@ -4021,7 +4017,6 @@
                   </div>
                   <div class="next-match-card-sub">
                     ${clubLine}
-                    ${poolLabel}
                   </div>
                 </div>
                 <div class="next-match-card-arrow">›</div>
