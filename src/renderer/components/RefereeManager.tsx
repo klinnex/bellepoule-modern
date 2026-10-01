@@ -8,6 +8,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { Referee, Match, Pool, Competition, MatchStatus } from '../../shared/types';
 import { RefereeManager, RefereeRotationConfig } from '../../shared/services/refereeManager';
 import { parseEngardeRefereeFile } from '../../shared/utils/fileParser';
+import { computeRefereeMatchStats, TableauMatchLike } from '../../shared/utils/refereeStats';
 import {
   TD,
   TD_BOLD,
@@ -28,6 +29,10 @@ interface RefereeManagerProps {
   referees: Referee[];
   pools: Pool[];
   matches: Match[];
+  /** Matchs de poule de tous les tours (statistiques) ; défaut : matches */
+  statsPoolMatches?: Match[];
+  /** Matchs de tableau + consolantes (statistiques) */
+  statsTableauMatches?: TableauMatchLike[];
   onRefereesChange: (referees: Referee[]) => void;
   onAssignmentsChange: (assignments: Map<string, Referee>) => void;
 }
@@ -37,6 +42,8 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
   referees,
   pools,
   matches,
+  statsPoolMatches,
+  statsTableauMatches,
   onRefereesChange,
   onAssignmentsChange,
 }) => {
@@ -48,7 +55,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
   });
   const [assignments, setAssignments] = useState<Map<string, Referee>>(new Map());
   const [showReport, setShowReport] = useState(false);
-  const [activeTab, setActiveTab] = useState<'referees' | 'assignments' | 'history'>('referees');
+  const [activeTab, setActiveTab] = useState<'referees' | 'assignments' | 'history' | 'stats'>('referees');
   const [newReferee, setNewReferee] = useState({ name: '', club: '', license: '', category: '', nationality: 'FRA' });
   const [addError, setAddError] = useState('');
   const [importStatus, setImportStatus] = useState<{ count: number; errors: string[] } | null>(null);
@@ -169,6 +176,11 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, [competition.id, referees, onRefereesChange]);
 
+  const matchStats = useMemo(
+    () => computeRefereeMatchStats(referees, statsPoolMatches ?? matches, statsTableauMatches ?? []),
+    [referees, statsPoolMatches, matches, statsTableauMatches]
+  );
+
   const pendingMatches = useMemo(
     () => matches.filter(m => m.status !== MatchStatus.FINISHED && m.status !== MatchStatus.CANCELLED),
     [matches]
@@ -192,7 +204,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
 
       {/* Onglets */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-        {(['referees', 'assignments', 'history'] as const).map(tab => (
+        {(['referees', 'assignments', 'history', 'stats'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -206,7 +218,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
               color: activeTab === tab ? 'white' : '#374151',
             }}
           >
-            {tab === 'referees' ? '👥 Arbitres' : tab === 'assignments' ? '📋 Assignations' : '📜 Historique'}
+            {tab === 'referees' ? '👥 Arbitres' : tab === 'assignments' ? '📋 Assignations' : tab === 'history' ? '📜 Historique' : '📊 Statistiques'}
           </button>
         ))}
       </div>
@@ -340,6 +352,46 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                   </tr>
                 ))}
               </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'stats' && (
+        <div>
+          {matchStats.length === 0 ? (
+            <p style={MUTED_ITALIC}>Aucun arbitre enregistré.</p>
+          ) : (
+            <table style={TABLE}>
+              <thead>
+                <tr style={ROW_ALT}>
+                  {['Arbitre', 'Club', 'Poules', 'Tableau', 'Total arbitrés', 'En attente'].map(h => (
+                    <th key={h} style={TH}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {matchStats.map(s => (
+                  <tr key={s.refereeId} style={ROW_BORDER}>
+                    <td style={TD_BOLD}>{s.refereeName}</td>
+                    <td style={TD}>{s.club ?? '—'}</td>
+                    <td style={{ ...TD, textAlign: 'center' }}>{s.poolMatches}</td>
+                    <td style={{ ...TD, textAlign: 'center' }}>{s.tableauMatches}</td>
+                    <td style={{ ...TD_BOLD, textAlign: 'center' }}>{s.totalMatches}</td>
+                    <td style={{ ...TD, textAlign: 'center', color: '#6b7280' }}>{s.pendingMatches}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr style={ROW_ALT}>
+                  <td style={TD_BOLD} colSpan={2}>Total</td>
+                  {(['poolMatches', 'tableauMatches', 'totalMatches', 'pendingMatches'] as const).map(k => (
+                    <td key={k} style={{ ...TD_BOLD, textAlign: 'center' }}>
+                      {matchStats.reduce((sum, s) => sum + s[k], 0)}
+                    </td>
+                  ))}
+                </tr>
+              </tfoot>
             </table>
           )}
         </div>
