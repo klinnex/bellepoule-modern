@@ -33,6 +33,12 @@ interface PoolsNextAction {
   action: () => void;
 }
 
+interface PoolPrepLaunchItem {
+  label: string;
+  disabled: boolean;
+  action: () => void;
+}
+
 interface CompetitionNavProps {
   competition: Competition;
   phases: PhaseItem[];
@@ -43,6 +49,7 @@ interface CompetitionNavProps {
   handleGoBack: () => void;
   handleGeneratePools: () => void;
   poolsNextAction: PoolsNextAction | null;
+  poolPrepLaunch?: PoolPrepLaunchItem | null;
   questEnabled: boolean;
   questConfig: QuestPhaseConfig | undefined;
   fencers: Fencer[];
@@ -61,6 +68,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
   handleGoBack,
   handleGeneratePools,
   poolsNextAction,
+  poolPrepLaunch,
   questEnabled,
   questConfig,
   fencers,
@@ -135,6 +143,16 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
               Générer les poules <ChevronRight size={15} />
             </button>
           </CoachMark>
+        )}
+        {currentPhase === 'poolprep' && poolPrepLaunch && (
+          <button
+            className="btn btn-primary btn-icon-label"
+            onClick={poolPrepLaunch.action}
+            disabled={poolPrepLaunch.disabled}
+            title={poolPrepLaunch.disabled ? 'Chaque poule doit compter au moins 3 tireurs' : undefined}
+          >
+            {poolPrepLaunch.label} <ChevronRight size={15} />
+          </button>
         )}
         {currentPhase === 'pools' && poolsNextAction && (
           <CoachMark id="pools-next-action" message="Étape suivante une fois les poules terminées" position="bottom">

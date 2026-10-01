@@ -24,6 +24,14 @@ interface PoolPrepViewProps {
   onPoolsConfirm: (pools: Pool[]) => void;
   onSkipPools?: () => void;
   onSettingsChange?: (min: number, max: number) => void;
+  /** Expose le bouton « Lancer les poules » à la barre de navigation (#945) */
+  onLaunchActionChange?: (action: PoolPrepLaunchAction | null) => void;
+}
+
+export interface PoolPrepLaunchAction {
+  label: string;
+  disabled: boolean;
+  action: () => void;
 }
 
 interface PoolStateHistory {
@@ -44,6 +52,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   onPoolsConfirm,
   onSkipPools,
   onSettingsChange,
+  onLaunchActionChange,
 }) => {
   const [poolCount, setPoolCount] = useState<number>(0);
   const [minFencersPerPool, setMinFencersPerPool] = useState<number>(initialMin);
@@ -424,6 +433,24 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     return conflicts;
   };
 
+  const launchDisabled = poolCount > 0 && (pools.length === 0 || pools.some(p => p.fencers.length < 3));
+  const launchLabel = poolCount === 0 ? 'Passer au classement initial' : 'Lancer les poules';
+  const handleLaunch = () => (poolCount === 0 ? onSkipPools?.() : onPoolsConfirm(pools));
+  const handleLaunchRef = useRef(handleLaunch);
+  useEffect(() => {
+    handleLaunchRef.current = handleLaunch;
+  });
+
+  useEffect(() => {
+    onLaunchActionChange?.({
+      label: launchLabel,
+      disabled: launchDisabled,
+      action: () => handleLaunchRef.current(),
+    });
+  }, [onLaunchActionChange, launchLabel, launchDisabled]);
+
+  useEffect(() => () => onLaunchActionChange?.(null), [onLaunchActionChange]);
+
   return (
     <>
     <div style={{ padding: '1rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -723,11 +750,11 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
         <button
           className="btn btn-primary"
-          onClick={() => (poolCount === 0 ? onSkipPools?.() : onPoolsConfirm(pools))}
-          disabled={poolCount > 0 && (pools.length === 0 || pools.some(p => p.fencers.length < 3))}
+          onClick={handleLaunch}
+          disabled={launchDisabled}
           style={{ fontSize: '1rem', padding: '0.75rem 2rem', borderRadius: '10px' }}
         >
-          {poolCount === 0 ? 'Passer au classement initial →' : 'Lancer les poules →'}
+          {launchLabel} →
         </button>
       </div>
     </div>
