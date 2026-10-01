@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import type { MatchEventEntry, MatchEventType } from '../../shared/types';
 import { useMatchAuditStore } from '../../features/matchAuditLog/hooks/useMatchAuditStore';
 import { useToast } from './Toast';
@@ -346,8 +347,8 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
     );
   }
 
-  // Rendu modal
-  return (
+  // Rendu modal — portail sur body pour échapper aux ancêtres transformés
+  return createPortal(
     <div
       className="modal-overlay"
       onClick={onClose}
@@ -366,7 +367,8 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
         </div>
         {content}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

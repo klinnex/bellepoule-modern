@@ -783,7 +783,8 @@ select:focus {
 }
 
 .content > * {
-  animation: fade-in var(--duration-slow) var(--ease-out) both;
+  /* backwards : pas de transform résiduel (sinon position: fixed des modals piégé) */
+  animation: fade-in var(--duration-slow) var(--ease-out) backwards;
 }
 
 .competition-grid .competition-card {
@@ -1275,7 +1276,7 @@ select:focus {
 }
 
 .phase-content {
-  animation: phase-slide-in var(--duration-slow) var(--ease-out) both;
+  animation: phase-slide-in var(--duration-slow) var(--ease-out) backwards;
 }
 
 /* ============================================================
