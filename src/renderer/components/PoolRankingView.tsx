@@ -36,6 +36,10 @@ interface PoolRankingViewProps {
   onRankingChange?: (ranking: PoolRanking[]) => void;
   poolWinnersOnly?: boolean;
   splitCriteria?: PostPoolSplitCriteria;
+  /** Groupes déjà extraits dans une compétition séparée (genre → id compétition) */
+  splitOffGroups?: Partial<Record<string, string>>;
+  /** Extraire un groupe dans une compétition séparée (filles) */
+  onSplitOff?: (group: string) => void;
 }
 
 const PoolRankingView: React.FC<PoolRankingViewProps> = ({
@@ -51,6 +55,8 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
   onRankingChange,
   poolWinnersOnly = false,
   splitCriteria,
+  splitOffGroups,
+  onSplitOff,
 }) => {
   const { showToast } = useToast();
   const { isColumnVisible, toggleColumn, getVisibleColumns } = useColumnVisibility();
@@ -361,7 +367,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          {!isInitialRanking && (
+          {!isInitialRanking && pools.length > 0 && (
             <button className="btn btn-secondary" onClick={handleRecalculate} title="Recalculer le classement" style={{ fontSize: '0.8rem' }}>
               Recalculer
             </button>
@@ -627,15 +633,21 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
         <div style={FLEX_GAP}>
           {hasDirectElimination ? (
             splitCriteria && splitGroups.length > 1 ? (
-              splitGroups.map(g => (
-                <button
-                  key={g}
-                  className="btn btn-primary"
-                  onClick={() => onGoToTableau?.(g)}
-                >
-                  Tableau {g === Gender.MALE ? '♂ Hommes' : '♀ Femmes'} →
-                </button>
-              ))
+              splitGroups.map(g =>
+                g === Gender.FEMALE && onSplitOff ? (
+                  <button key={g} className="btn btn-primary" onClick={() => onSplitOff(g)}>
+                    {splitOffGroups?.[g] ? 'Ouvrir la compétition ♀ Femmes →' : 'Créer la compétition ♀ Femmes…'}
+                  </button>
+                ) : (
+                  <button
+                    key={g}
+                    className="btn btn-primary"
+                    onClick={() => onGoToTableau?.(g)}
+                  >
+                    Tableau {g === Gender.MALE ? '♂ Hommes' : '♀ Femmes'} →
+                  </button>
+                )
+              )
             ) : (
               <button className="btn btn-primary" onClick={() => onGoToTableau?.()}>
                 {poolWinnersOnly

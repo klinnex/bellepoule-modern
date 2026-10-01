@@ -17,6 +17,15 @@ import PoolRankingView from './PoolRankingView';
 import ResultsView from './ResultsView';
 import AddFencerModal from './AddFencerModal';
 import CompetitionPropertiesModal from './CompetitionPropertiesModal';
+import SplitCompetitionModal from './SplitCompetitionModal';
+import {
+  defaultSplitCompetitionTitle,
+  buildSplitCompetitionData,
+  extractSplitGroupRanking,
+  toSplitFencerData,
+  remapRankingFencers,
+} from '../../shared/utils/splitCompetition';
+import type { CompetitionCreateData, FencerCreateData } from '../../shared/types/preload';
 import ImportModal from './ImportModal';
 import PoolPrepView, { PoolPrepLaunchAction } from './PoolPrepView';
 import { useToast } from './Toast';
@@ -90,6 +99,7 @@ interface CompetitionViewProps {
   requestPhase?: string;
   onPhaseApplied?: () => void;
   onRemoteServerChange?: (url: string | null, arenaCount: number) => void;
+  onOpenCompetition?: (competitionId: string) => void;
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
@@ -105,7 +115,7 @@ const CV_STYLES = {
   phaseContent: { flex: 1, overflow: 'auto' as const } satisfies React.CSSProperties,
 } satisfies Record<string, React.CSSProperties>;
 
-const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate, requestPhase, onPhaseApplied, onRemoteServerChange }) => {
+const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate, requestPhase, onPhaseApplied, onRemoteServerChange, onOpenCompetition }) => {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const { t, language } = useTranslation();
@@ -124,6 +134,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
   const maxRefereesPerMatch = expertMode ? Math.max(1, competition.settings?.maxRefereesPerMatch ?? 1) : 1;
   const poolWinnersOnly = competition.settings?.poolWinnersOnly ?? false;
   const postPoolSplitCriteria = competition.settings?.postPoolSplitCriteria;
+  // Groupes déjà extraits dans une compétition séparée (genre → id compétition)
+  const splitOffCompetitionIds = competition.settings?.splitOffCompetitionIds;
 
   const auditLogEnabled = localStorage.getItem('bellepoule-audit-log-enabled') !== 'false';
   const { getVisibleColumns } = useColumnVisibility();
@@ -204,6 +216,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
   // Mode compétition couplée : groupe actif ('M' | 'F' | null)
   const [activeSplitGroup, setActiveSplitGroup] = useState<string | null>(null);
   // État des tableaux par groupe (pour conserver les matchs quand on bascule)
+  // Groupe en attente de création de compétition séparée (saisie du nom)
+  const [pendingSplitOffGroup, setPendingSplitOffGroup] = useState<string | null>(null);
+  const [splitOffInProgress, setSplitOffInProgress] = useState(false);
   const [splitTableauStates, setSplitTableauStates] = useState<
     Record<string, { matches: TableauMatch[]; consolation: ConsolationBracket[]; results: FinalResult[] }>
   >({});
@@ -965,6 +980,61 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     }
   };
 
+  // Compétition couplée : extraire un groupe dans une compétition séparée (ou l'ouvrir si déjà créée)
+  const handleSplitOff = (group: string) => {
+    const existingId = splitOffCompetitionIds?.[group];
+    if (existingId) {
+      onOpenCompetition?.(existingId);
+      return;
+    }
+    setPendingSplitOffGroup(group);
+  };
+
+  const createSplitOffCompetition = async (group: string, title: string) => {
+    if (splitOffInProgress) return;
+    setSplitOffInProgress(true);
+    try {
+      const db = window.electronAPI.db;
+      const groupRanking = extractSplitGroupRanking(overallRanking, group);
+      const created = await db.createCompetition(
+        buildSplitCompetitionData(competition, title, group) as unknown as CompetitionCreateData
+      );
+      const newFencerByOldId = new Map<string, Fencer>();
+      for (const r of groupRanking) {
+        const f = await db.addFencer(created.id, toSplitFencerData(r) as unknown as FencerCreateData);
+        newFencerByOldId.set(r.fencer.id, f);
+      }
+      // Démarrer la nouvelle compétition directement au classement après poules
+      await db.saveSessionState(created.id, {
+        currentPhase: 3,
+        overallRanking: remapRankingFencers(groupRanking, newFencerByOldId),
+        pools: [],
+        poolHistory: [],
+        tableauMatches: [],
+        finalResults: [],
+        consolationBrackets: [],
+        currentPoolRound: 1,
+        skipPoolPhase: false,
+      } as unknown as Parameters<typeof db.saveSessionState>[1]);
+
+      const settings = {
+        ...competition.settings,
+        splitOffCompetitionIds: { ...splitOffCompetitionIds, [group]: created.id },
+      };
+      await db.updateCompetition(competition.id, { settings });
+      onUpdate({ ...competition, settings } as Competition);
+      if (activeSplitGroup === group) setActiveSplitGroup(null);
+      setPendingSplitOffGroup(null);
+      showToast(`Compétition « ${created.title} » créée (${groupRanking.length} tireurs)`, 'success');
+      onOpenCompetition?.(created.id);
+    } catch (e) {
+      logger.error(LogCategory.DATABASE, 'Split-off competition creation failed', e instanceof Error ? e : undefined);
+      showToast('Erreur lors de la création de la compétition séparée', 'error');
+    } finally {
+      setSplitOffInProgress(false);
+    }
+  };
+
   const handleThirdPlaceDecision = (shouldHaveThirdPlace: boolean) => {
     const updatedCompetition = {
       ...competition,
@@ -1265,10 +1335,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     if (postPoolSplitCriteria !== 'gender') return [];
     const genders = new Set<string>();
     for (const r of overallRanking) {
-      if ((r.fencer.gender as string) !== Gender.MIXED) genders.add(r.fencer.gender as string);
+      const g = r.fencer.gender as string;
+      if (g !== Gender.MIXED && !splitOffCompetitionIds?.[g]) genders.add(g);
     }
     return Array.from(genders).sort();
-  }, [postPoolSplitCriteria, overallRanking]);
+  }, [postPoolSplitCriteria, overallRanking, splitOffCompetitionIds]);
 
   // Classement effectif pour le tableau (filtré par vainqueurs de poule et/ou groupe actif)
   const effectiveTableauRanking = useMemo(() => {
@@ -1280,9 +1351,14 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
       ranking = ranking
         .filter(r => (r.fencer.gender as string) === activeSplitGroup)
         .map((r, i) => ({ ...r, rank: i + 1 }));
+    } else if (postPoolSplitCriteria === 'gender' && splitOffCompetitionIds) {
+      // Groupes extraits dans une compétition séparée : exclus du tableau de cette compétition
+      ranking = ranking
+        .filter(r => !splitOffCompetitionIds[r.fencer.gender as string])
+        .map((r, i) => ({ ...r, rank: i + 1 }));
     }
     return ranking;
-  }, [overallRanking, pools, poolWinnersOnly, postPoolSplitCriteria, activeSplitGroup]);
+  }, [overallRanking, pools, poolWinnersOnly, postPoolSplitCriteria, activeSplitGroup, splitOffCompetitionIds]);
 
   // Calcul progression matchs
   const matchProgress = useMemo(() => {
@@ -1657,6 +1733,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             onRankingChange={ranking => setOverallRanking(ranking)}
             poolWinnersOnly={poolWinnersOnly}
             splitCriteria={postPoolSplitCriteria}
+            splitOffGroups={splitOffCompetitionIds}
+            onSplitOff={handleSplitOff}
           />
         )}
 
@@ -1918,6 +1996,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
           onClose={() => setShowAddFencerModal(false)}
           onAdd={fencer => addFencer(fencer as any)}
           competitionGender={competition.gender}
+        />
+      )}
+
+      {pendingSplitOffGroup && (
+        <SplitCompetitionModal
+          groupLabel={pendingSplitOffGroup === Gender.FEMALE ? '♀ Femmes' : pendingSplitOffGroup === Gender.MALE ? '♂ Hommes' : pendingSplitOffGroup}
+          fencerCount={extractSplitGroupRanking(overallRanking, pendingSplitOffGroup).length}
+          defaultTitle={defaultSplitCompetitionTitle(competition.title, pendingSplitOffGroup)}
+          onConfirm={title => createSplitOffCompetition(pendingSplitOffGroup, title)}
+          onCancel={() => setPendingSplitOffGroup(null)}
         />
       )}
 

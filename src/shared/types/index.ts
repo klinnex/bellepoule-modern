@@ -608,6 +608,8 @@ export interface CompetitionSettings {
   // Modes spéciaux post-poules
   poolWinnersOnly?: boolean; // Seuls les 1ers de chaque poule accèdent au tableau
   postPoolSplitCriteria?: PostPoolSplitCriteria; // Séparation en deux tableaux après les poules
+  splitOffCompetitionIds?: Partial<Record<string, string>>; // Groupe (genre) → compétition séparée créée
+  splitFromCompetitionId?: string; // Compétition d'origine (si créée par séparation)
 }
 
 export interface Phase extends BaseEntity {
