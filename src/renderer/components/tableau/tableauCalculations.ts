@@ -5,7 +5,13 @@
  */
 
 import { Fencer, PoolRanking } from '../../../shared/types';
-import { TableauMatch, FinalResult, ConsolationBracket, propagateWinners } from './tableauTypes';
+import {
+  TableauMatch,
+  FinalResult,
+  ConsolationBracket,
+  propagateWinners,
+  isBracketComplete,
+} from './tableauTypes';
 
 export const BASE_MATCH_HEIGHT = 100;
 export const SLOT_HEIGHT = BASE_MATCH_HEIGHT + 50; // hauteur d'un créneau dans la première colonne
@@ -305,7 +311,10 @@ export const autoFillTableauScores = (
     .sort((a, b) => b - a);
 
   for (const round of rounds) {
-    const roundMatches = updatedMatches.filter(m => m.round === round && !m.winner && !m.isBye);
+    // Ignorer les matchs incomplets (adversaire en attente : gagnant de barrage, etc.)
+    const roundMatches = updatedMatches.filter(
+      m => m.round === round && !m.winner && !m.isBye && m.fencerA && m.fencerB
+    );
 
     for (const match of roundMatches) {
       // Générer des scores aléatoires
@@ -378,6 +387,148 @@ export const autoFillTableauScores = (
   }
 
   return { updatedMatches, filledCount };
+};
+
+// Mode « toutes les places » : place les gagnants de barrages dans le premier tour du
+// tableau principal. Mute `matchList`, retourne true si un tireur a été placé.
+export const placeBarrageWinners = (matchList: TableauMatch[], tableauSize: number): boolean => {
+  const barrageMatches = matchList.filter(m => m.round === tableauSize * 2);
+  if (barrageMatches.length === 0) return false;
+
+  // directCount fixe = nombre de tireurs qui vont directement au tableau (sans barrage)
+  const directCount = tableauSize - barrageMatches.length;
+  const firstRoundMatches = matchList
+    .filter(m => m.round === tableauSize)
+    .sort((a, b) => a.position - b.position);
+  const seeding = generateFIESeeding(tableauSize);
+  let placed = false;
+
+  for (let i = 0; i < barrageMatches.length; i++) {
+    const barrage = barrageMatches[i];
+    if (!barrage.winner) continue;
+    // Le gagnant du barrage i occupe le slot pour seed = directCount + i + 1
+    const targetPos = seeding.indexOf(directCount + i + 1);
+    if (targetPos < 0) continue;
+    const match = firstRoundMatches[Math.floor(targetPos / 2)];
+    if (!match) continue;
+    const isA = targetPos % 2 === 0;
+    const current = isA ? match.fencerA : match.fencerB;
+    if (current?.id === barrage.winner.id) continue;
+    if (isA) match.fencerA = barrage.winner;
+    else match.fencerB = barrage.winner;
+    placed = true;
+  }
+
+  if (placed) propagateWinners(matchList, tableauSize);
+  return placed;
+};
+
+// Mode « toutes les places » : crée les brackets de consolation (barrages, rounds du
+// tableau principal, sous-brackets) et marque les brackets terminés.
+export const syncConsolationBrackets = (
+  matchList: TableauMatch[],
+  brackets: ConsolationBracket[],
+  tableauSize: number,
+  ranking: PoolRanking[]
+): { brackets: ConsolationBracket[]; changed: boolean } => {
+  const updated = [...brackets];
+  let changed = false;
+
+  // Barrages : round = mainSize * 2
+  const barrageRound = tableauSize * 2;
+  const barrageMatches = matchList.filter(m => m.round === barrageRound);
+  if (barrageMatches.length > 0 && isRoundComplete(matchList, barrageRound)) {
+    const alreadyExists = updated.some(b => b.sourceRound === barrageRound && b.parentBracketId === 'main');
+    if (!alreadyExists) {
+      const losers = getRoundLosers(matchList, barrageRound, ranking);
+      if (losers.length > 0) {
+        // bracket pour les dernières places
+        updated.push(buildConsolationBracket(losers, tableauSize + 1, barrageRound, 'main'));
+        changed = true;
+      }
+    }
+  }
+
+  // Chaque round du tableau principal (> 4, donc QF et plus profonds)
+  const mainRounds = [tableauSize, ...Array.from({ length: Math.log2(tableauSize) - 2 }, (_, i) => tableauSize / Math.pow(2, i + 1))].filter(r => r > 4);
+  for (const round of mainRounds) {
+    if (!isRoundComplete(matchList, round)) continue;
+    const alreadyExists = updated.some(b => b.sourceRound === round && b.parentBracketId === 'main');
+    if (alreadyExists) continue;
+    const losers = getRoundLosers(matchList, round, ranking);
+    if (losers.length === 0) continue;
+    updated.push(buildConsolationBracket(losers, consolationFirstPlace(1, round), round, 'main'));
+    changed = true;
+  }
+
+  // Brackets de consolation existants → sous-brackets
+  for (let idx = 0; idx < updated.length; idx++) {
+    const bracket = updated[idx];
+    if (bracket.isComplete) continue;
+    const bracketRounds = Array.from(
+      { length: Math.log2(bracket.size) - 1 },
+      (_, i) => bracket.size / Math.pow(2, i)
+    ).filter(r => r > 4);
+
+    for (const round of bracketRounds) {
+      if (!isRoundComplete(bracket.matches, round)) continue;
+      const alreadyExists = updated.some(b => b.sourceRound === round && b.parentBracketId === bracket.id);
+      if (alreadyExists) continue;
+      const losers = getRoundLosers(bracket.matches, round, ranking);
+      if (losers.length === 0) continue;
+      const fp = consolationFirstPlace(bracket.firstPlace, round);
+      updated.push(buildConsolationBracket(losers, fp, round, bracket.id));
+      changed = true;
+    }
+
+    if (isBracketComplete(bracket.matches)) {
+      updated[idx] = { ...bracket, isComplete: true };
+      changed = true;
+    }
+  }
+
+  return { brackets: changed ? updated : brackets, changed };
+};
+
+// Mode « toutes les places » : remplit aléatoirement barrages, tableau principal et
+// TOUS les brackets de consolation (créés au fil de l'eau) jusqu'au classement complet.
+export const autoFillAllPositions = (
+  matches: TableauMatch[],
+  brackets: ConsolationBracket[],
+  effectiveMax: number,
+  tableauSize: number,
+  ranking: PoolRanking[]
+): { updatedMatches: TableauMatch[]; updatedBrackets: ConsolationBracket[]; filledCount: number } => {
+  let updatedMatches = matches.map(m => ({ ...m }));
+  let filledCount = 0;
+
+  // Tableau principal : barrages → placement des gagnants → tours suivants
+  for (;;) {
+    const res = autoFillTableauScores(updatedMatches, effectiveMax, tableauSize);
+    updatedMatches = res.updatedMatches.map(m => ({ ...m }));
+    filledCount += res.filledCount;
+    const placed = placeBarrageWinners(updatedMatches, tableauSize);
+    if (res.filledCount === 0 && !placed) break;
+  }
+
+  // Brackets de consolation : création → remplissage, jusqu'à stabilité
+  let updatedBrackets = brackets;
+  for (;;) {
+    const sync = syncConsolationBrackets(updatedMatches, updatedBrackets, tableauSize, ranking);
+    updatedBrackets = sync.brackets;
+    let filledHere = 0;
+    updatedBrackets = updatedBrackets.map(bracket => {
+      if (bracket.isComplete) return bracket;
+      const res = autoFillTableauScores(bracket.matches.map(m => ({ ...m })), effectiveMax, bracket.size);
+      if (res.filledCount === 0) return bracket;
+      filledHere += res.filledCount;
+      return { ...bracket, matches: res.updatedMatches.map(m => ({ ...m })) };
+    });
+    filledCount += filledHere;
+    if (!sync.changed && filledHere === 0) break;
+  }
+
+  return { updatedMatches, updatedBrackets, filledCount };
 };
 
 // Helper: calculer les touches marquées par un tireur dans tous les matchs de tableau

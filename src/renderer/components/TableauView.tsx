@@ -7,7 +7,7 @@
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect, useMemo } from 'react';
 import { Fencer, FencerStatus, PoolRanking } from '../../shared/types';
 export { TableauMatch, FinalResult, ConsolationBracket, propagateWinners } from './tableau/tableauTypes';
-import { TableauMatch, FinalResult, ConsolationBracket, propagateWinners, deriveFirstRound } from './tableau/tableauTypes';
+import { TableauMatch, FinalResult, ConsolationBracket, propagateWinners, deriveFirstRound, isBracketComplete } from './tableau/tableauTypes';
 import { useToast } from './Toast';
 import { useModalResize } from '../hooks/useModalResize';
 import Bracket from './Bracket';
@@ -28,14 +28,12 @@ import {
   BASE_MATCH_HEIGHT,
   SLOT_HEIGHT,
   getTableauSize,
-  generateFIESeeding,
-  buildConsolationBracket,
-  consolationFirstPlace,
-  isRoundComplete,
-  getRoundLosers,
   getRoundName,
   buildTableauMatches,
   autoFillTableauScores,
+  autoFillAllPositions,
+  placeBarrageWinners,
+  syncConsolationBrackets,
   calculateFinalResults,
   buildCombinedResults,
   calculateMatchVerticalPosition,
@@ -454,117 +452,17 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   // Mode playAllPositions : créer les brackets de consolation quand un round du tableau principal se complète
   useEffect(() => {
     if (!playAllPositions || matches.length === 0) return;
-
-    setConsolationBrackets(prevBrackets => {
-      let updated = [...prevBrackets];
-      let changed = false;
-
-      // Vérifier les barrages : round = mainSize * 2
-      const barrageRound = tableauSize * 2;
-      const barrageMatches = matches.filter(m => m.round === barrageRound);
-      if (barrageMatches.length > 0 && isRoundComplete(matches, barrageRound)) {
-        const alreadyExists = updated.some(b => b.sourceRound === barrageRound && b.parentBracketId === 'main');
-        if (!alreadyExists) {
-          const losers = getRoundLosers(matches, barrageRound, ranking);
-          if (losers.length > 0) {
-            // bracket pour les dernières places
-            const firstPlace = tableauSize + 1;
-            updated.push(buildConsolationBracket(losers, firstPlace, barrageRound, 'main'));
-            changed = true;
-          }
-        }
-      }
-
-      // Vérifier chaque round du tableau principal (≥ 4, donc QF et plus profonds)
-      const mainRounds = [tableauSize, ...Array.from({ length: Math.log2(tableauSize) - 2 }, (_, i) => tableauSize / Math.pow(2, i + 1))].filter(r => r > 4);
-      for (const round of mainRounds) {
-        if (!isRoundComplete(matches, round)) continue;
-        const alreadyExists = updated.some(b => b.sourceRound === round && b.parentBracketId === 'main');
-        if (alreadyExists) continue;
-        const losers = getRoundLosers(matches, round, ranking);
-        if (losers.length === 0) continue;
-        const fp = consolationFirstPlace(1, round);
-        updated.push(buildConsolationBracket(losers, fp, round, 'main'));
-        changed = true;
-      }
-
-      // Vérifier les brackets de consolation existants pour créer des sous-brackets
-      for (const bracket of updated) {
-        if (bracket.isComplete) continue;
-        const bracketRounds = Array.from(
-          { length: Math.log2(bracket.size) - 1 },
-          (_, i) => bracket.size / Math.pow(2, i)
-        ).filter(r => r > 4);
-
-        for (const round of bracketRounds) {
-          if (!isRoundComplete(bracket.matches, round)) continue;
-          const alreadyExists = updated.some(b => b.sourceRound === round && b.parentBracketId === bracket.id);
-          if (alreadyExists) continue;
-          const losers = getRoundLosers(bracket.matches, round, ranking);
-          if (losers.length === 0) continue;
-          const fp = consolationFirstPlace(bracket.firstPlace, round);
-          updated.push(buildConsolationBracket(losers, fp, round, bracket.id));
-          changed = true;
-        }
-
-        // Marquer le bracket comme complet si la finale + petite finale sont terminées
-        const finalMatch = bracket.matches.find(m => m.round === 2);
-        const thirdMatch = bracket.matches.find(m => m.round === 3);
-        const nowComplete = !!finalMatch?.winner && (!thirdMatch || !!thirdMatch.winner);
-        if (nowComplete && !bracket.isComplete) {
-          bracket.isComplete = true;
-          changed = true;
-        }
-      }
-
-      return changed ? updated : prevBrackets;
-    });
+    setConsolationBrackets(prevBrackets =>
+      syncConsolationBrackets(matches, prevBrackets, tableauSize, ranking).brackets
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matches, tableauSize, playAllPositions]);
 
   // Gagnants des barrages → placer dans le tableau principal
   useEffect(() => {
     if (!playAllPositions || tableauSize === 0) return;
-    const barrageRound = tableauSize * 2;
-    const barrageMatches = matches.filter(m => m.round === barrageRound);
-    if (barrageMatches.length === 0) return;
-
-    // directCount fixe = nombre de fencers qui vont directement au tableau (sans barrage)
-    const directCount = tableauSize - barrageMatches.length;
-
-    // Pour chaque barrage terminé, placer le gagnant dans le premier tour du tableau
-    let needsUpdate = false;
     const updatedMatches = matches.map(m => ({ ...m }));
-    const firstRoundMatches = updatedMatches.filter(m => m.round === tableauSize).sort((a, b) => a.position - b.position);
-    const seeding = generateFIESeeding(tableauSize);
-
-    for (let i = 0; i < barrageMatches.length; i++) {
-      const barrage = barrageMatches[i];
-      if (!barrage.winner) continue;
-      // Le gagnant du barrage i occupe le slot pour seed = directCount + i + 1
-      const targetSeed = directCount + i + 1;
-      const targetPos = seeding.indexOf(targetSeed); // index dans le tableau de seeding (0-based)
-      if (targetPos < 0) continue;
-      const matchIdx = Math.floor(targetPos / 2);
-      const isA = targetPos % 2 === 0;
-      const match = firstRoundMatches[matchIdx];
-      if (!match) continue;
-      const matchInUpdated = updatedMatches.find(m => m.id === match.id);
-      if (!matchInUpdated) continue;
-      const alreadyPlaced = isA
-        ? matchInUpdated.fencerA?.id === barrage.winner.id
-        : matchInUpdated.fencerB?.id === barrage.winner.id;
-      if (!alreadyPlaced) {
-        if (isA) matchInUpdated.fencerA = barrage.winner;
-        else matchInUpdated.fencerB = barrage.winner;
-        needsUpdate = true;
-      }
-    }
-
-    if (needsUpdate) {
-      propagateWinners(updatedMatches, tableauSize);
-      onMatchesChange(updatedMatches);
-    }
+    if (placeBarrageWinners(updatedMatches, tableauSize)) onMatchesChange(updatedMatches);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matches.filter(m => m.round === tableauSize * 2).map(m => m.winner?.id).join(','), tableauSize]);
 
@@ -613,6 +511,23 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     if (!confirmed) return;
 
     const effectiveMax = isUnlimitedScore ? 15 : maxScore;
+
+    // Toutes les places : barrages + tableau principal + tous les brackets de consolation.
+    // La complétion est détectée par l'effet playAllPositions (matches + brackets).
+    if (playAllPositions) {
+      const { updatedMatches, updatedBrackets, filledCount } = autoFillAllPositions(
+        matches,
+        consolationBrackets,
+        effectiveMax,
+        tableauSize,
+        ranking
+      );
+      setConsolationBrackets(updatedBrackets);
+      onMatchesChange(updatedMatches);
+      showToast(`Scores générés pour ${filledCount} match(s)`, 'success');
+      return;
+    }
+
     const { updatedMatches, filledCount } = autoFillTableauScores(
       matches,
       effectiveMax,
@@ -643,9 +558,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         return m;
       });
       propagateWinners(updatedMatches, bracket.size);
-      const finalMatch = updatedMatches.find(m => m.round === 2);
-      const thirdMatch = updatedMatches.find(m => m.round === 3);
-      const isComplete = !!finalMatch?.winner && (!thirdMatch || !!thirdMatch.winner);
+      const isComplete = isBracketComplete(updatedMatches);
       return { ...bracket, matches: updatedMatches.map(m => ({ ...m })), isComplete };
     }));
   };
