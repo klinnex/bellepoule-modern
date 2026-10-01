@@ -4,13 +4,15 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
-import { Competition, Fencer, FencerStatus, Match, MatchStatus, Weapon, QuestPhaseConfig, Referee, Gender } from '../../shared/types';
+import { Competition, Fencer, FencerStatus, Match, MatchStatus, Weapon, QuestPhaseConfig, Referee, Gender, Pool } from '../../shared/types';
 import { Arena } from '../../shared/types/remote';
 import { logger, LogCategory } from '@shared/services/logger';
 import { NotificationService } from '../../shared/services/notificationService';
 import { RankingImportResult } from '../../shared/utils/fileParser';
 import FencerList from './FencerList';
 import { TableauMatch, FinalResult, propagateWinners, ConsolationBracket } from './tableau/tableauTypes';
+import { getRoundName } from '../../shared/utils/tableCalculations';
+import type { MatchAuditOption } from './MatchAuditLog';
 import PoolRankingView from './PoolRankingView';
 import ResultsView from './ResultsView';
 import AddFencerModal from './AddFencerModal';
@@ -51,6 +53,29 @@ const RemoteScoreManager = React.lazy(() => import('./RemoteScoreManager'));
 const KioskDisplay = React.lazy(() => import('./KioskDisplay'));
 const FencerComparison = React.lazy(() => import('./FencerComparison').then(m => ({ default: m.FencerComparison })));
 const MatchAuditLog = React.lazy(() => import('./MatchAuditLog').then(m => ({ default: m.MatchAuditLog })));
+
+/** Libellés + arbitres des matchs pour le journal (sélection par match / arbitre) */
+function buildMatchAuditOptions(allPools: Pool[], tableau: TableauMatch[]): MatchAuditOption[] {
+  const name = (f: { lastName: string } | null | undefined) => f?.lastName ?? '?';
+  const refName = (r: { firstName: string; lastName: string }) => `${r.firstName} ${r.lastName}`.trim();
+  const poolOpts = allPools.flatMap(p =>
+    (p.matches ?? []).map(m => ({
+      id: m.id,
+      label: `Poule ${p.number} — M${m.number} : ${name(m.fencerA)} vs ${name(m.fencerB)}`,
+      referees: m.referee ? [refName(m.referee)] : [],
+    }))
+  );
+  const tableauOpts = tableau
+    .filter(m => !m.isBye && (m.fencerA || m.fencerB))
+    .sort((a, b) => b.round - a.round || a.position - b.position)
+    .map(m => ({
+      id: m.id,
+      label: `${getRoundName(m.round)} — ${name(m.fencerA)} vs ${name(m.fencerB)}`,
+      referees: (m.referees?.length ? m.referees : m.referee ? [m.referee] : []).map(refName),
+    }));
+  return [...poolOpts, ...tableauOpts];
+}
+
 const AnalyticsDashboard = React.lazy(() => import('./AnalyticsDashboard').then(m => ({ default: m.AnalyticsDashboard })));
 const SeasonRankingView = React.lazy(() => import('./SeasonRankingView').then(m => ({ default: m.SeasonRankingView })));
 const TeamManagerView = React.lazy(() => import('./TeamManagerView').then(m => ({ default: m.TeamManagerView })));
@@ -1806,6 +1831,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
               <MatchAuditLog
                 competitionId={competition.id}
                 competitionName={competition.title}
+                matchOptions={buildMatchAuditOptions(
+                  [...poolHistory.flat(), ...pools],
+                  [...tableauMatches, ...consolationBrackets.flatMap(b => b.matches)]
+                )}
               />
             </Suspense>
           </>
