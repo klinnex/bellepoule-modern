@@ -16,6 +16,7 @@ interface ConsolationBracketsSectionProps {
   onMatchClick: (match: TableauMatch, bracketId: string) => void;
   onArenaClick: (matchId: string, bracketId: string) => void;
   onRefereeClick: (matchId: string) => void;
+  onSignaturesClick?: (match: TableauMatch) => void;
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
@@ -40,6 +41,7 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
   onMatchClick,
   onArenaClick,
   onRefereeClick,
+  onSignaturesClick,
 }) => {
   return (
     <div style={CONS_STYLES.consolationSection}>
@@ -86,6 +88,7 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
                               onArenaClick(match.id, bracket.id);
                             } : () => {}}
                             onRefereeClick={match.winner === null ? () => { onRefereeClick(match.id); } : undefined}
+                            onSignaturesClick={onSignaturesClick}
                             readOnly={readOnly}
                           />
                         ))}

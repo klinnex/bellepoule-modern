@@ -9,6 +9,7 @@ interface MatchCardProps {
   onMatchClick?: (match: TableauMatch) => void;
   onArenaClick?: (matchId: string) => void;
   onRefereeClick?: (matchId: string) => void;
+  onSignaturesClick?: (match: TableauMatch) => void;
   readOnly?: boolean;
 }
 
@@ -22,6 +23,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
   onMatchClick,
   onArenaClick,
   onRefereeClick,
+  onSignaturesClick,
   readOnly = false,
 }) => {
   const canEdit = !readOnly && !!(match.fencerA && match.fencerB && !match.isBye) && !!onMatchClick;
@@ -48,6 +50,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
   const handleRefereeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onRefereeClick?.(match.id);
+  };
+
+  const handleSignaturesClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSignaturesClick?.(match);
   };
 
   const matchReferees = match.referees?.length ? match.referees : match.referee ? [match.referee] : [];
@@ -112,6 +119,20 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 : '+A'}
             </button>
           )}
+        </div>
+      )}
+
+      {/* Consultation des signatures (match terminé) */}
+      {hasBothFencers && isMatchComplete && onSignaturesClick && (
+        <div className="match-badges">
+          <button
+            className="match-badge-btn"
+            onClick={handleSignaturesClick}
+            title="Consulter les signatures"
+            aria-label="Consulter les signatures"
+          >
+            ✍
+          </button>
         </div>
       )}
 
