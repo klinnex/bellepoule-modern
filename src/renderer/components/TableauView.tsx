@@ -22,6 +22,7 @@ import TableauToolbar from './tableau/TableauToolbar';
 import TableauPdfModal from './tableau/TableauPdfModal';
 import TableauArenaModal from './tableau/TableauArenaModal';
 import TableauRefereeModal from './tableau/TableauRefereeModal';
+import TableauSignaturesModal from './tableau/TableauSignaturesModal';
 import ConsolationBracketsSection from './tableau/ConsolationBracketsSection';
 import {
   BASE_MATCH_HEIGHT,
@@ -123,6 +124,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   const [showArenaModal, setShowArenaModal] = useState(false);
   const [selectedMatchForArena, setSelectedMatchForArena] = useState<string | null>(null);
   const [showRefereeModal, setShowRefereeModal] = useState(false);
+  const [signaturesMatch, setSignaturesMatch] = useState<TableauMatch | null>(null);
   const [selectedMatchForReferee, setSelectedMatchForReferee] = useState<string | null>(null);
   const [competitionReferees, setCompetitionReferees] = useState<Array<{ id: string; firstName: string; lastName: string; club?: string }>>([]);
   const [selectedMatchConsolationBracketId, setSelectedMatchConsolationBracketId] = useState<string | null>(null);
@@ -909,6 +911,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         setSelectedMatchForReferee(id);
         setShowRefereeModal(true);
       }}
+      onSignaturesClick={setSignaturesMatch}
       readOnly={readOnly}
     />
   );
@@ -1214,6 +1217,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                       onMatchClick={openScoreModal}
                       onArenaClick={id => { setSelectedMatchForArena(id); setShowArenaModal(true); }}
                       onRefereeClick={id => { setSelectedMatchForReferee(id); setShowRefereeModal(true); }}
+                      onSignaturesClick={setSignaturesMatch}
                       readOnly={readOnly}
                     />
                   ))}
@@ -1248,6 +1252,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
             setSelectedMatchForReferee(matchId);
             setShowRefereeModal(true);
           }}
+          onSignaturesClick={setSignaturesMatch}
         />
       )}
 
@@ -1365,6 +1370,10 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           />
         );
       })()}
+
+      {signaturesMatch && (
+        <TableauSignaturesModal match={signaturesMatch} onClose={() => setSignaturesMatch(null)} />
+      )}
     </div>
   );
 };
