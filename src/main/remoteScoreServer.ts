@@ -1884,12 +1884,17 @@ export class RemoteScoreServer {
         return res.status(400).json({ error: 'Signature trop volumineuse (max 150 Ko)' });
       }
 
-      const dbMatch = this.db.getMatch(matchId);
-      if (!dbMatch) {
+      // Un match de tableau est envoyé à la tablette avec son id de tableau (ex: "r16-3") ;
+      // en base il est stocké sous "${competitionId}-${matchId}". On accepte les deux, ainsi
+      // que les matchs connus uniquement en mémoire de session.
+      const compositeId = this.session?.competitionId ? `${this.session.competitionId}-${matchId}` : null;
+      const dbMatch: any = this.db.getMatch(matchId) ?? (compositeId ? this.db.getMatch(compositeId) : null);
+      const inMemoryMatch: any = !dbMatch && this.sessionMatches.find((m: any) => m.id === matchId);
+      if (!dbMatch && !inMemoryMatch) {
         return res.status(404).json({ error: 'Match non trouvé' });
       }
       // Réservé aux matchs de tableau (pas de poule)
-      if ((dbMatch as any).poolId) {
+      if ((dbMatch ?? inMemoryMatch)?.poolId) {
         return res.status(400).json({ error: 'Signature de match réservée au tableau' });
       }
 
