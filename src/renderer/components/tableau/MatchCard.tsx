@@ -50,6 +50,8 @@ const MatchCard: React.FC<MatchCardProps> = ({
     onRefereeClick?.(match.id);
   };
 
+  const matchReferees = match.referees?.length ? match.referees : match.referee ? [match.referee] : [];
+
   const fencerName = (f: typeof match.fencerA) =>
     f ? `${f.lastName} ${f.firstName.charAt(0)}.` : '—';
 
@@ -99,12 +101,14 @@ const MatchCard: React.FC<MatchCardProps> = ({
           )}
           {onRefereeClick && (
             <button
-              className={`match-badge-btn ${match.referee ? 'match-badge-btn--active' : ''}`}
+              className={`match-badge-btn ${matchReferees.length > 0 ? 'match-badge-btn--active' : ''}`}
               onClick={handleRefereeClick}
-              title={match.referee ? `Arbitre : ${match.referee.lastName} ${match.referee.firstName}` : 'Assigner un arbitre'}
+              title={matchReferees.length > 0
+                ? `${matchReferees.length > 1 ? 'Arbitres' : 'Arbitre'} : ${matchReferees.map(r => `${r.lastName} ${r.firstName}`).join(', ')}`
+                : 'Assigner un arbitre'}
             >
-              {match.referee
-                ? `${match.referee.lastName.charAt(0)}${match.referee.firstName.charAt(0)}`
+              {matchReferees.length > 0
+                ? matchReferees.map(r => `${r.lastName.charAt(0)}${r.firstName.charAt(0)}`).join('/')
                 : '+A'}
             </button>
           )}
