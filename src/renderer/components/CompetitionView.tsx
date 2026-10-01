@@ -16,7 +16,7 @@ import ResultsView from './ResultsView';
 import AddFencerModal from './AddFencerModal';
 import CompetitionPropertiesModal from './CompetitionPropertiesModal';
 import ImportModal from './ImportModal';
-import PoolPrepView from './PoolPrepView';
+import PoolPrepView, { PoolPrepLaunchAction } from './PoolPrepView';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
 import { useTranslation } from '../hooks/useTranslation';
@@ -1201,6 +1201,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
   };
 
   const poolsNextAction = getPoolsNextAction();
+  const [poolPrepLaunch, setPoolPrepLaunch] = useState<PoolPrepLaunchAction | null>(null);
 
   // Confetti + menu état
   const [showConfetti, setShowConfetti] = useState(false);
@@ -1402,6 +1403,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
         handleGoBack={handleGoBack}
         handleGeneratePools={handleGeneratePools}
         poolsNextAction={poolsNextAction}
+        poolPrepLaunch={currentPhase === 'poolprep' ? poolPrepLaunch : null}
         questEnabled={questEnabled}
         questConfig={questConfig}
         fencers={fencers}
@@ -1474,6 +1476,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
               });
             }}
             onSkipPools={handleSkipToRanking}
+            onLaunchActionChange={setPoolPrepLaunch}
             onSettingsChange={(min, max) => {
               setMinFencersPerPool(min);
               setMaxFencersPerPool(max);
