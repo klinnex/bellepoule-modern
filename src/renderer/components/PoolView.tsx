@@ -21,6 +21,7 @@ import PoolMatchList from './pool/PoolMatchList';
 import Confetti from './Confetti';
 import AddFencerToPoolModal from './AddFencerToPoolModal';
 import { MatchAuditLog } from './MatchAuditLog';
+import { autoAssignReferees } from '../../shared/utils/refereeStats';
 import {
   ICON_BTN,
   ICON_ONLY_BTN,
@@ -94,6 +95,10 @@ interface PoolViewProps {
   onRefereeAssigned?: (poolId: string, referees: Referee[]) => void;
   /** Nombre max d'arbitres assignables simultanément (mode expert) ; 1 = sélection unique */
   maxRefereesPerPool?: number;
+  /** Arbitres de la compétition utilisés par le remplissage automatique (gestion des arbitres active) */
+  autoFillReferees?: Referee[];
+  /** Arbitres assignés par le remplissage automatique (matchId → arbitre) */
+  onAutoFillReferees?: (assignments: Map<string, Referee>) => void;
 }
 
 type ViewMode = 'grid' | 'matches';
@@ -118,6 +123,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   onMatchArenaChange,
   onRefereeAssigned,
   maxRefereesPerPool = 1,
+  autoFillReferees,
+  onAutoFillReferees,
 }) => {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
@@ -962,6 +969,21 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     if (pendingMatches.length === 0) {
       showToast('Tous les matchs sont déjà terminés', 'info');
       return;
+    }
+
+    // Arbitres : ceux de la poule en priorité, sinon ceux de la compétition (statistiques de test)
+    const refereeCandidates = assignedReferees.length > 0 ? assignedReferees : autoFillReferees ?? [];
+    if (onAutoFillReferees && refereeCandidates.length > 0) {
+      const load = new Map<string, number>();
+      for (const m of pool.matches) {
+        if (m.referee) load.set(m.referee.id, (load.get(m.referee.id) ?? 0) + 1);
+      }
+      const assignments = autoAssignReferees(
+        pendingMatches.map(({ match }) => match).filter(m => !m.referee),
+        refereeCandidates,
+        load
+      );
+      if (assignments.size > 0) onAutoFillReferees(assignments);
     }
 
     for (const { index } of pendingMatches) {

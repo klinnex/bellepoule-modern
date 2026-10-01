@@ -1105,6 +1105,31 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
   const questEnabled = isLaserSabre && questConfig?.enabled === true;
   const questNoPool = questEnabled && !questConfig?.hasPreliminaryPools;
 
+  // Arbitres proposés au remplissage automatique (tests) — uniquement si la gestion des arbitres est active
+  const autoFillReferees = competition.settings?.refereeFeatureEnabled ? referees : undefined;
+
+  // Applique des assignations d'arbitres (matchId → arbitre) aux matchs de poule
+  const applyPoolRefereeAssignments = useCallback((assignments: Map<string, Referee>) => {
+    setPools(prev => prev.map(pool => ({
+      ...pool,
+      matches: (pool.matches ?? []).map(m => {
+        const ref = assignments.get(m.id);
+        return ref !== undefined ? { ...m, referee: ref } : m;
+      }),
+    })));
+  }, [setPools]);
+
+  // Remplissage automatique des poules : assignation persistée en DB
+  const handlePoolAutoFillReferees = useCallback((assignments: Map<string, Referee>) => {
+    applyPoolRefereeAssignments(assignments);
+    for (const [matchId, ref] of assignments) {
+      // updateMatch lève une erreur synchrone si l'ID n'est pas un UUID
+      Promise.resolve()
+        .then(() => window.electronAPI.db.updateMatch(matchId, { refereeId: ref.id }))
+        .catch((e: unknown) => logger.warn(LogCategory.DATABASE, 'updateMatch (arbitre auto) failed', e instanceof Error ? e : undefined));
+    }
+  }, [applyPoolRefereeAssignments]);
+
   // Matchs proposés à l'assignation d'arbitres : poules + tableau + consolation
   const refereeAssignableMatches = useMemo<Match[]>(() => {
     const now = new Date();
@@ -1485,6 +1510,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             fencerB ?? undefined
           ).catch(() => {});
         }}
+        autoFillReferees={autoFillReferees}
+        onAutoFillReferees={handlePoolAutoFillReferees}
         onRefereeAssigned={(poolId, referees) => {
           setPools(prev => prev.map(p =>
             p.id === poolId
@@ -1875,6 +1902,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             readOnly={finalResults.length > 0}
             competitionId={competition.id}
             maxRefereesPerMatch={maxRefereesPerMatch}
+            autoFillReferees={autoFillReferees}
             onComplete={results => {
               setFinalResults(results);
               setTableauEditUnlocked(false);
@@ -1959,13 +1987,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             statsTableauMatches={[...tableauMatches, ...consolationBrackets.flatMap(b => b.matches)]}
             onRefereesChange={setReferees}
             onAssignmentsChange={(assignments) => {
-              setPools(prev => prev.map(pool => ({
-                ...pool,
-                matches: (pool.matches ?? []).map(m => {
-                  const ref = assignments.get(m.id);
-                  return ref !== undefined ? { ...m, referee: ref } : m;
-                }),
-              })));
+              applyPoolRefereeAssignments(assignments);
               // Matchs de tableau / consolation : referees[0] = arbitre principal
               const applyToTableau = (list: TableauMatch[]) => list.map(m => {
                 const ref = assignments.get(m.id);
