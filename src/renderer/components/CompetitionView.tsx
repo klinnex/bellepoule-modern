@@ -936,6 +936,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
       showToast("Le classement a changé. Le tableau d'élimination va être régénéré.", 'warning');
     }
 
+    // Tirer toutes les places → 3ème place implicite, pas de question
+    if (playAllPositions) {
+      handleThirdPlaceDecision(true);
+      return;
+    }
     setShowThirdPlaceDialog(true);
   };
 
