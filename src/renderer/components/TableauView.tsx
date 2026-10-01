@@ -1288,9 +1288,10 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           const updatedMatches = matches.map(m =>
             m.id === selectedMatchForReferee ? { ...m, referee: principal, referees: refs } : m
           );
+          // Fermer d'abord : une erreur de persistance ne doit pas bloquer la modal
+          closeModal();
           onMatchesChange(updatedMatches);
           onMatchRefereeChange?.(selectedMatchForReferee!, principal?.id ?? null);
-          closeModal();
         };
 
         return (

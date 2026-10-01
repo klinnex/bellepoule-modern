@@ -1790,7 +1790,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
               }
             }}
             onMatchRefereeChange={(matchId, refereeId) => {
-              window.electronAPI.db.updateMatch(matchId, { refereeId: refereeId ?? undefined });
+              // updateMatch lève une erreur synchrone si l'ID n'est pas un UUID (ex. « 64-0 »)
+              Promise.resolve()
+                .then(() => window.electronAPI.db.updateMatch(matchId, { refereeId: refereeId ?? undefined }))
+                .catch((e: unknown) => logger.warn(LogCategory.DATABASE, 'updateMatch (arbitre tableau) failed', e instanceof Error ? e : undefined));
             }}
           />
           </Suspense>
