@@ -197,3 +197,14 @@ export interface OrgNote {
   countdownPrefix?: string; // mot affiché avant l'heure (ex: "Reprise", "Début")
   createdAt: string; // ISO timestamp
 }
+
+/** Demande de signature d'un match de tableau renvoyée vers une piste */
+export interface MatchSignatureRequest {
+  match: {
+    id: string;
+    fencerA: { id: string; firstName: string; lastName: string };
+    fencerB: { id: string; firstName: string; lastName: string };
+  };
+  scoreA: number;
+  scoreB: number;
+}
