@@ -39,6 +39,7 @@ import {
   buildCombinedResults,
   calculateMatchVerticalPosition,
 } from './tableau/tableauCalculations';
+import { autoAssignReferees } from '../../shared/utils/refereeStats';
 
 interface BracketMatch {
   id: string;
@@ -70,6 +71,8 @@ interface TableauViewProps {
   readOnly?: boolean;
   /** Nombre max d'arbitres par match (mode expert) ; 1 = sélection unique */
   maxRefereesPerMatch?: number;
+  /** Arbitres utilisés par le remplissage automatique (gestion des arbitres active) */
+  autoFillReferees?: Array<{ id: string; firstName: string; lastName: string; club?: string; status?: string }>;
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
@@ -109,6 +112,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   onConsolationBracketsChange,
   readOnly = false,
   maxRefereesPerMatch = 1,
+  autoFillReferees,
 }) => {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
@@ -170,6 +174,20 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
 
   // Remet à zéro le zoom/pan si on change de mode
   useEffect(() => { setZoom(1); setPan({ x: 0, y: 0 }); }, [viewMode, pyramidViewMode]);
+
+  // Charge les arbitres de la compétition (montage + ouverture de la modale)
+  const openRefereeModal = useCallback((matchId: string) => {
+    if (competitionId) {
+      Promise.resolve()
+        .then(() => window.electronAPI.db.getRefereesByCompetition(competitionId))
+        .then(refs => {
+          setCompetitionReferees((refs ?? []).map(r => ({ id: r.id, firstName: r.firstName, lastName: r.lastName, club: r.club })));
+        })
+        .catch(() => {});
+    }
+    setSelectedMatchForReferee(matchId);
+    setShowRefereeModal(true);
+  }, [competitionId]);
 
   // Listener natif non-passif : le onWheel React est passif, preventDefault y est ignoré
   // et la page entière défilait au lieu du tableau.
@@ -525,6 +543,32 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
 
     const effectiveMax = isUnlimitedScore ? 15 : maxScore;
 
+    // Matchs déjà terminés avant le remplissage : leur arbitre n'est pas modifié
+    const alreadyDone = new Set(
+      [...matches, ...consolationBrackets.flatMap(b => b.matches)].filter(m => m.winner).map(m => m.id)
+    );
+    // Charge partagée entre tableau principal et consolantes
+    const refereeLoad = new Map<string, number>();
+    for (const m of [...matches, ...consolationBrackets.flatMap(b => b.matches)]) {
+      if (m.referee) refereeLoad.set(m.referee.id, (refereeLoad.get(m.referee.id) ?? 0) + 1);
+    }
+    // Assigne un arbitre aux matchs remplis sans arbitre (statistiques de test)
+    const withAutoReferees = (list: TableauMatch[]): TableauMatch[] => {
+      if (!autoFillReferees?.length) return list;
+      const targets = list.filter(
+        m => m.winner && !m.isBye && m.fencerA && m.fencerB && !m.referee && !alreadyDone.has(m.id)
+      );
+      const assignments = autoAssignReferees(targets, autoFillReferees, refereeLoad);
+      if (assignments.size === 0) return list;
+      return list.map(m => {
+        const r = assignments.get(m.id);
+        if (!r) return m;
+        const principal = { id: r.id, firstName: r.firstName, lastName: r.lastName };
+        onMatchRefereeChange?.(m.id, r.id);
+        return { ...m, referee: principal, referees: [principal] };
+      });
+    };
+
     // Toutes les places : barrages + tableau principal + tous les brackets de consolation.
     // La complétion est détectée par l'effet playAllPositions (matches + brackets).
     if (playAllPositions) {
@@ -535,17 +579,17 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         tableauSize,
         ranking
       );
-      setConsolationBrackets(updatedBrackets);
-      onMatchesChange(updatedMatches);
+      setConsolationBrackets(
+        updatedBrackets.map(b => ({ ...b, matches: withAutoReferees(b.matches) }))
+      );
+      onMatchesChange(withAutoReferees(updatedMatches));
       showToast(`Scores générés pour ${filledCount} match(s)`, 'success');
       return;
     }
 
-    const { updatedMatches, filledCount } = autoFillTableauScores(
-      matches,
-      effectiveMax,
-      tableauSize
-    );
+    const filled = autoFillTableauScores(matches, effectiveMax, tableauSize);
+    const updatedMatches = withAutoReferees(filled.updatedMatches);
+    const { filledCount } = filled;
 
     // Créer une copie profonde pour forcer React à re-renderer
     const matchesCopy = updatedMatches.map(m => ({ ...m }));
@@ -831,15 +875,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         setSelectedMatchForArena(id);
         setShowArenaModal(true);
       }}
-      onRefereeClick={id => {
-        if (competitionId) {
-          window.electronAPI.db.getRefereesByCompetition(competitionId).then(refs => {
-            setCompetitionReferees(refs.map(r => ({ id: r.id, firstName: r.firstName, lastName: r.lastName, club: r.club })));
-          });
-        }
-        setSelectedMatchForReferee(id);
-        setShowRefereeModal(true);
-      }}
+      onRefereeClick={openRefereeModal}
       onSignaturesClick={setSignaturesMatch}
       readOnly={readOnly}
     />
@@ -1146,7 +1182,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                       baseMatchHeight={BASE_MATCH_HEIGHT}
                       onMatchClick={openScoreModal}
                       onArenaClick={id => { setSelectedMatchForArena(id); setShowArenaModal(true); }}
-                      onRefereeClick={id => { setSelectedMatchForReferee(id); setShowRefereeModal(true); }}
+                      onRefereeClick={openRefereeModal}
                       onSignaturesClick={setSignaturesMatch}
                       readOnly={readOnly}
                     />
@@ -1178,10 +1214,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
             setSelectedMatchConsolationBracketId(bracketId);
             setShowArenaModal(true);
           }}
-          onRefereeClick={matchId => {
-            setSelectedMatchForReferee(matchId);
-            setShowRefereeModal(true);
-          }}
+          onRefereeClick={openRefereeModal}
           onSignaturesClick={setSignaturesMatch}
         />
       )}
@@ -1275,7 +1308,8 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       })()}
 
       {showRefereeModal && selectedMatchForReferee && (() => {
-        const selectedMatch = matches.find(m => m.id === selectedMatchForReferee);
+        const selectedMatch = matches.find(m => m.id === selectedMatchForReferee)
+          ?? consolationBrackets.flatMap(b => b.matches).find(m => m.id === selectedMatchForReferee);
         const currentReferees = selectedMatch?.referees?.length
           ? selectedMatch.referees
           : selectedMatch?.referee ? [selectedMatch.referee] : [];
@@ -1288,12 +1322,16 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         // referees[0] = arbitre principal (persisté en DB via refereeId)
         const assignReferees = (refs: Array<{ id: string; firstName: string; lastName: string }>) => {
           const principal = refs[0] ?? null;
-          const updatedMatches = matches.map(m =>
-            m.id === selectedMatchForReferee ? { ...m, referee: principal, referees: refs } : m
-          );
+          const apply = (m: TableauMatch) =>
+            m.id === selectedMatchForReferee ? { ...m, referee: principal, referees: refs } : m;
+          const inMain = matches.some(m => m.id === selectedMatchForReferee);
           // Fermer d'abord : une erreur de persistance ne doit pas bloquer la modal
           closeModal();
-          onMatchesChange(updatedMatches);
+          if (inMain) {
+            onMatchesChange(matches.map(apply));
+          } else {
+            onConsolationBracketsChange?.(consolationBrackets.map(b => ({ ...b, matches: b.matches.map(apply) })));
+          }
           onMatchRefereeChange?.(selectedMatchForReferee!, principal?.id ?? null);
         };
 

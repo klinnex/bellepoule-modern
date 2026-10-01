@@ -35,6 +35,18 @@ import {
 // Format arène Sabre Laser équipe : état de saisie temps réel pour une
 // rencontre assignée à une arène. Distinct de `Arena`/`ArenaMatch`
 // (scoring individuel) — aucun champ ni logique partagée.
+/** Carton noir distribué depuis une tablette (annulable depuis la sélection des matchs) */
+interface BlackCardRecord {
+  fencerId: string;
+  matchId: string;
+  arenaId: string | null;
+  poolId: string | null;
+  previousStatus: FencerStatus;
+  fencerName: string;
+  opponentName: string;
+  timestamp: number;
+}
+
 interface TeamArenaBout {
   id: string;
   boutOrder: number;
@@ -119,6 +131,7 @@ export class RemoteScoreServer {
   private sessionCardAnnounce: boolean = false; // Annoncer les cartons avec raison sur les affichages
   private sessionRefereeFeatureEnabled: boolean = false; // Fonctionnalité gestion arbitres activée
   private sessionBlackCardEnabled: boolean = false; // Carton noir activé (paramètre compétition)
+  private sessionBlackCards: Map<string, BlackCardRecord> = new Map(); // fencerId → carton noir annulable
   private sessionTheme: DisplayTheme = 'dark'; // Thème visuel de l'affichage distant (global)
   private arenaThemeOverrides: Map<string, { theme: DisplayTheme; customTheme?: CustomTheme }> =
     new Map();
@@ -2047,6 +2060,27 @@ export class RemoteScoreServer {
       }
     });
 
+    // API : cartons noirs annulables pour une arène (écran de sélection des matchs)
+    this.app.get('/api/arenas/:arenaId/black-cards', (req, res) => {
+      if (!this.hasAnyValidToken(req.headers.cookie)) {
+        return res.status(401).json({ error: 'Non authentifié' });
+      }
+      if (!this.session) return res.json({ blackCards: [] });
+      res.json({ blackCards: this.getArenaBlackCards(req.params.arenaId) });
+    });
+
+    // API : annuler un carton noir → le combattant est réintégré, ses scores et
+    // ceux de ses adversaires comptent de nouveau, le match interrompu est rouvert
+    this.app.post('/api/arenas/:arenaId/black-cards/:fencerId/cancel', (req, res) => {
+      if (!this.hasAnyValidToken(req.headers.cookie)) {
+        return res.status(401).json({ error: 'Non authentifié' });
+      }
+      if (!this.session) return res.status(404).json({ error: 'Aucune session active' });
+      const result = this.cancelBlackCard(req.params.arenaId, req.params.fencerId);
+      if (!result.success) return res.status(result.status).json({ error: result.error });
+      res.json({ success: true, matchId: result.matchId });
+    });
+
     // API pour terminer un match avec enregistrement final
     this.app.post('/api/matches/:matchId/finish', async (req, res) => {
       if (!this.hasAnyValidToken(req.headers.cookie)) {
@@ -2117,6 +2151,12 @@ export class RemoteScoreServer {
               : winnerOverride === 'A' || winnerOverride === 'B'
                 ? winnerOverride
                 : null;
+
+        // Arène du match (capturée avant que finishArenaMatch ne charge le match suivant)
+        const blackCardArenaId = blackCarded
+          ? (Array.from(this.arenas.entries()).find(([, a]) => a.currentMatch?.id === matchId)?.[0] ??
+            null)
+          : null;
 
         // Créer les objets Score
         const scoreAObj = {
@@ -2230,9 +2270,23 @@ export class RemoteScoreServer {
               : (matchObj?.fencerB?.id ?? matchObj?.fencerBId);
           if (culpritId) {
             try {
+              const previousStatus = this.db.getFencer(culpritId)?.status;
               this.db.updateFencer(culpritId, {
                 status: FencerStatus.EXCLUDED,
                 exclusionReason: 'black_card',
+              });
+              // Mémoriser le carton noir pour permettre son annulation depuis la tablette
+              const culpritObj = blackCarded === 'A' ? matchObj?.fencerA : matchObj?.fencerB;
+              const opponentObj = blackCarded === 'A' ? matchObj?.fencerB : matchObj?.fencerA;
+              this.sessionBlackCards.set(culpritId, {
+                fencerId: culpritId,
+                matchId,
+                arenaId: blackCardArenaId,
+                poolId: matchObj?.poolId ?? matchObj?.pool?.id ?? null,
+                previousStatus: this.restorableStatus(previousStatus),
+                fencerName: this.formatFencerName(culpritObj),
+                opponentName: this.formatFencerName(opponentObj),
+                timestamp: Date.now(),
               });
               console.log(`[RemoteScoreServer] Carton noir : combattant ${culpritId} exclu`);
               // Notifier le renderer pour mettre à jour le statut dans son store
@@ -3757,6 +3811,177 @@ export class RemoteScoreServer {
       `[RemoteScoreServer] Détails: ${strips} pistes, ${session.referees.length} arbitres`
     );
     return session;
+  }
+
+  private formatFencerName(f: any): string {
+    return f ? `${f.lastName ?? ''} ${f.firstName ?? ''}`.trim() : '';
+  }
+
+  /** Statut à restaurer après annulation d'un carton noir (jamais un statut inactif) */
+  private restorableStatus(status: FencerStatus | undefined): FencerStatus {
+    return status === FencerStatus.QUALIFIED || status === FencerStatus.CHECKED_IN
+      ? status
+      : FencerStatus.CHECKED_IN;
+  }
+
+  private matchPoolId(m: any): string | null {
+    if (!m || m.isTableau) return null;
+    return m.poolId || m.pool?.id || (m.poolNumber ? `pool-${m.poolNumber}` : null);
+  }
+
+  /**
+   * Cartons noirs annulables visibles depuis une arène : ceux donnés sur cette arène
+   * ou dans la poule qu'elle affiche. Les exclusions persistées (redémarrage de session)
+   * sont reconstituées depuis les matchs de poule de la session.
+   */
+  private getArenaBlackCards(arenaId: string): BlackCardRecord[] {
+    // Reconstituer les cartons noirs absents de la mémoire (session relancée)
+    for (const m of this.sessionMatches) {
+      if (m.isTableau) continue;
+      for (const f of [m.fencerA, m.fencerB]) {
+        if (
+          !f?.id ||
+          f.status !== FencerStatus.EXCLUDED ||
+          f.exclusionReason !== 'black_card' ||
+          this.sessionBlackCards.has(f.id)
+        )
+          continue;
+        const last = this.sessionMatches
+          .filter(
+            (x: any) =>
+              !x.isTableau &&
+              (x.fencerA?.id === f.id || x.fencerB?.id === f.id) &&
+              (this.sessionMatchScores.get(x.id)?.status ?? x.status) === MatchStatus.FINISHED
+          )
+          .sort(
+            (a: any, b: any) =>
+              new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime()
+          )[0];
+        if (!last) continue;
+        const opponent = last.fencerA?.id === f.id ? last.fencerB : last.fencerA;
+        this.sessionBlackCards.set(f.id, {
+          fencerId: f.id,
+          matchId: last.id,
+          arenaId: null,
+          poolId: this.matchPoolId(last),
+          previousStatus: FencerStatus.CHECKED_IN,
+          fencerName: this.formatFencerName(f),
+          opponentName: this.formatFencerName(opponent),
+          timestamp: new Date(last.updatedAt ?? Date.now()).getTime(),
+        });
+      }
+    }
+
+    // Écarter les exclusions déjà levées ailleurs (ex. depuis le poste DT)
+    for (const [fencerId] of this.sessionBlackCards) {
+      const f = this.db.getFencer(fencerId);
+      if (f && f.status !== FencerStatus.EXCLUDED) this.sessionBlackCards.delete(fencerId);
+    }
+
+    const arenaPoolId = this.arenas.get(arenaId)?.currentMatch?.poolId ?? null;
+    return Array.from(this.sessionBlackCards.values())
+      .filter(r => r.arenaId === arenaId || (arenaPoolId !== null && r.poolId === arenaPoolId))
+      .sort((a, b) => b.timestamp - a.timestamp);
+  }
+
+  /** Annule un carton noir : réintègre le combattant et rouvre le match interrompu */
+  private cancelBlackCard(
+    arenaId: string,
+    fencerId: string
+  ):
+    | { success: true; matchId: string }
+    | { success: false; status: number; error: string } {
+    const record = this.getArenaBlackCards(arenaId).find(r => r.fencerId === fencerId);
+    if (!record) {
+      return { success: false, status: 404, error: 'Carton noir introuvable pour cette arène' };
+    }
+    const { matchId } = record;
+    const dbMatch = this.db.getMatch(matchId);
+    const sessionMatch = this.sessionMatches.find((m: any) => m.id === matchId);
+    if ((dbMatch && !dbMatch.poolId) || sessionMatch?.isTableau) {
+      return {
+        success: false,
+        status: 409,
+        error: 'Annulation impossible pour un match de tableau (à corriger depuis le poste DT)',
+      };
+    }
+
+    const status = record.previousStatus;
+    try {
+      this.db.updateFencer(fencerId, { status, exclusionReason: null });
+    } catch (e) {
+      console.error('[RemoteScoreServer] Erreur réintégration combattant:', e);
+      return { success: false, status: 500, error: 'Erreur lors de la réintégration' };
+    }
+
+    // Rouvrir le match interrompu par le carton noir avec le score atteint
+    const current = this.sessionMatchScores.get(matchId);
+    const valueOf = (s: any): number =>
+      typeof s === 'object' && s !== null ? Number(s.value ?? 0) : Number(s ?? 0);
+    const scoreA = valueOf(current?.scoreA ?? dbMatch?.scoreA ?? sessionMatch?.scoreA);
+    const scoreB = valueOf(current?.scoreB ?? dbMatch?.scoreB ?? sessionMatch?.scoreB);
+    const reopened = (value: number): Score => ({
+      value,
+      isVictory: false,
+      isAbstention: false,
+      isExclusion: false,
+      isForfait: false,
+    });
+    if (dbMatch) {
+      this.db.updateMatch(matchId, {
+        scoreA: reopened(scoreA),
+        scoreB: reopened(scoreB),
+        status: MatchStatus.IN_PROGRESS,
+      });
+    }
+    this.sessionMatchScores.set(matchId, {
+      scoreA: reopened(scoreA),
+      scoreB: reopened(scoreB),
+      status: MatchStatus.IN_PROGRESS,
+    });
+
+    // Propager le statut dans les copies en mémoire : ses matchs suivants redeviennent jouables
+    const patch = (f: any) =>
+      f?.id === fencerId ? { ...f, status, exclusionReason: null } : f;
+    this.sessionMatches = this.sessionMatches.map((m: any) =>
+      m.fencerA?.id === fencerId || m.fencerB?.id === fencerId
+        ? { ...m, fencerA: patch(m.fencerA), fencerB: patch(m.fencerB) }
+        : m
+    );
+    for (const [qArenaId, queue] of this.arenaMatchQueue) {
+      this.arenaMatchQueue.set(
+        qArenaId,
+        queue.map(m => ({ ...m, fencerA: patch(m.fencerA), fencerB: patch(m.fencerB) }))
+      );
+    }
+    for (const [poolId, fencers] of this.poolFencersCache) {
+      this.poolFencersCache.set(poolId, fencers.map(patch));
+    }
+    for (const arena of this.arenas.values()) {
+      if (!arena.currentMatch) continue;
+      arena.currentMatch = {
+        ...arena.currentMatch,
+        fencerA: patch(arena.currentMatch.fencerA),
+        fencerB: patch(arena.currentMatch.fencerB),
+      };
+    }
+
+    this.sessionBlackCards.delete(fencerId);
+    console.log(
+      `[RemoteScoreServer] Carton noir annulé : combattant ${fencerId} réintégré, match ${matchId} rouvert`
+    );
+
+    const mainWin = (global as any).mainWindow;
+    if (mainWin) {
+      mainWin.webContents.send('remote:fencer_reinstated', {
+        fencerId,
+        matchId,
+        status,
+        scoreA,
+        scoreB,
+      });
+    }
+    return { success: true, matchId };
   }
 
   private isMatchPlayable(m: Match | ArenaMatch): boolean {
@@ -5653,6 +5878,7 @@ export class RemoteScoreServer {
     this.sessionCardAnnounce = false;
     this.sessionRefereeFeatureEnabled = false;
     this.sessionBlackCardEnabled = false;
+    this.sessionBlackCards.clear();
     this.sessionKioskViews = {
       poules: false,
       classement: true,

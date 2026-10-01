@@ -256,6 +256,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     areAllPoolsComplete,
     handleFencerForfeit,
     handleUndoAbandon,
+    handleBlackCardCancelled,
     syncFencersToPool,
   } = usePoolManagement({ isLaserSabre, poolMaxScore, showToast, competitionId: competition?.id });
 
@@ -636,11 +637,22 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
       updateFencer(fencerId, { status: FencerStatus.EXCLUDED, exclusionReason: reason ?? 'black_card' });
     });
 
+    // Carton noir annulé depuis la tablette : réintégrer le combattant et rouvrir le match
+    const offReinstated = window.electronAPI.onRemoteFencerReinstated?.(
+      ({ fencerId, matchId, status, scoreA, scoreB }) => {
+        logger.debug(LogCategory.UI, `[CompetitionView] Carton noir annulé: ${fencerId}`);
+        const restored = status as FencerStatus;
+        handleBlackCardCancelled(fencerId, matchId, restored, scoreA, scoreB);
+        updateFencer(fencerId, { status: restored, exclusionReason: null });
+      }
+    );
+
     return () => {
       offMatchFinished?.();
       offExcluded?.();
+      offReinstated?.();
     };
-  }, [applyRemoteScore, updateFencer, fireWebhookNotif, competition.title]);
+  }, [applyRemoteScore, updateFencer, handleBlackCardCancelled, fireWebhookNotif, competition.title]);
 
   // Sync scores/statuts des matches de poule vers la DB quand ils changent
   const prevPoolsRef = useRef(pools);
@@ -1105,6 +1117,31 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
   const questEnabled = isLaserSabre && questConfig?.enabled === true;
   const questNoPool = questEnabled && !questConfig?.hasPreliminaryPools;
 
+  // Arbitres proposés au remplissage automatique (tests) — uniquement si la gestion des arbitres est active
+  const autoFillReferees = competition.settings?.refereeFeatureEnabled ? referees : undefined;
+
+  // Applique des assignations d'arbitres (matchId → arbitre) aux matchs de poule
+  const applyPoolRefereeAssignments = useCallback((assignments: Map<string, Referee>) => {
+    setPools(prev => prev.map(pool => ({
+      ...pool,
+      matches: (pool.matches ?? []).map(m => {
+        const ref = assignments.get(m.id);
+        return ref !== undefined ? { ...m, referee: ref } : m;
+      }),
+    })));
+  }, [setPools]);
+
+  // Remplissage automatique des poules : assignation persistée en DB
+  const handlePoolAutoFillReferees = useCallback((assignments: Map<string, Referee>) => {
+    applyPoolRefereeAssignments(assignments);
+    for (const [matchId, ref] of assignments) {
+      // updateMatch lève une erreur synchrone si l'ID n'est pas un UUID
+      Promise.resolve()
+        .then(() => window.electronAPI.db.updateMatch(matchId, { refereeId: ref.id }))
+        .catch((e: unknown) => logger.warn(LogCategory.DATABASE, 'updateMatch (arbitre auto) failed', e instanceof Error ? e : undefined));
+    }
+  }, [applyPoolRefereeAssignments]);
+
   // Matchs proposés à l'assignation d'arbitres : poules + tableau + consolation
   const refereeAssignableMatches = useMemo<Match[]>(() => {
     const now = new Date();
@@ -1485,6 +1522,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             fencerB ?? undefined
           ).catch(() => {});
         }}
+        autoFillReferees={autoFillReferees}
+        onAutoFillReferees={handlePoolAutoFillReferees}
         onRefereeAssigned={(poolId, referees) => {
           setPools(prev => prev.map(p =>
             p.id === poolId
@@ -1875,6 +1914,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             readOnly={finalResults.length > 0}
             competitionId={competition.id}
             maxRefereesPerMatch={maxRefereesPerMatch}
+            autoFillReferees={autoFillReferees}
             onComplete={results => {
               setFinalResults(results);
               setTableauEditUnlocked(false);
@@ -1959,13 +1999,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             statsTableauMatches={[...tableauMatches, ...consolationBrackets.flatMap(b => b.matches)]}
             onRefereesChange={setReferees}
             onAssignmentsChange={(assignments) => {
-              setPools(prev => prev.map(pool => ({
-                ...pool,
-                matches: (pool.matches ?? []).map(m => {
-                  const ref = assignments.get(m.id);
-                  return ref !== undefined ? { ...m, referee: ref } : m;
-                }),
-              })));
+              applyPoolRefereeAssignments(assignments);
               // Matchs de tableau / consolation : referees[0] = arbitre principal
               const applyToTableau = (list: TableauMatch[]) => list.map(m => {
                 const ref = assignments.get(m.id);

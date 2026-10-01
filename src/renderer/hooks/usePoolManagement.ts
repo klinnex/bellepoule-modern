@@ -648,6 +648,70 @@ export const usePoolManagement = ({
   );
 
   // Synchroniser les données des tireurs (ex: photo) dans les matches de poule
+  // Annulation d'un carton noir distant : réintègre le combattant, rouvre le match
+  // interrompu (score conservé) et libère ses matchs marqués « exclusion »
+  const handleBlackCardCancelled = useCallback(
+    (fencerId: string, matchId: string, restoredStatus: FencerStatus, scoreA: number, scoreB: number) => {
+      const reopened = (value: number): Score => ({
+        value,
+        isVictory: false,
+        isAbstention: false,
+        isExclusion: false,
+        isForfait: false,
+      });
+      setPools(prevPools => {
+        let changed = false;
+        const updatedPools = prevPools.map(pool => {
+          const hasFencer =
+            pool.fencers.some(f => f.id === fencerId) ||
+            pool.matches.some(m => m.fencerA?.id === fencerId || m.fencerB?.id === fencerId);
+          if (!hasFencer) return pool;
+          changed = true;
+
+          const restore = <T extends Fencer | null | undefined>(f: T): T =>
+            f && f.id === fencerId ? ({ ...f, status: restoredStatus, exclusionReason: null } as T) : f;
+
+          const newMatches = pool.matches.map(match => {
+            const isFencerA = match.fencerA?.id === fencerId;
+            const isFencerB = match.fencerB?.id === fencerId;
+            if (!isFencerA && !isFencerB) return match;
+            const base = { ...match, fencerA: restore(match.fencerA), fencerB: restore(match.fencerB) };
+
+            if (match.id === matchId) {
+              return {
+                ...base,
+                scoreA: reopened(scoreA),
+                scoreB: reopened(scoreB),
+                status: MatchStatus.IN_PROGRESS,
+                updatedAt: new Date(),
+              };
+            }
+            // Matchs suivants marqués non disputés suite à l'exclusion → à nouveau jouables
+            const myScore = isFencerA ? match.scoreA : match.scoreB;
+            const oppScore = isFencerA ? match.scoreB : match.scoreA;
+            if (myScore?.isExclusion && !oppScore?.isAbstention && !oppScore?.isForfait && !oppScore?.isExclusion) {
+              return { ...base, scoreA: null, scoreB: null, status: MatchStatus.NOT_STARTED, updatedAt: new Date() };
+            }
+            return base;
+          });
+
+          const newPool = {
+            ...pool,
+            fencers: pool.fencers.map(restore),
+            matches: newMatches,
+            updatedAt: new Date(),
+          };
+          newPool.ranking = computePoolRanking(newPool);
+          return newPool;
+        });
+        if (!changed) return prevPools;
+        setOverallRanking(computeOverallRankingAllRounds(updatedPools));
+        return updatedPools;
+      });
+    },
+    [computePoolRanking, computeOverallRankingAllRounds]
+  );
+
   const syncFencersToPool = useCallback((updatedFencers: Fencer[]) => {
     if (updatedFencers.length === 0) return;
     const fencerMap = new Map(updatedFencers.map(f => [f.id, f]));
@@ -694,6 +758,7 @@ export const usePoolManagement = ({
     currentOverallRanking,
     handleFencerForfeit,
     handleUndoAbandon,
+    handleBlackCardCancelled,
     syncFencersToPool,
   };
 };

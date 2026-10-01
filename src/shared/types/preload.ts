@@ -953,6 +953,10 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
     callback: (data: { kind: 'fencer' | 'referee'; id: string; present: boolean }) => void
   ) => () => void;
   onRemoteFencerExcluded: (callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void) => (() => void);
+  /** Carton noir annulé depuis une tablette : combattant réintégré, match rouvert */
+  onRemoteFencerReinstated?: (
+    callback: (data: { fencerId: string; matchId: string; status: string; scoreA: number; scoreB: number }) => void
+  ) => (() => void);
   onKioskNoteUpdate: (
     callback: (note: import('../types/remote').OrgNote | null) => void
   ) => () => void;
