@@ -1105,6 +1105,32 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
   const questEnabled = isLaserSabre && questConfig?.enabled === true;
   const questNoPool = questEnabled && !questConfig?.hasPreliminaryPools;
 
+  // Matchs proposés à l'assignation d'arbitres : poules + tableau + consolation
+  const refereeAssignableMatches = useMemo<Match[]>(() => {
+    const now = new Date();
+    const toMatch = (m: TableauMatch, tableId: string): Match => ({
+      id: m.id,
+      number: m.position,
+      fencerA: m.fencerA,
+      fencerB: m.fencerB,
+      scoreA: null,
+      scoreB: null,
+      maxScore: tableMaxScore === 0 ? 999 : tableMaxScore,
+      status: m.winner || m.isBye ? MatchStatus.FINISHED : MatchStatus.NOT_STARTED,
+      referee: m.referee ? referees.find(r => r.id === m.referee!.id) : undefined,
+      tableId,
+      round: m.round,
+      position: m.position,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return [
+      ...pools.flatMap(p => p.matches ?? []),
+      ...tableauMatches.map(m => toMatch(m, competition.id)),
+      ...consolationBrackets.flatMap(b => b.matches.map(m => toMatch(m, b.id))),
+    ];
+  }, [pools, tableauMatches, consolationBrackets, referees, tableMaxScore, competition.id]);
+
   const phaseOrder = useMemo<Phase[]>(() => {
     if (!questEnabled) return ['checkin', 'poolprep', 'pools', 'ranking', 'tableau', 'results'];
     if (questConfig?.hasPreliminaryPools)
@@ -1928,7 +1954,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             competition={competition}
             referees={referees}
             pools={pools}
-            matches={pools.flatMap(p => p.matches ?? [])}
+            matches={refereeAssignableMatches}
             statsPoolMatches={[...poolHistory.flat(), ...pools].flatMap(p => p.matches ?? [])}
             statsTableauMatches={[...tableauMatches, ...consolationBrackets.flatMap(b => b.matches)]}
             onRefereesChange={setReferees}
@@ -1940,6 +1966,20 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
                   return ref !== undefined ? { ...m, referee: ref } : m;
                 }),
               })));
+              // Matchs de tableau / consolation : referees[0] = arbitre principal
+              const applyToTableau = (list: TableauMatch[]) => list.map(m => {
+                const ref = assignments.get(m.id);
+                if (!ref) return m;
+                const principal = { id: ref.id, firstName: ref.firstName, lastName: ref.lastName };
+                const others = (m.referees ?? []).slice(1).filter(r => r.id !== ref.id);
+                return { ...m, referee: principal, referees: [principal, ...others] };
+              });
+              if (tableauMatches.some(m => assignments.has(m.id))) {
+                setTableauMatches(prev => applyToTableau(prev));
+              }
+              if (consolationBrackets.some(b => b.matches.some(m => assignments.has(m.id)))) {
+                setConsolationBrackets(prev => prev.map(b => ({ ...b, matches: applyToTableau(b.matches) })));
+              }
             }}
           />
         )}
