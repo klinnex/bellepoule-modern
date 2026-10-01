@@ -13,6 +13,7 @@ import { RemoteScoreServer } from './remoteScoreServer';
 import { ensureCert } from './certManager';
 import { AutoUpdater } from './autoUpdater';
 import { Competition, Fencer, FencerStatus, Match, MatchStatus, Pool } from '../shared/types';
+import type { MatchSignatureRequest } from '../shared/types/remote';
 import { decodeTextFile } from '../shared/utils/fileParser/detect';
 
 // Database instance
@@ -2108,6 +2109,23 @@ ipcMain.handle('remote:acknowledgeDTCall', async (_, competitionId: string, aren
     return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
   }
 });
+
+ipcMain.handle(
+  'remote:requestMatchSignature',
+  async (_, competitionId: string, arenaId: string, request: MatchSignatureRequest) => {
+    try {
+      const entry = remoteServers.get(competitionId);
+      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      if (!entry.server.requestMatchSignature(arenaId, request)) {
+        return { success: false, error: 'Piste introuvable' };
+      }
+      return { success: true };
+    } catch (error) {
+      console.error('Error requesting match signature:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+    }
+  }
+);
 
 ipcMain.handle('remote:setWebhookUrl', async (_, url: string | null) => {
   try {

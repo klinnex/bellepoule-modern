@@ -23,6 +23,7 @@ import {
   DisplayTheme,
   CustomTheme,
   ThemeTargetType,
+  MatchSignatureRequest,
 } from '../shared/types/remote';
 import { Competition, Match, Fencer, MatchStatus, FencerStatus, Score } from '../shared/types';
 import { DatabaseManager } from '../database';
@@ -6037,6 +6038,13 @@ export class RemoteScoreServer {
 
   public acknowledgeDTCall(arenaId: string): void {
     this.io.to(`arena:${arenaId}`).emit(`arena:${arenaId}:dt_call_ack`);
+  }
+
+  /** Renvoie la demande de signature d'un match de tableau vers la tablette d'une piste */
+  public requestMatchSignature(arenaId: string, request: MatchSignatureRequest): boolean {
+    if (!this.getArena(arenaId)) return false;
+    this.io.to(`arena:${arenaId}`).emit(`arena:${arenaId}:sign_request`, request);
+    return true;
   }
 
   public setWebhookUrl(url: string | null): void {

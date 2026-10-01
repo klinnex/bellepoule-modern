@@ -2212,6 +2212,12 @@
             this.handleArenaUpdate(data);
           });
 
+          // Signature renvoyée depuis le poste DT (match de tableau non signé)
+          this.socket.on(`arena:${this.arenaId}:sign_request`, req => {
+            if (!req?.match?.id || !req.match.fencerA?.id || !req.match.fencerB?.id) return;
+            this.openMatchSignature(req.match, req.scoreA ?? 0, req.scoreB ?? 0);
+          });
+
           this.socket.on(`arena:${this.arenaId}:score_limit_reached`, () => {
             this.showFinishModal();
           });

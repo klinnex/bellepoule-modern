@@ -583,6 +583,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('remote:changePort', competitionId, newPort),
     acknowledgeDTCall: (competitionId: string, arenaId: string) =>
       ipcRenderer.invoke('remote:acknowledgeDTCall', competitionId, arenaId),
+    requestMatchSignature: (competitionId: string, arenaId: string, request: unknown) =>
+      ipcRenderer.invoke('remote:requestMatchSignature', competitionId, arenaId, request),
     resetPoolMatch: (competitionId: string, matchId: string) =>
       ipcRenderer.invoke('remote:resetPoolMatch', competitionId, matchId),
     finishPoolMatch: (competitionId: string, matchId: string, scoreA: number, scoreB: number) =>
@@ -687,6 +689,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const handler = (_: any, data: any) => callback(data);
     ipcRenderer.on('pool:signature:updated', handler);
     return () => ipcRenderer.removeListener('pool:signature:updated', handler);
+  },
+
+  onTableauSignatureUpdated: (callback: (data: { matchId: string; fencerId: string }) => void) => {
+    const handler = (_: any, data: any) => callback(data);
+    ipcRenderer.on('tableau:signature:updated', handler);
+    return () => ipcRenderer.removeListener('tableau:signature:updated', handler);
   },
 
   getLogo: () => ipcRenderer.invoke('app:getLogo'),

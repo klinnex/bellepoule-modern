@@ -18,6 +18,7 @@ import {
   DirectEliminationTable,
   FencerCompetitionStats,
 } from '../types';
+import type { MatchSignatureRequest } from './remote';
 
 // Re-export Pool for preload
 export type { Pool, PoolSnapshot } from '../types';
@@ -476,6 +477,11 @@ export interface RemoteServerAPI {
   acknowledgeDTCall: (
     competitionId: string,
     arenaId: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  requestMatchSignature: (
+    competitionId: string,
+    arenaId: string,
+    request: MatchSignatureRequest
   ) => Promise<{ success: boolean; error?: string }>;
   resetPoolMatch: (
     competitionId: string,
@@ -956,6 +962,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   onDTCallCancel: (callback: (data: { arenaId: string }) => void) => () => void;
   onScoreIpConflict: (callback: (data: ScoreIpConflict) => void) => () => void;
   onPoolSignatureUpdated: (callback: (data: { poolId: string; signedFencerIds: string[]; totalFencers: number }) => void) => () => void;
+  onTableauSignatureUpdated: (callback: (data: { matchId: string; fencerId: string }) => void) => () => void;
   notifyLanguageChanged: (lang: string) => void;
   initialLanguage: string | null;
   getLogo: () => Promise<string | null>;

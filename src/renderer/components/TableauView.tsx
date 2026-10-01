@@ -1306,7 +1306,11 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       })()}
 
       {signaturesMatch && (
-        <TableauSignaturesModal match={signaturesMatch} onClose={() => setSignaturesMatch(null)} />
+        <TableauSignaturesModal
+          match={signaturesMatch}
+          competitionId={competitionId}
+          onClose={() => setSignaturesMatch(null)}
+        />
       )}
     </div>
   );
