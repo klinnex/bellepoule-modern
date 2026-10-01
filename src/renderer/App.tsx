@@ -285,6 +285,17 @@ const AppContent: React.FC = () => {
     }
   }, [openCompetitions, showToast]);
 
+  // Ouvrir une compétition par id (ex : compétition séparée créée après poules)
+  const handleOpenCompetitionById = useCallback(async (competitionId: string) => {
+    const comp = await window.electronAPI?.db.getCompetition(competitionId);
+    if (!comp) {
+      showToast('Erreur: Compétition non trouvée', 'error');
+      return;
+    }
+    setCompetitions(prev => (prev.some(c => c.id === comp.id) ? prev : [comp, ...prev]));
+    await handleSelectCompetition(comp);
+  }, [handleSelectCompetition, showToast]);
+
   const handleTabClose = useCallback(async (competitionId: string, e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
@@ -720,6 +731,7 @@ const AppContent: React.FC = () => {
                   requestPhase={requestedPhase ?? undefined}
                   onPhaseApplied={() => setRequestedPhase(null)}
                   onRemoteServerChange={(url, count) => { setRemoteServerUrl(url); setRemoteArenaCount(count); }}
+                  onOpenCompetition={handleOpenCompetitionById}
                 />
               </Suspense>
             </CompetitionErrorBoundary>
