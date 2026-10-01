@@ -21,6 +21,7 @@ import {
 } from '../../shared/utils/poolCalculations';
 import { useToast } from './Toast';
 import { useColumnVisibility, RANKING_COLUMNS, ColumnId } from '../hooks/useColumnVisibility';
+import { CollapseToggle, CollapsedRow, useCollapsed, COMPACT_ROW_COUNT } from './common/CollapseToggle';
 
 interface PoolRankingViewProps {
   pools: Pool[];
@@ -316,6 +317,14 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
       ? (splitRankings?.get(splitTab) ?? [])
       : editedRanking;
 
+  // Mode compact : seules les premières lignes sont affichées (désactivé en édition)
+  const [collapsed, toggleCollapsed] = useCollapsed(isInitialRanking ? 'initial-ranking' : 'pool-ranking');
+  const isCompact = collapsed && !isEditing;
+  const hiddenCount = isCompact ? Math.max(0, activeRanking.length - COMPACT_ROW_COUNT) : 0;
+  const visibleColCount =
+    (['rank', 'lastName', 'firstName', 'club', 'victories', 'matches', 'ratio', 'td', 'tr', 'quest', 'index'] as ColumnId[])
+      .filter(isVisible).length + (poolWinnersOnly ? 1 : 0);
+
   const getRankBadgeClass = (rank: number) => {
     if (rank === 1) return 'ranking-rank-badge ranking-rank-badge--gold';
     if (rank === 2) return 'ranking-rank-badge ranking-rank-badge--silver';
@@ -334,8 +343,15 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
         }}
       >
         <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {isInitialRanking ? 'Classement initial' : 'Classement après poules'}
+            {!isEditing && (
+              <CollapseToggle
+                collapsed={collapsed}
+                onToggle={toggleCollapsed}
+                hiddenCount={Math.max(0, activeRanking.length - COMPACT_ROW_COUNT)}
+              />
+            )}
           </h2>
           <p className="text-sm text-muted">
             {isInitialRanking
@@ -446,7 +462,11 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               return (
               <tr
                 key={ranking.fencer.id}
-                className={isTied ? 'ranking-row--tie' : undefined}
+                className={
+                  [isTied && 'ranking-row--tie', isCompact && index >= COMPACT_ROW_COUNT && 'collapse-row--hidden']
+                    .filter(Boolean)
+                    .join(' ') || undefined
+                }
                 style={dimmed ? { opacity: 0.45 } : undefined}
               >
                 {isVisible('rank') && (
@@ -570,6 +590,9 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               </tr>
               );
             })}
+            {hiddenCount > 0 && (
+              <CollapsedRow colSpan={visibleColCount} hiddenCount={hiddenCount} onExpand={toggleCollapsed} />
+            )}
           </tbody>
         </table>
       </div>

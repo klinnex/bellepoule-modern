@@ -4,10 +4,11 @@
  * Licensed under GPL-3.0
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { TableauMatch, ConsolationBracket } from './tableauTypes';
 import { BASE_MATCH_HEIGHT } from './tableauCalculations';
 import MatchCard from './MatchCard';
+import { CollapseToggle } from '../common/CollapseToggle';
 
 interface ConsolationBracketsSectionProps {
   consolationBrackets: ConsolationBracket[];
@@ -24,6 +25,7 @@ interface ConsolationBracketsSectionProps {
 const CONS_STYLES = {
   consolationSection: { marginTop: '1.5rem' } satisfies React.CSSProperties,
   consolationCard: { background: '#f9fafb', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e7eb' } satisfies React.CSSProperties,
+  consolationToolbar: { display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '0.5rem' } satisfies React.CSSProperties,
   consolationHeader: { display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' } satisfies React.CSSProperties,
   consolationTitle: { margin: 0, fontSize: '1rem', fontWeight: 600, color: '#374151' } satisfies React.CSSProperties,
   consolationDoneBadge: { background: '#d1fae5', color: '#065f46', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 500 } satisfies React.CSSProperties,
@@ -43,9 +45,28 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
   onRefereeClick,
   onSignaturesClick,
 }) => {
+  // Fenêtres « Places X–Y » repliées (ids des brackets)
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set());
+  const allCollapsed = consolationBrackets.length > 0 && consolationBrackets.every(b => collapsedIds.has(b.id));
+  const toggleBracket = (id: string) =>
+    setCollapsedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  const toggleAll = () =>
+    setCollapsedIds(allCollapsed ? new Set() : new Set(consolationBrackets.map(b => b.id)));
+
   return (
     <div style={CONS_STYLES.consolationSection}>
-      {consolationBrackets
+      {consolationBrackets.length > 1 && (
+        <div style={CONS_STYLES.consolationToolbar}>
+          <button type="button" className="btn btn-secondary" style={{ fontSize: '0.75rem' }} onClick={toggleAll}>
+            {allCollapsed ? 'Tout déplier' : 'Tout compacter'}
+          </button>
+        </div>
+      )}
+      {[...consolationBrackets]
         .sort((a, b) => a.firstPlace - b.firstPlace)
         .map(bracket => {
           const finalM = bracket.matches.find(m => m.round === 2);
@@ -56,9 +77,11 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
             const fi = bracketRounds.indexOf(2);
             if (fi !== -1) bracketRounds.splice(fi, 0, 3);
           }
+          const isCollapsed = collapsedIds.has(bracket.id);
           return (
             <div key={bracket.id} style={CONS_STYLES.consolationCard}>
-              <div style={CONS_STYLES.consolationHeader}>
+              <div style={{ ...CONS_STYLES.consolationHeader, ...(isCollapsed ? { marginBottom: 0 } : null) }}>
+                <CollapseToggle collapsed={isCollapsed} onToggle={() => toggleBracket(bracket.id)} />
                 <h3 style={CONS_STYLES.consolationTitle}>🥋 {bracket.name}</h3>
                 {bracket.isComplete && (
                   <span style={CONS_STYLES.consolationDoneBadge}>Terminé</span>
@@ -69,6 +92,7 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
                   </span>
                 )}
               </div>
+              {!isCollapsed && (
               <div style={CONS_STYLES.consolationRoundsRow}>
                 {bracketRounds.map(round => {
                   const roundMatches = bracket.matches.filter(m => m.round === round).sort((a, b) => a.position - b.position);
@@ -97,6 +121,7 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
                   );
                 })}
               </div>
+              )}
             </div>
           );
         })}
