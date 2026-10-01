@@ -126,6 +126,7 @@ const TeamPoolView: React.FC<Props> = ({
               {isLaserArena && onAssignArena && (
                 <button
                   onClick={() => {
+                    // eslint-disable-next-line no-alert -- TODO: remplacer par une modale (prompt non supporté par Electron)
                     const arenaId = window.prompt(
                       "Numéro d'arène pour la saisie tablette (ex : 1)"
                     );

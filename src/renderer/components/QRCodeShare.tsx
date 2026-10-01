@@ -6,6 +6,7 @@
 import React, { useState, useEffect , memo} from 'react';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useToast } from './Toast';
 import { logger, LogCategory } from '@shared/services/logger';
 import { Competition } from '../../shared/types';
 
@@ -19,6 +20,7 @@ interface QRCodeShareProps {
 
 const QRCodeShare_: React.FC<QRCodeShareProps> = ({ competition, onClose, mode: initialMode = 'results' }) => {
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
+  const { showToast } = useToast();
   const [activeMode, setActiveMode] = useState<QRMode>(initialMode);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(true);
@@ -75,7 +77,7 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({ competition, onClose, mode: 
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareUrl).then(() => {
-      alert('URL copiée dans le presse-papier !');
+      showToast('URL copiée dans le presse-papier !', 'success');
     });
   };
 

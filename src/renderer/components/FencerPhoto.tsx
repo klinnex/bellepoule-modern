@@ -7,6 +7,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { logger, LogCategory } from '@shared/services/logger';
 import PhotoBooth from './PhotoBooth';
+import { useToast } from './Toast';
 
 interface FencerPhotoProps {
   photo?: string;
@@ -29,6 +30,7 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showWebcam, setShowWebcam] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { showToast } = useToast();
 
   const sizeClasses = {
     small: 'w-10 h-10 text-xs',
@@ -93,13 +95,13 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
 
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        alert('Veuillez sélectionner une image valide');
+        showToast('Veuillez sélectionner une image valide', 'error');
         return;
       }
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert("L'image ne doit pas dépasser 5 Mo");
+        showToast("L'image ne doit pas dépasser 5 Mo", 'error');
         return;
       }
 
@@ -109,12 +111,12 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
         onPhotoChange?.(base64);
       } catch (error) {
         logger.error(LogCategory.UI, 'Error processing image', error as Error);
-        alert("Erreur lors du traitement de l'image");
+        showToast("Erreur lors du traitement de l'image", 'error');
       } finally {
         setIsLoading(false);
       }
     },
-    [onPhotoChange]
+    [onPhotoChange, showToast]
   );
 
   const handleDrop = useCallback(
@@ -126,12 +128,12 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
       if (!file) return;
 
       if (!file.type.startsWith('image/')) {
-        alert('Veuillez déposer une image valide');
+        showToast('Veuillez déposer une image valide', 'error');
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        alert("L'image ne doit pas dépasser 5 Mo");
+        showToast("L'image ne doit pas dépasser 5 Mo", 'error');
         return;
       }
 
@@ -141,12 +143,12 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
         onPhotoChange?.(base64);
       } catch (error) {
         logger.error(LogCategory.UI, 'Error processing image', error as Error);
-        alert("Erreur lors du traitement de l'image");
+        showToast("Erreur lors du traitement de l'image", 'error');
       } finally {
         setIsLoading(false);
       }
     },
-    [onPhotoChange]
+    [onPhotoChange, showToast]
   );
 
   const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {

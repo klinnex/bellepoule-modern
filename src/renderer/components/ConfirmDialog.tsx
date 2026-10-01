@@ -126,6 +126,7 @@ export const useConfirm = (): ConfirmContextType => {
       confirm: async (messageOrOptions: string | ConfirmOptions) => {
         const msg =
           typeof messageOrOptions === 'string' ? messageOrOptions : messageOrOptions.message;
+        // eslint-disable-next-line no-alert
         return window.confirm(msg);
       },
     };
