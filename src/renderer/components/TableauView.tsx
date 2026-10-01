@@ -171,10 +171,20 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   // Remet à zéro le zoom/pan si on change de mode
   useEffect(() => { setZoom(1); setPan({ x: 0, y: 0 }); }, [viewMode, pyramidViewMode]);
 
-  const handleBracketWheel = useCallback((e: React.WheelEvent) => {
-    if (viewMode !== 'full' || pyramidViewMode) return;
-    e.preventDefault();
-    setPan(p => ({ ...p, y: p.y - e.deltaY }));
+  // Listener natif non-passif : le onWheel React est passif, preventDefault y est ignoré
+  // et la page entière défilait au lieu du tableau.
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = scrollAreaRef.current;
+    if (!el || viewMode !== 'full' || pyramidViewMode) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const dx = e.shiftKey && e.deltaX === 0 ? e.deltaY : e.deltaX;
+      const dy = e.shiftKey && e.deltaX === 0 ? 0 : e.deltaY;
+      setPan(p => ({ x: p.x - dx, y: p.y - dy }));
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
   }, [viewMode, pyramidViewMode]);
 
   const handleBracketMouseDown = useCallback((e: React.MouseEvent) => {
@@ -1119,8 +1129,9 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           cursor: isPanningRef.current ? 'grabbing' : (viewMode === 'full' && !pyramidViewMode && zoom !== 1 ? 'grab' : 'default'),
           position: 'relative',
           userSelect: 'none',
+          overscrollBehavior: 'contain',
         }}
-        onWheel={handleBracketWheel}
+        ref={scrollAreaRef}
         onMouseDown={handleBracketMouseDown}
         onMouseMove={handleBracketMouseMove}
         onMouseUp={handleBracketMouseUp}
