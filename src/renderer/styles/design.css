@@ -1013,6 +1013,8 @@ select:focus {
 
 .comp-header {
   position: relative;
+  /* Contexte d'empilement au-dessus du contenu : sinon le menu « ⋯ » passe sous la toolbar */
+  z-index: 50;
   overflow: visible;
   flex-shrink: 0;
 }
