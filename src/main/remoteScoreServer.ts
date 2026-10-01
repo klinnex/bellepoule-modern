@@ -118,6 +118,7 @@ export class RemoteScoreServer {
   private sessionShowPhotos: boolean = false; // Afficher les photos des combattants avant le combat
   private sessionCardAnnounce: boolean = false; // Annoncer les cartons avec raison sur les affichages
   private sessionRefereeFeatureEnabled: boolean = false; // Fonctionnalité gestion arbitres activée
+  private sessionBlackCardEnabled: boolean = false; // Carton noir activé (paramètre compétition)
   private sessionTheme: DisplayTheme = 'dark'; // Thème visuel de l'affichage distant (global)
   private arenaThemeOverrides: Map<string, { theme: DisplayTheme; customTheme?: CustomTheme }> =
     new Map();
@@ -505,6 +506,8 @@ export class RemoteScoreServer {
         : false,
       matchComplete: !currentBout,
       cards: state.cards,
+      blackCardEnabled:
+        this.db.getCompetition(state.competitionId)?.settings?.blackCardEnabled === true,
     };
   }
 
@@ -736,6 +739,7 @@ export class RemoteScoreServer {
         weapon: this.sessionWeapon,
         kioskViews: this.sessionKioskViews,
         orgNote: this.orgNote,
+        blackCardEnabled: this.sessionBlackCardEnabled,
         ...(this.isTrainingMode
           ? {
               competitionName: 'Entraînement',
@@ -2094,8 +2098,11 @@ export class RemoteScoreServer {
         }
 
         // Carton noir : le combattant fautif est exclu de la compétition
+        // Ignoré si le carton noir n'est pas activé sur la compétition
         const blackCarded =
-          blackCardFencer === 'A' || blackCardFencer === 'B' ? blackCardFencer : null;
+          this.sessionBlackCardEnabled && (blackCardFencer === 'A' || blackCardFencer === 'B')
+            ? blackCardFencer
+            : null;
 
         // Déterminer le vainqueur : carton noir → adversaire du fautif,
         // scores égaux + tirage au sort → utiliser winnerOverride
@@ -3021,6 +3028,7 @@ export class RemoteScoreServer {
             cardAnnounce: this.sessionCardAnnounce,
             theme: this.sessionTheme,
             refereeFeatureEnabled: this.sessionRefereeFeatureEnabled,
+            blackCardEnabled: this.sessionBlackCardEnabled,
             referees: this.session?.referees ?? [],
           });
         }
@@ -3056,6 +3064,7 @@ export class RemoteScoreServer {
             fencerA: arena.currentMatch?.fencerA,
             fencerB: arena.currentMatch?.fencerB,
             refereeFeatureEnabled: this.sessionRefereeFeatureEnabled,
+            blackCardEnabled: this.sessionBlackCardEnabled,
             referees: this.session?.referees ?? [],
             refereeSelected: this.arenaRefereeSelected.get(data.arenaId) ?? false,
             timerDuration: isPoolMatch
@@ -3233,6 +3242,12 @@ export class RemoteScoreServer {
         (data: { arenaId: string; teamId: string; type: 'white' | 'yellow' | 'red' | 'black' }) => {
           const state = this.teamArenaState.get(data.arenaId);
           if (!state) return;
+          if (
+            data.type === 'black' &&
+            this.db.getCompetition(state.competitionId)?.settings?.blackCardEnabled !== true
+          ) {
+            return; // carton noir désactivé sur cette compétition
+          }
           const { id } = this.db.createTeamMatchCard(
             state.matchId,
             data.teamId,
@@ -4963,6 +4978,7 @@ export class RemoteScoreServer {
       customTheme: override?.customTheme,
       screenThemes: this.arenaScreenThemes.get(arenaId),
       refereeFeatureEnabled: this.sessionRefereeFeatureEnabled,
+      blackCardEnabled: this.sessionBlackCardEnabled,
       referees: this.session?.referees ?? [],
       timerDuration: isPoolMatch ? this.sessionPoolTimerSeconds : this.sessionTableTimerSeconds,
       refereeSelected: this.arenaRefereeSelected.get(arenaId) ?? false,
@@ -5220,6 +5236,9 @@ export class RemoteScoreServer {
 
     // Stocker l'activation de la gestion des arbitres
     this.sessionRefereeFeatureEnabled = competition.settings?.refereeFeatureEnabled ?? false;
+
+    // Carton noir : désactivé par défaut, activable dans les propriétés de la compétition
+    this.sessionBlackCardEnabled = competition.settings?.blackCardEnabled === true;
 
     // Stocker les vues kiosk activées
     this.sessionKioskViews = {
@@ -5572,6 +5591,7 @@ export class RemoteScoreServer {
     this.sessionShowPhotos = false;
     this.sessionCardAnnounce = false;
     this.sessionRefereeFeatureEnabled = false;
+    this.sessionBlackCardEnabled = false;
     this.sessionKioskViews = {
       poules: false,
       classement: true,
@@ -5697,6 +5717,21 @@ export class RemoteScoreServer {
         status: arena.status,
         fencerA: arena.currentMatch?.fencerA,
         fencerB: arena.currentMatch?.fencerB,
+      });
+    }
+  }
+
+  /** Active/désactive le carton noir à chaud (propriétés compétition modifiées en cours de session) */
+  public updateBlackCardEnabled(value: boolean): void {
+    if (!this.session || this.sessionBlackCardEnabled === value) return;
+    this.sessionBlackCardEnabled = value;
+    for (const [arenaId, arena] of this.arenas.entries()) {
+      this.broadcastArenaUpdate(arenaId, {
+        arenaId,
+        match: arena.currentMatch,
+        scoreA: arena.currentMatch?.scoreA,
+        scoreB: arena.currentMatch?.scoreB,
+        status: arena.status,
       });
     }
   }

@@ -371,6 +371,36 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('carton noir (paramètre compétition)', () => {
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    beforeEach(() => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+    });
+
+    it('désactivé par défaut et exposé via /api/session', () => {
+      const res = makeRes();
+      findHandler('get', '/api/session')(makeReq(), res, vi.fn());
+      expect(res.json.mock.calls[0][0].blackCardEnabled).toBe(false);
+    });
+
+    it('updateBlackCardEnabled active le flag et le diffuse aux arènes', () => {
+      (server as any).arenas.set('arena1', { id: 'arena1', number: 1, status: 'idle', settings: {} });
+      const spy = vi.spyOn(server as any, 'broadcastArenaUpdate').mockImplementation(() => {});
+      server.updateBlackCardEnabled(true);
+      expect((server as any).sessionBlackCardEnabled).toBe(true);
+      expect(spy).toHaveBeenCalledWith('arena1', expect.objectContaining({ arenaId: 'arena1' }));
+      const res = makeRes();
+      findHandler('get', '/api/session')(makeReq(), res, vi.fn());
+      expect(res.json.mock.calls[0][0].blackCardEnabled).toBe(true);
+    });
+  });
+
   describe('appel distant (#919)', () => {
     // Express 5 expose le routeur via app.router (app._router en v4)
     function findHandler(method: string, path: string): any {

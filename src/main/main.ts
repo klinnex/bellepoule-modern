@@ -1034,7 +1034,13 @@ ipcMain.handle('db:deleteCompetition', async (_, id) => {
 });
 
 ipcMain.handle('db:updateCompetition', async (_, id, updates) => {
-  return db.updateCompetition(id, updates);
+  const result = db.updateCompetition(id, updates);
+  // Propager le paramètre carton noir aux tablettes si une session distante est active
+  const blackCard = updates?.settings?.blackCardEnabled;
+  if (blackCard !== undefined) {
+    remoteServers.get(id)?.server.updateBlackCardEnabled(blackCard === true);
+  }
+  return result;
 });
 
 // Fencer handlers

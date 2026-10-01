@@ -238,7 +238,7 @@
 
         function renderCardButtons(container, teamId) {
           container.innerHTML = '';
-          CARD_TYPES.forEach(type => {
+          CARD_TYPES.filter(type => type !== 'black' || lastState.blackCardEnabled).forEach(type => {
             const btn = document.createElement('button');
             btn.className = 'card-btn';
             btn.textContent = CARD_BADGE[type];

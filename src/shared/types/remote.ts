@@ -172,6 +172,7 @@ export interface ArenaUpdate {
   nextMatch?: ArenaMatch | null; // prochain combat (affiché quand status=finished)
   swapped?: boolean;
   refereeFeatureEnabled?: boolean; // fonctionnalité arbitres activée
+  blackCardEnabled?: boolean; // carton noir activé (paramètre compétition)
   referees?: RemoteReferee[]; // liste de tous les arbitres de la compétition
   timerDuration?: number; // durée du chrono en secondes pour ce match
   poolComplete?: boolean; // vrai quand tous les matchs de la poule sont terminés
