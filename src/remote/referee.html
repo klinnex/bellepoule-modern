@@ -3619,12 +3619,14 @@
           const btn = document.getElementById('match-sig-submit');
           btn.disabled = true;
           try {
-            const send = (fencerId, dataURL) =>
-              fetch(`/api/matches/${match.id}/fencers/${fencerId}/signature`, {
+            const send = async (fencerId, dataURL) => {
+              const resp = await fetch(`/api/matches/${match.id}/fencers/${fencerId}/signature`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ signatureData: dataURL }),
               });
+              if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            };
             await Promise.all([
               send(match.fencerA.id, canvasA.toDataURL('image/png')),
               send(match.fencerB.id, canvasB.toDataURL('image/png')),
