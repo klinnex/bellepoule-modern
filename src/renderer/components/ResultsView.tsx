@@ -67,6 +67,7 @@ const RV_STYLES = {
   thCenter: { padding: '0.75rem', textAlign: 'center' as const } satisfies React.CSSProperties,
   tdPad: { padding: '0.75rem' } satisfies React.CSSProperties,
   tdMedalSpan: { marginRight: '0.5rem' } satisfies React.CSSProperties,
+  blackCard: { display: 'inline-block', width: '0.7em', height: '1em', marginLeft: '0.5rem', background: '#000', borderRadius: '2px', verticalAlign: '-0.1em', boxShadow: '0 0 0 1px #6b7280' } satisfies React.CSSProperties,
   tdClub: { padding: '0.75rem', color: '#6b7280' } satisfies React.CSSProperties,
   tdElim: { padding: '0.75rem', textAlign: 'center' as const, color: '#6b7280' } satisfies React.CSSProperties,
   exportRow: { display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem', flexWrap: 'wrap' as const } satisfies React.CSSProperties,
@@ -106,11 +107,19 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     return {};
   };
 
+  // Les résultats figent un instantané du tireur : on rafraîchit statut/exclusion
+  // depuis la liste courante (ex. carton noir reçu après le calcul du classement).
+  const fencerById = new Map((fencers ?? []).map(f => [f.id, f]));
+  const freshFencer = (f: Fencer): Fencer => {
+    const live = fencerById.get(f.id);
+    return live ? { ...f, status: live.status, exclusionReason: live.exclusionReason } : f;
+  };
+
   const resultsToDisplay = (() => {
     if (finalResults.length === 0) {
       return poolRanking.map((pr, idx) => ({
         rank: idx + 1,
-        fencer: pr.fencer,
+        fencer: freshFencer(pr.fencer),
         eliminatedAt: 'Poules' as const,
       }));
     }
@@ -119,10 +128,10 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       .filter(pr => !tableauIds.has(pr.fencer.id))
       .map((pr, idx) => ({
         rank: finalResults.length + idx + 1,
-        fencer: pr.fencer,
+        fencer: freshFencer(pr.fencer),
         eliminatedAt: 'Poules' as const,
       }));
-    return [...finalResults, ...poolEliminated];
+    return [...finalResults.map(r => ({ ...r, fencer: freshFencer(r.fencer) })), ...poolEliminated];
   })();
 
   // Export CSV
@@ -422,7 +431,14 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   {result.fencer.status === FencerStatus.ABANDONED && ' (A)'}
                   {result.fencer.status === FencerStatus.FORFAIT && ' (F)'}
                   {result.fencer.status === FencerStatus.EXCLUDED &&
-                    (result.fencer.exclusionReason === 'black_card' ? ' (X ⬛ carton noir)' : ' (X)')}
+                    (result.fencer.exclusionReason === 'black_card' ? (
+                      <span
+                        title="Exclu — carton noir"
+                        aria-label="Exclu — carton noir"
+                        data-testid="black-card-icon"
+                        style={RV_STYLES.blackCard}
+                      />
+                    ) : ' (X)')}
                 </td>
                 <td style={RV_STYLES.tdClub}>{result.fencer.club || '-'}</td>
                 <td style={RV_STYLES.tdElim}>{result.eliminatedAt || '-'}</td>
