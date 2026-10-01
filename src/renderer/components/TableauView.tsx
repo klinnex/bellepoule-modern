@@ -39,6 +39,7 @@ import {
   buildCombinedResults,
   calculateMatchVerticalPosition,
 } from './tableau/tableauCalculations';
+import { autoAssignReferees } from '../../shared/utils/refereeStats';
 
 interface BracketMatch {
   id: string;
@@ -70,6 +71,8 @@ interface TableauViewProps {
   readOnly?: boolean;
   /** Nombre max d'arbitres par match (mode expert) ; 1 = sélection unique */
   maxRefereesPerMatch?: number;
+  /** Arbitres utilisés par le remplissage automatique (gestion des arbitres active) */
+  autoFillReferees?: Array<{ id: string; firstName: string; lastName: string; club?: string; status?: string }>;
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
@@ -109,6 +112,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   onConsolationBracketsChange,
   readOnly = false,
   maxRefereesPerMatch = 1,
+  autoFillReferees,
 }) => {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
@@ -539,6 +543,32 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
 
     const effectiveMax = isUnlimitedScore ? 15 : maxScore;
 
+    // Matchs déjà terminés avant le remplissage : leur arbitre n'est pas modifié
+    const alreadyDone = new Set(
+      [...matches, ...consolationBrackets.flatMap(b => b.matches)].filter(m => m.winner).map(m => m.id)
+    );
+    // Charge partagée entre tableau principal et consolantes
+    const refereeLoad = new Map<string, number>();
+    for (const m of [...matches, ...consolationBrackets.flatMap(b => b.matches)]) {
+      if (m.referee) refereeLoad.set(m.referee.id, (refereeLoad.get(m.referee.id) ?? 0) + 1);
+    }
+    // Assigne un arbitre aux matchs remplis sans arbitre (statistiques de test)
+    const withAutoReferees = (list: TableauMatch[]): TableauMatch[] => {
+      if (!autoFillReferees?.length) return list;
+      const targets = list.filter(
+        m => m.winner && !m.isBye && m.fencerA && m.fencerB && !m.referee && !alreadyDone.has(m.id)
+      );
+      const assignments = autoAssignReferees(targets, autoFillReferees, refereeLoad);
+      if (assignments.size === 0) return list;
+      return list.map(m => {
+        const r = assignments.get(m.id);
+        if (!r) return m;
+        const principal = { id: r.id, firstName: r.firstName, lastName: r.lastName };
+        onMatchRefereeChange?.(m.id, r.id);
+        return { ...m, referee: principal, referees: [principal] };
+      });
+    };
+
     // Toutes les places : barrages + tableau principal + tous les brackets de consolation.
     // La complétion est détectée par l'effet playAllPositions (matches + brackets).
     if (playAllPositions) {
@@ -549,17 +579,17 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         tableauSize,
         ranking
       );
-      setConsolationBrackets(updatedBrackets);
-      onMatchesChange(updatedMatches);
+      setConsolationBrackets(
+        updatedBrackets.map(b => ({ ...b, matches: withAutoReferees(b.matches) }))
+      );
+      onMatchesChange(withAutoReferees(updatedMatches));
       showToast(`Scores générés pour ${filledCount} match(s)`, 'success');
       return;
     }
 
-    const { updatedMatches, filledCount } = autoFillTableauScores(
-      matches,
-      effectiveMax,
-      tableauSize
-    );
+    const filled = autoFillTableauScores(matches, effectiveMax, tableauSize);
+    const updatedMatches = withAutoReferees(filled.updatedMatches);
+    const { filledCount } = filled;
 
     // Créer une copie profonde pour forcer React à re-renderer
     const matchesCopy = updatedMatches.map(m => ({ ...m }));

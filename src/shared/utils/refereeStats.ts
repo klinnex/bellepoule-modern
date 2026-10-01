@@ -93,3 +93,48 @@ export function computeRefereeMatchStats(
     (a, b) => b.totalMatches - a.totalMatches || a.refereeName.localeCompare(b.refereeName)
   );
 }
+
+/** Arbitre candidat à l'assignation automatique */
+export interface AssignableReferee {
+  id: string;
+  club?: string;
+  status?: string;
+}
+
+/** Match réduit aux champs utiles à l'assignation automatique */
+export interface AssignableMatch {
+  id: string;
+  fencerA?: { club?: string } | null;
+  fencerB?: { club?: string } | null;
+}
+
+/**
+ * Assigne un arbitre à chaque match (remplissage automatique de test).
+ * Rotation : arbitre le moins chargé, en évitant les conflits de club et
+ * les arbitres indisponibles quand c'est possible.
+ * `load` (nombre de matchs déjà arbitrés par id) est mis à jour en place,
+ * ce qui permet de partager la charge entre plusieurs appels.
+ */
+export function autoAssignReferees<R extends AssignableReferee>(
+  matches: AssignableMatch[],
+  referees: R[],
+  load: Map<string, number> = new Map()
+): Map<string, R> {
+  const result = new Map<string, R>();
+  const available = referees.filter(r => r.status !== 'unavailable');
+  const pool = available.length > 0 ? available : referees;
+  if (pool.length === 0) return result;
+
+  for (const m of matches) {
+    const clubs = new Set([m.fencerA?.club, m.fencerB?.club].filter((c): c is string => !!c));
+    const neutral = pool.filter(r => !r.club || !clubs.has(r.club));
+    const candidates = neutral.length > 0 ? neutral : pool;
+    let best = candidates[0];
+    for (const r of candidates) {
+      if ((load.get(r.id) ?? 0) < (load.get(best.id) ?? 0)) best = r;
+    }
+    load.set(best.id, (load.get(best.id) ?? 0) + 1);
+    result.set(m.id, best);
+  }
+  return result;
+}
