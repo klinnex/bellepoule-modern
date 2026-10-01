@@ -2887,3 +2887,35 @@ body {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.6; transform: scale(1.04); }
 }
+
+/* Compacter / déplier les classements */
+.collapse-toggle-btn {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--duration-fast) ease;
+}
+.collapse-toggle-btn:hover { background: var(--color-border); color: var(--color-text); }
+.collapse-row--hidden { display: none; }
+.collapse-more-row td { text-align: center; padding: 0.35rem !important; }
+.collapse-more-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.collapse-more-btn:hover { color: var(--color-text); text-decoration: underline; }
+@media print {
+  .collapse-toggle-btn, .collapse-more-row { display: none !important; }
+  .collapse-row--hidden { display: table-row !important; }
+}
