@@ -246,16 +246,16 @@ export function calculateFencerPoolStats(fencer: Fencer, matches: Match[]): Pool
 // Ranking Helpers (shared between standard and Quest ranking)
 // ============================================================================
 
-/** Assigne les rangs en gérant les ex aequo (V/M + questPoints + cartons + indice + TD identiques) */
-function assignRanks(rankings: PoolRanking[]): void {
+/** Assigne les rangs en gérant les ex aequo (V/M + [questPoints + cartons] + indice + TD identiques) */
+function assignRanks(rankings: PoolRanking[], useQuest = true): void {
   let currentRank = 1;
   for (let i = 0; i < rankings.length; i++) {
     if (i > 0) {
       const prev = rankings[i - 1];
       const curr = rankings[i];
       const sameVictories = prev.ratio === curr.ratio;
-      const sameQuest = (prev.questPoints ?? 0) === (curr.questPoints ?? 0);
-      const sameCards = (prev.totalCards ?? 0) === (curr.totalCards ?? 0);
+      const sameQuest = !useQuest || (prev.questPoints ?? 0) === (curr.questPoints ?? 0);
+      const sameCards = !useQuest || (prev.totalCards ?? 0) === (curr.totalCards ?? 0);
       const sameIndex = prev.index === curr.index;
       const sameTouches = prev.touchesScored === curr.touchesScored;
 
@@ -274,7 +274,7 @@ function assignRanks(rankings: PoolRanking[]): void {
 /** Ajoute les tireurs forfait/abandon/exclu à la fin du classement */
 function appendForfeitFencers(rankings: PoolRanking[], forfeitFencers: PoolRanking[]): void {
   if (forfeitFencers.length > 0) {
-    const lastRank = rankings.length > 0 ? rankings[rankings.length - 1].rank + 1 : 1;
+    const lastRank = rankings.length + 1;
     forfeitFencers.forEach((ff, idx) => {
       ff.rank = lastRank + idx;
       rankings.push(ff);
@@ -282,13 +282,23 @@ function appendForfeitFencers(rankings: PoolRanking[], forfeitFencers: PoolRanki
   }
 }
 
+/** Statuts classés d'office en fin de classement (forfait, abandon, carton noir) */
+function isForfeitStatus(status: FencerStatus | undefined): boolean {
+  return (
+    status === FencerStatus.EXCLUDED ||
+    status === FencerStatus.FORFAIT ||
+    status === FencerStatus.ABANDONED
+  );
+}
+
 /**
- * Calcule le classement d'une poule selon les règles demandées
+ * Calcule le classement d'une poule selon les règles FIE/FFE
  * Ordre de priorité:
- * 1. Nombre de victoires (décroissant)
- * 2. Points Quest (décroissant)
- * 3. Indice (TD - TR) (décroissant)
+ * 1. Ratio V/M (décroissant)
+ * 2. Indice (TD - TR) (décroissant)
+ * 3. Touches données (décroissant)
  * 4. Confrontation directe (si 2 tireurs à égalité)
+ * Les points Quest ne s'appliquent qu'au Sabre Laser (calculatePoolRankingQuest).
  */
 export function calculatePoolRanking(pool: Pool): PoolRanking[] {
   if (!pool) throw new TypeError('calculatePoolRanking: pool ne peut pas être null/undefined');
@@ -302,11 +312,7 @@ export function calculatePoolRanking(pool: Pool): PoolRanking[] {
   // Calculer les stats pour chaque tireur
   for (const fencer of pool.fencers) {
     // Si tireur forfait/abandon/exclu, l'ajouter à la liste séparée
-    if (
-      fencer.status === FencerStatus.EXCLUDED ||
-      fencer.status === FencerStatus.FORFAIT ||
-      fencer.status === FencerStatus.ABANDONED
-    ) {
+    if (isForfeitStatus(fencer.status)) {
       forfeitFencers.push({
         fencer,
         rank: 0,
@@ -359,19 +365,12 @@ export function calculatePoolRanking(pool: Pool): PoolRanking[] {
       return b.ratio - a.ratio;
     }
 
-    // 2. Points Quest (décroissant)
-    const aQuest = a.questPoints ?? 0;
-    const bQuest = b.questPoints ?? 0;
-    if (aQuest !== bQuest) {
-      return bQuest - aQuest;
-    }
-
-    // 3. Indice TD-TR (décroissant) — critère officiel FIE/FFE de départage
+    // 2. Indice TD-TR (décroissant) — critère officiel FIE/FFE de départage
     if (a.index !== b.index) {
       return b.index - a.index;
     }
 
-    // 3b. Touches données (décroissant)
+    // 3. Touches données (décroissant)
     if (a.touchesScored !== b.touchesScored) {
       return b.touchesScored - a.touchesScored;
     }
@@ -388,7 +387,7 @@ export function calculatePoolRanking(pool: Pool): PoolRanking[] {
     return (a.fencer.ranking ?? 9999) - (b.fencer.ranking ?? 9999);
   });
 
-  assignRanks(rankings);
+  assignRanks(rankings, false);
   appendForfeitFencers(rankings, forfeitFencers);
 
   return rankings;
@@ -910,6 +909,7 @@ export function calculatePoolRankingQuest(
  */
 export function calculateOverallRankingQuest(pools: Pool[]): PoolRanking[] {
   const allRankings: PoolRanking[] = [];
+  const forfeitIds = collectForfeitIds(pools);
 
   pools.forEach(pool => {
     const ranking = calculatePoolRankingQuest(pool);
@@ -917,7 +917,10 @@ export function calculateOverallRankingQuest(pools: Pool[]): PoolRanking[] {
   });
 
   // Fusionner les stats du même tireur (multi-tours de poules)
-  const mergedRankings = mergeFencerRankings(allRankings);
+  const { active: mergedRankings, forfeit } = splitForfeit(
+    mergeFencerRankings(allRankings),
+    forfeitIds
+  );
 
   mergedRankings.sort((a, b) => {
     // 1. Ratio de victoires V/M (décroissant)
@@ -948,6 +951,7 @@ export function calculateOverallRankingQuest(pools: Pool[]): PoolRanking[] {
   });
 
   assignRanks(mergedRankings);
+  appendForfeitFencers(mergedRankings, forfeit);
 
   return mergedRankings;
 }
@@ -992,6 +996,7 @@ function mergeFencerRankings(rankings: PoolRanking[]): PoolRanking[] {
 export function calculateOverallRanking(pools: Pool[]): PoolRanking[] {
   // Collecter tous les classements de poules
   const allRankings: PoolRanking[] = [];
+  const forfeitIds = collectForfeitIds(pools);
 
   pools.forEach(pool => {
     if (pool.ranking && pool.ranking.length > 0) {
@@ -1006,32 +1011,54 @@ export function calculateOverallRanking(pools: Pool[]): PoolRanking[] {
   // Fusionner les stats du même tireur (multi-tours de poules)
   const mergedRankings = mergeFencerRankings(allRankings);
 
-  mergedRankings.sort((a, b) => {
+  const { active, forfeit } = splitForfeit(mergedRankings, forfeitIds);
+
+  active.sort((a, b) => {
     // 1. Ratio de victoires V/M
     if (a.ratio !== b.ratio) {
       return b.ratio - a.ratio;
     }
-    // 2. Points Quest
-    const aQuest = a.questPoints ?? 0;
-    const bQuest = b.questPoints ?? 0;
-    if (aQuest !== bQuest) {
-      return bQuest - aQuest;
-    }
-    // 3. Indice TD-TR (critère officiel FIE/FFE)
+    // 2. Indice TD-TR (critère officiel FIE/FFE)
     if (a.index !== b.index) {
       return b.index - a.index;
     }
-    // 4. Touches données
+    // 3. Touches données
     if (a.touchesScored !== b.touchesScored) {
       return b.touchesScored - a.touchesScored;
     }
-    // 5. Égalité parfaite - ex aequo (tirage au sort manuel)
+    // 4. Égalité parfaite - ex aequo (tirage au sort manuel)
     return 0;
   });
 
-  assignRanks(mergedRankings);
+  assignRanks(active, false);
+  appendForfeitFencers(active, forfeit);
 
-  return mergedRankings;
+  return active;
+}
+
+/** IDs des tireurs forfait/abandon/exclus d'après le statut courant des tireurs de poule */
+function collectForfeitIds(pools: Pool[]): Set<string> {
+  const ids = new Set<string>();
+  for (const pool of pools) {
+    for (const f of pool.fencers ?? []) {
+      if (isForfeitStatus(f.status)) ids.add(f.id);
+    }
+  }
+  return ids;
+}
+
+/** Sépare les tireurs actifs des forfaits/abandons/exclus (classés d'office en dernier) */
+function splitForfeit(
+  rankings: PoolRanking[],
+  forfeitIds: Set<string>
+): { active: PoolRanking[]; forfeit: PoolRanking[] } {
+  const active: PoolRanking[] = [];
+  const forfeit: PoolRanking[] = [];
+  for (const r of rankings) {
+    if (forfeitIds.has(r.fencer.id) || isForfeitStatus(r.fencer.status)) forfeit.push(r);
+    else active.push(r);
+  }
+  return { active, forfeit };
 }
 
 // Génère un classement initial depuis la liste des tireurs (sans données de poules)

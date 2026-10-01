@@ -443,6 +443,59 @@ describe('calculateOverallRanking', () => {
     expect(ranking[0].rank).toBe(1);
     expect(ranking[1].rank).toBe(1);
   });
+
+  it('l’indice prime sur les points Quest hors Sabre Laser (#944)', () => {
+    // A : bat X 5-1 (2 pts Quest), perd 0-5 contre Y → V/M 0.5, indice -1
+    const a = createMockFencer('a', 1, 'A');
+    const x = createMockFencer('x', 2, 'X');
+    const y = createMockFencer('y', 3, 'Y');
+    // C : bat Z 2-1 (1 pt Quest), perd 4-5 contre W → V/M 0.5, indice 0
+    const c = createMockFencer('c', 4, 'C');
+    const z = createMockFencer('z', 5, 'Z');
+    const w = createMockFencer('w', 6, 'W');
+
+    const ranking = calculateOverallRanking([
+      makePool(
+        'p1',
+        [a, x, y],
+        [createMockMatch('m1', a, x, 5, 1), createMockMatch('m2', a, y, 0, 5)]
+      ),
+      makePool(
+        'p2',
+        [c, z, w],
+        [createMockMatch('m3', c, z, 2, 1), createMockMatch('m4', c, w, 4, 5)]
+      ),
+    ]);
+
+    const ids = ranking.map(r => r.fencer.id);
+    expect(ids.indexOf('c')).toBeLessThan(ids.indexOf('a'));
+  });
+
+  it('classe les forfaits/abandons/exclus en dernier (#944)', () => {
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    const c = createMockFencer('c', 3, 'C');
+    const d = createMockFencer('d', 4, 'D');
+
+    // Classement de poule mis en cache avant l'exclusion de C (carton noir)
+    const p2 = makePool('p2', [c, d], [createMockMatch('m2', c, d, 5, 0)]);
+    p2.ranking = calculatePoolRanking(p2);
+    p2.fencers = [{ ...c, status: FencerStatus.EXCLUDED }, d];
+
+    const ranking = calculateOverallRanking([
+      makePool(
+        'p1',
+        [a, { ...b, status: FencerStatus.FORFAIT }],
+        [createMockMatch('m1', a, b, 0, 5)]
+      ),
+      p2,
+    ]);
+
+    const lastIds = ranking.slice(-2).map(r => r.fencer.id);
+    expect(lastIds.sort()).toEqual(['b', 'c']);
+    // A et D ex aequo (matchs contre forfait/exclu annulés), forfaits ensuite
+    expect(ranking.map(r => r.rank)).toEqual([1, 1, 3, 4]);
+  });
 });
 
 describe('formatRatio', () => {
