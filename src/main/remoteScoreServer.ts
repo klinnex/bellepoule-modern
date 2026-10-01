@@ -5303,6 +5303,21 @@ export class RemoteScoreServer {
       strips = actualStrips;
     }
 
+    // Pistes assignées aux poules (pool.strip) : poolId → n° de piste.
+    // Le nombre d'arènes est étendu si une poule vise une piste au-delà du nombre configuré.
+    const poolStripMap = new Map<string, number>();
+    for (const m of matchesFromRenderer ?? []) {
+      const s = Number((m as any).__poolFencers ? (m as any).strip : NaN);
+      if (Number.isInteger(s) && s > 0 && s <= 20) poolStripMap.set(m.poolId, s);
+    }
+    const maxPoolStrip = Math.max(0, ...poolStripMap.values());
+    if (maxPoolStrip > strips) {
+      console.log(
+        `[RemoteScoreServer] Nombre d'arènes étendu de ${strips} à ${maxPoolStrip} (piste assignée à une poule)`
+      );
+      strips = maxPoolStrip;
+    }
+
     // Configurer le nombre d'arènes
     this.setArenaCount(strips);
 
@@ -5426,11 +5441,27 @@ export class RemoteScoreServer {
       return numA - numB;
     });
 
-    let poolIndex = 0;
-    for (const [poolId, poolMatches] of sortedPoolEntries) {
-      if (poolIndex >= strips) break;
+    // Piste cible par poule : pool.strip si défini, sinon première piste libre (ordre des poules)
+    const poolArenaMap = new Map<string, number>();
+    const usedStrips = new Set(poolStripMap.values());
+    let nextFreeStrip = 1;
+    for (const [poolId] of sortedPoolEntries) {
+      const assigned = poolStripMap.get(poolId);
+      if (assigned) {
+        poolArenaMap.set(poolId, assigned);
+        continue;
+      }
+      while (usedStrips.has(nextFreeStrip)) nextFreeStrip++;
+      if (nextFreeStrip > strips) continue;
+      poolArenaMap.set(poolId, nextFreeStrip);
+      usedStrips.add(nextFreeStrip);
+    }
 
-      const arenaId = `arena${poolIndex + 1}`;
+    for (const [poolId, poolMatches] of sortedPoolEntries) {
+      const arenaNumber = poolArenaMap.get(poolId);
+      if (!arenaNumber) continue;
+
+      const arenaId = `arena${arenaNumber}`;
 
       // Premier match non terminé et non en cours (évite le curseur orange au démarrage)
       const firstMatch = poolMatches.find(
@@ -5440,12 +5471,11 @@ export class RemoteScoreServer {
       if (!firstMatch) {
         // Tous les matchs sont terminés ou en cours : lier la pool à l'arène sans assigner de match
         const anyMatch = poolMatches[0];
-        if (anyMatch) {
-          const arena = this.arenas.get(arenaId);
-          if (arena) arena.activePoolId = poolId;
+        const arena = this.arenas.get(arenaId);
+        if (anyMatch && arena && !arena.currentMatch) {
+          arena.activePoolId = poolId;
+          this.arenaNextMatchIndex.set(arenaId, poolMatches.length);
         }
-        this.arenaNextMatchIndex.set(arenaId, poolMatches.length);
-        poolIndex++;
         continue;
       }
 
@@ -5465,6 +5495,16 @@ export class RemoteScoreServer {
         endTime: null,
       };
 
+      if (this.arenas.get(arenaId)?.currentMatch) {
+        // Piste déjà occupée par une autre poule → cette poule enchaîne ensuite (file)
+        const queue = this.arenaMatchQueue.get(arenaId) || [];
+        this.arenaMatchQueue.set(arenaId, [...queue, arenaMatch]);
+        console.log(
+          `[RemoteScoreServer] Pool ${poolId} mise en file sur l'arène ${arenaId} (piste partagée)`
+        );
+        continue;
+      }
+
       this.assignMatchToArena(arenaId, arenaMatch);
 
       // Index du prochain match = position de firstMatch + 1 dans la liste originale
@@ -5474,8 +5514,6 @@ export class RemoteScoreServer {
       console.log(
         `[RemoteScoreServer] Match ${firstMatch.id} (Pool ${poolId}) assigné à l'arène ${arenaId}`
       );
-
-      poolIndex++;
     }
 
     // Distribuer les matchs d'élimination directe (sans poolId) dans les files par arène
