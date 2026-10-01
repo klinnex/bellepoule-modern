@@ -43,6 +43,7 @@ const mockDb = {
   getFencersByCompetition: vi.fn().mockReturnValue([]),
   getRefereesByCompetition: vi.fn().mockReturnValue([]),
   updateFencer: vi.fn(),
+  getFencer: vi.fn().mockReturnValue(null),
   updateReferee: vi.fn(),
   getSessionState: vi.fn().mockReturnValue(null),
 };
@@ -418,6 +419,113 @@ describe('RemoteScoreServer', () => {
       const res = makeRes();
       findHandler('get', '/api/session')(makeReq(), res, vi.fn());
       expect(res.json.mock.calls[0][0].blackCardEnabled).toBe(true);
+    });
+  });
+
+  describe('annulation carton noir depuis la tablette', () => {
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    const fA = { id: 'a', lastName: 'Dupont', firstName: 'Jean', status: 'Q' };
+    const fB = { id: 'b', lastName: 'Martin', firstName: 'Paul', status: 'Q' };
+    const fC = { id: 'c', lastName: 'Bernard', firstName: 'Luc', status: 'Q' };
+
+    beforeEach(() => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+      (server as any).sessionBlackCardEnabled = true;
+      vi.spyOn(server as any, 'hasAnyValidToken').mockReturnValue(true);
+      vi.spyOn(server as any, 'finishArenaMatch').mockImplementation(() => {});
+      vi.spyOn(server as any, 'broadcastMessage').mockImplementation(() => {});
+      (server as any).arenas.set('arena1', {
+        id: 'arena1',
+        number: 1,
+        status: 'ready',
+        currentMatch: { id: 'm1', poolId: 'p1', fencerA: fA, fencerB: fB, scoreA: 0, scoreB: 0 },
+        settings: {},
+      });
+      (server as any).sessionMatches = [
+        { id: 'm1', number: 1, poolId: 'p1', fencerA: fA, fencerB: fB, status: 'not_started' },
+        { id: 'm2', number: 2, poolId: 'p1', fencerA: fA, fencerB: fC, status: 'not_started' },
+      ];
+      mockDb.getMatch.mockReturnValue(null);
+      mockDb.getFencer.mockImplementation((id: string) =>
+        id === 'a' ? { id: 'a', status: 'X', exclusionReason: 'black_card' } : null
+      );
+    });
+
+    async function giveBlackCard() {
+      mockDb.getFencer.mockReturnValueOnce({ id: 'a', status: 'Q' });
+      const res = makeRes();
+      await findHandler('post', '/api/matches/:matchId/finish')(
+        makeReq({
+          method: 'POST',
+          params: { matchId: 'm1' },
+          body: { scoreA: 3, scoreB: 2, blackCardFencer: 'A' },
+        }),
+        res,
+        vi.fn()
+      );
+      // Le renderer propage ensuite le statut exclu dans les matchs de session
+      (server as any).sessionMatches = (server as any).sessionMatches.map((m: any) => ({
+        ...m,
+        fencerA: m.fencerA.id === 'a' ? { ...m.fencerA, status: 'X', exclusionReason: 'black_card' } : m.fencerA,
+      }));
+    }
+
+    it('liste le carton noir de l\'arène', async () => {
+      await giveBlackCard();
+      const res = makeRes();
+      findHandler('get', '/api/arenas/:arenaId/black-cards')(makeReq({ params: { arenaId: 'arena1' } }), res, vi.fn());
+      expect(res.json.mock.calls[0][0].blackCards).toEqual([
+        expect.objectContaining({ fencerId: 'a', matchId: 'm1', fencerName: 'Dupont Jean', opponentName: 'Martin Paul' }),
+      ]);
+    });
+
+    it('annule : réintègre le combattant, rouvre le match avec son score et rend ses matchs jouables', async () => {
+      await giveBlackCard();
+      expect((server as any).isMatchPlayable((server as any).sessionMatches[1])).toBe(false);
+
+      const res = makeRes();
+      findHandler('post', '/api/arenas/:arenaId/black-cards/:fencerId/cancel')(
+        makeReq({ method: 'POST', params: { arenaId: 'arena1', fencerId: 'a' } }),
+        res,
+        vi.fn()
+      );
+      expect(res.json).toHaveBeenCalledWith({ success: true, matchId: 'm1' });
+      expect(mockDb.updateFencer).toHaveBeenLastCalledWith('a', { status: 'Q', exclusionReason: null });
+      const reopened = (server as any).sessionMatchScores.get('m1');
+      expect(reopened.status).toBe('in_progress');
+      expect(reopened.scoreA).toMatchObject({ value: 3, isExclusion: false, isVictory: false });
+      expect(reopened.scoreB).toMatchObject({ value: 2, isVictory: false });
+      expect((server as any).isMatchPlayable((server as any).sessionMatches[1])).toBe(true);
+      expect((server as any).sessionBlackCards.size).toBe(0);
+    });
+
+    it('refuse l\'annulation d\'un carton noir en tableau', async () => {
+      await giveBlackCard();
+      mockDb.getMatch.mockReturnValue({ id: 'm1', poolId: null });
+      const res = makeRes();
+      findHandler('post', '/api/arenas/:arenaId/black-cards/:fencerId/cancel')(
+        makeReq({ method: 'POST', params: { arenaId: 'arena1', fencerId: 'a' } }),
+        res,
+        vi.fn()
+      );
+      expect(res.status).toHaveBeenCalledWith(409);
+    });
+
+    it('404 pour une autre arène', async () => {
+      await giveBlackCard();
+      const res = makeRes();
+      findHandler('post', '/api/arenas/:arenaId/black-cards/:fencerId/cancel')(
+        makeReq({ method: 'POST', params: { arenaId: 'arena2', fencerId: 'a' } }),
+        res,
+        vi.fn()
+      );
+      expect(res.status).toHaveBeenCalledWith(404);
     });
   });
 

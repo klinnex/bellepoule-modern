@@ -256,6 +256,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     areAllPoolsComplete,
     handleFencerForfeit,
     handleUndoAbandon,
+    handleBlackCardCancelled,
     syncFencersToPool,
   } = usePoolManagement({ isLaserSabre, poolMaxScore, showToast, competitionId: competition?.id });
 
@@ -636,11 +637,22 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
       updateFencer(fencerId, { status: FencerStatus.EXCLUDED, exclusionReason: reason ?? 'black_card' });
     });
 
+    // Carton noir annulé depuis la tablette : réintégrer le combattant et rouvrir le match
+    const offReinstated = window.electronAPI.onRemoteFencerReinstated?.(
+      ({ fencerId, matchId, status, scoreA, scoreB }) => {
+        logger.debug(LogCategory.UI, `[CompetitionView] Carton noir annulé: ${fencerId}`);
+        const restored = status as FencerStatus;
+        handleBlackCardCancelled(fencerId, matchId, restored, scoreA, scoreB);
+        updateFencer(fencerId, { status: restored, exclusionReason: null });
+      }
+    );
+
     return () => {
       offMatchFinished?.();
       offExcluded?.();
+      offReinstated?.();
     };
-  }, [applyRemoteScore, updateFencer, fireWebhookNotif, competition.title]);
+  }, [applyRemoteScore, updateFencer, handleBlackCardCancelled, fireWebhookNotif, competition.title]);
 
   // Sync scores/statuts des matches de poule vers la DB quand ils changent
   const prevPoolsRef = useRef(pools);
