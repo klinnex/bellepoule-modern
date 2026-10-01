@@ -5,6 +5,7 @@
  */
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { TableauMatch } from './tableauTypes';
 
 interface TableauScoreModalProps {
@@ -58,7 +59,8 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   const fencerName = (f: TableauMatch['fencerA']) =>
     f ? `${f.lastName} ${f.firstName}`.trim() : '';
 
-  return (
+  // Portail sur body : échappe aux ancêtres transformés (animations de phase)
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
@@ -302,7 +304,8 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

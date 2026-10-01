@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { TableauMatch } from './tableauTypes';
 
 interface TableauArenaModalProps {
@@ -34,7 +35,8 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
   onAssign,
   onClose,
 }) => {
-  return (
+  // Portail sur body : échappe aux ancêtres transformés (animations de phase)
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
         <div className="modal-header">
@@ -76,7 +78,8 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

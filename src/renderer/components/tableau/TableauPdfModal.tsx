@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { MAX_MATCHES_PER_PAGE_TABLEAU } from '../../../shared/utils/pdfConstants';
 import { TableauMatch } from './tableauTypes';
 import { getRoundName } from './tableauCalculations';
@@ -42,7 +43,8 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
   onExport,
   onClose,
 }) => {
-  return (
+  // Portail sur body : échappe aux ancêtres transformés (animations de phase)
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
         <div className="modal-header">
@@ -128,7 +130,8 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

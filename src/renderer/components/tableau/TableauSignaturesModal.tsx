@@ -5,6 +5,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { TableauMatch } from './tableauTypes';
 
 interface TableauSignaturesModalProps {
@@ -67,7 +68,8 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({ match, 
     );
   };
 
-  return (
+  // Portail sur body : échappe aux ancêtres transformés (animations de phase)
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
         <div className="modal-header">
@@ -79,7 +81,8 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({ match, 
           {renderFencer('B')}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
