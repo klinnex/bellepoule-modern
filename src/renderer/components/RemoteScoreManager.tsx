@@ -45,6 +45,7 @@ interface RemoteSession {
 // ─── Static style constants ───────────────────────────────────────────────────
 
 const RSM_STYLES = {
+  httpWarning: { fontSize: '0.78rem', color: 'var(--warning-color, #f59e0b)', margin: '0.25rem 0 0', lineHeight: 1.4 } satisfies React.CSSProperties,
   stripCountRow: { display: 'flex', alignItems: 'center', gap: '1rem', margin: '0.75rem 0' } satisfies React.CSSProperties,
   stripCountControls: { display: 'flex', alignItems: 'center', gap: '0.5rem' } satisfies React.CSSProperties,
   stripCountBtn: { padding: '0.2rem 0.5rem', fontSize: '1rem' } satisfies React.CSSProperties,
@@ -112,7 +113,8 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [serverUrl, setServerUrl] = useState<string>('');
   const [useHttps, setUseHttps] = useState<boolean>(() => {
-    return localStorage.getItem('bellepoule-remote-https') === 'true';
+    // HTTPS par défaut : HTTP seulement si désactivé explicitement
+    return localStorage.getItem('bellepoule-remote-https') !== 'false';
   });
   const [certFingerprint, setCertFingerprint] = useState<string | null>(null);
   const [remotePort, setRemotePort] = useState<number>(() => {
@@ -785,9 +787,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 />
                 🔒 Activer HTTPS (connexion chiffrée)
               </label>
-              {useHttps && (
+              {useHttps ? (
                 <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.25rem', lineHeight: 1.4 }}>
                   Certificat auto-signé — les tablettes devront accepter l&apos;avertissement de sécurité du navigateur une seule fois.
+                </div>
+              ) : (
+                <div role="alert" style={RSM_STYLES.httpWarning}>
+                  ⚠️ Réseau non chiffré : mots de passe et sessions lisibles par tout appareil du Wi-Fi.
                 </div>
               )}
               <span className="rsm-network-preview">{networkPreview}</span>
@@ -818,10 +824,17 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           <p>
             Serveur: <strong>{serverUrl}</strong>
           </p>
-          {certFingerprint && (
+          {certFingerprint ? (
             <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0.25rem 0 0', wordBreak: 'break-all' }}>
               🔒 Empreinte cert. SHA-256 : <code style={{ fontSize: '0.7rem' }}>{certFingerprint}</code>
             </p>
+          ) : (
+            serverUrl.startsWith('http://') && (
+              <p role="alert" style={RSM_STYLES.httpWarning}>
+                ⚠️ Réseau non chiffré (HTTP) : mots de passe et sessions lisibles sur le Wi-Fi. Activez
+                HTTPS en redémarrant le serveur.
+              </p>
+            )
           )}
           <div style={RSM_STYLES.portActiveRow}>
             <label htmlFor={`remote-port-active-${competition.id}`} style={RSM_STYLES.portActiveLabel}>
