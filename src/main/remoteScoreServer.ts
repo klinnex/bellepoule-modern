@@ -560,6 +560,39 @@ export class RemoteScoreServer {
     return !!token && (this.arenaTokens.get(fullId)?.has(token) ?? false);
   }
 
+  /** Auth d'une socket pour une arène : re-vérifiée à chaque événement mutant
+   *  (le cookie du handshake suffit, pas besoin d'avoir rejoint la room). */
+  private checkSocketArenaAuth(socket: any, arenaId: unknown): boolean {
+    if (typeof arenaId !== 'string' || !arenaId) return false;
+    if (this.checkArenaAuth(arenaId, socket.handshake?.headers?.cookie as string)) return true;
+    socket.emit('auth_error', { message: 'Authentification requise' });
+    return false;
+  }
+
+  /** Requête émise depuis la machine hôte (loopback uniquement, sans X-Forwarded-For). */
+  private isLoopbackRequest(req: express.Request): boolean {
+    const addr = req.socket.remoteAddress ?? '';
+    return addr === '127.0.0.1' || addr === '::1' || addr === '::ffff:127.0.0.1';
+  }
+
+  /** Middleware : exige l'auth de l'arène `:arenaId`. */
+  private requireArenaAuth: express.RequestHandler<{ arenaId: string }> = (req, res, next) => {
+    if (!this.checkArenaAuth(req.params.arenaId, req.headers.cookie)) {
+      res.status(401).json({ error: 'Non authentifié' });
+      return;
+    }
+    next();
+  };
+
+  /** Middleware : réservé à la machine hôte. */
+  private requireLoopback: express.RequestHandler = (req, res, next) => {
+    if (!this.isLoopbackRequest(req)) {
+      res.status(403).json({ error: 'Accès réservé à la machine hôte' });
+      return;
+    }
+    next();
+  };
+
   /** Vérifie qu'au moins un token d'arène valide est présent dans le cookie.
    *  Si aucune arène n'a de mot de passe, accès libre (comportement par défaut). */
   private hasAnyValidToken(cookieHeader: string | undefined): boolean {
@@ -763,7 +796,7 @@ export class RemoteScoreServer {
       });
     });
 
-    this.app.post('/api/session/start', async (req, res) => {
+    this.app.post('/api/session/start', this.requireLoopback, async (req, res) => {
       try {
         const { competitionId, strips } = req.body;
         const competition = this.db.getCompetition(competitionId);
@@ -780,7 +813,7 @@ export class RemoteScoreServer {
       }
     });
 
-    this.app.post('/api/session/stop', (req, res) => {
+    this.app.post('/api/session/stop', this.requireLoopback, (req, res) => {
       this.stopSession();
       res.json({ success: true });
     });
@@ -905,7 +938,7 @@ export class RemoteScoreServer {
       });
     });
 
-    this.app.post('/api/arenas/:arenaId/assign', (req, res) => {
+    this.app.post('/api/arenas/:arenaId/assign', this.requireArenaAuth, (req, res) => {
       const { match } = req.body;
       try {
         this.assignMatchToArena(req.params.arenaId, match);
@@ -915,23 +948,23 @@ export class RemoteScoreServer {
       }
     });
 
-    this.app.post('/api/arenas/:arenaId/start', (req, res) => {
+    this.app.post('/api/arenas/:arenaId/start', this.requireArenaAuth, (req, res) => {
       this.startArenaMatch(req.params.arenaId);
       res.json({ success: true });
     });
 
-    this.app.post('/api/arenas/:arenaId/pause', (req, res) => {
+    this.app.post('/api/arenas/:arenaId/pause', this.requireArenaAuth, (req, res) => {
       this.pauseArenaMatch(req.params.arenaId);
       res.json({ success: true });
     });
 
-    this.app.post('/api/arenas/:arenaId/score', (req, res) => {
+    this.app.post('/api/arenas/:arenaId/score', this.requireArenaAuth, (req, res) => {
       const { scoreA, scoreB } = req.body;
       this.updateArenaScore(req.params.arenaId, scoreA, scoreB);
       res.json({ success: true });
     });
 
-    this.app.post('/api/arenas/:arenaId/finish', (req, res) => {
+    this.app.post('/api/arenas/:arenaId/finish', this.requireArenaAuth, (req, res) => {
       this.finishArenaMatch(req.params.arenaId);
       res.json({ success: true });
     });
@@ -2406,6 +2439,12 @@ export class RemoteScoreServer {
 
     // API : synchronisation des actions hors-ligne (tablettes arbitres)
     this.app.post('/api/sync', async (req, res) => {
+      if (!this.hasAnyValidToken(req.headers.cookie)) {
+        return res.status(401).json({ error: 'Non authentifié' });
+      }
+      if (!this.checkScoreRateLimit(this.getClientIp(req))) {
+        return res.status(429).json({ error: 'Trop de soumissions, réessayez dans une minute' });
+      }
       const actions: Array<{ id: string; type: string; payload: unknown }> =
         req.body?.actions || [];
       const results: Array<{ id: string; success: boolean }> = [];
@@ -3156,6 +3195,11 @@ export class RemoteScoreServer {
       socket.on(
         'arena_control',
         (data: { arenaId: string; action: string; scoreA?: number; scoreB?: number }) => {
+          if (!data || typeof data !== 'object') return;
+          // toggle_swap : inversion d'affichage déclenchée par l'écran d'arène (sans cookie)
+          if (data.action !== 'toggle_swap' && !this.checkSocketArenaAuth(socket, data.arenaId)) {
+            return;
+          }
           this.handleArenaControl(socket, data);
         }
       );
@@ -3232,6 +3276,9 @@ export class RemoteScoreServer {
       // Touche (simple, ou zone A/B/C = 1/3/5 en mode points) — assaut plafonné
       // à 5 touches valides cumulées, vérifié après chaque saisie.
       socket.on('team_touch', (data: { arenaId: string; side: 'A' | 'B'; points: number }) => {
+        if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
+        if (data.side !== 'A' && data.side !== 'B') return;
+        if (![1, 3, 5].includes(data.points)) return;
         const state = this.teamArenaState.get(data.arenaId);
         if (!state) return;
         const bout = state.bouts[state.currentBoutIndex];
@@ -3243,6 +3290,7 @@ export class RemoteScoreServer {
 
       // Réinitialise l'assaut en cours (score et chrono), sans le terminer.
       socket.on('team_reset_bout', (data: { arenaId: string }) => {
+        if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
         const state = this.teamArenaState.get(data.arenaId);
         if (!state) return;
         state.liveScoreA = 0;
@@ -3253,6 +3301,7 @@ export class RemoteScoreServer {
       });
 
       socket.on('team_timer_start', (data: { arenaId: string }) => {
+        if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
         const state = this.teamArenaState.get(data.arenaId);
         if (!state || state.timerStartedAt !== null) return;
         state.timerStartedAt = Date.now();
@@ -3260,6 +3309,7 @@ export class RemoteScoreServer {
       });
 
       socket.on('team_timer_pause', (data: { arenaId: string }) => {
+        if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
         const state = this.teamArenaState.get(data.arenaId);
         if (!state || state.timerStartedAt === null) return;
         state.elapsedAccumulatedSec = this.teamArenaElapsedSec(state);
@@ -3269,6 +3319,7 @@ export class RemoteScoreServer {
 
       // Termine l'assaut en cours (persiste le score), avance au suivant s'il en reste.
       socket.on('team_advance_bout', (data: { arenaId: string }) => {
+        if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
         const state = this.teamArenaState.get(data.arenaId);
         if (!state) return;
         const bout = state.bouts[state.currentBoutIndex];
@@ -3294,6 +3345,8 @@ export class RemoteScoreServer {
       socket.on(
         'team_card',
         (data: { arenaId: string; teamId: string; type: 'white' | 'yellow' | 'red' | 'black' }) => {
+          if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
+          if (!['white', 'yellow', 'red', 'black'].includes(data.type)) return;
           const state = this.teamArenaState.get(data.arenaId);
           if (!state) return;
           if (
