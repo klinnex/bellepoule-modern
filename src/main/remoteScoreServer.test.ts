@@ -85,6 +85,7 @@ describe('RemoteScoreServer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server = new RemoteScoreServer(mockDb as any, 8066);
+    (server as any).loginFailureDelayMs = 0;
   });
 
   describe('démarrage du serveur', () => {
@@ -646,15 +647,15 @@ describe('RemoteScoreServer', () => {
       return layer?.route?.stack?.[0]?.handle;
     }
 
-    function login(password: string): { res: any; cookie: string } {
+    function login(password: string): { res: any; cookie: string; done: Promise<void> } {
       const res = makeRes();
-      findHandler('post', '/api/checkin/login')(
+      const done = findHandler('post', '/api/checkin/login')(
         makeReq({ body: { password }, socket: { remoteAddress: '10.0.0.' + Math.random() } }),
         res,
         vi.fn()
       );
       const header = res.setHeader.mock.calls.find((c: any[]) => c[0] === 'Set-Cookie')?.[1] ?? '';
-      return { res, cookie: String(header).split(';')[0] };
+      return { res, cookie: String(header).split(';')[0], done };
     }
 
     beforeEach(() => {
@@ -673,22 +674,23 @@ describe('RemoteScoreServer', () => {
       expect(res.status).toHaveBeenCalledWith(403);
     });
 
-    it('refuse un mot de passe incorrect et ne stocke pas le mot de passe en clair', () => {
-      server.setCheckinPassword('appel42');
-      expect((server as any).checkinPassword).not.toBe('appel42');
-      const { res } = login('faux');
+    it('refuse un mot de passe incorrect et ne stocke pas le mot de passe en clair', async () => {
+      server.setCheckinPassword('appel4242');
+      expect((server as any).checkinPassword).not.toBe('appel4242');
+      const { res, done } = login('faux');
+      await done;
       expect(res.status).toHaveBeenCalledWith(401);
     });
 
     it('liste tireurs/arbitres uniquement avec un cookie valide', () => {
-      server.setCheckinPassword('appel42');
+      server.setCheckinPassword('appel4242');
       const list = findHandler('get', '/api/checkin/list');
 
       const denied = makeRes();
       list(makeReq(), denied, vi.fn());
       expect(denied.status).toHaveBeenCalledWith(401);
 
-      const { cookie } = login('appel42');
+      const { cookie } = login('appel4242');
       const res = makeRes();
       list(makeReq({ headers: { cookie } }), res, vi.fn());
       const body = res.json.mock.calls[0][0];
@@ -699,8 +701,8 @@ describe('RemoteScoreServer', () => {
     });
 
     it('pointe un tireur présent (statut P) et un arbitre disponible', () => {
-      server.setCheckinPassword('appel42');
-      const { cookie } = login('appel42');
+      server.setCheckinPassword('appel4242');
+      const { cookie } = login('appel4242');
       const update = findHandler('post', '/api/checkin/:kind/:id');
 
       const res = makeRes();
@@ -729,8 +731,8 @@ describe('RemoteScoreServer', () => {
     });
 
     it("n'écrase pas un statut sportif (éliminé)", () => {
-      server.setCheckinPassword('appel42');
-      const { cookie } = login('appel42');
+      server.setCheckinPassword('appel4242');
+      const { cookie } = login('appel4242');
       const res = makeRes();
       findHandler('post', '/api/checkin/:kind/:id')(
         makeReq({
@@ -746,8 +748,8 @@ describe('RemoteScoreServer', () => {
     });
 
     it("ferme l'appel hors phase CHECKIN", () => {
-      server.setCheckinPassword('appel42');
-      const { cookie } = login('appel42');
+      server.setCheckinPassword('appel4242');
+      const { cookie } = login('appel4242');
       server.setCheckinEnabled(false);
       const res = makeRes();
       findHandler('get', '/api/checkin/list')(makeReq({ headers: { cookie } }), res, vi.fn());
@@ -755,9 +757,9 @@ describe('RemoteScoreServer', () => {
     });
 
     it('invalide les sessions quand le mot de passe change', () => {
-      server.setCheckinPassword('appel42');
-      const { cookie } = login('appel42');
-      server.setCheckinPassword('nouveau');
+      server.setCheckinPassword('appel4242');
+      const { cookie } = login('appel4242');
+      server.setCheckinPassword('nouveau-mdp');
       const res = makeRes();
       findHandler('get', '/api/checkin/list')(makeReq({ headers: { cookie } }), res, vi.fn());
       expect(res.status).toHaveBeenCalledWith(401);
@@ -985,6 +987,132 @@ describe('RemoteScoreServer', () => {
         expect(state.liveScoreA).toBe(3);
         expect(state.liveScoreB).toBe(0);
       });
+    });
+  });
+
+  describe('P1 : anti force brute', () => {
+    function loginHandler(): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      return stack.find(
+        (l: any) => l?.route?.path === '/api/auth/login/:arenaId' && l.route.methods?.post
+      )?.route?.stack?.[0]?.handle;
+    }
+
+    async function attempt(password: string, ip = '192.168.1.50', headers: any = {}) {
+      const res = makeRes();
+      await loginHandler()(
+        makeReq({
+          method: 'POST',
+          params: { arenaId: '1' },
+          body: { password },
+          headers,
+          socket: { remoteAddress: ip },
+        }),
+        res,
+        vi.fn()
+      );
+      return res;
+    }
+
+    beforeEach(() => {
+      (server as any).arenas.set('arena1', {
+        id: 'arena1',
+        number: 1,
+        name: 'Arène 1',
+        status: 'idle',
+        currentMatch: null,
+        settings: {},
+      });
+      server.setArenaPassword('1', 'secret123');
+    });
+
+    it('hash scrypt salé : deux hash du même mot de passe diffèrent et se vérifient', () => {
+      const h1 = (server as any).hashPassword('secret123');
+      const h2 = (server as any).hashPassword('secret123');
+      expect(h1).toMatch(/^scrypt\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
+      expect(h1).not.toBe(h2);
+      expect((server as any).verifyPassword('secret123', h1)).toBe(true);
+      expect((server as any).verifyPassword('secret124', h1)).toBe(false);
+      expect((server as any).verifyPassword('secret123', 'abc')).toBe(false);
+    });
+
+    it('refuse un mot de passe de moins de 8 caractères (arène et appel), vide autorisé', () => {
+      expect(() => server.setArenaPassword('1', 'court')).toThrow(/8 caractères/);
+      expect(() => server.setCheckinPassword('1234567')).toThrow(/8 caractères/);
+      expect(() => server.setArenaPassword('1', '')).not.toThrow();
+      expect(() => server.setCheckinPassword('')).not.toThrow();
+    });
+
+    it('X-Forwarded-For ignoré : un en-tête aléatoire ne contourne plus la limite par IP', async () => {
+      for (let i = 0; i < 5; i++) {
+        const res = await attempt('mauvais!', '192.168.1.50', { 'x-forwarded-for': `10.9.9.${i}` });
+        expect(res.status).toHaveBeenCalledWith(401);
+        (server as any).loginFailures.clear(); // isole la limite par minute du blocage
+      }
+      const res = await attempt('mauvais!', '192.168.1.50', { 'x-forwarded-for': '10.9.9.99' });
+      expect(res.status).toHaveBeenCalledWith(429);
+    });
+
+    it('X-Forwarded-For lu seulement si trustProxy activé', () => {
+      const req = makeReq({
+        headers: { 'x-forwarded-for': '10.1.2.3, 127.0.0.1' },
+        socket: { remoteAddress: '::ffff:192.168.1.7' },
+      });
+      expect((server as any).getClientIp(req)).toBe('192.168.1.7');
+      server.setTrustProxy(true);
+      expect((server as any).getClientIp(req)).toBe('10.1.2.3');
+    });
+
+    it('limite par arène : 20 tentatives/min tous clients confondus', async () => {
+      for (let i = 0; i < 20; i++) {
+        const res = await attempt('mauvais!', `192.168.2.${i}`);
+        expect(res.status).toHaveBeenCalledWith(401);
+      }
+      const res = await attempt('secret123', '192.168.3.1');
+      expect(res.status).toHaveBeenCalledWith(429);
+    });
+
+    it("blocage progressif après 5 échecs, même après la fenêtre d'une minute", async () => {
+      const diag = vi.spyOn(server as any, 'sendDiag').mockImplementation(() => {});
+      for (let i = 0; i < 5; i++) {
+        await attempt('mauvais!');
+        (server as any).loginAttempts.clear();
+      }
+      expect(diag).toHaveBeenCalledWith(expect.stringContaining('192.168.1.50'));
+      const res = await attempt('secret123');
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.setHeader).toHaveBeenCalledWith('Retry-After', '30');
+
+      // Échec suivant après expiration du blocage → durée doublée
+      (server as any).loginFailures.get('192.168.1.50').lockedUntil = 0;
+      await attempt('mauvais!');
+      const f = (server as any).loginFailures.get('192.168.1.50');
+      expect(f.lockedUntil - Date.now()).toBeGreaterThan(55_000);
+    });
+
+    it("un succès remet à zéro les échecs de l'IP", async () => {
+      for (let i = 0; i < 3; i++) await attempt('mauvais!');
+      const res = await attempt('secret123');
+      expect(res.json).toHaveBeenCalledWith({ success: true });
+      expect((server as any).loginFailures.has('192.168.1.50')).toBe(false);
+    });
+
+    it('jeton expiré côté serveur refusé', async () => {
+      const res = await attempt('secret123');
+      const cookie = res.setHeader.mock.calls
+        .find((c: any[]) => c[0] === 'Set-Cookie')[1]
+        .split(';')[0];
+      expect((server as any).checkArenaAuth('arena1', cookie)).toBe(true);
+      const tokens: Map<string, number> = (server as any).arenaTokens.get('arena1');
+      for (const t of tokens.keys()) tokens.set(t, Date.now() - 1);
+      expect((server as any).checkArenaAuth('arena1', cookie)).toBe(false);
+    });
+
+    it('nombre de jetons plafonné par arène', () => {
+      const store = new Map<string, number>();
+      for (let i = 0; i < 60; i++) (server as any).issueToken(store);
+      expect(store.size).toBe(50);
     });
   });
 });

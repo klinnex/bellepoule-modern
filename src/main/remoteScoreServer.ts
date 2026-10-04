@@ -10,7 +10,7 @@ import { createServer as createHttpServer } from 'http';
 import { createServer as createHttpsServer } from 'https';
 import path from 'path';
 import os from 'os';
-import { createHash, randomBytes, timingSafeEqual } from 'crypto';
+import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import {
   RemoteSession,
   RemoteScoreUpdate,
@@ -89,6 +89,9 @@ interface TeamArenaState {
  * Vérifie qu'une origine HTTP appartient au réseau local (localhost + plages LAN privées).
  * Centralise la logique CORS partagée entre Socket.IO et le middleware Express.
  */
+/** Longueur minimale des mots de passe d'arène et d'appel. */
+export const PASSWORD_MIN_LENGTH = 8;
+
 function isLocalNetworkOrigin(origin: string | null | undefined): boolean {
   if (!origin) return false;
   try {
@@ -195,7 +198,7 @@ export class RemoteScoreServer {
   // Mot de passe dédié obligatoire (hashé), tokens de session en cookie.
   private checkinEnabled: boolean = true;
   private checkinPassword: string | null = null;
-  private checkinTokens: Set<string> = new Set();
+  private checkinTokens: Map<string, number> = new Map(); // token → expiresAt
 
   // Stocker le contenu des fichiers HTML en mémoire pour éviter les problèmes de chemin
   private htmlFiles: Map<string, string> = new Map();
@@ -204,11 +207,28 @@ export class RemoteScoreServer {
   private socketIoClientJs: string | null = null;
 
   // Tokens d'authentification par arène (password protection)
-  private arenaTokens: Map<string, Set<string>> = new Map();
+  private arenaTokens: Map<string, Map<string, number>> = new Map(); // arène → (token → expiresAt)
 
   // Rate limiting pour le login : { ip → { count, resetAt } }
   private loginAttempts: Map<string, { count: number; resetAt: number }> = new Map();
   private readonly LOGIN_ATTEMPTS_MAX_ENTRIES = 1000;
+  // Rate limiting par cible (arène / appel), tous clients confondus : { cible → { count, resetAt } }
+  private loginTargetAttempts: Map<string, { count: number; resetAt: number }> = new Map();
+  private readonly LOGIN_PER_IP_PER_MIN = 5;
+  private readonly LOGIN_PER_TARGET_PER_MIN = 20;
+  // Blocage progressif après échecs consécutifs : { ip → { fails, lockedUntil, lastFailAt } }
+  private loginFailures: Map<string, { fails: number; lockedUntil: number; lastFailAt: number }> =
+    new Map();
+  private readonly LOCKOUT_THRESHOLD = 5;
+  private readonly LOCKOUT_BASE_MS = 30_000;
+  private readonly LOCKOUT_MAX_MS = 15 * 60_000;
+  // Délai fixe avant réponse sur échec (freine l'automatisation)
+  private loginFailureDelayMs = 300;
+  // Sessions : durée de vie serveur + plafond par arène / appel
+  private readonly TOKEN_TTL_MS = 8 * 3600_000;
+  private readonly MAX_TOKENS_PER_SCOPE = 50;
+  // X-Forwarded-For ignoré sauf derrière un reverse proxy de confiance
+  private trustProxy = false;
   private cleanupInterval: NodeJS.Timeout | null = null;
   // Rate limiting pour les soumissions de score : { ip → { count, resetAt } }
   private scoreRateLimiter: Map<string, { count: number; resetAt: number }> = new Map();
@@ -274,6 +294,20 @@ export class RemoteScoreServer {
       const now = Date.now();
       for (const [ip, attempt] of this.loginAttempts) {
         if (now >= attempt.resetAt) this.loginAttempts.delete(ip);
+      }
+      for (const [target, attempt] of this.loginTargetAttempts) {
+        if (now >= attempt.resetAt) this.loginTargetAttempts.delete(target);
+      }
+      for (const [ip, f] of this.loginFailures) {
+        if (now >= f.lockedUntil && now - f.lastFailAt > 3600_000) this.loginFailures.delete(ip);
+      }
+      for (const [token, exp] of this.checkinTokens) {
+        if (now >= exp) this.checkinTokens.delete(token);
+      }
+      for (const tokens of this.arenaTokens.values()) {
+        for (const [token, exp] of tokens) {
+          if (now >= exp) tokens.delete(token);
+        }
       }
       for (const [ip, entry] of this.scoreRateLimiter) {
         if (now >= entry.resetAt) this.scoreRateLimiter.delete(ip);
@@ -541,9 +575,57 @@ export class RemoteScoreServer {
     return result;
   }
 
-  /** Le mot de passe n'est jamais stocké ni comparé en clair. */
+  /** Le mot de passe n'est jamais stocké ni comparé en clair : scrypt salé `scrypt$sel$hash`. */
   private hashPassword(password: string): string {
-    return createHash('sha256').update(password).digest('hex');
+    const salt = randomBytes(16);
+    const hash = scryptSync(password, salt, 32, { N: 16384, r: 8, p: 1 });
+    return `scrypt$${salt.toString('hex')}$${hash.toString('hex')}`;
+  }
+
+  private verifyPassword(password: unknown, stored: string | null | undefined): boolean {
+    if (typeof password !== 'string' || !password || !stored) return false;
+    const [algo, saltHex, hashHex] = stored.split('$');
+    if (algo !== 'scrypt' || !saltHex || !hashHex) return false;
+    try {
+      const expected = Buffer.from(hashHex, 'hex');
+      const actual = scryptSync(password, Buffer.from(saltHex, 'hex'), expected.length, {
+        N: 16384,
+        r: 8,
+        p: 1,
+      });
+      return timingSafeEqual(actual, expected);
+    } catch {
+      return false;
+    }
+  }
+
+  private assertPasswordStrength(password: string): void {
+    if (password && password.length < PASSWORD_MIN_LENGTH) {
+      throw new Error(`Mot de passe trop court (${PASSWORD_MIN_LENGTH} caractères minimum)`);
+    }
+  }
+
+  /** Émet un jeton de session (TTL serveur), en évinçant le plus ancien au-delà du plafond. */
+  private issueToken(store: Map<string, number>): string {
+    const token = randomBytes(32).toString('hex');
+    while (store.size >= this.MAX_TOKENS_PER_SCOPE) {
+      const oldest = store.keys().next().value;
+      if (oldest === undefined) break;
+      store.delete(oldest);
+    }
+    store.set(token, Date.now() + this.TOKEN_TTL_MS);
+    return token;
+  }
+
+  private isTokenValid(store: Map<string, number> | undefined, token: string | undefined): boolean {
+    if (!store || !token) return false;
+    const exp = store.get(token);
+    if (exp === undefined) return false;
+    if (Date.now() >= exp) {
+      store.delete(token);
+      return false;
+    }
+    return true;
   }
 
   /** Version d'une arène sans secret, seule forme autorisée vers les clients HTTP/Socket.IO. */
@@ -557,7 +639,7 @@ export class RemoteScoreServer {
     const arena = this.arenas.get(fullId);
     if (!arena?.password) return true;
     const token = this.parseCookies(cookieHeader)[`bp_token_${fullId}`];
-    return !!token && (this.arenaTokens.get(fullId)?.has(token) ?? false);
+    return this.isTokenValid(this.arenaTokens.get(fullId), token);
   }
 
   /** Auth d'une socket pour une arène : re-vérifiée à chaque événement mutant
@@ -602,7 +684,7 @@ export class RemoteScoreServer {
     const cookies = this.parseCookies(cookieHeader);
     for (const [arenaId, tokens] of this.arenaTokens) {
       const token = cookies[`bp_token_${arenaId}`];
-      if (token && tokens.has(token)) return true;
+      if (this.isTokenValid(tokens, token)) return true;
     }
     return false;
   }
@@ -1235,10 +1317,7 @@ export class RemoteScoreServer {
         return res.status(403).json({ registrationClosed: true, error: 'Inscription fermée' });
       }
 
-      const ip =
-        (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
-        req.socket.remoteAddress ||
-        'unknown';
+      const ip = this.getClientIp(req);
 
       // Rate limit : 5 inscriptions par IP par minute
       if (!this.checkRegistrationRateLimit(ip)) {
@@ -1327,35 +1406,20 @@ export class RemoteScoreServer {
       });
     });
 
-    this.app.post('/api/checkin/login', (req, res) => {
+    this.app.post('/api/checkin/login', async (req, res) => {
       const ip = this.getClientIp(req);
-      if (!this.checkLoginRateLimit(ip)) {
-        return res
-          .status(429)
-          .json({ success: false, error: 'Trop de tentatives. Réessayez dans 1 minute.' });
-      }
+      const limited = this.checkLoginAllowed(ip, 'checkin');
+      if (limited) return this.sendLoginLimited(res, limited);
       if (!this.checkinPassword) {
         return res.status(403).json({ success: false, notConfigured: true });
       }
       const { password } = (req.body ?? {}) as { password?: unknown };
-      let passwordOk = false;
-      try {
-        passwordOk =
-          typeof password === 'string' &&
-          password.length > 0 &&
-          timingSafeEqual(
-            Buffer.from(this.hashPassword(password)),
-            Buffer.from(this.checkinPassword)
-          );
-      } catch {
-        passwordOk = false;
-      }
-      if (!passwordOk) {
+      if (!this.verifyPassword(password, this.checkinPassword)) {
+        await this.recordLoginFailure(ip, 'checkin');
         return res.status(401).json({ success: false, error: 'Mot de passe incorrect' });
       }
-      this.loginAttempts.delete(ip);
-      const token = randomBytes(32).toString('hex');
-      this.checkinTokens.add(token);
+      this.recordLoginSuccess(ip);
+      const token = this.issueToken(this.checkinTokens);
       res.setHeader(
         'Set-Cookie',
         `bp_checkin_token=${token}; HttpOnly; SameSite=Strict; Max-Age=${8 * 3600}; Path=/${req.secure ? '; Secure' : ''}`
@@ -1437,41 +1501,26 @@ export class RemoteScoreServer {
     });
 
     // API: authentification par mot de passe pour une arène
-    this.app.post('/api/auth/login/:arenaId', (req, res) => {
-      // Rate limiting : 5 tentatives par IP par minute
-      const ip = this.getClientIp(req);
-      if (!this.checkLoginRateLimit(ip)) {
-        return res
-          .status(429)
-          .json({ success: false, error: 'Trop de tentatives. Réessayez dans 1 minute.' });
-      }
-
+    this.app.post('/api/auth/login/:arenaId', async (req, res) => {
       const rawId = req.params.arenaId;
       const fullId = rawId.startsWith('arena') ? rawId : `arena${rawId}`;
+      // Limites par IP et par arène + blocage progressif
+      const ip = this.getClientIp(req);
+      const limited = this.checkLoginAllowed(ip, fullId);
+      if (limited) return this.sendLoginLimited(res, limited);
+
       const arena = this.arenas.get(fullId);
       if (!arena?.password) {
         return res.json({ success: true });
       }
-      const { password } = req.body as { password: string };
-      // Comparaison résistante aux timing attacks
-      let passwordOk = false;
-      // Comparaison de hashs (longueur constante) résistante aux timing attacks,
-      // sans fuite de la longueur du mot de passe.
-      try {
-        passwordOk =
-          !!password &&
-          timingSafeEqual(Buffer.from(this.hashPassword(password)), Buffer.from(arena.password));
-      } catch {
-        passwordOk = false;
-      }
-      if (!passwordOk) {
+      const { password } = (req.body ?? {}) as { password?: unknown };
+      if (!this.verifyPassword(password, arena.password)) {
+        await this.recordLoginFailure(ip, fullId);
         return res.status(401).json({ success: false, error: 'Mot de passe incorrect' });
       }
-      // Login réussi : réinitialiser le compteur d'échecs
-      this.loginAttempts.delete(ip);
-      const token = randomBytes(32).toString('hex');
-      if (!this.arenaTokens.has(fullId)) this.arenaTokens.set(fullId, new Set());
-      this.arenaTokens.get(fullId)!.add(token);
+      this.recordLoginSuccess(ip);
+      if (!this.arenaTokens.has(fullId)) this.arenaTokens.set(fullId, new Map());
+      const token = this.issueToken(this.arenaTokens.get(fullId)!);
       // Secure seulement en HTTPS : le serveur tourne en HTTP sur le LAN du gymnase
       res.setHeader(
         'Set-Cookie',
@@ -1591,10 +1640,7 @@ export class RemoteScoreServer {
       if (!this.hasAnyValidToken(req.headers.cookie)) {
         return res.status(401).json({ error: 'Non authentifié' });
       }
-      const clientIp =
-        (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ??
-        req.socket.remoteAddress ??
-        'unknown';
+      const clientIp = this.getClientIp(req);
       if (!this.checkScoreRateLimit(clientIp)) {
         return res.status(429).json({ error: 'Trop de soumissions, réessayez dans une minute' });
       }
@@ -2119,10 +2165,7 @@ export class RemoteScoreServer {
       if (!this.hasAnyValidToken(req.headers.cookie)) {
         return res.status(401).json({ error: 'Non authentifié' });
       }
-      const clientIp =
-        (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ??
-        req.socket.remoteAddress ??
-        'unknown';
+      const clientIp = this.getClientIp(req);
       if (!this.checkScoreRateLimit(clientIp)) {
         return res.status(429).json({ error: 'Trop de soumissions, réessayez dans une minute' });
       }
@@ -5348,6 +5391,7 @@ export class RemoteScoreServer {
 
   public setCheckinPassword(password: string): void {
     // Stocké hashé ; tout changement invalide les sessions ouvertes
+    this.assertPasswordStrength(password);
     this.checkinPassword = password ? this.hashPassword(password) : null;
     this.checkinTokens.clear();
     console.log(`[RemoteScoreServer] Mot de passe appel ${password ? 'défini' : 'supprimé'}`);
@@ -5356,7 +5400,7 @@ export class RemoteScoreServer {
   private checkCheckinAuth(cookieHeader: string | undefined): boolean {
     if (!this.checkinPassword) return false;
     const token = this.parseCookies(cookieHeader)['bp_checkin_token'];
-    return !!token && this.checkinTokens.has(token);
+    return this.isTokenValid(this.checkinTokens, token);
   }
 
   /** Refus d'accès à l'API d'appel, ou null si autorisé. */
@@ -5375,30 +5419,98 @@ export class RemoteScoreServer {
     return null;
   }
 
-  private getClientIp(req: express.Request): string {
-    return (
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
-      req.socket.remoteAddress ||
-      'unknown'
-    );
+  /** Active la lecture de X-Forwarded-For (uniquement derrière un reverse proxy de confiance). */
+  public setTrustProxy(trust: boolean): void {
+    this.trustProxy = trust;
   }
 
-  /** 5 tentatives de connexion par IP et par minute (arènes + appel). */
-  private checkLoginRateLimit(ip: string): boolean {
+  /** IP du client : adresse de la socket TCP, X-Forwarded-For ignoré sauf trustProxy. */
+  private getClientIp(req: express.Request): string {
+    const forwarded = this.trustProxy
+      ? (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim()
+      : undefined;
+    const ip = forwarded || req.socket?.remoteAddress || 'unknown';
+    return ip.startsWith('::ffff:') ? ip.slice(7) : ip;
+  }
+
+  /** Compteur fenêtre fixe d'une minute ; false si la limite est atteinte. */
+  private hitWindow(
+    map: Map<string, { count: number; resetAt: number }>,
+    key: string,
+    max: number
+  ): boolean {
     const now = Date.now();
-    const attempt = this.loginAttempts.get(ip);
+    const attempt = map.get(key);
     if (attempt && now < attempt.resetAt) {
-      if (attempt.count >= 5) return false;
+      if (attempt.count >= max) return false;
       attempt.count++;
       return true;
     }
-    if (!attempt && this.loginAttempts.size >= this.LOGIN_ATTEMPTS_MAX_ENTRIES) {
+    if (!attempt && map.size >= this.LOGIN_ATTEMPTS_MAX_ENTRIES) {
       // Plafond : éviction de l'entrée la plus ancienne (ordre d'insertion des Map)
-      const oldest = this.loginAttempts.keys().next().value;
-      if (oldest !== undefined) this.loginAttempts.delete(oldest);
+      const oldest = map.keys().next().value;
+      if (oldest !== undefined) map.delete(oldest);
     }
-    this.loginAttempts.set(ip, { count: 1, resetAt: now + 60_000 });
+    map.set(key, { count: 1, resetAt: now + 60_000 });
     return true;
+  }
+
+  /** Contrôle avant tentative de connexion : blocage progressif, limite par IP, limite par cible.
+   *  Retourne null si autorisé, sinon le délai d'attente en secondes. */
+  private checkLoginAllowed(ip: string, target: string): { retryAfterSec: number } | null {
+    const now = Date.now();
+    const failure = this.loginFailures.get(ip);
+    if (failure && now < failure.lockedUntil) {
+      return { retryAfterSec: Math.ceil((failure.lockedUntil - now) / 1000) };
+    }
+    if (!this.hitWindow(this.loginAttempts, ip, this.LOGIN_PER_IP_PER_MIN)) {
+      return { retryAfterSec: 60 };
+    }
+    if (!this.hitWindow(this.loginTargetAttempts, target, this.LOGIN_PER_TARGET_PER_MIN)) {
+      return { retryAfterSec: 60 };
+    }
+    return null;
+  }
+
+  private sendLoginLimited(res: express.Response, limited: { retryAfterSec: number }) {
+    res.setHeader('Retry-After', String(limited.retryAfterSec));
+    return res.status(429).json({
+      success: false,
+      error: `Trop de tentatives. Réessayez dans ${limited.retryAfterSec} s.`,
+    });
+  }
+
+  /** Échec : délai fixe, blocage exponentiel au-delà du seuil, alerte opérateur. */
+  private async recordLoginFailure(ip: string, target: string): Promise<void> {
+    const now = Date.now();
+    const f = this.loginFailures.get(ip) ?? { fails: 0, lockedUntil: 0, lastFailAt: 0 };
+    f.fails++;
+    f.lastFailAt = now;
+    if (f.fails >= this.LOCKOUT_THRESHOLD) {
+      const lockMs = Math.min(
+        this.LOCKOUT_MAX_MS,
+        this.LOCKOUT_BASE_MS * 2 ** (f.fails - this.LOCKOUT_THRESHOLD)
+      );
+      f.lockedUntil = now + lockMs;
+      const msg = `[Sécurité] ${f.fails} échecs de connexion depuis ${ip} (cible ${target}) — bloqué ${Math.round(lockMs / 1000)} s`;
+      console.warn(`[RemoteScoreServer] ${msg}`);
+      this.sendDiag(msg);
+    }
+    // Réinsertion en fin de Map (ordre = récence) + plafond mémoire
+    this.loginFailures.delete(ip);
+    if (this.loginFailures.size >= this.LOGIN_ATTEMPTS_MAX_ENTRIES) {
+      const oldest = this.loginFailures.keys().next().value;
+      if (oldest !== undefined) this.loginFailures.delete(oldest);
+    }
+    this.loginFailures.set(ip, f);
+    if (this.loginFailureDelayMs > 0) {
+      await new Promise(resolve => setTimeout(resolve, this.loginFailureDelayMs));
+    }
+  }
+
+  private recordLoginSuccess(ip: string): void {
+    this.loginAttempts.delete(ip);
+    this.loginFailures.delete(ip);
   }
 
   public setRegistrationEnabled(enabled: boolean): void {
@@ -6464,6 +6576,7 @@ export class RemoteScoreServer {
     const arena = this.arenas.get(fullId);
     if (!arena) throw new Error(`Arène ${arenaId} introuvable`);
     // Stocké hashé : jamais de mot de passe en clair en mémoire
+    this.assertPasswordStrength(password);
     arena.password = password ? this.hashPassword(password) : undefined;
     // Invalider tous les tokens existants pour cette arène
     this.arenaTokens.delete(fullId);
