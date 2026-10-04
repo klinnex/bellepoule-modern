@@ -212,6 +212,11 @@ export class RemoteScoreServer {
   // Rate limiting pour le login : { ip → { count, resetAt } }
   private loginAttempts: Map<string, { count: number; resetAt: number }> = new Map();
   private readonly LOGIN_ATTEMPTS_MAX_ENTRIES = 1000;
+  // Anti-DoS Socket.IO : connexions simultanées par IP + seau à jetons par socket
+  private socketsPerIp: Map<string, number> = new Map();
+  private readonly MAX_SOCKETS_PER_IP = 30;
+  private readonly SOCKET_EVENT_BURST = 40;
+  private readonly SOCKET_EVENTS_PER_SEC = 20;
   // Rate limiting par cible (arène / appel), tous clients confondus : { cible → { count, resetAt } }
   private loginTargetAttempts: Map<string, { count: number; resetAt: number }> = new Map();
   private readonly LOGIN_PER_IP_PER_MIN = 5;
@@ -279,6 +284,12 @@ export class RemoteScoreServer {
       : createHttpServer(this.app);
     // Limiter CORS au réseau local (localhost + LAN) pour la sécurité
     this.io = new SocketIOServer(this.server, {
+      // 1 Mo : select_match peut transporter les photos base64 des tireurs
+      maxHttpBufferSize: 1e6,
+      // Origine vérifiée à la poignée de main (WebSocket n'est pas soumis au CORS navigateur)
+      allowRequest: (req, callback) => {
+        callback(null, this.isAllowedOrigin(req.headers.origin, req.headers.host));
+      },
       cors: {
         origin: (origin, callback) => {
           // Autoriser les requêtes sans origin (ex. Electron, curl) et le réseau local
@@ -651,10 +662,32 @@ export class RemoteScoreServer {
     return false;
   }
 
+  private static normalizeIp(ip: string | undefined): string {
+    if (!ip) return 'unknown';
+    return ip.startsWith('::ffff:') ? ip.slice(7) : ip;
+  }
+
+  private static isLoopbackAddress(addr: string | undefined): boolean {
+    const ip = RemoteScoreServer.normalizeIp(addr);
+    return ip === '127.0.0.1' || ip === '::1';
+  }
+
+  /** Origine acceptée : même hôte que la page ou réseau local. Bloque les pages web tierces
+   *  (CSRF, WebSocket cross-site). Origin absent accepté : le polling Socket.IO (GET même
+   *  origine) ne l'envoie pas, et un client hors navigateur peut de toute façon le forger. */
+  private isAllowedOrigin(origin: string | undefined, host: string | undefined): boolean {
+    if (!origin) return true;
+    try {
+      if (host && new URL(origin).host === host) return true;
+    } catch {
+      return false;
+    }
+    return isLocalNetworkOrigin(origin);
+  }
+
   /** Requête émise depuis la machine hôte (loopback uniquement, sans X-Forwarded-For). */
   private isLoopbackRequest(req: express.Request): boolean {
-    const addr = req.socket.remoteAddress ?? '';
-    return addr === '127.0.0.1' || addr === '::1' || addr === '::ffff:127.0.0.1';
+    return RemoteScoreServer.isLoopbackAddress(req.socket?.remoteAddress);
   }
 
   /** Middleware : exige l'auth de l'arène `:arenaId`. */
@@ -689,10 +722,29 @@ export class RemoteScoreServer {
     return false;
   }
 
+  private static isLoginPath(path: string): boolean {
+    return path === '/api/checkin/login' || path.startsWith('/api/auth/login/');
+  }
+
   private setupMiddleware(): void {
     console.log('[RemoteScoreServer] Configuration du middleware...');
-    // Limite de taille : les photos d'inscription (base64 ~700KB) sont le plus gros payload légitime
-    this.app.use(express.json({ limit: '1mb' }));
+    // Limite de taille : les photos d'inscription (base64 ~700KB) sont le plus gros payload légitime.
+    // Routes de connexion : 4 Ko suffisent (mot de passe seul).
+    const smallJson = express.json({ limit: '4kb' });
+    const largeJson = express.json({ limit: '1mb' });
+    this.app.use((req, res, next) =>
+      (RemoteScoreServer.isLoginPath(req.path) ? smallJson : largeJson)(req, res, next)
+    );
+
+    // Requêtes mutantes : refus d'une Origin étrangère (page web tierce → CSRF).
+    this.app.use((req, res, next) => {
+      if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+      if (!this.isAllowedOrigin(req.headers.origin, req.headers.host)) {
+        res.status(403).json({ error: 'Origine refusée' });
+        return;
+      }
+      next();
+    });
 
     // En-têtes de sécurité de base. Pas de restriction script-src/style-src : les pages
     // remote (arena/kiosk/overlay/...) utilisent des <script> inline sans nonce.
@@ -845,7 +897,7 @@ export class RemoteScoreServer {
       }
     });
 
-    this.app.get('/api/debug', (req, res) => {
+    this.app.get('/api/debug', this.requireLoopback, (req, res) => {
       res.json({
         status: 'ok',
         session: this.session ? 'active' : 'inactive',
@@ -3139,6 +3191,40 @@ export class RemoteScoreServer {
     this.io.on('connection', (socket: any) => {
       console.log('Client connected:', socket.id);
 
+      // Plafond de connexions simultanées par IP
+      const clientIp = RemoteScoreServer.normalizeIp(socket.handshake?.address);
+      const count = (this.socketsPerIp.get(clientIp) ?? 0) + 1;
+      if (count > this.MAX_SOCKETS_PER_IP && !RemoteScoreServer.isLoopbackAddress(clientIp)) {
+        this.sendDiag(`[Sécurité] Trop de connexions socket depuis ${clientIp} — refusée`);
+        socket.disconnect(true);
+        return;
+      }
+      this.socketsPerIp.set(clientIp, count);
+      socket.on('disconnect', () => {
+        const n = (this.socketsPerIp.get(clientIp) ?? 1) - 1;
+        if (n <= 0) this.socketsPerIp.delete(clientIp);
+        else this.socketsPerIp.set(clientIp, n);
+      });
+
+      // Seau à jetons : rafale de SOCKET_EVENT_BURST, recharge SOCKET_EVENTS_PER_SEC/s
+      let tokens = this.SOCKET_EVENT_BURST;
+      let lastRefill = Date.now();
+      socket.use?.((_packet: unknown, next: (err?: Error) => void) => {
+        const now = Date.now();
+        tokens = Math.min(
+          this.SOCKET_EVENT_BURST,
+          tokens + ((now - lastRefill) / 1000) * this.SOCKET_EVENTS_PER_SEC
+        );
+        lastRefill = now;
+        if (tokens < 1) {
+          this.sendDiag(`[Sécurité] Flood socket depuis ${clientIp} — déconnecté`);
+          socket.disconnect(true);
+          return;
+        }
+        tokens -= 1;
+        next();
+      });
+
       // Gestion des arènes
       socket.on('join_arena', (data: { arenaId: string; role?: string; lastSeen?: number }) => {
         console.log(
@@ -3263,10 +3349,7 @@ export class RemoteScoreServer {
             socketId: socket.id,
             clientType: data.clientType ?? 'arena',
             arenaId: data.arenaId,
-            ip:
-              (socket.handshake.headers['x-forwarded-for'] as string) ||
-              socket.handshake.address ||
-              '',
+            ip: RemoteScoreServer.normalizeIp(socket.handshake.address),
             userAgent: data.userAgent ?? '',
             connectedAt: now,
             lastSeen: now,
