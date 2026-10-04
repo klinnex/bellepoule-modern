@@ -1115,4 +1115,141 @@ describe('RemoteScoreServer', () => {
       expect(store.size).toBe(50);
     });
   });
+
+  describe('P2 : durcissement réseau / DoS', () => {
+    function connect(address = '192.168.1.50', headers: any = {}) {
+      const io = (server as any).io;
+      const onConnection = vi
+        .mocked(io.on)
+        .mock.calls.find((c: any[]) => c[0] === 'connection')?.[1];
+      const handlers: Record<string, any> = {};
+      let packetMiddleware: any;
+      const socket = {
+        id: 'sock-' + Math.random(),
+        handshake: { headers, address },
+        on: vi.fn((ev: string, cb: any) => {
+          // Plusieurs écouteurs possibles (ex. disconnect) : tous appelés
+          const prev = handlers[ev];
+          handlers[ev] = prev
+            ? (...args: any[]) => {
+                prev(...args);
+                cb(...args);
+              }
+            : cb;
+        }),
+        use: vi.fn((fn: any) => {
+          packetMiddleware = fn;
+        }),
+        emit: vi.fn(),
+        join: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      onConnection(socket);
+      return { socket, handlers, packetMiddleware };
+    }
+
+    // Exécute les middlewares globaux (app.use) dans l'ordre, comme Express
+    async function runGlobalMiddlewares(req: any, res: any): Promise<boolean> {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      for (const layer of stack.filter((l: any) => !l.route)) {
+        let passed = false;
+        await new Promise<void>(resolve => {
+          const r = layer.handle(req, res, () => {
+            passed = true;
+            resolve();
+          });
+          if (!passed) setTimeout(resolve, 0);
+          return r;
+        });
+        if (!passed) return false;
+      }
+      return true;
+    }
+
+    it('isAllowedOrigin : même hôte / LAN acceptés, origine externe refusée', () => {
+      const ok = (o: any) => (server as any).isAllowedOrigin(o, 'bellepoule.local:8066');
+      expect(ok('http://bellepoule.local:8066')).toBe(true);
+      expect(ok('http://192.168.1.10:8066')).toBe(true);
+      expect(ok('https://evil.example.com')).toBe(false);
+      expect(ok('null')).toBe(false);
+      // Polling Socket.IO même origine : pas d'en-tête Origin
+      expect(ok(undefined)).toBe(true);
+    });
+
+    it('POST avec Origin étrangère refusé (403), Origin même hôte accepté', async () => {
+      const base = { method: 'POST', path: '/api/sync', url: '/api/sync' };
+      const denied = makeRes();
+      const passedDenied = await runGlobalMiddlewares(
+        makeReq({
+          ...base,
+          headers: { host: '192.168.1.10:8066', origin: 'https://evil.example.com' },
+          socket: { remoteAddress: '192.168.1.50' },
+        }),
+        denied
+      );
+      expect(passedDenied).toBe(false);
+      expect(denied.status).toHaveBeenCalledWith(403);
+
+      const allowed = makeRes();
+      const passedAllowed = await runGlobalMiddlewares(
+        makeReq({
+          ...base,
+          headers: { host: '192.168.1.10:8066', origin: 'http://192.168.1.10:8066' },
+          socket: { remoteAddress: '192.168.1.50' },
+        }),
+        allowed
+      );
+      expect(passedAllowed).toBe(true);
+    });
+
+    it('limite JSON réduite sur les routes de connexion', () => {
+      expect((RemoteScoreServer as any).isLoginPath('/api/auth/login/arena1')).toBe(true);
+      expect((RemoteScoreServer as any).isLoginPath('/api/checkin/login')).toBe(true);
+      expect((RemoteScoreServer as any).isLoginPath('/api/register')).toBe(false);
+    });
+
+    it('/api/debug réservé à la machine hôte', async () => {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const handlers = stack
+        .find((l: any) => l?.route?.path === '/api/debug')
+        .route.stack.map((x: any) => x.handle);
+      const res = makeRes();
+      const next = vi.fn();
+      handlers[0](makeReq({ socket: { remoteAddress: '192.168.1.50' } }), res, next);
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('refuse au-delà de 30 sockets simultanées par IP, libère à la déconnexion', () => {
+      const conns = Array.from({ length: 30 }, () => connect('192.168.1.60'));
+      conns.forEach(c => expect(c.socket.disconnect).not.toHaveBeenCalled());
+      const extra = connect('192.168.1.60');
+      expect(extra.socket.disconnect).toHaveBeenCalledWith(true);
+      conns[0].handlers.disconnect();
+      const again = connect('192.168.1.60');
+      expect(again.socket.disconnect).not.toHaveBeenCalled();
+    });
+
+    it("déconnecte une socket qui inonde le serveur d'événements", () => {
+      const { socket, packetMiddleware } = connect('192.168.1.61');
+      const next = vi.fn();
+      for (let i = 0; i < 40; i++) packetMiddleware([], next);
+      expect(next).toHaveBeenCalledTimes(40);
+      expect(socket.disconnect).not.toHaveBeenCalled();
+      packetMiddleware([], next);
+      expect(next).toHaveBeenCalledTimes(40);
+      expect(socket.disconnect).toHaveBeenCalledWith(true);
+    });
+
+    it("client:register enregistre l'IP de la socket, pas X-Forwarded-For", () => {
+      vi.spyOn(server as any, 'broadcastClientList').mockImplementation(() => {});
+      const { socket, handlers } = connect('::ffff:192.168.1.62', {
+        'x-forwarded-for': '6.6.6.6',
+      });
+      handlers['client:register']({ clientType: 'kiosk' });
+      expect((server as any).connectedClients.get(socket.id).ip).toBe('192.168.1.62');
+    });
+  });
 });
