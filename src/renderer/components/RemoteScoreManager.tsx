@@ -1361,7 +1361,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   <input
                     type="password"
                     className="arena-password-input"
-                    placeholder="Aucun (accès libre)"
+                    placeholder="Aucun (accès libre) · 8 car. min."
                     value={arenaPasswords[`arena${arena.number}`] ?? ''}
                     onChange={e =>
                       setArenaPasswords(p => ({
@@ -1529,7 +1529,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             <input
               type="password"
               className="arena-password-input"
-              placeholder="Obligatoire pour ouvrir l'appel"
+              placeholder="Obligatoire pour ouvrir l'appel · 8 car. min."
               value={checkinPassword}
               onChange={e => setCheckinPassword(e.target.value)}
               onKeyDown={e => {
