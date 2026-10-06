@@ -487,6 +487,39 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     }
   };
 
+  // Mot de passe commun : appliqué à toutes les pistes, y compris celles ajoutées ensuite (#988)
+  const [commonArenaPassword, setCommonArenaPassword] = useState('');
+  const [appliedCommonPassword, setAppliedCommonPassword] = useState<string | null>(null);
+
+  const applyCommonArenaPassword = async (pwd: string, numbers: number[]): Promise<boolean> => {
+    for (const n of numbers) {
+      const result = await window.electronAPI.remote.setArenaPassword(competition.id, `arena${n}`, pwd);
+      if (!result.success) {
+        showToast(result.error ?? 'Erreur', 'error');
+        return false;
+      }
+    }
+    setArenaPasswords(p => {
+      const next = { ...p };
+      for (const n of numbers) next[`arena${n}`] = pwd;
+      return next;
+    });
+    return true;
+  };
+
+  const handleApplyCommonPassword = async () => {
+    const numbers = Array.from({ length: arenaCount }, (_, i) => i + 1);
+    if (await applyCommonArenaPassword(commonArenaPassword, numbers)) {
+      setAppliedCommonPassword(commonArenaPassword || null);
+      showToast(
+        commonArenaPassword
+          ? `Mot de passe commun défini pour ${numbers.length} piste(s)`
+          : 'Mots de passe des pistes supprimés',
+        'success'
+      );
+    }
+  };
+
   const applyCheckinPassword = async () => {
     const result = await window.electronAPI.remote.setCheckinPassword(competition.id, checkinPassword);
     if (result.success) {
@@ -619,6 +652,17 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   const kioskUrl = `${serverUrl}/kiosk`;
   const lobbyUrl = `${serverUrl}/lobby`;
   const checkinUrl = `${serverUrl}/appel`;
+  // Pistes ajoutées après définition du MDP commun : même mot de passe (#988)
+  const commonPwdCountRef = useRef(arenaCount);
+  useEffect(() => {
+    const prev = commonPwdCountRef.current;
+    commonPwdCountRef.current = arenaCount;
+    if (!appliedCommonPassword || !session || arenaCount <= prev) return;
+    const added = Array.from({ length: arenaCount - prev }, (_, i) => prev + i + 1);
+    void applyCommonArenaPassword(appliedCommonPassword, added);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [arenaCount]);
+
   const arenaUrls = Array.from({ length: arenaCount }, (_, i) => ({
     number: i + 1,
     refereeUrl: `${serverUrl}/arene${i + 1}/arbitre`,
@@ -1110,6 +1154,27 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           {orgNoteActive && (
             <div style={RSM_STYLES.orgNoteActive}>● Note visible sur le kiosk</div>
           )}
+        </div>
+
+        <div className="arena-url-row" style={{ marginBottom: '0.75rem' }}>
+          <span className="arena-url-label">🔒 MDP commun</span>
+          <input
+            type="password"
+            className="arena-password-input"
+            placeholder="Toutes les pistes · 8 car. min. (vide = accès libre)"
+            value={commonArenaPassword}
+            onChange={e => setCommonArenaPassword(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') handleApplyCommonPassword();
+            }}
+          />
+          <button
+            className="btn-copy"
+            title="Appliquer à toutes les pistes"
+            onClick={handleApplyCommonPassword}
+          >
+            ✓
+          </button>
         </div>
 
         <div className="arena-url-grid">
