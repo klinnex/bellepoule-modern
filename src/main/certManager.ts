@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import * as os from 'os';
-import selfsigned from 'selfsigned';
+import { generate } from 'selfsigned';
 
 export interface CertBundle {
   cert: string;
@@ -58,8 +58,10 @@ export async function ensureCert(userDataPath: string): Promise<CertBundle> {
   fs.mkdirSync(certsDir, { recursive: true });
 
   const attrs = [{ name: 'commonName', value: 'BellePoule-LAN' }];
-  const generated = selfsigned.generate(attrs, {
-    days: 3650,
+  const notAfterDate = new Date();
+  notAfterDate.setDate(notAfterDate.getDate() + 3650);
+  const generated = await generate(attrs, {
+    notAfterDate,
     keySize: 2048,
     algorithm: 'sha256',
     extensions: [{ name: 'subjectAltName', altNames: buildAltNames() }],
