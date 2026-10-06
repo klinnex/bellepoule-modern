@@ -38,12 +38,7 @@ const MODE_LABELS: Record<AdvancementMode, string> = {
   pool_winner: 'Vainqueur de poule',
 };
 
-const AdvancementRuleEditor_: React.FC<Props> = ({
-  rule,
-  onChange,
-  inputFencers,
-  readOnly,
-}) => {
+const AdvancementRuleEditor_: React.FC<Props> = ({ rule, onChange, inputFencers, readOnly }) => {
   const advancing = inputFencers ? computeAdvancing(inputFencers, rule) : null;
 
   const setMode = (mode: AdvancementMode) => {

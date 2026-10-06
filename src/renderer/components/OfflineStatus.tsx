@@ -111,102 +111,107 @@ const OfflineStatus_: React.FC<OfflineStatusProps> = ({ className = '' }) => {
 
   return (
     <>
-    <div className={`fixed bottom-4 right-4 z-50 ${className}`}>
-      <div className="bg-white rounded-lg shadow-lg border border-gray-200 min-w-[250px]">
-        {/* Status indicator */}
-        <div
-          className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50"
-          onClick={() => setShowDetails(!showDetails)}
-        >
-          <div className="flex items-center space-x-2">
-            <div
-              className={`w-3 h-3 rounded-full ${getStatusColor()} ${isSyncing ? 'animate-pulse' : ''}`}
-            />
-            <span className="text-sm font-medium text-gray-700">{getStatusText()}</span>
-          </div>
-          <svg
-            className={`w-4 h-4 text-gray-400 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+      <div className={`fixed bottom-4 right-4 z-50 ${className}`}>
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 min-w-[250px]">
+          {/* Status indicator */}
+          <div
+            className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50"
+            onClick={() => setShowDetails(!showDetails)}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-
-        {/* Details panel */}
-        {showDetails && (
-          <div className="border-t border-gray-200 p-3 space-y-3">
-            {/* Connection status */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Connexion:</span>
-              <span
-                className={`text-sm font-medium ${isOnline ? 'text-green-600' : 'text-red-600'}`}
-              >
-                {isOnline ? 'En ligne' : 'Hors ligne'}
-              </span>
+            <div className="flex items-center space-x-2">
+              <div
+                className={`w-3 h-3 rounded-full ${getStatusColor()} ${isSyncing ? 'animate-pulse' : ''}`}
+              />
+              <span className="text-sm font-medium text-gray-700">{getStatusText()}</span>
             </div>
+            <svg
+              className={`w-4 h-4 text-gray-400 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
 
-            {/* Last sync */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Dernière synchro:</span>
-              <span className="text-sm text-gray-700">{formatLastSync(syncStatus.lastSync)}</span>
-            </div>
-
-            {/* Pending actions */}
-            {syncStatus.pendingActions > 0 && (
+          {/* Details panel */}
+          {showDetails && (
+            <div className="border-t border-gray-200 p-3 space-y-3">
+              {/* Connection status */}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Actions en attente:</span>
-                <span className="text-sm font-medium text-orange-600">
-                  {syncStatus.pendingActions}
+                <span className="text-sm text-gray-600">Connexion:</span>
+                <span
+                  className={`text-sm font-medium ${isOnline ? 'text-green-600' : 'text-red-600'}`}
+                >
+                  {isOnline ? 'En ligne' : 'Hors ligne'}
                 </span>
               </div>
-            )}
 
-            {/* Conflicts */}
-            {syncStatus.conflicts > 0 && (
+              {/* Last sync */}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Conflits:</span>
+                <span className="text-sm text-gray-600">Dernière synchro:</span>
+                <span className="text-sm text-gray-700">{formatLastSync(syncStatus.lastSync)}</span>
+              </div>
+
+              {/* Pending actions */}
+              {syncStatus.pendingActions > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Actions en attente:</span>
+                  <span className="text-sm font-medium text-orange-600">
+                    {syncStatus.pendingActions}
+                  </span>
+                </div>
+              )}
+
+              {/* Conflicts */}
+              {syncStatus.conflicts > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Conflits:</span>
+                  <button
+                    onClick={() => setShowConflictModal(true)}
+                    className="text-sm font-medium text-red-600 underline hover:text-red-700 transition-colors"
+                  >
+                    Résoudre {syncStatus.conflicts} conflit{syncStatus.conflicts > 1 ? 's' : ''}
+                  </button>
+                </div>
+              )}
+
+              {/* Manual sync button */}
+              {isOnline && !isSyncing && syncStatus.pendingActions > 0 && (
                 <button
-                  onClick={() => setShowConflictModal(true)}
-                  className="text-sm font-medium text-red-600 underline hover:text-red-700 transition-colors"
+                  onClick={handleManualSync}
+                  className="w-full mt-3 px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
                 >
-                  Résoudre {syncStatus.conflicts} conflit{syncStatus.conflicts > 1 ? 's' : ''}
+                  Synchroniser maintenant
                 </button>
-              </div>
-            )}
+              )}
 
-            {/* Manual sync button */}
-            {isOnline && !isSyncing && syncStatus.pendingActions > 0 && (
-              <button
-                onClick={handleManualSync}
-                className="w-full mt-3 px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
-              >
-                Synchroniser maintenant
-              </button>
-            )}
+              {/* Syncing indicator */}
+              {isSyncing && (
+                <div className="flex items-center justify-center space-x-2 py-2">
+                  <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm text-gray-600">Synchronisation en cours...</span>
+                </div>
+              )}
 
-            {/* Syncing indicator */}
-            {isSyncing && (
-              <div className="flex items-center justify-center space-x-2 py-2">
-                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm text-gray-600">Synchronisation en cours...</span>
-              </div>
-            )}
-
-            {/* Offline warning */}
-            {!isOnline && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
-                <p className="text-xs text-yellow-800">
-                  <strong>Mode hors ligne:</strong> Les modifications seront synchronisées
-                  automatiquement lorsque la connexion sera rétablie.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+              {/* Offline warning */}
+              {!isOnline && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                  <p className="text-xs text-yellow-800">
+                    <strong>Mode hors ligne:</strong> Les modifications seront synchronisées
+                    automatiquement lorsque la connexion sera rétablie.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
 
       <ConflictResolutionModal
         conflicts={conflicts}

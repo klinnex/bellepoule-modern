@@ -75,10 +75,24 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
         >
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🤺</div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '0.5rem' }}>
+            <h1
+              style={{
+                fontSize: '1.75rem',
+                fontWeight: 700,
+                letterSpacing: '-0.03em',
+                marginBottom: '0.5rem',
+              }}
+            >
               Bienvenue sur BellePoule
             </h1>
-            <p style={{ color: 'var(--color-text-light)', fontSize: '1rem', maxWidth: '36ch', margin: '0 auto' }}>
+            <p
+              style={{
+                color: 'var(--color-text-light)',
+                fontSize: '1rem',
+                maxWidth: '36ch',
+                margin: '0 auto',
+              }}
+            >
               Gérez vos compétitions d&apos;escrime de l&apos;appel au podium.
             </p>
           </div>
@@ -89,38 +103,90 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
               { step: '2', icon: '🤺', label: 'Ajouter', desc: 'les tireurs' },
               { step: '3', icon: '🎯', label: 'Générer', desc: 'les poules' },
               { step: '4', icon: '🏅', label: 'Publier', desc: 'les résultats' },
-            ].map(({ step, icon, label, desc }) => (
-              <div key={step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', width: 100 }}>
-                <div style={{
-                  width: 48, height: 48, borderRadius: '50%',
-                  background: 'var(--color-primary)', color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1.25rem', fontWeight: 700, boxShadow: '0 4px 12px var(--color-primary-glow)',
-                }}>
-                  {icon}
+            ]
+              .map(({ step, icon, label, desc }) => (
+                <div
+                  key={step}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    width: 100,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: '50%',
+                      background: 'var(--color-primary)',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.25rem',
+                      fontWeight: 700,
+                      boxShadow: '0 4px 12px var(--color-primary-glow)',
+                    }}
+                  >
+                    {icon}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.6875rem',
+                      fontWeight: 700,
+                      color: 'var(--color-text-muted)',
+                      letterSpacing: '0.05em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Étape {step}
+                  </div>
+                  <div style={{ textAlign: 'center', fontSize: '0.8125rem', fontWeight: 600 }}>
+                    {label}
+                  </div>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      fontSize: '0.75rem',
+                      color: 'var(--color-text-light)',
+                    }}
+                  >
+                    {desc}
+                  </div>
                 </div>
-                <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--color-text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                  Étape {step}
-                </div>
-                <div style={{ textAlign: 'center', fontSize: '0.8125rem', fontWeight: 600 }}>{label}</div>
-                <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--color-text-light)' }}>{desc}</div>
-              </div>
-            )).reduce<React.ReactNode[]>((acc, el, i) => {
-              if (i > 0) acc.push(
-                <div key={`arrow-${i}`} style={{ color: 'var(--color-border-dark)', marginTop: '1rem', fontSize: '1.25rem' }}>→</div>
-              );
-              acc.push(el);
-              return acc;
-            }, [])}
+              ))
+              .reduce<React.ReactNode[]>((acc, el, i) => {
+                if (i > 0)
+                  acc.push(
+                    <div
+                      key={`arrow-${i}`}
+                      style={{
+                        color: 'var(--color-border-dark)',
+                        marginTop: '1rem',
+                        fontSize: '1.25rem',
+                      }}
+                    >
+                      →
+                    </div>
+                  );
+                acc.push(el);
+                return acc;
+              }, [])}
           </div>
 
-          <button className="btn btn-primary btn-lg" onClick={onNewCompetition} style={{ padding: '0.75rem 2rem' }}>
+          <button
+            className="btn btn-primary btn-lg"
+            onClick={onNewCompetition}
+            style={{ padding: '0.75rem 2rem' }}
+          >
             + {t('menu.new_competition')}
           </button>
 
           <p style={{ color: 'var(--color-text-light)', fontSize: '0.75rem' }}>
-            Astuce : appuyez sur <kbd>?</kbd> pour voir les raccourcis clavier, ou{' '}
-            <kbd>Ctrl</kbd>+<kbd>K</kbd> pour ouvrir la palette de commandes.
+            Astuce : appuyez sur <kbd>?</kbd> pour voir les raccourcis clavier, ou <kbd>Ctrl</kbd>+
+            <kbd>K</kbd> pour ouvrir la palette de commandes.
           </p>
         </div>
       </div>
@@ -161,7 +227,10 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                 </div>
                 <button
                   className="btn btn-icon btn-secondary comp-card-delete"
-                  onClick={e => { e.stopPropagation(); onDelete(competition.id); }}
+                  onClick={e => {
+                    e.stopPropagation();
+                    onDelete(competition.id);
+                  }}
                   title={t('actions.delete')}
                 >
                   🗑️
@@ -178,9 +247,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
               </div>
 
               <div className="comp-card-footer">
-                <span className="comp-card-fencers">
-                  🤺 {competition.fencers.length} tireurs
-                </span>
+                <span className="comp-card-fencers">🤺 {competition.fencers.length} tireurs</span>
                 <span className="comp-card-open">Ouvrir →</span>
               </div>
             </div>

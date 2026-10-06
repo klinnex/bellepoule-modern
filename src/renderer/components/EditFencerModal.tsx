@@ -48,7 +48,14 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div ref={modalRef} className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }} role="dialog" aria-modal="true">
+      <div
+        ref={modalRef}
+        className="modal"
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '500px' }}
+        role="dialog"
+        aria-modal="true"
+      >
         <div className="modal-header">
           <h2>Modifier le tireur</h2>
           <button className="btn-close" onClick={onClose}>

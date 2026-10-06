@@ -22,20 +22,27 @@ export function generateResultsHTML(
   logoBase64?: string,
   template?: PdfTemplate
 ): string {
-  const now = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const now = new Date().toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
   const medals: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
-  const rows = results.map(r => {
-    const medal = medals[r.rank] ?? '';
-    const status =
-      r.fencer.status === FencerStatus.ABANDONED ? ' <span style="color:#ef4444;font-size:8pt">(A)</span>' :
-      r.fencer.status === FencerStatus.FORFAIT   ? ' <span style="color:#ef4444;font-size:8pt">(F)</span>' :
-      r.fencer.status === FencerStatus.EXCLUDED
-        ? r.fencer.exclusionReason === 'black_card'
-          ? ' <span title="Carton noir" style="display:inline-block;width:7pt;height:10pt;margin-left:4pt;background:#000;border-radius:1pt;vertical-align:-1pt"></span>'
-          : ' <span style="color:#ef4444;font-size:8pt">(X)</span>'
-        : '';
-    return `
+  const rows = results
+    .map(r => {
+      const medal = medals[r.rank] ?? '';
+      const status =
+        r.fencer.status === FencerStatus.ABANDONED
+          ? ' <span style="color:#ef4444;font-size:8pt">(A)</span>'
+          : r.fencer.status === FencerStatus.FORFAIT
+            ? ' <span style="color:#ef4444;font-size:8pt">(F)</span>'
+            : r.fencer.status === FencerStatus.EXCLUDED
+              ? r.fencer.exclusionReason === 'black_card'
+                ? ' <span title="Carton noir" style="display:inline-block;width:7pt;height:10pt;margin-left:4pt;background:#000;border-radius:1pt;vertical-align:-1pt"></span>'
+                : ' <span style="color:#ef4444;font-size:8pt">(X)</span>'
+              : '';
+      return `
 <tr>
   <td style="text-align:center;font-weight:700;color:var(--navy)">${medal} ${r.rank}</td>
   <td style="font-weight:600">${r.fencer.lastName.toUpperCase()}${status}</td>
@@ -43,13 +50,14 @@ export function generateResultsHTML(
   <td style="color:var(--gray-dark)">${r.fencer.club ?? ''}</td>
   <td style="text-align:center;color:var(--gray-dark)">${r.eliminatedAt ?? '-'}</td>
 </tr>`;
-  }).join('');
+    })
+    .join('');
 
   const effectiveTitle = template?.customTitle?.trim() || title;
   const cssOverrides = template ? buildCssOverrides(template) : '';
 
   const sections: Record<string, string> = {
-    'header': `
+    header: `
   <div class="doc-header">
     ${logoBase64 ? `<img class="doc-header-logo" src="${logoBase64}" alt="Logo" />` : ''}
     <div class="doc-header-left">
@@ -72,7 +80,7 @@ export function generateResultsHTML(
     </thead>
     <tbody>${rows}</tbody>
   </table>`,
-    'footer': `
+    footer: `
   <div class="doc-footer">
     <span>BellePoule Modern</span>
     <span>${now}</span>

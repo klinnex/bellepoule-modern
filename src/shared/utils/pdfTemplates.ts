@@ -406,7 +406,11 @@ export function generatePodiumCertificate(
   const margin = 18;
 
   const rankColors: Record<number, string> = { 1: '#d97706', 2: '#6b7280', 3: '#b45309' };
-  const rankLabels: Record<number, string> = { 1: '1ère place — Champion', 2: '2ème place', 3: '3ème place' };
+  const rankLabels: Record<number, string> = {
+    1: '1ère place — Champion',
+    2: '2ème place',
+    3: '3ème place',
+  };
   const rankColor = rankColors[recipient.rank];
 
   // Fond dégradé subtil (bordure décorative)
@@ -422,7 +426,9 @@ export function generatePodiumCertificate(
   if (logoDataUrl) {
     try {
       doc.addImage(logoDataUrl, 'PNG', margin, curY, 28, 28);
-    } catch { /* ignore logo error */ }
+    } catch {
+      /* ignore logo error */
+    }
   }
 
   // Titre "CERTIFICAT DE RÉSULTAT"
@@ -450,7 +456,12 @@ export function generatePodiumCertificate(
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(32);
   doc.setTextColor(17, 24, 39);
-  doc.text(`${recipient.firstName.toUpperCase()} ${recipient.lastName.toUpperCase()}`, W / 2, curY, { align: 'center' });
+  doc.text(
+    `${recipient.firstName.toUpperCase()} ${recipient.lastName.toUpperCase()}`,
+    W / 2,
+    curY,
+    { align: 'center' }
+  );
   curY += 8;
 
   if (recipient.club) {
@@ -481,14 +492,19 @@ export function generatePodiumCertificate(
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(11);
   doc.setTextColor(55, 65, 81);
-  const dateStr = competition.date instanceof Date
-    ? competition.date.toLocaleDateString('fr-FR')
-    : competition.date;
+  const dateStr =
+    competition.date instanceof Date
+      ? competition.date.toLocaleDateString('fr-FR')
+      : competition.date;
   doc.text(`Compétition : ${competition.title}`, W / 2, curY, { align: 'center' });
   curY += 7;
-  doc.text(`${dateStr}${competition.location ? ' — ' + competition.location : ''}`, W / 2, curY, { align: 'center' });
+  doc.text(`${dateStr}${competition.location ? ' — ' + competition.location : ''}`, W / 2, curY, {
+    align: 'center',
+  });
   curY += 7;
-  doc.text(`Arme : ${competition.weapon} | Catégorie : ${competition.category}`, W / 2, curY, { align: 'center' });
+  doc.text(`Arme : ${competition.weapon} | Catégorie : ${competition.category}`, W / 2, curY, {
+    align: 'center',
+  });
 
   // Footer
   doc.setFontSize(9);
@@ -501,7 +517,9 @@ export function generatePodiumCertificate(
 
 function hexToRgb(hex: string): [number, number, number] {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : [0, 0, 0];
+  return result
+    ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+    : [0, 0, 0];
 }
 
 /**

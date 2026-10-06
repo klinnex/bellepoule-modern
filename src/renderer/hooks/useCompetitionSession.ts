@@ -9,7 +9,17 @@ import { Pool, PoolRanking } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { TableauMatch, FinalResult, ConsolationBracket } from '../components/tableau/tableauTypes';
 
-export type Phase = 'checkin' | 'poolprep' | 'pools' | 'ranking' | 'quest' | 'tableau' | 'results' | 'remote' | 'logs' | 'referees';
+export type Phase =
+  | 'checkin'
+  | 'poolprep'
+  | 'pools'
+  | 'ranking'
+  | 'quest'
+  | 'tableau'
+  | 'results'
+  | 'remote'
+  | 'logs'
+  | 'referees';
 
 interface SessionState {
   currentPhase: number;
@@ -178,8 +188,16 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
       if (!window.electronAPI?.db?.saveSessionStateSync || !isLoadedRef.current) return;
       const p = propsRef.current;
       const phaseMap: Record<Phase, number> = {
-        checkin: 0, poolprep: 1, pools: 2, ranking: 3,
-        quest: 4, tableau: 5, results: 6, remote: 7, logs: 8, referees: 9,
+        checkin: 0,
+        poolprep: 1,
+        pools: 2,
+        ranking: 3,
+        quest: 4,
+        tableau: 5,
+        results: 6,
+        remote: 7,
+        logs: 8,
+        referees: 9,
       };
       window.electronAPI.db.saveSessionStateSync(p.competitionId, {
         currentPhase: phaseMap[p.currentPhase],

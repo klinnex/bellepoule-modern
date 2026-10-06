@@ -2,7 +2,7 @@
  * BellePoule Modern - Éditeur de critères de classement drag-reorderable
  */
 
-import React, { useRef, useState , memo} from 'react';
+import React, { useRef, useState, memo } from 'react';
 import { RankingCriterion, RankingCriterionId } from '../../../shared/types';
 
 const CRITERION_LABELS: Record<RankingCriterionId, string> = {
@@ -116,7 +116,10 @@ const RankingCriteriaEditor_: React.FC<Props> = ({ criteria, onChange, readOnly 
 
             {/* Toggle */}
             {!readOnly && (
-              <label className="criterion-toggle" title={criterion.enabled ? 'Désactiver' : 'Activer'}>
+              <label
+                className="criterion-toggle"
+                title={criterion.enabled ? 'Désactiver' : 'Activer'}
+              >
                 <input
                   type="checkbox"
                   checked={criterion.enabled}

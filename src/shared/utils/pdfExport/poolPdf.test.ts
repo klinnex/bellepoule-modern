@@ -3,7 +3,8 @@ import { generatePoolHTML } from './poolPdf';
 import { buildDefaultTemplate } from '../../types/pdfTemplate.types';
 import { MatchStatus, type Pool, type Fencer, type Match } from '../../types';
 
-const fencer = (id: string, lastName: string) => ({ id, lastName, firstName: 'X' }) as unknown as Fencer;
+const fencer = (id: string, lastName: string) =>
+  ({ id, lastName, firstName: 'X' }) as unknown as Fencer;
 
 function makePool(): Pool {
   const a = fencer('a', 'Alpha');
@@ -33,7 +34,10 @@ describe('generatePoolHTML – options export (#932)', () => {
   });
 
   it('conserve les colonnes non statistiques (club) avec hideStatColumns', () => {
-    const html = generatePoolHTML(makePool(), { hideStatColumns: true, visibleColumns: ['club', 'rank'] });
+    const html = generatePoolHTML(makePool(), {
+      hideStatColumns: true,
+      visibleColumns: ['club', 'rank'],
+    });
     expect(html).toContain('>Club</th>');
     expect(html).not.toContain('>Rg</th>');
   });

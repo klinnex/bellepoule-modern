@@ -108,10 +108,7 @@ export class CloudSyncService {
    * Charge la clé JWK depuis le stockage chiffré (safeStorage) si dispo,
    * sinon migre l'ancienne clé en clair, sinon en génère une nouvelle.
    */
-  private async loadOrCreateKeyJwk(
-    legacyKey: string,
-    secureKey: string
-  ): Promise<JsonWebKey> {
+  private async loadOrCreateKeyJwk(legacyKey: string, secureKey: string): Promise<JsonWebKey> {
     const crypto = (window as { electronAPI?: { crypto?: CryptoBridge } }).electronAPI?.crypto;
     const secureAvailable = crypto ? await crypto.isAvailable().catch(() => false) : false;
 
@@ -138,11 +135,10 @@ export class CloudSyncService {
     }
 
     // 3. Nouvelle clé
-    const key = await window.crypto.subtle.generateKey(
-      { name: 'AES-GCM', length: 256 },
-      true,
-      ['encrypt', 'decrypt']
-    );
+    const key = await window.crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, [
+      'encrypt',
+      'decrypt',
+    ]);
     const jwk = await window.crypto.subtle.exportKey('jwk', key);
     if (secureAvailable && crypto) {
       const enc = await crypto.protect(JSON.stringify(jwk)).catch(() => null);
@@ -152,7 +148,10 @@ export class CloudSyncService {
       }
     }
     // Fallback (ex. environnement web sans safeStorage) : stockage clair — à éviter en production
-    logger.warn(LogCategory.SYSTEM, 'Clé AES stockée en clair dans localStorage (safeStorage indisponible)');
+    logger.warn(
+      LogCategory.SYSTEM,
+      'Clé AES stockée en clair dans localStorage (safeStorage indisponible)'
+    );
     localStorage.setItem(legacyKey, JSON.stringify(jwk));
     return jwk;
   }
@@ -538,8 +537,16 @@ export class CloudSyncService {
    */
   private resolveConflicts(
     localData: { competitions: Competition[]; fencers: Fencer[]; matches: Match[] },
-    remoteData: { competitions: Competition[]; fencers: Fencer[]; matches: Match[]; timestamp: Date }
-  ): { mergedData: { competitions: Competition[]; fencers: Fencer[]; matches: Match[] }; conflicts: SyncConflict[] } {
+    remoteData: {
+      competitions: Competition[];
+      fencers: Fencer[];
+      matches: Match[];
+      timestamp: Date;
+    }
+  ): {
+    mergedData: { competitions: Competition[]; fencers: Fencer[]; matches: Match[] };
+    conflicts: SyncConflict[];
+  } {
     const compConflicts = detectConflicts(localData.competitions, remoteData.competitions);
     const fencerConflicts = detectConflicts(localData.fencers, remoteData.fencers);
     const matchConflicts = detectConflicts(localData.matches, remoteData.matches);
@@ -580,7 +587,11 @@ export class CloudSyncService {
   /**
    * Update local database with synced data via the registered handler
    */
-  private async updateLocalData(data: { competitions: Competition[]; fencers: Fencer[]; matches: Match[] }): Promise<void> {
+  private async updateLocalData(data: {
+    competitions: Competition[];
+    fencers: Fencer[];
+    matches: Match[];
+  }): Promise<void> {
     if (this.onLocalUpdate) {
       await this.onLocalUpdate(data);
     }
@@ -634,7 +645,11 @@ export class CloudSyncService {
       // Decrypt and decompress
       const decrypted = await this.decryptData(backupData);
       const decompressed = await this.decompressData(decrypted);
-      const data = JSON.parse(decompressed) as { competitions: Competition[]; fencers: Fencer[]; matches: Match[] };
+      const data = JSON.parse(decompressed) as {
+        competitions: Competition[];
+        fencers: Fencer[];
+        matches: Match[];
+      };
 
       // Restore to local database
       await this.updateLocalData(data);
@@ -657,7 +672,11 @@ export class CloudSyncService {
   /**
    * Download current backup from the active cloud provider
    */
-  async downloadFromCloud(): Promise<{ competitions: Competition[]; fencers: Fencer[]; matches: Match[] }> {
+  async downloadFromCloud(): Promise<{
+    competitions: Competition[];
+    fencers: Fencer[];
+    matches: Match[];
+  }> {
     let raw: string;
 
     switch (this.config.provider) {
@@ -714,7 +733,11 @@ export class CloudSyncService {
 
     const decrypted = await this.decryptData(raw);
     const decompressed = await this.decompressData(decrypted);
-    return JSON.parse(decompressed) as { competitions: Competition[]; fencers: Fencer[]; matches: Match[] };
+    return JSON.parse(decompressed) as {
+      competitions: Competition[];
+      fencers: Fencer[];
+      matches: Match[];
+    };
   }
 
   /**

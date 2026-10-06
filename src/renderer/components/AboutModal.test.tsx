@@ -10,7 +10,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import AboutModal from './AboutModal';
 
-afterEach(() => { delete (window as any).electronAPI; });
+afterEach(() => {
+  delete (window as any).electronAPI;
+});
 
 describe('AboutModal', () => {
   it('affiche le titre et la licence', () => {

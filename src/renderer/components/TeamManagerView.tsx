@@ -6,7 +6,12 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { Card, CardReason, Competition, Fencer, Weapon } from '../../shared/types';
-import { TeamRow, TeamMatchRow, TeamBoutRow, TeamMatchCardRow } from '../../features/teams/types/team.types';
+import {
+  TeamRow,
+  TeamMatchRow,
+  TeamBoutRow,
+  TeamMatchCardRow,
+} from '../../features/teams/types/team.types';
 import {
   generateRelayOrder,
   getTeamTargetRule,
@@ -270,7 +275,10 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
   // ── Générer poule (round-robin) ───────────────────────────────────────────────
   const handleGeneratePool = async () => {
     if (teams.length < 2) return;
-    if (matches.length > 0 && !(await confirm('Des matchs existent déjà. Supprimer et régénérer ?')))
+    if (
+      matches.length > 0 &&
+      !(await confirm('Des matchs existent déjà. Supprimer et régénérer ?'))
+    )
       return;
 
     if (isLaserArena) {
@@ -422,7 +430,11 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
       isLaserPoints
     );
     if (!result.success) {
-      showToast(result.error ?? "Impossible d'assigner cette rencontre à l'arène (serveur distant démarré ?).", 'error');
+      showToast(
+        result.error ??
+          "Impossible d'assigner cette rencontre à l'arène (serveur distant démarré ?).",
+        'error'
+      );
     }
   };
 
@@ -869,7 +881,11 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
                       <tr
                         key={r.team.id}
                         className={i === 0 ? 'bg-yellow-50' : 'hover:bg-gray-50'}
-                        title={r.tied ? 'Égalité totale avec une équipe voisine — à départager par tirage au sort' : undefined}
+                        title={
+                          r.tied
+                            ? 'Égalité totale avec une équipe voisine — à départager par tirage au sort'
+                            : undefined
+                        }
                       >
                         <td className="px-3 py-2 text-center font-bold text-gray-400">
                           {i + 1}

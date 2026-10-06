@@ -216,7 +216,7 @@ describe('calculateFencerPoolStats', () => {
     expect(stats.victoryRatio).toBe(0);
   });
 
-  it("devrait annuler les matchs déjà disputés contre un tireur déclaré forfait", () => {
+  it('devrait annuler les matchs déjà disputés contre un tireur déclaré forfait', () => {
     // Règle : si un adversaire est FORFAIT, les points acquis lors de TOUS
     // ses matchs (même déjà joués) sont annulés pour les deux parties.
     const forfaitFencer = createMockFencer('ff', 99, 'Forfait');

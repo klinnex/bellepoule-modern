@@ -27,7 +27,8 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
     console.log('[PhotoBooth] video ref mounted, stream available:', !!streamRef.current);
     if (video && streamRef.current) {
       video.srcObject = streamRef.current;
-      video.play()
+      video
+        .play()
         .then(() => console.log('[PhotoBooth] video.play() resolved'))
         .catch(err => {
           console.error('[PhotoBooth] video.play() rejected:', err);
@@ -55,9 +56,13 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
 
   const startCamera = useCallback(async () => {
     setError(null);
-    console.log('[PhotoBooth] startCamera — navigator.mediaDevices:', !!navigator.mediaDevices?.getUserMedia);
+    console.log(
+      '[PhotoBooth] startCamera — navigator.mediaDevices:',
+      !!navigator.mediaDevices?.getUserMedia
+    );
     if (!navigator.mediaDevices?.getUserMedia) {
-      const msg = "L'accès à la webcam n'est pas disponible dans ce contexte (mediaDevices absent).";
+      const msg =
+        "L'accès à la webcam n'est pas disponible dans ce contexte (mediaDevices absent).";
       setError(msg);
       return;
     }
@@ -92,9 +97,18 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    console.log('[PhotoBooth] takePhoto — readyState:', video.readyState, 'size:', video.videoWidth, 'x', video.videoHeight);
+    console.log(
+      '[PhotoBooth] takePhoto — readyState:',
+      video.readyState,
+      'size:',
+      video.videoWidth,
+      'x',
+      video.videoHeight
+    );
     if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
-      setError(`Caméra pas encore prête (readyState=${video.readyState}, ${video.videoWidth}×${video.videoHeight}). Réessayez.`);
+      setError(
+        `Caméra pas encore prête (readyState=${video.readyState}, ${video.videoWidth}×${video.videoHeight}). Réessayez.`
+      );
       return;
     }
 
@@ -244,7 +258,10 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
             </button>
             <button
               type="button"
-              onClick={() => { stopCamera(); onClose(); }}
+              onClick={() => {
+                stopCamera();
+                onClose();
+              }}
               className="btn btn-secondary"
             >
               Annuler

@@ -6,10 +6,28 @@
 import React, { useState, useEffect } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import {
-  HINT, HINT_INDENT, CHECK_LABEL, CHECK_LABEL_SM, FIELD_LABEL,
-  MR, MB1, MB15, SM, GRID2, FLEX1,
+  HINT,
+  HINT_INDENT,
+  CHECK_LABEL,
+  CHECK_LABEL_SM,
+  FIELD_LABEL,
+  MR,
+  MB1,
+  MB15,
+  SM,
+  GRID2,
+  FLEX1,
 } from './competitionPropertiesModal.styles';
-import { Competition, CustomFormulaConfig, Weapon, Gender, Category, CompetitionSettings, QuestPhaseConfig, PostPoolSplitCriteria } from '../../shared/types';
+import {
+  Competition,
+  CustomFormulaConfig,
+  Weapon,
+  Gender,
+  Category,
+  CompetitionSettings,
+  QuestPhaseConfig,
+  PostPoolSplitCriteria,
+} from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { createDefaultCustomFormula } from '../../shared/utils/tournamentTemplates';
 import { FormulaBuilder } from './formula/FormulaBuilder';
@@ -208,11 +226,20 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               <option value="false">Désactivée</option>
             </select>
             <small style={HINT}>
-              {hasDirectElimination ? 'Tableau après les poules' : 'Classement final sur les poules'}
+              {hasDirectElimination
+                ? 'Tableau après les poules'
+                : 'Classement final sur les poules'}
             </small>
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '1rem',
+            marginTop: '1rem',
+          }}
+        >
           <div className="form-group">
             <label htmlFor="poolMaxScore">Score max poules</label>
             <input
@@ -255,7 +282,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   placeholder="21"
                 />
                 <small style={HINT}>
-                  {tableMaxScore === 0 ? '0 = illimité (pas de limite)' : `${tableMaxScore} touches pour gagner`}
+                  {tableMaxScore === 0
+                    ? '0 = illimité (pas de limite)'
+                    : `${tableMaxScore} touches pour gagner`}
                 </small>
               </div>
               <div className="form-group">
@@ -283,9 +312,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   />
                   {t('competition.third_place_match_label')}
                 </label>
-                <small style={HINT_INDENT}>
-                  {t('competition.third_place_match_description')}
-                </small>
+                <small style={HINT_INDENT}>{t('competition.third_place_match_description')}</small>
               </div>
               <div className="form-group">
                 <label>
@@ -332,15 +359,19 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
             </>
           )}
         </div>
-        {(!questEnabled) && (
+        {!questEnabled && (
           <div style={{ marginTop: '1rem' }}>
             <div className="form-group">
-              <label htmlFor="postPoolSplitCriteria">Compétition couplée (séparation après poules)</label>
+              <label htmlFor="postPoolSplitCriteria">
+                Compétition couplée (séparation après poules)
+              </label>
               <select
                 id="postPoolSplitCriteria"
                 className="form-input form-select"
                 value={postPoolSplitCriteria}
-                onChange={e => setPostPoolSplitCriteria(e.target.value as PostPoolSplitCriteria | '')}
+                onChange={e =>
+                  setPostPoolSplitCriteria(e.target.value as PostPoolSplitCriteria | '')
+                }
               >
                 <option value="">Aucune — compétition standard</option>
                 <option value="gender">Par genre (H/F) — poules mixtes, tableaux séparés</option>
@@ -361,7 +392,10 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
         ref={modalRef}
         className="modal"
         onClick={e => e.stopPropagation()}
-        style={{ maxWidth: weapon === Weapon.CUSTOM ? '92vw' : '550px', width: weapon === Weapon.CUSTOM ? '1100px' : undefined }}
+        style={{
+          maxWidth: weapon === Weapon.CUSTOM ? '92vw' : '550px',
+          width: weapon === Weapon.CUSTOM ? '1100px' : undefined,
+        }}
         role="dialog"
         aria-modal="true"
       >
@@ -551,9 +585,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
 
               {/* Oui / Non */}
               <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                <label style={FIELD_LABEL}>
-                  Tour Quest activé ?
-                </label>
+                <label style={FIELD_LABEL}>Tour Quest activé ?</label>
                 <div style={FLEX1}>
                   <label style={CHECK_LABEL}>
                     <input
@@ -590,9 +622,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 >
                   {/* Sans / Avec poules préliminaires */}
                   <div className="form-group">
-                    <label style={FIELD_LABEL}>
-                      Poules préliminaires ?
-                    </label>
+                    <label style={FIELD_LABEL}>Poules préliminaires ?</label>
                     <div style={FLEX1}>
                       <label style={CHECK_LABEL}>
                         <input
@@ -668,7 +698,8 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 Activer la gestion des arbitres
               </label>
               <small style={HINT_INDENT}>
-                Affiche le nom de l'arbitre sur l'arène et permet de le changer depuis la saisie distante
+                Affiche le nom de l'arbitre sur l'arène et permet de le changer depuis la saisie
+                distante
               </small>
             </div>
             <div className="form-group" style={{ marginTop: '0.75rem' }}>
@@ -681,8 +712,8 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 Activer le carton noir
               </label>
               <small style={HINT_INDENT}>
-                Affiche le bouton carton noir sur les tablettes (exclusion) et convertit le 2ème carton
-                rouge en carton noir
+                Affiche le bouton carton noir sur les tablettes (exclusion) et convertit le 2ème
+                carton rouge en carton noir
               </small>
             </div>
             <div className="form-group" style={{ marginTop: '0.75rem' }}>
@@ -736,7 +767,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                     value={maxRefereesPerPool}
                     min={1}
                     max={10}
-                    onChange={e => setMaxRefereesPerPool(Math.max(1, parseInt(e.target.value) || 1))}
+                    onChange={e =>
+                      setMaxRefereesPerPool(Math.max(1, parseInt(e.target.value) || 1))
+                    }
                   />
                 </div>
                 <div className="form-group">
@@ -750,7 +783,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                     value={maxRefereesPerMatch}
                     min={1}
                     max={10}
-                    onChange={e => setMaxRefereesPerMatch(Math.max(1, parseInt(e.target.value) || 1))}
+                    onChange={e =>
+                      setMaxRefereesPerMatch(Math.max(1, parseInt(e.target.value) || 1))
+                    }
                   />
                 </div>
               </div>

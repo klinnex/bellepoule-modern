@@ -89,7 +89,10 @@ export const usePoolManagement = ({
       }
 
       const poolCount = calculateOptimalPoolCount(checkedInFencers.length, 5, 7);
-      const distribution = distributeFencersToPoolsSerpentine(checkedInFencers, poolCount, ['byClub', 'byRegion']);
+      const distribution = distributeFencersToPoolsSerpentine(checkedInFencers, poolCount, [
+        'byClub',
+        'byRegion',
+      ]);
 
       const generatedPools: Pool[] = distribution.map((poolFencers, index) => {
         const poolId = crypto.randomUUID();
@@ -265,7 +268,10 @@ export const usePoolManagement = ({
 
       // Générer de nouvelles poules avec le classement actuel
       const newPoolCount = calculateOptimalPoolCount(checkedInFencers.length, 5, 7);
-      const distribution = distributeFencersToPoolsSerpentine(checkedInFencers, newPoolCount, ['byClub', 'byRegion']);
+      const distribution = distributeFencersToPoolsSerpentine(checkedInFencers, newPoolCount, [
+        'byClub',
+        'byRegion',
+      ]);
 
       const newPools: Pool[] = distribution.map((poolFencers, index) => {
         const poolId = crypto.randomUUID();
@@ -369,9 +375,7 @@ export const usePoolManagement = ({
       if (competitionId && window.electronAPI?.db?.saveAbandonSnapshot) {
         await window.electronAPI.db
           .saveAbandonSnapshot(fencerId, competitionId, previousStatus, status, affectedSnapshots)
-          .catch((e: Error) =>
-            logger.warn(LogCategory.DATABASE, 'Snapshot abandon échoué', e)
-          );
+          .catch((e: Error) => logger.warn(LogCategory.DATABASE, 'Snapshot abandon échoué', e));
       }
 
       // --- Logique existante ---
@@ -476,9 +480,7 @@ export const usePoolManagement = ({
       let snapshot: AbandonSnapshot | null = null;
 
       if (competitionId && window.electronAPI?.db?.getAbandonSnapshot) {
-        snapshot = await window.electronAPI.db
-          .getAbandonSnapshot(fencerId)
-          .catch(() => null);
+        snapshot = await window.electronAPI.db.getAbandonSnapshot(fencerId).catch(() => null);
       }
 
       setPools(prevPools => {
@@ -580,7 +582,13 @@ export const usePoolManagement = ({
 
   // Mettre à jour un match depuis une source externe (serveur distant)
   const updateMatchFromRemote = useCallback(
-    (matchId: string, scoreA: number, scoreB: number, status: MatchStatus, winnerOverride?: 'A' | 'B') => {
+    (
+      matchId: string,
+      scoreA: number,
+      scoreB: number,
+      status: MatchStatus,
+      winnerOverride?: 'A' | 'B'
+    ) => {
       setPools(prevPools => {
         const updatedPools = [...prevPools];
         let matchFound = false;
@@ -593,9 +601,7 @@ export const usePoolManagement = ({
               const match = pool.matches[matchIdx];
               // Pour le tirage au sort : scores égaux mais vainqueur explicite
               const winner =
-                scoreA > scoreB ? 'A' :
-                scoreB > scoreA ? 'B' :
-                (winnerOverride ?? null);
+                scoreA > scoreB ? 'A' : scoreB > scoreA ? 'B' : (winnerOverride ?? null);
 
               const updatedPool = { ...pool };
               const updatedMatches = [...pool.matches];
@@ -651,7 +657,13 @@ export const usePoolManagement = ({
   // Annulation d'un carton noir distant : réintègre le combattant, rouvre le match
   // interrompu (score conservé) et libère ses matchs marqués « exclusion »
   const handleBlackCardCancelled = useCallback(
-    (fencerId: string, matchId: string, restoredStatus: FencerStatus, scoreA: number, scoreB: number) => {
+    (
+      fencerId: string,
+      matchId: string,
+      restoredStatus: FencerStatus,
+      scoreA: number,
+      scoreB: number
+    ) => {
       const reopened = (value: number): Score => ({
         value,
         isVictory: false,
@@ -669,13 +681,19 @@ export const usePoolManagement = ({
           changed = true;
 
           const restore = <T extends Fencer | null | undefined>(f: T): T =>
-            f && f.id === fencerId ? ({ ...f, status: restoredStatus, exclusionReason: null } as T) : f;
+            f && f.id === fencerId
+              ? ({ ...f, status: restoredStatus, exclusionReason: null } as T)
+              : f;
 
           const newMatches = pool.matches.map(match => {
             const isFencerA = match.fencerA?.id === fencerId;
             const isFencerB = match.fencerB?.id === fencerId;
             if (!isFencerA && !isFencerB) return match;
-            const base = { ...match, fencerA: restore(match.fencerA), fencerB: restore(match.fencerB) };
+            const base = {
+              ...match,
+              fencerA: restore(match.fencerA),
+              fencerB: restore(match.fencerB),
+            };
 
             if (match.id === matchId) {
               return {
@@ -689,8 +707,19 @@ export const usePoolManagement = ({
             // Matchs suivants marqués non disputés suite à l'exclusion → à nouveau jouables
             const myScore = isFencerA ? match.scoreA : match.scoreB;
             const oppScore = isFencerA ? match.scoreB : match.scoreA;
-            if (myScore?.isExclusion && !oppScore?.isAbstention && !oppScore?.isForfait && !oppScore?.isExclusion) {
-              return { ...base, scoreA: null, scoreB: null, status: MatchStatus.NOT_STARTED, updatedAt: new Date() };
+            if (
+              myScore?.isExclusion &&
+              !oppScore?.isAbstention &&
+              !oppScore?.isForfait &&
+              !oppScore?.isExclusion
+            ) {
+              return {
+                ...base,
+                scoreA: null,
+                scoreB: null,
+                status: MatchStatus.NOT_STARTED,
+                updatedAt: new Date(),
+              };
             }
             return base;
           });
@@ -764,4 +793,3 @@ export const usePoolManagement = ({
 };
 
 export default usePoolManagement;
-

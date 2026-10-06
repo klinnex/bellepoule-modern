@@ -191,9 +191,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
                       overflow: 'auto',
                     }}
                   >
-                    <table
-                      style={TABLE}
-                    >
+                    <table style={TABLE}>
                       <thead style={STICKY_HEAD}>
                         <tr>
                           <th style={TD_LEFT}>Nom</th>
@@ -361,9 +359,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
                         <td style={TD}>{fencer.firstName}</td>
                         <td style={TD_CENTER}>{fencer.gender}</td>
                         <td style={TD}>{fencer.club || '-'}</td>
-                        <td style={TD_CENTER}>
-                          {fencer.ranking || '-'}
-                        </td>
+                        <td style={TD_CENTER}>{fencer.ranking || '-'}</td>
                       </tr>
                     ))}
                   </tbody>

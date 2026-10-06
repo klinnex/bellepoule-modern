@@ -48,7 +48,10 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
           setResults(DEMO_DATA(fencerId));
         }
       } catch (err) {
-        logger.warn(LogCategory.UI, '[HistoricalStats] getFencerStats unavailable, using demo data');
+        logger.warn(
+          LogCategory.UI,
+          '[HistoricalStats] getFencerStats unavailable, using demo data'
+        );
         setResults(DEMO_DATA(fencerId));
       } finally {
         setLoading(false);
@@ -61,9 +64,10 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
   const bestRank = results.length > 0 ? Math.min(...results.map(r => r.rank)) : null;
   const totalVictories = results.reduce((s, r) => s + r.victories, 0);
   const totalDefeats = results.reduce((s, r) => s + r.defeats, 0);
-  const ratio = totalVictories + totalDefeats > 0
-    ? ((totalVictories / (totalVictories + totalDefeats)) * 100).toFixed(1)
-    : '—';
+  const ratio =
+    totalVictories + totalDefeats > 0
+      ? ((totalVictories / (totalVictories + totalDefeats)) * 100).toFixed(1)
+      : '—';
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -77,13 +81,13 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
       >
         <div className="modal-header" style={{ flexShrink: 0 }}>
           <h2 style={{ margin: 0 }}>Historique — {fencerName}</h2>
-          <button className="btn-close" onClick={onClose}>&times;</button>
+          <button className="btn-close" onClick={onClose}>
+            &times;
+          </button>
         </div>
 
         {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>
-            Chargement…
-          </div>
+          <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>Chargement…</div>
         ) : (
           <>
             <div
@@ -110,10 +114,19 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                 </div>
               ) : (
                 <>
-                  <div style={{ padding: '0.75rem 1.5rem', fontSize: '0.75rem', color: '#6b7280', fontFamily: 'monospace' }}>
+                  <div
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      fontSize: '0.75rem',
+                      color: '#6b7280',
+                      fontFamily: 'monospace',
+                    }}
+                  >
                     {sparkline(results.map(r => r.rank))}
                   </div>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                  <table
+                    style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}
+                  >
                     <thead>
                       <tr style={{ background: '#f3f4f6' }}>
                         <th style={thS}>Date</th>
@@ -129,12 +142,18 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                       {results.map((r, i) => (
                         <tr key={r.competitionId + i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                           <td style={tdS}>{r.date}</td>
-                          <td style={{ ...tdS, textAlign: 'left', fontWeight: 500 }}>{r.competitionTitle}</td>
+                          <td style={{ ...tdS, textAlign: 'left', fontWeight: 500 }}>
+                            {r.competitionTitle}
+                          </td>
                           <td style={tdS}>{r.weapon}</td>
-                          <td style={{ ...tdS, fontWeight: 700, color: rankColor(r.rank) }}>{r.rank}</td>
+                          <td style={{ ...tdS, fontWeight: 700, color: rankColor(r.rank) }}>
+                            {r.rank}
+                          </td>
                           <td style={{ ...tdS, color: '#16a34a' }}>{r.victories}</td>
                           <td style={{ ...tdS, color: '#dc2626' }}>{r.defeats}</td>
-                          <td style={tdS}>{r.touchesScored}/{r.touchesReceived}</td>
+                          <td style={tdS}>
+                            {r.touchesScored}/{r.touchesReceived}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -162,10 +181,15 @@ function sparkline(ranks: number[]): string {
   if (ranks.length === 0) return '';
   const max = Math.max(...ranks);
   const bars = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
-  return 'Évolution des rangs : ' + ranks.map(r => {
-    const pct = max > 1 ? 1 - (r - 1) / (max - 1) : 1;
-    return bars[Math.floor(pct * (bars.length - 1))];
-  }).join('');
+  return (
+    'Évolution des rangs : ' +
+    ranks
+      .map(r => {
+        const pct = max > 1 ? 1 - (r - 1) / (max - 1) : 1;
+        return bars[Math.floor(pct * (bars.length - 1))];
+      })
+      .join('')
+  );
 }
 
 function rankColor(rank: number): string {
@@ -175,14 +199,51 @@ function rankColor(rank: number): string {
   return '#1f2937';
 }
 
-const thS: React.CSSProperties = { padding: '0.5rem 0.75rem', textAlign: 'center', fontWeight: 600, fontSize: '0.75rem', color: '#4b5563', borderBottom: '2px solid #e5e7eb' };
+const thS: React.CSSProperties = {
+  padding: '0.5rem 0.75rem',
+  textAlign: 'center',
+  fontWeight: 600,
+  fontSize: '0.75rem',
+  color: '#4b5563',
+  borderBottom: '2px solid #e5e7eb',
+};
 const tdS: React.CSSProperties = { padding: '0.5rem 0.75rem', textAlign: 'center' };
 
 function DEMO_DATA(fencerId: string): CompetitionResult[] {
   return [
-    { competitionId: `${fencerId}-1`, competitionTitle: 'Championnat régional IDF', date: '2025-10-12', rank: 3, victories: 4, defeats: 1, touchesScored: 22, touchesReceived: 15, weapon: 'E' },
-    { competitionId: `${fencerId}-2`, competitionTitle: 'Tournoi de Paris', date: '2025-11-20', rank: 1, victories: 6, defeats: 0, touchesScored: 30, touchesReceived: 8, weapon: 'E' },
-    { competitionId: `${fencerId}-3`, competitionTitle: 'Open Île-de-France', date: '2026-01-15', rank: 5, victories: 3, defeats: 2, touchesScored: 18, touchesReceived: 20, weapon: 'E' },
+    {
+      competitionId: `${fencerId}-1`,
+      competitionTitle: 'Championnat régional IDF',
+      date: '2025-10-12',
+      rank: 3,
+      victories: 4,
+      defeats: 1,
+      touchesScored: 22,
+      touchesReceived: 15,
+      weapon: 'E',
+    },
+    {
+      competitionId: `${fencerId}-2`,
+      competitionTitle: 'Tournoi de Paris',
+      date: '2025-11-20',
+      rank: 1,
+      victories: 6,
+      defeats: 0,
+      touchesScored: 30,
+      touchesReceived: 8,
+      weapon: 'E',
+    },
+    {
+      competitionId: `${fencerId}-3`,
+      competitionTitle: 'Open Île-de-France',
+      date: '2026-01-15',
+      rank: 5,
+      victories: 3,
+      defeats: 2,
+      touchesScored: 18,
+      touchesReceived: 20,
+      weapon: 'E',
+    },
   ];
 }
 

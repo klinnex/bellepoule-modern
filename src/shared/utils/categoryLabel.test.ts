@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { categoryLabel } from './categoryLabel';
 
 const FR: Record<string, string> = {
-  'categories.U11': 'M11', 'categories.senior': 'Seniors', 'categories.V2': 'Vétérans 2',
+  'categories.U11': 'M11',
+  'categories.senior': 'Seniors',
+  'categories.V2': 'Vétérans 2',
 };
 const t = (k: string) => FR[k] ?? k;
 

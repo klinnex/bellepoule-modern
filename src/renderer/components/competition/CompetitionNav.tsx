@@ -4,7 +4,16 @@
  */
 
 import React from 'react';
-import { ChevronLeft, ChevronRight, Swords, Target, Zap, Trophy, ScrollText, CalendarClock } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Swords,
+  Target,
+  Zap,
+  Trophy,
+  ScrollText,
+  CalendarClock,
+} from 'lucide-react';
 import { Competition, MatchStatus, QuestPhaseConfig, Fencer } from '../../../shared/types';
 import { Phase } from '../../hooks/useCompetitionSession';
 import CoachMark from '../CoachMark';
@@ -77,152 +86,186 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
   tableauMatches,
   onOpenPlanningAssistant,
 }) => {
-
   return (
-  <>
-    {/* Breadcrumb */}
-    <div style={{ padding: '0.25rem 1rem', fontSize: '0.75rem', color: 'var(--text-muted, #6b7280)', borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-      <span style={{ fontWeight: 500, opacity: 0.7 }}>{competition.title}</span>
-      <span>›</span>
-      <span style={{ fontWeight: 600, color: 'var(--text-primary, #f3f4f6)' }}>
-        {phases.find(p => p.id === currentPhase)?.label ?? currentPhase}
-      </span>
-    </div>
+    <>
+      {/* Breadcrumb */}
+      <div
+        style={{
+          padding: '0.25rem 1rem',
+          fontSize: '0.75rem',
+          color: 'var(--text-muted, #6b7280)',
+          borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+        }}
+      >
+        <span style={{ fontWeight: 500, opacity: 0.7 }}>{competition.title}</span>
+        <span>›</span>
+        <span style={{ fontWeight: 600, color: 'var(--text-primary, #f3f4f6)' }}>
+          {phases.find(p => p.id === currentPhase)?.label ?? currentPhase}
+        </span>
+      </div>
 
-    {/* Navigation */}
-    <div className="phase-nav">
-      {phases.map((phase, index) => (
-        <React.Fragment key={phase.id}>
-          <div
-            className={`phase-step ${currentPhase === phase.id ? 'phase-step-active' : ''} ${phase.disabled ? 'phase-step-disabled' : ''}`}
-            onClick={() => !phase.disabled && setCurrentPhase(phase.id as Phase)}
-            title={phase.title ?? (phase.disabled ? 'Section non disponible' : undefined)}
-          >
-            <span className="phase-step-number">{phase.icon}</span>
-            <span>{phase.label}</span>
-          </div>
-          {index < phases.length - 1 && (
-            <div className={`phase-step-connector${!phase.disabled && !phases[index + 1]?.disabled ? ' connector-done' : ''}`} />
+      {/* Navigation */}
+      <div className="phase-nav">
+        {phases.map((phase, index) => (
+          <React.Fragment key={phase.id}>
+            <div
+              className={`phase-step ${currentPhase === phase.id ? 'phase-step-active' : ''} ${phase.disabled ? 'phase-step-disabled' : ''}`}
+              onClick={() => !phase.disabled && setCurrentPhase(phase.id as Phase)}
+              title={phase.title ?? (phase.disabled ? 'Section non disponible' : undefined)}
+            >
+              <span className="phase-step-number">{phase.icon}</span>
+              <span>{phase.label}</span>
+            </div>
+            {index < phases.length - 1 && (
+              <div
+                className={`phase-step-connector${!phase.disabled && !phases[index + 1]?.disabled ? ' connector-done' : ''}`}
+              />
+            )}
+          </React.Fragment>
+        ))}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {currentPhase !== 'checkin' && (
+            <button className="btn btn-secondary btn-icon-label" onClick={handleGoBack}>
+              <ChevronLeft size={15} /> Retour
+            </button>
           )}
-        </React.Fragment>
-      ))}
-      <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-        {currentPhase !== 'checkin' && (
-          <button className="btn btn-secondary btn-icon-label" onClick={handleGoBack}>
-            <ChevronLeft size={15} /> Retour
-          </button>
-        )}
-        {currentPhase === 'checkin' && questEnabled && !questConfig?.hasPreliminaryPools && (
-          <button
-            className="btn btn-primary btn-icon-label"
-            onClick={() => setCurrentPhase('quest')}
-            disabled={getCheckedInFencers().length < 2}
-          >
-            Tour Quest <ChevronRight size={15} />
-          </button>
-        )}
-        {currentPhase === 'checkin' && (!questEnabled || questConfig?.hasPreliminaryPools) && (
-          <CoachMark id="generate-pools" message="Cliquez ici après avoir pointé tous vos tireurs" position="bottom">
+          {currentPhase === 'checkin' && questEnabled && !questConfig?.hasPreliminaryPools && (
             <button
               className="btn btn-primary btn-icon-label"
-              onClick={handleGeneratePools}
-              disabled={getCheckedInFencers().length < 4}
-              title={
-                getCheckedInFencers().length < 4
-                  ? `Minimum 4 tireurs pointés requis (${getCheckedInFencers().length} actuellement)`
-                  : getCheckedInFencers().length === fencers.length && fencers.length > 0
-                    ? 'Tous les tireurs sont pointés — prêt !'
+              onClick={() => setCurrentPhase('quest')}
+              disabled={getCheckedInFencers().length < 2}
+            >
+              Tour Quest <ChevronRight size={15} />
+            </button>
+          )}
+          {currentPhase === 'checkin' && (!questEnabled || questConfig?.hasPreliminaryPools) && (
+            <CoachMark
+              id="generate-pools"
+              message="Cliquez ici après avoir pointé tous vos tireurs"
+              position="bottom"
+            >
+              <button
+                className="btn btn-primary btn-icon-label"
+                onClick={handleGeneratePools}
+                disabled={getCheckedInFencers().length < 4}
+                title={
+                  getCheckedInFencers().length < 4
+                    ? `Minimum 4 tireurs pointés requis (${getCheckedInFencers().length} actuellement)`
+                    : getCheckedInFencers().length === fencers.length && fencers.length > 0
+                      ? 'Tous les tireurs sont pointés — prêt !'
+                      : undefined
+                }
+                style={
+                  getCheckedInFencers().length === fencers.length && fencers.length >= 4
+                    ? { background: '#16a34a', borderColor: '#15803d' }
                     : undefined
-              }
-              style={
-                getCheckedInFencers().length === fencers.length && fencers.length >= 4
-                  ? { background: '#16a34a', borderColor: '#15803d' }
-                  : undefined
+                }
+              >
+                Générer les poules <ChevronRight size={15} />
+              </button>
+            </CoachMark>
+          )}
+          {currentPhase === 'poolprep' && poolPrepLaunch && (
+            <button
+              className="btn btn-primary btn-icon-label"
+              onClick={poolPrepLaunch.action}
+              disabled={poolPrepLaunch.disabled}
+              title={
+                poolPrepLaunch.disabled ? 'Chaque poule doit compter au moins 3 tireurs' : undefined
               }
             >
-              Générer les poules <ChevronRight size={15} />
+              {poolPrepLaunch.label} <ChevronRight size={15} />
             </button>
-          </CoachMark>
-        )}
-        {currentPhase === 'poolprep' && poolPrepLaunch && (
-          <button
-            className="btn btn-primary btn-icon-label"
-            onClick={poolPrepLaunch.action}
-            disabled={poolPrepLaunch.disabled}
-            title={poolPrepLaunch.disabled ? 'Chaque poule doit compter au moins 3 tireurs' : undefined}
-          >
-            {poolPrepLaunch.label} <ChevronRight size={15} />
-          </button>
-        )}
-        {currentPhase === 'pools' && poolsNextAction && (
-          <CoachMark id="pools-next-action" message="Étape suivante une fois les poules terminées" position="bottom">
-            <button className="btn btn-primary" onClick={poolsNextAction.action}>
-              {poolsNextAction.label}
+          )}
+          {currentPhase === 'pools' && poolsNextAction && (
+            <CoachMark
+              id="pools-next-action"
+              message="Étape suivante une fois les poules terminées"
+              position="bottom"
+            >
+              <button className="btn btn-primary" onClick={poolsNextAction.action}>
+                {poolsNextAction.label}
+              </button>
+            </CoachMark>
+          )}
+          {currentPhase === 'pools' && onOpenPlanningAssistant && pools.length > 0 && (
+            <button
+              className="btn btn-secondary btn-icon-label"
+              onClick={onOpenPlanningAssistant}
+              title="Estimation de fin de tournoi et recommandations de répartition des pistes"
+              style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
+            >
+              <CalendarClock size={14} /> Planning
             </button>
-          </CoachMark>
-        )}
-        {currentPhase === 'pools' && onOpenPlanningAssistant && pools.length > 0 && (
+          )}
           <button
-            className="btn btn-secondary btn-icon-label"
-            onClick={onOpenPlanningAssistant}
-            title="Estimation de fin de tournoi et recommandations de répartition des pistes"
+            className={`btn btn-secondary btn-icon-label${currentPhase === 'logs' ? ' btn-active' : ''}`}
+            onClick={() => setCurrentPhase(currentPhase === 'logs' ? 'checkin' : 'logs')}
+            title="Journal des événements de match"
             style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
           >
-            <CalendarClock size={14} /> Planning
+            <ScrollText size={14} /> Journal
           </button>
-        )}
-        <button
-          className={`btn btn-secondary btn-icon-label${currentPhase === 'logs' ? ' btn-active' : ''}`}
-          onClick={() => setCurrentPhase(currentPhase === 'logs' ? 'checkin' : 'logs')}
-          title="Journal des événements de match"
-          style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
-        >
-          <ScrollText size={14} /> Journal
-        </button>
-
-      </div>
-    </div>
-
-    {/* Stats bar */}
-    {(pools.length > 0 || tableauMatches.length > 0 || fencers.length > 0) && (
-      <div className="comp-stats-bar">
-        <div className="comp-stats-bar-item">
-          <span className="comp-stats-bar-icon"><Swords size={13} /></span>
-          <span>{getCheckedInFencers().length}/{fencers.length} tireurs</span>
         </div>
-        {pools.length > 0 && (
-          <>
-            <div className="comp-stats-bar-sep" />
-            <div className="comp-stats-bar-item">
-              <span className="comp-stats-bar-icon"><Target size={13} /></span>
-              <span>{pools.filter(p => p.isComplete).length}/{pools.length} poules</span>
-            </div>
-            <div className="comp-stats-bar-sep" />
-            <div className="comp-stats-bar-item">
-              <span className="comp-stats-bar-icon"><Zap size={13} /></span>
-              <span>
-                {pools.reduce((s, p) => s + p.matches.filter(m => m.status === MatchStatus.FINISHED).length, 0)}/
-                {pools.reduce((s, p) => s + p.matches.length, 0)} matchs
-              </span>
-            </div>
-          </>
-        )}
-        {tableauMatches.length > 0 && (
-          <>
-            <div className="comp-stats-bar-sep" />
-            <div className="comp-stats-bar-item">
-              <span className="comp-stats-bar-icon"><Trophy size={13} /></span>
-              <span>
-                {tableauMatches.filter(m => m.winner !== null).length}/
-                {tableauMatches.filter(m => m.fencerA && m.fencerB).length} tableau
-              </span>
-            </div>
-          </>
-        )}
       </div>
-    )}
 
-  </>
+      {/* Stats bar */}
+      {(pools.length > 0 || tableauMatches.length > 0 || fencers.length > 0) && (
+        <div className="comp-stats-bar">
+          <div className="comp-stats-bar-item">
+            <span className="comp-stats-bar-icon">
+              <Swords size={13} />
+            </span>
+            <span>
+              {getCheckedInFencers().length}/{fencers.length} tireurs
+            </span>
+          </div>
+          {pools.length > 0 && (
+            <>
+              <div className="comp-stats-bar-sep" />
+              <div className="comp-stats-bar-item">
+                <span className="comp-stats-bar-icon">
+                  <Target size={13} />
+                </span>
+                <span>
+                  {pools.filter(p => p.isComplete).length}/{pools.length} poules
+                </span>
+              </div>
+              <div className="comp-stats-bar-sep" />
+              <div className="comp-stats-bar-item">
+                <span className="comp-stats-bar-icon">
+                  <Zap size={13} />
+                </span>
+                <span>
+                  {pools.reduce(
+                    (s, p) => s + p.matches.filter(m => m.status === MatchStatus.FINISHED).length,
+                    0
+                  )}
+                  /{pools.reduce((s, p) => s + p.matches.length, 0)} matchs
+                </span>
+              </div>
+            </>
+          )}
+          {tableauMatches.length > 0 && (
+            <>
+              <div className="comp-stats-bar-sep" />
+              <div className="comp-stats-bar-item">
+                <span className="comp-stats-bar-icon">
+                  <Trophy size={13} />
+                </span>
+                <span>
+                  {tableauMatches.filter(m => m.winner !== null).length}/
+                  {tableauMatches.filter(m => m.fencerA && m.fencerB).length} tableau
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </>
   );
 };
 

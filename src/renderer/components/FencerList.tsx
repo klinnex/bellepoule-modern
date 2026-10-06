@@ -19,13 +19,13 @@ import { MENU_ITEM, SMALL_BTN, W250, DROPDOWN_WRAP } from './fencerList.styles';
 type SortableCol = 'ref' | 'lastName' | 'firstName' | 'birthDate' | 'club' | 'ranking' | 'status';
 
 const COLUMNS = [
-  { id: 'ref'       as SortableCol, label: 'N°',         width: '50px'  },
-  { id: 'lastName'  as SortableCol, label: 'Nom'                         },
-  { id: 'firstName' as SortableCol, label: 'Prénom'                      },
-  { id: 'birthDate' as SortableCol, label: 'Né(e)',       width: '70px'  },
-  { id: 'club'      as SortableCol, label: 'Club'                        },
-  { id: 'ranking'   as SortableCol, label: 'Classement', width: '110px' },
-  { id: 'status'    as SortableCol, label: 'Statut',     width: '90px'  },
+  { id: 'ref' as SortableCol, label: 'N°', width: '50px' },
+  { id: 'lastName' as SortableCol, label: 'Nom' },
+  { id: 'firstName' as SortableCol, label: 'Prénom' },
+  { id: 'birthDate' as SortableCol, label: 'Né(e)', width: '70px' },
+  { id: 'club' as SortableCol, label: 'Club' },
+  { id: 'ranking' as SortableCol, label: 'Classement', width: '110px' },
+  { id: 'status' as SortableCol, label: 'Statut', width: '90px' },
 ];
 
 interface FencerListProps {
@@ -90,9 +90,12 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       const saved = localStorage.getItem('bellepoule-fencer-col-order');
       if (saved) {
         const parsed = JSON.parse(saved) as SortableCol[];
-        if (parsed.length === COLUMNS.length && COLUMNS.every(c => parsed.includes(c.id))) return parsed;
+        if (parsed.length === COLUMNS.length && COLUMNS.every(c => parsed.includes(c.id)))
+          return parsed;
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     return COLUMNS.map(c => c.id);
   });
   const [dragCol, setDragCol] = useState<SortableCol | null>(null);
@@ -126,7 +129,10 @@ const FencerListComponent: React.FC<FencerListProps> = ({
 
   // Générer le QR code quand l'URL d'inscription change
   useEffect(() => {
-    if (!registerUrl) { setRegisterQRDataUrl(null); return; }
+    if (!registerUrl) {
+      setRegisterQRDataUrl(null);
+      return;
+    }
     import('qrcode')
       .then(m => m.default.toDataURL(registerUrl, { width: 220, margin: 1 }))
       .then(setRegisterQRDataUrl)
@@ -162,7 +168,10 @@ const FencerListComponent: React.FC<FencerListProps> = ({
     setDragCol(null);
     setDragOverCol(null);
   };
-  const handleColDragEnd = () => { setDragCol(null); setDragOverCol(null); };
+  const handleColDragEnd = () => {
+    setDragCol(null);
+    setDragOverCol(null);
+  };
 
   const debouncedSearchTerm = useDebounce(searchTerm, 250);
   const filteredFencers = useMemo(() => {
@@ -178,14 +187,24 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       })
       .sort((a, b) => {
         switch (sortBy) {
-          case 'ref':       return dir * (a.ref - b.ref);
-          case 'lastName':  return dir * a.lastName.localeCompare(b.lastName);
-          case 'firstName': return dir * (a.firstName ?? '').localeCompare(b.firstName ?? '');
-          case 'birthDate': return dir * (new Date(a.birthDate ?? 0).getTime() - new Date(b.birthDate ?? 0).getTime());
-          case 'club':      return dir * (a.club || '').localeCompare(b.club || '');
-          case 'ranking':   return dir * ((a.ranking ?? 99999) - (b.ranking ?? 99999));
-          case 'status':    return dir * a.status.localeCompare(b.status);
-          default:          return 0;
+          case 'ref':
+            return dir * (a.ref - b.ref);
+          case 'lastName':
+            return dir * a.lastName.localeCompare(b.lastName);
+          case 'firstName':
+            return dir * (a.firstName ?? '').localeCompare(b.firstName ?? '');
+          case 'birthDate':
+            return (
+              dir * (new Date(a.birthDate ?? 0).getTime() - new Date(b.birthDate ?? 0).getTime())
+            );
+          case 'club':
+            return dir * (a.club || '').localeCompare(b.club || '');
+          case 'ranking':
+            return dir * ((a.ranking ?? 99999) - (b.ranking ?? 99999));
+          case 'status':
+            return dir * a.status.localeCompare(b.status);
+          default:
+            return 0;
         }
       });
   }, [fencers, debouncedSearchTerm, sortBy, sortOrder]);
@@ -363,14 +382,17 @@ const FencerListComponent: React.FC<FencerListProps> = ({
     }
   };
 
-  const handleSort = useCallback((col: SortableCol) => {
-    if (sortBy === col) {
-      setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(col);
-      setSortOrder('asc');
-    }
-  }, [sortBy]);
+  const handleSort = useCallback(
+    (col: SortableCol) => {
+      if (sortBy === col) {
+        setSortOrder(o => (o === 'asc' ? 'desc' : 'asc'));
+      } else {
+        setSortBy(col);
+        setSortOrder('asc');
+      }
+    },
+    [sortBy]
+  );
 
   const visibleCols = colOrder
     .map(id => COLUMNS.find(c => c.id === id)!)
@@ -384,12 +406,18 @@ const FencerListComponent: React.FC<FencerListProps> = ({
 
   const handleExportPDF = async () => {
     const { exportAppelToPDF } = await import('../../shared/utils/pdfExport');
-    await exportAppelToPDF(filteredFencers, visibleCols.map(c => c.id));
+    await exportAppelToPDF(
+      filteredFencers,
+      visibleCols.map(c => c.id)
+    );
   };
 
   return (
     <div className="content">
-      <div className="flex justify-between items-center mb-4" style={{ position: 'relative', zIndex: 2 }}>
+      <div
+        className="flex justify-between items-center mb-4"
+        style={{ position: 'relative', zIndex: 2 }}
+      >
         <div>
           <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>
             {fencers.length > 0
@@ -437,7 +465,15 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                   🗑️
                 </button>
               )}
-              <div style={{ width: '1px', height: '22px', background: 'var(--border-color, rgba(255,255,255,0.15))', margin: '0 0.125rem', flexShrink: 0 }} />
+              <div
+                style={{
+                  width: '1px',
+                  height: '22px',
+                  background: 'var(--border-color, rgba(255,255,255,0.15))',
+                  margin: '0 0.125rem',
+                  flexShrink: 0,
+                }}
+              />
             </>
           )}
           {onImport && (
@@ -450,39 +486,50 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                 📥 Importer ▾
               </button>
               {importMenuOpen && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  marginTop: '4px',
-                  zIndex: 9999,
-                  background: 'var(--bg-secondary, #2a2a3e)',
-                  border: '1px solid var(--border-color, #444)',
-                  borderRadius: '6px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                  minWidth: '230px',
-                  padding: '4px 0',
-                  maxHeight: '60vh',
-                  overflowY: 'auto',
-                }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    marginTop: '4px',
+                    zIndex: 9999,
+                    background: 'var(--bg-secondary, #2a2a3e)',
+                    border: '1px solid var(--border-color, #444)',
+                    borderRadius: '6px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                    minWidth: '230px',
+                    padding: '4px 0',
+                    maxHeight: '60vh',
+                    overflowY: 'auto',
+                  }}
+                >
                   <button
                     className="btn btn-ghost"
                     style={MENU_ITEM}
-                    onClick={() => { handleImportFencers('xml'); setImportMenuOpen(false); }}
+                    onClick={() => {
+                      handleImportFencers('xml');
+                      setImportMenuOpen(false);
+                    }}
                   >
                     Importer XML (BellePoule)
                   </button>
                   <button
                     className="btn btn-ghost"
                     style={MENU_ITEM}
-                    onClick={() => { handleImportFencers('fff'); setImportMenuOpen(false); }}
+                    onClick={() => {
+                      handleImportFencers('fff');
+                      setImportMenuOpen(false);
+                    }}
                   >
                     Importer liste FFE (.fff)
                   </button>
                   <button
                     className="btn btn-ghost"
                     style={MENU_ITEM}
-                    onClick={() => { handleImportFencers('ranking'); setImportMenuOpen(false); }}
+                    onClick={() => {
+                      handleImportFencers('ranking');
+                      setImportMenuOpen(false);
+                    }}
                   >
                     Importer classement FFE
                   </button>
@@ -490,7 +537,10 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                     <button
                       className="btn btn-ghost"
                       style={MENU_ITEM}
-                      onClick={() => { onImportFFEConnect(); setImportMenuOpen(false); }}
+                      onClick={() => {
+                        onImportFFEConnect();
+                        setImportMenuOpen(false);
+                      }}
                     >
                       🔗 Importer depuis FFE Connect
                     </button>
@@ -500,14 +550,20 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       <button
                         className="btn btn-ghost"
                         style={MENU_ITEM}
-                        onClick={() => { handleImportFencersArchive(); setImportMenuOpen(false); }}
+                        onClick={() => {
+                          handleImportFencersArchive();
+                          setImportMenuOpen(false);
+                        }}
                       >
                         Importer tireurs + photos (.bpf)
                       </button>
                       <button
                         className="btn btn-ghost"
                         style={MENU_ITEM}
-                        onClick={() => { handleImportPhotos(); setImportMenuOpen(false); }}
+                        onClick={() => {
+                          handleImportPhotos();
+                          setImportMenuOpen(false);
+                        }}
                       >
                         Importer photos (.zip)
                       </button>
@@ -526,19 +582,21 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               ⚙ Colonnes ▾
             </button>
             {colMenuOpen && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: '4px',
-                zIndex: 9999,
-                background: 'var(--bg-secondary, #2a2a3e)',
-                border: '1px solid var(--border-color, #444)',
-                borderRadius: '6px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                minWidth: '160px',
-                padding: '4px 0',
-              }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '4px',
+                  zIndex: 9999,
+                  background: 'var(--bg-secondary, #2a2a3e)',
+                  border: '1px solid var(--border-color, #444)',
+                  borderRadius: '6px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                  minWidth: '160px',
+                  padding: '4px 0',
+                }}
+              >
                 {COLUMNS.map(col => (
                   <label
                     key={col.id}
@@ -567,10 +625,20 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                     {col.label}
                   </label>
                 ))}
-                <div style={{ borderTop: '1px solid var(--border-color, #444)', margin: '4px 0' }} />
+                <div
+                  style={{ borderTop: '1px solid var(--border-color, #444)', margin: '4px 0' }}
+                />
                 <button
                   className="btn btn-ghost"
-                  style={{ display: 'block', width: '100%', textAlign: 'left', padding: '6px 16px', borderRadius: 0, fontSize: '0.8rem', color: 'var(--text-muted, #94a3b8)' }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '6px 16px',
+                    borderRadius: 0,
+                    fontSize: '0.8rem',
+                    color: 'var(--text-muted, #94a3b8)',
+                  }}
                   onClick={() => setColOrder(COLUMNS.map(c => c.id))}
                 >
                   ↺ Réinitialiser l&apos;ordre
@@ -587,53 +655,70 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               📤 Exporter ▾
             </button>
             {exportMenuOpen && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: '4px',
-                zIndex: 9999,
-                background: 'var(--bg-secondary, #2a2a3e)',
-                border: '1px solid var(--border-color, #444)',
-                borderRadius: '6px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                minWidth: '160px',
-                padding: '4px 0',
-                maxHeight: '60vh',
-                overflowY: 'auto',
-              }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '4px',
+                  zIndex: 9999,
+                  background: 'var(--bg-secondary, #2a2a3e)',
+                  border: '1px solid var(--border-color, #444)',
+                  borderRadius: '6px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                  minWidth: '160px',
+                  padding: '4px 0',
+                  maxHeight: '60vh',
+                  overflowY: 'auto',
+                }}
+              >
                 <button
                   className="btn btn-ghost"
                   style={MENU_ITEM}
-                  onClick={() => { handleExportPDF(); setExportMenuOpen(false); }}
+                  onClick={() => {
+                    handleExportPDF();
+                    setExportMenuOpen(false);
+                  }}
                 >
                   Exporter PDF (appel)
                 </button>
                 <button
                   className="btn btn-ghost"
                   style={MENU_ITEM}
-                  onClick={() => { handleExportFencers('txt'); setExportMenuOpen(false); }}
+                  onClick={() => {
+                    handleExportFencers('txt');
+                    setExportMenuOpen(false);
+                  }}
                 >
                   Exporter TXT
                 </button>
                 <button
                   className="btn btn-ghost"
                   style={MENU_ITEM}
-                  onClick={() => { handleExportFencers('fff'); setExportMenuOpen(false); }}
+                  onClick={() => {
+                    handleExportFencers('fff');
+                    setExportMenuOpen(false);
+                  }}
                 >
                   Exporter FFF
                 </button>
                 <button
                   className="btn btn-ghost"
                   style={MENU_ITEM}
-                  onClick={() => { handleExportFencersArchive(); setExportMenuOpen(false); }}
+                  onClick={() => {
+                    handleExportFencersArchive();
+                    setExportMenuOpen(false);
+                  }}
                 >
                   Exporter tireurs + photos (.bpf)
                 </button>
                 <button
                   className="btn btn-ghost"
                   style={MENU_ITEM}
-                  onClick={() => { handleExportPhotos(); setExportMenuOpen(false); }}
+                  onClick={() => {
+                    handleExportPhotos();
+                    setExportMenuOpen(false);
+                  }}
                 >
                   Exporter photos (.zip)
                 </button>
@@ -660,15 +745,24 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       {showRegisterQR && registerUrl && (
         <div
           style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
           }}
           onClick={() => setShowRegisterQR(false)}
         >
           <div
             style={{
-              background: 'var(--surface, #1e293b)', borderRadius: 16, padding: '2rem',
-              textAlign: 'center', maxWidth: 300, width: '90%',
+              background: 'var(--surface, #1e293b)',
+              borderRadius: 16,
+              padding: '2rem',
+              textAlign: 'center',
+              maxWidth: 300,
+              width: '90%',
               border: '1px solid var(--border-color, #334155)',
             }}
             onClick={e => e.stopPropagation()}
@@ -676,14 +770,46 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             <h3 style={{ marginBottom: '0.75rem', fontSize: '1.1rem', fontWeight: 700 }}>
               📱 Inscription tireur
             </h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted, #94a3b8)', marginBottom: '1rem' }}>
+            <p
+              style={{
+                fontSize: '0.8rem',
+                color: 'var(--text-muted, #94a3b8)',
+                marginBottom: '1rem',
+              }}
+            >
               Scannez ce QR code avec la tablette pour accéder au formulaire d&apos;inscription
             </p>
-            {registerQRDataUrl
-              ? <img src={registerQRDataUrl} alt="QR code inscription" width={220} height={220} style={{ borderRadius: 8 }} />
-              : <div style={{ width: 220, height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>Génération…</div>
-            }
-            <code style={{ display: 'block', marginTop: '0.75rem', fontSize: '0.7rem', wordBreak: 'break-all', color: 'var(--text-muted, #94a3b8)' }}>
+            {registerQRDataUrl ? (
+              <img
+                src={registerQRDataUrl}
+                alt="QR code inscription"
+                width={220}
+                height={220}
+                style={{ borderRadius: 8 }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 220,
+                  height: 220,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto',
+                }}
+              >
+                Génération…
+              </div>
+            )}
+            <code
+              style={{
+                display: 'block',
+                marginTop: '0.75rem',
+                fontSize: '0.7rem',
+                wordBreak: 'break-all',
+                color: 'var(--text-muted, #94a3b8)',
+              }}
+            >
               {registerUrl}
             </code>
             <button
@@ -708,31 +834,64 @@ const FencerListComponent: React.FC<FencerListProps> = ({
 
       {fencers.length > 0 && (
         <div style={{ marginBottom: '1rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: '0.75rem', color: 'var(--text-muted, #6b7280)', marginBottom: '5px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'baseline',
+              fontSize: '0.75rem',
+              color: 'var(--text-muted, #6b7280)',
+              marginBottom: '5px',
+            }}
+          >
             <span>Pointage</span>
-            <span style={{ fontWeight: 600, color: checkedInCount === fencers.length ? '#22c55e' : 'inherit' }}>
-              {checkedInCount} / {fencers.length} · {Math.round((checkedInCount / fencers.length) * 100)} %
+            <span
+              style={{
+                fontWeight: 600,
+                color: checkedInCount === fencers.length ? '#22c55e' : 'inherit',
+              }}
+            >
+              {checkedInCount} / {fencers.length} ·{' '}
+              {Math.round((checkedInCount / fencers.length) * 100)} %
             </span>
           </div>
-          <div style={{ height: '8px', background: 'var(--border-color, #e5e7eb)', borderRadius: '4px', overflow: 'hidden' }}>
-            <div style={{
-              height: '100%',
-              width: `${(checkedInCount / fencers.length) * 100}%`,
-              background: checkedInCount === fencers.length ? '#22c55e' : '#3b82f6',
+          <div
+            style={{
+              height: '8px',
+              background: 'var(--border-color, #e5e7eb)',
               borderRadius: '4px',
-              transition: 'width 0.4s ease',
-            }} />
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                height: '100%',
+                width: `${(checkedInCount / fencers.length) * 100}%`,
+                background: checkedInCount === fencers.length ? '#22c55e' : '#3b82f6',
+                borderRadius: '4px',
+                transition: 'width 0.4s ease',
+              }}
+            />
           </div>
         </div>
       )}
 
       {fencers.length > 0 && (
         <div style={{ position: 'relative', marginBottom: '1rem' }}>
-          <span style={{
-            position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)',
-            fontSize: '0.875rem', color: 'var(--text-muted, #6b7280)', pointerEvents: 'none',
-            userSelect: 'none',
-          }}>🔍</span>
+          <span
+            style={{
+              position: 'absolute',
+              left: '0.75rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: '0.875rem',
+              color: 'var(--text-muted, #6b7280)',
+              pointerEvents: 'none',
+              userSelect: 'none',
+            }}
+          >
+            🔍
+          </span>
           <input
             type="text"
             className="form-input"
@@ -750,14 +909,34 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             <>
               <div className="empty-state-icon">🤺</div>
               <h2 className="empty-state-title">Aucun tireur inscrit</h2>
-              <p className="empty-state-description">Importez une liste ou ajoutez des tireurs manuellement</p>
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '1.25rem' }}>
+              <p className="empty-state-description">
+                Importez une liste ou ajoutez des tireurs manuellement
+              </p>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.75rem',
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                  marginTop: '1.25rem',
+                }}
+              >
                 {onImport && (
-                  <CoachMark id="import-fencers" message="Formats acceptés : XML BellePoule, liste FFE (.fff/.csv/.txt)" position="bottom">
-                    <button className="btn btn-secondary" onClick={() => handleImportFencers('fff')}>
+                  <CoachMark
+                    id="import-fencers"
+                    message="Formats acceptés : XML BellePoule, liste FFE (.fff/.csv/.txt)"
+                    position="bottom"
+                  >
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => handleImportFencers('fff')}
+                    >
                       📥 Importer FFE (.fff)
                     </button>
-                    <button className="btn btn-secondary" onClick={() => handleImportFencers('xml')}>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => handleImportFencers('xml')}
+                    >
                       📥 Importer XML
                     </button>
                   </CoachMark>
@@ -771,7 +950,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             <>
               <div className="empty-state-icon">🔍</div>
               <h2 className="empty-state-title">Aucun résultat</h2>
-              <p className="empty-state-description">« {searchTerm} » ne correspond à aucun tireur</p>
+              <p className="empty-state-description">
+                « {searchTerm} » ne correspond à aucun tireur
+              </p>
             </>
           )}
         </div>
@@ -799,11 +980,15 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         cursor: 'grab',
                         userSelect: 'none',
                         opacity: dragCol === col.id ? 0.4 : 1,
-                        borderLeft: dragOverCol === col.id && dragCol !== col.id ? '2px solid var(--primary, #6366f1)' : undefined,
+                        borderLeft:
+                          dragOverCol === col.id && dragCol !== col.id
+                            ? '2px solid var(--primary, #6366f1)'
+                            : undefined,
                       }}
                       onClick={() => handleSort(col.id)}
                     >
-                      {col.label}{sortBy === col.id ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
+                      {col.label}
+                      {sortBy === col.id ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
                     </th>
                   ))}
                   <th>Actions</th>
@@ -841,140 +1026,188 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                           cursor: 'grab',
                           userSelect: 'none',
                           opacity: dragCol === col.id ? 0.4 : 1,
-                          borderLeft: dragOverCol === col.id && dragCol !== col.id ? '2px solid var(--primary, #6366f1)' : undefined,
+                          borderLeft:
+                            dragOverCol === col.id && dragCol !== col.id
+                              ? '2px solid var(--primary, #6366f1)'
+                              : undefined,
                         }}
                         onClick={() => handleSort(col.id)}
                       >
-                        {col.label}{sortBy === col.id ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
+                        {col.label}
+                        {sortBy === col.id ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
                       </th>
                     ))}
                     <th style={W250}>Actions</th>
                   </tr>
                 </thead>
               )}
-            <tbody>
-              {useVirtual && virtual.state.offsetY > 0 && (
-                <tr style={{ height: virtual.state.offsetY }}><td colSpan={colSpanTotal} /></tr>
-              )}
-              {(useVirtual ? virtual.visibleItems : filteredFencers).map(fencer => (
-                <tr
-                  key={fencer.id}
-                  onDoubleClick={() => setEditingFencer(fencer)}
-                  style={{ cursor: 'pointer' }}
-                  title="Double-cliquer pour modifier"
-                >
-                  {visibleCols.map(col => {
-                    switch (col.id) {
-                      case 'ref':       return <td key="ref" className="text-muted">{fencer.ref}</td>;
-                      case 'lastName':  return <td key="lastName" className="font-medium">{fencer.lastName}</td>;
-                      case 'firstName': return <td key="firstName">{fencer.firstName}</td>;
-                      case 'birthDate': return <td key="birthDate" className="text-sm text-muted">{fencer.birthDate ? new Date(fencer.birthDate).getFullYear() : '-'}</td>;
-                      case 'club':      return <td key="club" className="text-sm text-muted">{fencer.club || '-'}</td>;
-                      case 'ranking':   return <td key="ranking" className="text-sm">{fencer.ranking ? `#${fencer.ranking}` : '-'}</td>;
-                      case 'status':    return <td key="status"><span className={`badge ${statusLabels[fencer.status].color}`}>{statusLabels[fencer.status].label}</span></td>;
-                      default:          return null;
-                    }
-                  })}
-                  <td onDoubleClick={e => e.stopPropagation()}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '0.25rem',
-                        flexWrap: 'wrap',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <button
-                        className="btn btn-sm btn-secondary"
-                        onClick={() => setEditingFencer(fencer)}
-                        title="Modifier"
-                        style={SMALL_BTN}
+              <tbody>
+                {useVirtual && virtual.state.offsetY > 0 && (
+                  <tr style={{ height: virtual.state.offsetY }}>
+                    <td colSpan={colSpanTotal} />
+                  </tr>
+                )}
+                {(useVirtual ? virtual.visibleItems : filteredFencers).map(fencer => (
+                  <tr
+                    key={fencer.id}
+                    onDoubleClick={() => setEditingFencer(fencer)}
+                    style={{ cursor: 'pointer' }}
+                    title="Double-cliquer pour modifier"
+                  >
+                    {visibleCols.map(col => {
+                      switch (col.id) {
+                        case 'ref':
+                          return (
+                            <td key="ref" className="text-muted">
+                              {fencer.ref}
+                            </td>
+                          );
+                        case 'lastName':
+                          return (
+                            <td key="lastName" className="font-medium">
+                              {fencer.lastName}
+                            </td>
+                          );
+                        case 'firstName':
+                          return <td key="firstName">{fencer.firstName}</td>;
+                        case 'birthDate':
+                          return (
+                            <td key="birthDate" className="text-sm text-muted">
+                              {fencer.birthDate ? new Date(fencer.birthDate).getFullYear() : '-'}
+                            </td>
+                          );
+                        case 'club':
+                          return (
+                            <td key="club" className="text-sm text-muted">
+                              {fencer.club || '-'}
+                            </td>
+                          );
+                        case 'ranking':
+                          return (
+                            <td key="ranking" className="text-sm">
+                              {fencer.ranking ? `#${fencer.ranking}` : '-'}
+                            </td>
+                          );
+                        case 'status':
+                          return (
+                            <td key="status">
+                              <span className={`badge ${statusLabels[fencer.status].color}`}>
+                                {statusLabels[fencer.status].label}
+                              </span>
+                            </td>
+                          );
+                        default:
+                          return null;
+                      }
+                    })}
+                    <td onDoubleClick={e => e.stopPropagation()}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '0.25rem',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                        }}
                       >
-                        ✏️
-                      </button>
-                      <button
-                        className={`btn btn-sm ${fencer.status === FencerStatus.CHECKED_IN ? 'btn-secondary' : 'btn-primary'}`}
-                        onClick={() => onCheckIn(fencer.id)}
-                        style={SMALL_BTN}
-                      >
-                        {fencer.status === FencerStatus.CHECKED_IN ? 'Annuler' : 'Pointer'}
-                      </button>
-                      {onSetFencerStatus && fencer.status === FencerStatus.CHECKED_IN && (
-                        <>
-                          <button
-                            className="btn btn-sm btn-warning"
-                            onClick={() =>
-                              handleSetFencerStatus(
-                                fencer.id,
-                                FencerStatus.ABANDONED,
-                                t('messages.confirm_abandon', {
-                                  name: `${fencer.lastName} ${fencer.firstName}`,
-                                })
-                              )
-                            }
-                            title="Abandonner"
-                            style={SMALL_BTN}
-                          >
-                            🚶
-                          </button>
-                          <button
-                            className="btn btn-sm btn-warning"
-                            onClick={() =>
-                              handleSetFencerStatus(
-                                fencer.id,
-                                FencerStatus.FORFAIT,
-                                t('messages.confirm_forfait', {
-                                  name: `${fencer.lastName} ${fencer.firstName}`,
-                                })
-                              )
-                            }
-                            title="Forfait"
-                            style={SMALL_BTN}
-                          >
-                            📋
-                          </button>
-                        </>
-                      )}
-                      {onSetFencerStatus &&
-                        (fencer.status === FencerStatus.ABANDONED ||
-                          fencer.status === FencerStatus.FORFAIT) && (
-                          <button
-                            className="btn btn-sm btn-success"
-                            onClick={() =>
-                              handleSetFencerStatus(
-                                fencer.id,
-                                FencerStatus.CHECKED_IN,
-                                t('messages.confirm_reactivate', {
-                                  name: `${fencer.lastName} ${fencer.firstName}`,
-                                })
-                              )
-                            }
-                            title="Réactiver"
-                            style={SMALL_BTN}
-                          >
-                            ✅
-                          </button>
-                        )}
-                      {onDeleteFencer && (
                         <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDeleteFencer(fencer.id)}
-                          title="Supprimer"
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => setEditingFencer(fencer)}
+                          title="Modifier"
                           style={SMALL_BTN}
                         >
-                          🗑️
+                          ✏️
                         </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {useVirtual && (() => {
-                const bottomHeight = virtual.state.totalHeight - virtual.state.offsetY - (virtual.visibleItems.length * ROW_HEIGHT);
-                return bottomHeight > 0 ? <tr style={{ height: bottomHeight }}><td colSpan={colSpanTotal} /></tr> : null;
-              })()}
-            </tbody>
-          </table>
+                        <button
+                          className={`btn btn-sm ${fencer.status === FencerStatus.CHECKED_IN ? 'btn-secondary' : 'btn-primary'}`}
+                          onClick={() => onCheckIn(fencer.id)}
+                          style={SMALL_BTN}
+                        >
+                          {fencer.status === FencerStatus.CHECKED_IN ? 'Annuler' : 'Pointer'}
+                        </button>
+                        {onSetFencerStatus && fencer.status === FencerStatus.CHECKED_IN && (
+                          <>
+                            <button
+                              className="btn btn-sm btn-warning"
+                              onClick={() =>
+                                handleSetFencerStatus(
+                                  fencer.id,
+                                  FencerStatus.ABANDONED,
+                                  t('messages.confirm_abandon', {
+                                    name: `${fencer.lastName} ${fencer.firstName}`,
+                                  })
+                                )
+                              }
+                              title="Abandonner"
+                              style={SMALL_BTN}
+                            >
+                              🚶
+                            </button>
+                            <button
+                              className="btn btn-sm btn-warning"
+                              onClick={() =>
+                                handleSetFencerStatus(
+                                  fencer.id,
+                                  FencerStatus.FORFAIT,
+                                  t('messages.confirm_forfait', {
+                                    name: `${fencer.lastName} ${fencer.firstName}`,
+                                  })
+                                )
+                              }
+                              title="Forfait"
+                              style={SMALL_BTN}
+                            >
+                              📋
+                            </button>
+                          </>
+                        )}
+                        {onSetFencerStatus &&
+                          (fencer.status === FencerStatus.ABANDONED ||
+                            fencer.status === FencerStatus.FORFAIT) && (
+                            <button
+                              className="btn btn-sm btn-success"
+                              onClick={() =>
+                                handleSetFencerStatus(
+                                  fencer.id,
+                                  FencerStatus.CHECKED_IN,
+                                  t('messages.confirm_reactivate', {
+                                    name: `${fencer.lastName} ${fencer.firstName}`,
+                                  })
+                                )
+                              }
+                              title="Réactiver"
+                              style={SMALL_BTN}
+                            >
+                              ✅
+                            </button>
+                          )}
+                        {onDeleteFencer && (
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDeleteFencer(fencer.id)}
+                            title="Supprimer"
+                            style={SMALL_BTN}
+                          >
+                            🗑️
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {useVirtual &&
+                  (() => {
+                    const bottomHeight =
+                      virtual.state.totalHeight -
+                      virtual.state.offsetY -
+                      virtual.visibleItems.length * ROW_HEIGHT;
+                    return bottomHeight > 0 ? (
+                      <tr style={{ height: bottomHeight }}>
+                        <td colSpan={colSpanTotal} />
+                      </tr>
+                    ) : null;
+                  })()}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

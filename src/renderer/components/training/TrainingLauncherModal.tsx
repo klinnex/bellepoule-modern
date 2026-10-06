@@ -5,7 +5,12 @@ import type { TrainingCustomRules } from '../../../shared/types/preload';
 
 interface Props {
   onClose: () => void;
-  onLaunch: (weapon: string, strips: number, customRules: TrainingCustomRules, host: string) => void;
+  onLaunch: (
+    weapon: string,
+    strips: number,
+    customRules: TrainingCustomRules,
+    host: string
+  ) => void;
   isLoading: boolean;
 }
 
@@ -48,29 +53,36 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
   const [selectedInterface, setSelectedInterface] = useState<string>(loadSavedInterface);
 
   useEffect(() => {
-    window.electronAPI?.remote?.getNetworkInterfaces?.().then(res => {
-      const list = res?.success ? res.interfaces : undefined;
-      if (list?.length) {
-        setNetworkInterfaces(list);
-        // Interface mémorisée disparue (câble débranché, Wi-Fi changé…) → repli sur toutes
-        setSelectedInterface(prev =>
-          list.some(i => i.address === prev) ? prev : ALL_INTERFACES
-        );
-      }
-    }).catch(() => { /* garde la valeur par défaut */ });
+    window.electronAPI?.remote
+      ?.getNetworkInterfaces?.()
+      .then(res => {
+        const list = res?.success ? res.interfaces : undefined;
+        if (list?.length) {
+          setNetworkInterfaces(list);
+          // Interface mémorisée disparue (câble débranché, Wi-Fi changé…) → repli sur toutes
+          setSelectedInterface(prev =>
+            list.some(i => i.address === prev) ? prev : ALL_INTERFACES
+          );
+        }
+      })
+      .catch(() => {
+        /* garde la valeur par défaut */
+      });
   }, []);
 
   const handleInterfaceChange = (address: string) => {
     setSelectedInterface(address);
-    try { localStorage.setItem(INTERFACE_STORAGE_KEY, address); } catch { /* optionnel */ }
+    try {
+      localStorage.setItem(INTERFACE_STORAGE_KEY, address);
+    } catch {
+      /* optionnel */
+    }
   };
 
   const isLaser = weapon === Weapon.LASER;
 
   const toggleZone = (zone: TargetZone) => {
-    setAllowedZones(prev =>
-      prev.includes(zone) ? prev.filter(z => z !== zone) : [...prev, zone]
-    );
+    setAllowedZones(prev => (prev.includes(zone) ? prev.filter(z => z !== zone) : [...prev, zone]));
   };
 
   const handleWeaponChange = (w: string) => {
@@ -83,25 +95,39 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLaunch(weapon, strips, {
-      matchDurationSeconds: matchDuration,
-      allowedZones: allowedZones.map(z => z as string),
-      disableSuddenDeath,
-    }, selectedInterface);
+    onLaunch(
+      weapon,
+      strips,
+      {
+        matchDurationSeconds: matchDuration,
+        allowedZones: allowedZones.map(z => z as string),
+        disableSuddenDeath,
+      },
+      selectedInterface
+    );
   };
 
   const durationMin = Math.floor(matchDuration / 60);
   const durationSec = matchDuration % 60;
-  const durationLabel = durationSec === 0 ? `${durationMin} min` : `${durationMin}:${String(durationSec).padStart(2, '0')}`;
+  const durationLabel =
+    durationSec === 0
+      ? `${durationMin} min`
+      : `${durationMin}:${String(durationSec).padStart(2, '0')}`;
 
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         zIndex: 2000,
       }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={e => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <div
         style={{
@@ -116,17 +142,42 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
           color: 'var(--color-text)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1.25rem',
+          }}
+        >
+          <h2
+            style={{
+              margin: 0,
+              fontSize: '1.125rem',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
             <Swords size={18} /> Mode Entraînement
           </h2>
-          <button className="btn btn-icon" onClick={onClose} title="Fermer"><X size={16} /></button>
+          <button className="btn btn-icon" onClick={onClose} title="Fermer">
+            <X size={16} />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           {/* Arme */}
           <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+            <label
+              style={{
+                display: 'block',
+                fontWeight: 500,
+                marginBottom: '0.5rem',
+                fontSize: '0.875rem',
+              }}
+            >
               Arme
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
@@ -138,8 +189,14 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                   style={{
                     padding: '0.625rem 0.75rem',
                     borderRadius: '8px',
-                    border: weapon === key ? '2px solid var(--color-primary)' : '2px solid var(--color-border)',
-                    background: weapon === key ? 'var(--color-primary-soft, rgba(99,102,241,0.1))' : 'transparent',
+                    border:
+                      weapon === key
+                        ? '2px solid var(--color-primary)'
+                        : '2px solid var(--color-border)',
+                    background:
+                      weapon === key
+                        ? 'var(--color-primary-soft, rgba(99,102,241,0.1))'
+                        : 'transparent',
                     color: weapon === key ? 'var(--color-primary)' : 'var(--color-text)',
                     fontWeight: weapon === key ? 600 : 400,
                     cursor: 'pointer',
@@ -155,7 +212,14 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
 
           {/* Pistes */}
           <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+            <label
+              style={{
+                display: 'block',
+                fontWeight: 500,
+                marginBottom: '0.5rem',
+                fontSize: '0.875rem',
+              }}
+            >
               Nombre de pistes
             </label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -167,7 +231,14 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               >
                 <Minus size={14} />
               </button>
-              <span style={{ fontSize: '1.5rem', fontWeight: 700, minWidth: '2rem', textAlign: 'center' }}>
+              <span
+                style={{
+                  fontSize: '1.5rem',
+                  fontWeight: 700,
+                  minWidth: '2rem',
+                  textAlign: 'center',
+                }}
+              >
                 {strips}
               </span>
               <button
@@ -178,7 +249,13 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               >
                 <Plus size={14} />
               </button>
-              <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginLeft: '0.25rem' }}>
+              <span
+                style={{
+                  fontSize: '0.8125rem',
+                  color: 'var(--color-text-muted)',
+                  marginLeft: '0.25rem',
+                }}
+              >
                 piste{strips > 1 ? 's' : ''}
               </span>
             </div>
@@ -186,7 +263,16 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
 
           {/* Durée du combat */}
           <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontWeight: 500,
+                marginBottom: '0.5rem',
+                fontSize: '0.875rem',
+              }}
+            >
               <Clock size={14} /> Durée du combat — <strong>{durationLabel}</strong>
             </label>
             <input
@@ -207,9 +293,18 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                   style={{
                     padding: '0.25rem 0.6rem',
                     borderRadius: '6px',
-                    border: matchDuration === p.value ? '2px solid var(--color-primary)' : '2px solid var(--color-border)',
-                    background: matchDuration === p.value ? 'var(--color-primary-soft, rgba(99,102,241,0.1))' : 'transparent',
-                    color: matchDuration === p.value ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                    border:
+                      matchDuration === p.value
+                        ? '2px solid var(--color-primary)'
+                        : '2px solid var(--color-border)',
+                    background:
+                      matchDuration === p.value
+                        ? 'var(--color-primary-soft, rgba(99,102,241,0.1))'
+                        : 'transparent',
+                    color:
+                      matchDuration === p.value
+                        ? 'var(--color-primary)'
+                        : 'var(--color-text-muted)',
                     fontSize: '0.8125rem',
                     fontWeight: matchDuration === p.value ? 600 : 400,
                     cursor: 'pointer',
@@ -225,7 +320,14 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
           <div style={{ marginBottom: '1.25rem' }}>
             <label
               htmlFor="training-interface"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500, marginBottom: '0.5rem', fontSize: '0.875rem' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontWeight: 500,
+                marginBottom: '0.5rem',
+                fontSize: '0.875rem',
+              }}
             >
               <Network size={14} /> Interface réseau
             </label>
@@ -249,9 +351,22 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
             <>
               {/* Zones autorisées */}
               <div style={{ marginBottom: '1.25rem' }}>
-                <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontWeight: 500,
+                    marginBottom: '0.5rem',
+                    fontSize: '0.875rem',
+                  }}
+                >
                   Zones autorisées{' '}
-                  <span style={{ fontWeight: 400, color: 'var(--color-text-muted)', fontSize: '0.8125rem' }}>
+                  <span
+                    style={{
+                      fontWeight: 400,
+                      color: 'var(--color-text-muted)',
+                      fontSize: '0.8125rem',
+                    }}
+                  >
                     (vide = toutes)
                   </span>
                 </label>
@@ -285,7 +400,9 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                         }}
                       >
                         <div style={{ fontSize: '1rem', fontWeight: 700 }}>Zone {zone}</div>
-                        <div style={{ fontSize: '0.75rem' }}>{pts} pt{pts > 1 ? 's' : ''}</div>
+                        <div style={{ fontSize: '0.75rem' }}>
+                          {pts} pt{pts > 1 ? 's' : ''}
+                        </div>
                         <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>{label}</div>
                       </button>
                     );
@@ -297,35 +414,62 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               <div style={{ marginBottom: '1.25rem' }}>
                 <label
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '0.75rem',
-                    cursor: 'pointer', userSelect: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    cursor: 'pointer',
+                    userSelect: 'none',
                   }}
                 >
                   <div
                     style={{
-                      width: '40px', height: '22px',
+                      width: '40px',
+                      height: '22px',
                       borderRadius: '11px',
-                      background: disableSuddenDeath ? 'var(--color-danger, #ef4444)' : 'var(--color-border)',
-                      position: 'relative', transition: 'background 0.2s', cursor: 'pointer',
+                      background: disableSuddenDeath
+                        ? 'var(--color-danger, #ef4444)'
+                        : 'var(--color-border)',
+                      position: 'relative',
+                      transition: 'background 0.2s',
+                      cursor: 'pointer',
                       flexShrink: 0,
                     }}
                     onClick={() => setDisableSuddenDeath(v => !v)}
                   >
-                    <div style={{
-                      position: 'absolute', top: '3px',
-                      left: disableSuddenDeath ? '21px' : '3px',
-                      width: '16px', height: '16px',
-                      borderRadius: '50%', background: '#fff',
-                      transition: 'left 0.2s',
-                    }} />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '3px',
+                        left: disableSuddenDeath ? '21px' : '3px',
+                        width: '16px',
+                        height: '16px',
+                        borderRadius: '50%',
+                        background: '#fff',
+                        transition: 'left 0.2s',
+                      }}
+                    />
                   </div>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <span
+                    style={{
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                    }}
+                  >
                     <Zap size={14} />
                     Désactiver la mort subite
                   </span>
                 </label>
                 {disableSuddenDeath && (
-                  <p style={{ margin: '0.35rem 0 0 3.25rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                  <p
+                    style={{
+                      margin: '0.35rem 0 0 3.25rem',
+                      fontSize: '0.8rem',
+                      color: 'var(--color-text-muted)',
+                    }}
+                  >
                     Égalité à temps → fin du match sans prolongation.
                   </p>
                 )}

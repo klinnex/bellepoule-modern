@@ -124,7 +124,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   const [webhookUrl, setWebhookUrl] = useState<string>(
     () => localStorage.getItem(WEBHOOK_STORAGE_KEY) ?? ''
   );
-  const [webhookTestStatus, setWebhookTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
+  const [webhookTestStatus, setWebhookTestStatus] = useState<
+    'idle' | 'testing' | 'success' | 'error'
+  >('idle');
   const [webhookTestMessage, setWebhookTestMessage] = useState<string>('');
 
   // Paramètres minuteur vocal (TTS) des tablettes d'arbitrage
@@ -153,8 +155,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
         localStorage.setItem(LOGO_STORAGE_KEY, persisted);
       }
     });
-    return () => { if (typeof unsub === 'function') unsub(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Liste des voix disponibles (peut arriver de façon asynchrone)
@@ -163,14 +167,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     const refresh = () => setVoices(window.speechSynthesis.getVoices());
     refresh();
     window.speechSynthesis.onvoiceschanged = refresh;
-    return () => { window.speechSynthesis.onvoiceschanged = null; };
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
   }, []);
 
   // Pousse la config TTS : persistance locale + serveurs distants actifs
   const persistTtsConfig = useCallback((next: TtsConfig) => {
     setTtsConfig(next);
     localStorage.setItem(TTS_CONFIG_KEY, JSON.stringify(next));
-    (window as any).electronAPI?.remote?.setTtsConfig?.(next)?.catch?.(() => {/* serveur inactif */});
+    (window as any).electronAPI?.remote?.setTtsConfig?.(next)?.catch?.(() => {
+      /* serveur inactif */
+    });
   }, []);
 
   const handleTtsVoiceChange = (voiceName: string) => {
@@ -190,7 +198,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     window.speechSynthesis.cancel();
     const utt = new SpeechSynthesisUtterance('30 secondes');
     const v = voices.find(x => x.name === ttsConfig.voiceName);
-    if (v) { utt.voice = v; utt.lang = v.lang; }
+    if (v) {
+      utt.voice = v;
+      utt.lang = v.lang;
+    }
     utt.rate = ttsConfig.rate;
     window.speechSynthesis.speak(utt);
   };
@@ -218,11 +229,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
       setLogo(base64);
       localStorage.setItem(LOGO_STORAGE_KEY, base64);
       const api = (window as any).electronAPI;
-      if (api?.remote?.updateLogo) api.remote.updateLogo(base64).catch((err: unknown) => {
-        logger.warn(LogCategory.NETWORK, 'Échec mise à jour logo remote', err instanceof Error ? err : undefined);
-      });
+      if (api?.remote?.updateLogo)
+        api.remote.updateLogo(base64).catch((err: unknown) => {
+          logger.warn(
+            LogCategory.NETWORK,
+            'Échec mise à jour logo remote',
+            err instanceof Error ? err : undefined
+          );
+        });
     } catch {
-      setLogoError('Impossible de lire l\'image');
+      setLogoError("Impossible de lire l'image");
     }
   }, []);
 
@@ -232,20 +248,28 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     e.target.value = '';
   };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) applyLogo(file);
-  }, [applyLogo]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file) applyLogo(file);
+    },
+    [applyLogo]
+  );
 
   const handleRemoveLogo = () => {
     setLogo(null);
     localStorage.removeItem(LOGO_STORAGE_KEY);
     const api = (window as any).electronAPI;
-    if (api?.remote?.updateLogo) api.remote.updateLogo(null).catch((err: unknown) => {
-      logger.warn(LogCategory.NETWORK, 'Échec suppression logo remote', err instanceof Error ? err : undefined);
-    });
+    if (api?.remote?.updateLogo)
+      api.remote.updateLogo(null).catch((err: unknown) => {
+        logger.warn(
+          LogCategory.NETWORK,
+          'Échec suppression logo remote',
+          err instanceof Error ? err : undefined
+        );
+      });
   };
 
   const handleWebhookUrlChange = (url: string) => {
@@ -253,14 +277,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     setWebhookTestStatus('idle');
     localStorage.setItem(WEBHOOK_STORAGE_KEY, url);
     // Synchronise l'URL vers tous les serveurs distants actifs
-    (window as any).electronAPI?.remote?.setWebhookUrl?.(url || null).catch(() => {/* serveur inactif */});
+    (window as any).electronAPI?.remote?.setWebhookUrl?.(url || null).catch(() => {
+      /* serveur inactif */
+    });
   };
 
   const handleTestWebhook = async () => {
     if (!webhookUrl.trim()) return;
     if (!isWebhookUrlSafe(webhookUrl)) {
       setWebhookTestStatus('error');
-      setWebhookTestMessage('URL invalide — doit être https vers un hôte public (pas localhost ni IP privée)');
+      setWebhookTestMessage(
+        'URL invalide — doit être https vers un hôte public (pas localhost ni IP privée)'
+      );
       return;
     }
     setWebhookTestStatus('testing');
@@ -278,7 +306,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
       setWebhookTestMessage('Webhook envoyé avec succès !');
     } catch {
       setWebhookTestStatus('error');
-      setWebhookTestMessage('Échec de l\'envoi — vérifiez l\'URL et la connectivité réseau');
+      setWebhookTestMessage("Échec de l'envoi — vérifiez l'URL et la connectivité réseau");
     }
   };
 
@@ -310,271 +338,325 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
 
   return (
     <>
-    <div className="modal-overlay" onClick={onClose}>
-      <div ref={modalRef} className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }} role="dialog" aria-modal="true">
-        <div className="modal-header">
-          <h2 className="modal-title">{t('settings.title')}</h2>
-        </div>
-
-        <div className="modal-body">
-          <div className="form-group">
-            <LanguageSelector
-              showLabel={true}
-              value={settings.language}
-              onLanguageChange={handleLanguageChange}
-            />
+      <div className="modal-overlay" onClick={onClose}>
+        <div
+          ref={modalRef}
+          className="modal"
+          onClick={e => e.stopPropagation()}
+          style={{ maxWidth: '500px' }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="modal-header">
+            <h2 className="modal-title">{t('settings.title')}</h2>
           </div>
 
-          <div className="form-group">
-            <label>{t('settings.theme')}</label>
-            <select
-              className="form-input form-select"
-              value={settings.theme}
-              onChange={e => handleThemeChange(e.target.value as 'default' | 'light' | 'dark')}
-            >
-              <option value="default">Default</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </div>
-
-          {/* Logo organisateur */}
-          <div className="form-group">
-            <label>Logo organisateur</label>
-            <p style={HINT}>
-              Affiché en haut à gauche des PDF exportés et dans le mode kiosque.
-            </p>
-            <div
-              onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                border: `2px dashed ${isDragging ? 'var(--primary, #3b82f6)' : 'var(--border, #d1d5db)'}`,
-                borderRadius: '8px',
-                padding: '1rem',
-                textAlign: 'center',
-                cursor: 'pointer',
-                background: isDragging ? 'var(--primary-light, #eff6ff)' : 'transparent',
-                transition: 'border-color 0.15s, background 0.15s',
-              }}
-            >
-              {logo ? (
-                <img
-                  src={logo}
-                  alt="Logo organisateur"
-                  style={{ maxHeight: '60px', maxWidth: '100%', objectFit: 'contain', display: 'block', margin: '0 auto 0.5rem' }}
-                />
-              ) : (
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted, #6b7280)' }}>
-                  Glissez une image ici ou cliquez pour choisir
-                </span>
-              )}
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted, #9ca3af)', display: 'block', marginTop: logo ? '0' : '0.25rem' }}>
-                PNG, JPG, SVG — max 5 Mo
-              </span>
+          <div className="modal-body">
+            <div className="form-group">
+              <LanguageSelector
+                showLabel={true}
+                value={settings.language}
+                onLanguageChange={handleLanguageChange}
+              />
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={handleFileChange}
-            />
-            {logoError && (
-              <p style={{ fontSize: '0.8rem', color: 'var(--danger, #ef4444)', marginTop: '0.25rem' }}>{logoError}</p>
-            )}
-            {logo && (
-              <button
-                className="btn btn-secondary"
-                style={{ marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.25rem 0.75rem' }}
-                onClick={handleRemoveLogo}
+
+            <div className="form-group">
+              <label>{t('settings.theme')}</label>
+              <select
+                className="form-input form-select"
+                value={settings.theme}
+                onChange={e => handleThemeChange(e.target.value as 'default' | 'light' | 'dark')}
               >
-                Supprimer le logo
-              </button>
-            )}
-          </div>
-          {/* PDF Templates */}
-          <div className="form-group" style={SECTION_DIVIDER}>
-            <label style={BOLD}>Exports PDF</label>
-            <p style={HINT}>
-              Personnalisez l'apparence de chaque type d'export PDF.
-            </p>
-            <button
-              className="btn btn-secondary"
-              style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
-              onClick={() => setShowPdfEditor(true)}
-            >
-              {t('pdfTemplate.openButton')}
-            </button>
-          </div>
+                <option value="default">Default</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
 
-          {/* Saisie rapide souris */}
-          <div className="form-group" style={SECTION_DIVIDER}>
-            <label style={BOLD}>Saisie rapide souris</label>
-            <p style={HINT}>
-              Survol d'une cellule : met en évidence la cellule miroir et les noms.
-              Roulette : ±1 au score du tireur (ligne). Shift+roulette : score de l'adversaire (colonne).
-              Score nul en laser sabre → ouvre la modal de victoire.
-            </p>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={quickMouseScoring}
-                onChange={e => handleQuickMouseScoringChange(e.target.checked)}
-              />
-              <span style={{ fontSize: '0.875rem' }}>Activer la saisie rapide à la souris</span>
-            </label>
-          </div>
-
-          {/* Mode de saisie simplifiée */}
-          <div className="form-group" style={SECTION_DIVIDER}>
-            <label style={BOLD}>Mode de saisie simplifiée</label>
-            <p style={HINT}>
-              Clic sur une cellule de poule : saisie directe des scores dans la case, sans ouverture de modal.
-              Score nul en laser sabre → ouvre tout de même la modal de victoire.
-            </p>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={simplifiedInputMode}
-                onChange={e => handleSimplifiedInputModeChange(e.target.checked)}
-              />
-              <span style={{ fontSize: '0.875rem' }}>Activer la saisie simplifiée dans les cases</span>
-            </label>
-          </div>
-
-          {/* Journal des scores */}
-          <div className="form-group" style={SECTION_DIVIDER}>
-            <label style={BOLD}>Journal des scores</label>
-            <p style={HINT}>
-              Active l'onglet "Historique des scores" dans la vue compétition.
-            </p>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={auditLogEnabled}
-                onChange={e => handleAuditLogChange(e.target.checked)}
-              />
-              <span style={{ fontSize: '0.875rem' }}>Activer le journal d'audit des scores</span>
-            </label>
-          </div>
-
-          {/* Notifications webhook */}
-          <div className="form-group" style={SECTION_DIVIDER}>
-            <label style={BOLD}>Notifications webhook</label>
-            <p style={HINT}>
-              URL Discord / Slack / personnalisée (HTTPS uniquement).
-            </p>
-            <input
-              type="url"
-              className="form-input"
-              placeholder="https://hooks.slack.com/services/..."
-              value={webhookUrl}
-              onChange={e => handleWebhookUrlChange(e.target.value)}
-              style={{ marginBottom: '0.5rem' }}
-            />
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <button
-                className="btn btn-secondary"
-                style={SMALL_BTN}
-                onClick={handleTestWebhook}
-                disabled={!webhookUrl.trim() || webhookTestStatus === 'testing'}
+            {/* Logo organisateur */}
+            <div className="form-group">
+              <label>Logo organisateur</label>
+              <p style={HINT}>Affiché en haut à gauche des PDF exportés et dans le mode kiosque.</p>
+              <div
+                onDragOver={e => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  border: `2px dashed ${isDragging ? 'var(--primary, #3b82f6)' : 'var(--border, #d1d5db)'}`,
+                  borderRadius: '8px',
+                  padding: '1rem',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  background: isDragging ? 'var(--primary-light, #eff6ff)' : 'transparent',
+                  transition: 'border-color 0.15s, background 0.15s',
+                }}
               >
-                {webhookTestStatus === 'testing' ? '⏳ Test…' : '🔔 Tester'}
-              </button>
-              {webhookUrl && (
+                {logo ? (
+                  <img
+                    src={logo}
+                    alt="Logo organisateur"
+                    style={{
+                      maxHeight: '60px',
+                      maxWidth: '100%',
+                      objectFit: 'contain',
+                      display: 'block',
+                      margin: '0 auto 0.5rem',
+                    }}
+                  />
+                ) : (
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted, #6b7280)' }}>
+                    Glissez une image ici ou cliquez pour choisir
+                  </span>
+                )}
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    color: 'var(--text-muted, #9ca3af)',
+                    display: 'block',
+                    marginTop: logo ? '0' : '0.25rem',
+                  }}
+                >
+                  PNG, JPG, SVG — max 5 Mo
+                </span>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+              />
+              {logoError && (
+                <p
+                  style={{
+                    fontSize: '0.8rem',
+                    color: 'var(--danger, #ef4444)',
+                    marginTop: '0.25rem',
+                  }}
+                >
+                  {logoError}
+                </p>
+              )}
+              {logo && (
                 <button
                   className="btn btn-secondary"
-                  style={SMALL_BTN}
-                  onClick={() => handleWebhookUrlChange('')}
+                  style={{ marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.25rem 0.75rem' }}
+                  onClick={handleRemoveLogo}
                 >
-                  Supprimer
+                  Supprimer le logo
                 </button>
               )}
             </div>
-            {webhookTestMessage && (
-              <p style={{
-                fontSize: '0.8rem',
-                marginTop: '0.35rem',
-                color: webhookTestStatus === 'success' ? 'var(--success, #16a34a)' : 'var(--danger, #ef4444)',
-              }}>
-                {webhookTestMessage}
-              </p>
-            )}
-          </div>
-
-          {/* Tableau arbitrage — minuteur vocal (TTS) */}
-          <div className="form-group" style={SECTION_DIVIDER}>
-            <label style={BOLD}>Tableau arbitrage — minuteur vocal</label>
-            <p style={HINT}>
-              Voix et paliers de temps annoncés sur les tablettes d'arbitrage.
-            </p>
-
-            <label style={{ fontSize: '0.85rem' }}>Voix</label>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <select
-                className="form-input form-select"
-                value={ttsConfig.voiceName ?? ''}
-                onChange={e => handleTtsVoiceChange(e.target.value)}
-                style={{ flex: 1 }}
+            {/* PDF Templates */}
+            <div className="form-group" style={SECTION_DIVIDER}>
+              <label style={BOLD}>Exports PDF</label>
+              <p style={HINT}>Personnalisez l'apparence de chaque type d'export PDF.</p>
+              <button
+                className="btn btn-secondary"
+                style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
+                onClick={() => setShowPdfEditor(true)}
               >
-                <option value="">Voix par défaut (selon la langue)</option>
-                {voices.map(v => (
-                  <option key={v.name} value={v.name}>{v.name} ({v.lang})</option>
-                ))}
-              </select>
-              <button className="btn btn-secondary" style={SMALL_BTN} onClick={handleTtsTestVoice}>
-                🔊 Tester
+                {t('pdfTemplate.openButton')}
               </button>
             </div>
 
-            <label style={{ fontSize: '0.85rem' }}>
-              Vitesse : {ttsConfig.rate.toFixed(1)}×
-            </label>
-            <input
-              type="range"
-              min="0.5"
-              max="2"
-              step="0.1"
-              value={ttsConfig.rate}
-              onChange={e => handleTtsRateChange(parseFloat(e.target.value))}
-              style={{ width: '100%', marginBottom: '0.5rem' }}
-            />
+            {/* Saisie rapide souris */}
+            <div className="form-group" style={SECTION_DIVIDER}>
+              <label style={BOLD}>Saisie rapide souris</label>
+              <p style={HINT}>
+                Survol d'une cellule : met en évidence la cellule miroir et les noms. Roulette : ±1
+                au score du tireur (ligne). Shift+roulette : score de l'adversaire (colonne). Score
+                nul en laser sabre → ouvre la modal de victoire.
+              </p>
+              <label
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
+              >
+                <input
+                  type="checkbox"
+                  checked={quickMouseScoring}
+                  onChange={e => handleQuickMouseScoringChange(e.target.checked)}
+                />
+                <span style={{ fontSize: '0.875rem' }}>Activer la saisie rapide à la souris</span>
+              </label>
+            </div>
 
-            <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem' }}>
-              Paliers annoncés
-            </label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              {TTS_THRESHOLDS.map(({ key, label }) => (
-                <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={ttsConfig.announce[key] !== false}
-                    onChange={e => handleTtsThresholdToggle(key, e.target.checked)}
-                  />
-                  <span style={{ fontSize: '0.875rem' }}>{label}</span>
-                </label>
-              ))}
+            {/* Mode de saisie simplifiée */}
+            <div className="form-group" style={SECTION_DIVIDER}>
+              <label style={BOLD}>Mode de saisie simplifiée</label>
+              <p style={HINT}>
+                Clic sur une cellule de poule : saisie directe des scores dans la case, sans
+                ouverture de modal. Score nul en laser sabre → ouvre tout de même la modal de
+                victoire.
+              </p>
+              <label
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
+              >
+                <input
+                  type="checkbox"
+                  checked={simplifiedInputMode}
+                  onChange={e => handleSimplifiedInputModeChange(e.target.checked)}
+                />
+                <span style={{ fontSize: '0.875rem' }}>
+                  Activer la saisie simplifiée dans les cases
+                </span>
+              </label>
+            </div>
+
+            {/* Journal des scores */}
+            <div className="form-group" style={SECTION_DIVIDER}>
+              <label style={BOLD}>Journal des scores</label>
+              <p style={HINT}>Active l'onglet "Historique des scores" dans la vue compétition.</p>
+              <label
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
+              >
+                <input
+                  type="checkbox"
+                  checked={auditLogEnabled}
+                  onChange={e => handleAuditLogChange(e.target.checked)}
+                />
+                <span style={{ fontSize: '0.875rem' }}>Activer le journal d'audit des scores</span>
+              </label>
+            </div>
+
+            {/* Notifications webhook */}
+            <div className="form-group" style={SECTION_DIVIDER}>
+              <label style={BOLD}>Notifications webhook</label>
+              <p style={HINT}>URL Discord / Slack / personnalisée (HTTPS uniquement).</p>
+              <input
+                type="url"
+                className="form-input"
+                placeholder="https://hooks.slack.com/services/..."
+                value={webhookUrl}
+                onChange={e => handleWebhookUrlChange(e.target.value)}
+                style={{ marginBottom: '0.5rem' }}
+              />
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button
+                  className="btn btn-secondary"
+                  style={SMALL_BTN}
+                  onClick={handleTestWebhook}
+                  disabled={!webhookUrl.trim() || webhookTestStatus === 'testing'}
+                >
+                  {webhookTestStatus === 'testing' ? '⏳ Test…' : '🔔 Tester'}
+                </button>
+                {webhookUrl && (
+                  <button
+                    className="btn btn-secondary"
+                    style={SMALL_BTN}
+                    onClick={() => handleWebhookUrlChange('')}
+                  >
+                    Supprimer
+                  </button>
+                )}
+              </div>
+              {webhookTestMessage && (
+                <p
+                  style={{
+                    fontSize: '0.8rem',
+                    marginTop: '0.35rem',
+                    color:
+                      webhookTestStatus === 'success'
+                        ? 'var(--success, #16a34a)'
+                        : 'var(--danger, #ef4444)',
+                  }}
+                >
+                  {webhookTestMessage}
+                </p>
+              )}
+            </div>
+
+            {/* Tableau arbitrage — minuteur vocal (TTS) */}
+            <div className="form-group" style={SECTION_DIVIDER}>
+              <label style={BOLD}>Tableau arbitrage — minuteur vocal</label>
+              <p style={HINT}>Voix et paliers de temps annoncés sur les tablettes d'arbitrage.</p>
+
+              <label style={{ fontSize: '0.85rem' }}>Voix</label>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  alignItems: 'center',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                <select
+                  className="form-input form-select"
+                  value={ttsConfig.voiceName ?? ''}
+                  onChange={e => handleTtsVoiceChange(e.target.value)}
+                  style={{ flex: 1 }}
+                >
+                  <option value="">Voix par défaut (selon la langue)</option>
+                  {voices.map(v => (
+                    <option key={v.name} value={v.name}>
+                      {v.name} ({v.lang})
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className="btn btn-secondary"
+                  style={SMALL_BTN}
+                  onClick={handleTtsTestVoice}
+                >
+                  🔊 Tester
+                </button>
+              </div>
+
+              <label style={{ fontSize: '0.85rem' }}>Vitesse : {ttsConfig.rate.toFixed(1)}×</label>
+              <input
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.1"
+                value={ttsConfig.rate}
+                onChange={e => handleTtsRateChange(parseFloat(e.target.value))}
+                style={{ width: '100%', marginBottom: '0.5rem' }}
+              />
+
+              <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem' }}>
+                Paliers annoncés
+              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                {TTS_THRESHOLDS.map(({ key, label }) => (
+                  <label
+                    key={key}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={ttsConfig.announce[key] !== false}
+                      onChange={e => handleTtsThresholdToggle(key, e.target.checked)}
+                    />
+                    <span style={{ fontSize: '0.875rem' }}>{label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
-            {t('actions.cancel')}
-          </button>
-          <button className="btn btn-primary" onClick={handleSave}>
-            {t('settings.save')}
-          </button>
+          <div className="modal-footer">
+            <button className="btn btn-secondary" onClick={onClose}>
+              {t('actions.cancel')}
+            </button>
+            <button className="btn btn-primary" onClick={handleSave}>
+              {t('settings.save')}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-    {showPdfEditor && (
-      <React.Suspense fallback={null}>
-        <PdfTemplateModal onClose={() => setShowPdfEditor(false)} />
-      </React.Suspense>
-    )}
+      {showPdfEditor && (
+        <React.Suspense fallback={null}>
+          <PdfTemplateModal onClose={() => setShowPdfEditor(false)} />
+        </React.Suspense>
+      )}
     </>
   );
 };

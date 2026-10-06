@@ -10,13 +10,21 @@ import { usePoolManagement } from './usePoolManagement';
 import { Fencer, Pool, Match, MatchStatus, Gender, FencerStatus } from '../../shared/types';
 
 const fencer = (id: number): Fencer => ({
-  id: String(id), ref: id, lastName: 'L' + id, firstName: 'F',
-  gender: Gender.MALE, nationality: 'FRA', status: FencerStatus.CHECKED_IN,
-  createdAt: new Date(), updatedAt: new Date(),
+  id: String(id),
+  ref: id,
+  lastName: 'L' + id,
+  firstName: 'F',
+  gender: Gender.MALE,
+  nationality: 'FRA',
+  status: FencerStatus.CHECKED_IN,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 let showToast: ReturnType<typeof vi.fn>;
-beforeEach(() => { showToast = vi.fn(); });
+beforeEach(() => {
+  showToast = vi.fn();
+});
 
 const setup = () =>
   renderHook(() =>
@@ -27,7 +35,9 @@ describe('generatePools', () => {
   it('refuse moins de 4 tireurs', () => {
     const r = setup();
     let res: Pool[] | null = [];
-    act(() => { res = r.current.generatePools([fencer(1), fencer(2)]); });
+    act(() => {
+      res = r.current.generatePools([fencer(1), fencer(2)]);
+    });
     expect(res).toBeNull();
     expect(showToast).toHaveBeenCalledWith(expect.stringContaining('4 tireurs'), 'warning');
   });
@@ -36,7 +46,9 @@ describe('generatePools', () => {
     const r = setup();
     const fencers = Array.from({ length: 8 }, (_, i) => fencer(i + 1));
     let res: Pool[] | null = null;
-    act(() => { res = r.current.generatePools(fencers); });
+    act(() => {
+      res = r.current.generatePools(fencers);
+    });
     expect(res).not.toBeNull();
     expect(r.current.pools.length).toBeGreaterThan(0);
     // tous les tireurs répartis
@@ -50,14 +62,30 @@ describe('generatePools', () => {
 
 describe('areAllPoolsComplete', () => {
   const poolWith = (status: MatchStatus): Pool => ({
-    id: 'p1', number: 1, phaseId: 'ph', fencers: [fencer(1), fencer(2)],
-    matches: [{
-      id: 'm', number: 1, fencerA: fencer(1), fencerB: fencer(2),
-      scoreA: null, scoreB: null, maxScore: 5, status,
-      createdAt: new Date(), updatedAt: new Date(),
-    } as Match],
-    referees: [], isComplete: false, hasError: false, ranking: [],
-    createdAt: new Date(), updatedAt: new Date(),
+    id: 'p1',
+    number: 1,
+    phaseId: 'ph',
+    fencers: [fencer(1), fencer(2)],
+    matches: [
+      {
+        id: 'm',
+        number: 1,
+        fencerA: fencer(1),
+        fencerB: fencer(2),
+        scoreA: null,
+        scoreB: null,
+        maxScore: 5,
+        status,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as Match,
+    ],
+    referees: [],
+    isComplete: false,
+    hasError: false,
+    ranking: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
   });
 
   it('faux si un match n’est pas terminé', () => {
@@ -84,33 +112,69 @@ describe('computePoolRanking', () => {
 
 function poolFixture(): Pool {
   return {
-    id: 'p1', number: 1, phaseId: 'ph', fencers: [fencer(1), fencer(2)],
-    matches: [], referees: [], isComplete: false, hasError: false, ranking: [],
-    createdAt: new Date(), updatedAt: new Date(),
+    id: 'p1',
+    number: 1,
+    phaseId: 'ph',
+    fencers: [fencer(1), fencer(2)],
+    matches: [],
+    referees: [],
+    isComplete: false,
+    hasError: false,
+    ranking: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 }
 
 describe('handleBlackCardCancelled', () => {
   const sc = (value: number, extra: Partial<Match['scoreA']> = {}) => ({
-    value, isVictory: false, isAbstention: false, isExclusion: false, isForfait: false, ...extra,
+    value,
+    isVictory: false,
+    isAbstention: false,
+    isExclusion: false,
+    isForfait: false,
+    ...extra,
   });
 
   it('réintègre le combattant, rouvre le match du carton et rend ses résultats aux adversaires', () => {
     const r = setup();
-    const excluded = { ...fencer(1), status: FencerStatus.EXCLUDED, exclusionReason: 'black_card' as const };
-    const f2 = fencer(2), f3 = fencer(3), f4 = fencer(4);
+    const excluded = {
+      ...fencer(1),
+      status: FencerStatus.EXCLUDED,
+      exclusionReason: 'black_card' as const,
+    };
+    const f2 = fencer(2),
+      f3 = fencer(3),
+      f4 = fencer(4);
     const m = (id: string, a: Fencer, b: Fencer, status: MatchStatus, sa: any, sb: any) =>
-      ({ id, number: 1, fencerA: a, fencerB: b, scoreA: sa, scoreB: sb, maxScore: 5, status,
-        createdAt: new Date(), updatedAt: new Date() }) as Match;
+      ({
+        id,
+        number: 1,
+        fencerA: a,
+        fencerB: b,
+        scoreA: sa,
+        scoreB: sb,
+        maxScore: 5,
+        status,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }) as Match;
     const pool: Pool = {
-      id: 'p1', number: 1, phaseId: 'ph', fencers: [excluded, f2, f3, f4],
+      id: 'p1',
+      number: 1,
+      phaseId: 'ph',
+      fencers: [excluded, f2, f3, f4],
       matches: [
         m('played', excluded, f2, MatchStatus.FINISHED, sc(5, { isVictory: true }), sc(1)),
         m('black', excluded, f3, MatchStatus.FINISHED, sc(3), sc(2, { isVictory: true })),
         m('next', excluded, f4, MatchStatus.FINISHED, sc(0, { isExclusion: true }), sc(0)),
       ],
-      referees: [], isComplete: false, hasError: false, ranking: [],
-      createdAt: new Date(), updatedAt: new Date(),
+      referees: [],
+      isComplete: false,
+      hasError: false,
+      ranking: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     act(() => r.current.setPools([pool]));
     act(() => r.current.handleBlackCardCancelled('1', 'black', FencerStatus.CHECKED_IN, 3, 2));

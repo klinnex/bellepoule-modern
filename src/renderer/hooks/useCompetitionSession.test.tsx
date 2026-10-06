@@ -23,8 +23,12 @@ const baseProps = () => ({
   poolPrepParams: { poolCount: 0, minFencersPerPool: 5, maxFencersPerPool: 7 },
 });
 
-afterEach(() => { delete (window as any).electronAPI; });
-beforeEach(() => { delete (window as any).electronAPI; });
+afterEach(() => {
+  delete (window as any).electronAPI;
+});
+beforeEach(() => {
+  delete (window as any).electronAPI;
+});
 
 describe('restoreState', () => {
   it('marque isLoaded même sans electronAPI', async () => {
@@ -53,7 +57,9 @@ describe('restoreState', () => {
 describe('saveState', () => {
   it('ne sauvegarde pas tant que non chargé / sans API', async () => {
     const { result } = renderHook(() => useCompetitionSession(baseProps()));
-    await act(async () => { await result.current.saveState(); });
+    await act(async () => {
+      await result.current.saveState();
+    });
     // aucune API → pas d'erreur, rien à vérifier sinon l'absence de crash
     expect(result.current.isLoaded).toBe(true);
   });
@@ -64,7 +70,9 @@ describe('saveState', () => {
     (window as any).electronAPI = { db: { saveSessionState, getSessionState } };
     const { result } = renderHook(() => useCompetitionSession(baseProps()));
     await waitFor(() => expect(result.current.isLoaded).toBe(true));
-    await act(async () => { await result.current.saveState(); });
+    await act(async () => {
+      await result.current.saveState();
+    });
     expect(saveSessionState).toHaveBeenCalled();
     const [cid, state] = saveSessionState.mock.calls[0];
     expect(cid).toBe('c1');

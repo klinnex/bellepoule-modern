@@ -8,13 +8,35 @@ import { MatchAuditLog } from '../MatchAuditLog';
 
 vi.mock('../Toast', () => ({ useToast: () => ({ showToast: vi.fn() }) }));
 
-function ev(id: string, matchId: string, ts: string, extra: Partial<MatchEventEntry> = {}): MatchEventEntry {
+function ev(
+  id: string,
+  matchId: string,
+  ts: string,
+  extra: Partial<MatchEventEntry> = {}
+): MatchEventEntry {
   return {
-    id, matchId, eventType: 'score_change', timestamp: ts,
-    fencerId: null, fencerLastName: null, fencerFirstName: null, fencerSide: null,
-    previousScoreA: { value: 0 }, previousScoreB: { value: 0 }, newScoreA: { value: 1 }, newScoreB: { value: 0 },
-    changedBy: null, refereeName: null, ipAddress: null, changeReason: null,
-    zone: null, points: null, cardType: null, cardReason: null, cardGroup: null, resultingExclusion: null,
+    id,
+    matchId,
+    eventType: 'score_change',
+    timestamp: ts,
+    fencerId: null,
+    fencerLastName: null,
+    fencerFirstName: null,
+    fencerSide: null,
+    previousScoreA: { value: 0 },
+    previousScoreB: { value: 0 },
+    newScoreA: { value: 1 },
+    newScoreB: { value: 0 },
+    changedBy: null,
+    refereeName: null,
+    ipAddress: null,
+    changeReason: null,
+    zone: null,
+    points: null,
+    cardType: null,
+    cardReason: null,
+    cardGroup: null,
+    resultingExclusion: null,
     exitType: null,
     ...extra,
   } as MatchEventEntry;

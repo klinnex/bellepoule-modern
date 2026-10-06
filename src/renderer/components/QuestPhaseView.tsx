@@ -5,7 +5,15 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { Fencer, QuestPhaseConfig, Pool, Match, MatchStatus, Score, PoolRanking } from '../../shared/types';
+import {
+  Fencer,
+  QuestPhaseConfig,
+  Pool,
+  Match,
+  MatchStatus,
+  Score,
+  PoolRanking,
+} from '../../shared/types';
 import {
   calculateFightsPerFencer,
   generateQuestSchedule,
@@ -127,13 +135,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
     specialStatus?: 'abandon' | 'forfait' | 'exclusion'
   ) => {
     const effectiveWinner: 'A' | 'B' | undefined =
-      winner !== undefined
-        ? winner
-        : scoreA > scoreB
-          ? 'A'
-          : scoreB > scoreA
-            ? 'B'
-            : undefined;
+      winner !== undefined ? winner : scoreA > scoreB ? 'A' : scoreB > scoreA ? 'B' : undefined;
 
     setPools(prev =>
       prev.map(pool => ({
@@ -157,10 +159,8 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
             updatedAt: new Date(),
           };
         }),
-        isComplete: pool.matches.every(
-          (m, i) => i !== matchIndex
-            ? m.status === MatchStatus.FINISHED
-            : effectiveWinner !== undefined
+        isComplete: pool.matches.every((m, i) =>
+          i !== matchIndex ? m.status === MatchStatus.FINISHED : effectiveWinner !== undefined
         ),
       }))
     );
@@ -202,9 +202,8 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
   if (state === 'running') {
     const allComplete = pools.every(p => p.isComplete);
     const questPool = pools[0] ?? null;
-    const ranking = allComplete && questPool
-      ? calculatePoolRankingQuest(questPool, cardCounts)
-      : null;
+    const ranking =
+      allComplete && questPool ? calculatePoolRankingQuest(questPool, cardCounts) : null;
 
     const addCard = (fencerId: string) =>
       setCardCounts(prev => ({ ...prev, [fencerId]: (prev[fencerId] ?? 0) + 1 }));
@@ -213,7 +212,14 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
 
     return (
       <div className="content">
-        <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div
+          style={{
+            marginBottom: '1rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Tour Quest en cours</h2>
           {allComplete && (
             <button className="btn btn-primary" onClick={() => onQuestComplete(ranking ?? [])}>
@@ -238,9 +244,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
 
         {/* Compteur de cartons */}
         <div style={CARD_TOP}>
-          <p style={CARD_TITLE}>
-            Cartons reçus
-          </p>
+          <p style={CARD_TITLE}>Cartons reçus</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {fencers.map(f => {
               const count = cardCounts[f.id] ?? 0;
@@ -258,17 +262,47 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     fontSize: '0.85rem',
                   }}
                 >
-                  <span style={{ fontWeight: 500 }}>{f.lastName} {f.firstName?.charAt(0)}.</span>
+                  <span style={{ fontWeight: 500 }}>
+                    {f.lastName} {f.firstName?.charAt(0)}.
+                  </span>
                   <button
                     onClick={() => removeCard(f.id)}
                     disabled={count === 0}
-                    style={{ padding: '0 0.35rem', border: '1px solid #d1d5db', borderRadius: '4px', background: 'white', cursor: count === 0 ? 'not-allowed' : 'pointer', opacity: count === 0 ? 0.4 : 1, lineHeight: 1.4 }}
-                  >−</button>
-                  <span style={{ minWidth: '1.2rem', textAlign: 'center', fontWeight: 700, color: count > 0 ? '#b45309' : '#6b7280' }}>{count}</span>
+                    style={{
+                      padding: '0 0.35rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '4px',
+                      background: 'white',
+                      cursor: count === 0 ? 'not-allowed' : 'pointer',
+                      opacity: count === 0 ? 0.4 : 1,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    −
+                  </button>
+                  <span
+                    style={{
+                      minWidth: '1.2rem',
+                      textAlign: 'center',
+                      fontWeight: 700,
+                      color: count > 0 ? '#b45309' : '#6b7280',
+                    }}
+                  >
+                    {count}
+                  </span>
                   <button
                     onClick={() => addCard(f.id)}
-                    style={{ padding: '0 0.35rem', border: '1px solid #d1d5db', borderRadius: '4px', background: 'white', cursor: 'pointer', lineHeight: 1.4 }}
-                  >+</button>
+                    style={{
+                      padding: '0 0.35rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '4px',
+                      background: 'white',
+                      cursor: 'pointer',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    +
+                  </button>
                 </div>
               );
             })}
@@ -278,39 +312,78 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
         {/* Classement final (affiché quand tous les matchs sont terminés) */}
         {allComplete && ranking && (
           <div style={CARD_TOP}>
-            <p style={CARD_TITLE}>
-              Classement Tour Quest
-            </p>
+            <p style={CARD_TITLE}>Classement Tour Quest</p>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ background: '#f3f4f6' }}>
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'center', borderBottom: '2px solid #e5e7eb', width: '3rem' }}>Rg</th>
+                  <th
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'center',
+                      borderBottom: '2px solid #e5e7eb',
+                      width: '3rem',
+                    }}
+                  >
+                    Rg
+                  </th>
                   <th style={TH_LEFT}>Tireur</th>
-                  <th style={TH_CENTER} title="Victoires / Matchs joués">V/M</th>
-                  <th style={TH_CENTER} title="Points Quest">Pts Q</th>
-                  <th style={TH_CENTER} title="Cartons reçus (moins = mieux)">Cart.</th>
+                  <th style={TH_CENTER} title="Victoires / Matchs joués">
+                    V/M
+                  </th>
+                  <th style={TH_CENTER} title="Points Quest">
+                    Pts Q
+                  </th>
+                  <th style={TH_CENTER} title="Cartons reçus (moins = mieux)">
+                    Cart.
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {ranking.map((r, i) => (
                   <tr
                     key={r.fencer.id}
-                    style={{ background: i % 2 === 0 ? 'white' : '#f9fafb', borderBottom: '1px solid #e5e7eb' }}
+                    style={{
+                      background: i % 2 === 0 ? 'white' : '#f9fafb',
+                      borderBottom: '1px solid #e5e7eb',
+                    }}
                   >
-                    <td style={{ padding: '0.5rem 0.75rem', textAlign: 'center', fontWeight: 700, color: r.rank <= 3 ? '#1d4ed8' : '#374151' }}>
+                    <td
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        textAlign: 'center',
+                        fontWeight: 700,
+                        color: r.rank <= 3 ? '#1d4ed8' : '#374151',
+                      }}
+                    >
                       {r.rank}
                     </td>
                     <td style={{ padding: '0.5rem 0.75rem', fontWeight: 500 }}>
                       {r.fencer.lastName} {r.fencer.firstName}
-                      {r.fencer.club && <span style={{ color: '#6b7280', fontWeight: 400 }}> ({r.fencer.club})</span>}
+                      {r.fencer.club && (
+                        <span style={{ color: '#6b7280', fontWeight: 400 }}>
+                          {' '}
+                          ({r.fencer.club})
+                        </span>
+                      )}
                     </td>
-                    <td style={TD_CENTER}>
-                      {formatRatio(r.ratio)}
-                    </td>
-                    <td style={{ padding: '0.5rem 0.75rem', textAlign: 'center', fontWeight: 600, color: '#1d4ed8' }}>
+                    <td style={TD_CENTER}>{formatRatio(r.ratio)}</td>
+                    <td
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        textAlign: 'center',
+                        fontWeight: 600,
+                        color: '#1d4ed8',
+                      }}
+                    >
                       {r.questPoints ?? 0}
                     </td>
-                    <td style={{ padding: '0.5rem 0.75rem', textAlign: 'center', color: (r.totalCards ?? 0) > 0 ? '#b45309' : '#6b7280' }}>
+                    <td
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        textAlign: 'center',
+                        color: (r.totalCards ?? 0) > 0 ? '#b45309' : '#6b7280',
+                      }}
+                    >
                       {r.totalCards ?? 0}
                     </td>
                   </tr>
@@ -336,7 +409,14 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
       <div style={CARD}>
         <p style={sectionTitle}>Nombre de combats</p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gap: '1rem',
+            marginBottom: '1rem',
+          }}
+        >
           <div>
             <label style={labelStyle}>Temps disponible (min)</label>
             <input
@@ -367,12 +447,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
           </div>
           <div>
             <label style={labelStyle}>Tireurs qualifiés</label>
-            <input
-              type="number"
-              style={inputStyle}
-              value={fencers.length}
-              disabled
-            />
+            <input type="number" style={inputStyle} value={fencers.length} disabled />
           </div>
         </div>
 
@@ -389,8 +464,8 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
           }}
         >
           <span style={{ fontSize: '0.875rem', color: '#1e40af' }}>
-            Formule : (2 × {timeMinutes} min × {arenas} arènes) / ({fencers.length} tireurs × 5 min) ={' '}
-            <strong>{autoFights} combats/tireur</strong>
+            Formule : (2 × {timeMinutes} min × {arenas} arènes) / ({fencers.length} tireurs × 5 min)
+            = <strong>{autoFights} combats/tireur</strong>
           </span>
         </div>
 
@@ -409,9 +484,9 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
             }}
           />
           <p style={smallText}>
-            Valeur effective :{' '}
-            <strong>{effectiveFights} combats/tireur</strong>
-            {fencers.length > 1 && ` → ${Math.floor((fencers.length * effectiveFights) / 2)} combats au total`}
+            Valeur effective : <strong>{effectiveFights} combats/tireur</strong>
+            {fencers.length > 1 &&
+              ` → ${Math.floor((fencers.length * effectiveFights) / 2)} combats au total`}
           </p>
         </div>
       </div>
@@ -421,7 +496,16 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
         <p style={sectionTitle}>Contrainte d'opposition</p>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           {(['none', 'club', 'region', 'nation'] as OpponentConstraint[]).map(c => (
-            <label key={c} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>
+            <label
+              key={c}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+              }}
+            >
               <input
                 type="radio"
                 name="constraint"
@@ -460,16 +544,29 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
       {/* Planning généré */}
       {schedule.length > 0 && (
         <div style={CARD}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '1rem',
+            }}
+          >
             <p style={sectionTitle}>Planning — {schedule.length} combats</p>
             {!isValid && (
-              <span style={{ fontSize: '0.75rem', color: '#dc2626' }}>
-                ⚠ {errors[0]}
-              </span>
+              <span style={{ fontSize: '0.75rem', color: '#dc2626' }}>⚠ {errors[0]}</span>
             )}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '400px', overflowY: 'auto' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.5rem',
+              maxHeight: '400px',
+              overflowY: 'auto',
+            }}
+          >
             {schedule.map((fight, index) => (
               <div
                 key={index}

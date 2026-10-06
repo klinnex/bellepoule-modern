@@ -9,7 +9,17 @@ import { PoolRanking } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { FinalResult } from '../components/tableau/tableauTypes';
 
-type Phase = 'checkin' | 'poolprep' | 'pools' | 'ranking' | 'quest' | 'tableau' | 'results' | 'remote' | 'logs' | 'referees';
+type Phase =
+  | 'checkin'
+  | 'poolprep'
+  | 'pools'
+  | 'ranking'
+  | 'quest'
+  | 'tableau'
+  | 'results'
+  | 'remote'
+  | 'logs'
+  | 'referees';
 
 interface UseMenuEventsProps {
   currentPhase: Phase;
@@ -149,14 +159,7 @@ export const useMenuEvents = ({
         window.electronAPI.removeAllListeners('menu:next-phase');
       }
     };
-  }, [
-    onShowProperties,
-    onImport,
-    handleExport,
-    loadFencers,
-    onShowAddFencer,
-    onNextPhase,
-  ]);
+  }, [onShowProperties, onImport, handleExport, loadFencers, onShowAddFencer, onNextPhase]);
 
   return {
     handleExport,

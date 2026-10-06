@@ -181,7 +181,10 @@ export class NotificationService {
     if (!this.config.webhook) return;
 
     if (!isWebhookUrlSafe(this.config.webhook.url)) {
-      logger.error(LogCategory.NETWORK, 'Webhook refusé : URL non sécurisée (doit être https vers un hôte public)');
+      logger.error(
+        LogCategory.NETWORK,
+        'Webhook refusé : URL non sécurisée (doit être https vers un hôte public)'
+      );
       return;
     }
 

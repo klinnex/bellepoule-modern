@@ -7,7 +7,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { Pool, PoolRanking, Weapon, MatchStatus } from '../../shared/types';
-import { calculateOverallRanking, calculateOverallRankingQuest } from '../../shared/utils/poolCalculations';
+import {
+  calculateOverallRanking,
+  calculateOverallRankingQuest,
+} from '../../shared/utils/poolCalculations';
 import { formatRatio, formatIndex } from '../../shared/utils/poolCalculations';
 
 interface LiveInterPoolRankingProps {
@@ -88,16 +91,32 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
             />
             <h2 style={{ margin: 0 }}>Classement général — Live</h2>
           </div>
-          <button className="btn-close" onClick={onClose}>&times;</button>
+          <button className="btn-close" onClick={onClose}>
+            &times;
+          </button>
         </div>
 
-        <div style={{ padding: '0.75rem 1.5rem', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
+        <div
+          style={{
+            padding: '0.75rem 1.5rem',
+            background: '#f9fafb',
+            borderBottom: '1px solid #e5e7eb',
+            flexShrink: 0,
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
               Matchs terminés : {finishedMatches}/{totalMatches}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <div style={{ width: '200px', height: '6px', background: '#e5e7eb', borderRadius: '3px' }}>
+              <div
+                style={{
+                  width: '200px',
+                  height: '6px',
+                  background: '#e5e7eb',
+                  borderRadius: '3px',
+                }}
+              >
                 <div
                   style={{
                     width: `${progress}%`,
@@ -151,17 +170,24 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
                     {entry.fencer.club || '—'}
                   </td>
                   <td style={tdStyle}>{entry.poolNumber}</td>
-                  <td style={{ ...tdStyle, color: '#16a34a', fontWeight: 600 }}>{entry.victories}</td>
+                  <td style={{ ...tdStyle, color: '#16a34a', fontWeight: 600 }}>
+                    {entry.victories}
+                  </td>
                   <td style={{ ...tdStyle, color: '#dc2626' }}>{entry.defeats}</td>
                   <td style={tdStyle}>{entry.touchesScored}</td>
                   <td style={tdStyle}>{entry.touchesReceived}</td>
-                  <td style={{ ...tdStyle, fontFamily: 'monospace' }}>{formatIndex(entry.index)}</td>
+                  <td style={{ ...tdStyle, fontFamily: 'monospace' }}>
+                    {formatIndex(entry.index)}
+                  </td>
                   {isLaserSabre && <td style={tdStyle}>{entry.questPoints ?? 0}</td>}
                 </tr>
               ))}
               {ranking.length === 0 && (
                 <tr>
-                  <td colSpan={isLaserSabre ? 10 : 9} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                  <td
+                    colSpan={isLaserSabre ? 10 : 9}
+                    style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}
+                  >
                     Aucun résultat disponible
                   </td>
                 </tr>

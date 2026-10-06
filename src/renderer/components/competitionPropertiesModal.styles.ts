@@ -38,5 +38,9 @@ export const MR: CSSProperties = { marginRight: '0.5rem' };
 export const MB1: CSSProperties = { marginBottom: '1rem' };
 export const MB15: CSSProperties = { marginBottom: '1.5rem' };
 export const SM: CSSProperties = { fontSize: '0.875rem' };
-export const GRID2: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' };
+export const GRID2: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: '1rem',
+};
 export const FLEX1: CSSProperties = { display: 'flex', gap: '1rem' };

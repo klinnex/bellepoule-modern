@@ -31,7 +31,11 @@ const SIG_IMG_STYLE: React.CSSProperties = {
   borderRadius: '6px',
 };
 
-const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({ match, competitionId, onClose }) => {
+const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
+  match,
+  competitionId,
+  onClose,
+}) => {
   const [loading, setLoading] = useState(true);
   const [sigs, setSigs] = useState<{ A?: string; B?: string }>({});
   const [arenas, setArenas] = useState<ArenaOption[]>([]);
@@ -39,21 +43,25 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({ match, 
   const [sendState, setSendState] = useState<{ ok: boolean; msg: string } | null>(null);
   const [sending, setSending] = useState(false);
 
-  const loadSigs = useCallback(async (isCancelled: () => boolean = () => false) => {
-    try {
-      const rows = (await window.electronAPI?.db?.getDEMatchSignaturesByMatchIds?.([match.id])) ?? [];
-      const out: { A?: string; B?: string } = {};
-      for (const row of rows) {
-        if (row.fencerId === match.fencerA?.id) out.A = row.signatureData;
-        else if (row.fencerId === match.fencerB?.id) out.B = row.signatureData;
+  const loadSigs = useCallback(
+    async (isCancelled: () => boolean = () => false) => {
+      try {
+        const rows =
+          (await window.electronAPI?.db?.getDEMatchSignaturesByMatchIds?.([match.id])) ?? [];
+        const out: { A?: string; B?: string } = {};
+        for (const row of rows) {
+          if (row.fencerId === match.fencerA?.id) out.A = row.signatureData;
+          else if (row.fencerId === match.fencerB?.id) out.B = row.signatureData;
+        }
+        if (!isCancelled()) setSigs(out);
+      } catch {
+        /* signatures optionnelles */
+      } finally {
+        if (!isCancelled()) setLoading(false);
       }
-      if (!isCancelled()) setSigs(out);
-    } catch {
-      /* signatures optionnelles */
-    } finally {
-      if (!isCancelled()) setLoading(false);
-    }
-  }, [match.id, match.fencerA?.id, match.fencerB?.id]);
+    },
+    [match.id, match.fencerA?.id, match.fencerB?.id]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -75,17 +83,24 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({ match, 
   useEffect(() => {
     if (!canSend) return;
     let cancelled = false;
-    window.electronAPI?.remote?.getArenas?.(competitionId!)
+    window.electronAPI?.remote
+      ?.getArenas?.(competitionId!)
       .then(res => {
         if (cancelled || !res?.success || !res.arenas) return;
         const list: ArenaOption[] = res.arenas
           .map((a: ArenaOption) => ({ id: a.id, number: a.number, name: a.name, status: a.status }))
           .sort((a: ArenaOption, b: ArenaOption) => a.number - b.number);
         setArenas(list);
-        setArenaId(prev => prev || (list.find(a => a.status !== 'in_progress') ?? list[0])?.id || '');
+        setArenaId(
+          prev => prev || (list.find(a => a.status !== 'in_progress') ?? list[0])?.id || ''
+        );
       })
-      .catch(() => { /* serveur non démarré */ });
-    return () => { cancelled = true; };
+      .catch(() => {
+        /* serveur non démarré */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [canSend, competitionId]);
 
   const handleSend = async () => {
@@ -143,14 +158,29 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({ match, 
       <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
         <div className="modal-header">
           <h3 className="modal-title">Signatures du match</h3>
-          <button className="btn-close" onClick={onClose} aria-label="Fermer">&times;</button>
+          <button className="btn-close" onClick={onClose} aria-label="Fermer">
+            &times;
+          </button>
         </div>
-        <div className="modal-body" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div
+          className="modal-body"
+          style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
+        >
           {renderFencer('A')}
           {renderFencer('B')}
           {canSend && (
-            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>Renvoyer la signature sur une piste</div>
+            <div
+              style={{
+                borderTop: '1px solid #e5e7eb',
+                paddingTop: '1rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+              }}
+            >
+              <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                Renvoyer la signature sur une piste
+              </div>
               {arenas.length === 0 ? (
                 <div style={{ color: '#9ca3af', fontSize: '0.8rem', fontStyle: 'italic' }}>
                   Serveur distant non démarré ou aucune piste disponible
@@ -160,23 +190,33 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({ match, 
                   <select
                     className="form-input"
                     value={arenaId}
-                    onChange={e => { setArenaId(e.target.value); setSendState(null); }}
+                    onChange={e => {
+                      setArenaId(e.target.value);
+                      setSendState(null);
+                    }}
                     aria-label="Piste"
                     style={{ flex: 1 }}
                   >
                     {arenas.map(a => (
                       <option key={a.id} value={a.id}>
-                        Piste {a.number}{a.status === 'in_progress' ? ' (match en cours)' : ''}
+                        Piste {a.number}
+                        {a.status === 'in_progress' ? ' (match en cours)' : ''}
                       </option>
                     ))}
                   </select>
-                  <button className="btn btn-primary" onClick={handleSend} disabled={!arenaId || sending}>
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleSend}
+                    disabled={!arenaId || sending}
+                  >
                     {sending ? 'Envoi…' : 'Envoyer'}
                   </button>
                 </div>
               )}
               {sendState && (
-                <div style={{ fontSize: '0.8rem', color: sendState.ok ? '#059669' : '#dc2626' }}>{sendState.msg}</div>
+                <div style={{ fontSize: '0.8rem', color: sendState.ok ? '#059669' : '#dc2626' }}>
+                  {sendState.msg}
+                </div>
               )}
             </div>
           )}

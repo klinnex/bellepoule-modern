@@ -4,7 +4,21 @@
  */
 
 import React, { useEffect, useCallback, useState, useRef, Suspense } from 'react';
-import { Home, Plus, Radio, Sun, Moon, Contrast, BookOpen, Settings, X, Swords, Wrench, Wifi, Tv2 } from 'lucide-react';
+import {
+  Home,
+  Plus,
+  Radio,
+  Sun,
+  Moon,
+  Contrast,
+  BookOpen,
+  Settings,
+  X,
+  Swords,
+  Wrench,
+  Wifi,
+  Tv2,
+} from 'lucide-react';
 import { Competition, PhaseType } from '../shared/types';
 import type { CompetitionCreateData } from '../shared/types/preload';
 import { logger, LogCategory } from '@shared/services/logger';
@@ -19,9 +33,15 @@ const DTCallNotification = React.lazy(() => import('./components/DTCallNotificat
 const UpdateNotification = React.lazy(() => import('./components/UpdateNotification'));
 const KeyboardShortcutsHelp = React.lazy(() => import('./components/KeyboardShortcutsHelp'));
 const WikiModal = React.lazy(() => import('./components/WikiModal'));
-const WifiQRModal = React.lazy(() => import('./components/WifiQRModal').then(m => ({ default: m.WifiQRModal })));
-const XiaomiRemotePanel = React.lazy(() => import('./components/XiaomiRemotePanel').then(m => ({ default: m.XiaomiRemotePanel })));
-const TrainingLauncherModal = React.lazy(() => import('./components/training/TrainingLauncherModal'));
+const WifiQRModal = React.lazy(() =>
+  import('./components/WifiQRModal').then(m => ({ default: m.WifiQRModal }))
+);
+const XiaomiRemotePanel = React.lazy(() =>
+  import('./components/XiaomiRemotePanel').then(m => ({ default: m.XiaomiRemotePanel }))
+);
+const TrainingLauncherModal = React.lazy(
+  () => import('./components/training/TrainingLauncherModal')
+);
 const TrainingPanel = React.lazy(() => import('./components/training/TrainingPanel'));
 import { CompetitionViewSkeleton } from './components/Skeleton';
 import { ToastProvider, useToast } from './components/Toast';
@@ -67,7 +87,10 @@ const AppContent: React.FC = () => {
   const [trainingLaunching, setTrainingLaunching] = useState(false);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const toolsBtnRef = useRef<HTMLButtonElement>(null);
-  const [toolsMenuPos, setToolsMenuPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
+  const [toolsMenuPos, setToolsMenuPos] = useState<{ top: number; right: number }>({
+    top: 0,
+    right: 0,
+  });
 
   const {
     view,
@@ -101,7 +124,12 @@ const AppContent: React.FC = () => {
     if (window.electronAPI?.onDbReady) {
       // Si la DB n'est pas encore prête, attendre l'event puis charger
       let loaded = false;
-      const tryLoad = () => { if (!loaded) { loaded = true; loadCompetitions(); } };
+      const tryLoad = () => {
+        if (!loaded) {
+          loaded = true;
+          loadCompetitions();
+        }
+      };
       window.electronAPI.onDbReady(tryLoad);
       // Charger quand même après 1s au cas où db:ready est déjà passé
       const fallback = setTimeout(tryLoad, 1000);
@@ -178,7 +206,11 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const handler = (e: WheelEvent) => {
       const target = e.target as HTMLElement | null;
-      if (target instanceof HTMLInputElement && target.type === 'number' && document.activeElement === target) {
+      if (
+        target instanceof HTMLInputElement &&
+        target.type === 'number' &&
+        document.activeElement === target
+      ) {
         target.blur();
       }
     };
@@ -189,26 +221,35 @@ const AppContent: React.FC = () => {
   // Sync logo from disk to localStorage so PDF exports always find it
   useEffect(() => {
     if (!window.electronAPI) return;
-    window.electronAPI.getLogo?.().then((logo: string | null) => {
-      if (logo) localStorage.setItem('bellepoule-logo', logo);
-      else localStorage.removeItem('bellepoule-logo');
-    }).catch((err: unknown) => {
-      logger.warn(LogCategory.UI, 'Impossible de charger le logo', err instanceof Error ? err : undefined);
-    });
+    window.electronAPI
+      .getLogo?.()
+      .then((logo: string | null) => {
+        if (logo) localStorage.setItem('bellepoule-logo', logo);
+        else localStorage.removeItem('bellepoule-logo');
+      })
+      .catch((err: unknown) => {
+        logger.warn(
+          LogCategory.UI,
+          'Impossible de charger le logo',
+          err instanceof Error ? err : undefined
+        );
+      });
     const unsub = window.electronAPI.onLogoLoaded?.((logo: string | null) => {
       if (logo) localStorage.setItem('bellepoule-logo', logo);
       else localStorage.removeItem('bellepoule-logo');
     });
-    return () => { if (typeof unsub === 'function') unsub(); };
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
   }, []);
-
 
   useEffect(() => {
     if (!showToolsMenu) return;
     const rect = toolsBtnRef.current?.getBoundingClientRect();
     if (rect) setToolsMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
     const handler = (e: MouseEvent) => {
-      if (toolsMenuRef.current && !toolsMenuRef.current.contains(e.target as Node)) setShowToolsMenu(false);
+      if (toolsMenuRef.current && !toolsMenuRef.current.contains(e.target as Node))
+        setShowToolsMenu(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -226,7 +267,9 @@ const AppContent: React.FC = () => {
           category: data.category || 'SENIOR',
           ...data,
         };
-        const newComp = await window.electronAPI.db.createCompetition(competitionData as unknown as CompetitionCreateData);
+        const newComp = await window.electronAPI.db.createCompetition(
+          competitionData as unknown as CompetitionCreateData
+        );
         setCompetitions(prev => [newComp, ...prev]);
 
         // Ouvrir la compétition dans un nouvel onglet
@@ -244,128 +287,146 @@ const AppContent: React.FC = () => {
     setShowNewCompetitionModal(false);
   }, []);
 
-  const handleSelectCompetition = useCallback(async (competition: Competition) => {
-    logger.debug(LogCategory.UI, 'handleSelectCompetition', {
-      id: competition.id,
-      title: competition.title,
-    });
+  const handleSelectCompetition = useCallback(
+    async (competition: Competition) => {
+      logger.debug(LogCategory.UI, 'handleSelectCompetition', {
+        id: competition.id,
+        title: competition.title,
+      });
 
-    try {
-      if (window.electronAPI) {
-        const existingOpenComp = openCompetitions.find(
-          open => open.competition.id === competition.id
-        );
+      try {
+        if (window.electronAPI) {
+          const existingOpenComp = openCompetitions.find(
+            open => open.competition.id === competition.id
+          );
 
-        if (existingOpenComp) {
-          setActiveTabId(competition.id);
-          setCurrentCompetition(existingOpenComp.competition);
-          setView('competition');
-        } else {
-          const comp = await window.electronAPI.db.getCompetition(competition.id);
-
-          if (comp) {
-            const fencers = await window.electronAPI.db.getFencersByCompetition(competition.id);
-            comp.fencers = fencers;
-
-            setOpenCompetitions(prev => [...prev, { competition: comp, isDirty: false }]);
-            setActiveTabId(comp.id);
-            setCurrentCompetition(comp);
+          if (existingOpenComp) {
+            setActiveTabId(competition.id);
+            setCurrentCompetition(existingOpenComp.competition);
             setView('competition');
           } else {
-            logger.error(LogCategory.UI, 'Compétition non trouvée dans la DB', undefined, {
-              id: competition.id,
-            });
-            showToast('Erreur: Compétition non trouvée', 'error');
+            const comp = await window.electronAPI.db.getCompetition(competition.id);
+
+            if (comp) {
+              const fencers = await window.electronAPI.db.getFencersByCompetition(competition.id);
+              comp.fencers = fencers;
+
+              setOpenCompetitions(prev => [...prev, { competition: comp, isDirty: false }]);
+              setActiveTabId(comp.id);
+              setCurrentCompetition(comp);
+              setView('competition');
+            } else {
+              logger.error(LogCategory.UI, 'Compétition non trouvée dans la DB', undefined, {
+                id: competition.id,
+              });
+              showToast('Erreur: Compétition non trouvée', 'error');
+            }
           }
         }
+      } catch (error) {
+        logger.error(LogCategory.UI, 'Failed to load competition', error as Error);
+        showToast('Erreur lors du chargement de la compétition', 'error');
       }
-    } catch (error) {
-      logger.error(LogCategory.UI, 'Failed to load competition', error as Error);
-      showToast('Erreur lors du chargement de la compétition', 'error');
-    }
-  }, [openCompetitions, showToast]);
+    },
+    [openCompetitions, showToast]
+  );
 
   // Ouvrir une compétition par id (ex : compétition séparée créée après poules)
-  const handleOpenCompetitionById = useCallback(async (competitionId: string) => {
-    const comp = await window.electronAPI?.db.getCompetition(competitionId);
-    if (!comp) {
-      showToast('Erreur: Compétition non trouvée', 'error');
-      return;
-    }
-    setCompetitions(prev => (prev.some(c => c.id === comp.id) ? prev : [comp, ...prev]));
-    await handleSelectCompetition(comp);
-  }, [handleSelectCompetition, showToast]);
+  const handleOpenCompetitionById = useCallback(
+    async (competitionId: string) => {
+      const comp = await window.electronAPI?.db.getCompetition(competitionId);
+      if (!comp) {
+        showToast('Erreur: Compétition non trouvée', 'error');
+        return;
+      }
+      setCompetitions(prev => (prev.some(c => c.id === comp.id) ? prev : [comp, ...prev]));
+      await handleSelectCompetition(comp);
+    },
+    [handleSelectCompetition, showToast]
+  );
 
-  const handleTabClose = useCallback(async (competitionId: string, e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
+  const handleTabClose = useCallback(
+    async (competitionId: string, e?: React.MouseEvent) => {
+      if (e) {
+        e.stopPropagation();
+      }
 
-    const openComp = openCompetitions.find(open => open.competition.id === competitionId);
-    if (openComp && openComp.isDirty) {
-      const ok = await confirm(
-        'Des modifications ne sont pas sauvegardées. Voulez-vous vraiment fermer cette compétition ?'
+      const openComp = openCompetitions.find(open => open.competition.id === competitionId);
+      if (openComp && openComp.isDirty) {
+        const ok = await confirm(
+          'Des modifications ne sont pas sauvegardées. Voulez-vous vraiment fermer cette compétition ?'
+        );
+        if (!ok) {
+          return;
+        }
+      }
+
+      localStorage.removeItem(`bellepoule-remote-launched-${competitionId}`);
+      localStorage.removeItem(`bellepoule-remote-port-${competitionId}`);
+
+      const newOpenCompetitions = openCompetitions.filter(
+        open => open.competition.id !== competitionId
       );
-      if (!ok) {
-        return;
-      }
-    }
+      setOpenCompetitions(newOpenCompetitions);
 
-    localStorage.removeItem(`bellepoule-remote-launched-${competitionId}`);
-    localStorage.removeItem(`bellepoule-remote-port-${competitionId}`);
-
-    const newOpenCompetitions = openCompetitions.filter(
-      open => open.competition.id !== competitionId
-    );
-    setOpenCompetitions(newOpenCompetitions);
-
-    if (activeTabId === competitionId) {
-      if (newOpenCompetitions.length > 0) {
-        const nextComp = newOpenCompetitions[newOpenCompetitions.length - 1];
-        setActiveTabId(nextComp.competition.id);
-        setCurrentCompetition(nextComp.competition);
-      } else {
-        setActiveTabId(null);
-        setCurrentCompetition(null);
-        setView('home');
+      if (activeTabId === competitionId) {
+        if (newOpenCompetitions.length > 0) {
+          const nextComp = newOpenCompetitions[newOpenCompetitions.length - 1];
+          setActiveTabId(nextComp.competition.id);
+          setCurrentCompetition(nextComp.competition);
+        } else {
+          setActiveTabId(null);
+          setCurrentCompetition(null);
+          setView('home');
+        }
       }
-    }
-  }, [openCompetitions, activeTabId, confirm]);
+    },
+    [openCompetitions, activeTabId, confirm]
+  );
 
-  const handleLaunchTraining = useCallback(async (weapon: string, strips: number, customRules?: any, host?: string) => {
-    if (!window.electronAPI?.training) return;
-    setTrainingLaunching(true);
-    try {
-      const startRes = await window.electronAPI.training.startServer(undefined, host);
-      if (!startRes.success || !startRes.serverInfo) {
-        showToast(startRes.error ?? 'Impossible de démarrer le serveur', 'error');
-        return;
+  const handleLaunchTraining = useCallback(
+    async (weapon: string, strips: number, customRules?: any, host?: string) => {
+      if (!window.electronAPI?.training) return;
+      setTrainingLaunching(true);
+      try {
+        const startRes = await window.electronAPI.training.startServer(undefined, host);
+        if (!startRes.success || !startRes.serverInfo) {
+          showToast(startRes.error ?? 'Impossible de démarrer le serveur', 'error');
+          return;
+        }
+        const sessionRes = await window.electronAPI.training.startSession(
+          strips,
+          weapon,
+          customRules
+        );
+        if (!sessionRes.success) {
+          await window.electronAPI.training.stopServer();
+          showToast(sessionRes.error ?? 'Impossible de démarrer la session', 'error');
+          return;
+        }
+        setTrainingServerUrl(startRes.serverInfo.url);
+        setTrainingStrips(strips);
+        setTrainingWeapon(weapon);
+        setTrainingActive(true);
+        setShowTrainingPanel(true);
+        setShowTrainingModal(false);
+      } catch (err) {
+        showToast("Erreur lors du lancement de l'entraînement", 'error');
+      } finally {
+        setTrainingLaunching(false);
       }
-      const sessionRes = await window.electronAPI.training.startSession(strips, weapon, customRules);
-      if (!sessionRes.success) {
-        await window.electronAPI.training.stopServer();
-        showToast(sessionRes.error ?? 'Impossible de démarrer la session', 'error');
-        return;
-      }
-      setTrainingServerUrl(startRes.serverInfo.url);
-      setTrainingStrips(strips);
-      setTrainingWeapon(weapon);
-      setTrainingActive(true);
-      setShowTrainingPanel(true);
-      setShowTrainingModal(false);
-    } catch (err) {
-      showToast('Erreur lors du lancement de l\'entraînement', 'error');
-    } finally {
-      setTrainingLaunching(false);
-    }
-  }, [showToast]);
+    },
+    [showToast]
+  );
 
   const handleStopTraining = useCallback(async () => {
     if (!window.electronAPI?.training) return;
     try {
       await window.electronAPI.training.stopSession();
       await window.electronAPI.training.stopServer();
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setTrainingActive(false);
     setShowTrainingPanel(false);
     setTrainingServerUrl('');
@@ -373,45 +434,51 @@ const AppContent: React.FC = () => {
     setTrainingWeapon('');
   }, []);
 
-  const handleDeleteCompetition = useCallback(async (id: string) => {
-    try {
-      if (window.electronAPI) {
-        await window.electronAPI.db.deleteCompetition(id);
-        localStorage.removeItem(`bellepoule-remote-launched-${id}`);
-        localStorage.removeItem(`bellepoule-remote-port-${id}`);
-        setCompetitions(prev => prev.filter(c => c.id !== id));
+  const handleDeleteCompetition = useCallback(
+    async (id: string) => {
+      try {
+        if (window.electronAPI) {
+          await window.electronAPI.db.deleteCompetition(id);
+          localStorage.removeItem(`bellepoule-remote-launched-${id}`);
+          localStorage.removeItem(`bellepoule-remote-port-${id}`);
+          setCompetitions(prev => prev.filter(c => c.id !== id));
 
-        // Supprimer l'onglet ouvert pour cette compétition (évite le tab fantôme)
-        setOpenCompetitions(prev => {
-          const next = prev.filter(open => open.competition.id !== id);
-          if (activeTabId === id) {
-            if (next.length > 0) {
-              const lastComp = next[next.length - 1].competition;
-              setActiveTabId(lastComp.id);
-              setCurrentCompetition(lastComp);
-              setView('competition');
-            } else {
-              setActiveTabId(null);
+          // Supprimer l'onglet ouvert pour cette compétition (évite le tab fantôme)
+          setOpenCompetitions(prev => {
+            const next = prev.filter(open => open.competition.id !== id);
+            if (activeTabId === id) {
+              if (next.length > 0) {
+                const lastComp = next[next.length - 1].competition;
+                setActiveTabId(lastComp.id);
+                setCurrentCompetition(lastComp);
+                setView('competition');
+              } else {
+                setActiveTabId(null);
+                setCurrentCompetition(null);
+                setView('home');
+              }
+            } else if (currentCompetition?.id === id) {
               setCurrentCompetition(null);
               setView('home');
             }
-          } else if (currentCompetition?.id === id) {
-            setCurrentCompetition(null);
-            setView('home');
-          }
-          return next;
-        });
+            return next;
+          });
+        }
+      } catch (error) {
+        logger.error(LogCategory.UI, 'Failed to delete competition', error as Error);
       }
-    } catch (error) {
-      logger.error(LogCategory.UI, 'Failed to delete competition', error as Error);
-    }
-  }, [activeTabId, currentCompetition]);
-
+    },
+    [activeTabId, currentCompetition]
+  );
 
   return (
     <>
-      <Suspense fallback={null}><UpdateNotification /></Suspense>
-      <Suspense fallback={null}><DTCallNotification /></Suspense>
+      <Suspense fallback={null}>
+        <UpdateNotification />
+      </Suspense>
+      <Suspense fallback={null}>
+        <DTCallNotification />
+      </Suspense>
       <div className="app">
         <header className="header">
           <div className="header-title">
@@ -441,7 +508,10 @@ const AppContent: React.FC = () => {
                 {t('app.home')}
               </button>
             )}
-            <button className="btn btn-primary btn-icon-label" onClick={() => setShowNewCompetitionModal(true)}>
+            <button
+              className="btn btn-primary btn-icon-label"
+              onClick={() => setShowNewCompetitionModal(true)}
+            >
               <Plus size={15} />
               {t('menu.new_competition')}
             </button>
@@ -451,7 +521,13 @@ const AppContent: React.FC = () => {
                 if (!trainingActive) setShowTrainingModal(true);
                 else setShowTrainingPanel(v => !v);
               }}
-              title={trainingActive ? (showTrainingPanel ? 'Masquer le panneau entraînement' : 'Afficher le panneau entraînement') : 'Mode entraînement'}
+              title={
+                trainingActive
+                  ? showTrainingPanel
+                    ? 'Masquer le panneau entraînement'
+                    : 'Afficher le panneau entraînement'
+                  : 'Mode entraînement'
+              }
             >
               <Swords size={15} />
               Entraînement
@@ -515,15 +591,33 @@ const AppContent: React.FC = () => {
                   >
                     <button
                       className="comp-header-dropdown-item"
-                      onClick={() => { setShowWifiQR(true); setShowToolsMenu(false); }}
-                      style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                      onClick={() => {
+                        setShowWifiQR(true);
+                        setShowToolsMenu(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                      }}
                     >
                       <Wifi size={15} /> QR Code WiFi
                     </button>
                     <button
                       className="comp-header-dropdown-item"
-                      onClick={() => { setShowTVRemote(true); setShowToolsMenu(false); }}
-                      style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                      onClick={() => {
+                        setShowTVRemote(true);
+                        setShowToolsMenu(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                      }}
                     >
                       <Tv2 size={15} /> Télécommande TV
                     </button>
@@ -635,8 +729,12 @@ const AppContent: React.FC = () => {
                   borderRadius: '8px 8px 0 0',
                   cursor: 'grab',
                   background: activeTabId === openComp.competition.id ? 'white' : 'transparent',
-                  border: activeTabId === openComp.competition.id ? '1px solid #e5e7eb' : '1px solid transparent',
-                  borderBottom: activeTabId === openComp.competition.id ? '1px solid white' : 'none',
+                  border:
+                    activeTabId === openComp.competition.id
+                      ? '1px solid #e5e7eb'
+                      : '1px solid transparent',
+                  borderBottom:
+                    activeTabId === openComp.competition.id ? '1px solid white' : 'none',
                   marginBottom: activeTabId === openComp.competition.id ? '-1px' : '0',
                   transition: 'all 0.15s ease',
                   position: 'relative',
@@ -655,11 +753,16 @@ const AppContent: React.FC = () => {
                 }}
               >
                 {/* Dot coloré de la compétition */}
-                <span style={{
-                  width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                  background: openComp.competition.color || '#3B5BDB',
-                  boxShadow: `0 0 0 2px ${(openComp.competition.color || '#3B5BDB')}33`,
-                }} />
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    flexShrink: 0,
+                    background: openComp.competition.color || '#3B5BDB',
+                    boxShadow: `0 0 0 2px ${openComp.competition.color || '#3B5BDB'}33`,
+                  }}
+                />
                 <span
                   style={{
                     fontWeight: activeTabId === openComp.competition.id ? '600' : '400',
@@ -676,7 +779,8 @@ const AppContent: React.FC = () => {
                     <span style={{ color: '#ef4444', marginLeft: '0.25rem' }}>●</span>
                   )}
                   {(() => {
-                    const phase = openComp.competition.phases?.[openComp.competition.currentPhaseIndex];
+                    const phase =
+                      openComp.competition.phases?.[openComp.competition.currentPhaseIndex];
                     const badge = phase ? PHASE_BADGE[phase.type] : null;
                     return badge ? (
                       <span className={`tab-phase-badge ${badge.cls}`}>{badge.label}</span>
@@ -686,12 +790,25 @@ const AppContent: React.FC = () => {
                 <button
                   onClick={e => handleTabClose(openComp.competition.id, e)}
                   style={{
-                    background: 'none', border: 'none', color: '#6b7280',
-                    cursor: 'pointer', padding: '0.125rem', borderRadius: '3px',
-                    fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'none',
+                    border: 'none',
+                    color: '#6b7280',
+                    cursor: 'pointer',
+                    padding: '0.125rem',
+                    borderRadius: '3px',
+                    fontSize: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#e5e7eb'; e.currentTarget.style.color = '#374151'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#6b7280'; }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#e5e7eb';
+                    e.currentTarget.style.color = '#374151';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'none';
+                    e.currentTarget.style.color = '#6b7280';
+                  }}
                   title={t('app.close_tab')}
                 >
                   <X size={12} />
@@ -730,7 +847,10 @@ const AppContent: React.FC = () => {
                   onUpdate={handleUpdateCompetition}
                   requestPhase={requestedPhase ?? undefined}
                   onPhaseApplied={() => setRequestedPhase(null)}
-                  onRemoteServerChange={(url, count) => { setRemoteServerUrl(url); setRemoteArenaCount(count); }}
+                  onRemoteServerChange={(url, count) => {
+                    setRemoteServerUrl(url);
+                    setRemoteArenaCount(count);
+                  }}
                   onOpenCompetition={handleOpenCompetitionById}
                 />
               </Suspense>
@@ -761,7 +881,10 @@ const AppContent: React.FC = () => {
 
         {showSettingsModal && (
           <Suspense fallback={null}>
-            <SettingsModal onClose={() => setShowSettingsModal(false)} onSave={handleSettingsSave} />
+            <SettingsModal
+              onClose={() => setShowSettingsModal(false)}
+              onSave={handleSettingsSave}
+            />
           </Suspense>
         )}
 
@@ -832,7 +955,10 @@ const AppContent: React.FC = () => {
               weapon={trainingWeapon}
               onClose={() => setShowTrainingPanel(false)}
               onStop={handleStopTraining}
-              onOpenSettings={() => { setShowTrainingPanel(false); setShowSettingsModal(true); }}
+              onOpenSettings={() => {
+                setShowTrainingPanel(false);
+                setShowSettingsModal(true);
+              }}
             />
           </Suspense>
         )}

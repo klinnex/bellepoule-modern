@@ -135,7 +135,7 @@ export function determineCardType(
 
   switch (group) {
     case CardGroup.GROUP_1:
-      if (count === 0) return { type: CardType.WHITE,  shouldExclude: false, points: si.white };
+      if (count === 0) return { type: CardType.WHITE, shouldExclude: false, points: si.white };
       return { type: CardType.YELLOW, shouldExclude: false, points: si.yellow };
 
     case CardGroup.GROUP_2:
@@ -192,7 +192,6 @@ export function getReasonsByGroup(): Record<CardGroup, CardReason[]> {
 
   return grouped;
 }
-
 
 export function getCardsForFencer(fencerId: string, matchCards: Card[]): Card[] {
   return matchCards.filter(card => card.fencerId === fencerId);

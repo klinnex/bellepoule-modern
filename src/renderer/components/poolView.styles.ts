@@ -195,7 +195,12 @@ export const LOCKED_BANNER: CSSProperties = {
 };
 
 export const HEADER_LEFT: CSSProperties = { display: 'flex', alignItems: 'center', gap: '0.75rem' };
-export const TOOLBAR_GROUP: CSSProperties = { display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' };
+export const TOOLBAR_GROUP: CSSProperties = {
+  display: 'flex',
+  gap: '0.5rem',
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+};
 export const VIEW_GROUP: CSSProperties = { display: 'flex', gap: '0.25rem' };
 export const RELATIVE: CSSProperties = { position: 'relative' };
 export const VS: CSSProperties = { opacity: 0.7 };

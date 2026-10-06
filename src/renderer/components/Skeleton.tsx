@@ -159,7 +159,14 @@ const StatsCardSkeleton_: React.FC = () => {
 const CompetitionViewSkeleton_: React.FC = () => {
   return (
     <div style={{ padding: '1.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1rem',
+        }}
+      >
         <Skeleton width="280px" height="28px" />
         <Skeleton width="120px" height="32px" borderRadius="6px" />
       </div>

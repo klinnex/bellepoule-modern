@@ -20,9 +20,7 @@ export class ErrorService {
     }
 
     if (severity === 'critical') {
-      window.dispatchEvent(
-        new CustomEvent('bp:critical-error', { detail: { message, context } })
-      );
+      window.dispatchEvent(new CustomEvent('bp:critical-error', { detail: { message, context } }));
     }
   }
 }

@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useMemo , memo} from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { Fencer, Pool } from '../../shared/types';
 import { TableauMatch } from './tableau/tableauTypes';
@@ -187,7 +187,13 @@ const FencerComparison_: React.FC<FencerComparisonProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div ref={modalRef} className="modal modal--lg" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div
+        ref={modalRef}
+        className="modal modal--lg"
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         <div className="modal__header">
           <h2 className="modal__title">⚔️ Comparaison Head-to-Head</h2>
           <button className="modal__close" onClick={onClose}>
@@ -242,49 +248,64 @@ const FencerComparison_: React.FC<FencerComparisonProps> = ({
                 <div className="comparison__stats-grid">
                   {(['fencer1GlobalStats', 'fencer2GlobalStats'] as const).map((key, idx) => {
                     const stats = comparison[key];
-                    const otherStats = comparison[idx === 0 ? 'fencer2GlobalStats' : 'fencer1GlobalStats'];
+                    const otherStats =
+                      comparison[idx === 0 ? 'fencer2GlobalStats' : 'fencer1GlobalStats'];
                     const fencer = idx === 0 ? comparison.fencer1 : comparison.fencer2;
                     const cmp = (a: number, b: number, lowerIsBetter = false) => {
                       if (a === b) return 'comparison__stat-value--equal';
                       const better = lowerIsBetter ? a < b : a > b;
-                      return better ? 'comparison__stat-value--better' : 'comparison__stat-value--worse';
+                      return better
+                        ? 'comparison__stat-value--better'
+                        : 'comparison__stat-value--worse';
                     };
                     return (
                       <div key={key} className="comparison__stats-column">
                         <h5>{fencer.lastName}</h5>
                         <div className="comparison__stat-row">
                           <span className="comparison__stat-label">Matchs joués:</span>
-                          <span className={`comparison__stat-value ${cmp(stats.matchesPlayed, otherStats.matchesPlayed)}`}>
+                          <span
+                            className={`comparison__stat-value ${cmp(stats.matchesPlayed, otherStats.matchesPlayed)}`}
+                          >
                             {stats.matchesPlayed}
                           </span>
                         </div>
                         <div className="comparison__stat-row">
                           <span className="comparison__stat-label">Victoires:</span>
-                          <span className={`comparison__stat-value ${cmp(stats.victories, otherStats.victories)}`}>
+                          <span
+                            className={`comparison__stat-value ${cmp(stats.victories, otherStats.victories)}`}
+                          >
                             {stats.victories}
                           </span>
                         </div>
                         <div className="comparison__stat-row">
                           <span className="comparison__stat-label">Taux de victoire:</span>
-                          <span className={`comparison__stat-value ${cmp(stats.victoryRatio, otherStats.victoryRatio)}`}>
+                          <span
+                            className={`comparison__stat-value ${cmp(stats.victoryRatio, otherStats.victoryRatio)}`}
+                          >
                             {(stats.victoryRatio * 100).toFixed(1)}%
                           </span>
                         </div>
                         <div className="comparison__stat-row">
                           <span className="comparison__stat-label">Touches données:</span>
-                          <span className={`comparison__stat-value ${cmp(stats.touchesScored, otherStats.touchesScored)}`}>
+                          <span
+                            className={`comparison__stat-value ${cmp(stats.touchesScored, otherStats.touchesScored)}`}
+                          >
                             {stats.touchesScored}
                           </span>
                         </div>
                         <div className="comparison__stat-row">
                           <span className="comparison__stat-label">Touches reçues:</span>
-                          <span className={`comparison__stat-value ${cmp(stats.touchesReceived, otherStats.touchesReceived, true)}`}>
+                          <span
+                            className={`comparison__stat-value ${cmp(stats.touchesReceived, otherStats.touchesReceived, true)}`}
+                          >
                             {stats.touchesReceived}
                           </span>
                         </div>
                         <div className="comparison__stat-row">
                           <span className="comparison__stat-label">Index:</span>
-                          <span className={`comparison__stat-value ${cmp(stats.index, otherStats.index)}`}>
+                          <span
+                            className={`comparison__stat-value ${cmp(stats.index, otherStats.index)}`}
+                          >
                             {stats.index}
                           </span>
                         </div>

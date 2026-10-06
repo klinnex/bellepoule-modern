@@ -46,7 +46,11 @@ const ALL_TYPES: MatchEventType[] = ['touch', 'card', 'arena_exit', 'score_chang
 
 function formatTimestamp(ts: string, baseTs: string | null): string {
   const d = new Date(ts);
-  const abs = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const abs = d.toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
   if (!baseTs) return abs;
   const diffMs = d.getTime() - new Date(baseTs).getTime();
   if (diffMs < 0) return abs;
@@ -65,7 +69,9 @@ function fencerLabel(entry: MatchEventEntry): { label: string; color: string } {
   };
 }
 
-function buildRefereeLastActions(entries: MatchEventEntry[]): { key: string; label: string; entry: MatchEventEntry }[] {
+function buildRefereeLastActions(
+  entries: MatchEventEntry[]
+): { key: string; label: string; entry: MatchEventEntry }[] {
   const map = new Map<string, { label: string; entry: MatchEventEntry }>();
   for (const e of entries) {
     if (e.eventType !== 'score_change') continue;
@@ -83,7 +89,8 @@ function entryReferee(e: MatchEventEntry): string | null {
 function fallbackMatchLabel(matchId: string, entries: MatchEventEntry[]): string {
   const names: Partial<Record<'A' | 'B', string>> = {};
   for (const e of entries) {
-    if (e.matchId === matchId && e.fencerSide && e.fencerLastName) names[e.fencerSide] ??= e.fencerLastName;
+    if (e.matchId === matchId && e.fencerSide && e.fencerLastName)
+      names[e.fencerSide] ??= e.fencerLastName;
   }
   if (names.A || names.B) return `${names.A ?? '?'} vs ${names.B ?? '?'}`;
   return `Match ${matchId.slice(0, 8)}`;
@@ -110,8 +117,16 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
   const [selectedMatchId, setSelectedMatchId] = useState('');
   const [selectedReferee, setSelectedReferee] = useState('');
   const competitionMode = !matchId && !!competitionId;
-  const { entries, isLoading, error, filterTypes, loadMatchTimeline, loadCompetitionTimeline, setFilterTypes, reset } =
-    useMatchAuditStore();
+  const {
+    entries,
+    isLoading,
+    error,
+    filterTypes,
+    loadMatchTimeline,
+    loadCompetitionTimeline,
+    setFilterTypes,
+    reset,
+  } = useMatchAuditStore();
 
   useEffect(() => {
     if (matchId) {
@@ -119,7 +134,9 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
     } else if (competitionId) {
       loadCompetitionTimeline(competitionId);
     }
-    return () => { reset(); };
+    return () => {
+      reset();
+    };
   }, [matchId, competitionId]);
 
   useEffect(() => {
@@ -154,7 +171,11 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
     return ids
       .filter(id => !selectedReferee || refereesByMatch.get(id)?.has(selectedReferee))
       .map(id => ({ id, label: labels.get(id) ?? fallbackMatchLabel(id, entries) }))
-      .sort((a, b) => (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity) || a.label.localeCompare(b.label, 'fr'));
+      .sort(
+        (a, b) =>
+          (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity) ||
+          a.label.localeCompare(b.label, 'fr')
+      );
   }, [entries, matchOptions, refereesByMatch, selectedReferee]);
 
   const matchLabelOf = useCallback(
@@ -164,14 +185,16 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
 
   // Match sélectionné invalidé par le filtre arbitre → retour à « tous »
   useEffect(() => {
-    if (selectedMatchId && !matchChoices.some(c => c.id === selectedMatchId)) setSelectedMatchId('');
+    if (selectedMatchId && !matchChoices.some(c => c.id === selectedMatchId))
+      setSelectedMatchId('');
   }, [matchChoices, selectedMatchId]);
 
   const scopedEntries = useMemo(() => {
     if (!competitionMode) return entries;
-    return entries.filter(e =>
-      (!selectedMatchId || e.matchId === selectedMatchId) &&
-      (!selectedReferee || refereesByMatch.get(e.matchId)?.has(selectedReferee))
+    return entries.filter(
+      e =>
+        (!selectedMatchId || e.matchId === selectedMatchId) &&
+        (!selectedReferee || refereesByMatch.get(e.matchId)?.has(selectedReferee))
     );
   }, [entries, competitionMode, selectedMatchId, selectedReferee, refereesByMatch]);
 
@@ -195,7 +218,9 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
   }, [scopedEntries]);
 
   const filtered =
-    filterTypes.length === 0 ? scopedEntries : scopedEntries.filter(e => filterTypes.includes(e.eventType));
+    filterTypes.length === 0
+      ? scopedEntries
+      : scopedEntries.filter(e => filterTypes.includes(e.eventType));
 
   const toggleType = useCallback(
     (t: MatchEventType) => {
@@ -210,8 +235,13 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
 
   const handleExportJSON = useCallback(async () => {
     try {
-      const title = matchTitle
-        ?? (matchId ? `match_${matchId}` : selectedMatchId ? matchLabelOf(selectedMatchId) : `competition_${competitionId}`);
+      const title =
+        matchTitle ??
+        (matchId
+          ? `match_${matchId}`
+          : selectedMatchId
+            ? matchLabelOf(selectedMatchId)
+            : `competition_${competitionId}`);
       const json = exportMatchTimelineJSON(scopedEntries, title, competitionName);
       const filename = `journal_${title.replace(/\s+/g, '_')}_${Date.now()}.json`;
       const result = await window.electronAPI.dialog.saveFile({
@@ -225,16 +255,31 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
     } catch {
       showToast("Erreur lors de l'export", 'error');
     }
-  }, [scopedEntries, matchTitle, matchId, selectedMatchId, matchLabelOf, competitionId, competitionName]);
+  }, [
+    scopedEntries,
+    matchTitle,
+    matchId,
+    selectedMatchId,
+    matchLabelOf,
+    competitionId,
+    competitionName,
+  ]);
 
   const content = (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem' }}>
-
       {/* Heatmap zones Laser Sabre (visible quand matchId et données disponibles) */}
       {/* Sélection du match / de l'arbitre (vue compétition) */}
       {competitionMode && (
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <label style={{ fontSize: '0.8rem', color: '#6b7280', display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+          <label
+            style={{
+              fontSize: '0.8rem',
+              color: '#6b7280',
+              display: 'flex',
+              gap: '0.4rem',
+              alignItems: 'center',
+            }}
+          >
             Arbitre :
             <select
               aria-label="Filtrer par arbitre"
@@ -243,10 +288,22 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
               style={selectStyle}
             >
               <option value="">Tous les arbitres</option>
-              {refereeNames.map(r => <option key={r} value={r}>{r}</option>)}
+              {refereeNames.map(r => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
             </select>
           </label>
-          <label style={{ fontSize: '0.8rem', color: '#6b7280', display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+          <label
+            style={{
+              fontSize: '0.8rem',
+              color: '#6b7280',
+              display: 'flex',
+              gap: '0.4rem',
+              alignItems: 'center',
+            }}
+          >
             Match :
             <select
               aria-label="Sélectionner un match"
@@ -255,36 +312,101 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
               style={selectStyle}
             >
               <option value="">Tous les matchs ({matchChoices.length})</option>
-              {matchChoices.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+              {matchChoices.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
+              ))}
             </select>
           </label>
         </div>
       )}
 
       {singleMatch && zoneStats && (
-        <div style={{ display: 'flex', gap: '1rem', padding: '0.75rem', background: '#1e1b4b', borderRadius: '0.5rem', border: '1px solid #3730a3' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '1rem',
+            padding: '0.75rem',
+            background: '#1e1b4b',
+            borderRadius: '0.5rem',
+            border: '1px solid #3730a3',
+          }}
+        >
           {(['A', 'B'] as const).map(side => {
             const s = zoneStats[side];
             const total = s.A + s.B + s.C;
-            const ZONE_COLORS: Record<string, string> = { A: '#22c55e', B: '#f59e0b', C: '#ef4444' };
+            const ZONE_COLORS: Record<string, string> = {
+              A: '#22c55e',
+              B: '#f59e0b',
+              C: '#ef4444',
+            };
             const ZONE_PTS: Record<string, string> = { A: '1pt', B: '3pt', C: '5pt' };
             return (
               <div key={side} style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.7rem', fontWeight: 700, color: side === 'A' ? '#60a5fa' : '#f87171', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                <div
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    color: side === 'A' ? '#60a5fa' : '#f87171',
+                    textTransform: 'uppercase',
+                    marginBottom: '0.4rem',
+                  }}
+                >
                   Côté {side}
                 </div>
                 {(['A', 'B', 'C'] as const).map(z => {
                   const count = s[z];
                   const pct = total > 0 ? (count / total) * 100 : 0;
                   return (
-                    <div key={z} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
-                      <span style={{ width: '28px', fontSize: '0.72rem', color: ZONE_COLORS[z], fontWeight: 700 }}>
+                    <div
+                      key={z}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: '28px',
+                          fontSize: '0.72rem',
+                          color: ZONE_COLORS[z],
+                          fontWeight: 700,
+                        }}
+                      >
                         {z} <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>{ZONE_PTS[z]}</span>
                       </span>
-                      <div style={{ flex: 1, height: '8px', background: '#312e81', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${pct}%`, height: '100%', background: ZONE_COLORS[z], borderRadius: '4px', transition: 'width 0.3s' }} />
+                      <div
+                        style={{
+                          flex: 1,
+                          height: '8px',
+                          background: '#312e81',
+                          borderRadius: '4px',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${pct}%`,
+                            height: '100%',
+                            background: ZONE_COLORS[z],
+                            borderRadius: '4px',
+                            transition: 'width 0.3s',
+                          }}
+                        />
                       </div>
-                      <span style={{ width: '20px', fontSize: '0.72rem', color: '#c7d2fe', textAlign: 'right' }}>{count}</span>
+                      <span
+                        style={{
+                          width: '20px',
+                          fontSize: '0.72rem',
+                          color: '#c7d2fe',
+                          textAlign: 'right',
+                        }}
+                      >
+                        {count}
+                      </span>
                     </div>
                   );
                 })}
@@ -296,7 +418,9 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
 
       {/* Filtres */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.8rem', color: '#6b7280', marginRight: '0.25rem' }}>Filtrer :</span>
+        <span style={{ fontSize: '0.8rem', color: '#6b7280', marginRight: '0.25rem' }}>
+          Filtrer :
+        </span>
         {ALL_TYPES.map(t => {
           const active = filterTypes.length === 0 || filterTypes.includes(t);
           return (
@@ -360,37 +484,122 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
           <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>Chargement…</div>
         ) : refereeView ? (
           refereeLastActions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#9ca3af', fontSize: '0.875rem' }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '3rem',
+                color: '#9ca3af',
+                fontSize: '0.875rem',
+              }}
+            >
               Aucune saisie de score enregistrée.
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
               <thead>
                 <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Arbitre</th>
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>IP</th>
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Dernière saisie</th>
-                  {showMatchColumn && <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Match</th>}
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Score</th>
+                  <th
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#6b7280',
+                    }}
+                  >
+                    Arbitre
+                  </th>
+                  <th
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#6b7280',
+                    }}
+                  >
+                    IP
+                  </th>
+                  <th
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#6b7280',
+                    }}
+                  >
+                    Dernière saisie
+                  </th>
+                  {showMatchColumn && (
+                    <th
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        textAlign: 'left',
+                        fontWeight: '600',
+                        color: '#6b7280',
+                      }}
+                    >
+                      Match
+                    </th>
+                  )}
+                  <th
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#6b7280',
+                    }}
+                  >
+                    Score
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {refereeLastActions.map(({ key, label, entry }, i) => (
-                  <tr key={key} style={{ borderBottom: '1px solid #f3f4f6', background: i % 2 === 0 ? 'white' : '#fafafa' }}>
-                    <td style={{ padding: '0.5rem 0.75rem', fontWeight: '600', color: '#1f2937' }}>{label}</td>
-                    <td style={{ padding: '0.5rem 0.75rem', color: '#6b7280', fontFamily: 'monospace' }}>{entry.ipAddress ?? '—'}</td>
-                    <td style={{ padding: '0.5rem 0.75rem', color: '#6b7280', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                  <tr
+                    key={key}
+                    style={{
+                      borderBottom: '1px solid #f3f4f6',
+                      background: i % 2 === 0 ? 'white' : '#fafafa',
+                    }}
+                  >
+                    <td style={{ padding: '0.5rem 0.75rem', fontWeight: '600', color: '#1f2937' }}>
+                      {label}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        color: '#6b7280',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {entry.ipAddress ?? '—'}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        color: '#6b7280',
+                        fontFamily: 'monospace',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {formatTimestamp(entry.timestamp, baseTs)}
                     </td>
-                    {showMatchColumn && <td style={{ padding: '0.5rem 0.75rem', color: '#374151' }}>{matchLabelOf(entry.matchId)}</td>}
-                    <td style={{ padding: '0.5rem 0.75rem', color: '#374151' }}>{describeMatchEvent(entry)}</td>
+                    {showMatchColumn && (
+                      <td style={{ padding: '0.5rem 0.75rem', color: '#374151' }}>
+                        {matchLabelOf(entry.matchId)}
+                      </td>
+                    )}
+                    <td style={{ padding: '0.5rem 0.75rem', color: '#374151' }}>
+                      {describeMatchEvent(entry)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#9ca3af', fontSize: '0.875rem' }}>
+          <div
+            style={{ textAlign: 'center', padding: '3rem', color: '#9ca3af', fontSize: '0.875rem' }}
+          >
             {competitionMode && !selectedMatchId
               ? 'Aucun événement enregistré.'
               : 'Aucun événement enregistré pour ce match.'}
@@ -399,21 +608,57 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
             <thead>
               <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
-                <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: '600', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                <th
+                  style={{
+                    padding: '0.5rem 0.75rem',
+                    textAlign: 'left',
+                    fontWeight: '600',
+                    color: '#6b7280',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   Heure
                 </th>
                 {showMatchColumn && (
-                  <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>
+                  <th
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#6b7280',
+                    }}
+                  >
                     Match
                   </th>
                 )}
-                <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>
+                <th
+                  style={{
+                    padding: '0.5rem 0.75rem',
+                    textAlign: 'left',
+                    fontWeight: '600',
+                    color: '#6b7280',
+                  }}
+                >
                   Type
                 </th>
-                <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>
+                <th
+                  style={{
+                    padding: '0.5rem 0.75rem',
+                    textAlign: 'left',
+                    fontWeight: '600',
+                    color: '#6b7280',
+                  }}
+                >
                   Tireur
                 </th>
-                <th style={{ padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>
+                <th
+                  style={{
+                    padding: '0.5rem 0.75rem',
+                    textAlign: 'left',
+                    fontWeight: '600',
+                    color: '#6b7280',
+                  }}
+                >
                   Description
                 </th>
               </tr>
@@ -429,7 +674,14 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       background: i % 2 === 0 ? 'white' : '#fafafa',
                     }}
                   >
-                    <td style={{ padding: '0.5rem 0.75rem', color: '#6b7280', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        color: '#6b7280',
+                        fontFamily: 'monospace',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {formatTimestamp(entry.timestamp, baseTs)}
                     </td>
                     {showMatchColumn && (
@@ -438,7 +690,15 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                           type="button"
                           onClick={() => setSelectedMatchId(entry.matchId)}
                           title="Afficher uniquement ce match"
-                          style={{ background: 'none', border: 'none', padding: 0, color: '#2563eb', cursor: 'pointer', textAlign: 'left', fontSize: 'inherit' }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            color: '#2563eb',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontSize: 'inherit',
+                          }}
                         >
                           {matchLabelOf(entry.matchId)}
                         </button>
@@ -459,9 +719,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                         {EVENT_TYPE_LABELS[entry.eventType]}
                       </span>
                     </td>
-                    <td style={{ padding: '0.5rem 0.75rem', fontWeight: '600', color }}>
-                      {label}
-                    </td>
+                    <td style={{ padding: '0.5rem 0.75rem', fontWeight: '600', color }}>{label}</td>
                     <td style={{ padding: '0.5rem 0.75rem', color: '#374151' }}>
                       {describeMatchEvent(entry)}
                     </td>
@@ -489,21 +747,26 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
 
   // Rendu modal — portail sur body pour échapper aux ancêtres transformés
   return createPortal(
-    <div
-      className="modal-overlay"
-      onClick={onClose}
-      style={{ zIndex: 1000 }}
-    >
+    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1000 }}>
       <div
         className="modal modal--xl"
         onClick={e => e.stopPropagation()}
         style={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+          }}
+        >
           <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>
             Journal du match{matchTitle ? ` — ${matchTitle}` : ''}
           </h2>
-          <button className="btn-close" onClick={onClose}>&times;</button>
+          <button className="btn-close" onClick={onClose}>
+            &times;
+          </button>
         </div>
         {content}
       </div>

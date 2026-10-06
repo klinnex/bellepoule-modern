@@ -93,7 +93,9 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
             aria-labelledby="confirm-dialog-title"
           >
             <div className="modal-header">
-              <h2 className="modal-title" id="confirm-dialog-title">Confirmation</h2>
+              <h2 className="modal-title" id="confirm-dialog-title">
+                Confirmation
+              </h2>
             </div>
             <div className="modal-body">
               <p style={{ whiteSpace: 'pre-line', margin: 0 }}>{pending.message}</p>

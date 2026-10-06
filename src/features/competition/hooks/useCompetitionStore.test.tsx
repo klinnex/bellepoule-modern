@@ -10,9 +10,16 @@ import { useCompetitionStore } from './useCompetitionStore';
 const get = () => useCompetitionStore.getState();
 
 beforeEach(() => {
-  useCompetitionStore.setState({ competitions: [], currentCompetition: null, isLoading: false, error: null });
+  useCompetitionStore.setState({
+    competitions: [],
+    currentCompetition: null,
+    isLoading: false,
+    error: null,
+  });
 });
-afterEach(() => { delete (window as any).electronAPI; });
+afterEach(() => {
+  delete (window as any).electronAPI;
+});
 
 describe('loadCompetitions', () => {
   it('charge les compétitions via le service', async () => {
@@ -32,7 +39,9 @@ describe('loadCompetitions', () => {
 
 describe('createCompetition', () => {
   it('ajoute en tête et définit la compétition courante', async () => {
-    (window as any).electronAPI = { db: { createCompetition: vi.fn(async (d: any) => ({ id: 'new', ...d })) } };
+    (window as any).electronAPI = {
+      db: { createCompetition: vi.fn(async (d: any) => ({ id: 'new', ...d })) },
+    };
     const created = await get().createCompetition({ title: 'T' } as any);
     expect(created.id).toBe('new');
     expect(get().competitions[0].id).toBe('new');

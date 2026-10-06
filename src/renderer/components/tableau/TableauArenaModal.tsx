@@ -22,9 +22,17 @@ interface TableauArenaModalProps {
 const ARENA_STYLES = {
   arenaModalBody: { padding: '1.5rem' } satisfies React.CSSProperties,
   arenaModalHint: { marginBottom: '1rem', color: '#6b7280' } satisfies React.CSSProperties,
-  arenaModalGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' } satisfies React.CSSProperties,
+  arenaModalGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '0.5rem',
+  } satisfies React.CSSProperties,
   arenaModalNoArenaBtn: { padding: '0.75rem' } satisfies React.CSSProperties,
-  arenaQueueHint: { fontSize: '0.7rem', marginLeft: '0.3rem', color: '#6b7280' } satisfies React.CSSProperties,
+  arenaQueueHint: {
+    fontSize: '0.7rem',
+    marginLeft: '0.3rem',
+    color: '#6b7280',
+  } satisfies React.CSSProperties,
 } satisfies Record<string, React.CSSProperties>;
 
 const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
@@ -68,9 +76,7 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
                 >
                   Piste {arenaNum}
                   {queueCount > 0 && (
-                    <span style={ARENA_STYLES.arenaQueueHint}>
-                      (+{queueCount})
-                    </span>
+                    <span style={ARENA_STYLES.arenaQueueHint}>(+{queueCount})</span>
                   )}
                 </button>
               );

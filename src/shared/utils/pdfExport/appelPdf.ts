@@ -32,14 +32,22 @@ const APPEL_STATUS_LABELS: Record<string, string> = {
 
 function getFencerCellValue(fencer: Fencer, col: string): string {
   switch (col) {
-    case 'ref':       return String(fencer.ref);
-    case 'lastName':  return fencer.lastName.toUpperCase();
-    case 'firstName': return fencer.firstName ?? '';
-    case 'birthDate': return fencer.birthDate ? String(new Date(fencer.birthDate).getFullYear()) : '-';
-    case 'club':      return fencer.club || '-';
-    case 'ranking':   return fencer.ranking ? `#${fencer.ranking}` : '-';
-    case 'status':    return APPEL_STATUS_LABELS[fencer.status] ?? fencer.status;
-    default:          return '';
+    case 'ref':
+      return String(fencer.ref);
+    case 'lastName':
+      return fencer.lastName.toUpperCase();
+    case 'firstName':
+      return fencer.firstName ?? '';
+    case 'birthDate':
+      return fencer.birthDate ? String(new Date(fencer.birthDate).getFullYear()) : '-';
+    case 'club':
+      return fencer.club || '-';
+    case 'ranking':
+      return fencer.ranking ? `#${fencer.ranking}` : '-';
+    case 'status':
+      return APPEL_STATUS_LABELS[fencer.status] ?? fencer.status;
+    default:
+      return '';
   }
 }
 
@@ -51,27 +59,31 @@ export function generateAppelHTML(
   logoBase64?: string,
   template?: PdfTemplate
 ): string {
-  const now = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const now = new Date().toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
   const effectiveTitle = template?.customTitle?.trim() || title;
   const cssOverrides = template ? buildCssOverrides(template) : '';
 
-  const headers = visibleColumns
-    .map(col => `<th>${APPEL_COL_HEADERS[col] ?? col}</th>`)
-    .join('');
+  const headers = visibleColumns.map(col => `<th>${APPEL_COL_HEADERS[col] ?? col}</th>`).join('');
 
-  const rows = fencers.map(fencer => {
-    const cells = visibleColumns
-      .map(col => `<td>${getFencerCellValue(fencer, col)}</td>`)
-      .join('');
-    return `<tr>${cells}</tr>`;
-  }).join('');
+  const rows = fencers
+    .map(fencer => {
+      const cells = visibleColumns
+        .map(col => `<td>${getFencerCellValue(fencer, col)}</td>`)
+        .join('');
+      return `<tr>${cells}</tr>`;
+    })
+    .join('');
 
   const subtitle = competitionName
     ? `${competitionName} — ${fencers.length} tireur${fencers.length > 1 ? 's' : ''}`
     : `${fencers.length} tireur${fencers.length > 1 ? 's' : ''}`;
 
   const sections: Record<string, string> = {
-    'header': `
+    header: `
   <div class="doc-header">
     ${logoBase64 ? `<img class="doc-header-logo" src="${logoBase64}" alt="Logo" />` : ''}
     <div class="doc-header-left">
@@ -86,7 +98,7 @@ export function generateAppelHTML(
     <thead><tr>${headers}</tr></thead>
     <tbody>${rows}</tbody>
   </table>`,
-    'footer': `
+    footer: `
   <div class="doc-footer">
     <span>BellePoule Modern</span>
     <span>${now}</span>
@@ -122,13 +134,28 @@ ${body}
 
 export async function exportAppelToPDF(
   fencers: Fencer[],
-  visibleColumns: string[] = ['ref', 'lastName', 'firstName', 'birthDate', 'club', 'ranking', 'status'],
+  visibleColumns: string[] = [
+    'ref',
+    'lastName',
+    'firstName',
+    'birthDate',
+    'club',
+    'ranking',
+    'status',
+  ],
   title: string = "Liste d'appel",
   competitionName?: string,
   logoBase64?: string,
   template?: PdfTemplate
 ): Promise<void> {
   if (fencers.length === 0) throw new Error("Aucun tireur dans la liste d'appel");
-  const html = generateAppelHTML(fencers, visibleColumns, title, competitionName, logoBase64, template);
+  const html = generateAppelHTML(
+    fencers,
+    visibleColumns,
+    title,
+    competitionName,
+    logoBase64,
+    template
+  );
   await savePDF(html, 'appel.pdf');
 }

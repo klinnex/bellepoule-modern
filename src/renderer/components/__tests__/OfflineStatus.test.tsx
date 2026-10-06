@@ -9,7 +9,9 @@ vi.mock('../../../renderer/services/offlineSync', () => ({
     isCurrentlyOnline: vi.fn().mockReturnValue(true),
     isCurrentlySyncing: vi.fn().mockReturnValue(false),
     onSyncComplete: vi.fn(),
-    triggerSync: vi.fn().mockResolvedValue({ success: true, synced: 0, failed: 0, conflicts: 0, errors: [] }),
+    triggerSync: vi
+      .fn()
+      .mockResolvedValue({ success: true, synced: 0, failed: 0, conflicts: 0, errors: [] }),
   },
 }));
 
@@ -79,8 +81,9 @@ describe('OfflineStatus', () => {
       render(<OfflineStatus />);
     });
 
-    const toggle = screen.getByText('Connecté').closest('[class*="cursor-pointer"]')
-      ?? screen.getByText('Connecté').parentElement?.parentElement;
+    const toggle =
+      screen.getByText('Connecté').closest('[class*="cursor-pointer"]') ??
+      screen.getByText('Connecté').parentElement?.parentElement;
 
     expect(toggle).toBeTruthy();
 
@@ -91,7 +94,7 @@ describe('OfflineStatus', () => {
     expect(screen.getByText('Connexion:')).toBeInTheDocument();
   });
 
-  it('affiche le nombre d\'actions en attente', async () => {
+  it("affiche le nombre d'actions en attente", async () => {
     (offlineStorage.getSyncStatus as any).mockResolvedValue({
       pendingActions: 3,
       conflicts: 0,

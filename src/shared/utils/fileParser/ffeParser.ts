@@ -40,7 +40,10 @@ export function parseFFEFile(content: string): ImportResult {
 
   // Détecter le format et le(s) séparateur(s)
   const formatInfo = detectFormat(lines);
-  logger.debug(LogCategory.BUSINESS, 'Format détecté', { type: formatInfo.type, separator: formatInfo.primarySeparator });
+  logger.debug(LogCategory.BUSINESS, 'Format détecté', {
+    type: formatInfo.type,
+    separator: formatInfo.primarySeparator,
+  });
 
   // Vérifier si la première ligne est un en-tête (champs entiers, pas de sous-chaîne :
   // un tireur « ALEXANDRE » ou « NOMADE » ne doit pas être pris pour un en-tête)
@@ -49,7 +52,9 @@ export function parseFFEFile(content: string): ImportResult {
     isMetadataLine(lines[0]) ||
     isHeaderLine(lines[0]) ||
     firstLineParts.some(part =>
-      ['sexe', 'club', 'licence', 'nation', 'nationalité', 'ligue', 'date'].includes(part.trim().toLowerCase())
+      ['sexe', 'club', 'licence', 'nation', 'nationalité', 'ligue', 'date'].includes(
+        part.trim().toLowerCase()
+      )
     );
 
   const startIndex = hasHeader ? 1 : 0;
@@ -100,9 +105,7 @@ function isMetadataLine(line: string): boolean {
  */
 function isHeaderLine(line: string): boolean {
   const headerWords = ['nom', 'name', 'prenom', 'prénom', 'firstname', 'lastname', 'classement'];
-  return line
-    .split(/[;,\t]/)
-    .some(part => headerWords.includes(part.trim().toLowerCase()));
+  return line.split(/[;,\t]/).some(part => headerWords.includes(part.trim().toLowerCase()));
 }
 
 interface FormatInfo {
@@ -193,7 +196,10 @@ function detectFormat(lines: string[]): FormatInfo {
       const firstSectionCommas = (parts[0].match(/,/g) || []).length;
       // Format FFF typique: NOM,PRENOM,DATE,SEXE,NATION (4 virgules)
       if (firstSectionCommas >= 3 && firstSectionCommas <= 5) {
-        logger.debug(LogCategory.BUSINESS, 'Format FFF détecté: première virgule = séparateur NOM/PRÉNOM');
+        logger.debug(
+          LogCategory.BUSINESS,
+          'Format FFF détecté: première virgule = séparateur NOM/PRÉNOM'
+        );
         return {
           type: 'mixed',
           primarySeparator: ';',
@@ -206,7 +212,10 @@ function detectFormat(lines: string[]): FormatInfo {
   // Détecter si c'est le format où seule la première partie utilise des virgules
   const parts = dataLine.split(';');
   if (parts.length >= 2 && parts[0].includes(',')) {
-    logger.debug(LogCategory.BUSINESS, 'Format mixte détecté: virgules dans première section, points-virgules ensuite');
+    logger.debug(
+      LogCategory.BUSINESS,
+      'Format mixte détecté: virgules dans première section, points-virgules ensuite'
+    );
     return {
       type: 'mixed',
       primarySeparator: ';',
@@ -216,7 +225,10 @@ function detectFormat(lines: string[]): FormatInfo {
 
   // Détecter si le format utilise des virgules dans une structure tabulaire
   if (dataLine.includes(',') && dataLine.includes('\t')) {
-    logger.debug(LogCategory.BUSINESS, 'Format mixte détecté: virgules dans les données, tabulations comme séparateurs de tableaux');
+    logger.debug(
+      LogCategory.BUSINESS,
+      'Format mixte détecté: virgules dans les données, tabulations comme séparateurs de tableaux'
+    );
     return {
       type: 'mixed',
       primarySeparator: '\t',

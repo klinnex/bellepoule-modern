@@ -7,9 +7,7 @@ import React, { useState } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { Competition, CustomFormulaConfig, Weapon, Gender, Category } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
-import {
-  createDefaultCustomFormula,
-} from '../../shared/utils/tournamentTemplates';
+import { createDefaultCustomFormula } from '../../shared/utils/tournamentTemplates';
 import { FormulaBuilder } from './formula/FormulaBuilder';
 
 interface NewCompetitionModalProps {
@@ -99,8 +97,16 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
 
   const getRandomColor = () => {
     const colors = [
-      '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-      '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1',
+      '#3B82F6',
+      '#10B981',
+      '#F59E0B',
+      '#EF4444',
+      '#8B5CF6',
+      '#EC4899',
+      '#06B6D4',
+      '#84CC16',
+      '#F97316',
+      '#6366F1',
     ];
     return colors[Math.floor(Math.random() * colors.length)];
   };
@@ -204,13 +210,17 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
             </div>
 
             <div className="form-group">
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <label
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
+              >
                 <input
                   type="checkbox"
                   checked={isTeamEvent}
                   onChange={e => setIsTeamEvent(e.target.checked)}
                 />
-                <span className="form-label" style={{ margin: 0 }}>Compétition par équipes</span>
+                <span className="form-label" style={{ margin: 0 }}>
+                  Compétition par équipes
+                </span>
               </label>
             </div>
 

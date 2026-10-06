@@ -215,11 +215,7 @@ const Bracket: React.FC<BracketProps> = ({
     }
   };
 
-  const renderFencerRow = (
-    fencer: Fencer | null,
-    score: number | null,
-    isWinner: boolean
-  ) => {
+  const renderFencerRow = (fencer: Fencer | null, score: number | null, isWinner: boolean) => {
     const bg = isWinner ? '#d4edda' : fencer ? '#f8f9fa' : '#e9ecef';
     const border = isWinner ? '#28a745' : '#dee2e6';
     const textColor = fencer ? '#212529' : '#6c757d';
@@ -248,9 +244,7 @@ const Bracket: React.FC<BracketProps> = ({
           >
             {fencer ? `${fencer.lastName} ${fencer.firstName.charAt(0)}.` : 'TBD'}
           </div>
-          {fencer?.club && (
-            <div style={{ fontSize: '10px', color: '#6c757d' }}>{fencer.club}</div>
-          )}
+          {fencer?.club && <div style={{ fontSize: '10px', color: '#6c757d' }}>{fencer.club}</div>}
         </div>
         <div
           style={{
@@ -277,13 +271,19 @@ const Bracket: React.FC<BracketProps> = ({
 
     // round=1=Finale, round=2=Demi, round=3=Quarts, round=4=16èmes, ...
     const roundName = (round: number) =>
-      round === 1 ? 'Finale'
-      : round === 2 ? 'Demi-finales'
-      : round === 3 ? 'Quarts'
-      : round === 4 ? '16èmes'
-      : round === 5 ? '32èmes'
-      : round === 6 ? '64èmes'
-      : `Tour ${round}`;
+      round === 1
+        ? 'Finale'
+        : round === 2
+          ? 'Demi-finales'
+          : round === 3
+            ? 'Quarts'
+            : round === 4
+              ? '16èmes'
+              : round === 5
+                ? '32èmes'
+                : round === 6
+                  ? '64èmes'
+                  : `Tour ${round}`;
 
     return (
       <div

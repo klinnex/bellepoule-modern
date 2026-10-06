@@ -3,7 +3,7 @@
  * Composant principal du créateur de formule à la carte.
  */
 
-import React, { useMemo, useState , memo} from 'react';
+import React, { useMemo, useState, memo } from 'react';
 import {
   CustomDEConfig,
   CustomFormulaConfig,
@@ -89,18 +89,10 @@ function computeInputFencers(phases: FormulaPhaseNode[], index: number, initial:
   return count;
 }
 
-const FormulaBuilder_: React.FC<Props> = ({
-  formula,
-  fencerCount = 32,
-  onChange,
-  readOnly,
-}) => {
+const FormulaBuilder_: React.FC<Props> = ({ formula, fencerCount = 32, onChange, readOnly }) => {
   const [templateModal, setTemplateModal] = useState<'save' | 'load' | null>(null);
 
-  const simulation = useMemo(
-    () => simulateFormula(fencerCount, formula),
-    [fencerCount, formula]
-  );
+  const simulation = useMemo(() => simulateFormula(fencerCount, formula), [fencerCount, formula]);
 
   const updatePhase = (index: number, node: FormulaPhaseNode) => {
     const phases = [...formula.phases];
@@ -238,9 +230,7 @@ const FormulaBuilder_: React.FC<Props> = ({
                   onMoveUp={() => movePhase(index, index - 1)}
                   onMoveDown={() => movePhase(index, index + 1)}
                 />
-                {index < formula.phases.length - 1 && (
-                  <div className="phase-connector">↓</div>
-                )}
+                {index < formula.phases.length - 1 && <div className="phase-connector">↓</div>}
               </React.Fragment>
             ))
           )}

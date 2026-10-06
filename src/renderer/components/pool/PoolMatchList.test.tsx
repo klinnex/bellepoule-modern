@@ -12,28 +12,58 @@ import PoolMatchList from './PoolMatchList';
 import { Fencer, Match, MatchStatus, Gender, FencerStatus } from '../../../shared/types';
 
 const fencer = (id: string, last: string): Fencer => ({
-  id, ref: Number(id), lastName: last, firstName: 'Prenom',
-  gender: Gender.MALE, nationality: 'FRA', status: FencerStatus.CHECKED_IN,
-  createdAt: new Date(), updatedAt: new Date(),
+  id,
+  ref: Number(id),
+  lastName: last,
+  firstName: 'Prenom',
+  gender: Gender.MALE,
+  nationality: 'FRA',
+  status: FencerStatus.CHECKED_IN,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 const pending = (a: Fencer, b: Fencer, index: number) => ({
   index,
   match: {
-    id: `m${index}`, number: index + 1, fencerA: a, fencerB: b,
-    scoreA: null, scoreB: null, maxScore: 5, status: MatchStatus.NOT_STARTED,
-    createdAt: new Date(), updatedAt: new Date(),
+    id: `m${index}`,
+    number: index + 1,
+    fencerA: a,
+    fencerB: b,
+    scoreA: null,
+    scoreB: null,
+    maxScore: 5,
+    status: MatchStatus.NOT_STARTED,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as Match,
 });
 
 const finished = (a: Fencer, b: Fencer, index: number) => ({
   index,
   match: {
-    id: `m${index}`, number: index + 1, fencerA: a, fencerB: b,
-    scoreA: { value: 5, isVictory: true, isAbstention: false, isExclusion: false, isForfait: false },
-    scoreB: { value: 3, isVictory: false, isAbstention: false, isExclusion: false, isForfait: false },
-    maxScore: 5, status: MatchStatus.FINISHED,
-    createdAt: new Date(), updatedAt: new Date(),
+    id: `m${index}`,
+    number: index + 1,
+    fencerA: a,
+    fencerB: b,
+    scoreA: {
+      value: 5,
+      isVictory: true,
+      isAbstention: false,
+      isExclusion: false,
+      isForfait: false,
+    },
+    scoreB: {
+      value: 3,
+      isVictory: false,
+      isAbstention: false,
+      isExclusion: false,
+      isForfait: false,
+    },
+    maxScore: 5,
+    status: MatchStatus.FINISHED,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as Match,
 });
 
@@ -77,8 +107,11 @@ describe('PoolMatchList', () => {
     expect(screen.getByText('Poule terminée')).toBeInTheDocument();
   });
 
-  it('le bouton supprimer d\'un match terminé n\'apparaît qu\'au survol de la ligne', () => {
-    renderList({ pending: [], finished: [finished(f1, f2, 0)], cancelled: [] }, { onMatchReset: vi.fn() });
+  it("le bouton supprimer d'un match terminé n'apparaît qu'au survol de la ligne", () => {
+    renderList(
+      { pending: [], finished: [finished(f1, f2, 0)], cancelled: [] },
+      { onMatchReset: vi.fn() }
+    );
     const deleteBtn = screen.getByTitle(/Supprimer ce résultat/);
     expect(deleteBtn).toHaveStyle({ opacity: '0' });
 
@@ -89,7 +122,7 @@ describe('PoolMatchList', () => {
     expect(deleteBtn).toHaveStyle({ opacity: '0' });
   });
 
-  it('clique sur supprimer déclenche onMatchReset avec l\'index du match', () => {
+  it("clique sur supprimer déclenche onMatchReset avec l'index du match", () => {
     const props = renderList(
       { pending: [], finished: [finished(f1, f2, 0)], cancelled: [] },
       { onMatchReset: vi.fn() }

@@ -44,7 +44,7 @@ export class FFEConnectService {
     const base = config?.baseUrl ?? DEFAULT_BASE_URL;
     try {
       const parsed = new URL(base);
-      if (parsed.protocol !== 'https:') throw new Error('HTTPS requis pour l\'API FFE');
+      if (parsed.protocol !== 'https:') throw new Error("HTTPS requis pour l'API FFE");
     } catch (e) {
       throw new Error(`URL API FFE invalide: ${e instanceof Error ? e.message : e}`);
     }
@@ -88,7 +88,11 @@ export class FFEConnectService {
 
       const data = await response.json();
       if (!Array.isArray(data)) {
-        return { success: false, participants: [], errors: ['Réponse API invalide: tableau attendu'] };
+        return {
+          success: false,
+          participants: [],
+          errors: ['Réponse API invalide: tableau attendu'],
+        };
       }
       return { success: true, participants: data as FFEParticipant[], errors: [] };
     } catch (err: unknown) {
@@ -133,7 +137,10 @@ export class FFEConnectService {
         return { success: false, errors: ['Compétition non trouvée'] };
       }
       if (!response.ok) {
-        return { success: false, errors: [`Erreur serveur: ${response.status} ${response.statusText}`] };
+        return {
+          success: false,
+          errors: [`Erreur serveur: ${response.status} ${response.statusText}`],
+        };
       }
       return { success: true, errors: [] };
     } catch (err: unknown) {

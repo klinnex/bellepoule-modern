@@ -155,7 +155,12 @@ export function importRankingFromFFF(
       });
     } catch (error) {
       result.skipped++;
-      logger.error(LogCategory.BUSINESS, `Error parsing line ${i + 1}`, error instanceof Error ? error : undefined, { line });
+      logger.error(
+        LogCategory.BUSINESS,
+        `Error parsing line ${i + 1}`,
+        error instanceof Error ? error : undefined,
+        { line }
+      );
       result.errors.push(
         `Ligne ${i + 1}: ${error instanceof Error ? error.message : 'Erreur de parsing'}`
       );

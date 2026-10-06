@@ -36,9 +36,18 @@
   font-size: 0.8rem;
 }
 
-.pool-add { color: #3B82F6; border-color: #3B82F6; }
-.de-add   { color: #EF4444; border-color: #EF4444; }
-.class-add { color: #10B981; border-color: #10B981; }
+.pool-add {
+  color: #3b82f6;
+  border-color: #3b82f6;
+}
+.de-add {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+.class-add {
+  color: #10b981;
+  border-color: #10b981;
+}
 
 .formula-template-buttons {
   display: flex;
@@ -84,7 +93,7 @@
 
 .formula-phase-card {
   border: 1px solid var(--color-border, #e5e7eb);
-  border-left: 4px solid #3B82F6;
+  border-left: 4px solid #3b82f6;
   border-radius: 8px;
   overflow: hidden;
   background: var(--color-bg, #fff);
@@ -131,7 +140,7 @@
 
 .phase-label-input:focus {
   background: var(--color-bg, #fff);
-  outline: 2px solid var(--color-primary, #3B82F6);
+  outline: 2px solid var(--color-primary, #3b82f6);
 }
 
 .phase-card-actions {
@@ -192,10 +201,10 @@
 
 .ranking-criterion-row.drag-over {
   background: var(--color-primary-light, #eff6ff);
-  border-top: 2px solid var(--color-primary, #3B82F6);
+  border-top: 2px solid var(--color-primary, #3b82f6);
 }
 
-.ranking-criterion-row[draggable="true"] {
+.ranking-criterion-row[draggable='true'] {
   cursor: grab;
 }
 
@@ -209,7 +218,7 @@
 .criterion-priority {
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--color-primary, #3B82F6);
+  color: var(--color-primary, #3b82f6);
   min-width: 16px;
   text-align: center;
 }
@@ -275,7 +284,7 @@
 }
 
 .criterion-toggle input:checked + .toggle-slider {
-  background: var(--color-primary, #3B82F6);
+  background: var(--color-primary, #3b82f6);
 }
 
 .criterion-toggle input:checked + .toggle-slider::before {
@@ -324,7 +333,7 @@
 }
 
 .advancement-preview strong {
-  color: var(--color-primary, #3B82F6);
+  color: var(--color-primary, #3b82f6);
 }
 
 /* ── ScoringZoneEditor ──────────────────────────────────── */
@@ -458,7 +467,7 @@
 .sim-fencer-count {
   font-size: 1.4rem;
   font-weight: 700;
-  color: var(--color-primary, #3B82F6);
+  color: var(--color-primary, #3b82f6);
 }
 
 .sim-node-pool_round {

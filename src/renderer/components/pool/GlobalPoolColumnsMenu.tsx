@@ -33,8 +33,10 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
     const handleClick = (e: MouseEvent) => {
       const t = e.target as Node;
       if (
-        ref.current && !ref.current.contains(t) &&
-        menuRef.current && !menuRef.current.contains(t)
+        ref.current &&
+        !ref.current.contains(t) &&
+        menuRef.current &&
+        !menuRef.current.contains(t)
       )
         setOpen(false);
     };
@@ -61,62 +63,63 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
       <button ref={btnRef} className="btn btn-secondary" onClick={() => setOpen(o => !o)}>
         🧱 Colonnes (toutes les poules)
       </button>
-      {open && createPortal(
-        <div
-          ref={menuRef}
-          style={{
-            position: 'fixed',
-            top: pos.top,
-            left: pos.left,
-            background: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '6px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            zIndex: 9999,
-            minWidth: '240px',
-            maxHeight: '60vh',
-            overflowY: 'auto',
-            padding: '0.5rem',
-          }}
-        >
+      {open &&
+        createPortal(
           <div
+            ref={menuRef}
             style={{
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              padding: '0.25rem 0.5rem',
-              borderBottom: '1px solid #e5e7eb',
-              marginBottom: '0.25rem',
+              position: 'fixed',
+              top: pos.top,
+              left: pos.left,
+              background: 'white',
+              border: '1px solid #e5e7eb',
+              borderRadius: '6px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              zIndex: 9999,
+              minWidth: '240px',
+              maxHeight: '60vh',
+              overflowY: 'auto',
+              padding: '0.5rem',
             }}
           >
-            Colonnes — appliqué à toutes les poules
-          </div>
-          {columns.map(col => (
-            <label
-              key={col.id}
+            <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.375rem 0.5rem',
-                cursor: 'pointer',
-                borderRadius: '4px',
-                fontSize: '0.8rem',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                padding: '0.25rem 0.5rem',
+                borderBottom: '1px solid #e5e7eb',
+                marginBottom: '0.25rem',
               }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
-              <input
-                type="checkbox"
-                checked={visibility.pool.includes(col.id)}
-                onChange={() => toggle(col.id)}
-                style={{ cursor: 'pointer' }}
-              />
-              {col.label}
-            </label>
-          ))}
-        </div>,
-        document.body
-      )}
+              Colonnes — appliqué à toutes les poules
+            </div>
+            {columns.map(col => (
+              <label
+                key={col.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.375rem 0.5rem',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  fontSize: '0.8rem',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              >
+                <input
+                  type="checkbox"
+                  checked={visibility.pool.includes(col.id)}
+                  onChange={() => toggle(col.id)}
+                  style={{ cursor: 'pointer' }}
+                />
+                {col.label}
+              </label>
+            ))}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

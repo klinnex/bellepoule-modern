@@ -133,11 +133,31 @@ export const ALL_MIGRATIONS: Migration[] = [
         )
       `);
       // Colonnes ajoutées progressivement (compat ascendante pour DBs existantes)
-      try { db.run(`ALTER TABLE matches ADD COLUMN start_time TEXT`); } catch { /* */ }
-      try { db.run(`ALTER TABLE matches ADD COLUMN end_time TEXT`); } catch { /* */ }
-      try { db.run(`ALTER TABLE matches ADD COLUMN duration INTEGER`); } catch { /* */ }
-      try { db.run(`ALTER TABLE fencers ADD COLUMN photo TEXT`); } catch { /* */ }
-      try { db.run(`ALTER TABLE fencers RENAME COLUMN league TO region`); } catch { /* */ }
+      try {
+        db.run(`ALTER TABLE matches ADD COLUMN start_time TEXT`);
+      } catch {
+        /* */
+      }
+      try {
+        db.run(`ALTER TABLE matches ADD COLUMN end_time TEXT`);
+      } catch {
+        /* */
+      }
+      try {
+        db.run(`ALTER TABLE matches ADD COLUMN duration INTEGER`);
+      } catch {
+        /* */
+      }
+      try {
+        db.run(`ALTER TABLE fencers ADD COLUMN photo TEXT`);
+      } catch {
+        /* */
+      }
+      try {
+        db.run(`ALTER TABLE fencers RENAME COLUMN league TO region`);
+      } catch {
+        /* */
+      }
 
       // Index de performance
       db.run(`CREATE INDEX IF NOT EXISTS idx_competitions_date ON competitions(date)`);
@@ -161,7 +181,7 @@ export const ALL_MIGRATIONS: Migration[] = [
 
   {
     version: 2,
-    description: 'Table bracket_nodes pour l\'élimination directe',
+    description: "Table bracket_nodes pour l'élimination directe",
     up(db) {
       db.run(`
         CREATE TABLE IF NOT EXISTS bracket_nodes (
@@ -225,13 +245,15 @@ export const ALL_MIGRATIONS: Migration[] = [
           updated_at TEXT NOT NULL
         )
       `);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_arena_state_competition ON arena_state(competition_id)`);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_arena_state_competition ON arena_state(competition_id)`
+      );
     },
   },
 
   {
     version: 5,
-    description: 'Table match_arena_exits pour les sorties d\'arène',
+    description: "Table match_arena_exits pour les sorties d'arène",
     up(db) {
       db.run(`
         CREATE TABLE IF NOT EXISTS match_arena_exits (
@@ -253,10 +275,26 @@ export const ALL_MIGRATIONS: Migration[] = [
     version: 6,
     description: 'Enrichissement score_audit_log : arbitre, IP, poule',
     up(db) {
-      try { db.run(`ALTER TABLE score_audit_log ADD COLUMN referee_id TEXT`); } catch { /* */ }
-      try { db.run(`ALTER TABLE score_audit_log ADD COLUMN referee_name TEXT`); } catch { /* */ }
-      try { db.run(`ALTER TABLE score_audit_log ADD COLUMN ip_address TEXT`); } catch { /* */ }
-      try { db.run(`ALTER TABLE score_audit_log ADD COLUMN pool_id TEXT`); } catch { /* */ }
+      try {
+        db.run(`ALTER TABLE score_audit_log ADD COLUMN referee_id TEXT`);
+      } catch {
+        /* */
+      }
+      try {
+        db.run(`ALTER TABLE score_audit_log ADD COLUMN referee_name TEXT`);
+      } catch {
+        /* */
+      }
+      try {
+        db.run(`ALTER TABLE score_audit_log ADD COLUMN ip_address TEXT`);
+      } catch {
+        /* */
+      }
+      try {
+        db.run(`ALTER TABLE score_audit_log ADD COLUMN pool_id TEXT`);
+      } catch {
+        /* */
+      }
       db.run(`CREATE INDEX IF NOT EXISTS idx_audit_pool ON score_audit_log(pool_id)`);
     },
   },
@@ -294,19 +332,26 @@ export const ALL_MIGRATIONS: Migration[] = [
           FOREIGN KEY (competition_id) REFERENCES competitions(id) ON DELETE CASCADE
         )
       `);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_formula_snapshots_comp ON formula_snapshots(competition_id)`);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_formula_snapshots_comp ON formula_snapshots(competition_id)`
+      );
     },
   },
   {
     version: 9,
     description: 'Arbitre assigné à une poule (referee_id sur pools)',
     up(db) {
-      try { db.run(`ALTER TABLE pools ADD COLUMN referee_id TEXT`); } catch { /* */ }
+      try {
+        db.run(`ALTER TABLE pools ADD COLUMN referee_id TEXT`);
+      } catch {
+        /* */
+      }
     },
   },
   {
     version: 10,
-    description: 'Index composites pour les requêtes fréquentes (matchs en attente, stats par tireur, export tableau)',
+    description:
+      'Index composites pour les requêtes fréquentes (matchs en attente, stats par tireur, export tableau)',
     up(db) {
       db.run(`CREATE INDEX IF NOT EXISTS idx_matches_pool_status ON matches(pool_id, status)`);
       db.run(`CREATE INDEX IF NOT EXISTS idx_matches_fencer_a ON matches(fencer_a_id)`);
@@ -318,7 +363,8 @@ export const ALL_MIGRATIONS: Migration[] = [
   },
   {
     version: 11,
-    description: 'Table de_match_signatures pour signatures des matchs de tableau (élimination directe)',
+    description:
+      'Table de_match_signatures pour signatures des matchs de tableau (élimination directe)',
     up(db) {
       db.run(`
         CREATE TABLE IF NOT EXISTS de_match_signatures (
@@ -364,12 +410,15 @@ export const ALL_MIGRATIONS: Migration[] = [
         )
       `);
       db.run(`CREATE INDEX IF NOT EXISTS idx_season_results_fencer ON season_results(fencer_id)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_season_results_comp ON season_results(competition_id)`);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_season_results_comp ON season_results(competition_id)`
+      );
     },
   },
   {
     version: 13,
-    description: 'Tables équipes pour compétitions par équipes (teams, team_fencers, team_matches, team_bouts)',
+    description:
+      'Tables équipes pour compétitions par équipes (teams, team_fencers, team_matches, team_bouts)',
     up(db) {
       db.run(`
         CREATE TABLE IF NOT EXISTS teams (
@@ -441,13 +490,26 @@ export const ALL_MIGRATIONS: Migration[] = [
   },
   {
     version: 14,
-    description: 'Tableau équipes (élimination directe) : colonnes table_id/round/position sur team_matches',
+    description:
+      'Tableau équipes (élimination directe) : colonnes table_id/round/position sur team_matches',
     up(db) {
       // Un même `team_matches` sert aux poules (pool_number) et au tableau (table_id/round/position),
       // comme `matches` le fait déjà pour les tireurs individuels (pool_id vs table_id/round/position).
-      try { db.run(`ALTER TABLE team_matches ADD COLUMN table_id TEXT`); } catch { /* colonne déjà présente */ }
-      try { db.run(`ALTER TABLE team_matches ADD COLUMN round INTEGER`); } catch { /* colonne déjà présente */ }
-      try { db.run(`ALTER TABLE team_matches ADD COLUMN position INTEGER`); } catch { /* colonne déjà présente */ }
+      try {
+        db.run(`ALTER TABLE team_matches ADD COLUMN table_id TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+      try {
+        db.run(`ALTER TABLE team_matches ADD COLUMN round INTEGER`);
+      } catch {
+        /* colonne déjà présente */
+      }
+      try {
+        db.run(`ALTER TABLE team_matches ADD COLUMN position INTEGER`);
+      } catch {
+        /* colonne déjà présente */
+      }
       db.run(`CREATE INDEX IF NOT EXISTS idx_team_matches_table ON team_matches(table_id)`);
     },
   },
@@ -481,14 +543,22 @@ export const ALL_MIGRATIONS: Migration[] = [
     up(db) {
       // referee_id reste l'arbitre principal (compatibilité) ; referee_ids stocke
       // la liste ordonnée complète (principal + assistant/vidéo…) en JSON.
-      try { db.run(`ALTER TABLE pools ADD COLUMN referee_ids TEXT`); } catch { /* colonne déjà présente */ }
+      try {
+        db.run(`ALTER TABLE pools ADD COLUMN referee_ids TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
     },
   },
   {
     version: 17,
     description: "Motif d'exclusion des tireurs (carton noir, rapport fédéral)",
     up(db) {
-      try { db.run(`ALTER TABLE fencers ADD COLUMN exclusion_reason TEXT`); } catch { /* colonne déjà présente */ }
+      try {
+        db.run(`ALTER TABLE fencers ADD COLUMN exclusion_reason TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
     },
   },
   {

@@ -99,17 +99,29 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
         aria-labelledby="wifi-qr-title"
       >
         <div className="modal__header">
-          <h2 className="modal__title" id="wifi-qr-title">📶 Générateur QR Code WiFi</h2>
-          <button className="modal__close" onClick={onClose} aria-label="Fermer">×</button>
+          <h2 className="modal__title" id="wifi-qr-title">
+            📶 Générateur QR Code WiFi
+          </h2>
+          <button className="modal__close" onClick={onClose} aria-label="Fermer">
+            ×
+          </button>
         </div>
 
         <div className="modal__body">
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted, #6b7280)', marginBottom: '1rem' }}>
+          <p
+            style={{
+              fontSize: '0.875rem',
+              color: 'var(--text-muted, #6b7280)',
+              marginBottom: '1rem',
+            }}
+          >
             Les tablettes arbitres scannent ce QR code pour rejoindre le réseau WiFi.
           </p>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="wifi-ssid">Nom du réseau (SSID)</label>
+            <label className="form-label" htmlFor="wifi-ssid">
+              Nom du réseau (SSID)
+            </label>
             <input
               id="wifi-ssid"
               type="text"
@@ -122,7 +134,9 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="wifi-security">Type de sécurité</label>
+            <label className="form-label" htmlFor="wifi-security">
+              Type de sécurité
+            </label>
             <select
               id="wifi-security"
               className="form-control"
@@ -137,7 +151,9 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
 
           {config.security !== 'nopass' && (
             <div className="form-group">
-              <label className="form-label" htmlFor="wifi-password">Mot de passe</label>
+              <label className="form-label" htmlFor="wifi-password">
+                Mot de passe
+              </label>
               <input
                 id="wifi-password"
                 type="text"
@@ -149,34 +165,58 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
             </div>
           )}
 
-          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div
+            className="form-group"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
             <input
               id="wifi-hidden"
               type="checkbox"
               checked={config.hidden}
               onChange={e => handleChange('hidden', e.target.checked)}
             />
-            <label htmlFor="wifi-hidden" className="form-label" style={{ marginBottom: 0, cursor: 'pointer' }}>
+            <label
+              htmlFor="wifi-hidden"
+              className="form-label"
+              style={{ marginBottom: 0, cursor: 'pointer' }}
+            >
               Réseau masqué (SSID caché)
             </label>
           </div>
 
           {error && (
-            <div className="alert alert--error" style={{ marginTop: '0.5rem' }}>{error}</div>
+            <div className="alert alert--error" style={{ marginTop: '0.5rem' }}>
+              {error}
+            </div>
           )}
 
           {qrDataUrl && (
             <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
-              <img src={qrDataUrl} alt="QR Code WiFi" width={280} height={280} style={{ borderRadius: '8px' }} />
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: '0.5rem' }}>
-                Réseau : <strong>{config.ssid}</strong> · {config.security !== 'nopass' ? config.security : 'Ouvert'}
+              <img
+                src={qrDataUrl}
+                alt="QR Code WiFi"
+                width={280}
+                height={280}
+                style={{ borderRadius: '8px' }}
+              />
+              <p
+                style={{
+                  fontSize: '0.8rem',
+                  color: 'var(--text-muted, #6b7280)',
+                  marginTop: '0.5rem',
+                }}
+              >
+                Réseau : <strong>{config.ssid}</strong> ·{' '}
+                {config.security !== 'nopass' ? config.security : 'Ouvert'}
               </p>
             </div>
           )}
         </div>
 
         <div className="modal__footer">
-          <button className="btn btn-secondary" onClick={onClose}>Fermer</button>
+          <button className="btn btn-secondary" onClick={onClose}>
+            Fermer
+          </button>
           {qrDataUrl && (
             <button className="btn btn-secondary" onClick={download}>
               💾 Télécharger
