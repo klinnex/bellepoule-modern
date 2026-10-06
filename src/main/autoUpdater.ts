@@ -140,9 +140,8 @@ export class AutoUpdater {
         latestVersion = versionMatch[1];
       }
 
-      // Comparer les builds - aussi considérer si c'est une prerelease
-      const isNewerBuild = latestBuild > currentInfo.build;
-      const hasUpdate = isNewerBuild || (release.prerelease && this.config.betaChannel);
+      // Comparer les builds uniquement (betaChannel ne sert qu'à filtrer les releases)
+      const hasUpdate = latestBuild > currentInfo.build;
 
       this.updateInfo = {
         hasUpdate,
