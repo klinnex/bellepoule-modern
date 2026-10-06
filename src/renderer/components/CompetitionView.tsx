@@ -1187,14 +1187,15 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     if (!isRemoteActive || !window.electronAPI?.remote?.setRegistrationEnabled) return;
     const enabled = currentPhase === 'checkin';
     window.electronAPI.remote.setRegistrationEnabled(competition.id, enabled).catch(() => {});
-  }, [currentPhase, isRemoteActive, competition.id]);
+    // remoteServerUrl : re-synchronise une fois le serveur réellement démarré (#986)
+  }, [currentPhase, isRemoteActive, competition.id, remoteServerUrl]);
 
   // Appel distant (/appel) : ouvert uniquement pendant la phase CHECKIN (#919)
   useEffect(() => {
     if (!isRemoteActive || !window.electronAPI?.remote?.setCheckinEnabled) return;
     const enabled = currentPhase === 'checkin';
     window.electronAPI.remote.setCheckinEnabled(competition.id, enabled).catch(() => {});
-  }, [currentPhase, isRemoteActive, competition.id]);
+  }, [currentPhase, isRemoteActive, competition.id, remoteServerUrl]);
 
   // Pointage reçu depuis la page d'appel distante : recharger depuis la DB
   useEffect(() => {
@@ -1967,7 +1968,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             initialStripCount={remoteArenaCount}
             onArenaCountChange={setRemoteArenaCount}
             onStartRemote={() => setIsRemoteActive(true)}
-            onStopRemote={() => { setIsRemoteActive(false); setArenaStates([]); }}
+            onStopRemote={() => { setIsRemoteActive(false); setArenaStates([]); setRemoteServerUrl(null); }}
+            onServerStarted={setRemoteServerUrl}
             isRemoteActive={isRemoteActive}
             isVisible={currentPhase === 'remote'}
           />

@@ -192,7 +192,8 @@ export class RemoteScoreServer {
   private webhookUrl: string | null = null;
 
   // Inscription distante : actif pendant la phase CHECKIN, désactivé après génération des poules
-  private registrationEnabled: boolean = true;
+  /** Fermée par défaut : ouverte par le renderer uniquement en phase d'appel (#986). */
+  private registrationEnabled: boolean = false;
 
   // Appel distant (#919) : pointage tireurs/arbitres depuis un téléphone, phase CHECKIN seulement.
   // Mot de passe dédié obligatoire (hashé), tokens de session en cookie.
@@ -1436,6 +1437,15 @@ export class RemoteScoreServer {
         console.log(
           `[RemoteScoreServer] Inscription tireur: ${fencerData.lastName} ${fencerData.firstName} (id=${newFencer.id})`
         );
+        // Liste d'appel de l'organisateur rafraîchie en direct (#986)
+        const mainWin = (global as any).mainWindow;
+        if (mainWin && !mainWin.isDestroyed?.()) {
+          mainWin.webContents.send('remote:checkin_updated', {
+            kind: 'fencer',
+            id: newFencer.id,
+            present: false,
+          });
+        }
         res.json({ success: true, fencerRef: newFencer.ref, fencerId: newFencer.id });
       } catch (err) {
         console.error('[RemoteScoreServer] Erreur inscription tireur:', err);

@@ -25,6 +25,8 @@ interface RemoteScoreManagerProps {
   onArenaCountChange?: (count: number) => void;
   onStartRemote: () => void;
   onStopRemote: () => void;
+  /** Serveur démarré et joignable (IPC utilisables) */
+  onServerStarted?: (url: string) => void;
   isRemoteActive?: boolean;
   initialStripCount?: number;
   isVisible?: boolean;
@@ -103,6 +105,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   onArenaCountChange,
   onStartRemote,
   onStopRemote,
+  onServerStarted,
   isRemoteActive = false,
   initialStripCount,
   isVisible = false,
@@ -338,6 +341,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         }
         setServerUrl(result.serverInfo.url);
         setCertFingerprint(result.serverInfo.certFingerprint ?? null);
+        onServerStarted?.(result.serverInfo.url);
         await startSession(result.serverInfo.url, effectivePending);
       } else {
         showToast(`Erreur: ${result.error || 'Impossible de démarrer le serveur'}`, 'error');
