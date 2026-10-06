@@ -2877,9 +2877,8 @@ app.whenReady().then(async () => {
   // Afficher le splash immédiatement pendant que tout le reste charge
   createSplashWindow();
 
-  // Cache V8 bytecode — skip la compilation JS aux lancements suivants
-  const codeCachePath = path.join(app.getPath('userData'), 'v8-cache');
-  session.defaultSession.setCodeCachePath(codeCachePath);
+  // Cache V8 bytecode désactivé : session.setCodeCachePath provoque un crash natif
+  // (access violation dans electron.exe) au démarrage sous Windows avec Electron 44.
 
   prewarmRendererChunks();
 
