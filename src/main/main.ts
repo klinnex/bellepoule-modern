@@ -1507,7 +1507,7 @@ function renderHtmlToPdfBuffer(html: string): Promise<Buffer> {
                 landscape: false,
                 pageSize: 'A4',
                 preferCSSPageSize: true,
-                margins: { marginType: 'none' },
+                margins: { top: 0, bottom: 0, left: 0, right: 0 },
               })
               .then((data: Buffer) => {
                 pdfWin.destroy();

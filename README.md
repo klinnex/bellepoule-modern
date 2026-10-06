@@ -293,7 +293,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 ## 🔧 **Technologies**
 
-- **Electron 40+** : Framework multi-plateforme moderne
+- **Electron 44+** : Framework multi-plateforme moderne
 - **React 19** : Interface utilisateur réactive
 - **TypeScript 5+** : Typage statique strict pour robustesse maximale
 - **SQLite** : Base de données portable et performante
