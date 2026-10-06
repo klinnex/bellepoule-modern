@@ -670,6 +670,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('remote:checkin_updated', handler);
     return () => ipcRenderer.removeListener('remote:checkin_updated', handler);
   },
+  onRemoteRefereeChanged: (callback: (data: { matchId: string; refereeId: string }) => void) => {
+    const handler = (_: any, data: any) => callback(data);
+    ipcRenderer.on('remote:referee_changed', handler);
+    return () => ipcRenderer.removeListener('remote:referee_changed', handler);
+  },
   onKioskNoteUpdate: (callback: (note: any) => void) => {
     const handler = (_: any, note: any) => callback(note);
     ipcRenderer.on('kiosk:note', handler);

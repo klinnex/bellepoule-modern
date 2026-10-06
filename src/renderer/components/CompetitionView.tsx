@@ -1142,6 +1142,38 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     }
   }, [applyPoolRefereeAssignments]);
 
+  // Arbitre changé depuis une tablette : répercuté sur poules, tableau et consolantes (#977)
+  const refereesRef = useRef(referees);
+  refereesRef.current = referees;
+  useEffect(() => {
+    const off = window.electronAPI?.onRemoteRefereeChanged?.(async ({ matchId, refereeId }) => {
+      let ref = refereesRef.current.find(r => r.id === refereeId);
+      if (!ref) {
+        const rows: Referee[] = await window.electronAPI.db
+          .getRefereesByCompetition(competition.id)
+          .catch(() => []);
+        setReferees(rows);
+        ref = rows.find(r => r.id === refereeId);
+      }
+      if (!ref) return;
+      const principal = ref;
+      const withReferee = <T extends { id: string; referees?: Array<{ id: string }> }>(m: T): T =>
+        m.id !== matchId
+          ? m
+          : {
+              ...m,
+              referee: principal,
+              ...(m.referees?.length ? { referees: [principal, ...m.referees.slice(1)] } : {}),
+            };
+      applyPoolRefereeAssignments(new Map([[matchId, principal]]));
+      setTableauMatches(prev => prev.map(withReferee));
+      setConsolationBrackets(prev =>
+        prev.map(b => (b.matches.some(m => m.id === matchId) ? { ...b, matches: b.matches.map(withReferee) } : b))
+      );
+    });
+    return () => off?.();
+  }, [competition.id, applyPoolRefereeAssignments]);
+
   // Matchs proposés à l'assignation d'arbitres : poules + tableau + consolation
   const refereeAssignableMatches = useMemo<Match[]>(() => {
     const now = new Date();

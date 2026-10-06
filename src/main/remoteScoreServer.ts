@@ -3993,6 +3993,14 @@ export class RemoteScoreServer {
           ...arena.currentMatch,
           ...(resolvedRef ? { referee: resolvedRef } : {}),
         };
+        // Application organisateur : sinon son état en mémoire réécrit l'ancien arbitre (#977)
+        const mainWin = (global as any).mainWindow;
+        if (mainWin && !mainWin.isDestroyed?.()) {
+          mainWin.webContents.send('remote:referee_changed', {
+            matchId: data.matchId,
+            refereeId: data.refereeId,
+          });
+        }
         this.broadcastArenaUpdate(data.arenaId, {
           arenaId: data.arenaId,
           match: arena.currentMatch,

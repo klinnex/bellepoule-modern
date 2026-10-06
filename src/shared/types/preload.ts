@@ -952,6 +952,10 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   onRemoteCheckinUpdated?: (
     callback: (data: { kind: 'fencer' | 'referee'; id: string; present: boolean }) => void
   ) => () => void;
+  /** Arbitre changé depuis une tablette (#977) */
+  onRemoteRefereeChanged?: (
+    callback: (data: { matchId: string; refereeId: string }) => void
+  ) => () => void;
   onRemoteFencerExcluded: (callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void) => (() => void);
   /** Carton noir annulé depuis une tablette : combattant réintégré, match rouvert */
   onRemoteFencerReinstated?: (
