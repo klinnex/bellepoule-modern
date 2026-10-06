@@ -212,8 +212,8 @@ export function generateTableauHTML(
   <meta charset="UTF-8">
   <title>${effectiveTitle}</title>
   <style>
-    ${cssOverrides}
     ${BASE_CSS}
+    ${cssOverrides}
     @page { size: A4; margin: 12mm 10mm; }
 
     .page-break { page-break-after: always; }

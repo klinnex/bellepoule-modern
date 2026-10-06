@@ -231,8 +231,8 @@ export function generatePoolHTML(pool: Pool, options: PoolExportOptions, templat
   <meta charset="UTF-8">
   <title>${effectiveTitle}</title>
   <style>
-    ${cssOverrides}
     ${BASE_CSS}
+    ${cssOverrides}
     ${options.landscape ? '@page { size: A4 landscape; margin: 10mm 12mm; }' : ''}
 
     /* Grille scores */
