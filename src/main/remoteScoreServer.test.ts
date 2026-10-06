@@ -1327,4 +1327,84 @@ describe('RemoteScoreServer', () => {
       expect(res.status).toHaveBeenCalledWith(400);
     });
   });
+
+  describe('#989 : espace formateurs', () => {
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    beforeEach(() => {
+      (server as any).session = { competitionId: 'comp-1', strips: [] };
+      (server as any).loginFailureDelayMs = 0;
+      (mockDb as any).getRefereeComments = vi.fn().mockReturnValue([]);
+      (mockDb as any).addRefereeComment = vi.fn().mockReturnValue({ id: 'c1' });
+      mockDb.getRefereesByCompetition.mockReturnValue([
+        { id: 'r1', lastName: 'ARBITRE', firstName: 'Anne' },
+      ]);
+    });
+
+    it('fermé tant que non activé / sans mot de passe', () => {
+      const res = makeRes();
+      findHandler('get', '/api/trainer/referees')(makeReq(), res);
+      expect(res.status).toHaveBeenCalledWith(403);
+    });
+
+    it('login puis commentaire enregistré ; sans cookie → 401', async () => {
+      server.setTrainerEnabled(true);
+      server.setTrainerPassword('formateur123');
+
+      const anon = makeRes();
+      findHandler('post', '/api/trainer/referees/:refereeId/comments')(
+        makeReq({ params: { refereeId: 'r1' }, body: { comment: 'Bien' } }),
+        anon
+      );
+      expect(anon.status).toHaveBeenCalledWith(401);
+
+      const loginRes = makeRes();
+      await findHandler('post', '/api/trainer/login')(
+        makeReq({ body: { password: 'formateur123' } }),
+        loginRes
+      );
+      const cookieHeader = loginRes.setHeader.mock.calls.find(
+        (c: any[]) => c[0] === 'Set-Cookie'
+      )[1];
+      const cookie = cookieHeader.split(';')[0];
+
+      const res = makeRes();
+      findHandler('post', '/api/trainer/referees/:refereeId/comments')(
+        makeReq({
+          params: { refereeId: 'r1' },
+          body: { comment: '  Bon placement  ', author: 'Paul' },
+          headers: { cookie },
+        }),
+        res
+      );
+      expect((mockDb as any).addRefereeComment).toHaveBeenCalledWith(
+        'comp-1',
+        'r1',
+        'Bon placement',
+        'Paul',
+        null
+      );
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+
+      const unknown = makeRes();
+      findHandler('post', '/api/trainer/referees/:refereeId/comments')(
+        makeReq({ params: { refereeId: 'zz' }, body: { comment: 'x' }, headers: { cookie } }),
+        unknown
+      );
+      expect(unknown.status).toHaveBeenCalledWith(404);
+    });
+
+    it('mauvais mot de passe refusé', async () => {
+      server.setTrainerEnabled(true);
+      server.setTrainerPassword('formateur123');
+      const res = makeRes();
+      await findHandler('post', '/api/trainer/login')(makeReq({ body: { password: 'nope' } }), res);
+      expect(res.status).toHaveBeenCalledWith(401);
+    });
+  });
 });

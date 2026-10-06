@@ -491,4 +491,26 @@ export const ALL_MIGRATIONS: Migration[] = [
       try { db.run(`ALTER TABLE fencers ADD COLUMN exclusion_reason TEXT`); } catch { /* colonne déjà présente */ }
     },
   },
+  {
+    version: 18,
+    description: 'Commentaires de formation des arbitres saisis par les formateurs (#989)',
+    up(db) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS referee_comments (
+          id TEXT PRIMARY KEY,
+          competition_id TEXT NOT NULL,
+          referee_id TEXT NOT NULL,
+          author TEXT,
+          comment TEXT NOT NULL,
+          match_label TEXT,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (competition_id) REFERENCES competitions(id) ON DELETE CASCADE,
+          FOREIGN KEY (referee_id) REFERENCES referees(id) ON DELETE CASCADE
+        )
+      `);
+      db.run(
+        `CREATE INDEX IF NOT EXISTS idx_referee_comments_referee ON referee_comments(competition_id, referee_id)`
+      );
+    },
+  },
 ];

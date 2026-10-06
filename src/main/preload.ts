@@ -233,6 +233,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getReferee: (id: string) => ipcRenderer.invoke('db:getReferee', id),
     getRefereesByCompetition: (competitionId: string) =>
       ipcRenderer.invoke('db:getRefereesByCompetition', competitionId),
+    getRefereeComments: (competitionId: string, refereeId?: string) =>
+      ipcRenderer.invoke('db:getRefereeComments', competitionId, refereeId),
     updateReferee: (id: string, updates: Record<string, string | undefined>) =>
       ipcRenderer.invoke('db:updateReferee', id, updates),
     deleteReferee: (id: string) => ipcRenderer.invoke('db:deleteReferee', id),
@@ -599,6 +601,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('remote:setCheckinEnabled', competitionId, enabled),
     setCheckinPassword: (competitionId: string, password: string) =>
       ipcRenderer.invoke('remote:setCheckinPassword', competitionId, password),
+    setTrainerEnabled: (competitionId: string, enabled: boolean) =>
+      ipcRenderer.invoke('remote:setTrainerEnabled', competitionId, enabled),
+    setTrainerPassword: (competitionId: string, password: string) =>
+      ipcRenderer.invoke('remote:setTrainerPassword', competitionId, password),
     getConnectedClients: (competitionId: string) =>
       ipcRenderer.invoke('remote:getConnectedClients', competitionId),
     sendClientCommand: (competitionId: string, socketId: string, command: any) =>

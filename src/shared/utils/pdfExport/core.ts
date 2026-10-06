@@ -48,10 +48,11 @@ export function assembleBody(
   t: PdfTemplate | undefined,
   defaultOrder: string[]
 ): string {
-  const order = t
-    ? [...t.elements].sort((a, b) => a.order - b.order).map(e => e.id)
-    : defaultOrder;
-  return order.filter(id => isVisible(t, id)).map(id => sections[id] ?? '').join('\n');
+  const order = t ? [...t.elements].sort((a, b) => a.order - b.order).map(e => e.id) : defaultOrder;
+  return order
+    .filter(id => isVisible(t, id))
+    .map(id => sections[id] ?? '')
+    .join('\n');
 }
 
 // ─── CSS commun ───────────────────────────────────────────────────────────────

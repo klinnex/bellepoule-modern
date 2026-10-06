@@ -24,6 +24,7 @@ import {
   Phase,
   PhaseType,
   Referee,
+  RefereeComment,
   MatchEventEntry,
   MatchEventType,
 } from '../shared/types';
@@ -2311,6 +2312,53 @@ export class DatabaseManager {
       [id, matchId, teamId, type, reason, now]
     );
     return { id };
+  }
+
+  // ── Commentaires de formation des arbitres (#989) ──────────────────────────
+
+  public addRefereeComment(
+    competitionId: string,
+    refereeId: string,
+    comment: string,
+    author?: string | null,
+    matchLabel?: string | null
+  ): RefereeComment {
+    if (!this.db) throw new Error('Database not open');
+    const { v4: gen } = require('uuid');
+    const row: RefereeComment = {
+      id: gen(),
+      competitionId,
+      refereeId,
+      author: author || null,
+      comment,
+      matchLabel: matchLabel || null,
+      createdAt: new Date().toISOString(),
+    };
+    this.run(
+      `INSERT INTO referee_comments (id, competition_id, referee_id, author, comment, match_label, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [row.id, competitionId, refereeId, row.author, comment, row.matchLabel, row.createdAt]
+    );
+    return row;
+  }
+
+  /** Commentaires d'une compétition (ou d'un seul arbitre), du plus ancien au plus récent. */
+  public getRefereeComments(competitionId: string, refereeId?: string): RefereeComment[] {
+    if (!this.db) return [];
+    const rows = this.queryAll<any>(
+      `SELECT * FROM referee_comments WHERE competition_id = ?${refereeId ? ' AND referee_id = ?' : ''}
+       ORDER BY created_at ASC`,
+      refereeId ? [competitionId, refereeId] : [competitionId]
+    );
+    return rows.map(r => ({
+      id: r.id,
+      competitionId: r.competition_id,
+      refereeId: r.referee_id,
+      author: r.author ?? null,
+      comment: r.comment,
+      matchLabel: r.match_label ?? null,
+      createdAt: r.created_at,
+    }));
   }
 
   public getTeamMatchCards(matchId: string): Array<{
