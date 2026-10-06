@@ -9,6 +9,7 @@ import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { parseSha256Digest, isTrustedDownloadUrl, verifyFileSha256 } from './updateIntegrity';
 
 interface UpdateInfo {
   hasUpdate: boolean;
@@ -21,6 +22,8 @@ interface UpdateInfo {
     name: string;
     url: string;
     size: number;
+    browser_download_url?: string;
+    digest?: string | null; // "sha256:<hex>" fourni par l'API GitHub
   }>;
 }
 
@@ -417,6 +420,15 @@ export class AutoUpdater {
         return;
       }
 
+      // Intégrité : exiger une URL GitHub HTTPS et un SHA-256 publié par GitHub
+      const expectedSha256 = parseSha256Digest(asset.digest);
+      if (!isTrustedDownloadUrl(asset.browser_download_url) || !expectedSha256) {
+        console.warn(
+          `[AutoUpdater] Téléchargement automatique ignoré : ${asset.name} sans URL de confiance ou empreinte SHA-256`
+        );
+        return;
+      }
+
       console.log(
         `📥 Téléchargement automatique de ${asset.name} (${(asset.size / 1024 / 1024).toFixed(2)} MB)...`
       );
@@ -443,10 +455,14 @@ export class AutoUpdater {
       );
 
       if (downloadPath) {
-        console.log(`✅ Mise à jour téléchargée: ${downloadPath}`);
+        if (!(await verifyFileSha256(downloadPath, expectedSha256))) {
+          fs.unlinkSync(downloadPath);
+          throw new Error(`Empreinte SHA-256 invalide pour ${asset.name}`);
+        }
+        console.log(`✅ Mise à jour téléchargée et vérifiée: ${downloadPath}`);
 
         // Sauvegarder les informations pour l'installation au redémarrage
-        this.saveDownloadedUpdate(downloadPath, updateInfo);
+        this.saveDownloadedUpdate(downloadPath, updateInfo, expectedSha256);
 
         // Notifier l'utilisateur
         if (this.mainWindow) {
@@ -459,7 +475,7 @@ export class AutoUpdater {
 
         // Sur Windows, proposer d'installer immédiatement (sauf en mode silencieux)
         if (platform === 'windows' && !this.config.silent) {
-          this.promptForImmediateInstall(updateInfo, downloadPath);
+          this.promptForImmediateInstall(updateInfo, downloadPath, expectedSha256);
         } else if (platform === 'windows' && this.config.silent) {
           console.log(
             '[AutoUpdater] Mode silencieux - installation différée au prochain redémarrage'
@@ -477,7 +493,11 @@ export class AutoUpdater {
     }
   }
 
-  private promptForImmediateInstall(updateInfo: UpdateInfo, downloadPath: string): void {
+  private promptForImmediateInstall(
+    updateInfo: UpdateInfo,
+    downloadPath: string,
+    expectedSha256: string
+  ): void {
     if (!this.mainWindow) return;
 
     const response = dialog.showMessageBoxSync(this.mainWindow, {
@@ -491,7 +511,7 @@ export class AutoUpdater {
     });
 
     if (response === 0) {
-      this.launchInstaller(downloadPath);
+      this.launchVerifiedInstaller(downloadPath, expectedSha256);
     }
   }
 
@@ -501,6 +521,11 @@ export class AutoUpdater {
     onProgress?: (downloaded: number, total: number) => void
   ): Promise<string | null> {
     return new Promise((resolve, reject) => {
+      if (!isTrustedDownloadUrl(url)) {
+        reject(new Error(`URL de téléchargement non autorisée: ${url}`));
+        return;
+      }
+
       const tempDir = os.tmpdir();
       const downloadPath = path.join(tempDir, `bellepoule-update-${filename}`);
 
@@ -518,7 +543,7 @@ export class AutoUpdater {
       let totalBytes = 0;
 
       const request = https.get(url, { timeout: 30000 }, (response: any) => {
-        if (response.statusCode === 301 || response.statusCode === 302) {
+        if ([301, 302, 303, 307, 308].includes(response.statusCode)) {
           // Redirection - suivre le lien
           file.close();
           resolve(this.downloadFile(response.headers.location, filename, onProgress));
@@ -578,10 +603,11 @@ export class AutoUpdater {
     });
   }
 
-  private saveDownloadedUpdate(downloadPath: string, updateInfo: UpdateInfo): void {
+  private saveDownloadedUpdate(downloadPath: string, updateInfo: UpdateInfo, sha256: string): void {
     const updateData = {
       version: updateInfo.latestVersion,
       path: downloadPath,
+      sha256,
       downloadedAt: new Date().toISOString(),
     };
 
@@ -593,26 +619,50 @@ export class AutoUpdater {
   /**
    * Vérifier s'il y a une mise à jour en attente et l'installer
    */
-  checkAndInstallPendingUpdate(): void {
+  async checkAndInstallPendingUpdate(): Promise<void> {
     try {
       const configPath = path.join(os.tmpdir(), 'bellepoule-pending-update.json');
 
       if (fs.existsSync(configPath)) {
         const updateData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
+        // Supprimer le fichier de config (usage unique)
+        fs.unlinkSync(configPath);
+
         if (fs.existsSync(updateData.path)) {
           console.log(`🔄 Installation de la mise à jour ${updateData.version}...`);
-
-          // Lancer l'installateur
-          this.launchInstaller(updateData.path);
-
-          // Supprimer le fichier de config
-          fs.unlinkSync(configPath);
+          await this.launchVerifiedInstaller(updateData.path, updateData.sha256);
         }
       }
     } catch (error) {
       console.error('Failed to install pending update:', error);
     }
+  }
+
+  /**
+   * Revérifier l'empreinte SHA-256 juste avant le lancement
+   * (le fichier réside dans un dossier temporaire modifiable).
+   */
+  private async launchVerifiedInstaller(installerPath: string, sha256: unknown): Promise<void> {
+    const valid =
+      typeof sha256 === 'string' &&
+      (await verifyFileSha256(installerPath, sha256).catch(() => false));
+
+    if (!valid) {
+      console.error(`[AutoUpdater] Installeur rejeté (intégrité non vérifiée): ${installerPath}`);
+      try {
+        fs.unlinkSync(installerPath);
+      } catch {
+        // ignore
+      }
+      dialog.showErrorBox(
+        "Erreur d'installation",
+        "L'intégrité de la mise à jour n'a pas pu être vérifiée. Installation annulée."
+      );
+      return;
+    }
+
+    this.launchInstaller(installerPath);
   }
 
   private launchInstaller(installerPath: string): void {

@@ -2558,7 +2558,7 @@ ipcMain.handle('updater:getPendingUpdateInfo', async () => {
 
 ipcMain.handle('updater:installPendingUpdate', async () => {
   if (autoUpdater) {
-    autoUpdater.checkAndInstallPendingUpdate();
+    await autoUpdater.checkAndInstallPendingUpdate();
     return { success: true };
   }
   return { success: false, error: 'AutoUpdater not initialized' };
@@ -2754,7 +2754,7 @@ app.whenReady().then(async () => {
           cancelId: 1,
         });
         if (result.response === 0) {
-          autoUpdater.checkAndInstallPendingUpdate();
+          await autoUpdater.checkAndInstallPendingUpdate();
         }
       }
     });
