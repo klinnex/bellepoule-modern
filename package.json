@@ -125,7 +125,8 @@
       "artifactName": "${productName}-${version}-setup.${ext}"
     },
     "portable": {
-      "artifactName": "${productName}-${version}-portable.${ext}"
+      "artifactName": "${productName}-${version}-portable.${ext}",
+      "unpackDirName": "BellePouleModernPortable"
     }
   },
   "dependencies": {
