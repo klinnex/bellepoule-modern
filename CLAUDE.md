@@ -237,7 +237,7 @@ Core interfaces: `Fencer`, `Referee`, `Competition`, `Pool`, `Match`, `PoolRanki
 - Pool calculations include special "Quest Points" system for Laser Sabre weapon
 - `@types/*` packages are in `dependencies` (not `devDependencies`) for Electron bundling
 - Window: 1400×900, min 1024×768; CSP enforced (no inline scripts)
-- Electron version: 40.x; React 19; Socket.IO 4.x; better-sqlite3 12.x
+- Electron version: 44.x; React 19; Socket.IO 4.x; better-sqlite3 13.x (Node ≥ 22)
 
 ## Git Conventions
 
