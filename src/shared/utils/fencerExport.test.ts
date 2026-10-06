@@ -75,7 +75,9 @@ describe('exportFencersToTXT', () => {
   });
 
   it('affiche le nom en majuscules et l’année de naissance', () => {
-    const out = exportFencersToTXT([makeFencer({ lastName: 'Bernard', birthDate: new Date('2001-07-09') })]);
+    const out = exportFencersToTXT([
+      makeFencer({ lastName: 'Bernard', birthDate: new Date('2001-07-09') }),
+    ]);
     expect(out).toContain('BERNARD');
     expect(out).toContain('2001');
   });

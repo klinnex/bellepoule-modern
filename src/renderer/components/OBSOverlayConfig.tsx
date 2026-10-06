@@ -38,7 +38,8 @@ export const OBSOverlayConfig: React.FC<OBSOverlayConfigProps> = ({ serverUrl, a
   const toggleHide = useCallback((key: string) => {
     setHidden(prev => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   }, []);
@@ -76,13 +77,11 @@ export const OBSOverlayConfig: React.FC<OBSOverlayConfigProps> = ({ serverUrl, a
       {/* Arène */}
       <div style={S.row}>
         <label style={S.labelText}>Piste / Arène</label>
-        <select
-          style={S.select}
-          value={arena}
-          onChange={e => setArena(Number(e.target.value))}
-        >
+        <select style={S.select} value={arena} onChange={e => setArena(Number(e.target.value))}>
           {Array.from({ length: Math.max(arenaCount, 1) }, (_, i) => (
-            <option key={i + 1} value={i + 1}>Piste {i + 1}</option>
+            <option key={i + 1} value={i + 1}>
+              Piste {i + 1}
+            </option>
           ))}
         </select>
       </div>
@@ -90,8 +89,16 @@ export const OBSOverlayConfig: React.FC<OBSOverlayConfigProps> = ({ serverUrl, a
       {/* Thème */}
       <div style={S.row}>
         <label style={S.labelText}>Thème</label>
-        <select style={S.select} value={theme} onChange={e => setTheme(e.target.value as OverlayTheme)}>
-          {THEMES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+        <select
+          style={S.select}
+          value={theme}
+          onChange={e => setTheme(e.target.value as OverlayTheme)}
+        >
+          {THEMES.map(t => (
+            <option key={t.value} value={t.value}>
+              {t.label}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -100,17 +107,52 @@ export const OBSOverlayConfig: React.FC<OBSOverlayConfigProps> = ({ serverUrl, a
         <label style={S.labelText}>Dimensions (px)</label>
         <div style={S.dimRow}>
           <input
-            type="number" style={S.dimInput} value={width} min={200} max={3840}
+            type="number"
+            style={S.dimInput}
+            value={width}
+            min={200}
+            max={3840}
             onChange={e => setWidth(Number(e.target.value))}
           />
           <span style={S.dimSep}>×</span>
           <input
-            type="number" style={S.dimInput} value={height} min={60} max={2160}
+            type="number"
+            style={S.dimInput}
+            value={height}
+            min={60}
+            max={2160}
             onChange={e => setHeight(Number(e.target.value))}
           />
-          <button style={S.presetBtn} onClick={() => { setWidth(1280); setHeight(160); }} title="Bandeau 1280×160">1280×160</button>
-          <button style={S.presetBtn} onClick={() => { setWidth(1920); setHeight(80); }} title="Bandeau 1920×80">1920×80</button>
-          <button style={S.presetBtn} onClick={() => { setWidth(400); setHeight(200); }} title="Bloc coin 400×200">400×200</button>
+          <button
+            style={S.presetBtn}
+            onClick={() => {
+              setWidth(1280);
+              setHeight(160);
+            }}
+            title="Bandeau 1280×160"
+          >
+            1280×160
+          </button>
+          <button
+            style={S.presetBtn}
+            onClick={() => {
+              setWidth(1920);
+              setHeight(80);
+            }}
+            title="Bandeau 1920×80"
+          >
+            1920×80
+          </button>
+          <button
+            style={S.presetBtn}
+            onClick={() => {
+              setWidth(400);
+              setHeight(200);
+            }}
+            title="Bloc coin 400×200"
+          >
+            400×200
+          </button>
         </div>
       </div>
 
@@ -136,12 +178,16 @@ export const OBSOverlayConfig: React.FC<OBSOverlayConfigProps> = ({ serverUrl, a
         <div style={S.urlLabel}>URL OBS Browser Source</div>
         <div style={S.urlRow}>
           <code style={S.urlCode}>{overlayUrl}</code>
-          <button style={S.copyBtn} onClick={copyUrl}>{copied ? '✓' : '📋'}</button>
+          <button style={S.copyBtn} onClick={copyUrl}>
+            {copied ? '✓' : '📋'}
+          </button>
           <button
             style={S.openBtn}
             onClick={() => window.open(overlayUrl, '_blank')}
             title="Ouvrir dans le navigateur"
-          >↗</button>
+          >
+            ↗
+          </button>
         </div>
       </div>
 
@@ -150,7 +196,9 @@ export const OBSOverlayConfig: React.FC<OBSOverlayConfigProps> = ({ serverUrl, a
         <div style={S.urlLabel}>Endpoint JSON (intégrations tierces)</div>
         <div style={S.urlRow}>
           <code style={S.urlCode}>{jsonUrl}</code>
-          <button style={S.copyBtn} onClick={copyJson}>{copiedJson ? '✓' : '📋'}</button>
+          <button style={S.copyBtn} onClick={copyJson}>
+            {copiedJson ? '✓' : '📋'}
+          </button>
         </div>
       </div>
 
@@ -165,48 +213,96 @@ export const OBSOverlayConfig: React.FC<OBSOverlayConfigProps> = ({ serverUrl, a
 
 const STYLES: Record<string, React.CSSProperties> = {
   root: {
-    display: 'flex', flexDirection: 'column', gap: '0.75rem',
-    padding: '0.75rem', background: '#1e293b', borderRadius: '0.5rem',
-    border: '1px solid #334155', marginTop: '0.5rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+    padding: '0.75rem',
+    background: '#1e293b',
+    borderRadius: '0.5rem',
+    border: '1px solid #334155',
+    marginTop: '0.5rem',
   },
   row: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
   labelText: { fontSize: '0.8rem', color: '#94a3b8', minWidth: '110px', flexShrink: 0 },
   select: {
-    flex: 1, padding: '0.3rem 0.5rem', borderRadius: '0.3rem',
-    border: '1px solid #475569', background: '#0f172a', color: '#e2e8f0', fontSize: '0.85rem',
+    flex: 1,
+    padding: '0.3rem 0.5rem',
+    borderRadius: '0.3rem',
+    border: '1px solid #475569',
+    background: '#0f172a',
+    color: '#e2e8f0',
+    fontSize: '0.85rem',
   },
   dimRow: { display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1, flexWrap: 'wrap' },
   dimInput: {
-    width: '72px', padding: '0.3rem 0.4rem', borderRadius: '0.3rem',
-    border: '1px solid #475569', background: '#0f172a', color: '#e2e8f0',
-    fontSize: '0.85rem', textAlign: 'center',
+    width: '72px',
+    padding: '0.3rem 0.4rem',
+    borderRadius: '0.3rem',
+    border: '1px solid #475569',
+    background: '#0f172a',
+    color: '#e2e8f0',
+    fontSize: '0.85rem',
+    textAlign: 'center',
   },
   dimSep: { color: '#64748b', fontSize: '0.9rem' },
   presetBtn: {
-    padding: '0.2rem 0.5rem', fontSize: '0.75rem', borderRadius: '0.3rem',
-    border: '1px solid #475569', background: 'transparent', color: '#94a3b8', cursor: 'pointer',
+    padding: '0.2rem 0.5rem',
+    fontSize: '0.75rem',
+    borderRadius: '0.3rem',
+    border: '1px solid #475569',
+    background: 'transparent',
+    color: '#94a3b8',
+    cursor: 'pointer',
   },
   hideSection: { display: 'flex', gap: '0.75rem', alignItems: 'flex-start' },
   checkboxRow: { display: 'flex', gap: '0.75rem', flexWrap: 'wrap' },
-  checkLabel: { display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', color: '#e2e8f0', cursor: 'pointer' },
-  urlBox: {
-    background: '#0f172a', borderRadius: '0.375rem',
-    border: '1px solid #334155', padding: '0.5rem 0.75rem',
+  checkLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.35rem',
+    fontSize: '0.82rem',
+    color: '#e2e8f0',
+    cursor: 'pointer',
   },
-  urlLabel: { fontSize: '0.72rem', color: '#64748b', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  urlBox: {
+    background: '#0f172a',
+    borderRadius: '0.375rem',
+    border: '1px solid #334155',
+    padding: '0.5rem 0.75rem',
+  },
+  urlLabel: {
+    fontSize: '0.72rem',
+    color: '#64748b',
+    marginBottom: '0.3rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+  },
   urlRow: { display: 'flex', alignItems: 'center', gap: '0.4rem' },
   urlCode: {
-    flex: 1, fontSize: '0.78rem', color: '#4ade80', wordBreak: 'break-all',
+    flex: 1,
+    fontSize: '0.78rem',
+    color: '#4ade80',
+    wordBreak: 'break-all',
     fontFamily: 'ui-monospace, monospace',
   },
   copyBtn: {
-    padding: '0.2rem 0.4rem', fontSize: '0.8rem', background: 'transparent',
-    border: '1px solid #475569', borderRadius: '0.25rem', cursor: 'pointer', color: '#e2e8f0',
+    padding: '0.2rem 0.4rem',
+    fontSize: '0.8rem',
+    background: 'transparent',
+    border: '1px solid #475569',
+    borderRadius: '0.25rem',
+    cursor: 'pointer',
+    color: '#e2e8f0',
     flexShrink: 0,
   },
   openBtn: {
-    padding: '0.2rem 0.4rem', fontSize: '0.8rem', background: 'transparent',
-    border: '1px solid #475569', borderRadius: '0.25rem', cursor: 'pointer', color: '#94a3b8',
+    padding: '0.2rem 0.4rem',
+    fontSize: '0.8rem',
+    background: 'transparent',
+    border: '1px solid #475569',
+    borderRadius: '0.25rem',
+    cursor: 'pointer',
+    color: '#94a3b8',
     flexShrink: 0,
   },
   hint: { fontSize: '0.75rem', color: '#475569', fontStyle: 'italic' },

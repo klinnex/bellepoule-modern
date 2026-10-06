@@ -51,23 +51,33 @@ export function generateTableauHTML(
   signatures?: Record<string, { A?: string; B?: string }>
 ): string {
   const real = realMatches(matches);
-  const now = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const now = new Date().toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
 
   const renderMatchCard = (match: TableauMatchForPDF, num: number): string => {
     const roundName = getTableauRoundName(match.round);
-    const nameA = `${match.fencerA!.lastName.toUpperCase()} ${match.fencerA!.firstName ?? ''}`.trim();
-    const nameB = `${match.fencerB!.lastName.toUpperCase()} ${match.fencerB!.firstName ?? ''}`.trim();
+    const nameA =
+      `${match.fencerA!.lastName.toUpperCase()} ${match.fencerA!.firstName ?? ''}`.trim();
+    const nameB =
+      `${match.fencerB!.lastName.toUpperCase()} ${match.fencerB!.firstName ?? ''}`.trim();
     const clubA = match.fencerA!.club ?? '';
     const clubB = match.fencerB!.club ?? '';
     const pisteLabel = match.arena != null ? `Piste ${match.arena}` : 'Piste ___';
     const winnerId = match.winner?.id;
     const isWinnerA = winnerId != null && winnerId === (match.fencerA as any)?.id;
     const isWinnerB = winnerId != null && winnerId === (match.fencerB as any)?.id;
-    const scoreCellA = showScores && match.scoreA != null ? `${isWinnerA ? 'V' : ''}${match.scoreA}` : '';
-    const scoreCellB = showScores && match.scoreB != null ? `${isWinnerB ? 'V' : ''}${match.scoreB}` : '';
+    const scoreCellA =
+      showScores && match.scoreA != null ? `${isWinnerA ? 'V' : ''}${match.scoreA}` : '';
+    const scoreCellB =
+      showScores && match.scoreB != null ? `${isWinnerB ? 'V' : ''}${match.scoreB}` : '';
     const sig = signatures?.[match.id];
     const sigImg = (data?: string) =>
-      data ? `<img src="${data}" style="max-height:14mm;max-width:36mm;display:block;margin:auto;" />` : '';
+      data
+        ? `<img src="${data}" style="max-height:14mm;max-width:36mm;display:block;margin:auto;" />`
+        : '';
     const sigCellA = sigImg(sig?.A);
     const sigCellB = sigImg(sig?.B);
     return `
@@ -175,28 +185,33 @@ export function generateTableauHTML(
   <div class="gold-bar"></div>`;
 
   let globalMatchNum = 0;
-  const pagesHTML = pages.map((page, pageIdx) => {
-    let lastRound: number | null = null;
-    const cards = page.matches.map(match => {
-      globalMatchNum++;
-      const roundHeader = match.round !== lastRound
-        ? `<div class="round-sub-header">${getTableauRoundName(match.round)}</div>`
+  const pagesHTML = pages
+    .map((page, pageIdx) => {
+      let lastRound: number | null = null;
+      const cards = page.matches
+        .map(match => {
+          globalMatchNum++;
+          const roundHeader =
+            match.round !== lastRound
+              ? `<div class="round-sub-header">${getTableauRoundName(match.round)}</div>`
+              : '';
+          lastRound = match.round;
+          return roundHeader + renderMatchCard(match, globalMatchNum);
+        })
+        .join('');
+
+      const sectionHeader = page.label
+        ? `<div class="piste-section-header">${page.label} — ${page.matches.length} combat${page.matches.length !== 1 ? 's' : ''}</div>`
         : '';
-      lastRound = match.round;
-      return roundHeader + renderMatchCard(match, globalMatchNum);
-    }).join('');
 
-    const sectionHeader = page.label
-      ? `<div class="piste-section-header">${page.label} — ${page.matches.length} combat${page.matches.length !== 1 ? 's' : ''}</div>`
-      : '';
-
-    const isLast = pageIdx === pages.length - 1;
-    return `<div class="page${isLast ? '' : ' page-break'}">${pageHeaderHTML}${sectionHeader}${cards}</div>`;
-  }).join('');
+      const isLast = pageIdx === pages.length - 1;
+      return `<div class="page${isLast ? '' : ' page-break'}">${pageHeaderHTML}${sectionHeader}${cards}</div>`;
+    })
+    .join('');
 
   const sections: Record<string, string> = {
     'match-cards': `  ${pagesHTML}`,
-    'footer': `
+    footer: `
   <div class="doc-footer">
     <span>BellePoule Modern</span>
     <span>${now}</span>
@@ -366,7 +381,15 @@ export async function exportTableauToPDF(
     throw new Error('Aucun match à exporter (tous sont des exempts ou sans tireurs assignés)');
   }
 
-  const html = generateTableauHTML(matches, matchesPerPage, title, logoBase64, template, false, signatures);
+  const html = generateTableauHTML(
+    matches,
+    matchesPerPage,
+    title,
+    logoBase64,
+    template,
+    false,
+    signatures
+  );
   await savePDF(html, `tableau-elimination.pdf`);
 }
 
@@ -382,7 +405,15 @@ export async function printTableauHTML(
   if (real.length === 0) {
     throw new Error('Aucun match à imprimer (tous sont des exempts ou sans tireurs assignés)');
   }
-  const html = generateTableauHTML(matches, matchesPerPage, title, logoBase64, template, false, signatures);
+  const html = generateTableauHTML(
+    matches,
+    matchesPerPage,
+    title,
+    logoBase64,
+    template,
+    false,
+    signatures
+  );
   const api = (window as any).electronAPI;
   if (!api?.file?.printHtml) {
     throw new Error('API Electron non disponible');
@@ -407,7 +438,15 @@ export async function previewTableauHTML(
   if (real.length === 0) {
     throw new Error('Aucun match à imprimer (tous sont des exempts ou sans tireurs assignés)');
   }
-  const html = generateTableauHTML(matches, matchesPerPage, title, logoBase64, template, false, signatures);
+  const html = generateTableauHTML(
+    matches,
+    matchesPerPage,
+    title,
+    logoBase64,
+    template,
+    false,
+    signatures
+  );
   const api = (window as any).electronAPI;
   if (!api?.file?.previewHtmlAsPDF) {
     throw new Error('API Electron non disponible');

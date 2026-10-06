@@ -25,12 +25,32 @@ interface TableauPdfModalProps {
 
 const PDF_STYLES = {
   pdfModalBody: { padding: '1.5rem' } satisfies React.CSSProperties,
-  pdfModalHint: { marginBottom: '1rem', color: '#6b7280', fontSize: '0.875rem' } satisfies React.CSSProperties,
-  pdfModalLabel: { display: 'block', fontWeight: '600', marginBottom: '0.5rem' } satisfies React.CSSProperties,
+  pdfModalHint: {
+    marginBottom: '1rem',
+    color: '#6b7280',
+    fontSize: '0.875rem',
+  } satisfies React.CSSProperties,
+  pdfModalLabel: {
+    display: 'block',
+    fontWeight: '600',
+    marginBottom: '0.5rem',
+  } satisfies React.CSSProperties,
   pdfModalMaxHint: { fontWeight: '400', color: '#6b7280' } satisfies React.CSSProperties,
-  pdfModalBtnRow: { display: 'flex', gap: '0.5rem', alignItems: 'center' } satisfies React.CSSProperties,
-  pdfModalCountHint: { marginTop: '0.75rem', fontSize: '0.8rem', color: '#9ca3af' } satisfies React.CSSProperties,
-  pdfModalFooter: { display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' as const } satisfies React.CSSProperties,
+  pdfModalBtnRow: {
+    display: 'flex',
+    gap: '0.5rem',
+    alignItems: 'center',
+  } satisfies React.CSSProperties,
+  pdfModalCountHint: {
+    marginTop: '0.75rem',
+    fontSize: '0.8rem',
+    color: '#9ca3af',
+  } satisfies React.CSSProperties,
+  pdfModalFooter: {
+    display: 'flex',
+    gap: '0.5rem',
+    justifyContent: 'flex-end' as const,
+  } satisfies React.CSSProperties,
 } satisfies Record<string, React.CSSProperties>;
 
 const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
@@ -49,7 +69,12 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
       <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
         <div className="modal-header">
           <h3 className="modal-title">
-            {pdfMode === 'print' ? 'Imprimer' : pdfMode === 'preview' ? 'Aperçu avant impression' : 'Export PDF'} – Feuilles de match
+            {pdfMode === 'print'
+              ? 'Imprimer'
+              : pdfMode === 'preview'
+                ? 'Aperçu avant impression'
+                : 'Export PDF'}{' '}
+            – Feuilles de match
           </h3>
           <button className="btn-close" onClick={onClose}>
             &times;
@@ -85,37 +110,62 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
               </button>
             ))}
           </div>
-          <label style={{ ...PDF_STYLES.pdfModalLabel, marginTop: '1rem' }}>
-            Phases à inclure
-          </label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.75rem' }}>
+          <label style={{ ...PDF_STYLES.pdfModalLabel, marginTop: '1rem' }}>Phases à inclure</label>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.4rem',
+              marginBottom: '0.75rem',
+            }}
+          >
             {[...new Set(matches.filter(m => m.fencerA && m.fencerB && !m.isBye).map(m => m.round))]
               .sort((a, b) => b - a)
               .map(round => (
-                <label key={round} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>
+                <label
+                  key={round}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={selectedRounds.has(round)}
                     onChange={e => {
                       const next = new Set(selectedRounds);
-                      if (e.target.checked) next.add(round); else next.delete(round);
+                      if (e.target.checked) next.add(round);
+                      else next.delete(round);
                       setSelectedRounds(next);
                     }}
                   />
                   {getRoundName(round)}
                   <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
-                    ({matches.filter(m => m.round === round && m.fencerA && m.fencerB && !m.isBye).length} match
-                    {matches.filter(m => m.round === round && m.fencerA && m.fencerB && !m.isBye).length > 1 ? 's' : ''})
+                    (
+                    {
+                      matches.filter(m => m.round === round && m.fencerA && m.fencerB && !m.isBye)
+                        .length
+                    }{' '}
+                    match
+                    {matches.filter(m => m.round === round && m.fencerA && m.fencerB && !m.isBye)
+                      .length > 1
+                      ? 's'
+                      : ''}
+                    )
                   </span>
                 </label>
               ))}
           </div>
           {(() => {
-            const count = matches.filter(m => selectedRounds.has(m.round) && !m.isBye && m.fencerA && m.fencerB).length;
+            const count = matches.filter(
+              m => selectedRounds.has(m.round) && !m.isBye && m.fencerA && m.fencerB
+            ).length;
             return (
               <p style={PDF_STYLES.pdfModalCountHint}>
-                {count} match{count > 1 ? 's' : ''} →{' '}
-                {Math.ceil(count / pdfMatchesPerPage)} feuille
+                {count} match{count > 1 ? 's' : ''} → {Math.ceil(count / pdfMatchesPerPage)} feuille
                 {Math.ceil(count / pdfMatchesPerPage) > 1 ? 's' : ''}
               </p>
             );
@@ -125,8 +175,16 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
           <button className="btn btn-secondary" onClick={onClose}>
             Annuler
           </button>
-          <button className="btn btn-primary" onClick={onExport} disabled={selectedRounds.size === 0}>
-            {pdfMode === 'print' ? '🖨️ Imprimer' : pdfMode === 'preview' ? '👁️ Aperçu' : '📄 Générer PDF'}
+          <button
+            className="btn btn-primary"
+            onClick={onExport}
+            disabled={selectedRounds.size === 0}
+          >
+            {pdfMode === 'print'
+              ? '🖨️ Imprimer'
+              : pdfMode === 'preview'
+                ? '👁️ Aperçu'
+                : '📄 Générer PDF'}
           </button>
         </div>
       </div>

@@ -25,14 +25,30 @@ interface RefereeStats {
 }
 
 function weaponLabel(w: string): string {
-  return w === 'E' ? 'Épée' : w === 'F' ? 'Fleuret' : w === 'S' ? 'Sabre' : w === 'L' ? 'Laser Sabre' : w;
+  return w === 'E'
+    ? 'Épée'
+    : w === 'F'
+      ? 'Fleuret'
+      : w === 'S'
+        ? 'Sabre'
+        : w === 'L'
+          ? 'Laser Sabre'
+          : w;
 }
 
 function categoryLabel(c: string): string {
   const MAP: Record<string, string> = {
-    U11: 'M11', U13: 'M13', U15: 'M15', U17: 'M17', U20: 'M20',
-    SEN: 'Seniors', SENIOR: 'Seniors',
-    V1: 'Vétérans 1', V2: 'Vétérans 2', V3: 'Vétérans 3', V4: 'Vétérans 4',
+    U11: 'M11',
+    U13: 'M13',
+    U15: 'M15',
+    U17: 'M17',
+    U20: 'M20',
+    SEN: 'Seniors',
+    SENIOR: 'Seniors',
+    V1: 'Vétérans 1',
+    V2: 'Vétérans 2',
+    V3: 'Vétérans 3',
+    V4: 'Vétérans 4',
   };
   return MAP[c] ?? c;
 }
@@ -84,13 +100,18 @@ export function generatePostTournamentReportHTML(
 
   const refereeStats = buildRefereeStats(matchesWithRefs);
 
-  const date = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const date = new Date().toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
 
-  const topFencersRows = top5.map((f, i) => {
-    const laserInfo = isLaser
-      ? `<br><small style="color:#6b7280">A:${f.touchesZoneA} B:${f.touchesZoneB} C:${f.touchesZoneC} = ${f.totalTouchPoints}pts</small>`
-      : '';
-    return `
+  const topFencersRows = top5
+    .map((f, i) => {
+      const laserInfo = isLaser
+        ? `<br><small style="color:#6b7280">A:${f.touchesZoneA} B:${f.touchesZoneB} C:${f.touchesZoneC} = ${f.totalTouchPoints}pts</small>`
+        : '';
+      return `
       <tr style="${i % 2 === 0 ? 'background:#f9fafb' : ''}">
         <td style="padding:0.6rem 1rem;font-weight:700;color:#6b7280">${i + 1}</td>
         <td style="padding:0.6rem 1rem;font-weight:600">
@@ -103,14 +124,18 @@ export function generatePostTournamentReportHTML(
           ${f.yellowCards > 0 ? `${f.yellowCards}🟡 ` : ''}${f.redCards > 0 ? `${f.redCards}🔴` : ''}${f.yellowCards === 0 && f.redCards === 0 ? '—' : ''}
         </td>
       </tr>`;
-  }).join('');
+    })
+    .join('');
 
-  const refereeRows = refereeStats.map((r, i) =>
-    `<tr style="${i % 2 === 0 ? 'background:#f9fafb' : ''}">
+  const refereeRows = refereeStats
+    .map(
+      (r, i) =>
+        `<tr style="${i % 2 === 0 ? 'background:#f9fafb' : ''}">
       <td style="padding:0.5rem 1rem">${r.name}</td>
       <td style="padding:0.5rem 1rem;text-align:center;font-weight:600">${r.matchCount}</td>
     </tr>`
-  ).join('');
+    )
+    .join('');
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -182,7 +207,9 @@ export function generatePostTournamentReportHTML(
     <tbody>${top5.length > 0 ? topFencersRows : '<tr><td colspan="5" style="padding:1rem;text-align:center;color:#9ca3af">Aucune donnée</td></tr>'}</tbody>
   </table>
 
-  ${refereeStats.length > 0 ? `
+  ${
+    refereeStats.length > 0
+      ? `
   <h2>Arbitres</h2>
   <table>
     <thead>
@@ -192,7 +219,9 @@ export function generatePostTournamentReportHTML(
       </tr>
     </thead>
     <tbody>${refereeRows}</tbody>
-  </table>` : ''}
+  </table>`
+      : ''
+  }
 
   <div class="footer">
     Rapport généré par BellePoule Modern · ${new Date().toLocaleString('fr-FR')}
@@ -207,7 +236,12 @@ export async function exportPostTournamentPDF(
   matchesWithRefs: MatchWithReferee[],
   logoBase64?: string | null
 ): Promise<void> {
-  const html = generatePostTournamentReportHTML(competition, fencerStats, matchesWithRefs, logoBase64);
+  const html = generatePostTournamentReportHTML(
+    competition,
+    fencerStats,
+    matchesWithRefs,
+    logoBase64
+  );
 
   const title = competition.title ?? (competition as any).name ?? 'competition';
   const result = await window.electronAPI.dialog.saveFile({

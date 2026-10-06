@@ -58,7 +58,12 @@ const KIOSK_STYLES = {
     cursor: 'pointer',
     fontSize: '0.9rem',
   },
-  poolsWrapper: { flex: 1, display: 'flex', flexDirection: 'column' as const, padding: '70px 40px 40px' },
+  poolsWrapper: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    padding: '70px 40px 40px',
+  },
   poolsHeader: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -98,8 +103,18 @@ const KIOSK_STYLES = {
     fontWeight: 'bold' as const,
   },
   poolsMatchVs: { color: '#fca5a5', fontSize: '0.9rem' },
-  poolsMatchStrip: { textAlign: 'center' as const, marginTop: '8px', fontSize: '1rem', color: '#fca5a5' },
-  poolsMatchEmpty: { padding: '32px', textAlign: 'center' as const, color: '#64748b', fontSize: '1.1rem' },
+  poolsMatchStrip: {
+    textAlign: 'center' as const,
+    marginTop: '8px',
+    fontSize: '1rem',
+    color: '#fca5a5',
+  },
+  poolsMatchEmpty: {
+    padding: '32px',
+    textAlign: 'center' as const,
+    color: '#64748b',
+    fontSize: '1.1rem',
+  },
   poolsRankRow: {
     display: 'flex',
     alignItems: 'center' as const,
@@ -149,7 +164,12 @@ const KIOSK_STYLES = {
   rankingThVm: { padding: '10px 12px', textAlign: 'center' as const, width: '70px' },
   rankingThTd: { padding: '10px 12px', textAlign: 'center' as const, width: '60px' },
   rankingThTr: { padding: '10px 12px', textAlign: 'center' as const, width: '60px' },
-  rankingThQuest: { padding: '10px 12px', textAlign: 'center' as const, width: '80px', color: '#a78bfa' },
+  rankingThQuest: {
+    padding: '10px 12px',
+    textAlign: 'center' as const,
+    width: '80px',
+    color: '#a78bfa',
+  },
   rankingThIndice: { padding: '10px 12px', textAlign: 'center' as const, width: '70px' },
   rankingTdRank: { padding: '12px', fontWeight: 'bold' as const, fontSize: '1.2rem' },
   rankingTdLast: { padding: '12px', fontWeight: 600, fontSize: '1.1rem' },
@@ -157,7 +177,12 @@ const KIOSK_STYLES = {
   rankingTdClub: { padding: '12px', color: '#94a3b8', fontSize: '0.95rem' },
   rankingTdRatio: { padding: '12px', textAlign: 'center' as const },
   rankingTdTouches: { padding: '12px', textAlign: 'center' as const },
-  rankingTdQuest: { padding: '12px', textAlign: 'center' as const, color: '#a78bfa', fontWeight: 600 },
+  rankingTdQuest: {
+    padding: '12px',
+    textAlign: 'center' as const,
+    color: '#a78bfa',
+    fontWeight: 600,
+  },
   rankingTdIndice: { padding: '12px', textAlign: 'center' as const, fontWeight: 600 },
   tableauWrapper: {
     flex: 1,
@@ -188,8 +213,18 @@ const KIOSK_STYLES = {
     opacity: 0.5,
   },
   matchCardByeLabel: { textAlign: 'center' as const, color: '#64748b', fontSize: '1rem' },
-  matchCardByeName: { textAlign: 'center' as const, fontWeight: 'bold' as const, fontSize: '1.2rem', marginTop: '4px' },
-  matchCardVs: { textAlign: 'center' as const, fontSize: '0.75rem', color: '#475569', margin: '2px 0' },
+  matchCardByeName: {
+    textAlign: 'center' as const,
+    fontWeight: 'bold' as const,
+    fontSize: '1.2rem',
+    marginTop: '4px',
+  },
+  matchCardVs: {
+    textAlign: 'center' as const,
+    fontSize: '0.75rem',
+    color: '#475569',
+    margin: '2px 0',
+  },
   finishedWrapper: {
     flex: 1,
     display: 'flex',
@@ -219,7 +254,12 @@ const KIOSK_STYLES = {
     gap: '8px',
   },
   podiumMedal2: { fontSize: '2.2rem' },
-  podiumName2: { fontWeight: 700, fontSize: '1.2rem', textAlign: 'center' as const, maxWidth: '200px' },
+  podiumName2: {
+    fontWeight: 700,
+    fontSize: '1.2rem',
+    textAlign: 'center' as const,
+    maxWidth: '200px',
+  },
   podiumClub2: { fontSize: '0.85rem', color: '#94a3b8', textAlign: 'center' as const },
   podiumBlock2: {
     width: '180px',
@@ -234,7 +274,13 @@ const KIOSK_STYLES = {
     color: '#94a3b8',
   },
   podiumMedal1: { fontSize: '3rem' },
-  podiumName1: { fontWeight: 800, fontSize: '1.5rem', textAlign: 'center' as const, maxWidth: '220px', color: '#fbbf24' },
+  podiumName1: {
+    fontWeight: 800,
+    fontSize: '1.5rem',
+    textAlign: 'center' as const,
+    maxWidth: '220px',
+    color: '#fbbf24',
+  },
   podiumClub1: { fontSize: '0.9rem', color: '#fbbf24', opacity: 0.8, textAlign: 'center' as const },
   podiumBlock1: {
     width: '200px',
@@ -249,7 +295,12 @@ const KIOSK_STYLES = {
     color: '#fbbf24',
   },
   podiumMedal3: { fontSize: '2.2rem' },
-  podiumName3: { fontWeight: 700, fontSize: '1.2rem', textAlign: 'center' as const, maxWidth: '200px' },
+  podiumName3: {
+    fontWeight: 700,
+    fontSize: '1.2rem',
+    textAlign: 'center' as const,
+    maxWidth: '200px',
+  },
   podiumClub3: { fontSize: '0.85rem', color: '#94a3b8', textAlign: 'center' as const },
   podiumBlock3: {
     width: '180px',
@@ -289,7 +340,12 @@ const KIOSK_STYLES = {
   elimTdLast: { padding: '8px 10px', fontWeight: 600 },
   elimTdFirst: { padding: '8px 10px' },
   elimTdClub: { padding: '8px 10px', color: '#94a3b8', fontSize: '0.9rem' },
-  elimTdElimAt: { padding: '8px 10px', color: '#475569', fontSize: '0.85rem', fontStyle: 'italic' as const },
+  elimTdElimAt: {
+    padding: '8px 10px',
+    color: '#475569',
+    fontSize: '0.85rem',
+    fontStyle: 'italic' as const,
+  },
   orgNoteOverlay: {
     position: 'absolute' as const,
     inset: 0,
@@ -310,14 +366,22 @@ const KIOSK_STYLES = {
     letterSpacing: '0.2em',
     textTransform: 'uppercase' as const,
   },
-  orgNoteResumeTime: { fontSize: 'clamp(4rem, 14vw, 12rem)' as const, fontWeight: 700, color: '#f1f5f9' },
+  orgNoteResumeTime: {
+    fontSize: 'clamp(4rem, 14vw, 12rem)' as const,
+    fontWeight: 700,
+    color: '#f1f5f9',
+  },
   orgNoteCountdown: {
     fontSize: 'clamp(3rem, 10vw, 8rem)' as const,
     fontWeight: 800,
     color: '#3b82f6',
     fontVariantNumeric: 'tabular-nums' as const,
   },
-  orgNoteMessage: { fontSize: 'clamp(2rem, 7vw, 6rem)' as const, color: '#94a3b8', fontStyle: 'italic' as const },
+  orgNoteMessage: {
+    fontSize: 'clamp(2rem, 7vw, 6rem)' as const,
+    color: '#94a3b8',
+    fontStyle: 'italic' as const,
+  },
 } satisfies Record<string, React.CSSProperties>;
 
 // Rounds sans contexte de rendu : t() est reçu en paramètre (cf. useColumnVisibility.ts / XiaomiRemotePanel.tsx)
@@ -439,7 +503,8 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
       let place = 3;
       for (const semi of semis) {
         const loser = semi.fencerA?.id === semi.winner!.id ? semi.fencerB : semi.fencerA;
-        if (loser) results.push({ place, fencer: loser, eliminatedAt: t('tableau.round_semifinals') });
+        if (loser)
+          results.push({ place, fencer: loser, eliminatedAt: t('tableau.round_semifinals') });
         place++;
       }
     }
@@ -631,10 +696,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
   });
 
   return (
-    <div
-      onMouseMove={showMenu}
-      style={KIOSK_STYLES.root}
-    >
+    <div onMouseMove={showMenu} style={KIOSK_STYLES.root}>
       {/* Menu auto-masquant */}
       <div
         style={{
@@ -644,9 +706,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
           transition: 'opacity 0.4s ease',
         }}
       >
-        <span style={KIOSK_STYLES.menuLabel}>
-          {t('competitionHeader.kiosk_mode')}
-        </span>
+        <span style={KIOSK_STYLES.menuLabel}>{t('competitionHeader.kiosk_mode')}</span>
         <button
           style={btnStyle(currentView === 'pools', !hasPoolData)}
           disabled={!hasPoolData}
@@ -676,10 +736,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
         </button>
         <div style={KIOSK_STYLES.menuFlex} />
         <span style={KIOSK_STYLES.menuEscHint}>{t('kiosk.esc_exit')}</span>
-        <button
-          onClick={onClose}
-          style={KIOSK_STYLES.menuCloseBtn}
-        >
+        <button onClick={onClose} style={KIOSK_STYLES.menuCloseBtn}>
           ✕ {t('kiosk.close')}
         </button>
       </div>
@@ -690,9 +747,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
           {/* Header poule */}
           <div style={KIOSK_STYLES.poolsHeader}>
             <div>
-              <h1 style={KIOSK_STYLES.poolsTitle}>
-                {competition.title}
-              </h1>
+              <h1 style={KIOSK_STYLES.poolsTitle}>{competition.title}</h1>
               <p style={KIOSK_STYLES.poolsSubtitle}>
                 {t('pools.pool_number')} {currentPool.number} / {pools.length}
                 <span style={KIOSK_STYLES.poolsNavHint}>
@@ -722,9 +777,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
           <div style={KIOSK_STYLES.poolsContent}>
             {/* Classement poule */}
             <div style={KIOSK_STYLES.poolsRankingCol}>
-              <h2 style={KIOSK_STYLES.poolsRankingTitle}>
-                {t('kiosk.ranking_label')}
-              </h2>
+              <h2 style={KIOSK_STYLES.poolsRankingTitle}>{t('kiosk.ranking_label')}</h2>
               <div style={KIOSK_STYLES.poolsRankingList}>
                 {currentPool.ranking?.slice(0, 8).map((rank, i) => (
                   <div
@@ -772,18 +825,13 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
 
             {/* Matchs en cours */}
             <div style={KIOSK_STYLES.poolsMatchesCol}>
-              <h2 style={KIOSK_STYLES.poolsMatchesTitle}>
-                {t('kiosk.matches_live')}
-              </h2>
+              <h2 style={KIOSK_STYLES.poolsMatchesTitle}>{t('kiosk.matches_live')}</h2>
               <div style={KIOSK_STYLES.poolsMatchesList}>
                 {currentPool.matches
                   .filter(m => m.status === MatchStatus.IN_PROGRESS)
                   .slice(0, 4)
                   .map((match, idx) => (
-                    <div
-                      key={match.id}
-                      style={KIOSK_STYLES.poolsMatchCard}
-                    >
+                    <div key={match.id} style={KIOSK_STYLES.poolsMatchCard}>
                       <div style={KIOSK_STYLES.poolsMatchCardRow}>
                         <span>{match.fencerA?.lastName || t('kiosk.tbd')}</span>
                         <span style={KIOSK_STYLES.poolsMatchVs}>VS</span>
@@ -795,11 +843,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
                     </div>
                   ))}
                 {currentPool.matches.filter(m => m.status === MatchStatus.IN_PROGRESS).length ===
-                  0 && (
-                  <div style={KIOSK_STYLES.poolsMatchEmpty}>
-                    {t('kiosk.no_live')}
-                  </div>
-                )}
+                  0 && <div style={KIOSK_STYLES.poolsMatchEmpty}>{t('kiosk.no_live')}</div>}
               </div>
             </div>
           </div>
@@ -839,11 +883,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
           </div>
 
           {/* Tableau défilant */}
-          <div
-            ref={rankingScrollRef}
-            data-kiosk-scroll=""
-            style={KIOSK_STYLES.rankingScrollArea}
-          >
+          <div ref={rankingScrollRef} data-kiosk-scroll="" style={KIOSK_STYLES.rankingScrollArea}>
             <table style={KIOSK_STYLES.rankingTable}>
               <thead>
                 <tr style={KIOSK_STYLES.rankingThead}>
@@ -854,14 +894,8 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
                   <th style={KIOSK_STYLES.rankingThVm}>{t('ranking.ratio')}</th>
                   <th style={KIOSK_STYLES.rankingThTd}>{t('ranking.touches_scored')}</th>
                   <th style={KIOSK_STYLES.rankingThTr}>{t('ranking.touches_received')}</th>
-                  {isLaserSabre && (
-                    <th style={KIOSK_STYLES.rankingThQuest}>
-                      {t('quest.label')}
-                    </th>
-                  )}
-                  <th style={KIOSK_STYLES.rankingThIndice}>
-                    {t('ranking.index')}
-                  </th>
+                  {isLaserSabre && <th style={KIOSK_STYLES.rankingThQuest}>{t('quest.label')}</th>}
+                  <th style={KIOSK_STYLES.rankingThIndice}>{t('ranking.index')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -881,20 +915,14 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
                     >
                       {r.rank}
                     </td>
-                    <td style={KIOSK_STYLES.rankingTdLast}>
-                      {r.fencer.lastName}
-                    </td>
+                    <td style={KIOSK_STYLES.rankingTdLast}>{r.fencer.lastName}</td>
                     <td style={KIOSK_STYLES.rankingTdFirst}>{r.fencer.firstName}</td>
-                    <td style={KIOSK_STYLES.rankingTdClub}>
-                      {r.fencer.club || '–'}
-                    </td>
+                    <td style={KIOSK_STYLES.rankingTdClub}>{r.fencer.club || '–'}</td>
                     <td style={KIOSK_STYLES.rankingTdRatio}>{formatRatio(r.ratio)}</td>
                     <td style={KIOSK_STYLES.rankingTdTouches}>{r.touchesScored}</td>
                     <td style={KIOSK_STYLES.rankingTdTouches}>{r.touchesReceived}</td>
                     {isLaserSabre && (
-                      <td style={KIOSK_STYLES.rankingTdQuest}>
-                        {r.questPoints || 0}
-                      </td>
+                      <td style={KIOSK_STYLES.rankingTdQuest}>{r.questPoints || 0}</td>
                     )}
                     <td
                       style={{
@@ -919,30 +947,19 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
           <div style={KIOSK_STYLES.tableauHeader}>
             <h1 style={KIOSK_STYLES.tableauTitle}>{competition.title}</h1>
             <p style={KIOSK_STYLES.tableauRoundLabel}>
-              {activeRound !== null
-                ? getRoundLabel(activeRound, t)
-                : t('kiosk.tableau_done')}
+              {activeRound !== null ? getRoundLabel(activeRound, t) : t('kiosk.tableau_done')}
             </p>
           </div>
 
           {/* Contenu */}
           {activeRound !== null ? (
-            <div
-              ref={tableauScrollRef}
-              data-kiosk-scroll=""
-              style={KIOSK_STYLES.tableauScrollArea}
-            >
+            <div ref={tableauScrollRef} data-kiosk-scroll="" style={KIOSK_STYLES.tableauScrollArea}>
               <div style={KIOSK_STYLES.tableauGrid}>
                 {activeRoundMatches.map(match => {
                   if (match.isBye) {
                     return (
-                      <div
-                        key={match.id}
-                        style={KIOSK_STYLES.matchCardBye}
-                      >
-                        <div style={KIOSK_STYLES.matchCardByeLabel}>
-                          {t('kiosk.bye')}
-                        </div>
+                      <div key={match.id} style={KIOSK_STYLES.matchCardBye}>
+                        <div style={KIOSK_STYLES.matchCardByeLabel}>{t('kiosk.bye')}</div>
                         <div style={KIOSK_STYLES.matchCardByeName}>
                           {match.fencerA?.lastName || match.fencerB?.lastName || '–'}
                         </div>
@@ -1082,9 +1099,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
             /* Tableau terminé – podium + classement */
             <div style={KIOSK_STYLES.finishedWrapper}>
               {/* Titre */}
-              <div style={KIOSK_STYLES.finishedTitle}>
-                🏆 {t('kiosk.final_results')}
-              </div>
+              <div style={KIOSK_STYLES.finishedTitle}>🏆 {t('kiosk.final_results')}</div>
 
               {/* Podium visuel */}
               {podium ? (
@@ -1149,7 +1164,8 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
                             key={r.fencer.id}
                             style={{
                               borderBottom: '1px solid #1e293b',
-                              backgroundColor: r.place <= 3 ? 'rgba(251,191,36,0.06)' : 'transparent',
+                              backgroundColor:
+                                r.place <= 3 ? 'rgba(251,191,36,0.06)' : 'transparent',
                             }}
                           >
                             <td style={KIOSK_STYLES.elimTdRank}>

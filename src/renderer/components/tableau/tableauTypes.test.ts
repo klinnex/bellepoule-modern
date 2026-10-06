@@ -1,9 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { propagateWinners, TableauMatch } from './tableauTypes';
 
-const F = (id: string) => ({ id, firstName: id, lastName: id } as any);
+const F = (id: string) => ({ id, firstName: id, lastName: id }) as any;
 
-function mk(round: number, pos: number, a: any, b: any, o: Partial<TableauMatch> = {}): TableauMatch {
+function mk(
+  round: number,
+  pos: number,
+  a: any,
+  b: any,
+  o: Partial<TableauMatch> = {}
+): TableauMatch {
   const isBye = o.isBye ?? (!a || !b);
   return {
     id: `${round}-${pos}`,
@@ -64,9 +70,13 @@ describe('propagateWinners - taille périmée/invalide', () => {
   it('propage même si size vaut 0', () => {
     const matches = mk16();
     const m0 = matches.find(x => x.id === '16-0')!;
-    m0.scoreA = 15; m0.scoreB = 3; m0.winner = m0.fencerA;
+    m0.scoreA = 15;
+    m0.scoreB = 3;
+    m0.winner = m0.fencerA;
     const m1 = matches.find(x => x.id === '16-1')!;
-    m1.scoreA = 3; m1.scoreB = 15; m1.winner = m1.fencerB;
+    m1.scoreA = 3;
+    m1.scoreB = 15;
+    m1.winner = m1.fencerB;
 
     propagateWinners(matches, 0);
 
@@ -78,7 +88,9 @@ describe('propagateWinners - taille périmée/invalide', () => {
   it('propage le vainqueur des 8es vers les quarts (size correct)', () => {
     const matches = mk16();
     const m1 = matches.find(x => x.id === '16-1')!;
-    m1.scoreA = 3; m1.scoreB = 15; m1.winner = m1.fencerB;
+    m1.scoreA = 3;
+    m1.scoreB = 15;
+    m1.winner = m1.fencerB;
     propagateWinners(matches, 16);
     expect(matches.find(x => x.id === '8-0')!.fencerB?.id).toBe('b1');
   });

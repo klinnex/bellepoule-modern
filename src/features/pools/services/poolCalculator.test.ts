@@ -30,8 +30,20 @@ const makeMatch = (
   number: 1,
   fencerA,
   fencerB,
-  scoreA: { value: scoreA, isVictory: scoreA > scoreB, isAbstention: false, isExclusion: false, isForfait: false },
-  scoreB: { value: scoreB, isVictory: scoreB > scoreA, isAbstention: false, isExclusion: false, isForfait: false },
+  scoreA: {
+    value: scoreA,
+    isVictory: scoreA > scoreB,
+    isAbstention: false,
+    isExclusion: false,
+    isForfait: false,
+  },
+  scoreB: {
+    value: scoreB,
+    isVictory: scoreB > scoreA,
+    isAbstention: false,
+    isExclusion: false,
+    isForfait: false,
+  },
   maxScore: 5,
   status,
   createdAt: new Date(),
@@ -116,10 +128,10 @@ describe('PoolCalculator.isPoolComplete', () => {
 
   it('returns false when any match is not finished', () => {
     const [f1, f2, f3] = [makeFencer('f1', 1), makeFencer('f2', 2), makeFencer('f3', 3)];
-    const pool = makePool([f1, f2, f3], [
-      makeMatch('m1', f1, f2, 5, 3),
-      makeMatch('m2', f1, f3, 0, 0, MatchStatus.NOT_STARTED),
-    ]);
+    const pool = makePool(
+      [f1, f2, f3],
+      [makeMatch('m1', f1, f2, 5, 3), makeMatch('m2', f1, f3, 0, 0, MatchStatus.NOT_STARTED)]
+    );
     expect(PoolCalculator.isPoolComplete(pool)).toBe(false);
   });
 
@@ -136,11 +148,10 @@ describe('PoolCalculator.isPoolComplete', () => {
 describe('PoolCalculator.calculateRankings', () => {
   it('returns rankings for all fencers', () => {
     const [f1, f2, f3] = [makeFencer('f1', 1), makeFencer('f2', 2), makeFencer('f3', 3)];
-    const pool = makePool([f1, f2, f3], [
-      makeMatch('m1', f1, f2, 5, 3),
-      makeMatch('m2', f1, f3, 5, 1),
-      makeMatch('m3', f2, f3, 5, 4),
-    ]);
+    const pool = makePool(
+      [f1, f2, f3],
+      [makeMatch('m1', f1, f2, 5, 3), makeMatch('m2', f1, f3, 5, 1), makeMatch('m3', f2, f3, 5, 4)]
+    );
     const { rankings } = PoolCalculator.calculateRankings(pool);
     expect(rankings).toHaveLength(3);
   });
@@ -154,19 +165,17 @@ describe('PoolCalculator.calculateRankings', () => {
 
   it('returns isComplete=false with pending match', () => {
     const [f1, f2] = [makeFencer('f1', 1), makeFencer('f2', 2)];
-    const pool = makePool([f1, f2], [
-      makeMatch('m1', f1, f2, 0, 0, MatchStatus.NOT_STARTED),
-    ]);
+    const pool = makePool([f1, f2], [makeMatch('m1', f1, f2, 0, 0, MatchStatus.NOT_STARTED)]);
     const { isComplete } = PoolCalculator.calculateRankings(pool);
     expect(isComplete).toBe(false);
   });
 
   it('returns correct completedMatches count', () => {
     const [f1, f2, f3] = [makeFencer('f1', 1), makeFencer('f2', 2), makeFencer('f3', 3)];
-    const pool = makePool([f1, f2, f3], [
-      makeMatch('m1', f1, f2, 5, 3),
-      makeMatch('m2', f1, f3, 0, 0, MatchStatus.NOT_STARTED),
-    ]);
+    const pool = makePool(
+      [f1, f2, f3],
+      [makeMatch('m1', f1, f2, 5, 3), makeMatch('m2', f1, f3, 0, 0, MatchStatus.NOT_STARTED)]
+    );
     const { stats } = PoolCalculator.calculateRankings(pool);
     expect(stats.completedMatches).toBe(1);
     expect(stats.totalMatches).toBe(2);
@@ -174,9 +183,7 @@ describe('PoolCalculator.calculateRankings', () => {
 
   it('returns 0 averageTouchesPerMatch when no completed matches', () => {
     const [f1, f2] = [makeFencer('f1', 1), makeFencer('f2', 2)];
-    const pool = makePool([f1, f2], [
-      makeMatch('m1', f1, f2, 0, 0, MatchStatus.NOT_STARTED),
-    ]);
+    const pool = makePool([f1, f2], [makeMatch('m1', f1, f2, 0, 0, MatchStatus.NOT_STARTED)]);
     const { stats } = PoolCalculator.calculateRankings(pool);
     expect(stats.averageTouchesPerMatch).toBe(0);
   });
@@ -197,31 +204,32 @@ describe('PoolCalculator.calculateRankings', () => {
 describe('PoolCalculator.calculateVictoryRatio', () => {
   it('returns 1.0 for fencer who won all matches', () => {
     const [f1, f2, f3] = [makeFencer('f1', 1), makeFencer('f2', 2), makeFencer('f3', 3)];
-    const pool = makePool([f1, f2, f3], [
-      makeMatch('m1', f1, f2, 5, 0),
-      makeMatch('m2', f1, f3, 5, 0),
-      makeMatch('m3', f2, f3, 5, 0),
-    ]);
+    const pool = makePool(
+      [f1, f2, f3],
+      [makeMatch('m1', f1, f2, 5, 0), makeMatch('m2', f1, f3, 5, 0), makeMatch('m3', f2, f3, 5, 0)]
+    );
     expect(PoolCalculator.calculateVictoryRatio(f1, pool)).toBe(1);
   });
 
   it('returns 0.0 for fencer who lost all matches', () => {
     const [f1, f2, f3] = [makeFencer('f1', 1), makeFencer('f2', 2), makeFencer('f3', 3)];
-    const pool = makePool([f1, f2, f3], [
-      makeMatch('m1', f2, f1, 5, 0),
-      makeMatch('m2', f3, f1, 5, 0),
-      makeMatch('m3', f2, f3, 5, 0),
-    ]);
+    const pool = makePool(
+      [f1, f2, f3],
+      [makeMatch('m1', f2, f1, 5, 0), makeMatch('m2', f3, f1, 5, 0), makeMatch('m3', f2, f3, 5, 0)]
+    );
     expect(PoolCalculator.calculateVictoryRatio(f1, pool)).toBe(0);
   });
 
   it('returns 0.5 for fencer with equal wins and losses', () => {
     const [f1, f2, f3] = [makeFencer('f1', 1), makeFencer('f2', 2), makeFencer('f3', 3)];
-    const pool = makePool([f1, f2, f3], [
-      makeMatch('m1', f1, f2, 5, 0), // f1 wins
-      makeMatch('m2', f3, f1, 5, 0), // f1 loses
-      makeMatch('m3', f2, f3, 5, 0),
-    ]);
+    const pool = makePool(
+      [f1, f2, f3],
+      [
+        makeMatch('m1', f1, f2, 5, 0), // f1 wins
+        makeMatch('m2', f3, f1, 5, 0), // f1 loses
+        makeMatch('m3', f2, f3, 5, 0),
+      ]
+    );
     expect(PoolCalculator.calculateVictoryRatio(f1, pool)).toBe(0.5);
   });
 });

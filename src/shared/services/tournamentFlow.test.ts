@@ -5,7 +5,16 @@ import {
   Arena,
   ArenaSettings,
 } from './tournamentFlow';
-import { Competition, Pool, Match, MatchStatus, Gender, FencerStatus, Weapon, Category } from '../types';
+import {
+  Competition,
+  Pool,
+  Match,
+  MatchStatus,
+  Gender,
+  FencerStatus,
+  Weapon,
+  Category,
+} from '../types';
 
 // ============================================================================
 // Helpers
@@ -161,10 +170,7 @@ describe('TournamentFlowManager', () => {
 
   it('matchs FINISHED exclus du schedule', async () => {
     const competition = makeCompetition();
-    const matches = [
-      makeMatch('m1', MatchStatus.FINISHED),
-      makeMatch('m2', MatchStatus.FINISHED),
-    ];
+    const matches = [makeMatch('m1', MatchStatus.FINISHED), makeMatch('m2', MatchStatus.FINISHED)];
     const pools = [makePool('p1', matches)];
     const arenas = [makeArena('a1')];
 

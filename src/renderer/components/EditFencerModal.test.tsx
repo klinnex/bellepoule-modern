@@ -12,15 +12,24 @@ import EditFencerModal from './EditFencerModal';
 import { Fencer, Gender, FencerStatus } from '../../shared/types';
 
 const fencer: Fencer = {
-  id: 'f1', ref: 1, lastName: 'Dupont', firstName: 'Jean',
-  gender: Gender.MALE, nationality: 'FRA', status: FencerStatus.CHECKED_IN,
-  club: 'CEP', createdAt: new Date(), updatedAt: new Date(),
+  id: 'f1',
+  ref: 1,
+  lastName: 'Dupont',
+  firstName: 'Jean',
+  gender: Gender.MALE,
+  nationality: 'FRA',
+  status: FencerStatus.CHECKED_IN,
+  club: 'CEP',
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 const setup = () => {
   const onSave = vi.fn();
   const onClose = vi.fn();
-  const { container } = render(<EditFencerModal fencer={fencer} onSave={onSave} onClose={onClose} />);
+  const { container } = render(
+    <EditFencerModal fencer={fencer} onSave={onSave} onClose={onClose} />
+  );
   return { onSave, onClose, container };
 };
 

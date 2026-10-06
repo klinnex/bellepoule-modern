@@ -130,7 +130,9 @@ describe('debounce', () => {
   it('ne déclenche qu’après le délai et une seule fois', () => {
     const fn = vi.fn();
     const d = debounce(fn, 200);
-    d(); d(); d();
+    d();
+    d();
+    d();
     expect(fn).not.toHaveBeenCalled();
     vi.advanceTimersByTime(200);
     expect(fn).toHaveBeenCalledTimes(1);
@@ -144,7 +146,9 @@ describe('throttle', () => {
   it('exécute immédiatement puis limite les appels', () => {
     const fn = vi.fn();
     const t = throttle(fn, 200);
-    t(); t(); t();
+    t();
+    t();
+    t();
     expect(fn).toHaveBeenCalledTimes(1);
     vi.advanceTimersByTime(200);
     t();

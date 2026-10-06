@@ -115,7 +115,9 @@ export const KeyboardShortcutsHelp: React.FC = () => {
           }}
         >
           <div>
-            <h2 style={{ margin: 0, fontSize: '24px', color: '#111827' }}>⌨️ {t('shortcuts.title')}</h2>
+            <h2 style={{ margin: 0, fontSize: '24px', color: '#111827' }}>
+              ⌨️ {t('shortcuts.title')}
+            </h2>
             <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
               {t('shortcuts.subtitle')}
             </p>

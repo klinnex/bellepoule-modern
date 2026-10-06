@@ -9,7 +9,12 @@
 
 import React from 'react';
 import { Card, CardReason } from '../../shared/types';
-import { TeamRow, TeamMatchRow, TeamBoutRow, TeamMatchCardRow } from '../../features/teams/types/team.types';
+import {
+  TeamRow,
+  TeamMatchRow,
+  TeamBoutRow,
+  TeamMatchCardRow,
+} from '../../features/teams/types/team.types';
 import {
   TeamTargetRule,
   calculateTableSize,
@@ -42,7 +47,11 @@ interface Props {
   isLaserArena?: boolean;
   boutCap?: LaserArenaBoutCap;
   matchCards?: Record<string, TeamMatchCardRow[]>;
-  onAddTeamCard?: (matchId: string, teamId: string, type: 'white' | 'yellow' | 'red' | 'black') => void;
+  onAddTeamCard?: (
+    matchId: string,
+    teamId: string,
+    type: 'white' | 'yellow' | 'red' | 'black'
+  ) => void;
   onAssignArena?: (matchId: string, arenaId: string) => void;
 }
 

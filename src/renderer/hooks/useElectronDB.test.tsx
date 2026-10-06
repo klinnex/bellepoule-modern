@@ -8,7 +8,9 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useElectronDB } from './useElectronDB';
 
-afterEach(() => { delete (window as any).electronAPI; });
+afterEach(() => {
+  delete (window as any).electronAPI;
+});
 
 const db = () => renderHook(() => useElectronDB()).result.current;
 
@@ -50,7 +52,9 @@ describe('useElectronDB - API indisponible', () => {
 
 describe('useElectronDB - propagation d’erreur', () => {
   it('relaie l’erreur du backend', async () => {
-    const getAllCompetitions = vi.fn(async () => { throw new Error('db down'); });
+    const getAllCompetitions = vi.fn(async () => {
+      throw new Error('db down');
+    });
     (window as any).electronAPI = { db: { getAllCompetitions } };
     await expect(db().getAllCompetitions()).rejects.toThrow('db down');
   });

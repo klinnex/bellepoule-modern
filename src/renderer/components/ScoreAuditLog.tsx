@@ -56,7 +56,8 @@ function matchKey(e: ScoreAuditEntry): number {
   return (isTableauEntry(e) ? e.tableauPosition : e.matchNumber) ?? Number.MAX_SAFE_INTEGER;
 }
 
-const byTimeDesc = (a: ScoreAuditEntry, b: ScoreAuditEntry) => b.changedAt.localeCompare(a.changedAt);
+const byTimeDesc = (a: ScoreAuditEntry, b: ScoreAuditEntry) =>
+  b.changedAt.localeCompare(a.changedAt);
 
 const SORTERS: Record<SortMode, (a: ScoreAuditEntry, b: ScoreAuditEntry) => number> = {
   time: byTimeDesc,
@@ -100,7 +101,9 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
     return unsub;
   }, [load, showToast]);
 
-  const poolNumbers = Array.from(new Set(entries.map(e => e.poolNumber).filter(n => n != null))).sort((a, b) => (a as number) - (b as number));
+  const poolNumbers = Array.from(
+    new Set(entries.map(e => e.poolNumber).filter(n => n != null))
+  ).sort((a, b) => (a as number) - (b as number));
 
   const hasTableau = entries.some(isTableauEntry);
 
@@ -123,7 +126,8 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
   );
 
   const exportCsv = useCallback(async () => {
-    const header = 'timestamp_iso,phase,match,score_avant_a,score_avant_b,score_apres_a,score_apres_b,arbitre,ip,source\n';
+    const header =
+      'timestamp_iso,phase,match,score_avant_a,score_avant_b,score_apres_a,score_apres_b,arbitre,ip,source\n';
     const rows = filtered.map(e => {
       const cols = [
         new Date(e.changedAt).toISOString(),
@@ -135,7 +139,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
         String(e.newScoreB?.value ?? ''),
         (e.refereeName ?? e.changedBy ?? '').replace(/,/g, ';'),
         (e.ipAddress ?? '').replace(/,/g, ';'),
-        (e.changedBy ?? ''),
+        e.changedBy ?? '',
       ];
       return cols.join(',');
     });
@@ -143,7 +147,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
     try {
       const result = await window.electronAPI.dialog.saveFile({
         title: t('dialogs.exportScoreHistory'),
-        defaultPath: `historique_scores_${new Date().toISOString().slice(0,10)}.csv`,
+        defaultPath: `historique_scores_${new Date().toISOString().slice(0, 10)}.csv`,
         filters: [{ name: 'CSV / TXT', extensions: ['csv', 'txt'] }],
       });
       if (result && !result.canceled && result.filePath) {
@@ -157,8 +161,18 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
 
   return (
     <div style={{ padding: '1.5rem', maxWidth: '100%', overflowX: 'auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>📜 Historique des scores</h2>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          marginBottom: '1rem',
+          flexWrap: 'wrap',
+        }}
+      >
+        <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
+          📜 Historique des scores
+        </h2>
 
         <select
           value={filterPool}
@@ -167,7 +181,9 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
         >
           <option value="">Toutes les phases</option>
           {poolNumbers.map(n => (
-            <option key={n} value={String(n)}>Poule {n}</option>
+            <option key={n} value={String(n)}>
+              Poule {n}
+            </option>
           ))}
           {hasTableau && <option value={TABLEAU_FILTER}>Tableau</option>}
         </select>
@@ -189,14 +205,15 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
           placeholder="Filtrer arbitre…"
           value={filterReferee}
           onChange={e => setFilterReferee(e.target.value)}
-          style={{ padding: '0.3rem 0.6rem', borderRadius: 4, border: '1px solid #D1D5DB', minWidth: 140 }}
+          style={{
+            padding: '0.3rem 0.6rem',
+            borderRadius: 4,
+            border: '1px solid #D1D5DB',
+            minWidth: 140,
+          }}
         />
 
-        <button
-          className="btn btn-secondary"
-          onClick={exportCsv}
-          disabled={filtered.length === 0}
-        >
+        <button className="btn btn-secondary" onClick={exportCsv} disabled={filtered.length === 0}>
           ⬇ Export CSV
         </button>
 
@@ -242,7 +259,9 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
                   {formatScore(e.newScoreA)} / {formatScore(e.newScoreB)}
                 </td>
                 <td style={td}>{e.refereeName ?? e.changedBy ?? '—'}</td>
-                <td style={{ ...td, fontFamily: 'monospace', color: '#6B7280' }}>{e.ipAddress ?? '—'}</td>
+                <td style={{ ...td, fontFamily: 'monospace', color: '#6B7280' }}>
+                  {e.ipAddress ?? '—'}
+                </td>
               </tr>
             ))}
           </tbody>

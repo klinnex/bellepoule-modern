@@ -5,9 +5,7 @@
  */
 
 import { Fencer, DirectEliminationTable } from '../../../shared/types';
-import {
-  createDirectEliminationTable,
-} from '../../../shared/utils/tableCalculations';
+import { createDirectEliminationTable } from '../../../shared/utils/tableCalculations';
 
 export interface BracketGenerationConfig {
   fencerCount: number;
@@ -28,8 +26,8 @@ export class BracketService {
       return this.emptyTable(competitionId, config.fencerCount);
     }
 
-    const fencers = config.seededFencers
-      ?? (await window.electronAPI.db.getFencersByCompetition(competitionId));
+    const fencers =
+      config.seededFencers ?? (await window.electronAPI.db.getFencersByCompetition(competitionId));
 
     if (!fencers.length) {
       return this.emptyTable(competitionId, config.fencerCount);
@@ -78,9 +76,7 @@ export class BracketService {
     // Matches for this table are stored with tableId
     const allMatches = await window.electronAPI.db.getMatchesByPool(tableId).catch(() => []);
     const completedMatches = allMatches.filter(m => m.status === 'finished').length;
-    const totalRounds = allMatches.length > 0
-      ? Math.ceil(Math.log2(allMatches.length + 1))
-      : 1;
+    const totalRounds = allMatches.length > 0 ? Math.ceil(Math.log2(allMatches.length + 1)) : 1;
     const inProgressRound = allMatches
       .filter(m => m.status !== 'finished')
       .reduce((min, m) => Math.min(min, m.round ?? Infinity), Infinity);

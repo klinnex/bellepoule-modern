@@ -102,7 +102,10 @@ export function propagateWinners(matchList: TableauMatch[], size: number): void 
   const byRoundPos = new Map<number, Map<number, TableauMatch>>();
   for (const m of matchList) {
     let perRound = byRoundPos.get(m.round);
-    if (!perRound) { perRound = new Map(); byRoundPos.set(m.round, perRound); }
+    if (!perRound) {
+      perRound = new Map();
+      byRoundPos.set(m.round, perRound);
+    }
     perRound.set(m.position, m);
   }
   const emptyRound = new Map<number, TableauMatch>();

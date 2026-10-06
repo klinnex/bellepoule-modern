@@ -57,17 +57,17 @@ const MatchCard: React.FC<MatchCardProps> = ({
     onSignaturesClick?.(match);
   };
 
-  const matchReferees = match.referees?.length ? match.referees : match.referee ? [match.referee] : [];
+  const matchReferees = match.referees?.length
+    ? match.referees
+    : match.referee
+      ? [match.referee]
+      : [];
 
   const fencerName = (f: typeof match.fencerA) =>
     f ? `${f.lastName} ${f.firstName.charAt(0)}.` : '—';
 
   // Status dot color
-  const statusColor = isMatchComplete
-    ? '#10b981'
-    : isInProgress
-      ? '#f59e0b'
-      : '#d1d5db';
+  const statusColor = isMatchComplete ? '#10b981' : isInProgress ? '#f59e0b' : '#d1d5db';
 
   const posStyle: React.CSSProperties =
     verticalPosition !== undefined
@@ -110,12 +110,16 @@ const MatchCard: React.FC<MatchCardProps> = ({
             <button
               className={`match-badge-btn ${matchReferees.length > 0 ? 'match-badge-btn--active' : ''}`}
               onClick={handleRefereeClick}
-              title={matchReferees.length > 0
-                ? `${matchReferees.length > 1 ? 'Arbitres' : 'Arbitre'} : ${matchReferees.map(r => `${r.lastName} ${r.firstName}`).join(', ')}`
-                : 'Assigner un arbitre'}
+              title={
+                matchReferees.length > 0
+                  ? `${matchReferees.length > 1 ? 'Arbitres' : 'Arbitre'} : ${matchReferees.map(r => `${r.lastName} ${r.firstName}`).join(', ')}`
+                  : 'Assigner un arbitre'
+              }
             >
               {matchReferees.length > 0
-                ? matchReferees.map(r => `${r.lastName.charAt(0)}${r.firstName.charAt(0)}`).join('/')
+                ? matchReferees
+                    .map(r => `${r.lastName.charAt(0)}${r.firstName.charAt(0)}`)
+                    .join('/')
                 : '+A'}
             </button>
           )}
@@ -137,14 +141,14 @@ const MatchCard: React.FC<MatchCardProps> = ({
       )}
 
       {/* Fencer A */}
-      <div className={`match-fencer ${winnerA ? 'match-fencer-winner' : ''} ${isMatchComplete && !winnerA && match.fencerA ? 'match-fencer-loser' : ''} ${!match.fencerA ? 'match-fencer-empty' : ''}`}>
+      <div
+        className={`match-fencer ${winnerA ? 'match-fencer-winner' : ''} ${isMatchComplete && !winnerA && match.fencerA ? 'match-fencer-loser' : ''} ${!match.fencerA ? 'match-fencer-empty' : ''}`}
+      >
         <div className="match-fencer-info">
           {winnerA && <span className="match-winner-mark">✓</span>}
           <div className="match-fencer-details">
             <span className="match-fencer-name">{fencerName(match.fencerA)}</span>
-            {match.fencerA?.club && (
-              <span className="match-fencer-club">{match.fencerA.club}</span>
-            )}
+            {match.fencerA?.club && <span className="match-fencer-club">{match.fencerA.club}</span>}
           </div>
           {match.fencerA?.ranking && (
             <span className="match-fencer-seed">#{match.fencerA.ranking}</span>
@@ -161,14 +165,14 @@ const MatchCard: React.FC<MatchCardProps> = ({
       <div className="match-divider" />
 
       {/* Fencer B */}
-      <div className={`match-fencer ${winnerB ? 'match-fencer-winner' : ''} ${isMatchComplete && !winnerB && match.fencerB ? 'match-fencer-loser' : ''} ${!match.fencerB ? 'match-fencer-empty' : ''}`}>
+      <div
+        className={`match-fencer ${winnerB ? 'match-fencer-winner' : ''} ${isMatchComplete && !winnerB && match.fencerB ? 'match-fencer-loser' : ''} ${!match.fencerB ? 'match-fencer-empty' : ''}`}
+      >
         <div className="match-fencer-info">
           {winnerB && <span className="match-winner-mark">✓</span>}
           <div className="match-fencer-details">
             <span className="match-fencer-name">{fencerName(match.fencerB)}</span>
-            {match.fencerB?.club && (
-              <span className="match-fencer-club">{match.fencerB.club}</span>
-            )}
+            {match.fencerB?.club && <span className="match-fencer-club">{match.fencerB.club}</span>}
           </div>
           {match.fencerB?.ranking && (
             <span className="match-fencer-seed">#{match.fencerB.ranking}</span>
@@ -182,9 +186,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       </div>
 
       {/* Bye */}
-      {match.isBye && (
-        <div className="match-bye">Exempt</div>
-      )}
+      {match.isBye && <div className="match-bye">Exempt</div>}
 
       {/* CTA bar — mode liste seulement */}
       {canEdit && viewMode !== 'full' && (

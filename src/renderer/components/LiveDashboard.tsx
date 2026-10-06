@@ -203,9 +203,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
             {/* Live Matches */}
             {matchesInProgress.length > 0 && (
               <div style={{ marginBottom: '2rem' }}>
-                <h2 style={PANEL_TITLE}>
-                  🔴 Matchs en cours ({matchesInProgress.length})
-                </h2>
+                <h2 style={PANEL_TITLE}>🔴 Matchs en cours ({matchesInProgress.length})</h2>
                 <div
                   style={{
                     display: 'grid',
@@ -222,9 +220,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
 
             {/* Pool Results */}
             <div>
-              <h2 style={PANEL_TITLE}>
-                📋 Résultats des Poules
-              </h2>
+              <h2 style={PANEL_TITLE}>📋 Résultats des Poules</h2>
               <div
                 style={{
                   display: 'grid',
@@ -242,18 +238,14 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
 
         {activeTab === 'tableau' && (
           <div>
-            <h2 style={PANEL_TITLE}>
-              ⚔️ Phase Éliminatoire
-            </h2>
+            <h2 style={PANEL_TITLE}>⚔️ Phase Éliminatoire</h2>
             <TableauView matches={tableauMatches} />
           </div>
         )}
 
         {activeTab === 'ranking' && (
           <div>
-            <h2 style={PANEL_TITLE}>
-              🏅 Classement Final
-            </h2>
+            <h2 style={PANEL_TITLE}>🏅 Classement Final</h2>
             <FinalRankingView results={finalResults} />
           </div>
         )}
@@ -340,11 +332,25 @@ const LiveMatchCard_: React.FC<{ match: Match; index: number }> = ({ match, inde
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.5rem' }}>
-          <span style={{ fontSize: '3rem', fontWeight: '700', color: '#dc2626', fontFamily: 'var(--font-digital)' }}>
+          <span
+            style={{
+              fontSize: '3rem',
+              fontWeight: '700',
+              color: '#dc2626',
+              fontFamily: 'var(--font-digital)',
+            }}
+          >
             {match.scoreA?.value || 0}
           </span>
           <span style={{ fontSize: '1.5rem', color: '#9ca3af' }}>:</span>
-          <span style={{ fontSize: '3rem', fontWeight: '700', color: '#16a34a', fontFamily: 'var(--font-digital)' }}>
+          <span
+            style={{
+              fontSize: '3rem',
+              fontWeight: '700',
+              color: '#16a34a',
+              fontFamily: 'var(--font-digital)',
+            }}
+          >
             {match.scoreB?.value || 0}
           </span>
         </div>
@@ -510,12 +516,8 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
                     {rank.questPoints || 0}
                   </td>
                 )}
-                <td style={MONO_CELL}>
-                  {rank.touchesScored}
-                </td>
-                <td style={MONO_CELL}>
-                  {rank.touchesReceived}
-                </td>
+                <td style={MONO_CELL}>{rank.touchesScored}</td>
+                <td style={MONO_CELL}>{rank.touchesReceived}</td>
                 <td
                   style={{
                     padding: '0.5rem',
@@ -679,16 +681,8 @@ const FinalRankingView_: React.FC<{ results: any[] }> = ({ results }) => {
               >
                 Rang
               </th>
-              <th
-                style={TH}
-              >
-                Tireur
-              </th>
-              <th
-                style={TH}
-              >
-                Club
-              </th>
+              <th style={TH}>Tireur</th>
+              <th style={TH}>Club</th>
               <th
                 style={{
                   padding: '1rem',

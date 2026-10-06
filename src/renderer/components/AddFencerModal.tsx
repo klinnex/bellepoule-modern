@@ -16,7 +16,11 @@ interface AddFencerModalProps {
   competitionGender?: Gender;
 }
 
-const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({ onClose, onAdd, competitionGender }) => {
+const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
+  onClose,
+  onAdd,
+  competitionGender,
+}) => {
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const { showToast } = useToast();
   const { t } = useTranslation();
@@ -26,7 +30,10 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({ onClose, onAdd
   const [region, setRegion] = useState('');
   const [license, setLicense] = useState('');
   const [ranking, setRanking] = useState('');
-  const lockedGender = competitionGender === Gender.MALE || competitionGender === Gender.FEMALE ? competitionGender : null;
+  const lockedGender =
+    competitionGender === Gender.MALE || competitionGender === Gender.FEMALE
+      ? competitionGender
+      : null;
   const [gender, setGender] = useState<Gender>(lockedGender ?? Gender.MALE);
   const [nationality, setNationality] = useState('FRA');
   const [photo, setPhoto] = useState<string | undefined>();
@@ -78,7 +85,13 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({ onClose, onAdd
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div ref={modalRef} className="modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div
+        ref={modalRef}
+        className="modal"
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         <div className="modal-header">
           <h2 className="modal-title">{t('fencer.add')}</h2>
           <button

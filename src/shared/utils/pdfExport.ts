@@ -47,5 +47,11 @@ export { exportResultsToPDF } from './pdfExport/resultsPdf';
 export { exportAppelToPDF } from './pdfExport/appelPdf';
 
 // ─── Export complet compétition ───────────────────────────────────────────────
-export type { FullCompetitionExportData, NoSignatureExportData } from './pdfExport/fullCompetitionPdf';
-export { exportFullCompetitionPDF, exportPoolsAndTableauxNoSignaturePDF } from './pdfExport/fullCompetitionPdf';
+export type {
+  FullCompetitionExportData,
+  NoSignatureExportData,
+} from './pdfExport/fullCompetitionPdf';
+export {
+  exportFullCompetitionPDF,
+  exportPoolsAndTableauxNoSignaturePDF,
+} from './pdfExport/fullCompetitionPdf';

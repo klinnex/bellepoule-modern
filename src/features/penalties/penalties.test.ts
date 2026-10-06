@@ -36,7 +36,7 @@ const card = (group: CardGroup, type: CardType, fencerId = 'f1'): Card => ({
 // ============================================================================
 
 describe('CardGroup progression – Sabre Laser', () => {
-  describe('GROUP_1: Blanc → Jaune → Jaune (pas d\'exclusion)', () => {
+  describe("GROUP_1: Blanc → Jaune → Jaune (pas d'exclusion)", () => {
     it('premier carton GROUP_1 → WHITE', () => {
       const result = determineCardType(CardReason.EARLY_START, []);
       expect(result.type).toBe(CardType.WHITE);
@@ -132,7 +132,7 @@ describe('CardGroup progression – Sabre Laser', () => {
       expect(result.shouldExclude).toBe(true);
     });
 
-    it('cartons d\'autres groupes ignorés pour GROUP_2', () => {
+    it("cartons d'autres groupes ignorés pour GROUP_2", () => {
       const prev = [
         card(CardGroup.GROUP_1, CardType.WHITE),
         card(CardGroup.GROUP_1, CardType.YELLOW),

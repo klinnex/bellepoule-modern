@@ -539,9 +539,12 @@ function hasConflictWith(
   if (separation.length === 0) return false;
   return separation.some(key => {
     switch (key) {
-      case 'byClub': return !!fencer.club && index.clubs.has(fencer.club);
-      case 'byRegion': return !!fencer.region && index.regions.has(fencer.region);
-      case 'byNation': return index.nations.has(fencer.nationality);
+      case 'byClub':
+        return !!fencer.club && index.clubs.has(fencer.club);
+      case 'byRegion':
+        return !!fencer.region && index.regions.has(fencer.region);
+      case 'byNation':
+        return index.nations.has(fencer.nationality);
     }
   });
 }
@@ -973,8 +976,7 @@ function mergeFencerRankings(rankings: PoolRanking[]): PoolRanking[] {
       existing.touchesScored += r.touchesScored;
       existing.touchesReceived += r.touchesReceived;
       existing.index = existing.touchesScored - existing.touchesReceived;
-      existing.ratio =
-        existing.matchesPlayed > 0 ? existing.victories / existing.matchesPlayed : 0;
+      existing.ratio = existing.matchesPlayed > 0 ? existing.victories / existing.matchesPlayed : 0;
       existing.maxSingleMatchScore = Math.max(
         existing.maxSingleMatchScore ?? 0,
         r.maxSingleMatchScore ?? 0
@@ -1113,7 +1115,10 @@ export function splitRankingByGender(overallRanking: PoolRanking[]): Map<string,
     groups.set(key, arr);
   }
   for (const [key, rankings] of groups) {
-    groups.set(key, rankings.map((r, i) => ({ ...r, rank: i + 1 })));
+    groups.set(
+      key,
+      rankings.map((r, i) => ({ ...r, rank: i + 1 }))
+    );
   }
   return groups;
 }

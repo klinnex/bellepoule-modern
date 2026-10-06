@@ -2,7 +2,7 @@
  * BellePoule Modern - Modal Save/Load de formules nommées
  */
 
-import React, { useRef, useState , memo} from 'react';
+import React, { useRef, useState, memo } from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { CustomFormulaConfig } from '../../../shared/types';
 import {
@@ -20,12 +20,7 @@ interface Props {
   onClose: () => void;
 }
 
-const FormulaTemplateModal_: React.FC<Props> = ({
-  mode,
-  currentFormula,
-  onLoad,
-  onClose,
-}) => {
+const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, onClose }) => {
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [name, setName] = useState('');
   const [templates, setTemplates] = useState(() => getCustomFormulaTemplates());
@@ -81,7 +76,13 @@ const FormulaTemplateModal_: React.FC<Props> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div ref={modalRef} className="modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div
+        ref={modalRef}
+        className="modal"
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         <div className="modal-header">
           <h2 className="modal-title">
             {mode === 'save' ? 'Enregistrer la formule' : 'Charger une formule'}

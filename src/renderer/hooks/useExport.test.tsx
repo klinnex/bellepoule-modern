@@ -10,9 +10,15 @@ import { useExport } from './useExport';
 import { Fencer, Gender, FencerStatus, Competition, Weapon, Category } from '../../shared/types';
 
 const fencer = (id: string): Fencer => ({
-  id, ref: Number(id), lastName: 'Nom' + id, firstName: 'P',
-  gender: Gender.MALE, nationality: 'FRA', status: FencerStatus.CHECKED_IN,
-  createdAt: new Date(), updatedAt: new Date(),
+  id,
+  ref: Number(id),
+  lastName: 'Nom' + id,
+  firstName: 'P',
+  gender: Gender.MALE,
+  nationality: 'FRA',
+  status: FencerStatus.CHECKED_IN,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 const competition = { id: 'c1', title: 'Open Test' } as unknown as Competition;

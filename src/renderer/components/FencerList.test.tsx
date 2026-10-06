@@ -16,9 +16,15 @@ import FencerList from './FencerList';
 import { Fencer, Gender, FencerStatus } from '../../shared/types';
 
 const fencer = (id: string, last: string): Fencer => ({
-  id, ref: Number(id), lastName: last, firstName: 'Prenom',
-  gender: Gender.MALE, nationality: 'FRA', status: FencerStatus.NOT_CHECKED_IN,
-  createdAt: new Date(), updatedAt: new Date(),
+  id,
+  ref: Number(id),
+  lastName: last,
+  firstName: 'Prenom',
+  gender: Gender.MALE,
+  nationality: 'FRA',
+  status: FencerStatus.NOT_CHECKED_IN,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 const setup = (over: Partial<Record<string, any>> = {}) => {
@@ -44,7 +50,9 @@ describe('FencerList', () => {
 
   it('filtre via la recherche (debounce)', async () => {
     setup();
-    fireEvent.change(screen.getByPlaceholderText('Rechercher un tireur…'), { target: { value: 'martin' } });
+    fireEvent.change(screen.getByPlaceholderText('Rechercher un tireur…'), {
+      target: { value: 'martin' },
+    });
     await waitFor(() => expect(screen.queryByText('Dupont')).not.toBeInTheDocument());
     expect(screen.getByText('Martin')).toBeInTheDocument();
   });

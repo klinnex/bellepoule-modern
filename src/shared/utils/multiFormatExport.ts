@@ -3,7 +3,15 @@
  * Licensed under GPL-3.0
  */
 
-import { Competition, Fencer, Pool, PoolRanking, FencerStatus, MatchStatus, MatchEventEntry } from '../types';
+import {
+  Competition,
+  Fencer,
+  Pool,
+  PoolRanking,
+  FencerStatus,
+  MatchStatus,
+  MatchEventEntry,
+} from '../types';
 
 /**
  * Export results as HTML web page
@@ -239,14 +247,27 @@ export interface TableauMatchForXML {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  U11: 'M11', U13: 'M13', U15: 'M15', U17: 'M17', U20: 'M20',
-  SEN: 'Seniors', SENIOR: 'Seniors',
-  V1: 'Vétérans 1', V2: 'Vétérans 2', V3: 'Vétérans 3', V4: 'Vétérans 4',
+  U11: 'M11',
+  U13: 'M13',
+  U15: 'M15',
+  U17: 'M17',
+  U20: 'M20',
+  SEN: 'Seniors',
+  SENIOR: 'Seniors',
+  V1: 'Vétérans 1',
+  V2: 'Vétérans 2',
+  V3: 'Vétérans 3',
+  V4: 'Vétérans 4',
 };
 
 const TABLEAU_TITLES: Record<number, string> = {
-  64: 'Tableau de 64', 32: 'Tableau de 32', 16: 'Tableau de 16', 8: 'Tableau de 8',
-  4: 'Demi-finale', 3: 'Petite finale', 2: 'Finale',
+  64: 'Tableau de 64',
+  32: 'Tableau de 32',
+  16: 'Tableau de 16',
+  8: 'Tableau de 8',
+  4: 'Demi-finale',
+  3: 'Petite finale',
+  2: 'Finale',
 };
 
 function pad2(n: number): string {
@@ -283,33 +304,34 @@ export function exportResultsXMLFFE(
 
   const rootTag = competition.isTeamEvent ? 'CompetitionParEquipe' : 'CompetitionIndividuelle';
   const settings = competition.settings;
-  const phaseEnCours = tableauMatches && tableauMatches.length > 0 ? 4 : pools && pools.length > 0 ? 2 : 1;
+  const phaseEnCours =
+    tableauMatches && tableauMatches.length > 0 ? 4 : pools && pools.length > 0 ? 2 : 1;
 
   const lines: string[] = [];
   lines.push('<?xml version="1.0" encoding="UTF-8"?>');
   lines.push(
     `<${rootTag}` +
-    ` Couleur="${escapeXml(competition.color || '')}"` +
-    ` Championnat="${escapeXml(competition.championship || '')}"` +
-    ` ID="${escapeXml(competition.id)}"` +
-    ` Annee="${competition.date instanceof Date ? competition.date.getFullYear() : new Date(competition.date).getFullYear()}"` +
-    ` Arme="${escapeXml(competition.weapon)}"` +
-    ` Sexe="${escapeXml(competition.gender)}"` +
-    ` Organisateur="${escapeXml(competition.organizer || '')}"` +
-    ` Categorie="${escapeXml(CATEGORY_LABELS[competition.category] || competition.category)}"` +
-    ` Niveau=""` +
-    ` Date="${formatDateFR(competition.date)}"` +
-    ` Appel="${formatTimeFR(competition.checkInTime)}"` +
-    ` Scratch="${formatTimeFR(competition.scratchTime)}"` +
-    ` Debut="${formatTimeFR(competition.startTime)}"` +
-    ` TitreLong="${escapeXml(competition.title)}"` +
-    ` URLorganisateur="${escapeXml(competition.organizerUrl || '')}"` +
-    ` ScoreAleatoire="${settings?.randomScore ? '1' : '0'}"` +
-    ` TailleMinimaleEquipe="${settings?.minTeamSize ?? 3}"` +
-    ` ClassementDefautEquipe="${settings?.defaultRanking ?? 9999}"` +
-    ` ClassementManuel="${settings?.manualRanking ? '1' : '0'}"` +
-    ` Lieu="${escapeXml(competition.location || '')}"` +
-    ` Label="${escapeXml(competition.shortTitle || '')}">`
+      ` Couleur="${escapeXml(competition.color || '')}"` +
+      ` Championnat="${escapeXml(competition.championship || '')}"` +
+      ` ID="${escapeXml(competition.id)}"` +
+      ` Annee="${competition.date instanceof Date ? competition.date.getFullYear() : new Date(competition.date).getFullYear()}"` +
+      ` Arme="${escapeXml(competition.weapon)}"` +
+      ` Sexe="${escapeXml(competition.gender)}"` +
+      ` Organisateur="${escapeXml(competition.organizer || '')}"` +
+      ` Categorie="${escapeXml(CATEGORY_LABELS[competition.category] || competition.category)}"` +
+      ` Niveau=""` +
+      ` Date="${formatDateFR(competition.date)}"` +
+      ` Appel="${formatTimeFR(competition.checkInTime)}"` +
+      ` Scratch="${formatTimeFR(competition.scratchTime)}"` +
+      ` Debut="${formatTimeFR(competition.startTime)}"` +
+      ` TitreLong="${escapeXml(competition.title)}"` +
+      ` URLorganisateur="${escapeXml(competition.organizerUrl || '')}"` +
+      ` ScoreAleatoire="${settings?.randomScore ? '1' : '0'}"` +
+      ` TailleMinimaleEquipe="${settings?.minTeamSize ?? 3}"` +
+      ` ClassementDefautEquipe="${settings?.defaultRanking ?? 9999}"` +
+      ` ClassementManuel="${settings?.manualRanking ? '1' : '0'}"` +
+      ` Lieu="${escapeXml(competition.location || '')}"` +
+      ` Label="${escapeXml(competition.shortTitle || '')}">`
   );
 
   lines.push(' <Tireurs>');
@@ -318,25 +340,25 @@ export function exportResultsXMLFFE(
     const finalRank = finalRankMap.get(f.id) ?? r.rank;
     lines.push(
       `  <Tireur` +
-      ` ID="${f.ref}"` +
-      ` Classement="${finalRank}"` +
-      ` Nom="${escapeXml(f.lastName)}"` +
-      ` Prenom="${escapeXml(f.firstName)}"` +
-      ` DateNaissance="${formatDateFR(f.birthDate)}"` +
-      ` Sexe="${escapeXml(f.gender)}"` +
-      ` Nation="${escapeXml(f.nationality || '')}"` +
-      ` Region="${escapeXml(f.region || '')}"` +
-      ` Ligue="${escapeXml(f.region || '')}"` +
-      ` Club="${escapeXml(f.club || '')}"` +
-      ` Licence="${escapeXml(f.license || '')}"` +
-      ` Ranking="${f.ranking ?? 0}"` +
-      ` Exporte="0"` +
-      ` Statut="${escapeXml(f.status)}"` +
-      ` Points=""` +
-      ` Lateralite=""` +
-      ` Departement=""` +
-      ` RangPoules="${r.rank}"` +
-      ` RangFinal="${finalRank}"/>`
+        ` ID="${f.ref}"` +
+        ` Classement="${finalRank}"` +
+        ` Nom="${escapeXml(f.lastName)}"` +
+        ` Prenom="${escapeXml(f.firstName)}"` +
+        ` DateNaissance="${formatDateFR(f.birthDate)}"` +
+        ` Sexe="${escapeXml(f.gender)}"` +
+        ` Nation="${escapeXml(f.nationality || '')}"` +
+        ` Region="${escapeXml(f.region || '')}"` +
+        ` Ligue="${escapeXml(f.region || '')}"` +
+        ` Club="${escapeXml(f.club || '')}"` +
+        ` Licence="${escapeXml(f.license || '')}"` +
+        ` Ranking="${f.ranking ?? 0}"` +
+        ` Exporte="0"` +
+        ` Statut="${escapeXml(f.status)}"` +
+        ` Points=""` +
+        ` Lateralite=""` +
+        ` Departement=""` +
+        ` RangPoules="${r.rank}"` +
+        ` RangFinal="${finalRank}"/>`
     );
   }
   lines.push(' </Tireurs>');
@@ -347,22 +369,22 @@ export function exportResultsXMLFFE(
   for (const a of competition.referees || []) {
     lines.push(
       `  <Arbitre` +
-      ` ID="${a.ref}"` +
-      ` Nom="${escapeXml(a.lastName)}"` +
-      ` Prenom="${escapeXml(a.firstName)}"` +
-      ` DateNaissance="${formatDateFR(a.birthDate)}"` +
-      ` Sexe="${escapeXml(a.gender)}"` +
-      ` Arme="${escapeXml(competition.weapon)}"` +
-      ` Nation="${escapeXml(a.nationality || '')}"` +
-      ` Region="${escapeXml(a.region || '')}"` +
-      ` Ligue="${escapeXml(a.region || '')}"` +
-      ` Club="${escapeXml(a.club || '')}"` +
-      ` Licence="${escapeXml(a.license || '')}"` +
-      ` Categorie="${escapeXml(a.category ? CATEGORY_LABELS[a.category] || a.category : '')}"` +
-      ` Ranking="0"` +
-      ` Exporte="0"` +
-      ` Statut="F"` +
-      ` Departement=""/>`
+        ` ID="${a.ref}"` +
+        ` Nom="${escapeXml(a.lastName)}"` +
+        ` Prenom="${escapeXml(a.firstName)}"` +
+        ` DateNaissance="${formatDateFR(a.birthDate)}"` +
+        ` Sexe="${escapeXml(a.gender)}"` +
+        ` Arme="${escapeXml(competition.weapon)}"` +
+        ` Nation="${escapeXml(a.nationality || '')}"` +
+        ` Region="${escapeXml(a.region || '')}"` +
+        ` Ligue="${escapeXml(a.region || '')}"` +
+        ` Club="${escapeXml(a.club || '')}"` +
+        ` Licence="${escapeXml(a.license || '')}"` +
+        ` Categorie="${escapeXml(a.category ? CATEGORY_LABELS[a.category] || a.category : '')}"` +
+        ` Ranking="0"` +
+        ` Exporte="0"` +
+        ` Statut="F"` +
+        ` Departement=""/>`
     );
   }
   lines.push(' </Arbitres>');
@@ -379,7 +401,9 @@ export function exportResultsXMLFFE(
     for (const pool of pools) {
       for (const f of pool.fencers) {
         const overall = poolRanking.find(r => r.fencer.id === f.id);
-        lines.push(`   <Tireur REF="${f.ref}" RangInitial="${seed++}" RangFinal="${overall?.rank ?? ''}" Statut="${escapeXml(f.status)}"/>`);
+        lines.push(
+          `   <Tireur REF="${f.ref}" RangInitial="${seed++}" RangFinal="${overall?.rank ?? ''}" Statut="${escapeXml(f.status)}"/>`
+        );
       }
     }
     for (const pool of pools) {
@@ -388,8 +412,8 @@ export function exportResultsXMLFFE(
         const pr = pool.ranking.find(r => r.fencer.id === f.id);
         lines.push(
           `    <Tireur REF="${f.ref}" NoDansLaPoule="${idx + 1}"` +
-          ` NbVictoires="${pr?.victories ?? 0}" NbMatches="${pr?.matchesPlayed ?? 0}"` +
-          ` TD="${pr?.touchesScored ?? 0}" TR="${pr?.touchesReceived ?? 0}" RangPoule="${pr?.rank ?? ''}"/>`
+            ` NbVictoires="${pr?.victories ?? 0}" NbMatches="${pr?.matchesPlayed ?? 0}"` +
+            ` TD="${pr?.touchesScored ?? 0}" TR="${pr?.touchesReceived ?? 0}" RangPoule="${pr?.rank ?? ''}"/>`
         );
       });
       let matchId = 1;
@@ -397,11 +421,31 @@ export function exportResultsXMLFFE(
         if (!match.fencerA || !match.fencerB || match.status !== MatchStatus.FINISHED) continue;
         const sA = match.scoreA;
         const sB = match.scoreB;
-        const stA = sA?.isAbstention ? 'A' : sA?.isForfait ? 'F' : sA?.isExclusion ? 'E' : sA?.isVictory ? 'V' : 'D';
-        const stB = sB?.isAbstention ? 'A' : sB?.isForfait ? 'F' : sB?.isExclusion ? 'E' : sB?.isVictory ? 'V' : 'D';
+        const stA = sA?.isAbstention
+          ? 'A'
+          : sA?.isForfait
+            ? 'F'
+            : sA?.isExclusion
+              ? 'E'
+              : sA?.isVictory
+                ? 'V'
+                : 'D';
+        const stB = sB?.isAbstention
+          ? 'A'
+          : sB?.isForfait
+            ? 'F'
+            : sB?.isExclusion
+              ? 'E'
+              : sB?.isVictory
+                ? 'V'
+                : 'D';
         lines.push(`    <Match ID="${matchId++}">`);
-        lines.push(`     <Tireur REF="${match.fencerA.ref}" Score="${sA?.value ?? 0}" Statut="${stA}"/>`);
-        lines.push(`     <Tireur REF="${match.fencerB.ref}" Score="${sB?.value ?? 0}" Statut="${stB}"/>`);
+        lines.push(
+          `     <Tireur REF="${match.fencerA.ref}" Score="${sA?.value ?? 0}" Statut="${stA}"/>`
+        );
+        lines.push(
+          `     <Tireur REF="${match.fencerB.ref}" Score="${sB?.value ?? 0}" Statut="${stB}"/>`
+        );
         lines.push(`    </Match>`);
       }
       lines.push(`   </Poule>`);
@@ -414,7 +458,9 @@ export function exportResultsXMLFFE(
     lines.push(`  <PhaseDeTableaux PhaseID="3" ScoreMax="${tableScoreMax}">`);
     for (const r of poolRanking) {
       const finalRank = finalRankMap.get(r.fencer.id) ?? '';
-      lines.push(`   <Tireur REF="${r.fencer.ref}" RangInitial="${r.rank}" RangFinal="${finalRank}"/>`);
+      lines.push(
+        `   <Tireur REF="${r.fencer.ref}" RangInitial="${r.rank}" RangFinal="${finalRank}"/>`
+      );
     }
 
     const rounds = Array.from(new Set(tableauMatches.map(m => m.round))).sort((a, b) => b - a);
@@ -429,8 +475,12 @@ export function exportResultsXMLFFE(
         const stA = (m.scoreA ?? 0) > (m.scoreB ?? 0) ? 'V' : 'D';
         const stB = stA === 'V' ? 'D' : 'V';
         lines.push(`     <Match ID="${idx + 1}">`);
-        lines.push(`      <Tireur REF="${m.fencerA.ref}" Score="${m.scoreA ?? 0}" Statut="${stA}"/>`);
-        lines.push(`      <Tireur REF="${m.fencerB.ref}" Score="${m.scoreB ?? 0}" Statut="${stB}"/>`);
+        lines.push(
+          `      <Tireur REF="${m.fencerA.ref}" Score="${m.scoreA ?? 0}" Statut="${stA}"/>`
+        );
+        lines.push(
+          `      <Tireur REF="${m.fencerB.ref}" Score="${m.scoreB ?? 0}" Statut="${stB}"/>`
+        );
         lines.push(`     </Match>`);
       });
       lines.push(`    </Tableau>`);

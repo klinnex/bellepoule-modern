@@ -312,7 +312,13 @@ export interface PoolSnapshot {
   id: string;
   number: number;
   fencerIds: string[];
-  matches: { id: string; number: number; fencerAId: string | null; fencerBId: string | null; maxScore: number }[];
+  matches: {
+    id: string;
+    number: number;
+    fencerAId: string | null;
+    fencerBId: string | null;
+    maxScore: number;
+  }[];
 }
 
 export interface PoolRanking {
@@ -331,7 +337,7 @@ export interface PoolRanking {
   questVictories3?: number; // Nombre de victoires à 3 points (écart 8-11)
   questVictories2?: number; // Nombre de victoires à 2 points (écart 4-7)
   questVictories1?: number; // Nombre de victoires à 1 point (écart ≤3)
-  totalCards?: number;      // Nombre total de cartons reçus (critère de départage Quest)
+  totalCards?: number; // Nombre total de cartons reçus (critère de départage Quest)
   maxSingleMatchScore?: number; // Meilleur score marqué en un seul match
 }
 
@@ -410,7 +416,8 @@ export interface RankingCriterion {
   enabled: boolean;
 }
 
-export type AdvancementMode = 'all' | 'percentage' | 'fixed_count' | 'fixed_bracket' | 'pool_winner';
+export type AdvancementMode =
+  'all' | 'percentage' | 'fixed_count' | 'fixed_bracket' | 'pool_winner';
 
 // Critère de séparation post-poules en deux tableaux distincts (compétition couplée)
 export type PostPoolSplitCriteria = 'gender';
@@ -574,7 +581,7 @@ export interface QuestPhaseConfig {
 
 export interface TrainingCustomRules {
   matchDurationSeconds: number;
-  allowedZones: TargetZone[];    // vide = toutes les zones autorisées
+  allowedZones: TargetZone[]; // vide = toutes les zones autorisées
   disableSuddenDeath: boolean;
 }
 

@@ -86,7 +86,9 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
     window.electronAPI.db
       .getFencersByCompetition(competitionId)
       .then(setAllFencers)
-      .catch(err => logger.error(LogCategory.DATABASE, 'getFencersByCompetition failed', err as Error))
+      .catch(err =>
+        logger.error(LogCategory.DATABASE, 'getFencersByCompetition failed', err as Error)
+      )
       .finally(() => setIsFetching(false));
   }, [competitionId]);
 
@@ -139,7 +141,9 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
       >
         <div className="modal-header">
           <h2 id="add-fencer-title">Ajouter un tireur – Poule {pool.number}</h2>
-          <button className="btn-close" onClick={onClose}>&times;</button>
+          <button className="btn-close" onClick={onClose}>
+            &times;
+          </button>
         </div>
 
         <div className="modal-body">
@@ -222,10 +226,12 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
                       alignItems: 'center',
                     }}
                     onMouseEnter={e => {
-                      if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = '#f9fafb';
+                      if (!isSelected)
+                        (e.currentTarget as HTMLDivElement).style.background = '#f9fafb';
                     }}
                     onMouseLeave={e => {
-                      if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = 'transparent';
+                      if (!isSelected)
+                        (e.currentTarget as HTMLDivElement).style.background = 'transparent';
                     }}
                   >
                     <span style={{ fontWeight: isSelected ? 600 : 400 }}>

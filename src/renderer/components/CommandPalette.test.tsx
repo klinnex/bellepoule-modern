@@ -22,7 +22,7 @@ import CommandPalette from './CommandPalette';
 import { Competition } from '../../shared/types';
 
 const comp = (id: string, title: string): Competition =>
-  ({ id, title, weapon: 'E', category: 'SENIOR', fencers: [] } as unknown as Competition);
+  ({ id, title, weapon: 'E', category: 'SENIOR', fencers: [] }) as unknown as Competition;
 
 const setup = (over: Partial<Record<string, any>> = {}) => {
   const props = {
@@ -55,7 +55,9 @@ describe('CommandPalette', () => {
 
   it('affiche un message si aucun résultat', () => {
     setup();
-    fireEvent.change(screen.getByLabelText('Search commands'), { target: { value: 'zzz-introuvable' } });
+    fireEvent.change(screen.getByLabelText('Search commands'), {
+      target: { value: 'zzz-introuvable' },
+    });
     expect(screen.getByText('Aucun résultat')).toBeInTheDocument();
   });
 

@@ -23,21 +23,24 @@ const DTCallNotification: React.FC = () => {
 
   useEffect(() => {
     if (!window.electronAPI?.onDTCall) return;
-    const unsub = window.electronAPI.onDTCall((data) => {
+    const unsub = window.electronAPI.onDTCall(data => {
       setCalls(prev => {
         // remplacer un appel existant pour la même arène
         const filtered = prev.filter(c => c.arenaId !== data.arenaId);
-        return [...filtered, {
-          id: `${data.arenaId}-${data.timestamp}`,
-          arenaId: data.arenaId,
-          arenaNumber: data.arenaNumber,
-          matchNumber: data.matchNumber,
-          competitionId: data.competitionId,
-          timestamp: data.timestamp,
-          acknowledging: false,
-          reason: data.reason,
-          fencerName: data.fencerName,
-        }];
+        return [
+          ...filtered,
+          {
+            id: `${data.arenaId}-${data.timestamp}`,
+            arenaId: data.arenaId,
+            arenaNumber: data.arenaNumber,
+            matchNumber: data.matchNumber,
+            competitionId: data.competitionId,
+            timestamp: data.timestamp,
+            acknowledging: false,
+            reason: data.reason,
+            fencerName: data.fencerName,
+          },
+        ];
       });
       // Alerte sonore
       try {
@@ -62,14 +65,14 @@ const DTCallNotification: React.FC = () => {
 
   useEffect(() => {
     if (!window.electronAPI?.onDTCallCancel) return;
-    const unsub = window.electronAPI.onDTCallCancel((data) => {
+    const unsub = window.electronAPI.onDTCallCancel(data => {
       setCalls(prev => prev.filter(c => c.arenaId !== data.arenaId));
     });
     return unsub;
   }, []);
 
   const acknowledge = useCallback(async (call: DTCallEntry) => {
-    setCalls(prev => prev.map(c => c.id === call.id ? { ...c, acknowledging: true } : c));
+    setCalls(prev => prev.map(c => (c.id === call.id ? { ...c, acknowledging: true } : c)));
     if (call.competitionId) {
       await window.electronAPI.remote.acknowledgeDTCall(call.competitionId, call.arenaId);
     }
@@ -79,32 +82,45 @@ const DTCallNotification: React.FC = () => {
   if (calls.length === 0) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      zIndex: 10001,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '10px',
-      maxWidth: '340px',
-    }}>
+    <div
+      style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        zIndex: 10001,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        maxWidth: '340px',
+      }}
+    >
       {calls.map(call => (
-        <div key={call.id} style={{
-          backgroundColor: '#1f2937',
-          borderLeft: call.reason === 'black_card' ? '4px solid #000' : '4px solid #f97316',
-          borderRadius: '8px',
-          padding: '14px 16px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-          color: '#f9fafb',
-          animation: 'slideInRight 0.3s ease-out',
-        }}>
+        <div
+          key={call.id}
+          style={{
+            backgroundColor: '#1f2937',
+            borderLeft: call.reason === 'black_card' ? '4px solid #000' : '4px solid #f97316',
+            borderRadius: '8px',
+            padding: '14px 16px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+            color: '#f9fafb',
+            animation: 'slideInRight 0.3s ease-out',
+          }}
+        >
           <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px' }}>
             📣 Appel DT{call.arenaNumber != null ? ` — Piste ${call.arenaNumber}` : ''}
           </div>
           {call.reason === 'black_card' && (
-            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#fca5a5', marginBottom: '4px' }}>
-              ⬛ Carton noir{call.fencerName ? ` — ${call.fencerName}` : ''} (exclusion, rapport fédéral)
+            <div
+              style={{
+                fontSize: '14px',
+                fontWeight: 'bold',
+                color: '#fca5a5',
+                marginBottom: '4px',
+              }}
+            >
+              ⬛ Carton noir{call.fencerName ? ` — ${call.fencerName}` : ''} (exclusion, rapport
+              fédéral)
             </div>
           )}
           {call.matchNumber != null && (

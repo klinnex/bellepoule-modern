@@ -28,9 +28,16 @@ interface Particle {
 }
 
 const COLORS = [
-  '#3B5BDB', '#6B84E8', '#F59E0B', '#10B981',
-  '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6',
-  '#F97316', '#FACC15',
+  '#3B5BDB',
+  '#6B84E8',
+  '#F59E0B',
+  '#10B981',
+  '#EF4444',
+  '#8B5CF6',
+  '#EC4899',
+  '#14B8A6',
+  '#F97316',
+  '#FACC15',
 ];
 
 const Confetti: React.FC<ConfettiProps> = ({
@@ -43,27 +50,30 @@ const Confetti: React.FC<ConfettiProps> = ({
   const animRef = useRef<number>(0);
   const particlesRef = useRef<Particle[]>([]);
 
-  const createParticles = useCallback((canvas: HTMLCanvasElement): Particle[] => {
-    const cx = canvas.width * origin.x;
-    const cy = canvas.height * origin.y;
-    return Array.from({ length: particleCount }, () => {
-      const angle = (Math.random() * Math.PI * 2);
-      const speed = 4 + Math.random() * 10;
-      return {
-        x: cx,
-        y: cy,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 6,
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        shape: Math.random() > 0.4 ? 'rect' : 'circle',
-        size: 4 + Math.random() * 8,
-        rotation: Math.random() * Math.PI * 2,
-        rotationSpeed: (Math.random() - 0.5) * 0.3,
-        opacity: 1,
-        decay: 0.012 + Math.random() * 0.008,
-      };
-    });
-  }, [origin, particleCount]);
+  const createParticles = useCallback(
+    (canvas: HTMLCanvasElement): Particle[] => {
+      const cx = canvas.width * origin.x;
+      const cy = canvas.height * origin.y;
+      return Array.from({ length: particleCount }, () => {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 4 + Math.random() * 10;
+        return {
+          x: cx,
+          y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 6,
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          shape: Math.random() > 0.4 ? 'rect' : 'circle',
+          size: 4 + Math.random() * 8,
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 0.3,
+          opacity: 1,
+          decay: 0.012 + Math.random() * 0.008,
+        };
+      });
+    },
+    [origin, particleCount]
+  );
 
   useEffect(() => {
     if (!active) return;

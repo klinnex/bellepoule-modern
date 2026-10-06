@@ -16,31 +16,59 @@ import {
 import { Pool, Fencer, Match, MatchStatus, Gender, FencerStatus } from '../../shared/types';
 
 const fencer = (id: string, ref: number): Fencer => ({
-  id, ref, lastName: 'L' + id, firstName: 'F' + id,
-  gender: Gender.MALE, nationality: 'FRA', status: FencerStatus.CHECKED_IN,
-  createdAt: new Date(), updatedAt: new Date(),
+  id,
+  ref,
+  lastName: 'L' + id,
+  firstName: 'F' + id,
+  gender: Gender.MALE,
+  nationality: 'FRA',
+  status: FencerStatus.CHECKED_IN,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
-const f1 = fencer('1', 1), f2 = fencer('2', 2), f3 = fencer('3', 3);
+const f1 = fencer('1', 1),
+  f2 = fencer('2', 2),
+  f3 = fencer('3', 3);
 
 const finished = (a: Fencer, b: Fencer, sa: number, sb: number): Match => ({
-  id: `${a.id}-${b.id}`, number: 1, fencerA: a, fencerB: b,
+  id: `${a.id}-${b.id}`,
+  number: 1,
+  fencerA: a,
+  fencerB: b,
   scoreA: { value: sa, isVictory: sa > sb } as any,
   scoreB: { value: sb, isVictory: sb > sa } as any,
-  status: MatchStatus.FINISHED, maxScore: 5,
-  createdAt: new Date(), updatedAt: new Date(),
+  status: MatchStatus.FINISHED,
+  maxScore: 5,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 const pending = (a: Fencer, b: Fencer): Match => ({
-  id: `${a.id}-${b.id}`, number: 1, fencerA: a, fencerB: b,
-  scoreA: null, scoreB: null, status: MatchStatus.NOT_STARTED, maxScore: 5,
-  createdAt: new Date(), updatedAt: new Date(),
+  id: `${a.id}-${b.id}`,
+  number: 1,
+  fencerA: a,
+  fencerB: b,
+  scoreA: null,
+  scoreB: null,
+  status: MatchStatus.NOT_STARTED,
+  maxScore: 5,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 const pool = (fencers: Fencer[], matches: Match[]): Pool => ({
-  id: 'p1', number: 1, phaseId: 'ph1', fencers, matches, referees: [],
-  isComplete: false, hasError: false, ranking: [],
-  createdAt: new Date(), updatedAt: new Date(),
+  id: 'p1',
+  number: 1,
+  phaseId: 'ph1',
+  fencers,
+  matches,
+  referees: [],
+  isComplete: false,
+  hasError: false,
+  ranking: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 describe('usePoolCalculations - fencerStats', () => {

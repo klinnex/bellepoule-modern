@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect , memo} from 'react';
+import React, { useState, useEffect, memo } from 'react';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useToast } from './Toast';
@@ -18,7 +18,11 @@ interface QRCodeShareProps {
   mode?: QRMode;
 }
 
-const QRCodeShare_: React.FC<QRCodeShareProps> = ({ competition, onClose, mode: initialMode = 'results' }) => {
+const QRCodeShare_: React.FC<QRCodeShareProps> = ({
+  competition,
+  onClose,
+  mode: initialMode = 'results',
+}) => {
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const { showToast } = useToast();
   const [activeMode, setActiveMode] = useState<QRMode>(initialMode);
@@ -47,9 +51,10 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({ competition, onClose, mode: 
         return;
       }
 
-      const path = activeMode === 'checkin'
-        ? `/competition/${competition.id}/checkin`
-        : `/competition/${competition.id}/results`;
+      const path =
+        activeMode === 'checkin'
+          ? `/competition/${competition.id}/checkin`
+          : `/competition/${competition.id}/results`;
       const url = `${info.serverInfo.url}${path}`;
       setShareUrl(url);
 
@@ -90,7 +95,7 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({ competition, onClose, mode: 
     checkin: {
       title: 'QR Code de pointage',
       description: `Les tireurs de "${competition.title}" scannent pour se pointer eux-mêmes.`,
-      info: 'Affichez ce QR code à l\'entrée de la salle pour que les tireurs confirment leur présence.',
+      info: "Affichez ce QR code à l'entrée de la salle pour que les tireurs confirment leur présence.",
     },
   };
 
@@ -98,10 +103,18 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({ competition, onClose, mode: 
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div ref={modalRef} className="modal modal--md" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div
+        ref={modalRef}
+        className="modal modal--md"
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         <div className="modal__header">
           <h2 className="modal__title">📱 {cfg.title}</h2>
-          <button className="modal__close" onClick={onClose}>×</button>
+          <button className="modal__close" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
@@ -137,9 +150,17 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({ competition, onClose, mode: 
                   <p>Génération du QR code...</p>
                 </div>
               ) : error ? (
-                <div className="alert alert--error" style={{ whiteSpace: 'pre-line' }}>{error}</div>
+                <div className="alert alert--error" style={{ whiteSpace: 'pre-line' }}>
+                  {error}
+                </div>
               ) : (
-                <img src={qrCodeUrl} alt="QR Code" className="qrcode__canvas" width={300} height={300} />
+                <img
+                  src={qrCodeUrl}
+                  alt="QR Code"
+                  className="qrcode__canvas"
+                  width={300}
+                  height={300}
+                />
               )}
             </div>
 
@@ -148,21 +169,26 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({ competition, onClose, mode: 
                 <label className="form-label">URL :</label>
                 <div className="qrcode__url-input">
                   <input type="text" value={shareUrl} readOnly className="form-control" />
-                  <button className="btn btn-secondary" onClick={copyToClipboard}>📋 Copier</button>
+                  <button className="btn btn-secondary" onClick={copyToClipboard}>
+                    📋 Copier
+                  </button>
                 </div>
               </div>
             )}
 
             <div className="qrcode__info">
               <div className="alert alert--info">
-                <strong>💡 </strong>{cfg.info}
+                <strong>💡 </strong>
+                {cfg.info}
               </div>
             </div>
           </div>
         </div>
 
         <div className="modal__footer">
-          <button className="btn btn-secondary" onClick={onClose}>Fermer</button>
+          <button className="btn btn-secondary" onClick={onClose}>
+            Fermer
+          </button>
           <button
             className="btn btn-primary"
             onClick={downloadQRCode}

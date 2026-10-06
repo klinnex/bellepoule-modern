@@ -20,14 +20,22 @@ export interface PoolExportOptions {
   logoBase64?: string;
   visibleColumns?: string[];
   signatures?: Record<string, string>; // fencerId → data URL PNG
-  competitionId?: string;              // pour QR code OCR
-  qrDataUrl?: string;                  // data URL QR généré par l'appelant
-  hideStatColumns?: boolean;           // masque V, V/M, TD, TR, Ind, Rg, Quest (feuille à remplir à la main)
-  landscape?: boolean;                 // A4 paysage
+  competitionId?: string; // pour QR code OCR
+  qrDataUrl?: string; // data URL QR généré par l'appelant
+  hideStatColumns?: boolean; // masque V, V/M, TD, TR, Ind, Rg, Quest (feuille à remplir à la main)
+  landscape?: boolean; // A4 paysage
 }
 
 /** Colonnes calculées masquées par l'option `hideStatColumns`. */
-export const POOL_PDF_STAT_COLUMN_IDS = ['victories', 'ratio', 'td', 'tr', 'index', 'rank', 'quest'];
+export const POOL_PDF_STAT_COLUMN_IDS = [
+  'victories',
+  'ratio',
+  'td',
+  'tr',
+  'index',
+  'rank',
+  'quest',
+];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -55,7 +63,10 @@ function calculateFencerStats(
   fencer: Fencer,
   matches: Match[]
 ): { v: number; d: number; td: number; tr: number; ind: number; ratio: number } {
-  let v = 0, d = 0, td = 0, tr = 0;
+  let v = 0,
+    d = 0,
+    td = 0,
+    tr = 0;
   for (const match of matches) {
     if (match.status !== MatchStatus.FINISHED) continue;
     const isFencerA = match.fencerA?.id === fencer.id;
@@ -66,7 +77,8 @@ function calculateFencerStats(
     if (!myScore || !oppScore) continue;
     td += myScore.value ?? 0;
     tr += oppScore.value ?? 0;
-    if (myScore.isVictory) v++; else d++;
+    if (myScore.isVictory) v++;
+    else d++;
   }
   const played = v + d;
   return { v, d, td, tr, ind: td - tr, ratio: played > 0 ? v / played : 0 };
@@ -74,34 +86,55 @@ function calculateFencerStats(
 
 // ─── HTML Poule ───────────────────────────────────────────────────────────────
 
-type RankData = { fencer: Fencer; stats: ReturnType<typeof calculateFencerStats>; rank: number; questPoints: number };
+type RankData = {
+  fencer: Fencer;
+  stats: ReturnType<typeof calculateFencerStats>;
+  rank: number;
+  questPoints: number;
+};
 
 const STAT_COLS: { id: string; header: string; cls: string; render: (d: RankData) => string }[] = [
-  { id: 'victories', header: 'V',      cls: 'stat-cell', render: d => `${d.stats.v}` },
-  { id: 'ratio',     header: 'V/M',    cls: 'stat-cell', render: d => d.stats.ratio.toFixed(2) },
-  { id: 'td',        header: 'TD',     cls: 'stat-cell', render: d => `${d.stats.td}` },
-  { id: 'tr',        header: 'TR',     cls: 'stat-cell', render: d => `${d.stats.tr}` },
-  { id: 'index',     header: 'Ind',    cls: 'stat-cell', render: d => d.stats.ind >= 0 ? `+${d.stats.ind}` : `${d.stats.ind}` },
-  { id: 'rank',      header: 'Rg',     cls: 'rank-cell', render: d => `${d.rank}` },
-  { id: 'quest',     header: 'Quest',  cls: 'stat-cell', render: d => `${d.questPoints}` },
-  { id: 'club',      header: 'Club',   cls: 'name-cell', render: d => d.fencer.club ?? '' },
-  { id: 'nation',    header: 'Nation', cls: 'stat-cell', render: d => d.fencer.nationality ?? '' },
-  { id: 'region',    header: 'Région', cls: 'name-cell', render: d => d.fencer.region ?? '' },
+  { id: 'victories', header: 'V', cls: 'stat-cell', render: d => `${d.stats.v}` },
+  { id: 'ratio', header: 'V/M', cls: 'stat-cell', render: d => d.stats.ratio.toFixed(2) },
+  { id: 'td', header: 'TD', cls: 'stat-cell', render: d => `${d.stats.td}` },
+  { id: 'tr', header: 'TR', cls: 'stat-cell', render: d => `${d.stats.tr}` },
+  {
+    id: 'index',
+    header: 'Ind',
+    cls: 'stat-cell',
+    render: d => (d.stats.ind >= 0 ? `+${d.stats.ind}` : `${d.stats.ind}`),
+  },
+  { id: 'rank', header: 'Rg', cls: 'rank-cell', render: d => `${d.rank}` },
+  { id: 'quest', header: 'Quest', cls: 'stat-cell', render: d => `${d.questPoints}` },
+  { id: 'club', header: 'Club', cls: 'name-cell', render: d => d.fencer.club ?? '' },
+  { id: 'nation', header: 'Nation', cls: 'stat-cell', render: d => d.fencer.nationality ?? '' },
+  { id: 'region', header: 'Région', cls: 'name-cell', render: d => d.fencer.region ?? '' },
 ];
 
-export function generatePoolHTML(pool: Pool, options: PoolExportOptions, template?: PdfTemplate): string {
+export function generatePoolHTML(
+  pool: Pool,
+  options: PoolExportOptions,
+  template?: PdfTemplate
+): string {
   const runtimeTitle = `Poule ${pool.number}`;
   const effectiveTitle = template?.customTitle?.trim() || options.title || runtimeTitle;
   const { competitionName = '', weapon = '', category = '', logoBase64, qrDataUrl } = options;
   const fencers = pool.fencers ?? [];
   const matches = pool.matches ?? [];
   const finishedCount = matches.filter(m => m.status === MatchStatus.FINISHED).length;
-  const now = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const now = new Date().toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
 
   const isLaserSabre = options.weapon === 'L';
-  const activeCols = (options.visibleColumns
-    ? STAT_COLS.filter(c => options.visibleColumns!.includes(c.id) && (c.id !== 'quest' || isLaserSabre))
-    : STAT_COLS.filter(c => c.id !== 'quest' || isLaserSabre)
+  const activeCols = (
+    options.visibleColumns
+      ? STAT_COLS.filter(
+          c => options.visibleColumns!.includes(c.id) && (c.id !== 'quest' || isLaserSabre)
+        )
+      : STAT_COLS.filter(c => c.id !== 'quest' || isLaserSabre)
   ).filter(c => !options.hideStatColumns || !POOL_PDF_STAT_COLUMN_IDS.includes(c.id));
 
   const rankings = fencers.map(f => ({
@@ -115,24 +148,29 @@ export function generatePoolHTML(pool: Pool, options: PoolExportOptions, templat
     if (a.stats.ind !== b.stats.ind) return b.stats.ind - a.stats.ind;
     return b.stats.td - a.stats.td;
   });
-  rankings.forEach((r, i) => { r.rank = i + 1; });
+  rankings.forEach((r, i) => {
+    r.rank = i + 1;
+  });
   const rankMap = new Map(rankings.map(r => [r.fencer.id, r]));
 
   const colHeaders = fencers.map((_, i) => `<th class="num-header">${i + 1}</th>`).join('');
-  const rows = fencers.map((fencer, row) => {
-    const data = rankMap.get(fencer.id)!;
-    const cells = fencers.map((opponent, col) => {
-      if (row === col) return '<td class="diagonal"></td>';
-      const s = getScoreForCell(fencer, opponent, matches);
-      if (!s) return '<td class="cell-pending"></td>';
-      return `<td class="${s.isVictory ? 'cell-victory' : 'cell-defeat'}">${s.display}</td>`;
-    }).join('');
-    const statCells = activeCols.map(c => `<td class="${c.cls}">${c.render(data)}</td>`).join('');
-    const sig = options.signatures?.[fencer.id];
-    const sigCell = sig
-      ? `<td class="sig-cell"><img src="${sig}" style="max-height:12mm;max-width:30mm;display:block;margin:auto;" /></td>`
-      : `<td class="sig-cell"></td>`;
-    return `
+  const rows = fencers
+    .map((fencer, row) => {
+      const data = rankMap.get(fencer.id)!;
+      const cells = fencers
+        .map((opponent, col) => {
+          if (row === col) return '<td class="diagonal"></td>';
+          const s = getScoreForCell(fencer, opponent, matches);
+          if (!s) return '<td class="cell-pending"></td>';
+          return `<td class="${s.isVictory ? 'cell-victory' : 'cell-defeat'}">${s.display}</td>`;
+        })
+        .join('');
+      const statCells = activeCols.map(c => `<td class="${c.cls}">${c.render(data)}</td>`).join('');
+      const sig = options.signatures?.[fencer.id];
+      const sigCell = sig
+        ? `<td class="sig-cell"><img src="${sig}" style="max-height:12mm;max-width:30mm;display:block;margin:auto;" /></td>`
+        : `<td class="sig-cell"></td>`;
+      return `
       <tr>
         <td class="num-cell">${row + 1}</td>
         <td class="name-cell">${fencer.lastName.toUpperCase()} ${fencer.firstName ?? ''}</td>
@@ -140,43 +178,57 @@ export function generatePoolHTML(pool: Pool, options: PoolExportOptions, templat
         ${statCells}
         ${sigCell}
       </tr>`;
-  }).join('');
+    })
+    .join('');
 
   const matchIndexById = new Map(matches.map((m, i) => [m.id, i + 1]));
   const pending = matches.filter(m => m.status !== MatchStatus.FINISHED);
-  const pendingSection = pending.length === 0 ? '' : `
+  const pendingSection =
+    pending.length === 0
+      ? ''
+      : `
     <div class="section-label">Matchs à jouer (${pending.length})</div>
     <div class="match-grid">
-      ${pending.map(m => {
-        const idx = matchIndexById.get(m.id) ?? 0;
-        const rA = rankMap.get(m.fencerA?.id ?? '')?.rank ?? '?';
-        const rB = rankMap.get(m.fencerB?.id ?? '')?.rank ?? '?';
-        return `<div class="match-item match-pending">${idx}. (${rA}) ${m.fencerA?.lastName ?? '?'} — (${rB}) ${m.fencerB?.lastName ?? '?'}</div>`;
-      }).join('')}
+      ${pending
+        .map(m => {
+          const idx = matchIndexById.get(m.id) ?? 0;
+          const rA = rankMap.get(m.fencerA?.id ?? '')?.rank ?? '?';
+          const rB = rankMap.get(m.fencerB?.id ?? '')?.rank ?? '?';
+          return `<div class="match-item match-pending">${idx}. (${rA}) ${m.fencerA?.lastName ?? '?'} — (${rB}) ${m.fencerB?.lastName ?? '?'}</div>`;
+        })
+        .join('')}
     </div>`;
 
   const finished = matches.filter(m => m.status === MatchStatus.FINISHED);
-  const finishedSection = finished.length === 0 ? '' : `
+  const finishedSection =
+    finished.length === 0
+      ? ''
+      : `
     <div class="section-label" style="margin-top:4mm">Résultats (${finished.length})</div>
     <div class="match-grid match-grid-2col">
-      ${finished.map(m => {
-        const idx = matchIndexById.get(m.id) ?? 0;
-        const sA = m.scoreA?.isVictory ? `V${m.scoreA.value}` : `${m.scoreA?.value ?? 0}`;
-        const sB = m.scoreB?.isVictory ? `V${m.scoreB.value}` : `${m.scoreB?.value ?? 0}`;
-        return `<div class="match-item match-done">${idx}. ${m.fencerA?.lastName ?? '?'} <b>${sA}–${sB}</b> ${m.fencerB?.lastName ?? '?'}</div>`;
-      }).join('')}
+      ${finished
+        .map(m => {
+          const idx = matchIndexById.get(m.id) ?? 0;
+          const sA = m.scoreA?.isVictory ? `V${m.scoreA.value}` : `${m.scoreA?.value ?? 0}`;
+          const sB = m.scoreB?.isVictory ? `V${m.scoreB.value}` : `${m.scoreB?.value ?? 0}`;
+          return `<div class="match-item match-done">${idx}. ${m.fencerA?.lastName ?? '?'} <b>${sA}–${sB}</b> ${m.fencerB?.lastName ?? '?'}</div>`;
+        })
+        .join('')}
     </div>`;
 
   const weaponLabel = weapon ? `<span class="chip"><strong>Arme</strong> ${weapon}</span>` : '';
-  const catLabel = category ? `<span class="chip"><strong>Catégorie</strong> ${category}</span>` : '';
-
-  const assignedReferees = pool.referees ?? [];
-  const refereeLabel = assignedReferees.length > 0
-    ? `<span style="font-size:0.85em;color:#ffffff;font-weight:600;">🧑‍⚖️ ${assignedReferees.map(r => `${r.lastName} ${r.firstName}`).join(' / ')}</span>`
+  const catLabel = category
+    ? `<span class="chip"><strong>Catégorie</strong> ${category}</span>`
     : '';
 
+  const assignedReferees = pool.referees ?? [];
+  const refereeLabel =
+    assignedReferees.length > 0
+      ? `<span style="font-size:0.85em;color:#ffffff;font-weight:600;">🧑‍⚖️ ${assignedReferees.map(r => `${r.lastName} ${r.firstName}`).join(' / ')}</span>`
+      : '';
+
   const sections: Record<string, string> = {
-    'header': `
+    header: `
   <div class="doc-header">
     ${logoBase64 ? `<img class="doc-header-logo" src="${logoBase64}" alt="Logo" />` : ''}
     <div class="doc-header-left">
@@ -186,7 +238,9 @@ export function generatePoolHTML(pool: Pool, options: PoolExportOptions, templat
     <div class="doc-header-badge">P${pool.number}</div>
   </div>`,
     'gold-bar': `  <div class="gold-bar"></div>`,
-    'competition-name': competitionName ? `  <div class="competition-name-section">${competitionName}</div>` : '',
+    'competition-name': competitionName
+      ? `  <div class="competition-name-section">${competitionName}</div>`
+      : '',
     'meta-chips': `
   <div class="meta-row">
     ${weaponLabel}${catLabel}
@@ -209,7 +263,7 @@ export function generatePoolHTML(pool: Pool, options: PoolExportOptions, templat
   </table>`,
     'pending-matches': pendingSection,
     'finished-matches': finishedSection,
-    'footer': `
+    footer: `
   <div class="doc-footer">
     <span>BellePoule Modern</span>
     <span>${now}</span>
@@ -221,7 +275,17 @@ export function generatePoolHTML(pool: Pool, options: PoolExportOptions, templat
   <div class="ocr-corner ocr-br" aria-hidden="true">${qrDataUrl ? `<img src="${qrDataUrl}" alt="" style="display:block;width:100%;height:100%;" />` : ''}</div>`,
   };
 
-  const defaultOrder = ['ocr-marks', 'header', 'gold-bar', 'competition-name', 'meta-chips', 'score-grid', 'pending-matches', 'finished-matches', 'footer'];
+  const defaultOrder = [
+    'ocr-marks',
+    'header',
+    'gold-bar',
+    'competition-name',
+    'meta-chips',
+    'score-grid',
+    'pending-matches',
+    'finished-matches',
+    'footer',
+  ];
   const body = assembleBody(sections, template, defaultOrder);
   const cssOverrides = template ? buildCssOverrides(template) : '';
 
@@ -358,9 +422,15 @@ ${body}
 
 // ─── Export Poule ─────────────────────────────────────────────────────────────
 
-async function buildPoolExportHTML(pool: Pool, options: PoolExportOptions, template?: PdfTemplate): Promise<string> {
-  if (!pool.fencers || pool.fencers.length === 0) throw new Error('La poule ne contient aucun tireur');
-  if (!pool.matches || pool.matches.length === 0) throw new Error('La poule ne contient aucun match');
+async function buildPoolExportHTML(
+  pool: Pool,
+  options: PoolExportOptions,
+  template?: PdfTemplate
+): Promise<string> {
+  if (!pool.fencers || pool.fencers.length === 0)
+    throw new Error('La poule ne contient aucun tireur');
+  if (!pool.matches || pool.matches.length === 0)
+    throw new Error('La poule ne contient aucun match');
 
   const title = options.title ?? `Poule ${pool.number}`;
 
@@ -368,7 +438,11 @@ async function buildPoolExportHTML(pool: Pool, options: PoolExportOptions, templ
   try {
     const QRCode = (await import('qrcode')).default;
     const qrPayload = JSON.stringify({ v: 1, pid: pool.id, cid: options.competitionId ?? '' });
-    qrDataUrl = await QRCode.toDataURL(qrPayload, { width: 140, margin: 1, color: { dark: '#000', light: '#fff' } });
+    qrDataUrl = await QRCode.toDataURL(qrPayload, {
+      width: 140,
+      margin: 1,
+      color: { dark: '#000', light: '#fff' },
+    });
   } catch {
     // QR silencieusement omis si qrcode indisponible
   }
@@ -376,7 +450,11 @@ async function buildPoolExportHTML(pool: Pool, options: PoolExportOptions, templ
   return generatePoolHTML(pool, { ...options, title, qrDataUrl }, template);
 }
 
-export async function exportPoolToPDF(pool: Pool, options: PoolExportOptions = {}, template?: PdfTemplate): Promise<void> {
+export async function exportPoolToPDF(
+  pool: Pool,
+  options: PoolExportOptions = {},
+  template?: PdfTemplate
+): Promise<void> {
   const html = await buildPoolExportHTML(pool, options, template);
   await savePDF(html, `poule-${pool.number}.pdf`);
 }
@@ -390,13 +468,21 @@ export async function exportMultiplePoolsToPDF(
 ): Promise<void> {
   if (pools.length === 0) throw new Error('Aucune poule à exporter');
   for (const pool of pools) {
-    await exportPoolToPDF(pool, { title: `${title} - Poule ${pool.number}`, logoBase64, competitionName }, template);
+    await exportPoolToPDF(
+      pool,
+      { title: `${title} - Poule ${pool.number}`, logoBase64, competitionName },
+      template
+    );
   }
 }
 
 // ─── Impression Poule (dialogue d'impression natif) ───────────────────────────
 
-export async function printPoolHTML(pool: Pool, options: PoolExportOptions = {}, template?: PdfTemplate): Promise<void> {
+export async function printPoolHTML(
+  pool: Pool,
+  options: PoolExportOptions = {},
+  template?: PdfTemplate
+): Promise<void> {
   const html = await buildPoolExportHTML(pool, options, template);
   const api = (window as any).electronAPI;
   if (!api?.file?.printHtml) {
@@ -417,13 +503,21 @@ export async function printMultiplePoolsHTML(
 ): Promise<void> {
   if (pools.length === 0) throw new Error('Aucune poule à imprimer');
   for (const pool of pools) {
-    await printPoolHTML(pool, { title: `${title} - Poule ${pool.number}`, logoBase64, competitionName }, template);
+    await printPoolHTML(
+      pool,
+      { title: `${title} - Poule ${pool.number}`, logoBase64, competitionName },
+      template
+    );
   }
 }
 
 // ─── Aperçu avant impression (ouvre le PDF dans le lecteur par défaut de l'OS) ─
 
-export async function previewPoolHTML(pool: Pool, options: PoolExportOptions = {}, template?: PdfTemplate): Promise<void> {
+export async function previewPoolHTML(
+  pool: Pool,
+  options: PoolExportOptions = {},
+  template?: PdfTemplate
+): Promise<void> {
   const html = await buildPoolExportHTML(pool, options, template);
   const api = (window as any).electronAPI;
   if (!api?.file?.previewHtmlAsPDF) {

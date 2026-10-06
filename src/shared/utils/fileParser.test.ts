@@ -135,7 +135,8 @@ describe('parseFFEFile', () => {
   });
 
   it('format standard NOM;PRENOM;SEXE;DATE;NATION;LIGUE;CLUB;LICENCE;CLASSEMENT', () => {
-    const content = 'NOM;PRENOM;SEXE;DATE;NATION;LIGUE;CLUB;LICENCE;CLASSEMENT\nDUPONT;Jean;M;15/06/1990;FRA;IDF;CE VERSAILLES;123456;10';
+    const content =
+      'NOM;PRENOM;SEXE;DATE;NATION;LIGUE;CLUB;LICENCE;CLASSEMENT\nDUPONT;Jean;M;15/06/1990;FRA;IDF;CE VERSAILLES;123456;10';
     const result = parseFFEFile(content);
     expect(result.success).toBe(true);
     expect(result.fencers).toHaveLength(1);
@@ -203,7 +204,8 @@ describe('parseFFEFile', () => {
   });
 
   it('status NOT_CHECKED_IN par défaut', () => {
-    const content = 'NOM;PRENOM;SEXE;DATE;NATION;LIGUE;CLUB;LICENCE;CLASSEMENT\nDUPONT;Jean;M;01/01/1990;FRA;;;111;1';
+    const content =
+      'NOM;PRENOM;SEXE;DATE;NATION;LIGUE;CLUB;LICENCE;CLASSEMENT\nDUPONT;Jean;M;01/01/1990;FRA;;;111;1';
     const result = parseFFEFile(content);
     expect(result.fencers[0].status).toBe(FencerStatus.NOT_CHECKED_IN);
   });
@@ -328,7 +330,9 @@ describe('issue #906 — import .fff', () => {
   });
 
   it('club contenant une virgule : champs non décalés', () => {
-    const out = exportFencersToFFF([mk('Dupont', 'Jean', { club: 'Cercle, Paris', license: '42' })]);
+    const out = exportFencersToFFF([
+      mk('Dupont', 'Jean', { club: 'Cercle, Paris', license: '42' }),
+    ]);
     const f = parseFFEFile(out).fencers[0];
     expect(f.club).toBe('Cercle Paris');
     expect(f.license).toBe('42');

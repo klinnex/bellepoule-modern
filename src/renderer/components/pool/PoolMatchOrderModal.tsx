@@ -54,9 +54,7 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
           }}
         >
           <div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>
-              Ordre officiel des matchs
-            </div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>Ordre officiel des matchs</div>
             <span
               style={{
                 fontSize: '0.7rem',
@@ -123,9 +121,7 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
               </option>
             ))}
           </select>
-          <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>
-            {matchCount} matchs
-          </span>
+          <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{matchCount} matchs</span>
         </div>
 
         {/* Liste des matchs — même format que "Matches à venir" dans PoolMatchList */}

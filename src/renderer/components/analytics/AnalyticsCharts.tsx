@@ -21,15 +21,23 @@ interface BarItem {
   sublabel?: string;
 }
 
-const HBar: React.FC<{ items: BarItem[]; maxValue?: number; title: string }> = ({ items, maxValue, title }) => {
+const HBar: React.FC<{ items: BarItem[]; maxValue?: number; title: string }> = ({
+  items,
+  maxValue,
+  title,
+}) => {
   const max = maxValue ?? Math.max(...items.map(i => i.value), 1);
   return (
     <div className="bg-white rounded-lg border border-gray-100 p-4">
-      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{title}</div>
+      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        {title}
+      </div>
       <div className="space-y-2">
         {items.map((item, i) => (
           <div key={i} className="flex items-center gap-2">
-            <div className="w-20 text-right text-xs text-gray-600 truncate flex-shrink-0">{item.label}</div>
+            <div className="w-20 text-right text-xs text-gray-600 truncate flex-shrink-0">
+              {item.label}
+            </div>
             <div className="flex-1 h-5 bg-gray-100 rounded overflow-hidden">
               <div
                 className="h-full rounded transition-all duration-500"
@@ -55,14 +63,21 @@ interface DonutSlice {
   label: string;
 }
 
-const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: string }> = ({ slices, title, centerLabel }) => {
+const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: string }> = ({
+  slices,
+  title,
+  centerLabel,
+}) => {
   const total = slices.reduce((s, x) => s + x.value, 0);
-  if (total === 0) return (
-    <div className="bg-white rounded-lg border border-gray-100 p-4">
-      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{title}</div>
-      <div className="text-center text-gray-300 text-sm py-8">Aucune donnée</div>
-    </div>
-  );
+  if (total === 0)
+    return (
+      <div className="bg-white rounded-lg border border-gray-100 p-4">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          {title}
+        </div>
+        <div className="text-center text-gray-300 text-sm py-8">Aucune donnée</div>
+      </div>
+    );
 
   const r = 34;
   const cx = 44;
@@ -79,14 +94,18 @@ const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: strin
 
   return (
     <div className="bg-white rounded-lg border border-gray-100 p-4">
-      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{title}</div>
+      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        {title}
+      </div>
       <div className="flex items-center gap-4">
         <svg width="88" height="88" viewBox="0 0 88 88" className="flex-shrink-0">
           <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f3f4f6" strokeWidth="14" />
           {arcs.map((arc, i) => (
             <circle
               key={i}
-              cx={cx} cy={cy} r={r}
+              cx={cx}
+              cy={cy}
+              r={r}
               fill="none"
               stroke={arc.color}
               strokeWidth="14"
@@ -96,7 +115,14 @@ const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: strin
             />
           ))}
           {centerLabel && (
-            <text x={cx} y={cy + 5} textAnchor="middle" fontSize="11" fontWeight="bold" fill="#374151">
+            <text
+              x={cx}
+              y={cy + 5}
+              textAnchor="middle"
+              fontSize="11"
+              fontWeight="bold"
+              fill="#374151"
+            >
               {centerLabel}
             </text>
           )}
@@ -104,7 +130,10 @@ const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: strin
         <div className="space-y-1.5">
           {arcs.map((arc, i) => (
             <div key={i} className="flex items-center gap-1.5 text-xs">
-              <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: arc.color }} />
+              <div
+                className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                style={{ backgroundColor: arc.color }}
+              />
               <span className="text-gray-600">{arc.label}</span>
               <span className="font-mono font-medium text-gray-800 ml-auto">{arc.value}</span>
               <span className="text-gray-400">({(arc.pct * 100).toFixed(0)}%)</span>
@@ -133,17 +162,42 @@ const AggregateHeatmap: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats
         <TouchZoneHeatmap zoneA={totA} zoneB={totB} zoneC={totC} />
         <div className="space-y-3 flex-1">
           {[
-            { zone: 'A', count: totA, pts: 1, color: '#bfdbfe', border: '#93c5fd', text: 'Main/Arme' },
-            { zone: 'B', count: totB, pts: 3, color: '#60a5fa', border: '#3b82f6', text: 'Bras/Jambes' },
-            { zone: 'C', count: totC, pts: 5, color: '#1d4ed8', border: '#1e40af', text: 'Tête/Torse' },
+            {
+              zone: 'A',
+              count: totA,
+              pts: 1,
+              color: '#bfdbfe',
+              border: '#93c5fd',
+              text: 'Main/Arme',
+            },
+            {
+              zone: 'B',
+              count: totB,
+              pts: 3,
+              color: '#60a5fa',
+              border: '#3b82f6',
+              text: 'Bras/Jambes',
+            },
+            {
+              zone: 'C',
+              count: totC,
+              pts: 5,
+              color: '#1d4ed8',
+              border: '#1e40af',
+              text: 'Tête/Torse',
+            },
           ].map(z => {
             const total = totA + totB + totC;
             const pct = total > 0 ? ((z.count / total) * 100).toFixed(1) : '0.0';
             return (
               <div key={z.zone}>
                 <div className="flex justify-between text-xs text-gray-600 mb-1">
-                  <span>Zone {z.zone} · {z.text} · {z.pts}pt{z.pts > 1 ? 's' : ''}</span>
-                  <span className="font-mono">{z.count} ({pct}%)</span>
+                  <span>
+                    Zone {z.zone} · {z.text} · {z.pts}pt{z.pts > 1 ? 's' : ''}
+                  </span>
+                  <span className="font-mono">
+                    {z.count} ({pct}%)
+                  </span>
                 </div>
                 <div className="w-full h-3 bg-gray-100 rounded overflow-hidden">
                   <div
@@ -158,7 +212,9 @@ const AggregateHeatmap: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats
               </div>
             );
           })}
-          <div className="text-xs text-gray-400 mt-2">Total points marqués : <span className="font-bold text-gray-700">{totalPts}</span></div>
+          <div className="text-xs text-gray-400 mt-2">
+            Total points marqués : <span className="font-bold text-gray-700">{totalPts}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -167,12 +223,13 @@ const AggregateHeatmap: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats
 
 // ── Top tireurs bar chart ──────────────────────────────────────────────────────
 
-const TopFencersChart: React.FC<{ stats: FencerCompetitionStats[]; isLaser: boolean }> = ({ stats, isLaser }) => {
+const TopFencersChart: React.FC<{ stats: FencerCompetitionStats[]; isLaser: boolean }> = ({
+  stats,
+  isLaser,
+}) => {
   const sorted = [...stats]
     .sort((a, b) =>
-      isLaser
-        ? b.totalTouchPoints - a.totalTouchPoints
-        : b.matchesPlayed - a.matchesPlayed
+      isLaser ? b.totalTouchPoints - a.totalTouchPoints : b.matchesPlayed - a.matchesPlayed
     )
     .slice(0, 8);
 
@@ -214,7 +271,9 @@ const DurationChart: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats })
 
   const items: BarItem[] = buckets.map(b => ({
     label: b.label,
-    value: withDuration.filter(s => s.averageDurationSeconds >= b.min && s.averageDurationSeconds < b.max).length,
+    value: withDuration.filter(
+      s => s.averageDurationSeconds >= b.min && s.averageDurationSeconds < b.max
+    ).length,
     color: b.color,
     sublabel: 't.',
   }));
@@ -272,17 +331,31 @@ const CardsByReason: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats })
 async function exportCSV(competition: Competition, stats: FencerCompetitionStats[]) {
   const isLaser = competition.weapon === Weapon.LASER;
   const headers = [
-    'Nom', 'Prénom', 'Club',
+    'Nom',
+    'Prénom',
+    'Club',
     ...(isLaser ? ['Zone A', 'Zone B', 'Zone C', 'Points total'] : []),
-    'Cartons blancs', 'Cartons jaunes', 'Cartons rouges',
-    'Sorties piste', 'Matchs joués', 'Durée moy. (s)', 'Fins anticipées',
+    'Cartons blancs',
+    'Cartons jaunes',
+    'Cartons rouges',
+    'Sorties piste',
+    'Matchs joués',
+    'Durée moy. (s)',
+    'Fins anticipées',
   ];
 
   const rows = stats.map(s => [
-    s.fencerLastName, s.fencerFirstName, s.fencerClub ?? '',
+    s.fencerLastName,
+    s.fencerFirstName,
+    s.fencerClub ?? '',
     ...(isLaser ? [s.touchesZoneA, s.touchesZoneB, s.touchesZoneC, s.totalTouchPoints] : []),
-    s.whiteCards, s.yellowCards, s.redCards,
-    s.arenaExits, s.matchesPlayed, s.averageDurationSeconds, s.matchesFinishedEarly,
+    s.whiteCards,
+    s.yellowCards,
+    s.redCards,
+    s.arenaExits,
+    s.matchesPlayed,
+    s.averageDurationSeconds,
+    s.matchesFinishedEarly,
   ]);
 
   const csv = [headers, ...rows]
@@ -320,8 +393,11 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
 
   const handleExportCSV = async () => {
     setExporting(true);
-    try { await exportCSV(competition, stats); }
-    finally { setExporting(false); }
+    try {
+      await exportCSV(competition, stats);
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (

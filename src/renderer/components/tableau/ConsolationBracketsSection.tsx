@@ -24,16 +24,68 @@ interface ConsolationBracketsSectionProps {
 
 const CONS_STYLES = {
   consolationSection: { marginTop: '1.5rem' } satisfies React.CSSProperties,
-  consolationCard: { background: '#f9fafb', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e7eb' } satisfies React.CSSProperties,
-  consolationToolbar: { display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '0.5rem' } satisfies React.CSSProperties,
-  consolationHeader: { display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' } satisfies React.CSSProperties,
-  consolationTitle: { margin: 0, fontSize: '1rem', fontWeight: 600, color: '#374151' } satisfies React.CSSProperties,
-  consolationDoneBadge: { background: '#d1fae5', color: '#065f46', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 500 } satisfies React.CSSProperties,
-  consolationWinnerBadge: { background: '#fef3c7', padding: '0.25rem 0.75rem', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600 } satisfies React.CSSProperties,
-  consolationRoundsRow: { display: 'flex', gap: '1rem', overflowX: 'auto' as const } satisfies React.CSSProperties,
-  consolationRoundCol: { display: 'flex', flexDirection: 'column' as const, minWidth: '200px' } satisfies React.CSSProperties,
-  consolationRoundTitle: { textAlign: 'center' as const, fontWeight: 600, marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem' } satisfies React.CSSProperties,
-  consolationRoundMatches: { display: 'flex', flexDirection: 'column' as const, gap: '0.5rem' } satisfies React.CSSProperties,
+  consolationCard: {
+    background: '#f9fafb',
+    borderRadius: '8px',
+    padding: '1rem',
+    marginBottom: '1rem',
+    border: '1px solid #e5e7eb',
+  } satisfies React.CSSProperties,
+  consolationToolbar: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '0.5rem',
+    marginBottom: '0.5rem',
+  } satisfies React.CSSProperties,
+  consolationHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    marginBottom: '0.75rem',
+  } satisfies React.CSSProperties,
+  consolationTitle: {
+    margin: 0,
+    fontSize: '1rem',
+    fontWeight: 600,
+    color: '#374151',
+  } satisfies React.CSSProperties,
+  consolationDoneBadge: {
+    background: '#d1fae5',
+    color: '#065f46',
+    padding: '0.125rem 0.5rem',
+    borderRadius: '9999px',
+    fontSize: '0.75rem',
+    fontWeight: 500,
+  } satisfies React.CSSProperties,
+  consolationWinnerBadge: {
+    background: '#fef3c7',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '8px',
+    fontSize: '0.875rem',
+    fontWeight: 600,
+  } satisfies React.CSSProperties,
+  consolationRoundsRow: {
+    display: 'flex',
+    gap: '1rem',
+    overflowX: 'auto' as const,
+  } satisfies React.CSSProperties,
+  consolationRoundCol: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    minWidth: '200px',
+  } satisfies React.CSSProperties,
+  consolationRoundTitle: {
+    textAlign: 'center' as const,
+    fontWeight: 600,
+    marginBottom: '0.5rem',
+    color: '#374151',
+    fontSize: '0.875rem',
+  } satisfies React.CSSProperties,
+  consolationRoundMatches: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.5rem',
+  } satisfies React.CSSProperties,
 } satisfies Record<string, React.CSSProperties>;
 
 const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
@@ -47,11 +99,13 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
 }) => {
   // Fenêtres « Places X–Y » repliées (ids des brackets)
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set());
-  const allCollapsed = consolationBrackets.length > 0 && consolationBrackets.every(b => collapsedIds.has(b.id));
+  const allCollapsed =
+    consolationBrackets.length > 0 && consolationBrackets.every(b => collapsedIds.has(b.id));
   const toggleBracket = (id: string) =>
     setCollapsedIds(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   const toggleAll = () =>
@@ -61,7 +115,12 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
     <div style={CONS_STYLES.consolationSection}>
       {consolationBrackets.length > 1 && (
         <div style={CONS_STYLES.consolationToolbar}>
-          <button type="button" className="btn btn-secondary" style={{ fontSize: '0.75rem' }} onClick={toggleAll}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ fontSize: '0.75rem' }}
+            onClick={toggleAll}
+          >
             {allCollapsed ? 'Tout déplier' : 'Tout compacter'}
           </button>
         </div>
@@ -72,7 +131,10 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
           const finalM = bracket.matches.find(m => m.round === 2);
           const bracketRounds: number[] = [];
           let r = bracket.size;
-          while (r >= 2) { bracketRounds.push(r); r = r / 2; }
+          while (r >= 2) {
+            bracketRounds.push(r);
+            r = r / 2;
+          }
           if (bracket.matches.some(m => m.round === 3)) {
             const fi = bracketRounds.indexOf(2);
             if (fi !== -1) bracketRounds.splice(fi, 0, 3);
@@ -80,8 +142,16 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
           const isCollapsed = collapsedIds.has(bracket.id);
           return (
             <div key={bracket.id} style={CONS_STYLES.consolationCard}>
-              <div style={{ ...CONS_STYLES.consolationHeader, ...(isCollapsed ? { marginBottom: 0 } : null) }}>
-                <CollapseToggle collapsed={isCollapsed} onToggle={() => toggleBracket(bracket.id)} />
+              <div
+                style={{
+                  ...CONS_STYLES.consolationHeader,
+                  ...(isCollapsed ? { marginBottom: 0 } : null),
+                }}
+              >
+                <CollapseToggle
+                  collapsed={isCollapsed}
+                  onToggle={() => toggleBracket(bracket.id)}
+                />
                 <h3 style={CONS_STYLES.consolationTitle}>🥋 {bracket.name}</h3>
                 {bracket.isComplete && (
                   <span style={CONS_STYLES.consolationDoneBadge}>Terminé</span>
@@ -93,34 +163,55 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
                 )}
               </div>
               {!isCollapsed && (
-              <div style={CONS_STYLES.consolationRoundsRow}>
-                {bracketRounds.map(round => {
-                  const roundMatches = bracket.matches.filter(m => m.round === round).sort((a, b) => a.position - b.position);
-                  const roundName = round === 3 ? 'Petite finale' : round === 2 ? 'Finale' : round === 4 ? 'Demi-finales' : round === 8 ? 'Quarts' : `Tableau de ${round}`;
-                  return (
-                    <div key={round} style={CONS_STYLES.consolationRoundCol}>
-                      <div style={CONS_STYLES.consolationRoundTitle}>{roundName}</div>
-                      <div style={CONS_STYLES.consolationRoundMatches}>
-                        {roundMatches.map(match => (
-                          <MatchCard
-                            key={match.id}
-                            match={match}
-                            viewMode="full"
-                            baseMatchHeight={BASE_MATCH_HEIGHT}
-                            onMatchClick={m => onMatchClick(m, bracket.id)}
-                            onArenaClick={arenaCount > 0 && match.winner === null ? () => {
-                              onArenaClick(match.id, bracket.id);
-                            } : () => {}}
-                            onRefereeClick={match.winner === null ? () => { onRefereeClick(match.id); } : undefined}
-                            onSignaturesClick={onSignaturesClick}
-                            readOnly={readOnly}
-                          />
-                        ))}
+                <div style={CONS_STYLES.consolationRoundsRow}>
+                  {bracketRounds.map(round => {
+                    const roundMatches = bracket.matches
+                      .filter(m => m.round === round)
+                      .sort((a, b) => a.position - b.position);
+                    const roundName =
+                      round === 3
+                        ? 'Petite finale'
+                        : round === 2
+                          ? 'Finale'
+                          : round === 4
+                            ? 'Demi-finales'
+                            : round === 8
+                              ? 'Quarts'
+                              : `Tableau de ${round}`;
+                    return (
+                      <div key={round} style={CONS_STYLES.consolationRoundCol}>
+                        <div style={CONS_STYLES.consolationRoundTitle}>{roundName}</div>
+                        <div style={CONS_STYLES.consolationRoundMatches}>
+                          {roundMatches.map(match => (
+                            <MatchCard
+                              key={match.id}
+                              match={match}
+                              viewMode="full"
+                              baseMatchHeight={BASE_MATCH_HEIGHT}
+                              onMatchClick={m => onMatchClick(m, bracket.id)}
+                              onArenaClick={
+                                arenaCount > 0 && match.winner === null
+                                  ? () => {
+                                      onArenaClick(match.id, bracket.id);
+                                    }
+                                  : () => {}
+                              }
+                              onRefereeClick={
+                                match.winner === null
+                                  ? () => {
+                                      onRefereeClick(match.id);
+                                    }
+                                  : undefined
+                              }
+                              onSignaturesClick={onSignaturesClick}
+                              readOnly={readOnly}
+                            />
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           );

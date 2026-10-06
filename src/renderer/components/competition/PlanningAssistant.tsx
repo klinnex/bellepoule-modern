@@ -80,9 +80,14 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
         aria-labelledby="planning-assistant-title"
       >
         <div className="modal-header">
-          <h2 className="modal-title" id="planning-assistant-title">🗓️ Assistant de planning</h2>
+          <h2 className="modal-title" id="planning-assistant-title">
+            🗓️ Assistant de planning
+          </h2>
         </div>
-        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div
+          className="modal-body"
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <label htmlFor="planning-arena-count" style={{ fontSize: '0.875rem', fontWeight: 600 }}>
               Nombre de pistes disponibles
@@ -124,7 +129,16 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
                   Aucun point de vigilance détecté avec cette configuration.
                 </p>
               ) : (
-                <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                <ul
+                  style={{
+                    margin: 0,
+                    paddingLeft: '1.25rem',
+                    fontSize: '0.875rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.4rem',
+                  }}
+                >
                   {recommendations.map((r, i) => (
                     <li key={`rec-${i}`}>{r}</li>
                   ))}
@@ -136,7 +150,8 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
 
               {result && result.metrics.arenaUtilization && (
                 <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-light)' }}>
-                  Temps d'attente moyen estimé : {Math.max(0, Math.round(result.metrics.averageWaitTime))} min
+                  Temps d'attente moyen estimé :{' '}
+                  {Math.max(0, Math.round(result.metrics.averageWaitTime))} min
                 </div>
               )}
             </>

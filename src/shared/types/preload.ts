@@ -392,7 +392,9 @@ export interface RemoteServerAPI {
     useHttps?: boolean
   ) => Promise<{ success: boolean; serverInfo?: RemoteServerInfo; error?: string }>;
   stopServer: (competitionId: string) => Promise<{ success: boolean; error?: string }>;
-  getServerInfo: (competitionId: string) => Promise<{ success: boolean; serverInfo?: RemoteServerInfo; error?: string }>;
+  getServerInfo: (
+    competitionId: string
+  ) => Promise<{ success: boolean; serverInfo?: RemoteServerInfo; error?: string }>;
   getCertFingerprint: () => Promise<{ success: boolean; fingerprint?: string; error?: string }>;
   startSession: (
     competitionId: string,
@@ -404,11 +406,24 @@ export interface RemoteServerAPI {
   ) => Promise<{ success: boolean; session?: any; error?: string }>;
   stopSession: (competitionId: string) => Promise<{ success: boolean; error?: string }>;
   launchCompetition: (competitionId: string) => Promise<{ success: boolean; error?: string }>;
-  getSession: (competitionId: string) => Promise<{ success: boolean; session?: any; error?: string }>;
-  getArenas: (competitionId: string) => Promise<{ success: boolean; arenas?: any[]; error?: string }>;
-  updateStripCount: (competitionId: string, count: number) => Promise<{ success: boolean; session?: any; error?: string }>;
-  updateShowPhotos: (competitionId: string, value: boolean) => Promise<{ success: boolean; error?: string }>;
-  updateCardAnnounce: (competitionId: string, value: boolean) => Promise<{ success: boolean; error?: string }>;
+  getSession: (
+    competitionId: string
+  ) => Promise<{ success: boolean; session?: any; error?: string }>;
+  getArenas: (
+    competitionId: string
+  ) => Promise<{ success: boolean; arenas?: any[]; error?: string }>;
+  updateStripCount: (
+    competitionId: string,
+    count: number
+  ) => Promise<{ success: boolean; session?: any; error?: string }>;
+  updateShowPhotos: (
+    competitionId: string,
+    value: boolean
+  ) => Promise<{ success: boolean; error?: string }>;
+  updateCardAnnounce: (
+    competitionId: string,
+    value: boolean
+  ) => Promise<{ success: boolean; error?: string }>;
   updateMatchArena: (
     competitionId: string,
     matchId: string,
@@ -425,7 +440,10 @@ export interface RemoteServerAPI {
     competitionId: string,
     poolsData: Array<{ poolId: string; matches: any[] }>
   ) => Promise<{ success: boolean; error?: string }>;
-  refreshDeMatches: (competitionId: string, matches: any[]) => Promise<{ success: boolean; error?: string }>;
+  refreshDeMatches: (
+    competitionId: string,
+    matches: any[]
+  ) => Promise<{ success: boolean; error?: string }>;
   setArenaPassword: (
     competitionId: string,
     arenaId: string,
@@ -524,13 +542,33 @@ export interface RemoteServerAPI {
     competitionId: string,
     password: string
   ) => Promise<{ success: boolean; error?: string }>;
-  getConnectedClients: (competitionId: string) => Promise<{ success: boolean; clients: ConnectedClient[]; error?: string }>;
-  sendClientCommand: (competitionId: string, socketId: string, command: TVCommand) => Promise<{ success: boolean; error?: string }>;
-  broadcastCommand: (competitionId: string, command: TVCommand) => Promise<{ success: boolean; error?: string }>;
+  getConnectedClients: (
+    competitionId: string
+  ) => Promise<{ success: boolean; clients: ConnectedClient[]; error?: string }>;
+  sendClientCommand: (
+    competitionId: string,
+    socketId: string,
+    command: TVCommand
+  ) => Promise<{ success: boolean; error?: string }>;
+  broadcastCommand: (
+    competitionId: string,
+    command: TVCommand
+  ) => Promise<{ success: boolean; error?: string }>;
   onClientListUpdate: (cb: (clients: ConnectedClient[]) => void) => () => void;
-  renameClient: (competitionId: string, socketId: string, label: string) => Promise<{ success: boolean; error?: string }>;
-  identifyClient: (competitionId: string, socketId: string) => Promise<{ success: boolean; error?: string }>;
-  setClientKioskMode: (competitionId: string, socketId: string, config: KioskScreenConfig) => Promise<{ success: boolean; error?: string }>;
+  renameClient: (
+    competitionId: string,
+    socketId: string,
+    label: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  identifyClient: (
+    competitionId: string,
+    socketId: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  setClientKioskMode: (
+    competitionId: string,
+    socketId: string,
+    config: KioskScreenConfig
+  ) => Promise<{ success: boolean; error?: string }>;
 }
 
 // ============================================================================
@@ -586,13 +624,19 @@ export interface DatabaseAPI {
       isBye?: boolean;
     }>
   ) => Promise<void>;
-  getTableauMatchesForExport: (competitionId: string) => Promise<Array<{
-    id: string; round: number; position: number; isBye: boolean;
-    fencerA: { id: string; firstName?: string; lastName: string; club?: string } | null;
-    fencerB: { id: string; firstName?: string; lastName: string; club?: string } | null;
-    scoreA: number | null; scoreB: number | null;
-    winner: { id: string } | null;
-  }>>;
+  getTableauMatchesForExport: (competitionId: string) => Promise<
+    Array<{
+      id: string;
+      round: number;
+      position: number;
+      isBye: boolean;
+      fencerA: { id: string; firstName?: string; lastName: string; club?: string } | null;
+      fencerB: { id: string; firstName?: string; lastName: string; club?: string } | null;
+      scoreA: number | null;
+      scoreB: number | null;
+      winner: { id: string } | null;
+    }>
+  >;
 
   // Pools
   createPool: (phaseId: string, number: number, poolId?: string) => Promise<Pool>;
@@ -633,16 +677,31 @@ export interface DatabaseAPI {
   getRefereeComments: (competitionId: string, refereeId?: string) => Promise<RefereeComment[]>;
   updateReferee: (id: string, updates: Record<string, string | undefined>) => Promise<void>;
   deleteReferee: (id: string) => Promise<void>;
-  getMatchesWithReferees: (competitionId: string) => Promise<Array<{
-    matchId: string; matchNumber: number; poolName: string | null;
-    fencerAName: string; fencerBName: string;
-    scoreA: number | null; scoreB: number | null; status: string;
-    refereeId: string | null; refereeName: string | null;
-  }>>;
-  getRefereeStats: (competitionId: string) => Promise<Array<{
-    refereeId: string; refereeName: string; matchesCount: number;
-    averageDuration: number; cardsYellow: number; cardsRed: number; cardsBlack: number;
-  }>>;
+  getMatchesWithReferees: (competitionId: string) => Promise<
+    Array<{
+      matchId: string;
+      matchNumber: number;
+      poolName: string | null;
+      fencerAName: string;
+      fencerBName: string;
+      scoreA: number | null;
+      scoreB: number | null;
+      status: string;
+      refereeId: string | null;
+      refereeName: string | null;
+    }>
+  >;
+  getRefereeStats: (competitionId: string) => Promise<
+    Array<{
+      refereeId: string;
+      refereeName: string;
+      matchesCount: number;
+      averageDuration: number;
+      cardsYellow: number;
+      cardsRed: number;
+      cardsBlack: number;
+    }>
+  >;
 
   // Touch / Card read
   getTouches: (matchId: string) => Promise<
@@ -719,31 +778,35 @@ export interface DatabaseAPI {
       compRank: number;
     }>;
   }) => Promise<void>;
-  getSeasonRanking: () => Promise<Array<{
-    fencerId: string;
-    fencerLastName: string;
-    fencerFirstName: string;
-    fencerClub: string | null;
-    totalVictories: number;
-    totalMatchesPlayed: number;
-    totalQuestPoints: number;
-    totalQuestV4: number;
-    totalQuestV3: number;
-    totalQuestV2: number;
-    totalQuestV1: number;
-    totalTouchesScored: number;
-    totalTouchesReceived: number;
-    totalRedCards: number;
-    competitionCount: number;
-    ratio: number;
-  }>>;
-  getSeasonCompetitions: () => Promise<Array<{
-    competitionId: string;
-    competitionTitle: string;
-    competitionDate: string;
-    fencerCount: number;
-    addedAt: string;
-  }>>;
+  getSeasonRanking: () => Promise<
+    Array<{
+      fencerId: string;
+      fencerLastName: string;
+      fencerFirstName: string;
+      fencerClub: string | null;
+      totalVictories: number;
+      totalMatchesPlayed: number;
+      totalQuestPoints: number;
+      totalQuestV4: number;
+      totalQuestV3: number;
+      totalQuestV2: number;
+      totalQuestV1: number;
+      totalTouchesScored: number;
+      totalTouchesReceived: number;
+      totalRedCards: number;
+      competitionCount: number;
+      ratio: number;
+    }>
+  >;
+  getSeasonCompetitions: () => Promise<
+    Array<{
+      competitionId: string;
+      competitionTitle: string;
+      competitionDate: string;
+      fencerCount: number;
+      addedAt: string;
+    }>
+  >;
   removeCompetitionFromSeason: (competitionId: string) => Promise<void>;
   resetSeason: () => Promise<void>;
 
@@ -753,31 +816,126 @@ export interface DatabaseAPI {
 
   // Équipes
   createTeam: (competitionId: string, name: string, club: string) => Promise<{ id: string }>;
-  getTeamsByCompetition: (competitionId: string) => Promise<Array<{
-    id: string; name: string; club: string;
-    fencers: Array<{ fencerId: string; fencerLastName: string; fencerFirstName: string; teamOrder: number; isReserve: boolean }>;
-  }>>;
+  getTeamsByCompetition: (competitionId: string) => Promise<
+    Array<{
+      id: string;
+      name: string;
+      club: string;
+      fencers: Array<{
+        fencerId: string;
+        fencerLastName: string;
+        fencerFirstName: string;
+        teamOrder: number;
+        isReserve: boolean;
+      }>;
+    }>
+  >;
   deleteTeam: (teamId: string) => Promise<void>;
-  upsertTeamFencer: (teamId: string, fencerId: string, teamOrder: number, isReserve: boolean) => Promise<void>;
+  upsertTeamFencer: (
+    teamId: string,
+    fencerId: string,
+    teamOrder: number,
+    isReserve: boolean
+  ) => Promise<void>;
   removeTeamFencer: (teamId: string, fencerId: string) => Promise<void>;
-  createTeamMatch: (competitionId: string, poolNumber: number, teamAId: string, teamBId: string, round?: number) => Promise<{ id: string }>;
-  getTeamMatchesByCompetition: (competitionId: string) => Promise<Array<{
-    id: string; poolNumber: number; round: number | null; teamAId: string; teamBId: string;
-    scoreBoutsA: number; scoreBoutsB: number; status: string; winnerId: string | null; currentBoutIndex: number;
-    bouts: Array<{ id: string; boutOrder: number; fencerAId: string; fencerBId: string; scoreA: number; scoreB: number; maxScore: number; status: string; winnerId: string | null }>;
-  }>>;
-  createTeamBout: (matchId: string, boutOrder: number, fencerAId: string, fencerBId: string, maxScore: number) => Promise<{ id: string }>;
-  updateTeamBout: (boutId: string, scoreA: number, scoreB: number, status: string, winnerId: string | null) => Promise<void>;
-  createTeamTableauMatch: (competitionId: string, tableId: string, round: number, position: number, teamAId: string, teamBId: string) => Promise<{ id: string }>;
-  getTeamTableauMatches: (competitionId: string, tableId: string) => Promise<Array<{
-    id: string; round: number; position: number; teamAId: string; teamBId: string;
-    scoreBoutsA: number; scoreBoutsB: number; status: string; winnerId: string | null; currentBoutIndex: number;
-    bouts: Array<{ id: string; boutOrder: number; fencerAId: string; fencerBId: string; scoreA: number; scoreB: number; maxScore: number; status: string; winnerId: string | null }>;
-  }>>;
-  createTeamMatchCard: (matchId: string, teamId: string, type: 'white' | 'yellow' | 'red' | 'black', reason: string) => Promise<{ id: string }>;
-  getTeamMatchCards: (matchId: string) => Promise<Array<{
-    id: string; matchId: string; teamId: string; type: string; reason: string; createdAt: string;
-  }>>;
+  createTeamMatch: (
+    competitionId: string,
+    poolNumber: number,
+    teamAId: string,
+    teamBId: string,
+    round?: number
+  ) => Promise<{ id: string }>;
+  getTeamMatchesByCompetition: (competitionId: string) => Promise<
+    Array<{
+      id: string;
+      poolNumber: number;
+      round: number | null;
+      teamAId: string;
+      teamBId: string;
+      scoreBoutsA: number;
+      scoreBoutsB: number;
+      status: string;
+      winnerId: string | null;
+      currentBoutIndex: number;
+      bouts: Array<{
+        id: string;
+        boutOrder: number;
+        fencerAId: string;
+        fencerBId: string;
+        scoreA: number;
+        scoreB: number;
+        maxScore: number;
+        status: string;
+        winnerId: string | null;
+      }>;
+    }>
+  >;
+  createTeamBout: (
+    matchId: string,
+    boutOrder: number,
+    fencerAId: string,
+    fencerBId: string,
+    maxScore: number
+  ) => Promise<{ id: string }>;
+  updateTeamBout: (
+    boutId: string,
+    scoreA: number,
+    scoreB: number,
+    status: string,
+    winnerId: string | null
+  ) => Promise<void>;
+  createTeamTableauMatch: (
+    competitionId: string,
+    tableId: string,
+    round: number,
+    position: number,
+    teamAId: string,
+    teamBId: string
+  ) => Promise<{ id: string }>;
+  getTeamTableauMatches: (
+    competitionId: string,
+    tableId: string
+  ) => Promise<
+    Array<{
+      id: string;
+      round: number;
+      position: number;
+      teamAId: string;
+      teamBId: string;
+      scoreBoutsA: number;
+      scoreBoutsB: number;
+      status: string;
+      winnerId: string | null;
+      currentBoutIndex: number;
+      bouts: Array<{
+        id: string;
+        boutOrder: number;
+        fencerAId: string;
+        fencerBId: string;
+        scoreA: number;
+        scoreB: number;
+        maxScore: number;
+        status: string;
+        winnerId: string | null;
+      }>;
+    }>
+  >;
+  createTeamMatchCard: (
+    matchId: string,
+    teamId: string,
+    type: 'white' | 'yellow' | 'red' | 'black',
+    reason: string
+  ) => Promise<{ id: string }>;
+  getTeamMatchCards: (matchId: string) => Promise<
+    Array<{
+      id: string;
+      matchId: string;
+      teamId: string;
+      type: string;
+      reason: string;
+      createdAt: string;
+    }>
+  >;
 }
 
 export interface FileAPI {
@@ -938,14 +1096,42 @@ export interface TrainingMatchRecord {
 }
 
 export interface TrainingAPI {
-  startServer: (port?: number, host?: string, useHttps?: boolean) => Promise<{ success: boolean; serverInfo?: { url: string; ip: string; port: number; useHttps: boolean; certFingerprint?: string }; error?: string }>;
+  startServer: (
+    port?: number,
+    host?: string,
+    useHttps?: boolean
+  ) => Promise<{
+    success: boolean;
+    serverInfo?: {
+      url: string;
+      ip: string;
+      port: number;
+      useHttps: boolean;
+      certFingerprint?: string;
+    };
+    error?: string;
+  }>;
   stopServer: () => Promise<{ success: boolean; error?: string }>;
-  startSession: (strips: number, weapon: string, customRules?: TrainingCustomRules) => Promise<{ success: boolean; session?: any; error?: string }>;
+  startSession: (
+    strips: number,
+    weapon: string,
+    customRules?: TrainingCustomRules
+  ) => Promise<{ success: boolean; session?: any; error?: string }>;
   stopSession: () => Promise<{ success: boolean; error?: string }>;
   getHistory: () => Promise<{ success: boolean; history: TrainingMatchRecord[]; error?: string }>;
   getSession: () => Promise<{ success: boolean; session: any | null; error?: string }>;
   getArenas: () => Promise<{ success: boolean; arenas: any[]; error?: string }>;
-  getServerInfo: () => Promise<{ success: boolean; serverInfo?: { url: string; ip: string; port: number; useHttps: boolean; certFingerprint?: string }; error?: string }>;
+  getServerInfo: () => Promise<{
+    success: boolean;
+    serverInfo?: {
+      url: string;
+      ip: string;
+      port: number;
+      useHttps: boolean;
+      certFingerprint?: string;
+    };
+    error?: string;
+  }>;
 }
 
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
@@ -958,7 +1144,9 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   training: TrainingAPI;
   onRemoteArenaUpdate: (callback: (data: any) => void) => () => void;
   onRemoteMatchFinished: (callback: (data: any) => void) => () => void;
-  onTrainingMatchFinished: (callback: (data: { record: TrainingMatchRecord | null }) => void) => () => void;
+  onTrainingMatchFinished: (
+    callback: (data: { record: TrainingMatchRecord | null }) => void
+  ) => () => void;
   onRemoteCheckinUpdated?: (
     callback: (data: { kind: 'fencer' | 'referee'; id: string; present: boolean }) => void
   ) => () => void;
@@ -966,21 +1154,41 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   onRemoteRefereeChanged?: (
     callback: (data: { matchId: string; refereeId: string }) => void
   ) => () => void;
-  onRemoteFencerExcluded: (callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void) => (() => void);
+  onRemoteFencerExcluded: (
+    callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void
+  ) => () => void;
   /** Carton noir annulé depuis une tablette : combattant réintégré, match rouvert */
   onRemoteFencerReinstated?: (
-    callback: (data: { fencerId: string; matchId: string; status: string; scoreA: number; scoreB: number }) => void
-  ) => (() => void);
+    callback: (data: {
+      fencerId: string;
+      matchId: string;
+      status: string;
+      scoreA: number;
+      scoreB: number;
+    }) => void
+  ) => () => void;
   onKioskNoteUpdate: (
     callback: (note: import('../types/remote').OrgNote | null) => void
   ) => () => void;
   onDTCall: (
-    callback: (data: { arenaId: string; arenaNumber: number | null; matchNumber: number | null; competitionId: string | null; timestamp: number; reason?: 'black_card'; fencerName?: string | null }) => void
+    callback: (data: {
+      arenaId: string;
+      arenaNumber: number | null;
+      matchNumber: number | null;
+      competitionId: string | null;
+      timestamp: number;
+      reason?: 'black_card';
+      fencerName?: string | null;
+    }) => void
   ) => () => void;
   onDTCallCancel: (callback: (data: { arenaId: string }) => void) => () => void;
   onScoreIpConflict: (callback: (data: ScoreIpConflict) => void) => () => void;
-  onPoolSignatureUpdated: (callback: (data: { poolId: string; signedFencerIds: string[]; totalFencers: number }) => void) => () => void;
-  onTableauSignatureUpdated: (callback: (data: { matchId: string; fencerId: string }) => void) => () => void;
+  onPoolSignatureUpdated: (
+    callback: (data: { poolId: string; signedFencerIds: string[]; totalFencers: number }) => void
+  ) => () => void;
+  onTableauSignatureUpdated: (
+    callback: (data: { matchId: string; fencerId: string }) => void
+  ) => () => void;
   notifyLanguageChanged: (lang: string) => void;
   initialLanguage: string | null;
   getLogo: () => Promise<string | null>;
@@ -988,7 +1196,9 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   onLogoLoaded: (callback: (logo: string | null) => void) => () => void;
   themes: {
     list: () => Promise<import('../types/remote').CustomTheme[]>;
-    save: (theme: import('../types/remote').CustomTheme) => Promise<{ success: boolean; error?: string }>;
+    save: (
+      theme: import('../types/remote').CustomTheme
+    ) => Promise<{ success: boolean; error?: string }>;
     delete: (id: string) => Promise<{ success: boolean; error?: string }>;
   };
 }

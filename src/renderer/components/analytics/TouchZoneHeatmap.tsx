@@ -46,28 +46,58 @@ export const TouchZoneHeatmap: React.FC<Props> = ({ zoneA, zoneB, zoneC, label }
 
         {/* Zone C — jambes (5 pts) */}
         <rect
-          x="18" y="80" width="11" height="36" rx="4"
-          fill={intensity(zoneC, max)} stroke={stroke(zoneC, max)} strokeWidth="1.5"
+          x="18"
+          y="80"
+          width="11"
+          height="36"
+          rx="4"
+          fill={intensity(zoneC, max)}
+          stroke={stroke(zoneC, max)}
+          strokeWidth="1.5"
         />
         <rect
-          x="31" y="80" width="11" height="36" rx="4"
-          fill={intensity(zoneC, max)} stroke={stroke(zoneC, max)} strokeWidth="1.5"
+          x="31"
+          y="80"
+          width="11"
+          height="36"
+          rx="4"
+          fill={intensity(zoneC, max)}
+          stroke={stroke(zoneC, max)}
+          strokeWidth="1.5"
         />
 
         {/* Zone B — bras (3 pts) */}
         <rect
-          x="6" y="30" width="10" height="30" rx="4"
-          fill={intensity(zoneB, max)} stroke={stroke(zoneB, max)} strokeWidth="1.5"
+          x="6"
+          y="30"
+          width="10"
+          height="30"
+          rx="4"
+          fill={intensity(zoneB, max)}
+          stroke={stroke(zoneB, max)}
+          strokeWidth="1.5"
         />
         <rect
-          x="44" y="30" width="10" height="30" rx="4"
-          fill={intensity(zoneB, max)} stroke={stroke(zoneB, max)} strokeWidth="1.5"
+          x="44"
+          y="30"
+          width="10"
+          height="30"
+          rx="4"
+          fill={intensity(zoneB, max)}
+          stroke={stroke(zoneB, max)}
+          strokeWidth="1.5"
         />
 
         {/* Zone A — torse (1 pt) */}
         <rect
-          x="18" y="22" width="24" height="56" rx="4"
-          fill={intensity(zoneA, max)} stroke={stroke(zoneA, max)} strokeWidth="1.5"
+          x="18"
+          y="22"
+          width="24"
+          height="56"
+          rx="4"
+          fill={intensity(zoneA, max)}
+          stroke={stroke(zoneA, max)}
+          strokeWidth="1.5"
         />
       </svg>
 
@@ -80,12 +110,16 @@ export const TouchZoneHeatmap: React.FC<Props> = ({ zoneA, zoneB, zoneC, label }
         ].map(({ zone, count, pts, color }) => (
           <div key={zone} className={`rounded px-1 py-0.5 ${color}`}>
             <div className="text-xs font-bold">{count}</div>
-            <div className="text-[10px] leading-tight">{zone} · {pts}</div>
+            <div className="text-[10px] leading-tight">
+              {zone} · {pts}
+            </div>
           </div>
         ))}
       </div>
       {total > 0 && (
-        <div className="text-[10px] text-gray-400">{total} touche{total > 1 ? 's' : ''}</div>
+        <div className="text-[10px] text-gray-400">
+          {total} touche{total > 1 ? 's' : ''}
+        </div>
       )}
     </div>
   );

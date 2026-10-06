@@ -11,7 +11,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import TableauScoreModal from './TableauScoreModal';
 
 const match = {
-  id: 'm1', round: 8,
+  id: 'm1',
+  round: 8,
   fencerA: { id: 'a', lastName: 'Dupont', firstName: 'Jean' },
   fencerB: { id: 'b', lastName: 'Martin', firstName: 'Marie' },
 } as any;

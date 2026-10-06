@@ -5,30 +5,57 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import NotificationService, { isWebhookUrlSafe } from './notificationService';
-import { Fencer, Match, Competition, Gender, FencerStatus, MatchStatus, Weapon, Category } from '../types';
+import {
+  Fencer,
+  Match,
+  Competition,
+  Gender,
+  FencerStatus,
+  MatchStatus,
+  Weapon,
+  Category,
+} from '../types';
 
 const fencer = (id: string, firstName: string, lastName: string): Fencer => ({
-  id, ref: Number(id), firstName, lastName,
-  gender: Gender.MALE, nationality: 'FRA', status: FencerStatus.CHECKED_IN,
-  createdAt: new Date(), updatedAt: new Date(),
+  id,
+  ref: Number(id),
+  firstName,
+  lastName,
+  gender: Gender.MALE,
+  nationality: 'FRA',
+  status: FencerStatus.CHECKED_IN,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 const match = (over: Partial<Match> = {}): Match => ({
-  id: 'm1', number: 1,
+  id: 'm1',
+  number: 1,
   fencerA: fencer('1', 'Jean', 'Dupont'),
   fencerB: fencer('2', 'Marie', 'Martin'),
-  scoreA: null, scoreB: null, maxScore: 5,
+  scoreA: null,
+  scoreB: null,
+  maxScore: 5,
   status: MatchStatus.NOT_STARTED,
-  createdAt: new Date(), updatedAt: new Date(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
   ...over,
 });
 
-const competition = (): Competition => ({
-  id: 'c1', title: 'Open', date: new Date(), weapon: Weapon.EPEE,
-  gender: Gender.MIXED, category: Category.SENIOR,
-  fencers: [], referees: [], phases: [],
-  createdAt: new Date(), updatedAt: new Date(),
-} as unknown as Competition);
+const competition = (): Competition =>
+  ({
+    id: 'c1',
+    title: 'Open',
+    date: new Date(),
+    weapon: Weapon.EPEE,
+    gender: Gender.MIXED,
+    category: Category.SENIOR,
+    fencers: [],
+    referees: [],
+    phases: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }) as unknown as Competition;
 
 describe('NotificationService - payloads', () => {
   let svc: NotificationService;
@@ -78,7 +105,13 @@ describe('NotificationService - payloads', () => {
 
   it('respecte la désactivation d’un évènement', () => {
     const off = new NotificationService({
-      events: { matchStarting: false, matchCompleted: true, competitionStarted: true, competitionEnded: true, fencerLate: true },
+      events: {
+        matchStarting: false,
+        matchCompleted: true,
+        competitionStarted: true,
+        competitionEnded: true,
+        fencerLate: true,
+      },
     });
     const n = vi.fn();
     vi.spyOn(off, 'notify').mockImplementation(n as any);

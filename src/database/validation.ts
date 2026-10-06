@@ -194,10 +194,7 @@ export const validateCompetitionSettings = (settings: CompetitionSettings): void
     settings.laserTeamMode !== 'touches' &&
     settings.laserTeamMode !== 'points'
   ) {
-    throw new ValidationError(
-      "laserTeamMode must be 'touches' or 'points'",
-      'laserTeamMode'
-    );
+    throw new ValidationError("laserTeamMode must be 'touches' or 'points'", 'laserTeamMode');
   }
 
   if (settings.defaultPoolMaxScore > 15) {

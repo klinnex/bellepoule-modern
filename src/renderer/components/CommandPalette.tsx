@@ -45,14 +45,20 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
         id: 'new-competition',
         label: t('menu.new_competition'),
         icon: '➕',
-        action: () => { onClose(); onNewCompetition(); },
+        action: () => {
+          onClose();
+          onNewCompetition();
+        },
         keywords: ['new', 'nouveau', 'creer', 'create'],
       },
       {
         id: 'settings',
         label: t('settings.title'),
         icon: '⚙️',
-        action: () => { onClose(); onOpenSettings(); },
+        action: () => {
+          onClose();
+          onOpenSettings();
+        },
         keywords: ['settings', 'parametres', 'config', 'theme', 'langue'],
       },
     ];
@@ -61,7 +67,10 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       label: c.title,
       description: `${c.weapon} · ${categoryLabel(c.category, t)} · ${c.fencers.length} tireurs`,
       icon: '🏆',
-      action: () => { onClose(); onSelectCompetition(c.id); },
+      action: () => {
+        onClose();
+        onSelectCompetition(c.id);
+      },
       keywords: [c.title.toLowerCase(), c.weapon, c.category],
     }));
     return [...staticCommands, ...competitionCommands];
@@ -163,9 +172,15 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         <div className="command-palette-footer">
-          <span><kbd>↑↓</kbd> naviguer</span>
-          <span><kbd>↵</kbd> sélectionner</span>
-          <span><kbd>Esc</kbd> fermer</span>
+          <span>
+            <kbd>↑↓</kbd> naviguer
+          </span>
+          <span>
+            <kbd>↵</kbd> sélectionner
+          </span>
+          <span>
+            <kbd>Esc</kbd> fermer
+          </span>
         </div>
       </div>
     </div>

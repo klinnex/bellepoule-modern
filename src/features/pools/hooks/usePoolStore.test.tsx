@@ -10,9 +10,17 @@ import { usePoolStore } from './usePoolStore';
 const get = () => usePoolStore.getState();
 
 beforeEach(() => {
-  usePoolStore.setState({ pools: [], currentPool: null, overallRanking: [], isLoading: false, error: null });
+  usePoolStore.setState({
+    pools: [],
+    currentPool: null,
+    overallRanking: [],
+    isLoading: false,
+    error: null,
+  });
 });
-afterEach(() => { delete (window as any).electronAPI; });
+afterEach(() => {
+  delete (window as any).electronAPI;
+});
 
 describe('loadPools', () => {
   it('charge les poules via le service', async () => {

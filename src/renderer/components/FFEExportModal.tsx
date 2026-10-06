@@ -14,7 +14,10 @@ interface FFEExportModalProps {
   onClose: () => void;
 }
 
-function toResultEntries(ranking: PoolRanking[]): { entries: FFEResultEntry[]; missingLicense: number } {
+function toResultEntries(ranking: PoolRanking[]): {
+  entries: FFEResultEntry[];
+  missingLicense: number;
+} {
   const entries: FFEResultEntry[] = [];
   let missingLicense = 0;
   for (const r of ranking) {
@@ -76,7 +79,9 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
       >
         <div className="modal-header">
           <h2 className="modal-title">Exporter vers FFE Connect</h2>
-          <button className="btn btn-icon btn-secondary" onClick={onClose}>&times;</button>
+          <button className="btn btn-icon btn-secondary" onClick={onClose}>
+            &times;
+          </button>
         </div>
 
         <div className="modal-body">
@@ -109,19 +114,42 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
           </p>
 
           {errors.length > 0 && (
-            <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: '#fee2e2', borderRadius: '6px', color: '#dc2626' }}>
-              {errors.map((e, i) => <div key={i}>{e}</div>)}
+            <div
+              style={{
+                marginTop: '0.75rem',
+                padding: '0.75rem',
+                background: '#fee2e2',
+                borderRadius: '6px',
+                color: '#dc2626',
+              }}
+            >
+              {errors.map((e, i) => (
+                <div key={i}>{e}</div>
+              ))}
             </div>
           )}
           {success && (
-            <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: '#dcfce7', borderRadius: '6px', color: '#15803d' }}>
+            <div
+              style={{
+                marginTop: '0.75rem',
+                padding: '0.75rem',
+                background: '#dcfce7',
+                borderRadius: '6px',
+                color: '#15803d',
+              }}
+            >
               Résultats envoyés à la FFE avec succès.
             </div>
           )}
         </div>
 
-        <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-          <button className="btn btn-secondary" onClick={onClose}>Fermer</button>
+        <div
+          className="modal-footer"
+          style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}
+        >
+          <button className="btn btn-secondary" onClick={onClose}>
+            Fermer
+          </button>
           <button
             className="btn btn-primary"
             onClick={handleExport}

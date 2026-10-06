@@ -7,15 +7,30 @@
 
 import React from 'react';
 import { Card, CardReason, TargetZone, ZONE_POINTS } from '../../shared/types';
-import { TeamRow, TeamMatchRow, TeamBoutRow, TeamMatchCardRow } from '../../features/teams/types/team.types';
+import {
+  TeamRow,
+  TeamMatchRow,
+  TeamBoutRow,
+  TeamMatchCardRow,
+} from '../../features/teams/types/team.types';
 import { TeamTargetRule, getRelayCap } from '../../features/teams/utils/teamCalculations';
 import { LaserArenaBoutCap } from '../../features/teams/utils/laserArenaCalculations';
 import { determineTeamCardEscalation } from '../../features/teams/utils/teamCardEscalation';
 import { CARD_REASON_LABELS, getAvailableReasons } from '../../shared/utils/cardSystem';
 
 const CARD_BADGE: Record<string, string> = { WHITE: '⬜', YELLOW: '🟨', RED: '🟥', BLACK: '⬛' };
-const TEAM_CARD_BADGE: Record<string, string> = { white: '⬜', yellow: '🟨', red: '🟥', black: '⬛' };
-const TEAM_CARD_TYPES: Array<'white' | 'yellow' | 'red' | 'black'> = ['white', 'yellow', 'red', 'black'];
+const TEAM_CARD_BADGE: Record<string, string> = {
+  white: '⬜',
+  yellow: '🟨',
+  red: '🟥',
+  black: '⬛',
+};
+const TEAM_CARD_TYPES: Array<'white' | 'yellow' | 'red' | 'black'> = [
+  'white',
+  'yellow',
+  'red',
+  'black',
+];
 
 export interface CardTarget {
   boutId: string;
@@ -47,7 +62,11 @@ interface Props {
   isLaserArena?: boolean;
   boutCap?: LaserArenaBoutCap;
   matchCards?: Record<string, TeamMatchCardRow[]>;
-  onAddTeamCard?: (matchId: string, teamId: string, type: 'white' | 'yellow' | 'red' | 'black') => void;
+  onAddTeamCard?: (
+    matchId: string,
+    teamId: string,
+    type: 'white' | 'yellow' | 'red' | 'black'
+  ) => void;
   onAssignArena?: (matchId: string, arenaId: string) => void;
 }
 
@@ -160,7 +179,10 @@ const TeamPoolView: React.FC<Props> = ({
                   const done = bout.status === 'finished';
                   const cap = isLaserArena
                     ? (boutCap?.maxTouches ?? 5)
-                    : Math.min(getRelayCap(bout.boutOrder - 1, targetRule.stepSize), targetRule.target);
+                    : Math.min(
+                        getRelayCap(bout.boutOrder - 1, targetRule.stepSize),
+                        targetRule.target
+                      );
                   const cardsA = (boutCards[bout.id] ?? []).filter(
                     c => c.fencerId === bout.fencerAId
                   );
@@ -343,7 +365,7 @@ const TeamPoolView: React.FC<Props> = ({
                 })}
                 {isLaserArena && onAddTeamCard && (
                   <div className="mt-2 pt-2 border-t border-gray-200 grid grid-cols-2 gap-3 text-xs">
-                    {([['A', ta, m.teamAId] as const, ['B', tb, m.teamBId] as const]).map(
+                    {[['A', ta, m.teamAId] as const, ['B', tb, m.teamBId] as const].map(
                       ([side, team, teamId]) => {
                         const cards = (matchCards[m.id] ?? []).filter(c => c.teamId === teamId);
                         const suggested = determineTeamCardEscalation(cards);

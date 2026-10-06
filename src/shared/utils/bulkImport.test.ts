@@ -35,7 +35,7 @@ describe('parseCSV', () => {
     expect(result[0][1]).toBe('Jean');
   });
 
-  it('gère les guillemets doubles à l\'intérieur des champs', () => {
+  it("gère les guillemets doubles à l'intérieur des champs", () => {
     const result = parseCSV('"Dit ""Le Grand""",Jean');
     expect(result[0][0]).toBe('Dit "Le Grand"');
   });
@@ -107,7 +107,15 @@ describe('autoDetectMapping', () => {
 
 describe('importFencers', () => {
   // Utiliser un mapping numérique direct pour éviter les faux positifs du substring matching
-  const numericMapping = { lastName: 0, firstName: 1, club: 2, license: 3, nationality: 4, ranking: 5, gender: 6 };
+  const numericMapping = {
+    lastName: 0,
+    firstName: 1,
+    club: 2,
+    license: 3,
+    nationality: 4,
+    ranking: 5,
+    gender: 6,
+  };
   const validData = [
     ['DUPONT', 'Jean', 'Paris EC', '12345', 'FRA', '10', 'M'],
     ['MARTIN', 'Marie', 'Lyon EC', '12346', 'FRA', '15', 'F'],
@@ -135,7 +143,10 @@ describe('importFencers', () => {
 
   it('gère les genres français (H/F)', () => {
     const m = { lastName: 0, firstName: 1, gender: 2 };
-    const data = [['DUPONT', 'Paul', 'H'], ['DUBOIS', 'Claire', 'F']];
+    const data = [
+      ['DUPONT', 'Paul', 'H'],
+      ['DUBOIS', 'Claire', 'F'],
+    ];
     const result = importFencers(data, m, false);
     expect(result.fencers[0].gender).toBe(Gender.MALE);
     expect(result.fencers[1].gender).toBe(Gender.FEMALE);
@@ -185,7 +196,10 @@ describe('importFencers', () => {
   });
 
   it('fonctionne sans en-tête (hasHeader=false) avec mapping numérique', () => {
-    const data = [['DUPONT', 'Jean'], ['MARTIN', 'Marie']];
+    const data = [
+      ['DUPONT', 'Jean'],
+      ['MARTIN', 'Marie'],
+    ];
     const mapping = { lastName: 0, firstName: 1 };
     const result = importFencers(data, mapping, false);
     expect(result.importedCount).toBe(2);
@@ -195,7 +209,7 @@ describe('importFencers', () => {
     const m = { lastName: 0, firstName: 1 };
     const data = [
       ['DUPONT', 'Jean'],
-      ['', 'Marie'],   // erreur : lastName manquant
+      ['', 'Marie'], // erreur : lastName manquant
       ['MARTIN', 'Paul'],
     ];
     const result = importFencers(data, m, false);
@@ -231,7 +245,7 @@ describe('detectFileType', () => {
     expect(detectFileType('Nom,Prenom,Club')).toBe('csv');
   });
 
-  it('détecte l\'Excel (TSV)', () => {
+  it("détecte l'Excel (TSV)", () => {
     expect(detectFileType('Nom\tPrenom\tClub')).toBe('excel');
   });
 

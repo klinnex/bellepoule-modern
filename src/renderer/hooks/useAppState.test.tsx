@@ -10,9 +10,11 @@ import { useAppState } from './useAppState';
 import { Competition } from '../../shared/types';
 
 const noopToast = (_m: string, _t?: 'info' | 'success' | 'warning' | 'error') => {};
-const comp = (id: string): Competition => ({ id, title: 'C' + id } as unknown as Competition);
+const comp = (id: string): Competition => ({ id, title: 'C' + id }) as unknown as Competition;
 
-afterEach(() => { delete (window as any).electronAPI; });
+afterEach(() => {
+  delete (window as any).electronAPI;
+});
 
 describe('useAppState - état initial', () => {
   it('démarre sur la vue home, en chargement', () => {
@@ -52,10 +54,12 @@ describe('handleUpdateCompetition', () => {
 describe('handleTabSwitch', () => {
   it('bascule sur l’onglet ouvert correspondant', () => {
     const { result } = renderHook(() => useAppState(noopToast));
-    act(() => result.current.setOpenCompetitions([
-      { competition: comp('A'), isDirty: false } as any,
-      { competition: comp('B'), isDirty: false } as any,
-    ]));
+    act(() =>
+      result.current.setOpenCompetitions([
+        { competition: comp('A'), isDirty: false } as any,
+        { competition: comp('B'), isDirty: false } as any,
+      ])
+    );
     act(() => result.current.handleTabSwitch('B'));
     expect(result.current.activeTabId).toBe('B');
     expect(result.current.currentCompetition?.id).toBe('B');
@@ -71,9 +75,13 @@ describe('handleTabSwitch', () => {
 
 describe('loadCompetitions', () => {
   it('charge depuis electronAPI et termine le chargement', async () => {
-    (window as any).electronAPI = { db: { getAllCompetitions: vi.fn(async () => [comp('1'), comp('2')]) } };
+    (window as any).electronAPI = {
+      db: { getAllCompetitions: vi.fn(async () => [comp('1'), comp('2')]) },
+    };
     const { result } = renderHook(() => useAppState(noopToast));
-    await act(async () => { await result.current.loadCompetitions(); });
+    await act(async () => {
+      await result.current.loadCompetitions();
+    });
     await waitFor(() => expect(result.current.competitions).toHaveLength(2));
     expect(result.current.isLoading).toBe(false);
   });

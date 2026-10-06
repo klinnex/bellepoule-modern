@@ -12,13 +12,14 @@ import {
 } from './competitionUtils';
 import { CreateCompetitionDTO } from '../types/competition.types';
 
-const base = (): CreateCompetitionDTO => ({
-  title: 'Open de Paris',
-  date: new Date('2026-05-01'),
-  weapon: 'E',
-  gender: 'M',
-  category: 'SENIOR',
-} as unknown as CreateCompetitionDTO);
+const base = (): CreateCompetitionDTO =>
+  ({
+    title: 'Open de Paris',
+    date: new Date('2026-05-01'),
+    weapon: 'E',
+    gender: 'M',
+    category: 'SENIOR',
+  }) as unknown as CreateCompetitionDTO;
 
 describe('validateCompetition', () => {
   it('retourne null pour des données valides', () => {
@@ -26,7 +27,9 @@ describe('validateCompetition', () => {
   });
 
   it('exige un titre non vide', () => {
-    expect(validateCompetition({ ...base(), title: '   ' } as any)).toBe('Le titre est obligatoire');
+    expect(validateCompetition({ ...base(), title: '   ' } as any)).toBe(
+      'Le titre est obligatoire'
+    );
   });
 
   it('exige date, arme, genre, catégorie', () => {

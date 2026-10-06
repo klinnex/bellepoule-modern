@@ -19,8 +19,7 @@ const Trigger: React.FC<{ message: string; type?: any }> = ({ message, type }) =
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
-const renderWithProvider = (ui: React.ReactNode) =>
-  render(<ToastProvider>{ui}</ToastProvider>);
+const renderWithProvider = (ui: React.ReactNode) => render(<ToastProvider>{ui}</ToastProvider>);
 
 describe('ToastProvider / useToast', () => {
   it('rend les enfants', () => {
@@ -30,37 +29,53 @@ describe('ToastProvider / useToast', () => {
 
   it('affiche un toast au déclenchement', () => {
     renderWithProvider(<Trigger message="Sauvegardé" type="success" />);
-    act(() => { fireEvent.click(screen.getByText('go')); });
+    act(() => {
+      fireEvent.click(screen.getByText('go'));
+    });
     expect(screen.getByText('Sauvegardé')).toBeInTheDocument();
   });
 
   it('disparaît automatiquement après 4 s', () => {
     renderWithProvider(<Trigger message="Temporaire" />);
-    act(() => { fireEvent.click(screen.getByText('go')); });
+    act(() => {
+      fireEvent.click(screen.getByText('go'));
+    });
     expect(screen.getByText('Temporaire')).toBeInTheDocument();
-    act(() => { vi.advanceTimersByTime(4000); });
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
     expect(screen.queryByText('Temporaire')).not.toBeInTheDocument();
   });
 
   it('peut être fermé manuellement', () => {
     renderWithProvider(<Trigger message="Ferme-moi" />);
-    act(() => { fireEvent.click(screen.getByText('go')); });
+    act(() => {
+      fireEvent.click(screen.getByText('go'));
+    });
     const closeBtn = screen.getByText('✕');
-    act(() => { fireEvent.click(closeBtn); });
+    act(() => {
+      fireEvent.click(closeBtn);
+    });
     expect(screen.queryByText('Ferme-moi')).not.toBeInTheDocument();
   });
 
   it('conteneur annoncé via aria-live=polite', () => {
     renderWithProvider(<Trigger message="x" />);
-    act(() => { fireEvent.click(screen.getByText('go')); });
+    act(() => {
+      fireEvent.click(screen.getByText('go'));
+    });
     const region = document.querySelector('[role="status"][aria-live="polite"]');
     expect(region).not.toBeNull();
   });
 
   it('empile plusieurs toasts', () => {
     renderWithProvider(<Trigger message="Multi" />);
-    act(() => { fireEvent.click(screen.getByText('go')); });
-    act(() => { fireEvent.click(screen.getByText('go')); });
+    act(() => {
+      fireEvent.click(screen.getByText('go'));
+    });
+    act(() => {
+      fireEvent.click(screen.getByText('go'));
+    });
     expect(screen.getAllByText('Multi')).toHaveLength(2);
   });
 });
