@@ -1503,6 +1503,19 @@
     </main>
 
     <script>
+      // Bannière d'annonce : texte seul, jamais innerHTML (noms de tireurs non fiables, #995)
+      function setBannerLines(banner, line1, line2) {
+        banner.replaceChildren();
+        const d1 = document.createElement('div');
+        d1.textContent = line1;
+        banner.appendChild(d1);
+        if (line2) {
+          const d2 = document.createElement('div');
+          d2.style.cssText = 'font-size:0.65em;font-weight:600;margin-top:0.25em;opacity:0.9;';
+          d2.textContent = line2;
+          banner.appendChild(d2);
+        }
+      }
       class ArenaDisplay {
         constructor() {
           this.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
@@ -1793,7 +1806,7 @@
           if (!banner) return;
           const line1 = `🚪 Sortie d'arène — ${ann.fencerName}`;
           const line2 = `+${ann.points} pts pour l'adversaire`;
-          banner.innerHTML = `<div>${line1}</div><div style="font-size:0.65em;font-weight:600;margin-top:0.25em;opacity:0.9;">${line2}</div>`;
+          setBannerLines(banner, line1, line2);
           banner.className = 'card-announcement-banner visible card-exit';
           if (this._cardAnnouncementTimer) clearTimeout(this._cardAnnouncementTimer);
           this._cardAnnouncementTimer = setTimeout(() => {
@@ -1816,10 +1829,9 @@
           }
           line2 = ann.reason || null;
 
-          banner.innerHTML = line2
-            ? `<div>${line1}</div><div style="font-size:0.65em; font-weight:600; margin-top:0.25em; opacity:0.9;">${line2}</div>`
-            : `<div>${line1}</div>`;
-          banner.className = `card-announcement-banner visible card-${ann.cardType}`;
+          setBannerLines(banner, line1, line2);
+          const cardClass = ['white', 'yellow', 'red', 'black'].includes(ann.cardType) ? ann.cardType : 'yellow';
+          banner.className = `card-announcement-banner visible card-${cardClass}`;
 
           if (this._cardAnnouncementTimer) clearTimeout(this._cardAnnouncementTimer);
           this._cardAnnouncementTimer = setTimeout(() => {
@@ -2019,6 +2031,7 @@
         updateCardsDisplay() {
           const renderCards = cards =>
             cards
+              .filter(card => ['white', 'yellow', 'red', 'black'].includes(card))
               .map(
                 card =>
                   `<div class="card card-${card}">${card === 'white' ? 'B' : card === 'yellow' ? 'J' : card === 'black' ? 'N' : 'R'}</div>`
