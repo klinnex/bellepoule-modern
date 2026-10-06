@@ -21,11 +21,22 @@ interface UrlRowProps {
 const UrlRow: React.FC<UrlRowProps> = ({ label, url, qrDataUrl }) => {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // Presse-papiers asynchrone refusé (focus, permission) : repli execCommand (#991)
+      const el = document.createElement('textarea');
+      el.value = url;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
 
   return (
@@ -85,7 +96,7 @@ const KioskBlock: React.FC<KioskBlockProps> = ({ kioskUrl }) => {
   }, [open, kioskUrl]);
 
   return (
-    <div style={{ border: '1px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
+    <div style={{ border: '1px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
       <button
         onClick={() => setOpen(v => !v)}
         style={{
@@ -142,6 +153,7 @@ const ArenaBlock: React.FC<ArenaBlockProps> = ({ number, refereeUrl, displayUrl 
       border: '1px solid var(--color-border)',
       borderRadius: '8px',
       overflow: 'hidden',
+      flexShrink: 0,
     }}>
       {/* Header */}
       <button
