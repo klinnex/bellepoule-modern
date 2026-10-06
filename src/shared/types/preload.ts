@@ -11,6 +11,7 @@ import {
   Pool,
   PoolSnapshot,
   Referee,
+  RefereeComment,
   CompetitionSettings,
   ImportResult,
   ExportFormat,
@@ -515,6 +516,14 @@ export interface RemoteServerAPI {
     competitionId: string,
     password: string
   ) => Promise<{ success: boolean; error?: string }>;
+  setTrainerEnabled: (
+    competitionId: string,
+    enabled: boolean
+  ) => Promise<{ success: boolean; error?: string }>;
+  setTrainerPassword: (
+    competitionId: string,
+    password: string
+  ) => Promise<{ success: boolean; error?: string }>;
   getConnectedClients: (competitionId: string) => Promise<{ success: boolean; clients: ConnectedClient[]; error?: string }>;
   sendClientCommand: (competitionId: string, socketId: string, command: TVCommand) => Promise<{ success: boolean; error?: string }>;
   broadcastCommand: (competitionId: string, command: TVCommand) => Promise<{ success: boolean; error?: string }>;
@@ -621,6 +630,7 @@ export interface DatabaseAPI {
   ) => Promise<Referee>;
   getReferee: (id: string) => Promise<Referee | null>;
   getRefereesByCompetition: (competitionId: string) => Promise<Referee[]>;
+  getRefereeComments: (competitionId: string, refereeId?: string) => Promise<RefereeComment[]>;
   updateReferee: (id: string, updates: Record<string, string | undefined>) => Promise<void>;
   deleteReferee: (id: string) => Promise<void>;
   getMatchesWithReferees: (competitionId: string) => Promise<Array<{
@@ -951,6 +961,10 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   onTrainingMatchFinished: (callback: (data: { record: TrainingMatchRecord | null }) => void) => () => void;
   onRemoteCheckinUpdated?: (
     callback: (data: { kind: 'fencer' | 'referee'; id: string; present: boolean }) => void
+  ) => () => void;
+  /** Arbitre changé depuis une tablette (#977) */
+  onRemoteRefereeChanged?: (
+    callback: (data: { matchId: string; refereeId: string }) => void
   ) => () => void;
   onRemoteFencerExcluded: (callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void) => (() => void);
   /** Carton noir annulé depuis une tablette : combattant réintégré, match rouvert */

@@ -67,6 +67,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   const [blackCardEnabled, setBlackCardEnabled] = useState(
     competition.settings?.blackCardEnabled ?? false
   );
+  const [trainerCommentsEnabled, setTrainerCommentsEnabled] = useState(
+    competition.settings?.trainerCommentsEnabled ?? false
+  );
   const [expertMode, setExpertMode] = useState(competition.settings?.expertMode ?? false);
   const [poolWinnersOnly, setPoolWinnersOnly] = useState(
     competition.settings?.poolWinnersOnly ?? false
@@ -144,6 +147,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       questConfig,
       refereeFeatureEnabled,
       blackCardEnabled,
+      trainerCommentsEnabled,
       expertMode,
       ...(expertMode ? { maxRefereesPerPool, maxRefereesPerMatch } : {}),
       ...(weapon === Weapon.CUSTOM ? { customFormula } : {}),
@@ -679,6 +683,20 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               <small style={HINT_INDENT}>
                 Affiche le bouton carton noir sur les tablettes (exclusion) et convertit le 2ème carton
                 rouge en carton noir
+              </small>
+            </div>
+            <div className="form-group" style={{ marginTop: '0.75rem' }}>
+              <label style={CHECK_LABEL_SM}>
+                <input
+                  type="checkbox"
+                  checked={trainerCommentsEnabled}
+                  onChange={e => setTrainerCommentsEnabled(e.target.checked)}
+                />
+                Activer les commentaires des formateurs d'arbitres
+              </label>
+              <small style={HINT_INDENT}>
+                Ouvre l'espace /formateur de la saisie distante (mot de passe dédié) pour commenter
+                les arbitres ; compte rendu exportable en PDF
               </small>
             </div>
             <div className="form-group" style={{ marginTop: '0.75rem' }}>

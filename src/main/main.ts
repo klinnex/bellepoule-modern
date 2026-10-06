@@ -1209,6 +1209,10 @@ ipcMain.handle('db:createReferee', async (_, competitionId, data) => {
 ipcMain.handle('db:getReferee', async (_, id) => {
   return db.getReferee(id);
 });
+ipcMain.handle('db:getRefereeComments', async (_, competitionId: string, refereeId?: string) => {
+  return db.getRefereeComments(competitionId, refereeId);
+});
+
 ipcMain.handle('db:getRefereesByCompetition', async (_, competitionId) => {
   return db.getRefereesByCompetition(competitionId);
 });
@@ -2249,6 +2253,29 @@ ipcMain.handle('remote:setCheckinPassword', async (_, competitionId: string, pas
   }
 });
 
+// Espace formateurs : commentaires d'arbitrage (#989)
+ipcMain.handle('remote:setTrainerEnabled', async (_, competitionId: string, enabled: boolean) => {
+  try {
+    const entry = remoteServers.get(competitionId);
+    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    entry.server.setTrainerEnabled(!!enabled);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+});
+
+ipcMain.handle('remote:setTrainerPassword', async (_, competitionId: string, password: string) => {
+  try {
+    const entry = remoteServers.get(competitionId);
+    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    entry.server.setTrainerPassword(typeof password === 'string' ? password : '');
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+});
+
 ipcMain.handle('remote:getConnectedClients', async (_, competitionId: string) => {
   try {
     const entry = remoteServers.get(competitionId);
@@ -2792,5 +2819,13 @@ process.on('uncaughtException', error => {
   } catch (e) {
     console.error('Failed to save on crash:', e);
   }
-  dialog.showErrorBox('Erreur', `Une erreur inattendue s'est produite: ${error.message}`);
+  // showMessageBox est asynchrone : showErrorBox bloquerait le processus principal
+  // (serveur distant compris) jusqu'au clic de l'opérateur (#993).
+  void dialog
+    .showMessageBox({
+      type: 'error',
+      title: 'Erreur',
+      message: `Une erreur inattendue s'est produite: ${error.message}`,
+    })
+    .catch(() => undefined);
 });

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generatePoolHTML } from './poolPdf';
+import { buildDefaultTemplate } from '../../types/pdfTemplate.types';
 import { MatchStatus, type Pool, type Fencer, type Match } from '../../types';
 
 const fencer = (id: string, lastName: string) => ({ id, lastName, firstName: 'X' }) as unknown as Fencer;
@@ -40,5 +41,23 @@ describe('generatePoolHTML – options export (#932)', () => {
   it('applique le format paysage', () => {
     expect(generatePoolHTML(makePool(), { landscape: true })).toContain('size: A4 landscape');
     expect(generatePoolHTML(makePool(), {})).not.toContain('size: A4 landscape');
+  });
+});
+
+describe('generatePoolHTML – couleurs du modèle (#992)', () => {
+  it('la surcharge de couleurs suit le CSS de base (sinon écrasée)', () => {
+    const tpl = buildDefaultTemplate('pool');
+    tpl.colors = { navy: '#ff0000', gold: '#00ff00', green: '#0000ff' };
+    const html = generatePoolHTML(makePool(), {}, tpl);
+    const override = html.indexOf('--navy: #ff0000');
+    expect(override).toBeGreaterThan(-1);
+    expect(override).toBeGreaterThan(html.lastIndexOf('--navy:        #1a2e4a'));
+  });
+
+  it('couleur invalide ignorée (injection CSS)', () => {
+    const tpl = buildDefaultTemplate('pool');
+    tpl.colors = { navy: 'red;} body{display:none', gold: '#00ff00', green: '#0000ff' };
+    const html = generatePoolHTML(makePool(), {}, tpl);
+    expect(html).not.toContain('display:none');
   });
 });

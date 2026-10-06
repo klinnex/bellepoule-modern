@@ -478,10 +478,12 @@
         text-align: center;
       }
 
-      .score-a { color: #ef4444; }
-      .score-b { color: #10b981; }
-      .fencer-red { border-left: 3px solid #ef4444; padding-left: 0.5rem; }
-      .fencer-green { border-right: 3px solid #10b981; padding-right: 0.5rem; }
+      .score-red { color: #ef4444; }
+      .score-green { color: #10b981; }
+      .fencer-red { --fencer-color: #ef4444; }
+      .fencer-green { --fencer-color: #10b981; }
+      .side-left { border-left: 3px solid var(--fencer-color); padding-left: 0.5rem; }
+      .side-right { border-right: 3px solid var(--fencer-color); padding-right: 0.5rem; }
 
       .arena-vs {
         font-size: 1rem;
@@ -2006,6 +2008,13 @@
           const nameB = [m.fencerB?.lastName, m.fencerB?.firstName].filter(Boolean).join(' ') || m.fencerB || '?';
           const clubA = m.fencerA?.club || '';
           const clubB = m.fencerB?.club || '';
+          // Même disposition que l'écran d'arène : B rouge à gauche, A vert à droite ; inversion = permutation (#990)
+          const sideA = { name: nameA, club: clubA, score: scoreA, scoreId: `sa-${aid}` };
+          const sideB = { name: nameB, club: clubB, score: scoreB, scoreId: `sb-${aid}` };
+          const left = arena.swapped ? sideA : sideB;
+          const right = arena.swapped ? sideB : sideA;
+          const leftColor = arena.swapped ? 'green' : 'red';
+          const rightColor = arena.swapped ? 'red' : 'green';
 
           return `<div class="arena-card ${isActive ? 'match-active' : ''}">
             <div class="arena-card-header">
@@ -2013,18 +2022,18 @@
               <span class="arena-status-pill ${isActive ? 'in-progress' : ''}">${isActive ? 'En cours' : 'Assigné'}</span>
             </div>
             <div class="arena-matchup">
-              <div class="arena-fencer fencer-red">
-                <div class="fname">${escHtml(nameA)}</div>
-                <div class="fclub">${escHtml(clubA)}</div>
+              <div class="arena-fencer side-left fencer-${leftColor}">
+                <div class="fname">${escHtml(left.name)}</div>
+                <div class="fclub">${escHtml(left.club)}</div>
               </div>
               <div class="arena-scores">
-                <span class="arena-score score-a" id="sa-${aid}">${scoreA}</span>
+                <span class="arena-score score-${leftColor}" id="${left.scoreId}">${left.score}</span>
                 <span class="arena-vs">-</span>
-                <span class="arena-score score-b" id="sb-${aid}">${scoreB}</span>
+                <span class="arena-score score-${rightColor}" id="${right.scoreId}">${right.score}</span>
               </div>
-              <div class="arena-fencer fencer-green">
-                <div class="fname">${escHtml(nameB)}</div>
-                <div class="fclub">${escHtml(clubB)}</div>
+              <div class="arena-fencer side-right fencer-${rightColor}">
+                <div class="fname">${escHtml(right.name)}</div>
+                <div class="fclub">${escHtml(right.club)}</div>
               </div>
             </div>
           </div>`;

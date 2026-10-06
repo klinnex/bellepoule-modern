@@ -192,13 +192,18 @@ export class RemoteScoreServer {
   private webhookUrl: string | null = null;
 
   // Inscription distante : actif pendant la phase CHECKIN, désactivé après génération des poules
-  private registrationEnabled: boolean = true;
+  /** Fermée par défaut : ouverte par le renderer uniquement en phase d'appel (#986). */
+  private registrationEnabled: boolean = false;
 
   // Appel distant (#919) : pointage tireurs/arbitres depuis un téléphone, phase CHECKIN seulement.
   // Mot de passe dédié obligatoire (hashé), tokens de session en cookie.
   private checkinEnabled: boolean = true;
   private checkinPassword: string | null = null;
   private checkinTokens: Map<string, number> = new Map(); // token → expiresAt
+  // Espace formateurs (#989) : commentaires d'arbitrage, mot de passe indépendant des pistes
+  private trainerEnabled: boolean = false;
+  private trainerPassword: string | null = null;
+  private trainerTokens: Map<string, number> = new Map(); // token → expiresAt
 
   // Stocker le contenu des fichiers HTML en mémoire pour éviter les problèmes de chemin
   private htmlFiles: Map<string, string> = new Map();
@@ -312,6 +317,9 @@ export class RemoteScoreServer {
       for (const [ip, f] of this.loginFailures) {
         if (now >= f.lockedUntil && now - f.lastFailAt > 3600_000) this.loginFailures.delete(ip);
       }
+      for (const [token, exp] of this.trainerTokens) {
+        if (now >= exp) this.trainerTokens.delete(token);
+      }
       for (const [token, exp] of this.checkinTokens) {
         if (now >= exp) this.checkinTokens.delete(token);
       }
@@ -406,6 +414,7 @@ export class RemoteScoreServer {
       'overlay-config.html',
       'register.html',
       'checkin.html',
+      'trainer.html',
       'matchs.html',
       'teamArena.html',
       'teamReferee.html',
@@ -723,7 +732,11 @@ export class RemoteScoreServer {
   }
 
   private static isLoginPath(path: string): boolean {
-    return path === '/api/checkin/login' || path.startsWith('/api/auth/login/');
+    return (
+      path === '/api/checkin/login' ||
+      path === '/api/trainer/login' ||
+      path.startsWith('/api/auth/login/')
+    );
   }
 
   private setupMiddleware(): void {
@@ -1434,6 +1447,15 @@ export class RemoteScoreServer {
         console.log(
           `[RemoteScoreServer] Inscription tireur: ${fencerData.lastName} ${fencerData.firstName} (id=${newFencer.id})`
         );
+        // Liste d'appel de l'organisateur rafraîchie en direct (#986)
+        const mainWin = (global as any).mainWindow;
+        if (mainWin && !mainWin.isDestroyed?.()) {
+          mainWin.webContents.send('remote:checkin_updated', {
+            kind: 'fencer',
+            id: newFencer.id,
+            present: false,
+          });
+        }
         res.json({ success: true, fencerRef: newFencer.ref, fencerId: newFencer.id });
       } catch (err) {
         console.error('[RemoteScoreServer] Erreur inscription tireur:', err);
@@ -1448,6 +1470,101 @@ export class RemoteScoreServer {
 
     this.app.get('/checkin', (_req, res) => {
       this.sendHtmlFromMemory('checkin.html', res);
+    });
+
+    // ── Espace formateurs : commentaires d'arbitrage (#989) ────────────────
+    this.app.get('/formateur', (_req, res) => {
+      this.sendHtmlFromMemory('trainer.html', res);
+    });
+
+    this.app.get('/api/trainer/status', (req, res) => {
+      res.json({
+        open: this.trainerEnabled,
+        configured: !!this.trainerPassword,
+        authenticated: this.checkTrainerAuth(req.headers.cookie),
+      });
+    });
+
+    this.app.post('/api/trainer/login', async (req, res) => {
+      const ip = this.getClientIp(req);
+      const limited = this.checkLoginAllowed(ip, 'trainer');
+      if (limited) return this.sendLoginLimited(res, limited);
+      if (!this.trainerEnabled || !this.trainerPassword) {
+        return res.status(403).json({ success: false, notConfigured: true });
+      }
+      const { password } = (req.body ?? {}) as { password?: unknown };
+      if (!this.verifyPassword(password, this.trainerPassword)) {
+        await this.recordLoginFailure(ip, 'trainer');
+        return res.status(401).json({ success: false, error: 'Mot de passe incorrect' });
+      }
+      this.recordLoginSuccess(ip);
+      const token = this.issueToken(this.trainerTokens);
+      res.setHeader(
+        'Set-Cookie',
+        `bp_trainer_token=${token}; HttpOnly; SameSite=Strict; Max-Age=${8 * 3600}; Path=/${req.secure ? '; Secure' : ''}`
+      );
+      res.json({ success: true });
+    });
+
+    this.app.get('/api/trainer/referees', (req, res) => {
+      const denied = this.trainerGuard(req.headers.cookie);
+      if (denied) return res.status(denied.status).json(denied.body);
+      const competitionId = this.session?.competitionId;
+      if (!competitionId) return res.status(503).json({ error: 'Aucune compétition active' });
+      const counts = new Map<string, number>();
+      for (const c of this.db.getRefereeComments(competitionId)) {
+        counts.set(c.refereeId, (counts.get(c.refereeId) ?? 0) + 1);
+      }
+      const referees = this.db.getRefereesByCompetition(competitionId).map(r => {
+        const arena = this.findArenaOfReferee(r.id);
+        return {
+          id: r.id,
+          lastName: r.lastName,
+          firstName: r.firstName,
+          club: r.club ?? '',
+          inMatch: !!arena,
+          arenaNumber: arena?.number ?? null,
+          matchLabel: arena ? this.arenaMatchLabel(arena) : null,
+          commentCount: counts.get(r.id) ?? 0,
+        };
+      });
+      res.json({ referees });
+    });
+
+    this.app.get('/api/trainer/referees/:refereeId/comments', (req, res) => {
+      const denied = this.trainerGuard(req.headers.cookie);
+      if (denied) return res.status(denied.status).json(denied.body);
+      const competitionId = this.session?.competitionId;
+      if (!competitionId) return res.status(503).json({ error: 'Aucune compétition active' });
+      res.json({ comments: this.db.getRefereeComments(competitionId, req.params.refereeId) });
+    });
+
+    this.app.post('/api/trainer/referees/:refereeId/comments', (req, res) => {
+      const denied = this.trainerGuard(req.headers.cookie);
+      if (denied) return res.status(denied.status).json(denied.body);
+      const competitionId = this.session?.competitionId;
+      if (!competitionId) return res.status(503).json({ error: 'Aucune compétition active' });
+      const { refereeId } = req.params;
+      const referee = this.db.getRefereesByCompetition(competitionId).find(r => r.id === refereeId);
+      if (!referee) return res.status(404).json({ error: 'Arbitre inconnu' });
+      const { comment, author } = (req.body ?? {}) as { comment?: unknown; author?: unknown };
+      const text = typeof comment === 'string' ? comment.trim().slice(0, 4000) : '';
+      if (!text) return res.status(400).json({ error: 'Commentaire vide' });
+      const authorName = typeof author === 'string' ? author.trim().slice(0, 100) : null;
+      const arena = this.findArenaOfReferee(refereeId);
+      try {
+        const saved = this.db.addRefereeComment(
+          competitionId,
+          refereeId,
+          text,
+          authorName,
+          arena ? this.arenaMatchLabel(arena) : null
+        );
+        res.json({ success: true, comment: saved });
+      } catch (err) {
+        console.error('[RemoteScoreServer] Erreur commentaire formateur:', err);
+        res.status(500).json({ error: "Erreur lors de l'enregistrement" });
+      }
     });
 
     this.app.get('/api/checkin/status', (req, res) => {
@@ -2969,6 +3086,10 @@ export class RemoteScoreServer {
     // Page HTML : résultats d'une compétition (pour les spectateurs)
     this.app.get('/competition/:competitionId/results', (req, res) => {
       const { competitionId } = req.params;
+      // Identifiant réinjecté dans la page : format strict (anti-XSS réfléchie, #997)
+      if (!/^[A-Za-z0-9_-]{1,64}$/.test(competitionId)) {
+        return res.status(400).send('Identifiant invalide');
+      }
       const html = `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -3005,7 +3126,7 @@ export class RemoteScoreServer {
   <div id="app"><div class="loading">Chargement des résultats…</div></div>
   <button class="refresh" onclick="load()" title="Actualiser">↻</button>
   <script>
-    const competitionId = ${JSON.stringify(competitionId)};
+    const competitionId = ${JSON.stringify(competitionId).replace(/</g, '\\u003c')};
     async function load() {
       try {
         const r = await fetch('/api/competitions/' + competitionId + '/results-data');
@@ -3074,6 +3195,10 @@ export class RemoteScoreServer {
     // Page HTML journal (match en cours uniquement)
     this.app.get('/arene:arenaId/journal', (req, res) => {
       const arenaNum = req.params.arenaId;
+      // Numéro réinjecté dans le HTML et le JS : chiffres uniquement (anti-XSS réfléchie, #997)
+      if (!/^\d{1,3}$/.test(arenaNum)) {
+        return res.status(400).send('Numéro de piste invalide');
+      }
       const html = `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -3191,6 +3316,23 @@ export class RemoteScoreServer {
     this.io.on('connection', (socket: any) => {
       console.log('Client connected:', socket.id);
 
+      // Toute exception d'un handler reste locale : sans ce garde, une donnée nulle
+      // (ex. `join_arena` null) remonte en uncaughtException et gèle l'app (#993).
+      const rawOn = socket.on.bind(socket);
+      socket.on = (event: string, handler: (...args: unknown[]) => unknown) =>
+        rawOn(event, (...args: unknown[]) => {
+          try {
+            return handler(...args);
+          } catch (err) {
+            this.sendDiag(
+              `[Sécurité] Événement socket « ${event} » rejeté : ${(err as Error)?.message}`
+            );
+          }
+        });
+      socket.on('error', (err: Error) => {
+        console.error('Socket.IO error', socket.id, err?.message);
+      });
+
       // Plafond de connexions simultanées par IP
       const clientIp = RemoteScoreServer.normalizeIp(socket.handshake?.address);
       const count = (this.socketsPerIp.get(clientIp) ?? 0) + 1;
@@ -3227,6 +3369,7 @@ export class RemoteScoreServer {
 
       // Gestion des arènes
       socket.on('join_arena', (data: { arenaId: string; role?: string; lastSeen?: number }) => {
+        if (!data || typeof data.arenaId !== 'string' || !data.arenaId) return;
         console.log(
           `Client ${socket.id} joining arena ${data.arenaId} as ${data.role || 'spectator'}`
         );
@@ -3303,6 +3446,7 @@ export class RemoteScoreServer {
       });
 
       socket.on('join_pool', (data: { arenaId: string }) => {
+        if (!data || typeof data.arenaId !== 'string' || !data.arenaId) return;
         socket.join(`pool:${data.arenaId}`);
         const poolTheme = this.arenaScreenThemes.get(data.arenaId)?.pool;
         if (poolTheme) {
@@ -3342,6 +3486,7 @@ export class RemoteScoreServer {
           userAgent?: string;
           screenId?: string;
         }) => {
+          if (!data || typeof data !== 'object') return;
           const now = new Date().toISOString();
           const screenId = data.screenId;
           const label = screenId ? this.screenLabels.get(screenId) : undefined;
@@ -3386,6 +3531,7 @@ export class RemoteScoreServer {
       // Room dédiée `team-arena:{arenaId}`, événements `team_*` — aucun recouvrement
       // avec les événements `arena_control`/`join_arena` du scoring individuel.
       socket.on('join_team_arena', (data: { arenaId: string; role?: string }) => {
+        if (!data || typeof data.arenaId !== 'string' || !data.arenaId) return;
         if (data.role === 'referee' && !this.checkArenaAuth(data.arenaId, socket.handshake.headers.cookie as string)) {
           socket.emit('auth_error', { message: 'Authentification requise' });
           socket.disconnect(true);
@@ -3499,6 +3645,7 @@ export class RemoteScoreServer {
 
       // Niveau de batterie remonté par les tablettes arbitre
       socket.on('client:battery', (data: { level: number; charging: boolean }) => {
+        if (!data || typeof data.level !== 'number') return;
         const client = this.connectedClients.get(socket.id);
         if (!client) return;
         client.battery = {
@@ -3516,6 +3663,33 @@ export class RemoteScoreServer {
         this.handleDisconnect(socket);
       });
     });
+  }
+
+  /** Annonce carton/sortie relayée aux écrans : champs connus seulement, textes neutralisés (#995). */
+  static sanitizeAnnouncement(raw: unknown): Record<string, unknown> | null {
+    if (!raw || typeof raw !== 'object') return null;
+    const a = raw as Record<string, unknown>;
+    const CARDS = ['white', 'yellow', 'red', 'black'];
+    const text = (v: unknown, max = 80): string =>
+      typeof v === 'string'
+        ? v
+            // eslint-disable-next-line no-control-regex
+            .replace(/[<>\u0000-\u001f]/g, '')
+            .slice(0, max)
+            .trim()
+        : '';
+    const card = (v: unknown): string | null =>
+      typeof v === 'string' && CARDS.includes(v) ? v : null;
+    return {
+      fencer: a.fencer === 'B' ? 'B' : 'A',
+      fencerName: text(a.fencerName),
+      cardType: card(a.cardType) ?? 'yellow',
+      isRevalorisation: a.isRevalorisation === true,
+      fromCard: card(a.fromCard),
+      toCard: card(a.toCard),
+      reason: text(a.reason, 120) || null,
+      points: typeof a.points === 'number' && Number.isFinite(a.points) ? Math.trunc(a.points) : 0,
+    };
   }
 
   private handleDisconnect(socket: any): void {
@@ -3863,20 +4037,20 @@ export class RemoteScoreServer {
         });
         break;
       }
-      case 'card_announcement':
-        if (data.announcement) {
-          this.io
-            .to(`arena:${data.arenaId}`)
-            .emit(`arena:${data.arenaId}:card_announcement`, data.announcement);
+      case 'card_announcement': {
+        const ann = RemoteScoreServer.sanitizeAnnouncement(data.announcement);
+        if (ann) {
+          this.io.to(`arena:${data.arenaId}`).emit(`arena:${data.arenaId}:card_announcement`, ann);
         }
         break;
-      case 'exit_announcement':
-        if (data.announcement && this.sessionCardAnnounce) {
-          this.io
-            .to(`arena:${data.arenaId}`)
-            .emit(`arena:${data.arenaId}:exit_announcement`, data.announcement);
+      }
+      case 'exit_announcement': {
+        const ann = RemoteScoreServer.sanitizeAnnouncement(data.announcement);
+        if (ann && this.sessionCardAnnounce) {
+          this.io.to(`arena:${data.arenaId}`).emit(`arena:${data.arenaId}:exit_announcement`, ann);
         }
         break;
+      }
       case 'update_timer':
       case 'pause_timer':
       case 'reset_timer': {
@@ -3920,6 +4094,14 @@ export class RemoteScoreServer {
           ...arena.currentMatch,
           ...(resolvedRef ? { referee: resolvedRef } : {}),
         };
+        // Application organisateur : sinon son état en mémoire réécrit l'ancien arbitre (#977)
+        const mainWin = (global as any).mainWindow;
+        if (mainWin && !mainWin.isDestroyed?.()) {
+          mainWin.webContents.send('remote:referee_changed', {
+            matchId: data.matchId,
+            refereeId: data.refereeId,
+          });
+        }
         this.broadcastArenaUpdate(data.arenaId, {
           arenaId: data.arenaId,
           match: arena.currentMatch,
@@ -5500,6 +5682,52 @@ export class RemoteScoreServer {
       return { status: 401, body: { unauthorized: true, error: 'Authentification requise' } };
     }
     return null;
+  }
+
+  public setTrainerEnabled(enabled: boolean): void {
+    this.trainerEnabled = enabled;
+    if (!enabled) this.trainerTokens.clear();
+  }
+
+  public setTrainerPassword(password: string): void {
+    this.assertPasswordStrength(password);
+    this.trainerPassword = password ? this.hashPassword(password) : null;
+    this.trainerTokens.clear();
+    console.log(`[RemoteScoreServer] Mot de passe formateurs ${password ? 'défini' : 'supprimé'}`);
+  }
+
+  private checkTrainerAuth(cookieHeader: string | undefined): boolean {
+    if (!this.trainerPassword) return false;
+    const token = this.parseCookies(cookieHeader)['bp_trainer_token'];
+    return this.isTokenValid(this.trainerTokens, token);
+  }
+
+  /** Refus d'accès à l'espace formateurs, ou null si autorisé. */
+  private trainerGuard(
+    cookieHeader: string | undefined
+  ): { status: number; body: Record<string, unknown> } | null {
+    if (!this.trainerEnabled || !this.trainerPassword) {
+      return { status: 403, body: { notConfigured: true, error: 'Espace formateurs fermé' } };
+    }
+    if (!this.checkTrainerAuth(cookieHeader)) {
+      return { status: 401, body: { unauthorized: true, error: 'Authentification requise' } };
+    }
+    return null;
+  }
+
+  /** Piste où l'arbitre officie actuellement (match assigné ou en cours). */
+  private findArenaOfReferee(refereeId: string): Arena | undefined {
+    return Array.from(this.arenas.values()).find(
+      a =>
+        (a.status === 'ready' || a.status === 'in_progress') &&
+        a.currentMatch?.referee?.id === refereeId
+    );
+  }
+
+  private arenaMatchLabel(arena: Arena): string {
+    const m = arena.currentMatch;
+    const names = [m?.fencerA?.lastName, m?.fencerB?.lastName].filter(Boolean).join(' / ');
+    return `Piste ${arena.number}${names ? ` — ${names}` : ''}`;
   }
 
   /** Active la lecture de X-Forwarded-For (uniquement derrière un reverse proxy de confiance). */

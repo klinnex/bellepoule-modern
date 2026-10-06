@@ -1142,6 +1142,38 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     }
   }, [applyPoolRefereeAssignments]);
 
+  // Arbitre changé depuis une tablette : répercuté sur poules, tableau et consolantes (#977)
+  const refereesRef = useRef(referees);
+  refereesRef.current = referees;
+  useEffect(() => {
+    const off = window.electronAPI?.onRemoteRefereeChanged?.(async ({ matchId, refereeId }) => {
+      let ref = refereesRef.current.find(r => r.id === refereeId);
+      if (!ref) {
+        const rows: Referee[] = await window.electronAPI.db
+          .getRefereesByCompetition(competition.id)
+          .catch(() => []);
+        setReferees(rows);
+        ref = rows.find(r => r.id === refereeId);
+      }
+      if (!ref) return;
+      const principal = ref;
+      const withReferee = <T extends { id: string; referees?: Array<{ id: string }> }>(m: T): T =>
+        m.id !== matchId
+          ? m
+          : {
+              ...m,
+              referee: principal,
+              ...(m.referees?.length ? { referees: [principal, ...m.referees.slice(1)] } : {}),
+            };
+      applyPoolRefereeAssignments(new Map([[matchId, principal]]));
+      setTableauMatches(prev => prev.map(withReferee));
+      setConsolationBrackets(prev =>
+        prev.map(b => (b.matches.some(m => m.id === matchId) ? { ...b, matches: b.matches.map(withReferee) } : b))
+      );
+    });
+    return () => off?.();
+  }, [competition.id, applyPoolRefereeAssignments]);
+
   // Matchs proposés à l'assignation d'arbitres : poules + tableau + consolation
   const refereeAssignableMatches = useMemo<Match[]>(() => {
     const now = new Date();
@@ -1187,14 +1219,15 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
     if (!isRemoteActive || !window.electronAPI?.remote?.setRegistrationEnabled) return;
     const enabled = currentPhase === 'checkin';
     window.electronAPI.remote.setRegistrationEnabled(competition.id, enabled).catch(() => {});
-  }, [currentPhase, isRemoteActive, competition.id]);
+    // remoteServerUrl : re-synchronise une fois le serveur réellement démarré (#986)
+  }, [currentPhase, isRemoteActive, competition.id, remoteServerUrl]);
 
   // Appel distant (/appel) : ouvert uniquement pendant la phase CHECKIN (#919)
   useEffect(() => {
     if (!isRemoteActive || !window.electronAPI?.remote?.setCheckinEnabled) return;
     const enabled = currentPhase === 'checkin';
     window.electronAPI.remote.setCheckinEnabled(competition.id, enabled).catch(() => {});
-  }, [currentPhase, isRemoteActive, competition.id]);
+  }, [currentPhase, isRemoteActive, competition.id, remoteServerUrl]);
 
   // Pointage reçu depuis la page d'appel distante : recharger depuis la DB
   useEffect(() => {
@@ -1967,7 +2000,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({ competition, onUpdate
             initialStripCount={remoteArenaCount}
             onArenaCountChange={setRemoteArenaCount}
             onStartRemote={() => setIsRemoteActive(true)}
-            onStopRemote={() => { setIsRemoteActive(false); setArenaStates([]); }}
+            onStopRemote={() => { setIsRemoteActive(false); setArenaStates([]); setRemoteServerUrl(null); }}
+            onServerStarted={setRemoteServerUrl}
             isRemoteActive={isRemoteActive}
             isVisible={currentPhase === 'remote'}
           />

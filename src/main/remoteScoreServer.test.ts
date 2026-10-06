@@ -1252,4 +1252,159 @@ describe('RemoteScoreServer', () => {
       expect((server as any).connectedClients.get(socket.id).ip).toBe('192.168.1.62');
     });
   });
+
+  describe('#993/#995/#997 : DoS socket et XSS', () => {
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    function connect() {
+      const io = (server as any).io;
+      const onConnection = vi
+        .mocked(io.on)
+        .mock.calls.find((c: any[]) => c[0] === 'connection')?.[1];
+      const handlers: Record<string, any> = {};
+      const socket = {
+        id: 'sock-x',
+        handshake: { headers: {}, address: '192.168.1.70' },
+        on: vi.fn((ev: string, cb: any) => {
+          handlers[ev] = cb;
+        }),
+        emit: vi.fn(),
+        join: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      onConnection(socket);
+      return handlers;
+    }
+
+    it.each([
+      'join_arena',
+      'join_pool',
+      'join_team_arena',
+      'arena_control',
+      'client:register',
+      'client:battery',
+      'team_touch',
+    ])('%s avec données nulles : aucune exception', ev => {
+      const handlers = connect();
+      expect(() => handlers[ev](null)).not.toThrow();
+      expect(() => handlers[ev](undefined)).not.toThrow();
+    });
+
+    it('sanitizeAnnouncement : balises retirées, carton inconnu normalisé', () => {
+      const a = RemoteScoreServer.sanitizeAnnouncement({
+        fencerName: '<img src=x onerror="alert(1)">Dupont',
+        cardType: 'evil" onclick="x',
+        reason: '<script>x</script>',
+        extra: 'ignored',
+      })!;
+      expect(a.fencerName).not.toMatch(/[<>]/);
+      expect(a.cardType).toBe('yellow');
+      expect(a.reason).not.toMatch(/[<>]/);
+      expect(a).not.toHaveProperty('extra');
+      expect(RemoteScoreServer.sanitizeAnnouncement(null)).toBeNull();
+    });
+
+    it('journal : numéro de piste non numérique refusé (400)', () => {
+      const res = makeRes();
+      findHandler('get', '/arene:arenaId/journal')(
+        makeReq({ params: { arenaId: '1<img src=x onerror=alert(1)>' } }),
+        res
+      );
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    it('résultats : identifiant de compétition hors format refusé (400)', () => {
+      const res = makeRes();
+      findHandler('get', '/competition/:competitionId/results')(
+        makeReq({ params: { competitionId: '</script><script>alert(1)</script>' } }),
+        res
+      );
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+  });
+
+  describe('#989 : espace formateurs', () => {
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    beforeEach(() => {
+      (server as any).session = { competitionId: 'comp-1', strips: [] };
+      (server as any).loginFailureDelayMs = 0;
+      (mockDb as any).getRefereeComments = vi.fn().mockReturnValue([]);
+      (mockDb as any).addRefereeComment = vi.fn().mockReturnValue({ id: 'c1' });
+      mockDb.getRefereesByCompetition.mockReturnValue([
+        { id: 'r1', lastName: 'ARBITRE', firstName: 'Anne' },
+      ]);
+    });
+
+    it('fermé tant que non activé / sans mot de passe', () => {
+      const res = makeRes();
+      findHandler('get', '/api/trainer/referees')(makeReq(), res);
+      expect(res.status).toHaveBeenCalledWith(403);
+    });
+
+    it('login puis commentaire enregistré ; sans cookie → 401', async () => {
+      server.setTrainerEnabled(true);
+      server.setTrainerPassword('formateur123');
+
+      const anon = makeRes();
+      findHandler('post', '/api/trainer/referees/:refereeId/comments')(
+        makeReq({ params: { refereeId: 'r1' }, body: { comment: 'Bien' } }),
+        anon
+      );
+      expect(anon.status).toHaveBeenCalledWith(401);
+
+      const loginRes = makeRes();
+      await findHandler('post', '/api/trainer/login')(
+        makeReq({ body: { password: 'formateur123' } }),
+        loginRes
+      );
+      const cookieHeader = loginRes.setHeader.mock.calls.find(
+        (c: any[]) => c[0] === 'Set-Cookie'
+      )[1];
+      const cookie = cookieHeader.split(';')[0];
+
+      const res = makeRes();
+      findHandler('post', '/api/trainer/referees/:refereeId/comments')(
+        makeReq({
+          params: { refereeId: 'r1' },
+          body: { comment: '  Bon placement  ', author: 'Paul' },
+          headers: { cookie },
+        }),
+        res
+      );
+      expect((mockDb as any).addRefereeComment).toHaveBeenCalledWith(
+        'comp-1',
+        'r1',
+        'Bon placement',
+        'Paul',
+        null
+      );
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+
+      const unknown = makeRes();
+      findHandler('post', '/api/trainer/referees/:refereeId/comments')(
+        makeReq({ params: { refereeId: 'zz' }, body: { comment: 'x' }, headers: { cookie } }),
+        unknown
+      );
+      expect(unknown.status).toHaveBeenCalledWith(404);
+    });
+
+    it('mauvais mot de passe refusé', async () => {
+      server.setTrainerEnabled(true);
+      server.setTrainerPassword('formateur123');
+      const res = makeRes();
+      await findHandler('post', '/api/trainer/login')(makeReq({ body: { password: 'nope' } }), res);
+      expect(res.status).toHaveBeenCalledWith(401);
+    });
+  });
 });

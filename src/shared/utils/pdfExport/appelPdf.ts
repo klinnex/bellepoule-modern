@@ -102,8 +102,8 @@ export function generateAppelHTML(
   <meta charset="UTF-8">
   <title>${effectiveTitle}</title>
   <style>
-    ${cssOverrides}
     ${BASE_CSS}
+    ${cssOverrides}
     table { width: 100%; border-collapse: collapse; font-size: 9pt; }
     th {
       background: var(--navy); color: var(--white);

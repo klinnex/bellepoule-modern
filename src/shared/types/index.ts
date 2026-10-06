@@ -600,6 +600,7 @@ export interface CompetitionSettings {
   questConfig?: QuestPhaseConfig; // Configuration du Tour Quest (Sabre Laser uniquement)
   refereeFeatureEnabled?: boolean; // Activer la gestion des arbitres sur arènes et saisie distante
   blackCardEnabled?: boolean; // Carton noir activé sur les tablettes (défaut: false)
+  trainerCommentsEnabled?: boolean; // Saisie distante formateurs : commentaires d'arbitrage (#989)
   customFormula?: CustomFormulaConfig; // Formule à la carte (arme CUSTOM uniquement)
   playAllPositions?: boolean; // Jouer toutes les places (tableaux de classement)
   expertMode?: boolean; // Mode expert : édition avancée des pistes et arbitres
@@ -720,4 +721,16 @@ export interface MatchEventEntry {
   resultingExclusion: boolean | null;
   // arena_exit
   exitType: string | null;
+}
+
+/** Commentaire de formation laissé par un formateur sur un arbitre (#989) */
+export interface RefereeComment {
+  id: string;
+  competitionId: string;
+  refereeId: string;
+  author: string | null;
+  comment: string;
+  /** Contexte au moment du commentaire (ex. « Piste 2 — DUPONT / MARTIN ») */
+  matchLabel: string | null;
+  createdAt: string;
 }

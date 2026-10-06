@@ -25,6 +25,8 @@ interface RemoteScoreManagerProps {
   onArenaCountChange?: (count: number) => void;
   onStartRemote: () => void;
   onStopRemote: () => void;
+  /** Serveur démarré et joignable (IPC utilisables) */
+  onServerStarted?: (url: string) => void;
   isRemoteActive?: boolean;
   initialStripCount?: number;
   isVisible?: boolean;
@@ -103,6 +105,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   onArenaCountChange,
   onStartRemote,
   onStopRemote,
+  onServerStarted,
   isRemoteActive = false,
   initialStripCount,
   isVisible = false,
@@ -338,6 +341,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         }
         setServerUrl(result.serverInfo.url);
         setCertFingerprint(result.serverInfo.certFingerprint ?? null);
+        onServerStarted?.(result.serverInfo.url);
         await startSession(result.serverInfo.url, effectivePending);
       } else {
         showToast(`Erreur: ${result.error || 'Impossible de démarrer le serveur'}`, 'error');
@@ -487,6 +491,76 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     }
   };
 
+  // Mot de passe commun : appliqué à toutes les pistes, y compris celles ajoutées ensuite (#988)
+  const [commonArenaPassword, setCommonArenaPassword] = useState('');
+  const [appliedCommonPassword, setAppliedCommonPassword] = useState<string | null>(null);
+
+  const applyCommonArenaPassword = async (pwd: string, numbers: number[]): Promise<boolean> => {
+    for (const n of numbers) {
+      const result = await window.electronAPI.remote.setArenaPassword(competition.id, `arena${n}`, pwd);
+      if (!result.success) {
+        showToast(result.error ?? 'Erreur', 'error');
+        return false;
+      }
+    }
+    setArenaPasswords(p => {
+      const next = { ...p };
+      for (const n of numbers) next[`arena${n}`] = pwd;
+      return next;
+    });
+    return true;
+  };
+
+  const handleApplyCommonPassword = async () => {
+    const numbers = Array.from({ length: arenaCount }, (_, i) => i + 1);
+    if (await applyCommonArenaPassword(commonArenaPassword, numbers)) {
+      setAppliedCommonPassword(commonArenaPassword || null);
+      showToast(
+        commonArenaPassword
+          ? `Mot de passe commun défini pour ${numbers.length} piste(s)`
+          : 'Mots de passe des pistes supprimés',
+        'success'
+      );
+    }
+  };
+
+  // Espace formateurs (#989) : ouvert si l'option de compétition est cochée
+  const trainerEnabled = competition.settings?.trainerCommentsEnabled === true;
+  const [trainerPassword, setTrainerPassword] = useState('');
+  useEffect(() => {
+    if (!session) return;
+    window.electronAPI.remote.setTrainerEnabled?.(competition.id, trainerEnabled).catch(() => {});
+  }, [session, trainerEnabled, competition.id]);
+
+  const applyTrainerPassword = async () => {
+    const result = await window.electronAPI.remote.setTrainerPassword(competition.id, trainerPassword);
+    if (result.success) {
+      showToast(trainerPassword ? 'Mot de passe formateurs défini' : 'Mot de passe formateurs supprimé', 'success');
+    } else {
+      showToast(result.error ?? 'Erreur', 'error');
+    }
+  };
+
+  const exportTrainerComments = async () => {
+    try {
+      const [referees, comments] = await Promise.all([
+        window.electronAPI.db.getRefereesByCompetition(competition.id),
+        window.electronAPI.db.getRefereeComments(competition.id),
+      ]);
+      if (comments.length === 0) {
+        showToast('Aucun commentaire enregistré', 'info');
+        return;
+      }
+      const { exportRefereeCommentsToPDF } = await import(
+        '../../shared/utils/pdfExport/refereeCommentsPdf'
+      );
+      await exportRefereeCommentsToPDF(referees, comments, competition.title);
+    } catch (error) {
+      logger.error(LogCategory.UI, 'Export commentaires arbitres', error as Error);
+      showToast("Échec de l'export PDF", 'error');
+    }
+  };
+
   const applyCheckinPassword = async () => {
     const result = await window.electronAPI.remote.setCheckinPassword(competition.id, checkinPassword);
     if (result.success) {
@@ -619,6 +693,18 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   const kioskUrl = `${serverUrl}/kiosk`;
   const lobbyUrl = `${serverUrl}/lobby`;
   const checkinUrl = `${serverUrl}/appel`;
+  const trainerUrl = `${serverUrl}/formateur`;
+  // Pistes ajoutées après définition du MDP commun : même mot de passe (#988)
+  const commonPwdCountRef = useRef(arenaCount);
+  useEffect(() => {
+    const prev = commonPwdCountRef.current;
+    commonPwdCountRef.current = arenaCount;
+    if (!appliedCommonPassword || !session || arenaCount <= prev) return;
+    const added = Array.from({ length: arenaCount - prev }, (_, i) => prev + i + 1);
+    void applyCommonArenaPassword(appliedCommonPassword, added);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [arenaCount]);
+
   const arenaUrls = Array.from({ length: arenaCount }, (_, i) => ({
     number: i + 1,
     refereeUrl: `${serverUrl}/arene${i + 1}/arbitre`,
@@ -1112,6 +1198,27 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           )}
         </div>
 
+        <div className="arena-url-row" style={{ marginBottom: '0.75rem' }}>
+          <span className="arena-url-label">🔒 MDP commun</span>
+          <input
+            type="password"
+            className="arena-password-input"
+            placeholder="Toutes les pistes · 8 car. min. (vide = accès libre)"
+            value={commonArenaPassword}
+            onChange={e => setCommonArenaPassword(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') handleApplyCommonPassword();
+            }}
+          />
+          <button
+            className="btn-copy"
+            title="Appliquer à toutes les pistes"
+            onClick={handleApplyCommonPassword}
+          >
+            ✓
+          </button>
+        </div>
+
         <div className="arena-url-grid">
           {arenaUrls.map(arena => {
             const arenaId = `arena${arena.number}`;
@@ -1554,6 +1661,53 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             </button>
           </div>
         </div>
+
+        {trainerEnabled && (
+          <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
+            <div className="arena-url-header">
+              <strong>🎓 Formateurs (commentaires d'arbitrage)</strong>
+            </div>
+            <div className="arena-url-row">
+              <span className="arena-url-label">URL</span>
+              <code className="arena-url-value">{trainerUrl}</code>
+              <button
+                className="btn-copy"
+                onClick={() => copyToClipboard(trainerUrl, 995)}
+                title="Copier l'URL"
+              >
+                {copiedIndex === 995 ? '✓' : '📋'}
+              </button>
+              <button
+                className="btn-qr"
+                onClick={() => setActiveQR({ url: trainerUrl, label: 'Formateurs' })}
+                title="QR code"
+              >
+                📱
+              </button>
+            </div>
+            <div className="arena-url-row">
+              <span className="arena-url-label">🔒 MDP</span>
+              <input
+                type="password"
+                className="arena-password-input"
+                placeholder="Obligatoire, distinct des pistes · 8 car. min."
+                value={trainerPassword}
+                onChange={e => setTrainerPassword(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') applyTrainerPassword();
+                }}
+              />
+              <button className="btn-copy" title="Définir le mot de passe" onClick={applyTrainerPassword}>
+                ✓
+              </button>
+            </div>
+            <div className="arena-url-row">
+              <button className="btn btn-secondary btn-sm" onClick={exportTrainerComments}>
+                📄 Compte rendu PDF des commentaires
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
           <div className="arena-url-header">
