@@ -2996,6 +2996,11 @@ app.on('before-quit', () => {
   shutdownDb(); // no-op si déjà fermé
 });
 
+// Promesses rejetées non gérées : journaliser sans terminer le processus (#1007)
+process.on('unhandledRejection', reason => {
+  console.error('Unhandled Rejection:', reason);
+});
+
 // Handle uncaught exceptions - save before crash
 process.on('uncaughtException', error => {
   console.error('Uncaught Exception:', error);
