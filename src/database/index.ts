@@ -38,6 +38,23 @@ import { logger, LogCategory } from '../shared/services/logger';
 import { MigrationManager } from './migrations';
 import { ALL_MIGRATIONS } from './migrations/migrations';
 
+// Taille max du cache de statements : les requêtes `IN (?,?,…)` à arité variable
+// créeraient sinon une entrée par taille, sans borne (#1007).
+const STMT_CACHE_MAX = 500;
+
+// JSON.parse tolérant : une colonne corrompue ne doit pas rendre illisible
+// toute une poule ou tout un tableau (#1007).
+export function safeJsonParse<T = any>(raw: unknown, fallback: T, context = ''): T {
+  if (raw === null || raw === undefined || raw === '') return fallback;
+  if (typeof raw !== 'string') return raw as T;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    console.error(`DB: JSON invalide ignoré${context ? ` (${context})` : ''}`);
+    return fallback;
+  }
+}
+
 export class DatabaseManager {
   private db: Database.Database | null = null;
   private dbPath: string;
@@ -62,6 +79,10 @@ export class DatabaseManager {
     this.stmtCache.clear();
     this.db = new Database(this.dbPath);
     this.db.pragma('journal_mode = WAL');
+    // WAL + NORMAL : durable au crash applicatif, nettement moins de fsync que FULL
+    this.db.pragma('synchronous = NORMAL');
+    // Attente plutôt qu'un SQLITE_BUSY immédiat en cas de contention (checkpoint, backup)
+    this.db.pragma('busy_timeout = 5000');
     this.db.pragma('foreign_keys = ON');
     this.runMigrations();
   }
@@ -77,10 +98,17 @@ export class DatabaseManager {
 
   private prepare(sql: string): Database.Statement {
     let stmt = this.stmtCache.get(sql);
-    if (!stmt) {
+    if (stmt) {
+      // LRU : ré-insertion en fin de Map
+      this.stmtCache.delete(sql);
+    } else {
       stmt = this.db!.prepare(sql);
-      this.stmtCache.set(sql, stmt);
+      if (this.stmtCache.size >= STMT_CACHE_MAX) {
+        const oldest = this.stmtCache.keys().next().value;
+        if (oldest !== undefined) this.stmtCache.delete(oldest);
+      }
     }
+    this.stmtCache.set(sql, stmt);
     return stmt;
   }
 
@@ -665,8 +693,8 @@ export class DatabaseManager {
       [competitionId]
     )) {
       existing.set(r.id as string, {
-        a: r.score_a ? JSON.parse(r.score_a as string) : null,
-        b: r.score_b ? JSON.parse(r.score_b as string) : null,
+        a: safeJsonParse(r.score_a, null, `match ${r.id} score_a`),
+        b: safeJsonParse(r.score_b, null, `match ${r.id} score_b`),
       });
     }
     const insertMany = this.db.transaction((rows: typeof matches) => {
@@ -848,8 +876,8 @@ export class DatabaseManager {
     if (!this.db) throw new Error('Database not open');
     const row = this.queryOne<any>('SELECT * FROM matches WHERE id = ?', [id]);
     if (!row) return null;
-    const scoreA = row.score_a ? JSON.parse(row.score_a as string) : null;
-    const scoreB = row.score_b ? JSON.parse(row.score_b as string) : null;
+    const scoreA = safeJsonParse<any>(row.score_a, null, `match ${row.id} score_a`);
+    const scoreB = safeJsonParse<any>(row.score_b, null, `match ${row.id} score_b`);
     const status = this.healMatchStatus(row.status as MatchStatus, scoreA, scoreB);
     return {
       id: row.id as string,
@@ -920,8 +948,8 @@ export class DatabaseManager {
     }
 
     return matchRows.map(row => {
-      const scoreA = row.score_a ? JSON.parse(row.score_a as string) : null;
-      const scoreB = row.score_b ? JSON.parse(row.score_b as string) : null;
+      const scoreA = safeJsonParse<any>(row.score_a, null, `match ${row.id} score_a`);
+      const scoreB = safeJsonParse<any>(row.score_b, null, `match ${row.id} score_b`);
       const status = this.healMatchStatus(row.status as MatchStatus, scoreA, scoreB);
       return {
         id: row.id as string,
@@ -1530,8 +1558,8 @@ export class DatabaseManager {
        ORDER BY p.name, m.number`,
       [competitionId]
     ).map(row => {
-      const scoreARaw = row.score_a ? JSON.parse(row.score_a as string) : null;
-      const scoreBRaw = row.score_b ? JSON.parse(row.score_b as string) : null;
+      const scoreARaw = safeJsonParse<any>(row.score_a, null, `match ${row.match_id} score_a`);
+      const scoreBRaw = safeJsonParse<any>(row.score_b, null, `match ${row.match_id} score_b`);
       return {
         matchId: row.match_id as string,
         matchNumber: row.match_number as number,
@@ -2105,10 +2133,10 @@ export class DatabaseManager {
       poolId: r.pool_id as string | null,
       matchNumber: r.match_number != null ? Number(r.match_number) : null,
       poolNumber: r.pool_number != null ? Number(r.pool_number) : null,
-      previousScoreA: r.previous_score_a ? JSON.parse(r.previous_score_a as string) : null,
-      previousScoreB: r.previous_score_b ? JSON.parse(r.previous_score_b as string) : null,
-      newScoreA: JSON.parse(r.new_score_a as string),
-      newScoreB: JSON.parse(r.new_score_b as string),
+      previousScoreA: safeJsonParse<any>(r.previous_score_a, null, `audit ${r.id}`),
+      previousScoreB: safeJsonParse<any>(r.previous_score_b, null, `audit ${r.id}`),
+      newScoreA: safeJsonParse<any>(r.new_score_a, null, `audit ${r.id}`),
+      newScoreB: safeJsonParse<any>(r.new_score_b, null, `audit ${r.id}`),
       changedBy: r.changed_by as string,
       changedAt: r.changed_at as string,
       reason: r.reason as string | null,
@@ -2156,10 +2184,10 @@ export class DatabaseManager {
       fencerLastName: (r.fencer_last_name as string) ?? null,
       fencerFirstName: (r.fencer_first_name as string) ?? null,
       fencerSide: (r.fencer_side as 'A' | 'B') ?? null,
-      previousScoreA: r.prev_a ? JSON.parse(r.prev_a as string) : null,
-      previousScoreB: r.prev_b ? JSON.parse(r.prev_b as string) : null,
-      newScoreA: r.new_a ? JSON.parse(r.new_a as string) : null,
-      newScoreB: r.new_b ? JSON.parse(r.new_b as string) : null,
+      previousScoreA: safeJsonParse<any>(r.prev_a, null, `event ${r.id}`),
+      previousScoreB: safeJsonParse<any>(r.prev_b, null, `event ${r.id}`),
+      newScoreA: safeJsonParse<any>(r.new_a, null, `event ${r.id}`),
+      newScoreB: safeJsonParse<any>(r.new_b, null, `event ${r.id}`),
       changedBy: (r.changed_by as string) ?? null,
       refereeName: (r.referee_name as string) ?? null,
       ipAddress: (r.ip_address as string) ?? null,
@@ -2341,9 +2369,9 @@ export class DatabaseManager {
     return {
       arenaId: r.arena_id as string,
       competitionId: r.competition_id as string,
-      currentMatch: r.current_match ? JSON.parse(r.current_match as string) : null,
-      matchQueue: r.match_queue ? JSON.parse(r.match_queue as string) : [],
-      settings: r.settings ? JSON.parse(r.settings as string) : null,
+      currentMatch: safeJsonParse<any>(r.current_match, null, `arena ${arenaId}`),
+      matchQueue: safeJsonParse<any[]>(r.match_queue, [], `arena ${arenaId}`),
+      settings: safeJsonParse<any>(r.settings, null, `arena ${arenaId}`),
       status: r.status as string,
       updatedAt: r.updated_at as string,
     };

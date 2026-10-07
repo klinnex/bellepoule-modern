@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { DatabaseManager } from './index';
+import { DatabaseManager, safeJsonParse } from './index';
 import { ValidationError } from './validation';
 
 let mockDb: any;
@@ -61,6 +61,12 @@ describe('DatabaseManager', () => {
       expect(Database).toHaveBeenCalledWith('/tmp/test-bellepoule.db');
       expect(mockDb.pragma).toHaveBeenCalledWith('journal_mode = WAL');
       expect(mockDb.pragma).toHaveBeenCalledWith('foreign_keys = ON');
+    });
+
+    it('configure busy_timeout et synchronous NORMAL (#1007)', async () => {
+      await manager.open();
+      expect(mockDb.pragma).toHaveBeenCalledWith('synchronous = NORMAL');
+      expect(mockDb.pragma).toHaveBeenCalledWith('busy_timeout = 5000');
     });
 
     it('lance runMigrations après ouverture', async () => {
@@ -504,5 +510,44 @@ describe('DatabaseManager — historique tableau (#927)', () => {
     await setup([]);
     manager.upsertMultipleTableauMatches('c1', [match(null, null)]);
     expect(auditRuns).toHaveLength(0);
+  });
+});
+
+describe('safeJsonParse (#1007)', () => {
+  it('parse un JSON valide', () => {
+    expect(safeJsonParse('{"value":5}', null)).toEqual({ value: 5 });
+  });
+
+  it('retourne le repli sur JSON corrompu sans lever', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    expect(safeJsonParse('{corrompu', null)).toBeNull();
+    expect(safeJsonParse('[', [])).toEqual([]);
+    spy.mockRestore();
+  });
+
+  it('retourne le repli sur null / vide', () => {
+    expect(safeJsonParse(null, 'x')).toBe('x');
+    expect(safeJsonParse('', 'x')).toBe('x');
+  });
+});
+
+describe('cache de statements borné (#1007)', () => {
+  it('ne dépasse pas la taille max et réutilise les statements', async () => {
+    mockDb = {
+      pragma: vi.fn(),
+      prepare: vi.fn().mockImplementation(() => makeStmt()),
+      close: vi.fn(),
+      transaction: vi.fn(),
+    };
+    const m = new DatabaseManager('/tmp/test-bellepoule.db');
+    await m.open();
+    const prep = (m as any).prepare.bind(m);
+    for (let i = 0; i < 600; i++) prep(`SELECT ${i}`);
+    expect((m as any).stmtCache.size).toBe(500);
+    const before = mockDb.prepare.mock.calls.length;
+    prep('SELECT 599');
+    expect(mockDb.prepare.mock.calls.length).toBe(before);
+    prep('SELECT 0');
+    expect(mockDb.prepare.mock.calls.length).toBe(before + 1);
   });
 });
