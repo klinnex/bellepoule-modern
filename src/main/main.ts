@@ -1048,6 +1048,8 @@ ipcMain.handle('db:getAllCompetitions', async () => {
 });
 
 ipcMain.handle('db:deleteCompetition', async (_, id) => {
+  // Saisie distante encore active : l'arrêter, sinon elle survit à la compétition (#1009)
+  stopRemoteServer(id);
   return db.deleteCompetition(id);
 });
 
@@ -1680,16 +1682,20 @@ ipcMain.handle(
   }
 );
 
+function stopRemoteServer(competitionId: string): boolean {
+  const entry = remoteServers.get(competitionId);
+  if (!entry) return false;
+  entry.server.stop();
+  usedPorts.delete(entry.port);
+  remoteServers.delete(competitionId);
+  return true;
+}
+
 ipcMain.handle('remote:stopServer', async (_event, competitionId: string) => {
   try {
-    const entry = remoteServers.get(competitionId);
-    if (!entry) {
+    if (!stopRemoteServer(competitionId)) {
       return { success: false, error: "Le serveur n'est pas démarré pour cette compétition" };
     }
-
-    entry.server.stop();
-    usedPorts.delete(entry.port);
-    remoteServers.delete(competitionId);
 
     return { success: true };
   } catch (error) {

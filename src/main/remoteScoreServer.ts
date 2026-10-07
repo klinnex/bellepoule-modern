@@ -481,10 +481,12 @@ export class RemoteScoreServer {
     if (this.socketIoClientJs) {
       const inlineTag = `<script>${this.socketIoClientJs}</script>`;
       for (const [name, content] of this.htmlFiles) {
-        // Nouvelle instance de regex à chaque itération (évite l'état lastIndex partagé)
+        // Nouvelle instance de regex à chaque itération (évite l'état lastIndex partagé).
+        // Remplaçant en fonction : une chaîne interpréterait les motifs spéciaux `$&`, `$'`…
+        // présents dans le client minifié (socket.io 4.8.4 : `this.$&&…`) → script corrompu (#1009).
         const updated = content.replace(
           /<script\s+src=["'](?:\/socket\.io\.min\.js|\/bp-sio\.js|\/socket\.io\/socket\.io\.js)["']><\/script>/g,
-          inlineTag
+          () => inlineTag
         );
         if (updated !== content) this.htmlFiles.set(name, updated);
       }
@@ -5945,8 +5947,13 @@ export class RemoteScoreServer {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
     }
+    this.stopSession();
+    // server.close() seul laisse vivre les sockets/connexions keep-alive ouvertes :
+    // les tablettes restaient connectées après l'arrêt (#1009).
+    this.io?.disconnectSockets?.(true);
     if (this.server) {
       this.server.close();
+      (this.server as any).closeAllConnections?.();
       console.log('Remote score server stopped');
     }
   }

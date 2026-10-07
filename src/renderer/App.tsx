@@ -363,6 +363,8 @@ const AppContent: React.FC = () => {
 
       localStorage.removeItem(`bellepoule-remote-launched-${competitionId}`);
       localStorage.removeItem(`bellepoule-remote-port-${competitionId}`);
+      // Fermer la saisie distante restée active (#1009) ; erreur ignorée si non démarrée
+      window.electronAPI?.remote?.stopServer(competitionId).catch(() => undefined);
 
       const newOpenCompetitions = openCompetitions.filter(
         open => open.competition.id !== competitionId
