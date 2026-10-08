@@ -1591,7 +1591,7 @@
         <div class="modal-title" style="background:#111;color:#fff">⬛ Carton Noir</div>
         <div class="modal-body">
           <p id="black-card-fencer-name" style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:0.5rem">—</p>
-          <p id="black-card-cause" style="text-align:center;color:#dc2626">2ème carton rouge = <strong>CARTON NOIR</strong></p>
+          <p id="black-card-cause" style="text-align:center;color:#dc2626"><strong>CARTON NOIR</strong> direct</p>
           <p style="text-align:center;font-size:0.875rem;color:#6b7280">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
         </div>
         <div class="modal-buttons">
@@ -2462,7 +2462,7 @@
           this.saveScore();
         }
 
-        addCard(fencer, cardType, noBlackEscalation = false) {
+        addCard(fencer, cardType) {
           if (!this.currentMatch) return;
           if (this.matchStatus === 'not_started') {
             this.showNotification('⏱ Démarrez le match pour saisir des touches');
@@ -2482,23 +2482,6 @@
             if (whiteCount >= 1) {
               cardType = 'yellow';
               this.showNotification('⚠️ 2ème blanc = Jaune automatique');
-            }
-          }
-
-          // 2ème rouge (hors escrime moderne) = carton noir → confirmation
-          // noBlackEscalation = true quand le rouge vient d'un jaune escaladé (3ème jaune → rouge, pas noir)
-          if (cardType === 'red' && this.blackCardEnabled && !this.isModernFencing && !noBlackEscalation) {
-            const redCount = cards.filter(c => c === 'red').length;
-            if (redCount >= 1) {
-              this._pendingBlackCardFencer = ef;
-              const displayPos = this._effectiveFencer(ef); // logique → position affichée
-              const nameEl = document.getElementById(`fencer-${displayPos.toLowerCase()}-name`);
-              const fencerName = nameEl ? nameEl.textContent.trim() : `Tireur ${ef}`;
-              this._pendingBlackCardDirect = false;
-              document.getElementById('black-card-fencer-name').textContent = fencerName;
-              document.getElementById('black-card-cause').innerHTML = '2ème carton rouge = <strong>CARTON NOIR</strong>';
-              document.getElementById('black-card-modal').classList.add('active');
-              return; // attendre confirmation
             }
           }
 
@@ -2537,9 +2520,8 @@
             if (cardType === 'yellow') {
               const history = ef === 'A' ? this.faultHistoryA : this.faultHistoryB;
               const g2count = history[2] || 0;
-              const escalatedToRed = g2count >= 1;
-              if (escalatedToRed) cardType = 'red';
-              this.addCard(ef, cardType, escalatedToRed);
+              if (g2count >= 1) cardType = 'red';
+              this.addCard(ef, cardType);
               history[2] = g2count + 1; // après pushHistory dans addCard
             } else {
               this.addCard(ef, cardType);
@@ -2654,7 +2636,6 @@
           if (this.matchStatus === 'finished') return;
           const ef = this._effectiveFencer(fencer);
           this._pendingBlackCardFencer = ef;
-          this._pendingBlackCardDirect = true;
           const nameEl = document.getElementById(`fencer-${fencer.toLowerCase()}-name`);
           const fencerName = nameEl ? nameEl.textContent.trim() : `Tireur ${ef}`;
           document.getElementById('black-card-fencer-name').textContent = fencerName;
@@ -2664,26 +2645,17 @@
 
         cancelBlackCard() {
           this._pendingBlackCardFencer = null;
-          this._pendingBlackCardDirect = false;
           document.getElementById('black-card-modal').classList.remove('active');
         }
 
         async confirmBlackCard() {
           const ef = this._pendingBlackCardFencer;
-          const direct = this._pendingBlackCardDirect;
           this._pendingBlackCardFencer = null;
-          this._pendingBlackCardDirect = false;
           document.getElementById('black-card-modal').classList.remove('active');
           if (!ef || !this.currentMatch) return;
 
           const cards = ef === 'A' ? this.cardsA : this.cardsB;
-          if (direct) {
-            cards.push('black'); // carton noir direct : pas de points, fin du combat
-          } else {
-            cards.push('red'); // 2ème rouge = carton noir
-            if (ef === 'A') this.scoreB += 5;
-            else this.scoreA += 5;
-          }
+          cards.push('black'); // carton noir : pas de points, fin du combat
 
           this.updateScores();
           this.updateCardsDisplay();
