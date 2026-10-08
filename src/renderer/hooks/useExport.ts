@@ -11,6 +11,7 @@ import { FinalResult } from '../components/tableau/tableauTypes';
 import { exportFencersToTXT, exportFencersToFFF } from '../../shared/utils/fencerExport';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import { useToast } from '../components/Toast';
+import { formatQuestPerMatch } from '../../shared/utils/poolCalculations';
 import {
   exportResultsHTML,
   exportRankingCSV,
@@ -94,7 +95,7 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
               'Statut',
               'Indice',
             ];
-            if (isLaserSabre) headers.push('Quest');
+            if (isLaserSabre) headers.push('Quest', 'Q/M');
 
             const getStatusLabel = (status: FencerStatus) => {
               switch (status) {
@@ -121,7 +122,7 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
               r.touchesReceived,
               getStatusLabel(r.fencer.status),
               r.index,
-              isLaserSabre ? r.questPoints || '' : '',
+              ...(isLaserSabre ? [r.questPoints || '', formatQuestPerMatch(r)] : []),
             ]);
 
             content = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');

@@ -19,6 +19,7 @@ import { CENTER, W40, W50, W60, SM, FLEX_GAP } from './poolRankingView.styles';
 import {
   formatRatio,
   formatIndex,
+  formatQuestPerMatch,
   calculateOverallRankingQuest,
   calculateOverallRanking,
   calculatePoolRanking,
@@ -300,7 +301,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
   const generateCSV = () => {
     const headers = ['Rg', 'Nom', 'Prénom', 'Club', 'V', 'M', 'V/M', 'TD', 'TR', 'Statut'];
     if (isLaserSabre) {
-      headers.push('Quest', 'Indice');
+      headers.push('Quest', 'Q/M', 'Indice');
     } else {
       headers.push('Indice');
     }
@@ -329,7 +330,9 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
       r.touchesScored,
       r.touchesReceived,
       getStatusLabel(r.fencer.status),
-      ...(isLaserSabre ? [r.questPoints || 0, formatIndex(r.index)] : [formatIndex(r.index)]),
+      ...(isLaserSabre
+        ? [r.questPoints || 0, formatQuestPerMatch(r), formatIndex(r.index)]
+        : [formatIndex(r.index)]),
     ]);
 
     return [headers, ...rows].map(row => row.join(';')).join('\n');
@@ -359,7 +362,9 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
         'quest',
         'index',
       ] as ColumnId[]
-    ).filter(isVisible).length + (poolWinnersOnly ? 1 : 0);
+    ).filter(isVisible).length +
+    (isVisible('quest') ? 1 : 0) +
+    (poolWinnersOnly ? 1 : 0);
 
   const getRankBadgeClass = (rank: number) => {
     if (rank === 1) return 'ranking-rank-badge ranking-rank-badge--gold';
@@ -530,7 +535,10 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               {isVisible('td') && <th style={W50}>TD</th>}
               {isVisible('tr') && <th style={W50}>TR</th>}
               {isVisible('quest') && isLaserSabre && (
-                <th style={{ width: '70px', color: '#7c3aed' }}>Quest</th>
+                <>
+                  <th style={{ width: '70px', color: '#7c3aed' }}>Quest</th>
+                  <th style={{ width: '60px', color: '#7c3aed' }}>Q/M</th>
+                </>
               )}
               {isVisible('index') && <th style={W60}>Indice</th>}
               {poolWinnersOnly && <th style={{ width: '70px' }}>Qualif.</th>}
@@ -675,6 +683,11 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                       )}
                     </td>
                   )}
+                  {isVisible('quest') && isLaserSabre && (
+                    <td style={{ textAlign: 'center', color: '#7c3aed' }}>
+                      {formatQuestPerMatch(ranking)}
+                    </td>
+                  )}
                   {isVisible('index') && (
                     <td
                       style={CENTER}
@@ -728,7 +741,12 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
             ['TD', 'Touches données'],
             ['TR', 'Touches reçues'],
             ['Indice', 'TD − TR'],
-            ...(isLaserSabre ? [['Quest', 'Points Sabre Laser']] : []),
+            ...(isLaserSabre
+              ? [
+                  ['Quest', 'Points Sabre Laser'],
+                  ['Q/M', 'Points Quest / matchs'],
+                ]
+              : []),
           ].map(([abbr, full]) => (
             <span key={abbr} className="ranking-legend-pill">
               <strong>{abbr}</strong> {full}

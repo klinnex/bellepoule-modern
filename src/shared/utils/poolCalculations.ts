@@ -246,7 +246,7 @@ export function calculateFencerPoolStats(fencer: Fencer, matches: Match[]): Pool
 // Ranking Helpers (shared between standard and Quest ranking)
 // ============================================================================
 
-/** Assigne les rangs en gérant les ex aequo (V/M + [questPoints + cartons] + indice + TD identiques) */
+/** Assigne les rangs en gérant les ex aequo (V/M + [Q/M + cotations + cartons] + indice + TD identiques) */
 function assignRanks(rankings: PoolRanking[], useQuest = true): void {
   let currentRank = 1;
   for (let i = 0; i < rankings.length; i++) {
@@ -254,7 +254,10 @@ function assignRanks(rankings: PoolRanking[], useQuest = true): void {
       const prev = rankings[i - 1];
       const curr = rankings[i];
       const sameVictories = prev.ratio === curr.ratio;
-      const sameQuest = !useQuest || (prev.questPoints ?? 0) === (curr.questPoints ?? 0);
+      const sameQuest =
+        !useQuest ||
+        (getQuestPerMatch(prev) === getQuestPerMatch(curr) &&
+          compareQuestVictories(prev, curr) === 0);
       const sameCards = !useQuest || (prev.totalCards ?? 0) === (curr.totalCards ?? 0);
       const sameIndex = prev.index === curr.index;
       const sameTouches = prev.touchesScored === curr.touchesScored;
@@ -733,6 +736,40 @@ export function formatIndex(index: number): string {
 // Quest Points System (Sabre Laser only)
 // ============================================================================
 
+/** Points Quest par match (Q/M) — 2e critère du classement Sabre Laser (règlement 2026) */
+export function getQuestPerMatch(r: Pick<PoolRanking, 'questPoints' | 'matchesPlayed'>): number {
+  return r.matchesPlayed > 0 ? (r.questPoints ?? 0) / r.matchesPlayed : 0;
+}
+
+/** Formate le ratio Q/M pour l'affichage */
+export function formatQuestPerMatch(r: Pick<PoolRanking, 'questPoints' | 'matchesPlayed'>): string {
+  return getQuestPerMatch(r).toFixed(2);
+}
+
+/** Compare les victoires par cotation la plus élevée (V4, puis V3, V2, V1) — décroissant */
+function compareQuestVictories(a: PoolRanking, b: PoolRanking): number {
+  return (
+    (b.questVictories4 ?? 0) - (a.questVictories4 ?? 0) ||
+    (b.questVictories3 ?? 0) - (a.questVictories3 ?? 0) ||
+    (b.questVictories2 ?? 0) - (a.questVictories2 ?? 0) ||
+    (b.questVictories1 ?? 0) - (a.questVictories1 ?? 0)
+  );
+}
+
+/**
+ * Tri Sabre Laser (règlement 2026) :
+ * 1. Victoires/matchs  2. Points Quest/matchs  3. Indice (TD-TR)
+ * 4. Victoires par cotation la plus élevée (V4, V3, V2, V1)
+ */
+function compareQuestRanking(a: PoolRanking, b: PoolRanking): number {
+  if (a.ratio !== b.ratio) return b.ratio - a.ratio;
+  const aQpm = getQuestPerMatch(a);
+  const bQpm = getQuestPerMatch(b);
+  if (aQpm !== bQpm) return bQpm - aQpm;
+  if (a.index !== b.index) return b.index - a.index;
+  return compareQuestVictories(a, b);
+}
+
 /**
  * Calcule les points Quest pour une victoire selon l'écart de score
  * @param winnerScore Score du vainqueur
@@ -813,12 +850,13 @@ export function calculateFencerQuestStats(
 }
 
 /**
- * Calcule le classement d'une poule selon les règles Quest (Sabre Laser)
+ * Calcule le classement d'une poule selon les règles Quest (Sabre Laser, règlement 2026)
  * Ordre de priorité:
- * 1. Points Quest (total)
- * 2. Touches données (TD)
- * 3. Nombre de victoires
- * 4. Nombre de victoires à 4 points, puis 3, puis 2, puis 1
+ * 1. Victoires/matchs
+ * 2. Points Quest/matchs (Q/M)
+ * 3. Indice (TD-TR)
+ * 4. Victoires par cotation la plus élevée (V4, puis V3, V2, V1)
+ * 5. Moins de cartons, puis classement initial
  */
 export function calculatePoolRankingQuest(
   pool: Pool,
@@ -875,24 +913,13 @@ export function calculatePoolRankingQuest(
     });
   }
 
-  // Critères de classement Quest :
-  // 1. Ratio V/M décroissant
-  // 2. Points Quest décroissants
-  // 3. Moins de cartons (croissant)
-  // 4. Indice (TD-TR) décroissant
-  // 5. Classement initial
   rankings.sort((a, b) => {
-    if (a.ratio !== b.ratio) return b.ratio - a.ratio;
-
-    const aQuest = a.questPoints ?? 0;
-    const bQuest = b.questPoints ?? 0;
-    if (aQuest !== bQuest) return bQuest - aQuest;
+    const cmp = compareQuestRanking(a, b);
+    if (cmp !== 0) return cmp;
 
     const aCards = a.totalCards ?? 0;
     const bCards = b.totalCards ?? 0;
     if (aCards !== bCards) return aCards - bCards;
-
-    if (a.index !== b.index) return b.index - a.index;
 
     return (a.fencer.ranking ?? 9999) - (b.fencer.ranking ?? 9999);
   });
@@ -904,11 +931,12 @@ export function calculatePoolRankingQuest(
 }
 
 /**
- * Calcule le classement général Quest à partir de toutes les poules
+ * Calcule le classement général Quest à partir de toutes les poules (règlement 2026)
  * Ordre de priorité:
- * 1. Ratio V/M (décroissant)
- * 2. Points Quest (décroissant)
- * 3. V4 décroissant, puis V3, V2, V1
+ * 1. Victoires/matchs (décroissant)
+ * 2. Points Quest/matchs (décroissant)
+ * 3. Indice TD-TR (décroissant)
+ * 4. V4 décroissant, puis V3, V2, V1
  */
 export function calculateOverallRankingQuest(pools: Pool[]): PoolRanking[] {
   const allRankings: PoolRanking[] = [];
@@ -925,33 +953,8 @@ export function calculateOverallRankingQuest(pools: Pool[]): PoolRanking[] {
     forfeitIds
   );
 
-  mergedRankings.sort((a, b) => {
-    // 1. Ratio de victoires V/M (décroissant)
-    if (a.ratio !== b.ratio) {
-      return b.ratio - a.ratio;
-    }
-    // 2. Points Quest (décroissant)
-    const aQuest = a.questPoints ?? 0;
-    const bQuest = b.questPoints ?? 0;
-    if (aQuest !== bQuest) {
-      return bQuest - aQuest;
-    }
-    // 3. V4 décroissant, puis V3, V2, V1
-    const aV4 = a.questVictories4 ?? 0;
-    const bV4 = b.questVictories4 ?? 0;
-    if (aV4 !== bV4) return bV4 - aV4;
-    const aV3 = a.questVictories3 ?? 0;
-    const bV3 = b.questVictories3 ?? 0;
-    if (aV3 !== bV3) return bV3 - aV3;
-    const aV2 = a.questVictories2 ?? 0;
-    const bV2 = b.questVictories2 ?? 0;
-    if (aV2 !== bV2) return bV2 - aV2;
-    const aV1 = a.questVictories1 ?? 0;
-    const bV1 = b.questVictories1 ?? 0;
-    if (aV1 !== bV1) return bV1 - aV1;
-    // 4. Égalité parfaite - garder l'ordre
-    return 0;
-  });
+  // Égalité parfaite : l'ordre est conservé (barrage si besoin)
+  mergedRankings.sort(compareQuestRanking);
 
   assignRanks(mergedRankings);
   appendForfeitFencers(mergedRankings, forfeit);

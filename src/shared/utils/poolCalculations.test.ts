@@ -11,6 +11,9 @@ import {
   calculateOverallRanking,
   formatRatio,
   formatIndex,
+  calculateOverallRankingQuest,
+  calculatePoolRankingQuest,
+  formatQuestPerMatch,
 } from './poolCalculations';
 import { Fencer, FencerStatus, Match, MatchStatus, Pool, Score, Weapon, Gender } from '../types';
 
@@ -531,5 +534,131 @@ describe('formatIndex', () => {
 
   it('should format zero index', () => {
     expect(formatIndex(0)).toBe('+0');
+  });
+});
+
+// ============================================================================
+// Tests classement Sabre Laser (règlement 2026, #1022)
+// ============================================================================
+
+describe('classement Quest (Sabre Laser)', () => {
+  const makePool = (id: string, fencers: Fencer[], matches: Match[]): Pool => ({
+    id,
+    number: 1,
+    phaseId: 'ph1',
+    fencers,
+    matches,
+    referees: [],
+    isComplete: true,
+    hasError: false,
+    ranking: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  it('départage par Q/M et non par le total de points Quest', () => {
+    // A : 1 match, victoire écart 12 → 4 Quest, Q/M 4
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    // E : 2 matchs, victoires écart 12 et 4 → 6 Quest, Q/M 3
+    const e = createMockFencer('e', 3, 'E');
+    const f = createMockFencer('f', 4, 'F');
+    const g = createMockFencer('g', 5, 'G');
+
+    const ranking = calculateOverallRankingQuest([
+      makePool(
+        'p2',
+        [e, f, g],
+        [createMockMatch('m2', e, f, 15, 3), createMockMatch('m3', e, g, 10, 6)]
+      ),
+      makePool('p1', [a, b], [createMockMatch('m1', a, b, 15, 3)]),
+    ]);
+
+    expect(ranking[0].fencer.id).toBe('a');
+    expect(ranking[1].fencer.id).toBe('e');
+    expect(formatQuestPerMatch(ranking[0])).toBe('4.00');
+    expect(formatQuestPerMatch(ranking[1])).toBe('3.00');
+  });
+
+  it('départage par indice avant les victoires par cotation', () => {
+    // A : victoires écart 12 (4 pts) et 1 (1 pt) → Q/M 2.5, indice +13, une V4
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    const c = createMockFencer('c', 3, 'C');
+    // D : victoires écart 11 (3 pts) et 7 (2 pts) → Q/M 2.5, indice +18, aucune V4
+    const d = createMockFencer('d', 4, 'D');
+    const e = createMockFencer('e', 5, 'E');
+    const f = createMockFencer('f', 6, 'F');
+
+    const pools = [
+      makePool(
+        'p1',
+        [a, b, c],
+        [createMockMatch('m1', a, b, 15, 3), createMockMatch('m2', a, c, 5, 4)]
+      ),
+      makePool(
+        'p2',
+        [d, e, f],
+        [createMockMatch('m3', d, e, 15, 4), createMockMatch('m4', d, f, 10, 3)]
+      ),
+    ];
+
+    const overall = calculateOverallRankingQuest(pools);
+    expect(overall.slice(0, 2).map(r => r.fencer.id)).toEqual(['d', 'a']);
+    expect(overall.slice(0, 2).map(r => r.rank)).toEqual([1, 2]);
+  });
+
+  it('départage par victoires par cotation à Q/M et indice égaux', () => {
+    // A (V4 + V1) contre D (V3 + V2) : même Q/M (2.5) et même indice (+15)
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    const c = createMockFencer('c', 3, 'C');
+    const pool = makePool(
+      'p1',
+      [a, b, c],
+      [
+        createMockMatch('m1', a, b, 15, 3), // A : écart 12 → V4
+        createMockMatch('m2', a, c, 5, 2), // A : écart 3 → V1 (indice A = +15)
+        createMockMatch('m3', b, c, 15, 6), // B : écart 9 → V3
+      ]
+    );
+    const d = createMockFencer('d', 4, 'D');
+    const e = createMockFencer('e', 5, 'E');
+    const f = createMockFencer('f', 6, 'F');
+    const pool2 = makePool(
+      'p2',
+      [d, e, f],
+      [
+        createMockMatch('m4', d, e, 14, 5), // D : écart 9 → V3
+        createMockMatch('m5', d, f, 10, 4), // D : écart 6 → V2 (indice D = +15)
+        createMockMatch('m6', e, f, 5, 4),
+      ]
+    );
+
+    const overall = calculateOverallRankingQuest([pool2, pool]);
+    expect(overall.slice(0, 2).map(r => r.fencer.id)).toEqual(['a', 'd']);
+    expect(overall.slice(0, 2).map(r => r.rank)).toEqual([1, 2]);
+  });
+
+  it('classement de poule : indice avant les cartons', () => {
+    // Cycle : chacun 1V/2M et 4 pts Quest → Q/M égal
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    const c = createMockFencer('c', 3, 'C');
+    const ranking = calculatePoolRankingQuest(
+      makePool(
+        'p1',
+        [a, b, c],
+        [
+          createMockMatch('m1', a, b, 15, 1), // A écart 14
+          createMockMatch('m2', b, c, 15, 2), // B écart 13
+          createMockMatch('m3', c, a, 15, 3), // C écart 12
+        ]
+      ),
+      { a: 1 }
+    );
+    // Indice : A +2, B -1, C -1 → A 1er malgré son carton
+    expect(ranking[0].fencer.id).toBe('a');
+    expect(ranking[0].rank).toBe(1);
   });
 });
