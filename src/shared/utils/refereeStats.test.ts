@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { autoAssignReferees, computeRefereeMatchStats, TableauMatchLike } from './refereeStats';
+import {
+  autoAssignReferees,
+  computeRefereeMatchStats,
+  getRefereePresence,
+  TableauMatchLike,
+} from './refereeStats';
 import { Match, MatchStatus, Referee } from '../types';
 
 const ref = (id: string, firstName: string, lastName: string): Referee =>
@@ -107,5 +112,31 @@ describe('autoAssignReferees', () => {
 
   it('retourne une map vide sans arbitre', () => {
     expect(autoAssignReferees([m('a')], []).size).toBe(0);
+  });
+});
+
+describe('getRefereePresence (#1016)', () => {
+  const r1 = { id: 'r1', status: 'available' as const };
+  const m = (status: MatchStatus, refereeId?: string) =>
+    ({ status, referee: refereeId ? ({ id: refereeId } as any) : undefined }) as any;
+
+  it('non pointé si indisponible', () => {
+    expect(getRefereePresence({ ...r1, status: 'unavailable' }, [])).toBe('not_checked_in');
+  });
+  it('pointé tant qu’aucun match n’est généré', () => {
+    expect(getRefereePresence(r1, [])).toBe('checked_in');
+  });
+  it('occupé avec un match assigné non terminé', () => {
+    expect(getRefereePresence(r1, [m(MatchStatus.NOT_STARTED, 'r1')])).toBe('busy');
+  });
+  it('libre quand ses matchs sont terminés', () => {
+    expect(
+      getRefereePresence(r1, [m(MatchStatus.FINISHED, 'r1'), m(MatchStatus.NOT_STARTED)])
+    ).toBe('free');
+  });
+  it('occupé quand la limite d’assignations est atteinte', () => {
+    expect(
+      getRefereePresence({ ...r1, maxMatchesPerDay: 1 }, [m(MatchStatus.FINISHED, 'r1')])
+    ).toBe('busy');
   });
 });

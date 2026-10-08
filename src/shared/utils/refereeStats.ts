@@ -138,3 +138,35 @@ export function autoAssignReferees<R extends AssignableReferee>(
   }
   return result;
 }
+
+/** Statut de présence affiché pour un arbitre (#1016) */
+export type RefereePresence = 'not_checked_in' | 'checked_in' | 'busy' | 'free';
+
+export const REFEREE_PRESENCE_LABELS: Record<RefereePresence, string> = {
+  not_checked_in: 'Non pointé',
+  checked_in: 'Pointé',
+  busy: 'Occupé',
+  free: 'Libre',
+};
+
+/**
+ * Non pointé tant que l'arbitre n'est pas pointé (appel ou application).
+ * Une fois des matchs générés : Occupé s'il a un match assigné non terminé ou s'il a
+ * atteint sa limite d'assignations (`maxMatchesPerDay`), Libre sinon.
+ */
+export function getRefereePresence(
+  referee: Pick<Referee, 'id' | 'status' | 'maxMatchesPerDay'>,
+  matches: Pick<Match, 'status' | 'referee'>[]
+): RefereePresence {
+  if (referee.status === 'unavailable') return 'not_checked_in';
+  if (matches.length === 0) return 'checked_in';
+  let pending = 0;
+  let assigned = 0;
+  for (const m of matches) {
+    if (m.referee?.id !== referee.id || m.status === MatchStatus.CANCELLED) continue;
+    assigned++;
+    if (m.status !== MatchStatus.FINISHED) pending++;
+  }
+  const maxReached = !!referee.maxMatchesPerDay && assigned >= referee.maxMatchesPerDay;
+  return pending > 0 || maxReached ? 'busy' : 'free';
+}

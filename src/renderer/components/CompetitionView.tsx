@@ -1449,12 +1449,12 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     // remoteServerUrl : re-synchronise une fois le serveur réellement démarré (#986)
   }, [currentPhase, isRemoteActive, competition.id, remoteServerUrl]);
 
-  // Appel distant (/appel) : ouvert uniquement pendant la phase CHECKIN (#919)
+  // Appel distant (/appel) : actif dès que la saisie distante tourne, quelle que soit
+  // la vue affichée (pointage tardif des arbitres pendant les poules, #1016)
   useEffect(() => {
     if (!isRemoteActive || !window.electronAPI?.remote?.setCheckinEnabled) return;
-    const enabled = currentPhase === 'checkin';
-    window.electronAPI.remote.setCheckinEnabled(competition.id, enabled).catch(() => {});
-  }, [currentPhase, isRemoteActive, competition.id, remoteServerUrl]);
+    window.electronAPI.remote.setCheckinEnabled(competition.id, true).catch(() => {});
+  }, [isRemoteActive, competition.id, remoteServerUrl]);
 
   // Pointage reçu depuis la page d'appel distante : recharger depuis la DB
   useEffect(() => {
