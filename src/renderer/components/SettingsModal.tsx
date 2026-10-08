@@ -9,6 +9,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { HINT, SECTION_DIVIDER, BOLD, SMALL_BTN } from './settingsModal.styles';
 import type { Language } from '../contexts/TranslationContext';
 import LanguageSelector from './LanguageSelector';
+import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
 // Chargé à la demande : embarque jsPDF, lourd pour le bundle initial
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
 import { logger, LogCategory } from '@shared/services/logger';
@@ -121,6 +122,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     () => localStorage.getItem(SIMPLIFIED_INPUT_KEY) === 'true'
   );
 
+  const [confettiDisabled, setConfettiDisabled] = useState<boolean>(() => isConfettiDisabled());
   const [webhookUrl, setWebhookUrl] = useState<string>(
     () => localStorage.getItem(WEBHOOK_STORAGE_KEY) ?? ''
   );
@@ -318,6 +320,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   const handleQuickMouseScoringChange = (enabled: boolean) => {
     setQuickMouseScoring(enabled);
     localStorage.setItem(QUICK_MOUSE_KEY, String(enabled));
+  };
+
+  const handleConfettiDisabledChange = (disabled: boolean) => {
+    setConfettiDisabled(disabled);
+    localStorage.setItem(CONFETTI_DISABLED_KEY, String(disabled));
   };
 
   const handleSimplifiedInputModeChange = (enabled: boolean) => {
@@ -519,6 +526,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   onChange={e => handleAuditLogChange(e.target.checked)}
                 />
                 <span style={{ fontSize: '0.875rem' }}>Activer le journal d'audit des scores</span>
+              </label>
+            </div>
+
+            {/* Animations */}
+            <div className="form-group" style={SECTION_DIVIDER}>
+              <label style={BOLD}>Animations</label>
+              <p style={HINT}>Feux d'artifice affichés à la fin des poules.</p>
+              <label
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
+              >
+                <input
+                  type="checkbox"
+                  checked={confettiDisabled}
+                  onChange={e => handleConfettiDisabledChange(e.target.checked)}
+                />
+                <span style={{ fontSize: '0.875rem' }}>Désactiver les feux d'artifice</span>
               </label>
             </div>
 
