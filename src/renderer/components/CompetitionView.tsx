@@ -354,6 +354,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // réinitialiser la taille de fenêtre choisie par l'utilisateur (cf. bug dimension reset).
   const poolsRef = useRef(pools);
   poolsRef.current = pools;
+  const handleFencerForfeitRef = useRef(handleFencerForfeit);
+  handleFencerForfeitRef.current = handleFencerForfeit;
   const singlePoolIndexRef = useRef(singlePoolIndex);
   singlePoolIndexRef.current = singlePoolIndex;
 
@@ -757,6 +759,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         status: FencerStatus.EXCLUDED,
         exclusionReason: reason ?? 'black_card',
       });
+      // Poules : matchs restants marqués non disputés et résultats de l'exclu retirés
+      // du classement des adversaires, comme une exclusion saisie localement (#1011)
+      if (poolsRef.current.some(p => p.fencers.some(f => f.id === fencerId))) {
+        void handleFencerForfeitRef.current(fencerId, 'exclusion');
+      }
     });
 
     // Carton noir annulé depuis la tablette : réintégrer le combattant et rouvrir le match
