@@ -223,12 +223,6 @@ const RSM_STYLES = {
     color: '#22c55e',
     marginTop: '0.4rem',
   } satisfies React.CSSProperties,
-  launchSection: { margin: '0.75rem 0' } satisfies React.CSSProperties,
-  launchBtn: {
-    padding: '0.6rem 1.2rem',
-    fontSize: '1rem',
-    fontWeight: 'bold' as const,
-  } satisfies React.CSSProperties,
   pisteresumeSummary: {
     marginTop: '1rem',
     padding: '0.75rem',
@@ -342,11 +336,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     'arena' | 'kiosk' | 'public' | 'referee' | 'pool'
   >('arena');
   const [globalThemeId, setGlobalThemeId] = useState('');
-  // Lancement de la compétition
-  const [isLaunched, setIsLaunched] = useState<boolean>(() => {
-    const key = `bellepoule-remote-launched-${competition.id}`;
-    return localStorage.getItem(key) === 'true';
-  });
 
   // Écrans connectés
   const [connectedClients, setConnectedClients] = useState<ConnectedClient[]>([]);
@@ -669,8 +658,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
 
       if (result.success) {
         setSession(null);
-        setIsLaunched(false);
-        localStorage.removeItem(`bellepoule-remote-launched-${competition.id}`);
         showToast('Saisie distante arrêtée', 'success');
         onStopRemote();
       } else {
@@ -1283,28 +1270,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             </label>
           </div>
         </div>
-        {!isLaunched && (
-          <div style={RSM_STYLES.launchSection}>
-            <button
-              className="btn-primary"
-              style={RSM_STYLES.launchBtn}
-              title="Passe en « prêt » les matchs déjà affectés aux pistes et non commencés (écran de présentation des combattants)"
-              onClick={async () => {
-                const result = await window.electronAPI.remote.launchCompetition(competition.id);
-                if (result.success) {
-                  const key = `bellepoule-remote-launched-${competition.id}`;
-                  setIsLaunched(true);
-                  localStorage.setItem(key, 'true');
-                  showToast('Compétition lancée sur les écrans', 'success');
-                } else {
-                  showToast(`Erreur: ${result.error}`, 'error');
-                }
-              }}
-            >
-              🚀 Lancer la compétition
-            </button>
-          </div>
-        )}
         <div style={RSM_STYLES.themeSection}>
           <div style={RSM_STYLES.themeTitle}>Thème de l'affichage :</div>
           <div style={RSM_STYLES.themeRow}>

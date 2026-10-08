@@ -191,16 +191,22 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
               </button>
             </CoachMark>
           )}
-          {currentPhase === 'pools' && onOpenPlanningAssistant && pools.length > 0 && (
-            <button
-              className="btn btn-secondary btn-icon-label"
-              onClick={onOpenPlanningAssistant}
-              title="Estimation de fin de tournoi et recommandations de répartition des pistes"
-              style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
-            >
-              <CalendarClock size={14} /> Planning
-            </button>
-          )}
+          {onOpenPlanningAssistant &&
+            ((currentPhase === 'pools' && pools.length > 0) ||
+              (currentPhase === 'tableau' && tableauMatches.length > 0)) && (
+              <button
+                className="btn btn-secondary btn-icon-label"
+                onClick={onOpenPlanningAssistant}
+                title={
+                  currentPhase === 'tableau'
+                    ? 'Estimation du nombre de pistes et de la durée des duels prêts et en attente'
+                    : 'Estimation de fin de tournoi et recommandations de répartition des pistes'
+                }
+                style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
+              >
+                <CalendarClock size={14} /> Planning
+              </button>
+            )}
           <button
             className={`btn btn-secondary btn-icon-label${currentPhase === 'logs' ? ' btn-active' : ''}`}
             onClick={() => setCurrentPhase(currentPhase === 'logs' ? 'checkin' : 'logs')}

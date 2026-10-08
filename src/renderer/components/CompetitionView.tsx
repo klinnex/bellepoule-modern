@@ -2360,6 +2360,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           <PlanningAssistant
             competition={competition}
             pools={pools}
+            tableauBrackets={
+              currentPhase === 'tableau'
+                ? [tableauMatches, ...consolationBrackets.map(b => b.matches)]
+                : undefined
+            }
             suggestedArenaCount={arenaStates.length || Math.min(pools.length, 4) || 1}
             onClose={() => setShowPlanningAssistant(false)}
           />
