@@ -36,6 +36,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
     recommendations: string[];
   } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const manager = useMemo(() => new TournamentFlowManager(DEFAULT_TOURNAMENT_CONFIG), []);
 
@@ -52,13 +53,22 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    manager.optimizeTournamentFlow(competition, pools, arenas).then(res => {
-      if (cancelled) return;
-      setResult(res);
-      setRecommendations(manager.getFlowRecommendations(res.schedule, arenas));
-      setInsights(manager.generatePredictiveInsights(competition, pools, res.schedule));
-      setLoading(false);
-    });
+    setError(null);
+    manager
+      .optimizeTournamentFlow(competition, pools, arenas)
+      .then(res => {
+        if (cancelled) return;
+        setResult(res);
+        setRecommendations(manager.getFlowRecommendations(res.schedule, arenas));
+        setInsights(manager.generatePredictiveInsights(competition, pools, res.schedule));
+      })
+      .catch(err => {
+        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+      })
+      .finally(() => {
+        // Ne jamais laisser « Calcul en cours » bloqué (#1018)
+        if (!cancelled) setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -104,6 +114,12 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
           </div>
 
           {loading && <p style={{ color: 'var(--color-text-light)' }}>Calcul en cours…</p>}
+
+          {!loading && error && (
+            <p role="alert" style={{ color: 'var(--color-danger, #dc2626)', fontSize: '0.875rem' }}>
+              Calcul impossible : {error}
+            </p>
+          )}
 
           {!loading && insights && (
             <>
