@@ -164,10 +164,11 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
                 </ul>
               )}
 
-              {result && result.metrics.arenaUtilization && (
+              {result && result.schedule.length > 0 && (
                 <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-light)' }}>
-                  Temps d'attente moyen estimé :{' '}
-                  {Math.max(0, Math.round(result.metrics.averageWaitTime))} min
+                  Attente entre deux matchs : moyenne{' '}
+                  {Math.max(0, Math.round(result.metrics.averageWaitTime))} min, max{' '}
+                  {Math.max(0, Math.round(result.metrics.maxFencerWait))} min
                 </div>
               )}
             </>

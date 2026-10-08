@@ -32,7 +32,9 @@ export interface ScheduledMatch {
 export interface FlowOptimizationResult {
   schedule: ScheduledMatch[];
   metrics: {
-    averageWaitTime: number;
+    averageWaitTime: number; // attente moyenne d'un tireur entre deux matchs (min)
+    maxFencerWait: number; // plus longue attente d'un tireur entre deux matchs (min)
+    fencersOverMaxWait: number; // tireurs dépassant config.maxWaitTime
     totalDuration: number;
     arenaUtilization: Record<string, number>;
     fencerRestViolations: number;
@@ -71,7 +73,7 @@ export class TournamentFlowManager {
     );
 
     // Calculate metrics
-    const metrics = this.calculateScheduleMetrics(schedule, arenas);
+    const metrics = this.calculateScheduleMetrics(schedule, availableArenas);
 
     return {
       schedule,
@@ -102,27 +104,44 @@ export class TournamentFlowManager {
     const schedule: ScheduledMatch[] = [];
     const arenaAvailability = new Map<string, Date>(arenas.map(arena => [arena.id, startTime]));
 
-    for (const match of prioritizedMatches) {
-      const bestSlot = this.findBestTimeSlot(match, arenas, arenaAvailability);
-
-      if (bestSlot) {
-        const scheduledMatch: ScheduledMatch = {
-          match,
-          arenaId: bestSlot.arenaId,
-          scheduledTime: bestSlot.startTime,
-          estimatedDuration: this.estimateMatchDuration(match),
-          priority: bestSlot.priority,
-        };
-
-        schedule.push(scheduledMatch);
-
-        // Update arena availability
-        const endTime = new Date(bestSlot.startTime.getTime() + bestSlot.duration * 60000);
-        arenaAvailability.set(bestSlot.arenaId, endTime);
-
-        // Update fencer availability (rest time tracking)
-        this.updateFencerAvailability(match, endTime);
+    // Ordonnancement glouton : à chaque étape, le match démarrable le plus tôt ;
+    // à égalité, celui dont les tireurs attendent depuis le plus longtemps (#1018)
+    const remaining = [...prioritizedMatches];
+    while (remaining.length > 0) {
+      let pickIndex = -1;
+      let bestSlot: ReturnType<TournamentFlowManager['findBestTimeSlot']> = null;
+      let bestIdleSince = Infinity;
+      for (let i = 0; i < remaining.length; i++) {
+        const slot = this.findBestTimeSlot(remaining[i], arenas, arenaAvailability);
+        if (!slot) continue;
+        const idleSince = this.getFencersIdleSince(remaining[i]);
+        const t = slot.startTime.getTime();
+        const bestT = bestSlot ? bestSlot.startTime.getTime() : Infinity;
+        if (t < bestT || (t === bestT && idleSince < bestIdleSince)) {
+          pickIndex = i;
+          bestSlot = slot;
+          bestIdleSince = idleSince;
+        }
       }
+      if (pickIndex < 0 || !bestSlot) break;
+      const [match] = remaining.splice(pickIndex, 1);
+
+      const scheduledMatch: ScheduledMatch = {
+        match,
+        arenaId: bestSlot.arenaId,
+        scheduledTime: bestSlot.startTime,
+        estimatedDuration: this.estimateMatchDuration(match),
+        priority: bestSlot.priority,
+      };
+
+      schedule.push(scheduledMatch);
+
+      // Update arena availability
+      const endTime = new Date(bestSlot.startTime.getTime() + bestSlot.duration * 60000);
+      arenaAvailability.set(bestSlot.arenaId, endTime);
+
+      // Update fencer availability (rest time tracking)
+      this.updateFencerAvailability(match, endTime);
     }
 
     return schedule.sort((a, b) => a.scheduledTime.getTime() - b.scheduledTime.getTime());
@@ -243,6 +262,20 @@ export class TournamentFlowManager {
   }
 
   /**
+   * Moment depuis lequel les tireurs du match sont disponibles (le plus ancien) ;
+   * -Infinity si l'un d'eux n'a pas encore tiré
+   */
+  private getFencersIdleSince(match: Match): number {
+    let idleSince = Infinity;
+    for (const f of [match.fencerA, match.fencerB]) {
+      if (!f?.id) continue;
+      const avail = this.fencerAvailability.get(f.id);
+      idleSince = Math.min(idleSince, avail ? avail.getTime() : -Infinity);
+    }
+    return idleSince;
+  }
+
+  /**
    * Calculate priority for a specific arena slot
    */
   private calculateArenaSlotPriority(arena: Arena, startTime: Date, duration: number): number {
@@ -296,36 +329,83 @@ export class TournamentFlowManager {
     schedule: ScheduledMatch[],
     arenas: Arena[]
   ): FlowOptimizationResult['metrics'] {
-    // Calculate average wait time
-    const waitTimes = schedule.map(
-      slot => (slot.scheduledTime.getTime() - Date.now()) / (1000 * 60)
-    );
-    const averageWaitTime = waitTimes.length
-      ? waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length
+    const waits = this.computeFencerWaits(schedule);
+    const allGaps = [...waits.values()].flat();
+    const averageWaitTime = allGaps.length
+      ? allGaps.reduce((a, b) => a + b, 0) / allGaps.length
       : 0;
+    const maxFencerWait = allGaps.length ? Math.max(...allGaps) : 0;
+    const fencersOverMaxWait = [...waits.values()].filter(g =>
+      g.some(w => w > this.config.maxWaitTime)
+    ).length;
 
-    // Calculate total duration
-    const totalDuration =
-      schedule.length > 0
-        ? Math.max(...schedule.map(s => s.scheduledTime.getTime() + s.estimatedDuration * 60000)) -
-          Date.now()
-        : 0;
-
-    // Calculate arena utilization
-    const arenaUtilization: Record<string, number> = {};
-    for (const arena of arenas) {
-      const arenaMatches = schedule.filter(s => s.arenaId === arena.id);
-      const totalMatchTime = arenaMatches.reduce((sum, m) => sum + m.estimatedDuration, 0);
-      const scheduleTime = totalDuration / (1000 * 60); // Convert to minutes
-      arenaUtilization[arena.id] = scheduleTime > 0 ? (totalMatchTime / scheduleTime) * 100 : 0;
-    }
+    const { start, end } = this.getScheduleBounds(schedule);
 
     return {
       averageWaitTime,
-      totalDuration,
-      arenaUtilization,
+      maxFencerWait,
+      fencersOverMaxWait,
+      totalDuration: end - start,
+      arenaUtilization: this.computeArenaUtilization(schedule, arenas),
       fencerRestViolations: 0, // This would be calculated based on rest tracking
     };
+  }
+
+  /**
+   * Début (premier match) et fin (dernier match terminé) du planning, en ms
+   */
+  private getScheduleBounds(schedule: ScheduledMatch[]): { start: number; end: number } {
+    if (schedule.length === 0) return { start: 0, end: 0 };
+    return {
+      start: Math.min(...schedule.map(s => s.scheduledTime.getTime())),
+      end: Math.max(...schedule.map(s => s.scheduledTime.getTime() + s.estimatedDuration * 60000)),
+    };
+  }
+
+  /**
+   * Taux d'occupation (%) de chaque piste sur toute la durée du planning.
+   * Une piste sans aucun match vaut 0 % (#1018).
+   */
+  private computeArenaUtilization(
+    schedule: ScheduledMatch[],
+    arenas: Arena[]
+  ): Record<string, number> {
+    const { start, end } = this.getScheduleBounds(schedule);
+    const horizon = (end - start) / 60000;
+    const utilization: Record<string, number> = {};
+    for (const arena of arenas) {
+      const busy = schedule
+        .filter(s => s.arenaId === arena.id)
+        .reduce((sum, m) => sum + m.estimatedDuration, 0);
+      utilization[arena.id] = horizon > 0 ? (busy / horizon) * 100 : 0;
+    }
+    return utilization;
+  }
+
+  /**
+   * Attentes (min) de chaque tireur entre la fin d'un match et le début du suivant
+   */
+  private computeFencerWaits(schedule: ScheduledMatch[]): Map<string, number[]> {
+    const byFencer = new Map<string, ScheduledMatch[]>();
+    for (const s of schedule) {
+      for (const f of [s.match.fencerA, s.match.fencerB]) {
+        if (!f?.id) continue;
+        const list = byFencer.get(f.id) ?? [];
+        list.push(s);
+        byFencer.set(f.id, list);
+      }
+    }
+    const waits = new Map<string, number[]>();
+    for (const [fencerId, list] of byFencer) {
+      list.sort((a, b) => a.scheduledTime.getTime() - b.scheduledTime.getTime());
+      const gaps: number[] = [];
+      for (let i = 1; i < list.length; i++) {
+        const prevEnd = list[i - 1].scheduledTime.getTime() + list[i - 1].estimatedDuration * 60000;
+        gaps.push(Math.max(0, (list[i].scheduledTime.getTime() - prevEnd) / 60000));
+      }
+      waits.set(fencerId, gaps);
+    }
+    return waits;
   }
 
   /**
@@ -369,78 +449,37 @@ export class TournamentFlowManager {
   /**
    * Get real-time flow recommendations
    */
-  getFlowRecommendations(
-    currentSchedule: ScheduledMatch[],
-    arenas: Arena[],
-    currentTime: Date = new Date()
-  ): string[] {
+  getFlowRecommendations(currentSchedule: ScheduledMatch[], arenas: Arena[]): string[] {
     const recommendations: string[] = [];
+    const availableArenas = arenas.filter(a => a.available);
 
-    // Check for bottleneck arenas
-    const arenaUsage = this.calculateCurrentArenaUsage(currentSchedule, currentTime);
-    const usageEntries = Object.entries(arenaUsage);
-    const busiestArena = usageEntries.length
-      ? usageEntries.reduce((a, b) => (a[1] > b[1] ? a : b))
-      : null;
-
-    if (busiestArena && busiestArena[1] > 80) {
+    // Attente des tireurs entre deux matchs (#1018)
+    const waits = [...this.computeFencerWaits(currentSchedule).values()];
+    const overWait = waits.filter(g => g.some(w => w > this.config.maxWaitTime));
+    if (overWait.length > 0) {
+      const maxWait = Math.round(Math.max(...waits.flat()));
       recommendations.push(
-        `🏟️ Piste ${busiestArena[0]} très utilisée (${busiestArena[1]}%). Envisagez de répartir les matchs.`
+        `⏰ ${overWait.length} tireur(s) attendent plus de ${this.config.maxWaitTime} min entre deux matchs (jusqu'à ${maxWait} min).`
       );
     }
 
-    // Check for fencers with excessive wait times
-    const longWaitMatches = currentSchedule.filter(
-      match =>
-        match.scheduledTime.getTime() - currentTime.getTime() > this.config.maxWaitTime * 60000
-    );
-
-    if (longWaitMatches.length > 0) {
-      recommendations.push(
-        `⏰ ${longWaitMatches.length} matchs avec temps d'attente excessif. Considérez l'ajout de pistes.`
-      );
-    }
-
-    // Check for idle arenas
-    const idleArenas = Object.entries(arenaUsage).filter(([_, usage]) => usage < 20);
-    if (idleArenas.length > 0) {
-      recommendations.push(
-        `😴 ${idleArenas.length} pistes sous-utilisées. Optimisez la répartition.`
-      );
-    }
-
-    return recommendations;
-  }
-
-  /**
-   * Calculate current arena usage
-   */
-  private calculateCurrentArenaUsage(
-    schedule: ScheduledMatch[],
-    currentTime: Date
-  ): Record<string, number> {
-    const usage: Record<string, number> = {};
-
-    for (const scheduledMatch of schedule) {
-      const matchStart = scheduledMatch.scheduledTime.getTime();
-      const matchEnd = matchStart + scheduledMatch.estimatedDuration * 60000;
-
-      if (matchStart <= currentTime.getTime() && matchEnd >= currentTime.getTime()) {
-        usage[scheduledMatch.arenaId] = (usage[scheduledMatch.arenaId] || 0) + 1;
+    // Pistes réellement sous-utilisées sur la durée du planning (#1018)
+    if (currentSchedule.length > 0) {
+      const utilization = this.computeArenaUtilization(currentSchedule, availableArenas);
+      const unused = availableArenas.filter(a => (utilization[a.id] ?? 0) === 0).length;
+      const idle = availableArenas.filter(a => (utilization[a.id] ?? 0) < 20).length;
+      if (unused > 0) {
+        recommendations.push(
+          `😴 ${unused} piste(s) inutilisée(s) : ${availableArenas.length - unused} piste(s) suffisent.`
+        );
+      } else if (idle > 0) {
+        recommendations.push(
+          `😴 ${idle} piste(s) occupée(s) moins de 20 % du temps. Optimisez la répartition.`
+        );
       }
     }
 
-    // Convert to percentages
-    const totalMatches = Math.max(
-      1,
-      Object.values(usage).reduce((a, b) => a + b, 0)
-    );
-
-    Object.keys(usage).forEach(arenaId => {
-      usage[arenaId] = (usage[arenaId] / totalMatches) * 100;
-    });
-
-    return usage;
+    return recommendations;
   }
 
   /**
@@ -455,19 +494,19 @@ export class TournamentFlowManager {
     bottlenecks: string[];
     recommendations: string[];
   } {
-    const totalMatches = pools.reduce((sum, pool) => sum + pool.matches.length, 0);
-    const scheduledMatches = schedule.length;
-    const remainingMatches = totalMatches - scheduledMatches;
+    const remainingMatches = pools.reduce(
+      (sum, pool) => sum + pool.matches.filter(m => m.status !== MatchStatus.FINISHED).length,
+      0
+    );
 
-    // Estimate finish time
-    const avgMatchDuration = 15; // minutes
-    const estimatedRemainingMinutes =
-      (remainingMatches * avgMatchDuration) / this.config.maxConcurrentMatches;
-    const estimatedFinishTime = new Date(Date.now() + estimatedRemainingMinutes * 60000);
+    // Fin estimée = fin du dernier match planifié (#1018 : valait l'heure actuelle)
+    const { end } = this.getScheduleBounds(schedule);
+    const estimatedFinishTime = new Date(schedule.length > 0 ? end : Date.now());
 
     // Identify potential bottlenecks
     const bottlenecks: string[] = [];
-    if (remainingMatches > 20 && this.config.maxConcurrentMatches < 4) {
+    const usedArenas = new Set(schedule.map(s => s.arenaId)).size;
+    if (remainingMatches > 20 && usedArenas < 4) {
       bottlenecks.push('Trop peu de pistes pour le nombre de matchs restants');
     }
 
@@ -486,7 +525,7 @@ export class TournamentFlowManager {
 export const DEFAULT_TOURNAMENT_CONFIG: ArenaSettings = {
   maxConcurrentMatches: 4,
   minRestTime: 10, // 10 minutes between matches
-  maxWaitTime: 30, // 30 minutes maximum wait time
+  maxWaitTime: 25, // attente max acceptable entre deux matchs d'un tireur (min)
   balanceStripUsage: true,
   optimizeFencerRest: true,
 };
