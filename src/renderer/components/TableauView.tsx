@@ -19,6 +19,7 @@ import {
   propagateWinners,
   deriveFirstRound,
   isBracketComplete,
+  TableauSpecialStatus,
 } from './tableau/tableauTypes';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
@@ -755,13 +756,14 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     matchId: string,
     scoreA: number,
     scoreB: number,
-    winner: Fencer | null
+    winner: Fencer | null,
+    specialStatus: TableauSpecialStatus | null = null
   ) => {
     setConsolationBrackets(prev =>
       prev.map(bracket => {
         if (bracket.id !== consolationId) return bracket;
         const updatedMatches = bracket.matches.map(m => {
-          if (m.id === matchId) return { ...m, scoreA, scoreB, winner };
+          if (m.id === matchId) return { ...m, scoreA, scoreB, winner, specialStatus };
           return m;
         });
         propagateWinners(updatedMatches, bracket.size);
@@ -831,6 +833,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           scoreA,
           scoreB,
           winner,
+          specialStatus: null,
         };
       }
       return match;
@@ -996,7 +999,8 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           editingMatch,
           match.scoreA ?? 0,
           match.scoreB ?? 0,
-          winner
+          winner,
+          { fencerId, status }
         );
       }
       setShowScoreModal(false);
@@ -1016,7 +1020,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         return {
           ...m,
           winner,
-          // On pourrait ajouter des champs pour les statuts spéciaux ici
+          specialStatus: { fencerId, status },
         };
       }
       return m;
