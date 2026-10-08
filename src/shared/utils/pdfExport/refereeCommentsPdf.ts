@@ -59,6 +59,7 @@ export function generateRefereeCommentsHTML(
     </div>
     <div class="gold-bar"></div>
     <table>
+      <colgroup><col class="num"><col class="when"><col class="ctx"><col class="author"><col></colgroup>
       <thead><tr><th>#</th><th>Date</th><th>Match</th><th>Formateur</th><th>Commentaire</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
@@ -79,7 +80,8 @@ export function generateRefereeCommentsHTML(
     ${BASE_CSS}
     .page { page-break-after: always; }
     .page:last-child { page-break-after: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+    /* Largeurs fixes : un commentaire long ne doit pas élargir la table (#1017) */
+    table { width: 100%; border-collapse: collapse; font-size: 9pt; table-layout: fixed; }
     th {
       background: var(--navy); color: var(--white);
       font-size: 8pt; font-weight: 700; text-transform: uppercase;
@@ -87,10 +89,13 @@ export function generateRefereeCommentsHTML(
     }
     td { padding: 2mm; border-bottom: 1px solid var(--gray-light); vertical-align: top; }
     tr:nth-child(even) td { background: var(--gray-xlight); }
-    td.num { width: 7mm; text-align: center; color: var(--gray-dark); }
-    td.when { width: 26mm; white-space: nowrap; }
-    td.ctx { width: 40mm; }
-    td.author { width: 28mm; }
+    col.num { width: 7mm; }
+    col.when { width: 26mm; }
+    col.ctx { width: 40mm; }
+    col.author { width: 28mm; }
+    td { overflow-wrap: anywhere; word-break: break-word; }
+    td.num { text-align: center; color: var(--gray-dark); }
+    td.when { white-space: nowrap; }
     td.text { white-space: pre-wrap; }
     .empty { padding: 10mm; text-align: center; color: var(--gray-dark); }
   </style>
