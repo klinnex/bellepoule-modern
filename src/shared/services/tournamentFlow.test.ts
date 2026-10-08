@@ -116,7 +116,7 @@ describe('TournamentFlowManager', () => {
   it('DEFAULT_TOURNAMENT_CONFIG a les valeurs attendues', () => {
     expect(DEFAULT_TOURNAMENT_CONFIG.maxConcurrentMatches).toBe(4);
     expect(DEFAULT_TOURNAMENT_CONFIG.minRestTime).toBe(10);
-    expect(DEFAULT_TOURNAMENT_CONFIG.maxWaitTime).toBe(30);
+    expect(DEFAULT_TOURNAMENT_CONFIG.maxWaitTime).toBe(25);
     expect(DEFAULT_TOURNAMENT_CONFIG.balanceStripUsage).toBe(true);
     expect(DEFAULT_TOURNAMENT_CONFIG.optimizeFencerRest).toBe(true);
   });
@@ -284,5 +284,65 @@ describe('TournamentFlowManager — calculs successifs (#1018)', () => {
     const res = await manager.optimizeTournamentFlow({} as any, [], arenas);
     expect(res.metrics.averageWaitTime).toBe(0);
     expect(manager.getFlowRecommendations(res.schedule, arenas)).toEqual(expect.any(Array));
+  });
+});
+
+describe('TournamentFlowManager — estimations du planning (#1018)', () => {
+  // 10 tireurs, 2 poules de 5 → 20 matchs
+  const makePools = (): any[] =>
+    [0, 1].map(p => {
+      const fencers = Array.from({ length: 5 }, (_, i) => ({ id: `p${p}f${i}` }));
+      const matches: any[] = [];
+      for (let i = 0; i < 5; i++)
+        for (let j = i + 1; j < 5; j++)
+          matches.push({
+            id: `p${p}m${i}${j}`,
+            poolId: `p${p}`,
+            fencerA: fencers[i],
+            fencerB: fencers[j],
+            status: MatchStatus.NOT_STARTED,
+          });
+      return { id: `p${p}`, matches };
+    });
+  const makeArenas = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({ id: `a${i}`, name: `Piste ${i + 1}`, available: true }));
+
+  it('fin estimée = fin du dernier match planifié, pas maintenant', async () => {
+    const manager = new TournamentFlowManager(DEFAULT_TOURNAMENT_CONFIG);
+    const pools = makePools();
+    const res = await manager.optimizeTournamentFlow({} as any, pools, makeArenas(4));
+    const insights = manager.generatePredictiveInsights({} as any, pools, res.schedule);
+    const lastEnd = Math.max(
+      ...res.schedule.map(s => s.scheduledTime.getTime() + s.estimatedDuration * 60000)
+    );
+    expect(insights.estimatedFinishTime.getTime()).toBe(lastEnd);
+    expect(insights.estimatedFinishTime.getTime()).toBeGreaterThan(Date.now() + 30 * 60000);
+  });
+
+  it('pas de « pistes sous-utilisées » quand toutes les pistes servent', async () => {
+    const manager = new TournamentFlowManager(DEFAULT_TOURNAMENT_CONFIG);
+    const arenas = makeArenas(4);
+    const res = await manager.optimizeTournamentFlow({} as any, makePools(), arenas);
+    const recos = manager.getFlowRecommendations(res.schedule, arenas);
+    expect(recos.some(r => r.includes('piste'))).toBe(false);
+  });
+
+  it('signale les pistes inutilisées quand il y en a trop', async () => {
+    const manager = new TournamentFlowManager(DEFAULT_TOURNAMENT_CONFIG);
+    const arenas = makeArenas(10);
+    const res = await manager.optimizeTournamentFlow({} as any, makePools(), arenas);
+    const recos = manager.getFlowRecommendations(res.schedule, arenas);
+    expect(recos.some(r => r.includes('inutilisée'))).toBe(true);
+  });
+
+  it("calcule l'attente des tireurs entre deux matchs", async () => {
+    const manager = new TournamentFlowManager(DEFAULT_TOURNAMENT_CONFIG);
+    const res = await manager.optimizeTournamentFlow({} as any, makePools(), makeArenas(1));
+    // 1 piste pour 20 matchs : attentes longues signalées
+    expect(res.metrics.maxFencerWait).toBeGreaterThan(DEFAULT_TOURNAMENT_CONFIG.maxWaitTime);
+    expect(res.metrics.fencersOverMaxWait).toBeGreaterThan(0);
+    expect(
+      manager.getFlowRecommendations(res.schedule, makeArenas(1)).some(r => r.includes('⏰'))
+    ).toBe(true);
   });
 });
