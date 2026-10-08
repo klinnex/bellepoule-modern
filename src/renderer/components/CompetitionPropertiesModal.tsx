@@ -712,8 +712,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 Activer le carton noir
               </label>
               <small style={HINT_INDENT}>
-                Affiche le bouton carton noir sur les tablettes (exclusion) et convertit le 2ème
-                carton rouge en carton noir
+                Affiche le bouton carton noir sur les tablettes (exclusion)
               </small>
             </div>
             <div className="form-group" style={{ marginTop: '0.75rem' }}>

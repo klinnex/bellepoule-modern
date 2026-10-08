@@ -354,6 +354,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // réinitialiser la taille de fenêtre choisie par l'utilisateur (cf. bug dimension reset).
   const poolsRef = useRef(pools);
   poolsRef.current = pools;
+  const handleFencerForfeitRef = useRef(handleFencerForfeit);
+  handleFencerForfeitRef.current = handleFencerForfeit;
   const singlePoolIndexRef = useRef(singlePoolIndex);
   singlePoolIndexRef.current = singlePoolIndex;
 
@@ -757,6 +759,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         status: FencerStatus.EXCLUDED,
         exclusionReason: reason ?? 'black_card',
       });
+      // Poules : matchs restants marqués non disputés et résultats de l'exclu retirés
+      // du classement des adversaires, comme une exclusion saisie localement (#1011)
+      if (poolsRef.current.some(p => p.fencers.some(f => f.id === fencerId))) {
+        void handleFencerForfeitRef.current(fencerId, 'exclusion');
+      }
     });
 
     // Carton noir annulé depuis la tablette : réintégrer le combattant et rouvrir le match
@@ -1442,12 +1449,12 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     // remoteServerUrl : re-synchronise une fois le serveur réellement démarré (#986)
   }, [currentPhase, isRemoteActive, competition.id, remoteServerUrl]);
 
-  // Appel distant (/appel) : ouvert uniquement pendant la phase CHECKIN (#919)
+  // Appel distant (/appel) : actif dès que la saisie distante tourne, quelle que soit
+  // la vue affichée (pointage tardif des arbitres pendant les poules, #1016)
   useEffect(() => {
     if (!isRemoteActive || !window.electronAPI?.remote?.setCheckinEnabled) return;
-    const enabled = currentPhase === 'checkin';
-    window.electronAPI.remote.setCheckinEnabled(competition.id, enabled).catch(() => {});
-  }, [currentPhase, isRemoteActive, competition.id, remoteServerUrl]);
+    window.electronAPI.remote.setCheckinEnabled(competition.id, true).catch(() => {});
+  }, [isRemoteActive, competition.id, remoteServerUrl]);
 
   // Pointage reçu depuis la page d'appel distante : recharger depuis la DB
   useEffect(() => {

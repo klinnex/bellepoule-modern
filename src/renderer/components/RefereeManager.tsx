@@ -8,7 +8,13 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { Referee, Match, Pool, Competition, MatchStatus } from '../../shared/types';
 import { RefereeManager, RefereeRotationConfig } from '../../shared/services/refereeManager';
 import { parseEngardeRefereeFile } from '../../shared/utils/fileParser';
-import { computeRefereeMatchStats, TableauMatchLike } from '../../shared/utils/refereeStats';
+import {
+  computeRefereeMatchStats,
+  getRefereePresence,
+  REFEREE_PRESENCE_LABELS,
+  RefereePresence,
+  TableauMatchLike,
+} from '../../shared/utils/refereeStats';
 import {
   TD,
   TD_BOLD,
@@ -23,6 +29,13 @@ import {
   ROW_BORDER,
   ROW_ALT,
 } from './refereeManager.styles';
+
+const PRESENCE_COLORS: Record<RefereePresence, string> = {
+  not_checked_in: '#9ca3af',
+  checked_in: '#166534',
+  busy: '#b45309',
+  free: '#166534',
+};
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isUuid = (id: string) => UUID_RE.test(id);
@@ -243,6 +256,18 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
       computeRefereeMatchStats(referees, statsPoolMatches ?? matches, statsTableauMatches ?? []),
     [referees, statsPoolMatches, matches, statsTableauMatches]
   );
+
+  // Pointage depuis l'application (même effet que l'appel distant, #1016)
+  const toggleRefereeCheckin = async (referee: Referee) => {
+    const status: Referee['status'] =
+      referee.status === 'unavailable' ? 'available' : 'unavailable';
+    try {
+      await window.electronAPI.db.updateReferee(referee.id, { status });
+      onRefereesChange(referees.map(r => (r.id === referee.id ? { ...r, status } : r)));
+    } catch {
+      /* silencieux */
+    }
+  };
 
   const pendingMatches = useMemo(
     () =>
@@ -481,9 +506,26 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     <td style={TD}>{ref.category ?? '—'}</td>
                     <td style={TD}>{ref.nationality}</td>
                     <td style={TD}>
-                      <span style={{ color: ref.status === 'available' ? '#166534' : '#9ca3af' }}>
-                        {ref.status === 'available' ? '✓ Disponible' : ref.status}
-                      </span>
+                      {(() => {
+                        const presence = getRefereePresence(ref, matches);
+                        return (
+                          <span
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                          >
+                            <span style={{ color: PRESENCE_COLORS[presence], fontWeight: 600 }}>
+                              {REFEREE_PRESENCE_LABELS[presence]}
+                            </span>
+                            {presence !== 'busy' && (
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => toggleRefereeCheckin(ref)}
+                              >
+                                {ref.status === 'unavailable' ? 'Pointer' : 'Dépointer'}
+                              </button>
+                            )}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td style={TD}>
                       <button
@@ -835,11 +877,11 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                   <div
                     key={referee.id}
                     style={{
-                      background: referee.status === 'available' ? '#f0fdf4' : '#fef2f2',
+                      background: referee.status !== 'unavailable' ? '#f0fdf4' : '#fef2f2',
                       padding: '1rem',
                       borderRadius: '8px',
                       border: '1px solid',
-                      borderColor: referee.status === 'available' ? '#86efac' : '#fecaca',
+                      borderColor: referee.status !== 'unavailable' ? '#86efac' : '#fecaca',
                     }}
                   >
                     <div style={{ fontWeight: 'bold', color: '#1f2937' }}>
@@ -847,6 +889,16 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     </div>
                     <div style={SUB_TEXT}>
                       {referee.category} • {referee.club || 'Sans club'}
+                    </div>
+                    <div
+                      style={{
+                        marginTop: '0.25rem',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        color: PRESENCE_COLORS[getRefereePresence(referee, matches)],
+                      }}
+                    >
+                      {REFEREE_PRESENCE_LABELS[getRefereePresence(referee, matches)]}
                     </div>
                     <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
                       <span style={{ color: '#374151' }}>

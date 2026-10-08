@@ -254,3 +254,35 @@ describe('TournamentFlowManager', () => {
     expect(() => manager.updateHistoricalData(match)).not.toThrow();
   });
 });
+
+describe('TournamentFlowManager — calculs successifs (#1018)', () => {
+  it('un second calcul ne plante pas et repart de maintenant', async () => {
+    const fencers = Array.from({ length: 5 }, (_, i) => ({ id: `f${i}`, initialRanking: i + 1 }));
+    const matches: any[] = [];
+    for (let i = 0; i < 5; i++)
+      for (let j = i + 1; j < 5; j++)
+        matches.push({
+          id: `m${i}${j}`,
+          poolId: 'p1',
+          fencerA: fencers[i],
+          fencerB: fencers[j],
+          status: MatchStatus.NOT_STARTED,
+        });
+    const pools: any[] = [{ id: 'p1', matches }];
+    const arenas = [{ id: 'a1', name: 'Piste 1', available: true }];
+    const manager = new TournamentFlowManager(DEFAULT_TOURNAMENT_CONFIG);
+    for (let k = 0; k < 2; k++) {
+      const res = await manager.optimizeTournamentFlow({} as any, pools, arenas);
+      expect(res.schedule).toHaveLength(10);
+      expect(() => manager.getFlowRecommendations(res.schedule, arenas)).not.toThrow();
+    }
+  });
+
+  it('planning vide : pas de NaN ni d’exception', async () => {
+    const manager = new TournamentFlowManager(DEFAULT_TOURNAMENT_CONFIG);
+    const arenas = [{ id: 'a1', name: 'Piste 1', available: true }];
+    const res = await manager.optimizeTournamentFlow({} as any, [], arenas);
+    expect(res.metrics.averageWaitTime).toBe(0);
+    expect(manager.getFlowRecommendations(res.schedule, arenas)).toEqual(expect.any(Array));
+  });
+});

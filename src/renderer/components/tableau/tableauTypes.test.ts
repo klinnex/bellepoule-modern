@@ -95,3 +95,32 @@ describe('propagateWinners - taille périmée/invalide', () => {
     expect(matches.find(x => x.id === '8-0')!.fencerB?.id).toBe('b1');
   });
 });
+
+describe('propagateWinners - abandon / forfait / exclusion (#1012)', () => {
+  const build = () => {
+    const [a, b, c, d] = ['A', 'B', 'C', 'D'].map(F);
+    const matches: TableauMatch[] = [
+      mk(4, 0, a, b, { scoreA: 15, scoreB: 3, winner: a }),
+      mk(4, 1, c, d, { scoreA: 15, scoreB: 8, winner: c }),
+      mk(2, 0, null, null, { isBye: false }),
+    ];
+    propagateWinners(matches, 4);
+    return { matches, a, c };
+  };
+
+  it('conserve le vainqueur d’un match sans score (abandon en finale)', () => {
+    const { matches, c } = build();
+    const final = matches.find(m => m.round === 2)!;
+    final.winner = c;
+    propagateWinners(matches, 4);
+    expect(final.winner?.id).toBe('C');
+  });
+
+  it('efface un vainqueur périmé qui n’est plus dans le match', () => {
+    const { matches } = build();
+    const final = matches.find(m => m.round === 2)!;
+    final.winner = F('Z');
+    propagateWinners(matches, 4);
+    expect(final.winner).toBeNull();
+  });
+});

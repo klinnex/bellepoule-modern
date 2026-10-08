@@ -848,8 +848,9 @@ body {
   color: #93c5fd;
 }
 .theme-dark .remote-status.active {
-  background: #14532d;
-  border-color: #15803d;
+  background: #1e293b;
+  border-color: #334155;
+  border-left-color: #22c55e;
 }
 .theme-dark .modal {
   background: var(--color-surface);
@@ -2207,8 +2208,9 @@ body {
 }
 
 .remote-status.active {
-  background: #f0fdf4;
-  border: 1px solid #86efac;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid #22c55e;
 }
 
 /* ─── RSM Inactive panel redesign ─────────────────────────────────────────── */
@@ -2235,6 +2237,21 @@ body {
   height: 14px;
   border-radius: 50%;
   margin-top: 4px;
+}
+
+.rsm-status-dot--on {
+  background: #22c55e;
+  animation: rsm-pulse-green 2s ease-in-out infinite;
+}
+
+@keyframes rsm-pulse-green {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+  }
 }
 
 .rsm-status-dot--off {
@@ -2439,6 +2456,23 @@ body {
   box-shadow: none;
 }
 
+/* Bouton Arrêter : même gabarit que Démarrer, à droite de la carte d'état (#1006) */
+.rsm-start-btn.rsm-stop-btn {
+  width: auto;
+  min-width: 240px;
+  align-self: center;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+}
+
+.rsm-start-btn.rsm-stop-btn:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
+}
+
+.rsm-pills .rsm-pill {
+  font-family: inherit;
+}
+
 .rsm-spinner {
   display: inline-block;
   width: 16px;
@@ -2485,8 +2519,17 @@ body {
 .remote-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: stretch;
   gap: 1rem;
+}
+
+.remote-header .remote-status.active {
+  flex: 1;
+  min-width: 0;
+}
+
+.arena-urls-section > .rsm-section {
+  margin-bottom: 0.75rem;
 }
 
 /* Arena URL cards */

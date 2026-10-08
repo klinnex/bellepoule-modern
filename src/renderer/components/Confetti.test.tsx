@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import React from 'react';
 import { render } from '@testing-library/react';
-import Confetti from './Confetti';
+import Confetti, { CONFETTI_DISABLED_KEY } from './Confetti';
 
 describe('Confetti', () => {
   it('ne rend rien quand inactif', () => {
@@ -21,5 +21,15 @@ describe('Confetti', () => {
     expect(canvas).not.toBeNull();
     expect(canvas?.style.position).toBe('fixed');
     expect(canvas?.style.pointerEvents).toBe('none');
+  });
+
+  it('ne rend rien quand désactivé dans les paramètres', () => {
+    localStorage.setItem(CONFETTI_DISABLED_KEY, 'true');
+    try {
+      const { container } = render(<Confetti active={true} />);
+      expect(container.querySelector('canvas')).toBeNull();
+    } finally {
+      localStorage.removeItem(CONFETTI_DISABLED_KEY);
+    }
   });
 });

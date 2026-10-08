@@ -57,6 +57,9 @@ export class TournamentFlowManager {
     arenas: Arena[],
     currentTime: Date = new Date()
   ): Promise<FlowOptimizationResult> {
+    // Chaque calcul repart de zéro : le repos des tireurs d'un calcul précédent
+    // décalait tout le planning dans le futur (#1018)
+    this.fencerAvailability.clear();
     const unscheduledMatches = this.getUnscheduledMatches(pools);
     const availableArenas = arenas.filter(arena => arena.available);
 
@@ -297,7 +300,9 @@ export class TournamentFlowManager {
     const waitTimes = schedule.map(
       slot => (slot.scheduledTime.getTime() - Date.now()) / (1000 * 60)
     );
-    const averageWaitTime = waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length;
+    const averageWaitTime = waitTimes.length
+      ? waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length
+      : 0;
 
     // Calculate total duration
     const totalDuration =
@@ -373,9 +378,12 @@ export class TournamentFlowManager {
 
     // Check for bottleneck arenas
     const arenaUsage = this.calculateCurrentArenaUsage(currentSchedule, currentTime);
-    const busiestArena = Object.entries(arenaUsage).reduce((a, b) => (a[1] > b[1] ? a : b));
+    const usageEntries = Object.entries(arenaUsage);
+    const busiestArena = usageEntries.length
+      ? usageEntries.reduce((a, b) => (a[1] > b[1] ? a : b))
+      : null;
 
-    if (busiestArena[1] > 80) {
+    if (busiestArena && busiestArena[1] > 80) {
       recommendations.push(
         `🏟️ Piste ${busiestArena[0]} très utilisée (${busiestArena[1]}%). Envisagez de répartir les matchs.`
       );

@@ -1424,7 +1424,7 @@ export class DatabaseManager {
     const nextRef = refRow?.next_ref ?? 1;
     this.run(
       `INSERT INTO referees (id, competition_id, ref, name, gender, nationality, club, license, category, status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'unavailable', ?, ?)`,
       [
         id,
         competitionId,
@@ -1449,7 +1449,7 @@ export class DatabaseManager {
       club: data.club,
       license: data.license,
       category: data.category,
-      status: 'available',
+      status: 'unavailable', // Non pointé par défaut : pointage via l'appel (#1016)
       createdAt: new Date(now),
       updatedAt: new Date(now),
     } as Referee;

@@ -3080,7 +3080,23 @@ export class RemoteScoreServer {
           rounds.find(r => r.matches.some((m: any) => m.status !== 'finished' && !m.isBye))
             ?.round ?? null;
 
-        res.json({ tableSize, currentRound, rounds });
+        // Classement final calculé par l'application (places distinctes, départage
+        // par classement de poules / places jouées) : source de vérité du kiosk (#1013)
+        const finalResults = (
+          Array.isArray(sessionState?.finalResults) ? sessionState.finalResults : []
+        )
+          .filter((r: any) => r?.fencer && typeof r.rank === 'number')
+          .map((r: any) => ({
+            rank: r.rank,
+            fencer: {
+              id: r.fencer.id,
+              lastName: r.fencer.lastName,
+              firstName: r.fencer.firstName,
+              club: r.fencer.club ?? '',
+            },
+          }));
+
+        res.json({ tableSize, currentRound, rounds, finalResults });
       } catch (error) {
         console.error('[RemoteScoreServer] Erreur /api/bracket:', error);
         res.status(500).json({ error: 'Erreur interne' });
