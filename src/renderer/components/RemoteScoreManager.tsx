@@ -53,12 +53,6 @@ const RSM_STYLES = {
     margin: '0.25rem 0 0',
     lineHeight: 1.4,
   } satisfies React.CSSProperties,
-  stripCountRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1rem',
-    margin: '0.75rem 0',
-  } satisfies React.CSSProperties,
   stripCountControls: {
     display: 'flex',
     alignItems: 'center',
@@ -1251,36 +1245,43 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       </div>
 
       <div className="arena-urls-section">
-        <div className="rsm-section">
-          <div style={RSM_STYLES.stripCountRow}>
-            <h4 style={{ margin: 0 }}>Pistes ({arenaCount})</h4>
-            {stripCountControls}
+        {/* Pistes et options : deux cartes sur une ligne, comme l'écran d'attente (#1006) */}
+        <div className="rsm-sections">
+          <div className="rsm-section">
+            <div className="rsm-section-label">Pistes ({arenaCount})</div>
+            <div className="rsm-strip-row">{stripCountControls}</div>
           </div>
-          <label className="rsm-toggle-row">
-            <input
-              type="checkbox"
-              checked={showPhotos}
-              onChange={async e => {
-                setShowPhotos(e.target.checked);
-                await window.electronAPI.remote.updateShowPhotos(competition.id, e.target.checked);
-              }}
-            />
-            Afficher les photos des combattants avant le combat
-          </label>
-          <label className="rsm-toggle-row">
-            <input
-              type="checkbox"
-              checked={cardAnnounce}
-              onChange={async e => {
-                setCardAnnounce(e.target.checked);
-                await window.electronAPI.remote.updateCardAnnounce(
-                  competition.id,
-                  e.target.checked
-                );
-              }}
-            />
-            📣 Carton avancé (afficher bandeau + raison sur les écrans)
-          </label>
+          <div className="rsm-section">
+            <div className="rsm-section-label">Affichage</div>
+            <label className="rsm-toggle-row">
+              <input
+                type="checkbox"
+                checked={showPhotos}
+                onChange={async e => {
+                  setShowPhotos(e.target.checked);
+                  await window.electronAPI.remote.updateShowPhotos(
+                    competition.id,
+                    e.target.checked
+                  );
+                }}
+              />
+              Afficher les photos des combattants avant le combat
+            </label>
+            <label className="rsm-toggle-row">
+              <input
+                type="checkbox"
+                checked={cardAnnounce}
+                onChange={async e => {
+                  setCardAnnounce(e.target.checked);
+                  await window.electronAPI.remote.updateCardAnnounce(
+                    competition.id,
+                    e.target.checked
+                  );
+                }}
+              />
+              📣 Carton avancé (afficher bandeau + raison sur les écrans)
+            </label>
+          </div>
         </div>
         {!isLaunched && (
           <div style={RSM_STYLES.launchSection}>
