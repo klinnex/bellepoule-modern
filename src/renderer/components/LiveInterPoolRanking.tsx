@@ -11,7 +11,7 @@ import {
   calculateOverallRanking,
   calculateOverallRankingQuest,
 } from '../../shared/utils/poolCalculations';
-import { formatRatio, formatIndex } from '../../shared/utils/poolCalculations';
+import { formatRatio, formatIndex, formatQuestPerMatch } from '../../shared/utils/poolCalculations';
 
 interface LiveInterPoolRankingProps {
   pools: Pool[];
@@ -149,6 +149,7 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
                 <th style={thStyle}>TR</th>
                 <th style={thStyle}>Ind.</th>
                 {isLaserSabre && <th style={thStyle}>Quest</th>}
+                {isLaserSabre && <th style={thStyle}>Q/M</th>}
               </tr>
             </thead>
             <tbody>
@@ -180,12 +181,13 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
                     {formatIndex(entry.index)}
                   </td>
                   {isLaserSabre && <td style={tdStyle}>{entry.questPoints ?? 0}</td>}
+                  {isLaserSabre && <td style={tdStyle}>{formatQuestPerMatch(entry)}</td>}
                 </tr>
               ))}
               {ranking.length === 0 && (
                 <tr>
                   <td
-                    colSpan={isLaserSabre ? 10 : 9}
+                    colSpan={isLaserSabre ? 11 : 9}
                     style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}
                   >
                     Aucun résultat disponible

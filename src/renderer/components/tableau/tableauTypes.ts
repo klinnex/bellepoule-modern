@@ -19,6 +19,15 @@ export interface TableauMatch {
   referee?: { id: string; firstName: string; lastName: string } | null;
   /** Arbitres multiples (mode expert, #908) : referees[0] = arbitre principal = referee */
   referees?: Array<{ id: string; firstName: string; lastName: string }>;
+  /** Match perdu sur abandon / forfait / exclusion (#1012) : tireur concerné */
+  specialStatus?: TableauSpecialStatus | null;
+}
+
+export type TableauSpecialStatusType = 'abandon' | 'forfait' | 'exclusion';
+
+export interface TableauSpecialStatus {
+  fencerId: string;
+  status: TableauSpecialStatusType;
 }
 
 export interface FinalResult {
@@ -161,7 +170,10 @@ export function propagateWinners(matchList: TableauMatch[], size: number): void 
             !!winnerId &&
             (winnerId === nextMatch.fencerA.id || winnerId === nextMatch.fencerB.id);
           nextMatch.isBye = false;
-          if (!keepWinner) nextMatch.winner = null;
+          if (!keepWinner) {
+            nextMatch.winner = null;
+            nextMatch.specialStatus = null;
+          }
         }
       }
     });

@@ -631,7 +631,15 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           if (idx === -1) return prev;
           if (isStaleFinish(prev[idx])) return prev;
           const updated = prev.map((m, i) =>
-            i === idx ? { ...m, scoreA, scoreB, winner: resolveWinner(m) } : m
+            i === idx
+              ? {
+                  ...m,
+                  scoreA,
+                  scoreB,
+                  winner: resolveWinner(m),
+                  specialStatus: finished ? null : m.specialStatus,
+                }
+              : m
           );
           if (finished) {
             const size = prev.length > 0 ? Math.max(...prev.map(m => m.round)) : 0;
@@ -648,7 +656,15 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             if (idx === -1) return bracket;
             if (isStaleFinish(bracket.matches[idx])) return bracket;
             const updated = bracket.matches.map((m, i) =>
-              i === idx ? { ...m, scoreA, scoreB, winner: resolveWinner(m) } : m
+              i === idx
+                ? {
+                    ...m,
+                    scoreA,
+                    scoreB,
+                    winner: resolveWinner(m),
+                    specialStatus: finished ? null : m.specialStatus,
+                  }
+                : m
             );
             if (finished) {
               const size = updated.length > 0 ? Math.max(...updated.map(m => m.round)) : 0;

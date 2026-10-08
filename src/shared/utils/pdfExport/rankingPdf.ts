@@ -7,6 +7,7 @@
 import { PoolRanking, Weapon } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
 import { savePDF, buildCssOverrides, assembleBody, BASE_CSS } from './core';
+import { formatQuestPerMatch } from '../poolCalculations';
 
 // ─── Export Classement Général ───────────────────────────────────────────────
 
@@ -43,7 +44,7 @@ export function generateRankingHTML(
   ${vis('ratio') ? `<td style="text-align:center">${r.matchesPlayed > 0 ? ratio : '-'}</td>` : ''}
   ${vis('td') ? `<td style="text-align:center">${r.touchesScored}</td>` : ''}
   ${vis('tr') ? `<td style="text-align:center">${r.touchesReceived}</td>` : ''}
-  ${vis('quest') && isLaserSabre ? `<td style="text-align:center;color:#7c3aed;font-weight:600">${r.questPoints ?? 0}</td>` : ''}
+  ${vis('quest') && isLaserSabre ? `<td style="text-align:center;color:#7c3aed;font-weight:600">${r.questPoints ?? 0}</td><td style="text-align:center;color:#7c3aed">${formatQuestPerMatch(r)}</td>` : ''}
   ${vis('index') ? `<td style="text-align:center;font-weight:600;color:${r.index >= 0 ? 'var(--green)' : '#dc2626'}">${idx}</td>` : ''}
 </tr>`;
     })
@@ -61,7 +62,9 @@ export function generateRankingHTML(
     th('ratio', 'V/M'),
     th('td', 'TD'),
     th('tr', 'TR'),
-    vis('quest') && isLaserSabre ? '<th style="color:var(--white)">Quest</th>' : '',
+    vis('quest') && isLaserSabre
+      ? '<th style="color:var(--white)">Quest</th><th style="color:var(--white)">Q/M</th>'
+      : '',
     th('index', 'Indice'),
   ].join('');
 

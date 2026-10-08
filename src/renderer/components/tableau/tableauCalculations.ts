@@ -11,6 +11,7 @@ import {
   ConsolationBracket,
   propagateWinners,
   isBracketComplete,
+  TableauSpecialStatusType,
 } from './tableauTypes';
 
 export const BASE_MATCH_HEIGHT = 100;
@@ -569,6 +570,32 @@ export const getPoolTouches = (fencerId: string, ranking: PoolRanking[]): number
   return poolRank?.touchesScored ?? 0;
 };
 
+const SPECIAL_STATUS_LABELS: Record<TableauSpecialStatusType, string> = {
+  abandon: 'abandon',
+  forfait: 'forfait',
+  exclusion: 'exclusion',
+};
+
+/** Ajoute « (abandon) », « (forfait) » ou « (exclusion) » au tour d'élimination (#1012) */
+const annotateSpecialStatus = (
+  results: FinalResult[],
+  matchList: TableauMatch[]
+): FinalResult[] => {
+  const statusByFencer = new Map<string, TableauSpecialStatusType>();
+  for (const m of matchList) {
+    if (m.specialStatus && m.winner && m.winner.id !== m.specialStatus.fencerId) {
+      statusByFencer.set(m.specialStatus.fencerId, m.specialStatus.status);
+    }
+  }
+  if (statusByFencer.size === 0) return results;
+  return results.map(r => {
+    const status = statusByFencer.get(r.fencer.id);
+    return status
+      ? { ...r, eliminatedAt: `${r.eliminatedAt} (${SPECIAL_STATUS_LABELS[status]})` }
+      : r;
+  });
+};
+
 export const calculateFinalResults = (
   matchList: TableauMatch[],
   ranking: PoolRanking[],
@@ -716,7 +743,10 @@ export const calculateFinalResults = (
 
   // DEBUG: console.log('Résultats finaux:', results.map(r => `${r.rank}. ${r.fencer.lastName}`).join(', '));
 
-  return results.sort((a, b) => a.rank - b.rank);
+  return annotateSpecialStatus(
+    results.sort((a, b) => a.rank - b.rank),
+    matchList
+  );
 };
 
 // Construit les résultats combinés pour le mode playAllPositions
@@ -825,7 +855,10 @@ export const buildCombinedResults = (
     }
   }
 
-  return results.sort((a, b) => a.rank - b.rank);
+  return annotateSpecialStatus(
+    results.sort((a, b) => a.rank - b.rank),
+    [...mainMatches, ...consolBrackets.flatMap(b => b.matches)]
+  );
 };
 
 // Position verticale d'un match dans la vue arborescente complète

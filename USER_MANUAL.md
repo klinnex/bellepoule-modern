@@ -654,12 +654,12 @@ Rank;LastName;FirstName;Club;Victories;Touches Given;Touches Received;Indicator
 | 8-11 points      | 3 points     |
 | ≥ 12 points      | 4 points     |
 
-**Ranking Criteria:**
+**Ranking Criteria (2026 rules):**
 
-1. Total Quest Points
-2. Touches Given (TD)
-3. Number of Victories
-4. Victories at 4, 3, 2, 1 points
+1. Victories / matches (V/M)
+2. Quest Points / matches (Q/M)
+3. Index (TD − TR)
+4. Victories at 4, then 3, 2, 1 points
 
 ## 📚 Additional Resources
 
