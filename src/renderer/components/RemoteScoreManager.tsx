@@ -74,24 +74,11 @@ const RSM_STYLES = {
     minWidth: '1.5rem',
     textAlign: 'center' as const,
   } satisfies React.CSSProperties,
-  checkboxLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    margin: '0.5rem 0',
-    cursor: 'pointer',
-  } satisfies React.CSSProperties,
   kioskViewsSection: { margin: '0.5rem 0' } satisfies React.CSSProperties,
   kioskViewsTitle: {
     fontSize: '0.875rem',
     marginBottom: '0.25rem',
     color: 'inherit',
-  } satisfies React.CSSProperties,
-  kioskViewLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    cursor: 'pointer',
   } satisfies React.CSSProperties,
   interfaceRow: {
     display: 'flex',
@@ -1197,96 +1184,110 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   return (
     <div className="remote-score-manager">
       <div className="remote-header">
-        <div className="remote-status active">
-          <h3>🟢 {t('remote.active_title')}</h3>
-          <p>
-            Serveur: <strong>{serverUrl}</strong>
-          </p>
-          {certFingerprint ? (
-            <p
-              style={{
-                fontSize: '0.75rem',
-                color: '#94a3b8',
-                margin: '0.25rem 0 0',
-                wordBreak: 'break-all',
-              }}
-            >
-              🔒 Empreinte cert. SHA-256 :{' '}
-              <code style={{ fontSize: '0.7rem' }}>{certFingerprint}</code>
+        <div className="remote-status active rsm-hero">
+          <span className="rsm-status-dot rsm-status-dot--on" aria-hidden="true" />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h3 className="rsm-hero-title">{t('remote.active_title')}</h3>
+            <p className="rsm-hero-desc">
+              Serveur: <strong>{serverUrl}</strong>
             </p>
-          ) : (
-            serverUrl.startsWith('http://') && (
-              <p role="alert" style={RSM_STYLES.httpWarning}>
-                ⚠️ Réseau non chiffré (HTTP) : mots de passe et sessions lisibles sur le Wi-Fi.
-                Activez HTTPS en redémarrant le serveur.
+            {certFingerprint ? (
+              <p
+                style={{
+                  fontSize: '0.75rem',
+                  color: '#94a3b8',
+                  margin: '0.25rem 0 0',
+                  wordBreak: 'break-all',
+                }}
+              >
+                🔒 Empreinte cert. SHA-256 :{' '}
+                <code style={{ fontSize: '0.7rem' }}>{certFingerprint}</code>
               </p>
-            )
-          )}
-          <div style={RSM_STYLES.portActiveRow}>
-            <label
-              htmlFor={`remote-port-active-${competition.id}`}
-              style={RSM_STYLES.portActiveLabel}
-            >
-              Port :
-            </label>
-            <input
-              id={`remote-port-active-${competition.id}`}
-              type="number"
-              min={1}
-              max={65535}
-              value={remotePort}
-              onChange={e => handlePortChange(parseInt(e.target.value, 10))}
-              style={RSM_STYLES.portActiveInput}
-              disabled={isLoading}
-            />
-            <button
-              className="btn-secondary"
-              onClick={handleChangePort}
-              disabled={isLoading}
-              title="Redémarrer le serveur sur ce port"
-              style={RSM_STYLES.portActiveBtn}
-            >
-              🔄 Recharger
-            </button>
+            ) : (
+              serverUrl.startsWith('http://') && (
+                <p role="alert" style={RSM_STYLES.httpWarning}>
+                  ⚠️ Réseau non chiffré (HTTP) : mots de passe et sessions lisibles sur le Wi-Fi.
+                  Activez HTTPS en redémarrant le serveur.
+                </p>
+              )
+            )}
+            <div style={RSM_STYLES.portActiveRow}>
+              <label
+                htmlFor={`remote-port-active-${competition.id}`}
+                style={RSM_STYLES.portActiveLabel}
+              >
+                Port :
+              </label>
+              <input
+                id={`remote-port-active-${competition.id}`}
+                type="number"
+                min={1}
+                max={65535}
+                value={remotePort}
+                onChange={e => handlePortChange(parseInt(e.target.value, 10))}
+                style={RSM_STYLES.portActiveInput}
+                disabled={isLoading}
+              />
+              <button
+                className="btn-secondary"
+                onClick={handleChangePort}
+                disabled={isLoading}
+                title="Redémarrer le serveur sur ce port"
+                style={RSM_STYLES.portActiveBtn}
+              >
+                🔄 Recharger
+              </button>
+            </div>
           </div>
         </div>
-        <button className="btn-secondary" onClick={handleStopRemote} disabled={isLoading}>
-          🛑 Arrêter
+        <button
+          className="rsm-start-btn rsm-stop-btn"
+          onClick={handleStopRemote}
+          disabled={isLoading}
+        >
+          {isLoading ? <span className="rsm-spinner" /> : '🛑'}
+          Arrêter la saisie distante
         </button>
       </div>
 
       <div className="arena-urls-section">
-        <div style={RSM_STYLES.stripCountRow}>
-          <h4 style={{ margin: 0 }}>Pistes ({arenaCount})</h4>
-          {stripCountControls}
+        <div className="rsm-section">
+          <div style={RSM_STYLES.stripCountRow}>
+            <h4 style={{ margin: 0 }}>Pistes ({arenaCount})</h4>
+            {stripCountControls}
+          </div>
+          <label className="rsm-toggle-row">
+            <input
+              type="checkbox"
+              checked={showPhotos}
+              onChange={async e => {
+                setShowPhotos(e.target.checked);
+                await window.electronAPI.remote.updateShowPhotos(competition.id, e.target.checked);
+              }}
+            />
+            Afficher les photos des combattants avant le combat
+          </label>
+          <label className="rsm-toggle-row">
+            <input
+              type="checkbox"
+              checked={cardAnnounce}
+              onChange={async e => {
+                setCardAnnounce(e.target.checked);
+                await window.electronAPI.remote.updateCardAnnounce(
+                  competition.id,
+                  e.target.checked
+                );
+              }}
+            />
+            📣 Carton avancé (afficher bandeau + raison sur les écrans)
+          </label>
         </div>
-        <label style={RSM_STYLES.checkboxLabel}>
-          <input
-            type="checkbox"
-            checked={showPhotos}
-            onChange={async e => {
-              setShowPhotos(e.target.checked);
-              await window.electronAPI.remote.updateShowPhotos(competition.id, e.target.checked);
-            }}
-          />
-          Afficher les photos des combattants avant le combat
-        </label>
-        <label style={RSM_STYLES.checkboxLabel}>
-          <input
-            type="checkbox"
-            checked={cardAnnounce}
-            onChange={async e => {
-              setCardAnnounce(e.target.checked);
-              await window.electronAPI.remote.updateCardAnnounce(competition.id, e.target.checked);
-            }}
-          />
-          📣 Carton avancer (afficher bandeau + raison sur les écrans)
-        </label>
         {!isLaunched && (
           <div style={RSM_STYLES.launchSection}>
             <button
               className="btn-primary"
               style={RSM_STYLES.launchBtn}
+              title="Passe en « prêt » les matchs déjà affectés aux pistes et non commencés (écran de présentation des combattants)"
               onClick={async () => {
                 const result = await window.electronAPI.remote.launchCompetition(competition.id);
                 if (result.success) {
@@ -1324,9 +1325,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   flex: 1,
                   padding: '0.35rem 0.5rem',
                   borderRadius: '0.375rem',
-                  border: `2px solid ${displayTheme === value ? '#3b82f6' : '#475569'}`,
-                  background: displayTheme === value ? '#1d4ed8' : 'transparent',
-                  color: '#e2e8f0',
+                  border: `2px solid ${displayTheme === value ? '#3b82f6' : 'var(--color-border)'}`,
+                  background: displayTheme === value ? '#1d4ed8' : 'var(--color-surface)',
+                  color: displayTheme === value ? '#fff' : 'var(--color-text)',
                   cursor: 'pointer',
                   fontWeight: displayTheme === value ? 700 : 400,
                   fontSize: '0.8rem',
@@ -1379,26 +1380,30 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         </div>
         <div style={RSM_STYLES.kioskViewsSection}>
           <div style={RSM_STYLES.kioskViewsTitle}>Vues kiosk :</div>
-          {(
-            [
-              { key: 'poules', label: 'Poules' },
-              { key: 'classement', label: 'Classement' },
-              { key: 'direct', label: 'Matchs en direct' },
-            ] as const
-          ).map(({ key, label }) => (
-            <label key={key} style={RSM_STYLES.kioskViewLabel}>
-              <input
-                type="checkbox"
-                checked={kioskViews[key]}
-                onChange={async e => {
-                  const next = { ...kioskViews, [key]: e.target.checked };
+          <div className="rsm-pills">
+            {(
+              [
+                { key: 'poules', label: 'Poules' },
+                { key: 'classement', label: 'Classement' },
+                { key: 'direct', label: 'Matchs en direct' },
+              ] as const
+            ).map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                className={`rsm-pill${kioskViews[key] ? ' rsm-pill--on' : ''}`}
+                aria-pressed={kioskViews[key]}
+                onClick={async () => {
+                  const next = { ...kioskViews, [key]: !kioskViews[key] };
                   setKioskViews(next);
                   await window.electronAPI.remote.updateKioskViews(competition.id, next);
                 }}
-              />
-              {label}
-            </label>
-          ))}
+              >
+                {kioskViews[key] ? '✓ ' : ''}
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Note d'organisation */}
