@@ -321,7 +321,8 @@ describe('TournamentFlowManager — estimations du planning (#1018)', () => {
 
   it('pas de « pistes sous-utilisées » quand toutes les pistes servent', async () => {
     const manager = new TournamentFlowManager(DEFAULT_TOURNAMENT_CONFIG);
-    const arenas = makeArenas(4);
+    // Une piste par poule : 2 poules → 2 pistes
+    const arenas = makeArenas(2);
     const res = await manager.optimizeTournamentFlow({} as any, makePools(), arenas);
     const recos = manager.getFlowRecommendations(res.schedule, arenas);
     expect(recos.some(r => r.includes('piste'))).toBe(false);
@@ -344,5 +345,110 @@ describe('TournamentFlowManager — estimations du planning (#1018)', () => {
     expect(
       manager.getFlowRecommendations(res.schedule, makeArenas(1)).some(r => r.includes('⏰'))
     ).toBe(true);
+  });
+});
+
+describe('TournamentFlowManager — ordre officiel des poules (#1018)', () => {
+  const makePool = (p: number, size: number): any => {
+    const fencers = Array.from({ length: size }, (_, i) => ({ id: `p${p}f${i}` }));
+    const matches: any[] = [];
+    // Ordre volontairement non trié : le planning doit le conserver tel quel
+    for (let i = size - 1; i >= 0; i--)
+      for (let j = 0; j < i; j++)
+        matches.push({
+          id: `p${p}m${i}${j}`,
+          poolId: `p${p}`,
+          fencerA: fencers[i],
+          fencerB: fencers[j],
+          status: MatchStatus.NOT_STARTED,
+        });
+    return { id: `p${p}`, fencers, matches };
+  };
+  const arenas = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({ id: `a${i}`, name: `Piste ${i + 1}`, available: true }));
+
+  it('conserve l’ordre des matchs de chaque poule, une piste par poule', async () => {
+    const manager = new TournamentFlowManager(DEFAULT_TOURNAMENT_CONFIG);
+    const pools = [makePool(0, 5), makePool(1, 4)];
+    const res = await manager.optimizeTournamentFlow({} as any, pools, arenas(3));
+    for (const pool of pools) {
+      const slots = res.schedule.filter(s => s.match.poolId === pool.id);
+      expect(slots.map(s => s.match.id)).toEqual(pool.matches.map((m: any) => m.id));
+      expect(new Set(slots.map(s => s.arenaId)).size).toBe(1);
+    }
+    expect(manager.getFlowRecommendations(res.schedule, arenas(3), res.metrics)).toContainEqual(
+      expect.stringContaining('1 piste(s) inutilisée(s) : 2 piste(s) suffisent')
+    );
+  });
+
+  it('attente calculée sur la poule la plus grande, selon son ordre', async () => {
+    const manager = new TournamentFlowManager(DEFAULT_TOURNAMENT_CONFIG);
+    // Poule de 3 : A-B, A-C, B-C → A attend 0, B attend 1 match, C attend 0
+    const [a, b, c] = ['a', 'b', 'c'].map(id => ({ id }));
+    const small: any = {
+      id: 'small',
+      fencers: [a, b, c],
+      matches: [
+        { id: 's1', fencerA: a, fencerB: b, status: MatchStatus.NOT_STARTED },
+        { id: 's2', fencerA: a, fencerB: c, status: MatchStatus.NOT_STARTED },
+        { id: 's3', fencerA: b, fencerB: c, status: MatchStatus.NOT_STARTED },
+      ],
+    };
+    const res = await manager.optimizeTournamentFlow({} as any, [small], arenas(1));
+    expect(res.metrics.averageWaitTime).toBe(5); // (0 + 15 + 0) / 3
+    expect(res.metrics.maxFencerWait).toBe(15);
+
+    const withLarger = await manager.optimizeTournamentFlow(
+      {} as any,
+      [small, makePool(1, 6)],
+      arenas(2)
+    );
+    expect(withLarger.metrics.averageWaitTime).not.toBe(5);
+  });
+});
+
+describe('TournamentFlowManager — planning du tableau (#1018)', () => {
+  const F = (id: string) => ({ id });
+  const m = (round: number, position: number, a: any, b: any, winner: any = null): any => ({
+    id: `${round}-${position}`,
+    round,
+    position,
+    fencerA: a,
+    fencerB: b,
+    winner,
+    isBye: false,
+  });
+  const arenas = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({ id: `a${i}`, name: `Piste ${i + 1}`, available: true }));
+
+  it('compte les duels prêts et en attente, enchaîne les tours', () => {
+    const manager = new TournamentFlowManager(DEFAULT_TOURNAMENT_CONFIG);
+    const bracket = [
+      m(8, 0, F('a'), F('b')),
+      m(8, 1, F('c'), F('d')),
+      m(8, 2, F('e'), F('f'), F('e')),
+      m(8, 3, F('g'), F('h')),
+      m(4, 0, null, null),
+      m(4, 1, F('e'), null),
+      m(2, 0, null, null),
+    ];
+    const now = new Date('2026-01-01T10:00:00Z');
+    const res = manager.optimizeTableauFlow([bracket], arenas(4), now);
+    expect(res.readyCount).toBe(3);
+    expect(res.waitingCount).toBe(3);
+    expect(res.schedule).toHaveLength(6);
+    expect(res.maxConcurrent).toBe(3);
+    // Quarts 15 min, repos 10, demis 15, repos 10, finale 15
+    expect(res.estimatedFinishTime.getTime() - now.getTime()).toBe(65 * 60000);
+    expect(res.recommendations.some(r => r.includes('inutilisée'))).toBe(true);
+  });
+
+  it('une seule piste : les duels se suivent', () => {
+    const manager = new TournamentFlowManager(DEFAULT_TOURNAMENT_CONFIG);
+    const bracket = [m(4, 0, F('a'), F('b')), m(4, 1, F('c'), F('d')), m(2, 0, null, null)];
+    const now = new Date('2026-01-01T10:00:00Z');
+    const res = manager.optimizeTableauFlow([bracket], arenas(1), now);
+    // Demis 0-15 et 15-30, repos 10 min, finale 40-55
+    expect(res.estimatedFinishTime.getTime() - now.getTime()).toBe(55 * 60000);
   });
 });

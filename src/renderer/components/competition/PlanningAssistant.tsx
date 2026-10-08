@@ -12,11 +12,14 @@ import {
   DEFAULT_TOURNAMENT_CONFIG,
   Arena as FlowArena,
   FlowOptimizationResult,
+  TableauFlowMatch,
 } from '../../../shared/services/tournamentFlow';
 
 interface PlanningAssistantProps {
   competition: Competition;
   pools: Pool[];
+  /** Phase de tableau : tableau principal puis consolantes (#1018) */
+  tableauBrackets?: TableauFlowMatch[][];
   suggestedArenaCount: number;
   onClose: () => void;
 }
@@ -24,9 +27,11 @@ interface PlanningAssistantProps {
 const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
   competition,
   pools,
+  tableauBrackets,
   suggestedArenaCount,
   onClose,
 }) => {
+  const isTableau = !!tableauBrackets;
   const [arenaCount, setArenaCount] = useState(Math.max(1, suggestedArenaCount));
   const [result, setResult] = useState<FlowOptimizationResult | null>(null);
   const [recommendations, setRecommendations] = useState<string[]>([]);
@@ -50,7 +55,13 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
     [arenaCount]
   );
 
+  const tableauResult = useMemo(
+    () => (tableauBrackets ? manager.optimizeTableauFlow(tableauBrackets, arenas) : null),
+    [manager, tableauBrackets, arenas]
+  );
+
   useEffect(() => {
+    if (isTableau) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
@@ -59,7 +70,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
       .then(res => {
         if (cancelled) return;
         setResult(res);
-        setRecommendations(manager.getFlowRecommendations(res.schedule, arenas));
+        setRecommendations(manager.getFlowRecommendations(res.schedule, arenas, res.metrics));
         setInsights(manager.generatePredictiveInsights(competition, pools, res.schedule));
       })
       .catch(err => {
@@ -72,7 +83,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [manager, competition, pools, arenas]);
+  }, [manager, competition, pools, arenas, isTableau]);
 
   const remainingMatches = pools.reduce(
     (sum, p) => sum + p.matches.filter(m => m.status !== MatchStatus.FINISHED).length,
@@ -113,15 +124,57 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
             />
           </div>
 
-          {loading && <p style={{ color: 'var(--color-text-light)' }}>Calcul en cours…</p>}
+          {tableauResult && (
+            <>
+              <div
+                style={{
+                  padding: '0.75rem 1rem',
+                  background: 'var(--color-surface-alt, #f8fafc)',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                }}
+              >
+                <strong>Fin estimée :</strong>{' '}
+                {tableauResult.estimatedFinishTime.toLocaleTimeString('fr-FR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}{' '}
+                ({Math.round(tableauResult.totalDuration / 60000)} min)
+                <br />
+                <strong>Duels prêts :</strong> {tableauResult.readyCount} ·{' '}
+                <strong>en attente :</strong> {tableauResult.waitingCount}
+                <br />
+                <strong>Pistes utiles :</strong> {tableauResult.maxConcurrent}
+              </div>
+              {tableauResult.recommendations.length === 0 ? (
+                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>
+                  Aucun point de vigilance détecté avec cette configuration.
+                </p>
+              ) : (
+                <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.875rem' }}>
+                  {tableauResult.recommendations.map((r, i) => (
+                    <li key={`tab-rec-${i}`}>{r}</li>
+                  ))}
+                </ul>
+              )}
+              <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-light)' }}>
+                Estimation : {DEFAULT_TOURNAMENT_CONFIG.minRestTime} min de repos entre deux duels
+                d&apos;un tireur.
+              </div>
+            </>
+          )}
 
-          {!loading && error && (
+          {!isTableau && loading && (
+            <p style={{ color: 'var(--color-text-light)' }}>Calcul en cours…</p>
+          )}
+
+          {!isTableau && !loading && error && (
             <p role="alert" style={{ color: 'var(--color-danger, #dc2626)', fontSize: '0.875rem' }}>
               Calcul impossible : {error}
             </p>
           )}
 
-          {!loading && insights && (
+          {!isTableau && !loading && insights && (
             <>
               <div
                 style={{
@@ -166,7 +219,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
 
               {result && result.schedule.length > 0 && (
                 <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-light)' }}>
-                  Attente entre deux matchs : moyenne{' '}
+                  Attente entre deux matchs (poule la plus grande, ordre officiel) : moyenne{' '}
                   {Math.max(0, Math.round(result.metrics.averageWaitTime))} min, max{' '}
                   {Math.max(0, Math.round(result.metrics.maxFencerWait))} min
                 </div>
