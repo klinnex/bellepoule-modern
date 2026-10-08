@@ -1809,11 +1809,22 @@
       }
 
       // ─── Rendu Classement Final ──────────────────────────────────────────────
+      // Ordre du classement général des poules (meilleur classé d'abord)
+      function sortBySeed(fencers) {
+        const seed = new Map((state.overallRanking || []).map((r, i) => [r.fencerId ?? r.fencer?.id ?? r.id, i]));
+        return [...fencers].sort((a, b) => (seed.get(a.id) ?? 9999) - (seed.get(b.id) ?? 9999));
+      }
+
       function renderFinalRanking() {
         const el = document.getElementById('final-ranking-body');
         if (!el) return;
 
         const data = state.bracketData;
+        // Classement final de l'application : places réelles, sans ex æquo (#1013)
+        if (data?.finalResults?.length) {
+          renderFinalTable(el, [...data.finalResults].sort((a, b) => a.rank - b.rank));
+          return;
+        }
         if (!data?.rounds?.length) {
           el.innerHTML = '<div class="final-ranking-not-done">⏳ Compétition non terminée — le classement final apparaîtra à la fin du tableau d\'élimination.</div>';
           document.getElementById('final-badge').textContent = '—';
@@ -1848,14 +1859,17 @@
           // Petite finale not yet played: both semi-final losers share 3rd
           const sfRound = data.rounds.find(r => r.round === 4);
           if (sfRound) {
+            const sfLosers = [];
             sfRound.matches.forEach(m => {
               const loser = m.winnerId === m.fencerA?.id ? m.fencerB : (m.winnerId ? m.fencerA : null);
-              if (loser) ranked.push({ rank: 3, fencer: loser });
+              if (loser) sfLosers.push(loser);
             });
+            sortBySeed(sfLosers).forEach((f, i) => ranked.push({ rank: 3 + i, fencer: f }));
           }
         }
 
         // Add losers from earlier rounds (round 4 and beyond)
+        const seen = new Set(ranked.map(r => r.fencer.id));
         const mainRounds = data.rounds
           .filter(r => r.round !== 2 && r.round !== 3)
           .sort((a, b) => a.round - b.round); // ascending: 4, 8, 16, ...
@@ -1866,15 +1880,20 @@
           for (const m of round.matches) {
             if (!m.isBye && m.winnerId) {
               const loser = m.winnerId === m.fencerA?.id ? m.fencerB : m.fencerA;
-              if (loser) losers.push(loser);
+              if (loser && !seen.has(loser.id)) {
+                seen.add(loser.id);
+                losers.push(loser);
+              }
             }
           }
-          if (losers.length > 0) {
-            losers.forEach(f => ranked.push({ rank: currentRank, fencer: f }));
-            currentRank += losers.length;
-          }
+          // Places distinctes, comme l'application : départage par classement de poules
+          sortBySeed(losers).forEach(f => ranked.push({ rank: currentRank++, fencer: f }));
         }
 
+        renderFinalTable(el, ranked);
+      }
+
+      function renderFinalTable(el, ranked) {
         const rankLabel = r => r <= 4 ? ['🥇','🥈','🥉','4️⃣'][r-1] : r + 'e';
         document.getElementById('final-badge').textContent = ranked.length + ' tireur' + (ranked.length > 1 ? 's' : '');
 
@@ -2365,6 +2384,7 @@
           const data = await res.json();
           state.bracketData = data;
           if (state.currentView === 'tableau') renderBracket();
+          else if (state.currentView === 'final') renderFinalRanking();
         } catch { /* optionnel */ }
       }
 
