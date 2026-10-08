@@ -153,8 +153,15 @@ export function propagateWinners(matchList: TableauMatch[], size: number): void 
           nextMatch.winner = nextMatch.fencerB;
           nextMatch.isBye = true;
         } else if (nextMatch.fencerA && nextMatch.fencerB) {
+          // Vainqueur sans score = abandon / forfait / exclusion : le conserver s'il
+          // correspond toujours à l'un des deux tireurs (#1012)
+          const winnerId = nextMatch.winner?.id;
+          const keepWinner =
+            !nextMatch.isBye &&
+            !!winnerId &&
+            (winnerId === nextMatch.fencerA.id || winnerId === nextMatch.fencerB.id);
           nextMatch.isBye = false;
-          nextMatch.winner = null;
+          if (!keepWinner) nextMatch.winner = null;
         }
       }
     });
