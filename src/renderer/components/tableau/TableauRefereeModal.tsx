@@ -14,7 +14,7 @@ interface TableauRefereeModalProps {
   currentReferees: RefereeInfo[];
   /** Nombre max d'arbitres sélectionnables (mode expert) ; 1 = sélection unique */
   maxReferees?: number;
-  referees: Array<RefereeInfo & { club?: string }>;
+  referees: Array<RefereeInfo & { club?: string; status?: string }>;
   onAssign: (referees: RefereeInfo[]) => void;
   onClose: () => void;
 }
@@ -25,10 +25,14 @@ const CLUB_SPAN: React.CSSProperties = { marginLeft: '0.5rem', opacity: 0.6, fon
 const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
   currentReferees,
   maxReferees = 1,
-  referees,
+  referees: allReferees,
   onAssign,
   onClose,
 }) => {
+  // Arbitres non pointés masqués, sauf ceux déjà assignés (#977)
+  const referees = allReferees.filter(
+    r => r.status !== 'unavailable' || currentReferees.some(c => c.id === r.id)
+  );
   const isMulti = maxReferees > 1;
   const [pendingIds, setPendingIds] = useState<string[]>(() => currentReferees.map(r => r.id));
 
@@ -78,7 +82,7 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
             </button>
             {referees.length === 0 && (
               <p style={{ color: '#9ca3af', fontSize: '0.875rem', textAlign: 'center' }}>
-                Aucun arbitre enregistré pour cette compétition
+                Aucun arbitre pointé pour cette compétition
               </p>
             )}
             {isMulti &&

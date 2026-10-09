@@ -516,6 +516,67 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe("arbitre des matchs de tableau assigné depuis l'appli (#977)", () => {
+    const fA = { id: 'a', lastName: 'Dupont', firstName: 'Jean' };
+    const fB = { id: 'b', lastName: 'Martin', firstName: 'Paul' };
+    const de = (id: string, arena: number, referee?: any) => ({
+      id,
+      round: 8,
+      arena,
+      isTableau: true,
+      fencerA: fA,
+      fencerB: fB,
+      ...(referee ? { referee } : {}),
+    });
+
+    beforeEach(async () => {
+      mockDb.getCompetition.mockReturnValue({ id: 'comp-1', settings: {} });
+      (mockDb as any).getPoolCount = vi.fn().mockReturnValue(0);
+      (mockDb as any).getAllPendingMatchesFromPools = vi.fn().mockReturnValue([]);
+      vi.spyOn(server as any, 'loadSessionReferees').mockReturnValue([
+        { id: 'r1', name: 'LEBLANC Anne' },
+        { id: 'r2', name: 'NOIR Marc' },
+      ]);
+      await server.startSession('comp-1', 2, []);
+    });
+
+    it('arbitre transmis au match chargé sur la tablette', () => {
+      server.refreshDeMatches([de('m1', 1, { id: 'r1', firstName: 'Anne', lastName: 'Leblanc' })]);
+      const arena = (server as any).arenas.get('arena1');
+      expect(arena.currentMatch?.referee).toEqual({ id: 'r1', name: 'LEBLANC Anne' });
+    });
+
+    it("changement d'arbitre → match en cours mis à jour", () => {
+      server.refreshDeMatches([de('m1', 1, { id: 'r1' })]);
+      server.refreshDeMatches([de('m1', 1, { id: 'r2' })]);
+      const arena = (server as any).arenas.get('arena1');
+      expect(arena.currentMatch?.referee).toEqual({ id: 'r2', name: 'NOIR Marc' });
+    });
+
+    it("arbitre retiré → plus d'arbitre sur la tablette", () => {
+      server.refreshDeMatches([de('m1', 1, { id: 'r1' })]);
+      server.refreshDeMatches([de('m1', 1)]);
+      expect((server as any).arenas.get('arena1').currentMatch?.referee).toBeUndefined();
+    });
+
+    it('mode expert : tous les arbitres affichés', () => {
+      server.refreshDeMatches([{ ...de('m1', 1), referees: [{ id: 'r1' }, { id: 'r2' }] }]);
+      expect((server as any).arenas.get('arena1').currentMatch?.referee).toEqual({
+        id: 'r1',
+        name: 'LEBLANC Anne / NOIR Marc',
+      });
+    });
+
+    it("match en file d'attente : arbitre porté", () => {
+      server.refreshDeMatches([de('m1', 1), de('m2', 1, { id: 'r2' })]);
+      const queue = (server as any).arenaMatchQueue.get('arena1');
+      expect(queue.find((m: any) => m.id === 'm2')?.referee).toEqual({
+        id: 'r2',
+        name: 'NOIR Marc',
+      });
+    });
+  });
+
   describe('annulation carton noir depuis la tablette', () => {
     function findHandler(method: string, path: string): any {
       const app = (server as any).app;

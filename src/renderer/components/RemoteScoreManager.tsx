@@ -249,6 +249,18 @@ const RSM_STYLES = {
   kioskCard: { marginTop: '1rem' } satisfies React.CSSProperties,
 } satisfies Record<string, React.CSSProperties>;
 
+/** Clé de synchro des matchs DE : id + arbitre(s) assigné(s) */
+function deMatchesKey(
+  matches: Array<{ id: string; referee?: { id: string } | null; referees?: Array<{ id: string }> }>
+): string {
+  return matches
+    .map(
+      m =>
+        `${m.id}:${(m.referees?.length ? m.referees : m.referee ? [m.referee] : []).map(r => r.id).join('+')}`
+    )
+    .join(',');
+}
+
 const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   competition,
   pools,
@@ -455,7 +467,8 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     // le serveur garde le match terminé sur la piste / en file d'attente et peut le
     // renvoyer (0-0) plus tard, écrasant le vainqueur (#909). Le ref initial vaut '' :
     // aucun envoi tant qu'aucun match DE n'a jamais existé.
-    const key = pendingDeMatches.map(m => m.id).join(',');
+    // Arbitres inclus dans la clé : un changement d'arbitre est renvoyé à la tablette (#977)
+    const key = deMatchesKey(pendingDeMatches);
     if (key === prevDeMatchesKeyRef.current) return;
     prevDeMatchesKeyRef.current = key;
     window.electronAPI.remote
@@ -588,7 +601,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         // avant que session/isRemoteActive soient prêts, donc l'effet ne se déclenche pas).
         if (deMatches.length > 0) {
           await window.electronAPI.remote.refreshDeMatches(competition.id, deMatches);
-          prevDeMatchesKeyRef.current = deMatches.map((m: any) => m.id).join(',');
+          prevDeMatchesKeyRef.current = deMatchesKey(deMatches);
         }
       } else {
         showToast(`Erreur session: ${result.error}`, 'error');

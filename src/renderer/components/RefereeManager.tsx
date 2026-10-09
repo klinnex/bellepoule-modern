@@ -978,11 +978,13 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                         }}
                       >
                         <option value="">-- Choisir un arbitre --</option>
-                        {referees.map(referee => (
-                          <option key={referee.id} value={referee.id}>
-                            {referee.firstName} {referee.lastName}
-                          </option>
-                        ))}
+                        {referees
+                          .filter(r => r.status !== 'unavailable' || r.id === assignedReferee?.id)
+                          .map(referee => (
+                            <option key={referee.id} value={referee.id}>
+                              {referee.firstName} {referee.lastName}
+                            </option>
+                          ))}
                       </select>
                     </div>
                   </div>
