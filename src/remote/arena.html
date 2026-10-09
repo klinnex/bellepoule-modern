@@ -670,6 +670,19 @@
         border: 2px solid #000;
       }
 
+      /* Cartons de passivité (escrime olympique, #1026) */
+      .card-p-red {
+        background: #ef4444;
+        color: white;
+        border: 2px dashed #7f1d1d;
+      }
+
+      .card-p-black {
+        background: #111;
+        color: white;
+        border: 2px dashed #9ca3af;
+      }
+
       .score-big {
         font-family: 'DSEG7Classic', monospace;
         font-size: var(--score-font-size, clamp(7rem, 23vw, 44vh));
@@ -2034,10 +2047,10 @@
         updateCardsDisplay() {
           const renderCards = cards =>
             cards
-              .filter(card => ['white', 'yellow', 'red', 'black'].includes(card))
+              .filter(card => ['white', 'yellow', 'red', 'black', 'p-red', 'p-black'].includes(card))
               .map(
                 card =>
-                  `<div class="card card-${card}">${card === 'white' ? 'B' : card === 'yellow' ? 'J' : card === 'black' ? 'N' : 'R'}</div>`
+                  `<div class="card card-${card}">${card.startsWith('p-') ? 'P' : card === 'white' ? 'B' : card === 'yellow' ? 'J' : card === 'black' ? 'N' : 'R'}</div>`
               )
               .join('');
 
