@@ -531,7 +531,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       setImportMenuOpen(false);
                     }}
                   >
-                    Importer classement FFE
+                    Importer classement (FFF / CSV)
                   </button>
                   {onImportFFEConnect && (
                     <button

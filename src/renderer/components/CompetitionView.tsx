@@ -1044,7 +1044,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         filters: [{ name: 'Fichiers FFE / TXT', extensions: ['fff', 'csv', 'txt'] }],
       },
       ranking: {
-        title: 'Importer un classement FFE',
+        title: 'Importer un classement (FFF ou CSV : NOM, PRENOM, CLASSEMENT)',
         filters: [{ name: 'Fichier classement', extensions: ['fff', 'csv', 'txt', 'xlsx'] }],
       },
     };
