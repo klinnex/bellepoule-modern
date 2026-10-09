@@ -5314,6 +5314,22 @@ export class RemoteScoreServer {
     }
   }
 
+  /**
+   * Arbitre(s) d'un match de tableau envoyé par l'appli (referees mode expert, sinon referee).
+   * id = arbitre principal ; name = tous les arbitres (#977).
+   */
+  private resolveDeMatchReferee(m: any): { id: string; name: string } | null {
+    const refs: any[] = Array.isArray(m?.referees) ? m.referees.filter((r: any) => r?.id) : [];
+    if (refs.length === 0 && m?.referee?.id) refs.push(m.referee);
+    if (refs.length === 0) return this.resolveReferee(m?.refereeId);
+    const names = refs.map(
+      r =>
+        this.resolveReferee(r.id)?.name ??
+        ([r.lastName, r.firstName].filter(Boolean).join(' ') || r.name || '')
+    );
+    return { id: refs[0].id, name: names.filter(Boolean).join(' / ') };
+  }
+
   private isDeMatchBlocked(matchId: string): boolean {
     const sm = this.sessionMatches.find((m: any) => m.id === matchId);
     if (!sm?.round) return false;
@@ -6773,6 +6789,25 @@ export class RemoteScoreServer {
       );
     }
 
+    // Arbitre(s) assigné(s) depuis l'appli → match en cours sur la tablette (#977)
+    for (const [arenaId, arena] of this.arenas) {
+      const current = arena.currentMatch;
+      if (!current?.isTableau || arena.status === 'finished') continue;
+      const m = deMatches.find(x => x.id === current.id);
+      if (!m) continue;
+      const referee = this.resolveDeMatchReferee(m);
+      if (referee?.id === current.referee?.id && referee?.name === current.referee?.name) continue;
+      arena.currentMatch = { ...current, referee: referee ?? undefined };
+      this.broadcastArenaUpdate(arenaId, {
+        arenaId,
+        match: arena.currentMatch,
+        scoreA: arena.currentMatch.scoreA,
+        scoreB: arena.currentMatch.scoreB,
+        status: arena.status,
+      });
+      this.persistArenaState(arenaId);
+    }
+
     const pending = deMatches.filter(m => !activeMatchIds.has(m.id));
     const queuesByArena = new Map<string, ArenaMatch[]>();
     for (let i = 1; i <= strips; i++) queuesByArena.set(`arena${i}`, []);
@@ -6784,6 +6819,7 @@ export class RemoteScoreServer {
       if (!match.arena) continue; // pas de piste assignée → ne pas distribuer
       const targetArenaId = `arena${match.arena}`;
       if (!this.arenas.has(targetArenaId)) continue; // hors plage → ignorer
+      const referee = this.resolveDeMatchReferee(match);
       queuesByArena.get(targetArenaId)!.push({
         id: match.id,
         fencerA: match.fencerA,
@@ -6794,6 +6830,7 @@ export class RemoteScoreServer {
         startTime: null,
         endTime: null,
         isTableau: true,
+        ...(referee ? { referee } : {}),
       });
     }
 

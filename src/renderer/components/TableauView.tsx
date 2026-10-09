@@ -240,7 +240,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   const [signaturesMatch, setSignaturesMatch] = useState<TableauMatch | null>(null);
   const [selectedMatchForReferee, setSelectedMatchForReferee] = useState<string | null>(null);
   const [competitionReferees, setCompetitionReferees] = useState<
-    Array<{ id: string; firstName: string; lastName: string; club?: string }>
+    Array<{ id: string; firstName: string; lastName: string; club?: string; status?: string }>
   >([]);
   const [selectedMatchConsolationBracketId, setSelectedMatchConsolationBracketId] = useState<
     string | null
@@ -303,6 +303,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                 firstName: r.firstName,
                 lastName: r.lastName,
                 club: r.club,
+                status: r.status,
               }))
             );
           })

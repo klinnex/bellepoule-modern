@@ -224,7 +224,14 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       setIsLoadingReferees(true);
       window.electronAPI.db
         .getRefereesByCompetition(competitionId)
-        .then(refs => setCompetitionReferees(refs))
+        .then(refs =>
+          // Arbitres non pointés masqués, sauf ceux déjà assignés (#977)
+          setCompetitionReferees(
+            refs.filter(
+              r => r.status !== 'unavailable' || assignedReferees.some(a => a.id === r.id)
+            )
+          )
+        )
         .finally(() => setIsLoadingReferees(false));
     }
   }, [competitionId, assignedReferees]);
@@ -1875,7 +1882,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 </button>
                 {isLoadingReferees && <p style={REF_EMPTY}>Chargement des arbitres…</p>}
                 {!isLoadingReferees && competitionReferees.length === 0 && (
-                  <p style={REF_EMPTY}>Aucun arbitre enregistré pour cette compétition</p>
+                  <p style={REF_EMPTY}>Aucun arbitre pointé pour cette compétition</p>
                 )}
                 {!isLoadingReferees &&
                   isMultiReferee &&
