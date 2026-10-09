@@ -1825,6 +1825,7 @@
           this.timerRunning = false;
           this.longPressTimer = null;
           this.isLaserSabre = false;
+          this.isModernFencing = false; // Épée, fleuret, sabre (règles olympiques)
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
           this.overtimeType = null; // 'supplementary' | 'challenger' | null
@@ -2803,6 +2804,7 @@
 
           if (sdLabel) {
             sdLabel.style.display = isSupplementary ? 'block' : 'none';
+            if (this.isModernFencing) sdLabel.textContent = '⏱ 1 MIN SUPPLÉMENTAIRE';
           }
           if (msLabel) {
             msLabel.style.display = isChallengerSD ? 'block' : 'none';
@@ -2819,7 +2821,8 @@
           this.pushHistory('arena_exit');
           if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
           const ef = this._effectiveFencer(fencer);
-          const points = 3;
+          // Escrime olympique : une seule touche ; Sabre Laser : 3 points (#1027)
+          const points = this.isModernFencing ? 1 : 3;
           if (ef === 'A') {
             this.scoreB += points;
           } else {
@@ -3071,10 +3074,10 @@
                 const _sdDisabled = this.trainingCustomRules && this.trainingCustomRules.disableSuddenDeath;
                 if (!_sdDisabled && this.scoreA === this.scoreB &&
                     (!this.isSuddenDeath || this.overtimeType === 'challenger')) {
-                  // Égalité : attente manuelle de l'arbitre pour lancer les 30s
+                  // Égalité : attente manuelle de l'arbitre pour lancer le temps supplémentaire
                   this.prepareSuddenDeath();
                 } else if (!_sdDisabled && this.isSuddenDeath && this.scoreA === this.scoreB) {
-                  // Fin des 30s supplémentaires avec égalité → tirage au sort
+                  // Fin du temps supplémentaire avec égalité → tirage au sort
                   this.triggerTiebreaker();
                 } else {
                   this.showNotification('⏰ Temps écoulé !');
@@ -3209,7 +3212,18 @@
             time: 0,
             timerStatus: 'paused',
           });
-          this.showNotification('⚖️ Égalité ! Appuyez sur "Lancer 30s" pour démarrer le temps supplémentaire.');
+          this.showNotification(
+            `⚖️ Égalité ! Appuyez sur "Lancer ${this.overtimeLabel()}" pour démarrer le temps supplémentaire.`
+          );
+        }
+
+        // Durée du temps supplémentaire : 1 min en escrime olympique, 30 s au Sabre Laser (#1027)
+        overtimeSeconds() {
+          return this.isModernFencing ? 60 : 30;
+        }
+
+        overtimeLabel() {
+          return this.isModernFencing ? '1 min' : '30s';
         }
 
         launchSuddenDeath() {
@@ -3226,13 +3240,15 @@
             this.overtimeType = 'supplementary';
           }
           if (navigator.vibrate) navigator.vibrate([150, 80, 150, 80, 400]);
-          this.timerSeconds = 30;
+          this.timerSeconds = this.overtimeSeconds();
           this.updateTimerDisplay();
           this.broadcastTimerUpdate();
           this.updateSuddenDeathUI();
           const msg = this.overtimeType === 'challenger_supplementary'
             ? '⏱ 30s SUPPLEMENTAIRE – Égalité ! Zone C uniquement (Mort Subite Challenger).'
-            : '⏱ 30s SUPPLEMENTAIRE – Égalité à temps ! Toutes les zones sont valides.';
+            : this.isModernFencing
+              ? '⏱ 1 MIN SUPPLÉMENTAIRE – Égalité ! Tirage au sort du vainqueur si égalité à la fin.'
+              : '⏱ 30s SUPPLEMENTAIRE – Égalité à temps ! Toutes les zones sont valides.';
           this.showNotification(msg);
           this.startTimer();
         }
@@ -3644,7 +3660,7 @@
           // État d'attente : l'arbitre doit déclencher manuellement les 30s
           if (this.waitingOvertimeStart) {
             startBtn.disabled = false;
-            startBtn.textContent = '⏱ Lancer 30s';
+            startBtn.textContent = `⏱ Lancer ${this.overtimeLabel()}`;
             startBtn.className = 'control-btn btn-launch-overtime';
             if (finishBtn) finishBtn.disabled = false;
             this.updateScoreButtons();

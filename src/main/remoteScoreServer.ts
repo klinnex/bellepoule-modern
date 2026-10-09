@@ -5019,7 +5019,8 @@ export class RemoteScoreServer {
               fencerId,
               exitType: exit.isVoluntary ? 'arena_exit_voluntary' : 'arena_exit',
               timestamp: now,
-              pointsAwarded: 3,
+              // Escrime olympique : une touche ; Sabre Laser : 3 points (#1027)
+              pointsAwarded: ['E', 'F', 'S'].includes(this.sessionWeapon ?? '') ? 1 : 3,
             });
           }
         }
