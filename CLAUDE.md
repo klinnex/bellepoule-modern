@@ -51,16 +51,16 @@ Code is in English; comments and documentation are in French.
 npm run dev             # Development mode (concurrent TypeScript + Webpack watchers)
 npm run dev:main        # Watch main process only
 npm run dev:renderer    # Watch renderer only (Webpack dev server on port 8066)
-npm run build           # Full build (increment-build + TypeScript + Webpack)
+npm run build           # Full build (increment-build + Webpack main + renderer)
 npm run build:ci        # CI build (no build number increment)
-npm run build:main      # TypeScript compilation only
-npm run build:renderer  # Webpack only
+npm run build:main      # Webpack main + preload only
+npm run build:renderer  # Webpack renderer only (also copies src/remote → dist/remote)
 npm start               # Build and run with Electron
 npm run package         # Create distributable packages for all platforms
-npm run package:win     # Windows (NSIS installer)
-npm run package:mac     # macOS (DMG, x64)
-npm run package:mac-arm # macOS (DMG, arm64)
-npm run package:linux   # Linux (AppImage)
+npm run package:win     # Windows (NSIS installer + portable)
+npm run package:mac     # macOS (DMG + ZIP, x64 + arm64)
+npm run package:mac-arm # macOS arm64 only
+npm run package:linux   # Linux (AppImage, deb, rpm)
 npm test                # Run Vitest unit tests (watch mode)
 npm run test:run        # Vitest single run (CI)
 npm run test:coverage   # Vitest with coverage report
@@ -69,6 +69,9 @@ npm run lint:fix        # ESLint auto-fix
 npm run format          # Prettier format
 npm run format:check    # Prettier validation
 npm run type-check      # TypeScript no-emit check
+npm run check:i18n      # Locale completeness (CI)
+npm run check:bundle-size # Bundle budget (CI)
+npm run docs:api        # TypeDoc API docs
 npm run analyze         # Webpack bundle analyzer (opens browser)
 npm run test:e2e        # Playwright E2E tests
 npm run e2e:debug       # Playwright debug mode
@@ -82,19 +85,22 @@ npm run e2e:debug       # Playwright debug mode
 Main Process (src/main/)
 ├── main.ts                  # Window management, menu (i18n: fr/en/de), IPC handlers, DB lifecycle
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
-├── remoteScoreServer.ts     # Express + Socket.IO for referee tablets (port 8066)
-├── remoteScoreServer.test.ts
-└── autoUpdater.ts           # Auto-update functionality
+├── splash-preload.ts / splash.html  # Splash screen
+├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
+├── certManager.ts           # Self-signed TLS certificate (selfsigned)
+├── autoUpdater.ts           # Auto-update (GitHub Releases)
+└── updateIntegrity.ts       # SHA-256 + trusted URL checks for updates
 
 Renderer Process (src/renderer/)
 ├── App.tsx                  # Root React component
-├── components/              # 81+ React components
+├── components/              # ~90 React components
 │   ├── competition/         # CompetitionHeader, CompetitionNav
 │   ├── formula/             # FormulaBuilder, FormulaPhaseCard, FormulaTemplateModal, etc.
 │   ├── pool/                # PoolMatchList, PoolScoreMatrix
 │   ├── tableau/             # MatchCard, SeedingTable, TableauScoreModal, etc.
+│   ├── analytics/, common/, training/, wiki/
 │   └── __tests__/
-├── hooks/                   # 17 custom hooks
+├── hooks/                   # 19 custom hooks
 ├── contexts/                # TranslationContext (i18n)
 ├── services/                # offlineStorage.ts, offlineSync.ts
 ├── locales/                 # i18n: fr, en, br (Breton), ca (Catalan), de (Deutsch), es (Español), zh-HK
@@ -111,7 +117,7 @@ Feature Modules (src/features/)
 ├── pdfTemplates/        # usePdfTemplateStore
 ├── penalties/           # PenaltyUtils + usePenaltyStore + penalty.types
 ├── pools/               # PoolCalculator + PoolService + usePoolStore + pool.types
-└── teams/               # TeamCalculations + useTeamStore + team.types
+└── teams/               # teamCalculations, teamBracketService, laserArena* (Sabre Laser team format), useTeamStore
 
 Shared (src/shared/)
 ├── types/
@@ -143,7 +149,8 @@ Shared (src/shared/)
     ├── customRankingCalculator.ts
     ├── fencerStatsCalculator.ts
     ├── bulkImport.ts             # Bulk fencer import
-    ├── fileParser.ts             # XML / FFE / CSV parsing
+    ├── fileParser.ts + fileParser/  # XML / FFE / Engarde / TXT / ranking parsing
+    ├── pdfExport/                # pool, tableau, bracket tree, ranking, results, appel, referee comments
     ├── conflictResolution.ts     # Merge conflict resolution for cloud sync
     ├── errorLogger.ts            # Structured error logging
     ├── fencerExport.ts           # Fencer data export helpers
@@ -151,20 +158,24 @@ Shared (src/shared/)
     ├── questScheduler.ts         # Match scheduling for Quest/Laser Sabre phases
     └── tournamentTemplates.ts    # Predefined tournament configuration templates
 
-Remote Assets (src/remote/)
-├── app.js                   # Express + Socket.IO application
-├── arena.html / referee.html / dashboard.html / kiosk.html
-├── login.html / pool.html / public.html / register.html
-├── overlay.html / overlay-config.html
+Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
+├── referee.html             # Referee tablet (/arene{N}/arbitre) — see docs/ARBITRAGE.md
+├── arena.html               # Arena screen (/arene{N})
+├── teamReferee.html / teamArena.html  # Sabre Laser team format (/equipe{N})
+├── pool.html / pool-ocr.html # Pool sheet + signatures, OCR entry
+├── public.html / matchs.html / overlay.html / overlay-config.html
+├── kiosk.html / dashboard.html / lobby.html
+├── login.html / checkin.html / register.html / trainer.html
+├── app.js
 ├── i18n.js                  # Client-side i18n for remote interfaces
 ├── styles.css
 ├── sw.js                    # Service worker for offline tablet support
 └── offlineQueue.ts          # Offline action queue for tablets
 
 Database (src/database/)
-├── index.ts             # DatabaseManager class (better-sqlite3)
+├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db
 ├── validation.ts        # Input validation
-└── migrations/          # Schema migrations (index.ts + migrations.ts)
+└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 18 versions)
 ```
 
 ### Key Patterns
@@ -173,7 +184,7 @@ Database (src/database/)
 
 2. **Database**: better-sqlite3 provides synchronous native SQLite (rebuilt via electron-rebuild postinstall). All operations go through `DatabaseManager`. Atomic writes (temp file + rename). Autosave every 2 minutes; save on quit.
 
-3. **Remote Scoring**: Express server with Socket.IO on port 8066. Arena display at `/arene{N}`, referee interface at `/arene{N}/arbitre`. HTML served in-memory for bundling.
+3. **Remote Scoring**: Express server with Socket.IO on port 8066 (next free port if busy), HTTPS optional (on by default in UI). Arena display at `/arene{N}`, referee interface at `/arene{N}/arbitre` (password → `bp_token_arena{N}` cookie). Referee actions go through the `arena_control` socket event. HTML served in-memory. Docs: `REMOTE_SCORE_GUIDE.md`, `docs/ARBITRAGE.md`.
 
 4. **State**: Zustand stores per feature module (`src/features/*/hooks/use*Store.ts`). App-level state in `App.tsx` via `useState`/`useReducer`.
 
@@ -181,8 +192,11 @@ Database (src/database/)
    - `db.*` – Competition, Fencer, Match, Pool, Session operations
    - `file.*` – Export, import, write file content
    - `dialog.*` – Open/save file dialogs
-   - `remote.*` – Start/stop server, manage arenas/sessions
+   - `remote.*` – Start/stop server, manage arenas/sessions/themes/passwords
+   - `training.*` – Training-mode server
    - `updater.*` – Auto-update control
+   - `crypto.*` – safeStorage protect/unprotect
+   - `themes.*` – Screen themes
    - `notifyLanguageChanged(lang)` – Rebuild native menu when UI language changes
 
 ## TypeScript Configuration
@@ -190,18 +204,18 @@ Database (src/database/)
 - Strict mode enabled (no implicit any, strict null checks)
 - Path aliases: `@shared/*`, `@main/*`, `@renderer/*`, `@database/*`
 - Target: ES2020, Module: commonjs, JSX: react-jsx
-- Output: `./dist/`
+- TypeScript 6.0; bundled by Webpack 5 (ts-loader) into `./dist/main`, `./dist/renderer`, `./dist/remote`
 
 ## Testing
 
 - **Unit tests**: Vitest (`npm test`) – test files co-located: `src/shared/utils/*.test.ts`, `src/shared/services/*.test.ts`, `src/main/*.test.ts`, `src/database/*.test.ts`, `src/features/penalties/penalties.test.ts`
-- **E2E tests**: Playwright (`playwright.config.ts`) – `e2e/` (app, competition, pools, tableau, import-export, remote-scoring, accessibility)
+- **E2E tests**: Playwright (`playwright.config.ts`) – `e2e/` (app, competition, competition-full, pools, tableau, import-export, remote-scoring, accessibility)
 - Coverage: `@vitest/coverage-v8`
 
 ## Key Domain Types (src/shared/types/index.ts)
 
 ```typescript
-enum Weapon { EPEE = 'E', FOIL = 'F', SABRE = 'S', LASER = 'L' }
+enum Weapon { EPEE = 'E', FOIL = 'F', SABRE = 'S', LASER = 'L', CUSTOM = 'C' }
 
 enum Gender { MALE, FEMALE, MIXED }
 
@@ -235,13 +249,13 @@ Core interfaces: `Fencer`, `Referee`, `Competition`, `Pool`, `Match`, `PoolRanki
 - Main process changes require Electron restart; renderer hot-reloads via Webpack
 - Remote score server and Webpack dev server both use port 8066 (référence à l'Ordre 66)
 - Pool calculations include special "Quest Points" system for Laser Sabre weapon
-- `@types/*` packages are in `dependencies` (not `devDependencies`) for Electron bundling
+- Only native/runtime modules are in `dependencies` (better-sqlite3, lucide-react, selfsigned); everything else (React, Express, Socket.IO, `@types/*`) is a devDependency bundled by Webpack. Versions: `docs/STACK_TECHNIQUE.md`
 - Window: 1400×900, min 1024×768; CSP enforced (no inline scripts)
-- Electron version: 44.x; React 19; Socket.IO 4.x; better-sqlite3 13.x (Node ≥ 22)
+- Electron 44.5; React 19.3; TypeScript 6.0; Express 5; Socket.IO 4.8; better-sqlite3 13 (Node 22); Vitest 4; Playwright 1.63
 
 ## Git Conventions
 
 - Build commits: `🔖 Build #XXX`
 - Feature commits in French or English
-- CI/CD auto-increments build number in `version.json` on push to `main`
+- CI/CD auto-increments build number in `version.json` on push to `main` and `dev` (`🔖 Dev Build #XXX` on dev)
 - Branch prefix for AI: `claude/`

@@ -1,225 +1,160 @@
-# BellePoule Modern - Saisie Distante des Scores
+# BellePoule Modern — Saisie distante (guide organisateur)
 
-## Vue d'ensemble
+> Version **1.0.3**, build **#1365**.
+> Côté arbitre : [docs/ARBITRAGE.md](docs/ARBITRAGE.md) · cas pratiques :
+> [docs/SCENARIOS_MATCH.md](docs/SCENARIOS_MATCH.md) · démarrage express :
+> [REMOTE_SCORE_QUICKSTART.md](REMOTE_SCORE_QUICKSTART.md).
 
-La fonctionnalité de saisie distante permet aux arbitres de saisir les scores des matchs directement depuis une tablette ou un navigateur web, sans avoir à utiliser l'application principale. Les scores sont synchronisés en temps réel avec l'application principale BellePoule Modern.
+La saisie distante transforme le poste organisateur en serveur web local. Tablettes
+d'arbitrage, écrans d'arène, kiosque, spectateurs et overlays de streaming s'y connectent
+avec un simple navigateur.
 
-## Architecture du système
+## 1. Prérequis
 
-```mermaid
-graph TB
-    subgraph "Application Principale (Electron)"
-        A[Interface Principale] --> B[RemoteScoreManager]
-        B --> C[RemoteScoreServer]
-        C --> D[(Base de données)]
-    end
+- Poste organisateur et appareils sur le **même réseau** (Wi-Fi ou Ethernet). Internet
+  inutile.
+- Port **8066** (ou celui choisi) autorisé dans le pare-feu du poste.
+- Navigateurs récents (Chrome/Edge, Safari iPadOS, Firefox).
+- Astuce : **🔧 Outils → 📶 QR Code WiFi** pour connecter les tablettes au réseau
+  ([docs/WIFI_QR_GUIDE.md](docs/WIFI_QR_GUIDE.md)).
 
-    subgraph "Serveur Web (Port 8066)"
-        C --> E[API REST]
-        C --> F[WebSocket Server]
-        E --> G[Routes HTTP]
-        F --> H[Socket.IO]
-    end
+## 2. Démarrage
 
-    subgraph "Interface Arbitre (Web)"
-        I[index.html] --> J[app.js]
-        J --> K[styles.css]
-        K --> L[Socket.IO Client]
-        L --> F
-    end
+1. Ouvrir la compétition, onglet **📡 Saisie distante**.
+2. Panneau « Saisie distante inactive » :
+   - **Pistes** : nombre d'arènes/pistes (± puis Sauvegarder).
+   - **Réseau** : interface (toutes, ou une carte précise) et **port** (1–65535,
+     défaut 8066 ; si occupé, le port libre suivant est pris).
+   - **🔒 Activer HTTPS** (coché par défaut) : certificat auto-signé généré et conservé
+     dans le dossier utilisateur. Empreinte SHA-256 affichée.
+3. **Démarrer la saisie distante**. L'URL réseau s'affiche (ex. `https://192.168.1.20:8066`).
+4. Pour chaque arène : URL + **QR code** des vues (arène, arbitre, poule, public, overlay)
+   et **mot de passe** facultatif (8 caractères min., vide = accès libre). Un
+   **MDP commun** peut s'appliquer à toutes les pistes.
 
-    subgraph "Tablettes Arbitres"
-        M[Navigateur Web] --> I
-        N[Navigateur Web] --> I
-        O[Navigateur Web] --> I
-    end
+> HTTPS : à la première connexion, chaque appareil affiche un avertissement de
+> certificat. Accepter (comparer l'empreinte si besoin). Changer HTTPS impose un
+> redémarrage du serveur.
 
-    style A fill:#e1f5fe
-    style B fill:#f3e5f5
-    style C fill:#e8f5e8
-    style I fill:#fff3e0
-    style M fill:#fce4ec
-    style N fill:#fce4ec
-    style O fill:#fce4ec
-```
+## 3. Pages disponibles
 
-## Composants principaux
+| URL | Appareil | Accès |
+|---|---|---|
+| `/` → `/lobby` | Écran d'accueil / salle d'attente | libre |
+| `/arene{N}` | TV de l'arène : score, chrono, cartons, photos, annonces | libre |
+| `/arene{N}/arbitre` | Tablette d'arbitrage | mot de passe d'arène |
+| `/arene{N}/poule` | Feuille de poule + signatures | mot de passe d'arène |
+| `/arene{N}/public` | Smartphone spectateur | libre |
+| `/arene{N}/overlay` | Overlay OBS / vMix (`/overlay-config` pour le configurer) | libre |
+| `/arene{N}/matchs` | Ordre des matchs | libre |
+| `/arene{N}/journal` | Journal du match en cours | libre |
+| `/equipe{N}`, `/equipe{N}/arbitre` | Sabre Laser équipe (format arène) | arbitre : mot de passe |
+| `/kiosk` | Affichage public (tableau, poules, classement), configurable | libre |
+| `/poule-ocr` | Saisie d'une feuille de poule par photo (OCR) | authentifié |
+| `/appel` (`/checkin`) | Pointage tireurs/arbitres | mot de passe d'appel obligatoire |
+| `/formateur` | Commentaires des formateurs sur les arbitres | mot de passe formateur (option `trainerCommentsEnabled`) |
+| `/inscription` (`/register`) | Pré-inscription tireur | selon ouverture |
+| `/competition/:id/results` | Résultats publics | libre |
 
-### 1. RemoteScoreServer (`src/main/remoteScoreServer.ts`)
+Alias anglais : `/arena{N}`, `/arena{N}/referee`, `/arena{N}/public`, ...
 
-**Rôle** : Serveur principal qui gère la communication avec les arbitres
+## 4. Options de la compétition utiles à la saisie distante
 
-**Fonctionnalités** :
+| Paramètre (`competition.settings`) | Effet tablette |
+|---|---|
+| `weapon` | `L` Sabre Laser : +1/+3/+5, cartons B/J/R (+3/+5), mort subite 10-10, 30 s supp. `E`/`F`/`S` : +1, carton P (passivité), rouge +1, 1 min supp. |
+| `defaultPoolTimerSeconds` / `defaultTableTimerSeconds` | Durée du chrono (180 s par défaut) |
+| `blackCardEnabled` | Affiche les boutons **N** (exclusion). Défaut : désactivé |
+| `refereeFeatureEnabled` | Barre arbitre + changement d'arbitre sur tablette |
+| `signTableauMatches` | Signature des tireurs après chaque match de tableau |
+| `trainerCommentsEnabled` | Ouvre l'espace `/formateur` |
 
-- Serveur web Express (port 8066 par défaut - référence à l'Ordre 66)
-- Serveur WebSocket (Socket.IO) pour la communication en temps réel
-- Gestion des sessions de saisie distante
-- Authentification des arbitres par code d'accès
-- Synchronisation des scores avec la base de données
+Options de session (panneau Saisie distante) : **annonce des cartons** (motifs + annonces
+à l'écran), affichage des **photos**, **thèmes** (global et par écran), **logo**,
+**fond d'écran**, **note kiosque**, **minuteur vocal** (voix, paliers), **webhook**.
 
-**Endpoints API** :
+## 5. Pendant la compétition
 
-- `GET /` : Interface web arbitre
-- `GET /api/session` : Informations de session active
-- `POST /api/session/start` : Démarrer une session
-- `POST /api/session/stop` : Arrêter une session
-- `POST /api/referees` : Ajouter un arbitre
-- `POST /api/matches/:matchId/score` : Mettre à jour un score
+- **Écrans connectés** : liste des appareils (type, arène, IP, batterie), identification
+  à l'écran, renommage, commandes à distance ([docs/TELECOMMANDE_TV.md](docs/TELECOMMANDE_TV.md)).
+- **Appels DT** : notification à chaque 📣 d'une tablette (et à chaque carton noir) ;
+  acquittement depuis l'application.
+- **Résultats** : chaque match terminé sur tablette met à jour la poule ou le tableau
+  dans l'application (IPC `match:finished`). Les signatures apparaissent dans
+  Poule → Signatures / Tableau → Signatures.
+- **Saisie manuelle** possible en parallèle depuis l'application : l'arène est libérée.
+- **Réinitialiser un match** de poule depuis l'application si erreur.
+- **Audit** : chaque score est tracé (`score_audit_log` : arbitre, IP, poule). Conflit
+  d'IP signalé.
 
-**Événements WebSocket** :
+## 6. Sécurité
 
-- `login` : Connexion d'un arbitre
-- `score_update` : Mise à jour d'un score
-- `match_complete` : Finalisation d'un match
-- `heartbeat` : Maintien de connexion
+Détails : [docs/SECURITE_SAISIE_DISTANTE.md](docs/SECURITE_SAISIE_DISTANTE.md).
 
-### 2. Interface Web Arbitre (`src/remote/`)
+- Origines HTTP et Socket.IO restreintes au réseau local.
+- Mots de passe ≥ 8 caractères, cookies HttpOnly `SameSite=Strict` (8 h), `Secure` en HTTPS.
+- Limitation des tentatives de connexion par IP et par arène, blocage progressif.
+- Routes d'administration (`/api/session/start|stop`, `/api/debug`) limitées à la machine
+  locale.
+- Scores validés (entiers 0–50), limitation du nombre de soumissions par minute.
+- CSP sur toutes les pages.
 
-**Rôle** : Interface web pour les arbitres sur tablette
+## 7. API (référence)
 
-**Fichiers** :
+### REST principales
 
-- `index.html` : Structure de la page
-- `styles.css` : Style responsive et moderne
-- `app.js` : Logique JavaScript (Vanilla JS)
+| Méthode | Route | Rôle |
+|---|---|---|
+| GET | `/api/session` | Session active (arme, options, règles d'entraînement) |
+| GET | `/api/server-info`, `/api/config` | Infos serveur |
+| GET | `/api/arenas`, `/api/arenas/:id` | État des arènes |
+| GET | `/api/arenas/:id/matches` | Matchs de l'arène |
+| GET | `/api/arenas/:id/pool-data`, `/pool-order` | Feuille de poule |
+| GET | `/api/arenas/:id/obs-json` | Données overlay |
+| GET/POST | `/api/arenas/:id/black-cards[/:fencerId/cancel]` | Cartons noirs |
+| POST | `/api/auth/login/:arenaId` | Connexion arène |
+| POST | `/api/matches/:id/score` | Sauvegarde intermédiaire du score |
+| POST | `/api/matches/:id/finish` | Fin de match (scores, cartons, vainqueur imposé, carton noir) |
+| POST | `/api/matches/:id/fencers/:fencerId/signature` | Signature tableau |
+| POST | `/api/pools/:poolId/fencers/:fencerId/signature` | Signature poule |
+| POST | `/api/pools/:poolId/matches/:matchId/score` | Score depuis la feuille de poule |
+| POST | `/api/ocr/pool-sheet` | OCR d'une feuille de poule |
+| POST | `/api/sync` | Rejeu de la file hors-ligne |
+| GET | `/api/bracket`, `/api/competitions/:id/results-data` | Tableau, résultats |
+| GET | `/api/referees/rotation-report` | Rapport de rotation des arbitres |
+| GET/POST | `/api/checkin/*`, `/api/trainer/*`, `/api/register*` | Appel, formateurs, inscription |
 
-**Fonctionnalités** :
+### Socket.IO
 
-- Connexion par code d'accès
-- Affichage du match en cours
-- Saisie des scores
-- Gestion des statuts spéciaux (abandon, forfait, exclusion)
-- Navigation vers le match suivant
-- Notifications en temps réel
+| Client → serveur | Rôle |
+|---|---|
+| `join_arena`, `join_pool`, `join_team_arena`, `dashboard:subscribe` | Abonnements |
+| `client:register`, `client:pong`, `client:battery` | Suivi des écrans |
+| `arena_control` | Commandes d'arbitrage (voir [ARBITRAGE.md §7](docs/ARBITRAGE.md#7-protocole-référence-technique)) |
+| `team_touch`, `team_timer_start`, `team_timer_pause`, `team_advance_bout`, `team_reset_bout` | Sabre Laser équipe |
 
-### 3. RemoteScoreManager (`src/renderer/components/RemoteScoreManager.tsx`)
+| Serveur → client | Rôle |
+|---|---|
+| `arena:{id}:update` | État de l'arène (match, score, chrono, cartons, mort subite, options) |
+| `arena:{id}:card_announcement`, `:exit_announcement`, `:coin_flip` | Annonces et tirage au sort |
+| `team_arena_state` | État Sabre Laser équipe |
+| `rankings:update`, `pools:update`, `matches:update`, `bracket:update` | Kiosk / dashboard |
+| `server:command` | Thèmes, identification, ping, rechargement |
+| `logo:update`, `wallpaper:update`, `tts:update`, `kiosk:note` | Personnalisation |
+| `auth_error`, `error` | Erreurs |
 
-**Rôle** : Composant React pour gérer la saisie distante depuis l'application principale
+## 8. Dépannage
 
-**Fonctionnalités** :
+| Symptôme | Cause probable | Solution |
+|---|---|---|
+| Page inaccessible | Réseau différent, pare-feu | Même Wi-Fi ; autoriser le port ; choisir la bonne interface |
+| Avertissement de certificat | HTTPS auto-signé | Accepter ; ou désactiver HTTPS et redémarrer |
+| « Le port 8066 est déjà utilisé » | Autre instance / dev server | Changer le port ou fermer l'autre programme |
+| Redirection `/login` en boucle | Cookies bloqués / navigation privée | Autoriser les cookies, navigation normale |
+| « Trop de tentatives » | Blocage progressif | Attendre, vérifier le mot de passe |
+| Tablette « Déconnecté » | Wi-Fi instable | Saisie continue hors-ligne ; synchronisation au retour |
+| Score non remonté | Match fini hors-ligne | Re-confirmer une fois reconnecté ; sinon saisie manuelle |
+| Boutons +3/+5 absents | Arme olympique | Normal (1 touche) |
+| Bouton N absent | Carton noir désactivé | Activer `blackCardEnabled` dans les paramètres |
 
-- Démarrage/arrêt du serveur distant
-- Configuration des pistes et arbitres
-- Visualisation de l'état des connexions
-- Génération des codes d'accès
-- Surveillance de l'activité des arbitres
-
-## Flux de travail
-
-### 1. Configuration par l'organisateur
-
-1. Dans BellePoule Modern, aller dans l'onglet "📡 Saisie distante"
-2. Cliquer sur "⚡ Démarrer la saisie distante"
-3. Configurer le nombre de pistes disponibles
-4. Ajouter les arbitres avec leurs noms
-5. Noter les codes d'accès générés pour chaque arbitre
-
-### 2. Connexion des arbitres
-
-1. Sur chaque tablette, ouvrir un navigateur web
-2. Aller à l'adresse : `http://<IP-ordinateur>:8066`
-3. Entrer le code d'accès fourni par l'organisateur
-4. L'interface affiche le match assigné à la piste
-
-### 3. Saisie des scores
-
-1. L'arbitre voit les informations du match (tireurs, piste)
-2. Il saisit les scores pour chaque tireur
-3. Pour les cas spéciaux : cocher "Statut spécial" (abandon/forfait/exclusion)
-4. Cliquer sur "Enregistrer le score"
-5. Le score est synchronisé immédiatement avec l'application principale
-6. Cliquer sur "Match suivant" pour passer au match suivant
-
-## Sécurité et réseau
-
-### Configuration réseau
-
-- **Port par défaut** : 8066 (référence à l'Ordre 66)
-- **Protocole** : HTTP + WebSocket
-- **CORS** : Configuré pour accepter toutes les origines (à restreindre en production)
-- **Pas d'authentification** : Basé sur des codes d'accès simples
-
-### Bonnes pratiques
-
-1. **Réseau local** : Fonctionne sur le même réseau WiFi
-2. **URL d'accès** : Utiliser l'adresse IP de l'ordinateur principal
-3. **Codes d'accès** : Générés aléatoirement, 6 caractères
-4. **Session** : Limitée à la durée de la compétition
-
-## Installation et utilisation
-
-### Prérequis
-
-- Node.js et les dépendances du projet
-- Réseau WiFi fonctionnel
-- Tablettes ou navigateurs web compatibles
-
-### Démarrage
-
-1. **Depuis l'interface** :
-   - Menu Competition → "⚡ Démarrer saisie distante"
-   - Ou via l'onglet "📡 Saisie distante"
-
-2. **Manuellement** (développement) :
-   ```bash
-   npm run build
-   npm start
-    # Le serveur démarre automatiquement sur le port 8066
-   ```
-
-### Dépannage
-
-#### Problèmes courants
-
-1. **"Impossible de se connecter"**
-   - Vérifier que l'ordinateur et la tablette sont sur le même réseau
-   - Vérifier l'adresse IP utilisée
-   - Confirmer que le port 8066 n'est pas bloqué par un firewall
-
-2. **"Code d'accès invalide"**
-   - Vérifier que le code a été correctement saisi
-   - Confirmer que l'arbitre a été ajouté dans l'interface principale
-
-3. **"Scores non synchronisés"**
-   - Vérifier la connexion WebSocket (icône verte)
-   - Actualiser la page de l'arbitre
-   - Redémarrer le serveur si nécessaire
-
-#### Logs et调试
-
-Les logs du serveur sont visibles dans la console de l'application Electron principale :
-
-```
-Remote score server started on port 8066
-Arbitres peuvent se connecter sur: http://localhost:8066
-Referee John Doe connected with code ABC123
-```
-
-## Évolution et améliorations
-
-### Fonctionnalités futures envisagées
-
-1. **Authentification renforcée** : Mots de passe personnalisés
-2. **Mode hors ligne** : Synchronisation différée
-3. **Historique** : Consultation des matchs précédents
-4. **Export** : Générer un PDF des résultats de piste
-5. **Multi-competitions** : Gérer plusieurs compétitions simultanément
-6. **Interface mobile** : Application native iOS/Android
-
-### Améliorations techniques
-
-1. **HTTPS** : Support du SSL pour la sécurité
-2. **PWA** : Application web progressive pour les tablettes
-3. **Notifications push** : Alertes pour les nouveaux matchs
-4. **Optimisation** : Cache et performances réseau
-
-## Contribution
-
-Pour modifier ou améliorer la saisie distante :
-
-1. **Backend** : `src/main/remoteScoreServer.ts`
-2. **Frontend web** : `src/remote/`
-3. **Interface principale** : `src/renderer/components/RemoteScoreManager.tsx`
-4. **Types** : `src/shared/types/remote.ts`
-
-Les tests peuvent être effectués en local avec plusieurs navigateurs ou périphériques sur le même réseau.
+Voir aussi [TROUBLESHOOTING.md](TROUBLESHOOTING.md).

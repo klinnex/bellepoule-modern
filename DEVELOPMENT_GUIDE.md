@@ -21,14 +21,19 @@ BellePoule Modern is built using modern web technologies wrapped in an Electron 
 
 | Component | Technology | Version | Purpose |
 |-----------|------------|---------|---------|
-| **Framework** | Electron | 40+ | Cross-platform desktop application |
-| **UI Library** | React | 19+ | User interface components |
-| **Language** | TypeScript | 5+ | Type-safe JavaScript |
-| **Database** | better-sqlite3 | 12.x | Native SQLite binding (synchronous, WAL) |
-| **Bundler** | Webpack | 5+ | Module bundling and optimization |
-| **Web Server** | Express | 5+ | Remote scoring server |
-| **WebSocket** | Socket.IO | 4+ | Real-time communication |
-| **XML Parser** | xml2js | 0.6+ | XML file processing |
+| **Framework** | Electron | 44.5 | Cross-platform desktop application (Node 22) |
+| **UI Library** | React | 19.3 | User interface components |
+| **State** | Zustand (+ immer) | 5.0 | Feature stores |
+| **Language** | TypeScript | 6.0 | Strict type-safe code |
+| **Database** | better-sqlite3 | 13.0 | Native SQLite binding (synchronous) |
+| **Bundler** | Webpack | 5.111 | Main, preload and renderer bundles |
+| **Web Server** | Express | 5.2 | Remote scoring server |
+| **WebSocket** | Socket.IO | 4.8 | Real-time communication |
+| **PDF** | jsPDF + autotable | 4.2 / 5.0 | PDF exports |
+| **OCR** | tesseract.js | 5.1 | Pool sheet photo entry |
+| **Tests** | Vitest / Playwright | 4.1 / 1.63 | Unit / E2E |
+
+Full list: [docs/STACK_TECHNIQUE.md](docs/STACK_TECHNIQUE.md). Detailed architecture: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ### Application Architecture
 
@@ -82,8 +87,9 @@ BellePoule Modern is built using modern web technologies wrapped in an Electron 
 
 ### Prerequisites
 
-- **Node.js**: Version 20 or higher
-- **npm**: Version 9 or higher
+- **Node.js**: Version 22 (same as CI; required by better-sqlite3 13)
+- **npm**: Version 10 or higher
+- **Build tools** for the native module (`postinstall` runs `electron-rebuild -f -w better-sqlite3`): Python 3 + C++ toolchain (Visual Studio Build Tools on Windows, Xcode CLT on macOS, build-essential on Linux)
 - **Git**: For source control
 - **VS Code**: Recommended IDE
 
@@ -567,43 +573,15 @@ export class CompetitionRepository {
 
 ### Testing Framework Setup
 
+Unit tests use **Vitest 4** (`vitest.config.ts`) with `jsdom`, `@testing-library/react`,
+`@testing-library/jest-dom` and `fake-indexeddb`. Test files are co-located with the code
+(`*.test.ts` / `*.test.tsx`, plus `src/renderer/components/__tests__/`).
+
 ```bash
-# Install testing dependencies
-npm install --save-dev jest @types/jest ts-jest @testing-library/react @testing-library/jest-dom
-
-# Configure Jest
-npx ts-jest config:init
-```
-
-#### Jest Configuration (`jest.config.js`)
-
-```javascript
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
-  moduleNameMapping: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
-  },
-  testMatch: [
-    '<rootDir>/src/**/__tests__/**/*.(ts|tsx)',
-    '<rootDir>/src/**/*.(test|spec).(ts|tsx)'
-  ],
-  collectCoverageFrom: [
-    'src/**/*.(ts|tsx)',
-    '!src/**/*.d.ts',
-    '!src/tests/**/*'
-  ],
-  coverageThreshold: {
-    global: {
-      branches: 70,
-      functions: 80,
-      lines: 80,
-      statements: 80
-    }
-  }
-};
+npm test                              # watch mode
+npm run test:run                      # single run (CI)
+npm run test:coverage                 # coverage (@vitest/coverage-v8)
+npx vitest run src/shared/utils/poolCalculations.test.ts   # single file
 ```
 
 ### Unit Tests
@@ -611,7 +589,7 @@ module.exports = {
 #### Testing Utility Functions
 
 ```typescript
-// src/shared/utils/__tests__/poolCalculations.test.ts
+// src/shared/utils/poolCalculations.test.ts
 import { calculateIndicator, calculatePoolRankings } from '../poolCalculations';
 import { Fencer } from '../../types';
 
@@ -665,8 +643,9 @@ describe('Pool Calculations', () => {
 #### Testing React Components
 
 ```typescript
-// src/renderer/components/__tests__/FencerList.test.tsx
+// src/renderer/components/FencerList.test.tsx
 import React from 'react';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { FencerList } from '../FencerList';
@@ -690,7 +669,7 @@ describe('FencerList', () => {
     }
   ];
 
-  const mockOnFencerUpdate = jest.fn();
+  const mockOnFencerUpdate = vi.fn();
 
   beforeEach(() => {
     mockOnFencerUpdate.mockClear();
@@ -751,7 +730,7 @@ describe('FencerList', () => {
 #### Testing File Operations
 
 ```typescript
-// src/shared/utils/__tests__/fileParser.integration.test.ts
+// exemple : src/shared/utils/fileParser.test.ts
 import { readFileSync } from 'fs';
 import { parseFFEFile } from '../fileParser';
 
@@ -833,11 +812,11 @@ test.describe('Competition Management', () => {
 ```json
 {
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed"
+    "e2e:debug": "playwright test --debug"
   }
 }
 ```
@@ -868,166 +847,28 @@ npm run build && electron-builder --linux  # Linux
 
 #### Build Configuration
 
-`electron-builder` configuration in `package.json`:
+`electron-builder` configuration lives in the `build` key of `package.json`:
 
-```json
-{
-  "build": {
-    "appId": "com.bellepoule.modern",
-    "productName": "BellePoule Modern",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist/**/*",
-      "package.json",
-      "version.json",
-      "resources/**/*"
-    ],
-    "extraResources": [
-      {
-        "from": "resources",
-        "to": "resources"
-      }
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        },
-        {
-          "target": "portable",
-          "arch": ["x64"]
-        }
-      ],
-      "icon": "resources/icons/icon.ico"
-    },
-    "mac": {
-      "target": [
-        {
-          "target": "dmg",
-          "arch": ["x64"]
-        },
-        {
-          "target": "zip",
-          "arch": ["x64"]
-        }
-      ],
-      "icon": "resources/icons/icon.icns",
-      "category": "public.app-category.sports"
-    },
-    "linux": {
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": ["x64"]
-        },
-        {
-          "target": "AppImage",
-          "arch": ["arm64"]
-        },
-        {
-          "target": "deb",
-          "arch": ["x64"]
-        }
-      ],
-      "icon": "resources/icons",
-      "category": "Sports"
-    }
-  }
-}
-```
+| OS | Targets |
+|---|---|
+| Windows | `nsis`, `portable` |
+| macOS | `dmg`, `zip` (x64 + arm64) |
+| Linux | `AppImage`, `deb`, `rpm` |
+
+`asarUnpack`: `dist/remote/**`, `better-sqlite3`, `tesseract.js`. `extraResources`: `resources/`, `version.json`. Output: `release/`.
 
 ### CI/CD Pipeline
 
 #### GitHub Actions Workflow
 
-```yaml
-# .github/workflows/build.yml
-name: Build and Release
+| Workflow | Trigger | Jobs |
+|---|---|---|
+| `.github/workflows/build-dev.yml` | push `dev` | type-check, i18n completeness, unit tests, bundle budget → build number increment → Windows/macOS/Linux builds → dev pre-release |
+| `.github/workflows/build.yml` | push `main` | same → stable release |
+| `.github/workflows/claude-code-review.yml` | pull request | automated review |
+| `.github/workflows/track-downloads.yml` | daily cron | download stats |
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
-  release:
-    types: [published]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Run tests
-        run: npm run test:coverage
-      
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage/lcov.info
-
-  build:
-    needs: test
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    
-    runs-on: ${{ matrix.os }}
-    
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Build application
-        run: npm run build
-      
-      - name: Build distributables
-        run: npm run package
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.os }}-build
-          path: release/*
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release'
-    
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
-      
-      - name: Upload Release Assets
-        uses: softprops/action-gh-release@v1
-        with:
-          files: '**/*'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
+All jobs use Node 22.
 
 ### Version Management
 
@@ -1144,40 +985,16 @@ refactor(remote): extract server logic to separate module
 
 ### Directory Organization
 
+See the full, up-to-date tree in [ARCHITECTURE.md §2](ARCHITECTURE.md#2-arborescence).
+
 ```
 src/
-├── main/                    # Main Electron process
-│   ├── main.ts              # Application entry point
-│   ├── preload.ts           # Security bridge
-│   ├── autoUpdater.ts       # Update management
-│   └── remoteScoreServer.ts # Remote scoring server
-├── renderer/                # React UI process
-│   ├── components/          # React components
-│   │   ├── CompetitionView.tsx
-│   │   ├── FencerList.tsx
-│   │   ├── PoolView.tsx
-│   │   └── ...
-│   ├── hooks/               # Custom React hooks
-│   │   ├── useCompetitionData.ts
-│   │   └── usePoolOptimizations.ts
-│   ├── styles/              # CSS/SCSS files
-│   └── App.tsx              # Main App component
-├── shared/                  # Shared code
-│   ├── types/               # TypeScript definitions
-│   │   ├── index.ts
-│   │   └── remote.ts
-│   └── utils/               # Utility functions
-│       ├── fileParser.ts
-│       ├── poolCalculations.ts
-│       └── tableCalculations.ts
-├── database/                # Database layer
-│   ├── index.ts
-│   ├── migrations/
-│   └── validation.ts
-└── remote/                  # Remote scoring frontend
-    ├── index.html
-    ├── styles.css
-    └── app.js
+├── main/        # Electron main: main.ts, preload.ts, remoteScoreServer.ts, certManager.ts, autoUpdater.ts
+├── renderer/    # React UI: App.tsx, components/, hooks/, contexts/, services/, locales/
+├── features/    # Business modules (Zustand stores + services): pools, bracket, teams, ...
+├── shared/      # types/, services/, utils/ (calculations, parsers, PDF export)
+├── database/    # DatabaseManager, validation, migrations/
+└── remote/      # Vanilla HTML/JS pages served to tablets and screens (referee.html, arena.html, ...)
 ```
 
 ### Module Organization
@@ -1374,101 +1191,33 @@ export class CompetitionAPI {
 
 ### Remote Scoring API
 
-#### WebSocket Events
+Referee tablets talk to `RemoteScoreServer` through:
 
-```typescript
-// shared/types/remote.ts
-export interface RemoteScoreEvents {
-  // Server to client
-  'login_success': (referee: Referee) => void;
-  'match_assigned': (match: Match) => void;
-  'score_update': (matchId: string, score: ScoreUpdate) => void;
-  'session_end': () => void;
-  
-  // Client to server
-  'login': (code: string) => void;
-  'score_submit': (data: ScoreSubmission) => void;
-  'match_complete': (matchId: string) => void;
-  'heartbeat': () => void;
-}
+- **Socket.IO** — `join_arena`, `client:register`, and a single `arena_control` event
+  whose `action` field selects the command (`select_match`, `start`, `pause`,
+  `update_score`, `update_timer`, `waiting_overtime`, `coin_flip`, `arena_exit`,
+  `card_announcement`, `dt_call`, `change_referee`, `finish`, ...). The server broadcasts
+  `arena:{id}:update` to screens.
+- **REST** — `POST /api/matches/:id/score` (intermediate save), `POST /api/matches/:id/finish`
+  (final result), `POST /api/auth/login/:arenaId` (arena password → cookie).
 
-export interface Referee {
-  id: string;
-  name: string;
-  code: string;
-  piste?: string;
-  connected: boolean;
-  lastSeen: string;
-}
-
-export interface ScoreSubmission {
-  matchId: string;
-  scoreA: number;
-  scoreB: number;
-  status?: 'normal' | 'withdraw' | 'forfeit' | 'excluded';
-  timestamp: string;
-}
-```
+Reference: [REMOTE_SCORE_GUIDE.md §7](REMOTE_SCORE_GUIDE.md#7-api-référence) and
+[docs/ARBITRAGE.md §7](docs/ARBITRAGE.md#7-protocole-référence-technique).
+Types: `src/shared/types/remote.ts`.
 
 ### Database Schema
 
-#### Competition Table
+The schema is created and evolved by versioned migrations in
+`src/database/migrations/migrations.ts` (18 versions, tracked in `schema_migrations`).
+Main tables: `competitions`, `fencers`, `referees`, `phases`, `pools`, `pool_fencers`,
+`matches`, `bracket_nodes`, `match_cards`, `match_touches`, `match_arena_exits`,
+`score_audit_log`, `pool_signatures`, `de_match_signatures`, `arena_state`,
+`session_state`, `teams`, `team_fencers`, `team_matches`, `team_bouts`,
+`team_match_cards`, `season_results`, `referee_comments`.
+See [ARCHITECTURE.md §5](ARCHITECTURE.md#5-base-de-données).
 
-```sql
-CREATE TABLE competitions (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  weapon TEXT NOT NULL,
-  gender TEXT NOT NULL,
-  date TEXT NOT NULL,
-  location TEXT,
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
-  metadata TEXT
-);
-
-CREATE TABLE fencers (
-  id TEXT PRIMARY KEY,
-  competition_id TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  first_name TEXT NOT NULL,
-  gender TEXT NOT NULL,
-  birth_date TEXT,
-  nationality TEXT,
-  league TEXT,
-  club TEXT,
-  license TEXT,
-  ranking INTEGER,
-  status TEXT NOT NULL,
-  victories INTEGER DEFAULT 0,
-  touches_given INTEGER DEFAULT 0,
-  touches_received INTEGER DEFAULT 0,
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
-  FOREIGN KEY (competition_id) REFERENCES competitions (id)
-);
-
-CREATE TABLE matches (
-  id TEXT PRIMARY KEY,
-  competition_id TEXT NOT NULL,
-  round TEXT NOT NULL,
-  piste TEXT,
-  fencer_a_id TEXT NOT NULL,
-  fencer_b_id TEXT NOT NULL,
-  score_a INTEGER DEFAULT 0,
-  score_b INTEGER DEFAULT 0,
-  status TEXT NOT NULL,
-  winner_id TEXT,
-  started_at TEXT,
-  completed_at TEXT,
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
-  FOREIGN KEY (competition_id) REFERENCES competitions (id),
-  FOREIGN KEY (fencer_a_id) REFERENCES fencers (id),
-  FOREIGN KEY (fencer_b_id) REFERENCES fencers (id),
-  FOREIGN KEY (winner_id) REFERENCES fencers (id)
-);
-```
+To add a migration: append an entry `{ version, description, up(db) }` with the next
+version number; never edit an existing migration.
 
 ---
 

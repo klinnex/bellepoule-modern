@@ -14,15 +14,20 @@ Merci pour votre soutien ! / Thank you for your support!
 
 ### 📚 **Documentation**
 
-- 📖 **[Guide PDF Export Utilisateur](docs/USER_GUIDE_PDF_EXPORT.md)** - Guide complet d'utilisation
-- 📋 **[Documentation Technique](docs/PDF_EXPORT_OPTIMIZATION.md)** - Architecture et optimisations
-- 🏗️ **[Architecture Système](docs/PDF_EXPORT_ARCHITECTURE.md)** - Architecture détaillée
+| Public | Document |
+|---|---|
+| Organisateur | [Manuel utilisateur](USER_MANUAL.md) · [Installation](INSTALLATION.md) · [Saisie distante](REMOTE_SCORE_GUIDE.md) · [Démarrage express](REMOTE_SCORE_QUICKSTART.md) |
+| Arbitre | **[Interface d'arbitrage](docs/ARBITRAGE.md)** · **[Scénarios de match](docs/SCENARIOS_MATCH.md)** |
+| Équipes | [Compétitions par équipes](docs/TEAM_COMPETITIONS.md) |
+| Exports | [Guide export PDF](docs/USER_GUIDE_PDF_EXPORT.md) · [Formats de fichiers](FILE_FORMATS.md) |
+| Développeur | [Architecture](ARCHITECTURE.md) · **[Stack technique et versions](docs/STACK_TECHNIQUE.md)** · [Guide de développement](DEVELOPMENT_GUIDE.md) · [Contribuer](CONTRIBUTING.md) |
+| Divers | [Dépannage](TROUBLESHOOTING.md) · [Mises à jour](UPDATE_SYSTEM.md) · [Sécurité saisie distante](docs/SECURITE_SAISIE_DISTANTE.md) · [Index complet](docs/README.md) |
 
 ### 🔧 **Installation**
 
-- **Windows** : Exécutable portable (pas d'installation)
-- **macOS** : Fichier DMG (glisser-déposer)
-- **Linux** : AppImage universel (x64/ARM64)
+- **Windows** : installeur NSIS ou exécutable portable (x64)
+- **macOS** : DMG ou ZIP (Intel x64 et Apple Silicon arm64)
+- **Linux** : AppImage, .deb ou .rpm (x64)
 
 ### 🚀 [**Télécharger la dernière version stable**](https://github.com/klinnex/bellepoule-modern/releases/latest)
 
@@ -52,27 +57,26 @@ règlement de l'ASL-FFE :
 Voir [docs/TEAM_COMPETITIONS.md](docs/TEAM_COMPETITIONS.md) pour le détail
 complet et les limites connues.
 
-### 🚀 **Version 2.0 - Mise à jour majeure**
+### 🚀 **Fonctionnalités majeures**
 
-Cette version majeure apporte de nombreuses fonctionnalités demandées par la communauté :
+Ces versions apportent de nombreuses fonctionnalités demandées par la communauté :
 
 #### ✨ **Nouvelles Fonctionnalités**
 
 - 👨‍⚖️ **Gestion Avancée des Arbitres** - Assignation automatique avec détection de conflits
 - 🖥️ **Tableau de Bord Live** - Affichage public en temps réel pour les salles d'armes
-- 🔔 **Système de Notifications** - Alertes navigateur, webhooks Discord/Slack
-- ☁️ **Sauvegarde Cloud** - Sync Dropbox, Google Drive, OneDrive avec chiffrement
+- 🔔 **Webhooks** - Notifications Discord/Slack (HTTPS) depuis le serveur de saisie distante
 - 🎨 **Gestion des Photos** - Import photos des tireurs avec drag & drop
-- 🎮 **Mode Kiosk** - Interface ultra-simplifiée pour tablettes arbitres
+- 🖥️ **Mode Kiosk** - Affichage public (TV) configurable : tableau, poules, classement
 - 🇪🇸🇩🇪🇭🇰 **Nouvelles Langues** - Support complet de l'espagnol, de l'allemand, du catalan et du chinois traditionnel (Hong Kong)
 
 #### 🔧 **Améliorations Techniques**
 
 - ⚡ **Services de Performance** - Cache intelligent, listes virtuelles, monitoring
 - 🎯 **Classement Corrigé** - Départage par touches au-delà de la 4e place
-- 📊 **Performance Optimisée** - Virtualisation, memoïsation, Web Workers
+- 📊 **Performance Optimisée** - Virtualisation, memoïsation
 
-### 🔮 **Fonctionnalités à Venir (Version 2.1+)**
+### 🔮 **Fonctionnalités à venir**
 
 D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à jour incluront :
 
@@ -93,7 +97,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 [Voir ROADMAP.md pour la liste complète](./ROADMAP.md)
 
-### 📄 Export PDF Optimisé (Version 2.0)
+### 📄 Export PDF optimisé
 
 - **⚡ Performance 60-70% améliorée** - Export PDF jusqu'à 3x plus rapide
 - **🏗️ Architecture modulaire** - Code maintenable et évolutif
@@ -124,11 +128,10 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 - **📱 Gestion en temps réel** des scores et arènes
 - **🏊 Support multilingue** (français, anglais, breton, catalan, allemand, espagnol, chinois traditionnel HK)
 - **👨‍⚖️ Gestion des arbitres** avec assignation automatique et rotation
-- **☁️ Sauvegarde Cloud** multi-providers avec chiffrement AES-GCM
-- **🔔 Système de notifications** navigateur, webhooks et emails
+- **🔔 Webhooks** Discord/Slack
 - **🖥️ Tableau de bord Live** pour affichage public en temps réel
 - **📱 Mode déconnecté** pour les tablettes arbitres
-- **🎮 Mode Kiosk** interface ultra-simplifiée
+- **🖥️ Mode Kiosk** affichage public
 - **⚡️ Sauvegarde automatique** des données
 - **📊 Export des résultats** en multiple formats
 - **⚡ Optimisation performance** cache intelligent et listes virtuelles
@@ -174,7 +177,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 - 🎯 **Touch Optimization** - Interface optimisée pour tablettes avec zones de touch
 - 👆 **Swipe Gestures** - Glisser pour ajouter des points rapidement
-- 🎤 **Voice Commands** - Commandes vocales en français ("Point rouge/vert", "Pause")
+- 🔊 **Minuteur vocal** - Annonces du temps restant sur la tablette d'arbitrage (TTS)
 - ⏱️ **Large Timer** - Chronomètre visible de loin pour les arènes
 - 🔄 **Quick Actions** - Boutons géraux pour les actions fréquentes
 
@@ -194,21 +197,18 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 - 📊 **Rapports de Statistiques** - Suivi des matchs arbitrés par arbitre
 - 🎛️ **Configuration Flexible** - Paramètres de rotation personnalisables
 
-### 🖥️ **Tableau de Bord Live** _(Nouveau !)_
+### 🖥️ **Tableau de Bord Live**
 
-- 📺 **Affichage Public** - Interface optimisée pour écrans géants/salles d'armes
+- 📺 **Affichage Public** (`/dashboard.html`, `/kiosk`) - Interface optimisée pour écrans géants
 - 🔴 **Matchs en Direct** - Suivi en temps réel des scores avec animations
 - 📊 **3 Vues Disponibles** : Poules / Tableau / Classement Final
 - 📱 **Design Responsive** - Adapté pour tous les écrans
 - 🔄 **Auto-refresh** - Mises à jour automatiques
 
-### 🔔 **Système de Notifications** _(Nouveau !)_
+### 🔔 **Webhooks**
 
-- 🌐 **Notifications Navigateur** - Alertes desktop pour les événements importants
-- 🔗 **Webhooks** - Intégration Discord, Slack et services externes
-- 📧 **Support Email** - Notifications par email configurables
-- ⏰ **Notifications Programmées** - Rappels automatiques
-- 🎯 **Événements Suivis** : Début/fin de match, compétition, retards
+- 🔗 **Discord / Slack** - URL HTTPS configurée dans les Paramètres, transmise au serveur de saisie distante
+- 🎯 **Événements** : fin de match et événements de compétition
 
 ### ⚡ **Services de Performance** _(Nouveau !)_
 
@@ -217,16 +217,6 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 - 📋 **Listes Virtuelles** - Rendu optimisé pour grandes listes (>500 éléments)
 - 🖼️ **Optimisation Images** - Compression et redimensionnement automatique
 - 📊 **Monitoring** - Suivi des performances avec métriques détaillées
-- 🧵 **Web Workers** - Calculs lourds en arrière-plan
-
-### ☁️ **Sauvegarde Cloud** _(Nouveau !)_
-
-- 🔐 **Chiffrement AES-GCM** - Sécurité maximale des données
-- 🔄 **Multi-Providers** : Dropbox, Google Drive, OneDrive, serveur personnalisé
-- ⚡ **Synchronisation Auto** - Sync configurable avec intervalles personnalisés
-- 💾 **Compression** - Réduction de la taille des données avant upload
-- 🗂️ **Gestion des Conflits** - Résolution intelligente des conflits de synchronisation
-- 💾 **Backups** - Création et restauration de points de sauvegarde
 
 ### 🎨 **Gestion des Photos** _(Nouveau !)_
 
@@ -236,12 +226,11 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 - 🔤 **Initiales** - Affichage des initiales si pas de photo
 - 📄 **Intégration Feuilles** - Photos visibles sur les feuilles de match
 
-### 🎮 **Mode Kiosk** _(Nouveau !)_
+### 🖥️ **Mode Kiosk**
 
-- 📱 **Interface Tablette** - Optimisé pour écrans tactiles
-- 👆 **Gros Boutons** - Facile à utiliser avec des gants ou en mouvement
-- 🔒 **Mode Verrouillé** - Empêche les fausses manipulations
-- ⚡ **Saisie Rapide** - Interface ultra-simplifiée pour la saisie des scores
+- 📺 **Affichage public** (`/kiosk`) - Tableau, poules, classement en temps réel sur TV
+- 🎨 **Thème et note** - Thème dédié, message affiché (ex. « Déjeuner des arbitres »)
+- 🎛️ **Télécommande** - Pilotage des écrans depuis l'application ([docs/TELECOMMANDE_TV.md](docs/TELECOMMANDE_TV.md))
 
 ### 🎯 **Poules**
 
@@ -261,9 +250,12 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 ### 📡 **Arènes**
 
-- 📊 Affichage individuel par arène (http://IP:8066/arene1, etc.)
-- 🎯 Interface d'arbitrage (http://IP:8066/arene1/arbitre)
+- 📊 Affichage individuel par arène (`https://IP:8066/arene1`, etc.)
+- 🎯 Interface d'arbitrage (`https://IP:8066/arene1/arbitre`) — voir [docs/ARBITRAGE.md](docs/ARBITRAGE.md)
 - 🎯 Synchronisation automatique des scores et temps
+- 🔒 HTTPS (certificat auto-signé) et mot de passe par arène
+- 📴 Mode hors-ligne des tablettes (file de synchronisation)
+- ✍️ Signatures des tireurs (poules, tableau)
 
 ### 📡 **Exports**
 
@@ -293,14 +285,17 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 ## 🔧 **Technologies**
 
-- **Electron 44+** : Framework multi-plateforme moderne
-- **React 19** : Interface utilisateur réactive
-- **TypeScript 5+** : Typage statique strict pour robustesse maximale
-- **SQLite** : Base de données portable et performante
-- **WebSocket** : Communication temps réel
-- **jsPDF** : Génération PDF optimisée
-- **Crypto API** : Chiffrement AES-GCM pour la sécurité cloud
-- **Service Workers** : Notifications et fonctionnalités PWA
+- **Electron 44.5** (Node 22) : application de bureau multi-plateforme
+- **React 19.3** + **Zustand 5** : interface et état
+- **TypeScript 6.0** (strict) + **Webpack 5**
+- **SQLite** via **better-sqlite3 13**
+- **Express 5** + **Socket.IO 4.8** : serveur temps réel des tablettes
+- **jsPDF 4** : génération PDF
+- **Vitest 4** + **Playwright 1.63** : tests
+
+Liste complète et versions : [docs/STACK_TECHNIQUE.md](docs/STACK_TECHNIQUE.md).
+- **safeStorage (OS)** : chiffrement des secrets locaux
+- **Service Workers** : mode hors-ligne des tablettes
 - **Architecture modulaire** : Code maintenable, testable et évolutif
 
 ## 📥 **Téléchargement**
@@ -309,12 +304,11 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 📦 **[Voir toutes les releases stables](https://github.com/klinnex/bellepoule-modern/releases)** | 🔄 **[Dernière version stable](https://github.com/klinnex/bellepoule-modern/releases/latest)**
 
-| Plateforme  | Architecture | Lien de téléchargement                                                                                                                                                       |
-| ----------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Windows** | x64          | [BellePoule.Modern-1.0.2-build.546-portable.exe](https://github.com/klinnex/bellepoule-modern/releases/download/latest/BellePoule.Modern-1.0.2-build.546-portable.exe)       |
-| **macOS**   | x64          | [BellePoule.Modern-1.0.2-build.546.dmg](https://github.com/klinnex/bellepoule-modern/releases/download/latest/BellePoule.Modern-1.0.2-build.546.dmg)                         |
-| **Linux**   | x64          | [BellePoule.Modern-1.0.2-build.546-x86_64.AppImage](https://github.com/klinnex/bellepoule-modern/releases/download/latest/BellePoule.Modern-1.0.2-build.546-x86_64.AppImage) |
-| **Linux**   | ARM64        | [BellePoule.Modern-1.0.2-build.546-arm64.AppImage](https://github.com/klinnex/bellepoule-modern/releases/download/latest/BellePoule.Modern-1.0.2-build.546-arm64.AppImage)   |
+| Plateforme | Fichiers |
+|---|---|
+| **Windows** x64 | `BellePoule Modern-<version>-setup.exe` (installeur), `-portable.exe` |
+| **macOS** x64 / arm64 | `BellePoule Modern-<version>-<arch>.dmg` / `.zip` |
+| **Linux** x64 | `BellePoule Modern-<version>-<arch>.AppImage` / `.deb` / `.rpm` |
 
 ### 🧪 **Version de Développement** (Tests)
 
@@ -322,38 +316,14 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 > ⚠️ **Attention** : Cette version est destinée aux tests et peut contenir des bugs.
 
-| Plateforme  | Architecture | Lien                                                                                                      |
-| ----------- | ------------ | --------------------------------------------------------------------------------------------------------- |
-| **Windows** | x64          | [`BellePoule Modern-dev-*.exe`](https://github.com/klinnex/bellepoule-modern/releases?q=dev-build&expanded=true)            |
-| **macOS**   | x64          | [`BellePoule Modern-dev-*.dmg`](https://github.com/klinnex/bellepoule-modern/releases?q=dev-build&expanded=true)            |
-| **Linux**   | x64          | [`BellePoule Modern-dev-*-x64.AppImage`](https://github.com/klinnex/bellepoule-modern/releases?q=dev-build&expanded=true)   |
-| **Linux**   | ARM64        | [`BellePoule Modern-dev-*-arm64.AppImage`](https://github.com/klinnex/bellepoule-modern/releases?q=dev-build&expanded=true) |
-
-### 🆕 **Nouveautés de la v2.0** (PDF Optimisé)
-
-- ⚡ Export PDF 60-70% plus rapide grâce à l'architecture optimisée
-- 🏗️ Code 100% TypeScript strict avec architecture modulaire
-- 📋 Format PDF professionnel avec cadre "PISTE X" et matchs en colonnes
-- 🔧 Gestion d'erreurs robuste avec multiples niveaux de fallback
-- 📊 Monitoring performance avec métriques détaillées
-- 📚 Documentation technique et utilisateur complète
-
-### 🚀 **Performance Optimizations v2.1**
-
-- 🔧 **Memory Management** - Correction des fuites mémoire avec Promise.allSettled
-- ⚡ **React Performance** - Optimisation des re-renders et dépendances useMemo
-- 📊 **Algorithm Efficiency** - Calculs de classement optimisés avec Map et WeakMap
-- 🎨 **CSS Optimisé** - Variables CSS et classes utilitaires pour maintenabilité
-- 📈 **Batch Processing** - Traitement par lot des statistiques tireurs
-- 🛡️ **Error Handling** - Logging amélioré avec IDs spécifiques pour debug
+Mêmes formats, publiés en pré-release à chaque push sur `dev`.
 
 ### 🔧 **Installation des executables**
 
 #### **Windows**
 
-1. Télécharger le fichier `.exe` portable
-2. Double-cliquer pour lancer l'application
-3. Aucune installation requise
+1. Télécharger `-setup.exe` (installeur) ou `-portable.exe` (sans installation)
+2. Double-cliquer pour lancer
 
 #### **macOS**
 
@@ -364,7 +334,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 #### **Linux**
 
-1. Télécharger le fichier `.AppImage` (x64 ou ARM64)
+1. Télécharger le fichier `.AppImage` (ou `.deb` / `.rpm`)
 2. Rendre le fichier exécutable : `chmod +x BellePoule.Modern-*.AppImage`
 3. Lancer avec : `./BellePoule.Modern-*.AppImage`
 
@@ -375,12 +345,18 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 # Cloner le dépôt
 git clone https://github.com/klinnex/bellepoule-modern.git
 
-# Installation des dépendances
+# Installation des dépendances (Node.js 22 requis)
 cd bellepoule-modern
-npm install
+npm install          # recompile better-sqlite3 pour Electron (postinstall)
 
-# Démarrer en développement
+# Construire et lancer
 npm start
+
+# Développement (watch main + dev server renderer)
+npm run dev
+
+# Vérifications
+npm run type-check && npm run lint && npm run test:run
 
 # Construire pour production
 npm run build
@@ -397,7 +373,7 @@ Pour vérifier la version installée :
 - **Raccourci** : `F1`
 - **Ligne de commande** : `BellePoule.Modern.exe --version`
 
-La version s'affiche sous la forme `1.0.0-build.XXX`
+La version s'affiche sous la forme `1.0.3-build.XXXX`
 
 ## 🔄 **Builds automatiques**
 
@@ -406,7 +382,7 @@ Ce projet utilise **GitHub Actions** pour créer automatiquement :
 ### **Branche `main`** (Production)
 
 - ✅ **Builds multi-plateformes** à chaque `push` sur `main`
-- ✅ **Tests automatisés** TypeScript et compilation
+- ✅ **Contrôles automatisés** : type-check, complétude i18n, tests unitaires, budget de taille du bundle
 - ✅ **Releases stables** avec tous les executables
 - ✅ **Numérotation automatique** des builds (build #XXX)
 
@@ -422,12 +398,6 @@ Ce projet utilise **GitHub Actions** pour créer automatiquement :
 - 🟢 **Release stable** : [`/releases/latest`](https://github.com/klinnex/bellepoule-modern/releases/latest)
 - 🧪 **Release dev** : [`/releases?q=dev-build`](https://github.com/klinnex/bellepoule-modern/releases?q=dev-build&expanded=true)
 - 📊 **État des builds** : [GitHub Actions](https://github.com/klinnex/bellepoule-modern/actions)
-
-### **Historique des builds**
-
-- 🟢 **Build #105** : ✅ Succès (version stable v1.0.1)
-- 🟢 **Build #104** : ✅ Succès
-- 🧪 **Dev build** : 🔄 Automatique à chaque push sur `dev`
 
 ## 📦 **Générer ses propres executables**
 
@@ -450,7 +420,7 @@ Les executables générés seront dans le dossier `release/`.
 
 ## 📜 **Documentation**
 
-- 📖 **Documentation complète** : Voir [README.md](./README.md)
+- 📖 **Index de la documentation** : [docs/README.md](docs/README.md)
 - 🐛 **Rapporter un bug** : [Issues GitHub](https://github.com/klinnex/bellepoule-modern/issues)
 - 💡 **Demande de fonctionnalité** : [Discussions GitHub](https://github.com/klinnex/bellepoule-modern/discussions)
 
@@ -485,5 +455,5 @@ Les contributions sont bienvenues ! Voir [CONTRIBUTING.md](./CONTRIBUTING.md) po
 
 📄 **Développé par** : Yann Deboeuf & communauté  
 📄 **Licence** : GPL-3.0  
-📄 **Dernière mise à jour** : 15 août 2026  
-📄 **Version actuelle** : v1.0.2 Build #546
+📄 **Dernière mise à jour** : 9 octobre 2026  
+📄 **Version actuelle** : v1.0.3 Build #1365

@@ -8,10 +8,9 @@ This comprehensive guide covers all features of BellePoule Modern for tournament
 2. [Creating a Competition](#creating-a-competition)
 3. [Importing Fencers](#importing-fencers)
 4. [Managing Competition Phases](#managing-competition-phases)
-5. [Score Entry Interface](#score-entry-interface)
-6. [Remote Scoring Setup](#remote-scoring-setup)
-7. [Exporting Results](#exporting-results)
-8. [Advanced Features](#advanced-features)
+5. [Remote Scoring Setup](#-remote-scoring-setup)
+6. [Exporting Results](#-exporting-results)
+7. [Advanced Features](#-advanced-features)
 
 ## 🚀 Getting Started
 
@@ -433,124 +432,39 @@ MARTIN,MARIE,22/07/1998,F,FRA;;87654321,PROVENCE,MARSEILLE CLUB
 
 ## 📱 Remote Scoring Setup
 
+Full guides (French): [REMOTE_SCORE_GUIDE.md](REMOTE_SCORE_GUIDE.md) (organiser),
+[docs/ARBITRAGE.md](docs/ARBITRAGE.md) (referee tablet),
+[docs/SCENARIOS_MATCH.md](docs/SCENARIOS_MATCH.md) (step-by-step match scenarios).
+
 ### Enabling Remote Scoring
 
-1. **Open Competition** → **"📡 Remote Scoring" tab**
-2. **Start Remote Server**:
+1. Open the competition → **📡 Saisie distante** tab.
+2. Set the number of **strips/arenas**, the **network interface** and **port** (default 8066).
+3. Keep **🔒 HTTPS** checked (self-signed certificate) and click **Start**.
+4. Optionally set a **password** per arena (8 characters min.) or a shared password.
+5. Show the **QR code** of each arena view (referee, arena screen, pool sheet, public, overlay).
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Remote Scoring Setup                                        │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│ Server Status: 🟢 Online on port 8066                      │
-│ Network URL: http://192.168.1.100:8066                     │
-│                                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ Pistes Configuration                                     │ │
-│ │ ┌─────────────────────────────────────────────────────┐ │ │
-│ │ │ Piste A:  [Select Referee ▼]    [Code: ABC123]     │ │ │
-│ │ │ Piste B:  [Select Referee ▼]    [Code: DEF456]     │ │ │
-│ │ │ Piste C:  [Select Referee ▼]    [Code: GHI789]     │ │ │
-│ │ └─────────────────────────────────────────────────────┘ │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ Connected Referees                                       │ │
-│ │ 🟢 John Doe - Piste A (Code: ABC123)                   │ │
-│ │ 🟢 Jane Smith - Piste B (Code: DEF456)                  │ │
-│ │ 🔴 Mike Wilson - Piste C (Disconnected)                 │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│ [Add Referee]  [Generate Codes]  [Stop Server]             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Adding Referees
-
-1. **Click "Add Referee"**
-2. **Enter Referee Information**:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Add Referee                                                 │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│ Referee Name: [John Doe                       ]             │
-│                                                             │
-│ Assign to Piste: [Piste A ▼]                               │
-│                                                             │
-│ Generate Access Code: [✓] Auto-generate                    │
-│ Custom Code:       [        ] (optional)                  │
-│                                                             │
-│ Permissions:                                                │
-│ ☑ Score entry                                              │
-│ ☑ Match status updates                                      │
-│ ☐ View all matches                                          │
-│                                                             │
-│                   [Cancel]                   [Add Referee]  │
-└─────────────────────────────────────────────────────────────┘
-```
+There are no per-referee access codes: access is per arena (URL + optional password).
+Referees themselves are managed in the competition (check-in, assignment to pools), and
+shown on the tablet when referee management is enabled.
 
 ### Referee Interface (Tablet)
 
-#### Login Screen
+URL: `https://<organiser-IP>:8066/arene{N}/arbitre`.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ 🤺 BellePoule Remote Scoring                               │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│               ┌─────────────────────────────┐               │
-│               │          Login               │               │
-│               ├─────────────────────────────┤               │
-│               │                             │               │
-│               │ Access Code:                │               │
-│               │ ┌─────────────────────────┐ │               │
-│               │ │      ABC123             │ │               │
-│               │ └─────────────────────────┘ │               │
-│               │                             │               │
-│               │        [   Login   ]        │               │
-│               │                             │               │
-│               └─────────────────────────────┘               │
-│                                                             │
-│                   Server: 192.168.1.100:8066                │
-└─────────────────────────────────────────────────────────────┘
-```
-
-#### Score Entry Interface
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ 🤺 Piste A - Remote Scoring                    🟢 Connected │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│ Match: Pool 1 - Round 2                                      │
-│                                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │                  MARTIN Marie           vs     LEROY   │ │
-│ │ │               MARS        │      SOPHIE            │ │ │
-│ │ └─────────────────────────────┼───────────────────────┘ │ │
-│ │                                                             │ │
-│ │ ┌─────────────────┐               ┌─────────────────┐     │ │
-│ │ │       5         │               │        3        │     │ │
-│ │ │ [+] [-] [Reset] │               │ [+] [-] [Reset] │     │ │
-│ │ └─────────────────┘               └─────────────────┘     │ │
-│ │                                                             │ │
-│ │ Status: Normal ▼                                           │ │
-│ │ ☐ Special Status (Withdraw/Forfeit/Excluded)              │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│              [Cancel Score]     [Save Score]                │
-│                                                             │
-│             [Previous Match]     [Next Match]               │
-│                                                             │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ 🏃 Pool Progress: 8/16 matches completed                 │ │
-│ │ 📱 Connected: John Doe (Referee)                         │ │
-│ └─────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-```
+1. **Match list**: the arena's matches with status (to play / in progress), search box,
+   active black cards.
+2. **Match screen**: red fencer left, green fencer right; **+1 / +3 / +5** buttons
+   (Laser Sabre zones A/B/C; only +1 for épée/foil/sabre); cards **B J R N**
+   (or **P** passivity for Olympic weapons); timer (tap = start/pause, long press = reset);
+   **🚪 arena exit**, **↩ undo**, **🏁 finish**; **⇄** swap colours, **👁** colour-blind
+   mode, **📣** call the DT.
+3. **Long press** a score or card button to remove it.
+4. Tie at time → **Launch 30 s** (Laser Sabre) / **1 min** (Olympic) → coin toss if still tied.
+   Laser Sabre: both fencers at 10+ points → sudden death, zone C only.
+5. Finish → confirm → result sent to the application; signature screen for tableau matches
+   if enabled; **POOL FINISHED** screen with signature link at the end of the pool.
+6. Works offline: scores are queued and synchronised when the connection returns.
 
 ## 📤 Exporting Results
 
@@ -665,23 +579,20 @@ Rank;LastName;FirstName;Club;Victories;Touches Given;Touches Received;Indicator
 
 ### Keyboard Shortcuts
 
-| Shortcut         | Function          |
-| ---------------- | ----------------- |
-| **Ctrl+N**       | New Competition   |
-| **Ctrl+I**       | Import Fencers    |
-| **Ctrl+E**       | Export Results    |
-| **Ctrl+S**       | Save Competition  |
-| **Ctrl+Shift+I** | Report Bug        |
-| **F5**           | Refresh View      |
-| **F11**          | Toggle Fullscreen |
+| Shortcut | Function |
+| --- | --- |
+| **Ctrl/Cmd+N** | New competition |
+| **Ctrl/Cmd+O** | Open |
+| **Ctrl/Cmd+S** | Save |
+| **Ctrl/Cmd+Shift+S** | Save as |
+| **Ctrl/Cmd+,** | Settings |
+| **Ctrl/Cmd+T** | Add fencer |
+| **Ctrl/Cmd+→** | Next phase |
+| **Ctrl/Cmd+Shift+I** | Report a bug |
+| **F1** | About |
 
-### Video Tutorials
-
-- [Creating Your First Competition](https://youtube.com/watch?v=...)
-- [Importing Fencers from FFE](https://youtube.com/watch?v=...)
-- [Remote Scoring Setup](https://youtube.com/watch?v=...)
-- [Export Results Guide](https://youtube.com/watch?v=...)
+In-app help: the built-in **Wiki** and the shortcut list (`KeyboardShortcutsHelp`).
 
 ---
 
-**🎉 Congratulations!** You're now ready to manage fencing competitions with BellePoule Modern. For technical support, see our [Troubleshooting Guide](Troubleshooting-Guide).
+**🎉 Congratulations!** You're now ready to manage fencing competitions with BellePoule Modern. For technical support, see the [Troubleshooting Guide](TROUBLESHOOTING.md).
