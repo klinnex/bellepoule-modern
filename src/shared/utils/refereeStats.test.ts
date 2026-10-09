@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   autoAssignReferees,
   computeRefereeMatchStats,
+  propagatePoolReferee,
   getRefereePresence,
   TableauMatchLike,
 } from './refereeStats';
@@ -138,5 +139,34 @@ describe('getRefereePresence (#1016)', () => {
     expect(
       getRefereePresence({ ...r1, maxMatchesPerDay: 1 }, [m(MatchStatus.FINISHED, 'r1')])
     ).toBe('busy');
+  });
+});
+
+describe('propagatePoolReferee (#977)', () => {
+  const refOf = (id: string) => ({ id, firstName: id, lastName: '' }) as unknown as Referee;
+  const m = (id: string, refereeId?: string) => ({
+    id,
+    referee: refereeId ? refOf(refereeId) : undefined,
+  });
+
+  it('assigne le principal aux matchs sans arbitre', () => {
+    const { matches, changes } = propagatePoolReferee([m('1'), m('2')], undefined, refOf('A'));
+    expect(matches.map(x => x.referee?.id)).toEqual(['A', 'A']);
+    expect(changes).toEqual([
+      { matchId: '1', refereeId: 'A' },
+      { matchId: '2', refereeId: 'A' },
+    ]);
+  });
+
+  it("remplace l'ancien principal mais conserve une assignation manuelle", () => {
+    const { matches, changes } = propagatePoolReferee([m('1', 'A'), m('2', 'X')], 'A', refOf('B'));
+    expect(matches.map(x => x.referee?.id)).toEqual(['B', 'X']);
+    expect(changes).toEqual([{ matchId: '1', refereeId: 'B' }]);
+  });
+
+  it("retire l'ancien principal quand la poule n'a plus d'arbitre", () => {
+    const { matches, changes } = propagatePoolReferee([m('1', 'A'), m('2', 'X')], 'A', undefined);
+    expect(matches.map(x => x.referee?.id)).toEqual([undefined, 'X']);
+    expect(changes).toEqual([{ matchId: '1', refereeId: null }]);
   });
 });

@@ -170,3 +170,33 @@ export function getRefereePresence(
   const maxReached = !!referee.maxMatchesPerDay && assigned >= referee.maxMatchesPerDay;
   return pending > 0 || maxReached ? 'busy' : 'free';
 }
+
+/**
+ * Répercute l'arbitre principal d'une poule sur ses matchs (#977).
+ * Seuls les matchs sans arbitre ou portant l'ancien arbitre principal de la poule
+ * sont modifiés ; une assignation manuelle différente est conservée.
+ * Retourne les matchs mis à jour et la liste des changements à persister.
+ */
+export function propagatePoolReferee<M extends { id: string; referee?: Referee }>(
+  matches: M[],
+  previousPrincipalId: string | undefined,
+  principal: Referee | undefined
+): { matches: M[]; changes: Array<{ matchId: string; refereeId: string | null }> } {
+  const changes: Array<{ matchId: string; refereeId: string | null }> = [];
+  const next = matches.map(m => {
+    const current = m.referee?.id;
+    if (current && current !== previousPrincipalId) return m;
+    if (current === principal?.id) return m;
+    changes.push({ matchId: m.id, refereeId: principal?.id ?? null });
+    return { ...m, referee: principal };
+  });
+  return { matches: next, changes };
+}
+
+/** Matchs d'une poule, l'arbitre principal de la poule servant de repli (données antérieures à #977) */
+export function poolMatchesWithReferee(pool: { matches?: Match[]; referees?: Referee[] }): Match[] {
+  const principal = pool.referees?.[0];
+  const matches = pool.matches ?? [];
+  if (!principal) return matches;
+  return matches.map(m => (m.referee ? m : { ...m, referee: principal }));
+}

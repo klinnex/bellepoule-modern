@@ -29,6 +29,7 @@ import {
   isBracketComplete,
 } from './tableau/tableauTypes';
 import { getRoundName } from '../../shared/utils/tableCalculations';
+import { poolMatchesWithReferee, propagatePoolReferee } from '../../shared/utils/refereeStats';
 import type { MatchAuditOption } from './MatchAuditLog';
 import PoolRankingView from './PoolRankingView';
 import ResultsView from './ResultsView';
@@ -1043,7 +1044,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         filters: [{ name: 'Fichiers FFE / TXT', extensions: ['fff', 'csv', 'txt'] }],
       },
       ranking: {
-        title: 'Importer un classement FFE',
+        title: 'Importer un classement (FFF ou CSV : NOM, PRENOM, CLASSEMENT)',
         filters: [{ name: 'Fichier classement', extensions: ['fff', 'csv', 'txt', 'xlsx'] }],
       },
     };
@@ -1383,6 +1384,35 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     [applyPoolRefereeAssignments]
   );
 
+  // Arbitre(s) assigné(s) à une poule entière : l'arbitre principal est répercuté
+  // sur les matchs de la poule (onglet Assignations + statistiques) (#977)
+  const handlePoolRefereeAssigned = useCallback(
+    (poolId: string, poolReferees: Referee[]) => {
+      const pool = pools.find(p => p.id === poolId);
+      if (!pool) return;
+      const { matches, changes } = propagatePoolReferee(
+        pool.matches ?? [],
+        pool.referees?.[0]?.id,
+        poolReferees[0]
+      );
+      setPools(prev =>
+        prev.map(p => (p.id === poolId ? { ...p, referees: poolReferees, matches } : p))
+      );
+      for (const { matchId, refereeId } of changes) {
+        Promise.resolve()
+          .then(() => window.electronAPI.db.updateMatch(matchId, { refereeId }))
+          .catch((e: unknown) =>
+            logger.warn(
+              LogCategory.DATABASE,
+              'updateMatch (arbitre de poule) failed',
+              e instanceof Error ? e : undefined
+            )
+          );
+      }
+    },
+    [pools, setPools]
+  );
+
   // Arbitre changé depuis une tablette : répercuté sur poules, tableau et consolantes (#977)
   const refereesRef = useRef(referees);
   refereesRef.current = referees;
@@ -1437,7 +1467,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       updatedAt: now,
     });
     return [
-      ...pools.flatMap(p => p.matches ?? []),
+      ...pools.flatMap(poolMatchesWithReferee),
       ...tableauMatches.map(m => toMatch(m, competition.id)),
       ...consolationBrackets.flatMap(b => b.matches.map(m => toMatch(m, b.id))),
     ];
@@ -1813,9 +1843,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         }}
         autoFillReferees={autoFillReferees}
         onAutoFillReferees={handlePoolAutoFillReferees}
-        onRefereeAssigned={(poolId, referees) => {
-          setPools(prev => prev.map(p => (p.id === poolId ? { ...p, referees } : p)));
-        }}
+        onRefereeAssigned={handlePoolRefereeAssigned}
       />
     </div>
   );
@@ -2320,7 +2348,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             referees={referees}
             pools={pools}
             matches={refereeAssignableMatches}
-            statsPoolMatches={[...poolHistory.flat(), ...pools].flatMap(p => p.matches ?? [])}
+            statsPoolMatches={[...poolHistory.flat(), ...pools].flatMap(poolMatchesWithReferee)}
             statsTableauMatches={[
               ...tableauMatches,
               ...consolationBrackets.flatMap(b => b.matches),

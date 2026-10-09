@@ -97,6 +97,13 @@ export function importRankingFromFFF(
 
   result.totalLines = lines.length;
 
+  // CSV à en-têtes (NOM, PRENOM, CLASSEMENT [, LICENCE, CLUB]) : colonnes dans n'importe quel ordre (#1025)
+  const headerMap = parseRankingHeader(lines[0]);
+  if (headerMap) {
+    importRankingWithHeader(lines, headerMap, existingFencers, result);
+    return result;
+  }
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) {
@@ -355,4 +362,111 @@ function normalizeName(name: string): string {
     .replace(/[\u0300-\u036f]/g, '') // Supprime les accents
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+/** Colonnes repérées dans l'en-tête d'un CSV de classement */
+interface RankingHeader {
+  separator: string;
+  lastName: number;
+  firstName: number;
+  ranking: number;
+  license?: number;
+  club?: number;
+}
+
+const HEADER_ALIASES: Record<'lastName' | 'firstName' | 'ranking' | 'license' | 'club', string[]> =
+  {
+    lastName: ['NOM', 'NOM DE FAMILLE', 'LASTNAME', 'LAST NAME'],
+    firstName: ['PRENOM', 'FIRSTNAME', 'FIRST NAME'],
+    ranking: ['CLASSEMENT', 'CLASST', 'RANG', 'RANK', 'RANKING', 'PLACE'],
+    license: ['LICENCE', 'LICENSE', 'N LICENCE', 'NUMERO LICENCE', 'NO LICENCE', 'LICENCE FFE'],
+    club: ['CLUB'],
+  };
+
+const normalizeHeader = (cell: string): string =>
+  normalizeName(cell.replace(/^"|"$/g, ''))
+    .replace(/[°º.#_-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+/**
+ * Détecte un en-tête de CSV de classement contenant au minimum NOM, PRENOM et CLASSEMENT.
+ * Retourne null si la première ligne n'est pas un tel en-tête.
+ */
+export function parseRankingHeader(line: string): RankingHeader | null {
+  const separator = [';', '\t', ','].find(sep => line.includes(sep));
+  if (!separator) return null;
+  const cells = line.split(separator).map(normalizeHeader);
+  const find = (key: keyof typeof HEADER_ALIASES): number | undefined => {
+    const idx = cells.findIndex(c => HEADER_ALIASES[key].includes(c));
+    return idx === -1 ? undefined : idx;
+  };
+  const lastName = find('lastName');
+  const firstName = find('firstName');
+  const ranking = find('ranking');
+  if (lastName === undefined || firstName === undefined || ranking === undefined) return null;
+  return {
+    separator,
+    lastName,
+    firstName,
+    ranking,
+    license: find('license'),
+    club: find('club'),
+  };
+}
+
+function importRankingWithHeader(
+  lines: string[],
+  header: RankingHeader,
+  existingFencers: Fencer[],
+  result: RankingImportResult
+): void {
+  result.skipped++; // ligne d'en-tête
+  const cell = (parts: string[], idx: number | undefined): string =>
+    idx === undefined ? '' : (parts[idx] ?? '').replace(/^"|"$/g, '').trim();
+
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(header.separator);
+    const lastName = cell(parts, header.lastName);
+    const firstName = cell(parts, header.firstName);
+    const ranking = parseInt(cell(parts, header.ranking), 10);
+    if (!lastName || isNaN(ranking) || ranking <= 0) {
+      result.skipped++;
+      continue;
+    }
+    const license = cell(parts, header.license);
+    const club = cell(parts, header.club) || undefined;
+
+    // Identification : licence d'abord, puis nom + prénom exacts (sans accents ni casse)
+    const normLicense = license.replace(/\s+/g, '');
+    const byLicense = normLicense
+      ? existingFencers.find(f => f.license && f.license.replace(/\s+/g, '') === normLicense)
+      : undefined;
+    const matchedFencer =
+      byLicense ??
+      existingFencers.find(
+        f =>
+          normalizeName(f.lastName) === normalizeName(lastName) &&
+          normalizeName(f.firstName) === normalizeName(firstName)
+      );
+
+    if (matchedFencer) {
+      matchedFencer.ranking = ranking;
+      matchedFencer.updatedAt = new Date();
+      result.updated++;
+    } else {
+      result.notFound++;
+    }
+    result.details.push({
+      lastName,
+      firstName,
+      club,
+      ranking,
+      matched: !!matchedFencer,
+      fencerId: matchedFencer?.id,
+    });
+  }
+
+  const updatedFencerIds = new Set(result.details.filter(d => d.matched).map(d => d.fencerId));
+  result.notInFile = existingFencers.filter(f => !updatedFencerIds.has(f.id)).length;
 }

@@ -114,7 +114,7 @@ export interface MatchUpdateData {
   startTime?: Date;
   endTime?: Date;
   duration?: number;
-  refereeId?: string;
+  refereeId?: string | null;
 }
 
 // ============================================================================
