@@ -1107,7 +1107,7 @@ export class DatabaseManager {
     return 0;
   }
 
-  public updateMatch(id: string, updates: Partial<Match> & { refereeId?: string }): void {
+  public updateMatch(id: string, updates: Partial<Match> & { refereeId?: string | null }): void {
     if (!this.db) throw new Error('Database not open');
     const now = new Date().toISOString();
     const setClauses: string[] = [];
