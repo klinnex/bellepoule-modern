@@ -1,328 +1,212 @@
-# BellePoule Modern - Architecture Développement
+# BellePoule Modern — Architecture
 
-## 🏗️ Vue d'ensemble architecture
+> Version **1.0.3**, build **#1365** (octobre 2026).
+> Dépendances et versions : [docs/STACK_TECHNIQUE.md](docs/STACK_TECHNIQUE.md).
+> Interface d'arbitrage : [docs/ARBITRAGE.md](docs/ARBITRAGE.md).
 
-Le système de saisie distante s'intègre dans l'architecture existante de BellePoule Modern en ajoutant une couche de communication web pour les arbitres.
+## 1. Vue d'ensemble
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    B ELLEPOULE MODERN                           │
-│                        (Electron)                              │
-│                                                                 │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │   Main Process  │  │  Renderer Proc  │  │   Database      │ │
-│  │                 │  │                 │  │                 │ │
-│  │ • mainWindow    │  │ • React UI      │  │ • SQLite        │ │
-│  │ • IPC Handlers  │  │ • Competition   │  │ • Competitions  │ │
-│  │ • RemoteScore   │  │ • Management    │  │ • Fencers       │ │
-│  │   Server        │  │ • Interface     │  │ • Matches       │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│           │                     │                     │       │
-│           └─────────────────────┼─────────────────────┘       │
-│                                 │                             │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │              REMOTE SCORE SERVER                       │   │
-│  │                                                         │   │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐  │   │
-│  │  │   Express   │  │  Socket.IO  │  │   Middleware    │  │   │
-│  │  │   Server    │  │   Server    │  │                 │  │   │
-│  │  │             │  │             │  │ • CORS          │  │   │
-│  │  │ • REST API  │  │ • WebSocket │  │ • JSON Parser   │  │   │
-│  │  │ • Static    │  │ • Real-time │  │ • Static Files  │  │   │
-│  │  │   Files     │  │ • Events    │  │ • Session Mgmt  │  │   │
-│  │  └─────────────┘  └─────────────┘  └─────────────────┘  │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                                 │                             │
-│                                 ▼                             │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                NETWORK LAYER                            │   │
-│  │                                                         │   │
-│  │        Port 8066        HTTP/WebSocket                 │   │
-│  │                                                         │   │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐  │   │
-│  │  │   Tablet 1  │  │   Tablet 2  │  │   Tablet N      │  │   │
-│  │  │             │  │             │  │                 │  │   │
-│  │  │ • Browser   │  │ • Browser   │  │ • Browser       │  │   │
-│  │  │ • JS Client │  │ • JS Client │  │ • JS Client     │  │   │
-│  │  │ • Score UI  │  │ • Score UI  │  │ • Score UI      │  │   │
-│  │  └─────────────┘  └─────────────┘  └─────────────────┘  │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## 📁 Structure des fichiers
+Application **Electron** (poste organisateur) + **serveur web embarqué** (tablettes,
+écrans, spectateurs sur le réseau local).
 
 ```
-src/
-├── main/
-│   ├── main.ts                    # Processus principal Electron
-│   ├── preload.ts                 # Bridge IPC
-│   └── remoteScoreServer.ts       # 🆕 Serveur web distant
-├── shared/
-│   ├── types/
-│   │   ├── index.ts              # Types principaux
-│   │   └── remote.ts             # 🆕 Types pour saisie distante
-│   └── utils/
-│       └── [...existing files]   # Utilitaires existants
-├── renderer/
-│   └── components/
-│       ├── CompetitionView.tsx   # 🔄 Intégration saisie distante
-│       └── RemoteScoreManager.tsx # 🆕 Interface gestion distante
-└── remote/                       # 🆕 Frontend web arbitres
-    ├── index.html                 # Page principale arbitre
-    ├── styles.css                 # Styles responsive
-    └── app.js                     # Logique JavaScript vanilla
+┌──────────────────────────── Poste organisateur (Electron 44) ────────────────────────────┐
+│                                                                                          │
+│  Renderer (React 19 + Zustand)          Preload (contextBridge)        Main (Node 22)    │
+│  ┌───────────────────────────┐   IPC   ┌──────────────────┐   IPC   ┌──────────────────┐ │
+│  │ App.tsx, CompetitionView  │◀──────▶│ window.electronAPI│◀──────▶│ main.ts          │ │
+│  │ PoolView, TableauView ... │         │ db/file/dialog/  │         │ menus, fenêtres, │ │
+│  │ src/features/* (stores)   │         │ remote/training/ │         │ ipcMain.handle   │ │
+│  │ src/shared/utils (calculs)│         │ updater/crypto/  │         │ autosave 2 min   │ │
+│  └───────────────────────────┘         │ themes           │         │ autoUpdater      │ │
+│                                         └──────────────────┘         └───────┬──────────┘ │
+│                                                                              │            │
+│                              ┌───────────────────────────────┐              │            │
+│                              │ DatabaseManager (better-sqlite3)│◀────────────┤            │
+│                              │ <userData>/bellepoule.db        │              │            │
+│                              └───────────────────────────────┘              │            │
+│                                                                              ▼            │
+│                              ┌────────────────────────────────────────────────────────┐  │
+│                              │ RemoteScoreServer — Express 5 + Socket.IO 4             │  │
+│                              │ HTTPS (auto-signé) ou HTTP · port 8066 (ou suivant)     │  │
+│                              │ pages src/remote/*.html servies en mémoire              │  │
+│                              └───────────────────────┬────────────────────────────────┘  │
+└──────────────────────────────────────────────────────┼───────────────────────────────────┘
+                                                       │ LAN / Wi-Fi
+        ┌──────────────────┬───────────────────┬───────┴──────────┬──────────────────┐
+        ▼                  ▼                   ▼                  ▼                  ▼
+  Tablette arbitre    Écran d'arène       Kiosk / Lobby      Spectateurs        OBS / vMix
+  /areneN/arbitre     /areneN             /kiosk, /lobby     /areneN/public     /areneN/overlay
 ```
 
-## 🔄 Flux de communication
+## 2. Arborescence
 
-### 1. Initialisation
-
-```mermaid
-sequenceDiagram
-    participant O as Organisateur
-    participant BM as BellePoule Main
-    participant RS as RemoteServer
-    participant A as Arbitre
-
-    O->>BM: Démarrer saisie distante
-    BM->>RS: new RemoteScoreServer()
-    RS->>RS: server.listen(8066)
-    BM->>O: Interface de gestion
-    O->>BM: Ajouter arbitre "Jean"
-    BM->>RS: POST /api/referees
-    RS->>RS: Générer code "ABC123"
-    RS->>BM: { id: "ref_1", code: "ABC123" }
-    BM->>O: Afficher code "ABC123"
+```
+bellepoule-modern/
+├── src/
+│   ├── main/                     # Processus principal Electron
+│   │   ├── main.ts               # Fenêtres, menus (fr/en/de), ~165 handlers IPC, autosave, cycle DB
+│   │   ├── preload.ts            # API window.electronAPI (contextIsolation)
+│   │   ├── splash-preload.ts     # Preload de l'écran de démarrage
+│   │   ├── splash.html
+│   │   ├── remoteScoreServer.ts  # Serveur Express + Socket.IO (tablettes, écrans)
+│   │   ├── certManager.ts        # Certificat TLS auto-signé (selfsigned)
+│   │   ├── autoUpdater.ts        # Mises à jour (GitHub Releases)
+│   │   └── updateIntegrity.ts    # Vérification SHA-256 + URL de confiance
+│   │
+│   ├── renderer/                 # Interface React
+│   │   ├── index.tsx, index.html, App.tsx
+│   │   ├── components/           # ~90 composants (+ tests)
+│   │   │   ├── analytics/        # AnalyticsCharts, TouchZoneHeatmap
+│   │   │   ├── common/           # CollapseToggle, NumericKeypad
+│   │   │   ├── competition/      # CompetitionHeader, CompetitionNav, ExportCenterModal,
+│   │   │   │                     # KioskScoreEntry, PlanningAssistant
+│   │   │   ├── formula/          # FormulaBuilder, FormulaPhaseCard, AdvancementRuleEditor,
+│   │   │   │                     # RankingCriteriaEditor, ScoringZoneEditor, ...
+│   │   │   ├── pool/             # PoolMatchList, PoolScoreMatrix, PoolMatchOrderModal, ...
+│   │   │   ├── tableau/          # MatchCard, SeedingTable, TableauScoreModal,
+│   │   │   │                     # TableauSignaturesModal, ConsolationBracketsSection, ...
+│   │   │   ├── training/         # TrainingLauncherModal, TrainingPanel
+│   │   │   └── wiki/             # Aide intégrée (WikiArticleRenderer, wikiData)
+│   │   ├── hooks/                # 19 hooks (useAppState, usePoolManagement, useHistory, ...)
+│   │   ├── contexts/             # TranslationContext
+│   │   ├── services/             # offlineStorage, offlineSync
+│   │   ├── locales/              # fr, en, br, ca, de, es, zh-HK
+│   │   ├── styles/, assets/
+│   │   └── sw.js                 # Service worker
+│   │
+│   ├── features/                 # Modules métier (store Zustand + services)
+│   │   ├── analytics/            # analyticsService, useAnalyticsStore, FencerDetailModal
+│   │   ├── bracket/              # bracketGenerator, bracketService
+│   │   ├── competition/          # competitionService, useCompetitionStore (immer)
+│   │   ├── doubleelimination/    # useDEBracketStore
+│   │   ├── latefencers/          # useLateFencerStore
+│   │   ├── matchAuditLog/        # useMatchAuditStore
+│   │   ├── pdfTemplates/         # usePdfTemplateStore
+│   │   ├── penalties/            # penaltyUtils, usePenaltyStore
+│   │   ├── pools/                # poolCalculator, poolService, usePoolStore
+│   │   └── teams/                # teamCalculations, teamBracketService, laserArena*,
+│   │                             # teamCardEscalation, useTeamStore
+│   │
+│   ├── shared/                   # Code commun main/renderer
+│   │   ├── types/                # index.ts (domaine), remote.ts, preload.ts, pdfTemplate.types.ts
+│   │   ├── services/             # cloudSync, errorService, ffeConnect, logger,
+│   │   │                         # notification, performance, refereeManager, tournamentFlow
+│   │   └── utils/
+│   │       ├── fileParser/       # detect, ffeParser, xmlParser, engardeParser, txtParser,
+│   │       │                     # rankingParser, common
+│   │       ├── pdfExport/        # core, poolPdf, tableauPdf, bracketTreePdf, rankingPdf,
+│   │       │                     # resultsPdf, fullCompetitionPdf, appelPdf, refereeCommentsPdf
+│   │       ├── poolCalculations, tableCalculations, scoreValidation, suddenDeath
+│   │       ├── cardSystem, touchSystem, customTouchSystem, customRankingCalculator
+│   │       ├── questScheduler, splitCompetition, tournamentTemplates
+│   │       ├── fencerStatsCalculator, refereeStats, postTournamentReport
+│   │       └── bulkImport, fencerExport, multiFormatExport, conflictResolution, ...
+│   │
+│   ├── database/
+│   │   ├── index.ts              # DatabaseManager
+│   │   ├── validation.ts         # Validation des entrées IPC
+│   │   └── migrations/           # Runner + 18 migrations versionnées
+│   │
+│   ├── remote/                   # Pages web servies aux appareils du réseau
+│   │   ├── referee.html          # Tablette d'arbitrage individuelle
+│   │   ├── arena.html            # Écran d'arène
+│   │   ├── teamReferee.html, teamArena.html   # Sabre Laser équipe
+│   │   ├── pool.html, pool-ocr.html           # Feuille de poule, saisie par photo
+│   │   ├── public.html, overlay.html, overlay-config.html, matchs.html
+│   │   ├── kiosk.html, dashboard.html, lobby.html
+│   │   ├── login.html, checkin.html, register.html, trainer.html
+│   │   ├── app.js, i18n.js, styles.css, sw.js, offlineQueue.ts
+│   │   └── unicorn-bg.png
+│   │
+│   └── examples/
+├── e2e/                          # Playwright : app, competition(-full), pools, tableau,
+│                                 # import-export, remote-scoring, accessibility
+├── scripts/                      # increment-build, check-i18n-completeness, check-bundle-size
+├── resources/                    # Icônes, ressources packagées
+├── docs/, wiki/                  # Documentation
+├── webpack.main.config.js, webpack.renderer.config.js
+├── vitest.config.ts, playwright.config.ts, eslint.config.js, tsconfig.json, typedoc.json
+└── version.json                  # { version, build, date }
 ```
 
-### 2. Connexion arbitre
+## 3. Processus principal
 
-```mermaid
-sequenceDiagram
-    participant A as Arbitre
-    participant B as Browser
-    participant RS as RemoteServer
-    participant DB as Database
+- **Fenêtre** 1400×900 (min 1024×768), splash au démarrage, CSP stricte.
+- **Menus** natifs traduits (fr/en/de) ; reconstruits sur `app:language-changed`.
+- **Base** : `<userData>/bellepoule.db` (migration automatique de l'ancien emplacement
+  `./bellepoule.db`). Autosave toutes les **2 min** (événements `autosave:completed` /
+  `autosave:failed`), sauvegarde à la fermeture.
+- **Serveur distant** : une instance `RemoteScoreServer` par compétition
+  (`remote:startServer`), port 8066 ou premier port libre, interface réseau choisie,
+  HTTPS optionnel (activé par défaut dans l'UI).
+- **Mode entraînement** : serveur dédié (`training:*`), règles personnalisées (durée,
+  zones autorisées, mort subite désactivée).
+- **Mises à jour** : `autoUpdater.ts` (vérification d'intégrité SHA-256, mode silencieux).
 
-    A->>B: Ouvrir http://IP:8066
-    B->>RS: GET / (index.html)
-    RS->>B: Page de connexion
-    A->>B: Entrer code "ABC123"
-    B->>RS: Socket: login({code: "ABC123"})
-    RS->>RS: Vérifier code
-    RS->>B: Socket: login_success(referee)
-    B->>A: Interface de saisie
-```
+## 4. API IPC (`window.electronAPI`)
 
-### 3. Saisie de score
+| Groupe | Exemples |
+|---|---|
+| `db.*` | Compétitions, tireurs, arbitres, phases, poules, matchs, équipes, cartons, touches, sorties d'arène, signatures, audit des scores, classement saisonnier, état de session |
+| `file.*` | `export`, `import`, `writeContent`, `printHtmlToPDF`, `previewHtmlAsPDF`, archives tireurs/photos |
+| `dialog.*` | `openFile`, `saveFile` |
+| `remote.*` | `startServer`, `stopServer`, `changePort`, `getServerInfo`, `getArenas`, `getConnectedClients`, `broadcastCommand`, `identifyClient`, `updateTheme`, `updateLogo`, `updateCardAnnounce`, `updateStripCount`, `setCheckinPassword`, `setTrainerPassword`, `setTtsConfig`, `setWebhookUrl`, `acknowledgeDTCall`, `resetPoolMatch`, `refreshDeMatches`, ... |
+| `training.*` | Serveur d'entraînement |
+| `updater.*` | `check`, `installPendingUpdate`, `setSilentMode`, ... |
+| `crypto.*` | `protect` / `unprotect` (safeStorage) |
+| `themes.*` | `list`, `save`, `delete` |
+| Événements | `onRemoteMatchFinished`, `onRemoteArenaUpdate`, `onDTCall`, `onRemoteFencerExcluded`, `onRemoteRefereeChanged`, `onPoolSignatureUpdated`, `onTableauSignatureUpdated`, `onAutosaveCompleted`, menus `onMenu*`, ... |
+| Divers | `notifyLanguageChanged`, `getVersionInfo`, `openExternal`, `print`, `setWindowSize`, `getLogo`, `getTtsConfig` |
 
-```mermaid
-sequenceDiagram
-    participant A as Arbitre
-    participant B as Browser
-    participant RS as RemoteServer
-    participant DB as Database
-    participant UI as Main UI
+Toutes les entrées `db.*` passent par `src/database/validation.ts`.
 
-    A->>B: Saisir score 5-3
-    A->>B: Cliquer "Enregistrer"
-    B->>RS: Socket: score_update({matchId, scoreA: 5, scoreB: 3})
-    RS->>DB: updateMatch(matchId, scores)
-    RS->>RS: broadcast(score_update)
-    RS->>UI: IPC: remote:websocket_message
-    UI->>UI: Rafraîchir matchs
-    RS->>B: Socket: score_update_broadcast
-    B->>A: Confirmation "Score enregistré"
-```
+## 5. Base de données
 
-## 🛠️ Architecture technique détaillée
+SQLite via better-sqlite3 (synchrone). Migrations versionnées (`schema_migrations`).
 
-### RemoteScoreServer - Backend Node.js
+| Table | Contenu |
+|---|---|
+| `competitions` | Compétition + `settings` JSON (arme, scores max, chronos, options) |
+| `fencers`, `referees` | Tireurs (statut, classement, photo, motif d'exclusion), arbitres |
+| `phases`, `pools`, `pool_fencers` | Formule, poules, composition (arbitre(s) de poule) |
+| `matches` | Matchs de poule et de tableau, scores, statut, arbitre, chronométrage |
+| `bracket_nodes` | Arbre d'élimination directe |
+| `match_cards`, `match_touches`, `match_arena_exits` | Cartons, touches par zone, sorties d'arène |
+| `score_audit_log` | Traçabilité des scores (arbitre, IP, poule) |
+| `pool_signatures`, `de_match_signatures` | Signatures numériques |
+| `arena_state`, `session_state` | Persistance des arènes et de la session |
+| `fencer_abandons` | Snapshot pour annuler un abandon |
+| `formula_snapshots` | Formule à la carte (arme CUSTOM) |
+| `season_results` | Classement saisonnier (Quest) |
+| `teams`, `team_fencers`, `team_matches`, `team_bouts`, `team_match_cards` | Équipes |
+| `referee_comments` | Commentaires des formateurs |
 
-**Technologies** :
+## 6. Serveur distant
 
-- **Express.js** : Serveur web HTTP
-- **Socket.IO** : Communication WebSocket temps réel
-- **TypeScript** : Typage strict
-- **Node.js** : Runtime JavaScript
+Détails : [REMOTE_SCORE_GUIDE.md](REMOTE_SCORE_GUIDE.md) et [docs/ARBITRAGE.md](docs/ARBITRAGE.md).
 
-**Responsabilités** :
+- **Sécurité** : CORS et origine Socket.IO limités au réseau local ; mots de passe
+  d'arène (≥ 8 caractères) → cookie HttpOnly `bp_token_arena{N}` (8 h) ; limitation des
+  tentatives par IP/arène ; routes d'administration réservées au loopback ; CSP ;
+  validation des scores (0–50) ; limitation de débit des soumissions.
+- **Rooms Socket.IO** : `arena:{id}`, `pool:{id}`, `team-arena:{id}`, `dashboard`.
+- **Flux d'un score** : tablette → `arena_control/update_score` (temps réel, écrans) +
+  `POST /api/matches/:id/score` (persistance) → fin : `POST /api/matches/:id/finish` →
+  DB + IPC `match:finished` → renderer met à jour poule/tableau.
 
-1. **Gestion HTTP** : API REST + fichiers statiques
-2. **WebSocket** : Connexions arbitres temps réel
-3. **Authentification** : Codes d'accès simples
-4. **Synchronisation** : Scores ↔ Base de données
-5. **Broadcast** : Diffusion des mises à jour
+## 7. État côté interface
 
-### Interface Web Arbitre - Frontend Vanilla JS
+- Stores Zustand par fonctionnalité (`src/features/*/hooks/use*Store.ts`), certains avec
+  `immer`.
+- État applicatif dans `App.tsx` / `useAppState`.
+- Calculs purs dans `src/shared/utils` (testés unitairement).
+- i18n : `TranslationContext` + `src/renderer/locales/*.json` (complétude vérifiée par
+  `npm run check:i18n`).
 
-**Technologies** :
+## 8. Tests
 
-- **HTML5** : Structure sémantique
-- **CSS3** : Styles modernes, responsive design
-- **JavaScript ES6+** : Logique client
-- **Socket.IO Client** : Communication WebSocket
-
-**Caractéristiques** :
-
-1. **Progressive Web App** : Utilisable hors ligne (futur)
-2. **Responsive Design** : Mobile-first approach
-3. **Temps réel** : Mises à jour instantanées
-4. **Accessible** : Support clavier, lecteur écran
-
-### RemoteScoreManager - Interface React
-
-**Intégration** :
-
-- **React Hooks** : Gestion d'état locale
-- **TypeScript** : Typage strict
-- **Fetch API** : Communication avec serveur distant
-- **Electron IPC** : Contrôle serveur depuis UI
-
-**Fonctionnalités** :
-
-1. **Contrôle serveur** : Démarrage/arrêt
-2. **Configuration** : Pistes, arbitres
-3. **Monitoring** : État connexions
-4. **Gestion** : Codes d'accès, sessions
-
-## 🔌 Points d'extension
-
-### 1. Authentification avancée
-
-```typescript
-interface AdvancedAuth {
-  username: string;
-  password: string;
-  role: 'referee' | 'organizer' | 'admin';
-  permissions: string[];
-}
-```
-
-### 2. Mode hors ligne
-
-```typescript
-interface OfflineMode {
-  queue: ScoreUpdate[];
-  syncStatus: 'online' | 'offline' | 'syncing';
-  lastSync: Date;
-}
-```
-
-### 3. Multi-compétitions
-
-```typescript
-interface MultiCompetition {
-  competitions: Competition[];
-  currentCompetition: string;
-  globalSettings: GlobalSettings;
-}
-```
-
-## 🧪 Tests et qualité
-
-### Tests unitaires (à implémenter)
-
-```typescript
-// Tests RemoteScoreServer
-describe('RemoteScoreServer', () => {
-  test('should start server on port 8066');
-  test('should generate unique referee codes');
-  test('should handle score updates correctly');
-});
-
-// Tests interface web
-describe('Referee Interface', () => {
-  test('should connect with valid code');
-  test('should submit scores');
-  test('should handle disconnection');
-});
-```
-
-### Tests d'intégration
-
-```typescript
-// Tests E2E avec Playwright
-test('Complete remote scoring workflow', async () => {
-  // 1. Organisateur démarre session
-  // 2. Arbitre se connecte
-  // 3. Saisie score
-  // 4. Vérification synchronisation
-});
-```
-
-## 🔒 Sécurité
-
-### Mesures actuelles
-
-1. **Codes d'accès** : 6 caractères aléatoires
-2. **Session limitée** : Durée compétition
-3. **Réseau local** : WiFi interne
-
-### Améliorations futures
-
-1. **HTTPS/WSS** : Chiffrement communications
-2. **JWT Tokens** : Authentification robuste
-3. **Rate Limiting** : Protection anti-DoS
-4. **Input Validation** : Validation stricte scores
-
-## 📊 Monitoring et logs
-
-### Logs serveur
-
-```typescript
-// Structure de logs
-interface LogEntry {
-  timestamp: Date;
-  level: 'info' | 'warn' | 'error';
-  component: 'server' | 'websocket' | 'database';
-  message: string;
-  metadata?: any;
-}
-```
-
-### Métriques à suivre
-
-1. **Performance** : Temps réponse API
-2. **Utilisation** : Nombre arbitres connectés
-3. **Erreurs** : Échecs connexions/synchronisations
-4. **Réseau** : Latence WebSocket
-
-## 🚀 Déploiement
-
-### Configuration production
-
-```typescript
-interface ProductionConfig {
-  port: number;
-  cors: {
-    origin: string[];
-    credentials: boolean;
-  };
-  ssl?: {
-    key: string;
-    cert: string;
-  };
-  database: {
-    backup: boolean;
-    interval: number;
-  };
-}
-```
-
-### Dockerisation (futur)
-
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY dist/ ./dist/
-EXPOSE 8066
-CMD ["node", "dist/main/remoteScoreServer.js"]
-```
-
----
-
-Cette architecture permet une évolution progressive tout en maintenant une compatibilité avec l'existant de BellePoule Modern.
+- **Unitaires** : Vitest + jsdom, ~100 fichiers `*.test.ts(x)` co-localisés
+  (`src/shared`, `src/main`, `src/database`, `src/renderer`, `src/features`).
+- **E2E** : Playwright (`e2e/`).
+- **CI** : type-check, i18n, tests, budget bundle avant chaque build.

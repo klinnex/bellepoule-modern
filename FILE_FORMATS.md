@@ -555,4 +555,4 @@ sed -i '1s/^\xEF\xBB\xBF//' filename.csv
 
 ---
 
-**📚 Need more help?** Check our [Troubleshooting Guide](Troubleshooting-Guide) for additional solutions, or contact support through the built-in bug reporter.
+**📚 Need more help?** Check our [Troubleshooting Guide](TROUBLESHOOTING.md) for additional solutions, or contact support through the built-in bug reporter.

@@ -23,36 +23,27 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 
 ### Step 1: Download
 
-1. Go to the [latest releases page](https://github.com/klinnex/bellepoule-modern/releases/tag/latest)
+1. Go to the [latest releases page](https://github.com/klinnex/bellepoule-modern/releases/latest)
 2. Download the appropriate file for your platform:
 
-| Platform    | Architecture | File                                               | Size   |
-| ----------- | ------------ | -------------------------------------------------- | ------ |
-| **Windows** | x64          | `BellePoule.Modern-X.X.X-build.XX-portable.exe`    | ~80 MB |
-| **macOS**   | x64          | `BellePoule.Modern-X.X.X-build.XX.dmg`             | ~75 MB |
-| **Linux**   | x64          | `BellePoule.Modern-X.X.X-build.XX-x86_64.AppImage` | ~80 MB |
-| **Linux**   | ARM64        | `BellePoule.Modern-X.X.X-build.XX-arm64.AppImage`  | ~75 MB |
+| Platform | Architecture | Files |
+| --- | --- | --- |
+| **Windows** | x64 | `BellePoule Modern-<version>-setup.exe` (installer), `BellePoule Modern-<version>-portable.exe` |
+| **macOS** | x64 (Intel), arm64 (Apple Silicon) | `BellePoule Modern-<version>-<arch>.dmg`, `.zip` |
+| **Linux** | x64 | `BellePoule Modern-<version>-<arch>.AppImage`, `.deb`, `.rpm` |
+
+`<version>` = `1.0.3-build.NNNN`. Dev builds are published as pre-releases on every push to `dev`.
 
 ### Step 2: Install
 
 #### Windows
 
-1. **Portable Version (Recommended)**:
-
-   ```bash
-   # Download and run directly - no installation required
-   BellePoule.Modern-X.X.X-build.XX-portable.exe
-   ```
-
-2. **Alternative: Installation Version**:
-   - Download the setup version if available
-   - Run the installer
-   - Follow the installation wizard
-   - Launch from Start Menu
+1. **Installer (`-setup.exe`)**: run it, choose the install folder, desktop shortcut created, launch from the Start Menu.
+2. **Portable (`-portable.exe`)**: run directly, no installation (extracts to `BellePouleModernPortable`).
 
 #### macOS
 
-1. Open the downloaded `.dmg` file
+1. Pick the `.dmg` matching your Mac (`x64` Intel, `arm64` Apple Silicon) and open it
 2. Drag BellePoule Modern to your Applications folder
 3. Right-click the app and select "Open" (first time only to bypass Gatekeeper)
 4. Launch from Applications folder
@@ -63,20 +54,17 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 
    ```bash
    # Make executable
-   chmod +x BellePoule.Modern-X.X.X-build.XX-x86_64.AppImage
+   chmod +x BellePoule\ Modern-*.AppImage
 
    # Run directly
-   ./BellePoule.Modern-X.X.X-build.XX-x86_64.AppImage
+   ./BellePoule\ Modern-*.AppImage
    ```
 
-2. **Installation Option**:
+2. **Packages**:
 
    ```bash
-   # Move to Applications directory
-   sudo mv BellePoule.Modern-X.X.X-build.XX-x86_64.AppImage /opt/BellePouleModern/
-
-   # Create desktop entry
-   sudo ln -s /opt/BellePouleModern/BellePoule.Modern.AppImage /usr/local/bin/bellepoule
+   sudo apt install ./BellePoule\ Modern-*.deb    # Debian / Ubuntu
+   sudo dnf install ./BellePoule\ Modern-*.rpm    # Fedora / RHEL
    ```
 
 ## 🔧 Advanced Installation
@@ -85,8 +73,9 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 
 #### Prerequisites
 
-- **Node.js**: Version 20 or higher
-- **npm**: Version 9 or higher
+- **Node.js**: Version 22 (as used by CI)
+- **npm**: Version 10 or higher
+- **Native build tools** for better-sqlite3 (rebuilt for Electron by `postinstall`): Python 3 + C++ toolchain
 - **Git**: For cloning the repository
 
 #### Installation Steps
@@ -110,10 +99,11 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
    npm run build
    ```
 
-4. **Run in development mode**:
+4. **Run**:
 
    ```bash
-   npm start
+   npm start      # build + launch Electron
+   npm run dev    # watch mode (main + renderer dev server on port 8066)
    ```
 
 5. **Create distributables** (optional):
@@ -124,8 +114,8 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 
    # Build for specific platforms
    npm run package:win    # Windows
-   npm run package:mac    # macOS
-   npm run package:linux  # Linux
+   npm run package:mac    # macOS (x64 + arm64)
+   npm run package:linux  # Linux (AppImage, deb, rpm)
    ```
 
 ### Development Environment Setup
@@ -331,4 +321,4 @@ For remote scoring functionality, you need additional devices:
 
 ---
 
-**🎉 Congratulations!** You've successfully installed BellePoule Modern. Check out the [User Manual](User-Manual) for next steps on creating and managing competitions.
+**🎉 Congratulations!** You've successfully installed BellePoule Modern. Check out the [User Manual](USER_MANUAL.md) for next steps on creating and managing competitions.
