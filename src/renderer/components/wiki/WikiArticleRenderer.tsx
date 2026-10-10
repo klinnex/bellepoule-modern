@@ -142,6 +142,8 @@ export function renderSection(section: WikiSection, idx: number): React.ReactNod
               <kbd
                 style={{
                   background: '#f3f4f6',
+                  // Touche claire dans les deux thèmes : texte noir (#1032)
+                  color: '#111827',
                   border: '1px solid #d1d5db',
                   borderRadius: 4,
                   padding: '0.15rem 0.5rem',

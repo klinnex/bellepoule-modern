@@ -8,10 +8,16 @@ import { ScoreAuditEntry, ScoreIpConflict } from '../../shared/types/preload';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { getRoundName } from '../../shared/utils/tableCalculations';
+import type { MatchAuditOption } from './MatchAuditLog';
 
 interface Props {
   competitionId: string;
+  /** Matchs connus (arbitres assignés) — repli quand l'entrée n'a pas d'arbitre */
+  matchOptions?: MatchAuditOption[];
 }
+
+/** Auteurs techniques, pas des noms d'arbitre */
+const GENERIC_AUTHORS = new Set(['ui', 'referee', 'system', '']);
 
 function formatScore(score: any): string {
   if (!score) return '—';
@@ -41,8 +47,22 @@ function matchLabel(e: ScoreAuditEntry): string {
   return e.matchNumber != null ? `Match ${e.matchNumber}` : '—';
 }
 
-function refereeOf(e: ScoreAuditEntry): string {
-  return e.refereeName ?? e.changedBy ?? '';
+type RefereeLookup = (e: ScoreAuditEntry) => string;
+
+/** Arbitre de l'entrée, sinon arbitre(s) assigné(s) au match, sinon auteur */
+function buildRefereeLookup(competitionId: string, options?: MatchAuditOption[]): RefereeLookup {
+  const byId = new Map<string, string[]>();
+  for (const o of options ?? []) if (o.referees.length) byId.set(o.id, o.referees);
+  const prefix = `${competitionId}-`;
+  return e => {
+    if (e.refereeName) return e.refereeName;
+    const assigned =
+      byId.get(e.matchId) ??
+      (e.matchId.startsWith(prefix) ? byId.get(e.matchId.slice(prefix.length)) : undefined);
+    if (assigned) return assigned.join(' / ');
+    const author = e.changedBy ?? '';
+    return GENERIC_AUTHORS.has(author) ? '' : author;
+  };
 }
 
 // Poules d'abord (par numéro), puis tableau du premier tour à la finale
@@ -59,14 +79,18 @@ function matchKey(e: ScoreAuditEntry): number {
 const byTimeDesc = (a: ScoreAuditEntry, b: ScoreAuditEntry) =>
   b.changedAt.localeCompare(a.changedAt);
 
-const SORTERS: Record<SortMode, (a: ScoreAuditEntry, b: ScoreAuditEntry) => number> = {
-  time: byTimeDesc,
-  pool: (a, b) => phaseKey(a) - phaseKey(b) || matchKey(a) - matchKey(b) || byTimeDesc(a, b),
-  match: (a, b) => matchKey(a) - matchKey(b) || phaseKey(a) - phaseKey(b) || byTimeDesc(a, b),
-  referee: (a, b) => refereeOf(a).localeCompare(refereeOf(b), 'fr') || byTimeDesc(a, b),
-};
+type Sorter = (a: ScoreAuditEntry, b: ScoreAuditEntry) => number;
 
-const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
+function buildSorters(refereeOf: RefereeLookup): Record<SortMode, Sorter> {
+  return {
+    time: byTimeDesc,
+    pool: (a, b) => phaseKey(a) - phaseKey(b) || matchKey(a) - matchKey(b) || byTimeDesc(a, b),
+    match: (a, b) => matchKey(a) - matchKey(b) || phaseKey(a) - phaseKey(b) || byTimeDesc(a, b),
+    referee: (a, b) => refereeOf(a).localeCompare(refereeOf(b), 'fr') || byTimeDesc(a, b),
+  };
+}
+
+const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
   const { showToast } = useToast();
   const { t } = useTranslation();
   const [entries, setEntries] = useState<ScoreAuditEntry[]>([]);
@@ -74,6 +98,10 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
   const [filterPool, setFilterPool] = useState('');
   const [filterReferee, setFilterReferee] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('time');
+  const refereeOf = useMemo(
+    () => buildRefereeLookup(competitionId, matchOptions),
+    [competitionId, matchOptions]
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -121,8 +149,8 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
           }
           return true;
         })
-        .sort(SORTERS[sortMode]),
-    [entries, filterPool, filterReferee, sortMode]
+        .sort(buildSorters(refereeOf)[sortMode]),
+    [entries, filterPool, filterReferee, sortMode, refereeOf]
   );
 
   const exportCsv = useCallback(async () => {
@@ -137,7 +165,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
         e.previousScoreB != null ? String(e.previousScoreB.value ?? '') : '',
         String(e.newScoreA?.value ?? ''),
         String(e.newScoreB?.value ?? ''),
-        (e.refereeName ?? e.changedBy ?? '').replace(/,/g, ';'),
+        refereeOf(e).replace(/,/g, ';'),
         (e.ipAddress ?? '').replace(/,/g, ';'),
         e.changedBy ?? '',
       ];
@@ -157,7 +185,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
     } catch {
       showToast('Erreur export', 'error');
     }
-  }, [filtered, showToast]);
+  }, [filtered, refereeOf, showToast, t]);
 
   return (
     <div style={{ padding: '1.5rem', maxWidth: '100%', overflowX: 'auto' }}>
@@ -170,14 +198,20 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
           flexWrap: 'wrap',
         }}
       >
-        <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
+        <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)' }}>
           📜 Historique des scores
         </h2>
 
         <select
           value={filterPool}
           onChange={e => setFilterPool(e.target.value)}
-          style={{ padding: '0.3rem 0.6rem', borderRadius: 4, border: '1px solid #D1D5DB' }}
+          style={{
+            padding: '0.3rem 0.6rem',
+            borderRadius: 4,
+            border: '1px solid var(--color-border-dark)',
+            background: 'var(--color-surface)',
+            color: 'var(--color-text)',
+          }}
         >
           <option value="">Toutes les phases</option>
           {poolNumbers.map(n => (
@@ -192,7 +226,13 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
           value={sortMode}
           onChange={e => setSortMode(e.target.value as SortMode)}
           aria-label="Trier l'historique"
-          style={{ padding: '0.3rem 0.6rem', borderRadius: 4, border: '1px solid #D1D5DB' }}
+          style={{
+            padding: '0.3rem 0.6rem',
+            borderRadius: 4,
+            border: '1px solid var(--color-border-dark)',
+            background: 'var(--color-surface)',
+            color: 'var(--color-text)',
+          }}
         >
           <option value="time">Tri : par heure</option>
           <option value="pool">Tri : par poule / tour</option>
@@ -208,7 +248,9 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
           style={{
             padding: '0.3rem 0.6rem',
             borderRadius: 4,
-            border: '1px solid #D1D5DB',
+            border: '1px solid var(--color-border-dark)',
+            background: 'var(--color-surface)',
+            color: 'var(--color-text)',
             minWidth: 140,
           }}
         />
@@ -228,13 +270,13 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', color: '#6B7280', padding: '3rem' }}>
+        <div style={{ textAlign: 'center', color: 'var(--color-text-light)', padding: '3rem' }}>
           {loading ? 'Chargement…' : 'Aucune entrée dans le journal.'}
         </div>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
           <thead>
-            <tr style={{ background: '#F3F4F6', textAlign: 'left' }}>
+            <tr style={{ background: 'var(--color-surface-2)', textAlign: 'left' }}>
               <th style={th}>Horodatage</th>
               <th style={th}>Poule / Tour</th>
               <th style={th}>Match</th>
@@ -246,7 +288,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
           </thead>
           <tbody>
             {filtered.map(e => (
-              <tr key={e.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
+              <tr key={e.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                 <td style={td}>{new Date(e.changedAt).toLocaleString()}</td>
                 <td style={td}>{phaseLabel(e)}</td>
                 <td style={td}>{matchLabel(e)}</td>
@@ -258,8 +300,8 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId }) => {
                 <td style={{ ...td, fontWeight: 600 }}>
                   {formatScore(e.newScoreA)} / {formatScore(e.newScoreB)}
                 </td>
-                <td style={td}>{e.refereeName ?? e.changedBy ?? '—'}</td>
-                <td style={{ ...td, fontFamily: 'monospace', color: '#6B7280' }}>
+                <td style={td}>{refereeOf(e) || '—'}</td>
+                <td style={{ ...td, fontFamily: 'monospace', color: 'var(--color-text-light)' }}>
                   {e.ipAddress ?? '—'}
                 </td>
               </tr>

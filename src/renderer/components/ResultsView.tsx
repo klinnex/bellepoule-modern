@@ -104,8 +104,10 @@ const RV_STYLES = {
   podium3Medal: { fontSize: '1.5rem' } satisfies React.CSSProperties,
   podium3Name: { fontWeight: '600', fontSize: '0.875rem' } satisfies React.CSSProperties,
   podium3Place: { fontSize: '0.75rem', color: '#6b7280' } satisfies React.CSSProperties,
+  // Carte blanche dans les deux thèmes : texte sombre forcé (#1032)
   tableWrapper: {
     background: 'white',
+    color: '#1f2937',
     borderRadius: '8px',
     boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
     overflow: 'hidden',
@@ -116,7 +118,11 @@ const RV_STYLES = {
     borderBottom: '1px solid #e5e7eb',
     fontWeight: '600',
   } satisfies React.CSSProperties,
-  table: { width: '100%', borderCollapse: 'collapse' as const } satisfies React.CSSProperties,
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse' as const,
+    color: '#1f2937',
+  } satisfies React.CSSProperties,
   thead: { background: '#f9fafb', borderBottom: '2px solid #e5e7eb' } satisfies React.CSSProperties,
   thRank: {
     padding: '0.75rem',

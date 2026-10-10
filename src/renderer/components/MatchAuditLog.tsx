@@ -61,7 +61,7 @@ function formatTimestamp(ts: string, baseTs: string | null): string {
 }
 
 function fencerLabel(entry: MatchEventEntry): { label: string; color: string } {
-  if (!entry.fencerSide) return { label: 'Match', color: '#6b7280' };
+  if (!entry.fencerSide) return { label: 'Match', color: 'var(--color-text-light)' };
   const name = entry.fencerLastName ?? entry.fencerSide;
   return {
     label: `${entry.fencerSide} — ${name}`,
@@ -100,7 +100,9 @@ const selectStyle: React.CSSProperties = {
   padding: '0.3rem 0.5rem',
   fontSize: '0.8rem',
   borderRadius: '6px',
-  border: '1px solid #d1d5db',
+  border: '1px solid var(--color-border-dark)',
+  background: 'var(--color-surface)',
+  color: 'var(--color-text)',
   maxWidth: '22rem',
 };
 
@@ -274,7 +276,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
           <label
             style={{
               fontSize: '0.8rem',
-              color: '#6b7280',
+              color: 'var(--color-text-light)',
               display: 'flex',
               gap: '0.4rem',
               alignItems: 'center',
@@ -298,7 +300,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
           <label
             style={{
               fontSize: '0.8rem',
-              color: '#6b7280',
+              color: 'var(--color-text-light)',
               display: 'flex',
               gap: '0.4rem',
               alignItems: 'center',
@@ -418,7 +420,9 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
 
       {/* Filtres */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.8rem', color: '#6b7280', marginRight: '0.25rem' }}>
+        <span
+          style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', marginRight: '0.25rem' }}
+        >
           Filtrer :
         </span>
         {ALL_TYPES.map(t => {
@@ -481,7 +485,9 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
       {/* Tableau */}
       <div style={{ overflowY: 'auto', flex: 1 }}>
         {isLoading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>Chargement…</div>
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-light)' }}>
+            Chargement…
+          </div>
         ) : refereeView ? (
           refereeLastActions.length === 0 ? (
             <div
@@ -497,13 +503,18 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
               <thead>
-                <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
+                <tr
+                  style={{
+                    background: 'var(--color-surface-2)',
+                    borderBottom: '2px solid var(--color-border)',
+                  }}
+                >
                   <th
                     style={{
                       padding: '0.5rem 0.75rem',
                       textAlign: 'left',
                       fontWeight: '600',
-                      color: '#6b7280',
+                      color: 'var(--color-text-light)',
                     }}
                   >
                     Arbitre
@@ -513,7 +524,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       padding: '0.5rem 0.75rem',
                       textAlign: 'left',
                       fontWeight: '600',
-                      color: '#6b7280',
+                      color: 'var(--color-text-light)',
                     }}
                   >
                     IP
@@ -523,7 +534,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       padding: '0.5rem 0.75rem',
                       textAlign: 'left',
                       fontWeight: '600',
-                      color: '#6b7280',
+                      color: 'var(--color-text-light)',
                     }}
                   >
                     Dernière saisie
@@ -534,7 +545,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                         padding: '0.5rem 0.75rem',
                         textAlign: 'left',
                         fontWeight: '600',
-                        color: '#6b7280',
+                        color: 'var(--color-text-light)',
                       }}
                     >
                       Match
@@ -545,7 +556,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       padding: '0.5rem 0.75rem',
                       textAlign: 'left',
                       fontWeight: '600',
-                      color: '#6b7280',
+                      color: 'var(--color-text-light)',
                     }}
                   >
                     Score
@@ -557,17 +568,23 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                   <tr
                     key={key}
                     style={{
-                      borderBottom: '1px solid #f3f4f6',
-                      background: i % 2 === 0 ? 'white' : '#fafafa',
+                      borderBottom: '1px solid var(--color-border)',
+                      background: i % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-2)',
                     }}
                   >
-                    <td style={{ padding: '0.5rem 0.75rem', fontWeight: '600', color: '#1f2937' }}>
+                    <td
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        fontWeight: '600',
+                        color: 'var(--color-text)',
+                      }}
+                    >
                       {label}
                     </td>
                     <td
                       style={{
                         padding: '0.5rem 0.75rem',
-                        color: '#6b7280',
+                        color: 'var(--color-text-light)',
                         fontFamily: 'monospace',
                       }}
                     >
@@ -576,7 +593,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     <td
                       style={{
                         padding: '0.5rem 0.75rem',
-                        color: '#6b7280',
+                        color: 'var(--color-text-light)',
                         fontFamily: 'monospace',
                         whiteSpace: 'nowrap',
                       }}
@@ -584,11 +601,11 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       {formatTimestamp(entry.timestamp, baseTs)}
                     </td>
                     {showMatchColumn && (
-                      <td style={{ padding: '0.5rem 0.75rem', color: '#374151' }}>
+                      <td style={{ padding: '0.5rem 0.75rem', color: 'var(--color-text)' }}>
                         {matchLabelOf(entry.matchId)}
                       </td>
                     )}
-                    <td style={{ padding: '0.5rem 0.75rem', color: '#374151' }}>
+                    <td style={{ padding: '0.5rem 0.75rem', color: 'var(--color-text)' }}>
                       {describeMatchEvent(entry)}
                     </td>
                   </tr>
@@ -607,13 +624,18 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
+              <tr
+                style={{
+                  background: 'var(--color-surface-2)',
+                  borderBottom: '2px solid var(--color-border)',
+                }}
+              >
                 <th
                   style={{
                     padding: '0.5rem 0.75rem',
                     textAlign: 'left',
                     fontWeight: '600',
-                    color: '#6b7280',
+                    color: 'var(--color-text-light)',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -625,7 +647,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       padding: '0.5rem 0.75rem',
                       textAlign: 'left',
                       fontWeight: '600',
-                      color: '#6b7280',
+                      color: 'var(--color-text-light)',
                     }}
                   >
                     Match
@@ -636,7 +658,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     padding: '0.5rem 0.75rem',
                     textAlign: 'left',
                     fontWeight: '600',
-                    color: '#6b7280',
+                    color: 'var(--color-text-light)',
                   }}
                 >
                   Type
@@ -646,7 +668,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     padding: '0.5rem 0.75rem',
                     textAlign: 'left',
                     fontWeight: '600',
-                    color: '#6b7280',
+                    color: 'var(--color-text-light)',
                   }}
                 >
                   Tireur
@@ -656,7 +678,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     padding: '0.5rem 0.75rem',
                     textAlign: 'left',
                     fontWeight: '600',
-                    color: '#6b7280',
+                    color: 'var(--color-text-light)',
                   }}
                 >
                   Description
@@ -670,14 +692,14 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                   <tr
                     key={entry.id}
                     style={{
-                      borderBottom: '1px solid #f3f4f6',
-                      background: i % 2 === 0 ? 'white' : '#fafafa',
+                      borderBottom: '1px solid var(--color-border)',
+                      background: i % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-2)',
                     }}
                   >
                     <td
                       style={{
                         padding: '0.5rem 0.75rem',
-                        color: '#6b7280',
+                        color: 'var(--color-text-light)',
                         fontFamily: 'monospace',
                         whiteSpace: 'nowrap',
                       }}
@@ -685,7 +707,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       {formatTimestamp(entry.timestamp, baseTs)}
                     </td>
                     {showMatchColumn && (
-                      <td style={{ padding: '0.5rem 0.75rem', color: '#374151' }}>
+                      <td style={{ padding: '0.5rem 0.75rem', color: 'var(--color-text)' }}>
                         <button
                           type="button"
                           onClick={() => setSelectedMatchId(entry.matchId)}
@@ -720,7 +742,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       </span>
                     </td>
                     <td style={{ padding: '0.5rem 0.75rem', fontWeight: '600', color }}>{label}</td>
-                    <td style={{ padding: '0.5rem 0.75rem', color: '#374151' }}>
+                    <td style={{ padding: '0.5rem 0.75rem', color: 'var(--color-text)' }}>
                       {describeMatchEvent(entry)}
                     </td>
                   </tr>
@@ -737,7 +759,14 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
   if (!onClose) {
     return (
       <div style={{ padding: '1rem' }}>
-        <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: '600', color: '#1f2937' }}>
+        <h3
+          style={{
+            margin: '0 0 1rem',
+            fontSize: '1rem',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+          }}
+        >
           {competitionMode ? 'Journal des matchs' : 'Journal du match'}
         </h3>
         {content}

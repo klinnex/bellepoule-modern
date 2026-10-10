@@ -345,7 +345,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
 
   return (
     <>
-      <div className="modal-overlay" onClick={onClose}>
+      {/* Clic extérieur sans effet : fermeture via ✕ / Échap (#1033) */}
+      <div className="modal-overlay">
         <div
           ref={modalRef}
           className="modal"
@@ -356,6 +357,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
         >
           <div className="modal-header">
             <h2 className="modal-title">{t('settings.title')}</h2>
+            <button className="btn-close" onClick={onClose} aria-label={t('common.close')}>
+              &times;
+            </button>
           </div>
 
           <div className="modal-body">

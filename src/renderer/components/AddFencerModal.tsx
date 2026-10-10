@@ -151,7 +151,11 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
                     className="form-input"
                     value={lockedGender === Gender.MALE ? t('genders.male') : t('genders.female')}
                     readOnly
-                    style={{ background: 'var(--bg-secondary, #f5f5f5)', cursor: 'not-allowed' }}
+                    style={{
+                      background: 'var(--color-surface-2)',
+                      color: 'var(--color-text)',
+                      cursor: 'not-allowed',
+                    }}
                   />
                 ) : (
                   <select

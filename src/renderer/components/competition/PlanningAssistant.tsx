@@ -129,7 +129,8 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
               <div
                 style={{
                   padding: '0.75rem 1rem',
-                  background: 'var(--color-surface-alt, #f8fafc)',
+                  background: 'var(--color-surface-2)',
+                  color: 'var(--color-text)',
                   borderRadius: '8px',
                   fontSize: '0.875rem',
                 }}
@@ -179,7 +180,8 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
               <div
                 style={{
                   padding: '0.75rem 1rem',
-                  background: 'var(--color-surface-alt, #f8fafc)',
+                  background: 'var(--color-surface-2)',
+                  color: 'var(--color-text)',
                   borderRadius: '8px',
                   fontSize: '0.875rem',
                 }}

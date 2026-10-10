@@ -1452,12 +1452,26 @@ ipcMain.handle('dialog:saveFile', async (_, options) => {
 });
 
 // Window resize handler
-ipcMain.handle('window:setSize', (_event, width: number, height: number) => {
-  // Ne pas écraser une fenêtre maximisée par l'utilisateur (ex: auto-fit poule unique)
-  if (mainWindow && !mainWindow.isMaximized()) {
-    mainWindow.setSize(Math.max(width, 800), Math.max(height, 600), true);
+ipcMain.handle(
+  'window:setSize',
+  (_event, width: number, height: number, options?: { force?: boolean }) => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    const force = options?.force === true;
+    // Auto-fit : ne pas écraser une fenêtre maximisée / plein écran choisie par l'utilisateur
+    if (!force && (mainWindow.isMaximized() || mainWindow.isFullScreen())) return;
+    // Choix explicite (préréglage) : sortir du maximisé / plein écran sinon setSize est ignoré (#1034)
+    if (mainWindow.isFullScreen()) mainWindow.setFullScreen(false);
+    if (mainWindow.isMaximized()) mainWindow.unmaximize();
+    // Borner à la zone de travail de l'écran courant (un préréglage XL dépasse souvent l'écran)
+    const area = screen.getDisplayMatching(mainWindow.getBounds()).workArea;
+    const [minW, minH] = mainWindow.getMinimumSize();
+    const w = Math.round(Math.min(Math.max(width, minW || 800), area.width));
+    const h = Math.round(Math.min(Math.max(height, minH || 600), area.height));
+    const x = Math.round(area.x + (area.width - w) / 2);
+    const y = Math.round(area.y + (area.height - h) / 2);
+    mainWindow.setBounds({ x, y, width: w, height: h }, true);
   }
-});
+);
 
 // Print handler
 ipcMain.handle('window:print', async () => {

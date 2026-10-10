@@ -42,6 +42,8 @@ const SeedingTable: React.FC<SeedingTableProps> = ({ ranking, tableauSize }) => 
                 gap: '0.5rem',
                 padding: '0.25rem 0.5rem',
                 background: idx < 8 ? '#dbeafe' : 'white',
+                // Fond clair dans les deux thèmes : texte sombre forcé (#1032)
+                color: '#1f2937',
                 borderRadius: '4px',
                 fontSize: '0.875rem',
               }}

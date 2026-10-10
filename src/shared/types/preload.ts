@@ -986,7 +986,8 @@ export interface MenuAPI {
 
 export interface UtilityAPI {
   print: () => Promise<void>;
-  setWindowSize: (width: number, height: number) => Promise<void>;
+  /** `force` : préréglage explicite → sort du maximisé / plein écran ; sinon ignoré si maximisée */
+  setWindowSize: (width: number, height: number, options?: { force?: boolean }) => Promise<void>;
   openExternal: (url: string) => Promise<void>;
   getVersionInfo: () => Promise<VersionInfo>;
   removeAllListeners: (channel: string) => void;

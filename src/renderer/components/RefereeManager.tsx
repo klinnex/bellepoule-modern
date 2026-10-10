@@ -289,8 +289,8 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
       <h2
         style={{
           marginBottom: '1rem',
-          color: '#1f2937',
-          borderBottom: '2px solid #e5e7eb',
+          color: 'var(--color-text)',
+          borderBottom: '2px solid var(--color-border)',
           paddingBottom: '0.5rem',
         }}
       >
@@ -309,8 +309,8 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
               border: 'none',
               cursor: 'pointer',
               fontWeight: activeTab === tab ? '700' : '400',
-              background: activeTab === tab ? '#3b82f6' : '#e5e7eb',
-              color: activeTab === tab ? 'white' : '#374151',
+              background: activeTab === tab ? '#3b82f6' : 'var(--color-surface-2)',
+              color: activeTab === tab ? 'white' : 'var(--color-text)',
             }}
           >
             {tab === 'referees'
@@ -329,14 +329,14 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
           {/* Formulaire ajout */}
           <div
             style={{
-              background: '#f9fafb',
-              border: '1px solid #e5e7eb',
+              background: 'var(--color-surface-2)',
+              border: '1px solid var(--color-border)',
               borderRadius: '8px',
               padding: '1rem',
               marginBottom: '1.5rem',
             }}
           >
-            <h3 style={{ marginBottom: '0.75rem', fontSize: '1rem', color: '#374151' }}>
+            <h3 style={{ marginBottom: '0.75rem', fontSize: '1rem', color: 'var(--color-text)' }}>
               Ajouter un arbitre
             </h3>
             <div
@@ -582,14 +582,14 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     <td style={{ ...TD, textAlign: 'center' }}>{s.poolMatches}</td>
                     <td style={{ ...TD, textAlign: 'center' }}>{s.tableauMatches}</td>
                     <td style={{ ...TD_BOLD, textAlign: 'center' }}>{s.totalMatches}</td>
-                    <td style={{ ...TD, textAlign: 'center', color: '#6b7280' }}>
+                    <td style={{ ...TD, textAlign: 'center', color: 'var(--color-text-light)' }}>
                       {s.pendingMatches}
                     </td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr style={ROW_ALT}>
+                <tr className="referee-stats-total">
                   <td style={TD_BOLD} colSpan={2}>
                     Total
                   </td>
@@ -615,9 +615,9 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
               style={{
                 padding: '0.4rem 1rem',
                 borderRadius: '5px',
-                border: '1px solid #d1d5db',
+                border: '1px solid var(--color-border-dark)',
                 cursor: 'pointer',
-                background: 'white',
+                background: 'var(--color-surface)',
               }}
             >
               ↻ Actualiser
@@ -653,7 +653,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     <td
                       style={{
                         padding: '0.45rem 0.75rem',
-                        color: row.status === 'finished' ? '#166534' : '#6b7280',
+                        color: row.status === 'finished' ? '#166534' : 'var(--color-text-light)',
                       }}
                     >
                       {row.status === 'finished' ? '✓ Terminé' : row.status}
@@ -672,14 +672,14 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
           {/* Configuration */}
           <div
             style={{
-              background: '#f9fafb',
+              background: 'var(--color-surface-2)',
               padding: '1rem',
               borderRadius: '8px',
               marginBottom: '1.5rem',
-              border: '1px solid #e5e7eb',
+              border: '1px solid var(--color-border)',
             }}
           >
-            <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#374151' }}>
+            <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--color-text)' }}>
               Configuration de Rotation
             </h3>
             <div
@@ -780,7 +780,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
               }}
             >
               <h3 style={{ marginBottom: '1rem', color: '#166534' }}>Rapport de Rotation</h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', color: '#1f2937' }}>
                 <thead>
                   <tr style={{ background: '#dcfce7' }}>
                     {['Arbitre', 'Matchs', 'Consécutifs', 'Fatigue', 'Violations', 'Conflits'].map(
@@ -887,7 +887,8 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     <div style={{ fontWeight: 'bold', color: '#1f2937' }}>
                       {referee.firstName} {referee.lastName}
                     </div>
-                    <div style={SUB_TEXT}>
+                    {/* Carte sur fond clair (vert/rouge) : texte sombre dans les deux thèmes */}
+                    <div style={{ ...SUB_TEXT, color: '#6b7280' }}>
                       {referee.category} • {referee.club || 'Sans club'}
                     </div>
                     <div
@@ -934,10 +935,11 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '0.75rem',
-                      background: conflictWarning ? '#fef3c7' : '#f9fafb',
+                      background: conflictWarning ? '#fef3c7' : 'var(--color-surface-2)',
                       borderRadius: '6px',
                       border: '1px solid',
-                      borderColor: conflictWarning ? '#fbbf24' : '#e5e7eb',
+                      borderColor: conflictWarning ? '#fbbf24' : 'var(--color-border)',
+                      color: conflictWarning ? '#1f2937' : 'var(--color-text)',
                     }}
                   >
                     <div style={{ flex: 1 }}>
@@ -973,8 +975,8 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                         style={{
                           padding: '0.5rem',
                           borderRadius: '4px',
-                          border: '1px solid #d1d5db',
-                          background: 'white',
+                          border: '1px solid var(--color-border-dark)',
+                          background: 'var(--color-surface)',
                         }}
                       >
                         <option value="">-- Choisir un arbitre --</option>

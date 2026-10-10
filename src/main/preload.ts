@@ -515,8 +515,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Utility functions
   print: () => ipcRenderer.invoke('window:print'),
-  setWindowSize: (width: number, height: number) =>
-    ipcRenderer.invoke('window:setSize', width, height),
+  setWindowSize: (width: number, height: number, options?: { force?: boolean }) =>
+    ipcRenderer.invoke('window:setSize', width, height, options),
   openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),
   getVersionInfo: () => ipcRenderer.invoke('app:getVersionInfo'),
 
