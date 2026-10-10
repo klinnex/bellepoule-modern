@@ -1762,6 +1762,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     return null;
   }, [pools, tableauMatches]);
 
+  // Matchs + arbitres assignés pour l'onglet Historique
+  const matchAuditOptions = useMemo(
+    () =>
+      buildMatchAuditOptions(
+        [...poolHistory.flat(), ...pools],
+        [...tableauMatches, ...consolationBrackets.flatMap(b => b.matches)]
+      ),
+    [poolHistory, pools, tableauMatches, consolationBrackets]
+  );
+
   // Tireurs déjà placés dans une poule (exclus de l'ajout en cours de compétition)
   const assignedPoolFencerIds = useMemo(
     () => new Set(pools.flatMap(p => p.fencers.map(f => f.id))),
@@ -2328,15 +2338,12 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
 
         {currentPhase === 'logs' && (
           <>
-            <ScoreAuditLog competitionId={competition.id} />
+            <ScoreAuditLog competitionId={competition.id} matchOptions={matchAuditOptions} />
             <Suspense fallback={null}>
               <MatchAuditLog
                 competitionId={competition.id}
                 competitionName={competition.title}
-                matchOptions={buildMatchAuditOptions(
-                  [...poolHistory.flat(), ...pools],
-                  [...tableauMatches, ...consolationBrackets.flatMap(b => b.matches)]
-                )}
+                matchOptions={matchAuditOptions}
               />
             </Suspense>
           </>

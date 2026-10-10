@@ -12,7 +12,9 @@ export const TD_BOLD: CSSProperties = { padding: '0.45rem 0.75rem', fontWeight: 
 export const INPUT: CSSProperties = {
   padding: '0.5rem',
   borderRadius: '4px',
-  border: '1px solid #d1d5db',
+  border: '1px solid var(--color-border-dark)',
+  background: 'var(--color-surface)',
+  color: 'var(--color-text)',
 };
 
 export const SMALL_INPUT: CSSProperties = {
@@ -30,12 +32,15 @@ export const TABLE: CSSProperties = {
 export const TH: CSSProperties = {
   padding: '0.5rem 0.75rem',
   textAlign: 'left',
-  borderBottom: '2px solid #e5e7eb',
+  borderBottom: '2px solid var(--color-border)',
 };
 
-export const HEADING: CSSProperties = { marginBottom: '1rem', color: '#374151' };
-export const SUB_TEXT: CSSProperties = { fontSize: '0.875rem', color: '#6b7280' };
-export const MUTED_ITALIC: CSSProperties = { color: '#6b7280', fontStyle: 'italic' };
+export const HEADING: CSSProperties = { marginBottom: '1rem', color: 'var(--color-text)' };
+export const SUB_TEXT: CSSProperties = { fontSize: '0.875rem', color: 'var(--color-text-light)' };
+export const MUTED_ITALIC: CSSProperties = {
+  color: 'var(--color-text-light)',
+  fontStyle: 'italic',
+};
 export const FLEX_GAP: CSSProperties = { display: 'flex', alignItems: 'center', gap: '0.5rem' };
-export const ROW_BORDER: CSSProperties = { borderBottom: '1px solid #e5e7eb' };
-export const ROW_ALT: CSSProperties = { background: '#f3f4f6' };
+export const ROW_BORDER: CSSProperties = { borderBottom: '1px solid var(--color-border)' };
+export const ROW_ALT: CSSProperties = { background: 'var(--color-surface-2)' };

@@ -676,7 +676,7 @@ const AppContent: React.FC = () => {
               }}
               onMouseEnter={e => {
                 if (view !== 'home') {
-                  e.currentTarget.style.background = '#f1f5f9';
+                  e.currentTarget.style.background = 'var(--color-surface-2)';
                 }
               }}
               onMouseLeave={e => {
@@ -688,7 +688,7 @@ const AppContent: React.FC = () => {
               <span
                 style={{
                   fontWeight: view === 'home' ? '600' : '400',
-                  color: view === 'home' ? '#1f2937' : '#6b7280',
+                  color: view === 'home' ? 'var(--color-text)' : 'var(--color-text-light)',
                   fontSize: '0.875rem',
                   whiteSpace: 'nowrap',
                   display: 'flex',
@@ -745,7 +745,7 @@ const AppContent: React.FC = () => {
                 }}
                 onMouseEnter={e => {
                   if (activeTabId !== openComp.competition.id) {
-                    e.currentTarget.style.background = '#f1f5f9';
+                    e.currentTarget.style.background = 'var(--color-surface-2)';
                   }
                 }}
                 onMouseLeave={e => {
@@ -768,7 +768,10 @@ const AppContent: React.FC = () => {
                 <span
                   style={{
                     fontWeight: activeTabId === openComp.competition.id ? '600' : '400',
-                    color: activeTabId === openComp.competition.id ? '#1f2937' : '#6b7280',
+                    color:
+                      activeTabId === openComp.competition.id
+                        ? 'var(--color-text)'
+                        : 'var(--color-text-light)',
                     fontSize: '0.875rem',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',

@@ -866,6 +866,44 @@ select:focus {
 }
 
 /* ============================================================
+   BOUTON DE FERMETURE DES POP-UP — carré rouge arrondi (#1033)
+   ============================================================ */
+
+.btn-close,
+.modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    box-shadow var(--duration-fast),
+    transform var(--duration-fast);
+}
+
+.btn-close:hover:not(:disabled),
+.modal__close:hover:not(:disabled) {
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-close:active:not(:disabled),
+.modal__close:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* ============================================================
    MICRO-INTERACTIONS
    ============================================================ */
 
@@ -1872,4 +1910,72 @@ select:focus {
 .theme-dark .match-arena-btn {
   background: var(--color-border);
   color: var(--color-text-muted);
+}
+
+/* ============================================================
+   THÈME SOMBRE — corrections visuelles (#1032)
+   ============================================================ */
+
+/* Arbitres › Statistiques : ligne de total */
+.referee-stats-total {
+  background: var(--color-surface-2);
+}
+
+.theme-dark .referee-stats-total {
+  background: #334155;
+  color: #fff;
+}
+
+/* Tableau : cartes de combat gris clair, noms en noir */
+.theme-dark .match-card {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.theme-dark .match-card .match-fencer-name,
+.theme-dark .match-card .match-fencer-winner .match-fencer-name {
+  color: #111827;
+}
+
+.theme-dark .match-card .match-fencer-club,
+.theme-dark .match-card .match-fencer-seed,
+.theme-dark .match-card .match-score-loser {
+  color: #4b5563;
+}
+
+.theme-dark .match-card .match-fencer-seed {
+  background: #d1d5db;
+}
+
+.theme-dark .match-card .match-score-winner {
+  color: #047857;
+}
+
+.theme-dark .match-card .match-fencer-winner {
+  background: rgba(16, 185, 129, 0.18);
+}
+
+.theme-dark .match-card .match-divider {
+  background: #9ca3af;
+}
+
+.theme-dark .match-card .match-cta-edit {
+  background: #d1d5db;
+  color: #374151;
+}
+
+/* Listes déroulantes : options lisibles */
+.theme-dark select option {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.theme-dark .match-card .match-badge-btn:not(.match-badge-btn--active):not(:hover) {
+  background: #d1d5db;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.theme-dark .match-card .match-bye {
+  color: #4b5563;
 }

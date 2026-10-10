@@ -386,8 +386,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
     );
   }
 
+  // Clic extérieur sans effet : fermeture via ✕ / Échap (#1033)
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div
         ref={modalRef}
         className="modal"
@@ -746,6 +747,8 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               <div
                 style={{
                   background: '#fefce8',
+                  // Fond jaune clair dans les deux thèmes : libellés en noir (#1032)
+                  color: '#1f2937',
                   border: '1px solid #fde047',
                   borderRadius: '8px',
                   padding: '1rem',
@@ -756,7 +759,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 }}
               >
                 <div className="form-group">
-                  <label htmlFor="maxRefereesPerPool" style={SM}>
+                  <label htmlFor="maxRefereesPerPool" style={{ ...SM, color: '#1f2937' }}>
                     Arbitres max par poule
                   </label>
                   <input
@@ -772,7 +775,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="maxRefereesPerMatch" style={SM}>
+                  <label htmlFor="maxRefereesPerMatch" style={{ ...SM, color: '#1f2937' }}>
                     Arbitres max par match (tableau)
                   </label>
                   <input
