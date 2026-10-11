@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  X,
   Swords,
   Clock,
   Trophy,
@@ -415,11 +414,12 @@ const TrainingPanel: React.FC<Props> = ({
             </span>
           </h2>
           <button
-            className="btn btn-icon"
+            className="btn-close"
             onClick={onClose}
             title="Fermer (l'entraînement continue)"
+            aria-label="Fermer"
           >
-            <X size={16} />
+            ×
           </button>
         </div>
 

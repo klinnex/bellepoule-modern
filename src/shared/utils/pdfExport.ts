@@ -8,7 +8,7 @@
  */
 
 // ─── Poules ───────────────────────────────────────────────────────────────────
-export type { PoolExportOptions } from './pdfExport/poolPdf';
+export type { PoolExportOptions, PoolStripQr } from './pdfExport/poolPdf';
 export {
   generatePoolHTML,
   exportPoolToPDF,

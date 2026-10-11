@@ -1,6 +1,6 @@
 /**
  * BellePoule Modern - Window Size Presets
- * Bouton à menu déroulant pour redimensionner la fenêtre principale (affichage des poules).
+ * Bouton à menu déroulant pour redimensionner les cartes des poules affichées (#1034).
  * Licensed under GPL-3.0
  */
 
@@ -9,17 +9,22 @@ import { createPortal } from 'react-dom';
 
 const STORAGE_KEY = 'bellepoule-pool-window-size';
 
-const PRESETS = [
-  { label: 'Compact', width: 1024, height: 768 },
-  { label: 'Normal', width: 1400, height: 900 },
-  { label: 'Large', width: 1800, height: 1050 },
-  { label: 'XL', width: 2200, height: 1200 },
+// Facteur appliqué à la largeur minimale d'une carte de poule
+export const PRESETS = [
+  { label: 'Compact', scale: 0.8 },
+  { label: 'Normal', scale: 1 },
+  { label: 'Large', scale: 1.3 },
+  { label: 'XL', scale: 1.6 },
 ] as const;
 
 type Preset = (typeof PRESETS)[number];
-type PresetLabel = Preset['label'];
+export type PresetLabel = Preset['label'];
 
-function readSaved(): PresetLabel {
+export function presetScale(label: PresetLabel): number {
+  return PRESETS.find(p => p.label === label)?.scale ?? 1;
+}
+
+export function readSavedPoolCardSize(): PresetLabel {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     const found = PRESETS.find(p => p.label === saved);
@@ -30,8 +35,12 @@ function readSaved(): PresetLabel {
   return 'Normal';
 }
 
-const WindowSizePresets: React.FC = () => {
-  const [active, setActive] = useState<PresetLabel>(readSaved);
+interface WindowSizePresetsProps {
+  value: PresetLabel;
+  onChange: (label: PresetLabel) => void;
+}
+
+const WindowSizePresets: React.FC<WindowSizePresetsProps> = ({ value: active, onChange }) => {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const ref = useRef<HTMLDivElement>(null);
@@ -67,15 +76,13 @@ const WindowSizePresets: React.FC = () => {
   }, [open, updatePos]);
 
   const apply = (preset: Preset) => {
-    setActive(preset.label);
+    onChange(preset.label);
     setOpen(false);
     try {
       localStorage.setItem(STORAGE_KEY, preset.label);
     } catch {
       /* stockage indisponible */
     }
-    // force : sort du maximisé / plein écran, sinon le redimensionnement est ignoré (#1034)
-    window.electronAPI?.setWindowSize(preset.width, preset.height, { force: true });
   };
 
   return (
@@ -86,9 +93,9 @@ const WindowSizePresets: React.FC = () => {
         onClick={() => setOpen(o => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        title="Taille de la fenêtre"
+        title="Taille des cartes de poule"
       >
-        🖥️ Fenêtre : {active} ▾
+        🗔 Cartes : {active} ▾
       </button>
       {open &&
         createPortal(
@@ -142,7 +149,7 @@ const WindowSizePresets: React.FC = () => {
                 >
                   <span>{preset.label}</span>
                   <span style={{ opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>
-                    {preset.width}×{preset.height}
+                    {Math.round(preset.scale * 100)} %
                   </span>
                 </button>
               );

@@ -4645,6 +4645,18 @@ export class RemoteScoreServer {
     });
   }
 
+  /** Id du match en base : `${competitionId}-${id}` pour un match de tableau s'il existe */
+  private resolveDbMatchId(match: ArenaMatch): string {
+    if (match.poolId || !this.session) return match.id;
+    const composite = `${this.session.competitionId}-${match.id}`;
+    try {
+      if (this.db.getMatch(composite)) return composite;
+    } catch {
+      /* id non UUID / DB indisponible : id brut */
+    }
+    return match.id;
+  }
+
   public assignMatchToArena(arenaId: string, match: ArenaMatch, fromReferee = false): void {
     console.log(
       `[RemoteScoreServer] assignMatchToArena called: arenaId=${arenaId}, matchId=${match.id}, fromReferee=${fromReferee}`
@@ -4951,11 +4963,13 @@ export class RemoteScoreServer {
     // remonté, pas de passage au tour suivant). On isole donc tout ce bloc.
     if (!this.isTrainingMode)
       try {
+        // Id DB du match : composite pour un match de tableau (sinon FK rejetée → journal vide, #1031)
+        const matchId = this.resolveDbMatchId(arena.currentMatch);
         // Persister le timing en DB
-        if (arena.currentMatch.id && arena.startTime) {
+        if (matchId && arena.startTime) {
           const durationSec = arena.currentMatch.duration ?? 0;
           this.db.updateMatchTiming(
-            arena.currentMatch.id,
+            matchId,
             arena.startTime.toISOString(),
             arena.currentMatch.endTime!.toISOString(),
             durationSec
@@ -4965,7 +4979,6 @@ export class RemoteScoreServer {
         // Persister les cartons accumulés en mémoire
         const cards = this.arenaCards.get(arenaId) ?? { cardsA: [], cardsB: [] };
         const now = new Date().toISOString();
-        const matchId = arena.currentMatch.id;
         if (matchId) {
           const persistCards = (list: string[], fencerId: string | undefined) => {
             if (!fencerId) return;
@@ -6758,6 +6771,140 @@ export class RemoteScoreServer {
           .to(`pool:${aId}`)
           .emit(`pool:${aId}:update`, { poolId, fencers, matches: poolMatches, isComplete });
       }
+    }
+  }
+
+  /**
+   * Réassigne les poules aux pistes pendant une session active (#1037) :
+   * poules générées après le démarrage de la saisie distante, ou piste modifiée
+   * en préparation. Un match en cours n'est jamais retiré ; une poule envoyée sur
+   * une piste déjà occupée par une autre poule est mise en file (pas de remplacement).
+   */
+  public assignPools(
+    poolsData: Array<{
+      poolId: string;
+      poolNumber?: number;
+      strip?: number | null;
+      fencers?: any[];
+      matches: any[];
+    }>
+  ): void {
+    if (!this.session) return;
+    const poolKey = (m: any) => m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
+    const poolIds = new Set(poolsData.map(p => p.poolId));
+
+    // 1. Matchs de poule en mémoire remplacés par ceux du renderer (poules obsolètes retirées)
+    this.sessionMatches = [
+      ...this.sessionMatches.filter((m: any) => m.isTableau || !m.poolId),
+      ...poolsData.flatMap(p => p.matches.map(m => ({ ...m, poolNumber: p.poolNumber }))),
+    ];
+    for (const p of poolsData) {
+      if (p.fencers && p.fencers.length > 0) this.poolFencersCache.set(p.poolId, p.fencers);
+    }
+
+    // 2. Piste cible par poule : pool.strip si défini, sinon première piste libre
+    const sorted = [...poolsData].sort((a, b) => (a.poolNumber ?? 0) - (b.poolNumber ?? 0));
+    const target = new Map<string, string>();
+    const used = new Set<number>();
+    for (const p of sorted) {
+      const s = Number(p.strip);
+      if (Number.isInteger(s) && s > 0 && s <= this.arenaCount) {
+        target.set(p.poolId, `arena${s}`);
+        used.add(s);
+      }
+    }
+    let nextFree = 1;
+    for (const p of sorted) {
+      if (target.has(p.poolId)) continue;
+      while (used.has(nextFree)) nextFree++;
+      if (nextFree > this.arenaCount) break;
+      target.set(p.poolId, `arena${nextFree}`);
+      used.add(nextFree);
+    }
+
+    // 3. Libérer les pistes dont la poule a changé de piste ou n'existe plus
+    for (const [arenaId, arena] of this.arenas) {
+      const queue = this.arenaMatchQueue.get(arenaId) || [];
+      const keptQueue = queue.filter(
+        m => !m.poolId || (poolIds.has(m.poolId) && target.get(m.poolId) === arenaId)
+      );
+      if (keptQueue.length !== queue.length) this.arenaMatchQueue.set(arenaId, keptQueue);
+
+      const current = arena.currentMatch;
+      const currentPool = current?.poolId ?? (current ? undefined : arena.activePoolId);
+      if (!currentPool) continue;
+      if (poolIds.has(currentPool) && target.get(currentPool) === arenaId) continue;
+      if (current?.status === 'in_progress') continue; // jamais interrompre un match en cours
+      arena.activePoolId = undefined;
+      if (current) {
+        const next = keptQueue[0];
+        if (next) {
+          this.arenaMatchQueue.set(arenaId, keptQueue.slice(1));
+          this.assignMatchToArena(arenaId, next);
+        } else {
+          arena.currentMatch = null;
+          arena.status = 'idle';
+          this.updateArena(arenaId, { status: 'idle', currentMatch: null });
+          this.persistArenaState(arenaId);
+        }
+      }
+    }
+
+    // 4. Charger chaque poule sur sa piste (ou en file si la piste est occupée)
+    for (const p of sorted) {
+      const arenaId = target.get(p.poolId);
+      const arena = arenaId ? this.arenas.get(arenaId) : undefined;
+      if (!arenaId || !arena) continue;
+      if ((arena.currentMatch?.poolId ?? arena.activePoolId) === p.poolId) continue;
+      const queue = this.arenaMatchQueue.get(arenaId) || [];
+      if (queue.some(m => m.poolId === p.poolId)) continue;
+
+      const poolMatches = this.sessionMatches
+        .filter((m: any) => !m.isTableau && poolKey(m) === p.poolId)
+        .sort((a: any, b: any) => (a.number || 0) - (b.number || 0));
+      const first = poolMatches.find(m => m.status !== 'finished' && m.status !== 'in_progress');
+      if (!first || !first.fencerA || !first.fencerB) {
+        if (!arena.currentMatch && poolMatches.length > 0) arena.activePoolId = p.poolId;
+        continue;
+      }
+      const arenaMatch: ArenaMatch = {
+        id: first.id,
+        poolId: p.poolId,
+        fencerA: first.fencerA,
+        fencerB: first.fencerB,
+        scoreA: 0,
+        scoreB: 0,
+        status: 'not_started',
+        startTime: null,
+        endTime: null,
+      };
+      if (arena.currentMatch) {
+        this.arenaMatchQueue.set(arenaId, [...queue, arenaMatch]);
+        continue;
+      }
+      this.assignMatchToArena(arenaId, arenaMatch);
+      this.arenaNextMatchIndex.set(arenaId, poolMatches.findIndex(m => m.id === first.id) + 1);
+    }
+
+    // 5. Rafraîchir les feuilles de poule affichées
+    for (const [arenaId, arena] of this.arenas) {
+      const poolId = arena.currentMatch?.poolId ?? arena.activePoolId;
+      if (!poolId || !poolIds.has(poolId)) continue;
+      const matches = this.sessionMatches
+        .filter((m: any) => !m.isTableau && poolKey(m) === poolId)
+        .sort((a: any, b: any) => (a.number || 0) - (b.number || 0))
+        .map((m: any) => {
+          const u = this.sessionMatchScores.get(m.id);
+          return u ? { ...m, ...u } : m;
+        });
+      const isComplete =
+        matches.length > 0 && matches.every((m: any) => m.status === MatchStatus.FINISHED);
+      this.io?.to(`pool:${arenaId}`).emit(`pool:${arenaId}:update`, {
+        poolId,
+        fencers: this.poolFencersCache.get(poolId) ?? [],
+        matches,
+        isComplete,
+      });
     }
   }
 

@@ -1979,3 +1979,24 @@ select:focus {
 .theme-dark .match-card .match-bye {
   color: #4b5563;
 }
+
+/* Générateur QR WiFi : champs et libellés centrés (#1032) */
+.wifi-qr-body .form-group {
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.wifi-qr-body .form-input {
+  text-align: center;
+}
+
+/* Tableau : fond gris-noir, titres de tours en blanc (#1032) */
+.theme-dark {
+  --tableau-bg: #1f2023;
+  --tableau-panel: #26272b;
+  --tableau-panel-header: #2f3035;
+  --tableau-border: #3a3b40;
+  --tableau-title: #ffffff;
+}

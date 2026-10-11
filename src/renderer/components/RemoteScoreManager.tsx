@@ -12,6 +12,7 @@ import { logger, LogCategory } from '@shared/services/logger';
 import { TableauMatch, ConsolationBracket } from './tableau/tableauTypes';
 import { useToast } from './Toast';
 import ThemeEditor from './ThemeEditor';
+import ArenaQrCodesModal from './ArenaQrCodesModal';
 import { OBSOverlayConfig } from './OBSOverlayConfig';
 import { CustomTheme, DisplayTheme } from '../../shared/types/remote';
 import { ConnectedClient, KioskScreenConfig } from '../../shared/types/preload';
@@ -340,7 +341,32 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   >('arena');
   // Éditeur de thème kiosk
   const [kioskThemeEditorOpen, setKioskThemeEditorOpen] = useState(false);
+  const [showArenaQrModal, setShowArenaQrModal] = useState(false);
   const [kioskTheme, setKioskTheme] = useState<CustomTheme | undefined>(undefined);
+  // Thème prédéfini du kiosk (néon / clair, basés sur l'affichage des pistes) (#1036)
+  const kioskPresetKey = `bellepoule-kiosk-preset-${competition.id}`;
+  const [kioskPreset, setKioskPreset] = useState<'default' | 'neon' | 'light'>(() => {
+    try {
+      const v = localStorage.getItem(kioskPresetKey);
+      return v === 'neon' || v === 'light' ? v : 'default';
+    } catch {
+      return 'default';
+    }
+  });
+  const applyKioskPreset = async (preset: 'default' | 'neon' | 'light') => {
+    setKioskPreset(preset);
+    setKioskTheme(undefined);
+    try {
+      localStorage.setItem(kioskPresetKey, preset);
+    } catch {
+      /* stockage indisponible */
+    }
+    if (!session) return;
+    const result = await window.electronAPI.remote.updateKioskTheme(competition.id, {
+      '--k-preset': preset,
+    });
+    if (!result?.success) showToast(result?.error ?? 'Erreur thème kiosk', 'error');
+  };
   // Thèmes sauvegardés (depuis IPC)
   const [savedThemes, setSavedThemes] = useState<CustomTheme[]>([]);
   // Sélecteur de thème global
@@ -398,6 +424,29 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   const effectivePending = pendingCount ?? pools.length ?? 1;
   const effectiveCommitted = committedCount ?? pools.length ?? 1;
   const hasPendingChanges = effectivePending !== effectiveCommitted;
+
+  // Poules générées après le démarrage de la saisie distante ou piste modifiée :
+  // réassigner les poules aux pistes côté serveur (#1037)
+  const sessionPoolsLayoutRef = useRef<string>('');
+  useEffect(() => {
+    const layout = pools.map(p => `${p.id}@${p.strip ?? ''}`).join('|');
+    if (!isRemoteActive || !session) {
+      sessionPoolsLayoutRef.current = layout;
+      return;
+    }
+    if (layout === sessionPoolsLayoutRef.current) return;
+    sessionPoolsLayoutRef.current = layout;
+    const poolsData = pools.map(pool => ({
+      poolId: pool.id,
+      poolNumber: pool.number,
+      strip: pool.strip ?? null,
+      fencers: pool.fencers ?? [],
+      matches: pool.matches ?? [],
+    }));
+    window.electronAPI.remote.assignPools?.(competition.id, poolsData).catch((err: unknown) => {
+      logger.warn(LogCategory.NETWORK, 'Échec assignPools', err instanceof Error ? err : undefined);
+    });
+  }, [pools, isRemoteActive, session]);
 
   // Synchroniser le cache poolFencersCache du serveur distant quand les poules changent
   // (interversion de combattants entre poules pendant une session active).
@@ -586,6 +635,11 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       );
       if (result.success && result.session) {
         setSession(result.session);
+        if (kioskPreset !== 'default') {
+          window.electronAPI.remote
+            .updateKioskTheme(competition.id, { '--k-preset': kioskPreset })
+            .catch(() => {});
+        }
         // Le serveur peut étendre le nombre de pistes (poule assignée au-delà du nombre configuré)
         const effectiveCount = result.session.strips?.length || count;
         setPendingCount(effectiveCount);
@@ -912,10 +966,10 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       await handleArenaThemeChange('all', 'custom', theme);
       showToast(`Thème "${theme.name}" appliqué à toutes les pistes`, 'success');
     } else if (globalThemeSection === 'kiosk') {
-      const result = await window.electronAPI.remote.updateKioskTheme(
-        competition.id,
-        theme.variables
-      );
+      const result = await window.electronAPI.remote.updateKioskTheme(competition.id, {
+        '--k-preset': 'default',
+        ...theme.variables,
+      });
       setKioskTheme(theme);
       if (result?.success) showToast(`Thème "${theme.name}" appliqué au kiosque`, 'success');
       else showToast(result?.error ?? 'Erreur', 'error');
@@ -1006,6 +1060,25 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       >
         Sauvegarder
       </button>
+      {serverUrl && (
+        <button
+          className="btn btn-secondary"
+          onClick={() => setShowArenaQrModal(true)}
+          title="Exporter / imprimer les QR Codes des pistes"
+          style={RSM_STYLES.stripCountSave}
+        >
+          📱 QR Codes
+        </button>
+      )}
+      {showArenaQrModal &&
+        createPortal(
+          <ArenaQrCodesModal
+            arenas={arenaUrls}
+            competitionTitle={competition.title}
+            onClose={() => setShowArenaQrModal(false)}
+          />,
+          document.body
+        )}
     </div>
   );
 
@@ -1937,13 +2010,28 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
           >
             <strong>🖥️ Kiosk (affichage public)</strong>
-            <button
-              title="Thème personnalisé kiosk"
-              className={`arena-theme-btn ${kioskTheme ? 'active' : ''}`}
-              onClick={() => setKioskThemeEditorOpen(true)}
-            >
-              ✏️ Thème
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <select
+                className="form-input"
+                style={{ width: 'auto', padding: '0.2rem 0.4rem', fontSize: '0.8rem' }}
+                value={kioskTheme ? '' : kioskPreset}
+                onChange={e => applyKioskPreset(e.target.value as 'default' | 'neon' | 'light')}
+                title="Aspect du kiosk"
+                aria-label="Aspect du kiosk"
+              >
+                {kioskTheme && <option value="">Personnalisé</option>}
+                <option value="default">🌙 Sombre</option>
+                <option value="neon">⚡ Néon</option>
+                <option value="light">☀️ Clair</option>
+              </select>
+              <button
+                title="Thème personnalisé kiosk"
+                className={`arena-theme-btn ${kioskTheme ? 'active' : ''}`}
+                onClick={() => setKioskThemeEditorOpen(true)}
+              >
+                ✏️ Thème
+              </button>
+            </div>
           </div>
           <div className="arena-url-row">
             <span className="arena-url-label">URL</span>
@@ -2394,10 +2482,10 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           initialTheme={kioskTheme}
           onApply={async (_arenaId, theme) => {
             setKioskTheme(theme);
-            const result = await window.electronAPI.remote.updateKioskTheme(
-              competition.id,
-              theme.variables
-            );
+            const result = await window.electronAPI.remote.updateKioskTheme(competition.id, {
+              '--k-preset': 'default',
+              ...theme.variables,
+            });
             setKioskThemeEditorOpen(false);
             if (result?.success) {
               showToast('Thème kiosk appliqué', 'success');

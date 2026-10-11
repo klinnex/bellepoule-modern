@@ -343,17 +343,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
           >
             {t('xiaomi.refresh_all')}
           </button>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--color-text-light)',
-              fontSize: '1.2rem',
-              padding: '0 0.2rem',
-            }}
-          >
+          <button className="btn-close" onClick={onClose} aria-label="Fermer">
             ×
           </button>
         </div>

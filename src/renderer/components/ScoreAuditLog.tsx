@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { ScoreAuditEntry, ScoreIpConflict } from '../../shared/types/preload';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
-import { getRoundName } from '../../shared/utils/tableCalculations';
+import { getRoundName } from './tableau/tableauCalculations';
 import type { MatchAuditOption } from './MatchAuditLog';
 
 interface Props {

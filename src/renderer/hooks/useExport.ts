@@ -19,6 +19,28 @@ import {
   exportDetailedStatsCSV,
 } from '../../shared/utils/multiFormatExport';
 
+import { computePoolStrips } from '../../shared/utils/poolStrips';
+import type { PoolStripQr } from '../../shared/utils/pdfExport';
+
+/** Saisie distante active : URL du serveur et nombre de pistes (QR sur les feuilles) */
+export interface PoolsRemoteInfo {
+  serverUrl: string;
+  arenaCount: number;
+}
+
+function buildStripQrs(
+  pools: Pool[],
+  remote?: PoolsRemoteInfo
+): Record<string, PoolStripQr> | undefined {
+  if (!remote?.serverUrl) return undefined;
+  const strips = computePoolStrips(pools, remote.arenaCount);
+  const out: Record<string, PoolStripQr> = {};
+  for (const [poolId, strip] of strips) {
+    out[poolId] = { strip, url: `${remote.serverUrl}/arene${strip}/arbitre` };
+  }
+  return out;
+}
+
 interface UseExportProps {
   competition: Competition;
   showToast: ReturnType<typeof useToast>['showToast'];
@@ -212,7 +234,7 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
 
   // Export PDF de toutes les poules — jsPDF chargé à la demande
   const exportPoolsPDF = useCallback(
-    async (pools: Pool[], currentPoolRound: number) => {
+    async (pools: Pool[], currentPoolRound: number, remote?: PoolsRemoteInfo) => {
       try {
         const { exportMultiplePoolsToPDF } = await import('../../shared/utils/pdfExport');
         const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
@@ -221,7 +243,8 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
           `Toutes les Poules - ${competition.title} - Tour ${currentPoolRound}`,
           logo,
           poolTemplate,
-          competition.title
+          competition.title,
+          buildStripQrs(pools, remote)
         );
         showToast(`Export PDF de ${pools.length} poules généré avec succès`, 'success');
       } catch (error) {
@@ -237,7 +260,7 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
 
   // Impression PDF de toutes les poules — dialogue d'impression natif
   const printPoolsPDF = useCallback(
-    async (pools: Pool[], currentPoolRound: number) => {
+    async (pools: Pool[], currentPoolRound: number, remote?: PoolsRemoteInfo) => {
       try {
         const { printMultiplePoolsHTML } = await import('../../shared/utils/pdfExport');
         const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
@@ -246,7 +269,8 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
           `Toutes les Poules - ${competition.title} - Tour ${currentPoolRound}`,
           logo,
           poolTemplate,
-          competition.title
+          competition.title,
+          buildStripQrs(pools, remote)
         );
       } catch (error) {
         logger.error(LogCategory.UI, "Erreur lors de l'impression des poules", error as Error);

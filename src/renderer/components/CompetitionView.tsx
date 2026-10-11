@@ -28,7 +28,7 @@ import {
   ConsolationBracket,
   isBracketComplete,
 } from './tableau/tableauTypes';
-import { getRoundName } from '../../shared/utils/tableCalculations';
+import { getRoundName } from './tableau/tableauCalculations';
 import { poolMatchesWithReferee, propagatePoolReferee } from '../../shared/utils/refereeStats';
 import type { MatchAuditOption } from './MatchAuditLog';
 import PoolRankingView from './PoolRankingView';
@@ -71,7 +71,11 @@ import CompetitionNav from './competition/CompetitionNav';
 const PlanningAssistant = React.lazy(() => import('./competition/PlanningAssistant'));
 const ExportCenterModal = React.lazy(() => import('./competition/ExportCenterModal'));
 import GlobalPoolColumnsMenu from './pool/GlobalPoolColumnsMenu';
-import WindowSizePresets from './pool/WindowSizePresets';
+import WindowSizePresets, {
+  presetScale,
+  readSavedPoolCardSize,
+  type PresetLabel,
+} from './pool/WindowSizePresets';
 import { useColumnVisibility } from '../hooks/useColumnVisibility';
 
 const PoolView = React.lazy(() => import('./PoolView'));
@@ -86,7 +90,11 @@ const MatchAuditLog = React.lazy(() =>
 );
 
 /** Libellés + arbitres des matchs pour le journal (sélection par match / arbitre) */
-function buildMatchAuditOptions(allPools: Pool[], tableau: TableauMatch[]): MatchAuditOption[] {
+function buildMatchAuditOptions(
+  allPools: Pool[],
+  tableau: TableauMatch[],
+  competitionId: string
+): MatchAuditOption[] {
   const name = (f: { lastName: string } | null | undefined) => f?.lastName ?? '?';
   const refName = (r: { firstName: string; lastName: string }) =>
     `${r.firstName} ${r.lastName}`.trim();
@@ -100,11 +108,15 @@ function buildMatchAuditOptions(allPools: Pool[], tableau: TableauMatch[]): Matc
   const tableauOpts = tableau
     .filter(m => !m.isBye && (m.fencerA || m.fencerB))
     .sort((a, b) => b.round - a.round || a.position - b.position)
-    .map(m => ({
-      id: m.id,
-      label: `${getRoundName(m.round)} — ${name(m.fencerA)} vs ${name(m.fencerB)}`,
-      referees: (m.referees?.length ? m.referees : m.referee ? [m.referee] : []).map(refName),
-    }));
+    .flatMap(m => {
+      const opt = {
+        id: m.id,
+        label: `${getRoundName(m.round)} — ${name(m.fencerA)} vs ${name(m.fencerB)}`,
+        referees: (m.referees?.length ? m.referees : m.referee ? [m.referee] : []).map(refName),
+      };
+      // Événements de tablette stockés sous l'id DB composite (#1031)
+      return [opt, { ...opt, id: `${competitionId}-${m.id}` }];
+    });
   return [...poolOpts, ...tableauOpts];
 }
 
@@ -274,6 +286,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const [maxFencersPerPool, setMaxFencersPerPool] = useState<number>(7);
 
   // Affichage des poules : grille (toutes les poules) ou poule unique avec navigation
+  const [poolCardSize, setPoolCardSize] = useState<PresetLabel>(readSavedPoolCardSize);
   const [poolsViewMode, setPoolsViewMode] = useState<'grid' | 'single'>(
     () => (localStorage.getItem('bellepoule-pools-view-mode') as 'grid' | 'single') || 'grid'
   );
@@ -1006,12 +1019,18 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     }
   };
 
+  // Saisie distante active : QR de la piste sur chaque feuille de poule (#1037)
+  const poolsRemoteInfo =
+    isRemoteActive && remoteServerUrl
+      ? { serverUrl: remoteServerUrl, arenaCount: remoteArenaCount }
+      : undefined;
+
   const handleExportAllPoolsPDF = () => {
-    exportPoolsPDF(pools, currentPoolRound);
+    exportPoolsPDF(pools, currentPoolRound, poolsRemoteInfo);
   };
 
   const handlePrintAllPoolsPDF = () => {
-    printPoolsPDF(pools, currentPoolRound);
+    printPoolsPDF(pools, currentPoolRound, poolsRemoteInfo);
   };
 
   // Ctrl+P / Cmd+P → imprimer les feuilles de poule (le tableau gère son propre raccourci)
@@ -1026,7 +1045,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [currentPhase, pools, currentPoolRound]);
+  }, [currentPhase, pools, currentPoolRound, isRemoteActive, remoteServerUrl, remoteArenaCount]);
 
   const handleImportFencers = async (importedFencers: Partial<Fencer>[]) => {
     await bulkAddFencers(importedFencers as any);
@@ -1767,9 +1786,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     () =>
       buildMatchAuditOptions(
         [...poolHistory.flat(), ...pools],
-        [...tableauMatches, ...consolationBrackets.flatMap(b => b.matches)]
+        [...tableauMatches, ...consolationBrackets.flatMap(b => b.matches)],
+        competition.id
       ),
-    [poolHistory, pools, tableauMatches, consolationBrackets]
+    [poolHistory, pools, tableauMatches, consolationBrackets, competition.id]
   );
 
   // Tireurs déjà placés dans une poule (exclus de l'ajout en cours de compétition)
@@ -1958,6 +1978,15 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             minFencersPerPool={minFencersPerPool}
             maxFencersPerPool={maxFencersPerPool}
             expertMode={expertMode}
+            arenaCount={remoteArenaCount}
+            onStripChange={(poolId, strip) => {
+              // Poule déjà lancée : piste appliquée immédiatement (saisie distante, liens, QR) (#1037)
+              const target = pools.find(p => p.id === poolId);
+              if (!target) return;
+              const updated = { ...target, strip };
+              setPools(prev => prev.map(p => (p.id === poolId ? updated : p)));
+              window.electronAPI?.db?.updatePool(updated);
+            }}
             onPoolsConfirm={async confirmedPools => {
               setPools(confirmedPools);
               setSkipPoolPhase(false);
@@ -2004,7 +2033,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                   }}
                 >
                   <GlobalPoolColumnsMenu isLaserSabre={isLaserSabre} />
-                  <WindowSizePresets />
+                  <WindowSizePresets value={poolCardSize} onChange={setPoolCardSize} />
                   <div className="btn-group" style={{ display: 'inline-flex' }}>
                     <button
                       className={`btn btn-sm ${poolsViewMode === 'grid' ? 'btn-primary' : 'btn-secondary'}`}
@@ -2081,7 +2110,12 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                         ▶
                       </button>
                     </div>
-                    <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                    <div
+                      style={{
+                        width: `${Math.min(100, 70 * presetScale(poolCardSize))}%`,
+                        margin: '0 auto',
+                      }}
+                    >
                       <Suspense fallback={null}>
                         {pools[singlePoolIndex] &&
                           renderPoolCard(pools[singlePoolIndex], singlePoolIndex)}
@@ -2095,7 +2129,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                       gap: '2rem',
                       width: '100%',
                       boxSizing: 'border-box',
-                      gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${Math.max(480, 280 + (pools[0]?.fencers?.length ?? 6) * 38)}px), 1fr))`,
+                      gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${Math.round(Math.max(480, 280 + (pools[0]?.fencers?.length ?? 6) * 38) * presetScale(poolCardSize))}px), 1fr))`,
                     }}
                   >
                     <Suspense fallback={null}>
@@ -2418,8 +2452,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             isLaserSabre={isLaserSabre}
             onClose={() => setShowExportCenter(false)}
             exportFencersList={exportFencersList}
-            exportPoolsPDF={exportPoolsPDF}
-            printPoolsPDF={printPoolsPDF}
+            exportPoolsPDF={(p, round) => exportPoolsPDF(p, round, poolsRemoteInfo)}
+            printPoolsPDF={(p, round) => printPoolsPDF(p, round, poolsRemoteInfo)}
             exportRanking={exportRanking}
             exportRankingExcelCSV={exportRankingExcelCSV}
             exportResults={exportResults}

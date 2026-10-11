@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { Funnel } from 'lucide-react';
 import { useModalResize } from '../hooks/useModalResize';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import {
@@ -351,6 +352,12 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     },
     [isLaserSabre, isColumnVisible, pool.id]
   );
+
+  // Filtre de colonnes modifié (colonne masquée ou option PDF) → bordure orange (#1032)
+  const columnFilterEdited =
+    POOL_COLUMNS.some(col => (col.id !== 'quest' || isLaserSabre) && !isVisible(col.id)) ||
+    pdfHideStatColumns ||
+    pdfLandscape;
 
   const columnMenuRef = useRef<HTMLDivElement>(null);
   const handleScoreSubmitRef = useRef<() => void>(() => {});
@@ -1059,39 +1066,45 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       if (assignments.size > 0) onAutoFillReferees(assignments);
     }
 
+    // Scores tirés au hasard, puis appliqués ; une seule action annulable (Ctrl+Z) (#1037)
+    const generated: Array<{ index: number; a: number; b: number; winner?: 'A' | 'B' }> = [];
     for (const { index } of pendingMatches) {
-      // Générer des scores aléatoires
       const scoreA = Math.floor(Math.random() * (maxScore + 1));
       const scoreB = Math.floor(Math.random() * (maxScore + 1));
 
-      // Si les scores sont égaux
       if (scoreA === scoreB) {
         if (isLaserSabre) {
           // En sabre laser, désigner un vainqueur aléatoire en cas d'égalité
-          const winnerOverride = Math.random() > 0.5 ? 'A' : 'B';
-          onScoreUpdate(index, scoreA, scoreB, winnerOverride);
-        } else {
+          generated.push({ index, a: scoreA, b: scoreB, winner: Math.random() > 0.5 ? 'A' : 'B' });
+        } else if (scoreA === 0) {
           // En escrime classique, éviter l'égalité
-          if (scoreA === 0) {
-            // Si les deux sont à 0, mettre l'un à 1
-            onScoreUpdate(index, 1, 0);
-          } else {
-            // Sinon, donner la victoire à un des deux aléatoirement
-            if (Math.random() > 0.5) {
-              onScoreUpdate(index, scoreA + 1, scoreB);
-            } else {
-              onScoreUpdate(index, scoreA, scoreB + 1);
-            }
-          }
+          generated.push({ index, a: 1, b: 0 });
+        } else if (Math.random() > 0.5) {
+          generated.push({ index, a: scoreA + 1, b: scoreB });
+        } else {
+          generated.push({ index, a: scoreA, b: scoreB + 1 });
         }
       } else {
         // Scores différents : désigner le vainqueur explicitement
-        const winnerOverride: 'A' | 'B' = scoreA > scoreB ? 'A' : 'B';
-        onScoreUpdate(index, scoreA, scoreB, winnerOverride);
+        generated.push({ index, a: scoreA, b: scoreB, winner: scoreA > scoreB ? 'A' : 'B' });
       }
     }
 
-    setMatchesUpdateTrigger(prev => prev + 1);
+    const applyGenerated = () => {
+      for (const g of generated) onScoreUpdate(g.index, g.a, g.b, g.winner);
+      setMatchesUpdateTrigger(prev => prev + 1);
+    };
+    addAction({
+      type: 'UPDATE_SCORE',
+      description: `Scores aléatoires poule ${pool.number} (${generated.length} matchs)`,
+      undo: () => {
+        for (const g of generated) onMatchReset?.(g.index);
+        setMatchesUpdateTrigger(prev => prev + 1);
+      },
+      redo: applyGenerated,
+    });
+    applyGenerated();
+
     showToast(`Scores générés pour ${pendingMatches.length} match(s)`, 'success');
   };
 
@@ -1716,11 +1729,16 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   ...ICON_ONLY_BTN,
                   background: showColumnMenu ? '#6b7280' : '#e5e7eb',
                   color: showColumnMenu ? 'white' : '#374151',
+                  ...(columnFilterEdited ? { border: '2px solid #f97316' } : {}),
                 }}
-                title="Afficher/masquer les colonnes"
+                title={
+                  columnFilterEdited
+                    ? 'Afficher/masquer les colonnes (filtre modifié)'
+                    : 'Afficher/masquer les colonnes'
+                }
                 aria-label="Afficher/masquer les colonnes"
               >
-                ⚙️
+                <Funnel size={14} />
               </button>
               {showColumnMenu && (
                 <div style={COL_MENU}>
@@ -1729,7 +1747,9 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                     <label
                       key={col.id}
                       style={COL_MENU_LABEL}
-                      onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                      onMouseEnter={e =>
+                        (e.currentTarget.style.background = 'var(--color-surface-2)')
+                      }
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
                       <input
@@ -1746,7 +1766,9 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   </div>
                   <label
                     style={COL_MENU_LABEL}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                    onMouseEnter={e =>
+                      (e.currentTarget.style.background = 'var(--color-surface-2)')
+                    }
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
                     <input
@@ -1759,7 +1781,9 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   </label>
                   <label
                     style={COL_MENU_LABEL}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                    onMouseEnter={e =>
+                      (e.currentTarget.style.background = 'var(--color-surface-2)')
+                    }
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
                     <input

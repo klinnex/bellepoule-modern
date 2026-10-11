@@ -440,6 +440,17 @@ export interface RemoteServerAPI {
     competitionId: string,
     poolsData: Array<{ poolId: string; matches: any[] }>
   ) => Promise<{ success: boolean; error?: string }>;
+  /** Réassigne les poules aux pistes pendant une session active (#1037) */
+  assignPools: (
+    competitionId: string,
+    poolsData: Array<{
+      poolId: string;
+      poolNumber?: number;
+      strip?: number | null;
+      fencers?: any[];
+      matches: any[];
+    }>
+  ) => Promise<{ success: boolean; error?: string }>;
   refreshDeMatches: (
     competitionId: string,
     matches: any[]

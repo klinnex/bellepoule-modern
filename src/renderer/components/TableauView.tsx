@@ -105,7 +105,7 @@ const TV_STYLES = {
   root: { padding: '1rem' } satisfies React.CSSProperties,
   scrollArea: {
     padding: '1rem',
-    background: '#f9fafb',
+    background: 'var(--tableau-bg, #f9fafb)',
     borderRadius: '8px',
     maxHeight: '70vh',
     overflowY: 'auto' as const,
@@ -165,7 +165,7 @@ const TV_STYLES = {
     textAlign: 'center' as const,
     fontWeight: '600',
     marginBottom: '0.5rem',
-    color: '#374151',
+    color: 'var(--tableau-title, #374151)',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -1190,18 +1190,18 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       <div
         key={round}
         style={{
-          background: 'white',
+          background: 'var(--tableau-panel, white)',
           borderRadius: '8px',
           marginBottom: '0.5rem',
           overflow: 'hidden',
-          border: '1px solid #e5e7eb',
+          border: '1px solid var(--tableau-border, #e5e7eb)',
         }}
       >
         <div
           onClick={() => toggleRoundExpansion(round)}
           style={{
             padding: '0.75rem 1rem',
-            background: '#f3f4f6',
+            background: 'var(--tableau-panel-header, #f3f4f6)',
             cursor: 'pointer',
             display: 'flex',
             justifyContent: 'space-between',
@@ -1211,7 +1211,9 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontSize: '1rem' }}>{isExpanded ? '▼' : '▶'}</span>
-            <span style={{ fontWeight: '600', color: '#374151' }}>{roundName}</span>
+            <span style={{ fontWeight: '600', color: 'var(--tableau-title, #374151)' }}>
+              {roundName}
+            </span>
           </div>
           <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
             {roundMatches.length} match{roundMatches.length !== 1 ? 's' : ''}

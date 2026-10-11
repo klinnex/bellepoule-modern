@@ -7,6 +7,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { Funnel } from 'lucide-react';
 import { useColumnVisibility, POOL_COLUMNS, ColumnId } from '../../hooks/useColumnVisibility';
 
 interface GlobalPoolColumnsMenuProps {
@@ -51,6 +52,8 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
   }, [open, updatePos]);
 
   const columns = POOL_COLUMNS.filter(col => col.id !== 'quest' || isLaserSabre);
+  // Colonne masquée → bordure orange (#1032)
+  const filterEdited = columns.some(col => !visibility.pool.includes(col.id));
 
   const toggle = (id: ColumnId) => {
     const current = visibility.pool;
@@ -60,8 +63,18 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
 
   return (
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      <button ref={btnRef} className="btn btn-secondary" onClick={() => setOpen(o => !o)}>
-        🧱 Colonnes (toutes les poules)
+      <button
+        ref={btnRef}
+        className="btn btn-secondary"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+          ...(filterEdited ? { border: '2px solid #f97316' } : {}),
+        }}
+      >
+        <Funnel size={15} /> Colonnes (toutes les poules)
       </button>
       {open &&
         createPortal(
@@ -71,8 +84,9 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
               position: 'fixed',
               top: pos.top,
               left: pos.left,
-              background: 'white',
-              border: '1px solid #e5e7eb',
+              background: 'var(--color-surface)',
+              color: 'var(--color-text)',
+              border: '1px solid var(--color-border)',
               borderRadius: '6px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               zIndex: 9999,
@@ -87,7 +101,7 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
                 fontSize: '0.75rem',
                 fontWeight: 600,
                 padding: '0.25rem 0.5rem',
-                borderBottom: '1px solid #e5e7eb',
+                borderBottom: '1px solid var(--color-border)',
                 marginBottom: '0.25rem',
               }}
             >
@@ -105,7 +119,7 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
                   borderRadius: '4px',
                   fontSize: '0.8rem',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-2)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
                 <input
