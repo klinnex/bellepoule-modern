@@ -81,6 +81,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
     category: '',
     nationality: 'FRA',
   });
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [addError, setAddError] = useState('');
   const [importStatus, setImportStatus] = useState<{ count: number; errors: string[] } | null>(
     null
@@ -337,7 +338,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
             }}
           >
             <h3 style={{ marginBottom: '0.75rem', fontSize: '1rem', color: 'var(--color-text)' }}>
-              Ajouter un arbitre
+              {editingId ? 'Modifier un arbitre' : 'Ajouter un arbitre'}
             </h3>
             <div
               style={{
@@ -383,45 +384,95 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 {addError}
               </p>
             )}
-            <button
-              onClick={async () => {
-                if (!newReferee.name.trim()) {
-                  setAddError('Le nom est obligatoire');
-                  return;
-                }
-                try {
-                  const created = await window.electronAPI.db.createReferee(competition.id, {
-                    name: newReferee.name.trim(),
-                    club: newReferee.club || undefined,
-                    license: newReferee.license || undefined,
-                    category: newReferee.category || undefined,
-                    nationality: newReferee.nationality || 'FRA',
-                  });
-                  onRefereesChange([...referees, created]);
-                  setNewReferee({
-                    name: '',
-                    club: '',
-                    license: '',
-                    category: '',
-                    nationality: 'FRA',
-                  });
-                  setAddError('');
-                } catch (e: any) {
-                  setAddError(e?.message ?? 'Erreur');
-                }
-              }}
-              style={{
-                background: '#3b82f6',
-                color: 'white',
-                border: 'none',
-                padding: '0.5rem 1.25rem',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: '500',
-              }}
-            >
-              ＋ Ajouter
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={async () => {
+                  if (!newReferee.name.trim()) {
+                    setAddError('Le nom est obligatoire');
+                    return;
+                  }
+                  try {
+                    if (editingId) {
+                      const updates = {
+                        name: newReferee.name.trim(),
+                        club: newReferee.club,
+                        license: newReferee.license,
+                        category: newReferee.category,
+                        nationality: newReferee.nationality || 'FRA',
+                      };
+                      await window.electronAPI.db.updateReferee(editingId, updates);
+                      const parts = updates.name.split(/\s+/);
+                      const firstName = parts.length > 1 ? parts.slice(0, -1).join(' ') : '';
+                      const lastName = parts[parts.length - 1];
+                      onRefereesChange(
+                        referees.map(r =>
+                          r.id === editingId
+                            ? {
+                                ...r,
+                                firstName,
+                                lastName,
+                                club: updates.club || undefined,
+                                license: updates.license || undefined,
+                                category: updates.category || undefined,
+                                nationality: updates.nationality,
+                              }
+                            : r
+                        )
+                      );
+                      setEditingId(null);
+                    } else {
+                      const created = await window.electronAPI.db.createReferee(competition.id, {
+                        name: newReferee.name.trim(),
+                        club: newReferee.club || undefined,
+                        license: newReferee.license || undefined,
+                        category: newReferee.category || undefined,
+                        nationality: newReferee.nationality || 'FRA',
+                      });
+                      onRefereesChange([...referees, created]);
+                    }
+                    setNewReferee({
+                      name: '',
+                      club: '',
+                      license: '',
+                      category: '',
+                      nationality: 'FRA',
+                    });
+                    setAddError('');
+                  } catch (e: any) {
+                    setAddError(e?.message ?? 'Erreur');
+                  }
+                }}
+                style={{
+                  background: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.5rem 1.25rem',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                }}
+              >
+                {editingId ? '💾 Enregistrer' : '＋ Ajouter'}
+              </button>
+              {editingId && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setEditingId(null);
+                    setAddError('');
+                    setNewReferee({
+                      name: '',
+                      club: '',
+                      license: '',
+                      category: '',
+                      nationality: 'FRA',
+                    });
+                  }}
+                >
+                  Annuler
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Import fichier Arbitres */}
@@ -528,6 +579,29 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                       })()}
                     </td>
                     <td style={TD}>
+                      <button
+                        onClick={() => {
+                          setEditingId(ref.id);
+                          setAddError('');
+                          setNewReferee({
+                            name: `${ref.firstName} ${ref.lastName}`.trim(),
+                            club: ref.club ?? '',
+                            license: ref.license ?? '',
+                            category: ref.category ?? '',
+                            nationality: ref.nationality ?? 'FRA',
+                          });
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                        }}
+                        title="Modifier"
+                      >
+                        ✏️
+                      </button>
                       <button
                         onClick={async () => {
                           try {
@@ -705,28 +779,28 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 />
                 Équilibrer les assignations
               </label>
-              <label>
-                Matchs consécutifs max:
+              <label style={FLEX_GAP}>
+                Matchs consécutifs max :
                 <input
                   type="number"
                   value={config.maxConsecutiveMatches}
                   onChange={e =>
                     setConfig({ ...config, maxConsecutiveMatches: parseInt(e.target.value) || 3 })
                   }
-                  style={SMALL_INPUT}
+                  style={{ ...SMALL_INPUT, marginLeft: 0 }}
                   min="1"
                   max="10"
                 />
               </label>
-              <label>
-                Temps de repos min (min):
+              <label style={FLEX_GAP}>
+                Temps de repos minimum :
                 <input
                   type="number"
                   value={config.minRestTimeMinutes}
                   onChange={e =>
                     setConfig({ ...config, minRestTimeMinutes: parseInt(e.target.value) || 15 })
                   }
-                  style={SMALL_INPUT}
+                  style={{ ...SMALL_INPUT, marginLeft: 0 }}
                   min="0"
                   max="60"
                 />
