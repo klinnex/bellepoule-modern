@@ -24,6 +24,9 @@ export interface PoolExportOptions {
   qrDataUrl?: string; // data URL QR généré par l'appelant
   hideStatColumns?: boolean; // masque V, V/M, TD, TR, Ind, Rg, Quest (feuille à remplir à la main)
   landscape?: boolean; // A4 paysage
+  stripQrUrl?: string; // saisie distante active : URL arbitre de la piste de la poule
+  stripQrDataUrl?: string; // QR de stripQrUrl, généré par buildPoolExportHTML
+  stripNumber?: number;
 }
 
 /** Colonnes calculées masquées par l'option `hideStatColumns`. */
@@ -235,6 +238,11 @@ export function generatePoolHTML(
       <h1>${effectiveTitle}</h1>
       <div class="subtitle">Grille de poule • ${finishedCount}/${matches.length} matchs joués${refereeLabel ? ' &nbsp;' + refereeLabel : ''}</div>
     </div>
+    ${
+      options.stripQrDataUrl
+        ? `<div class="doc-header-strip-qr" title="Piste ${options.stripNumber ?? ''}"><img src="${options.stripQrDataUrl}" alt="QR piste" /><span>Piste ${options.stripNumber ?? ''}</span></div>`
+        : ''
+    }
     <div class="doc-header-badge">P${pool.number}</div>
   </div>`,
     'gold-bar': `  <div class="gold-bar"></div>`,
@@ -447,7 +455,21 @@ async function buildPoolExportHTML(
     // QR silencieusement omis si qrcode indisponible
   }
 
-  return generatePoolHTML(pool, { ...options, title, qrDataUrl }, template);
+  let stripQrDataUrl: string | undefined;
+  if (options.stripQrUrl) {
+    try {
+      const QRCode = (await import('qrcode')).default;
+      stripQrDataUrl = await QRCode.toDataURL(options.stripQrUrl, {
+        width: 140,
+        margin: 1,
+        color: { dark: '#000', light: '#fff' },
+      });
+    } catch {
+      // QR de piste omis si qrcode indisponible
+    }
+  }
+
+  return generatePoolHTML(pool, { ...options, title, qrDataUrl, stripQrDataUrl }, template);
 }
 
 export async function exportPoolToPDF(
@@ -459,18 +481,31 @@ export async function exportPoolToPDF(
   await savePDF(html, `poule-${pool.number}.pdf`);
 }
 
+/** Saisie distante active : QR de la piste de chaque poule sur sa feuille (#1037) */
+export interface PoolStripQr {
+  url: string;
+  strip: number;
+}
+
 export async function exportMultiplePoolsToPDF(
   pools: Pool[],
   title: string = 'Export des Poules',
   logoBase64?: string,
   template?: PdfTemplate,
-  competitionName?: string
+  competitionName?: string,
+  stripQrs?: Record<string, PoolStripQr>
 ): Promise<void> {
   if (pools.length === 0) throw new Error('Aucune poule à exporter');
   for (const pool of pools) {
     await exportPoolToPDF(
       pool,
-      { title: `${title} - Poule ${pool.number}`, logoBase64, competitionName },
+      {
+        title: `${title} - Poule ${pool.number}`,
+        logoBase64,
+        competitionName,
+        stripQrUrl: stripQrs?.[pool.id]?.url,
+        stripNumber: stripQrs?.[pool.id]?.strip,
+      },
       template
     );
   }
@@ -499,13 +534,20 @@ export async function printMultiplePoolsHTML(
   title: string = 'Impression des Poules',
   logoBase64?: string,
   template?: PdfTemplate,
-  competitionName?: string
+  competitionName?: string,
+  stripQrs?: Record<string, PoolStripQr>
 ): Promise<void> {
   if (pools.length === 0) throw new Error('Aucune poule à imprimer');
   for (const pool of pools) {
     await printPoolHTML(
       pool,
-      { title: `${title} - Poule ${pool.number}`, logoBase64, competitionName },
+      {
+        title: `${title} - Poule ${pool.number}`,
+        logoBase64,
+        competitionName,
+        stripQrUrl: stripQrs?.[pool.id]?.url,
+        stripNumber: stripQrs?.[pool.id]?.strip,
+      },
       template
     );
   }

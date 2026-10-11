@@ -1832,6 +1832,17 @@ ipcMain.handle(
   }
 );
 
+ipcMain.handle('remote:assignPools', async (_, competitionId: string, poolsData: any[]) => {
+  try {
+    const entry = remoteServers.get(competitionId);
+    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    entry.server.assignPools(poolsData);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
+  }
+});
+
 ipcMain.handle('remote:refreshDeMatches', async (_, competitionId: string, matches: any[]) => {
   try {
     const entry = remoteServers.get(competitionId);

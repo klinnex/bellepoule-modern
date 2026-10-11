@@ -127,6 +127,25 @@ export const BASE_CSS = `
     justify-content: center;
     flex-shrink: 0;
   }
+  .doc-header-strip-qr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5mm;
+    margin-right: 3mm;
+    flex-shrink: 0;
+  }
+  .doc-header-strip-qr img {
+    width: 16mm;
+    height: 16mm;
+    background: #fff;
+    border-radius: 1mm;
+  }
+  .doc-header-strip-qr span {
+    font-size: 6.5pt;
+    color: var(--gold-light);
+    font-weight: 700;
+  }
   .gold-bar {
     height: 3px;
     background: linear-gradient(90deg, var(--navy) 0%, var(--gold) 50%, var(--navy) 100%);

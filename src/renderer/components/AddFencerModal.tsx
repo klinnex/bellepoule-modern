@@ -94,12 +94,8 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
       >
         <div className="modal-header">
           <h2 className="modal-title">{t('fencer.add')}</h2>
-          <button
-            className="btn btn-icon btn-secondary"
-            onClick={onClose}
-            style={{ padding: '0.25rem' }}
-          >
-            ✕
+          <button className="btn-close" onClick={onClose} aria-label="Fermer">
+            ×
           </button>
         </div>
 

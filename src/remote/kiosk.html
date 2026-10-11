@@ -23,6 +23,37 @@
         --k-progress: linear-gradient(90deg, #3b82f6, #8b5cf6);
       }
 
+      /* ── Thème Néon (inspiré de l'affichage des pistes, #1036) ── */
+      html[data-k-theme="neon"] {
+        --k-bg: #0a0a0a;
+        --k-accent: #00ff88;
+        --k-accent2: #ff2244;
+        --k-card-bg: rgba(0, 255, 136, 0.04);
+        --k-border: rgba(0, 255, 136, 0.25);
+        --k-muted: #a0a0a0;
+        --k-progress: linear-gradient(90deg, #00ff88, #ff2244);
+      }
+      html[data-k-theme="neon"] .view-title,
+      html[data-k-theme="neon"] .focus-round-label {
+        color: #00ff88;
+        text-shadow: 0 0 8px rgba(0, 255, 136, 0.8), 0 0 18px rgba(0, 255, 136, 0.4);
+      }
+      html[data-k-theme="neon"] .pool-card,
+      html[data-k-theme="neon"] .focus-match-card {
+        box-shadow: 0 0 10px rgba(0, 255, 136, 0.15);
+      }
+
+      /* ── Thème Clair : inversion des couleurs du thème sombre, photos préservées ── */
+      html[data-k-theme="light"] {
+        filter: invert(1) hue-rotate(180deg);
+        background: #0f172a;
+      }
+      html[data-k-theme="light"] img,
+      html[data-k-theme="light"] video,
+      html[data-k-theme="light"] canvas {
+        filter: invert(1) hue-rotate(180deg);
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -861,7 +892,13 @@
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        scroll-behavior: smooth;
+        scroll-behavior: auto;
+        transition: opacity 0.6s ease;
+      }
+
+      /* Transition entre phases de tableau en cours (#1036) */
+      #bracket-focus-scroll.focus-fade {
+        opacity: 0;
       }
 
       .focus-match-card {
@@ -1404,6 +1441,8 @@
         clearInterval(focusState.panTimer);
         clearInterval(focusState.progressTimer);
         cancelAnimationFrame(focusState.scrollAnim);
+        clearTimeout(focusState.scrollDelay);
+        clearTimeout(focusState.fadeTimer);
         focusState.panTimer = null;
         if (name !== 'tableau') stopCinemaMode();
 
@@ -2123,7 +2162,12 @@
         const focusOuter = document.getElementById('bracket-focus-outer');
         focusOuter.classList.add('active');
 
-        focusState.rounds = getBracketRoundOrder(data.rounds);
+        // Uniquement les phases en cours : au moins un match à deux opposants non joué (#1036)
+        const allRounds = getBracketRoundOrder(data.rounds);
+        const ongoing = allRounds.filter(r =>
+          r.matches.some(m => !m.isBye && m.fencerA && m.fencerB && m.status !== 'finished')
+        );
+        focusState.rounds = ongoing.length > 0 ? ongoing : allRounds;
         // Démarrer sur le round courant si possible
         const curIdx = focusState.rounds.findIndex(r => r.round === data.currentRound);
         focusState.currentIdx = curIdx >= 0 ? curIdx : 0;
@@ -2137,6 +2181,9 @@
         clearInterval(focusState.panTimer);
         clearInterval(focusState.progressTimer);
         cancelAnimationFrame(focusState.scrollAnim);
+        clearTimeout(focusState.scrollDelay);
+        clearTimeout(focusState.fadeTimer);
+        document.getElementById('bracket-focus-scroll')?.classList.remove('focus-fade');
         focusState.panTimer = null;
         focusState.progressTimer = null;
         document.getElementById('bracket-outer').style.display = '';
@@ -2324,26 +2371,43 @@
         startFocusScroll(scroll);
       }
 
+      // Défilement progressif vers le bas sur toute la durée d'affichage du round (#1036) :
+      // courte pause en haut, descente linéaire, courte pause en bas avant la transition.
+      const FOCUS_HOLD_MS = 1000;
       function startFocusScroll(wrapper) {
         cancelAnimationFrame(focusState.scrollAnim);
-        const duration = focusState.durationMs * 0.75; // scroll sur 75% du temps du round
-        const startTime = performance.now();
+        clearTimeout(focusState.scrollDelay);
+        const duration = Math.max(1000, focusState.durationMs - 2 * FOCUS_HOLD_MS - 600);
+        let startTime = null;
 
         function step(now) {
-          const elapsed = now - startTime;
+          if (startTime === null) startTime = now;
           const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
           if (maxScroll <= 0) return;
-          const progress = Math.min(1, elapsed / duration);
+          const progress = Math.min(1, (now - startTime) / duration);
           wrapper.scrollTop = progress * maxScroll;
           if (progress < 1) {
             focusState.scrollAnim = requestAnimationFrame(step);
           }
         }
 
-        // Délai avant de commencer le scroll (laisser le temps de lire le haut)
-        setTimeout(() => {
+        focusState.scrollDelay = setTimeout(() => {
           focusState.scrollAnim = requestAnimationFrame(step);
-        }, 1500);
+        }, FOCUS_HOLD_MS);
+      }
+
+      // Fondu sortant → round suivant → fondu entrant
+      function transitionFocusRound(nextIdx) {
+        const scroll = document.getElementById('bracket-focus-scroll');
+        cancelAnimationFrame(focusState.scrollAnim);
+        clearTimeout(focusState.scrollDelay);
+        scroll.classList.add('focus-fade');
+        clearTimeout(focusState.fadeTimer);
+        focusState.fadeTimer = setTimeout(() => {
+          focusState.currentIdx = nextIdx;
+          renderFocusRound();
+          scroll.classList.remove('focus-fade');
+        }, 600);
       }
 
       function startFocusPan() {
@@ -2360,10 +2424,9 @@
         }, 100);
 
         focusState.panTimer = setInterval(() => {
-          focusState.currentIdx = (focusState.currentIdx + 1) % focusState.rounds.length;
           document.getElementById('focus-round-progress-bar').style.width = '0%';
           focusState.progressStart = Date.now();
-          renderFocusRound();
+          transitionFocusRound((focusState.currentIdx + 1) % focusState.rounds.length);
         }, focusState.durationMs);
       }
 
@@ -2717,8 +2780,18 @@
               return;
             }
             if (cmd.type === 'kiosk:theme' && cmd.variables) {
+              const root = document.documentElement;
+              const preset = cmd.variables['--k-preset'];
+              if (preset !== undefined) {
+                // Thème prédéfini (néon / clair / défaut) : remplace les variables personnalisées
+                Array.from(root.style)
+                  .filter(p => p.startsWith('--k-'))
+                  .forEach(p => root.style.removeProperty(p));
+                if (preset === 'neon' || preset === 'light') root.setAttribute('data-k-theme', preset);
+                else root.removeAttribute('data-k-theme');
+              }
               Object.entries(cmd.variables).forEach(([k, v]) => {
-                document.documentElement.style.setProperty(k, String(v));
+                if (k !== '--k-preset') root.style.setProperty(k, String(v));
               });
               return;
             }

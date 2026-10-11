@@ -21,6 +21,10 @@ interface PoolPrepViewProps {
   minFencersPerPool?: number;
   maxFencersPerPool?: number;
   expertMode?: boolean;
+  /** Nombre de pistes de la saisie distante (choix de piste en mode expert) */
+  arenaCount?: number;
+  /** Piste modifiée : appliquée immédiatement si la poule est déjà lancée (#1037) */
+  onStripChange?: (poolId: string, strip: number | undefined) => void;
   onPoolsConfirm: (pools: Pool[]) => void;
   onSkipPools?: () => void;
   onSettingsChange?: (min: number, max: number) => void;
@@ -49,6 +53,8 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   minFencersPerPool: initialMin = 5,
   maxFencersPerPool: initialMax = 7,
   expertMode = false,
+  arenaCount = 1,
+  onStripChange,
   onPoolsConfirm,
   onSkipPools,
   onSettingsChange,
@@ -61,6 +67,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const [draggedFencer, setDraggedFencer] = useState<{ fencer: Fencer; poolIndex: number } | null>(
     null
   );
+  const [dropTarget, setDropTarget] = useState<{ poolIndex: number; index: number } | null>(null);
 
   interface SeparationCriterion {
     key: SeparationCriterionKey;
@@ -314,99 +321,74 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     e.preventDefault();
   };
 
-  const handleDrop = (e: React.DragEvent, targetPoolIndex: number) => {
+  // Dépose un tireur dans une poule, à la position targetIndex (fin de poule par défaut).
+  // Même poule → réordonnancement par glisser vers le haut / bas (#1037).
+  const handleDrop = (e: React.DragEvent, targetPoolIndex: number, targetIndex?: number) => {
     e.preventDefault();
+    e.stopPropagation();
+    setDropTarget(null);
 
-    if (!draggedFencer || draggedFencer.poolIndex === targetPoolIndex) {
-      setDraggedFencer(null);
+    if (!draggedFencer) return;
+    const movedFencer = draggedFencer.fencer;
+    const fromPoolIndex = draggedFencer.poolIndex;
+    setDraggedFencer(null);
+
+    const source = pools[fromPoolIndex];
+    const fromIndex = source.fencers.findIndex(f => f.id === movedFencer.id);
+    if (fromIndex < 0) return;
+
+    if (fromPoolIndex === targetPoolIndex) {
+      let insertAt = targetIndex ?? source.fencers.length;
+      if (insertAt > fromIndex) insertAt--;
+      if (insertAt === fromIndex) return;
+      saveToHistory();
+      const newFencers = source.fencers.filter(f => f.id !== movedFencer.id);
+      newFencers.splice(insertAt, 0, movedFencer);
+      setPools(
+        pools.map((p, i) =>
+          i === targetPoolIndex ? regenerateMatches({ ...p, fencers: newFencers }) : p
+        )
+      );
       return;
     }
 
     saveToHistory();
-
-    const movedFencer = draggedFencer.fencer;
-    const fromPoolIndex = draggedFencer.poolIndex;
-
     const updatedPools = pools.map((pool, index) => {
       if (index === fromPoolIndex) {
         const newFencers = pool.fencers.filter(f => f.id !== movedFencer.id);
         return regenerateMatches({ ...pool, fencers: newFencers });
       }
       if (index === targetPoolIndex) {
-        const newFencers = [...pool.fencers, movedFencer];
+        const newFencers = [...pool.fencers];
+        newFencers.splice(targetIndex ?? newFencers.length, 0, movedFencer);
         return regenerateMatches({ ...pool, fencers: newFencers });
       }
       return pool;
     });
-
-    setPools(updatedPools);
-    setDraggedFencer(null);
-  };
-
-  const handleMoveFencer = (fencerId: string, fromPoolIndex: number, toPoolIndex: number) => {
-    if (fromPoolIndex === toPoolIndex) return;
-
-    const movedFencer = pools[fromPoolIndex].fencers.find(f => f.id === fencerId);
-    if (!movedFencer) return;
-
-    saveToHistory();
-
-    const updatedPools = pools.map((pool, index) => {
-      if (index === fromPoolIndex) {
-        const newFencers = pool.fencers.filter(f => f.id !== fencerId);
-        return regenerateMatches({ ...pool, fencers: newFencers });
-      }
-      if (index === toPoolIndex) {
-        const newFencers = [...pool.fencers, movedFencer];
-        return regenerateMatches({ ...pool, fencers: newFencers });
-      }
-      return pool;
-    });
-
-    setPools(updatedPools);
-  };
-
-  const handleMoveFencerUp = (poolIndex: number, fencerIndex: number) => {
-    if (fencerIndex === 0) return;
-
-    saveToHistory();
-
-    const pool = pools[poolIndex];
-    const newFencers = [...pool.fencers];
-    [newFencers[fencerIndex - 1], newFencers[fencerIndex]] = [
-      newFencers[fencerIndex],
-      newFencers[fencerIndex - 1],
-    ];
-
-    const updatedPools = pools.map((p, i) =>
-      i === poolIndex ? regenerateMatches({ ...p, fencers: newFencers }) : p
-    );
-
-    setPools(updatedPools);
-  };
-
-  const handleMoveFencerDown = (poolIndex: number, fencerIndex: number) => {
-    const pool = pools[poolIndex];
-    if (fencerIndex >= pool.fencers.length - 1) return;
-
-    saveToHistory();
-
-    const newFencers = [...pool.fencers];
-    [newFencers[fencerIndex], newFencers[fencerIndex + 1]] = [
-      newFencers[fencerIndex + 1],
-      newFencers[fencerIndex],
-    ];
-
-    const updatedPools = pools.map((p, i) =>
-      i === poolIndex ? regenerateMatches({ ...p, fencers: newFencers }) : p
-    );
 
     setPools(updatedPools);
   };
 
   const handleStripChange = (poolIndex: number, strip: number | undefined) => {
+    const pool = pools[poolIndex];
     setPools(pools.map((p, i) => (i === poolIndex ? { ...p, strip } : p)));
+    if (pool) onStripChange?.(pool.id, strip);
   };
+
+  // Pistes attribuées à plusieurs poules → signalées en rouge
+  const duplicateStrips = new Set<number>();
+  {
+    const seen = new Set<number>();
+    pools.forEach(p => {
+      if (p.strip == null) return;
+      if (seen.has(p.strip)) duplicateStrips.add(p.strip);
+      seen.add(p.strip);
+    });
+  }
+  const stripOptions = Array.from(
+    { length: Math.max(arenaCount, ...pools.map(p => p.strip ?? 0)) },
+    (_, i) => i + 1
+  );
 
   const getFencerCountStats = () => {
     if (pools.length === 0) return { min: 0, max: 0, avg: 0 };
@@ -745,28 +727,29 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                         }}
                       >
                         Piste
-                        <input
-                          type="number"
-                          min={1}
+                        <select
                           value={pool.strip ?? ''}
-                          placeholder="–"
                           onChange={e => {
                             const val = e.target.value;
                             handleStripChange(
                               poolIndex,
-                              val === '' ? undefined : Math.max(1, parseInt(val))
+                              val === '' ? undefined : parseInt(val, 10)
                             );
                           }}
-                          style={{
-                            width: '48px',
-                            padding: '0.1rem 0.3rem',
-                            fontSize: '0.78rem',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: '4px',
-                            background: 'var(--color-surface)',
-                            color: 'var(--color-text)',
-                          }}
-                        />
+                          title={
+                            pool.strip != null && duplicateStrips.has(pool.strip)
+                              ? 'Piste attribuée à plusieurs poules'
+                              : 'Piste de la saisie distante'
+                          }
+                          className={`pool-prep-strip-select${pool.strip != null && duplicateStrips.has(pool.strip) ? ' duplicate' : ''}`}
+                        >
+                          <option value="">–</option>
+                          {stripOptions.map(n => (
+                            <option key={n} value={n}>
+                              {n}
+                            </option>
+                          ))}
+                        </select>
                       </label>
                     )}
                     <span className={`pool-prep-count-badge${isOutOfRange ? ' danger' : ''}`}>
@@ -783,7 +766,22 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                         key={fencer.id}
                         draggable
                         onDragStart={() => handleDragStart(fencer, poolIndex)}
-                        className={`pool-prep-fencer-row${draggedFencer?.fencer.id === fencer.id ? ' pool-prep-fencer-row-dragging' : ''}`}
+                        onDragEnd={() => {
+                          setDraggedFencer(null);
+                          setDropTarget(null);
+                        }}
+                        onDragOver={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const r = e.currentTarget.getBoundingClientRect();
+                          const index =
+                            e.clientY < r.top + r.height / 2 ? fencerIndex : fencerIndex + 1;
+                          if (dropTarget?.poolIndex !== poolIndex || dropTarget.index !== index) {
+                            setDropTarget({ poolIndex, index });
+                          }
+                        }}
+                        onDrop={e => handleDrop(e, poolIndex, dropTarget?.index ?? fencerIndex)}
+                        className={`pool-prep-fencer-row${draggedFencer?.fencer.id === fencer.id ? ' pool-prep-fencer-row-dragging' : ''}${dropTarget?.poolIndex === poolIndex && dropTarget.index === fencerIndex ? ' drop-before' : ''}${dropTarget?.poolIndex === poolIndex && dropTarget.index === fencerIndex + 1 && fencerIndex === pool.fencers.length - 1 ? ' drop-after' : ''}`}
                       >
                         <span className="pool-prep-drag-handle">⠿</span>
                         <span className="pool-prep-position">{fencerIndex + 1}</span>
@@ -817,44 +815,6 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                           </span>
                         )}
                         {hasClubConflict && <span className="pool-prep-conflict-dot" />}
-                        <div className="pool-prep-row-actions">
-                          {fencerIndex > 0 && (
-                            <button
-                              onClick={() => handleMoveFencerUp(poolIndex, fencerIndex)}
-                              title="Monter"
-                              className="pool-prep-btn-move"
-                            >
-                              ↑
-                            </button>
-                          )}
-                          {fencerIndex < pool.fencers.length - 1 && (
-                            <button
-                              onClick={() => handleMoveFencerDown(poolIndex, fencerIndex)}
-                              title="Descendre"
-                              className="pool-prep-btn-move"
-                            >
-                              ↓
-                            </button>
-                          )}
-                          {poolIndex > 0 && (
-                            <button
-                              onClick={() => handleMoveFencer(fencer.id, poolIndex, poolIndex - 1)}
-                              title="Poule précédente"
-                              className="pool-prep-btn-shift"
-                            >
-                              ←
-                            </button>
-                          )}
-                          {poolIndex < pools.length - 1 && (
-                            <button
-                              onClick={() => handleMoveFencer(fencer.id, poolIndex, poolIndex + 1)}
-                              title="Poule suivante"
-                              className="pool-prep-btn-shift"
-                            >
-                              →
-                            </button>
-                          )}
-                        </div>
                       </div>
                     );
                   })}
@@ -879,8 +839,8 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
         {/* Instructions */}
         <div className="pool-prep-hint">
-          Glissez-déposez les tireurs entre poules ou utilisez les flèches (← →) pour déplacer, (↑
-          ↓) pour réordonner.
+          Glissez-déposez les tireurs entre poules pour les déplacer, ou vers le haut / bas pour les
+          réordonner.
         </div>
 
         {/* Footer */}

@@ -621,6 +621,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       competitionId: string,
       poolsData: Array<{ poolId: string; matches: any[] }>
     ) => ipcRenderer.invoke('remote:syncPoolMatches', competitionId, poolsData),
+    assignPools: (competitionId: string, poolsData: any[]) =>
+      ipcRenderer.invoke('remote:assignPools', competitionId, poolsData),
     refreshDeMatches: (competitionId: string, matches: any[]) =>
       ipcRenderer.invoke('remote:refreshDeMatches', competitionId, matches),
     setArenaPassword: (competitionId: string, arenaId: string, password: string) =>

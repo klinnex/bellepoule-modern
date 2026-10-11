@@ -222,8 +222,9 @@ export const COL_MENU: CSSProperties = {
   top: '100%',
   right: 0,
   marginTop: '0.25rem',
-  background: 'white',
-  border: '1px solid #e5e7eb',
+  background: 'var(--color-surface)',
+  color: 'var(--color-text)',
+  border: '1px solid var(--color-border)',
   borderRadius: '6px',
   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
   zIndex: 100,
@@ -235,7 +236,7 @@ export const COL_MENU_HEADER: CSSProperties = {
   fontSize: '0.75rem',
   fontWeight: 600,
   padding: '0.25rem 0.5rem',
-  borderBottom: '1px solid #e5e7eb',
+  borderBottom: '1px solid var(--color-border)',
   marginBottom: '0.25rem',
 };
 

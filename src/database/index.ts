@@ -2272,6 +2272,9 @@ export class DatabaseManager {
       SELECT m.id FROM matches m
         JOIN bracket_nodes bn ON m.id = bn.match_id
         WHERE bn.competition_id = ?
+      UNION
+      SELECT m.id FROM matches m
+        WHERE m.pool_id IS NULL AND m.table_id = ? AND m.round IS NOT NULL
     `;
     const sql = `
       SELECT sal.id, sal.match_id, 'score_change' AS event_type,
@@ -2322,9 +2325,9 @@ export class DatabaseManager {
       WHERE mae.match_id IN (${matchSubquery})
       ORDER BY timestamp ASC
     `;
-    // 2 params per matchSubquery × 4 UNION branches = 8 bindings
-    const p = competitionId;
-    return this.queryAll<any>(sql, [p, p, p, p, p, p, p, p]).map(r => this.parseTimelineRow(r));
+    // 3 params per matchSubquery × 4 UNION branches = 12 bindings (matchs de tableau inclus, #1031)
+    const params = Array<string>(12).fill(competitionId);
+    return this.queryAll<any>(sql, params).map(r => this.parseTimelineRow(r));
   }
 
   // ─── Arena state persistence ─────────────────────────────────────────────────

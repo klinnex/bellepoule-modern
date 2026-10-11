@@ -35,7 +35,8 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
     >
       <div
         style={{
-          background: 'white',
+          background: 'var(--color-surface)',
+          color: 'var(--color-text)',
           borderRadius: '12px',
           padding: '1.5rem',
           width: '420px',
@@ -60,9 +61,9 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
                 fontSize: '0.7rem',
                 padding: '2px 7px',
                 borderRadius: '4px',
-                background: '#f3f4f6',
-                border: '1px solid #e5e7eb',
-                color: '#6b7280',
+                background: 'var(--color-surface-2)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-text-muted)',
                 fontFamily: 'monospace',
                 marginTop: '0.25rem',
                 display: 'inline-block',
@@ -71,20 +72,8 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
               Référence FIE / FFE
             </span>
           </div>
-          <button
-            onClick={onClose}
-            aria-label="Fermer"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '1.2rem',
-              color: '#9ca3af',
-              lineHeight: 1,
-              padding: 0,
-            }}
-          >
-            ✕
+          <button className="btn-close" onClick={onClose} aria-label="Fermer">
+            ×
           </button>
         </div>
 
@@ -99,7 +88,7 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
         >
           <label
             htmlFor="pool-order-size"
-            style={{ fontSize: '0.875rem', color: '#6b7280', whiteSpace: 'nowrap' }}
+            style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}
           >
             Taille de poule :
           </label>
@@ -110,9 +99,10 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
             style={{
               padding: '0.4rem 0.6rem',
               borderRadius: '6px',
-              border: '1px solid #d1d5db',
+              border: '1px solid var(--color-border)',
               fontSize: '0.9rem',
-              background: 'white',
+              background: 'var(--color-surface)',
+              color: 'var(--color-text)',
             }}
           >
             {[3, 4, 5, 6, 7, 8, 9].map(n => (
@@ -121,7 +111,9 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
               </option>
             ))}
           </select>
-          <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{matchCount} matchs</span>
+          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+            {matchCount} matchs
+          </span>
         </div>
 
         {/* Liste des matchs — même format que "Matches à venir" dans PoolMatchList */}
@@ -134,17 +126,19 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '0.75rem 1rem',
-                background: '#f9fafb',
+                background: 'var(--color-surface-2)',
                 borderRadius: '6px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid var(--color-border)',
                 gap: '0.5rem',
               }}
             >
-              <span style={{ color: '#9ca3af', fontSize: '0.875rem', minWidth: '30px' }}>
+              <span
+                style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', minWidth: '30px' }}
+              >
                 #{i + 1}
               </span>
               <span style={{ flex: 1, fontWeight: 500 }}>Tireur {a}</span>
-              <span style={{ color: '#9ca3af', padding: '0 0.5rem' }}>vs</span>
+              <span style={{ color: 'var(--color-text-muted)', padding: '0 0.5rem' }}>vs</span>
               <span style={{ flex: 1, textAlign: 'right', fontWeight: 500 }}>Tireur {b}</span>
             </div>
           ))}
