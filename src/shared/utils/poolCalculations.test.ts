@@ -662,3 +662,96 @@ describe('classement Quest (Sabre Laser)', () => {
     expect(ranking[0].rank).toBe(1);
   });
 });
+
+// ============================================================================
+// Forfait en cours de poule – Sabre Laser (#1050)
+// ============================================================================
+
+describe('forfait en cours de poule (Sabre Laser)', () => {
+  // A forfait pendant son match contre C (A avait marqué 6), après avoir battu B.
+  // Son match contre D est annulé.
+  const build = () => {
+    const a = { ...createMockFencer('a', 1, 'A'), status: FencerStatus.FORFAIT };
+    const b = createMockFencer('b', 2, 'B');
+    const c = createMockFencer('c', 3, 'C');
+    const d = createMockFencer('d', 4, 'D');
+    const forfeitScore = (value: number | null): Score => ({
+      value,
+      isVictory: false,
+      isAbstention: false,
+      isExclusion: false,
+      isForfait: true,
+    });
+    const played = createMockMatch('m1', a, b, 15, 4);
+    const current: Match = {
+      ...createMockMatch('m2', a, c, 6, 15),
+      scoreA: forfeitScore(6),
+    };
+    const cancelled: Match = {
+      ...createMockMatch('m3', a, d, null, null),
+      scoreA: forfeitScore(null),
+    };
+    const others = [
+      createMockMatch('m4', b, c, 15, 10),
+      createMockMatch('m5', b, d, 15, 12),
+      createMockMatch('m6', c, d, 15, 14),
+    ];
+    const pool: Pool = {
+      id: 'p',
+      number: 1,
+      phaseId: 'x',
+      fencers: [a, b, c, d],
+      matches: [played, current, cancelled, ...others],
+      referees: [],
+      isComplete: true,
+      hasError: false,
+      ranking: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    return { a, b, c, d, pool };
+  };
+
+  it('conserve les matchs disputés et le match du forfait, ignore les matchs annulés', () => {
+    const { a, b, c, d, pool } = build();
+    const opts = { keepPlayedForfeitMatches: true };
+
+    const sa = calculateFencerPoolStats(a, pool.matches, opts);
+    expect(sa.matchesPlayed).toBe(2);
+    expect(sa.victories).toBe(1);
+    expect(sa.touchesScored).toBe(21);
+    expect(sa.touchesReceived).toBe(19);
+
+    const sb = calculateFencerPoolStats(b, pool.matches, opts);
+    expect(sb.matchesPlayed).toBe(3);
+    expect(sb.defeats).toBe(1);
+
+    const sc = calculateFencerPoolStats(c, pool.matches, opts);
+    expect(sc.matchesPlayed).toBe(3);
+    expect(sc.victories).toBe(2);
+
+    // D n'a pas rencontré A : 2 matchs au lieu de 3
+    const sd = calculateFencerPoolStats(d, pool.matches, opts);
+    expect(sd.matchesPlayed).toBe(2);
+  });
+
+  it('règle classique inchangée : tous les matchs contre le forfait sont annulés', () => {
+    const { b, pool } = build();
+    expect(calculateFencerPoolStats(b, pool.matches).matchesPlayed).toBe(2);
+  });
+
+  it('classe le forfait sur ses matchs disputés dans la poule', () => {
+    const { pool } = build();
+    const ranking = calculatePoolRankingQuest(pool);
+    const ra = ranking.find(r => r.fencer.id === 'a')!;
+    expect(ra.matchesPlayed).toBe(2);
+    expect(ra.ratio).toBe(0.5);
+    expect(ra.questPoints).toBeGreaterThan(0);
+  });
+
+  it('place le forfait en fin de classement général (non qualifié pour le tableau)', () => {
+    const { pool } = build();
+    const overall = calculateOverallRankingQuest([pool]);
+    expect(overall[overall.length - 1].fencer.id).toBe('a');
+  });
+});

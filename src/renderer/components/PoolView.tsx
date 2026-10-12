@@ -31,6 +31,7 @@ import Confetti from './Confetti';
 import AddFencerToPoolModal from './AddFencerToPoolModal';
 import { MatchAuditLog } from './MatchAuditLog';
 import { autoAssignReferees } from '../../shared/utils/refereeStats';
+import { LASER_FORFEIT_WINNER_SCORE } from '../../shared/utils/poolCalculations';
 import {
   ICON_BTN,
   ICON_ONLY_BTN,
@@ -933,7 +934,30 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const fencerLeft = isMatchInverted ? match.fencerB : match.fencerA;
     const fencerRight = isMatchInverted ? match.fencerA : match.fencerB;
 
-    if (side === 'left') {
+    // Sabre Laser (forfait/abandon) : le forfait perd en conservant les points qu'il
+    // vient de marquer, son adversaire obtient 15 points.
+    if (isLaserSabre && status !== 'exclusion') {
+      const leftForfeits = side === 'left';
+      const forfeiterPoints = Math.min(
+        parseInt(leftForfeits ? editScoreA : editScoreB, 10) || 0,
+        LASER_FORFEIT_WINNER_SCORE - 1
+      );
+      const leftScore = leftForfeits ? forfeiterPoints : LASER_FORFEIT_WINNER_SCORE;
+      const rightScore = leftForfeits ? LASER_FORFEIT_WINNER_SCORE : forfeiterPoints;
+      const winnerIsLeft = !leftForfeits;
+      const winner: 'A' | 'B' = isMatchInverted === winnerIsLeft ? 'B' : 'A';
+      onScoreUpdate(
+        editingMatch,
+        isMatchInverted ? rightScore : leftScore,
+        isMatchInverted ? leftScore : rightScore,
+        winner,
+        status
+      );
+      const forfeiter = leftForfeits ? fencerLeft : fencerRight;
+      if (onFencerStatusChange && forfeiter) {
+        onFencerStatusChange(forfeiter.id, status);
+      }
+    } else if (side === 'left') {
       // Le tireur affiché à gauche abandonne
       const winner: 'A' | 'B' = isMatchInverted ? 'A' : 'B';
       onScoreUpdate(

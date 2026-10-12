@@ -164,20 +164,24 @@ export const usePoolManagement = ({
         const isVictoryA = winnerOverride === 'A' || (!winnerOverride && scoreA > scoreB);
         const isVictoryB = winnerOverride === 'B' || (!winnerOverride && scoreB > scoreA);
 
+        // Le statut spécial (abandon/forfait/exclusion) s'applique au perdant
+        const specialOnA = !!specialStatus && !isVictoryA;
+        const specialOnB = !!specialStatus && !specialOnA && !isVictoryB;
+
         match.scoreA = {
           value: scoreA,
           isVictory: isVictoryA,
-          isAbstention: specialStatus === 'abandon',
-          isExclusion: specialStatus === 'exclusion',
-          isForfait: specialStatus === 'forfait',
+          isAbstention: specialOnA && specialStatus === 'abandon',
+          isExclusion: specialOnA && specialStatus === 'exclusion',
+          isForfait: specialOnA && specialStatus === 'forfait',
         };
 
         match.scoreB = {
           value: scoreB,
           isVictory: isVictoryB,
-          isAbstention: false,
-          isExclusion: false,
-          isForfait: false,
+          isAbstention: specialOnB && specialStatus === 'abandon',
+          isExclusion: specialOnB && specialStatus === 'exclusion',
+          isForfait: specialOnB && specialStatus === 'forfait',
         };
 
         // Mettre à jour le statut
@@ -342,6 +346,9 @@ export const usePoolManagement = ({
             ? FencerStatus.FORFAIT
             : FencerStatus.EXCLUDED;
 
+      // Règle Sabre Laser : matchs disputés conservés, seuls les suivants sont annulés
+      const laserForfeit = isLaserSabre && status !== 'exclusion';
+
       setPools(prevPools => {
         let modifiedCount = 0;
 
@@ -363,10 +370,11 @@ export const usePoolManagement = ({
             // Ne pas écraser les matchs déjà disputés avec de vrais scores,
             // mais propager quand même le statut dans la référence fencer
             // pour que calculateFencerPoolStats annule ces matchs pour les adversaires.
+            // Sabre Laser (forfait/abandon) : le match en cours, déjà saisi avec le
+            // statut spécial (perdu, adversaire à 15), est conservé lui aussi.
             const isAlreadyPlayed =
               match.status === MatchStatus.FINISHED &&
-              !match.scoreA?.isForfait &&
-              !match.scoreB?.isForfait;
+              (laserForfeit || (!match.scoreA?.isForfait && !match.scoreB?.isForfait));
 
             const newMatch = {
               ...match,
@@ -381,9 +389,11 @@ export const usePoolManagement = ({
             };
 
             if (!isAlreadyPlayed) {
+              // Sabre Laser : match annulé (score null) → ignoré par le classement
+              const cancelledValue = laserForfeit ? null : 0;
               if (isFencerA) {
                 newMatch.scoreA = {
-                  value: 0,
+                  value: cancelledValue,
                   isVictory: false,
                   isAbstention: status === 'abandon',
                   isExclusion: status === 'exclusion',
@@ -391,7 +401,7 @@ export const usePoolManagement = ({
                 };
               } else {
                 newMatch.scoreB = {
-                  value: 0,
+                  value: cancelledValue,
                   isVictory: false,
                   isAbstention: status === 'abandon',
                   isExclusion: status === 'exclusion',
@@ -406,18 +416,16 @@ export const usePoolManagement = ({
             return newMatch;
           });
 
+          // Le statut du tireur change le classement même sans match restant à annuler
           const newPool = { ...pool, fencers: newFencers, matches: newMatches };
-          if (modifiedCount > 0) {
-            newPool.ranking = computePoolRanking(newPool);
-            newPool.updatedAt = new Date();
-          }
+          newPool.ranking = computePoolRanking(newPool);
+          newPool.updatedAt = new Date();
           return newPool;
         });
 
         // Recalculer le classement général (tous les tours cumulés)
+        setOverallRanking(computeOverallRankingAllRounds(updatedPools));
         if (modifiedCount > 0) {
-          const newOverallRanking = computeOverallRankingAllRounds(updatedPools);
-          setOverallRanking(newOverallRanking);
           showToast(
             `${modifiedCount} match(s) marqué(s) comme non disputés (${status})`,
             'success'
@@ -427,7 +435,14 @@ export const usePoolManagement = ({
         return updatedPools;
       });
     },
-    [competitionId, pools, computePoolRanking, computeOverallRankingAllRounds, showToast]
+    [
+      competitionId,
+      pools,
+      isLaserSabre,
+      computePoolRanking,
+      computeOverallRankingAllRounds,
+      showToast,
+    ]
   );
 
   // Annuler un abandon/forfait/exclusion et restaurer les matchs affectés

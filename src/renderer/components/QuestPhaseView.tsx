@@ -143,12 +143,13 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
         matches: pool.matches.map((m, i) => {
           if (i !== matchIndex) return m;
 
+          // Le statut spécial (abandon/forfait/exclusion) ne concerne que le perdant
           const makeScore = (value: number, isWinner: boolean): Score => ({
             value,
             isVictory: isWinner,
-            isAbstention: specialStatus === 'abandon',
-            isExclusion: specialStatus === 'exclusion',
-            isForfait: specialStatus === 'forfait',
+            isAbstention: !isWinner && specialStatus === 'abandon',
+            isExclusion: !isWinner && specialStatus === 'exclusion',
+            isForfait: !isWinner && specialStatus === 'forfait',
           });
 
           return {
