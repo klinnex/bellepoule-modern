@@ -17,6 +17,7 @@ import { TeamTargetRule, getRelayCap } from '../../features/teams/utils/teamCalc
 import { LaserArenaBoutCap } from '../../features/teams/utils/laserArenaCalculations';
 import { determineTeamCardEscalation } from '../../features/teams/utils/teamCardEscalation';
 import { CARD_REASON_LABELS, getAvailableReasons } from '../../shared/utils/cardSystem';
+import { useConfirm } from './ConfirmDialog';
 
 const CARD_BADGE: Record<string, string> = { WHITE: '⬜', YELLOW: '🟨', RED: '🟥', BLACK: '⬛' };
 const TEAM_CARD_BADGE: Record<string, string> = {
@@ -95,6 +96,7 @@ const TeamPoolView: React.FC<Props> = ({
   onAddTeamCard,
   onAssignArena,
 }) => {
+  const { prompt } = useConfirm();
   const teamById = new Map(teams.map(t => [t.id, t]));
 
   if (matches.length === 0) {
@@ -144,11 +146,11 @@ const TeamPoolView: React.FC<Props> = ({
               </div>
               {isLaserArena && onAssignArena && (
                 <button
-                  onClick={() => {
-                    // eslint-disable-next-line no-alert -- TODO: remplacer par une modale (prompt non supporté par Electron)
-                    const arenaId = window.prompt(
-                      "Numéro d'arène pour la saisie tablette (ex : 1)"
-                    );
+                  onClick={async () => {
+                    const arenaId = await prompt({
+                      message: "Numéro d'arène pour la saisie tablette (ex : 1)",
+                      placeholder: '1',
+                    });
                     if (arenaId?.trim()) onAssignArena(m.id, arenaId.trim());
                   }}
                   title="Envoyer cette rencontre sur une arène pour saisie tablette temps réel"

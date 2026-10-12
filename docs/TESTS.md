@@ -81,11 +81,11 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 3 | 84 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 95 |
-| `src/renderer/components/` | 27 | 103 |
+| `src/renderer/components/` | 27 | 107 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| **Total** | **115** | **1234** |
+| **Total** | **115** | **1238** |
 
-Unitaires : 107 fichiers, 1203 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 107 fichiers, 1207 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2138,7 +2138,7 @@ Unitaires : 107 fichiers, 1203 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/ConfirmDialog.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/ConfirmDialog.test.tsx</code> — 10 tests</summary>
 
 - **ConfirmProvider / useConfirm**
   - affiche le message et les libellés par défaut
@@ -2148,6 +2148,11 @@ Unitaires : 107 fichiers, 1203 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - Échap annule le dialogue
 - **useConfirm hors provider**
   - retombe sur window.confirm
+- **prompt()**
+  - résout la valeur saisie sur OK
+  - Entrée valide la saisie
+  - résout null sur annulation
+  - hors provider résout null (window.prompt non supporté)
 
 </details>
 
