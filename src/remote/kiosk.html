@@ -1144,7 +1144,7 @@
 
     <!-- Menu escamotable -->
     <div id="kiosk-menu">
-      <div style="display:flex;align-items:center">
+      <div style="display:flex;align-items:center;flex:1 1 0;min-width:0">
         <img id="org-logo" src="" alt="Logo" style="max-height:36px;max-width:120px;object-fit:contain;display:none;margin-right:10px;border-radius:3px;" />
         <span class="menu-title">🏆 BellePoule</span>
         <span class="menu-competition" id="menu-competition-name">—</span>
@@ -1157,6 +1157,7 @@
         <button id="btn-suivants" onclick="switchView('suivants')" data-i18n="kiosk.next_matches">Matchs suivants</button>
         <button id="btn-tableau" onclick="switchView('tableau')">Tableau DE</button>
       </div>
+      <div style="display:flex;align-items:center;justify-content:flex-end;flex:1 1 0;min-width:0">
       <div style="position:relative;margin-left:0.5rem">
         <button id="btn-settings" class="settings-btn" title="Configurer les vues">⚙</button>
         <div id="settings-panel" class="settings-panel hidden">
@@ -1205,6 +1206,7 @@
       <div class="menu-status">
         <div id="status-dot" class="status-dot"></div>
         <span id="status-text">—</span>
+      </div>
       </div>
     </div>
 
@@ -2177,6 +2179,25 @@
         startFocusPan();
       }
 
+      // Rafraîchit les données du mode focus sans toucher au timer (trait jaune).
+      // Retourne false si la liste des phases a changé (redémarrage complet nécessaire).
+      function refreshFocusMode(data) {
+        const allRounds = getBracketRoundOrder(data.rounds);
+        const ongoing = allRounds.filter(r =>
+          r.matches.some(m => !m.isBye && m.fencerA && m.fencerB && m.status !== 'finished')
+        );
+        const rounds = ongoing.length > 0 ? ongoing : allRounds;
+        const same = rounds.length === focusState.rounds.length &&
+          rounds.every((r, i) => r.round === focusState.rounds[i].round);
+        if (!same) return false;
+        const prev = JSON.stringify(focusState.rounds[focusState.currentIdx]);
+        focusState.rounds = rounds;
+        if (JSON.stringify(rounds[focusState.currentIdx]) !== prev) {
+          renderFocusRound();
+        }
+        return true;
+      }
+
       function stopFocusMode() {
         clearInterval(focusState.panTimer);
         clearInterval(focusState.progressTimer);
@@ -2505,6 +2526,11 @@
 
         // Basculer en mode focus pour les grands tableaux
         if (isFocusMode(data)) {
+          // Cycle déjà en cours : ne pas le réinitialiser à chaque rafraîchissement des données (#1036)
+          if (focusState.panTimer !== null && refreshFocusMode(data)) {
+            renderFinalRanking();
+            return;
+          }
           stopFocusMode();
           startFocusMode(data);
           renderFinalRanking();

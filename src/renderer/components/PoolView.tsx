@@ -94,6 +94,10 @@ interface PoolViewProps {
   arenas?: Arena[];
   isRemoteActive?: boolean;
   remoteServerUrl?: string;
+  /** Saisie distante active : QR de la piste de la poule sur la feuille (aperçu/impression/export) */
+  stripQr?: { url: string; strip: number };
+  /** Facteur de taille des cartes de poule (préréglage) */
+  cardScale?: number;
   onMatchArenaChange?: (
     matchId: string,
     oldArena: number,
@@ -129,6 +133,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   arenas,
   isRemoteActive,
   remoteServerUrl,
+  stripQr,
+  cardScale = 1,
   onMatchArenaChange,
   onRefereeAssigned,
   maxRefereesPerPool = 1,
@@ -980,6 +986,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       hideStatColumns: pdfHideStatColumns,
       landscape: pdfLandscape,
       signatures,
+      stripQrUrl: stripQr?.url,
+      stripNumber: stripQr?.strip,
     };
   };
 
@@ -1846,6 +1854,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               arenas={arenas}
               isRemoteActive={isRemoteActive}
               matchArenaOverrides={matchArenaOverrides}
+              cardScale={cardScale}
               onMatchArenaChange={handleMatchArenaChange}
             />
           )}

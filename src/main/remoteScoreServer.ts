@@ -4811,9 +4811,10 @@ export class RemoteScoreServer {
       // Arène libre → le match devient le currentMatch visible immédiatement
       this.assignMatchToArena(toArenaId, matchToMove);
     } else {
-      // Arène occupée (match en cours ou non démarré) → ajouter en fin de file (FIFO)
+      // Arène occupée : un match réassigné manuellement passe en tête de file ;
+      // les suivants se rajoutent par le haut (#1037)
       const toQueue = this.arenaMatchQueue.get(toArenaId) || [];
-      this.arenaMatchQueue.set(toArenaId, [...toQueue, matchToMove]);
+      this.arenaMatchQueue.set(toArenaId, [matchToMove, ...toQueue]);
       this.updateArena(toArenaId, { status: toArenaObj.status });
     }
 

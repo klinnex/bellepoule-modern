@@ -779,7 +779,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 />
                 Équilibrer les assignations
               </label>
-              <label style={FLEX_GAP}>
+              <label style={{ ...FLEX_GAP, whiteSpace: 'nowrap' }}>
                 Matchs consécutifs max :
                 <input
                   type="number"
@@ -787,12 +787,12 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                   onChange={e =>
                     setConfig({ ...config, maxConsecutiveMatches: parseInt(e.target.value) || 3 })
                   }
-                  style={{ ...SMALL_INPUT, marginLeft: 0 }}
+                  style={{ ...SMALL_INPUT, width: '48px', marginLeft: 0, flexShrink: 0 }}
                   min="1"
                   max="10"
                 />
               </label>
-              <label style={FLEX_GAP}>
+              <label style={{ ...FLEX_GAP, whiteSpace: 'nowrap' }}>
                 Temps de repos minimum :
                 <input
                   type="number"
@@ -800,7 +800,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                   onChange={e =>
                     setConfig({ ...config, minRestTimeMinutes: parseInt(e.target.value) || 15 })
                   }
-                  style={{ ...SMALL_INPUT, marginLeft: 0 }}
+                  style={{ ...SMALL_INPUT, width: '48px', marginLeft: 0, flexShrink: 0 }}
                   min="0"
                   max="60"
                 />

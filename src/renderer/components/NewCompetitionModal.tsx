@@ -125,12 +125,8 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
       >
         <div className="modal-header">
           <h2 className="modal-title">{t('competition.new')}</h2>
-          <button
-            className="btn btn-icon btn-secondary"
-            onClick={onClose}
-            style={{ padding: '0.25rem' }}
-          >
-            ✕
+          <button className="btn-close" onClick={onClose} aria-label="Fermer">
+            &times;
           </button>
         </div>
 
@@ -226,12 +222,11 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
 
             {isTeamEvent && (
               <div
-                className="form-group"
+                className="form-group team-settings-panel"
                 style={{
                   display: 'grid',
                   gridTemplateColumns: weapon === Weapon.LASER ? '1fr 1fr 1fr 1fr' : '1fr 1fr',
                   gap: '1rem',
-                  background: '#f9fafb',
                   padding: '0.75rem',
                   borderRadius: '0.5rem',
                 }}
