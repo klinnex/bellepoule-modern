@@ -62,6 +62,7 @@ import {
   filterPoolWinners,
 } from '../../shared/utils/poolCalculations';
 import { QRCodeShare } from './QRCodeShare';
+import { computePoolStrips } from '../../shared/utils/poolStrips';
 import { TouchOptimizedReferee } from './TouchOptimizedReferee';
 import KioskScoreEntry from './competition/KioskScoreEntry';
 import { ScoreAuditLog } from './ScoreAuditLog';
@@ -1858,6 +1859,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         arenas={arenaStates}
         isRemoteActive={isRemoteActive}
         remoteServerUrl={remoteServerUrl ?? undefined}
+        stripQr={(() => {
+          if (!poolsRemoteInfo) return undefined;
+          const strip = computePoolStrips(pools, poolsRemoteInfo.arenaCount).get(pool.id);
+          return strip ? { strip, url: `${poolsRemoteInfo.serverUrl}/arene${strip}/arbitre` } : undefined;
+        })()}
         onMatchArenaChange={(matchId, oldArena, newArena, fencerA, fencerB) => {
           if (!isRemoteActive || !competition?.id) return;
           window.electronAPI.remote

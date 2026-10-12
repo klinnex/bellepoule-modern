@@ -94,6 +94,8 @@ interface PoolViewProps {
   arenas?: Arena[];
   isRemoteActive?: boolean;
   remoteServerUrl?: string;
+  /** Saisie distante active : QR de la piste de la poule sur la feuille (aperçu/impression/export) */
+  stripQr?: { url: string; strip: number };
   onMatchArenaChange?: (
     matchId: string,
     oldArena: number,
@@ -129,6 +131,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   arenas,
   isRemoteActive,
   remoteServerUrl,
+  stripQr,
   onMatchArenaChange,
   onRefereeAssigned,
   maxRefereesPerPool = 1,
@@ -980,6 +983,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       hideStatColumns: pdfHideStatColumns,
       landscape: pdfLandscape,
       signatures,
+      stripQrUrl: stripQr?.url,
+      stripNumber: stripQr?.strip,
     };
   };
 
