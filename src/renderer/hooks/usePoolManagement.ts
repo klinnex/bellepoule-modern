@@ -44,6 +44,8 @@ export const usePoolManagement = ({
 }: UsePoolManagementProps) => {
   const [pools, setPools] = useState<Pool[]>([]);
   const [poolHistory, setPoolHistory] = useState<Pool[][]>([]);
+  // Appel figé de chaque tour terminé (#1051) — non resynchronisé avec les tireurs
+  const [appelHistory, setAppelHistory] = useState<Fencer[][]>([]);
   const [currentPoolRound, setCurrentPoolRound] = useState(1);
   const [overallRanking, setOverallRanking] = useState<PoolRanking[]>([]);
 
@@ -270,14 +272,25 @@ export const usePoolManagement = ({
 
   // Clôturer le tour courant (#1051) : archivé dans l'historique, nouveau tirage à faire
   // après l'appel du tour suivant (generatePools(fencers, round)).
-  const nextPoolRound = useCallback(() => {
-    if (pools.length === 0) return;
-    const history = [...poolHistory, pools];
-    setPoolHistory(history);
-    setPools([]);
-    setCurrentPoolRound(history.length + 1);
-    setOverallRanking(computeOverallRankingAllRounds([], history));
-  }, [pools, poolHistory, computeOverallRankingAllRounds]);
+  // `appelSnapshot` : appel du tour clôturé, conservé pour consultation / export.
+  const nextPoolRound = useCallback(
+    (appelSnapshot?: Fencer[]) => {
+      if (pools.length === 0) return;
+      const history = [...poolHistory, pools];
+      setPoolHistory(history);
+      if (appelSnapshot) {
+        setAppelHistory(prev => {
+          const next = prev.slice(0, history.length - 1);
+          next[history.length - 1] = appelSnapshot;
+          return next;
+        });
+      }
+      setPools([]);
+      setCurrentPoolRound(history.length + 1);
+      setOverallRanking(computeOverallRankingAllRounds([], history));
+    },
+    [pools, poolHistory, computeOverallRankingAllRounds]
+  );
 
   // Vérifier si toutes les poules sont complètes
   const areAllPoolsComplete = useCallback(() => {
@@ -740,6 +753,8 @@ export const usePoolManagement = ({
     setPools,
     poolHistory,
     setPoolHistory,
+    appelHistory,
+    setAppelHistory,
     currentPoolRound,
     setCurrentPoolRound,
     overallRanking,

@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Pool, PoolRanking } from '../../shared/types';
+import { Fencer, Pool, PoolRanking } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { TableauMatch, FinalResult, ConsolationBracket } from '../components/tableau/tableauTypes';
 
@@ -25,6 +25,8 @@ interface SessionState {
   currentPhase: number;
   pools: Pool[];
   poolHistory: Pool[][];
+  /** Appel figé de chaque tour de poules terminé (#1051) */
+  appelHistory?: Fencer[][];
   overallRanking: PoolRanking[];
   tableauMatches: TableauMatch[];
   finalResults: FinalResult[];
@@ -50,6 +52,8 @@ interface UseCompetitionSessionProps {
   currentPoolRound: number;
   pools: Pool[];
   poolHistory: Pool[][];
+  /** Appel figé de chaque tour de poules terminé (#1051) */
+  appelHistory?: Fencer[][];
   overallRanking: PoolRanking[];
   tableauMatches: TableauMatch[];
   finalResults: FinalResult[];
@@ -108,6 +112,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
       currentPhase: phaseToNumber[p.currentPhase],
       pools: p.pools,
       poolHistory: p.poolHistory,
+      appelHistory: p.appelHistory,
       overallRanking: p.overallRanking,
       tableauMatches: p.tableauMatches,
       finalResults: p.finalResults,
@@ -151,6 +156,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
           currentPhase: typedState.currentPhase,
           pools: typedState.pools || [],
           poolHistory: typedState.poolHistory || [],
+          appelHistory: typedState.appelHistory || [],
           overallRanking: typedState.overallRanking || [],
           tableauMatches: typedState.tableauMatches || [],
           finalResults: typedState.finalResults || [],
@@ -203,6 +209,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
         currentPhase: phaseMap[p.currentPhase],
         pools: p.pools,
         poolHistory: p.poolHistory,
+        appelHistory: p.appelHistory,
         overallRanking: p.overallRanking,
         tableauMatches: p.tableauMatches,
         finalResults: p.finalResults,
@@ -243,6 +250,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
     props.currentPoolRound,
     props.pools,
     props.poolHistory,
+    props.appelHistory,
     props.overallRanking,
     props.tableauMatches,
     props.finalResults,

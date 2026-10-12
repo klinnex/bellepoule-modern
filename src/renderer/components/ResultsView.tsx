@@ -32,6 +32,8 @@ interface ResultsViewProps {
   isLaserSabre?: boolean;
   /** Tireurs triés/filtrés tels qu'affichés dans l'appel */
   appelFencers?: Fencer[];
+  /** Appel figé de chaque tour de poules terminé (#1051) */
+  appelHistory?: Fencer[][];
   /** Colonnes visibles telles que configurées dans l'appel */
   appelVisibleColumns?: string[];
 }
@@ -279,6 +281,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   consolationBrackets,
   isLaserSabre,
   appelFencers,
+  appelHistory,
   appelVisibleColumns,
 }) => {
   const { showToast } = useToast();
@@ -518,6 +521,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       const { exportFullCompetitionPDF } = await import('../../shared/utils/pdfExport');
       await exportFullCompetitionPDF({
         fencers: effectiveFencers,
+        appelHistory,
         appelVisibleColumns,
         pools: effectivePools,
         overallRanking: poolRanking,

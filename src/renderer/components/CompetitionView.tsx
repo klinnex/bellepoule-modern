@@ -329,7 +329,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     addFencer,
     bulkAddFencers,
     updateFencer,
-    setFencersStatus,
+    updateFencers,
     deleteFencer,
     deleteAllFencers,
     checkInAll,
@@ -342,6 +342,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     setPools,
     poolHistory,
     setPoolHistory,
+    appelHistory,
+    setAppelHistory,
     currentPoolRound,
     setCurrentPoolRound,
     overallRanking,
@@ -377,6 +379,17 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   }, [getCheckedInFencers, previousRoundRanking]);
   // Tour consulté (null = tour courant)
   const [viewedPoolRound, setViewedPoolRound] = useState<number | null>(null);
+  // Appel du tour courant : éliminés des tours précédents retirés (#1051)
+  const currentAppelFencers = useMemo(
+    () =>
+      currentPoolRound > 1 ? fencers.filter(f => f.status !== FencerStatus.ELIMINATED) : fencers,
+    [fencers, currentPoolRound]
+  );
+  // Appel figé d'un tour terminé consulté
+  const viewedRoundAppel =
+    viewedPoolRound !== null && viewedPoolRound < currentPoolRound
+      ? (appelHistory[viewedPoolRound - 1] ?? null)
+      : null;
   const viewedRoundPools =
     viewedPoolRound !== null && viewedPoolRound < currentPoolRound
       ? (poolHistory[viewedPoolRound - 1] ?? null)
@@ -462,6 +475,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     currentPoolRound,
     pools,
     poolHistory,
+    appelHistory,
     overallRanking,
     tableauMatches,
     finalResults,
@@ -508,6 +522,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       if (restoredState.currentPoolRound) setCurrentPoolRound(restoredState.currentPoolRound);
       if (restoredState.pools) setPools(restoredState.pools);
       if (restoredState.poolHistory) setPoolHistory(restoredState.poolHistory || []);
+      if (restoredState.appelHistory) setAppelHistory(restoredState.appelHistory);
       if (restoredState.overallRanking) setOverallRanking(restoredState.overallRanking);
       if (restoredState.tableauMatches) setTableauMatches(restoredState.tableauMatches);
       if (restoredState.finalResults) setFinalResults(restoredState.finalResults);
@@ -1372,11 +1387,18 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       })
     );
     if (!ok) return;
-    await setFencersStatus(
-      toEliminate.map(f => f.id),
-      FencerStatus.ELIMINATED
-    );
-    nextPoolRound();
+    // Appel du tour terminé figé avant MAJ (consultation + export PDF par tour)
+    const appelSnapshot = currentAppelFencers;
+    // Non-qualifiés éliminés ; qualifiés : classement = place au tour terminé
+    const updates: Record<string, Partial<Fencer>> = {};
+    for (const f of toEliminate) updates[f.id] = { status: FencerStatus.ELIMINATED };
+    for (const f of qualified) {
+      if (fencers.find(x => x.id === f.id)?.ranking !== f.ranking) {
+        updates[f.id] = { ranking: f.ranking };
+      }
+    }
+    await updateFencers(updates);
+    nextPoolRound(appelSnapshot);
     setRankingValidated(false);
     setViewedPoolRound(null);
     setCurrentPhase('checkin');
@@ -1991,14 +2013,20 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             {t('pools.round_checkin_banner', { n: currentPoolRound })}
           </div>
         )}
-        {currentPhase === 'checkin' && (
+        {currentPhase === 'checkin' && poolRoundSelector}
+        {currentPhase === 'checkin' && viewedRoundAppel && (
           <FencerList
-            fencers={
-              // Appel d'un tour suivant : éliminés des tours précédents retirés (#1051)
-              currentPoolRound > 1
-                ? fencers.filter(f => f.status !== FencerStatus.ELIMINATED)
-                : fencers
-            }
+            key={`appel-round-${viewedPoolRound}`}
+            fencers={viewedRoundAppel}
+            competitionId={competition.id}
+            onCheckIn={() => {}}
+            onAddFencer={() => {}}
+            readOnly
+          />
+        )}
+        {currentPhase === 'checkin' && !viewedRoundAppel && (
+          <FencerList
+            fencers={currentAppelFencers}
             competitionId={competition.id}
             onCheckIn={handleCheckInFencer}
             onAddFencer={() => setShowAddFencerModal(true)}
@@ -2462,6 +2490,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             consolationBrackets={consolationBrackets}
             isLaserSabre={isLaserSabre}
             appelFencers={appelFencers.length > 0 ? appelFencers : undefined}
+            appelHistory={appelHistory}
             appelVisibleColumns={appelVisibleColumns.length > 0 ? appelVisibleColumns : undefined}
           />
         )}

@@ -60,6 +60,23 @@ describe('generatePools', () => {
   });
 });
 
+describe('nextPoolRound', () => {
+  it('archive le tour et fige son appel (#1051)', () => {
+    const r = setup();
+    const fencers = Array.from({ length: 8 }, (_, i) => fencer(i + 1));
+    act(() => {
+      r.current.generatePools(fencers);
+    });
+    act(() => {
+      r.current.nextPoolRound(fencers);
+    });
+    expect(r.current.poolHistory).toHaveLength(1);
+    expect(r.current.pools).toHaveLength(0);
+    expect(r.current.currentPoolRound).toBe(2);
+    expect(r.current.appelHistory).toEqual([fencers]);
+  });
+});
+
 describe('areAllPoolsComplete', () => {
   const poolWith = (status: MatchStatus): Pool => ({
     id: 'p1',
