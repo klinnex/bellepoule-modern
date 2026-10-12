@@ -127,6 +127,10 @@ const advancedConfig = {
 
 ### Canal Beta
 
+`betaChannel` est déduit du canal du paquet (`version.json` → `channel`) : un build `stable`
+ne voit que les releases `vX.Y.Z`, un build `dev` voit aussi les pré-releases `vX.Y.Z-dev.N`.
+Voir [docs/VERSIONING.md](docs/VERSIONING.md).
+
 Pour les utilisateurs avancés qui veulent tester les dernières fonctionnalités :
 
 ```typescript

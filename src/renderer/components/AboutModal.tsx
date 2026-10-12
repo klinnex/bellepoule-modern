@@ -284,7 +284,11 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
         <div style={styles.title}>BellePoule Modern</div>
 
         <div style={styles.versionLine}>
-          <span style={styles.versionBadge}>v{versionInfo?.version ?? '…'}</span>
+          <span style={styles.versionBadge}>
+            {versionInfo?.channel === 'dev'
+              ? `v${versionInfo.version}-dev.${versionInfo.build}`
+              : `v${versionInfo?.version ?? '…'}`}
+          </span>
           <span
             style={styles.buildBadge}
             onDoubleClick={triggerEasterEgg}

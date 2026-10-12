@@ -122,7 +122,7 @@ bellepoule-modern/
 │   └── examples/
 ├── e2e/                          # Playwright : app, competition(-full), pools, tableau,
 │                                 # import-export, remote-scoring, accessibility
-├── scripts/                      # increment-build, check-i18n-completeness, check-bundle-size
+├── scripts/                      # version, check-i18n-completeness, check-bundle-size
 ├── resources/                    # Icônes, ressources packagées
 ├── docs/, wiki/                  # Documentation
 ├── webpack.main.config.js, webpack.renderer.config.js

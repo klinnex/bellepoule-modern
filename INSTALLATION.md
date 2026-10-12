@@ -28,11 +28,11 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 
 | Platform | Architecture | Files |
 | --- | --- | --- |
-| **Windows** | x64 | `BellePoule Modern-<version>-setup.exe` (installer), `BellePoule Modern-<version>-portable.exe` |
-| **macOS** | x64 (Intel), arm64 (Apple Silicon) | `BellePoule Modern-<version>-<arch>.dmg`, `.zip` |
-| **Linux** | x64 | `BellePoule Modern-<version>-<arch>.AppImage`, `.deb`, `.rpm` |
+| **Windows** | x64 | `BellePoule-Modern-<version>-win-x64-portable.exe` |
+| **macOS** | x64 (Intel), arm64 (Apple Silicon) | `BellePoule-Modern-<version>-mac-<arch>.dmg` |
+| **Linux** | x64, arm64 | `BellePoule-Modern-<version>-linux-<arch>.AppImage` |
 
-`<version>` = `1.0.3-build.NNNN`. Dev builds are published as pre-releases on every push to `dev`.
+`<version>` = `X.Y.Z` (stable, tag `vX.Y.Z`) or `X.Y.Z-dev.N` (pre-release published on every push to `dev`). Rules: [docs/VERSIONING.md](docs/VERSIONING.md).
 
 ### Step 2: Install
 

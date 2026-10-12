@@ -1,13 +1,14 @@
 {
   "name": "bellepoule-modern",
   "productName": "BellePoule Modern",
-  "version": "1.0.3-build.1371",
+  "version": "1.0.3",
   "description": "Modern fencing tournament management software - Rewritten from the original BellePoule",
   "main": "dist/main/main.js",
   "scripts": {
-    "increment-build": "node scripts/increment-build.js",
+    "version:show": "node scripts/version.js show",
+    "version:bump": "node scripts/version.js bump",
     "start": "npm run build && electron .",
-    "build": "npm run increment-build && webpack --config webpack.main.config.js && webpack --config webpack.renderer.config.js",
+    "build": "webpack --config webpack.main.config.js && webpack --config webpack.renderer.config.js",
     "build:ci": "webpack --config webpack.main.config.js && webpack --config webpack.renderer.config.js",
     "build:main": "webpack --config webpack.main.config.js",
     "build:renderer": "webpack --config webpack.renderer.config.js",
@@ -85,7 +86,7 @@
         "portable"
       ],
       "icon": "resources/icons/icon.ico",
-      "artifactName": "${productName}-${version}.${ext}"
+      "artifactName": "BellePoule-Modern-${version}-win-${arch}.${ext}"
     },
     "mac": {
       "target": [
@@ -106,7 +107,7 @@
       ],
       "icon": "resources/icons/icon.icns",
       "category": "public.app-category.sports",
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
+      "artifactName": "BellePoule-Modern-${version}-mac-${arch}.${ext}"
     },
     "linux": {
       "target": [
@@ -116,16 +117,16 @@
       ],
       "icon": "resources/icons",
       "category": "Sports",
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
+      "artifactName": "BellePoule-Modern-${version}-linux-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "artifactName": "${productName}-${version}-setup.${ext}"
+      "artifactName": "BellePoule-Modern-${version}-win-${arch}-setup.${ext}"
     },
     "portable": {
-      "artifactName": "${productName}-${version}-portable.${ext}",
+      "artifactName": "BellePoule-Modern-${version}-win-${arch}-portable.${ext}",
       "unpackDirName": "BellePouleModernPortable"
     }
   },

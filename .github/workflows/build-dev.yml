@@ -8,6 +8,11 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+# Un seul build dev à la fois : le compteur de build doit rester strictement croissant
+concurrency:
+  group: build-dev
+  cancel-in-progress: false
+
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -53,6 +58,9 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       build: ${{ steps.version.outputs.build }}
       full_version: ${{ steps.version.outputs.full_version }}
+      tag: ${{ steps.version.outputs.tag }}
+      title: ${{ steps.version.outputs.title }}
+      sha: ${{ steps.commit.outputs.sha }}
 
     steps:
       - uses: actions/checkout@v6
@@ -61,52 +69,29 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get Version from package.json
+      - name: Next build number
         id: version
         run: |
-          # Get current version from package.json
-          VERSION=$(node -p "require('./package.json').version" | sed 's/-build\..*//')
-          CURRENT_BUILD=$(node -p "require('./package.json').version" | sed 's/.*-build\.//')
-
-          # Use GitHub run number as build number
-          NEW_BUILD=$GITHUB_RUN_NUMBER
-
-          FULL_VERSION="${VERSION}-build.${NEW_BUILD}"
-
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "build=$NEW_BUILD" >> $GITHUB_OUTPUT
-          echo "full_version=$FULL_VERSION" >> $GITHUB_OUTPUT
-
-          echo "Current version: $VERSION"
-          echo "Build number: $NEW_BUILD"
-          echo "Full version: $FULL_VERSION"
-
-      - name: Write version files
-        run: |
-          cat > version.json << EOF
-          {
-            "version": "${{ steps.version.outputs.version }}",
-            "build": ${{ steps.version.outputs.build }},
-            "date": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          }
-          EOF
-
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.version = '${{ steps.version.outputs.full_version }}';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-          "
-
-          cat version.json
+          # Compteur de build unique, porté par version.json (cf. docs/VERSIONING.md)
+          node scripts/version.js next-build
+          node scripts/version.js meta dev --github-output
 
       - name: Commit and push
+        id: commit
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add version.json package.json
-          git diff --staged --quiet || git commit -m "🔖 Dev Build #${{ steps.version.outputs.build }}"
-          git push || echo "Nothing to push"
+          git add version.json
+          git commit -m "🔖 Dev Build #${{ steps.version.outputs.build }}"
+          for i in 1 2 3; do
+            if git push origin HEAD:dev; then
+              echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            git pull --rebase origin dev
+          done
+          echo "::error::Impossible de pousser le numéro de build"
+          exit 1
 
   build-windows:
     needs: [increment-version, quality]
@@ -115,8 +100,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: dev
-          fetch-depth: 0
+          ref: ${{ needs.increment-version.outputs.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -143,25 +127,11 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done || exit 1
 
-      - name: Update version files
-        run: |
-          node -e "const fs=require('fs');const v='${{ needs.increment-version.outputs.version }}';const b=${{ needs.increment-version.outputs.build }};const f='${{ needs.increment-version.outputs.full_version }}';fs.writeFileSync('version.json',JSON.stringify({version:v,build:b,date:new Date().toISOString()},null,2));const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version=f;fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
+      - name: Apply dev version
+        run: node scripts/version.js apply dev --build ${{ needs.increment-version.outputs.build }}
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
-
-      - name: Update package.json for dev build
-        shell: bash
-        run: |
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            if (!pkg.build.portable) pkg.build.portable = {};
-            pkg.build.portable.artifactName = '\${productName}-dev-\${version}-portable.\${ext}';
-            if (!pkg.build.nsis) pkg.build.nsis = {};
-            pkg.build.nsis.artifactName = '\${productName}-dev-\${version}-setup.\${ext}';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-          "
 
       - name: Package with Electron Builder
         shell: bash
@@ -178,7 +148,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: windows-exe-dev
-          path: release/*-dev-*.exe
+          path: release/*.exe
           retention-days: 7
 
   build-macos-x64:
@@ -188,8 +158,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: dev
-          fetch-depth: 0
+          ref: ${{ needs.increment-version.outputs.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -231,21 +200,11 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done || exit 1
 
-      - name: Update version files
-        run: |
-          node -e "const fs=require('fs');const v='${{ needs.increment-version.outputs.version }}';const b=${{ needs.increment-version.outputs.build }};const f='${{ needs.increment-version.outputs.full_version }}';fs.writeFileSync('version.json',JSON.stringify({version:v,build:b,date:new Date().toISOString()},null,2));const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version=f;fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
+      - name: Apply dev version
+        run: node scripts/version.js apply dev --build ${{ needs.increment-version.outputs.build }}
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
-
-      - name: Update package.json for dev build
-        run: |
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.build.mac.artifactName = '\${productName}-dev-\${version}-\${arch}.\${ext}';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-          "
 
       - name: Package with Electron Builder
         run: |
@@ -263,7 +222,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: macos-x64-dmg-dev
-          path: release/*-dev-*-x64.dmg
+          path: release/*-mac-x64.dmg
           retention-days: 7
 
   build-macos-arm64:
@@ -273,8 +232,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: dev
-          fetch-depth: 0
+          ref: ${{ needs.increment-version.outputs.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -316,21 +274,11 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done || exit 1
 
-      - name: Update version files
-        run: |
-          node -e "const fs=require('fs');const v='${{ needs.increment-version.outputs.version }}';const b=${{ needs.increment-version.outputs.build }};const f='${{ needs.increment-version.outputs.full_version }}';fs.writeFileSync('version.json',JSON.stringify({version:v,build:b,date:new Date().toISOString()},null,2));const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version=f;fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
+      - name: Apply dev version
+        run: node scripts/version.js apply dev --build ${{ needs.increment-version.outputs.build }}
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
-
-      - name: Update package.json for dev build
-        run: |
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.build.mac.artifactName = '\${productName}-dev-\${version}-\${arch}.\${ext}';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-          "
 
       - name: Package with Electron Builder
         run: |
@@ -348,7 +296,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: macos-arm64-dmg-dev
-          path: release/*-dev-*-arm64.dmg
+          path: release/*-mac-arm64.dmg
           retention-days: 7
 
   build-linux-x64:
@@ -358,8 +306,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: dev
-          fetch-depth: 0
+          ref: ${{ needs.increment-version.outputs.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -385,21 +332,11 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done || exit 1
 
-      - name: Update version files
-        run: |
-          node -e "const fs=require('fs');const v='${{ needs.increment-version.outputs.version }}';const b=${{ needs.increment-version.outputs.build }};const f='${{ needs.increment-version.outputs.full_version }}';fs.writeFileSync('version.json',JSON.stringify({version:v,build:b,date:new Date().toISOString()},null,2));const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version=f;fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
+      - name: Apply dev version
+        run: node scripts/version.js apply dev --build ${{ needs.increment-version.outputs.build }}
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
-
-      - name: Update package.json for dev build
-        run: |
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.build.linux.artifactName = '\${productName}-dev-\${version}-\${arch}.\${ext}';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-          "
 
       - name: Package with Electron Builder
         run: |
@@ -415,7 +352,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: linux-x64-appimage-dev
-          path: release/*-dev-*.AppImage
+          path: release/*.AppImage
           retention-days: 7
 
   build-linux-arm64:
@@ -426,8 +363,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: dev
-          fetch-depth: 0
+          ref: ${{ needs.increment-version.outputs.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -453,21 +389,11 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done || exit 1
 
-      - name: Update version files
-        run: |
-          node -e "const fs=require('fs');const v='${{ needs.increment-version.outputs.version }}';const b=${{ needs.increment-version.outputs.build }};const f='${{ needs.increment-version.outputs.full_version }}';fs.writeFileSync('version.json',JSON.stringify({version:v,build:b,date:new Date().toISOString()},null,2));const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version=f;fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
+      - name: Apply dev version
+        run: node scripts/version.js apply dev --build ${{ needs.increment-version.outputs.build }}
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
-
-      - name: Update package.json for dev build
-        run: |
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.build.linux.artifactName = '\${productName}-dev-\${version}-\${arch}.\${ext}';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-          "
 
       - name: Package with Electron Builder
         run: |
@@ -483,7 +409,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: linux-arm64-appimage-dev
-          path: release/*-dev-*.AppImage
+          path: release/*.AppImage
           retention-days: 7
           if-no-files-found: warn
 
@@ -516,60 +442,58 @@ jobs:
       - name: List downloaded files
         run: find builds -type f
 
-      - name: Create or Update Dev Release via gh CLI
+      - name: Create Dev Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
+          TAG: ${{ needs.increment-version.outputs.tag }}
+          TITLE: ${{ needs.increment-version.outputs.title }}
+          FULL_VERSION: ${{ needs.increment-version.outputs.full_version }}
+          SHA: ${{ needs.increment-version.outputs.sha }}
         run: |
           mapfile -t FILES < <(find builds -type f \( -name "*.exe" -o -name "*.dmg" -o -name "*.AppImage" \))
-          NOTES="## 🧪 Version de Développement
+          NOTES="## 🧪 Version de développement
 
-          **Version**: \`${{ needs.increment-version.outputs.version }}\`
-          **Build**: \`#${{ needs.increment-version.outputs.build }}\`
+          **Version** : \`${FULL_VERSION}\` • **Build** : \`#${{ needs.increment-version.outputs.build }}\`
 
-          **Ceci est une version de test !**
-
-          Cette release contient les dernières modifications de la branche \`dev\` et est destinée aux tests.
+          Pré-release construite depuis la branche \`dev\`, destinée aux tests.
+          Prochaine version stable visée : \`${{ needs.increment-version.outputs.version }}\`.
 
           ### 📥 Téléchargements
 
           | Plateforme | Architecture | Fichier |
           |------------|--------------|---------|
-          | **Windows** | x64 | \`.exe\` portable |
-          | **macOS** | x64 | \`.dmg\` |
-          | **macOS** | ARM64 | \`.dmg\` (Apple Silicon M1/M2/M3) |
-          | **Linux** | x64 | \`.AppImage\` |
-          | **Linux** | ARM64 | \`.AppImage\` (Raspberry Pi, etc.) |
+          | **Windows** | x64 | \`BellePoule-Modern-${FULL_VERSION}-win-x64-portable.exe\` |
+          | **macOS** | x64 | \`BellePoule-Modern-${FULL_VERSION}-mac-x64.dmg\` |
+          | **macOS** | ARM64 | \`BellePoule-Modern-${FULL_VERSION}-mac-arm64.dmg\` (Apple Silicon) |
+          | **Linux** | x64 | \`…-linux-x64.AppImage\` |
+          | **Linux** | ARM64 | \`…-linux-arm64.AppImage\` (Raspberry Pi…) |
 
           ### ⚠️ Notes
-          - Cette version peut contenir des bugs
-          - Les fonctionnalités sont en cours de développement
+          - Peut contenir des bugs ; ne pas utiliser en compétition officielle
+          - Règles de versionnage : [docs/VERSIONING.md](https://github.com/${REPO}/blob/dev/docs/VERSIONING.md)
 
           ---
-          **Build automatique** • Branche: \`dev\` • Commit: \`${{ github.sha }}\`"
+          **Build automatique** • Branche : \`dev\` • Commit : \`${SHA}\`"
 
-          TITLE="🧪 BellePoule Modern Dev v${{ needs.increment-version.outputs.version }} Build #${{ needs.increment-version.outputs.build }}"
-
-          echo "=== All releases ==="
-          gh api repos/$REPO/releases --paginate 2>/dev/null | jq -r '.[] | "\(.id) \(.tag_name)"'
-          echo "=== Tag lookup ==="
-          gh api repos/$REPO/releases/tags/dev-prerelease 2>&1 | jq '.' || true
-          TAG="dev-build-${{ needs.increment-version.outputs.build }}"
-          echo "Creating release with tag $TAG"
+          echo "Création de la pré-release $TAG"
           gh release create "$TAG" \
             --repo "$REPO" \
             --title "$TITLE" \
             --notes "$NOTES" \
             --prerelease \
-            --target dev \
+            --latest=false \
+            --target "$SHA" \
             "${FILES[@]}"
 
-          # Keep only the 5 most recent dev builds (cleanup old ones)
-          gh api repos/$REPO/releases --paginate 2>/dev/null \
-            | jq -r '.[] | select(.prerelease==true) | "\(.id) \(.tag_name)"' \
-            | grep " dev-build-" | sort -t- -k3 -rn | tail -n +6 \
-            | while read id tag; do
-                echo "Cleaning up old release $tag ($id)"
-                gh api -X DELETE repos/$REPO/releases/$id || true
-                gh api -X DELETE repos/$REPO/git/refs/tags/$tag || true
+          # Conserver les 5 pré-releases dev les plus récentes (tags vX.Y.Z-dev.N et anciens dev-build-N)
+          gh api "repos/$REPO/releases?per_page=100" --paginate 2>/dev/null \
+            | jq -r '.[] | select(.prerelease==true)
+                     | select((.tag_name | test("-dev\\.[0-9]+$")) or (.tag_name | startswith("dev-build-")))
+                     | "\(.created_at) \(.id) \(.tag_name)"' \
+            | sort -r | tail -n +6 \
+            | while read -r _ id tag; do
+                echo "Suppression de l'ancienne pré-release $tag ($id)"
+                gh api -X DELETE "repos/$REPO/releases/$id" || true
+                gh api -X DELETE "repos/$REPO/git/refs/tags/$tag" || true
               done

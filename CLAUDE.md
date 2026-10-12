@@ -51,8 +51,10 @@ Code is in English; comments and documentation are in French.
 npm run dev             # Development mode (concurrent TypeScript + Webpack watchers)
 npm run dev:main        # Watch main process only
 npm run dev:renderer    # Watch renderer only (Webpack dev server on port 8066)
-npm run build           # Full build (increment-build + Webpack main + renderer)
-npm run build:ci        # CI build (no build number increment)
+npm run build           # Full build (Webpack main + renderer)
+npm run build:ci        # Same as build (used by CI)
+npm run version:show    # Show version.json
+npm run version:bump -- <major|minor|patch|X.Y.Z>  # SemVer bump (docs/VERSIONING.md)
 npm run build:main      # Webpack main + preload only
 npm run build:renderer  # Webpack renderer only (also copies src/remote → dist/remote)
 npm start               # Build and run with Electron
@@ -255,7 +257,7 @@ Core interfaces: `Fencer`, `Referee`, `Competition`, `Pool`, `Match`, `PoolRanki
 
 ## Git Conventions
 
-- Build commits: `🔖 Build #XXX`
+- Build commits: `🔖 Dev Build #XXX` (dev CI only)
 - Feature commits in French or English
-- CI/CD auto-increments build number in `version.json` on push to `main` and `dev` (`🔖 Dev Build #XXX` on dev)
+- Versioning rules: `docs/VERSIONING.md`. `dev` CI increments `build` in `version.json` and publishes pre-release `vX.Y.Z-dev.N`; `main` CI publishes `vX.Y.Z` reusing the promoted build (no commit). Bump SemVer on `dev` before promoting (`npm run version:bump`)
 - Branch prefix for AI: `claude/`

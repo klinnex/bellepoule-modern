@@ -31,7 +31,7 @@ Merci pour votre soutien ! / Thank you for your support!
 
 ### 🚀 [**Télécharger la dernière version stable**](https://github.com/klinnex/bellepoule-modern/releases/latest)
 
-### 🧪 [**Télécharger la version de développement (dev)**](https://github.com/klinnex/bellepoule-modern/releases?q=dev-build&expanded=true)
+### 🧪 [**Télécharger la version de développement (dev)**](https://github.com/klinnex/bellepoule-modern/releases?q=-dev.&expanded=true)
 
 > ⚠️ **Version de test** : Contient les dernières fonctionnalités mais peut être instable
 
@@ -312,7 +312,7 @@ Liste complète et versions : [docs/STACK_TECHNIQUE.md](docs/STACK_TECHNIQUE.md)
 
 ### 🧪 **Version de Développement** (Tests)
 
-📦 **[Télécharger la dernière version dev](https://github.com/klinnex/bellepoule-modern/releases?q=dev-build&expanded=true)**
+📦 **[Télécharger la dernière version dev](https://github.com/klinnex/bellepoule-modern/releases?q=-dev.&expanded=true)**
 
 > ⚠️ **Attention** : Cette version est destinée aux tests et peut contenir des bugs.
 
@@ -373,7 +373,7 @@ Pour vérifier la version installée :
 - **Raccourci** : `F1`
 - **Ligne de commande** : `BellePoule.Modern.exe --version`
 
-La version s'affiche sous la forme `1.0.3-build.XXXX`
+La version s'affiche sous la forme `X.Y.Z` (stable) ou `X.Y.Z-dev.N` (dev) — règles : [docs/VERSIONING.md](docs/VERSIONING.md)
 
 ## 🔄 **Builds automatiques**
 
@@ -384,19 +384,19 @@ Ce projet utilise **GitHub Actions** pour créer automatiquement :
 - ✅ **Builds multi-plateformes** à chaque `push` sur `main`
 - ✅ **Contrôles automatisés** : type-check, complétude i18n, tests unitaires, budget de taille du bundle
 - ✅ **Releases stables** avec tous les executables
-- ✅ **Numérotation automatique** des builds (build #XXX)
+- ✅ **Release `vX.Y.Z`** = promotion du dernier build dev (même numéro de build)
 
 ### **Branche `dev`** (Développement)
 
 - 🧪 **Builds multi-plateformes** à chaque `push` sur `dev`
-- 🧪 **Release `dev` permanente** mise à jour automatiquement
-- 🧪 **Executables avec suffixe `-dev`** pour identification facile
+- 🧪 **Pré-release `vX.Y.Z-dev.N`** à chaque build (5 dernières conservées)
+- 🧪 **Executables `BellePoule-Modern-X.Y.Z-dev.N-…`** pour identification facile
 - 🧪 **Tests des nouvelles fonctionnalités** avant merge sur main
 
 ### **Liens directs**
 
 - 🟢 **Release stable** : [`/releases/latest`](https://github.com/klinnex/bellepoule-modern/releases/latest)
-- 🧪 **Release dev** : [`/releases?q=dev-build`](https://github.com/klinnex/bellepoule-modern/releases?q=dev-build&expanded=true)
+- 🧪 **Release dev** : [`/releases?q=-dev.`](https://github.com/klinnex/bellepoule-modern/releases?q=-dev.&expanded=true)
 - 📊 **État des builds** : [GitHub Actions](https://github.com/klinnex/bellepoule-modern/actions)
 
 ## 📦 **Générer ses propres executables**
