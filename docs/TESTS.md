@@ -65,7 +65,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 25 | 470 |
+| `src/shared/utils/` | 26 | 480 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -83,9 +83,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 16 | 94 |
 | `src/renderer/components/` | 27 | 103 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| **Total** | **114** | **1223** |
+| **Total** | **115** | **1233** |
 
-Unitaires : 106 fichiers, 1192 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 107 fichiers, 1202 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -579,6 +579,26 @@ Unitaires : 106 fichiers, 1192 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - règle classique inchangée : tous les matchs contre le forfait sont annulés
   - classe le forfait sur ses matchs disputés dans la poule
   - place le forfait en fin de classement général (non qualifié pour le tableau)
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/poolRounds.test.ts</code> — 10 tests</summary>
+
+- **getRoundQualifierCount**
+  - retourne le nombre pour le tour demandé
+  - 0 ou absent = tous
+- **selectNextRoundFencers**
+  - garde les N premiers et seed = place du tour
+  - garde tous les ex-aequo à la coupure
+  - écarte abandons / exclusions
+  - sans quota : tous les actifs
+- **seedFencersFromRanking**
+  - nouveau tirage différent du tirage initial
+  - tireurs absents du classement précédent en fin
+- **mergeRoundRankings**
+  - dernier tour puis éliminés, sans cumul, éliminés marqués
+  - conserve les ex-aequo des éliminés
 
 </details>
 

@@ -546,7 +546,8 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       r =>
         r.fencer.status !== FencerStatus.ABANDONED &&
         r.fencer.status !== FencerStatus.FORFAIT &&
-        r.fencer.status !== FencerStatus.EXCLUDED
+        r.fencer.status !== FencerStatus.EXCLUDED &&
+        r.fencer.status !== FencerStatus.ELIMINATED
     ).length;
     if (eligibleCount > 0) {
       const expectedSize = getMainTableauSize(eligibleCount);
@@ -655,7 +656,8 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       r =>
         r.fencer.status !== FencerStatus.ABANDONED &&
         r.fencer.status !== FencerStatus.FORFAIT &&
-        r.fencer.status !== FencerStatus.EXCLUDED
+        r.fencer.status !== FencerStatus.EXCLUDED &&
+        r.fencer.status !== FencerStatus.ELIMINATED
     );
 
   const generateTableau = () => {

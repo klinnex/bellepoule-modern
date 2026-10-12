@@ -125,6 +125,12 @@
     "pool_number": "Poule",
     "change_pool": "Canviar de Poule",
     "next_round_n": "Ronda {{n}} →",
+    "next_round_confirm": "Ronda {{n}}: {{qualified}} classificats, {{eliminated}} eliminats. Els no classificats passen a «Eliminat». Continuar?",
+    "next_round_checkin": "Ronda {{n}}: crida dels classificats i nou sorteig",
+    "round_select_label": "Ronda de poules",
+    "round_option": "Ronda {{n}}",
+    "round_current": "en curs",
+    "round_checkin_banner": "Crida – Ronda {{n}}: verifiqueu els classificats i genereu les noves poules (sorteig segons la classificació de la ronda anterior).",
     "view_ranking_action": "Veure classificació →"
   },
   "ranking": {

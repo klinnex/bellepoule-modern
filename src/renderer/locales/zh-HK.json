@@ -125,6 +125,12 @@
     "pool_number": "分組",
     "change_pool": "更改分組",
     "next_round_n": "第 {{n}} 輪分組賽 →",
+    "next_round_confirm": "第 {{n}} 輪：{{qualified}} 人晉級，{{eliminated}} 人淘汰。未晉級者將設為「已淘汰」。繼續？",
+    "next_round_checkin": "第 {{n}} 輪：晉級者點名，然後重新抽籤",
+    "round_select_label": "分組輪次",
+    "round_option": "第 {{n}} 輪",
+    "round_current": "進行中",
+    "round_checkin_banner": "點名 – 第 {{n}} 輪：確認晉級者，然後按上一輪排名產生新分組。",
     "view_ranking_action": "查看排名 →"
   },
   "ranking": {

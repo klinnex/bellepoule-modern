@@ -125,6 +125,12 @@
     "pool_number": "Pool",
     "change_pool": "Change Pool",
     "next_round_n": "Pool round {{n}} →",
+    "next_round_confirm": "Round {{n}}: {{qualified}} qualified, {{eliminated}} eliminated. Non-qualified fencers will be set to \"Eliminated\". Continue?",
+    "next_round_checkin": "Round {{n}}: roll call of qualified fencers, then new draw",
+    "round_select_label": "Pool round",
+    "round_option": "Round {{n}}",
+    "round_current": "current",
+    "round_checkin_banner": "Roll call – Round {{n}}: check the qualified fencers, then generate the new pools (seeded on the previous round ranking).",
     "view_ranking_action": "View ranking →"
   },
   "ranking": {
