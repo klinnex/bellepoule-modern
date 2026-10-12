@@ -55,6 +55,10 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
 
   // Paramètres de compétition
   const [poolRounds, setPoolRounds] = useState(competition.settings?.poolRounds ?? 1);
+  // Qualifiés pour le tour i+2 (0 = tous) (#1051)
+  const [poolRoundQualifiers, setPoolRoundQualifiers] = useState<number[]>(
+    competition.settings?.poolRoundQualifiers ?? []
+  );
   const [hasDirectElimination, setHasDirectElimination] = useState(
     competition.settings?.hasDirectElimination ?? true
   );
@@ -150,6 +154,10 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
     const settings: CompetitionSettings = {
       ...(competition.settings || {}),
       poolRounds,
+      poolRoundQualifiers: Array.from(
+        { length: Math.max(0, poolRounds - 1) },
+        (_, i) => poolRoundQualifiers[i] ?? 0
+      ),
       hasDirectElimination,
       thirdPlaceMatch,
       signTableauMatches,
@@ -212,6 +220,30 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   ? '1 tour imposé avant le Tour Quest'
                   : 'Nombre de phases de poules avant le tableau'}
               </small>
+              {!questEnabled &&
+                Array.from({ length: Math.max(0, poolRounds - 1) }, (_, i) => (
+                  <div key={i} style={{ marginTop: '0.5rem' }}>
+                    <label htmlFor={`poolRoundQualifiers-${i}`}>
+                      Qualifiés pour le tour {i + 2}
+                    </label>
+                    <input
+                      id={`poolRoundQualifiers-${i}`}
+                      type="number"
+                      min={0}
+                      className="form-input"
+                      value={poolRoundQualifiers[i] ?? 0}
+                      onChange={e => {
+                        const n = Math.max(0, parseInt(e.target.value) || 0);
+                        setPoolRoundQualifiers(prev => {
+                          const next = [...prev];
+                          next[i] = n;
+                          return next;
+                        });
+                      }}
+                    />
+                    <small style={HINT}>0 = tous les tireurs du tour précédent</small>
+                  </div>
+                ))}
             </div>
           )}
           <div className="form-group">

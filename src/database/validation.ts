@@ -180,6 +180,13 @@ export const validateCompetitionSettings = (settings: CompetitionSettings): void
   validateNumber(settings.defaultPoolMaxScore, 'defaultPoolMaxScore', 1, 50);
   validateNumber(settings.defaultTableMaxScore, 'defaultTableMaxScore', 1, 50);
   validateNumber(settings.poolRounds, 'poolRounds', 1, 5);
+  if (settings.poolRoundQualifiers !== undefined) {
+    if (!Array.isArray(settings.poolRoundQualifiers))
+      throw new ValidationError('poolRoundQualifiers must be an array', 'poolRoundQualifiers');
+    settings.poolRoundQualifiers.forEach((n, i) =>
+      validateNumber(n, `poolRoundQualifiers[${i}]`, 0, 10000)
+    );
+  }
   validateNumber(settings.defaultRanking, 'defaultRanking', 0);
   validateNumber(settings.minTeamSize, 'minTeamSize', 1);
 

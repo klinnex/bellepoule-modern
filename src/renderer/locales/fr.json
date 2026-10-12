@@ -125,6 +125,12 @@
     "pool_number": "Poule",
     "change_pool": "Changer de poule",
     "next_round_n": "Tour {{n}} de poules →",
+    "next_round_confirm": "Tour {{n}} : {{qualified}} qualifiés, {{eliminated}} éliminés. Les non-qualifiés passent au statut « Éliminé ». Continuer ?",
+    "next_round_checkin": "Tour {{n}} : appel des qualifiés, puis nouveau tirage",
+    "round_select_label": "Tour de poules",
+    "round_option": "Tour {{n}}",
+    "round_current": "en cours",
+    "round_checkin_banner": "Appel – Tour {{n}} : vérifiez les qualifiés, puis générez les nouvelles poules (tirage selon le classement du tour précédent).",
     "view_ranking_action": "Voir le classement →"
   },
   "ranking": {

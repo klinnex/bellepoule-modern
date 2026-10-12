@@ -27,6 +27,7 @@ import {
   calculateOverallRanking,
   calculateOverallRankingQuest,
 } from '../../shared/utils/poolCalculations';
+import { mergeRoundRankings } from '../../shared/utils/poolRounds';
 
 interface UsePoolManagementProps {
   isLaserSabre: boolean;
@@ -63,12 +64,14 @@ export const usePoolManagement = ({
     [isLaserSabre]
   );
 
-  // Inclut l'historique des tours précédents pour un classement cumulatif
+  // Classement multi-tours (#1051) : dernier tour, puis éliminés des tours précédents.
+  // Pas de cumul : chaque tour repart de zéro.
   const computeOverallRankingAllRounds = useCallback(
     (currentPools: Pool[], extraHistory?: Pool[][]) => {
       const history = extraHistory ?? poolHistory;
-      const allPools = [...history.flat(), ...currentPools];
-      return computeOverallRanking(allPools);
+      const rounds = [...history, currentPools].filter(r => r.length > 0);
+      if (rounds.length <= 1) return computeOverallRanking(rounds[0] ?? []);
+      return mergeRoundRankings(rounds.map(r => computeOverallRanking(r)));
     },
     [poolHistory, computeOverallRanking]
   );
@@ -81,8 +84,9 @@ export const usePoolManagement = ({
   );
 
   // Générer les poules
+  // round > 1 : nouveau tirage d'un tour suivant (historique conservé)
   const generatePools = useCallback(
-    (checkedInFencers: Fencer[]) => {
+    (checkedInFencers: Fencer[], round = 1) => {
       if (checkedInFencers.length < 4) {
         showToast('Il faut au moins 4 tireurs pointés pour créer les poules.', 'warning');
         return null;
@@ -114,7 +118,7 @@ export const usePoolManagement = ({
         return {
           id: poolId,
           number: index + 1,
-          phaseId: 'phase-pools',
+          phaseId: round > 1 ? `phase-pools-r${round}` : 'phase-pools',
           fencers: poolFencers,
           matches,
           referees: [],
@@ -127,16 +131,18 @@ export const usePoolManagement = ({
       });
 
       setPools(generatedPools);
-      setCurrentPoolRound(1);
-      setPoolHistory([]);
-
-      const ranking = computeOverallRanking(generatedPools);
-      setOverallRanking(ranking);
+      if (round > 1) {
+        setOverallRanking(computeOverallRankingAllRounds(generatedPools));
+      } else {
+        setCurrentPoolRound(1);
+        setPoolHistory([]);
+        setOverallRanking(computeOverallRanking(generatedPools));
+      }
 
       showToast(`${generatedPools.length} poules créées avec succès`, 'success');
       return generatedPools;
     },
-    [poolMaxScore, computeOverallRanking, showToast]
+    [poolMaxScore, computeOverallRanking, computeOverallRankingAllRounds, showToast]
   );
 
   // Mettre à jour un score
@@ -258,66 +264,16 @@ export const usePoolManagement = ({
     [computePoolRanking, computeOverallRankingAllRounds]
   );
 
-  // Passer au tour de poules suivant
-  const nextPoolRound = useCallback(
-    (checkedInFencers: Fencer[]) => {
-      if (pools.length === 0) return;
-
-      // Sauvegarder l'état actuel dans l'historique
-      setPoolHistory(prev => [...prev, pools]);
-
-      // Générer de nouvelles poules avec le classement actuel
-      const newPoolCount = calculateOptimalPoolCount(checkedInFencers.length, 5, 7);
-      const distribution = distributeFencersToPoolsSerpentine(checkedInFencers, newPoolCount, [
-        'byClub',
-        'byRegion',
-      ]);
-
-      const newPools: Pool[] = distribution.map((poolFencers, index) => {
-        const poolId = crypto.randomUUID();
-        const matchOrder = generatePoolMatchOrder(poolFencers.length);
-        const matches: Match[] = matchOrder.map(([a, b], matchIndex) => ({
-          id: crypto.randomUUID(),
-          poolId,
-          number: matchIndex + 1,
-          fencerA: poolFencers[a - 1],
-          fencerB: poolFencers[b - 1],
-          scoreA: null,
-          scoreB: null,
-          maxScore: poolMaxScore,
-          status: MatchStatus.NOT_STARTED,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }));
-
-        return {
-          id: poolId,
-          number: index + 1,
-          phaseId: 'phase-pools',
-          fencers: poolFencers,
-          matches,
-          referees: [],
-          isComplete: false,
-          hasError: false,
-          ranking: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-      });
-
-      setPools(newPools);
-      setCurrentPoolRound(prev => prev + 1);
-
-      // Classement cumulatif sur tous les tours terminés (historique + tour courant)
-      // newPools est vide, le classement reflète l'état après le tour qui vient de finir
-      const allCompletedPools = [...poolHistory, pools];
-      const ranking = computeOverallRanking(allCompletedPools.flat());
-      setOverallRanking(ranking);
-
-      showToast(`Tour ${currentPoolRound + 1} de poules créé`, 'success');
-    },
-    [pools, poolHistory, currentPoolRound, poolMaxScore, computeOverallRanking, showToast]
-  );
+  // Clôturer le tour courant (#1051) : archivé dans l'historique, nouveau tirage à faire
+  // après l'appel du tour suivant (generatePools(fencers, round)).
+  const nextPoolRound = useCallback(() => {
+    if (pools.length === 0) return;
+    const history = [...poolHistory, pools];
+    setPoolHistory(history);
+    setPools([]);
+    setCurrentPoolRound(history.length + 1);
+    setOverallRanking(computeOverallRankingAllRounds([], history));
+  }, [pools, poolHistory, computeOverallRankingAllRounds]);
 
   // Vérifier si toutes les poules sont complètes
   const areAllPoolsComplete = useCallback(() => {

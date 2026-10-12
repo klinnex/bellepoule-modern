@@ -591,6 +591,7 @@ export interface CompetitionSettings {
   defaultPoolTimerSeconds: number; // Durée chrono poules en secondes (défaut: 180)
   defaultTableTimerSeconds: number; // Durée chrono tableau en secondes (défaut: 180)
   poolRounds: number; // Nombre de tours de poules (défaut: 1)
+  poolRoundQualifiers?: number[]; // Qualifiés pour le tour i+2 (0/absent = tous) (#1051)
   hasDirectElimination: boolean; // Phase d'élimination directe activée (défaut: true)
   thirdPlaceMatch: boolean; // Match pour la 3ème place activé (défaut: false)
   signTableauMatches?: boolean; // Signature des combattants sur tablette après chaque match du tableau (défaut: true)

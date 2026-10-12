@@ -125,6 +125,12 @@
     "pool_number": "Poule",
     "change_pool": "Cambiar Poule",
     "next_round_n": "Ronda {{n}} →",
+    "next_round_confirm": "Ronda {{n}}: {{qualified}} clasificados, {{eliminated}} eliminados. Los no clasificados pasan a «Eliminado». ¿Continuar?",
+    "next_round_checkin": "Ronda {{n}}: llamada de clasificados y nuevo sorteo",
+    "round_select_label": "Ronda de poules",
+    "round_option": "Ronda {{n}}",
+    "round_current": "en curso",
+    "round_checkin_banner": "Llamada – Ronda {{n}}: verifique los clasificados y genere las nuevas poules (sorteo según la clasificación de la ronda anterior).",
     "view_ranking_action": "Ver clasificación →"
   },
   "ranking": {

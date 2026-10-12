@@ -54,13 +54,12 @@ import { useFencerManagement } from '../hooks/useFencerManagement';
 import { usePoolManagement } from '../hooks/usePoolManagement';
 import { useExport } from '../hooks/useExport';
 import { useMenuEvents } from '../hooks/useMenuEvents';
+import { generateInitialRanking, filterPoolWinners } from '../../shared/utils/poolCalculations';
 import {
-  calculateOptimalPoolCount,
-  distributeFencersToPoolsSerpentine,
-  generatePoolMatchOrder,
-  generateInitialRanking,
-  filterPoolWinners,
-} from '../../shared/utils/poolCalculations';
+  getRoundQualifierCount,
+  selectNextRoundFencers,
+  seedFencersFromRanking,
+} from '../../shared/utils/poolRounds';
 import { QRCodeShare } from './QRCodeShare';
 import { computePoolStrips } from '../../shared/utils/poolStrips';
 import { TouchOptimizedReferee } from './TouchOptimizedReferee';
@@ -188,6 +187,13 @@ const CV_STYLES = {
   } satisfies React.CSSProperties,
   questWrapper: { display: 'none' } satisfies React.CSSProperties,
   phaseContent: { flex: 1, overflow: 'auto' as const } satisfies React.CSSProperties,
+  roundSelector: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '0.5rem',
+    margin: '0.75rem 0 1.25rem',
+  } satisfies React.CSSProperties,
 } satisfies Record<string, React.CSSProperties>;
 
 const CompetitionView: React.FC<CompetitionViewProps> = ({
@@ -204,6 +210,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
 
   // Settings avec valeurs par défaut
   const poolRounds = competition.settings?.poolRounds ?? 1;
+  const poolRoundQualifiers = competition.settings?.poolRoundQualifiers;
   const hasDirectElimination = competition.settings?.hasDirectElimination ?? true;
   const thirdPlaceMatch = competition.settings?.thirdPlaceMatch ?? false;
   const playAllPositions = competition.settings?.playAllPositions ?? false;
@@ -343,6 +350,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     resetMatch,
     cancelMatch,
     updateMatchFromRemote,
+    nextPoolRound,
     computePoolRanking,
     computeOverallRanking,
     areAllPoolsComplete,
@@ -351,6 +359,27 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     handleBlackCardCancelled,
     syncFencersToPool,
   } = usePoolManagement({ isLaserSabre, poolMaxScore, showToast, competitionId: competition?.id });
+
+  // Tours de poules (#1051) : seed du tirage = classement du tour précédent
+  const previousRoundRanking = useMemo(
+    () =>
+      currentPoolRound > 1 && poolHistory.length > 0
+        ? computeOverallRanking(poolHistory[poolHistory.length - 1])
+        : null,
+    [currentPoolRound, poolHistory, computeOverallRanking]
+  );
+  const getSeededCheckedInFencers = useCallback(() => {
+    const checkedIn = getCheckedInFencers();
+    return previousRoundRanking
+      ? seedFencersFromRanking(checkedIn, previousRoundRanking)
+      : checkedIn;
+  }, [getCheckedInFencers, previousRoundRanking]);
+  // Tour consulté (null = tour courant)
+  const [viewedPoolRound, setViewedPoolRound] = useState<number | null>(null);
+  const viewedRoundPools =
+    viewedPoolRound !== null && viewedPoolRound < currentPoolRound
+      ? (poolHistory[viewedPoolRound - 1] ?? null)
+      : null;
 
   useEffect(() => {
     localStorage.setItem('bellepoule-pools-view-mode', poolsViewMode);
@@ -1007,8 +1036,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   };
 
   const handleGeneratePools = async () => {
-    const checkedIn = getCheckedInFencers();
-    const newPools = generatePoolsHook(checkedIn);
+    const newPools = generatePoolsHook(getSeededCheckedInFencers(), currentPoolRound);
     if (newPools) {
       await persistPoolsToDB(newPools);
       // Fermer l'inscription distante dès que les poules sont générées
@@ -1312,53 +1340,36 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     setShowThirdPlaceDialog(false);
   };
 
-  const handleNextPoolRound = () => {
-    const checkedIn = getCheckedInFencers();
-    const ranking = computeOverallRanking(pools);
-    const rankedFencers = ranking.map(r => r.fencer);
-
-    const poolCount = calculateOptimalPoolCount(rankedFencers.length, 5, 7);
-    const distribution = distributeFencersToPoolsSerpentine(rankedFencers, poolCount, [
-      'byClub',
-      'byRegion',
-    ]);
-
-    const now = new Date();
-    const newPools = distribution.map((poolFencers, index) => {
-      const matchOrder = generatePoolMatchOrder(poolFencers.length);
-      const poolId = crypto.randomUUID();
-      const matches = matchOrder.map(([a, b], matchIndex) => ({
-        id: crypto.randomUUID(),
-        number: matchIndex + 1,
-        fencerA: poolFencers[a - 1],
-        fencerB: poolFencers[b - 1],
-        scoreA: null,
-        scoreB: null,
-        maxScore: poolMaxScore,
-        status: MatchStatus.NOT_STARTED,
-        poolId,
-        createdAt: now,
-        updatedAt: now,
-      }));
-
-      return {
-        id: poolId,
-        number: index + 1,
-        fencers: poolFencers,
-        matches,
-        referees: [],
-        isComplete: false,
-        hasError: false,
-        ranking: [],
-        phaseId: `phase-pools-r${currentPoolRound + 1}`,
-        createdAt: now,
-        updatedAt: now,
-      };
-    });
-
-    setPoolHistory(prev => [...prev, pools]);
-    setPools(newPools);
-    setCurrentPoolRound(prev => prev + 1);
+  // Tour suivant (#1051) : qualifiés selon le classement du tour terminé, non-qualifiés
+  // éliminés, puis appel + nouveau tirage seedé sur ce classement.
+  const handleNextPoolRound = async () => {
+    const nextRound = currentPoolRound + 1;
+    const qualifierCount = getRoundQualifierCount(poolRoundQualifiers, nextRound);
+    const { qualified, eliminated } = selectNextRoundFencers(
+      computeOverallRanking(pools),
+      qualifierCount
+    );
+    if (qualified.length < 4) {
+      showToast('Il faut au moins 4 qualifiés pour un nouveau tour de poules.', 'warning');
+      return;
+    }
+    const toEliminate = eliminated.filter(
+      f => fencers.find(x => x.id === f.id)?.status === FencerStatus.CHECKED_IN
+    );
+    const ok = await confirm(
+      t('pools.next_round_confirm', {
+        n: nextRound,
+        qualified: qualified.length,
+        eliminated: toEliminate.length,
+      })
+    );
+    if (!ok) return;
+    for (const f of toEliminate) updateFencer(f.id, { status: FencerStatus.ELIMINATED });
+    nextPoolRound();
+    setRankingValidated(false);
+    setViewedPoolRound(null);
+    setCurrentPhase('checkin');
+    showToast(t('pools.next_round_checkin', { n: nextRound }), 'success');
   };
 
   const questConfig = competition.settings?.questConfig;
@@ -1595,10 +1606,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                 ? t('phases.pools_round', { current: currentPoolRound, total: poolRounds })
                 : t('phases.pools'),
             icon: skipPoolPhase ? '⏭' : '🎯',
-            disabled: skipPoolPhase || pools.length === 0,
+            disabled: skipPoolPhase || (pools.length === 0 && poolHistory.length === 0),
             title: skipPoolPhase
               ? t('phases.pools_skip_tooltip')
-              : pools.length === 0
+              : pools.length === 0 && poolHistory.length === 0
                 ? t('phases.pools_locked_tooltip')
                 : (undefined as string | undefined),
           },
@@ -1800,6 +1811,39 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   );
 
   // Rendu d'une carte de poule (réutilisé par la vue grille et la vue poule unique)
+  // Pools affichées en consultation : tour sélectionné, ou dernier tour terminé
+  // pendant l'appel / la préparation du tour suivant (#1051)
+  const historyPoolsToShow =
+    viewedRoundPools ??
+    (pools.length === 0 && poolHistory.length > 0 ? poolHistory[poolHistory.length - 1] : null);
+
+  // Sélecteur de tour (#1051) : visible dès qu'un tour est terminé
+  const poolRoundSelector =
+    poolRounds > 1 && poolHistory.length > 0 ? (
+      <div style={CV_STYLES.roundSelector}>
+        <label htmlFor="pool-round-select" style={{ fontWeight: 600 }}>
+          {t('pools.round_select_label')}
+        </label>
+        <select
+          id="pool-round-select"
+          className="form-input"
+          style={{ width: 'auto', fontWeight: 600 }}
+          value={viewedPoolRound ?? currentPoolRound}
+          onChange={e => {
+            const r = Number(e.target.value);
+            setViewedPoolRound(r === currentPoolRound ? null : r);
+          }}
+        >
+          {Array.from({ length: currentPoolRound }, (_, i) => i + 1).map(r => (
+            <option key={r} value={r}>
+              {t('pools.round_option', { n: r })}
+              {r === currentPoolRound ? ` (${t('pools.round_current')})` : ''}
+            </option>
+          ))}
+        </select>
+      </div>
+    ) : null;
+
   const renderPoolCard = (pool: (typeof pools)[number], poolIndex: number) => (
     <div key={pool.id} style={{ minWidth: 0, overflow: 'auto' }}>
       <PoolView
@@ -1863,7 +1907,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         stripQr={(() => {
           if (!poolsRemoteInfo) return undefined;
           const strip = computePoolStrips(pools, poolsRemoteInfo.arenaCount).get(pool.id);
-          return strip ? { strip, url: `${poolsRemoteInfo.serverUrl}/arene${strip}/arbitre` } : undefined;
+          return strip
+            ? { strip, url: `${poolsRemoteInfo.serverUrl}/arene${strip}/arbitre` }
+            : undefined;
         })()}
         onMatchArenaChange={(matchId, oldArena, newArena, fencerA, fencerB) => {
           if (!isRemoteActive || !competition?.id) return;
@@ -1934,6 +1980,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
 
       {/* Content — keyed pour animation de transition */}
       <div key={currentPhase} className="phase-content" style={CV_STYLES.phaseContent}>
+        {currentPhase === 'checkin' && currentPoolRound > 1 && pools.length === 0 && (
+          <div className="alert alert-info" role="status" style={{ margin: '0.75rem 1rem 0' }}>
+            {t('pools.round_checkin_banner', { n: currentPoolRound })}
+          </div>
+        )}
         {currentPhase === 'checkin' && (
           <FencerList
             fencers={fencers}
@@ -1979,7 +2030,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
 
         {currentPhase === 'poolprep' && (
           <PoolPrepView
-            fencers={getCheckedInFencers()}
+            fencers={getSeededCheckedInFencers()}
             initialPools={pools.length > 0 ? pools : undefined}
             maxScore={poolMaxScore}
             minFencersPerPool={minFencersPerPool}
@@ -2016,7 +2067,36 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
 
         {currentPhase === 'pools' && (
           <div className="content">
-            {pools.length === 0 ? (
+            {poolRoundSelector}
+            {historyPoolsToShow ? (
+              <div
+                style={{
+                  display: 'grid',
+                  gap: '2rem',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 480px), 1fr))',
+                }}
+              >
+                <Suspense fallback={null}>
+                  {historyPoolsToShow.map(pool => (
+                    <div key={pool.id} style={{ minWidth: 0, overflow: 'auto' }}>
+                      {/* Tour terminé : consultation seule */}
+                      <div inert>
+                        <PoolView
+                          pool={pool}
+                          weapon={competition.weapon}
+                          competitionName={competition.title}
+                          maxScore={poolMaxScore}
+                          competitionId={competition.id}
+                          onScoreUpdate={() => {}}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </Suspense>
+              </div>
+            ) : pools.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon">🎯</div>
                 <h2 className="empty-state-title">Pas de poules</h2>
@@ -2149,7 +2229,17 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           </div>
         )}
 
-        {currentPhase === 'ranking' && (
+        {currentPhase === 'ranking' && poolRoundSelector}
+        {currentPhase === 'ranking' && viewedRoundPools && (
+          <PoolRankingView
+            key={`round-${viewedPoolRound}`}
+            pools={viewedRoundPools}
+            ranking={computeOverallRanking(viewedRoundPools)}
+            weapon={competition.weapon}
+            hasDirectElimination={hasDirectElimination}
+          />
+        )}
+        {currentPhase === 'ranking' && !viewedRoundPools && (
           <PoolRankingView
             pools={pools}
             ranking={overallRanking}

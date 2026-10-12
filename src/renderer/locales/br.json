@@ -125,6 +125,12 @@
     "pool_number": "Poull",
     "change_pool": "Kemmañ ar poullou",
     "next_round_n": "Tro {{n}} →",
+    "next_round_confirm": "Tro {{n}} : {{qualified}} dibabet, {{eliminated}} lamet. Ar re n'int ket dibabet a vo « Lamet ». Kenderc'hel ?",
+    "next_round_checkin": "Tro {{n}} : galv an dibabet, ha tennadeg nevez",
+    "round_select_label": "Tro poullou",
+    "round_option": "Tro {{n}}",
+    "round_current": "o ren",
+    "round_checkin_banner": "Galv – Tro {{n}} : gwiriit an dibabet, ha krouit ar poullou nevez (diouzh renkadur an tro kent).",
     "view_ranking_action": "Gwelet ar renk →"
   },
   "ranking": {
