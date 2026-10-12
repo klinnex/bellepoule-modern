@@ -127,7 +127,7 @@
         gap: 0.5rem;
       }
 
-      .menu-nav button {
+      .menu-nav > button {
         padding: 0.4rem 1rem;
         border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 0.5rem;
@@ -139,8 +139,8 @@
         transition: all 0.2s;
       }
 
-      .menu-nav button:hover,
-      .menu-nav button.active {
+      .menu-nav > button:hover,
+      .menu-nav > button.active {
         background: var(--k-accent2);
         border-color: var(--k-accent2);
       }
@@ -1156,53 +1156,53 @@
         <button id="btn-direct" onclick="switchView('direct')" data-i18n="kiosk.live">Matchs en direct</button>
         <button id="btn-suivants" onclick="switchView('suivants')" data-i18n="kiosk.next_matches">Matchs suivants</button>
         <button id="btn-tableau" onclick="switchView('tableau')">Tableau DE</button>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;flex:1 1 0;min-width:0">
-      <div style="position:relative;margin-left:0.5rem">
-        <button id="btn-settings" class="settings-btn" title="Configurer les vues">⚙</button>
-        <div id="settings-panel" class="settings-panel hidden">
-          <div class="settings-title" data-i18n="kiosk.settings_title">Vues affichées</div>
-          <label class="settings-item">
-            <input type="checkbox" id="cb-poules" checked> <span data-i18n="kiosk.pools">Poules</span>
-          </label>
-          <label class="settings-item">
-            <input type="checkbox" id="cb-classement" checked> Classement Provisoire
-          </label>
-          <label class="settings-item">
-            <input type="checkbox" id="cb-final" checked> Classement Final
-          </label>
-          <label class="settings-item">
-            <input type="checkbox" id="cb-direct" checked> <span data-i18n="kiosk.live_matches">Matchs en cours</span>
-          </label>
-          <label class="settings-item">
-            <input type="checkbox" id="cb-suivants" checked> Matchs suivants
-          </label>
-          <label class="settings-item">
-            <input type="checkbox" id="cb-tableau" checked> Tableau DE
-          </label>
-          <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0.5rem 0">
-          <div class="settings-title">Mode tableau DE</div>
-          <label class="settings-item">
-            <input type="radio" name="tableau-mode" id="tableau-mode-auto" value="auto" checked style="accent-color:#3b82f6;cursor:pointer"> Auto
-          </label>
-          <label class="settings-item">
-            <input type="radio" name="tableau-mode" id="tableau-mode-compact" value="compact" style="accent-color:#3b82f6;cursor:pointer"> Tableau complet
-          </label>
-          <label class="settings-item">
-            <input type="radio" name="tableau-mode" id="tableau-mode-focus" value="focus" style="accent-color:#3b82f6;cursor:pointer"> Ordre de passage
-          </label>
-          <label class="settings-item">
-            <input type="radio" name="tableau-mode" id="tableau-mode-cinema" value="cinema" style="accent-color:#3b82f6;cursor:pointer"> Ciné (zoom auto)
-          </label>
-          <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0.5rem 0">
-          <div class="settings-title" data-i18n="kiosk.rotation_label">Rafraîchissement</div>
-          <div class="settings-item">
-            <input type="number" id="rotation-input" min="3" max="300" value="15"
-              style="width:56px;background:#0f172a;border:1px solid rgba(255,255,255,0.2);border-radius:0.4rem;color:#e2e8f0;padding:0.2rem 0.4rem;font-size:0.875rem">
-            <span data-i18n="kiosk.rotation_unit">s</span>
+        <div style="position:relative;margin-left:0.5rem">
+          <button id="btn-settings" class="settings-btn" title="Configurer les vues">⚙</button>
+          <div id="settings-panel" class="settings-panel hidden">
+            <div class="settings-title" data-i18n="kiosk.settings_title">Vues affichées</div>
+            <label class="settings-item">
+              <input type="checkbox" id="cb-poules" checked> <span data-i18n="kiosk.pools">Poules</span>
+            </label>
+            <label class="settings-item">
+              <input type="checkbox" id="cb-classement" checked> Classement Provisoire
+            </label>
+            <label class="settings-item">
+              <input type="checkbox" id="cb-final" checked> Classement Final
+            </label>
+            <label class="settings-item">
+              <input type="checkbox" id="cb-direct" checked> <span data-i18n="kiosk.live_matches">Matchs en cours</span>
+            </label>
+            <label class="settings-item">
+              <input type="checkbox" id="cb-suivants" checked> Matchs suivants
+            </label>
+            <label class="settings-item">
+              <input type="checkbox" id="cb-tableau" checked> Tableau DE
+            </label>
+            <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0.5rem 0">
+            <div class="settings-title">Mode tableau DE</div>
+            <label class="settings-item">
+              <input type="radio" name="tableau-mode" id="tableau-mode-auto" value="auto" checked style="accent-color:#3b82f6;cursor:pointer"> Auto
+            </label>
+            <label class="settings-item">
+              <input type="radio" name="tableau-mode" id="tableau-mode-compact" value="compact" style="accent-color:#3b82f6;cursor:pointer"> Tableau complet
+            </label>
+            <label class="settings-item">
+              <input type="radio" name="tableau-mode" id="tableau-mode-focus" value="focus" style="accent-color:#3b82f6;cursor:pointer"> Ordre de passage
+            </label>
+            <label class="settings-item">
+              <input type="radio" name="tableau-mode" id="tableau-mode-cinema" value="cinema" style="accent-color:#3b82f6;cursor:pointer"> Ciné (zoom auto)
+            </label>
+            <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0.5rem 0">
+            <div class="settings-title" data-i18n="kiosk.rotation_label">Rafraîchissement</div>
+            <div class="settings-item">
+              <input type="number" id="rotation-input" min="3" max="300" value="15"
+                style="width:56px;background:#0f172a;border:1px solid rgba(255,255,255,0.2);border-radius:0.4rem;color:#e2e8f0;padding:0.2rem 0.4rem;font-size:0.875rem">
+              <span data-i18n="kiosk.rotation_unit">s</span>
+            </div>
           </div>
         </div>
       </div>
+      <div style="display:flex;align-items:center;justify-content:flex-end;flex:1 1 0;min-width:0">
       <div class="menu-status">
         <div id="status-dot" class="status-dot"></div>
         <span id="status-text">—</span>
@@ -1454,8 +1454,11 @@
           if (btn) btn.classList.toggle('active', v === name);
         });
 
-        if (name === 'classement') {
-          const wrapper = document.getElementById('ranking-scroll-wrapper');
+        stopAutoScroll();
+        if (name === 'classement' || name === 'suivants') {
+          const wrapper = document.getElementById(
+            name === 'classement' ? 'ranking-scroll-wrapper' : 'suivants-container'
+          );
           wrapper.scrollTop = 0;
           startAutoScroll(wrapper);
         }
@@ -1488,24 +1491,33 @@
       let scrollAnimFrame = null;
       let scrollDelayTimer = null;
 
-      function startAutoScroll(wrapper) {
+      function stopAutoScroll() {
         cancelAnimationFrame(scrollAnimFrame);
         clearTimeout(scrollDelayTimer);
+      }
+
+      // Défilement vers le bas puis, s'il y a eu défilement, reprise du début après 3 s (#1036)
+      function startAutoScroll(wrapper) {
+        stopAutoScroll();
         const duration = 20000; // ms pour parcourir tout le contenu
-        const startTop = 0;
+        let start = null;
 
         function step(now) {
-          const start = step._start || (step._start = now);
-          const elapsed = now - start;
+          if (start === null) start = now;
           const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
           if (maxScroll <= 0) return;
 
-          const progress = Math.min(1, elapsed / duration);
-          wrapper.scrollTop = startTop + progress * maxScroll;
+          const progress = Math.min(1, (now - start) / duration);
+          wrapper.scrollTop = progress * maxScroll;
 
           if (progress < 1) {
             scrollAnimFrame = requestAnimationFrame(step);
+            return;
           }
+          scrollDelayTimer = setTimeout(() => {
+            wrapper.scrollTop = 0;
+            startAutoScroll(wrapper);
+          }, 3000);
         }
 
         scrollDelayTimer = setTimeout(() => {
