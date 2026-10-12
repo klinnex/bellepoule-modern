@@ -1,6 +1,6 @@
 /**
  * BellePoule Modern - Confirm Dialog Component
- * Remplace window.confirm() natif pour éviter les problèmes de focus dans Electron
+ * Remplace window.confirm() / window.prompt() natifs (focus Electron, prompt non supporté)
  * Licensed under GPL-3.0
  */
 
@@ -12,8 +12,14 @@ interface ConfirmOptions {
   cancelLabel?: string;
 }
 
+interface PromptOptions extends ConfirmOptions {
+  defaultValue?: string;
+  placeholder?: string;
+}
+
 interface ConfirmContextType {
   confirm: (messageOrOptions: string | ConfirmOptions) => Promise<boolean>;
+  prompt: (messageOrOptions: string | PromptOptions) => Promise<string | null>;
 }
 
 const ConfirmContext = createContext<ConfirmContextType | null>(null);
@@ -22,18 +28,26 @@ interface PendingConfirm {
   message: string;
   confirmLabel: string;
   cancelLabel: string;
-  resolve: (value: boolean) => void;
+  // Présent uniquement en mode prompt
+  input?: { placeholder?: string };
+  resolve: (value: string | null) => void;
 }
 
 export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [pending, setPending] = useState<PendingConfirm | null>(null);
+  const [inputValue, setInputValue] = useState('');
   const confirmBtnRef = useRef<HTMLButtonElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (pending && confirmBtnRef.current) {
-      previousFocusRef.current = document.activeElement as HTMLElement;
-      confirmBtnRef.current.focus();
+    if (!pending) return;
+    previousFocusRef.current = document.activeElement as HTMLElement;
+    if (pending.input && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    } else {
+      confirmBtnRef.current?.focus();
     }
   }, [pending]);
 
@@ -46,6 +60,22 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
         message: options.message,
         confirmLabel: options.confirmLabel || 'OK',
         cancelLabel: options.cancelLabel || 'Annuler',
+        resolve: value => resolve(value !== null),
+      });
+    });
+  }, []);
+
+  const prompt = useCallback((messageOrOptions: string | PromptOptions): Promise<string | null> => {
+    const options: PromptOptions =
+      typeof messageOrOptions === 'string' ? { message: messageOrOptions } : messageOrOptions;
+
+    setInputValue(options.defaultValue ?? '');
+    return new Promise<string | null>(resolve => {
+      setPending({
+        message: options.message,
+        confirmLabel: options.confirmLabel || 'OK',
+        cancelLabel: options.cancelLabel || 'Annuler',
+        input: { placeholder: options.placeholder },
         resolve,
       });
     });
@@ -53,7 +83,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const handleConfirm = () => {
     if (pending) {
-      pending.resolve(true);
+      pending.resolve(pending.input ? inputValue : '');
       setPending(null);
       previousFocusRef.current?.focus();
     }
@@ -61,7 +91,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const handleCancel = () => {
     if (pending) {
-      pending.resolve(false);
+      pending.resolve(null);
       setPending(null);
       previousFocusRef.current?.focus();
     }
@@ -74,7 +104,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   return (
-    <ConfirmContext.Provider value={{ confirm }}>
+    <ConfirmContext.Provider value={{ confirm, prompt }}>
       {children}
 
       {pending && (
@@ -98,7 +128,30 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
               </h2>
             </div>
             <div className="modal-body">
-              <p style={{ whiteSpace: 'pre-line', margin: 0 }}>{pending.message}</p>
+              <p
+                id="confirm-dialog-message"
+                style={{ whiteSpace: 'pre-line', margin: pending.input ? '0 0 0.75rem' : 0 }}
+              >
+                {pending.message}
+              </p>
+              {pending.input && (
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className="form-input"
+                  style={{ width: '100%' }}
+                  aria-labelledby="confirm-dialog-message"
+                  placeholder={pending.input.placeholder}
+                  value={inputValue}
+                  onChange={e => setInputValue(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleConfirm();
+                    }
+                  }}
+                />
+              )}
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={handleCancel}>
@@ -131,6 +184,8 @@ export const useConfirm = (): ConfirmContextType => {
         // eslint-disable-next-line no-alert
         return window.confirm(msg);
       },
+      // window.prompt() non supporté par Electron : annulation
+      prompt: async () => null,
     };
   }
   return context;

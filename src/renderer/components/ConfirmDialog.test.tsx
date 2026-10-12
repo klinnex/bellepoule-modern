@@ -98,3 +98,50 @@ describe('useConfirm hors provider', () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe('prompt()', () => {
+  const PromptProbe: React.FC<{ options?: any }> = ({ options }) => {
+    const { prompt } = useConfirm();
+    const [r, setR] = useState('');
+    return (
+      <>
+        <button onClick={async () => setR(JSON.stringify(await prompt(options ?? 'Arène ?')))}>
+          ask
+        </button>
+        <span data-testid="res">{r}</span>
+      </>
+    );
+  };
+
+  it('résout la valeur saisie sur OK', async () => {
+    renderWithProvider(<PromptProbe />);
+    fireEvent.click(screen.getByText('ask'));
+    const input = await screen.findByRole('textbox');
+    expect(input).toHaveFocus();
+    fireEvent.change(input, { target: { value: '3' } });
+    fireEvent.click(screen.getByText('OK'));
+    await waitFor(() => expect(screen.getByTestId('res').textContent).toBe('"3"'));
+  });
+
+  it('Entrée valide la saisie', async () => {
+    renderWithProvider(<PromptProbe options={{ message: 'Arène ?', defaultValue: '2' }} />);
+    fireEvent.click(screen.getByText('ask'));
+    const input = await screen.findByRole('textbox');
+    expect(input).toHaveValue('2');
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await waitFor(() => expect(screen.getByTestId('res').textContent).toBe('"2"'));
+  });
+
+  it('résout null sur annulation', async () => {
+    renderWithProvider(<PromptProbe />);
+    fireEvent.click(screen.getByText('ask'));
+    fireEvent.click(await screen.findByText('Annuler'));
+    await waitFor(() => expect(screen.getByTestId('res').textContent).toBe('null'));
+  });
+
+  it('hors provider résout null (window.prompt non supporté)', async () => {
+    render(<PromptProbe />);
+    fireEvent.click(screen.getByText('ask'));
+    await waitFor(() => expect(screen.getByTestId('res').textContent).toBe('null'));
+  });
+});
