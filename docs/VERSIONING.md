@@ -63,25 +63,35 @@ claude/… , feature/…  ──PR──▶  dev  ──PR (promotion)──▶ 
   Aucun commit n'est poussé sur `main` par la CI.
   Toutes les releases stables `vX.Y.Z` sont conservées.
 - La CI `main` **échoue** si le tag `vX.Y.Z` existe déjà : impossible de publier deux fois la
-  même version. → bumper la version sur `dev` avant de promouvoir.
+  même version. Après chaque release, `dev` est bumpé automatiquement en `X.Y.(Z+1)`.
 
 ## 4. Cycle de release
 
 1. Développer sur `dev` (PR depuis `claude/…` ou `feature/…`).
-2. Dès qu'un changement relève d'un niveau supérieur à la version visée, ajuster sur `dev` :
+2. `dev` vise par défaut le prochain correctif (bump `patch` automatique, voir 5.).
+   Dès qu'un changement relève d'un niveau supérieur (fonctionnalité → MINEUR, rupture →
+   MAJEUR), ajuster sur `dev` :
    ```bash
-   npm run version:bump -- minor     # ou patch | major | 1.4.0
+   npm run version:bump -- minor     # ou major | 1.4.0
    ```
    Committer `version.json`, `package.json`, `package-lock.json` (PR vers `dev`).
-   *Au plus tard* juste avant la promotion. Juste après une release stable `1.2.0`, le
-   prochain bump (`patch` minimum) se fait dans le premier PR qui suit.
+   *Au plus tard* juste avant la promotion.
 3. Tester la pré-release `vX.Y.Z-dev.N`.
 4. Promouvoir : PR `dev` → `main` (merge par le mainteneur uniquement).
-5. La CI `main` publie `vX.Y.Z` en *Latest*.
+5. La CI `main` publie `vX.Y.Z` en *Latest*, puis pousse sur `dev`
+   `🔖 Version X.Y.(Z+1) (après release vX.Y.Z)` — sauf si `dev` a déjà été bumpé plus haut.
+   Le build **n'est pas** remis à zéro : `1.1.0 (Build #1402)` → `1.1.1-dev.1403`.
+
+### Pourquoi le build n'est jamais remis à zéro
+
+- La détection des mises à jour compare le build seul ; les versions déjà installées chez
+  les utilisateurs ne savent pas faire autrement. Un retour à `#1` les bloquerait pour toujours.
+- La release stable reprend le build dev : deux builds de même numéro doivent être le même code.
+- Le build identifie un binaire de façon unique, quelle que soit la version.
 
 ### Correctif urgent sur une version stable
 
-Le correctif passe par `dev` comme le reste : PR vers `dev` avec `npm run version:bump -- patch`,
+Le correctif passe par `dev` comme le reste (déjà en `X.Y.(Z+1)` grâce au bump automatique),
 puis promotion `dev` → `main`. Jamais de commit direct sur `main` (le build stable doit
 toujours correspondre à un build dev).
 

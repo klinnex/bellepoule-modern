@@ -436,3 +436,39 @@ jobs:
               done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Après une release stable vX.Y.Z, dev passe automatiquement en X.Y.(Z+1).
+  # Build non remis à zéro : le compteur reste global (cf. docs/VERSIONING.md).
+  bump-dev:
+    needs: [version, create-release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: dev
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump patch on dev
+        env:
+          RELEASED: ${{ needs.version.outputs.version }}
+        run: |
+          CURRENT=$(node -p "require('./version.json').version")
+          if [ "$CURRENT" != "$RELEASED" ]; then
+            echo "dev est déjà en $CURRENT (release $RELEASED) : rien à faire"
+            exit 0
+          fi
+          node scripts/version.js bump patch
+          NEXT=$(node -p "require('./version.json').version")
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add version.json package.json package-lock.json
+          git commit -m "🔖 Version $NEXT (après release v$RELEASED)"
+          for i in 1 2 3; do
+            git push origin HEAD:dev && exit 0
+            git pull --rebase origin dev
+          done
+          echo "::error::Impossible de pousser le bump de version sur dev"
+          exit 1

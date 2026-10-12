@@ -268,5 +268,5 @@ Core interfaces: `Fencer`, `Referee`, `Competition`, `Pool`, `Match`, `PoolRanki
 
 - Build commits: `🔖 Dev Build #XXX` (dev CI only)
 - Feature commits in French or English
-- Versioning rules: `docs/VERSIONING.md`. `dev` CI increments `build` in `version.json` and publishes pre-release `vX.Y.Z-dev.N`; `main` CI publishes `vX.Y.Z` reusing the promoted build (no commit). Bump SemVer on `dev` before promoting (`npm run version:bump`)
+- Versioning rules: `docs/VERSIONING.md`. `dev` CI increments `build` in `version.json` and publishes pre-release `vX.Y.Z-dev.N`; `main` CI publishes `vX.Y.Z` reusing the promoted build (no commit). then auto-bumps `dev` to `X.Y.(Z+1)` (build never reset). Bump minor/major manually on `dev` (`npm run version:bump`)
 - Branch prefix for AI: `claude/`

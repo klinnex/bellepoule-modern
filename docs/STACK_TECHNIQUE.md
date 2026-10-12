@@ -129,7 +129,7 @@ Budget de taille vérifié par `npm run check:bundle-size`.
 | Workflow | Déclencheur | Étapes |
 |---|---|---|
 | `build-dev.yml` | push `dev` | type-check, i18n, tests unitaires, budget bundle → build + 1 → builds Windows/macOS/Linux → pré-release `vX.Y.Z-dev.N` |
-| `build.yml` | push `main` | idem, sans nouveau build → release stable `vX.Y.Z` |
+| `build.yml` | push `main` | idem, sans nouveau build → release stable `vX.Y.Z` → bump `patch` auto sur `dev` |
 | `claude-code-review.yml` | PR | Revue automatique |
 | `claude.yml` | mention @claude | Agent |
 | `track-downloads.yml` | cron 6 h UTC | Statistiques de téléchargement (`stats/`) |
