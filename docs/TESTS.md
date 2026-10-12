@@ -80,12 +80,12 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 2 | 117 |
 | `src/main/` | 3 | 84 |
 | `src/renderer/services/` | 2 | 16 |
-| `src/renderer/hooks/` | 16 | 95 |
+| `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 27 | 107 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| **Total** | **115** | **1238** |
+| **Total** | **115** | **1240** |
 
-Unitaires : 107 fichiers, 1207 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 107 fichiers, 1209 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1938,7 +1938,7 @@ Unitaires : 107 fichiers, 1207 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 7 tests</summary>
 
 - **addFencer**
   - ajoute le tireur et notifie le parent
@@ -1947,6 +1947,8 @@ Unitaires : 107 fichiers, 1207 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - met à jour le tireur et notifie
 - **setFencersStatus**
   - met à jour plusieurs tireurs en un seul état (#1051)
+- **updateFencers**
+  - applique des MAJ différentes par tireur en un seul état (#1051)
 - **deleteFencer**
   - supprime le tireur et notifie
 - **deleteAllFencers**
@@ -2020,11 +2022,13 @@ Unitaires : 107 fichiers, 1207 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/usePoolManagement.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/hooks/usePoolManagement.test.tsx</code> — 7 tests</summary>
 
 - **generatePools**
   - refuse moins de 4 tireurs
   - génère des poules avec matchs pour 8 tireurs
+- **nextPoolRound**
+  - archive le tour et fige son appel (#1051)
 - **areAllPoolsComplete**
   - faux si un match n’est pas terminé
   - vrai si tous les matchs sont terminés

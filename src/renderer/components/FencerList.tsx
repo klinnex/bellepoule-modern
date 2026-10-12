@@ -48,6 +48,8 @@ interface FencerListProps {
   onFencersChanged?: () => void;
   /** Notifie le parent des tireurs triés/filtrés et des colonnes visibles actuels */
   onAppelStateChange?: (fencers: Fencer[], visibleColumns: string[]) => void;
+  /** Consultation seule (appel d'un tour de poules terminé, #1051) */
+  readOnly?: boolean;
 }
 
 const FencerListComponent: React.FC<FencerListProps> = ({
@@ -67,6 +69,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   registerUrl,
   onFencersChanged,
   onAppelStateChange,
+  readOnly = false,
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
@@ -431,7 +434,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          {fencers.length > 0 && (
+          {fencers.length > 0 && !readOnly && (
             <>
               {notCheckedInCount > 0 && onCheckInAll && (
                 <button
@@ -476,7 +479,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               />
             </>
           )}
-          {onImport && (
+          {onImport && !readOnly && (
             <div ref={importMenuRef} style={DROPDOWN_WRAP}>
               <button
                 className="btn btn-secondary"
@@ -725,7 +728,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               </div>
             )}
           </div>
-          {registerUrl && (
+          {registerUrl && !readOnly && (
             <button
               className="btn btn-secondary"
               title={`Inscription tablette : ${registerUrl}`}
@@ -735,9 +738,11 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               <span>📱</span> QR Inscription
             </button>
           )}
-          <button className="btn btn-primary" onClick={onAddFencer}>
-            + {t('fencer.add')}
-          </button>
+          {!readOnly && (
+            <button className="btn btn-primary" onClick={onAddFencer}>
+              + {t('fencer.add')}
+            </button>
+          )}
         </div>
       </div>
 
@@ -1050,9 +1055,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                 {(useVirtual ? virtual.visibleItems : filteredFencers).map(fencer => (
                   <tr
                     key={fencer.id}
-                    onDoubleClick={() => setEditingFencer(fencer)}
-                    style={{ cursor: 'pointer' }}
-                    title="Double-cliquer pour modifier"
+                    onDoubleClick={readOnly ? undefined : () => setEditingFencer(fencer)}
+                    style={readOnly ? undefined : { cursor: 'pointer' }}
+                    title={readOnly ? undefined : 'Double-cliquer pour modifier'}
                   >
                     {visibleCols.map(col => {
                       switch (col.id) {
@@ -1101,96 +1106,98 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       }
                     })}
                     <td onDoubleClick={e => e.stopPropagation()}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '0.25rem',
-                          flexWrap: 'wrap',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <button
-                          className="btn btn-sm btn-secondary"
-                          onClick={() => setEditingFencer(fencer)}
-                          title="Modifier"
-                          style={SMALL_BTN}
+                      {!readOnly && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            gap: '0.25rem',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                          }}
                         >
-                          ✏️
-                        </button>
-                        <button
-                          className={`btn btn-sm ${fencer.status === FencerStatus.CHECKED_IN ? 'btn-secondary' : 'btn-primary'}`}
-                          onClick={() => onCheckIn(fencer.id)}
-                          style={SMALL_BTN}
-                        >
-                          {fencer.status === FencerStatus.CHECKED_IN ? 'Annuler' : 'Pointer'}
-                        </button>
-                        {onSetFencerStatus && fencer.status === FencerStatus.CHECKED_IN && (
-                          <>
-                            <button
-                              className="btn btn-sm btn-warning"
-                              onClick={() =>
-                                handleSetFencerStatus(
-                                  fencer.id,
-                                  FencerStatus.ABANDONED,
-                                  t('messages.confirm_abandon', {
-                                    name: `${fencer.lastName} ${fencer.firstName}`,
-                                  })
-                                )
-                              }
-                              title="Abandonner"
-                              style={SMALL_BTN}
-                            >
-                              🚶
-                            </button>
-                            <button
-                              className="btn btn-sm btn-warning"
-                              onClick={() =>
-                                handleSetFencerStatus(
-                                  fencer.id,
-                                  FencerStatus.FORFAIT,
-                                  t('messages.confirm_forfait', {
-                                    name: `${fencer.lastName} ${fencer.firstName}`,
-                                  })
-                                )
-                              }
-                              title="Forfait"
-                              style={SMALL_BTN}
-                            >
-                              📋
-                            </button>
-                          </>
-                        )}
-                        {onSetFencerStatus &&
-                          (fencer.status === FencerStatus.ABANDONED ||
-                            fencer.status === FencerStatus.FORFAIT) && (
-                            <button
-                              className="btn btn-sm btn-success"
-                              onClick={() =>
-                                handleSetFencerStatus(
-                                  fencer.id,
-                                  FencerStatus.CHECKED_IN,
-                                  t('messages.confirm_reactivate', {
-                                    name: `${fencer.lastName} ${fencer.firstName}`,
-                                  })
-                                )
-                              }
-                              title="Réactiver"
-                              style={SMALL_BTN}
-                            >
-                              ✅
-                            </button>
-                          )}
-                        {onDeleteFencer && (
                           <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleDeleteFencer(fencer.id)}
-                            title="Supprimer"
+                            className="btn btn-sm btn-secondary"
+                            onClick={() => setEditingFencer(fencer)}
+                            title="Modifier"
                             style={SMALL_BTN}
                           >
-                            🗑️
+                            ✏️
                           </button>
-                        )}
-                      </div>
+                          <button
+                            className={`btn btn-sm ${fencer.status === FencerStatus.CHECKED_IN ? 'btn-secondary' : 'btn-primary'}`}
+                            onClick={() => onCheckIn(fencer.id)}
+                            style={SMALL_BTN}
+                          >
+                            {fencer.status === FencerStatus.CHECKED_IN ? 'Annuler' : 'Pointer'}
+                          </button>
+                          {onSetFencerStatus && fencer.status === FencerStatus.CHECKED_IN && (
+                            <>
+                              <button
+                                className="btn btn-sm btn-warning"
+                                onClick={() =>
+                                  handleSetFencerStatus(
+                                    fencer.id,
+                                    FencerStatus.ABANDONED,
+                                    t('messages.confirm_abandon', {
+                                      name: `${fencer.lastName} ${fencer.firstName}`,
+                                    })
+                                  )
+                                }
+                                title="Abandonner"
+                                style={SMALL_BTN}
+                              >
+                                🚶
+                              </button>
+                              <button
+                                className="btn btn-sm btn-warning"
+                                onClick={() =>
+                                  handleSetFencerStatus(
+                                    fencer.id,
+                                    FencerStatus.FORFAIT,
+                                    t('messages.confirm_forfait', {
+                                      name: `${fencer.lastName} ${fencer.firstName}`,
+                                    })
+                                  )
+                                }
+                                title="Forfait"
+                                style={SMALL_BTN}
+                              >
+                                📋
+                              </button>
+                            </>
+                          )}
+                          {onSetFencerStatus &&
+                            (fencer.status === FencerStatus.ABANDONED ||
+                              fencer.status === FencerStatus.FORFAIT) && (
+                              <button
+                                className="btn btn-sm btn-success"
+                                onClick={() =>
+                                  handleSetFencerStatus(
+                                    fencer.id,
+                                    FencerStatus.CHECKED_IN,
+                                    t('messages.confirm_reactivate', {
+                                      name: `${fencer.lastName} ${fencer.firstName}`,
+                                    })
+                                  )
+                                }
+                                title="Réactiver"
+                                style={SMALL_BTN}
+                              >
+                                ✅
+                              </button>
+                            )}
+                          {onDeleteFencer && (
+                            <button
+                              className="btn btn-sm btn-danger"
+                              onClick={() => handleDeleteFencer(fencer.id)}
+                              title="Supprimer"
+                              style={SMALL_BTN}
+                            >
+                              🗑️
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

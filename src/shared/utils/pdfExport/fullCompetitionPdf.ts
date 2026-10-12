@@ -33,6 +33,8 @@ export interface FullCompetitionExportData {
   fencers: Fencer[];
   /** Colonnes visibles de la feuille d'appel (respecte la config UI) */
   appelVisibleColumns?: string[];
+  /** Appel figé de chaque tour de poules terminé ; `fencers` = appel du dernier tour (#1051) */
+  appelHistory?: Fencer[][];
   pools: Pool[];
   overallRanking: PoolRanking[];
   tableauMatches: TableauMatchForPDF[];
@@ -52,6 +54,7 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
   const {
     fencers,
     appelVisibleColumns,
+    appelHistory = [],
     pools,
     overallRanking,
     tableauMatches,
@@ -66,29 +69,44 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
 
   const sections: string[] = [];
 
+  const appelCols = appelVisibleColumns ?? [
+    'ref',
+    'lastName',
+    'firstName',
+    'birthDate',
+    'club',
+    'ranking',
+    'status',
+  ];
+  const byRanking = (list: Fencer[]) =>
+    [...list].sort(
+      (a, b) =>
+        (a.ranking ?? Infinity) - (b.ranking ?? Infinity) || a.lastName.localeCompare(b.lastName)
+    );
+  // Plusieurs tours : une feuille d'appel par tour terminé, puis celle du tour courant
+  const appelRounds = appelHistory.filter(r => r.length > 0);
+  appelRounds.forEach((roundFencers, i) => {
+    sections.push(
+      generateAppelHTML(
+        byRanking(roundFencers),
+        appelCols,
+        `Feuille d'appel — Tour ${i + 1} — ${competitionTitle}`,
+        competitionTitle,
+        logo,
+        undefined
+      )
+    );
+  });
+
   if (fencers.length > 0) {
-    const appelCols = appelVisibleColumns ?? [
-      'ref',
-      'lastName',
-      'firstName',
-      'birthDate',
-      'club',
-      'ranking',
-      'status',
-    ];
     // Si les tireurs viennent de l'appel, ils sont déjà triés ; sinon tri par défaut
-    const appelFencerList = appelVisibleColumns
-      ? fencers
-      : [...fencers].sort(
-          (a, b) =>
-            (a.ranking ?? Infinity) - (b.ranking ?? Infinity) ||
-            a.lastName.localeCompare(b.lastName)
-        );
+    const appelFencerList = appelVisibleColumns ? fencers : byRanking(fencers);
+    const roundLabel = appelRounds.length > 0 ? `Tour ${appelRounds.length + 1} — ` : '';
     sections.push(
       generateAppelHTML(
         appelFencerList,
         appelCols,
-        `Feuille d'appel — ${competitionTitle}`,
+        `Feuille d'appel — ${roundLabel}${competitionTitle}`,
         competitionTitle,
         logo,
         undefined
