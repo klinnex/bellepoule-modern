@@ -38,6 +38,7 @@
 | [../ARCHITECTURE.md](../ARCHITECTURE.md) | Architecture, arborescence, IPC, base de données, serveur distant |
 | **[STACK_TECHNIQUE.md](STACK_TECHNIQUE.md)** | **Dépendances, versions, bundling, packaging, CI** |
 | **[VERSIONING.md](VERSIONING.md)** | **Règles de versionnage : SemVer, build, branches dev/main, tags, nommage des releases** |
+| **[TESTS.md](TESTS.md)** | **Inventaire des tests (Vitest + Playwright) et contrôles CI — généré** |
 | [../DEVELOPMENT_GUIDE.md](../DEVELOPMENT_GUIDE.md) | Environnement, conventions, tests, build |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contribuer |
 | [../CLAUDE.md](../CLAUDE.md), [../AGENTS.md](../AGENTS.md) | Instructions pour agents IA |

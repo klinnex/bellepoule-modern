@@ -26,6 +26,12 @@ Give answer. Stop.
 - Jamais plus de 450 lignes de diff par réponse
 - Préfère Haiku 4.5 ou Sonnet 4.6 pour les tâches de doc (beaucoup moins cher)
 
+## Documentation des tests – règle absolue
+- `docs/TESTS.md` est généré : ne jamais l'éditer à la main
+- Après tout ajout / suppression / renommage de test : `npm run docs:tests` puis committer `docs/TESTS.md`
+- Nouveau contrôle CI ou script de test → mettre à jour la partie fixe dans `scripts/generate-tests-doc.js`
+- CI échoue si doc pas à jour (`npm run check:tests-doc`)
+
 ## Mise à jour documentation – mode activé par défaut
 Quand on te demande (ou implique) de mettre à jour la doc :
 1. Lis en priorité : README.md, docs/*.md, src/
@@ -73,6 +79,8 @@ npm run format:check    # Prettier validation
 npm run type-check      # TypeScript no-emit check
 npm run check:i18n      # Locale completeness (CI)
 npm run check:bundle-size # Bundle budget (CI)
+npm run check:tests-doc # docs/TESTS.md à jour (CI)
+npm run docs:tests      # Régénère docs/TESTS.md (inventaire des tests)
 npm run docs:api        # TypeDoc API docs
 npm run analyze         # Webpack bundle analyzer (opens browser)
 npm run test:e2e        # Playwright E2E tests
@@ -213,6 +221,7 @@ Database (src/database/)
 - **Unit tests**: Vitest (`npm test`) – test files co-located: `src/shared/utils/*.test.ts`, `src/shared/services/*.test.ts`, `src/main/*.test.ts`, `src/database/*.test.ts`, `src/features/penalties/penalties.test.ts`
 - **E2E tests**: Playwright (`playwright.config.ts`) – `e2e/` (app, competition, competition-full, pools, tableau, import-export, remote-scoring, accessibility)
 - Coverage: `@vitest/coverage-v8`
+- Inventaire complet + contrôles CI : `docs/TESTS.md` (généré, `npm run docs:tests`)
 
 ## Key Domain Types (src/shared/types/index.ts)
 
