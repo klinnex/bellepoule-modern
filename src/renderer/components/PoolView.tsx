@@ -726,6 +726,14 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     setInlineSingleScore('');
   };
 
+  // Score déjà enregistré pour une case (côté ligne), si le match a été saisi
+  const getRecordedCellScore = (matchIndex: number, inverted: boolean, mirror = false) => {
+    const match = pool.matches[matchIndex];
+    if (!match || match.status !== MatchStatus.FINISHED) return undefined;
+    const side = inverted !== mirror ? match.scoreB : match.scoreA;
+    return side?.value ?? undefined;
+  };
+
   const handleCellClick = (rowFencer: Fencer, colFencer: Fencer) => {
     if (isLocked) return;
     if (rowFencer.id === colFencer.id) return;
@@ -736,7 +744,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     if (simplifiedInputMode) {
       const key = `${rowFencer.id}-${colFencer.id}`;
       setInlineEditCell({ key, rowId: rowFencer.id, colId: colFencer.id, matchIndex, inverted });
-      setInlineSingleScore(cellScoreBuffer[key] !== undefined ? String(cellScoreBuffer[key]) : '');
+      const current = cellScoreBuffer[key] ?? getRecordedCellScore(matchIndex, inverted);
+      setInlineSingleScore(current !== undefined ? String(current) : '');
       return;
     }
     openScoreModal(matchIndex, inverted);
@@ -755,8 +764,10 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const mirrorKey = `${colId}-${rowId}`;
     const newBuffer = { ...cellScoreBuffer, [key]: score };
 
-    if (newBuffer[mirrorKey] !== undefined) {
-      const mirrorScore = newBuffer[mirrorKey];
+    // Match déjà enregistré : la case miroir reprend son score actuel (#1046)
+    const mirrorScore = newBuffer[mirrorKey] ?? getRecordedCellScore(matchIndex, inverted, true);
+
+    if (mirrorScore !== undefined) {
       const actualScoreA = inverted ? mirrorScore : score;
       const actualScoreB = inverted ? score : mirrorScore;
 
