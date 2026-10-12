@@ -2204,12 +2204,15 @@ export class RemoteScoreServer {
         // Si l'arène a un pool associé, retourner les matchs NON TERMINÉS du pool.
         // On exclut les matchs finis pour que, en fin de poule, le fallthrough
         // atteigne la file d'attente DE (Tier 3) au lieu de bloquer dessus.
-        const currentPoolId = arena?.currentMatch?.poolId;
-        if (currentPoolId && this.sessionMatches.length > 0) {
+        const currentPoolId = arena ? this.arenaHomePoolId(arena) : undefined;
+        if (arena && currentPoolId && this.sessionMatches.length > 0) {
           const rawPoolMatches = this.sessionMatches
             .filter((m: any) => {
               const matchPoolId = m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
               if (matchPoolId !== currentPoolId) return false;
+              // Match réassigné sur une autre piste : plus dans la liste de celle-ci (#1037)
+              const override = this.poolMatchArenaOverrides.get(m.id);
+              if (override && override !== arenaId) return false;
               const scoreUpdate = this.sessionMatchScores.get(m.id);
               const effectiveStatus = scoreUpdate?.status ?? m.status;
               if (effectiveStatus === MatchStatus.FINISHED) return false;
@@ -2226,11 +2229,26 @@ export class RemoteScoreServer {
             const referee = this.resolveReferee(m.refereeId ?? m.referee?.id) ?? poolReferee;
             return referee ? { ...m, referee } : m;
           });
+          // Matchs d'autres poules réassignés sur cette piste : en tête de liste (#1037)
+          const cur = arena.currentMatch;
+          const guests = [
+            ...(cur && cur.poolId !== currentPoolId && this.isPendingMatch(cur) ? [cur] : []),
+            ...this.guestQueue(arenaId),
+          ].map((m: ArenaMatch) => {
+            const scoreUpdate = this.sessionMatchScores.get(m.id);
+            const referee = m.referee ?? this.resolvePoolReferee(m.poolId);
+            return {
+              ...m,
+              ...(scoreUpdate ?? {}),
+              ...(referee ? { referee } : {}),
+            };
+          });
+          const matches = [...guests, ...poolMatches];
           console.log(
-            `[RemoteScoreServer] ${poolMatches.length} matchs de pool non terminés pour arène ${arenaId} (pool ${currentPoolId})`
+            `[RemoteScoreServer] ${matches.length} matchs de pool non terminés pour arène ${arenaId} (pool ${currentPoolId})`
           );
-          if (poolMatches.length > 0) {
-            return res.json({ matches: poolMatches, poolId: currentPoolId, poolName: null });
+          if (matches.length > 0) {
+            return res.json({ matches, poolId: currentPoolId, poolName: null });
           }
         }
 
@@ -4657,6 +4675,40 @@ export class RemoteScoreServer {
     return match.id;
   }
 
+  /**
+   * Match d'une autre poule réassigné manuellement sur cette piste (#1037) :
+   * ne change pas la poule propre de la piste (activePoolId).
+   */
+  private isGuestMatch(arenaId: string, m: { id: string; poolId?: string }): boolean {
+    const home = this.arenas.get(arenaId)?.activePoolId;
+    return (
+      !!m.poolId &&
+      !!home &&
+      m.poolId !== home &&
+      this.poolMatchArenaOverrides.get(m.id) === arenaId
+    );
+  }
+
+  /** Poule propre de la piste, même si un match réassigné d'une autre poule y est chargé */
+  private arenaHomePoolId(arena: Arena): string | undefined {
+    const cur = arena.currentMatch;
+    if (!cur?.poolId) return undefined;
+    if (arena.activePoolId && this.poolMatchArenaOverrides.has(cur.id)) return arena.activePoolId;
+    return cur.poolId;
+  }
+
+  private isPendingMatch(m: ArenaMatch): boolean {
+    const status = this.sessionMatchScores.get(m.id)?.status ?? m.status;
+    return status !== MatchStatus.FINISHED && this.isMatchPlayable(m);
+  }
+
+  /** Matchs d'autres poules en file sur la piste (dernier réassigné en tête) */
+  private guestQueue(arenaId: string): ArenaMatch[] {
+    return (this.arenaMatchQueue.get(arenaId) || []).filter(
+      m => this.isGuestMatch(arenaId, m) && this.isPendingMatch(m)
+    );
+  }
+
   public assignMatchToArena(arenaId: string, match: ArenaMatch, fromReferee = false): void {
     console.log(
       `[RemoteScoreServer] assignMatchToArena called: arenaId=${arenaId}, matchId=${match.id}, fromReferee=${fromReferee}`
@@ -4681,7 +4733,7 @@ export class RemoteScoreServer {
 
     arena.currentMatch = match;
     arena.status = 'ready';
-    if (match.poolId) arena.activePoolId = match.poolId;
+    if (match.poolId && !this.isGuestMatch(arenaId, match)) arena.activePoolId = match.poolId;
 
     this.updateArena(arenaId, {
       status: 'ready',
@@ -4701,6 +4753,13 @@ export class RemoteScoreServer {
   ): void {
     let matchToMove: ArenaMatch | undefined;
 
+    // Overrides d'abord : la piste d'origine doit ignorer ce match en rechargeant sa poule
+    if (toArena !== null) {
+      this.poolMatchArenaOverrides.set(matchId, `arena${toArena}`);
+    } else {
+      this.poolMatchArenaOverrides.delete(matchId);
+    }
+
     // 1. Retirer le match de TOUTES les arènes (files et currentMatch non démarré).
     //    startSession distribue les matchs DE en round-robin, donc le match peut se
     //    trouver dans n'importe quelle arène même si fromArena est null.
@@ -4718,6 +4777,11 @@ export class RemoteScoreServer {
       // retirer un match en cours)
       if (arena.currentMatch?.id === matchId && arena.currentMatch.status !== 'in_progress') {
         if (!matchToMove) matchToMove = arena.currentMatch;
+        // Piste de poule : enchaîner sur le match suivant de sa poule (#1037)
+        if (arena.currentMatch.poolId) {
+          this.loadNextMatch(arenaId);
+          continue;
+        }
         // Promouvoir le premier match en file comme nouveau currentMatch
         const nextInQueue = this.arenaMatchQueue.get(arenaId) || [];
         if (nextInQueue.length > 0) {
@@ -4790,13 +4854,6 @@ export class RemoteScoreServer {
           `[RemoteScoreServer] Match DE ${matchId} ajouté à sessionMatches depuis updateMatchArena`
         );
       }
-    }
-
-    // Mettre à jour la map d'overrides pour les matchs de poule chargés on-demand
-    if (toArena !== null) {
-      this.poolMatchArenaOverrides.set(matchId, `arena${toArena}`);
-    } else {
-      this.poolMatchArenaOverrides.delete(matchId);
     }
 
     if (!matchToMove || !toArena) return;
@@ -5360,7 +5417,11 @@ export class RemoteScoreServer {
     if (!arena || !this.session) return null;
 
     const currentMatchId = arena.currentMatch?.id;
-    const currentPoolId = arena.currentMatch?.poolId;
+    const currentPoolId = this.arenaHomePoolId(arena);
+
+    // Match réassigné sur cette piste : joué en priorité (#1037)
+    const guest = this.guestQueue(arenaId).find(m => m.id !== currentMatchId);
+    if (guest) return guest;
 
     if (currentPoolId && this.sessionMatches.length > 0) {
       const rawPoolMatches = this.sessionMatches
@@ -5418,7 +5479,7 @@ export class RemoteScoreServer {
     }
 
     const currentMatchId = arena.currentMatch?.id;
-    const currentPoolId = arena.currentMatch?.poolId;
+    const currentPoolId = this.arenaHomePoolId(arena);
     let completedPoolId: string | null = null;
 
     console.log(
@@ -5438,6 +5499,17 @@ export class RemoteScoreServer {
       }
       // Ajouter les matches de la DB à sessionMatches
       this.sessionMatches = pendingMatches;
+    }
+
+    // Match réassigné sur cette piste : joué en priorité (#1037)
+    const guest = this.guestQueue(arenaId).find(m => m.id !== currentMatchId);
+    if (guest) {
+      this.arenaMatchQueue.set(
+        arenaId,
+        (this.arenaMatchQueue.get(arenaId) || []).filter(m => m.id !== guest.id)
+      );
+      this.assignMatchToArena(arenaId, guest);
+      return;
     }
 
     // Chercher le prochain match dans le même pool (ordre smart = même ordre que l'affichage)
@@ -6827,12 +6899,15 @@ export class RemoteScoreServer {
     for (const [arenaId, arena] of this.arenas) {
       const queue = this.arenaMatchQueue.get(arenaId) || [];
       const keptQueue = queue.filter(
-        m => !m.poolId || (poolIds.has(m.poolId) && target.get(m.poolId) === arenaId)
+        m =>
+          !m.poolId ||
+          this.isGuestMatch(arenaId, m) ||
+          (poolIds.has(m.poolId) && target.get(m.poolId) === arenaId)
       );
       if (keptQueue.length !== queue.length) this.arenaMatchQueue.set(arenaId, keptQueue);
 
       const current = arena.currentMatch;
-      const currentPool = current?.poolId ?? (current ? undefined : arena.activePoolId);
+      const currentPool = current ? this.arenaHomePoolId(arena) : arena.activePoolId;
       if (!currentPool) continue;
       if (poolIds.has(currentPool) && target.get(currentPool) === arenaId) continue;
       if (current?.status === 'in_progress') continue; // jamais interrompre un match en cours
@@ -6856,7 +6931,7 @@ export class RemoteScoreServer {
       const arenaId = target.get(p.poolId);
       const arena = arenaId ? this.arenas.get(arenaId) : undefined;
       if (!arenaId || !arena) continue;
-      if ((arena.currentMatch?.poolId ?? arena.activePoolId) === p.poolId) continue;
+      if ((this.arenaHomePoolId(arena) ?? arena.activePoolId) === p.poolId) continue;
       const queue = this.arenaMatchQueue.get(arenaId) || [];
       if (queue.some(m => m.poolId === p.poolId)) continue;
 

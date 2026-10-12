@@ -516,6 +516,77 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('réassignation manuelle de piste (#1037)', () => {
+    const f = (id: string) => ({ id, firstName: id, lastName: id });
+    const pm = (poolId: string, n: number) => ({
+      id: `${poolId}-m${n}`,
+      poolId,
+      number: n,
+      fencerA: f(`${poolId}a${n}`),
+      fencerB: f(`${poolId}b${n}`),
+      status: 'not_started',
+    });
+    const marker = (poolId: string, poolNumber: number, strip: number) => ({
+      __poolFencers: true,
+      poolId,
+      poolNumber,
+      strip,
+      fencers: [],
+    });
+    function matchesOf(arenaId: string): string[] {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const handler = stack.find(
+        (l: any) => l?.route?.path === '/api/arenas/:arenaId/matches' && l.route.methods?.get
+      ).route.stack[0].handle;
+      const res = makeRes();
+      handler(makeReq({ params: { arenaId } }), res, vi.fn());
+      return res.json.mock.calls[0][0].matches.map((m: any) => m.id);
+    }
+
+    beforeEach(async () => {
+      mockDb.getCompetition.mockReturnValue({ id: 'comp-1', settings: {} });
+      (mockDb as any).getPoolCount = vi.fn().mockReturnValue(2);
+      vi.spyOn(server as any, 'loadSessionReferees').mockReturnValue([]);
+      await server.startSession('comp-1', 2, [
+        marker('p1', 1, 1),
+        pm('p1', 1),
+        pm('p1', 2),
+        marker('p2', 2, 2),
+        pm('p2', 1),
+        pm('p2', 2),
+      ]);
+    });
+
+    it('match réassigné en tête de liste de la piste cible, retiré de la piste source', () => {
+      server.updateMatchArena('p2-m1', 2, 1);
+      expect(matchesOf('arena1')).toEqual(['p2-m1', 'p1-m1', 'p1-m2']);
+      const arenas = (server as any).arenas;
+      expect(arenas.get('arena1').currentMatch.id).toBe('p1-m1');
+      expect(arenas.get('arena2').currentMatch.id).toBe('p2-m2');
+      expect(matchesOf('arena2')).toEqual(['p2-m2']);
+    });
+
+    it('les réassignations suivantes se rajoutent par le haut', () => {
+      server.updateMatchArena('p2-m1', 2, 1);
+      server.updateMatchArena('p2-m2', 2, 1);
+      expect(matchesOf('arena1').slice(0, 2)).toEqual(['p2-m2', 'p2-m1']);
+    });
+
+    it('joué ensuite, puis la piste reprend sa propre poule', () => {
+      server.updateMatchArena('p2-m1', 2, 1);
+      const arena1 = (server as any).arenas.get('arena1');
+      const done = { scoreA: 5, scoreB: 0, status: 'finished' };
+      (server as any).sessionMatchScores.set('p1-m1', done);
+      (server as any).loadNextMatch('arena1');
+      expect(arena1.currentMatch.id).toBe('p2-m1');
+      expect(arena1.activePoolId).toBe('p1');
+      (server as any).sessionMatchScores.set('p2-m1', done);
+      (server as any).loadNextMatch('arena1');
+      expect(arena1.currentMatch.id).toBe('p1-m2');
+    });
+  });
+
   describe("arbitre des matchs de tableau assigné depuis l'appli (#977)", () => {
     const fA = { id: 'a', lastName: 'Dupont', firstName: 'Jean' };
     const fB = { id: 'b', lastName: 'Martin', firstName: 'Paul' };
