@@ -165,11 +165,57 @@ function generateGenericMatchOrder(fencerCount: number): [number, number][] {
 // Pool Score Processing
 // ============================================================================
 
+/** Sabre Laser : score attribué à l'adversaire d'un tireur forfait en cours de match */
+export const LASER_FORFEIT_WINNER_SCORE = 15;
+
+/** Score d'un tireur forfait/abandon/exclu sur un match annulé (non disputé) */
+export function isCancelledForfeitScore(score: Score | null | undefined): boolean {
+  return (
+    !!score && score.value === null && (score.isForfait || score.isAbstention || score.isExclusion)
+  );
+}
+
+/**
+ * Match annulé suite au forfait/abandon d'un tireur (Sabre Laser) :
+ * terminé mais sans score exploitable pour l'un des deux tireurs.
+ */
+export function isMatchCancelledByForfeit(match: Match): boolean {
+  return (
+    match.status === MatchStatus.FINISHED &&
+    (isCancelledForfeitScore(match.scoreA) ||
+      isCancelledForfeitScore(match.scoreB) ||
+      match.scoreA?.value == null ||
+      match.scoreB?.value == null)
+  );
+}
+
+export interface FencerPoolStatsOptions {
+  /**
+   * Règle Sabre Laser (forfait en cours de poule) : les matchs disputés avant
+   * le forfait/abandon sont conservés, seuls les matchs annulés sont ignorés.
+   * Un adversaire exclu (carton noir) voit toujours ses matchs annulés.
+   */
+  keepPlayedForfeitMatches?: boolean;
+}
+
+/** Statut d'adversaire qui annule le match pour le tireur */
+function voidsMatchForOpponent(status: FencerStatus | undefined, keepPlayed: boolean): boolean {
+  if (status === FencerStatus.EXCLUDED) return true;
+  if (keepPlayed) return false;
+  return status === FencerStatus.FORFAIT || status === FencerStatus.ABANDONED;
+}
+
 /**
  * Calcule les statistiques d'un tireur dans une poule
  * Règle forfait : Si l'adversaire est en forfait/abandon, le match ne compte pas
+ * (Sabre Laser : seuls les matchs annulés après le forfait sont ignorés)
  */
-export function calculateFencerPoolStats(fencer: Fencer, matches: Match[]): PoolStats {
+export function calculateFencerPoolStats(
+  fencer: Fencer,
+  matches: Match[],
+  options: FencerPoolStatsOptions = {}
+): PoolStats {
+  const keepPlayed = options.keepPlayedForfeitMatches ?? false;
   if (!fencer)
     throw new TypeError('calculateFencerPoolStats: fencer ne peut pas être null/undefined');
   if (!Array.isArray(matches))
@@ -194,15 +240,10 @@ export function calculateFencerPoolStats(fencer: Fencer, matches: Match[]): Pool
     const opponent = isA ? match.fencerB : match.fencerA;
 
     if (!myScore || !oppScore) continue;
+    if (keepPlayed && isMatchCancelledByForfeit(match)) continue;
 
     // Si l'adversaire est en forfait/abandon/exclusion, le match ne compte pas
-    if (
-      opponent?.status === FencerStatus.FORFAIT ||
-      opponent?.status === FencerStatus.ABANDONED ||
-      opponent?.status === FencerStatus.EXCLUDED
-    ) {
-      continue;
-    }
+    if (voidsMatchForOpponent(opponent?.status, keepPlayed)) continue;
 
     matchesPlayed++;
     maxSingleMatchScore = Math.max(maxSingleMatchScore, myScore.value ?? 0);
@@ -786,8 +827,9 @@ export function calculateQuestPoints(winnerScore: number, loserScore: number): n
 }
 
 /**
- * Calcule les statistiques Quest d'un tireur
- * Règle forfait : Si l'adversaire est en forfait/abandon, le match ne compte pas
+ * Calcule les statistiques Quest d'un tireur (Sabre Laser)
+ * Règle forfait : les matchs disputés avant le forfait/abandon sont conservés,
+ * les matchs annulés ensuite ne comptent pas ; adversaire exclu → match annulé.
  */
 export function calculateFencerQuestStats(
   fencer: Fencer,
@@ -811,15 +853,10 @@ export function calculateFencerQuestStats(
     const opponent = isA ? match.fencerB : match.fencerA;
 
     if (!myScore || !oppScore) continue;
+    if (isMatchCancelledByForfeit(match)) continue;
 
-    // Si l'adversaire est en forfait/abandon/exclusion, le match ne compte pas
-    if (
-      opponent?.status === FencerStatus.FORFAIT ||
-      opponent?.status === FencerStatus.ABANDONED ||
-      opponent?.status === FencerStatus.EXCLUDED
-    ) {
-      continue;
-    }
+    // Si l'adversaire est exclu, le match ne compte pas
+    if (voidsMatchForOpponent(opponent?.status, true)) continue;
 
     // Vérifier si victoire
     const isVictory =
@@ -866,11 +903,9 @@ export function calculatePoolRankingQuest(
   const forfeitFencers: PoolRanking[] = [];
 
   for (const fencer of pool.fencers) {
-    if (
-      fencer.status === FencerStatus.EXCLUDED ||
-      fencer.status === FencerStatus.FORFAIT ||
-      fencer.status === FencerStatus.ABANDONED
-    ) {
+    // Sabre Laser : un tireur forfait/abandon garde son classement acquis
+    // (calculé sur ses matchs réellement disputés). Seul l'exclu est classé d'office en dernier.
+    if (fencer.status === FencerStatus.EXCLUDED) {
       forfeitFencers.push({
         fencer,
         rank: 0,
@@ -891,7 +926,9 @@ export function calculatePoolRankingQuest(
       continue;
     }
 
-    const stats = calculateFencerPoolStats(fencer, pool.matches);
+    const stats = calculateFencerPoolStats(fencer, pool.matches, {
+      keepPlayedForfeitMatches: true,
+    });
     const questStats = calculateFencerQuestStats(fencer, pool.matches);
 
     rankings.push({

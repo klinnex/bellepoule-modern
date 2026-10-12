@@ -65,7 +65,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 25 | 466 |
+| `src/shared/utils/` | 25 | 470 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -83,9 +83,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 16 | 94 |
 | `src/renderer/components/` | 27 | 103 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| **Total** | **114** | **1219** |
+| **Total** | **114** | **1223** |
 
-Unitaires : 106 fichiers, 1188 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 106 fichiers, 1192 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -532,7 +532,7 @@ Unitaires : 106 fichiers, 1188 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 33 tests</summary>
+<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 37 tests</summary>
 
 - **generatePoolMatchOrder**
   - should generate correct match order for pool of 3 fencers
@@ -574,6 +574,11 @@ Unitaires : 106 fichiers, 1188 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - départage par indice avant les victoires par cotation
   - départage par victoires par cotation à Q/M et indice égaux
   - classement de poule : indice avant les cartons
+- **forfait en cours de poule (Sabre Laser)**
+  - conserve les matchs disputés et le match du forfait, ignore les matchs annulés
+  - règle classique inchangée : tous les matchs contre le forfait sont annulés
+  - classe le forfait sur ses matchs disputés dans la poule
+  - place le forfait en fin de classement général (non qualifié pour le tableau)
 
 </details>
 
