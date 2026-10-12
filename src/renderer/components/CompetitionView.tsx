@@ -1859,6 +1859,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         arenas={arenaStates}
         isRemoteActive={isRemoteActive}
         remoteServerUrl={remoteServerUrl ?? undefined}
+        cardScale={presetScale(poolCardSize)}
         stripQr={(() => {
           if (!poolsRemoteInfo) return undefined;
           const strip = computePoolStrips(pools, poolsRemoteInfo.arenaCount).get(pool.id);

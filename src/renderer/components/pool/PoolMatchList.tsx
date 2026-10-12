@@ -40,6 +40,8 @@ interface PoolMatchListProps {
   arenas?: Arena[];
   isRemoteActive?: boolean;
   matchArenaOverrides?: Map<string, number>;
+  /** Facteur de taille des cartes (préréglage) : agrandit proportionnellement le badge de piste du prochain match */
+  cardScale?: number;
   onMatchArenaChange?: (
     matchId: string,
     oldArena: number,
@@ -56,6 +58,7 @@ interface ArenaBadgeProps {
   isRemoteActive: boolean;
   arenaCount: number;
   dark?: boolean;
+  scale?: number;
   onClick: (e: React.MouseEvent) => void;
 }
 
@@ -66,6 +69,7 @@ const ArenaBadge: React.FC<ArenaBadgeProps> = ({
   isRemoteActive,
   arenaCount,
   dark = false,
+  scale = 1,
   onClick,
 }) => {
   if (arenaCount <= 0) return null;
@@ -73,8 +77,8 @@ const ArenaBadge: React.FC<ArenaBadgeProps> = ({
   const isOverridden = matchArenaOverrides?.has(match.id) ?? false;
 
   const baseStyle: React.CSSProperties = {
-    padding: '0.15rem 0.45rem',
-    fontSize: '0.7rem',
+    padding: `${0.15 * scale}rem ${0.45 * scale}rem`,
+    fontSize: `${0.7 * scale}rem`,
     fontWeight: '600',
     borderRadius: '4px',
     flexShrink: 0,
@@ -127,6 +131,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
   arenas = [],
   isRemoteActive = false,
   matchArenaOverrides,
+  cardScale = 1,
   onMatchArenaChange,
 }) => {
   const [showArenaModal, setShowArenaModal] = useState(false);
@@ -280,6 +285,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                   isRemoteActive={isRemoteActive}
                   arenaCount={arenaCount}
                   dark
+                  scale={1.35 * cardScale}
                   onClick={e => openArenaModal(nextMatch.match, e)}
                 />
               </div>
