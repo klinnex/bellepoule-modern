@@ -11,6 +11,7 @@
 | [../USER_MANUAL.md](../USER_MANUAL.md) | Manuel utilisateur (EN) : compétition, import, poules, tableau, exports |
 | [../MIGRATION_GUIDE.md](../MIGRATION_GUIDE.md) | Passer de BellePoule historique à BellePoule Modern |
 | [../FILE_FORMATS.md](../FILE_FORMATS.md) | Formats d'import/export (FFF, XML, CSV, ...) |
+| **[PROCEDURE_SABRE_LASER.md](PROCEDURE_SABRE_LASER.md)** | **Procédure de bout en bout d'une compétition Sabre Laser individuelle** |
 | [TEAM_COMPETITIONS.md](TEAM_COMPETITIONS.md) | Compétitions par équipes (relais FIE, format arène Sabre Laser) |
 | [GUIDE_PHOTOS.md](GUIDE_PHOTOS.md) | Photos des tireurs |
 | [USER_GUIDE_PDF_EXPORT.md](USER_GUIDE_PDF_EXPORT.md) | Exports PDF |
