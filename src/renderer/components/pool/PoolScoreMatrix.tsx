@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Pool, Fencer, Score, MatchStatus, FencerStatus } from '../../../shared/types';
-import { formatRatio, formatIndex } from '../../../shared/utils/poolCalculations';
+import {
+  formatRatio,
+  formatIndex,
+  isMatchCancelledByForfeit,
+} from '../../../shared/utils/poolCalculations';
 import { ColumnId } from '../../hooks/useColumnVisibility';
 
 interface PoolScoreMatrixProps {
@@ -317,6 +321,8 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
       map.get(id) ?? map.set(id, { v: 0, d: 0, td: 0, tr: 0, index: 0, ratio: 0 }).get(id)!;
     for (const match of pool.matches) {
       if (match.status !== MatchStatus.FINISHED) continue;
+      // Sabre Laser : les matchs annulés après un forfait ne comptent pas
+      if (isLaserSabre && isMatchCancelledByForfeit(match)) continue;
       const a = match.fencerA?.id;
       const b = match.fencerB?.id;
       if (a) {
@@ -339,7 +345,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
       s.ratio = s.v + s.d > 0 ? s.v / (s.v + s.d) : 0;
     }
     return map;
-  }, [pool.matches]);
+  }, [pool.matches, isLaserSabre]);
 
   const getScore = (fencerA: Fencer, fencerB: Fencer): Score | null =>
     scoreMap.get(`${fencerA.id}-${fencerB.id}`) ?? null;
@@ -361,6 +367,18 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
     }
     return set;
   }, [fencers]);
+
+  // Sabre Laser : seuls les matchs annulés (non disputés) du forfait sont rayés,
+  // les matchs disputés avant le forfait restent affichés.
+  const isCellAbandoned = (rowFencer: Fencer, colFencer: Fencer): boolean => {
+    if (!abandonedIds.has(rowFencer.id) && !abandonedIds.has(colFencer.id)) return false;
+    if (!isLaserSabre) return true;
+    if (rowFencer.status === FencerStatus.EXCLUDED || colFencer.status === FencerStatus.EXCLUDED)
+      return true;
+    const score = getScore(rowFencer, colFencer);
+    const mirror = getScore(colFencer, rowFencer);
+    return score?.value == null || mirror?.value == null;
+  };
 
   // Données par ligne précalculées : sparkline + rang. Évite un filtre O(n·m) par rendu.
   const rowDataMap = useMemo(() => {
@@ -643,7 +661,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                   key={colFencer.id}
                   rowFencer={rowFencer}
                   colFencer={colFencer}
-                  abandoned={abandonedIds.has(rowFencer.id) || abandonedIds.has(colFencer.id)}
+                  abandoned={isCellAbandoned(rowFencer, colFencer)}
                   score={getScore(rowFencer, colFencer)}
                   isFlashing={flashCell === cellKey || flashCell === mirrorKey}
                   isLocked={isLocked}
