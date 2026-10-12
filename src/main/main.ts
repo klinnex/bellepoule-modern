@@ -546,7 +546,12 @@ function getL(): Record<string, string> {
 // Version Information
 // ============================================================================
 
-function getVersionInfo(): { version: string; build: number; date: string } {
+function getVersionInfo(): {
+  version: string;
+  build: number;
+  date: string;
+  channel?: 'dev' | 'stable';
+} {
   try {
     const versionPaths = [
       path.join(app.getAppPath(), 'version.json'),
@@ -570,7 +575,7 @@ function getVersionInfo(): { version: string; build: number; date: string } {
     const pkgPath = path.join(app.getAppPath(), 'package.json');
     if (fs.existsSync(pkgPath)) {
       const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-      const match = pkg.version.match(/(\d+\.\d+\.\d+)(?:-build\.(\d+))?/);
+      const match = pkg.version.match(/(\d+\.\d+\.\d+)(?:-(?:build|dev)\.(\d+))?/);
       if (match) {
         return {
           version: match[1],
@@ -2948,7 +2953,8 @@ app.whenReady().then(async () => {
       autoDownload: false,
       autoInstall: false,
       checkInterval: 12,
-      betaChannel: true,
+      // Canal figé au packaging (docs/VERSIONING.md) : un build dev suit les pré-releases
+      betaChannel: getVersionInfo().channel !== 'stable',
       silent: false,
       installOnQuit: false,
     });

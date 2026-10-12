@@ -128,14 +128,15 @@ Budget de taille vérifié par `npm run check:bundle-size`.
 
 | Workflow | Déclencheur | Étapes |
 |---|---|---|
-| `build-dev.yml` | push `dev` | type-check, i18n, tests unitaires, budget bundle → incrément build → builds Windows/macOS/Linux → pré-release dev |
-| `build.yml` | push `main` | idem → release stable |
+| `build-dev.yml` | push `dev` | type-check, i18n, tests unitaires, budget bundle → build + 1 → builds Windows/macOS/Linux → pré-release `vX.Y.Z-dev.N` |
+| `build.yml` | push `main` | idem, sans nouveau build → release stable `vX.Y.Z` |
 | `claude-code-review.yml` | PR | Revue automatique |
 | `claude.yml` | mention @claude | Agent |
 | `track-downloads.yml` | cron 6 h UTC | Statistiques de téléchargement (`stats/`) |
 
-Numérotation : `scripts/increment-build.js` met à jour `version.json`
-(`{ version, build, date }`) ; commit `🔖 Dev Build #N` / `🔖 Build #N`.
+Numérotation : `scripts/version.js` gère `version.json`
+(`{ version, build, channel, date }`) ; seul `dev` committe (`🔖 Dev Build #N`).
+Règles : [VERSIONING.md](VERSIONING.md).
 
 ## 7. Technologies côté tablette
 

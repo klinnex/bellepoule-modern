@@ -312,6 +312,8 @@ export interface VersionInfo {
   version: string;
   build: number;
   date: string;
+  /** Canal de distribution (docs/VERSIONING.md) ; absent sur les anciens builds */
+  channel?: 'dev' | 'stable';
 }
 
 // ============================================================================

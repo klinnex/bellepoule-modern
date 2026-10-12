@@ -81,11 +81,11 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 3 | 84 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 94 |
-| `src/renderer/components/` | 27 | 102 |
+| `src/renderer/components/` | 27 | 103 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| **Total** | **114** | **1218** |
+| **Total** | **114** | **1219** |
 
-Unitaires : 106 fichiers, 1187 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 106 fichiers, 1188 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2044,13 +2044,14 @@ Unitaires : 106 fichiers, 1187 tests. E2E : 8 fichiers, 31 tests (comptage stati
 ### `src/renderer/components/`
 
 <details>
-<summary><code>src/renderer/components/AboutModal.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/AboutModal.test.tsx</code> — 5 tests</summary>
 
 - **AboutModal**
   - affiche le titre et la licence
   - bouton fermer déclenche onClose
   - affiche un placeholder de version sans electronAPI
   - affiche la version récupérée via electronAPI
+  - affiche le suffixe -dev.N pour un build du canal dev
 
 </details>
 

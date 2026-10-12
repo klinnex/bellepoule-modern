@@ -863,7 +863,7 @@ npm run build && electron-builder --linux  # Linux
 
 | Workflow | Trigger | Jobs |
 |---|---|---|
-| `.github/workflows/build-dev.yml` | push `dev` | type-check, i18n completeness, unit tests, bundle budget → build number increment → Windows/macOS/Linux builds → dev pre-release |
+| `.github/workflows/build-dev.yml` | push `dev` | type-check, i18n completeness, unit tests, bundle budget → build number increment → Windows/macOS/Linux builds → dev pre-release `vX.Y.Z-dev.N` |
 | `.github/workflows/build.yml` | push `main` | same → stable release |
 | `.github/workflows/claude-code-review.yml` | pull request | automated review |
 | `.github/workflows/track-downloads.yml` | daily cron | download stats |
@@ -874,27 +874,17 @@ All jobs use Node 22.
 
 #### Version Configuration
 
-`version.json`:
+`version.json` (source de vérité) :
 ```json
-{
-  "version": "1.0.0",
-  "build": 81,
-  "channel": "stable"
-}
+{ "version": "1.0.3", "build": 1371, "channel": "dev", "date": "…" }
 ```
 
-#### Build Scripts
-
-```json
-{
-  "scripts": {
-    "version:patch": "npm version patch && npm run version:update",
-    "version:minor": "npm version minor && npm run version:update",
-    "version:major": "npm version major && npm run version:update",
-    "version:update": "node scripts/updateVersion.js"
-  }
-}
+```bash
+npm run version:show
+npm run version:bump -- patch   # minor | major | X.Y.Z
 ```
+
+Règles complètes (SemVer, canaux, tags, nommage) : [docs/VERSIONING.md](docs/VERSIONING.md).
 
 ## 🤝 Contributing Guidelines
 
