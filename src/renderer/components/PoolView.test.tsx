@@ -102,3 +102,40 @@ describe('PoolView - saisie simplifiée : suppression au survol', () => {
     expect(onMatchReset).not.toHaveBeenCalled();
   });
 });
+
+describe("PoolView - saisie simplifiée : correction d'un score enregistré (#1046)", () => {
+  beforeEach(() => {
+    (window as any).electronAPI = {
+      db: {
+        getPoolSignatures: vi.fn().mockResolvedValue([]),
+      },
+      onPoolSignatureUpdated: vi.fn().mockReturnValue(() => {}),
+    };
+    localStorage.setItem('bellepoule-simplified-input-mode', 'true');
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('préremplit la case avec le score enregistré', () => {
+    render(<PoolView pool={testPool} onScoreUpdate={vi.fn()} />);
+
+    fireEvent.click(screen.getByLabelText(/Martin F contre Dupont F/i));
+
+    expect(screen.getByRole('spinbutton')).toHaveValue(2);
+  });
+
+  it("Entrée enregistre le nouveau score en gardant celui de l'adversaire", () => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={testPool} onScoreUpdate={onScoreUpdate} />);
+
+    fireEvent.click(screen.getByLabelText(/Martin F contre Dupont F/i));
+    const input = screen.getByRole('spinbutton');
+    fireEvent.change(input, { target: { value: '3' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onScoreUpdate).toHaveBeenCalledWith(0, 5, 3);
+  });
+});

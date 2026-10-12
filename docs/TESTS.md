@@ -81,11 +81,11 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 3 | 84 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 94 |
-| `src/renderer/components/` | 27 | 100 |
+| `src/renderer/components/` | 27 | 102 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| **Total** | **114** | **1216** |
+| **Total** | **114** | **1218** |
 
-Unitaires : 106 fichiers, 1185 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 106 fichiers, 1187 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2195,12 +2195,15 @@ Unitaires : 106 fichiers, 1185 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolView.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/PoolView.test.tsx</code> — 5 tests</summary>
 
 - **PoolView - saisie simplifiée : suppression au survol**
   - survoler une case scorée puis appuyer sur Suppr efface le score du match
   - n'efface rien si la souris ne survole aucune case
   - Suppr est sans effet hors saisie simplifiée
+- **PoolView - saisie simplifiée : correction d'un score enregistré (#1046)**
+  - préremplit la case avec le score enregistré
+  - Entrée enregistre le nouveau score en gardant celui de l'adversaire
 
 </details>
 
