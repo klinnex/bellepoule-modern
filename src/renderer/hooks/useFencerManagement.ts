@@ -97,6 +97,31 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     [fencers, competition, onUpdate, showToast]
   );
 
+  // Changer le statut de plusieurs tireurs en une seule mise à jour d'état
+  // (updateFencer en boucle écrase les MAJ : closure sur `fencers` périmée)
+  const setFencersStatus = useCallback(
+    async (fencerIds: string[], status: FencerStatus) => {
+      if (fencerIds.length === 0) return;
+      const ids = new Set(fencerIds);
+      const now = new Date();
+      const updatedFencers = fencers.map(f =>
+        ids.has(f.id) ? { ...f, status, updatedAt: now } : f
+      );
+      setFencers(updatedFencers);
+      onUpdate({ ...competition, fencers: updatedFencers });
+      await Promise.allSettled(
+        fencerIds.map(id =>
+          window.electronAPI?.db
+            ?.updateFencer?.(id, { status })
+            .catch(err =>
+              logger.error(LogCategory.UI, `Failed to update fencer ${id}`, err as Error)
+            )
+        )
+      );
+    },
+    [fencers, competition, onUpdate]
+  );
+
   // Supprimer un tireur
   const deleteFencer = useCallback(
     async (fencerId: string) => {
@@ -303,6 +328,7 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     addFencer,
     bulkAddFencers,
     updateFencer,
+    setFencersStatus,
     deleteFencer,
     deleteAllFencers,
     checkInAll,

@@ -329,6 +329,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     addFencer,
     bulkAddFencers,
     updateFencer,
+    setFencersStatus,
     deleteFencer,
     deleteAllFencers,
     checkInAll,
@@ -1353,9 +1354,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       showToast('Il faut au moins 4 qualifiés pour un nouveau tour de poules.', 'warning');
       return;
     }
-    const toEliminate = eliminated.filter(
-      f => fencers.find(x => x.id === f.id)?.status === FencerStatus.CHECKED_IN
-    );
+    const toEliminate = eliminated.filter(f => {
+      const status = fencers.find(x => x.id === f.id)?.status;
+      return (
+        status !== undefined &&
+        status !== FencerStatus.ELIMINATED &&
+        status !== FencerStatus.ABANDONED &&
+        status !== FencerStatus.FORFAIT &&
+        status !== FencerStatus.EXCLUDED
+      );
+    });
     const ok = await confirm(
       t('pools.next_round_confirm', {
         n: nextRound,
@@ -1364,7 +1372,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       })
     );
     if (!ok) return;
-    for (const f of toEliminate) updateFencer(f.id, { status: FencerStatus.ELIMINATED });
+    await setFencersStatus(
+      toEliminate.map(f => f.id),
+      FencerStatus.ELIMINATED
+    );
     nextPoolRound();
     setRankingValidated(false);
     setViewedPoolRound(null);
@@ -1692,13 +1703,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const getPoolsNextAction = () => {
     if (!canAdvanceFromPools) return null;
 
-    if (!isLastPoolRound) {
-      return {
-        label: t('pools.next_round_n', { n: currentPoolRound + 1 }),
-        action: handleNextPoolRound,
-      };
-    }
-
+    // Tour intermédiaire : classement du tour d'abord, passage au tour suivant depuis
+    // l'écran de classement (#1051)
     return {
       label: t('pools.view_ranking_action'),
       action: handleGoToRanking,
@@ -1987,7 +1993,12 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         )}
         {currentPhase === 'checkin' && (
           <FencerList
-            fencers={fencers}
+            fencers={
+              // Appel d'un tour suivant : éliminés des tours précédents retirés (#1051)
+              currentPoolRound > 1
+                ? fencers.filter(f => f.status !== FencerStatus.ELIMINATED)
+                : fencers
+            }
             competitionId={competition.id}
             onCheckIn={handleCheckInFencer}
             onAddFencer={() => setShowAddFencerModal(true)}
@@ -2259,6 +2270,14 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             splitCriteria={postPoolSplitCriteria}
             splitOffGroups={splitOffCompetitionIds}
             onSplitOff={handleSplitOff}
+            nextRoundAction={
+              !isLastPoolRound && pools.length > 0 && canAdvanceFromPools
+                ? {
+                    label: t('pools.next_round_n', { n: currentPoolRound + 1 }),
+                    onClick: handleNextPoolRound,
+                  }
+                : undefined
+            }
           />
         )}
 
