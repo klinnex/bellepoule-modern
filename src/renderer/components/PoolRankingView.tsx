@@ -53,6 +53,8 @@ interface PoolRankingViewProps {
   splitOffGroups?: Partial<Record<string, string>>;
   /** Extraire un groupe dans une compétition séparée (filles) */
   onSplitOff?: (group: string) => void;
+  /** Tour de poules intermédiaire : remplace le passage au tableau (#1051) */
+  nextRoundAction?: { label: string; onClick: () => void };
 }
 
 const PoolRankingView: React.FC<PoolRankingViewProps> = ({
@@ -70,6 +72,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
   splitCriteria,
   splitOffGroups,
   onSplitOff,
+  nextRoundAction,
 }) => {
   const { showToast } = useToast();
   const { isColumnVisible, toggleColumn, getVisibleColumns } = useColumnVisibility();
@@ -781,7 +784,11 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
           </span>
         </div>
         <div style={FLEX_GAP}>
-          {hasDirectElimination ? (
+          {nextRoundAction ? (
+            <button className="btn btn-primary" onClick={nextRoundAction.onClick}>
+              {nextRoundAction.label}
+            </button>
+          ) : hasDirectElimination ? (
             splitCriteria && splitGroups.length > 1 ? (
               splitGroups.map(g =>
                 g === Gender.FEMALE && onSplitOff ? (

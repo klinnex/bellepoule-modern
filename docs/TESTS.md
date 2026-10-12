@@ -80,12 +80,12 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 2 | 117 |
 | `src/main/` | 3 | 84 |
 | `src/renderer/services/` | 2 | 16 |
-| `src/renderer/hooks/` | 16 | 94 |
+| `src/renderer/hooks/` | 16 | 95 |
 | `src/renderer/components/` | 27 | 103 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| **Total** | **115** | **1233** |
+| **Total** | **115** | **1234** |
 
-Unitaires : 107 fichiers, 1202 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 107 fichiers, 1203 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1938,13 +1938,15 @@ Unitaires : 107 fichiers, 1202 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 5 tests</summary>
+<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 6 tests</summary>
 
 - **addFencer**
   - ajoute le tireur et notifie le parent
   - lève une erreur si l’API est absente
 - **updateFencer**
   - met à jour le tireur et notifie
+- **setFencersStatus**
+  - met à jour plusieurs tireurs en un seul état (#1051)
 - **deleteFencer**
   - supprime le tireur et notifie
 - **deleteAllFencers**

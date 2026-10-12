@@ -79,6 +79,28 @@ describe('updateFencer', () => {
   });
 });
 
+describe('setFencersStatus', () => {
+  it('met à jour plusieurs tireurs en un seul état (#1051)', async () => {
+    const comp = { ...competition, fencers: [fencer('1'), fencer('2'), fencer('3')] };
+    const r = renderHook(() =>
+      useFencerManagement({
+        competition: comp,
+        onUpdate: onUpdate as unknown as (c: Competition) => void,
+      })
+    ).result;
+    await act(async () => {
+      await r.current.setFencersStatus(['1', '3'], FencerStatus.ELIMINATED);
+    });
+    expect(db.updateFencer).toHaveBeenCalledTimes(2);
+    expect(r.current.fencers.map(f => f.status)).toEqual([
+      FencerStatus.ELIMINATED,
+      FencerStatus.NOT_CHECKED_IN,
+      FencerStatus.ELIMINATED,
+    ]);
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('deleteFencer', () => {
   it('supprime le tireur et notifie', async () => {
     const r = setup();
