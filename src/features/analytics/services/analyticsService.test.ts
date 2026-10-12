@@ -65,7 +65,10 @@ describe('getCompetitionStats', () => {
       getPoolsByPhase: async () => [{ id: 'po1' }, { id: 'po2' }],
       getMatchesByPool: async (poolId: string) =>
         poolId === 'po1'
-          ? [{ status: 'finished', duration: 60 }, { status: 'finished', duration: 120 }]
+          ? [
+              { status: 'finished', duration: 60 },
+              { status: 'finished', duration: 120 },
+            ]
           : [{ status: 'in_progress' }],
     });
     const stats = await svc.getCompetitionStats('c1');

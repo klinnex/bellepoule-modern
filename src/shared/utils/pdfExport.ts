@@ -8,13 +8,25 @@
  */
 
 // ─── Poules ───────────────────────────────────────────────────────────────────
-export type { PoolExportOptions } from './pdfExport/poolPdf';
-export { generatePoolHTML, exportPoolToPDF, exportMultiplePoolsToPDF } from './pdfExport/poolPdf';
+export type { PoolExportOptions, PoolStripQr } from './pdfExport/poolPdf';
+export {
+  generatePoolHTML,
+  exportPoolToPDF,
+  exportMultiplePoolsToPDF,
+  printPoolHTML,
+  printMultiplePoolsHTML,
+  previewPoolHTML,
+} from './pdfExport/poolPdf';
 
 // ─── Tableau Élimination Directe ─────────────────────────────────────────────
 export type { TableauMatchForPDF } from './pdfExport/tableauPdf';
 export { MAX_MATCHES_PER_PAGE_TABLEAU } from './pdfConstants';
-export { generateTableauHTML, exportTableauToPDF, printTableauHTML } from './pdfExport/tableauPdf';
+export {
+  generateTableauHTML,
+  exportTableauToPDF,
+  printTableauHTML,
+  previewTableauHTML,
+} from './pdfExport/tableauPdf';
 
 // ─── Arbre (Bracket Tree) ─────────────────────────────────────────────────────
 export {
@@ -35,5 +47,11 @@ export { exportResultsToPDF } from './pdfExport/resultsPdf';
 export { exportAppelToPDF } from './pdfExport/appelPdf';
 
 // ─── Export complet compétition ───────────────────────────────────────────────
-export type { FullCompetitionExportData, NoSignatureExportData } from './pdfExport/fullCompetitionPdf';
-export { exportFullCompetitionPDF, exportPoolsAndTableauxNoSignaturePDF } from './pdfExport/fullCompetitionPdf';
+export type {
+  FullCompetitionExportData,
+  NoSignatureExportData,
+} from './pdfExport/fullCompetitionPdf';
+export {
+  exportFullCompetitionPDF,
+  exportPoolsAndTableauxNoSignaturePDF,
+} from './pdfExport/fullCompetitionPdf';

@@ -35,7 +35,7 @@ const TiebreakerAnimation: React.FC<TiebreakerAnimationProps> = ({
       requestAnimationFrame(() => {
         if (coinRef.current) {
           coinRef.current.style.transition = 'transform 3.5s cubic-bezier(0.33, 1, 0.68, 1)';
-          coinRef.current.style.transform  = `rotateY(${finalDeg}deg)`;
+          coinRef.current.style.transform = `rotateY(${finalDeg}deg)`;
         }
       });
     });
@@ -86,7 +86,9 @@ const TiebreakerAnimation: React.FC<TiebreakerAnimationProps> = ({
         )}
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         .tiebreaker-overlay {
           position: fixed;
           inset: 0;
@@ -238,7 +240,9 @@ const TiebreakerAnimation: React.FC<TiebreakerAnimationProps> = ({
           from { transform: scale(0.5); opacity: 0; }
           to   { transform: scale(1);   opacity: 1; }
         }
-      ` }} />
+      `,
+        }}
+      />
     </div>
   );
 };

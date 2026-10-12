@@ -12,25 +12,45 @@ import PoolScoreMatrix from './PoolScoreMatrix';
 import { Pool, Fencer, Match, MatchStatus, Gender, FencerStatus } from '../../../shared/types';
 
 const fencer = (id: string, last: string): Fencer => ({
-  id, ref: Number(id), lastName: last, firstName: 'F',
-  gender: Gender.MALE, nationality: 'FRA', status: FencerStatus.CHECKED_IN,
-  createdAt: new Date(), updatedAt: new Date(),
+  id,
+  ref: Number(id),
+  lastName: last,
+  firstName: 'F',
+  gender: Gender.MALE,
+  nationality: 'FRA',
+  status: FencerStatus.CHECKED_IN,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 const f1 = fencer('1', 'Dupont');
 const f2 = fencer('2', 'Martin');
 
 const match = (status: MatchStatus, sa?: number, sb?: number): Match => ({
-  id: 'm', number: 1, fencerA: f1, fencerB: f2,
+  id: 'm',
+  number: 1,
+  fencerA: f1,
+  fencerB: f2,
   scoreA: sa != null ? ({ value: sa, isVictory: (sa ?? 0) > (sb ?? 0) } as any) : null,
   scoreB: sb != null ? ({ value: sb, isVictory: (sb ?? 0) > (sa ?? 0) } as any) : null,
-  status, maxScore: 5, createdAt: new Date(), updatedAt: new Date(),
+  status,
+  maxScore: 5,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 const pool = (m: Match): Pool => ({
-  id: 'p1', number: 1, phaseId: 'ph', fencers: [f1, f2], matches: [m],
-  referees: [], isComplete: false, hasError: false, ranking: [],
-  createdAt: new Date(), updatedAt: new Date(),
+  id: 'p1',
+  number: 1,
+  phaseId: 'ph',
+  fencers: [f1, f2],
+  matches: [m],
+  referees: [],
+  isComplete: false,
+  hasError: false,
+  ranking: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 const renderMatrix = (m: Match, over: Partial<Record<string, any>> = {}) => {

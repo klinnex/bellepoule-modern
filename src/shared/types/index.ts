@@ -157,11 +157,11 @@ export enum PhaseType {
 }
 
 export enum Category {
-  U11 = 'U11', // Poussins
-  U13 = 'U13', // Benjamins
-  U15 = 'U15', // Minimes
-  U17 = 'U17', // Cadets
-  U20 = 'U20', // Juniors
+  U11 = 'U11', // M11
+  U13 = 'U13', // M13
+  U15 = 'U15', // M15
+  U17 = 'U17', // M17
+  U20 = 'U20', // M20
   SENIOR = 'SEN', // Seniors
   V1 = 'V1', // Vétérans 1 (40-49)
   V2 = 'V2', // Vétérans 2 (50-59)
@@ -183,6 +183,8 @@ export interface BaseEntity {
 // Fencer (Tireur)
 // ============================================================================
 
+export type ExclusionReason = 'black_card';
+
 export interface Fencer extends BaseEntity {
   ref: number; // Numéro de référence unique dans la compétition
   lastName: string; // Nom
@@ -195,6 +197,7 @@ export interface Fencer extends BaseEntity {
   license?: string; // Numéro de licence
   ranking?: number; // Classement
   status: FencerStatus; // Statut dans la compétition
+  exclusionReason?: ExclusionReason | null; // Motif d'exclusion (rapport fédéral)
   seedNumber?: number; // Tête de série
   initialRanking?: number; // Classement initial
   finalRanking?: number; // Classement final
@@ -304,6 +307,20 @@ export interface Pool extends BaseEntity {
   ranking: PoolRanking[]; // Classement calculé
 }
 
+// Instantané d'une poule pour synchronisation DB (ajout tireur en cours de compétition)
+export interface PoolSnapshot {
+  id: string;
+  number: number;
+  fencerIds: string[];
+  matches: {
+    id: string;
+    number: number;
+    fencerAId: string | null;
+    fencerBId: string | null;
+    maxScore: number;
+  }[];
+}
+
 export interface PoolRanking {
   fencer: Fencer;
   rank: number;
@@ -320,7 +337,7 @@ export interface PoolRanking {
   questVictories3?: number; // Nombre de victoires à 3 points (écart 8-11)
   questVictories2?: number; // Nombre de victoires à 2 points (écart 4-7)
   questVictories1?: number; // Nombre de victoires à 1 point (écart ≤3)
-  totalCards?: number;      // Nombre total de cartons reçus (critère de départage Quest)
+  totalCards?: number; // Nombre total de cartons reçus (critère de départage Quest)
   maxSingleMatchScore?: number; // Meilleur score marqué en un seul match
 }
 
@@ -399,7 +416,8 @@ export interface RankingCriterion {
   enabled: boolean;
 }
 
-export type AdvancementMode = 'all' | 'percentage' | 'fixed_count' | 'fixed_bracket' | 'pool_winner';
+export type AdvancementMode =
+  'all' | 'percentage' | 'fixed_count' | 'fixed_bracket' | 'pool_winner';
 
 // Critère de séparation post-poules en deux tableaux distincts (compétition couplée)
 export type PostPoolSplitCriteria = 'gender';
@@ -563,7 +581,7 @@ export interface QuestPhaseConfig {
 
 export interface TrainingCustomRules {
   matchDurationSeconds: number;
-  allowedZones: TargetZone[];    // vide = toutes les zones autorisées
+  allowedZones: TargetZone[]; // vide = toutes les zones autorisées
   disableSuddenDeath: boolean;
 }
 
@@ -573,15 +591,24 @@ export interface CompetitionSettings {
   defaultPoolTimerSeconds: number; // Durée chrono poules en secondes (défaut: 180)
   defaultTableTimerSeconds: number; // Durée chrono tableau en secondes (défaut: 180)
   poolRounds: number; // Nombre de tours de poules (défaut: 1)
+  poolRoundQualifiers?: number[]; // Qualifiés pour le tour i+2 (0/absent = tous) (#1051)
   hasDirectElimination: boolean; // Phase d'élimination directe activée (défaut: true)
   thirdPlaceMatch: boolean; // Match pour la 3ème place activé (défaut: false)
   signTableauMatches?: boolean; // Signature des combattants sur tablette après chaque match du tableau (défaut: true)
   manualRanking: boolean; // Classement manuel
   defaultRanking: number; // Classement par défaut pour non-classés
   randomScore: boolean; // Scores aléatoires (pour tests)
-  minTeamSize: number; // Taille min équipe (compétitions par équipes)
+  minTeamSize: number; // Taille équipe = nombre de titulaires (compétitions par équipes)
+  teamReserveCount?: number; // Nombre de réservistes par équipe (défaut: 1)
+  laserTeamMode?: 'touches' | 'points'; // Cible équipe Sabre Laser : touches (défaut) ou points de zone cumulés
+  teamRelayStepSize?: number; // Palier de progression par relais (défaut: 5, cf. règle FIE)
+  // 'fie-relay' (défaut) = relais classique à cible cumulée progressive. 'laser-arena' = format
+  // arène Sabre Laser (assauts indépendants plafonnés à 5 touches/3min, score = total de points).
+  teamFormat?: 'fie-relay' | 'laser-arena';
   questConfig?: QuestPhaseConfig; // Configuration du Tour Quest (Sabre Laser uniquement)
   refereeFeatureEnabled?: boolean; // Activer la gestion des arbitres sur arènes et saisie distante
+  blackCardEnabled?: boolean; // Carton noir activé sur les tablettes (défaut: false)
+  trainerCommentsEnabled?: boolean; // Saisie distante formateurs : commentaires d'arbitrage (#989)
   customFormula?: CustomFormulaConfig; // Formule à la carte (arme CUSTOM uniquement)
   playAllPositions?: boolean; // Jouer toutes les places (tableaux de classement)
   expertMode?: boolean; // Mode expert : édition avancée des pistes et arbitres
@@ -590,6 +617,8 @@ export interface CompetitionSettings {
   // Modes spéciaux post-poules
   poolWinnersOnly?: boolean; // Seuls les 1ers de chaque poule accèdent au tableau
   postPoolSplitCriteria?: PostPoolSplitCriteria; // Séparation en deux tableaux après les poules
+  splitOffCompetitionIds?: Partial<Record<string, string>>; // Groupe (genre) → compétition séparée créée
+  splitFromCompetitionId?: string; // Compétition d'origine (si créée par séparation)
 }
 
 export interface Phase extends BaseEntity {
@@ -700,4 +729,16 @@ export interface MatchEventEntry {
   resultingExclusion: boolean | null;
   // arena_exit
   exitType: string | null;
+}
+
+/** Commentaire de formation laissé par un formateur sur un arbitre (#989) */
+export interface RefereeComment {
+  id: string;
+  competitionId: string;
+  refereeId: string;
+  author: string | null;
+  comment: string;
+  /** Contexte au moment du commentaire (ex. « Piste 2 — DUPONT / MARTIN ») */
+  matchLabel: string | null;
+  createdAt: string;
 }

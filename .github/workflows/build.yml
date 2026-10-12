@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
 
       - name: Install dependencies
@@ -26,71 +26,59 @@ jobs:
       - name: Type check
         run: npm run type-check
 
+      - name: i18n completeness
+        run: npm run check:i18n
+
+      - name: Tests documentation up to date
+        run: npm run check:tests-doc
+
       - name: Unit tests
         run: npm run test:run
 
-  increment-version:
+      - name: Bundle size budget
+        run: |
+          npm run build:renderer
+          node scripts/check-bundle-size.js
+
+  version:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
       build: ${{ steps.version.outputs.build }}
+      tag: ${{ steps.version.outputs.tag }}
+      title: ${{ steps.version.outputs.title }}
 
     steps:
       - uses: actions/checkout@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Increment Version
+      # Pas de nouveau numéro de build : la release stable reprend le build dev promu
+      # (cf. docs/VERSIONING.md). Aucun commit n'est poussé sur main.
+      - name: Read version
         id: version
+        run: node scripts/version.js meta stable --github-output
+
+      - name: Ensure version was bumped
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
-          if [ -f version.json ]; then
-            VERSION=$(cat version.json | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])")
-            BUILD=$(cat version.json | python3 -c "import sys,json; print(json.load(sys.stdin)['build'])")
-          else
-            VERSION="1.0.0"
-            BUILD=0
+          if gh api "repos/${{ github.repository }}/git/ref/tags/$TAG" >/dev/null 2>&1; then
+            echo "::error::Le tag $TAG existe déjà. Bumper la version sur dev (npm run version:bump -- patch|minor|major) avant de promouvoir vers main."
+            exit 1
           fi
-
-          NEW_BUILD=$((BUILD + 1))
-          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-          echo "{" > version.json
-          echo "  \"version\": \"$VERSION\"," >> version.json
-          echo "  \"build\": $NEW_BUILD," >> version.json
-          echo "  \"date\": \"$DATE\"" >> version.json
-          echo "}" >> version.json
-
-          FULL_VERSION="${VERSION}-build.${NEW_BUILD}"
-          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$FULL_VERSION\"/" package.json
-
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "build=$NEW_BUILD" >> $GITHUB_OUTPUT
-
-          cat version.json
-
-      - name: Commit Version Update
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add version.json package.json
-          git diff --staged --quiet || git commit -m "🔖 Build #${{ steps.version.outputs.build }}"
-          git push || echo "Nothing to push"
-
   build-windows:
-    needs: [increment-version, quality]
+    needs: [version, quality]
     runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Cache npm dependencies
         uses: actions/cache@v5
@@ -110,6 +98,9 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done || exit 1
 
+      - name: Apply stable version
+        run: node scripts/version.js apply stable
+
       - name: Build TypeScript and Webpack
         run: npm run build:ci
 
@@ -126,18 +117,18 @@ jobs:
           retention-days: 5
 
   build-macos-x64:
-    needs: [increment-version, quality]
+    needs: [version, quality]
     runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Cache npm dependencies
         uses: actions/cache@v5
@@ -171,6 +162,9 @@ jobs:
             npm install && break
             [ $i -lt 3 ] && sleep 10
           done || exit 1
+
+      - name: Apply stable version
+        run: node scripts/version.js apply stable
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
@@ -195,18 +189,18 @@ jobs:
           retention-days: 5
 
   build-macos-arm64:
-    needs: [increment-version, quality]
+    needs: [version, quality]
     runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Cache npm dependencies
         uses: actions/cache@v5
@@ -241,6 +235,9 @@ jobs:
             [ $i -lt 3 ] && sleep 10
           done || exit 1
 
+      - name: Apply stable version
+        run: node scripts/version.js apply stable
+
       - name: Build TypeScript and Webpack
         run: npm run build:ci
 
@@ -264,18 +261,18 @@ jobs:
           retention-days: 5
 
   build-linux-x64:
-    needs: [increment-version, quality]
+    needs: [version, quality]
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Cache npm dependencies
         uses: actions/cache@v5
@@ -293,6 +290,9 @@ jobs:
             npm install && break
             [ $i -lt 3 ] && sleep 10
           done || exit 1
+
+      - name: Apply stable version
+        run: node scripts/version.js apply stable
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
@@ -310,19 +310,19 @@ jobs:
           retention-days: 5
 
   build-linux-arm64:
-    needs: [increment-version, quality]
+    needs: [version, quality]
     runs-on: ubuntu-latest
     continue-on-error: true
 
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Cache npm dependencies
         uses: actions/cache@v5
@@ -340,6 +340,9 @@ jobs:
             npm install && break
             [ $i -lt 3 ] && sleep 10
           done || exit 1
+
+      - name: Apply stable version
+        run: node scripts/version.js apply stable
 
       - name: Build TypeScript and Webpack
         run: npm run build:ci
@@ -360,7 +363,7 @@ jobs:
   create-release:
     needs:
       [
-        increment-version,
+        version,
         build-windows,
         build-macos-x64,
         build-macos-arm64,
@@ -380,45 +383,34 @@ jobs:
       - name: List downloaded files
         run: find builds -type f
 
-      - name: Delete old releases (keep last 3)
-        run: |
-          tags=$(gh release list --repo "${{ github.repository }}" --json tagName -q '.[].tagName' 2>/dev/null || true)
-          count=0
-          if [ -n "$tags" ]; then
-            echo "$tags" | while read -r tag; do
-              count=$((count + 1))
-              if [ $count -gt 3 ]; then
-                echo "Suppression de la release: $tag"
-                gh release delete "$tag" --repo "${{ github.repository }}" --yes --cleanup-tag 2>/dev/null || true
-              fi
-            done
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: 'v${{ needs.increment-version.outputs.version }}-build.${{ needs.increment-version.outputs.build }}'
+          tag_name: ${{ needs.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           make_latest: true
-          name: '🚀 BellePoule Modern v${{ needs.increment-version.outputs.version }} Build #${{ needs.increment-version.outputs.build }}'
+          name: ${{ needs.version.outputs.title }}
           body: |
-            ## BellePoule Modern
+            ## BellePoule Modern ${{ needs.version.outputs.version }}
 
-            **Version**: `${{ needs.increment-version.outputs.version }}`
-            **Build**: `#${{ needs.increment-version.outputs.build }}`
+            **Version** : `${{ needs.version.outputs.version }}` • **Build** : `#${{ needs.version.outputs.build }}`
+
+            Version stable, promue depuis le build dev `v${{ needs.version.outputs.version }}-dev.${{ needs.version.outputs.build }}`.
 
             ### 📥 Téléchargements
+
             | Plateforme | Architecture | Fichier |
             |------------|--------------|---------|
-            | **Windows** | x64 | `.exe` portable |
-            | **macOS** | x64 | `.dmg` |
-            | **macOS** | ARM64 | `.dmg` (Apple Silicon M1/M2/M3) |
-            | **Linux** | x64 | `.AppImage` |
-            | **Linux** | ARM64 | `.AppImage` (Raspberry Pi, etc.) |
+            | **Windows** | x64 | `BellePoule-Modern-${{ needs.version.outputs.version }}-win-x64-portable.exe` |
+            | **macOS** | x64 | `BellePoule-Modern-${{ needs.version.outputs.version }}-mac-x64.dmg` |
+            | **macOS** | ARM64 | `BellePoule-Modern-${{ needs.version.outputs.version }}-mac-arm64.dmg` (Apple Silicon) |
+            | **Linux** | x64 | `…-linux-x64.AppImage` |
+            | **Linux** | ARM64 | `…-linux-arm64.AppImage` (Raspberry Pi…) |
 
             ### 📋 Voir la version
             Menu **Aide > À propos** ou **F1**
+
+            Règles de versionnage : [docs/VERSIONING.md](https://github.com/${{ github.repository }}/blob/main/docs/VERSIONING.md)
           files: |
             builds/windows-exe/*.exe
             builds/macos-x64-dmg/*-x64.dmg
@@ -430,3 +422,53 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Les releases stables vX.Y.Z sont conservées. Seules les anciennes releases
+      # au format historique vX.Y.Z-build.N sont retirées (leurs tags restent).
+      - name: Remove legacy build releases
+        run: |
+          gh release list --repo "${{ github.repository }}" --limit 200 --json tagName,isPrerelease \
+            -q '.[] | select(.isPrerelease | not) | .tagName' \
+            | grep -E -- '-build\.[0-9]+$' \
+            | while read -r tag; do
+                echo "Suppression de l'ancienne release : $tag"
+                gh release delete "$tag" --repo "${{ github.repository }}" --yes || true
+              done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Après une release stable vX.Y.Z, dev passe automatiquement en X.Y.(Z+1).
+  # Build non remis à zéro : le compteur reste global (cf. docs/VERSIONING.md).
+  bump-dev:
+    needs: [version, create-release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: dev
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump patch on dev
+        env:
+          RELEASED: ${{ needs.version.outputs.version }}
+        run: |
+          CURRENT=$(node -p "require('./version.json').version")
+          if [ "$CURRENT" != "$RELEASED" ]; then
+            echo "dev est déjà en $CURRENT (release $RELEASED) : rien à faire"
+            exit 0
+          fi
+          node scripts/version.js bump patch
+          NEXT=$(node -p "require('./version.json').version")
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add version.json package.json package-lock.json
+          git commit -m "🔖 Version $NEXT (après release v$RELEASED)"
+          for i in 1 2 3; do
+            git push origin HEAD:dev && exit 0
+            git pull --rebase origin dev
+          done
+          echo "::error::Impossible de pousser le bump de version sur dev"
+          exit 1

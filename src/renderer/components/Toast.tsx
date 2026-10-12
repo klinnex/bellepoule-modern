@@ -36,18 +36,21 @@ const ToastContext = createContext<ToastContextType | null>(null);
 
 let toastId = 0;
 
-const TOAST_COLORS: Record<ToastType, { bg: string; border: string; text: string; accent: string }> = {
+const TOAST_COLORS: Record<
+  ToastType,
+  { bg: string; border: string; text: string; accent: string }
+> = {
   success: { bg: '#f0fdf4', border: '#22c55e', text: '#166534', accent: '#22c55e' },
   warning: { bg: '#fffbeb', border: '#f59e0b', text: '#92400e', accent: '#f59e0b' },
-  error:   { bg: '#fef2f2', border: '#ef4444', text: '#991b1b', accent: '#ef4444' },
-  info:    { bg: '#eff6ff', border: '#3b82f6', text: '#1e40af', accent: '#3b82f6' },
+  error: { bg: '#fef2f2', border: '#ef4444', text: '#991b1b', accent: '#ef4444' },
+  info: { bg: '#eff6ff', border: '#3b82f6', text: '#1e40af', accent: '#3b82f6' },
 };
 
 const TOAST_ICONS: Record<ToastType, React.ReactNode> = {
   success: <CheckCircle2 size={18} />,
   warning: <AlertTriangle size={18} />,
-  error:   <XCircle size={18} />,
-  info:    <Info size={18} />,
+  error: <XCircle size={18} />,
+  info: <Info size={18} />,
 };
 
 const MAX_TOASTS = 3;
@@ -78,7 +81,9 @@ const ToastItemComponent: React.FC<{
         onRemove(toast.id);
       }
     }, 50);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [toast.id, toast.duration, toast.persistent, onRemove]);
 
   return (
@@ -108,20 +113,40 @@ const ToastItemComponent: React.FC<{
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           {toast.title && (
-            <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#111827', marginBottom: toast.message ? '2px' : 0 }}>
+            <div
+              style={{
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                color: '#111827',
+                marginBottom: toast.message ? '2px' : 0,
+              }}
+            >
               {toast.title}
             </div>
           )}
-          <div style={{ fontSize: '0.8125rem', color: '#374151', lineHeight: 1.45, wordBreak: 'break-word' }}>
+          <div
+            style={{
+              fontSize: '0.8125rem',
+              color: '#374151',
+              lineHeight: 1.45,
+              wordBreak: 'break-word',
+            }}
+          >
             {toast.message}
           </div>
           {toast.action && (
             <button
               onClick={toast.action.onClick}
               style={{
-                marginTop: '6px', padding: '4px 10px', fontSize: '0.75rem',
-                background: colors.accent, color: 'white', border: 'none',
-                borderRadius: '4px', cursor: 'pointer', fontWeight: 600,
+                marginTop: '6px',
+                padding: '4px 10px',
+                fontSize: '0.75rem',
+                background: colors.accent,
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 600,
               }}
             >
               {toast.action.label}
@@ -131,9 +156,14 @@ const ToastItemComponent: React.FC<{
         <button
           onClick={() => onRemove(toast.id)}
           style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: '#9ca3af', padding: '1px', flexShrink: 0,
-            display: 'flex', alignItems: 'center',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#9ca3af',
+            padding: '1px',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
           }}
           aria-label="Fermer"
         >
@@ -141,13 +171,18 @@ const ToastItemComponent: React.FC<{
         </button>
       </div>
       {!toast.persistent && (
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0,
-          height: '3px', background: colors.accent,
-          width: `${progress}%`,
-          transition: 'width 50ms linear',
-          opacity: 0.6,
-        }} />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            height: '3px',
+            background: colors.accent,
+            width: `${progress}%`,
+            transition: 'width 50ms linear',
+            opacity: 0.6,
+          }}
+        />
       )}
     </div>
   );
@@ -156,24 +191,27 @@ const ToastItemComponent: React.FC<{
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
-  const showToast = useCallback((message: string, type: ToastType = 'info', options?: ToastOptions) => {
-    const id = ++toastId;
-    const duration = options?.duration ?? (type === 'error' ? 6000 : 4000);
-    const newToast: ToastItem = {
-      id,
-      type,
-      message,
-      title: options?.title,
-      duration,
-      persistent: options?.persistent ?? false,
-      action: options?.action,
-      createdAt: Date.now(),
-    };
-    setToasts(prev => {
-      const next = [...prev, newToast];
-      return next.length > MAX_TOASTS ? next.slice(next.length - MAX_TOASTS) : next;
-    });
-  }, []);
+  const showToast = useCallback(
+    (message: string, type: ToastType = 'info', options?: ToastOptions) => {
+      const id = ++toastId;
+      const duration = options?.duration ?? (type === 'error' ? 6000 : 4000);
+      const newToast: ToastItem = {
+        id,
+        type,
+        message,
+        title: options?.title,
+        duration,
+        persistent: options?.persistent ?? false,
+        action: options?.action,
+        createdAt: Date.now(),
+      };
+      setToasts(prev => {
+        const next = [...prev, newToast];
+        return next.length > MAX_TOASTS ? next.slice(next.length - MAX_TOASTS) : next;
+      });
+    },
+    []
+  );
 
   const removeToast = useCallback((id: number) => {
     setToasts(prev => prev.filter(t => t.id !== id));

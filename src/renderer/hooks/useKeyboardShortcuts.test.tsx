@@ -20,9 +20,7 @@ afterEach(() => vi.restoreAllMocks());
 describe('useKeyboardShortcuts', () => {
   it('déclenche l’action sur la bonne touche + modificateur', () => {
     const action = vi.fn();
-    const shortcuts: KeyboardShortcut[] = [
-      { key: 's', ctrl: true, description: 'Save', action },
-    ];
+    const shortcuts: KeyboardShortcut[] = [{ key: 's', ctrl: true, description: 'Save', action }];
     renderHook(() => useKeyboardShortcuts({ shortcuts }));
     fireKey({ key: 's', ctrlKey: true });
     expect(action).toHaveBeenCalledTimes(1);
@@ -30,14 +28,18 @@ describe('useKeyboardShortcuts', () => {
 
   it('ne déclenche pas si les modificateurs ne correspondent pas', () => {
     const action = vi.fn();
-    renderHook(() => useKeyboardShortcuts({ shortcuts: [{ key: 's', ctrl: true, description: 'Save', action }] }));
+    renderHook(() =>
+      useKeyboardShortcuts({ shortcuts: [{ key: 's', ctrl: true, description: 'Save', action }] })
+    );
     fireKey({ key: 's' }); // sans ctrl
     expect(action).not.toHaveBeenCalled();
   });
 
   it('respecte enabled=false', () => {
     const action = vi.fn();
-    renderHook(() => useKeyboardShortcuts({ shortcuts: [{ key: 'a', description: 'A', action }], enabled: false }));
+    renderHook(() =>
+      useKeyboardShortcuts({ shortcuts: [{ key: 'a', description: 'A', action }], enabled: false })
+    );
     fireKey({ key: 'a' });
     expect(action).not.toHaveBeenCalled();
   });
@@ -45,12 +47,14 @@ describe('useKeyboardShortcuts', () => {
   it('ignore les raccourcis dans un input (sauf Escape)', () => {
     const action = vi.fn();
     const esc = vi.fn();
-    renderHook(() => useKeyboardShortcuts({
-      shortcuts: [
-        { key: 'a', description: 'A', action },
-        { key: 'Escape', description: 'Esc', action: esc },
-      ],
-    }));
+    renderHook(() =>
+      useKeyboardShortcuts({
+        shortcuts: [
+          { key: 'a', description: 'A', action },
+          { key: 'Escape', description: 'Esc', action: esc },
+        ],
+      })
+    );
     const input = document.createElement('input');
     fireKey({ key: 'a', target: input });
     expect(action).not.toHaveBeenCalled();
@@ -59,21 +63,27 @@ describe('useKeyboardShortcuts', () => {
   });
 
   it('appelle preventDefault par défaut', () => {
-    renderHook(() => useKeyboardShortcuts({ shortcuts: [{ key: 'x', description: 'X', action: () => {} }] }));
+    renderHook(() =>
+      useKeyboardShortcuts({ shortcuts: [{ key: 'x', description: 'X', action: () => {} }] })
+    );
     const evt = fireKey({ key: 'x' });
     expect(evt.defaultPrevented).toBe(true);
   });
 
   it('respecte preventDefault=false', () => {
-    renderHook(() => useKeyboardShortcuts({
-      shortcuts: [{ key: 'y', description: 'Y', action: () => {}, preventDefault: false }],
-    }));
+    renderHook(() =>
+      useKeyboardShortcuts({
+        shortcuts: [{ key: 'y', description: 'Y', action: () => {}, preventDefault: false }],
+      })
+    );
     const evt = fireKey({ key: 'y' });
     expect(evt.defaultPrevented).toBe(false);
   });
 
   it('capture les erreurs de l’action sans planter', () => {
-    const action = vi.fn(() => { throw new Error('boom'); });
+    const action = vi.fn(() => {
+      throw new Error('boom');
+    });
     renderHook(() => useKeyboardShortcuts({ shortcuts: [{ key: 'z', description: 'Z', action }] }));
     expect(() => fireKey({ key: 'z' })).not.toThrow();
     expect(action).toHaveBeenCalled();

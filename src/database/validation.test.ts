@@ -280,15 +280,15 @@ describe('validateCompetitionSettings', () => {
   });
 
   it('rejette un poolRounds hors plage', () => {
-    expect(() =>
-      validateCompetitionSettings({ ...validSettings, poolRounds: 6 })
-    ).toThrow(ValidationError);
+    expect(() => validateCompetitionSettings({ ...validSettings, poolRounds: 6 })).toThrow(
+      ValidationError
+    );
   });
 
   it('rejette un minTeamSize < 1', () => {
-    expect(() =>
-      validateCompetitionSettings({ ...validSettings, minTeamSize: 0 })
-    ).toThrow(ValidationError);
+    expect(() => validateCompetitionSettings({ ...validSettings, minTeamSize: 0 })).toThrow(
+      ValidationError
+    );
   });
 });
 
@@ -322,9 +322,9 @@ describe('validateCompetitionData', () => {
   });
 
   it('rejette une URL invalide', () => {
-    expect(() =>
-      validateCompetitionData({ ...valid, organizerUrl: 'not-a-url' })
-    ).toThrow(ValidationError);
+    expect(() => validateCompetitionData({ ...valid, organizerUrl: 'not-a-url' })).toThrow(
+      ValidationError
+    );
   });
 
   it('accepte une URL valide', () => {
@@ -402,15 +402,13 @@ describe('validateMatchData', () => {
   });
 
   it('rejette endTime <= startTime', () => {
-    expect(() =>
-      validateMatchData({ ...valid, startTime: later, endTime: now })
-    ).toThrow(ValidationError);
+    expect(() => validateMatchData({ ...valid, startTime: later, endTime: now })).toThrow(
+      ValidationError
+    );
   });
 
   it('accepte startTime < endTime', () => {
-    expect(() =>
-      validateMatchData({ ...valid, startTime: now, endTime: later })
-    ).not.toThrow();
+    expect(() => validateMatchData({ ...valid, startTime: now, endTime: later })).not.toThrow();
   });
 
   it('rejette un statut inconnu', () => {

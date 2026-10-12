@@ -125,6 +125,12 @@
     "pool_number": "Poull",
     "change_pool": "Kemmañ ar poullou",
     "next_round_n": "Tro {{n}} →",
+    "next_round_confirm": "Tro {{n}} : {{qualified}} dibabet, {{eliminated}} lamet. Ar re n'int ket dibabet a vo « Lamet ». Kenderc'hel ?",
+    "next_round_checkin": "Tro {{n}} : galv an dibabet, ha tennadeg nevez",
+    "round_select_label": "Tro poullou",
+    "round_option": "Tro {{n}}",
+    "round_current": "o ren",
+    "round_checkin_banner": "Galv – Tro {{n}} : gwiriit an dibabet, ha krouit ar poullou nevez (diouzh renkadur an tro kent).",
     "view_ranking_action": "Gwelet ar renk →"
   },
   "ranking": {
@@ -145,7 +151,11 @@
   "tableau": {
     "elimination_in": "Dilizet e-brient",
     "finalist": "Finanlist",
-    "winner": "Trec'horer"
+    "winner": "Trec'horer",
+    "round_final": "Final",
+    "round_of_n": "Taolenn a {{round}}",
+    "round_semifinals": "Hanter-finalioù",
+    "round_third_place": "Finalig"
   },
   "results": {
     "final_ranking": "Renk diweizh",
@@ -170,7 +180,9 @@
     "reset_scores": "Adwekaat ar skorioù",
     "waiting_match": "C'hort an emgann war heñ d'ar",
     "in_progress": "E-brient",
-    "finished": "Echuet"
+    "finished": "Echuet",
+    "inactive_title": "Enrollañ a-bell dizoberiant",
+    "active_title": "Enrollañ a-bell oberiant"
   },
   "settings": {
     "title": "Arventennoù",
@@ -354,7 +366,11 @@
     "refresh_data": "Hizivaat roadennoù",
     "timer": "Krogañ/Paouez kronometr",
     "nav_list": "Levenez en rol",
-    "validate": "Gwiriañ / Digeriñ"
+    "validate": "Gwiriañ / Digeriñ",
+    "print_sheets": "Moullañ follennoù ar poulennoù / mataboliezhioù"
+  },
+  "wiki": {
+    "button_title": "Teuliadur"
   },
   "formula": {
     "builder_title": "Saver reoladur",
@@ -381,5 +397,122 @@
     "scoring_zones": "Takadoù personelaet",
     "zone_label": "Takad",
     "zone_points": "Poentoù"
+  },
+  "dialogs": {
+    "exportScoreHistory": "Ezporñ istor ar skorioù",
+    "exportFencers": "Ezporñ klezeourion (.{{ext}})",
+    "exportPhotos": "Ezporñ fotoioù (.zip)",
+    "importPhotos": "Importañ fotoioù (.zip)",
+    "exportFencersArchive": "Ezporñ klezeourion + fotoioù (.bpf)"
+  },
+  "teams": {
+    "relaysWon": "Relev G",
+    "relaysLost": "Relev P",
+    "relaysTooltip": "Relev unan hag unan gounezet/kollet"
+  },
+  "kiosk": {
+    "tbd": "Da benn-diviz",
+    "resume_at": "Adkregiñ da {{time}}",
+    "bye": "Diskarget",
+    "close": "✕ Serriñ",
+    "countdown_in": "e-barzh {{duration}}",
+    "defeat_short": "K",
+    "esc_exit": "Esc evit mont kuit",
+    "final_results": "🏆 DISOC'HOÙ DIWEZHAÑ",
+    "finished_matches": "c'hoari echu",
+    "general_ranking": "Renkerezh hollek",
+    "matches_live": "C'hoarioù o vont en-dro",
+    "navigate_hint": "← → merdeiñ",
+    "no_live": "C'hoari ebet o vont en-dro",
+    "pools": "Poulennoù",
+    "provisional_ranking": "Renkerezh dibar",
+    "ranking": "📊 Renkerezh",
+    "ranking_label": "Renkerezh",
+    "round_16": "Eizhvedoù final",
+    "round_32": "32vedoù final",
+    "round_64": "64vedoù final",
+    "round_8": "Eizhvedoù final",
+    "round_quarter": "Kartrinoù final",
+    "round_semi": "Hanter-final",
+    "tableau": "🥇 Taolenn",
+    "tableau_done": "Taolenn echu",
+    "victory_short": "T"
+  },
+  "xiaomi": {
+    "arena_label": "Arena",
+    "just_now": "bremaik",
+    "unlock_tooltip": "Dibrennañ ar pellorc'her",
+    "lock_tooltip": "Prennañ ar pellorc'her evit mirout ouzh cheñchamantoù",
+    "locked_label": "🔒 Prennet",
+    "lock_label": "🔓 Prennañ",
+    "deselect_swap": "Lemel eus an diuzad",
+    "select_swap": "Diuzañ evit eskemm",
+    "nav_lobby": "Sal c'hortoz (Lobby)",
+    "nav_arena": "Arena {{n}}",
+    "arena": "Arena",
+    "blink": "Lakaat ar skramm-mañ da luc'hañ evit e anavezout",
+    "bottom_text": "Testenn diskouezet e traoñ an holl skrammoù…",
+    "click_rename": "Klikañ evit adenvel",
+    "client_type_dashboard": "Taolenn stur",
+    "client_type_kiosk": "Kiosk",
+    "client_type_lobby": "Lobby",
+    "client_type_public": "Foran",
+    "connect_tv": "war un TV evit ma vo diskouezet amañ.",
+    "global_message_label": "Kemennadenn hollek",
+    "locked": "Pellorc'her prennet — obererezhioù diweredekaet. Klikañ war «Prennet» evit dibrennañ.",
+    "minutes_ago": "{{m}}m zo",
+    "nav_kiosk_public": "Kiosk foran",
+    "nav_ranking": "Renkerezh",
+    "no_screen": "Skramm ebet kevreet.",
+    "refresh": "Freskaat",
+    "refresh_all": "Freskaat pep tra",
+    "rename": "Adenvel ar skramm-mañ",
+    "screen_name": "Anv ar skramm…",
+    "screens_waiting": "— ar skrammoù a c'hortoz o dazrannañ",
+    "seconds_ago": "{{s}}s zo",
+    "select_2nd": "— diuzañ un eil skramm",
+    "send": "Kas",
+    "swap_label": "⇄ Eskemm",
+    "tablet_role": "Roll an daolenn",
+    "title": "Pellorc'her TV",
+    "url_no_arena": "URL hep arena :"
+  },
+  "changePool": {
+    "matches_played_count": "{{count}} c'hoari c'hoariet"
+  },
+  "competitionHeader": {
+    "kiosk_mode": "Mod kiosk"
+  },
+  "poolView": {
+    "fencers_count_suffix": "{{count}} c'hleze"
+  },
+  "presentation": {
+    "no_club": "Klub ebet"
+  },
+  "quest": {
+    "label": "Quest"
+  },
+  "referee": {
+    "arbitre": "Barner"
+  },
+  "remote_score": {
+    "identify_button": "🔦 Anavezout",
+    "lane_number": "Hent {{number}}",
+    "prefix_break": "Ehan",
+    "screen_type_display": "Skramm",
+    "view_bracket": "Taolenn dilezel",
+    "view_final_ranking": "Renkerezh diwezhañ",
+    "view_live_matches": "C'hoarioù bev",
+    "view_next_matches": "C'hoarioù da zont",
+    "view_pools": "Poulennoù",
+    "view_ranking": "Renkerezh"
+  },
+  "ui": {
+    "configure_kiosk": "🖥️ Kefluniañ ar mod kiosk",
+    "configure_send_kiosk": "Kefluniañ ha kas e mod kiosk",
+    "poule": "Poulenn",
+    "rotation_label": "C'hweladenn (eil):",
+    "send_kiosk": "Kas d'ar c'hiosk",
+    "views_label": "Gweladennoù da ziskouez:"
   }
 }

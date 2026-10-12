@@ -249,6 +249,12 @@
     "match": "Match",
     "next_round": "Nächste Runde",
     "next_round_n": "Runde {{n}} →",
+    "next_round_confirm": "Runde {{n}}: {{qualified}} qualifiziert, {{eliminated}} ausgeschieden. Nicht qualifizierte Fechter erhalten den Status „Ausgeschieden“. Fortfahren?",
+    "next_round_checkin": "Runde {{n}}: Aufruf der Qualifizierten, dann neue Auslosung",
+    "round_select_label": "Gruppenrunde",
+    "round_option": "Runde {{n}}",
+    "round_current": "laufend",
+    "round_checkin_banner": "Aufruf – Runde {{n}}: Qualifizierte prüfen, dann neue Gruppen erstellen (Setzung nach Rangliste der Vorrunde).",
     "no_pools": "Keine Pools",
     "pool_number": "Pool",
     "return_to_checkin": "Zurück zur Anmeldung",
@@ -291,7 +297,9 @@
     "start_match": "Starten",
     "stop": "Ferne Eingabe Stoppen",
     "title": "Ferne Punkteingabe",
-    "waiting_match": "Warten auf nächstes Match"
+    "waiting_match": "Warten auf nächstes Match",
+    "inactive_title": "Ferneingabe inaktiv",
+    "active_title": "Ferneingabe aktiv"
   },
   "results": {
     "congratulations": "Herzlichen Glückwunsch an die Gewinner!",
@@ -322,6 +330,7 @@
     "nav_fields": "Zwischen Feldern navigieren",
     "nav_list": "In der Liste navigieren",
     "new_competition": "Neuer Wettkampf",
+    "print_sheets": "Poolblätter / Gefechtsblätter drucken",
     "quick_search": "Schnellsuche",
     "redo": "Wiederholen",
     "refresh_data": "Daten aktualisieren",
@@ -332,6 +341,9 @@
     "title": "Tastaturkürzel",
     "undo": "Rückgängig",
     "validate": "Bestätigen / Öffnen"
+  },
+  "wiki": {
+    "button_title": "Dokumentation"
   },
   "stats": {
     "arena_exits": "Verlassen der Bahn",
@@ -367,7 +379,11 @@
   "tableau": {
     "elimination_in": "Ausgeschieden in",
     "finalist": "Finalist",
-    "winner": "Gewinner"
+    "winner": "Gewinner",
+    "round_final": "Finale",
+    "round_of_n": "{{round}}er-Runde",
+    "round_semifinals": "Halbfinale",
+    "round_third_place": "Kleines Finale"
   },
   "time": {
     "days": "Tage",
@@ -381,5 +397,122 @@
     "foil": "Florett",
     "laser": "Laser-Säbel",
     "sabre": "Säbel"
+  },
+  "dialogs": {
+    "exportScoreHistory": "Punkteverlauf exportieren",
+    "exportFencers": "Fechter exportieren (.{{ext}})",
+    "exportPhotos": "Fotos exportieren (.zip)",
+    "importPhotos": "Fotos importieren (.zip)",
+    "exportFencersArchive": "Fechter + Fotos exportieren (.bpf)"
+  },
+  "teams": {
+    "relaysWon": "Staffeln G",
+    "relaysLost": "Staffeln V",
+    "relaysTooltip": "Einzelstaffeln gewonnen/verloren"
+  },
+  "kiosk": {
+    "ranking": "📊 Rangliste",
+    "tableau": "🥇 Tableau",
+    "esc_exit": "Esc zum Beenden",
+    "close": "✕ Schließen",
+    "finished_matches": "beendete Matches",
+    "ranking_label": "Rangliste",
+    "matches_live": "Laufende Matches",
+    "no_live": "Kein Match läuft",
+    "final_results": "🏆 ENDERGEBNISSE",
+    "tableau_done": "Tableau beendet",
+    "general_ranking": "Gesamtrangliste",
+    "tbd": "TBD",
+    "resume_at": "Fortsetzung um {{time}}",
+    "round_semi": "Halbfinale",
+    "round_quarter": "Viertelfinale",
+    "round_8": "Achtelfinale",
+    "round_16": "Achtelfinale (Achtel)",
+    "round_32": "32er-Runde",
+    "round_64": "64er-Runde",
+    "bye": "Freilos",
+    "pools": "Pools",
+    "navigate_hint": "← → navigieren",
+    "provisional_ranking": "Vorläufige Rangliste",
+    "countdown_in": "in {{duration}}",
+    "victory_short": "S",
+    "defeat_short": "N"
+  },
+  "xiaomi": {
+    "arena_label": "Arena",
+    "just_now": "gerade eben",
+    "unlock_tooltip": "Fernbedienung entsperren",
+    "lock_tooltip": "Fernbedienung sperren, um Änderungen zu verhindern",
+    "locked_label": "🔒 Gesperrt",
+    "lock_label": "🔓 Sperren",
+    "deselect_swap": "Aus der Auswahl entfernen",
+    "select_swap": "Zum Tauschen auswählen",
+    "nav_lobby": "Warteraum (Lobby)",
+    "nav_arena": "Arena {{n}}",
+    "screen_name": "Bildschirmname…",
+    "click_rename": "Zum Umbenennen klicken",
+    "tablet_role": "Rolle des Tablets",
+    "arena": "Arena",
+    "blink": "Diesen Bildschirm blinken lassen zur Identifikation",
+    "rename": "Diesen Bildschirm umbenennen",
+    "refresh": "Aktualisieren",
+    "bottom_text": "Unten auf allen Bildschirmen angezeigter Text…",
+    "title": "TV-Fernbedienung",
+    "refresh_all": "Alles aktualisieren",
+    "url_no_arena": "URL ohne Arena:",
+    "screens_waiting": "— die Bildschirme warten dort auf ihre Zuweisung",
+    "locked": "Fernbedienung gesperrt — Aktionen deaktiviert. Klicken Sie auf « Gesperrt », um zu entsperren.",
+    "no_screen": "Kein Bildschirm verbunden.",
+    "connect_tv": "an einen TV, damit sie hier erscheint.",
+    "select_2nd": "— einen 2. Bildschirm auswählen",
+    "client_type_lobby": "Lobby",
+    "client_type_kiosk": "Kiosk",
+    "client_type_public": "Öffentlich",
+    "client_type_dashboard": "Dashboard",
+    "seconds_ago": "vor {{s}}s",
+    "minutes_ago": "vor {{m}}m",
+    "swap_label": "⇄ Tauschen",
+    "global_message_label": "Globale Nachricht",
+    "send": "Senden",
+    "nav_kiosk_public": "Öffentlicher Kiosk",
+    "nav_ranking": "Rangliste"
+  },
+  "changePool": {
+    "matches_played_count": "{{count}} Match(es) gespielt"
+  },
+  "competitionHeader": {
+    "kiosk_mode": "Kiosk-Modus"
+  },
+  "poolView": {
+    "fencers_count_suffix": "{{count}} Fechter"
+  },
+  "presentation": {
+    "no_club": "Kein Verein"
+  },
+  "quest": {
+    "label": "Quest"
+  },
+  "referee": {
+    "arbitre": "Schiedsrichter"
+  },
+  "remote_score": {
+    "identify_button": "🔦 Identifizieren",
+    "lane_number": "Piste {{number}}",
+    "prefix_break": "Pause",
+    "screen_type_display": "Anzeige",
+    "view_bracket": "K.-o.-Tabelle",
+    "view_final_ranking": "Endrangliste",
+    "view_live_matches": "Laufende Matches",
+    "view_next_matches": "Nächste Matches",
+    "view_pools": "Gruppen",
+    "view_ranking": "Rangliste"
+  },
+  "ui": {
+    "configure_kiosk": "🖥️ Kiosk-Modus konfigurieren",
+    "configure_send_kiosk": "Konfigurieren und im Kiosk-Modus senden",
+    "poule": "Poule",
+    "rotation_label": "Rotation (s):",
+    "send_kiosk": "An Kiosk senden",
+    "views_label": "Anzuzeigende Ansichten:"
   }
 }

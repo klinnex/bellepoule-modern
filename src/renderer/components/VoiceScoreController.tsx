@@ -12,10 +12,34 @@ interface VoiceCommand {
   description: string;
 }
 
-const LANG_CONFIG: Record<string, { locale: string; score: RegExp; increment: RegExp; start: RegExp; pause: RegExp; finish: RegExp }> = {
-  fr: { locale: 'fr-FR', score: /(?:score|mettre|set)\s+([ab])\s+(\d+)/i, increment: /(?:plus|ajouter|add)\s+([ab])/i, start: /(?:démarrer|commencer|start|go)/i, pause: /(?:pause|stop|arrêter)/i, finish: /(?:terminer|fini|fin|end)/i },
-  en: { locale: 'en-US', score: /(?:score|set)\s+([ab])\s+(\d+)/i, increment: /(?:plus|add|increment)\s+([ab])/i, start: /(?:start|begin|go)/i, pause: /(?:pause|stop)/i, finish: /(?:finish|done|end)/i },
-  de: { locale: 'de-DE', score: /(?:stand|score|set)\s+([ab])\s+(\d+)/i, increment: /(?:punkt|plus|add)\s+([ab])/i, start: /(?:start|starten|beginnen)/i, pause: /(?:pause|stop)/i, finish: /(?:beenden|fertig|ende)/i },
+const LANG_CONFIG: Record<
+  string,
+  { locale: string; score: RegExp; increment: RegExp; start: RegExp; pause: RegExp; finish: RegExp }
+> = {
+  fr: {
+    locale: 'fr-FR',
+    score: /(?:score|mettre|set)\s+([ab])\s+(\d+)/i,
+    increment: /(?:plus|ajouter|add)\s+([ab])/i,
+    start: /(?:démarrer|commencer|start|go)/i,
+    pause: /(?:pause|stop|arrêter)/i,
+    finish: /(?:terminer|fini|fin|end)/i,
+  },
+  en: {
+    locale: 'en-US',
+    score: /(?:score|set)\s+([ab])\s+(\d+)/i,
+    increment: /(?:plus|add|increment)\s+([ab])/i,
+    start: /(?:start|begin|go)/i,
+    pause: /(?:pause|stop)/i,
+    finish: /(?:finish|done|end)/i,
+  },
+  de: {
+    locale: 'de-DE',
+    score: /(?:stand|score|set)\s+([ab])\s+(\d+)/i,
+    increment: /(?:punkt|plus|add)\s+([ab])/i,
+    start: /(?:start|starten|beginnen)/i,
+    pause: /(?:pause|stop)/i,
+    finish: /(?:beenden|fertig|ende)/i,
+  },
 };
 
 export const VoiceScoreController: React.FC<{

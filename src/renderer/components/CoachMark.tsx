@@ -21,10 +21,10 @@ const CoachMark: React.FC<CoachMarkProps> = ({ message, position = 'bottom', chi
   useLayoutEffect(() => {
     if (!visible || !wrapRef.current) return;
     const r = wrapRef.current.getBoundingClientRect();
-    if (position === 'top')        setPos({ top: r.top - 8, left: r.left + r.width / 2 });
-    else if (position === 'left')  setPos({ top: r.top + r.height / 2, left: r.left - 8 });
+    if (position === 'top') setPos({ top: r.top - 8, left: r.left + r.width / 2 });
+    else if (position === 'left') setPos({ top: r.top + r.height / 2, left: r.left - 8 });
     else if (position === 'right') setPos({ top: r.top + r.height / 2, left: r.right + 8 });
-    else                           setPos({ top: r.bottom + 8, left: r.left + r.width / 2 });
+    else setPos({ top: r.bottom + 8, left: r.left + r.width / 2 });
   }, [visible, position]);
 
   const tooltipStyle: React.CSSProperties = {
@@ -40,18 +40,38 @@ const CoachMark: React.FC<CoachMarkProps> = ({ message, position = 'bottom', chi
     whiteSpace: 'nowrap',
     boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
     pointerEvents: 'none',
-    ...(position === 'bottom' ? { transform: 'translateX(-50%)' } :
-        position === 'top'    ? { transform: 'translate(-50%, -100%)' } :
-        position === 'right'  ? { transform: 'translateY(-50%)' } :
-                                { transform: 'translate(-100%, -50%)' }),
+    ...(position === 'bottom'
+      ? { transform: 'translateX(-50%)' }
+      : position === 'top'
+        ? { transform: 'translate(-50%, -100%)' }
+        : position === 'right'
+          ? { transform: 'translateY(-50%)' }
+          : { transform: 'translate(-100%, -50%)' }),
   };
 
   const arrowStyle: React.CSSProperties = {
     position: 'absolute',
     width: 0,
     height: 0,
-    ...(position === 'bottom' ? { bottom: '100%', left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '5px solid #1e40af' } :
-        position === 'top'    ? { top: '100%', left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '5px solid #1e40af' } : {}),
+    ...(position === 'bottom'
+      ? {
+          bottom: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          borderLeft: '5px solid transparent',
+          borderRight: '5px solid transparent',
+          borderBottom: '5px solid #1e40af',
+        }
+      : position === 'top'
+        ? {
+            top: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            borderLeft: '5px solid transparent',
+            borderRight: '5px solid transparent',
+            borderTop: '5px solid #1e40af',
+          }
+        : {}),
   };
 
   return (

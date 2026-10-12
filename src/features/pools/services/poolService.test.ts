@@ -34,13 +34,20 @@ describe('getByCompetition', () => {
 
 describe('updateScore', () => {
   it('ne fait rien sans electronAPI.db.updateMatch', async () => {
-    await expect(svc.updateScore('po', 'm', { scoreA: 5, scoreB: 3, winner: 'A' } as any)).resolves.toBeUndefined();
+    await expect(
+      svc.updateScore('po', 'm', { scoreA: 5, scoreB: 3, winner: 'A' } as any)
+    ).resolves.toBeUndefined();
   });
 
   it('construit les scores avec victoire du gagnant A', async () => {
     const updateMatch = vi.fn(async () => {});
     (window as any).electronAPI = { db: { updateMatch } };
-    await svc.updateScore('po', 'm', { scoreA: 5, scoreB: 3, winner: 'A', status: 'finished' } as any);
+    await svc.updateScore('po', 'm', {
+      scoreA: 5,
+      scoreB: 3,
+      winner: 'A',
+      status: 'finished',
+    } as any);
     const patch = updateMatch.mock.calls[0][1];
     expect(patch.scoreA).toMatchObject({ value: 5, isVictory: true });
     expect(patch.scoreB).toMatchObject({ value: 3, isVictory: false });
@@ -51,7 +58,11 @@ describe('updateScore', () => {
     const updateMatch = vi.fn(async () => {});
     (window as any).electronAPI = { db: { updateMatch } };
     await svc.updateScore('po', 'm', {
-      scoreA: 5, scoreB: 0, winner: 'A', specialStatus: 'abandon', status: 'finished',
+      scoreA: 5,
+      scoreB: 0,
+      winner: 'A',
+      specialStatus: 'abandon',
+      status: 'finished',
     } as any);
     const patch = updateMatch.mock.calls[0][1];
     expect(patch.scoreA.isAbstention).toBe(false); // gagnant

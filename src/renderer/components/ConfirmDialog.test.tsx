@@ -21,8 +21,7 @@ const Harness: React.FC<{ options?: any }> = ({ options }) => {
   );
 };
 
-const renderWithProvider = (ui: React.ReactNode) =>
-  render(<ConfirmProvider>{ui}</ConfirmProvider>);
+const renderWithProvider = (ui: React.ReactNode) => render(<ConfirmProvider>{ui}</ConfirmProvider>);
 
 describe('ConfirmProvider / useConfirm', () => {
   it('affiche le message et les libellés par défaut', async () => {
@@ -60,7 +59,9 @@ describe('ConfirmProvider / useConfirm', () => {
   });
 
   it('utilise des libellés personnalisés', async () => {
-    renderWithProvider(<Harness options={{ message: 'Supprimer ?', confirmLabel: 'Oui', cancelLabel: 'Non' }} />);
+    renderWithProvider(
+      <Harness options={{ message: 'Supprimer ?', confirmLabel: 'Oui', cancelLabel: 'Non' }} />
+    );
     fireEvent.click(screen.getByText('ask'));
     expect(await screen.findByText('Oui')).toBeInTheDocument();
     expect(screen.getByText('Non')).toBeInTheDocument();
@@ -77,7 +78,10 @@ describe('ConfirmProvider / useConfirm', () => {
 
 describe('useConfirm hors provider', () => {
   it('retombe sur window.confirm', async () => {
-    vi.stubGlobal('confirm', vi.fn(() => true));
+    vi.stubGlobal(
+      'confirm',
+      vi.fn(() => true)
+    );
     const Outside: React.FC = () => {
       const { confirm } = useConfirm();
       const [r, setR] = useState('');

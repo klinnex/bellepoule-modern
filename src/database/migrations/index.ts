@@ -46,13 +46,17 @@ export class MigrationManager {
   }
 
   private getAppliedVersions(): Set<number> {
-    const rows = this.db.prepare('SELECT version FROM schema_migrations').all() as { version: number }[];
+    const rows = this.db.prepare('SELECT version FROM schema_migrations').all() as {
+      version: number;
+    }[];
     return new Set(rows.map(r => r.version));
   }
 
   private recordMigration(version: number, description: string): void {
-    this.db.prepare(
-      'INSERT OR IGNORE INTO schema_migrations (version, description, applied_at) VALUES (?, ?, ?)'
-    ).run(version, description, new Date().toISOString());
+    this.db
+      .prepare(
+        'INSERT OR IGNORE INTO schema_migrations (version, description, applied_at) VALUES (?, ?, ?)'
+      )
+      .run(version, description, new Date().toISOString());
   }
 }

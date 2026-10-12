@@ -664,6 +664,25 @@
         border: 2px solid #dc2626;
       }
 
+      .card-black {
+        background: #111;
+        color: white;
+        border: 2px solid #000;
+      }
+
+      /* Cartons de passivité (escrime olympique, #1026) */
+      .card-p-red {
+        background: #ef4444;
+        color: white;
+        border: 2px dashed #7f1d1d;
+      }
+
+      .card-p-black {
+        background: #111;
+        color: white;
+        border: 2px dashed #9ca3af;
+      }
+
       .score-big {
         font-family: 'DSEG7Classic', monospace;
         font-size: var(--score-font-size, clamp(7rem, 23vw, 44vh));
@@ -1274,6 +1293,20 @@
         from { transform: scale(0.5); opacity: 0; }
         to   { transform: scale(1);   opacity: 1; }
       }
+      /* Mode daltonien (?cb=1) : vert → bleu, rouge → orange */
+      body.colorblind {
+        --green-side-bg: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        --green-side-border: #2563eb;
+        --score-green: #3b82f6;
+        --score-green-glow: rgba(59, 130, 246, 0.65), rgba(59, 130, 246, 0.3);
+        --red-side-border: #ea580c;
+        --score-red: #f97316;
+        --score-red-glow: rgba(249, 115, 22, 0.65), rgba(249, 115, 22, 0.3);
+      }
+      body.colorblind .color-badge.green { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+      body.colorblind .color-badge.red { background: linear-gradient(135deg, #f97316, #ea580c); }
+      body.colorblind .score-big.green { text-shadow: 0 0 6px rgba(59, 130, 246, 0.95), 0 0 18px var(--score-green-glow); }
+      body.colorblind .score-big.red { text-shadow: 0 0 6px rgba(249, 115, 22, 0.95), 0 0 18px var(--score-red-glow); }
     </style>
   </head>
   <body>
@@ -1304,9 +1337,9 @@
       <span class="arena-word-label">Arène</span> <span id="arena-strip-number">1</span>
     </div>
 
-    <div class="header">
+    <header class="header">
       <div class="arena-title">
-        <span>⚔️</span>
+        <span aria-hidden="true">⚔️</span>
         <span><span class="arena-word-label">Arène</span> <span id="arena-number">1</span></span>
       </div>
       <div class="status-section">
@@ -1314,15 +1347,15 @@
           <input type="checkbox" id="inversion-checkbox" />
           <label for="inversion-checkbox" data-i18n="arena.invert">⇄ Inverser</label>
         </div>
-        <div class="match-status-badge status-waiting" id="match-status" data-i18n="arena.waiting">En attente</div>
-        <div class="connection-indicator">
-          <div id="connection-dot" class="connection-dot"></div>
+        <div class="match-status-badge status-waiting" id="match-status" role="status" aria-live="polite" data-i18n="arena.waiting">En attente</div>
+        <div class="connection-indicator" role="status" aria-live="polite">
+          <div id="connection-dot" class="connection-dot" aria-hidden="true"></div>
           <span id="connection-text" data-i18n="remote.connecting">Connexion...</span>
         </div>
       </div>
-    </div>
+    </header>
 
-    <div class="main-content">
+    <main class="main-content">
       <!-- Écran d'attente -->
       <div class="waiting-screen" id="waiting-screen">
         <!-- Aperçu prochain combat (visible quand nextMatch disponible) -->
@@ -1419,31 +1452,31 @@
       <div class="match-display" id="match-display">
         <div class="fencers-row">
           <!-- Tireur A (Rouge) -->
-          <div id="fencer-a-display" class="fencer-display red-side">
-            <div id="color-badge-a" class="color-badge red"></div>
+          <div id="fencer-a-display" class="fencer-display red-side" role="region" aria-label="Tireur rouge">
+            <div id="color-badge-a" class="color-badge red" aria-hidden="true"></div>
             <div class="fencer-name" id="fencer-a-name">-</div>
             <div class="fencer-club" id="fencer-a-club">-</div>
             <div class="cards-container" id="fencer-a-cards"></div>
-            <div class="score-big red" id="score-a">0</div>
+            <div class="score-big red" id="score-a" role="status" aria-live="polite" aria-atomic="true">0</div>
           </div>
 
           <!-- VS -->
-          <div class="vs-divider">VS</div>
+          <div class="vs-divider" aria-hidden="true">VS</div>
 
           <!-- Tireur B (Vert) -->
-          <div id="fencer-b-display" class="fencer-display green-side">
-            <div id="color-badge-b" class="color-badge green"></div>
+          <div id="fencer-b-display" class="fencer-display green-side" role="region" aria-label="Tireur vert">
+            <div id="color-badge-b" class="color-badge green" aria-hidden="true"></div>
             <div class="fencer-name" id="fencer-b-name">-</div>
             <div class="fencer-club" id="fencer-b-club">-</div>
             <div class="cards-container" id="fencer-b-cards"></div>
-            <div class="score-big green" id="score-b">0</div>
+            <div class="score-big green" id="score-b" role="status" aria-live="polite" aria-atomic="true">0</div>
           </div>
         </div>
 
         <!-- Chronomètre -->
         <div class="timer-section">
           <div class="mort-subite-banner" id="mort-subite-banner">⚡ MORT SUBITE</div>
-          <div class="timer-display" id="timer-display">03:00</div>
+          <div class="timer-display" id="timer-display" role="timer" aria-label="Temps restant">03:00</div>
           <div class="waiting-overtime-banner" id="waiting-overtime-banner">⚖️ ÉGALITÉ – attente arbitre</div>
           <div class="sudden-death-banner" id="sudden-death-banner">⏱ 30s SUPPLEMENTAIRE</div>
           <div class="timer-label">Temps restant</div>
@@ -1480,9 +1513,22 @@
           <div class="next-referee-name hidden" id="next-referee-name">⚖️ <span id="next-referee-label"></span></div>
         </div>
       </div>
-    </div>
+    </main>
 
     <script>
+      // Bannière d'annonce : texte seul, jamais innerHTML (noms de tireurs non fiables, #995)
+      function setBannerLines(banner, line1, line2) {
+        banner.replaceChildren();
+        const d1 = document.createElement('div');
+        d1.textContent = line1;
+        banner.appendChild(d1);
+        if (line2) {
+          const d2 = document.createElement('div');
+          d2.style.cssText = 'font-size:0.65em;font-weight:600;margin-top:0.25em;opacity:0.9;';
+          d2.textContent = line2;
+          banner.appendChild(d2);
+        }
+      }
       class ArenaDisplay {
         constructor() {
           this.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
@@ -1501,6 +1547,7 @@
           this.showPhotos = false;
           this.refereeFeatureEnabled = false;
           this.theme = localStorage.getItem('displayTheme') || 'dark';
+          if (new URLSearchParams(window.location.search).get('cb') === '1') document.body.classList.add('colorblind');
           this.currentCustomTheme = null;
 
           this.init();
@@ -1529,6 +1576,9 @@
             .then(s => {
               if (s && ['E', 'F', 'S'].includes(s.weapon)) {
                 document.querySelectorAll('.arena-word-label').forEach(el => (el.textContent = window.T('remote.piste')));
+                // Temps supplémentaire d'une minute en escrime olympique (#1027)
+                const banner = document.getElementById('sudden-death-banner');
+                if (banner) banner.textContent = '⏱ 1 MIN SUPPLÉMENTAIRE';
               }
             })
             .catch(() => {});
@@ -1772,7 +1822,7 @@
           if (!banner) return;
           const line1 = `🚪 Sortie d'arène — ${ann.fencerName}`;
           const line2 = `+${ann.points} pts pour l'adversaire`;
-          banner.innerHTML = `<div>${line1}</div><div style="font-size:0.65em;font-weight:600;margin-top:0.25em;opacity:0.9;">${line2}</div>`;
+          setBannerLines(banner, line1, line2);
           banner.className = 'card-announcement-banner visible card-exit';
           if (this._cardAnnouncementTimer) clearTimeout(this._cardAnnouncementTimer);
           this._cardAnnouncementTimer = setTimeout(() => {
@@ -1795,10 +1845,9 @@
           }
           line2 = ann.reason || null;
 
-          banner.innerHTML = line2
-            ? `<div>${line1}</div><div style="font-size:0.65em; font-weight:600; margin-top:0.25em; opacity:0.9;">${line2}</div>`
-            : `<div>${line1}</div>`;
-          banner.className = `card-announcement-banner visible card-${ann.cardType}`;
+          setBannerLines(banner, line1, line2);
+          const cardClass = ['white', 'yellow', 'red', 'black'].includes(ann.cardType) ? ann.cardType : 'yellow';
+          banner.className = `card-announcement-banner visible card-${cardClass}`;
 
           if (this._cardAnnouncementTimer) clearTimeout(this._cardAnnouncementTimer);
           this._cardAnnouncementTimer = setTimeout(() => {
@@ -1998,9 +2047,10 @@
         updateCardsDisplay() {
           const renderCards = cards =>
             cards
+              .filter(card => ['white', 'yellow', 'red', 'black', 'p-red', 'p-black'].includes(card))
               .map(
                 card =>
-                  `<div class="card card-${card}">${card === 'white' ? 'B' : card === 'yellow' ? 'J' : 'R'}</div>`
+                  `<div class="card card-${card}">${card.startsWith('p-') ? 'P' : card === 'white' ? 'B' : card === 'yellow' ? 'J' : card === 'black' ? 'N' : 'R'}</div>`
               )
               .join('');
 

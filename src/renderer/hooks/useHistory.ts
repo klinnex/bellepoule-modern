@@ -15,7 +15,8 @@ export type ActionType =
   | 'UPDATE_FENCER'
   | 'CREATE_POOL'
   | 'UPDATE_POOL'
-  | 'DELETE_POOL';
+  | 'DELETE_POOL'
+  | 'DELETE_MATCH';
 
 export interface HistoryAction<T = unknown> {
   id: string;

@@ -195,12 +195,12 @@ describe('shouldEndMatch', () => {
   });
 
   describe('Mode Temps Supplémentaire', () => {
-    it('termine dès qu\'il y a un écart de score', () => {
+    it("termine dès qu'il y a un écart de score", () => {
       expect(shouldEndMatch(MatchMode.SUPPLEMENTARY_TIME, 11, 10)).toBe(true);
       expect(shouldEndMatch(MatchMode.SUPPLEMENTARY_TIME, 10, 12)).toBe(true);
     });
 
-    it('ne termine PAS s\'il y a égalité', () => {
+    it("ne termine PAS s'il y a égalité", () => {
       expect(shouldEndMatch(MatchMode.SUPPLEMENTARY_TIME, 10, 10)).toBe(false);
       expect(shouldEndMatch(MatchMode.SUPPLEMENTARY_TIME, 0, 0)).toBe(false);
     });

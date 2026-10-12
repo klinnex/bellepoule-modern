@@ -40,6 +40,12 @@ const mockDb = {
   logScoreChange: vi.fn(),
   saveArenaState: vi.fn(),
   getArenaState: vi.fn().mockReturnValue(null),
+  getFencersByCompetition: vi.fn().mockReturnValue([]),
+  getRefereesByCompetition: vi.fn().mockReturnValue([]),
+  updateFencer: vi.fn(),
+  getFencer: vi.fn().mockReturnValue(null),
+  updateReferee: vi.fn(),
+  getSessionState: vi.fn().mockReturnValue(null),
 };
 
 import express from 'express';
@@ -79,6 +85,7 @@ describe('RemoteScoreServer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server = new RemoteScoreServer(mockDb as any, 8066);
+    (server as any).loginFailureDelayMs = 0;
   });
 
   describe('démarrage du serveur', () => {
@@ -132,9 +139,9 @@ describe('RemoteScoreServer', () => {
       const res = makeRes();
 
       // Simuler le handler du login
-      const loginHandler = (server as any).app._router?.stack
-        ?.find((l: any) => l?.route?.path === '/api/auth/login/:arenaId')
-        ?.route?.stack?.[0]?.handle;
+      const loginHandler = (server as any).app._router?.stack?.find(
+        (l: any) => l?.route?.path === '/api/auth/login/:arenaId'
+      )?.route?.stack?.[0]?.handle;
 
       if (loginHandler) {
         loginHandler(req, res, vi.fn());
@@ -144,9 +151,7 @@ describe('RemoteScoreServer', () => {
         const arena = arenas.get('arena1');
         const password = 'wrong-password';
         const passwordOk =
-          !!password &&
-          password.length === arena.password.length &&
-          password === arena.password;
+          !!password && password.length === arena.password.length && password === arena.password;
         expect(passwordOk).toBe(false);
       }
     });
@@ -172,9 +177,9 @@ describe('RemoteScoreServer', () => {
       });
       const res = makeRes();
 
-      const loginHandler = (server as any).app._router?.stack
-        ?.find((l: any) => l?.route?.path === '/api/auth/login/:arenaId')
-        ?.route?.stack?.[0]?.handle;
+      const loginHandler = (server as any).app._router?.stack?.find(
+        (l: any) => l?.route?.path === '/api/auth/login/:arenaId'
+      )?.route?.stack?.[0]?.handle;
 
       if (loginHandler) {
         loginHandler(req, res, vi.fn());
@@ -244,8 +249,9 @@ describe('RemoteScoreServer', () => {
       const arenaId = Array.from(arenas.keys())[0];
       if (!arenaId) return;
 
-      const pushFn = (server as any).pushArenaUpdate?.bind(server)
-        ?? (server as any).emitArenaUpdate?.bind(server);
+      const pushFn =
+        (server as any).pushArenaUpdate?.bind(server) ??
+        (server as any).emitArenaUpdate?.bind(server);
 
       if (pushFn) {
         // Créer un événement minimal
@@ -278,7 +284,7 @@ describe('RemoteScoreServer', () => {
   });
 
   describe('persistArenaState', () => {
-    it('n\'appelle pas saveArenaState si pas de session', () => {
+    it("n'appelle pas saveArenaState si pas de session", () => {
       const persistFn = (server as any).persistArenaState.bind(server);
       persistFn('arena1');
       expect(mockDb.saveArenaState).not.toHaveBeenCalled();
@@ -303,6 +309,1163 @@ describe('RemoteScoreServer', () => {
         arenaId,
         expect.objectContaining({ competitionId: 'comp-1' })
       );
+    });
+  });
+
+  describe('liste des arbitres de session', () => {
+    it('inclut les arbitres ajoutés après le démarrage de la session', () => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+      mockDb.getRefereesByCompetition.mockReturnValueOnce([
+        { id: 'r1', ref: 1, firstName: 'Anne', lastName: 'DURAND', status: 'available' },
+        { id: 'r2', ref: 2, firstName: 'Luc', lastName: 'LEROY', status: 'available' },
+      ]);
+      const refs = (server as any).getSessionReferees();
+      expect(refs.map((r: any) => r.name)).toEqual(['Anne DURAND', 'Luc LEROY']);
+      expect((server as any).resolveReferee('r2')).toEqual({ id: 'r2', name: 'Luc LEROY' });
+    });
+
+    it('ne lit pas la base en mode entraînement', () => {
+      (server as any).session = { competitionId: '__training__', referees: [] };
+      mockDb.getRefereesByCompetition.mockClear();
+      expect((server as any).getSessionReferees()).toEqual([]);
+      expect(mockDb.getRefereesByCompetition).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('ordre des matchs public (#911) et arbitre de poule (#908)', () => {
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    const fA = { id: 'a', lastName: 'Dupont', firstName: 'Jean', license: 'SECRET' };
+    const fB = { id: 'b', lastName: 'Martin', firstName: 'Paul' };
+
+    beforeEach(() => {
+      (server as any).session = {
+        competitionId: 'comp-1',
+        referees: [{ id: 'r1', name: 'DURAND Anne' }],
+      };
+      (server as any).arenas.set('arena1', {
+        id: 'arena1',
+        number: 1,
+        status: 'ready',
+        currentMatch: { id: 'm2', poolId: 'p1', fencerA: fB, fencerB: fA, scoreA: 0, scoreB: 0 },
+        settings: {},
+      });
+      (server as any).sessionMatches = [
+        { id: 'm2', number: 2, poolId: 'p1', fencerA: fB, fencerB: fA, status: 'not_started' },
+        {
+          id: 'm1',
+          number: 1,
+          poolId: 'p1',
+          fencerA: fA,
+          fencerB: fB,
+          status: 'finished',
+          scoreA: { value: 5 },
+          scoreB: { value: 3 },
+        },
+      ];
+    });
+
+    it('expose uniquement noms, ordre, statut et scores, sans authentification', () => {
+      const res = makeRes();
+      findHandler('get', '/api/arenas/:arenaId/pool-order')(
+        makeReq({ params: { arenaId: '1' } }),
+        res,
+        vi.fn()
+      );
+      const body = res.json.mock.calls[0][0];
+      expect(body.matches).toEqual([
+        {
+          order: 1,
+          fencerA: 'DUPONT Jean',
+          fencerB: 'MARTIN Paul',
+          scoreA: 5,
+          scoreB: 3,
+          status: 'finished',
+        },
+        {
+          order: 2,
+          fencerA: 'MARTIN Paul',
+          fencerB: 'DUPONT Jean',
+          scoreA: null,
+          scoreB: null,
+          status: 'current',
+        },
+      ]);
+      expect(JSON.stringify(body)).not.toContain('SECRET');
+    });
+
+    it("la liste tablette porte l'arbitre de la poule quand le match n'en a pas", () => {
+      mockDb.getSessionState.mockReturnValue({
+        pools: [
+          {
+            id: 'p1',
+            referees: [
+              { id: 'r1', lastName: 'DURAND', firstName: 'Anne' },
+              { id: 'r2', lastName: 'LEROY', firstName: 'Luc' },
+            ],
+          },
+        ],
+      });
+      const res = makeRes();
+      findHandler('get', '/api/arenas/:arenaId/matches')(
+        makeReq({ params: { arenaId: 'arena1' } }),
+        res,
+        vi.fn()
+      );
+      const { matches } = res.json.mock.calls[0][0];
+      expect(matches[0].referee).toEqual({ id: 'r1', name: 'DURAND Anne / LEROY Luc' });
+    });
+  });
+
+  describe('carton noir (paramètre compétition)', () => {
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    beforeEach(() => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+    });
+
+    it('désactivé par défaut et exposé via /api/session', () => {
+      const res = makeRes();
+      findHandler('get', '/api/session')(makeReq(), res, vi.fn());
+      expect(res.json.mock.calls[0][0].blackCardEnabled).toBe(false);
+    });
+
+    it('updateBlackCardEnabled active le flag et le diffuse aux arènes', () => {
+      (server as any).arenas.set('arena1', {
+        id: 'arena1',
+        number: 1,
+        status: 'idle',
+        settings: {},
+      });
+      const spy = vi.spyOn(server as any, 'broadcastArenaUpdate').mockImplementation(() => {});
+      server.updateBlackCardEnabled(true);
+      expect((server as any).sessionBlackCardEnabled).toBe(true);
+      expect(spy).toHaveBeenCalledWith('arena1', expect.objectContaining({ arenaId: 'arena1' }));
+      const res = makeRes();
+      findHandler('get', '/api/session')(makeReq(), res, vi.fn());
+      expect(res.json.mock.calls[0][0].blackCardEnabled).toBe(true);
+    });
+  });
+
+  describe('piste assignée aux poules (pool.strip)', () => {
+    const f = (id: string) => ({ id, firstName: id, lastName: id });
+    const poolMatches = (poolId: string) => [
+      {
+        id: `${poolId}-m1`,
+        poolId,
+        number: 1,
+        fencerA: f(`${poolId}a`),
+        fencerB: f(`${poolId}b`),
+        status: 'not_started',
+      },
+    ];
+    const marker = (poolId: string, poolNumber: number, strip?: number) => ({
+      __poolFencers: true,
+      poolId,
+      poolNumber,
+      strip,
+      fencers: [],
+    });
+
+    beforeEach(() => {
+      mockDb.getCompetition.mockReturnValue({ id: 'comp-1', settings: {} });
+      (mockDb as any).getPoolCount = vi.fn().mockReturnValue(1);
+      vi.spyOn(server as any, 'loadSessionReferees').mockReturnValue([]);
+    });
+
+    it('poule assignée piste 3 → match sur arena3, pas arena1', async () => {
+      const session = await server.startSession('comp-1', 4, [
+        marker('p1', 1, 3),
+        ...poolMatches('p1'),
+      ]);
+      const arenas = (server as any).arenas;
+      expect(arenas.get('arena3').currentMatch?.id).toBe('p1-m1');
+      expect(arenas.get('arena1').currentMatch ?? null).toBeNull();
+      expect(session.strips).toHaveLength(4);
+    });
+
+    it('piste au-delà du nombre configuré → arènes étendues', async () => {
+      const session = await server.startSession('comp-1', 1, [
+        marker('p1', 1, 4),
+        ...poolMatches('p1'),
+      ]);
+      expect(session.strips).toHaveLength(4);
+      expect((server as any).arenas.get('arena4').currentMatch?.id).toBe('p1-m1');
+    });
+
+    it('sans piste → ordre des poules sur pistes libres', async () => {
+      await server.startSession('comp-1', 3, [
+        marker('p1', 1, 1),
+        ...poolMatches('p1'),
+        marker('p2', 2),
+        ...poolMatches('p2'),
+      ]);
+      const arenas = (server as any).arenas;
+      expect(arenas.get('arena1').currentMatch?.id).toBe('p1-m1');
+      expect(arenas.get('arena2').currentMatch?.id).toBe('p2-m1');
+    });
+  });
+
+  describe("arbitre des matchs de tableau assigné depuis l'appli (#977)", () => {
+    const fA = { id: 'a', lastName: 'Dupont', firstName: 'Jean' };
+    const fB = { id: 'b', lastName: 'Martin', firstName: 'Paul' };
+    const de = (id: string, arena: number, referee?: any) => ({
+      id,
+      round: 8,
+      arena,
+      isTableau: true,
+      fencerA: fA,
+      fencerB: fB,
+      ...(referee ? { referee } : {}),
+    });
+
+    beforeEach(async () => {
+      mockDb.getCompetition.mockReturnValue({ id: 'comp-1', settings: {} });
+      (mockDb as any).getPoolCount = vi.fn().mockReturnValue(0);
+      (mockDb as any).getAllPendingMatchesFromPools = vi.fn().mockReturnValue([]);
+      vi.spyOn(server as any, 'loadSessionReferees').mockReturnValue([
+        { id: 'r1', name: 'LEBLANC Anne' },
+        { id: 'r2', name: 'NOIR Marc' },
+      ]);
+      await server.startSession('comp-1', 2, []);
+    });
+
+    it('arbitre transmis au match chargé sur la tablette', () => {
+      server.refreshDeMatches([de('m1', 1, { id: 'r1', firstName: 'Anne', lastName: 'Leblanc' })]);
+      const arena = (server as any).arenas.get('arena1');
+      expect(arena.currentMatch?.referee).toEqual({ id: 'r1', name: 'LEBLANC Anne' });
+    });
+
+    it("changement d'arbitre → match en cours mis à jour", () => {
+      server.refreshDeMatches([de('m1', 1, { id: 'r1' })]);
+      server.refreshDeMatches([de('m1', 1, { id: 'r2' })]);
+      const arena = (server as any).arenas.get('arena1');
+      expect(arena.currentMatch?.referee).toEqual({ id: 'r2', name: 'NOIR Marc' });
+    });
+
+    it("arbitre retiré → plus d'arbitre sur la tablette", () => {
+      server.refreshDeMatches([de('m1', 1, { id: 'r1' })]);
+      server.refreshDeMatches([de('m1', 1)]);
+      expect((server as any).arenas.get('arena1').currentMatch?.referee).toBeUndefined();
+    });
+
+    it('mode expert : tous les arbitres affichés', () => {
+      server.refreshDeMatches([{ ...de('m1', 1), referees: [{ id: 'r1' }, { id: 'r2' }] }]);
+      expect((server as any).arenas.get('arena1').currentMatch?.referee).toEqual({
+        id: 'r1',
+        name: 'LEBLANC Anne / NOIR Marc',
+      });
+    });
+
+    it("match en file d'attente : arbitre porté", () => {
+      server.refreshDeMatches([de('m1', 1), de('m2', 1, { id: 'r2' })]);
+      const queue = (server as any).arenaMatchQueue.get('arena1');
+      expect(queue.find((m: any) => m.id === 'm2')?.referee).toEqual({
+        id: 'r2',
+        name: 'NOIR Marc',
+      });
+    });
+  });
+
+  describe('annulation carton noir depuis la tablette', () => {
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    const fA = { id: 'a', lastName: 'Dupont', firstName: 'Jean', status: 'Q' };
+    const fB = { id: 'b', lastName: 'Martin', firstName: 'Paul', status: 'Q' };
+    const fC = { id: 'c', lastName: 'Bernard', firstName: 'Luc', status: 'Q' };
+
+    beforeEach(() => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+      (server as any).sessionBlackCardEnabled = true;
+      vi.spyOn(server as any, 'hasAnyValidToken').mockReturnValue(true);
+      vi.spyOn(server as any, 'finishArenaMatch').mockImplementation(() => {});
+      vi.spyOn(server as any, 'broadcastMessage').mockImplementation(() => {});
+      (server as any).arenas.set('arena1', {
+        id: 'arena1',
+        number: 1,
+        status: 'ready',
+        currentMatch: { id: 'm1', poolId: 'p1', fencerA: fA, fencerB: fB, scoreA: 0, scoreB: 0 },
+        settings: {},
+      });
+      (server as any).sessionMatches = [
+        { id: 'm1', number: 1, poolId: 'p1', fencerA: fA, fencerB: fB, status: 'not_started' },
+        { id: 'm2', number: 2, poolId: 'p1', fencerA: fA, fencerB: fC, status: 'not_started' },
+      ];
+      mockDb.getMatch.mockReturnValue(null);
+      mockDb.getFencer.mockImplementation((id: string) =>
+        id === 'a' ? { id: 'a', status: 'X', exclusionReason: 'black_card' } : null
+      );
+    });
+
+    async function giveBlackCard() {
+      mockDb.getFencer.mockReturnValueOnce({ id: 'a', status: 'Q' });
+      const res = makeRes();
+      await findHandler('post', '/api/matches/:matchId/finish')(
+        makeReq({
+          method: 'POST',
+          params: { matchId: 'm1' },
+          body: { scoreA: 3, scoreB: 2, blackCardFencer: 'A' },
+        }),
+        res,
+        vi.fn()
+      );
+      // Le renderer propage ensuite le statut exclu dans les matchs de session
+      (server as any).sessionMatches = (server as any).sessionMatches.map((m: any) => ({
+        ...m,
+        fencerA:
+          m.fencerA.id === 'a'
+            ? { ...m.fencerA, status: 'X', exclusionReason: 'black_card' }
+            : m.fencerA,
+      }));
+    }
+
+    it("liste le carton noir de l'arène", async () => {
+      await giveBlackCard();
+      const res = makeRes();
+      findHandler('get', '/api/arenas/:arenaId/black-cards')(
+        makeReq({ params: { arenaId: 'arena1' } }),
+        res,
+        vi.fn()
+      );
+      expect(res.json.mock.calls[0][0].blackCards).toEqual([
+        expect.objectContaining({
+          fencerId: 'a',
+          matchId: 'm1',
+          fencerName: 'Dupont Jean',
+          opponentName: 'Martin Paul',
+        }),
+      ]);
+    });
+
+    it('annule : réintègre le combattant, rouvre le match avec son score et rend ses matchs jouables', async () => {
+      await giveBlackCard();
+      expect((server as any).isMatchPlayable((server as any).sessionMatches[1])).toBe(false);
+
+      const res = makeRes();
+      findHandler('post', '/api/arenas/:arenaId/black-cards/:fencerId/cancel')(
+        makeReq({ method: 'POST', params: { arenaId: 'arena1', fencerId: 'a' } }),
+        res,
+        vi.fn()
+      );
+      expect(res.json).toHaveBeenCalledWith({ success: true, matchId: 'm1' });
+      expect(mockDb.updateFencer).toHaveBeenLastCalledWith('a', {
+        status: 'Q',
+        exclusionReason: null,
+      });
+      const reopened = (server as any).sessionMatchScores.get('m1');
+      expect(reopened.status).toBe('in_progress');
+      expect(reopened.scoreA).toMatchObject({ value: 3, isExclusion: false, isVictory: false });
+      expect(reopened.scoreB).toMatchObject({ value: 2, isVictory: false });
+      expect((server as any).isMatchPlayable((server as any).sessionMatches[1])).toBe(true);
+      expect((server as any).sessionBlackCards.size).toBe(0);
+    });
+
+    it("refuse l'annulation d'un carton noir en tableau", async () => {
+      await giveBlackCard();
+      mockDb.getMatch.mockReturnValue({ id: 'm1', poolId: null });
+      const res = makeRes();
+      findHandler('post', '/api/arenas/:arenaId/black-cards/:fencerId/cancel')(
+        makeReq({ method: 'POST', params: { arenaId: 'arena1', fencerId: 'a' } }),
+        res,
+        vi.fn()
+      );
+      expect(res.status).toHaveBeenCalledWith(409);
+    });
+
+    it('404 pour une autre arène', async () => {
+      await giveBlackCard();
+      const res = makeRes();
+      findHandler('post', '/api/arenas/:arenaId/black-cards/:fencerId/cancel')(
+        makeReq({ method: 'POST', params: { arenaId: 'arena2', fencerId: 'a' } }),
+        res,
+        vi.fn()
+      );
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+  });
+
+  describe('appel distant (#919)', () => {
+    // Express 5 expose le routeur via app.router (app._router en v4)
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    function login(password: string): { res: any; cookie: string; done: Promise<void> } {
+      const res = makeRes();
+      const done = findHandler('post', '/api/checkin/login')(
+        makeReq({ body: { password }, socket: { remoteAddress: '10.0.0.' + Math.random() } }),
+        res,
+        vi.fn()
+      );
+      const header = res.setHeader.mock.calls.find((c: any[]) => c[0] === 'Set-Cookie')?.[1] ?? '';
+      return { res, cookie: String(header).split(';')[0], done };
+    }
+
+    beforeEach(() => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+      mockDb.getFencersByCompetition.mockReturnValue([
+        { id: 'f1', ref: 1, lastName: 'DUPONT', firstName: 'Jean', club: 'Pontivy', status: 'N' },
+        { id: 'f2', ref: 2, lastName: 'MARTIN', firstName: 'Paul', status: 'E' },
+      ]);
+      mockDb.getRefereesByCompetition.mockReturnValue([
+        { id: 'r1', ref: 1, lastName: 'DURAND', firstName: 'Anne', status: 'unavailable' },
+      ]);
+    });
+
+    it("refuse la connexion tant que le DT n'a pas défini de mot de passe", () => {
+      const { res } = login('x');
+      expect(res.status).toHaveBeenCalledWith(403);
+    });
+
+    it('refuse un mot de passe incorrect et ne stocke pas le mot de passe en clair', async () => {
+      server.setCheckinPassword('appel4242');
+      expect((server as any).checkinPassword).not.toBe('appel4242');
+      const { res, done } = login('faux');
+      await done;
+      expect(res.status).toHaveBeenCalledWith(401);
+    });
+
+    it('liste tireurs/arbitres uniquement avec un cookie valide', () => {
+      server.setCheckinPassword('appel4242');
+      const list = findHandler('get', '/api/checkin/list');
+
+      const denied = makeRes();
+      list(makeReq(), denied, vi.fn());
+      expect(denied.status).toHaveBeenCalledWith(401);
+
+      const { cookie } = login('appel4242');
+      const res = makeRes();
+      list(makeReq({ headers: { cookie } }), res, vi.fn());
+      const body = res.json.mock.calls[0][0];
+      expect(body.fencers).toHaveLength(2);
+      expect(body.fencers[0]).toMatchObject({ id: 'f1', present: false, editable: true });
+      expect(body.fencers[1]).toMatchObject({ id: 'f2', editable: false });
+      expect(body.referees[0]).toMatchObject({ id: 'r1', present: false, editable: true });
+    });
+
+    it('pointe un tireur présent (statut P) et un arbitre disponible', () => {
+      server.setCheckinPassword('appel4242');
+      const { cookie } = login('appel4242');
+      const update = findHandler('post', '/api/checkin/:kind/:id');
+
+      const res = makeRes();
+      update(
+        makeReq({
+          params: { kind: 'fencers', id: 'f1' },
+          body: { present: true },
+          headers: { cookie },
+        }),
+        res,
+        vi.fn()
+      );
+      expect(mockDb.updateFencer).toHaveBeenCalledWith('f1', { status: 'P' });
+      expect(res.json).toHaveBeenCalledWith({ success: true });
+
+      update(
+        makeReq({
+          params: { kind: 'referees', id: 'r1' },
+          body: { present: true },
+          headers: { cookie },
+        }),
+        makeRes(),
+        vi.fn()
+      );
+      expect(mockDb.updateReferee).toHaveBeenCalledWith('r1', { status: 'available' });
+    });
+
+    it("n'écrase pas un statut sportif (éliminé)", () => {
+      server.setCheckinPassword('appel4242');
+      const { cookie } = login('appel4242');
+      const res = makeRes();
+      findHandler('post', '/api/checkin/:kind/:id')(
+        makeReq({
+          params: { kind: 'fencers', id: 'f2' },
+          body: { present: true },
+          headers: { cookie },
+        }),
+        res,
+        vi.fn()
+      );
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(mockDb.updateFencer).not.toHaveBeenCalled();
+    });
+
+    it("ferme l'appel hors phase CHECKIN", () => {
+      server.setCheckinPassword('appel4242');
+      const { cookie } = login('appel4242');
+      server.setCheckinEnabled(false);
+      const res = makeRes();
+      findHandler('get', '/api/checkin/list')(makeReq({ headers: { cookie } }), res, vi.fn());
+      expect(res.status).toHaveBeenCalledWith(403);
+    });
+
+    it('invalide les sessions quand le mot de passe change', () => {
+      server.setCheckinPassword('appel4242');
+      const { cookie } = login('appel4242');
+      server.setCheckinPassword('nouveau-mdp');
+      const res = makeRes();
+      findHandler('get', '/api/checkin/list')(makeReq({ headers: { cookie } }), res, vi.fn());
+      expect(res.status).toHaveBeenCalledWith(401);
+    });
+  });
+
+  describe("P0 : actions mutantes protégées par l'auth d'arène", () => {
+    function findLayers(method: string, path: string): any[] {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.map((s: any) => s.handle) ?? [];
+    }
+
+    // Exécute la chaîne middleware → handler comme Express
+    async function run(method: string, path: string, req: any, res: any): Promise<void> {
+      const handlers = findLayers(method, path);
+      expect(handlers.length).toBeGreaterThan(0);
+      for (const h of handlers) {
+        let nextCalled = false;
+        await h(req, res, () => {
+          nextCalled = true;
+        });
+        if (!nextCalled) return;
+      }
+    }
+
+    function connectSocket(cookie?: string): { handlers: Record<string, any>; socket: any } {
+      const io = (server as any).io;
+      const onConnection = vi
+        .mocked(io.on)
+        .mock.calls.find((c: any[]) => c[0] === 'connection')?.[1];
+      const handlers: Record<string, any> = {};
+      const socket = {
+        id: 'sock-1',
+        handshake: { headers: cookie ? { cookie } : {}, address: '192.168.1.50' },
+        on: vi.fn((ev: string, cb: any) => {
+          handlers[ev] = cb;
+        }),
+        emit: vi.fn(),
+        join: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      onConnection(socket);
+      return { handlers, socket };
+    }
+
+    function protectArena(password = 'secret123'): string {
+      (server as any).arenas.set('arena1', {
+        id: 'arena1',
+        number: 1,
+        name: 'Arène 1',
+        status: 'idle',
+        currentMatch: null,
+        settings: {},
+      });
+      server.setArenaPassword('1', password);
+      const res = makeRes();
+      findLayers('post', '/api/auth/login/:arenaId')[0](
+        makeReq({ params: { arenaId: '1' }, body: { password } }),
+        res,
+        vi.fn()
+      );
+      const setCookie = res.setHeader.mock.calls.find((c: any[]) => c[0] === 'Set-Cookie')[1];
+      return setCookie.split(';')[0];
+    }
+
+    it.each(['assign', 'start', 'pause', 'score', 'finish'])(
+      'POST /api/arenas/:arenaId/%s refuse sans cookie (401)',
+      async action => {
+        protectArena();
+        const spy = vi
+          .spyOn(
+            server as any,
+            `${action === 'score' ? 'updateArenaScore' : action === 'assign' ? 'assignMatchToArena' : action + 'ArenaMatch'}`
+          )
+          .mockImplementation(() => {});
+        const res = makeRes();
+        await run(
+          'post',
+          `/api/arenas/:arenaId/${action}`,
+          makeReq({ params: { arenaId: '1' } }),
+          res
+        );
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(spy).not.toHaveBeenCalled();
+      }
+    );
+
+    it('POST /api/arenas/:arenaId/score accepte avec un cookie valide', async () => {
+      const cookie = protectArena();
+      const spy = vi.spyOn(server as any, 'updateArenaScore').mockImplementation(() => {});
+      const res = makeRes();
+      await run(
+        'post',
+        '/api/arenas/:arenaId/score',
+        makeReq({ params: { arenaId: '1' }, body: { scoreA: 1, scoreB: 0 }, headers: { cookie } }),
+        res
+      );
+      expect(spy).toHaveBeenCalledWith('1', 1, 0);
+    });
+
+    it.each(['start', 'stop'])('POST /api/session/%s réservé au loopback (403)', async action => {
+      const spy = vi.spyOn(server as any, 'stopSession').mockImplementation(() => {});
+      const res = makeRes();
+      await run(
+        'post',
+        `/api/session/${action}`,
+        makeReq({
+          socket: { remoteAddress: '192.168.1.50' },
+          headers: { 'x-forwarded-for': '127.0.0.1' },
+        }),
+        res
+      );
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('POST /api/session/stop accepté depuis le loopback', async () => {
+      const spy = vi.spyOn(server as any, 'stopSession').mockImplementation(() => {});
+      const res = makeRes();
+      await run('post', '/api/session/stop', makeReq({ socket: { remoteAddress: '::1' } }), res);
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('POST /api/sync refuse sans cookie (401)', async () => {
+      protectArena();
+      const spy = vi.spyOn(server as any, 'updateMatchScore').mockResolvedValue(undefined);
+      const res = makeRes();
+      await run(
+        'post',
+        '/api/sync',
+        makeReq({
+          body: {
+            actions: [
+              {
+                id: 'x',
+                type: 'score_save',
+                payload: { matchId: 'm1', scoreA: 5, scoreB: 0, status: 'finished' },
+              },
+            ],
+          },
+        }),
+        res
+      );
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it("socket arena_control refusé sans cookie, sans avoir rejoint l'arène", () => {
+      protectArena();
+      const spy = vi.spyOn(server as any, 'handleArenaControl').mockImplementation(() => {});
+      const { handlers, socket } = connectSocket();
+      handlers.arena_control({ arenaId: 'arena1', action: 'update_score', scoreA: 5, scoreB: 0 });
+      expect(spy).not.toHaveBeenCalled();
+      expect(socket.emit).toHaveBeenCalledWith('auth_error', expect.anything());
+    });
+
+    it('socket arena_control accepté avec cookie valide', () => {
+      const cookie = protectArena();
+      const spy = vi.spyOn(server as any, 'handleArenaControl').mockImplementation(() => {});
+      const { handlers } = connectSocket(cookie);
+      handlers.arena_control({ arenaId: 'arena1', action: 'update_score', scoreA: 5, scoreB: 0 });
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it("socket arena_control toggle_swap reste autorisé pour l'écran d'arène", () => {
+      protectArena();
+      const spy = vi.spyOn(server as any, 'handleArenaControl').mockImplementation(() => {});
+      const { handlers } = connectSocket();
+      handlers.arena_control({ arenaId: 'arena1', action: 'toggle_swap' });
+      expect(spy).toHaveBeenCalled();
+    });
+
+    describe('événements team_*', () => {
+      function seedTeamState() {
+        const state = {
+          competitionId: 'comp-1',
+          matchId: 'tm1',
+          bouts: [
+            { id: 'b1', fencerAId: 'a', fencerBId: 'b', status: 'pending', scoreA: 0, scoreB: 0 },
+          ],
+          currentBoutIndex: 0,
+          liveScoreA: 0,
+          liveScoreB: 0,
+          elapsedAccumulatedSec: 0,
+          timerStartedAt: null,
+          cards: [],
+        };
+        (server as any).teamArenaState.set('arena1', state);
+        vi.spyOn(server as any, 'getPublicTeamArenaState').mockReturnValue({});
+        return state;
+      }
+
+      it.each([
+        ['team_touch', { side: 'A', points: 1 }],
+        ['team_reset_bout', {}],
+        ['team_timer_start', {}],
+        ['team_advance_bout', {}],
+        ['team_card', { teamId: 't1', type: 'yellow' }],
+      ])('%s refusé sans cookie', (ev, extra) => {
+        protectArena();
+        const state = seedTeamState();
+        state.liveScoreA = 2;
+        (mockDb as any).updateTeamBout = vi.fn();
+        (mockDb as any).createTeamMatchCard = vi.fn().mockReturnValue({ id: 'c1' });
+        const { handlers, socket } = connectSocket();
+        handlers[ev]({ arenaId: 'arena1', ...extra });
+        expect(socket.emit).toHaveBeenCalledWith('auth_error', expect.anything());
+        expect(state.liveScoreA).toBe(2);
+        expect(state.timerStartedAt).toBeNull();
+        expect(state.cards).toHaveLength(0);
+        expect((mockDb as any).updateTeamBout).not.toHaveBeenCalled();
+      });
+
+      it('team_touch accepté avec cookie, points invalides ignorés', () => {
+        const cookie = protectArena();
+        const state = seedTeamState();
+        const { handlers } = connectSocket(cookie);
+        handlers.team_touch({ arenaId: 'arena1', side: 'A', points: 3 });
+        expect(state.liveScoreA).toBe(3);
+        handlers.team_touch({ arenaId: 'arena1', side: 'A', points: 9999 });
+        handlers.team_touch({ arenaId: 'arena1', side: 'B', points: -5 });
+        handlers.team_touch({ arenaId: 'arena1', side: 'Z', points: 1 });
+        expect(state.liveScoreA).toBe(3);
+        expect(state.liveScoreB).toBe(0);
+      });
+    });
+  });
+
+  describe('P1 : anti force brute', () => {
+    function loginHandler(): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      return stack.find(
+        (l: any) => l?.route?.path === '/api/auth/login/:arenaId' && l.route.methods?.post
+      )?.route?.stack?.[0]?.handle;
+    }
+
+    async function attempt(password: string, ip = '192.168.1.50', headers: any = {}) {
+      const res = makeRes();
+      await loginHandler()(
+        makeReq({
+          method: 'POST',
+          params: { arenaId: '1' },
+          body: { password },
+          headers,
+          socket: { remoteAddress: ip },
+        }),
+        res,
+        vi.fn()
+      );
+      return res;
+    }
+
+    beforeEach(() => {
+      (server as any).arenas.set('arena1', {
+        id: 'arena1',
+        number: 1,
+        name: 'Arène 1',
+        status: 'idle',
+        currentMatch: null,
+        settings: {},
+      });
+      server.setArenaPassword('1', 'secret123');
+    });
+
+    it('hash scrypt salé : deux hash du même mot de passe diffèrent et se vérifient', () => {
+      const h1 = (server as any).hashPassword('secret123');
+      const h2 = (server as any).hashPassword('secret123');
+      expect(h1).toMatch(/^scrypt\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
+      expect(h1).not.toBe(h2);
+      expect((server as any).verifyPassword('secret123', h1)).toBe(true);
+      expect((server as any).verifyPassword('secret124', h1)).toBe(false);
+      expect((server as any).verifyPassword('secret123', 'abc')).toBe(false);
+    });
+
+    it('refuse un mot de passe de moins de 8 caractères (arène et appel), vide autorisé', () => {
+      expect(() => server.setArenaPassword('1', 'court')).toThrow(/8 caractères/);
+      expect(() => server.setCheckinPassword('1234567')).toThrow(/8 caractères/);
+      expect(() => server.setArenaPassword('1', '')).not.toThrow();
+      expect(() => server.setCheckinPassword('')).not.toThrow();
+    });
+
+    it('X-Forwarded-For ignoré : un en-tête aléatoire ne contourne plus la limite par IP', async () => {
+      for (let i = 0; i < 5; i++) {
+        const res = await attempt('mauvais!', '192.168.1.50', { 'x-forwarded-for': `10.9.9.${i}` });
+        expect(res.status).toHaveBeenCalledWith(401);
+        (server as any).loginFailures.clear(); // isole la limite par minute du blocage
+      }
+      const res = await attempt('mauvais!', '192.168.1.50', { 'x-forwarded-for': '10.9.9.99' });
+      expect(res.status).toHaveBeenCalledWith(429);
+    });
+
+    it('X-Forwarded-For lu seulement si trustProxy activé', () => {
+      const req = makeReq({
+        headers: { 'x-forwarded-for': '10.1.2.3, 127.0.0.1' },
+        socket: { remoteAddress: '::ffff:192.168.1.7' },
+      });
+      expect((server as any).getClientIp(req)).toBe('192.168.1.7');
+      server.setTrustProxy(true);
+      expect((server as any).getClientIp(req)).toBe('10.1.2.3');
+    });
+
+    it('limite par arène : 20 tentatives/min tous clients confondus', async () => {
+      for (let i = 0; i < 20; i++) {
+        const res = await attempt('mauvais!', `192.168.2.${i}`);
+        expect(res.status).toHaveBeenCalledWith(401);
+      }
+      const res = await attempt('secret123', '192.168.3.1');
+      expect(res.status).toHaveBeenCalledWith(429);
+    });
+
+    it("blocage progressif après 5 échecs, même après la fenêtre d'une minute", async () => {
+      const diag = vi.spyOn(server as any, 'sendDiag').mockImplementation(() => {});
+      for (let i = 0; i < 5; i++) {
+        await attempt('mauvais!');
+        (server as any).loginAttempts.clear();
+      }
+      expect(diag).toHaveBeenCalledWith(expect.stringContaining('192.168.1.50'));
+      const res = await attempt('secret123');
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.setHeader).toHaveBeenCalledWith('Retry-After', '30');
+
+      // Échec suivant après expiration du blocage → durée doublée
+      (server as any).loginFailures.get('192.168.1.50').lockedUntil = 0;
+      await attempt('mauvais!');
+      const f = (server as any).loginFailures.get('192.168.1.50');
+      expect(f.lockedUntil - Date.now()).toBeGreaterThan(55_000);
+    });
+
+    it("un succès remet à zéro les échecs de l'IP", async () => {
+      for (let i = 0; i < 3; i++) await attempt('mauvais!');
+      const res = await attempt('secret123');
+      expect(res.json).toHaveBeenCalledWith({ success: true });
+      expect((server as any).loginFailures.has('192.168.1.50')).toBe(false);
+    });
+
+    it('jeton expiré côté serveur refusé', async () => {
+      const res = await attempt('secret123');
+      const cookie = res.setHeader.mock.calls
+        .find((c: any[]) => c[0] === 'Set-Cookie')[1]
+        .split(';')[0];
+      expect((server as any).checkArenaAuth('arena1', cookie)).toBe(true);
+      const tokens: Map<string, number> = (server as any).arenaTokens.get('arena1');
+      for (const t of tokens.keys()) tokens.set(t, Date.now() - 1);
+      expect((server as any).checkArenaAuth('arena1', cookie)).toBe(false);
+    });
+
+    it('nombre de jetons plafonné par arène', () => {
+      const store = new Map<string, number>();
+      for (let i = 0; i < 60; i++) (server as any).issueToken(store);
+      expect(store.size).toBe(50);
+    });
+  });
+
+  describe('P2 : durcissement réseau / DoS', () => {
+    function connect(address = '192.168.1.50', headers: any = {}) {
+      const io = (server as any).io;
+      const onConnection = vi
+        .mocked(io.on)
+        .mock.calls.find((c: any[]) => c[0] === 'connection')?.[1];
+      const handlers: Record<string, any> = {};
+      let packetMiddleware: any;
+      const socket = {
+        id: 'sock-' + Math.random(),
+        handshake: { headers, address },
+        on: vi.fn((ev: string, cb: any) => {
+          // Plusieurs écouteurs possibles (ex. disconnect) : tous appelés
+          const prev = handlers[ev];
+          handlers[ev] = prev
+            ? (...args: any[]) => {
+                prev(...args);
+                cb(...args);
+              }
+            : cb;
+        }),
+        use: vi.fn((fn: any) => {
+          packetMiddleware = fn;
+        }),
+        emit: vi.fn(),
+        join: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      onConnection(socket);
+      return { socket, handlers, packetMiddleware };
+    }
+
+    // Exécute les middlewares globaux (app.use) dans l'ordre, comme Express
+    async function runGlobalMiddlewares(req: any, res: any): Promise<boolean> {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      for (const layer of stack.filter((l: any) => !l.route)) {
+        let passed = false;
+        await new Promise<void>(resolve => {
+          const r = layer.handle(req, res, () => {
+            passed = true;
+            resolve();
+          });
+          if (!passed) setTimeout(resolve, 0);
+          return r;
+        });
+        if (!passed) return false;
+      }
+      return true;
+    }
+
+    it('isAllowedOrigin : même hôte / LAN acceptés, origine externe refusée', () => {
+      const ok = (o: any) => (server as any).isAllowedOrigin(o, 'bellepoule.local:8066');
+      expect(ok('http://bellepoule.local:8066')).toBe(true);
+      expect(ok('http://192.168.1.10:8066')).toBe(true);
+      expect(ok('https://evil.example.com')).toBe(false);
+      expect(ok('null')).toBe(false);
+      // Polling Socket.IO même origine : pas d'en-tête Origin
+      expect(ok(undefined)).toBe(true);
+    });
+
+    it('POST avec Origin étrangère refusé (403), Origin même hôte accepté', async () => {
+      const base = { method: 'POST', path: '/api/sync', url: '/api/sync' };
+      const denied = makeRes();
+      const passedDenied = await runGlobalMiddlewares(
+        makeReq({
+          ...base,
+          headers: { host: '192.168.1.10:8066', origin: 'https://evil.example.com' },
+          socket: { remoteAddress: '192.168.1.50' },
+        }),
+        denied
+      );
+      expect(passedDenied).toBe(false);
+      expect(denied.status).toHaveBeenCalledWith(403);
+
+      const allowed = makeRes();
+      const passedAllowed = await runGlobalMiddlewares(
+        makeReq({
+          ...base,
+          headers: { host: '192.168.1.10:8066', origin: 'http://192.168.1.10:8066' },
+          socket: { remoteAddress: '192.168.1.50' },
+        }),
+        allowed
+      );
+      expect(passedAllowed).toBe(true);
+    });
+
+    it('limite JSON réduite sur les routes de connexion', () => {
+      expect((RemoteScoreServer as any).isLoginPath('/api/auth/login/arena1')).toBe(true);
+      expect((RemoteScoreServer as any).isLoginPath('/api/checkin/login')).toBe(true);
+      expect((RemoteScoreServer as any).isLoginPath('/api/register')).toBe(false);
+    });
+
+    it('/api/debug réservé à la machine hôte', async () => {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const handlers = stack
+        .find((l: any) => l?.route?.path === '/api/debug')
+        .route.stack.map((x: any) => x.handle);
+      const res = makeRes();
+      const next = vi.fn();
+      handlers[0](makeReq({ socket: { remoteAddress: '192.168.1.50' } }), res, next);
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('refuse au-delà de 30 sockets simultanées par IP, libère à la déconnexion', () => {
+      const conns = Array.from({ length: 30 }, () => connect('192.168.1.60'));
+      conns.forEach(c => expect(c.socket.disconnect).not.toHaveBeenCalled());
+      const extra = connect('192.168.1.60');
+      expect(extra.socket.disconnect).toHaveBeenCalledWith(true);
+      conns[0].handlers.disconnect();
+      const again = connect('192.168.1.60');
+      expect(again.socket.disconnect).not.toHaveBeenCalled();
+    });
+
+    it("déconnecte une socket qui inonde le serveur d'événements", () => {
+      const { socket, packetMiddleware } = connect('192.168.1.61');
+      const next = vi.fn();
+      for (let i = 0; i < 40; i++) packetMiddleware([], next);
+      expect(next).toHaveBeenCalledTimes(40);
+      expect(socket.disconnect).not.toHaveBeenCalled();
+      packetMiddleware([], next);
+      expect(next).toHaveBeenCalledTimes(40);
+      expect(socket.disconnect).toHaveBeenCalledWith(true);
+    });
+
+    it("client:register enregistre l'IP de la socket, pas X-Forwarded-For", () => {
+      vi.spyOn(server as any, 'broadcastClientList').mockImplementation(() => {});
+      const { socket, handlers } = connect('::ffff:192.168.1.62', {
+        'x-forwarded-for': '6.6.6.6',
+      });
+      handlers['client:register']({ clientType: 'kiosk' });
+      expect((server as any).connectedClients.get(socket.id).ip).toBe('192.168.1.62');
+    });
+  });
+
+  describe('#993/#995/#997 : DoS socket et XSS', () => {
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    function connect() {
+      const io = (server as any).io;
+      const onConnection = vi
+        .mocked(io.on)
+        .mock.calls.find((c: any[]) => c[0] === 'connection')?.[1];
+      const handlers: Record<string, any> = {};
+      const socket = {
+        id: 'sock-x',
+        handshake: { headers: {}, address: '192.168.1.70' },
+        on: vi.fn((ev: string, cb: any) => {
+          handlers[ev] = cb;
+        }),
+        emit: vi.fn(),
+        join: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      onConnection(socket);
+      return handlers;
+    }
+
+    it.each([
+      'join_arena',
+      'join_pool',
+      'join_team_arena',
+      'arena_control',
+      'client:register',
+      'client:battery',
+      'team_touch',
+    ])('%s avec données nulles : aucune exception', ev => {
+      const handlers = connect();
+      expect(() => handlers[ev](null)).not.toThrow();
+      expect(() => handlers[ev](undefined)).not.toThrow();
+    });
+
+    it('sanitizeAnnouncement : balises retirées, carton inconnu normalisé', () => {
+      const a = RemoteScoreServer.sanitizeAnnouncement({
+        fencerName: '<img src=x onerror="alert(1)">Dupont',
+        cardType: 'evil" onclick="x',
+        reason: '<script>x</script>',
+        extra: 'ignored',
+      })!;
+      expect(a.fencerName).not.toMatch(/[<>]/);
+      expect(a.cardType).toBe('yellow');
+      expect(a.reason).not.toMatch(/[<>]/);
+      expect(a).not.toHaveProperty('extra');
+      expect(RemoteScoreServer.sanitizeAnnouncement(null)).toBeNull();
+    });
+
+    it('journal : numéro de piste non numérique refusé (400)', () => {
+      const res = makeRes();
+      findHandler('get', '/arene:arenaId/journal')(
+        makeReq({ params: { arenaId: '1<img src=x onerror=alert(1)>' } }),
+        res
+      );
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    it('résultats : identifiant de compétition hors format refusé (400)', () => {
+      const res = makeRes();
+      findHandler('get', '/competition/:competitionId/results')(
+        makeReq({ params: { competitionId: '</script><script>alert(1)</script>' } }),
+        res
+      );
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+  });
+
+  describe('#989 : espace formateurs', () => {
+    function findHandler(method: string, path: string): any {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const layer = stack.find((l: any) => l?.route?.path === path && l.route.methods?.[method]);
+      return layer?.route?.stack?.[0]?.handle;
+    }
+
+    beforeEach(() => {
+      (server as any).session = { competitionId: 'comp-1', strips: [] };
+      (server as any).loginFailureDelayMs = 0;
+      (mockDb as any).getRefereeComments = vi.fn().mockReturnValue([]);
+      (mockDb as any).addRefereeComment = vi.fn().mockReturnValue({ id: 'c1' });
+      mockDb.getRefereesByCompetition.mockReturnValue([
+        { id: 'r1', lastName: 'ARBITRE', firstName: 'Anne' },
+      ]);
+    });
+
+    it('fermé tant que non activé / sans mot de passe', () => {
+      const res = makeRes();
+      findHandler('get', '/api/trainer/referees')(makeReq(), res);
+      expect(res.status).toHaveBeenCalledWith(403);
+    });
+
+    it('login puis commentaire enregistré ; sans cookie → 401', async () => {
+      server.setTrainerEnabled(true);
+      server.setTrainerPassword('formateur123');
+
+      const anon = makeRes();
+      findHandler('post', '/api/trainer/referees/:refereeId/comments')(
+        makeReq({ params: { refereeId: 'r1' }, body: { comment: 'Bien' } }),
+        anon
+      );
+      expect(anon.status).toHaveBeenCalledWith(401);
+
+      const loginRes = makeRes();
+      await findHandler('post', '/api/trainer/login')(
+        makeReq({ body: { password: 'formateur123' } }),
+        loginRes
+      );
+      const cookieHeader = loginRes.setHeader.mock.calls.find(
+        (c: any[]) => c[0] === 'Set-Cookie'
+      )[1];
+      const cookie = cookieHeader.split(';')[0];
+
+      const res = makeRes();
+      findHandler('post', '/api/trainer/referees/:refereeId/comments')(
+        makeReq({
+          params: { refereeId: 'r1' },
+          body: { comment: '  Bon placement  ', author: 'Paul' },
+          headers: { cookie },
+        }),
+        res
+      );
+      expect((mockDb as any).addRefereeComment).toHaveBeenCalledWith(
+        'comp-1',
+        'r1',
+        'Bon placement',
+        'Paul',
+        null
+      );
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+
+      const unknown = makeRes();
+      findHandler('post', '/api/trainer/referees/:refereeId/comments')(
+        makeReq({ params: { refereeId: 'zz' }, body: { comment: 'x' }, headers: { cookie } }),
+        unknown
+      );
+      expect(unknown.status).toHaveBeenCalledWith(404);
+    });
+
+    it('mauvais mot de passe refusé', async () => {
+      server.setTrainerEnabled(true);
+      server.setTrainerPassword('formateur123');
+      const res = makeRes();
+      await findHandler('post', '/api/trainer/login')(makeReq({ body: { password: 'nope' } }), res);
+      expect(res.status).toHaveBeenCalledWith(401);
     });
   });
 });

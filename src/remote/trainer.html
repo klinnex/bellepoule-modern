@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formateurs - BellePoule</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        min-height: 100vh;
+        color: #fff;
+      }
+
+      .wrap {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.3rem;
+        margin-bottom: 0.75rem;
+      }
+
+      h2 {
+        font-size: 1.1rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .card {
+        background: rgba(0, 0, 0, 0.35);
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      .message {
+        text-align: center;
+        padding: 2rem 1rem;
+        opacity: 0.9;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        font-size: 1rem;
+        font-family: inherit;
+        outline: none;
+      }
+
+      textarea {
+        min-height: 9rem;
+        resize: vertical;
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      button {
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .primary {
+        background: #22c55e;
+        color: #fff;
+        width: 100%;
+        margin-top: 0.75rem;
+      }
+
+      .secondary {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+      }
+
+      .error {
+        color: #fca5a5;
+        margin-top: 0.5rem;
+        min-height: 1.2em;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      ul {
+        list-style: none;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.06);
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+      }
+
+      .row:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .name {
+        font-weight: 600;
+      }
+
+      .sub {
+        font-size: 0.85rem;
+        opacity: 0.75;
+      }
+
+      .badge {
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .badge.live {
+        background: #f59e0b;
+        color: #111;
+      }
+
+      .comment {
+        border-left: 3px solid #93c5fd;
+        padding: 0.5rem 0.75rem;
+        margin-top: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        white-space: pre-wrap;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>🎓 Espace formateurs — arbitrage</h1>
+
+      <div id="state-message" class="card message">Chargement…</div>
+
+      <div id="login-view" class="card hidden">
+        <form id="login-form">
+          <input id="password" type="password" placeholder="Mot de passe formateurs" autocomplete="current-password" />
+          <button class="primary" type="submit">Se connecter</button>
+          <div id="login-error" class="error"></div>
+        </form>
+      </div>
+
+      <div id="list-view" class="card hidden">
+        <div class="toolbar">
+          <input id="search" type="search" placeholder="Rechercher un arbitre…" />
+        </div>
+        <ul id="list"></ul>
+        <div id="list-error" class="error"></div>
+      </div>
+
+      <div id="comment-view" class="card hidden">
+        <div class="toolbar">
+          <button id="back" class="secondary" type="button">← Arbitres</button>
+        </div>
+        <h2 id="ref-name"></h2>
+        <div id="ref-status" class="sub"></div>
+        <form id="comment-form" style="margin-top: 0.75rem">
+          <input id="author" type="text" placeholder="Votre nom (formateur)" maxlength="100" />
+          <textarea id="comment" placeholder="Commentaire pour l'arbitre…" maxlength="4000" style="margin-top: 0.5rem"></textarea>
+          <button class="primary" type="submit">Publier le commentaire</button>
+          <div id="comment-error" class="error"></div>
+        </form>
+        <h2 style="margin-top: 1.25rem">Commentaires précédents</h2>
+        <div id="history"></div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const POLL_MS = 10000;
+        const $ = id => document.getElementById(id);
+        let referees = [];
+        let current = null;
+        let pollTimer = null;
+
+        function show(view) {
+          ['state-message', 'login-view', 'list-view', 'comment-view'].forEach(id => {
+            $(id).classList.toggle('hidden', id !== view);
+          });
+        }
+
+        function showMessage(text) {
+          $('state-message').textContent = text;
+          show('state-message');
+          stopPolling();
+        }
+
+        function stopPolling() {
+          if (pollTimer) clearInterval(pollTimer);
+          pollTimer = null;
+        }
+
+        function normalize(s) {
+          return (s || '')
+            .toString()
+            .normalize('NFD')
+            .replace(/[̀-ͯ]/g, '')
+            .toLowerCase();
+        }
+
+        function handleDenied(res) {
+          if (res.status === 401) {
+            stopPolling();
+            show('login-view');
+            return true;
+          }
+          if (res.status === 403) {
+            showMessage("L'espace formateurs n'est pas ouvert pour cette compétition.");
+            return true;
+          }
+          return false;
+        }
+
+        function statusText(r) {
+          return r.inMatch ? 'En match — ' + (r.matchLabel || 'Piste ' + r.arenaNumber) : 'Disponible';
+        }
+
+        function renderList() {
+          const q = normalize($('search').value);
+          const items = q
+            ? referees.filter(r => normalize(r.lastName + ' ' + r.firstName + ' ' + r.club).includes(q))
+            : referees;
+          const list = $('list');
+          list.replaceChildren();
+          if (items.length === 0) {
+            const li = document.createElement('li');
+            li.className = 'message';
+            li.textContent = 'Aucun arbitre';
+            list.appendChild(li);
+            return;
+          }
+          items.forEach(r => {
+            const li = document.createElement('li');
+            li.className = 'row';
+            const who = document.createElement('div');
+            const name = document.createElement('div');
+            name.className = 'name';
+            name.textContent = (r.lastName || '') + ' ' + (r.firstName || '');
+            const sub = document.createElement('div');
+            sub.className = 'sub';
+            sub.textContent =
+              statusText(r) + (r.commentCount ? ' · ' + r.commentCount + ' commentaire(s)' : '');
+            who.appendChild(name);
+            who.appendChild(sub);
+            const badge = document.createElement('span');
+            badge.className = 'badge' + (r.inMatch ? ' live' : '');
+            badge.textContent = r.inMatch ? 'En match' : 'Libre';
+            li.appendChild(who);
+            li.appendChild(badge);
+            li.addEventListener('click', () => openReferee(r));
+            list.appendChild(li);
+          });
+        }
+
+        async function loadList() {
+          try {
+            const res = await fetch('/api/trainer/referees', { credentials: 'same-origin' });
+            const body = await res.json().catch(() => null);
+            if (handleDenied(res)) return;
+            if (!res.ok) {
+              $('list-error').textContent = (body && body.error) || 'Erreur de connexion';
+              return;
+            }
+            referees = body.referees || [];
+            $('list-error').textContent = '';
+            if (!current) {
+              show('list-view');
+              renderList();
+            }
+            if (!pollTimer) pollTimer = setInterval(loadList, POLL_MS);
+          } catch (e) {
+            $('list-error').textContent = 'Erreur de connexion';
+          }
+        }
+
+        async function loadHistory() {
+          const box = $('history');
+          box.replaceChildren();
+          try {
+            const res = await fetch('/api/trainer/referees/' + encodeURIComponent(current.id) + '/comments', {
+              credentials: 'same-origin',
+            });
+            if (handleDenied(res)) return;
+            const body = await res.json();
+            const comments = (body.comments || []).slice().reverse();
+            if (comments.length === 0) {
+              const p = document.createElement('div');
+              p.className = 'sub';
+              p.textContent = 'Aucun commentaire pour le moment.';
+              box.appendChild(p);
+              return;
+            }
+            comments.forEach(c => {
+              const div = document.createElement('div');
+              div.className = 'comment';
+              const meta = document.createElement('div');
+              meta.className = 'sub';
+              meta.textContent =
+                new Date(c.createdAt).toLocaleString('fr-FR') +
+                (c.author ? ' · ' + c.author : '') +
+                (c.matchLabel ? ' · ' + c.matchLabel : '');
+              const text = document.createElement('div');
+              text.textContent = c.comment;
+              div.appendChild(meta);
+              div.appendChild(text);
+              box.appendChild(div);
+            });
+          } catch (e) {
+            /* historique facultatif */
+          }
+        }
+
+        function openReferee(r) {
+          current = r;
+          $('ref-name').textContent = (r.lastName || '') + ' ' + (r.firstName || '');
+          $('ref-status').textContent = statusText(r);
+          $('comment').value = '';
+          $('comment-error').textContent = '';
+          show('comment-view');
+          loadHistory();
+        }
+
+        function backToList() {
+          current = null;
+          show('list-view');
+          loadList();
+        }
+
+        $('back').addEventListener('click', backToList);
+        $('search').addEventListener('input', renderList);
+
+        try {
+          $('author').value = localStorage.getItem('bp-trainer-author') || '';
+        } catch (e) {
+          /* stockage indisponible */
+        }
+
+        $('comment-form').addEventListener('submit', async e => {
+          e.preventDefault();
+          const comment = $('comment').value.trim();
+          if (!comment || !current) return;
+          const author = $('author').value.trim();
+          try {
+            localStorage.setItem('bp-trainer-author', author);
+          } catch (err) {
+            /* stockage indisponible */
+          }
+          try {
+            const res = await fetch('/api/trainer/referees/' + encodeURIComponent(current.id) + '/comments', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ comment, author }),
+            });
+            if (handleDenied(res)) return;
+            const body = await res.json().catch(() => null);
+            if (!res.ok) {
+              $('comment-error').textContent = (body && body.error) || 'Erreur';
+              return;
+            }
+            backToList();
+          } catch (err) {
+            $('comment-error').textContent = 'Erreur de connexion';
+          }
+        });
+
+        $('login-form').addEventListener('submit', async e => {
+          e.preventDefault();
+          $('login-error').textContent = '';
+          try {
+            const res = await fetch('/api/trainer/login', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ password: $('password').value }),
+            });
+            const body = await res.json().catch(() => null);
+            if (res.ok && body && body.success) {
+              $('password').value = '';
+              loadList();
+            } else if (res.status === 429) {
+              $('login-error').textContent = (body && body.error) || 'Trop de tentatives';
+            } else if (res.status === 403) {
+              showMessage("L'espace formateurs n'est pas ouvert pour cette compétition.");
+            } else {
+              $('login-error').textContent = 'Mot de passe incorrect';
+            }
+          } catch (err) {
+            $('login-error').textContent = 'Erreur de connexion';
+          }
+        });
+
+        (async function init() {
+          try {
+            const res = await fetch('/api/trainer/status', { credentials: 'same-origin' });
+            const st = await res.json();
+            if (!st.open || !st.configured) {
+              showMessage("L'espace formateurs n'est pas ouvert pour cette compétition.");
+            } else if (!st.authenticated) {
+              show('login-view');
+            } else {
+              loadList();
+            }
+          } catch (e) {
+            showMessage('Erreur de connexion');
+          }
+        })();
+      })();
+    </script>
+  </body>
+</html>

@@ -5,9 +5,18 @@
  */
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { Funnel } from 'lucide-react';
 import { useModalResize } from '../hooks/useModalResize';
 import { useFocusTrap } from '../hooks/useFocusTrap';
-import { Pool, Fencer, MatchStatus, Score, Weapon, FencerStatus, Referee } from '../../shared/types';
+import {
+  Pool,
+  Fencer,
+  MatchStatus,
+  Score,
+  Weapon,
+  FencerStatus,
+  Referee,
+} from '../../shared/types';
 import { Arena } from '../../shared/types/remote';
 import { logger, LogCategory } from '@shared/services/logger';
 import { useToast } from './Toast';
@@ -21,9 +30,11 @@ import PoolMatchList from './pool/PoolMatchList';
 import Confetti from './Confetti';
 import AddFencerToPoolModal from './AddFencerToPoolModal';
 import { MatchAuditLog } from './MatchAuditLog';
+import { autoAssignReferees } from '../../shared/utils/refereeStats';
+import { LASER_FORFEIT_WINNER_SCORE } from '../../shared/utils/poolCalculations';
 import {
-  TOOLBAR_BTN,
   ICON_BTN,
+  ICON_ONLY_BTN,
   SPECIAL_BTN,
   ROW_BETWEEN,
   MATCH_LABEL,
@@ -79,10 +90,15 @@ interface PoolViewProps {
   onFencerChangePool?: (fencer: Fencer) => void;
   onFencerStatusChange?: (fencerId: string, status: 'abandon' | 'forfait' | 'exclusion') => void;
   onFencerAdded?: (updatedPool: Pool) => void;
+  assignedFencerIds?: ReadonlySet<string>;
   arenaCount?: number;
   arenas?: Arena[];
   isRemoteActive?: boolean;
   remoteServerUrl?: string;
+  /** Saisie distante active : QR de la piste de la poule sur la feuille (aperçu/impression/export) */
+  stripQr?: { url: string; strip: number };
+  /** Facteur de taille des cartes de poule (préréglage) */
+  cardScale?: number;
   onMatchArenaChange?: (
     matchId: string,
     oldArena: number,
@@ -90,7 +106,13 @@ interface PoolViewProps {
     fencerA?: Fencer | null,
     fencerB?: Fencer | null
   ) => void;
-  onRefereeAssigned?: (poolId: string, referee: Referee | null) => void;
+  onRefereeAssigned?: (poolId: string, referees: Referee[]) => void;
+  /** Nombre max d'arbitres assignables simultanément (mode expert) ; 1 = sélection unique */
+  maxRefereesPerPool?: number;
+  /** Arbitres de la compétition utilisés par le remplissage automatique (gestion des arbitres active) */
+  autoFillReferees?: Referee[];
+  /** Arbitres assignés par le remplissage automatique (matchId → arbitre) */
+  onAutoFillReferees?: (assignments: Map<string, Referee>) => void;
 }
 
 type ViewMode = 'grid' | 'matches';
@@ -107,12 +129,18 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   onFencerChangePool,
   onFencerStatusChange,
   onFencerAdded,
+  assignedFencerIds,
   arenaCount,
   arenas,
   isRemoteActive,
   remoteServerUrl,
+  stripQr,
+  cardScale = 1,
   onMatchArenaChange,
   onRefereeAssigned,
+  maxRefereesPerPool = 1,
+  autoFillReferees,
+  onAutoFillReferees,
 }) => {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
@@ -126,6 +154,23 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     'abandon' | 'forfait' | 'exclusion' | null
   >(null);
   const [showColumnMenu, setShowColumnMenu] = useState(false);
+  // Options d'export PDF / impression de la feuille de poule (persistées localement)
+  const [pdfHideStatColumns, setPdfHideStatColumns] = useState(
+    () => localStorage.getItem('bellepoule-pool-pdf-hide-stats') === 'true'
+  );
+  const [pdfLandscape, setPdfLandscape] = useState(
+    () => localStorage.getItem('bellepoule-pool-pdf-landscape') === 'true'
+  );
+  const togglePdfHideStatColumns = () => {
+    const next = !pdfHideStatColumns;
+    setPdfHideStatColumns(next);
+    localStorage.setItem('bellepoule-pool-pdf-hide-stats', String(next));
+  };
+  const togglePdfLandscape = () => {
+    const next = !pdfLandscape;
+    setPdfLandscape(next);
+    localStorage.setItem('bellepoule-pool-pdf-landscape', String(next));
+  };
 
   const [editScoreA, setEditScoreA] = useState('');
   const [editScoreB, setEditScoreB] = useState('');
@@ -138,57 +183,155 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   const [showRefereeModal, setShowRefereeModal] = useState(false);
   const [competitionReferees, setCompetitionReferees] = useState<Referee[]>([]);
   const [isLoadingReferees, setIsLoadingReferees] = useState(false);
-  const [assignedReferee, setAssignedReferee] = useState<Referee | null>(pool.referees?.[0] ?? null);
+  const [assignedReferees, setAssignedReferees] = useState<Referee[]>(pool.referees ?? []);
+  // Sélection en cours dans la modale (mode multi-arbitres)
+  const [pendingRefereeIds, setPendingRefereeIds] = useState<string[]>([]);
+  const isMultiReferee = maxRefereesPerPool > 1;
+  const assignedReferee = assignedReferees[0] ?? null;
   const [hoveredFencerIds, setHoveredFencerIds] = useState<Set<string>>(new Set());
   const quickMouseScoring = localStorage.getItem('bellepoule-quick-mouse-scoring') === 'true';
   const simplifiedInputMode = localStorage.getItem('bellepoule-simplified-input-mode') === 'true';
-  const [inlineEditCell, setInlineEditCell] = useState<{ key: string; rowId: string; colId: string; matchIndex: number; inverted: boolean } | null>(null);
+  const [inlineEditCell, setInlineEditCell] = useState<{
+    key: string;
+    rowId: string;
+    colId: string;
+    matchIndex: number;
+    inverted: boolean;
+  } | null>(null);
   const [inlineSingleScore, setInlineSingleScore] = useState('');
   const [cellScoreBuffer, setCellScoreBuffer] = useState<Record<string, number>>({});
 
   const defaultArena = (pool.strip != null && pool.strip > 0 ? pool.strip : pool.number) ?? 1;
 
-  const handleMatchArenaChange = useCallback((
-    matchId: string,
-    oldArena: number,
-    newArena: number | null,
-    fencerA?: Fencer | null,
-    fencerB?: Fencer | null
-  ) => {
-    setMatchArenaOverrides(prev => {
-      const next = new Map(prev);
-      if (newArena === null) {
-        next.delete(matchId);
-      } else {
-        next.set(matchId, newArena);
-      }
-      return next;
-    });
-    onMatchArenaChange?.(matchId, oldArena, newArena, fencerA, fencerB);
-  }, [onMatchArenaChange]);
-
+  const handleMatchArenaChange = useCallback(
+    (
+      matchId: string,
+      oldArena: number,
+      newArena: number | null,
+      fencerA?: Fencer | null,
+      fencerB?: Fencer | null
+    ) => {
+      setMatchArenaOverrides(prev => {
+        const next = new Map(prev);
+        if (newArena === null) {
+          next.delete(matchId);
+        } else {
+          next.set(matchId, newArena);
+        }
+        return next;
+      });
+      onMatchArenaChange?.(matchId, oldArena, newArena, fencerA, fencerB);
+    },
+    [onMatchArenaChange]
+  );
 
   const openRefereeModal = useCallback(() => {
+    setPendingRefereeIds(assignedReferees.map(r => r.id));
     setShowRefereeModal(true);
     if (competitionId) {
       setIsLoadingReferees(true);
-      window.electronAPI.db.getRefereesByCompetition(competitionId)
-        .then(refs => setCompetitionReferees(refs))
+      window.electronAPI.db
+        .getRefereesByCompetition(competitionId)
+        .then(refs =>
+          // Arbitres non pointés masqués, sauf ceux déjà assignés (#977)
+          setCompetitionReferees(
+            refs.filter(
+              r => r.status !== 'unavailable' || assignedReferees.some(a => a.id === r.id)
+            )
+          )
+        )
         .finally(() => setIsLoadingReferees(false));
     }
-  }, [competitionId]);
+  }, [competitionId, assignedReferees]);
 
   const closeRefereeModal = useCallback(() => setShowRefereeModal(false), []);
   const refereeModalRef = useFocusTrap<HTMLDivElement>(showRefereeModal, closeRefereeModal);
 
-  const handleAssignReferee = useCallback((referee: Referee | null) => {
-    window.electronAPI.db.updatePoolReferee(pool.id, referee?.id ?? null);
-    setAssignedReferee(referee);
-    setShowRefereeModal(false);
-    onRefereeAssigned?.(pool.id, referee);
-  }, [pool.id, onRefereeAssigned]);
+  const applyReferees = useCallback(
+    (referees: Referee[]) => {
+      window.electronAPI.db.updatePoolReferees(
+        pool.id,
+        referees.map(r => r.id)
+      );
+      setAssignedReferees(referees);
+      setShowRefereeModal(false);
+      onRefereeAssigned?.(pool.id, referees);
+    },
+    [pool.id, onRefereeAssigned]
+  );
+
+  const handleAssignReferee = useCallback(
+    (referee: Referee | null) => {
+      applyReferees(referee ? [referee] : []);
+    },
+    [applyReferees]
+  );
+
+  const togglePendingReferee = useCallback(
+    (refereeId: string) => {
+      setPendingRefereeIds(prev => {
+        if (prev.includes(refereeId)) return prev.filter(id => id !== refereeId);
+        if (prev.length >= maxRefereesPerPool) return prev;
+        return [...prev, refereeId];
+      });
+    },
+    [maxRefereesPerPool]
+  );
+
+  const confirmPendingReferees = useCallback(() => {
+    const byId = new Map(
+      [...competitionReferees, ...assignedReferees].map(r => [r.id, r] as const)
+    );
+    applyReferees(pendingRefereeIds.map(id => byId.get(id)).filter((r): r is Referee => !!r));
+  }, [competitionReferees, assignedReferees, pendingRefereeIds, applyReferees]);
 
   const { addAction, undo, redo, canUndo, canRedo } = useHistory();
+
+  // Supprime (réinitialise) un match terminé et rend l'opération annulable via Ctrl+Z
+  const handleMatchDelete = useCallback(
+    (matchIndex: number) => {
+      if (!onMatchReset) return;
+      const match = pool.matches[matchIndex];
+
+      if (!match || match.status !== MatchStatus.FINISHED) {
+        onMatchReset(matchIndex);
+        return;
+      }
+
+      const prevScoreA = match.scoreA;
+      const prevScoreB = match.scoreB;
+      const winner: 'A' | 'B' | undefined = prevScoreA?.isVictory
+        ? 'A'
+        : prevScoreB?.isVictory
+          ? 'B'
+          : undefined;
+      const specialStatus: 'abandon' | 'forfait' | 'exclusion' | undefined =
+        prevScoreA?.isAbstention || prevScoreB?.isAbstention
+          ? 'abandon'
+          : prevScoreA?.isForfait || prevScoreB?.isForfait
+            ? 'forfait'
+            : prevScoreA?.isExclusion || prevScoreB?.isExclusion
+              ? 'exclusion'
+              : undefined;
+
+      addAction({
+        type: 'DELETE_MATCH',
+        description: `Suppression score poule ${pool.number} match ${matchIndex + 1}`,
+        undo: () => {
+          if (prevScoreA?.value != null && prevScoreB?.value != null) {
+            onScoreUpdate(matchIndex, prevScoreA.value, prevScoreB.value, winner, specialStatus);
+          }
+        },
+        redo: () => {
+          onMatchReset(matchIndex);
+        },
+      });
+
+      onMatchReset(matchIndex);
+    },
+    [pool, onMatchReset, onScoreUpdate, addAction]
+  );
+
   const [showPoolConfetti, setShowPoolConfetti] = useState(false);
   const [showAddFencerModal, setShowAddFencerModal] = useState(false);
   const [auditMatchId, setAuditMatchId] = useState<string | null>(null);
@@ -204,7 +347,9 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   }, [pool.isComplete]);
 
   const isLaserSabre = weapon === Weapon.LASER;
-  const isLocked = pool.fencers.length > 0 && signedFencerIds.filter(id => pool.fencers.some(f => f.id === id)).length >= pool.fencers.length;
+  const isLocked =
+    pool.fencers.length > 0 &&
+    signedFencerIds.filter(id => pool.fencers.some(f => f.id === id)).length >= pool.fencers.length;
   const fencers = pool.fencers;
 
   const isVisible = useCallback(
@@ -214,6 +359,12 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     },
     [isLaserSabre, isColumnVisible, pool.id]
   );
+
+  // Filtre de colonnes modifié (colonne masquée ou option PDF) → bordure orange (#1032)
+  const columnFilterEdited =
+    POOL_COLUMNS.some(col => (col.id !== 'quest' || isLaserSabre) && !isVisible(col.id)) ||
+    pdfHideStatColumns ||
+    pdfLandscape;
 
   const columnMenuRef = useRef<HTMLDivElement>(null);
   const handleScoreSubmitRef = useRef<() => void>(() => {});
@@ -248,10 +399,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   // Raccourcis clavier
 
   // Clé de statut stable : recalculée seulement quand un statut change réellement
-  const matchesStatusKey = useMemo(
-    () => pool.matches.map(m => m.status).join(','),
-    [pool.matches]
-  );
+  const matchesStatusKey = useMemo(() => pool.matches.map(m => m.status).join(','), [pool.matches]);
 
   const orderedMatches = useMemo(() => {
     const cancelled = pool.matches
@@ -260,7 +408,10 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
     const pending = pool.matches
       .map((m, idx) => ({ match: m, index: idx }))
-      .filter(({ match }) => match.status !== MatchStatus.FINISHED && match.status !== MatchStatus.CANCELLED);
+      .filter(
+        ({ match }) =>
+          match.status !== MatchStatus.FINISHED && match.status !== MatchStatus.CANCELLED
+      );
 
     const finished = pool.matches
       .map((m, idx) => ({ match: m, index: idx }))
@@ -394,12 +545,47 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           if (!isLocked) redo();
           return;
         }
+        // Saisie simplifiée : survoler une case puis Suppr efface le score de ce match.
+        if (
+          e.key === 'Delete' &&
+          simplifiedInputMode &&
+          !isLocked &&
+          !inModalInput &&
+          target.tagName !== 'INPUT' &&
+          target.tagName !== 'TEXTAREA' &&
+          hoveredFencerIds.size === 2
+        ) {
+          e.preventDefault();
+          const [idA, idB] = Array.from(hoveredFencerIds);
+          const fencerA = fencers.find(f => f.id === idA);
+          const fencerB = fencers.find(f => f.id === idB);
+          if (fencerA && fencerB) {
+            const matchIndex = getMatchIndex(fencerA, fencerB);
+            if (matchIndex !== -1 && pool.matches[matchIndex]?.status === MatchStatus.FINISHED) {
+              handleMatchDelete(matchIndex);
+            }
+          }
+          return;
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [editingMatch, keyboardFocusField, isLaserSabre, orderedMatches.pending, undo, redo]);
+  }, [
+    editingMatch,
+    keyboardFocusField,
+    isLaserSabre,
+    orderedMatches.pending,
+    undo,
+    redo,
+    simplifiedInputMode,
+    isLocked,
+    hoveredFencerIds,
+    fencers,
+    pool.matches,
+    handleMatchDelete,
+  ]);
 
   // Calculer l'ordre optimal des matches restants
 
@@ -411,7 +597,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     );
   };
 
-  const { modalRef, dimensions } = useModalResize({
+  const { modalRef } = useModalResize({
     defaultWidth: 1440, // Doublé de 720 à 1440 (+100%)
     defaultHeight: 400,
     minWidth: 960, // Doublé de 480 à 960 (+100%)
@@ -439,7 +625,12 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
   const handleHoverLeave = () => setHoveredFencerIds(new Set());
 
-  const handleWheelScore = (rowFencer: Fencer, colFencer: Fencer, shiftKey: boolean, delta: number) => {
+  const handleWheelScore = (
+    rowFencer: Fencer,
+    colFencer: Fencer,
+    shiftKey: boolean,
+    delta: number
+  ) => {
     if (isLocked) return;
     const matchIndex = getMatchIndex(rowFencer, colFencer);
     if (matchIndex === -1) return;
@@ -474,36 +665,74 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   };
 
   const getOrderedCells = () => {
-    const cells: Array<{ rowFencer: Fencer; colFencer: Fencer; key: string; matchIndex: number; inverted: boolean }> = [];
+    const cells: Array<{
+      rowFencer: Fencer;
+      colFencer: Fencer;
+      key: string;
+      matchIndex: number;
+      inverted: boolean;
+    }> = [];
     for (const rowFencer of fencers) {
       for (const colFencer of fencers) {
         if (rowFencer.id === colFencer.id) continue;
         const isAbandoned =
-          rowFencer.status === FencerStatus.ABANDONED || rowFencer.status === FencerStatus.FORFAIT || rowFencer.status === FencerStatus.EXCLUDED ||
-          colFencer.status === FencerStatus.ABANDONED || colFencer.status === FencerStatus.FORFAIT || colFencer.status === FencerStatus.EXCLUDED;
+          rowFencer.status === FencerStatus.ABANDONED ||
+          rowFencer.status === FencerStatus.FORFAIT ||
+          rowFencer.status === FencerStatus.EXCLUDED ||
+          colFencer.status === FencerStatus.ABANDONED ||
+          colFencer.status === FencerStatus.FORFAIT ||
+          colFencer.status === FencerStatus.EXCLUDED;
         if (isAbandoned) continue;
         const matchIndex = getMatchIndex(rowFencer, colFencer);
         if (matchIndex === -1) continue;
         const match = pool.matches[matchIndex];
-        if (match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED) continue;
+        if (match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED)
+          continue;
         const inverted = match.fencerA?.id === colFencer.id;
-        cells.push({ rowFencer, colFencer, key: `${rowFencer.id}-${colFencer.id}`, matchIndex, inverted });
+        cells.push({
+          rowFencer,
+          colFencer,
+          key: `${rowFencer.id}-${colFencer.id}`,
+          matchIndex,
+          inverted,
+        });
       }
     }
     return cells;
   };
 
-  const openNextCell = (currentKey: string, skipKeys: Set<string>, buffer: Record<string, number>) => {
-    const cells = getOrderedCells().filter(c => !skipKeys.has(c.key));
+  const openNextCell = (
+    currentKey: string,
+    skipKeys: Set<string>,
+    buffer: Record<string, number>
+  ) => {
+    const cells = getOrderedCells();
     const currentIndex = cells.findIndex(c => c.key === currentKey);
-    const next = currentIndex === -1 ? cells[0] : cells[currentIndex + 1];
-    if (!next) {
-      setInlineEditCell(null);
-      setInlineSingleScore('');
-      return;
+    const startFrom = currentIndex === -1 ? 0 : currentIndex + 1;
+    for (let i = startFrom; i < cells.length; i++) {
+      if (!skipKeys.has(cells[i].key)) {
+        const next = cells[i];
+        setInlineEditCell({
+          key: next.key,
+          rowId: next.rowFencer.id,
+          colId: next.colFencer.id,
+          matchIndex: next.matchIndex,
+          inverted: next.inverted,
+        });
+        setInlineSingleScore(buffer[next.key] !== undefined ? String(buffer[next.key]) : '');
+        return;
+      }
     }
-    setInlineEditCell({ key: next.key, rowId: next.rowFencer.id, colId: next.colFencer.id, matchIndex: next.matchIndex, inverted: next.inverted });
-    setInlineSingleScore(buffer[next.key] !== undefined ? String(buffer[next.key]) : '');
+    setInlineEditCell(null);
+    setInlineSingleScore('');
+  };
+
+  // Score déjà enregistré pour une case (côté ligne), si le match a été saisi
+  const getRecordedCellScore = (matchIndex: number, inverted: boolean, mirror = false) => {
+    const match = pool.matches[matchIndex];
+    if (!match || match.status !== MatchStatus.FINISHED) return undefined;
+    const side = inverted !== mirror ? match.scoreB : match.scoreA;
+    return side?.value ?? undefined;
   };
 
   const handleCellClick = (rowFencer: Fencer, colFencer: Fencer) => {
@@ -516,7 +745,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     if (simplifiedInputMode) {
       const key = `${rowFencer.id}-${colFencer.id}`;
       setInlineEditCell({ key, rowId: rowFencer.id, colId: colFencer.id, matchIndex, inverted });
-      setInlineSingleScore(cellScoreBuffer[key] !== undefined ? String(cellScoreBuffer[key]) : '');
+      const current = cellScoreBuffer[key] ?? getRecordedCellScore(matchIndex, inverted);
+      setInlineSingleScore(current !== undefined ? String(current) : '');
       return;
     }
     openScoreModal(matchIndex, inverted);
@@ -535,8 +765,10 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const mirrorKey = `${colId}-${rowId}`;
     const newBuffer = { ...cellScoreBuffer, [key]: score };
 
-    if (newBuffer[mirrorKey] !== undefined) {
-      const mirrorScore = newBuffer[mirrorKey];
+    // Match déjà enregistré : la case miroir reprend son score actuel (#1046)
+    const mirrorScore = newBuffer[mirrorKey] ?? getRecordedCellScore(matchIndex, inverted, true);
+
+    if (mirrorScore !== undefined) {
       const actualScoreA = inverted ? mirrorScore : score;
       const actualScoreB = inverted ? score : mirrorScore;
 
@@ -546,7 +778,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         return;
       }
       if (actualScoreA === actualScoreB && !isLaserSabre) {
-        showToast("Match nul impossible !", 'error');
+        showToast('Match nul impossible !', 'error');
         return;
       }
 
@@ -627,8 +859,12 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         // Tirage au sort déjà décidé (ex: résultat importé depuis une tablette arbitre)
         const winnerLeft = victoryA;
         const winner: 'A' | 'B' = isMatchInverted
-          ? winnerLeft ? 'B' : 'A'
-          : winnerLeft ? 'A' : 'B';
+          ? winnerLeft
+            ? 'B'
+            : 'A'
+          : winnerLeft
+            ? 'A'
+            : 'B';
         addAction({
           type: 'UPDATE_SCORE',
           description: `Score poule ${pool.number} match ${matchIdx + 1}`,
@@ -698,7 +934,30 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const fencerLeft = isMatchInverted ? match.fencerB : match.fencerA;
     const fencerRight = isMatchInverted ? match.fencerA : match.fencerB;
 
-    if (side === 'left') {
+    // Sabre Laser (forfait/abandon) : le forfait perd en conservant les points qu'il
+    // vient de marquer, son adversaire obtient 15 points.
+    if (isLaserSabre && status !== 'exclusion') {
+      const leftForfeits = side === 'left';
+      const forfeiterPoints = Math.min(
+        parseInt(leftForfeits ? editScoreA : editScoreB, 10) || 0,
+        LASER_FORFEIT_WINNER_SCORE - 1
+      );
+      const leftScore = leftForfeits ? forfeiterPoints : LASER_FORFEIT_WINNER_SCORE;
+      const rightScore = leftForfeits ? LASER_FORFEIT_WINNER_SCORE : forfeiterPoints;
+      const winnerIsLeft = !leftForfeits;
+      const winner: 'A' | 'B' = isMatchInverted === winnerIsLeft ? 'B' : 'A';
+      onScoreUpdate(
+        editingMatch,
+        isMatchInverted ? rightScore : leftScore,
+        isMatchInverted ? leftScore : rightScore,
+        winner,
+        status
+      );
+      const forfeiter = leftForfeits ? fencerLeft : fencerRight;
+      if (onFencerStatusChange && forfeiter) {
+        onFencerStatusChange(forfeiter.id, status);
+      }
+    } else if (side === 'left') {
       // Le tireur affiché à gauche abandonne
       const winner: 'A' | 'B' = isMatchInverted ? 'A' : 'B';
       onScoreUpdate(
@@ -745,33 +1004,70 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   );
   const totalMatches = pool.matches.length;
 
+  // Options communes à l'export PDF et à l'impression de la feuille de poule
+  const buildPoolPrintOptions = async () => {
+    const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
+    const sigsArray = await window.electronAPI.db.getPoolSignatures(pool.id);
+    const signatures = Object.fromEntries(sigsArray.map(s => [s.fencerId, s.signatureData]));
+    return {
+      title: `Poule ${pool.number} - ${pool.fencers.length} tireurs`,
+      includeFinishedMatches: true,
+      includePendingMatches: true,
+      includePoolStats: true,
+      logoBase64: logo,
+      competitionName,
+      competitionId,
+      visibleColumns: getVisibleColumns('pool', pool.id),
+      hideStatColumns: pdfHideStatColumns,
+      landscape: pdfLandscape,
+      signatures,
+      stripQrUrl: stripQr?.url,
+      stripNumber: stripQr?.strip,
+    };
+  };
+
   // Export PDF function
   const handleExportPDF = async () => {
     try {
-      const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
-      const sigsArray = await window.electronAPI.db.getPoolSignatures(pool.id);
-      const signatures = Object.fromEntries(sigsArray.map(s => [s.fencerId, s.signatureData]));
+      const options = await buildPoolPrintOptions();
       const { exportPoolToPDF } = await import('../../shared/utils/pdfExport');
-      await exportPoolToPDF(
-        pool,
-        {
-          title: `Poule ${pool.number} - ${pool.fencers.length} tireurs`,
-          includeFinishedMatches: true,
-          includePendingMatches: true,
-          includePoolStats: true,
-          logoBase64: logo,
-          competitionName,
-          competitionId,
-          visibleColumns: getVisibleColumns('pool', pool.id),
-          signatures,
-        },
-        poolTemplate
-      );
+      await exportPoolToPDF(pool, options, poolTemplate);
       showToast(`Export PDF de la poule ${pool.number} généré avec succès`, 'success');
     } catch (error) {
       logger.error(LogCategory.UI, "Erreur lors de l'export PDF", error as Error);
       showToast(
         `Erreur lors de la génération du PDF: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+        'error'
+      );
+    }
+  };
+
+  // Impression directe de la feuille de poule (Ctrl+P / bouton 🖨️)
+  const handlePrintPool = async () => {
+    try {
+      const options = await buildPoolPrintOptions();
+      const { printPoolHTML } = await import('../../shared/utils/pdfExport');
+      await printPoolHTML(pool, options, poolTemplate);
+    } catch (error) {
+      logger.error(LogCategory.UI, "Erreur lors de l'impression de la poule", error as Error);
+      showToast(
+        `Erreur lors de l'impression: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+        'error'
+      );
+    }
+  };
+
+  // Aperçu avant impression : ouvre le PDF dans le lecteur par défaut de l'OS
+  // (utile sur Windows 11, où la boîte de dialogue d'impression native n'affiche pas d'aperçu)
+  const handlePreviewPool = async () => {
+    try {
+      const options = await buildPoolPrintOptions();
+      const { previewPoolHTML } = await import('../../shared/utils/pdfExport');
+      await previewPoolHTML(pool, options, poolTemplate);
+    } catch (error) {
+      logger.error(LogCategory.UI, "Erreur lors de l'aperçu de la poule", error as Error);
+      showToast(
+        `Erreur lors de la génération de l'aperçu: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
         'error'
       );
     }
@@ -797,39 +1093,61 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       return;
     }
 
+    // Arbitres : ceux de la poule en priorité, sinon ceux de la compétition (statistiques de test)
+    const refereeCandidates =
+      assignedReferees.length > 0 ? assignedReferees : (autoFillReferees ?? []);
+    if (onAutoFillReferees && refereeCandidates.length > 0) {
+      const load = new Map<string, number>();
+      for (const m of pool.matches) {
+        if (m.referee) load.set(m.referee.id, (load.get(m.referee.id) ?? 0) + 1);
+      }
+      const assignments = autoAssignReferees(
+        pendingMatches.map(({ match }) => match).filter(m => !m.referee),
+        refereeCandidates,
+        load
+      );
+      if (assignments.size > 0) onAutoFillReferees(assignments);
+    }
+
+    // Scores tirés au hasard, puis appliqués ; une seule action annulable (Ctrl+Z) (#1037)
+    const generated: Array<{ index: number; a: number; b: number; winner?: 'A' | 'B' }> = [];
     for (const { index } of pendingMatches) {
-      // Générer des scores aléatoires
       const scoreA = Math.floor(Math.random() * (maxScore + 1));
       const scoreB = Math.floor(Math.random() * (maxScore + 1));
 
-      // Si les scores sont égaux
       if (scoreA === scoreB) {
         if (isLaserSabre) {
           // En sabre laser, désigner un vainqueur aléatoire en cas d'égalité
-          const winnerOverride = Math.random() > 0.5 ? 'A' : 'B';
-          onScoreUpdate(index, scoreA, scoreB, winnerOverride);
-        } else {
+          generated.push({ index, a: scoreA, b: scoreB, winner: Math.random() > 0.5 ? 'A' : 'B' });
+        } else if (scoreA === 0) {
           // En escrime classique, éviter l'égalité
-          if (scoreA === 0) {
-            // Si les deux sont à 0, mettre l'un à 1
-            onScoreUpdate(index, 1, 0);
-          } else {
-            // Sinon, donner la victoire à un des deux aléatoirement
-            if (Math.random() > 0.5) {
-              onScoreUpdate(index, scoreA + 1, scoreB);
-            } else {
-              onScoreUpdate(index, scoreA, scoreB + 1);
-            }
-          }
+          generated.push({ index, a: 1, b: 0 });
+        } else if (Math.random() > 0.5) {
+          generated.push({ index, a: scoreA + 1, b: scoreB });
+        } else {
+          generated.push({ index, a: scoreA, b: scoreB + 1 });
         }
       } else {
         // Scores différents : désigner le vainqueur explicitement
-        const winnerOverride: 'A' | 'B' = scoreA > scoreB ? 'A' : 'B';
-        onScoreUpdate(index, scoreA, scoreB, winnerOverride);
+        generated.push({ index, a: scoreA, b: scoreB, winner: scoreA > scoreB ? 'A' : 'B' });
       }
     }
 
-    setMatchesUpdateTrigger(prev => prev + 1);
+    const applyGenerated = () => {
+      for (const g of generated) onScoreUpdate(g.index, g.a, g.b, g.winner);
+      setMatchesUpdateTrigger(prev => prev + 1);
+    };
+    addAction({
+      type: 'UPDATE_SCORE',
+      description: `Scores aléatoires poule ${pool.number} (${generated.length} matchs)`,
+      undo: () => {
+        for (const g of generated) onMatchReset?.(g.index);
+        setMatchesUpdateTrigger(prev => prev + 1);
+      },
+      redo: applyGenerated,
+    });
+    applyGenerated();
+
     showToast(`Scores générés pour ${pendingMatches.length} match(s)`, 'success');
   };
 
@@ -847,12 +1165,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           setIsMatchInverted(false);
         }}
       >
-        <div
-          ref={modalRef}
-          className="modal resizable"
-          onClick={e => e.stopPropagation()}
-          style={{ maxWidth: '900px', width: '95%', minHeight: '400px' }}
-        >
+        <div ref={modalRef} className="modal resizable" onClick={e => e.stopPropagation()}>
           <div className="modal-header" style={{ cursor: 'move' }}>
             <h3 className="modal-title">Saisie rapide du score</h3>
           </div>
@@ -864,9 +1177,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 const f = isMatchInverted ? match.fencerB : match.fencerA;
                 return (
                   <div style={nameCol('flex-end')}>
-                    <div style={nameLast('right')}>
-                      {f?.lastName}
-                    </div>
+                    <div style={nameLast('right')}>{f?.lastName}</div>
                     <div style={nameFirst('right')}>
                       {f?.firstName} {f?.club && `(${f.club})`}
                     </div>
@@ -985,9 +1296,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 const f = isMatchInverted ? match.fencerA : match.fencerB;
                 return (
                   <div style={nameCol('flex-start')}>
-                    <div style={nameLast('left')}>
-                      {f?.lastName}
-                    </div>
+                    <div style={nameLast('left')}>{f?.lastName}</div>
                     <div style={nameFirst('left')}>
                       {f?.firstName} {f?.club && `(${f.club})`}
                     </div>
@@ -1049,10 +1358,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               )}
             </div>
           </div>
-          <div
-            className="modal-footer"
-            style={FOOTER_RIGHT}
-          >
+          <div className="modal-footer" style={FOOTER_RIGHT}>
             <button
               className="btn btn-secondary"
               onClick={() => {
@@ -1152,14 +1458,18 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         onCellClick={handleCellClick}
         onFencerChangePool={onFencerChangePool}
         isLocked={isLocked}
-        onMatchReset={!isLocked && onMatchReset ? (rowFencer, colFencer) => {
-          const matchIndex = getMatchIndex(rowFencer, colFencer);
-          if (matchIndex !== -1) onMatchReset(matchIndex);
-        } : undefined}
+        onMatchReset={
+          !isLocked && onMatchReset
+            ? (rowFencer, colFencer) => {
+                const matchIndex = getMatchIndex(rowFencer, colFencer);
+                if (matchIndex !== -1) handleMatchDelete(matchIndex);
+              }
+            : undefined
+        }
         quickMouseScoring={quickMouseScoring}
         highlightedFencerIds={hoveredFencerIds}
-        onHoverCell={quickMouseScoring ? handleHoverCell : undefined}
-        onHoverLeave={quickMouseScoring ? handleHoverLeave : undefined}
+        onHoverCell={quickMouseScoring || simplifiedInputMode ? handleHoverCell : undefined}
+        onHoverLeave={quickMouseScoring || simplifiedInputMode ? handleHoverLeave : undefined}
         onWheelScore={quickMouseScoring ? handleWheelScore : undefined}
         simplifiedInputMode={simplifiedInputMode}
         inlineEditKey={inlineEditCell?.key ?? null}
@@ -1172,28 +1482,33 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       {orderedMatches.finished.length > 0 && (
         <div style={{ marginTop: '1rem' }}>
           <button
-            onClick={() => setShowFinishedLog((v) => !v)}
+            onClick={() => setShowFinishedLog(v => !v)}
             aria-expanded={showFinishedLog}
             style={LOG_TOGGLE}
           >
-            <span style={{ transition: 'transform 0.15s', transform: showFinishedLog ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+            <span
+              style={{
+                transition: 'transform 0.15s',
+                transform: showFinishedLog ? 'rotate(90deg)' : 'rotate(0deg)',
+              }}
+            >
               ▶
             </span>
             Journal des matchs terminés ({orderedMatches.finished.length})
           </button>
           {showFinishedLog && (
-          <div style={LOG_WRAP}>
-            {orderedMatches.finished.map(({ match }) => (
-              <button
-                key={match.id}
-                onClick={() => setAuditMatchId(match.id)}
-                style={LOG_ITEM}
-                title="Voir le journal du match"
-              >
-                📋 {match.fencerA?.lastName} vs {match.fencerB?.lastName}
-              </button>
-            ))}
-          </div>
+            <div style={LOG_WRAP}>
+              {orderedMatches.finished.map(({ match }) => (
+                <button
+                  key={match.id}
+                  onClick={() => setAuditMatchId(match.id)}
+                  style={LOG_ITEM}
+                  title="Voir le journal du match"
+                >
+                  📋 {match.fencerA?.lastName} vs {match.fencerB?.lastName}
+                </button>
+              ))}
+            </div>
           )}
         </div>
       )}
@@ -1221,9 +1536,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       return (
         <div style={{ ...NEXT_MATCH_BOX, background: '#6b7280', opacity: 0.7 }}>
           <div style={ROW_BETWEEN}>
-            <div style={MATCH_LABEL}>
-              ✕ Match non disputé
-            </div>
+            <div style={MATCH_LABEL}>✕ Match non disputé</div>
             <div style={MATCH_CENTER}>
               <span style={abandonName(fencerAAbandoned)}>
                 {nextMatch.match.fencerA?.lastName} {nextMatch.match.fencerA?.firstName?.charAt(0)}.
@@ -1241,11 +1554,14 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     }
 
     return (
-      <div style={{ ...NEXT_MATCH_BOX, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' }}>
+      <div
+        style={{
+          ...NEXT_MATCH_BOX,
+          background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+        }}
+      >
         <div style={ROW_BETWEEN}>
-          <div style={MATCH_LABEL}>
-            ⚔️ Prochain match
-          </div>
+          <div style={MATCH_LABEL}>⚔️ Prochain match</div>
           <div style={MATCH_CENTER}>
             <span style={FENCER_NAME}>
               {nextMatch.match.fencerA?.lastName} {nextMatch.match.fencerA?.firstName?.charAt(0)}.
@@ -1257,10 +1573,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               {nextMatch.match.fencerB?.ranking && ` #${nextMatch.match.fencerB.ranking}`}
             </span>
           </div>
-          <button
-            onClick={() => openScoreModal(nextMatch.index)}
-            style={NEXT_MATCH_SUBMIT}
-          >
+          <button onClick={() => openScoreModal(nextMatch.index)} style={NEXT_MATCH_SUBMIT}>
             Saisir
           </button>
         </div>
@@ -1268,300 +1581,432 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     );
   };
 
-
   return (
     <>
-    <div className="card">
-      <Confetti active={showPoolConfetti} particleCount={100} origin={{ x: 0.5, y: 0.5 }} />
-      {isLocked && (
-        <div style={LOCKED_BANNER}>
-          🔒 Feuille signée par tous les combattants — scores verrouillés
-        </div>
-      )}
-      <div
-        className="card-header"
-        style={ROW_BETWEEN}
-      >
-        <div style={HEADER_LEFT}>
-          <span>Poule {pool.number}</span>
-          <span className={`badge ${pool.isComplete ? 'badge-success' : 'badge-warning'}`}>
-            {pool.isComplete ? 'Terminée' : `${finishedCount}/${totalMatches}`}
-          </span>
-          {!pool.isComplete && totalMatches > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-              <div style={{ width: '72px', height: '5px', background: '#e5e7eb', borderRadius: '3px', overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%',
-                  width: `${(finishedCount / totalMatches) * 100}%`,
-                  background: finishedCount / totalMatches >= 0.7 ? '#10b981' : '#f59e0b',
-                  borderRadius: '3px',
-                  transition: 'width 0.4s ease',
-                }} />
-              </div>
-              <span style={{ fontSize: '0.7rem', color: '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                {finishedCount}/{totalMatches}
-              </span>
-            </div>
-          )}
-          {(() => {
-            const total = pool.fencers.length;
-            const signed = signedFencerIds.filter(id => pool.fencers.some(f => f.id === id)).length;
-            const allSigned = signed === total && total > 0;
-            const noneSigned = signed === 0;
-            return (
-              <span
-                title={allSigned ? 'Tous les combattants ont signé — PDF disponible' : `${signed}/${total} signature(s)`}
-                style={{
-                  ...BADGE_PILL,
-                  background: allSigned ? '#d1fae5' : noneSigned ? '#f3f4f6' : '#fef3c7',
-                  color: allSigned ? '#065f46' : noneSigned ? '#6b7280' : '#92400e',
-                  border: `1px solid ${allSigned ? '#6ee7b7' : noneSigned ? '#e5e7eb' : '#fcd34d'}`,
-                }}
-              >
-                ✍️ {signed}/{total}
-              </span>
-            );
-          })()}
-          <button
-            onClick={openRefereeModal}
-            title={assignedReferee ? `Arbitre : ${assignedReferee.lastName} ${assignedReferee.firstName}` : 'Assigner un arbitre'}
-            style={{
-              ...BADGE_PILL,
-              cursor: 'pointer',
-              background: assignedReferee ? '#dbeafe' : '#f3f4f6',
-              color: assignedReferee ? '#1d4ed8' : '#6b7280',
-              border: `1px solid ${assignedReferee ? '#93c5fd' : '#e5e7eb'}`,
-            }}
-          >
-            🧑‍⚖️ {assignedReferee ? `${assignedReferee.lastName}` : '+Arbitre'}
-          </button>
-        </div>
-        <div style={TOOLBAR_GROUP}>
-          <button
-            onClick={undo}
-            disabled={!canUndo}
-            style={{
-              ...ICON_BTN,
-              background: canUndo ? '#6b7280' : '#e5e7eb',
-              color: canUndo ? 'white' : '#9ca3af',
-              cursor: canUndo ? 'pointer' : 'not-allowed',
-            }}
-            title="Annuler (Ctrl+Z)"
-            aria-label="Annuler la dernière action"
-          >
-            ↩
-          </button>
-          <button
-            onClick={redo}
-            disabled={!canRedo}
-            style={{
-              ...ICON_BTN,
-              background: canRedo ? '#6b7280' : '#e5e7eb',
-              color: canRedo ? 'white' : '#9ca3af',
-              cursor: canRedo ? 'pointer' : 'not-allowed',
-            }}
-            title="Rétablir (Ctrl+Y)"
-            aria-label="Rétablir l'action annulée"
-          >
-            ↪
-          </button>
-          <button
-            onClick={handleAutoFillScores}
-            style={{ ...TOOLBAR_BTN, background: '#f59e0b', color: 'white' }}
-            title="Remplir automatiquement les scores (test)"
-          >
-            🎲 Auto
-          </button>
-          <button
-            onClick={handleExportPDF}
-            style={{ ...TOOLBAR_BTN, background: '#10b981', color: 'white' }}
-            title="Exporter la pôle en PDF"
-          >
-            📄 PDF
-          </button>
-          {pool.isComplete && isRemoteActive && remoteServerUrl && (
-            <button
-              onClick={() => {
-                const url = `${remoteServerUrl}/arene${defaultArena}/poule`;
-                if (window.electronAPI?.openExternal) {
-                  window.electronAPI.openExternal(url);
-                } else {
-                  window.open(url, '_blank');
-                }
-              }}
-              style={{ ...TOOLBAR_BTN, background: '#6366f1', color: 'white' }}
-              title={`Page signatures — arène ${defaultArena}`}
-            >
-              ✍️ Signature
-            </button>
-          )}
-          {competitionId && (
-            <button
-              onClick={() => setShowAddFencerModal(true)}
-              style={{ ...TOOLBAR_BTN, background: '#e5e7eb', color: '#374151' }}
-              title="Ajouter un tireur à cette poule"
-            >
-              ➕ Tireur
-            </button>
-          )}
-          <div style={RELATIVE} ref={columnMenuRef}>
-            <button
-              onClick={() => setShowColumnMenu(!showColumnMenu)}
-              style={{
-                ...TOOLBAR_BTN,
-                background: showColumnMenu ? '#6b7280' : '#e5e7eb',
-                color: showColumnMenu ? 'white' : '#374151',
-              }}
-              title="Afficher/masquer les colonnes"
-            >
-              ⚙️
-            </button>
-            {showColumnMenu && (
-              <div style={COL_MENU}>
-                <div style={COL_MENU_HEADER}>
-                  Colonnes à afficher
+      <div className="card">
+        <Confetti active={showPoolConfetti} particleCount={100} origin={{ x: 0.5, y: 0.5 }} />
+        {isLocked && (
+          <div style={LOCKED_BANNER}>
+            🔒 Feuille signée par tous les combattants — scores verrouillés
+          </div>
+        )}
+        <div className="card-header" style={ROW_BETWEEN}>
+          <div style={HEADER_LEFT}>
+            <span>Poule {pool.number}</span>
+            <span className={`badge ${pool.isComplete ? 'badge-success' : 'badge-warning'}`}>
+              {pool.isComplete ? 'Terminée' : `${finishedCount}/${totalMatches}`}
+            </span>
+            {!pool.isComplete && totalMatches > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                <div
+                  style={{
+                    width: '72px',
+                    height: '5px',
+                    background: '#e5e7eb',
+                    borderRadius: '3px',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${(finishedCount / totalMatches) * 100}%`,
+                      background: finishedCount / totalMatches >= 0.7 ? '#10b981' : '#f59e0b',
+                      borderRadius: '3px',
+                      transition: 'width 0.4s ease',
+                    }}
+                  />
                 </div>
-                {POOL_COLUMNS.filter(col => col.id !== 'quest' || isLaserSabre).map(col => (
+                <span
+                  style={{
+                    fontSize: '0.7rem',
+                    color: '#9ca3af',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {finishedCount}/{totalMatches}
+                </span>
+              </div>
+            )}
+            {(() => {
+              const total = pool.fencers.length;
+              const signed = signedFencerIds.filter(id =>
+                pool.fencers.some(f => f.id === id)
+              ).length;
+              const allSigned = signed === total && total > 0;
+              const noneSigned = signed === 0;
+              return (
+                <span
+                  title={
+                    allSigned
+                      ? 'Tous les combattants ont signé — PDF disponible'
+                      : `${signed}/${total} signature(s)`
+                  }
+                  style={{
+                    ...BADGE_PILL,
+                    background: allSigned ? '#d1fae5' : noneSigned ? '#f3f4f6' : '#fef3c7',
+                    color: allSigned ? '#065f46' : noneSigned ? '#6b7280' : '#92400e',
+                    border: `1px solid ${allSigned ? '#6ee7b7' : noneSigned ? '#e5e7eb' : '#fcd34d'}`,
+                  }}
+                >
+                  ✍️ {signed}/{total}
+                </span>
+              );
+            })()}
+            <button
+              onClick={openRefereeModal}
+              title={
+                assignedReferees.length > 0
+                  ? `${assignedReferees.length > 1 ? 'Arbitres' : 'Arbitre'} : ${assignedReferees.map(r => `${r.lastName} ${r.firstName}`).join(', ')}`
+                  : isMultiReferee
+                    ? 'Assigner des arbitres'
+                    : 'Assigner un arbitre'
+              }
+              style={{
+                ...BADGE_PILL,
+                cursor: 'pointer',
+                background: assignedReferee ? '#dbeafe' : '#f3f4f6',
+                color: assignedReferee ? '#1d4ed8' : '#6b7280',
+                border: `1px solid ${assignedReferee ? '#93c5fd' : '#e5e7eb'}`,
+              }}
+            >
+              🧑‍⚖️{' '}
+              {assignedReferees.length > 0
+                ? assignedReferees.map(r => r.lastName).join(' / ')
+                : '+Arbitre'}
+            </button>
+          </div>
+          <div style={TOOLBAR_GROUP}>
+            <button
+              onClick={undo}
+              disabled={!canUndo}
+              style={{
+                ...ICON_BTN,
+                background: canUndo ? '#6b7280' : '#e5e7eb',
+                color: canUndo ? 'white' : '#9ca3af',
+                cursor: canUndo ? 'pointer' : 'not-allowed',
+              }}
+              title="Annuler (Ctrl+Z)"
+              aria-label="Annuler la dernière action"
+            >
+              ↩
+            </button>
+            <button
+              onClick={redo}
+              disabled={!canRedo}
+              style={{
+                ...ICON_BTN,
+                background: canRedo ? '#6b7280' : '#e5e7eb',
+                color: canRedo ? 'white' : '#9ca3af',
+                cursor: canRedo ? 'pointer' : 'not-allowed',
+              }}
+              title="Rétablir (Ctrl+Y)"
+              aria-label="Rétablir l'action annulée"
+            >
+              ↪
+            </button>
+            <button
+              onClick={handleAutoFillScores}
+              style={{ ...ICON_ONLY_BTN, background: '#f59e0b', color: 'white' }}
+              title="Remplir automatiquement les scores (test)"
+              aria-label="Remplir automatiquement les scores (test)"
+            >
+              🎲
+            </button>
+            <button
+              onClick={handlePrintPool}
+              style={{ ...ICON_ONLY_BTN, background: '#3b82f6', color: 'white' }}
+              title="Imprimer la feuille de poule (Ctrl+P)"
+              aria-label="Imprimer la feuille de poule"
+            >
+              🖨️
+            </button>
+            <button
+              onClick={handlePreviewPool}
+              style={{ ...ICON_ONLY_BTN, background: '#8b5cf6', color: 'white' }}
+              title="Aperçu avant impression (ouvre un PDF dans le lecteur par défaut)"
+              aria-label="Aperçu avant impression"
+            >
+              👁️
+            </button>
+            <button
+              onClick={handleExportPDF}
+              style={{ ...ICON_ONLY_BTN, background: '#10b981', color: 'white' }}
+              title="Exporter la poule en PDF"
+              aria-label="Exporter la poule en PDF"
+            >
+              📄
+            </button>
+            {pool.isComplete && isRemoteActive && remoteServerUrl && (
+              <button
+                onClick={() => {
+                  const url = `${remoteServerUrl}/arene${defaultArena}/poule`;
+                  if (window.electronAPI?.openExternal) {
+                    window.electronAPI.openExternal(url);
+                  } else {
+                    window.open(url, '_blank');
+                  }
+                }}
+                style={{ ...ICON_ONLY_BTN, background: '#6366f1', color: 'white' }}
+                title={`Page signatures — arène ${defaultArena}`}
+                aria-label="Page signatures"
+              >
+                ✍️
+              </button>
+            )}
+            {competitionId && (
+              <button
+                onClick={() => setShowAddFencerModal(true)}
+                style={{ ...ICON_ONLY_BTN, background: '#e5e7eb', color: '#374151' }}
+                title="Ajouter un tireur à cette poule"
+                aria-label="Ajouter un tireur à cette poule"
+              >
+                ➕
+              </button>
+            )}
+            <div style={RELATIVE} ref={columnMenuRef}>
+              <button
+                onClick={() => setShowColumnMenu(!showColumnMenu)}
+                style={{
+                  ...ICON_ONLY_BTN,
+                  background: showColumnMenu ? '#6b7280' : '#e5e7eb',
+                  color: showColumnMenu ? 'white' : '#374151',
+                  ...(columnFilterEdited ? { border: '2px solid #f97316' } : {}),
+                }}
+                title={
+                  columnFilterEdited
+                    ? 'Afficher/masquer les colonnes (filtre modifié)'
+                    : 'Afficher/masquer les colonnes'
+                }
+                aria-label="Afficher/masquer les colonnes"
+              >
+                <Funnel size={14} />
+              </button>
+              {showColumnMenu && (
+                <div style={COL_MENU}>
+                  <div style={COL_MENU_HEADER}>Colonnes à afficher</div>
+                  {POOL_COLUMNS.filter(col => col.id !== 'quest' || isLaserSabre).map(col => (
+                    <label
+                      key={col.id}
+                      style={COL_MENU_LABEL}
+                      onMouseEnter={e =>
+                        (e.currentTarget.style.background = 'var(--color-surface-2)')
+                      }
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isVisible(col.id)}
+                        onChange={() => toggleColumn('pool', col.id, pool.id)}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      {col.label}
+                    </label>
+                  ))}
+                  <div style={{ ...COL_MENU_HEADER, marginTop: '0.5rem' }}>
+                    Export PDF / impression
+                  </div>
                   <label
-                    key={col.id}
                     style={COL_MENU_LABEL}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                    onMouseEnter={e =>
+                      (e.currentTarget.style.background = 'var(--color-surface-2)')
+                    }
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
                     <input
                       type="checkbox"
-                      checked={isVisible(col.id)}
-                      onChange={() => toggleColumn('pool', col.id, pool.id)}
+                      checked={pdfHideStatColumns}
+                      onChange={togglePdfHideStatColumns}
                       style={{ cursor: 'pointer' }}
                     />
-                    {col.label}
+                    Masquer V, V/M, TD, TR, Ind, Rg
                   </label>
-                ))}
-              </div>
-            )}
-          </div>
-          <div style={VIEW_GROUP}>
-            <button
-              onClick={() => setViewMode('grid')}
-              style={{
-                ...TOOLBAR_BTN,
-                background: viewMode === 'grid' ? '#3b82f6' : '#e5e7eb',
-                color: viewMode === 'grid' ? 'white' : '#374151',
-                borderRadius: '4px 0 0 4px',
-              }}
-            >
-              📊 Tableau
-            </button>
-            <button
-              onClick={() => setViewMode('matches')}
-              style={{
-                ...TOOLBAR_BTN,
-                background: viewMode === 'matches' ? '#3b82f6' : '#e5e7eb',
-                color: viewMode === 'matches' ? 'white' : '#374151',
-                borderRadius: '0 4px 4px 0',
-              }}
-            >
-              ⚔️ Matches
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="card-body" style={{ overflowX: 'auto' }}>
-        {viewMode === 'grid' ? (
-          <>
-            {renderGridView()}
-            {renderNextMatch()}
-          </>
-        ) : (
-          <PoolMatchList
-            orderedMatches={orderedMatches}
-            isLaserSabre={isLaserSabre}
-            isLocked={isLocked}
-            openScoreModal={openScoreModal}
-            onMatchReset={onMatchReset}
-            onShowMatchAudit={setAuditMatchId}
-            defaultArena={defaultArena}
-            arenaCount={arenaCount}
-            arenas={arenas}
-            isRemoteActive={isRemoteActive}
-            matchArenaOverrides={matchArenaOverrides}
-            onMatchArenaChange={handleMatchArenaChange}
-          />
-)}
-        {renderScoreModal()}
-        {renderSpecialStatusModal()}
-      </div>
-    </div>
-    {showAddFencerModal && competitionId && (
-      <AddFencerToPoolModal
-        pool={pool}
-        competitionId={competitionId}
-        maxScore={maxScore}
-        onConfirm={updatedPool => {
-          setShowAddFencerModal(false);
-          onFencerAdded?.(updatedPool);
-        }}
-        onClose={() => setShowAddFencerModal(false)}
-      />
-    )}
-    {auditMatchId && (
-      <React.Suspense fallback={null}>
-        <MatchAuditLog matchId={auditMatchId} onClose={() => setAuditMatchId(null)} />
-      </React.Suspense>
-    )}
-    {showRefereeModal && (
-      <div className="modal-overlay" onClick={() => setShowRefereeModal(false)}>
-        <div
-          ref={refereeModalRef}
-          className="modal"
-          onClick={e => e.stopPropagation()}
-          style={{ maxWidth: '400px' }}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="referee-modal-title"
-        >
-          <div className="modal-header">
-            <h3 className="modal-title" id="referee-modal-title">Assigner un arbitre</h3>
-            <button className="btn-close" onClick={() => setShowRefereeModal(false)}>&times;</button>
-          </div>
-          <div className="modal-body" style={{ padding: '1.5rem' }}>
-            <p style={{ marginBottom: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
-              Sélectionnez l'arbitre pour la poule {pool.number} :
-            </p>
-            <div style={COL_GAP}>
+                  <label
+                    style={COL_MENU_LABEL}
+                    onMouseEnter={e =>
+                      (e.currentTarget.style.background = 'var(--color-surface-2)')
+                    }
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={pdfLandscape}
+                      onChange={togglePdfLandscape}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    Format paysage
+                  </label>
+                </div>
+              )}
+            </div>
+            <div style={VIEW_GROUP}>
               <button
-                className={`btn ${!assignedReferee ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => handleAssignReferee(null)}
-                style={REF_BTN}
+                onClick={() => setViewMode('grid')}
+                style={{
+                  ...ICON_ONLY_BTN,
+                  background: viewMode === 'grid' ? '#3b82f6' : '#e5e7eb',
+                  color: viewMode === 'grid' ? 'white' : '#374151',
+                  borderRadius: '4px 0 0 4px',
+                }}
+                title="Vue tableau"
+                aria-label="Vue tableau"
               >
-                ✕ Aucun arbitre
+                📊
               </button>
-              {isLoadingReferees && (
-                <p style={REF_EMPTY}>
-                  Chargement des arbitres…
-                </p>
-              )}
-              {!isLoadingReferees && competitionReferees.length === 0 && (
-                <p style={REF_EMPTY}>
-                  Aucun arbitre enregistré pour cette compétition
-                </p>
-              )}
-              {!isLoadingReferees && competitionReferees.map(ref => (
-                <button
-                  key={ref.id}
-                  className={`btn ${assignedReferee?.id === ref.id ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => handleAssignReferee(ref)}
-                  style={{ ...REF_BTN, textAlign: 'left' }}
-                >
-                  🧑‍⚖️ {ref.lastName} {ref.firstName}
-                  {ref.club && <span style={{ marginLeft: '0.5rem', opacity: 0.6, fontSize: '0.8rem' }}>({ref.club})</span>}
-                </button>
-              ))}
+              <button
+                onClick={() => setViewMode('matches')}
+                style={{
+                  ...ICON_ONLY_BTN,
+                  background: viewMode === 'matches' ? '#3b82f6' : '#e5e7eb',
+                  color: viewMode === 'matches' ? 'white' : '#374151',
+                  borderRadius: '0 4px 4px 0',
+                }}
+                title="Vue matches"
+                aria-label="Vue matches"
+              >
+                ⚔️
+              </button>
             </div>
           </div>
         </div>
+        <div className="card-body" style={{ overflowX: 'auto' }}>
+          {viewMode === 'grid' ? (
+            <>
+              {renderGridView()}
+              {renderNextMatch()}
+            </>
+          ) : (
+            <PoolMatchList
+              orderedMatches={orderedMatches}
+              isLaserSabre={isLaserSabre}
+              isLocked={isLocked}
+              openScoreModal={openScoreModal}
+              onMatchReset={onMatchReset ? handleMatchDelete : undefined}
+              onShowMatchAudit={setAuditMatchId}
+              defaultArena={defaultArena}
+              arenaCount={arenaCount}
+              arenas={arenas}
+              isRemoteActive={isRemoteActive}
+              matchArenaOverrides={matchArenaOverrides}
+              cardScale={cardScale}
+              onMatchArenaChange={handleMatchArenaChange}
+            />
+          )}
+          {renderScoreModal()}
+          {renderSpecialStatusModal()}
+        </div>
       </div>
-    )}
+      {showAddFencerModal && competitionId && (
+        <AddFencerToPoolModal
+          pool={pool}
+          competitionId={competitionId}
+          maxScore={maxScore}
+          assignedFencerIds={assignedFencerIds}
+          onConfirm={updatedPool => {
+            setShowAddFencerModal(false);
+            onFencerAdded?.(updatedPool);
+          }}
+          onClose={() => setShowAddFencerModal(false)}
+        />
+      )}
+      {auditMatchId && (
+        <React.Suspense fallback={null}>
+          <MatchAuditLog matchId={auditMatchId} onClose={() => setAuditMatchId(null)} />
+        </React.Suspense>
+      )}
+      {showRefereeModal && (
+        <div className="modal-overlay" onClick={() => setShowRefereeModal(false)}>
+          <div
+            ref={refereeModalRef}
+            className="modal"
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: '400px' }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="referee-modal-title"
+          >
+            <div className="modal-header">
+              <h3 className="modal-title" id="referee-modal-title">
+                {isMultiReferee ? 'Assigner les arbitres' : 'Assigner un arbitre'}
+              </h3>
+              <button className="btn-close" onClick={() => setShowRefereeModal(false)}>
+                &times;
+              </button>
+            </div>
+            <div className="modal-body" style={{ padding: '1.5rem' }}>
+              <p style={{ marginBottom: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+                {isMultiReferee
+                  ? `Sélectionnez jusqu'à ${maxRefereesPerPool} arbitres pour la poule ${pool.number} (le premier sélectionné est l'arbitre principal) :`
+                  : `Sélectionnez l'arbitre pour la poule ${pool.number} :`}
+              </p>
+              <div style={COL_GAP}>
+                <button
+                  className={`btn ${!assignedReferee ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => handleAssignReferee(null)}
+                  style={REF_BTN}
+                >
+                  ✕ Aucun arbitre
+                </button>
+                {isLoadingReferees && <p style={REF_EMPTY}>Chargement des arbitres…</p>}
+                {!isLoadingReferees && competitionReferees.length === 0 && (
+                  <p style={REF_EMPTY}>Aucun arbitre pointé pour cette compétition</p>
+                )}
+                {!isLoadingReferees &&
+                  isMultiReferee &&
+                  competitionReferees.map(ref => {
+                    const order = pendingRefereeIds.indexOf(ref.id);
+                    const selected = order >= 0;
+                    const disabled = !selected && pendingRefereeIds.length >= maxRefereesPerPool;
+                    return (
+                      <button
+                        key={ref.id}
+                        className={`btn ${selected ? 'btn-primary' : 'btn-secondary'}`}
+                        onClick={() => togglePendingReferee(ref.id)}
+                        disabled={disabled}
+                        aria-pressed={selected}
+                        style={{ ...REF_BTN, textAlign: 'left' }}
+                      >
+                        {selected ? `☑ ${order + 1}.` : '☐'} 🧑‍⚖️ {ref.lastName} {ref.firstName}
+                        {ref.club && (
+                          <span style={{ marginLeft: '0.5rem', opacity: 0.6, fontSize: '0.8rem' }}>
+                            ({ref.club})
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                {!isLoadingReferees && isMultiReferee && competitionReferees.length > 0 && (
+                  <button
+                    className="btn btn-primary"
+                    onClick={confirmPendingReferees}
+                    style={REF_BTN}
+                  >
+                    ✓ Valider ({pendingRefereeIds.length}/{maxRefereesPerPool})
+                  </button>
+                )}
+                {!isLoadingReferees &&
+                  !isMultiReferee &&
+                  competitionReferees.map(ref => (
+                    <button
+                      key={ref.id}
+                      className={`btn ${assignedReferee?.id === ref.id ? 'btn-primary' : 'btn-secondary'}`}
+                      onClick={() => handleAssignReferee(ref)}
+                      style={{ ...REF_BTN, textAlign: 'left' }}
+                    >
+                      🧑‍⚖️ {ref.lastName} {ref.firstName}
+                      {ref.club && (
+                        <span style={{ marginLeft: '0.5rem', opacity: 0.6, fontSize: '0.8rem' }}>
+                          ({ref.club})
+                        </span>
+                      )}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

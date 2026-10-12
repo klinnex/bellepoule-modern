@@ -76,6 +76,9 @@ module.exports = (env = {}) => ({
     alias: {
       '@shared': path.resolve(__dirname, 'src/shared'),
       '@renderer': path.resolve(__dirname, 'src/renderer'),
+      // Build navigateur de uuid : la cible electron-renderer résout la variante
+      // « node » (require('crypto')), indisponible avec contextIsolation
+      uuid$: path.resolve(__dirname, 'node_modules/uuid/dist/cjs-browser/index.js'),
     },
   },
   stats: {

@@ -13,7 +13,10 @@ const reset = () =>
 
 const add = (fencerId: string, cardType: CardType) =>
   usePenaltyStore.getState().addPenalty({
-    fencerId, matchId: 'm1', cardType, reason: PenaltyReason.DELAY,
+    fencerId,
+    matchId: 'm1',
+    cardType,
+    reason: PenaltyReason.DELAY,
   } as any);
 
 beforeEach(() => reset());
@@ -80,6 +83,8 @@ describe('calculateScoreImpact / updateConfig', () => {
       DEFAULT_PENALTY_CONFIG.redCardTouches
     );
     store.updateConfig({ redCardTouches: 5 });
-    expect(usePenaltyStore.getState().calculateScoreImpact({ cardType: CardType.RED } as any)).toBe(5);
+    expect(usePenaltyStore.getState().calculateScoreImpact({ cardType: CardType.RED } as any)).toBe(
+      5
+    );
   });
 });

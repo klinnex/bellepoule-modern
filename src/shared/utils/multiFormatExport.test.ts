@@ -224,8 +224,20 @@ describe('exportResultsXMLFFE', () => {
       number: 1,
       fencerA: f1,
       fencerB: f2,
-      scoreA: { value: 5, isVictory: true, isAbstention: false, isExclusion: false, isForfait: false },
-      scoreB: { value: 3, isVictory: false, isAbstention: false, isExclusion: false, isForfait: false },
+      scoreA: {
+        value: 5,
+        isVictory: true,
+        isAbstention: false,
+        isExclusion: false,
+        isForfait: false,
+      },
+      scoreB: {
+        value: 3,
+        isVictory: false,
+        isAbstention: false,
+        isExclusion: false,
+        isForfait: false,
+      },
       maxScore: 5,
       status: MatchStatus.FINISHED,
       createdAt: new Date(),
@@ -286,7 +298,6 @@ describe('exportResultsXMLFFE', () => {
     const xml = exportResultsXMLFFE(makeCompetition(), [makeRanking(f)], []);
     expect(xml).toContain('Statut="E"');
   });
-
 });
 
 // ============================================================================
@@ -316,9 +327,7 @@ describe('exportDetailedStatsCSV', () => {
   it('handles zero matches without division error', () => {
     const f = makeFencer('f1', 1);
     const ranking = makeRanking(f, { victories: 0, defeats: 0, matchesPlayed: 0 });
-    expect(() =>
-      exportDetailedStatsCSV(makeCompetition(), [], [ranking])
-    ).not.toThrow();
+    expect(() => exportDetailedStatsCSV(makeCompetition(), [], [ranking])).not.toThrow();
   });
 });
 

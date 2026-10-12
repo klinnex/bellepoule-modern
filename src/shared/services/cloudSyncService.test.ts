@@ -45,7 +45,10 @@ describe('compression (round-trip)', () => {
 });
 
 describe('chiffrement (round-trip AES-GCM)', () => {
-  it('chiffre puis déchiffre vers la donnée d’origine', async () => {
+  // retry: le WebCrypto de Node échoue de façon intermittente sous charge
+  // concurrente (« Cipher job failed », cf. nodejs/node#47723) sans rapport
+  // avec le code testé ici.
+  it('chiffre puis déchiffre vers la donnée d’origine', { retry: 2 }, async () => {
     const svc = makeService({ encryptData: true }) as any;
     svc.encryptionKey = await window.crypto.subtle.generateKey(
       { name: 'AES-GCM', length: 256 },

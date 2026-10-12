@@ -10,13 +10,22 @@ import { useAnalyticsStore } from './useAnalyticsStore';
 const get = () => useAnalyticsStore.getState();
 
 beforeEach(() => {
-  useAnalyticsStore.setState({ fencerStats: [], competitionMetrics: null, isLoading: false, error: null } as any);
+  useAnalyticsStore.setState({
+    fencerStats: [],
+    competitionMetrics: null,
+    isLoading: false,
+    error: null,
+  } as any);
 });
-afterEach(() => { delete (window as any).electronAPI; });
+afterEach(() => {
+  delete (window as any).electronAPI;
+});
 
 describe('loadFencerStats', () => {
   it('charge les stats via le service', async () => {
-    (window as any).electronAPI = { db: { getCompetitionFencerStats: vi.fn(async () => [{ fencerId: 'f1' }]) } };
+    (window as any).electronAPI = {
+      db: { getCompetitionFencerStats: vi.fn(async () => [{ fencerId: 'f1' }]) },
+    };
     await get().loadFencerStats('c1');
     expect(get().fencerStats).toHaveLength(1);
     expect(get().isLoading).toBe(false);

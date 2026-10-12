@@ -313,15 +313,12 @@ export function simulateFormula(
       const phaseMinutes = matchCount * minutesPerMatch;
 
       if (poolSizes.some(s => s < 3)) {
-        warnings.push(`Tour ${i + 1} : poule de ${Math.min(...poolSizes)} tireurs (min recommandé : 3)`);
+        warnings.push(
+          `Tour ${i + 1} : poule de ${Math.min(...poolSizes)} tireurs (min recommandé : 3)`
+        );
       }
 
-      const advancingCount = calcAdvancingCount(
-        currentFencers,
-        cfg.advancementRule,
-        phases,
-        i
-      );
+      const advancingCount = calcAdvancingCount(currentFencers, cfg.advancementRule, phases, i);
 
       phases.push({
         phaseIndex: i,
@@ -342,7 +339,9 @@ export function simulateFormula(
       const byes = bracketSize - currentFencers;
 
       if (byes > bracketSize / 2) {
-        warnings.push(`DE : ${byes} exemptions sur ${bracketSize} — considérer un tableau plus petit`);
+        warnings.push(
+          `DE : ${byes} exemptions sur ${bracketSize} — considérer un tableau plus petit`
+        );
       }
 
       // Matchs réels = bracketSize - 1 (tournoi simple élimination) - byes

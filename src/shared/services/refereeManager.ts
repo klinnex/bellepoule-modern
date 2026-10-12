@@ -48,7 +48,9 @@ export class RefereeManager {
   assignRefereesToMatches(matches: Match[], pools: Pool[]): Map<string, Referee> {
     const assignments = new Map<string, Referee>();
     this.currentMatches = matches;
-    const matchQueue = [...matches].sort((a, b) => this.getMatchPriority(a) - this.getMatchPriority(b));
+    const matchQueue = [...matches].sort(
+      (a, b) => this.getMatchPriority(a) - this.getMatchPriority(b)
+    );
 
     for (const match of matchQueue) {
       const bestReferee = this.findBestRefereeForMatch(match, pools, assignments);
@@ -229,7 +231,8 @@ export class RefereeManager {
     // Mise à jour compteur consécutif : reset si temps de repos suffisant
     const prev = existing[existing.length - 2];
     if (prev) {
-      const minutesSinceLast = (assignment.assignmentTime.getTime() - prev.assignmentTime.getTime()) / 60000;
+      const minutesSinceLast =
+        (assignment.assignmentTime.getTime() - prev.assignmentTime.getTime()) / 60000;
       if (minutesSinceLast >= this.config.minRestTimeMinutes) {
         this.consecutiveCount.set(referee.id, 1);
       } else {
@@ -252,14 +255,14 @@ export class RefereeManager {
     const consecutive = this.consecutiveCount.get(refereeId) ?? 0;
     const assignments = this.assignments.get(refereeId) || [];
     const last = assignments[assignments.length - 1];
-    const minutesSinceLast = last
-      ? (Date.now() - last.assignmentTime.getTime()) / 60000
-      : Infinity;
+    const minutesSinceLast = last ? (Date.now() - last.assignmentTime.getTime()) / 60000 : Infinity;
 
     const consecutiveScore = Math.min(100, (consecutive / this.config.maxConsecutiveMatches) * 70);
-    const restScore = minutesSinceLast < this.config.minRestTimeMinutes
-      ? ((this.config.minRestTimeMinutes - minutesSinceLast) / this.config.minRestTimeMinutes) * 30
-      : 0;
+    const restScore =
+      minutesSinceLast < this.config.minRestTimeMinutes
+        ? ((this.config.minRestTimeMinutes - minutesSinceLast) / this.config.minRestTimeMinutes) *
+          30
+        : 0;
 
     return Math.round(consecutiveScore + restScore);
   }
@@ -285,7 +288,9 @@ export class RefereeManager {
 
       let restViolations = 0;
       for (let i = 1; i < assignments.length; i++) {
-        const diff = (assignments[i].assignmentTime.getTime() - assignments[i - 1].assignmentTime.getTime()) / 60000;
+        const diff =
+          (assignments[i].assignmentTime.getTime() - assignments[i - 1].assignmentTime.getTime()) /
+          60000;
         if (diff < this.config.minRestTimeMinutes) restViolations++;
       }
 

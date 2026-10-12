@@ -8,8 +8,12 @@ import {
   generatePoolMatchOrder,
   calculateFencerPoolStats,
   calculatePoolRanking,
+  calculateOverallRanking,
   formatRatio,
   formatIndex,
+  calculateOverallRankingQuest,
+  calculatePoolRankingQuest,
+  formatQuestPerMatch,
 } from './poolCalculations';
 import { Fencer, FencerStatus, Match, MatchStatus, Pool, Score, Weapon, Gender } from '../types';
 
@@ -215,7 +219,7 @@ describe('calculateFencerPoolStats', () => {
     expect(stats.victoryRatio).toBe(0);
   });
 
-  it("devrait annuler les matchs déjà disputés contre un tireur déclaré forfait", () => {
+  it('devrait annuler les matchs déjà disputés contre un tireur déclaré forfait', () => {
     // Règle : si un adversaire est FORFAIT, les points acquis lors de TOUS
     // ses matchs (même déjà joués) sont annulés pour les deux parties.
     const forfaitFencer = createMockFencer('ff', 99, 'Forfait');
@@ -313,22 +317,21 @@ describe('calculatePoolRanking', () => {
     expect(ranking[1].ratio).toBeCloseTo(2 / 3);
   });
 
-  it('should rank by maxSingleMatchScore when V/M ratio is tied', () => {
+  it('should rank by indice (TD-TR) when V/M ratio is tied — règle officielle FIE/FFE', () => {
     // Round-robin à 3 : A vs B, A vs C, B vs C
-    // A : bat B 5-1, perd vs C 4-5  → 1V/2M ratio=0.5, maxSingle=5
-    // B : perd vs A 1-5, bat C 4-3  → 1V/2M ratio=0.5, maxSingle=4
-    // C : bat A 5-4, perd vs B 3-4  → 1V/2M ratio=0.5, maxSingle=5
-    // C et A ont maxSingle=5 mais A a battu B (5-1) et C a perdu vs B →
-    //   en confrontation directe A vs C : C a gagné → C devant A
-    // → classement : C (ratio=0.5,max=5) > A (ratio=0.5,max=5) > B (ratio=0.5,max=4)
+    // A : bat B 5-1, perd vs C 4-5  → 1V/2M ratio=0.5, TD=9, TR=6, indice=+3
+    // B : perd vs A 1-5, bat C 4-3  → 1V/2M ratio=0.5, TD=5, TR=8, indice=-3
+    // C : bat A 5-4, perd vs B 3-4  → 1V/2M ratio=0.5, TD=8, TR=8, indice=0
+    // → classement : A (indice=+3) > C (indice=0) > B (indice=-3)
+    // (A précède C malgré la défaite face à C : l'indice prime sur la confrontation directe)
     const fA = createMockFencer('fA', 1, 'FencerA');
     const fB = createMockFencer('fB', 2, 'FencerB');
     const fC = createMockFencer('fC', 3, 'FencerC');
 
     const matches: Match[] = [
-      createMockMatch('m1', fA, fB, 5, 1), // A beats B (maxA=5, maxB=1)
-      createMockMatch('m2', fC, fA, 5, 4), // C beats A (maxC=5, maxA stays 5)
-      createMockMatch('m3', fB, fC, 4, 3), // B beats C (maxB=4, maxC stays 5)
+      createMockMatch('m1', fA, fB, 5, 1), // A beats B
+      createMockMatch('m2', fC, fA, 5, 4), // C beats A
+      createMockMatch('m3', fB, fC, 4, 3), // B beats C
     ];
 
     const pool: Pool = {
@@ -347,13 +350,12 @@ describe('calculatePoolRanking', () => {
 
     const ranking = calculatePoolRanking(pool);
 
-    // B doit être dernier (maxSingle=4, les deux autres ont 5)
+    expect(ranking[0].fencer.id).toBe(fA.id);
+    expect(ranking[0].index).toBe(3);
+    expect(ranking[1].fencer.id).toBe(fC.id);
+    expect(ranking[1].index).toBe(0);
     expect(ranking[2].fencer.id).toBe(fB.id);
-    expect(ranking[2].maxSingleMatchScore).toBe(4);
-    // A et C sont devant B
-    const posA = ranking.findIndex(r => r.fencer.id === fA.id);
-    const posB = ranking.findIndex(r => r.fencer.id === fB.id);
-    expect(posA).toBeLessThan(posB);
+    expect(ranking[2].index).toBe(-3);
   });
 
   it('should rank active fencer first and append excluded/forfeit/abandoned at the end', () => {
@@ -394,6 +396,111 @@ describe('calculatePoolRanking', () => {
 // Tests pour formatRatio
 // ============================================================================
 
+describe('calculateOverallRanking', () => {
+  const makePool = (id: string, fencers: Fencer[], matches: Match[]): Pool => ({
+    id,
+    number: 1,
+    phaseId: 'ph1',
+    fencers,
+    matches,
+    referees: [],
+    isComplete: true,
+    hasError: false,
+    ranking: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  it('départage les égalités de V/M par l’indice puis par TD (#910)', () => {
+    // Poule 1 : A bat B 5-0 → A : V/M 1, indice +5, TD 5
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    // Poule 2 : C bat D 5-4 → C : V/M 1, indice +1, TD 5
+    const c = createMockFencer('c', 3, 'C');
+    const d = createMockFencer('d', 4, 'D');
+    // Poule 3 : E bat F 4-3 → E : V/M 1, indice +1, TD 4
+    const e = createMockFencer('e', 5, 'E');
+    const f = createMockFencer('f', 6, 'F');
+
+    const ranking = calculateOverallRanking([
+      makePool('p3', [e, f], [createMockMatch('m3', e, f, 4, 3)]),
+      makePool('p2', [c, d], [createMockMatch('m2', c, d, 5, 4)]),
+      makePool('p1', [a, b], [createMockMatch('m1', a, b, 5, 0)]),
+    ]);
+
+    expect(ranking.slice(0, 3).map(r => r.fencer.id)).toEqual(['a', 'c', 'e']);
+    expect(ranking.slice(0, 3).map(r => r.rank)).toEqual([1, 2, 3]);
+  });
+
+  it('classe ex aequo en cas d’égalité parfaite V/M, indice et TD', () => {
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    const c = createMockFencer('c', 3, 'C');
+    const d = createMockFencer('d', 4, 'D');
+
+    const ranking = calculateOverallRanking([
+      makePool('p1', [a, b], [createMockMatch('m1', a, b, 5, 3)]),
+      makePool('p2', [c, d], [createMockMatch('m2', c, d, 5, 3)]),
+    ]);
+
+    expect(ranking[0].rank).toBe(1);
+    expect(ranking[1].rank).toBe(1);
+  });
+
+  it('l’indice prime sur les points Quest hors Sabre Laser (#944)', () => {
+    // A : bat X 5-1 (2 pts Quest), perd 0-5 contre Y → V/M 0.5, indice -1
+    const a = createMockFencer('a', 1, 'A');
+    const x = createMockFencer('x', 2, 'X');
+    const y = createMockFencer('y', 3, 'Y');
+    // C : bat Z 2-1 (1 pt Quest), perd 4-5 contre W → V/M 0.5, indice 0
+    const c = createMockFencer('c', 4, 'C');
+    const z = createMockFencer('z', 5, 'Z');
+    const w = createMockFencer('w', 6, 'W');
+
+    const ranking = calculateOverallRanking([
+      makePool(
+        'p1',
+        [a, x, y],
+        [createMockMatch('m1', a, x, 5, 1), createMockMatch('m2', a, y, 0, 5)]
+      ),
+      makePool(
+        'p2',
+        [c, z, w],
+        [createMockMatch('m3', c, z, 2, 1), createMockMatch('m4', c, w, 4, 5)]
+      ),
+    ]);
+
+    const ids = ranking.map(r => r.fencer.id);
+    expect(ids.indexOf('c')).toBeLessThan(ids.indexOf('a'));
+  });
+
+  it('classe les forfaits/abandons/exclus en dernier (#944)', () => {
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    const c = createMockFencer('c', 3, 'C');
+    const d = createMockFencer('d', 4, 'D');
+
+    // Classement de poule mis en cache avant l'exclusion de C (carton noir)
+    const p2 = makePool('p2', [c, d], [createMockMatch('m2', c, d, 5, 0)]);
+    p2.ranking = calculatePoolRanking(p2);
+    p2.fencers = [{ ...c, status: FencerStatus.EXCLUDED }, d];
+
+    const ranking = calculateOverallRanking([
+      makePool(
+        'p1',
+        [a, { ...b, status: FencerStatus.FORFAIT }],
+        [createMockMatch('m1', a, b, 0, 5)]
+      ),
+      p2,
+    ]);
+
+    const lastIds = ranking.slice(-2).map(r => r.fencer.id);
+    expect(lastIds.sort()).toEqual(['b', 'c']);
+    // A et D ex aequo (matchs contre forfait/exclu annulés), forfaits ensuite
+    expect(ranking.map(r => r.rank)).toEqual([1, 1, 3, 4]);
+  });
+});
+
 describe('formatRatio', () => {
   it('should format perfect ratio', () => {
     expect(formatRatio(1)).toBe('1.000');
@@ -427,5 +534,224 @@ describe('formatIndex', () => {
 
   it('should format zero index', () => {
     expect(formatIndex(0)).toBe('+0');
+  });
+});
+
+// ============================================================================
+// Tests classement Sabre Laser (règlement 2026, #1022)
+// ============================================================================
+
+describe('classement Quest (Sabre Laser)', () => {
+  const makePool = (id: string, fencers: Fencer[], matches: Match[]): Pool => ({
+    id,
+    number: 1,
+    phaseId: 'ph1',
+    fencers,
+    matches,
+    referees: [],
+    isComplete: true,
+    hasError: false,
+    ranking: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  it('départage par Q/M et non par le total de points Quest', () => {
+    // A : 1 match, victoire écart 12 → 4 Quest, Q/M 4
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    // E : 2 matchs, victoires écart 12 et 4 → 6 Quest, Q/M 3
+    const e = createMockFencer('e', 3, 'E');
+    const f = createMockFencer('f', 4, 'F');
+    const g = createMockFencer('g', 5, 'G');
+
+    const ranking = calculateOverallRankingQuest([
+      makePool(
+        'p2',
+        [e, f, g],
+        [createMockMatch('m2', e, f, 15, 3), createMockMatch('m3', e, g, 10, 6)]
+      ),
+      makePool('p1', [a, b], [createMockMatch('m1', a, b, 15, 3)]),
+    ]);
+
+    expect(ranking[0].fencer.id).toBe('a');
+    expect(ranking[1].fencer.id).toBe('e');
+    expect(formatQuestPerMatch(ranking[0])).toBe('4.00');
+    expect(formatQuestPerMatch(ranking[1])).toBe('3.00');
+  });
+
+  it('départage par indice avant les victoires par cotation', () => {
+    // A : victoires écart 12 (4 pts) et 1 (1 pt) → Q/M 2.5, indice +13, une V4
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    const c = createMockFencer('c', 3, 'C');
+    // D : victoires écart 11 (3 pts) et 7 (2 pts) → Q/M 2.5, indice +18, aucune V4
+    const d = createMockFencer('d', 4, 'D');
+    const e = createMockFencer('e', 5, 'E');
+    const f = createMockFencer('f', 6, 'F');
+
+    const pools = [
+      makePool(
+        'p1',
+        [a, b, c],
+        [createMockMatch('m1', a, b, 15, 3), createMockMatch('m2', a, c, 5, 4)]
+      ),
+      makePool(
+        'p2',
+        [d, e, f],
+        [createMockMatch('m3', d, e, 15, 4), createMockMatch('m4', d, f, 10, 3)]
+      ),
+    ];
+
+    const overall = calculateOverallRankingQuest(pools);
+    expect(overall.slice(0, 2).map(r => r.fencer.id)).toEqual(['d', 'a']);
+    expect(overall.slice(0, 2).map(r => r.rank)).toEqual([1, 2]);
+  });
+
+  it('départage par victoires par cotation à Q/M et indice égaux', () => {
+    // A (V4 + V1) contre D (V3 + V2) : même Q/M (2.5) et même indice (+15)
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    const c = createMockFencer('c', 3, 'C');
+    const pool = makePool(
+      'p1',
+      [a, b, c],
+      [
+        createMockMatch('m1', a, b, 15, 3), // A : écart 12 → V4
+        createMockMatch('m2', a, c, 5, 2), // A : écart 3 → V1 (indice A = +15)
+        createMockMatch('m3', b, c, 15, 6), // B : écart 9 → V3
+      ]
+    );
+    const d = createMockFencer('d', 4, 'D');
+    const e = createMockFencer('e', 5, 'E');
+    const f = createMockFencer('f', 6, 'F');
+    const pool2 = makePool(
+      'p2',
+      [d, e, f],
+      [
+        createMockMatch('m4', d, e, 14, 5), // D : écart 9 → V3
+        createMockMatch('m5', d, f, 10, 4), // D : écart 6 → V2 (indice D = +15)
+        createMockMatch('m6', e, f, 5, 4),
+      ]
+    );
+
+    const overall = calculateOverallRankingQuest([pool2, pool]);
+    expect(overall.slice(0, 2).map(r => r.fencer.id)).toEqual(['a', 'd']);
+    expect(overall.slice(0, 2).map(r => r.rank)).toEqual([1, 2]);
+  });
+
+  it('classement de poule : indice avant les cartons', () => {
+    // Cycle : chacun 1V/2M et 4 pts Quest → Q/M égal
+    const a = createMockFencer('a', 1, 'A');
+    const b = createMockFencer('b', 2, 'B');
+    const c = createMockFencer('c', 3, 'C');
+    const ranking = calculatePoolRankingQuest(
+      makePool(
+        'p1',
+        [a, b, c],
+        [
+          createMockMatch('m1', a, b, 15, 1), // A écart 14
+          createMockMatch('m2', b, c, 15, 2), // B écart 13
+          createMockMatch('m3', c, a, 15, 3), // C écart 12
+        ]
+      ),
+      { a: 1 }
+    );
+    // Indice : A +2, B -1, C -1 → A 1er malgré son carton
+    expect(ranking[0].fencer.id).toBe('a');
+    expect(ranking[0].rank).toBe(1);
+  });
+});
+
+// ============================================================================
+// Forfait en cours de poule – Sabre Laser (#1050)
+// ============================================================================
+
+describe('forfait en cours de poule (Sabre Laser)', () => {
+  // A forfait pendant son match contre C (A avait marqué 6), après avoir battu B.
+  // Son match contre D est annulé.
+  const build = () => {
+    const a = { ...createMockFencer('a', 1, 'A'), status: FencerStatus.FORFAIT };
+    const b = createMockFencer('b', 2, 'B');
+    const c = createMockFencer('c', 3, 'C');
+    const d = createMockFencer('d', 4, 'D');
+    const forfeitScore = (value: number | null): Score => ({
+      value,
+      isVictory: false,
+      isAbstention: false,
+      isExclusion: false,
+      isForfait: true,
+    });
+    const played = createMockMatch('m1', a, b, 15, 4);
+    const current: Match = {
+      ...createMockMatch('m2', a, c, 6, 15),
+      scoreA: forfeitScore(6),
+    };
+    const cancelled: Match = {
+      ...createMockMatch('m3', a, d, null, null),
+      scoreA: forfeitScore(null),
+    };
+    const others = [
+      createMockMatch('m4', b, c, 15, 10),
+      createMockMatch('m5', b, d, 15, 12),
+      createMockMatch('m6', c, d, 15, 14),
+    ];
+    const pool: Pool = {
+      id: 'p',
+      number: 1,
+      phaseId: 'x',
+      fencers: [a, b, c, d],
+      matches: [played, current, cancelled, ...others],
+      referees: [],
+      isComplete: true,
+      hasError: false,
+      ranking: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    return { a, b, c, d, pool };
+  };
+
+  it('conserve les matchs disputés et le match du forfait, ignore les matchs annulés', () => {
+    const { a, b, c, d, pool } = build();
+    const opts = { keepPlayedForfeitMatches: true };
+
+    const sa = calculateFencerPoolStats(a, pool.matches, opts);
+    expect(sa.matchesPlayed).toBe(2);
+    expect(sa.victories).toBe(1);
+    expect(sa.touchesScored).toBe(21);
+    expect(sa.touchesReceived).toBe(19);
+
+    const sb = calculateFencerPoolStats(b, pool.matches, opts);
+    expect(sb.matchesPlayed).toBe(3);
+    expect(sb.defeats).toBe(1);
+
+    const sc = calculateFencerPoolStats(c, pool.matches, opts);
+    expect(sc.matchesPlayed).toBe(3);
+    expect(sc.victories).toBe(2);
+
+    // D n'a pas rencontré A : 2 matchs au lieu de 3
+    const sd = calculateFencerPoolStats(d, pool.matches, opts);
+    expect(sd.matchesPlayed).toBe(2);
+  });
+
+  it('règle classique inchangée : tous les matchs contre le forfait sont annulés', () => {
+    const { b, pool } = build();
+    expect(calculateFencerPoolStats(b, pool.matches).matchesPlayed).toBe(2);
+  });
+
+  it('classe le forfait sur ses matchs disputés dans la poule', () => {
+    const { pool } = build();
+    const ranking = calculatePoolRankingQuest(pool);
+    const ra = ranking.find(r => r.fencer.id === 'a')!;
+    expect(ra.matchesPlayed).toBe(2);
+    expect(ra.ratio).toBe(0.5);
+    expect(ra.questPoints).toBeGreaterThan(0);
+  });
+
+  it('place le forfait en fin de classement général (non qualifié pour le tableau)', () => {
+    const { pool } = build();
+    const overall = calculateOverallRankingQuest([pool]);
+    expect(overall[overall.length - 1].fencer.id).toBe('a');
   });
 });

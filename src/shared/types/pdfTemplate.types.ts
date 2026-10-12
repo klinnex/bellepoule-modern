@@ -23,14 +23,23 @@ export interface PdfTemplate {
 }
 
 export const PDF_ELEMENT_IDS: Record<PdfDocType, string[]> = {
-  pool:    ['header', 'competition-name', 'gold-bar', 'meta-chips', 'score-grid', 'pending-matches', 'finished-matches', 'footer'],
+  pool: [
+    'header',
+    'competition-name',
+    'gold-bar',
+    'meta-chips',
+    'score-grid',
+    'pending-matches',
+    'finished-matches',
+    'footer',
+  ],
   tableau: ['header', 'gold-bar', 'match-cards', 'footer'],
   ranking: ['header', 'gold-bar', 'ranking-table', 'footer'],
 };
 
 export const DEFAULT_COLORS: PdfColorScheme = {
-  navy:  '#1a2e4a',
-  gold:  '#c9a227',
+  navy: '#1a2e4a',
+  gold: '#c9a227',
   green: '#166534',
 };
 

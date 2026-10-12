@@ -26,6 +26,32 @@ export interface NotificationConfig {
   };
 }
 
+/**
+ * Valide qu'une URL webhook est sécurisée (https uniquement, pas d'IP privée/localhost).
+ * Partagée entre le service de notification et l'UI de réglages pour éviter toute divergence.
+ */
+export function isWebhookUrlSafe(rawUrl: string): boolean {
+  try {
+    const url = new URL(rawUrl);
+    if (url.protocol !== 'https:') return false;
+    const h = url.hostname;
+    if (
+      h === 'localhost' ||
+      h === '127.0.0.1' ||
+      h === '::1' ||
+      /^10\./.test(h) ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(h) ||
+      /^192\.168\./.test(h) ||
+      /^169\.254\./.test(h)
+    ) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export interface NotificationPayload {
   title: string;
   body: string;
@@ -149,38 +175,16 @@ export class NotificationService {
   }
 
   /**
-   * Valide qu'une URL webhook est sécurisée (https uniquement, pas d'IP privée/localhost)
-   */
-  private isWebhookUrlSafe(rawUrl: string): boolean {
-    try {
-      const url = new URL(rawUrl);
-      if (url.protocol !== 'https:') return false;
-      const h = url.hostname;
-      if (
-        h === 'localhost' ||
-        h === '127.0.0.1' ||
-        h === '::1' ||
-        /^10\./.test(h) ||
-        /^172\.(1[6-9]|2\d|3[01])\./.test(h) ||
-        /^192\.168\./.test(h) ||
-        /^169\.254\./.test(h)
-      ) {
-        return false;
-      }
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
    * Send webhook notification
    */
   private async sendWebhook(payload: NotificationPayload): Promise<void> {
     if (!this.config.webhook) return;
 
-    if (!this.isWebhookUrlSafe(this.config.webhook.url)) {
-      logger.error(LogCategory.NETWORK, 'Webhook refusé : URL non sécurisée (doit être https vers un hôte public)');
+    if (!isWebhookUrlSafe(this.config.webhook.url)) {
+      logger.error(
+        LogCategory.NETWORK,
+        'Webhook refusé : URL non sécurisée (doit être https vers un hôte public)'
+      );
       return;
     }
 

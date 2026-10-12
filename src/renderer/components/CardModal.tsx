@@ -7,11 +7,7 @@
 import React, { useState, useMemo } from 'react';
 import { CardReason, Card, Fencer } from '../../shared/types';
 import { CardType } from '../../features/penalties/types/penalty.types';
-import {
-  determineCardType,
-  createCard,
-  getReasonsByGroup,
-} from '../../shared/utils/cardSystem';
+import { determineCardType, createCard, getReasonsByGroup } from '../../shared/utils/cardSystem';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface CardModalProps {
@@ -86,21 +82,31 @@ const CardModal_: React.FC<CardModalProps> = ({
 
   const getCardLabel = (cardType: string) => {
     switch (cardType) {
-      case CardType.WHITE:  return t('cardModal.card_white');
-      case CardType.YELLOW: return t('cardModal.card_yellow');
-      case CardType.RED:    return t('cardModal.card_red');
-      case CardType.BLACK:  return t('cardModal.card_black');
-      default:              return cardType;
+      case CardType.WHITE:
+        return t('cardModal.card_white');
+      case CardType.YELLOW:
+        return t('cardModal.card_yellow');
+      case CardType.RED:
+        return t('cardModal.card_red');
+      case CardType.BLACK:
+        return t('cardModal.card_black');
+      default:
+        return cardType;
     }
   };
 
   const getCardAbbr = (cardType: string) => {
     switch (cardType) {
-      case CardType.WHITE:  return t('cardModal.abbr_white');
-      case CardType.YELLOW: return t('cardModal.abbr_yellow');
-      case CardType.RED:    return t('cardModal.abbr_red');
-      case CardType.BLACK:  return t('cardModal.abbr_black');
-      default:              return cardType;
+      case CardType.WHITE:
+        return t('cardModal.abbr_white');
+      case CardType.YELLOW:
+        return t('cardModal.abbr_yellow');
+      case CardType.RED:
+        return t('cardModal.abbr_red');
+      case CardType.BLACK:
+        return t('cardModal.abbr_black');
+      default:
+        return cardType;
     }
   };
 
@@ -109,9 +115,7 @@ const CardModal_: React.FC<CardModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">
-          {t('cardModal.title', { name: fencerName })}
-        </h2>
+        <h2 className="text-xl font-bold mb-4">{t('cardModal.title', { name: fencerName })}</h2>
 
         {previousCards.length > 0 && (
           <div className="mb-4 p-3 bg-gray-100 rounded">

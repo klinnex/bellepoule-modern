@@ -51,14 +51,24 @@ describe('createMatch', () => {
 describe('updateBoutScore', () => {
   it('désigne le vainqueur et incrémente le score d’équipe', () => {
     const bout: TeamBout = {
-      id: 'b1', order: 1,
+      id: 'b1',
+      order: 1,
       fencerA: { id: 'fa', teamOrder: 1 } as any,
       fencerB: { id: 'fb', teamOrder: 1 } as any,
-      scoreA: 0, scoreB: 0, maxScore: 5, status: 'in_progress',
+      scoreA: 0,
+      scoreB: 0,
+      maxScore: 5,
+      status: 'in_progress',
     };
     const match: TeamMatch = {
-      id: 'm1', teamA: { id: 'tA' } as Team, teamB: { id: 'tB' } as Team,
-      bouts: [bout], scoreA: 0, scoreB: 0, status: 'in_progress', currentBoutIndex: 0,
+      id: 'm1',
+      teamA: { id: 'tA' } as Team,
+      teamB: { id: 'tB' } as Team,
+      bouts: [bout],
+      scoreA: 0,
+      scoreB: 0,
+      status: 'in_progress',
+      currentBoutIndex: 0,
     };
     useTeamStore.setState({ matches: [match] });
 
@@ -73,8 +83,14 @@ describe('updateBoutScore', () => {
 describe('finishMatch', () => {
   it('marque le match terminé et le vainqueur', () => {
     const match: TeamMatch = {
-      id: 'm1', teamA: { id: 'tA' } as Team, teamB: { id: 'tB' } as Team,
-      bouts: [], scoreA: 0, scoreB: 0, status: 'in_progress', currentBoutIndex: 0,
+      id: 'm1',
+      teamA: { id: 'tA' } as Team,
+      teamB: { id: 'tB' } as Team,
+      bouts: [],
+      scoreA: 0,
+      scoreB: 0,
+      status: 'in_progress',
+      currentBoutIndex: 0,
     };
     useTeamStore.setState({ matches: [match] });
     get().finishMatch('m1', 'tB');
@@ -86,7 +102,7 @@ describe('finishMatch', () => {
 describe('generatePools', () => {
   it('répartit les équipes en poules selon la taille', () => {
     useTeamStore.setState({
-      teams: ['1', '2', '3', '4', '5'].map(id => ({ id } as Team)),
+      teams: ['1', '2', '3', '4', '5'].map(id => ({ id }) as Team),
     });
     get().generatePools(['1', '2', '3', '4', '5'], 2);
     expect(get().pools).toHaveLength(3); // ceil(5/2)

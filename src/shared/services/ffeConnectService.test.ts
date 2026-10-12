@@ -24,8 +24,13 @@ describe('constructor', () => {
 describe('toFencer', () => {
   const svc = new FFEConnectService();
   const base = {
-    nom: 'Dupont', prenom: 'Jean', club: 'CEP', ligue: 'IDF',
-    licence: 'L123', nationalite: 'FRA', sexe: 'M' as const,
+    nom: 'Dupont',
+    prenom: 'Jean',
+    club: 'CEP',
+    ligue: 'IDF',
+    licence: 'L123',
+    nationalite: 'FRA',
+    sexe: 'M' as const,
   };
 
   it('mappe les champs de base + statut par défaut', () => {

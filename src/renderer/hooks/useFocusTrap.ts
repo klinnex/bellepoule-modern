@@ -10,10 +10,7 @@ import { useEffect, useRef } from 'react';
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
-export function useFocusTrap<T extends HTMLElement>(
-  active: boolean,
-  onClose?: () => void
-) {
+export function useFocusTrap<T extends HTMLElement>(active: boolean, onClose?: () => void) {
   const ref = useRef<T>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;

@@ -459,7 +459,7 @@
         }
 
         function renderCards(cards) {
-          return cards.map(c => {
+          return cards.filter(c => ['white', 'yellow', 'red', 'black'].includes(c)).map(c => {
             const label = c === 'white' ? 'B' : c === 'yellow' ? 'J' : 'R';
             return `<span class="card-badge ${c}">${label}</span>`;
           }).join('');

@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import { Competition, Fencer } from '../../shared/types';
+import { Competition, Fencer } from '../../../shared/types';
 
 export interface Team {
   id: string;
@@ -102,4 +102,60 @@ export interface TeamStats {
   averageBoutDuration: number;
   strongestFencer?: TeamFencer;
   weakestFencer?: TeamFencer;
+}
+
+// ============================================================================
+// DB/IPC row shapes — reflètent exactement window.electronAPI.db.getTeams*/getTeamMatches*
+// (distinct des types "idéalisés" ci-dessus, qui ne sont pas branchés sur la DB réelle)
+// ============================================================================
+
+export interface TeamFencerRow {
+  fencerId: string;
+  fencerLastName: string;
+  fencerFirstName: string;
+  teamOrder: number;
+  isReserve: boolean;
+}
+
+export interface TeamRow {
+  id: string;
+  name: string;
+  club: string;
+  fencers: TeamFencerRow[];
+}
+
+export interface TeamBoutRow {
+  id: string;
+  boutOrder: number;
+  fencerAId: string;
+  fencerBId: string;
+  scoreA: number;
+  scoreB: number;
+  maxScore: number;
+  status: string;
+  winnerId: string | null;
+}
+
+export interface TeamMatchRow {
+  id: string;
+  poolNumber?: number;
+  round?: number | null;
+  position?: number;
+  teamAId: string;
+  teamBId: string;
+  scoreBoutsA: number;
+  scoreBoutsB: number;
+  status: string;
+  winnerId: string | null;
+  currentBoutIndex: number;
+  bouts: TeamBoutRow[];
+}
+
+export interface TeamMatchCardRow {
+  id: string;
+  matchId: string;
+  teamId: string;
+  type: 'white' | 'yellow' | 'red' | 'black';
+  reason: string;
+  createdAt: string;
 }

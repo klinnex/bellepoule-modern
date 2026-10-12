@@ -5,7 +5,14 @@
  */
 
 import { Fencer, PoolRanking } from '../../../shared/types';
-import { TableauMatch, FinalResult, ConsolationBracket, propagateWinners } from './tableauTypes';
+import {
+  TableauMatch,
+  FinalResult,
+  ConsolationBracket,
+  propagateWinners,
+  isBracketComplete,
+  TableauSpecialStatusType,
+} from './tableauTypes';
 
 export const BASE_MATCH_HEIGHT = 100;
 export const SLOT_HEIGHT = BASE_MATCH_HEIGHT + 50; // hauteur d'un créneau dans la première colonne
@@ -37,12 +44,12 @@ export const generateFIESeeding = (size: number): number[] => {
   }
   if (size === 128) {
     return [
-      1, 128, 65, 64, 33, 96, 97, 32, 17, 112, 81, 48, 49, 80, 113, 16, 9, 120, 73, 56, 41, 88,
-      105, 24, 25, 104, 89, 40, 57, 72, 121, 8, 5, 124, 69, 60, 37, 92, 101, 28, 21, 108, 85, 44,
-      53, 76, 117, 12, 13, 116, 77, 52, 45, 84, 109, 20, 29, 100, 93, 36, 61, 68, 125, 4, 3, 126,
-      67, 62, 35, 94, 99, 30, 19, 110, 83, 46, 51, 78, 115, 14, 11, 118, 75, 54, 43, 86, 107, 22,
-      27, 102, 91, 38, 59, 70, 123, 6, 7, 122, 71, 58, 39, 90, 103, 26, 23, 106, 87, 42, 55, 74,
-      119, 10, 15, 114, 79, 50, 47, 82, 111, 18, 31, 98, 95, 34, 63, 66, 127, 2,
+      1, 128, 65, 64, 33, 96, 97, 32, 17, 112, 81, 48, 49, 80, 113, 16, 9, 120, 73, 56, 41, 88, 105,
+      24, 25, 104, 89, 40, 57, 72, 121, 8, 5, 124, 69, 60, 37, 92, 101, 28, 21, 108, 85, 44, 53, 76,
+      117, 12, 13, 116, 77, 52, 45, 84, 109, 20, 29, 100, 93, 36, 61, 68, 125, 4, 3, 126, 67, 62,
+      35, 94, 99, 30, 19, 110, 83, 46, 51, 78, 115, 14, 11, 118, 75, 54, 43, 86, 107, 22, 27, 102,
+      91, 38, 59, 70, 123, 6, 7, 122, 71, 58, 39, 90, 103, 26, 23, 106, 87, 42, 55, 74, 119, 10, 15,
+      114, 79, 50, 47, 82, 111, 18, 31, 98, 95, 34, 63, 66, 127, 2,
     ];
   }
   return Array.from({ length: size }, (_, i) => i + 1);
@@ -218,9 +225,10 @@ export const buildTableauMatches = (
   // Premier tour du tableau principal
   // Avec barrages : les mainSize - barrageCount premiers seeds sont placés directement,
   // les barrageCount derniers slots seront remplis par les gagnants des barrages.
-  const directFencers = playAllPositions && barrageCount > 0
-    ? qualifiedFencers.slice(0, mainSize - barrageCount)
-    : qualifiedFencers;
+  const directFencers =
+    playAllPositions && barrageCount > 0
+      ? qualifiedFencers.slice(0, mainSize - barrageCount)
+      : qualifiedFencers;
 
   const size = mainSize;
   const seeding = generateFIESeeding(size);
@@ -300,12 +308,13 @@ export const autoFillTableauScores = (
 
   // Traiter les matchs par ordre décroissant de round (du premier tour vers la finale)
   // Exclure la petite finale (round 3) car elle dépend des résultats des demi-finales
-  const rounds = [...new Set(matches.map(m => m.round))]
-    .filter(r => r !== 3)
-    .sort((a, b) => b - a);
+  const rounds = [...new Set(matches.map(m => m.round))].filter(r => r !== 3).sort((a, b) => b - a);
 
   for (const round of rounds) {
-    const roundMatches = updatedMatches.filter(m => m.round === round && !m.winner && !m.isBye);
+    // Ignorer les matchs incomplets (adversaire en attente : gagnant de barrage, etc.)
+    const roundMatches = updatedMatches.filter(
+      m => m.round === round && !m.winner && !m.isBye && m.fencerA && m.fencerB
+    );
 
     for (const match of roundMatches) {
       // Générer des scores aléatoires
@@ -380,6 +389,168 @@ export const autoFillTableauScores = (
   return { updatedMatches, filledCount };
 };
 
+// Mode « toutes les places » : place les gagnants de barrages dans le premier tour du
+// tableau principal. Mute `matchList`, retourne true si un tireur a été placé.
+export const placeBarrageWinners = (matchList: TableauMatch[], tableauSize: number): boolean => {
+  const barrageMatches = matchList.filter(m => m.round === tableauSize * 2);
+  if (barrageMatches.length === 0) return false;
+
+  // directCount fixe = nombre de tireurs qui vont directement au tableau (sans barrage)
+  const directCount = tableauSize - barrageMatches.length;
+  const firstRoundMatches = matchList
+    .filter(m => m.round === tableauSize)
+    .sort((a, b) => a.position - b.position);
+  const seeding = generateFIESeeding(tableauSize);
+  let placed = false;
+
+  for (let i = 0; i < barrageMatches.length; i++) {
+    const barrage = barrageMatches[i];
+    if (!barrage.winner) continue;
+    // Le gagnant du barrage i occupe le slot pour seed = directCount + i + 1
+    const targetPos = seeding.indexOf(directCount + i + 1);
+    if (targetPos < 0) continue;
+    const match = firstRoundMatches[Math.floor(targetPos / 2)];
+    if (!match) continue;
+    const isA = targetPos % 2 === 0;
+    const current = isA ? match.fencerA : match.fencerB;
+    if (current?.id === barrage.winner.id) continue;
+    if (isA) match.fencerA = barrage.winner;
+    else match.fencerB = barrage.winner;
+    placed = true;
+  }
+
+  if (placed) propagateWinners(matchList, tableauSize);
+  return placed;
+};
+
+// Mode « toutes les places » : crée les brackets de consolation (barrages, rounds du
+// tableau principal, sous-brackets) et marque les brackets terminés.
+export const syncConsolationBrackets = (
+  matchList: TableauMatch[],
+  brackets: ConsolationBracket[],
+  tableauSize: number,
+  ranking: PoolRanking[]
+): { brackets: ConsolationBracket[]; changed: boolean } => {
+  const updated = [...brackets];
+  let changed = false;
+
+  // Barrages : round = mainSize * 2
+  const barrageRound = tableauSize * 2;
+  const barrageMatches = matchList.filter(m => m.round === barrageRound);
+  if (barrageMatches.length > 0 && isRoundComplete(matchList, barrageRound)) {
+    const alreadyExists = updated.some(
+      b => b.sourceRound === barrageRound && b.parentBracketId === 'main'
+    );
+    if (!alreadyExists) {
+      const losers = getRoundLosers(matchList, barrageRound, ranking);
+      if (losers.length > 0) {
+        // bracket pour les dernières places
+        updated.push(buildConsolationBracket(losers, tableauSize + 1, barrageRound, 'main'));
+        changed = true;
+      }
+    }
+  }
+
+  // Chaque round du tableau principal (> 4, donc QF et plus profonds)
+  const mainRounds = [
+    tableauSize,
+    ...Array.from(
+      { length: Math.log2(tableauSize) - 2 },
+      (_, i) => tableauSize / Math.pow(2, i + 1)
+    ),
+  ].filter(r => r > 4);
+  for (const round of mainRounds) {
+    if (!isRoundComplete(matchList, round)) continue;
+    const alreadyExists = updated.some(
+      b => b.sourceRound === round && b.parentBracketId === 'main'
+    );
+    if (alreadyExists) continue;
+    const losers = getRoundLosers(matchList, round, ranking);
+    if (losers.length === 0) continue;
+    updated.push(buildConsolationBracket(losers, consolationFirstPlace(1, round), round, 'main'));
+    changed = true;
+  }
+
+  // Brackets de consolation existants → sous-brackets
+  for (let idx = 0; idx < updated.length; idx++) {
+    const bracket = updated[idx];
+    if (bracket.isComplete) continue;
+    const bracketRounds = Array.from(
+      { length: Math.log2(bracket.size) - 1 },
+      (_, i) => bracket.size / Math.pow(2, i)
+    ).filter(r => r > 4);
+
+    for (const round of bracketRounds) {
+      if (!isRoundComplete(bracket.matches, round)) continue;
+      const alreadyExists = updated.some(
+        b => b.sourceRound === round && b.parentBracketId === bracket.id
+      );
+      if (alreadyExists) continue;
+      const losers = getRoundLosers(bracket.matches, round, ranking);
+      if (losers.length === 0) continue;
+      const fp = consolationFirstPlace(bracket.firstPlace, round);
+      updated.push(buildConsolationBracket(losers, fp, round, bracket.id));
+      changed = true;
+    }
+
+    if (isBracketComplete(bracket.matches)) {
+      updated[idx] = { ...bracket, isComplete: true };
+      changed = true;
+    }
+  }
+
+  return { brackets: changed ? updated : brackets, changed };
+};
+
+// Mode « toutes les places » : remplit aléatoirement barrages, tableau principal et
+// TOUS les brackets de consolation (créés au fil de l'eau) jusqu'au classement complet.
+export const autoFillAllPositions = (
+  matches: TableauMatch[],
+  brackets: ConsolationBracket[],
+  effectiveMax: number,
+  tableauSize: number,
+  ranking: PoolRanking[]
+): {
+  updatedMatches: TableauMatch[];
+  updatedBrackets: ConsolationBracket[];
+  filledCount: number;
+} => {
+  let updatedMatches = matches.map(m => ({ ...m }));
+  let filledCount = 0;
+
+  // Tableau principal : barrages → placement des gagnants → tours suivants
+  for (;;) {
+    const res = autoFillTableauScores(updatedMatches, effectiveMax, tableauSize);
+    updatedMatches = res.updatedMatches.map(m => ({ ...m }));
+    filledCount += res.filledCount;
+    const placed = placeBarrageWinners(updatedMatches, tableauSize);
+    if (res.filledCount === 0 && !placed) break;
+  }
+
+  // Brackets de consolation : création → remplissage, jusqu'à stabilité
+  let updatedBrackets = brackets;
+  for (;;) {
+    const sync = syncConsolationBrackets(updatedMatches, updatedBrackets, tableauSize, ranking);
+    updatedBrackets = sync.brackets;
+    let filledHere = 0;
+    updatedBrackets = updatedBrackets.map(bracket => {
+      if (bracket.isComplete) return bracket;
+      const res = autoFillTableauScores(
+        bracket.matches.map(m => ({ ...m })),
+        effectiveMax,
+        bracket.size
+      );
+      if (res.filledCount === 0) return bracket;
+      filledHere += res.filledCount;
+      return { ...bracket, matches: res.updatedMatches.map(m => ({ ...m })) };
+    });
+    filledCount += filledHere;
+    if (!sync.changed && filledHere === 0) break;
+  }
+
+  return { updatedMatches, updatedBrackets, filledCount };
+};
+
 // Helper: calculer les touches marquées par un tireur dans tous les matchs de tableau
 export const getTableTouches = (fencerId: string, matchList: TableauMatch[]): number => {
   let touches = 0;
@@ -397,6 +568,32 @@ export const getTableTouches = (fencerId: string, matchList: TableauMatch[]): nu
 export const getPoolTouches = (fencerId: string, ranking: PoolRanking[]): number => {
   const poolRank = ranking.find(r => r.fencer.id === fencerId);
   return poolRank?.touchesScored ?? 0;
+};
+
+const SPECIAL_STATUS_LABELS: Record<TableauSpecialStatusType, string> = {
+  abandon: 'abandon',
+  forfait: 'forfait',
+  exclusion: 'exclusion',
+};
+
+/** Ajoute « (abandon) », « (forfait) » ou « (exclusion) » au tour d'élimination (#1012) */
+const annotateSpecialStatus = (
+  results: FinalResult[],
+  matchList: TableauMatch[]
+): FinalResult[] => {
+  const statusByFencer = new Map<string, TableauSpecialStatusType>();
+  for (const m of matchList) {
+    if (m.specialStatus && m.winner && m.winner.id !== m.specialStatus.fencerId) {
+      statusByFencer.set(m.specialStatus.fencerId, m.specialStatus.status);
+    }
+  }
+  if (statusByFencer.size === 0) return results;
+  return results.map(r => {
+    const status = statusByFencer.get(r.fencer.id);
+    return status
+      ? { ...r, eliminatedAt: `${r.eliminatedAt} (${SPECIAL_STATUS_LABELS[status]})` }
+      : r;
+  });
 };
 
 export const calculateFinalResults = (
@@ -490,9 +687,10 @@ export const calculateFinalResults = (
   // Issue #61: Les éliminés en quarts se retrouvaient en bas du classement
   // Issue #60: Les tireurs éliminés à chaque tour ont des rangs distincts
   // Issue #59: Départage par somme des points Quest (poules + tableau)
-  const effectiveSize = matchList.length > 0
-    ? Math.max(...matchList.filter(m => m.round !== 3).map(m => m.round))
-    : tableauSize;
+  const effectiveSize =
+    matchList.length > 0
+      ? Math.max(...matchList.filter(m => m.round !== 3).map(m => m.round))
+      : tableauSize;
   const rounds = [4, 8, 16, 32, 64, 128].filter(r => r <= effectiveSize);
   let currentRank = thirdPlaceMatch?.winner ? 5 : 3;
 
@@ -545,7 +743,10 @@ export const calculateFinalResults = (
 
   // DEBUG: console.log('Résultats finaux:', results.map(r => `${r.rank}. ${r.fencer.lastName}`).join(', '));
 
-  return results.sort((a, b) => a.rank - b.rank);
+  return annotateSpecialStatus(
+    results.sort((a, b) => a.rank - b.rank),
+    matchList
+  );
 };
 
 // Construit les résultats combinés pour le mode playAllPositions
@@ -560,18 +761,46 @@ export const buildCombinedResults = (
   const finalM = mainMatches.find(m => m.round === 2);
   const thirdM = mainMatches.find(m => m.round === 3);
   if (finalM?.winner) {
-    results.push({ rank: 1, fencer: finalM.winner, eliminatedAt: 'Vainqueur',
-      poolTouches: getPoolTouches(finalM.winner.id, ranking), tableTouches: getTableTouches(finalM.winner.id, mainMatches), totalTouches: getPoolTouches(finalM.winner.id, ranking) + getTableTouches(finalM.winner.id, mainMatches) });
+    results.push({
+      rank: 1,
+      fencer: finalM.winner,
+      eliminatedAt: 'Vainqueur',
+      poolTouches: getPoolTouches(finalM.winner.id, ranking),
+      tableTouches: getTableTouches(finalM.winner.id, mainMatches),
+      totalTouches:
+        getPoolTouches(finalM.winner.id, ranking) + getTableTouches(finalM.winner.id, mainMatches),
+    });
     const loser2 = finalM.fencerA?.id === finalM.winner.id ? finalM.fencerB : finalM.fencerA;
-    if (loser2) results.push({ rank: 2, fencer: loser2, eliminatedAt: 'Finale',
-      poolTouches: getPoolTouches(loser2.id, ranking), tableTouches: getTableTouches(loser2.id, mainMatches), totalTouches: getPoolTouches(loser2.id, ranking) + getTableTouches(loser2.id, mainMatches) });
+    if (loser2)
+      results.push({
+        rank: 2,
+        fencer: loser2,
+        eliminatedAt: 'Finale',
+        poolTouches: getPoolTouches(loser2.id, ranking),
+        tableTouches: getTableTouches(loser2.id, mainMatches),
+        totalTouches: getPoolTouches(loser2.id, ranking) + getTableTouches(loser2.id, mainMatches),
+      });
   }
   if (thirdM?.winner) {
-    results.push({ rank: 3, fencer: thirdM.winner, eliminatedAt: 'Petite Finale',
-      poolTouches: getPoolTouches(thirdM.winner.id, ranking), tableTouches: getTableTouches(thirdM.winner.id, mainMatches), totalTouches: getPoolTouches(thirdM.winner.id, ranking) + getTableTouches(thirdM.winner.id, mainMatches) });
+    results.push({
+      rank: 3,
+      fencer: thirdM.winner,
+      eliminatedAt: 'Petite Finale',
+      poolTouches: getPoolTouches(thirdM.winner.id, ranking),
+      tableTouches: getTableTouches(thirdM.winner.id, mainMatches),
+      totalTouches:
+        getPoolTouches(thirdM.winner.id, ranking) + getTableTouches(thirdM.winner.id, mainMatches),
+    });
     const loser4 = thirdM.fencerA?.id === thirdM.winner.id ? thirdM.fencerB : thirdM.fencerA;
-    if (loser4) results.push({ rank: 4, fencer: loser4, eliminatedAt: 'Petite Finale',
-      poolTouches: getPoolTouches(loser4.id, ranking), tableTouches: getTableTouches(loser4.id, mainMatches), totalTouches: getPoolTouches(loser4.id, ranking) + getTableTouches(loser4.id, mainMatches) });
+    if (loser4)
+      results.push({
+        rank: 4,
+        fencer: loser4,
+        eliminatedAt: 'Petite Finale',
+        poolTouches: getPoolTouches(loser4.id, ranking),
+        tableTouches: getTableTouches(loser4.id, mainMatches),
+        totalTouches: getPoolTouches(loser4.id, ranking) + getTableTouches(loser4.id, mainMatches),
+      });
   }
 
   // Résultats de chaque bracket de consolation
@@ -581,22 +810,55 @@ export const buildCombinedResults = (
     const bThird = bracket.matches.find(m => m.round === 3);
     const fp = bracket.firstPlace;
     if (bFinal?.winner) {
-      results.push({ rank: fp, fencer: bFinal.winner, eliminatedAt: bracket.name,
-        poolTouches: getPoolTouches(bFinal.winner.id, ranking), tableTouches: getTableTouches(bFinal.winner.id, bracket.matches), totalTouches: getPoolTouches(bFinal.winner.id, ranking) + getTableTouches(bFinal.winner.id, bracket.matches) });
+      results.push({
+        rank: fp,
+        fencer: bFinal.winner,
+        eliminatedAt: bracket.name,
+        poolTouches: getPoolTouches(bFinal.winner.id, ranking),
+        tableTouches: getTableTouches(bFinal.winner.id, bracket.matches),
+        totalTouches:
+          getPoolTouches(bFinal.winner.id, ranking) +
+          getTableTouches(bFinal.winner.id, bracket.matches),
+      });
       const l2 = bFinal.fencerA?.id === bFinal.winner.id ? bFinal.fencerB : bFinal.fencerA;
-      if (l2) results.push({ rank: fp + 1, fencer: l2, eliminatedAt: bracket.name,
-        poolTouches: getPoolTouches(l2.id, ranking), tableTouches: getTableTouches(l2.id, bracket.matches), totalTouches: getPoolTouches(l2.id, ranking) + getTableTouches(l2.id, bracket.matches) });
+      if (l2)
+        results.push({
+          rank: fp + 1,
+          fencer: l2,
+          eliminatedAt: bracket.name,
+          poolTouches: getPoolTouches(l2.id, ranking),
+          tableTouches: getTableTouches(l2.id, bracket.matches),
+          totalTouches: getPoolTouches(l2.id, ranking) + getTableTouches(l2.id, bracket.matches),
+        });
     }
     if (bThird?.winner) {
-      results.push({ rank: fp + 2, fencer: bThird.winner, eliminatedAt: bracket.name,
-        poolTouches: getPoolTouches(bThird.winner.id, ranking), tableTouches: getTableTouches(bThird.winner.id, bracket.matches), totalTouches: getPoolTouches(bThird.winner.id, ranking) + getTableTouches(bThird.winner.id, bracket.matches) });
+      results.push({
+        rank: fp + 2,
+        fencer: bThird.winner,
+        eliminatedAt: bracket.name,
+        poolTouches: getPoolTouches(bThird.winner.id, ranking),
+        tableTouches: getTableTouches(bThird.winner.id, bracket.matches),
+        totalTouches:
+          getPoolTouches(bThird.winner.id, ranking) +
+          getTableTouches(bThird.winner.id, bracket.matches),
+      });
       const l4 = bThird.fencerA?.id === bThird.winner.id ? bThird.fencerB : bThird.fencerA;
-      if (l4) results.push({ rank: fp + 3, fencer: l4, eliminatedAt: bracket.name,
-        poolTouches: getPoolTouches(l4.id, ranking), tableTouches: getTableTouches(l4.id, bracket.matches), totalTouches: getPoolTouches(l4.id, ranking) + getTableTouches(l4.id, bracket.matches) });
+      if (l4)
+        results.push({
+          rank: fp + 3,
+          fencer: l4,
+          eliminatedAt: bracket.name,
+          poolTouches: getPoolTouches(l4.id, ranking),
+          tableTouches: getTableTouches(l4.id, bracket.matches),
+          totalTouches: getPoolTouches(l4.id, ranking) + getTableTouches(l4.id, bracket.matches),
+        });
     }
   }
 
-  return results.sort((a, b) => a.rank - b.rank);
+  return annotateSpecialStatus(
+    results.sort((a, b) => a.rank - b.rank),
+    [...mainMatches, ...consolBrackets.flatMap(b => b.matches)]
+  );
 };
 
 // Position verticale d'un match dans la vue arborescente complète

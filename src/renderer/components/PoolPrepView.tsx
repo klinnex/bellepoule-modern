@@ -21,9 +21,21 @@ interface PoolPrepViewProps {
   minFencersPerPool?: number;
   maxFencersPerPool?: number;
   expertMode?: boolean;
+  /** Nombre de pistes de la saisie distante (choix de piste en mode expert) */
+  arenaCount?: number;
+  /** Piste modifiée : appliquée immédiatement si la poule est déjà lancée (#1037) */
+  onStripChange?: (poolId: string, strip: number | undefined) => void;
   onPoolsConfirm: (pools: Pool[]) => void;
   onSkipPools?: () => void;
   onSettingsChange?: (min: number, max: number) => void;
+  /** Expose le bouton « Lancer les poules » à la barre de navigation (#945) */
+  onLaunchActionChange?: (action: PoolPrepLaunchAction | null) => void;
+}
+
+export interface PoolPrepLaunchAction {
+  label: string;
+  disabled: boolean;
+  action: () => void;
 }
 
 interface PoolStateHistory {
@@ -41,9 +53,12 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   minFencersPerPool: initialMin = 5,
   maxFencersPerPool: initialMax = 7,
   expertMode = false,
+  arenaCount = 1,
+  onStripChange,
   onPoolsConfirm,
   onSkipPools,
   onSettingsChange,
+  onLaunchActionChange,
 }) => {
   const [poolCount, setPoolCount] = useState<number>(0);
   const [minFencersPerPool, setMinFencersPerPool] = useState<number>(initialMin);
@@ -52,8 +67,13 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const [draggedFencer, setDraggedFencer] = useState<{ fencer: Fencer; poolIndex: number } | null>(
     null
   );
+  const [dropTarget, setDropTarget] = useState<{ poolIndex: number; index: number } | null>(null);
 
-  interface SeparationCriterion { key: SeparationCriterionKey; label: string; enabled: boolean }
+  interface SeparationCriterion {
+    key: SeparationCriterionKey;
+    label: string;
+    enabled: boolean;
+  }
   const [separationCriteria, setSeparationCriteria] = useState<SeparationCriterion[]>([
     { key: 'byClub', label: 'Club', enabled: true },
     { key: 'byRegion', label: 'Région', enabled: true },
@@ -165,14 +185,20 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const generatePools = (count: number, criteria: SeparationCriterion[]) => {
     if (fencers.length === 0 || count <= 0) return;
 
-    const distribution = distributeFencersToPoolsSerpentine(fencers, count, getActiveCriteria(criteria));
+    const distribution = distributeFencersToPoolsSerpentine(
+      fencers,
+      count,
+      getActiveCriteria(criteria)
+    );
 
     const generatedPools: Pool[] = distribution.map((poolFencers, index) => {
       const matchOrder = generatePoolMatchOrder(poolFencers.length);
       const now = new Date();
+      // IDs uniques : persistés en DB (clé primaire globale, toutes compétitions confondues)
+      const poolId = crypto.randomUUID();
 
       const matches: Match[] = matchOrder.map(([a, b], matchIndex) => ({
-        id: `match-${index}-${matchIndex}`,
+        id: crypto.randomUUID(),
         number: matchIndex + 1,
         fencerA: poolFencers[a - 1],
         fencerB: poolFencers[b - 1],
@@ -180,13 +206,13 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
         scoreB: null,
         maxScore,
         status: MatchStatus.NOT_STARTED,
-        poolId: `pool-${index}`,
+        poolId,
         createdAt: now,
         updatedAt: now,
       }));
 
       return {
-        id: `pool-${index}`,
+        id: poolId,
         number: index + 1,
         phaseId: 'phase-pools',
         fencers: poolFencers,
@@ -265,7 +291,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     const now = new Date();
 
     const newMatches: Match[] = matchOrder.map(([a, b], matchIndex) => ({
-      id: `${pool.id}-match-${matchIndex}`,
+      id: crypto.randomUUID(),
       number: matchIndex + 1,
       fencerA: pool.fencers[a - 1],
       fencerB: pool.fencers[b - 1],
@@ -295,99 +321,74 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     e.preventDefault();
   };
 
-  const handleDrop = (e: React.DragEvent, targetPoolIndex: number) => {
+  // Dépose un tireur dans une poule, à la position targetIndex (fin de poule par défaut).
+  // Même poule → réordonnancement par glisser vers le haut / bas (#1037).
+  const handleDrop = (e: React.DragEvent, targetPoolIndex: number, targetIndex?: number) => {
     e.preventDefault();
+    e.stopPropagation();
+    setDropTarget(null);
 
-    if (!draggedFencer || draggedFencer.poolIndex === targetPoolIndex) {
-      setDraggedFencer(null);
+    if (!draggedFencer) return;
+    const movedFencer = draggedFencer.fencer;
+    const fromPoolIndex = draggedFencer.poolIndex;
+    setDraggedFencer(null);
+
+    const source = pools[fromPoolIndex];
+    const fromIndex = source.fencers.findIndex(f => f.id === movedFencer.id);
+    if (fromIndex < 0) return;
+
+    if (fromPoolIndex === targetPoolIndex) {
+      let insertAt = targetIndex ?? source.fencers.length;
+      if (insertAt > fromIndex) insertAt--;
+      if (insertAt === fromIndex) return;
+      saveToHistory();
+      const newFencers = source.fencers.filter(f => f.id !== movedFencer.id);
+      newFencers.splice(insertAt, 0, movedFencer);
+      setPools(
+        pools.map((p, i) =>
+          i === targetPoolIndex ? regenerateMatches({ ...p, fencers: newFencers }) : p
+        )
+      );
       return;
     }
 
     saveToHistory();
-
-    const movedFencer = draggedFencer.fencer;
-    const fromPoolIndex = draggedFencer.poolIndex;
-
     const updatedPools = pools.map((pool, index) => {
       if (index === fromPoolIndex) {
         const newFencers = pool.fencers.filter(f => f.id !== movedFencer.id);
         return regenerateMatches({ ...pool, fencers: newFencers });
       }
       if (index === targetPoolIndex) {
-        const newFencers = [...pool.fencers, movedFencer];
+        const newFencers = [...pool.fencers];
+        newFencers.splice(targetIndex ?? newFencers.length, 0, movedFencer);
         return regenerateMatches({ ...pool, fencers: newFencers });
       }
       return pool;
     });
-
-    setPools(updatedPools);
-    setDraggedFencer(null);
-  };
-
-  const handleMoveFencer = (fencerId: string, fromPoolIndex: number, toPoolIndex: number) => {
-    if (fromPoolIndex === toPoolIndex) return;
-
-    const movedFencer = pools[fromPoolIndex].fencers.find(f => f.id === fencerId);
-    if (!movedFencer) return;
-
-    saveToHistory();
-
-    const updatedPools = pools.map((pool, index) => {
-      if (index === fromPoolIndex) {
-        const newFencers = pool.fencers.filter(f => f.id !== fencerId);
-        return regenerateMatches({ ...pool, fencers: newFencers });
-      }
-      if (index === toPoolIndex) {
-        const newFencers = [...pool.fencers, movedFencer];
-        return regenerateMatches({ ...pool, fencers: newFencers });
-      }
-      return pool;
-    });
-
-    setPools(updatedPools);
-  };
-
-  const handleMoveFencerUp = (poolIndex: number, fencerIndex: number) => {
-    if (fencerIndex === 0) return;
-
-    saveToHistory();
-
-    const pool = pools[poolIndex];
-    const newFencers = [...pool.fencers];
-    [newFencers[fencerIndex - 1], newFencers[fencerIndex]] = [
-      newFencers[fencerIndex],
-      newFencers[fencerIndex - 1],
-    ];
-
-    const updatedPools = pools.map((p, i) =>
-      i === poolIndex ? regenerateMatches({ ...p, fencers: newFencers }) : p
-    );
-
-    setPools(updatedPools);
-  };
-
-  const handleMoveFencerDown = (poolIndex: number, fencerIndex: number) => {
-    const pool = pools[poolIndex];
-    if (fencerIndex >= pool.fencers.length - 1) return;
-
-    saveToHistory();
-
-    const newFencers = [...pool.fencers];
-    [newFencers[fencerIndex], newFencers[fencerIndex + 1]] = [
-      newFencers[fencerIndex + 1],
-      newFencers[fencerIndex],
-    ];
-
-    const updatedPools = pools.map((p, i) =>
-      i === poolIndex ? regenerateMatches({ ...p, fencers: newFencers }) : p
-    );
 
     setPools(updatedPools);
   };
 
   const handleStripChange = (poolIndex: number, strip: number | undefined) => {
+    const pool = pools[poolIndex];
     setPools(pools.map((p, i) => (i === poolIndex ? { ...p, strip } : p)));
+    if (pool) onStripChange?.(pool.id, strip);
   };
+
+  // Pistes attribuées à plusieurs poules → signalées en rouge
+  const duplicateStrips = new Set<number>();
+  {
+    const seen = new Set<number>();
+    pools.forEach(p => {
+      if (p.strip == null) return;
+      if (seen.has(p.strip)) duplicateStrips.add(p.strip);
+      seen.add(p.strip);
+    });
+  }
+  const stripOptions = Array.from(
+    { length: Math.max(arenaCount, ...pools.map(p => p.strip ?? 0)) },
+    (_, i) => i + 1
+  );
 
   const getFencerCountStats = () => {
     if (pools.length === 0) return { min: 0, max: 0, avg: 0 };
@@ -418,320 +419,490 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       if (f.club) counts.set(f.club, (counts.get(f.club) || 0) + 1);
     });
     const conflicts = new Set<string>();
-    counts.forEach((n, club) => { if (n > 1) conflicts.add(club); });
+    counts.forEach((n, club) => {
+      if (n > 1) conflicts.add(club);
+    });
     return conflicts;
   };
 
+  const launchDisabled =
+    poolCount > 0 && (pools.length === 0 || pools.some(p => p.fencers.length < 3));
+  const launchLabel = poolCount === 0 ? 'Passer au classement initial' : 'Lancer les poules';
+  const handleLaunch = () => (poolCount === 0 ? onSkipPools?.() : onPoolsConfirm(pools));
+  const handleLaunchRef = useRef(handleLaunch);
+  useEffect(() => {
+    handleLaunchRef.current = handleLaunch;
+  });
+
+  useEffect(() => {
+    onLaunchActionChange?.({
+      label: launchLabel,
+      disabled: launchDisabled,
+      action: () => handleLaunchRef.current(),
+    });
+  }, [onLaunchActionChange, launchLabel, launchDisabled]);
+
+  useEffect(() => () => onLaunchActionChange?.(null), [onLaunchActionChange]);
+
   return (
     <>
-    <div style={{ padding: '1rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Configuration Panel */}
-      <div
-        className="pool-prep-config"
-        style={{
-          padding: '1rem 1.25rem',
-          marginBottom: '1rem',
-          display: 'flex',
-          gap: '1.5rem',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-        }}
-      >
-        {/* Pool count stepper */}
-        <div>
-          <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Nombre de poules
-          </label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div className="pool-prep-stepper">
-              <button
-                className="pool-prep-stepper-btn"
-                onClick={() => handlePoolCountChange(poolCount - 1)}
-                disabled={poolCount <= 0}
-              >−</button>
-              <span className="pool-prep-stepper-value">{poolCount}</span>
-              <button
-                className="pool-prep-stepper-btn"
-                onClick={() => handlePoolCountChange(poolCount + 1)}
-                disabled={poolCount >= Math.ceil(fencers.length / 3)}
-              >+</button>
-            </div>
-            {poolCount !== 1 && (
-              <button
-                className="btn btn-secondary"
-                onClick={() => handlePoolCountChange(1)}
-                title="Mettre tous les tireurs dans une seule poule"
-                style={{ fontSize: '0.75rem', padding: '0.2rem 0.65rem', borderRadius: '999px' }}
-              >
-                Poule unique
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Min / Max fencers */}
-        <div>
-          <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Tireurs / poule
-          </label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <input
-              type="number"
-              value={minFencersPerPool}
-              onChange={e => handleMinFencersChange(parseInt(e.target.value) || 5)}
-              min={3}
-              max={maxFencersPerPool}
-              style={{ width: '60px', padding: '0.35rem 0.5rem', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '0.875rem', textAlign: 'center', background: 'var(--color-surface)', color: 'var(--color-text)' }}
-            />
-            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>–</span>
-            <input
-              type="number"
-              value={maxFencersPerPool}
-              onChange={e => handleMaxFencersChange(parseInt(e.target.value) || 7)}
-              min={minFencersPerPool}
-              max={64}
-              style={{ width: '60px', padding: '0.35rem 0.5rem', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '0.875rem', textAlign: 'center', background: 'var(--color-surface)', color: 'var(--color-text)' }}
-            />
-          </div>
-        </div>
-
-        {/* Separation pill toggles with drag-and-drop priority */}
-        <div>
-          <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Séparation <span style={{ fontWeight: 400, textTransform: 'none', fontSize: '0.65rem', opacity: 0.7 }}>(glisser pour priorité)</span>
-          </label>
-          <div style={{ display: 'flex', gap: '0.4rem' }}>
-            {separationCriteria.map((criterion, idx) => (
-              <button
-                key={criterion.key}
-                draggable
-                onDragStart={() => setDragCriterionIdx(idx)}
-                onDragOver={e => { e.preventDefault(); }}
-                onDrop={e => {
-                  e.preventDefault();
-                  if (dragCriterionIdx === null || dragCriterionIdx === idx) return;
-                  const next = [...separationCriteria];
-                  const [moved] = next.splice(dragCriterionIdx, 1);
-                  next.splice(idx, 0, moved);
-                  setSeparationCriteria(next);
-                  setDragCriterionIdx(null);
-                  if (poolCount > 0) generatePools(poolCount, next);
-                }}
-                onDragEnd={() => setDragCriterionIdx(null)}
-                onClick={() => {
-                  const next = separationCriteria.map((c, i) =>
-                    i === idx ? { ...c, enabled: !c.enabled } : c
-                  );
-                  setSeparationCriteria(next);
-                  if (poolCount > 0) generatePools(poolCount, next);
-                }}
-                className={`pool-prep-pill-toggle${criterion.enabled ? ' active' : ''}`}
-                style={{ cursor: 'grab', userSelect: 'none' }}
-                title={`Priorité ${idx + 1} — glisser pour réordonner`}
-              >
-                <span style={{ fontSize: '0.6rem', opacity: 0.6, marginRight: '0.2rem' }}>{idx + 1}.</span>
-                {criterion.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button
-          className="btn btn-secondary"
-          onClick={() => setShowMatchOrderModal(true)}
-          title="Afficher l'ordre officiel FIE/FFE des matchs par taille de poule"
-          style={{ fontSize: '0.8rem', padding: '0.35rem 0.8rem', alignSelf: 'flex-end', whiteSpace: 'nowrap' }}
+      <div style={{ padding: '1rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {/* Configuration Panel */}
+        <div
+          className="pool-prep-config"
+          style={{
+            padding: '1rem 1.25rem',
+            marginBottom: '1rem',
+            display: 'flex',
+            gap: '1.5rem',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+          }}
         >
-          Ordre des matchs
-        </button>
-
-        <div style={{ marginLeft: 'auto' }} className="pool-prep-stats-badge">
-          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text)' }}>
-            {fencers.length} tireurs répartis
-          </span>
-          <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.15rem' }}>
-            Min {stats.min} · Max {stats.max} · Moy {stats.avg}
-          </span>
-        </div>
-      </div>
-
-      {/* Pools Grid */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          display: poolCount === 0 ? 'flex' : 'grid',
-          gridTemplateColumns: poolCount === 0 ? undefined : 'repeat(auto-fill, minmax(280px, 1fr))',
-          alignItems: poolCount === 0 ? 'center' : undefined,
-          justifyContent: poolCount === 0 ? 'center' : undefined,
-          gap: '1rem',
-          padding: '0.5rem',
-        }}
-      >
-        {poolCount === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏭</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Aucune poule</div>
-            <div style={{ fontSize: '0.9rem' }}>Passage direct au classement initial des tireurs</div>
-          </div>
-        ) : null}
-
-        {pools.map((pool, poolIndex) => {
-          const accent = POOL_ACCENTS[poolIndex % POOL_ACCENTS.length];
-          const accentBg = POOL_ACCENT_BGS[poolIndex % POOL_ACCENT_BGS.length];
-          const clubConflicts = separationCriteria.find(c => c.key === 'byClub')?.enabled ? getPoolClubConflicts(pool) : new Set<string>();
-          const hasConflicts = clubConflicts.size > 0;
-          const isOutOfRange = pools.length > 1 && (
-            pool.fencers.length < minFencersPerPool || pool.fencers.length > maxFencersPerPool
-          );
-
-          return (
-            <div
-              key={pool.id}
-              onDragOver={handleDragOver}
-              onDrop={e => handleDrop(e, poolIndex)}
-              className={`pool-prep-card${draggedFencer?.poolIndex === poolIndex ? ' pool-prep-card-active' : ''}`}
-              style={{ '--pool-accent': accent, '--pool-accent-bg': accentBg } as React.CSSProperties}
+          {/* Pool count stepper */}
+          <div>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                marginBottom: '0.4rem',
+                color: 'var(--color-text-light)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
             >
-              <div
-                className="pool-prep-card-header"
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: accent }}>
-                    Poule {pool.number}
-                  </h3>
-                  {pools.length === 1 && <span className="pool-prep-badge-unique">unique</span>}
-                  {hasConflicts && (
-                    <span className="pool-prep-conflict-warning" title="Même club dans cette poule">
-                      ⚠ club
-                    </span>
-                  )}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  {expertMode && (
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                      Piste
-                      <input
-                        type="number"
-                        min={1}
-                        value={pool.strip ?? ''}
-                        placeholder="–"
-                        onChange={e => {
-                          const val = e.target.value;
-                          handleStripChange(poolIndex, val === '' ? undefined : Math.max(1, parseInt(val)));
-                        }}
-                        style={{ width: '48px', padding: '0.1rem 0.3rem', fontSize: '0.78rem', border: '1px solid var(--color-border)', borderRadius: '4px', background: 'var(--color-surface)', color: 'var(--color-text)' }}
-                      />
-                    </label>
-                  )}
-                  <span className={`pool-prep-count-badge${isOutOfRange ? ' danger' : ''}`}>
-                    {pool.fencers.length}
-                  </span>
-                </div>
+              Nombre de poules
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="pool-prep-stepper">
+                <button
+                  className="pool-prep-stepper-btn"
+                  onClick={() => handlePoolCountChange(poolCount - 1)}
+                  disabled={poolCount <= 0}
+                >
+                  −
+                </button>
+                <span className="pool-prep-stepper-value">{poolCount}</span>
+                <button
+                  className="pool-prep-stepper-btn"
+                  onClick={() => handlePoolCountChange(poolCount + 1)}
+                  disabled={poolCount >= Math.ceil(fencers.length / 3)}
+                >
+                  +
+                </button>
               </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                {pool.fencers.map((fencer, fencerIndex) => {
-                  const hasClubConflict = fencer.club ? clubConflicts.has(fencer.club) : false;
-                  return (
-                    <div
-                      key={fencer.id}
-                      draggable
-                      onDragStart={() => handleDragStart(fencer, poolIndex)}
-                      className={`pool-prep-fencer-row${draggedFencer?.fencer.id === fencer.id ? ' pool-prep-fencer-row-dragging' : ''}`}
-                    >
-                      <span className="pool-prep-drag-handle">⠿</span>
-                      <span className="pool-prep-position">{fencerIndex + 1}</span>
-                      <span style={{ flex: 1, fontWeight: 500, fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {fencer.firstName} {fencer.lastName.charAt(0)}.
-                      </span>
-                      {fencer.club && (
-                        <span
-                          className="pool-prep-club-pill"
-                          title={fencer.club}
-                          style={hasClubConflict ? { borderColor: 'var(--color-warning)', color: 'var(--color-warning)', background: 'rgba(217,119,6,0.08)' } : undefined}
-                        >
-                          {fencer.club}
-                        </span>
-                      )}
-                      {hasClubConflict && <span className="pool-prep-conflict-dot" />}
-                      <div className="pool-prep-row-actions">
-                        {fencerIndex > 0 && (
-                          <button onClick={() => handleMoveFencerUp(poolIndex, fencerIndex)} title="Monter" className="pool-prep-btn-move">↑</button>
-                        )}
-                        {fencerIndex < pool.fencers.length - 1 && (
-                          <button onClick={() => handleMoveFencerDown(poolIndex, fencerIndex)} title="Descendre" className="pool-prep-btn-move">↓</button>
-                        )}
-                        {poolIndex > 0 && (
-                          <button onClick={() => handleMoveFencer(fencer.id, poolIndex, poolIndex - 1)} title="Poule précédente" className="pool-prep-btn-shift">←</button>
-                        )}
-                        {poolIndex < pools.length - 1 && (
-                          <button onClick={() => handleMoveFencer(fencer.id, poolIndex, poolIndex + 1)} title="Poule suivante" className="pool-prep-btn-shift">→</button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {pool.fencers.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-                  Déposez des tireurs ici
-                </div>
+              {poolCount !== 1 && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => handlePoolCountChange(1)}
+                  title="Mettre tous les tireurs dans une seule poule"
+                  style={{ fontSize: '0.75rem', padding: '0.2rem 0.65rem', borderRadius: '999px' }}
+                >
+                  Poule unique
+                </button>
               )}
             </div>
-          );
-        })}
-      </div>
+          </div>
 
-      {/* Instructions */}
-      <div className="pool-prep-hint">
-        Glissez-déposez les tireurs entre poules ou utilisez les flèches (← →) pour déplacer, (↑ ↓) pour réordonner.
-      </div>
+          {/* Min / Max fencers */}
+          <div>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                marginBottom: '0.4rem',
+                color: 'var(--color-text-light)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
+              Tireurs / poule
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <input
+                type="number"
+                value={minFencersPerPool}
+                onChange={e => handleMinFencersChange(parseInt(e.target.value) || 5)}
+                min={3}
+                max={maxFencersPerPool}
+                style={{
+                  width: '60px',
+                  padding: '0.35rem 0.5rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--color-border)',
+                  fontSize: '0.875rem',
+                  textAlign: 'center',
+                  background: 'var(--color-surface)',
+                  color: 'var(--color-text)',
+                }}
+              />
+              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>–</span>
+              <input
+                type="number"
+                value={maxFencersPerPool}
+                onChange={e => handleMaxFencersChange(parseInt(e.target.value) || 7)}
+                min={minFencersPerPool}
+                max={64}
+                style={{
+                  width: '60px',
+                  padding: '0.35rem 0.5rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--color-border)',
+                  fontSize: '0.875rem',
+                  textAlign: 'center',
+                  background: 'var(--color-surface)',
+                  color: 'var(--color-text)',
+                }}
+              />
+            </div>
+          </div>
 
-      {/* Footer */}
-      <div
-        className="pool-prep-footer"
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '1rem' }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Separation pill toggles with drag-and-drop priority */}
+          <div>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                marginBottom: '0.4rem',
+                color: 'var(--color-text-light)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
+              Séparation{' '}
+              <span
+                style={{
+                  fontWeight: 400,
+                  textTransform: 'none',
+                  fontSize: '0.65rem',
+                  opacity: 0.7,
+                }}
+              >
+                (glisser pour priorité)
+              </span>
+            </label>
+            <div style={{ display: 'flex', gap: '0.4rem' }}>
+              {separationCriteria.map((criterion, idx) => (
+                <button
+                  key={criterion.key}
+                  draggable
+                  onDragStart={() => setDragCriterionIdx(idx)}
+                  onDragOver={e => {
+                    e.preventDefault();
+                  }}
+                  onDrop={e => {
+                    e.preventDefault();
+                    if (dragCriterionIdx === null || dragCriterionIdx === idx) return;
+                    const next = [...separationCriteria];
+                    const [moved] = next.splice(dragCriterionIdx, 1);
+                    next.splice(idx, 0, moved);
+                    setSeparationCriteria(next);
+                    setDragCriterionIdx(null);
+                    if (poolCount > 0) generatePools(poolCount, next);
+                  }}
+                  onDragEnd={() => setDragCriterionIdx(null)}
+                  onClick={() => {
+                    const next = separationCriteria.map((c, i) =>
+                      i === idx ? { ...c, enabled: !c.enabled } : c
+                    );
+                    setSeparationCriteria(next);
+                    if (poolCount > 0) generatePools(poolCount, next);
+                  }}
+                  className={`pool-prep-pill-toggle${criterion.enabled ? ' active' : ''}`}
+                  style={{ cursor: 'grab', userSelect: 'none' }}
+                  title={`Priorité ${idx + 1} — glisser pour réordonner`}
+                >
+                  <span style={{ fontSize: '0.6rem', opacity: 0.6, marginRight: '0.2rem' }}>
+                    {idx + 1}.
+                  </span>
+                  {criterion.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <button
             className="btn btn-secondary"
-            onClick={handleRestore}
-            disabled={!canRestore()}
-            style={{ fontSize: '0.875rem', padding: '0.5rem 1rem', opacity: canRestore() ? 1 : 0.5 }}
+            onClick={() => setShowMatchOrderModal(true)}
+            title="Afficher l'ordre officiel FIE/FFE des matchs par taille de poule"
+            style={{
+              fontSize: '0.8rem',
+              padding: '0.35rem 0.8rem',
+              alignSelf: 'flex-end',
+              whiteSpace: 'nowrap',
+            }}
           >
-            ↩ Annuler
+            Ordre des matchs
           </button>
-          {canRestore() && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-              <div className="pool-prep-undo-bar">
-                <div
-                  className={`pool-prep-undo-bar-fill${timeSinceLastChange > RESTORE_WINDOW_MINUTES * 60 - 60 ? ' expiring' : ''}`}
-                  style={{ width: `${Math.max(0, (1 - timeSinceLastChange / (RESTORE_WINDOW_MINUTES * 60)) * 100)}%` }}
-                />
-              </div>
-              <span style={{ fontSize: '0.68rem', color: timeSinceLastChange > RESTORE_WINDOW_MINUTES * 60 - 60 ? 'var(--color-danger)' : 'var(--color-text-muted)' }}>
-                {formatElapsedTime(timeSinceLastChange)} / {RESTORE_WINDOW_MINUTES}min
-              </span>
-            </div>
-          )}
+
+          <div style={{ marginLeft: 'auto' }} className="pool-prep-stats-badge">
+            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text)' }}>
+              {fencers.length} tireurs répartis
+            </span>
+            <span
+              style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.15rem' }}
+            >
+              Min {stats.min} · Max {stats.max} · Moy {stats.avg}
+            </span>
+          </div>
         </div>
 
-        <button
-          className="btn btn-primary"
-          onClick={() => (poolCount === 0 ? onSkipPools?.() : onPoolsConfirm(pools))}
-          disabled={poolCount > 0 && (pools.length === 0 || pools.some(p => p.fencers.length < 3))}
-          style={{ fontSize: '1rem', padding: '0.75rem 2rem', borderRadius: '10px' }}
+        {/* Pools Grid */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            display: poolCount === 0 ? 'flex' : 'grid',
+            gridTemplateColumns:
+              poolCount === 0 ? undefined : 'repeat(auto-fill, minmax(280px, 1fr))',
+            alignItems: poolCount === 0 ? 'center' : undefined,
+            justifyContent: poolCount === 0 ? 'center' : undefined,
+            gap: '1rem',
+            padding: '0.5rem',
+          }}
         >
-          {poolCount === 0 ? 'Passer au classement initial →' : 'Lancer les poules →'}
-        </button>
+          {poolCount === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏭</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+                Aucune poule
+              </div>
+              <div style={{ fontSize: '0.9rem' }}>
+                Passage direct au classement initial des tireurs
+              </div>
+            </div>
+          ) : null}
+
+          {pools.map((pool, poolIndex) => {
+            const accent = POOL_ACCENTS[poolIndex % POOL_ACCENTS.length];
+            const accentBg = POOL_ACCENT_BGS[poolIndex % POOL_ACCENT_BGS.length];
+            const clubConflicts = separationCriteria.find(c => c.key === 'byClub')?.enabled
+              ? getPoolClubConflicts(pool)
+              : new Set<string>();
+            const hasConflicts = clubConflicts.size > 0;
+            const isOutOfRange =
+              pools.length > 1 &&
+              (pool.fencers.length < minFencersPerPool || pool.fencers.length > maxFencersPerPool);
+
+            return (
+              <div
+                key={pool.id}
+                onDragOver={handleDragOver}
+                onDrop={e => handleDrop(e, poolIndex)}
+                className={`pool-prep-card${draggedFencer?.poolIndex === poolIndex ? ' pool-prep-card-active' : ''}`}
+                style={
+                  { '--pool-accent': accent, '--pool-accent-bg': accentBg } as React.CSSProperties
+                }
+              >
+                <div
+                  className="pool-prep-card-header"
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: accent }}>
+                      Poule {pool.number}
+                    </h3>
+                    {pools.length === 1 && <span className="pool-prep-badge-unique">unique</span>}
+                    {hasConflicts && (
+                      <span
+                        className="pool-prep-conflict-warning"
+                        title="Même club dans cette poule"
+                      >
+                        ⚠ club
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {expertMode && (
+                      <label
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.3rem',
+                          fontSize: '0.78rem',
+                          color: 'var(--color-text-muted)',
+                        }}
+                      >
+                        Piste
+                        <select
+                          value={pool.strip ?? ''}
+                          onChange={e => {
+                            const val = e.target.value;
+                            handleStripChange(
+                              poolIndex,
+                              val === '' ? undefined : parseInt(val, 10)
+                            );
+                          }}
+                          title={
+                            pool.strip != null && duplicateStrips.has(pool.strip)
+                              ? 'Piste attribuée à plusieurs poules'
+                              : 'Piste de la saisie distante'
+                          }
+                          className={`pool-prep-strip-select${pool.strip != null && duplicateStrips.has(pool.strip) ? ' duplicate' : ''}`}
+                        >
+                          <option value="">–</option>
+                          {stripOptions.map(n => (
+                            <option key={n} value={n}>
+                              {n}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
+                    <span className={`pool-prep-count-badge${isOutOfRange ? ' danger' : ''}`}>
+                      {pool.fencers.length}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  {pool.fencers.map((fencer, fencerIndex) => {
+                    const hasClubConflict = fencer.club ? clubConflicts.has(fencer.club) : false;
+                    return (
+                      <div
+                        key={fencer.id}
+                        draggable
+                        onDragStart={() => handleDragStart(fencer, poolIndex)}
+                        onDragEnd={() => {
+                          setDraggedFencer(null);
+                          setDropTarget(null);
+                        }}
+                        onDragOver={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const r = e.currentTarget.getBoundingClientRect();
+                          const index =
+                            e.clientY < r.top + r.height / 2 ? fencerIndex : fencerIndex + 1;
+                          if (dropTarget?.poolIndex !== poolIndex || dropTarget.index !== index) {
+                            setDropTarget({ poolIndex, index });
+                          }
+                        }}
+                        onDrop={e => handleDrop(e, poolIndex, dropTarget?.index ?? fencerIndex)}
+                        className={`pool-prep-fencer-row${draggedFencer?.fencer.id === fencer.id ? ' pool-prep-fencer-row-dragging' : ''}${dropTarget?.poolIndex === poolIndex && dropTarget.index === fencerIndex ? ' drop-before' : ''}${dropTarget?.poolIndex === poolIndex && dropTarget.index === fencerIndex + 1 && fencerIndex === pool.fencers.length - 1 ? ' drop-after' : ''}`}
+                      >
+                        <span className="pool-prep-drag-handle">⠿</span>
+                        <span className="pool-prep-position">{fencerIndex + 1}</span>
+                        <span
+                          style={{
+                            flex: 1,
+                            fontWeight: 500,
+                            fontSize: '0.85rem',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {fencer.firstName} {fencer.lastName.charAt(0)}.
+                        </span>
+                        {fencer.club && (
+                          <span
+                            className="pool-prep-club-pill"
+                            title={fencer.club}
+                            style={
+                              hasClubConflict
+                                ? {
+                                    borderColor: 'var(--color-warning)',
+                                    color: 'var(--color-warning)',
+                                    background: 'rgba(217,119,6,0.08)',
+                                  }
+                                : undefined
+                            }
+                          >
+                            {fencer.club}
+                          </span>
+                        )}
+                        {hasClubConflict && <span className="pool-prep-conflict-dot" />}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {pool.fencers.length === 0 && (
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '2rem',
+                      color: 'var(--color-text-muted)',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    Déposez des tireurs ici
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Instructions */}
+        <div className="pool-prep-hint">
+          Glissez-déposez les tireurs entre poules pour les déplacer, ou vers le haut / bas pour les
+          réordonner.
+        </div>
+
+        {/* Footer */}
+        <div
+          className="pool-prep-footer"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '1rem',
+            paddingTop: '1rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button
+              className="btn btn-secondary"
+              onClick={handleRestore}
+              disabled={!canRestore()}
+              style={{
+                fontSize: '0.875rem',
+                padding: '0.5rem 1rem',
+                opacity: canRestore() ? 1 : 0.5,
+              }}
+            >
+              ↩ Annuler
+            </button>
+            {canRestore() && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                <div className="pool-prep-undo-bar">
+                  <div
+                    className={`pool-prep-undo-bar-fill${timeSinceLastChange > RESTORE_WINDOW_MINUTES * 60 - 60 ? ' expiring' : ''}`}
+                    style={{
+                      width: `${Math.max(0, (1 - timeSinceLastChange / (RESTORE_WINDOW_MINUTES * 60)) * 100)}%`,
+                    }}
+                  />
+                </div>
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    color:
+                      timeSinceLastChange > RESTORE_WINDOW_MINUTES * 60 - 60
+                        ? 'var(--color-danger)'
+                        : 'var(--color-text-muted)',
+                  }}
+                >
+                  {formatElapsedTime(timeSinceLastChange)} / {RESTORE_WINDOW_MINUTES}min
+                </span>
+              </div>
+            )}
+          </div>
+
+          <button
+            className="btn btn-primary"
+            onClick={handleLaunch}
+            disabled={launchDisabled}
+            style={{ fontSize: '1rem', padding: '0.75rem 2rem', borderRadius: '10px' }}
+          >
+            {launchLabel} →
+          </button>
+        </div>
       </div>
-    </div>
-    {showMatchOrderModal && (
-      <PoolMatchOrderModal onClose={() => setShowMatchOrderModal(false)} />
-    )}
+      {showMatchOrderModal && <PoolMatchOrderModal onClose={() => setShowMatchOrderModal(false)} />}
     </>
   );
 };

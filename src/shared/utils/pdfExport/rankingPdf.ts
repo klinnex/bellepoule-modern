@@ -7,6 +7,7 @@
 import { PoolRanking, Weapon } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
 import { savePDF, buildCssOverrides, assembleBody, BASE_CSS } from './core';
+import { formatQuestPerMatch } from '../poolCalculations';
 
 // ─── Export Classement Général ───────────────────────────────────────────────
 
@@ -19,14 +20,21 @@ export function generateRankingHTML(
   template?: PdfTemplate
 ): string {
   const vis = (col: string) => visibleColumns.includes(col);
-  const now = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const now = new Date().toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
 
-  const rows = ranking.map(r => {
-    const ratio = r.matchesPlayed > 0 ? (r.victories / r.matchesPlayed).toFixed(2) : '0.00';
-    const idx = r.index >= 0 ? `+${r.index}` : `${r.index}`;
-    const abandoned = (r.fencer as any).status === 'ABANDONED'
-      ? ' <span style="color:#ef4444;font-size:8pt">(A)</span>' : '';
-    return `
+  const rows = ranking
+    .map(r => {
+      const ratio = r.matchesPlayed > 0 ? (r.victories / r.matchesPlayed).toFixed(2) : '0.00';
+      const idx = r.index >= 0 ? `+${r.index}` : `${r.index}`;
+      const abandoned =
+        (r.fencer as any).status === 'ABANDONED'
+          ? ' <span style="color:#ef4444;font-size:8pt">(A)</span>'
+          : '';
+      return `
 <tr>
   ${vis('rank') ? `<td style="text-align:center;font-weight:700;color:var(--navy)">${r.rank}</td>` : ''}
   ${vis('lastName') ? `<td style="font-weight:600">${r.fencer.lastName.toUpperCase()}${abandoned}</td>` : ''}
@@ -36,10 +44,11 @@ export function generateRankingHTML(
   ${vis('ratio') ? `<td style="text-align:center">${r.matchesPlayed > 0 ? ratio : '-'}</td>` : ''}
   ${vis('td') ? `<td style="text-align:center">${r.touchesScored}</td>` : ''}
   ${vis('tr') ? `<td style="text-align:center">${r.touchesReceived}</td>` : ''}
-  ${vis('quest') && isLaserSabre ? `<td style="text-align:center;color:#7c3aed;font-weight:600">${r.questPoints ?? 0}</td>` : ''}
+  ${vis('quest') && isLaserSabre ? `<td style="text-align:center;color:#7c3aed;font-weight:600">${r.questPoints ?? 0}</td><td style="text-align:center;color:#7c3aed">${formatQuestPerMatch(r)}</td>` : ''}
   ${vis('index') ? `<td style="text-align:center;font-weight:600;color:${r.index >= 0 ? 'var(--green)' : '#dc2626'}">${idx}</td>` : ''}
 </tr>`;
-  }).join('');
+    })
+    .join('');
 
   const th = (col: string, label: string, style = '') =>
     vis(col) ? `<th style="${style}">${label}</th>` : '';
@@ -53,7 +62,9 @@ export function generateRankingHTML(
     th('ratio', 'V/M'),
     th('td', 'TD'),
     th('tr', 'TR'),
-    vis('quest') && isLaserSabre ? '<th style="color:var(--white)">Quest</th>' : '',
+    vis('quest') && isLaserSabre
+      ? '<th style="color:var(--white)">Quest</th><th style="color:var(--white)">Q/M</th>'
+      : '',
     th('index', 'Indice'),
   ].join('');
 
@@ -61,7 +72,7 @@ export function generateRankingHTML(
   const cssOverrides = template ? buildCssOverrides(template) : '';
 
   const sections: Record<string, string> = {
-    'header': `
+    header: `
   <div class="doc-header">
     ${logoBase64 ? `<img class="doc-header-logo" src="${logoBase64}" alt="Logo" />` : ''}
     <div class="doc-header-left">
@@ -76,7 +87,7 @@ export function generateRankingHTML(
     <thead><tr>${headers}</tr></thead>
     <tbody>${rows}</tbody>
   </table>`,
-    'footer': `
+    footer: `
   <div class="doc-footer">
     <span>BellePoule Modern</span>
     <span>${now}</span>
@@ -92,8 +103,8 @@ export function generateRankingHTML(
   <meta charset="UTF-8">
   <title>${effectiveTitle}</title>
   <style>
-    ${cssOverrides}
     ${BASE_CSS}
+    ${cssOverrides}
     table { width: 100%; border-collapse: collapse; font-size: 9pt; }
     th {
       background: var(--navy); color: var(--white);
@@ -124,7 +135,18 @@ export async function exportRankingToPDF(
 ): Promise<void> {
   if (ranking.length === 0) throw new Error('Aucun tireur dans le classement');
   const isLaserSabre = weapon === 'L' || weapon === ('LASER' as any);
-  const cols = visibleColumns ?? ['rank', 'lastName', 'firstName', 'club', 'victories', 'ratio', 'td', 'tr', 'quest', 'index'];
+  const cols = visibleColumns ?? [
+    'rank',
+    'lastName',
+    'firstName',
+    'club',
+    'victories',
+    'ratio',
+    'td',
+    'tr',
+    'quest',
+    'index',
+  ];
   const html = generateRankingHTML(ranking, title, isLaserSabre, cols, logoBase64, template);
   await savePDF(html, 'classement-general.pdf');
 }

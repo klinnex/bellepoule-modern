@@ -10,7 +10,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import AboutModal from './AboutModal';
 
-afterEach(() => { delete (window as any).electronAPI; });
+afterEach(() => {
+  delete (window as any).electronAPI;
+});
 
 describe('AboutModal', () => {
   it('affiche le titre et la licence', () => {
@@ -38,5 +40,18 @@ describe('AboutModal', () => {
     render(<AboutModal onClose={vi.fn()} />);
     await waitFor(() => expect(screen.getByText('v1.2.3')).toBeInTheDocument());
     expect(screen.getByText('#42')).toBeInTheDocument();
+  });
+
+  it('affiche le suffixe -dev.N pour un build du canal dev', async () => {
+    (window as any).electronAPI = {
+      getVersionInfo: vi.fn(async () => ({
+        version: '1.2.3',
+        build: 42,
+        date: '2026-01-01',
+        channel: 'dev',
+      })),
+    };
+    render(<AboutModal onClose={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText('v1.2.3-dev.42')).toBeInTheDocument());
   });
 });

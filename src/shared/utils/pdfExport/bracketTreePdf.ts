@@ -17,41 +17,41 @@ export function generateBracketTreeHTML(
   template?: PdfTemplate
 ): string {
   // ── Layout constants ────────────────────────────────────────────────────────
-  const MATCH_W  = 175;
-  const H_GAP    = 55;
-  const SCORE_W  = 26;
+  const MATCH_W = 175;
+  const H_GAP = 55;
+  const SCORE_W = 26;
   const HEADER_H = 60;
-  const GOLD_H   = 4;
-  const LABEL_H  = 24;
+  const GOLD_H = 4;
+  const LABEL_H = 24;
   const TOP_MARGIN = HEADER_H + GOLD_H + LABEL_H;
   const BOT_MARGIN = 20;
-  const MARGIN_L   = 16;
-  const SVG_H      = 750;
+  const MARGIN_L = 16;
+  const SVG_H = 750;
 
   // ── Separate petite-finale from main bracket ────────────────────────────────
   const petiteFinale = matches.find(m => m.round === 3);
-  const mainMatches  = matches.filter(m => m.round !== 3 && m.round >= 2);
+  const mainMatches = matches.filter(m => m.round !== 3 && m.round >= 2);
 
   if (mainMatches.length === 0) {
     throw new Error('Aucun match dans le tableau principal');
   }
 
   const tableauSize = Math.max(...mainMatches.map(m => m.round));
-  const numRounds   = Math.round(Math.log2(tableauSize));
+  const numRounds = Math.round(Math.log2(tableauSize));
 
   // ── Vertical slot height (adapts to bracket size) ──────────────────────────
   const firstRoundCount = tableauSize / 2;
   const USABLE_H = SVG_H - TOP_MARGIN - BOT_MARGIN;
-  const SLOT_H   = USABLE_H / firstRoundCount;
-  const ROW_H    = Math.max(14, Math.min(26, Math.floor(SLOT_H * 0.44)));
-  const MATCH_H  = ROW_H * 2;
+  const SLOT_H = USABLE_H / firstRoundCount;
+  const ROW_H = Math.max(14, Math.min(26, Math.floor(SLOT_H * 0.44)));
+  const MATCH_H = ROW_H * 2;
 
   // ── SVG viewBox width ───────────────────────────────────────────────────────
   const naturalW = MARGIN_L + numRounds * MATCH_W + (numRounds - 1) * H_GAP + MARGIN_L;
-  const VBW      = Math.max(900, naturalW);
+  const VBW = Math.max(900, naturalW);
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
-  const truncate = (s: string, n: number) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+  const truncate = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 
   const colX = (r: number): number => {
     const colIndex = Math.round(Math.log2(tableauSize / r));
@@ -61,14 +61,17 @@ export function generateBracketTreeHTML(
   const matchCenterY = (r: number, p: number): number =>
     TOP_MARGIN + (p + 0.5) * (tableauSize / r) * SLOT_H;
 
-  const matchTopY = (r: number, p: number): number =>
-    matchCenterY(r, p) - MATCH_H / 2;
+  const matchTopY = (r: number, p: number): number => matchCenterY(r, p) - MATCH_H / 2;
 
   // ── Colour helpers (resolve from template, fallback to defaults) ────────────
-  const navy  = template?.colors.navy  ?? '#1a2e4a';
-  const gold  = template?.colors.gold  ?? '#c9a227';
+  const navy = template?.colors.navy ?? '#1a2e4a';
+  const gold = template?.colors.gold ?? '#c9a227';
   const green = template?.colors.green ?? '#166534';
-  const now   = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const now = new Date().toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
 
   // ── SVG: header ─────────────────────────────────────────────────────────────
   const svgHeader = `
@@ -89,25 +92,29 @@ export function generateBracketTreeHTML(
 
   // ── SVG: round labels ───────────────────────────────────────────────────────
   const roundNums = [...new Set(mainMatches.map(m => m.round))].sort((a, b) => b - a);
-  const labelY    = TOP_MARGIN - 6;
-  const roundLabels = roundNums.map(r => {
-    const cx = colX(r) + MATCH_W / 2;
-    return `<text x="${cx}" y="${labelY}" font-family="'Segoe UI',Arial,sans-serif"
+  const labelY = TOP_MARGIN - 6;
+  const roundLabels = roundNums
+    .map(r => {
+      const cx = colX(r) + MATCH_W / 2;
+      return `<text x="${cx}" y="${labelY}" font-family="'Segoe UI',Arial,sans-serif"
         font-size="9" font-weight="600" fill="${navy}" text-anchor="middle">${getTableauRoundName(r)}</text>`;
-  }).join('\n  ');
+    })
+    .join('\n  ');
 
-  const petiteFinaleLabel = petiteFinale ? `
+  const petiteFinaleLabel = petiteFinale
+    ? `
   <text x="${colX(2) + MATCH_W / 2}" y="${SVG_H - BOT_MARGIN - MATCH_H - 8}"
         font-family="'Segoe UI',Arial,sans-serif"
-        font-size="8" font-weight="600" fill="${navy}" text-anchor="middle">Petite finale</text>` : '';
+        font-size="8" font-weight="600" fill="${navy}" text-anchor="middle">Petite finale</text>`
+    : '';
 
   // ── SVG: connection lines ───────────────────────────────────────────────────
   const connectors = mainMatches
     .filter(m => m.round > 2)
     .map(m => {
       const { round: r, position: p } = m;
-      const x   = colX(r);
-      const cy  = matchCenterY(r, p);
+      const x = colX(r);
+      const cy = matchCenterY(r, p);
       const midX = x + MATCH_W + H_GAP / 2;
       const parentX = colX(r / 2);
 
@@ -115,25 +122,26 @@ export function generateBracketTreeHTML(
 
       if (p % 2 !== 0) return stubH;
 
-      const sibCy    = matchCenterY(r, p + 1);
-      const parentY  = (cy + sibCy) / 2;
+      const sibCy = matchCenterY(r, p + 1);
+      const parentY = (cy + sibCy) / 2;
       return `${stubH}
     <line x1="${midX}" y1="${cy}" x2="${midX}" y2="${sibCy}" stroke="#94a3b8" stroke-width="1.5"/>
     <line x1="${midX}" y1="${parentY}" x2="${parentX}" y2="${parentY}" stroke="#94a3b8" stroke-width="1.5"/>`;
-    }).join('\n  ');
+    })
+    .join('\n  ');
 
   // ── SVG: match box renderer ─────────────────────────────────────────────────
   const renderMatchBox = (match: TableauMatchForPDF, x: number, yTop: number): string => {
     const { fencerA, fencerB, scoreA, scoreB, winner, isBye } = match;
     const fa_id = (fencerA as any)?.id as string | undefined;
     const fb_id = (fencerB as any)?.id as string | undefined;
-    const wid   = winner?.id;
-    const winA  = !!(wid && fa_id && wid === fa_id);
-    const winB  = !!(wid && fb_id && wid === fb_id);
+    const wid = winner?.id;
+    const winA = !!(wid && fa_id && wid === fa_id);
+    const winB = !!(wid && fb_id && wid === fb_id);
 
-    const nameW   = MATCH_W - SCORE_W;
-    const fs      = Math.max(7, Math.min(9, Math.floor(ROW_H * 0.42)));
-    const clubFs  = Math.max(6, fs - 2);
+    const nameW = MATCH_W - SCORE_W;
+    const fs = Math.max(7, Math.min(9, Math.floor(ROW_H * 0.42)));
+    const clubFs = Math.max(6, fs - 2);
     const scoreFs = Math.max(8, Math.min(11, Math.floor(ROW_H * 0.5)));
     const showClub = ROW_H >= 20;
 
@@ -141,13 +149,17 @@ export function generateBracketTreeHTML(
       const byeName = fencerA
         ? truncate(`${fencerA.lastName.toUpperCase()} ${fencerA.firstName?.charAt(0) ?? ''}.`, 22)
         : fencerB
-        ? truncate(`${fencerB.lastName.toUpperCase()} ${fencerB.firstName?.charAt(0) ?? ''}.`, 22)
-        : '';
+          ? truncate(`${fencerB.lastName.toUpperCase()} ${fencerB.firstName?.charAt(0) ?? ''}.`, 22)
+          : '';
       return `<g>
         <rect x="${x}" y="${yTop}" width="${MATCH_W}" height="${MATCH_H}" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1" rx="2"/>
-        ${byeName ? `<text x="${x + MATCH_W / 2}" y="${yTop + MATCH_H / 2 - 3}"
+        ${
+          byeName
+            ? `<text x="${x + MATCH_W / 2}" y="${yTop + MATCH_H / 2 - 3}"
               text-anchor="middle" dominant-baseline="auto"
-              font-family="'Segoe UI',Arial,sans-serif" font-size="${fs}" fill="#475569" font-weight="600">${byeName}</text>` : ''}
+              font-family="'Segoe UI',Arial,sans-serif" font-size="${fs}" fill="#475569" font-weight="600">${byeName}</text>`
+            : ''
+        }
         <text x="${x + MATCH_W / 2}" y="${yTop + MATCH_H / 2 + fs + 2}"
               text-anchor="middle"
               font-family="'Segoe UI',Arial,sans-serif" font-size="${clubFs}" fill="#94a3b8" font-style="italic">Exempté</text>
@@ -164,20 +176,32 @@ export function generateBracketTreeHTML(
         ? truncate(`${fencer.lastName.toUpperCase()} ${fencer.firstName?.charAt(0) ?? ''}.`, 22)
         : '';
       const club = showClub && fencer?.club ? truncate(fencer.club, 20) : '';
-      const bg   = isWinner ? '#dcfce7' : fencer ? (rowY === yTop ? '#f0f7ff' : '#ffffff') : '#f8fafc';
-      const tc   = isWinner ? green : '#1e293b';
-      const fw   = isWinner ? '700' : '500';
+      const bg = isWinner
+        ? '#dcfce7'
+        : fencer
+          ? rowY === yTop
+            ? '#f0f7ff'
+            : '#ffffff'
+          : '#f8fafc';
+      const tc = isWinner ? green : '#1e293b';
+      const fw = isWinner ? '700' : '500';
       const nameY = rowY + (club ? ROW_H * 0.38 : ROW_H * 0.5);
       const clubY = rowY + ROW_H * 0.75;
 
       return `<rect x="${x}" y="${rowY}" width="${nameW}" height="${ROW_H}" fill="${bg}"/>
         <rect x="${x + nameW}" y="${rowY}" width="${SCORE_W}" height="${ROW_H}" fill="${bg}"/>
-        ${fencer
-          ? `<text x="${x + 4}" y="${nameY}" dominant-baseline="middle"
+        ${
+          fencer
+            ? `<text x="${x + 4}" y="${nameY}" dominant-baseline="middle"
               font-family="'Segoe UI',Arial,sans-serif" font-size="${fs}" font-weight="${fw}" fill="${tc}">${name}</text>`
-          : `<line x1="${x + 4}" y1="${nameY}" x2="${x + nameW - 8}" y2="${nameY}" stroke="#cbd5e1" stroke-width="0.75" stroke-dasharray="3,4"/>`}
-        ${club ? `<text x="${x + 4}" y="${clubY}" dominant-baseline="middle"
-              font-family="'Segoe UI',Arial,sans-serif" font-size="${clubFs}" fill="#94a3b8">${club}</text>` : ''}
+            : `<line x1="${x + 4}" y1="${nameY}" x2="${x + nameW - 8}" y2="${nameY}" stroke="#cbd5e1" stroke-width="0.75" stroke-dasharray="3,4"/>`
+        }
+        ${
+          club
+            ? `<text x="${x + 4}" y="${clubY}" dominant-baseline="middle"
+              font-family="'Segoe UI',Arial,sans-serif" font-size="${clubFs}" fill="#94a3b8">${club}</text>`
+            : ''
+        }
         <text x="${x + nameW + SCORE_W / 2}" y="${rowY + ROW_H / 2}" text-anchor="middle" dominant-baseline="middle"
               font-family="'Segoe UI',Arial,sans-serif" font-size="${scoreFs}" font-weight="700" fill="${tc}">${score !== null ? `${isWinner ? 'V ' : ''}${score}` : isWinner ? 'V' : ''}</text>`;
     };
@@ -246,58 +270,59 @@ export function generateBracketTreeMultiPageHTML(
   template?: PdfTemplate
 ): string {
   // ── Layout constants (wall-poster scale ≈ 2× single-page) ──────────────────
-  const MATCH_W    = 260;
-  const H_GAP      = 80;
-  const SCORE_W    = 40;
-  const HEADER_H   = 50;
-  const GOLD_H     = 4;
-  const LABEL_H    = 22;
+  const MATCH_W = 260;
+  const H_GAP = 80;
+  const SCORE_W = 40;
+  const HEADER_H = 50;
+  const GOLD_H = 4;
+  const LABEL_H = 22;
   const TOP_MARGIN = HEADER_H + GOLD_H + LABEL_H;
   const BOT_MARGIN = 24;
-  const MARGIN_L   = 20;
+  const MARGIN_L = 20;
 
   // ── Separate petite-finale from main bracket ────────────────────────────────
   const petiteFinale = matches.find(m => m.round === 3);
-  const mainMatches  = matches.filter(m => m.round !== 3 && m.round >= 2);
+  const mainMatches = matches.filter(m => m.round !== 3 && m.round >= 2);
 
   if (mainMatches.length === 0) throw new Error('Aucun match dans le tableau principal');
 
   const tableauSize = Math.max(...mainMatches.map(m => m.round));
-  const numRounds   = Math.round(Math.log2(tableauSize));
+  const numRounds = Math.round(Math.log2(tableauSize));
 
   // ── Page tiling: A4 landscape minus 11mm CSS strip → 297mm × 199mm usable ──
-  const A4_RATIO    = 297 / 199;
+  const A4_RATIO = 297 / 199;
   const cols: 1 | 2 = tableauSize >= 64 ? 2 : 1;
-  const rows        = 2;
-  const totalPages  = cols * rows;
+  const rows = 2;
+  const totalPages = cols * rows;
 
   const naturalW = MARGIN_L + numRounds * MATCH_W + (numRounds - 1) * H_GAP + MARGIN_L;
-  const VBW      = Math.max(1200, naturalW);
-  const qW       = VBW / cols;
-  const qH       = Math.round(qW / A4_RATIO);
-  const SVG_H    = qH * rows;
+  const VBW = Math.max(1200, naturalW);
+  const qW = VBW / cols;
+  const qH = Math.round(qW / A4_RATIO);
+  const SVG_H = qH * rows;
 
   // ── Vertical slot height ─────────────────────────────────────────────────────
   const firstRoundCount = tableauSize / 2;
   const USABLE_H = SVG_H - TOP_MARGIN - BOT_MARGIN;
-  const SLOT_H   = USABLE_H / firstRoundCount;
-  const ROW_H    = Math.max(10, Math.min(32, Math.floor(SLOT_H * 0.45)));
-  const MATCH_H  = ROW_H * 2;
+  const SLOT_H = USABLE_H / firstRoundCount;
+  const ROW_H = Math.max(10, Math.min(32, Math.floor(SLOT_H * 0.45)));
+  const MATCH_H = ROW_H * 2;
 
   // Snap page split to nearest inter-match gap to avoid cutting through match boxes
-  const splitIdx    = Math.round((qH - TOP_MARGIN) / SLOT_H - 0.5);
+  const splitIdx = Math.round((qH - TOP_MARGIN) / SLOT_H - 0.5);
   const nearMatchCY = TOP_MARGIN + (splitIdx + 0.5) * SLOT_H;
-  const cutY        = Math.abs(qH - nearMatchCY) < MATCH_H / 2
-    ? Math.round(
-        Math.abs(TOP_MARGIN + splitIdx * SLOT_H - qH) <=
-        Math.abs(TOP_MARGIN + (splitIdx + 1) * SLOT_H - qH)
-          ? TOP_MARGIN + splitIdx * SLOT_H
-          : TOP_MARGIN + (splitIdx + 1) * SLOT_H
-      )
-    : qH;
+  const cutY =
+    Math.abs(qH - nearMatchCY) < MATCH_H / 2
+      ? Math.round(
+          Math.abs(TOP_MARGIN + splitIdx * SLOT_H - qH) <=
+            Math.abs(TOP_MARGIN + (splitIdx + 1) * SLOT_H - qH)
+            ? TOP_MARGIN + splitIdx * SLOT_H
+            : TOP_MARGIN + (splitIdx + 1) * SLOT_H
+        )
+      : qH;
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
-  const truncate = (s: string, n: number) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+  const truncate = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 
   const colX = (r: number): number =>
     MARGIN_L + Math.round(Math.log2(tableauSize / r)) * (MATCH_W + H_GAP);
@@ -305,14 +330,17 @@ export function generateBracketTreeMultiPageHTML(
   const matchCenterY = (r: number, p: number): number =>
     TOP_MARGIN + (p + 0.5) * (tableauSize / r) * SLOT_H;
 
-  const matchTopY = (r: number, p: number): number =>
-    matchCenterY(r, p) - MATCH_H / 2;
+  const matchTopY = (r: number, p: number): number => matchCenterY(r, p) - MATCH_H / 2;
 
   // ── Colours ──────────────────────────────────────────────────────────────────
-  const navy  = template?.colors.navy  ?? '#1a2e4a';
-  const gold  = template?.colors.gold  ?? '#c9a227';
+  const navy = template?.colors.navy ?? '#1a2e4a';
+  const gold = template?.colors.gold ?? '#c9a227';
   const green = template?.colors.green ?? '#166534';
-  const now   = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const now = new Date().toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
 
   // ── SVG: header (visible on top-row pages via viewBox) ───────────────────────
   const svgHeader = `
@@ -332,62 +360,71 @@ export function generateBracketTreeMultiPageHTML(
 
   // ── SVG: round labels at top and midpoint (both page-rows get labels) ────────
   const roundNums = [...new Set(mainMatches.map(m => m.round))].sort((a, b) => b - a);
-  const mkRoundLabels = (baseY: number) => roundNums.map(r => {
-    const cx = colX(r) + MATCH_W / 2;
-    return `<text x="${cx}" y="${baseY}" font-family="'Segoe UI',Arial,sans-serif"
+  const mkRoundLabels = (baseY: number) =>
+    roundNums
+      .map(r => {
+        const cx = colX(r) + MATCH_W / 2;
+        return `<text x="${cx}" y="${baseY}" font-family="'Segoe UI',Arial,sans-serif"
         font-size="11" font-weight="600" fill="${navy}" text-anchor="middle">${getTableauRoundName(r)}</text>`;
-  }).join('\n  ');
+      })
+      .join('\n  ');
 
-  const roundLabels = mkRoundLabels(TOP_MARGIN - 7)
-    + '\n  ' + mkRoundLabels(cutY + LABEL_H - 5);
+  const roundLabels = mkRoundLabels(TOP_MARGIN - 7) + '\n  ' + mkRoundLabels(cutY + LABEL_H - 5);
 
-  const petiteFinaleLabel = petiteFinale ? `
+  const petiteFinaleLabel = petiteFinale
+    ? `
   <text x="${colX(2) + MATCH_W / 2}" y="${SVG_H - BOT_MARGIN - MATCH_H - 10}"
         font-family="'Segoe UI',Arial,sans-serif"
-        font-size="10" font-weight="600" fill="${navy}" text-anchor="middle">Petite finale</text>` : '';
+        font-size="10" font-weight="600" fill="${navy}" text-anchor="middle">Petite finale</text>`
+    : '';
 
   // ── SVG: connection lines ─────────────────────────────────────────────────────
   const connectors = mainMatches
     .filter(m => m.round > 2)
     .map(m => {
       const { round: r, position: p } = m;
-      const x    = colX(r);
-      const cy   = matchCenterY(r, p);
+      const x = colX(r);
+      const cy = matchCenterY(r, p);
       const midX = x + MATCH_W + H_GAP / 2;
       const parentX = colX(r / 2);
       const stubH = `<line x1="${x + MATCH_W}" y1="${cy}" x2="${midX}" y2="${cy}" stroke="#94a3b8" stroke-width="2"/>`;
       if (p % 2 !== 0) return stubH;
-      const sibCy   = matchCenterY(r, p + 1);
+      const sibCy = matchCenterY(r, p + 1);
       const parentY = (cy + sibCy) / 2;
       return `${stubH}
     <line x1="${midX}" y1="${cy}" x2="${midX}" y2="${sibCy}" stroke="#94a3b8" stroke-width="2"/>
     <line x1="${midX}" y1="${parentY}" x2="${parentX}" y2="${parentY}" stroke="#94a3b8" stroke-width="2"/>`;
-    }).join('\n  ');
+    })
+    .join('\n  ');
 
   // ── SVG: match box renderer ───────────────────────────────────────────────────
   const renderMatchBox = (match: TableauMatchForPDF, x: number, yTop: number): string => {
     const { fencerA, fencerB, scoreA, scoreB, winner, isBye } = match;
     const fa_id = (fencerA as any)?.id as string | undefined;
     const fb_id = (fencerB as any)?.id as string | undefined;
-    const wid   = winner?.id;
-    const winA  = !!(wid && fa_id && wid === fa_id);
-    const winB  = !!(wid && fb_id && wid === fb_id);
-    const nameW   = MATCH_W - SCORE_W;
-    const fs      = Math.max(9, Math.min(13, Math.floor(ROW_H * 0.42)));
-    const clubFs  = Math.max(8, fs - 2);
+    const wid = winner?.id;
+    const winA = !!(wid && fa_id && wid === fa_id);
+    const winB = !!(wid && fb_id && wid === fb_id);
+    const nameW = MATCH_W - SCORE_W;
+    const fs = Math.max(9, Math.min(13, Math.floor(ROW_H * 0.42)));
+    const clubFs = Math.max(8, fs - 2);
     const scoreFs = Math.max(10, Math.min(15, Math.floor(ROW_H * 0.5)));
 
     if (isBye) {
       const byeName = fencerA
         ? truncate(`${fencerA.lastName.toUpperCase()} ${fencerA.firstName?.charAt(0) ?? ''}.`, 24)
         : fencerB
-        ? truncate(`${fencerB.lastName.toUpperCase()} ${fencerB.firstName?.charAt(0) ?? ''}.`, 24)
-        : '';
+          ? truncate(`${fencerB.lastName.toUpperCase()} ${fencerB.firstName?.charAt(0) ?? ''}.`, 24)
+          : '';
       return `<g>
         <rect x="${x}" y="${yTop}" width="${MATCH_W}" height="${MATCH_H}" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" rx="3"/>
-        ${byeName ? `<text x="${x + MATCH_W / 2}" y="${yTop + MATCH_H / 2 - 3}"
+        ${
+          byeName
+            ? `<text x="${x + MATCH_W / 2}" y="${yTop + MATCH_H / 2 - 3}"
               text-anchor="middle" dominant-baseline="auto"
-              font-family="'Segoe UI',Arial,sans-serif" font-size="${fs}" fill="#475569" font-weight="600">${byeName}</text>` : ''}
+              font-family="'Segoe UI',Arial,sans-serif" font-size="${fs}" fill="#475569" font-weight="600">${byeName}</text>`
+            : ''
+        }
         <text x="${x + MATCH_W / 2}" y="${yTop + MATCH_H / 2 + fs + 3}"
               text-anchor="middle"
               font-family="'Segoe UI',Arial,sans-serif" font-size="${clubFs}" fill="#94a3b8" font-style="italic">Exempté</text>
@@ -404,19 +441,31 @@ export function generateBracketTreeMultiPageHTML(
         ? truncate(`${fencer.lastName.toUpperCase()} ${fencer.firstName?.charAt(0) ?? ''}.`, 24)
         : '';
       const club = fencer?.club ? truncate(fencer.club, 22) : '';
-      const bg   = isWinner ? '#dcfce7' : fencer ? (rowY === yTop ? '#f0f7ff' : '#ffffff') : '#f8fafc';
-      const tc   = isWinner ? green : '#1e293b';
-      const fw   = isWinner ? '700' : '500';
+      const bg = isWinner
+        ? '#dcfce7'
+        : fencer
+          ? rowY === yTop
+            ? '#f0f7ff'
+            : '#ffffff'
+          : '#f8fafc';
+      const tc = isWinner ? green : '#1e293b';
+      const fw = isWinner ? '700' : '500';
       const nameY = rowY + (club ? ROW_H * 0.38 : ROW_H * 0.5);
       const clubY = rowY + ROW_H * 0.75;
       return `<rect x="${x}" y="${rowY}" width="${nameW}" height="${ROW_H}" fill="${bg}"/>
         <rect x="${x + nameW}" y="${rowY}" width="${SCORE_W}" height="${ROW_H}" fill="${bg}"/>
-        ${fencer
-          ? `<text x="${x + 5}" y="${nameY}" dominant-baseline="middle"
+        ${
+          fencer
+            ? `<text x="${x + 5}" y="${nameY}" dominant-baseline="middle"
               font-family="'Segoe UI',Arial,sans-serif" font-size="${fs}" font-weight="${fw}" fill="${tc}">${name}</text>`
-          : `<line x1="${x + 5}" y1="${nameY}" x2="${x + nameW - 8}" y2="${nameY}" stroke="#cbd5e1" stroke-width="0.75" stroke-dasharray="3,4"/>`}
-        ${club ? `<text x="${x + 5}" y="${clubY}" dominant-baseline="middle"
-              font-family="'Segoe UI',Arial,sans-serif" font-size="${clubFs}" fill="#94a3b8">${club}</text>` : ''}
+            : `<line x1="${x + 5}" y1="${nameY}" x2="${x + nameW - 8}" y2="${nameY}" stroke="#cbd5e1" stroke-width="0.75" stroke-dasharray="3,4"/>`
+        }
+        ${
+          club
+            ? `<text x="${x + 5}" y="${clubY}" dominant-baseline="middle"
+              font-family="'Segoe UI',Arial,sans-serif" font-size="${clubFs}" fill="#94a3b8">${club}</text>`
+            : ''
+        }
         <text x="${x + nameW + SCORE_W / 2}" y="${rowY + ROW_H / 2}" text-anchor="middle" dominant-baseline="middle"
               font-family="'Segoe UI',Arial,sans-serif" font-size="${scoreFs}" font-weight="700" fill="${tc}">${score !== null ? `${isWinner ? 'V ' : ''}${score}` : isWinner ? 'V' : ''}</text>`;
     };
@@ -461,10 +510,10 @@ export function generateBracketTreeMultiPageHTML(
     const num = i + 1;
     const vDesc = row === 0 ? 'Haut' : 'Bas';
     const hDesc = cols === 2 ? (col === 0 ? 'Gauche' : 'Droite') : '';
-    const desc  = [vDesc, hDesc].filter(Boolean).join(' ');
+    const desc = [vDesc, hDesc].filter(Boolean).join(' ');
     const adj: string[] = [];
-    if (row > 0)        adj.push(`↑ p.${(row - 1) * cols + col + 1}`);
-    if (col > 0)        adj.push(`← p.${row * cols + col}`);
+    if (row > 0) adj.push(`↑ p.${(row - 1) * cols + col + 1}`);
+    if (col > 0) adj.push(`← p.${row * cols + col}`);
     if (col < cols - 1) adj.push(`→ p.${row * cols + col + 2}`);
     if (row < rows - 1) adj.push(`↓ p.${(row + 1) * cols + col + 1}`);
 
@@ -472,12 +521,13 @@ export function generateBracketTreeMultiPageHTML(
     return `
 <div class="page${i === totalPages - 1 ? ' last' : ''}">
   <div class="strip${isFirst ? '' : ' strip--mini'}" style="background:${navy};">
-    ${isFirst
-      ? `<span class="strip-title">${title}</span>
+    ${
+      isFirst
+        ? `<span class="strip-title">${title}</span>
     <span class="strip-sep">·</span>
     <span class="strip-page">${num}/${totalPages}&nbsp;·&nbsp;${desc}</span>
     ${adj.length ? `<span class="strip-sep">·</span><span class="strip-adj">${adj.join('&nbsp;')}</span>` : ''}`
-      : `<span class="strip-page strip-page--mini">${num}/${totalPages}&nbsp;·&nbsp;${desc}${adj.length ? '&nbsp;·&nbsp;' + adj.join('&nbsp;') : ''}</span>`
+        : `<span class="strip-page strip-page--mini">${num}/${totalPages}&nbsp;·&nbsp;${desc}${adj.length ? '&nbsp;·&nbsp;' + adj.join('&nbsp;') : ''}</span>`
     }
   </div>
   <div class="bracket-view">
@@ -542,9 +592,10 @@ export async function exportBracketTreeToPDF(
   const tableauSize = Math.max(
     ...matches.filter(m => m.round !== 3 && m.round >= 2).map(m => m.round)
   );
-  const html = tableauSize >= 32
-    ? generateBracketTreeMultiPageHTML(matches, title, logoBase64, template)
-    : generateBracketTreeHTML(matches, title, logoBase64, template);
+  const html =
+    tableauSize >= 32
+      ? generateBracketTreeMultiPageHTML(matches, title, logoBase64, template)
+      : generateBracketTreeHTML(matches, title, logoBase64, template);
   await savePDF(html, 'arbre-elimination.pdf');
 }
 
@@ -557,9 +608,10 @@ export async function printBracketTreeHTML(
   const tableauSize = Math.max(
     ...matches.filter(m => m.round !== 3 && m.round >= 2).map(m => m.round)
   );
-  const html = tableauSize >= 32
-    ? generateBracketTreeMultiPageHTML(matches, title, logoBase64, template)
-    : generateBracketTreeHTML(matches, title, logoBase64, template);
+  const html =
+    tableauSize >= 32
+      ? generateBracketTreeMultiPageHTML(matches, title, logoBase64, template)
+      : generateBracketTreeHTML(matches, title, logoBase64, template);
   const api = (window as any).electronAPI;
   if (!api?.file?.printHtml) throw new Error('API Electron non disponible');
   const res = await api.file.printHtml(html);

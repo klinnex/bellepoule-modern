@@ -49,11 +49,11 @@
     "mixed": "Mixte"
   },
   "categories": {
-    "U11": "Poussins",
-    "U13": "Benjamins",
-    "U15": "Minimes",
-    "U17": "Cadets",
-    "U20": "Juniors",
+    "U11": "M11",
+    "U13": "M13",
+    "U15": "M15",
+    "U17": "M17",
+    "U20": "M20",
     "senior": "Seniors",
     "V1": "Vétérans 1",
     "V2": "Vétérans 2",
@@ -125,6 +125,12 @@
     "pool_number": "Poule",
     "change_pool": "Changer de poule",
     "next_round_n": "Tour {{n}} de poules →",
+    "next_round_confirm": "Tour {{n}} : {{qualified}} qualifiés, {{eliminated}} éliminés. Les non-qualifiés passent au statut « Éliminé ». Continuer ?",
+    "next_round_checkin": "Tour {{n}} : appel des qualifiés, puis nouveau tirage",
+    "round_select_label": "Tour de poules",
+    "round_option": "Tour {{n}}",
+    "round_current": "en cours",
+    "round_checkin_banner": "Appel – Tour {{n}} : vérifiez les qualifiés, puis générez les nouvelles poules (tirage selon le classement du tour précédent).",
     "view_ranking_action": "Voir le classement →"
   },
   "ranking": {
@@ -145,7 +151,11 @@
   "tableau": {
     "elimination_in": "Éliminé en",
     "finalist": "Finaliste",
-    "winner": "Vainqueur"
+    "winner": "Vainqueur",
+    "round_final": "Finale",
+    "round_of_n": "Tableau de {{round}}",
+    "round_semifinals": "Demi-finales",
+    "round_third_place": "Petite finale"
   },
   "results": {
     "final_ranking": "Classement final",
@@ -170,7 +180,9 @@
     "reset_scores": "Réinitialiser scores",
     "waiting_match": "En attente du prochain match",
     "in_progress": "En cours",
-    "finished": "Terminé"
+    "finished": "Terminé",
+    "inactive_title": "Saisie distante inactive",
+    "active_title": "Saisie distante active"
   },
   "settings": {
     "title": "Paramètres",
@@ -354,7 +366,8 @@
     "refresh_data": "Rafraîchir les données",
     "timer": "Démarrer/Pause le chronomètre",
     "nav_list": "Naviguer dans la liste",
-    "validate": "Valider / Ouvrir"
+    "validate": "Valider / Ouvrir",
+    "print_sheets": "Imprimer les feuilles de poule / de match"
   },
   "wiki": {
     "button_title": "Documentation"
@@ -384,5 +397,122 @@
     "scoring_zones": "Zones personnalisées",
     "zone_label": "Zone",
     "zone_points": "Points"
+  },
+  "dialogs": {
+    "exportScoreHistory": "Exporter le journal des scores",
+    "exportFencers": "Exporter les tireurs (.{{ext}})",
+    "exportPhotos": "Exporter les photos (.zip)",
+    "importPhotos": "Importer les photos (.zip)",
+    "exportFencersArchive": "Exporter tireurs + photos (.bpf)"
+  },
+  "teams": {
+    "relaysWon": "Relais G",
+    "relaysLost": "Relais P",
+    "relaysTooltip": "Relais individuels gagnés/perdus"
+  },
+  "kiosk": {
+    "tbd": "À déterminer",
+    "resume_at": "Reprise à {{time}}",
+    "bye": "Exemption",
+    "close": "✕ Fermer",
+    "countdown_in": "dans {{duration}}",
+    "defeat_short": "D",
+    "esc_exit": "Échap pour quitter",
+    "final_results": "🏆 RÉSULTATS FINAUX",
+    "finished_matches": "matches terminés",
+    "general_ranking": "Classement général",
+    "matches_live": "Matches en cours",
+    "navigate_hint": "← → naviguer",
+    "no_live": "Aucun match en cours",
+    "pools": "Poules",
+    "provisional_ranking": "Classement provisoire",
+    "ranking": "📊 Classement",
+    "ranking_label": "Classement",
+    "round_16": "Huitièmes de finale",
+    "round_32": "32es de finale",
+    "round_64": "64es de finale",
+    "round_8": "Huitièmes de finale",
+    "round_quarter": "Quart de finale",
+    "round_semi": "Demi-finale",
+    "tableau": "🥇 Tableau",
+    "tableau_done": "Tableau terminé",
+    "victory_short": "V"
+  },
+  "xiaomi": {
+    "arena_label": "Arène",
+    "just_now": "à l'instant",
+    "unlock_tooltip": "Déverrouiller la télécommande",
+    "lock_tooltip": "Verrouiller la télécommande pour éviter les changements",
+    "locked_label": "🔒 Verrouillé",
+    "lock_label": "🔓 Verrouiller",
+    "deselect_swap": "Retirer de la sélection",
+    "select_swap": "Sélectionner pour intervertir",
+    "nav_lobby": "Salle d'attente (Lobby)",
+    "nav_arena": "Arène {{n}}",
+    "arena": "Arena",
+    "blink": "Faire clignoter cet écran pour l'identifier",
+    "bottom_text": "Texte affiché en bas de tous les écrans…",
+    "click_rename": "Cliquez pour renommer",
+    "client_type_dashboard": "Tableau de bord",
+    "client_type_kiosk": "Kiosque",
+    "client_type_lobby": "Lobby",
+    "client_type_public": "Public",
+    "connect_tv": "sur un TV pour qu'il apparaisse ici.",
+    "global_message_label": "Message global",
+    "locked": "Télécommande verrouillée — actions désactivées. Cliquez sur « Verrouillé » pour déverrouiller.",
+    "minutes_ago": "il y a {{m}}m",
+    "nav_kiosk_public": "Kiosque public",
+    "nav_ranking": "Classement",
+    "no_screen": "Aucun écran connecté.",
+    "refresh": "Actualiser",
+    "refresh_all": "Tout actualiser",
+    "rename": "Renommer cet écran",
+    "screen_name": "Nom de l'écran…",
+    "screens_waiting": "— les écrans attendent leur affectation",
+    "seconds_ago": "il y a {{s}}s",
+    "select_2nd": "— sélectionnez un 2e écran",
+    "send": "Envoyer",
+    "swap_label": "⇄ Permuter",
+    "tablet_role": "Rôle de la tablette",
+    "title": "Télécommande TV",
+    "url_no_arena": "URL sans arena :"
+  },
+  "changePool": {
+    "matches_played_count": "{{count}} match(s) joué(s)"
+  },
+  "competitionHeader": {
+    "kiosk_mode": "Mode kiosque"
+  },
+  "poolView": {
+    "fencers_count_suffix": "{{count}} tireur(s)"
+  },
+  "presentation": {
+    "no_club": "Pas de club"
+  },
+  "quest": {
+    "label": "Quest"
+  },
+  "referee": {
+    "arbitre": "Arbitre"
+  },
+  "remote_score": {
+    "identify_button": "🔦 Identifier",
+    "lane_number": "Piste {{number}}",
+    "prefix_break": "Pause",
+    "screen_type_display": "Affichage",
+    "view_bracket": "Tableau éliminatoire",
+    "view_final_ranking": "Classement final",
+    "view_live_matches": "Matches en direct",
+    "view_next_matches": "Matches suivants",
+    "view_pools": "Poules",
+    "view_ranking": "Classement"
+  },
+  "ui": {
+    "configure_kiosk": "🖥️ Configurer le mode kiosque",
+    "configure_send_kiosk": "Configurer et envoyer en mode kiosque",
+    "poule": "Poule",
+    "rotation_label": "Rotation (s) :",
+    "send_kiosk": "Envoyer au kiosque",
+    "views_label": "Vues à afficher :"
   }
 }

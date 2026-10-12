@@ -68,8 +68,8 @@ export const OFFICIAL_TEMPLATES: TournamentTemplate[] = [
   },
   {
     id: 'ffe-cadet-individual',
-    name: 'Championnat Individuel Cadet FFE',
-    description: 'Format officiel FFE Cadets - Poules de 6, tableau à 64',
+    name: 'Championnat Individuel M17 FFE',
+    description: 'Format officiel FFE M17 - Poules de 6, tableau à 64',
     category: 'official',
     weapon: Weapon.EPEE,
     gender: Gender.MIXED,
@@ -102,8 +102,8 @@ export const OFFICIAL_TEMPLATES: TournamentTemplate[] = [
   },
   {
     id: 'ffe-minime-individual',
-    name: 'Championnat Individuel Minime FFE',
-    description: 'Format officiel FFE Minimes - Poules de 5, tableau à 32',
+    name: 'Championnat Individuel M15 FFE',
+    description: 'Format officiel FFE M15 - Poules de 5, tableau à 32',
     category: 'official',
     weapon: Weapon.EPEE,
     gender: Gender.MIXED,

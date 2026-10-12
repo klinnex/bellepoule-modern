@@ -125,6 +125,12 @@
     "pool_number": "Poule",
     "change_pool": "Cambiar Poule",
     "next_round_n": "Ronda {{n}} →",
+    "next_round_confirm": "Ronda {{n}}: {{qualified}} clasificados, {{eliminated}} eliminados. Los no clasificados pasan a «Eliminado». ¿Continuar?",
+    "next_round_checkin": "Ronda {{n}}: llamada de clasificados y nuevo sorteo",
+    "round_select_label": "Ronda de poules",
+    "round_option": "Ronda {{n}}",
+    "round_current": "en curso",
+    "round_checkin_banner": "Llamada – Ronda {{n}}: verifique los clasificados y genere las nuevas poules (sorteo según la clasificación de la ronda anterior).",
     "view_ranking_action": "Ver clasificación →"
   },
   "ranking": {
@@ -145,7 +151,11 @@
   "tableau": {
     "elimination_in": "Eliminado en",
     "finalist": "Finalista",
-    "winner": "Ganador"
+    "winner": "Ganador",
+    "round_final": "Final",
+    "round_of_n": "Cuadro de {{round}}",
+    "round_semifinals": "Semifinales",
+    "round_third_place": "Pequeña final"
   },
   "results": {
     "final_ranking": "Clasificación Final",
@@ -170,7 +180,9 @@
     "reset_scores": "Restablecer Puntuaciones",
     "waiting_match": "Esperando siguiente partido",
     "in_progress": "En Curso",
-    "finished": "Terminado"
+    "finished": "Terminado",
+    "inactive_title": "Entrada remota inactiva",
+    "active_title": "Entrada remota activa"
   },
   "settings": {
     "title": "Ajustes",
@@ -354,7 +366,11 @@
     "refresh_data": "Actualizar datos",
     "timer": "Iniciar/Pausar cronómetro",
     "nav_list": "Navegar en la lista",
-    "validate": "Validar / Abrir"
+    "validate": "Validar / Abrir",
+    "print_sheets": "Imprimir las hojas de poule / de combate"
+  },
+  "wiki": {
+    "button_title": "Documentación"
   },
   "formula": {
     "builder_title": "Constructor de fórmulas",
@@ -381,5 +397,122 @@
     "scoring_zones": "Zonas personalizadas",
     "zone_label": "Zona",
     "zone_points": "Puntos"
+  },
+  "dialogs": {
+    "exportScoreHistory": "Exportar historial de puntuaciones",
+    "exportFencers": "Exportar tiradores (.{{ext}})",
+    "exportPhotos": "Exportar fotos (.zip)",
+    "importPhotos": "Importar fotos (.zip)",
+    "exportFencersArchive": "Exportar tiradores + fotos (.bpf)"
+  },
+  "teams": {
+    "relaysWon": "Relevos G",
+    "relaysLost": "Relevos P",
+    "relaysTooltip": "Relevos individuales ganados/perdidos"
+  },
+  "kiosk": {
+    "tbd": "Por determinar",
+    "resume_at": "Reanudación a las {{time}}",
+    "bye": "Exento",
+    "close": "✕ Cerrar",
+    "countdown_in": "en {{duration}}",
+    "defeat_short": "D",
+    "esc_exit": "Esc para salir",
+    "final_results": "🏆 RESULTADOS FINALES",
+    "finished_matches": "combates terminados",
+    "general_ranking": "Clasificación general",
+    "matches_live": "Combates en curso",
+    "navigate_hint": "← → navegar",
+    "no_live": "Ningún combate en curso",
+    "pools": "Poules",
+    "provisional_ranking": "Clasificación provisional",
+    "ranking": "📊 Clasificación",
+    "ranking_label": "Clasificación",
+    "round_16": "Octavos de final",
+    "round_32": "Dieciseisavos de final",
+    "round_64": "Treintaidosavos de final",
+    "round_8": "Octavos de final",
+    "round_quarter": "Cuartos de final",
+    "round_semi": "Semifinal",
+    "tableau": "🥇 Cuadro",
+    "tableau_done": "Cuadro terminado",
+    "victory_short": "V"
+  },
+  "xiaomi": {
+    "arena_label": "Pista",
+    "just_now": "justo ahora",
+    "unlock_tooltip": "Desbloquear el mando",
+    "lock_tooltip": "Bloquear el mando para evitar cambios",
+    "locked_label": "🔒 Bloqueado",
+    "lock_label": "🔓 Bloquear",
+    "deselect_swap": "Quitar de la selección",
+    "select_swap": "Seleccionar para intercambiar",
+    "nav_lobby": "Sala de espera (Lobby)",
+    "nav_arena": "Pista {{n}}",
+    "arena": "Arena",
+    "blink": "Hacer parpadear esta pantalla para identificarla",
+    "bottom_text": "Texto mostrado en la parte inferior de todas las pantallas…",
+    "click_rename": "Haga clic para renombrar",
+    "client_type_dashboard": "Panel de control",
+    "client_type_kiosk": "Quiosco",
+    "client_type_lobby": "Lobby",
+    "client_type_public": "Público",
+    "connect_tv": "en una TV para que aparezca aquí.",
+    "global_message_label": "Mensaje global",
+    "locked": "Mando bloqueado — acciones desactivadas. Haga clic en «Bloqueado» para desbloquear.",
+    "minutes_ago": "hace {{m}}m",
+    "nav_kiosk_public": "Quiosco público",
+    "nav_ranking": "Clasificación",
+    "no_screen": "Ninguna pantalla conectada.",
+    "refresh": "Actualizar",
+    "refresh_all": "Actualizar todo",
+    "rename": "Renombrar esta pantalla",
+    "screen_name": "Nombre de la pantalla…",
+    "screens_waiting": "— las pantallas esperan su asignación",
+    "seconds_ago": "hace {{s}}s",
+    "select_2nd": "— seleccione una 2ª pantalla",
+    "send": "Enviar",
+    "swap_label": "⇄ Intercambiar",
+    "tablet_role": "Rol de la tableta",
+    "title": "Mando a distancia TV",
+    "url_no_arena": "URL sin arena:"
+  },
+  "changePool": {
+    "matches_played_count": "{{count}} combate(s) jugado(s)"
+  },
+  "competitionHeader": {
+    "kiosk_mode": "Modo quiosco"
+  },
+  "poolView": {
+    "fencers_count_suffix": "{{count}} tirador(es)"
+  },
+  "presentation": {
+    "no_club": "Sin club"
+  },
+  "quest": {
+    "label": "Quest"
+  },
+  "referee": {
+    "arbitre": "Árbitro"
+  },
+  "remote_score": {
+    "identify_button": "🔦 Identificar",
+    "lane_number": "Pista {{number}}",
+    "prefix_break": "Pausa",
+    "screen_type_display": "Pantalla",
+    "view_bracket": "Cuadro eliminatorio",
+    "view_final_ranking": "Clasificación final",
+    "view_live_matches": "Combates en directo",
+    "view_next_matches": "Próximos combates",
+    "view_pools": "Poules",
+    "view_ranking": "Clasificación"
+  },
+  "ui": {
+    "configure_kiosk": "🖥️ Configurar el modo quiosco",
+    "configure_send_kiosk": "Configurar y enviar en modo quiosco",
+    "poule": "Poule",
+    "rotation_label": "Rotación (s):",
+    "send_kiosk": "Enviar al quiosco",
+    "views_label": "Vistas a mostrar:"
   }
 }

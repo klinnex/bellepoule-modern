@@ -40,32 +40,22 @@ export function parseFFEFile(content: string): ImportResult {
 
   // Détecter le format et le(s) séparateur(s)
   const formatInfo = detectFormat(lines);
-  logger.debug(LogCategory.BUSINESS, 'Format détecté', { type: formatInfo.type, separator: formatInfo.primarySeparator });
+  logger.debug(LogCategory.BUSINESS, 'Format détecté', {
+    type: formatInfo.type,
+    separator: formatInfo.primarySeparator,
+  });
 
-  // Vérifier si la première ligne est un en-tête
-  const firstLineLower = lines[0].toLowerCase();
+  // Vérifier si la première ligne est un en-tête (champs entiers, pas de sous-chaîne :
+  // un tireur « ALEXANDRE » ou « NOMADE » ne doit pas être pris pour un en-tête)
   const firstLineParts = parseLine(lines[0], formatInfo.primarySeparator);
-
-  // Détection plus robuste d'en-tête
   const hasHeader =
-    // Vérification par mots-clés classiques
-    firstLineLower.includes('nom') ||
-    firstLineLower.includes('name') ||
-    firstLineLower.includes('prenom') ||
-    firstLineLower.includes('prénom') ||
-    firstLineLower.includes('firstname') ||
-    firstLineLower.includes('lastname') ||
-    // Vérification format FFF spécial (commence par FFF, UTF8, etc.)
-    firstLineLower.includes('fff') ||
-    firstLineLower.includes('utf8') ||
-    (firstLineParts.length >= 3 &&
-      ['fff', 'utf8', 'utf-8', 'x', '-', 'nom', 'prenom', 'sexe', 'club', 'classement'].some(
-        keyword => firstLineParts.some(part => part.toLowerCase().includes(keyword))
-      )) ||
-    // Vérification par structure (tous les champs sont des mots)
-    firstLineParts.every(part => /^[a-zA-ZÀ-ÿ\s\-]+$/.test(part)) ||
-    // Vérification par nombre de champs (typiquement 8-10 champs pour en-tête)
-    (firstLineParts.length >= 8 && firstLineParts.length <= 10);
+    isMetadataLine(lines[0]) ||
+    isHeaderLine(lines[0]) ||
+    firstLineParts.some(part =>
+      ['sexe', 'club', 'licence', 'nation', 'nationalité', 'ligue', 'date'].includes(
+        part.trim().toLowerCase()
+      )
+    );
 
   const startIndex = hasHeader ? 1 : 0;
 
@@ -76,8 +66,7 @@ export function parseFFEFile(content: string): ImportResult {
     // Ignorer les lignes qui ne contiennent que des séparateurs ou des métadonnées
     if (
       /^[\t\s\-]+$/g.test(line) ||
-      line.toLowerCase().includes('fff') ||
-      line.toLowerCase().includes('utf8') ||
+      isMetadataLine(line) ||
       line.split(/[;\t,]/).filter(p => p.trim()).length < 2
     ) {
       continue;
@@ -103,6 +92,22 @@ export function parseFFEFile(content: string): ImportResult {
   return result;
 }
 
+/**
+ * Ligne de métadonnées FFF (ex: "FFF;WIN;competition;;individuel", "UTF8;...")
+ */
+function isMetadataLine(line: string): boolean {
+  return /^\s*(fff|utf-?8|win)\s*[;,]/i.test(line);
+}
+
+/**
+ * Ligne d'en-tête de colonnes (ex: "Nom;Prénom;Club;Classement")
+ * Compare des champs entiers pour ne pas écarter un tireur nommé "NOMADE".
+ */
+function isHeaderLine(line: string): boolean {
+  const headerWords = ['nom', 'name', 'prenom', 'prénom', 'firstname', 'lastname', 'classement'];
+  return line.split(/[;,\t]/).some(part => headerWords.includes(part.trim().toLowerCase()));
+}
+
 interface FormatInfo {
   type: 'standard' | 'mixed';
   primarySeparator: string;
@@ -113,15 +118,18 @@ interface FormatInfo {
  * Détecte le format du fichier FFE
  */
 function detectFormat(lines: string[]): FormatInfo {
+  // En-tête FFF ("FFF;WIN;..." / "FFF;UTF8;...") : format FFF, même si les lignes sont incomplètes
+  if (lines.some(isMetadataLine)) {
+    return { type: 'mixed', primarySeparator: ';', secondarySeparator: ',' };
+  }
+
   // Ignorer les lignes d'en-tête pour l'analyse de format
   const dataLines = lines.filter(line => {
     const trimmed = line.trim();
     return (
       trimmed &&
-      !trimmed.toLowerCase().includes('fff') &&
-      !trimmed.toLowerCase().includes('utf8') &&
-      !trimmed.toLowerCase().includes('nom') &&
-      !trimmed.toLowerCase().includes('classem') &&
+      !isMetadataLine(trimmed) &&
+      !isHeaderLine(trimmed) &&
       !trimmed.includes('✓') &&
       // Ignorer les lignes qui ne contiennent que des points-virgules et des chiffres (dates)
       !/^[\d\/;]+$/.test(trimmed) &&
@@ -188,7 +196,10 @@ function detectFormat(lines: string[]): FormatInfo {
       const firstSectionCommas = (parts[0].match(/,/g) || []).length;
       // Format FFF typique: NOM,PRENOM,DATE,SEXE,NATION (4 virgules)
       if (firstSectionCommas >= 3 && firstSectionCommas <= 5) {
-        logger.debug(LogCategory.BUSINESS, 'Format FFF détecté: première virgule = séparateur NOM/PRÉNOM');
+        logger.debug(
+          LogCategory.BUSINESS,
+          'Format FFF détecté: première virgule = séparateur NOM/PRÉNOM'
+        );
         return {
           type: 'mixed',
           primarySeparator: ';',
@@ -201,7 +212,10 @@ function detectFormat(lines: string[]): FormatInfo {
   // Détecter si c'est le format où seule la première partie utilise des virgules
   const parts = dataLine.split(';');
   if (parts.length >= 2 && parts[0].includes(',')) {
-    logger.debug(LogCategory.BUSINESS, 'Format mixte détecté: virgules dans première section, points-virgules ensuite');
+    logger.debug(
+      LogCategory.BUSINESS,
+      'Format mixte détecté: virgules dans première section, points-virgules ensuite'
+    );
     return {
       type: 'mixed',
       primarySeparator: ';',
@@ -211,7 +225,10 @@ function detectFormat(lines: string[]): FormatInfo {
 
   // Détecter si le format utilise des virgules dans une structure tabulaire
   if (dataLine.includes(',') && dataLine.includes('\t')) {
-    logger.debug(LogCategory.BUSINESS, 'Format mixte détecté: virgules dans les données, tabulations comme séparateurs de tableaux');
+    logger.debug(
+      LogCategory.BUSINESS,
+      'Format mixte détecté: virgules dans les données, tabulations comme séparateurs de tableaux'
+    );
     return {
       type: 'mixed',
       primarySeparator: '\t',
@@ -241,73 +258,19 @@ function parseLineWithFormat(line: string, formatInfo: FormatInfo): string[] {
       return parts;
     }
 
-    // Format FFF standard : NOM,Prénom,Naissance,Sexe,Nationalité;?,?,?;Licence,Ligue,Club,Classement,?,Nationalité?;Position,Statut
-    // Structure: 4 sections séparées par ;
-    const mainParts = line.split(';').map(p => p.trim());
-
-    // Filtrer les parties vides à la fin (causées par le ; final)
-    while (mainParts.length > 0 && mainParts[mainParts.length - 1] === '') {
-      mainParts.pop();
-    }
-
-    // Format FFF avec 3+ sections: personalInfo;unknown;clubInfo;[positionInfo]
-    if (mainParts.length >= 3) {
-      // Section 0: NOM,Prénom,Naissance,Sexe,Nationalité
-      const personalInfo = parseLine(mainParts[0], ',');
-
-      // Section 1: ?,?,? (champs inconnus)
-      const unknownFields = mainParts[1] ? parseLine(mainParts[1], ',') : [];
-
-      // Section 2: Licence,Ligue,Club,Classement,Nationalité?,?
-      const clubInfo = mainParts[2] ? parseLine(mainParts[2], ',') : [];
-
-      // Section 3 (optionnelle): Position,Statut (ex: "2,t" pour position 2)
-      const positionInfo = mainParts.length >= 4 ? parseLine(mainParts[3], ',') : [];
-
-      // Vérifier si on a les bonnes colonnes (NOM, PRENOM, NAISSANCE, SEXE, NATIONALITÉ)
-      if (personalInfo.length >= 5) {
-        // Format FFF standard: 5 colonnes dans personalInfo
-        const result = [
-          ...personalInfo.slice(0, 5), // NOM, PRENOM, NAISSANCE, SEXE, NATIONALITÉ (indices 0-4)
-          ...unknownFields, // Champs inconnus (?, ?, ?)
-          ...clubInfo, // LICENCE, LIGUE, CLUB, CLASSEMENT, ?, NATIONALITÉ?
-          ...positionInfo, // POSITION, STATUT
+    // Format FFF : NOM,Prénom,Naissance,Sexe,Nationalité;?,?,?;Licence,Ligue,Club,Classement,?,?;Position,Statut
+    // Chaque section est complétée à sa taille fixe : une ligne où des champs vides
+    // (ou des sections entières) ont été omis reste alignée.
+    if (formatInfo.primarySeparator === ';') {
+      const sections = line.split(';').map(p => p.trim());
+      const personalInfo = parseLine(sections[0], ',');
+      if (personalInfo.length >= 2) {
+        return [
+          ...padFields(personalInfo, 5), // NOM, PRENOM, NAISSANCE, SEXE, NATIONALITÉ (0-4)
+          ...padFields(sections[1] ? parseLine(sections[1], ',') : [], 3), // Champs inconnus (5-7)
+          ...padFields(sections[2] ? parseLine(sections[2], ',') : [], 6), // LICENCE, LIGUE, CLUB, CLASSEMENT, ?, ? (8-13)
+          ...padFields(sections[3] ? parseLine(sections[3], ',') : [], 2), // POSITION, STATUT (14-15)
         ];
-
-        // S'assurer qu'on a bien le bon nombre de champs
-        while (result.length < 15) {
-          result.push('');
-        }
-
-        return result;
-      }
-    }
-
-    if (mainParts.length >= 3) {
-      // Format mixte spécial: NOM,PRENOM,DATE,SEXE,NATION;[vide];[vide];LICENCE,RÉGION,CLUB,...
-      const firstSection = mainParts[0];
-      const personalInfo = parseLine(firstSection, ',');
-
-      // La deuxième partie est souvent vide (champ manquant)
-      const middlePart = mainParts[1] || '';
-      // La troisième partie contient licence, région, club séparées par virgules
-      const clubInfo = mainParts[2] ? parseLine(mainParts[2], ',') : [];
-
-      // Vérifier si on a les bonnes colonnes (NOM, PRENOM, DATE, SEXE, NATION)
-      if (personalInfo.length >= 5) {
-        // Format FFF normal: 5 colonnes dans personalInfo
-        const result = [
-          ...personalInfo.slice(0, 5), // NOM, PRENOM, DATE, SEXE, NATION
-          middlePart, // Champ vide (ligue)
-          ...clubInfo, // LICENCE, RÉGION, CLUB, etc.
-        ];
-
-        // S'assurer qu'on a bien le bon nombre de champs
-        while (result.length < 9) {
-          result.push('');
-        }
-
-        return result;
       }
     } else if (formatInfo.primarySeparator === '\t' && formatInfo.secondarySeparator === ',') {
       // Format spécial : tabulations pour séparer les colonnes, virgules dans la première colonne
@@ -352,6 +315,15 @@ function parseLineWithFormat(line: string, formatInfo: FormatInfo): string[] {
 
   // Fallback - parser avec le séparateur principal
   return parseLine(line, formatInfo.primarySeparator);
+}
+
+/**
+ * Tronque ou complète une liste de champs à une taille fixe
+ */
+function padFields(fields: string[], size: number): string[] {
+  const out = fields.slice(0, size);
+  while (out.length < size) out.push('');
+  return out;
 }
 
 /**

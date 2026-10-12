@@ -125,6 +125,12 @@
     "pool_number": "Pool",
     "change_pool": "Change Pool",
     "next_round_n": "Pool round {{n}} →",
+    "next_round_confirm": "Round {{n}}: {{qualified}} qualified, {{eliminated}} eliminated. Non-qualified fencers will be set to \"Eliminated\". Continue?",
+    "next_round_checkin": "Round {{n}}: roll call of qualified fencers, then new draw",
+    "round_select_label": "Pool round",
+    "round_option": "Round {{n}}",
+    "round_current": "current",
+    "round_checkin_banner": "Roll call – Round {{n}}: check the qualified fencers, then generate the new pools (seeded on the previous round ranking).",
     "view_ranking_action": "View ranking →"
   },
   "ranking": {
@@ -145,7 +151,11 @@
   "tableau": {
     "elimination_in": "Eliminated in",
     "finalist": "Finalist",
-    "winner": "Winner"
+    "winner": "Winner",
+    "round_final": "Final",
+    "round_of_n": "Round of {{round}}",
+    "round_semifinals": "Semi-finals",
+    "round_third_place": "Third place match"
   },
   "results": {
     "final_ranking": "Final Ranking",
@@ -170,7 +180,9 @@
     "reset_scores": "Reset Scores",
     "waiting_match": "Waiting for next match",
     "in_progress": "In Progress",
-    "finished": "Finished"
+    "finished": "Finished",
+    "inactive_title": "Remote entry inactive",
+    "active_title": "Remote entry active"
   },
   "settings": {
     "title": "Settings",
@@ -354,7 +366,8 @@
     "refresh_data": "Refresh data",
     "timer": "Start/Pause timer",
     "nav_list": "Navigate in list",
-    "validate": "Validate / Open"
+    "validate": "Validate / Open",
+    "print_sheets": "Print pool / match sheets"
   },
   "formula": {
     "builder_title": "Formula builder",
@@ -384,5 +397,122 @@
   },
   "wiki": {
     "button_title": "Documentation"
+  },
+  "dialogs": {
+    "exportScoreHistory": "Export score history",
+    "exportFencers": "Export fencers (.{{ext}})",
+    "exportPhotos": "Export photos (.zip)",
+    "importPhotos": "Import photos (.zip)",
+    "exportFencersArchive": "Export fencers + photos (.bpf)"
+  },
+  "teams": {
+    "relaysWon": "Relays W",
+    "relaysLost": "Relays L",
+    "relaysTooltip": "Individual relays won/lost"
+  },
+  "kiosk": {
+    "ranking": "📊 Ranking",
+    "tableau": "🥇 Tableau",
+    "esc_exit": "Esc to quit",
+    "close": "✕ Close",
+    "finished_matches": "finished matches",
+    "ranking_label": "Ranking",
+    "matches_live": "Matches in progress",
+    "no_live": "No match in progress",
+    "final_results": "🏆 FINAL RESULTS",
+    "tableau_done": "Tableau finished",
+    "general_ranking": "General ranking",
+    "tbd": "TBD",
+    "resume_at": "Resuming at {{time}}",
+    "round_semi": "Semi-final",
+    "round_quarter": "Quarter-final",
+    "round_8": "Eighth-final",
+    "round_16": "Round of 16",
+    "round_32": "Round of 32",
+    "round_64": "Round of 64",
+    "bye": "Bye",
+    "pools": "Pools",
+    "navigate_hint": "← → navigate",
+    "provisional_ranking": "Provisional ranking",
+    "countdown_in": "in {{duration}}",
+    "victory_short": "V",
+    "defeat_short": "D"
+  },
+  "xiaomi": {
+    "arena_label": "Arena",
+    "just_now": "just now",
+    "unlock_tooltip": "Unlock the remote control",
+    "lock_tooltip": "Lock the remote control to prevent changes",
+    "locked_label": "🔒 Locked",
+    "lock_label": "🔓 Lock",
+    "deselect_swap": "Remove from selection",
+    "select_swap": "Select to swap",
+    "nav_lobby": "Waiting room (Lobby)",
+    "nav_arena": "Arena {{n}}",
+    "screen_name": "Screen name…",
+    "click_rename": "Click to rename",
+    "tablet_role": "Tablet role",
+    "arena": "Arena",
+    "blink": "Make this screen blink to identify it",
+    "rename": "Rename this screen",
+    "refresh": "Refresh",
+    "bottom_text": "Text displayed at the bottom of all screens…",
+    "title": "TV Remote",
+    "refresh_all": "Refresh all",
+    "url_no_arena": "URL without arena:",
+    "screens_waiting": "— screens wait there for their assignment",
+    "locked": "Remote locked — actions disabled. Click « Locked » to unlock.",
+    "no_screen": "No screen connected.",
+    "connect_tv": "on a TV for it to appear here.",
+    "select_2nd": "— select a 2nd screen",
+    "client_type_lobby": "Lobby",
+    "client_type_kiosk": "Kiosk",
+    "client_type_public": "Public",
+    "client_type_dashboard": "Dashboard",
+    "seconds_ago": "{{s}}s ago",
+    "minutes_ago": "{{m}}m ago",
+    "swap_label": "⇄ Swap",
+    "global_message_label": "Global message",
+    "send": "Send",
+    "nav_kiosk_public": "Public kiosk",
+    "nav_ranking": "Ranking"
+  },
+  "changePool": {
+    "matches_played_count": "{{count}} match(es) played"
+  },
+  "competitionHeader": {
+    "kiosk_mode": "Kiosk mode"
+  },
+  "poolView": {
+    "fencers_count_suffix": "{{count}} fencer(s)"
+  },
+  "presentation": {
+    "no_club": "No club"
+  },
+  "quest": {
+    "label": "Quest"
+  },
+  "referee": {
+    "arbitre": "Referee"
+  },
+  "remote_score": {
+    "identify_button": "🔦 Identify",
+    "lane_number": "Strip {{number}}",
+    "prefix_break": "Break",
+    "screen_type_display": "Display",
+    "view_bracket": "Bracket",
+    "view_final_ranking": "Final ranking",
+    "view_live_matches": "Live matches",
+    "view_next_matches": "Next matches",
+    "view_pools": "Pools",
+    "view_ranking": "Ranking"
+  },
+  "ui": {
+    "configure_kiosk": "🖥️ Configure kiosk mode",
+    "configure_send_kiosk": "Configure and send in kiosk mode",
+    "poule": "Pool",
+    "rotation_label": "Rotation (s):",
+    "send_kiosk": "Send to kiosk",
+    "views_label": "Views to display:"
   }
 }

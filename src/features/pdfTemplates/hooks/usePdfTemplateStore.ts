@@ -33,25 +33,31 @@ export const usePdfTemplateStore = create<PdfTemplateState & PdfTemplateActions>
   devtools(
     immer(
       persist(
-        (set) => ({
+        set => ({
           templates: {
-            pool:    buildDefaultTemplate('pool'),
+            pool: buildDefaultTemplate('pool'),
             tableau: buildDefaultTemplate('tableau'),
             ranking: buildDefaultTemplate('ranking'),
           },
 
           setTemplate: (docType, template) =>
-            set(s => { s.templates[docType] = template; }),
+            set(s => {
+              s.templates[docType] = template;
+            }),
 
-          resetTemplate: (docType) =>
-            set(s => { s.templates[docType] = buildDefaultTemplate(docType); }),
+          resetTemplate: docType =>
+            set(s => {
+              s.templates[docType] = buildDefaultTemplate(docType);
+            }),
 
-          importTemplate: (template) =>
-            set(s => { s.templates[template.docType] = template; }),
+          importTemplate: template =>
+            set(s => {
+              s.templates[template.docType] = template;
+            }),
         }),
         {
           name: 'bellepoule-pdf-templates',
-          onRehydrateStorage: () => (state) => {
+          onRehydrateStorage: () => state => {
             if (!state) return;
             (['pool', 'tableau', 'ranking'] as PdfDocType[]).forEach(docType => {
               state.templates[docType] = migrateTemplate(state.templates[docType]);

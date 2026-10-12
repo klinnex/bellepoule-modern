@@ -11,7 +11,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import TableauScoreModal from './TableauScoreModal';
 
 const match = {
-  id: 'm1', round: 8,
+  id: 'm1',
+  round: 8,
   fencerA: { id: 'a', lastName: 'Dupont', firstName: 'Jean' },
   fencerB: { id: 'b', lastName: 'Martin', firstName: 'Marie' },
 } as any;
@@ -46,7 +47,7 @@ describe('TableauScoreModal', () => {
 
   it('saisir un score appelle setEditScoreA', () => {
     const { props, utils } = setup();
-    const inputs = utils.container.querySelectorAll('input[type="number"]');
+    const inputs = utils.baseElement.querySelectorAll('input[type="number"]');
     fireEvent.change(inputs[0], { target: { value: '15' } });
     expect(props.setEditScoreA).toHaveBeenCalledWith('15');
   });

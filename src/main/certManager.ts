@@ -7,7 +7,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import selfsigned from 'selfsigned';
+import * as os from 'os';
+import { generate } from 'selfsigned';
 
 export interface CertBundle {
   cert: string;
@@ -21,14 +22,26 @@ function computeFingerprint(certPem: string): string {
     .createHash('sha256')
     .update(
       Buffer.from(
-        certPem
-          .replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n|\r/g, ''),
+        certPem.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n|\r/g, ''),
         'base64'
       )
     )
     .digest('hex')
     .toUpperCase();
   return der.match(/.{2}/g)!.join(':');
+}
+
+/** SAN : localhost + adresses IPv4 de la machine au moment de la génération. */
+export function buildAltNames(
+  interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]> = os.networkInterfaces()
+): Array<{ type: 2; value: string } | { type: 7; ip: string }> {
+  const ips = new Set<string>(['127.0.0.1']);
+  for (const list of Object.values(interfaces)) {
+    for (const iface of list ?? []) {
+      if (iface.family === 'IPv4' && !iface.internal) ips.add(iface.address);
+    }
+  }
+  return [{ type: 2, value: 'localhost' }, ...Array.from(ips, ip => ({ type: 7 as const, ip }))];
 }
 
 export async function ensureCert(userDataPath: string): Promise<CertBundle> {
@@ -45,13 +58,13 @@ export async function ensureCert(userDataPath: string): Promise<CertBundle> {
   fs.mkdirSync(certsDir, { recursive: true });
 
   const attrs = [{ name: 'commonName', value: 'BellePoule-LAN' }];
-  const generated = selfsigned.generate(attrs, {
-    days: 3650,
+  const notAfterDate = new Date();
+  notAfterDate.setDate(notAfterDate.getDate() + 3650);
+  const generated = await generate(attrs, {
+    notAfterDate,
     keySize: 2048,
     algorithm: 'sha256',
-    extensions: [
-      { name: 'subjectAltName', altNames: [{ type: 7, ip: '0.0.0.0' }] },
-    ],
+    extensions: [{ name: 'subjectAltName', altNames: buildAltNames() }],
   });
 
   fs.writeFileSync(certPath, generated.cert, { mode: 0o600 });

@@ -61,7 +61,12 @@ export function parseSimpleTXTFile(content: string): ImportResult {
         result.fencers.push(fencer);
       }
     } catch (error) {
-      logger.error(LogCategory.BUSINESS, `Error parsing line ${i + 1}`, error instanceof Error ? error : undefined, { line });
+      logger.error(
+        LogCategory.BUSINESS,
+        `Error parsing line ${i + 1}`,
+        error instanceof Error ? error : undefined,
+        { line }
+      );
       result.errors.push(
         `Ligne ${i + 1}: ${error instanceof Error ? error.message : 'Erreur de parsing'}`
       );
@@ -124,7 +129,9 @@ function parseTXTLine(line: string, lineNumber: number): Partial<Fencer> | null 
   }
 
   if (bestParts.length < 2) {
-    logger.warn(LogCategory.BUSINESS, `Line ${lineNumber}: Not enough parts to extract name`, { parts: bestParts.length });
+    logger.warn(LogCategory.BUSINESS, `Line ${lineNumber}: Not enough parts to extract name`, {
+      parts: bestParts.length,
+    });
     return null;
   }
 

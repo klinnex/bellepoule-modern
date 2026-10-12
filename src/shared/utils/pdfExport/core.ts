@@ -29,8 +29,13 @@ export async function savePDF(html: string, defaultName: string): Promise<void> 
 
 // ─── Template helpers ─────────────────────────────────────────────────────────
 
+/** Variables de couleur du modèle — à insérer APRÈS BASE_CSS, qui redéfinit :root (#992). */
 export function buildCssOverrides(t: PdfTemplate): string {
-  return `:root { --navy: ${t.colors.navy}; --gold: ${t.colors.gold}; --green: ${t.colors.green}; }`;
+  const vars = (['navy', 'gold', 'green'] as const)
+    .filter(k => /^#[0-9a-fA-F]{3,8}$/.test(t.colors?.[k] ?? ''))
+    .map(k => `--${k}: ${t.colors[k]};`)
+    .join(' ');
+  return vars ? `:root { ${vars} }` : '';
 }
 
 function isVisible(t: PdfTemplate | undefined, id: string): boolean {
@@ -43,10 +48,11 @@ export function assembleBody(
   t: PdfTemplate | undefined,
   defaultOrder: string[]
 ): string {
-  const order = t
-    ? [...t.elements].sort((a, b) => a.order - b.order).map(e => e.id)
-    : defaultOrder;
-  return order.filter(id => isVisible(t, id)).map(id => sections[id] ?? '').join('\n');
+  const order = t ? [...t.elements].sort((a, b) => a.order - b.order).map(e => e.id) : defaultOrder;
+  return order
+    .filter(id => isVisible(t, id))
+    .map(id => sections[id] ?? '')
+    .join('\n');
 }
 
 // ─── CSS commun ───────────────────────────────────────────────────────────────
@@ -120,6 +126,25 @@ export const BASE_CSS = `
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+  }
+  .doc-header-strip-qr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5mm;
+    margin-right: 3mm;
+    flex-shrink: 0;
+  }
+  .doc-header-strip-qr img {
+    width: 16mm;
+    height: 16mm;
+    background: #fff;
+    border-radius: 1mm;
+  }
+  .doc-header-strip-qr span {
+    font-size: 6.5pt;
+    color: var(--gold-light);
+    font-weight: 700;
   }
   .gold-bar {
     height: 3px;

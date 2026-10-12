@@ -7,10 +7,7 @@
 import React, { useState } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { Fencer } from '../../shared/types';
-import {
-  FFEConnectService,
-  FFEParticipant,
-} from '@shared/services/ffeConnectService';
+import { FFEConnectService, FFEParticipant } from '@shared/services/ffeConnectService';
 
 interface FFEConnectModalProps {
   onImport: (fencers: Partial<Fencer>[]) => void;
@@ -73,9 +70,7 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
 
   const handleAdd = () => {
     const service = new FFEConnectService({ apiKey: apiKey.trim() || undefined });
-    const fencers = participants
-      .filter((_, i) => selected.has(i))
-      .map(p => service.toFencer(p));
+    const fencers = participants.filter((_, i) => selected.has(i)).map(p => service.toFencer(p));
     onImport(fencers);
     onClose();
   };
@@ -163,8 +158,14 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
                   <strong>{participants.length}</strong> participant(s) trouvé(s) —{' '}
                   <strong>{selected.size}</strong> sélectionné(s)
                 </span>
-                <button className="btn btn-secondary" onClick={toggleAll} style={{ padding: '4px 10px' }}>
-                  {selected.size === participants.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+                <button
+                  className="btn btn-secondary"
+                  onClick={toggleAll}
+                  style={{ padding: '4px 10px' }}
+                >
+                  {selected.size === participants.length
+                    ? 'Tout désélectionner'
+                    : 'Tout sélectionner'}
                 </button>
               </div>
 
@@ -188,7 +189,12 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
                       <tr
                         key={i}
                         onClick={() => toggleOne(i)}
-                        style={{ cursor: 'pointer', background: selected.has(i) ? 'var(--color-primary-light, rgba(0,100,255,0.08))' : undefined }}
+                        style={{
+                          cursor: 'pointer',
+                          background: selected.has(i)
+                            ? 'var(--color-primary-light, rgba(0,100,255,0.08))'
+                            : undefined,
+                        }}
                       >
                         <td style={{ textAlign: 'center' }}>
                           <input
@@ -215,15 +221,14 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
           )}
         </div>
 
-        <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', padding: '1rem' }}>
+        <div
+          className="modal-footer"
+          style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', padding: '1rem' }}
+        >
           <button className="btn btn-secondary" onClick={onClose}>
             Annuler
           </button>
-          <button
-            className="btn btn-primary"
-            onClick={handleAdd}
-            disabled={selected.size === 0}
-          >
+          <button className="btn btn-primary" onClick={handleAdd} disabled={selected.size === 0}>
             Ajouter les sélectionnés ({selected.size})
           </button>
         </div>

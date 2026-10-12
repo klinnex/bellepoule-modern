@@ -172,6 +172,7 @@ export interface ArenaUpdate {
   nextMatch?: ArenaMatch | null; // prochain combat (affiché quand status=finished)
   swapped?: boolean;
   refereeFeatureEnabled?: boolean; // fonctionnalité arbitres activée
+  blackCardEnabled?: boolean; // carton noir activé (paramètre compétition)
   referees?: RemoteReferee[]; // liste de tous les arbitres de la compétition
   timerDuration?: number; // durée du chrono en secondes pour ce match
   poolComplete?: boolean; // vrai quand tous les matchs de la poule sont terminés
@@ -196,4 +197,15 @@ export interface OrgNote {
   targetTime?: string; // "HH:MM" uniquement pour type target_time
   countdownPrefix?: string; // mot affiché avant l'heure (ex: "Reprise", "Début")
   createdAt: string; // ISO timestamp
+}
+
+/** Demande de signature d'un match de tableau renvoyée vers une piste */
+export interface MatchSignatureRequest {
+  match: {
+    id: string;
+    fencerA: { id: string; firstName: string; lastName: string };
+    fencerB: { id: string; firstName: string; lastName: string };
+  };
+  scoreA: number;
+  scoreB: number;
 }

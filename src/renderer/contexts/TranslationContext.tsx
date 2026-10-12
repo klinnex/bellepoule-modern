@@ -157,7 +157,8 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
   useEffect(() => {
     const initialize = async () => {
       const injectedLang = window.electronAPI?.initialLanguage as Language | null;
-      const savedLanguage = injectedLang || (localStorage.getItem('bellepoule-language') as Language) || 'fr';
+      const savedLanguage =
+        injectedLang || (localStorage.getItem('bellepoule-language') as Language) || 'fr';
       if (injectedLang) localStorage.setItem('bellepoule-language', injectedLang);
       const savedTheme = (localStorage.getItem('bellepoule-theme') as Theme) || 'default';
 

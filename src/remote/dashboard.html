@@ -487,28 +487,28 @@
           <div class="competition-name" id="competition-name">Coupe Régionale - Sabre Laser</div>
         </div>
         <div class="header-right">
-          <div class="last-update">
+          <div class="last-update" role="status" aria-live="polite">
             Mis à jour: <span class="time" id="last-update-time">--:--:--</span>
           </div>
-          <div class="connection-status">
-            <div id="status-dot" class="status-dot"></div>
+          <div class="connection-status" role="status" aria-live="polite">
+            <div id="status-dot" class="status-dot" aria-hidden="true"></div>
             <span id="connection-text">Connexion...</span>
           </div>
         </div>
       </header>
 
       <!-- Tab Navigation -->
-      <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="poules" data-i18n="dashboard.pools">Poules</button>
-        <button class="tab-btn" data-tab="classement" data-i18n="dashboard.ranking">Classement Général</button>
-        <button class="tab-btn" data-tab="direct" data-i18n="dashboard.live">Matchs en Cours</button>
+      <nav class="tab-nav" role="tablist" aria-label="Vue du tableau de bord">
+        <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-poules" data-tab="poules" data-i18n="dashboard.pools">Poules</button>
+        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-classement" data-tab="classement" data-i18n="dashboard.ranking">Classement Général</button>
+        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-direct" data-tab="direct" data-i18n="dashboard.live">Matchs en Cours</button>
       </nav>
 
       <!-- Tab: Poules -->
-      <div id="tab-poules" class="tab-content active">
+      <div id="tab-poules" class="tab-content active" role="tabpanel">
         <div class="pools-grid" id="pools-container">
           <div class="no-data">
-            <div class="no-data-icon">🤺</div>
+            <div class="no-data-icon" aria-hidden="true">🤺</div>
             <h3 data-i18n="dashboard.no_pools">Aucune poule en cours</h3>
             <p data-i18n="dashboard.no_pools_hint">Les poules apparaîtront ici une fois la compétition démarrée</p>
           </div>
@@ -516,7 +516,7 @@
       </div>
 
       <!-- Tab: Classement Général -->
-      <div id="tab-classement" class="tab-content">
+      <div id="tab-classement" class="tab-content" role="tabpanel">
         <div class="overall-ranking">
           <div class="overall-header">
             <h2 data-i18n="dashboard.ranking_title">🏅 Classement Général Quest</h2>
@@ -544,7 +544,7 @@
       </div>
 
       <!-- Tab: Matchs en Cours -->
-      <div id="tab-direct" class="tab-content">
+      <div id="tab-direct" class="tab-content" role="tabpanel">
         <div class="live-matches" id="live-matches">
           <div class="no-data">
             <div class="no-data-icon">⏱️</div>

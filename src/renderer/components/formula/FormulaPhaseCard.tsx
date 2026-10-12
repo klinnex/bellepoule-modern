@@ -2,7 +2,7 @@
  * BellePoule Modern - Carte d'une phase dans le pipeline de formule
  */
 
-import React, { useState , memo} from 'react';
+import React, { useState, memo } from 'react';
 import {
   CustomDEConfig,
   CustomPoolRoundConfig,
@@ -66,17 +66,11 @@ const FormulaPhaseCard_: React.FC<Props> = ({
   const deCfg = node.config as CustomDEConfig;
 
   return (
-    <div
-      className="formula-phase-card"
-      style={{ borderLeftColor: NODE_TYPE_COLORS[node.type] }}
-    >
+    <div className="formula-phase-card" style={{ borderLeftColor: NODE_TYPE_COLORS[node.type] }}>
       {/* En-tête */}
       <div className="phase-card-header">
         <div className="phase-card-title-row">
-          <span
-            className="phase-type-badge"
-            style={{ background: NODE_TYPE_COLORS[node.type] }}
-          >
+          <span className="phase-type-badge" style={{ background: NODE_TYPE_COLORS[node.type] }}>
             {NODE_TYPE_LABELS[node.type]}
           </span>
           <input
@@ -146,9 +140,7 @@ const FormulaPhaseCard_: React.FC<Props> = ({
                       min={3}
                       max={poolCfg.maxPoolSize}
                       value={poolCfg.minPoolSize}
-                      onChange={e =>
-                        updatePoolConfig({ minPoolSize: Number(e.target.value) })
-                      }
+                      onChange={e => updatePoolConfig({ minPoolSize: Number(e.target.value) })}
                       disabled={readOnly}
                     />
                     <span>à</span>
@@ -158,9 +150,7 @@ const FormulaPhaseCard_: React.FC<Props> = ({
                       min={poolCfg.minPoolSize}
                       max={20}
                       value={poolCfg.maxPoolSize}
-                      onChange={e =>
-                        updatePoolConfig({ maxPoolSize: Number(e.target.value) })
-                      }
+                      onChange={e => updatePoolConfig({ maxPoolSize: Number(e.target.value) })}
                       disabled={readOnly}
                     />
                   </div>
@@ -202,7 +192,9 @@ const FormulaPhaseCard_: React.FC<Props> = ({
                     className="form-input"
                     value={poolCfg.seeding}
                     onChange={e =>
-                      updatePoolConfig({ seeding: e.target.value as 'serpentine' | 'sequential' | 'random' })
+                      updatePoolConfig({
+                        seeding: e.target.value as 'serpentine' | 'sequential' | 'random',
+                      })
                     }
                     disabled={readOnly}
                   >

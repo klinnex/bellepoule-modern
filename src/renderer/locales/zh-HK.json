@@ -125,6 +125,12 @@
     "pool_number": "分組",
     "change_pool": "更改分組",
     "next_round_n": "第 {{n}} 輪分組賽 →",
+    "next_round_confirm": "第 {{n}} 輪：{{qualified}} 人晉級，{{eliminated}} 人淘汰。未晉級者將設為「已淘汰」。繼續？",
+    "next_round_checkin": "第 {{n}} 輪：晉級者點名，然後重新抽籤",
+    "round_select_label": "分組輪次",
+    "round_option": "第 {{n}} 輪",
+    "round_current": "進行中",
+    "round_checkin_banner": "點名 – 第 {{n}} 輪：確認晉級者，然後按上一輪排名產生新分組。",
     "view_ranking_action": "查看排名 →"
   },
   "ranking": {
@@ -145,7 +151,11 @@
   "tableau": {
     "elimination_in": "淘汰於",
     "finalist": "決賽選手",
-    "winner": "冠軍"
+    "winner": "冠軍",
+    "round_final": "決賽",
+    "round_of_n": "{{round}}強賽",
+    "round_semifinals": "準決賽",
+    "round_third_place": "季軍賽"
   },
   "results": {
     "final_ranking": "最終排名",
@@ -170,7 +180,9 @@
     "reset_scores": "重設分數",
     "waiting_match": "等待下一場比賽",
     "in_progress": "進行中",
-    "finished": "已結束"
+    "finished": "已結束",
+    "inactive_title": "遠程輸入未啟動",
+    "active_title": "遠程輸入已啟動"
   },
   "settings": {
     "title": "設定",
@@ -354,7 +366,11 @@
     "refresh_data": "重新整理資料",
     "timer": "開始/暫停計時器",
     "nav_list": "在列表中導航",
-    "validate": "確認 / 開啟"
+    "validate": "確認 / 開啟",
+    "print_sheets": "列印小組賽 / 對戰表"
+  },
+  "wiki": {
+    "button_title": "說明文件"
   },
   "formula": {
     "builder_title": "賽制編輯器",
@@ -381,5 +397,122 @@
     "scoring_zones": "自訂區域",
     "zone_label": "區域",
     "zone_points": "分數"
+  },
+  "dialogs": {
+    "exportScoreHistory": "匯出比分記錄",
+    "exportFencers": "匯出劍手 (.{{ext}})",
+    "exportPhotos": "匯出照片 (.zip)",
+    "importPhotos": "匯入照片 (.zip)",
+    "exportFencersArchive": "匯出劍手 + 照片 (.bpf)"
+  },
+  "teams": {
+    "relaysWon": "接力勝",
+    "relaysLost": "接力負",
+    "relaysTooltip": "個人接力勝/負"
+  },
+  "kiosk": {
+    "tbd": "待定",
+    "resume_at": "{{time}} 恢復",
+    "bye": "輪空",
+    "close": "✕ 關閉",
+    "countdown_in": "{{duration}} 後",
+    "defeat_short": "負",
+    "esc_exit": "按 Esc 離開",
+    "final_results": "🏆 最終成績",
+    "finished_matches": "場比賽已完成",
+    "general_ranking": "總排名",
+    "matches_live": "進行中的比賽",
+    "navigate_hint": "← → 切換",
+    "no_live": "目前沒有進行中的比賽",
+    "pools": "小組賽",
+    "provisional_ranking": "臨時排名",
+    "ranking": "📊 排名",
+    "ranking_label": "排名",
+    "round_16": "16強賽",
+    "round_32": "32強賽",
+    "round_64": "64強賽",
+    "round_8": "16強賽",
+    "round_quarter": "8強賽",
+    "round_semi": "準決賽",
+    "tableau": "🥇 淘汰賽表",
+    "tableau_done": "淘汰賽表已完成",
+    "victory_short": "勝"
+  },
+  "xiaomi": {
+    "arena_label": "場地",
+    "just_now": "剛剛",
+    "unlock_tooltip": "解鎖遙控器",
+    "lock_tooltip": "鎖定遙控器以避免變更",
+    "locked_label": "🔒 已鎖定",
+    "lock_label": "🔓 鎖定",
+    "deselect_swap": "取消選取",
+    "select_swap": "選取以交換",
+    "nav_lobby": "等候室 (Lobby)",
+    "nav_arena": "場地 {{n}}",
+    "arena": "Arena",
+    "blink": "讓此畫面閃爍以識別",
+    "bottom_text": "顯示於所有畫面底部的文字…",
+    "click_rename": "點擊以重新命名",
+    "client_type_dashboard": "控制台",
+    "client_type_kiosk": "資訊站",
+    "client_type_lobby": "等候室",
+    "client_type_public": "公眾畫面",
+    "connect_tv": "在電視上連接後將顯示於此。",
+    "global_message_label": "全域訊息",
+    "locked": "遙控器已鎖定 — 操作已停用。點擊「已鎖定」以解鎖。",
+    "minutes_ago": "{{m}} 分鐘前",
+    "nav_kiosk_public": "公眾資訊站",
+    "nav_ranking": "排名",
+    "no_screen": "沒有連接的畫面。",
+    "refresh": "重新整理",
+    "refresh_all": "全部重新整理",
+    "rename": "重新命名此畫面",
+    "screen_name": "畫面名稱…",
+    "screens_waiting": "— 畫面正等待分配",
+    "seconds_ago": "{{s}} 秒前",
+    "select_2nd": "— 請選取第二個畫面",
+    "send": "傳送",
+    "swap_label": "⇄ 交換",
+    "tablet_role": "平板角色",
+    "title": "電視遙控器",
+    "url_no_arena": "沒有場地的 URL："
+  },
+  "changePool": {
+    "matches_played_count": "已進行 {{count}} 場比賽"
+  },
+  "competitionHeader": {
+    "kiosk_mode": "資訊站模式"
+  },
+  "poolView": {
+    "fencers_count_suffix": "{{count}} 位劍手"
+  },
+  "presentation": {
+    "no_club": "沒有所屬會"
+  },
+  "quest": {
+    "label": "Quest"
+  },
+  "referee": {
+    "arbitre": "裁判"
+  },
+  "remote_score": {
+    "identify_button": "🔦 識別",
+    "lane_number": "第 {{number}} 道",
+    "prefix_break": "休息",
+    "screen_type_display": "顯示畫面",
+    "view_bracket": "淘汰賽表",
+    "view_final_ranking": "最終排名",
+    "view_live_matches": "即時比賽",
+    "view_next_matches": "下一場比賽",
+    "view_pools": "小組賽",
+    "view_ranking": "排名"
+  },
+  "ui": {
+    "configure_kiosk": "🖥️ 設定資訊站模式",
+    "configure_send_kiosk": "設定並傳送至資訊站模式",
+    "poule": "小組",
+    "rotation_label": "輪替 (秒)：",
+    "send_kiosk": "傳送至資訊站",
+    "views_label": "顯示畫面："
   }
 }

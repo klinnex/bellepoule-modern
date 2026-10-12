@@ -7,8 +7,11 @@ export interface WikiSection {
   shortcuts?: { key: string; desc: string }[];
 }
 
-export type LangContent = Partial<Record<WikiLang, WikiSection[]>> & { fr: WikiSection[]; en: WikiSection[] };
-export type LangTitle  = Partial<Record<WikiLang, string>>        & { fr: string; en: string };
+export type LangContent = Partial<Record<WikiLang, WikiSection[]>> & {
+  fr: WikiSection[];
+  en: WikiSection[];
+};
+export type LangTitle = Partial<Record<WikiLang, string>> & { fr: string; en: string };
 
 export interface WikiArticle {
   id: string;

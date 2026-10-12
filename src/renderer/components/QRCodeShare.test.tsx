@@ -18,7 +18,9 @@ beforeEach(() => {
     remote: { getServerInfo: vi.fn(async () => ({ success: false })) },
   };
 });
-afterEach(() => { delete (window as any).electronAPI; });
+afterEach(() => {
+  delete (window as any).electronAPI;
+});
 
 describe('QRCodeShare', () => {
   it('affiche le titre du mode résultats et les onglets', () => {

@@ -39,11 +39,12 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
   );
 
   const pendingMatches = useMemo(() => {
-    const result: { match: Match; poolIndex: number; matchIndex: number; poolNumber: number }[] = [];
+    const result: { match: Match; poolIndex: number; matchIndex: number; poolNumber: number }[] =
+      [];
     for (let pi = 0; pi < pools.length; pi++) {
       const pool = pools[pi];
       pool.matches.forEach((m, mi) => {
-        if (m.status === MatchStatus.NOT_STARTED || m.status === 'not_started' as MatchStatus) {
+        if (m.status === MatchStatus.NOT_STARTED || m.status === ('not_started' as MatchStatus)) {
           const assignedToStrip = strips.some(
             s => s.assignedPoolIndex === pi && s.assignedMatchIndex === mi
           );
@@ -65,7 +66,12 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
     setStrips(prev =>
       prev.map(s =>
         s.id === stripId
-          ? { ...s, currentMatchId: match.id, assignedPoolIndex: poolIndex, assignedMatchIndex: matchIndex }
+          ? {
+              ...s,
+              currentMatchId: match.id,
+              assignedPoolIndex: poolIndex,
+              assignedMatchIndex: matchIndex,
+            }
           : s
       )
     );
@@ -90,7 +96,11 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
 
   const totalMatches = pools.reduce((s, p) => s + p.matches.length, 0);
   const finishedMatches = pools.reduce(
-    (s, p) => s + p.matches.filter(m => m.status === MatchStatus.FINISHED || m.status === 'finished' as MatchStatus).length,
+    (s, p) =>
+      s +
+      p.matches.filter(
+        m => m.status === MatchStatus.FINISHED || m.status === ('finished' as MatchStatus)
+      ).length,
     0
   );
 
@@ -106,10 +116,19 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
       >
         <div className="modal-header" style={{ flexShrink: 0 }}>
           <h2 style={{ margin: 0 }}>Gestion multi-pistes ({stripCount} pistes)</h2>
-          <button className="btn-close" onClick={onClose}>&times;</button>
+          <button className="btn-close" onClick={onClose}>
+            &times;
+          </button>
         </div>
 
-        <div style={{ padding: '1rem 1.5rem', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
+        <div
+          style={{
+            padding: '1rem 1.5rem',
+            background: '#f9fafb',
+            borderBottom: '1px solid #e5e7eb',
+            flexShrink: 0,
+          }}
+        >
           <div style={{ display: 'flex', gap: '2rem' }}>
             <span style={{ fontSize: '0.875rem' }}>
               <strong>{finishedMatches}</strong>/{totalMatches} matchs terminés
@@ -142,7 +161,13 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                     background: isOccupied ? '#eff6ff' : '#fff',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '0.75rem',
+                    }}
+                  >
                     <span style={{ fontWeight: 700, fontSize: '1rem' }}>Piste {strip.id}</span>
                     <span
                       style={{
@@ -159,7 +184,9 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
 
                   {match ? (
                     <div>
-                      <div style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#6b7280' }}>
+                      <div
+                        style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#6b7280' }}
+                      >
                         Poule {pools[strip.assignedPoolIndex!]?.number}
                       </div>
                       <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>
@@ -167,7 +194,12 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                       </div>
                       <button
                         className="btn btn-secondary"
-                        style={{ marginTop: '0.75rem', width: '100%', fontSize: '0.75rem', padding: '0.375rem' }}
+                        style={{
+                          marginTop: '0.75rem',
+                          width: '100%',
+                          fontSize: '0.75rem',
+                          padding: '0.375rem',
+                        }}
                         onClick={() => releaseStrip(strip.id)}
                       >
                         Libérer la piste
@@ -177,8 +209,16 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                     <div>
                       {pendingMatches.length > 0 ? (
                         <>
-                          <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.5rem' }}>
-                            Prochain : Poule {pendingMatches[0].poolNumber} — {pendingMatches[0].match.fencerA?.lastName ?? '?'} vs {pendingMatches[0].match.fencerB?.lastName ?? '?'}
+                          <div
+                            style={{
+                              fontSize: '0.75rem',
+                              color: '#9ca3af',
+                              marginBottom: '0.5rem',
+                            }}
+                          >
+                            Prochain : Poule {pendingMatches[0].poolNumber} —{' '}
+                            {pendingMatches[0].match.fencerA?.lastName ?? '?'} vs{' '}
+                            {pendingMatches[0].match.fencerB?.lastName ?? '?'}
                           </div>
                           <button
                             className="btn btn-primary"
@@ -189,7 +229,9 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                           </button>
                         </>
                       ) : (
-                        <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Aucun match en attente</div>
+                        <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                          Aucun match en attente
+                        </div>
                       )}
                     </div>
                   )}

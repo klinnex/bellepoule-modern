@@ -1,7 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { SM, SUBHEAD, HIDDEN } from './pdfTemplateEditor.styles';
-import type { PdfTemplate, PdfElementConfig, PdfColorScheme } from '../../shared/types/pdfTemplate.types';
+import type {
+  PdfTemplate,
+  PdfElementConfig,
+  PdfColorScheme,
+} from '../../shared/types/pdfTemplate.types';
 
 const LOGO_KEY = 'bellepoule-logo';
 
@@ -53,15 +57,21 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
 
   const handleDrop = (e: React.DragEvent, targetId: string) => {
     e.preventDefault();
-    if (!draggedId || draggedId === targetId) { setDraggedId(null); return; }
+    if (!draggedId || draggedId === targetId) {
+      setDraggedId(null);
+      return;
+    }
     const fromEl = sorted.find(el => el.id === draggedId);
     const toEl = sorted.find(el => el.id === targetId);
-    if (!fromEl || !toEl) { setDraggedId(null); return; }
+    if (!fromEl || !toEl) {
+      setDraggedId(null);
+      return;
+    }
     onChange({
       ...template,
       elements: template.elements.map(el => {
         if (el.id === draggedId) return { ...el, order: toEl.order };
-        if (el.id === targetId)  return { ...el, order: fromEl.order };
+        if (el.id === targetId) return { ...el, order: fromEl.order };
         return el;
       }),
       updatedAt: new Date().toISOString(),
@@ -80,7 +90,11 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
   };
 
   const handleColorChange = (key: keyof typeof template.colors, value: string) => {
-    onChange({ ...template, colors: { ...template.colors, [key]: value }, updatedAt: new Date().toISOString() });
+    onChange({
+      ...template,
+      colors: { ...template.colors, [key]: value },
+      updatedAt: new Date().toISOString(),
+    });
   };
 
   const handleTitleChange = (value: string) => {
@@ -118,10 +132,11 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-
       {/* Titre personnalisé */}
       <div className="form-group" style={{ marginBottom: 0 }}>
-        <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>{t('pdfTemplate.customTitle')}</label>
+        <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+          {t('pdfTemplate.customTitle')}
+        </label>
         <input
           className="form-input"
           type="text"
@@ -140,30 +155,62 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
             <img
               src={logo}
               alt="Logo"
-              style={{ height: '48px', maxWidth: '120px', objectFit: 'contain', border: '1px solid var(--color-border, #d1d5db)', borderRadius: '4px', padding: '2px', background: '#fff' }}
+              style={{
+                height: '48px',
+                maxWidth: '120px',
+                objectFit: 'contain',
+                border: '1px solid var(--color-border, #d1d5db)',
+                borderRadius: '4px',
+                padding: '2px',
+                background: '#fff',
+              }}
             />
           ) : (
-            <div style={{ height: '48px', width: '80px', border: '1px dashed var(--color-border, #d1d5db)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: 'var(--color-muted, #9ca3af)' }}>
+            <div
+              style={{
+                height: '48px',
+                width: '80px',
+                border: '1px dashed var(--color-border, #d1d5db)',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.75rem',
+                color: 'var(--color-muted, #9ca3af)',
+              }}
+            >
               Aucun logo
             </div>
           )}
-          <button className="btn btn-secondary" style={SM} onClick={() => logoInputRef.current?.click()}>
+          <button
+            className="btn btn-secondary"
+            style={SM}
+            onClick={() => logoInputRef.current?.click()}
+          >
             {logo ? 'Changer' : 'Importer'}
           </button>
           {logo && (
-            <button className="btn btn-secondary" style={{ fontSize: '0.8rem', color: 'var(--danger, #ef4444)' }} onClick={handleLogoRemove}>
+            <button
+              className="btn btn-secondary"
+              style={{ fontSize: '0.8rem', color: 'var(--danger, #ef4444)' }}
+              onClick={handleLogoRemove}
+            >
               Supprimer
             </button>
           )}
-          <input ref={logoInputRef} type="file" accept="image/*" style={HIDDEN} onChange={handleLogoUpload} />
+          <input
+            ref={logoInputRef}
+            type="file"
+            accept="image/*"
+            style={HIDDEN}
+            onChange={handleLogoUpload}
+          />
         </div>
       </div>
 
       {/* Couleurs */}
       <div>
-        <div style={SUBHEAD}>
-          Couleurs
-        </div>
+        <div style={SUBHEAD}>Couleurs</div>
         {/* Presets */}
         <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
           {COLOR_PRESETS.map(preset => (
@@ -171,10 +218,26 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
               key={preset.label}
               className="btn btn-secondary"
               style={{ ...SM, display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-              onClick={() => onChange({ ...template, colors: { ...preset.colors }, updatedAt: new Date().toISOString() })}
+              onClick={() =>
+                onChange({
+                  ...template,
+                  colors: { ...preset.colors },
+                  updatedAt: new Date().toISOString(),
+                })
+              }
             >
               {(['navy', 'gold', 'green'] as const).map(k => (
-                <span key={k} style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: preset.colors[k], border: '1px solid rgba(0,0,0,0.2)' }} />
+                <span
+                  key={k}
+                  style={{
+                    display: 'inline-block',
+                    width: 10,
+                    height: 10,
+                    borderRadius: 2,
+                    background: preset.colors[k],
+                    border: '1px solid rgba(0,0,0,0.2)',
+                  }}
+                />
               ))}
               {preset.label}
             </button>
@@ -182,12 +245,28 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
         </div>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           {(['navy', 'gold', 'green'] as const).map(key => (
-            <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+            <label
+              key={key}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+              }}
+            >
               <input
                 type="color"
                 value={template.colors[key]}
                 onChange={e => handleColorChange(key, e.target.value)}
-                style={{ width: '32px', height: '32px', padding: '2px', border: '1px solid var(--color-border, #d1d5db)', borderRadius: '4px', cursor: 'pointer' }}
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  padding: '2px',
+                  border: '1px solid var(--color-border, #d1d5db)',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
               />
               {t(`pdfTemplate.colors.${key}`)}
             </label>
@@ -197,10 +276,14 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
 
       {/* Ordre et visibilité des sections */}
       <div>
-        <div style={SUBHEAD}>
-          Sections
-        </div>
-        <div style={{ border: '1px solid var(--color-border, #d1d5db)', borderRadius: '6px', overflow: 'hidden' }}>
+        <div style={SUBHEAD}>Sections</div>
+        <div
+          style={{
+            border: '1px solid var(--color-border, #d1d5db)',
+            borderRadius: '6px',
+            overflow: 'hidden',
+          }}
+        >
           {sorted.map((el, idx) => (
             <div
               key={el.id}
@@ -213,28 +296,42 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
                 alignItems: 'center',
                 gap: '0.75rem',
                 padding: '0.6rem 0.75rem',
-                background: draggedId === el.id
-                  ? 'var(--color-primary-light, #eff6ff)'
-                  : idx % 2 === 0 ? 'var(--color-surface, #fff)' : 'var(--color-bg, #f9fafb)',
-                borderBottom: idx < sorted.length - 1 ? '1px solid var(--color-border, #e5e7eb)' : 'none',
+                background:
+                  draggedId === el.id
+                    ? 'var(--color-primary-light, #eff6ff)'
+                    : idx % 2 === 0
+                      ? 'var(--color-surface, #fff)'
+                      : 'var(--color-bg, #f9fafb)',
+                borderBottom:
+                  idx < sorted.length - 1 ? '1px solid var(--color-border, #e5e7eb)' : 'none',
                 opacity: draggedId === el.id ? 0.5 : 1,
                 cursor: 'grab',
                 transition: 'background 0.1s',
               }}
             >
-              <span style={{ color: 'var(--color-muted, #9ca3af)', fontSize: '1rem', userSelect: 'none' }}>⠿</span>
+              <span
+                style={{
+                  color: 'var(--color-muted, #9ca3af)',
+                  fontSize: '1rem',
+                  userSelect: 'none',
+                }}
+              >
+                ⠿
+              </span>
               <input
                 type="checkbox"
                 checked={el.visible}
                 onChange={() => toggleVisible(el.id)}
                 style={{ cursor: 'pointer', width: '15px', height: '15px', flexShrink: 0 }}
               />
-              <span style={{
-                fontSize: '0.85rem',
-                color: el.visible ? 'var(--color-text, #1e293b)' : 'var(--color-muted, #9ca3af)',
-                textDecoration: el.visible ? 'none' : 'line-through',
-                flex: 1,
-              }}>
+              <span
+                style={{
+                  fontSize: '0.85rem',
+                  color: el.visible ? 'var(--color-text, #1e293b)' : 'var(--color-muted, #9ca3af)',
+                  textDecoration: el.visible ? 'none' : 'line-through',
+                  flex: 1,
+                }}
+              >
                 {t(`pdfTemplate.elements.${el.id}`)}
               </span>
             </div>
@@ -253,11 +350,19 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
         <button className="btn btn-secondary" style={SM} onClick={handleImportClick}>
           {t('pdfTemplate.importJson')}
         </button>
-        <input ref={fileInputRef} type="file" accept=".json" style={HIDDEN} onChange={handleFileChange} />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          style={HIDDEN}
+          onChange={handleFileChange}
+        />
       </div>
 
       {importError && (
-        <p style={{ fontSize: '0.8rem', color: 'var(--danger, #ef4444)', marginTop: '-0.5rem' }}>{importError}</p>
+        <p style={{ fontSize: '0.8rem', color: 'var(--danger, #ef4444)', marginTop: '-0.5rem' }}>
+          {importError}
+        </p>
       )}
     </div>
   );

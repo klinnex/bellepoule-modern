@@ -22,7 +22,9 @@ describe('OFFICIAL_TEMPLATES', () => {
   });
 
   it('expose une catégorie valide pour chaque modèle', () => {
-    expect(OFFICIAL_TEMPLATES.every(t => t.category === 'official' || t.category === 'custom')).toBe(true);
+    expect(
+      OFFICIAL_TEMPLATES.every(t => t.category === 'official' || t.category === 'custom')
+    ).toBe(true);
   });
 
   it('getOfficialTemplates retourne la même liste', () => {

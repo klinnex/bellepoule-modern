@@ -24,6 +24,20 @@ export const ICON_BTN: CSSProperties = {
   borderRadius: '4px',
 };
 
+// Boutons compacts icône seule (libellé affiché en info-bulle au survol via `title`)
+export const ICON_ONLY_BTN: CSSProperties = {
+  width: '2rem',
+  height: '2rem',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '0.95rem',
+  border: 'none',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  flexShrink: 0,
+};
+
 // Boutons de statut spécial (abandon/forfait/exclusion/annuler)
 export const SPECIAL_BTN: CSSProperties = { fontSize: '0.8rem', padding: '0.4rem 0.75rem' };
 
@@ -82,18 +96,28 @@ export const nameCol = (align: 'flex-start' | 'flex-end'): CSSProperties => ({
   alignItems: align,
   flex: 1,
   minWidth: '200px',
+  maxWidth: '100%',
+  overflow: 'hidden',
 });
 
 export const nameLast = (align: 'left' | 'right'): CSSProperties => ({
   fontSize: '1.5rem',
   fontWeight: 600,
   textAlign: align,
+  maxWidth: '100%',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const nameFirst = (align: 'left' | 'right'): CSSProperties => ({
   fontSize: '1rem',
   color: '#6b7280',
   textAlign: align,
+  maxWidth: '100%',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const victoryBtn = (active: boolean): CSSProperties => ({
@@ -171,7 +195,12 @@ export const LOCKED_BANNER: CSSProperties = {
 };
 
 export const HEADER_LEFT: CSSProperties = { display: 'flex', alignItems: 'center', gap: '0.75rem' };
-export const TOOLBAR_GROUP: CSSProperties = { display: 'flex', gap: '0.5rem' };
+export const TOOLBAR_GROUP: CSSProperties = {
+  display: 'flex',
+  gap: '0.5rem',
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+};
 export const VIEW_GROUP: CSSProperties = { display: 'flex', gap: '0.25rem' };
 export const RELATIVE: CSSProperties = { position: 'relative' };
 export const VS: CSSProperties = { opacity: 0.7 };
@@ -193,8 +222,9 @@ export const COL_MENU: CSSProperties = {
   top: '100%',
   right: 0,
   marginTop: '0.25rem',
-  background: 'white',
-  border: '1px solid #e5e7eb',
+  background: 'var(--color-surface)',
+  color: 'var(--color-text)',
+  border: '1px solid var(--color-border)',
   borderRadius: '6px',
   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
   zIndex: 100,
@@ -206,7 +236,7 @@ export const COL_MENU_HEADER: CSSProperties = {
   fontSize: '0.75rem',
   fontWeight: 600,
   padding: '0.25rem 0.5rem',
-  borderBottom: '1px solid #e5e7eb',
+  borderBottom: '1px solid var(--color-border)',
   marginBottom: '0.25rem',
 };
 

@@ -11,12 +11,35 @@ import { FinalResult } from '../components/tableau/tableauTypes';
 import { exportFencersToTXT, exportFencersToFFF } from '../../shared/utils/fencerExport';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import { useToast } from '../components/Toast';
+import { formatQuestPerMatch } from '../../shared/utils/poolCalculations';
 import {
   exportResultsHTML,
   exportRankingCSV,
   exportResultsXMLFFE,
   exportDetailedStatsCSV,
 } from '../../shared/utils/multiFormatExport';
+
+import { computePoolStrips } from '../../shared/utils/poolStrips';
+import type { PoolStripQr } from '../../shared/utils/pdfExport';
+
+/** Saisie distante active : URL du serveur et nombre de pistes (QR sur les feuilles) */
+export interface PoolsRemoteInfo {
+  serverUrl: string;
+  arenaCount: number;
+}
+
+function buildStripQrs(
+  pools: Pool[],
+  remote?: PoolsRemoteInfo
+): Record<string, PoolStripQr> | undefined {
+  if (!remote?.serverUrl) return undefined;
+  const strips = computePoolStrips(pools, remote.arenaCount);
+  const out: Record<string, PoolStripQr> = {};
+  for (const [poolId, strip] of strips) {
+    out[poolId] = { strip, url: `${remote.serverUrl}/arene${strip}/arbitre` };
+  }
+  return out;
+}
 
 interface UseExportProps {
   competition: Competition;
@@ -94,7 +117,7 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
               'Statut',
               'Indice',
             ];
-            if (isLaserSabre) headers.push('Quest');
+            if (isLaserSabre) headers.push('Quest', 'Q/M');
 
             const getStatusLabel = (status: FencerStatus) => {
               switch (status) {
@@ -121,7 +144,7 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
               r.touchesReceived,
               getStatusLabel(r.fencer.status),
               r.index,
-              isLaserSabre ? r.questPoints || '' : '',
+              ...(isLaserSabre ? [r.questPoints || '', formatQuestPerMatch(r)] : []),
             ]);
 
             content = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
@@ -211,7 +234,7 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
 
   // Export PDF de toutes les poules — jsPDF chargé à la demande
   const exportPoolsPDF = useCallback(
-    async (pools: Pool[], currentPoolRound: number) => {
+    async (pools: Pool[], currentPoolRound: number, remote?: PoolsRemoteInfo) => {
       try {
         const { exportMultiplePoolsToPDF } = await import('../../shared/utils/pdfExport');
         const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
@@ -220,13 +243,39 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
           `Toutes les Poules - ${competition.title} - Tour ${currentPoolRound}`,
           logo,
           poolTemplate,
-          competition.title
+          competition.title,
+          buildStripQrs(pools, remote)
         );
         showToast(`Export PDF de ${pools.length} poules généré avec succès`, 'success');
       } catch (error) {
         logger.error(LogCategory.UI, "Erreur lors de l'export PDF des poules", error as Error);
         showToast(
           `Erreur lors de la génération du PDF: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+          'error'
+        );
+      }
+    },
+    [competition.title, showToast, poolTemplate]
+  );
+
+  // Impression PDF de toutes les poules — dialogue d'impression natif
+  const printPoolsPDF = useCallback(
+    async (pools: Pool[], currentPoolRound: number, remote?: PoolsRemoteInfo) => {
+      try {
+        const { printMultiplePoolsHTML } = await import('../../shared/utils/pdfExport');
+        const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
+        await printMultiplePoolsHTML(
+          pools,
+          `Toutes les Poules - ${competition.title} - Tour ${currentPoolRound}`,
+          logo,
+          poolTemplate,
+          competition.title,
+          buildStripQrs(pools, remote)
+        );
+      } catch (error) {
+        logger.error(LogCategory.UI, "Erreur lors de l'impression des poules", error as Error);
+        showToast(
+          `Erreur lors de l'impression: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
           'error'
         );
       }
@@ -303,6 +352,7 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
     exportRanking,
     exportResults,
     exportPoolsPDF,
+    printPoolsPDF,
     downloadFile,
     exportResultsHTML: exportResultsHTMLFormat,
     exportRankingExcelCSV,

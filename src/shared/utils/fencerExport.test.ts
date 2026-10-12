@@ -23,7 +23,7 @@ const makeFencer = (over: Partial<Fencer> = {}): Fencer => ({
 describe('exportFencersToFFF', () => {
   it('commence par l’en-tête FFF standard', () => {
     const out = exportFencersToFFF([]);
-    expect(out.split('\n')[0]).toBe('FFF;WIN;competition;;individuel');
+    expect(out.split('\n')[0]).toBe('FFF;UTF8;competition;;individuel');
   });
 
   it('met le nom en majuscules et convertit le genre', () => {
@@ -75,7 +75,9 @@ describe('exportFencersToTXT', () => {
   });
 
   it('affiche le nom en majuscules et l’année de naissance', () => {
-    const out = exportFencersToTXT([makeFencer({ lastName: 'Bernard', birthDate: new Date('2001-07-09') })]);
+    const out = exportFencersToTXT([
+      makeFencer({ lastName: 'Bernard', birthDate: new Date('2001-07-09') }),
+    ]);
     expect(out).toContain('BERNARD');
     expect(out).toContain('2001');
   });

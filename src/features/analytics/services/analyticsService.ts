@@ -26,7 +26,13 @@ export class AnalyticsService {
    */
   async getCompetitionStats(competitionId: string): Promise<CompetitionStats> {
     if (typeof window === 'undefined' || !window.electronAPI?.db) {
-      return { totalFencers: 0, totalMatches: 0, completedMatches: 0, averageMatchDuration: 0, topFencers: [] };
+      return {
+        totalFencers: 0,
+        totalMatches: 0,
+        completedMatches: 0,
+        averageMatchDuration: 0,
+        topFencers: [],
+      };
     }
 
     const fencers = await window.electronAPI.db.getFencersByCompetition(competitionId);
@@ -44,7 +50,10 @@ export class AnalyticsService {
     const flatMatches = (allMatches as any[]).flat();
     const completedMatches = flatMatches.filter((m: any) => m.status === 'finished');
 
-    const totalDuration = completedMatches.reduce((sum: number, m: any) => sum + (m.duration ?? 0), 0);
+    const totalDuration = completedMatches.reduce(
+      (sum: number, m: any) => sum + (m.duration ?? 0),
+      0
+    );
     const averageMatchDuration =
       completedMatches.length > 0 ? totalDuration / completedMatches.length : 0;
 
@@ -52,7 +61,12 @@ export class AnalyticsService {
     const topFencers = fencers
       .map(fencer => {
         const stats = calculateFencerPoolStats(fencer, flatMatches as any);
-        return { fencer, victories: stats.victories, touchesScored: stats.touchesScored, touchesReceived: stats.touchesReceived };
+        return {
+          fencer,
+          victories: stats.victories,
+          touchesScored: stats.touchesScored,
+          touchesReceived: stats.touchesReceived,
+        };
       })
       .filter(f => f.victories > 0 || f.touchesScored > 0)
       .sort((a, b) => b.victories - a.victories || b.touchesScored - a.touchesScored)
@@ -95,7 +109,9 @@ export class AnalyticsService {
    */
   async getCompetitionFencerStats(competitionId: string): Promise<FencerCompetitionStats[]> {
     if (typeof window === 'undefined' || !window.electronAPI?.db) return [];
-    return window.electronAPI.db.getCompetitionFencerStats(competitionId) as Promise<FencerCompetitionStats[]>;
+    return window.electronAPI.db.getCompetitionFencerStats(competitionId) as Promise<
+      FencerCompetitionStats[]
+    >;
   }
 
   // Alias utilisé par useAnalyticsStore
@@ -105,11 +121,15 @@ export class AnalyticsService {
 
   async getFencerCompetitionStats(fencerId: string): Promise<FencerCompetitionStats | null> {
     if (typeof window === 'undefined' || !window.electronAPI?.db) return null;
-    return window.electronAPI.db.getFencerCompetitionStats(fencerId) as Promise<FencerCompetitionStats>;
+    return window.electronAPI.db.getFencerCompetitionStats(
+      fencerId
+    ) as Promise<FencerCompetitionStats>;
   }
 
   // Stub minimal pour getCompetitionMetrics (appelé par le store)
-  async getCompetitionMetrics(competitionId: string): Promise<{ totalFencers: number; completedMatches: number }> {
+  async getCompetitionMetrics(
+    competitionId: string
+  ): Promise<{ totalFencers: number; completedMatches: number }> {
     const stats = await this.getCompetitionStats(competitionId);
     return { totalFencers: stats.totalFencers, completedMatches: stats.completedMatches };
   }
@@ -123,8 +143,12 @@ export class AnalyticsService {
     if (format === 'csv') {
       const headers = ['Nom', 'Prénom', 'Club', 'Victoires', 'Touches marquées', 'Touches reçues'];
       const rows = stats.topFencers.map(f => [
-        f.fencer.lastName, f.fencer.firstName ?? '', f.fencer.club ?? '',
-        f.victories, f.touchesScored, f.touchesReceived,
+        f.fencer.lastName,
+        f.fencer.firstName ?? '',
+        f.fencer.club ?? '',
+        f.victories,
+        f.touchesScored,
+        f.touchesReceived,
       ]);
       const csv = [headers, ...rows]
         .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))

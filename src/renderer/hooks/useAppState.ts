@@ -67,20 +67,15 @@ export function useAppState(
     setIsLoading(false);
   }, []);
 
-  const handleUpdateCompetition = useCallback(
-    (updated: Competition) => {
-      setCurrentCompetition(prev => (prev?.id === updated.id ? updated : prev));
-      setCompetitions(prev => prev.map(c => (c.id === updated.id ? updated : c)));
-      setOpenCompetitions(prev =>
-        prev.map(open =>
-          open.competition.id === updated.id
-            ? { ...open, competition: updated, isDirty: true }
-            : open
-        )
-      );
-    },
-    []
-  );
+  const handleUpdateCompetition = useCallback((updated: Competition) => {
+    setCurrentCompetition(prev => (prev?.id === updated.id ? updated : prev));
+    setCompetitions(prev => prev.map(c => (c.id === updated.id ? updated : c)));
+    setOpenCompetitions(prev =>
+      prev.map(open =>
+        open.competition.id === updated.id ? { ...open, competition: updated, isDirty: true } : open
+      )
+    );
+  }, []);
 
   const handleBack = useCallback(() => {
     setView('home');

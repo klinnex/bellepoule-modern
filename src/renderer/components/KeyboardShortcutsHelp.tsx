@@ -30,6 +30,7 @@ const SHORTCUTS: Shortcut[] = [
   { key: 'Ctrl + Z', descriptionKey: 'shortcuts.undo', category: 'actions' },
   { key: 'Ctrl + Y', descriptionKey: 'shortcuts.redo', category: 'actions' },
   { key: 'Ctrl + N', descriptionKey: 'shortcuts.new_competition', category: 'actions' },
+  { key: 'Ctrl + P', descriptionKey: 'shortcuts.print_sheets', category: 'actions' },
 
   // Competition
   { key: 'F5', descriptionKey: 'shortcuts.refresh_data', category: 'competition' },
@@ -114,7 +115,9 @@ export const KeyboardShortcutsHelp: React.FC = () => {
           }}
         >
           <div>
-            <h2 style={{ margin: 0, fontSize: '24px', color: '#111827' }}>⌨️ {t('shortcuts.title')}</h2>
+            <h2 style={{ margin: 0, fontSize: '24px', color: '#111827' }}>
+              ⌨️ {t('shortcuts.title')}
+            </h2>
             <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
               {t('shortcuts.subtitle')}
             </p>

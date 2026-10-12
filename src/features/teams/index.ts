@@ -17,11 +17,35 @@ export type {
   CreateTeamDTO,
   UpdateTeamBoutScoreDTO,
   TeamStats,
+  TeamFencerRow,
+  TeamRow,
+  TeamBoutRow,
+  TeamMatchRow,
 } from './types/team.types';
 
 // Utils
 export {
+  generateRelayOrder,
   generateRelayBouts,
   calculateTeamScore,
   validateTeamComposition,
+  getTeamTargetRule,
+  getRelayCap,
+  calculateTeamPoolRanking,
+  calculateTableSize,
+  placeRankedTeamsInTable,
+  resolveTeamTableauSlot,
 } from './utils/teamCalculations';
+export type {
+  TeamTargetRule,
+  TeamPoolRankingRow,
+  ResolvedTeamSlot,
+} from './utils/teamCalculations';
+
+// Bracket (élimination directe équipes)
+export {
+  placeTeamsInTable,
+  generateTeamBracket,
+  propagateTeamWinner,
+} from './services/teamBracketService';
+export type { TeamTableNode } from './services/teamBracketService';

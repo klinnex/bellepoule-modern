@@ -64,7 +64,13 @@ export const useMatchAuditStore = create<MatchAuditState & MatchAuditActions>()(
       setFilterTypes: (types: MatchEventType[]) => set({ filterTypes: types }),
       clearError: () => set({ error: null }),
       reset: () =>
-        set({ entries: [], isLoading: false, error: null, activeMatchId: null, activeCompetitionId: null }),
+        set({
+          entries: [],
+          isLoading: false,
+          error: null,
+          activeMatchId: null,
+          activeCompetitionId: null,
+        }),
     })),
     { name: 'MatchAuditStore' }
   )

@@ -41,7 +41,10 @@ describe('cache compétition', () => {
 
 describe('pending actions', () => {
   it('ajoute, liste (triées par timestamp) et supprime', async () => {
-    const id1 = await store.addPendingAction({ type: 'UPDATE_MATCH', data: { matchId: 'm1' } } as any);
+    const id1 = await store.addPendingAction({
+      type: 'UPDATE_MATCH',
+      data: { matchId: 'm1' },
+    } as any);
     await store.addPendingAction({ type: 'UPDATE_FENCER', data: { fencerId: 'f1' } } as any);
 
     let actions = await store.getPendingActions();
@@ -66,7 +69,10 @@ describe('pending actions', () => {
 describe('conflits', () => {
   it('ajoute, liste (non résolus) et résout', async () => {
     const id = await store.addConflict({
-      entityType: 'match', entityId: 'm1', localVersion: {}, remoteVersion: {},
+      entityType: 'match',
+      entityId: 'm1',
+      localVersion: {},
+      remoteVersion: {},
     } as any);
     expect(await store.getConflicts()).toHaveLength(1);
     await store.resolveConflict(id, 'local');
@@ -77,7 +83,12 @@ describe('conflits', () => {
 describe('getSyncStatus', () => {
   it('agrège les compteurs en attente et conflits', async () => {
     await store.addPendingAction({ type: 'UPDATE_MATCH', data: {} } as any);
-    await store.addConflict({ entityType: 'match', entityId: 'm', localVersion: {}, remoteVersion: {} } as any);
+    await store.addConflict({
+      entityType: 'match',
+      entityId: 'm',
+      localVersion: {},
+      remoteVersion: {},
+    } as any);
     const status = await store.getSyncStatus();
     expect(status.pendingActions).toBe(1);
     expect(status.conflicts).toBe(1);

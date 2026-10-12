@@ -5,13 +5,21 @@
  */
 
 import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
-import { PoolRanking, Pool, Weapon, FencerStatus, PostPoolSplitCriteria, Gender } from '../../shared/types';
+import {
+  PoolRanking,
+  Pool,
+  Weapon,
+  FencerStatus,
+  PostPoolSplitCriteria,
+  Gender,
+} from '../../shared/types';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import { CENTER, W40, W50, W60, SM, FLEX_GAP } from './poolRankingView.styles';
 import {
   formatRatio,
   formatIndex,
+  formatQuestPerMatch,
   calculateOverallRankingQuest,
   calculateOverallRanking,
   calculatePoolRanking,
@@ -21,6 +29,12 @@ import {
 } from '../../shared/utils/poolCalculations';
 import { useToast } from './Toast';
 import { useColumnVisibility, RANKING_COLUMNS, ColumnId } from '../hooks/useColumnVisibility';
+import {
+  CollapseToggle,
+  CollapsedRow,
+  useCollapsed,
+  COMPACT_ROW_COUNT,
+} from './common/CollapseToggle';
 
 interface PoolRankingViewProps {
   pools: Pool[];
@@ -30,11 +44,15 @@ interface PoolRankingViewProps {
   onGoToTableau?: (splitGroup?: string) => void;
   onGoToResults?: () => void;
   hasDirectElimination?: boolean;
-  onExport?: (format: 'csv' | 'xml' | 'pdf') => void;
+  onExport?: (format: 'csv') => void;
   onPoolsChange?: (pools: Pool[], rankingChanged: boolean) => void;
   onRankingChange?: (ranking: PoolRanking[]) => void;
   poolWinnersOnly?: boolean;
   splitCriteria?: PostPoolSplitCriteria;
+  /** Groupes déjà extraits dans une compétition séparée (genre → id compétition) */
+  splitOffGroups?: Partial<Record<string, string>>;
+  /** Extraire un groupe dans une compétition séparée (filles) */
+  onSplitOff?: (group: string) => void;
 }
 
 const PoolRankingView: React.FC<PoolRankingViewProps> = ({
@@ -50,6 +68,8 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
   onRankingChange,
   poolWinnersOnly = false,
   splitCriteria,
+  splitOffGroups,
+  onSplitOff,
 }) => {
   const { showToast } = useToast();
   const { isColumnVisible, toggleColumn, getVisibleColumns } = useColumnVisibility();
@@ -171,30 +191,26 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
 
   useEffect(() => {
     if (isEditing) {
-      setRankDrafts(
-        Object.fromEntries(editedRanking.map(r => [r.fencer.id, String(r.rank)]))
-      );
+      setRankDrafts(Object.fromEntries(editedRanking.map(r => [r.fencer.id, String(r.rank)])));
     }
   }, [editedRanking, isEditing]);
 
-  const handleExport = (format: 'csv' | 'xml' | 'pdf') => {
+  const handleExport = (format: 'csv') => {
     if (onExport) {
       onExport(format);
-    } else if (format === 'csv') {
-      const content = generateCSV();
-      const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'classement.csv';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('Export CSV réussi', 'success');
-    } else {
-      showToast(`Export ${format.toUpperCase()} non implémenté`, 'warning');
+      return;
     }
+    const content = generateCSV();
+    const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'classement.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Export CSV réussi', 'success');
   };
 
   const handlePrint = () => {
@@ -206,7 +222,14 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
       const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
       const cols = getVisibleColumns('ranking').filter(col => col !== 'quest' || isLaserSabre);
       const { exportRankingToPDF } = await import('../../shared/utils/pdfExport');
-      await exportRankingToPDF(overallRanking, 'Classement Général', weapon, cols, logo, rankingTemplate);
+      await exportRankingToPDF(
+        overallRanking,
+        'Classement Général',
+        weapon,
+        cols,
+        logo,
+        rankingTemplate
+      );
     } catch (e) {
       showToast((e as Error).message, 'error');
     }
@@ -278,7 +301,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
   const generateCSV = () => {
     const headers = ['Rg', 'Nom', 'Prénom', 'Club', 'V', 'M', 'V/M', 'TD', 'TR', 'Statut'];
     if (isLaserSabre) {
-      headers.push('Quest', 'Indice');
+      headers.push('Quest', 'Q/M', 'Indice');
     } else {
       headers.push('Indice');
     }
@@ -307,16 +330,41 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
       r.touchesScored,
       r.touchesReceived,
       getStatusLabel(r.fencer.status),
-      ...(isLaserSabre ? [r.questPoints || 0, formatIndex(r.index)] : [formatIndex(r.index)]),
+      ...(isLaserSabre
+        ? [r.questPoints || 0, formatQuestPerMatch(r), formatIndex(r.index)]
+        : [formatIndex(r.index)]),
     ]);
 
     return [headers, ...rows].map(row => row.join(';')).join('\n');
   };
 
   const activeRanking =
-    splitCriteria && splitTab !== 'all'
-      ? (splitRankings?.get(splitTab) ?? [])
-      : editedRanking;
+    splitCriteria && splitTab !== 'all' ? (splitRankings?.get(splitTab) ?? []) : editedRanking;
+
+  // Mode compact : seules les premières lignes sont affichées (désactivé en édition)
+  const [collapsed, toggleCollapsed] = useCollapsed(
+    isInitialRanking ? 'initial-ranking' : 'pool-ranking'
+  );
+  const isCompact = collapsed && !isEditing;
+  const hiddenCount = isCompact ? Math.max(0, activeRanking.length - COMPACT_ROW_COUNT) : 0;
+  const visibleColCount =
+    (
+      [
+        'rank',
+        'lastName',
+        'firstName',
+        'club',
+        'victories',
+        'matches',
+        'ratio',
+        'td',
+        'tr',
+        'quest',
+        'index',
+      ] as ColumnId[]
+    ).filter(isVisible).length +
+    (isVisible('quest') ? 1 : 0) +
+    (poolWinnersOnly ? 1 : 0);
 
   const getRankBadgeClass = (rank: number) => {
     if (rank === 1) return 'ranking-rank-badge ranking-rank-badge--gold';
@@ -336,8 +384,23 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
         }}
       >
         <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>
+          <h2
+            style={{
+              fontSize: '1.25rem',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
             {isInitialRanking ? 'Classement initial' : 'Classement après poules'}
+            {!isEditing && (
+              <CollapseToggle
+                collapsed={collapsed}
+                onToggle={toggleCollapsed}
+                hiddenCount={Math.max(0, activeRanking.length - COMPACT_ROW_COUNT)}
+              />
+            )}
           </h2>
           <p className="text-sm text-muted">
             {isInitialRanking
@@ -347,16 +410,53 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          {!isInitialRanking && (
-            <button className="btn btn-secondary" onClick={handleRecalculate} title="Recalculer le classement" style={{ fontSize: '0.8rem' }}>
+          {!isInitialRanking && pools.length > 0 && (
+            <button
+              className="btn btn-secondary"
+              onClick={handleRecalculate}
+              title="Recalculer le classement"
+              style={{ fontSize: '0.8rem' }}
+            >
               Recalculer
             </button>
           )}
-          <div style={{ width: '1px', height: '22px', background: 'var(--color-border)', margin: '0 0.15rem' }} />
-          <button className="btn btn-secondary" onClick={() => handleExport('csv')} style={{ fontSize: '0.8rem' }}>CSV</button>
-          <button className="btn btn-secondary" onClick={handleExportPDF} style={{ fontSize: '0.8rem' }}>PDF</button>
-          <button className="btn btn-secondary" onClick={handlePrint} style={{ fontSize: '0.8rem' }}>Imprimer</button>
-          <div style={{ width: '1px', height: '22px', background: 'var(--color-border)', margin: '0 0.15rem' }} />
+          <div
+            style={{
+              width: '1px',
+              height: '22px',
+              background: 'var(--color-border)',
+              margin: '0 0.15rem',
+            }}
+          />
+          <button
+            className="btn btn-secondary"
+            onClick={() => handleExport('csv')}
+            style={{ fontSize: '0.8rem' }}
+          >
+            CSV
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={handleExportPDF}
+            style={{ fontSize: '0.8rem' }}
+          >
+            PDF
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={handlePrint}
+            style={{ fontSize: '0.8rem' }}
+          >
+            Imprimer
+          </button>
+          <div
+            style={{
+              width: '1px',
+              height: '22px',
+              background: 'var(--color-border)',
+              margin: '0 0.15rem',
+            }}
+          />
           {!isInSplitGroupTab && (
             <button
               className={`btn ${isEditing ? 'btn-primary' : 'btn-secondary'}`}
@@ -410,7 +510,10 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               key={g}
               className={splitTab === g ? 'btn btn-primary' : 'btn btn-secondary'}
               style={SM}
-              onClick={() => { if (isEditing) saveChanges(); setSplitTab(g); }}
+              onClick={() => {
+                if (isEditing) saveChanges();
+                setSplitTab(g);
+              }}
             >
               {g === Gender.MALE ? '♂ Hommes' : g === Gender.FEMALE ? '♀ Femmes' : g}
             </button>
@@ -432,7 +535,10 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               {isVisible('td') && <th style={W50}>TD</th>}
               {isVisible('tr') && <th style={W50}>TR</th>}
               {isVisible('quest') && isLaserSabre && (
-                <th style={{ width: '70px', color: '#7c3aed' }}>Quest</th>
+                <>
+                  <th style={{ width: '70px', color: '#7c3aed' }}>Quest</th>
+                  <th style={{ width: '60px', color: '#7c3aed' }}>Q/M</th>
+                </>
               )}
               {isVisible('index') && <th style={W60}>Indice</th>}
               {poolWinnersOnly && <th style={{ width: '70px' }}>Qualif.</th>}
@@ -441,137 +547,179 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
           <tbody>
             {activeRanking.map((ranking, index) => {
               const prevRank = index > 0 ? activeRanking[index - 1].rank : null;
-              const nextRank = index < activeRanking.length - 1 ? activeRanking[index + 1].rank : null;
+              const nextRank =
+                index < activeRanking.length - 1 ? activeRanking[index + 1].rank : null;
               const isTied = prevRank === ranking.rank || nextRank === ranking.rank;
               const isQualified = poolWinnerIds?.has(ranking.fencer.id);
               const dimmed = poolWinnersOnly && poolWinnerIds && !isQualified;
               return (
-              <tr
-                key={ranking.fencer.id}
-                className={isTied ? 'ranking-row--tie' : undefined}
-                style={dimmed ? { opacity: 0.45 } : undefined}
-              >
-                {isVisible('rank') && (
-                  <td>
-                    {isEditing ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <tr
+                  key={ranking.fencer.id}
+                  className={
+                    [
+                      isTied && 'ranking-row--tie',
+                      isCompact && index >= COMPACT_ROW_COUNT && 'collapse-row--hidden',
+                    ]
+                      .filter(Boolean)
+                      .join(' ') || undefined
+                  }
+                  style={dimmed ? { opacity: 0.45 } : undefined}
+                >
+                  {isVisible('rank') && (
+                    <td>
+                      {isEditing ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                          <input
+                            type="number"
+                            min={1}
+                            max={editedRanking.length}
+                            value={rankDrafts[ranking.fencer.id] ?? String(ranking.rank)}
+                            onChange={e =>
+                              setRankDrafts(prev => ({
+                                ...prev,
+                                [ranking.fencer.id]: e.target.value,
+                              }))
+                            }
+                            onBlur={e => {
+                              const val = parseInt(e.target.value);
+                              if (!isNaN(val) && val >= 1 && val <= editedRanking.length) {
+                                moveToRank(index, val);
+                              } else {
+                                setRankDrafts(prev => ({
+                                  ...prev,
+                                  [ranking.fencer.id]: String(ranking.rank),
+                                }));
+                              }
+                            }}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                              if (e.key === 'Escape') {
+                                setRankDrafts(prev => ({
+                                  ...prev,
+                                  [ranking.fencer.id]: String(ranking.rank),
+                                }));
+                                (e.target as HTMLInputElement).blur();
+                              }
+                            }}
+                            style={{
+                              width: '44px',
+                              textAlign: 'center',
+                              padding: '1px 4px',
+                              fontWeight: '600',
+                            }}
+                          />
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <button
+                              onClick={() => moveUp(index)}
+                              disabled={index === 0}
+                              className="pool-prep-btn-move"
+                              style={{ opacity: index === 0 ? 0.3 : 1 }}
+                            >
+                              ▲
+                            </button>
+                            <button
+                              onClick={() => moveDown(index)}
+                              disabled={index === editedRanking.length - 1}
+                              className="pool-prep-btn-move"
+                              style={{ opacity: index === editedRanking.length - 1 ? 0.3 : 1 }}
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className={getRankBadgeClass(ranking.rank)}>{ranking.rank}</span>
+                      )}
+                    </td>
+                  )}
+                  {isVisible('lastName') && (
+                    <td className="font-medium">
+                      {ranking.fencer.lastName}
+                      {ranking.fencer.status === FencerStatus.ABANDONED && (
+                        <span className="ranking-status-badge ranking-status-badge--abandon">
+                          A
+                        </span>
+                      )}
+                      {ranking.fencer.status === FencerStatus.FORFAIT && (
+                        <span className="ranking-status-badge ranking-status-badge--forfait">
+                          F
+                        </span>
+                      )}
+                      {ranking.fencer.status === FencerStatus.EXCLUDED && (
+                        <span className="ranking-status-badge ranking-status-badge--exclu">X</span>
+                      )}
+                    </td>
+                  )}
+                  {isVisible('firstName') && <td>{ranking.fencer.firstName}</td>}
+                  {isVisible('club') && (
+                    <td className="text-sm text-muted">{ranking.fencer.club || '—'}</td>
+                  )}
+                  {isVisible('victories') && (
+                    <td style={{ textAlign: 'center', fontWeight: '600' }}>{ranking.victories}</td>
+                  )}
+                  {isVisible('matches') && (
+                    <td style={CENTER}>{ranking.victories + ranking.defeats}</td>
+                  )}
+                  {isVisible('ratio') && <td style={CENTER}>{formatRatio(ranking.ratio)}</td>}
+                  {isVisible('td') && <td style={CENTER}>{ranking.touchesScored}</td>}
+                  {isVisible('tr') && <td style={CENTER}>{ranking.touchesReceived}</td>}
+                  {isVisible('quest') && isLaserSabre && (
+                    <td style={{ textAlign: 'center', fontWeight: '600', color: '#7c3aed' }}>
+                      {isEditing ? (
                         <input
                           type="number"
-                          min={1}
-                          max={editedRanking.length}
-                          value={rankDrafts[ranking.fencer.id] ?? String(ranking.rank)}
-                          onChange={e =>
-                            setRankDrafts(prev => ({ ...prev, [ranking.fencer.id]: e.target.value }))
-                          }
-                          onBlur={e => {
-                            const val = parseInt(e.target.value);
-                            if (!isNaN(val) && val >= 1 && val <= editedRanking.length) {
-                              moveToRank(index, val);
-                            } else {
-                              setRankDrafts(prev => ({
-                                ...prev,
-                                [ranking.fencer.id]: String(ranking.rank),
-                              }));
-                            }
+                          min="0"
+                          value={ranking.questPoints ?? 0}
+                          onChange={e => {
+                            const val = Math.max(0, parseInt(e.target.value) || 0);
+                            setEditedRanking(prev =>
+                              prev.map((r, i) => (i === index ? { ...r, questPoints: val } : r))
+                            );
                           }}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                            if (e.key === 'Escape') {
-                              setRankDrafts(prev => ({
-                                ...prev,
-                                [ranking.fencer.id]: String(ranking.rank),
-                              }));
-                              (e.target as HTMLInputElement).blur();
-                            }
-                          }}
-                          style={{ width: '44px', textAlign: 'center', padding: '1px 4px', fontWeight: '600' }}
+                          style={{ width: '52px', textAlign: 'center', padding: '1px 4px' }}
                         />
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <button
-                            onClick={() => moveUp(index)}
-                            disabled={index === 0}
-                            className="pool-prep-btn-move"
-                            style={{ opacity: index === 0 ? 0.3 : 1 }}
-                          >▲</button>
-                          <button
-                            onClick={() => moveDown(index)}
-                            disabled={index === editedRanking.length - 1}
-                            className="pool-prep-btn-move"
-                            style={{ opacity: index === editedRanking.length - 1 ? 0.3 : 1 }}
-                          >▼</button>
-                        </div>
-                      </div>
-                    ) : (
-                      <span className={getRankBadgeClass(ranking.rank)}>{ranking.rank}</span>
-                    )}
-                  </td>
-                )}
-                {isVisible('lastName') && (
-                  <td className="font-medium">
-                    {ranking.fencer.lastName}
-                    {ranking.fencer.status === FencerStatus.ABANDONED && (
-                      <span className="ranking-status-badge ranking-status-badge--abandon">A</span>
-                    )}
-                    {ranking.fencer.status === FencerStatus.FORFAIT && (
-                      <span className="ranking-status-badge ranking-status-badge--forfait">F</span>
-                    )}
-                    {ranking.fencer.status === FencerStatus.EXCLUDED && (
-                      <span className="ranking-status-badge ranking-status-badge--exclu">X</span>
-                    )}
-                  </td>
-                )}
-                {isVisible('firstName') && <td>{ranking.fencer.firstName}</td>}
-                {isVisible('club') && (
-                  <td className="text-sm text-muted">{ranking.fencer.club || '—'}</td>
-                )}
-                {isVisible('victories') && (
-                  <td style={{ textAlign: 'center', fontWeight: '600' }}>{ranking.victories}</td>
-                )}
-                {isVisible('matches') && (
-                  <td style={CENTER}>{ranking.victories + ranking.defeats}</td>
-                )}
-                {isVisible('ratio') && (
-                  <td style={CENTER}>{formatRatio(ranking.ratio)}</td>
-                )}
-                {isVisible('td') && <td style={CENTER}>{ranking.touchesScored}</td>}
-                {isVisible('tr') && <td style={CENTER}>{ranking.touchesReceived}</td>}
-                {isVisible('quest') && isLaserSabre && (
-                  <td style={{ textAlign: 'center', fontWeight: '600', color: '#7c3aed' }}>
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        min="0"
-                        value={ranking.questPoints ?? 0}
-                        onChange={e => {
-                          const val = Math.max(0, parseInt(e.target.value) || 0);
-                          setEditedRanking(prev =>
-                            prev.map((r, i) => (i === index ? { ...r, questPoints: val } : r))
-                          );
-                        }}
-                        style={{ width: '52px', textAlign: 'center', padding: '1px 4px' }}
-                      />
-                    ) : (
-                      ranking.questPoints ?? 0
-                    )}
-                  </td>
-                )}
-                {isVisible('index') && (
-                  <td style={CENTER} className={ranking.index >= 0 ? 'ranking-index--positive' : 'ranking-index--negative'}>
-                    {ranking.index > 0 ? '+' : ''}{formatIndex(ranking.index)}
-                  </td>
-                )}
-                {poolWinnersOnly && (
-                  <td style={CENTER}>
-                    {isQualified ? (
-                      <span className="ranking-qualif-badge">Q</span>
-                    ) : (
-                      <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>—</span>
-                    )}
-                  </td>
-                )}
-              </tr>
+                      ) : (
+                        (ranking.questPoints ?? 0)
+                      )}
+                    </td>
+                  )}
+                  {isVisible('quest') && isLaserSabre && (
+                    <td style={{ textAlign: 'center', color: '#7c3aed' }}>
+                      {formatQuestPerMatch(ranking)}
+                    </td>
+                  )}
+                  {isVisible('index') && (
+                    <td
+                      style={CENTER}
+                      className={
+                        ranking.index >= 0 ? 'ranking-index--positive' : 'ranking-index--negative'
+                      }
+                    >
+                      {ranking.index > 0 ? '+' : ''}
+                      {formatIndex(ranking.index)}
+                    </td>
+                  )}
+                  {poolWinnersOnly && (
+                    <td style={CENTER}>
+                      {isQualified ? (
+                        <span className="ranking-qualif-badge">Q</span>
+                      ) : (
+                        <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+                          —
+                        </span>
+                      )}
+                    </td>
+                  )}
+                </tr>
               );
             })}
+            {hiddenCount > 0 && (
+              <CollapsedRow
+                colSpan={visibleColCount}
+                hiddenCount={hiddenCount}
+                onExpand={toggleCollapsed}
+              />
+            )}
           </tbody>
         </table>
       </div>
@@ -593,28 +741,61 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
             ['TD', 'Touches données'],
             ['TR', 'Touches reçues'],
             ['Indice', 'TD − TR'],
-            ...(isLaserSabre ? [['Quest', 'Points Sabre Laser']] : []),
+            ...(isLaserSabre
+              ? [
+                  ['Quest', 'Points Sabre Laser'],
+                  ['Q/M', 'Points Quest / matchs'],
+                ]
+              : []),
           ].map(([abbr, full]) => (
             <span key={abbr} className="ranking-legend-pill">
               <strong>{abbr}</strong> {full}
             </span>
           ))}
-          <span className="ranking-legend-pill"><span className="ranking-status-badge ranking-status-badge--abandon" style={{ marginLeft: 0 }}>A</span> Abandon</span>
-          <span className="ranking-legend-pill"><span className="ranking-status-badge ranking-status-badge--forfait" style={{ marginLeft: 0 }}>F</span> Forfait</span>
-          <span className="ranking-legend-pill"><span className="ranking-status-badge ranking-status-badge--exclu" style={{ marginLeft: 0 }}>X</span> Exclu</span>
+          <span className="ranking-legend-pill">
+            <span
+              className="ranking-status-badge ranking-status-badge--abandon"
+              style={{ marginLeft: 0 }}
+            >
+              A
+            </span>{' '}
+            Abandon
+          </span>
+          <span className="ranking-legend-pill">
+            <span
+              className="ranking-status-badge ranking-status-badge--forfait"
+              style={{ marginLeft: 0 }}
+            >
+              F
+            </span>{' '}
+            Forfait
+          </span>
+          <span className="ranking-legend-pill">
+            <span
+              className="ranking-status-badge ranking-status-badge--exclu"
+              style={{ marginLeft: 0 }}
+            >
+              X
+            </span>{' '}
+            Exclu
+          </span>
         </div>
         <div style={FLEX_GAP}>
           {hasDirectElimination ? (
             splitCriteria && splitGroups.length > 1 ? (
-              splitGroups.map(g => (
-                <button
-                  key={g}
-                  className="btn btn-primary"
-                  onClick={() => onGoToTableau?.(g)}
-                >
-                  Tableau {g === Gender.MALE ? '♂ Hommes' : '♀ Femmes'} →
-                </button>
-              ))
+              splitGroups.map(g =>
+                g === Gender.FEMALE && onSplitOff ? (
+                  <button key={g} className="btn btn-primary" onClick={() => onSplitOff(g)}>
+                    {splitOffGroups?.[g]
+                      ? 'Ouvrir la compétition ♀ Femmes →'
+                      : 'Créer la compétition ♀ Femmes…'}
+                  </button>
+                ) : (
+                  <button key={g} className="btn btn-primary" onClick={() => onGoToTableau?.(g)}>
+                    Tableau {g === Gender.MALE ? '♂ Hommes' : '♀ Femmes'} →
+                  </button>
+                )
+              )
             ) : (
               <button className="btn btn-primary" onClick={() => onGoToTableau?.()}>
                 {poolWinnersOnly

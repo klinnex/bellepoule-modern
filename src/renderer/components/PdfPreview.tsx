@@ -1,12 +1,26 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import type { PdfTemplate, PdfDocType } from '../../shared/types/pdfTemplate.types';
-import { generatePoolHTML, generateTableauHTML, generateRankingHTML } from '../../shared/utils/pdfExport';
+import {
+  generatePoolHTML,
+  generateTableauHTML,
+  generateRankingHTML,
+} from '../../shared/utils/pdfExport';
 import { PREVIEW_POOL, PREVIEW_TABLEAU, PREVIEW_RANKING } from '../../shared/utils/pdfPreviewData';
 
 const LOGO_KEY = 'bellepoule-logo';
 const A4_W = 794;
 const A4_H = 1123;
-const RANKING_COLS = ['rank', 'lastName', 'firstName', 'club', 'victories', 'ratio', 'td', 'tr', 'index'];
+const RANKING_COLS = [
+  'rank',
+  'lastName',
+  'firstName',
+  'club',
+  'victories',
+  'ratio',
+  'td',
+  'tr',
+  'index',
+];
 
 interface Props {
   template: PdfTemplate;
@@ -17,7 +31,9 @@ const PdfPreview: React.FC<Props> = ({ template, docType }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.5);
-  const [logo, setLogo] = useState<string | undefined>(() => localStorage.getItem(LOGO_KEY) ?? undefined);
+  const [logo, setLogo] = useState<string | undefined>(
+    () => localStorage.getItem(LOGO_KEY) ?? undefined
+  );
 
   useEffect(() => {
     const handler = () => setLogo(localStorage.getItem(LOGO_KEY) ?? undefined);
@@ -39,17 +55,28 @@ const PdfPreview: React.FC<Props> = ({ template, docType }) => {
   const html = useMemo(() => {
     switch (docType) {
       case 'pool':
-        return generatePoolHTML(PREVIEW_POOL, {
-          title: 'Poule 1',
-          competitionName: 'Championnat Régional 2025',
-          weapon: 'Épée',
-          category: 'Senior',
-          logoBase64: logo,
-        }, template);
+        return generatePoolHTML(
+          PREVIEW_POOL,
+          {
+            title: 'Poule 1',
+            competitionName: 'Championnat Régional 2025',
+            weapon: 'Épée',
+            category: 'Senior',
+            logoBase64: logo,
+          },
+          template
+        );
       case 'tableau':
         return generateTableauHTML(PREVIEW_TABLEAU, 5, 'Tableau Élimination', logo, template);
       case 'ranking':
-        return generateRankingHTML(PREVIEW_RANKING, 'Classement Général', false, RANKING_COLS, logo, template);
+        return generateRankingHTML(
+          PREVIEW_RANKING,
+          'Classement Général',
+          false,
+          RANKING_COLS,
+          logo,
+          template
+        );
     }
   }, [template, docType, logo]);
 
@@ -65,15 +92,17 @@ const PdfPreview: React.FC<Props> = ({ template, docType }) => {
 
   return (
     <div ref={containerRef} style={{ width: '100%' }}>
-      <div style={{
-        width: '100%',
-        height: `${A4_H * scale}px`,
-        overflow: 'hidden',
-        border: '1px solid var(--color-border, #d1d5db)',
-        borderRadius: '4px',
-        background: '#fff',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-      }}>
+      <div
+        style={{
+          width: '100%',
+          height: `${A4_H * scale}px`,
+          overflow: 'hidden',
+          border: '1px solid var(--color-border, #d1d5db)',
+          borderRadius: '4px',
+          background: '#fff',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        }}
+      >
         <iframe
           ref={iframeRef}
           title="PDF Preview"

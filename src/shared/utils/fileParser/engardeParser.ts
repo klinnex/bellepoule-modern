@@ -25,7 +25,10 @@ export function parseEngardeRefereeFile(content: string): RefereeImportResult {
   let clean = content;
   if (clean.charCodeAt(0) === 0xfeff) clean = clean.slice(1);
 
-  const lines = clean.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const lines = clean
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(Boolean);
   if (lines.length === 0) {
     result.errors.push('Fichier vide');
     return result;
@@ -33,15 +36,24 @@ export function parseEngardeRefereeFile(content: string): RefereeImportResult {
 
   // Détecter et sauter l'en-tête
   const firstLower = lines[0].toLowerCase();
-  const startIdx = firstLower.includes('nom') || firstLower.includes('prenom') || firstLower.includes('sexe') ? 1 : 0;
+  const startIdx =
+    firstLower.includes('nom') || firstLower.includes('prenom') || firstLower.includes('sexe')
+      ? 1
+      : 0;
 
   for (let i = startIdx; i < lines.length; i++) {
     const parts = lines[i].split(';');
-    if (parts.length < 2) { result.skipped++; continue; }
+    if (parts.length < 2) {
+      result.skipped++;
+      continue;
+    }
 
     const lastName = parts[0]?.trim() || '';
     const firstName = parts[1]?.trim() || '';
-    if (!lastName && !firstName) { result.skipped++; continue; }
+    if (!lastName && !firstName) {
+      result.skipped++;
+      continue;
+    }
 
     const sexe = parts[2]?.trim().toUpperCase();
     const gender: Gender = sexe === 'M' ? Gender.MALE : Gender.FEMALE;
@@ -55,7 +67,16 @@ export function parseEngardeRefereeFile(content: string): RefereeImportResult {
     const licenseFFE = parts[9]?.trim() || '';
     const license = licenseFFE || licenseFIE || undefined;
 
-    result.referees.push({ lastName, firstName, gender, nationality, club, region, license, category });
+    result.referees.push({
+      lastName,
+      firstName,
+      gender,
+      nationality,
+      club,
+      region,
+      license,
+      category,
+    });
   }
 
   return result;

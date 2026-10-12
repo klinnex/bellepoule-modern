@@ -5,7 +5,10 @@ import { useShallow } from 'zustand/shallow';
 import { AnalyticsService } from '../services/analyticsService';
 import type { FencerCompetitionStats } from '../../../shared/types';
 
-interface CompetitionMetrics { totalFencers: number; completedMatches: number }
+interface CompetitionMetrics {
+  totalFencers: number;
+  completedMatches: number;
+}
 
 interface AnalyticsState {
   fencerStats: FencerCompetitionStats[];

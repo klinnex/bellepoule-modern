@@ -232,15 +232,14 @@ ping 192.168.1.100  # Replace with computer IP
 
 **In BellePoule Modern**:
 
-1. Check "📡 Remote Scoring" tab
-2. Look for status indicator
-3. Note the displayed IP address
+1. Check the "📡 Saisie distante" tab
+2. Panel must read "Saisie distante active"
+3. Note the displayed network URL and port (8066, or the next free port if 8066 was busy)
 
-**Expected Status**:
+**Expected**:
 
 ```
-Server Status: 🟢 Online on port 8066
-Network URL: http://192.168.1.100:8066
+https://192.168.1.100:8066      (http:// if HTTPS is unchecked)
 ```
 
 #### 3. Test Server Locally
@@ -248,19 +247,20 @@ Network URL: http://192.168.1.100:8066
 On the main computer, open browser:
 
 ```
-http://localhost:8066
+https://localhost:8066/lobby
 ```
 
-If this fails, the server isn't running.
+If this fails, the server isn't running. With HTTPS, accept the self-signed certificate
+warning first (also on each tablet).
 
 **Solutions**:
 
 #### 1. Restart Remote Server
 
-1. Go to "📡 Remote Scoring" tab
-2. Click "Stop Server"
+1. Go to the "📡 Saisie distante" tab
+2. Stop the remote scoring
 3. Wait 5 seconds
-4. Click "Start Server"
+4. Start it again (check the network interface selected in **Réseau**)
 
 #### 2. Check Network Configuration
 
@@ -308,42 +308,25 @@ Temporarily disable antivirus to test:
 - Corporate security software
 - Network-level firewalls
 
-### Issue: "Code d'accès invalide"
+### Issue: "Mot de passe incorrect" / redirect loop on `/login`
 
-**Symptoms**:
-
-- Referee can't log in with provided code
-- Error: "Invalid access code"
-- Multiple attempts fail
-
-**Common Causes**:
-
-- Code entered incorrectly
-- Referee not properly added
-- Server restarted (codes regenerated)
+There are no per-referee access codes: each arena has an optional password (8 characters
+min.) set in the "📡 Saisie distante" tab.
 
 **Solutions**:
 
-#### 1. Verify Code Entry
+1. Check the arena password (or the shared "MDP commun"); clear it to allow free access.
+2. "Trop de tentatives": login attempts are rate-limited per IP and arena with progressive
+   blocking — wait and retry.
+3. Cookies must be allowed (no private browsing): the session is kept in an HttpOnly
+   cookie `bp_token_arena{N}` for 8 hours.
+4. After a server restart, tablets must log in again.
 
-- Check for similar characters: O vs 0, I vs 1, etc.
-- Ensure no extra spaces
-- Try uppercase/lowercase variations
+### Issue: Certificate warning on tablets
 
-#### 2. Re-add Referee
-
-1. In Remote Scoring tab, remove the problematic referee
-2. Add them again with the same name
-3. Note the new access code
-4. Test with new code
-
-#### 3. Check Server State
-
-If server was restarted:
-
-- All access codes may have been regenerated
-- Old codes become invalid
-- Use new codes from interface
+HTTPS uses a self-signed certificate generated on the organiser's computer. Accept the
+warning once per device (compare the SHA-256 fingerprint shown in the app), or uncheck
+**🔒 HTTPS** and restart the remote scoring to use plain HTTP.
 
 ### Issue: "Scores not synchronizing"
 
@@ -357,17 +340,17 @@ If server was restarted:
 
 #### 1. Check WebSocket Connection
 
-Look for green connection indicator on tablet interface:
+Look at the header of the referee tablet:
 
-- 🟢 Connected (good)
-- 🟡 Reconnecting (issues)
-- 🔴 Disconnected (problems)
+- "Connecté" (green dot): OK
+- "Déconnecté" (red dot): socket lost — entry keeps working offline
+- 📴 N badge: N score saves queued offline, synchronised automatically on reconnection (⟳ Sync...)
 
 #### 2. Test Manual Sync
 
-1. Save a score on tablet
-2. Check main interface immediately
-3. If not appearing, check for error messages
+1. Finish a match on the tablet (🏁 Terminer → Confirmer)
+2. Check the pool/tableau in the application
+3. If not appearing: the finish request must succeed online — reconnect and confirm again, or enter the score manually in the application
 
 **Solutions**:
 

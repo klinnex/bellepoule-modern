@@ -155,6 +155,53 @@ const StatsCardSkeleton_: React.FC = () => {
   );
 };
 
+// Competition View Skeleton (header + nav + content, pendant le lazy-load de CompetitionView)
+const CompetitionViewSkeleton_: React.FC = () => {
+  return (
+    <div style={{ padding: '1.5rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1rem',
+        }}
+      >
+        <Skeleton width="280px" height="28px" />
+        <Skeleton width="120px" height="32px" borderRadius="6px" />
+      </div>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+        {[1, 2, 3, 4].map(i => (
+          <Skeleton key={i} width="110px" height="36px" borderRadius="6px" />
+        ))}
+      </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: '1rem',
+        }}
+      >
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <div
+            key={i}
+            style={{
+              padding: '1rem',
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+            }}
+          >
+            <Skeleton width="60%" height="18px" style={{ marginBottom: '0.75rem' }} />
+            <Skeleton width="100%" height="14px" style={{ marginBottom: '0.5rem' }} />
+            <Skeleton width="80%" height="14px" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // Add shimmer keyframes to global styles
 const SkeletonStyles_: React.FC = () => (
   <style>{`
@@ -174,6 +221,7 @@ export const CompetitionCardSkeleton = React.memo(CompetitionCardSkeleton_);
 export const PoolViewSkeleton = React.memo(PoolViewSkeleton_);
 export const TableRowSkeleton = React.memo(TableRowSkeleton_);
 export const StatsCardSkeleton = React.memo(StatsCardSkeleton_);
+export const CompetitionViewSkeleton = React.memo(CompetitionViewSkeleton_);
 export const SkeletonStyles = React.memo(SkeletonStyles_);
 
 export default {
@@ -182,5 +230,6 @@ export default {
   PoolViewSkeleton,
   TableRowSkeleton,
   StatsCardSkeleton,
+  CompetitionViewSkeleton,
   SkeletonStyles,
 };

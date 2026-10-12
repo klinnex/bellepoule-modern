@@ -30,7 +30,10 @@ BellePoule Modern is a complete rewrite of legendary BellePoule fencing tourname
 - **[Creating Competitions](USER_MANUAL.md#-creating-a-competition)** - Setup new tournaments
 - **[Importing Fencers](USER_MANUAL.md#importing-fencers)** - FFF, CSV, XML file support
 - **[Managing Phases](USER_MANUAL.md#managing-competition-phases)** - Check-in, pools, tableaux
-- **[Remote Scoring](USER_MANUAL.md#remote-scoring-setup)** - Tablet/phone score entry
+- **[Remote Scoring](REMOTE_SCORE_GUIDE.md)** - Tablet/phone score entry (organiser guide, FR)
+- **[Referee Interface](docs/ARBITRAGE.md)** - Every button of the referee tablet (FR)
+- **[Match Scenarios](docs/SCENARIOS_MATCH.md)** - Step-by-step match cases (FR)
+- **[Team Competitions](docs/TEAM_COMPETITIONS.md)** - FIE relay and Laser Sabre arena format (FR)
 - **[Exporting Results](USER_MANUAL.md#exporting-results)** - Multiple format options
 
 #### Support
@@ -42,7 +45,8 @@ BellePoule Modern is a complete rewrite of legendary BellePoule fencing tourname
 #### Development
 - **[Development Guide](DEVELOPMENT_GUIDE.md)** - Architecture, setup, coding standards
 - **[Architecture Overview](ARCHITECTURE.md)** - System design and components
-- **[Remote Scoring Guide](REMOTE_SCORE_GUIDE.md)** - Technical documentation
+- **[Remote Scoring Guide](REMOTE_SCORE_GUIDE.md)** - Routes, Socket.IO events, security
+- **[Tech Stack & Versions](docs/STACK_TECHNIQUE.md)** - Dependencies, build, CI
 
 #### Advanced Topics
 - **[API Documentation](DEVELOPMENT_GUIDE.md#api-documentation)** - IPC and WebSocket APIs
@@ -58,7 +62,7 @@ BellePoule Modern is a complete rewrite of legendary BellePoule fencing tourname
 3. **[Create](USER_MANUAL.md#-creating-a-competition)** your first competition
 4. **[Import fencers](USER_MANUAL.md#importing-fencers)** from FFF/CSV files
 5. **[Generate pools](USER_MANUAL.md#phase-2-pool-rounds)** automatically
-6. **[Start scoring](USER_MANUAL.md#score-entry-interface)** matches
+6. **[Start scoring](REMOTE_SCORE_QUICKSTART.md)** matches from tablets
 
 ### For Users Migrating from Original BellePoule
 
@@ -93,7 +97,8 @@ BellePoule Modern is a complete rewrite of legendary BellePoule fencing tourname
 ### 📱 Remote Scoring
 - **Built-in web server** for tablet/mobile access
 - Real-time score synchronization
-- Simple access code system
+- HTTPS (self-signed) and optional password per arena
+- Offline mode with automatic sync
 - Cross-platform browser support
 - No additional software required
 
@@ -105,9 +110,9 @@ BellePoule Modern is a complete rewrite of legendary BellePoule fencing tourname
 - Migration-friendly XML exports
 
 ### 🌐 Platform Support
-- **Windows** (7+)
-- **macOS** (10.14+) 
-- **Linux** (Ubuntu 18.04+, other distributions)
+- **Windows** 10/11 x64 (installer or portable)
+- **macOS** Intel and Apple Silicon (DMG/ZIP)
+- **Linux** x64 (AppImage, deb, rpm)
 - **Portable versions** available
 - **Automatic updates** with user consent
 
@@ -186,22 +191,18 @@ Developer Guides/
 | **Performance** | Variable | **Optimized for large comps** ✅ |
 | **Web Interface** | None | **Tablet/phone support** ✅ |
 
-## 🌟 Recent Updates
+## 🌟 Current Version
 
-### Version 1.0.0 (Latest)
-- ✅ Full competition management
-- ✅ Advanced FFF file parsing
-- ✅ Remote scoring system
-- ✅ Cross-platform support
-- ✅ Auto-save functionality
-- ✅ Multiple export formats
+**v1.0.3 — build #1365** (October 2026). Highlights:
+- ✅ Pools, direct elimination, classification tables, formula builder (custom weapon)
+- ✅ Laser Sabre (zones A/B/C, Quest points, sudden death) and Olympic weapons
+- ✅ Team competitions (FIE relay, Laser Sabre arena format)
+- ✅ Remote scoring: referee tablets, arena screens, kiosk, public view, OBS overlay, offline mode, signatures
+- ✅ Referee management, trainer comments, check-in on tablet
+- ✅ 7 UI languages (fr, en, br, ca, de, es, zh-HK), light/dark themes
+- ✅ PDF exports, FFE/XML/CSV/Engarde import
 
-### Upcoming Features
-- 🔄 Dark mode interface
-- 🔄 Advanced reporting
-- 🔄 Competition templates
-- 🔄 Integration with timing systems
-- 🔄 Mobile companion app
+Planned work: [ROADMAP.md](ROADMAP.md).
 
 ## 🤝 Contributing
 
@@ -225,7 +226,7 @@ We welcome contributions from the community! See the [Development Guide](DEVELOP
 
 ### Built-in Support
 - **Bug Reporter**: Menu → Help → Report Bug (Ctrl+Shift+I)
-- **System Information**: Menu → Help → System Information
+- **About**: Menu → Help → About (F1) — version and build
 - **Automatic Updates**: Check for updates on startup
 
 ### Community Support  
@@ -233,40 +234,12 @@ We welcome contributions from the community! See the [Development Guide](DEVELOP
 - **GitHub Discussions**: [Ask questions](https://github.com/klinnex/bellepoule-modern/discussions)
 - **Documentation Wiki**: Community-contributed guides
 
-### Professional Support
-- Email support for licensed organizations
-- Priority bug fixing and feature development
-- On-site training and migration assistance
-- Custom integration development
-
 ## 📊 Project Statistics
 
-- **Development Started**: 2023
-- **First Release**: v1.0.0 (2024)
-- **Lines of Code**: ~15,000+ TypeScript/React
-- **Test Coverage**: 80%+ target
-- **Platform Support**: 3 major platforms
-- **Language Support**: French (primary), English (docs)
-
-## 🎯 Roadmap
-
-### Short Term (Q1 2024)
-- [ ] Performance optimizations for 1000+ fencers
-- [ ] Advanced competition templates
-- [ ] Dark mode interface
-- [ ] Enhanced PDF reporting
-
-### Medium Term (Q2-Q3 2024)  
-- [ ] Mobile companion app
-- [ ] Integration with federation databases
-- [ ] Advanced analytics and statistics
-- [ ] Multi-language UI support
-
-### Long Term (2025+)
-- [ ] Cloud synchronization
-- [ ] AI-assisted competition management
-- [ ] Live streaming integration
-- [ ] Advanced scoring systems
+- **Code**: ~93,000 lines of TypeScript/React (+ ~16,000 lines of tests, ~100 test files)
+- **Platforms**: Windows, macOS (x64/arm64), Linux
+- **UI languages**: 7
+- **Stack**: [docs/STACK_TECHNIQUE.md](docs/STACK_TECHNIQUE.md)
 
 ## 📄 License
 
@@ -278,7 +251,7 @@ BellePoule Modern is licensed under **GPL-3.0**, the same license as the origina
 
 Ready to modernize your fencing tournament management?
 
-### 📥 **[Download Latest Version](https://github.com/klinnex/bellepoule-modern/releases/tag/latest)**
+### 📥 **[Download Latest Version](https://github.com/klinnex/bellepoule-modern/releases/latest)**
 
 ### 📖 **[Read Installation Guide](INSTALLATION.md)**
 

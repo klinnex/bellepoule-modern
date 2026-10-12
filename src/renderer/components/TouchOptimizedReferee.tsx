@@ -4,8 +4,15 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect, useRef, useCallback , memo} from 'react';
-import { Fencer, Match, MatchStatus, TargetZone, MatchMode, MatchEventEntry } from '../../shared/types';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import {
+  Fencer,
+  Match,
+  MatchStatus,
+  TargetZone,
+  MatchMode,
+  MatchEventEntry,
+} from '../../shared/types';
 import {
   checkTimeoutSuddenDeath,
   checkChallengerSuddenDeath,
@@ -37,7 +44,15 @@ function chipFromEntry(
   entry: MatchEventEntry,
   nameA: string,
   nameB: string
-): { key: string; name: string; delta: string; score: string; bg: string; border: string; textColor: string } | null {
+): {
+  key: string;
+  name: string;
+  delta: string;
+  score: string;
+  bg: string;
+  border: string;
+  textColor: string;
+} | null {
   const side = entry.fencerSide;
   const isA = side === 'A';
   const isB = side === 'B';
@@ -63,7 +78,13 @@ function chipFromEntry(
 
   if (entry.eventType === 'card') {
     const icon =
-      entry.cardType === 'yellow' ? '🟨' : entry.cardType === 'red' ? '🟥' : entry.cardType === 'black' ? '⬛' : '🃏';
+      entry.cardType === 'yellow'
+        ? '🟨'
+        : entry.cardType === 'red'
+          ? '🟥'
+          : entry.cardType === 'black'
+            ? '⬛'
+            : '🃏';
     return {
       key: entry.id,
       name,
@@ -434,16 +455,19 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
         <div className="flex justify-between items-center">
           <div className="text-2xl font-bold text-gray-800">Piste {match.number || 1}</div>
           <div className="flex items-center space-x-4">
-            {overtimeActive && (matchMode === MatchMode.SUDDEN_DEATH_TIMEOUT || matchMode === MatchMode.SUDDEN_DEATH_CHALLENGER) && (
-              <div className="px-3 py-1 rounded-full text-sm font-bold animate-pulse bg-orange-100 text-orange-700">
-                ⚡ MORT SUBITE
-              </div>
-            )}
-            {overtimeActive && (matchMode === MatchMode.SUPPLEMENTARY_TIME || supplementaryActive) && (
-              <div className="px-3 py-1 rounded-full text-sm font-bold animate-pulse bg-blue-100 text-blue-700">
-                ⏱ 30s SUPPLEMENTAIRE
-              </div>
-            )}
+            {overtimeActive &&
+              (matchMode === MatchMode.SUDDEN_DEATH_TIMEOUT ||
+                matchMode === MatchMode.SUDDEN_DEATH_CHALLENGER) && (
+                <div className="px-3 py-1 rounded-full text-sm font-bold animate-pulse bg-orange-100 text-orange-700">
+                  ⚡ MORT SUBITE
+                </div>
+              )}
+            {overtimeActive &&
+              (matchMode === MatchMode.SUPPLEMENTARY_TIME || supplementaryActive) && (
+                <div className="px-3 py-1 rounded-full text-sm font-bold animate-pulse bg-blue-100 text-blue-700">
+                  ⏱ 30s SUPPLEMENTAIRE
+                </div>
+              )}
             <div
               className={`text-xl font-mono ${overtimeActive ? 'text-yellow-600 font-bold' : ''}`}
             >
@@ -621,7 +645,9 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
               </div>
             </div>
             {chips.length === 0 ? (
-              <div className="text-xs text-gray-400 text-center py-2">Aucun événement enregistré</div>
+              <div className="text-xs text-gray-400 text-center py-2">
+                Aucun événement enregistré
+              </div>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {chips.map(chip => (
@@ -644,7 +670,13 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
                     <span style={{ fontSize: '1rem', fontWeight: 800, color: chip.textColor }}>
                       {chip.delta}
                     </span>
-                    <span style={{ fontSize: '0.65rem', color: '#6b7280', fontVariantNumeric: 'tabular-nums' }}>
+                    <span
+                      style={{
+                        fontSize: '0.65rem',
+                        color: '#6b7280',
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
                       {chip.score}
                     </span>
                   </div>

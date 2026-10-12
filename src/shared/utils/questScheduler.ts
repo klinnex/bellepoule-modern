@@ -70,7 +70,7 @@ export function generateQuestSchedule(
     // Trier par nombre de combats croissant (avec brassage aléatoire en cas d'égalité)
     const order = [...fencers].sort((a, b) => {
       const diff = (fightCount.get(a.id) ?? 0) - (fightCount.get(b.id) ?? 0);
-      return diff !== 0 ? diff : (Math.random() < 0.5 ? -1 : 1);
+      return diff !== 0 ? diff : Math.random() < 0.5 ? -1 : 1;
     });
 
     for (const a of order) {
@@ -124,26 +124,17 @@ export function validateQuestSchedule(schedule: QuestFight[]): QuestScheduleVali
   const usedPairs = new Set<string>();
   const fightsPerFencer = new Map<string, number>();
 
-  const pairKey = (a: Fencer, b: Fencer) =>
-    a.id < b.id ? `${a.id}|${b.id}` : `${b.id}|${a.id}`;
+  const pairKey = (a: Fencer, b: Fencer) => (a.id < b.id ? `${a.id}|${b.id}` : `${b.id}|${a.id}`);
 
   for (const fight of schedule) {
     const key = pairKey(fight.fencerA, fight.fencerB);
     if (usedPairs.has(key)) {
-      errors.push(
-        `Doublon : ${fight.fencerA.lastName} vs ${fight.fencerB.lastName}`
-      );
+      errors.push(`Doublon : ${fight.fencerA.lastName} vs ${fight.fencerB.lastName}`);
     }
     usedPairs.add(key);
 
-    fightsPerFencer.set(
-      fight.fencerA.id,
-      (fightsPerFencer.get(fight.fencerA.id) ?? 0) + 1
-    );
-    fightsPerFencer.set(
-      fight.fencerB.id,
-      (fightsPerFencer.get(fight.fencerB.id) ?? 0) + 1
-    );
+    fightsPerFencer.set(fight.fencerA.id, (fightsPerFencer.get(fight.fencerA.id) ?? 0) + 1);
+    fightsPerFencer.set(fight.fencerB.id, (fightsPerFencer.get(fight.fencerB.id) ?? 0) + 1);
   }
 
   const counts = Array.from(fightsPerFencer.values());

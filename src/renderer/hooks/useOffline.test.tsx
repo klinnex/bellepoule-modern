@@ -52,7 +52,9 @@ describe('useOffline', () => {
 
   it('sync déclenche triggerSync quand en ligne', async () => {
     const { result } = renderHook(() => useOffline('c1'));
-    await act(async () => { await result.current.sync(); });
+    await act(async () => {
+      await result.current.sync();
+    });
     expect(sync.triggerSync).toHaveBeenCalledTimes(1);
   });
 
@@ -60,13 +62,17 @@ describe('useOffline', () => {
     sync.isCurrentlyOnline.mockReturnValue(false);
     const { result } = renderHook(() => useOffline('c1'));
     await waitFor(() => expect(result.current.isOnline).toBe(false));
-    await act(async () => { await result.current.sync(); });
+    await act(async () => {
+      await result.current.sync();
+    });
     expect(sync.triggerSync).not.toHaveBeenCalled();
   });
 
   it('refreshCache appelle le service en ligne', async () => {
     const { result } = renderHook(() => useOffline('c1'));
-    await act(async () => { await result.current.refreshCache('c1'); });
+    await act(async () => {
+      await result.current.refreshCache('c1');
+    });
     expect(sync.refreshCache).toHaveBeenCalledWith('c1');
   });
 
@@ -74,7 +80,9 @@ describe('useOffline', () => {
     const { result } = renderHook(() => useOffline('c1'));
     await waitFor(() => expect(result.current.isOnline).toBe(true));
     sync.isCurrentlyOnline.mockReturnValue(false);
-    act(() => { window.dispatchEvent(new Event('offline')); });
+    act(() => {
+      window.dispatchEvent(new Event('offline'));
+    });
     await waitFor(() => expect(result.current.isOnline).toBe(false));
   });
 });

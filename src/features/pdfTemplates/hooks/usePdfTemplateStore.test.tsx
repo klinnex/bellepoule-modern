@@ -18,7 +18,13 @@ beforeEach(() => {
 });
 
 const custom = (docType: PdfTemplate['docType']): PdfTemplate =>
-  ({ docType, customTitle: 'PERSO', elements: [], colors: {}, fonts: {} } as unknown as PdfTemplate);
+  ({
+    docType,
+    customTitle: 'PERSO',
+    elements: [],
+    colors: {},
+    fonts: {},
+  }) as unknown as PdfTemplate;
 
 describe('usePdfTemplateStore', () => {
   it('fournit des modèles par défaut pour les 3 types', () => {
@@ -46,5 +52,28 @@ describe('usePdfTemplateStore', () => {
     get().importTemplate(custom('tableau'));
     expect(get().templates.tableau.customTitle).toBe('PERSO');
     expect(get().templates.pool.customTitle).not.toBe('PERSO');
+  });
+
+  it('resetTemplate restaure indépendamment pool et tableau', () => {
+    get().setTemplate('pool', custom('pool'));
+    get().setTemplate('tableau', custom('tableau'));
+
+    get().resetTemplate('pool');
+    expect(get().templates.pool.elements.length).toBeGreaterThan(0);
+    // tableau reste altéré tant qu'il n'est pas réinitialisé lui aussi
+    expect(get().templates.tableau.elements).toHaveLength(0);
+
+    get().resetTemplate('tableau');
+    expect(get().templates.tableau.elements.length).toBeGreaterThan(0);
+  });
+
+  it("setTemplate n'affecte que le type ciblé, les deux autres restent par défaut", () => {
+    const before = {
+      tableau: get().templates.tableau,
+      ranking: get().templates.ranking,
+    };
+    get().setTemplate('pool', custom('pool'));
+    expect(get().templates.tableau).toBe(before.tableau);
+    expect(get().templates.ranking).toBe(before.ranking);
   });
 });

@@ -11,9 +11,15 @@ import { Fencer, Gender, FencerStatus } from '../../../shared/types';
 const svc = new BracketService();
 
 const fencer = (id: string): Fencer => ({
-  id, ref: Number(id), lastName: id, firstName: 'X',
-  gender: Gender.MALE, nationality: 'FRA', status: FencerStatus.QUALIFIED,
-  createdAt: new Date(), updatedAt: new Date(),
+  id,
+  ref: Number(id),
+  lastName: id,
+  firstName: 'X',
+  gender: Gender.MALE,
+  nationality: 'FRA',
+  status: FencerStatus.QUALIFIED,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 afterEach(() => {
@@ -45,7 +51,11 @@ describe('generateBracket - avec tireurs', () => {
   it('construit un tableau et y injecte le competitionId', async () => {
     (window as any).electronAPI = { db: {} };
     const seeded = [fencer('1'), fencer('2'), fencer('3'), fencer('4')];
-    const t = await svc.generateBracket('cX', { fencerCount: 4, seededFencers: seeded, maxScore: 10 });
+    const t = await svc.generateBracket('cX', {
+      fencerCount: 4,
+      seededFencers: seeded,
+      maxScore: 10,
+    });
     expect(t.competitionId).toBe('cX');
     expect(t.maxScore).toBe(10);
     expect(Array.isArray(t.nodes)).toBe(true);
@@ -64,7 +74,13 @@ describe('updateMatchResult', () => {
     const updateMatch = vi.fn(async () => {});
     (window as any).electronAPI = {
       db: {
-        getMatch: async () => ({ id: 'm', fencerA: { id: 'a' }, fencerB: { id: 'b' }, scoreA: { value: 5 }, scoreB: { value: 3 } }),
+        getMatch: async () => ({
+          id: 'm',
+          fencerA: { id: 'a' },
+          fencerB: { id: 'b' },
+          scoreA: { value: 5 },
+          scoreB: { value: 3 },
+        }),
         updateMatch,
       },
     };
@@ -79,7 +95,13 @@ describe('updateMatchResult', () => {
     const updateMatch = vi.fn(async () => {});
     (window as any).electronAPI = {
       db: {
-        getMatch: async () => ({ id: 'm', fencerA: { id: 'a' }, fencerB: { id: 'b' }, scoreA: null, scoreB: null }),
+        getMatch: async () => ({
+          id: 'm',
+          fencerA: { id: 'a' },
+          fencerB: { id: 'b' },
+          scoreA: null,
+          scoreB: null,
+        }),
         updateMatch,
       },
     };
@@ -93,7 +115,10 @@ describe('updateMatchResult', () => {
 describe('getProgression', () => {
   it('valeurs par défaut sans electronAPI', async () => {
     expect(await svc.getProgression('t')).toEqual({
-      currentRound: 1, totalRounds: 1, completedMatches: 0, totalMatches: 0,
+      currentRound: 1,
+      totalRounds: 1,
+      completedMatches: 0,
+      totalMatches: 0,
     });
   });
 

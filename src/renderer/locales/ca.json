@@ -125,6 +125,12 @@
     "pool_number": "Poule",
     "change_pool": "Canviar de Poule",
     "next_round_n": "Ronda {{n}} →",
+    "next_round_confirm": "Ronda {{n}}: {{qualified}} classificats, {{eliminated}} eliminats. Els no classificats passen a «Eliminat». Continuar?",
+    "next_round_checkin": "Ronda {{n}}: crida dels classificats i nou sorteig",
+    "round_select_label": "Ronda de poules",
+    "round_option": "Ronda {{n}}",
+    "round_current": "en curs",
+    "round_checkin_banner": "Crida – Ronda {{n}}: verifiqueu els classificats i genereu les noves poules (sorteig segons la classificació de la ronda anterior).",
     "view_ranking_action": "Veure classificació →"
   },
   "ranking": {
@@ -145,7 +151,11 @@
   "tableau": {
     "elimination_in": "Eliminat a",
     "finalist": "Finalista",
-    "winner": "Guanyador"
+    "winner": "Guanyador",
+    "round_final": "Final",
+    "round_of_n": "Quadre de {{round}}",
+    "round_semifinals": "Semifinals",
+    "round_third_place": "Petita final"
   },
   "results": {
     "final_ranking": "Classificació Final",
@@ -170,7 +180,9 @@
     "reset_scores": "Restablir Puntuacions",
     "waiting_match": "Esperant el combat següent",
     "in_progress": "En Curs",
-    "finished": "Finalitzat"
+    "finished": "Finalitzat",
+    "inactive_title": "Entrada remota inactiva",
+    "active_title": "Entrada remota activa"
   },
   "settings": {
     "title": "Configuració",
@@ -354,7 +366,11 @@
     "refresh_data": "Actualitzar dades",
     "timer": "Iniciar/Pausar cronòmetre",
     "nav_list": "Navegar a la llista",
-    "validate": "Validar / Obrir"
+    "validate": "Validar / Obrir",
+    "print_sheets": "Imprimir els fulls de poule / de combat"
+  },
+  "wiki": {
+    "button_title": "Documentació"
   },
   "formula": {
     "builder_title": "Constructor de fórmules",
@@ -381,5 +397,122 @@
     "scoring_zones": "Zones personalitzades",
     "zone_label": "Zona",
     "zone_points": "Punts"
+  },
+  "dialogs": {
+    "exportScoreHistory": "Exportar historial de puntuacions",
+    "exportFencers": "Exportar tiradors (.{{ext}})",
+    "exportPhotos": "Exportar fotos (.zip)",
+    "importPhotos": "Importar fotos (.zip)",
+    "exportFencersArchive": "Exportar tiradors + fotos (.bpf)"
+  },
+  "teams": {
+    "relaysWon": "Relleus G",
+    "relaysLost": "Relleus P",
+    "relaysTooltip": "Relleus individuals guanyats/perduts"
+  },
+  "kiosk": {
+    "tbd": "Per determinar",
+    "resume_at": "Represa a les {{time}}",
+    "bye": "Exempt",
+    "close": "✕ Tancar",
+    "countdown_in": "en {{duration}}",
+    "defeat_short": "D",
+    "esc_exit": "Esc per sortir",
+    "final_results": "🏆 RESULTATS FINALS",
+    "finished_matches": "combats acabats",
+    "general_ranking": "Classificació general",
+    "matches_live": "Combats en curs",
+    "navigate_hint": "← → navegar",
+    "no_live": "Cap combat en curs",
+    "pools": "Poules",
+    "provisional_ranking": "Classificació provisional",
+    "ranking": "📊 Classificació",
+    "ranking_label": "Classificació",
+    "round_16": "Vuitens de final",
+    "round_32": "Setzens de final",
+    "round_64": "Trenta-dosens de final",
+    "round_8": "Vuitens de final",
+    "round_quarter": "Quarts de final",
+    "round_semi": "Semifinal",
+    "tableau": "🥇 Quadre",
+    "tableau_done": "Quadre acabat",
+    "victory_short": "V"
+  },
+  "xiaomi": {
+    "arena_label": "Pista",
+    "just_now": "ara mateix",
+    "unlock_tooltip": "Desbloquejar el comandament",
+    "lock_tooltip": "Bloquejar el comandament per evitar canvis",
+    "locked_label": "🔒 Bloquejat",
+    "lock_label": "🔓 Bloquejar",
+    "deselect_swap": "Treure de la selecció",
+    "select_swap": "Seleccionar per intercanviar",
+    "nav_lobby": "Sala d'espera (Lobby)",
+    "nav_arena": "Pista {{n}}",
+    "arena": "Arena",
+    "blink": "Fer parpellejar aquesta pantalla per identificar-la",
+    "bottom_text": "Text mostrat a la part inferior de totes les pantalles…",
+    "click_rename": "Feu clic per reanomenar",
+    "client_type_dashboard": "Tauler de control",
+    "client_type_kiosk": "Quiosc",
+    "client_type_lobby": "Lobby",
+    "client_type_public": "Públic",
+    "connect_tv": "en una TV perquè aparegui aquí.",
+    "global_message_label": "Missatge global",
+    "locked": "Comandament bloquejat — accions desactivades. Feu clic a «Bloquejat» per desbloquejar.",
+    "minutes_ago": "fa {{m}}m",
+    "nav_kiosk_public": "Quiosc públic",
+    "nav_ranking": "Classificació",
+    "no_screen": "Cap pantalla connectada.",
+    "refresh": "Actualitzar",
+    "refresh_all": "Actualitzar-ho tot",
+    "rename": "Reanomenar aquesta pantalla",
+    "screen_name": "Nom de la pantalla…",
+    "screens_waiting": "— les pantalles esperen la seva assignació",
+    "seconds_ago": "fa {{s}}s",
+    "select_2nd": "— seleccioneu una 2a pantalla",
+    "send": "Enviar",
+    "swap_label": "⇄ Intercanviar",
+    "tablet_role": "Rol de la tauleta",
+    "title": "Comandament TV",
+    "url_no_arena": "URL sense arena:"
+  },
+  "changePool": {
+    "matches_played_count": "{{count}} combat(s) jugat(s)"
+  },
+  "competitionHeader": {
+    "kiosk_mode": "Mode quiosc"
+  },
+  "poolView": {
+    "fencers_count_suffix": "{{count}} tirador(s)"
+  },
+  "presentation": {
+    "no_club": "Sense club"
+  },
+  "quest": {
+    "label": "Quest"
+  },
+  "referee": {
+    "arbitre": "Àrbitre"
+  },
+  "remote_score": {
+    "identify_button": "🔦 Identificar",
+    "lane_number": "Pista {{number}}",
+    "prefix_break": "Pausa",
+    "screen_type_display": "Pantalla",
+    "view_bracket": "Quadre eliminatori",
+    "view_final_ranking": "Classificació final",
+    "view_live_matches": "Combats en directe",
+    "view_next_matches": "Propers combats",
+    "view_pools": "Poules",
+    "view_ranking": "Classificació"
+  },
+  "ui": {
+    "configure_kiosk": "🖥️ Configurar el mode quiosc",
+    "configure_send_kiosk": "Configurar i enviar en mode quiosc",
+    "poule": "Poule",
+    "rotation_label": "Rotació (s):",
+    "send_kiosk": "Enviar al quiosc",
+    "views_label": "Vistes a mostrar:"
   }
 }

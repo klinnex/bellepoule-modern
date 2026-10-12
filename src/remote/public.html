@@ -737,6 +737,16 @@
         from { transform: scale(0.5); opacity: 0; }
         to   { transform: scale(1);   opacity: 1; }
       }
+      /* Mode daltonien (?cb=1) : vert → bleu, rouge → orange */
+      body.colorblind .fencer-display.green-side {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border-color: #2563eb;
+      }
+      body.colorblind .fencer-display.red-side { border-color: #ea580c; }
+      body.colorblind .color-badge.green { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+      body.colorblind .color-badge.red { background: linear-gradient(135deg, #f97316, #ea580c); }
+      body.colorblind .score-big.green { color: #2563eb; text-shadow: 0 0 10px rgba(37, 99, 235, 0.7), 0 0 40px rgba(37, 99, 235, 0.4); }
+      body.colorblind .score-big.red { color: #ea580c; text-shadow: 0 0 10px rgba(234, 88, 12, 0.7), 0 0 40px rgba(234, 88, 12, 0.4); }
     </style>
   </head>
   <body>
@@ -866,6 +876,19 @@
     </div>
 
     <script>
+      // Bannière d'annonce : texte seul, jamais innerHTML (noms de tireurs non fiables, #995)
+      function setBannerLines(banner, line1, line2) {
+        banner.replaceChildren();
+        const d1 = document.createElement('div');
+        d1.textContent = line1;
+        banner.appendChild(d1);
+        if (line2) {
+          const d2 = document.createElement('div');
+          d2.style.cssText = 'font-size:0.65em;font-weight:600;margin-top:0.25em;opacity:0.9;';
+          d2.textContent = line2;
+          banner.appendChild(d2);
+        }
+      }
       function applyScreenTheme(variables) {
         if (!variables) {
           const old = document.getElementById('screen-theme-style');
@@ -880,6 +903,7 @@
 
       class PublicDisplay {
         constructor() {
+          if (new URLSearchParams(window.location.search).get('cb') === '1') document.body.classList.add('colorblind');
           this.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
           this.arenaId = this.getArenaId();
           this.arenaNumber = this.arenaNumberFromId();
@@ -1070,10 +1094,9 @@
           }
           line2 = ann.reason || null;
 
-          banner.innerHTML = line2
-            ? `<div>${line1}</div><div style="font-size:0.65em; font-weight:600; margin-top:0.25em; opacity:0.9;">${line2}</div>`
-            : `<div>${line1}</div>`;
-          banner.className = `card-announcement-banner visible card-${ann.cardType}`;
+          setBannerLines(banner, line1, line2);
+          const cardClass = ['white', 'yellow', 'red', 'black'].includes(ann.cardType) ? ann.cardType : 'yellow';
+          banner.className = `card-announcement-banner visible card-${cardClass}`;
 
           if (this._cardAnnouncementTimer) clearTimeout(this._cardAnnouncementTimer);
           this._cardAnnouncementTimer = setTimeout(() => {
@@ -1225,6 +1248,7 @@
         updateCardsDisplay() {
           const renderCards = cards =>
             cards
+              .filter(card => ['white', 'yellow', 'red', 'black'].includes(card))
               .map(
                 card =>
                   `<div class="card card-${card}">${card === 'white' ? 'B' : card === 'yellow' ? 'J' : 'R'}</div>`

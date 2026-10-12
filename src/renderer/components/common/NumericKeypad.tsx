@@ -53,13 +53,7 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
   const clear = () => onChange('');
 
   const digitKey = (d: string) => (
-    <button
-      key={d}
-      type="button"
-      onClick={() => appendDigit(d)}
-      aria-label={d}
-      style={KEY_STYLE}
-    >
+    <button key={d} type="button" onClick={() => appendDigit(d)} aria-label={d} style={KEY_STYLE}>
       {d}
     </button>
   );

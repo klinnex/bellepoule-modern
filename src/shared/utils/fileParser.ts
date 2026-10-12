@@ -16,3 +16,9 @@ export {
   importRankingFromFFF,
 } from './fileParser/rankingParser';
 export { RefereeImportResult, parseEngardeRefereeFile } from './fileParser/engardeParser';
+export {
+  FencerFileFormat,
+  detectFencerFileFormat,
+  resolveFencerFileFormat,
+  decodeTextFile,
+} from './fileParser/detect';

@@ -13,7 +13,10 @@ function fmt(seconds: number): string {
 
 function relTime(ts: string, startIso: string | null): string {
   if (!startIso) return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const diff = Math.max(0, Math.floor((new Date(ts).getTime() - new Date(startIso).getTime()) / 1000));
+  const diff = Math.max(
+    0,
+    Math.floor((new Date(ts).getTime() - new Date(startIso).getTime()) / 1000)
+  );
   return `${Math.floor(diff / 60)}:${String(diff % 60).padStart(2, '0')}`;
 }
 
@@ -26,7 +29,11 @@ interface ParsedScore {
 }
 
 function parseScore(json: string | null): ParsedScore | null {
-  try { return json ? JSON.parse(json) : null; } catch { return null; }
+  try {
+    return json ? JSON.parse(json) : null;
+  } catch {
+    return null;
+  }
 }
 
 function matchOutcome(rec: FencerMatchRecord): {
@@ -38,18 +45,25 @@ function matchOutcome(rec: FencerMatchRecord): {
   const sA = parseScore(rec.scoreA);
   const sB = parseScore(rec.scoreB);
   const mine = rec.side === 'A' ? sA : sB;
-  const opp  = rec.side === 'A' ? sB : sA;
+  const opp = rec.side === 'A' ? sB : sA;
   const isVictory = mine?.isVictory ?? false;
-  const outcomeLabel = mine?.isVictory     ? 'Victoire'
-    : mine?.isExclusion  ? 'Exclusion'
-    : mine?.isForfait    ? 'Forfait'
-    : mine?.isAbstention ? 'Abstention'
-    : 'Défaite';
+  const outcomeLabel = mine?.isVictory
+    ? 'Victoire'
+    : mine?.isExclusion
+      ? 'Exclusion'
+      : mine?.isForfait
+        ? 'Forfait'
+        : mine?.isAbstention
+          ? 'Abstention'
+          : 'Défaite';
   return { myScore: mine?.value ?? null, oppScore: opp?.value ?? null, isVictory, outcomeLabel };
 }
 
 const CARD_EMOJI: Record<string, string> = {
-  white: '⬜', yellow: '🟡', red: '🔴', black: '⬛',
+  white: '⬜',
+  yellow: '🟡',
+  red: '🔴',
+  black: '⬛',
 };
 
 function cardLabel(reason: string, labels: Record<string, string>): string {
@@ -102,7 +116,7 @@ function fencerPageHtml(
   isLaser: boolean,
   cardReasonLabels: Record<string, string>,
   competitionTitle: string,
-  competitionDate: string,
+  competitionDate: string
 ): string {
   const victories = matches.filter(m => matchOutcome(m).isVictory).length;
   const defeats = matches.length - victories;
@@ -114,64 +128,77 @@ function fencerPageHtml(
   if (fencer.redCards) cardParts.push(`${fencer.redCards} 🔴`);
   const cardSub = cardParts.join(' · ') || '&nbsp;';
 
-  const laserBox = isLaser ? `
+  const laserBox = isLaser
+    ? `
     <div class="summary-box">
       <div class="label">Touches Laser</div>
       <div class="value">${fencer.totalTouchPoints} pts</div>
       <div class="sub">A: ${fencer.touchesZoneA} · B: ${fencer.touchesZoneB} · C: ${fencer.touchesZoneC}</div>
-    </div>` : `
+    </div>`
+    : `
     <div class="summary-box">
       <div class="label">Sorties d'arène</div>
       <div class="value">${fencer.arenaExits}</div>
       <div class="sub">&nbsp;</div>
     </div>`;
 
-  const matchRows = matches.map((rec, i) => {
-    const { myScore, oppScore, isVictory, outcomeLabel } = matchOutcome(rec);
-    const oppName = rec.opponentLastName
-      ? `${rec.opponentLastName}${rec.opponentFirstName ? ' ' + rec.opponentFirstName : ''}`
-      : '—';
-    const scoreStr = myScore !== null && oppScore !== null ? `${myScore} – ${oppScore}` : '';
-    const durStr = rec.duration ? fmt(rec.duration) : '—';
-    const phaseStr = rec.poolId ? 'Poule' : rec.tableId ? `Tour ${rec.round ?? ''}` : '';
+  const matchRows = matches
+    .map((rec, i) => {
+      const { myScore, oppScore, isVictory, outcomeLabel } = matchOutcome(rec);
+      const oppName = rec.opponentLastName
+        ? `${rec.opponentLastName}${rec.opponentFirstName ? ' ' + rec.opponentFirstName : ''}`
+        : '—';
+      const scoreStr = myScore !== null && oppScore !== null ? `${myScore} – ${oppScore}` : '';
+      const durStr = rec.duration ? fmt(rec.duration) : '—';
+      const phaseStr = rec.poolId ? 'Poule' : rec.tableId ? `Tour ${rec.round ?? ''}` : '';
 
-    type RawTouch = typeof rec.touches[0];
-    type RawCard  = typeof rec.cards[0];
-    type Event = { ts: string; type: 'touch'; data: RawTouch } | { ts: string; type: 'card'; data: RawCard };
+      type RawTouch = (typeof rec.touches)[0];
+      type RawCard = (typeof rec.cards)[0];
+      type Event =
+        { ts: string; type: 'touch'; data: RawTouch } | { ts: string; type: 'card'; data: RawCard };
 
-    const events: Event[] = [
-      ...rec.touches.map(t => ({ ts: t.timestamp, type: 'touch' as const, data: t })),
-      ...rec.cards.map(c  => ({ ts: c.timestamp,  type: 'card'  as const, data: c })),
-    ].sort((a, b) => a.ts.localeCompare(b.ts));
+      const events: Event[] = [
+        ...rec.touches.map(t => ({ ts: t.timestamp, type: 'touch' as const, data: t })),
+        ...rec.cards.map(c => ({ ts: c.timestamp, type: 'card' as const, data: c })),
+      ].sort((a, b) => a.ts.localeCompare(b.ts));
 
-    const timelineItems = events.map(ev => {
-      const time = relTime(ev.ts, rec.startTime);
-      if (ev.type === 'touch') {
-        const t = ev.data;
-        const zoneLabel = t.zone === 'A' ? 'Zone A – 1 pt'
-          : t.zone === 'B' ? 'Zone B – 3 pts'
-          : t.zone === 'C' ? 'Zone C – 5 pts'
-          : `Zone ${t.zone}`;
-        const reversed = t.isReversed ? ' <span class="t-reversed">(annulée)</span>' : '';
-        return `<li class="timeline-item"><span class="t-time">${time}</span><span class="t-touch">● ${zoneLabel}${reversed}</span></li>`;
-      } else {
-        const c = ev.data;
-        const ct = c.cardType.toLowerCase();
-        const emoji = CARD_EMOJI[ct] ?? '❓';
-        const reason = cardLabel(c.reason, cardReasonLabels);
-        const excl = c.resultingExclusion ? ' → <strong>Exclusion</strong>' : '';
-        return `<li class="timeline-item"><span class="t-time">${time}</span><span class="t-card-${ct}">${emoji} ${reason}${excl}</span></li>`;
-      }
-    }).join('');
+      const timelineItems = events
+        .map(ev => {
+          const time = relTime(ev.ts, rec.startTime);
+          if (ev.type === 'touch') {
+            const t = ev.data;
+            const zoneLabel =
+              t.zone === 'A'
+                ? 'Zone A – 1 pt'
+                : t.zone === 'B'
+                  ? 'Zone B – 3 pts'
+                  : t.zone === 'C'
+                    ? 'Zone C – 5 pts'
+                    : `Zone ${t.zone}`;
+            const reversed = t.isReversed ? ' <span class="t-reversed">(annulée)</span>' : '';
+            return `<li class="timeline-item"><span class="t-time">${time}</span><span class="t-touch">● ${zoneLabel}${reversed}</span></li>`;
+          } else {
+            const c = ev.data;
+            const ct = c.cardType.toLowerCase();
+            const emoji = CARD_EMOJI[ct] ?? '❓';
+            const reason = cardLabel(c.reason, cardReasonLabels);
+            const excl = c.resultingExclusion ? ' → <strong>Exclusion</strong>' : '';
+            return `<li class="timeline-item"><span class="t-time">${time}</span><span class="t-card-${ct}">${emoji} ${reason}${excl}</span></li>`;
+          }
+        })
+        .join('');
 
-    const noEvents = events.length === 0
-      ? '<li class="no-events">Aucun événement enregistré</li>'
-      : '';
+      const noEvents =
+        events.length === 0 ? '<li class="no-events">Aucun événement enregistré</li>' : '';
 
-    const resultClass = isVictory ? 'victory' : outcomeLabel !== 'Défaite' ? 'other-result' : 'defeat';
-    const matchLabel = phaseStr ? `Match ${i + 1} (${phaseStr})` : `Match ${i + 1}`;
+      const resultClass = isVictory
+        ? 'victory'
+        : outcomeLabel !== 'Défaite'
+          ? 'other-result'
+          : 'defeat';
+      const matchLabel = phaseStr ? `Match ${i + 1} (${phaseStr})` : `Match ${i + 1}`;
 
-    return `
+      return `
       <div class="match">
         <div class="match-header">
           <span class="match-vs">${matchLabel} – vs ${oppName}</span>
@@ -179,7 +206,8 @@ function fencerPageHtml(
         </div>
         <ul class="timeline">${timelineItems}${noEvents}</ul>
       </div>`;
-  }).join('');
+    })
+    .join('');
 
   return `
     <div class="fencer-page">
@@ -214,17 +242,18 @@ function rankingPageHtml(
   fencers: FencerCompetitionStats[],
   isLaser: boolean,
   competitionTitle: string,
-  competitionDate: string,
+  competitionDate: string
 ): string {
   const laserTh = isLaser
     ? '<th class="tc">Zone A</th><th class="tc">Zone B</th><th class="tc">Zone C</th><th class="tc">Pts</th>'
     : '';
 
-  const rows = fencers.map((s, i) => {
-    const laserTd = isLaser
-      ? `<td class="tc">${s.touchesZoneA}</td><td class="tc">${s.touchesZoneB}</td><td class="tc">${s.touchesZoneC}</td><td class="tc tb">${s.totalTouchPoints}</td>`
-      : '';
-    return `<tr>
+  const rows = fencers
+    .map((s, i) => {
+      const laserTd = isLaser
+        ? `<td class="tc">${s.touchesZoneA}</td><td class="tc">${s.touchesZoneB}</td><td class="tc">${s.touchesZoneC}</td><td class="tc tb">${s.totalTouchPoints}</td>`
+        : '';
+      return `<tr>
       <td class="tc">${i + 1}</td>
       <td>${s.fencerLastName} ${s.fencerFirstName}</td>
       <td>${s.fencerClub ?? '—'}</td>
@@ -236,7 +265,8 @@ function rankingPageHtml(
       <td class="tc">${s.arenaExits || '—'}</td>
       <td class="tc">${fmt(s.averageDurationSeconds)}</td>
     </tr>`;
-  }).join('');
+    })
+    .join('');
 
   return `
     <div class="ranking-page">
@@ -267,14 +297,24 @@ export async function exportFencerDetailPDF(
   fencer: FencerCompetitionStats,
   matches: FencerMatchRecord[],
   competition: Competition,
-  cardReasonLabels: Record<string, string>,
+  cardReasonLabels: Record<string, string>
 ): Promise<void> {
   const isLaser = competition.weapon === 'L';
   const dateStr = competitionDateStr(competition);
-  const body = fencerPageHtml(fencer, matches, isLaser, cardReasonLabels, competition.title, dateStr);
+  const body = fencerPageHtml(
+    fencer,
+    matches,
+    isLaser,
+    cardReasonLabels,
+    competition.title,
+    dateStr
+  );
   const html = wrapHtml(body);
 
-  const safeName = `${fencer.fencerLastName}-${fencer.fencerFirstName}`.replace(/[^a-zA-Z0-9]/g, '_');
+  const safeName = `${fencer.fencerLastName}-${fencer.fencerFirstName}`.replace(
+    /[^a-zA-Z0-9]/g,
+    '_'
+  );
   const result = await window.electronAPI.dialog.saveFile({
     filters: [{ name: 'PDF', extensions: ['pdf'] }],
     defaultPath: `${safeName}-stats.pdf`,
@@ -288,7 +328,7 @@ export async function exportCompetitionDetailPDF(
   fencers: FencerCompetitionStats[],
   histories: Map<string, FencerMatchRecord[]>,
   competition: Competition,
-  cardReasonLabels: Record<string, string>,
+  cardReasonLabels: Record<string, string>
 ): Promise<void> {
   const isLaser = competition.weapon === 'L';
   const dateStr = competitionDateStr(competition);
@@ -296,7 +336,14 @@ export async function exportCompetitionDetailPDF(
   const pages = [
     rankingPageHtml(fencers, isLaser, competition.title, dateStr),
     ...fencers.map(f =>
-      fencerPageHtml(f, histories.get(f.fencerId) ?? [], isLaser, cardReasonLabels, competition.title, dateStr)
+      fencerPageHtml(
+        f,
+        histories.get(f.fencerId) ?? [],
+        isLaser,
+        cardReasonLabels,
+        competition.title,
+        dateStr
+      )
     ),
   ].join('');
 

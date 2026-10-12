@@ -48,8 +48,20 @@ const makeMatch = (
   number: 1,
   fencerA,
   fencerB,
-  scoreA: { value: scoreA, isVictory: scoreA > scoreB, isAbstention: false, isExclusion: false, isForfait: false },
-  scoreB: { value: scoreB, isVictory: scoreB > scoreA, isAbstention: false, isExclusion: false, isForfait: false },
+  scoreA: {
+    value: scoreA,
+    isVictory: scoreA > scoreB,
+    isAbstention: false,
+    isExclusion: false,
+    isForfait: false,
+  },
+  scoreB: {
+    value: scoreB,
+    isVictory: scoreB > scoreA,
+    isAbstention: false,
+    isExclusion: false,
+    isForfait: false,
+  },
   maxScore: 5,
   status,
   createdAt: new Date(),
@@ -248,7 +260,9 @@ describe('calculateOverallRankingCustom', () => {
   it('assigns overallRank to all entries', () => {
     const [f1, f2] = [makeFencer('1', 1), makeFencer('2', 2)];
     const pool = makePool('p1', [f1, f2], [makeMatch('m1', f1, f2, 5, 0)]);
-    const result = calculateOverallRankingCustom([pool], defaultCriteria) as (PoolRanking & { overallRank: number })[];
+    const result = calculateOverallRankingCustom([pool], defaultCriteria) as (PoolRanking & {
+      overallRank: number;
+    })[];
     expect(result[0].overallRank).toBe(1);
     expect(result[1].overallRank).toBe(2);
   });
@@ -271,7 +285,10 @@ describe('resolveAdvancement', () => {
 
   it('mode fixed_count — advances exact count', () => {
     const rankings = makeRankings(10);
-    const { advanced, eliminated } = resolveAdvancement(rankings, { mode: 'fixed_count', count: 6 });
+    const { advanced, eliminated } = resolveAdvancement(rankings, {
+      mode: 'fixed_count',
+      count: 6,
+    });
     expect(advanced).toHaveLength(6);
     expect(eliminated).toHaveLength(4);
   });
@@ -298,10 +315,7 @@ describe('resolveAdvancement', () => {
     const eligible = makeRankings(4);
     const forfeit = makeRanking(makeFencer('fx', 99, { status: FencerStatus.FORFAIT }));
     const abandoned = makeRanking(makeFencer('fy', 100, { status: FencerStatus.ABANDONED }));
-    const { eliminated } = resolveAdvancement(
-      [...eligible, forfeit, abandoned],
-      { mode: 'all' }
-    );
+    const { eliminated } = resolveAdvancement([...eligible, forfeit, abandoned], { mode: 'all' });
     expect(eliminated).toHaveLength(2);
     expect(eliminated.map(e => e.fencer.id)).toContain('fx');
     expect(eliminated.map(e => e.fencer.id)).toContain('fy');

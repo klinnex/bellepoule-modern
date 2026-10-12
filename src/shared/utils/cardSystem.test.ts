@@ -376,7 +376,7 @@ describe('Dissociation par arme', () => {
       expect(reasons.length).toBe(Object.values(CardReason).length);
     });
 
-    it('retourne des raisons pour l\'épée', () => {
+    it("retourne des raisons pour l'épée", () => {
       const reasons = getAvailableReasons(Weapon.EPEE);
       expect(reasons.length).toBeGreaterThan(0);
     });
@@ -389,7 +389,7 @@ describe('Dissociation par arme', () => {
       expect(groups[CardGroup.GROUP_4]).toContain(CardReason.CHEATING);
     });
 
-    it('retourne les 4 groupes pour l\'épée', () => {
+    it("retourne les 4 groupes pour l'épée", () => {
       const groups = getReasonsByGroupForWeapon(Weapon.EPEE);
       expect(Object.keys(groups)).toHaveLength(4);
     });
@@ -434,7 +434,9 @@ describe('Dissociation par arme', () => {
 
       WEAPON_CARD_CONFIGS[Weapon.EPEE] = {
         ...originalConfig,
-        availableReasons: originalConfig.availableReasons.filter(r => r !== CardReason.COUNTER_ATTACK),
+        availableReasons: originalConfig.availableReasons.filter(
+          r => r !== CardReason.COUNTER_ATTACK
+        ),
         reasonToGroup: reasonToGroupWithout,
       };
 
@@ -449,7 +451,7 @@ describe('Dissociation par arme', () => {
   });
 
   describe('createCard avec weapon param', () => {
-    it('crée un carton avec l\'arme courante', () => {
+    it("crée un carton avec l'arme courante", () => {
       const card = createCard('m1', 'f1', CardReason.ESTOC, [], Weapon.LASER);
       expect(card.group).toBe(CardGroup.GROUP_2);
     });

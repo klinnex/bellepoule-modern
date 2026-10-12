@@ -211,7 +211,10 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
       const updatedFencers = [...fencers, ...added];
       setFencers(updatedFencers);
       onUpdate({ ...competition, fencers: updatedFencers });
-      showToast(`${added.length} tireur${added.length !== 1 ? 's' : ''} importé${added.length !== 1 ? 's' : ''}`, 'success');
+      showToast(
+        `${added.length} tireur${added.length !== 1 ? 's' : ''} importé${added.length !== 1 ? 's' : ''}`,
+        'success'
+      );
       return added;
     },
     [fencers, competition, onUpdate, showToast]

@@ -26,21 +26,28 @@ export const useModalResize = (options: UseModalResizeOptions = {}) => {
     const modal = modalRef.current;
     if (!modal) return;
 
-    // Restaurer les dimensions sauvegardées
+    // Restaurer les dimensions sauvegardées (la clé est partagée entre plusieurs
+    // vues dont les contenus n'ont pas les mêmes contraintes minimales : on
+    // reclamp toujours sur les min de CETTE instance pour éviter qu'une taille
+    // trop petite enregistrée ailleurs ne rende les cases illisibles ici).
     const savedWidth = localStorage.getItem('modal-score-width');
     const savedHeight = localStorage.getItem('modal-score-height');
 
-    const width = savedWidth ? parseInt(savedWidth, 10) : defaultWidth;
-    const height = savedHeight ? parseInt(savedHeight, 10) : defaultHeight;
+    const width = Math.max(minWidth, savedWidth ? parseInt(savedWidth, 10) : defaultWidth);
+    const height = Math.max(minHeight, savedHeight ? parseInt(savedHeight, 10) : defaultHeight);
 
     setDimensions({ width, height });
 
-    // Appliquer les dimensions initiales
+    // Appliquer les dimensions initiales (min-width/min-height inline pour que
+    // la poignée de redimensionnement respecte aussi le plancher par instance,
+    // le CSS partagé `.modal.resizable` n'ayant qu'un plancher générique bas).
     requestAnimationFrame(() => {
       modal.style.width = `${width}px`;
       modal.style.height = `${height}px`;
+      modal.style.minWidth = `${minWidth}px`;
+      modal.style.minHeight = `${minHeight}px`;
     });
-  }, [defaultWidth, defaultHeight]);
+  }, [defaultWidth, defaultHeight, minWidth, minHeight]);
 
   useEffect(() => {
     const modal = modalRef.current;

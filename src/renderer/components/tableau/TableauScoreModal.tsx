@@ -5,6 +5,7 @@
  */
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { TableauMatch } from './tableauTypes';
 
 interface TableauScoreModalProps {
@@ -18,10 +19,7 @@ interface TableauScoreModalProps {
   modalRef: React.RefObject<HTMLDivElement | null>;
   onClose: () => void;
   onSubmit: () => void;
-  onSpecialStatus: (
-    status: 'abandon' | 'forfait' | 'exclusion',
-    fencerId: string
-  ) => void;
+  onSpecialStatus: (status: 'abandon' | 'forfait' | 'exclusion', fencerId: string) => void;
   getRoundName: (round: number) => string;
 }
 
@@ -51,14 +49,15 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   onSpecialStatus,
   getRoundName,
 }) => {
-  const [pendingStatus, setPendingStatus] = useState<
-    'abandon' | 'forfait' | 'exclusion' | null
-  >(null);
+  const [pendingStatus, setPendingStatus] = useState<'abandon' | 'forfait' | 'exclusion' | null>(
+    null
+  );
 
   const fencerName = (f: TableauMatch['fencerA']) =>
     f ? `${f.lastName} ${f.firstName}`.trim() : '';
 
-  return (
+  // Portail sur body : échappe aux ancêtres transformés (animations de phase)
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
@@ -268,7 +267,14 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
               <p style={{ fontWeight: 600, margin: 0 }}>
                 {STATUS_LABELS[pendingStatus]} — {STATUS_ACTION[pendingStatus]}
               </p>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                }}
+              >
                 <button
                   className="btn btn-danger"
                   disabled={!match.fencerA}
@@ -302,7 +308,8 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

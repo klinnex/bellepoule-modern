@@ -49,7 +49,14 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div ref={modalRef} className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px' }} role="dialog" aria-modal="true">
+      <div
+        ref={modalRef}
+        className="modal"
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '450px' }}
+        role="dialog"
+        aria-modal="true"
+      >
         <div className="modal-header">
           <h2>Changer de poule</h2>
           <button className="btn-close" onClick={onClose}>
@@ -60,8 +67,13 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
         <div className="modal-body">
           <div
             draggable
-            onDragStart={() => { dragRef.current = true; }}
-            onDragEnd={() => { dragRef.current = false; setDragOverIndex(null); }}
+            onDragStart={() => {
+              dragRef.current = true;
+            }}
+            onDragEnd={() => {
+              dragRef.current = false;
+              setDragOverIndex(null);
+            }}
             style={{
               padding: '1rem',
               background: '#f3f4f6',
@@ -135,15 +147,26 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                     <div
                       key={pool.id}
                       onClick={() => setSelectedPoolIndex(index)}
-                      onDragOver={e => { e.preventDefault(); setDragOverIndex(index); }}
+                      onDragOver={e => {
+                        e.preventDefault();
+                        setDragOverIndex(index);
+                      }}
                       onDragLeave={() => setDragOverIndex(null)}
-                      onDrop={e => { e.preventDefault(); setSelectedPoolIndex(index); setDragOverIndex(null); }}
+                      onDrop={e => {
+                        e.preventDefault();
+                        setSelectedPoolIndex(index);
+                        setDragOverIndex(null);
+                      }}
                       style={{
                         padding: '0.75rem 1rem',
                         border: `2px solid ${isSelected || dragOverIndex === index ? '#3b82f6' : '#e5e7eb'}`,
                         borderRadius: '8px',
                         cursor: 'pointer',
-                        background: isSelected ? '#eff6ff' : dragOverIndex === index ? '#dbeafe' : 'white',
+                        background: isSelected
+                          ? '#eff6ff'
+                          : dragOverIndex === index
+                            ? '#dbeafe'
+                            : 'white',
                         transition: 'all 0.15s ease',
                       }}
                     >

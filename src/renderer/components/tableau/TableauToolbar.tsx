@@ -20,6 +20,7 @@ interface TableauToolbarProps {
   pyramidViewMode: boolean;
   onPyramidViewModeToggle: () => void;
   onPrintClick: () => void;
+  onPreviewClick: () => void;
   onExportPdfClick: () => void;
   onExportTreeClick: () => void;
   champion: Fencer | null | undefined;
@@ -38,6 +39,7 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
   pyramidViewMode,
   onPyramidViewModeToggle,
   onPrintClick,
+  onPreviewClick,
   onExportPdfClick,
   onExportTreeClick,
   champion,
@@ -63,17 +65,39 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: '0.75rem' }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '1rem',
+        gap: '0.75rem',
+      }}
+    >
       {/* Left: title + champion */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: '600', margin: 0, whiteSpace: 'nowrap' }}>
           Tableau de {tableauSize}
-          <span style={{ fontWeight: 400, color: '#6b7280', fontSize: '1rem', marginLeft: '0.375rem' }}>
+          <span
+            style={{ fontWeight: 400, color: '#6b7280', fontSize: '1rem', marginLeft: '0.375rem' }}
+          >
             — {rankingCount} qualifiés
           </span>
         </h2>
         {champion && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', background: '#fef3c7', padding: '0.375rem 0.75rem', borderRadius: '999px', fontSize: '0.875rem', fontWeight: '600', border: '1px solid #fcd34d' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              background: '#fef3c7',
+              padding: '0.375rem 0.75rem',
+              borderRadius: '999px',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              border: '1px solid #fcd34d',
+            }}
+          >
             🏆 {champion.lastName} {champion.firstName}
           </div>
         )}
@@ -131,7 +155,18 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
                 <>
                   <span className="tableau-fab-section-label">Pistes</span>
                   <label
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '500', background: autoAssignArenas ? 'rgba(59,130,246,0.08)' : 'transparent', color: autoAssignArenas ? '#2563eb' : 'var(--color-text)' }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      background: autoAssignArenas ? 'rgba(59,130,246,0.08)' : 'transparent',
+                      color: autoAssignArenas ? '#2563eb' : 'var(--color-text)',
+                    }}
                   >
                     <input
                       type="checkbox"
@@ -140,7 +175,10 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
                     />
                     🏟️ Assignation auto
                   </label>
-                  <button className="tableau-fab-item tableau-fab-item--danger" onClick={() => closeAndRun(onBulkDeassign)}>
+                  <button
+                    className="tableau-fab-item tableau-fab-item--danger"
+                    onClick={() => closeAndRun(onBulkDeassign)}
+                  >
                     ❌ Désaffecter tout
                   </button>
                   <div className="tableau-fab-divider" />
@@ -156,6 +194,13 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
               <span className="tableau-fab-section-label">Export</span>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onPrintClick)}>
                 🖨️ Imprimer
+              </button>
+              <button
+                className="tableau-fab-item"
+                onClick={() => closeAndRun(onPreviewClick)}
+                title="Ouvre un PDF dans le lecteur par défaut pour voir un aperçu avant d'imprimer"
+              >
+                👁️ Aperçu avant impression
               </button>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onExportPdfClick)}>
                 📄 Export PDF
