@@ -1343,6 +1343,7 @@
             onclick="if(!refereeApp.timerRunning) window.location.reload();"
             style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);border-radius:0.5rem;color:#fff;font-weight:600;padding:0.35rem 0.85rem;font-size:0.85rem;cursor:pointer;"
             title="Retour à la liste des matchs"
+            data-i18n="referee.back" data-i18n-title="referee.back_title"
           >← Retour</button>
         </div>
         <div class="fencers-container">
@@ -1537,9 +1538,9 @@
 
         <!-- Barre arbitre (visible si refereeFeatureEnabled) -->
         <div class="referee-bar hidden" id="referee-bar">
-          <div class="referee-bar-label">⚖️ Arbitre :</div>
+          <div class="referee-bar-label" data-i18n="referee.referee_label">⚖️ Arbitre :</div>
           <div class="referee-bar-name" id="referee-bar-name">—</div>
-          <button class="referee-change-btn" id="referee-change-btn" onclick="refereeApp.toggleRefereeSelector()">Changer</button>
+          <button class="referee-change-btn" id="referee-change-btn" onclick="refereeApp.toggleRefereeSelector()" data-i18n="referee.change">Changer</button>
           <div class="referee-selector hidden" id="referee-selector">
             <select id="referee-select" onchange="refereeApp.changeReferee(this.value)">
               <option value="">— Sélectionner un arbitre —</option>
@@ -1601,15 +1602,15 @@
     <!-- Overlay confirmation carton noir -->
     <div class="modal-overlay" id="black-card-modal">
       <div class="modal-content" style="border:3px solid #111">
-        <div class="modal-title" style="background:#111;color:#fff">⬛ Carton Noir</div>
+        <div class="modal-title" style="background:#111;color:#fff" data-i18n="referee.black_card_title">⬛ Carton Noir</div>
         <div class="modal-body">
           <p id="black-card-fencer-name" style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:0.5rem">—</p>
           <p id="black-card-cause" style="text-align:center;color:#dc2626"><strong>CARTON NOIR</strong> direct</p>
-          <p style="text-align:center;font-size:0.875rem;color:#6b7280">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
+          <p style="text-align:center;font-size:0.875rem;color:#6b7280" data-i18n="referee.black_card_desc">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
         </div>
         <div class="modal-buttons">
-          <button class="modal-btn modal-btn-cancel" onclick="refereeApp.cancelBlackCard()">Annuler</button>
-          <button class="modal-btn modal-btn-confirm" style="background:#111;color:#fff" onclick="refereeApp.confirmBlackCard()">⬛ Confirmer l'élimination</button>
+          <button class="modal-btn modal-btn-cancel" onclick="refereeApp.cancelBlackCard()" data-i18n="referee.cancel">Annuler</button>
+          <button class="modal-btn modal-btn-confirm" style="background:#111;color:#fff" onclick="refereeApp.confirmBlackCard()" data-i18n="referee.black_card_confirm">⬛ Confirmer l'élimination</button>
         </div>
       </div>
     </div>
@@ -1618,7 +1619,7 @@
     <div id="coin-flip-confirm">
       <div class="coin-flip-confirm-content">
         <div style="font-size:2.5rem;margin-bottom:0.75rem">🪙</div>
-        <div class="coin-flip-confirm-label">Tirage au sort — Vainqueur :</div>
+        <div class="coin-flip-confirm-label" data-i18n="referee.coin_flip_winner">Tirage au sort — Vainqueur :</div>
         <div class="coin-flip-confirm-winner" id="coin-flip-confirm-name">—</div>
         <div class="coin-flip-confirm-color" id="coin-flip-confirm-color">—</div>
         <button class="btn-confirm-coin-flip" onclick="refereeApp.confirmCoinFlipFinish()">
@@ -4339,8 +4340,8 @@
     <!-- Overlay plein-écran : fin de poule / signature -->
     <div id="pool-complete-overlay" class="pool-complete-overlay">
       <div class="pco-icon">✍️</div>
-      <h1 class="pco-title">POULE TERMINÉE</h1>
-      <p class="pco-sub">Tous les matchs sont terminés</p>
+      <h1 class="pco-title" data-i18n="referee.pool_complete">POULE TERMINÉE</h1>
+      <p class="pco-sub" data-i18n="referee.pool_complete_sub">Tous les matchs sont terminés</p>
       <button class="pco-btn" onclick="refereeApp.goToSignature()">
         ✍️ SIGNATURE
       </button>
@@ -4352,27 +4353,27 @@
     <!-- Overlay signature des combattants après un match du tableau -->
     <div id="match-sig-overlay" class="match-sig-overlay">
       <div class="match-sig-box">
-        <h2>✍️ Signature des combattants</h2>
-        <p class="match-sig-instructions">Chaque tireur signe pour valider le score du match</p>
+        <h2 data-i18n="referee.sig_title">✍️ Signature des combattants</h2>
+        <p class="match-sig-instructions" data-i18n="referee.sig_instructions">Chaque tireur signe pour valider le score du match</p>
         <div class="match-sig-score-recall">
-          <span class="match-sig-score-label">Score final</span>
+          <span class="match-sig-score-label" data-i18n="referee.sig_final_score">Score final</span>
           <span id="match-sig-score" class="match-sig-score-value"></span>
         </div>
         <div class="match-sig-grid">
           <div id="match-sig-pad-a" class="match-sig-pad">
             <div class="match-sig-fencer"><span class="match-sig-letter">A</span> <strong id="match-sig-name-a"></strong></div>
             <canvas id="match-sig-canvas-a" class="match-sig-canvas"></canvas>
-            <button class="match-sig-clear" onclick="refereeApp.clearMatchSig('a')">Effacer</button>
+            <button class="match-sig-clear" onclick="refereeApp.clearMatchSig('a')" data-i18n="referee.sig_clear">Effacer</button>
           </div>
           <div id="match-sig-pad-b" class="match-sig-pad">
             <div class="match-sig-fencer"><span class="match-sig-letter">B</span> <strong id="match-sig-name-b"></strong></div>
             <canvas id="match-sig-canvas-b" class="match-sig-canvas"></canvas>
-            <button class="match-sig-clear" onclick="refereeApp.clearMatchSig('b')">Effacer</button>
+            <button class="match-sig-clear" onclick="refereeApp.clearMatchSig('b')" data-i18n="referee.sig_clear">Effacer</button>
           </div>
         </div>
         <div class="match-sig-actions">
-          <button class="match-sig-skip" onclick="refereeApp.closeMatchSignature()">Passer</button>
-          <button id="match-sig-submit" class="match-sig-validate" onclick="refereeApp.submitMatchSignatures()">Valider les signatures</button>
+          <button class="match-sig-skip" onclick="refereeApp.closeMatchSignature()" data-i18n="referee.sig_skip">Passer</button>
+          <button id="match-sig-submit" class="match-sig-validate" onclick="refereeApp.submitMatchSignatures()" data-i18n="referee.sig_submit">Valider les signatures</button>
         </div>
       </div>
     </div>
