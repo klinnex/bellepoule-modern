@@ -79,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 30 | 505 |
+| `src/shared/utils/` | 31 | 510 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -98,9 +98,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/components/` | 27 | 110 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
-| **Total** | **121** | **1287** |
+| **Total** | **122** | **1292** |
 
-Unitaires : 113 fichiers, 1256 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 114 fichiers, 1261 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -450,6 +450,18 @@ Unitaires : 113 fichiers, 1256 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - affecte le classement par nom + prénom, sans accents ni casse
   - identifie en priorité par numéro de licence
   - ignore les lignes sans classement valide
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/i18nCsv.test.ts</code> — 5 tests</summary>
+
+- **i18n CSV (#1079)**
+  - exporte key, fr, langue avec échappement CSV et BOM
+  - aller-retour : parse ce qu’il exporte
+  - accepte le point-virgule (Excel FR) et les retours à la ligne dans une cellule
+  - applique les traductions, garde l’ordre de la référence, ignore cellules vides et clés inconnues
+  - refuse un CSV sans en-tête attendu
 
 </details>
 

@@ -38,6 +38,8 @@
     "docs:tests": "node scripts/generate-tests-doc.js",
     "docs:i18n": "node scripts/generate-i18n-doc.js",
     "docs:socket": "node scripts/generate-socket-doc.js",
+    "i18n:export": "node scripts/i18n-csv.js export",
+    "i18n:import": "node scripts/i18n-csv.js import",
     "test:e2e": "playwright test",
     "e2e:debug": "playwright test --debug",
     "analyze": "webpack --config webpack.renderer.config.js --env analyze",
