@@ -85,7 +85,7 @@ describe('RemoteScoreServer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server = new RemoteScoreServer(mockDb as any, 8066);
-    (server as any).loginFailureDelayMs = 0;
+    (server as any).loginGuard.failureDelayMs = 0;
   });
 
   describe('démarrage du serveur', () => {
@@ -1231,7 +1231,7 @@ describe('RemoteScoreServer', () => {
       for (let i = 0; i < 5; i++) {
         const res = await attempt('mauvais!', '192.168.1.50', { 'x-forwarded-for': `10.9.9.${i}` });
         expect(res.status).toHaveBeenCalledWith(401);
-        (server as any).loginFailures.clear(); // isole la limite par minute du blocage
+        (server as any).loginGuard.failures.clear(); // isole la limite par minute du blocage
       }
       const res = await attempt('mauvais!', '192.168.1.50', { 'x-forwarded-for': '10.9.9.99' });
       expect(res.status).toHaveBeenCalledWith(429);
@@ -1260,7 +1260,7 @@ describe('RemoteScoreServer', () => {
       const diag = vi.spyOn(server as any, 'sendDiag').mockImplementation(() => {});
       for (let i = 0; i < 5; i++) {
         await attempt('mauvais!');
-        (server as any).loginAttempts.clear();
+        (server as any).loginGuard.attempts.clear();
       }
       expect(diag).toHaveBeenCalledWith(expect.stringContaining('192.168.1.50'));
       const res = await attempt('secret123');
@@ -1268,9 +1268,9 @@ describe('RemoteScoreServer', () => {
       expect(res.setHeader).toHaveBeenCalledWith('Retry-After', '30');
 
       // Échec suivant après expiration du blocage → durée doublée
-      (server as any).loginFailures.get('192.168.1.50').lockedUntil = 0;
+      (server as any).loginGuard.failures.get('192.168.1.50').lockedUntil = 0;
       await attempt('mauvais!');
-      const f = (server as any).loginFailures.get('192.168.1.50');
+      const f = (server as any).loginGuard.failures.get('192.168.1.50');
       expect(f.lockedUntil - Date.now()).toBeGreaterThan(55_000);
     });
 
@@ -1278,7 +1278,7 @@ describe('RemoteScoreServer', () => {
       for (let i = 0; i < 3; i++) await attempt('mauvais!');
       const res = await attempt('secret123');
       expect(res.json).toHaveBeenCalledWith({ success: true });
-      expect((server as any).loginFailures.has('192.168.1.50')).toBe(false);
+      expect((server as any).loginGuard.failures.has('192.168.1.50')).toBe(false);
     });
 
     it('jeton expiré côté serveur refusé', async () => {
@@ -1521,7 +1521,7 @@ describe('RemoteScoreServer', () => {
 
     beforeEach(() => {
       (server as any).session = { competitionId: 'comp-1', strips: [] };
-      (server as any).loginFailureDelayMs = 0;
+      (server as any).loginGuard.failureDelayMs = 0;
       (mockDb as any).getRefereeComments = vi.fn().mockReturnValue([]);
       (mockDb as any).addRefereeComment = vi.fn().mockReturnValue({ id: 'c1' });
       mockDb.getRefereesByCompetition.mockReturnValue([
