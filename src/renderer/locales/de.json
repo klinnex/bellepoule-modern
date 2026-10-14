@@ -515,5 +515,17 @@
     "rotation_label": "Rotation (s):",
     "send_kiosk": "An Kiosk senden",
     "views_label": "Anzuzeigende Ansichten:"
+  },
+  "replay": {
+    "title": "▶ Wiederholung",
+    "empty": "Keine Ereignisse zum Abspielen",
+    "fencer_a": "Fechter A",
+    "fencer_b": "Fechter B",
+    "position": "Position im Gefecht",
+    "previous": "Vorheriges Ereignis",
+    "next": "Nächstes Ereignis",
+    "play": "Abspielen",
+    "pause": "Pause",
+    "event_n": "Ereignis {{current}} / {{total}}"
   }
 }

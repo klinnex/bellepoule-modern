@@ -79,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 29 | 499 |
+| `src/shared/utils/` | 30 | 505 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -95,12 +95,12 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 4 | 95 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 27 | 109 |
+| `src/renderer/components/` | 27 | 110 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
-| **Total** | **120** | **1280** |
+| **Total** | **121** | **1287** |
 
-Unitaires : 112 fichiers, 1249 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 113 fichiers, 1256 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -450,6 +450,20 @@ Unitaires : 112 fichiers, 1249 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - affecte le classement par nom + prénom, sans accents ni casse
   - identifie en priorité par numéro de licence
   - ignore les lignes sans classement valide
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/matchReplay.test.ts</code> — 6 tests</summary>
+
+- **buildMatchReplay (#1074)**
+  - trie par horodatage et calcule le temps écoulé
+  - score\_change fait foi : les touches ne sont pas recomptées
+  - sans score\_change : cumule touches et sorties d’arène (points à l’adversaire)
+  - accumule les cartons par côté sans muter les images précédentes
+  - journal vide → aucune image
+- **formatReplayOffset**
+  - mm:ss
 
 </details>
 
@@ -2360,11 +2374,13 @@ Unitaires : 112 fichiers, 1249 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/__tests__/MatchAuditLog.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/__tests__/MatchAuditLog.test.tsx</code> — 3 tests</summary>
 
 - **MatchAuditLog — vue compétition**
   - affiche tous les matchs avec colonne Match, puis filtre par match
   - filtre par arbitre (saisie ou assignation)
+- **MatchAuditLog — replay (#1074)**
+  - rejoue le match sélectionné événement par événement
 
 </details>
 

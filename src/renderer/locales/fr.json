@@ -515,5 +515,17 @@
     "rotation_label": "Rotation (s) :",
     "send_kiosk": "Envoyer au kiosque",
     "views_label": "Vues à afficher :"
+  },
+  "replay": {
+    "title": "▶ Replay",
+    "empty": "Aucun événement à rejouer",
+    "fencer_a": "Tireur A",
+    "fencer_b": "Tireur B",
+    "position": "Position dans le match",
+    "previous": "Événement précédent",
+    "next": "Événement suivant",
+    "play": "Lecture",
+    "pause": "Pause",
+    "event_n": "Événement {{current}} / {{total}}"
   }
 }

@@ -515,5 +515,17 @@
     "rotation_label": "Rotación (s):",
     "send_kiosk": "Enviar al quiosco",
     "views_label": "Vistas a mostrar:"
+  },
+  "replay": {
+    "title": "▶ Repetición",
+    "empty": "Ningún evento para reproducir",
+    "fencer_a": "Tirador A",
+    "fencer_b": "Tirador B",
+    "position": "Posición en el asalto",
+    "previous": "Evento anterior",
+    "next": "Evento siguiente",
+    "play": "Reproducir",
+    "pause": "Pausa",
+    "event_n": "Evento {{current}} / {{total}}"
   }
 }

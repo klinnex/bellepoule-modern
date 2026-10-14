@@ -7,6 +7,11 @@ import type { MatchEventEntry } from '../../../shared/types';
 import { MatchAuditLog } from '../MatchAuditLog';
 
 vi.mock('../Toast', () => ({ useToast: () => ({ showToast: vi.fn() }) }));
+vi.mock('../../contexts/TranslationContext', () => ({
+  useTranslation: () => ({
+    t: (k: string, p?: Record<string, unknown>) => (p ? `${k} ${JSON.stringify(p)}` : k),
+  }),
+}));
 
 function ev(
   id: string,
@@ -81,5 +86,30 @@ describe('MatchAuditLog — vue compétition', () => {
 
     const matchSelect = screen.getByLabelText('Sélectionner un match') as HTMLSelectElement;
     expect(Array.from(matchSelect.options).map(o => o.value)).toEqual(['', 'm1']);
+  });
+});
+
+describe('MatchAuditLog — replay (#1074)', () => {
+  beforeEach(() => {
+    (window as any).electronAPI = {
+      db: {
+        getCompetitionTimeline: vi.fn().mockResolvedValue(entries),
+        getMatchTimeline: vi.fn().mockResolvedValue([]),
+      },
+    };
+  });
+
+  it('rejoue le match sélectionné événement par événement', async () => {
+    render(<MatchAuditLog competitionId="c1" matchOptions={options} />);
+    await screen.findByText('3 événements');
+    expect(screen.queryByText('replay.title')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Sélectionner un match'), { target: { value: 'm1' } });
+    fireEvent.click(screen.getByText('replay.title'));
+    expect(screen.getByText('replay.event_n {"current":1,"total":2}')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('replay.next'));
+    expect(screen.getByText('replay.event_n {"current":2,"total":2}')).toBeInTheDocument();
+    expect(screen.getByText('02:00')).toBeInTheDocument();
   });
 });

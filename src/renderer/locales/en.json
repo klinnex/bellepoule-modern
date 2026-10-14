@@ -515,5 +515,17 @@
     "rotation_label": "Rotation (s):",
     "send_kiosk": "Send to kiosk",
     "views_label": "Views to display:"
+  },
+  "replay": {
+    "title": "▶ Replay",
+    "empty": "No event to replay",
+    "fencer_a": "Fencer A",
+    "fencer_b": "Fencer B",
+    "position": "Position in bout",
+    "previous": "Previous event",
+    "next": "Next event",
+    "play": "Play",
+    "pause": "Pause",
+    "event_n": "Event {{current}} / {{total}}"
   }
 }

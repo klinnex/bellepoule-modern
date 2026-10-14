@@ -515,5 +515,17 @@
     "rotation_label": "C'hweladenn (eil):",
     "send_kiosk": "Kas d'ar c'hiosk",
     "views_label": "Gweladennoù da ziskouez:"
+  },
+  "replay": {
+    "title": "▶ Adlenn",
+    "empty": "Darvoud ebet da adlenn",
+    "fencer_a": "Skrimer A",
+    "fencer_b": "Skrimer B",
+    "position": "Lec'hiadur en emgann",
+    "previous": "Darvoud kent",
+    "next": "Darvoud war-lerc'h",
+    "play": "Lenn",
+    "pause": "Ehan",
+    "event_n": "Darvoud {{current}} / {{total}}"
   }
 }
