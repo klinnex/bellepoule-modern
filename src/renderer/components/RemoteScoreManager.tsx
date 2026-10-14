@@ -7,7 +7,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
-import { Competition, Pool } from '../../shared/types';
+import { Competition, FencerStatus, Pool } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { TableauMatch, ConsolationBracket } from './tableau/tableauTypes';
 import { useToast } from './Toast';
@@ -1027,6 +1027,20 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     overlayUrl: `${serverUrl}/arene${i + 1}/overlay`,
   }));
 
+  // QR personnels des tireurs engagés (#1078)
+  const fencerQrTargets = (competition.fencers ?? [])
+    .filter(
+      f =>
+        f.status !== FencerStatus.ABANDONED &&
+        f.status !== FencerStatus.EXCLUDED &&
+        f.status !== FencerStatus.FORFAIT
+    )
+    .map(f => ({
+      name: `${f.lastName.toUpperCase()} ${f.firstName}`.trim(),
+      club: f.club,
+      url: `${serverUrl}/tireur/${encodeURIComponent(f.id)}`,
+    }));
+
   // Contrôles +/− communs aux deux vues (pending uniquement, sans appel IPC direct)
   const stripCountControls = (
     <div style={RSM_STYLES.stripCountControls}>
@@ -1074,6 +1088,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         createPortal(
           <ArenaQrCodesModal
             arenas={arenaUrls}
+            fencers={fencerQrTargets}
             competitionTitle={competition.title}
             onClose={() => setShowArenaQrModal(false)}
           />,

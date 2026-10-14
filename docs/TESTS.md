@@ -92,15 +92,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `teams` (`src/features/teams/`) | 6 | 48 |
 | `src/database/` | 2 | 117 |
-| `src/main/` | 3 | 90 |
+| `src/main/` | 4 | 95 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 27 | 109 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
-| **Total** | **119** | **1275** |
+| **Total** | **120** | **1280** |
 
-Unitaires : 111 fichiers, 1244 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 112 fichiers, 1249 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1740,6 +1740,18 @@ Unitaires : 111 fichiers, 1244 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **certManager**
   - buildAltNames : localhost, loopback et IPv4 externes uniquement
   - ensureCert génère un certificat avec SAN réels, puis le réutilise
+
+</details>
+
+<details>
+<summary><code>src/main/fencerSchedule.test.ts</code> — 5 tests</summary>
+
+- **buildFencerSchedule (#1078)**
+  - liste les matchs du tireur avec scores de son point de vue
+  - donne le prochain match, sa piste et le nombre de matchs avant
+  - marque le match en cours sur une piste
+  - piste inconnue si la poule n’est assignée à aucune arène
+  - null pour un tireur sans match
 
 </details>
 

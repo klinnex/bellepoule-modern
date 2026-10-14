@@ -505,7 +505,8 @@
     "view_live_matches": "Live matches",
     "view_next_matches": "Next matches",
     "view_pools": "Pools",
-    "view_ranking": "Ranking"
+    "view_ranking": "Ranking",
+    "qr_fencers": "Fencers (next bout and strip, {{count}})"
   },
   "ui": {
     "configure_kiosk": "🖥️ Configure kiosk mode",

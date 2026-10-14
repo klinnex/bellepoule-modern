@@ -505,7 +505,8 @@
     "view_live_matches": "Combats en directe",
     "view_next_matches": "Propers combats",
     "view_pools": "Poules",
-    "view_ranking": "Classificació"
+    "view_ranking": "Classificació",
+    "qr_fencers": "Tiradors (proper combat i pista, {{count}})"
   },
   "ui": {
     "configure_kiosk": "🖥️ Configurar el mode quiosc",

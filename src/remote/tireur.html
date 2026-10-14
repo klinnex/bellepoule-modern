@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mon parcours – BellePoule</title>
+    <script src="/i18n.js"></script>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --accent: #fbbf24;
+        --win: #22c55e;
+        --loss: #ef4444;
+        --border: rgba(255, 255, 255, 0.08);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 16px;
+        max-width: 640px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.4rem;
+      }
+      .club {
+        color: var(--muted);
+        margin-bottom: 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      .label {
+        color: var(--muted);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+      }
+      .next-arena {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--accent);
+      }
+      .next-opponent {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .now {
+        display: inline-block;
+        background: var(--accent);
+        color: #111;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 2px 10px;
+        font-size: 0.8rem;
+        margin-top: 8px;
+      }
+      ul {
+        list-style: none;
+      }
+      li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      li:last-child {
+        border-bottom: none;
+      }
+      .score {
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .score.win {
+        color: var(--win);
+      }
+      .score.loss {
+        color: var(--loss);
+      }
+      .footer {
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="name">…</h1>
+    <div class="club" id="club"></div>
+
+    <div class="card" id="next-card">
+      <div class="label" data-i18n="fencer.next">Prochain match</div>
+      <div id="next-body" class="muted" data-i18n="remote.loading">Chargement...</div>
+    </div>
+
+    <div class="card">
+      <div class="label"><span data-i18n="fencer.bouts">Mes matchs</span> <span id="record"></span></div>
+      <ul id="matches"></ul>
+    </div>
+
+    <div class="footer"><span data-i18n="fencer.updated">Mis à jour</span> <span id="updated">--:--</span></div>
+
+    <script>
+      (function () {
+        const fencerId = decodeURIComponent(location.pathname.split('/').filter(Boolean).pop() || '');
+        const T = (k, p) => (window.T ? window.T(k, p) : k);
+        const el = id => document.getElementById(id);
+
+        function text(tag, value, cls) {
+          const node = document.createElement(tag);
+          node.textContent = value;
+          if (cls) node.className = cls;
+          return node;
+        }
+
+        function renderNext(data) {
+          const body = el('next-body');
+          body.textContent = '';
+          body.className = '';
+          const next = data.next;
+          if (!next) {
+            body.className = 'muted';
+            body.textContent = T('fencer.no_next');
+            return;
+          }
+          body.appendChild(
+            text(
+              'div',
+              next.arena ? window.getArenaLabel() + ' ' + next.arena : T('fencer.arena_unknown'),
+              'next-arena'
+            )
+          );
+          body.appendChild(text('div', T('fencer.vs') + ' ' + next.opponent, 'next-opponent'));
+          if (next.opponentClub) body.appendChild(text('div', next.opponentClub, 'muted'));
+          if (next.status === 'current') {
+            body.appendChild(text('span', T('fencer.now'), 'now'));
+          } else if (data.matchesBeforeNext !== null) {
+            body.appendChild(
+              text('div', T('fencer.before', { count: data.matchesBeforeNext }), 'muted')
+            );
+          }
+        }
+
+        function renderMatches(data) {
+          const list = el('matches');
+          list.textContent = '';
+          for (const m of data.matches) {
+            const li = document.createElement('li');
+            li.appendChild(text('span', m.opponent));
+            let score = '—';
+            let cls = 'score';
+            if (m.status === 'finished') {
+              score = (m.victory ? 'V' : 'D') + ' ' + m.myScore + '–' + m.opponentScore;
+              cls += m.victory ? ' win' : ' loss';
+            } else if (m.status === 'current') {
+              score = T('fencer.now');
+            }
+            li.appendChild(text('span', score, cls));
+            list.appendChild(li);
+          }
+          el('record').textContent = '(' + data.victories + 'V / ' + data.defeats + 'D)';
+        }
+
+        async function refresh() {
+          try {
+            const res = await fetch('/api/public/fencers/' + encodeURIComponent(fencerId) + '/schedule', {
+              cache: 'no-store',
+            });
+            if (res.status === 404) {
+              el('name').textContent = T('fencer.not_found');
+              el('next-body').textContent = '';
+              return;
+            }
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            el('name').textContent = data.fencer.name;
+            el('club').textContent = data.fencer.club;
+            document.title = data.fencer.name + ' – BellePoule';
+            renderNext(data);
+            renderMatches(data);
+            el('updated').textContent = new Date().toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+          } catch (e) {
+            el('next-body').textContent = T('remote.error_connection');
+          }
+        }
+
+        (async () => {
+          if (window.initRemoteI18n) await window.initRemoteI18n();
+          refresh();
+          setInterval(refresh, 15000);
+        })();
+      })();
+    </script>
+  </body>
+</html>

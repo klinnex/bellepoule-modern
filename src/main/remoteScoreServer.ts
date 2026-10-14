@@ -28,6 +28,7 @@ import {
 import { Competition, Match, Fencer, MatchStatus, FencerStatus, Score } from '../shared/types';
 import { DatabaseManager } from '../database';
 import { estimatePhaseEta } from '../shared/utils/phaseEta';
+import { buildFencerSchedule } from './fencerSchedule';
 import {
   getLaserArenaBoutCap,
   isLaserArenaBoutComplete,
@@ -419,6 +420,7 @@ export class RemoteScoreServer {
       'checkin.html',
       'trainer.html',
       'matchs.html',
+      'tireur.html',
       'teamArena.html',
       'teamReferee.html',
     ];
@@ -1332,6 +1334,35 @@ export class RemoteScoreServer {
     });
     this.app.get('/arena:arenaId/matchs', (_req, res) => {
       this.sendHtmlFromMemory('matchs.html', res);
+    });
+
+    // Suivi personnel d'un tireur (QR imprimé, lecture seule, sans auth, #1078)
+    this.app.get('/tireur/:fencerId', (_req, res) => {
+      this.sendHtmlFromMemory('tireur.html', res);
+    });
+    this.app.get('/api/public/fencers/:fencerId/schedule', (req, res) => {
+      const { fencerId } = req.params;
+      if (!/^[\w-]{1,64}$/.test(fencerId))
+        return res.status(400).json({ error: 'Identifiant invalide' });
+      try {
+        const source = this.sessionMatches.map(m => {
+          const update = this.sessionMatchScores.get(m.id);
+          return update ? { ...m, ...update } : m;
+        });
+        const arenas = [...this.arenas.values()].map(a => ({
+          number: a.number,
+          activePoolId: a.activePoolId,
+          currentMatchId: a.currentMatch && a.status !== 'finished' ? a.currentMatch.id : undefined,
+          currentPoolId: a.currentMatch?.poolId,
+        }));
+        const schedule = buildFencerSchedule(fencerId, source, arenas);
+        if (!schedule) return res.status(404).json({ error: 'Tireur introuvable' });
+        res.set('Cache-Control', 'no-store');
+        res.json(schedule);
+      } catch (err) {
+        console.error('[RemoteScoreServer] Erreur planning tireur:', err);
+        res.status(500).json({ error: 'Erreur interne' });
+      }
     });
 
     // Page saisie OCR feuille poule (pas d'authentification par arène nécessaire)
@@ -5690,7 +5721,7 @@ export class RemoteScoreServer {
     }
 
     // Fin estimée de la phase en cours (#1077)
-    const remainingMatches = this.sessionMatches.filter((m: any) => {
+    const remainingMatches = this.sessionMatches.filter(m => {
       const u = this.sessionMatchScores.get(m.id);
       return (u ? u.status : m.status) !== 'finished';
     }).length;

@@ -505,7 +505,8 @@
     "view_live_matches": "Matches en direct",
     "view_next_matches": "Matches suivants",
     "view_pools": "Poules",
-    "view_ranking": "Classement"
+    "view_ranking": "Classement",
+    "qr_fencers": "Tireurs (prochain match et piste, {{count}})"
   },
   "ui": {
     "configure_kiosk": "🖥️ Configurer le mode kiosque",

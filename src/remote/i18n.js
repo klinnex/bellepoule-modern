@@ -136,6 +136,15 @@
       'dashboard.eta': 'Fin estimée',
       'dashboard.eta_default': 'Fin estimée (provisoire)',
       'dashboard.eta_remaining': '{{count}} matchs restants',
+      'fencer.next': 'Prochain match',
+      'fencer.bouts': 'Mes matchs',
+      'fencer.updated': 'Mis à jour',
+      'fencer.no_next': 'Aucun match à venir',
+      'fencer.arena_unknown': 'Piste à venir',
+      'fencer.vs': 'contre',
+      'fencer.now': 'En cours',
+      'fencer.before': '{{count}} match(s) avant le vôtre',
+      'fencer.not_found': 'Tireur introuvable',
     },
     en: {
       /* login */
@@ -272,6 +281,15 @@
       'dashboard.eta': 'Estimated finish',
       'dashboard.eta_default': 'Estimated finish (provisional)',
       'dashboard.eta_remaining': '{{count}} bouts left',
+      'fencer.next': 'Next bout',
+      'fencer.bouts': 'My bouts',
+      'fencer.updated': 'Updated',
+      'fencer.no_next': 'No upcoming bout',
+      'fencer.arena_unknown': 'Strip to be announced',
+      'fencer.vs': 'vs',
+      'fencer.now': 'Now',
+      'fencer.before': '{{count}} bout(s) before yours',
+      'fencer.not_found': 'Fencer not found',
     },
     'zh-HK': {
       /* login */
@@ -408,6 +426,15 @@
       'dashboard.eta': '預計結束',
       'dashboard.eta_default': '預計結束（暫定）',
       'dashboard.eta_remaining': '剩餘 {{count}} 場',
+      'fencer.next': '下一場比賽',
+      'fencer.bouts': '我的比賽',
+      'fencer.updated': '更新於',
+      'fencer.no_next': '沒有待進行的比賽',
+      'fencer.arena_unknown': '場地待定',
+      'fencer.vs': '對',
+      'fencer.now': '進行中',
+      'fencer.before': '您之前還有 {{count}} 場',
+      'fencer.not_found': '找不到選手',
     },
   };
 

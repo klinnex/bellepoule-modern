@@ -505,7 +505,8 @@
     "view_live_matches": "Laufende Matches",
     "view_next_matches": "Nächste Matches",
     "view_pools": "Gruppen",
-    "view_ranking": "Rangliste"
+    "view_ranking": "Rangliste",
+    "qr_fencers": "Fechter (nächstes Gefecht und Bahn, {{count}})"
   },
   "ui": {
     "configure_kiosk": "🖥️ Kiosk-Modus konfigurieren",

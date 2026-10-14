@@ -505,7 +505,8 @@
     "view_live_matches": "C'hoarioù bev",
     "view_next_matches": "C'hoarioù da zont",
     "view_pools": "Poulennoù",
-    "view_ranking": "Renkerezh"
+    "view_ranking": "Renkerezh",
+    "qr_fencers": "Skrimerien (emgann da zont ha leurenn, {{count}})"
   },
   "ui": {
     "configure_kiosk": "🖥️ Kefluniañ ar mod kiosk",
