@@ -1268,6 +1268,13 @@ export class RemoteScoreServer {
       this.sendHtmlFromMemory('matchs.html', res);
     });
 
+    // Fin estimée de la phase (kiosque, lecture seule, sans auth, #1077)
+    this.app.get('/api/public/eta', (_req, res) => {
+      res.set('Cache-Control', 'no-store');
+      if (!this.session || this.isTrainingMode) return res.json({ eta: null });
+      res.json({ eta: this.computePhaseEta() });
+    });
+
     // Suivi personnel d'un tireur (QR imprimé, lecture seule, sans auth, #1078)
     this.app.get('/tireur/:fencerId', (_req, res) => {
       this.sendHtmlFromMemory('tireur.html', res);
@@ -3584,6 +3591,7 @@ export class RemoteScoreServer {
       suivants: boolean;
       tableau: boolean;
       rotationSec: number;
+      eta?: boolean;
     }
   ): void {
     this.io.to(socketId).emit('server:command', { type: 'kiosk:config', kioskConfig: config });
@@ -5474,7 +5482,18 @@ export class RemoteScoreServer {
       }
     }
 
-    // Fin estimée de la phase en cours (#1077)
+    const eta = this.computePhaseEta();
+
+    return { rankings, pools, liveMatches, eta };
+  }
+
+  /** Fin estimée de la phase en cours, d'après les durées réelles des matchs (#1077). */
+  private computePhaseEta(): {
+    finishAt: string;
+    basis: string;
+    remainingMatches: number;
+    perMatchMinutes: number;
+  } {
     const remainingMatches = this.sessionMatches.filter(m => {
       const u = this.sessionMatchScores.get(m.id);
       return (u ? u.status : m.status) !== 'finished';
@@ -5485,14 +5504,12 @@ export class RemoteScoreServer {
       activeArenas: this.arenas.size,
       now: Date.now(),
     });
-    const eta = {
+    return {
       finishAt: new Date(estimate.finishAt).toISOString(),
       basis: estimate.basis,
       remainingMatches: estimate.remainingMatches,
       perMatchMinutes: Math.round(estimate.perMatchMs / 60_000),
     };
-
-    return { rankings, pools, liveMatches, eta };
   }
 
   public broadcastDashboardUpdate(): void {

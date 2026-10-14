@@ -506,7 +506,8 @@
     "view_next_matches": "Propers combats",
     "view_pools": "Poules",
     "view_ranking": "Classificació",
-    "qr_fencers": "Tiradors (proper combat i pista, {{count}})"
+    "qr_fencers": "Tiradors (proper combat i pista, {{count}})",
+    "view_eta": "Fi estimada (insígnia)"
   },
   "ui": {
     "configure_kiosk": "🖥️ Configurar el mode quiosc",

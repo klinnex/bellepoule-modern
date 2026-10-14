@@ -110,6 +110,7 @@ const DEFAULT_KIOSK_CONFIG: KioskScreenConfig = {
   suivants: true,
   tableau: true,
   rotationSec: 15,
+  eta: true,
 };
 
 const KIOSK_CONFIG_STORAGE_KEY = 'bp_kiosk_config';
@@ -134,6 +135,7 @@ function buildKioskViews(
     { key: 'direct', label: t('remote_score.view_live_matches') },
     { key: 'suivants', label: t('remote_score.view_next_matches') },
     { key: 'tableau', label: t('remote_score.view_bracket') },
+    { key: 'eta', label: t('remote_score.view_eta') },
   ];
 }
 
@@ -833,7 +835,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
               >
                 <input
                   type="checkbox"
-                  checked={kioskConfig[key] as boolean}
+                  checked={kioskConfig[key] !== false}
                   onChange={e => setKioskConfig(c => ({ ...c, [key]: e.target.checked }))}
                 />
                 {label}

@@ -506,7 +506,8 @@
     "view_next_matches": "下一場比賽",
     "view_pools": "小組賽",
     "view_ranking": "排名",
-    "qr_fencers": "選手（下一場比賽及劍道，{{count}}）"
+    "qr_fencers": "選手（下一場比賽及劍道，{{count}}）",
+    "view_eta": "預計結束（標記）"
   },
   "ui": {
     "configure_kiosk": "🖥️ 設定資訊站模式",

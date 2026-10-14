@@ -388,6 +388,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     suivants: true,
     tableau: true,
     rotationSec: 15,
+    eta: true,
   });
 
   useEffect(() => {
@@ -2334,6 +2335,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                         suivants: true,
                         tableau: true,
                         rotationSec: 15,
+                        eta: true,
                       });
                     }}
                   >
@@ -2380,6 +2382,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     { key: 'direct', label: 'Matchs en direct' },
                     { key: 'suivants', label: 'Matchs suivants' },
                     { key: 'tableau', label: 'Tableau DE' },
+                    { key: 'eta', label: 'Fin estimée (badge)' },
                   ] as const
                 ).map(({ key, label }) => (
                   <label
@@ -2395,7 +2398,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   >
                     <input
                       type="checkbox"
-                      checked={kioskModalConfig[key]}
+                      checked={kioskModalConfig[key] !== false}
                       onChange={e => setKioskModalConfig(c => ({ ...c, [key]: e.target.checked }))}
                     />
                     {label}

@@ -506,7 +506,8 @@
     "view_next_matches": "C'hoarioù da zont",
     "view_pools": "Poulennoù",
     "view_ranking": "Renkerezh",
-    "qr_fencers": "Skrimerien (emgann da zont ha leurenn, {{count}})"
+    "qr_fencers": "Skrimerien (emgann da zont ha leurenn, {{count}})",
+    "view_eta": "Fin diouganet (badj)"
   },
   "ui": {
     "configure_kiosk": "🖥️ Kefluniañ ar mod kiosk",
