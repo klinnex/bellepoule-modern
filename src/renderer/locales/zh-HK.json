@@ -505,7 +505,8 @@
     "view_live_matches": "即時比賽",
     "view_next_matches": "下一場比賽",
     "view_pools": "小組賽",
-    "view_ranking": "排名"
+    "view_ranking": "排名",
+    "qr_fencers": "選手（下一場比賽及劍道，{{count}}）"
   },
   "ui": {
     "configure_kiosk": "🖥️ 設定資訊站模式",
@@ -514,5 +515,17 @@
     "rotation_label": "輪替 (秒)：",
     "send_kiosk": "傳送至資訊站",
     "views_label": "顯示畫面："
+  },
+  "replay": {
+    "title": "▶ 重播",
+    "empty": "沒有可重播的事件",
+    "fencer_a": "選手 A",
+    "fencer_b": "選手 B",
+    "position": "比賽進度",
+    "previous": "上一個事件",
+    "next": "下一個事件",
+    "play": "播放",
+    "pause": "暫停",
+    "event_n": "事件 {{current}} / {{total}}"
   }
 }

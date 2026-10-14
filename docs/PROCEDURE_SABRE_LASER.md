@@ -124,7 +124,7 @@ Seuls les tireurs pointés sont répartis en poules / Tour Quest.
 
 ## 5. Lancer la saisie distante
 
-Onglet **📡 Saisie distante** ([REMOTE_SCORE_QUICKSTART.md](../REMOTE_SCORE_QUICKSTART.md)) :
+Onglet **📡 Saisie distante** ([démarrage express](../REMOTE_SCORE_GUIDE.md#démarrage-express)) :
 
 1. Régler le nombre de **pistes / arènes**.
 2. Garder **🔒 HTTPS** coché → **Démarrer la saisie distante**.

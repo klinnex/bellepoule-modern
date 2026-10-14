@@ -487,6 +487,10 @@
           <div class="competition-name" id="competition-name">Coupe Régionale - Sabre Laser</div>
         </div>
         <div class="header-right">
+          <div class="last-update" id="eta" role="status" aria-live="polite" hidden>
+            <span id="eta-label">Fin estimée</span> <span class="time" id="eta-time">--:--</span>
+            <span id="eta-detail"></span>
+          </div>
           <div class="last-update" role="status" aria-live="polite">
             Mis à jour: <span class="time" id="last-update-time">--:--:--</span>
           </div>
@@ -601,6 +605,32 @@
         dashboard.socket.on('matches:update', data => {
           updateLiveMatches(data);
         });
+
+        dashboard.socket.on('eta:update', data => {
+          updateEta(data);
+        });
+      }
+
+      // Fin estimée de la phase (durées réelles des matchs, #1077)
+      function updateEta(data) {
+        const box = document.getElementById('eta');
+        if (!box) return;
+        if (!data || !data.remainingMatches) {
+          box.hidden = true;
+          return;
+        }
+        const T = window.T || (k => k);
+        const finish = new Date(data.finishAt);
+        document.getElementById('eta-label').textContent = T(
+          data.basis === 'measured' ? 'dashboard.eta' : 'dashboard.eta_default'
+        );
+        document.getElementById('eta-time').textContent = finish.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        document.getElementById('eta-detail').textContent =
+          '(' + T('dashboard.eta_remaining', { count: data.remainingMatches }) + ')';
+        box.hidden = false;
       }
 
       // Update Connection Status

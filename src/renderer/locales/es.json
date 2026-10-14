@@ -505,7 +505,8 @@
     "view_live_matches": "Combates en directo",
     "view_next_matches": "Próximos combates",
     "view_pools": "Poules",
-    "view_ranking": "Clasificación"
+    "view_ranking": "Clasificación",
+    "qr_fencers": "Tiradores (próximo asalto y pista, {{count}})"
   },
   "ui": {
     "configure_kiosk": "🖥️ Configurar el modo quiosco",
@@ -514,5 +515,17 @@
     "rotation_label": "Rotación (s):",
     "send_kiosk": "Enviar al quiosco",
     "views_label": "Vistas a mostrar:"
+  },
+  "replay": {
+    "title": "▶ Repetición",
+    "empty": "Ningún evento para reproducir",
+    "fencer_a": "Tirador A",
+    "fencer_b": "Tirador B",
+    "position": "Posición en el asalto",
+    "previous": "Evento anterior",
+    "next": "Evento siguiente",
+    "play": "Reproducir",
+    "pause": "Pausa",
+    "event_n": "Evento {{current}} / {{total}}"
   }
 }

@@ -312,6 +312,57 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('broadcastDashboardUpdate (#1069)', () => {
+    const withRooms = (rooms: Map<string, Set<string>>) => {
+      (server as any).io = {
+        sockets: { adapter: { rooms } },
+        to: vi.fn().mockReturnThis(),
+        emit: vi.fn(),
+      };
+      return vi.spyOn(server as any, 'buildDashboardSnapshot').mockReturnValue({
+        rankings: [],
+        pools: [],
+        liveMatches: [],
+      });
+    };
+
+    it('ne relit pas la base quand aucun dashboard n’est abonné', () => {
+      const build = withRooms(new Map());
+      server.broadcastDashboardUpdate();
+      expect(build).not.toHaveBeenCalled();
+      expect((server as any).io.emit).not.toHaveBeenCalled();
+    });
+
+    it('diffuse aux dashboards abonnés', () => {
+      const build = withRooms(new Map([['dashboard', new Set(['s1'])]]));
+      server.broadcastDashboardUpdate();
+      expect(build).toHaveBeenCalledOnce();
+      expect((server as any).io.to).toHaveBeenCalledWith('dashboard');
+      expect((server as any).io.emit).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('fin estimée de phase (#1077)', () => {
+    it('le snapshot dashboard inclut une ETA basée sur les durées réelles', () => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+      mockDb.getFencersByCompetition.mockReturnValueOnce([]);
+      (server as any).sessionMatches = [
+        { id: 'm1', poolId: 'p1', status: 'finished' },
+        { id: 'm2', poolId: 'p1', status: 'not_started' },
+        { id: 'm3', poolId: 'p1', status: 'not_started' },
+      ];
+      (server as any).recentMatchDurationsMs = [180_000, 180_000, 180_000];
+      (server as any).arenas = new Map(); // → 1 piste
+      const before = Date.now();
+      const { eta } = (server as any).buildDashboardSnapshot();
+      expect(eta.basis).toBe('measured');
+      expect(eta.remainingMatches).toBe(2);
+      expect(eta.perMatchMinutes).toBe(4); // 3 min + 1 min de changement
+      // 1 piste : 2 vagues de 4 min
+      expect(new Date(eta.finishAt).getTime()).toBeGreaterThanOrEqual(before + 8 * 60_000);
+    });
+  });
+
   describe('liste des arbitres de session', () => {
     it('inclut les arbitres ajoutés après le démarrage de la session', () => {
       (server as any).session = { competitionId: 'comp-1', referees: [] };

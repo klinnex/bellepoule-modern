@@ -45,6 +45,15 @@ jobs:
       - name: Tests documentation up to date
         run: npm run check:tests-doc
 
+      - name: i18n documentation up to date
+        run: npm run check:i18n-doc
+
+      - name: Socket.IO events documentation up to date
+        run: npm run check:socket-doc
+
+      - name: Quality ratchet (hardcoded strings, any, console)
+        run: npm run check:quality
+
       - name: Unit tests
         run: npm run test:run
 

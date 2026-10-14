@@ -16,8 +16,11 @@ dépendent de ce job.
 | Typage | `npm run type-check` | erreur TypeScript (`tsc --noEmit`, mode strict) |
 | i18n | `npm run check:i18n` | clé manquante / en trop vs `fr.json` (`scripts/check-i18n-completeness.js`) |
 | Doc des tests | `npm run check:tests-doc` | `docs/TESTS.md` pas à jour vs fichiers de test |
+| Doc i18n | `npm run check:i18n-doc` | `docs/I18N.md` pas à jour, ou clé `data-i18n` d'une page distante absente de `src/remote/i18n.js` |
+| Doc Socket.IO | `npm run check:socket-doc` | `docs/SOCKET_EVENTS.md` pas à jour, ou événement émis par une page sans écouteur serveur |
+| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any` ou `console.*` vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
 | Tests unitaires | `npm run test:run` | un test Vitest échoue |
-| Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer > 10 MiB |
+| Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1 MiB, total > 6 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
 
 Hors CI (manuel) : `npm run lint`, `npm run format:check`, `npm run test:coverage`,
 `npm run test:e2e`.
@@ -55,6 +58,17 @@ npm run e2e:debug        # mode debug
 npx playwright test --project=chromium e2e/pools.spec.ts
 ```
 
+## Simulateur et benchmarks
+
+- `src/shared/utils/tournamentSimulator.ts` : joue une compétition complète
+  (poules → tableau → classement) avec des scores aléatoires valides, déterministe
+  pour une graine donnée. Testé de bout en bout (200 tireurs) dans
+  `tournamentSimulator.test.ts`.
+- `npm run bench` (`vitest bench`, fichiers `*.bench.ts`) : classement de poules,
+  placement / création / classement de tableau, tournoi complet. **Non exécuté en CI**
+  (mesures trop bruitées sur les runners partagés) : lancer avant/après une
+  optimisation.
+
 ## Maintenir cette documentation
 
 1. Ajouter / modifier un test.
@@ -65,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 26 | 480 |
+| `src/shared/utils/` | 31 | 510 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -78,14 +92,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `teams` (`src/features/teams/`) | 6 | 48 |
 | `src/database/` | 2 | 117 |
-| `src/main/` | 3 | 87 |
+| `src/main/` | 4 | 95 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 27 | 107 |
+| `src/renderer/components/` | 28 | 113 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| **Total** | **115** | **1243** |
+| `src/remote/` | 1 | 8 |
+| **Total** | **123** | **1295** |
 
-Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 115 fichiers, 1264 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -439,6 +454,32 @@ Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/shared/utils/i18nCsv.test.ts</code> — 5 tests</summary>
+
+- **i18n CSV (#1079)**
+  - exporte key, fr, langue avec échappement CSV et BOM
+  - aller-retour : parse ce qu’il exporte
+  - accepte le point-virgule (Excel FR) et les retours à la ligne dans une cellule
+  - applique les traductions, garde l’ordre de la référence, ignore cellules vides et clés inconnues
+  - refuse un CSV sans en-tête attendu
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/matchReplay.test.ts</code> — 6 tests</summary>
+
+- **buildMatchReplay (#1074)**
+  - trie par horodatage et calcule le temps écoulé
+  - score\_change fait foi : les touches ne sont pas recomptées
+  - sans score\_change : cumule touches et sorties d’arène (points à l’adversaire)
+  - accumule les cartons par côté sans muter les images précédentes
+  - journal vide → aucune image
+- **formatReplayOffset**
+  - mm:ss
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 44 tests</summary>
 
 - **exportRankingCSV**
@@ -532,6 +573,20 @@ Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/shared/utils/phaseEta.test.ts</code> — 6 tests</summary>
+
+- **median**
+  - impair, pair, vide
+- **estimatePhaseEta**
+  - utilise la médiane des durées mesurées + changement de piste
+  - valeur par défaut tant que moins de 3 matchs sont mesurés
+  - arrondit les vagues au supérieur et borne les pistes à 1
+  - rien à jouer → fin = maintenant
+  - ne garde que les durées récentes et valides
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/poolCalculations.test.ts</code> — 37 tests</summary>
 
 - **generatePoolMatchOrder**
@@ -609,6 +664,19 @@ Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - attribue les pistes dans l’ordre des poules
   - respecte les pistes imposées et saute les pistes prises
   - ignore les poules au-delà du nombre de pistes
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pseudoLocale.test.ts</code> — 5 tests</summary>
+
+- **pseudoLocalize**
+  - accentue les lettres et encadre la chaîne
+  - préserve les paramètres {{nom}}
+  - laisse intacts chiffres, accents et symboles
+- **isPseudoLocaleEnabled**
+  - vrai uniquement si le drapeau vaut "1"
+  - faux si le stockage lève une exception
 
 </details>
 
@@ -758,7 +826,7 @@ Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/tableCalculations.test.ts</code> — 38 tests</summary>
+<summary><code>src/shared/utils/tableCalculations.test.ts</code> — 41 tests</summary>
 
 - **calculateTableSize**
   - retourne 2 pour 2 tireurs
@@ -774,7 +842,10 @@ Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - seed 1 et 2 ont des positions bien définies
 - **generateSeedingChart**
   - retourne un tableau de la bonne taille
-  - le chart a la bonne longueur et seed 1 en position 0
+  - contient chaque seed exactement une fois (#1080)
+  - suit le placement FIE (1-8, 5-4, 3-6, 7-2)
+  - chaque paire du premier tour totalise tableSize + 1
+  - refuse une taille qui n’est pas une puissance de 2
   - seed 1 est à la position 0
 - **placeFencersInTable**
   - place les tireurs selon leur classement pool
@@ -846,6 +917,19 @@ Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **Constantes de style**
   - ZONE\_COLORS définit les couleurs hex
   - ZONE\_BG\_CLASSES définit les classes Tailwind
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/tournamentSimulator.test.ts</code> — 5 tests</summary>
+
+- **createRng**
+  - est déterministe pour une graine donnée
+- **simulateTournament**
+  - joue un tournoi complet de 200 tireurs (poules → tableau → classement)
+  - est reproductible : même graine → même vainqueur
+  - tient pour %i tireurs _(each)_
+  - refuse moins de 4 tireurs
 
 </details>
 
@@ -1686,7 +1770,19 @@ Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 78 tests</summary>
+<summary><code>src/main/remote/fencerSchedule.test.ts</code> — 5 tests</summary>
+
+- **buildFencerSchedule (#1078)**
+  - liste les matchs du tireur avec scores de son point de vue
+  - donne le prochain match, sa piste et le nombre de matchs avant
+  - marque le match en cours sur une piste
+  - piste inconnue si la poule n’est assignée à aucune arène
+  - null pour un tireur sans match
+
+</details>
+
+<details>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 81 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -1711,6 +1807,11 @@ Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - **persistArenaState**
     - n'appelle pas saveArenaState si pas de session
     - appelle saveArenaState si une session est active
+  - **broadcastDashboardUpdate (#1069)**
+    - ne relit pas la base quand aucun dashboard n’est abonné
+    - diffuse aux dashboards abonnés
+  - **fin estimée de phase (#1077)**
+    - le snapshot dashboard inclut une ETA basée sur les durées réelles
   - **liste des arbitres de session**
     - inclut les arbitres ajoutés après le démarrage de la session
     - ne lit pas la base en mode entraînement
@@ -2285,11 +2386,13 @@ Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/__tests__/MatchAuditLog.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/__tests__/MatchAuditLog.test.tsx</code> — 3 tests</summary>
 
 - **MatchAuditLog — vue compétition**
   - affiche tous les matchs avec colonne Match, puis filtre par match
   - filtre par arbitre (saisie ou assignation)
+- **MatchAuditLog — replay (#1074)**
+  - rejoue le match sélectionné événement par événement
 
 </details>
 
@@ -2358,12 +2461,15 @@ Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/tableauCalculations.test.ts</code> — 2 tests</summary>
+<summary><code>src/renderer/components/tableau/tableauCalculations.test.ts</code> — 4 tests</summary>
 
 - **autoFillAllPositions**
   - %i tireurs (tableau de %i) : classement complet _(each)_
 - **calculateFinalResults - abandon / forfait / exclusion (#1012)**
   - mentionne l’évènement entre parenthèses pour le tireur concerné
+- **generateFIESeeding (#1080)**
+  - tables en dur identiques à la construction FIE générique
+  - tableau de 256 seedé (1 et 2 ne se rencontrent qu’en finale)
 
 </details>
 
@@ -2378,6 +2484,17 @@ Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **propagateWinners - abandon / forfait / exclusion (#1012)**
   - conserve le vainqueur d’un match sans score (abandon en finale)
   - efface un vainqueur périmé qui n’est plus dans le match
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/wiki/wikiData.test.ts</code> — 3 tests</summary>
+
+- **wikiData**
+  - identifiants d’articles uniques
+  - **article %s** _(each)_
+    - titre et contenu en %s, même structure que fr _(each)_
+    - catégorie connue
 
 </details>
 
@@ -2468,5 +2585,22 @@ Unitaires : 107 fichiers, 1212 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - l'onglet Tableau est accessible depuis une compétition
   - ouvrir le tableau affiche le bracket ou un état vide
   - les contrôles de zoom du bracket fonctionnent si un tableau existe
+
+</details>
+
+### `src/remote/`
+
+<details>
+<summary><code>src/remote/refereeOfflineQueue.test.ts</code> — 8 tests</summary>
+
+- extrait bien la classe depuis referee.html
+- **OfflineQueueInline — chaos réseau**
+  - rejoue dans l’ordre chronologique (pas dans l’ordre des UUID)
+  - ne garde que le dernier score par match : un ancien score n’écrase jamais le récent
+  - coupure pendant le rejeu : rien n’est perdu, tout part au retour du réseau
+  - erreur serveur (HTTP 429/500) : la file est conservée
+  - action refusée par le serveur : seule celle-ci reste en file
+  - deux sync simultanés (reconnexion + bouton) : aucun doublon envoyé
+  - envoie par lots de 50 au plus
 
 </details>

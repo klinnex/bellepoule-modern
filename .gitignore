@@ -38,3 +38,4 @@ coverage/
 
 # Build output (compilé depuis src/ via npm run build)
 dist/
+/translations/

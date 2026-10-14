@@ -8,6 +8,8 @@ import { createPortal } from 'react-dom';
 import type { MatchEventEntry, MatchEventType } from '../../shared/types';
 import { useMatchAuditStore } from '../../features/matchAuditLog/hooks/useMatchAuditStore';
 import { useToast } from './Toast';
+import { useTranslation } from '../contexts/TranslationContext';
+import MatchReplay from './MatchReplay';
 import { describeMatchEvent, exportMatchTimelineJSON } from '../../shared/utils/multiFormatExport';
 
 /** Match sélectionnable dans le journal (vue compétition) */
@@ -115,7 +117,9 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
   onClose,
 }) => {
   const { showToast } = useToast();
+  const { t } = useTranslation();
   const [refereeView, setRefereeView] = useState(false);
+  const [showReplay, setShowReplay] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState('');
   const [selectedReferee, setSelectedReferee] = useState('');
   const competitionMode = !matchId && !!competitionId;
@@ -201,6 +205,16 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
   }, [entries, competitionMode, selectedMatchId, selectedReferee, refereesByMatch]);
 
   const singleMatch = !!matchId || !!selectedMatchId;
+  const replayNames = useMemo(() => {
+    const names: { A?: string; B?: string } = {};
+    for (const e of scopedEntries) {
+      if (e.fencerSide && !names[e.fencerSide] && e.fencerLastName)
+        names[e.fencerSide] = [e.fencerLastName.toUpperCase(), e.fencerFirstName]
+          .filter(Boolean)
+          .join(' ');
+    }
+    return names;
+  }, [scopedEntries]);
   const showMatchColumn = competitionMode && !selectedMatchId;
   // Temps relatif seulement pertinent dans un même match
   const baseTs = singleMatch && scopedEntries.length > 0 ? scopedEntries[0].timestamp : null;
@@ -464,6 +478,25 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
         >
           Par arbitre
         </button>
+        {singleMatch && (
+          <button
+            onClick={() => setShowReplay(v => !v)}
+            disabled={scopedEntries.length === 0}
+            aria-pressed={showReplay}
+            style={{
+              padding: '0.3rem 0.75rem',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              borderRadius: '6px',
+              border: '1px solid #0ea5e9',
+              background: showReplay ? '#0ea5e9' : 'transparent',
+              color: showReplay ? 'white' : '#0ea5e9',
+              cursor: scopedEntries.length === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {t('replay.title')}
+          </button>
+        )}
         <button
           onClick={handleExportJSON}
           disabled={scopedEntries.length === 0}
@@ -481,6 +514,10 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
           Export JSON
         </button>
       </div>
+
+      {singleMatch && showReplay && (
+        <MatchReplay entries={scopedEntries} nameA={replayNames.A} nameB={replayNames.B} />
+      )}
 
       {/* Tableau */}
       <div style={{ overflowY: 'auto', flex: 1 }}>

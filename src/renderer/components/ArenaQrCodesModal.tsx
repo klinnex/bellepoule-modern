@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useTranslation } from '../contexts/TranslationContext';
 import { useToast } from './Toast';
 import { savePDF } from '../../shared/utils/pdfExport/core';
 
@@ -15,8 +16,16 @@ export interface ArenaQrTarget {
   matchOrderUrl: string;
 }
 
+/** Tireur suivi par QR personnel (page /tireur/:id, #1078) */
+export interface FencerQrTarget {
+  name: string;
+  club?: string;
+  url: string;
+}
+
 interface ArenaQrCodesModalProps {
   arenas: ArenaQrTarget[];
+  fencers?: FencerQrTarget[];
   competitionTitle?: string;
   onClose: () => void;
 }
@@ -91,17 +100,22 @@ export function buildQrSheetsHTML(cards: QrCard[], perPage: number, heading = ''
 
 const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
   arenas,
+  fencers = [],
   competitionTitle,
   onClose,
 }) => {
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const { showToast } = useToast();
+  const { t } = useTranslation();
   const [withReferee, setWithReferee] = useState(true);
   const [withMatches, setWithMatches] = useState(false);
+  const [withFencers, setWithFencers] = useState(false);
   const [perPage, setPerPage] = useState(4);
   const [busy, setBusy] = useState(false);
 
-  const count = arenas.length * ((withReferee ? 1 : 0) + (withMatches ? 1 : 0));
+  const count =
+    arenas.length * ((withReferee ? 1 : 0) + (withMatches ? 1 : 0)) +
+    (withFencers ? fencers.length : 0);
   const pageCount = Math.ceil(count / perPage);
 
   const buildHtml = async (): Promise<string> => {
@@ -117,6 +131,8 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
           url: a.matchOrderUrl,
         });
     }
+    if (withFencers)
+      for (const f of fencers) targets.push({ title: f.name, subtitle: f.club ?? '', url: f.url });
     const cards = await Promise.all(
       targets.map(async t => ({
         ...t,
@@ -189,6 +205,16 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
               />
               Matchs (ordre des matchs, lecture seule)
             </label>
+            {fencers.length > 0 && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  type="checkbox"
+                  checked={withFencers}
+                  onChange={e => setWithFencers(e.target.checked)}
+                />
+                {t('remote_score.qr_fencers', { count: fencers.length })}
+              </label>
+            )}
           </div>
           <div>
             <label className="form-label" htmlFor="arena-qr-per-page">

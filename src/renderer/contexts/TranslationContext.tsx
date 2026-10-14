@@ -6,6 +6,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { logger, LogCategory } from '@shared/services/logger';
+import { pseudoLocalize, isPseudoLocaleEnabled } from '@shared/utils/pseudoLocale';
 import frTranslations from '../locales/fr.json';
 import enTranslations from '../locales/en.json';
 import deTranslations from '../locales/de.json';
@@ -174,6 +175,11 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
     initialize();
   }, []);
 
+  // Debug i18n : chaînes traduites marquées [!! … !!] (voir pseudoLocale.ts)
+  const [pseudoLocale] = useState(() =>
+    isPseudoLocaleEnabled(typeof localStorage === 'undefined' ? undefined : localStorage)
+  );
+
   const t = useCallback(
     (key: TranslationKey, params?: { [key: string]: string | number }): string => {
       const keys = key.split('.');
@@ -191,15 +197,17 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
         return key;
       }
 
+      const template = pseudoLocale ? pseudoLocalize(value) : value;
+
       if (params) {
-        return value.replace(/\{\{(\w+)\}\}/g, (match, paramKey) => {
+        return template.replace(/\{\{(\w+)\}\}/g, (match, paramKey) => {
           return String(params[paramKey] || match);
         });
       }
 
-      return value;
+      return template;
     },
-    [translations]
+    [translations, pseudoLocale]
   );
 
   const value: TranslationContextValue = {

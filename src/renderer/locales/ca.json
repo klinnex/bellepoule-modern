@@ -505,7 +505,8 @@
     "view_live_matches": "Combats en directe",
     "view_next_matches": "Propers combats",
     "view_pools": "Poules",
-    "view_ranking": "Classificació"
+    "view_ranking": "Classificació",
+    "qr_fencers": "Tiradors (proper combat i pista, {{count}})"
   },
   "ui": {
     "configure_kiosk": "🖥️ Configurar el mode quiosc",
@@ -514,5 +515,17 @@
     "rotation_label": "Rotació (s):",
     "send_kiosk": "Enviar al quiosc",
     "views_label": "Vistes a mostrar:"
+  },
+  "replay": {
+    "title": "▶ Repetició",
+    "empty": "Cap esdeveniment per reproduir",
+    "fencer_a": "Tirador A",
+    "fencer_b": "Tirador B",
+    "position": "Posició al combat",
+    "previous": "Esdeveniment anterior",
+    "next": "Esdeveniment següent",
+    "play": "Reproduir",
+    "pause": "Pausa",
+    "event_n": "Esdeveniment {{current}} / {{total}}"
   }
 }

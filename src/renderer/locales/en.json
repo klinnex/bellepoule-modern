@@ -505,7 +505,8 @@
     "view_live_matches": "Live matches",
     "view_next_matches": "Next matches",
     "view_pools": "Pools",
-    "view_ranking": "Ranking"
+    "view_ranking": "Ranking",
+    "qr_fencers": "Fencers (next bout and strip, {{count}})"
   },
   "ui": {
     "configure_kiosk": "🖥️ Configure kiosk mode",
@@ -514,5 +515,17 @@
     "rotation_label": "Rotation (s):",
     "send_kiosk": "Send to kiosk",
     "views_label": "Views to display:"
+  },
+  "replay": {
+    "title": "▶ Replay",
+    "empty": "No event to replay",
+    "fencer_a": "Fencer A",
+    "fencer_b": "Fencer B",
+    "position": "Position in bout",
+    "previous": "Previous event",
+    "next": "Next event",
+    "play": "Play",
+    "pause": "Pause",
+    "event_n": "Event {{current}} / {{total}}"
   }
 }

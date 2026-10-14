@@ -505,7 +505,8 @@
     "view_live_matches": "C'hoarioù bev",
     "view_next_matches": "C'hoarioù da zont",
     "view_pools": "Poulennoù",
-    "view_ranking": "Renkerezh"
+    "view_ranking": "Renkerezh",
+    "qr_fencers": "Skrimerien (emgann da zont ha leurenn, {{count}})"
   },
   "ui": {
     "configure_kiosk": "🖥️ Kefluniañ ar mod kiosk",
@@ -514,5 +515,17 @@
     "rotation_label": "C'hweladenn (eil):",
     "send_kiosk": "Kas d'ar c'hiosk",
     "views_label": "Gweladennoù da ziskouez:"
+  },
+  "replay": {
+    "title": "▶ Adlenn",
+    "empty": "Darvoud ebet da adlenn",
+    "fencer_a": "Skrimer A",
+    "fencer_b": "Skrimer B",
+    "position": "Lec'hiadur en emgann",
+    "previous": "Darvoud kent",
+    "next": "Darvoud war-lerc'h",
+    "play": "Lenn",
+    "pause": "Ehan",
+    "event_n": "Darvoud {{current}} / {{total}}"
   }
 }

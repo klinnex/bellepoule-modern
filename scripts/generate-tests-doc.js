@@ -157,8 +157,11 @@ dépendent de ce job.
 | Typage | \`npm run type-check\` | erreur TypeScript (\`tsc --noEmit\`, mode strict) |
 | i18n | \`npm run check:i18n\` | clé manquante / en trop vs \`fr.json\` (\`scripts/check-i18n-completeness.js\`) |
 | Doc des tests | \`npm run check:tests-doc\` | \`docs/TESTS.md\` pas à jour vs fichiers de test |
+| Doc i18n | \`npm run check:i18n-doc\` | \`docs/I18N.md\` pas à jour, ou clé \`data-i18n\` d'une page distante absente de \`src/remote/i18n.js\` |
+| Doc Socket.IO | \`npm run check:socket-doc\` | \`docs/SOCKET_EVENTS.md\` pas à jour, ou événement émis par une page sans écouteur serveur |
+| Cliquet qualité | \`npm run check:quality\` | hausse du nombre de textes JSX en dur, \`any\` ou \`console.*\` vs \`scripts/quality-baseline.json\` (\`--update\` pour verrouiller une baisse) |
 | Tests unitaires | \`npm run test:run\` | un test Vitest échoue |
-| Budget bundle | \`npm run build:renderer\` + \`node scripts/check-bundle-size.js\` | JS renderer > 10 MiB |
+| Budget bundle | \`npm run build:renderer\` + \`node scripts/check-bundle-size.js\` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1 MiB, total > 6 MiB, ou aucun chunk à la demande (\`scripts/check-bundle-size.js\`) |
 
 Hors CI (manuel) : \`npm run lint\`, \`npm run format:check\`, \`npm run test:coverage\`,
 \`npm run test:e2e\`.
@@ -195,6 +198,17 @@ npm run test:e2e         # tous navigateurs
 npm run e2e:debug        # mode debug
 npx playwright test --project=chromium e2e/pools.spec.ts
 \`\`\`
+
+## Simulateur et benchmarks
+
+- \`src/shared/utils/tournamentSimulator.ts\` : joue une compétition complète
+  (poules → tableau → classement) avec des scores aléatoires valides, déterministe
+  pour une graine donnée. Testé de bout en bout (200 tireurs) dans
+  \`tournamentSimulator.test.ts\`.
+- \`npm run bench\` (\`vitest bench\`, fichiers \`*.bench.ts\`) : classement de poules,
+  placement / création / classement de tableau, tournoi complet. **Non exécuté en CI**
+  (mesures trop bruitées sur les runners partagés) : lancer avant/après une
+  optimisation.
 
 ## Maintenir cette documentation
 

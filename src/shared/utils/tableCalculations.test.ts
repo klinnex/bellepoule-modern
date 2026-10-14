@@ -102,13 +102,30 @@ describe('generateSeedingChart', () => {
     expect(generateSeedingChart(16)).toHaveLength(16);
   });
 
-  it('le chart a la bonne longueur et seed 1 en position 0', () => {
-    const chart = generateSeedingChart(8);
-    // Longueur = tableSize (le dernier indice assigné est tableSize-1)
-    expect(chart.length).toBe(8);
-    expect(chart[0]).toBe(1);
-    // Note: collision seed 2 / seed 8 à la position 7 — seed 2 absent du chart (bug connu)
-    [1, 3, 4, 5, 6, 7, 8].forEach(s => expect(chart).toContain(s));
+  it('contient chaque seed exactement une fois (#1080)', () => {
+    for (const size of [2, 4, 8, 16, 32, 64, 128, 256]) {
+      const chart = generateSeedingChart(size);
+      expect([...chart].sort((a, b) => a - b)).toEqual(
+        Array.from({ length: size }, (_, i) => i + 1)
+      );
+    }
+  });
+
+  it('suit le placement FIE (1-8, 5-4, 3-6, 7-2)', () => {
+    expect(generateSeedingChart(4)).toEqual([1, 4, 3, 2]);
+    expect(generateSeedingChart(8)).toEqual([1, 8, 5, 4, 3, 6, 7, 2]);
+    expect(generateSeedingChart(16)).toEqual([
+      1, 16, 9, 8, 5, 12, 13, 4, 3, 14, 11, 6, 7, 10, 15, 2,
+    ]);
+  });
+
+  it('chaque paire du premier tour totalise tableSize + 1', () => {
+    const chart = generateSeedingChart(64);
+    for (let i = 0; i < 64; i += 2) expect(chart[i] + chart[i + 1]).toBe(65);
+  });
+
+  it('refuse une taille qui n’est pas une puissance de 2', () => {
+    expect(() => generateSeedingChart(12)).toThrow(RangeError);
   });
 
   it('seed 1 est à la position 0', () => {

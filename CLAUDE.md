@@ -97,6 +97,7 @@ Main Process (src/main/)
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
 ├── splash-preload.ts / splash.html  # Splash screen
 ├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
+├── remote/                  # Extraits du serveur distant : network, types, htmlPages, fencerSchedule
 ├── certManager.ts           # Self-signed TLS certificate (selfsigned)
 ├── autoUpdater.ts           # Auto-update (GitHub Releases)
 └── updateIntegrity.ts       # SHA-256 + trusted URL checks for updates
@@ -180,7 +181,7 @@ Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
 ├── i18n.js                  # Client-side i18n for remote interfaces
 ├── styles.css
 ├── sw.js                    # Service worker for offline tablet support
-└── offlineQueue.ts          # Offline action queue for tablets
+└── (file hors-ligne : classe OfflineQueueInline dans referee.html, testée par refereeOfflineQueue.test.ts)
 
 Database (src/database/)
 ├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db

@@ -1343,6 +1343,7 @@
             onclick="if(!refereeApp.timerRunning) window.location.reload();"
             style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);border-radius:0.5rem;color:#fff;font-weight:600;padding:0.35rem 0.85rem;font-size:0.85rem;cursor:pointer;"
             title="Retour à la liste des matchs"
+            data-i18n="referee.back" data-i18n-title="referee.back_title"
           >← Retour</button>
         </div>
         <div class="fencers-container">
@@ -1537,9 +1538,9 @@
 
         <!-- Barre arbitre (visible si refereeFeatureEnabled) -->
         <div class="referee-bar hidden" id="referee-bar">
-          <div class="referee-bar-label">⚖️ Arbitre :</div>
+          <div class="referee-bar-label" data-i18n="referee.referee_label">⚖️ Arbitre :</div>
           <div class="referee-bar-name" id="referee-bar-name">—</div>
-          <button class="referee-change-btn" id="referee-change-btn" onclick="refereeApp.toggleRefereeSelector()">Changer</button>
+          <button class="referee-change-btn" id="referee-change-btn" onclick="refereeApp.toggleRefereeSelector()" data-i18n="referee.change">Changer</button>
           <div class="referee-selector hidden" id="referee-selector">
             <select id="referee-select" onchange="refereeApp.changeReferee(this.value)">
               <option value="">— Sélectionner un arbitre —</option>
@@ -1601,15 +1602,15 @@
     <!-- Overlay confirmation carton noir -->
     <div class="modal-overlay" id="black-card-modal">
       <div class="modal-content" style="border:3px solid #111">
-        <div class="modal-title" style="background:#111;color:#fff">⬛ Carton Noir</div>
+        <div class="modal-title" style="background:#111;color:#fff" data-i18n="referee.black_card_title">⬛ Carton Noir</div>
         <div class="modal-body">
           <p id="black-card-fencer-name" style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:0.5rem">—</p>
           <p id="black-card-cause" style="text-align:center;color:#dc2626"><strong>CARTON NOIR</strong> direct</p>
-          <p style="text-align:center;font-size:0.875rem;color:#6b7280">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
+          <p style="text-align:center;font-size:0.875rem;color:#6b7280" data-i18n="referee.black_card_desc">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
         </div>
         <div class="modal-buttons">
-          <button class="modal-btn modal-btn-cancel" onclick="refereeApp.cancelBlackCard()">Annuler</button>
-          <button class="modal-btn modal-btn-confirm" style="background:#111;color:#fff" onclick="refereeApp.confirmBlackCard()">⬛ Confirmer l'élimination</button>
+          <button class="modal-btn modal-btn-cancel" onclick="refereeApp.cancelBlackCard()" data-i18n="referee.cancel">Annuler</button>
+          <button class="modal-btn modal-btn-confirm" style="background:#111;color:#fff" onclick="refereeApp.confirmBlackCard()" data-i18n="referee.black_card_confirm">⬛ Confirmer l'élimination</button>
         </div>
       </div>
     </div>
@@ -1618,7 +1619,7 @@
     <div id="coin-flip-confirm">
       <div class="coin-flip-confirm-content">
         <div style="font-size:2.5rem;margin-bottom:0.75rem">🪙</div>
-        <div class="coin-flip-confirm-label">Tirage au sort — Vainqueur :</div>
+        <div class="coin-flip-confirm-label" data-i18n="referee.coin_flip_winner">Tirage au sort — Vainqueur :</div>
         <div class="coin-flip-confirm-winner" id="coin-flip-confirm-name">—</div>
         <div class="coin-flip-confirm-color" id="coin-flip-confirm-color">—</div>
         <button class="btn-confirm-coin-flip" onclick="refereeApp.confirmCoinFlipFinish()">
@@ -1694,6 +1695,8 @@
             type,
             payload,
             timestamp: Date.now(),
+            // Départage des actions de la même milliseconde
+            seq: ++OfflineQueueInline.seq,
             retries: 0,
           };
           return new Promise((resolve, reject) => {
@@ -1730,35 +1733,72 @@
           });
         }
 
+        /**
+         * Rejoue la file vers le serveur, en un seul lot, dans l'ordre chronologique.
+         * - getAll() trie par clé (UUID aléatoire) : on retrie par horodatage.
+         * - score_save porte un score absolu : seul le dernier par match compte,
+         *   les précédents sont supprimés (un ancien score ne peut plus écraser
+         *   le récent si son envoi échoue puis réussit plus tard).
+         * - Un seul sync à la fois (reconnexion + bouton manuel simultanés).
+         */
         async sync(endpoint) {
-          const actions = await this.getAllActions();
-          if (actions.length === 0) return { synced: 0, failed: 0 };
-          let synced = 0,
-            failed = 0;
-          for (const action of actions) {
+          if (this._syncing) return { synced: 0, failed: 0 };
+          this._syncing = true;
+          try {
+            const actions = (await this.getAllActions()).sort(
+              (a, b) => a.timestamp - b.timestamp || (a.seq || 0) - (b.seq || 0)
+            );
+            const latestScore = new Map();
+            for (const a of actions) {
+              if (a.type === 'score_save' && a.payload && a.payload.matchId) {
+                latestScore.set(a.payload.matchId, a.id);
+              }
+            }
+            const pending = [];
+            for (const a of actions) {
+              const matchId = a.type === 'score_save' && a.payload ? a.payload.matchId : null;
+              if (matchId && latestScore.get(matchId) !== a.id) await this.removeAction(a.id);
+              else pending.push(a);
+            }
+            const batch = pending.slice(0, OfflineQueueInline.BATCH_SIZE);
+            if (batch.length === 0) return { synced: 0, failed: 0 };
+
+            let resp;
             try {
-              const resp = await fetch(endpoint, {
+              resp = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ actions: [action] }),
+                body: JSON.stringify({ actions: batch }),
               });
-              if (resp.ok) {
-                await this.removeAction(action.id);
-                synced++;
-              } else {
-                failed++;
-              }
             } catch {
-              failed++;
+              return { synced: 0, failed: batch.length };
             }
+            if (!resp.ok) return { synced: 0, failed: batch.length };
+            const data = await resp.json().catch(() => ({}));
+            const ok = new Set(
+              (Array.isArray(data.results) ? data.results : [])
+                .filter(r => r && r.success)
+                .map(r => r.id)
+            );
+            let synced = 0;
+            for (const a of batch) {
+              if (ok.has(a.id)) {
+                await this.removeAction(a.id);
+                synced++;
+              }
+            }
+            return { synced, failed: batch.length - synced };
+          } finally {
+            this._syncing = false;
           }
-          return { synced, failed };
         }
 
         isOnline() {
           return navigator.onLine;
         }
       }
+      OfflineQueueInline.seq = 0;
+      OfflineQueueInline.BATCH_SIZE = 50;
       // ────────────────────────────────────────────────────────────────────────
 
       const FAULT_REASONS = [
@@ -4339,8 +4379,8 @@
     <!-- Overlay plein-écran : fin de poule / signature -->
     <div id="pool-complete-overlay" class="pool-complete-overlay">
       <div class="pco-icon">✍️</div>
-      <h1 class="pco-title">POULE TERMINÉE</h1>
-      <p class="pco-sub">Tous les matchs sont terminés</p>
+      <h1 class="pco-title" data-i18n="referee.pool_complete">POULE TERMINÉE</h1>
+      <p class="pco-sub" data-i18n="referee.pool_complete_sub">Tous les matchs sont terminés</p>
       <button class="pco-btn" onclick="refereeApp.goToSignature()">
         ✍️ SIGNATURE
       </button>
@@ -4352,27 +4392,27 @@
     <!-- Overlay signature des combattants après un match du tableau -->
     <div id="match-sig-overlay" class="match-sig-overlay">
       <div class="match-sig-box">
-        <h2>✍️ Signature des combattants</h2>
-        <p class="match-sig-instructions">Chaque tireur signe pour valider le score du match</p>
+        <h2 data-i18n="referee.sig_title">✍️ Signature des combattants</h2>
+        <p class="match-sig-instructions" data-i18n="referee.sig_instructions">Chaque tireur signe pour valider le score du match</p>
         <div class="match-sig-score-recall">
-          <span class="match-sig-score-label">Score final</span>
+          <span class="match-sig-score-label" data-i18n="referee.sig_final_score">Score final</span>
           <span id="match-sig-score" class="match-sig-score-value"></span>
         </div>
         <div class="match-sig-grid">
           <div id="match-sig-pad-a" class="match-sig-pad">
             <div class="match-sig-fencer"><span class="match-sig-letter">A</span> <strong id="match-sig-name-a"></strong></div>
             <canvas id="match-sig-canvas-a" class="match-sig-canvas"></canvas>
-            <button class="match-sig-clear" onclick="refereeApp.clearMatchSig('a')">Effacer</button>
+            <button class="match-sig-clear" onclick="refereeApp.clearMatchSig('a')" data-i18n="referee.sig_clear">Effacer</button>
           </div>
           <div id="match-sig-pad-b" class="match-sig-pad">
             <div class="match-sig-fencer"><span class="match-sig-letter">B</span> <strong id="match-sig-name-b"></strong></div>
             <canvas id="match-sig-canvas-b" class="match-sig-canvas"></canvas>
-            <button class="match-sig-clear" onclick="refereeApp.clearMatchSig('b')">Effacer</button>
+            <button class="match-sig-clear" onclick="refereeApp.clearMatchSig('b')" data-i18n="referee.sig_clear">Effacer</button>
           </div>
         </div>
         <div class="match-sig-actions">
-          <button class="match-sig-skip" onclick="refereeApp.closeMatchSignature()">Passer</button>
-          <button id="match-sig-submit" class="match-sig-validate" onclick="refereeApp.submitMatchSignatures()">Valider les signatures</button>
+          <button class="match-sig-skip" onclick="refereeApp.closeMatchSignature()" data-i18n="referee.sig_skip">Passer</button>
+          <button id="match-sig-submit" class="match-sig-validate" onclick="refereeApp.submitMatchSignatures()" data-i18n="referee.sig_submit">Valider les signatures</button>
         </div>
       </div>
     </div>

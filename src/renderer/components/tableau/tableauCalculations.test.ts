@@ -5,7 +5,9 @@ import {
   autoFillAllPositions,
   buildCombinedResults,
   calculateFinalResults,
+  generateFIESeeding,
 } from './tableauCalculations';
+import { generateSeedingChart } from '../../../shared/utils/tableCalculations';
 import { TableauMatch } from './tableauTypes';
 
 const mkRanking = (n: number): PoolRanking[] =>
@@ -84,5 +86,21 @@ describe('calculateFinalResults - abandon / forfait / exclusion (#1012)', () => 
     expect(by(a.id)).toBe('Finale (abandon)');
     expect(by(d.id)).toMatch(/\(forfait\)$/);
     expect(by(c.id)).not.toMatch(/\(/);
+  });
+});
+
+describe('generateFIESeeding (#1080)', () => {
+  it('tables en dur identiques à la construction FIE générique', () => {
+    for (const size of [4, 8, 16, 32, 64, 128]) {
+      expect(generateFIESeeding(size)).toEqual(generateSeedingChart(size));
+    }
+  });
+
+  it('tableau de 256 seedé (1 et 2 ne se rencontrent qu’en finale)', () => {
+    const seeding = generateFIESeeding(256);
+    expect(seeding[0]).toBe(1);
+    expect(seeding[1]).toBe(256);
+    expect(seeding[255]).toBe(2);
+    expect(new Set(seeding).size).toBe(256);
   });
 });
