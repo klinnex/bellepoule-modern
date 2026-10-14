@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Match, Fencer, FencerStatus } from '../../../shared/types';
 import { Arena } from '../../../shared/types/remote';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import {
   ROW_BETWEEN,
   CELL_CENTER,
@@ -162,6 +163,11 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
     );
     closeArenaModal();
   };
+
+  const arenaModalRef = useFocusTrap<HTMLDivElement>(
+    showArenaModal && !!selectedMatch,
+    closeArenaModal
+  );
 
   return (
     <div>
@@ -694,9 +700,19 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
       {/* Modal d'assignation de piste */}
       {showArenaModal && selectedMatch && (
         <div className="modal-overlay" onClick={closeArenaModal}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+          <div
+            ref={arenaModalRef}
+            className="modal"
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: '400px' }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pool-arena-title"
+          >
             <div className="modal-header">
-              <h3 className="modal-title">Assigner à une piste</h3>
+              <h3 className="modal-title" id="pool-arena-title">
+                Assigner à une piste
+              </h3>
               <button className="btn-close" onClick={closeArenaModal}>
                 &times;
               </button>

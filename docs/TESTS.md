@@ -95,12 +95,12 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 5 | 98 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 28 | 113 |
+| `src/renderer/components/` | 28 | 114 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
-| **Total** | **124** | **1298** |
+| **Total** | **124** | **1299** |
 
-Unitaires : 116 fichiers, 1267 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 116 fichiers, 1268 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2247,12 +2247,13 @@ Unitaires : 116 fichiers, 1267 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/Confetti.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/Confetti.test.tsx</code> — 4 tests</summary>
 
 - **Confetti**
   - ne rend rien quand inactif
   - rend un canvas plein écran quand actif
   - ne rend rien quand désactivé dans les paramètres
+  - ne rend rien quand le système demande de réduire les animations
 
 </details>
 

@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 type RefereeInfo = { id: string; firstName: string; lastName: string };
 
@@ -55,11 +56,20 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
   };
 
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
+  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   return createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+      <div
+        ref={modalRef}
+        className="modal"
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '400px' }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tableau-referee-title"
+      >
         <div className="modal-header">
-          <h3 className="modal-title">
+          <h3 className="modal-title" id="tableau-referee-title">
             {isMulti ? 'Assigner les arbitres' : 'Assigner un arbitre'}
           </h3>
           <button className="btn-close" onClick={onClose}>

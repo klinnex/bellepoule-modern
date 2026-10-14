@@ -4,7 +4,7 @@
  * BellePoule Modern
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { render } from '@testing-library/react';
 import Confetti, { CONFETTI_DISABLED_KEY } from './Confetti';
@@ -30,6 +30,19 @@ describe('Confetti', () => {
       expect(container.querySelector('canvas')).toBeNull();
     } finally {
       localStorage.removeItem(CONFETTI_DISABLED_KEY);
+    }
+  });
+
+  it('ne rend rien quand le système demande de réduire les animations', () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({ matches: query.includes('reduce'), media: query }))
+    );
+    try {
+      const { container } = render(<Confetti active={true} />);
+      expect(container.querySelector('canvas')).toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
     }
   });
 });

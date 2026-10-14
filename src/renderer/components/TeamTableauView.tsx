@@ -23,6 +23,7 @@ import {
 } from '../../features/teams/utils/teamCalculations';
 import { LaserArenaBoutCap } from '../../features/teams/utils/laserArenaCalculations';
 import TeamPoolView, { CardTarget } from './TeamPoolView';
+import { useTranslation } from '../contexts/TranslationContext';
 
 interface Props {
   teams: TeamRow[];
@@ -55,13 +56,13 @@ interface Props {
   onAssignArena?: (matchId: string, arenaId: string) => void;
 }
 
-const ROUND_LABELS: Record<number, string> = {
-  1: 'Finale',
-  2: 'Demi-finales',
-  4: 'Quarts de finale',
-  8: 'Huitièmes de finale',
-  16: 'Seizièmes de finale',
-  32: 'Trente-deuxièmes de finale',
+const ROUND_LABEL_KEYS: Record<number, string> = {
+  1: 'tableau.round_final',
+  2: 'tableau.round_semifinals',
+  4: 'teams.roundQuarterfinals',
+  8: 'teams.roundOf16',
+  16: 'teams.roundOf32',
+  32: 'teams.roundOf64',
 };
 
 const TeamTableauView: React.FC<Props> = ({
@@ -90,23 +91,21 @@ const TeamTableauView: React.FC<Props> = ({
   onAddTeamCard,
   onAssignArena,
 }) => {
+  const { t } = useTranslation();
+
   if (rankedTeams.length < 2) {
-    return (
-      <div className="text-center text-gray-400 py-10">
-        Il faut au moins 2 équipes pour générer un tableau.
-      </div>
-    );
+    return <div className="text-center text-gray-400 py-10">{t('teams.tableauNeedTwo')}</div>;
   }
 
   if (tableauMatches.length === 0) {
     return (
       <div className="text-center py-10">
-        <p className="text-gray-400 mb-4">Aucun tableau généré.</p>
+        <p className="text-gray-400 mb-4">{t('teams.tableauNone')}</p>
         <button
           onClick={onGenerate}
           className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
         >
-          Générer le tableau ({rankedTeams.length} équipes)
+          {t('teams.tableauGenerate', { count: rankedTeams.length })}
         </button>
       </div>
     );
@@ -114,7 +113,7 @@ const TeamTableauView: React.FC<Props> = ({
 
   const tableSize = calculateTableSize(rankedTeams.length);
   const placements = placeRankedTeamsInTable(rankedTeams, tableSize);
-  const teamById = new Map(teams.map(t => [t.id, t]));
+  const teamById = new Map(teams.map(team => [team.id, team]));
   const matchesByKey = new Map(tableauMatches.map(m => [`${m.round}-${m.position}`, m]));
 
   const rounds: number[] = [];
@@ -127,13 +126,15 @@ const TeamTableauView: React.FC<Props> = ({
           onClick={onGenerate}
           className="text-xs px-3 py-1.5 rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
         >
-          ↻ Régénérer / faire avancer le tableau
+          ↻ {t('teams.tableauRegenerate')}
         </button>
       </div>
       {rounds.map(round => (
         <div key={round}>
           <h3 className="text-sm font-semibold text-gray-700 mb-2">
-            {ROUND_LABELS[round] ?? `Tour (${round} matchs)`}
+            {ROUND_LABEL_KEYS[round]
+              ? t(ROUND_LABEL_KEYS[round])
+              : t('teams.roundGeneric', { count: round })}
           </h3>
           <div className="space-y-3">
             {Array.from({ length: round }, (_, position) => {
@@ -152,7 +153,7 @@ const TeamTableauView: React.FC<Props> = ({
                     key={position}
                     className="text-xs text-gray-500 px-3 py-2 bg-gray-50 border border-gray-200 rounded"
                   >
-                    {slot.team?.name ?? '—'} qualifié(e) directement (exempt)
+                    {t('teams.bye', { team: slot.team?.name ?? '—' })}
                   </div>
                 );
               }
@@ -163,7 +164,7 @@ const TeamTableauView: React.FC<Props> = ({
                     key={position}
                     className="text-xs text-gray-400 italic px-3 py-2 border border-dashed border-gray-200 rounded"
                   >
-                    En attente des résultats précédents…
+                    {t('teams.waitingPrevious')}
                   </div>
                 );
               }

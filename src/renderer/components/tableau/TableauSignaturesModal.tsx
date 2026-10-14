@@ -7,6 +7,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { TableauMatch } from './tableauTypes';
 
 interface TableauSignaturesModalProps {
@@ -153,11 +154,22 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
   };
 
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
+  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   return createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+      <div
+        ref={modalRef}
+        className="modal"
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '480px' }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tableau-signatures-title"
+      >
         <div className="modal-header">
-          <h3 className="modal-title">Signatures du match</h3>
+          <h3 className="modal-title" id="tableau-signatures-title">
+            Signatures du match
+          </h3>
           <button className="btn-close" onClick={onClose} aria-label="Fermer">
             &times;
           </button>
