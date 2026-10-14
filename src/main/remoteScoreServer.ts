@@ -5682,6 +5682,10 @@ export class RemoteScoreServer {
   }
 
   public broadcastDashboardUpdate(): void {
+    // Aucun dashboard abonné : inutile de relire la base (le snapshot est envoyé
+    // à l'abonnement, cf. dashboard:subscribe)
+    const rooms = this.io?.sockets?.adapter?.rooms;
+    if (rooms && !rooms.get('dashboard')?.size) return;
     const snapshot = this.buildDashboardSnapshot();
     if (!snapshot) return;
     this.io.to('dashboard').emit('rankings:update', { rankings: snapshot.rankings });

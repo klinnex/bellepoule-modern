@@ -312,6 +312,36 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('broadcastDashboardUpdate (#1069)', () => {
+    const withRooms = (rooms: Map<string, Set<string>>) => {
+      (server as any).io = {
+        sockets: { adapter: { rooms } },
+        to: vi.fn().mockReturnThis(),
+        emit: vi.fn(),
+      };
+      return vi.spyOn(server as any, 'buildDashboardSnapshot').mockReturnValue({
+        rankings: [],
+        pools: [],
+        liveMatches: [],
+      });
+    };
+
+    it('ne relit pas la base quand aucun dashboard n’est abonné', () => {
+      const build = withRooms(new Map());
+      server.broadcastDashboardUpdate();
+      expect(build).not.toHaveBeenCalled();
+      expect((server as any).io.emit).not.toHaveBeenCalled();
+    });
+
+    it('diffuse aux dashboards abonnés', () => {
+      const build = withRooms(new Map([['dashboard', new Set(['s1'])]]));
+      server.broadcastDashboardUpdate();
+      expect(build).toHaveBeenCalledOnce();
+      expect((server as any).io.to).toHaveBeenCalledWith('dashboard');
+      expect((server as any).io.emit).toHaveBeenCalledTimes(3);
+    });
+  });
+
   describe('liste des arbitres de session', () => {
     it('inclut les arbitres ajoutés après le démarrage de la session', () => {
       (server as any).session = { competitionId: 'comp-1', referees: [] };

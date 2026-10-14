@@ -92,15 +92,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `teams` (`src/features/teams/`) | 6 | 48 |
 | `src/database/` | 2 | 117 |
-| `src/main/` | 3 | 87 |
+| `src/main/` | 3 | 89 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 27 | 109 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
-| **Total** | **118** | **1266** |
+| **Total** | **118** | **1268** |
 
-Unitaires : 110 fichiers, 1235 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 110 fichiers, 1237 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1730,7 +1730,7 @@ Unitaires : 110 fichiers, 1235 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 78 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 80 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -1755,6 +1755,9 @@ Unitaires : 110 fichiers, 1235 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - **persistArenaState**
     - n'appelle pas saveArenaState si pas de session
     - appelle saveArenaState si une session est active
+  - **broadcastDashboardUpdate (#1069)**
+    - ne relit pas la base quand aucun dashboard n’est abonné
+    - diffuse aux dashboards abonnés
   - **liste des arbitres de session**
     - inclut les arbitres ajoutés après le démarrage de la session
     - ne lit pas la base en mode entraînement
