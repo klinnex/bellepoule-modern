@@ -159,6 +159,18 @@ function generate() {
   const remote = loadRemoteLocales();
   const remoteKeys = Object.keys(remote[REFERENCE]).sort();
   const remoteTable = languageTable(remote, remoteKeys);
+  // Clé dupliquée dans un bloc de langue : la dernière écrase silencieusement la première
+  {
+    const src = fs.readFileSync(path.join(REMOTE_DIR, 'i18n.js'), 'utf8');
+    let seen = new Set();
+    for (const line of src.split('\n')) {
+      if (/^    (fr|en|'zh-HK'): \{$/.test(line)) seen = new Set();
+      const m = /^      '([^']+)':/.exec(line);
+      if (!m) continue;
+      if (seen.has(m[1])) problems.push(`clé distante dupliquée: ${m[1]}`);
+      seen.add(m[1]);
+    }
+  }
   const htmlKeys = remoteHtmlKeys();
   const unknownRemote = [...htmlKeys.keys()].filter(k => !(k in remote[REFERENCE])).sort();
   for (const k of unknownRemote) problems.push(`clé distante inconnue: ${k} (${[...htmlKeys.get(k)].join(', ')})`);

@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Arbitre équipe — BellePoule</title>
+    <title data-i18n="team.referee_page_title">Arbitre équipe — BellePoule</title>
+    <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
       * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -124,8 +125,8 @@
     </style>
   </head>
   <body>
-    <header>Arène <span id="arena-number">—</span> · Format arène Sabre Laser équipe</header>
-    <div id="waiting">En attente d'assignation d'une rencontre depuis l'application…</div>
+    <header><span data-i18n="team.arena">Arène</span> <span id="arena-number">—</span> · <span data-i18n="team.format">Format arène Sabre Laser équipe</span></header>
+    <div id="waiting" data-i18n="team.waiting_referee">En attente d'assignation d'une rencontre depuis l'application…</div>
     <div id="match">
       <div class="bout-info" id="bout-info">Assaut —/—</div>
       <div class="teams">
@@ -149,16 +150,16 @@
 
       <div class="timer" id="timer">3:00</div>
       <div class="timer-controls">
-        <button id="timer-start">▶ Démarrer</button>
-        <button id="timer-pause">⏸ Pause</button>
+        <button id="timer-start" data-i18n="team.start">▶ Démarrer</button>
+        <button id="timer-pause" data-i18n="team.pause">⏸ Pause</button>
       </div>
 
       <div id="zones-a" class="zone-row"></div>
       <div id="zones-b" class="zone-row"></div>
 
       <div class="actions-row">
-        <button class="reset-btn" id="reset-bout">↩ Réinitialiser l'assaut</button>
-        <button class="advance-btn" id="advance-bout">Relais suivant →</button>
+        <button class="reset-btn" id="reset-bout" data-i18n="team.reset_bout">↩ Réinitialiser l'assaut</button>
+        <button class="advance-btn" id="advance-bout" data-i18n="team.next_relay">Relais suivant →</button>
       </div>
 
       <div class="cards-section">
@@ -174,7 +175,7 @@
         </div>
       </div>
 
-      <div class="match-complete" id="match-complete" style="display: none">
+      <div class="match-complete" id="match-complete" style="display: none" data-i18n="team.all_bouts_played">
         Rencontre terminée — tous les assauts ont été joués.
       </div>
     </div>
@@ -192,6 +193,9 @@
         const arenaId = getArenaId();
         document.getElementById('arena-number').textContent = arenaId;
 
+        // Traduction (src/remote/i18n.js) ; repli sur la clé si i18n.js absent
+        const tk = (key, params) => (window.T ? window.T(key, params) : key);
+        if (window.initRemoteI18n) window.initRemoteI18n();
         const socket = io({ reconnection: true, reconnectionDelay: 300, reconnectionDelayMax: 5000 });
         let localTimer = null;
         let lastState = null;
@@ -229,7 +233,7 @@
           } else {
             const btn = document.createElement('button');
             btn.className = 'touch-btn';
-            btn.textContent = side === 'A' ? '+ Touche (côté A)' : '+ Touche (côté B)';
+            btn.textContent = tk('team.touch_side', { side });
             btn.disabled = !lastState.currentBout || lastState.boutComplete;
             btn.onclick = () => socket.emit('team_touch', { arenaId, side, points: 1 });
             container.appendChild(btn);
@@ -242,7 +246,7 @@
             const btn = document.createElement('button');
             btn.className = 'card-btn';
             btn.textContent = CARD_BADGE[type];
-            btn.title = `Carton ${type} E`;
+            btn.title = tk('team.card_title', { type });
             btn.onclick = () => socket.emit('team_card', { arenaId, teamId, type });
             container.appendChild(btn);
           });
@@ -261,20 +265,20 @@
 
           document.getElementById('team-a-name').textContent = lastState.teamAName;
           document.getElementById('team-b-name').textContent = lastState.teamBName;
-          document.getElementById('cards-label-a').textContent = `Cartons équipe « E » — ${lastState.teamAName}`;
-          document.getElementById('cards-label-b').textContent = `Cartons équipe « E » — ${lastState.teamBName}`;
+          document.getElementById('cards-label-a').textContent = tk('team.cards_label', { team: lastState.teamAName });
+          document.getElementById('cards-label-b').textContent = tk('team.cards_label', { team: lastState.teamBName });
 
           const complete = document.getElementById('match-complete');
           if (lastState.matchComplete) {
             complete.style.display = 'block';
-            document.getElementById('bout-info').textContent = 'Rencontre terminée';
+            document.getElementById('bout-info').textContent = tk('team.match_complete');
             document.getElementById('fencer-a-name').textContent = '—';
             document.getElementById('fencer-b-name').textContent = '—';
           } else {
             complete.style.display = 'none';
             const bout = lastState.currentBout;
             document.getElementById('bout-info').textContent = bout
-              ? `Assaut ${bout.boutOrder}/${lastState.bouts.length}`
+              ? tk('team.bout_n', { n: bout.boutOrder, total: lastState.bouts.length })
               : '—';
             document.getElementById('fencer-a-name').textContent = bout ? bout.fencerAName : '—';
             document.getElementById('fencer-b-name').textContent = bout ? bout.fencerBName : '—';
@@ -282,7 +286,7 @@
 
           document.getElementById('score-a').textContent = lastState.liveScoreA;
           document.getElementById('score-b').textContent = lastState.liveScoreB;
-          document.getElementById('cap-label').textContent = `Plafond : ${lastState.cap.maxTouches} touches · ${formatTime(lastState.cap.maxDurationSec)}`;
+          document.getElementById('cap-label').textContent = tk('team.cap_short', { touches: lastState.cap.maxTouches, time: formatTime(lastState.cap.maxDurationSec) });
 
           const remaining = Math.max(0, lastState.cap.maxDurationSec - lastState.elapsedSec);
           const timerEl = document.getElementById('timer');
@@ -327,7 +331,7 @@
         document.getElementById('timer-start').onclick = () => socket.emit('team_timer_start', { arenaId });
         document.getElementById('timer-pause').onclick = () => socket.emit('team_timer_pause', { arenaId });
         document.getElementById('reset-bout').onclick = () => {
-          if (confirm("Réinitialiser le score de cet assaut ?")) socket.emit('team_reset_bout', { arenaId });
+          if (confirm(tk('team.reset_confirm'))) socket.emit('team_reset_bout', { arenaId });
         };
         document.getElementById('advance-bout').onclick = () => socket.emit('team_advance_bout', { arenaId });
       })();
