@@ -16,7 +16,7 @@ Merci pour votre soutien ! / Thank you for your support!
 
 | Public | Document |
 |---|---|
-| Organisateur | [Manuel utilisateur](USER_MANUAL.md) · [Installation](INSTALLATION.md) · [Saisie distante](REMOTE_SCORE_GUIDE.md) · [Démarrage express](REMOTE_SCORE_QUICKSTART.md) |
+| Organisateur | [Manuel utilisateur](USER_MANUAL.md) · [Installation](INSTALLATION.md) · [Saisie distante](REMOTE_SCORE_GUIDE.md) · [Démarrage express](REMOTE_SCORE_GUIDE.md#démarrage-express) |
 | Arbitre | **[Interface d'arbitrage](docs/ARBITRAGE.md)** · **[Scénarios de match](docs/SCENARIOS_MATCH.md)** |
 | Équipes | [Compétitions par équipes](docs/TEAM_COMPETITIONS.md) |
 | Exports | [Guide export PDF](docs/USER_GUIDE_PDF_EXPORT.md) · [Formats de fichiers](FILE_FORMATS.md) |

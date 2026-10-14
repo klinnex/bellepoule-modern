@@ -14,7 +14,6 @@ module.exports = [
       'dist',
       'node_modules',
       'release',
-      'INTEGRATION_GUIDE.ts',
       'src/examples',
       '**/*.js',
       '**/*.cjs',
