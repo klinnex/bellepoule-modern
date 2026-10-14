@@ -302,12 +302,10 @@ describe('placeRankedTeamsInTable / resolveTeamTableauSlot', () => {
   const row = (id: string): TeamRow => ({ id, name: id, club: 'C', fencers: [] });
 
   it('place la tête de série n°1 en première position', () => {
-    // Note : generateSeedingChart a une collision connue seed 2 / seed tableSize
-    // (cf. tableCalculations.test.ts) — seule la position de la tête n°1 est garantie.
     const teams = [row('A'), row('B'), row('C'), row('D')];
     const placements = placeRankedTeamsInTable(teams, 4);
-    expect(placements[0]?.id).toBe('A');
-    expect(placements.filter(p => p !== null).length).toBeGreaterThanOrEqual(3);
+    // Placement FIE [1, 4, 3, 2] : A-D, C-B ; toutes les équipes placées (#1080)
+    expect(placements.map(p => p?.id)).toEqual(['A', 'D', 'C', 'B']);
   });
 
   it('résout un exempt (bye) quand une équipe est seule dans son couple de départ', () => {
