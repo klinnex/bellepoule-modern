@@ -28,8 +28,6 @@ import {
 import { Competition, Match, Fencer, MatchStatus, FencerStatus, Score } from '../shared/types';
 import { DatabaseManager } from '../database';
 import { estimatePhaseEta } from '../shared/utils/phaseEta';
-import { buildFencerSchedule } from './remote/fencerSchedule';
-import { renderArenaJournalPage, renderCompetitionResultsPage } from './remote/htmlPages';
 import {
   PASSWORD_MIN_LENGTH,
   isLocalNetworkOrigin,
@@ -38,6 +36,9 @@ import {
   normalizeIp,
 } from './remote/network';
 import type { BlackCardRecord, TeamArenaCard, TeamArenaState } from './remote/types';
+import type { RouteContext } from './remote/routes/context';
+import { registerPageRoutes } from './remote/routes/pageRoutes';
+import { registerResultsRoutes } from './remote/routes/resultsRoutes';
 
 export { PASSWORD_MIN_LENGTH };
 import {
@@ -791,14 +792,50 @@ export class RemoteScoreServer {
     console.log('[RemoteScoreServer] Middleware configuré ✓');
   }
 
+  /** État exposé aux modules de routes (src/main/remote/routes/), en accesseurs. */
+  private routeContext(): RouteContext {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return {
+      get app() {
+        return self.app;
+      },
+      get db() {
+        return self.db;
+      },
+      get session() {
+        return self.session;
+      },
+      get isTrainingMode() {
+        return self.isTrainingMode;
+      },
+      get arenas() {
+        return self.arenas;
+      },
+      get sessionMatches() {
+        return self.sessionMatches;
+      },
+      get sessionMatchScores() {
+        return self.sessionMatchScores;
+      },
+      get trainingHistory() {
+        return self.trainingHistory;
+      },
+      sendHtmlFromMemory: (filename, res) => self.sendHtmlFromMemory(filename, res),
+      checkArenaAuth: (arenaId, cookie) => self.checkArenaAuth(arenaId, cookie),
+      hasAnyValidToken: cookie => self.hasAnyValidToken(cookie),
+      computePhaseEta: () => self.computePhaseEta(),
+    };
+  }
+
   private setupRoutes(): void {
     console.log('[RemoteScoreServer] Configuration des routes...');
     this.setupApiRoutes();
-    this.setupPageRoutes();
+    registerPageRoutes(this.routeContext());
     this.setupRegistrationRoutes();
     this.setupPoolRoutes();
     this.setupMatchRoutes();
-    this.setupResultsRoutes();
+    registerResultsRoutes(this.routeContext());
   }
 
   /** Configuration, session, arènes et poules (API). */
@@ -1119,236 +1156,6 @@ export class RemoteScoreServer {
       }
       return possiblePaths[possiblePaths.length - 1];
     };
-  }
-
-  /** Pages HTML des arènes, écrans, tablettes et suivi public. */
-  private setupPageRoutes(): void {
-    // Support both /arena1 and /arene1 formats
-    this.app.get('/arena:arenaId', (req, res) => {
-      const arenaId = req.params.arenaId;
-      if (!this.arenas.has(`arena${arenaId}`)) {
-        return res.status(404).send('Arène non trouvée');
-      }
-      console.log(`[RemoteScoreServer] Accès à l'arène ${arenaId}`);
-      this.sendHtmlFromMemory('arena.html', res);
-    });
-
-    // Alias /arene pour compatibilité française
-    this.app.get('/arene:arenaId', (req, res) => {
-      const arenaId = req.params.arenaId;
-      if (!this.arenas.has(`arena${arenaId}`)) {
-        return res.status(404).send('Arène non trouvée');
-      }
-      console.log(`[RemoteScoreServer] Accès à l'arène (arene) ${arenaId}`);
-      this.sendHtmlFromMemory('arena.html', res);
-    });
-
-    // Interface d'arbitrage - Dynamique (sans vérification d'existence)
-    this.app.get('/arena:arenaId/referee', (req, res) => {
-      const arenaId = req.params.arenaId;
-      console.log(`[RemoteScoreServer] Accès à l'interface arbitre pour l'arène ${arenaId}`);
-      if (!this.checkArenaAuth(arenaId, req.headers.cookie)) {
-        return res.redirect(
-          302,
-          `/login?arena=arena${arenaId}&return=${encodeURIComponent(req.path)}`
-        );
-      }
-      this.sendHtmlFromMemory('referee.html', res);
-    });
-
-    // Alias /arene pour l'interface d'arbitrage (français)
-    this.app.get('/arene:arenaId/referee', (req, res) => {
-      const arenaId = req.params.arenaId;
-      console.log(
-        `[RemoteScoreServer] Accès à l'interface arbitre pour l'arène ${arenaId} (arene)`
-      );
-      if (!this.checkArenaAuth(arenaId, req.headers.cookie)) {
-        return res.redirect(
-          302,
-          `/login?arena=arena${arenaId}&return=${encodeURIComponent(req.path)}`
-        );
-      }
-      this.sendHtmlFromMemory('referee.html', res);
-    });
-
-    // Alias /arbitre pour l'interface d'arbitrage
-    this.app.get('/arbitre/:arenaId', (req, res) => {
-      const arenaId = req.params.arenaId;
-      console.log(
-        `[RemoteScoreServer] Accès à l'interface arbitre (alias /arbitre) pour l'arène ${arenaId}`
-      );
-      if (!this.checkArenaAuth(arenaId, req.headers.cookie)) {
-        return res.redirect(
-          302,
-          `/login?arena=arena${arenaId}&return=${encodeURIComponent(req.path)}`
-        );
-      }
-      this.sendHtmlFromMemory('referee.html', res);
-    });
-
-    // Nouveau: Route /arbitre/areneX (format demandé par l'utilisateur)
-    this.app.get('/arbitre/arene:arenaId', (req, res) => {
-      const arenaId = req.params.arenaId;
-      console.log(`[RemoteScoreServer] Accès à l'interface arbitre /arbitre/arene${arenaId}`);
-      if (!this.checkArenaAuth(arenaId, req.headers.cookie)) {
-        return res.redirect(
-          302,
-          `/login?arena=arena${arenaId}&return=${encodeURIComponent(req.path)}`
-        );
-      }
-      this.sendHtmlFromMemory('referee.html', res);
-    });
-
-    // Route /areneX/arbitre (format français demandé)
-    this.app.get('/arene:arenaId/arbitre', (req, res) => {
-      const arenaId = req.params.arenaId;
-      console.log(`[RemoteScoreServer] Accès à l'interface arbitre /arene${arenaId}/arbitre`);
-      if (!this.checkArenaAuth(arenaId, req.headers.cookie)) {
-        return res.redirect(
-          302,
-          `/login?arena=arena${arenaId}&return=${encodeURIComponent(req.path)}`
-        );
-      }
-      this.sendHtmlFromMemory('referee.html', res);
-    });
-
-    // ── Format arène Sabre Laser équipe : affichage + tablette arbitre ──────────
-    // Routes distinctes des arènes individuelles ci-dessus (aucun chemin partagé),
-    // même modèle d'authentification par arène (checkArenaAuth).
-    this.app.get('/equipe:arenaId', (req, res) => {
-      console.log(`[RemoteScoreServer] Accès affichage équipe /equipe${req.params.arenaId}`);
-      this.sendHtmlFromMemory('teamArena.html', res);
-    });
-
-    this.app.get('/equipe:arenaId/arbitre', (req, res) => {
-      const arenaId = req.params.arenaId;
-      console.log(`[RemoteScoreServer] Accès arbitre équipe /equipe${arenaId}/arbitre`);
-      if (!this.checkArenaAuth(arenaId, req.headers.cookie)) {
-        return res.redirect(
-          302,
-          `/login?arena=arena${arenaId}&return=${encodeURIComponent(req.path)}`
-        );
-      }
-      this.sendHtmlFromMemory('teamReferee.html', res);
-    });
-
-    // Configurateur d'overlay (interface graphique pour générer l'URL OBS)
-    this.app.get('/overlay-config', (req, res) => {
-      this.sendHtmlFromMemory('overlay-config.html', res);
-    });
-
-    // Overlay de score pour streaming (OBS, vMix…) — lecture seule, aucune auth requise
-    this.app.get('/arene:arenaId/overlay', (req, res) => {
-      console.log(`[RemoteScoreServer] Accès overlay /arene${req.params.arenaId}/overlay`);
-      this.sendHtmlFromMemory('overlay.html', res);
-    });
-    this.app.get('/arena:arenaId/overlay', (req, res) => {
-      console.log(`[RemoteScoreServer] Accès overlay /arena${req.params.arenaId}/overlay`);
-      this.sendHtmlFromMemory('overlay.html', res);
-    });
-
-    // Vue publique par arène (lecture seule, pas d'authentification requise)
-    this.app.get('/arene:arenaId/public', (req, res) => {
-      const arenaId = req.params.arenaId;
-      console.log(`[RemoteScoreServer] Accès vue publique /arene${arenaId}/public`);
-      this.sendHtmlFromMemory('public.html', res);
-    });
-
-    this.app.get('/arena:arenaId/public', (req, res) => {
-      const arenaId = req.params.arenaId;
-      console.log(`[RemoteScoreServer] Accès vue publique /arena${arenaId}/public`);
-      this.sendHtmlFromMemory('public.html', res);
-    });
-
-    // Ordre des matchs de la poule en cours sur l'arène (lecture seule, sans auth, #911)
-    this.app.get('/arene:arenaId/matchs', (_req, res) => {
-      this.sendHtmlFromMemory('matchs.html', res);
-    });
-    this.app.get('/arena:arenaId/matchs', (_req, res) => {
-      this.sendHtmlFromMemory('matchs.html', res);
-    });
-
-    // Fin estimée de la phase (kiosque, lecture seule, sans auth, #1077)
-    this.app.get('/api/public/eta', (_req, res) => {
-      res.set('Cache-Control', 'no-store');
-      if (!this.session || this.isTrainingMode) return res.json({ eta: null });
-      res.json({ eta: this.computePhaseEta() });
-    });
-
-    // Suivi personnel d'un tireur (QR imprimé, lecture seule, sans auth, #1078)
-    this.app.get('/tireur/:fencerId', (_req, res) => {
-      this.sendHtmlFromMemory('tireur.html', res);
-    });
-    this.app.get('/api/public/fencers/:fencerId/schedule', (req, res) => {
-      const { fencerId } = req.params;
-      if (!/^[\w-]{1,64}$/.test(fencerId))
-        return res.status(400).json({ error: 'Identifiant invalide' });
-      try {
-        const source = this.sessionMatches.map(m => {
-          const update = this.sessionMatchScores.get(m.id);
-          return update ? { ...m, ...update } : m;
-        });
-        const arenas = [...this.arenas.values()].map(a => ({
-          number: a.number,
-          activePoolId: a.activePoolId,
-          currentMatchId: a.currentMatch && a.status !== 'finished' ? a.currentMatch.id : undefined,
-          currentPoolId: a.currentMatch?.poolId,
-        }));
-        const schedule = buildFencerSchedule(fencerId, source, arenas);
-        if (!schedule) return res.status(404).json({ error: 'Tireur introuvable' });
-        res.set('Cache-Control', 'no-store');
-        res.json(schedule);
-      } catch (err) {
-        console.error('[RemoteScoreServer] Erreur planning tireur:', err);
-        res.status(500).json({ error: 'Erreur interne' });
-      }
-    });
-
-    // Page saisie OCR feuille poule (pas d'authentification par arène nécessaire)
-    this.app.get('/poule-ocr', (req, res) => {
-      if (!this.hasAnyValidToken(req.headers.cookie)) {
-        return res.redirect(302, `/login?return=${encodeURIComponent('/poule-ocr')}`);
-      }
-      this.sendHtmlFromMemory('pool-ocr.html', res);
-    });
-
-    // Vue de saisie de poule par arène
-    this.app.get('/arene:arenaId/poule', (req, res) => {
-      const arenaId = req.params.arenaId;
-      console.log(`[RemoteScoreServer] Accès à la vue poule /arene${arenaId}/poule`);
-      if (!this.checkArenaAuth(arenaId, req.headers.cookie)) {
-        return res.redirect(
-          302,
-          `/login?arena=arena${arenaId}&return=${encodeURIComponent(req.path)}`
-        );
-      }
-      this.sendHtmlFromMemory('pool.html', res);
-    });
-
-    // Affichage kiosk grand écran public
-    this.app.get('/kiosk', (req, res) => {
-      console.log('[RemoteScoreServer] Accès au mode kiosk');
-      this.sendHtmlFromMemory('kiosk.html', res);
-    });
-
-    // Page d'attente sans arène assignée (lobby)
-    this.app.get('/lobby', (_req, res) => {
-      this.sendHtmlFromMemory('lobby.html', res);
-    });
-
-    // Page de connexion pour les pages protégées par mot de passe
-    this.app.get('/login', (_req, res) => {
-      this.sendHtmlFromMemory('login.html', res);
-    });
-
-    // ── Auto-inscription tireur (phase CHECKIN) ────────────────────────────
-    this.app.get('/register', (_req, res) => {
-      this.sendHtmlFromMemory('register.html', res);
-    });
-
-    this.app.get('/inscription', (_req, res) => {
-      this.sendHtmlFromMemory('register.html', res);
-    });
   }
 
   /** Inscription, appel et espace formateur. */
@@ -2693,455 +2500,6 @@ export class RemoteScoreServer {
         }
       }
       res.json({ results });
-    });
-  }
-
-  /** Résultats, tableau, historique d'entraînement et journal des matchs. */
-  private setupResultsRoutes(): void {
-    // API : données de résultats d'une compétition (classements de poules)
-    this.app.get('/api/competitions/:competitionId/results-data', (req, res) => {
-      try {
-        const { competitionId } = req.params;
-        const competition = this.db.getCompetition(competitionId);
-        if (!competition) {
-          return res.status(404).json({ error: 'Compétition introuvable' });
-        }
-
-        // Priorité : lire les poules depuis le session_state (elles ne sont pas dans les tables SQL)
-        const sessionState = this.db.getSessionState(competitionId);
-        const sessionPools: any[] = sessionState?.pools || [];
-        if (sessionPools.length > 0) {
-          const poolResults = sessionPools.map((pool: any) => {
-            const rankings = (pool.ranking || []).map((r: any) => ({
-              id: r.fencer?.id ?? '',
-              lastName: r.fencer?.lastName ?? '',
-              firstName: r.fencer?.firstName ?? '',
-              club: r.fencer?.club ?? '',
-              matchesPlayed: r.matchesPlayed ?? 0,
-              victories: r.victories ?? 0,
-              touchesFor: r.touchesScored ?? 0,
-              touchesAgainst: r.touchesReceived ?? 0,
-              index: r.index ?? 0,
-            }));
-            return {
-              id: pool.id,
-              number: pool.number,
-              name: 'Poule ' + pool.number,
-              rankings,
-            };
-          });
-          const overallRanking = (sessionState?.overallRanking || []).map((r: any) => ({
-            id: r.fencer?.id ?? '',
-            lastName: r.fencer?.lastName ?? '',
-            firstName: r.fencer?.firstName ?? '',
-            club: r.fencer?.club ?? '',
-            victories: r.victories ?? 0,
-            index: r.index ?? 0,
-            touchesFor: r.touchesScored ?? 0,
-            touchesAgainst: r.touchesReceived ?? 0,
-          }));
-          return res.json({
-            competition: {
-              id: competition.id,
-              title: competition.title,
-              date: competition.date,
-              weapon: competition.weapon,
-            },
-            pools: poolResults,
-            overallRanking,
-          });
-        }
-
-        // Fallback : tables SQL (cas import/legacy)
-        const pools = this.db.getCompetitionPools(competitionId);
-        const poolResults = pools.map(pool => {
-          const fencers = this.db.getPoolFencers(pool.id);
-          const matches = this.db.getMatchesByPool(pool.id);
-
-          // Calcul des statistiques par tireur
-          const stats: Record<
-            string,
-            { matchesPlayed: number; victories: number; touchesFor: number; touchesAgainst: number }
-          > = {};
-          for (const f of fencers) {
-            stats[f.id] = { matchesPlayed: 0, victories: 0, touchesFor: 0, touchesAgainst: 0 };
-          }
-
-          for (const match of matches) {
-            if (match.status !== MatchStatus.FINISHED) continue;
-            const sA = match.scoreA;
-            const sB = match.scoreB;
-            if (!sA || !sB || !match.fencerA || !match.fencerB) continue;
-            const idA = match.fencerA.id;
-            const idB = match.fencerB.id;
-            if (stats[idA]) {
-              stats[idA].matchesPlayed += 1;
-              stats[idA].touchesFor += sA.value ?? 0;
-              stats[idA].touchesAgainst += sB.value ?? 0;
-              if (sA.isVictory) stats[idA].victories += 1;
-            }
-            if (stats[idB]) {
-              stats[idB].matchesPlayed += 1;
-              stats[idB].touchesFor += sB.value ?? 0;
-              stats[idB].touchesAgainst += sA.value ?? 0;
-              if (sB.isVictory) stats[idB].victories += 1;
-            }
-          }
-
-          const rankings = fencers
-            .map(f => ({
-              id: f.id,
-              lastName: f.lastName,
-              firstName: f.firstName,
-              club: f.club ?? '',
-              matchesPlayed: stats[f.id]?.matchesPlayed ?? 0,
-              victories: stats[f.id]?.victories ?? 0,
-              touchesFor: stats[f.id]?.touchesFor ?? 0,
-              touchesAgainst: stats[f.id]?.touchesAgainst ?? 0,
-              index: (stats[f.id]?.touchesFor ?? 0) - (stats[f.id]?.touchesAgainst ?? 0),
-            }))
-            .sort(
-              (a, b) =>
-                b.victories - a.victories || b.index - a.index || b.touchesFor - a.touchesFor
-            );
-
-          return { id: pool.id, name: pool.name, rankings };
-        });
-
-        res.json({
-          competition: {
-            id: competition.id,
-            title: competition.title,
-            date: competition.date,
-            weapon: competition.weapon,
-          },
-          pools: poolResults,
-        });
-      } catch (error) {
-        console.error('[RemoteScoreServer] Erreur résultats:', error);
-        res.status(500).json({ error: 'Erreur lors de la récupération des résultats' });
-      }
-    });
-
-    // API : historique combats entraînement
-    this.app.get('/api/training/history', (req, res) => {
-      if (!this.isTrainingMode) return res.status(404).json({ error: 'Mode non entraînement' });
-      res.json({ history: this.trainingHistory });
-    });
-
-    // API : matchs à venir dans l'ordre de passage (kiosk vue suivants)
-    this.app.get('/api/session/upcoming-matches', (req, res) => {
-      if (!this.session) {
-        return res.status(404).json({ error: 'Aucune session active' });
-      }
-      try {
-        // Construire un index des matchs actuellement sur une piste
-        const arenaByMatchId = new Map<string, string>();
-        for (const [, arena] of this.arenas) {
-          if (arena.currentMatch?.id) {
-            arenaByMatchId.set(arena.currentMatch.id, arena.name);
-          }
-        }
-
-        const upcoming: any[] = [];
-
-        // Priorité : session_state (pools du renderer avec leurs matchs)
-        const sessionState = this.db.getSessionState(this.session.competitionId);
-        const sessionPools: any[] = sessionState?.pools || [];
-
-        if (sessionPools.length > 0) {
-          for (const pool of sessionPools) {
-            const poolName = 'Poule ' + pool.number;
-            const matches: any[] = (pool.matches || [])
-              .filter((m: any) => m.status !== MatchStatus.FINISHED && m.status !== 'finished')
-              .sort((a: any, b: any) => (a.number || 0) - (b.number || 0));
-            for (const m of matches) {
-              upcoming.push({
-                id: m.id,
-                number: m.number,
-                poolName,
-                poolNumber: pool.number,
-                fencerA: m.fencerA
-                  ? {
-                      lastName: m.fencerA.lastName,
-                      firstName: m.fencerA.firstName,
-                      club: m.fencerA.club ?? '',
-                    }
-                  : null,
-                fencerB: m.fencerB
-                  ? {
-                      lastName: m.fencerB.lastName,
-                      firstName: m.fencerB.firstName,
-                      club: m.fencerB.club ?? '',
-                    }
-                  : null,
-                status: m.status,
-                arenaName: arenaByMatchId.get(m.id) ?? null,
-              });
-            }
-          }
-        }
-
-        // Matchs du tableau d'élimination directe (toutes phases confondues)
-        const tableauMatches: any[] = sessionState?.tableauMatches || [];
-        if (tableauMatches.length > 0) {
-          const roundLabels: Record<number, string> = {
-            2: 'Finale',
-            3: 'Petite finale',
-            4: 'Demi-finales',
-            8: 'Quarts de finale',
-            16: 'Tableau de 16',
-            32: 'Tableau de 32',
-            64: 'Tableau de 64',
-            128: 'Tableau de 128',
-          };
-          const pendingTableau = tableauMatches
-            .filter((m: any) => m.fencerA && m.fencerB && !m.isBye && !m.winner)
-            .sort((a: any, b: any) => b.round - a.round || a.position - b.position);
-          for (const m of pendingTableau) {
-            const inArena = arenaByMatchId.has(m.id);
-            upcoming.push({
-              id: m.id,
-              number: m.position,
-              poolName: roundLabels[m.round] || `Tour de ${m.round}`,
-              poolNumber: null,
-              fencerA: {
-                lastName: m.fencerA.lastName,
-                firstName: m.fencerA.firstName,
-                club: m.fencerA.club ?? '',
-              },
-              fencerB: {
-                lastName: m.fencerB.lastName,
-                firstName: m.fencerB.firstName,
-                club: m.fencerB.club ?? '',
-              },
-              status: inArena ? 'in_progress' : 'not_started',
-              arenaName: arenaByMatchId.get(m.id) ?? null,
-              isTableau: true,
-            });
-          }
-        }
-
-        if (upcoming.length === 0 && this.sessionMatches.length > 0) {
-          // Fallback : matchs en mémoire passés depuis le renderer
-          const pending = (this.sessionMatches as any[])
-            .filter(
-              (m: any) =>
-                m.status !== MatchStatus.FINISHED &&
-                m.status !== 'finished' &&
-                m.fencerA &&
-                m.fencerB
-            )
-            .sort((a: any, b: any) => {
-              const pA =
-                a.poolNumber ?? parseInt(String(a.poolId || '').replace(/\D/g, '') || '0', 10);
-              const pB =
-                b.poolNumber ?? parseInt(String(b.poolId || '').replace(/\D/g, '') || '0', 10);
-              return pA !== pB ? pA - pB : (a.number || 0) - (b.number || 0);
-            });
-          for (const m of pending) {
-            const poolNum =
-              m.poolNumber ?? parseInt(String(m.poolId || '').replace(/\D/g, '') || '0', 10);
-            upcoming.push({
-              id: m.id,
-              number: m.number,
-              poolName: 'Poule ' + (poolNum || '?'),
-              poolNumber: poolNum,
-              fencerA: m.fencerA
-                ? {
-                    lastName: m.fencerA.lastName,
-                    firstName: m.fencerA.firstName,
-                    club: m.fencerA.club ?? '',
-                  }
-                : null,
-              fencerB: m.fencerB
-                ? {
-                    lastName: m.fencerB.lastName,
-                    firstName: m.fencerB.firstName,
-                    club: m.fencerB.club ?? '',
-                  }
-                : null,
-              status: m.status,
-              arenaName: arenaByMatchId.get(m.id) ?? null,
-            });
-          }
-        }
-
-        res.json({ upcoming });
-      } catch (error) {
-        console.error('[RemoteScoreServer] Erreur upcoming-matches:', error);
-        res.status(500).json({ error: 'Erreur interne' });
-      }
-    });
-
-    // Données du tableau d'élimination directe pour le kiosk
-    this.app.get('/api/bracket', (req, res) => {
-      try {
-        if (!this.session) return res.status(404).json({ error: 'Aucune session active' });
-
-        // Lire depuis la DB (inclut les matchs terminés) ; fallback sur sessionMatches (pending only)
-        const sessionState = this.db.getSessionState(this.session.competitionId);
-        const dbTableauMatches: any[] = sessionState?.tableauMatches || [];
-        const deMatches =
-          dbTableauMatches.length > 0
-            ? dbTableauMatches
-            : (this.sessionMatches as any[]).filter((m: any) => m.isTableau);
-
-        if (deMatches.length === 0) {
-          return res.json({ tableSize: 0, currentRound: null, rounds: [] });
-        }
-
-        const roundLabels: Record<number, string> = {
-          2: 'Finale',
-          3: 'Petite finale',
-          4: 'Demi-finales',
-          8: 'Quarts de finale',
-          16: '1/8 de finale',
-          32: '1/16 de finale',
-          64: '1/32 de finale',
-          128: '1/64 de finale',
-        };
-
-        // Arène par matchId pour l'affichage
-        const arenaByMatchId = new Map<string, string>();
-        for (const [arenaId, arena] of this.arenas.entries()) {
-          if (arena.currentMatch) {
-            const num = parseInt(arenaId.replace('arena', ''), 10);
-            arenaByMatchId.set(arena.currentMatch.id, `Piste ${num}`);
-          }
-        }
-
-        // Déterminer la taille du tableau (plus grande puissance de 2 couvrant tous les rounds)
-        // maxRound (sans petite finale round=3) = taille du tableau (puissance de 2)
-        const mainRounds = deMatches.filter((m: any) => m.round !== 3);
-        const maxRound =
-          mainRounds.length > 0 ? Math.max(...mainRounds.map((m: any) => m.round || 1)) : 4;
-        const tableSize = maxRound;
-
-        // Grouper par round, enrichir avec scores live
-        const roundMap = new Map<number, any[]>();
-        for (const m of deMatches) {
-          const round = m.round || 1;
-          if (!roundMap.has(round)) roundMap.set(round, []);
-          const live = this.sessionMatchScores.get(m.id);
-          const isFinished =
-            (live?.status ?? m.status) === 'finished' ||
-            (live?.status ?? m.status) === MatchStatus.FINISHED ||
-            !!m.winner;
-          const isLive =
-            !isFinished &&
-            ((live?.status ?? m.status) === 'in_progress' ||
-              (live?.status ?? m.status) === MatchStatus.IN_PROGRESS ||
-              arenaByMatchId.has(m.id));
-          roundMap.get(round)!.push({
-            id: m.id,
-            position: m.position + 1,
-            fencerA: m.fencerA
-              ? {
-                  lastName: m.fencerA.lastName,
-                  firstName: m.fencerA.firstName,
-                  club: m.fencerA.club ?? '',
-                  id: m.fencerA.id,
-                }
-              : null,
-            fencerB: m.fencerB
-              ? {
-                  lastName: m.fencerB.lastName,
-                  firstName: m.fencerB.firstName,
-                  club: m.fencerB.club ?? '',
-                  id: m.fencerB.id,
-                }
-              : null,
-            scoreA: (() => {
-              const s = live?.scoreA ?? m.scoreA;
-              if (s == null) return null;
-              return typeof s === 'number' ? s : ((s as any)?.value ?? null);
-            })(),
-            scoreB: (() => {
-              const s = live?.scoreB ?? m.scoreB;
-              if (s == null) return null;
-              return typeof s === 'number' ? s : ((s as any)?.value ?? null);
-            })(),
-            winnerId: m.winner?.id ?? null,
-            status: isFinished ? 'finished' : isLive ? 'live' : 'pending',
-            isBye: !!m.isBye,
-            arenaName: arenaByMatchId.get(m.id) ?? null,
-          });
-        }
-
-        // Trier les rounds du plus grand (tour initial) au plus petit (finale)
-        const rounds = Array.from(roundMap.entries())
-          .sort(([a], [b]) => b - a)
-          .map(([round, matches]) => ({
-            round,
-            label: roundLabels[round] ?? `Tour de ${round}`,
-            matches: matches.sort((a: any, b: any) => a.position - b.position),
-          }));
-
-        // Round actif = premier round non entièrement terminé (du plus grand au plus petit)
-        const currentRound =
-          rounds.find(r => r.matches.some((m: any) => m.status !== 'finished' && !m.isBye))
-            ?.round ?? null;
-
-        // Classement final calculé par l'application (places distinctes, départage
-        // par classement de poules / places jouées) : source de vérité du kiosk (#1013)
-        const finalResults = (
-          Array.isArray(sessionState?.finalResults) ? sessionState.finalResults : []
-        )
-          .filter((r: any) => r?.fencer && typeof r.rank === 'number')
-          .map((r: any) => ({
-            rank: r.rank,
-            fencer: {
-              id: r.fencer.id,
-              lastName: r.fencer.lastName,
-              firstName: r.fencer.firstName,
-              club: r.fencer.club ?? '',
-            },
-          }));
-
-        res.json({ tableSize, currentRound, rounds, finalResults });
-      } catch (error) {
-        console.error('[RemoteScoreServer] Erreur /api/bracket:', error);
-        res.status(500).json({ error: 'Erreur interne' });
-      }
-    });
-
-    // Page HTML : résultats d'une compétition (pour les spectateurs)
-    this.app.get('/competition/:competitionId/results', (req, res) => {
-      const { competitionId } = req.params;
-      // Identifiant réinjecté dans la page : format strict (anti-XSS réfléchie, #997)
-      if (!/^[A-Za-z0-9_-]{1,64}$/.test(competitionId)) {
-        return res.status(400).send('Identifiant invalide');
-      }
-      const html = renderCompetitionResultsPage(competitionId);
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.send(html);
-    });
-
-    // Journal du match en cours (tablette arbitre - lecture seule)
-    this.app.get('/api/arena/:arenaId/current-match/events', (req, res) => {
-      const arena = this.arenas.get(req.params.arenaId);
-      if (!arena?.currentMatch?.id) {
-        return res.json({ success: true, events: [], matchId: null });
-      }
-      try {
-        const events = this.db.getMatchTimeline(arena.currentMatch.id);
-        res.json({ success: true, events, matchId: arena.currentMatch.id });
-      } catch (e) {
-        res.status(500).json({ success: false, error: String(e) });
-      }
-    });
-
-    // Page HTML journal (match en cours uniquement)
-    this.app.get('/arene:arenaId/journal', (req, res) => {
-      const arenaNum = req.params.arenaId;
-      // Numéro réinjecté dans le HTML et le JS : chiffres uniquement (anti-XSS réfléchie, #997)
-      if (!/^\d{1,3}$/.test(arenaNum)) {
-        return res.status(400).send('Numéro de piste invalide');
-      }
-      const html = renderArenaJournalPage(arenaNum);
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.send(html);
     });
   }
 

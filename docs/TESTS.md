@@ -92,15 +92,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `teams` (`src/features/teams/`) | 6 | 48 |
 | `src/database/` | 2 | 117 |
-| `src/main/` | 4 | 95 |
+| `src/main/` | 5 | 98 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 28 | 113 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
-| **Total** | **123** | **1295** |
+| **Total** | **124** | **1298** |
 
-Unitaires : 115 fichiers, 1264 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 116 fichiers, 1267 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1778,6 +1778,16 @@ Unitaires : 115 fichiers, 1264 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - marque le match en cours sur une piste
   - piste inconnue si la poule n’est assignée à aucune arène
   - null pour un tireur sans match
+
+</details>
+
+<details>
+<summary><code>src/main/remote/routes/pageRoutes.test.ts</code> — 3 tests</summary>
+
+- **registerPageRoutes (#1065)**
+  - planning tireur : données de session via le contexte
+  - planning tireur : 404 inconnu, 400 identifiant invalide
+  - ETA publique : null sans session ou en entraînement
 
 </details>
 
