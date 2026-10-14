@@ -99,13 +99,13 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
         <div
           style={{
             padding: '0.75rem 1.5rem',
-            background: '#f9fafb',
-            borderBottom: '1px solid #e5e7eb',
+            background: 'var(--color-surface-2)',
+            borderBottom: '1px solid var(--color-border)',
             flexShrink: 0,
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+            <span style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>
               Matchs terminés : {finishedMatches}/{totalMatches}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -113,7 +113,7 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
                 style={{
                   width: '200px',
                   height: '6px',
-                  background: '#e5e7eb',
+                  background: 'var(--color-border)',
                   borderRadius: '3px',
                 }}
               >
@@ -121,7 +121,7 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
                   style={{
                     width: `${progress}%`,
                     height: '100%',
-                    background: '#3b82f6',
+                    background: 'var(--color-primary)',
                     borderRadius: '3px',
                     transition: 'width 0.3s',
                   }}
@@ -129,7 +129,7 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
               </div>
               <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{progress}%</span>
             </div>
-            <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
               Mis à jour {lastUpdate.toLocaleTimeString('fr-FR')}
             </span>
           </div>
@@ -138,7 +138,7 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
         <div style={{ overflowY: 'auto', flex: 1 }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
             <thead>
-              <tr style={{ background: '#f3f4f6', position: 'sticky', top: 0 }}>
+              <tr style={{ background: 'var(--color-bg)', position: 'sticky', top: 0 }}>
                 <th style={thStyle}>Rg</th>
                 <th style={{ ...thStyle, textAlign: 'left' }}>Nom</th>
                 <th style={{ ...thStyle, textAlign: 'left' }}>Club</th>
@@ -157,8 +157,8 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
                 <tr
                   key={entry.fencer.id}
                   style={{
-                    background: idx % 2 === 0 ? '#fff' : '#f9fafb',
-                    borderBottom: '1px solid #f3f4f6',
+                    background: idx % 2 === 0 ? '#fff' : 'var(--color-surface-2)',
+                    borderBottom: '1px solid var(--color-bg)',
                   }}
                 >
                   <td style={{ ...tdStyle, fontWeight: 700, color: rankColor(idx + 1) }}>
@@ -167,7 +167,7 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
                   <td style={{ ...tdStyle, textAlign: 'left', fontWeight: 500 }}>
                     {entry.fencer.lastName} {entry.fencer.firstName}
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'left', color: '#6b7280' }}>
+                  <td style={{ ...tdStyle, textAlign: 'left', color: 'var(--color-text-light)' }}>
                     {entry.fencer.club || '—'}
                   </td>
                   <td style={tdStyle}>{entry.poolNumber}</td>
@@ -188,7 +188,11 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
                 <tr>
                   <td
                     colSpan={isLaserSabre ? 11 : 9}
-                    style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}
+                    style={{
+                      textAlign: 'center',
+                      padding: '2rem',
+                      color: 'var(--color-text-muted)',
+                    }}
                   >
                     Aucun résultat disponible
                   </td>
@@ -214,8 +218,8 @@ const thStyle: React.CSSProperties = {
   textAlign: 'center',
   fontWeight: 600,
   fontSize: '0.75rem',
-  color: '#4b5563',
-  borderBottom: '2px solid #e5e7eb',
+  color: 'var(--color-text-light)',
+  borderBottom: '2px solid var(--color-border)',
 };
 
 const tdStyle: React.CSSProperties = {

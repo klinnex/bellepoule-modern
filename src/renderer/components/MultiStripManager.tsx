@@ -124,8 +124,8 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
         <div
           style={{
             padding: '1rem 1.5rem',
-            background: '#f9fafb',
-            borderBottom: '1px solid #e5e7eb',
+            background: 'var(--color-surface-2)',
+            borderBottom: '1px solid var(--color-border)',
             flexShrink: 0,
           }}
         >
@@ -155,7 +155,7 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                 <div
                   key={strip.id}
                   style={{
-                    border: `2px solid ${isOccupied ? '#3b82f6' : '#e5e7eb'}`,
+                    border: `2px solid ${isOccupied ? 'var(--color-primary)' : 'var(--color-border)'}`,
                     borderRadius: '8px',
                     padding: '1rem',
                     background: isOccupied ? '#eff6ff' : '#fff',
@@ -174,8 +174,8 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                         fontSize: '0.75rem',
                         padding: '0.125rem 0.5rem',
                         borderRadius: '9999px',
-                        background: isOccupied ? '#3b82f6' : '#e5e7eb',
-                        color: isOccupied ? '#fff' : '#6b7280',
+                        background: isOccupied ? 'var(--color-primary)' : 'var(--color-border)',
+                        color: isOccupied ? '#fff' : 'var(--color-text-light)',
                       }}
                     >
                       {isOccupied ? 'Occupée' : 'Libre'}
@@ -185,7 +185,11 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                   {match ? (
                     <div>
                       <div
-                        style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#6b7280' }}
+                        style={{
+                          fontSize: '0.875rem',
+                          marginBottom: '0.5rem',
+                          color: 'var(--color-text-light)',
+                        }}
                       >
                         Poule {pools[strip.assignedPoolIndex!]?.number}
                       </div>
@@ -212,7 +216,7 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                           <div
                             style={{
                               fontSize: '0.75rem',
-                              color: '#9ca3af',
+                              color: 'var(--color-text-muted)',
                               marginBottom: '0.5rem',
                             }}
                           >
@@ -229,7 +233,7 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                           </button>
                         </>
                       ) : (
-                        <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                           Aucun match en attente
                         </div>
                       )}

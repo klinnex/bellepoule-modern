@@ -46,7 +46,7 @@ const CompetitionCardSkeleton_: React.FC = () => {
         padding: '20px',
         backgroundColor: 'white',
         borderRadius: '12px',
-        border: '1px solid #e5e7eb',
+        border: '1px solid var(--color-border)',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
@@ -85,7 +85,7 @@ const PoolViewSkeleton_: React.FC = () => {
                 padding: '16px',
                 backgroundColor: 'white',
                 borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid var(--color-border)',
               }}
             >
               <Skeleton width="50%" height="20px" style={{ marginBottom: '12px' }} />
@@ -97,7 +97,7 @@ const PoolViewSkeleton_: React.FC = () => {
                     justifyContent: 'space-between',
                     marginBottom: '8px',
                     padding: '8px 0',
-                    borderBottom: j < 3 ? '1px solid #f3f4f6' : 'none',
+                    borderBottom: j < 3 ? '1px solid var(--color-bg)' : 'none',
                   }}
                 >
                   <Skeleton width="40%" height="16px" />
@@ -121,7 +121,7 @@ const TableRowSkeleton_: React.FC<{ columns?: number }> = ({ columns = 5 }) => {
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
         gap: '16px',
         padding: '12px 16px',
-        borderBottom: '1px solid #e5e7eb',
+        borderBottom: '1px solid var(--color-border)',
         alignItems: 'center',
       }}
     >
@@ -140,7 +140,7 @@ const StatsCardSkeleton_: React.FC = () => {
         padding: '20px',
         backgroundColor: 'white',
         borderRadius: '12px',
-        border: '1px solid #e5e7eb',
+        border: '1px solid var(--color-border)',
         display: 'flex',
         alignItems: 'center',
         gap: '16px',
@@ -189,7 +189,7 @@ const CompetitionViewSkeleton_: React.FC = () => {
               padding: '1rem',
               backgroundColor: 'white',
               borderRadius: '8px',
-              border: '1px solid #e5e7eb',
+              border: '1px solid var(--color-border)',
             }}
           >
             <Skeleton width="60%" height="18px" style={{ marginBottom: '0.75rem' }} />

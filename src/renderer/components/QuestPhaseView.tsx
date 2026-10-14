@@ -172,7 +172,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
   const sectionTitle: React.CSSProperties = {
     fontSize: '0.8rem',
     fontWeight: 600,
-    color: '#6b7280',
+    color: 'var(--color-text-light)',
     textTransform: 'uppercase',
     marginBottom: '0.75rem',
   };
@@ -180,7 +180,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
   const labelStyle: React.CSSProperties = {
     fontSize: '0.875rem',
     fontWeight: 500,
-    color: '#374151',
+    color: 'var(--color-text)',
     marginBottom: '0.25rem',
     display: 'block',
   };
@@ -188,7 +188,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
   const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '0.5rem',
-    border: '1px solid #d1d5db',
+    border: '1px solid var(--color-border-dark)',
     borderRadius: '6px',
     fontSize: '0.875rem',
     boxSizing: 'border-box',
@@ -196,7 +196,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
 
   const smallText: React.CSSProperties = {
     fontSize: '0.75rem',
-    color: '#6b7280',
+    color: 'var(--color-text-light)',
     marginTop: '0.25rem',
   };
 
@@ -258,7 +258,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     gap: '0.4rem',
                     padding: '0.35rem 0.6rem',
                     background: count > 0 ? '#fef3c7' : 'white',
-                    border: `1px solid ${count > 0 ? '#fbbf24' : '#e5e7eb'}`,
+                    border: `1px solid ${count > 0 ? '#fbbf24' : 'var(--color-border)'}`,
                     borderRadius: '6px',
                     fontSize: '0.85rem',
                   }}
@@ -271,7 +271,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     disabled={count === 0}
                     style={{
                       padding: '0 0.35rem',
-                      border: '1px solid #d1d5db',
+                      border: '1px solid var(--color-border-dark)',
                       borderRadius: '4px',
                       background: 'white',
                       cursor: count === 0 ? 'not-allowed' : 'pointer',
@@ -286,7 +286,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                       minWidth: '1.2rem',
                       textAlign: 'center',
                       fontWeight: 700,
-                      color: count > 0 ? '#b45309' : '#6b7280',
+                      color: count > 0 ? '#b45309' : 'var(--color-text-light)',
                     }}
                   >
                     {count}
@@ -295,7 +295,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     onClick={() => addCard(f.id)}
                     style={{
                       padding: '0 0.35rem',
-                      border: '1px solid #d1d5db',
+                      border: '1px solid var(--color-border-dark)',
                       borderRadius: '4px',
                       background: 'white',
                       cursor: 'pointer',
@@ -316,12 +316,12 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
             <p style={CARD_TITLE}>Classement Tour Quest</p>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
-                <tr style={{ background: '#f3f4f6' }}>
+                <tr style={{ background: 'var(--color-bg)' }}>
                   <th
                     style={{
                       padding: '0.5rem 0.75rem',
                       textAlign: 'center',
-                      borderBottom: '2px solid #e5e7eb',
+                      borderBottom: '2px solid var(--color-border)',
                       width: '3rem',
                     }}
                   >
@@ -344,8 +344,8 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                   <tr
                     key={r.fencer.id}
                     style={{
-                      background: i % 2 === 0 ? 'white' : '#f9fafb',
-                      borderBottom: '1px solid #e5e7eb',
+                      background: i % 2 === 0 ? 'white' : 'var(--color-surface-2)',
+                      borderBottom: '1px solid var(--color-border)',
                     }}
                   >
                     <td
@@ -353,7 +353,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                         padding: '0.5rem 0.75rem',
                         textAlign: 'center',
                         fontWeight: 700,
-                        color: r.rank <= 3 ? '#1d4ed8' : '#374151',
+                        color: r.rank <= 3 ? 'var(--color-primary-dark)' : 'var(--color-text)',
                       }}
                     >
                       {r.rank}
@@ -361,7 +361,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     <td style={{ padding: '0.5rem 0.75rem', fontWeight: 500 }}>
                       {r.fencer.lastName} {r.fencer.firstName}
                       {r.fencer.club && (
-                        <span style={{ color: '#6b7280', fontWeight: 400 }}>
+                        <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>
                           {' '}
                           ({r.fencer.club})
                         </span>
@@ -373,7 +373,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                         padding: '0.5rem 0.75rem',
                         textAlign: 'center',
                         fontWeight: 600,
-                        color: '#1d4ed8',
+                        color: 'var(--color-primary-dark)',
                       }}
                     >
                       {r.questPoints ?? 0}
@@ -382,7 +382,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                       style={{
                         padding: '0.5rem 0.75rem',
                         textAlign: 'center',
-                        color: (r.totalCards ?? 0) > 0 ? '#b45309' : '#6b7280',
+                        color: (r.totalCards ?? 0) > 0 ? '#b45309' : 'var(--color-text-light)',
                       }}
                     >
                       {r.totalCards ?? 0}
@@ -391,7 +391,13 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                 ))}
               </tbody>
             </table>
-            <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.75rem' }}>
+            <p
+              style={{
+                fontSize: '0.75rem',
+                color: 'var(--color-text-light)',
+                marginTop: '0.75rem',
+              }}
+            >
               Critères : V/M décroissant → Points Quest décroissants → Cartons croissants
             </p>
           </div>
@@ -577,18 +583,20 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                   gap: '0.75rem',
                   padding: '0.6rem 0.75rem',
                   background: 'white',
-                  border: '1px solid #e5e7eb',
+                  border: '1px solid var(--color-border)',
                   borderRadius: '6px',
                   fontSize: '0.875rem',
                 }}
               >
-                <span style={{ color: '#9ca3af', minWidth: '2rem', textAlign: 'right' }}>
+                <span
+                  style={{ color: 'var(--color-text-muted)', minWidth: '2rem', textAlign: 'right' }}
+                >
                   {index + 1}.
                 </span>
                 <span style={{ flex: 1 }}>
                   <strong>{fight.fencerA.lastName}</strong> {fight.fencerA.firstName}
                   {fight.fencerA.club && <span style={MUTED}> ({fight.fencerA.club})</span>}
-                  <span style={{ margin: '0 0.5rem', color: '#9ca3af' }}>vs</span>
+                  <span style={{ margin: '0 0.5rem', color: 'var(--color-text-muted)' }}>vs</span>
                   <strong>{fight.fencerB.lastName}</strong> {fight.fencerB.firstName}
                   {fight.fencerB.club && <span style={MUTED}> ({fight.fencerB.club})</span>}
                 </span>
@@ -598,7 +606,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     disabled={index === 0}
                     style={{
                       padding: '0.2rem 0.5rem',
-                      border: '1px solid #d1d5db',
+                      border: '1px solid var(--color-border-dark)',
                       borderRadius: '4px',
                       background: 'white',
                       cursor: index === 0 ? 'not-allowed' : 'pointer',
@@ -613,7 +621,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     disabled={index === schedule.length - 1}
                     style={{
                       padding: '0.2rem 0.5rem',
-                      border: '1px solid #d1d5db',
+                      border: '1px solid var(--color-border-dark)',
                       borderRadius: '4px',
                       background: 'white',
                       cursor: index === schedule.length - 1 ? 'not-allowed' : 'pointer',
@@ -630,7 +638,9 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
 
           {/* Récap combats par tireur */}
           <details style={{ marginTop: '1rem' }}>
-            <summary style={{ cursor: 'pointer', fontSize: '0.8rem', color: '#6b7280' }}>
+            <summary
+              style={{ cursor: 'pointer', fontSize: '0.8rem', color: 'var(--color-text-light)' }}
+            >
               Répartition par tireur
             </summary>
             <div style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>

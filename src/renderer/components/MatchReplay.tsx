@@ -91,7 +91,7 @@ const MatchReplay: React.FC<MatchReplayProps> = ({ entries, nameA, nameB }) => {
   return (
     <div
       style={{
-        border: '1px solid var(--color-border, #e5e7eb)',
+        border: '1px solid var(--color-border)',
         borderRadius: '8px',
         padding: '0.75rem',
         marginBottom: '0.75rem',

@@ -89,7 +89,7 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
               style={{
                 fontSize: '0.8rem',
                 fontWeight: 600,
-                color: 'var(--color-muted, #9ca3af)',
+                color: 'var(--color-muted, var(--color-text-muted))',
                 textTransform: 'uppercase',
                 letterSpacing: '0.8px',
                 marginBottom: '0.5rem',

@@ -95,7 +95,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
             alignItems: 'center',
             gap: '0.75rem',
             padding: '1rem 1.25rem',
-            borderBottom: '1px solid var(--color-border, #e5e7eb)',
+            borderBottom: '1px solid var(--color-border)',
             flexShrink: 0,
           }}
         >
@@ -105,7 +105,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
               fontSize: '1.1rem',
               fontWeight: 700,
               flex: 1,
-              color: 'var(--color-text, #1f2937)',
+              color: 'var(--color-text)',
             }}
           >
             Documentation
@@ -118,12 +118,12 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
               setQuery(e.target.value);
             }}
             style={{
-              border: '1px solid var(--color-border, #e5e7eb)',
+              border: '1px solid var(--color-border)',
               borderRadius: 8,
               padding: '0.4rem 0.75rem',
               fontSize: '0.875rem',
               width: 200,
-              background: 'var(--color-bg, #f3f4f6)',
+              background: 'var(--color-bg)',
             }}
           />
           <button
@@ -134,7 +134,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
               border: 'none',
               cursor: 'pointer',
               fontSize: '1.2rem',
-              color: 'var(--color-text-light, #6b7280)',
+              color: 'var(--color-text-light)',
               padding: '0.25rem',
               borderRadius: 4,
               lineHeight: 1,
@@ -149,7 +149,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
             style={{
               width: 200,
               flexShrink: 0,
-              borderRight: '1px solid var(--color-border, #e5e7eb)',
+              borderRight: '1px solid var(--color-border)',
               overflowY: 'auto',
               padding: '0.75rem 0',
             }}
@@ -166,7 +166,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
                       fontWeight: 700,
                       textTransform: 'uppercase',
                       letterSpacing: '0.05em',
-                      color: 'var(--color-text-light, #6b7280)',
+                      color: 'var(--color-text-light)',
                       padding: '0.25rem 1rem',
                     }}
                   >
@@ -187,10 +187,8 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
                         textAlign: 'left',
                         fontSize: '0.875rem',
                         background:
-                          selectedId === article.id
-                            ? 'var(--color-primary, #3b82f6)'
-                            : 'transparent',
-                        color: selectedId === article.id ? '#fff' : 'var(--color-text, #1f2937)',
+                          selectedId === article.id ? 'var(--color-primary)' : 'transparent',
+                        color: selectedId === article.id ? '#fff' : 'var(--color-text)',
                         fontWeight: selectedId === article.id ? 600 : 400,
                         borderRadius: 0,
                       }}
@@ -214,7 +212,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
               <div
                 style={{
                   padding: '1rem',
-                  color: 'var(--color-text-light, #6b7280)',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                   textAlign: 'center',
                 }}
@@ -233,7 +231,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                color: 'var(--color-text, #1f2937)',
+                color: 'var(--color-text)',
               }}
             >
               <span>{selectedArticle.icon}</span>

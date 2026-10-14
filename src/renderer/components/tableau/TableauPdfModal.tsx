@@ -28,7 +28,7 @@ const PDF_STYLES = {
   pdfModalBody: { padding: '1.5rem' } satisfies React.CSSProperties,
   pdfModalHint: {
     marginBottom: '1rem',
-    color: '#6b7280',
+    color: 'var(--color-text-light)',
     fontSize: '0.875rem',
   } satisfies React.CSSProperties,
   pdfModalLabel: {
@@ -36,7 +36,10 @@ const PDF_STYLES = {
     fontWeight: '600',
     marginBottom: '0.5rem',
   } satisfies React.CSSProperties,
-  pdfModalMaxHint: { fontWeight: '400', color: '#6b7280' } satisfies React.CSSProperties,
+  pdfModalMaxHint: {
+    fontWeight: '400',
+    color: 'var(--color-text-light)',
+  } satisfies React.CSSProperties,
   pdfModalBtnRow: {
     display: 'flex',
     gap: '0.5rem',
@@ -45,7 +48,7 @@ const PDF_STYLES = {
   pdfModalCountHint: {
     marginTop: '0.75rem',
     fontSize: '0.8rem',
-    color: '#9ca3af',
+    color: 'var(--color-text-muted)',
   } satisfies React.CSSProperties,
   pdfModalFooter: {
     display: 'flex',
@@ -107,8 +110,8 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
                 style={{
                   flex: 1,
                   padding: '0.6rem',
-                  background: pdfMatchesPerPage === n ? '#10b981' : '#e5e7eb',
-                  color: pdfMatchesPerPage === n ? 'white' : '#374151',
+                  background: pdfMatchesPerPage === n ? '#10b981' : 'var(--color-border)',
+                  color: pdfMatchesPerPage === n ? 'white' : 'var(--color-text)',
                   border: 'none',
                   borderRadius: '6px',
                   cursor: 'pointer',
@@ -153,7 +156,7 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
                     }}
                   />
                   {getRoundName(round)}
-                  <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
                     (
                     {
                       matches.filter(m => m.round === round && m.fencerA && m.fencerB && !m.isBye)

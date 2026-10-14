@@ -79,7 +79,12 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
         <h2 style={{ fontSize: '1.25rem', fontWeight: '600', margin: 0, whiteSpace: 'nowrap' }}>
           Tableau de {tableauSize}
           <span
-            style={{ fontWeight: 400, color: '#6b7280', fontSize: '1rem', marginLeft: '0.375rem' }}
+            style={{
+              fontWeight: 400,
+              color: 'var(--color-text-light)',
+              fontSize: '1rem',
+              marginLeft: '0.375rem',
+            }}
           >
             — {rankingCount} qualifiés
           </span>
@@ -109,8 +114,8 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
         <button
           onClick={onViewModeToggle}
           style={{
-            background: viewMode === 'pending' ? '#3b82f6' : '#e5e7eb',
-            color: viewMode === 'pending' ? 'white' : '#374151',
+            background: viewMode === 'pending' ? 'var(--color-primary)' : 'var(--color-border)',
+            color: viewMode === 'pending' ? 'white' : 'var(--color-text)',
             border: 'none',
             padding: '0.5rem 0.75rem',
             borderRadius: '6px',
@@ -125,8 +130,8 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
         <button
           onClick={onPyramidViewModeToggle}
           style={{
-            background: pyramidViewMode ? '#8b5cf6' : '#e5e7eb',
-            color: pyramidViewMode ? 'white' : '#374151',
+            background: pyramidViewMode ? '#8b5cf6' : 'var(--color-border)',
+            color: pyramidViewMode ? 'white' : 'var(--color-text)',
             border: 'none',
             padding: '0.5rem 0.75rem',
             borderRadius: '6px',
@@ -165,7 +170,7 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
                       fontSize: '0.875rem',
                       fontWeight: '500',
                       background: autoAssignArenas ? 'rgba(59,130,246,0.08)' : 'transparent',
-                      color: autoAssignArenas ? '#2563eb' : 'var(--color-text)',
+                      color: autoAssignArenas ? 'var(--color-primary)' : 'var(--color-text)',
                     }}
                   >
                     <input

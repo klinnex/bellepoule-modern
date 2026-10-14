@@ -13,7 +13,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
         width: '64px',
         height: '32px',
         borderRadius: '16px',
-        border: '2px solid #e5e7eb',
+        border: '2px solid var(--color-border)',
         backgroundColor: isDark ? '#1f2937' : '#ffffff',
         position: 'relative',
         cursor: 'pointer',
@@ -56,7 +56,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
           width: '24px',
           height: '24px',
           borderRadius: '50%',
-          backgroundColor: isDark ? '#3b82f6' : '#f59e0b',
+          backgroundColor: isDark ? 'var(--color-primary)' : '#f59e0b',
           transform: isDark ? 'translateX(32px)' : 'translateX(0)',
           transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
           boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
@@ -223,7 +223,7 @@ const GradientText_: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   return (
     <span
       style={{
-        background: 'linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)',
+        background: 'linear-gradient(135deg, var(--color-primary), #8b5cf6, #ec4899)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
@@ -304,7 +304,7 @@ const FloatingActionButton_: React.FC<{
         width: '56px',
         height: '56px',
         borderRadius: '50%',
-        background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+        background: 'linear-gradient(135deg, var(--color-primary), #8b5cf6)',
         border: 'none',
         boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
         cursor: 'pointer',
@@ -375,7 +375,7 @@ const ProgressRing_: React.FC<{
           transform: 'translate(-50%, -50%)',
           fontSize: '14px',
           fontWeight: 'bold',
-          color: '#374151',
+          color: 'var(--color-text)',
         }}
       >
         {Math.round(progress)}%
@@ -392,7 +392,7 @@ const HoverCard_: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         padding: '20px',
         backgroundColor: 'white',
         borderRadius: '12px',
-        border: '1px solid #e5e7eb',
+        border: '1px solid var(--color-border)',
         transition: 'all 0.3s ease',
         cursor: 'pointer',
       }}

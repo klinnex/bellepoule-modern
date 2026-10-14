@@ -87,7 +87,9 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
         </div>
 
         {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>Chargement…</div>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+            Chargement…
+          </div>
         ) : (
           <>
             <div
@@ -96,8 +98,8 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                 gridTemplateColumns: 'repeat(4, 1fr)',
                 gap: '1rem',
                 padding: '1rem 1.5rem',
-                background: '#f9fafb',
-                borderBottom: '1px solid #e5e7eb',
+                background: 'var(--color-surface-2)',
+                borderBottom: '1px solid var(--color-border)',
                 flexShrink: 0,
               }}
             >
@@ -109,7 +111,9 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
 
             <div style={{ overflowY: 'auto', flex: 1 }}>
               {results.length === 0 ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>
+                <div
+                  style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}
+                >
                   Aucun historique disponible
                 </div>
               ) : (
@@ -118,7 +122,7 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                     style={{
                       padding: '0.75rem 1.5rem',
                       fontSize: '0.75rem',
-                      color: '#6b7280',
+                      color: 'var(--color-text-light)',
                       fontFamily: 'monospace',
                     }}
                   >
@@ -128,7 +132,7 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                     style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}
                   >
                     <thead>
-                      <tr style={{ background: '#f3f4f6' }}>
+                      <tr style={{ background: 'var(--color-bg)' }}>
                         <th style={thS}>Date</th>
                         <th style={{ ...thS, textAlign: 'left' }}>Compétition</th>
                         <th style={thS}>Arme</th>
@@ -140,7 +144,10 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                     </thead>
                     <tbody>
                       {results.map((r, i) => (
-                        <tr key={r.competitionId + i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <tr
+                          key={r.competitionId + i}
+                          style={{ borderBottom: '1px solid var(--color-bg)' }}
+                        >
                           <td style={tdS}>{r.date}</td>
                           <td style={{ ...tdS, textAlign: 'left', fontWeight: 500 }}>
                             {r.competitionTitle}
@@ -171,8 +178,12 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
 function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: '1.5rem', fontWeight: 700, color: color ?? '#1f2937' }}>{value}</div>
-      <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>{label}</div>
+      <div style={{ fontSize: '1.5rem', fontWeight: 700, color: color ?? 'var(--color-text)' }}>
+        {value}
+      </div>
+      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginTop: '0.25rem' }}>
+        {label}
+      </div>
     </div>
   );
 }
@@ -204,8 +215,8 @@ const thS: React.CSSProperties = {
   textAlign: 'center',
   fontWeight: 600,
   fontSize: '0.75rem',
-  color: '#4b5563',
-  borderBottom: '2px solid #e5e7eb',
+  color: 'var(--color-text-light)',
+  borderBottom: '2px solid var(--color-border)',
 };
 const tdS: React.CSSProperties = { padding: '0.5rem 0.75rem', textAlign: 'center' };
 

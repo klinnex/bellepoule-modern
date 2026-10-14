@@ -171,7 +171,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
           style={{
             fontWeight: 'bold',
             marginBottom: toast.message ? '4px' : '0',
-            color: toast.type === 'error' ? '#dc2626' : '#111827',
+            color: toast.type === 'error' ? '#dc2626' : 'var(--color-text)',
           }}
         >
           {toast.title}
@@ -180,7 +180,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
           <div
             style={{
               fontSize: '14px',
-              color: '#6b7280',
+              color: 'var(--color-text-light)',
               lineHeight: 1.4,
             }}
           >
@@ -194,7 +194,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
               marginTop: '8px',
               padding: '6px 12px',
               fontSize: '12px',
-              backgroundColor: toast.type === 'error' ? '#ef4444' : '#3b82f6',
+              backgroundColor: toast.type === 'error' ? '#ef4444' : 'var(--color-primary)',
               color: 'white',
               border: 'none',
               borderRadius: '4px',
@@ -212,7 +212,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
           border: 'none',
           fontSize: '18px',
           cursor: 'pointer',
-          color: '#9ca3af',
+          color: 'var(--color-text-muted)',
           padding: '0',
           lineHeight: 1,
         }}

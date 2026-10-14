@@ -310,7 +310,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
         </table>
       )}
 
-      <div style={{ marginTop: '0.75rem', color: '#9CA3AF', fontSize: '0.75rem' }}>
+      <div style={{ marginTop: '0.75rem', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
         {filtered.length} entrée{filtered.length !== 1 ? 's' : ''}
         {entries.length !== filtered.length ? ` (${entries.length} au total)` : ''}
       </div>
