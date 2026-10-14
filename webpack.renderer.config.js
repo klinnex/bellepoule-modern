@@ -88,7 +88,15 @@ module.exports = (env = {}) => ({
     rules: [
       {
         test: /\.tsx?$/,
-        use: { loader: 'ts-loader', options: { ignoreDiagnostics: [5011, 5103] } },
+        use: {
+          loader: 'ts-loader',
+          options: {
+            ignoreDiagnostics: [5011, 5103],
+            // Modules ES pour Webpack : en commonjs, TypeScript réécrit import() en
+            // require() et React.lazy ne produit aucun chunk séparé.
+            compilerOptions: { module: 'esnext', moduleResolution: 'bundler' },
+          },
+        },
         exclude: /node_modules/,
       },
       {
