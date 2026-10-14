@@ -1770,7 +1770,7 @@ Unitaires : 114 fichiers, 1261 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/fencerSchedule.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/remote/fencerSchedule.test.ts</code> — 5 tests</summary>
 
 - **buildFencerSchedule (#1078)**
   - liste les matchs du tireur avec scores de son point de vue
