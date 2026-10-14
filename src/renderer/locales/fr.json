@@ -536,7 +536,8 @@
     "view_next_matches": "Matches suivants",
     "view_pools": "Poules",
     "view_ranking": "Classement",
-    "qr_fencers": "Tireurs (prochain match et piste, {{count}})"
+    "qr_fencers": "Tireurs (prochain match et piste, {{count}})",
+    "view_eta": "Fin estimée (badge)"
   },
   "ui": {
     "configure_kiosk": "🖥️ Configurer le mode kiosque",

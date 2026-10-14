@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kiosk - BellePoule Modern</title>
+    <title data-i18n="kiosk.page_title">Kiosk - BellePoule Modern</title>
     <script src="/socket.io.min.js"></script>
     <script src="/i18n.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -833,6 +833,26 @@
         display: flex;
       }
 
+      #kiosk-eta {
+        position: fixed;
+        right: 1rem;
+        bottom: 1rem;
+        z-index: 900;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 0.75rem;
+        padding: 0.4rem 0.9rem;
+        color: #e2e8f0;
+        font-size: 1rem;
+        pointer-events: none;
+      }
+      #kiosk-eta[hidden] {
+        display: none;
+      }
+      #kiosk-eta strong {
+        color: #fbbf24;
+        font-variant-numeric: tabular-nums;
+      }
       #bracket-focus-header {
         display: flex;
         align-items: center;
@@ -1134,6 +1154,13 @@
       <div id="progress-bar"></div>
     </div>
 
+    <!-- Fin estimée de la phase (#1077, désactivable : ⚙ ou config kiosk) -->
+    <div id="kiosk-eta" hidden>
+      <span id="kiosk-eta-label" data-i18n="dashboard.eta">Fin estimée</span>
+      <strong id="kiosk-eta-time">--:--</strong>
+      <span id="kiosk-eta-detail"></span>
+    </div>
+
     <!-- Overlay note d'organisation -->
     <div id="org-note-overlay">
       <div id="org-note-label" data-i18n="kiosk.pause">⏸ Pause</div>
@@ -1151,46 +1178,49 @@
       </div>
       <div class="menu-nav">
         <button id="btn-poules" class="active" onclick="switchView('poules')" data-i18n="kiosk.pools">Poules</button>
-        <button id="btn-classement" onclick="switchView('classement')">Classement Provisoire</button>
-        <button id="btn-final" onclick="switchView('final')">Classement Final</button>
+        <button id="btn-classement" onclick="switchView('classement')" data-i18n="kiosk.provisional_ranking">Classement Provisoire</button>
+        <button id="btn-final" onclick="switchView('final')" data-i18n="kiosk.final_ranking">Classement Final</button>
         <button id="btn-direct" onclick="switchView('direct')" data-i18n="kiosk.live">Matchs en direct</button>
         <button id="btn-suivants" onclick="switchView('suivants')" data-i18n="kiosk.next_matches">Matchs suivants</button>
-        <button id="btn-tableau" onclick="switchView('tableau')">Tableau DE</button>
+        <button id="btn-tableau" onclick="switchView('tableau')" data-i18n="kiosk.de_bracket">Tableau DE</button>
         <div style="position:relative;margin-left:0.5rem">
-          <button id="btn-settings" class="settings-btn" title="Configurer les vues">⚙</button>
+          <button id="btn-settings" class="settings-btn" title="Configurer les vues" data-i18n-title="kiosk.configure_views">⚙</button>
           <div id="settings-panel" class="settings-panel hidden">
             <div class="settings-title" data-i18n="kiosk.settings_title">Vues affichées</div>
             <label class="settings-item">
               <input type="checkbox" id="cb-poules" checked> <span data-i18n="kiosk.pools">Poules</span>
             </label>
             <label class="settings-item">
-              <input type="checkbox" id="cb-classement" checked> Classement Provisoire
+              <input type="checkbox" id="cb-classement" checked> <span data-i18n="kiosk.provisional_ranking">Classement Provisoire</span>
             </label>
             <label class="settings-item">
-              <input type="checkbox" id="cb-final" checked> Classement Final
+              <input type="checkbox" id="cb-final" checked> <span data-i18n="kiosk.final_ranking">Classement Final</span>
             </label>
             <label class="settings-item">
               <input type="checkbox" id="cb-direct" checked> <span data-i18n="kiosk.live_matches">Matchs en cours</span>
             </label>
             <label class="settings-item">
-              <input type="checkbox" id="cb-suivants" checked> Matchs suivants
+              <input type="checkbox" id="cb-suivants" checked> <span data-i18n="kiosk.next_matches">Matchs suivants</span>
             </label>
             <label class="settings-item">
-              <input type="checkbox" id="cb-tableau" checked> Tableau DE
+              <input type="checkbox" id="cb-tableau" checked> <span data-i18n="kiosk.de_bracket">Tableau DE</span>
+            </label>
+            <label class="settings-item">
+              <input type="checkbox" id="cb-eta" checked> <span data-i18n="kiosk.show_eta">Fin estimée</span>
             </label>
             <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0.5rem 0">
-            <div class="settings-title">Mode tableau DE</div>
+            <div class="settings-title" data-i18n="kiosk.bracket_mode">Mode tableau DE</div>
             <label class="settings-item">
-              <input type="radio" name="tableau-mode" id="tableau-mode-auto" value="auto" checked style="accent-color:#3b82f6;cursor:pointer"> Auto
+              <input type="radio" name="tableau-mode" id="tableau-mode-auto" value="auto" checked style="accent-color:#3b82f6;cursor:pointer"> <span data-i18n="kiosk.mode_auto">Auto</span>
             </label>
             <label class="settings-item">
-              <input type="radio" name="tableau-mode" id="tableau-mode-compact" value="compact" style="accent-color:#3b82f6;cursor:pointer"> Tableau complet
+              <input type="radio" name="tableau-mode" id="tableau-mode-compact" value="compact" style="accent-color:#3b82f6;cursor:pointer"> <span data-i18n="kiosk.mode_compact">Tableau complet</span>
             </label>
             <label class="settings-item">
-              <input type="radio" name="tableau-mode" id="tableau-mode-focus" value="focus" style="accent-color:#3b82f6;cursor:pointer"> Ordre de passage
+              <input type="radio" name="tableau-mode" id="tableau-mode-focus" value="focus" style="accent-color:#3b82f6;cursor:pointer"> <span data-i18n="kiosk.order">Ordre de passage</span>
             </label>
             <label class="settings-item">
-              <input type="radio" name="tableau-mode" id="tableau-mode-cinema" value="cinema" style="accent-color:#3b82f6;cursor:pointer"> Ciné (zoom auto)
+              <input type="radio" name="tableau-mode" id="tableau-mode-cinema" value="cinema" style="accent-color:#3b82f6;cursor:pointer"> <span data-i18n="kiosk.mode_cinema">Ciné (zoom auto)</span>
             </label>
             <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0.5rem 0">
             <div class="settings-title" data-i18n="kiosk.rotation_label">Rafraîchissement</div>
@@ -1232,8 +1262,8 @@
     <div id="view-classement" class="kiosk-view">
       <div class="view-header">
         <div>
-          <div class="view-title">Classement Provisoire</div>
-          <div class="view-subtitle">Résultats des poules</div>
+          <div class="view-title" data-i18n="kiosk.provisional_ranking">Classement Provisoire</div>
+          <div class="view-subtitle" data-i18n="kiosk.pool_results">Résultats des poules</div>
         </div>
         <div class="view-badge" id="classement-badge">—</div>
       </div>
@@ -1243,16 +1273,16 @@
             <thead>
               <tr>
                 <th style="width:60px">Rg</th>
-                <th>Tireur</th>
-                <th>Club</th>
+                <th data-i18n="kiosk.col_fencer">Tireur</th>
+                <th data-i18n="kiosk.col_club">Club</th>
                 <th style="text-align:center">V</th>
-                <th style="text-align:center">Ind</th>
+                <th style="text-align:center" data-i18n="kiosk.col_index">Ind</th>
                 <th style="text-align:center">TD</th>
               </tr>
             </thead>
             <tbody id="ranking-body">
               <tr>
-                <td colspan="6" style="text-align:center;color:#64748b;padding:3rem">En attente des résultats...</td>
+                <td colspan="6" style="text-align:center;color:#64748b;padding:3rem" data-i18n="kiosk.waiting_results">En attente des résultats...</td>
               </tr>
             </tbody>
           </table>
@@ -1264,13 +1294,13 @@
     <div id="view-final" class="kiosk-view">
       <div class="view-header">
         <div>
-          <div class="view-title">🏆 Classement Final</div>
-          <div class="view-subtitle">Résultats définitifs de la compétition</div>
+          <div class="view-title" data-i18n="kiosk.final_ranking_title">🏆 Classement Final</div>
+          <div class="view-subtitle" data-i18n="kiosk.final_subtitle">Résultats définitifs de la compétition</div>
         </div>
         <div class="view-badge" id="final-badge">—</div>
       </div>
       <div id="final-ranking-body" style="display:flex;flex-direction:column;gap:0.5rem;flex:1">
-        <div class="final-ranking-not-done">⏳ Compétition non terminée</div>
+        <div class="final-ranking-not-done" data-i18n="kiosk.not_finished">⏳ Compétition non terminée</div>
       </div>
     </div>
 
@@ -1278,16 +1308,16 @@
     <div id="view-suivants" class="kiosk-view">
       <div class="view-header">
         <div>
-          <div class="view-title">Matchs Suivants</div>
-          <div class="view-subtitle">Ordre de passage</div>
+          <div class="view-title" data-i18n="kiosk.next_matches_title">Matchs Suivants</div>
+          <div class="view-subtitle" data-i18n="kiosk.order">Ordre de passage</div>
         </div>
         <div class="view-badge" id="suivants-badge">—</div>
       </div>
       <div class="suivants-list" id="suivants-container">
         <div class="no-data">
           <div class="no-data-icon">📋</div>
-          <h3>Aucun match à venir</h3>
-          <p>Les matchs suivants apparaîtront ici</p>
+          <h3 data-i18n="kiosk.no_next">Aucun match à venir</h3>
+          <p data-i18n="kiosk.no_next_hint">Les matchs suivants apparaîtront ici</p>
         </div>
       </div>
     </div>
@@ -1296,7 +1326,7 @@
     <div id="view-tableau" class="kiosk-view">
       <div class="view-header">
         <div>
-          <div class="view-title">Tableau d'Élimination</div>
+          <div class="view-title" data-i18n="kiosk.bracket_title">Tableau d'Élimination</div>
           <div class="view-subtitle" id="tableau-subtitle">Tableau direct</div>
         </div>
         <div class="view-badge" id="tableau-badge">—</div>
@@ -1305,8 +1335,8 @@
         <div class="bracket-inner" id="bracket-inner">
           <div class="no-data">
             <div class="no-data-icon">🏆</div>
-            <h3>Tableau non disponible</h3>
-            <p>Le tableau apparaîtra lors de la phase d'élimination directe</p>
+            <h3 data-i18n="kiosk.no_bracket">Tableau non disponible</h3>
+            <p data-i18n="kiosk.no_bracket_hint">Le tableau apparaîtra lors de la phase d'élimination directe</p>
           </div>
         </div>
         <div id="cinema-minimap">
@@ -1331,16 +1361,16 @@
     <div id="view-direct" class="kiosk-view">
       <div class="view-header">
         <div>
-          <div class="view-title">Matchs en Direct</div>
-          <div class="view-subtitle">État des pistes</div>
+          <div class="view-title" data-i18n="kiosk.live_title">Matchs en Direct</div>
+          <div class="view-subtitle" data-i18n="kiosk.strips_status">État des pistes</div>
         </div>
         <div class="view-badge" id="direct-badge">—</div>
       </div>
       <div class="arenas-grid" id="arenas-container">
         <div class="no-data">
           <div class="no-data-icon">⏱️</div>
-          <h3>Aucun match en cours</h3>
-          <p>Les matchs apparaîtront ici en temps réel</p>
+          <h3 data-i18n="kiosk.no_live">Aucun match en cours</h3>
+          <p data-i18n="kiosk.no_live_hint">Les matchs apparaîtront ici en temps réel</p>
         </div>
       </div>
     </div>
@@ -1661,7 +1691,7 @@
           // 1. Session
           const sessRes = await fetch('/api/session');
           if (!sessRes.ok) {
-            setStatus(false, 'Aucune session active');
+            setStatus(false, tk('kiosk.no_session'));
             return;
           }
           state.session = await sessRes.json();
@@ -1732,9 +1762,9 @@
           }
 
           state.lastUpdate = new Date();
-          setStatus(true, 'Mis à jour ' + state.lastUpdate.toLocaleTimeString('fr-FR'));
+          setStatus(true, tk('kiosk.updated') + ' ' + state.lastUpdate.toLocaleTimeString('fr-FR'));
         } catch (err) {
-          setStatus(false, 'Erreur de connexion');
+          setStatus(false, tk('remote.error_connection'));
         }
       }
 
@@ -1768,10 +1798,10 @@
         const container = document.getElementById('pools-container');
         const pools = state.poolsData;
 
-        document.getElementById('poules-badge').textContent = pools.length + ' poule' + (pools.length > 1 ? 's' : '');
+        document.getElementById('poules-badge').textContent = tk('kiosk.count_pools', { count: pools.length });
 
         if (!pools || pools.length === 0) {
-          container.innerHTML = '<div class="no-data"><div class="no-data-icon">🤺</div><h3>Aucune poule disponible</h3><p>Démarrez la compétition pour voir les poules</p></div>';
+          container.innerHTML = '<div class="no-data"><div class="no-data-icon">🤺</div><h3>' + escHtml(tk('kiosk.no_pools')) + '</h3><p>' + escHtml(tk('kiosk.no_pools_hint')) + '</p></div>';
           return;
         }
 
@@ -1802,7 +1832,7 @@
             <table class="pool-table">
               <thead>
                 <tr>
-                  <th>Rg</th><th>Tireur</th><th>M</th><th>V</th><th>Ind</th><th>TD</th>
+                  <th>Rg</th><th data-i18n="kiosk.col_fencer">Tireur</th><th>M</th><th>V</th><th>Ind</th><th>TD</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
@@ -1818,9 +1848,9 @@
         // Mode entraînement : afficher l'historique des combats
         if (state.session?.competitionId === '__training__') {
           const hist = (state.trainingHistory || []).slice().reverse();
-          document.getElementById('classement-badge').textContent = hist.length + ' combat' + (hist.length !== 1 ? 's' : '');
+          document.getElementById('classement-badge').textContent = tk('kiosk.count_bouts', { count: hist.length });
           if (!hist.length) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:3rem">Aucun combat terminé</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:3rem">' + escHtml(tk('kiosk.no_finished_bout')) + '</td></tr>';
             return;
           }
           tbody.innerHTML = hist.map(r => {
@@ -1838,10 +1868,10 @@
         }
 
         const ranking = state.overallRanking;
-        document.getElementById('classement-badge').textContent = ranking.length + ' tireur' + (ranking.length > 1 ? 's' : '');
+        document.getElementById('classement-badge').textContent = tk('kiosk.count_fencers', { count: ranking.length });
 
         if (!ranking || ranking.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:3rem">En attente des résultats...</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:3rem">' + escHtml(tk('kiosk.waiting_results')) + '</td></tr>';
           return;
         }
 
@@ -1879,7 +1909,7 @@
           return;
         }
         if (!data?.rounds?.length) {
-          el.innerHTML = '<div class="final-ranking-not-done">⏳ Compétition non terminée — le classement final apparaîtra à la fin du tableau d\'élimination.</div>';
+          el.innerHTML = '<div class="final-ranking-not-done">' + escHtml(tk('kiosk.not_finished_long')) + '</div>';
           document.getElementById('final-badge').textContent = '—';
           return;
         }
@@ -1890,7 +1920,7 @@
         const pfMatch = pfRound?.matches?.[0];
 
         if (!finaleMatch?.winnerId) {
-          el.innerHTML = '<div class="final-ranking-not-done">⏳ Compétition non terminée — le classement final apparaîtra à la fin du tableau d\'élimination.</div>';
+          el.innerHTML = '<div class="final-ranking-not-done">' + escHtml(tk('kiosk.not_finished_long')) + '</div>';
           document.getElementById('final-badge').textContent = '—';
           return;
         }
@@ -1948,15 +1978,15 @@
 
       function renderFinalTable(el, ranked) {
         const rankLabel = r => r <= 4 ? ['🥇','🥈','🥉','4️⃣'][r-1] : r + 'e';
-        document.getElementById('final-badge').textContent = ranked.length + ' tireur' + (ranked.length > 1 ? 's' : '');
+        document.getElementById('final-badge').textContent = tk('kiosk.count_fencers', { count: ranked.length });
 
         el.innerHTML = `<div class="ranking-scroll-wrapper" style="flex:1">
           <table class="ranking-table">
             <thead>
               <tr>
                 <th style="width:60px">Rg</th>
-                <th>Tireur</th>
-                <th>Club</th>
+                <th data-i18n="kiosk.col_fencer">Tireur</th>
+                <th data-i18n="kiosk.col_club">Club</th>
               </tr>
             </thead>
             <tbody>
@@ -1980,14 +2010,14 @@
           pending.length + ' match' + (pending.length > 1 ? 's' : '');
 
         if (!matches || matches.length === 0) {
-          container.innerHTML = '<div class="no-data"><div class="no-data-icon">📋</div><h3>Aucun match à venir</h3><p>Tous les matchs sont terminés ou aucune session active</p></div>';
+          container.innerHTML = '<div class="no-data"><div class="no-data-icon">📋</div><h3>' + escHtml(tk('kiosk.no_next')) + '</h3><p>' + escHtml(tk('kiosk.no_next_done')) + '</p></div>';
           return;
         }
 
         // Grouper par pool
         const byPool = new Map();
         for (const m of matches) {
-          const key = m.poolName || 'Sans poule';
+          const key = m.poolName || tk('kiosk.no_pool');
           if (!byPool.has(key)) byPool.set(key, []);
           byPool.get(key).push(m);
         }
@@ -2026,10 +2056,10 @@
         const arenas = state.arenasData;
 
         const activeCount = arenas.filter(a => a.status === 'in_progress').length;
-        document.getElementById('direct-badge').textContent = activeCount + ' piste' + (activeCount > 1 ? 's' : '') + ' active' + (activeCount > 1 ? 's' : '');
+        document.getElementById('direct-badge').textContent = tk('kiosk.count_active_strips', { count: activeCount });
 
         if (!arenas || arenas.length === 0) {
-          container.innerHTML = '<div class="no-data"><div class="no-data-icon">⏱️</div><h3>Aucune piste configurée</h3></div>';
+          container.innerHTML = '<div class="no-data"><div class="no-data-icon">⏱️</div><h3>' + escHtml(tk('kiosk.no_strips')) + '</h3></div>';
           return;
         }
 
@@ -2524,7 +2554,7 @@
         if (!data || !data.rounds || data.rounds.length === 0) {
           document.getElementById('tableau-badge').textContent = '—';
           stopFocusMode();
-          container.innerHTML = '<div class="no-data"><div class="no-data-icon">🏆</div><h3>Tableau non disponible</h3><p>Le tableau apparaîtra lors de la phase d\'élimination directe</p></div>';
+          container.innerHTML = '<div class="no-data"><div class="no-data-icon">🏆</div><h3>' + escHtml(tk('kiosk.no_bracket')) + '</h3><p>' + escHtml(tk('kiosk.no_bracket_hint')) + '</p></div>';
           return;
         }
 
@@ -2534,7 +2564,7 @@
         document.getElementById('tableau-badge').textContent = 'T' + data.tableSize + ' · ' + (total - pending) + '/' + total;
         const orderedForLabel = getBracketRoundOrder(data.rounds);
         document.getElementById('tableau-subtitle').textContent =
-          data.currentRound ? orderedForLabel.find(r => r.round === data.currentRound)?.label || 'En cours' : 'Phase terminée';
+          data.currentRound ? orderedForLabel.find(r => r.round === data.currentRound)?.label || tk('arena.status_in_progress') : tk('kiosk.phase_finished');
 
         // Basculer en mode focus pour les grands tableaux
         if (isFocusMode(data)) {
@@ -2555,7 +2585,7 @@
 
         const orderedRounds = getBracketRoundOrder(data.rounds);
         if (orderedRounds.length === 0) {
-          container.innerHTML = '<div class="no-data"><div class="no-data-icon">🏆</div><h3>Aucun match disponible</h3></div>';
+          container.innerHTML = '<div class="no-data"><div class="no-data-icon">🏆</div><h3>' + escHtml(tk('kiosk.no_match')) + '</h3></div>';
           return;
         }
 
@@ -2746,6 +2776,11 @@
       }
 
       // ─── Helpers ─────────────────────────────────────────────────────────────
+      // Traduction (src/remote/i18n.js) ; repli sur la clé si i18n.js absent
+      function tk(key, params) {
+        return window.T ? window.T(key, params) : key;
+      }
+
       function escHtml(s) {
         if (!s) return '';
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -2793,7 +2828,7 @@
           }
           ov.innerHTML = '<div style="background:rgba(0,0,0,0.85);border:3px solid #3b82f6;border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">'
             + '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">📺 ' + escHtml(label) + '</div>'
-            + '<div style="font-size:1rem;color:#94a3b8;">Identification écran</div>'
+            + '<div style="font-size:1rem;color:#94a3b8;">' + escHtml(tk('kiosk.identify')) + '</div>'
             + '</div>';
           ov.style.display = 'flex';
           clearTimeout(ov._t);
@@ -2839,6 +2874,7 @@
               const viewKeys = ['poules','classement','final','direct','suivants','tableau'];
               const cur = JSON.parse(localStorage.getItem('kioskViewsLocal') || '{}');
               viewKeys.forEach(k => { if (k in cfg) cur[k] = cfg[k]; });
+              if ('eta' in cfg) localStorage.setItem('kioskShowEta', cfg.eta === false ? '0' : '1');
               localStorage.setItem('kioskViewsLocal', JSON.stringify(cur));
               // Recharger pour appliquer la nouvelle config
               location.reload();
@@ -2863,6 +2899,50 @@
           }
         }, { capture: true });
       });
+    </script>
+    <script>
+      // Fin estimée de la phase en cours (#1077) — option désactivable (kioskShowEta)
+      (function () {
+        const box = document.getElementById('kiosk-eta');
+        const cb = document.getElementById('cb-eta');
+        const enabled = () => localStorage.getItem('kioskShowEta') !== '0';
+        if (cb) {
+          cb.checked = enabled();
+          cb.addEventListener('change', () => {
+            localStorage.setItem('kioskShowEta', cb.checked ? '1' : '0');
+            refresh();
+          });
+        }
+        async function refresh() {
+          if (!enabled()) {
+            box.hidden = true;
+            return;
+          }
+          try {
+            const res = await fetch('/api/public/eta', { cache: 'no-store' });
+            const { eta } = await res.json();
+            if (!eta || !eta.remainingMatches) {
+              box.hidden = true;
+              return;
+            }
+            const T = window.T || (k => k);
+            document.getElementById('kiosk-eta-label').textContent = T(
+              eta.basis === 'measured' ? 'dashboard.eta' : 'dashboard.eta_default'
+            );
+            document.getElementById('kiosk-eta-time').textContent = new Date(
+              eta.finishAt
+            ).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('kiosk-eta-detail').textContent =
+              '· ' + T('dashboard.eta_remaining', { count: eta.remainingMatches });
+            box.hidden = false;
+          } catch (e) {
+            box.hidden = true;
+          }
+        }
+        // Premier affichage après le chargement de la langue (initRemoteI18n)
+        setTimeout(refresh, 2000);
+        setInterval(refresh, 30000);
+      })();
     </script>
   </body>
 </html>

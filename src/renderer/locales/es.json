@@ -536,7 +536,8 @@
     "view_next_matches": "Próximos combates",
     "view_pools": "Poules",
     "view_ranking": "Clasificación",
-    "qr_fencers": "Tiradores (próximo asalto y pista, {{count}})"
+    "qr_fencers": "Tiradores (próximo asalto y pista, {{count}})",
+    "view_eta": "Fin estimada (insignia)"
   },
   "ui": {
     "configure_kiosk": "🖥️ Configurar el modo quiosco",

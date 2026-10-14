@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arène équipe — BellePoule</title>
+    <title data-i18n="team.arena_page_title">Arène équipe — BellePoule</title>
+    <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
       * { box-sizing: border-box; }
@@ -62,7 +63,7 @@
     </style>
   </head>
   <body>
-    <div id="waiting">En attente d'une rencontre équipe sur cette arène…</div>
+    <div id="waiting" data-i18n="team.waiting_display">En attente d'une rencontre équipe sur cette arène…</div>
     <div id="match">
       <div class="bout-info" id="bout-info">Assaut —/—</div>
       <div class="teams">
@@ -84,7 +85,7 @@
       <div class="cap" id="cap-label"></div>
       <div class="timer" id="timer">3:00</div>
       <div class="cards" id="cards"></div>
-      <div class="match-complete" id="match-complete" style="display: none">Rencontre terminée</div>
+      <div class="match-complete" id="match-complete" style="display: none" data-i18n="team.match_complete">Rencontre terminée</div>
     </div>
 
     <script>
@@ -97,6 +98,9 @@
         }
 
         const arenaId = getArenaId();
+        // Traduction (src/remote/i18n.js) ; repli sur la clé si i18n.js absent
+        const tk = (key, params) => (window.T ? window.T(key, params) : key);
+        if (window.initRemoteI18n) window.initRemoteI18n();
         const socket = io({ reconnection: true, reconnectionDelay: 300, reconnectionDelayMax: 5000 });
         let lastState = null;
 
@@ -133,7 +137,7 @@
             complete.style.display = 'none';
             const bout = lastState.currentBout;
             document.getElementById('bout-info').textContent = bout
-              ? `Assaut ${bout.boutOrder}/${lastState.bouts.length}`
+              ? tk('team.bout_n', { n: bout.boutOrder, total: lastState.bouts.length })
               : '';
             document.getElementById('fencer-a-name').textContent = bout ? bout.fencerAName : '';
             document.getElementById('fencer-b-name').textContent = bout ? bout.fencerBName : '';
@@ -142,7 +146,7 @@
           document.getElementById('score-a').textContent = lastState.liveScoreA;
           document.getElementById('score-b').textContent = lastState.liveScoreB;
           document.getElementById('cap-label').textContent =
-            `Plafond : ${lastState.cap.maxTouches} touches valides ou ${formatTime(lastState.cap.maxDurationSec)}`;
+            tk('team.cap_long', { touches: lastState.cap.maxTouches, time: formatTime(lastState.cap.maxDurationSec) });
 
           const remaining = Math.max(0, lastState.cap.maxDurationSec - lastState.elapsedSec);
           const timerEl = document.getElementById('timer');

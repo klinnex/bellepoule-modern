@@ -536,7 +536,8 @@
     "view_next_matches": "Next matches",
     "view_pools": "Pools",
     "view_ranking": "Ranking",
-    "qr_fencers": "Fencers (next bout and strip, {{count}})"
+    "qr_fencers": "Fencers (next bout and strip, {{count}})",
+    "view_eta": "Estimated finish (badge)"
   },
   "ui": {
     "configure_kiosk": "🖥️ Configure kiosk mode",

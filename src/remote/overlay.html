@@ -38,7 +38,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Overlay BellePoule</title>
+    <title data-i18n="overlay.page_title">Overlay BellePoule</title>
+    <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
       /* ── Police 7 segments (embarquée, identique à arena.html) ── */
@@ -352,7 +353,7 @@
         <img class="center-logo" id="center-logo" alt="logo" />
         <div class="timer-display" id="timer">03:00</div>
         <div class="phase-label" id="phase-label">Piste 1</div>
-        <div class="sd-badge" id="sd-badge">⚡ Mort subite</div>
+        <div class="sd-badge" id="sd-badge" data-i18n="overlay.sudden_death">⚡ Mort subite</div>
       </div>
 
       <!-- Tireur B (droite / rouge) -->
@@ -369,12 +370,11 @@
     </div>
 
     <!-- Écran d'attente affiché quand aucun match n'est en cours -->
-    <div class="idle-screen" id="idle-screen">
-      En attente d'un match…
-    </div>
+    <div class="idle-screen" id="idle-screen" data-i18n="overlay.waiting">En attente d'un match…</div>
 
     <script>
       (() => {
+        if (window.initRemoteI18n) window.initRemoteI18n();
         /* ── Lecture des paramètres ── */
         const params  = new URLSearchParams(window.location.search);
         const theme   = params.get('theme') || 'transparent';

@@ -371,6 +371,8 @@ export interface KioskScreenConfig {
   suivants: boolean;
   tableau: boolean;
   rotationSec: number;
+  /** Badge « fin estimée » de la phase en cours (défaut : affiché, #1077) */
+  eta?: boolean;
 }
 
 export interface TVCommand {
