@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { createPortal } from 'react-dom';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { MAX_MATCHES_PER_PAGE_TABLEAU } from '../../../shared/utils/pdfConstants';
 import { TableauMatch } from './tableauTypes';
 import { getRoundName } from './tableauCalculations';
@@ -64,11 +65,20 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
   onClose,
 }) => {
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
+  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   return createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+      <div
+        ref={modalRef}
+        className="modal"
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '400px' }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tableau-pdf-title"
+      >
         <div className="modal-header">
-          <h3 className="modal-title">
+          <h3 className="modal-title" id="tableau-pdf-title">
             {pdfMode === 'print'
               ? 'Imprimer'
               : pdfMode === 'preview'

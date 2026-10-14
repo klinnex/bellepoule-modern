@@ -17,6 +17,15 @@ export const isConfettiDisabled = (): boolean => {
   }
 };
 
+// Préférence système : réduire les animations (prefers-reduced-motion)
+export const prefersReducedMotion = (): boolean => {
+  try {
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  } catch {
+    return false;
+  }
+};
+
 interface ConfettiProps {
   active: boolean;
   duration?: number;
@@ -86,7 +95,7 @@ const Confetti: React.FC<ConfettiProps> = ({
     [origin, particleCount]
   );
 
-  const enabled = active && !isConfettiDisabled();
+  const enabled = active && !isConfettiDisabled() && !prefersReducedMotion();
 
   useEffect(() => {
     if (!enabled) return;

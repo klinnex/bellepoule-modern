@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { createPortal } from 'react-dom';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { TableauMatch } from './tableauTypes';
 
 interface TableauArenaModalProps {
@@ -43,12 +44,23 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
   onAssign,
   onClose,
 }) => {
+  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
   return createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+      <div
+        ref={modalRef}
+        className="modal"
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '400px' }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tableau-arena-title"
+      >
         <div className="modal-header">
-          <h3 className="modal-title">Assigner à une piste</h3>
+          <h3 className="modal-title" id="tableau-arena-title">
+            Assigner à une piste
+          </h3>
           <button className="btn-close" onClick={onClose}>
             &times;
           </button>

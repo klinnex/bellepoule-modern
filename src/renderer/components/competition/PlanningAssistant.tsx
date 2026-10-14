@@ -6,6 +6,7 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { Competition, MatchStatus, Pool } from '../../../shared/types';
 import {
   TournamentFlowManager,
@@ -32,6 +33,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
   onClose,
 }) => {
   const isTableau = !!tableauBrackets;
+  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [arenaCount, setArenaCount] = useState(Math.max(1, suggestedArenaCount));
   const [result, setResult] = useState<FlowOptimizationResult | null>(null);
   const [recommendations, setRecommendations] = useState<string[]>([]);
@@ -93,6 +95,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
   return (
     <div className="modal-overlay" onClick={onClose} style={{ zIndex: 11000 }}>
       <div
+        ref={modalRef}
         className="modal"
         onClick={e => e.stopPropagation()}
         style={{ maxWidth: '560px' }}

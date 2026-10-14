@@ -123,7 +123,6 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
               padding: '0.4rem 0.75rem',
               fontSize: '0.875rem',
               width: 200,
-              outline: 'none',
               background: 'var(--color-bg, #f3f4f6)',
             }}
           />

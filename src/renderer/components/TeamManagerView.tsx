@@ -275,11 +275,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
   // ── Générer poule (round-robin) ───────────────────────────────────────────────
   const handleGeneratePool = async () => {
     if (teams.length < 2) return;
-    if (
-      matches.length > 0 &&
-      !(await confirm('Des matchs existent déjà. Supprimer et régénérer ?'))
-    )
-      return;
+    if (matches.length > 0 && !(await confirm(t('teams.confirmRegenerate')))) return;
 
     if (isLaserArena) {
       // Calendrier de poule figé du règlement (uniquement 8 ou 12 équipes) —

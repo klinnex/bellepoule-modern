@@ -9,6 +9,7 @@ import type { MatchEventEntry, MatchEventType } from '../../shared/types';
 import { useMatchAuditStore } from '../../features/matchAuditLog/hooks/useMatchAuditStore';
 import { useToast } from './Toast';
 import { useTranslation } from '../contexts/TranslationContext';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import MatchReplay from './MatchReplay';
 import { describeMatchEvent, exportMatchTimelineJSON } from '../../shared/utils/multiFormatExport';
 
@@ -118,6 +119,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
 }) => {
   const { showToast } = useToast();
   const { t } = useTranslation();
+  const modalRef = useFocusTrap<HTMLDivElement>(!!onClose, onClose);
   const [refereeView, setRefereeView] = useState(false);
   const [showReplay, setShowReplay] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState('');
@@ -815,8 +817,12 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
   return createPortal(
     <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1000 }}>
       <div
+        ref={modalRef}
         className="modal modal--xl"
         onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="match-audit-title"
         style={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
       >
         <div
@@ -827,7 +833,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             marginBottom: '1rem',
           }}
         >
-          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>
+          <h2 id="match-audit-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>
             Journal du match{matchTitle ? ` — ${matchTitle}` : ''}
           </h2>
           <button className="btn-close" onClick={onClose}>
