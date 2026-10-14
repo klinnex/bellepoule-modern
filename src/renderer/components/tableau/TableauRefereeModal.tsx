@@ -77,7 +77,9 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
           </button>
         </div>
         <div className="modal-body" style={{ padding: '1.5rem' }}>
-          <p style={{ marginBottom: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+          <p
+            style={{ marginBottom: '1rem', color: 'var(--color-text-light)', fontSize: '0.875rem' }}
+          >
             {isMulti
               ? `Sélectionnez jusqu'à ${maxReferees} arbitres pour ce match (le premier sélectionné est l'arbitre principal) :`
               : "Sélectionnez l'arbitre pour ce match :"}
@@ -91,7 +93,13 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
               ✕ Aucun arbitre
             </button>
             {referees.length === 0 && (
-              <p style={{ color: '#9ca3af', fontSize: '0.875rem', textAlign: 'center' }}>
+              <p
+                style={{
+                  color: 'var(--color-text-muted)',
+                  fontSize: '0.875rem',
+                  textAlign: 'center',
+                }}
+              >
                 Aucun arbitre pointé pour cette compétition
               </p>
             )}

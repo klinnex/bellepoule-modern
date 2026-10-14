@@ -202,7 +202,7 @@ export const VoiceScoreController: React.FC<{
             width: '48px',
             height: '48px',
             borderRadius: '50%',
-            backgroundColor: isListening ? '#ef4444' : '#e5e7eb',
+            backgroundColor: isListening ? '#ef4444' : 'var(--color-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -215,7 +215,7 @@ export const VoiceScoreController: React.FC<{
         </div>
         <div>
           <h3 style={{ margin: 0, fontSize: '18px' }}>Contrôle Vocal</h3>
-          <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
+          <p style={{ margin: '4px 0 0 0', color: 'var(--color-text-light)', fontSize: '14px' }}>
             {isListening ? 'Écoute en cours...' : 'Appuyez pour activer'}
           </p>
         </div>
@@ -241,7 +241,7 @@ export const VoiceScoreController: React.FC<{
         style={{
           width: '100%',
           padding: '12px',
-          backgroundColor: isListening ? '#ef4444' : '#3b82f6',
+          backgroundColor: isListening ? '#ef4444' : 'var(--color-primary)',
           color: 'white',
           border: 'none',
           borderRadius: '8px',
@@ -259,7 +259,7 @@ export const VoiceScoreController: React.FC<{
           style={{
             marginTop: '16px',
             padding: '12px',
-            backgroundColor: '#f3f4f6',
+            backgroundColor: 'var(--color-bg)',
             borderRadius: '8px',
             fontSize: '14px',
           }}
@@ -284,10 +284,17 @@ export const VoiceScoreController: React.FC<{
       )}
 
       <div style={{ marginTop: '16px' }}>
-        <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#374151' }}>
+        <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--color-text)' }}>
           Commandes disponibles:
         </h4>
-        <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: '#6b7280' }}>
+        <ul
+          style={{
+            margin: 0,
+            paddingLeft: '20px',
+            fontSize: '13px',
+            color: 'var(--color-text-light)',
+          }}
+        >
           {commands.map((cmd, idx) => (
             <li key={idx}>{cmd.description}</li>
           ))}

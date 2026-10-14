@@ -25,11 +25,11 @@ interface ConsolationBracketsSectionProps {
 const CONS_STYLES = {
   consolationSection: { marginTop: '1.5rem' } satisfies React.CSSProperties,
   consolationCard: {
-    background: 'var(--tableau-bg, #f9fafb)',
+    background: 'var(--tableau-bg, var(--color-surface-2))',
     borderRadius: '8px',
     padding: '1rem',
     marginBottom: '1rem',
-    border: '1px solid var(--tableau-border, #e5e7eb)',
+    border: '1px solid var(--tableau-border, var(--color-border))',
   } satisfies React.CSSProperties,
   consolationToolbar: {
     display: 'flex',
@@ -47,7 +47,7 @@ const CONS_STYLES = {
     margin: 0,
     fontSize: '1rem',
     fontWeight: 600,
-    color: 'var(--tableau-title, #374151)',
+    color: 'var(--tableau-title, var(--color-text))',
   } satisfies React.CSSProperties,
   consolationDoneBadge: {
     background: '#d1fae5',
@@ -78,7 +78,7 @@ const CONS_STYLES = {
     textAlign: 'center' as const,
     fontWeight: 600,
     marginBottom: '0.5rem',
-    color: 'var(--tableau-title, #374151)',
+    color: 'var(--tableau-title, var(--color-text))',
     fontSize: '0.875rem',
   } satisfies React.CSSProperties,
   consolationRoundMatches: {

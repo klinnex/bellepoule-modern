@@ -446,7 +446,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               style={{
                 fontSize: '0.875rem',
                 fontWeight: '600',
-                color: '#6b7280',
+                color: 'var(--color-text-light)',
                 marginBottom: '0.75rem',
                 textTransform: 'uppercase',
               }}
@@ -509,7 +509,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               style={{
                 fontSize: '0.875rem',
                 fontWeight: '600',
-                color: '#6b7280',
+                color: 'var(--color-text-light)',
                 marginBottom: '0.75rem',
                 textTransform: 'uppercase',
               }}
@@ -581,7 +581,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               style={{
                 fontSize: '0.875rem',
                 fontWeight: '600',
-                color: '#6b7280',
+                color: 'var(--color-text-light)',
                 marginBottom: '0.75rem',
                 textTransform: 'uppercase',
               }}
@@ -608,7 +608,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 style={{
                   fontSize: '0.875rem',
                   fontWeight: '600',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   marginBottom: '0.75rem',
                   textTransform: 'uppercase',
                 }}
@@ -714,7 +714,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               style={{
                 fontSize: '0.875rem',
                 fontWeight: '600',
-                color: '#6b7280',
+                color: 'var(--color-text-light)',
                 marginBottom: '0.75rem',
                 textTransform: 'uppercase',
               }}
@@ -780,7 +780,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 style={{
                   background: '#fefce8',
                   // Fond jaune clair dans les deux thèmes : libellés en noir (#1032)
-                  color: '#1f2937',
+                  color: 'var(--color-text)',
                   border: '1px solid #fde047',
                   borderRadius: '8px',
                   padding: '1rem',
@@ -791,7 +791,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 }}
               >
                 <div className="form-group">
-                  <label htmlFor="maxRefereesPerPool" style={{ ...SM, color: '#1f2937' }}>
+                  <label htmlFor="maxRefereesPerPool" style={{ ...SM, color: 'var(--color-text)' }}>
                     Arbitres max par poule
                   </label>
                   <input
@@ -807,7 +807,10 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="maxRefereesPerMatch" style={{ ...SM, color: '#1f2937' }}>
+                  <label
+                    htmlFor="maxRefereesPerMatch"
+                    style={{ ...SM, color: 'var(--color-text)' }}
+                  >
                     Arbitres max par match (tableau)
                   </label>
                   <input

@@ -111,8 +111,8 @@ const ScoreCell = React.memo<ScoreCellProps>(
           className="pool-cell pool-cell-forfeit"
           style={{
             cursor: 'not-allowed',
-            backgroundColor: '#e5e7eb',
-            color: '#9ca3af',
+            backgroundColor: 'var(--color-border)',
+            color: 'var(--color-text-muted)',
           }}
           title="Match non disputé (abandon/forfait)"
         >
@@ -140,7 +140,7 @@ const ScoreCell = React.memo<ScoreCellProps>(
       textAlign: 'center',
       fontSize: '0.7rem',
       padding: '1px 2px',
-      border: '1px solid #3b82f6',
+      border: '1px solid var(--color-primary)',
       borderRadius: '2px',
       outline: 'none',
       background: 'white',
@@ -157,7 +157,7 @@ const ScoreCell = React.memo<ScoreCellProps>(
             position: 'relative',
             padding: '2px',
             background: 'rgba(59,130,246,0.08)',
-            outline: '2px solid #3b82f6',
+            outline: '2px solid var(--color-primary)',
             outlineOffset: '-2px',
           }}
           onClick={e => e.stopPropagation()}
@@ -248,11 +248,11 @@ const ScoreCell = React.memo<ScoreCellProps>(
             )}
           </>
         ) : bufferedScore !== undefined ? (
-          <span style={{ color: '#3b82f6', fontStyle: 'italic', fontSize: '0.85rem' }}>
+          <span style={{ color: 'var(--color-primary)', fontStyle: 'italic', fontSize: '0.85rem' }}>
             {bufferedScore}
           </span>
         ) : (
-          <span style={{ color: '#9CA3AF' }}>-</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>-</span>
         )}
       </div>
     );
@@ -598,7 +598,13 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               })()}
               <span className="truncate" style={{ flex: 1, fontSize: '0.8rem' }}>
                 <span style={{ fontWeight: 700 }}>{rowFencer.lastName}</span>
-                <span style={{ fontSize: '0.7rem', color: '#6b7280', marginLeft: '0.25rem' }}>
+                <span
+                  style={{
+                    fontSize: '0.7rem',
+                    color: 'var(--color-text-light)',
+                    marginLeft: '0.25rem',
+                  }}
+                >
                   {rowFencer.firstName?.charAt(0)}.
                 </span>
               </span>
@@ -628,7 +634,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                   style={{
                     padding: '0.125rem 0.25rem',
                     fontSize: '0.625rem',
-                    background: '#e5e7eb',
+                    background: 'var(--color-border)',
                     border: 'none',
                     borderRadius: '3px',
                     cursor: 'pointer',
@@ -716,7 +722,10 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               </div>
             )}
             {isVisible('club') && (
-              <div className="pool-cell" style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+              <div
+                className="pool-cell"
+                style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}
+              >
                 {rowFencer.club ?? ''}
               </div>
             )}
@@ -726,7 +735,10 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               </div>
             )}
             {isVisible('region') && (
-              <div className="pool-cell" style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+              <div
+                className="pool-cell"
+                style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}
+              >
                 {rowFencer.region ?? ''}
               </div>
             )}

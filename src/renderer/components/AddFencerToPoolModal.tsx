@@ -171,7 +171,7 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
             style={{
               width: '100%',
               padding: '0.5rem 0.75rem',
-              border: '1px solid #d1d5db',
+              border: '1px solid var(--color-border-dark)',
               borderRadius: '6px',
               marginBottom: '0.75rem',
               fontSize: '0.875rem',
@@ -183,7 +183,7 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
             style={{
               maxHeight: '240px',
               overflowY: 'auto',
-              border: '1px solid #e5e7eb',
+              border: '1px solid var(--color-border)',
               borderRadius: '6px',
             }}
           >
@@ -192,7 +192,7 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
                 style={{
                   padding: '1rem',
                   textAlign: 'center',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
@@ -203,7 +203,7 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
                 style={{
                   padding: '1rem',
                   textAlign: 'center',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
@@ -220,7 +220,7 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
                       padding: '0.6rem 0.75rem',
                       cursor: 'pointer',
                       background: isSelected ? '#eff6ff' : 'transparent',
-                      borderBottom: '1px solid #f3f4f6',
+                      borderBottom: '1px solid var(--color-bg)',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -238,7 +238,9 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
                       {f.lastName} {f.firstName}
                     </span>
                     {f.club && (
-                      <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{f.club}</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                        {f.club}
+                      </span>
                     )}
                   </div>
                 );

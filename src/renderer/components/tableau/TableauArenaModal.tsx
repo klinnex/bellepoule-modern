@@ -22,7 +22,10 @@ interface TableauArenaModalProps {
 
 const ARENA_STYLES = {
   arenaModalBody: { padding: '1.5rem' } satisfies React.CSSProperties,
-  arenaModalHint: { marginBottom: '1rem', color: '#6b7280' } satisfies React.CSSProperties,
+  arenaModalHint: {
+    marginBottom: '1rem',
+    color: 'var(--color-text-light)',
+  } satisfies React.CSSProperties,
   arenaModalGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, 1fr)',
@@ -32,7 +35,7 @@ const ARENA_STYLES = {
   arenaQueueHint: {
     fontSize: '0.7rem',
     marginLeft: '0.3rem',
-    color: '#6b7280',
+    color: 'var(--color-text-light)',
   } satisfies React.CSSProperties,
 } satisfies Record<string, React.CSSProperties>;
 

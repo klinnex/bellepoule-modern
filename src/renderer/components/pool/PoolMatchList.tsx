@@ -99,9 +99,9 @@ const ArenaBadge: React.FC<ArenaBadgeProps> = ({
       };
 
   const inactiveStyle: React.CSSProperties = {
-    border: '1px solid #e5e7eb',
-    background: '#f9fafb',
-    color: '#9ca3af',
+    border: '1px solid var(--color-border)',
+    background: 'var(--color-surface-2)',
+    color: 'var(--color-text-muted)',
   };
 
   return (
@@ -203,7 +203,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                     fontSize: '0.65rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
-                    color: '#9ca3af',
+                    color: 'var(--color-text-muted)',
                     marginBottom: '0.75rem',
                   }}
                 >
@@ -229,11 +229,21 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                       {nextMatch.match.fencerA?.lastName}
                       {fencerAAbandoned && ' ✕'}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '0.2rem' }}>
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        color: 'var(--color-text-muted)',
+                        marginTop: '0.2rem',
+                      }}
+                    >
                       {nextMatch.match.fencerA?.firstName}
                     </div>
                   </div>
-                  <div style={{ fontSize: '1.25rem', color: '#6b7280', flexShrink: 0 }}>vs</div>
+                  <div
+                    style={{ fontSize: '1.25rem', color: 'var(--color-text-light)', flexShrink: 0 }}
+                  >
+                    vs
+                  </div>
                   <div style={{ flex: 1, textAlign: 'left' }}>
                     <div
                       style={{
@@ -246,7 +256,13 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                       {nextMatch.match.fencerB?.lastName}
                       {fencerBAbandoned && ' ✕'}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '0.2rem' }}>
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        color: 'var(--color-text-muted)',
+                        marginTop: '0.2rem',
+                      }}
+                    >
                       {nextMatch.match.fencerB?.firstName}
                     </div>
                   </div>
@@ -375,7 +391,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
             style={{
               fontSize: '0.7rem',
               fontWeight: 700,
-              color: '#9ca3af',
+              color: 'var(--color-text-muted)',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
               marginBottom: '0.5rem',
@@ -408,8 +424,8 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                     alignItems: 'center',
                     gap: '0.35rem',
                     padding: '0.375rem 0.75rem',
-                    background: isAbandonMatch ? '#f3f4f6' : '#f1f5f9',
-                    border: `1px solid ${isAbandonMatch ? '#d1d5db' : '#e2e8f0'}`,
+                    background: isAbandonMatch ? 'var(--color-bg)' : '#f1f5f9',
+                    border: `1px solid ${isAbandonMatch ? 'var(--color-border-dark)' : '#e2e8f0'}`,
                     borderRadius: '20px',
                     cursor: isAbandonMatch ? 'not-allowed' : 'pointer',
                     opacity: isAbandonMatch ? 0.5 : 1,
@@ -478,7 +494,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
             style={{
               fontSize: '0.7rem',
               fontWeight: 700,
-              color: '#9ca3af',
+              color: 'var(--color-text-muted)',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
               marginBottom: '0.5rem',
@@ -514,7 +530,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                     padding: '0.5rem 0.75rem 0.5rem 0.875rem',
                     background: isHighlighted ? '#f8fafc' : 'white',
                     borderRadius: '7px',
-                    border: isHighlighted ? '1px solid #94a3b8' : '1px solid #e5e7eb',
+                    border: isHighlighted ? '1px solid #94a3b8' : '1px solid var(--color-border)',
                     borderLeft: isAbandonMatch
                       ? '3px solid #9ca3af'
                       : winnerA
@@ -530,7 +546,11 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                     style={{
                       flex: 1,
                       fontWeight: winnerA && !isAbandonMatch ? 700 : 400,
-                      color: isAbandonMatch ? '#9ca3af' : winnerA ? '#065f46' : '#6b7280',
+                      color: isAbandonMatch
+                        ? 'var(--color-text-muted)'
+                        : winnerA
+                          ? '#065f46'
+                          : 'var(--color-text-light)',
                       textDecoration: fencerAAbandoned ? 'line-through' : 'none',
                       fontSize: '0.875rem',
                     }}
@@ -541,12 +561,12 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                   <span
                     style={{
                       padding: '0.2rem 0.625rem',
-                      background: isAbandonMatch ? '#f3f4f6' : '#f8fafc',
-                      border: '1px solid #e5e7eb',
+                      background: isAbandonMatch ? 'var(--color-bg)' : '#f8fafc',
+                      border: '1px solid var(--color-border)',
                       borderRadius: '5px',
                       fontWeight: 700,
                       fontSize: '0.8rem',
-                      color: isAbandonMatch ? '#9ca3af' : '#374151',
+                      color: isAbandonMatch ? 'var(--color-text-muted)' : 'var(--color-text)',
                       flexShrink: 0,
                       letterSpacing: '0.03em',
                     }}
@@ -560,7 +580,11 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                       flex: 1,
                       textAlign: 'right',
                       fontWeight: !winnerA && !isAbandonMatch ? 700 : 400,
-                      color: isAbandonMatch ? '#9ca3af' : !winnerA ? '#065f46' : '#6b7280',
+                      color: isAbandonMatch
+                        ? 'var(--color-text-muted)'
+                        : !winnerA
+                          ? '#065f46'
+                          : 'var(--color-text-light)',
                       textDecoration: fencerBAbandoned ? 'line-through' : 'none',
                       fontSize: '0.875rem',
                     }}
@@ -626,7 +650,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
             style={{
               fontSize: '0.7rem',
               fontWeight: 700,
-              color: '#9ca3af',
+              color: 'var(--color-text-muted)',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
               marginBottom: '0.5rem',
@@ -643,19 +667,23 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '0.5rem 0.875rem',
-                  background: '#f9fafb',
+                  background: 'var(--color-surface-2)',
                   borderRadius: '7px',
-                  border: '1px dashed #d1d5db',
+                  border: '1px dashed var(--color-border-dark)',
                   opacity: 0.8,
                   gap: '0.5rem',
                 }}
               >
-                <span style={{ color: '#9ca3af', fontSize: '0.8rem', minWidth: '24px' }}>⏸</span>
+                <span
+                  style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', minWidth: '24px' }}
+                >
+                  ⏸
+                </span>
                 <span
                   style={{
                     flex: 1,
                     textAlign: 'center',
-                    color: '#6b7280',
+                    color: 'var(--color-text-light)',
                     fontSize: '0.875rem',
                     textDecoration: 'line-through',
                   }}
@@ -673,7 +701,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                       border: '1px solid rgba(59,130,246,0.3)',
                       borderRadius: '4px',
                       cursor: 'pointer',
-                      color: '#2563eb',
+                      color: 'var(--color-primary)',
                       flexShrink: 0,
                     }}
                   >
@@ -688,9 +716,13 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
 
       {/* Poule terminée */}
       {orderedMatches.pending.length === 0 && orderedMatches.cancelled.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '2.5rem 2rem', color: '#6b7280' }}>
+        <div
+          style={{ textAlign: 'center', padding: '2.5rem 2rem', color: 'var(--color-text-light)' }}
+        >
           <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🏁</div>
-          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#374151' }}>Poule terminée</div>
+          <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>
+            Poule terminée
+          </div>
           <div style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
             Tous les matches ont été joués
           </div>
@@ -718,7 +750,13 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
               </button>
             </div>
             <div className="modal-body" style={{ padding: '1.5rem' }}>
-              <p style={{ marginBottom: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+              <p
+                style={{
+                  marginBottom: '1rem',
+                  color: 'var(--color-text-light)',
+                  fontSize: '0.875rem',
+                }}
+              >
                 Sélectionnez la piste pour ce match :
               </p>
               <div

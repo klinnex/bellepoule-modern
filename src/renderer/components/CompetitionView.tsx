@@ -174,7 +174,10 @@ const CV_STYLES = {
     maxWidth: '500px',
     width: '90%',
   } satisfies React.CSSProperties,
-  thirdPlaceTitle: { margin: '0 0 1rem 0', color: '#1f2937' } satisfies React.CSSProperties,
+  thirdPlaceTitle: {
+    margin: '0 0 1rem 0',
+    color: 'var(--color-text)',
+  } satisfies React.CSSProperties,
   thirdPlaceBtnRow: {
     display: 'flex',
     gap: '1rem',
@@ -2349,7 +2352,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         {currentPhase === 'tableau' && (
           <Suspense
             fallback={
-              <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+              <div
+                style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-light)' }}
+              >
                 Chargement tableau…
               </div>
             }
@@ -2361,8 +2366,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                   display: 'flex',
                   gap: '0.5rem',
                   padding: '0.75rem 1rem',
-                  borderBottom: '1px solid #e5e7eb',
-                  background: '#f9fafb',
+                  borderBottom: '1px solid var(--color-border)',
+                  background: 'var(--color-surface-2)',
                 }}
               >
                 {splitGroups.map(g => (
@@ -2375,8 +2380,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                       border: 'none',
                       cursor: 'pointer',
                       fontWeight: g === activeSplitGroup ? '700' : '400',
-                      background: g === activeSplitGroup ? '#2563eb' : '#e5e7eb',
-                      color: g === activeSplitGroup ? 'white' : '#374151',
+                      background:
+                        g === activeSplitGroup ? 'var(--color-primary)' : 'var(--color-border)',
+                      color: g === activeSplitGroup ? 'white' : 'var(--color-text)',
                       fontSize: '0.875rem',
                     }}
                   >

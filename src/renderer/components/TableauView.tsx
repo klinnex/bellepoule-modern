@@ -105,7 +105,7 @@ const TV_STYLES = {
   root: { padding: '1rem' } satisfies React.CSSProperties,
   scrollArea: {
     padding: '1rem',
-    background: 'var(--tableau-bg, #f9fafb)',
+    background: 'var(--tableau-bg, var(--color-surface-2))',
     borderRadius: '8px',
     maxHeight: '70vh',
     overflowY: 'auto' as const,
@@ -116,14 +116,14 @@ const TV_STYLES = {
     justifyContent: 'flex-end' as const,
   } satisfies React.CSSProperties,
   pendingOrderBtn: {
-    background: '#e5e7eb',
+    background: 'var(--color-border)',
     border: 'none',
     padding: '0.375rem 0.75rem',
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '0.875rem',
     fontWeight: '500',
-    color: '#374151',
+    color: 'var(--color-text)',
     display: 'flex',
     alignItems: 'center',
     gap: '0.25rem',
@@ -131,7 +131,7 @@ const TV_STYLES = {
   summaryBox: {
     marginTop: '1rem',
     padding: '0.75rem',
-    background: '#f3f4f6',
+    background: 'var(--color-bg)',
     borderRadius: '8px',
   } satisfies React.CSSProperties,
   summaryTitle: {
@@ -148,12 +148,12 @@ const TV_STYLES = {
     padding: '0.5rem 0.75rem',
     borderRadius: '4px',
     fontSize: '0.75rem',
-    border: '1px solid #e5e7eb',
+    border: '1px solid var(--color-border)',
   } satisfies React.CSSProperties,
   pendingEmpty: {
     padding: '2rem',
     textAlign: 'center' as const,
-    color: '#6b7280',
+    color: 'var(--color-text-light)',
   } satisfies React.CSSProperties,
   roundCol: {
     display: 'flex',
@@ -165,7 +165,7 @@ const TV_STYLES = {
     textAlign: 'center' as const,
     fontWeight: '600',
     marginBottom: '0.5rem',
-    color: 'var(--tableau-title, #374151)',
+    color: 'var(--tableau-title, var(--color-text))',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -1208,14 +1208,14 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           borderRadius: '8px',
           marginBottom: '0.5rem',
           overflow: 'hidden',
-          border: '1px solid var(--tableau-border, #e5e7eb)',
+          border: '1px solid var(--tableau-border, var(--color-border))',
         }}
       >
         <div
           onClick={() => toggleRoundExpansion(round)}
           style={{
             padding: '0.75rem 1rem',
-            background: 'var(--tableau-panel-header, #f3f4f6)',
+            background: 'var(--tableau-panel-header, var(--color-bg))',
             cursor: 'pointer',
             display: 'flex',
             justifyContent: 'space-between',
@@ -1225,11 +1225,11 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontSize: '1rem' }}>{isExpanded ? '▼' : '▶'}</span>
-            <span style={{ fontWeight: '600', color: 'var(--tableau-title, #374151)' }}>
+            <span style={{ fontWeight: '600', color: 'var(--tableau-title, var(--color-text))' }}>
               {roundName}
             </span>
           </div>
-          <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+          <span style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>
             {roundMatches.length} match{roundMatches.length !== 1 ? 's' : ''}
           </span>
         </div>
@@ -1359,7 +1359,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                           background: arenaMatches.length > 0 ? '#d1fae5' : 'white',
                           borderRadius: '4px',
                           fontSize: '0.75rem',
-                          border: '1px solid #e5e7eb',
+                          border: '1px solid var(--color-border)',
                         }}
                       >
                         <strong>Piste {arenaNum}</strong>: {arenaMatches.length} match
@@ -1374,7 +1374,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                         pendingMatches.filter(m => !m.arena).length > 0 ? '#fef3c7' : 'white',
                       borderRadius: '4px',
                       fontSize: '0.75rem',
-                      border: '1px solid #e5e7eb',
+                      border: '1px solid var(--color-border)',
                     }}
                   >
                     <strong>Non assignés</strong>: {pendingMatches.filter(m => !m.arena).length}{' '}

@@ -462,7 +462,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             </button>
           );
         })}
-        <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: '#9ca3af' }}>
+        <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
           {filtered.length} événement{filtered.length !== 1 ? 's' : ''}
         </span>
         <button
@@ -508,8 +508,8 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             fontWeight: '600',
             borderRadius: '6px',
             border: '1px solid #374151',
-            background: scopedEntries.length === 0 ? '#f3f4f6' : '#1f2937',
-            color: scopedEntries.length === 0 ? '#9ca3af' : 'white',
+            background: scopedEntries.length === 0 ? 'var(--color-bg)' : '#1f2937',
+            color: scopedEntries.length === 0 ? 'var(--color-text-muted)' : 'white',
             cursor: scopedEntries.length === 0 ? 'not-allowed' : 'pointer',
           }}
         >
@@ -533,7 +533,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
               style={{
                 textAlign: 'center',
                 padding: '3rem',
-                color: '#9ca3af',
+                color: 'var(--color-text-muted)',
                 fontSize: '0.875rem',
               }}
             >
@@ -654,7 +654,12 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
           )
         ) : filtered.length === 0 ? (
           <div
-            style={{ textAlign: 'center', padding: '3rem', color: '#9ca3af', fontSize: '0.875rem' }}
+            style={{
+              textAlign: 'center',
+              padding: '3rem',
+              color: 'var(--color-text-muted)',
+              fontSize: '0.875rem',
+            }}
           >
             {competitionMode && !selectedMatchId
               ? 'Aucun événement enregistré.'
@@ -755,7 +760,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                             background: 'none',
                             border: 'none',
                             padding: 0,
-                            color: '#2563eb',
+                            color: 'var(--color-primary)',
                             cursor: 'pointer',
                             textAlign: 'left',
                             fontSize: 'inherit',

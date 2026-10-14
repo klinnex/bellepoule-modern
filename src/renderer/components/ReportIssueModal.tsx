@@ -139,13 +139,13 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
                 style={{
                   flex: 1,
                   padding: '0.75rem',
-                  border: `2px solid ${issueType === 'bug' ? '#ef4444' : '#e5e7eb'}`,
+                  border: `2px solid ${issueType === 'bug' ? '#ef4444' : 'var(--color-border)'}`,
                   borderRadius: '8px',
                   background: issueType === 'bug' ? '#fef2f2' : 'white',
                   cursor: 'pointer',
                   fontSize: '1rem',
                   fontWeight: issueType === 'bug' ? '600' : '400',
-                  color: issueType === 'bug' ? '#dc2626' : '#374151',
+                  color: issueType === 'bug' ? '#dc2626' : 'var(--color-text)',
                 }}
               >
                 🐛 Bug
@@ -156,13 +156,13 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
                 style={{
                   flex: 1,
                   padding: '0.75rem',
-                  border: `2px solid ${issueType === 'feature' ? '#22c55e' : '#e5e7eb'}`,
+                  border: `2px solid ${issueType === 'feature' ? '#22c55e' : 'var(--color-border)'}`,
                   borderRadius: '8px',
                   background: issueType === 'feature' ? '#f0fdf4' : 'white',
                   cursor: 'pointer',
                   fontSize: '1rem',
                   fontWeight: issueType === 'feature' ? '600' : '400',
-                  color: issueType === 'feature' ? '#16a34a' : '#374151',
+                  color: issueType === 'feature' ? '#16a34a' : 'var(--color-text)',
                 }}
               >
                 ✨ Suggestion
@@ -214,13 +214,13 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
           <div
             style={{
               padding: '0.75rem',
-              background: '#f3f4f6',
+              background: 'var(--color-bg)',
               borderRadius: '8px',
               fontSize: '0.875rem',
-              color: '#6b7280',
+              color: 'var(--color-text-light)',
             }}
           >
-            <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: '#374151' }}>
+            <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--color-text)' }}>
               ℹ️ Informations automatiquement incluses :
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem' }}>
@@ -240,7 +240,7 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
           <p
             style={{
               fontSize: '0.75rem',
-              color: '#9ca3af',
+              color: 'var(--color-text-muted)',
               marginTop: '0.75rem',
               textAlign: 'center',
             }}

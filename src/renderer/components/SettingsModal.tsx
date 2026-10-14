@@ -397,7 +397,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
                 style={{
-                  border: `2px dashed ${isDragging ? 'var(--primary, #3b82f6)' : 'var(--border, #d1d5db)'}`,
+                  border: `2px dashed ${isDragging ? 'var(--primary, var(--color-primary))' : 'var(--border, var(--color-border-dark))'}`,
                   borderRadius: '8px',
                   padding: '1rem',
                   textAlign: 'center',
@@ -419,14 +419,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                     }}
                   />
                 ) : (
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted, #6b7280)' }}>
+                  <span
+                    style={{
+                      fontSize: '0.85rem',
+                      color: 'var(--text-muted, var(--color-text-light))',
+                    }}
+                  >
                     Glissez une image ici ou cliquez pour choisir
                   </span>
                 )}
                 <span
                   style={{
                     fontSize: '0.75rem',
-                    color: 'var(--text-muted, #9ca3af)',
+                    color: 'var(--text-muted, var(--color-text-muted))',
                     display: 'block',
                     marginTop: logo ? '0' : '0.25rem',
                   }}
