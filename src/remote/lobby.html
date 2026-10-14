@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>En attente — BellePoule Modern</title>
+    <title data-i18n="lobby.page_title">En attente — BellePoule Modern</title>
+    <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -91,18 +92,19 @@
         <img id="logo-img" src="" alt="" />
       </div>
       <div class="icon">📺</div>
-      <h1>En attente d'affectation</h1>
+      <h1 data-i18n="lobby.waiting">En attente d'affectation</h1>
       <p class="subtitle">
-        Cet écran est connecté au serveur BellePoule.<br />
-        L'organisateur va l'affecter à une arène depuis le panneau de contrôle.
+        <span data-i18n="lobby.connected">Cet écran est connecté au serveur BellePoule.</span><br />
+        <span data-i18n="lobby.assign_hint">L'organisateur va l'affecter à une arène depuis le panneau de contrôle.</span>
       </p>
       <div class="url-box">
-        Serveur : <span id="server-url"></span>
+        <span data-i18n="lobby.server">Serveur :</span> <span id="server-url"></span>
       </div>
     </div>
     <div id="remote-msg-banner"></div>
 
     <script>
+      if (window.initRemoteI18n) window.initRemoteI18n();
       document.getElementById('server-url').textContent = window.location.origin;
 
       fetch('/api/logo').then(r => r.json()).then(d => {
