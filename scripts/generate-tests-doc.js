@@ -198,6 +198,17 @@ npm run e2e:debug        # mode debug
 npx playwright test --project=chromium e2e/pools.spec.ts
 \`\`\`
 
+## Simulateur et benchmarks
+
+- \`src/shared/utils/tournamentSimulator.ts\` : joue une compétition complète
+  (poules → tableau → classement) avec des scores aléatoires valides, déterministe
+  pour une graine donnée. Testé de bout en bout (200 tireurs) dans
+  \`tournamentSimulator.test.ts\`.
+- \`npm run bench\` (\`vitest bench\`, fichiers \`*.bench.ts\`) : classement de poules,
+  placement / création / classement de tableau, tournoi complet. **Non exécuté en CI**
+  (mesures trop bruitées sur les runners partagés) : lancer avant/après une
+  optimisation.
+
 ## Maintenir cette documentation
 
 1. Ajouter / modifier un test.

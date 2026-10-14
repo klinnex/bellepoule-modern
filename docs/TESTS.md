@@ -57,6 +57,17 @@ npm run e2e:debug        # mode debug
 npx playwright test --project=chromium e2e/pools.spec.ts
 ```
 
+## Simulateur et benchmarks
+
+- `src/shared/utils/tournamentSimulator.ts` : joue une compétition complète
+  (poules → tableau → classement) avec des scores aléatoires valides, déterministe
+  pour une graine donnée. Testé de bout en bout (200 tireurs) dans
+  `tournamentSimulator.test.ts`.
+- `npm run bench` (`vitest bench`, fichiers `*.bench.ts`) : classement de poules,
+  placement / création / classement de tableau, tournoi complet. **Non exécuté en CI**
+  (mesures trop bruitées sur les runners partagés) : lancer avant/après une
+  optimisation.
+
 ## Maintenir cette documentation
 
 1. Ajouter / modifier un test.
@@ -67,7 +78,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 27 | 485 |
+| `src/shared/utils/` | 28 | 493 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -83,11 +94,11 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 3 | 87 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 27 | 107 |
+| `src/renderer/components/` | 27 | 109 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| **Total** | **116** | **1248** |
+| **Total** | **117** | **1258** |
 
-Unitaires : 108 fichiers, 1217 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 109 fichiers, 1227 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -773,7 +784,7 @@ Unitaires : 108 fichiers, 1217 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/tableCalculations.test.ts</code> — 38 tests</summary>
+<summary><code>src/shared/utils/tableCalculations.test.ts</code> — 41 tests</summary>
 
 - **calculateTableSize**
   - retourne 2 pour 2 tireurs
@@ -789,7 +800,10 @@ Unitaires : 108 fichiers, 1217 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - seed 1 et 2 ont des positions bien définies
 - **generateSeedingChart**
   - retourne un tableau de la bonne taille
-  - le chart a la bonne longueur et seed 1 en position 0
+  - contient chaque seed exactement une fois (#1080)
+  - suit le placement FIE (1-8, 5-4, 3-6, 7-2)
+  - chaque paire du premier tour totalise tableSize + 1
+  - refuse une taille qui n’est pas une puissance de 2
   - seed 1 est à la position 0
 - **placeFencersInTable**
   - place les tireurs selon leur classement pool
@@ -861,6 +875,19 @@ Unitaires : 108 fichiers, 1217 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **Constantes de style**
   - ZONE\_COLORS définit les couleurs hex
   - ZONE\_BG\_CLASSES définit les classes Tailwind
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/tournamentSimulator.test.ts</code> — 5 tests</summary>
+
+- **createRng**
+  - est déterministe pour une graine donnée
+- **simulateTournament**
+  - joue un tournoi complet de 200 tireurs (poules → tableau → classement)
+  - est reproductible : même graine → même vainqueur
+  - tient pour %i tireurs _(each)_
+  - refuse moins de 4 tireurs
 
 </details>
 
@@ -2373,12 +2400,15 @@ Unitaires : 108 fichiers, 1217 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/tableauCalculations.test.ts</code> — 2 tests</summary>
+<summary><code>src/renderer/components/tableau/tableauCalculations.test.ts</code> — 4 tests</summary>
 
 - **autoFillAllPositions**
   - %i tireurs (tableau de %i) : classement complet _(each)_
 - **calculateFinalResults - abandon / forfait / exclusion (#1012)**
   - mentionne l’évènement entre parenthèses pour le tireur concerné
+- **generateFIESeeding (#1080)**
+  - tables en dur identiques à la construction FIE générique
+  - tableau de 256 seedé (1 et 2 ne se rencontrent qu’en finale)
 
 </details>
 
