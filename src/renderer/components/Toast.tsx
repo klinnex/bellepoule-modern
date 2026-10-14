@@ -117,7 +117,7 @@ const ToastItemComponent: React.FC<{
               style={{
                 fontWeight: 600,
                 fontSize: '0.875rem',
-                color: '#111827',
+                color: 'var(--color-text)',
                 marginBottom: toast.message ? '2px' : 0,
               }}
             >
@@ -127,7 +127,7 @@ const ToastItemComponent: React.FC<{
           <div
             style={{
               fontSize: '0.8125rem',
-              color: '#374151',
+              color: 'var(--color-text)',
               lineHeight: 1.45,
               wordBreak: 'break-word',
             }}
@@ -159,7 +159,7 @@ const ToastItemComponent: React.FC<{
             background: 'none',
             border: 'none',
             cursor: 'pointer',
-            color: '#9ca3af',
+            color: 'var(--color-text-muted)',
             padding: '1px',
             flexShrink: 0,
             display: 'flex',

@@ -227,7 +227,7 @@ const RSM_STYLES = {
   pisteresumeSummary: {
     marginTop: '1rem',
     padding: '0.75rem',
-    background: '#f3f4f6',
+    background: 'var(--color-bg)',
     borderRadius: '8px',
   } satisfies React.CSSProperties,
   pisteresumeFlex: {
@@ -1393,8 +1393,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   flex: 1,
                   padding: '0.35rem 0.5rem',
                   borderRadius: '0.375rem',
-                  border: `2px solid ${displayTheme === value ? '#3b82f6' : 'var(--color-border)'}`,
-                  background: displayTheme === value ? '#1d4ed8' : 'var(--color-surface)',
+                  border: `2px solid ${displayTheme === value ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                  background:
+                    displayTheme === value ? 'var(--color-primary-dark)' : 'var(--color-surface)',
                   color: displayTheme === value ? '#fff' : 'var(--color-text)',
                   cursor: 'pointer',
                   fontWeight: displayTheme === value ? 700 : 400,
@@ -1545,7 +1546,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 padding: '0.4rem',
                 borderRadius: '0.3rem',
                 border: 'none',
-                background: orgNoteActive ? '#1d4ed8' : '#2563eb',
+                background: orgNoteActive ? 'var(--color-primary-dark)' : 'var(--color-primary)',
                 color: '#fff',
                 cursor: 'pointer',
                 fontWeight: 500,
@@ -1618,8 +1619,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                         padding: '0.15rem 0.45rem',
                         fontSize: '0.7rem',
                         borderRadius: '0.25rem',
-                        border: `1px solid ${screenTab === value ? '#3b82f6' : '#475569'}`,
-                        background: screenTab === value ? '#1d4ed8' : 'transparent',
+                        border: `1px solid ${screenTab === value ? 'var(--color-primary)' : '#475569'}`,
+                        background:
+                          screenTab === value ? 'var(--color-primary-dark)' : 'transparent',
                         color: screenTab === value ? '#fff' : '#94a3b8',
                         cursor: 'pointer',
                         fontWeight: screenTab === value ? 700 : 400,

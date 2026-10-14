@@ -93,7 +93,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
         style={{
           padding: '0.25rem 1rem',
           fontSize: '0.75rem',
-          color: 'var(--text-muted, #6b7280)',
+          color: 'var(--text-muted, var(--color-text-light))',
           borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))',
           display: 'flex',
           alignItems: 'center',

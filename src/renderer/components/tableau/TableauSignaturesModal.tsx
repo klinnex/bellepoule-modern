@@ -28,7 +28,7 @@ const SIG_IMG_STYLE: React.CSSProperties = {
   maxHeight: '140px',
   objectFit: 'contain',
   background: '#fff',
-  border: '1px solid #e5e7eb',
+  border: '1px solid var(--color-border)',
   borderRadius: '6px',
 };
 
@@ -145,7 +145,9 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
         {data ? (
           <img src={data} alt={`Signature ${fencer?.lastName ?? ''}`} style={SIG_IMG_STYLE} />
         ) : (
-          <div style={{ color: '#9ca3af', fontSize: '0.8rem', fontStyle: 'italic' }}>
+          <div
+            style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}
+          >
             {loading ? 'Chargement…' : 'Non signé'}
           </div>
         )}
@@ -183,7 +185,7 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
           {canSend && (
             <div
               style={{
-                borderTop: '1px solid #e5e7eb',
+                borderTop: '1px solid var(--color-border)',
                 paddingTop: '1rem',
                 display: 'flex',
                 flexDirection: 'column',
@@ -194,7 +196,13 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
                 Renvoyer la signature sur une piste
               </div>
               {arenas.length === 0 ? (
-                <div style={{ color: '#9ca3af', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                <div
+                  style={{
+                    color: 'var(--color-text-muted)',
+                    fontSize: '0.8rem',
+                    fontStyle: 'italic',
+                  }}
+                >
                   Serveur distant non démarré ou aucune piste disponible
                 </div>
               ) : (

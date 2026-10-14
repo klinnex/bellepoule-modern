@@ -98,9 +98,10 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/components/` | 28 | 114 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
-| **Total** | **124** | **1299** |
+| `src/renderer/styles/` | 1 | 1 |
+| **Total** | **125** | **1300** |
 
-Unitaires : 116 fichiers, 1268 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 117 fichiers, 1269 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2613,5 +2614,15 @@ Unitaires : 116 fichiers, 1268 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - action refusée par le serveur : seule celle-ci reste en file
   - deux sync simultanés (reconnexion + bouton) : aucun doublon envoyé
   - envoie par lots de 50 au plus
+
+</details>
+
+### `src/renderer/styles/`
+
+<details>
+<summary><code>src/renderer/styles/utilities.test.ts</code> — 1 test</summary>
+
+- **utilities.css**
+  - définit toutes les classes utilitaires utilisées par les composants
 
 </details>

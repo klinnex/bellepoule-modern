@@ -98,7 +98,9 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
               <div style={{ fontSize: '1.5rem', fontWeight: 600, textAlign: 'right' }}>
                 {match.fencerA?.lastName}
               </div>
-              <div style={{ fontSize: '1rem', color: '#6b7280', textAlign: 'right' }}>
+              <div
+                style={{ fontSize: '1rem', color: 'var(--color-text-light)', textAlign: 'right' }}
+              >
                 {match.fencerA?.firstName} {match.fencerA?.club && `(${match.fencerA.club})`}
               </div>
             </div>
@@ -146,7 +148,11 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
             />
 
             {/* Séparateur */}
-            <span style={{ fontSize: '3rem', fontWeight: 'bold', color: '#9ca3af' }}>:</span>
+            <span
+              style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--color-text-muted)' }}
+            >
+              :
+            </span>
 
             {/* Input Score B */}
             <input
@@ -202,7 +208,9 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
               <div style={{ fontSize: '1.5rem', fontWeight: 600, textAlign: 'left' }}>
                 {match.fencerB?.lastName}
               </div>
-              <div style={{ fontSize: '1rem', color: '#6b7280', textAlign: 'left' }}>
+              <div
+                style={{ fontSize: '1rem', color: 'var(--color-text-light)', textAlign: 'left' }}
+              >
                 {match.fencerB?.firstName} {match.fencerB?.club && `(${match.fencerB.club})`}
               </div>
             </div>
@@ -225,7 +233,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
                 display: 'flex',
                 gap: '0.5rem',
                 justifyContent: 'center',
-                borderTop: '1px solid #e5e7eb',
+                borderTop: '1px solid var(--color-border)',
                 paddingTop: '1rem',
                 marginTop: '1rem',
               }}
@@ -259,7 +267,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
                 flexDirection: 'column',
                 gap: '0.75rem',
                 alignItems: 'center',
-                borderTop: '1px solid #e5e7eb',
+                borderTop: '1px solid var(--color-border)',
                 paddingTop: '1rem',
                 marginTop: '1rem',
               }}

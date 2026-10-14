@@ -103,10 +103,18 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
           }}
         >
           <div>
-            <h1 style={{ margin: 0, fontSize: '2rem', color: '#1f2937', fontWeight: '700' }}>
+            <h1
+              style={{ margin: 0, fontSize: '2rem', color: 'var(--color-text)', fontWeight: '700' }}
+            >
               🏆 {competition.title}
             </h1>
-            <p style={{ margin: '0.5rem 0 0 0', color: '#6b7280', fontSize: '1.1rem' }}>
+            <p
+              style={{
+                margin: '0.5rem 0 0 0',
+                color: 'var(--color-text-light)',
+                fontSize: '1.1rem',
+              }}
+            >
               {new Date(competition.date).toLocaleDateString('fr-FR', {
                 weekday: 'long',
                 day: 'numeric',
@@ -121,7 +129,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
               style={{
                 fontSize: '2.5rem',
                 fontWeight: '700',
-                color: '#1f2937',
+                color: 'var(--color-text)',
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
@@ -133,14 +141,20 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
       </header>
 
       {/* Progress Bar */}
-      <div style={{ background: 'white', padding: '1rem 2rem', borderBottom: '1px solid #e5e7eb' }}>
+      <div
+        style={{
+          background: 'white',
+          padding: '1rem 2rem',
+          borderBottom: '1px solid var(--color-border)',
+        }}
+      >
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
           <div
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               marginBottom: '0.5rem',
-              color: '#374151',
+              color: 'var(--color-text)',
             }}
           >
             <span>Progression: {completionRate}%</span>
@@ -151,7 +165,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
           <div
             style={{
               height: '8px',
-              background: '#e5e7eb',
+              background: 'var(--color-border)',
               borderRadius: '4px',
               overflow: 'hidden',
             }}
@@ -170,7 +184,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
       </div>
 
       {/* Navigation Tabs */}
-      <div style={{ background: 'white', borderBottom: '1px solid #e5e7eb' }}>
+      <div style={{ background: 'white', borderBottom: '1px solid var(--color-border)' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex' }}>
           {(['pools', 'tableau', 'ranking'] as const).map(tab => (
             <button
@@ -179,13 +193,14 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
               style={{
                 padding: '1rem 2rem',
                 border: 'none',
-                background: activeTab === tab ? '#3b82f6' : 'transparent',
-                color: activeTab === tab ? 'white' : '#6b7280',
+                background: activeTab === tab ? 'var(--color-primary)' : 'transparent',
+                color: activeTab === tab ? 'white' : 'var(--color-text-light)',
                 fontSize: '1rem',
                 fontWeight: '600',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                borderBottom: activeTab === tab ? '3px solid #2563eb' : '3px solid transparent',
+                borderBottom:
+                  activeTab === tab ? '3px solid var(--color-primary)' : '3px solid transparent',
               }}
             >
               {tab === 'pools' && '📊 Poules'}
@@ -318,7 +333,7 @@ const LiveMatchCard_: React.FC<{ match: Match; index: number }> = ({ match, inde
         >
           🔴 LIVE • {formatElapsed(elapsed)}
         </span>
-        <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+        <span style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
           Piste {match.strip || index + 1}
         </span>
       </div>
@@ -342,7 +357,7 @@ const LiveMatchCard_: React.FC<{ match: Match; index: number }> = ({ match, inde
           >
             {match.scoreA?.value || 0}
           </span>
-          <span style={{ fontSize: '1.5rem', color: '#9ca3af' }}>:</span>
+          <span style={{ fontSize: '1.5rem', color: 'var(--color-text-muted)' }}>:</span>
           <span
             style={{
               fontSize: '3rem',
@@ -391,7 +406,9 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
           marginBottom: '1rem',
         }}
       >
-        <h3 style={{ margin: 0, color: '#1f2937', fontSize: '1.25rem' }}>Poule {pool.number}</h3>
+        <h3 style={{ margin: 0, color: 'var(--color-text)', fontSize: '1.25rem' }}>
+          Poule {pool.number}
+        </h3>
         <span
           style={{
             background: pool.isComplete ? '#d1fae5' : '#fef3c7',
@@ -409,12 +426,12 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
       {pool.ranking.length > 0 ? (
         <table style={TABLE}>
           <thead>
-            <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+            <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
               <th
                 style={{
                   textAlign: 'left',
                   padding: '0.5rem',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
@@ -424,7 +441,7 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
                 style={{
                   textAlign: 'left',
                   padding: '0.5rem',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
@@ -434,7 +451,7 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
                 style={{
                   textAlign: 'center',
                   padding: '0.5rem',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
@@ -456,7 +473,7 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
                 style={{
                   textAlign: 'center',
                   padding: '0.5rem',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
@@ -466,7 +483,7 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
                 style={{
                   textAlign: 'center',
                   padding: '0.5rem',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
@@ -476,7 +493,7 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
                 style={{
                   textAlign: 'center',
                   padding: '0.5rem',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
@@ -486,18 +503,18 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
           </thead>
           <tbody>
             {pool.ranking.slice(0, 5).map((rank, idx) => (
-              <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
+              <tr key={idx} style={{ borderBottom: '1px solid var(--color-bg)' }}>
                 <td
                   style={{
                     padding: '0.5rem',
                     fontWeight: '700',
-                    color: idx < 3 ? '#f59e0b' : '#6b7280',
+                    color: idx < 3 ? '#f59e0b' : 'var(--color-text-light)',
                   }}
                 >
                   {idx + 1}
                 </td>
                 <td style={{ padding: '0.5rem' }}>
-                  <div style={{ fontWeight: '500', color: '#1f2937' }}>
+                  <div style={{ fontWeight: '500', color: 'var(--color-text)' }}>
                     {rank.fencer.firstName} {rank.fencer.lastName}
                   </div>
                 </td>
@@ -534,7 +551,7 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
           </tbody>
         </table>
       ) : (
-        <p style={{ color: '#6b7280', textAlign: 'center', padding: '1rem' }}>
+        <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: '1rem' }}>
           Pas encore de résultats
         </p>
       )}
@@ -556,7 +573,7 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
       }}
     >
       {matches.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#6b7280', fontSize: '1.1rem' }}>
+        <p style={{ textAlign: 'center', color: 'var(--color-text-light)', fontSize: '1.1rem' }}>
           Le tableau n'a pas encore commencé
         </p>
       ) : (
@@ -571,7 +588,7 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
                   style={{
                     textAlign: 'center',
                     marginBottom: '1rem',
-                    color: '#1f2937',
+                    color: 'var(--color-text)',
                     fontSize: '0.875rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
@@ -584,9 +601,13 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
                     <div
                       key={match.id}
                       style={{
-                        background: match.status === MatchStatus.FINISHED ? '#f0fdf4' : '#f9fafb',
+                        background:
+                          match.status === MatchStatus.FINISHED
+                            ? '#f0fdf4'
+                            : 'var(--color-surface-2)',
                         border: '1px solid',
-                        borderColor: match.status === MatchStatus.FINISHED ? '#86efac' : '#e5e7eb',
+                        borderColor:
+                          match.status === MatchStatus.FINISHED ? '#86efac' : 'var(--color-border)',
                         borderRadius: '8px',
                         padding: '1rem',
                       }}
@@ -664,18 +685,25 @@ const FinalRankingView_: React.FC<{ results: any[] }> = ({ results }) => {
       }}
     >
       {results.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem', fontSize: '1.1rem' }}>
+        <p
+          style={{
+            textAlign: 'center',
+            color: 'var(--color-text-light)',
+            padding: '2rem',
+            fontSize: '1.1rem',
+          }}
+        >
           La compétition n'est pas encore terminée
         </p>
       ) : (
         <table style={TABLE}>
           <thead>
-            <tr style={{ background: '#f3f4f6' }}>
+            <tr style={{ background: 'var(--color-bg)' }}>
               <th
                 style={{
                   padding: '1rem',
                   textAlign: 'center',
-                  color: '#374151',
+                  color: 'var(--color-text)',
                   fontWeight: '600',
                 }}
               >
@@ -687,7 +715,7 @@ const FinalRankingView_: React.FC<{ results: any[] }> = ({ results }) => {
                 style={{
                   padding: '1rem',
                   textAlign: 'center',
-                  color: '#374151',
+                  color: 'var(--color-text)',
                   fontWeight: '600',
                 }}
               >
@@ -697,7 +725,7 @@ const FinalRankingView_: React.FC<{ results: any[] }> = ({ results }) => {
           </thead>
           <tbody>
             {results.map((result, idx) => (
-              <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
+              <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
                 <td style={{ padding: '1rem', textAlign: 'center' }}>
                   <span
                     style={{
@@ -715,18 +743,22 @@ const FinalRankingView_: React.FC<{ results: any[] }> = ({ results }) => {
                             : idx === 2
                               ? '#f59e0b'
                               : '#f3f4f6',
-                      color: idx < 3 ? 'white' : '#6b7280',
+                      color: idx < 3 ? 'white' : 'var(--color-text-light)',
                       fontWeight: '700',
                     }}
                   >
                     {idx + 1}
                   </span>
                 </td>
-                <td style={{ padding: '1rem', fontWeight: '500', color: '#1f2937' }}>
+                <td style={{ padding: '1rem', fontWeight: '500', color: 'var(--color-text)' }}>
                   {result.fencer?.firstName} {result.fencer?.lastName}
                 </td>
-                <td style={{ padding: '1rem', color: '#6b7280' }}>{result.fencer?.club || '-'}</td>
-                <td style={{ padding: '1rem', textAlign: 'center', color: '#6b7280' }}>
+                <td style={{ padding: '1rem', color: 'var(--color-text-light)' }}>
+                  {result.fencer?.club || '-'}
+                </td>
+                <td
+                  style={{ padding: '1rem', textAlign: 'center', color: 'var(--color-text-light)' }}
+                >
                   {result.round === 1
                     ? '🥇 Finale'
                     : result.round === 2

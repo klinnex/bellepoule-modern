@@ -108,17 +108,17 @@ export const KeyboardShortcutsHelp: React.FC = () => {
         <div
           style={{
             padding: '24px',
-            borderBottom: '1px solid #e5e7eb',
+            borderBottom: '1px solid var(--color-border)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
           }}
         >
           <div>
-            <h2 style={{ margin: 0, fontSize: '24px', color: '#111827' }}>
+            <h2 style={{ margin: 0, fontSize: '24px', color: 'var(--color-text)' }}>
               ⌨️ {t('shortcuts.title')}
             </h2>
-            <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
+            <p style={{ margin: '4px 0 0 0', color: 'var(--color-text-light)', fontSize: '14px' }}>
               {t('shortcuts.subtitle')}
             </p>
           </div>
@@ -129,7 +129,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
               border: 'none',
               fontSize: '24px',
               cursor: 'pointer',
-              color: '#6b7280',
+              color: 'var(--color-text-light)',
               padding: '8px',
               borderRadius: '8px',
               transition: 'background-color 0.2s',
@@ -145,7 +145,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
         <div
           style={{
             padding: '16px 24px',
-            borderBottom: '1px solid #e5e7eb',
+            borderBottom: '1px solid var(--color-border)',
             display: 'flex',
             gap: '8px',
             flexWrap: 'wrap',
@@ -163,8 +163,9 @@ export const KeyboardShortcutsHelp: React.FC = () => {
                 fontSize: '14px',
                 fontWeight: 500,
                 transition: 'all 0.2s',
-                backgroundColor: activeCategory === cat.id ? '#3b82f6' : '#f3f4f6',
-                color: activeCategory === cat.id ? 'white' : '#374151',
+                backgroundColor:
+                  activeCategory === cat.id ? 'var(--color-primary)' : 'var(--color-bg)',
+                color: activeCategory === cat.id ? 'white' : 'var(--color-text)',
               }}
             >
               {cat.icon} {cat.label}
@@ -193,14 +194,14 @@ export const KeyboardShortcutsHelp: React.FC = () => {
                 <kbd
                   style={{
                     padding: '8px 12px',
-                    backgroundColor: '#f3f4f6',
-                    border: '1px solid #d1d5db',
+                    backgroundColor: 'var(--color-bg)',
+                    border: '1px solid var(--color-border-dark)',
                     borderRadius: '6px',
                     fontFamily: 'monospace',
                     fontSize: '14px',
                     fontWeight: 'bold',
-                    color: '#111827',
-                    boxShadow: '0 2px 0 #d1d5db',
+                    color: 'var(--color-text)',
+                    boxShadow: '0 2px 0 var(--color-border-dark)',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -209,7 +210,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
                 <span
                   style={{
                     fontSize: '15px',
-                    color: '#374151',
+                    color: 'var(--color-text)',
                     paddingLeft: '8px',
                   }}
                 >
@@ -224,10 +225,10 @@ export const KeyboardShortcutsHelp: React.FC = () => {
         <div
           style={{
             padding: '16px 24px',
-            backgroundColor: '#f9fafb',
-            borderTop: '1px solid #e5e7eb',
+            backgroundColor: 'var(--color-surface-2)',
+            borderTop: '1px solid var(--color-border)',
             fontSize: '13px',
-            color: '#6b7280',
+            color: 'var(--color-text-light)',
             textAlign: 'center',
           }}
         >
@@ -236,7 +237,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
             style={{
               padding: '2px 6px',
               backgroundColor: 'white',
-              border: '1px solid #d1d5db',
+              border: '1px solid var(--color-border-dark)',
               borderRadius: '4px',
               fontFamily: 'monospace',
             }}

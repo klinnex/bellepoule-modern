@@ -348,7 +348,7 @@ const Bracket: React.FC<BracketProps> = ({
                   textAlign: 'center',
                   fontWeight: '600',
                   marginBottom: '1rem',
-                  color: '#374151',
+                  color: 'var(--color-text)',
                   fontSize: '1.1rem',
                   cursor: 'pointer',
                   display: 'flex',
@@ -428,8 +428,9 @@ const Bracket: React.FC<BracketProps> = ({
         <button
           onClick={() => setLayoutMode('horizontal')}
           style={{
-            background: layoutMode === 'horizontal' ? '#3b82f6' : '#e5e7eb',
-            color: layoutMode === 'horizontal' ? 'white' : '#374151',
+            background:
+              layoutMode === 'horizontal' ? 'var(--color-primary)' : 'var(--color-border)',
+            color: layoutMode === 'horizontal' ? 'white' : 'var(--color-text)',
             border: 'none',
             padding: '0.5rem 1rem',
             borderRadius: '6px',
@@ -447,8 +448,8 @@ const Bracket: React.FC<BracketProps> = ({
         <button
           onClick={() => setLayoutMode('pyramid')}
           style={{
-            background: layoutMode === 'pyramid' ? '#8b5cf6' : '#e5e7eb',
-            color: layoutMode === 'pyramid' ? 'white' : '#374151',
+            background: layoutMode === 'pyramid' ? '#8b5cf6' : 'var(--color-border)',
+            color: layoutMode === 'pyramid' ? 'white' : 'var(--color-text)',
             border: 'none',
             padding: '0.5rem 1rem',
             borderRadius: '6px',

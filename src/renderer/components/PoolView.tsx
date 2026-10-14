@@ -1557,7 +1557,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       <div
         style={{
           ...NEXT_MATCH_BOX,
-          background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+          background:
+            'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
         }}
       >
         <div style={ROW_BETWEEN}>
@@ -1602,7 +1603,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   style={{
                     width: '72px',
                     height: '5px',
-                    background: '#e5e7eb',
+                    background: 'var(--color-border)',
                     borderRadius: '3px',
                     overflow: 'hidden',
                   }}
@@ -1620,7 +1621,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 <span
                   style={{
                     fontSize: '0.7rem',
-                    color: '#9ca3af',
+                    color: 'var(--color-text-muted)',
                     fontWeight: 600,
                     whiteSpace: 'nowrap',
                   }}
@@ -1645,9 +1646,13 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   }
                   style={{
                     ...BADGE_PILL,
-                    background: allSigned ? '#d1fae5' : noneSigned ? '#f3f4f6' : '#fef3c7',
-                    color: allSigned ? '#065f46' : noneSigned ? '#6b7280' : '#92400e',
-                    border: `1px solid ${allSigned ? '#6ee7b7' : noneSigned ? '#e5e7eb' : '#fcd34d'}`,
+                    background: allSigned ? '#d1fae5' : noneSigned ? 'var(--color-bg)' : '#fef3c7',
+                    color: allSigned
+                      ? '#065f46'
+                      : noneSigned
+                        ? 'var(--color-text-light)'
+                        : '#92400e',
+                    border: `1px solid ${allSigned ? '#6ee7b7' : noneSigned ? 'var(--color-border)' : '#fcd34d'}`,
                   }}
                 >
                   ✍️ {signed}/{total}
@@ -1666,9 +1671,9 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               style={{
                 ...BADGE_PILL,
                 cursor: 'pointer',
-                background: assignedReferee ? '#dbeafe' : '#f3f4f6',
-                color: assignedReferee ? '#1d4ed8' : '#6b7280',
-                border: `1px solid ${assignedReferee ? '#93c5fd' : '#e5e7eb'}`,
+                background: assignedReferee ? '#dbeafe' : 'var(--color-bg)',
+                color: assignedReferee ? 'var(--color-primary-dark)' : 'var(--color-text-light)',
+                border: `1px solid ${assignedReferee ? '#93c5fd' : 'var(--color-border)'}`,
               }}
             >
               🧑‍⚖️{' '}
@@ -1683,8 +1688,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               disabled={!canUndo}
               style={{
                 ...ICON_BTN,
-                background: canUndo ? '#6b7280' : '#e5e7eb',
-                color: canUndo ? 'white' : '#9ca3af',
+                background: canUndo ? '#6b7280' : 'var(--color-border)',
+                color: canUndo ? 'white' : 'var(--color-text-muted)',
                 cursor: canUndo ? 'pointer' : 'not-allowed',
               }}
               title="Annuler (Ctrl+Z)"
@@ -1697,8 +1702,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               disabled={!canRedo}
               style={{
                 ...ICON_BTN,
-                background: canRedo ? '#6b7280' : '#e5e7eb',
-                color: canRedo ? 'white' : '#9ca3af',
+                background: canRedo ? '#6b7280' : 'var(--color-border)',
+                color: canRedo ? 'white' : 'var(--color-text-muted)',
                 cursor: canRedo ? 'pointer' : 'not-allowed',
               }}
               title="Rétablir (Ctrl+Y)"
@@ -1716,7 +1721,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             </button>
             <button
               onClick={handlePrintPool}
-              style={{ ...ICON_ONLY_BTN, background: '#3b82f6', color: 'white' }}
+              style={{ ...ICON_ONLY_BTN, background: 'var(--color-primary)', color: 'white' }}
               title="Imprimer la feuille de poule (Ctrl+P)"
               aria-label="Imprimer la feuille de poule"
             >
@@ -1758,7 +1763,11 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             {competitionId && (
               <button
                 onClick={() => setShowAddFencerModal(true)}
-                style={{ ...ICON_ONLY_BTN, background: '#e5e7eb', color: '#374151' }}
+                style={{
+                  ...ICON_ONLY_BTN,
+                  background: 'var(--color-border)',
+                  color: 'var(--color-text)',
+                }}
                 title="Ajouter un tireur à cette poule"
                 aria-label="Ajouter un tireur à cette poule"
               >
@@ -1770,8 +1779,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 onClick={() => setShowColumnMenu(!showColumnMenu)}
                 style={{
                   ...ICON_ONLY_BTN,
-                  background: showColumnMenu ? '#6b7280' : '#e5e7eb',
-                  color: showColumnMenu ? 'white' : '#374151',
+                  background: showColumnMenu ? '#6b7280' : 'var(--color-border)',
+                  color: showColumnMenu ? 'white' : 'var(--color-text)',
                   ...(columnFilterEdited ? { border: '2px solid #f97316' } : {}),
                 }}
                 title={
@@ -1845,8 +1854,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 onClick={() => setViewMode('grid')}
                 style={{
                   ...ICON_ONLY_BTN,
-                  background: viewMode === 'grid' ? '#3b82f6' : '#e5e7eb',
-                  color: viewMode === 'grid' ? 'white' : '#374151',
+                  background: viewMode === 'grid' ? 'var(--color-primary)' : 'var(--color-border)',
+                  color: viewMode === 'grid' ? 'white' : 'var(--color-text)',
                   borderRadius: '4px 0 0 4px',
                 }}
                 title="Vue tableau"
@@ -1858,8 +1867,9 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 onClick={() => setViewMode('matches')}
                 style={{
                   ...ICON_ONLY_BTN,
-                  background: viewMode === 'matches' ? '#3b82f6' : '#e5e7eb',
-                  color: viewMode === 'matches' ? 'white' : '#374151',
+                  background:
+                    viewMode === 'matches' ? 'var(--color-primary)' : 'var(--color-border)',
+                  color: viewMode === 'matches' ? 'white' : 'var(--color-text)',
                   borderRadius: '0 4px 4px 0',
                 }}
                 title="Vue matches"
@@ -1935,7 +1945,13 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               </button>
             </div>
             <div className="modal-body" style={{ padding: '1.5rem' }}>
-              <p style={{ marginBottom: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+              <p
+                style={{
+                  marginBottom: '1rem',
+                  color: 'var(--color-text-light)',
+                  fontSize: '0.875rem',
+                }}
+              >
                 {isMultiReferee
                   ? `Sélectionnez jusqu'à ${maxRefereesPerPool} arbitres pour la poule ${pool.number} (le premier sélectionné est l'arbitre principal) :`
                   : `Sélectionnez l'arbitre pour la poule ${pool.number} :`}

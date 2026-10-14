@@ -845,7 +845,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               justifyContent: 'space-between',
               alignItems: 'baseline',
               fontSize: '0.75rem',
-              color: 'var(--text-muted, #6b7280)',
+              color: 'var(--text-muted, var(--color-text-light))',
               marginBottom: '5px',
             }}
           >
@@ -863,7 +863,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           <div
             style={{
               height: '8px',
-              background: 'var(--border-color, #e5e7eb)',
+              background: 'var(--border-color, var(--color-border))',
               borderRadius: '4px',
               overflow: 'hidden',
             }}
@@ -872,7 +872,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               style={{
                 height: '100%',
                 width: `${(checkedInCount / fencers.length) * 100}%`,
-                background: checkedInCount === fencers.length ? '#22c55e' : '#3b82f6',
+                background: checkedInCount === fencers.length ? '#22c55e' : 'var(--color-primary)',
                 borderRadius: '4px',
                 transition: 'width 0.4s ease',
               }}
@@ -890,7 +890,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               top: '50%',
               transform: 'translateY(-50%)',
               fontSize: '0.875rem',
-              color: 'var(--text-muted, #6b7280)',
+              color: 'var(--text-muted, var(--color-text-light))',
               pointerEvents: 'none',
               userSelect: 'none',
             }}

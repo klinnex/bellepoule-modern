@@ -76,7 +76,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
             }}
             style={{
               padding: '1rem',
-              background: '#f3f4f6',
+              background: 'var(--color-bg)',
               borderRadius: '8px',
               marginBottom: '1rem',
               textAlign: 'center',
@@ -84,13 +84,19 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
               userSelect: 'none',
             }}
           >
-            <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+            <div
+              style={{
+                fontSize: '0.875rem',
+                color: 'var(--color-text-light)',
+                marginBottom: '0.25rem',
+              }}
+            >
               ↕ Tireur (glisser vers une poule)
             </div>
             <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>
               {fencer.firstName} {fencer.lastName}
             </div>
-            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+            <div style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>
               Actuellement en Poule {currentPool.number}
             </div>
           </div>
@@ -128,8 +134,8 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                 style={{
                   padding: '1rem',
                   textAlign: 'center',
-                  color: '#6b7280',
-                  background: '#f9fafb',
+                  color: 'var(--color-text-light)',
+                  background: 'var(--color-surface-2)',
                   borderRadius: '6px',
                 }}
               >
@@ -159,7 +165,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                       }}
                       style={{
                         padding: '0.75rem 1rem',
-                        border: `2px solid ${isSelected || dragOverIndex === index ? '#3b82f6' : '#e5e7eb'}`,
+                        border: `2px solid ${isSelected || dragOverIndex === index ? 'var(--color-primary)' : 'var(--color-border)'}`,
                         borderRadius: '8px',
                         cursor: 'pointer',
                         background: isSelected
@@ -183,7 +189,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                             style={{
                               marginLeft: '0.5rem',
                               fontSize: '0.875rem',
-                              color: '#6b7280',
+                              color: 'var(--color-text-light)',
                             }}
                           >
                             ({pool.fencers.length} tireurs)
@@ -207,7 +213,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                       <div
                         style={{
                           fontSize: '0.75rem',
-                          color: '#9ca3af',
+                          color: 'var(--color-text-muted)',
                           marginTop: '0.25rem',
                         }}
                       >

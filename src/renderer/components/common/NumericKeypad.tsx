@@ -25,9 +25,9 @@ const KEY_STYLE: React.CSSProperties = {
   minHeight: '56px',
   fontSize: '1.5rem',
   fontWeight: 600,
-  border: '1px solid #d1d5db',
+  border: '1px solid var(--color-border-dark)',
   borderRadius: '8px',
-  background: '#f9fafb',
+  background: 'var(--color-surface-2)',
   cursor: 'pointer',
   touchAction: 'manipulation',
   userSelect: 'none',
@@ -95,8 +95,8 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
           style={{
             ...KEY_STYLE,
             gridColumn: '1 / -1',
-            background: confirmDisabled ? '#e5e7eb' : '#10b981',
-            color: confirmDisabled ? '#9ca3af' : 'white',
+            background: confirmDisabled ? 'var(--color-border)' : '#10b981',
+            color: confirmDisabled ? 'var(--color-text-muted)' : 'white',
             cursor: confirmDisabled ? 'not-allowed' : 'pointer',
           }}
         >
