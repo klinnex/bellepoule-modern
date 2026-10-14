@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { Fencer, Pool, PoolRanking } from '../../../shared/types';
 import { FinalResult } from '../tableau/tableauTypes';
 
@@ -72,9 +73,11 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
   onGoToResults,
   onExportFFE,
 }) => {
+  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   return (
     <div className="modal-overlay" onClick={onClose} style={{ zIndex: 11000 }}>
       <div
+        ref={modalRef}
         className="modal"
         onClick={e => e.stopPropagation()}
         style={{ maxWidth: '620px', maxHeight: '85vh', overflowY: 'auto' }}

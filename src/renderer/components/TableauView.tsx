@@ -172,6 +172,11 @@ const TV_STYLES = {
     justifyContent: 'center',
     gap: '0.5rem',
     userSelect: 'none' as const,
+    width: '100%',
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    font: 'inherit',
   } satisfies React.CSSProperties,
   roundHeaderChevron: {
     fontSize: '1rem',
@@ -1090,10 +1095,17 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         }}
         style={TV_STYLES.roundCol}
       >
-        <div onClick={() => toggleRoundExpansion(round)} style={TV_STYLES.roundHeader}>
-          <span style={TV_STYLES.roundHeaderChevron}>{isExpanded ? '▼' : '▶'}</span>
+        <button
+          type="button"
+          onClick={() => toggleRoundExpansion(round)}
+          style={TV_STYLES.roundHeader}
+          aria-expanded={isExpanded}
+        >
+          <span style={TV_STYLES.roundHeaderChevron} aria-hidden="true">
+            {isExpanded ? '▼' : '▶'}
+          </span>
           {getRoundName(round)}
-        </div>
+        </button>
         {isExpanded && (
           <div
             style={
