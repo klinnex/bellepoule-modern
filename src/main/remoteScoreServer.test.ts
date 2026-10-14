@@ -342,6 +342,27 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('fin estimée de phase (#1077)', () => {
+    it('le snapshot dashboard inclut une ETA basée sur les durées réelles', () => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+      mockDb.getFencersByCompetition.mockReturnValueOnce([]);
+      (server as any).sessionMatches = [
+        { id: 'm1', poolId: 'p1', status: 'finished' },
+        { id: 'm2', poolId: 'p1', status: 'not_started' },
+        { id: 'm3', poolId: 'p1', status: 'not_started' },
+      ];
+      (server as any).recentMatchDurationsMs = [180_000, 180_000, 180_000];
+      (server as any).arenas = new Map(); // → 1 piste
+      const before = Date.now();
+      const { eta } = (server as any).buildDashboardSnapshot();
+      expect(eta.basis).toBe('measured');
+      expect(eta.remainingMatches).toBe(2);
+      expect(eta.perMatchMinutes).toBe(4); // 3 min + 1 min de changement
+      // 1 piste : 2 vagues de 4 min
+      expect(new Date(eta.finishAt).getTime()).toBeGreaterThanOrEqual(before + 8 * 60_000);
+    });
+  });
+
   describe('liste des arbitres de session', () => {
     it('inclut les arbitres ajoutés après le démarrage de la session', () => {
       (server as any).session = { competitionId: 'comp-1', referees: [] };

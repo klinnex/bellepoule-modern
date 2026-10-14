@@ -27,6 +27,7 @@ import {
 } from '../shared/types/remote';
 import { Competition, Match, Fencer, MatchStatus, FencerStatus, Score } from '../shared/types';
 import { DatabaseManager } from '../database';
+import { estimatePhaseEta } from '../shared/utils/phaseEta';
 import {
   getLaserArenaBoutCap,
   isLaserArenaBoutComplete,
@@ -125,6 +126,8 @@ export class RemoteScoreServer {
   private sessionPoolTimerSeconds: number = 180; // Durée chrono poules
   private sessionTableTimerSeconds: number = 180; // Durée chrono tableau
   private sessionMatches: any[] = []; // Matches passés depuis le renderer
+  // Durées réelles (ms) des derniers matchs terminés sur les arènes (#1077)
+  private recentMatchDurationsMs: number[] = [];
   private arenaNextMatchIndex: Map<string, number> = new Map(); // Index du prochain match par arène
   private arenaMatchQueue: Map<string, ArenaMatch[]> = new Map(); // File d'attente DE par arène
   private poolMatchArenaOverrides: Map<string, string> = new Map(); // matchId → arenaId (réassignation piste poule)
@@ -3500,6 +3503,7 @@ export class RemoteScoreServer {
           socket.emit('rankings:update', { rankings: snapshot.rankings });
           socket.emit('pools:update', { pools: snapshot.pools });
           socket.emit('matches:update', { matches: snapshot.liveMatches });
+          if (snapshot.eta) socket.emit('eta:update', snapshot.eta);
         }
       });
 
@@ -5009,9 +5013,11 @@ export class RemoteScoreServer {
     arena.currentMatch.endTime = new Date();
 
     if (arena.startTime) {
-      arena.currentMatch.duration = Math.floor(
-        (new Date().getTime() - arena.startTime.getTime()) / 1000
-      );
+      const wallMs = new Date().getTime() - arena.startTime.getTime();
+      arena.currentMatch.duration = Math.floor(wallMs / 1000);
+      // Durées réelles pour l'estimation de fin de phase (#1077)
+      this.recentMatchDurationsMs.push(wallMs);
+      if (this.recentMatchDurationsMs.length > 50) this.recentMatchDurationsMs.shift();
     }
 
     // Persistance secondaire (timing / cartons / touches / sorties) : ces écritures
@@ -5611,7 +5617,12 @@ export class RemoteScoreServer {
     console.log(`[RemoteScoreServer] Arène ${arenaId} marquée comme vide`);
   }
 
-  private buildDashboardSnapshot(): { rankings: any[]; pools: any[]; liveMatches: any[] } | null {
+  private buildDashboardSnapshot(): {
+    rankings: any[];
+    pools: any[];
+    liveMatches: any[];
+    eta?: { finishAt: string; basis: string; remainingMatches: number; perMatchMinutes: number };
+  } | null {
     if (!this.session) return null;
     if (this.isTrainingMode) return { rankings: [], pools: [], liveMatches: [] };
     const { competitionId } = this.session;
@@ -5678,7 +5689,25 @@ export class RemoteScoreServer {
       }
     }
 
-    return { rankings, pools, liveMatches };
+    // Fin estimée de la phase en cours (#1077)
+    const remainingMatches = this.sessionMatches.filter((m: any) => {
+      const u = this.sessionMatchScores.get(m.id);
+      return (u ? u.status : m.status) !== 'finished';
+    }).length;
+    const estimate = estimatePhaseEta({
+      durationsMs: this.recentMatchDurationsMs,
+      remainingMatches,
+      activeArenas: this.arenas.size,
+      now: Date.now(),
+    });
+    const eta = {
+      finishAt: new Date(estimate.finishAt).toISOString(),
+      basis: estimate.basis,
+      remainingMatches: estimate.remainingMatches,
+      perMatchMinutes: Math.round(estimate.perMatchMs / 60_000),
+    };
+
+    return { rankings, pools, liveMatches, eta };
   }
 
   public broadcastDashboardUpdate(): void {
@@ -5691,6 +5720,7 @@ export class RemoteScoreServer {
     this.io.to('dashboard').emit('rankings:update', { rankings: snapshot.rankings });
     this.io.to('dashboard').emit('pools:update', { pools: snapshot.pools });
     this.io.to('dashboard').emit('matches:update', { matches: snapshot.liveMatches });
+    if (snapshot.eta) this.io.to('dashboard').emit('eta:update', snapshot.eta);
   }
 
   // matchId pour lequel les photos ont déjà été diffusées, par arène : les updates

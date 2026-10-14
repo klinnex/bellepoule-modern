@@ -47,6 +47,7 @@ Champ `action` de l'événement `arena_control` (`handleArenaControl`) :
 | `arenas:updated` | ✓ | — |
 | `auth_error` | ✓ | `referee.html`, `teamReferee.html` |
 | `bracket:update` | ✓ | `kiosk.html` |
+| `eta:update` | ✓ | `dashboard.html` |
 | `kiosk:note` | ✓ | — |
 | `logo:update` | ✓ | — |
 | `match:finished` | ✓ | — |

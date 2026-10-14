@@ -133,6 +133,9 @@
       'dashboard.no_live': 'Aucun match en cours',
       'dashboard.no_live_hint': 'Les matchs en direct apparaîtront ici',
       'dashboard.autorefresh': 'Auto-refresh: 10s',
+      'dashboard.eta': 'Fin estimée',
+      'dashboard.eta_default': 'Fin estimée (provisoire)',
+      'dashboard.eta_remaining': '{{count}} matchs restants',
     },
     en: {
       /* login */
@@ -266,6 +269,9 @@
       'dashboard.no_live': 'No live matches',
       'dashboard.no_live_hint': 'Live matches will appear here',
       'dashboard.autorefresh': 'Auto-refresh: 10s',
+      'dashboard.eta': 'Estimated finish',
+      'dashboard.eta_default': 'Estimated finish (provisional)',
+      'dashboard.eta_remaining': '{{count}} bouts left',
     },
     'zh-HK': {
       /* login */
@@ -399,6 +405,9 @@
       'dashboard.no_live': '沒有即時比賽',
       'dashboard.no_live_hint': '即時比賽將在此顯示',
       'dashboard.autorefresh': '自動刷新：10秒',
+      'dashboard.eta': '預計結束',
+      'dashboard.eta_default': '預計結束（暫定）',
+      'dashboard.eta_remaining': '剩餘 {{count}} 場',
     },
   };
 
