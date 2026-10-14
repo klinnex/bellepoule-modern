@@ -157,8 +157,10 @@ dépendent de ce job.
 | Typage | \`npm run type-check\` | erreur TypeScript (\`tsc --noEmit\`, mode strict) |
 | i18n | \`npm run check:i18n\` | clé manquante / en trop vs \`fr.json\` (\`scripts/check-i18n-completeness.js\`) |
 | Doc des tests | \`npm run check:tests-doc\` | \`docs/TESTS.md\` pas à jour vs fichiers de test |
+| Doc i18n | \`npm run check:i18n-doc\` | \`docs/I18N.md\` pas à jour, ou clé \`data-i18n\` d'une page distante absente de \`src/remote/i18n.js\` |
+| Cliquet qualité | \`npm run check:quality\` | hausse du nombre de textes JSX en dur, \`any\` ou \`console.*\` vs \`scripts/quality-baseline.json\` (\`--update\` pour verrouiller une baisse) |
 | Tests unitaires | \`npm run test:run\` | un test Vitest échoue |
-| Budget bundle | \`npm run build:renderer\` + \`node scripts/check-bundle-size.js\` | JS renderer > 10 MiB |
+| Budget bundle | \`npm run build:renderer\` + \`node scripts/check-bundle-size.js\` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1 MiB, total > 6 MiB, ou aucun chunk à la demande (\`scripts/check-bundle-size.js\`) |
 
 Hors CI (manuel) : \`npm run lint\`, \`npm run format:check\`, \`npm run test:coverage\`,
 \`npm run test:e2e\`.
