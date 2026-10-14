@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Formateurs - BellePoule</title>
+    <title data-i18n="trainer.page_title">Formateurs - BellePoule</title>
     <style>
       * {
         margin: 0;
@@ -158,24 +158,25 @@
         margin-bottom: 0.75rem;
       }
     </style>
+    <script src="/i18n.js"></script>
   </head>
   <body>
     <div class="wrap">
-      <h1>🎓 Espace formateurs — arbitrage</h1>
+      <h1 data-i18n="trainer.title">🎓 Espace formateurs — arbitrage</h1>
 
       <div id="state-message" class="card message">Chargement…</div>
 
       <div id="login-view" class="card hidden">
         <form id="login-form">
-          <input id="password" type="password" placeholder="Mot de passe formateurs" autocomplete="current-password" />
-          <button class="primary" type="submit">Se connecter</button>
+          <input id="password" type="password" placeholder="Mot de passe formateurs" data-i18n-placeholder="trainer.ph_password" autocomplete="current-password" />
+          <button class="primary" type="submit" data-i18n="trainer.login">Se connecter</button>
           <div id="login-error" class="error"></div>
         </form>
       </div>
 
       <div id="list-view" class="card hidden">
         <div class="toolbar">
-          <input id="search" type="search" placeholder="Rechercher un arbitre…" />
+          <input id="search" type="search" placeholder="Rechercher un arbitre…" data-i18n-placeholder="trainer.ph_search" />
         </div>
         <ul id="list"></ul>
         <div id="list-error" class="error"></div>
@@ -183,23 +184,26 @@
 
       <div id="comment-view" class="card hidden">
         <div class="toolbar">
-          <button id="back" class="secondary" type="button">← Arbitres</button>
+          <button id="back" class="secondary" type="button" data-i18n="trainer.back">← Arbitres</button>
         </div>
         <h2 id="ref-name"></h2>
         <div id="ref-status" class="sub"></div>
         <form id="comment-form" style="margin-top: 0.75rem">
-          <input id="author" type="text" placeholder="Votre nom (formateur)" maxlength="100" />
-          <textarea id="comment" placeholder="Commentaire pour l'arbitre…" maxlength="4000" style="margin-top: 0.5rem"></textarea>
-          <button class="primary" type="submit">Publier le commentaire</button>
+          <input id="author" type="text" placeholder="Votre nom (formateur)" data-i18n-placeholder="trainer.ph_author" maxlength="100" />
+          <textarea id="comment" placeholder="Commentaire pour l'arbitre…" data-i18n-placeholder="trainer.ph_comment" maxlength="4000" style="margin-top: 0.5rem"></textarea>
+          <button class="primary" type="submit" data-i18n="trainer.publish">Publier le commentaire</button>
           <div id="comment-error" class="error"></div>
         </form>
-        <h2 style="margin-top: 1.25rem">Commentaires précédents</h2>
+        <h2 style="margin-top: 1.25rem" data-i18n="trainer.history">Commentaires précédents</h2>
         <div id="history"></div>
       </div>
     </div>
 
     <script>
       (function () {
+        // Traduction (src/remote/i18n.js) ; repli sur la clé si i18n.js absent
+        const tk = (key, params) => (window.T ? window.T(key, params) : key);
+        if (window.initRemoteI18n) window.initRemoteI18n();
         const POLL_MS = 10000;
         const $ = id => document.getElementById(id);
         let referees = [];
@@ -238,14 +242,16 @@
             return true;
           }
           if (res.status === 403) {
-            showMessage("L'espace formateurs n'est pas ouvert pour cette compétition.");
+            showMessage(tk('trainer.not_open'));
             return true;
           }
           return false;
         }
 
         function statusText(r) {
-          return r.inMatch ? 'En match — ' + (r.matchLabel || 'Piste ' + r.arenaNumber) : 'Disponible';
+          return r.inMatch
+            ? tk('trainer.in_match', { label: r.matchLabel || tk('remote.piste') + ' ' + r.arenaNumber })
+            : tk('trainer.available');
         }
 
         function renderList() {
@@ -258,7 +264,7 @@
           if (items.length === 0) {
             const li = document.createElement('li');
             li.className = 'message';
-            li.textContent = 'Aucun arbitre';
+            li.textContent = tk('trainer.no_referee');
             list.appendChild(li);
             return;
           }
@@ -272,7 +278,7 @@
             const sub = document.createElement('div');
             sub.className = 'sub';
             sub.textContent =
-              statusText(r) + (r.commentCount ? ' · ' + r.commentCount + ' commentaire(s)' : '');
+              statusText(r) + (r.commentCount ? ' · ' + tk('trainer.comment_count', { count: r.commentCount }) : '');
             who.appendChild(name);
             who.appendChild(sub);
             const badge = document.createElement('span');
@@ -291,7 +297,7 @@
             const body = await res.json().catch(() => null);
             if (handleDenied(res)) return;
             if (!res.ok) {
-              $('list-error').textContent = (body && body.error) || 'Erreur de connexion';
+              $('list-error').textContent = (body && body.error) || tk('remote.error_connection');
               return;
             }
             referees = body.referees || [];
@@ -302,7 +308,7 @@
             }
             if (!pollTimer) pollTimer = setInterval(loadList, POLL_MS);
           } catch (e) {
-            $('list-error').textContent = 'Erreur de connexion';
+            $('list-error').textContent = tk('remote.error_connection');
           }
         }
 
@@ -319,7 +325,7 @@
             if (comments.length === 0) {
               const p = document.createElement('div');
               p.className = 'sub';
-              p.textContent = 'Aucun commentaire pour le moment.';
+              p.textContent = tk('trainer.no_comment');
               box.appendChild(p);
               return;
             }
@@ -388,12 +394,12 @@
             if (handleDenied(res)) return;
             const body = await res.json().catch(() => null);
             if (!res.ok) {
-              $('comment-error').textContent = (body && body.error) || 'Erreur';
+              $('comment-error').textContent = (body && body.error) || tk('trainer.error');
               return;
             }
             backToList();
           } catch (err) {
-            $('comment-error').textContent = 'Erreur de connexion';
+            $('comment-error').textContent = tk('remote.error_connection');
           }
         });
 
@@ -412,14 +418,14 @@
               $('password').value = '';
               loadList();
             } else if (res.status === 429) {
-              $('login-error').textContent = (body && body.error) || 'Trop de tentatives';
+              $('login-error').textContent = (body && body.error) || tk('trainer.too_many');
             } else if (res.status === 403) {
-              showMessage("L'espace formateurs n'est pas ouvert pour cette compétition.");
+              showMessage(tk('trainer.not_open'));
             } else {
-              $('login-error').textContent = 'Mot de passe incorrect';
+              $('login-error').textContent = tk('login.error_incorrect');
             }
           } catch (err) {
-            $('login-error').textContent = 'Erreur de connexion';
+            $('login-error').textContent = tk('remote.error_connection');
           }
         });
 
@@ -428,14 +434,14 @@
             const res = await fetch('/api/trainer/status', { credentials: 'same-origin' });
             const st = await res.json();
             if (!st.open || !st.configured) {
-              showMessage("L'espace formateurs n'est pas ouvert pour cette compétition.");
+              showMessage(tk('trainer.not_open'));
             } else if (!st.authenticated) {
               show('login-view');
             } else {
               loadList();
             }
           } catch (e) {
-            showMessage('Erreur de connexion');
+            showMessage(tk('remote.error_connection'));
           }
         })();
       })();

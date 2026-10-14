@@ -97,7 +97,7 @@ Main Process (src/main/)
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
 ├── splash-preload.ts / splash.html  # Splash screen
 ├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
-├── remote/                  # Extraits du serveur distant : network, types, htmlPages, fencerSchedule, routes/ (pages, résultats + RouteContext)
+├── remote/                  # Extraits du serveur distant : network, types, htmlPages, fencerSchedule, auth (mots de passe, jetons, limites), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
 ├── certManager.ts           # Self-signed TLS certificate (selfsigned)
 ├── autoUpdater.ts           # Auto-update (GitHub Releases)
 └── updateIntegrity.ts       # SHA-256 + trusted URL checks for updates

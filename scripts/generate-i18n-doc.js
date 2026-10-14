@@ -134,7 +134,7 @@ function remoteHtmlKeys() {
   const used = new Map();
   for (const file of fs.readdirSync(REMOTE_DIR).filter(f => f.endsWith('.html')).sort()) {
     const html = fs.readFileSync(path.join(REMOTE_DIR, file), 'utf8');
-    const re = /data-i18n(?:-placeholder|-title)?="([^"]+)"|\bT\(\s*['"]([^'"]+)['"]/g;
+    const re = /data-i18n(?:-placeholder|-title)?="([^"]+)"|\b(?:T|tk)\(\s*['"]([^'"]+)['"]/g;
     let m;
     while ((m = re.exec(html))) {
       const key = m[1] || m[2];
@@ -226,7 +226,7 @@ ${remoteTable.table}
 
   md += `### Couverture des pages
 
-| Page | Clés utilisées (\`data-i18n*\` / \`T()\`) |
+| Page | Clés utilisées (\`data-i18n*\` / \`T()\` / \`tk()\`) |
 |---|---:|
 `;
   const perPage = new Map();

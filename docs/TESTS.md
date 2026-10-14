@@ -92,16 +92,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `teams` (`src/features/teams/`) | 6 | 48 |
 | `src/database/` | 2 | 117 |
-| `src/main/` | 5 | 98 |
+| `src/main/` | 6 | 107 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 28 | 114 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 1 | 1 |
-| **Total** | **125** | **1300** |
+| **Total** | **126** | **1309** |
 
-Unitaires : 117 fichiers, 1269 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 118 fichiers, 1278 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1767,6 +1767,26 @@ Unitaires : 117 fichiers, 1269 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **certManager**
   - buildAltNames : localhost, loopback et IPv4 externes uniquement
   - ensureCert génère un certificat avec SAN réels, puis le réutilise
+
+</details>
+
+<details>
+<summary><code>src/main/remote/auth.test.ts</code> — 9 tests</summary>
+
+- **parseCookies**
+  - décode les paires et ignore les parties malformées
+- **mots de passe scrypt**
+  - hash salé, vérification à temps constant
+  - refuse un mot de passe trop court, accepte le vide (suppression)
+- **jetons de session**
+  - valides jusqu’à expiration, puis supprimés
+  - plafond par portée : évince les plus anciens
+  - purge des jetons expirés
+- **LoginGuard**
+  - 5 tentatives par IP et par minute
+  - blocage exponentiel après 5 échecs, alerte opérateur, levé par un succès
+- **MinuteRateLimiter**
+  - limite par clé sur une minute
 
 </details>
 
