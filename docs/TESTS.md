@@ -96,9 +96,10 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 27 | 109 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| **Total** | **117** | **1258** |
+| `src/remote/` | 1 | 8 |
+| **Total** | **118** | **1266** |
 
-Unitaires : 109 fichiers, 1227 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 110 fichiers, 1235 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2513,5 +2514,22 @@ Unitaires : 109 fichiers, 1227 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - l'onglet Tableau est accessible depuis une compétition
   - ouvrir le tableau affiche le bracket ou un état vide
   - les contrôles de zoom du bracket fonctionnent si un tableau existe
+
+</details>
+
+### `src/remote/`
+
+<details>
+<summary><code>src/remote/refereeOfflineQueue.test.ts</code> — 8 tests</summary>
+
+- extrait bien la classe depuis referee.html
+- **OfflineQueueInline — chaos réseau**
+  - rejoue dans l’ordre chronologique (pas dans l’ordre des UUID)
+  - ne garde que le dernier score par match : un ancien score n’écrase jamais le récent
+  - coupure pendant le rejeu : rien n’est perdu, tout part au retour du réseau
+  - erreur serveur (HTTP 429/500) : la file est conservée
+  - action refusée par le serveur : seule celle-ci reste en file
+  - deux sync simultanés (reconnexion + bouton) : aucun doublon envoyé
+  - envoie par lots de 50 au plus
 
 </details>

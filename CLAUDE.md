@@ -180,7 +180,7 @@ Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
 ├── i18n.js                  # Client-side i18n for remote interfaces
 ├── styles.css
 ├── sw.js                    # Service worker for offline tablet support
-└── offlineQueue.ts          # Offline action queue for tablets
+└── (file hors-ligne : classe OfflineQueueInline dans referee.html, testée par refereeOfflineQueue.test.ts)
 
 Database (src/database/)
 ├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db

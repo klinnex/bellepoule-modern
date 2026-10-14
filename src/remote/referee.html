@@ -1695,6 +1695,8 @@
             type,
             payload,
             timestamp: Date.now(),
+            // Départage des actions de la même milliseconde
+            seq: ++OfflineQueueInline.seq,
             retries: 0,
           };
           return new Promise((resolve, reject) => {
@@ -1731,35 +1733,72 @@
           });
         }
 
+        /**
+         * Rejoue la file vers le serveur, en un seul lot, dans l'ordre chronologique.
+         * - getAll() trie par clé (UUID aléatoire) : on retrie par horodatage.
+         * - score_save porte un score absolu : seul le dernier par match compte,
+         *   les précédents sont supprimés (un ancien score ne peut plus écraser
+         *   le récent si son envoi échoue puis réussit plus tard).
+         * - Un seul sync à la fois (reconnexion + bouton manuel simultanés).
+         */
         async sync(endpoint) {
-          const actions = await this.getAllActions();
-          if (actions.length === 0) return { synced: 0, failed: 0 };
-          let synced = 0,
-            failed = 0;
-          for (const action of actions) {
+          if (this._syncing) return { synced: 0, failed: 0 };
+          this._syncing = true;
+          try {
+            const actions = (await this.getAllActions()).sort(
+              (a, b) => a.timestamp - b.timestamp || (a.seq || 0) - (b.seq || 0)
+            );
+            const latestScore = new Map();
+            for (const a of actions) {
+              if (a.type === 'score_save' && a.payload && a.payload.matchId) {
+                latestScore.set(a.payload.matchId, a.id);
+              }
+            }
+            const pending = [];
+            for (const a of actions) {
+              const matchId = a.type === 'score_save' && a.payload ? a.payload.matchId : null;
+              if (matchId && latestScore.get(matchId) !== a.id) await this.removeAction(a.id);
+              else pending.push(a);
+            }
+            const batch = pending.slice(0, OfflineQueueInline.BATCH_SIZE);
+            if (batch.length === 0) return { synced: 0, failed: 0 };
+
+            let resp;
             try {
-              const resp = await fetch(endpoint, {
+              resp = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ actions: [action] }),
+                body: JSON.stringify({ actions: batch }),
               });
-              if (resp.ok) {
-                await this.removeAction(action.id);
-                synced++;
-              } else {
-                failed++;
-              }
             } catch {
-              failed++;
+              return { synced: 0, failed: batch.length };
             }
+            if (!resp.ok) return { synced: 0, failed: batch.length };
+            const data = await resp.json().catch(() => ({}));
+            const ok = new Set(
+              (Array.isArray(data.results) ? data.results : [])
+                .filter(r => r && r.success)
+                .map(r => r.id)
+            );
+            let synced = 0;
+            for (const a of batch) {
+              if (ok.has(a.id)) {
+                await this.removeAction(a.id);
+                synced++;
+              }
+            }
+            return { synced, failed: batch.length - synced };
+          } finally {
+            this._syncing = false;
           }
-          return { synced, failed };
         }
 
         isOnline() {
           return navigator.onLine;
         }
       }
+      OfflineQueueInline.seq = 0;
+      OfflineQueueInline.BATCH_SIZE = 50;
       // ────────────────────────────────────────────────────────────────────────
 
       const FAULT_REASONS = [
