@@ -95,12 +95,12 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 4 | 95 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 27 | 110 |
+| `src/renderer/components/` | 28 | 113 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
-| **Total** | **122** | **1292** |
+| **Total** | **123** | **1295** |
 
-Unitaires : 114 fichiers, 1261 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 115 fichiers, 1264 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2484,6 +2484,17 @@ Unitaires : 114 fichiers, 1261 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **propagateWinners - abandon / forfait / exclusion (#1012)**
   - conserve le vainqueur d’un match sans score (abandon en finale)
   - efface un vainqueur périmé qui n’est plus dans le match
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/wiki/wikiData.test.ts</code> — 3 tests</summary>
+
+- **wikiData**
+  - identifiants d’articles uniques
+  - **article %s** _(each)_
+    - titre et contenu en %s, même structure que fr _(each)_
+    - catégorie connue
 
 </details>
 
