@@ -438,7 +438,9 @@
     "roundGeneric": "輪次（{{count}} 場）",
     "bye": "{{team}} 直接晉級（輪空）",
     "waitingPrevious": "等待前一輪結果…",
-    "confirmRegenerate": "已有對賽。刪除並重新產生？"
+    "confirmRegenerate": "已有對賽。刪除並重新產生？",
+    "pdfExport": "匯出 PDF",
+    "pdfError": "PDF 匯出失敗"
   },
   "kiosk": {
     "tbd": "待定",

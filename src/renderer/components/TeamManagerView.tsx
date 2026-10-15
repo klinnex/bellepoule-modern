@@ -477,6 +477,24 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
     ? laserRankings.map(r => r.team)
     : fieRankings.map(r => r.team);
 
+  const canExportPdf =
+    (view === 'pool' && matches.length > 0) ||
+    (view === 'tableau' && rankedTeamsForBracket.length >= 2 && tableauMatches.length > 0) ||
+    (view === 'ranking' && rankedTeamsForBracket.length > 0);
+
+  const handleExportPdf = async () => {
+    try {
+      const pdf = await import('../../shared/utils/pdfExport/teamPdf');
+      const opts = { title: competition.title, teams, fencerName, isLaserArena };
+      if (view === 'pool') await pdf.exportTeamPoolsToPDF(opts, matches);
+      else if (view === 'tableau')
+        await pdf.exportTeamTableauToPDF(opts, rankedTeamsForBracket, tableauMatches);
+      else await pdf.exportTeamRankingToPDF(opts, rankedTeamsForBracket, tableauMatches);
+    } catch (e) {
+      showToast(`${t('teams.pdfError')} : ${(e as Error).message}`, 'error');
+    }
+  };
+
   if (loading)
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
@@ -532,6 +550,14 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
                 className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
               >
                 Générer la poule
+              </button>
+            )}
+            {canExportPdf && (
+              <button
+                onClick={handleExportPdf}
+                className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
+              >
+                ↓ {t('teams.pdfExport')}
               </button>
             )}
           </div>

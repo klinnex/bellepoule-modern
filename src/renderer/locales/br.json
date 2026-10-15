@@ -438,7 +438,9 @@
     "roundGeneric": "Tro ({{count}} emgav)",
     "bye": "{{team}} dibabet war-eeun (dieub)",
     "waitingPrevious": "O c'hortoz an disoc'hoù a-raok…",
-    "confirmRegenerate": "Emgavioù zo dija. Dilemel hag adkrouiñ ?"
+    "confirmRegenerate": "Emgavioù zo dija. Dilemel hag adkrouiñ ?",
+    "pdfExport": "Ezporzhiañ PDF",
+    "pdfError": "C’hwitet eo an ezporzhiañ PDF"
   },
   "kiosk": {
     "tbd": "Da benn-diviz",

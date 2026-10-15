@@ -438,7 +438,9 @@
     "roundGeneric": "Round ({{count}} matches)",
     "bye": "{{team}} advances directly (bye)",
     "waitingPrevious": "Waiting for previous results…",
-    "confirmRegenerate": "Matches already exist. Delete and regenerate?"
+    "confirmRegenerate": "Matches already exist. Delete and regenerate?",
+    "pdfExport": "Export PDF",
+    "pdfError": "PDF export failed"
   },
   "kiosk": {
     "ranking": "📊 Ranking",
