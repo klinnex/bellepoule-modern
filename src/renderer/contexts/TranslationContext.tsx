@@ -6,7 +6,11 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { logger, LogCategory } from '@shared/services/logger';
-import { pseudoLocalize, isPseudoLocaleEnabled } from '@shared/utils/pseudoLocale';
+import {
+  pseudoLocalize,
+  isPseudoLocaleEnabled,
+  PSEUDO_LOCALE_STORAGE_KEY,
+} from '@shared/utils/pseudoLocale';
 import frTranslations from '../locales/fr.json';
 import enTranslations from '../locales/en.json';
 import deTranslations from '../locales/de.json';
@@ -33,6 +37,9 @@ interface TranslationContextValue {
   t: (key: TranslationKey, params?: { [key: string]: string | number }) => string;
   changeLanguage: (lang: Language) => Promise<void>;
   changeTheme: (theme: Theme) => void;
+  /** Debug i18n : chaînes traduites marquées [!! … !!] (#1063) */
+  pseudoLocale: boolean;
+  setPseudoLocale: (enabled: boolean) => void;
   availableLanguages: readonly { code: Language; name: string; flag: string }[];
   availableThemes: readonly { code: Theme; name: string }[];
 }
@@ -176,9 +183,18 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
   }, []);
 
   // Debug i18n : chaînes traduites marquées [!! … !!] (voir pseudoLocale.ts)
-  const [pseudoLocale] = useState(() =>
+  const [pseudoLocale, setPseudoLocaleState] = useState(() =>
     isPseudoLocaleEnabled(typeof localStorage === 'undefined' ? undefined : localStorage)
   );
+  const setPseudoLocale = useCallback((enabled: boolean) => {
+    try {
+      if (enabled) localStorage.setItem(PSEUDO_LOCALE_STORAGE_KEY, '1');
+      else localStorage.removeItem(PSEUDO_LOCALE_STORAGE_KEY);
+    } catch {
+      /* stockage indisponible : réglage limité à la session */
+    }
+    setPseudoLocaleState(enabled);
+  }, []);
 
   const t = useCallback(
     (key: TranslationKey, params?: { [key: string]: string | number }): string => {
@@ -218,6 +234,8 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
     t,
     changeLanguage,
     changeTheme,
+    pseudoLocale,
+    setPseudoLocale,
     availableLanguages: [
       { code: 'fr', name: 'Français', flag: '🇫🇷' },
       { code: 'en', name: 'English', flag: '🇺🇸' },

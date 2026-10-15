@@ -56,6 +56,12 @@ describe('buildMatchReplay (#1074)', () => {
 
   it('score_change fait foi : les touches ne sont pas recomptées', () => {
     const frames = buildMatchReplay([
+      ev({
+        eventType: 'score_change',
+        timestamp: t(0),
+        newScoreA: { value: 0 },
+        newScoreB: { value: 0 },
+      }),
       ev({ eventType: 'touch', timestamp: t(1), fencerSide: 'A', points: 3 }),
       ev({
         eventType: 'score_change',
@@ -64,7 +70,27 @@ describe('buildMatchReplay (#1074)', () => {
         newScoreB: { value: 0 },
       }),
     ]);
-    expect(frames.map(f => f.scoreA)).toEqual([0, 3]);
+    expect(frames.map(f => f.scoreA)).toEqual([0, 0, 3]);
+  });
+
+  it('score final seul : le score progresse avec les touches puis se recale', () => {
+    const frames = buildMatchReplay([
+      ev({ eventType: 'touch', timestamp: t(1), fencerSide: 'A', points: 3 }),
+      ev({ eventType: 'touch', timestamp: t(2), fencerSide: 'B', points: 1 }),
+      ev({ eventType: 'touch', timestamp: t(3), fencerSide: 'A', points: 5 }),
+      ev({
+        eventType: 'score_change',
+        timestamp: t(4),
+        newScoreA: { value: 8 },
+        newScoreB: { value: 1 },
+      }),
+    ]);
+    expect(frames.map(f => [f.scoreA, f.scoreB])).toEqual([
+      [3, 0],
+      [3, 1],
+      [8, 1],
+      [8, 1],
+    ]);
   });
 
   it('sans score_change : cumule touches et sorties d’arène (points à l’adversaire)', () => {

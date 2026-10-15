@@ -208,7 +208,9 @@
     "default_pool_max_score": "Puntuación Máxima de Poules",
     "default_table_max_score": "Puntuación Máxima del Cuadro",
     "save": "Guardar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "pseudo_locale": "Depuración de traducciones",
+    "pseudo_locale_hint": "Muestra los textos traducidos como [!! … !!]: todo texto sin esta marca no está traducido."
   },
   "actions": {
     "add": "Agregar",

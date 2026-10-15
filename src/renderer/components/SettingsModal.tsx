@@ -98,7 +98,8 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
-  const { t, language, theme, changeLanguage, changeTheme } = useTranslation();
+  const { t, language, theme, changeLanguage, changeTheme, pseudoLocale, setPseudoLocale } =
+    useTranslation();
   const [showPdfEditor, setShowPdfEditor] = useState(false);
   const [settings, setSettings] = useState({
     language: language,
@@ -369,6 +370,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 value={settings.language}
                 onLanguageChange={handleLanguageChange}
               />
+            </div>
+
+            <div className="form-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  type="checkbox"
+                  checked={pseudoLocale}
+                  onChange={e => setPseudoLocale(e.target.checked)}
+                />
+                {t('settings.pseudo_locale')}
+              </label>
+              <p style={HINT}>{t('settings.pseudo_locale_hint')}</p>
             </div>
 
             <div className="form-group">

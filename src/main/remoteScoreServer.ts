@@ -72,6 +72,8 @@ import {
 } from '../features/teams/utils/teamRelayLive';
 import { createCard, getAvailableReasons } from '../shared/utils/cardSystem';
 
+type ArenaEventList = 'touchesA' | 'touchesB' | 'cardsA' | 'cardsB' | 'exits';
+
 export class RemoteScoreServer {
   private app: express.Application;
   private server: any;
@@ -1425,6 +1427,8 @@ export class RemoteScoreServer {
   private arenaTouches: Map<string, { touchesA: string[]; touchesB: string[] }> = new Map();
   // Stockage des sorties d'arène par arène
   private arenaExits: Map<string, Array<{ fencer: 'A' | 'B'; isVoluntary: boolean }>> = new Map();
+  // Horodatage réel de chaque touche / carton / sortie, aligné sur les listes ci-dessus (replay #1074)
+  private arenaEventTimes: Map<string, Record<ArenaEventList, string[]>> = new Map();
   private arenaSuddenDeath: Map<string, boolean> = new Map();
   private arenaOvertimeType: Map<string, string | null> = new Map();
   private arenaWaitingOvertime: Map<string, boolean> = new Map();
@@ -1434,11 +1438,25 @@ export class RemoteScoreServer {
   private scoreUpdateDebounce: Map<string, number> = new Map();
   private readonly SCORE_UPDATE_DEBOUNCE_MS = 200;
 
+  /** Aligne les horodatages d'une liste : préfixe conservé, nouveaux éléments datés maintenant. */
+  private stampArenaEvents(arenaId: string, list: ArenaEventList, length: number): void {
+    let times = this.arenaEventTimes.get(arenaId);
+    if (!times) {
+      times = { touchesA: [], touchesB: [], cardsA: [], cardsB: [], exits: [] };
+      this.arenaEventTimes.set(arenaId, times);
+    }
+    const stamps = times[list].slice(0, length);
+    const now = new Date().toISOString();
+    while (stamps.length < length) stamps.push(now);
+    times[list] = stamps;
+  }
+
   /** Purge l'état de combat par arène (cartons, touches, mort subite…) — fin de session ou réinit des arènes. */
   private clearArenaCombatState(): void {
     this.arenaCards.clear();
     this.arenaTouches.clear();
     this.arenaExits.clear();
+    this.arenaEventTimes.clear();
     this.arenaSuddenDeath.clear();
     this.arenaOvertimeType.clear();
     this.arenaWaitingOvertime.clear();
@@ -1514,6 +1532,7 @@ export class RemoteScoreServer {
           this.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
           this.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
           this.arenaExits.set(data.arenaId, []);
+          this.arenaEventTimes.delete(data.arenaId);
         }
         break;
       case 'start':
@@ -1531,6 +1550,7 @@ export class RemoteScoreServer {
         this.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
         this.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
         this.arenaExits.set(data.arenaId, []);
+        this.arenaEventTimes.delete(data.arenaId);
         break;
       case 'waiting_overtime':
         this.arenaWaitingOvertime.set(data.arenaId, true);
@@ -1579,6 +1599,7 @@ export class RemoteScoreServer {
         this.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
         this.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
         this.arenaExits.set(data.arenaId, []);
+        this.arenaEventTimes.delete(data.arenaId);
         this.arenaSuddenDeath.set(data.arenaId, false);
         this.arenaOvertimeType.set(data.arenaId, null);
         this.arenaWaitingOvertime.set(data.arenaId, false);
@@ -1616,6 +1637,10 @@ export class RemoteScoreServer {
           if (data.touchesA !== undefined) currentTouches.touchesA = data.touchesA;
           if (data.touchesB !== undefined) currentTouches.touchesB = data.touchesB;
           this.arenaTouches.set(data.arenaId, currentTouches);
+          this.stampArenaEvents(data.arenaId, 'cardsA', currentCards.cardsA.length);
+          this.stampArenaEvents(data.arenaId, 'cardsB', currentCards.cardsB.length);
+          this.stampArenaEvents(data.arenaId, 'touchesA', currentTouches.touchesA.length);
+          this.stampArenaEvents(data.arenaId, 'touchesB', currentTouches.touchesB.length);
 
           this.broadcastArenaUpdate(data.arenaId, {
             arenaId: data.arenaId,
@@ -1641,6 +1666,11 @@ export class RemoteScoreServer {
           const targetCards = data.fencer === 'A' ? currentCards.cardsA : currentCards.cardsB;
           targetCards.push(data.cardType);
           this.arenaCards.set(data.arenaId, currentCards);
+          this.stampArenaEvents(
+            data.arenaId,
+            data.fencer === 'A' ? 'cardsA' : 'cardsB',
+            targetCards.length
+          );
           this.broadcastArenaUpdate(data.arenaId, {
             arenaId: data.arenaId,
             match: arena.currentMatch,
@@ -1657,6 +1687,7 @@ export class RemoteScoreServer {
           const exits = this.arenaExits.get(data.arenaId) || [];
           exits.push({ fencer: data.fencer as 'A' | 'B', isVoluntary: !!data.isVoluntary });
           this.arenaExits.set(data.arenaId, exits);
+          this.stampArenaEvents(data.arenaId, 'exits', exits.length);
         }
         break;
       case 'reset_scores':
@@ -1668,6 +1699,7 @@ export class RemoteScoreServer {
           this.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
           this.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
           this.arenaExits.set(data.arenaId, []);
+          this.arenaEventTimes.delete(data.arenaId);
           this.broadcastArenaUpdate(data.arenaId, {
             arenaId: data.arenaId,
             match: arena.currentMatch,
@@ -2542,7 +2574,8 @@ export class RemoteScoreServer {
 
     // Audit trail si le match est en DB
     try {
-      const matchId = arena.currentMatch.id;
+      // Id DB : composite pour un match de tableau (sinon aucun score_change → replay figé, #1074)
+      const matchId = this.resolveDbMatchId(arena.currentMatch);
       if (this.db.getMatch(matchId)) {
         this.db.logScoreChange({
           matchId,
@@ -2657,10 +2690,17 @@ export class RemoteScoreServer {
         // Persister les cartons accumulés en mémoire
         const cards = this.arenaCards.get(arenaId) ?? { cardsA: [], cardsB: [] };
         const now = new Date().toISOString();
+        const times = this.arenaEventTimes.get(arenaId);
+        // Horodatage réel de l'événement (replay #1074), sinon fin de match
+        const timeOf = (list: ArenaEventList, i: number) => times?.[list][i] ?? now;
         if (matchId) {
-          const persistCards = (list: string[], fencerId: string | undefined) => {
+          const persistCards = (
+            list: string[],
+            fencerId: string | undefined,
+            key: ArenaEventList
+          ) => {
             if (!fencerId) return;
-            for (const cardType of list) {
+            for (const [i, cardType] of list.entries()) {
               this.db.saveCard({
                 id: `${matchId}-${fencerId}-${cardType}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                 matchId,
@@ -2668,39 +2708,43 @@ export class RemoteScoreServer {
                 cardType,
                 reason: 'unknown',
                 cardGroup: 1,
-                timestamp: now,
+                timestamp: timeOf(key, i),
                 pointsAwarded: 0,
                 resultingExclusion: false,
               });
             }
           };
-          persistCards(cards.cardsA, arena.currentMatch.fencerA?.id);
-          persistCards(cards.cardsB, arena.currentMatch.fencerB?.id);
+          persistCards(cards.cardsA, arena.currentMatch.fencerA?.id, 'cardsA');
+          persistCards(cards.cardsB, arena.currentMatch.fencerB?.id, 'cardsB');
 
           // Persister les touches par zone
           const touches = this.arenaTouches.get(arenaId) ?? { touchesA: [], touchesB: [] };
-          const persistTouches = (zoneList: string[], fencerId: string | undefined) => {
+          const persistTouches = (
+            zoneList: string[],
+            fencerId: string | undefined,
+            key: ArenaEventList
+          ) => {
             if (!fencerId) return;
             const ZONE_POINTS: Record<string, number> = { A: 1, B: 3, C: 5 };
-            for (const zone of zoneList) {
+            for (const [i, zone] of zoneList.entries()) {
               this.db.saveTouch({
                 id: `${matchId}-${fencerId}-${zone}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                 matchId,
                 fencerId,
                 zone,
                 points: ZONE_POINTS[zone] ?? 1,
-                timestamp: now,
+                timestamp: timeOf(key, i),
                 isValidInSuddenDeath: false,
                 isReversed: false,
               });
             }
           };
-          persistTouches(touches.touchesA, arena.currentMatch.fencerA?.id);
-          persistTouches(touches.touchesB, arena.currentMatch.fencerB?.id);
+          persistTouches(touches.touchesA, arena.currentMatch.fencerA?.id, 'touchesA');
+          persistTouches(touches.touchesB, arena.currentMatch.fencerB?.id, 'touchesB');
 
           // Persister les sorties d'arène
           const exits = this.arenaExits.get(arenaId) ?? [];
-          for (const exit of exits) {
+          for (const [i, exit] of exits.entries()) {
             const fencerId =
               exit.fencer === 'A' ? arena.currentMatch.fencerA?.id : arena.currentMatch.fencerB?.id;
             if (!fencerId) continue;
@@ -2709,7 +2753,7 @@ export class RemoteScoreServer {
               matchId,
               fencerId,
               exitType: exit.isVoluntary ? 'arena_exit_voluntary' : 'arena_exit',
-              timestamp: now,
+              timestamp: timeOf('exits', i),
               // Escrime olympique : une touche ; Sabre Laser : 3 points (#1027)
               pointsAwarded: ['E', 'F', 'S'].includes(this.sessionWeapon ?? '') ? 1 : 3,
             });

@@ -79,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 33 | 528 |
+| `src/shared/utils/` | 33 | 529 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -92,16 +92,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 2 | 118 |
-| `src/main/` | 6 | 111 |
+| `src/main/` | 6 | 112 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 142 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **132** | **1367** |
+| **Total** | **132** | **1369** |
 
-Unitaires : 124 fichiers, 1336 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 124 fichiers, 1338 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -470,11 +470,12 @@ Unitaires : 124 fichiers, 1336 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/matchReplay.test.ts</code> — 6 tests</summary>
+<summary><code>src/shared/utils/matchReplay.test.ts</code> — 7 tests</summary>
 
 - **buildMatchReplay (#1074)**
   - trie par horodatage et calcule le temps écoulé
   - score\_change fait foi : les touches ne sont pas recomptées
+  - score final seul : le score progresse avec les touches puis se recale
   - sans score\_change : cumule touches et sorties d’arène (points à l’adversaire)
   - accumule les cartons par côté sans muter les images précédentes
   - journal vide → aucune image
@@ -1861,7 +1862,7 @@ Unitaires : 124 fichiers, 1336 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 85 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 86 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -1889,6 +1890,8 @@ Unitaires : 124 fichiers, 1336 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - **broadcastDashboardUpdate (#1069)**
     - ne relit pas la base quand aucun dashboard n’est abonné
     - diffuse aux dashboards abonnés
+  - **horodatage des touches pour le replay (#1074)**
+    - conserve la date des événements déjà vus et date les nouveaux
   - **fin estimée de phase (#1077)**
     - le snapshot dashboard inclut une ETA basée sur les durées réelles
   - **liste des arbitres de session**

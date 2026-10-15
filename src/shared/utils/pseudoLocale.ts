@@ -3,8 +3,8 @@
  * `[!! Ŝçöŕé !!]`. Tout texte affiché sans ce marquage provient d'une chaîne
  * en dur, non passée par t().
  *
- * Activation (renderer) : `localStorage.setItem('bellepoule-pseudo-locale', '1')`
- * puis recharger ; désactivation : `removeItem`.
+ * Activation : Paramètres → « Debug traductions » (effet immédiat), ou en
+ * console `localStorage.setItem('bellepoule-pseudo-locale', '1')` puis recharger.
  */
 
 export const PSEUDO_LOCALE_STORAGE_KEY = 'bellepoule-pseudo-locale';

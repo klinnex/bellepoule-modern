@@ -342,6 +342,31 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('horodatage des touches pour le replay (#1074)', () => {
+    it('conserve la date des événements déjà vus et date les nouveaux', () => {
+      vi.useFakeTimers();
+      try {
+        vi.setSystemTime(new Date('2026-01-01T10:00:00Z'));
+        (server as any).stampArenaEvents('arena1', 'touchesA', 1);
+        vi.setSystemTime(new Date('2026-01-01T10:00:30Z'));
+        (server as any).stampArenaEvents('arena1', 'touchesA', 2);
+        expect((server as any).arenaEventTimes.get('arena1').touchesA).toEqual([
+          '2026-01-01T10:00:00.000Z',
+          '2026-01-01T10:00:30.000Z',
+        ]);
+        // Touche annulée puis rejouée : nouvelle date
+        (server as any).stampArenaEvents('arena1', 'touchesA', 1);
+        vi.setSystemTime(new Date('2026-01-01T10:01:00Z'));
+        (server as any).stampArenaEvents('arena1', 'touchesA', 2);
+        expect((server as any).arenaEventTimes.get('arena1').touchesA[1]).toBe(
+          '2026-01-01T10:01:00.000Z'
+        );
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
   describe('fin estimée de phase (#1077)', () => {
     it('le snapshot dashboard inclut une ETA basée sur les durées réelles', () => {
       (server as any).session = { competitionId: 'comp-1', referees: [] };

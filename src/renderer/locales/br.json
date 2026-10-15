@@ -208,7 +208,9 @@
     "default_pool_max_score": "Skor brassek ar poullou",
     "default_table_max_score": "Skor brassek an daolenn",
     "save": "Enrollañ",
-    "cancel": "Nullañ"
+    "cancel": "Nullañ",
+    "pseudo_locale": "Debug an troidigezhioù",
+    "pseudo_locale_hint": "Diskouez a ra an testennoù troet evel [!! … !!] : n'eo ket troet an testennoù hep ar merk-se."
   },
   "actions": {
     "add": "Ouzhpenn",
