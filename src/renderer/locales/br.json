@@ -135,7 +135,11 @@
     "round_option": "Tro {{n}}",
     "round_current": "o ren",
     "round_checkin_banner": "Galv – Tro {{n}} : gwiriit an dibabet, ha krouit ar poullou nevez (diouzh renkadur an tro kent).",
-    "view_ranking_action": "Gwelet ar renk →"
+    "view_ranking_action": "Gwelet ar renk →",
+    "prep_optimize": "Gwellaat",
+    "prep_avg_ranking_title": "Renkadur keitat ar c'hlezeidi er poull",
+    "prep_initial_ranking": "Renkadur kentañ",
+    "prep_hide_help": "Kuzhat ar skoazell"
   },
   "ranking": {
     "rank": "Renk",
@@ -163,7 +167,14 @@
   },
   "results": {
     "final_ranking": "Renk diweizh",
-    "congratulations": "Gourc'h d'an d'an d'an d'an d'an !"
+    "congratulations": "Gourc'h d'an d'an d'an d'an d'an !",
+    "exporting": "O c'henel…",
+    "export_csv": "📊 CSV",
+    "export_xml_ffe": "📝 XML (FFE)",
+    "export_pdf_ranking": "📄 PDF renkadur",
+    "export_pdf_full_signed": "📦 PDF klok gant ar sinadurioù",
+    "export_pdf_full_unsigned": "📄 PDF klok hep sinadur",
+    "export_pdf_full_unsigned_title": "Poulloù ha taolennoù dilezel war-eeun, hep sinadur ar gleizeidi"
   },
   "remote": {
     "title": "Enrollañ a-bell",

@@ -265,7 +265,11 @@
     "score": "Punktzahl",
     "victory": "S",
     "view_ranking": "Rangliste Anzeigen",
-    "view_ranking_action": "Rangliste anzeigen →"
+    "view_ranking_action": "Rangliste anzeigen →",
+    "prep_optimize": "Optimieren",
+    "prep_avg_ranking_title": "Durchschnittliche Platzierung der Fechter im Pool",
+    "prep_initial_ranking": "Ausgangsplatzierung",
+    "prep_hide_help": "Hilfe ausblenden"
   },
   "ranking": {
     "club": "Verein",
@@ -307,7 +311,14 @@
   },
   "results": {
     "congratulations": "Herzlichen Glückwunsch an die Gewinner!",
-    "final_ranking": "Endrangliste"
+    "final_ranking": "Endrangliste",
+    "exporting": "Wird erstellt…",
+    "export_csv": "📊 CSV",
+    "export_xml_ffe": "📝 XML (FFE)",
+    "export_pdf_ranking": "📄 Ranglisten-PDF",
+    "export_pdf_full_signed": "📦 Vollständiges PDF mit Unterschriften",
+    "export_pdf_full_unsigned": "📄 Vollständiges PDF ohne Unterschriften",
+    "export_pdf_full_unsigned_title": "Pools und K.-o.-Tableaus, ohne Unterschriften der Fechter"
   },
   "settings": {
     "cancel": "Abbrechen",

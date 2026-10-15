@@ -135,7 +135,11 @@
     "round_option": "Tour {{n}}",
     "round_current": "en cours",
     "round_checkin_banner": "Appel – Tour {{n}} : vérifiez les qualifiés, puis générez les nouvelles poules (tirage selon le classement du tour précédent).",
-    "view_ranking_action": "Voir le classement →"
+    "view_ranking_action": "Voir le classement →",
+    "prep_optimize": "Optimiser",
+    "prep_avg_ranking_title": "Classement moyen des tireurs de la poule",
+    "prep_initial_ranking": "Classement initial",
+    "prep_hide_help": "Masquer l'aide"
   },
   "ranking": {
     "rank": "Rg",
@@ -163,7 +167,14 @@
   },
   "results": {
     "final_ranking": "Classement final",
-    "congratulations": "Félicitations aux vainqueurs !"
+    "congratulations": "Félicitations aux vainqueurs !",
+    "exporting": "Génération…",
+    "export_csv": "📊 CSV",
+    "export_xml_ffe": "📝 XML (FFE)",
+    "export_pdf_ranking": "📄 PDF classement",
+    "export_pdf_full_signed": "📦 PDF complet avec signatures",
+    "export_pdf_full_unsigned": "📄 PDF complet sans signature",
+    "export_pdf_full_unsigned_title": "Poules et tableaux d'élimination directe, sans les signatures des combattants"
   },
   "remote": {
     "title": "Saisie distante",

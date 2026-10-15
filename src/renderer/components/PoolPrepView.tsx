@@ -18,6 +18,7 @@ import {
   optimizePoolConflicts,
 } from '../../shared/utils/poolOptimizer';
 import PoolMatchOrderModal from './pool/PoolMatchOrderModal';
+import { useTranslation } from '../hooks/useTranslation';
 
 const HINT_DISMISSED_KEY = 'bp_poolprep_hint_dismissed';
 
@@ -73,6 +74,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   onSettingsChange,
   onLaunchActionChange,
 }) => {
+  const { t } = useTranslation();
   const [poolCount, setPoolCount] = useState<number>(0);
   const [minFencersPerPool, setMinFencersPerPool] = useState<number>(initialMin);
   const [maxFencersPerPool, setMaxFencersPerPool] = useState<number>(initialMax);
@@ -757,7 +759,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 }
                 style={{ fontSize: '0.75rem', padding: '0.2rem 0.65rem', borderRadius: '999px' }}
               >
-                Optimiser
+                {t('pools.prep_optimize')}
               </button>
             </div>
           )}
@@ -856,7 +858,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     {avgRanking != null && (
                       <span
                         className="pool-prep-strength"
-                        title="Classement moyen des tireurs de la poule"
+                        title={t('pools.prep_avg_ranking_title')}
                       >
                         moy. #{avgRanking}
                       </span>
@@ -945,7 +947,10 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                           {fencer.firstName} {fencer.lastName.charAt(0)}.
                         </span>
                         {fencer.ranking != null && fencer.ranking > 0 && (
-                          <span className="pool-prep-ranking" title="Classement initial">
+                          <span
+                            className="pool-prep-ranking"
+                            title={t('pools.prep_initial_ranking')}
+                          >
                             #{fencer.ranking}
                           </span>
                         )}
@@ -991,8 +996,8 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             <button
               className="pool-prep-hint-close"
               onClick={dismissHint}
-              aria-label="Masquer l'aide"
-              title="Masquer l'aide"
+              aria-label={t('pools.prep_hide_help')}
+              title={t('pools.prep_hide_help')}
             >
               ×
             </button>

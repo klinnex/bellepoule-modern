@@ -135,7 +135,11 @@
     "round_option": "Ronda {{n}}",
     "round_current": "en curs",
     "round_checkin_banner": "Crida – Ronda {{n}}: verifiqueu els classificats i genereu les noves poules (sorteig segons la classificació de la ronda anterior).",
-    "view_ranking_action": "Veure classificació →"
+    "view_ranking_action": "Veure classificació →",
+    "prep_optimize": "Optimitzar",
+    "prep_avg_ranking_title": "Classificació mitjana dels tiradors de la poule",
+    "prep_initial_ranking": "Classificació inicial",
+    "prep_hide_help": "Amagar l'ajuda"
   },
   "ranking": {
     "rank": "Pos",
@@ -163,7 +167,14 @@
   },
   "results": {
     "final_ranking": "Classificació Final",
-    "congratulations": "Felicitacions als guanyadors!"
+    "congratulations": "Felicitacions als guanyadors!",
+    "exporting": "Generant…",
+    "export_csv": "📊 CSV",
+    "export_xml_ffe": "📝 XML (FFE)",
+    "export_pdf_ranking": "📄 PDF classificació",
+    "export_pdf_full_signed": "📦 PDF complet amb signatures",
+    "export_pdf_full_unsigned": "📄 PDF complet sense signatures",
+    "export_pdf_full_unsigned_title": "Poules i quadres d'eliminació directa, sense les signatures dels tiradors"
   },
   "remote": {
     "title": "Entrada de Puntuació Remota",
