@@ -79,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 32 | 522 |
+| `src/shared/utils/` | 33 | 528 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -99,9 +99,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **131** | **1361** |
+| **Total** | **132** | **1367** |
 
-Unitaires : 123 fichiers, 1330 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 124 fichiers, 1336 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -655,6 +655,20 @@ Unitaires : 123 fichiers, 1330 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - règle classique inchangée : tous les matchs contre le forfait sont annulés
   - classe le forfait sur ses matchs disputés dans la poule
   - place le forfait en fin de classement général (non qualifié pour le tableau)
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/poolOptimizer.test.ts</code> — 6 tests</summary>
+
+- **countConflicts / minConflicts**
+  - compte les tireurs en trop par poule
+  - ignore les valeurs vides
+- **optimizePoolConflicts**
+  - atteint le minimum en conservant la taille des poules
+  - préfère l'échange entre tireurs au classement le plus proche
+  - ne sacrifie pas le critère prioritaire au profit du suivant
+  - ne modifie pas l'entrée et ne fait rien sans critère
 
 </details>
 
