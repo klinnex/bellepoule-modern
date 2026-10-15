@@ -2193,24 +2193,17 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                 >
                   <GlobalPoolColumnsMenu isLaserSabre={isLaserSabre} />
                   <WindowSizePresets value={poolCardSize} onChange={setPoolCardSize} />
-                  <div className="btn-group" style={{ display: 'inline-flex' }}>
-                    <button
-                      className={`btn btn-sm ${poolsViewMode === 'grid' ? 'btn-primary' : 'btn-secondary'}`}
-                      onClick={() => setPoolsViewMode('grid')}
-                      title="Afficher toutes les poules dans une grille"
-                      style={{ borderRadius: '4px 0 0 4px' }}
-                    >
-                      🗂️ Vue globale
-                    </button>
-                    <button
-                      className={`btn btn-sm ${poolsViewMode === 'single' ? 'btn-primary' : 'btn-secondary'}`}
-                      onClick={() => setPoolsViewMode('single')}
-                      title="Afficher une seule poule à la fois"
-                      style={{ borderRadius: '0 4px 4px 0' }}
-                    >
-                      🎯 Vue poule unique
-                    </button>
-                  </div>
+                  <select
+                    className="form-input"
+                    style={{ width: 'auto', fontWeight: 600 }}
+                    value={poolsViewMode}
+                    onChange={e => setPoolsViewMode(e.target.value as 'grid' | 'single')}
+                    title="Mode d'affichage des poules"
+                    aria-label="Mode d'affichage des poules"
+                  >
+                    <option value="grid">🗂️ Vue globale</option>
+                    <option value="single">🎯 Vue poule unique</option>
+                  </select>
                   <button
                     className="btn btn-primary"
                     onClick={handlePrintAllPoolsPDF}
