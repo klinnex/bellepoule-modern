@@ -12,7 +12,20 @@ import {
   generatePoolMatchOrder,
   SeparationCriterionKey,
 } from '../../shared/utils/poolCalculations';
+import {
+  countConflicts,
+  minConflicts,
+  optimizePoolConflicts,
+} from '../../shared/utils/poolOptimizer';
 import PoolMatchOrderModal from './pool/PoolMatchOrderModal';
+
+const HINT_DISMISSED_KEY = 'bp_poolprep_hint_dismissed';
+
+const CRITERION_NOUN: Record<SeparationCriterionKey, string> = {
+  byClub: 'club',
+  byRegion: 'région',
+  byNation: 'nation',
+};
 
 interface PoolPrepViewProps {
   fencers: Fencer[];
@@ -95,6 +108,21 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState<number>(-1);
   const [timeSinceLastChange, setTimeSinceLastChange] = useState<number>(0);
   const [showMatchOrderModal, setShowMatchOrderModal] = useState(false);
+  const [hintDismissed, setHintDismissed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(HINT_DISMISSED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const dismissHint = () => {
+    setHintDismissed(true);
+    try {
+      localStorage.setItem(HINT_DISMISSED_KEY, '1');
+    } catch {
+      // stockage indisponible : masqué pour la session seulement
+    }
+  };
   const RESTORE_WINDOW_MINUTES = 5;
 
   // Timer pour mettre à jour le temps écoulé
@@ -369,6 +397,24 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     setPools(updatedPools);
   };
 
+  // Échanges de tireurs entre poules pour atteindre le minimum de conflits
+  const handleOptimize = () => {
+    const optimized = optimizePoolConflicts(
+      pools.map(p => p.fencers),
+      getActiveCriteria(separationCriteria)
+    );
+    const changed = optimized.some((fs, i) => fs.some((f, j) => f.id !== pools[i].fencers[j]?.id));
+    if (!changed) return;
+    saveToHistory();
+    setPools(
+      pools.map((p, i) =>
+        optimized[i].every((f, j) => f.id === p.fencers[j]?.id)
+          ? p
+          : regenerateMatches({ ...p, fencers: optimized[i] })
+      )
+    );
+  };
+
   const handleStripChange = (poolIndex: number, strip: number | undefined) => {
     const pool = pools[poolIndex];
     setPools(pools.map((p, i) => (i === poolIndex ? { ...p, strip } : p)));
@@ -402,6 +448,20 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   };
 
   const stats = getFencerCountStats();
+
+  // Conflits actuels vs minimum théorique, par critère actif
+  const fencerPools = pools.map(p => p.fencers);
+  const conflictSummary = getActiveCriteria(separationCriteria).map(key => ({
+    key,
+    current: countConflicts(fencerPools, key),
+    min: minConflicts(fencerPools, key),
+  }));
+  const canOptimize = conflictSummary.some(c => c.current > c.min);
+
+  const suggestedPoolCount =
+    fencers.length > 0
+      ? calculateOptimalPoolCount(fencers.length, minFencersPerPool, maxFencersPerPool)
+      : 0;
 
   const POOL_ACCENTS = ['#3B5BDB', '#0D9488', '#7C3AED', '#D97706', '#DB2777', '#16A34A'];
   const POOL_ACCENT_BGS = [
@@ -524,6 +584,16 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                   Poule unique
                 </button>
               )}
+              {poolCount > 0 && suggestedPoolCount > 0 && suggestedPoolCount !== poolCount && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => handlePoolCountChange(suggestedPoolCount)}
+                  title={`Nombre de poules conseillé pour ${minFencersPerPool} à ${maxFencersPerPool} tireurs par poule`}
+                  style={{ fontSize: '0.75rem', padding: '0.2rem 0.65rem', borderRadius: '999px' }}
+                >
+                  Conseillé : {suggestedPoolCount}
+                </button>
+              )}
             </div>
           </div>
 
@@ -635,8 +705,12 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                   }}
                   className={`pool-prep-pill-toggle${criterion.enabled ? ' active' : ''}`}
                   style={{ cursor: 'grab', userSelect: 'none' }}
-                  title={`Priorité ${idx + 1} — glisser pour réordonner`}
+                  aria-pressed={criterion.enabled}
+                  title={`Priorité ${idx + 1} — ${criterion.enabled ? 'active' : 'désactivée'} (clic : activer / désactiver, glisser : réordonner)`}
                 >
+                  <span className="pool-prep-pill-grip" aria-hidden="true">
+                    ⠿
+                  </span>
                   <span style={{ fontSize: '0.6rem', opacity: 0.6, marginRight: '0.2rem' }}>
                     {idx + 1}.
                   </span>
@@ -659,6 +733,34 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
           >
             Ordre des matchs
           </button>
+
+          {conflictSummary.length > 0 && pools.length > 1 && (
+            <div className="pool-prep-conflict-summary">
+              {conflictSummary.map(c => (
+                <span
+                  key={c.key}
+                  className={c.current > c.min ? 'over' : undefined}
+                  title={`Conflits ${CRITERION_NOUN[c.key]} : ${c.current} (minimum possible ${c.min})`}
+                >
+                  {CRITERION_NOUN[c.key]} {c.current}
+                  <span style={{ opacity: 0.6 }}> / min {c.min}</span>
+                </span>
+              ))}
+              <button
+                className="btn btn-secondary"
+                onClick={handleOptimize}
+                disabled={!canOptimize}
+                title={
+                  canOptimize
+                    ? 'Échanger des tireurs entre poules pour réduire les conflits'
+                    : 'Conflits déjà au minimum'
+                }
+                style={{ fontSize: '0.75rem', padding: '0.2rem 0.65rem', borderRadius: '999px' }}
+              >
+                Optimiser
+              </button>
+            </div>
+          )}
 
           <div style={{ marginLeft: 'auto' }} className="pool-prep-stats-badge">
             <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text)' }}>
@@ -879,11 +981,23 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
           })}
         </div>
 
-        {/* Instructions */}
-        <div className="pool-prep-hint">
-          Glissez-déposez les tireurs entre poules pour les déplacer, ou vers le haut / bas pour les
-          réordonner.
-        </div>
+        {/* Instructions (masquables) */}
+        {!hintDismissed && (
+          <div className="pool-prep-hint">
+            <span>
+              Glissez-déposez les tireurs entre poules pour les déplacer, ou vers le haut / bas pour
+              les réordonner.
+            </span>
+            <button
+              className="pool-prep-hint-close"
+              onClick={dismissHint}
+              aria-label="Masquer l'aide"
+              title="Masquer l'aide"
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         {/* Footer */}
         <div
