@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import {
+  Card,
   Competition,
   CompetitionSettings,
   Fencer,
@@ -2944,6 +2945,41 @@ export class DatabaseManager {
       [id, matchId, teamId, type, reason, now]
     );
     return { id };
+  }
+
+  // ── Cartons individuels des relais par équipes (#1086) ─────────────────────
+
+  public createTeamBoutCard(boutId: string, card: Card): { id: string } {
+    if (!this.db) throw new Error('Database not open');
+    this.run(
+      `INSERT INTO team_bout_cards (id, match_id, bout_id, fencer_id, card_json, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        card.id,
+        card.matchId,
+        boutId,
+        card.fencerId,
+        JSON.stringify(card),
+        new Date(card.timestamp).toISOString(),
+      ]
+    );
+    return { id: card.id };
+  }
+
+  /** Cartons d'une rencontre, groupés par relais (ordre chronologique). */
+  public getTeamBoutCards(matchId: string): Array<{ boutId: string; card: Card }> {
+    if (!this.db) return [];
+    const rows = this.queryAll<{ bout_id: string; card_json: string }>(
+      'SELECT bout_id, card_json FROM team_bout_cards WHERE match_id = ? ORDER BY created_at',
+      [matchId]
+    );
+    return rows.map(r => {
+      const card = JSON.parse(r.card_json) as Card;
+      return {
+        boutId: r.bout_id,
+        card: { ...card, timestamp: new Date(card.timestamp) },
+      };
+    });
   }
 
   // ── Commentaires de formation des arbitres (#989) ──────────────────────────

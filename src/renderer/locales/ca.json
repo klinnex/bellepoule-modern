@@ -108,7 +108,11 @@
     "results": "Resultats",
     "remote": "Entrada Remota",
     "referees": "Àrbitres",
-    "logs": "Historial"
+    "logs": "Historial",
+    "teams": "Equips",
+    "teampool": "Poule per equips",
+    "teamtableau": "Quadre per equips",
+    "teamranking": "Classificació per equips"
   },
   "pools": {
     "generate": "Generar Poules",
@@ -440,7 +444,11 @@
     "waitingPrevious": "Esperant els resultats anteriors…",
     "confirmRegenerate": "Ja hi ha encontres. Eliminar i regenerar?",
     "pdfExport": "Exporta PDF",
-    "pdfError": "Error en exportar el PDF"
+    "pdfError": "Error en exportar el PDF",
+    "loading": "Carregant…",
+    "teamCount": "{{count}} equips",
+    "toCompose": "Formar equips",
+    "cardSaveError": "Targeta no desada"
   },
   "kiosk": {
     "tbd": "Per determinar",

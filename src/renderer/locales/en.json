@@ -108,7 +108,11 @@
     "results": "Results",
     "remote": "Remote Entry",
     "logs": "History",
-    "referees": "Referees"
+    "referees": "Referees",
+    "teams": "Teams",
+    "teampool": "Team pool",
+    "teamtableau": "Team bracket",
+    "teamranking": "Team ranking"
   },
   "pools": {
     "generate": "Generate Pools",
@@ -440,7 +444,11 @@
     "waitingPrevious": "Waiting for previous results…",
     "confirmRegenerate": "Matches already exist. Delete and regenerate?",
     "pdfExport": "Export PDF",
-    "pdfError": "PDF export failed"
+    "pdfError": "PDF export failed",
+    "loading": "Loading…",
+    "teamCount": "{{count}} teams",
+    "toCompose": "Build teams",
+    "cardSaveError": "Card not saved"
   },
   "kiosk": {
     "ranking": "📊 Ranking",

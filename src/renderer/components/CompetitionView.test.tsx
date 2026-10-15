@@ -232,4 +232,34 @@ describe('CompetitionView', () => {
     await waitFor(() => expect(calls.updateFencer?.length).toBeGreaterThan(0));
     expect(calls.updateFencer[0][1]).toEqual({ status: FencerStatus.CHECKED_IN });
   });
+
+  describe('compétition par équipes (#1085)', () => {
+    const teamComp = () => ({ ...competition(), isTeamEvent: true }) as Competition;
+    const labels = () =>
+      Array.from(document.querySelectorAll('.phase-step')).map(el => el.textContent ?? '');
+
+    it('remplace poules/tableau individuels par les phases équipes', async () => {
+      mockElectronAPI([1, 2, 3, 4].map(n => fencer(n)));
+      renderView(teamComp());
+      await screen.findByText('Nom1');
+      const l = labels();
+      expect(l.some(x => /Équipes$/.test(x))).toBe(true);
+      expect(l.some(x => /Poule équipes/.test(x))).toBe(true);
+      expect(l.some(x => /Tableau équipes/.test(x))).toBe(true);
+      expect(l.some(x => /Classement équipes/.test(x))).toBe(true);
+      expect(l.some(x => /Préparation/.test(x))).toBe(false);
+      expect(screen.queryByRole('button', { name: /Générer les poules/ })).toBeNull();
+    });
+
+    it('« Composer les équipes » ouvre la phase équipes intégrée (sans modale)', async () => {
+      const calls = mockElectronAPI([1, 2, 3, 4].map(n => fencer(n)));
+      renderView(teamComp());
+      await screen.findByText('Nom1');
+      fireEvent.click(screen.getByRole('button', { name: /Composer les équipes/ }));
+      await waitFor(() => expect(calls.getTeamsByCompetition?.length).toBeGreaterThan(0));
+      const active = document.querySelector('.phase-step-active');
+      expect(active?.textContent).toMatch(/Équipes$/);
+      expect(document.querySelector('.fixed.inset-0')).toBeNull();
+    });
+  });
 });

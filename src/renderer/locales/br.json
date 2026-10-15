@@ -108,7 +108,11 @@
     "results": "Disoc'hoùezioù",
     "remote": "Enrollañ a-bell",
     "referees": "Varnourien",
-    "logs": "Istor"
+    "logs": "Istor",
+    "teams": "Skipailhoù",
+    "teampool": "Poull skipailhoù",
+    "teamtableau": "Taolenn skipailhoù",
+    "teamranking": "Renkadur skipailhoù"
   },
   "pools": {
     "generate": "Genelañ ar poullou",
@@ -440,7 +444,11 @@
     "waitingPrevious": "O c'hortoz an disoc'hoù a-raok…",
     "confirmRegenerate": "Emgavioù zo dija. Dilemel hag adkrouiñ ?",
     "pdfExport": "Ezporzhiañ PDF",
-    "pdfError": "C’hwitet eo an ezporzhiañ PDF"
+    "pdfError": "C’hwitet eo an ezporzhiañ PDF",
+    "loading": "O kargañ…",
+    "teamCount": "{{count}} skipailh",
+    "toCompose": "Sevel ar skipailhoù",
+    "cardSaveError": "N'eo ket bet enrollet ar c'hartenn"
   },
   "kiosk": {
     "tbd": "Da benn-diviz",

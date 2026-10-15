@@ -108,7 +108,11 @@
     "results": "Résultats",
     "remote": "Saisie distante",
     "logs": "Historique",
-    "referees": "Arbitres"
+    "referees": "Arbitres",
+    "teams": "Équipes",
+    "teampool": "Poule équipes",
+    "teamtableau": "Tableau équipes",
+    "teamranking": "Classement équipes"
   },
   "pools": {
     "generate": "Générer les poules",
@@ -440,7 +444,11 @@
     "waitingPrevious": "En attente des résultats précédents…",
     "confirmRegenerate": "Des matchs existent déjà. Supprimer et régénérer ?",
     "pdfExport": "Exporter PDF",
-    "pdfError": "Échec de l’export PDF"
+    "pdfError": "Échec de l’export PDF",
+    "loading": "Chargement…",
+    "teamCount": "{{count}} équipes",
+    "toCompose": "Composer les équipes",
+    "cardSaveError": "Carton non enregistré"
   },
   "kiosk": {
     "tbd": "À déterminer",

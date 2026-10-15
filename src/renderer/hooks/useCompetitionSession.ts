@@ -19,7 +19,37 @@ export type Phase =
   | 'results'
   | 'remote'
   | 'logs'
-  | 'referees';
+  | 'referees'
+  // Compétition par équipes (#1085)
+  | 'teams'
+  | 'teampool'
+  | 'teamtableau'
+  | 'teamranking';
+
+/** Numéro persistant de chaque phase (sessions sauvegardées) — ne jamais renuméroter */
+const PHASE_NUMBERS: Record<Phase, number> = {
+  checkin: 0,
+  poolprep: 1,
+  pools: 2,
+  ranking: 3,
+  quest: 4,
+  tableau: 5,
+  results: 6,
+  remote: 7,
+  logs: 8,
+  referees: 9,
+  teams: 10,
+  teampool: 11,
+  teamtableau: 12,
+  teamranking: 13,
+};
+const PHASES_BY_NUMBER: Record<number, Phase> = Object.fromEntries(
+  Object.entries(PHASE_NUMBERS).map(([phase, n]) => [n, phase as Phase])
+);
+
+/** Phase correspondant au numéro sauvegardé (undefined si inconnu) */
+export const phaseFromNumber = (n: number | undefined): Phase | undefined =>
+  PHASES_BY_NUMBER[n ?? 0];
 
 interface SessionState {
   currentPhase: number;
@@ -76,40 +106,13 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
   propsRef.current = props;
   isLoadedRef.current = isLoaded;
 
-  // Phase mapping entre string et number
-  const phaseToNumber: Record<Phase, number> = {
-    checkin: 0,
-    poolprep: 1,
-    pools: 2,
-    ranking: 3,
-    quest: 4,
-    tableau: 5,
-    results: 6,
-    remote: 7,
-    logs: 8,
-    referees: 9,
-  };
-
-  const numberToPhase: Record<number, Phase> = {
-    0: 'checkin',
-    1: 'poolprep',
-    2: 'pools',
-    3: 'ranking',
-    4: 'quest',
-    5: 'tableau',
-    6: 'results',
-    7: 'remote',
-    8: 'logs',
-    9: 'referees',
-  };
-
   // Sauvegarder l'état - lit depuis propsRef pour rester stable (pas de re-création à chaque render)
   const saveState = useCallback(async () => {
     if (!window.electronAPI?.db?.saveSessionState || !isLoadedRef.current) return;
     const p = propsRef.current;
 
     const state: SessionState = {
-      currentPhase: phaseToNumber[p.currentPhase],
+      currentPhase: PHASE_NUMBERS[p.currentPhase],
       pools: p.pools,
       poolHistory: p.poolHistory,
       appelHistory: p.appelHistory,
@@ -150,8 +153,6 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
       const state = await window.electronAPI.db.getSessionState(props.competitionId);
       if (state) {
         const typedState = state as SessionState;
-        const restoredPhase = numberToPhase[typedState.currentPhase || 0];
-
         setRestoredState({
           currentPhase: typedState.currentPhase,
           pools: typedState.pools || [],
@@ -193,20 +194,8 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
       }
       if (!window.electronAPI?.db?.saveSessionStateSync || !isLoadedRef.current) return;
       const p = propsRef.current;
-      const phaseMap: Record<Phase, number> = {
-        checkin: 0,
-        poolprep: 1,
-        pools: 2,
-        ranking: 3,
-        quest: 4,
-        tableau: 5,
-        results: 6,
-        remote: 7,
-        logs: 8,
-        referees: 9,
-      };
       window.electronAPI.db.saveSessionStateSync(p.competitionId, {
-        currentPhase: phaseMap[p.currentPhase],
+        currentPhase: PHASE_NUMBERS[p.currentPhase],
         pools: p.pools,
         poolHistory: p.poolHistory,
         appelHistory: p.appelHistory,

@@ -108,7 +108,11 @@
     "results": "成績",
     "remote": "遠程輸入",
     "referees": "裁判",
-    "logs": "歷史紀錄"
+    "logs": "歷史紀錄",
+    "teams": "隊伍",
+    "teampool": "團體小組賽",
+    "teamtableau": "團體淘汰賽",
+    "teamranking": "團體排名"
   },
   "pools": {
     "generate": "生成分組",
@@ -440,7 +444,11 @@
     "waitingPrevious": "等待前一輪結果…",
     "confirmRegenerate": "已有對賽。刪除並重新產生？",
     "pdfExport": "匯出 PDF",
-    "pdfError": "PDF 匯出失敗"
+    "pdfError": "PDF 匯出失敗",
+    "loading": "載入中…",
+    "teamCount": "{{count}} 隊",
+    "toCompose": "組隊",
+    "cardSaveError": "牌未儲存"
   },
   "kiosk": {
     "tbd": "待定",

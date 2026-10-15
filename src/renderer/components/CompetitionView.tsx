@@ -49,7 +49,7 @@ import PoolPrepView, { PoolPrepLaunchAction } from './PoolPrepView';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
 import { useTranslation } from '../hooks/useTranslation';
-import { useCompetitionSession, Phase } from '../hooks/useCompetitionSession';
+import { useCompetitionSession, Phase, phaseFromNumber } from '../hooks/useCompetitionSession';
 import { useFencerManagement } from '../hooks/useFencerManagement';
 import { usePoolManagement } from '../hooks/usePoolManagement';
 import { useExport } from '../hooks/useExport';
@@ -129,6 +129,16 @@ const SeasonRankingView = React.lazy(() =>
 const TeamManagerView = React.lazy(() =>
   import('./TeamManagerView').then(m => ({ default: m.TeamManagerView }))
 );
+
+/** Phases d'une compétition par équipes ↔ onglet de TeamManagerView (#1085) */
+const TEAM_PHASE_VIEWS = {
+  teams: 'teams',
+  teampool: 'pool',
+  teamtableau: 'tableau',
+  teamranking: 'ranking',
+} as const;
+type TeamPhase = keyof typeof TEAM_PHASE_VIEWS;
+const isTeamPhase = (p: string): p is TeamPhase => p in TEAM_PHASE_VIEWS;
 const FFEConnectModal = React.lazy(() => import('./FFEConnectModal'));
 const FFEExportModal = React.lazy(() => import('./FFEExportModal'));
 const PresentationMode = React.lazy(() =>
@@ -282,7 +292,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const [showFencerComparison, setShowFencerComparison] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showSeasonRanking, setShowSeasonRanking] = useState(false);
-  const [showTeamManager, setShowTeamManager] = useState(false);
   const [showFFEConnect, setShowFFEConnect] = useState(false);
   const [showFFEExport, setShowFFEExport] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
@@ -504,20 +513,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // Restaurer l'état au chargement
   useEffect(() => {
     if (restoredState && isLoaded) {
-      const phaseMap = [
-        'checkin',
-        'poolprep',
-        'pools',
-        'ranking',
-        'quest',
-        'tableau',
-        'results',
-        'remote',
-      ] as const;
-      const restoredPhase = phaseMap[restoredState.currentPhase || 0];
+      const restoredPhase = phaseFromNumber(restoredState.currentPhase);
       if (restoredPhase) setCurrentPhase(restoredPhase);
       if (
-        ['tableau', 'results', 'remote', 'ranking'].includes(restoredPhase) ||
+        ['tableau', 'results', 'remote', 'ranking'].includes(restoredPhase ?? '') ||
         (restoredState.tableauMatches && restoredState.tableauMatches.length > 0)
       ) {
         setRankingValidated(true);
@@ -1540,12 +1539,14 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     ];
   }, [pools, tableauMatches, consolationBrackets, referees, tableMaxScore, competition.id]);
 
+  const isTeamEvent = !!competition.isTeamEvent;
   const phaseOrder = useMemo<Phase[]>(() => {
+    if (isTeamEvent) return ['checkin', 'teams', 'teampool', 'teamtableau', 'teamranking'];
     if (!questEnabled) return ['checkin', 'poolprep', 'pools', 'ranking', 'tableau', 'results'];
     if (questConfig?.hasPreliminaryPools)
       return ['checkin', 'poolprep', 'pools', 'quest', 'ranking', 'tableau', 'results'];
     return ['checkin', 'quest', 'ranking', 'tableau', 'results'];
-  }, [questEnabled, questConfig?.hasPreliminaryPools]);
+  }, [isTeamEvent, questEnabled, questConfig?.hasPreliminaryPools]);
 
   // Réinitialiser currentPhase si elle n'existe plus dans le nouveau phaseOrder
   useEffect(() => {
@@ -1616,6 +1617,14 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     }
   }, [canAdvanceFromPools, questNoPool, currentPhase]);
 
+  const teamPhases = (Object.keys(TEAM_PHASE_VIEWS) as TeamPhase[]).map((id, i) => ({
+    id,
+    label: t(`phases.${id}`),
+    icon: ['👥', '🎯', '🏆', '🏁'][i],
+    disabled: false,
+    title: undefined as string | undefined,
+  }));
+
   const phases = [
     {
       id: 'checkin',
@@ -1624,6 +1633,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       disabled: false,
       title: undefined as string | undefined,
     },
+    ...(isTeamEvent ? teamPhases : []),
     // Phases de poules : masquées en mode Quest sans poules préliminaires
     ...(!questEnabled || questConfig?.hasPreliminaryPools
       ? [
@@ -1723,7 +1733,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           },
         ]
       : []),
-  ];
+  ].filter(
+    // Équipes : les phases individuelles (poules, tableau…) laissent place aux phases équipes
+    p =>
+      !isTeamEvent || isTeamPhase(p.id) || ['checkin', 'remote', 'logs', 'referees'].includes(p.id)
+  );
 
   const getPoolsNextAction = () => {
     if (!canAdvanceFromPools) return null;
@@ -1981,7 +1995,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         setShowFencerComparison={setShowFencerComparison}
         setShowAnalytics={setShowAnalytics}
         setShowSeasonRanking={setShowSeasonRanking}
-        setShowTeamManager={setShowTeamManager}
         setShowQRCode={setShowQRCode}
         setShowPresentation={setShowPresentation}
         setShowKiosk={setShowKiosk}
@@ -2007,6 +2020,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         pools={pools}
         tableauMatches={tableauMatches}
         onOpenPlanningAssistant={() => setShowPlanningAssistant(true)}
+        isTeamEvent={isTeamEvent}
       />
 
       {/* Content — keyed pour animation de transition */}
@@ -2070,6 +2084,22 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           />
         )}
 
+        {isTeamEvent && isTeamPhase(currentPhase) && (
+          <Suspense fallback={null}>
+            <TeamManagerView
+              competition={competition}
+              fencers={fencers}
+              view={TEAM_PHASE_VIEWS[currentPhase]}
+              onNavigate={v =>
+                setCurrentPhase(
+                  (Object.keys(TEAM_PHASE_VIEWS) as TeamPhase[]).find(
+                    k => TEAM_PHASE_VIEWS[k] === v
+                  ) ?? 'teams'
+                )
+              }
+            />
+          </Suspense>
+        )}
         {currentPhase === 'poolprep' && (
           <PoolPrepView
             fencers={getSeededCheckedInFencers()}
@@ -2732,16 +2762,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             onClose={() => setShowSeasonRanking(false)}
             availableCompetitions={[competition]}
             availablePoolsByComp={{ [competition.id]: pools }}
-          />
-        </Suspense>
-      )}
-
-      {showTeamManager && (
-        <Suspense fallback={null}>
-          <TeamManagerView
-            competition={competition}
-            fencers={fencers}
-            onClose={() => setShowTeamManager(false)}
           />
         </Suspense>
       )}

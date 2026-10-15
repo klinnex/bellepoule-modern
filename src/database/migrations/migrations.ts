@@ -583,4 +583,26 @@ export const ALL_MIGRATIONS: Migration[] = [
       );
     },
   },
+  {
+    version: 19,
+    description:
+      'Cartons individuels des relais par équipes (relais FIE) persistés : table team_bout_cards (#1086)',
+    up(db) {
+      // card_json = Card sérialisé (type, raison, groupe, points, exclusion) — même forme
+      // que les cartons individuels, l'escalade se recalcule depuis l'historique.
+      db.run(`
+        CREATE TABLE IF NOT EXISTS team_bout_cards (
+          id TEXT PRIMARY KEY,
+          match_id TEXT NOT NULL,
+          bout_id TEXT NOT NULL,
+          fencer_id TEXT NOT NULL,
+          card_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (match_id) REFERENCES team_matches(id) ON DELETE CASCADE,
+          FOREIGN KEY (bout_id) REFERENCES team_bouts(id) ON DELETE CASCADE
+        )
+      `);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_team_bout_cards_match ON team_bout_cards(match_id)`);
+    },
+  },
 ];

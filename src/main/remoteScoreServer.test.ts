@@ -1118,8 +1118,13 @@ describe('RemoteScoreServer', () => {
     });
 
     describe('événements team_*', () => {
-      function seedTeamState() {
-        const state = {
+      function seedTeamState(over: Record<string, unknown> = {}) {
+        const state: any = {
+          format: 'laser-arena',
+          weapon: 'L',
+          relayRule: { stepSize: 5, target: 45 },
+          fencerCards: [],
+          isLaserPoints: true,
           competitionId: 'comp-1',
           matchId: 'tm1',
           bouts: [
@@ -1131,6 +1136,7 @@ describe('RemoteScoreServer', () => {
           elapsedAccumulatedSec: 0,
           timerStartedAt: null,
           cards: [],
+          ...over,
         };
         (server as any).teamArenaState.set('arena1', state);
         vi.spyOn(server as any, 'getPublicTeamArenaState').mockReturnValue({});
@@ -1143,6 +1149,7 @@ describe('RemoteScoreServer', () => {
         ['team_timer_start', {}],
         ['team_advance_bout', {}],
         ['team_card', { teamId: 't1', type: 'yellow' }],
+        ['team_fencer_card', { side: 'A', reason: 'early_start' }],
       ])('%s refusé sans cookie', (ev, extra) => {
         protectArena();
         const state = seedTeamState();
@@ -1155,7 +1162,116 @@ describe('RemoteScoreServer', () => {
         expect(state.liveScoreA).toBe(2);
         expect(state.timerStartedAt).toBeNull();
         expect(state.cards).toHaveLength(0);
+        expect(state.fencerCards).toHaveLength(0);
         expect((mockDb as any).updateTeamBout).not.toHaveBeenCalled();
+      });
+
+      describe('relais FIE (#1086)', () => {
+        const relayBouts = () => [
+          {
+            id: 'b1',
+            boutOrder: 1,
+            fencerAId: 'a1',
+            fencerBId: 'b1',
+            status: 'finished',
+            scoreA: 5,
+            scoreB: 3,
+          },
+          {
+            id: 'b2',
+            boutOrder: 2,
+            fencerAId: 'a2',
+            fencerBId: 'b2',
+            status: 'pending',
+            scoreA: 0,
+            scoreB: 0,
+          },
+        ];
+
+        it('touche simple uniquement (pas de zones hors mode points)', () => {
+          const cookie = protectArena();
+          const state = seedTeamState({
+            format: 'fie-relay',
+            isLaserPoints: false,
+            bouts: relayBouts(),
+            currentBoutIndex: 1,
+          });
+          const { handlers } = connectSocket(cookie);
+          handlers.team_touch({ arenaId: 'arena1', side: 'A', points: 3 });
+          expect(state.liveScoreA).toBe(0);
+          handlers.team_touch({ arenaId: 'arena1', side: 'B', points: 1 });
+          expect(state.liveScoreB).toBe(1);
+        });
+
+        it('relais suivant : vainqueur au cumul, score du relais persisté', () => {
+          const cookie = protectArena();
+          // Relais 2 perdu 2-3 par A, mais cumul 7-6 → relais attribué à A
+          const state = seedTeamState({
+            format: 'fie-relay',
+            isLaserPoints: false,
+            bouts: relayBouts(),
+            currentBoutIndex: 1,
+            liveScoreA: 2,
+            liveScoreB: 3,
+          });
+          (mockDb as any).updateTeamBout = vi.fn();
+          const { handlers } = connectSocket(cookie);
+          handlers.team_advance_bout({ arenaId: 'arena1' });
+          expect((mockDb as any).updateTeamBout).toHaveBeenCalledWith('b2', 2, 3, 'finished', 'a2');
+          expect(state.currentBoutIndex).toBe(-1);
+        });
+
+        it('carton individuel : escalade, persistance, motif inconnu refusé', () => {
+          const cookie = protectArena();
+          const state = seedTeamState({
+            format: 'fie-relay',
+            weapon: 'E',
+            isLaserPoints: false,
+            bouts: relayBouts(),
+            currentBoutIndex: 1,
+          });
+          const stored: any[] = [];
+          (mockDb as any).getTeamBoutCards = vi.fn(() =>
+            stored.map(card => ({ boutId: 'b2', card }))
+          );
+          (mockDb as any).createTeamBoutCard = vi.fn((_b: string, card: any) => {
+            stored.push(card);
+            return { id: card.id };
+          });
+          const { handlers } = connectSocket(cookie);
+          handlers.team_fencer_card({ arenaId: 'arena1', side: 'A', reason: 'not_a_reason' });
+          expect(state.fencerCards).toHaveLength(0);
+          handlers.team_fencer_card({ arenaId: 'arena1', side: 'A', reason: 'early_start' });
+          handlers.team_fencer_card({ arenaId: 'arena1', side: 'A', reason: 'early_start' });
+          expect(state.fencerCards.map((c: any) => [c.fencerId, c.boutId])).toEqual([
+            ['a2', 'b2'],
+            ['a2', 'b2'],
+          ]);
+          expect(state.fencerCards[0].type).toBe('WHITE');
+          expect(state.fencerCards[1].type).toBe('YELLOW'); // escalade depuis l'historique persisté
+          expect((mockDb as any).createTeamBoutCard).toHaveBeenCalledTimes(2);
+        });
+
+        it('état public : cumul, palier du relais, cible, motifs de carton', () => {
+          seedTeamState({
+            format: 'fie-relay',
+            weapon: 'E',
+            isLaserPoints: false,
+            bouts: relayBouts(),
+            currentBoutIndex: 1,
+            liveScoreA: 4,
+            liveScoreB: 1,
+          });
+          (server as any).getPublicTeamArenaState.mockRestore();
+          mockDb.getCompetition.mockReturnValue({ id: 'comp-1', settings: {} });
+          const pub = (server as any).getPublicTeamArenaState('arena1');
+          expect(pub.cumulA).toBe(9);
+          expect(pub.cumulB).toBe(4);
+          expect(pub.cap.maxTouches).toBe(10);
+          expect(pub.boutComplete).toBe(false);
+          expect(pub.target).toBe(45);
+          expect(pub.cardReasons).toContain('early_start');
+        });
       });
 
       it('team_touch accepté avec cookie, points invalides ignorés', () => {
@@ -1472,6 +1588,7 @@ describe('RemoteScoreServer', () => {
       'client:register',
       'client:battery',
       'team_touch',
+      'team_fencer_card',
     ])('%s avec données nulles : aucune exception', ev => {
       const handlers = connect();
       expect(() => handlers[ev](null)).not.toThrow();

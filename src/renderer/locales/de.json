@@ -238,7 +238,11 @@
     "remote": "Ferne Eingabe",
     "results": "Ergebnisse",
     "tableau": "Direktausscheidungen",
-    "tableau_locked_tooltip": "Beenden Sie alle Gruppen und validieren Sie das Ranking, um auf die Direktausscheidungen zuzugreifen"
+    "tableau_locked_tooltip": "Beenden Sie alle Gruppen und validieren Sie das Ranking, um auf die Direktausscheidungen zuzugreifen",
+    "teams": "Mannschaften",
+    "teampool": "Mannschaftsrunde",
+    "teamtableau": "Mannschafts-K.-o.",
+    "teamranking": "Mannschaftswertung"
   },
   "pools": {
     "change_pool": "Pool Wechseln",
@@ -440,7 +444,11 @@
     "waitingPrevious": "Warten auf vorherige Ergebnisse…",
     "confirmRegenerate": "Es gibt bereits Begegnungen. Löschen und neu erstellen?",
     "pdfExport": "PDF exportieren",
-    "pdfError": "PDF-Export fehlgeschlagen"
+    "pdfError": "PDF-Export fehlgeschlagen",
+    "loading": "Wird geladen…",
+    "teamCount": "{{count}} Mannschaften",
+    "toCompose": "Mannschaften bilden",
+    "cardSaveError": "Karte nicht gespeichert"
   },
   "kiosk": {
     "ranking": "📊 Rangliste",

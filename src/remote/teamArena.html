@@ -143,10 +143,13 @@
             document.getElementById('fencer-b-name').textContent = bout ? bout.fencerBName : '';
           }
 
-          document.getElementById('score-a').textContent = lastState.liveScoreA;
-          document.getElementById('score-b').textContent = lastState.liveScoreB;
-          document.getElementById('cap-label').textContent =
-            tk('team.cap_long', { touches: lastState.cap.maxTouches, time: formatTime(lastState.cap.maxDurationSec) });
+          // Relais FIE : score d'équipe cumulé (#1086)
+          const relay = lastState.format === 'fie-relay';
+          document.getElementById('score-a').textContent = relay ? lastState.cumulA : lastState.liveScoreA;
+          document.getElementById('score-b').textContent = relay ? lastState.cumulB : lastState.liveScoreB;
+          document.getElementById('cap-label').textContent = relay
+            ? tk('team.relay_cap', { cap: lastState.cap.maxTouches, target: lastState.target, time: formatTime(lastState.cap.maxDurationSec) })
+            : tk('team.cap_long', { touches: lastState.cap.maxTouches, time: formatTime(lastState.cap.maxDurationSec) });
 
           const remaining = Math.max(0, lastState.cap.maxDurationSec - lastState.elapsedSec);
           const timerEl = document.getElementById('timer');

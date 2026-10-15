@@ -44,15 +44,18 @@ const LASER_ARENA_POOL_NUMBER_BY_LETTER: Record<string, number> = { A: 1, B: 2, 
 
 // ── Composant ─────────────────────────────────────────────────────────────────
 
+export type TeamViewMode = 'teams' | 'pool' | 'tableau' | 'ranking';
+
 interface Props {
   competition: Competition;
   fencers: Fencer[];
-  onClose: () => void;
+  /** Onglet affiché — piloté par la phase courante de CompetitionView (#1085) */
+  view: TeamViewMode;
+  /** Demande de changement de phase (ex. vers la poule après génération) */
+  onNavigate?: (view: TeamViewMode) => void;
 }
 
-type ViewMode = 'teams' | 'pool' | 'tableau' | 'ranking';
-
-export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose }) => {
+export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, onNavigate }) => {
   const teamSize = competition.settings?.minTeamSize ?? 3;
   const reserveCount = competition.settings?.teamReserveCount ?? 1;
   const targetRule = getTeamTargetRule(
@@ -72,7 +75,6 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
   const { confirm } = useConfirm();
   const { showToast } = useToast();
   const { t } = useTranslation();
-  const [view, setView] = useState<ViewMode>('teams');
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [matches, setMatches] = useState<TeamMatchRow[]>([]);
   const [tableauMatches, setTableauMatches] = useState<TeamMatchRow[]>([]);
@@ -112,6 +114,16 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
       setTeams(t as TeamRow[]);
       setMatches(m as TeamMatchRow[]);
       setTableauMatches(tm as TeamMatchRow[]);
+      // Cartons individuels des relais, persistés en base (#1086)
+      const allMatches = [...(m as TeamMatchRow[]), ...(tm as TeamMatchRow[])];
+      const boutCardLists = await Promise.all(
+        allMatches.map(x => window.electronAPI.db.getTeamBoutCards?.(x.id) ?? [])
+      );
+      const byBout: Record<string, Card[]> = {};
+      for (const { boutId, card } of boutCardLists.flat()) {
+        (byBout[boutId] ??= []).push(card);
+      }
+      setBoutCards(byBout);
       if (isLaserArena) {
         const allMatchIds = [...(m as TeamMatchRow[]), ...(tm as TeamMatchRow[])].map(x => x.id);
         const cardsArrays = await Promise.all(
@@ -319,7 +331,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
         }
       }
       await reload();
-      setView('pool');
+      onNavigate?.('pool');
       return;
     }
 
@@ -353,7 +365,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
       }
     }
     await reload();
-    setView('pool');
+    onNavigate?.('pool');
   };
 
   // ── Scorer un assaut (arme-aware) ─────────────────────────────────────────────
@@ -440,7 +452,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
   };
 
   // ── Carton (arme-aware, escalade selon les cartons déjà reçus par ce tireur) ──
-  const handleAddCard = (matchId: string) => {
+  const handleAddCard = async (matchId: string) => {
     if (!cardTarget || !selectedReason) return;
     const match = [...matches, ...tableauMatches].find(m => m.id === matchId);
     const previousCards = Object.entries(boutCards)
@@ -454,12 +466,15 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
       previousCards,
       competition.weapon
     );
-    setBoutCards(prev => ({
-      ...prev,
-      [cardTarget.boutId]: [...(prev[cardTarget.boutId] ?? []), card],
-    }));
+    const boutId = cardTarget.boutId;
+    setBoutCards(prev => ({ ...prev, [boutId]: [...(prev[boutId] ?? []), card] }));
     setCardTarget(null);
     setSelectedReason('');
+    try {
+      await window.electronAPI.db.createTeamBoutCard(boutId, card);
+    } catch (e) {
+      showToast(`${t('teams.cardSaveError')} : ${(e as Error).message}`, 'error');
+    }
   };
 
   // ── Lookup helpers ────────────────────────────────────────────────────────────
@@ -495,573 +510,528 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, onClose
     }
   };
 
-  if (loading)
-    return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl p-8 text-gray-400">Chargement…</div>
-      </div>
-    );
+  const toolbarButtons = (
+    <>
+      {view === 'teams' && teams.length >= 2 && (
+        <button
+          onClick={handleGeneratePool}
+          className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Générer la poule
+        </button>
+      )}
+      {canExportPdf && (
+        <button
+          onClick={handleExportPdf}
+          className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
+        >
+          ↓ {t('teams.pdfExport')}
+        </button>
+      )}
+    </>
+  );
 
-  return (
-    <div
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-      onClick={e => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Compétition par équipes</h2>
-            <p className="text-sm text-gray-500">
-              {competition.title} · {teams.length} équipes
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl px-1 leading-none"
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex border-b border-gray-200 px-6">
-          {(['teams', 'pool', 'tableau', 'ranking'] as const).map(v => (
+  const content = (
+    <>
+      {/* ── Vue ÉQUIPES ── */}
+      {view === 'teams' && (
+        <div className="space-y-4">
+          {/* Formulaire création */}
+          <div className="bg-gray-50 rounded-lg p-4 flex gap-3 items-end">
+            <div className="flex-1">
+              <label className="text-xs font-medium text-gray-500 block mb-1">Nom équipe</label>
+              <input
+                value={newTeamName}
+                onChange={e => setNewTeamName(e.target.value)}
+                placeholder="Ex : équipe A"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                onKeyDown={e => e.key === 'Enter' && handleCreateTeam()}
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-xs font-medium text-gray-500 block mb-1">Club</label>
+              <input
+                value={newTeamClub}
+                onChange={e => setNewTeamClub(e.target.value)}
+                placeholder="Club / association"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
             <button
-              key={v}
-              onClick={() => setView(v)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${view === v ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+              onClick={handleCreateTeam}
+              disabled={creating || !newTeamName.trim()}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-40 whitespace-nowrap"
             >
-              {v === 'teams'
-                ? 'Équipes'
-                : v === 'pool'
-                  ? `Poule (${matches.length} matchs)`
-                  : v === 'tableau'
-                    ? 'Tableau'
-                    : 'Classement'}
+              + Créer
             </button>
-          ))}
-          <div className="ml-auto flex items-center gap-2 py-2">
-            {view === 'teams' && teams.length >= 2 && (
-              <button
-                onClick={handleGeneratePool}
-                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Générer la poule
-              </button>
-            )}
-            {canExportPdf && (
-              <button
-                onClick={handleExportPdf}
-                className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
-              >
-                ↓ {t('teams.pdfExport')}
-              </button>
-            )}
           </div>
-        </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {/* ── Vue ÉQUIPES ── */}
-          {view === 'teams' && (
-            <div className="space-y-4">
-              {/* Formulaire création */}
-              <div className="bg-gray-50 rounded-lg p-4 flex gap-3 items-end">
-                <div className="flex-1">
-                  <label className="text-xs font-medium text-gray-500 block mb-1">Nom équipe</label>
-                  <input
-                    value={newTeamName}
-                    onChange={e => setNewTeamName(e.target.value)}
-                    placeholder="Ex : équipe A"
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                    onKeyDown={e => e.key === 'Enter' && handleCreateTeam()}
-                  />
+          {teams.length === 0 && (
+            <div className="text-center text-gray-400 py-10">
+              Aucune équipe — créez-en une ci-dessus.
+            </div>
+          )}
+
+          {/* Liste équipes */}
+          {teams.map(team => {
+            const isEditing = editTeamId === team.id;
+            const mainFencers = team.fencers
+              .filter(f => !f.isReserve)
+              .sort((a, b) => a.teamOrder - b.teamOrder);
+            const reserves = team.fencers.filter(f => f.isReserve);
+            const valid = mainFencers.length === teamSize;
+            const availableFencers = fencers.filter(
+              f => !allTeamFencerIds.has(f.id) || team.fencers.some(tf => tf.fencerId === f.id)
+            );
+
+            return (
+              <div
+                key={team.id}
+                className={`border rounded-lg overflow-hidden ${valid ? 'border-green-200' : 'border-yellow-300'}`}
+              >
+                <div className="flex items-center justify-between px-4 py-3 bg-gray-50">
+                  <div>
+                    <span className="font-semibold text-gray-900">{team.name}</span>
+                    <span className="text-sm text-gray-400 ml-2">{team.club}</span>
+                    {valid ? (
+                      <span className="ml-2 text-xs text-green-600 font-medium">✓ Complète</span>
+                    ) : (
+                      <span className="ml-2 text-xs text-yellow-600 font-medium">
+                        ⚠ {teamSize - mainFencers.length} tireur(s) manquant(s)
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setEditTeamId(isEditing ? null : team.id)}
+                      className="text-xs px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
+                    >
+                      {isEditing ? 'Fermer' : 'Gérer'}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTeam(team.id)}
+                      className="text-xs px-3 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <label className="text-xs font-medium text-gray-500 block mb-1">Club</label>
-                  <input
-                    value={newTeamClub}
-                    onChange={e => setNewTeamClub(e.target.value)}
-                    placeholder="Club / association"
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                  />
-                </div>
-                <button
-                  onClick={handleCreateTeam}
-                  disabled={creating || !newTeamName.trim()}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-40 whitespace-nowrap"
-                >
-                  + Créer
-                </button>
-              </div>
 
-              {teams.length === 0 && (
-                <div className="text-center text-gray-400 py-10">
-                  Aucune équipe — créez-en une ci-dessus.
-                </div>
-              )}
-
-              {/* Liste équipes */}
-              {teams.map(team => {
-                const isEditing = editTeamId === team.id;
-                const mainFencers = team.fencers
-                  .filter(f => !f.isReserve)
-                  .sort((a, b) => a.teamOrder - b.teamOrder);
-                const reserves = team.fencers.filter(f => f.isReserve);
-                const valid = mainFencers.length === teamSize;
-                const availableFencers = fencers.filter(
-                  f => !allTeamFencerIds.has(f.id) || team.fencers.some(tf => tf.fencerId === f.id)
-                );
-
-                return (
-                  <div
-                    key={team.id}
-                    className={`border rounded-lg overflow-hidden ${valid ? 'border-green-200' : 'border-yellow-300'}`}
-                  >
-                    <div className="flex items-center justify-between px-4 py-3 bg-gray-50">
-                      <div>
-                        <span className="font-semibold text-gray-900">{team.name}</span>
-                        <span className="text-sm text-gray-400 ml-2">{team.club}</span>
-                        {valid ? (
-                          <span className="ml-2 text-xs text-green-600 font-medium">
-                            ✓ Complète
-                          </span>
-                        ) : (
-                          <span className="ml-2 text-xs text-yellow-600 font-medium">
-                            ⚠ {teamSize - mainFencers.length} tireur(s) manquant(s)
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
+                {/* Tireurs actuels */}
+                <div className="px-4 py-2 flex flex-wrap gap-2">
+                  {mainFencers.map(f => (
+                    <div
+                      key={f.fencerId}
+                      className="flex items-center gap-1 bg-blue-50 border border-blue-200 rounded px-2 py-1 text-xs"
+                    >
+                      <span className="font-bold text-blue-700">#{f.teamOrder}</span>
+                      <span>
+                        {f.fencerLastName} {f.fencerFirstName}
+                      </span>
+                      {isEditing && (
                         <button
-                          onClick={() => setEditTeamId(isEditing ? null : team.id)}
-                          className="text-xs px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
-                        >
-                          {isEditing ? 'Fermer' : 'Gérer'}
-                        </button>
-                        <button
-                          onClick={() => handleDeleteTeam(team.id)}
-                          className="text-xs px-3 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50"
+                          onClick={() => handleRemoveFencer(team.id, f.fencerId)}
+                          className="text-red-400 hover:text-red-600 ml-1"
                         >
                           ✕
                         </button>
-                      </div>
-                    </div>
-
-                    {/* Tireurs actuels */}
-                    <div className="px-4 py-2 flex flex-wrap gap-2">
-                      {mainFencers.map(f => (
-                        <div
-                          key={f.fencerId}
-                          className="flex items-center gap-1 bg-blue-50 border border-blue-200 rounded px-2 py-1 text-xs"
-                        >
-                          <span className="font-bold text-blue-700">#{f.teamOrder}</span>
-                          <span>
-                            {f.fencerLastName} {f.fencerFirstName}
-                          </span>
-                          {isEditing && (
-                            <button
-                              onClick={() => handleRemoveFencer(team.id, f.fencerId)}
-                              className="text-red-400 hover:text-red-600 ml-1"
-                            >
-                              ✕
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      {reserves.map(reserve => (
-                        <div
-                          key={reserve.fencerId}
-                          className="flex items-center gap-1 bg-gray-50 border border-gray-300 rounded px-2 py-1 text-xs"
-                        >
-                          <span className="text-gray-500">Rés.</span>
-                          <span>
-                            {reserve.fencerLastName} {reserve.fencerFirstName}
-                          </span>
-                          {isEditing && (
-                            <button
-                              onClick={() => handleRemoveFencer(team.id, reserve.fencerId)}
-                              className="text-red-400 hover:text-red-600 ml-1"
-                            >
-                              ✕
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      {team.fencers.length === 0 && (
-                        <span className="text-xs text-gray-400 italic">Aucun tireur</span>
                       )}
                     </div>
-
-                    {/* Formulaire affectation */}
-                    {isEditing && (
-                      <div className="px-4 py-3 bg-blue-50 border-t border-blue-100 flex gap-3 items-end flex-wrap">
-                        <div>
-                          <label className="text-xs text-gray-600 block mb-1">Tireur</label>
-                          <select
-                            value={selectedFencerId}
-                            onChange={e => setSelectedFencerId(e.target.value)}
-                            className="border border-gray-300 rounded px-2 py-1.5 text-sm"
-                          >
-                            <option value="">-- sélectionner --</option>
-                            {availableFencers.map(f => (
-                              <option key={f.id} value={f.id}>
-                                {f.lastName} {f.firstName ?? ''}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-600 block mb-1">Position</label>
-                          <select
-                            value={selectedOrder}
-                            onChange={e => setSelectedOrder(Number(e.target.value))}
-                            className="border border-gray-300 rounded px-2 py-1.5 text-sm"
-                          >
-                            {Array.from({ length: teamSize }, (_, i) => i + 1).map(n => (
-                              <option key={n} value={n}>
-                                #{n}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            id={`res-${team.id}`}
-                            checked={selectedIsReserve}
-                            disabled={
-                              reserves.length >= reserveCount &&
-                              !reserves.some(r => r.fencerId === selectedFencerId)
-                            }
-                            onChange={e => setSelectedIsReserve(e.target.checked)}
-                          />
-                          <label htmlFor={`res-${team.id}`} className="text-sm text-gray-600">
-                            Réserviste (max {reserveCount})
-                          </label>
-                        </div>
+                  ))}
+                  {reserves.map(reserve => (
+                    <div
+                      key={reserve.fencerId}
+                      className="flex items-center gap-1 bg-gray-50 border border-gray-300 rounded px-2 py-1 text-xs"
+                    >
+                      <span className="text-gray-500">Rés.</span>
+                      <span>
+                        {reserve.fencerLastName} {reserve.fencerFirstName}
+                      </span>
+                      {isEditing && (
                         <button
-                          onClick={handleUpsertFencer}
-                          disabled={
-                            !selectedFencerId ||
-                            (selectedIsReserve &&
-                              reserves.length >= reserveCount &&
-                              !reserves.some(r => r.fencerId === selectedFencerId))
-                          }
-                          className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-40"
+                          onClick={() => handleRemoveFencer(team.id, reserve.fencerId)}
+                          className="text-red-400 hover:text-red-600 ml-1"
                         >
-                          Affecter
+                          ✕
                         </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* ── Vue POULE ── */}
-          {view === 'pool' && (
-            <TeamPoolView
-              teams={teams}
-              matches={matches}
-              weapon={competition.weapon}
-              targetRule={targetRule}
-              isEpee={isEpee}
-              isLaserPoints={isLaserPoints}
-              fencerName={fencerName}
-              scoringMatchId={scoringMatchId}
-              onToggleScoring={id => setScoringMatchId(scoringMatchId === id ? null : id)}
-              onScoreBout={handleScoreBout}
-              onResetBout={handleResetBout}
-              boutCards={boutCards}
-              cardTarget={cardTarget}
-              onSetCardTarget={setCardTarget}
-              selectedReason={selectedReason}
-              onSelectReason={setSelectedReason}
-              onAddCard={handleAddCard}
-              emptyLabel='Aucun match — cliquez sur "Générer la poule" dans l&apos;onglet Équipes.'
-              isLaserArena={isLaserArena}
-              boutCap={boutCap}
-              matchCards={matchCards}
-              onAddTeamCard={handleAddTeamCard}
-              onAssignArena={handleAssignArena}
-            />
-          )}
-
-          {/* ── Vue TABLEAU ── */}
-          {view === 'tableau' && (
-            <TeamTableauView
-              teams={teams}
-              rankedTeams={rankedTeamsForBracket}
-              tableauMatches={tableauMatches}
-              weapon={competition.weapon}
-              targetRule={targetRule}
-              isEpee={isEpee}
-              isLaserPoints={isLaserPoints}
-              fencerName={fencerName}
-              scoringMatchId={scoringMatchId}
-              onToggleScoring={id => setScoringMatchId(scoringMatchId === id ? null : id)}
-              onScoreBout={handleScoreBout}
-              onResetBout={handleResetBout}
-              boutCards={boutCards}
-              cardTarget={cardTarget}
-              onSetCardTarget={setCardTarget}
-              selectedReason={selectedReason}
-              onSelectReason={setSelectedReason}
-              onAddCard={handleAddCard}
-              onGenerate={reload}
-              isLaserArena={isLaserArena}
-              boutCap={boutCap}
-              matchCards={matchCards}
-              onAddTeamCard={handleAddTeamCard}
-              onAssignArena={handleAssignArena}
-            />
-          )}
-
-          {/* ── Vue CLASSEMENT ── */}
-          {view === 'ranking' && isLaserArena && (
-            <div>
-              {laserRankings.length > 0 && (
-                <div
-                  style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}
-                >
-                  <button
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
-                    onClick={() => {
-                      const header = 'Rang,Équipe,Club,V,D,Points+,Points-,Ratio,Égalité\n';
-                      const rows = laserRankings
-                        .map((r, i) =>
-                          [
-                            i + 1,
-                            `"${r.team.name}"`,
-                            `"${r.team.club ?? ''}"`,
-                            r.victories,
-                            r.defeats,
-                            r.pointsFor,
-                            r.pointsAgainst,
-                            r.pointsAgainst === 0
-                              ? r.pointsFor
-                              : (r.pointsFor / r.pointsAgainst).toFixed(2),
-                            r.tied ? 'oui' : '',
-                          ].join(',')
-                        )
-                        .join('\n');
-                      const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = 'classement-equipes.csv';
-                      a.click();
-                      URL.revokeObjectURL(url);
-                    }}
-                  >
-                    ↓ Exporter CSV
-                  </button>
+                      )}
+                    </div>
+                  ))}
+                  {team.fencers.length === 0 && (
+                    <span className="text-xs text-gray-400 italic">Aucun tireur</span>
+                  )}
                 </div>
-              )}
-              {laserRankings.length === 0 ? (
-                <div className="text-center text-gray-400 py-10">Aucun match joué.</div>
-              ) : (
-                <table className="min-w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center w-8">
-                        #
-                      </th>
-                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-left">
-                        Équipe
-                      </th>
-                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
-                        V
-                      </th>
-                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
-                        D
-                      </th>
-                      <th
-                        className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
-                        title="Critère principal du règlement : total de points marqués sur toutes les rencontres de poule"
+
+                {/* Formulaire affectation */}
+                {isEditing && (
+                  <div className="px-4 py-3 bg-blue-50 border-t border-blue-100 flex gap-3 items-end flex-wrap">
+                    <div>
+                      <label className="text-xs text-gray-600 block mb-1">Tireur</label>
+                      <select
+                        value={selectedFencerId}
+                        onChange={e => setSelectedFencerId(e.target.value)}
+                        className="border border-gray-300 rounded px-2 py-1.5 text-sm"
                       >
-                        Points+
-                      </th>
-                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
-                        Points-
-                      </th>
-                      <th
-                        className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
-                        title="1er critère de départage : ratio points marqués / points reçus"
+                        <option value="">-- sélectionner --</option>
+                        {availableFencers.map(f => (
+                          <option key={f.id} value={f.id}>
+                            {f.lastName} {f.firstName ?? ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600 block mb-1">Position</label>
+                      <select
+                        value={selectedOrder}
+                        onChange={e => setSelectedOrder(Number(e.target.value))}
+                        className="border border-gray-300 rounded px-2 py-1.5 text-sm"
                       >
-                        Ratio
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {laserRankings.map((r, i) => (
-                      <tr
-                        key={r.team.id}
-                        className={i === 0 ? 'bg-yellow-50' : 'hover:bg-gray-50'}
-                        title={
-                          r.tied
-                            ? 'Égalité totale avec une équipe voisine — à départager par tirage au sort'
-                            : undefined
+                        {Array.from({ length: teamSize }, (_, i) => i + 1).map(n => (
+                          <option key={n} value={n}>
+                            #{n}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id={`res-${team.id}`}
+                        checked={selectedIsReserve}
+                        disabled={
+                          reserves.length >= reserveCount &&
+                          !reserves.some(r => r.fencerId === selectedFencerId)
                         }
-                      >
-                        <td className="px-3 py-2 text-center font-bold text-gray-400">
-                          {i + 1}
-                          {r.tied && <span className="text-yellow-500 ml-1">⚠</span>}
-                        </td>
-                        <td className="px-3 py-2 font-semibold text-gray-900">
-                          {r.team.name}
-                          <span className="text-xs text-gray-400 font-normal ml-2">
-                            {r.team.club}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 text-center text-green-700 font-bold">
-                          {r.victories}
-                        </td>
-                        <td className="px-3 py-2 text-center text-red-500">{r.defeats}</td>
-                        <td className="px-3 py-2 text-center font-mono font-bold">{r.pointsFor}</td>
-                        <td className="px-3 py-2 text-center font-mono text-gray-400">
-                          {r.pointsAgainst}
-                        </td>
-                        <td className="px-3 py-2 text-center font-mono">
-                          {r.pointsAgainst === 0
-                            ? r.pointsFor
-                            : (r.pointsFor / r.pointsAgainst).toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+                        onChange={e => setSelectedIsReserve(e.target.checked)}
+                      />
+                      <label htmlFor={`res-${team.id}`} className="text-sm text-gray-600">
+                        Réserviste (max {reserveCount})
+                      </label>
+                    </div>
+                    <button
+                      onClick={handleUpsertFencer}
+                      disabled={
+                        !selectedFencerId ||
+                        (selectedIsReserve &&
+                          reserves.length >= reserveCount &&
+                          !reserves.some(r => r.fencerId === selectedFencerId))
+                      }
+                      className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-40"
+                    >
+                      Affecter
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Vue POULE ── */}
+      {view === 'pool' && (
+        <TeamPoolView
+          teams={teams}
+          matches={matches}
+          weapon={competition.weapon}
+          targetRule={targetRule}
+          isEpee={isEpee}
+          isLaserPoints={isLaserPoints}
+          fencerName={fencerName}
+          scoringMatchId={scoringMatchId}
+          onToggleScoring={id => setScoringMatchId(scoringMatchId === id ? null : id)}
+          onScoreBout={handleScoreBout}
+          onResetBout={handleResetBout}
+          boutCards={boutCards}
+          cardTarget={cardTarget}
+          onSetCardTarget={setCardTarget}
+          selectedReason={selectedReason}
+          onSelectReason={setSelectedReason}
+          onAddCard={handleAddCard}
+          emptyLabel='Aucun match — cliquez sur "Générer la poule" dans l&apos;onglet Équipes.'
+          isLaserArena={isLaserArena}
+          boutCap={boutCap}
+          matchCards={matchCards}
+          onAddTeamCard={handleAddTeamCard}
+          onAssignArena={handleAssignArena}
+        />
+      )}
+
+      {/* ── Vue TABLEAU ── */}
+      {view === 'tableau' && (
+        <TeamTableauView
+          teams={teams}
+          rankedTeams={rankedTeamsForBracket}
+          tableauMatches={tableauMatches}
+          weapon={competition.weapon}
+          targetRule={targetRule}
+          isEpee={isEpee}
+          isLaserPoints={isLaserPoints}
+          fencerName={fencerName}
+          scoringMatchId={scoringMatchId}
+          onToggleScoring={id => setScoringMatchId(scoringMatchId === id ? null : id)}
+          onScoreBout={handleScoreBout}
+          onResetBout={handleResetBout}
+          boutCards={boutCards}
+          cardTarget={cardTarget}
+          onSetCardTarget={setCardTarget}
+          selectedReason={selectedReason}
+          onSelectReason={setSelectedReason}
+          onAddCard={handleAddCard}
+          onGenerate={reload}
+          isLaserArena={isLaserArena}
+          boutCap={boutCap}
+          matchCards={matchCards}
+          onAddTeamCard={handleAddTeamCard}
+          onAssignArena={handleAssignArena}
+        />
+      )}
+
+      {/* ── Vue CLASSEMENT ── */}
+      {view === 'ranking' && isLaserArena && (
+        <div>
+          {laserRankings.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
+              <button
+                className="btn btn-secondary"
+                style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
+                onClick={() => {
+                  const header = 'Rang,Équipe,Club,V,D,Points+,Points-,Ratio,Égalité\n';
+                  const rows = laserRankings
+                    .map((r, i) =>
+                      [
+                        i + 1,
+                        `"${r.team.name}"`,
+                        `"${r.team.club ?? ''}"`,
+                        r.victories,
+                        r.defeats,
+                        r.pointsFor,
+                        r.pointsAgainst,
+                        r.pointsAgainst === 0
+                          ? r.pointsFor
+                          : (r.pointsFor / r.pointsAgainst).toFixed(2),
+                        r.tied ? 'oui' : '',
+                      ].join(',')
+                    )
+                    .join('\n');
+                  const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'classement-equipes.csv';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                ↓ Exporter CSV
+              </button>
             </div>
           )}
-          {view === 'ranking' && !isLaserArena && (
-            <div>
-              {fieRankings.length > 0 && (
-                <div
-                  style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}
-                >
-                  <button
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
-                    onClick={() => {
-                      const header =
-                        'Rang,Équipe,Club,V,D,RelaisG,RelaisP,Ind.,Touches+,Touches-\n';
-                      const rows = fieRankings
-                        .map((r, i) =>
-                          [
-                            i + 1,
-                            `"${r.team.name}"`,
-                            `"${r.team.club ?? ''}"`,
-                            r.victories,
-                            r.defeats,
-                            r.boutsWon,
-                            r.boutsLost,
-                            r.boutsWon - r.boutsLost,
-                            r.pointsFor,
-                            r.pointsAgainst,
-                          ].join(',')
-                        )
-                        .join('\n');
-                      const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = 'classement-equipes.csv';
-                      a.click();
-                      URL.revokeObjectURL(url);
-                    }}
+          {laserRankings.length === 0 ? (
+            <div className="text-center text-gray-400 py-10">Aucun match joué.</div>
+          ) : (
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center w-8">
+                    #
+                  </th>
+                  <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-left">
+                    Équipe
+                  </th>
+                  <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
+                    V
+                  </th>
+                  <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
+                    D
+                  </th>
+                  <th
+                    className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
+                    title="Critère principal du règlement : total de points marqués sur toutes les rencontres de poule"
                   >
-                    ↓ Exporter CSV
-                  </button>
-                </div>
-              )}
-              {fieRankings.length === 0 ? (
-                <div className="text-center text-gray-400 py-10">Aucun match joué.</div>
-              ) : (
-                <table className="min-w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center w-8">
-                        #
-                      </th>
-                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-left">
-                        Équipe
-                      </th>
-                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
-                        V
-                      </th>
-                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
-                        D
-                      </th>
-                      <th
-                        className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
-                        title={t('teams.relaysTooltip')}
-                      >
-                        {t('teams.relaysWon')}
-                      </th>
-                      <th
-                        className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
-                        title={t('teams.relaysTooltip')}
-                      >
-                        {t('teams.relaysLost')}
-                      </th>
-                      <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
-                        Ind.
-                      </th>
-                      <th
-                        className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
-                        title="Touches cumulées (règle FIE)"
-                      >
-                        Touches+
-                      </th>
-                      <th
-                        className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
-                        title="Touches cumulées (règle FIE)"
-                      >
-                        Touches-
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {fieRankings.map((r, i) => (
-                      <tr key={r.team.id} className={i === 0 ? 'bg-yellow-50' : 'hover:bg-gray-50'}>
-                        <td className="px-3 py-2 text-center font-bold text-gray-400">{i + 1}</td>
-                        <td className="px-3 py-2 font-semibold text-gray-900">
-                          {r.team.name}
-                          <span className="text-xs text-gray-400 font-normal ml-2">
-                            {r.team.club}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 text-center text-green-700 font-bold">
-                          {r.victories}
-                        </td>
-                        <td className="px-3 py-2 text-center text-red-500">{r.defeats}</td>
-                        <td className="px-3 py-2 text-center">{r.boutsWon}</td>
-                        <td className="px-3 py-2 text-center">{r.boutsLost}</td>
-                        <td
-                          className={`px-3 py-2 text-center font-bold ${r.boutsWon - r.boutsLost >= 0 ? 'text-green-600' : 'text-red-500'}`}
-                        >
-                          {r.boutsWon - r.boutsLost > 0 ? '+' : ''}
-                          {r.boutsWon - r.boutsLost}
-                        </td>
-                        <td className="px-3 py-2 text-center font-mono">{r.pointsFor}</td>
-                        <td className="px-3 py-2 text-center font-mono text-gray-400">
-                          {r.pointsAgainst}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+                    Points+
+                  </th>
+                  <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
+                    Points-
+                  </th>
+                  <th
+                    className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
+                    title="1er critère de départage : ratio points marqués / points reçus"
+                  >
+                    Ratio
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {laserRankings.map((r, i) => (
+                  <tr
+                    key={r.team.id}
+                    className={i === 0 ? 'bg-yellow-50' : 'hover:bg-gray-50'}
+                    title={
+                      r.tied
+                        ? 'Égalité totale avec une équipe voisine — à départager par tirage au sort'
+                        : undefined
+                    }
+                  >
+                    <td className="px-3 py-2 text-center font-bold text-gray-400">
+                      {i + 1}
+                      {r.tied && <span className="text-yellow-500 ml-1">⚠</span>}
+                    </td>
+                    <td className="px-3 py-2 font-semibold text-gray-900">
+                      {r.team.name}
+                      <span className="text-xs text-gray-400 font-normal ml-2">{r.team.club}</span>
+                    </td>
+                    <td className="px-3 py-2 text-center text-green-700 font-bold">
+                      {r.victories}
+                    </td>
+                    <td className="px-3 py-2 text-center text-red-500">{r.defeats}</td>
+                    <td className="px-3 py-2 text-center font-mono font-bold">{r.pointsFor}</td>
+                    <td className="px-3 py-2 text-center font-mono text-gray-400">
+                      {r.pointsAgainst}
+                    </td>
+                    <td className="px-3 py-2 text-center font-mono">
+                      {r.pointsAgainst === 0
+                        ? r.pointsFor
+                        : (r.pointsFor / r.pointsAgainst).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
+      )}
+      {view === 'ranking' && !isLaserArena && (
+        <div>
+          {fieRankings.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
+              <button
+                className="btn btn-secondary"
+                style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
+                onClick={() => {
+                  const header = 'Rang,Équipe,Club,V,D,RelaisG,RelaisP,Ind.,Touches+,Touches-\n';
+                  const rows = fieRankings
+                    .map((r, i) =>
+                      [
+                        i + 1,
+                        `"${r.team.name}"`,
+                        `"${r.team.club ?? ''}"`,
+                        r.victories,
+                        r.defeats,
+                        r.boutsWon,
+                        r.boutsLost,
+                        r.boutsWon - r.boutsLost,
+                        r.pointsFor,
+                        r.pointsAgainst,
+                      ].join(',')
+                    )
+                    .join('\n');
+                  const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'classement-equipes.csv';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                ↓ Exporter CSV
+              </button>
+            </div>
+          )}
+          {fieRankings.length === 0 ? (
+            <div className="text-center text-gray-400 py-10">Aucun match joué.</div>
+          ) : (
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center w-8">
+                    #
+                  </th>
+                  <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-left">
+                    Équipe
+                  </th>
+                  <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
+                    V
+                  </th>
+                  <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
+                    D
+                  </th>
+                  <th
+                    className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
+                    title={t('teams.relaysTooltip')}
+                  >
+                    {t('teams.relaysWon')}
+                  </th>
+                  <th
+                    className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
+                    title={t('teams.relaysTooltip')}
+                  >
+                    {t('teams.relaysLost')}
+                  </th>
+                  <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
+                    Ind.
+                  </th>
+                  <th
+                    className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
+                    title="Touches cumulées (règle FIE)"
+                  >
+                    Touches+
+                  </th>
+                  <th
+                    className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
+                    title="Touches cumulées (règle FIE)"
+                  >
+                    Touches-
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {fieRankings.map((r, i) => (
+                  <tr key={r.team.id} className={i === 0 ? 'bg-yellow-50' : 'hover:bg-gray-50'}>
+                    <td className="px-3 py-2 text-center font-bold text-gray-400">{i + 1}</td>
+                    <td className="px-3 py-2 font-semibold text-gray-900">
+                      {r.team.name}
+                      <span className="text-xs text-gray-400 font-normal ml-2">{r.team.club}</span>
+                    </td>
+                    <td className="px-3 py-2 text-center text-green-700 font-bold">
+                      {r.victories}
+                    </td>
+                    <td className="px-3 py-2 text-center text-red-500">{r.defeats}</td>
+                    <td className="px-3 py-2 text-center">{r.boutsWon}</td>
+                    <td className="px-3 py-2 text-center">{r.boutsLost}</td>
+                    <td
+                      className={`px-3 py-2 text-center font-bold ${r.boutsWon - r.boutsLost >= 0 ? 'text-green-600' : 'text-red-500'}`}
+                    >
+                      {r.boutsWon - r.boutsLost > 0 ? '+' : ''}
+                      {r.boutsWon - r.boutsLost}
+                    </td>
+                    <td className="px-3 py-2 text-center font-mono">{r.pointsFor}</td>
+                    <td className="px-3 py-2 text-center font-mono text-gray-400">
+                      {r.pointsAgainst}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </>
+  );
+
+  if (loading) return <div className="content text-gray-400">{t('teams.loading')}</div>;
+
+  return (
+    <div className="content">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm text-gray-500">
+          {competition.title} · {t('teams.teamCount', { count: teams.length })}
+        </p>
+        <div className="flex items-center gap-2">{toolbarButtons}</div>
       </div>
+      {content}
     </div>
   );
 };

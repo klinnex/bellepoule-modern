@@ -22,6 +22,7 @@ Guide fonctionnel : [ARBITRAGE.md](ARBITRAGE.md), [REMOTE_SCORE_GUIDE.md](../REM
 | `join_team_arena` | ✓ | `teamArena.html`, `teamReferee.html` |
 | `team_advance_bout` | ✓ | `teamReferee.html` |
 | `team_card` | ✓ | `teamReferee.html` |
+| `team_fencer_card` | ✓ | `teamReferee.html` |
 | `team_reset_bout` | ✓ | `teamReferee.html` |
 | `team_timer_pause` | ✓ | `teamReferee.html` |
 | `team_timer_start` | ✓ | `teamReferee.html` |
