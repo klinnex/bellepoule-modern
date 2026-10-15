@@ -95,13 +95,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 6 | 107 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 29 | 122 |
+| `src/renderer/components/` | 29 | 131 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 1 | 1 |
-| **Total** | **127** | **1317** |
+| **Total** | **127** | **1326** |
 
-Unitaires : 119 fichiers, 1286 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 119 fichiers, 1295 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2369,7 +2369,7 @@ Unitaires : 119 fichiers, 1286 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolView.test.tsx</code> — 5 tests</summary>
+<summary><code>src/renderer/components/PoolView.test.tsx</code> — 14 tests</summary>
 
 - **PoolView - saisie simplifiée : suppression au survol**
   - survoler une case scorée puis appuyer sur Suppr efface le score du match
@@ -2378,6 +2378,16 @@ Unitaires : 119 fichiers, 1286 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **PoolView - saisie simplifiée : correction d'un score enregistré (#1046)**
   - préremplit la case avec le score enregistré
   - Entrée enregistre le nouveau score en gardant celui de l'adversaire
+- **PoolView - couverture saisie, matrice et statuts (#1084)**
+  - matrice : affiche victoire/défaite dans les cases du match terminé
+  - matrice : case non saisie proposée à la saisie
+  - en-tête : indique l'avancement puis « Terminée » selon pool.isComplete
+  - saisie des deux cases d'un match neuf : un seul onScoreUpdate avec les deux scores
+  - refuse un match nul
+  - refuse un score supérieur au maximum
+  - bouton « Annuler ce résultat » : déclenche onMatchReset sans ouvrir la saisie
+  - feuille signée par tous : bandeau de verrouillage et saisie bloquée
+  - tireur abandonné : case de la matrice marquée comme statut spécial
 
 </details>
 
