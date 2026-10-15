@@ -329,7 +329,9 @@
     "pool_rounds": "Pool-Runden",
     "save": "Speichern",
     "theme": "Thema",
-    "title": "Einstellungen"
+    "title": "Einstellungen",
+    "pseudo_locale": "Übersetzungs-Debug",
+    "pseudo_locale_hint": "Zeigt übersetzte Texte als [!! … !!] an: Text ohne diese Markierung ist nicht übersetzt."
   },
   "shortcuts": {
     "category_actions": "Aktionen",

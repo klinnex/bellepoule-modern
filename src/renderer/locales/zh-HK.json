@@ -208,7 +208,9 @@
     "default_pool_max_score": "分組賽最高分數",
     "default_table_max_score": "淘汰賽最高分數",
     "save": "儲存",
-    "cancel": "取消"
+    "cancel": "取消",
+    "pseudo_locale": "翻譯除錯",
+    "pseudo_locale_hint": "以 [!! … !!] 顯示已翻譯文字：沒有此標記的文字即未翻譯。"
   },
   "actions": {
     "add": "新增",

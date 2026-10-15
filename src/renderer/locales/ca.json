@@ -208,7 +208,9 @@
     "default_pool_max_score": "Puntuació Màxima de Poules",
     "default_table_max_score": "Puntuació Màxima del Quadre",
     "save": "Desar",
-    "cancel": "Cancel·lar"
+    "cancel": "Cancel·lar",
+    "pseudo_locale": "Depuració de traduccions",
+    "pseudo_locale_hint": "Mostra els textos traduïts com a [!! … !!]: tot text sense aquesta marca no està traduït."
   },
   "actions": {
     "add": "Afegir",

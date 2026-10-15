@@ -208,7 +208,9 @@
     "default_pool_max_score": "Default Pool Max Score",
     "default_table_max_score": "Default Table Max Score",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "pseudo_locale": "Translation debug",
+    "pseudo_locale_hint": "Shows translated texts as [!! … !!]: any text without this marker is not translated."
   },
   "actions": {
     "add": "Add",

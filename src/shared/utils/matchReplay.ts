@@ -3,8 +3,9 @@
  * par événement, avec le score et les cartons à cet instant.
  *
  * Score : les score_change (valeurs absolues saisies par l'arbitre) font foi.
- * Sans aucun score_change dans le match (journal Sabre Laser par touches), le
- * score est reconstitué en cumulant touches et sorties d'arène.
+ * Avec au plus un score_change (score final seul : journal Sabre Laser par
+ * touches, anciens matchs de tableau), le score est reconstitué en cumulant
+ * touches et sorties d'arène ; le score_change recale alors la valeur.
  */
 import type { MatchEventEntry } from '../types';
 
@@ -30,7 +31,9 @@ export function buildMatchReplay(entries: MatchEventEntry[]): ReplayFrame[] {
     (a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp) || a.id.localeCompare(b.id)
   );
   if (sorted.length === 0) return [];
-  const useScoreChanges = sorted.some(e => e.eventType === 'score_change');
+  const hasPointEvents = sorted.some(e => e.eventType === 'touch' || e.eventType === 'arena_exit');
+  const useScoreChanges =
+    !hasPointEvents || sorted.filter(e => e.eventType === 'score_change').length > 1;
   const start = Date.parse(sorted[0].timestamp);
 
   const score = { A: 0, B: 0 };

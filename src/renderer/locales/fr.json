@@ -208,7 +208,9 @@
     "default_pool_max_score": "Score maximum des poules",
     "default_table_max_score": "Score maximum du tableau",
     "save": "Sauvegarder",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "pseudo_locale": "Debug traductions",
+    "pseudo_locale_hint": "Affiche les textes traduits sous la forme [!! … !!] : tout texte sans ce marquage n'est pas traduit."
   },
   "actions": {
     "add": "Ajouter",
