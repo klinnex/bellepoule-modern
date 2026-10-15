@@ -447,7 +447,8 @@
     "pdfError": "PDF export failed",
     "loading": "Loading…",
     "teamCount": "{{count}} teams",
-    "toCompose": "Build teams"
+    "toCompose": "Build teams",
+    "cardSaveError": "Card not saved"
   },
   "kiosk": {
     "ranking": "📊 Ranking",

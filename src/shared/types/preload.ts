@@ -5,6 +5,7 @@
  */
 
 import {
+  Card,
   Competition,
   Fencer,
   Match,
@@ -951,6 +952,9 @@ export interface DatabaseAPI {
       createdAt: string;
     }>
   >;
+  /** Cartons individuels des relais par équipes, persistés (#1086) */
+  createTeamBoutCard: (boutId: string, card: Card) => Promise<{ id: string }>;
+  getTeamBoutCards: (matchId: string) => Promise<Array<{ boutId: string; card: Card }>>;
 }
 
 export interface FileAPI {

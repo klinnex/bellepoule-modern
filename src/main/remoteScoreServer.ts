@@ -23,7 +23,7 @@ import {
   ThemeTargetType,
   MatchSignatureRequest,
 } from '../shared/types/remote';
-import { Match, MatchStatus, FencerStatus, Score } from '../shared/types';
+import { CardReason, Match, MatchStatus, FencerStatus, Score, Weapon } from '../shared/types';
 import { DatabaseManager } from '../database';
 import { estimatePhaseEta } from '../shared/utils/phaseEta';
 import {
@@ -62,6 +62,15 @@ import {
   getLaserArenaBoutCap,
   isLaserArenaBoutComplete,
 } from '../features/teams/utils/laserArenaCalculations';
+import { getTeamTargetRule } from '../features/teams/utils/teamCalculations';
+import {
+  FIE_RELAY_DURATION_SEC,
+  isRelayComplete,
+  relayCapFor,
+  relayCumul,
+  relayWinnerSide,
+} from '../features/teams/utils/teamRelayLive';
+import { createCard, getAvailableReasons } from '../shared/utils/cardSystem';
 
 export class RemoteScoreServer {
   private app: express.Application;
@@ -441,7 +450,26 @@ export class RemoteScoreServer {
   public setTeamArenaMatch(arenaId: string, matchId: string, isLaserPoints: boolean): boolean {
     const detail = this.db.getTeamMatchDetail(matchId);
     if (!detail) return false;
+    const competition = this.db.getCompetition(detail.competitionId);
+    const settings = competition?.settings;
+    const weapon = (competition?.weapon ?? Weapon.EPEE) as Weapon;
+    const rule = getTeamTargetRule(
+      weapon,
+      settings?.minTeamSize ?? 3,
+      settings?.laserTeamMode ?? 'touches',
+      settings?.teamRelayStepSize ?? 5
+    );
     this.teamArenaState.set(arenaId, {
+      format: settings?.teamFormat === 'laser-arena' ? 'laser-arena' : 'fie-relay',
+      weapon,
+      relayRule: { stepSize: rule.stepSize, target: rule.target },
+      fencerCards: this.db.getTeamBoutCards(matchId).map(({ boutId, card }) => ({
+        id: card.id,
+        boutId,
+        fencerId: card.fencerId,
+        type: card.type,
+        reason: card.reason,
+      })),
       matchId: detail.id,
       competitionId: detail.competitionId,
       teamAId: detail.teamAId,
@@ -477,10 +505,31 @@ export class RemoteScoreServer {
   private getPublicTeamArenaState(arenaId: string): unknown {
     const state = this.teamArenaState.get(arenaId);
     if (!state) return null;
-    const cap = getLaserArenaBoutCap();
     const currentBout = state.bouts[state.currentBoutIndex] ?? null;
     const elapsedSec = this.teamArenaElapsedSec(state);
+    const relay = state.format === 'fie-relay';
+    const { cumulA, cumulB } = relayCumul(
+      state.bouts,
+      currentBout,
+      state.liveScoreA,
+      state.liveScoreB
+    );
+    const relayCap = currentBout ? relayCapFor(currentBout.boutOrder, state.relayRule) : 0;
+    const cap = relay
+      ? { maxTouches: relayCap, maxDurationSec: FIE_RELAY_DURATION_SEC }
+      : getLaserArenaBoutCap();
+    const boutComplete = !currentBout
+      ? false
+      : relay
+        ? isRelayComplete(cumulA, cumulB, relayCap, elapsedSec)
+        : isLaserArenaBoutComplete(state.liveScoreA, state.liveScoreB, elapsedSec, cap);
     return {
+      format: state.format,
+      cumulA,
+      cumulB,
+      target: state.relayRule.target,
+      fencerCards: state.fencerCards,
+      cardReasons: relay ? getAvailableReasons(state.weapon) : [],
       matchId: state.matchId,
       teamAId: state.teamAId,
       teamAName: state.teamAName,
@@ -495,9 +544,7 @@ export class RemoteScoreServer {
       elapsedSec,
       timerRunning: state.timerStartedAt !== null,
       cap,
-      boutComplete: currentBout
-        ? isLaserArenaBoutComplete(state.liveScoreA, state.liveScoreB, elapsedSec, cap)
-        : false,
+      boutComplete,
       matchComplete: !currentBout,
       cards: state.cards,
       blackCardEnabled:
@@ -1129,6 +1176,7 @@ export class RemoteScoreServer {
         if (![1, 3, 5].includes(data.points)) return;
         const state = this.teamArenaState.get(data.arenaId);
         if (!state) return;
+        if (!state.isLaserPoints && data.points !== 1) return;
         const bout = state.bouts[state.currentBoutIndex];
         if (!bout || bout.status === 'finished') return;
         if (data.side === 'A') state.liveScoreA += data.points;
@@ -1174,7 +1222,13 @@ export class RemoteScoreServer {
         if (!bout || bout.status === 'finished') return;
         const scoreA = state.liveScoreA;
         const scoreB = state.liveScoreB;
-        const winnerId = scoreA > scoreB ? bout.fencerAId : scoreB > scoreA ? bout.fencerBId : null;
+        // Relais FIE : vainqueur du relais = équipe en tête au cumul ; arène : score de l'assaut
+        const { cumulA, cumulB } = relayCumul(state.bouts, bout, scoreA, scoreB);
+        const side =
+          state.format === 'fie-relay'
+            ? relayWinnerSide(cumulA, cumulB)
+            : relayWinnerSide(scoreA, scoreB);
+        const winnerId = side === 'A' ? bout.fencerAId : side === 'B' ? bout.fencerBId : null;
         this.db.updateTeamBout(bout.id, scoreA, scoreB, 'finished', winnerId);
         bout.scoreA = scoreA;
         bout.scoreB = scoreB;
@@ -1213,6 +1267,36 @@ export class RemoteScoreServer {
             teamId: data.teamId,
             type: data.type,
             createdAt: new Date().toISOString(),
+          });
+          broadcastTeamArena(data.arenaId);
+        }
+      );
+
+      // Carton individuel du tireur en piste (relais) : escalade identique à l'application,
+      // persisté en base (#1086). Pas d'impact automatique sur le score.
+      socket.on(
+        'team_fencer_card',
+        (data: { arenaId: string; side: 'A' | 'B'; reason: CardReason }) => {
+          if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
+          if (data.side !== 'A' && data.side !== 'B') return;
+          const state = this.teamArenaState.get(data.arenaId);
+          if (!state) return;
+          if (!getAvailableReasons(state.weapon).includes(data.reason)) return;
+          const bout = state.bouts[state.currentBoutIndex];
+          if (!bout) return;
+          const fencerId = data.side === 'A' ? bout.fencerAId : bout.fencerBId;
+          const previous = this.db
+            .getTeamBoutCards(state.matchId)
+            .map(c => c.card)
+            .filter(c => c.fencerId === fencerId);
+          const card = createCard(state.matchId, fencerId, data.reason, previous, state.weapon);
+          this.db.createTeamBoutCard(bout.id, card);
+          state.fencerCards.push({
+            id: card.id,
+            boutId: bout.id,
+            fencerId,
+            type: card.type,
+            reason: card.reason,
           });
           broadcastTeamArena(data.arenaId);
         }

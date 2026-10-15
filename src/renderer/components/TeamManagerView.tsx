@@ -114,6 +114,16 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
       setTeams(t as TeamRow[]);
       setMatches(m as TeamMatchRow[]);
       setTableauMatches(tm as TeamMatchRow[]);
+      // Cartons individuels des relais, persistés en base (#1086)
+      const allMatches = [...(m as TeamMatchRow[]), ...(tm as TeamMatchRow[])];
+      const boutCardLists = await Promise.all(
+        allMatches.map(x => window.electronAPI.db.getTeamBoutCards?.(x.id) ?? [])
+      );
+      const byBout: Record<string, Card[]> = {};
+      for (const { boutId, card } of boutCardLists.flat()) {
+        (byBout[boutId] ??= []).push(card);
+      }
+      setBoutCards(byBout);
       if (isLaserArena) {
         const allMatchIds = [...(m as TeamMatchRow[]), ...(tm as TeamMatchRow[])].map(x => x.id);
         const cardsArrays = await Promise.all(
@@ -442,7 +452,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
   };
 
   // ── Carton (arme-aware, escalade selon les cartons déjà reçus par ce tireur) ──
-  const handleAddCard = (matchId: string) => {
+  const handleAddCard = async (matchId: string) => {
     if (!cardTarget || !selectedReason) return;
     const match = [...matches, ...tableauMatches].find(m => m.id === matchId);
     const previousCards = Object.entries(boutCards)
@@ -456,12 +466,15 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
       previousCards,
       competition.weapon
     );
-    setBoutCards(prev => ({
-      ...prev,
-      [cardTarget.boutId]: [...(prev[cardTarget.boutId] ?? []), card],
-    }));
+    const boutId = cardTarget.boutId;
+    setBoutCards(prev => ({ ...prev, [boutId]: [...(prev[boutId] ?? []), card] }));
     setCardTarget(null);
     setSelectedReason('');
+    try {
+      await window.electronAPI.db.createTeamBoutCard(boutId, card);
+    } catch (e) {
+      showToast(`${t('teams.cardSaveError')} : ${(e as Error).message}`, 'error');
+    }
   };
 
   // ── Lookup helpers ────────────────────────────────────────────────────────────

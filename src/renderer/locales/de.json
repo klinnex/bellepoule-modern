@@ -447,7 +447,8 @@
     "pdfError": "PDF-Export fehlgeschlagen",
     "loading": "Wird geladen…",
     "teamCount": "{{count}} Mannschaften",
-    "toCompose": "Mannschaften bilden"
+    "toCompose": "Mannschaften bilden",
+    "cardSaveError": "Karte nicht gespeichert"
   },
   "kiosk": {
     "ranking": "📊 Rangliste",

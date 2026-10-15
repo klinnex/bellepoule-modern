@@ -115,6 +115,17 @@
       .card-buttons { display: flex; gap: 0.3rem; justify-content: center; }
       .card-btn { padding: 0.35rem 0.5rem; font-size: 1rem; background: #1e293b; border: 1px solid #334155; }
       .cards-log { margin-top: 0.3rem; font-size: 0.9rem; }
+      .reason-select {
+        width: 100%;
+        margin-bottom: 0.3rem;
+        padding: 0.35rem;
+        border-radius: 0.4rem;
+        background: #1e293b;
+        color: #f1f5f9;
+        border: 1px solid #334155;
+        font-size: 0.8rem;
+      }
+      .relay-live { text-align: center; font-size: 0.85rem; color: #cbd5e1; }
       .match-complete {
         text-align: center;
         font-size: 1rem;
@@ -125,7 +136,7 @@
     </style>
   </head>
   <body>
-    <header><span data-i18n="team.arena">Arène</span> <span id="arena-number">—</span> · <span data-i18n="team.format">Format arène Sabre Laser équipe</span></header>
+    <header><span data-i18n="team.arena">Arène</span> <span id="arena-number">—</span> · <span id="format-label" data-i18n="team.format">Format arène Sabre Laser équipe</span></header>
     <div id="waiting" data-i18n="team.waiting_referee">En attente d'assignation d'une rencontre depuis l'application…</div>
     <div id="match">
       <div class="bout-info" id="bout-info">Assaut —/—</div>
@@ -146,6 +157,7 @@
         <div class="score-sep">–</div>
         <div class="score" id="score-b">0</div>
       </div>
+      <div class="relay-live" id="relay-live" style="display: none"></div>
       <div class="cap" id="cap-label">/ 5 touches · 3:00</div>
 
       <div class="timer" id="timer">3:00</div>
@@ -252,6 +264,35 @@
           });
         }
 
+        const isRelay = () => lastState && lastState.format === 'fie-relay';
+
+        // Relais FIE : carton individuel du tireur en piste (motif + escalade côté serveur)
+        function renderFencerCardControls(container, side) {
+          container.innerHTML = '';
+          const select = document.createElement('select');
+          select.className = 'reason-select';
+          lastState.cardReasons.forEach(reason => {
+            const opt = document.createElement('option');
+            opt.value = reason;
+            opt.textContent = tk(`team.reason.${reason}`);
+            select.appendChild(opt);
+          });
+          const btn = document.createElement('button');
+          btn.className = 'card-btn';
+          btn.textContent = tk('team.fencer_card');
+          btn.disabled = !lastState.currentBout;
+          btn.onclick = () => socket.emit('team_fencer_card', { arenaId, side, reason: select.value });
+          container.appendChild(select);
+          container.appendChild(btn);
+        }
+
+        function fencerCardsLog(fencerId) {
+          return lastState.fencerCards
+            .filter(c => c.fencerId === fencerId)
+            .map(c => CARD_BADGE[String(c.type).toLowerCase()] || c.type)
+            .join(' ');
+        }
+
         function render() {
           const waiting = document.getElementById('waiting');
           const match = document.getElementById('match');
@@ -265,8 +306,14 @@
 
           document.getElementById('team-a-name').textContent = lastState.teamAName;
           document.getElementById('team-b-name').textContent = lastState.teamBName;
-          document.getElementById('cards-label-a').textContent = tk('team.cards_label', { team: lastState.teamAName });
-          document.getElementById('cards-label-b').textContent = tk('team.cards_label', { team: lastState.teamBName });
+          document.getElementById('format-label').textContent = tk(isRelay() ? 'team.format_relay' : 'team.format');
+          const bout0 = lastState.currentBout;
+          document.getElementById('cards-label-a').textContent = isRelay()
+            ? tk('team.fencer_cards_label', { fencer: bout0 ? bout0.fencerAName : '—' })
+            : tk('team.cards_label', { team: lastState.teamAName });
+          document.getElementById('cards-label-b').textContent = isRelay()
+            ? tk('team.fencer_cards_label', { fencer: bout0 ? bout0.fencerBName : '—' })
+            : tk('team.cards_label', { team: lastState.teamBName });
 
           const complete = document.getElementById('match-complete');
           if (lastState.matchComplete) {
@@ -284,9 +331,17 @@
             document.getElementById('fencer-b-name').textContent = bout ? bout.fencerBName : '—';
           }
 
-          document.getElementById('score-a').textContent = lastState.liveScoreA;
-          document.getElementById('score-b').textContent = lastState.liveScoreB;
-          document.getElementById('cap-label').textContent = tk('team.cap_short', { touches: lastState.cap.maxTouches, time: formatTime(lastState.cap.maxDurationSec) });
+          // Relais FIE : score d'équipe cumulé en grand, touches du relais en cours en dessous
+          document.getElementById('score-a').textContent = isRelay() ? lastState.cumulA : lastState.liveScoreA;
+          document.getElementById('score-b').textContent = isRelay() ? lastState.cumulB : lastState.liveScoreB;
+          const relayLive = document.getElementById('relay-live');
+          relayLive.style.display = isRelay() ? 'block' : 'none';
+          relayLive.textContent = isRelay()
+            ? tk('team.relay_live', { a: lastState.liveScoreA, b: lastState.liveScoreB })
+            : '';
+          document.getElementById('cap-label').textContent = isRelay()
+            ? tk('team.relay_cap', { cap: lastState.cap.maxTouches, target: lastState.target, time: formatTime(lastState.cap.maxDurationSec) })
+            : tk('team.cap_short', { touches: lastState.cap.maxTouches, time: formatTime(lastState.cap.maxDurationSec) });
 
           const remaining = Math.max(0, lastState.cap.maxDurationSec - lastState.elapsedSec);
           const timerEl = document.getElementById('timer');
@@ -296,8 +351,13 @@
 
           renderZones(document.getElementById('zones-a'), 'A');
           renderZones(document.getElementById('zones-b'), 'B');
-          renderCardButtons(document.getElementById('card-buttons-a'), lastState.teamAId);
-          renderCardButtons(document.getElementById('card-buttons-b'), lastState.teamBId);
+          if (isRelay()) {
+            renderFencerCardControls(document.getElementById('card-buttons-a'), 'A');
+            renderFencerCardControls(document.getElementById('card-buttons-b'), 'B');
+          } else {
+            renderCardButtons(document.getElementById('card-buttons-a'), lastState.teamAId);
+            renderCardButtons(document.getElementById('card-buttons-b'), lastState.teamBId);
+          }
 
           const advanceBtn = document.getElementById('advance-bout');
           advanceBtn.disabled = !lastState.currentBout;
@@ -308,6 +368,11 @@
 
           const logA = document.getElementById('cards-log-a');
           const logB = document.getElementById('cards-log-b');
+          if (isRelay()) {
+            logA.textContent = bout0 ? fencerCardsLog(bout0.fencerAId) : '';
+            logB.textContent = bout0 ? fencerCardsLog(bout0.fencerBId) : '';
+            return;
+          }
           logA.textContent = lastState.cards
             .filter(c => c.teamId === lastState.teamAId)
             .map(c => CARD_BADGE[c.type])

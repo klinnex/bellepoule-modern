@@ -11,10 +11,7 @@ Voir [docs/TEAM_COMPETITIONS.md](docs/TEAM_COMPETITIONS.md) pour le fonctionneme
 
 ### Reste à faire
 
-1. **Persistance des cartons + saisie tablette pour le relais FIE générique**
-    (Épée/Fleuret/Sabre/Laser hors format arène) — actuellement résolu uniquement
-    pour `teamFormat: 'laser-arena'` (voir docs/TEAM_COMPETITIONS.md).
-2. **Impact en points des cartons d'équipe « E »** (format arène) — traçabilité
+1. **Impact en points des cartons d'équipe « E »** (format arène) — traçabilité
     seule pour l'instant, en attendant que le club tranche la valeur.
 
 ---

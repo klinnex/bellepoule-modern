@@ -447,7 +447,8 @@
     "pdfError": "C’hwitet eo an ezporzhiañ PDF",
     "loading": "O kargañ…",
     "teamCount": "{{count}} skipailh",
-    "toCompose": "Sevel ar skipailhoù"
+    "toCompose": "Sevel ar skipailhoù",
+    "cardSaveError": "N'eo ket bet enrollet ar c'hartenn"
   },
   "kiosk": {
     "tbd": "Da benn-diviz",

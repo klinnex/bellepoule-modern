@@ -447,7 +447,8 @@
     "pdfError": "PDF 匯出失敗",
     "loading": "載入中…",
     "teamCount": "{{count}} 隊",
-    "toCompose": "組隊"
+    "toCompose": "組隊",
+    "cardSaveError": "牌未儲存"
   },
   "kiosk": {
     "tbd": "待定",

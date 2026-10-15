@@ -447,7 +447,8 @@
     "pdfError": "Error al exportar el PDF",
     "loading": "Cargando…",
     "teamCount": "{{count}} equipos",
-    "toCompose": "Formar equipos"
+    "toCompose": "Formar equipos",
+    "cardSaveError": "Tarjeta no guardada"
   },
   "kiosk": {
     "tbd": "Por determinar",

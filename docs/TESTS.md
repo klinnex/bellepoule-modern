@@ -90,18 +90,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `teams` (`src/features/teams/`) | 6 | 49 |
-| `src/database/` | 2 | 117 |
-| `src/main/` | 6 | 107 |
+| Feature `teams` (`src/features/teams/`) | 7 | 53 |
+| `src/database/` | 2 | 118 |
+| `src/main/` | 6 | 111 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 142 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 1 | 1 |
-| **Total** | **129** | **1348** |
+| **Total** | **130** | **1357** |
 
-Unitaires : 121 fichiers, 1317 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 122 fichiers, 1326 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1613,10 +1613,21 @@ Unitaires : 121 fichiers, 1317 tests. E2E : 8 fichiers, 31 tests (comptage stati
 
 </details>
 
+<details>
+<summary><code>src/features/teams/utils/teamRelayLive.test.ts</code> — 4 tests</summary>
+
+- **teamRelayLive (#1086)**
+  - cumul = relais précédents terminés + relais en cours
+  - palier progressif plafonné à la cible
+  - relais terminé au palier ou au bout de 3 minutes
+  - vainqueur au cumul, null si égalité
+
+</details>
+
 ### `src/database/`
 
 <details>
-<summary><code>src/database/database.test.ts</code> — 33 tests</summary>
+<summary><code>src/database/database.test.ts</code> — 34 tests</summary>
 
 - **DatabaseManager**
   - **initialize (open)**
@@ -1640,6 +1651,8 @@ Unitaires : 121 fichiers, 1317 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - **getPoolsByPhase**
     - retourne un tableau vide si aucune poule
     - retourne un tableau de poules si des poules existent
+  - **cartons des relais par équipes (#1086)**
+    - createTeamBoutCard stocke le carton sérialisé, getTeamBoutCards le restitue
   - **arbitres multiples par poule (#908)**
     - updatePoolReferees stocke principal + liste JSON dédupliquée
     - updatePoolReferees(\[\]) efface les arbitres
@@ -1831,7 +1844,7 @@ Unitaires : 121 fichiers, 1317 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 81 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 85 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -1909,6 +1922,11 @@ Unitaires : 121 fichiers, 1317 tests. E2E : 8 fichiers, 31 tests (comptage stati
     - **événements team\_\***
       - %s refusé sans cookie _(each)_
       - team\_touch accepté avec cookie, points invalides ignorés
+      - **relais FIE (#1086)**
+        - touche simple uniquement (pas de zones hors mode points)
+        - relais suivant : vainqueur au cumul, score du relais persisté
+        - carton individuel : escalade, persistance, motif inconnu refusé
+        - état public : cumul, palier du relais, cible, motifs de carton
   - **P1 : anti force brute**
     - hash scrypt salé : deux hash du même mot de passe diffèrent et se vérifient
     - refuse un mot de passe de moins de 8 caractères (arène et appel), vide autorisé

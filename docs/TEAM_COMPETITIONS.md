@@ -111,21 +111,17 @@ phases individuelles poules/tableau disparaissent). Après l'appel, « Composer 
 
 **Relais FIE (`teamFormat: 'fie-relay'`, défaut) :**
 
-- **Pas de saisie live arène/tablette** pour les rencontres d'équipe : la saisie des
-  scores se fait uniquement dans les phases équipes de l'application (pas d'écran arbitre
-  dédié ni de retour temps réel comme pour les matchs individuels). Résolu pour le
-  format arène Sabre Laser (`teamFormat: 'laser-arena'`) — voir plus haut.
-- **Cartons non persistés entre sessions** : les cartons enregistrés pendant un relais
-  sont conservés en mémoire le temps de la session ; ils ne sont pas encore stockés en
-  base de données et sont donc perdus à la fermeture de la fenêtre. Résolu pour le
-  format arène (cartons « E » persistés en base).
+- **Saisie tablette** : « 📡 Arène » envoie la rencontre sur `/equipe{N}/arbitre`
+  (affichage `/equipe{N}`). La tablette affiche le score d'équipe cumulé, le palier
+  du relais en cours (5-10-15…, plafonné à la cible) et le chrono 3 min ; « Relais
+  suivant » persiste le relais (vainqueur = équipe en tête au cumul). L'application
+  se met à jour au rechargement de la phase.
+- **Cartons individuels persistés** (table `team_bout_cards`) : saisis dans
+  l'application ou depuis la tablette (motif + escalade identique à l'individuel).
+  Pas d'impact automatique sur le score.
 
 **Les deux formats :**
 
-- **Collision de têtes de série connue** : le calcul générique de placement en tableau
-  (`generateSeedingChart`, partagé avec le tableau individuel) a un bug documenté qui
-  peut faire disparaître la tête de série n°2 pour certaines tailles de tableau — ce
-  n'est pas spécifique aux équipes, voir `tableCalculations.test.ts`.
 - Le nombre de réservistes n'est pas encore utilisé pour les remplacements en cours de
   match (affectation uniquement).
 

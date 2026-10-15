@@ -388,6 +388,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
       reason: string
     ) => ipcRenderer.invoke('db:createTeamMatchCard', matchId, teamId, type, reason),
     getTeamMatchCards: (matchId: string) => ipcRenderer.invoke('db:getTeamMatchCards', matchId),
+    createTeamBoutCard: (boutId: string, card: unknown) =>
+      ipcRenderer.invoke('db:createTeamBoutCard', boutId, card),
+    getTeamBoutCards: (matchId: string) => ipcRenderer.invoke('db:getTeamBoutCards', matchId),
   },
 
   // File operations with validation

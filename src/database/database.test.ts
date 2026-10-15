@@ -298,6 +298,47 @@ describe('DatabaseManager', () => {
     });
   });
 
+  describe('cartons des relais par équipes (#1086)', () => {
+    beforeEach(async () => {
+      await manager.open();
+    });
+
+    it('createTeamBoutCard stocke le carton sérialisé, getTeamBoutCards le restitue', () => {
+      const run = vi.fn().mockReturnValue({ changes: 1 });
+      const card = {
+        id: 'c1',
+        matchId: 'tm1',
+        fencerId: 'f1',
+        type: 'YELLOW',
+        reason: 'early_start',
+        group: 1,
+        timestamp: new Date('2026-01-01T10:00:00Z'),
+        pointsAwarded: 1,
+        resultingExclusion: false,
+      } as any;
+      mockDb.prepare.mockReturnValue(makeStmt({ run }));
+      manager.createTeamBoutCard('b1', card);
+      expect(run).toHaveBeenCalledWith(
+        'c1',
+        'tm1',
+        'b1',
+        'f1',
+        JSON.stringify(card),
+        '2026-01-01T10:00:00.000Z'
+      );
+
+      mockDb.prepare.mockReturnValue(
+        makeStmt({
+          all: vi.fn().mockReturnValue([{ bout_id: 'b1', card_json: JSON.stringify(card) }]),
+        })
+      );
+      const [row] = manager.getTeamBoutCards('tm1');
+      expect(row.boutId).toBe('b1');
+      expect(row.card.type).toBe('YELLOW');
+      expect(row.card.timestamp).toBeInstanceOf(Date);
+    });
+  });
+
   describe('arbitres multiples par poule (#908)', () => {
     const now = new Date().toISOString();
     const refRow = (id: string) => ({

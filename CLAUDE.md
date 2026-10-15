@@ -186,7 +186,7 @@ Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
 Database (src/database/)
 ├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db
 ├── validation.ts        # Input validation
-└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 18 versions)
+└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 19 versions)
 ```
 
 ### Key Patterns

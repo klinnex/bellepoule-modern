@@ -22,7 +22,7 @@ import { DatabaseManager } from '../database';
 import { RemoteScoreServer } from './remoteScoreServer';
 import { ensureCert } from './certManager';
 import { AutoUpdater } from './autoUpdater';
-import { Competition, Fencer, FencerStatus, Match, MatchStatus, Pool } from '../shared/types';
+import { Card, Competition, Fencer, FencerStatus, Match, MatchStatus, Pool } from '../shared/types';
 import type { MatchSignatureRequest } from '../shared/types/remote';
 import { decodeTextFile } from '../shared/utils/fileParser/detect';
 
@@ -2879,6 +2879,15 @@ ipcMain.handle(
 
 ipcMain.handle('db:getTeamMatchCards', async (_, matchId: string) => {
   return db.getTeamMatchCards(matchId);
+});
+
+// Cartons individuels des relais par équipes (#1086)
+ipcMain.handle('db:createTeamBoutCard', async (_, boutId: string, card: Card) => {
+  return db.createTeamBoutCard(boutId, card);
+});
+
+ipcMain.handle('db:getTeamBoutCards', async (_, matchId: string) => {
+  return db.getTeamBoutCards(matchId);
 });
 
 // ============================================================================

@@ -447,7 +447,8 @@
     "pdfError": "Échec de l’export PDF",
     "loading": "Chargement…",
     "teamCount": "{{count}} équipes",
-    "toCompose": "Composer les équipes"
+    "toCompose": "Composer les équipes",
+    "cardSaveError": "Carton non enregistré"
   },
   "kiosk": {
     "tbd": "À déterminer",

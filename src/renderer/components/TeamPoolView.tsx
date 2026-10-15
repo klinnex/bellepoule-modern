@@ -148,7 +148,7 @@ const TeamPoolView: React.FC<Props> = ({
                   <div className="text-xs text-gray-400">{tb?.club}</div>
                 </div>
               </div>
-              {isLaserArena && onAssignArena && (
+              {onAssignArena && (
                 <button
                   onClick={async () => {
                     const arenaId = await prompt({
