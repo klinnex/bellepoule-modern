@@ -960,6 +960,8 @@ export interface DatabaseAPI {
 export interface FileAPI {
   export: (filepath: string) => Promise<FileSaveResult>;
   import: (filepath: string) => Promise<FileOpenResult>;
+  /** Ouvre le dialogue « Ouvrir » (.bpm/.db/.cotcot) — même flux que Fichier › Ouvrir */
+  openDialog: () => Promise<void>;
   writeContent: (filepath: string, content: string) => Promise<void>;
   printHtml: (html: string) => Promise<{ success: boolean; error?: string }>;
   printHtmlToPDF: (

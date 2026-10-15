@@ -119,6 +119,9 @@ const AppContent: React.FC = () => {
     handleTabSwitch,
   } = useAppState(showToast);
 
+  // Accueil sans compétition : l'état vide porte déjà le CTA principal
+  const isEmptyHome = view === 'home' && !isLoading && competitions.length === 0;
+
   // Load competitions on mount — attendre db:ready si la fenêtre s'ouvre avant la DB
   useEffect(() => {
     if (window.electronAPI?.onDbReady) {
@@ -487,15 +490,17 @@ const AppContent: React.FC = () => {
             <Swords size={22} strokeWidth={1.75} />
             {t('app.title')}
           </div>
-          {/* Ctrl+K hint — clickable */}
-          <button
-            className="header-search-hint"
-            onClick={() => setShowCommandPalette(true)}
-            title="Ouvrir la palette de commandes (Ctrl+K)"
-          >
-            <span>Rechercher…</span>
-            <kbd>Ctrl K</kbd>
-          </button>
+          {/* Ctrl+K hint — clickable (inutile tant qu'il n'y a rien à chercher) */}
+          {!isEmptyHome && (
+            <button
+              className="header-search-hint"
+              onClick={() => setShowCommandPalette(true)}
+              title="Ouvrir la palette de commandes (Ctrl+K)"
+            >
+              <span>Rechercher…</span>
+              <kbd>Ctrl K</kbd>
+            </button>
+          )}
           <div className="header-nav">
             {openCompetitions.length > 0 && view === 'competition' && (
               <button
@@ -510,13 +515,15 @@ const AppContent: React.FC = () => {
                 {t('app.home')}
               </button>
             )}
-            <button
-              className="btn btn-primary btn-icon-label"
-              onClick={() => setShowNewCompetitionModal(true)}
-            >
-              <Plus size={15} />
-              {t('menu.new_competition')}
-            </button>
+            {!isEmptyHome && (
+              <button
+                className="btn btn-primary btn-icon-label"
+                onClick={() => setShowNewCompetitionModal(true)}
+              >
+                <Plus size={15} />
+                {t('menu.new_competition')}
+              </button>
+            )}
             <button
               className={`btn btn-icon-label ${trainingActive ? 'btn-danger' : 'btn-secondary'}`}
               onClick={() => {
@@ -553,6 +560,7 @@ const AppContent: React.FC = () => {
                 changeTheme(next);
               }}
               title={`Thème : ${theme}`}
+              aria-label={`Thème : ${theme}`}
             >
               <ThemeIcon theme={theme} />
             </button>
@@ -560,6 +568,7 @@ const AppContent: React.FC = () => {
               className="btn btn-icon"
               onClick={() => setShowWikiModal(true)}
               title={t('wiki.button_title')}
+              aria-label={t('wiki.button_title')}
             >
               <BookOpen size={16} />
             </button>
@@ -840,6 +849,11 @@ const AppContent: React.FC = () => {
                 onSelect={handleSelectCompetition}
                 onDelete={handleDeleteCompetition}
                 onNewCompetition={() => setShowNewCompetitionModal(true)}
+                onOpenFile={
+                  window.electronAPI?.file?.openDialog
+                    ? () => void window.electronAPI.file.openDialog()
+                    : undefined
+                }
               />
             </ErrorBoundary>
           )}
