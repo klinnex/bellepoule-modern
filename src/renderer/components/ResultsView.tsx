@@ -191,43 +191,7 @@ const RV_STYLES = {
     alignItems: 'center',
     gap: '0.5rem',
   } satisfies React.CSSProperties,
-  btnCsv: {
-    padding: '0.75rem 1.5rem',
-    background: '#f59e0b',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  } satisfies React.CSSProperties,
-  btnXml: {
-    padding: '0.75rem 1.5rem',
-    background: '#8b5cf6',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  } satisfies React.CSSProperties,
-  btnPdf: {
-    padding: '0.75rem 1.5rem',
-    background: '#ef4444',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  } satisfies React.CSSProperties,
-  btnFullPdf: {
+  btnExport: {
     padding: '0.75rem 1.5rem',
     background: '#166534',
     color: 'white',
@@ -238,6 +202,33 @@ const RV_STYLES = {
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
+  } satisfies React.CSSProperties,
+  dropdownWrap: {
+    position: 'relative' as const,
+  } satisfies React.CSSProperties,
+  dropdownMenu: {
+    position: 'absolute' as const,
+    bottom: 'calc(100% + 4px)',
+    left: 0,
+    minWidth: '100%',
+    background: 'var(--color-surface, white)',
+    border: '1px solid var(--color-border)',
+    borderRadius: '6px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    zIndex: 100,
+    overflow: 'hidden',
+  } satisfies React.CSSProperties,
+  dropdownItem: {
+    display: 'block',
+    width: '100%',
+    padding: '0.6rem 1rem',
+    background: 'transparent',
+    color: 'var(--color-text)',
+    border: 'none',
+    textAlign: 'left' as const,
+    cursor: 'pointer',
+    fontSize: '0.875rem',
+    whiteSpace: 'nowrap' as const,
   } satisfies React.CSSProperties,
   legend: {
     textAlign: 'center' as const,
@@ -296,6 +287,26 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   const { showToast } = useToast();
   const rankingTemplate = usePdfTemplateStore(s => s.templates.ranking);
   const [isExportingFull, setIsExportingFull] = React.useState(false);
+  const [isExportMenuOpen, setIsExportMenuOpen] = React.useState(false);
+  const exportMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!isExportMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setIsExportMenuOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsExportMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isExportMenuOpen]);
 
   const getMedalEmoji = (rank: number): string => {
     if (rank === 1) return '🥇';
@@ -745,50 +756,82 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         >
           📋 Copier
         </button>
-        <button onClick={exportCSV} style={RV_STYLES.btnCsv}>
-          📊 CSV
-        </button>
-        <button onClick={exportXML} style={RV_STYLES.btnXml}>
-          📝 XML
-        </button>
-        <button onClick={exportPDF} style={RV_STYLES.btnPdf}>
-          📄 PDF
-        </button>
-        <button
-          onClick={exportFullPDF}
-          style={{
-            ...RV_STYLES.btnFullPdf,
-            opacity: isExportingFull ? 0.6 : 1,
-            cursor: isExportingFull ? 'wait' : 'pointer',
-          }}
-          disabled={isExportingFull}
-        >
-          {isExportingFull ? (
-            <>
-              <span style={RV_STYLES.spinner} /> Génération…
-            </>
-          ) : (
-            '📦 Export complet PDF'
+        <div ref={exportMenuRef} style={RV_STYLES.dropdownWrap}>
+          <button
+            onClick={() => setIsExportMenuOpen(o => !o)}
+            style={{
+              ...RV_STYLES.btnExport,
+              opacity: isExportingFull ? 0.6 : 1,
+              cursor: isExportingFull ? 'wait' : 'pointer',
+            }}
+            disabled={isExportingFull}
+            aria-haspopup="menu"
+            aria-expanded={isExportMenuOpen}
+          >
+            {isExportingFull ? (
+              <>
+                <span style={RV_STYLES.spinner} /> Génération…
+              </>
+            ) : (
+              '📤 Export ▾'
+            )}
+          </button>
+          {isExportMenuOpen && !isExportingFull && (
+            <div role="menu" style={RV_STYLES.dropdownMenu}>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportCSV();
+                }}
+              >
+                📊 CSV
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportXML();
+                }}
+              >
+                📝 XML (FFE)
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportPDF();
+                }}
+              >
+                📄 PDF classement
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportFullPDF();
+                }}
+              >
+                📦 PDF complet avec signatures
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                title="Poules et tableaux d'élimination directe, sans les signatures des combattants"
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportNoSignaturePDF();
+                }}
+              >
+                📄 PDF complet sans signature
+              </button>
+            </div>
           )}
-        </button>
-        <button
-          onClick={exportNoSignaturePDF}
-          style={{
-            ...RV_STYLES.btnFullPdf,
-            opacity: isExportingFull ? 0.6 : 1,
-            cursor: isExportingFull ? 'wait' : 'pointer',
-          }}
-          disabled={isExportingFull}
-          title="Poules et tableaux d'élimination directe, sans les signatures des combattants"
-        >
-          {isExportingFull ? (
-            <>
-              <span style={RV_STYLES.spinner} /> Génération…
-            </>
-          ) : (
-            '📄 Export PDF complet sans signature'
-          )}
-        </button>
+        </div>
       </div>
 
       {/* Légende */}
