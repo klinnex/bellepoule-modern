@@ -1706,7 +1706,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     },
     {
       id: 'remote',
-      label: `📡 ${t('phases.remote')}`,
+      label: t('phases.remote'),
       icon: '📡',
       disabled: false,
       title: undefined as string | undefined,

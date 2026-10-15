@@ -431,11 +431,11 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               ? `${fencers.length} tireur${fencers.length > 1 ? 's' : ''} inscrit${fencers.length > 1 ? 's' : ''}`
               : 'Appel'}
           </h2>
-          <p className="text-sm text-muted">
-            {fencers.length > 0
-              ? `${checkedInCount} pointé${checkedInCount !== 1 ? 's' : ''} · ${notCheckedInCount} en attente`
-              : 'Aucun tireur inscrit'}
-          </p>
+          {fencers.length > 0 && (
+            <p className="text-sm text-muted">
+              {`${checkedInCount} pointé${checkedInCount !== 1 ? 's' : ''} · ${notCheckedInCount} en attente`}
+            </p>
+          )}
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           {fencers.length > 0 && !readOnly && (
@@ -580,158 +580,162 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               )}
             </div>
           )}
-          <div ref={colMenuRef} style={DROPDOWN_WRAP}>
-            <button
-              className="btn btn-secondary"
-              onClick={() => setColMenuOpen(o => !o)}
-              title="Afficher/masquer des colonnes"
-            >
-              ⚙ Colonnes ▾
-            </button>
-            {colMenuOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: 0,
-                  marginTop: '4px',
-                  zIndex: 9999,
-                  background: 'var(--bg-secondary, #2a2a3e)',
-                  border: '1px solid var(--border-color, #444)',
-                  borderRadius: '6px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                  minWidth: '160px',
-                  padding: '4px 0',
-                }}
-              >
-                {COLUMNS.map(col => (
-                  <label
-                    key={col.id}
+          {fencers.length > 0 && (
+            <>
+              <div ref={colMenuRef} style={DROPDOWN_WRAP}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setColMenuOpen(o => !o)}
+                  title="Afficher/masquer des colonnes"
+                >
+                  ⚙ Colonnes ▾
+                </button>
+                {colMenuOpen && (
+                  <div
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      padding: '6px 16px',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem',
-                      color: 'var(--text-primary, #e2e8f0)',
+                      position: 'absolute',
+                      top: '100%',
+                      right: 0,
+                      marginTop: '4px',
+                      zIndex: 9999,
+                      background: 'var(--bg-secondary, #2a2a3e)',
+                      border: '1px solid var(--border-color, #444)',
+                      borderRadius: '6px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                      minWidth: '160px',
+                      padding: '4px 0',
                     }}
                   >
-                    <input
-                      type="checkbox"
-                      checked={!hiddenCols.has(col.id)}
-                      onChange={() => {
-                        setHiddenCols(prev => {
-                          const next = new Set(prev);
-                          if (next.has(col.id)) next.delete(col.id);
-                          else next.add(col.id);
-                          return next;
-                        });
-                      }}
+                    {COLUMNS.map(col => (
+                      <label
+                        key={col.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          padding: '6px 16px',
+                          cursor: 'pointer',
+                          fontSize: '0.875rem',
+                          color: 'var(--text-primary, #e2e8f0)',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={!hiddenCols.has(col.id)}
+                          onChange={() => {
+                            setHiddenCols(prev => {
+                              const next = new Set(prev);
+                              if (next.has(col.id)) next.delete(col.id);
+                              else next.add(col.id);
+                              return next;
+                            });
+                          }}
+                        />
+                        {col.label}
+                      </label>
+                    ))}
+                    <div
+                      style={{ borderTop: '1px solid var(--border-color, #444)', margin: '4px 0' }}
                     />
-                    {col.label}
-                  </label>
-                ))}
-                <div
-                  style={{ borderTop: '1px solid var(--border-color, #444)', margin: '4px 0' }}
-                />
-                <button
-                  className="btn btn-ghost"
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '6px 16px',
-                    borderRadius: 0,
-                    fontSize: '0.8rem',
-                    color: 'var(--text-muted, #94a3b8)',
-                  }}
-                  onClick={() => setColOrder(COLUMNS.map(c => c.id))}
-                >
-                  ↺ Réinitialiser l&apos;ordre
-                </button>
+                    <button
+                      className="btn btn-ghost"
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '6px 16px',
+                        borderRadius: 0,
+                        fontSize: '0.8rem',
+                        color: 'var(--text-muted, #94a3b8)',
+                      }}
+                      onClick={() => setColOrder(COLUMNS.map(c => c.id))}
+                    >
+                      ↺ Réinitialiser l&apos;ordre
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          <div ref={exportMenuRef} style={DROPDOWN_WRAP}>
-            <button
-              className="btn btn-secondary"
-              onClick={() => setExportMenuOpen(o => !o)}
-              title="Exporter"
-            >
-              📤 Exporter ▾
-            </button>
-            {exportMenuOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: 0,
-                  marginTop: '4px',
-                  zIndex: 9999,
-                  background: 'var(--bg-secondary, #2a2a3e)',
-                  border: '1px solid var(--border-color, #444)',
-                  borderRadius: '6px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                  minWidth: '160px',
-                  padding: '4px 0',
-                  maxHeight: '60vh',
-                  overflowY: 'auto',
-                }}
-              >
+              <div ref={exportMenuRef} style={DROPDOWN_WRAP}>
                 <button
-                  className="btn btn-ghost"
-                  style={MENU_ITEM}
-                  onClick={() => {
-                    handleExportPDF();
-                    setExportMenuOpen(false);
-                  }}
+                  className="btn btn-secondary"
+                  onClick={() => setExportMenuOpen(o => !o)}
+                  title="Exporter"
                 >
-                  Exporter PDF (appel)
+                  📤 Exporter ▾
                 </button>
-                <button
-                  className="btn btn-ghost"
-                  style={MENU_ITEM}
-                  onClick={() => {
-                    handleExportFencers('txt');
-                    setExportMenuOpen(false);
-                  }}
-                >
-                  Exporter TXT
-                </button>
-                <button
-                  className="btn btn-ghost"
-                  style={MENU_ITEM}
-                  onClick={() => {
-                    handleExportFencers('fff');
-                    setExportMenuOpen(false);
-                  }}
-                >
-                  Exporter FFF
-                </button>
-                <button
-                  className="btn btn-ghost"
-                  style={MENU_ITEM}
-                  onClick={() => {
-                    handleExportFencersArchive();
-                    setExportMenuOpen(false);
-                  }}
-                >
-                  Exporter tireurs + photos (.bpf)
-                </button>
-                <button
-                  className="btn btn-ghost"
-                  style={MENU_ITEM}
-                  onClick={() => {
-                    handleExportPhotos();
-                    setExportMenuOpen(false);
-                  }}
-                >
-                  Exporter photos (.zip)
-                </button>
+                {exportMenuOpen && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      right: 0,
+                      marginTop: '4px',
+                      zIndex: 9999,
+                      background: 'var(--bg-secondary, #2a2a3e)',
+                      border: '1px solid var(--border-color, #444)',
+                      borderRadius: '6px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                      minWidth: '160px',
+                      padding: '4px 0',
+                      maxHeight: '60vh',
+                      overflowY: 'auto',
+                    }}
+                  >
+                    <button
+                      className="btn btn-ghost"
+                      style={MENU_ITEM}
+                      onClick={() => {
+                        handleExportPDF();
+                        setExportMenuOpen(false);
+                      }}
+                    >
+                      Exporter PDF (appel)
+                    </button>
+                    <button
+                      className="btn btn-ghost"
+                      style={MENU_ITEM}
+                      onClick={() => {
+                        handleExportFencers('txt');
+                        setExportMenuOpen(false);
+                      }}
+                    >
+                      Exporter TXT
+                    </button>
+                    <button
+                      className="btn btn-ghost"
+                      style={MENU_ITEM}
+                      onClick={() => {
+                        handleExportFencers('fff');
+                        setExportMenuOpen(false);
+                      }}
+                    >
+                      Exporter FFF
+                    </button>
+                    <button
+                      className="btn btn-ghost"
+                      style={MENU_ITEM}
+                      onClick={() => {
+                        handleExportFencersArchive();
+                        setExportMenuOpen(false);
+                      }}
+                    >
+                      Exporter tireurs + photos (.bpf)
+                    </button>
+                    <button
+                      className="btn btn-ghost"
+                      style={MENU_ITEM}
+                      onClick={() => {
+                        handleExportPhotos();
+                        setExportMenuOpen(false);
+                      }}
+                    >
+                      Exporter photos (.zip)
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
           {registerUrl && !readOnly && (
             <button
               className="btn btn-secondary"

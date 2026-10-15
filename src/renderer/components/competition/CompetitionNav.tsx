@@ -91,35 +91,28 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
 }) => {
   return (
     <>
-      {/* Breadcrumb */}
-      <div
-        style={{
-          padding: '0.25rem 1rem',
-          fontSize: '0.75rem',
-          color: 'var(--text-muted, var(--color-text-light))',
-          borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-        }}
-      >
-        <span style={{ fontWeight: 500, opacity: 0.7 }}>{competition.title}</span>
-        <span>›</span>
-        <span style={{ fontWeight: 600, color: 'var(--text-primary, #f3f4f6)' }}>
-          {phases.find(p => p.id === currentPhase)?.label ?? currentPhase}
-        </span>
-      </div>
-
       {/* Navigation */}
-      <div className="phase-nav">
+      <div className="phase-nav" role="navigation" aria-label={competition.title}>
         {phases.map((phase, index) => (
           <React.Fragment key={phase.id}>
             <div
               className={`phase-step ${currentPhase === phase.id ? 'phase-step-active' : ''} ${phase.disabled ? 'phase-step-disabled' : ''}`}
+              role="button"
+              tabIndex={phase.disabled ? -1 : 0}
+              aria-current={currentPhase === phase.id ? 'step' : undefined}
+              aria-disabled={phase.disabled || undefined}
               onClick={() => !phase.disabled && setCurrentPhase(phase.id as Phase)}
+              onKeyDown={e => {
+                if (!phase.disabled && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault();
+                  setCurrentPhase(phase.id as Phase);
+                }
+              }}
               title={phase.title ?? (phase.disabled ? 'Section non disponible' : undefined)}
             >
-              <span className="phase-step-number">{phase.icon}</span>
+              <span className="phase-step-number" aria-hidden="true">
+                {phase.icon}
+              </span>
               <span>{phase.label}</span>
             </div>
             {index < phases.length - 1 && (
@@ -180,7 +173,11 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                       : undefined
                   }
                 >
-                  Générer les poules <ChevronRight size={15} />
+                  Générer les poules
+                  {getCheckedInFencers().length < 4 && (
+                    <span className="btn-count-hint">{getCheckedInFencers().length}/4</span>
+                  )}
+                  <ChevronRight size={15} />
                 </button>
               </CoachMark>
             )}

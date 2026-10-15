@@ -581,7 +581,12 @@ select:focus {
 }
 
 .phase-step-disabled {
-  opacity: 0.35;
+  opacity: 0.5;
+}
+
+.phase-step:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .phase-step-number {
