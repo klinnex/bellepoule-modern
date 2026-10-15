@@ -397,9 +397,13 @@ const FencerListComponent: React.FC<FencerListProps> = ({
     [sortBy]
   );
 
-  const visibleCols = colOrder
-    .map(id => COLUMNS.find(c => c.id === id)!)
-    .filter(c => c && !hiddenCols.has(c.id));
+  // Mémoïsé : une nouvelle référence à chaque rendu relançait onAppelStateChange → setState
+  // parent → re-rendu → boucle infinie (#1083)
+  const visibleCols = useMemo(
+    () =>
+      colOrder.map(id => COLUMNS.find(c => c.id === id)!).filter(c => c && !hiddenCols.has(c.id)),
+    [colOrder, hiddenCols]
+  );
   const colSpanTotal = visibleCols.length + 1;
 
   const visibleColIds = useMemo(() => visibleCols.map(c => c.id), [visibleCols]);

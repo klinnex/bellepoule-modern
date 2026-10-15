@@ -95,13 +95,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 6 | 107 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 29 | 131 |
+| `src/renderer/components/` | 30 | 140 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 1 | 1 |
-| **Total** | **127** | **1326** |
+| **Total** | **128** | **1335** |
 
-Unitaires : 119 fichiers, 1295 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 120 fichiers, 1304 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2264,6 +2264,22 @@ Unitaires : 119 fichiers, 1295 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - clic sur une compétition déclenche la sélection
   - Échap ferme la palette
   - clic sur l’action « nouvelle compétition »
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/CompetitionView.test.tsx</code> — 9 tests</summary>
+
+- **CompetitionView**
+  - affiche la navigation des phases, appel actif et poules verrouillées
+  - sans élimination directe, la phase tableau est absente
+  - « Générer les poules » désactivé sous 4 tireurs pointés
+  - génère les poules, les persiste en base et passe en préparation
+  - restaure la phase sauvegardée (session) et permet de revenir en arrière
+  - cliquer une phase désactivée ne change pas de phase
+  - plusieurs tours de poules : libellé « tour 1/2 »
+  - l'appel se stabilise : plus aucun rendu une fois chargé
+  - pointer un tireur met à jour son statut en base
 
 </details>
 
