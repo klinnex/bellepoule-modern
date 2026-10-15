@@ -98,10 +98,10 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/components/` | 30 | 142 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
-| `src/renderer/styles/` | 1 | 1 |
-| **Total** | **130** | **1357** |
+| `src/renderer/styles/` | 2 | 3 |
+| **Total** | **131** | **1359** |
 
-Unitaires : 122 fichiers, 1326 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 123 fichiers, 1328 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2718,6 +2718,15 @@ Unitaires : 122 fichiers, 1326 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 ### `src/renderer/styles/`
+
+<details>
+<summary><code>src/renderer/styles/stylesheets.test.ts</code> — 2 tests</summary>
+
+- **main.css / design.css**
+  - index.tsx importe design.css après main.css
+  - aucune déclaration de main.css écrasée par design.css
+
+</details>
 
 <details>
 <summary><code>src/renderer/styles/utilities.test.ts</code> — 1 test</summary>
