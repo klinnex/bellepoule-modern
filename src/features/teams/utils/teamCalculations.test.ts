@@ -355,4 +355,31 @@ describe('placeRankedTeamsInTable / resolveTeamTableauSlot', () => {
     expect(final.teamB?.id).toBe('D');
     expect(final.isBye).toBe(false);
   });
+
+  it('demi-finale terminée + autre en cours : finale en attente, pas d’exempt prématuré', () => {
+    const teams = [row('A'), row('B'), row('C'), row('D')];
+    const placements = placeRankedTeamsInTable(teams, 4);
+    const teamById = new Map(teams.map(t => [t.id, t]));
+    const sf = (position: number, status: string, winnerId: string | null): TeamMatchRow => ({
+      id: `sf-${position}`,
+      round: 2,
+      position,
+      teamAId: 'x',
+      teamBId: 'y',
+      scoreBoutsA: 0,
+      scoreBoutsB: 0,
+      status,
+      winnerId,
+      currentBoutIndex: 0,
+      bouts: [],
+    });
+    const matchesByKey = new Map([
+      ['2-0', sf(0, 'finished', 'A')],
+      ['2-1', sf(1, 'in_progress', null)],
+    ]);
+    const final = resolveTeamTableauSlot(1, 0, 4, placements, matchesByKey, teamById);
+    expect(final.isBye).toBe(false);
+    expect(final.team).toBeNull();
+    expect(final.teamA).toBeNull();
+  });
 });

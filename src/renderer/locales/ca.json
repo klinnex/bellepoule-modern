@@ -438,7 +438,9 @@
     "roundGeneric": "Ronda ({{count}} encontres)",
     "bye": "{{team}} passa directament (exempt)",
     "waitingPrevious": "Esperant els resultats anteriors…",
-    "confirmRegenerate": "Ja hi ha encontres. Eliminar i regenerar?"
+    "confirmRegenerate": "Ja hi ha encontres. Eliminar i regenerar?",
+    "pdfExport": "Exporta PDF",
+    "pdfError": "Error en exportar el PDF"
   },
   "kiosk": {
     "tbd": "Per determinar",

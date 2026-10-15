@@ -438,7 +438,9 @@
     "roundGeneric": "Runde ({{count}} Begegnungen)",
     "bye": "{{team}} direkt qualifiziert (Freilos)",
     "waitingPrevious": "Warten auf vorherige Ergebnisse…",
-    "confirmRegenerate": "Es gibt bereits Begegnungen. Löschen und neu erstellen?"
+    "confirmRegenerate": "Es gibt bereits Begegnungen. Löschen und neu erstellen?",
+    "pdfExport": "PDF exportieren",
+    "pdfError": "PDF-Export fehlgeschlagen"
   },
   "kiosk": {
     "ranking": "📊 Rangliste",

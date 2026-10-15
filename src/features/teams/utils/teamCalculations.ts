@@ -360,8 +360,18 @@ export function resolveTeamTableauSlot(
       match: matchesByKey.get(`${round}-${position}`) ?? null,
     };
   }
-  if (teamA || teamB) {
-    return { team: teamA ?? teamB, isBye: true, teamA: null, teamB: null, match: null };
+  // Branche vide (aucune équipe ne pourra en sortir) ≠ match en attente : un vainqueur ne
+  // passe exempt que si l'autre branche est vide, sinon il avancerait avant la fin du
+  // match voisin (finale créée trop tôt)
+  const isEmpty = (child: ResolvedTeamSlot) => child.isBye && !child.team;
+  if (teamA && isEmpty(childB)) {
+    return { team: teamA, isBye: true, teamA: null, teamB: null, match: null };
+  }
+  if (teamB && isEmpty(childA)) {
+    return { team: teamB, isBye: true, teamA: null, teamB: null, match: null };
+  }
+  if (isEmpty(childA) && isEmpty(childB)) {
+    return { team: null, isBye: true, teamA: null, teamB: null, match: null };
   }
   return { team: null, isBye: false, teamA: null, teamB: null, match: null }; // Pas encore déterminé
 }

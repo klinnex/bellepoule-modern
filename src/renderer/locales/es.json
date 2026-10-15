@@ -438,7 +438,9 @@
     "roundGeneric": "Ronda ({{count}} encuentros)",
     "bye": "{{team}} pasa directamente (exento)",
     "waitingPrevious": "Esperando resultados anteriores…",
-    "confirmRegenerate": "Ya existen encuentros. ¿Eliminar y regenerar?"
+    "confirmRegenerate": "Ya existen encuentros. ¿Eliminar y regenerar?",
+    "pdfExport": "Exportar PDF",
+    "pdfError": "Error al exportar el PDF"
   },
   "kiosk": {
     "tbd": "Por determinar",

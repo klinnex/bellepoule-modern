@@ -79,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 31 | 510 |
+| `src/shared/utils/` | 32 | 520 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -90,7 +90,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `teams` (`src/features/teams/`) | 6 | 48 |
+| Feature `teams` (`src/features/teams/`) | 6 | 49 |
 | `src/database/` | 2 | 117 |
 | `src/main/` | 6 | 107 |
 | `src/renderer/services/` | 2 | 16 |
@@ -99,9 +99,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 1 | 1 |
-| **Total** | **128** | **1335** |
+| **Total** | **129** | **1346** |
 
-Unitaires : 120 fichiers, 1304 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 121 fichiers, 1315 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -556,6 +556,23 @@ Unitaires : 120 fichiers, 1304 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **generateRefereeCommentsHTML (#989)**
   - une page par arbitre commenté, textes échappés
   - message si aucun commentaire
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/teamPdf.test.ts</code> — 10 tests</summary>
+
+- **teamPdf**
+  - groupTeamPools : regroupe par numéro de poule
+  - classement final : vainqueur, finaliste, demi-finalistes 3e ex æquo
+  - classement final provisoire tant que la finale n’est pas jouée
+  - sans tableau : ordre de poule
+  - HTML poules : classement, score, relais, échappement
+  - HTML poules format arène : poules A/B, points cumulés
+  - HTML tableau : tours, exempt et matchs
+  - HTML classement : rangs et tireurs titulaires
+  - export : passe par savePDF (dialogue + impression HTML)
+  - export sans rencontre : erreur explicite
 
 </details>
 
@@ -1551,7 +1568,7 @@ Unitaires : 120 fichiers, 1304 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/features/teams/utils/teamCalculations.test.ts</code> — 20 tests</summary>
+<summary><code>src/features/teams/utils/teamCalculations.test.ts</code> — 21 tests</summary>
 
 - **generateRelayBouts**
   - génère 9 relais dans l’ordre standard
@@ -1581,6 +1598,7 @@ Unitaires : 120 fichiers, 1304 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - résout un exempt (bye) quand une équipe est seule dans son couple de départ
   - propage un exempt jusqu’à la finale quand l’adversaire du tour suivant est aussi exempté
   - résout la finale à partir des vainqueurs des demi-finales persistées en DB
+  - demi-finale terminée + autre en cours : finale en attente, pas d’exempt prématuré
 
 </details>
 

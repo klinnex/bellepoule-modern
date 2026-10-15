@@ -438,7 +438,9 @@
     "roundGeneric": "Tour ({{count}} matchs)",
     "bye": "{{team}} qualifié(e) directement (exempt)",
     "waitingPrevious": "En attente des résultats précédents…",
-    "confirmRegenerate": "Des matchs existent déjà. Supprimer et régénérer ?"
+    "confirmRegenerate": "Des matchs existent déjà. Supprimer et régénérer ?",
+    "pdfExport": "Exporter PDF",
+    "pdfError": "Échec de l’export PDF"
   },
   "kiosk": {
     "tbd": "À déterminer",

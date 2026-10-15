@@ -55,3 +55,12 @@ export {
   exportFullCompetitionPDF,
   exportPoolsAndTableauxNoSignaturePDF,
 } from './pdfExport/fullCompetitionPdf';
+
+// ─── Compétitions par équipes ─────────────────────────────────────────────────
+export type { TeamPdfOptions, TeamFinalRankingRow } from './pdfExport/teamPdf';
+export {
+  exportTeamPoolsToPDF,
+  exportTeamTableauToPDF,
+  exportTeamRankingToPDF,
+  computeTeamFinalRanking,
+} from './pdfExport/teamPdf';
