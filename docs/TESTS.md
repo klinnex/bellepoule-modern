@@ -95,13 +95,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 6 | 107 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 28 | 114 |
+| `src/renderer/components/` | 29 | 122 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 1 | 1 |
-| **Total** | **126** | **1309** |
+| **Total** | **127** | **1317** |
 
-Unitaires : 118 fichiers, 1278 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 119 fichiers, 1286 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2389,6 +2389,21 @@ Unitaires : 118 fichiers, 1278 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - affiche un message si le serveur distant n’est pas démarré
   - bascule vers l’onglet pointage
   - le bouton Fermer déclenche onClose
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/TableauView.test.tsx</code> — 8 tests</summary>
+
+- **TableauView**
+  - génère un tableau de 8 pour 5 à 8 tireurs (7 matchs, byes inclus)
+  - place chaque tireur éligible une seule fois au premier tour
+  - exclut les tireurs abandon / forfait / exclu du tableau
+  - ajoute une petite finale (round 3) avec thirdPlaceMatch
+  - en lecture seule, ne génère ni ne modifie le tableau
+  - affiche les noms des tireurs et ouvre la saisie de score au clic sur un match
+  - saisir un score fait avancer le vainqueur au tour suivant
+  - playAllPositions : notifie les brackets de consolation sans erreur
 
 </details>
 
