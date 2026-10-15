@@ -407,6 +407,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       }
       return ipcRenderer.invoke('file:import', filepath);
     },
+    openDialog: () => ipcRenderer.invoke('file:openDialog'),
     writeContent: (filepath: string, content: string) => {
       if (!filepath || typeof filepath !== 'string') {
         throw new Error('Filepath is required and must be a string');

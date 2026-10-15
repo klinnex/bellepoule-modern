@@ -1335,6 +1335,10 @@ ipcMain.handle('file:import', async (_, filepath) => {
   await db.importFromFile(filepath);
 });
 
+ipcMain.handle('file:openDialog', async () => {
+  await handleOpenFile();
+});
+
 // Écriture atomique asynchrone (temp + rename) — ne bloque pas le main thread
 async function writeFileAtomic(filepath: string, content: Buffer | string): Promise<void> {
   const tmpPath = filepath + '.tmp';

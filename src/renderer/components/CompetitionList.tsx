@@ -4,6 +4,16 @@
  */
 
 import React from 'react';
+import {
+  ChevronRight,
+  FolderOpen,
+  LayoutGrid,
+  Medal,
+  Plus,
+  Swords,
+  Trophy,
+  Users,
+} from 'lucide-react';
 import { Competition, Weapon, Gender, Category } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
@@ -16,6 +26,8 @@ interface CompetitionListProps {
   onSelect: (competition: Competition) => void;
   onDelete: (id: string) => void;
   onNewCompetition: () => void;
+  /** Ouvre un fichier compétition existant (absent hors Electron) */
+  onOpenFile?: () => void;
 }
 
 const CompetitionListComponent: React.FC<CompetitionListProps> = ({
@@ -24,6 +36,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   onSelect,
   onDelete,
   onNewCompetition,
+  onOpenFile,
 }) => {
   const { t } = useTranslation();
   const {
@@ -61,6 +74,12 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   }
 
   if (competitions.length === 0) {
+    const steps = [
+      { step: '1', Icon: Trophy, label: 'Créer', desc: 'une compétition' },
+      { step: '2', Icon: Users, label: 'Ajouter', desc: 'les tireurs' },
+      { step: '3', Icon: LayoutGrid, label: 'Générer', desc: 'les poules' },
+      { step: '4', Icon: Medal, label: 'Publier', desc: 'les résultats' },
+    ];
     return (
       <div className="content">
         <div
@@ -69,12 +88,18 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            minHeight: '70vh',
-            gap: '3rem',
+            minHeight: 'calc(100vh - 220px)',
+            gap: '2.5rem',
           }}
         >
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🤺</div>
+            <Swords
+              size={56}
+              strokeWidth={1.5}
+              color="var(--color-primary)"
+              aria-hidden="true"
+              style={{ marginBottom: '1rem' }}
+            />
             <h1
               style={{
                 fontSize: '1.75rem',
@@ -83,13 +108,13 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                 marginBottom: '0.5rem',
               }}
             >
-              Bienvenue sur BellePoule
+              Bienvenue sur {t('app.title')}
             </h1>
             <p
               style={{
                 color: 'var(--color-text-light)',
                 fontSize: '1rem',
-                maxWidth: '36ch',
+                maxWidth: '48ch',
                 margin: '0 auto',
               }}
             >
@@ -97,15 +122,20 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            {[
-              { step: '1', icon: '🏆', label: 'Créer', desc: 'une compétition' },
-              { step: '2', icon: '🤺', label: 'Ajouter', desc: 'les tireurs' },
-              { step: '3', icon: '🎯', label: 'Générer', desc: 'les poules' },
-              { step: '4', icon: '🏅', label: 'Publier', desc: 'les résultats' },
-            ]
-              .map(({ step, icon, label, desc }) => (
-                <div
+          <ol
+            aria-label="Étapes"
+            style={{
+              display: 'flex',
+              gap: '1rem',
+              alignItems: 'flex-start',
+              listStyle: 'none',
+              padding: 0,
+              margin: 0,
+            }}
+          >
+            {steps
+              .map(({ step, Icon, label, desc }) => (
+                <li
                   key={step}
                   style={{
                     display: 'flex',
@@ -116,27 +146,25 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                   }}
                 >
                   <div
+                    aria-hidden="true"
                     style={{
                       width: 48,
                       height: 48,
                       borderRadius: '50%',
-                      background: 'var(--color-primary)',
-                      color: '#fff',
+                      background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)',
+                      color: 'var(--color-primary)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '1.25rem',
-                      fontWeight: 700,
-                      boxShadow: '0 4px 12px var(--color-primary-glow)',
                     }}
                   >
-                    {icon}
+                    <Icon size={22} strokeWidth={1.75} />
                   </div>
                   <div
                     style={{
                       fontSize: '0.6875rem',
                       fontWeight: 700,
-                      color: 'var(--color-text-muted)',
+                      color: 'var(--color-text-light)',
                       letterSpacing: '0.05em',
                       textTransform: 'uppercase',
                     }}
@@ -155,36 +183,49 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                   >
                     {desc}
                   </div>
-                </div>
+                </li>
               ))
               .reduce<React.ReactNode[]>((acc, el, i) => {
                 if (i > 0)
                   acc.push(
-                    <div
+                    <li
                       key={`arrow-${i}`}
-                      style={{
-                        color: 'var(--color-border-dark)',
-                        marginTop: '1rem',
-                        fontSize: '1.25rem',
-                      }}
+                      aria-hidden="true"
+                      style={{ color: 'var(--color-text-light)', marginTop: '0.875rem' }}
                     >
-                      →
-                    </div>
+                      <ChevronRight size={20} />
+                    </li>
                   );
                 acc.push(el);
                 return acc;
               }, [])}
+          </ol>
+
+          <div
+            style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}
+          >
+            <button
+              className="btn btn-primary btn-lg btn-icon-label"
+              onClick={onNewCompetition}
+              style={{ padding: '0.75rem 2rem' }}
+            >
+              <Plus size={18} />
+              {t('menu.new_competition')}
+            </button>
+            {onOpenFile && (
+              <button
+                className="btn btn-secondary btn-lg btn-icon-label"
+                onClick={onOpenFile}
+                style={{ padding: '0.75rem 1.5rem' }}
+                title="Ouvrir un fichier .bpm, .db ou .cotcot"
+              >
+                <FolderOpen size={18} />
+                Ouvrir…
+              </button>
+            )}
           </div>
 
-          <button
-            className="btn btn-primary btn-lg"
-            onClick={onNewCompetition}
-            style={{ padding: '0.75rem 2rem' }}
-          >
-            + {t('menu.new_competition')}
-          </button>
-
-          <p style={{ color: 'var(--color-text-light)', fontSize: '0.75rem' }}>
+          <p style={{ color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>
             Astuce : appuyez sur <kbd>?</kbd> pour voir les raccourcis clavier, ou <kbd>Ctrl</kbd>+
             <kbd>K</kbd> pour ouvrir la palette de commandes.
           </p>
