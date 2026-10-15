@@ -413,16 +413,38 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     'rgba(22,163,74,0.10)',
   ];
 
-  const getPoolClubConflicts = (pool: Pool): Set<string> => {
+  /** Valeurs en double dans une poule (club, région…) → nombre d'occurrences */
+  const getPoolConflicts = (
+    pool: Pool,
+    pick: (f: Fencer) => string | undefined
+  ): Map<string, number> => {
     const counts = new Map<string, number>();
     pool.fencers.forEach(f => {
-      if (f.club) counts.set(f.club, (counts.get(f.club) || 0) + 1);
+      const v = pick(f)?.trim();
+      if (v) counts.set(v, (counts.get(v) || 0) + 1);
     });
-    const conflicts = new Set<string>();
-    counts.forEach((n, club) => {
-      if (n > 1) conflicts.add(club);
+    counts.forEach((n, v) => {
+      if (n < 2) counts.delete(v);
     });
-    return conflicts;
+    return counts;
+  };
+
+  const isCriterionEnabled = (key: SeparationCriterionKey) =>
+    separationCriteria.some(c => c.key === key && c.enabled);
+
+  /** « Club Street Fighter » → « Street Fighter » (gain de place, nom complet en infobulle) */
+  const shortClub = (club: string) => club.replace(/^club\s+/i, '');
+
+  const formatConflicts = (conflicts: Map<string, number>) =>
+    [...conflicts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([v, n]) => `${n}× ${v}`)
+      .join(', ');
+
+  /** Classement moyen des tireurs classés de la poule (force de la poule) */
+  const getPoolAvgRanking = (pool: Pool): number | null => {
+    const ranks = pool.fencers.map(f => f.ranking).filter((r): r is number => r != null && r > 0);
+    return ranks.length ? Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length) : null;
   };
 
   const launchDisabled =
@@ -640,7 +662,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
           <div style={{ marginLeft: 'auto' }} className="pool-prep-stats-badge">
             <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text)' }}>
-              {fencers.length} tireurs répartis
+              {pools.length} poule{pools.length > 1 ? 's' : ''} · {fencers.length} tireurs
             </span>
             <span
               style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.15rem' }}
@@ -679,10 +701,14 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
           {pools.map((pool, poolIndex) => {
             const accent = POOL_ACCENTS[poolIndex % POOL_ACCENTS.length];
             const accentBg = POOL_ACCENT_BGS[poolIndex % POOL_ACCENT_BGS.length];
-            const clubConflicts = separationCriteria.find(c => c.key === 'byClub')?.enabled
-              ? getPoolClubConflicts(pool)
-              : new Set<string>();
-            const hasConflicts = clubConflicts.size > 0;
+            const clubConflicts = isCriterionEnabled('byClub')
+              ? getPoolConflicts(pool, f => f.club)
+              : new Map<string, number>();
+            const regionConflicts = isCriterionEnabled('byRegion')
+              ? getPoolConflicts(pool, f => f.region)
+              : new Map<string, number>();
+            const topClubConflict = [...clubConflicts.entries()].sort((a, b) => b[1] - a[1])[0];
+            const avgRanking = getPoolAvgRanking(pool);
             const isOutOfRange =
               pools.length > 1 &&
               (pool.fencers.length < minFencersPerPool || pool.fencers.length > maxFencersPerPool);
@@ -706,16 +732,33 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                       Poule {pool.number}
                     </h3>
                     {pools.length === 1 && <span className="pool-prep-badge-unique">unique</span>}
-                    {hasConflicts && (
+                    {topClubConflict && (
                       <span
                         className="pool-prep-conflict-warning"
-                        title="Même club dans cette poule"
+                        title={`Même club dans cette poule : ${formatConflicts(clubConflicts)}`}
                       >
-                        ⚠ club
+                        ⚠ {topClubConflict[1]}× {shortClub(topClubConflict[0])}
+                        {clubConflicts.size > 1 && ` +${clubConflicts.size - 1}`}
+                      </span>
+                    )}
+                    {regionConflicts.size > 0 && (
+                      <span
+                        className="pool-prep-conflict-warning"
+                        title={`Même région dans cette poule : ${formatConflicts(regionConflicts)}`}
+                      >
+                        ⚠ région
                       </span>
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {avgRanking != null && (
+                      <span
+                        className="pool-prep-strength"
+                        title="Classement moyen des tireurs de la poule"
+                      >
+                        moy. #{avgRanking}
+                      </span>
+                    )}
                     {expertMode && (
                       <label
                         style={{
@@ -760,7 +803,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                   {pool.fencers.map((fencer, fencerIndex) => {
-                    const hasClubConflict = fencer.club ? clubConflicts.has(fencer.club) : false;
+                    const hasClubConflict = fencer.club
+                      ? clubConflicts.has(fencer.club.trim())
+                      : false;
                     return (
                       <div
                         key={fencer.id}
@@ -797,24 +842,21 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                         >
                           {fencer.firstName} {fencer.lastName.charAt(0)}.
                         </span>
-                        {fencer.club && (
-                          <span
-                            className="pool-prep-club-pill"
-                            title={fencer.club}
-                            style={
-                              hasClubConflict
-                                ? {
-                                    borderColor: 'var(--color-warning)',
-                                    color: 'var(--color-warning)',
-                                    background: 'rgba(217,119,6,0.08)',
-                                  }
-                                : undefined
-                            }
-                          >
-                            {fencer.club}
+                        {fencer.ranking != null && fencer.ranking > 0 && (
+                          <span className="pool-prep-ranking" title="Classement initial">
+                            #{fencer.ranking}
                           </span>
                         )}
-                        {hasClubConflict && <span className="pool-prep-conflict-dot" />}
+                        {fencer.club && (
+                          <span
+                            className={`pool-prep-club-pill${hasClubConflict ? ' conflict' : ''}`}
+                            title={
+                              fencer.region ? `${fencer.club} — ${fencer.region}` : fencer.club
+                            }
+                          >
+                            {shortClub(fencer.club)}
+                          </span>
+                        )}
                       </div>
                     );
                   })}
@@ -865,7 +907,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 opacity: canRestore() ? 1 : 0.5,
               }}
             >
-              ↩ Annuler
+              ↩ Annuler la modification
             </button>
             {canRestore() && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
@@ -892,14 +934,17 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             )}
           </div>
 
-          <button
-            className="btn btn-primary"
-            onClick={handleLaunch}
-            disabled={launchDisabled}
-            style={{ fontSize: '1rem', padding: '0.75rem 2rem', borderRadius: '10px' }}
-          >
-            {launchLabel} →
-          </button>
+          {/* Bouton déjà présent dans la barre de navigation (#945) : pas de doublon */}
+          {!onLaunchActionChange && (
+            <button
+              className="btn btn-primary"
+              onClick={handleLaunch}
+              disabled={launchDisabled}
+              style={{ fontSize: '1rem', padding: '0.75rem 2rem', borderRadius: '10px' }}
+            >
+              {launchLabel} →
+            </button>
+          )}
         </div>
       </div>
       {showMatchOrderModal && <PoolMatchOrderModal onClose={() => setShowMatchOrderModal(false)} />}

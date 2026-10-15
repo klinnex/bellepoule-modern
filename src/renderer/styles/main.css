@@ -709,7 +709,8 @@ body {
   border-left: 4px solid var(--pool-accent, var(--color-primary));
   border-radius: var(--radius-md);
   padding: 1rem;
-  min-height: 200px;
+  min-height: 120px;
+  align-self: start;
   box-shadow: var(--shadow-sm);
   transition:
     box-shadow var(--duration-base),
@@ -765,6 +766,10 @@ body {
   font-size: 0.7rem;
   color: var(--color-warning);
   font-weight: 600;
+  white-space: nowrap;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Fencer rows */
@@ -850,24 +855,27 @@ body {
   font-size: 0.68rem;
   color: var(--color-text-muted);
   white-space: nowrap;
-  max-width: 88px;
+  max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+.pool-prep-club-pill.conflict {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+  background: rgba(217, 119, 6, 0.08);
+}
+.pool-prep-ranking,
+.pool-prep-strength {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
 .theme-dark .pool-prep-club-pill {
   background: var(--color-bg);
   border-color: var(--color-border);
   color: var(--color-text-light);
-}
-
-/* Conflict dot */
-.pool-prep-conflict-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-warning);
-  flex-shrink: 0;
 }
 
 /* Action buttons */
