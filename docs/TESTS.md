@@ -79,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 32 | 520 |
+| `src/shared/utils/` | 32 | 522 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -99,9 +99,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **131** | **1359** |
+| **Total** | **131** | **1361** |
 
-Unitaires : 123 fichiers, 1328 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 123 fichiers, 1330 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -216,10 +216,13 @@ Unitaires : 123 fichiers, 1328 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/categoryLabel.test.ts</code> — 2 tests</summary>
+<summary><code>src/shared/utils/categoryLabel.test.ts</code> — 4 tests</summary>
 
 - **categoryLabel (#931)**
   - traduit les codes en libellés officiels
+  - laisse un code inconnu tel quel
+- **weaponLabel / genderLabel**
+  - traduit les codes arme et genre
   - laisse un code inconnu tel quel
 
 </details>

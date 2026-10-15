@@ -130,6 +130,14 @@ body {
   justify-content: center;
 }
 
+.btn-count-hint {
+  font-size: 0.75em;
+  font-weight: 600;
+  padding: 0 0.4em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
 .btn-icon-label {
   display: inline-flex;
   align-items: center;
