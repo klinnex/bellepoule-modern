@@ -191,43 +191,7 @@ const RV_STYLES = {
     alignItems: 'center',
     gap: '0.5rem',
   } satisfies React.CSSProperties,
-  btnCsv: {
-    padding: '0.75rem 1.5rem',
-    background: '#f59e0b',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  } satisfies React.CSSProperties,
-  btnXml: {
-    padding: '0.75rem 1.5rem',
-    background: '#8b5cf6',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  } satisfies React.CSSProperties,
-  btnPdf: {
-    padding: '0.75rem 1.5rem',
-    background: '#ef4444',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  } satisfies React.CSSProperties,
-  btnFullPdf: {
+  btnExport: {
     padding: '0.75rem 1.5rem',
     background: '#166534',
     color: 'white',
@@ -245,7 +209,7 @@ const RV_STYLES = {
   dropdownMenu: {
     position: 'absolute' as const,
     bottom: 'calc(100% + 4px)',
-    right: 0,
+    left: 0,
     minWidth: '100%',
     background: 'var(--color-surface, white)',
     border: '1px solid var(--color-border)',
@@ -323,18 +287,18 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   const { showToast } = useToast();
   const rankingTemplate = usePdfTemplateStore(s => s.templates.ranking);
   const [isExportingFull, setIsExportingFull] = React.useState(false);
-  const [isFullMenuOpen, setIsFullMenuOpen] = React.useState(false);
-  const fullMenuRef = React.useRef<HTMLDivElement>(null);
+  const [isExportMenuOpen, setIsExportMenuOpen] = React.useState(false);
+  const exportMenuRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (!isFullMenuOpen) return;
+    if (!isExportMenuOpen) return;
     const onDown = (e: MouseEvent) => {
-      if (fullMenuRef.current && !fullMenuRef.current.contains(e.target as Node)) {
-        setIsFullMenuOpen(false);
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setIsExportMenuOpen(false);
       }
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsFullMenuOpen(false);
+      if (e.key === 'Escape') setIsExportMenuOpen(false);
     };
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
@@ -342,7 +306,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       document.removeEventListener('mousedown', onDown);
       document.removeEventListener('keydown', onKey);
     };
-  }, [isFullMenuOpen]);
+  }, [isExportMenuOpen]);
 
   const getMedalEmoji = (rank: number): string => {
     if (rank === 1) return '🥇';
@@ -792,57 +756,78 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         >
           📋 Copier
         </button>
-        <button onClick={exportCSV} style={RV_STYLES.btnCsv}>
-          📊 CSV
-        </button>
-        <button onClick={exportXML} style={RV_STYLES.btnXml}>
-          📝 XML
-        </button>
-        <button onClick={exportPDF} style={RV_STYLES.btnPdf}>
-          📄 PDF
-        </button>
-        <div ref={fullMenuRef} style={RV_STYLES.dropdownWrap}>
+        <div ref={exportMenuRef} style={RV_STYLES.dropdownWrap}>
           <button
-            onClick={() => setIsFullMenuOpen(o => !o)}
+            onClick={() => setIsExportMenuOpen(o => !o)}
             style={{
-              ...RV_STYLES.btnFullPdf,
+              ...RV_STYLES.btnExport,
               opacity: isExportingFull ? 0.6 : 1,
               cursor: isExportingFull ? 'wait' : 'pointer',
             }}
             disabled={isExportingFull}
             aria-haspopup="menu"
-            aria-expanded={isFullMenuOpen}
+            aria-expanded={isExportMenuOpen}
           >
             {isExportingFull ? (
               <>
                 <span style={RV_STYLES.spinner} /> Génération…
               </>
             ) : (
-              '📦 Export complet PDF ▾'
+              '📤 Export ▾'
             )}
           </button>
-          {isFullMenuOpen && !isExportingFull && (
+          {isExportMenuOpen && !isExportingFull && (
             <div role="menu" style={RV_STYLES.dropdownMenu}>
               <button
                 role="menuitem"
                 style={RV_STYLES.dropdownItem}
                 onClick={() => {
-                  setIsFullMenuOpen(false);
+                  setIsExportMenuOpen(false);
+                  exportCSV();
+                }}
+              >
+                📊 CSV
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportXML();
+                }}
+              >
+                📝 XML (FFE)
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportPDF();
+                }}
+              >
+                📄 PDF classement
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
                   exportFullPDF();
                 }}
               >
-                ✍️ Avec signatures
+                📦 PDF complet avec signatures
               </button>
               <button
                 role="menuitem"
                 style={RV_STYLES.dropdownItem}
                 title="Poules et tableaux d'élimination directe, sans les signatures des combattants"
                 onClick={() => {
-                  setIsFullMenuOpen(false);
+                  setIsExportMenuOpen(false);
                   exportNoSignaturePDF();
                 }}
               >
-                📄 Sans signature
+                📄 PDF complet sans signature
               </button>
             </div>
           )}
