@@ -135,7 +135,11 @@
     "round_option": "第 {{n}} 輪",
     "round_current": "進行中",
     "round_checkin_banner": "點名 – 第 {{n}} 輪：確認晉級者，然後按上一輪排名產生新分組。",
-    "view_ranking_action": "查看排名 →"
+    "view_ranking_action": "查看排名 →",
+    "prep_optimize": "優化",
+    "prep_avg_ranking_title": "小組劍手平均排名",
+    "prep_initial_ranking": "初始排名",
+    "prep_hide_help": "隱藏說明"
   },
   "ranking": {
     "rank": "排名",
@@ -163,7 +167,14 @@
   },
   "results": {
     "final_ranking": "最終排名",
-    "congratulations": "恭喜各位優勝者！"
+    "congratulations": "恭喜各位優勝者！",
+    "exporting": "生成中…",
+    "export_csv": "📊 CSV",
+    "export_xml_ffe": "📝 XML (FFE)",
+    "export_pdf_ranking": "📄 排名 PDF",
+    "export_pdf_full_signed": "📦 完整 PDF（含簽名）",
+    "export_pdf_full_unsigned": "📄 完整 PDF（不含簽名）",
+    "export_pdf_full_unsigned_title": "小組賽及淘汰賽表，不含劍手簽名"
   },
   "remote": {
     "title": "遠程計分輸入",

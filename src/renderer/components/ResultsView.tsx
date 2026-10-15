@@ -8,6 +8,7 @@ import React from 'react';
 import { Fencer, PoolRanking, Competition, FencerStatus } from '../../shared/types';
 import type { Pool } from '../../shared/types';
 import { useToast } from './Toast';
+import { useTranslation } from '../hooks/useTranslation';
 import { exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import type { TableauMatchForPDF, FinalResultForPDF } from '../../shared/utils/pdfExport';
@@ -285,6 +286,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   appelVisibleColumns,
 }) => {
   const { showToast } = useToast();
+  const { t } = useTranslation();
   const rankingTemplate = usePdfTemplateStore(s => s.templates.ranking);
   const [isExportingFull, setIsExportingFull] = React.useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = React.useState(false);
@@ -770,7 +772,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           >
             {isExportingFull ? (
               <>
-                <span style={RV_STYLES.spinner} /> Génération…
+                <span style={RV_STYLES.spinner} /> {t('results.exporting')}
               </>
             ) : (
               '📤 Export ▾'
@@ -786,7 +788,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   exportCSV();
                 }}
               >
-                📊 CSV
+                {t('results.export_csv')}
               </button>
               <button
                 role="menuitem"
@@ -796,7 +798,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   exportXML();
                 }}
               >
-                📝 XML (FFE)
+                {t('results.export_xml_ffe')}
               </button>
               <button
                 role="menuitem"
@@ -806,7 +808,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   exportPDF();
                 }}
               >
-                📄 PDF classement
+                {t('results.export_pdf_ranking')}
               </button>
               <button
                 role="menuitem"
@@ -816,18 +818,18 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   exportFullPDF();
                 }}
               >
-                📦 PDF complet avec signatures
+                {t('results.export_pdf_full_signed')}
               </button>
               <button
                 role="menuitem"
                 style={RV_STYLES.dropdownItem}
-                title="Poules et tableaux d'élimination directe, sans les signatures des combattants"
+                title={t('results.export_pdf_full_unsigned_title')}
                 onClick={() => {
                   setIsExportMenuOpen(false);
                   exportNoSignaturePDF();
                 }}
               >
-                📄 PDF complet sans signature
+                {t('results.export_pdf_full_unsigned')}
               </button>
             </div>
           )}

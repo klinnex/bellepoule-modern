@@ -135,7 +135,11 @@
     "round_option": "Ronda {{n}}",
     "round_current": "en curso",
     "round_checkin_banner": "Llamada – Ronda {{n}}: verifique los clasificados y genere las nuevas poules (sorteo según la clasificación de la ronda anterior).",
-    "view_ranking_action": "Ver clasificación →"
+    "view_ranking_action": "Ver clasificación →",
+    "prep_optimize": "Optimizar",
+    "prep_avg_ranking_title": "Clasificación media de los tiradores de la poule",
+    "prep_initial_ranking": "Clasificación inicial",
+    "prep_hide_help": "Ocultar la ayuda"
   },
   "ranking": {
     "rank": "Pos",
@@ -163,7 +167,14 @@
   },
   "results": {
     "final_ranking": "Clasificación Final",
-    "congratulations": "¡Felicitaciones a los ganadores!"
+    "congratulations": "¡Felicitaciones a los ganadores!",
+    "exporting": "Generando…",
+    "export_csv": "📊 CSV",
+    "export_xml_ffe": "📝 XML (FFE)",
+    "export_pdf_ranking": "📄 PDF clasificación",
+    "export_pdf_full_signed": "📦 PDF completo con firmas",
+    "export_pdf_full_unsigned": "📄 PDF completo sin firmas",
+    "export_pdf_full_unsigned_title": "Poules y cuadros de eliminación directa, sin las firmas de los tiradores"
   },
   "remote": {
     "title": "Entrada de Puntuación Remota",
