@@ -95,13 +95,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 6 | 107 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 30 | 140 |
+| `src/renderer/components/` | 30 | 142 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 1 | 1 |
-| **Total** | **129** | **1346** |
+| **Total** | **129** | **1348** |
 
-Unitaires : 121 fichiers, 1315 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 121 fichiers, 1317 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2286,7 +2286,7 @@ Unitaires : 121 fichiers, 1315 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/CompetitionView.test.tsx</code> — 9 tests</summary>
+<summary><code>src/renderer/components/CompetitionView.test.tsx</code> — 11 tests</summary>
 
 - **CompetitionView**
   - affiche la navigation des phases, appel actif et poules verrouillées
@@ -2298,6 +2298,9 @@ Unitaires : 121 fichiers, 1315 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - plusieurs tours de poules : libellé « tour 1/2 »
   - l'appel se stabilise : plus aucun rendu une fois chargé
   - pointer un tireur met à jour son statut en base
+  - **compétition par équipes (#1085)**
+    - remplace poules/tableau individuels par les phases équipes
+    - « Composer les équipes » ouvre la phase équipes intégrée (sans modale)
 
 </details>
 

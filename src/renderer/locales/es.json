@@ -108,7 +108,11 @@
     "results": "Resultados",
     "remote": "Entrada Remota",
     "referees": "Árbitros",
-    "logs": "Historial"
+    "logs": "Historial",
+    "teams": "Equipos",
+    "teampool": "Poule por equipos",
+    "teamtableau": "Cuadro por equipos",
+    "teamranking": "Clasificación por equipos"
   },
   "pools": {
     "generate": "Generar Poules",
@@ -440,7 +444,10 @@
     "waitingPrevious": "Esperando resultados anteriores…",
     "confirmRegenerate": "Ya existen encuentros. ¿Eliminar y regenerar?",
     "pdfExport": "Exportar PDF",
-    "pdfError": "Error al exportar el PDF"
+    "pdfError": "Error al exportar el PDF",
+    "loading": "Cargando…",
+    "teamCount": "{{count}} equipos",
+    "toCompose": "Formar equipos"
   },
   "kiosk": {
     "tbd": "Por determinar",

@@ -15,7 +15,6 @@ import {
   ChevronDown,
   ChevronUp,
   Trophy,
-  Users,
   Download,
 } from 'lucide-react';
 import { Competition, MatchStatus } from '../../../shared/types';
@@ -47,7 +46,6 @@ interface CompetitionHeaderProps {
   setShowFencerComparison: React.Dispatch<React.SetStateAction<boolean>>;
   setShowAnalytics: React.Dispatch<React.SetStateAction<boolean>>;
   setShowSeasonRanking: React.Dispatch<React.SetStateAction<boolean>>;
-  setShowTeamManager: React.Dispatch<React.SetStateAction<boolean>>;
   setShowQRCode: React.Dispatch<React.SetStateAction<boolean>>;
   setShowPresentation: React.Dispatch<React.SetStateAction<boolean>>;
   setShowKiosk: React.Dispatch<React.SetStateAction<boolean>>;
@@ -73,7 +71,6 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
   setShowFencerComparison,
   setShowAnalytics,
   setShowSeasonRanking,
-  setShowTeamManager,
   setShowQRCode,
   setShowPresentation,
   setShowKiosk,
@@ -216,17 +213,6 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                       }}
                     >
                       <Trophy size={14} /> Classement saison Quest
-                    </button>
-                  )}
-                  {competition.isTeamEvent && (
-                    <button
-                      className="comp-header-dropdown-item"
-                      onClick={() => {
-                        setShowTeamManager(true);
-                        setShowActionsMenu(false);
-                      }}
-                    >
-                      <Users size={14} /> Gestion équipes
                     </button>
                   )}
                   <button

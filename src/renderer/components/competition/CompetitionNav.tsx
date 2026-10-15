@@ -66,6 +66,8 @@ interface CompetitionNavProps {
   pools: PoolItem[];
   tableauMatches: TableauMatchItem[];
   onOpenPlanningAssistant?: () => void;
+  /** Compétition par équipes : l'appel mène à la composition des équipes (#1085) */
+  isTeamEvent?: boolean;
 }
 
 const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
@@ -85,6 +87,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
   pools,
   tableauMatches,
   onOpenPlanningAssistant,
+  isTeamEvent = false,
 }) => {
   return (
     <>
@@ -132,42 +135,55 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
               <ChevronLeft size={15} /> Retour
             </button>
           )}
-          {currentPhase === 'checkin' && questEnabled && !questConfig?.hasPreliminaryPools && (
-            <button
-              className="btn btn-primary btn-icon-label"
-              onClick={() => setCurrentPhase('quest')}
-              disabled={getCheckedInFencers().length < 2}
-            >
-              Tour Quest <ChevronRight size={15} />
-            </button>
-          )}
-          {currentPhase === 'checkin' && (!questEnabled || questConfig?.hasPreliminaryPools) && (
-            <CoachMark
-              id="generate-pools"
-              message="Cliquez ici après avoir pointé tous vos tireurs"
-              position="bottom"
-            >
+          {currentPhase === 'checkin' &&
+            !isTeamEvent &&
+            questEnabled &&
+            !questConfig?.hasPreliminaryPools && (
               <button
                 className="btn btn-primary btn-icon-label"
-                onClick={handleGeneratePools}
-                disabled={getCheckedInFencers().length < 4}
-                title={
-                  getCheckedInFencers().length < 4
-                    ? `Minimum 4 tireurs pointés requis (${getCheckedInFencers().length} actuellement)`
-                    : getCheckedInFencers().length === fencers.length && fencers.length > 0
-                      ? 'Tous les tireurs sont pointés — prêt !'
-                      : undefined
-                }
-                style={
-                  getCheckedInFencers().length === fencers.length && fencers.length >= 4
-                    ? { background: '#16a34a', borderColor: '#15803d' }
-                    : undefined
-                }
+                onClick={() => setCurrentPhase('quest')}
+                disabled={getCheckedInFencers().length < 2}
               >
-                Générer les poules <ChevronRight size={15} />
+                Tour Quest <ChevronRight size={15} />
               </button>
-            </CoachMark>
+            )}
+          {currentPhase === 'checkin' && isTeamEvent && (
+            <button
+              className="btn btn-primary btn-icon-label"
+              onClick={() => setCurrentPhase('teams')}
+            >
+              {t('teams.toCompose')} <ChevronRight size={15} />
+            </button>
           )}
+          {currentPhase === 'checkin' &&
+            !isTeamEvent &&
+            (!questEnabled || questConfig?.hasPreliminaryPools) && (
+              <CoachMark
+                id="generate-pools"
+                message="Cliquez ici après avoir pointé tous vos tireurs"
+                position="bottom"
+              >
+                <button
+                  className="btn btn-primary btn-icon-label"
+                  onClick={handleGeneratePools}
+                  disabled={getCheckedInFencers().length < 4}
+                  title={
+                    getCheckedInFencers().length < 4
+                      ? `Minimum 4 tireurs pointés requis (${getCheckedInFencers().length} actuellement)`
+                      : getCheckedInFencers().length === fencers.length && fencers.length > 0
+                        ? 'Tous les tireurs sont pointés — prêt !'
+                        : undefined
+                  }
+                  style={
+                    getCheckedInFencers().length === fencers.length && fencers.length >= 4
+                      ? { background: '#16a34a', borderColor: '#15803d' }
+                      : undefined
+                  }
+                >
+                  Générer les poules <ChevronRight size={15} />
+                </button>
+              </CoachMark>
+            )}
           {currentPhase === 'poolprep' && poolPrepLaunch && (
             <button
               className="btn btn-primary btn-icon-label"

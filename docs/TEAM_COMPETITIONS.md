@@ -89,8 +89,10 @@ La cible totale de la rencontre se déduit automatiquement (relais FIE uniquemen
 
 ## Utilisation
 
-Tout se passe dans la fenêtre « Gestion équipes » (bouton dans le menu Actions de
-l'en-tête, visible uniquement quand `isTeamEvent` est actif) :
+Quand `isTeamEvent` est actif, la navigation des phases devient
+**Appel → Équipes → Poule équipes → Tableau équipes → Classement équipes** (les
+phases individuelles poules/tableau disparaissent). Après l'appel, « Composer les
+équipes » ouvre la phase Équipes. Chaque phase propose « Exporter PDF ».
 
 1. **Équipes** : créer les équipes, affecter les tireurs (position 1..`minTeamSize`
    pour les titulaires, jusqu'à `teamReserveCount` réservistes).
@@ -103,14 +105,14 @@ l'en-tête, visible uniquement quand `isTeamEvent` est actif) :
    tours suivants (et les exempts) se créent automatiquement au fur et à mesure que
    les résultats précédents sont connus — pas besoin de régénérer manuellement.
 4. **Classement** : classement des équipes (victoires, relais individuels
-   gagnés/perdus, touches cumulées), exportable en CSV.
+   gagnés/perdus, touches cumulées), exportable en CSV et PDF.
 
 ## Limites connues
 
 **Relais FIE (`teamFormat: 'fie-relay'`, défaut) :**
 
 - **Pas de saisie live arène/tablette** pour les rencontres d'équipe : la saisie des
-  scores se fait uniquement dans la fenêtre « Gestion équipes » (pas d'écran arbitre
+  scores se fait uniquement dans les phases équipes de l'application (pas d'écran arbitre
   dédié ni de retour temps réel comme pour les matchs individuels). Résolu pour le
   format arène Sabre Laser (`teamFormat: 'laser-arena'`) — voir plus haut.
 - **Cartons non persistés entre sessions** : les cartons enregistrés pendant un relais
