@@ -34,7 +34,11 @@
     "comparisons": "Comparaciones",
     "analytics": "Analytics",
     "sign_tableau_matches_label": "Firma de los tiradores en tableta (cuadro)",
-    "sign_tableau_matches_description": "Muestra una pantalla de firma para ambos tiradores en la tableta después de cada combate del cuadro de eliminación directa"
+    "sign_tableau_matches_description": "Muestra una pantalla de firma para ambos tiradores en la tableta después de cada combate del cuadro de eliminación directa",
+    "export_bpm": "Exportar (.bpm)",
+    "save_progress_bpm": "Guardar el progreso (.bpm)",
+    "export_section": "Competición",
+    "delete_confirm": "¿Eliminar definitivamente la competición «{{title}}»? Esta acción es irreversible."
   },
   "weapons": {
     "epee": "Espada",
@@ -163,7 +167,8 @@
     "round_final": "Final",
     "round_of_n": "Cuadro de {{round}}",
     "round_semifinals": "Semifinales",
-    "round_third_place": "Pequeña final"
+    "round_third_place": "Pequeña final",
+    "cancel_match": "Anular combate"
   },
   "results": {
     "final_ranking": "Clasificación Final",

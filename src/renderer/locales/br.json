@@ -34,7 +34,11 @@
     "comparisons": "Kenstrivañ",
     "analytics": "Analiz",
     "sign_tableau_matches_label": "Sinadur an dud-emgann war an tablezenn (taolenn)",
-    "sign_tableau_matches_description": "Diskouez a ra ur skramm sinadur evit an daou dud-emgann war an tablezenn goude pep emgann eus an taolenn dilamañ war-eeun"
+    "sign_tableau_matches_description": "Diskouez a ra ur skramm sinadur evit an daou dud-emgann war an tablezenn goude pep emgann eus an taolenn dilamañ war-eeun",
+    "export_bpm": "Ezporzhiañ (.bpm)",
+    "save_progress_bpm": "Enrollañ an araokadur (.bpm)",
+    "export_section": "Kevezadeg",
+    "delete_confirm": "Dilemel da viken ar gevezadeg « {{title}} » ? N'haller ket nullañ an ober-mañ."
   },
   "weapons": {
     "epee": "Spes",
@@ -163,7 +167,8 @@
     "round_final": "Final",
     "round_of_n": "Taolenn a {{round}}",
     "round_semifinals": "Hanter-finalioù",
-    "round_third_place": "Finalig"
+    "round_third_place": "Finalig",
+    "cancel_match": "Nullañ ar c'hrogad"
   },
   "results": {
     "final_ranking": "Renk diweizh",

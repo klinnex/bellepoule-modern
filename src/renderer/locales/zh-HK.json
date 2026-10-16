@@ -34,7 +34,11 @@
     "comparisons": "比較",
     "analytics": "分析",
     "sign_tableau_matches_label": "選手在平板上簽名（淘汰表）",
-    "sign_tableau_matches_description": "在每場直接淘汰賽後於平板上向兩位選手顯示簽名畫面"
+    "sign_tableau_matches_description": "在每場直接淘汰賽後於平板上向兩位選手顯示簽名畫面",
+    "export_bpm": "匯出 (.bpm)",
+    "save_progress_bpm": "儲存進度 (.bpm)",
+    "export_section": "比賽",
+    "delete_confirm": "永久刪除比賽「{{title}}」？此操作無法復原。"
   },
   "weapons": {
     "epee": "重劍",
@@ -163,7 +167,8 @@
     "round_final": "決賽",
     "round_of_n": "{{round}}強賽",
     "round_semifinals": "準決賽",
-    "round_third_place": "季軍賽"
+    "round_third_place": "季軍賽",
+    "cancel_match": "取消比賽"
   },
   "results": {
     "final_ranking": "最終排名",

@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useTranslation } from '../../hooks/useTranslation';
 import { Fencer, Pool, PoolRanking } from '../../../shared/types';
 import { FinalResult } from '../tableau/tableauTypes';
 
@@ -77,6 +78,7 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
   onExportCompetition,
 }) => {
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
+  const { t } = useTranslation();
   return (
     <div className="modal-overlay" onClick={onClose} style={{ zIndex: 11000 }}>
       <div
@@ -95,9 +97,9 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
         </div>
         <div className="modal-body">
           {onExportCompetition && (
-            <Section title="Compétition">
+            <Section title={t('competition.export_section')}>
               <button className="btn btn-secondary" onClick={onExportCompetition}>
-                Sauvegarder l'état d'avancement (.bpm)
+                {t('competition.save_progress_bpm')}
               </button>
             </Section>
           )}
