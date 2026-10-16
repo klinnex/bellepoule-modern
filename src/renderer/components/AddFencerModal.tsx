@@ -101,7 +101,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '1rem' }}>
               <FencerPhoto
                 photo={photo}
                 firstName={firstName}
