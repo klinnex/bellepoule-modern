@@ -962,6 +962,10 @@ export interface FileAPI {
   import: (filepath: string) => Promise<FileOpenResult>;
   /** Ouvre le dialogue « Ouvrir » (.bpm/.db/.cotcot) — même flux que Fichier › Ouvrir */
   openDialog: () => Promise<void>;
+  /** Exporte une compétition seule (état d'avancement compris) dans un .bpm nommé d'après elle */
+  exportCompetition: (
+    competitionId: string
+  ) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>;
   writeContent: (filepath: string, content: string) => Promise<void>;
   printHtml: (html: string) => Promise<{ success: boolean; error?: string }>;
   printHtmlToPDF: (
@@ -998,7 +1002,10 @@ export interface MenuAPI {
   onMenuOpenSettings: (callback: () => void) => void;
   onMenuReportIssue: (callback: () => void) => void;
   onShowAbout: (callback: () => void) => void;
-  onFileOpened: (callback: (filepath: string) => void) => void;
+  /** competitionIds : compétitions fusionnées depuis le .bpm ouvert (#1117) */
+  onFileOpened: (callback: (filepath: string, competitionIds?: string[]) => void) => void;
+  /** Compétition affichée : « Enregistrer sous » l'exporte seule */
+  setCurrentCompetition?: (competitionId: string | null) => void;
   onFileSaved: (callback: (filepath: string) => void) => void;
   onAutosaveCompleted: (callback: () => void) => void;
   onAutosaveFailed: (callback: () => void) => void;

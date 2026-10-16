@@ -31,6 +31,8 @@ interface ExportCenterModalProps {
   onGoToTableau: () => void;
   onGoToResults: () => void;
   onExportFFE: () => void;
+  /** Sauvegarde .bpm de la compétition dans son état actuel (#1117) */
+  onExportCompetition?: () => void;
 }
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -72,6 +74,7 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
   onGoToTableau,
   onGoToResults,
   onExportFFE,
+  onExportCompetition,
 }) => {
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   return (
@@ -91,6 +94,14 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
           </h2>
         </div>
         <div className="modal-body">
+          {onExportCompetition && (
+            <Section title="Compétition">
+              <button className="btn btn-secondary" onClick={onExportCompetition}>
+                Sauvegarder l'état d'avancement (.bpm)
+              </button>
+            </Section>
+          )}
+
           {fencers.length > 0 && (
             <Section title="Tireurs">
               <button

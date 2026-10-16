@@ -2642,6 +2642,18 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               setCurrentPhase('results');
               setShowExportCenter(false);
             }}
+            onExportCompetition={
+              window.electronAPI?.file?.exportCompetition
+                ? () => {
+                    void window.electronAPI.file
+                      .exportCompetition(competition.id)
+                      .then(res => {
+                        if (res?.success) showToast('Compétition exportée', 'success');
+                      })
+                      .catch(() => showToast("Échec de l'export de la compétition", 'error'));
+                  }
+                : undefined
+            }
             onExportFFE={() => {
               setShowFFEExport(true);
               setShowExportCenter(false);

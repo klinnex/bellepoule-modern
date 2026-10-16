@@ -122,12 +122,7 @@ export const useMenuEvents = ({
       window.electronAPI.onMenuExport(handleExport);
     }
 
-    if (window.electronAPI.onFileOpened) {
-      window.electronAPI.onFileOpened(async (filepath: string) => {
-        logger.debug(LogCategory.UI, 'Fichier ouvert', { filepath });
-        await loadFencers();
-      });
-    }
+    // file:opened : géré par App (son removeAllListeners ici supprimait aussi celui d'App, #1117)
 
     if (window.electronAPI.onMenuAddFencer) {
       window.electronAPI.onMenuAddFencer(onShowAddFencer);
@@ -143,7 +138,6 @@ export const useMenuEvents = ({
         window.electronAPI.removeAllListeners('menu:competition-properties');
         window.electronAPI.removeAllListeners('menu:import');
         window.electronAPI.removeAllListeners('menu:export');
-        window.electronAPI.removeAllListeners('file:opened');
         window.electronAPI.removeAllListeners('menu:add-fencer');
         window.electronAPI.removeAllListeners('menu:next-phase');
       }

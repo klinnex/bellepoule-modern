@@ -91,7 +91,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 2 | 118 |
+| `src/database/` | 3 | 120 |
 | `src/main/` | 6 | 112 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
@@ -99,9 +99,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **132** | **1372** |
+| **Total** | **133** | **1374** |
 
-Unitaires : 124 fichiers, 1341 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 125 fichiers, 1343 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1643,6 +1643,15 @@ Unitaires : 124 fichiers, 1341 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 ### `src/database/`
+
+<details>
+<summary><code>src/database/competitionArchive.test.ts</code> — 2 tests</summary>
+
+- **competitionArchive (#1117)**
+  - keepOnlyCompetition ne garde que la compétition demandée
+  - mergeAttachedDatabase importe la compétition et remplace l'état existant
+
+</details>
 
 <details>
 <summary><code>src/database/database.test.ts</code> — 34 tests</summary>
