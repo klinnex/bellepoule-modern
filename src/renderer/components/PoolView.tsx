@@ -1873,8 +1873,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   color: viewMode === 'matches' ? 'white' : 'var(--color-text)',
                   borderRadius: '0 4px 4px 0',
                 }}
-                title="Vue matches"
-                aria-label="Vue matches"
+                title="Vue matchs"
+                aria-label="Vue matchs"
               >
                 ⚔️
               </button>

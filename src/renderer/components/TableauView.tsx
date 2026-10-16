@@ -1451,7 +1451,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
               </div>
             </>
           ) : (
-            <div style={TV_STYLES.pendingEmpty}>✓ Tous les matches sont terminés</div>
+            <div style={TV_STYLES.pendingEmpty}>✓ Tous les matchs sont terminés</div>
           )
         ) : pyramidViewMode ? (
           <Bracket matches={convertToBracketMatches()} tableSize={tableauSize} />
