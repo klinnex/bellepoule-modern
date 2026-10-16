@@ -45,6 +45,7 @@ import {
   FENCER_NAME,
   NEXT_MATCH_BOX,
   SCORE_ROW,
+  SCORE_MODAL,
   nameCol,
   nameLast,
   nameFirst,
@@ -1158,14 +1159,14 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const match = pool.matches[editingMatch];
 
     return (
-      <div
-        className="modal-overlay"
-        onClick={() => {
-          setEditingMatch(null);
-          setIsMatchInverted(false);
-        }}
-      >
-        <div ref={modalRef} className="modal resizable" onClick={e => e.stopPropagation()}>
+      // Clic hors de la fenêtre : ne ferme pas (#1115)
+      <div className="modal-overlay">
+        <div
+          ref={modalRef}
+          className="modal resizable"
+          style={SCORE_MODAL}
+          onClick={e => e.stopPropagation()}
+        >
           <div className="modal-header" style={{ cursor: 'move' }}>
             <h3 className="modal-title">Saisie rapide du score</h3>
           </div>

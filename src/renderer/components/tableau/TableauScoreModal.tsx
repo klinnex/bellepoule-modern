@@ -20,6 +20,8 @@ interface TableauScoreModalProps {
   onClose: () => void;
   onSubmit: () => void;
   onSpecialStatus: (status: 'abandon' | 'forfait' | 'exclusion', fencerId: string) => void;
+  /** Annule le match (score effacé) — absent pour les barrages */
+  onMatchCancel?: () => void;
   getRoundName: (round: number) => string;
 }
 
@@ -47,6 +49,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   onClose,
   onSubmit,
   onSpecialStatus,
+  onMatchCancel,
   getRoundName,
 }) => {
   const [pendingStatus, setPendingStatus] = useState<'abandon' | 'forfait' | 'exclusion' | null>(
@@ -58,7 +61,8 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
 
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
   return createPortal(
-    <div className="modal-overlay" onClick={onClose}>
+    // Clic hors de la fenêtre : ne ferme pas (#1115)
+    <div className="modal-overlay">
       <div
         ref={modalRef}
         className="modal resizable"
@@ -259,6 +263,15 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
               >
                 🚫 Exclusion
               </button>
+              {onMatchCancel && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={onMatchCancel}
+                  style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
+                >
+                  ⏸ Annuler match
+                </button>
+              )}
             </div>
           ) : (
             <div

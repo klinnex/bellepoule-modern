@@ -82,6 +82,13 @@ export const NEXT_MATCH_BOX: CSSProperties = {
 };
 
 // ── Modal de saisie rapide ────────────────────────────────────────────────
+/** Modale de saisie rapide : même largeur que celle du tableau (#1115) */
+export const SCORE_MODAL: CSSProperties = {
+  maxWidth: '900px',
+  width: '95%',
+  minHeight: '400px',
+};
+
 export const SCORE_ROW: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
