@@ -7,6 +7,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TableauMatch } from './tableauTypes';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface TableauScoreModalProps {
   match: TableauMatch;
@@ -52,6 +53,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   onMatchCancel,
   getRoundName,
 }) => {
+  const { t } = useTranslation();
   const [pendingStatus, setPendingStatus] = useState<'abandon' | 'forfait' | 'exclusion' | null>(
     null
   );
@@ -269,7 +271,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
                   onClick={onMatchCancel}
                   style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
                 >
-                  ⏸ Annuler match
+                  ⏸ {t('tableau.cancel_match')}
                 </button>
               )}
             </div>

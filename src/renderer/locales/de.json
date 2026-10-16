@@ -106,7 +106,11 @@
     "title": "Titel",
     "weapon": "Waffe",
     "sign_tableau_matches_label": "Unterschrift der Fechter auf Tablet (Tableau)",
-    "sign_tableau_matches_description": "Zeigt nach jedem K.-o.-Match auf dem Tablet einen Unterschriftsbildschirm für beide Fechter an"
+    "sign_tableau_matches_description": "Zeigt nach jedem K.-o.-Match auf dem Tablet einen Unterschriftsbildschirm für beide Fechter an",
+    "export_bpm": "Exportieren (.bpm)",
+    "save_progress_bpm": "Fortschritt speichern (.bpm)",
+    "export_section": "Wettkampf",
+    "delete_confirm": "Wettkampf „{{title}}“ endgültig löschen? Dies kann nicht rückgängig gemacht werden."
   },
   "fencer": {
     "abandon": "Aufgeben",
@@ -400,7 +404,8 @@
     "round_final": "Finale",
     "round_of_n": "{{round}}er-Runde",
     "round_semifinals": "Halbfinale",
-    "round_third_place": "Kleines Finale"
+    "round_third_place": "Kleines Finale",
+    "cancel_match": "Gefecht annullieren"
   },
   "time": {
     "days": "Tage",

@@ -34,7 +34,11 @@
     "comparisons": "Comparaisons",
     "analytics": "Analytics",
     "sign_tableau_matches_label": "Signature des combattants sur tablette (tableau)",
-    "sign_tableau_matches_description": "Affiche un écran de signature pour les deux tireurs sur la tablette après chaque match du tableau d’élimination directe"
+    "sign_tableau_matches_description": "Affiche un écran de signature pour les deux tireurs sur la tablette après chaque match du tableau d’élimination directe",
+    "export_bpm": "Exporter (.bpm)",
+    "save_progress_bpm": "Sauvegarder l'état d'avancement (.bpm)",
+    "export_section": "Compétition",
+    "delete_confirm": "Supprimer définitivement la compétition « {{title}} » ? Cette action est irréversible."
   },
   "weapons": {
     "epee": "Épée",
@@ -163,7 +167,8 @@
     "round_final": "Finale",
     "round_of_n": "Tableau de {{round}}",
     "round_semifinals": "Demi-finales",
-    "round_third_place": "Petite finale"
+    "round_third_place": "Petite finale",
+    "cancel_match": "Annuler match"
   },
   "results": {
     "final_ranking": "Classement final",

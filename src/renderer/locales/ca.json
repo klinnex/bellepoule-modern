@@ -34,7 +34,11 @@
     "comparisons": "Comparacions",
     "analytics": "Analytics",
     "sign_tableau_matches_label": "Signatura dels tiradors a la tauleta (quadre)",
-    "sign_tableau_matches_description": "Mostra una pantalla de signatura per als dos tiradors a la tauleta després de cada combat del quadre d’eliminació directa"
+    "sign_tableau_matches_description": "Mostra una pantalla de signatura per als dos tiradors a la tauleta després de cada combat del quadre d’eliminació directa",
+    "export_bpm": "Exportar (.bpm)",
+    "save_progress_bpm": "Desar l'estat d'avançament (.bpm)",
+    "export_section": "Competició",
+    "delete_confirm": "Eliminar definitivament la competició «{{title}}»? Aquesta acció és irreversible."
   },
   "weapons": {
     "epee": "Espasa",
@@ -163,7 +167,8 @@
     "round_final": "Final",
     "round_of_n": "Quadre de {{round}}",
     "round_semifinals": "Semifinals",
-    "round_third_place": "Petita final"
+    "round_third_place": "Petita final",
+    "cancel_match": "Anul·lar combat"
   },
   "results": {
     "final_ranking": "Classificació Final",

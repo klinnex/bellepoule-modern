@@ -34,7 +34,11 @@
     "comparisons": "Comparisons",
     "analytics": "Analytics",
     "sign_tableau_matches_label": "Fencer signature on tablet (bracket)",
-    "sign_tableau_matches_description": "Shows a signature screen for both fencers on the tablet after each direct-elimination bracket match"
+    "sign_tableau_matches_description": "Shows a signature screen for both fencers on the tablet after each direct-elimination bracket match",
+    "export_bpm": "Export (.bpm)",
+    "save_progress_bpm": "Save progress (.bpm)",
+    "export_section": "Competition",
+    "delete_confirm": "Permanently delete the competition \"{{title}}\"? This action cannot be undone."
   },
   "weapons": {
     "epee": "Epee",
@@ -163,7 +167,8 @@
     "round_final": "Final",
     "round_of_n": "Round of {{round}}",
     "round_semifinals": "Semi-finals",
-    "round_third_place": "Third place match"
+    "round_third_place": "Third place match",
+    "cancel_match": "Cancel match"
   },
   "results": {
     "final_ranking": "Final Ranking",

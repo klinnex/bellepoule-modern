@@ -48,7 +48,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
 
   const handleDelete = async (competition: Competition) => {
     const ok = await confirm({
-      message: `Supprimer définitivement la compétition « ${competition.title} » ? Cette action est irréversible.`,
+      message: t('competition.delete_confirm', { title: competition.title }),
       confirmLabel: t('actions.delete'),
     });
     if (ok) onDelete(competition.id);
@@ -287,8 +287,8 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                       e.stopPropagation();
                       onExport(competition.id);
                     }}
-                    title="Exporter (.bpm)"
-                    aria-label="Exporter (.bpm)"
+                    title={t('competition.export_bpm')}
+                    aria-label={t('competition.export_bpm')}
                   >
                     <Download size={16} />
                   </button>
