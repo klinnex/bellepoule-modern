@@ -227,7 +227,8 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
                     }}
                     onMouseEnter={e => {
                       if (!isSelected)
-                        (e.currentTarget as HTMLDivElement).style.background = '#f9fafb';
+                        (e.currentTarget as HTMLDivElement).style.background =
+                          'var(--color-raised-hover)';
                     }}
                     onMouseLeave={e => {
                       if (!isSelected)

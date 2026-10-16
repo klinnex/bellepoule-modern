@@ -778,10 +778,10 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
             {expertMode && (
               <div
                 style={{
-                  background: '#fefce8',
-                  // Fond jaune clair dans les deux thèmes : libellés en noir (#1032)
+                  // Jaune clair ; bleu-gris en thème sombre (#1114)
+                  background: 'var(--color-notice-bg)',
                   color: 'var(--color-text)',
-                  border: '1px solid #fde047',
+                  border: '1px solid var(--color-notice-border)',
                   borderRadius: '8px',
                   padding: '1rem',
                   marginTop: '0.75rem',

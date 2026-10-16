@@ -953,16 +953,63 @@ async function handleOpenFile(): Promise<void> {
   if (!result.canceled && result.filePaths.length > 0) {
     const filepath = result.filePaths[0];
     try {
-      await db.importFromFile(filepath);
-      mainWindow?.webContents.send('file:opened', filepath);
+      if (/\.(cotcot|cocot)$/i.test(filepath)) {
+        // Fichier BellePoule classique : import XML dans la compétition ouverte
+        const content = decodeTextFile(await fs.promises.readFile(filepath));
+        mainWindow?.webContents.send('menu:import', 'xml', filepath, content);
+        return;
+      }
+      // Fusion dans la base active, état d'avancement compris (#1117)
+      const ids = await db.mergeFromFile(filepath);
+      mainWindow?.webContents.send('file:opened', filepath, ids);
     } catch (error) {
       dialog.showErrorBox(L.errTitle, `${L.openErr} ${error}`);
     }
   }
 }
 
+// Compétition affichée dans le renderer : « Enregistrer sous » l'exporte seule (#1117)
+let currentCompetitionId: string | null = null;
+
+/** Nom de fichier sûr tiré du titre de la compétition */
+function competitionFileName(title: string | undefined): string {
+  const base = (title ?? '')
+    // eslint-disable-next-line no-control-regex
+    .replace(/[<>:"/\\|?*\x00-\x1f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120);
+  return `${base || 'competition'}.bpm`;
+}
+
+async function exportCompetitionDialog(
+  competitionId: string
+): Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }> {
+  const L = getL();
+  const competition = db.getCompetition(competitionId);
+  if (!competition) return { success: false, error: 'Competition not found' };
+  const result = await dialog.showSaveDialog(mainWindow!, {
+    title: L.saveTitle,
+    defaultPath: competitionFileName(competition.title),
+    filters: [{ name: L.filterBpm, extensions: ['bpm'] }],
+  });
+  if (result.canceled || !result.filePath) return { success: false, canceled: true };
+  try {
+    await db.exportCompetitionToFile(competitionId, result.filePath);
+    mainWindow?.webContents.send('file:saved', result.filePath);
+    return { success: true, path: result.filePath };
+  } catch (error) {
+    dialog.showErrorBox(L.errTitle, `${L.saveErr} ${error}`);
+    return { success: false, error: String(error) };
+  }
+}
+
 async function handleSaveAs(): Promise<void> {
   const L = getL();
+  if (currentCompetitionId && db.getCompetition(currentCompetitionId)) {
+    await exportCompetitionDialog(currentCompetitionId);
+    return;
+  }
   const result = await dialog.showSaveDialog(mainWindow!, {
     title: L.saveTitle,
     defaultPath: 'competition.bpm',
@@ -1337,6 +1384,17 @@ ipcMain.handle('file:import', async (_, filepath) => {
 
 ipcMain.handle('file:openDialog', async () => {
   await handleOpenFile();
+});
+
+ipcMain.handle('file:exportCompetition', async (_, competitionId: string) => {
+  if (!competitionId || typeof competitionId !== 'string') {
+    return { success: false, error: 'Invalid competition id' };
+  }
+  return exportCompetitionDialog(competitionId);
+});
+
+ipcMain.on('app:current-competition', (_, competitionId: unknown) => {
+  currentCompetitionId = typeof competitionId === 'string' ? competitionId : null;
 });
 
 // Écriture atomique asynchrone (temp + rename) — ne bloque pas le main thread

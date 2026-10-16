@@ -205,3 +205,53 @@ export function propagateWinners(matchList: TableauMatch[], size: number): void 
     }
   }
 }
+
+/**
+ * Annule un match de tableau (#1115) : efface score, vainqueur et statut spécial,
+ * puis retire le vainqueur du tour suivant (et les perdants de la petite finale
+ * pour une demi-finale). Les tours suivants gagnés par exemption sont vidés en
+ * cascade. Renvoie null si un match en aval a déjà été joué.
+ */
+export function resetTableauMatch(
+  matchList: TableauMatch[],
+  matchId: string
+): TableauMatch[] | null {
+  const list = matchList.map(m => ({ ...m }));
+  const target = list.find(m => m.id === matchId);
+  if (!target) return null;
+  const find = (round: number, position: number) =>
+    list.find(m => m.round === round && m.position === position);
+  const played = (m: TableauMatch) =>
+    (m.scoreA !== null && m.scoreB !== null) || (!!m.winner && !m.isBye);
+
+  const clearDownstream = (m: TableauMatch): boolean => {
+    if (m.round <= 3) return true;
+    const next = find(m.round / 2, Math.floor(m.position / 2));
+    if (next) {
+      if (played(next)) return false;
+      if (m.position % 2 === 0) next.fencerA = null;
+      else next.fencerB = null;
+      if (next.winner) {
+        if (!clearDownstream(next)) return false;
+        next.winner = null;
+        next.isBye = false;
+      }
+    }
+    if (m.round === 4) {
+      const third = list.find(x => x.round === 3);
+      if (third) {
+        if (played(third)) return false;
+        third.fencerA = null;
+        third.fencerB = null;
+      }
+    }
+    return true;
+  };
+
+  if (!clearDownstream(target)) return null;
+  target.scoreA = null;
+  target.scoreB = null;
+  target.winner = null;
+  target.specialStatus = null;
+  return list;
+}

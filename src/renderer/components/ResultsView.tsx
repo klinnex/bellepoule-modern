@@ -46,7 +46,7 @@ const RV_STYLES = {
   champHeader: {
     textAlign: 'center' as const,
     padding: '2rem',
-    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+    background: 'var(--color-champion-bg)',
     borderRadius: '12px',
     marginBottom: '2rem',
     color: 'white',
@@ -66,7 +66,7 @@ const RV_STYLES = {
   } satisfies React.CSSProperties,
   podium2: {
     textAlign: 'center' as const,
-    background: 'var(--color-border)',
+    background: 'var(--color-silver-bg)',
     padding: '1rem',
     borderRadius: '8px 8px 0 0',
     minWidth: '150px',
@@ -83,7 +83,7 @@ const RV_STYLES = {
   } satisfies React.CSSProperties,
   podium1: {
     textAlign: 'center' as const,
-    background: '#fef3c7',
+    background: 'var(--color-gold-bg)',
     padding: '1rem',
     borderRadius: '8px 8px 0 0',
     minWidth: '150px',
@@ -91,14 +91,17 @@ const RV_STYLES = {
     display: 'flex',
     flexDirection: 'column' as const,
     justifyContent: 'flex-end' as const,
-    border: '2px solid #f59e0b',
+    border: '2px solid var(--color-gold-border)',
   } satisfies React.CSSProperties,
   podium1Medal: { fontSize: '2.5rem' } satisfies React.CSSProperties,
   podium1Name: { fontWeight: '700', fontSize: '1rem' } satisfies React.CSSProperties,
-  podium1Place: { fontSize: '0.875rem', color: '#92400e' } satisfies React.CSSProperties,
+  podium1Place: {
+    fontSize: '0.875rem',
+    color: 'var(--color-gold-text)',
+  } satisfies React.CSSProperties,
   podium3: {
     textAlign: 'center' as const,
-    background: '#fed7aa',
+    background: 'var(--color-bronze-bg)',
     padding: '1rem',
     borderRadius: '8px 8px 0 0',
     minWidth: '150px',
@@ -113,9 +116,9 @@ const RV_STYLES = {
     fontSize: '0.75rem',
     color: 'var(--color-text-light)',
   } satisfies React.CSSProperties,
-  // Carte blanche dans les deux thèmes : texte sombre forcé (#1032)
+  // Carte blanche ; bleu-gris en thème sombre (#1114)
   tableWrapper: {
-    background: 'white',
+    background: 'var(--color-raised)',
     color: 'var(--color-text)',
     borderRadius: '8px',
     boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
@@ -318,9 +321,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   };
 
   const getRowStyle = (rank: number): React.CSSProperties => {
-    if (rank === 1) return { background: '#fef3c7', fontWeight: '600' };
-    if (rank === 2) return { background: '#f3f4f6', fontWeight: '500' };
-    if (rank === 3) return { background: '#fed7aa', fontWeight: '500' };
+    if (rank === 1) return { background: 'var(--color-gold-bg)', fontWeight: '600' };
+    if (rank === 2) return { background: 'var(--color-silver-bg)', fontWeight: '500' };
+    if (rank === 3) return { background: 'var(--color-bronze-bg)', fontWeight: '500' };
     return {};
   };
 

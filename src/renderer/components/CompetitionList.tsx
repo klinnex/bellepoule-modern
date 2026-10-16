@@ -6,6 +6,7 @@
 import React from 'react';
 import {
   ChevronRight,
+  Download,
   FolderOpen,
   LayoutGrid,
   Medal,
@@ -19,12 +20,15 @@ import { useTranslation } from '../hooks/useTranslation';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
 import { usePagination } from '../hooks/usePagination';
 import { CompetitionCardSkeleton, SkeletonStyles } from './Skeleton';
+import { useConfirm } from './ConfirmDialog';
 
 interface CompetitionListProps {
   competitions: Competition[];
   isLoading: boolean;
   onSelect: (competition: Competition) => void;
   onDelete: (id: string) => void;
+  /** Exporte la compétition en .bpm (#1117) */
+  onExport?: (id: string) => void;
   onNewCompetition: () => void;
   /** Ouvre un fichier compétition existant (absent hors Electron) */
   onOpenFile?: () => void;
@@ -35,10 +39,20 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   isLoading,
   onSelect,
   onDelete,
+  onExport,
   onNewCompetition,
   onOpenFile,
 }) => {
   const { t } = useTranslation();
+  const { confirm } = useConfirm();
+
+  const handleDelete = async (competition: Competition) => {
+    const ok = await confirm({
+      message: `Supprimer définitivement la compétition « ${competition.title} » ? Cette action est irréversible.`,
+      confirmLabel: t('actions.delete'),
+    });
+    if (ok) onDelete(competition.id);
+  };
   const {
     items: paginatedCompetitions,
     page,
@@ -266,11 +280,24 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                   <h3 className="comp-card-title">{competition.title}</h3>
                   <p className="comp-card-date">{formatDate(competition.date)}</p>
                 </div>
+                {onExport && (
+                  <button
+                    className="btn btn-icon btn-secondary comp-card-delete"
+                    onClick={e => {
+                      e.stopPropagation();
+                      onExport(competition.id);
+                    }}
+                    title="Exporter (.bpm)"
+                    aria-label="Exporter (.bpm)"
+                  >
+                    <Download size={16} />
+                  </button>
+                )}
                 <button
                   className="btn btn-icon btn-secondary comp-card-delete"
                   onClick={e => {
                     e.stopPropagation();
-                    onDelete(competition.id);
+                    void handleDelete(competition);
                   }}
                   title={t('actions.delete')}
                 >

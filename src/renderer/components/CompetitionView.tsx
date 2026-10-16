@@ -177,7 +177,7 @@ const CV_STYLES = {
     zIndex: 1000,
   } satisfies React.CSSProperties,
   thirdPlaceModal: {
-    backgroundColor: 'white',
+    backgroundColor: 'var(--color-raised)',
     padding: '2rem',
     borderRadius: '8px',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
@@ -2422,11 +2422,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                   gap: '1rem',
                   padding: '0.625rem 1rem',
                   marginBottom: '0.75rem',
-                  background: '#fef9c3',
-                  border: '1px solid #fde047',
+                  background: 'var(--color-notice-bg)',
+                  border: '1px solid var(--color-notice-border)',
                   borderRadius: '6px',
                   fontSize: '0.875rem',
-                  color: '#713f12',
+                  color: 'var(--color-notice-text)',
                 }}
               >
                 <span>🔒 Tableau en lecture seule — résultats finaux générés.</span>
@@ -2642,6 +2642,18 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               setCurrentPhase('results');
               setShowExportCenter(false);
             }}
+            onExportCompetition={
+              window.electronAPI?.file?.exportCompetition
+                ? () => {
+                    void window.electronAPI.file
+                      .exportCompetition(competition.id)
+                      .then(res => {
+                        if (res?.success) showToast('Compétition exportée', 'success');
+                      })
+                      .catch(() => showToast("Échec de l'export de la compétition", 'error'));
+                  }
+                : undefined
+            }
             onExportFFE={() => {
               setShowFFEExport(true);
               setShowExportCenter(false);

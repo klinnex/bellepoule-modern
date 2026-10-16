@@ -90,7 +90,7 @@ const ToastItemComponent: React.FC<{
     <div
       role="alert"
       style={{
-        background: '#ffffff',
+        background: 'var(--color-raised)',
         borderLeft: `4px solid ${colors.accent}`,
         borderRadius: '8px',
         padding: '12px 14px',

@@ -150,9 +150,20 @@ const AppContent: React.FC = () => {
       window.electronAPI.onShowAbout(() => setShowAboutModal(true));
 
       // Listen for file operations
-      window.electronAPI.onFileOpened(async (filepath: string) => {
-        logger.debug(LogCategory.UI, 'Fichier .BPM ouvert', { filepath });
+      window.electronAPI.onFileOpened(async (filepath: string, competitionIds?: string[]) => {
+        logger.debug(LogCategory.UI, 'Fichier .BPM ouvert', { filepath, competitionIds });
         await loadCompetitions();
+        if (competitionIds?.length) {
+          showToast(
+            competitionIds.length === 1
+              ? 'Compétition importée'
+              : `${competitionIds.length} compétitions importées`,
+            'success'
+          );
+        }
+        // Une seule compétition : l'ouvrir avec son état sauvegardé (#1117)
+        if (competitionIds?.length === 1)
+          await openImportedCompetitionRef.current(competitionIds[0]);
       });
 
       window.electronAPI.onFileSaved(async (filepath: string) => {
@@ -346,6 +357,50 @@ const AppContent: React.FC = () => {
       await handleSelectCompetition(comp);
     },
     [handleSelectCompetition, showToast]
+  );
+
+  // Ouvre (ou recharge) une compétition fusionnée depuis un .bpm (#1117)
+  const openImportedCompetition = useCallback(
+    async (id: string) => {
+      const comp = await window.electronAPI.db.getCompetition(id);
+      if (!comp) return;
+      comp.fencers = await window.electronAPI.db.getFencersByCompetition(id);
+      // Onglet déjà ouvert : le démonter pour relire l'état importé
+      setOpenCompetitions(prev => prev.filter(open => open.competition.id !== id));
+      setCurrentCompetition(null);
+      setActiveTabId(null);
+      await new Promise(resolve => setTimeout(resolve, 0));
+      setOpenCompetitions(prev => [
+        ...prev.filter(open => open.competition.id !== id),
+        { competition: comp, isDirty: false },
+      ]);
+      setActiveTabId(comp.id);
+      setCurrentCompetition(comp);
+      setView('competition');
+    },
+    [setOpenCompetitions, setCurrentCompetition, setActiveTabId, setView]
+  );
+  const openImportedCompetitionRef = useRef(openImportedCompetition);
+  openImportedCompetitionRef.current = openImportedCompetition;
+
+  // Compétition affichée → main (« Enregistrer sous » l'exporte seule, #1117)
+  useEffect(() => {
+    window.electronAPI?.setCurrentCompetition?.(
+      view === 'competition' && currentCompetition ? currentCompetition.id : null
+    );
+  }, [view, currentCompetition]);
+
+  const handleExportCompetition = useCallback(
+    async (id: string) => {
+      try {
+        const res = await window.electronAPI?.file?.exportCompetition?.(id);
+        if (res?.success) showToast('Compétition exportée', 'success');
+      } catch (error) {
+        logger.error(LogCategory.UI, 'Failed to export competition', error as Error);
+        showToast("Échec de l'export de la compétition", 'error');
+      }
+    },
+    [showToast]
   );
 
   const handleTabClose = useCallback(
@@ -848,6 +903,7 @@ const AppContent: React.FC = () => {
                 isLoading={isLoading}
                 onSelect={handleSelectCompetition}
                 onDelete={handleDeleteCompetition}
+                onExport={handleExportCompetition}
                 onNewCompetition={() => setShowNewCompetitionModal(true)}
                 onOpenFile={
                   window.electronAPI?.file?.openDialog

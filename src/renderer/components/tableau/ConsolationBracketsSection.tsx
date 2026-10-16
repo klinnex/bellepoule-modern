@@ -18,6 +18,7 @@ interface ConsolationBracketsSectionProps {
   onArenaClick: (matchId: string, bracketId: string) => void;
   onRefereeClick: (matchId: string) => void;
   onSignaturesClick?: (match: TableauMatch) => void;
+  seedRanks?: Map<string, number>;
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
@@ -96,6 +97,7 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
   onArenaClick,
   onRefereeClick,
   onSignaturesClick,
+  seedRanks,
 }) => {
   // Fenêtres « Places X–Y » repliées (ids des brackets)
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set());
@@ -205,6 +207,7 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
                               }
                               onSignaturesClick={onSignaturesClick}
                               readOnly={readOnly}
+                              seedRanks={seedRanks}
                             />
                           ))}
                         </div>

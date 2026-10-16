@@ -528,7 +528,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     padding: '0.5rem 0.75rem 0.5rem 0.875rem',
-                    background: isHighlighted ? '#f8fafc' : 'white',
+                    background: isHighlighted ? 'var(--color-raised-hover)' : 'var(--color-raised)',
                     borderRadius: '7px',
                     border: isHighlighted ? '1px solid #94a3b8' : '1px solid var(--color-border)',
                     borderLeft: isAbandonMatch
@@ -549,7 +549,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                       color: isAbandonMatch
                         ? 'var(--color-text-muted)'
                         : winnerA
-                          ? '#065f46'
+                          ? 'var(--color-win-text)'
                           : 'var(--color-text-light)',
                       textDecoration: fencerAAbandoned ? 'line-through' : 'none',
                       fontSize: '0.875rem',
@@ -561,7 +561,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                   <span
                     style={{
                       padding: '0.2rem 0.625rem',
-                      background: isAbandonMatch ? 'var(--color-bg)' : '#f8fafc',
+                      background: isAbandonMatch ? 'var(--color-bg)' : 'var(--color-raised-hover)',
                       border: '1px solid var(--color-border)',
                       borderRadius: '5px',
                       fontWeight: 700,
@@ -583,7 +583,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                       color: isAbandonMatch
                         ? 'var(--color-text-muted)'
                         : !winnerA
-                          ? '#065f46'
+                          ? 'var(--color-win-text)'
                           : 'var(--color-text-light)',
                       textDecoration: fencerBAbandoned ? 'line-through' : 'none',
                       fontSize: '0.875rem',

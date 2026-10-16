@@ -20,6 +20,7 @@ import {
   deriveFirstRound,
   isBracketComplete,
   TableauSpecialStatus,
+  resetTableauMatch,
 } from './tableau/tableauTypes';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
@@ -287,7 +288,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       }
       return prev;
     });
-  }, [viewMode, pyramidViewMode, tableauSize]);
+  }, [viewMode, pyramidViewMode, tableauSize, expandedRounds]);
 
   // Remet à zéro le zoom/pan si on change de mode
   useEffect(() => {
@@ -359,17 +360,36 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     isPanningRef.current = false;
   }, []);
 
+  // Tours repliés (#1115) : le plus grand tour déplié sert de première colonne
+  // visuelle ; les cases se resserrent et les liaisons des tours repliés disparaissent.
+  const isRoundExpanded = useCallback(
+    (round: number) => expandedRounds.size === 0 || expandedRounds.has(round),
+    [expandedRounds]
+  );
+  const visualBaseRound = useMemo(() => {
+    let base = 0;
+    for (let r = tableauSize; r >= 2; r /= 2) {
+      if (isRoundExpanded(r)) {
+        base = r;
+        break;
+      }
+    }
+    return base || tableauSize;
+  }, [tableauSize, isRoundExpanded]);
+
   // Connecteurs SVG entre les MatchCards
   const svgConnectors = useMemo(() => {
     if (viewMode !== 'full' || pyramidViewMode || colMeasures.size === 0 || tableauSize === 0)
       return null;
-    const totalH = (tableauSize / 2) * SLOT_HEIGHT;
+    const totalH = (visualBaseRound / 2) * SLOT_HEIGHT;
     const paths: React.ReactNode[] = [];
 
     for (const match of matches) {
       if (match.round <= 2 || match.round === 3) continue; // pas de parent pour la finale/petite-finale
       const parentRound = match.round / 2;
       const parentPos = Math.floor(match.position / 2);
+      if (match.round > visualBaseRound || !isRoundExpanded(match.round)) continue;
+      if (!isRoundExpanded(parentRound)) continue;
 
       const childMeasure = colMeasures.get(match.round);
       const parentMeasure = colMeasures.get(parentRound);
@@ -380,10 +400,11 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       const midX = (childRight + parentLeft) / 2;
 
       const childY =
-        calculateMatchVerticalPosition(match.round, match.position, tableauSize) +
+        calculateMatchVerticalPosition(match.round, match.position, visualBaseRound) +
         BASE_MATCH_HEIGHT / 2;
       const parentY =
-        calculateMatchVerticalPosition(parentRound, parentPos, tableauSize) + BASE_MATCH_HEIGHT / 2;
+        calculateMatchVerticalPosition(parentRound, parentPos, visualBaseRound) +
+        BASE_MATCH_HEIGHT / 2;
 
       const hasWinner = !!match.winner;
       paths.push(
@@ -410,7 +431,15 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         {paths}
       </svg>
     );
-  }, [viewMode, pyramidViewMode, colMeasures, matches, tableauSize]);
+  }, [
+    viewMode,
+    pyramidViewMode,
+    colMeasures,
+    matches,
+    tableauSize,
+    visualBaseRound,
+    isRoundExpanded,
+  ]);
 
   const isUnlimitedScore = maxScore === 999;
   const prevMatchesLengthRef = useRef(0);
@@ -871,6 +900,40 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     setVictoryB(false);
   };
 
+  // Annulation d'un match (#1115) : score effacé, vainqueur retiré du tour suivant
+  const handleMatchCancel = () => {
+    if (!editingMatch) return;
+    if (editingConsolationId) {
+      const bracket = consolationBrackets.find(b => b.id === editingConsolationId);
+      const reset = bracket ? resetTableauMatch(bracket.matches, editingMatch) : null;
+      if (!bracket || !reset) {
+        showToast('Impossible : le match suivant a déjà été joué', 'error');
+        return;
+      }
+      setConsolationBrackets(prev =>
+        prev.map(b =>
+          b.id === editingConsolationId
+            ? { ...b, matches: reset, isComplete: isBracketComplete(reset) }
+            : b
+        )
+      );
+    } else {
+      const reset = resetTableauMatch(matches, editingMatch);
+      if (!reset) {
+        showToast('Impossible : le match suivant a déjà été joué', 'error');
+        return;
+      }
+      onMatchesChange(reset);
+    }
+    setShowScoreModal(false);
+    setEditingMatch(null);
+    setEditingConsolationId(null);
+    setEditScoreA('');
+    setEditScoreB('');
+    setVictoryA(false);
+    setVictoryB(false);
+  };
+
   const openScoreModal = (match: TableauMatch, consolationId?: string) => {
     setEditingMatch(match.id);
     setEditingConsolationId(consolationId ?? null);
@@ -1054,6 +1117,9 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     setVictoryB(false);
   };
 
+  // Rang de sortie de poules affiché sur les cartes (#1119)
+  const seedRanks = useMemo(() => new Map(ranking.map(r => [r.fencer.id, r.rank])), [ranking]);
+
   const renderMatch = (match: TableauMatch, verticalPosition?: number) => (
     <MatchCard
       key={match.id}
@@ -1069,13 +1135,14 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       onRefereeClick={openRefereeModal}
       onSignaturesClick={setSignaturesMatch}
       readOnly={readOnly}
+      seedRanks={seedRanks}
     />
   );
 
   const getMatchPosition = (match: TableauMatch): number => {
     if (viewMode === 'pending') return match.position;
 
-    return calculateMatchVerticalPosition(match.round, match.position, tableauSize);
+    return calculateMatchVerticalPosition(match.round, match.position, visualBaseRound);
   };
 
   const renderRound = (round: number) => {
@@ -1085,7 +1152,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         : matches.filter(m => m.round === round);
     const sortedMatches = [...roundMatches].sort((a, b) => a.position - b.position);
 
-    const isExpanded = expandedRounds.size === 0 || expandedRounds.has(round);
+    const isExpanded = isRoundExpanded(round);
 
     return (
       <div
@@ -1110,7 +1177,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           <div
             style={
               viewMode === 'full'
-                ? { position: 'relative', height: `${(tableauSize / 2) * SLOT_HEIGHT}px` }
+                ? { position: 'relative', height: `${(visualBaseRound / 2) * SLOT_HEIGHT}px` }
                 : {}
             }
           >
@@ -1384,7 +1451,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
               </div>
             </>
           ) : (
-            <div style={TV_STYLES.pendingEmpty}>✓ Tous les matches sont terminés</div>
+            <div style={TV_STYLES.pendingEmpty}>✓ Tous les matchs sont terminés</div>
           )
         ) : pyramidViewMode ? (
           <Bracket matches={convertToBracketMatches()} tableSize={tableauSize} />
@@ -1417,6 +1484,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                         onRefereeClick={openRefereeModal}
                         onSignaturesClick={setSignaturesMatch}
                         readOnly={readOnly}
+                        seedRanks={seedRanks}
                       />
                     ))}
                 </div>
@@ -1447,6 +1515,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           }}
           onRefereeClick={openRefereeModal}
           onSignaturesClick={setSignaturesMatch}
+          seedRanks={seedRanks}
         />
       )}
 
@@ -1473,6 +1542,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
               onClose={() => setShowScoreModal(false)}
               onSubmit={handleScoreSubmit}
               onSpecialStatus={handleSpecialStatus}
+              onMatchCancel={match.round <= tableauSize ? handleMatchCancel : undefined}
               getRoundName={getRoundName}
             />
           );

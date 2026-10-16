@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { propagateWinners, TableauMatch } from './tableauTypes';
+import { propagateWinners, resetTableauMatch, TableauMatch } from './tableauTypes';
 
 const F = (id: string) => ({ id, firstName: id, lastName: id }) as any;
 
@@ -122,5 +122,53 @@ describe('propagateWinners - abandon / forfait / exclusion (#1012)', () => {
     final.winner = F('Z');
     propagateWinners(matches, 4);
     expect(final.winner).toBeNull();
+  });
+});
+
+describe('resetTableauMatch (#1115)', () => {
+  it('efface le score et retire le vainqueur du tour suivant', () => {
+    const a = F('A');
+    const b = F('B');
+    const c = F('C');
+    const d = F('D');
+    const matches = [
+      mk(4, 0, a, b, { scoreA: 15, scoreB: 3, winner: a }),
+      mk(4, 1, c, d),
+      mk(2, 0, a, null, { isBye: false, winner: null }),
+    ];
+    const res = resetTableauMatch(matches, '4-0')!;
+    const semi = res.find(m => m.id === '4-0')!;
+    expect(semi.scoreA).toBeNull();
+    expect(semi.winner).toBeNull();
+    expect(res.find(m => m.id === '2-0')!.fencerA).toBeNull();
+    // entrée non modifiée
+    expect(matches[0].scoreA).toBe(15);
+  });
+
+  it('refuse si le match suivant a déjà été joué', () => {
+    const a = F('A');
+    const c = F('C');
+    const matches = [
+      mk(4, 0, a, F('B'), { scoreA: 15, scoreB: 3, winner: a }),
+      mk(4, 1, c, F('D'), { scoreA: 15, scoreB: 3, winner: c }),
+      mk(2, 0, a, c, { scoreA: 15, scoreB: 10, winner: a }),
+    ];
+    expect(resetTableauMatch(matches, '4-0')).toBeNull();
+  });
+
+  it('vide les perdants de la petite finale pour une demi-finale', () => {
+    const a = F('A');
+    const c = F('C');
+    const matches = [
+      mk(4, 0, a, F('B'), { scoreA: 15, scoreB: 3, winner: a }),
+      mk(4, 1, c, F('D'), { scoreA: 15, scoreB: 3, winner: c }),
+      mk(3, 0, F('B'), F('D'), { isBye: false, winner: null }),
+      mk(2, 0, a, c, { isBye: false, winner: null }),
+    ];
+    const res = resetTableauMatch(matches, '4-1')!;
+    const third = res.find(m => m.round === 3)!;
+    expect(third.fencerA).toBeNull();
+    expect(third.fencerB).toBeNull();
+    expect(res.find(m => m.round === 2)!.fencerB).toBeNull();
   });
 });

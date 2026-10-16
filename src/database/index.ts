@@ -8,6 +8,7 @@ import Database from 'better-sqlite3';
 import * as path from 'path';
 import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { keepOnlyCompetition, mergeAttachedDatabase } from './competitionArchive';
 import {
   Card,
   Competition,
@@ -2031,6 +2032,50 @@ export class DatabaseManager {
     this.close();
     this.dbPath = filepath;
     await this.open();
+  }
+
+  /** Exporte une seule compétition (état d'avancement compris) dans un .bpm (#1117) */
+  public async exportCompetitionToFile(competitionId: string, filepath: string): Promise<void> {
+    if (!this.db) throw new Error('Database not open');
+    await this.db.backup(filepath);
+    const copy = new Database(filepath);
+    try {
+      // Fichier autonome (pas de -wal à côté)
+      copy.pragma('journal_mode = DELETE');
+      keepOnlyCompetition(copy, competitionId);
+      copy.exec('VACUUM');
+    } finally {
+      copy.close();
+    }
+  }
+
+  /**
+   * Ouvre un .bpm : fusionne ses compétitions dans la base active (#1117).
+   * Le fichier est copié puis migré à part : l'original n'est pas modifié.
+   * Renvoie les identifiants des compétitions importées.
+   */
+  public async mergeFromFile(filepath: string): Promise<string[]> {
+    if (!this.db) throw new Error('Database not open');
+    const tmp = path.join(
+      path.dirname(this.dbPath),
+      `.import-${Date.now()}-${Math.random().toString(36).slice(2)}.bpm`
+    );
+    await fs.promises.copyFile(filepath, tmp);
+    try {
+      const source = new DatabaseManager(tmp);
+      await source.open();
+      source.close();
+      this.db.prepare('ATTACH DATABASE ? AS bpm_import').run(tmp);
+      try {
+        return mergeAttachedDatabase(this.db, 'bpm_import', id => this.deleteCompetition(id));
+      } finally {
+        this.db.exec('DETACH DATABASE bpm_import');
+      }
+    } finally {
+      for (const f of [tmp, `${tmp}-wal`, `${tmp}-shm`]) {
+        await fs.promises.unlink(f).catch(() => undefined);
+      }
+    }
   }
 
   // ─── Bracket nodes (élimination directe) ────────────────────────────────────

@@ -408,6 +408,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       return ipcRenderer.invoke('file:import', filepath);
     },
     openDialog: () => ipcRenderer.invoke('file:openDialog'),
+    exportCompetition: (competitionId: string) =>
+      ipcRenderer.invoke('file:exportCompetition', competitionId),
     writeContent: (filepath: string, content: string) => {
       if (!filepath || typeof filepath !== 'string') {
         throw new Error('Filepath is required and must be a string');
@@ -509,8 +511,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onMenuOpenSettings: (callback: () => void) => ipcRenderer.on('menu:open-settings', callback),
   onMenuReportIssue: (callback: () => void) => ipcRenderer.on('menu:report-issue', callback),
   onShowAbout: (callback: () => void) => ipcRenderer.on('menu:show-about', callback),
-  onFileOpened: (callback: (filepath: string) => void) =>
-    ipcRenderer.on('file:opened', (_, filepath) => callback(filepath)),
+  onFileOpened: (callback: (filepath: string, competitionIds?: string[]) => void) =>
+    ipcRenderer.on('file:opened', (_, filepath, competitionIds) =>
+      callback(filepath, competitionIds)
+    ),
+  setCurrentCompetition: (competitionId: string | null) =>
+    ipcRenderer.send('app:current-competition', competitionId),
   onFileSaved: (callback: (filepath: string) => void) =>
     ipcRenderer.on('file:saved', (_, filepath) => callback(filepath)),
   onAutosaveCompleted: (callback: () => void) => ipcRenderer.on('autosave:completed', callback),
