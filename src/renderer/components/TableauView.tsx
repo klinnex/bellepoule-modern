@@ -1054,6 +1054,9 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     setVictoryB(false);
   };
 
+  // Rang de sortie de poules affiché sur les cartes (#1119)
+  const seedRanks = useMemo(() => new Map(ranking.map(r => [r.fencer.id, r.rank])), [ranking]);
+
   const renderMatch = (match: TableauMatch, verticalPosition?: number) => (
     <MatchCard
       key={match.id}
@@ -1069,6 +1072,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       onRefereeClick={openRefereeModal}
       onSignaturesClick={setSignaturesMatch}
       readOnly={readOnly}
+      seedRanks={seedRanks}
     />
   );
 
@@ -1417,6 +1421,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                         onRefereeClick={openRefereeModal}
                         onSignaturesClick={setSignaturesMatch}
                         readOnly={readOnly}
+                        seedRanks={seedRanks}
                       />
                     ))}
                 </div>
@@ -1447,6 +1452,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           }}
           onRefereeClick={openRefereeModal}
           onSignaturesClick={setSignaturesMatch}
+          seedRanks={seedRanks}
         />
       )}
 
