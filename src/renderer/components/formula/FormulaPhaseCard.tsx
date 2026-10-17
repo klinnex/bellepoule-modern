@@ -13,6 +13,50 @@ import { AdvancementRuleEditor } from './AdvancementRuleEditor';
 import { RankingCriteriaEditor } from './RankingCriteriaEditor';
 import { ScoringZoneEditor } from './ScoringZoneEditor';
 
+/** Score max : valeurs usuelles + saisie libre */
+const MaxScoreField: React.FC<{
+  value: number;
+  options: number[];
+  onChange: (v: number) => void;
+  disabled?: boolean;
+}> = ({ value, options, onChange, disabled }) => {
+  const [custom, setCustom] = useState(!options.includes(value));
+  return (
+    <>
+      <select
+        className="form-input"
+        value={custom ? 'custom' : value}
+        onChange={e => {
+          if (e.target.value === 'custom') setCustom(true);
+          else {
+            setCustom(false);
+            onChange(Number(e.target.value));
+          }
+        }}
+        disabled={disabled}
+      >
+        {options.map(v => (
+          <option key={v} value={v}>
+            {v} touches
+          </option>
+        ))}
+        <option value="custom">Autre…</option>
+      </select>
+      {custom && (
+        <input
+          type="number"
+          className="form-input"
+          min={1}
+          max={99}
+          value={value}
+          onChange={e => onChange(Math.max(1, Number(e.target.value) || 1))}
+          disabled={disabled}
+        />
+      )}
+    </>
+  );
+};
+
 interface Props {
   node: FormulaPhaseNode;
   index: number;
@@ -158,18 +202,12 @@ const FormulaPhaseCard_: React.FC<Props> = ({
 
                 <div className="form-group">
                   <label className="form-label">Score max</label>
-                  <select
-                    className="form-input"
+                  <MaxScoreField
                     value={poolCfg.maxScore}
-                    onChange={e => updatePoolConfig({ maxScore: Number(e.target.value) })}
+                    options={[3, 5, 8, 10, 15, 20]}
+                    onChange={maxScore => updatePoolConfig({ maxScore })}
                     disabled={readOnly}
-                  >
-                    {[3, 5, 8, 10, 15, 20].map(v => (
-                      <option key={v} value={v}>
-                        {v} touches
-                      </option>
-                    ))}
-                  </select>
+                    />
                 </div>
 
                 <div className="form-group">
@@ -262,18 +300,12 @@ const FormulaPhaseCard_: React.FC<Props> = ({
               <div className="phase-config-grid">
                 <div className="form-group">
                   <label className="form-label">Score max</label>
-                  <select
-                    className="form-input"
+                  <MaxScoreField
                     value={deCfg.maxScore}
-                    onChange={e => updateDEConfig({ maxScore: Number(e.target.value) })}
+                    options={[5, 10, 15, 20, 25]}
+                    onChange={maxScore => updateDEConfig({ maxScore })}
                     disabled={readOnly}
-                  >
-                    {[5, 10, 15, 20, 25].map(v => (
-                      <option key={v} value={v}>
-                        {v} touches
-                      </option>
-                    ))}
-                  </select>
+                    />
                 </div>
 
                 <div className="form-group">
