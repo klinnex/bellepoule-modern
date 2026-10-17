@@ -10,10 +10,10 @@ import { useTranslation } from '../hooks/useTranslation';
 import { getRoundName } from './tableau/tableauCalculations';
 import type { MatchAuditOption } from './MatchAuditLog';
 import {
-  COMPACT_ROW_COUNT,
   CollapseToggle,
   CollapsedRow,
   useCollapsed,
+  COMPACT_ROW_COUNT,
 } from './common/CollapseToggle';
 
 interface Props {
@@ -101,6 +101,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
   const { t } = useTranslation();
   const [entries, setEntries] = useState<ScoreAuditEntry[]>([]);
   const [loading, setLoading] = useState(false);
+  const [collapsed, toggleCollapsed] = useCollapsed('score-audit-log');
   const [filterPool, setFilterPool] = useState('');
   const [filterReferee, setFilterReferee] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('time');
@@ -193,10 +194,8 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
     }
   }, [filtered, refereeOf, showToast, t]);
 
-  // Mode compact : seules les premières entrées sont affichées
-  const [collapsed, toggleCollapsed] = useCollapsed('score-audit-log');
-  const hiddenCount = collapsed ? Math.max(0, filtered.length - COMPACT_ROW_COUNT) : 0;
-  const visibleEntries = hiddenCount > 0 ? filtered.slice(0, COMPACT_ROW_COUNT) : filtered;
+  const visibleRows = collapsed ? filtered.slice(0, COMPACT_ROW_COUNT) : filtered;
+  const hiddenCount = filtered.length - visibleRows.length;
 
   return (
     <div style={{ padding: '1.5rem', maxWidth: '100%', overflowX: 'auto' }}>
@@ -211,12 +210,12 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
       >
         <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)' }}>
           📜 Historique des scores
+          <CollapseToggle
+            collapsed={collapsed}
+            onToggle={toggleCollapsed}
+            hiddenCount={Math.max(0, filtered.length - COMPACT_ROW_COUNT)}
+          />
         </h2>
-        <CollapseToggle
-          collapsed={collapsed}
-          onToggle={toggleCollapsed}
-          hiddenCount={Math.max(0, filtered.length - COMPACT_ROW_COUNT)}
-        />
 
         <select
           value={filterPool}
@@ -303,7 +302,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
             </tr>
           </thead>
           <tbody>
-            {visibleEntries.map(e => (
+            {visibleRows.map(e => (
               <tr key={e.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                 <td style={td}>{new Date(e.changedAt).toLocaleString()}</td>
                 <td style={td}>{phaseLabel(e)}</td>
