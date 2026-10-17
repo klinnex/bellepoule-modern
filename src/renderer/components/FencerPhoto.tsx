@@ -166,9 +166,10 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
   }, [onPhotoChange]);
 
   return (
-    <div className="relative inline-block">
-      <div
-        className={`
+    <div className="inline-flex flex-col items-center gap-2">
+      <div className="relative inline-block">
+        <div
+          className={`
           ${sizeClasses[size]}
           rounded-full overflow-hidden cursor-pointer
           flex items-center justify-center
@@ -177,38 +178,55 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
           ${editable ? 'hover:ring-2 hover:ring-blue-300' : ''}
           ${photo ? '' : 'bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold'}
         `}
-        onClick={() => editable && fileInputRef.current?.click()}
-        onDrop={editable ? handleDrop : undefined}
-        onDragOver={editable ? handleDragOver : undefined}
-        onDragLeave={editable ? handleDragLeave : undefined}
-        title={editable ? 'Cliquer ou glisser-déposer une photo' : ''}
-      >
-        {isLoading ? (
-          <div className="animate-spin rounded-full h-1/2 w-1/2 border-2 border-white border-t-transparent" />
-        ) : photo ? (
-          <img
-            src={photo}
-            alt={`${firstName} ${lastName}`}
-            className="w-full h-full object-cover"
+          onClick={() => editable && fileInputRef.current?.click()}
+          onDrop={editable ? handleDrop : undefined}
+          onDragOver={editable ? handleDragOver : undefined}
+          onDragLeave={editable ? handleDragLeave : undefined}
+          title={editable ? 'Cliquer ou glisser-déposer une photo' : ''}
+        >
+          {isLoading ? (
+            <div className="animate-spin rounded-full h-1/2 w-1/2 border-2 border-white border-t-transparent" />
+          ) : photo ? (
+            <img
+              src={photo}
+              alt={`${firstName} ${lastName}`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span>{getInitials()}</span>
+          )}
+        </div>
+
+        {editable && photo && (
+          <button
+            type="button"
+            onClick={e => {
+              e.stopPropagation();
+              handleRemovePhoto();
+            }}
+            className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
+            title="Supprimer la photo"
+          >
+            ×
+          </button>
+        )}
+
+        {editable && (
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
           />
-        ) : (
-          <span>{getInitials()}</span>
+        )}
+
+        {isDragging && (
+          <div className="absolute inset-0 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center pointer-events-none">
+            <span className="text-blue-700 text-xs font-medium">Déposer ici</span>
+          </div>
         )}
       </div>
-
-      {editable && photo && (
-        <button
-          type="button"
-          onClick={e => {
-            e.stopPropagation();
-            handleRemovePhoto();
-          }}
-          className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
-          title="Supprimer la photo"
-        >
-          ×
-        </button>
-      )}
 
       {editable && (
         <button
@@ -217,28 +235,12 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
             e.stopPropagation();
             setShowWebcam(true);
           }}
-          className="absolute -bottom-1 -right-1 h-8 px-2 bg-blue-500 text-white rounded-md flex items-center justify-center gap-1 hover:bg-blue-600 transition-colors shadow-md"
+          className="h-8 px-2 bg-blue-500 text-white rounded-md flex items-center justify-center gap-1 hover:bg-blue-600 transition-colors shadow-md"
           title="Prendre une photo avec la webcam"
           style={{ fontSize: '14px' }}
         >
           📷 <span style={{ fontSize: '11px', fontWeight: 500 }}>Webcam</span>
         </button>
-      )}
-
-      {editable && (
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="hidden"
-        />
-      )}
-
-      {isDragging && (
-        <div className="absolute inset-0 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center pointer-events-none">
-          <span className="text-blue-700 text-xs font-medium">Déposer ici</span>
-        </div>
       )}
 
       {editable && showWebcam && (
