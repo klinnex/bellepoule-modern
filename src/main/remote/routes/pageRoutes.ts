@@ -3,8 +3,8 @@
  * Licensed under GPL-3.0
  */
 
-import { buildFencerSchedule } from '../fencerSchedule';
-import type { RouteContext } from './context';
+import { buildFencerSchedule, type ScheduleMatchInput } from '../fencerSchedule';
+import type { RouteContext, SessionMatch } from './context';
 
 /** Pages HTML des arènes, écrans, tablettes et suivi public. */
 export function registerPageRoutes(ctx: RouteContext): void {
@@ -177,7 +177,11 @@ export function registerPageRoutes(ctx: RouteContext): void {
         currentMatchId: a.currentMatch && a.status !== 'finished' ? a.currentMatch.id : undefined,
         currentPoolId: a.currentMatch?.poolId,
       }));
-      const schedule = buildFencerSchedule(fencerId, source, arenas);
+      const schedule = buildFencerSchedule(
+        fencerId,
+        [...source, ...finishedTableauMatches(ctx, source)],
+        arenas
+      );
       if (!schedule) return res.status(404).json({ error: 'Tireur introuvable' });
       res.set('Cache-Control', 'no-store');
       res.json(schedule);
@@ -232,4 +236,36 @@ export function registerPageRoutes(ctx: RouteContext): void {
   ctx.app.get('/inscription', (_req, res) => {
     ctx.sendHtmlFromMemory('register.html', res);
   });
+}
+
+/**
+ * Matchs de tableau terminés, lus en base : le renderer ne transmet au serveur que
+ * les matchs de tableau restant à jouer (#1078). Doublons avec la session ignorés.
+ */
+function finishedTableauMatches(ctx: RouteContext, source: SessionMatch[]): ScheduleMatchInput[] {
+  if (!ctx.session || typeof ctx.db.getTableauMatchesForExport !== 'function') return [];
+  const key = (round: unknown, a?: string, b?: string) => `${round}:${[a, b].sort().join('|')}`;
+  const known = new Set(
+    source.filter(m => m.isTableau).map(m => key(m.round, m.fencerA?.id, m.fencerB?.id))
+  );
+  try {
+    return ctx.db
+      .getTableauMatchesForExport(ctx.session.competitionId)
+      .filter(
+        m =>
+          m.winner && m.fencerA && m.fencerB && !known.has(key(m.round, m.fencerA.id, m.fencerB.id))
+      )
+      .map(m => ({
+        id: m.id,
+        isTableau: true,
+        round: m.round,
+        fencerA: m.fencerA,
+        fencerB: m.fencerB,
+        scoreA: m.scoreA,
+        scoreB: m.scoreB,
+        status: 'finished',
+      }));
+  } catch {
+    return [];
+  }
 }

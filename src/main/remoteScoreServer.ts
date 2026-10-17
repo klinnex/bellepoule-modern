@@ -3372,8 +3372,10 @@ export class RemoteScoreServer {
     let sequentialGroups: number[] | undefined;
     if (tableau.length > 0) {
       phase = 'tableau';
-      round = Math.max(...tableau.map(m => Number(m.round) || 0)) || null;
-      remaining = tableau.filter(m => (Number(m.round) || 0) === (round ?? 0));
+      // Petite finale (3) jouée avec la finale (2)
+      const roundOf = (m: any) => (Number(m.round) === 3 ? 2 : Number(m.round) || 0);
+      round = Math.max(...tableau.map(roundOf)) || null;
+      remaining = tableau.filter(m => roundOf(m) === (round ?? 0));
     } else {
       const byPool = new Map<string, number>();
       for (const m of pending) {

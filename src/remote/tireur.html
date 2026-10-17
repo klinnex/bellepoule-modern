@@ -22,7 +22,12 @@
         box-sizing: border-box;
       }
       body {
-        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
         background: var(--bg);
         color: var(--text);
         min-height: 100vh;
@@ -116,15 +121,24 @@
     </div>
 
     <div class="card">
-      <div class="label"><span data-i18n="fencer.bouts">Mes matchs</span> <span id="record"></span></div>
+      <div class="label">
+        <span data-i18n="fencer.bouts">Mes matchs</span> <span id="record"></span>
+      </div>
+      <div class="label" id="pool-title" data-i18n="fencer.pool_bouts" hidden>Poules</div>
       <ul id="matches"></ul>
+      <div class="label" id="tableau-title" data-i18n="fencer.tableau_bouts" hidden>Tableau</div>
+      <ul id="tableau-matches"></ul>
     </div>
 
-    <div class="footer"><span data-i18n="fencer.updated">Mis à jour</span> <span id="updated">--:--</span></div>
+    <div class="footer">
+      <span data-i18n="fencer.updated">Mis à jour</span> <span id="updated">--:--</span>
+    </div>
 
     <script>
       (function () {
-        const fencerId = decodeURIComponent(location.pathname.split('/').filter(Boolean).pop() || '');
+        const fencerId = decodeURIComponent(
+          location.pathname.split('/').filter(Boolean).pop() || ''
+        );
         const T = (k, p) => (window.T ? window.T(k, p) : k);
         const el = id => document.getElementById(id);
 
@@ -163,31 +177,60 @@
           }
         }
 
-        function renderMatches(data) {
-          const list = el('matches');
-          list.textContent = '';
-          for (const m of data.matches) {
-            const li = document.createElement('li');
-            li.appendChild(text('span', m.opponent));
-            let score = '—';
-            let cls = 'score';
-            if (m.status === 'finished') {
-              score = (m.victory ? 'V' : 'D') + ' ' + m.myScore + '–' + m.opponentScore;
-              cls += m.victory ? ' win' : ' loss';
-            } else if (m.status === 'current') {
-              score = T('fencer.now');
-            }
-            li.appendChild(text('span', score, cls));
-            list.appendChild(li);
+        function roundLabel(round) {
+          if (round === 2) return T('fencer.final');
+          if (round === 3) return T('fencer.third_place');
+          if (round === 4) return T('fencer.semi');
+          if (round === 8) return T('fencer.quarter');
+          return T('fencer.round', { n: round });
+        }
+
+        function matchItem(m) {
+          const li = document.createElement('li');
+          li.appendChild(
+            text(
+              'span',
+              (m.phase === 'tableau' && m.round ? roundLabel(m.round) + ' · ' : '') + m.opponent
+            )
+          );
+          let score = '—';
+          let cls = 'score';
+          if (m.status === 'finished') {
+            score = (m.victory ? 'V' : 'D') + ' ' + m.myScore + '–' + m.opponentScore;
+            cls += m.victory ? ' win' : ' loss';
+          } else if (m.status === 'current') {
+            score = T('fencer.now');
+          } else if (m.arena) {
+            score = window.getArenaLabel() + ' ' + m.arena;
           }
+          li.appendChild(text('span', score, cls));
+          return li;
+        }
+
+        // Matchs de poule et de tableau dans deux listes distinctes (#1078)
+        function renderMatches(data) {
+          const pools = data.matches.filter(m => m.phase !== 'tableau');
+          const tableau = data.matches.filter(m => m.phase === 'tableau');
+          const fill = (listId, titleId, items) => {
+            const list = el(listId);
+            list.textContent = '';
+            for (const m of items) list.appendChild(matchItem(m));
+            el(titleId).hidden =
+              items.length === 0 || (listId === 'matches' && tableau.length === 0);
+          };
+          fill('matches', 'pool-title', pools);
+          fill('tableau-matches', 'tableau-title', tableau);
           el('record').textContent = '(' + data.victories + 'V / ' + data.defeats + 'D)';
         }
 
         async function refresh() {
           try {
-            const res = await fetch('/api/public/fencers/' + encodeURIComponent(fencerId) + '/schedule', {
-              cache: 'no-store',
-            });
+            const res = await fetch(
+              '/api/public/fencers/' + encodeURIComponent(fencerId) + '/schedule',
+              {
+                cache: 'no-store',
+              }
+            );
             if (res.status === 404) {
               el('name').textContent = T('fencer.not_found');
               el('next-body').textContent = '';

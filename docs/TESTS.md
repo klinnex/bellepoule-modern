@@ -92,16 +92,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 120 |
-| `src/main/` | 6 | 114 |
+| `src/main/` | 6 | 118 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 146 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **133** | **1381** |
+| **Total** | **133** | **1385** |
 
-Unitaires : 125 fichiers, 1350 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 125 fichiers, 1354 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1854,7 +1854,7 @@ Unitaires : 125 fichiers, 1350 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/fencerSchedule.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/remote/fencerSchedule.test.ts</code> — 8 tests</summary>
 
 - **buildFencerSchedule (#1078)**
   - liste les matchs du tireur avec scores de son point de vue
@@ -1862,14 +1862,19 @@ Unitaires : 125 fichiers, 1350 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - marque le match en cours sur une piste
   - piste inconnue si la poule n’est assignée à aucune arène
   - null pour un tireur sans match
+  - **tableau (#1078)**
+    - sépare poules et tableau, tableau trié par tour
+    - prochain match de tableau : piste assignée au match
+    - piste du match en cours prioritaire sur la piste prévue
 
 </details>
 
 <details>
-<summary><code>src/main/remote/routes/pageRoutes.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/remote/routes/pageRoutes.test.ts</code> — 4 tests</summary>
 
 - **registerPageRoutes (#1065)**
   - planning tireur : données de session via le contexte
+  - planning tireur : matchs de tableau terminés lus en base
   - planning tireur : 404 inconnu, 400 identifiant invalide
   - ETA publique : null sans session ou en entraînement
 
