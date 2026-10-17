@@ -34,7 +34,7 @@ import {
   normalizeIp,
 } from './remote/network';
 import type { BlackCardRecord, TeamArenaCard, TeamArenaState } from './remote/types';
-import type { RouteContext } from './remote/routes/context';
+import type { PhaseEtaSummary, RouteContext } from './remote/routes/context';
 import {
   LoginGuard,
   MinuteRateLimiter,
@@ -2142,6 +2142,25 @@ export class RemoteScoreServer {
     }
   }
 
+  private createArena(i: number): void {
+    const arena: Arena = {
+      id: `arena${i}`,
+      name: `Arène ${i}`,
+      number: i,
+      currentMatch: null,
+      status: 'idle',
+      startTime: null,
+      settings: {
+        matchDuration: 180, // 3 minutes par défaut
+        breakDuration: 30, // 30 secondes entre les matchs
+        autoAdvance: false,
+      },
+    };
+    this.arenas.set(arena.id, arena);
+    this.arenaMatchQueue.set(arena.id, []);
+    console.log(`[RemoteScoreServer] Arène ${i} créée ✓`);
+  }
+
   private initializeArenas(arenaCount: number = 4): void {
     this.arenaCount = arenaCount;
     console.log(`[RemoteScoreServer] Initialisation de ${arenaCount} arènes...`);
@@ -2156,24 +2175,7 @@ export class RemoteScoreServer {
     this.arenaNextMatchIndex.clear();
     this.clearArenaCombatState();
 
-    for (let i = 1; i <= arenaCount; i++) {
-      const arena: Arena = {
-        id: `arena${i}`,
-        name: `Arène ${i}`,
-        number: i,
-        currentMatch: null,
-        status: 'idle',
-        startTime: null,
-        settings: {
-          matchDuration: 180, // 3 minutes par défaut
-          breakDuration: 30, // 30 secondes entre les matchs
-          autoAdvance: false,
-        },
-      };
-      this.arenas.set(arena.id, arena);
-      this.arenaMatchQueue.set(arena.id, []);
-      console.log(`[RemoteScoreServer] Arène ${i} créée ✓`);
-    }
+    for (let i = 1; i <= arenaCount; i++) this.createArena(i);
     // Restaurer les mots de passe sauvegardés
     savedPasswords.forEach((pwd, id) => {
       const arena = this.arenas.get(id);
@@ -3352,21 +3354,41 @@ export class RemoteScoreServer {
     return { rankings, pools, liveMatches, eta };
   }
 
-  /** Fin estimée de la phase en cours, d'après les durées réelles des matchs (#1077). */
-  private computePhaseEta(): {
-    finishAt: string;
-    basis: string;
-    remainingMatches: number;
-    perMatchMinutes: number;
-  } {
-    const remainingMatches = this.sessionMatches.filter(m => {
+  /**
+   * Fin estimée de la phase en cours, d'après les durées réelles des matchs (#1077).
+   * Tableau : seul le tour en cours compte (les tours suivants ne sont pas encore
+   * connus, sinon l'estimation reculerait à chaque match terminé). Poules : chaque
+   * poule s'enchaîne sur une piste ; parallélisme = nombre de pistes de la session.
+   */
+  private computePhaseEta(): PhaseEtaSummary {
+    const pending = this.sessionMatches.filter(m => {
       const u = this.sessionMatchScores.get(m.id);
       return (u ? u.status : m.status) !== 'finished';
-    }).length;
+    });
+    const tableau = pending.filter(m => m.isTableau);
+    let phase: PhaseEtaSummary['phase'] = 'pools';
+    let round: number | null = null;
+    let remaining = pending;
+    let sequentialGroups: number[] | undefined;
+    if (tableau.length > 0) {
+      phase = 'tableau';
+      // Petite finale (3) jouée avec la finale (2)
+      const roundOf = (m: any) => (Number(m.round) === 3 ? 2 : Number(m.round) || 0);
+      round = Math.max(...tableau.map(roundOf)) || null;
+      remaining = tableau.filter(m => roundOf(m) === (round ?? 0));
+    } else {
+      const byPool = new Map<string, number>();
+      for (const m of pending) {
+        const key = m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
+        byPool.set(key, (byPool.get(key) ?? 0) + 1);
+      }
+      sequentialGroups = [...byPool.values()];
+    }
     const estimate = estimatePhaseEta({
       durationsMs: this.recentMatchDurationsMs,
-      remainingMatches,
-      activeArenas: this.arenas.size,
+      remainingMatches: remaining.length,
+      sequentialGroups,
+      activeArenas: this.session?.strips?.length || this.arenas.size,
       now: Date.now(),
     });
     return {
@@ -3374,6 +3396,8 @@ export class RemoteScoreServer {
       basis: estimate.basis,
       remainingMatches: estimate.remainingMatches,
       perMatchMinutes: Math.round(estimate.perMatchMs / 60_000),
+      phase,
+      round,
     };
   }
 
@@ -4176,7 +4200,14 @@ export class RemoteScoreServer {
           number: i + 1,
           status: 'available',
         });
+        // Pistes ajoutées en cours de session : arènes correspondantes (#1077)
+        if (!this.arenas.has(`arena${i + 1}`)) this.createArena(i + 1);
       }
+      this.arenaCount = newCount;
+      this.io?.emit(
+        'arenas:updated',
+        this.getAllArenas().map(a => this.toPublicArena(a))
+      );
     } else if (newCount < currentCount) {
       // Remove strips (only available ones)
       const availableStrips = this.session.strips.filter(s => s.status === 'available');

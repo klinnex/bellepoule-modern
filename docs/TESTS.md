@@ -79,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 33 | 529 |
+| `src/shared/utils/` | 33 | 533 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -91,17 +91,17 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 3 | 120 |
-| `src/main/` | 6 | 112 |
+| `src/database/` | 3 | 121 |
+| `src/main/` | 6 | 118 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 30 | 145 |
+| `src/renderer/components/` | 30 | 146 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **133** | **1374** |
+| **Total** | **133** | **1386** |
 
-Unitaires : 125 fichiers, 1343 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 125 fichiers, 1355 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -595,7 +595,7 @@ Unitaires : 125 fichiers, 1343 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/phaseEta.test.ts</code> — 6 tests</summary>
+<summary><code>src/shared/utils/phaseEta.test.ts</code> — 10 tests</summary>
 
 - **median**
   - impair, pair, vide
@@ -605,6 +605,11 @@ Unitaires : 125 fichiers, 1343 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - arrondit les vagues au supérieur et borne les pistes à 1
   - rien à jouer → fin = maintenant
   - ne garde que les durées récentes et valides
+- **sequentialWaves (poules sur pistes)**
+  - une poule par piste : la plus longue poule fixe la fin
+  - plus de poules que de pistes : répartition sur la piste la moins chargée
+  - aucun groupe → 0 vague
+  - estimatePhaseEta tient compte des pistes pour les poules
 
 </details>
 
@@ -1654,7 +1659,7 @@ Unitaires : 125 fichiers, 1343 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/database/database.test.ts</code> — 34 tests</summary>
+<summary><code>src/database/database.test.ts</code> — 35 tests</summary>
 
 - **DatabaseManager**
   - **initialize (open)**
@@ -1666,6 +1671,7 @@ Unitaires : 125 fichiers, 1343 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - **createCompetition**
     - insère une compétition et retourne un objet avec id
     - utilise un id fourni si présent
+    - persiste isTeamEvent (#1087)
   - **getFencer**
     - retourne null si le tireur n'est pas trouvé
     - retourne un objet Fencer si trouvé
@@ -1849,7 +1855,7 @@ Unitaires : 125 fichiers, 1343 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/fencerSchedule.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/remote/fencerSchedule.test.ts</code> — 8 tests</summary>
 
 - **buildFencerSchedule (#1078)**
   - liste les matchs du tireur avec scores de son point de vue
@@ -1857,21 +1863,26 @@ Unitaires : 125 fichiers, 1343 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - marque le match en cours sur une piste
   - piste inconnue si la poule n’est assignée à aucune arène
   - null pour un tireur sans match
+  - **tableau (#1078)**
+    - sépare poules et tableau, tableau trié par tour
+    - prochain match de tableau : piste assignée au match
+    - piste du match en cours prioritaire sur la piste prévue
 
 </details>
 
 <details>
-<summary><code>src/main/remote/routes/pageRoutes.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/remote/routes/pageRoutes.test.ts</code> — 4 tests</summary>
 
 - **registerPageRoutes (#1065)**
   - planning tireur : données de session via le contexte
+  - planning tireur : matchs de tableau terminés lus en base
   - planning tireur : 404 inconnu, 400 identifiant invalide
   - ETA publique : null sans session ou en entraînement
 
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 86 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 88 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -1903,6 +1914,8 @@ Unitaires : 125 fichiers, 1343 tests. E2E : 8 fichiers, 31 tests (comptage stati
     - conserve la date des événements déjà vus et date les nouveaux
   - **fin estimée de phase (#1077)**
     - le snapshot dashboard inclut une ETA basée sur les durées réelles
+    - tableau : seul le tour en cours est estimé, sur les pistes de la session
+    - ajouter des pistes en cours de session crée les arènes
   - **liste des arbitres de session**
     - inclut les arbitres ajoutés après le démarrage de la session
     - ne lit pas la base en mode entraînement
@@ -2551,10 +2564,12 @@ Unitaires : 125 fichiers, 1343 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/__tests__/ScoreAuditLog.test.tsx</code> — 1 test</summary>
+<summary><code>src/renderer/components/__tests__/ScoreAuditLog.test.tsx</code> — 2 tests</summary>
 
 - **ScoreAuditLog — colonne Arbitre (#1031)**
   - affiche l'arbitre saisi, sinon le ou les arbitres assignés au match
+- **ScoreAuditLog — compacter / déplier (#1123)**
+  - masque les entrées au-delà des premières en mode compact, puis les réaffiche
 
 </details>
 

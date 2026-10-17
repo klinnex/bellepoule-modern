@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { ScoreAuditEntry } from '../../../shared/types/preload';
 import { ScoreAuditLog } from '../ScoreAuditLog';
 
@@ -63,5 +63,36 @@ describe('ScoreAuditLog — colonne Arbitre (#1031)', () => {
     expect(screen.getByText('Petit / Leroy')).toBeInTheDocument();
     // Auteur technique « ui » jamais affiché comme arbitre
     expect(screen.queryByText('ui')).not.toBeInTheDocument();
+  });
+});
+
+describe('ScoreAuditLog — compacter / déplier (#1123)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    (window as any).electronAPI = {
+      db: {
+        getScoreAuditLogByCompetition: vi
+          .fn()
+          .mockResolvedValue(
+            Array.from({ length: 12 }, (_, i) =>
+              entry(`e${i}`, `m${i}`, { refereeName: `Arbitre${i}` })
+            )
+          ),
+      },
+      onScoreIpConflict: () => () => {},
+    };
+  });
+
+  it('masque les entrées au-delà des premières en mode compact, puis les réaffiche', async () => {
+    render(<ScoreAuditLog competitionId="c1" />);
+    expect(await screen.findByText('Arbitre0')).toBeInTheDocument();
+    expect(screen.getAllByRole('row')).toHaveLength(13); // en-tête + 12
+
+    fireEvent.click(screen.getByRole('button', { name: 'Compacter' }));
+    expect(screen.getByText(/4 autres — déplier/)).toBeInTheDocument();
+    expect(screen.getAllByRole('row')).toHaveLength(10); // en-tête + 8 + ligne « … »
+
+    fireEvent.click(screen.getByText(/4 autres — déplier/));
+    expect(screen.getAllByRole('row')).toHaveLength(13);
   });
 });

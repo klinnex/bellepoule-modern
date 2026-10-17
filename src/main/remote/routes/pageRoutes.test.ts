@@ -76,6 +76,31 @@ describe('registerPageRoutes (#1065)', () => {
     expect((r.body as { next: { arena: number } }).next.arena).toBe(1);
   });
 
+  it('planning tireur : matchs de tableau terminés lus en base', () => {
+    const { routes } = makeCtx({
+      db: {
+        getTableauMatchesForExport: vi.fn(() => [
+          {
+            id: 'c1-t1',
+            round: 8,
+            position: 0,
+            isBye: false,
+            fencerA: { id: 'a', lastName: 'Alpha' },
+            fencerB: { id: 'c', lastName: 'Charlie' },
+            scoreA: 15,
+            scoreB: 9,
+            winner: { id: 'a' },
+          },
+        ]),
+      } as unknown as RouteContext['db'],
+    });
+    const r = res();
+    routes.get('/api/public/fencers/:fencerId/schedule')!({ params: { fencerId: 'a' } }, r);
+    const body = r.body as { matches: Array<{ phase: string; round: number; victory: boolean }> };
+    expect(body.matches.map(m => m.phase)).toEqual(['pool', 'tableau']);
+    expect(body.matches[1]).toMatchObject({ round: 8, victory: true });
+  });
+
   it('planning tireur : 404 inconnu, 400 identifiant invalide', () => {
     const { routes } = makeCtx();
     const r1 = res();

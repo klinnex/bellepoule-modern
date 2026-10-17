@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { estimatePhaseEta, median } from './phaseEta';
+import { estimatePhaseEta, median, sequentialWaves } from './phaseEta';
 
 const MIN = 60_000;
 
@@ -67,5 +67,29 @@ describe('estimatePhaseEta', () => {
       changeoverMs: 0,
     });
     expect(eta.perMatchMs).toBe(2 * MIN);
+  });
+});
+
+describe('sequentialWaves (poules sur pistes)', () => {
+  it('une poule par piste : la plus longue poule fixe la fin', () => {
+    expect(sequentialWaves([10, 6, 3], 4)).toBe(10);
+  });
+
+  it('plus de poules que de pistes : répartition sur la piste la moins chargée', () => {
+    // LPT sur 2 pistes : 10 | 6 → 10 | 6+5 → 10+3 | 11 → 13
+    expect(sequentialWaves([10, 6, 5, 3], 2)).toBe(13);
+    expect(sequentialWaves([4, 4, 4, 4], 1)).toBe(16);
+  });
+
+  it('aucun groupe → 0 vague', () => {
+    expect(sequentialWaves([], 3)).toBe(0);
+  });
+
+  it('estimatePhaseEta tient compte des pistes pour les poules', () => {
+    const base = { durationsMs: [3 * MIN, 3 * MIN, 3 * MIN], remainingMatches: 12, now: 0 };
+    const one = estimatePhaseEta({ ...base, sequentialGroups: [6, 6], activeArenas: 1 });
+    const two = estimatePhaseEta({ ...base, sequentialGroups: [6, 6], activeArenas: 2 });
+    expect(one.finishAt).toBe(12 * 4 * MIN);
+    expect(two.finishAt).toBe(6 * 4 * MIN);
   });
 });

@@ -69,4 +69,60 @@ describe('buildFencerSchedule (#1078)', () => {
   it('null pour un tireur sans match', () => {
     expect(buildFencerSchedule('zz', matches, [])).toBeNull();
   });
+
+  describe('tableau (#1078)', () => {
+    const allPoolsDone = matches.map(m => ({ ...m, status: 'finished', scoreA: 5, scoreB: 1 }));
+    const tableau: ScheduleMatchInput[] = [
+      {
+        id: 't8',
+        isTableau: true,
+        round: 8,
+        fencerA: A,
+        fencerB: C,
+        status: 'not_started',
+        arena: 4,
+      },
+      {
+        id: 't16',
+        isTableau: true,
+        round: 16,
+        fencerA: D,
+        fencerB: A,
+        scoreA: 8,
+        scoreB: 15,
+        status: 'finished',
+      },
+    ];
+
+    it('sépare poules et tableau, tableau trié par tour', () => {
+      const s = buildFencerSchedule('a', [...allPoolsDone, ...tableau], [])!;
+      expect(s.matches.map(m => [m.phase, m.round])).toEqual([
+        ['pool', null],
+        ['pool', null],
+        ['pool', null],
+        ['tableau', 16],
+        ['tableau', 8],
+      ]);
+      expect(s.matches[3]).toMatchObject({ myScore: 15, opponentScore: 8, victory: true });
+    });
+
+    it('prochain match de tableau : piste assignée au match', () => {
+      const s = buildFencerSchedule(
+        'a',
+        [...allPoolsDone, ...tableau],
+        [{ number: 1, activePoolId: 'p1' }]
+      )!;
+      expect(s.next).toMatchObject({ matchId: 't8', phase: 'tableau', arena: 4 });
+      expect(s.matchesBeforeNext).toBeNull();
+    });
+
+    it('piste du match en cours prioritaire sur la piste prévue', () => {
+      const s = buildFencerSchedule(
+        'a',
+        [...allPoolsDone, ...tableau],
+        [{ number: 2, currentMatchId: 't8' }]
+      )!;
+      expect(s.next).toMatchObject({ status: 'current', arena: 2 });
+    });
+  });
 });

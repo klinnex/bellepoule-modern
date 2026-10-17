@@ -148,6 +148,25 @@ describe('DatabaseManager', () => {
       const result = manager.createCompetition({ id: customId });
       expect(result.id).toBe(customId);
     });
+
+    it('persiste isTeamEvent (#1087)', () => {
+      const stmt = makeStmt();
+      mockDb.prepare.mockReturnValue(stmt);
+      manager.createCompetition({ title: 'Équipes', isTeamEvent: true });
+      const insertCall = mockDb.prepare.mock.calls.findIndex((c: string[]) =>
+        c[0].includes('INSERT INTO competitions')
+      );
+      expect(mockDb.prepare.mock.calls[insertCall][0]).toContain('is_team_event');
+      expect(stmt.run.mock.calls[0]).toContain(1);
+
+      stmt.run.mockClear();
+      manager.updateCompetition('c1', { isTeamEvent: false });
+      const update = mockDb.prepare.mock.calls.find((c: string[]) =>
+        c[0].includes('SET is_team_event')
+      );
+      expect(update).toBeDefined();
+      expect(stmt.run.mock.calls[0][0]).toBe(0);
+    });
   });
 
   describe('getFencer', () => {

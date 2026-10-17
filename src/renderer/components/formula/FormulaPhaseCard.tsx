@@ -207,7 +207,7 @@ const FormulaPhaseCard_: React.FC<Props> = ({
                     options={[3, 5, 8, 10, 15, 20]}
                     onChange={maxScore => updatePoolConfig({ maxScore })}
                     disabled={readOnly}
-                    />
+                  />
                 </div>
 
                 <div className="form-group">
@@ -305,7 +305,7 @@ const FormulaPhaseCard_: React.FC<Props> = ({
                     options={[5, 10, 15, 20, 25]}
                     onChange={maxScore => updateDEConfig({ maxScore })}
                     disabled={readOnly}
-                    />
+                  />
                 </div>
 
                 <div className="form-group">

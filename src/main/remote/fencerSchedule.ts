@@ -1,6 +1,7 @@
 /**
  * Planning personnel d'un tireur pour la page publique /tireur/:id (#1078) :
- * prochain match (piste, adversaire), matchs joués avec scores.
+ * prochain match (piste, adversaire), matchs joués avec scores, séparés entre
+ * poules et tableau.
  * Fonction pure : le serveur lui passe les matchs de session et les arènes.
  * Licensed under GPL-3.0
  */
@@ -22,6 +23,12 @@ export interface ScheduleMatchInput {
   scoreA?: number | { value?: number | null } | null;
   scoreB?: number | { value?: number | null } | null;
   status?: string;
+  /** Match de tableau (élimination directe). */
+  isTableau?: boolean;
+  /** Taille du tour de tableau (16 = tableau de 16). */
+  round?: number;
+  /** Piste assignée au match de tableau. */
+  arena?: number | null;
 }
 
 export interface ScheduleArenaInput {
@@ -41,6 +48,9 @@ export interface FencerScheduleEntry {
   status: 'finished' | 'current' | 'pending';
   victory: boolean | null;
   arena: number | null;
+  phase: 'pool' | 'tableau';
+  /** Tour de tableau (null en poule). */
+  round: number | null;
 }
 
 export interface FencerSchedule {
@@ -76,6 +86,9 @@ export function buildFencerSchedule(
       : null;
   const isCurrent = (m: ScheduleMatchInput) => arenas.some(a => a.currentMatchId === m.id);
 
+  const arenaForTableau = (m: ScheduleMatchInput) =>
+    arenas.find(a => a.currentMatchId === m.id)?.number ?? m.arena ?? null;
+
   const entries: FencerScheduleEntry[] = mine
     .map((m, i) => {
       const isA = m.fencerA?.id === fencerId;
@@ -83,6 +96,7 @@ export function buildFencerSchedule(
       const finished = m.status === 'finished';
       const my = finished ? scoreValue(isA ? m.scoreA : m.scoreB) : null;
       const theirs = finished ? scoreValue(isA ? m.scoreB : m.scoreA) : null;
+      const tableau = !!m.isTableau;
       return {
         matchId: m.id,
         order: m.number ?? i + 1,
@@ -92,10 +106,21 @@ export function buildFencerSchedule(
         opponentScore: theirs,
         status: finished ? 'finished' : isCurrent(m) ? 'current' : 'pending',
         victory: finished && my !== null && theirs !== null ? my > theirs : null,
-        arena: arenaForPool(poolOf(m)),
+        arena: tableau ? arenaForTableau(m) : arenaForPool(poolOf(m)),
+        phase: tableau ? 'tableau' : 'pool',
+        round: tableau ? (m.round ?? null) : null,
       } as FencerScheduleEntry;
     })
-    .sort((a, b) => a.order - b.order);
+    // Poules d'abord (ordre des matchs), puis tableau (tours décroissants : 32, 16, …)
+    .sort((a, b) =>
+      a.phase !== b.phase
+        ? a.phase === 'pool'
+          ? -1
+          : 1
+        : a.phase === 'pool'
+          ? a.order - b.order
+          : (b.round ?? 0) - (a.round ?? 0)
+    );
 
   const next =
     entries.find(e => e.status === 'current') ?? entries.find(e => e.status === 'pending') ?? null;
@@ -104,10 +129,11 @@ export function buildFencerSchedule(
   let matchesBeforeNext: number | null = null;
   if (next) {
     const nextInput = mine.find(m => m.id === next.matchId);
-    const pool = nextInput ? poolOf(nextInput) : undefined;
+    const pool = nextInput && !nextInput.isTableau ? poolOf(nextInput) : undefined;
     if (pool) {
       matchesBeforeNext = matches.filter(
         m =>
+          !m.isTableau &&
           poolOf(m) === pool &&
           m.status !== 'finished' &&
           (m.number ?? 0) < next.order &&
