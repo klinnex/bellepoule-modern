@@ -26,6 +26,61 @@ interface Props {
   onMoveDown?: () => void;
 }
 
+const CUSTOM_SCORE = 'custom';
+const MAX_CUSTOM_SCORE = 999;
+
+/** Score max : valeurs prédéfinies + saisie libre (« Personnalisé… »). */
+const MaxScoreInput: React.FC<{
+  value: number;
+  presets: number[];
+  onChange: (v: number) => void;
+  readOnly?: boolean;
+}> = ({ value, presets, onChange, readOnly }) => {
+  const [custom, setCustom] = useState(!presets.includes(value));
+  const isCustom = custom || !presets.includes(value);
+  return (
+    <>
+      <select
+        className="form-input"
+        value={isCustom ? CUSTOM_SCORE : value}
+        onChange={e => {
+          if (e.target.value === CUSTOM_SCORE) {
+            setCustom(true);
+            return;
+          }
+          setCustom(false);
+          onChange(Number(e.target.value));
+        }}
+        disabled={readOnly}
+      >
+        {presets.map(v => (
+          <option key={v} value={v}>
+            {v} touches
+          </option>
+        ))}
+        <option value={CUSTOM_SCORE}>Personnalisé…</option>
+      </select>
+      {isCustom && (
+        <input
+          type="number"
+          className="form-input"
+          aria-label="Score max personnalisé"
+          min={1}
+          max={MAX_CUSTOM_SCORE}
+          step={1}
+          value={value}
+          onChange={e => {
+            const v = Math.floor(Number(e.target.value));
+            if (Number.isFinite(v) && v >= 1 && v <= MAX_CUSTOM_SCORE) onChange(v);
+          }}
+          disabled={readOnly}
+          style={{ marginTop: 4 }}
+        />
+      )}
+    </>
+  );
+};
+
 const NODE_TYPE_LABELS: Record<FormulaPhaseNodeType, string> = {
   pool_round: 'Tour de poules',
   direct_elimination: 'Élimination directe',
@@ -158,18 +213,12 @@ const FormulaPhaseCard_: React.FC<Props> = ({
 
                 <div className="form-group">
                   <label className="form-label">Score max</label>
-                  <select
-                    className="form-input"
+                  <MaxScoreInput
                     value={poolCfg.maxScore}
-                    onChange={e => updatePoolConfig({ maxScore: Number(e.target.value) })}
-                    disabled={readOnly}
-                  >
-                    {[3, 5, 8, 10, 15, 20].map(v => (
-                      <option key={v} value={v}>
-                        {v} touches
-                      </option>
-                    ))}
-                  </select>
+                    presets={[3, 5, 8, 10, 15, 20]}
+                    onChange={v => updatePoolConfig({ maxScore: v })}
+                    readOnly={readOnly}
+                  />
                 </div>
 
                 <div className="form-group">
@@ -262,18 +311,12 @@ const FormulaPhaseCard_: React.FC<Props> = ({
               <div className="phase-config-grid">
                 <div className="form-group">
                   <label className="form-label">Score max</label>
-                  <select
-                    className="form-input"
+                  <MaxScoreInput
                     value={deCfg.maxScore}
-                    onChange={e => updateDEConfig({ maxScore: Number(e.target.value) })}
-                    disabled={readOnly}
-                  >
-                    {[5, 10, 15, 20, 25].map(v => (
-                      <option key={v} value={v}>
-                        {v} touches
-                      </option>
-                    ))}
-                  </select>
+                    presets={[5, 10, 15, 20, 25]}
+                    onChange={v => updateDEConfig({ maxScore: v })}
+                    readOnly={readOnly}
+                  />
                 </div>
 
                 <div className="form-group">

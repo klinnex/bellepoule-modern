@@ -95,13 +95,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 6 | 112 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 30 | 145 |
+| `src/renderer/components/` | 30 | 146 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **133** | **1374** |
+| **Total** | **133** | **1375** |
 
-Unitaires : 125 fichiers, 1343 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 125 fichiers, 1344 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2551,10 +2551,12 @@ Unitaires : 125 fichiers, 1343 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/__tests__/ScoreAuditLog.test.tsx</code> — 1 test</summary>
+<summary><code>src/renderer/components/__tests__/ScoreAuditLog.test.tsx</code> — 2 tests</summary>
 
 - **ScoreAuditLog — colonne Arbitre (#1031)**
   - affiche l'arbitre saisi, sinon le ou les arbitres assignés au match
+- **ScoreAuditLog — compacter / déplier (#1123)**
+  - masque les entrées au-delà des premières en mode compact, puis les réaffiche
 
 </details>
 

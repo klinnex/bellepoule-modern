@@ -9,6 +9,12 @@ import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { getRoundName } from './tableau/tableauCalculations';
 import type { MatchAuditOption } from './MatchAuditLog';
+import {
+  COMPACT_ROW_COUNT,
+  CollapseToggle,
+  CollapsedRow,
+  useCollapsed,
+} from './common/CollapseToggle';
 
 interface Props {
   competitionId: string;
@@ -187,6 +193,11 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
     }
   }, [filtered, refereeOf, showToast, t]);
 
+  // Mode compact : seules les premières entrées sont affichées
+  const [collapsed, toggleCollapsed] = useCollapsed('score-audit-log');
+  const hiddenCount = collapsed ? Math.max(0, filtered.length - COMPACT_ROW_COUNT) : 0;
+  const visibleEntries = hiddenCount > 0 ? filtered.slice(0, COMPACT_ROW_COUNT) : filtered;
+
   return (
     <div style={{ padding: '1.5rem', maxWidth: '100%', overflowX: 'auto' }}>
       <div
@@ -201,6 +212,11 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
         <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)' }}>
           📜 Historique des scores
         </h2>
+        <CollapseToggle
+          collapsed={collapsed}
+          onToggle={toggleCollapsed}
+          hiddenCount={Math.max(0, filtered.length - COMPACT_ROW_COUNT)}
+        />
 
         <select
           value={filterPool}
@@ -287,7 +303,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map(e => (
+            {visibleEntries.map(e => (
               <tr key={e.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                 <td style={td}>{new Date(e.changedAt).toLocaleString()}</td>
                 <td style={td}>{phaseLabel(e)}</td>
@@ -306,6 +322,9 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
                 </td>
               </tr>
             ))}
+            {hiddenCount > 0 && (
+              <CollapsedRow colSpan={7} hiddenCount={hiddenCount} onExpand={toggleCollapsed} />
+            )}
           </tbody>
         </table>
       )}
