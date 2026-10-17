@@ -386,6 +386,48 @@ describe('RemoteScoreServer', () => {
       // 1 piste : 2 vagues de 4 min
       expect(new Date(eta.finishAt).getTime()).toBeGreaterThanOrEqual(before + 8 * 60_000);
     });
+
+    it('tableau : seul le tour en cours est estimé, sur les pistes de la session', () => {
+      (server as any).session = {
+        competitionId: 'comp-1',
+        referees: [],
+        strips: [{ number: 1 }, { number: 2 }],
+      };
+      mockDb.getFencersByCompetition.mockReturnValueOnce([]);
+      (server as any).sessionMatches = [
+        { id: 'p1', poolId: 'p1', status: 'finished' },
+        ...[1, 2, 3, 4].map(i => ({
+          id: `t16-${i}`,
+          isTableau: true,
+          round: 16,
+          status: 'not_started',
+        })),
+        { id: 't8-1', isTableau: true, round: 8, status: 'not_started' },
+      ];
+      (server as any).recentMatchDurationsMs = [180_000, 180_000, 180_000];
+      const before = Date.now();
+      const { eta } = (server as any).buildDashboardSnapshot();
+      expect(eta.phase).toBe('tableau');
+      expect(eta.round).toBe(16);
+      expect(eta.remainingMatches).toBe(4);
+      // 4 matchs sur 2 pistes : 2 vagues de 4 min
+      const ms = new Date(eta.finishAt).getTime() - before;
+      expect(ms).toBeGreaterThanOrEqual(8 * 60_000 - 1000);
+      expect(ms).toBeLessThan(9 * 60_000);
+    });
+
+    it('ajouter des pistes en cours de session crée les arènes', () => {
+      (server as any).session = {
+        competitionId: 'comp-1',
+        referees: [],
+        strips: [{ number: 1, status: 'available' }],
+      };
+      (server as any).arenas = new Map();
+      (server as any).createArena(1);
+      server.updateStripCount(3);
+      expect(server.getAllArenas().map(a => a.id)).toEqual(['arena1', 'arena2', 'arena3']);
+      expect(server.getArenaCount()).toBe(3);
+    });
   });
 
   describe('liste des arbitres de session', () => {

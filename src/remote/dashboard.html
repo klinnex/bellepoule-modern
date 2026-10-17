@@ -503,9 +503,36 @@
 
       <!-- Tab Navigation -->
       <nav class="tab-nav" role="tablist" aria-label="Vue du tableau de bord">
-        <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-poules" data-tab="poules" data-i18n="dashboard.pools">Poules</button>
-        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-classement" data-tab="classement" data-i18n="dashboard.ranking">Classement Général</button>
-        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-direct" data-tab="direct" data-i18n="dashboard.live">Matchs en Cours</button>
+        <button
+          class="tab-btn active"
+          role="tab"
+          aria-selected="true"
+          aria-controls="tab-poules"
+          data-tab="poules"
+          data-i18n="dashboard.pools"
+        >
+          Poules
+        </button>
+        <button
+          class="tab-btn"
+          role="tab"
+          aria-selected="false"
+          aria-controls="tab-classement"
+          data-tab="classement"
+          data-i18n="dashboard.ranking"
+        >
+          Classement Général
+        </button>
+        <button
+          class="tab-btn"
+          role="tab"
+          aria-selected="false"
+          aria-controls="tab-direct"
+          data-tab="direct"
+          data-i18n="dashboard.live"
+        >
+          Matchs en Cours
+        </button>
       </nav>
 
       <!-- Tab: Poules -->
@@ -514,7 +541,9 @@
           <div class="no-data">
             <div class="no-data-icon" aria-hidden="true">🤺</div>
             <h3 data-i18n="dashboard.no_pools">Aucune poule en cours</h3>
-            <p data-i18n="dashboard.no_pools_hint">Les poules apparaîtront ici une fois la compétition démarrée</p>
+            <p data-i18n="dashboard.no_pools_hint">
+              Les poules apparaîtront ici une fois la compétition démarrée
+            </p>
           </div>
         </div>
       </div>
@@ -583,7 +612,12 @@
 
       // WebSocket Connection
       function connectWebSocket() {
-        dashboard.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
+        dashboard.socket = io({
+          reconnection: true,
+          reconnectionDelay: 200,
+          reconnectionDelayMax: 5000,
+          randomizationFactor: 0.5,
+        });
 
         dashboard.socket.on('connect', () => {
           updateConnectionStatus(true);
@@ -611,7 +645,16 @@
         });
       }
 
-      // Fin estimée de la phase (durées réelles des matchs, #1077)
+      // Fin estimée de la phase en cours (durées réelles des matchs, #1077)
+      function etaPhaseLabel(T, eta) {
+        if (eta.phase === 'tableau' && eta.round) {
+          return eta.round === 2
+            ? T('dashboard.eta_final')
+            : T('dashboard.eta_tableau', { n: eta.round });
+        }
+        return eta.phase === 'pools' ? T('dashboard.eta_pools') : T('dashboard.eta');
+      }
+
       function updateEta(data) {
         const box = document.getElementById('eta');
         if (!box) return;
@@ -621,9 +664,7 @@
         }
         const T = window.T || (k => k);
         const finish = new Date(data.finishAt);
-        document.getElementById('eta-label').textContent = T(
-          data.basis === 'measured' ? 'dashboard.eta' : 'dashboard.eta_default'
-        );
+        document.getElementById('eta-label').textContent = etaPhaseLabel(T, data);
         document.getElementById('eta-time').textContent = finish.toLocaleTimeString([], {
           hour: '2-digit',
           minute: '2-digit',

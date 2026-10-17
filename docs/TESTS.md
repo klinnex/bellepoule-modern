@@ -79,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 33 | 529 |
+| `src/shared/utils/` | 33 | 533 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -92,16 +92,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 120 |
-| `src/main/` | 6 | 112 |
+| `src/main/` | 6 | 114 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 146 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **133** | **1375** |
+| **Total** | **133** | **1381** |
 
-Unitaires : 125 fichiers, 1344 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 125 fichiers, 1350 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -595,7 +595,7 @@ Unitaires : 125 fichiers, 1344 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/phaseEta.test.ts</code> — 6 tests</summary>
+<summary><code>src/shared/utils/phaseEta.test.ts</code> — 10 tests</summary>
 
 - **median**
   - impair, pair, vide
@@ -605,6 +605,11 @@ Unitaires : 125 fichiers, 1344 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - arrondit les vagues au supérieur et borne les pistes à 1
   - rien à jouer → fin = maintenant
   - ne garde que les durées récentes et valides
+- **sequentialWaves (poules sur pistes)**
+  - une poule par piste : la plus longue poule fixe la fin
+  - plus de poules que de pistes : répartition sur la piste la moins chargée
+  - aucun groupe → 0 vague
+  - estimatePhaseEta tient compte des pistes pour les poules
 
 </details>
 
@@ -1871,7 +1876,7 @@ Unitaires : 125 fichiers, 1344 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 86 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 88 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -1903,6 +1908,8 @@ Unitaires : 125 fichiers, 1344 tests. E2E : 8 fichiers, 31 tests (comptage stati
     - conserve la date des événements déjà vus et date les nouveaux
   - **fin estimée de phase (#1077)**
     - le snapshot dashboard inclut une ETA basée sur les durées réelles
+    - tableau : seul le tour en cours est estimé, sur les pistes de la session
+    - ajouter des pistes en cours de session crée les arènes
   - **liste des arbitres de session**
     - inclut les arbitres ajoutés après le démarrage de la session
     - ne lit pas la base en mode entraînement

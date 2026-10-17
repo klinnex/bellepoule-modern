@@ -2,7 +2,10 @@
  * Estimation de l'heure de fin d'une phase à partir des durées réelles des
  * matchs déjà terminés (#1077).
  *
- * fin ≈ maintenant + ⌈matchs restants ÷ pistes actives⌉ × durée médiane
+ * fin ≈ maintenant + vagues × durée médiane
+ *   - sans groupes : vagues = ⌈matchs restants ÷ pistes⌉ (tour de tableau)
+ *   - avec groupes (poules) : les matchs d'une poule s'enchaînent sur une seule
+ *     piste → vagues = charge de la piste la plus chargée (répartition LPT)
  * La médiane résiste aux matchs anormaux (blessure, appel DT, pause).
  */
 
@@ -10,6 +13,11 @@ export interface PhaseEtaInput {
   /** Durées réelles (début → fin, en ms) des matchs terminés, les plus récentes en dernier. */
   durationsMs: number[];
   remainingMatches: number;
+  /**
+   * Matchs restants par groupe séquentiel (ex. par poule) : un groupe occupe une
+   * seule piste. Absent → tous les matchs restants sont parallélisables.
+   */
+  sequentialGroups?: number[];
   /** Pistes pouvant jouer en parallèle (au moins 1). */
   activeArenas: number;
   now: number;
@@ -40,10 +48,26 @@ export function median(values: number[]): number {
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
+/**
+ * Nombre de vagues pour jouer des groupes séquentiels sur `arenas` pistes :
+ * plus grand groupe d'abord, chacun sur la piste la moins chargée (LPT).
+ */
+export function sequentialWaves(groups: number[], arenas: number): number {
+  const loads = new Array<number>(Math.max(1, Math.floor(arenas))).fill(0);
+  const sorted = groups.filter(g => g > 0).sort((a, b) => b - a);
+  for (const g of sorted) {
+    let min = 0;
+    for (let i = 1; i < loads.length; i++) if (loads[i] < loads[min]) min = i;
+    loads[min] += g;
+  }
+  return Math.max(0, ...loads);
+}
+
 export function estimatePhaseEta(input: PhaseEtaInput): PhaseEta {
   const {
     durationsMs,
     remainingMatches,
+    sequentialGroups,
     activeArenas,
     now,
     fallbackMatchMs = 4 * 60_000,
@@ -55,7 +79,9 @@ export function estimatePhaseEta(input: PhaseEtaInput): PhaseEta {
   const perMatchMs = (basis === 'measured' ? median(samples) : fallbackMatchMs) + changeoverMs;
   const remaining = Math.max(0, Math.floor(remainingMatches));
   const arenas = Math.max(1, Math.floor(activeArenas));
-  const waves = Math.ceil(remaining / arenas);
+  const waves = sequentialGroups
+    ? sequentialWaves(sequentialGroups, arenas)
+    : Math.ceil(remaining / arenas);
   return {
     finishAt: now + waves * perMatchMs,
     perMatchMs,

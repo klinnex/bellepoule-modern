@@ -28,6 +28,9 @@ export interface PhaseEtaSummary {
   basis: string;
   remainingMatches: number;
   perMatchMinutes: number;
+  /** Phase estimée : poules, ou tour de tableau en cours (taille, ex. 16). */
+  phase: 'pools' | 'tableau';
+  round: number | null;
 }
 
 export interface RouteContext {
