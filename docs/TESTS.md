@@ -91,7 +91,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 3 | 120 |
+| `src/database/` | 3 | 121 |
 | `src/main/` | 6 | 118 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
@@ -99,9 +99,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **133** | **1385** |
+| **Total** | **133** | **1386** |
 
-Unitaires : 125 fichiers, 1354 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 125 fichiers, 1355 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1659,7 +1659,7 @@ Unitaires : 125 fichiers, 1354 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/database/database.test.ts</code> — 34 tests</summary>
+<summary><code>src/database/database.test.ts</code> — 35 tests</summary>
 
 - **DatabaseManager**
   - **initialize (open)**
@@ -1671,6 +1671,7 @@ Unitaires : 125 fichiers, 1354 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - **createCompetition**
     - insère une compétition et retourne un objet avec id
     - utilise un id fourni si présent
+    - persiste isTeamEvent (#1087)
   - **getFencer**
     - retourne null si le tireur n'est pas trouvé
     - retourne un objet Fencer si trouvé

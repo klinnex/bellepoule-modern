@@ -215,8 +215,8 @@ export class DatabaseManager {
     };
     validateCompetitionData(normalized);
     this.run(
-      `INSERT INTO competitions (id, title, date, weapon, gender, category, location, color, settings, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO competitions (id, title, date, weapon, gender, category, location, color, settings, is_team_event, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         comp.title || 'Nouvelle compétition',
@@ -227,6 +227,7 @@ export class DatabaseManager {
         comp.location || '',
         comp.color || '#3B82F6',
         JSON.stringify(comp.settings || {}),
+        comp.isTeamEvent ? 1 : 0,
         now,
         now,
       ]
@@ -356,6 +357,12 @@ export class DatabaseManager {
       if (updates.category !== undefined)
         this.run('UPDATE competitions SET category = ?, updated_at = ? WHERE id = ?', [
           updates.category,
+          now,
+          id,
+        ]);
+      if (updates.isTeamEvent !== undefined)
+        this.run('UPDATE competitions SET is_team_event = ?, updated_at = ? WHERE id = ?', [
+          updates.isTeamEvent ? 1 : 0,
           now,
           id,
         ]);
