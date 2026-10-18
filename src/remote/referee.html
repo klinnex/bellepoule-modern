@@ -486,14 +486,21 @@
         position: relative;
       }
 
+      /* Chrono centré, bouton Repos dans la colonne de gauche (#1134) */
       .timer-row {
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
         align-items: center;
-        justify-content: center;
         gap: 0.75rem;
       }
 
+      .timer-row .timer-display {
+        grid-column: 2;
+      }
+
       .rest-btn {
+        grid-column: 1;
+        justify-self: end;
         padding: 0.6rem 1rem;
         margin-bottom: 0.75rem;
         border: 2px solid #38bdf8;
@@ -1969,6 +1976,7 @@
           this.restSeconds = 0; // Repos entre périodes (paramètre compétition, 0 = désactivé, #1134)
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
           this.isResting = false;
           this.overtimeType = null; // 'supplementary' | 'challenger' | null
           this.coinFlipWinner = null; // 'A' | 'B' | null — vainqueur par tirage au sort
@@ -2021,7 +2029,8 @@
               this.isLaserSabre = s.weapon === 'L';
               this.customScoring = s.weapon === 'C' ? s.customScoring || null : null;
               this.applyScoringButtons();
-              this.isModernFencing = ['E', 'F', 'S'].includes(s.weapon);
+              // Formule personnalisée : règles choisies dans la formule (#1125)
+              this.isModernFencing = ['E', 'F', 'S'].includes(s.weapon) || s.modernRules === true;
               if (s.trainingCustomRules) this.trainingCustomRules = s.trainingCustomRules;
               this.blackCardEnabled = s.blackCardEnabled === true;
               this.applyBlackCardSetting();
@@ -2030,7 +2039,10 @@
                 document.getElementById('arena-label').textContent = pisteLabel;
                 const nextLabel = document.getElementById('next-arena-label');
                 if (nextLabel) nextLabel.textContent = pisteLabel;
-                document.querySelectorAll('.btn-plus-3, .btn-plus-5').forEach(b => (b.style.display = 'none'));
+                if (!this.customScoring) {
+                  document.querySelectorAll('.btn-plus-3, .btn-plus-5').forEach(b => (b.style.display = 'none'));
+                }
+                this.updateRestButton();
                 // Carton blanc remplacé par le carton de passivité (#1026)
                 ['btn-card-white-a', 'btn-card-white-b'].forEach(id => {
                   const b = document.getElementById(id);
@@ -2529,6 +2541,7 @@
           this.timerSeconds = this.defaultTimerSeconds;
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
           this.isResting = false;
           this.overtimeType = null;
           this.actionHistory = [];
@@ -3036,6 +3049,7 @@
             isSuddenDeath: this.isSuddenDeath,
             overtimeType: this.overtimeType,
             waitingOvertimeStart: this.waitingOvertimeStart,
+            waitingCoinFlip: this.waitingCoinFlip,
           };
           this.actionHistory.push(snapshot);
           if (this.actionHistory.length > 10) this.actionHistory.shift();
@@ -3078,6 +3092,7 @@
           this.isSuddenDeath = prev.isSuddenDeath;
           this.overtimeType = prev.overtimeType;
           this.waitingOvertimeStart = prev.waitingOvertimeStart ?? false;
+          this.waitingCoinFlip = prev.waitingCoinFlip ?? false;
           this.updateScores();
           this.updateCardsDisplay();
           this.updateSuddenDeathUI();
@@ -3337,6 +3352,7 @@
             scoreAEl.classList.remove('not-started');
             scoreBEl.classList.remove('not-started');
           }
+          if (this.waitingCoinFlip) this.updateControlButtons();
         }
 
         updateCardsDisplay() {
@@ -3405,8 +3421,8 @@
                   // Égalité : attente manuelle de l'arbitre pour lancer le temps supplémentaire
                   this.prepareSuddenDeath();
                 } else if (!_sdDisabled && this.isSuddenDeath && this.scoreA === this.scoreB) {
-                  // Fin du temps supplémentaire avec égalité → tirage au sort
-                  this.triggerTiebreaker();
+                  // Fin du temps supplémentaire avec égalité → tirage au sort sur action de l'arbitre (#1136)
+                  this.prepareCoinFlip();
                 } else {
                   this.showNotification('⏰ Temps écoulé !');
                 }
@@ -3439,6 +3455,7 @@
         startRest() {
           if (!this.canStartRest()) return;
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
           this.isResting = true;
           this.timerSeconds = this.restSeconds;
           this.updateControlButtons();
@@ -3476,6 +3493,7 @@
           this.stopTimer();
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
           this.isResting = false;
           this.overtimeType = null;
           this.timerSeconds = this.defaultTimerSeconds;
@@ -3599,6 +3617,7 @@
 
         launchSuddenDeath() {
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
           this.isResting = false;
           this.triggerSuddenDeath();
         }
@@ -3625,7 +3644,16 @@
           this.startTimer();
         }
 
+        // Attente du tirage au sort : l'arbitre peut corriger le score avant de le lancer (#1136)
+        prepareCoinFlip() {
+          this.waitingCoinFlip = true;
+          this.updateControlButtons();
+          this.showNotification('⚖️ Égalité ! Corrigez le score si besoin, ou appuyez sur "Tirage au sort".');
+        }
+
         triggerTiebreaker() {
+          this.waitingCoinFlip = false;
+          this.updateControlButtons();
           const winner = Math.random() < 0.5 ? 'A' : 'B';
           this.coinFlipWinner = winner;
 
@@ -3681,6 +3709,7 @@
 
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
           this.isResting = false;
           this.overtimeType = null;
           this.updateSuddenDeathUI();
@@ -3909,6 +3938,7 @@
               this.timerSeconds = this.defaultTimerSeconds;
               this.isSuddenDeath = false;
               this.waitingOvertimeStart = false;
+              this.waitingCoinFlip = false;
               this.isResting = false;
               this.overtimeType = null;
               this.updateTimerDisplay();
@@ -4044,6 +4074,17 @@
             return;
           }
 
+          // Fin du temps supplémentaire à égalité : tirage au sort manuel (#1136)
+          if (this.waitingCoinFlip && this.scoreA === this.scoreB) {
+            startBtn.disabled = false;
+            startBtn.textContent = '🪙 Tirage au sort';
+            startBtn.className = 'control-btn btn-launch-overtime';
+            if (finishBtn) finishBtn.disabled = false;
+            this.updateScoreButtons();
+            this.updateRestButton();
+            return;
+          }
+
           // Réinitialiser les classes
           startBtn.className = 'control-btn btn-start';
 
@@ -4080,6 +4121,10 @@
         handleStartPauseClick() {
           if (this.waitingOvertimeStart) {
             this.launchSuddenDeath();
+            return;
+          }
+          if (this.waitingCoinFlip && this.scoreA === this.scoreB) {
+            this.triggerTiebreaker();
             return;
           }
           if (this.matchStatus === 'not_started') {
@@ -4244,6 +4289,7 @@
           this.matchStatus = 'not_started';
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
           this.isResting = false;
           this.overtimeType = null;
           this.actionHistory = [];

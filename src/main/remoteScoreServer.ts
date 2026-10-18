@@ -35,7 +35,7 @@ import {
 } from '../shared/types';
 import { DatabaseManager } from '../database';
 import { estimatePhaseEta } from '../shared/utils/phaseEta';
-import { resolveCompetitionSettings } from '../shared/utils/customFormulaSettings';
+import { resolveCompetitionSettings, usesModernRules } from '../shared/utils/customFormulaSettings';
 import {
   PASSWORD_MIN_LENGTH,
   isLocalNetworkOrigin,
@@ -102,6 +102,7 @@ export class RemoteScoreServer {
   private sessionPoolMaxScore: number | null = null;
   private sessionTableMaxScore: number | null = null;
   private sessionRestSeconds: number = 0; // Repos entre périodes (escrime olympique, 0 = désactivé)
+  private sessionModernRules = false; // Règles armes modernes (E/F/S ou formule personnalisée, #1125)
   private sessionMatches: any[] = []; // Matches passés depuis le renderer
   private sessionPoolArenas = new Map<string, number>(); // poolId → piste prévue (#1078)
   // Durées réelles (ms) des derniers matchs terminés sur les arènes (#1077)
@@ -912,6 +913,7 @@ export class RemoteScoreServer {
       socketIoClientJs: { get: () => self.socketIoClientJs },
       sessionWeapon: { get: () => self.sessionWeapon },
       sessionCustomScoring: { get: () => self.sessionCustomScoring },
+      sessionModernRules: { get: () => self.sessionModernRules },
       sessionKioskViews: { get: () => self.sessionKioskViews },
       orgNote: { get: () => self.orgNote },
       sessionLogo: { get: () => self.sessionLogo },
@@ -2792,7 +2794,7 @@ export class RemoteScoreServer {
               exitType: exit.isVoluntary ? 'arena_exit_voluntary' : 'arena_exit',
               timestamp: timeOf('exits', i),
               // Escrime olympique : une touche ; Sabre Laser : 3 points (#1027)
-              pointsAwarded: ['E', 'F', 'S'].includes(this.sessionWeapon ?? '') ? 1 : 3,
+              pointsAwarded: this.sessionModernRules ? 1 : 3,
             });
           }
         }
@@ -4173,6 +4175,7 @@ export class RemoteScoreServer {
     this.sessionPoolMaxScore = null;
     this.sessionTableMaxScore = null;
     this.sessionRestSeconds = 0;
+    this.sessionModernRules = ['E', 'F', 'S'].includes(weapon ?? '');
     this.trainingCustomRules = {
       matchDurationSeconds: duration,
       allowedZones: customRules?.allowedZones ?? [],
@@ -4327,6 +4330,7 @@ export class RemoteScoreServer {
     this.sessionPoolMaxScore = settings?.defaultPoolMaxScore ?? null;
     this.sessionTableMaxScore = settings?.defaultTableMaxScore ?? null;
     this.sessionRestSeconds = Math.max(0, settings?.restTimeSeconds ?? 60);
+    this.sessionModernRules = usesModernRules(competition.weapon, competition.settings);
   }
 
   /** Relit les réglages de la compétition à chaud (propriétés modifiées en cours de session) */

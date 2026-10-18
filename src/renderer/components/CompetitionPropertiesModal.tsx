@@ -309,6 +309,25 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               {`${Math.floor(poolTimerSeconds / 60)}min ${poolTimerSeconds % 60}s par match de poule`}
             </small>
           </div>
+          {hasDirectElimination && (
+            <div className="form-group">
+              <label htmlFor="tableMaxScore">Score max tableau élimination</label>
+              <input
+                type="number"
+                id="tableMaxScore"
+                className="form-input"
+                value={tableMaxScore}
+                onChange={e => setTableMaxScore(parseInt(e.target.value) || 0)}
+                min="0"
+                placeholder="21"
+              />
+              <small style={HINT}>
+                {tableMaxScore === 0
+                  ? '0 = illimité (pas de limite)'
+                  : `${tableMaxScore} touches pour gagner`}
+              </small>
+            </div>
+          )}
           {isOlympicWeapon && (
             <div className="form-group">
               <label htmlFor="restTimeSeconds">Temps de repos (secondes)</label>
@@ -330,23 +349,6 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
           )}
           {hasDirectElimination && (
             <>
-              <div className="form-group">
-                <label htmlFor="tableMaxScore">Score max tableau élimination</label>
-                <input
-                  type="number"
-                  id="tableMaxScore"
-                  className="form-input"
-                  value={tableMaxScore}
-                  onChange={e => setTableMaxScore(parseInt(e.target.value) || 0)}
-                  min="0"
-                  placeholder="21"
-                />
-                <small style={HINT}>
-                  {tableMaxScore === 0
-                    ? '0 = illimité (pas de limite)'
-                    : `${tableMaxScore} touches pour gagner`}
-                </small>
-              </div>
               <div className="form-group">
                 <label htmlFor="tableTimerSeconds">Chrono tableau (secondes)</label>
                 <input

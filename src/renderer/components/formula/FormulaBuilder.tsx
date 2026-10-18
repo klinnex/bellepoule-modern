@@ -156,6 +156,9 @@ const FormulaBuilder_: React.FC<Props> = ({
 
   const updateNotes = (notes: string) => onChange({ ...formula, notes });
 
+  const ruleSet = formula.ruleSet ?? 'laser';
+  const restTimeSeconds = formula.restTimeSeconds ?? 60;
+
   return (
     <div className="formula-builder">
       {/* Barre d'outils */}
@@ -312,6 +315,55 @@ const FormulaBuilder_: React.FC<Props> = ({
           {/* Simulation temps réel */}
           <div className="formula-simulation-panel">
             <FormulaSimulationPreview simulation={simulation} fencerCount={fencerCount} />
+
+            {/* Règles de match appliquées par les tablettes arbitre (#1125) */}
+            <div className="formula-notes-group">
+              <label className="form-label" htmlFor="formula-rule-set">
+                Règles de la compétition
+              </label>
+              <select
+                id="formula-rule-set"
+                className="form-input"
+                value={ruleSet}
+                onChange={e =>
+                  onChange({ ...formula, ruleSet: e.target.value as 'modern' | 'laser' })
+                }
+                disabled={readOnly}
+              >
+                <option value="laser">
+                  Sabre Laser (temps additionnel 30 s, mort subite, cartons Sabre Laser)
+                </option>
+                <option value="modern">
+                  Armes modernes (épée, fleuret, sabre : 1 min supplémentaire, repos, cartons FIE)
+                </option>
+              </select>
+              {ruleSet === 'modern' && (
+                <>
+                  <label className="form-label" htmlFor="formula-rest-time">
+                    Temps de repos (secondes)
+                  </label>
+                  <input
+                    id="formula-rest-time"
+                    type="number"
+                    className="form-input"
+                    min={0}
+                    value={restTimeSeconds}
+                    onChange={e =>
+                      onChange({
+                        ...formula,
+                        restTimeSeconds: Math.max(0, parseInt(e.target.value) || 0),
+                      })
+                    }
+                    disabled={readOnly}
+                  />
+                  <small>
+                    {restTimeSeconds === 0
+                      ? '0 = bouton « Repos » désactivé'
+                      : 'Bouton « Repos » de la tablette arbitre, quand le chrono arrive à 00:00'}
+                  </small>
+                </>
+              )}
+            </div>
 
             <div className="formula-notes-group">
               <label className="form-label">Notes</label>

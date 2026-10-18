@@ -6,6 +6,7 @@ import {
   getPoolRoundAdvancement,
   getTableauAdvancement,
   resolveCompetitionSettings,
+  usesModernRules,
 } from './customFormulaSettings';
 import { createDefaultCustomFormula } from './tournamentTemplates';
 import {
@@ -92,5 +93,25 @@ describe('customFormulaSettings (#1125)', () => {
     expect(applyTableauAdvancement(tied, { mode: 'fixed_count', count: 3 })).toHaveLength(4);
     const all = ranking(4);
     expect(applyTableauAdvancement(all, { mode: 'all' })).toBe(all);
+  });
+
+  it('règles armes modernes choisies dans la formule : repos dérivé (défaut 60 s)', () => {
+    const f = formula();
+    expect(deriveSettingsFromFormula(f).restTimeSeconds).toBeUndefined();
+    f.ruleSet = 'modern';
+    expect(deriveSettingsFromFormula(f).restTimeSeconds).toBe(60);
+    f.restTimeSeconds = 0;
+    expect(deriveSettingsFromFormula(f).restTimeSeconds).toBe(0);
+  });
+
+  it('usesModernRules : E/F/S toujours, CUSTOM selon la formule, Laser jamais', () => {
+    const f = formula();
+    const settings = { customFormula: f } as CompetitionSettings;
+    expect(usesModernRules(Weapon.EPEE, undefined)).toBe(true);
+    expect(usesModernRules(Weapon.LASER, undefined)).toBe(false);
+    expect(usesModernRules(Weapon.CUSTOM, settings)).toBe(false);
+    f.ruleSet = 'modern';
+    expect(usesModernRules(Weapon.CUSTOM, settings)).toBe(true);
+    expect(usesModernRules(Weapon.LASER, settings)).toBe(false);
   });
 });
