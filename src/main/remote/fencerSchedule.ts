@@ -74,15 +74,19 @@ const poolOf = (m: ScheduleMatchInput) => m.poolId ?? m.pool?.id;
 export function buildFencerSchedule(
   fencerId: string,
   matches: ScheduleMatchInput[],
-  arenas: ScheduleArenaInput[]
+  arenas: ScheduleArenaInput[],
+  plannedPoolArenas: ReadonlyMap<string, number> = new Map()
 ): FencerSchedule | null {
   const mine = matches.filter(m => m.fencerA?.id === fencerId || m.fencerB?.id === fencerId);
   if (mine.length === 0) return null;
   const sample = mine[0].fencerA?.id === fencerId ? mine[0].fencerA : mine[0].fencerB;
 
+  // Piste active de la poule, à défaut la piste prévue par le DT (#1078)
   const arenaForPool = (poolId?: string) =>
     poolId
-      ? (arenas.find(a => a.activePoolId === poolId || a.currentPoolId === poolId)?.number ?? null)
+      ? (arenas.find(a => a.activePoolId === poolId || a.currentPoolId === poolId)?.number ??
+        plannedPoolArenas.get(poolId) ??
+        null)
       : null;
   const isCurrent = (m: ScheduleMatchInput) => arenas.some(a => a.currentMatchId === m.id);
 

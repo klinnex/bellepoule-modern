@@ -53,12 +53,34 @@ const sortByDependencies = (db: Db, tables: string[]): string[] => {
 };
 
 /**
+ * Supprime les lignes orphelines (clé étrangère vers un parent absent) jusqu'à stabilité.
+ * Un .bpm peut en contenir (export depuis une base déjà incohérente) : sans purge,
+ * le contrôle différé échoue au commit (« FOREIGN KEY constraint failed »).
+ */
+const pruneForeignKeyViolations = (db: Db): void => {
+  for (let pass = 0; pass < 10; pass++) {
+    const violations = db.prepare('PRAGMA foreign_key_check').all() as {
+      table: string;
+      rowid: number | null;
+    }[];
+    if (violations.length === 0) return;
+    let removed = 0;
+    for (const v of violations) {
+      if (v.rowid == null) continue;
+      removed += db.prepare(`DELETE FROM ${quote(v.table)} WHERE rowid = ?`).run(v.rowid).changes;
+    }
+    if (removed === 0) return;
+  }
+};
+
+/**
  * Réduit une copie de base à une seule compétition : supprime les autres
  * compétitions et toutes les lignes portant un autre `competition_id`.
  */
 export function keepOnlyCompetition(db: Db, competitionId: string): void {
   db.pragma('foreign_keys = ON');
   db.transaction(() => {
+    db.pragma('defer_foreign_keys = ON');
     db.prepare(
       `DELETE FROM pool_signatures WHERE pool_id IN (
          SELECT p.id FROM pools p JOIN phases ph ON p.phase_id = ph.id WHERE ph.competition_id != ?
@@ -71,6 +93,7 @@ export function keepOnlyCompetition(db: Db, competitionId: string): void {
       }
     }
     db.prepare('DELETE FROM competitions WHERE id != ?').run(competitionId);
+    pruneForeignKeyViolations(db);
   })();
 }
 
@@ -110,6 +133,7 @@ export function mergeAttachedDatabase(
          SELECT ${colList} FROM ${schema}.${quote(table)}`
       ).run();
     }
+    pruneForeignKeyViolations(db);
   })();
   return ids;
 }

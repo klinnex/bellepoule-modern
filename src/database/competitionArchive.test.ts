@@ -78,4 +78,21 @@ describe.skipIf(!Database)('competitionArchive (#1117)', () => {
     });
     expect(db.prepare('SELECT COUNT(*) n FROM main.schema_migrations').get()).toEqual({ n: 0 });
   });
+
+  it("mergeAttachedDatabase purge les orphelins au lieu d'échouer (FOREIGN KEY)", () => {
+    const db = new Database(':memory:');
+    db.pragma('foreign_keys = ON');
+    db.exec(SCHEMA);
+    db.exec("ATTACH DATABASE ':memory:' AS src");
+    db.exec(SCHEMA.replace(/CREATE TABLE /g, 'CREATE TABLE src.'));
+    db.prepare("INSERT INTO src.competitions VALUES ('a', 'Compet a')").run();
+    db.prepare("INSERT INTO src.phases VALUES ('ph-a', 'a')").run();
+    // phase orpheline : compétition parente absente de l'archive
+    db.pragma('foreign_keys = OFF');
+    db.prepare("INSERT INTO src.phases VALUES ('ph-x', 'absente')").run();
+    db.pragma('foreign_keys = ON');
+
+    expect(() => mergeAttachedDatabase(db, 'src', () => undefined)).not.toThrow();
+    expect(db.prepare('SELECT id FROM phases').all()).toEqual([{ id: 'ph-a' }]);
+  });
 });

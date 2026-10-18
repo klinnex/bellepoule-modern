@@ -1924,6 +1924,7 @@
           this.timerRunning = false;
           this.longPressTimer = null;
           this.isLaserSabre = false;
+          this.customScoring = null; // Système de score de la formule personnalisée (#1125)
           this.isModernFencing = false; // Épée, fleuret, sabre (règles olympiques)
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
@@ -1976,6 +1977,8 @@
             .then(s => {
               if (s) {
               this.isLaserSabre = s.weapon === 'L';
+              this.customScoring = s.weapon === 'C' ? s.customScoring || null : null;
+              this.applyScoringButtons();
               this.isModernFencing = ['E', 'F', 'S'].includes(s.weapon);
               if (s.trainingCustomRules) this.trainingCustomRules = s.trainingCustomRules;
               this.blackCardEnabled = s.blackCardEnabled === true;
@@ -2100,7 +2103,7 @@
               btn.classList.add('long-press-active');
               longPressTimer = setTimeout(() => {
                 btn.classList.remove('long-press-active');
-                this.removeScore(config.fencer, config.points);
+                this.removeScore(config.fencer, this.slotPoints(config.points));
                 longPressTimer = null;
               }, LONG_PRESS_DURATION);
             });
@@ -2110,7 +2113,7 @@
                 // Appui court : ajouter le score
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
-                this.addScore(config.fencer, config.points);
+                this.addScore(config.fencer, this.slotPoints(config.points));
               }
               btn.classList.remove('long-press-active');
             });
@@ -2129,7 +2132,7 @@
               btn.classList.add('long-press-active');
               longPressTimer = setTimeout(() => {
                 btn.classList.remove('long-press-active');
-                this.removeScore(config.fencer, config.points);
+                this.removeScore(config.fencer, this.slotPoints(config.points));
                 longPressTimer = null;
               }, LONG_PRESS_DURATION);
             });
@@ -2140,7 +2143,7 @@
                 // Appui court : ajouter le score
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
-                this.addScore(config.fencer, config.points);
+                this.addScore(config.fencer, this.slotPoints(config.points));
               }
               btn.classList.remove('long-press-active');
             });
@@ -2493,6 +2496,7 @@
 
           // Charger les infos du match
           this.applySwapState();
+          this.applyScoringButtons();
           this.updateTimerDisplay();
           this.updateMatchStatus();
           this.updateControlButtons();
@@ -2515,6 +2519,51 @@
           });
         }
 
+        // Zones de score actives (formule personnalisée) pour le match courant, sinon null
+        activeCustomZones() {
+          const cs = this.customScoring;
+          if (!cs) return null;
+          const scoring = this.currentMatch && this.currentMatch.isTableau ? cs.de : cs.pool;
+          if (!scoring) return null;
+          if (scoring.type === 'zones' && scoring.zones && scoring.zones.length > 0) {
+            return scoring.zones.slice(0, 3).map(z => ({ label: z.label, points: z.points }));
+          }
+          return [{ label: '', points: 1 }];
+        }
+
+        // Points réellement attribués par le bouton du palier 1 / 3 / 5
+        slotPoints(slot) {
+          const zones = this.activeCustomZones();
+          if (!zones) return slot;
+          const idx = slot === 1 ? 0 : slot === 3 ? 1 : 2;
+          return zones[idx] ? zones[idx].points : slot;
+        }
+
+        zoneLetter(points) {
+          const zones = this.activeCustomZones();
+          if (zones) {
+            const idx = zones.findIndex(z => z.points === points);
+            return ['A', 'B', 'C'][idx < 0 ? 0 : idx];
+          }
+          return points === 1 ? 'A' : points === 3 ? 'B' : 'C';
+        }
+
+        // Affiche uniquement les boutons de score du système choisi (+1 en standard)
+        applyScoringButtons() {
+          const zones = this.activeCustomZones();
+          if (!zones) return;
+          [[1, 'btn-plus-1'], [3, 'btn-plus-3'], [5, 'btn-plus-5']].forEach(([slot, base], idx) => {
+            ['a', 'b'].forEach(side => {
+              const btn = document.getElementById(`${base}-${side}`);
+              if (!btn) return;
+              const z = zones[idx];
+              btn.style.display = z ? '' : 'none';
+              if (z) btn.textContent = `+${z.points}`;
+              btn.title = z && z.label ? z.label : '';
+            });
+          });
+        }
+
         addScore(fencer, points) {
           if (!this.currentMatch) return;
           if (this.matchStatus === 'not_started') {
@@ -2534,7 +2583,7 @@
           }
 
           // Restriction de zones en mode entraînement
-          const _zone = points === 1 ? 'A' : points === 3 ? 'B' : 'C';
+          const _zone = this.zoneLetter(points);
           if (
             this.trainingCustomRules &&
             this.trainingCustomRules.allowedZones &&
@@ -2550,7 +2599,7 @@
           if (navigator.vibrate) navigator.vibrate(points === 5 ? 120 : points === 3 ? 80 : 40);
 
           const ef = this._effectiveFencer(fencer);
-          const zone = points === 1 ? 'A' : points === 3 ? 'B' : 'C';
+          const zone = this.zoneLetter(points);
           if (ef === 'A') {
             this.scoreA = Math.max(0, this.scoreA + points);
             this.touchesA.push(zone);
@@ -3080,7 +3129,7 @@
 
           if (navigator.vibrate) navigator.vibrate(30);
           const ef = this._effectiveFencer(fencer);
-          const zone = points === 1 ? 'A' : points === 3 ? 'B' : 'C';
+          const zone = this.zoneLetter(points);
           if (ef === 'A') {
             this.scoreA = Math.max(0, this.scoreA - points);
             const idx = this.touchesA.lastIndexOf(zone);

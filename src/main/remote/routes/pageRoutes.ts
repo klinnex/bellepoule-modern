@@ -180,7 +180,8 @@ export function registerPageRoutes(ctx: RouteContext): void {
       const schedule = buildFencerSchedule(
         fencerId,
         [...source, ...finishedTableauMatches(ctx, source)],
-        arenas
+        arenas,
+        ctx.sessionPoolArenas
       );
       if (!schedule) return res.status(404).json({ error: 'Tireur introuvable' });
       res.set('Cache-Control', 'no-store');

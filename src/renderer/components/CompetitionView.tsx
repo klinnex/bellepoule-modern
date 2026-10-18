@@ -2263,18 +2263,20 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                       </button>
                     </div>
                     {/* Largeur ajustée au contenu ; la taille de carte agit comme un zoom (#1124) */}
-                    <div
-                      style={{
-                        width: 'fit-content',
-                        maxWidth: '100%',
-                        margin: '0 auto',
-                        zoom: presetScale(poolCardSize),
-                      }}
-                    >
-                      <Suspense fallback={null}>
-                        {pools[singlePoolIndex] &&
-                          renderPoolCard(pools[singlePoolIndex], singlePoolIndex)}
-                      </Suspense>
+                    <div style={{ width: '100%', overflowX: 'auto' }}>
+                      <div
+                        style={{
+                          width: 'max-content',
+                          minWidth: 'min(100%, 480px)',
+                          margin: '0 auto',
+                          zoom: presetScale(poolCardSize),
+                        }}
+                      >
+                        <Suspense fallback={null}>
+                          {pools[singlePoolIndex] &&
+                            renderPoolCard(pools[singlePoolIndex], singlePoolIndex)}
+                        </Suspense>
+                      </div>
                     </div>
                   </>
                 ) : (

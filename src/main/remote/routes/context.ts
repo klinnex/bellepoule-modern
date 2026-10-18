@@ -40,6 +40,8 @@ export interface RouteContext {
   readonly isTrainingMode: boolean;
   readonly arenas: Map<string, Arena>;
   readonly sessionMatches: SessionMatch[];
+  /** Piste prévue par poule (poolId → n°), pour le suivi tireur avant le début des matchs. */
+  readonly sessionPoolArenas: ReadonlyMap<string, number>;
   readonly sessionMatchScores: Map<
     string,
     { scoreA: ScheduleMatchInput['scoreA']; scoreB: ScheduleMatchInput['scoreB']; status: string }

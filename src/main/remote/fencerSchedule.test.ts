@@ -124,5 +124,10 @@ describe('buildFencerSchedule (#1078)', () => {
       )!;
       expect(s.next).toMatchObject({ status: 'current', arena: 2 });
     });
+
+    it('piste prévue de la poule quand aucune arène ne la joue encore (#1078)', () => {
+      const s = buildFencerSchedule('a', matches, [], new Map([['p1', 3]]))!;
+      expect(s.next?.arena).toBe(3);
+    });
   });
 });
