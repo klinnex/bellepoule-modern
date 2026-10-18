@@ -128,6 +128,7 @@ Feature Modules (src/features/)
 ├── pdfTemplates/        # usePdfTemplateStore
 ├── penalties/           # PenaltyUtils + usePenaltyStore + penalty.types
 ├── pools/               # PoolCalculator + PoolService + usePoolStore + pool.types
+├── rapieres/            # Tournoi des rapières (mode spécial arme CUSTOM) : binômes, poules en vagues, tableau — état dans session_state
 └── teams/               # teamCalculations, teamBracketService, laserArena* (Sabre Laser team format), useTeamStore
 
 Shared (src/shared/)

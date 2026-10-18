@@ -5,6 +5,7 @@
 
 import React, { useMemo, useState, memo } from 'react';
 import {
+  CompetitionSpecialMode,
   CustomDEConfig,
   CustomFormulaConfig,
   CustomPoolRoundConfig,
@@ -15,13 +16,19 @@ import { createDefaultCustomFormula } from '../../../shared/utils/tournamentTemp
 import { FormulaPhaseCard } from './FormulaPhaseCard';
 import { FormulaSimulationPreview } from './FormulaSimulationPreview';
 import { FormulaTemplateModal } from './FormulaTemplateModal';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface Props {
   formula: CustomFormulaConfig;
   fencerCount?: number;
   onChange: (formula: CustomFormulaConfig) => void;
   readOnly?: boolean;
+  /** Mode spécial choisi (bouton « Modes spéciaux » affiché si `onSpecialModeChange`) (#1118) */
+  specialMode?: CompetitionSpecialMode;
+  onSpecialModeChange?: (mode: CompetitionSpecialMode | undefined) => void;
 }
+
+const SPECIAL_MODES: CompetitionSpecialMode[] = ['rapieres'];
 
 function uid(): string {
   return `phase_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -89,8 +96,17 @@ function computeInputFencers(phases: FormulaPhaseNode[], index: number, initial:
   return count;
 }
 
-const FormulaBuilder_: React.FC<Props> = ({ formula, fencerCount = 32, onChange, readOnly }) => {
+const FormulaBuilder_: React.FC<Props> = ({
+  formula,
+  fencerCount = 32,
+  onChange,
+  readOnly,
+  specialMode,
+  onSpecialModeChange,
+}) => {
+  const { t } = useTranslation();
   const [templateModal, setTemplateModal] = useState<'save' | 'load' | null>(null);
+  const [specialMenuOpen, setSpecialMenuOpen] = useState(false);
 
   const simulation = useMemo(() => simulateFormula(fencerCount, formula), [fencerCount, formula]);
 
@@ -203,56 +219,114 @@ const FormulaBuilder_: React.FC<Props> = ({ formula, fencerCount = 32, onChange,
           >
             Charger modèle
           </button>
-        </div>
-      </div>
-
-      {/* Contenu principal : pipeline + simulation */}
-      <div className="formula-builder-content">
-        {/* Pipeline de phases */}
-        <div className="formula-pipeline">
-          {formula.phases.length === 0 ? (
-            <div className="formula-empty-state">
-              <p>Aucune phase configurée.</p>
-              <p>Utilisez les boutons ci-dessus pour ajouter des phases.</p>
+          {onSpecialModeChange && !readOnly && (
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <button
+                type="button"
+                className={`btn btn-sm ${specialMode ? 'btn-primary' : 'btn-secondary'}`}
+                aria-haspopup="menu"
+                aria-expanded={specialMenuOpen}
+                onClick={() => setSpecialMenuOpen(o => !o)}
+              >
+                {specialMode
+                  ? `${t('rapieres.special_modes')} : ${t(`rapieres.mode_${specialMode}`)}`
+                  : t('rapieres.special_modes')}
+                {' ▾'}
+              </button>
+              {specialMenuOpen && (
+                <div
+                  role="menu"
+                  className="card"
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: '100%',
+                    zIndex: 20,
+                    minWidth: '16rem',
+                    padding: '0.25rem',
+                    display: 'grid',
+                  }}
+                >
+                  {[undefined, ...SPECIAL_MODES].map(mode => (
+                    <button
+                      key={mode ?? 'none'}
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={specialMode === mode}
+                      className="btn btn-sm btn-ghost"
+                      style={{
+                        justifyContent: 'flex-start',
+                        fontWeight: specialMode === mode ? 700 : 400,
+                      }}
+                      onClick={() => {
+                        onSpecialModeChange(mode);
+                        setSpecialMenuOpen(false);
+                      }}
+                    >
+                      {mode ? t(`rapieres.mode_${mode}`) : t('rapieres.mode_none')}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          ) : (
-            formula.phases.map((node, index) => (
-              <React.Fragment key={node.id}>
-                <FormulaPhaseCard
-                  node={node}
-                  index={index}
-                  inputFencers={computeInputFencers(formula.phases, index, fencerCount)}
-                  onUpdate={updated => updatePhase(index, updated)}
-                  onRemove={() => removePhase(index)}
-                  readOnly={readOnly}
-                  canMoveUp={index > 0}
-                  canMoveDown={index < formula.phases.length - 1}
-                  onMoveUp={() => movePhase(index, index - 1)}
-                  onMoveDown={() => movePhase(index, index + 1)}
-                />
-                {index < formula.phases.length - 1 && <div className="phase-connector">↓</div>}
-              </React.Fragment>
-            ))
           )}
         </div>
+      </div>
 
-        {/* Simulation temps réel */}
-        <div className="formula-simulation-panel">
-          <FormulaSimulationPreview simulation={simulation} fencerCount={fencerCount} />
+      {specialMode ? (
+        <div className="card" style={{ padding: '1rem', marginTop: '0.75rem' }}>
+          <strong>{t(`rapieres.mode_${specialMode}`)}</strong>
+          <p style={{ marginTop: '0.5rem' }}>{t(`rapieres.mode_description`)}</p>
+        </div>
+      ) : (
+        /* Contenu principal : pipeline + simulation */
+        <div className="formula-builder-content">
+          {/* Pipeline de phases */}
+          <div className="formula-pipeline">
+            {formula.phases.length === 0 ? (
+              <div className="formula-empty-state">
+                <p>Aucune phase configurée.</p>
+                <p>Utilisez les boutons ci-dessus pour ajouter des phases.</p>
+              </div>
+            ) : (
+              formula.phases.map((node, index) => (
+                <React.Fragment key={node.id}>
+                  <FormulaPhaseCard
+                    node={node}
+                    index={index}
+                    inputFencers={computeInputFencers(formula.phases, index, fencerCount)}
+                    onUpdate={updated => updatePhase(index, updated)}
+                    onRemove={() => removePhase(index)}
+                    readOnly={readOnly}
+                    canMoveUp={index > 0}
+                    canMoveDown={index < formula.phases.length - 1}
+                    onMoveUp={() => movePhase(index, index - 1)}
+                    onMoveDown={() => movePhase(index, index + 1)}
+                  />
+                  {index < formula.phases.length - 1 && <div className="phase-connector">↓</div>}
+                </React.Fragment>
+              ))
+            )}
+          </div>
 
-          <div className="formula-notes-group">
-            <label className="form-label">Notes</label>
-            <textarea
-              className="form-input formula-notes-input"
-              value={formula.notes ?? ''}
-              onChange={e => updateNotes(e.target.value)}
-              placeholder="Notes sur la formule (optionnel)"
-              rows={3}
-              disabled={readOnly}
-            />
+          {/* Simulation temps réel */}
+          <div className="formula-simulation-panel">
+            <FormulaSimulationPreview simulation={simulation} fencerCount={fencerCount} />
+
+            <div className="formula-notes-group">
+              <label className="form-label">Notes</label>
+              <textarea
+                className="form-input formula-notes-input"
+                value={formula.notes ?? ''}
+                onChange={e => updateNotes(e.target.value)}
+                placeholder="Notes sur la formule (optionnel)"
+                rows={3}
+                disabled={readOnly}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Modals */}
       {templateModal && (

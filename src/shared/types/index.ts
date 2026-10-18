@@ -466,6 +466,9 @@ export interface FormulaPhaseNode {
   config: CustomPoolRoundConfig | CustomDEConfig;
 }
 
+/** Modes spéciaux de l'arme « À la carte » (#1118) */
+export type CompetitionSpecialMode = 'rapieres';
+
 export interface CustomFormulaConfig {
   version: 1;
   phases: FormulaPhaseNode[];
@@ -610,6 +613,7 @@ export interface CompetitionSettings {
   blackCardEnabled?: boolean; // Carton noir activé sur les tablettes (défaut: false)
   trainerCommentsEnabled?: boolean; // Saisie distante formateurs : commentaires d'arbitrage (#989)
   customFormula?: CustomFormulaConfig; // Formule à la carte (arme CUSTOM uniquement)
+  specialMode?: CompetitionSpecialMode; // Mode spécial (arme CUSTOM) : tournoi des rapières (#1118)
   playAllPositions?: boolean; // Jouer toutes les places (tableaux de classement)
   expertMode?: boolean; // Mode expert : édition avancée des pistes et arbitres
   maxRefereesPerPool?: number; // Nombre max d'arbitres par poule (mode expert)

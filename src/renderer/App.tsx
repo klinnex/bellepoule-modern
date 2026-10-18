@@ -19,11 +19,12 @@ import {
   Wifi,
   Tv2,
 } from 'lucide-react';
-import { Competition, PhaseType } from '../shared/types';
+import { Competition, PhaseType, Weapon } from '../shared/types';
 import type { CompetitionCreateData } from '../shared/types/preload';
 import { logger, LogCategory } from '@shared/services/logger';
 import CompetitionList from './components/CompetitionList';
 const CompetitionView = React.lazy(() => import('./components/CompetitionView'));
+const RapieresView = React.lazy(() => import('../features/rapieres/RapieresView'));
 const CommandPalette = React.lazy(() => import('./components/CommandPalette'));
 const NewCompetitionModal = React.lazy(() => import('./components/NewCompetitionModal'));
 const ReportIssueModal = React.lazy(() => import('./components/ReportIssueModal'));
@@ -917,17 +918,22 @@ const AppContent: React.FC = () => {
           {view === 'competition' && currentCompetition && activeTabId && (
             <CompetitionErrorBoundary key={currentCompetition.id}>
               <Suspense fallback={<CompetitionViewSkeleton />}>
-                <CompetitionView
-                  competition={currentCompetition}
-                  onUpdate={handleUpdateCompetition}
-                  requestPhase={requestedPhase ?? undefined}
-                  onPhaseApplied={() => setRequestedPhase(null)}
-                  onRemoteServerChange={(url, count) => {
-                    setRemoteServerUrl(url);
-                    setRemoteArenaCount(count);
-                  }}
-                  onOpenCompetition={handleOpenCompetitionById}
-                />
+                {currentCompetition.weapon === Weapon.CUSTOM &&
+                currentCompetition.settings?.specialMode === 'rapieres' ? (
+                  <RapieresView competition={currentCompetition} />
+                ) : (
+                  <CompetitionView
+                    competition={currentCompetition}
+                    onUpdate={handleUpdateCompetition}
+                    requestPhase={requestedPhase ?? undefined}
+                    onPhaseApplied={() => setRequestedPhase(null)}
+                    onRemoteServerChange={(url, count) => {
+                      setRemoteServerUrl(url);
+                      setRemoteArenaCount(count);
+                    }}
+                    onOpenCompetition={handleOpenCompetitionById}
+                  />
+                )}
               </Suspense>
             </CompetitionErrorBoundary>
           )}
