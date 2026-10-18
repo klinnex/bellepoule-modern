@@ -575,6 +575,71 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('score max et repos issus des paramètres (#1125 #1134)', () => {
+    function limit(match: any): number {
+      return (server as any).getScoreLimit(match);
+    }
+
+    beforeEach(() => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+      vi.spyOn(server as any, 'broadcastArenaUpdate').mockImplementation(() => {});
+    });
+
+    it('épée : score max poules / tableau des propriétés, pas 15', () => {
+      mockDb.getCompetition.mockReturnValue({
+        id: 'comp-1',
+        weapon: 'E',
+        settings: { defaultPoolMaxScore: 21, defaultTableMaxScore: 21, restTimeSeconds: 45 },
+      });
+      server.refreshCompetitionSettings();
+      expect(limit({ id: 'p1', poolId: 'pool-1' })).toBe(21);
+      expect(limit({ id: 't1', isTableau: true })).toBe(21);
+      expect((server as any).sessionRestSeconds).toBe(45);
+    });
+
+    it('formule personnalisée : score max du tableau appliqué aux matchs de tableau', () => {
+      mockDb.getCompetition.mockReturnValue({
+        id: 'comp-1',
+        weapon: 'C',
+        settings: {
+          defaultPoolMaxScore: 5,
+          defaultTableMaxScore: 15,
+          customFormula: {
+            phases: [
+              { id: 'p', type: 'pool_round', config: { maxScore: 7 } },
+              { id: 'd', type: 'direct_elimination', config: { maxScore: 11 } },
+            ],
+          },
+        },
+      });
+      server.refreshCompetitionSettings();
+      expect(limit({ id: 'p1', poolId: 'pool-1' })).toBe(7);
+      expect(limit({ id: 't1', isTableau: true })).toBe(11);
+    });
+
+    it('tableau illimité (0) : pas de notification de fin', () => {
+      mockDb.getCompetition.mockReturnValue({
+        id: 'comp-1',
+        weapon: 'F',
+        settings: { defaultPoolMaxScore: 5, defaultTableMaxScore: 0, restTimeSeconds: 0 },
+      });
+      server.refreshCompetitionSettings();
+      expect(limit({ id: 't1', isTableau: true })).toBe(Infinity);
+      expect((server as any).sessionRestSeconds).toBe(0);
+    });
+
+    it('Laser Sabre : 15 inchangé', () => {
+      mockDb.getCompetition.mockReturnValue({
+        id: 'comp-1',
+        weapon: 'L',
+        settings: { defaultPoolMaxScore: 5, defaultTableMaxScore: 21 },
+      });
+      server.refreshCompetitionSettings();
+      (server as any).sessionWeapon = 'L';
+      expect(limit({ id: 't1', isTableau: true })).toBe(15);
+    });
+  });
+
   describe('piste assignée aux poules (pool.strip)', () => {
     const f = (id: string) => ({ id, firstName: id, lastName: id });
     const poolMatches = (poolId: string) => [

@@ -93,16 +93,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 11 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 123 |
-| `src/main/` | 6 | 119 |
+| `src/main/` | 6 | 123 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 146 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **136** | **1406** |
+| **Total** | **136** | **1410** |
 
-Unitaires : 128 fichiers, 1375 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 128 fichiers, 1379 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1930,7 +1930,7 @@ Unitaires : 128 fichiers, 1375 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 88 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 92 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -1973,6 +1973,11 @@ Unitaires : 128 fichiers, 1375 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - **carton noir (paramètre compétition)**
     - désactivé par défaut et exposé via /api/session
     - updateBlackCardEnabled active le flag et le diffuse aux arènes
+  - **score max et repos issus des paramètres (#1125 #1134)**
+    - épée : score max poules / tableau des propriétés, pas 15
+    - formule personnalisée : score max du tableau appliqué aux matchs de tableau
+    - tableau illimité (0) : pas de notification de fin
+    - Laser Sabre : 15 inchangé
   - **piste assignée aux poules (pool.strip)**
     - poule assignée piste 3 → match sur arena3, pas arena1
     - piste au-delà du nombre configuré → arènes étendues

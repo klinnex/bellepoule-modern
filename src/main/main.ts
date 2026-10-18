@@ -1112,6 +1112,8 @@ ipcMain.handle('db:updateCompetition', async (_, id, updates) => {
   if (blackCard !== undefined) {
     remoteServers.get(id)?.server.updateBlackCardEnabled(blackCard === true);
   }
+  // Score max / chronos / repos modifiés : tablettes à jour sans relancer la session (#1134)
+  if (updates?.settings) remoteServers.get(id)?.server.refreshCompetitionSettings();
   return result;
 });
 

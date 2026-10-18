@@ -486,6 +486,35 @@
         position: relative;
       }
 
+      .timer-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+      }
+
+      .rest-btn {
+        padding: 0.6rem 1rem;
+        margin-bottom: 0.75rem;
+        border: 2px solid #38bdf8;
+        border-radius: 0.75rem;
+        background: rgba(56, 189, 248, 0.15);
+        color: #38bdf8;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+      .rest-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      .rest-btn.active {
+        background: #38bdf8;
+        color: #0f172a;
+      }
+
       .timer-display:hover {
         background: rgba(255, 255, 255, 0.1);
       }
@@ -1462,7 +1491,18 @@
           >
             ⚡ MORT SUBITE – Zone C uniquement !
           </div>
-          <div class="timer-display" id="timer-display">03:00</div>
+          <div class="timer-row">
+            <button
+              id="btn-rest"
+              class="rest-btn"
+              style="display: none"
+              disabled
+              onclick="refereeApp.startRest()"
+            >
+              Repos
+            </button>
+            <div class="timer-display" id="timer-display">03:00</div>
+          </div>
           <div
             id="sudden-death-label"
             data-i18n="referee.supplementary_time"
@@ -1926,8 +1966,10 @@
           this.isLaserSabre = false;
           this.customScoring = null; // Système de score de la formule personnalisée (#1125)
           this.isModernFencing = false; // Épée, fleuret, sabre (règles olympiques)
+          this.restSeconds = 0; // Repos entre périodes (paramètre compétition, 0 = désactivé, #1134)
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.isResting = false;
           this.overtimeType = null; // 'supplementary' | 'challenger' | null
           this.coinFlipWinner = null; // 'A' | 'B' | null — vainqueur par tirage au sort
           this._pendingBlackCardFencer = null; // fenceur en attente de carton noir
@@ -2487,6 +2529,7 @@
           this.timerSeconds = this.defaultTimerSeconds;
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.isResting = false;
           this.overtimeType = null;
           this.actionHistory = [];
           this.swapped = false;
@@ -3352,6 +3395,10 @@
               if (this.timerSeconds === 0) {
                 this.stopTimer();
                 if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+                if (this.isResting) {
+                  this.endRest();
+                  return;
+                }
                 const _sdDisabled = this.trainingCustomRules && this.trainingCustomRules.disableSuddenDeath;
                 if (!_sdDisabled && this.scoreA === this.scoreB &&
                     (!this.isSuddenDeath || this.overtimeType === 'challenger')) {
@@ -3368,6 +3415,47 @@
           }, 1000);
         }
 
+        // Repos (escrime olympique) : chrono à 00:00, met le temps de repos sans fin de match (#1134)
+        canStartRest() {
+          return (
+            this.isModernFencing &&
+            this.restSeconds > 0 &&
+            !!this.currentMatch &&
+            this.matchStatus === 'in_progress' &&
+            this.timerSeconds === 0 &&
+            !this.timerRunning &&
+            !this.isResting
+          );
+        }
+
+        updateRestButton() {
+          const btn = document.getElementById('btn-rest');
+          if (!btn) return;
+          btn.style.display = this.isModernFencing && this.restSeconds > 0 ? '' : 'none';
+          btn.disabled = !this.canStartRest();
+          btn.classList.toggle('active', this.isResting);
+        }
+
+        startRest() {
+          if (!this.canStartRest()) return;
+          this.waitingOvertimeStart = false;
+          this.isResting = true;
+          this.timerSeconds = this.restSeconds;
+          this.updateControlButtons();
+          this.startTimer();
+          this.showNotification('☕ Repos');
+        }
+
+        // Fin du repos : le chrono retrouve sa durée initiale, le match continue
+        endRest() {
+          this.isResting = false;
+          this.timerSeconds = this.defaultTimerSeconds;
+          this.updateTimerDisplay();
+          this.broadcastTimerUpdate();
+          this.updateControlButtons();
+          this.showNotification('⏰ Fin du repos');
+        }
+
         pauseTimer() {
           this.stopTimer();
           this.updateTimerDisplay();
@@ -3381,12 +3469,14 @@
           }
           this.timerRunning = false;
           this.updateBackButton();
+          this.updateRestButton();
         }
 
         resetTimer() {
           this.stopTimer();
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.isResting = false;
           this.overtimeType = null;
           this.timerSeconds = this.defaultTimerSeconds;
           this._ttsAnnouncedSeconds = new Set();
@@ -3509,6 +3599,7 @@
 
         launchSuddenDeath() {
           this.waitingOvertimeStart = false;
+          this.isResting = false;
           this.triggerSuddenDeath();
         }
 
@@ -3590,6 +3681,7 @@
 
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.isResting = false;
           this.overtimeType = null;
           this.updateSuddenDeathUI();
           this.matchStatus = 'finished';
@@ -3658,6 +3750,7 @@
 
           // Affichage mort subite (synchronise label + état boutons)
           this.updateSuddenDeathUI();
+          this.updateRestButton();
         }
 
         broadcastTimerUpdate() {
@@ -3816,6 +3909,7 @@
               this.timerSeconds = this.defaultTimerSeconds;
               this.isSuddenDeath = false;
               this.waitingOvertimeStart = false;
+              this.isResting = false;
               this.overtimeType = null;
               this.updateTimerDisplay();
               document.getElementById('active-match').classList.remove('visible');
@@ -3973,6 +4067,7 @@
 
           finishBtn.disabled = this.matchStatus !== 'in_progress';
           this.updateScoreButtons();
+          this.updateRestButton();
         }
 
         updateScoreButtons() {
@@ -4015,6 +4110,10 @@
 
           if (data.timerDuration !== undefined && data.timerDuration > 0) {
             this.defaultTimerSeconds = data.timerDuration;
+          }
+          if (typeof data.restSeconds === 'number') {
+            this.restSeconds = Math.max(0, data.restSeconds);
+            this.updateRestButton();
           }
 
           if (data.trainingCustomRules !== undefined) {
@@ -4145,6 +4244,7 @@
           this.matchStatus = 'not_started';
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.isResting = false;
           this.overtimeType = null;
           this.actionHistory = [];
           this.timerSeconds = this.defaultTimerSeconds;

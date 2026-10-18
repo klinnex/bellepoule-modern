@@ -83,6 +83,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   const [tableTimerSeconds, setTableTimerSeconds] = useState(
     competition.settings?.defaultTableTimerSeconds ?? 180
   );
+  const [restTimeSeconds, setRestTimeSeconds] = useState(
+    competition.settings?.restTimeSeconds ?? 60
+  );
 
   const [refereeFeatureEnabled, setRefereeFeatureEnabled] = useState(
     competition.settings?.refereeFeatureEnabled ?? false
@@ -167,6 +170,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       defaultTableMaxScore: tableMaxScore,
       defaultPoolTimerSeconds: poolTimerSeconds,
       defaultTableTimerSeconds: tableTimerSeconds,
+      restTimeSeconds,
       manualRanking: competition.settings?.manualRanking ?? false,
       defaultRanking: competition.settings?.defaultRanking ?? 9999,
       randomScore: competition.settings?.randomScore ?? false,
@@ -198,6 +202,8 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   };
 
   const isCustomWeapon = weapon === Weapon.CUSTOM;
+  const isOlympicWeapon =
+    weapon === Weapon.EPEE || weapon === Weapon.FOIL || weapon === Weapon.SABRE;
 
   function renderStandardFormula() {
     if (isCustomWeapon) return null;
@@ -303,6 +309,25 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               {`${Math.floor(poolTimerSeconds / 60)}min ${poolTimerSeconds % 60}s par match de poule`}
             </small>
           </div>
+          {isOlympicWeapon && (
+            <div className="form-group">
+              <label htmlFor="restTimeSeconds">Temps de repos (secondes)</label>
+              <input
+                type="number"
+                id="restTimeSeconds"
+                className="form-input"
+                value={restTimeSeconds}
+                onChange={e => setRestTimeSeconds(Math.max(0, parseInt(e.target.value) || 0))}
+                min="0"
+                placeholder="60"
+              />
+              <small style={HINT}>
+                {restTimeSeconds === 0
+                  ? '0 = bouton « Repos » désactivé'
+                  : 'Bouton « Repos » de la tablette arbitre, quand le chrono arrive à 00:00'}
+              </small>
+            </div>
+          )}
           {hasDirectElimination && (
             <>
               <div className="form-group">

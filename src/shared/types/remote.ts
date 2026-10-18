@@ -175,6 +175,7 @@ export interface ArenaUpdate {
   blackCardEnabled?: boolean; // carton noir activé (paramètre compétition)
   referees?: RemoteReferee[]; // liste de tous les arbitres de la compétition
   timerDuration?: number; // durée du chrono en secondes pour ce match
+  restSeconds?: number; // durée du repos entre périodes (escrime olympique, 0 = désactivé)
   poolComplete?: boolean; // vrai quand tous les matchs de la poule sont terminés
   completedPoolId?: string; // id de la poule terminée
   refereeSelected?: boolean; // vrai quand l'arbitre a explicitement sélectionné le match

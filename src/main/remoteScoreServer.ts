@@ -25,6 +25,7 @@ import {
 } from '../shared/types/remote';
 import {
   CardReason,
+  Competition,
   CustomScoringConfig,
   Match,
   MatchStatus,
@@ -97,6 +98,10 @@ export class RemoteScoreServer {
   private sessionWeapon: string | null = null; // Type d'arme de la compétition (L = Laser)
   private sessionPoolTimerSeconds: number = 180; // Durée chrono poules
   private sessionTableTimerSeconds: number = 180; // Durée chrono tableau
+  // Score max (paramètres / formule) : null = inconnu (15), 0 ou ≥ 999 = illimité (#1134)
+  private sessionPoolMaxScore: number | null = null;
+  private sessionTableMaxScore: number | null = null;
+  private sessionRestSeconds: number = 0; // Repos entre périodes (escrime olympique, 0 = désactivé)
   private sessionMatches: any[] = []; // Matches passés depuis le renderer
   private sessionPoolArenas = new Map<string, number>(); // poolId → piste prévue (#1078)
   // Durées réelles (ms) des derniers matchs terminés sur les arènes (#1077)
@@ -1071,6 +1076,7 @@ export class RemoteScoreServer {
             timerDuration: isPoolMatch
               ? this.sessionPoolTimerSeconds
               : this.sessionTableTimerSeconds,
+            restSeconds: this.sessionRestSeconds,
             ...(this.isTrainingMode && this.trainingCustomRules
               ? { trainingCustomRules: this.trainingCustomRules }
               : {}),
@@ -2626,13 +2632,16 @@ export class RemoteScoreServer {
     this.checkAndAutoFinishMatch(arenaId, scoreA, scoreB, previousScoreA, previousScoreB);
   }
 
-  /** Score max du match : formule personnalisée (#1125), sinon 15 (Laser Sabre) */
-  private getScoreLimit(matchId: string): number {
-    if (this.sessionWeapon === Weapon.CUSTOM) {
-      const max = this.sessionMatches.find(m => m.id === matchId)?.maxScore;
-      if (typeof max === 'number' && max > 0) return max;
-    }
-    return 15;
+  /** Score max du match : paramètres de la compétition / formule (#1125 #1134), 15 en Laser Sabre */
+  private getScoreLimit(match: ArenaMatch): number {
+    if (this.sessionWeapon === Weapon.LASER) return 15;
+    const sessionMatch = this.sessionMatches.find(m => m.id === match.id);
+    const isTableau = match.isTableau || sessionMatch?.isTableau;
+    const max = isTableau
+      ? this.sessionTableMaxScore
+      : (this.sessionPoolMaxScore ?? sessionMatch?.maxScore);
+    if (typeof max !== 'number') return 15;
+    return max <= 0 || max >= 999 ? Infinity : max;
   }
 
   private checkAndAutoFinishMatch(
@@ -2646,7 +2655,7 @@ export class RemoteScoreServer {
     if (!arena || arena.status === 'finished' || !arena.currentMatch) return;
 
     // Notifier la tablette arbitre uniquement quand un tireur franchit le seuil de 15 points
-    const SCORE_LIMIT = this.getScoreLimit(arena.currentMatch.id);
+    const SCORE_LIMIT = this.getScoreLimit(arena.currentMatch);
     const justCrossed =
       (scoreA >= SCORE_LIMIT && previousScoreA < SCORE_LIMIT) ||
       (scoreB >= SCORE_LIMIT && previousScoreB < SCORE_LIMIT);
@@ -3479,6 +3488,7 @@ export class RemoteScoreServer {
       blackCardEnabled: this.sessionBlackCardEnabled,
       referees: this.getSessionReferees(),
       timerDuration: isPoolMatch ? this.sessionPoolTimerSeconds : this.sessionTableTimerSeconds,
+      restSeconds: this.sessionRestSeconds,
       refereeSelected: this.arenaRefereeSelected.get(arenaId) ?? false,
     };
 
@@ -3796,9 +3806,7 @@ export class RemoteScoreServer {
             de: formulaPhases.find(p => p.type === 'direct_elimination')?.config.scoring,
           }
         : null;
-    const effectiveSettings = resolveCompetitionSettings(competition.weapon, competition.settings);
-    this.sessionPoolTimerSeconds = effectiveSettings?.defaultPoolTimerSeconds ?? 180;
-    this.sessionTableTimerSeconds = effectiveSettings?.defaultTableTimerSeconds ?? 180;
+    this.applyCompetitionSettings(competition);
     console.log(`[RemoteScoreServer] Type d'arme de la compétition: ${this.sessionWeapon}`);
 
     // Auto-detect number of strips from pool count if not specified or too small.
@@ -4162,6 +4170,9 @@ export class RemoteScoreServer {
     const duration = customRules?.matchDurationSeconds ?? 180;
     this.sessionPoolTimerSeconds = duration;
     this.sessionTableTimerSeconds = duration;
+    this.sessionPoolMaxScore = null;
+    this.sessionTableMaxScore = null;
+    this.sessionRestSeconds = 0;
     this.trainingCustomRules = {
       matchDurationSeconds: duration,
       allowedZones: customRules?.allowedZones ?? [],
@@ -4304,6 +4315,33 @@ export class RemoteScoreServer {
         status: arena.status,
         fencerA: arena.currentMatch?.fencerA,
         fencerB: arena.currentMatch?.fencerB,
+      });
+    }
+  }
+
+  /** Chronos, score max et repos issus des réglages effectifs de la compétition (#1134) */
+  private applyCompetitionSettings(competition: Competition): void {
+    const settings = resolveCompetitionSettings(competition.weapon, competition.settings);
+    this.sessionPoolTimerSeconds = settings?.defaultPoolTimerSeconds ?? 180;
+    this.sessionTableTimerSeconds = settings?.defaultTableTimerSeconds ?? 180;
+    this.sessionPoolMaxScore = settings?.defaultPoolMaxScore ?? null;
+    this.sessionTableMaxScore = settings?.defaultTableMaxScore ?? null;
+    this.sessionRestSeconds = Math.max(0, settings?.restTimeSeconds ?? 60);
+  }
+
+  /** Relit les réglages de la compétition à chaud (propriétés modifiées en cours de session) */
+  public refreshCompetitionSettings(): void {
+    if (!this.session || this.isTrainingMode) return;
+    const competition = this.db.getCompetition(this.session.competitionId);
+    if (!competition) return;
+    this.applyCompetitionSettings(competition);
+    for (const [arenaId, arena] of this.arenas.entries()) {
+      this.broadcastArenaUpdate(arenaId, {
+        arenaId,
+        match: arena.currentMatch,
+        scoreA: arena.currentMatch?.scoreA,
+        scoreB: arena.currentMatch?.scoreB,
+        status: arena.status,
       });
     }
   }
