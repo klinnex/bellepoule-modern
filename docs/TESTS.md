@@ -79,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 33 | 533 |
+| `src/shared/utils/` | 34 | 539 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -91,17 +91,17 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 3 | 121 |
-| `src/main/` | 6 | 118 |
+| `src/database/` | 3 | 123 |
+| `src/main/` | 6 | 119 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 146 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **133** | **1386** |
+| **Total** | **134** | **1395** |
 
-Unitaires : 125 fichiers, 1355 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 126 fichiers, 1364 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -256,6 +256,19 @@ Unitaires : 125 fichiers, 1355 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - ne détecte pas de conflit si timestamps identiques
   - gère les listes vides
   - cas complexe avec tous types
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 6 tests</summary>
+
+- **customFormulaSettings (#1125)**
+  - dérive score max, chrono, tours et 3e place de la formule
+  - la formule prime sur les réglages par défaut (arme CUSTOM seulement)
+  - vainqueurs de poule → poolWinnersOnly
+  - règles de qualification par tour et vers le tableau
+  - nombre de qualifiés
+  - applique la coupure au classement du tableau, égalités retenues
 
 </details>
 
@@ -1650,11 +1663,13 @@ Unitaires : 125 fichiers, 1355 tests. E2E : 8 fichiers, 31 tests (comptage stati
 ### `src/database/`
 
 <details>
-<summary><code>src/database/competitionArchive.test.ts</code> — 2 tests</summary>
+<summary><code>src/database/competitionArchive.test.ts</code> — 4 tests</summary>
 
 - **competitionArchive (#1117)**
   - keepOnlyCompetition ne garde que la compétition demandée
   - mergeAttachedDatabase importe la compétition et remplace l'état existant
+  - mergeAttachedDatabase purge les orphelins au lieu d'échouer (FOREIGN KEY)
+  - keepOnlyCompetition retire poules et matchs des autres compétitions
 
 </details>
 
@@ -1855,7 +1870,7 @@ Unitaires : 125 fichiers, 1355 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/fencerSchedule.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/remote/fencerSchedule.test.ts</code> — 9 tests</summary>
 
 - **buildFencerSchedule (#1078)**
   - liste les matchs du tireur avec scores de son point de vue
@@ -1867,6 +1882,7 @@ Unitaires : 125 fichiers, 1355 tests. E2E : 8 fichiers, 31 tests (comptage stati
     - sépare poules et tableau, tableau trié par tour
     - prochain match de tableau : piste assignée au match
     - piste du match en cours prioritaire sur la piste prévue
+    - piste prévue de la poule quand aucune arène ne la joue encore (#1078)
 
 </details>
 

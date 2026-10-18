@@ -30,6 +30,7 @@ import {
 } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { createDefaultCustomFormula } from '../../shared/utils/tournamentTemplates';
+import { deriveSettingsFromFormula } from '../../shared/utils/customFormulaSettings';
 import { FormulaBuilder } from './formula/FormulaBuilder';
 
 interface CompetitionPropertiesModalProps {
@@ -179,6 +180,8 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       ...(weapon === Weapon.CUSTOM ? { customFormula } : {}),
       poolWinnersOnly,
       ...(postPoolSplitCriteria ? { postPoolSplitCriteria } : { postPoolSplitCriteria: undefined }),
+      // Formule personnalisée : ses réglages priment (#1125)
+      ...(weapon === Weapon.CUSTOM ? deriveSettingsFromFormula(customFormula) : {}),
     };
 
     onSave({

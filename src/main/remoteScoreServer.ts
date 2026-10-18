@@ -23,9 +23,18 @@ import {
   ThemeTargetType,
   MatchSignatureRequest,
 } from '../shared/types/remote';
-import { CardReason, Match, MatchStatus, FencerStatus, Score, Weapon } from '../shared/types';
+import {
+  CardReason,
+  CustomScoringConfig,
+  Match,
+  MatchStatus,
+  FencerStatus,
+  Score,
+  Weapon,
+} from '../shared/types';
 import { DatabaseManager } from '../database';
 import { estimatePhaseEta } from '../shared/utils/phaseEta';
+import { resolveCompetitionSettings } from '../shared/utils/customFormulaSettings';
 import {
   PASSWORD_MIN_LENGTH,
   isLocalNetworkOrigin,
@@ -89,6 +98,7 @@ export class RemoteScoreServer {
   private sessionPoolTimerSeconds: number = 180; // Durée chrono poules
   private sessionTableTimerSeconds: number = 180; // Durée chrono tableau
   private sessionMatches: any[] = []; // Matches passés depuis le renderer
+  private sessionPoolArenas = new Map<string, number>(); // poolId → piste prévue (#1078)
   // Durées réelles (ms) des derniers matchs terminés sur les arènes (#1077)
   private recentMatchDurationsMs: number[] = [];
   private arenaNextMatchIndex: Map<string, number> = new Map(); // Index du prochain match par arène
@@ -99,6 +109,9 @@ export class RemoteScoreServer {
   private sessionShowPhotos: boolean = false; // Afficher les photos des combattants avant le combat
   private sessionCardAnnounce: boolean = false; // Annoncer les cartons avec raison sur les affichages
   private sessionRefereeFeatureEnabled: boolean = false; // Fonctionnalité gestion arbitres activée
+  // Système de score de la formule personnalisée (arme CUSTOM) : tablettes poules / tableau (#1125)
+  private sessionCustomScoring: { pool?: CustomScoringConfig; de?: CustomScoringConfig } | null =
+    null;
   private sessionBlackCardEnabled: boolean = false; // Carton noir activé (paramètre compétition)
   private sessionBlackCards: Map<string, BlackCardRecord> = new Map(); // fencerId → carton noir annulable
   private sessionTheme: DisplayTheme = 'dark'; // Thème visuel de l'affichage distant (global)
@@ -783,6 +796,9 @@ export class RemoteScoreServer {
       get arenas() {
         return self.arenas;
       },
+      get sessionPoolArenas() {
+        return self.sessionPoolArenas;
+      },
       get sessionMatches() {
         return self.sessionMatches;
       },
@@ -890,6 +906,7 @@ export class RemoteScoreServer {
       currentLang: { get: () => self.currentLang },
       socketIoClientJs: { get: () => self.socketIoClientJs },
       sessionWeapon: { get: () => self.sessionWeapon },
+      sessionCustomScoring: { get: () => self.sessionCustomScoring },
       sessionKioskViews: { get: () => self.sessionKioskViews },
       orgNote: { get: () => self.orgNote },
       sessionLogo: { get: () => self.sessionLogo },
@@ -2609,6 +2626,15 @@ export class RemoteScoreServer {
     this.checkAndAutoFinishMatch(arenaId, scoreA, scoreB, previousScoreA, previousScoreB);
   }
 
+  /** Score max du match : formule personnalisée (#1125), sinon 15 (Laser Sabre) */
+  private getScoreLimit(matchId: string): number {
+    if (this.sessionWeapon === Weapon.CUSTOM) {
+      const max = this.sessionMatches.find(m => m.id === matchId)?.maxScore;
+      if (typeof max === 'number' && max > 0) return max;
+    }
+    return 15;
+  }
+
   private checkAndAutoFinishMatch(
     arenaId: string,
     scoreA: number,
@@ -2620,7 +2646,7 @@ export class RemoteScoreServer {
     if (!arena || arena.status === 'finished' || !arena.currentMatch) return;
 
     // Notifier la tablette arbitre uniquement quand un tireur franchit le seuil de 15 points
-    const SCORE_LIMIT = 15;
+    const SCORE_LIMIT = this.getScoreLimit(arena.currentMatch.id);
     const justCrossed =
       (scoreA >= SCORE_LIMIT && previousScoreA < SCORE_LIMIT) ||
       (scoreB >= SCORE_LIMIT && previousScoreB < SCORE_LIMIT);
@@ -3762,8 +3788,17 @@ export class RemoteScoreServer {
 
     // Stocker le type d'arme pour l'arrêt automatique à 15 points en Laser Sabre
     this.sessionWeapon = competition.weapon || null;
-    this.sessionPoolTimerSeconds = competition.settings?.defaultPoolTimerSeconds ?? 180;
-    this.sessionTableTimerSeconds = competition.settings?.defaultTableTimerSeconds ?? 180;
+    const formulaPhases = competition.settings?.customFormula?.phases ?? [];
+    this.sessionCustomScoring =
+      this.sessionWeapon === Weapon.CUSTOM
+        ? {
+            pool: formulaPhases.find(p => p.type === 'pool_round')?.config.scoring,
+            de: formulaPhases.find(p => p.type === 'direct_elimination')?.config.scoring,
+          }
+        : null;
+    const effectiveSettings = resolveCompetitionSettings(competition.weapon, competition.settings);
+    this.sessionPoolTimerSeconds = effectiveSettings?.defaultPoolTimerSeconds ?? 180;
+    this.sessionTableTimerSeconds = effectiveSettings?.defaultTableTimerSeconds ?? 180;
     console.log(`[RemoteScoreServer] Type d'arme de la compétition: ${this.sessionWeapon}`);
 
     // Auto-detect number of strips from pool count if not specified or too small.
@@ -3936,6 +3971,8 @@ export class RemoteScoreServer {
       usedStrips.add(nextFreeStrip);
     }
 
+    this.sessionPoolArenas = poolArenaMap;
+
     for (const [poolId, poolMatches] of sortedPoolEntries) {
       const arenaNumber = poolArenaMap.get(poolId);
       if (!arenaNumber) continue;
@@ -4095,6 +4132,7 @@ export class RemoteScoreServer {
     this.trainingCustomRules = null;
     this.session = null;
     this.sessionMatches = [];
+    this.sessionPoolArenas = new Map();
     this.arenaMatchQueue.clear();
     this.arenaNextMatchIndex.clear();
     this.poolMatchArenaOverrides.clear();
@@ -4120,6 +4158,7 @@ export class RemoteScoreServer {
     this.isTrainingMode = true;
     this.trainingHistory = [];
     this.sessionWeapon = weapon;
+    this.sessionCustomScoring = null;
     const duration = customRules?.matchDurationSeconds ?? 180;
     this.sessionPoolTimerSeconds = duration;
     this.sessionTableTimerSeconds = duration;

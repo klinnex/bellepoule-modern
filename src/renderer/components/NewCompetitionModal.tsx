@@ -8,6 +8,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { Competition, CustomFormulaConfig, Weapon, Gender, Category } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { createDefaultCustomFormula } from '../../shared/utils/tournamentTemplates';
+import { deriveSettingsFromFormula } from '../../shared/utils/customFormulaSettings';
 import { FormulaBuilder } from './formula/FormulaBuilder';
 
 interface NewCompetitionModalProps {
@@ -65,6 +66,8 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
             randomScore: false,
             customFormula,
             ...teamSettings,
+            // Réglages issus de la formule personnalisée (#1125)
+            ...deriveSettingsFromFormula(customFormula),
           }
         : isTeamEvent
           ? {

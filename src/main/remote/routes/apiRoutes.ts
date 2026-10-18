@@ -5,6 +5,7 @@
 
 import type express from 'express';
 import type { Arena, ArenaMatch, OrgNote, RemoteSession } from '../../../shared/types/remote';
+import type { CustomScoringConfig } from '../../../shared/types';
 import type { MatchRouteContext } from './matchRoutes';
 
 /** État et opérations utilisés par l'API configuration / session / arènes / poules. */
@@ -15,6 +16,10 @@ export interface ApiRouteContext extends MatchRouteContext {
   readonly currentLang: string;
   readonly socketIoClientJs: string | null;
   readonly sessionWeapon: string | null;
+  readonly sessionCustomScoring: {
+    pool?: CustomScoringConfig;
+    de?: CustomScoringConfig;
+  } | null;
   readonly sessionKioskViews: Record<string, boolean>;
   readonly orgNote: OrgNote | null;
   readonly sessionLogo: string | null;
@@ -111,6 +116,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
     res.json({
       ...ctx.session,
       weapon: ctx.sessionWeapon,
+      customScoring: ctx.sessionCustomScoring,
       kioskViews: ctx.sessionKioskViews,
       orgNote: ctx.orgNote,
       blackCardEnabled: ctx.sessionBlackCardEnabled,

@@ -53,12 +53,69 @@ const sortByDependencies = (db: Db, tables: string[]): string[] => {
 };
 
 /**
+ * Supprime les lignes orphelines (clé étrangère vers un parent absent) jusqu'à stabilité.
+ * Un .bpm peut en contenir (export depuis une base déjà incohérente) : sans purge,
+ * le contrôle différé échoue au commit (« FOREIGN KEY constraint failed »).
+ */
+const pruneForeignKeyViolations = (db: Db): void => {
+  for (let pass = 0; pass < 10; pass++) {
+    const violations = db.prepare('PRAGMA foreign_key_check').all() as {
+      table: string;
+      rowid: number | null;
+    }[];
+    if (violations.length === 0) return;
+    let removed = 0;
+    for (const v of violations) {
+      if (v.rowid == null) continue;
+      removed += db.prepare(`DELETE FROM ${quote(v.table)} WHERE rowid = ?`).run(v.rowid).changes;
+    }
+    if (removed === 0) return;
+  }
+};
+
+/**
+ * Supprime poules, matchs et signatures des autres compétitions : ces tables n'ont
+ * pas de `competition_id`. Sans cela, le .bpm embarque les matchs des autres
+ * compétitions et leur ouverture écrase leurs scores dans la base active.
+ */
+const pruneUnownedRows = (db: Db): void => {
+  const tables = new Set(listTables(db, 'main'));
+  const has = (...names: string[]) => names.every(n => tables.has(n));
+  if (has('pools', 'phases')) {
+    db.exec('DELETE FROM pools WHERE phase_id NOT IN (SELECT id FROM phases)');
+  }
+  if (has('pool_fencers', 'pools')) {
+    db.exec('DELETE FROM pool_fencers WHERE pool_id NOT IN (SELECT id FROM pools)');
+  }
+  if (has('pool_signatures', 'pools')) {
+    db.exec('DELETE FROM pool_signatures WHERE pool_id NOT IN (SELECT id FROM pools)');
+  }
+  if (has('matches', 'pools', 'fencers')) {
+    const bracket = has('bracket_nodes')
+      ? 'OR id IN (SELECT match_id FROM bracket_nodes WHERE match_id IS NOT NULL)'
+      : '';
+    db.exec(
+      `DELETE FROM matches WHERE NOT (
+         COALESCE(pool_id IN (SELECT id FROM pools), 0)
+         OR COALESCE(fencer_a_id IN (SELECT id FROM fencers), 0)
+         OR COALESCE(fencer_b_id IN (SELECT id FROM fencers), 0)
+         ${bracket}
+       )`
+    );
+  }
+  if (has('de_match_signatures', 'matches')) {
+    db.exec('DELETE FROM de_match_signatures WHERE match_id NOT IN (SELECT id FROM matches)');
+  }
+};
+
+/**
  * Réduit une copie de base à une seule compétition : supprime les autres
  * compétitions et toutes les lignes portant un autre `competition_id`.
  */
 export function keepOnlyCompetition(db: Db, competitionId: string): void {
   db.pragma('foreign_keys = ON');
   db.transaction(() => {
+    db.pragma('defer_foreign_keys = ON');
     db.prepare(
       `DELETE FROM pool_signatures WHERE pool_id IN (
          SELECT p.id FROM pools p JOIN phases ph ON p.phase_id = ph.id WHERE ph.competition_id != ?
@@ -71,6 +128,8 @@ export function keepOnlyCompetition(db: Db, competitionId: string): void {
       }
     }
     db.prepare('DELETE FROM competitions WHERE id != ?').run(competitionId);
+    pruneUnownedRows(db);
+    pruneForeignKeyViolations(db);
   })();
 }
 
@@ -110,6 +169,7 @@ export function mergeAttachedDatabase(
          SELECT ${colList} FROM ${schema}.${quote(table)}`
       ).run();
     }
+    pruneForeignKeyViolations(db);
   })();
   return ids;
 }

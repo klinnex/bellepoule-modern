@@ -78,4 +78,48 @@ describe.skipIf(!Database)('competitionArchive (#1117)', () => {
     });
     expect(db.prepare('SELECT COUNT(*) n FROM main.schema_migrations').get()).toEqual({ n: 0 });
   });
+
+  it("mergeAttachedDatabase purge les orphelins au lieu d'échouer (FOREIGN KEY)", () => {
+    const db = new Database(':memory:');
+    db.pragma('foreign_keys = ON');
+    db.exec(SCHEMA);
+    db.exec("ATTACH DATABASE ':memory:' AS src");
+    db.exec(SCHEMA.replace(/CREATE TABLE /g, 'CREATE TABLE src.'));
+    db.prepare("INSERT INTO src.competitions VALUES ('a', 'Compet a')").run();
+    db.prepare("INSERT INTO src.phases VALUES ('ph-a', 'a')").run();
+    // phase orpheline : compétition parente absente de l'archive
+    db.pragma('foreign_keys = OFF');
+    db.prepare("INSERT INTO src.phases VALUES ('ph-x', 'absente')").run();
+    db.pragma('foreign_keys = ON');
+
+    expect(() => mergeAttachedDatabase(db, 'src', () => undefined)).not.toThrow();
+    expect(db.prepare('SELECT id FROM phases').all()).toEqual([{ id: 'ph-a' }]);
+  });
+
+  it('keepOnlyCompetition retire poules et matchs des autres compétitions', () => {
+    const db = new Database(':memory:');
+    db.exec(SCHEMA);
+    db.exec(`
+      CREATE TABLE pool_fencers (pool_id TEXT, fencer_id TEXT, PRIMARY KEY (pool_id, fencer_id));
+      CREATE TABLE matches (id TEXT PRIMARY KEY, pool_id TEXT, fencer_a_id TEXT, fencer_b_id TEXT);
+      CREATE TABLE match_touches (id TEXT PRIMARY KEY, match_id TEXT NOT NULL,
+        FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE);
+    `);
+    for (const id of ['a', 'b']) {
+      seed(db, id, '{}');
+      db.prepare('INSERT INTO pools VALUES (?, ?)').run(`p-${id}`, `ph-${id}`);
+      db.prepare('INSERT INTO pool_fencers VALUES (?, ?)').run(`p-${id}`, `f-${id}`);
+      db.prepare('INSERT INTO matches VALUES (?, ?, ?, ?)').run(`m-${id}`, `p-${id}`, null, null);
+      db.prepare('INSERT INTO matches VALUES (?, ?, ?, ?)').run(`t-${id}`, null, `f-${id}`, null);
+      db.prepare('INSERT INTO match_touches VALUES (?, ?)').run(`mt-${id}`, `m-${id}`);
+    }
+    keepOnlyCompetition(db, 'a');
+    expect(db.prepare('SELECT id FROM pools').all()).toEqual([{ id: 'p-a' }]);
+    expect(db.prepare('SELECT pool_id FROM pool_fencers').all()).toEqual([{ pool_id: 'p-a' }]);
+    expect(db.prepare('SELECT id FROM matches ORDER BY id').all()).toEqual([
+      { id: 'm-a' },
+      { id: 't-a' },
+    ]);
+    expect(db.prepare('SELECT id FROM match_touches').all()).toEqual([{ id: 'mt-a' }]);
+  });
 });

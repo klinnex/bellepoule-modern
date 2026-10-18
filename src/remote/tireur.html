@@ -104,6 +104,27 @@
       .score.loss {
         color: var(--loss);
       }
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+      .tabs button {
+        flex: 1;
+        padding: 8px 0;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--muted);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .tabs button.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #111;
+      }
       .footer {
         color: var(--muted);
         font-size: 0.75rem;
@@ -124,10 +145,12 @@
       <div class="label">
         <span data-i18n="fencer.bouts">Mes matchs</span> <span id="record"></span>
       </div>
-      <div class="label" id="pool-title" data-i18n="fencer.pool_bouts" hidden>Poules</div>
+      <div class="tabs" id="tabs" role="tablist" hidden>
+        <button type="button" id="tab-pool" role="tab" data-tab="pool" data-i18n="fencer.pool_bouts">Poules</button>
+        <button type="button" id="tab-tableau" role="tab" data-tab="tableau" data-i18n="fencer.tableau_bouts">Tableau</button>
+      </div>
       <ul id="matches"></ul>
-      <div class="label" id="tableau-title" data-i18n="fencer.tableau_bouts" hidden>Tableau</div>
-      <ul id="tableau-matches"></ul>
+      <ul id="tableau-matches" hidden></ul>
     </div>
 
     <div class="footer">
@@ -207,19 +230,36 @@
           return li;
         }
 
-        // Matchs de poule et de tableau dans deux listes distinctes (#1078)
+        // Matchs de poule et de tableau : un onglet par phase (#1078)
+        let activeTab = null;
+        function showTab(tab) {
+          activeTab = tab;
+          el('matches').hidden = tab !== 'pool';
+          el('tableau-matches').hidden = tab !== 'tableau';
+          el('tab-pool').classList.toggle('active', tab === 'pool');
+          el('tab-tableau').classList.toggle('active', tab === 'tableau');
+        }
+        el('tab-pool').addEventListener('click', () => showTab('pool'));
+        el('tab-tableau').addEventListener('click', () => showTab('tableau'));
+
         function renderMatches(data) {
           const pools = data.matches.filter(m => m.phase !== 'tableau');
           const tableau = data.matches.filter(m => m.phase === 'tableau');
-          const fill = (listId, titleId, items) => {
+          const fill = (listId, items) => {
             const list = el(listId);
             list.textContent = '';
             for (const m of items) list.appendChild(matchItem(m));
-            el(titleId).hidden =
-              items.length === 0 || (listId === 'matches' && tableau.length === 0);
           };
-          fill('matches', 'pool-title', pools);
-          fill('tableau-matches', 'tableau-title', tableau);
+          fill('matches', pools);
+          fill('tableau-matches', tableau);
+          // Onglets seulement si les deux phases existent ; sinon la seule liste est affichée
+          el('tabs').hidden = pools.length === 0 || tableau.length === 0;
+          if (tableau.length === 0) showTab('pool');
+          else if (pools.length === 0) showTab('tableau');
+          else if (activeTab === null) {
+            // Par défaut : la phase du prochain match, sinon le tableau
+            showTab(data.next && data.next.phase === 'pool' ? 'pool' : 'tableau');
+          } else showTab(activeTab);
           el('record').textContent = '(' + data.victories + 'V / ' + data.defeats + 'D)';
         }
 

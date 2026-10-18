@@ -22,6 +22,9 @@ import { usePagination } from '../hooks/usePagination';
 import { CompetitionCardSkeleton, SkeletonStyles } from './Skeleton';
 import { useConfirm } from './ConfirmDialog';
 
+const OPEN_FILE_LABEL = 'Ouvrir…';
+const OPEN_FILE_TITLE = 'Ouvrir un fichier .bpm, .db ou .cotcot';
+
 interface CompetitionListProps {
   competitions: Competition[];
   isLoading: boolean;
@@ -231,10 +234,10 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                 className="btn btn-secondary btn-lg btn-icon-label"
                 onClick={onOpenFile}
                 style={{ padding: '0.75rem 1.5rem' }}
-                title="Ouvrir un fichier .bpm, .db ou .cotcot"
+                title={OPEN_FILE_TITLE}
               >
                 <FolderOpen size={18} />
-                Ouvrir…
+                {OPEN_FILE_LABEL}
               </button>
             )}
           </div>
@@ -261,9 +264,21 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     <div className="content">
       <div className="flex justify-between items-center mb-4">
         <h1 className="page-title">{t('app.title')}</h1>
-        <button className="btn btn-primary btn-lg" onClick={onNewCompetition}>
-          + {t('menu.new_competition')}
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          {onOpenFile && (
+            <button
+              className="btn btn-secondary btn-lg btn-icon-label"
+              onClick={onOpenFile}
+              title={OPEN_FILE_TITLE}
+            >
+              <FolderOpen size={18} />
+              {OPEN_FILE_LABEL}
+            </button>
+          )}
+          <button className="btn btn-primary btn-lg" onClick={onNewCompetition}>
+            + {t('menu.new_competition')}
+          </button>
+        </div>
       </div>
 
       <div className="competition-grid">
