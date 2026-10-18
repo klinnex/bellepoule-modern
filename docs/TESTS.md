@@ -90,6 +90,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
+| Feature `rapieres` (`src/features/rapieres/`) | 2 | 11 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 123 |
 | `src/main/` | 6 | 119 |
@@ -99,9 +100,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **134** | **1395** |
+| **Total** | **136** | **1406** |
 
-Unitaires : 126 fichiers, 1364 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 128 fichiers, 1375 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1533,6 +1534,37 @@ Unitaires : 126 fichiers, 1364 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **computeOverallRanking**
   - retourne \[\] s’il n’y a pas de poule
   - trie par ratio puis index et réassigne les rangs
+
+</details>
+
+### Feature `rapieres` (`src/features/rapieres/`)
+
+<details>
+<summary><code>src/features/rapieres/RapieresView.test.tsx</code> — 1 test</summary>
+
+- **RapieresView (#1118)**
+  - inscription, poules, vague 1 et saisie des scores
+
+</details>
+
+<details>
+<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 10 tests</summary>
+
+- **Tournoi des rapières (#1118)**
+  - **poules**
+    - poules de 10 équipes au plus, tailles équilibrées
+    - regroupe les équipes de même niveau
+  - **vagues**
+    - ${n} équipes : round-robin complet, toutes les équipes tirent à chaque vague
+    - vague suivante lancée seulement quand la précédente est saisie
+  - **classements**
+    - règle FIE : V/M, indice, touches données ; ex æquo
+    - filtres : niveau et catégorie d’âge (un rang par tireur)
+  - **qualification et tableau**
+    - 3 poules ou moins : 1ers et 2es qualifiés
+    - plus de 3 poules : seulement les 1ers
+    - tableau : exempts, finale, match pour la 3e place, classement final
+    - modifier un score efface les tours suivants
 
 </details>
 
