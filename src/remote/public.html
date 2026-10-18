@@ -940,7 +940,7 @@
           fetch('/api/session')
             .then(r => (r.ok ? r.json() : null))
             .then(s => {
-              if (s && ['E', 'F', 'S'].includes(s.weapon)) {
+              if (s && (['E', 'F', 'S'].includes(s.weapon) || s.modernRules === true)) {
                 const pisteLabel = window.T('remote.piste');
                 document.getElementById('arena-word-label').textContent = pisteLabel;
                 const idleLabel = document.querySelector('.arena-idle-label');

@@ -58,7 +58,21 @@ export function deriveSettingsFromFormula(
   }
   const last = pools[pools.length - 1];
   if (de && last) derived.poolWinnersOnly = last.advancementRule?.mode === 'pool_winner';
+  if (formula.ruleSet === 'modern') {
+    const rest = formula.restTimeSeconds;
+    derived.restTimeSeconds =
+      typeof rest === 'number' && Number.isFinite(rest) ? Math.max(0, rest) : 60;
+  }
   return derived;
+}
+
+/** Règles des armes modernes en match : épée, fleuret, sabre, ou formule personnalisée qui les choisit */
+export function usesModernRules(
+  weapon: Weapon | string | undefined | null,
+  settings: Partial<CompetitionSettings> | undefined
+): boolean {
+  if (weapon === Weapon.EPEE || weapon === Weapon.FOIL || weapon === Weapon.SABRE) return true;
+  return getActiveFormula(weapon ?? undefined, settings)?.ruleSet === 'modern';
 }
 
 /** Réglages effectifs : formule personnalisée appliquée par-dessus les réglages enregistrés */

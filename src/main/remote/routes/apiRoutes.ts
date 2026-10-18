@@ -16,6 +16,7 @@ export interface ApiRouteContext extends MatchRouteContext {
   readonly currentLang: string;
   readonly socketIoClientJs: string | null;
   readonly sessionWeapon: string | null;
+  readonly sessionModernRules: boolean;
   readonly sessionCustomScoring: {
     pool?: CustomScoringConfig;
     de?: CustomScoringConfig;
@@ -117,6 +118,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       ...ctx.session,
       weapon: ctx.sessionWeapon,
       customScoring: ctx.sessionCustomScoring,
+      modernRules: ctx.sessionModernRules,
       kioskViews: ctx.sessionKioskViews,
       orgNote: ctx.orgNote,
       blackCardEnabled: ctx.sessionBlackCardEnabled,

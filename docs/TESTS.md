@@ -79,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 34 | 539 |
+| `src/shared/utils/` | 34 | 541 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,9 +100,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **136** | **1410** |
+| **Total** | **136** | **1412** |
 
-Unitaires : 128 fichiers, 1379 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 128 fichiers, 1381 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -261,7 +261,7 @@ Unitaires : 128 fichiers, 1379 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 6 tests</summary>
+<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 8 tests</summary>
 
 - **customFormulaSettings (#1125)**
   - dérive score max, chrono, tours et 3e place de la formule
@@ -270,6 +270,8 @@ Unitaires : 128 fichiers, 1379 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - règles de qualification par tour et vers le tableau
   - nombre de qualifiés
   - applique la coupure au classement du tableau, égalités retenues
+  - règles armes modernes choisies dans la formule : repos dérivé (défaut 60 s)
+  - usesModernRules : E/F/S toujours, CUSTOM selon la formule, Laser jamais
 
 </details>
 

@@ -474,6 +474,10 @@ export interface CustomFormulaConfig {
   phases: FormulaPhaseNode[];
   formulaName?: string;
   notes?: string;
+  /** Règles appliquées en match : armes modernes (épée, fleuret, sabre) ou Sabre Laser (défaut) (#1125) */
+  ruleSet?: 'modern' | 'laser';
+  /** Repos entre périodes, règles armes modernes (défaut 60, 0 = désactivé) */
+  restTimeSeconds?: number;
 }
 
 export interface FormulaPhaseSimulation {

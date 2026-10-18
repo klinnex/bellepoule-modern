@@ -1574,7 +1574,7 @@
           fetch('/api/session')
             .then(r => (r.ok ? r.json() : null))
             .then(s => {
-              if (s && ['E', 'F', 'S'].includes(s.weapon)) {
+              if (s && (['E', 'F', 'S'].includes(s.weapon) || s.modernRules === true)) {
                 document.querySelectorAll('.arena-word-label').forEach(el => (el.textContent = window.T('remote.piste')));
                 // Temps supplémentaire d'une minute en escrime olympique (#1027)
                 const banner = document.getElementById('sudden-death-banner');
