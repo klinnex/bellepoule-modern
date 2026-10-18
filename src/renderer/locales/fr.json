@@ -418,7 +418,11 @@
     "scoring_standard": "Standard (1 touche = 1 pt)",
     "scoring_zones": "Zones personnalisées",
     "zone_label": "Zone",
-    "zone_points": "Points"
+    "zone_points": "Points",
+    "rule_set": "Règles de la compétition",
+    "rule_set_laser": "Sabre Laser (temps additionnel 30 s, mort subite, cartons Sabre Laser)",
+    "rule_set_modern": "Armes modernes (épée, fleuret, sabre : 1 min supplémentaire, repos, cartons FIE)",
+    "rest_time": "Temps de repos (secondes)"
   },
   "dialogs": {
     "exportScoreHistory": "Exporter le journal des scores",

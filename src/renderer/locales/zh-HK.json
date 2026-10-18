@@ -418,7 +418,11 @@
     "scoring_standard": "標準 (1 劍 = 1 分)",
     "scoring_zones": "自訂區域",
     "zone_label": "區域",
-    "zone_points": "分數"
+    "zone_points": "分數",
+    "rule_set": "比賽規則",
+    "rule_set_laser": "光劍（加時 30 秒、驟死、光劍牌）",
+    "rule_set_modern": "現代劍種（重劍、花劍、佩劍：加時 1 分鐘、休息、FIE 牌）",
+    "rest_time": "休息時間（秒）"
   },
   "dialogs": {
     "exportScoreHistory": "匯出比分記錄",

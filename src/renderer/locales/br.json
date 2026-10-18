@@ -418,7 +418,11 @@
     "scoring_standard": "Standard (1 taol = 1 poent)",
     "scoring_zones": "Takadoù personelaet",
     "zone_label": "Takad",
-    "zone_points": "Poentoù"
+    "zone_points": "Poentoù",
+    "rule_set": "Reolennoù ar genstrivadeg",
+    "rule_set_laser": "Sabrenn laser (30 s ouzhpenn, marv trumm, kartennoù sabrenn laser)",
+    "rule_set_modern": "Armoù modern (kleze, fleured, sabrenn : 1 min ouzhpenn, ehan, kartennoù FIE)",
+    "rest_time": "Amzer ehan (eilennoù)"
   },
   "dialogs": {
     "exportScoreHistory": "Ezporñ istor ar skorioù",

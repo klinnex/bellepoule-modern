@@ -418,7 +418,11 @@
     "scoring_standard": "Estándar (1 tocado = 1 punto)",
     "scoring_zones": "Zonas personalizadas",
     "zone_label": "Zona",
-    "zone_points": "Puntos"
+    "zone_points": "Puntos",
+    "rule_set": "Reglas de la competición",
+    "rule_set_laser": "Sable láser (30 s adicionales, muerte súbita, tarjetas de sable láser)",
+    "rule_set_modern": "Armas modernas (espada, florete, sable: 1 min adicional, descanso, tarjetas FIE)",
+    "rest_time": "Tiempo de descanso (segundos)"
   },
   "dialogs": {
     "exportScoreHistory": "Exportar historial de puntuaciones",

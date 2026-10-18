@@ -319,7 +319,7 @@ const FormulaBuilder_: React.FC<Props> = ({
             {/* Règles de match appliquées par les tablettes arbitre (#1125) */}
             <div className="formula-notes-group">
               <label className="form-label" htmlFor="formula-rule-set">
-                Règles de la compétition
+                {t('formula.rule_set')}
               </label>
               <select
                 id="formula-rule-set"
@@ -330,17 +330,13 @@ const FormulaBuilder_: React.FC<Props> = ({
                 }
                 disabled={readOnly}
               >
-                <option value="laser">
-                  Sabre Laser (temps additionnel 30 s, mort subite, cartons Sabre Laser)
-                </option>
-                <option value="modern">
-                  Armes modernes (épée, fleuret, sabre : 1 min supplémentaire, repos, cartons FIE)
-                </option>
+                <option value="laser">{t('formula.rule_set_laser')}</option>
+                <option value="modern">{t('formula.rule_set_modern')}</option>
               </select>
               {ruleSet === 'modern' && (
                 <>
                   <label className="form-label" htmlFor="formula-rest-time">
-                    Temps de repos (secondes)
+                    {t('formula.rest_time')}
                   </label>
                   <input
                     id="formula-rest-time"
