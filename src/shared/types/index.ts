@@ -593,6 +593,7 @@ export interface CompetitionSettings {
   defaultTableMaxScore: number; // Score max en tableau (défaut: 10 ou 15)
   defaultPoolTimerSeconds: number; // Durée chrono poules en secondes (défaut: 180)
   defaultTableTimerSeconds: number; // Durée chrono tableau en secondes (défaut: 180)
+  restTimeSeconds?: number; // Repos entre périodes, escrime olympique (défaut: 60, 0 = désactivé)
   poolRounds: number; // Nombre de tours de poules (défaut: 1)
   poolRoundQualifiers?: number[]; // Qualifiés pour le tour i+2 (0/absent = tous) (#1051)
   hasDirectElimination: boolean; // Phase d'élimination directe activée (défaut: true)

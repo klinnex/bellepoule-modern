@@ -240,6 +240,8 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   const [viewMode, setViewMode] = useState<'full' | 'pending'>('full');
   const [pendingOrder, setPendingOrder] = useState<'asc' | 'desc'>('desc');
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
+  // Vue arbre : tours compactés un par un, sans effet sur les autres (#1133)
+  const [collapsedRounds, setCollapsedRounds] = useState<Set<number>>(new Set());
   const [showArenaModal, setShowArenaModal] = useState(false);
   const [selectedMatchForArena, setSelectedMatchForArena] = useState<string | null>(null);
   const [showRefereeModal, setShowRefereeModal] = useState(false);
@@ -288,7 +290,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       }
       return prev;
     });
-  }, [viewMode, pyramidViewMode, tableauSize, expandedRounds]);
+  }, [viewMode, pyramidViewMode, tableauSize, collapsedRounds]);
 
   // Remet à zéro le zoom/pan si on change de mode
   useEffect(() => {
@@ -363,8 +365,8 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   // Tours repliés (#1115) : le plus grand tour déplié sert de première colonne
   // visuelle ; les cases se resserrent et les liaisons des tours repliés disparaissent.
   const isRoundExpanded = useCallback(
-    (round: number) => expandedRounds.size === 0 || expandedRounds.has(round),
-    [expandedRounds]
+    (round: number) => !collapsedRounds.has(round),
+    [collapsedRounds]
   );
   const visualBaseRound = useMemo(() => {
     let base = 0;
@@ -1164,7 +1166,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       >
         <button
           type="button"
-          onClick={() => toggleRoundExpansion(round)}
+          onClick={() => toggleRoundCollapse(round)}
           style={TV_STYLES.roundHeader}
           aria-expanded={isExpanded}
         >
@@ -1247,6 +1249,15 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           pendingOrder === 'asc' ? a - b : b - a
         )
       : [];
+
+  const toggleRoundCollapse = (round: number) => {
+    setCollapsedRounds(prev => {
+      const next = new Set(prev);
+      if (next.has(round)) next.delete(round);
+      else next.add(round);
+      return next;
+    });
+  };
 
   const toggleRoundExpansion = (round: number) => {
     setExpandedRounds(prev => {
