@@ -415,7 +415,11 @@
     "scoring_standard": "Standard (1 touch = 1 pt)",
     "scoring_zones": "Custom zones",
     "zone_label": "Zone",
-    "zone_points": "Points"
+    "zone_points": "Points",
+    "rule_set": "Competition rules",
+    "rule_set_laser": "Laser Sabre (30 s extra time, sudden death, Laser Sabre cards)",
+    "rule_set_modern": "Modern weapons (épée, foil, sabre: 1 min extra time, rest, FIE cards)",
+    "rest_time": "Rest time (seconds)"
   },
   "wiki": {
     "button_title": "Documentation"

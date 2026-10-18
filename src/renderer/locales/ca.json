@@ -418,7 +418,11 @@
     "scoring_standard": "Estàndard (1 tocada = 1 punt)",
     "scoring_zones": "Zones personalitzades",
     "zone_label": "Zona",
-    "zone_points": "Punts"
+    "zone_points": "Punts",
+    "rule_set": "Regles de la competició",
+    "rule_set_laser": "Sabre làser (30 s addicionals, mort sobtada, targetes de sabre làser)",
+    "rule_set_modern": "Armes modernes (espasa, floret, sabre: 1 min addicional, descans, targetes FIE)",
+    "rest_time": "Temps de descans (segons)"
   },
   "dialogs": {
     "exportScoreHistory": "Exportar historial de puntuacions",

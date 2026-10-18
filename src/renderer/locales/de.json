@@ -158,7 +158,11 @@
     "scoring_zones": "Eigene Zonen",
     "simulation_title": "Simulation",
     "zone_label": "Zone",
-    "zone_points": "Punkte"
+    "zone_points": "Punkte",
+    "rule_set": "Wettkampfregeln",
+    "rule_set_laser": "Lichtschwert (30 s Verlängerung, Sudden Death, Lichtschwert-Karten)",
+    "rule_set_modern": "Moderne Waffen (Degen, Florett, Säbel: 1 Min. Verlängerung, Pause, FIE-Karten)",
+    "rest_time": "Pausenzeit (Sekunden)"
   },
   "genders": {
     "female": "Weiblich",
