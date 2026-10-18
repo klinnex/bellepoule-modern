@@ -3398,7 +3398,8 @@ export class RemoteScoreServer {
     if (tableau.length > 0) {
       phase = 'tableau';
       // Petite finale (3) jouée avec la finale (2)
-      const roundOf = (m: any) => (Number(m.round) === 3 ? 2 : Number(m.round) || 0);
+      const roundOf = (m: { round?: unknown }) =>
+        Number(m.round) === 3 ? 2 : Number(m.round) || 0;
       round = Math.max(...tableau.map(roundOf)) || null;
       remaining = tableau.filter(m => roundOf(m) === (round ?? 0));
     } else {
