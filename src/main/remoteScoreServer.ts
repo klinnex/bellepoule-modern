@@ -34,6 +34,7 @@ import {
 } from '../shared/types';
 import { DatabaseManager } from '../database';
 import { estimatePhaseEta } from '../shared/utils/phaseEta';
+import { resolveCompetitionSettings } from '../shared/utils/customFormulaSettings';
 import {
   PASSWORD_MIN_LENGTH,
   isLocalNetworkOrigin,
@@ -3795,8 +3796,9 @@ export class RemoteScoreServer {
             de: formulaPhases.find(p => p.type === 'direct_elimination')?.config.scoring,
           }
         : null;
-    this.sessionPoolTimerSeconds = competition.settings?.defaultPoolTimerSeconds ?? 180;
-    this.sessionTableTimerSeconds = competition.settings?.defaultTableTimerSeconds ?? 180;
+    const effectiveSettings = resolveCompetitionSettings(competition.weapon, competition.settings);
+    this.sessionPoolTimerSeconds = effectiveSettings?.defaultPoolTimerSeconds ?? 180;
+    this.sessionTableTimerSeconds = effectiveSettings?.defaultTableTimerSeconds ?? 180;
     console.log(`[RemoteScoreServer] Type d'arme de la compétition: ${this.sessionWeapon}`);
 
     // Auto-detect number of strips from pool count if not specified or too small.

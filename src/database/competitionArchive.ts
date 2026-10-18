@@ -74,6 +74,41 @@ const pruneForeignKeyViolations = (db: Db): void => {
 };
 
 /**
+ * Supprime poules, matchs et signatures des autres compétitions : ces tables n'ont
+ * pas de `competition_id`. Sans cela, le .bpm embarque les matchs des autres
+ * compétitions et leur ouverture écrase leurs scores dans la base active.
+ */
+const pruneUnownedRows = (db: Db): void => {
+  const tables = new Set(listTables(db, 'main'));
+  const has = (...names: string[]) => names.every(n => tables.has(n));
+  if (has('pools', 'phases')) {
+    db.exec('DELETE FROM pools WHERE phase_id NOT IN (SELECT id FROM phases)');
+  }
+  if (has('pool_fencers', 'pools')) {
+    db.exec('DELETE FROM pool_fencers WHERE pool_id NOT IN (SELECT id FROM pools)');
+  }
+  if (has('pool_signatures', 'pools')) {
+    db.exec('DELETE FROM pool_signatures WHERE pool_id NOT IN (SELECT id FROM pools)');
+  }
+  if (has('matches', 'pools', 'fencers')) {
+    const bracket = has('bracket_nodes')
+      ? 'OR id IN (SELECT match_id FROM bracket_nodes WHERE match_id IS NOT NULL)'
+      : '';
+    db.exec(
+      `DELETE FROM matches WHERE NOT (
+         COALESCE(pool_id IN (SELECT id FROM pools), 0)
+         OR COALESCE(fencer_a_id IN (SELECT id FROM fencers), 0)
+         OR COALESCE(fencer_b_id IN (SELECT id FROM fencers), 0)
+         ${bracket}
+       )`
+    );
+  }
+  if (has('de_match_signatures', 'matches')) {
+    db.exec('DELETE FROM de_match_signatures WHERE match_id NOT IN (SELECT id FROM matches)');
+  }
+};
+
+/**
  * Réduit une copie de base à une seule compétition : supprime les autres
  * compétitions et toutes les lignes portant un autre `competition_id`.
  */
@@ -93,6 +128,7 @@ export function keepOnlyCompetition(db: Db, competitionId: string): void {
       }
     }
     db.prepare('DELETE FROM competitions WHERE id != ?').run(competitionId);
+    pruneUnownedRows(db);
     pruneForeignKeyViolations(db);
   })();
 }

@@ -60,6 +60,14 @@ import {
   selectNextRoundFencers,
   seedFencersFromRanking,
 } from '../../shared/utils/poolRounds';
+import {
+  applyTableauAdvancement,
+  getActiveFormula,
+  getAdvancementCount,
+  getPoolRoundAdvancement,
+  getTableauAdvancement,
+  resolveCompetitionSettings,
+} from '../../shared/utils/customFormulaSettings';
 import { QRCodeShare } from './QRCodeShare';
 import { computePoolStrips } from '../../shared/utils/poolStrips';
 import { TouchOptimizedReferee } from './TouchOptimizedReferee';
@@ -221,14 +229,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const { confirm } = useConfirm();
   const { t, language } = useTranslation();
 
-  // Settings avec valeurs par défaut
-  const poolRounds = competition.settings?.poolRounds ?? 1;
+  // Settings avec valeurs par défaut (formule personnalisée prioritaire, #1125)
+  const customFormula = getActiveFormula(competition.weapon, competition.settings);
+  const effectiveSettings = resolveCompetitionSettings(competition.weapon, competition.settings);
+  const poolRounds = effectiveSettings?.poolRounds ?? 1;
   const poolRoundQualifiers = competition.settings?.poolRoundQualifiers;
-  const hasDirectElimination = competition.settings?.hasDirectElimination ?? true;
-  const thirdPlaceMatch = competition.settings?.thirdPlaceMatch ?? false;
+  const hasDirectElimination = effectiveSettings?.hasDirectElimination ?? true;
+  const thirdPlaceMatch = effectiveSettings?.thirdPlaceMatch ?? false;
   const playAllPositions = competition.settings?.playAllPositions ?? false;
-  const poolMaxScore = competition.settings?.defaultPoolMaxScore ?? 21;
-  const tableMaxScore = competition.settings?.defaultTableMaxScore ?? 0;
+  const poolMaxScore = effectiveSettings?.defaultPoolMaxScore ?? 21;
+  const tableMaxScore = effectiveSettings?.defaultTableMaxScore ?? 0;
   const isLaserSabre = competition.weapon === Weapon.LASER;
   const expertMode = competition.settings?.expertMode ?? false;
   // Arbitres simultanés par poule (principal + assistant/vidéo) : mode expert uniquement
@@ -238,7 +248,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const maxRefereesPerMatch = expertMode
     ? Math.max(1, competition.settings?.maxRefereesPerMatch ?? 1)
     : 1;
-  const poolWinnersOnly = competition.settings?.poolWinnersOnly ?? false;
+  const poolWinnersOnly = effectiveSettings?.poolWinnersOnly ?? false;
   const postPoolSplitCriteria = competition.settings?.postPoolSplitCriteria;
   // Groupes déjà extraits dans une compétition séparée (genre → id compétition)
   const splitOffCompetitionIds = competition.settings?.splitOffCompetitionIds;
@@ -911,7 +921,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // Sync matchs tableau vers DB (batch, inclut la 3e place)
   useEffect(() => {
     if (!competition?.id || tableauMatches.length === 0) return;
-    const maxScore = competition.settings?.defaultTableMaxScore ?? 15;
+    const maxScore = effectiveSettings?.defaultTableMaxScore ?? 15;
     window.electronAPI.db
       .upsertMultipleTableauMatches(
         competition.id,
@@ -1245,6 +1255,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       handleThirdPlaceDecision(true);
       return;
     }
+    // Formule personnalisée : 3ème place déjà choisie dans la formule (#1125)
+    if (customFormula && hasDirectElimination) {
+      handleThirdPlaceDecision(thirdPlaceMatch);
+      return;
+    }
     setShowThirdPlaceDialog(true);
   };
 
@@ -1362,7 +1377,12 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // éliminés, puis appel + nouveau tirage seedé sur ce classement.
   const handleNextPoolRound = async () => {
     const nextRound = currentPoolRound + 1;
-    const qualifierCount = getRoundQualifierCount(poolRoundQualifiers, nextRound);
+    const qualifierCount = customFormula
+      ? getAdvancementCount(
+          computeOverallRanking(pools).length,
+          getPoolRoundAdvancement(customFormula, currentPoolRound - 1)
+        )
+      : getRoundQualifierCount(poolRoundQualifiers, nextRound);
     const { qualified, eliminated } = selectNextRoundFencers(
       computeOverallRanking(pools),
       qualifierCount
@@ -1798,6 +1818,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     let ranking = overallRanking;
     if (poolWinnersOnly && pools.length > 0) {
       ranking = filterPoolWinners(pools, ranking);
+    } else if (customFormula) {
+      // Qualifiés pour le tableau selon la formule (pourcentage, nombre, taille de tableau)
+      ranking = applyTableauAdvancement(ranking, getTableauAdvancement(customFormula));
     }
     if (postPoolSplitCriteria === 'gender' && activeSplitGroup) {
       ranking = ranking
@@ -1814,6 +1837,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     overallRanking,
     pools,
     poolWinnersOnly,
+    customFormula,
     postPoolSplitCriteria,
     activeSplitGroup,
     splitOffCompetitionIds,
