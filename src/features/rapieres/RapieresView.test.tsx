@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import React from 'react';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { Competition } from '../../shared/types';
 import RapieresView from './RapieresView';
 
@@ -45,6 +45,11 @@ describe('RapieresView (#1118)', () => {
       fireEvent.click(screen.getByText('rapieres.add_team'));
     }
     expect((saved as any).rapieres.teams).toHaveLength(4);
+    expect((saved as any).rapieres.teams[0].status).toBe('not_checked_in');
+    fireEvent.click(screen.getByText('rapieres.check_in_all'));
+    await waitFor(() =>
+      expect((saved as any).rapieres.teams.every((t: any) => t.status === 'checked_in')).toBe(true)
+    );
 
     fireEvent.click(screen.getByText('rapieres.tab_pools'));
     fireEvent.click(screen.getByText('rapieres.generate_pools'));
@@ -62,5 +67,28 @@ describe('RapieresView (#1118)', () => {
     expect((saved as any).rapieres.bouts.filter((b: any) => b.scoreA === 5)).toHaveLength(1);
     // Vague 2 bloquée tant que la vague 1 n'est pas complète
     expect(screen.getByText('rapieres.launch_wave:2')).toBeDisabled();
+  });
+
+  it('édition d’une équipe, abandon puis réactivation', async () => {
+    render(<RapieresView competition={competition} />);
+    await screen.findByText('rapieres.add_team');
+    const [teamName, last1, , last2] = screen.getAllByRole('textbox');
+    fireEvent.change(teamName, { target: { value: 'Alpha' } });
+    fireEvent.change(last1, { target: { value: 'A1' } });
+    fireEvent.change(last2, { target: { value: 'A2' } });
+    fireEvent.click(screen.getByText('rapieres.add_team'));
+
+    fireEvent.click(screen.getByText('rapieres.edit'));
+    fireEvent.change(screen.getAllByRole('textbox')[0], { target: { value: 'Alpha bis' } });
+    fireEvent.click(screen.getByText('rapieres.save_team'));
+    expect((saved as any).rapieres.teams).toHaveLength(1);
+    expect((saved as any).rapieres.teams[0].name).toBe('Alpha bis');
+
+    fireEvent.click(screen.getByText('rapieres.check_in'));
+    await waitFor(() => expect((saved as any).rapieres.teams[0].status).toBe('checked_in'));
+    fireEvent.click(screen.getByText('rapieres.abandon'));
+    await waitFor(() => expect((saved as any).rapieres.teams[0].status).toBe('abandoned'));
+    fireEvent.click(screen.getByText('rapieres.reactivate'));
+    await waitFor(() => expect((saved as any).rapieres.teams[0].status).toBe('checked_in'));
   });
 });

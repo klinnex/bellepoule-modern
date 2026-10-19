@@ -19,11 +19,14 @@ import {
   RapieresLevel,
   RapieresState,
   RapieresTeam,
+  RapieresTeamStatus,
   createRapieresState,
 } from './rapieres.types';
 import {
+  activeBouts,
   arePoolsComplete,
   buildBouts,
+  checkedInTeams,
   canLaunchNextWave,
   computeFinalRanking,
   computeOverallRanking,
@@ -34,13 +37,16 @@ import {
   distributeTeams,
   filterRanking,
   isBoutDone,
+  isBoutVoid,
   isPlayable,
   isTableauComplete,
   RapieresRankingFilter,
   resolveTableau,
   selectQualifiers,
   setTableauScore,
+  teamStatus,
   waveCount,
+  withdrawnTeamIds,
 } from './rapieresCalculations';
 import { exportRapieresRankingToPDF } from './rapieresPdf';
 
@@ -58,6 +64,22 @@ const newId = (): string =>
 const emptyFencer = (): RapieresFencer => ({ firstName: '', lastName: '', category: 'SENIOR' });
 
 const fencerName = (f: RapieresFencer) => `${f.lastName.toUpperCase()} ${f.firstName}`.trim();
+
+/** Libellé et pastille d'un statut, mêmes que pour les tireurs en compétition classique */
+const STATUS_BADGES: Record<RapieresTeamStatus, { key: string; color: string }> = {
+  not_checked_in: { key: 'status.not_checked_in', color: 'badge-warning' },
+  checked_in: { key: 'status.checked_in', color: 'badge-success' },
+  abandoned: { key: 'status.abandoned', color: 'badge-danger' },
+  forfait: { key: 'status.forfeit', color: 'badge-danger' },
+  excluded: { key: 'status.excluded', color: 'badge-danger' },
+};
+
+const StatusBadge: React.FC<{ status: RapieresTeamStatus }> = ({ status }) => {
+  const { t } = useTranslation();
+  return (
+    <span className={`badge ${STATUS_BADGES[status].color}`}>{t(STATUS_BADGES[status].key)}</span>
+  );
+};
 
 /** Saisie d'un score : enregistré quand les deux valeurs sont valides (pas d'égalité, ≤ max) */
 const ScoreEntry: React.FC<{
@@ -217,6 +239,7 @@ const RapieresView: React.FC<RapieresViewProps> = ({ competition }) => {
             levelLabel={levelLabel}
             categoryLabel={categoryLabel}
             onInvalid={() => showToast(t('rapieres.team_incomplete'), 'warning')}
+            confirm={confirm}
           />
         )}
         {tab === 'pools' && (
@@ -227,13 +250,14 @@ const RapieresView: React.FC<RapieresViewProps> = ({ competition }) => {
             teamName={teamName}
             levelLabel={levelLabel}
             onGenerate={async poolCount => {
-              if (state.teams.length < 2) {
+              const present = checkedInTeams(state.teams);
+              if (present.length < 2) {
                 showToast(t('rapieres.min_teams'), 'warning');
                 return;
               }
               if (state.pools.length > 0 && !(await confirm(t('rapieres.confirm_regen_pools'))))
                 return;
-              const pools = distributeTeams(state.teams, poolCount);
+              const pools = distributeTeams(present, poolCount);
               update({
                 ...state,
                 pools,
@@ -283,8 +307,10 @@ const TeamsTab: React.FC<{
   levelLabel: (l: RapieresLevel) => string;
   categoryLabel: (c: RapieresAgeCategory) => string;
   onInvalid: () => void;
-}> = ({ state, locked, update, levelLabel, categoryLabel, onInvalid }) => {
+  confirm: (message: string) => Promise<boolean>;
+}> = ({ state, locked, update, levelLabel, categoryLabel, onInvalid, confirm }) => {
   const { t } = useTranslation();
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [level, setLevel] = useState<RapieresLevel>('beginner');
   const [fencers, setFencers] = useState<[RapieresFencer, RapieresFencer]>([
@@ -299,7 +325,21 @@ const TeamsTab: React.FC<{
       return next;
     });
 
-  const add = (e: React.FormEvent) => {
+  const resetForm = () => {
+    setEditingId(null);
+    setName('');
+    setLevel('beginner');
+    setFencers([emptyFencer(), emptyFencer()]);
+  };
+
+  const startEdit = (team: RapieresTeam) => {
+    setEditingId(team.id);
+    setName(team.name);
+    setLevel(team.level);
+    setFencers([{ ...team.fencers[0] }, { ...team.fencers[1] }]);
+  };
+
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const clean = fencers.map(f => ({
       ...f,
@@ -310,14 +350,30 @@ const TeamsTab: React.FC<{
       onInvalid();
       return;
     }
-    const team: RapieresTeam = { id: newId(), name: name.trim(), level, fencers: clean };
-    // Nouvelle équipe : poules à régénérer
-    update({ ...state, teams: [...state.teams, team], pools: [], bouts: [], tableau: undefined });
-    setName('');
-    setFencers([emptyFencer(), emptyFencer()]);
+    if (editingId) {
+      // Modification : poules conservées (le niveau ne sert qu'à la répartition initiale)
+      update({
+        ...state,
+        teams: state.teams.map(tm =>
+          tm.id === editingId ? { ...tm, name: name.trim(), level, fencers: clean } : tm
+        ),
+      });
+    } else {
+      const team: RapieresTeam = {
+        id: newId(),
+        name: name.trim(),
+        level,
+        fencers: clean,
+        status: 'not_checked_in',
+      };
+      // Nouvelle équipe : poules à régénérer
+      update({ ...state, teams: [...state.teams, team], pools: [], bouts: [], tableau: undefined });
+    }
+    resetForm();
   };
 
-  const remove = (id: string) =>
+  const remove = (id: string) => {
+    if (editingId === id) resetForm();
     update({
       ...state,
       teams: state.teams.filter(tm => tm.id !== id),
@@ -325,17 +381,52 @@ const TeamsTab: React.FC<{
       bouts: [],
       tableau: undefined,
     });
+  };
+
+  /** Pointage : modifie les équipes à répartir, les poules déjà générées sont effacées */
+  const setCheckIn = async (ids: string[], checkedIn: boolean) => {
+    if (state.pools.length > 0 && !(await confirm(t('rapieres.confirm_checkin_reset_pools'))))
+      return;
+    const target = new Set(ids);
+    const status: RapieresTeamStatus = checkedIn ? 'checked_in' : 'not_checked_in';
+    update({
+      ...state,
+      teams: state.teams.map(tm => (target.has(tm.id) ? { ...tm, status } : tm)),
+      pools: [],
+      bouts: [],
+      tableau: undefined,
+    });
+  };
+
+  /** Abandon, forfait, exclusion, réactivation : rencontres annulées, poules conservées */
+  const setStatus = async (team: RapieresTeam, status: RapieresTeamStatus, messageKey: string) => {
+    if (!(await confirm(t(messageKey, { name: team.name })))) return;
+    update({
+      ...state,
+      teams: state.teams.map(tm => (tm.id === team.id ? { ...tm, status } : tm)),
+    });
+  };
+
+  const notCheckedIn = state.teams.filter(tm => teamStatus(tm) === 'not_checked_in');
+  const checkedInCount = checkedInTeams(state.teams).length;
+  const showForm = !locked || editingId !== null;
 
   return (
     <div style={{ display: 'grid', gap: '1rem' }}>
-      {locked ? (
-        <p className="text-muted">{t('rapieres.teams_locked')}</p>
-      ) : (
+      {locked && <p className="text-muted">{t('rapieres.teams_locked')}</p>}
+      {showForm && (
         <form
           className="card"
           style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}
-          onSubmit={add}
+          onSubmit={submit}
         >
+          {editingId && (
+            <p style={{ fontWeight: 600 }}>
+              {t('rapieres.editing_team', {
+                name: state.teams.find(tm => tm.id === editingId)?.name ?? '',
+              })}
+            </p>
+          )}
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <label style={{ flex: '2 1 14rem' }}>
               {t('rapieres.team_name')}
@@ -397,24 +488,58 @@ const TeamsTab: React.FC<{
               </label>
             </fieldset>
           ))}
-          <div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button type="submit" className="btn btn-primary">
-              {t('rapieres.add_team')}
+              {editingId ? t('rapieres.save_team') : t('rapieres.add_team')}
             </button>
+            {editingId && (
+              <button type="button" className="btn btn-secondary" onClick={resetForm}>
+                {t('rapieres.cancel')}
+              </button>
+            )}
           </div>
         </form>
       )}
 
       <div className="card" style={{ padding: '1rem' }}>
-        <p style={{ fontWeight: 600 }}>
-          {t('rapieres.teams_count', { count: String(state.teams.length) })}
-        </p>
+        <div
+          style={{
+            display: 'flex',
+            gap: '1rem',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            marginBottom: '0.5rem',
+          }}
+        >
+          <strong>{t('rapieres.teams_count', { count: String(state.teams.length) })}</strong>
+          <span className="text-muted">
+            {t('rapieres.checked_in_count', {
+              checked: String(checkedInCount),
+              count: String(state.teams.length),
+            })}
+          </span>
+          {!locked && notCheckedIn.length > 0 && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() =>
+                setCheckIn(
+                  notCheckedIn.map(tm => tm.id),
+                  true
+                )
+              }
+            >
+              {t('rapieres.check_in_all')}
+            </button>
+          )}
+        </div>
         {state.teams.length === 0 ? (
           <p className="text-muted">{t('rapieres.no_teams')}</p>
         ) : (
           <table className="table">
             <thead>
               <tr>
+                <th>{t('rapieres.status')}</th>
                 <th>{t('rapieres.team')}</th>
                 <th>{t('rapieres.level')}</th>
                 <th>{t('rapieres.fencers')}</th>
@@ -422,28 +547,90 @@ const TeamsTab: React.FC<{
               </tr>
             </thead>
             <tbody>
-              {state.teams.map(tm => (
-                <tr key={tm.id}>
-                  <td>{tm.name}</td>
-                  <td>{levelLabel(tm.level)}</td>
-                  <td>
-                    {tm.fencers
-                      .map(f => `${fencerName(f)} (${categoryLabel(f.category)})`)
-                      .join(' · ')}
-                  </td>
-                  <td>
-                    {!locked && (
-                      <button
-                        type="button"
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => remove(tm.id)}
-                      >
-                        {t('rapieres.delete')}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {state.teams.map(tm => {
+                const status = teamStatus(tm);
+                return (
+                  <tr key={tm.id} style={{ opacity: status === 'checked_in' ? 1 : 0.7 }}>
+                    <td>
+                      <StatusBadge status={status} />
+                    </td>
+                    <td>{tm.name}</td>
+                    <td>{levelLabel(tm.level)}</td>
+                    <td>
+                      {tm.fencers
+                        .map(f => `${fencerName(f)} (${categoryLabel(f.category)})`)
+                        .join(' · ')}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => startEdit(tm)}
+                        >
+                          {t('rapieres.edit')}
+                        </button>
+                        {!locked && (status === 'not_checked_in' || status === 'checked_in') && (
+                          <button
+                            type="button"
+                            className={`btn btn-sm ${status === 'checked_in' ? 'btn-secondary' : 'btn-primary'}`}
+                            onClick={() => setCheckIn([tm.id], status !== 'checked_in')}
+                          >
+                            {status === 'checked_in'
+                              ? t('rapieres.uncheck')
+                              : t('rapieres.check_in')}
+                          </button>
+                        )}
+                        {status === 'checked_in' && (
+                          <>
+                            <button
+                              type="button"
+                              className="btn btn-warning btn-sm"
+                              onClick={() => setStatus(tm, 'abandoned', 'rapieres.confirm_abandon')}
+                            >
+                              {t('rapieres.abandon')}
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-warning btn-sm"
+                              onClick={() => setStatus(tm, 'forfait', 'rapieres.confirm_forfait')}
+                            >
+                              {t('rapieres.forfait')}
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-danger btn-sm"
+                              onClick={() => setStatus(tm, 'excluded', 'rapieres.confirm_exclude')}
+                            >
+                              {t('rapieres.exclude')}
+                            </button>
+                          </>
+                        )}
+                        {(status === 'abandoned' || status === 'forfait') && (
+                          <button
+                            type="button"
+                            className="btn btn-success btn-sm"
+                            onClick={() =>
+                              setStatus(tm, 'checked_in', 'rapieres.confirm_reactivate')
+                            }
+                          >
+                            {t('rapieres.reactivate')}
+                          </button>
+                        )}
+                        {!locked && (
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-sm"
+                            onClick={() => remove(tm.id)}
+                          >
+                            {t('rapieres.delete')}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -463,9 +650,8 @@ const PoolsTab: React.FC<{
   onGenerate: (poolCount: number) => void;
 }> = ({ state, locked, update, teamName, levelLabel, onGenerate }) => {
   const { t } = useTranslation();
-  const [poolCount, setPoolCount] = useState(
-    state.pools.length || defaultPoolCount(state.teams.length)
-  );
+  const presentCount = checkedInTeams(state.teams).length;
+  const [poolCount, setPoolCount] = useState(state.pools.length || defaultPoolCount(presentCount));
   const teamById = new Map(state.teams.map(tm => [tm.id, tm]));
 
   const move = (teamId: string, to: number) => {
@@ -498,7 +684,7 @@ const PoolsTab: React.FC<{
             <input
               type="number"
               min={1}
-              max={Math.max(1, state.teams.length)}
+              max={Math.max(1, presentCount)}
               value={poolCount}
               onChange={e => setPoolCount(Math.max(1, Number(e.target.value) || 1))}
               style={{ width: '5rem' }}
@@ -557,7 +743,14 @@ const PoolsTab: React.FC<{
                 <tbody>
                   {pool.teamIds.map(id => (
                     <tr key={id}>
-                      <td>{teamName(id)}</td>
+                      <td>
+                        {teamName(id)}
+                        {teamById.get(id) && teamStatus(teamById.get(id)!) !== 'checked_in' && (
+                          <span style={{ marginLeft: '0.5rem' }}>
+                            <StatusBadge status={teamStatus(teamById.get(id)!)} />
+                          </span>
+                        )}
+                      </td>
                       <td className="text-muted">
                         {levelLabel(teamById.get(id)?.level ?? 'beginner')}
                       </td>
@@ -599,6 +792,7 @@ const WavesTab: React.FC<{
   const total = waveCount(state.bouts);
   const next = state.launchedWave + 1;
   const done = state.launchedWave >= total && arePoolsComplete(state);
+  const withdrawn = withdrawnTeamIds(state.teams);
 
   const saveScore = (id: string, score: { scoreA: number; scoreB: number } | null) =>
     update({
@@ -655,21 +849,28 @@ const WavesTab: React.FC<{
                 .filter(b => b.wave === wave)
                 .sort((a, b) => a.poolIndex - b.poolIndex)
                 .map(b => (
-                  <tr key={b.id} style={{ opacity: isBoutDone(b) ? 0.75 : 1 }}>
+                  <tr
+                    key={b.id}
+                    style={{ opacity: isBoutDone(b) || isBoutVoid(b, withdrawn) ? 0.75 : 1 }}
+                  >
                     <td className="text-muted">
                       {t('rapieres.pool_n', { n: String(b.poolIndex + 1) })}
                     </td>
                     <td style={{ textAlign: 'right' }}>{teamName(b.teamAId)}</td>
                     <td style={{ textAlign: 'center' }}>
-                      <ScoreEntry
-                        scoreA={b.scoreA}
-                        scoreB={b.scoreB}
-                        max={state.poolMaxScore}
-                        invalidLabel={t('rapieres.score_invalid', {
-                          max: String(state.poolMaxScore),
-                        })}
-                        onSave={score => saveScore(b.id, score)}
-                      />
+                      {isBoutVoid(b, withdrawn) ? (
+                        <span className="text-muted">{t('rapieres.bout_void')}</span>
+                      ) : (
+                        <ScoreEntry
+                          scoreA={b.scoreA}
+                          scoreB={b.scoreB}
+                          max={state.poolMaxScore}
+                          invalidLabel={t('rapieres.score_invalid', {
+                            max: String(state.poolMaxScore),
+                          })}
+                          onSave={score => saveScore(b.id, score)}
+                        />
+                      )}
                     </td>
                     <td>{teamName(b.teamBId)}</td>
                   </tr>
@@ -692,7 +893,8 @@ const RankingsTab: React.FC<{
   onExportError: () => void;
 }> = ({ competition, state, levelLabel, categoryLabel, onExportError }) => {
   const { t } = useTranslation();
-  const finalAvailable = !!state.tableau && isTableauComplete(state.tableau);
+  const finalAvailable =
+    !!state.tableau && isTableauComplete(state.tableau, withdrawnTeamIds(state.teams));
   const [stage, setStage] = useState<'intermediate' | 'final'>(
     finalAvailable ? 'final' : 'intermediate'
   );
@@ -723,7 +925,7 @@ const RankingsTab: React.FC<{
     effectiveStage === 'final'
       ? computeFinalRanking(state)
       : computeOverallRanking(state).map(r => ({ teamId: r.teamId, rank: r.rank }));
-  const stats = computeTeamStats(state.bouts);
+  const stats = computeTeamStats(activeBouts(state));
   const rows = filterRanking(ranked, state.teams, selected.filter);
   const teamById = new Map(state.teams.map(tm => [tm.id, tm]));
   const individual = selected.filter.kind === 'category';
@@ -888,7 +1090,7 @@ const TableauTab: React.FC<{
   if (!ready) return <p className="text-muted">{t('rapieres.tableau_waiting')}</p>;
 
   const tableau = state.tableau;
-  const matches = tableau ? resolveTableau(tableau) : [];
+  const matches = tableau ? resolveTableau(tableau, withdrawnTeamIds(state.teams)) : [];
   const rounds = [...new Set(matches.map(m => m.round))].sort((a, b) =>
     a === 0 ? 1 : b === 0 ? -1 : b - a
   );
@@ -942,6 +1144,8 @@ const TableauTab: React.FC<{
                               })
                             }
                           />
+                        ) : m.walkover ? (
+                          <span className="text-muted">{t('rapieres.walkover')}</span>
                         ) : (
                           <span className="text-muted">–</span>
                         )}

@@ -26,11 +26,17 @@ export interface RapieresFencer {
   category: RapieresAgeCategory;
 }
 
+/** Statut d'une équipe, comme pour un tireur en compétition classique */
+export type RapieresTeamStatus =
+  'not_checked_in' | 'checked_in' | 'abandoned' | 'forfait' | 'excluded';
+
 export interface RapieresTeam {
   id: string;
   name: string;
   level: RapieresLevel;
   fencers: [RapieresFencer, RapieresFencer];
+  /** Absent (états antérieurs) = pointée */
+  status?: RapieresTeamStatus;
 }
 
 /** Rencontre de poule : une manche, un score */
@@ -99,6 +105,8 @@ export interface RapieresTableauMatch {
   scoreB: number | null;
   winnerId: string | null;
   loserId: string | null;
+  /** Gagné d'office : l'adversaire a abandonné, déclaré forfait ou été exclu */
+  walkover?: boolean;
 }
 
 export const createRapieresState = (): RapieresState => ({
