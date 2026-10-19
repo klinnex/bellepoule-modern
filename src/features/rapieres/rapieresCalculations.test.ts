@@ -1,19 +1,23 @@
 import { describe, it, expect } from 'vitest';
 import {
+  arePoolsComplete,
   buildBouts,
   canLaunchNextWave,
+  checkedInTeams,
   computeFinalRanking,
   computeOverallRanking,
   createTableau,
   defaultPoolCount,
   distributeTeams,
   filterRanking,
+  isPlayable,
   isTableauComplete,
   rankTeams,
   resolveTableau,
   scheduleWaves,
   selectQualifiers,
   setTableauScore,
+  withdrawnTeamIds,
 } from './rapieresCalculations';
 import { createRapieresState, RapieresLevel, RapieresState, RapieresTeam } from './rapieres.types';
 
@@ -208,6 +212,85 @@ describe('Tournoi des rapières (#1118)', () => {
       t = setTableauScore(t, 0, 0, { scoreA: 10, scoreB: 2 });
       t = setTableauScore(t, 2, 0, { scoreA: 1, scoreB: 10 });
       expect(t.scores.map(s => s.round).sort()).toEqual([2, 2]);
+    });
+  });
+
+  describe('pointage, abandon, forfait, exclusion', () => {
+    it('seules les équipes pointées sont réparties ; statut absent = pointée', () => {
+      const teams = [team('a'), { ...team('b'), status: 'not_checked_in' as const }, team('c')];
+      teams.push({ ...team('d'), status: 'forfait' });
+      expect(checkedInTeams(teams).map(t => t.id)).toEqual(['a', 'c']);
+      expect([...withdrawnTeamIds(teams)]).toEqual(['d']);
+    });
+
+    it('équipe retirée : rencontres annulées, classée dernière, non qualifiée', () => {
+      const state: RapieresState = {
+        ...createRapieresState(),
+        teams: ids(4).map(id => team(id)),
+        pools: [{ teamIds: ids(4) }],
+      };
+      state.bouts = buildBouts(state.pools);
+      for (const b of state.bouts) {
+        const aWins = Number(b.teamAId.slice(1)) < Number(b.teamBId.slice(1));
+        b.scoreA = aWins ? 5 : 1;
+        b.scoreB = aWins ? 1 : 5;
+      }
+      state.teams[0].status = 'abandoned';
+      const overall = computeOverallRanking(state);
+      expect(overall.map(r => r.teamId)).toEqual(['t2', 't3', 't4', 't1']);
+      // Rencontres contre t1 annulées : t2 n'a plus que 2 matchs
+      expect(overall[0].stats.matches).toBe(2);
+      expect(overall[3].rank).toBe(4);
+      expect(selectQualifiers(state).sort()).toEqual(['t2', 't3']);
+    });
+
+    it('vague complète sans les rencontres annulées', () => {
+      const state: RapieresState = {
+        ...createRapieresState(),
+        teams: ids(4).map(id => team(id)),
+        pools: [{ teamIds: ids(4) }],
+        launchedWave: 1,
+      };
+      state.bouts = buildBouts(state.pools);
+      state.teams[0].status = 'excluded';
+      for (const b of state.bouts.filter(
+        x => x.wave === 1 && x.teamAId !== 't1' && x.teamBId !== 't1'
+      )) {
+        b.scoreA = 5;
+        b.scoreB = 2;
+      }
+      expect(canLaunchNextWave(state)).toBe(true);
+      expect(arePoolsComplete(state)).toBe(false);
+    });
+
+    it('tableau : adversaire retiré, qualification d’office', () => {
+      const t = createTableau(['a', 'b', 'c', 'd']);
+      const withdrawn = new Set(['d']);
+      const semi = resolveTableau(t, withdrawn).find(m => m.round === 2 && m.teamBId === 'd')!;
+      expect(semi).toMatchObject({ walkover: true, winnerId: semi.teamAId, loserId: 'd' });
+      expect(resolveTableau(t, withdrawn).filter(isPlayable)).toHaveLength(1);
+    });
+
+    it('exclusion : classée dernière au classement final', () => {
+      const state: RapieresState = {
+        ...createRapieresState(),
+        teams: ['a', 'b', 'c', 'd', 'e'].map(id => team(id)),
+        pools: [{ teamIds: ['a', 'b', 'c', 'd', 'e'] }],
+      };
+      state.bouts = buildBouts(state.pools);
+      for (const b of state.bouts) {
+        const aWins = b.teamAId < b.teamBId;
+        b.scoreA = aWins ? 5 : 1;
+        b.scoreB = aWins ? 1 : 5;
+      }
+      let t = createTableau(['a', 'b', 'c', 'd']);
+      t = setTableauScore(t, 2, 0, { scoreA: 10, scoreB: 2 });
+      t = setTableauScore(t, 2, 1, { scoreA: 10, scoreB: 2 });
+      t = setTableauScore(t, 1, 0, { scoreA: 10, scoreB: 2 });
+      t = setTableauScore(t, 0, 0, { scoreA: 10, scoreB: 2 });
+      state.tableau = t;
+      state.teams[0].status = 'excluded';
+      expect(computeFinalRanking(state).at(-1)!.teamId).toBe('a');
     });
   });
 });

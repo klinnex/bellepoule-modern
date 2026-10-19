@@ -18,6 +18,7 @@ import {
   RapieresTableau,
   RapieresTableauMatch,
   RapieresTeam,
+  RapieresTeamStatus,
 } from './rapieres.types';
 
 export const RAPIERES_MAX_POOL_SIZE = 10;
@@ -26,6 +27,31 @@ const newId = (): string =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
     : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+
+// ─── Statuts ─────────────────────────────────────────────────────────────────
+
+export const teamStatus = (team: RapieresTeam): RapieresTeamStatus => team.status ?? 'checked_in';
+
+/** Abandon, forfait ou exclusion : rencontres annulées, classée en dernier, non qualifiée */
+export const isWithdrawnStatus = (status: RapieresTeamStatus): boolean =>
+  status === 'abandoned' || status === 'forfait' || status === 'excluded';
+
+/** Équipes à répartir dans les poules */
+export const checkedInTeams = (teams: RapieresTeam[]): RapieresTeam[] =>
+  teams.filter(t => teamStatus(t) === 'checked_in');
+
+export const withdrawnTeamIds = (teams: RapieresTeam[]): Set<string> =>
+  new Set(teams.filter(t => isWithdrawnStatus(teamStatus(t))).map(t => t.id));
+
+/** Rencontre annulée : une des deux équipes s'est retirée */
+export const isBoutVoid = (b: RapieresBout, withdrawn: Set<string>): boolean =>
+  withdrawn.has(b.teamAId) || withdrawn.has(b.teamBId);
+
+/** Rencontres qui comptent (hors équipes retirées) */
+export const activeBouts = (state: RapieresState): RapieresBout[] => {
+  const withdrawn = withdrawnTeamIds(state.teams);
+  return state.bouts.filter(b => !isBoutVoid(b, withdrawn));
+};
 
 // ─── Poules ──────────────────────────────────────────────────────────────────
 
@@ -147,10 +173,10 @@ export const isWaveComplete = (bouts: RapieresBout[], wave: number): boolean =>
 /** Le DT peut lancer la vague suivante */
 export const canLaunchNextWave = (state: RapieresState): boolean =>
   state.launchedWave < waveCount(state.bouts) &&
-  (state.launchedWave === 0 || isWaveComplete(state.bouts, state.launchedWave));
+  (state.launchedWave === 0 || isWaveComplete(activeBouts(state), state.launchedWave));
 
 export const arePoolsComplete = (state: RapieresState): boolean =>
-  state.bouts.length > 0 && state.bouts.every(isBoutDone);
+  state.bouts.length > 0 && activeBouts(state).every(isBoutDone);
 
 // ─── Classements ─────────────────────────────────────────────────────────────
 
@@ -193,30 +219,38 @@ export function compareStats(a: RapieresStats, b: RapieresStats): number {
   return ratio(b) - ratio(a) || indice(b) - indice(a) || b.touchesGiven - a.touchesGiven;
 }
 
-/** Classement d'équipes (ex æquo possibles) */
+/** Classement d'équipes (ex æquo possibles), équipes retirées classées d'office en dernier */
 export function rankTeams(
   teamIds: string[],
-  stats: Map<string, RapieresStats>
+  stats: Map<string, RapieresStats>,
+  withdrawn: Set<string> = new Set()
 ): RapieresRankingRow[] {
-  const rows = teamIds.map(teamId => ({ teamId, stats: stats.get(teamId) ?? emptyStats() }));
+  const rows = teamIds
+    .filter(id => !withdrawn.has(id))
+    .map(teamId => ({ teamId, stats: stats.get(teamId) ?? emptyStats() }));
   rows.sort((a, b) => compareStats(a.stats, b.stats));
   const ranked: RapieresRankingRow[] = [];
   rows.forEach((row, i) => {
     const tied = i > 0 && compareStats(rows[i - 1].stats, row.stats) === 0;
     ranked.push({ ...row, rank: tied ? ranked[i - 1].rank : i + 1 });
   });
+  for (const teamId of teamIds.filter(id => withdrawn.has(id)))
+    ranked.push({ teamId, stats: stats.get(teamId) ?? emptyStats(), rank: ranked.length + 1 });
   return ranked;
 }
 
 /** Classement de chaque poule */
 export function computePoolRankings(state: RapieresState): RapieresRankingRow[][] {
+  const bouts = activeBouts(state);
+  const withdrawn = withdrawnTeamIds(state.teams);
   return state.pools.map((pool, poolIndex) =>
     rankTeams(
       pool.teamIds,
       computeTeamStats(
-        state.bouts.filter(b => b.poolIndex === poolIndex),
+        bouts.filter(b => b.poolIndex === poolIndex),
         pool.teamIds
-      )
+      ),
+      withdrawn
     )
   );
 }
@@ -224,14 +258,24 @@ export function computePoolRankings(state: RapieresState): RapieresRankingRow[][
 /** Classement général intermédiaire (fin de poules), toutes poules confondues */
 export function computeOverallRanking(state: RapieresState): RapieresRankingRow[] {
   const teamIds = state.pools.flatMap(p => p.teamIds);
-  return rankTeams(teamIds, computeTeamStats(state.bouts, teamIds));
+  return rankTeams(
+    teamIds,
+    computeTeamStats(activeBouts(state), teamIds),
+    withdrawnTeamIds(state.teams)
+  );
 }
 
 /** Équipes qualifiées pour le tableau : 1ers de poule, et 2es si 3 poules ou moins */
 export function selectQualifiers(state: RapieresState): string[] {
   const perPool = state.pools.length <= 3 ? 2 : 1;
+  const withdrawn = withdrawnTeamIds(state.teams);
   const qualified = new Set(
-    computePoolRankings(state).flatMap(ranking => ranking.slice(0, perPool).map(r => r.teamId))
+    computePoolRankings(state).flatMap(ranking =>
+      ranking
+        .filter(r => !withdrawn.has(r.teamId))
+        .slice(0, perPool)
+        .map(r => r.teamId)
+    )
   );
   return computeOverallRanking(state)
     .map(r => r.teamId)
@@ -248,10 +292,36 @@ const scoreOf = (t: RapieresTableau, round: number, position: number) =>
   t.scores.find(s => s.round === round && s.position === position);
 
 /**
+ * Vainqueur d'un match entre deux équipes connues : par le score, ou d'office si une seule
+ * s'est retirée (deux retirées : aucune ne passe, l'emplacement suivant reste vide).
+ */
+function decideMatch(
+  a: string,
+  b: string,
+  s: { scoreA: number; scoreB: number } | undefined,
+  withdrawn: Set<string>
+): { winnerId: string | null; loserId: string | null; walkover: boolean; void: boolean } {
+  const outA = withdrawn.has(a);
+  const outB = withdrawn.has(b);
+  if (outA && outB) return { winnerId: null, loserId: null, walkover: false, void: true };
+  if (outA || outB)
+    return { winnerId: outA ? b : a, loserId: outA ? a : b, walkover: true, void: false };
+  if (s && s.scoreA !== s.scoreB) {
+    const winnerId = s.scoreA > s.scoreB ? a : b;
+    return { winnerId, loserId: winnerId === a ? b : a, walkover: false, void: false };
+  }
+  return { winnerId: null, loserId: null, walkover: false, void: false };
+}
+
+/**
  * Matchs du tableau, tour par tour (round = nombre de matchs du tour), puis le match
  * pour la 3e place (round 0) entre les perdants des demi-finales.
+ * Équipe retirée (abandon, forfait, exclusion) : son adversaire passe d'office.
  */
-export function resolveTableau(t: RapieresTableau): RapieresTableauMatch[] {
+export function resolveTableau(
+  t: RapieresTableau,
+  withdrawn: Set<string> = new Set()
+): RapieresTableauMatch[] {
   const chart = generateSeedingChart(t.size);
   let slots: (string | null)[] = chart.map(seed => t.seeds[seed - 1] ?? null);
   // known[i] : occupant du slot connu (null = exempt) ; faux tant que le match amont n'est pas joué
@@ -271,22 +341,26 @@ export function resolveTableau(t: RapieresTableau): RapieresTableauMatch[] {
       const s = scoreOf(t, round, position);
       let winnerId: string | null = null;
       let loserId: string | null = null;
+      let walkover = false;
+      let both = false;
       if (isBye) winnerId = a ?? b;
-      else if (ready && a && b && s && s.scoreA !== s.scoreB) {
-        winnerId = s.scoreA > s.scoreB ? a : b;
-        loserId = winnerId === a ? b : a;
+      else if (ready && a && b) {
+        const d = decideMatch(a, b, s, withdrawn);
+        ({ winnerId, loserId, walkover } = d);
+        both = d.void;
       }
-      const decided = ready && (isBye || (a === null && b === null) || winnerId !== null);
+      const decided = ready && (isBye || (a === null && b === null) || winnerId !== null || both);
       matches.push({
         round,
         position,
         teamAId: known[position * 2] ? a : null,
         teamBId: known[position * 2 + 1] ? b : null,
         isBye,
-        scoreA: !isBye && s ? s.scoreA : null,
-        scoreB: !isBye && s ? s.scoreB : null,
+        scoreA: !isBye && !walkover && s ? s.scoreA : null,
+        scoreB: !isBye && !walkover && s ? s.scoreB : null,
         winnerId,
         loserId,
+        ...(walkover ? { walkover } : {}),
       });
       nextSlots.push(winnerId);
       nextKnown.push(decided);
@@ -305,32 +379,40 @@ export function resolveTableau(t: RapieresTableau): RapieresTableauMatch[] {
     const isBye = semisKnown && (a === null) !== (b === null);
     let winnerId: string | null = null;
     let loserId: string | null = null;
+    let walkover = false;
     if (isBye) winnerId = a ?? b;
-    else if (semisKnown && a && b && s && s.scoreA !== s.scoreB) {
-      winnerId = s.scoreA > s.scoreB ? a : b;
-      loserId = winnerId === a ? b : a;
-    }
+    else if (semisKnown && a && b)
+      ({ winnerId, loserId, walkover } = decideMatch(a, b, s, withdrawn));
     matches.push({
       round: 0,
       position: 0,
       teamAId: semisKnown ? a : null,
       teamBId: semisKnown ? b : null,
       isBye,
-      scoreA: !isBye && s ? s.scoreA : null,
-      scoreB: !isBye && s ? s.scoreB : null,
+      scoreA: !isBye && !walkover && s ? s.scoreA : null,
+      scoreB: !isBye && !walkover && s ? s.scoreB : null,
       winnerId,
       loserId,
+      ...(walkover ? { walkover } : {}),
     });
   }
   return matches;
 }
 
-/** Match jouable : deux équipes connues, pas un exempt */
+/** Match jouable : deux équipes connues, pas un exempt ni un match gagné d'office */
 export const isPlayable = (m: RapieresTableauMatch): boolean =>
-  !!m.teamAId && !!m.teamBId && !m.isBye;
+  !!m.teamAId && !!m.teamBId && !m.isBye && !m.walkover;
 
-export const isTableauComplete = (t: RapieresTableau): boolean =>
-  resolveTableau(t).every(m => !isPlayable(m) || m.winnerId !== null);
+export const isTableauComplete = (
+  t: RapieresTableau,
+  withdrawn: Set<string> = new Set()
+): boolean =>
+  resolveTableau(t, withdrawn).every(
+    m =>
+      !isPlayable(m) ||
+      m.winnerId !== null ||
+      (withdrawn.has(m.teamAId!) && withdrawn.has(m.teamBId!))
+  );
 
 /** Enregistre (ou efface avec null) le score d'un match et invalide les tours suivants */
 export function setTableauScore(
@@ -366,7 +448,8 @@ export function computeFinalRanking(state: RapieresState): { teamId: string; ran
   const order = (ids: string[]) => [...ids].sort((a, b) => overall.indexOf(a) - overall.indexOf(b));
   if (!state.tableau) return overall.map((teamId, i) => ({ teamId, rank: i + 1 }));
 
-  const matches = resolveTableau(state.tableau);
+  const withdrawn = withdrawnTeamIds(state.teams);
+  const matches = resolveTableau(state.tableau, withdrawn);
   const placed: string[] = [];
   const final = matches.find(m => m.round === 1);
   const third = matches.find(m => m.round === 0);
@@ -393,7 +476,12 @@ export function computeFinalRanking(state: RapieresState): { teamId: string; ran
     ...rest.filter(id => inTableau.has(id)),
     ...rest.filter(id => !inTableau.has(id)),
   ];
-  return ordered.map((teamId, i) => ({ teamId, rank: i + 1 }));
+  // Exclusion : classée d'office en dernier (l'abandon garde la place acquise)
+  const excluded = new Set(state.teams.filter(t => teamStatus(t) === 'excluded').map(t => t.id));
+  return [
+    ...ordered.filter(id => !excluded.has(id)),
+    ...ordered.filter(id => excluded.has(id)),
+  ].map((teamId, i) => ({ teamId, rank: i + 1 }));
 }
 
 // ─── Filtres de classement ───────────────────────────────────────────────────

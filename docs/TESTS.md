@@ -90,7 +90,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 2 | 11 |
+| Feature `rapieres` (`src/features/rapieres/`) | 2 | 17 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 123 |
 | `src/main/` | 6 | 123 |
@@ -100,9 +100,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **136** | **1412** |
+| **Total** | **136** | **1418** |
 
-Unitaires : 128 fichiers, 1381 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 128 fichiers, 1387 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1542,15 +1542,16 @@ Unitaires : 128 fichiers, 1381 tests. E2E : 8 fichiers, 31 tests (comptage stati
 ### Feature `rapieres` (`src/features/rapieres/`)
 
 <details>
-<summary><code>src/features/rapieres/RapieresView.test.tsx</code> — 1 test</summary>
+<summary><code>src/features/rapieres/RapieresView.test.tsx</code> — 2 tests</summary>
 
 - **RapieresView (#1118)**
   - inscription, poules, vague 1 et saisie des scores
+  - édition d’une équipe, abandon puis réactivation
 
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 10 tests</summary>
+<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 15 tests</summary>
 
 - **Tournoi des rapières (#1118)**
   - **poules**
@@ -1567,6 +1568,12 @@ Unitaires : 128 fichiers, 1381 tests. E2E : 8 fichiers, 31 tests (comptage stati
     - plus de 3 poules : seulement les 1ers
     - tableau : exempts, finale, match pour la 3e place, classement final
     - modifier un score efface les tours suivants
+  - **pointage, abandon, forfait, exclusion**
+    - seules les équipes pointées sont réparties ; statut absent = pointée
+    - équipe retirée : rencontres annulées, classée dernière, non qualifiée
+    - vague complète sans les rencontres annulées
+    - tableau : adversaire retiré, qualification d’office
+    - exclusion : classée dernière au classement final
 
 </details>
 
