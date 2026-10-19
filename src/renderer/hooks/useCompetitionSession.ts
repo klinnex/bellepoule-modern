@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Fencer, Pool, PoolRanking } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { TableauMatch, FinalResult, ConsolationBracket } from '../components/tableau/tableauTypes';
+import type { RapieresLegacyState, RapieresSession } from '../../features/rapieres/rapieres.types';
 
 export type Phase =
   | 'checkin'
@@ -64,6 +65,8 @@ interface SessionState {
   currentPoolRound: number;
   skipPoolPhase: boolean;
   remoteArenaCount?: number;
+  /** Tournoi des rapières : composition des équipes et vagues (#1118) */
+  rapieres?: RapieresSession | RapieresLegacyState;
   poolPrepParams: {
     poolCount: number;
     minFencersPerPool: number;
@@ -90,6 +93,7 @@ interface UseCompetitionSessionProps {
   consolationBrackets: ConsolationBracket[];
   skipPoolPhase: boolean;
   remoteArenaCount: number;
+  rapieres?: RapieresSession | RapieresLegacyState;
   poolPrepParams: {
     poolCount: number;
     minFencersPerPool: number;
@@ -123,6 +127,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
       currentPoolRound: p.currentPoolRound,
       skipPoolPhase: p.skipPoolPhase,
       remoteArenaCount: p.remoteArenaCount,
+      ...(p.rapieres ? { rapieres: p.rapieres } : {}),
       poolPrepParams: {
         poolCount: p.poolPrepParams?.poolCount || 0,
         minFencersPerPool: p.poolPrepParams?.minFencersPerPool || 5,
@@ -165,6 +170,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
           currentPoolRound: typedState.uiState?.currentPoolRound || 1,
           skipPoolPhase: typedState.skipPoolPhase ?? false,
           remoteArenaCount: typedState.remoteArenaCount,
+          rapieres: typedState.rapieres,
           poolPrepParams: typedState.poolPrepParams || {
             poolCount: 0,
             minFencersPerPool: 5,
@@ -206,6 +212,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
         currentPoolRound: p.currentPoolRound,
         skipPoolPhase: p.skipPoolPhase,
         remoteArenaCount: p.remoteArenaCount,
+        ...(p.rapieres ? { rapieres: p.rapieres } : {}),
         poolPrepParams: p.poolPrepParams,
         uiState: {
           currentPhase: p.currentPhase,
@@ -246,6 +253,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
     props.consolationBrackets,
     props.skipPoolPhase,
     props.remoteArenaCount,
+    props.rapieres,
     props.poolPrepParams,
     saveState,
   ]);

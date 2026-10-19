@@ -90,19 +90,19 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 2 | 17 |
+| Feature `rapieres` (`src/features/rapieres/`) | 2 | 11 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 123 |
 | `src/main/` | 6 | 123 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 30 | 146 |
+| `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **136** | **1418** |
+| **Total** | **136** | **1413** |
 
-Unitaires : 128 fichiers, 1387 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 128 fichiers, 1382 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1542,38 +1542,31 @@ Unitaires : 128 fichiers, 1387 tests. E2E : 8 fichiers, 31 tests (comptage stati
 ### Feature `rapieres` (`src/features/rapieres/`)
 
 <details>
-<summary><code>src/features/rapieres/RapieresView.test.tsx</code> — 2 tests</summary>
+<summary><code>src/features/rapieres/RapieresComponents.test.tsx</code> — 2 tests</summary>
 
-- **RapieresView (#1118)**
-  - inscription, poules, vague 1 et saisie des scores
-  - édition d’une équipe, abandon puis réactivation
+- **Tournoi des rapières : composants (#1118)**
+  - fenêtre équipe : nom, niveau, deux tireurs avec catégorie
+  - barre des vagues : lancement, vague incomplète, fin anticipée
 
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 15 tests</summary>
+<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 9 tests</summary>
 
 - **Tournoi des rapières (#1118)**
-  - **poules**
-    - poules de 10 équipes au plus, tailles équilibrées
-    - regroupe les équipes de même niveau
+  - libellé des tireurs de l’équipe
+  - **répartition**
+    - regroupe par niveau, tailles équilibrées
   - **vagues**
     - ${n} équipes : round-robin complet, toutes les équipes tirent à chaque vague
+    - ordre des matchs de la poule suivant les vagues
     - vague suivante lancée seulement quand la précédente est saisie
+    - équipe retirée : ses matchs ne bloquent pas la vague
+  - **qualification**
+    - 3 poules ou moins : 1ers et 2es ; au-delà : 1ers
   - **classements**
-    - règle FIE : V/M, indice, touches données ; ex æquo
     - filtres : niveau et catégorie d’âge (un rang par tireur)
-  - **qualification et tableau**
-    - 3 poules ou moins : 1ers et 2es qualifiés
-    - plus de 3 poules : seulement les 1ers
-    - tableau : exempts, finale, match pour la 3e place, classement final
-    - modifier un score efface les tours suivants
-  - **pointage, abandon, forfait, exclusion**
-    - seules les équipes pointées sont réparties ; statut absent = pointée
-    - équipe retirée : rencontres annulées, classée dernière, non qualifiée
-    - vague complète sans les rencontres annulées
-    - tableau : adversaire retiré, qualification d’office
-    - exclusion : classée dernière au classement final
+    - final : tableau, puis non qualifiées, exclues en dernier
 
 </details>
 
@@ -2657,7 +2650,7 @@ Unitaires : 128 fichiers, 1387 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/pool/PoolScoreMatrix.test.tsx</code> — 5 tests</summary>
+<summary><code>src/renderer/components/pool/PoolScoreMatrix.test.tsx</code> — 6 tests</summary>
 
 - **PoolScoreMatrix**
   - affiche les noms des tireurs en en-tête de ligne
@@ -2665,6 +2658,7 @@ Unitaires : 128 fichiers, 1387 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - affiche le score V5 pour un match gagné
   - clic sur une cellule éditable déclenche onCellClick
   - ne déclenche pas onCellClick si verrouillé
+  - rapières : cases de la vague en cours surlignées en violet (#1118)
 
 </details>
 

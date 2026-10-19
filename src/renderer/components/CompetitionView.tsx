@@ -66,8 +66,29 @@ import {
   getAdvancementCount,
   getPoolRoundAdvancement,
   getTableauAdvancement,
+  isRapieresMode,
   resolveCompetitionSettings,
 } from '../../shared/utils/customFormulaSettings';
+import {
+  createRapieresSession,
+  RapieresLegacyState,
+  RapieresSession,
+  RapieresTeamInfo,
+} from '../../features/rapieres/rapieres.types';
+import {
+  distributeByLevel,
+  filterRapieresQualifiers,
+  mergeFinalRanking,
+  RAPIERES_MAX_POOL_SIZE,
+  teamMembersLabel,
+  waveMatchIds,
+  waveMatchOrder,
+} from '../../features/rapieres/rapieresCalculations';
+import RapieresTeamModal, { RapieresTeamDraft } from '../../features/rapieres/RapieresTeamModal';
+import RapieresWaveBar from '../../features/rapieres/RapieresWaveBar';
+import RapieresRankingPanel, {
+  RapieresTeamStats,
+} from '../../features/rapieres/RapieresRankingPanel';
 import { QRCodeShare } from './QRCodeShare';
 import { computePoolStrips } from '../../shared/utils/poolStrips';
 import { TouchOptimizedReferee } from './TouchOptimizedReferee';
@@ -249,6 +270,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     ? Math.max(1, competition.settings?.maxRefereesPerMatch ?? 1)
     : 1;
   const poolWinnersOnly = effectiveSettings?.poolWinnersOnly ?? false;
+  // Tournoi des rapières (#1118) : équipes = tireurs, poules en vagues
+  const isRapieres = isRapieresMode(competition.weapon, competition.settings);
   const postPoolSplitCriteria = competition.settings?.postPoolSplitCriteria;
   // Groupes déjà extraits dans une compétition séparée (genre → id compétition)
   const splitOffCompetitionIds = competition.settings?.splitOffCompetitionIds;
@@ -310,6 +333,31 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const [showKioskDisplay, setShowKioskDisplay] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [referees, setReferees] = useState<Referee[]>([]);
+
+  // Tournoi des rapières : composition des équipes et vagues (état de session)
+  const [rapieresState, setRapieresState] = useState<
+    RapieresSession | RapieresLegacyState | undefined
+  >(undefined);
+  const rapieres: RapieresSession =
+    rapieresState?.version === 2 ? rapieresState : createRapieresSession();
+  const updateRapieres = useCallback(
+    (patch: Partial<RapieresSession>) =>
+      setRapieresState(prev => ({
+        ...(prev?.version === 2 ? prev : createRapieresSession()),
+        ...patch,
+      })),
+    []
+  );
+  const setRapieresTeam = useCallback(
+    (id: string, info: RapieresTeamInfo) =>
+      setRapieresState(prev => {
+        const base = prev?.version === 2 ? prev : createRapieresSession();
+        return { ...base, teams: { ...base.teams, [id]: info } };
+      }),
+    []
+  );
+  // Fenêtre d'équipe : null = fermée, {} = ajout, { fencer } = modification
+  const [rapieresTeamModal, setRapieresTeamModal] = useState<{ fencer?: Fencer } | null>(null);
 
   // Paramètres de préparation des poules (persistés entre les phases)
   const [minFencersPerPool, setMinFencersPerPool] = useState<number>(5);
@@ -504,6 +552,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     consolationBrackets,
     skipPoolPhase,
     remoteArenaCount,
+    rapieres: isRapieres ? rapieresState : undefined,
     poolPrepParams,
   });
 
@@ -547,6 +596,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       if (restoredState.skipPoolPhase) setSkipPoolPhase(restoredState.skipPoolPhase);
       if (restoredState.remoteArenaCount != null)
         setRemoteArenaCount(restoredState.remoteArenaCount);
+      if (restoredState.rapieres) setRapieresState(restoredState.rapieres);
     }
   }, [restoredState, isLoaded]);
 
@@ -1066,6 +1116,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const handleGeneratePools = async () => {
     const newPools = generatePoolsHook(getSeededCheckedInFencers(), currentPoolRound);
     if (newPools) {
+      resetRapieresWaves(newPools);
       await persistPoolsToDB(newPools);
       // Fermer l'inscription distante dès que les poules sont générées
       if (isRemoteActive && window.electronAPI?.remote?.setRegistrationEnabled) {
@@ -1075,6 +1126,101 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       setCurrentPhase('poolprep');
     }
   };
+
+  // ─── Tournoi des rapières : équipes enregistrées comme tireurs (#1118) ─────
+  // Nom = nom d'équipe, prénom = noms des deux tireurs, club = niveau (affiché partout)
+  const rapieresFencerFields = (team: RapieresTeamDraft) => ({
+    lastName: team.name,
+    firstName: teamMembersLabel(team.info.fencers),
+    club: t(`rapieres.level_${team.info.level}`),
+  });
+
+  const handleSaveRapieresTeam = async (team: RapieresTeamDraft, fencer?: Fencer) => {
+    if (fencer) {
+      await updateFencer(fencer.id, rapieresFencerFields(team));
+      setRapieresTeam(fencer.id, team.info);
+      return;
+    }
+    const added = await addFencer({
+      ...rapieresFencerFields(team),
+      gender: Gender.MIXED,
+      nationality: 'FRA',
+      status: FencerStatus.NOT_CHECKED_IN,
+    } as Omit<Fencer, 'id' | 'createdAt' | 'updatedAt'>);
+    if (added) setRapieresTeam(added.id, team.info);
+  };
+
+  // Migration de la première version (vue dédiée) : équipes recréées comme tireurs
+  const rapieresMigrating = useRef(false);
+  useEffect(() => {
+    if (!isRapieres || !isLoaded || rapieresState?.version !== 1 || rapieresMigrating.current)
+      return;
+    rapieresMigrating.current = true;
+    const legacy = rapieresState;
+    const LEGACY_STATUS: Record<string, FencerStatus> = {
+      checked_in: FencerStatus.CHECKED_IN,
+      abandoned: FencerStatus.ABANDONED,
+      forfait: FencerStatus.FORFAIT,
+      excluded: FencerStatus.EXCLUDED,
+    };
+    (async () => {
+      const teams: Record<string, RapieresTeamInfo> = {};
+      if (fencers.length === 0 && legacy.teams.length > 0) {
+        const added = await bulkAddFencers(
+          legacy.teams.map(
+            tm =>
+              ({
+                ...rapieresFencerFields({
+                  name: tm.name,
+                  info: { level: tm.level, fencers: tm.fencers },
+                }),
+                gender: Gender.MIXED,
+                nationality: 'FRA',
+                status: LEGACY_STATUS[tm.status ?? 'checked_in'] ?? FencerStatus.NOT_CHECKED_IN,
+              }) as Omit<Fencer, 'id' | 'createdAt' | 'updatedAt'>
+          )
+        );
+        added.forEach((f, i) => {
+          teams[f.id] = { level: legacy.teams[i].level, fencers: legacy.teams[i].fencers };
+        });
+      }
+      setRapieresState({ ...createRapieresSession(), teams });
+    })().catch(error => {
+      rapieresMigrating.current = false;
+      logger.error(LogCategory.UI, 'Rapières : migration impossible', error as Error);
+    });
+  }, [isRapieres, isLoaded, rapieresState, fencers.length]);
+
+  /** Nouvelles poules : aucune vague lancée tant qu'aucun match n'est joué */
+  const resetRapieresWaves = (newPools: Pool[]) => {
+    if (!isRapieres) return;
+    const played = newPools.some(p => p.matches.some(m => m.status !== MatchStatus.NOT_STARTED));
+    if (!played) updateRapieres({ launchedWave: 0, wavesEnded: false });
+  };
+
+  // Statistiques de poule par équipe (classements rapières)
+  const rapieresStats = useMemo(
+    () =>
+      new Map<string, RapieresTeamStats>(
+        overallRanking.map(r => [
+          r.fencer.id,
+          {
+            victories: r.victories,
+            matches: r.matchesPlayed,
+            index: r.index,
+            touchesGiven: r.touchesScored,
+          },
+        ])
+      ),
+    [overallRanking]
+  );
+
+  // Matchs de la vague en cours (surbrillance violette)
+  const currentWaveMatchIds = useMemo(
+    () =>
+      isRapieres && !rapieres.wavesEnded ? waveMatchIds(pools, rapieres.launchedWave) : undefined,
+    [isRapieres, pools, rapieres.launchedWave, rapieres.wavesEnded]
+  );
 
   // Saisie distante active : QR de la piste sur chaque feuille de poule (#1037)
   const poolsRemoteInfo =
@@ -1252,6 +1398,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
 
     // Tirer toutes les places → 3ème place implicite, pas de question
     if (playAllPositions) {
+      handleThirdPlaceDecision(true);
+      return;
+    }
+    // Rapières : match pour la 3e place toujours tiré (#1118)
+    if (isRapieres) {
       handleThirdPlaceDecision(true);
       return;
     }
@@ -1617,7 +1768,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   };
 
   // Phases dynamiques
-  const canAdvanceFromPools = skipPoolPhase || (pools.length > 0 && areAllPoolsComplete());
+  const canAdvanceFromPools =
+    skipPoolPhase ||
+    (pools.length > 0 && (areAllPoolsComplete() || (isRapieres && rapieres.wavesEnded)));
   const isLastPoolRound = currentPoolRound >= poolRounds;
   const isResultsLocked = hasDirectElimination && finalResults.length === 0;
   // En mode quest-sans-poules, le tableau se débloque par la complétion de la quête (rankingValidated)
@@ -1816,7 +1969,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // Classement effectif pour le tableau (filtré par vainqueurs de poule et/ou groupe actif)
   const effectiveTableauRanking = useMemo(() => {
     let ranking = overallRanking;
-    if (poolWinnersOnly && pools.length > 0) {
+    if (isRapieres && pools.length > 0) {
+      // Rapières : 1ers de poule, et 2es si 3 poules ou moins
+      ranking = filterRapieresQualifiers(pools, ranking);
+    } else if (poolWinnersOnly && pools.length > 0) {
       ranking = filterPoolWinners(pools, ranking);
     } else if (customFormula) {
       // Qualifiés pour le tableau selon la formule (pourcentage, nombre, taille de tableau)
@@ -1836,6 +1992,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   }, [
     overallRanking,
     pools,
+    isRapieres,
     poolWinnersOnly,
     customFormula,
     postPoolSplitCriteria,
@@ -1996,6 +2153,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         autoFillReferees={autoFillReferees}
         onAutoFillReferees={handlePoolAutoFillReferees}
         onRefereeAssigned={handlePoolRefereeAssigned}
+        waveMatchIds={currentWaveMatchIds}
       />
     </div>
   );
@@ -2070,7 +2228,20 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             fencers={currentAppelFencers}
             competitionId={competition.id}
             onCheckIn={handleCheckInFencer}
-            onAddFencer={() => setShowAddFencerModal(true)}
+            onAddFencer={() =>
+              isRapieres ? setRapieresTeamModal({}) : setShowAddFencerModal(true)
+            }
+            {...(isRapieres
+              ? {
+                  columnLabels: {
+                    lastName: t('rapieres.team'),
+                    firstName: t('rapieres.fencers'),
+                    club: t('rapieres.level'),
+                  },
+                  hiddenColumns: ['birthDate', 'ranking'],
+                  onEditRequest: (fencer: Fencer) => setRapieresTeamModal({ fencer }),
+                }
+              : {})}
             registerUrl={
               isRemoteActive && remoteServerUrl ? `${remoteServerUrl}/register` : undefined
             }
@@ -2080,8 +2251,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             onDeleteAllFencers={deleteAllFencers}
             onCheckInAll={checkInAll}
             onUncheckAll={uncheckAll}
-            onImport={type => handleOpenImportDialog(type)}
-            onImportFFEConnect={() => setShowFFEConnect(true)}
+            onImport={isRapieres ? undefined : type => handleOpenImportDialog(type)}
+            onImportFFEConnect={isRapieres ? undefined : () => setShowFFEConnect(true)}
             onFencersImported={loadFencers}
             onAppelStateChange={handleAppelStateChange}
             onSetFencerStatus={(id, status) => {
@@ -2129,8 +2300,15 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             fencers={getSeededCheckedInFencers()}
             initialPools={pools.length > 0 ? pools : undefined}
             maxScore={poolMaxScore}
-            minFencersPerPool={minFencersPerPool}
-            maxFencersPerPool={maxFencersPerPool}
+            minFencersPerPool={isRapieres ? 2 : minFencersPerPool}
+            maxFencersPerPool={isRapieres ? RAPIERES_MAX_POOL_SIZE : maxFencersPerPool}
+            {...(isRapieres
+              ? {
+                  customDistribution: (list: Fencer[], count: number) =>
+                    distributeByLevel(list, count, id => rapieres.teams[id]?.level),
+                  customMatchOrder: waveMatchOrder,
+                }
+              : {})}
             expertMode={expertMode}
             arenaCount={remoteArenaCount}
             onStripChange={(poolId, strip) => {
@@ -2142,6 +2320,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               window.electronAPI?.db?.updatePool(updated);
             }}
             onPoolsConfirm={async confirmedPools => {
+              resetRapieresWaves(confirmedPools);
               setPools(confirmedPools);
               setSkipPoolPhase(false);
               setCurrentPhase('pools');
@@ -2205,6 +2384,21 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               </div>
             ) : (
               <>
+                {isRapieres && (
+                  <RapieresWaveBar
+                    pools={pools}
+                    launchedWave={rapieres.launchedWave}
+                    wavesEnded={rapieres.wavesEnded}
+                    onLaunchWave={wave => updateRapieres({ launchedWave: wave })}
+                    onEndWaves={async () => {
+                      if (!(await confirm(t('rapieres.confirm_end_waves')))) return;
+                      updateRapieres({ wavesEnded: true });
+                      setOverallRanking(computeOverallRanking(pools));
+                      setCurrentPhase('ranking');
+                    }}
+                    onResumeWaves={() => updateRapieres({ wavesEnded: false })}
+                  />
+                )}
                 <div
                   style={{
                     display: 'flex',
@@ -2361,6 +2555,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                   }
                 : undefined
             }
+          />
+        )}
+        {currentPhase === 'ranking' && isRapieres && !viewedRoundPools && (
+          <RapieresRankingPanel
+            competitionTitle={competition.title}
+            title={t('rapieres.ranking_intermediate')}
+            ranked={overallRanking.map(r => ({ teamId: r.fencer.id, rank: r.rank }))}
+            fencers={fencers}
+            teams={rapieres.teams}
+            stats={rapieresStats}
           />
         )}
 
@@ -2552,6 +2756,20 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             appelVisibleColumns={appelVisibleColumns.length > 0 ? appelVisibleColumns : undefined}
           />
         )}
+        {currentPhase === 'results' && isRapieres && (
+          <RapieresRankingPanel
+            competitionTitle={competition.title}
+            title={
+              finalResults.length > 0
+                ? t('rapieres.ranking_final')
+                : t('rapieres.ranking_intermediate')
+            }
+            ranked={mergeFinalRanking(finalResults, overallRanking)}
+            fencers={fencers}
+            teams={rapieres.teams}
+            stats={rapieresStats}
+          />
+        )}
 
         <Suspense fallback={null}>
           <RemoteScoreManager
@@ -2695,6 +2913,27 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         <Suspense fallback={null}>
           <FFEExportModal ranking={overallRanking} onClose={() => setShowFFEExport(false)} />
         </Suspense>
+      )}
+
+      {rapieresTeamModal && (
+        <RapieresTeamModal
+          initial={
+            rapieresTeamModal.fencer
+              ? {
+                  name: rapieresTeamModal.fencer.lastName,
+                  info: rapieres.teams[rapieresTeamModal.fencer.id] ?? {
+                    level: 'beginner',
+                    fencers: [
+                      { lastName: '', firstName: '', category: 'SENIOR' },
+                      { lastName: '', firstName: '', category: 'SENIOR' },
+                    ],
+                  },
+                }
+              : undefined
+          }
+          onSave={team => handleSaveRapieresTeam(team, rapieresTeamModal.fencer)}
+          onClose={() => setRapieresTeamModal(null)}
+        />
       )}
 
       {showAddFencerModal && (

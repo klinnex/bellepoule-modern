@@ -114,6 +114,8 @@ interface PoolViewProps {
   autoFillReferees?: Referee[];
   /** Arbitres assignés par le remplissage automatique (matchId → arbitre) */
   onAutoFillReferees?: (assignments: Map<string, Referee>) => void;
+  /** Tournoi des rapières : matchs de la vague en cours (surbrillance violette) */
+  waveMatchIds?: ReadonlySet<string>;
 }
 
 type ViewMode = 'grid' | 'matches';
@@ -142,8 +144,20 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   maxRefereesPerPool = 1,
   autoFillReferees,
   onAutoFillReferees,
+  waveMatchIds,
 }) => {
   const { showToast } = useToast();
+  // Paires de la vague en cours, repérées par tireurs (cellules de la matrice)
+  const waveHighlightPairs = useMemo(() => {
+    if (!waveMatchIds?.size) return undefined;
+    const pairs = new Set<string>();
+    for (const m of pool.matches) {
+      if (!waveMatchIds.has(m.id) || !m.fencerA || !m.fencerB) continue;
+      const [a, b] = [m.fencerA.id, m.fencerB.id];
+      pairs.add(a < b ? `${a}|${b}` : `${b}|${a}`);
+    }
+    return pairs;
+  }, [waveMatchIds, pool.matches]);
   const { confirm } = useConfirm();
   const { isColumnVisible, toggleColumn, getVisibleColumns } = useColumnVisibility();
   const poolTemplate = usePdfTemplateStore(s => s.templates.pool);
@@ -1469,6 +1483,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         }
         quickMouseScoring={quickMouseScoring}
         highlightedFencerIds={hoveredFencerIds}
+        waveHighlightPairs={waveHighlightPairs}
         onHoverCell={quickMouseScoring || simplifiedInputMode ? handleHoverCell : undefined}
         onHoverLeave={quickMouseScoring || simplifiedInputMode ? handleHoverLeave : undefined}
         onWheelScore={quickMouseScoring ? handleWheelScore : undefined}
@@ -1901,6 +1916,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               isRemoteActive={isRemoteActive}
               matchArenaOverrides={matchArenaOverrides}
               cardScale={cardScale}
+              waveMatchIds={waveMatchIds}
               onMatchArenaChange={handleMatchArenaChange}
             />
           )}

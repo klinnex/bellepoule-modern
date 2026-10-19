@@ -1,80 +1,58 @@
 /**
  * BellePoule Modern - Tournoi des rapières : calculs (#1118)
- * Répartition des poules par niveau, vagues de rencontres, classements (règles FIE),
- * qualification et tableau à élimination directe avec match pour la 3e place.
+ * Répartition des poules par niveau, vagues de rencontres, qualification pour le tableau,
+ * classements par niveau et par catégorie d'âge.
  * Licensed under GPL-3.0
  */
 
-import { calculateTableSize, generateSeedingChart } from '../../shared/utils/tableCalculations';
+import { Fencer, FencerStatus, MatchStatus, Pool, PoolRanking } from '../../shared/types';
+import { calculatePoolRanking } from '../../shared/utils/poolCalculations';
 import {
   RAPIERES_LEVELS,
   RapieresAgeCategory,
-  RapieresBout,
+  RapieresFencer,
   RapieresLevel,
-  RapieresPool,
-  RapieresRankingRow,
-  RapieresState,
-  RapieresStats,
-  RapieresTableau,
-  RapieresTableauMatch,
-  RapieresTeam,
-  RapieresTeamStatus,
+  RapieresTeamInfo,
 } from './rapieres.types';
 
 export const RAPIERES_MAX_POOL_SIZE = 10;
 
-const newId = (): string =>
-  typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? crypto.randomUUID()
-    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+/** Prénom affiché de l'équipe : noms des deux tireurs */
+export const teamMembersLabel = (fencers: [RapieresFencer, RapieresFencer]): string =>
+  fencers
+    .map(f => f.lastName.trim().toUpperCase())
+    .filter(Boolean)
+    .join(' / ');
 
-// ─── Statuts ─────────────────────────────────────────────────────────────────
-
-export const teamStatus = (team: RapieresTeam): RapieresTeamStatus => team.status ?? 'checked_in';
-
-/** Abandon, forfait ou exclusion : rencontres annulées, classée en dernier, non qualifiée */
-export const isWithdrawnStatus = (status: RapieresTeamStatus): boolean =>
-  status === 'abandoned' || status === 'forfait' || status === 'excluded';
-
-/** Équipes à répartir dans les poules */
-export const checkedInTeams = (teams: RapieresTeam[]): RapieresTeam[] =>
-  teams.filter(t => teamStatus(t) === 'checked_in');
-
-export const withdrawnTeamIds = (teams: RapieresTeam[]): Set<string> =>
-  new Set(teams.filter(t => isWithdrawnStatus(teamStatus(t))).map(t => t.id));
-
-/** Rencontre annulée : une des deux équipes s'est retirée */
-export const isBoutVoid = (b: RapieresBout, withdrawn: Set<string>): boolean =>
-  withdrawn.has(b.teamAId) || withdrawn.has(b.teamBId);
-
-/** Rencontres qui comptent (hors équipes retirées) */
-export const activeBouts = (state: RapieresState): RapieresBout[] => {
-  const withdrawn = withdrawnTeamIds(state.teams);
-  return state.bouts.filter(b => !isBoutVoid(b, withdrawn));
-};
+const isWithdrawn = (f: Fencer | null | undefined): boolean =>
+  f?.status === FencerStatus.ABANDONED ||
+  f?.status === FencerStatus.FORFAIT ||
+  f?.status === FencerStatus.EXCLUDED;
 
 // ─── Poules ──────────────────────────────────────────────────────────────────
 
-/** Nombre de poules par défaut : poules de 10 équipes au plus */
-export const defaultPoolCount = (teamCount: number): number =>
-  Math.max(1, Math.ceil(teamCount / RAPIERES_MAX_POOL_SIZE));
-
 /**
  * Répartit les équipes en `poolCount` poules de tailles équilibrées (écart ≤ 1),
- * les équipes de même niveau regroupées (débutants, puis intermédiaires, puis experts).
+ * équipes de même niveau regroupées (débutants, puis intermédiaires, puis experts).
  */
-export function distributeTeams(teams: RapieresTeam[], poolCount: number): RapieresPool[] {
-  const count = Math.max(1, Math.min(poolCount, teams.length || 1));
-  const sorted = [...teams].sort(
-    (a, b) => RAPIERES_LEVELS.indexOf(a.level) - RAPIERES_LEVELS.indexOf(b.level)
-  );
+export function distributeByLevel(
+  fencers: Fencer[],
+  poolCount: number,
+  levelOf: (fencerId: string) => RapieresLevel | undefined
+): Fencer[][] {
+  const count = Math.max(1, Math.min(poolCount, fencers.length || 1));
+  const rank = (f: Fencer) => {
+    const i = RAPIERES_LEVELS.indexOf(levelOf(f.id) ?? 'beginner');
+    return i < 0 ? 0 : i;
+  };
+  const sorted = [...fencers].sort((a, b) => rank(a) - rank(b));
   const base = Math.floor(sorted.length / count);
   const extra = sorted.length % count;
-  const pools: RapieresPool[] = [];
+  const pools: Fencer[][] = [];
   let i = 0;
   for (let p = 0; p < count; p++) {
     const size = base + (p < extra ? 1 : 0);
-    pools.push({ teamIds: sorted.slice(i, i + size).map(t => t.id) });
+    pools.push(sorted.slice(i, i + size));
     i += size;
   }
   return pools;
@@ -84,7 +62,7 @@ export function distributeTeams(teams: RapieresTeam[], poolCount: number): Rapie
 
 type Pair = [string, string];
 
-const pairKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+export const pairKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
 
 /** Couplage de taille maximale parmi les paires restantes (recherche exhaustive, ≤ 10 équipes) */
 function maxMatching(teamIds: string[], remaining: Set<string>): Pair[] {
@@ -146,342 +124,80 @@ export function scheduleWaves(
   return result;
 }
 
-/** Rencontres de toutes les poules, vagues numérotées à partir de 1 dans chaque poule */
-export function buildBouts(pools: RapieresPool[]): RapieresBout[] {
-  return pools.flatMap((pool, poolIndex) =>
-    scheduleWaves(pool.teamIds).map(b => ({
-      id: newId(),
-      poolIndex,
-      wave: b.wave,
-      teamAId: b.teamAId,
-      teamBId: b.teamBId,
-      scoreA: null,
-      scoreB: null,
-    }))
-  );
+/** Ordre des matchs d'une poule (paires 1-indexées) suivant les vagues */
+export function waveMatchOrder(poolFencers: Fencer[]): [number, number][] {
+  const index = new Map(poolFencers.map((f, i) => [f.id, i + 1]));
+  return scheduleWaves(poolFencers.map(f => f.id)).map(b => [
+    index.get(b.teamAId)!,
+    index.get(b.teamBId)!,
+  ]);
 }
 
-export const isBoutDone = (b: RapieresBout): boolean => b.scoreA !== null && b.scoreB !== null;
+/** Vague de chaque match d'une poule (id du match → numéro de vague) */
+export function poolMatchWaves(pool: Pool): Map<string, number> {
+  const waveOf = new Map(
+    scheduleWaves(pool.fencers.map(f => f.id)).map(b => [pairKey(b.teamAId, b.teamBId), b.wave])
+  );
+  const result = new Map<string, number>();
+  for (const m of pool.matches) {
+    if (!m.fencerA || !m.fencerB) continue;
+    const wave = waveOf.get(pairKey(m.fencerA.id, m.fencerB.id));
+    if (wave !== undefined) result.set(m.id, wave);
+  }
+  return result;
+}
 
-export const waveCount = (bouts: RapieresBout[]): number =>
-  bouts.reduce((max, b) => Math.max(max, b.wave), 0);
+/** Nombre de vagues : celui de la poule la plus longue */
+export const waveCount = (pools: Pool[]): number =>
+  pools.reduce((max, p) => Math.max(max, ...poolMatchWaves(p).values()), 0);
 
-/** La vague `wave` est terminée (toutes ses rencontres saisies) */
-export const isWaveComplete = (bouts: RapieresBout[], wave: number): boolean =>
-  bouts.filter(b => b.wave === wave).every(isBoutDone);
+/** Matchs de la vague `wave`, toutes poules confondues */
+export function waveMatchIds(pools: Pool[], wave: number): Set<string> {
+  const ids = new Set<string>();
+  if (wave < 1) return ids;
+  for (const pool of pools) for (const [id, w] of poolMatchWaves(pool)) if (w === wave) ids.add(id);
+  return ids;
+}
+
+/** Vague terminée : chaque match joué, annulé, ou avec une équipe retirée */
+export function isWaveComplete(pools: Pool[], wave: number): boolean {
+  const ids = waveMatchIds(pools, wave);
+  return pools.every(pool =>
+    pool.matches
+      .filter(m => ids.has(m.id))
+      .every(
+        m =>
+          m.status === MatchStatus.FINISHED ||
+          m.status === MatchStatus.CANCELLED ||
+          isWithdrawn(m.fencerA) ||
+          isWithdrawn(m.fencerB)
+      )
+  );
+}
 
 /** Le DT peut lancer la vague suivante */
-export const canLaunchNextWave = (state: RapieresState): boolean =>
-  state.launchedWave < waveCount(state.bouts) &&
-  (state.launchedWave === 0 || isWaveComplete(activeBouts(state), state.launchedWave));
+export const canLaunchNextWave = (pools: Pool[], launchedWave: number): boolean =>
+  launchedWave < waveCount(pools) && (launchedWave === 0 || isWaveComplete(pools, launchedWave));
 
-export const arePoolsComplete = (state: RapieresState): boolean =>
-  state.bouts.length > 0 && activeBouts(state).every(isBoutDone);
+// ─── Qualification ───────────────────────────────────────────────────────────
 
-// ─── Classements ─────────────────────────────────────────────────────────────
-
-const emptyStats = (): RapieresStats => ({
-  matches: 0,
-  victories: 0,
-  touchesGiven: 0,
-  touchesReceived: 0,
-});
-
-export function computeTeamStats(
-  bouts: RapieresBout[],
-  teamIds?: string[]
-): Map<string, RapieresStats> {
-  const stats = new Map<string, RapieresStats>();
-  for (const id of teamIds ?? []) stats.set(id, emptyStats());
-  for (const b of bouts) {
-    if (!isBoutDone(b)) continue;
-    const a = stats.get(b.teamAId) ?? emptyStats();
-    const c = stats.get(b.teamBId) ?? emptyStats();
-    a.matches++;
-    c.matches++;
-    a.touchesGiven += b.scoreA!;
-    a.touchesReceived += b.scoreB!;
-    c.touchesGiven += b.scoreB!;
-    c.touchesReceived += b.scoreA!;
-    if (b.scoreA! > b.scoreB!) a.victories++;
-    else if (b.scoreB! > b.scoreA!) c.victories++;
-    stats.set(b.teamAId, a);
-    stats.set(b.teamBId, c);
-  }
-  return stats;
-}
-
-const ratio = (s: RapieresStats) => (s.matches > 0 ? s.victories / s.matches : 0);
-const indice = (s: RapieresStats) => s.touchesGiven - s.touchesReceived;
-
-/** Règle FIE : V/M, puis indice (TD − TR), puis touches données */
-export function compareStats(a: RapieresStats, b: RapieresStats): number {
-  return ratio(b) - ratio(a) || indice(b) - indice(a) || b.touchesGiven - a.touchesGiven;
-}
-
-/** Classement d'équipes (ex æquo possibles), équipes retirées classées d'office en dernier */
-export function rankTeams(
-  teamIds: string[],
-  stats: Map<string, RapieresStats>,
-  withdrawn: Set<string> = new Set()
-): RapieresRankingRow[] {
-  const rows = teamIds
-    .filter(id => !withdrawn.has(id))
-    .map(teamId => ({ teamId, stats: stats.get(teamId) ?? emptyStats() }));
-  rows.sort((a, b) => compareStats(a.stats, b.stats));
-  const ranked: RapieresRankingRow[] = [];
-  rows.forEach((row, i) => {
-    const tied = i > 0 && compareStats(rows[i - 1].stats, row.stats) === 0;
-    ranked.push({ ...row, rank: tied ? ranked[i - 1].rank : i + 1 });
-  });
-  for (const teamId of teamIds.filter(id => withdrawn.has(id)))
-    ranked.push({ teamId, stats: stats.get(teamId) ?? emptyStats(), rank: ranked.length + 1 });
-  return ranked;
-}
-
-/** Classement de chaque poule */
-export function computePoolRankings(state: RapieresState): RapieresRankingRow[][] {
-  const bouts = activeBouts(state);
-  const withdrawn = withdrawnTeamIds(state.teams);
-  return state.pools.map((pool, poolIndex) =>
-    rankTeams(
-      pool.teamIds,
-      computeTeamStats(
-        bouts.filter(b => b.poolIndex === poolIndex),
-        pool.teamIds
-      ),
-      withdrawn
-    )
-  );
-}
-
-/** Classement général intermédiaire (fin de poules), toutes poules confondues */
-export function computeOverallRanking(state: RapieresState): RapieresRankingRow[] {
-  const teamIds = state.pools.flatMap(p => p.teamIds);
-  return rankTeams(
-    teamIds,
-    computeTeamStats(activeBouts(state), teamIds),
-    withdrawnTeamIds(state.teams)
-  );
-}
-
-/** Équipes qualifiées pour le tableau : 1ers de poule, et 2es si 3 poules ou moins */
-export function selectQualifiers(state: RapieresState): string[] {
-  const perPool = state.pools.length <= 3 ? 2 : 1;
-  const withdrawn = withdrawnTeamIds(state.teams);
-  const qualified = new Set(
-    computePoolRankings(state).flatMap(ranking =>
-      ranking
-        .filter(r => !withdrawn.has(r.teamId))
-        .slice(0, perPool)
-        .map(r => r.teamId)
-    )
-  );
-  return computeOverallRanking(state)
-    .map(r => r.teamId)
-    .filter(id => qualified.has(id));
-}
-
-// ─── Tableau ─────────────────────────────────────────────────────────────────
-
-export function createTableau(seeds: string[]): RapieresTableau {
-  return { seeds, size: calculateTableSize(Math.max(2, seeds.length)), scores: [] };
-}
-
-const scoreOf = (t: RapieresTableau, round: number, position: number) =>
-  t.scores.find(s => s.round === round && s.position === position);
+/** Qualifiés par poule : 1ers, et 2es aussi si 3 poules ou moins */
+export const qualifiersPerPool = (poolCount: number): number => (poolCount <= 3 ? 2 : 1);
 
 /**
- * Vainqueur d'un match entre deux équipes connues : par le score, ou d'office si une seule
- * s'est retirée (deux retirées : aucune ne passe, l'emplacement suivant reste vide).
+ * Classement général réduit aux qualifiés pour le tableau (rangs recalculés),
+ * équipes retirées exclues.
  */
-function decideMatch(
-  a: string,
-  b: string,
-  s: { scoreA: number; scoreB: number } | undefined,
-  withdrawn: Set<string>
-): { winnerId: string | null; loserId: string | null; walkover: boolean; void: boolean } {
-  const outA = withdrawn.has(a);
-  const outB = withdrawn.has(b);
-  if (outA && outB) return { winnerId: null, loserId: null, walkover: false, void: true };
-  if (outA || outB)
-    return { winnerId: outA ? b : a, loserId: outA ? a : b, walkover: true, void: false };
-  if (s && s.scoreA !== s.scoreB) {
-    const winnerId = s.scoreA > s.scoreB ? a : b;
-    return { winnerId, loserId: winnerId === a ? b : a, walkover: false, void: false };
+export function filterRapieresQualifiers(pools: Pool[], overall: PoolRanking[]): PoolRanking[] {
+  const perPool = qualifiersPerPool(pools.length);
+  const qualified = new Set<string>();
+  for (const pool of pools) {
+    const ranking = pool.ranking?.length ? pool.ranking : calculatePoolRanking(pool);
+    ranking
+      .filter(r => !isWithdrawn(r.fencer) && r.rank <= perPool)
+      .forEach(r => qualified.add(r.fencer.id));
   }
-  return { winnerId: null, loserId: null, walkover: false, void: false };
-}
-
-/**
- * Matchs du tableau, tour par tour (round = nombre de matchs du tour), puis le match
- * pour la 3e place (round 0) entre les perdants des demi-finales.
- * Équipe retirée (abandon, forfait, exclusion) : son adversaire passe d'office.
- */
-export function resolveTableau(
-  t: RapieresTableau,
-  withdrawn: Set<string> = new Set()
-): RapieresTableauMatch[] {
-  const chart = generateSeedingChart(t.size);
-  let slots: (string | null)[] = chart.map(seed => t.seeds[seed - 1] ?? null);
-  // known[i] : occupant du slot connu (null = exempt) ; faux tant que le match amont n'est pas joué
-  let known: boolean[] = slots.map(() => true);
-  const matches: RapieresTableauMatch[] = [];
-  const semiLosers: (string | null)[] = [];
-  let semisKnown = true;
-
-  for (let round = t.size / 2; round >= 1; round /= 2) {
-    const nextSlots: (string | null)[] = [];
-    const nextKnown: boolean[] = [];
-    for (let position = 0; position < round; position++) {
-      const a = slots[position * 2];
-      const b = slots[position * 2 + 1];
-      const ready = known[position * 2] && known[position * 2 + 1];
-      const isBye = ready && (a === null) !== (b === null);
-      const s = scoreOf(t, round, position);
-      let winnerId: string | null = null;
-      let loserId: string | null = null;
-      let walkover = false;
-      let both = false;
-      if (isBye) winnerId = a ?? b;
-      else if (ready && a && b) {
-        const d = decideMatch(a, b, s, withdrawn);
-        ({ winnerId, loserId, walkover } = d);
-        both = d.void;
-      }
-      const decided = ready && (isBye || (a === null && b === null) || winnerId !== null || both);
-      matches.push({
-        round,
-        position,
-        teamAId: known[position * 2] ? a : null,
-        teamBId: known[position * 2 + 1] ? b : null,
-        isBye,
-        scoreA: !isBye && !walkover && s ? s.scoreA : null,
-        scoreB: !isBye && !walkover && s ? s.scoreB : null,
-        winnerId,
-        loserId,
-        ...(walkover ? { walkover } : {}),
-      });
-      nextSlots.push(winnerId);
-      nextKnown.push(decided);
-      if (round === 2) {
-        semiLosers.push(loserId);
-        if (!decided) semisKnown = false;
-      }
-    }
-    slots = nextSlots;
-    known = nextKnown;
-  }
-
-  if (t.size >= 4) {
-    const [a, b] = [semiLosers[0] ?? null, semiLosers[1] ?? null];
-    const s = scoreOf(t, 0, 0);
-    const isBye = semisKnown && (a === null) !== (b === null);
-    let winnerId: string | null = null;
-    let loserId: string | null = null;
-    let walkover = false;
-    if (isBye) winnerId = a ?? b;
-    else if (semisKnown && a && b)
-      ({ winnerId, loserId, walkover } = decideMatch(a, b, s, withdrawn));
-    matches.push({
-      round: 0,
-      position: 0,
-      teamAId: semisKnown ? a : null,
-      teamBId: semisKnown ? b : null,
-      isBye,
-      scoreA: !isBye && !walkover && s ? s.scoreA : null,
-      scoreB: !isBye && !walkover && s ? s.scoreB : null,
-      winnerId,
-      loserId,
-      ...(walkover ? { walkover } : {}),
-    });
-  }
-  return matches;
-}
-
-/** Match jouable : deux équipes connues, pas un exempt ni un match gagné d'office */
-export const isPlayable = (m: RapieresTableauMatch): boolean =>
-  !!m.teamAId && !!m.teamBId && !m.isBye && !m.walkover;
-
-export const isTableauComplete = (
-  t: RapieresTableau,
-  withdrawn: Set<string> = new Set()
-): boolean =>
-  resolveTableau(t, withdrawn).every(
-    m =>
-      !isPlayable(m) ||
-      m.winnerId !== null ||
-      (withdrawn.has(m.teamAId!) && withdrawn.has(m.teamBId!))
-  );
-
-/** Enregistre (ou efface avec null) le score d'un match et invalide les tours suivants */
-export function setTableauScore(
-  t: RapieresTableau,
-  round: number,
-  position: number,
-  score: { scoreA: number; scoreB: number } | null
-): RapieresTableau {
-  // Tours suivants dépendants : effacés, le vainqueur pouvant changer
-  const downstream = (r: number, p: number): { round: number; position: number }[] => {
-    if (r === 0 || r === 1) return [];
-    const next = { round: r / 2, position: Math.floor(p / 2) };
-    const third = r === 2 ? [{ round: 0, position: 0 }] : [];
-    return [next, ...third, ...downstream(next.round, next.position)];
-  };
-  const cleared = new Set(downstream(round, position).map(k => `${k.round}:${k.position}`));
-  const scores = t.scores.filter(
-    s => !(s.round === round && s.position === position) && !cleared.has(`${s.round}:${s.position}`)
-  );
-  if (score) scores.push({ round, position, ...score });
-  return { ...t, scores };
-}
-
-// ─── Classement final ────────────────────────────────────────────────────────
-
-/**
- * Classement final des équipes : 1er vainqueur, 2e finaliste, 3e / 4e selon le match
- * pour la 3e place, puis perdants de chaque tour (classés entre eux selon les poules),
- * puis équipes non qualifiées dans l'ordre du classement de poules.
- */
-export function computeFinalRanking(state: RapieresState): { teamId: string; rank: number }[] {
-  const overall = computeOverallRanking(state).map(r => r.teamId);
-  const order = (ids: string[]) => [...ids].sort((a, b) => overall.indexOf(a) - overall.indexOf(b));
-  if (!state.tableau) return overall.map((teamId, i) => ({ teamId, rank: i + 1 }));
-
-  const withdrawn = withdrawnTeamIds(state.teams);
-  const matches = resolveTableau(state.tableau, withdrawn);
-  const placed: string[] = [];
-  const final = matches.find(m => m.round === 1);
-  const third = matches.find(m => m.round === 0);
-  if (final?.winnerId) placed.push(final.winnerId);
-  if (final?.loserId) placed.push(final.loserId);
-  if (third?.winnerId) placed.push(third.winnerId);
-  if (third?.loserId) placed.push(third.loserId);
-  for (let round = 2; round <= state.tableau.size / 2; round *= 2) {
-    if (round === 2 && third) continue; // déjà classés par le match pour la 3e place
-    placed.push(
-      ...order(
-        matches
-          .filter(m => m.round === round && m.loserId)
-          .map(m => m.loserId as string)
-          .filter(id => !placed.includes(id))
-      )
-    );
-  }
-  // Équipes encore en lice (tableau inachevé), puis non qualifiées
-  const rest = order(overall.filter(id => !placed.includes(id)));
-  const inTableau = new Set(state.tableau.seeds);
-  const ordered = [
-    ...placed,
-    ...rest.filter(id => inTableau.has(id)),
-    ...rest.filter(id => !inTableau.has(id)),
-  ];
-  // Exclusion : classée d'office en dernier (l'abandon garde la place acquise)
-  const excluded = new Set(state.teams.filter(t => teamStatus(t) === 'excluded').map(t => t.id));
-  return [
-    ...ordered.filter(id => !excluded.has(id)),
-    ...ordered.filter(id => excluded.has(id)),
-  ].map((teamId, i) => ({ teamId, rank: i + 1 }));
+  return overall.filter(r => qualified.has(r.fencer.id)).map((r, i) => ({ ...r, rank: i + 1 }));
 }
 
 // ─── Filtres de classement ───────────────────────────────────────────────────
@@ -504,15 +220,14 @@ export interface RapieresDisplayRow {
  */
 export function filterRanking(
   ranked: { teamId: string; rank: number }[],
-  teams: RapieresTeam[],
+  teams: Record<string, RapieresTeamInfo>,
   filter: RapieresRankingFilter
 ): RapieresDisplayRow[] {
-  const byId = new Map(teams.map(t => [t.id, t]));
   const rows: (RapieresDisplayRow & { source: number })[] = [];
   for (const r of ranked) {
-    const team = byId.get(r.teamId);
-    if (!team) continue;
+    const team = teams[r.teamId];
     if (filter.kind === 'teams') rows.push({ rank: 0, teamId: r.teamId, source: r.rank });
+    else if (!team) continue;
     else if (filter.kind === 'level') {
       if (team.level === filter.level) rows.push({ rank: 0, teamId: r.teamId, source: r.rank });
     } else {
@@ -530,4 +245,43 @@ export function filterRanking(
         ? rows.findIndex(x => x.source === row.source) + 1
         : i + 1,
   }));
+}
+
+// ─── Classement final ────────────────────────────────────────────────────────
+
+/**
+ * Classement final des équipes : résultats du tableau, puis équipes non qualifiées dans
+ * l'ordre du classement de poules ; équipes exclues en dernier.
+ */
+export function mergeFinalRanking(
+  tableauResults: { fencer: Fencer; rank: number }[],
+  overall: PoolRanking[]
+): { teamId: string; rank: number }[] {
+  const rows = [...tableauResults]
+    .sort((a, b) => a.rank - b.rank)
+    .map(r => ({
+      teamId: r.fencer.id,
+      rank: r.rank,
+      excluded: r.fencer.status === FencerStatus.EXCLUDED,
+    }));
+  const placed = new Set(rows.map(r => r.teamId));
+  let next = rows.reduce((max, r) => Math.max(max, r.rank), 0);
+  for (const r of overall) {
+    if (placed.has(r.fencer.id)) continue;
+    placed.add(r.fencer.id);
+    rows.push({
+      teamId: r.fencer.id,
+      rank: ++next,
+      excluded: r.fencer.status === FencerStatus.EXCLUDED,
+    });
+  }
+  const ordered = [...rows.filter(r => !r.excluded), ...rows.filter(r => r.excluded)];
+  // Exclues déplacées : rangs renumérotés en conservant les ex æquo du tableau
+  const result: { teamId: string; rank: number }[] = [];
+  ordered.forEach((r, i) => {
+    const prev = ordered[i - 1];
+    const tied = !!prev && !r.excluded && !prev.excluded && prev.rank === r.rank;
+    result.push({ teamId: r.teamId, rank: tied ? result[i - 1].rank : i + 1 });
+  });
+  return result;
 }

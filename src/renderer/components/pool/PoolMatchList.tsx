@@ -43,6 +43,8 @@ interface PoolMatchListProps {
   matchArenaOverrides?: Map<string, number>;
   /** Facteur de taille des cartes (préréglage) : agrandit proportionnellement le badge de piste du prochain match */
   cardScale?: number;
+  /** Tournoi des rapières : matchs de la vague en cours, bordés de violet */
+  waveMatchIds?: ReadonlySet<string>;
   onMatchArenaChange?: (
     matchId: string,
     oldArena: number,
@@ -133,6 +135,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
   isRemoteActive = false,
   matchArenaOverrides,
   cardScale = 1,
+  waveMatchIds,
   onMatchArenaChange,
 }) => {
   const [showArenaModal, setShowArenaModal] = useState(false);
@@ -425,7 +428,9 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                     gap: '0.35rem',
                     padding: '0.375rem 0.75rem',
                     background: isAbandonMatch ? 'var(--color-bg)' : '#f1f5f9',
-                    border: `1px solid ${isAbandonMatch ? 'var(--color-border-dark)' : '#e2e8f0'}`,
+                    border: waveMatchIds?.has(match.id)
+                      ? '2px solid #7c3aed'
+                      : `1px solid ${isAbandonMatch ? 'var(--color-border-dark)' : '#e2e8f0'}`,
                     borderRadius: '20px',
                     cursor: isAbandonMatch ? 'not-allowed' : 'pointer',
                     opacity: isAbandonMatch ? 0.5 : 1,

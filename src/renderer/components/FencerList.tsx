@@ -50,6 +50,12 @@ interface FencerListProps {
   onAppelStateChange?: (fencers: Fencer[], visibleColumns: string[]) => void;
   /** Consultation seule (appel d'un tour de poules terminé, #1051) */
   readOnly?: boolean;
+  /** Libellés de colonnes remplacés (tournoi des rapières : Équipe, Tireurs, Niveau) */
+  columnLabels?: Partial<Record<SortableCol, string>>;
+  /** Colonnes masquées au départ */
+  hiddenColumns?: SortableCol[];
+  /** Édition gérée par le parent (fenêtre spécifique) au lieu de la fenêtre tireur */
+  onEditRequest?: (fencer: Fencer) => void;
 }
 
 const FencerListComponent: React.FC<FencerListProps> = ({
@@ -70,6 +76,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   onFencersChanged,
   onAppelStateChange,
   readOnly = false,
+  columnLabels,
+  hiddenColumns,
+  onEditRequest,
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
@@ -87,7 +96,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortableCol>('ranking');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(() => new Set(hiddenColumns ?? []));
   const [colOrder, setColOrder] = useState<SortableCol[]>(() => {
     try {
       const saved = localStorage.getItem('bellepoule-fencer-col-order');
@@ -107,6 +116,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   const colMenuRef = useRef<HTMLDivElement>(null);
   const [photoMessage, setPhotoMessage] = useState<string | null>(null);
   const [editingFencer, setEditingFencer] = useState<Fencer | null>(null);
+  const openEdit = (fencer: Fencer) =>
+    onEditRequest ? onEditRequest(fencer) : setEditingFencer(fencer);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const [importMenuOpen, setImportMenuOpen] = useState(false);
@@ -401,8 +412,11 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   // parent → re-rendu → boucle infinie (#1083)
   const visibleCols = useMemo(
     () =>
-      colOrder.map(id => COLUMNS.find(c => c.id === id)!).filter(c => c && !hiddenCols.has(c.id)),
-    [colOrder, hiddenCols]
+      colOrder
+        .map(id => COLUMNS.find(c => c.id === id)!)
+        .filter(c => c && !hiddenCols.has(c.id))
+        .map(c => ({ ...c, label: columnLabels?.[c.id] ?? c.label })),
+    [colOrder, hiddenCols, columnLabels]
   );
   const colSpanTotal = visibleCols.length + 1;
 
@@ -631,7 +645,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                             });
                           }}
                         />
-                        {col.label}
+                        {columnLabels?.[col.id] ?? col.label}
                       </label>
                     ))}
                     <div
@@ -1063,7 +1077,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                 {(useVirtual ? virtual.visibleItems : filteredFencers).map(fencer => (
                   <tr
                     key={fencer.id}
-                    onDoubleClick={readOnly ? undefined : () => setEditingFencer(fencer)}
+                    onDoubleClick={readOnly ? undefined : () => openEdit(fencer)}
                     style={readOnly ? undefined : { cursor: 'pointer' }}
                     title={readOnly ? undefined : 'Double-cliquer pour modifier'}
                   >
@@ -1125,7 +1139,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         >
                           <button
                             className="btn btn-sm btn-secondary"
-                            onClick={() => setEditingFencer(fencer)}
+                            onClick={() => openEdit(fencer)}
                             title="Modifier"
                             style={SMALL_BTN}
                           >
