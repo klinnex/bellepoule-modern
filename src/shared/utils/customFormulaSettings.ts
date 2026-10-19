@@ -24,12 +24,22 @@ const deConfig = (formula: CustomFormulaConfig): CustomDEConfig | undefined =>
 const positive = (n: unknown): number | undefined =>
   typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : undefined;
 
-/** Formule personnalisée active (arme CUSTOM uniquement) */
+/** Tournoi des rapières : mode spécial de l'arme « À la carte » (#1118) */
+export function isRapieresMode(
+  weapon: Weapon | string | undefined,
+  settings: Partial<CompetitionSettings> | undefined
+): boolean {
+  return weapon === Weapon.CUSTOM && settings?.specialMode === 'rapieres';
+}
+
+/** Formule personnalisée active (arme CUSTOM uniquement, hors mode spécial) */
 export function getActiveFormula(
   weapon: Weapon | string | undefined,
   settings: Partial<CompetitionSettings> | undefined
 ): CustomFormulaConfig | undefined {
-  return weapon === Weapon.CUSTOM && settings?.customFormula?.phases?.length
+  return weapon === Weapon.CUSTOM &&
+    !settings?.specialMode &&
+    settings?.customFormula?.phases?.length
     ? settings.customFormula
     : undefined;
 }
@@ -82,6 +92,15 @@ export function resolveCompetitionSettings<T extends Partial<CompetitionSettings
 ): T {
   const formula = getActiveFormula(weapon, settings);
   const base = (settings ?? {}) as T;
+  // Rapières : un tour de poules en vagues, tableau des qualifiés avec match pour la 3e place
+  if (isRapieresMode(weapon, settings))
+    return {
+      ...base,
+      poolRounds: 1,
+      hasDirectElimination: true,
+      thirdPlaceMatch: true,
+      poolWinnersOnly: false,
+    };
   return formula ? { ...base, ...deriveSettingsFromFormula(formula) } : base;
 }
 

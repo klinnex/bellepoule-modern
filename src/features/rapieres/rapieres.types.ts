@@ -1,6 +1,8 @@
 /**
  * BellePoule Modern - Tournoi des rapières (mode spécial, arme « À la carte ») (#1118)
- * Binômes de deux tireurs, poules par niveau jouées en vagues, tableau à élimination directe.
+ * Binômes de deux tireurs gérés comme les tireurs d'une compétition classique :
+ * chaque équipe est un tireur (nom = nom d'équipe, club = niveau), la composition est
+ * enregistrée dans l'état de session (clé `rapieres`). Poules jouées en vagues.
  * Licensed under GPL-3.0
  */
 
@@ -26,95 +28,37 @@ export interface RapieresFencer {
   category: RapieresAgeCategory;
 }
 
-/** Statut d'une équipe, comme pour un tireur en compétition classique */
-export type RapieresTeamStatus =
-  'not_checked_in' | 'checked_in' | 'abandoned' | 'forfait' | 'excluded';
-
-export interface RapieresTeam {
-  id: string;
-  name: string;
+/** Composition d'une équipe (tireur de la compétition portant le nom d'équipe) */
+export interface RapieresTeamInfo {
   level: RapieresLevel;
   fencers: [RapieresFencer, RapieresFencer];
-  /** Absent (états antérieurs) = pointée */
-  status?: RapieresTeamStatus;
 }
 
-/** Rencontre de poule : une manche, un score */
-export interface RapieresBout {
-  id: string;
-  poolIndex: number;
-  wave: number; // 1 = première vague
-  teamAId: string;
-  teamBId: string;
-  scoreA: number | null;
-  scoreB: number | null;
-}
-
-export interface RapieresPool {
-  teamIds: string[];
-}
-
-/** Score saisi d'un match de tableau, repéré par tour (nb de matchs du tour) et position */
-export interface RapieresTableauScore {
-  round: number; // tableSize/2 = 1er tour, …, 1 = finale, 0 = match pour la 3e place
-  position: number;
-  scoreA: number;
-  scoreB: number;
-}
-
-export interface RapieresTableau {
-  /** Équipes qualifiées, ordre des têtes de série */
-  seeds: string[];
-  size: number;
-  scores: RapieresTableauScore[];
-}
-
-export interface RapieresState {
-  version: 1;
-  teams: RapieresTeam[];
-  pools: RapieresPool[];
-  bouts: RapieresBout[];
+export interface RapieresSession {
+  version: 2;
+  /** Composition par id de tireur (équipe) */
+  teams: Record<string, RapieresTeamInfo>;
   /** Dernière vague lancée par le DT (0 = aucune) */
   launchedWave: number;
-  poolMaxScore: number;
-  tableauMaxScore: number;
-  tableau?: RapieresTableau;
+  /** Vagues arrêtées avant leur terme par le DT : passage au classement */
+  wavesEnded: boolean;
 }
 
-export interface RapieresStats {
-  matches: number;
-  victories: number;
-  touchesGiven: number;
-  touchesReceived: number;
+/** État de la première version (vue dédiée), migré à l'ouverture */
+export interface RapieresLegacyState {
+  version: 1;
+  teams: {
+    id: string;
+    name: string;
+    level: RapieresLevel;
+    fencers: [RapieresFencer, RapieresFencer];
+    status?: 'not_checked_in' | 'checked_in' | 'abandoned' | 'forfait' | 'excluded';
+  }[];
 }
 
-export interface RapieresRankingRow {
-  rank: number;
-  teamId: string;
-  stats: RapieresStats;
-}
-
-export interface RapieresTableauMatch {
-  round: number;
-  position: number;
-  teamAId: string | null;
-  teamBId: string | null;
-  /** Équipe qualifiée d'office (adversaire absent) */
-  isBye: boolean;
-  scoreA: number | null;
-  scoreB: number | null;
-  winnerId: string | null;
-  loserId: string | null;
-  /** Gagné d'office : l'adversaire a abandonné, déclaré forfait ou été exclu */
-  walkover?: boolean;
-}
-
-export const createRapieresState = (): RapieresState => ({
-  version: 1,
-  teams: [],
-  pools: [],
-  bouts: [],
+export const createRapieresSession = (): RapieresSession => ({
+  version: 2,
+  teams: {},
   launchedWave: 0,
-  poolMaxScore: 5,
-  tableauMaxScore: 10,
+  wavesEnded: false,
 });

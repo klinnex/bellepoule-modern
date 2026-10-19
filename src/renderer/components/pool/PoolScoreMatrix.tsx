@@ -18,6 +18,8 @@ interface PoolScoreMatrixProps {
   isLocked?: boolean;
   quickMouseScoring?: boolean;
   highlightedFencerIds?: Set<string>;
+  /** Tournoi des rapières : rencontres de la vague en cours (clés « idA|idB » triées), en violet */
+  waveHighlightPairs?: ReadonlySet<string>;
   onHoverCell?: (rowFencer: Fencer, colFencer: Fencer) => void;
   onHoverLeave?: () => void;
   onWheelScore?: (rowFencer: Fencer, colFencer: Fencer, shiftKey: boolean, delta: number) => void;
@@ -40,6 +42,7 @@ interface ScoreCellProps {
   onCellClick: (rowFencer: Fencer, colFencer: Fencer) => void;
   onMatchReset?: (rowFencer: Fencer, colFencer: Fencer) => void;
   isHighlighted?: boolean;
+  isWaveCurrent?: boolean;
   quickMouseScoring?: boolean;
   simplifiedInputMode?: boolean;
   onHoverIn?: () => void;
@@ -66,6 +69,7 @@ const ScoreCell = React.memo<ScoreCellProps>(
     onCellClick,
     onMatchReset,
     isHighlighted,
+    isWaveCurrent,
     quickMouseScoring,
     simplifiedInputMode,
     onHoverIn,
@@ -133,7 +137,13 @@ const ScoreCell = React.memo<ScoreCellProps>(
           outlineOffset: '-2px',
           background: 'rgba(59,130,246,0.10)',
         }
-      : {};
+      : isWaveCurrent
+        ? {
+            outline: '2px solid #7c3aed',
+            outlineOffset: '-2px',
+            ...(score ? {} : { background: 'rgba(124,58,237,0.18)' }),
+          }
+        : {};
 
     const inlineInputStyle: React.CSSProperties = {
       width: '26px',
@@ -271,6 +281,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
   isLocked = false,
   quickMouseScoring = false,
   highlightedFencerIds,
+  waveHighlightPairs,
   onHoverCell,
   onHoverLeave,
   onWheelScore,
@@ -674,6 +685,13 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                   onCellClick={onCellClick}
                   onMatchReset={onMatchReset}
                   isHighlighted={isHighlighted}
+                  isWaveCurrent={
+                    !!waveHighlightPairs?.has(
+                      rowFencer.id < colFencer.id
+                        ? `${rowFencer.id}|${colFencer.id}`
+                        : `${colFencer.id}|${rowFencer.id}`
+                    )
+                  }
                   quickMouseScoring={quickMouseScoring}
                   simplifiedInputMode={simplifiedInputMode}
                   onHoverIn={onHoverCell ? () => onHoverCell(rowFencer, colFencer) : undefined}

@@ -99,4 +99,9 @@ describe('PoolScoreMatrix', () => {
     fireEvent.click(cell);
     expect(props.onCellClick).not.toHaveBeenCalled();
   });
+
+  it('rapières : cases de la vague en cours surlignées en violet (#1118)', () => {
+    renderMatrix(match(MatchStatus.NOT_STARTED), { waveHighlightPairs: new Set(['1|2']) });
+    expect(screen.getByLabelText(/Dupont F contre Martin F/i).style.outline).toContain('#7c3aed');
+  });
 });

@@ -44,6 +44,13 @@ interface PoolPrepViewProps {
   onSettingsChange?: (min: number, max: number) => void;
   /** Expose le bouton « Lancer les poules » à la barre de navigation (#945) */
   onLaunchActionChange?: (action: PoolPrepLaunchAction | null) => void;
+  /**
+   * Répartition spécifique (tournoi des rapières : regroupement par niveau).
+   * Remplace la répartition serpentin et désactive les critères de séparation.
+   */
+  customDistribution?: (fencers: Fencer[], poolCount: number) => Fencer[][];
+  /** Ordre des matchs spécifique (paires 1-indexées), ex. vagues des rapières */
+  customMatchOrder?: (poolFencers: Fencer[]) => [number, number][];
 }
 
 export interface PoolPrepLaunchAction {
@@ -73,6 +80,8 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   onSkipPools,
   onSettingsChange,
   onLaunchActionChange,
+  customDistribution,
+  customMatchOrder,
 }) => {
   const { t } = useTranslation();
   const [poolCount, setPoolCount] = useState<number>(0);
@@ -90,8 +99,8 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     enabled: boolean;
   }
   const [separationCriteria, setSeparationCriteria] = useState<SeparationCriterion[]>([
-    { key: 'byClub', label: 'Club', enabled: true },
-    { key: 'byRegion', label: 'Région', enabled: true },
+    { key: 'byClub', label: 'Club', enabled: !customDistribution },
+    { key: 'byRegion', label: 'Région', enabled: !customDistribution },
     { key: 'byNation', label: 'Nation', enabled: false },
   ]);
   const [dragCriterionIdx, setDragCriterionIdx] = useState<number | null>(null);
@@ -215,14 +224,14 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const generatePools = (count: number, criteria: SeparationCriterion[]) => {
     if (fencers.length === 0 || count <= 0) return;
 
-    const distribution = distributeFencersToPoolsSerpentine(
-      fencers,
-      count,
-      getActiveCriteria(criteria)
-    );
+    const distribution = customDistribution
+      ? customDistribution(fencers, count)
+      : distributeFencersToPoolsSerpentine(fencers, count, getActiveCriteria(criteria));
 
     const generatedPools: Pool[] = distribution.map((poolFencers, index) => {
-      const matchOrder = generatePoolMatchOrder(poolFencers.length);
+      const matchOrder = customMatchOrder
+        ? customMatchOrder(poolFencers)
+        : generatePoolMatchOrder(poolFencers.length);
       const now = new Date();
       // IDs uniques : persistés en DB (clé primaire globale, toutes compétitions confondues)
       const poolId = crypto.randomUUID();
@@ -317,7 +326,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   };
 
   const regenerateMatches = (pool: Pool): Pool => {
-    const matchOrder = generatePoolMatchOrder(pool.fencers.length);
+    const matchOrder = customMatchOrder
+      ? customMatchOrder(pool.fencers)
+      : generatePoolMatchOrder(pool.fencers.length);
     const now = new Date();
 
     const newMatches: Match[] = matchOrder.map(([a, b], matchIndex) => ({
@@ -654,73 +665,75 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
           </div>
 
           {/* Separation pill toggles with drag-and-drop priority */}
-          <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '0.7rem',
-                fontWeight: 600,
-                marginBottom: '0.4rem',
-                color: 'var(--color-text-light)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              Séparation{' '}
-              <span
+          {!customDistribution && (
+            <div>
+              <label
                 style={{
-                  fontWeight: 400,
-                  textTransform: 'none',
-                  fontSize: '0.65rem',
-                  opacity: 0.7,
+                  display: 'block',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  marginBottom: '0.4rem',
+                  color: 'var(--color-text-light)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
                 }}
               >
-                (glisser pour priorité)
-              </span>
-            </label>
-            <div style={{ display: 'flex', gap: '0.4rem' }}>
-              {separationCriteria.map((criterion, idx) => (
-                <button
-                  key={criterion.key}
-                  draggable
-                  onDragStart={() => setDragCriterionIdx(idx)}
-                  onDragOver={e => {
-                    e.preventDefault();
+                Séparation{' '}
+                <span
+                  style={{
+                    fontWeight: 400,
+                    textTransform: 'none',
+                    fontSize: '0.65rem',
+                    opacity: 0.7,
                   }}
-                  onDrop={e => {
-                    e.preventDefault();
-                    if (dragCriterionIdx === null || dragCriterionIdx === idx) return;
-                    const next = [...separationCriteria];
-                    const [moved] = next.splice(dragCriterionIdx, 1);
-                    next.splice(idx, 0, moved);
-                    setSeparationCriteria(next);
-                    setDragCriterionIdx(null);
-                    if (poolCount > 0) generatePools(poolCount, next);
-                  }}
-                  onDragEnd={() => setDragCriterionIdx(null)}
-                  onClick={() => {
-                    const next = separationCriteria.map((c, i) =>
-                      i === idx ? { ...c, enabled: !c.enabled } : c
-                    );
-                    setSeparationCriteria(next);
-                    if (poolCount > 0) generatePools(poolCount, next);
-                  }}
-                  className={`pool-prep-pill-toggle${criterion.enabled ? ' active' : ''}`}
-                  style={{ cursor: 'grab', userSelect: 'none' }}
-                  aria-pressed={criterion.enabled}
-                  title={`Priorité ${idx + 1} — ${criterion.enabled ? 'active' : 'désactivée'} (clic : activer / désactiver, glisser : réordonner)`}
                 >
-                  <span className="pool-prep-pill-grip" aria-hidden="true">
-                    ⠿
-                  </span>
-                  <span style={{ fontSize: '0.6rem', opacity: 0.6, marginRight: '0.2rem' }}>
-                    {idx + 1}.
-                  </span>
-                  {criterion.label}
-                </button>
-              ))}
+                  (glisser pour priorité)
+                </span>
+              </label>
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                {separationCriteria.map((criterion, idx) => (
+                  <button
+                    key={criterion.key}
+                    draggable
+                    onDragStart={() => setDragCriterionIdx(idx)}
+                    onDragOver={e => {
+                      e.preventDefault();
+                    }}
+                    onDrop={e => {
+                      e.preventDefault();
+                      if (dragCriterionIdx === null || dragCriterionIdx === idx) return;
+                      const next = [...separationCriteria];
+                      const [moved] = next.splice(dragCriterionIdx, 1);
+                      next.splice(idx, 0, moved);
+                      setSeparationCriteria(next);
+                      setDragCriterionIdx(null);
+                      if (poolCount > 0) generatePools(poolCount, next);
+                    }}
+                    onDragEnd={() => setDragCriterionIdx(null)}
+                    onClick={() => {
+                      const next = separationCriteria.map((c, i) =>
+                        i === idx ? { ...c, enabled: !c.enabled } : c
+                      );
+                      setSeparationCriteria(next);
+                      if (poolCount > 0) generatePools(poolCount, next);
+                    }}
+                    className={`pool-prep-pill-toggle${criterion.enabled ? ' active' : ''}`}
+                    style={{ cursor: 'grab', userSelect: 'none' }}
+                    aria-pressed={criterion.enabled}
+                    title={`Priorité ${idx + 1} — ${criterion.enabled ? 'active' : 'désactivée'} (clic : activer / désactiver, glisser : réordonner)`}
+                  >
+                    <span className="pool-prep-pill-grip" aria-hidden="true">
+                      ⠿
+                    </span>
+                    <span style={{ fontSize: '0.6rem', opacity: 0.6, marginRight: '0.2rem' }}>
+                      {idx + 1}.
+                    </span>
+                    {criterion.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <button
             className="btn btn-secondary"
