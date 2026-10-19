@@ -212,7 +212,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
           const inArena = arenaByMatchId.has(m.id);
           upcoming.push({
             id: m.id,
-            number: m.position,
+            number: (m.position ?? 0) + 1,
             poolName: roundLabels[m.round] || `Tour de ${m.round}`,
             poolNumber: null,
             fencerA: {

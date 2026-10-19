@@ -2652,8 +2652,17 @@
           holdMs: cinemaState.overviewMs,
         });
 
-        // 2. Un (ou deux) plan(s) par round : zoom lisible + scan vertical
-        for (let i = 0; i < L.colX.length; i++) {
+        // 2. Un (ou deux) plan(s) par round actif : zoom lisible + scan vertical.
+        // Une phase dont tous les matchs sont joués est ignorée (#1139).
+        const activeCols = [];
+        (L.orderedRounds || []).forEach((rd, ci) => {
+          const ongoing = rd.matches.some(
+            m => !m.isBye && m.fencerA && m.fencerB && m.status !== 'finished'
+          );
+          if (ongoing) activeCols.push(ci);
+        });
+        if (activeCols.length === 0) L.colX.forEach((_, ci) => activeCols.push(ci));
+        for (const i of activeCols) {
           const colCenterX = L.colX[i] + L.cardW / 2;
           // Largeur de colonne visée ~ 32% de la largeur écran
           const sc = clampNum((vw * 0.32) / L.cardW, overviewScale * 1.25, 1.5);
