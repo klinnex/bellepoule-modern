@@ -93,16 +93,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 6 | 124 |
+| `src/main/` | 7 | 138 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 4 | 25 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **140** | **1442** |
+| **Total** | **141** | **1456** |
 
-Unitaires : 132 fichiers, 1411 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 133 fichiers, 1425 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1901,6 +1901,29 @@ Unitaires : 132 fichiers, 1411 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **certManager**
   - buildAltNames : localhost, loopback et IPv4 externes uniquement
   - ensureCert génère un certificat avec SAN réels, puis le réutilise
+
+</details>
+
+<details>
+<summary><code>src/main/pathAuthorization.test.ts</code> — 14 tests</summary>
+
+- **chemins autorisés (#1146)**
+  - refuse un chemin jamais choisi par dialogue
+  - accepte un chemin autorisé, refuse l’autre sens
+  - refuse chemins relatifs et octet nul
+  - autorisation expirée
+  - refuse extensions exécutables en écriture
+  - contrôle l’extension attendue en lecture
+  - refuse un lien symbolique
+- **limites ZIP (#1146)**
+  - noms d’entrée dangereux
+  - ne renvoie que des noms sûrs (JSZip neutralise déjà ../)
+  - refuse trop d’entrées
+  - refuse une bombe (entrée trop grosse décompressée)
+  - refuse un fichier trop gros avant lecture
+- **validation fencers.json (#1146)**
+  - accepte une liste valide
+  - refuse non-tableau, éléments mal formés, champs trop longs
 
 </details>
 

@@ -37,3 +37,9 @@ Le sélecteur d'interface (section **Réseau**) limite l'écoute à une carte r�
 | Saturation                                   | 30 connexions Socket.IO max par IP ; 20 événements/s par connexion (rafale 40) ; corps JSON 4 Ko sur les routes de connexion              |
 
 L'IP client est celle de la connexion TCP. `X-Forwarded-For` est ignoré, sauf derrière un reverse proxy de confiance (`setTrustProxy(true)`).
+
+## IPC fichiers (processus principal, #1146)
+
+- Le renderer ne peut lire/écrire que des chemins renvoyés par une boîte de dialogue native (`dialog:openFile`, `dialog:saveFile`) ou par le menu Importer (`.bpf`). `src/main/pathAuthorization.ts` les mémorise (10 min, 200 max, sens lecture/écriture).
+- `file:writeContent`, `file:export/import`, `file:exportPhotos/importPhotos`, `file:exportFencersArchive/importFencersArchive`, `file:printHtmlToPDF` refusent tout autre chemin, les liens symboliques, les extensions exécutables en écriture (`.exe`, `.sh`, `.js`…) et exigent `.zip` / `.bpf` / `.pdf` selon l'usage.
+- Imports ZIP bornés (surchargeables : `BP_ZIP_MAX_FILE_BYTES` 50 Mo, `BP_ZIP_MAX_ENTRIES` 5000, `BP_ZIP_MAX_UNCOMPRESSED_BYTES` 200 Mo, `BP_ZIP_MAX_ENTRY_BYTES` 20 Mo, `BP_IMPORT_MAX_FENCERS` 20000) ; entrées `..`, absolues ou avec `\` ignorées ; `fencers.json` validé (tableau, champs texte bornés) avant `upsertFencersByLicense`.
