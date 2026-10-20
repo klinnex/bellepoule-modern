@@ -441,6 +441,11 @@ export interface RemoteServerAPI {
     competitionId: string,
     updates: Array<{ poolId: string; fencers: any[] }>
   ) => Promise<{ success: boolean; error?: string }>;
+  /** Tournoi des rapières : matchs de la vague active proposés aux tablettes (`null` : tous) (#1118) */
+  setActiveWave: (
+    competitionId: string,
+    matchIds: string[] | null
+  ) => Promise<{ success: boolean; error?: string }>;
   syncPoolMatches: (
     competitionId: string,
     poolsData: Array<{ poolId: string; matches: any[] }>

@@ -30,6 +30,7 @@ export interface MatchRouteContext extends PoolRouteContext {
   formatFencerName(fencer: unknown): string;
   getArenaBlackCards(arenaId: string): BlackCardRecord[];
   guestQueue(arenaId: string): ArenaMatch[];
+  isInActiveWave(match: { id: string }): boolean;
   isMatchPlayable(match: Match | ArenaMatch): boolean;
   isPendingMatch(match: ArenaMatch): boolean;
   resolvePoolReferee(poolId?: string | null): { id: string; name: string } | null;
@@ -65,6 +66,8 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           .filter((m: any) => {
             const matchPoolId = m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
             if (matchPoolId !== currentPoolId) return false;
+            // Tournoi des rapières : uniquement la vague active (#1118)
+            if (!ctx.isInActiveWave(m)) return false;
             // Match réassigné sur une autre piste : plus dans la liste de celle-ci (#1037)
             const override = ctx.poolMatchArenaOverrides.get(m.id);
             if (override && override !== arenaId) return false;
@@ -117,7 +120,13 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         const inSession = ctx.sessionMatches.find((m: any) => m.id === arena.currentMatch!.id);
         const effectiveStatus =
           scoreUpdate?.status ?? inSession?.status ?? arena.currentMatch.status;
-        if (effectiveStatus !== MatchStatus.FINISHED && ctx.isMatchPlayable(arena.currentMatch)) {
+        // Tournoi des rapières : un match de poule hors vague active n'est pas proposé (#1118)
+        const inWave = arena.currentMatch.isTableau || ctx.isInActiveWave(arena.currentMatch);
+        if (
+          effectiveStatus !== MatchStatus.FINISHED &&
+          inWave &&
+          ctx.isMatchPlayable(arena.currentMatch)
+        ) {
           console.log(
             `[RemoteScoreServer] Fallback match courant pour arène ${arenaId}: ${arena.currentMatch.id}`
           );

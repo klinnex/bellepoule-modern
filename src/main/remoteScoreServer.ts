@@ -104,6 +104,8 @@ export class RemoteScoreServer {
   private sessionRestSeconds: number = 0; // Repos entre périodes (escrime olympique, 0 = désactivé)
   private sessionModernRules = false; // Règles armes modernes (E/F/S ou formule personnalisée, #1125)
   private sessionMatches: any[] = []; // Matches passés depuis le renderer
+  /** Tournoi des rapières : seuls les matchs de la vague active sont proposés aux tablettes (#1118). `null` = pas de filtre. */
+  private activeWaveMatchIds: Set<string> | null = null;
   private sessionPoolArenas = new Map<string, number>(); // poolId → piste prévue (#1078)
   // Durées réelles (ms) des derniers matchs terminés sur les arènes (#1077)
   private recentMatchDurationsMs: number[] = [];
@@ -886,6 +888,7 @@ export class RemoteScoreServer {
       formatFencerName: { value: (f: unknown) => self.formatFencerName(f) },
       getArenaBlackCards: { value: (a: string) => self.getArenaBlackCards(a) },
       guestQueue: { value: (a: string) => self.guestQueue(a) },
+      isInActiveWave: { value: (m: { id: string }) => self.isInActiveWave(m) },
       isMatchPlayable: { value: (m: Match | ArenaMatch) => self.isMatchPlayable(m) },
       isPendingMatch: { value: (m: ArenaMatch) => self.isPendingMatch(m) },
       resolvePoolReferee: { value: (id?: string | null) => self.resolvePoolReferee(id) },
@@ -2059,6 +2062,16 @@ export class RemoteScoreServer {
     return { success: true, matchId };
   }
 
+  /** Match de la vague active (ou aucun filtre de vague) (#1118) */
+  private isInActiveWave(m: { id: string }): boolean {
+    return this.activeWaveMatchIds === null || this.activeWaveMatchIds.has(m.id);
+  }
+
+  /** Définit les matchs de la vague active (`null` : tous les matchs, hors mode rapières) (#1118) */
+  public setActiveWaveMatchIds(ids: string[] | null): void {
+    this.activeWaveMatchIds = ids === null ? null : new Set(ids);
+  }
+
   private isMatchPlayable(m: Match | ArenaMatch): boolean {
     const inactive = new Set([FencerStatus.ABANDONED, FencerStatus.FORFAIT, FencerStatus.EXCLUDED]);
     return (
@@ -3130,7 +3143,7 @@ export class RemoteScoreServer {
       const rawPoolMatches = this.sessionMatches
         .filter((m: any) => {
           const matchPoolId = m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
-          return matchPoolId === currentPoolId;
+          return matchPoolId === currentPoolId && this.isInActiveWave(m);
         })
         .map((m: any) => {
           const scoreUpdate = this.sessionMatchScores.get(m.id);
@@ -3220,7 +3233,7 @@ export class RemoteScoreServer {
       const rawPoolMatches = this.sessionMatches
         .filter(m => {
           const matchPoolId = m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
-          return matchPoolId === currentPoolId;
+          return matchPoolId === currentPoolId && this.isInActiveWave(m);
         })
         .map((m: any) => {
           const scoreUpdate = this.sessionMatchScores.get(m.id);

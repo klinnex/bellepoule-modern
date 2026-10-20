@@ -627,6 +627,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       competitionId: string,
       updates: Array<{ poolId: string; fencers: any[] }>
     ) => ipcRenderer.invoke('remote:updatePoolFencers', competitionId, updates),
+    setActiveWave: (competitionId: string, matchIds: string[] | null) =>
+      ipcRenderer.invoke('remote:setActiveWave', competitionId, matchIds),
     syncPoolMatches: (
       competitionId: string,
       poolsData: Array<{ poolId: string; matches: any[] }>
