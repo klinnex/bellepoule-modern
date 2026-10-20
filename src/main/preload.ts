@@ -528,6 +528,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setWindowSize: (width: number, height: number, options?: { force?: boolean }) =>
     ipcRenderer.invoke('window:setSize', width, height, options),
   openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),
+  getEventLoopDelay: (reset?: boolean) =>
+    ipcRenderer.invoke('perf:getEventLoopDelay', reset === true),
   getVersionInfo: () => ipcRenderer.invoke('app:getVersionInfo'),
 
   // Updater functions

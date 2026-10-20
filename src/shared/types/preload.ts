@@ -1022,6 +1022,14 @@ export interface UtilityAPI {
   /** `force` : préréglage explicite → sort du maximisé / plein écran ; sinon ignoré si maximisée */
   setWindowSize: (width: number, height: number, options?: { force?: boolean }) => Promise<void>;
   openExternal: (url: string) => Promise<void>;
+  /** Lag de la boucle d'événements du process principal (ms) ; `reset` démarre une nouvelle fenêtre */
+  getEventLoopDelay: (reset?: boolean) => Promise<{
+    samples: number;
+    meanMs: number;
+    p50Ms: number;
+    p99Ms: number;
+    maxMs: number;
+  }>;
   getVersionInfo: () => Promise<VersionInfo>;
   removeAllListeners: (channel: string) => void;
 }
