@@ -642,14 +642,12 @@ function createWindow(initialLang?: string): void {
   const wc = mainWindow.webContents;
   wc.setWindowOpenHandler(({ url }) => {
     if (isAllowedExternalUrl(url)) void shell.openExternal(url);
-    else console.warn('[Security] Ouverture de fenêtre refusée:', url);
     return { action: 'deny' };
   });
   const blockNavigation = (event: Electron.Event, url: string) => {
     if (isApp(url)) return;
     event.preventDefault();
     if (isAllowedExternalUrl(url)) void shell.openExternal(url);
-    else console.warn('[Security] Navigation refusée:', url);
   };
   wc.on('will-navigate', blockNavigation);
   wc.on('will-redirect', blockNavigation);
