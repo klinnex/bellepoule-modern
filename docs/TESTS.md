@@ -98,11 +98,11 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| `src/remote/` | 1 | 8 |
+| `src/remote/` | 2 | 10 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **136** | **1414** |
+| **Total** | **137** | **1416** |
 
-Unitaires : 128 fichiers, 1383 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 129 fichiers, 1385 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2819,6 +2819,15 @@ Unitaires : 128 fichiers, 1383 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - action refusée par le serveur : seule celle-ci reste en file
   - deux sync simultanés (reconnexion + bouton) : aucun doublon envoyé
   - envoie par lots de 50 au plus
+
+</details>
+
+<details>
+<summary><code>src/remote/remoteHtmlEscaping.test.ts</code> — 2 tests</summary>
+
+- **échappement HTML des pages distantes**
+  - dashboard.html échappe noms et clubs
+  - app.js échappe les noms des tireurs
 
 </details>
 

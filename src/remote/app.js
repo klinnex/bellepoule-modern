@@ -3,6 +3,13 @@
  * Frontend for remote score entry
  */
 
+// Échappement HTML des données issues des tireurs (noms)
+function escapeHtml(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+}
+
 class RemoteRefereeApp {
     constructor() {
         this.socket = null;
@@ -244,7 +251,7 @@ class RemoteRefereeApp {
             <div class="match-item">
                 <div class="match-item-info">
                     <div class="match-item-fencers">
-                        ${match.fencerA?.name || '-'} vs ${match.fencerB?.name || '-'}
+                        ${escapeHtml(match.fencerA?.name || '-')} vs ${escapeHtml(match.fencerB?.name || '-')}
                     </div>
                     <div class="match-item-details">
                         Piste ${match.stripNumber || '-'}
@@ -265,7 +272,7 @@ class RemoteRefereeApp {
             <div class="match-item">
                 <div class="match-item-info">
                     <div class="match-item-fencers">
-                        ${match.fencerA?.name || '-'} vs ${match.fencerB?.name || '-'}
+                        ${escapeHtml(match.fencerA?.name || '-')} vs ${escapeHtml(match.fencerB?.name || '-')}
                     </div>
                     <div class="match-item-details">
                         Score: ${match.scoreA || 0} - ${match.scoreB || 0}
