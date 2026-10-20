@@ -7,7 +7,7 @@
 import { PoolRanking, Weapon } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
 import { savePDF, buildCssOverrides, assembleBody, BASE_CSS } from './core';
-import { formatQuestPerMatch } from '../poolCalculations';
+import { formatQuestPerMatch, isDnf } from '../poolCalculations';
 
 // ─── Export Classement Général ───────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ export function generateRankingHTML(
           : '';
       return `
 <tr>
-  ${vis('rank') ? `<td style="text-align:center;font-weight:700;color:var(--navy)">${r.rank}</td>` : ''}
+  ${vis('rank') ? `<td style="text-align:center;font-weight:700;color:var(--navy)">${isDnf(r) ? 'DNF' : r.rank}</td>` : ''}
   ${vis('lastName') ? `<td style="font-weight:600">${r.fencer.lastName.toUpperCase()}${abandoned}</td>` : ''}
   ${vis('firstName') ? `<td>${r.fencer.firstName ?? ''}</td>` : ''}
   ${vis('club') ? `<td style="color:var(--gray-dark)">${r.fencer.club ?? ''}</td>` : ''}
