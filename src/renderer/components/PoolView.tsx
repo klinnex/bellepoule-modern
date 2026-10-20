@@ -659,7 +659,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     let scoreLeft = inverted ? curB : curA;
     let scoreRight = inverted ? curA : curB;
 
-    const effectiveMax = match.maxScore || maxScore || 5;
+    const effectiveMax = maxScore || match.maxScore || 5;
     if (!shiftKey) {
       scoreLeft = Math.max(0, Math.min(effectiveMax, scoreLeft + delta));
     } else {
@@ -787,7 +787,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       const actualScoreA = inverted ? mirrorScore : score;
       const actualScoreB = inverted ? score : mirrorScore;
 
-      const effectiveMax = pool.matches[matchIndex]?.maxScore || maxScore || 0;
+      const effectiveMax = maxScore || pool.matches[matchIndex]?.maxScore || 0;
       if (effectiveMax > 0 && (actualScoreA > effectiveMax || actualScoreB > effectiveMax)) {
         showToast(`Score maximum : ${effectiveMax}`, 'error');
         return;
@@ -819,8 +819,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const scoreRight = parseInt(editScoreB, 10) || 0;
 
     // Valider que les scores ne dépassent pas le maximum
-    // Utiliser le maxScore stocké sur le match comme référence, avec fallback sur la prop
-    const effectiveMax = pool.matches[editingMatch]?.maxScore || maxScore || 0;
+    // Le réglage courant (prop) prime sur le maxScore figé à la génération du match
+    const effectiveMax = maxScore || pool.matches[editingMatch]?.maxScore || 0;
     if (effectiveMax > 0) {
       if (scoreLeft > effectiveMax) {
         showToast(`Le score du tireur A ne peut pas dépasser ${effectiveMax}`, 'error');
@@ -1220,16 +1220,16 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 className="form-input"
                 style={scoreInput(
                   (parseInt(editScoreA, 10) || 0) >
-                    ((editingMatch !== null ? pool.matches[editingMatch]?.maxScore : 0) ||
-                      maxScore ||
+                    (maxScore ||
+                      (editingMatch !== null ? pool.matches[editingMatch]?.maxScore : 0) ||
                       999)
                 )}
                 value={editScoreA}
                 onChange={e => setEditScoreA(e.target.value)}
                 min="0"
                 max={
-                  (editingMatch !== null ? pool.matches[editingMatch]?.maxScore : 0) ||
                   maxScore ||
+                  (editingMatch !== null ? pool.matches[editingMatch]?.maxScore : 0) ||
                   undefined
                 }
                 autoFocus
@@ -1261,16 +1261,16 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 className="form-input"
                 style={scoreInput(
                   (parseInt(editScoreB, 10) || 0) >
-                    ((editingMatch !== null ? pool.matches[editingMatch]?.maxScore : 0) ||
-                      maxScore ||
+                    (maxScore ||
+                      (editingMatch !== null ? pool.matches[editingMatch]?.maxScore : 0) ||
                       999)
                 )}
                 value={editScoreB}
                 onChange={e => setEditScoreB(e.target.value)}
                 min="0"
                 max={
-                  (editingMatch !== null ? pool.matches[editingMatch]?.maxScore : 0) ||
                   maxScore ||
+                  (editingMatch !== null ? pool.matches[editingMatch]?.maxScore : 0) ||
                   undefined
                 }
                 onKeyDown={e => {
