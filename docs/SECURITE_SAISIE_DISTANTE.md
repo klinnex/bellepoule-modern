@@ -43,3 +43,11 @@ L'IP client est celle de la connexion TCP. `X-Forwarded-For` est ignoré, sauf d
 - Le renderer ne peut lire/écrire que des chemins renvoyés par une boîte de dialogue native (`dialog:openFile`, `dialog:saveFile`) ou par le menu Importer (`.bpf`). `src/main/pathAuthorization.ts` les mémorise (10 min, 200 max, sens lecture/écriture).
 - `file:writeContent`, `file:export/import`, `file:exportPhotos/importPhotos`, `file:exportFencersArchive/importFencersArchive`, `file:printHtmlToPDF` refusent tout autre chemin, les liens symboliques, les extensions exécutables en écriture (`.exe`, `.sh`, `.js`…) et exigent `.zip` / `.bpf` / `.pdf` selon l'usage.
 - Imports ZIP bornés (surchargeables : `BP_ZIP_MAX_FILE_BYTES` 50 Mo, `BP_ZIP_MAX_ENTRIES` 5000, `BP_ZIP_MAX_UNCOMPRESSED_BYTES` 200 Mo, `BP_ZIP_MAX_ENTRY_BYTES` 20 Mo, `BP_IMPORT_MAX_FENCERS` 20000) ; entrées `..`, absolues ou avec `\` ignorées ; `fencers.json` validé (tableau, champs texte bornés) avant `upsertFencersByLicense`.
+
+## CSP des pages distantes (#1149)
+
+- Chaque page HTML est servie par `sendHtmlPage` (`src/main/remote/csp.ts`) : nonce aléatoire (16 octets) ajouté à tous les `<script>`/`<style>`, en-tête `script-src 'nonce-…' 'self'` **sans `'unsafe-inline'`**, `object-src 'none'`, `base-uri 'self'`, `connect-src 'self' ws: wss:`. Les `.html` ne sont plus servis en statique brut.
+- Plus de handlers inline (`onclick=`…) ni de `javascript:` : délégation `data-click` / `data-change` / `data-input` + `data-args` (JSON, `"$el"`, `"$value"`) dans `common.js`. Les cibles sont des fonctions globales de la page (`window.refereeApp` pour l'arbitre). Nouvelle page avec action : charger `/common.js` et utiliser ces attributs ; les arguments dynamiques passent par `escHtml(JSON.stringify([...]))`.
+- `style-src` garde `'unsafe-inline'` (attributs `style=` trop nombreux, voir #1157).
+- `BP_CSP_REPORT_ONLY=1` : politique stricte en mode rapport seul (diagnostic d'une casse sur le terrain). Pas d'endpoint `/csp-report` : le navigateur journalise les violations en console.
+- Test `csp.test.ts` : nonce sur chaque script, aucun handler inline dans `src/remote` ni dans les pages générées, chaque `data-click` statique cible une fonction définie.

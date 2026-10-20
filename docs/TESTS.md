@@ -93,16 +93,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 8 | 145 |
+| `src/main/` | 9 | 153 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 4 | 25 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **142** | **1463** |
+| **Total** | **143** | **1471** |
 
-Unitaires : 134 fichiers, 1432 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 135 fichiers, 1440 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1944,6 +1944,21 @@ Unitaires : 134 fichiers, 1432 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - blocage exponentiel après 5 échecs, alerte opérateur, levé par un succès
 - **MinuteRateLimiter**
   - limite par clé sur une minute
+
+</details>
+
+<details>
+<summary><code>src/main/remote/csp.test.ts</code> — 8 tests</summary>
+
+- **CSP pages distantes (#1149)**
+  - nonce aléatoire base64 de 16 octets
+  - addNonces marque script et style, sans doublon
+  - politique : script-src sans unsafe-inline, objets et base verrouillés
+  - sendHtmlPage pose en-tête et nonce cohérents
+  - %s : aucun handler inline ni javascript: _(each)_
+  - app.js sans handler inline
+  - pages générées sans handler inline
+  - chaque data-click statique cible une fonction définie dans la page
 
 </details>
 

@@ -57,6 +57,7 @@ import {
   sendLoginLimited,
   verifyPassword,
 } from './remote/auth';
+import { sendHtmlPage } from './remote/csp';
 import { registerPageRoutes } from './remote/routes/pageRoutes';
 import { registerResultsRoutes } from './remote/routes/resultsRoutes';
 import {
@@ -457,8 +458,7 @@ export class RemoteScoreServer {
   private sendHtmlFromMemory(filename: string, res: express.Response): void {
     const html = this.htmlFiles.get(filename);
     if (html) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.send(html);
+      sendHtmlPage(res, html);
     } else {
       console.error(`[RemoteScoreServer] ERREUR: Fichier ${filename} non trouvé en mémoire`);
       res.status(500).send(`Erreur: fichier ${filename} non trouvé`);
@@ -681,8 +681,8 @@ export class RemoteScoreServer {
       next();
     });
 
-    // En-têtes de sécurité de base. Pas de restriction script-src/style-src : les pages
-    // remote (arena/kiosk/overlay/...) utilisent des <script> inline sans nonce.
+    // En-têtes de sécurité de base (fichiers statiques, API). Les pages HTML reçoivent une CSP
+    // avec nonce (script-src sans 'unsafe-inline') via sendHtmlPage (remote/csp.ts, #1149).
     // frame-ancestors 'self' remplace X-Frame-Options (overlay-config.html prévisualise
     // overlay.html dans une iframe same-origin).
     this.app.use((_req, res, next) => {
@@ -763,6 +763,19 @@ export class RemoteScoreServer {
       console.error('[RemoteScoreServer] ERREUR lors de la vérification du dossier:', err);
     }
 
+    // Pages HTML : toujours via la mémoire (nonce CSP), jamais en fichier statique brut
+    this.app.use((req, res, next) => {
+      if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+      const name = req.path === '/' ? 'index.html' : path.posix.basename(req.path);
+      if (
+        (req.path === '/' || req.path.endsWith('.html')) &&
+        this.htmlFiles.has(name) &&
+        path.posix.dirname(req.path) === '/'
+      ) {
+        return this.sendHtmlFromMemory(name, res);
+      }
+      next();
+    });
     this.app.use(express.static(remotePath));
 
     this.app.use((req, res, next) => {
