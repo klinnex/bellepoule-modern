@@ -690,5 +690,21 @@
     "print_wave_sheets_empty": "Keine Begegnung zum Drucken in dieser Welle",
     "wave_legend": "Gefechte der aktuellen Welle",
     "confirm_end_waves": "Wellen jetzt beenden? Nicht ausgetragene Gefechte zählen nicht; weiter zur Zwischenwertung."
+  },
+  "errors": {
+    "server_not_started": "Server nicht gestartet",
+    "remote_not_started": "Der Fernserver ist für diesen Wettbewerb nicht gestartet",
+    "remote_already_started": "Der Server ist für diesen Wettbewerb bereits gestartet",
+    "training_not_started": "Trainingsserver nicht gestartet",
+    "training_already_started": "Trainingsserver bereits gestartet",
+    "tls_cert_failed": "TLS-Zertifikat konnte nicht erstellt werden",
+    "updater_unavailable": "Automatisches Update nicht verfügbar",
+    "strip_not_found": "Bahn nicht gefunden",
+    "match_not_found": "Gefecht nicht gefunden",
+    "invalid_competition_id": "Ungültige Wettbewerbs-ID",
+    "competition_not_found": "Wettbewerb nicht gefunden",
+    "html_load_failed": "Laden des HTML fehlgeschlagen",
+    "port_in_use": "Port {{port}} wird bereits verwendet",
+    "temp_file_failed": "Temporäre Datei konnte nicht erstellt werden: {{detail}}"
   }
 }

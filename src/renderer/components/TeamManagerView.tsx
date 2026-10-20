@@ -39,6 +39,7 @@ import TeamTableauView from './TeamTableauView';
 import { useConfirm } from './ConfirmDialog';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
+import { ipcErrorText } from '../services/ipcError';
 
 const LASER_ARENA_POOL_NUMBER_BY_LETTER: Record<string, number> = { A: 1, B: 2, C: 3 };
 
@@ -439,8 +440,11 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
     );
     if (!result.success) {
       showToast(
-        result.error ??
-          "Impossible d'assigner cette rencontre à l'arène (serveur distant démarré ?).",
+        ipcErrorText(
+          t,
+          result,
+          "Impossible d'assigner cette rencontre à l'arène (serveur distant démarré ?)."
+        ),
         'error'
       );
     }

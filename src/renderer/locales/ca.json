@@ -690,5 +690,21 @@
     "print_wave_sheets_empty": "No hi ha cap combat per imprimir en aquesta onada",
     "wave_legend": "Assalts de l'onada en curs",
     "confirm_end_waves": "Aturar les onades ara? Els assalts no disputats no compten; es passa a la classificació general intermèdia."
+  },
+  "errors": {
+    "server_not_started": "Servidor no iniciat",
+    "remote_not_started": "El servidor remot no està iniciat per a aquesta competició",
+    "remote_already_started": "El servidor ja està iniciat per a aquesta competició",
+    "training_not_started": "Servidor d'entrenament no iniciat",
+    "training_already_started": "Servidor d'entrenament ja iniciat",
+    "tls_cert_failed": "No s'ha pogut generar el certificat TLS",
+    "updater_unavailable": "Actualització automàtica no disponible",
+    "strip_not_found": "Pista no trobada",
+    "match_not_found": "Combat no trobat",
+    "invalid_competition_id": "Identificador de competició no vàlid",
+    "competition_not_found": "Competició no trobada",
+    "html_load_failed": "Ha fallat la càrrega HTML",
+    "port_in_use": "El port {{port}} ja està en ús",
+    "temp_file_failed": "No s'ha pogut crear el fitxer temporal: {{detail}}"
   }
 }

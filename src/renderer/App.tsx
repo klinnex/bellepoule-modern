@@ -47,6 +47,7 @@ import { CompetitionViewSkeleton } from './components/Skeleton';
 import { ToastProvider, useToast } from './components/Toast';
 import { ConfirmProvider, useConfirm } from './components/ConfirmDialog';
 import { TranslationProvider, useTranslation, Theme } from './contexts/TranslationContext';
+import { ipcErrorText } from './services/ipcError';
 import { ErrorBoundary, CompetitionErrorBoundary } from './components/ErrorBoundary';
 import { useAppState } from './hooks/useAppState';
 
@@ -451,7 +452,7 @@ const AppContent: React.FC = () => {
       try {
         const startRes = await window.electronAPI.training.startServer(undefined, host);
         if (!startRes.success || !startRes.serverInfo) {
-          showToast(startRes.error ?? 'Impossible de démarrer le serveur', 'error');
+          showToast(ipcErrorText(t, startRes, 'Impossible de démarrer le serveur'), 'error');
           return;
         }
         const sessionRes = await window.electronAPI.training.startSession(
@@ -461,7 +462,7 @@ const AppContent: React.FC = () => {
         );
         if (!sessionRes.success) {
           await window.electronAPI.training.stopServer();
-          showToast(sessionRes.error ?? 'Impossible de démarrer la session', 'error');
+          showToast(ipcErrorText(t, sessionRes, 'Impossible de démarrer la session'), 'error');
           return;
         }
         setTrainingServerUrl(startRes.serverInfo.url);
@@ -476,7 +477,7 @@ const AppContent: React.FC = () => {
         setTrainingLaunching(false);
       }
     },
-    [showToast]
+    [showToast, t]
   );
 
   const handleStopTraining = useCallback(async () => {

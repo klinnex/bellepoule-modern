@@ -690,5 +690,21 @@
     "print_wave_sheets_empty": "No hay combates que imprimir en esta oleada",
     "wave_legend": "Asaltos de la oleada en curso",
     "confirm_end_waves": "¿Detener las oleadas ahora? Los asaltos no disputados no cuentan; se pasa a la clasificación general intermedia."
+  },
+  "errors": {
+    "server_not_started": "Servidor no iniciado",
+    "remote_not_started": "El servidor remoto no está iniciado para esta competición",
+    "remote_already_started": "El servidor ya está iniciado para esta competición",
+    "training_not_started": "Servidor de entrenamiento no iniciado",
+    "training_already_started": "Servidor de entrenamiento ya iniciado",
+    "tls_cert_failed": "No se pudo generar el certificado TLS",
+    "updater_unavailable": "Actualización automática no disponible",
+    "strip_not_found": "Pista no encontrada",
+    "match_not_found": "Combate no encontrado",
+    "invalid_competition_id": "Identificador de competición no válido",
+    "competition_not_found": "Competición no encontrada",
+    "html_load_failed": "Error al cargar el HTML",
+    "port_in_use": "El puerto {{port}} ya está en uso",
+    "temp_file_failed": "No se pudo crear el archivo temporal: {{detail}}"
   }
 }

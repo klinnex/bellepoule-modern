@@ -690,5 +690,21 @@
     "print_wave_sheets_empty": "Aucun match à imprimer dans cette vague",
     "wave_legend": "Matchs de la vague en cours",
     "confirm_end_waves": "Arrêter les vagues maintenant ? Les matchs non joués ne comptent pas ; passage au classement général intermédiaire."
+  },
+  "errors": {
+    "server_not_started": "Serveur non démarré",
+    "remote_not_started": "Le serveur distant n'est pas démarré pour cette compétition",
+    "remote_already_started": "Le serveur est déjà démarré pour cette compétition",
+    "training_not_started": "Serveur entraînement non démarré",
+    "training_already_started": "Serveur entraînement déjà démarré",
+    "tls_cert_failed": "Impossible de générer le certificat TLS",
+    "updater_unavailable": "Mise à jour automatique indisponible",
+    "strip_not_found": "Piste introuvable",
+    "match_not_found": "Match introuvable",
+    "invalid_competition_id": "Identifiant de compétition invalide",
+    "competition_not_found": "Compétition introuvable",
+    "html_load_failed": "Chargement HTML échoué",
+    "port_in_use": "Le port {{port}} est déjà utilisé",
+    "temp_file_failed": "Impossible de créer le fichier temporaire : {{detail}}"
   }
 }

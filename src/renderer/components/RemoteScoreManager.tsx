@@ -17,6 +17,7 @@ import { OBSOverlayConfig } from './OBSOverlayConfig';
 import { CustomTheme, DisplayTheme } from '../../shared/types/remote';
 import { ConnectedClient, KioskScreenConfig } from '../../shared/types/preload';
 import { useTranslation } from '../hooks/useTranslation';
+import { ipcErrorText } from '../services/ipcError';
 
 interface RemoteScoreManagerProps {
   competition: Competition;
@@ -365,7 +366,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     const result = await window.electronAPI.remote.updateKioskTheme(competition.id, {
       '--k-preset': preset,
     });
-    if (!result?.success) showToast(result?.error ?? 'Erreur thème kiosk', 'error');
+    if (!result?.success) showToast(ipcErrorText(t, result, 'Erreur thème kiosk'), 'error');
   };
   // Thèmes sauvegardés (depuis IPC)
   const [savedThemes, setSavedThemes] = useState<CustomTheme[]>([]);
@@ -449,8 +450,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     });
   }, [pools, isRemoteActive, session]);
 
-  // Synchroniser le cache poolFencersCache du serveur distant quand les poules changent
-  // (interversion de combattants entre poules pendant une session active).
+  // Cache poolFencersCache du serveur resynchronisé si les poules changent en session
   const sessionPoolsFingerprintRef = useRef<string>('');
   useEffect(() => {
     const fingerprint = pools
@@ -589,7 +589,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         onServerStarted?.(result.serverInfo.url);
         await startSession(result.serverInfo.url, effectivePending);
       } else {
-        showToast(`Erreur: ${result.error || 'Impossible de démarrer le serveur'}`, 'error');
+        showToast(`Erreur: ${ipcErrorText(t, result, 'Échec du démarrage')}`, 'error');
       }
     } catch (error) {
       logger.error(LogCategory.UI, 'Failed to start remote server', error as Error);
@@ -659,7 +659,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           prevDeMatchesKeyRef.current = deMatchesKey(deMatches);
         }
       } else {
-        showToast(`Erreur session: ${result.error}`, 'error');
+        showToast(`Erreur session: ${ipcErrorText(t, result)}`, 'error');
       }
     } catch (error) {
       logger.error(LogCategory.UI, 'Failed to start session', error as Error);
@@ -681,7 +681,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           localStorage.setItem(`bellepoule-remote-strips-${competition.id}`, String(newCount));
           showToast('Nombre de pistes mis à jour', 'success');
         } else {
-          showToast(`Erreur: ${result.error}`, 'error');
+          showToast(`Erreur: ${ipcErrorText(t, result)}`, 'error');
         }
       } catch (error) {
         logger.error(LogCategory.UI, 'Failed to update strip count', error as Error);
@@ -710,7 +710,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         setServerUrl(result.serverInfo.url);
         showToast(`Port changé : ${result.serverInfo.port}`, 'success');
       } else {
-        showToast(`Erreur: ${result.error}`, 'error');
+        showToast(`Erreur: ${ipcErrorText(t, result)}`, 'error');
       }
     } catch (error) {
       logger.error(LogCategory.UI, 'Failed to change port', error as Error);
@@ -729,7 +729,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         showToast('Saisie distante arrêtée', 'success');
         onStopRemote();
       } else {
-        showToast(`Erreur: ${result.error || "Impossible d'arrêter le serveur"}`, 'error');
+        showToast(`Erreur: ${ipcErrorText(t, result, "Impossible d'arrêter le serveur")}`, 'error');
       }
     } catch (error) {
       logger.error(LogCategory.UI, 'Failed to stop remote server', error as Error);
@@ -751,7 +751,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         pwd
       );
       if (!result.success) {
-        showToast(result.error ?? 'Erreur', 'error');
+        showToast(ipcErrorText(t, result, 'Erreur'), 'error');
         return false;
       }
     }
@@ -795,7 +795,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         'success'
       );
     } else {
-      showToast(result.error ?? 'Erreur', 'error');
+      showToast(ipcErrorText(t, result, 'Erreur'), 'error');
     }
   };
 
@@ -831,7 +831,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         'success'
       );
     } else {
-      showToast(result.error ?? 'Erreur', 'error');
+      showToast(ipcErrorText(t, result, 'Erreur'), 'error');
     }
   };
 
@@ -973,7 +973,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       });
       setKioskTheme(theme);
       if (result?.success) showToast(`Thème "${theme.name}" appliqué au kiosque`, 'success');
-      else showToast(result?.error ?? 'Erreur', 'error');
+      else showToast(ipcErrorText(t, result, 'Erreur'), 'error');
     } else {
       // public / referee / pool → appliquer à toutes les arènes pour ce type d'écran
       const count = session ? session.strips.length : effectiveCommitted;
@@ -1905,7 +1905,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                             'success'
                           );
                         } else {
-                          showToast(result.error ?? 'Erreur', 'error');
+                          showToast(ipcErrorText(t, result, 'Erreur'), 'error');
                         }
                       }
                     }}
@@ -1928,7 +1928,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                           'success'
                         );
                       } else {
-                        showToast(result.error ?? 'Erreur', 'error');
+                        showToast(ipcErrorText(t, result, 'Erreur'), 'error');
                       }
                     }}
                   >
@@ -2506,7 +2506,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             if (result?.success) {
               showToast('Thème kiosk appliqué', 'success');
             } else {
-              showToast(result?.error ?? 'Erreur application thème kiosk', 'error');
+              showToast(ipcErrorText(t, result, 'Erreur application thème kiosk'), 'error');
             }
           }}
           onClose={() => {

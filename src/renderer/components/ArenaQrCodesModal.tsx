@@ -9,6 +9,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useTranslation } from '../contexts/TranslationContext';
 import { useToast } from './Toast';
 import { savePDF } from '../../shared/utils/pdfExport/core';
+import { ipcErrorText } from '../services/ipcError';
 
 export interface ArenaQrTarget {
   number: number;
@@ -155,7 +156,7 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
         await savePDF(html, 'qr-codes-pistes.pdf');
       } else {
         const res = await window.electronAPI?.file?.printHtml?.(html);
-        if (res && !res.success) throw new Error(res.error ?? "Échec de l'impression");
+        if (res && !res.success) throw new Error(ipcErrorText(t, res, "Échec de l'impression"));
       }
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Erreur QR Codes', 'error');

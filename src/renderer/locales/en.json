@@ -690,5 +690,21 @@
     "print_wave_sheets_empty": "No match to print in this wave",
     "wave_legend": "Bouts of the current wave",
     "confirm_end_waves": "Stop the waves now? Unfenced bouts do not count; moving on to the intermediate overall ranking."
+  },
+  "errors": {
+    "server_not_started": "Server not started",
+    "remote_not_started": "The remote server is not started for this competition",
+    "remote_already_started": "The server is already started for this competition",
+    "training_not_started": "Training server not started",
+    "training_already_started": "Training server already started",
+    "tls_cert_failed": "Could not generate the TLS certificate",
+    "updater_unavailable": "Automatic update unavailable",
+    "strip_not_found": "Strip not found",
+    "match_not_found": "Bout not found",
+    "invalid_competition_id": "Invalid competition id",
+    "competition_not_found": "Competition not found",
+    "html_load_failed": "HTML loading failed",
+    "port_in_use": "Port {{port}} is already in use",
+    "temp_file_failed": "Could not create the temporary file: {{detail}}"
   }
 }

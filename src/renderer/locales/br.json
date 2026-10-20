@@ -690,5 +690,21 @@
     "print_wave_sheets_empty": "Emgann ebet da voullañ er wagenn-mañ",
     "wave_legend": "Emgannoù ar wagenn a-vremañ",
     "confirm_end_waves": "Paouez gant ar gwagennoù bremañ ? An emgannoù n'int ket bet graet ne gontont ket ; tremen d'ar renkadur hollek etre."
+  },
+  "errors": {
+    "server_not_started": "N'eo ket loc'het ar servijer",
+    "remote_not_started": "N'eo ket loc'het ar servijer a-bell evit ar genstrivadeg-mañ",
+    "remote_already_started": "Loc'het eo ar servijer evit ar genstrivadeg-mañ dija",
+    "training_not_started": "N'eo ket loc'het servijer an embregerezh",
+    "training_already_started": "Loc'het eo servijer an embregerezh dija",
+    "tls_cert_failed": "N'haller ket krouiñ an testeni TLS",
+    "updater_unavailable": "Hizivadur emgefreek dihegerz",
+    "strip_not_found": "Tachenn dianav",
+    "match_not_found": "Kenstrivadenn dianav",
+    "invalid_competition_id": "Naoudi kenstrivadeg direizh",
+    "competition_not_found": "Kenstrivadeg dianav",
+    "html_load_failed": "C'hwitet eo bet kargañ an HTML",
+    "port_in_use": "Implijet eo ar porzh {{port}} dija",
+    "temp_file_failed": "N'haller ket krouiñ ar restr padennek : {{detail}}"
   }
 }

@@ -690,5 +690,21 @@
     "print_wave_sheets_empty": "此輪次沒有可列印的比賽",
     "wave_legend": "本輪比賽",
     "confirm_end_waves": "現在停止輪次？未進行的比賽不計；進入中期總排名。"
+  },
+  "errors": {
+    "server_not_started": "伺服器未啟動",
+    "remote_not_started": "此比賽的遠端伺服器未啟動",
+    "remote_already_started": "此比賽的伺服器已啟動",
+    "training_not_started": "訓練伺服器未啟動",
+    "training_already_started": "訓練伺服器已啟動",
+    "tls_cert_failed": "無法產生 TLS 憑證",
+    "updater_unavailable": "自動更新無法使用",
+    "strip_not_found": "找不到劍道",
+    "match_not_found": "找不到比賽",
+    "invalid_competition_id": "比賽識別碼無效",
+    "competition_not_found": "找不到比賽",
+    "html_load_failed": "HTML 載入失敗",
+    "port_in_use": "連接埠 {{port}} 已被使用",
+    "temp_file_failed": "無法建立暫存檔：{{detail}}"
   }
 }

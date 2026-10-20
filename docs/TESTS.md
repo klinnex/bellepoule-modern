@@ -96,16 +96,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
 | `src/main/` | 12 | 175 |
-| `src/renderer/services/` | 3 | 19 |
+| `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 8 | 39 |
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **153** | **1521** |
+| **Total** | **154** | **1524** |
 
-Unitaires : 145 fichiers, 1490 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 146 fichiers, 1493 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2216,6 +2216,16 @@ Unitaires : 145 fichiers, 1490 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 ### `src/renderer/services/`
+
+<details>
+<summary><code>src/renderer/services/ipcError.test.ts</code> — 3 tests</summary>
+
+- **ipcErrorText (#1159)**
+  - code traduit, paramètres de la réponse interpolés
+  - texte libre, code inconnu, absence d’erreur
+  - chaque code renvoyé par le process principal a sa clé errors.\* (fr)
+
+</details>
 
 <details>
 <summary><code>src/renderer/services/offlineStorage.test.ts</code> — 6 tests</summary>

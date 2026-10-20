@@ -8,6 +8,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useTranslation } from '../../contexts/TranslationContext';
+import { ipcErrorText } from '../../services/ipcError';
 import { TableauMatch } from './tableauTypes';
 
 interface TableauSignaturesModalProps {
@@ -37,6 +39,7 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
   competitionId,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [sigs, setSigs] = useState<{ A?: string; B?: string }>({});
   const [arenas, setArenas] = useState<ArenaOption[]>([]);
@@ -123,7 +126,7 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
       setSendState(
         res.success
           ? { ok: true, msg: `Signature envoyée sur la piste ${arena?.number ?? ''}` }
-          : { ok: false, msg: res.error ?? 'Échec de l’envoi' }
+          : { ok: false, msg: ipcErrorText(t, res, 'Échec de l’envoi') }
       );
     } catch (e) {
       setSendState({ ok: false, msg: e instanceof Error ? e.message : 'Échec de l’envoi' });

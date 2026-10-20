@@ -6,7 +6,7 @@
   "inlineStyle": 1431,
   "fontSizePx": 0,
   "hardLocale": 0,
-  "serverMessage": 54,
+  "serverMessage": 0,
   "remoteUnescaped": 0,
   "lineExceptions": {
     "src/renderer/styles/design.css": 2087,
