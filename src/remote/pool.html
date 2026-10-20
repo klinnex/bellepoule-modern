@@ -647,7 +647,7 @@
           const res = await fetch(`/api/arenas/${arenaNumber}/pool-data`);
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
-            showStatusMessage(err.error || window.T('pool.no_pool'));
+            showStatusMessage(window.errorText(err, window.T('pool.no_pool')));
             return;
           }
           poolData = await res.json();
@@ -1038,7 +1038,7 @@
           );
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
-            alert(err.error || 'Erreur lors de la sauvegarde de la signature.');
+            alert(window.errorText(err, window.T('error.signature_save_failed')));
             return;
           }
           signaturesData[signingFencer.id] = dataURL;

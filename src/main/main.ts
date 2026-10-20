@@ -25,7 +25,7 @@ import { AutoUpdater } from './autoUpdater';
 import type { MatchSignatureRequest } from '../shared/types/remote';
 import { decodeTextFile } from '../shared/utils/fileParser/detect';
 import { eventLoopMonitor } from './eventLoopMonitor';
-import { MENU_LABELS, type MenuLang } from './menuLabels';
+import { fmt, getL, getUiLanguage, setUiLanguage } from './menuLabels';
 import { registerDbHandlers } from './ipc/dbHandlers';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
 import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from './remoteRegistry';
@@ -135,7 +135,7 @@ ipcMain.once('splash:confirm', (_event, lang: string) => {
   const validLangs = ['fr', 'en', 'de', 'es', 'zh-HK', 'br', 'ca'];
   const confirmed = validLangs.includes(lang) ? lang : 'fr';
   saveLanguageToFile(confirmed);
-  currentMenuLanguage = confirmed;
+  setUiLanguage(confirmed);
   splashConfirmResolve?.(confirmed);
 });
 
@@ -170,20 +170,6 @@ function closeSplash(onClosed?: () => void): void {
       onClosed?.();
     }, 420);
   }, remaining);
-}
-
-// Current UI language (kept in sync via IPC)
-let currentMenuLanguage = 'fr';
-
-// ============================================================================
-// Localized Label Helper
-// ============================================================================
-
-function getL(): Record<string, string> {
-  const lang = (
-    MENU_LABELS[currentMenuLanguage as MenuLang] ? currentMenuLanguage : 'fr'
-  ) as MenuLang;
-  return MENU_LABELS[lang];
 }
 
 // ============================================================================
@@ -363,20 +349,20 @@ function createWindow(initialLang?: string): void {
   // Create application menu using saved language preference
   mainWindow.webContents.once('did-finish-load', async () => {
     if (initialLang) {
-      currentMenuLanguage = initialLang;
+      setUiLanguage(initialLang);
     } else {
       try {
         const savedLang = await mainWindow!.webContents.executeJavaScript(
           'localStorage.getItem("bellepoule-language")'
         );
         if (savedLang && typeof savedLang === 'string') {
-          currentMenuLanguage = savedLang;
+          setUiLanguage(savedLang);
         }
       } catch {
         // ignore
       }
     }
-    createMenu(currentMenuLanguage);
+    createMenu(getUiLanguage());
 
     // Restore persisted logo and sync to renderer localStorage if not already set
     const logoPath = path.join(app.getPath('userData'), 'logo.dat');
@@ -396,8 +382,8 @@ function createWindow(initialLang?: string): void {
 // ============================================================================
 
 function createMenu(language?: string): void {
-  const lang = (MENU_LABELS[language as MenuLang] ? language : 'fr') as MenuLang;
-  const L = MENU_LABELS[lang];
+  if (language) setUiLanguage(language);
+  const L = getL();
 
   const template: Electron.MenuItemConstructorOptions[] = [
     {
@@ -592,7 +578,7 @@ function startRemoteScoreServer(): void {
   dialog.showMessageBox(mainWindow!, {
     type: 'info',
     title: L.remoteTitle,
-    message: 'Utilisez le panneau "Saisie distante" dans l\'onglet compétition.',
+    message: L.remoteUsePanel,
     buttons: ['OK'],
   });
 }
@@ -2014,7 +2000,7 @@ ipcMain.handle('app:getVersionInfo', async () => {
 
 // Language change handler — rebuild native menu in the new language
 ipcMain.on('app:language-changed', (_, lang: string) => {
-  currentMenuLanguage = lang;
+  setUiLanguage(lang);
   saveLanguageToFile(lang);
   createMenu(lang);
   for (const { server } of remoteServers.values()) {
@@ -2172,13 +2158,13 @@ app.whenReady().then(async () => {
       if (autoUpdater.hasPendingUpdate()) {
         const pendingInfo = autoUpdater.getPendingUpdateInfo();
         console.log(`[Main] Mise à jour en attente trouvée: v${pendingInfo?.version}`);
+        const L = getL();
         const result = await dialog.showMessageBox(win, {
           type: 'info',
-          title: 'Mise à jour en attente',
-          message: `La version ${pendingInfo?.version} est prête à être installée.`,
-          detail:
-            "Voulez-vous installer cette mise à jour maintenant ? L'application va redémarrer.",
-          buttons: ['Installer maintenant', 'Plus tard'],
+          title: L.updPendingTitle,
+          message: fmt(L.updPendingMsg, { version: pendingInfo?.version }),
+          detail: L.updInstallDetail,
+          buttons: [L.updInstallNow, L.updLater],
           defaultId: 0,
           cancelId: 1,
         });
@@ -2258,8 +2244,8 @@ process.on('uncaughtException', error => {
   void dialog
     .showMessageBox({
       type: 'error',
-      title: 'Erreur',
-      message: `Une erreur inattendue s'est produite: ${error.message}`,
+      title: getL().errTitle,
+      message: fmt(getL().unexpectedError, { error: error.message }),
     })
     .catch(() => undefined);
 });

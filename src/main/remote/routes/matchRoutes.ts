@@ -51,7 +51,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
 
       if (!ctx.session) {
         console.log('[RemoteScoreServer] Pas de session active');
-        return res.status(404).json({ error: 'Aucune session active' });
+        return res.status(404).json({ error: 'no_session' });
       }
 
       const competitionId = ctx.session.competitionId;
@@ -191,14 +191,14 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       res.json({ matches: [], poolId: null, poolName: null });
     } catch (error) {
       console.error('[RemoteScoreServer] Erreur récupération matchs:', error);
-      res.status(500).json({ error: 'Erreur lors de la récupération des matchs' });
+      res.status(500).json({ error: 'matches_fetch_failed' });
     }
   });
 
   // API : cartons noirs annulables pour une arène (écran de sélection des matchs)
   ctx.app.get('/api/arenas/:arenaId/black-cards', (req, res) => {
     if (!ctx.hasAnyValidToken(req.headers.cookie)) {
-      return res.status(401).json({ error: 'Non authentifié' });
+      return res.status(401).json({ error: 'auth_required' });
     }
     if (!ctx.session) return res.json({ blackCards: [] });
     res.json({ blackCards: ctx.getArenaBlackCards(req.params.arenaId) });
@@ -208,9 +208,9 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
   // ceux de ses adversaires comptent de nouveau, le match interrompu est rouvert
   ctx.app.post('/api/arenas/:arenaId/black-cards/:fencerId/cancel', (req, res) => {
     if (!ctx.hasAnyValidToken(req.headers.cookie)) {
-      return res.status(401).json({ error: 'Non authentifié' });
+      return res.status(401).json({ error: 'auth_required' });
     }
-    if (!ctx.session) return res.status(404).json({ error: 'Aucune session active' });
+    if (!ctx.session) return res.status(404).json({ error: 'no_session' });
     const result = ctx.cancelBlackCard(req.params.arenaId, req.params.fencerId);
     if (!result.success) return res.status(result.status).json({ error: result.error });
     res.json({ success: true, matchId: result.matchId });
@@ -219,11 +219,11 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
   // API pour terminer un match avec enregistrement final
   ctx.app.post('/api/matches/:matchId/finish', async (req, res) => {
     if (!ctx.hasAnyValidToken(req.headers.cookie)) {
-      return res.status(401).json({ error: 'Non authentifié' });
+      return res.status(401).json({ error: 'auth_required' });
     }
     const clientIp = ctx.getClientIp(req);
     if (!ctx.checkScoreRateLimit(clientIp)) {
-      return res.status(429).json({ error: 'Trop de soumissions, réessayez dans une minute' });
+      return res.status(429).json({ error: 'rate_limited' });
     }
     try {
       const { matchId } = req.params;
@@ -246,7 +246,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         scoreA > 50 ||
         scoreB > 50
       ) {
-        return res.status(400).json({ error: 'Scores invalides (entiers entre 0 et 50)' });
+        return res.status(400).json({ error: 'invalid_scores' });
       }
 
       console.log(`[RemoteScoreServer] POST /api/matches/${matchId}/finish`);
@@ -260,7 +260,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       );
       if (!dbMatch && !inMemoryMatch) {
         ctx.sendDiag(`[REST /finish] 404 match introuvable: ${matchId}`);
-        return res.status(404).json({ error: 'Match non trouvé' });
+        return res.status(404).json({ error: 'match_not_found' });
       }
 
       // Carton noir : le combattant fautif est exclu de la compétition
@@ -484,20 +484,20 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       res.json({ success: true, winner, requireSignature });
     } catch (error) {
       console.error('[RemoteScoreServer] Erreur fin de match:', error);
-      res.status(500).json({ error: 'Erreur lors de la fin du match' });
+      res.status(500).json({ error: 'finish_failed' });
     }
   });
 
   ctx.app.get('/api/strips', (req, res) => {
     if (!ctx.session) {
-      return res.status(404).json({ error: 'Aucune session active' });
+      return res.status(404).json({ error: 'no_session' });
     }
     res.json(ctx.session.strips);
   });
 
   ctx.app.post('/api/matches/:matchId/score', async (req, res) => {
     if (!ctx.hasAnyValidToken(req.headers.cookie)) {
-      return res.status(401).json({ error: 'Non authentifié' });
+      return res.status(401).json({ error: 'auth_required' });
     }
     try {
       const { matchId } = req.params;
@@ -514,7 +514,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           sA > 50 ||
           sB > 50
         ) {
-          return res.status(400).json({ error: 'Scores invalides (entiers entre 0 et 50)' });
+          return res.status(400).json({ error: 'invalid_scores' });
         }
       }
 
@@ -532,17 +532,17 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       res.json({ success: true });
     } catch (error) {
       console.error('Error updating score:', error);
-      res.status(500).json({ error: 'Erreur lors de la mise à jour du score' });
+      res.status(500).json({ error: 'score_update_failed' });
     }
   });
 
   // API : synchronisation des actions hors-ligne (tablettes arbitres)
   ctx.app.post('/api/sync', async (req, res) => {
     if (!ctx.hasAnyValidToken(req.headers.cookie)) {
-      return res.status(401).json({ error: 'Non authentifié' });
+      return res.status(401).json({ error: 'auth_required' });
     }
     if (!ctx.checkScoreRateLimit(ctx.getClientIp(req))) {
-      return res.status(429).json({ error: 'Trop de soumissions, réessayez dans une minute' });
+      return res.status(429).json({ error: 'rate_limited' });
     }
     const actions: Array<{ id: string; type: string; payload: unknown }> = req.body?.actions || [];
     const results: Array<{ id: string; success: boolean }> = [];

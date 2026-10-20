@@ -570,7 +570,7 @@ $('btn-analyze').addEventListener('click', async () => {
     });
     if (!ocrResp.ok) {
       const err = await ocrResp.json().catch(() => ({}));
-      throw new Error(err.error || `HTTP ${ocrResp.status}`);
+      throw new Error(window.errorText(err, `HTTP ${ocrResp.status}`));
     }
     const ocrData = await ocrResp.json();
     S.cellResults = ocrData.cells || [];

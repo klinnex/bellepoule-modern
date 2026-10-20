@@ -100,12 +100,12 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| `src/remote/` | 7 | 36 |
+| `src/remote/` | 8 | 39 |
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **151** | **1515** |
+| **Total** | **152** | **1518** |
 
-Unitaires : 143 fichiers, 1484 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 144 fichiers, 1487 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2969,6 +2969,16 @@ Unitaires : 143 fichiers, 1484 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - aucun hôte Google Fonts dans les sources, pages et CSP
   - pages kiosque/dashboard : préchargement local
   - service worker met les polices en précache
+
+</details>
+
+<details>
+<summary><code>src/remote/errorCodes.test.ts</code> — 3 tests</summary>
+
+- **codes d’erreur du serveur distant (#1159)**
+  - des codes sont bien émis
+  - chaque code est traduit (%s) _(each)_
+  - errorText : traduction paramétrée, texte brut, repli
 
 </details>
 

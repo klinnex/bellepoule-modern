@@ -6,7 +6,7 @@
   "inlineStyle": 1541,
   "fontSizePx": 89,
   "hardLocale": 0,
-  "serverMessage": 155,
+  "serverMessage": 54,
   "remoteUnescaped": 0,
   "lineExceptions": {
     "src/renderer/styles/design.css": 2087,
@@ -20,7 +20,7 @@
     "src/remote/arena.html": 2302,
     "src/remote/kiosk.html": 3488,
     "src/remote/referee.html": 4615,
-    "src/main/main.ts": 2265,
+    "src/main/main.ts": 2251,
     "src/main/remoteScoreServer.ts": 5043,
     "src/database/index.ts": 3210
   }

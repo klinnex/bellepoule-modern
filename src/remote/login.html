@@ -174,7 +174,7 @@
             if (data.success) {
               window.location.href = returnPath;
             } else {
-              errEl.textContent = data.error || window.T('login.error_incorrect');
+              errEl.textContent = window.errorText(data, window.T('login.error_incorrect'));
               errEl.classList.add('visible');
               document.getElementById('password').value = '';
               document.getElementById('password').focus();

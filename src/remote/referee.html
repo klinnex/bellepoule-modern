@@ -4433,7 +4433,7 @@
             });
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) {
-              this.showNotification(`❌ ${data.error || 'Annulation impossible'}`, true);
+              this.showNotification(`❌ ${window.errorText(data, window.T('error.update_failed'))}`, true);
               return;
             }
             this.showNotification('✅ Carton noir annulé — combattant réintégré');

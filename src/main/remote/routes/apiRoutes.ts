@@ -93,7 +93,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       res.json(pendingMatches);
     } catch (error) {
       console.error('Error getting pending matches:', error);
-      res.status(500).json({ error: 'Erreur lors de la récupération des matchs' });
+      res.status(500).json({ error: 'matches_fetch_failed' });
     }
   });
 
@@ -112,7 +112,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       ctx.session ? 'active' : 'inactive'
     );
     if (!ctx.session) {
-      return res.status(404).json({ error: 'Aucune session active' });
+      return res.status(404).json({ error: 'no_session' });
     }
     res.json({
       ...ctx.session,
@@ -138,14 +138,14 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       const competition = ctx.db.getCompetition(competitionId);
 
       if (!competition) {
-        return res.status(404).json({ error: 'Compétition non trouvée' });
+        return res.status(404).json({ error: 'competition_not_found' });
       }
 
       ctx.session = await ctx.createSession(competitionId, strips);
       res.json(ctx.session);
     } catch (error) {
       console.error('Error starting session:', error);
-      res.status(500).json({ error: 'Erreur lors du démarrage de la session' });
+      res.status(500).json({ error: 'session_start_failed' });
     }
   });
 
@@ -176,14 +176,14 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
   ctx.app.get('/api/arenas/:arenaId', (req, res) => {
     const arena = ctx.getArena(req.params.arenaId);
     if (!arena) {
-      return res.status(404).json({ error: 'Arène non trouvée' });
+      return res.status(404).json({ error: 'arena_not_found' });
     }
     res.json(ctx.toPublicArena(arena));
   });
 
   // Rapport de rotation des arbitres
   ctx.app.get('/api/referees/rotation-report', (req, res) => {
-    if (!ctx.session) return res.status(404).json({ error: 'Pas de session active' });
+    if (!ctx.session) return res.status(404).json({ error: 'no_session' });
 
     const competitionId = ctx.session.competitionId;
     const referees = ctx.db.getRefereesByCompetition(competitionId);
@@ -235,7 +235,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
   ctx.app.get('/api/arenas/:arenaId/obs-json', (req, res) => {
     const { arenaId } = req.params;
     const arena = ctx.getArena(arenaId);
-    if (!arena) return res.status(404).json({ error: 'Arène non trouvée' });
+    if (!arena) return res.status(404).json({ error: 'arena_not_found' });
 
     const touches = ctx.arenaTouches.get(arenaId) || { touchesA: [], touchesB: [] };
     const cards = ctx.arenaCards.get(arenaId) || { cardsA: [], cardsB: [] };
@@ -314,14 +314,14 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
   // Get all pools for current competition
   ctx.app.get('/api/pools', (req, res) => {
     if (!ctx.session) {
-      return res.status(404).json({ error: 'Aucune session active' });
+      return res.status(404).json({ error: 'no_session' });
     }
     try {
       const pools = ctx.db.getCompetitionPools(ctx.session.competitionId);
       res.json(pools);
     } catch (error) {
       console.error('Error getting pools:', error);
-      res.status(500).json({ error: 'Erreur lors de la récupération des poules' });
+      res.status(500).json({ error: 'pools_fetch_failed' });
     }
   });
 
@@ -333,7 +333,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       res.json(matches);
     } catch (error) {
       console.error('Error getting pool matches:', error);
-      res.status(500).json({ error: 'Erreur lors de la récupération des matchs' });
+      res.status(500).json({ error: 'matches_fetch_failed' });
     }
   });
 
@@ -348,7 +348,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       res.json(pending);
     } catch (error) {
       console.error('Error getting pending matches:', error);
-      res.status(500).json({ error: 'Erreur lors de la récupération des matchs' });
+      res.status(500).json({ error: 'matches_fetch_failed' });
     }
   });
 }

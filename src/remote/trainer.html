@@ -297,7 +297,7 @@
             const body = await res.json().catch(() => null);
             if (handleDenied(res)) return;
             if (!res.ok) {
-              $('list-error').textContent = (body && body.error) || tk('remote.error_connection');
+              $('list-error').textContent = window.errorText(body, tk('remote.error_connection'));
               return;
             }
             referees = body.referees || [];
@@ -394,7 +394,7 @@
             if (handleDenied(res)) return;
             const body = await res.json().catch(() => null);
             if (!res.ok) {
-              $('comment-error').textContent = (body && body.error) || tk('trainer.error');
+              $('comment-error').textContent = window.errorText(body, tk('trainer.error'));
               return;
             }
             backToList();
@@ -418,7 +418,7 @@
               $('password').value = '';
               loadList();
             } else if (res.status === 429) {
-              $('login-error').textContent = (body && body.error) || tk('trainer.too_many');
+              $('login-error').textContent = window.errorText(body, tk('trainer.too_many'));
             } else if (res.status === 403) {
               showMessage(tk('trainer.not_open'));
             } else {
