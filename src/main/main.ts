@@ -1015,8 +1015,8 @@ async function saveGlobalBackup(): Promise<void> {
       await db.exportToFile(sessionBackupPath);
       mainWindow?.webContents.send('file:saved', sessionBackupPath);
       return;
-    } catch (error) {
-      console.error('Échec sauvegarde du fichier global:', error);
+    } catch {
+      // Écriture impossible : repli sur « Enregistrer sous » ci-dessous
     }
   }
   await saveGlobalAs();
