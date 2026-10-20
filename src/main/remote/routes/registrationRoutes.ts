@@ -25,7 +25,7 @@ export interface RegistrationRouteContext extends RouteContext {
   checkRegistrationRateLimit(ip: string): boolean;
   checkLoginAllowed(ip: string, target: string): { retryAfterSec: number } | null;
   sendLoginLimited(res: express.Response, limited: { retryAfterSec: number }): unknown;
-  verifyPassword(password: unknown, stored: string | null | undefined): boolean;
+  verifyPassword(password: unknown, stored: string | null | undefined): Promise<boolean>;
   issueToken(store: Map<string, number>): string;
   recordLoginFailure(ip: string, target: string): Promise<void>;
   recordLoginSuccess(ip: string): void;
@@ -156,7 +156,7 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
       return res.status(403).json({ success: false, notConfigured: true });
     }
     const { password } = (req.body ?? {}) as { password?: unknown };
-    if (!ctx.verifyPassword(password, ctx.trainerPassword)) {
+    if (!(await ctx.verifyPassword(password, ctx.trainerPassword))) {
       await ctx.recordLoginFailure(ip, 'trainer');
       return res.status(401).json({ success: false, error: 'Mot de passe incorrect' });
     }
@@ -246,7 +246,7 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
       return res.status(403).json({ success: false, notConfigured: true });
     }
     const { password } = (req.body ?? {}) as { password?: unknown };
-    if (!ctx.verifyPassword(password, ctx.checkinPassword)) {
+    if (!(await ctx.verifyPassword(password, ctx.checkinPassword))) {
       await ctx.recordLoginFailure(ip, 'checkin');
       return res.status(401).json({ success: false, error: 'Mot de passe incorrect' });
     }

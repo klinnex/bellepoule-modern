@@ -39,7 +39,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       return res.json({ success: true });
     }
     const { password } = (req.body ?? {}) as { password?: unknown };
-    if (!ctx.verifyPassword(password, arena.password)) {
+    if (!(await ctx.verifyPassword(password, arena.password))) {
       await ctx.recordLoginFailure(ip, fullId);
       return res.status(401).json({ success: false, error: 'Mot de passe incorrect' });
     }

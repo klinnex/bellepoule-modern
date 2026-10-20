@@ -95,16 +95,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 11 | 166 |
+| `src/main/` | 11 | 167 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 6 | 34 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **147** | **1493** |
+| **Total** | **147** | **1494** |
 
-Unitaires : 139 fichiers, 1462 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 139 fichiers, 1463 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1940,12 +1940,13 @@ Unitaires : 139 fichiers, 1462 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/auth.test.ts</code> — 9 tests</summary>
+<summary><code>src/main/remote/auth.test.ts</code> — 10 tests</summary>
 
 - **parseCookies**
   - décode les paires et ignore les parties malformées
 - **mots de passe scrypt**
   - hash salé, vérification à temps constant
+  - variante asynchrone équivalente (#1154)
   - refuse un mot de passe trop court, accepte le vide (suppression)
 - **jetons de session**
   - valides jusqu’à expiration, puis supprimés
