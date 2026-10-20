@@ -90,6 +90,40 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     aboutSoftware: "Logiciel de gestion de compétitions d'escrime.",
     aboutRewrite: 'Réécriture moderne du logiciel BellePoule original créé par Yann Deboeuf.',
     aboutBugHint: 'Pour signaler un bug, mentionnez:',
+    // Dialogues du process principal et mises à jour (#1159)
+    remoteUsePanel: "Utilisez le panneau « Saisie distante » dans l'onglet compétition.",
+    unexpectedError: "Une erreur inattendue s'est produite : {error}",
+    updPendingTitle: 'Mise à jour en attente',
+    updPendingMsg: 'La version {version} est prête à être installée.',
+    updInstallDetail:
+      "Voulez-vous installer cette mise à jour maintenant ? L'application va redémarrer.",
+    updInstallNow: 'Installer maintenant',
+    updLater: 'Plus tard',
+    updReadyTitle: 'Mise à jour prête',
+    updDownloaded: 'BellePoule v{version} a été téléchargé',
+    updAutoDownloadFailed: 'Échec du téléchargement automatique',
+    installErrTitle: "Erreur d'installation",
+    installIntegrityErr:
+      "L'intégrité de la mise à jour n'a pas pu être vérifiée. Installation annulée.",
+    installLaunchErr: "Impossible de lancer l'installateur. Veuillez installer manuellement.",
+    installGenericErr: "Une erreur est survenue lors du lancement de l'installateur.",
+    updTitle: 'Mises à jour',
+    updNoRelease: 'Aucune version publiée disponible',
+    updNoReleaseDetail:
+      "Aucune version publiée n'est disponible pour le moment. Vous utilisez déjà la dernière version de développement.",
+    updUpToDate: '🎉 Vous utilisez la dernière version !',
+    updCurrentVersion: 'Version actuelle : v{version} (Build #{build})',
+    updAvailableTitle: '🚀 Mise à jour disponible',
+    updAvailableMsg: 'Une nouvelle version est disponible !',
+    updAvailableDetail:
+      'Version actuelle : Build #{current}\nNouvelle version : Build #{latest} (v{version})',
+    updReleaseNotes: 'Notes de version :',
+    updDownloadNow: '📥 Télécharger maintenant',
+    updViewReleases: '🔗 Voir les versions',
+    updDownloadTitle: '📥 Téléchargement',
+    updDownloadRedirect: 'Ouverture de la page de téléchargement…',
+    updDownloadDetail:
+      "Téléchargez la version correspondant à votre système et remplacez l'application actuelle.",
   },
   en: {
     file: 'File',
@@ -174,6 +208,38 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     aboutSoftware: 'Fencing competition management software.',
     aboutRewrite: 'Modern rewrite of the original BellePoule software created by Yann Deboeuf.',
     aboutBugHint: 'To report a bug, mention:',
+    // Dialogues du process principal et mises à jour (#1159)
+    remoteUsePanel: 'Use the "Remote Scoring" panel in the competition tab.',
+    unexpectedError: 'An unexpected error occurred: {error}',
+    updPendingTitle: 'Pending update',
+    updPendingMsg: 'Version {version} is ready to install.',
+    updInstallDetail: 'Install this update now? The application will restart.',
+    updInstallNow: 'Install now',
+    updLater: 'Later',
+    updReadyTitle: 'Update ready',
+    updDownloaded: 'BellePoule v{version} has been downloaded',
+    updAutoDownloadFailed: 'Automatic download failed',
+    installErrTitle: 'Installation error',
+    installIntegrityErr:
+      'The integrity of the update could not be verified. Installation cancelled.',
+    installLaunchErr: 'Could not start the installer. Please install manually.',
+    installGenericErr: 'An error occurred while starting the installer.',
+    updTitle: 'Updates',
+    updNoRelease: 'No published release available',
+    updNoReleaseDetail:
+      'No published version is available yet. You are already using the latest development version.',
+    updUpToDate: '🎉 You are using the latest version!',
+    updCurrentVersion: 'Current version: v{version} (Build #{build})',
+    updAvailableTitle: '🚀 Update available',
+    updAvailableMsg: 'A new version is available!',
+    updAvailableDetail:
+      'Current version: Build #{current}\nNew version: Build #{latest} (v{version})',
+    updReleaseNotes: 'Release notes:',
+    updDownloadNow: '📥 Download now',
+    updViewReleases: '🔗 View releases',
+    updDownloadTitle: '📥 Download',
+    updDownloadRedirect: 'Opening the download page…',
+    updDownloadDetail: 'Download the version for your system and replace the current application.',
   },
   de: {
     file: 'Datei',
@@ -259,6 +325,40 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     aboutRewrite:
       'Moderne Neuentwicklung der originalen BellePoule-Software erstellt von Yann Deboeuf.',
     aboutBugHint: 'Zum Melden eines Fehlers bitte angeben:',
+    // Dialogues du process principal et mises à jour (#1159)
+    remoteUsePanel: 'Verwenden Sie das Feld „Fernpunkteingabe" im Wettbewerbs-Tab.',
+    unexpectedError: 'Ein unerwarteter Fehler ist aufgetreten: {error}',
+    updPendingTitle: 'Ausstehendes Update',
+    updPendingMsg: 'Version {version} ist installationsbereit.',
+    updInstallDetail: 'Dieses Update jetzt installieren? Die Anwendung wird neu gestartet.',
+    updInstallNow: 'Jetzt installieren',
+    updLater: 'Später',
+    updReadyTitle: 'Update bereit',
+    updDownloaded: 'BellePoule v{version} wurde heruntergeladen',
+    updAutoDownloadFailed: 'Automatischer Download fehlgeschlagen',
+    installErrTitle: 'Installationsfehler',
+    installIntegrityErr:
+      'Die Integrität des Updates konnte nicht überprüft werden. Installation abgebrochen.',
+    installLaunchErr:
+      'Das Installationsprogramm konnte nicht gestartet werden. Bitte manuell installieren.',
+    installGenericErr: 'Beim Starten des Installationsprogramms ist ein Fehler aufgetreten.',
+    updTitle: 'Updates',
+    updNoRelease: 'Keine veröffentlichte Version verfügbar',
+    updNoReleaseDetail:
+      'Derzeit ist keine veröffentlichte Version verfügbar. Sie verwenden bereits die neueste Entwicklungsversion.',
+    updUpToDate: '🎉 Sie verwenden die neueste Version!',
+    updCurrentVersion: 'Aktuelle Version: v{version} (Build #{build})',
+    updAvailableTitle: '🚀 Update verfügbar',
+    updAvailableMsg: 'Eine neue Version ist verfügbar!',
+    updAvailableDetail:
+      'Aktuelle Version: Build #{current}\nNeue Version: Build #{latest} (v{version})',
+    updReleaseNotes: 'Versionshinweise:',
+    updDownloadNow: '📥 Jetzt herunterladen',
+    updViewReleases: '🔗 Versionen anzeigen',
+    updDownloadTitle: '📥 Download',
+    updDownloadRedirect: 'Download-Seite wird geöffnet…',
+    updDownloadDetail:
+      'Laden Sie die Version für Ihr System herunter und ersetzen Sie die aktuelle Anwendung.',
   },
   'zh-HK': {
     file: '檔案',
@@ -343,5 +443,57 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     aboutSoftware: '劍擊比賽管理軟件。',
     aboutRewrite: '由 Yann Deboeuf 創建的 BellePoule 原版軟件的現代重寫版本。',
     aboutBugHint: '回報錯誤時請提及:',
+    // Dialogues du process principal et mises à jour (#1159)
+    remoteUsePanel: '請使用比賽分頁中的「遠端記分」面板。',
+    unexpectedError: '發生未預期的錯誤：{error}',
+    updPendingTitle: '待安裝更新',
+    updPendingMsg: '版本 {version} 已準備安裝。',
+    updInstallDetail: '現在安裝此更新嗎？應用程式將會重新啟動。',
+    updInstallNow: '立即安裝',
+    updLater: '稍後',
+    updReadyTitle: '更新已就緒',
+    updDownloaded: 'BellePoule v{version} 已下載',
+    updAutoDownloadFailed: '自動下載失敗',
+    installErrTitle: '安裝錯誤',
+    installIntegrityErr: '無法驗證更新的完整性，已取消安裝。',
+    installLaunchErr: '無法啟動安裝程式，請手動安裝。',
+    installGenericErr: '啟動安裝程式時發生錯誤。',
+    updTitle: '更新',
+    updNoRelease: '沒有已發佈的版本',
+    updNoReleaseDetail: '目前沒有已發佈的版本。您已在使用最新的開發版本。',
+    updUpToDate: '🎉 您正在使用最新版本！',
+    updCurrentVersion: '目前版本：v{version}（Build #{build}）',
+    updAvailableTitle: '🚀 有可用更新',
+    updAvailableMsg: '有新版本可用！',
+    updAvailableDetail: '目前版本：Build #{current}\n新版本：Build #{latest}（v{version}）',
+    updReleaseNotes: '版本說明：',
+    updDownloadNow: '📥 立即下載',
+    updViewReleases: '🔗 查看版本',
+    updDownloadTitle: '📥 下載',
+    updDownloadRedirect: '正在開啟下載頁面…',
+    updDownloadDetail: '請下載適合您系統的版本並取代目前的應用程式。',
   },
 };
+
+// Langue de l'interface (menu natif, dialogues), synchronisée avec le renderer
+let uiLanguage = 'fr';
+
+export function setUiLanguage(language: string): void {
+  uiLanguage = language;
+}
+
+export function getUiLanguage(): string {
+  return uiLanguage;
+}
+
+/** Libellés de la langue courante (français par défaut). */
+export function getL(): Record<string, string> {
+  return MENU_LABELS[(uiLanguage in MENU_LABELS ? uiLanguage : 'fr') as MenuLang];
+}
+
+/** Remplace les `{nom}` d'un libellé. */
+export function fmt(template: string, vars: Record<string, string | number | undefined>): string {
+  return template.replace(/\{(\w+)\}/g, (m, k: string) =>
+    vars[k] === undefined ? m : String(vars[k])
+  );
+}

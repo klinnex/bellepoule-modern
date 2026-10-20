@@ -112,7 +112,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="u-grid-2">
               <div className="form-group">
                 <label className="form-label">{t('fencer.last_name')} *</label>
                 <input
@@ -138,7 +138,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="u-grid-2">
               <div className="form-group">
                 <label className="form-label">{t('fencer.gender')}</label>
                 {lockedGender ? (
@@ -188,7 +188,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="u-grid-2">
               <div className="form-group">
                 <label className="form-label">{t('fencer.league')}</label>
                 <input

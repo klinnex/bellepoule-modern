@@ -12,6 +12,7 @@ import {
   calculateOverallRankingQuest,
 } from '../../shared/utils/poolCalculations';
 import { formatRatio, formatIndex, formatQuestPerMatch } from '../../shared/utils/poolCalculations';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 interface LiveInterPoolRankingProps {
   pools: Pool[];
@@ -78,7 +79,7 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
         role="dialog"
         aria-modal="true"
       >
-        <div className="modal-header" style={{ flexShrink: 0 }}>
+        <div className="modal-header flex-shrink-0">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div
               style={{
@@ -104,11 +105,11 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
             flexShrink: 0,
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>
+          <div className="u-row-between">
+            <span className="u-hint">
               Matchs terminés : {finishedMatches}/{totalMatches}
             </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="u-row">
               <div
                 style={{
                   width: '200px',
@@ -130,7 +131,7 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
               <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{progress}%</span>
             </div>
             <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-              Mis à jour {lastUpdate.toLocaleTimeString('fr-FR')}
+              Mis à jour {lastUpdate.toLocaleTimeString(getActiveLocale())}
             </span>
           </div>
         </div>

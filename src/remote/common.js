@@ -102,6 +102,29 @@
     target.fn.apply(target.parent, args);
   }
 
+  /**
+   * Taille d'affichage (#1156) : `?scale=1.3` (0.5 à 3) agrandit la page — kiosque lu à
+   * distance, tablette arbitre. Mémorisée sur l'appareil ; `?scale=1` revient à la normale.
+   */
+  function applyScale() {
+    var scale;
+    try {
+      var param = new URLSearchParams(location.search).get('scale');
+      if (param !== null) {
+        scale = Number(param);
+        localStorage.setItem('bp_ui_scale', String(scale));
+      } else {
+        scale = Number(localStorage.getItem('bp_ui_scale'));
+      }
+    } catch (e) {
+      scale = NaN;
+    }
+    if (scale >= 0.5 && scale <= 3 && scale !== 1)
+      document.documentElement.style.zoom = String(scale);
+  }
+
+  if (typeof document !== 'undefined' && typeof location !== 'undefined') applyScale();
+
   if (typeof document !== 'undefined') {
     ['click', 'change', 'input'].forEach(function (type) {
       document.addEventListener(type, function (e) {

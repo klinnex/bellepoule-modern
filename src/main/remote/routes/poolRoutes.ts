@@ -43,7 +43,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
     const { password } = (req.body ?? {}) as { password?: unknown };
     if (!(await ctx.verifyPassword(password, arena.password))) {
       await ctx.recordLoginFailure(ip, fullId);
-      return res.status(401).json({ success: false, error: 'Mot de passe incorrect' });
+      return res.status(401).json({ success: false, error: 'wrong_password' });
     }
     ctx.recordLoginSuccess(ip);
     if (!ctx.arenaTokens.has(fullId)) ctx.arenaTokens.set(fullId, new Map());
@@ -63,13 +63,13 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
     const arenaId = rawId.startsWith('arena') ? rawId : `arena${rawId}`;
     // Même protection que la page /poule qui consomme cette API
     if (!ctx.checkArenaAuth(arenaId, req.headers.cookie)) {
-      return res.status(401).json({ error: 'Non authentifié' });
+      return res.status(401).json({ error: 'auth_required' });
     }
     try {
       const arena = ctx.arenas.get(arenaId);
       const poolId = arena?.currentMatch?.poolId ?? arena?.activePoolId;
       if (!poolId) {
-        return res.status(404).json({ error: 'Aucune poule assignée à cette arène' });
+        return res.status(404).json({ error: 'no_pool_for_arena' });
       }
 
       // Priorité : cache en mémoire (matchs du renderer), fallback DB
@@ -108,7 +108,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       res.json({ poolId, poolName, arenaId, fencers, matches, isComplete, signatures });
     } catch (err) {
       console.error('[RemoteScoreServer] Erreur pool-data:', err);
-      res.status(500).json({ error: 'Erreur interne' });
+      res.status(500).json({ error: 'internal' });
     }
   });
 
@@ -158,18 +158,18 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       res.json({ poolName, matches });
     } catch (err) {
       console.error('[RemoteScoreServer] Erreur pool-order:', err);
-      res.status(500).json({ error: 'Erreur interne' });
+      res.status(500).json({ error: 'internal' });
     }
   });
 
   // API: saisir le score d'un match de poule
   ctx.app.post('/api/pools/:poolId/matches/:matchId/score', (req, res) => {
     if (!ctx.hasAnyValidToken(req.headers.cookie)) {
-      return res.status(401).json({ error: 'Non authentifié' });
+      return res.status(401).json({ error: 'auth_required' });
     }
     const clientIp = ctx.getClientIp(req);
     if (!ctx.checkScoreRateLimit(clientIp)) {
-      return res.status(429).json({ error: 'Trop de soumissions, réessayez dans une minute' });
+      return res.status(429).json({ error: 'rate_limited' });
     }
     const { poolId, matchId } = req.params;
     if (!/^[0-9a-f-]{36}$/i.test(matchId) && !/^[0-9a-f-]{36}$/i.test(poolId)) {
@@ -190,7 +190,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
     const sA = Number(scoreA);
     const sB = Number(scoreB);
     if (!Number.isInteger(sA) || !Number.isInteger(sB) || sA < 0 || sB < 0 || sA > 50 || sB > 50) {
-      return res.status(400).json({ error: 'Scores invalides (entiers entre 0 et 50)' });
+      return res.status(400).json({ error: 'invalid_scores' });
     }
     try {
       const winner = sA > sB ? 'A' : sB > sA ? 'B' : null;
@@ -309,23 +309,23 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       res.json({ success: true, isComplete });
     } catch (err) {
       console.error('[RemoteScoreServer] Erreur score poule:', err);
-      res.status(500).json({ error: 'Erreur enregistrement score' });
+      res.status(500).json({ error: 'score_save_failed' });
     }
   });
 
   // API: signature numérique d'un combattant pour une poule
   ctx.app.post('/api/pools/:poolId/fencers/:fencerId/signature', (req, res) => {
     if (!ctx.hasAnyValidToken(req.headers.cookie)) {
-      return res.status(401).json({ error: 'Non authentifié' });
+      return res.status(401).json({ error: 'auth_required' });
     }
     const { poolId, fencerId } = req.params;
     const { signatureData } = req.body as { signatureData: string };
 
     if (!signatureData || !signatureData.startsWith('data:image/png;base64,')) {
-      return res.status(400).json({ error: 'Données de signature invalides' });
+      return res.status(400).json({ error: 'invalid_signature' });
     }
     if (signatureData.length > 200_000) {
-      return res.status(400).json({ error: 'Signature trop volumineuse (max 150 Ko)' });
+      return res.status(400).json({ error: 'signature_too_large' });
     }
 
     // Vérifier que le combattant a terminé tous ses matchs
@@ -351,11 +351,11 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
     );
 
     if (fencerMatches.length === 0) {
-      return res.status(404).json({ error: 'Combattant introuvable dans cette poule' });
+      return res.status(404).json({ error: 'fencer_not_in_pool' });
     }
     const allDone = fencerMatches.every((m: any) => m.status === MatchStatus.FINISHED);
     if (!allDone) {
-      return res.status(403).json({ error: 'Matchs non terminés pour ce combattant' });
+      return res.status(403).json({ error: 'fencer_matches_pending' });
     }
 
     try {
@@ -396,14 +396,14 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       res.json({ success: true });
     } catch (err) {
       console.error('[RemoteScoreServer] Erreur signature:', err);
-      res.status(500).json({ error: 'Erreur enregistrement signature' });
+      res.status(500).json({ error: 'signature_save_failed' });
     }
   });
 
   // API : données d'une poule par son ID (pour OCR — sans arène)
   ctx.app.get('/api/pools/:poolId/data', (req, res) => {
     if (!ctx.hasAnyValidToken(req.headers.cookie)) {
-      return res.status(401).json({ error: 'Non authentifié' });
+      return res.status(401).json({ error: 'auth_required' });
     }
     const { poolId } = req.params;
     try {
@@ -428,24 +428,24 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       res.json({ poolId, poolName, fencers, matches });
     } catch (err) {
       console.error('[RemoteScoreServer] Erreur /api/pools/:poolId/data:', err);
-      res.status(500).json({ error: 'Erreur interne' });
+      res.status(500).json({ error: 'internal' });
     }
   });
 
   // API : reconnaissance OCR d'une image de feuille de poule
   ctx.app.post('/api/ocr/pool-sheet', async (req, res) => {
     if (!ctx.hasAnyValidToken(req.headers.cookie)) {
-      return res.status(401).json({ error: 'Non authentifié' });
+      return res.status(401).json({ error: 'auth_required' });
     }
     const { cells, n } = req.body as {
       cells: Array<{ row: number; col: number; data: string }>;
       n: number;
     };
     if (!Array.isArray(cells) || typeof n !== 'number' || n < 2 || n > 12) {
-      return res.status(400).json({ error: 'Paramètres invalides' });
+      return res.status(400).json({ error: 'invalid_params' });
     }
     if (cells.length > 120) {
-      return res.status(400).json({ error: 'Trop de cellules (max 120)' });
+      return res.status(400).json({ error: 'too_many_cells' });
     }
 
     try {
@@ -478,23 +478,23 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       res.json({ cells: results });
     } catch (err: any) {
       console.error('[RemoteScoreServer] Erreur OCR:', err);
-      res.status(500).json({ error: `Erreur OCR: ${err?.message ?? 'inconnue'}` });
+      res.status(500).json({ error: 'ocr_failed', detail: String(err?.message ?? '') });
     }
   });
 
   // API : signature numérique d'un combattant pour un match de tableau (élimination directe)
   ctx.app.post('/api/matches/:matchId/fencers/:fencerId/signature', (req, res) => {
     if (!ctx.hasAnyValidToken(req.headers.cookie)) {
-      return res.status(401).json({ error: 'Non authentifié' });
+      return res.status(401).json({ error: 'auth_required' });
     }
     const { matchId, fencerId } = req.params;
     const { signatureData } = req.body as { signatureData: string };
 
     if (!signatureData || !signatureData.startsWith('data:image/png;base64,')) {
-      return res.status(400).json({ error: 'Données de signature invalides' });
+      return res.status(400).json({ error: 'invalid_signature' });
     }
     if (signatureData.length > 200_000) {
-      return res.status(400).json({ error: 'Signature trop volumineuse (max 150 Ko)' });
+      return res.status(400).json({ error: 'signature_too_large' });
     }
 
     // Un match de tableau est envoyé à la tablette avec son id de tableau (ex: "r16-3") ;
@@ -507,11 +507,11 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       ctx.db.getMatch(matchId) ?? (compositeId ? ctx.db.getMatch(compositeId) : null);
     const inMemoryMatch: any = !dbMatch && ctx.sessionMatches.find((m: any) => m.id === matchId);
     if (!dbMatch && !inMemoryMatch) {
-      return res.status(404).json({ error: 'Match non trouvé' });
+      return res.status(404).json({ error: 'match_not_found' });
     }
     // Réservé aux matchs de tableau (pas de poule)
     if ((dbMatch ?? inMemoryMatch)?.poolId) {
-      return res.status(400).json({ error: 'Signature de match réservée au tableau' });
+      return res.status(400).json({ error: 'signature_tableau_only' });
     }
 
     try {
@@ -525,7 +525,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       res.json({ success: true });
     } catch (err) {
       console.error('[RemoteScoreServer] Erreur signature tableau:', err);
-      res.status(500).json({ error: 'Erreur enregistrement signature' });
+      res.status(500).json({ error: 'signature_save_failed' });
     }
   });
 }

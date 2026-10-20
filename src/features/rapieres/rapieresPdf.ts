@@ -4,6 +4,7 @@
  */
 
 import { BASE_CSS, savePDF } from '../../shared/utils/pdfExport/core';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 export interface RapieresPdfTable {
   title: string;
@@ -20,7 +21,7 @@ const esc = (s: string | number) =>
     .replace(/"/g, '&quot;');
 
 export function generateRapieresRankingHTML(table: RapieresPdfTable): string {
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',

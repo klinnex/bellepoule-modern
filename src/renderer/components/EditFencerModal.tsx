@@ -75,7 +75,7 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="u-grid-2">
             <div className="form-group">
               <label className="form-label">Nom *</label>
               <input
@@ -99,7 +99,7 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="u-grid-2">
             <div className="form-group">
               <label className="form-label">Sexe</label>
               <select
@@ -140,7 +140,7 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="u-grid-2">
             <div className="form-group">
               <label className="form-label">Région</label>
               <input
@@ -165,7 +165,7 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="u-grid-2">
             <div className="form-group">
               <label className="form-label">N° Licence</label>
               <input

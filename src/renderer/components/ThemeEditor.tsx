@@ -702,7 +702,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
               Cible : <strong style={{ color: '#60a5fa' }}>{arenaLabel}</strong>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className="u-row">
             <button
               className="theme-editor-btn secondary"
               onClick={() => {
@@ -843,14 +843,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                   <div className="var-row">
                     <label className="var-label">Mode Overlay</label>
                     <div className="var-control">
-                      <label
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          cursor: 'pointer',
-                        }}
-                      >
+                      <label className="u-row cursor-pointer">
                         <input
                           type="checkbox"
                           checked={overlayMode}
@@ -886,7 +879,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
 
             {/* Thèmes sauvegardés */}
             {savedThemes.length > 0 && (
-              <div style={{ marginTop: '1rem' }}>
+              <div className="mt-4">
                 <div
                   style={{
                     fontSize: '0.8rem',
@@ -1019,12 +1012,14 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                         flexShrink: 0,
                       }}
                     >
-                      <span style={{ fontSize: 28, fontWeight: 800, color: 'var(--k-accent)' }}>
+                      <span
+                        style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--k-accent)' }}
+                      >
                         🏆 Classement provisoire
                       </span>
                       <span
                         style={{
-                          fontSize: 18,
+                          fontSize: '1.125rem',
                           padding: '4px 16px',
                           borderRadius: 20,
                           background: 'var(--k-card-bg)',
@@ -1085,7 +1080,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                       >
                         <span
                           style={{
-                            fontSize: 26,
+                            fontSize: '1.625rem',
                             width: 40,
                             textAlign: 'center',
                             color: row.gold ? 'var(--k-accent)' : '#94a3b8',
@@ -1094,18 +1089,18 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                         >
                           {row.rank}
                         </span>
-                        <span style={{ flex: 1, fontSize: 22, fontWeight: 600 }}>
+                        <span style={{ flex: 1, fontSize: '1.375rem', fontWeight: 600 }}>
                           {row.name}{' '}
-                          <span style={{ fontSize: 16, color: 'var(--k-muted)' }}>
+                          <span style={{ fontSize: '1rem', color: 'var(--k-muted)' }}>
                             · {row.club}
                           </span>
                         </span>
-                        <span style={{ fontSize: 20, color: '#10b981', fontWeight: 700 }}>
+                        <span style={{ fontSize: '1.25rem', color: '#10b981', fontWeight: 700 }}>
                           {row.v}V
                         </span>
                         <span
                           style={{
-                            fontSize: 20,
+                            fontSize: '1.25rem',
                             color: 'var(--k-accent2)',
                             width: 60,
                             textAlign: 'right',
@@ -1128,7 +1123,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        fontSize: '26px',
+                        fontSize: '1.625rem',
                         color: 'var(--text)',
                         flexShrink: 0,
                       }}
@@ -1139,7 +1134,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                           background: '#22c55e',
                           borderRadius: '999px',
                           padding: '4px 18px',
-                          fontSize: '20px',
+                          fontSize: '1.25rem',
                           fontWeight: 700,
                           color: '#fff',
                         }}
@@ -1208,7 +1203,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                           >
                             MARTIN B.
                           </div>
-                          <div style={{ fontSize: '22px', color: 'var(--fencer-club-color)' }}>
+                          <div style={{ fontSize: '1.375rem', color: 'var(--fencer-club-color)' }}>
                             CE Orléans
                           </div>
                           <div
@@ -1234,7 +1229,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: '36px',
+                            fontSize: '2.25rem',
                             fontWeight: 900,
                             color: 'var(--vs-color)',
                             fontFamily: 'var(--vs-font-family)',
@@ -1279,7 +1274,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                           >
                             DUPONT A.
                           </div>
-                          <div style={{ fontSize: '22px', color: 'var(--fencer-club-color)' }}>
+                          <div style={{ fontSize: '1.375rem', color: 'var(--fencer-club-color)' }}>
                             Escrime Paris
                           </div>
                           <div
@@ -1324,14 +1319,14 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                     <div
                       style={{
                         textAlign: 'center',
-                        fontSize: '22px',
+                        fontSize: '1.375rem',
                         color: 'var(--idle-label-color)',
                         flexShrink: 0,
                       }}
                     >
                       <span
                         style={{
-                          fontSize: '36px',
+                          fontSize: '2.25rem',
                           fontWeight: 900,
                           color: 'var(--idle-number-color)',
                         }}
@@ -1352,7 +1347,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
           <button className="theme-editor-btn secondary" onClick={handleSave}>
             💾 Sauvegarder
           </button>
-          <div style={{ flex: 1 }} />
+          <div className="flex-1" />
           <button className="theme-editor-btn secondary" onClick={onClose}>
             Annuler
           </button>
@@ -1389,7 +1384,7 @@ const VarRow: React.FC<VarRowProps> = ({ varKey, label, type, value, onChange })
       <div className="var-row">
         <label className="var-label">{label}</label>
         <div className="var-control" style={{ flexDirection: 'column', gap: '0.3rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="u-row">
             <span
               style={{
                 fontSize: '0.65rem',

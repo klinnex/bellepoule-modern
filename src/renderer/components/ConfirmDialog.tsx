@@ -138,8 +138,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 <input
                   ref={inputRef}
                   type="text"
-                  className="form-input"
-                  style={{ width: '100%' }}
+                  className="form-input w-full"
                   aria-labelledby="confirm-dialog-message"
                   placeholder={pending.input.placeholder}
                   value={inputValue}

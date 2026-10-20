@@ -138,7 +138,7 @@ const HeaderRow = memo(({ fencers }: { fencers: Fencer[] }) => (
         color: 'white',
         padding: '8px',
         border: '1px solid #374151',
-        fontSize: '12px',
+        fontSize: '0.75rem',
       }}
     >
       #
@@ -149,7 +149,7 @@ const HeaderRow = memo(({ fencers }: { fencers: Fencer[] }) => (
         color: 'white',
         padding: '8px',
         border: '1px solid #374151',
-        fontSize: '12px',
+        fontSize: '0.75rem',
       }}
     >
       Tireur
@@ -162,7 +162,7 @@ const HeaderRow = memo(({ fencers }: { fencers: Fencer[] }) => (
           color: 'white',
           padding: '4px',
           border: '1px solid #374151',
-          fontSize: '10px',
+          fontSize: '0.625rem',
           transform: 'rotate(-45deg)',
           transformOrigin: 'center',
           width: '30px',
@@ -224,7 +224,7 @@ const FencerRow = memo(
             backgroundColor: isFencerAbandoned(fencer) ? '#e5e7eb' : '#f9fafb',
             padding: '8px',
             border: '1px solid #d1d5db',
-            fontSize: '12px',
+            fontSize: '0.75rem',
             textAlign: 'left',
             whiteSpace: 'nowrap',
           }}
@@ -288,7 +288,7 @@ export const PoolGrid: React.FC<PoolGridProps> = memo(
         <table
           style={{
             borderCollapse: 'collapse',
-            fontSize: '11px',
+            fontSize: '0.6875rem',
             minWidth: `${300 + fencers.length * 35}px`,
           }}
         >

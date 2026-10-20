@@ -52,7 +52,7 @@ const CompetitionCardSkeleton_: React.FC = () => {
         gap: '12px',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="u-row-between">
         <Skeleton width="60%" height="24px" />
         <Skeleton width="80px" height="20px" borderRadius="12px" />
       </div>
@@ -147,7 +147,7 @@ const StatsCardSkeleton_: React.FC = () => {
       }}
     >
       <Skeleton width="48px" height="48px" borderRadius="12px" />
-      <div style={{ flex: 1 }}>
+      <div className="flex-1">
         <Skeleton width="60%" height="16px" style={{ marginBottom: '8px' }} />
         <Skeleton width="40%" height="28px" />
       </div>
@@ -193,7 +193,7 @@ const CompetitionViewSkeleton_: React.FC = () => {
             }}
           >
             <Skeleton width="60%" height="18px" style={{ marginBottom: '0.75rem' }} />
-            <Skeleton width="100%" height="14px" style={{ marginBottom: '0.5rem' }} />
+            <Skeleton width="100%" height="14px" className="mb-2" />
             <Skeleton width="80%" height="14px" />
           </div>
         ))}

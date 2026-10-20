@@ -215,7 +215,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
         <div style={GRID2}>
           {(!questEnabled || questHasPools) && (
             <div className="form-group">
-              <label htmlFor="poolRounds">Tours de poules</label>
+              <label htmlFor="poolRounds">{t('settings.pool_rounds')}</label>
               <select
                 id="poolRounds"
                 className="form-input form-select"
@@ -223,9 +223,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 onChange={e => setPoolRounds(parseInt(e.target.value))}
                 disabled={questEnabled && questHasPools}
               >
-                <option value="1">1 tour</option>
-                <option value="2">2 tours</option>
-                <option value="3">3 tours</option>
+                <option value="1">{t('properties.one_round')}</option>
+                <option value="2">{t('properties.two_rounds')}</option>
+                <option value="3">{t('properties.three_rounds')}</option>
               </select>
               <small style={HINT}>
                 {questEnabled && questHasPools
@@ -236,7 +236,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 Array.from({ length: Math.max(0, poolRounds - 1) }, (_, i) => (
                   <div key={i} style={{ marginTop: '0.5rem' }}>
                     <label htmlFor={`poolRoundQualifiers-${i}`}>
-                      Qualifiés pour le tour {i + 2}
+                      {t('properties.qualified_round')} {i + 2}
                     </label>
                     <input
                       id={`poolRoundQualifiers-${i}`}
@@ -253,21 +253,21 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                         });
                       }}
                     />
-                    <small style={HINT}>0 = tous les tireurs du tour précédent</small>
+                    <small style={HINT}>{t('properties.qualified_round_hint')}</small>
                   </div>
                 ))}
             </div>
           )}
           <div className="form-group">
-            <label htmlFor="hasDirectElimination">Élimination directe</label>
+            <label htmlFor="hasDirectElimination">{t('properties.direct_elimination')}</label>
             <select
               id="hasDirectElimination"
               className="form-input form-select"
               value={hasDirectElimination ? 'true' : 'false'}
               onChange={e => setHasDirectElimination(e.target.value === 'true')}
             >
-              <option value="true">Activée</option>
-              <option value="false">Désactivée</option>
+              <option value="true">{t('properties.enabled')}</option>
+              <option value="false">{t('properties.disabled')}</option>
             </select>
             <small style={HINT}>
               {hasDirectElimination
@@ -285,7 +285,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
           }}
         >
           <div className="form-group">
-            <label htmlFor="poolMaxScore">Score max poules</label>
+            <label htmlFor="poolMaxScore">{t('properties.pool_max_score')}</label>
             <input
               type="number"
               id="poolMaxScore"
@@ -295,10 +295,10 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               min="1"
               placeholder="21"
             />
-            <small style={HINT}>Touches pour gagner un match de poule</small>
+            <small style={HINT}>{t('properties.pool_max_score_hint')}</small>
           </div>
           <div className="form-group">
-            <label htmlFor="poolTimerSeconds">Chrono poules (secondes)</label>
+            <label htmlFor="poolTimerSeconds">{t('properties.pool_timer')}</label>
             <input
               type="number"
               id="poolTimerSeconds"
@@ -314,7 +314,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
           </div>
           {hasDirectElimination && (
             <div className="form-group">
-              <label htmlFor="tableMaxScore">Score max tableau élimination</label>
+              <label htmlFor="tableMaxScore">{t('properties.table_max_score')}</label>
               <input
                 type="number"
                 id="tableMaxScore"
@@ -333,7 +333,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
           )}
           {isOlympicWeapon && (
             <div className="form-group">
-              <label htmlFor="restTimeSeconds">Temps de repos (secondes)</label>
+              <label htmlFor="restTimeSeconds">{t('properties.rest_time')}</label>
               <input
                 type="number"
                 id="restTimeSeconds"
@@ -353,7 +353,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
           {hasDirectElimination && (
             <>
               <div className="form-group">
-                <label htmlFor="tableTimerSeconds">Chrono tableau (secondes)</label>
+                <label htmlFor="tableTimerSeconds">{t('properties.table_timer')}</label>
                 <input
                   type="number"
                   id="tableTimerSeconds"
@@ -401,11 +401,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                     onChange={e => setPlayAllPositions(e.target.checked)}
                     style={MR}
                   />
-                  Jouer toutes les places
+                  {t('properties.all_places')}
                 </label>
-                <small style={HINT_INDENT}>
-                  Les perdants de chaque tour forment un tableau de classement
-                </small>
+                <small style={HINT_INDENT}>{t('properties.all_places_hint')}</small>
               </div>
               <div className="form-group">
                 <label>
@@ -415,21 +413,17 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                     onChange={e => setPoolWinnersOnly(e.target.checked)}
                     style={MR}
                   />
-                  Seuls les vainqueurs de poule accèdent au tableau
+                  {t('properties.pool_winners_only')}
                 </label>
-                <small style={HINT_INDENT}>
-                  Seul le 1er de chaque poule est qualifié pour le tableau d'élimination
-                </small>
+                <small style={HINT_INDENT}>{t('properties.pool_winners_only_hint')}</small>
               </div>
             </>
           )}
         </div>
         {!questEnabled && (
-          <div style={{ marginTop: '1rem' }}>
+          <div className="mt-4">
             <div className="form-group">
-              <label htmlFor="postPoolSplitCriteria">
-                Compétition couplée (séparation après poules)
-              </label>
+              <label htmlFor="postPoolSplitCriteria">{t('properties.coupled')}</label>
               <select
                 id="postPoolSplitCriteria"
                 className="form-input form-select"
@@ -438,12 +432,10 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   setPostPoolSplitCriteria(e.target.value as PostPoolSplitCriteria | '')
                 }
               >
-                <option value="">Aucune — compétition standard</option>
-                <option value="gender">Par genre (H/F) — poules mixtes, tableaux séparés</option>
+                <option value="">{t('properties.coupled_none')}</option>
+                <option value="gender">{t('properties.coupled_gender')}</option>
               </select>
-              <small style={HINT}>
-                Utile quand H et F partagent les mêmes poules faute d'effectif suffisant
-              </small>
+              <small style={HINT}>{t('properties.coupled_hint')}</small>
             </div>
           </div>
         )}
@@ -466,9 +458,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
         aria-modal="true"
       >
         <div className="modal-header">
-          <h2>Propriétés de la compétition</h2>
+          <h2>{t('menu.competition_properties')}</h2>
           <button className="btn-close" onClick={onClose}>
-            &times;
+            ×
           </button>
         </div>
 
@@ -484,11 +476,11 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 textTransform: 'uppercase',
               }}
             >
-              Informations générales
+              {t('properties.general_info')}
             </h3>
 
             <div className="form-group">
-              <label htmlFor="title">Titre</label>
+              <label htmlFor="title">{t('competition.title')}</label>
               <input
                 type="text"
                 id="title"
@@ -501,7 +493,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
 
             <div style={GRID2}>
               <div className="form-group">
-                <label htmlFor="date">Date</label>
+                <label htmlFor="date">{t('competition.date')}</label>
                 <input
                   type="date"
                   id="date"
@@ -513,7 +505,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               </div>
 
               <div className="form-group">
-                <label htmlFor="location">Lieu</label>
+                <label htmlFor="location">{t('competition.location')}</label>
                 <input
                   type="text"
                   id="location"
@@ -525,7 +517,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label htmlFor="organizer">Organisateur</label>
+              <label htmlFor="organizer">{t('competition.organizer')}</label>
               <input
                 type="text"
                 id="organizer"
@@ -547,12 +539,12 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 textTransform: 'uppercase',
               }}
             >
-              Configuration
+              {t('properties.configuration')}
             </h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
               <div className="form-group">
-                <label htmlFor="weapon">Arme</label>
+                <label htmlFor="weapon">{t('competition.weapon')}</label>
                 <select
                   id="weapon"
                   className="form-input form-select"
@@ -563,30 +555,30 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                     if (w === Weapon.LASER) setGender(Gender.MIXED);
                   }}
                 >
-                  <option value="E">Épée</option>
-                  <option value="F">Fleuret</option>
-                  <option value="S">Sabre</option>
-                  <option value="L">Sabre Laser</option>
-                  <option value="C">À la carte (formule personnalisée)</option>
+                  <option value="E">{t('weapons.epee')}</option>
+                  <option value="F">{t('weapons.foil')}</option>
+                  <option value="S">{t('weapons.sabre')}</option>
+                  <option value="L">{t('weapons.laser')}</option>
+                  <option value="C">{t('properties.weapon_custom')}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label htmlFor="gender">Genre</label>
+                <label htmlFor="gender">{t('competition.gender')}</label>
                 <select
                   id="gender"
                   className="form-input form-select"
                   value={gender}
                   onChange={e => setGender(e.target.value as Gender)}
                 >
-                  <option value="M">Masculin</option>
-                  <option value="F">Féminin</option>
-                  <option value="X">Mixte</option>
+                  <option value="M">{t('genders.male')}</option>
+                  <option value="F">{t('genders.female')}</option>
+                  <option value="X">{t('genders.mixed')}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label htmlFor="category">Catégorie</label>
+                <label htmlFor="category">{t('competition.category')}</label>
                 <select
                   id="category"
                   className="form-input form-select"
@@ -619,7 +611,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 textTransform: 'uppercase',
               }}
             >
-              Formule de compétition
+              {t('properties.formula')}
             </h3>
 
             {/* Formule à la carte — remplace tout le reste pour arme CUSTOM */}
@@ -647,12 +639,12 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   textTransform: 'uppercase',
                 }}
               >
-                Tour Quest
+                {t('properties.quest_round')}
               </h3>
 
               {/* Oui / Non */}
               <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                <label style={FIELD_LABEL}>Tour Quest activé ?</label>
+                <label style={FIELD_LABEL}>{t('properties.quest_enabled')}</label>
                 <div style={FLEX1}>
                   <label style={CHECK_LABEL}>
                     <input
@@ -661,7 +653,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                       checked={!questEnabled}
                       onChange={() => handleQuestEnabledChange(false)}
                     />
-                    Non
+                    {t('actions.no')}
                   </label>
                   <label style={CHECK_LABEL}>
                     <input
@@ -670,7 +662,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                       checked={questEnabled}
                       onChange={() => handleQuestEnabledChange(true)}
                     />
-                    Oui
+                    {t('actions.yes')}
                   </label>
                 </div>
               </div>
@@ -689,7 +681,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 >
                   {/* Sans / Avec poules préliminaires */}
                   <div className="form-group">
-                    <label style={FIELD_LABEL}>Poules préliminaires ?</label>
+                    <label style={FIELD_LABEL}>{t('properties.preliminary_pools')}</label>
                     <div style={FLEX1}>
                       <label style={CHECK_LABEL}>
                         <input
@@ -698,7 +690,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                           checked={!questHasPools}
                           onChange={() => handleQuestHasPoolsChange(false)}
                         />
-                        Sans (Quest → Tableau)
+                        {t('properties.quest_without_pools')}
                       </label>
                       <label style={CHECK_LABEL}>
                         <input
@@ -707,7 +699,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                           checked={questHasPools}
                           onChange={() => handleQuestHasPoolsChange(true)}
                         />
-                        Avec (Poules → Quest → Tableau)
+                        {t('properties.quest_with_pools')}
                       </label>
                     </div>
                   </div>
@@ -716,7 +708,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   {questHasPools && (
                     <div className="form-group">
                       <label htmlFor="questQualifiers" style={SM}>
-                        Nombre de qualifiés des poules vers le Tour Quest
+                        {t('properties.quest_qualified')}
                       </label>
                       <input
                         type="number"
@@ -753,7 +745,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 textTransform: 'uppercase',
               }}
             >
-              Arbitrage
+              {t('properties.refereeing')}
             </h3>
             <div className="form-group">
               <label style={CHECK_LABEL_SM}>
@@ -762,12 +754,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   checked={refereeFeatureEnabled}
                   onChange={e => setRefereeFeatureEnabled(e.target.checked)}
                 />
-                Activer la gestion des arbitres
+                {t('properties.referees_enable')}
               </label>
-              <small style={HINT_INDENT}>
-                Affiche le nom de l'arbitre sur l'arène et permet de le changer depuis la saisie
-                distante
-              </small>
+              <small style={HINT_INDENT}>{t('properties.referees_enable_hint')}</small>
             </div>
             <div className="form-group" style={{ marginTop: '0.75rem' }}>
               <label style={CHECK_LABEL_SM}>
@@ -776,11 +765,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   checked={blackCardEnabled}
                   onChange={e => setBlackCardEnabled(e.target.checked)}
                 />
-                Activer le carton noir
+                {t('properties.black_card_enable')}
               </label>
-              <small style={HINT_INDENT}>
-                Affiche le bouton carton noir sur les tablettes (exclusion)
-              </small>
+              <small style={HINT_INDENT}>{t('properties.black_card_hint')}</small>
             </div>
             <div className="form-group" style={{ marginTop: '0.75rem' }}>
               <label style={CHECK_LABEL_SM}>
@@ -789,12 +776,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   checked={trainerCommentsEnabled}
                   onChange={e => setTrainerCommentsEnabled(e.target.checked)}
                 />
-                Activer les commentaires des formateurs d'arbitres
+                {t('properties.trainers_enable')}
               </label>
-              <small style={HINT_INDENT}>
-                Ouvre l'espace /formateur de la saisie distante (mot de passe dédié) pour commenter
-                les arbitres ; compte rendu exportable en PDF
-              </small>
+              <small style={HINT_INDENT}>{t('properties.trainers_hint')}</small>
             </div>
             <div className="form-group" style={{ marginTop: '0.75rem' }}>
               <label style={CHECK_LABEL_SM}>
@@ -803,11 +787,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                   checked={expertMode}
                   onChange={e => setExpertMode(e.target.checked)}
                 />
-                Mode expert
+                {t('properties.expert_mode')}
               </label>
-              <small style={HINT_INDENT}>
-                Active l'édition avancée des pistes et du nombre d'arbitres par poule / match
-              </small>
+              <small style={HINT_INDENT}>{t('properties.expert_mode_hint')}</small>
             </div>
             {expertMode && (
               <div
@@ -826,7 +808,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               >
                 <div className="form-group">
                   <label htmlFor="maxRefereesPerPool" style={{ ...SM, color: 'var(--color-text)' }}>
-                    Arbitres max par poule
+                    {t('properties.max_referees_pool')}
                   </label>
                   <input
                     type="number"
@@ -845,7 +827,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                     htmlFor="maxRefereesPerMatch"
                     style={{ ...SM, color: 'var(--color-text)' }}
                   >
-                    Arbitres max par match (tableau)
+                    {t('properties.max_referees_match')}
                   </label>
                   <input
                     type="number"
@@ -865,10 +847,10 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
 
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Annuler
+              {t('actions.cancel')}
             </button>
             <button type="submit" className="btn btn-primary">
-              Enregistrer
+              {t('properties.save')}
             </button>
           </div>
         </form>

@@ -12,6 +12,7 @@ import {
   Monitor,
 } from 'lucide-react';
 import type { TrainingMatchRecord } from '../../../shared/types/preload';
+import { getActiveLocale } from '../../../shared/utils/localeFormat';
 
 const WEAPON_LABELS: Record<string, string> = {
   E: 'Épée',
@@ -543,7 +544,7 @@ const TrainingPanel: React.FC<Props> = ({
                       </span>
                     )}
                     <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
-                      {new Date(rec.finishedAt).toLocaleTimeString('fr-FR', {
+                      {new Date(rec.finishedAt).toLocaleTimeString(getActiveLocale(), {
                         hour: '2-digit',
                         minute: '2-digit',
                       })}

@@ -16,7 +16,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       const { competitionId } = req.params;
       const competition = ctx.db.getCompetition(competitionId);
       if (!competition) {
-        return res.status(404).json({ error: 'Compétition introuvable' });
+        return res.status(404).json({ error: 'competition_not_found' });
       }
 
       // Priorité : lire les poules depuis le session_state (elles ne sont pas dans les tables SQL)
@@ -130,20 +130,20 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       });
     } catch (error) {
       console.error('[RemoteScoreServer] Erreur résultats:', error);
-      res.status(500).json({ error: 'Erreur lors de la récupération des résultats' });
+      res.status(500).json({ error: 'results_fetch_failed' });
     }
   });
 
   // API : historique combats entraînement
   ctx.app.get('/api/training/history', (req, res) => {
-    if (!ctx.isTrainingMode) return res.status(404).json({ error: 'Mode non entraînement' });
+    if (!ctx.isTrainingMode) return res.status(404).json({ error: 'not_training' });
     res.json({ history: ctx.trainingHistory });
   });
 
   // API : matchs à venir dans l'ordre de passage (kiosk vue suivants)
   ctx.app.get('/api/session/upcoming-matches', (req, res) => {
     if (!ctx.session) {
-      return res.status(404).json({ error: 'Aucune session active' });
+      return res.status(404).json({ error: 'no_session' });
     }
     try {
       // Construire un index des matchs actuellement sur une piste
@@ -278,14 +278,14 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       res.json({ upcoming });
     } catch (error) {
       console.error('[RemoteScoreServer] Erreur upcoming-matches:', error);
-      res.status(500).json({ error: 'Erreur interne' });
+      res.status(500).json({ error: 'internal' });
     }
   });
 
   // Données du tableau d'élimination directe pour le kiosk
   ctx.app.get('/api/bracket', (req, res) => {
     try {
-      if (!ctx.session) return res.status(404).json({ error: 'Aucune session active' });
+      if (!ctx.session) return res.status(404).json({ error: 'no_session' });
 
       // Lire depuis la DB (inclut les matchs terminés) ; fallback sur sessionMatches (pending only)
       const sessionState = ctx.db.getSessionState(ctx.session.competitionId);
@@ -410,7 +410,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       res.json({ tableSize, currentRound, rounds, finalResults });
     } catch (error) {
       console.error('[RemoteScoreServer] Erreur /api/bracket:', error);
-      res.status(500).json({ error: 'Erreur interne' });
+      res.status(500).json({ error: 'internal' });
     }
   });
 

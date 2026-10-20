@@ -12,6 +12,7 @@ import {
   importFormulaFromJSON,
   saveCustomFormulaTemplate,
 } from '../../../shared/utils/tournamentTemplates';
+import { getActiveLocale } from '../../../shared/utils/localeFormat';
 
 interface Props {
   mode: 'save' | 'load';
@@ -123,7 +124,7 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
                   <div className="template-entry-info">
                     <strong>{entry.name}</strong>
                     <span className="template-entry-date">
-                      {new Date(entry.savedAt).toLocaleDateString('fr-FR')}
+                      {new Date(entry.savedAt).toLocaleDateString(getActiveLocale())}
                     </span>
                     <span className="template-entry-phases">
                       {entry.formula.phases.length} phase

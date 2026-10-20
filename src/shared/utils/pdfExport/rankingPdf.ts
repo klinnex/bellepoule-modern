@@ -8,6 +8,7 @@ import { PoolRanking, Weapon } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
 import { savePDF, buildCssOverrides, assembleBody, BASE_CSS } from './core';
 import { formatQuestPerMatch, isDnf } from '../poolCalculations';
+import { getActiveLocale } from '../localeFormat';
 
 // ─── Export Classement Général ───────────────────────────────────────────────
 
@@ -20,7 +21,7 @@ export function generateRankingHTML(
   template?: PdfTemplate
 ): string {
   const vis = (col: string) => visibleColumns.includes(col);
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',

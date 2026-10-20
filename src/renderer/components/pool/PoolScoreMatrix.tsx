@@ -620,7 +620,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                 </span>
               </span>
               {sparkBars.length > 0 && (
-                <svg width="28" height="14" style={{ flexShrink: 0 }} aria-hidden="true">
+                <svg width="28" height="14" className="flex-shrink-0" aria-hidden="true">
                   {sparkBars.map((won, i) => (
                     <rect
                       key={i}

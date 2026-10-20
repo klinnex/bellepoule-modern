@@ -257,6 +257,7 @@ export function sendLoginLimited(res: express.Response, limited: { retryAfterSec
   res.setHeader('Retry-After', String(limited.retryAfterSec));
   return res.status(429).json({
     success: false,
-    error: `Trop de tentatives. Réessayez dans ${limited.retryAfterSec} s.`,
+    error: 'too_many_attempts',
+    retryAfter: limited.retryAfterSec,
   });
 }

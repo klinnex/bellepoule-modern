@@ -126,7 +126,7 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
                   type="checkbox"
                   checked={visibility.pool.includes(col.id)}
                   onChange={() => toggle(col.id)}
-                  style={{ cursor: 'pointer' }}
+                  className="cursor-pointer"
                 />
                 {col.label}
               </label>

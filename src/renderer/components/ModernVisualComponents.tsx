@@ -29,7 +29,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
         style={{
           position: 'absolute',
           left: '8px',
-          fontSize: '14px',
+          fontSize: '0.875rem',
           opacity: isDark ? 0 : 1,
           transition: 'opacity 0.3s',
         }}
@@ -42,7 +42,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
         style={{
           position: 'absolute',
           right: '8px',
-          fontSize: '14px',
+          fontSize: '0.875rem',
           opacity: isDark ? 1 : 0,
           transition: 'opacity 0.3s',
         }}
@@ -65,7 +65,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
           justifyContent: 'center',
         }}
       >
-        <span style={{ fontSize: '12px' }}>{isDark ? '🌑' : '☀️'}</span>
+        <span style={{ fontSize: '0.75rem' }}>{isDark ? '🌑' : '☀️'}</span>
       </div>
     </button>
   );
@@ -171,7 +171,7 @@ const RippleButton_: React.FC<
         padding: '12px 24px',
         borderRadius: '8px',
         border: 'none',
-        fontSize: '16px',
+        fontSize: '1rem',
         fontWeight: '600',
         cursor: 'pointer',
         transition: 'transform 0.1s, box-shadow 0.2s',
@@ -261,7 +261,7 @@ const StatusBadge_: React.FC<{
         borderRadius: '9999px',
         backgroundColor: color.bg,
         color: color.text,
-        fontSize: '12px',
+        fontSize: '0.75rem',
         fontWeight: '600',
         border: `1px solid ${color.border}`,
       }}
@@ -308,7 +308,7 @@ const FloatingActionButton_: React.FC<{
         border: 'none',
         boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
         cursor: 'pointer',
-        fontSize: '24px',
+        fontSize: '1.5rem',
         color: 'white',
         transition: 'all 0.3s ease',
         display: 'flex',
@@ -373,7 +373,7 @@ const ProgressRing_: React.FC<{
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          fontSize: '14px',
+          fontSize: '0.875rem',
           fontWeight: 'bold',
           color: 'var(--color-text)',
         }}

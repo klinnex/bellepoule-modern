@@ -7,6 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from './Toast';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 interface ReportIssueModalProps {
   onClose: () => void;
@@ -233,7 +234,7 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
               <span>• Système :</span>
               <span>{systemInfo || 'Chargement...'}</span>
               <span>• Date :</span>
-              <span>{new Date().toLocaleString('fr-FR')}</span>
+              <span>{new Date().toLocaleString(getActiveLocale())}</span>
             </div>
           </div>
 

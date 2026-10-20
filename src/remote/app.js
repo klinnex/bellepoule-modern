@@ -243,7 +243,7 @@ class RemoteRefereeApp {
 
     updateNextMatchesList() {
         if (this.nextMatches.length === 0) {
-            this.nextMatchesList.innerHTML = '<p class="no-matches">Aucun match prévu</p>';
+            this.nextMatchesList.innerHTML = '<p class="no-matches">' + escapeHtml(window.T ? window.T('remote.no_scheduled') : 'Aucun match prévu') + '</p>';
             return;
         }
         
@@ -254,7 +254,7 @@ class RemoteRefereeApp {
                         ${escapeHtml(match.fencerA?.name || '-')} vs ${escapeHtml(match.fencerB?.name || '-')}
                     </div>
                     <div class="match-item-details">
-                        Piste ${escapeHtml(match.stripNumber || '-')}
+                        ${escapeHtml(window.T ? window.T('remote.piste') : 'Piste')} ${escapeHtml(match.stripNumber || '-')}
                     </div>
                 </div>
                 <div class="match-item-status">En attente</div>

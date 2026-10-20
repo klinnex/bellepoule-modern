@@ -451,7 +451,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             </p>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="u-row">
           {fencers.length > 0 && !readOnly && (
             <>
               {notCheckedInCount > 0 && onCheckInAll && (
@@ -860,7 +860,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       )}
 
       {fencers.length > 0 && (
-        <div style={{ marginBottom: '1rem' }}>
+        <div className="mb-4">
           <div
             style={{
               display: 'flex',

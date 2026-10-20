@@ -684,7 +684,7 @@ export class RemoteScoreServer {
   /** Middleware : exige l'auth de l'arène `:arenaId`. */
   private requireArenaAuth: express.RequestHandler<{ arenaId: string }> = (req, res, next) => {
     if (!this.checkArenaAuth(req.params.arenaId, req.headers.cookie)) {
-      res.status(401).json({ error: 'Non authentifié' });
+      res.status(401).json({ error: 'auth_required' });
       return;
     }
     next();
@@ -693,7 +693,7 @@ export class RemoteScoreServer {
   /** Middleware : réservé à la machine hôte. */
   private requireLoopback: express.RequestHandler = (req, res, next) => {
     if (!this.isLoopbackRequest(req)) {
-      res.status(403).json({ error: 'Accès réservé à la machine hôte' });
+      res.status(403).json({ error: 'host_only' });
       return;
     }
     next();
@@ -729,7 +729,7 @@ export class RemoteScoreServer {
     this.app.use((req, res, next) => {
       if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
       if (!this.isAllowedOrigin(req.headers.origin, req.headers.host)) {
-        res.status(403).json({ error: 'Origine refusée' });
+        res.status(403).json({ error: 'origin_refused' });
         return;
       }
       next();
@@ -2030,7 +2030,7 @@ export class RemoteScoreServer {
   ): { success: true; matchId: string } | { success: false; status: number; error: string } {
     const record = this.getArenaBlackCards(arenaId).find(r => r.fencerId === fencerId);
     if (!record) {
-      return { success: false, status: 404, error: 'Carton noir introuvable pour cette arène' };
+      return { success: false, status: 404, error: 'black_card_not_found' };
     }
     const { matchId } = record;
     const dbMatch = this.db.getMatch(matchId);
@@ -2039,7 +2039,7 @@ export class RemoteScoreServer {
       return {
         success: false,
         status: 409,
-        error: 'Annulation impossible pour un match de tableau (à corriger depuis le poste DT)',
+        error: 'cancel_tableau_forbidden',
       };
     }
 
@@ -2048,7 +2048,7 @@ export class RemoteScoreServer {
       this.db.updateFencer(fencerId, { status, exclusionReason: null });
     } catch (e) {
       console.error('[RemoteScoreServer] Erreur réintégration combattant:', e);
-      return { success: false, status: 500, error: 'Erreur lors de la réintégration' };
+      return { success: false, status: 500, error: 'reinstate_failed' };
     }
 
     // Rouvrir le match interrompu par le carton noir avec le score atteint
@@ -3671,13 +3671,13 @@ export class RemoteScoreServer {
     cookieHeader: string | undefined
   ): { status: number; body: Record<string, unknown> } | null {
     if (!this.checkinEnabled) {
-      return { status: 403, body: { closed: true, error: 'Appel fermé' } };
+      return { status: 403, body: { closed: true, error: 'checkin_closed' } };
     }
     if (!this.checkinPassword) {
-      return { status: 403, body: { notConfigured: true, error: 'Appel non configuré' } };
+      return { status: 403, body: { notConfigured: true, error: 'checkin_not_configured' } };
     }
     if (!this.checkCheckinAuth(cookieHeader)) {
-      return { status: 401, body: { unauthorized: true, error: 'Authentification requise' } };
+      return { status: 401, body: { unauthorized: true, error: 'auth_required' } };
     }
     return null;
   }
@@ -3705,10 +3705,10 @@ export class RemoteScoreServer {
     cookieHeader: string | undefined
   ): { status: number; body: Record<string, unknown> } | null {
     if (!this.trainerEnabled || !this.trainerPassword) {
-      return { status: 403, body: { notConfigured: true, error: 'Espace formateurs fermé' } };
+      return { status: 403, body: { notConfigured: true, error: 'trainer_closed' } };
     }
     if (!this.checkTrainerAuth(cookieHeader)) {
-      return { status: 401, body: { unauthorized: true, error: 'Authentification requise' } };
+      return { status: 401, body: { unauthorized: true, error: 'auth_required' } };
     }
     return null;
   }

@@ -117,7 +117,7 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
         </div>
 
         {/* Liste des matchs — même format que "Matches à venir" dans PoolMatchList */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className="u-stack-2">
           {matches.map(([a, b], i) => (
             <div
               key={i}

@@ -12,6 +12,7 @@ import { useTranslation } from '../contexts/TranslationContext';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import MatchReplay from './MatchReplay';
 import { describeMatchEvent, exportMatchTimelineJSON } from '../../shared/utils/multiFormatExport';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 /** Match sélectionnable dans le journal (vue compétition) */
 export interface MatchAuditOption {
@@ -49,7 +50,7 @@ const ALL_TYPES: MatchEventType[] = ['touch', 'card', 'arena_exit', 'score_chang
 
 function formatTimestamp(ts: string, baseTs: string | null): string {
   const d = new Date(ts);
-  const abs = d.toLocaleTimeString('fr-FR', {
+  const abs = d.toLocaleTimeString(getActiveLocale(), {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
@@ -361,7 +362,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             };
             const ZONE_PTS: Record<string, string> = { A: '1pt', B: '3pt', C: '5pt' };
             return (
-              <div key={side} style={{ flex: 1 }}>
+              <div key={side} className="flex-1">
                 <div
                   style={{
                     fontSize: '0.7rem',

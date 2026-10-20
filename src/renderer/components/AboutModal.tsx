@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import type { VersionInfo } from '../../shared/types/preload';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 interface Props {
   onClose: () => void;
@@ -265,7 +266,7 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
   };
 
   const buildDate = versionInfo
-    ? new Date(versionInfo.date).toLocaleDateString('fr-FR', {
+    ? new Date(versionInfo.date).toLocaleDateString(getActiveLocale(), {
         day: 'numeric',
         month: 'long',
         year: 'numeric',

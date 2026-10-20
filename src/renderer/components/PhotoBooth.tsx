@@ -179,7 +179,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
             color: '#b91c1c',
             padding: '10px 14px',
             marginBottom: '12px',
-            fontSize: '13px',
+            fontSize: '0.8125rem',
             wordBreak: 'break-word',
           }}
         >
@@ -188,7 +188,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
       )}
 
       {!isCapturing && !photo && (
-        <div style={{ textAlign: 'center' }}>
+        <div className="text-center">
           <div
             style={{
               width: '160px',
@@ -199,7 +199,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '64px',
+              fontSize: '4rem',
             }}
           >
             📷
@@ -216,7 +216,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
       )}
 
       {isCapturing && (
-        <div style={{ position: 'relative' }}>
+        <div className="relative">
           <video
             ref={videoCallbackRef}
             autoPlay
@@ -236,7 +236,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                fontSize: '100px',
+                fontSize: '6.25rem',
                 fontWeight: 'bold',
                 color: 'white',
                 textShadow: '0 4px 20px rgba(0,0,0,0.5)',
@@ -251,8 +251,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
               type="button"
               onClick={capturePhoto}
               disabled={countdown > 0}
-              className="btn btn-primary"
-              style={{ flex: 1 }}
+              className="btn btn-primary flex-1"
             >
               {countdown > 0 ? `${countdown}…` : '📸 Capturer'}
             </button>
@@ -271,7 +270,7 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
       )}
 
       {photo && (
-        <div style={{ textAlign: 'center' }}>
+        <div className="text-center">
           <img
             src={photo}
             alt="Aperçu"

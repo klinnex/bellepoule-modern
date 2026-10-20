@@ -506,7 +506,7 @@
       }
 
       if (!res.ok) {
-        throw new Error(data.error || tk('register.server_error'));
+        throw new Error(window.errorText(data, tk('register.server_error')));
       }
 
       // Success

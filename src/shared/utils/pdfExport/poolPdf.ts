@@ -8,6 +8,7 @@ import { Pool, Match, MatchStatus, Fencer } from '../../types';
 import { calculateFencerQuestStats } from '../poolCalculations';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
 import { savePDF, buildCssOverrides, assembleBody, BASE_CSS } from './core';
+import { getActiveLocale } from '../localeFormat';
 
 export interface PoolExportOptions {
   title?: string;
@@ -125,7 +126,7 @@ export function generatePoolHTML(
   const fencers = pool.fencers ?? [];
   const matches = pool.matches ?? [];
   const finishedCount = matches.filter(m => m.status === MatchStatus.FINISHED).length;
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',

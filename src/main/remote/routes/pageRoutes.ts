@@ -164,8 +164,7 @@ export function registerPageRoutes(ctx: RouteContext): void {
   });
   ctx.app.get('/api/public/fencers/:fencerId/schedule', (req, res) => {
     const { fencerId } = req.params;
-    if (!/^[\w-]{1,64}$/.test(fencerId))
-      return res.status(400).json({ error: 'Identifiant invalide' });
+    if (!/^[\w-]{1,64}$/.test(fencerId)) return res.status(400).json({ error: 'invalid_id' });
     try {
       const source = ctx.sessionMatches.map(m => {
         const update = ctx.sessionMatchScores.get(m.id);
@@ -183,12 +182,12 @@ export function registerPageRoutes(ctx: RouteContext): void {
         arenas,
         ctx.sessionPoolArenas
       );
-      if (!schedule) return res.status(404).json({ error: 'Tireur introuvable' });
+      if (!schedule) return res.status(404).json({ error: 'fencer_not_found' });
       res.set('Cache-Control', 'no-store');
       res.json(schedule);
     } catch (err) {
       console.error('[RemoteScoreServer] Erreur planning tireur:', err);
-      res.status(500).json({ error: 'Erreur interne' });
+      res.status(500).json({ error: 'internal' });
     }
   });
 

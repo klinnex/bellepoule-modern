@@ -24,7 +24,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
     async (_event, port?: number, host?: string, useHttps?: boolean) => {
       try {
         if (remoteServers.has(TRAINING_ID)) {
-          return { success: false, error: 'Serveur entraînement déjà démarré' };
+          return { success: false, error: 'training_already_started' };
         }
         const effectivePort = findAvailablePort(port);
         const effectiveHost = host ?? '0.0.0.0';
@@ -36,7 +36,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
             tlsOptions = { cert: bundle.cert, key: bundle.key };
             certFingerprint = bundle.fingerprint;
           } catch (certError) {
-            return { success: false, error: 'Impossible de générer le certificat TLS' };
+            return { success: false, error: 'tls_cert_failed' };
           }
         }
         const server = new RemoteScoreServer(db, effectivePort, effectiveHost, tlsOptions);
@@ -82,7 +82,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
   ipcMain.handle('training:stopServer', async () => {
     try {
       const entry = remoteServers.get(TRAINING_ID);
-      if (!entry) return { success: false, error: 'Serveur entraînement non démarré' };
+      if (!entry) return { success: false, error: 'training_not_started' };
       entry.server.stop();
       usedPorts.delete(entry.port);
       remoteServers.delete(TRAINING_ID);
@@ -97,7 +97,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
     async (_event, strips: number, weapon: string, customRules?: any) => {
       try {
         const entry = remoteServers.get(TRAINING_ID);
-        if (!entry) return { success: false, error: 'Serveur entraînement non démarré' };
+        if (!entry) return { success: false, error: 'training_not_started' };
         const session = await entry.server.startTrainingSession(strips, weapon, customRules);
         return { success: true, session };
       } catch (error) {
@@ -112,7 +112,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
   ipcMain.handle('training:stopSession', async () => {
     try {
       const entry = remoteServers.get(TRAINING_ID);
-      if (!entry) return { success: false, error: 'Serveur entraînement non démarré' };
+      if (!entry) return { success: false, error: 'training_not_started' };
       entry.server.stopTrainingSession();
       return { success: true };
     } catch (error) {
@@ -153,7 +153,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
   ipcMain.handle('training:getServerInfo', async () => {
     try {
       const entry = remoteServers.get(TRAINING_ID);
-      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      if (!entry) return { success: false, error: 'server_not_started' };
       return {
         success: true,
         serverInfo: {

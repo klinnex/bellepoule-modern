@@ -336,7 +336,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               value={selectedInterface}
               onChange={e => handleInterfaceChange(e.target.value)}
               disabled={isLoading}
-              style={{ width: '100%' }}
+              className="w-full"
             >
               {networkInterfaces.map(iface => (
                 <option key={iface.address} value={iface.address}>

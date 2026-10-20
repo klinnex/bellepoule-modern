@@ -17,6 +17,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { createDefaultCustomFormula } from '../../shared/utils/tournamentTemplates';
 import { deriveSettingsFromFormula } from '../../shared/utils/customFormulaSettings';
 import { FormulaBuilder } from './formula/FormulaBuilder';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 interface NewCompetitionModalProps {
   onClose: () => void;
@@ -95,7 +96,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
           : undefined;
 
     onCreate({
-      title: title || `Compétition du ${new Date(date).toLocaleDateString('fr-FR')}`,
+      title: title || `Compétition du ${new Date(date).toLocaleDateString(getActiveLocale())}`,
       date: new Date(date),
       weapon,
       gender,
@@ -219,9 +220,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
             </div>
 
             <div className="form-group">
-              <label
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
-              >
+              <label className="u-row cursor-pointer">
                 <input
                   type="checkbox"
                   checked={isTeamEvent}

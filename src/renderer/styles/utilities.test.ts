@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 
 const RENDERER = path.join(__dirname, '..');
-const STYLESHEETS = ['main.css', 'formula.css', 'design.css', 'utilities.css'];
+const STYLESHEETS = ['main.css', 'formula.css', 'design.css', 'tokens.css', 'utilities.css'];
 
 // Préfixes Tailwind (avec variantes hover:, md:…) — les autres classes sont sémantiques
 const UTILITY =

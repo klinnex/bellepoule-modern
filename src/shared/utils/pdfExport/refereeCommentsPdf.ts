@@ -6,6 +6,7 @@
 
 import type { Referee, RefereeComment } from '../../types';
 import { savePDF, BASE_CSS } from './core';
+import { getActiveLocale } from '../localeFormat';
 
 const esc = (s: unknown): string =>
   String(s ?? '').replace(
@@ -19,7 +20,7 @@ export function generateRefereeCommentsHTML(
   competitionName?: string,
   logoBase64?: string
 ): string {
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -40,7 +41,7 @@ export function generateRefereeCommentsHTML(
           (c, i) => `
       <tr>
         <td class="num">${i + 1}</td>
-        <td class="when">${esc(new Date(c.createdAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}</td>
+        <td class="when">${esc(new Date(c.createdAt).toLocaleString(getActiveLocale(), { dateStyle: 'short', timeStyle: 'short' }))}</td>
         <td class="ctx">${esc(c.matchLabel ?? '—')}</td>
         <td class="author">${esc(c.author ?? '—')}</td>
         <td class="text">${esc(c.comment)}</td>

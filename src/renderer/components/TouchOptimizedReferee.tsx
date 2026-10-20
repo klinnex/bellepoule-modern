@@ -604,7 +604,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
               </span>
             </div>
             <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-full flex" style={{ width: '100%' }}>
+              <div className="h-full flex w-full">
                 <div
                   className="bg-green-500 transition-all duration-300"
                   style={{ width: `${(scoreA / maxScore) * 100}%` }}

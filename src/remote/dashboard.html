@@ -592,6 +592,8 @@
     </div>
 
     <script>
+      // Traduction (src/remote/i18n.js) ; repli sur la clé si i18n.js absent
+      const tr = (key, params) => (window.T ? window.T(key, params) : key);
       // Dashboard State
       const dashboard = {
         socket: null,
@@ -732,7 +734,7 @@
         const tbody = document.getElementById('ranking-body');
         if (!data.rankings || data.rankings.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="5" style="text-align: center; color: #9ca3af; padding: 2rem;">En attente des résultats...</td></tr>';
+            '<tr><td colspan="5" style="text-align: center; color: #9ca3af; padding: 2rem;">' + escHtml(tr('dashboard.ranking_waiting')) + '</td></tr>';
           return;
         }
 
@@ -776,9 +778,9 @@
             pool => `
           <div class="pool-card">
             <div class="pool-header">
-              <h3>Poule ${escHtml(pool.number)}</h3>
+              <h3>${escHtml(tr('dashboard.pool_n', { n: pool.number }))}</h3>
               <span class="pool-status ${pool.isComplete ? '' : 'in-progress'}">
-                ${pool.isComplete ? 'Terminée' : 'En cours'}
+                ${escHtml(tr(pool.isComplete ? 'dashboard.pool_done' : 'dashboard.pool_running'))}
               </span>
             </div>
             <table class="pool-table">
@@ -840,7 +842,7 @@
           <div class="match-card">
             <div class="match-header">
               <span class="match-number">Match #${escHtml(match.number)}</span>
-              <span class="match-pool">Poule ${escHtml(match.poolNumber || '-')}</span>
+              <span class="match-pool">${escHtml(tr('dashboard.pool_n', { n: match.poolNumber || '-' }))}</span>
             </div>
             <div class="match-score">
               <div class="match-fencer ${match.winner === 'A' ? 'winner' : ''}">

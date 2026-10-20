@@ -114,7 +114,7 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
         role="dialog"
         aria-modal="true"
       >
-        <div className="modal-header" style={{ flexShrink: 0 }}>
+        <div className="modal-header flex-shrink-0">
           <h2 style={{ margin: 0 }}>Gestion multi-pistes ({stripCount} pistes)</h2>
           <button className="btn-close" onClick={onClose}>
             &times;

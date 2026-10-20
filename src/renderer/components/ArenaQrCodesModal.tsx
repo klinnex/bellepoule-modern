@@ -9,6 +9,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useTranslation } from '../contexts/TranslationContext';
 import { useToast } from './Toast';
 import { savePDF } from '../../shared/utils/pdfExport/core';
+import { ipcErrorText } from '../services/ipcError';
 
 export interface ArenaQrTarget {
   number: number;
@@ -155,7 +156,7 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
         await savePDF(html, 'qr-codes-pistes.pdf');
       } else {
         const res = await window.electronAPI?.file?.printHtml?.(html);
-        if (res && !res.success) throw new Error(res.error ?? "Échec de l'impression");
+        if (res && !res.success) throw new Error(ipcErrorText(t, res, "Échec de l'impression"));
       }
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Erreur QR Codes', 'error');
@@ -183,13 +184,10 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
             ×
           </button>
         </div>
-        <div
-          className="modal-body"
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-        >
+        <div className="modal-body u-stack-4">
           <div>
             <div className="form-label">QR Codes à inclure</div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <label className="u-row">
               <input
                 type="checkbox"
                 checked={withReferee}
@@ -197,7 +195,7 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
               />
               Arbitres (tablette de saisie)
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <label className="u-row">
               <input
                 type="checkbox"
                 checked={withMatches}
@@ -206,7 +204,7 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
               Matchs (ordre des matchs, lecture seule)
             </label>
             {fencers.length > 0 && (
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <label className="u-row">
                 <input
                   type="checkbox"
                   checked={withFencers}

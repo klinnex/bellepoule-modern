@@ -206,7 +206,7 @@ export const VoiceScoreController: React.FC<{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '24px',
+            fontSize: '1.5rem',
             transition: 'all 0.3s',
             animation: isListening ? 'pulse 1.5s infinite' : 'none',
           }}
@@ -214,8 +214,10 @@ export const VoiceScoreController: React.FC<{
           🎤
         </div>
         <div>
-          <h3 style={{ margin: 0, fontSize: '18px' }}>Contrôle Vocal</h3>
-          <p style={{ margin: '4px 0 0 0', color: 'var(--color-text-light)', fontSize: '14px' }}>
+          <h3 style={{ margin: 0, fontSize: '1.125rem' }}>Contrôle Vocal</h3>
+          <p
+            style={{ margin: '4px 0 0 0', color: 'var(--color-text-light)', fontSize: '0.875rem' }}
+          >
             {isListening ? 'Écoute en cours...' : 'Appuyez pour activer'}
           </p>
         </div>
@@ -229,7 +231,7 @@ export const VoiceScoreController: React.FC<{
             borderRadius: '8px',
             color: '#991b1b',
             marginBottom: '16px',
-            fontSize: '14px',
+            fontSize: '0.875rem',
           }}
         >
           {error}
@@ -245,7 +247,7 @@ export const VoiceScoreController: React.FC<{
           color: 'white',
           border: 'none',
           borderRadius: '8px',
-          fontSize: '16px',
+          fontSize: '1rem',
           fontWeight: '600',
           cursor: 'pointer',
           transition: 'all 0.2s',
@@ -261,7 +263,7 @@ export const VoiceScoreController: React.FC<{
             padding: '12px',
             backgroundColor: 'var(--color-bg)',
             borderRadius: '8px',
-            fontSize: '14px',
+            fontSize: '0.875rem',
           }}
         >
           <strong>Dernière commande:</strong> {transcript}
@@ -275,7 +277,7 @@ export const VoiceScoreController: React.FC<{
             padding: '12px',
             backgroundColor: '#d1fae5',
             borderRadius: '8px',
-            fontSize: '14px',
+            fontSize: '0.875rem',
             color: '#065f46',
           }}
         >
@@ -284,14 +286,14 @@ export const VoiceScoreController: React.FC<{
       )}
 
       <div style={{ marginTop: '16px' }}>
-        <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--color-text)' }}>
+        <h4 style={{ margin: '0 0 8px 0', fontSize: '0.875rem', color: 'var(--color-text)' }}>
           Commandes disponibles:
         </h4>
         <ul
           style={{
             margin: 0,
             paddingLeft: '20px',
-            fontSize: '13px',
+            fontSize: '0.8125rem',
             color: 'var(--color-text-light)',
           }}
         >

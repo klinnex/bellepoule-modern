@@ -97,7 +97,7 @@ const MatchReplay: React.FC<MatchReplayProps> = ({ entries, nameA, nameB }) => {
         marginBottom: '0.75rem',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <div className="u-row">
         {side(nameA, t('replay.fencer_a'), frame.scoreA, frame.cardsA)}
         <div style={{ color: 'var(--color-text-light)', fontVariantNumeric: 'tabular-nums' }}>
           {formatReplayOffset(frame.offsetMs)}
@@ -117,7 +117,7 @@ const MatchReplay: React.FC<MatchReplayProps> = ({ entries, nameA, nameB }) => {
           setIndex(Number(e.target.value));
         }}
         aria-label={t('replay.position')}
-        style={{ width: '100%' }}
+        className="w-full"
       />
       <div
         style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}

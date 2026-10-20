@@ -45,37 +45,37 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
 
   ctx.app.post('/api/register', (req, res) => {
     if (!ctx.registrationEnabled) {
-      return res.status(403).json({ registrationClosed: true, error: 'Inscription fermée' });
+      return res.status(403).json({ registrationClosed: true, error: 'registration_closed' });
     }
 
     const ip = ctx.getClientIp(req);
 
     // Rate limit : 5 inscriptions par IP par minute
     if (!ctx.checkRegistrationRateLimit(ip)) {
-      return res.status(429).json({ error: 'Trop de demandes. Réessayez dans 1 minute.' });
+      return res.status(429).json({ error: 'rate_limited' });
     }
 
     const { lastName, firstName, gender, club, license, nationality, birthDate, photo } =
       req.body as Record<string, string | null | undefined>;
 
     if (!lastName || typeof lastName !== 'string' || lastName.trim() === '') {
-      return res.status(400).json({ error: 'Nom obligatoire' });
+      return res.status(400).json({ error: 'last_name_required' });
     }
     if (!firstName || typeof firstName !== 'string' || firstName.trim() === '') {
-      return res.status(400).json({ error: 'Prénom obligatoire' });
+      return res.status(400).json({ error: 'first_name_required' });
     }
     if (!gender || !['M', 'F', 'X'].includes(gender)) {
-      return res.status(400).json({ error: 'Genre invalide' });
+      return res.status(400).json({ error: 'invalid_gender' });
     }
 
     const competitionId = ctx.session?.competitionId;
     if (!competitionId) {
-      return res.status(503).json({ error: 'Aucune compétition active' });
+      return res.status(503).json({ error: 'no_competition' });
     }
 
     // Valider la taille de la photo (base64, max ~500 KB → ~667 KB en base64)
     if (photo && typeof photo === 'string' && photo.length > 700_000) {
-      return res.status(400).json({ error: 'Photo trop volumineuse (max 500 KB)' });
+      return res.status(400).json({ error: 'photo_too_large' });
     }
 
     try {
@@ -90,8 +90,8 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
 
       const strippedLast = strip(lastName, 100);
       const strippedFirst = strip(firstName, 100);
-      if (!strippedLast) return res.status(400).json({ error: 'Nom invalide après nettoyage' });
-      if (!strippedFirst) return res.status(400).json({ error: 'Prénom invalide après nettoyage' });
+      if (!strippedLast) return res.status(400).json({ error: 'invalid_last_name' });
+      if (!strippedFirst) return res.status(400).json({ error: 'invalid_first_name' });
 
       const fencerData = {
         lastName: strippedLast.toUpperCase(),
@@ -122,7 +122,7 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
       res.json({ success: true, fencerRef: newFencer.ref, fencerId: newFencer.id });
     } catch (err) {
       console.error('[RemoteScoreServer] Erreur inscription tireur:', err);
-      res.status(500).json({ error: "Erreur lors de l'inscription" });
+      res.status(500).json({ error: 'registration_failed' });
     }
   });
 
@@ -158,7 +158,7 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
     const { password } = (req.body ?? {}) as { password?: unknown };
     if (!(await ctx.verifyPassword(password, ctx.trainerPassword))) {
       await ctx.recordLoginFailure(ip, 'trainer');
-      return res.status(401).json({ success: false, error: 'Mot de passe incorrect' });
+      return res.status(401).json({ success: false, error: 'wrong_password' });
     }
     ctx.recordLoginSuccess(ip);
     const token = ctx.issueToken(ctx.trainerTokens);
@@ -173,7 +173,7 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
     const denied = ctx.trainerGuard(req.headers.cookie);
     if (denied) return res.status(denied.status).json(denied.body);
     const competitionId = ctx.session?.competitionId;
-    if (!competitionId) return res.status(503).json({ error: 'Aucune compétition active' });
+    if (!competitionId) return res.status(503).json({ error: 'no_competition' });
     const counts = new Map<string, number>();
     for (const c of ctx.db.getRefereeComments(competitionId)) {
       counts.set(c.refereeId, (counts.get(c.refereeId) ?? 0) + 1);
@@ -198,7 +198,7 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
     const denied = ctx.trainerGuard(req.headers.cookie);
     if (denied) return res.status(denied.status).json(denied.body);
     const competitionId = ctx.session?.competitionId;
-    if (!competitionId) return res.status(503).json({ error: 'Aucune compétition active' });
+    if (!competitionId) return res.status(503).json({ error: 'no_competition' });
     res.json({ comments: ctx.db.getRefereeComments(competitionId, req.params.refereeId) });
   });
 
@@ -206,13 +206,13 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
     const denied = ctx.trainerGuard(req.headers.cookie);
     if (denied) return res.status(denied.status).json(denied.body);
     const competitionId = ctx.session?.competitionId;
-    if (!competitionId) return res.status(503).json({ error: 'Aucune compétition active' });
+    if (!competitionId) return res.status(503).json({ error: 'no_competition' });
     const { refereeId } = req.params;
     const referee = ctx.db.getRefereesByCompetition(competitionId).find(r => r.id === refereeId);
-    if (!referee) return res.status(404).json({ error: 'Arbitre inconnu' });
+    if (!referee) return res.status(404).json({ error: 'referee_unknown' });
     const { comment, author } = (req.body ?? {}) as { comment?: unknown; author?: unknown };
     const text = typeof comment === 'string' ? comment.trim().slice(0, 4000) : '';
-    if (!text) return res.status(400).json({ error: 'Commentaire vide' });
+    if (!text) return res.status(400).json({ error: 'empty_comment' });
     const authorName = typeof author === 'string' ? author.trim().slice(0, 100) : null;
     const arena = ctx.findArenaOfReferee(refereeId);
     try {
@@ -226,7 +226,7 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
       res.json({ success: true, comment: saved });
     } catch (err) {
       console.error('[RemoteScoreServer] Erreur commentaire formateur:', err);
-      res.status(500).json({ error: "Erreur lors de l'enregistrement" });
+      res.status(500).json({ error: 'save_failed' });
     }
   });
 
@@ -248,7 +248,7 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
     const { password } = (req.body ?? {}) as { password?: unknown };
     if (!(await ctx.verifyPassword(password, ctx.checkinPassword))) {
       await ctx.recordLoginFailure(ip, 'checkin');
-      return res.status(401).json({ success: false, error: 'Mot de passe incorrect' });
+      return res.status(401).json({ success: false, error: 'wrong_password' });
     }
     ctx.recordLoginSuccess(ip);
     const token = ctx.issueToken(ctx.checkinTokens);
@@ -263,7 +263,7 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
     const denied = ctx.checkinGuard(req.headers.cookie);
     if (denied) return res.status(denied.status).json(denied.body);
     const competitionId = ctx.session?.competitionId;
-    if (!competitionId) return res.status(503).json({ error: 'Aucune compétition active' });
+    if (!competitionId) return res.status(503).json({ error: 'no_competition' });
     const fencers = ctx.db.getFencersByCompetition(competitionId).map(f => ({
       id: f.id,
       ref: f.ref,
@@ -291,34 +291,34 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
     const { kind, id } = req.params;
     const { present } = (req.body ?? {}) as { present?: unknown };
     if (kind !== 'fencers' && kind !== 'referees') {
-      return res.status(404).json({ error: 'Type inconnu' });
+      return res.status(404).json({ error: 'unknown_type' });
     }
     if (typeof present !== 'boolean') {
-      return res.status(400).json({ error: 'Champ "present" invalide' });
+      return res.status(400).json({ error: 'invalid_present' });
     }
     const competitionId = ctx.session?.competitionId;
-    if (!competitionId) return res.status(503).json({ error: 'Aucune compétition active' });
+    if (!competitionId) return res.status(503).json({ error: 'no_competition' });
 
     try {
       if (kind === 'fencers') {
         const fencer = ctx.db.getFencersByCompetition(competitionId).find(f => f.id === id);
-        if (!fencer) return res.status(404).json({ error: 'Tireur introuvable' });
+        if (!fencer) return res.status(404).json({ error: 'fencer_not_found' });
         // Ne jamais écraser un statut sportif (éliminé, exclu, forfait…)
         if (fencer.status !== 'P' && fencer.status !== 'N') {
-          return res.status(409).json({ error: 'Statut du tireur non modifiable' });
+          return res.status(409).json({ error: 'status_locked' });
         }
         ctx.db.updateFencer(id, { status: (present ? 'P' : 'N') as any });
       } else {
         const referee = ctx.db.getRefereesByCompetition(competitionId).find(r => r.id === id);
-        if (!referee) return res.status(404).json({ error: 'Arbitre introuvable' });
+        if (!referee) return res.status(404).json({ error: 'referee_not_found' });
         if (referee.status === 'assigned') {
-          return res.status(409).json({ error: 'Arbitre déjà assigné' });
+          return res.status(409).json({ error: 'referee_already_assigned' });
         }
         ctx.db.updateReferee(id, { status: present ? 'available' : 'unavailable' });
       }
     } catch (err) {
       console.error('[RemoteScoreServer] Erreur appel distant:', err);
-      return res.status(500).json({ error: 'Erreur lors de la mise à jour' });
+      return res.status(500).json({ error: 'update_failed' });
     }
 
     const mainWin = (global as any).mainWindow;
