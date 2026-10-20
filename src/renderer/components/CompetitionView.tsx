@@ -2118,6 +2118,15 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         onFencerStatusChange={(fencerId, status) => {
           if (status === 'abandon' || status === 'forfait' || status === 'exclusion') {
             handleFencerForfeit(fencerId, status);
+            // Liste d'appel : statut aligné avec la saisie manuelle du score
+            updateFencer(fencerId, {
+              status:
+                status === 'abandon'
+                  ? FencerStatus.ABANDONED
+                  : status === 'forfait'
+                    ? FencerStatus.FORFAIT
+                    : FencerStatus.EXCLUDED,
+            });
           }
         }}
         assignedFencerIds={assignedPoolFencerIds}

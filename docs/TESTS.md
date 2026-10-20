@@ -79,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 34 | 541 |
+| `src/shared/utils/` | 34 | 542 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,9 +100,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 1 | 8 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **136** | **1413** |
+| **Total** | **136** | **1414** |
 
-Unitaires : 128 fichiers, 1382 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 128 fichiers, 1383 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -630,7 +630,7 @@ Unitaires : 128 fichiers, 1382 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 37 tests</summary>
+<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 38 tests</summary>
 
 - **generatePoolMatchOrder**
   - should generate correct match order for pool of 3 fencers
@@ -648,7 +648,7 @@ Unitaires : 128 fichiers, 1382 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - should calculate stats correctly for a loser
   - should ignore unfinished matches
   - should return zero stats when no matches played
-  - devrait annuler les matchs déjà disputés contre un tireur déclaré forfait
+  - devrait conserver les matchs déjà disputés contre un tireur déclaré forfait (#1144)
 - **calculatePoolRanking**
   - should rank fencers by victory ratio
   - should rank by ratio, not absolute victories — same wins but different match counts
@@ -674,7 +674,8 @@ Unitaires : 128 fichiers, 1382 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - classement de poule : indice avant les cartons
 - **forfait en cours de poule (Sabre Laser)**
   - conserve les matchs disputés et le match du forfait, ignore les matchs annulés
-  - règle classique inchangée : tous les matchs contre le forfait sont annulés
+  - armes olympiques : match du forfait annulé, matchs déjà disputés conservés (#1144)
+  - armes olympiques : le forfait est classé en fin de poule
   - classe le forfait sur ses matchs disputés dans la poule
   - place le forfait en fin de classement général (non qualifié pour le tableau)
 
