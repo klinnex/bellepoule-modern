@@ -312,6 +312,40 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('kiosk:data (#1152)', () => {
+    it('regroupe les notifications sur 300 ms', () => {
+      vi.useFakeTimers();
+      try {
+        const emit = vi.fn();
+        (server as any).io = { emit };
+        server.notifyKioskData();
+        server.notifyKioskData();
+        server.notifyKioskData();
+        expect(emit).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(300);
+        expect(emit).toHaveBeenCalledTimes(1);
+        expect(emit).toHaveBeenCalledWith('kiosk:data');
+        server.notifyKioskData();
+        vi.advanceTimersByTime(300);
+        expect(emit).toHaveBeenCalledTimes(2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('s’abonne aux écritures de la base et se désabonne à l’arrêt', () => {
+      const unsub = vi.fn();
+      const db = { ...mockDb, onChange: vi.fn().mockReturnValue(unsub) };
+      const srv = new RemoteScoreServer(db as any, 8067);
+      expect(db.onChange).toHaveBeenCalledOnce();
+      const spy = vi.spyOn(srv, 'notifyKioskData');
+      db.onChange.mock.calls[0][0]();
+      expect(spy).toHaveBeenCalledOnce();
+      srv.stop();
+      expect(unsub).toHaveBeenCalledOnce();
+    });
+  });
+
   describe('broadcastDashboardUpdate (#1069)', () => {
     const withRooms = (rooms: Map<string, Set<string>>) => {
       (server as any).io = {

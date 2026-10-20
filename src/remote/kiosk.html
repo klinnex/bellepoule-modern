@@ -1721,6 +1721,7 @@
         state.progressStart = Date.now();
 
         state.progressTimer = setInterval(() => {
+          if (document.hidden) return;
           const elapsed = Date.now() - state.progressStart;
           const pct = Math.min(100, (elapsed / state.rotationMs) * 100);
           document.getElementById('progress-bar').style.width = pct + '%';
@@ -2038,9 +2039,36 @@
 
           state.lastUpdate = new Date();
           setStatus(true, tk('kiosk.updated') + ' ' + state.lastUpdate.toLocaleTimeString('fr-FR'));
+          retryAttempt = 0;
         } catch (err) {
           setStatus(false, tk('remote.error_connection'));
+          scheduleRetry();
         }
+      }
+
+      // Reprise après échec : backoff exponentiel + jitter (1 s → 30 s), jamais de polling régulier
+      let retryAttempt = 0;
+      let retryTimer = null;
+      function scheduleRetry() {
+        clearTimeout(retryTimer);
+        const delay = Math.min(30000, 1000 * 2 ** retryAttempt) * (0.75 + Math.random() * 0.5);
+        retryAttempt = Math.min(retryAttempt + 1, 5);
+        retryTimer = setTimeout(resyncAll, delay);
+      }
+
+      // Rechargement complet (connexion / reconnexion, retour de visibilité, réseau revenu)
+      function resyncAll() {
+        fetchData();
+        fetchLogo();
+        fetchBracket();
+        if (window.kioskRefreshEta) window.kioskRefreshEta();
+      }
+
+      // Événement « données modifiées » du serveur : regroupé pour éviter les rafales
+      let refreshTimer = null;
+      function scheduleRefresh() {
+        clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(resyncAll, 200 + Math.random() * 300);
       }
 
       // ─── Classement général (agrégation des poules) ──────────────────────────
@@ -2909,6 +2937,7 @@
         document.getElementById('focus-round-progress-bar').style.width = '0%';
 
         focusState.progressTimer = setInterval(() => {
+          if (document.hidden) return;
           const elapsed = Date.now() - focusState.progressStart;
           const pct = Math.min(100, (elapsed / focusState.durationMs) * 100);
           document.getElementById('focus-round-progress-bar').style.width = pct + '%';
@@ -2948,7 +2977,7 @@
         clearInterval(state.bracketPanTimer);
         if (!state.bracketData?.rounds?.length) return;
         state.bracketPanTimer = setInterval(() => {
-          if (!state.bracketData?.rounds?.length) return;
+          if (document.hidden || !state.bracketData?.rounds?.length) return;
           state.bracketPanIndex = (state.bracketPanIndex + 1) % state.bracketData.rounds.length;
           const r = state.bracketData.rounds[state.bracketPanIndex];
           if (r) scrollToBracketRound(r.round);
@@ -3250,12 +3279,9 @@
 
         applyTableauMode(loadLocalTableauMode());
 
-        fetchData();
-        fetchLogo();
-        fetchBracket();
-        setInterval(fetchData, 15000);
-        setInterval(fetchLogo, 30000);
-        setInterval(fetchBracket, 15000);
+        // Plus de polling (#1152) : chargement initial, puis événements Socket.IO
+        // (kiosk:data, bracket:update, logo:update) et resynchronisation à la (re)connexion.
+        resyncAll();
         startRotation();
 
         // Identifiant persistant de cet écran (survit aux rechargements)
@@ -3306,13 +3332,23 @@
             randomizationFactor: 0.5,
           });
           socket.on('bracket:update', fetchBracket);
+          socket.on('kiosk:data', scheduleRefresh);
+          socket.on('logo:update', d => applyLogo((d && d.logo) || null));
+          let _connectedOnce = false;
           socket.on('connect', () => {
             socket.emit('client:register', {
               clientType: 'kiosk',
               userAgent: navigator.userAgent,
               screenId: _screenId,
             });
+            // Reconnexion (coupure Wi-Fi, redémarrage serveur) : on a pu rater des événements
+            if (_connectedOnce) resyncAll();
+            _connectedOnce = true;
           });
+          document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) resyncAll();
+          });
+          window.addEventListener('online', resyncAll);
           socket.on('server:command', cmd => {
             if (cmd.type === 'refresh') {
               location.reload();
@@ -3449,7 +3485,7 @@
         }
         // Premier affichage après le chargement de la langue (initRemoteI18n)
         setTimeout(refresh, 2000);
-        setInterval(refresh, 30000);
+        window.kioskRefreshEta = refresh; // appelé à chaque événement de données (plus de polling)
       })();
     </script>
   </body>

@@ -59,3 +59,11 @@ L'IP client est celle de la connexion TCP. `X-Forwarded-For` est ignoré, sauf d
 - Les réponses `res.json()` > 1 Ko sont compressées en gzip (`jsonCompression`).
 - Mesure (Chromium, `referee.html` complet, socket.io inclus) : ~60 Ko au premier chargement contre ~220 Ko avant (chiffre de l'issue) ; test `pageStore.test.ts` : page + assets brotli < 60 Ko.
 - Service worker : cache `bellepoule-referee-v6` ; les assets `/_a/*` sont mis en cache à la volée (réseau d'abord, repli cache hors-ligne).
+
+## Kiosque sans polling (#1152)
+
+- `kiosk.html` n'interroge plus le serveur périodiquement (avant : session/pools 15 s, tableau 15 s, logo 30 s, ETA 30 s). Chargement initial, puis rechargement sur événements Socket.IO : `kiosk:data` (toute écriture en base via `DatabaseManager.onChange`, mise à jour d'une piste, début/fin de session ; regroupé sur 300 ms par `notifyKioskData`), `bracket:update`, `logo:update`.
+- Resynchronisation complète à la **reconnexion** Socket.IO, au retour de **visibilité** de la page et à l'événement `online` ; en cas d'échec de chargement : backoff exponentiel (1 s → 30 s) avec jitter.
+- Les timers d'animation (barres de progression, pan du tableau) ne travaillent pas quand la page est masquée. Remplacement par `requestAnimationFrame`/CSS non fait.
+- Mesure (Chromium + serveur Socket.IO réel, kiosque inactif) : 0 requête HTTP en 15–40 s ; 7 requêtes de rechargement par événement `kiosk:data` ; 7 après coupure/reprise du réseau.
+- Tests : `kioskNoPolling.test.ts`, `remoteScoreServer.test.ts` (`kiosk:data`).
