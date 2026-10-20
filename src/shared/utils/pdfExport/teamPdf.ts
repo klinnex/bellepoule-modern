@@ -16,6 +16,7 @@ import {
   calculateLaserArenaPoolRanking,
 } from '../../../features/teams/utils/laserArenaCalculations';
 import { savePDF, BASE_CSS } from './core';
+import { getActiveLocale } from '../localeFormat';
 
 export interface TeamPdfOptions {
   title: string;
@@ -144,7 +145,7 @@ const TEAM_CSS = `
 `;
 
 function wrapDocument(title: string, subtitle: string, badge: string, body: string): string {
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',

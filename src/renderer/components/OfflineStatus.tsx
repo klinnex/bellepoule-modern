@@ -9,6 +9,7 @@ import { offlineSync } from '../services/offlineSync';
 import { offlineStorage } from '../services/offlineStorage';
 import { SyncConflict } from '@shared/services/cloudSyncService';
 import { ConflictResolutionModal } from './ConflictResolutionModal';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 interface OfflineStatusProps {
   className?: string;
@@ -90,7 +91,7 @@ const OfflineStatus_: React.FC<OfflineStatusProps> = ({ className = '' }) => {
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `Il y a ${diffHours}h`;
 
-    return date.toLocaleDateString('fr-FR');
+    return date.toLocaleDateString(getActiveLocale());
   };
 
   const getStatusColor = () => {

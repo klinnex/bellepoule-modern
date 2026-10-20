@@ -12,6 +12,7 @@ import {
   calculateOverallRankingQuest,
 } from '../../shared/utils/poolCalculations';
 import { formatRatio, formatIndex, formatQuestPerMatch } from '../../shared/utils/poolCalculations';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 interface LiveInterPoolRankingProps {
   pools: Pool[];
@@ -130,7 +131,7 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
               <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{progress}%</span>
             </div>
             <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-              Mis à jour {lastUpdate.toLocaleTimeString('fr-FR')}
+              Mis à jour {lastUpdate.toLocaleTimeString(getActiveLocale())}
             </span>
           </div>
         </div>

@@ -7,6 +7,7 @@
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
 import { savePDF, buildCssOverrides } from './core';
 import { TableauMatchForPDF, getTableauRoundName } from './tableauPdf';
+import { getActiveLocale } from '../localeFormat';
 
 // ─── Export Arbre (Bracket Tree) ─────────────────────────────────────────────
 
@@ -67,7 +68,7 @@ export function generateBracketTreeHTML(
   const navy = template?.colors.navy ?? '#1a2e4a';
   const gold = template?.colors.gold ?? '#c9a227';
   const green = template?.colors.green ?? '#166534';
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -336,7 +337,7 @@ export function generateBracketTreeMultiPageHTML(
   const navy = template?.colors.navy ?? '#1a2e4a';
   const gold = template?.colors.gold ?? '#c9a227';
   const green = template?.colors.green ?? '#166534';
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',

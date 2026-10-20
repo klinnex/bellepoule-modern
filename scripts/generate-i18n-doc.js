@@ -27,6 +27,9 @@ const REMOTE_DIR = path.join(ROOT, 'src', 'remote');
 const OUTPUT = path.join(ROOT, 'docs', 'I18N.md');
 const REFERENCE = 'fr';
 // Valeurs légitimement identiques au français (noms propres, sigles, symboles).
+// Clés volontairement identiques au français, par langue (sigles, abréviations, termes
+// d'escrime internationaux) : scripts/i18n-allow-same.json, sections `app` et `remote` (#1160).
+const ALLOW_SAME = JSON.parse(fs.readFileSync(path.join(__dirname, 'i18n-allow-same.json'), 'utf8'));
 const SAME_AS_FR_OK = /^[\p{N}\p{P}\p{S}\s]*$|^(BellePoule.*|OK|Quest|Club|Total|Arena|Message|Points?|Score|Sabre|Laser|Poules?|Classement|Version|Mode|Stop|Pause|Zones?|Notes?|Tableau|Format|Ranking|Info|Type|Statistiques|Date)$/iu;
 
 function flatten(obj, prefix = '', out = {}) {
@@ -99,7 +102,7 @@ function pct(n, total) {
   return total === 0 ? '—' : `${Math.round((n / total) * 100)} %`;
 }
 
-function languageTable(locales, referenceKeys) {
+function languageTable(locales, referenceKeys, section) {
   const ref = locales[REFERENCE];
   const rows = [
     '| Langue | Clés | Traduites | Identiques au FR | Vides | Manquantes |',
@@ -113,7 +116,13 @@ function languageTable(locales, referenceKeys) {
     const same =
       lang === REFERENCE
         ? []
-        : referenceKeys.filter(k => k in loc && loc[k] === ref[k] && !SAME_AS_FR_OK.test(String(ref[k])));
+        : referenceKeys.filter(
+            k =>
+              k in loc &&
+              loc[k] === ref[k] &&
+              !SAME_AS_FR_OK.test(String(ref[k])) &&
+              !(ALLOW_SAME[section]?.[lang] ?? []).includes(k)
+          );
     const translated = referenceKeys.length - missing.length - empty.length - same.length;
     rows.push(
       `| \`${lang}\` | ${Object.keys(loc).length} | ${pct(translated, referenceKeys.length)} | ${same.length} | ${empty.length} | ${missing.length} |`
@@ -151,14 +160,14 @@ function generate() {
   // --- Application
   const app = loadAppLocales();
   const appKeys = Object.keys(app[REFERENCE]).sort();
-  const appTable = languageTable(app, appKeys);
+  const appTable = languageTable(app, appKeys, 'app');
   const code = collectCodeStrings();
   const unused = appKeys.filter(k => !isReferenced(k, code));
 
   // --- Pages distantes
   const remote = loadRemoteLocales();
   const remoteKeys = Object.keys(remote[REFERENCE]).sort();
-  const remoteTable = languageTable(remote, remoteKeys);
+  const remoteTable = languageTable(remote, remoteKeys, 'remote');
   // Clé dupliquée dans un bloc de langue : la dernière écrase silencieusement la première
   {
     const src = fs.readFileSync(path.join(REMOTE_DIR, 'i18n.js'), 'utf8');

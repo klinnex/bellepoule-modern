@@ -18,7 +18,7 @@ dépendent de ce job.
 | Doc des tests | `npm run check:tests-doc` | `docs/TESTS.md` pas à jour vs fichiers de test |
 | Doc i18n | `npm run check:i18n-doc` | `docs/I18N.md` pas à jour, ou clé `data-i18n` d'une page distante absente de `src/remote/i18n.js` |
 | Doc Socket.IO | `npm run check:socket-doc` | `docs/SOCKET_EVENTS.md` pas à jour, ou événement émis par une page sans écouteur serveur |
-| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any` ou `console.*`, ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
+| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
 | Tests unitaires | `npm run test:run` | un test Vitest échoue |
 | Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1 MiB, total > 6 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
 
@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 35 | 544 |
+| `src/shared/utils/` | 36 | 552 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -101,10 +101,11 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 7 | 36 |
+| `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **149** | **1504** |
+| **Total** | **151** | **1515** |
 
-Unitaires : 141 fichiers, 1473 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 143 fichiers, 1484 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -484,6 +485,22 @@ Unitaires : 141 fichiers, 1473 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - accepte le point-virgule (Excel FR) et les retours à la ligne dans une cellule
   - applique les traductions, garde l’ordre de la référence, ignore cellules vides et clés inconnues
   - refuse un CSV sans en-tête attendu
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/localeFormat.test.ts</code> — 8 tests</summary>
+
+- **formats selon la langue active (#1160)**
+  - français par défaut
+  - anglais : date jour/mois, point décimal
+  - allemand : date à points, virgule décimale
+  - cantonais (zh-HK) : date et heure localisées
+  - langue inconnue : étiquette transmise telle quelle
+- **pluriels (Intl.PluralRules, #1160)**
+  - 0 / 1 / 2 en français (0 est singulier) et en anglais
+  - cantonais : une seule forme
+  - clés candidates : catégorie, puis \_other, puis la clé nue
 
 </details>
 
@@ -3019,6 +3036,18 @@ Unitaires : 141 fichiers, 1473 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **rendu inerte des noms piégés (#1147)**
   - dashboard : classement, poules et matchs
   - ${page} : match en cours et annonce de carton
+
+</details>
+
+### `src/renderer/contexts/`
+
+<details>
+<summary><code>src/renderer/contexts/__tests__/TranslationContext.test.tsx</code> — 3 tests</summary>
+
+- **TranslationContext : langue active (#1160)**
+  - attribut lang du document et formats Intl suivent la langue
+  - paramètre 0 interpolé (plus remplacé par le gabarit)
+  - pluriel : clés \_one / \_other selon Intl.PluralRules
 
 </details>
 

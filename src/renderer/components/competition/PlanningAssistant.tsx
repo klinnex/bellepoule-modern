@@ -15,6 +15,7 @@ import {
   FlowOptimizationResult,
   TableauFlowMatch,
 } from '../../../shared/services/tournamentFlow';
+import { getActiveLocale } from '../../../shared/utils/localeFormat';
 
 interface PlanningAssistantProps {
   competition: Competition;
@@ -139,7 +140,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
                 }}
               >
                 <strong>Fin estimée :</strong>{' '}
-                {tableauResult.estimatedFinishTime.toLocaleTimeString('fr-FR', {
+                {tableauResult.estimatedFinishTime.toLocaleTimeString(getActiveLocale(), {
                   hour: '2-digit',
                   minute: '2-digit',
                 })}{' '}
@@ -190,7 +191,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
                 }}
               >
                 <strong>Fin estimée :</strong>{' '}
-                {insights.estimatedFinishTime.toLocaleTimeString('fr-FR', {
+                {insights.estimatedFinishTime.toLocaleTimeString(getActiveLocale(), {
                   hour: '2-digit',
                   minute: '2-digit',
                 })}

@@ -6,6 +6,7 @@
 
 import { CreateCompetitionDTO } from '../types/competition.types';
 import { v4 as uuidv4 } from 'uuid';
+import { getActiveLocale } from '../../../shared/utils/localeFormat';
 
 export function validateCompetition(data: CreateCompetitionDTO): string | null {
   if (!data.title?.trim()) {
@@ -37,7 +38,7 @@ export function generateCompetitionId(): string {
 
 export function formatCompetitionDate(date: Date | string): string {
   const d = new Date(date);
-  return d.toLocaleDateString('fr-FR', {
+  return d.toLocaleDateString(getActiveLocale(), {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -51,7 +52,7 @@ export function generateCompetitionTitle(
   category: string,
   date: Date
 ): string {
-  const formattedDate = new Date(date).toLocaleDateString('fr-FR', {
+  const formattedDate = new Date(date).toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

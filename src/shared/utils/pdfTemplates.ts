@@ -7,6 +7,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Pool, Match, MatchStatus, Fencer } from '../types';
+import { getActiveLocale } from './localeFormat';
 
 // Constantes locales
 const DIMENSIONS = {
@@ -275,7 +276,10 @@ export class SimplePdfTemplateManager {
     doc.setFont(fonts.body.family, 'normal');
     doc.setTextColor(colors.text);
     const startTime = pool.startTime || new Date();
-    const timeStr = startTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const timeStr = startTime.toLocaleTimeString(getActiveLocale(), {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
     doc.text(`Début: ${timeStr}`, frameX + 100, frameY + 17);
   }
 
@@ -337,8 +341,10 @@ export class SimplePdfTemplateManager {
   private prepareMatchTableData(matches: Match[]): string[][] {
     return matches.map(match => {
       const time =
-        match.startTime?.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) ||
-        '--:--';
+        match.startTime?.toLocaleTimeString(getActiveLocale(), {
+          hour: '2-digit',
+          minute: '2-digit',
+        }) || '--:--';
 
       let scoreV = '';
       let scoreP = '';
@@ -494,7 +500,7 @@ export function generatePodiumCertificate(
   doc.setTextColor(55, 65, 81);
   const dateStr =
     competition.date instanceof Date
-      ? competition.date.toLocaleDateString('fr-FR')
+      ? competition.date.toLocaleDateString(getActiveLocale())
       : competition.date;
   doc.text(`Compétition : ${competition.title}`, W / 2, curY, { align: 'center' });
   curY += 7;
@@ -509,7 +515,7 @@ export function generatePodiumCertificate(
   // Footer
   doc.setFontSize(9);
   doc.setTextColor(156, 163, 175);
-  const footer = `${competition.organizer ? competition.organizer + ' — ' : ''}Généré avec BellePoule Modern le ${new Date().toLocaleDateString('fr-FR')}`;
+  const footer = `${competition.organizer ? competition.organizer + ' — ' : ''}Généré avec BellePoule Modern le ${new Date().toLocaleDateString(getActiveLocale())}`;
   doc.text(footer, W / 2, H - margin / 2 - 2, { align: 'center' });
 
   return doc;

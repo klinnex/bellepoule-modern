@@ -11,6 +11,7 @@ import {
   isPseudoLocaleEnabled,
   PSEUDO_LOCALE_STORAGE_KEY,
 } from '@shared/utils/pseudoLocale';
+import { pluralKeys, setActiveLanguage } from '@shared/utils/localeFormat';
 import frTranslations from '../locales/fr.json';
 import enTranslations from '../locales/en.json';
 import deTranslations from '../locales/de.json';
@@ -182,6 +183,14 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
     initialize();
   }, []);
 
+  // Langue active : formats Intl (dates, nombres), attribut lang du document (lecteurs
+  // d'écran, césure, correcteur orthographique) (#1160)
+  useEffect(() => {
+    setActiveLanguage(language);
+    document.documentElement.lang = language;
+    document.documentElement.dir = 'ltr';
+  }, [language]);
+
   // Debug i18n : chaînes traduites marquées [!! … !!] (voir pseudoLocale.ts)
   const [pseudoLocale, setPseudoLocaleState] = useState(() =>
     isPseudoLocaleEnabled(typeof localStorage === 'undefined' ? undefined : localStorage)
@@ -198,32 +207,37 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
 
   const t = useCallback(
     (key: TranslationKey, params?: { [key: string]: string | number }): string => {
-      const keys = key.split('.');
-      let value: unknown = translations;
-
-      for (const k of keys) {
-        if (value && typeof value === 'object') {
+      const lookup = (path: string): string | undefined => {
+        let value: unknown = translations;
+        for (const k of path.split('.')) {
+          if (!value || typeof value !== 'object') return undefined;
           value = (value as Record<string, unknown>)[k];
-        } else {
-          return key;
         }
-      }
+        return typeof value === 'string' ? value : undefined;
+      };
 
-      if (typeof value !== 'string') {
-        return key;
+      // Pluriel : `key_one` / `key_other` (… `_few`, `_many` selon la langue) si `count` (#1160)
+      const count = params?.count;
+      const candidates = typeof count === 'number' ? pluralKeys(key, language, count) : [key];
+      let value: string | undefined;
+      for (const candidate of candidates) {
+        value = lookup(candidate);
+        if (value !== undefined) break;
       }
+      if (value === undefined) return key;
 
       const template = pseudoLocale ? pseudoLocalize(value) : value;
 
       if (params) {
         return template.replace(/\{\{(\w+)\}\}/g, (match, paramKey) => {
-          return String(params[paramKey] || match);
+          const param = params[paramKey];
+          return param === undefined || param === null ? match : String(param);
         });
       }
 
       return template;
     },
-    [translations, pseudoLocale]
+    [translations, pseudoLocale, language]
   );
 
   const value: TranslationContextValue = {

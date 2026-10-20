@@ -21,6 +21,7 @@ import { categoryLabel } from '../../shared/utils/categoryLabel';
 import { usePagination } from '../hooks/usePagination';
 import { CompetitionCardSkeleton, SkeletonStyles } from './Skeleton';
 import { useConfirm } from './ConfirmDialog';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 const OPEN_FILE_LABEL = 'Ouvrir…';
 const OPEN_FILE_TITLE = 'Ouvrir un fichier .bpm, .db ou .cotcot';
@@ -252,7 +253,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   }
 
   const formatDate = (date: Date): string => {
-    return new Date(date).toLocaleDateString('fr-FR', {
+    return new Date(date).toLocaleDateString(getActiveLocale(), {
       weekday: 'long',
       day: 'numeric',
       month: 'long',

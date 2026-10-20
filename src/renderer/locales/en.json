@@ -474,7 +474,7 @@
   },
   "kiosk": {
     "ranking": "📊 Ranking",
-    "tableau": "🥇 Tableau",
+    "tableau": "🥇 Bracket",
     "esc_exit": "Esc to quit",
     "close": "✕ Close",
     "finished_matches": "finished matches",

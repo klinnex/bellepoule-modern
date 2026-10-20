@@ -288,7 +288,7 @@
     "matches": "M",
     "name": "Nachname",
     "quest": "Quest",
-    "rank": "Rg",
+    "rank": "Pl.",
     "ratio": "S/M",
     "touches_received": "TE",
     "touches_scored": "TP",
@@ -559,7 +559,7 @@
   },
   "remote_score": {
     "identify_button": "🔦 Identifizieren",
-    "lane_number": "Piste {{number}}",
+    "lane_number": "Bahn {{number}}",
     "prefix_break": "Pause",
     "screen_type_display": "Anzeige",
     "view_bracket": "K.-o.-Tabelle",

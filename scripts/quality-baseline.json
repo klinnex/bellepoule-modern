@@ -3,6 +3,10 @@
   "jsxAttr": 268,
   "any": 553,
   "console": 303,
+  "inlineStyle": 1541,
+  "fontSizePx": 89,
+  "hardLocale": 0,
+  "serverMessage": 155,
   "remoteUnescaped": 0,
   "lineExceptions": {
     "src/renderer/styles/design.css": 2087,

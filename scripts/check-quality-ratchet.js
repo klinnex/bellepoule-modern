@@ -17,6 +17,13 @@
  *                  distantes (src/remote) : risque XSS (#1147). Échapper avec escHtml
  *                  (/common.js) ou faire précéder un fragment HTML audité d'un commentaire
  *                  « html » (voir scripts/remote-escape-analysis.js).
+ *   - inlineStyle : objets `style={{…}}` dans le JSX (renderer) → classes / tokens CSS (#1157)
+ *   - fontSizePx : `fontSize` en px (nombre ou « 12px ») dans le TS/TSX du renderer → échelle
+ *                  `var(--fs-*)` en rem (#1156)
+ *   - hardLocale : `toLocale*String('fr…')` / `new Intl.*('fr…')` en dur → formatDate /
+ *                  formatTime / formatNumber (langue active, #1160)
+ *   - serverMessage : `error: '…'` en clair (texte avec espace) dans les réponses du process
+ *                  principal (src/main) → code d'erreur stable traduit côté client (#1159)
  *
  * Plafond de longueur (#1155) : aucun fichier source de src/ (hors tests) ne dépasse
  * MAX_LINES lignes. Les fichiers déjà au-dessus sont listés dans `lineExceptions`
@@ -38,6 +45,7 @@ const SOURCE_RE = /\.tsx?$/;
 const MAX_LINES = 1500;
 const LINE_RE = /\.(tsx?|html|js|css)$/;
 const EXCLUDE_RE = /(\.test\.tsx?$|\.spec\.tsx?$|\.d\.ts$|[\\/]__tests__[\\/]|[\\/]examples[\\/])/;
+const COUNTERS = ['jsxText', 'jsxAttr', 'any', 'console', 'inlineStyle', 'fontSizePx', 'hardLocale', 'serverMessage'];
 const I18N_ATTRS = new Set(['title', 'placeholder', 'aria-label', 'alt', 'label']);
 // Au moins deux lettres (latin + accents) : ignore ponctuation, symboles, chiffres.
 const WORDISH_RE = /\p{L}{2,}/u;
@@ -60,8 +68,11 @@ function analyze(file) {
   const text = fs.readFileSync(file, 'utf8');
   const kind = file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
   const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, kind);
-  const hits = { jsxText: [], jsxAttr: [], any: [], console: [] };
+  const hits = {};
+  for (const key of COUNTERS) hits[key] = [];
   const renderer = isRenderer(file);
+  const main = file.startsWith(path.join(SRC, 'main') + path.sep);
+  const isFrLiteral = n => n && ts.isStringLiteralLike(n) && /^fr\b/i.test(n.text);
   const at = node => sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1;
 
   function visit(node) {
@@ -86,6 +97,52 @@ function analyze(file) {
       WORDISH_RE.test(node.initializer.text)
     ) {
       hits.jsxAttr.push(at(node));
+    }
+    if (
+      renderer &&
+      ts.isJsxAttribute(node) &&
+      node.name.getText(sf) === 'style' &&
+      node.initializer &&
+      ts.isJsxExpression(node.initializer) &&
+      node.initializer.expression &&
+      ts.isObjectLiteralExpression(node.initializer.expression)
+    ) {
+      hits.inlineStyle.push(at(node));
+    }
+    if (
+      renderer &&
+      ts.isPropertyAssignment(node) &&
+      /^['"]?fontSize['"]?$/.test(node.name.getText(sf)) &&
+      (ts.isNumericLiteral(node.initializer) ||
+        (ts.isStringLiteralLike(node.initializer) && /^\s*[\d.]+px\s*$/.test(node.initializer.text)))
+    ) {
+      hits.fontSizePx.push(at(node));
+    }
+    if (
+      ts.isCallExpression(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      /^toLocale(Date|Time)?String$/.test(node.expression.name.text) &&
+      isFrLiteral(node.arguments[0])
+    ) {
+      hits.hardLocale.push(at(node));
+    }
+    if (
+      ts.isNewExpression(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      ts.isIdentifier(node.expression.expression) &&
+      node.expression.expression.text === 'Intl' &&
+      isFrLiteral(node.arguments && node.arguments[0])
+    ) {
+      hits.hardLocale.push(at(node));
+    }
+    if (
+      main &&
+      ts.isPropertyAssignment(node) &&
+      node.name.getText(sf) === 'error' &&
+      ts.isStringLiteralLike(node.initializer) &&
+      /\s/.test(node.initializer.text.trim())
+    ) {
+      hits.serverMessage.push(at(node));
     }
     ts.forEachChild(node, visit);
   }
@@ -135,8 +192,12 @@ function oversized() {
 }
 
 function collect() {
-  const totals = { jsxText: 0, jsxAttr: 0, any: 0, console: 0, remoteUnescaped: 0 };
-  const details = { jsxText: [], jsxAttr: [], any: [], console: [], remoteUnescaped: [] };
+  const totals = {};
+  const details = {};
+  for (const key of [...COUNTERS, 'remoteUnescaped']) {
+    totals[key] = 0;
+    details[key] = [];
+  }
   for (const file of walk(SRC).sort()) {
     const hits = analyze(file);
     const rel = path.relative(ROOT, file).split(path.sep).join('/');

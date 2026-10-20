@@ -17,6 +17,7 @@ import {
   SUB_TEXT,
   ROW_TEXT,
 } from './liveDashboard.styles';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 interface LiveDashboardProps {
   competition: Competition;
@@ -67,7 +68,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
     totalMatches > 0 ? Math.round((completedMatches.length / totalMatches) * 100) : 0;
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('fr-FR', {
+    return date.toLocaleTimeString(getActiveLocale(), {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -115,7 +116,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
                 fontSize: '1.1rem',
               }}
             >
-              {new Date(competition.date).toLocaleDateString('fr-FR', {
+              {new Date(competition.date).toLocaleDateString(getActiveLocale(), {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',

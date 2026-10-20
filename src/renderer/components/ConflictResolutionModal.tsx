@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { SyncConflict } from '@shared/services/cloudSyncService';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 interface ConflictResolutionModalProps {
   conflicts: SyncConflict[];
@@ -59,7 +60,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                   <span className="font-mono text-xs text-gray-500">{conflict.id}</span>
                 </span>
                 <span className="text-xs text-gray-400">
-                  {conflict.timestamp.toLocaleString('fr-FR')}
+                  {conflict.timestamp.toLocaleString(getActiveLocale())}
                 </span>
               </div>
 
