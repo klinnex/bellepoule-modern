@@ -9,7 +9,6 @@ import { Server as SocketIOServer } from 'socket.io';
 import { createServer as createHttpServer } from 'http';
 import { createServer as createHttpsServer } from 'https';
 import path from 'path';
-import os from 'os';
 import {
   RemoteSession,
   RemoteScoreUpdate,
@@ -41,6 +40,7 @@ import {
   isLocalNetworkOrigin,
   isLoginPath,
   isLoopbackAddress,
+  localIPv4Address,
   normalizeIp,
 } from './remote/network';
 import type { BlackCardRecord, TeamArenaCard, TeamArenaState } from './remote/types';
@@ -58,6 +58,8 @@ import {
   verifyPasswordAsync,
 } from './remote/auth';
 import { applyPageCsp, sendHtmlPage } from './remote/csp';
+import { sanitizeAnnouncement } from './remote/announcement';
+import * as slots from './remote/arenaSlots';
 import {
   buildPage,
   jsonCompression,
@@ -115,6 +117,7 @@ export class RemoteScoreServer {
   private sessionMatches: any[] = []; // Matches passés depuis le renderer
   /** Tournoi des rapières : seuls les matchs de la vague active sont proposés aux tablettes (#1118). `null` = pas de filtre. */
   private activeWaveMatchIds: Set<string> | null = null;
+  private arenaSlots = new slots.ArenaSlotRegistry();
   private sessionPoolArenas = new Map<string, number>(); // poolId → piste prévue (#1078)
   // Durées réelles (ms) des derniers matchs terminés sur les arènes (#1077)
   private recentMatchDurationsMs: number[] = [];
@@ -640,7 +643,8 @@ export class RemoteScoreServer {
   }
 
   private checkArenaAuth(arenaId: string, cookieHeader: string | undefined): boolean {
-    const fullId = arenaId.startsWith('arena') ? arenaId : `arena${arenaId}`;
+    // Sous-piste des rapières : mot de passe et jeton de la piste (#1118)
+    const fullId = slots.baseArenaId(arenaId.startsWith('arena') ? arenaId : `arena${arenaId}`);
     const arena = this.arenas.get(fullId);
     if (!arena?.password) return true;
     const token = this.parseCookies(cookieHeader)[`bp_token_${fullId}`];
@@ -967,6 +971,7 @@ export class RemoteScoreServer {
       getArenaBlackCards: { value: (a: string) => self.getArenaBlackCards(a) },
       guestQueue: { value: (a: string) => self.guestQueue(a) },
       isInActiveWave: { value: (m: { id: string }) => self.isInActiveWave(m) },
+      claimArenaSlot: { value: (a: string, k: string, c?: string) => self.claimArenaSlot(a, k, c) },
       isMatchPlayable: { value: (m: Match | ArenaMatch) => self.isMatchPlayable(m) },
       isPendingMatch: { value: (m: ArenaMatch) => self.isPendingMatch(m) },
       resolvePoolReferee: { value: (id?: string | null) => self.resolvePoolReferee(id) },
@@ -1432,32 +1437,7 @@ export class RemoteScoreServer {
     });
   }
 
-  /** Annonce carton/sortie relayée aux écrans : champs connus seulement, textes neutralisés (#995). */
-  static sanitizeAnnouncement(raw: unknown): Record<string, unknown> | null {
-    if (!raw || typeof raw !== 'object') return null;
-    const a = raw as Record<string, unknown>;
-    const CARDS = ['white', 'yellow', 'red', 'black'];
-    const text = (v: unknown, max = 80): string =>
-      typeof v === 'string'
-        ? v
-            // eslint-disable-next-line no-control-regex
-            .replace(/[<>\u0000-\u001f]/g, '')
-            .slice(0, max)
-            .trim()
-        : '';
-    const card = (v: unknown): string | null =>
-      typeof v === 'string' && CARDS.includes(v) ? v : null;
-    return {
-      fencer: a.fencer === 'B' ? 'B' : 'A',
-      fencerName: text(a.fencerName),
-      cardType: card(a.cardType) ?? 'yellow',
-      isRevalorisation: a.isRevalorisation === true,
-      fromCard: card(a.fromCard),
-      toCard: card(a.toCard),
-      reason: text(a.reason, 120) || null,
-      points: typeof a.points === 'number' && Number.isFinite(a.points) ? Math.trunc(a.points) : 0,
-    };
-  }
+  static sanitizeAnnouncement = sanitizeAnnouncement;
 
   private handleDisconnect(socket: any): void {
     console.log(`Client ${socket.id} disconnected`);
@@ -2147,7 +2127,29 @@ export class RemoteScoreServer {
 
   /** Définit les matchs de la vague active (`null` : tous les matchs, hors mode rapières) (#1118) */
   public setActiveWaveMatchIds(ids: string[] | null): void {
+    const prev = this.activeWaveMatchIds;
     this.activeWaveMatchIds = ids === null ? null : new Set(ids);
+    const same = prev && ids && prev.size === ids.length && ids.every(id => prev.has(id));
+    if (!same) this.arenaSlots.release(this.arenas);
+    // Fin des vagues : sous-pistes sans match en cours supprimées
+    if (ids === null) {
+      for (const [id, a] of this.arenas) {
+        if (slots.isSlotArenaId(id) && a.status !== 'in_progress') this.arenas.delete(id);
+      }
+    }
+  }
+
+  /** Sous-piste attribuée à une tablette arbitre pendant les vagues, sinon la piste (#1118) */
+  public claimArenaSlot(arenaId: string, deviceKey: string, current?: string): string {
+    const base = slots.baseArenaId(arenaId.startsWith('arena') ? arenaId : `arena${arenaId}`);
+    if (this.activeWaveMatchIds === null || !deviceKey) return base;
+    const create = (parent: Arena, slot: number) => {
+      const arena = slots.createSlotArena(parent, slot);
+      this.arenas.set(arena.id, arena);
+      this.arenaMatchQueue.set(arena.id, []);
+      return arena;
+    };
+    return this.arenaSlots.claim(this.arenas, base, deviceKey, create, current) ?? base;
   }
 
   private isMatchPlayable(m: Match | ArenaMatch): boolean {
@@ -2460,9 +2462,18 @@ export class RemoteScoreServer {
   /** Poule propre de la piste, même si un match réassigné d'une autre poule y est chargé */
   private arenaHomePoolId(arena: Arena): string | undefined {
     const cur = arena.currentMatch;
+    // Vagues des rapières : la piste et ses sous-pistes gardent la poule de la piste (#1118)
+    if (!cur?.poolId && this.activeWaveMatchIds !== null) return this.wavePoolId(arena);
     if (!cur?.poolId) return undefined;
     if (arena.activePoolId && this.poolMatchArenaOverrides.has(cur.id)) return arena.activePoolId;
     return cur.poolId;
+  }
+
+  private wavePoolId(arena: Arena): string | undefined {
+    const base = this.arenas.get(slots.baseArenaId(arena.id));
+    if (base?.currentMatch?.poolId && base !== arena) return this.arenaHomePoolId(base);
+    for (const [poolId, n] of this.sessionPoolArenas) if (n === arena.number) return poolId;
+    return arena.activePoolId ?? base?.activePoolId;
   }
 
   private isPendingMatch(m: ArenaMatch): boolean {
@@ -3230,10 +3241,11 @@ export class RemoteScoreServer {
       const poolMatches = this.applySmartMatchOrder(rawPoolMatches as Match[]).filter(
         m => m.status !== MatchStatus.FINISHED && this.isMatchPlayable(m)
       );
+      const taken = slots.matchesTakenBySiblings(this.arenas, arenaId);
       const nextMatch = poolMatches.find(m => {
-        if (m.id === currentMatchId) return false;
+        if (m.id === currentMatchId || taken.has(m.id)) return false;
         const override = this.poolMatchArenaOverrides.get(m.id);
-        return !override || override === arenaId;
+        return !override || override === slots.baseArenaId(arenaId);
       });
       if (nextMatch) {
         const nextReferee = this.resolveReferee(
@@ -3759,37 +3771,7 @@ export class RemoteScoreServer {
   }
 
   public getLocalIPAddress(): string {
-    const interfaces = os.networkInterfaces();
-    // Adaptateurs virtuels courants sur Windows (Hyper-V, WSL, VirtualBox, VMware…)
-    const VIRTUAL_KEYWORDS = [
-      'virtual',
-      'hyper-v',
-      'vmware',
-      'virtualbox',
-      'vethernet',
-      'loopback adapter',
-      'pseudo',
-      'teredo',
-      'isatap',
-    ];
-    const candidates: string[] = [];
-
-    for (const [name, addrs] of Object.entries(interfaces)) {
-      const nameLower = name.toLowerCase();
-      if (VIRTUAL_KEYWORDS.some(kw => nameLower.includes(kw))) continue;
-      for (const iface of addrs || []) {
-        if (iface.family === 'IPv4' && !iface.internal) {
-          candidates.push(iface.address);
-        }
-      }
-    }
-
-    // Préférer une adresse LAN classique (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
-    const preferred = candidates.find(
-      ip =>
-        ip.startsWith('192.168.') || ip.startsWith('10.') || /^172\.(1[6-9]|2\d|3[01])\./.test(ip)
-    );
-    return preferred ?? candidates[0] ?? 'localhost';
+    return localIPv4Address();
   }
 
   public getServerUrl(): string {

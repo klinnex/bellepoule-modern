@@ -1933,9 +1933,10 @@
       };
 
       class RefereeApp {
-        constructor() {
+        constructor(slotArenaId) {
           this.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
-          this.arenaId = this.getArenaId();
+          this.baseArenaId = this.getArenaId();
+          this.arenaId = slotArenaId || this.baseArenaId;
           this.arenaNumber = this.arenaNumberFromId();
           {
             const cbParam = new URLSearchParams(window.location.search).get('cb');
@@ -2001,12 +2002,14 @@
         }
 
         arenaNumberFromId() {
-          return this.arenaId.replace('arena', '');
+          return this.baseArenaId.replace('arena', '');
         }
 
         init() {
-          document.getElementById('arena-number').textContent = this.arenaNumber;
-          document.getElementById('next-arena-number').textContent = this.arenaNumber;
+          const slotNum = (/s(\d+)$/.exec(this.arenaId) || [])[1]; // sous-piste « 3 · 2 » (#1118)
+          const arenaLabel = slotNum ? `${this.arenaNumber} · ${slotNum}` : this.arenaNumber;
+          document.getElementById('arena-number').textContent = arenaLabel;
+          document.getElementById('next-arena-number').textContent = arenaLabel;
           this.setupSocketListeners();
           this.setupTimerInteractions();
           this.setupLongPressInteractions();
@@ -2062,10 +2065,7 @@
             .catch(() => {});
           // Service Worker PWA
           if ('serviceWorker' in navigator) {
-            navigator.serviceWorker
-              .register('/sw.js')
-              .then(() => console.log('[SW] Service Worker enregistré'))
-              .catch(err => console.warn('[SW] Enregistrement échoué:', err));
+            navigator.serviceWorker.register('/sw.js').catch(err => console.warn('[SW] Enregistrement échoué:', err));
           }
           // Indicateurs hors-ligne
           window.addEventListener('online', () => {
@@ -2337,11 +2337,7 @@
 
         setupSocketListeners() {
           // Identifiant persistant de cette tablette (survit aux rechargements/reconnexions)
-          let _screenId = localStorage.getItem('bp_screen_id');
-          if (!_screenId) {
-            _screenId = 'scr_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-            localStorage.setItem('bp_screen_id', _screenId);
-          }
+          const _screenId = window.bpScreenId() || 'scr_anon';
 
           // Mise à jour live de la config TTS depuis les paramètres globaux
           this.socket.on('tts:update', d => { if (d) this.applyTtsConfig(d); });
@@ -4363,6 +4359,9 @@
         }
 
         async loadNextMatches() {
+          // Vague lancée ou terminée depuis le chargement : changer de sous-piste (#1118)
+          const idle = !this.timerRunning && this.matchStatus !== 'in_progress';
+          if (idle && (await window.bpClaimArenaSlot(this.baseArenaId, this.arenaId)) !== this.arenaId) return window.location.reload();
           const container = document.getElementById('next-matches-list');
           container.innerHTML = `<div class="next-matches-empty">${window.T('remote.loading')}</div>`;
           try {
@@ -4546,7 +4545,7 @@
         try {
           await window.initRemoteI18n();
           document.title = window.T('referee.title');
-          refereeApp = new RefereeApp();
+          refereeApp = new RefereeApp(await window.bpClaimArenaSlot(RefereeApp.prototype.getArenaId()));
           window.refereeApp = refereeApp; // résolu par la délégation data-click (common.js)
         } catch (e) {
           console.error('[RefereeApp] Erreur init:', e);

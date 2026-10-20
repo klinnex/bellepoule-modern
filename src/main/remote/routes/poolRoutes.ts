@@ -8,6 +8,7 @@ import os from 'os';
 import type { Server as SocketIOServer } from 'socket.io';
 import { MatchStatus, type Score } from '../../../shared/types';
 import type { RegistrationRouteContext } from './registrationRoutes';
+import { baseArenaId } from '../arenaSlots';
 
 /** Tireur d'une poule tel que transmis par le renderer. */
 export type PoolFencer = Record<string, unknown> & { id: string };
@@ -28,7 +29,8 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
   // API: authentification par mot de passe pour une arène
   ctx.app.post('/api/auth/login/:arenaId', async (req, res) => {
     const rawId = req.params.arenaId;
-    const fullId = rawId.startsWith('arena') ? rawId : `arena${rawId}`;
+    // Sous-piste des rapières : connexion à la piste (#1118)
+    const fullId = baseArenaId(rawId.startsWith('arena') ? rawId : `arena${rawId}`);
     // Limites par IP et par arène + blocage progressif
     const ip = ctx.getClientIp(req);
     const limited = ctx.checkLoginAllowed(ip, fullId);

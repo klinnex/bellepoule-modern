@@ -272,6 +272,14 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
     });
   });
 
+  // Tournoi des rapières : sous-piste de la tablette pendant les vagues, sinon la piste (#1118)
+  ctx.app.post('/api/arenas/:arenaId/slot', ctx.requireArenaAuth, (req, res) => {
+    const { deviceKey, current } = (req.body ?? {}) as { deviceKey?: unknown; current?: unknown };
+    const key = typeof deviceKey === 'string' ? deviceKey.slice(0, 64) : '';
+    const cur = typeof current === 'string' ? current : undefined;
+    res.json({ arenaId: ctx.claimArenaSlot(req.params.arenaId, key, cur) });
+  });
+
   ctx.app.post('/api/arenas/:arenaId/assign', ctx.requireArenaAuth, (req, res) => {
     const { match } = req.body;
     try {
