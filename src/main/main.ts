@@ -756,6 +756,7 @@ function createMenu(language?: string): void {
               db.forceSave();
               console.log('Sauvegarde manuelle effectuée');
               mainWindow?.webContents.send('menu:save');
+              void saveGlobalBackup();
             } catch (error) {
               console.error('Échec sauvegarde manuelle:', error);
               mainWindow?.webContents.send('autosave:failed');
@@ -1004,26 +1005,46 @@ async function exportCompetitionDialog(
   }
 }
 
-async function handleSaveAs(): Promise<void> {
+// Dernier fichier .bpm global (toutes compétitions) de la session : cible de Ctrl+S (#1140)
+let sessionBackupPath: string | null = null;
+
+/** Écrit le fichier global mémorisé, sinon demande l'emplacement (« Enregistrer sous » global) */
+async function saveGlobalBackup(): Promise<void> {
+  if (sessionBackupPath && fs.existsSync(path.dirname(sessionBackupPath))) {
+    try {
+      await db.exportToFile(sessionBackupPath);
+      mainWindow?.webContents.send('file:saved', sessionBackupPath);
+      return;
+    } catch (error) {
+      console.error('Échec sauvegarde du fichier global:', error);
+    }
+  }
+  await saveGlobalAs();
+}
+
+async function saveGlobalAs(): Promise<void> {
   const L = getL();
+  const result = await dialog.showSaveDialog(mainWindow!, {
+    title: L.saveTitle,
+    defaultPath: sessionBackupPath ?? 'competition.bpm',
+    filters: [{ name: L.filterBpm, extensions: ['bpm'] }],
+  });
+  if (result.canceled || !result.filePath) return;
+  try {
+    await db.exportToFile(result.filePath);
+    sessionBackupPath = result.filePath;
+    mainWindow?.webContents.send('file:saved', result.filePath);
+  } catch (error) {
+    dialog.showErrorBox(L.errTitle, `${L.saveErr} ${error}`);
+  }
+}
+
+async function handleSaveAs(): Promise<void> {
   if (currentCompetitionId && db.getCompetition(currentCompetitionId)) {
     await exportCompetitionDialog(currentCompetitionId);
     return;
   }
-  const result = await dialog.showSaveDialog(mainWindow!, {
-    title: L.saveTitle,
-    defaultPath: 'competition.bpm',
-    filters: [{ name: L.filterBpm, extensions: ['bpm'] }],
-  });
-
-  if (!result.canceled && result.filePath) {
-    try {
-      await db.exportToFile(result.filePath);
-      mainWindow?.webContents.send('file:saved', result.filePath);
-    } catch (error) {
-      dialog.showErrorBox(L.errTitle, `${L.saveErr} ${error}`);
-    }
-  }
+  await saveGlobalAs();
 }
 
 async function handleExport(format: string): Promise<void> {
