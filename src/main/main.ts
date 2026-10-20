@@ -25,6 +25,13 @@ import { AutoUpdater } from './autoUpdater';
 import { Card, Competition, Fencer, FencerStatus, Match, MatchStatus, Pool } from '../shared/types';
 import type { MatchSignatureRequest } from '../shared/types/remote';
 import { decodeTextFile } from '../shared/utils/fileParser/detect';
+import {
+  assertAuthorizedPath,
+  authorizePath,
+  checkZipEntries,
+  readBoundedFile,
+  validateImportedFencers,
+} from './pathAuthorization';
 
 // Database instance
 const db = new DatabaseManager();
@@ -1088,6 +1095,7 @@ async function handleImport(format: string): Promise<void> {
     try {
       if (format === 'fencers-bpf') {
         // Fichier binaire : envoyer uniquement le chemin, le renderer appellera importFencersArchive
+        authorizePath(filepath, 'read');
         mainWindow?.webContents.send('menu:import', format, filepath, '');
       } else {
         const content = decodeTextFile(await fs.promises.readFile(filepath));
@@ -1398,11 +1406,11 @@ ipcMain.handle('db:getCompetitionTimeline', async (_, competitionId: string) => 
 
 // File handlers
 ipcMain.handle('file:export', async (_, filepath) => {
-  await db.exportToFile(filepath);
+  await db.exportToFile(assertAuthorizedPath(filepath, 'write'));
 });
 
 ipcMain.handle('file:import', async (_, filepath) => {
-  await db.importFromFile(filepath);
+  await db.importFromFile(assertAuthorizedPath(filepath, 'read'));
 });
 
 ipcMain.handle('file:openDialog', async () => {
@@ -1438,10 +1446,8 @@ async function writeFileAtomic(filepath: string, content: Buffer | string): Prom
 
 // File content write handler
 ipcMain.handle('file:writeContent', async (_, filepath: string, content: string) => {
-  if (!filepath || typeof filepath !== 'string' || !path.isAbsolute(filepath)) {
-    throw new Error('Invalid file path');
-  }
-  const resolved = path.resolve(filepath);
+  // Chemin issu d'une boîte de dialogue native uniquement (#1146)
+  const resolved = assertAuthorizedPath(filepath, 'write');
   const appDir = path.resolve(app.getAppPath());
   if (resolved.startsWith(appDir)) {
     throw new Error('Writing inside app directory is not allowed');
@@ -1451,6 +1457,7 @@ ipcMain.handle('file:writeContent', async (_, filepath: string, content: string)
 
 // Photo ZIP export handler
 ipcMain.handle('file:exportPhotos', async (_, competitionId: string, filepath: string) => {
+  filepath = assertAuthorizedPath(filepath, 'write');
   const photos = db.getFencerPhotos(competitionId);
   const zip = new JSZip();
 
@@ -1471,13 +1478,15 @@ ipcMain.handle('file:exportPhotos', async (_, competitionId: string, filepath: s
 
 // Photo ZIP import handler
 ipcMain.handle('file:importPhotos', async (_, competitionId: string, filepath: string) => {
-  const buffer = await fs.promises.readFile(filepath);
+  filepath = assertAuthorizedPath(filepath, 'read', ['.zip']);
+  const buffer = await readBoundedFile(filepath);
   const zip = await JSZip.loadAsync(buffer);
+  const safeNames = checkZipEntries(zip);
 
   const photos: { license: string; photo: string }[] = [];
 
-  for (const [filename, file] of Object.entries(zip.files)) {
-    if (file.dir) continue;
+  for (const filename of safeNames) {
+    const file = zip.files[filename];
     const ext = path.extname(filename).toLowerCase();
     if (!['.jpg', '.jpeg', '.png'].includes(ext)) continue;
     const basename = path.basename(filename, ext);
@@ -1491,6 +1500,7 @@ ipcMain.handle('file:importPhotos', async (_, competitionId: string, filepath: s
 
 // Fencer archive (.bpf) export handler
 ipcMain.handle('file:exportFencersArchive', async (_, competitionId: string, filepath: string) => {
+  filepath = assertAuthorizedPath(filepath, 'write');
   const fencers = db.getFencersByCompetition(competitionId);
   const competition = db.getCompetition(competitionId);
   const zip = new JSZip();
@@ -1511,11 +1521,13 @@ ipcMain.handle('file:exportFencersArchive', async (_, competitionId: string, fil
 
 // Fencer archive (.bpf) import handler
 ipcMain.handle('file:importFencersArchive', async (_, competitionId: string, filepath: string) => {
-  const buffer = await fs.promises.readFile(filepath);
+  filepath = assertAuthorizedPath(filepath, 'read', ['.bpf']);
+  const buffer = await readBoundedFile(filepath);
   const zip = await JSZip.loadAsync(buffer);
+  checkZipEntries(zip);
   const fencersFile = zip.file('fencers.json');
   if (!fencersFile) throw new Error('Format .bpf invalide : fencers.json manquant');
-  const fencers = JSON.parse(await fencersFile.async('string'));
+  const fencers = validateImportedFencers(JSON.parse(await fencersFile.async('string')));
   return db.upsertFencersByLicense(competitionId, fencers);
 });
 
@@ -1525,6 +1537,7 @@ ipcMain.handle('dialog:openFile', async (_, options) => {
 
   if (!result.canceled && result.filePaths.length > 0) {
     const filePath = result.filePaths[0];
+    authorizePath(filePath, 'read');
     try {
       const content = decodeTextFile(await fs.promises.readFile(filePath));
       return { filePath, content };
@@ -1538,7 +1551,9 @@ ipcMain.handle('dialog:openFile', async (_, options) => {
 });
 
 ipcMain.handle('dialog:saveFile', async (_, options) => {
-  return dialog.showSaveDialog(mainWindow!, options);
+  const result = await dialog.showSaveDialog(mainWindow!, options);
+  if (!result.canceled && result.filePath) authorizePath(result.filePath, 'write');
+  return result;
 });
 
 // Window resize handler
@@ -1666,8 +1681,9 @@ function renderHtmlToPdfBuffer(html: string): Promise<Buffer> {
 // PDF generation via hidden BrowserWindow (propre, sans menus d'application)
 ipcMain.handle('file:printHtmlToPDF', async (_, html: string, outputPath: string) => {
   try {
+    const target = assertAuthorizedPath(outputPath, 'write', ['.pdf']);
     const data = await renderHtmlToPdfBuffer(html);
-    await fs.promises.writeFile(outputPath, data);
+    await fs.promises.writeFile(target, data);
     return { success: true, path: outputPath };
   } catch (e) {
     return { success: false, error: e instanceof Error ? e.message : String(e) };
