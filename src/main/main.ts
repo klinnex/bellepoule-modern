@@ -25,6 +25,7 @@ import { AutoUpdater } from './autoUpdater';
 import { Card, Competition, Fencer, FencerStatus, Match, MatchStatus, Pool } from '../shared/types';
 import type { MatchSignatureRequest } from '../shared/types/remote';
 import { decodeTextFile } from '../shared/utils/fileParser/detect';
+import { isAllowedExternalUrl, isAppUrl, isPermissionAllowed } from './windowSecurity';
 import {
   assertAuthorizedPath,
   authorizePath,
@@ -616,6 +617,7 @@ function createWindow(initialLang?: string): void {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
       preload: path.join(__dirname, 'preload.js'),
       v8CacheOptions: 'code',
       additionalArguments: initialLang ? [`--initial-lang=${initialLang}`] : [],
@@ -633,12 +635,35 @@ function createWindow(initialLang?: string): void {
     closeSplash(() => mainWindow?.show());
   });
 
-  // Allow camera access for webcam photo capture
-  const cameraPermissions = new Set(['media', 'camera', 'microphone']);
-  mainWindow.webContents.session.setPermissionRequestHandler(
-    (_webContents, permission, callback) => {
-      callback(cameraPermissions.has(permission));
-    }
+  // Sécurité (#1148) : ni navigation ni fenêtre hors de l'application
+  const isDev = process.env.NODE_ENV === 'development';
+  const appUrlOpts = { dev: isDev, rendererDir: path.join(__dirname, '../renderer') };
+  const isApp = (url: string) => isAppUrl(url, appUrlOpts);
+  const wc = mainWindow.webContents;
+  wc.setWindowOpenHandler(({ url }) => {
+    if (isAllowedExternalUrl(url)) void shell.openExternal(url);
+    else console.warn('[Security] Ouverture de fenêtre refusée:', url);
+    return { action: 'deny' };
+  });
+  const blockNavigation = (event: Electron.Event, url: string) => {
+    if (isApp(url)) return;
+    event.preventDefault();
+    if (isAllowedExternalUrl(url)) void shell.openExternal(url);
+    else console.warn('[Security] Navigation refusée:', url);
+  };
+  wc.on('will-navigate', blockNavigation);
+  wc.on('will-redirect', blockNavigation);
+  wc.on('will-attach-webview', event => event.preventDefault());
+
+  // Caméra (photo tireur) : application uniquement, vidéo seulement, jamais le micro
+  const session = wc.session;
+  session.setPermissionRequestHandler((contents, permission, callback, details) => {
+    const url = details.requestingUrl || contents.getURL();
+    const mediaTypes = (details as { mediaTypes?: string[] }).mediaTypes;
+    callback(isPermissionAllowed(permission, url, isApp, mediaTypes));
+  });
+  session.setPermissionCheckHandler((contents, permission, requestingOrigin) =>
+    isPermissionAllowed(permission, requestingOrigin || contents?.getURL() || '', isApp)
   );
 
   // Security: Set CSP headers for all requests
