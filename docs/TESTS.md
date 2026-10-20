@@ -92,17 +92,17 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 3 | 123 |
+| `src/database/` | 3 | 127 |
 | `src/main/` | 6 | 124 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| `src/remote/` | 2 | 10 |
+| `src/remote/` | 4 | 25 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **138** | **1423** |
+| **Total** | **140** | **1442** |
 
-Unitaires : 130 fichiers, 1392 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 132 fichiers, 1411 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1723,7 +1723,7 @@ Unitaires : 130 fichiers, 1392 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/database/database.test.ts</code> — 35 tests</summary>
+<summary><code>src/database/database.test.ts</code> — 36 tests</summary>
 
 - **DatabaseManager**
   - **initialize (open)**
@@ -1739,6 +1739,8 @@ Unitaires : 130 fichiers, 1392 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - **getFencer**
     - retourne null si le tireur n'est pas trouvé
     - retourne un objet Fencer si trouvé
+  - **addFencer : texte normalisé (#1147)**
+    - retire \< \> et caractères de contrôle des champs texte avant insertion
   - **createMatch**
     - insère un match avec les champs requis
   - **updateMatch**
@@ -1779,7 +1781,7 @@ Unitaires : 130 fichiers, 1392 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/database/validation.test.ts</code> — 84 tests</summary>
+<summary><code>src/database/validation.test.ts</code> — 87 tests</summary>
 
 - **ValidationError**
   - est une instance de Error
@@ -1880,6 +1882,10 @@ Unitaires : 130 fichiers, 1392 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - supprime les espaces en début et fin
   - supprime les balises \< et \>
   - conserve les caractères normaux
+- **sanitizeText (#1147)**
+  - retire \< et \> mais garde les noms usuels
+  - remplace les caractères de contrôle par des espaces et réduit les espaces
+  - null et undefined donnent une chaîne vide
 - **sanitizeId**
   - conserve lettres, chiffres, tirets et underscores
   - supprime les caractères spéciaux
@@ -2838,11 +2844,43 @@ Unitaires : 130 fichiers, 1392 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/remote/remoteEscapeAnalysis.test.ts</code> — 13 tests</summary>
+
+- **escHtml (/common.js)**
+  - échappe & \< \> " ' et \`
+  - null et undefined donnent une chaîne vide, 0 reste 0
+- **gabarit html (/common.js)**
+  - échappe les interpolations par défaut
+  - html.raw laisse passer un fragment de confiance, les tableaux sont concaténés
+- **analyseur des interpolations HTML**
+  - signale une donnée brute dans un gabarit HTML
+  - accepte escHtml, esc, escapeHtml, tk, nombres et conditions entre littéraux
+  - ignore les gabarits sans balise
+  - accepte un fragment audité marqué par un commentaire html
+  - arr.map(…).join() : seuls les gabarits internes comptent
+  - signale une concaténation brute assignée à innerHTML
+  - analyse les scripts inline des pages HTML
+- **pages distantes (barrière de non-régression)**
+  - aucune interpolation HTML non échappée dans src/remote
+  - chaque page qui utilise escHtml charge /common.js
+
+</details>
+
+<details>
 <summary><code>src/remote/remoteHtmlEscaping.test.ts</code> — 2 tests</summary>
 
 - **échappement HTML des pages distantes**
   - dashboard.html échappe noms et clubs
   - app.js échappe les noms des tireurs
+
+</details>
+
+<details>
+<summary><code>src/remote/remotePagesXss.test.ts</code> — 2 tests</summary>
+
+- **rendu inerte des noms piégés (#1147)**
+  - dashboard : classement, poules et matchs
+  - ${page} : match en cours et annonce de carton
 
 </details>
 

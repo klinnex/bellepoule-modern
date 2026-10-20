@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Saisie Poule – BellePoule</title>
+    <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
@@ -659,7 +660,7 @@
 
       function showStatusMessage(msg) {
         document.getElementById('pool-container').innerHTML =
-          `<div class="status-message">${msg}</div>`;
+          `<div class="status-message">${escHtml(msg)}</div>`;
       }
 
       // ── Rendu principal ──

@@ -4,9 +4,9 @@
  * Licensed under GPL-3.0
  */
 
-const CACHE_NAME = 'bellepoule-referee-v3';
+const CACHE_NAME = 'bellepoule-referee-v4';
 // Seuls les fichiers réellement servis (pas de /styles.css ni /app.js qui sont inline)
-const ASSETS = ['/', '/referee.html', '/arena.html'];
+const ASSETS = ['/', '/referee.html', '/arena.html', '/common.js'];
 
 const OFFLINE_QUEUE_DB = 'bellepoule-offline-queue';
 const ACTIONS_STORE = 'actions';

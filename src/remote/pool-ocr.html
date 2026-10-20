@@ -192,6 +192,7 @@
     .row-actions { display: flex; gap: 8px; }
     .label-sm { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
   </style>
+  <script src="/common.js"></script>
   <script src="/i18n.js"></script>
 </head>
 <body>
@@ -470,7 +471,7 @@ function showPoolSelector() {
       sel.innerHTML = '<option value="">' + tk('ocr.choose_pool') + '</option>';
       pools.forEach(p => {
         const label = p.name || tk('ocr.pool_n', { n: p.number || '?' });
-        sel.innerHTML += `<option value="${p.id}">${label}</option>`;
+        sel.innerHTML += `<option value="${escHtml(p.id)}">${escHtml(label)}</option>`;
       });
       sel.addEventListener('change', () => {
         if (sel.value) {
@@ -698,7 +699,7 @@ function buildValidationUI() {
   for (let row = 0; row < n; row++) {
     const f = fencers[row];
     const fname = f ? `${(f.lastName || '').toUpperCase()} ${f.firstName || ''}`.trim() : `T${row+1}`;
-    let tr = `<tr><td>${row+1}</td><td class="cell-name" title="${fname}">${fname}</td>`;
+    let tr = `<tr><td>${escHtml(row+1)}</td><td class="cell-name" title="${escHtml(fname)}">${escHtml(fname)}</td>`;
 
     for (let col = 0; col < n; col++) {
       if (row === col) {
@@ -711,7 +712,7 @@ function buildValidationUI() {
       const hiConf = conf >= 70;
       const cls = hiConf ? 'hi-conf' : 'low-conf';
       const badge = conf > 0
-        ? `<span class="conf-badge ${cls}">${conf}%</span>`
+        ? `<span class="conf-badge ${cls}">${escHtml(conf)}%</span>`
         : '';
 
       // fencerA = fencers[row], fencerB = fencers[col]
@@ -724,21 +725,17 @@ function buildValidationUI() {
           type="text"
           value="${escHtml(text)}"
           maxlength="4"
-          data-row="${row}"
-          data-col="${col}"
-          data-mid="${mid}"
+          data-row="${escHtml(row)}"
+          data-col="${escHtml(col)}"
+          data-mid="${escHtml(mid)}"
           placeholder="V5"
-          aria-label="Score ${row+1} vs ${col+1}"
-        />${badge}
+          aria-label="Score ${escHtml(row+1)} vs ${escHtml(col+1)}"
+        />${/* html */ badge}
       </td>`;
     }
     tr += '</tr>';
     tbl.innerHTML += tr;
   }
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── Import scores ─────────────────────────────────────────────────────────────

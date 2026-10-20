@@ -116,7 +116,7 @@ bellepoule-modern/
 │   │   ├── public.html, overlay.html, overlay-config.html, matchs.html
 │   │   ├── kiosk.html, dashboard.html, lobby.html
 │   │   ├── login.html, checkin.html, register.html, trainer.html
-│   │   ├── app.js, i18n.js, styles.css, sw.js
+│   │   ├── app.js, common.js, i18n.js, styles.css, sw.js
 │   │   └── unicorn-bg.png
 │   │
 │   └── examples/

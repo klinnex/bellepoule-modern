@@ -210,6 +210,54 @@ describe('DatabaseManager', () => {
     });
   });
 
+  describe('addFencer : texte normalisé (#1147)', () => {
+    beforeEach(async () => {
+      await manager.open();
+    });
+
+    const row = {
+      id: 'f1',
+      ref: 1,
+      last_name: 'X',
+      first_name: 'Y',
+      birth_date: null,
+      gender: 'M',
+      nationality: 'FRA',
+      region: null,
+      club: null,
+      license: null,
+      ranking: null,
+      status: 'N',
+      seed_number: null,
+      final_ranking: null,
+      pool_stats: null,
+      photo: null,
+      m: 0,
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z',
+    };
+
+    it('retire < > et caractères de contrôle des champs texte avant insertion', () => {
+      const run = vi.fn().mockReturnValue({ changes: 1 });
+      mockDb.prepare.mockReturnValue(makeStmt({ run, get: vi.fn().mockReturnValue(row) }));
+      manager.addFencer('c1', {
+        lastName: '<img src=x onerror=1>DUPONT\n',
+        firstName: 'Jean\t<b>',
+        club: '<script>Club</script>',
+        region: ' IDF ',
+        license: '12<3>',
+      });
+      const params = run.mock.calls.find(c => c.length >= 12)!;
+      // id, competition_id, ref, last_name, first_name, birth_date, gender, nationality,
+      // club, region, license
+      expect(params[3]).toBe('img src=x onerror=1DUPONT');
+      expect(params[4]).toBe('Jean b');
+      expect(params[8]).toBe('scriptClub/script');
+      expect(params[9]).toBe('IDF');
+      expect(params[10]).toBe('123');
+    });
+  });
+
   describe('createMatch', () => {
     beforeEach(async () => {
       await manager.open();

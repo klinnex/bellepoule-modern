@@ -13,6 +13,10 @@
  *   - jsxAttr    : title / placeholder / aria-label / alt littéraux (renderer)
  *   - any        : `any` explicite (annotations, `as any`)
  *   - console    : appels console.* (préférer @shared/services/logger)
+ *   - remoteUnescaped : interpolations `${…}` non échappées dans les gabarits HTML des pages
+ *                  distantes (src/remote) : risque XSS (#1147). Échapper avec escHtml
+ *                  (/common.js) ou faire précéder un fragment HTML audité d'un commentaire
+ *                  « html » (voir scripts/remote-escape-analysis.js).
  *
  * Analyse AST (TypeScript), sortie déterministe. La référence ne peut que
  * baisser : --update refuse d'augmenter un compteur.
@@ -20,6 +24,7 @@
 const fs = require('fs');
 const path = require('path');
 const ts = require('typescript');
+const { analyzeRemoteSource } = require('./remote-escape-analysis');
 
 const ROOT = path.join(__dirname, '..');
 const SRC = path.join(ROOT, 'src');
@@ -81,17 +86,34 @@ function analyze(file) {
   return hits;
 }
 
+const REMOTE_DIR = path.join(SRC, 'remote');
+const REMOTE_SKIP = new Set(['i18n.js', 'sw.js', 'common.js']);
+
+/** Pages distantes : interpolations HTML non échappées (une entrée par occurrence) */
+function remoteFindings() {
+  const out = [];
+  for (const name of fs.readdirSync(REMOTE_DIR).sort()) {
+    if (!/\.(html|js)$/.test(name) || REMOTE_SKIP.has(name)) continue;
+    const text = fs.readFileSync(path.join(REMOTE_DIR, name), 'utf8');
+    const lines = analyzeRemoteSource(name, text).map(h => h.line);
+    if (lines.length) out.push({ file: `src/remote/${name}`, lines });
+  }
+  return out;
+}
+
 function collect() {
-  const totals = { jsxText: 0, jsxAttr: 0, any: 0, console: 0 };
-  const details = { jsxText: [], jsxAttr: [], any: [], console: [] };
+  const totals = { jsxText: 0, jsxAttr: 0, any: 0, console: 0, remoteUnescaped: 0 };
+  const details = { jsxText: [], jsxAttr: [], any: [], console: [], remoteUnescaped: [] };
   for (const file of walk(SRC).sort()) {
     const hits = analyze(file);
     const rel = path.relative(ROOT, file).split(path.sep).join('/');
-    for (const key of Object.keys(totals)) {
+    for (const key of Object.keys(hits)) {
       totals[key] += hits[key].length;
       if (hits[key].length) details[key].push({ file: rel, lines: hits[key] });
     }
   }
+  details.remoteUnescaped = remoteFindings();
+  totals.remoteUnescaped = details.remoteUnescaped.reduce((n, f) => n + f.lines.length, 0);
   return { totals, details };
 }
 

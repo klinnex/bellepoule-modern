@@ -180,6 +180,7 @@ Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
 ├── login.html / checkin.html / register.html / trainer.html
 ├── app.js
 ├── i18n.js                  # Client-side i18n for remote interfaces
+├── common.js                # escHtml / html`` partagés : toute donnée dynamique passe par escHtml avant innerHTML (cliquet remoteUnescaped)
 ├── styles.css
 ├── sw.js                    # Service worker for offline tablet support
 └── (file hors-ligne : classe OfflineQueueInline dans referee.html, testée par refereeOfflineQueue.test.ts)

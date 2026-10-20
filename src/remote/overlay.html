@@ -39,6 +39,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="overlay.page_title">Overlay BellePoule</title>
+    <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
@@ -461,7 +462,7 @@
         function renderCards(cards) {
           return cards.filter(c => ['white', 'yellow', 'red', 'black'].includes(c)).map(c => {
             const label = c === 'white' ? 'B' : c === 'yellow' ? 'J' : 'R';
-            return `<span class="card-badge ${c}">${label}</span>`;
+            return `<span class="card-badge ${escHtml(c)}">${escHtml(label)}</span>`;
           }).join('');
         }
 

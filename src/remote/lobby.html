@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="lobby.page_title">En attente — BellePoule Modern</title>
+    <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
@@ -128,7 +129,7 @@
           document.body.appendChild(ov);
         }
         ov.innerHTML = '<div style="background:rgba(0,0,0,0.85);border:3px solid #3b82f6;border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">'
-          + '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">📺 ' + String(label).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])) + '</div>'
+          + '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">📺 ' + escHtml(label) + '</div>'
           + '<div style="font-size:1rem;color:#94a3b8;">Identification écran</div>'
           + '</div>';
         ov.style.display = 'flex';
