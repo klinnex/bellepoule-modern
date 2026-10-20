@@ -91,6 +91,12 @@
 
 /* ── FormulaPhaseCard ───────────────────────────────────── */
 
+/* Réglage non pris en compte dans le mode courant (ex. avancement en mode rapières) */
+.form-group--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .formula-phase-card {
   border: 1px solid var(--color-border, #e5e7eb);
   border-left: 4px solid #3b82f6;

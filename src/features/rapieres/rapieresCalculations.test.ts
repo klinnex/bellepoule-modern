@@ -14,6 +14,7 @@ import {
   waveCount,
   waveMatchIds,
   waveMatchOrder,
+  waveSheetMatches,
 } from './rapieresCalculations';
 import { calculateOverallRanking } from '../../shared/utils/poolCalculations';
 import { RapieresLevel, RapieresTeamInfo } from './rapieres.types';
@@ -163,6 +164,52 @@ describe('Tournoi des rapières (#1118)', () => {
       const wave1 = waveMatchIds([pool], 1);
       play(pool, m => wave1.has(m.id) && m.fencerA!.id !== 't1' && m.fencerB!.id !== 't1');
       expect(isWaveComplete([pool], 1)).toBe(true);
+    });
+  });
+
+  describe('feuilles de la vague active', () => {
+    it('ne contient que les matchs de la vague, triés par poule', () => {
+      const poolB = makePool(
+        ids(4).map(id => fencer(`b${id}`)),
+        2
+      );
+      const poolA = makePool(
+        ids(4).map(id => fencer(`a${id}`)),
+        1
+      );
+      const sheets = waveSheetMatches([poolB, poolA], 1);
+      expect(sheets).toHaveLength(4);
+      expect(sheets.map(m => m.label)).toEqual([
+        'Vague 1 — Poule 1',
+        'Vague 1 — Poule 1',
+        'Vague 1 — Poule 2',
+        'Vague 1 — Poule 2',
+      ]);
+      const wave1 = new Set([...waveMatchIds([poolA], 1), ...waveMatchIds([poolB], 1)]);
+      expect(sheets.every(m => wave1.has(m.id))).toBe(true);
+      expect(sheets.every(m => !m.isBye && m.scoreA === null && m.winner === null)).toBe(true);
+    });
+
+    it('vague 0 ou inexistante : aucune feuille', () => {
+      const pool = makePool(ids(4).map(id => fencer(id)));
+      expect(waveSheetMatches([pool], 0)).toEqual([]);
+      expect(waveSheetMatches([pool], 9)).toEqual([]);
+    });
+
+    it('exclut les matchs annulés et ceux d’une équipe retirée', () => {
+      const fencers = ids(4).map(id => fencer(id));
+      const pool = makePool(fencers);
+      const wave1 = [...waveMatchIds([pool], 1)];
+      pool.matches.find(m => m.id === wave1[0])!.status = MatchStatus.CANCELLED;
+      expect(waveSheetMatches([pool], 1)).toHaveLength(1);
+      fencers.forEach(f => (f.status = FencerStatus.FORFAIT));
+      expect(waveSheetMatches([pool], 1)).toHaveLength(0);
+    });
+
+    it('reprend la piste de la poule', () => {
+      const pool = makePool(ids(4).map(id => fencer(id)));
+      pool.strip = 3;
+      expect(waveSheetMatches([pool], 1).every(m => m.arena === 3)).toBe(true);
     });
   });
 

@@ -26,6 +26,8 @@ interface Props {
   /** Mode spécial choisi (bouton « Modes spéciaux » affiché si `onSpecialModeChange`) (#1118) */
   specialMode?: CompetitionSpecialMode;
   onSpecialModeChange?: (mode: CompetitionSpecialMode | undefined) => void;
+  /** Grise « Avancement vers la phase suivante » (par défaut : actif en mode rapières) (#1118) */
+  advancementDisabled?: boolean;
 }
 
 const SPECIAL_MODES: CompetitionSpecialMode[] = ['rapieres'];
@@ -103,8 +105,10 @@ const FormulaBuilder_: React.FC<Props> = ({
   readOnly,
   specialMode,
   onSpecialModeChange,
+  advancementDisabled: advancementDisabledProp,
 }) => {
   const { t } = useTranslation();
+  const advancementDisabled = advancementDisabledProp ?? specialMode === 'rapieres';
   const [templateModal, setTemplateModal] = useState<'save' | 'load' | null>(null);
   const [specialMenuOpen, setSpecialMenuOpen] = useState(false);
 
@@ -305,6 +309,7 @@ const FormulaBuilder_: React.FC<Props> = ({
                     canMoveDown={index < formula.phases.length - 1}
                     onMoveUp={() => movePhase(index, index - 1)}
                     onMoveDown={() => movePhase(index, index + 1)}
+                    advancementDisabled={advancementDisabled}
                   />
                   {index < formula.phases.length - 1 && <div className="phase-connector">↓</div>}
                 </React.Fragment>

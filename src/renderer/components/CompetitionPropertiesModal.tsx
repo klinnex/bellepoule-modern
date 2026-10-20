@@ -30,7 +30,10 @@ import {
 } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { createDefaultCustomFormula } from '../../shared/utils/tournamentTemplates';
-import { deriveSettingsFromFormula } from '../../shared/utils/customFormulaSettings';
+import {
+  deriveSettingsFromFormula,
+  isRapieresMode,
+} from '../../shared/utils/customFormulaSettings';
 import { FormulaBuilder } from './formula/FormulaBuilder';
 
 interface CompetitionPropertiesModalProps {
@@ -625,6 +628,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 formula={customFormula}
                 fencerCount={32}
                 onChange={setCustomFormula}
+                advancementDisabled={isRapieresMode(competition.weapon, competition.settings)}
               />
             )}
 

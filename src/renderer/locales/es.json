@@ -644,6 +644,8 @@
     "waves_ended": "Oleadas detenidas: clasificación según los asaltos disputados.",
     "resume_waves": "Reanudar oleadas",
     "end_waves": "Terminar oleadas",
+    "print_wave_sheets": "Imprimir hojas de la oleada",
+    "print_wave_sheets_empty": "No hay combates que imprimir en esta oleada",
     "wave_legend": "Asaltos de la oleada en curso",
     "confirm_end_waves": "¿Detener las oleadas ahora? Los asaltos no disputados no cuentan; se pasa a la clasificación general intermedia."
   }

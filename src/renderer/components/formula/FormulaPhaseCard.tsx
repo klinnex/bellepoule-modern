@@ -68,6 +68,8 @@ interface Props {
   canMoveDown?: boolean;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
+  /** Réglage « Avancement vers la phase suivante » grisé (mode rapières : non pris en compte) (#1118) */
+  advancementDisabled?: boolean;
 }
 
 const NODE_TYPE_LABELS: Record<FormulaPhaseNodeType, string> = {
@@ -93,6 +95,7 @@ const FormulaPhaseCard_: React.FC<Props> = ({
   canMoveDown,
   onMoveUp,
   onMoveDown,
+  advancementDisabled,
 }) => {
   const [expanded, setExpanded] = useState(index === 0);
 
@@ -282,13 +285,16 @@ const FormulaPhaseCard_: React.FC<Props> = ({
                 />
               </div>
 
-              <div className="form-group">
+              <div
+                className={advancementDisabled ? 'form-group form-group--disabled' : 'form-group'}
+                aria-disabled={advancementDisabled || undefined}
+              >
                 <label className="form-label">Avancement vers la phase suivante</label>
                 <AdvancementRuleEditor
                   rule={poolCfg.advancementRule}
                   onChange={r => updatePoolConfig({ advancementRule: r })}
                   inputFencers={inputFencers}
-                  readOnly={readOnly}
+                  readOnly={readOnly || advancementDisabled}
                 />
               </div>
             </>

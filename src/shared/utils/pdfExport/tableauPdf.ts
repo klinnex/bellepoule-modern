@@ -20,6 +20,18 @@ export interface TableauMatchForPDF {
   winner: { id: string } | null;
   isBye: boolean;
   arena?: number | null;
+  /** Libellé affiché à la place du nom du tour (ex. « Vague 2 — Poule 3 ») */
+  label?: string;
+}
+
+/** Variantes de rendu des feuilles (ex. feuilles de vague du tournoi des rapières, #1118) */
+export interface TableauSheetOptions {
+  /** Sous-titre de l'en-tête (défaut : « Feuilles d'arbitrage — Élimination directe ») */
+  subtitle?: string;
+  /** Pastille de l'en-tête (défaut : « ED ») */
+  badge?: string;
+  /** Nom du fichier PDF (défaut : tableau-elimination.pdf) */
+  fileName?: string;
 }
 
 /** Matchs réels (non-exempts, deux tireurs assignés). */
@@ -48,7 +60,8 @@ export function generateTableauHTML(
   logoBase64?: string,
   template?: PdfTemplate,
   showScores = false,
-  signatures?: Record<string, { A?: string; B?: string }>
+  signatures?: Record<string, { A?: string; B?: string }>,
+  options?: TableauSheetOptions
 ): string {
   const real = realMatches(matches);
   const now = new Date().toLocaleDateString('fr-FR', {
@@ -58,7 +71,7 @@ export function generateTableauHTML(
   });
 
   const renderMatchCard = (match: TableauMatchForPDF, num: number): string => {
-    const roundName = getTableauRoundName(match.round);
+    const roundName = match.label ?? getTableauRoundName(match.round);
     const nameA =
       `${match.fencerA!.lastName.toUpperCase()} ${match.fencerA!.firstName ?? ''}`.trim();
     const nameB =
@@ -178,24 +191,23 @@ export function generateTableauHTML(
     ${logoBase64 ? `<img class="doc-header-logo" src="${logoBase64}" alt="Logo" />` : ''}
     <div class="doc-header-left">
       <h1>${effectiveTitle}</h1>
-      <div class="subtitle">Feuilles d'arbitrage — Élimination directe</div>
+      <div class="subtitle">${options?.subtitle ?? "Feuilles d'arbitrage — Élimination directe"}</div>
     </div>
-    <div class="doc-header-badge">ED</div>
+    <div class="doc-header-badge">${options?.badge ?? 'ED'}</div>
   </div>
   <div class="gold-bar"></div>`;
 
   let globalMatchNum = 0;
   const pagesHTML = pages
     .map((page, pageIdx) => {
-      let lastRound: number | null = null;
+      let lastRound: string | null = null;
       const cards = page.matches
         .map(match => {
           globalMatchNum++;
+          const roundName = match.label ?? getTableauRoundName(match.round);
           const roundHeader =
-            match.round !== lastRound
-              ? `<div class="round-sub-header">${getTableauRoundName(match.round)}</div>`
-              : '';
-          lastRound = match.round;
+            roundName !== lastRound ? `<div class="round-sub-header">${roundName}</div>` : '';
+          lastRound = roundName;
           return roundHeader + renderMatchCard(match, globalMatchNum);
         })
         .join('');
@@ -374,7 +386,8 @@ export async function exportTableauToPDF(
   title: string = 'Tableau Élimination Directe',
   logoBase64?: string,
   template?: PdfTemplate,
-  signatures?: Record<string, { A?: string; B?: string }>
+  signatures?: Record<string, { A?: string; B?: string }>,
+  options?: TableauSheetOptions
 ): Promise<void> {
   const real = realMatches(matches);
   if (real.length === 0) {
@@ -388,9 +401,10 @@ export async function exportTableauToPDF(
     logoBase64,
     template,
     false,
-    signatures
+    signatures,
+    options
   );
-  await savePDF(html, `tableau-elimination.pdf`);
+  await savePDF(html, options?.fileName ?? 'tableau-elimination.pdf');
 }
 
 export async function printTableauHTML(
@@ -399,7 +413,8 @@ export async function printTableauHTML(
   title: string = 'Tableau Élimination Directe',
   logoBase64?: string,
   template?: PdfTemplate,
-  signatures?: Record<string, { A?: string; B?: string }>
+  signatures?: Record<string, { A?: string; B?: string }>,
+  options?: TableauSheetOptions
 ): Promise<void> {
   const real = realMatches(matches);
   if (real.length === 0) {
@@ -412,7 +427,8 @@ export async function printTableauHTML(
     logoBase64,
     template,
     false,
-    signatures
+    signatures,
+    options
   );
   const api = (window as any).electronAPI;
   if (!api?.file?.printHtml) {
@@ -432,7 +448,8 @@ export async function previewTableauHTML(
   title: string = 'Tableau Élimination Directe',
   logoBase64?: string,
   template?: PdfTemplate,
-  signatures?: Record<string, { A?: string; B?: string }>
+  signatures?: Record<string, { A?: string; B?: string }>,
+  options?: TableauSheetOptions
 ): Promise<void> {
   const real = realMatches(matches);
   if (real.length === 0) {
@@ -445,7 +462,8 @@ export async function previewTableauHTML(
     logoBase64,
     template,
     false,
-    signatures
+    signatures,
+    options
   );
   const api = (window as any).electronAPI;
   if (!api?.file?.previewHtmlAsPDF) {

@@ -644,6 +644,8 @@
     "waves_ended": "輪次已停止：按已完成的比賽排名。",
     "resume_waves": "繼續輪次",
     "end_waves": "結束輪次",
+    "print_wave_sheets": "列印本輪次賽程表",
+    "print_wave_sheets_empty": "此輪次沒有可列印的比賽",
     "wave_legend": "本輪比賽",
     "confirm_end_waves": "現在停止輪次？未進行的比賽不計；進入中期總排名。"
   }

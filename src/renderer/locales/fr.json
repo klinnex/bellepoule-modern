@@ -644,6 +644,8 @@
     "waves_ended": "Vagues arrêtées : classement établi sur les matchs joués.",
     "resume_waves": "Reprendre les vagues",
     "end_waves": "Terminer les vagues",
+    "print_wave_sheets": "Imprimer les feuilles de la vague",
+    "print_wave_sheets_empty": "Aucun match à imprimer dans cette vague",
     "wave_legend": "Matchs de la vague en cours",
     "confirm_end_waves": "Arrêter les vagues maintenant ? Les matchs non joués ne comptent pas ; passage au classement général intermédiaire."
   }

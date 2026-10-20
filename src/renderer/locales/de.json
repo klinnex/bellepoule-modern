@@ -644,6 +644,8 @@
     "waves_ended": "Wellen beendet: Wertung nach den ausgetragenen Gefechten.",
     "resume_waves": "Wellen fortsetzen",
     "end_waves": "Wellen beenden",
+    "print_wave_sheets": "Wellenblätter drucken",
+    "print_wave_sheets_empty": "Keine Begegnung zum Drucken in dieser Welle",
     "wave_legend": "Gefechte der aktuellen Welle",
     "confirm_end_waves": "Wellen jetzt beenden? Nicht ausgetragene Gefechte zählen nicht; weiter zur Zwischenwertung."
   }
