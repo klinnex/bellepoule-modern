@@ -19,8 +19,8 @@ export function buildPageCsp(nonce?: string): string {
   return [
     "default-src 'self'",
     nonce ? `script-src 'nonce-${nonce}' 'self'` : "script-src 'self'",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' data: https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "img-src 'self' data: blob:",
     "media-src 'self' blob:",
     "connect-src 'self' ws: wss:",

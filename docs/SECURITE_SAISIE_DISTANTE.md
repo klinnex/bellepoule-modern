@@ -67,3 +67,10 @@ L'IP client est celle de la connexion TCP. `X-Forwarded-For` est ignoré, sauf d
 - Les timers d'animation (barres de progression, pan du tableau) ne travaillent pas quand la page est masquée. Remplacement par `requestAnimationFrame`/CSS non fait.
 - Mesure (Chromium + serveur Socket.IO réel, kiosque inactif) : 0 requête HTTP en 15–40 s ; 7 requêtes de rechargement par événement `kiosk:data` ; 7 après coupure/reprise du réseau.
 - Tests : `kioskNoPolling.test.ts`, `remoteScoreServer.test.ts` (`kiosk:data`).
+
+## Polices embarquées (#1153)
+
+- Inter variable (OFL, latin + latin-ext, `font-display: swap`) est servie localement : `src/renderer/assets/fonts/` (bundle webpack) et `src/remote/fonts/` + `src/remote/fonts.css` (pages kiosque/dashboard, `/fonts/*` en cache 1 an, préchargement `Inter-latin`, précache du service worker v7). DSEG7 était déjà embarquée.
+- Plus aucun hôte Google Fonts : retirés des CSP (`main.ts`, `index.html`, `remote/csp.ts`), des `preconnect` et de `design.css` ; aucune IP d'appareil envoyée à un tiers, rendu identique hors-ligne.
+- zh-HK : Inter ne couvre pas le CJK ; les piles `font-family` retombent sur les polices système, comme avant.
+- Test : `embeddedFonts.test.ts` ; vérifié dans Chromium : seul l'hôte local est contacté et Inter se charge.
