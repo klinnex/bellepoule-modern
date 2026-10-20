@@ -18,6 +18,11 @@
  *                  (/common.js) ou faire précéder un fragment HTML audité d'un commentaire
  *                  « html » (voir scripts/remote-escape-analysis.js).
  *
+ * Plafond de longueur (#1155) : aucun fichier source de src/ (hors tests) ne dépasse
+ * MAX_LINES lignes. Les fichiers déjà au-dessus sont listés dans `lineExceptions`
+ * (quality-baseline.json) avec leur taille actuelle : elle ne peut que baisser, et
+ * une exception disparaît d'elle-même quand le fichier repasse sous le plafond.
+ *
  * Analyse AST (TypeScript), sortie déterministe. La référence ne peut que
  * baisser : --update refuse d'augmenter un compteur.
  */
@@ -30,6 +35,8 @@ const ROOT = path.join(__dirname, '..');
 const SRC = path.join(ROOT, 'src');
 const BASELINE = path.join(__dirname, 'quality-baseline.json');
 const SOURCE_RE = /\.tsx?$/;
+const MAX_LINES = 1500;
+const LINE_RE = /\.(tsx?|html|js|css)$/;
 const EXCLUDE_RE = /(\.test\.tsx?$|\.spec\.tsx?$|\.d\.ts$|[\\/]__tests__[\\/]|[\\/]examples[\\/])/;
 const I18N_ATTRS = new Set(['title', 'placeholder', 'aria-label', 'alt', 'label']);
 // Au moins deux lettres (latin + accents) : ignore ponctuation, symboles, chiffres.
@@ -101,6 +108,32 @@ function remoteFindings() {
   return out;
 }
 
+/** Longueur (lignes) des fichiers source de src/, hors tests et typages générés */
+function fileLengths() {
+  const out = {};
+  const stack = [SRC];
+  while (stack.length) {
+    const dir = stack.pop();
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) stack.push(full);
+      else if (LINE_RE.test(entry.name) && !EXCLUDE_RE.test(full)) {
+        const text = fs.readFileSync(full, 'utf8');
+        const lines = text.split('\n').length - (text.endsWith('\n') ? 1 : 0);
+        out[path.relative(ROOT, full).split(path.sep).join('/')] = lines;
+      }
+    }
+  }
+  return out;
+}
+
+/** Fichiers au-dessus du plafond */
+function oversized() {
+  const res = {};
+  for (const [f, n] of Object.entries(fileLengths())) if (n > MAX_LINES) res[f] = n;
+  return res;
+}
+
 function collect() {
   const totals = { jsxText: 0, jsxAttr: 0, any: 0, console: 0, remoteUnescaped: 0 };
   const details = { jsxText: [], jsxAttr: [], any: [], console: [], remoteUnescaped: [] };
@@ -144,6 +177,19 @@ function main() {
       }
       next[key] = value;
     }
+    const big = oversized();
+    const known = baseline && baseline.lineExceptions;
+    for (const [f, n] of Object.entries(big)) {
+      if (known && known[f] === undefined) {
+        console.error(`✗ ${f}: ${n} lignes > plafond ${MAX_LINES} — nouvelle exception interdite, découper le fichier.`);
+        process.exit(1);
+      }
+      if (known && n > known[f]) {
+        console.error(`✗ ${f}: ${n} lignes > référence ${known[f]} — découper plutôt que relever.`);
+        process.exit(1);
+      }
+    }
+    next.lineExceptions = big;
     fs.writeFileSync(BASELINE, JSON.stringify(next, null, 2) + '\n');
     console.log('Référence mise à jour :', next);
     return;
@@ -164,6 +210,26 @@ function main() {
       console.log(`↓ ${key}: ${value} (référence ${ref}) — lancer --update pour verrouiller le gain`);
     } else {
       console.log(`✓ ${key}: ${value}`);
+    }
+  }
+  const exceptions = baseline.lineExceptions || {};
+  const lengths = fileLengths();
+  for (const [f, n] of Object.entries(lengths)) {
+    if (n <= MAX_LINES) continue;
+    const ref = exceptions[f];
+    if (ref === undefined) {
+      failed = true;
+      console.log(`✗ ${f}: ${n} lignes > plafond ${MAX_LINES} (découper le fichier)`);
+    } else if (n > ref) {
+      failed = true;
+      console.log(`✗ ${f}: ${n} lignes (référence ${ref}, +${n - ref})`);
+    } else if (n < ref) {
+      console.log(`↓ ${f}: ${n} lignes (référence ${ref}) — lancer --update pour verrouiller le gain`);
+    }
+  }
+  for (const f of Object.keys(exceptions)) {
+    if (lengths[f] === undefined || lengths[f] <= MAX_LINES) {
+      console.log(`↓ ${f}: sous le plafond — lancer --update pour retirer l'exception`);
     }
   }
   if (failed) {
