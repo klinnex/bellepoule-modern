@@ -795,6 +795,40 @@ describe('RemoteScoreServer', () => {
       expect(matchesOf('arena1')).toEqual(['p1-m1', 'p1-m2']);
     });
 
+    it('rapières : une sous-piste par tablette, matchs non partagés entre sous-pistes (#1118)', () => {
+      // Hors vagues : toujours la piste
+      expect(server.claimArenaSlot('arena1', 'devA')).toBe('arena1');
+      server.setActiveWaveMatchIds(['p1-m1', 'p1-m2']);
+      expect(server.claimArenaSlot('arena1', 'devA')).toBe('arena1');
+      expect(server.claimArenaSlot('1', 'devB')).toBe('arena1s2');
+      // Rechargement : même sous-piste
+      expect(server.claimArenaSlot('arena1', 'devA')).toBe('arena1');
+      expect(server.claimArenaSlot('arena1s2', 'devB')).toBe('arena1s2');
+      const slot = (server as any).arenas.get('arena1s2');
+      expect(slot).toMatchObject({ number: 1, status: 'idle', currentMatch: null });
+      // Le match chargé sur la piste n'est pas proposé à la sous-piste
+      expect(matchesOf('arena1s2')).toEqual(['p1-m2']);
+      expect(matchesOf('arena1')).toEqual(['p1-m1', 'p1-m2']);
+      // Fin des vagues : sous-piste supprimée, retour sur la piste
+      server.setActiveWaveMatchIds(null);
+      expect((server as any).arenas.has('arena1s2')).toBe(false);
+      expect(server.claimArenaSlot('arena1s2', 'devB')).toBe('arena1');
+    });
+
+    it('rapières : sous-piste authentifiée avec le jeton de la piste (#1118)', () => {
+      server.setActiveWaveMatchIds(['p1-m1', 'p1-m2']);
+      server.claimArenaSlot('arena1', 'devA');
+      server.claimArenaSlot('arena1', 'devB');
+      server.setArenaPassword('1', 'secret123');
+      const store = new Map<string, number>();
+      (server as any).arenaTokens.set('arena1', store);
+      const token = (server as any).issueToken(store);
+      const check = (id: string, cookie?: string) => (server as any).checkArenaAuth(id, cookie);
+      expect(check('arena1s2', undefined)).toBe(false);
+      expect(check('arena1s2', `bp_token_arena1=${token}`)).toBe(true);
+      expect(check('arena1s2', `bp_token_arena1s2=${token}`)).toBe(false);
+    });
+
     it('les réassignations suivantes se rajoutent par le haut', () => {
       server.updateMatchArena('p2-m1', 2, 1);
       server.updateMatchArena('p2-m2', 2, 1);

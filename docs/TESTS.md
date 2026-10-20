@@ -95,16 +95,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 11 | 167 |
+| `src/main/` | 12 | 175 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| `src/remote/` | 6 | 34 |
+| `src/remote/` | 7 | 36 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **147** | **1494** |
+| **Total** | **149** | **1504** |
 
-Unitaires : 139 fichiers, 1463 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 141 fichiers, 1473 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1940,6 +1940,19 @@ Unitaires : 139 fichiers, 1463 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/remote/arenaSlots.test.ts</code> — 6 tests</summary>
+
+- **sous-pistes des rapières (#1118)**
+  - identifiants : piste de base et détection
+  - copie de la piste : numéro, mot de passe, poule, état vierge
+  - attribution : piste puis sous-pistes, stable par tablette, piste occupée sautée
+  - préférence pour la sous-piste actuelle, plafond par piste
+  - libération : seules les sous-pistes sans match en cours
+  - matchs pris par les autres sous-pistes (terminés exclus)
+
+</details>
+
+<details>
 <summary><code>src/main/remote/auth.test.ts</code> — 10 tests</summary>
 
 - **parseCookies**
@@ -2024,7 +2037,7 @@ Unitaires : 139 fichiers, 1463 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 95 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 97 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -2082,6 +2095,8 @@ Unitaires : 139 fichiers, 1463 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - **réassignation manuelle de piste (#1037)**
     - match réassigné en tête de liste de la piste cible, retiré de la piste source
     - rapières : seuls les matchs de la vague active sont proposés aux tablettes (#1118)
+    - rapières : une sous-piste par tablette, matchs non partagés entre sous-pistes (#1118)
+    - rapières : sous-piste authentifiée avec le jeton de la piste (#1118)
     - les réassignations suivantes se rajoutent par le haut
     - joué ensuite, puis la piste reprend sa propre poule
   - **arbitre des matchs de tableau assigné depuis l'appli (#977)**
@@ -2918,6 +2933,15 @@ Unitaires : 139 fichiers, 1463 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 ### `src/remote/`
+
+<details>
+<summary><code>src/remote/arenaSlotClient.test.ts</code> — 2 tests</summary>
+
+- **claimArenaSlot (/common.js)**
+  - envoie la clé persistante de la tablette et la sous-piste courante
+  - refus, erreur réseau ou réponse invalide : piste ou sous-piste courante
+
+</details>
 
 <details>
 <summary><code>src/remote/embeddedFonts.test.ts</code> — 5 tests</summary>

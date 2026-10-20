@@ -12,6 +12,7 @@ import type {
 } from '../../../shared/types/remote';
 import type { BlackCardRecord } from '../types';
 import type { PoolRouteContext } from './poolRoutes';
+import { baseArenaId, matchesTakenBySiblings } from '../arenaSlots';
 
 /** État et opérations utilisés par les routes de matchs des arènes. */
 export interface MatchRouteContext extends PoolRouteContext {
@@ -31,6 +32,7 @@ export interface MatchRouteContext extends PoolRouteContext {
   getArenaBlackCards(arenaId: string): BlackCardRecord[];
   guestQueue(arenaId: string): ArenaMatch[];
   isInActiveWave(match: { id: string }): boolean;
+  claimArenaSlot(arenaId: string, deviceKey: string, current?: string): string;
   isMatchPlayable(match: Match | ArenaMatch): boolean;
   isPendingMatch(match: ArenaMatch): boolean;
   resolvePoolReferee(poolId?: string | null): { id: string; name: string } | null;
@@ -62,6 +64,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       // atteigne la file d'attente DE (Tier 3) au lieu de bloquer dessus.
       const currentPoolId = arena ? ctx.arenaHomePoolId(arena) : undefined;
       if (arena && currentPoolId && ctx.sessionMatches.length > 0) {
+        const taken = matchesTakenBySiblings(ctx.arenas, arenaId);
         const rawPoolMatches = ctx.sessionMatches
           .filter((m: any) => {
             const matchPoolId = m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
@@ -70,7 +73,9 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
             if (!ctx.isInActiveWave(m)) return false;
             // Match réassigné sur une autre piste : plus dans la liste de celle-ci (#1037)
             const override = ctx.poolMatchArenaOverrides.get(m.id);
-            if (override && override !== arenaId) return false;
+            if (override && override !== baseArenaId(arenaId)) return false;
+            // Match déjà chargé sur une autre sous-piste de la piste (rapières, #1118)
+            if (taken.has(m.id)) return false;
             const scoreUpdate = ctx.sessionMatchScores.get(m.id);
             const effectiveStatus = scoreUpdate?.status ?? m.status;
             if (effectiveStatus === MatchStatus.FINISHED) return false;

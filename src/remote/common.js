@@ -81,7 +81,8 @@
   }
 
   function dispatch(event, attr) {
-    var el = event.target && event.target.closest ? event.target.closest('[data-' + attr + ']') : null;
+    var el =
+      event.target && event.target.closest ? event.target.closest('[data-' + attr + ']') : null;
     if (!el) return;
     var target = resolvePath(el.getAttribute('data-' + attr));
     if (!target) return;
@@ -109,7 +110,49 @@
     });
   }
 
+  /** Identifiant persistant de la tablette (survit aux rechargements), `null` sans stockage. */
+  function screenId() {
+    try {
+      var id = localStorage.getItem('bp_screen_id');
+      if (!id) {
+        id = 'scr_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+        localStorage.setItem('bp_screen_id', id);
+      }
+      return id;
+    } catch (e) {
+      return null;
+    }
+  }
+  root.bpScreenId = screenId;
+
+  /**
+   * Tournoi des rapières (#1118) : sous-piste attribuée à cette tablette arbitre pendant
+   * les vagues (plusieurs matchs d'une même piste en simultané), sinon la piste elle-même.
+   * Résout `current` (ou la piste) si le serveur est injoignable ou refuse.
+   */
+  function claimArenaSlot(baseId, current) {
+    var fallback = current || baseId;
+    var key = screenId();
+    if (!key || typeof fetch !== 'function') return Promise.resolve(fallback);
+    return fetch('/api/arenas/' + encodeURIComponent(baseId) + '/slot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceKey: key, current: current }),
+    })
+      .then(function (r) {
+        return r.ok ? r.json() : { arenaId: fallback };
+      })
+      .then(function (d) {
+        var id = d && d.arenaId;
+        return typeof id === 'string' && /^arena\d+(s\d+)?$/.test(id) ? id : fallback;
+      })
+      .catch(function () {
+        return fallback;
+      });
+  }
+  root.bpClaimArenaSlot = claimArenaSlot;
+
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { escHtml: escHtml, html: html };
+    module.exports = { escHtml: escHtml, html: html, claimArenaSlot: claimArenaSlot };
   }
 })(typeof window !== 'undefined' ? window : globalThis);
