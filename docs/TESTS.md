@@ -93,16 +93,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 123 |
-| `src/main/` | 6 | 123 |
+| `src/main/` | 6 | 124 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 2 | 10 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **138** | **1422** |
+| **Total** | **138** | **1423** |
 
-Unitaires : 130 fichiers, 1391 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 130 fichiers, 1392 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1947,7 +1947,7 @@ Unitaires : 130 fichiers, 1391 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 92 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 93 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -2001,6 +2001,7 @@ Unitaires : 130 fichiers, 1391 tests. E2E : 8 fichiers, 31 tests (comptage stati
     - sans piste → ordre des poules sur pistes libres
   - **réassignation manuelle de piste (#1037)**
     - match réassigné en tête de liste de la piste cible, retiré de la piste source
+    - rapières : seuls les matchs de la vague active sont proposés aux tablettes (#1118)
     - les réassignations suivantes se rajoutent par le haut
     - joué ensuite, puis la piste reprend sa propre poule
   - **arbitre des matchs de tableau assigné depuis l'appli (#977)**

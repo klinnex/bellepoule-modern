@@ -750,6 +750,17 @@ describe('RemoteScoreServer', () => {
       expect(matchesOf('arena2')).toEqual(['p2-m2']);
     });
 
+    it('rapières : seuls les matchs de la vague active sont proposés aux tablettes (#1118)', () => {
+      server.setActiveWaveMatchIds(['p1-m2']);
+      expect(matchesOf('arena1')).toEqual(['p1-m2']);
+      // Vague pas encore lancée : le match courant préchargé n'est pas proposé non plus
+      server.setActiveWaveMatchIds([]);
+      expect(matchesOf('arena1')).toEqual([]);
+      // Fin des vagues / autre mode : plus de filtre
+      server.setActiveWaveMatchIds(null);
+      expect(matchesOf('arena1')).toEqual(['p1-m1', 'p1-m2']);
+    });
+
     it('les réassignations suivantes se rajoutent par le haut', () => {
       server.updateMatchArena('p2-m1', 2, 1);
       server.updateMatchArena('p2-m2', 2, 1);

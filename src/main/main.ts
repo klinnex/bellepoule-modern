@@ -1909,6 +1909,20 @@ ipcMain.handle(
 );
 
 ipcMain.handle(
+  'remote:setActiveWave',
+  async (_, competitionId: string, matchIds: string[] | null) => {
+    try {
+      const entry = remoteServers.get(competitionId);
+      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      entry.server.setActiveWaveMatchIds(Array.isArray(matchIds) ? matchIds : null);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
+    }
+  }
+);
+
+ipcMain.handle(
   'remote:syncPoolMatches',
   async (_, competitionId: string, poolsData: Array<{ poolId: string; matches: any[] }>) => {
     try {
