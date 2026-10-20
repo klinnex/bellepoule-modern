@@ -836,6 +836,11 @@ export class RemoteScoreServer {
       if (!item) return next();
       return sendStored(req, res, item);
     });
+    // Polices embarquées (Inter, #1153) : cache long
+    this.app.use(
+      '/fonts',
+      express.static(path.join(remotePath, 'fonts'), { maxAge: '365d', immutable: true })
+    );
     this.app.use(express.static(remotePath));
 
     this.app.use((req, res, next) => {

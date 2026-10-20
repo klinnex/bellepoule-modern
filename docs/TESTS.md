@@ -100,11 +100,11 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| `src/remote/` | 5 | 29 |
+| `src/remote/` | 6 | 34 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **145** | **1485** |
+| **Total** | **146** | **1490** |
 
-Unitaires : 137 fichiers, 1454 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 138 fichiers, 1459 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2907,6 +2907,18 @@ Unitaires : 137 fichiers, 1454 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 ### `src/remote/`
+
+<details>
+<summary><code>src/remote/embeddedFonts.test.ts</code> — 5 tests</summary>
+
+- **Inter embarquée (#1153)**
+  - %s : woff2 valides + licence OFL _(each)_
+  - @font-face locaux, font-display: swap
+  - aucun hôte Google Fonts dans les sources, pages et CSP
+  - pages kiosque/dashboard : préchargement local
+  - service worker met les polices en précache
+
+</details>
 
 <details>
 <summary><code>src/remote/kioskNoPolling.test.ts</code> — 4 tests</summary>

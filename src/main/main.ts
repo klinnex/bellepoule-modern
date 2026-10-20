@@ -672,8 +672,8 @@ function createWindow(initialLang?: string): void {
         'Content-Security-Policy': [
           "default-src 'self'; " +
             "script-src 'self'; " +
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-            "font-src 'self' https://fonts.gstatic.com; " +
+            "style-src 'self' 'unsafe-inline'; " +
+            "font-src 'self'; " +
             "img-src 'self' data: blob:; " +
             "media-src 'self' blob:; " +
             "connect-src 'self' http://localhost:* https://api.github.com https://api.ffe.fr; " +
