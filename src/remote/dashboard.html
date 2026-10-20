@@ -728,6 +728,14 @@
         }, 1000);
       }
 
+      // Échappement HTML des données issues des tireurs (noms, clubs)
+      function escHtml(v) {
+        return String(v == null ? '' : v).replace(
+          /[&<>"']/g,
+          c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+        );
+      }
+
       // Update Rankings
       function updateRankings(data) {
         const tbody = document.getElementById('ranking-body');
@@ -745,9 +753,9 @@
               ${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}
             </td>
             <td>
-              <div class="fencer-name">${r.lastName} ${r.firstName}</div>
+              <div class="fencer-name">${escHtml(r.lastName)} ${escHtml(r.firstName)}</div>
             </td>
-            <td class="club">${r.club || '-'}</td>
+            <td class="club">${escHtml(r.club || '-')}</td>
             <td class="victories">${r.victories}</td>
             <td class="quest">${r.quest}</td>
           </tr>
@@ -800,8 +808,8 @@
                   <tr>
                     <td class="rank rank-${i + 1}">${i + 1}</td>
                     <td>
-                      <div class="fencer-name">${r.lastName} ${r.firstName}</div>
-                      <div class="club">${r.club || ''}</div>
+                      <div class="fencer-name">${escHtml(r.lastName)} ${escHtml(r.firstName)}</div>
+                      <div class="club">${escHtml(r.club || '')}</div>
                     </td>
                     <td class="victories">${r.victories}</td>
                     <td class="quest">${r.quest}</td>
@@ -845,15 +853,15 @@
             </div>
             <div class="match-score">
               <div class="match-fencer ${match.winner === 'A' ? 'winner' : ''}">
-                <div class="name">${match.fencerA}</div>
-                <div class="club">${match.clubA || ''}</div>
+                <div class="name">${escHtml(match.fencerA)}</div>
+                <div class="club">${escHtml(match.clubA || '')}</div>
               </div>
               <div class="score-display score-a">${match.scoreA}</div>
               <span class="vs">VS</span>
               <div class="score-display score-b">${match.scoreB}</div>
               <div class="match-fencer ${match.winner === 'B' ? 'winner' : ''}">
-                <div class="name">${match.fencerB}</div>
-                <div class="club">${match.clubB || ''}</div>
+                <div class="name">${escHtml(match.fencerB)}</div>
+                <div class="club">${escHtml(match.clubB || '')}</div>
               </div>
             </div>
           </div>
