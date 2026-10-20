@@ -93,16 +93,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 7 | 138 |
+| `src/main/` | 8 | 145 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 4 | 25 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **141** | **1456** |
+| **Total** | **142** | **1463** |
 
-Unitaires : 133 fichiers, 1425 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 134 fichiers, 1432 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2112,6 +2112,23 @@ Unitaires : 133 fichiers, 1425 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - calcule le sha256
   - valide un hash correct
   - rejette un hash incorrect ou invalide
+
+</details>
+
+<details>
+<summary><code>src/main/windowSecurity.test.ts</code> — 7 tests</summary>
+
+- **isAppUrl (#1148)**
+  - prod : file:// du bundle uniquement
+  - dev : serveur webpack uniquement
+- **isAllowedExternalUrl**
+  - https oui, http seulement réseau local, autres schémas non
+- **isPermissionAllowed**
+  - caméra depuis l’app uniquement, sans micro
+- **configuration Electron (#1148)**
+  - fenêtre principale en sandbox avec garde-fous
+  - fuses : RunAsNode off, asar seul
+  - meta CSP du renderer sans unsafe-inline pour les scripts
 
 </details>
 

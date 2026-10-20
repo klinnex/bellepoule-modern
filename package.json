@@ -75,6 +75,12 @@
       "package.json",
       "version.json"
     ],
+    "electronFuses": {
+      "runAsNode": false,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "onlyLoadAppFromAsar": true
+    },
     "asarUnpack": [
       "dist/remote/**/*",
       "**/node_modules/better-sqlite3/**/*",
