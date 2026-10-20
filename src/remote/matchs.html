@@ -100,7 +100,7 @@
   </head>
   <body>
     <header>
-      <h1><span data-i18n="remote.piste">Piste</span> <span id="arena-number"></span> – <span id="pool-name">Poule</span></h1>
+      <h1><span data-i18n="remote.piste">Piste</span> <span id="arena-number"></span> – <span id="pool-name" data-i18n="matchs.pool">Poule</span></h1>
       <span id="updated"></span>
     </header>
     <ol id="list"></ol>
@@ -132,7 +132,7 @@
                   x.status === 'finished'
                     ? `${esc(x.scoreA)} – ${esc(x.scoreB)}`
                     : x.status === 'current'
-                      ? 'En cours'
+                      ? esc(tk('matchs.current'))
                       : 'vs';
                 return `<li class="${esc(x.status)}"><span class="num">${esc(x.order)}</span><span class="a">${esc(x.fencerA)}</span><span class="score">${/* html */ score}</span><span class="b">${esc(x.fencerB)}</span></li>`;
               })

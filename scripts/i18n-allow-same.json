@@ -71,6 +71,8 @@
       "replay.title",
       "results.export_csv",
       "results.export_xml_ffe",
+      "settings.animations_title",
+      "settings.tts_m60",
       "shortcuts.category_actions",
       "shortcuts.category_navigation",
       "stats.early_finishes",

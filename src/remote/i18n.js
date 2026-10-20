@@ -431,6 +431,12 @@
       'error.unknown_type': 'Type inconnu',
       'error.update_failed': 'Erreur lors de la mise à jour',
       'error.wrong_password': 'Mot de passe incorrect',
+      /* textes distants traduits (#1158) */
+      'dashboard.pool_n': 'Poule {{n}}',
+      'dashboard.pool_done': 'Terminée',
+      'dashboard.pool_running': 'En cours',
+      'matchs.current': 'En cours',
+      'remote.no_scheduled': 'Aucun match prévu',
     },
     en: {
       /* login */
@@ -861,6 +867,12 @@
       'error.unknown_type': 'Unknown type',
       'error.update_failed': 'Update failed',
       'error.wrong_password': 'Incorrect password',
+      /* textes distants traduits (#1158) */
+      'dashboard.pool_n': 'Pool {{n}}',
+      'dashboard.pool_done': 'Finished',
+      'dashboard.pool_running': 'In progress',
+      'matchs.current': 'In progress',
+      'remote.no_scheduled': 'No bout scheduled',
     },
     'zh-HK': {
       /* login */
@@ -1286,6 +1298,12 @@
       'error.unknown_type': '未知類型',
       'error.update_failed': '更新失敗',
       'error.wrong_password': '密碼錯誤',
+      /* textes distants traduits (#1158) */
+      'dashboard.pool_n': '第 {{n}} 組',
+      'dashboard.pool_done': '已完成',
+      'dashboard.pool_running': '進行中',
+      'matchs.current': '進行中',
+      'remote.no_scheduled': '沒有已安排的比賽',
     },
   };
 
