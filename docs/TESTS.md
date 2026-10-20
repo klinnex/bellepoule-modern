@@ -95,16 +95,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 9 | 153 |
+| `src/main/` | 10 | 161 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 4 | 25 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **143** | **1471** |
+| **Total** | **144** | **1479** |
 
-Unitaires : 135 fichiers, 1440 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 136 fichiers, 1448 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1978,6 +1978,26 @@ Unitaires : 135 fichiers, 1440 tests. E2E : 8 fichiers, 31 tests (comptage stati
     - prochain match de tableau : piste assignée au match
     - piste du match en cours prioritaire sur la piste prévue
     - piste prévue de la poule quand aucune arène ne la joue encore (#1078)
+
+</details>
+
+<details>
+<summary><code>src/main/remote/pageStore.test.ts</code> — 8 tests</summary>
+
+- **negotiateEncoding (#1151)**
+  - préfère br puis gzip, respecte q et \*
+- **etagMatches**
+  - liste, faible, \*
+- **extractInlineScripts**
+  - extrait, déduplique, garde src et JSON, conserve l’ordre
+  - page sans inline restant
+- **sendStored**
+  - brotli, gzip ou identité selon Accept-Encoding
+  - 304 si ETag identique
+- **jsonCompression**
+  - compresse au-delà du seuil seulement
+- **critère #1151 : referee.html \< 60 Ko en brotli (client socket.io compris)**
+  - premier chargement
 
 </details>
 

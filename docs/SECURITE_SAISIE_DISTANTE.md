@@ -51,3 +51,11 @@ L'IP client est celle de la connexion TCP. `X-Forwarded-For` est ignoré, sauf d
 - `style-src` garde `'unsafe-inline'` (attributs `style=` trop nombreux, voir #1157).
 - `BP_CSP_REPORT_ONLY=1` : politique stricte en mode rapport seul (diagnostic d'une casse sur le terrain). Pas d'endpoint `/csp-report` : le navigateur journalise les violations en console.
 - Test `csp.test.ts` : nonce sur chaque script, aucun handler inline dans `src/remote` ni dans les pages générées, chaque `data-click` statique cible une fonction définie.
+
+## Performance des pages distantes (#1151)
+
+- Au démarrage, `remote/pageStore.ts` extrait chaque `<script>` inline (client socket.io compris) vers un asset `/_a/<hash>.js` (`Cache-Control: public, max-age=31536000, immutable`, dédupliqué entre pages) ; plus aucun script inline ⇒ CSP fixe `script-src 'self'` (sans nonce). Une page qui garde un bloc inline non extractible (ex. JSON) retombe sur le nonce par réponse (#1149).
+- Pages et `common.js`/`i18n.js`/`app.js`/`styles.css` sont pré-compressés (brotli q9 + gzip), servis selon `Accept-Encoding` (q-values), avec `ETag` + `Cache-Control: no-cache` (304 au rechargement) et `Vary: Accept-Encoding`.
+- Les réponses `res.json()` > 1 Ko sont compressées en gzip (`jsonCompression`).
+- Mesure (Chromium, `referee.html` complet, socket.io inclus) : ~60 Ko au premier chargement contre ~270 Ko avant ; test `pageStore.test.ts` : page + assets brotli < 60 Ko.
+- Service worker : cache `bellepoule-referee-v6` ; les assets `/_a/*` sont mis en cache à la volée (réseau d'abord, repli cache hors-ligne).
