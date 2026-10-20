@@ -110,13 +110,13 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             gap: '2.5rem',
           }}
         >
-          <div style={{ textAlign: 'center' }}>
+          <div className="text-center">
             <Swords
               size={56}
               strokeWidth={1.5}
               color="var(--color-primary)"
               aria-hidden="true"
-              style={{ marginBottom: '1rem' }}
+              className="mb-4"
             />
             <h1
               style={{

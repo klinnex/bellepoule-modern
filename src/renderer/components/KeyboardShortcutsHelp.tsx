@@ -115,10 +115,16 @@ export const KeyboardShortcutsHelp: React.FC = () => {
           }}
         >
           <div>
-            <h2 style={{ margin: 0, fontSize: '24px', color: 'var(--color-text)' }}>
+            <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--color-text)' }}>
               ⌨️ {t('shortcuts.title')}
             </h2>
-            <p style={{ margin: '4px 0 0 0', color: 'var(--color-text-light)', fontSize: '14px' }}>
+            <p
+              style={{
+                margin: '4px 0 0 0',
+                color: 'var(--color-text-light)',
+                fontSize: '0.875rem',
+              }}
+            >
               {t('shortcuts.subtitle')}
             </p>
           </div>
@@ -127,7 +133,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
             style={{
               background: 'none',
               border: 'none',
-              fontSize: '24px',
+              fontSize: '1.5rem',
               cursor: 'pointer',
               color: 'var(--color-text-light)',
               padding: '8px',
@@ -160,7 +166,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
                 borderRadius: '20px',
                 border: 'none',
                 cursor: 'pointer',
-                fontSize: '14px',
+                fontSize: '0.875rem',
                 fontWeight: 500,
                 transition: 'all 0.2s',
                 backgroundColor:
@@ -198,7 +204,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
                     border: '1px solid var(--color-border-dark)',
                     borderRadius: '6px',
                     fontFamily: 'monospace',
-                    fontSize: '14px',
+                    fontSize: '0.875rem',
                     fontWeight: 'bold',
                     color: 'var(--color-text)',
                     boxShadow: '0 2px 0 var(--color-border-dark)',
@@ -209,7 +215,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
                 </kbd>
                 <span
                   style={{
-                    fontSize: '15px',
+                    fontSize: '0.9375rem',
                     color: 'var(--color-text)',
                     paddingLeft: '8px',
                   }}
@@ -227,7 +233,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
             padding: '16px 24px',
             backgroundColor: 'var(--color-surface-2)',
             borderTop: '1px solid var(--color-border)',
-            fontSize: '13px',
+            fontSize: '0.8125rem',
             color: 'var(--color-text-light)',
             textAlign: 'center',
           }}

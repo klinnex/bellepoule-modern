@@ -159,7 +159,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
               if (catArticles.length === 0) return null;
               const catLabel = CATEGORY_LABELS[cat];
               return (
-                <div key={cat} style={{ marginBottom: '0.5rem' }}>
+                <div key={cat} className="mb-2">
                   <div
                     style={{
                       fontSize: '0.7rem',
@@ -193,7 +193,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
                         borderRadius: 0,
                       }}
                     >
-                      <span style={{ flexShrink: 0 }}>{article.icon}</span>
+                      <span className="flex-shrink-0">{article.icon}</span>
                       <span
                         style={{
                           overflow: 'hidden',

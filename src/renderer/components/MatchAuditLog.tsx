@@ -362,7 +362,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             };
             const ZONE_PTS: Record<string, string> = { A: '1pt', B: '3pt', C: '5pt' };
             return (
-              <div key={side} style={{ flex: 1 }}>
+              <div key={side} className="flex-1">
                 <div
                   style={{
                     fontSize: '0.7rem',

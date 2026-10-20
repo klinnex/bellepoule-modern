@@ -2023,10 +2023,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         </div>
 
         <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
-          <div
-            className="arena-url-header"
-            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-          >
+          <div className="arena-url-header u-row-between">
             <strong>🖥️ Kiosk (affichage public)</strong>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <select
@@ -2193,7 +2190,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
 
       {/* ── Section : Écrans connectés ── */}
       {connectedClients.length > 0 && (
-        <div className="arena-url-card" style={{ marginTop: '1rem' }}>
+        <div className="arena-url-card mt-4">
           <div className="arena-url-header">
             <strong>📺 Écrans connectés ({connectedClients.length})</strong>
           </div>
@@ -2441,8 +2438,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                 <button
-                  className="btn btn-primary"
-                  style={{ flex: 1 }}
+                  className="btn btn-primary flex-1"
                   onClick={async () => {
                     await window.electronAPI.remote.setClientKioskMode(
                       competition.id,

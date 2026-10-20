@@ -208,6 +208,7 @@
     "title": "設定",
     "language": "語言",
     "theme": "主題",
+    "text_size": "文字大小",
     "pool_rounds": "分組賽輪次",
     "has_direct_elimination": "直接淘汰賽",
     "default_pool_max_score": "分組賽最高分數",

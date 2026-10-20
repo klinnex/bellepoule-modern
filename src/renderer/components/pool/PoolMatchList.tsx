@@ -389,7 +389,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
 
       {/* Matches restants — strip horizontal scrollable */}
       {orderedMatches.pending.length > 1 && (
-        <div style={{ marginBottom: '1rem' }}>
+        <div className="mb-4">
           <div
             style={{
               fontSize: '0.7rem',

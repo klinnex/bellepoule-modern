@@ -96,16 +96,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
 | `src/main/` | 12 | 175 |
-| `src/renderer/services/` | 2 | 16 |
+| `src/renderer/services/` | 3 | 19 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 8 | 39 |
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **152** | **1518** |
+| **Total** | **153** | **1521** |
 
-Unitaires : 144 fichiers, 1487 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 145 fichiers, 1490 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2250,6 +2250,16 @@ Unitaires : 144 fichiers, 1487 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - resolveConflict("local") écrase le serveur avec la version locale
   - resolveConflict("remote") accepte la version serveur et met en cache
   - resolveConflict échoue si le conflit est introuvable
+
+</details>
+
+<details>
+<summary><code>src/renderer/services/uiScale.test.ts</code> — 3 tests</summary>
+
+- **taille du texte de l’interface (#1156)**
+  - valeurs admises uniquement, 100 % par défaut
+  - enregistrement : variable CSS appliquée et relue au démarrage
+  - tokens.css : racine en fonction de --ui-scale, échelle --fs-\*, contraste élevé
 
 </details>
 

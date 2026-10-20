@@ -165,8 +165,8 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
 
   return (
     <div style={getToastStyle()}>
-      <div style={{ fontSize: '20px', lineHeight: 1 }}>{getIcon()}</div>
-      <div style={{ flex: 1 }}>
+      <div style={{ fontSize: '1.25rem', lineHeight: 1 }}>{getIcon()}</div>
+      <div className="flex-1">
         <div
           style={{
             fontWeight: 'bold',
@@ -179,7 +179,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
         {toast.message && (
           <div
             style={{
-              fontSize: '14px',
+              fontSize: '0.875rem',
               color: 'var(--color-text-light)',
               lineHeight: 1.4,
             }}
@@ -193,7 +193,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
             style={{
               marginTop: '8px',
               padding: '6px 12px',
-              fontSize: '12px',
+              fontSize: '0.75rem',
               backgroundColor: toast.type === 'error' ? '#ef4444' : 'var(--color-primary)',
               color: 'white',
               border: 'none',
@@ -210,7 +210,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
         style={{
           background: 'none',
           border: 'none',
-          fontSize: '18px',
+          fontSize: '1.125rem',
           cursor: 'pointer',
           color: 'var(--color-text-muted)',
           padding: '0',

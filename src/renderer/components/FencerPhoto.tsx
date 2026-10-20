@@ -237,9 +237,9 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
           }}
           className="h-8 px-2 bg-blue-500 text-white rounded-md flex items-center justify-center gap-1 hover:bg-blue-600 transition-colors shadow-md"
           title="Prendre une photo avec la webcam"
-          style={{ fontSize: '14px' }}
+          style={{ fontSize: '0.875rem' }}
         >
-          📷 <span style={{ fontSize: '11px', fontWeight: 500 }}>Webcam</span>
+          📷 <span style={{ fontSize: '0.6875rem', fontWeight: 500 }}>Webcam</span>
         </button>
       )}
 

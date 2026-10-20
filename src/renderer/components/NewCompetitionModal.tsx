@@ -220,9 +220,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
             </div>
 
             <div className="form-group">
-              <label
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
-              >
+              <label className="u-row cursor-pointer">
                 <input
                   type="checkbox"
                   checked={isTeamEvent}

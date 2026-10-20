@@ -339,7 +339,7 @@ const LiveMatchCard_: React.FC<{ match: Match; index: number }> = ({ match, inde
         </span>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="u-row-between">
         <div style={CELL_CENTER_FLEX}>
           <div style={STAT_VALUE}>
             {match.fencerA?.firstName} {match.fencerA?.lastName}
@@ -597,7 +597,7 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
                 >
                   {round === 1 ? 'Finale' : round === 2 ? 'Demi-finales' : `1/${round}`}
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="u-stack-4">
                   {roundMatches.map(match => (
                     <div
                       key={match.id}
@@ -638,13 +638,7 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
                           {match.scoreA?.value ?? '-'}
                         </span>
                       </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
+                      <div className="u-row-between">
                         <span style={ROW_TEXT}>
                           {match.fencerB?.firstName?.charAt(0)}. {match.fencerB?.lastName}
                         </span>

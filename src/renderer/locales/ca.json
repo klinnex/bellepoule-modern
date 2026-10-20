@@ -208,6 +208,7 @@
     "title": "Configuració",
     "language": "Idioma",
     "theme": "Tema",
+    "text_size": "Mida del text",
     "pool_rounds": "Rondes de Poules",
     "has_direct_elimination": "Eliminació Directa",
     "default_pool_max_score": "Puntuació Màxima de Poules",

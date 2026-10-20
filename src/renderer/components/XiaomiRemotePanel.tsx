@@ -601,10 +601,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                   </button>
 
                   {/* Naviguer (tous types) */}
-                  <div
-                    ref={openNav === client.socketId ? navRef : null}
-                    style={{ position: 'relative' }}
-                  >
+                  <div ref={openNav === client.socketId ? navRef : null} className="relative">
                     <button
                       className="btn btn-secondary"
                       style={{ padding: '0.2rem 0.45rem', fontSize: '0.75rem' }}
@@ -735,7 +732,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
           >
             {t('xiaomi.global_message_label')}
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className="u-row">
             <input
               type="text"
               value={message}
@@ -875,7 +872,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
               />
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={sendKiosk}>
+              <button className="btn btn-primary flex-1" onClick={sendKiosk}>
                 {t('ui.send_kiosk')}
               </button>
               <button className="btn btn-secondary" onClick={() => setKioskTarget(null)}>

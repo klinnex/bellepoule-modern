@@ -91,7 +91,7 @@ const PdfPreview: React.FC<Props> = ({ template, docType }) => {
   }, [html]);
 
   return (
-    <div ref={containerRef} style={{ width: '100%' }}>
+    <div ref={containerRef} className="w-full">
       <div
         style={{
           width: '100%',

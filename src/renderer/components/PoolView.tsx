@@ -1496,7 +1496,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         onInlineCancel={handleInlineCancel}
       />
       {orderedMatches.finished.length > 0 && (
-        <div style={{ marginTop: '1rem' }}>
+        <div className="mt-4">
           <button
             onClick={() => setShowFinishedLog(v => !v)}
             aria-expanded={showFinishedLog}
@@ -1824,7 +1824,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                         type="checkbox"
                         checked={isVisible(col.id)}
                         onChange={() => toggleColumn('pool', col.id, pool.id)}
-                        style={{ cursor: 'pointer' }}
+                        className="cursor-pointer"
                       />
                       {col.label}
                     </label>
@@ -1843,7 +1843,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                       type="checkbox"
                       checked={pdfHideStatColumns}
                       onChange={togglePdfHideStatColumns}
-                      style={{ cursor: 'pointer' }}
+                      className="cursor-pointer"
                     />
                     Masquer V, V/M, TD, TR, Ind, Rg
                   </label>
@@ -1858,7 +1858,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                       type="checkbox"
                       checked={pdfLandscape}
                       onChange={togglePdfLandscape}
-                      style={{ cursor: 'pointer' }}
+                      className="cursor-pointer"
                     />
                     Format paysage
                   </label>

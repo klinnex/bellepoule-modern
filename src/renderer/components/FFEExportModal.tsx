@@ -85,7 +85,7 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
         </div>
 
         <div className="modal-body">
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
+          <div className="form-group mb-4">
             <label className="form-label">Code de compétition *</label>
             <input
               className="form-input"
@@ -96,7 +96,7 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
               disabled={sending}
             />
           </div>
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
+          <div className="form-group mb-4">
             <label className="form-label">Clé API (optionnelle)</label>
             <input
               className="form-input"

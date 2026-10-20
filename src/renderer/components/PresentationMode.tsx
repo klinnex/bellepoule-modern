@@ -149,7 +149,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
       {/* Grille des scores */}
       <div style={{ flex: 1, display: 'flex', gap: '30px' }}>
         {/* Liste des tireurs */}
-        <div style={{ flex: 1 }}>
+        <div className="flex-1">
           <h2 style={{ marginBottom: '20px', fontSize: '1.5rem', color: '#94a3b8' }}>Classement</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             {currentPool.ranking?.slice(0, 8).map((rank, index) => (
@@ -180,7 +180,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
                 >
                   {index + 1}
                 </div>
-                <div style={{ flex: 1 }}>
+                <div className="flex-1">
                   <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>
                     {rank.fencer.lastName} {rank.fencer.firstName}
                   </div>

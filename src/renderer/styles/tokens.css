@@ -1,0 +1,119 @@
+/* ============================================================
+   TOKENS COMPLÉMENTAIRES — importés après design.css
+   Espacements, z-index (#1157) ; échelle typographique, cibles tactiles,
+   contraste élevé (#1156). Nouveaux composants : var(--space-*), var(--fs-*)
+   plutôt que des valeurs en px dans style={{…}} (cliquet check:quality).
+   ============================================================ */
+
+:root {
+  /* Échelle de l'interface : réglage « Taille du texte » (Paramètres), 1 = 16 px */
+  --ui-scale: 1;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 1000;
+  --z-toast: 1100;
+  --z-tooltip: 1200;
+
+  /* Zone tactile minimale (WCAG 2.5.5) : tablettes arbitre, pavés numériques */
+  --touch-target: 44px;
+}
+
+/* Les tailles en rem suivent le réglage ; les tailles en px restent fixes (à migrer) */
+html {
+  font-size: calc(16px * var(--ui-scale));
+}
+
+/* Préférence système « contraste élevé » : bordures et textes secondaires plus foncés */
+@media (prefers-contrast: more) {
+  :root {
+    --color-border: #6b6458;
+    --color-border-dark: #4a443b;
+    --color-text-light: #3d382f;
+    --color-text-muted: #4a443b;
+  }
+
+  .theme-dark {
+    --color-border: #a39e93;
+    --color-border-dark: #c9c4b9;
+    --color-text-light: #e2ded6;
+    --color-text-muted: #cfc9bc;
+  }
+}
+
+/* Mode contraste élevé de Windows : couleurs système, contours toujours visibles */
+@media (forced-colors: active) {
+  .btn,
+  button,
+  .card,
+  .modal,
+  .form-input,
+  .form-select {
+    border: 1px solid CanvasText;
+  }
+
+  :focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .badge,
+  [class*='status-'] {
+    forced-color-adjust: none;
+    border: 1px solid CanvasText;
+  }
+}
+
+/* ============================================================
+   PRIMITIVES DE MISE EN PAGE (#1157) — remplacent les style={{…}} répétés
+   ============================================================ */
+
+.u-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.u-row-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.u-stack-2 {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.u-stack-4 {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.u-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.u-hint {
+  font-size: var(--fs-sm);
+  color: var(--color-text-light);
+}

@@ -180,7 +180,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
 
               {rankingResult.details.length > 0 && (
                 <>
-                  <div style={{ marginBottom: '0.5rem' }}>
+                  <div className="mb-2">
                     <strong>Détails des mises à jour:</strong>
                   </div>
                   <div

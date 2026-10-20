@@ -196,7 +196,7 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
                             : undefined,
                         }}
                       >
-                        <td style={{ textAlign: 'center' }}>
+                        <td className="text-center">
                           <input
                             type="checkbox"
                             checked={selected.has(i)}

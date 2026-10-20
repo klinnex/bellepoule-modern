@@ -470,7 +470,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               {isEditing ? 'Terminer' : 'Modifier'}
             </button>
           )}
-          <div style={{ position: 'relative' }} ref={columnMenuRef}>
+          <div className="relative" ref={columnMenuRef}>
             <button
               onClick={() => setShowColumnMenu(!showColumnMenu)}
               className="btn btn-secondary"
@@ -488,7 +488,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                       type="checkbox"
                       checked={isVisible(col.id)}
                       onChange={() => toggleColumn('ranking', col.id)}
-                      style={{ cursor: 'pointer' }}
+                      className="cursor-pointer"
                     />
                     {col.label}
                   </label>

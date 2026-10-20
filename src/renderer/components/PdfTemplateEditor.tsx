@@ -131,7 +131,7 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className="u-stack-4">
       {/* Titre personnalisé */}
       <div className="form-group" style={{ marginBottom: 0 }}>
         <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>

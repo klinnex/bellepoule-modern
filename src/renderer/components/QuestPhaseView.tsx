@@ -593,7 +593,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                 >
                   {index + 1}.
                 </span>
-                <span style={{ flex: 1 }}>
+                <span className="flex-1">
                   <strong>{fight.fencerA.lastName}</strong> {fight.fencerA.firstName}
                   {fight.fencerA.club && <span style={MUTED}> ({fight.fencerA.club})</span>}
                   <span style={{ margin: '0 0.5rem', color: 'var(--color-text-muted)' }}>vs</span>
@@ -637,7 +637,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
           </div>
 
           {/* Récap combats par tireur */}
-          <details style={{ marginTop: '1rem' }}>
+          <details className="mt-4">
             <summary
               style={{ cursor: 'pointer', fontSize: '0.8rem', color: 'var(--color-text-light)' }}
             >

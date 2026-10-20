@@ -208,6 +208,7 @@
     "title": "Settings",
     "language": "Language",
     "theme": "Theme",
+    "text_size": "Text size",
     "pool_rounds": "Pool Rounds",
     "has_direct_elimination": "Direct Elimination",
     "default_pool_max_score": "Default Pool Max Score",

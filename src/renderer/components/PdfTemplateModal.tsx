@@ -40,7 +40,7 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
         role="dialog"
         aria-modal="true"
       >
-        <div className="modal-header" style={{ flexShrink: 0 }}>
+        <div className="modal-header flex-shrink-0">
           <h2 className="modal-title">{t('pdfTemplate.modalTitle')}</h2>
           <button
             className="btn btn-secondary"
@@ -101,7 +101,7 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
           </div>
         </div>
 
-        <div className="modal-footer" style={{ flexShrink: 0 }}>
+        <div className="modal-footer flex-shrink-0">
           <button className="btn btn-primary" onClick={onClose}>
             {t('actions.close') || 'Fermer'}
           </button>

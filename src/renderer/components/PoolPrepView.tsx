@@ -569,7 +569,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             >
               Nombre de poules
             </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="u-row">
               <div className="pool-prep-stepper">
                 <button
                   className="pool-prep-stepper-btn"
@@ -840,10 +840,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                   { '--pool-accent': accent, '--pool-accent-bg': accentBg } as React.CSSProperties
                 }
               >
-                <div
-                  className="pool-prep-card-header"
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
+                <div className="pool-prep-card-header u-row-between">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: accent }}>
                       Poule {pool.number}
@@ -867,7 +864,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                       </span>
                     )}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div className="u-row">
                     {avgRanking != null && (
                       <span
                         className="pool-prep-strength"

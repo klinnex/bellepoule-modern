@@ -84,7 +84,7 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
               ? `Sélectionnez jusqu'à ${maxReferees} arbitres pour ce match (le premier sélectionné est l'arbitre principal) :`
               : "Sélectionnez l'arbitre pour ce match :"}
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div className="u-stack-2">
             <button
               className={`btn ${currentReferees.length === 0 ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => onAssign([])}

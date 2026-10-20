@@ -208,6 +208,7 @@
     "title": "Paramètres",
     "language": "Langue",
     "theme": "Thème",
+    "text_size": "Taille du texte",
     "pool_rounds": "Tours de poules",
     "has_direct_elimination": "Tableau d'élimination",
     "default_pool_max_score": "Score maximum des poules",

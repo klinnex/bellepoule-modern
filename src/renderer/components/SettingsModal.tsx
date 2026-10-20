@@ -14,6 +14,13 @@ import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
 import { logger, LogCategory } from '@shared/services/logger';
 import { isWebhookUrlSafe } from '@shared/services/notificationService';
+import {
+  UI_SCALES,
+  loadUiScale,
+  normalizeUiScale,
+  saveUiScale,
+  type UiScale,
+} from '../services/uiScale';
 
 const LOGO_STORAGE_KEY = 'bellepoule-logo';
 const WEBHOOK_STORAGE_KEY = 'bellepoule-webhook-url';
@@ -123,6 +130,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     () => localStorage.getItem(SIMPLIFIED_INPUT_KEY) === 'true'
   );
 
+  const [uiScale, setUiScale] = useState<UiScale>(() => loadUiScale());
   const [confettiDisabled, setConfettiDisabled] = useState<boolean>(() => isConfettiDisabled());
   const [webhookUrl, setWebhookUrl] = useState<string>(
     () => localStorage.getItem(WEBHOOK_STORAGE_KEY) ?? ''
@@ -328,6 +336,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     localStorage.setItem(CONFETTI_DISABLED_KEY, String(disabled));
   };
 
+  // Taille du texte : appliquée et enregistrée immédiatement (#1156)
+  const handleUiScaleChange = (scale: UiScale) => {
+    setUiScale(scale);
+    saveUiScale(scale);
+  };
+
   const handleSimplifiedInputModeChange = (enabled: boolean) => {
     setSimplifiedInputMode(enabled);
     localStorage.setItem(SIMPLIFIED_INPUT_KEY, String(enabled));
@@ -373,7 +387,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
             </div>
 
             <div className="form-group">
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <label className="u-row">
                 <input
                   type="checkbox"
                   checked={pseudoLocale}
@@ -394,6 +408,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 <option value="default">Default</option>
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="settings-ui-scale">{t('settings.text_size')}</label>
+              <select
+                id="settings-ui-scale"
+                className="form-input form-select"
+                value={uiScale}
+                onChange={e => handleUiScaleChange(normalizeUiScale(e.target.value))}
+              >
+                {UI_SCALES.map(scale => (
+                  <option key={scale} value={scale}>
+                    {Math.round(scale * 100)} %
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -501,9 +531,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 au score du tireur (ligne). Shift+roulette : score de l'adversaire (colonne). Score
                 nul en laser sabre → ouvre la modal de victoire.
               </p>
-              <label
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
-              >
+              <label className="u-row cursor-pointer">
                 <input
                   type="checkbox"
                   checked={quickMouseScoring}
@@ -521,9 +549,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 ouverture de modal. Score nul en laser sabre → ouvre tout de même la modal de
                 victoire.
               </p>
-              <label
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
-              >
+              <label className="u-row cursor-pointer">
                 <input
                   type="checkbox"
                   checked={simplifiedInputMode}
@@ -539,9 +565,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
             <div className="form-group" style={SECTION_DIVIDER}>
               <label style={BOLD}>Journal des scores</label>
               <p style={HINT}>Active l'onglet "Historique des scores" dans la vue compétition.</p>
-              <label
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
-              >
+              <label className="u-row cursor-pointer">
                 <input
                   type="checkbox"
                   checked={auditLogEnabled}
@@ -555,9 +579,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
             <div className="form-group" style={SECTION_DIVIDER}>
               <label style={BOLD}>Animations</label>
               <p style={HINT}>Feux d'artifice affichés à la fin des poules.</p>
-              <label
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
-              >
+              <label className="u-row cursor-pointer">
                 <input
                   type="checkbox"
                   checked={confettiDisabled}
@@ -573,13 +595,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
               <p style={HINT}>URL Discord / Slack / personnalisée (HTTPS uniquement).</p>
               <input
                 type="url"
-                className="form-input"
+                className="form-input mb-2"
                 placeholder="https://hooks.slack.com/services/..."
                 value={webhookUrl}
                 onChange={e => handleWebhookUrlChange(e.target.value)}
-                style={{ marginBottom: '0.5rem' }}
               />
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <div className="u-row">
                 <button
                   className="btn btn-secondary"
                   style={SMALL_BTN}
@@ -629,10 +650,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 }}
               >
                 <select
-                  className="form-input form-select"
+                  className="form-input form-select flex-1"
                   value={ttsConfig.voiceName ?? ''}
                   onChange={e => handleTtsVoiceChange(e.target.value)}
-                  style={{ flex: 1 }}
                 >
                   <option value="">Voix par défaut (selon la langue)</option>
                   {voices.map(v => (
@@ -666,15 +686,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {TTS_THRESHOLDS.map(({ key, label }) => (
-                  <label
-                    key={key}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      cursor: 'pointer',
-                    }}
-                  >
+                  <label key={key} className="u-row cursor-pointer">
                     <input
                       type="checkbox"
                       checked={ttsConfig.announce[key] !== false}

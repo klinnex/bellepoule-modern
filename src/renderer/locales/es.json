@@ -208,6 +208,7 @@
     "title": "Ajustes",
     "language": "Idioma",
     "theme": "Tema",
+    "text_size": "Tamaño del texto",
     "pool_rounds": "Rondas de Poules",
     "has_direct_elimination": "Eliminación Directa",
     "default_pool_max_score": "Puntuación Máxima de Poules",

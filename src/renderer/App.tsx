@@ -628,7 +628,7 @@ const AppContent: React.FC = () => {
               <BookOpen size={16} />
             </button>
             {view === 'competition' && currentCompetition && (
-              <div ref={toolsMenuRef} style={{ position: 'relative' }}>
+              <div ref={toolsMenuRef} className="relative">
                 <button
                   ref={toolsBtnRef}
                   className="btn btn-secondary btn-icon-label"

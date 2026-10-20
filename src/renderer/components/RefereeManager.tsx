@@ -1000,7 +1000,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
             {pendingMatches.length === 0 && (
               <p style={MUTED_ITALIC}>Aucun match en attente d'arbitre.</p>
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="u-stack-2">
               {pendingMatches.map(match => {
                 const assignedReferee = assignments.get(match.id);
                 const conflictWarning = assignedReferee
@@ -1022,7 +1022,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                       color: conflictWarning ? 'var(--color-text)' : 'var(--color-text)',
                     }}
                   >
-                    <div style={{ flex: 1 }}>
+                    <div className="flex-1">
                       <div style={{ fontWeight: '500' }}>
                         {match.fencerA?.firstName} {match.fencerA?.lastName} vs{' '}
                         {match.fencerB?.firstName} {match.fencerB?.lastName}

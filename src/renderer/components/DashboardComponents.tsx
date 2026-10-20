@@ -48,17 +48,17 @@ const ModernStatCard_: React.FC<StatCardProps> = ({ title, value, icon, trend, c
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '28px',
+          fontSize: '1.75rem',
         }}
       >
         {icon}
       </div>
-      <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, color: 'var(--color-text-light)', fontSize: '14px' }}>{title}</p>
+      <div className="flex-1">
+        <p style={{ margin: 0, color: 'var(--color-text-light)', fontSize: '0.875rem' }}>{title}</p>
         <h3
           style={{
             margin: '4px 0 0 0',
-            fontSize: '28px',
+            fontSize: '1.75rem',
             fontWeight: '700',
             color: 'var(--color-text)',
           }}
@@ -70,13 +70,13 @@ const ModernStatCard_: React.FC<StatCardProps> = ({ title, value, icon, trend, c
             <span
               style={{
                 color: trend.isPositive ? '#10b981' : '#ef4444',
-                fontSize: '12px',
+                fontSize: '0.75rem',
                 fontWeight: '600',
               }}
             >
               {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
             </span>
-            <span style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>
+            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
               vs dernier mois
             </span>
           </div>
@@ -125,7 +125,7 @@ const ActivityTimeline_: React.FC<{ items: TimelineItem[] }> = ({ items }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '18px',
+              fontSize: '1.125rem',
               flexShrink: 0,
               zIndex: 1,
             }}
@@ -135,13 +135,13 @@ const ActivityTimeline_: React.FC<{ items: TimelineItem[] }> = ({ items }) => {
 
           {/* Content */}
           <div style={{ flex: 1, paddingBottom: '24px' }}>
-            <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '12px' }}>
+            <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
               {item.time}
             </p>
             <h4
               style={{
                 margin: '4px 0',
-                fontSize: '14px',
+                fontSize: '0.875rem',
                 fontWeight: '600',
                 color: 'var(--color-text)',
               }}
@@ -149,7 +149,7 @@ const ActivityTimeline_: React.FC<{ items: TimelineItem[] }> = ({ items }) => {
               {item.title}
             </h4>
             {item.description && (
-              <p style={{ margin: 0, color: 'var(--color-text-light)', fontSize: '13px' }}>
+              <p style={{ margin: 0, color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>
                 {item.description}
               </p>
             )}
@@ -209,10 +209,10 @@ const ComparisonBar_: React.FC<{
   return (
     <div style={{ marginBottom: '16px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text)' }}>
+        <span style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--color-text)' }}>
           {label}
         </span>
-        <div style={{ display: 'flex', gap: '16px', fontSize: '13px' }}>
+        <div style={{ display: 'flex', gap: '16px', fontSize: '0.8125rem' }}>
           <span style={{ color: colorA }}>
             {labelA}: {valueA}
           </span>
@@ -239,7 +239,7 @@ const ComparisonBar_: React.FC<{
             alignItems: 'center',
             justifyContent: 'center',
             color: 'white',
-            fontSize: '11px',
+            fontSize: '0.6875rem',
             fontWeight: '600',
           }}
         >
@@ -254,7 +254,7 @@ const ComparisonBar_: React.FC<{
             alignItems: 'center',
             justifyContent: 'center',
             color: 'white',
-            fontSize: '11px',
+            fontSize: '0.6875rem',
             fontWeight: '600',
           }}
         >
@@ -339,20 +339,20 @@ const LeaderboardItem_: React.FC<{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '16px',
+            fontSize: '1rem',
           }}
         >
           {name.charAt(0)}
         </div>
       )}
 
-      <div style={{ flex: 1 }}>
+      <div className="flex-1">
         <span style={{ fontWeight: '600', color: 'var(--color-text)' }}>{name}</span>
         {isCurrentUser && (
           <span
             style={{
               marginLeft: '8px',
-              fontSize: '12px',
+              fontSize: '0.75rem',
               color: 'var(--color-primary)',
               fontWeight: '500',
             }}
@@ -363,10 +363,10 @@ const LeaderboardItem_: React.FC<{
       </div>
 
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--color-text)' }}>
+        <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--color-text)' }}>
           {score}
         </span>
-        <span style={{ fontSize: '12px', color: 'var(--color-text-light)', marginLeft: '4px' }}>
+        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginLeft: '4px' }}>
           pts
         </span>
       </div>
@@ -402,17 +402,19 @@ const EmptyState_: React.FC<{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '60px',
+          fontSize: '3.75rem',
           marginBottom: '24px',
         }}
       >
         {icon}
       </div>
-      <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: 'var(--color-text)' }}>{title}</h3>
+      <h3 style={{ margin: '0 0 8px 0', fontSize: '1.25rem', color: 'var(--color-text)' }}>
+        {title}
+      </h3>
       <p
         style={{
           margin: '0 0 24px 0',
-          fontSize: '14px',
+          fontSize: '0.875rem',
           color: 'var(--color-text-light)',
           maxWidth: '400px',
         }}
@@ -428,7 +430,7 @@ const EmptyState_: React.FC<{
             color: 'white',
             border: 'none',
             borderRadius: '8px',
-            fontSize: '14px',
+            fontSize: '0.875rem',
             fontWeight: '600',
             cursor: 'pointer',
             transition: 'all 0.2s',
@@ -486,15 +488,20 @@ const ConditionWidget_: React.FC<{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '24px',
+          fontSize: '1.5rem',
         }}
       >
         {theme.icon}
       </div>
       <div>
-        <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-light)' }}>{label}</p>
+        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-light)' }}>{label}</p>
         <p
-          style={{ margin: '2px 0 0 0', fontSize: '18px', fontWeight: 'bold', color: theme.color }}
+          style={{
+            margin: '2px 0 0 0',
+            fontSize: '1.125rem',
+            fontWeight: 'bold',
+            color: theme.color,
+          }}
         >
           {value}
         </p>

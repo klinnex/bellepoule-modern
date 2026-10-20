@@ -236,7 +236,7 @@ const Bracket: React.FC<BracketProps> = ({
             style={{
               fontWeight: isWinner ? 'bold' : 'normal',
               color: textColor,
-              fontSize: '13px',
+              fontSize: '0.8125rem',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -244,7 +244,9 @@ const Bracket: React.FC<BracketProps> = ({
           >
             {fencer ? `${fencer.lastName} ${fencer.firstName.charAt(0)}.` : 'TBD'}
           </div>
-          {fencer?.club && <div style={{ fontSize: '10px', color: '#6c757d' }}>{fencer.club}</div>}
+          {fencer?.club && (
+            <div style={{ fontSize: '0.625rem', color: '#6c757d' }}>{fencer.club}</div>
+          )}
         </div>
         <div
           style={{
@@ -254,7 +256,7 @@ const Bracket: React.FC<BracketProps> = ({
             justifyContent: 'center',
             borderLeft: `1px solid ${border}`,
             fontWeight: 'bold',
-            fontSize: '14px',
+            fontSize: '0.875rem',
             color: textColor,
             flexShrink: 0,
           }}
@@ -397,7 +399,7 @@ const Bracket: React.FC<BracketProps> = ({
                           <div
                             style={{
                               textAlign: 'center',
-                              fontSize: '10px',
+                              fontSize: '0.625rem',
                               color: '#6c757d',
                               marginBottom: '2px',
                             }}

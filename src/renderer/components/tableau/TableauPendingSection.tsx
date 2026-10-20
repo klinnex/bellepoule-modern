@@ -49,20 +49,20 @@ const TableauPendingSectionComponent: React.FC<TableauPendingSectionProps> = ({
           userSelect: 'none',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="u-row">
           <span style={{ fontSize: '1rem' }}>{isExpanded ? '▼' : '▶'}</span>
           <span style={{ fontWeight: '600', color: 'var(--tableau-title, var(--color-text))' }}>
             {roundName}
           </span>
         </div>
-        <span style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>
+        <span className="u-hint">
           {roundMatches.length} match{roundMatches.length !== 1 ? 's' : ''}
         </span>
       </div>
       {isExpanded && (
         <div style={{ padding: '0.5rem' }}>
           {roundMatches.map(match => (
-            <div key={match.id} style={{ marginBottom: '0.5rem' }}>
+            <div key={match.id} className="mb-2">
               {renderMatch(match)}
             </div>
           ))}

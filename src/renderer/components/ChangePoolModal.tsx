@@ -96,9 +96,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
             <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>
               {fencer.firstName} {fencer.lastName}
             </div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>
-              Actuellement en Poule {currentPool.number}
-            </div>
+            <div className="u-hint">Actuellement en Poule {currentPool.number}</div>
           </div>
 
           {hasPlayedMatches && (
@@ -117,7 +115,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
             </div>
           )}
 
-          <div style={{ marginBottom: '1rem' }}>
+          <div className="mb-4">
             <label
               style={{
                 display: 'block',
@@ -142,7 +140,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                 Aucune autre poule disponible
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div className="u-stack-2">
                 {otherPools.map(({ pool, index }) => {
                   const matchesPlayed = pool.matches.filter(
                     m => m.status === MatchStatus.FINISHED
@@ -176,13 +174,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
+                      <div className="u-row-between">
                         <div>
                           <span style={{ fontWeight: '600' }}>Poule {pool.number}</span>
                           <span

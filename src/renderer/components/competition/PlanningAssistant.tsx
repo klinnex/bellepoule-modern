@@ -109,11 +109,8 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
             🗓️ Assistant de planning
           </h2>
         </div>
-        <div
-          className="modal-body"
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="modal-body u-stack-4">
+          <div className="u-row">
             <label htmlFor="planning-arena-count" style={{ fontSize: '0.875rem', fontWeight: 600 }}>
               Nombre de pistes disponibles
             </label>
@@ -152,9 +149,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
                 <strong>Pistes utiles :</strong> {tableauResult.maxConcurrent}
               </div>
               {tableauResult.recommendations.length === 0 ? (
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>
-                  Aucun point de vigilance détecté avec cette configuration.
-                </p>
+                <p className="u-hint">Aucun point de vigilance détecté avec cette configuration.</p>
               ) : (
                 <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.875rem' }}>
                   {tableauResult.recommendations.map((r, i) => (
@@ -200,9 +195,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
               </div>
 
               {recommendations.length === 0 && insights.bottlenecks.length === 0 ? (
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>
-                  Aucun point de vigilance détecté avec cette configuration.
-                </p>
+                <p className="u-hint">Aucun point de vigilance détecté avec cette configuration.</p>
               ) : (
                 <ul
                   style={{

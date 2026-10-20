@@ -208,14 +208,13 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
               ) : (
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <select
-                    className="form-input"
+                    className="form-input flex-1"
                     value={arenaId}
                     onChange={e => {
                       setArenaId(e.target.value);
                       setSendState(null);
                     }}
                     aria-label="Piste"
-                    style={{ flex: 1 }}
                   >
                     {arenas.map(a => (
                       <option key={a.id} value={a.id}>

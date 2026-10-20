@@ -425,7 +425,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
           )}
         </div>
         {!questEnabled && (
-          <div style={{ marginTop: '1rem' }}>
+          <div className="mt-4">
             <div className="form-group">
               <label htmlFor="postPoolSplitCriteria">
                 Compétition couplée (séparation après poules)

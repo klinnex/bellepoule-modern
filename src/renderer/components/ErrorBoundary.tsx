@@ -96,7 +96,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     backgroundColor: '#fff',
                     padding: '10px',
                     borderRadius: '4px',
-                    fontSize: '12px',
+                    fontSize: '0.75rem',
                     overflow: 'auto',
                     maxHeight: '200px',
                   }}
@@ -112,7 +112,7 @@ export class ErrorBoundary extends Component<Props, State> {
                         backgroundColor: '#fff',
                         padding: '10px',
                         borderRadius: '4px',
-                        fontSize: '12px',
+                        fontSize: '0.75rem',
                         overflow: 'auto',
                         maxHeight: '200px',
                       }}
