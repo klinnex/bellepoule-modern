@@ -22,6 +22,7 @@ import {
   validatePoolData,
   validateSessionState,
   sanitizeString,
+  sanitizeText,
   sanitizeId,
 } from './validation';
 import { Weapon, Gender, Category, FencerStatus, MatchStatus } from '../shared/types';
@@ -484,6 +485,22 @@ describe('sanitizeString', () => {
 
   it('conserve les caractères normaux', () => {
     expect(sanitizeString('Dupont-Jean')).toBe('Dupont-Jean');
+  });
+});
+
+describe('sanitizeText (#1147)', () => {
+  it('retire < et > mais garde les noms usuels', () => {
+    expect(sanitizeText('<img src=x onerror=a()>DUPONT')).toBe('img src=x onerror=a()DUPONT');
+    expect(sanitizeText("O'Brien-Müller Ñuñez")).toBe("O'Brien-Müller Ñuñez");
+  });
+
+  it('remplace les caractères de contrôle par des espaces et réduit les espaces', () => {
+    expect(sanitizeText('Jean\n\tPaul\u0000  Marie')).toBe('Jean Paul Marie');
+  });
+
+  it('null et undefined donnent une chaîne vide', () => {
+    expect(sanitizeText(null)).toBe('');
+    expect(sanitizeText(undefined)).toBe('');
   });
 });
 

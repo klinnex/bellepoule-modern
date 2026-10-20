@@ -7,6 +7,7 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>Arbitrage - Arène BellePoule</title>
+    <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
@@ -1692,16 +1693,7 @@
         styleEl.textContent = `:root {\n${vars}\n}`;
       }
 
-      // ─── Utilitaire sécurité : encodage HTML pour éviter les XSS ───────────
-      function escHtml(str) {
-        if (str === null || str === undefined) return '';
-        return String(str)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#x27;');
-      }
+      // escHtml : helper partagé (/common.js)
     </script>
     <script>
       // ─── Queue hors-ligne (IndexedDB) ───────────────────────────────────────
@@ -2335,7 +2327,7 @@
             document.body.appendChild(ov);
           }
           ov.innerHTML = '<div style="background:rgba(0,0,0,0.85);border:3px solid #3b82f6;border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">'
-            + '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">🤺 ' + String(label).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])) + '</div>'
+            + '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">🤺 ' + escHtml(label) + '</div>'
             + '<div style="font-size:1rem;color:#94a3b8;">Identification tablette arbitre</div>'
             + '</div>';
           ov.style.display = 'flex';
@@ -3360,7 +3352,7 @@
             cards
               .map(
                 card =>
-                  `<div class="card card-${card}">${PASSIVITY_CARDS.includes(card) ? 'P' : card === 'white' ? 'B' : card === 'yellow' ? 'J' : card === 'black' ? 'N' : 'R'}</div>`
+                  `<div class="card card-${escHtml(card)}">${PASSIVITY_CARDS.includes(card) ? 'P' : card === 'white' ? 'B' : card === 'yellow' ? 'J' : card === 'black' ? 'N' : 'R'}</div>`
               )
               .join('');
 
@@ -3961,8 +3953,8 @@
           // Rappel du score et indication du vainqueur (V)
           document.getElementById('match-sig-score').textContent = `${scoreA} – ${scoreB}`;
           const vTag = win => (win ? '<span class="match-sig-victory">V</span> ' : '');
-          document.getElementById('match-sig-name-a').innerHTML = vTag(aWins) + fullName(match.fencerA);
-          document.getElementById('match-sig-name-b').innerHTML = vTag(bWins) + fullName(match.fencerB);
+          document.getElementById('match-sig-name-a').innerHTML = /* html */ vTag(aWins) + escHtml(fullName(match.fencerA));
+          document.getElementById('match-sig-name-b').innerHTML = /* html */ vTag(bWins) + escHtml(fullName(match.fencerB));
           document.getElementById('match-sig-pad-a').classList.toggle('winner', aWins);
           document.getElementById('match-sig-pad-b').classList.toggle('winner', bWins);
           overlay.classList.add('visible');
@@ -4462,10 +4454,10 @@
             container.innerHTML = `
               <div class="next-matches-empty">✅ Tous les matchs de cette arène sont terminés</div>
               <div style="display:flex;gap:0.75rem;justify-content:center;margin-top:1.25rem;flex-wrap:wrap;">
-                <a href="/arene${arenaNum}/poule" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.85rem 1.5rem;background:#4f46e5;color:#fff;border-radius:0.75rem;font-size:1rem;font-weight:700;text-decoration:none;">
+                <a href="/arene${escHtml(arenaNum)}/poule" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.85rem 1.5rem;background:#4f46e5;color:#fff;border-radius:0.75rem;font-size:1rem;font-weight:700;text-decoration:none;">
                   ✍️ SIGNATURE
                 </a>
-                <a href="/arene${arenaNum}/journal" target="_blank" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.85rem 1.5rem;background:#4c1d95;color:#c4b5fd;border-radius:0.75rem;font-size:1rem;font-weight:700;text-decoration:none;">
+                <a href="/arene${escHtml(arenaNum)}/journal" target="_blank" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.85rem 1.5rem;background:#4c1d95;color:#c4b5fd;border-radius:0.75rem;font-size:1rem;font-weight:700;text-decoration:none;">
                   📋 JOURNAL
                 </a>
               </div>`;
@@ -4489,10 +4481,10 @@
                 <div>
                   <div class="next-match-card-names">
                     ${escHtml(match.fencerA?.lastName) || '?'} <span style="opacity:0.6;font-weight:400">vs</span> ${escHtml(match.fencerB?.lastName) || '?'}
-                    ${statusBadge(match.status)}
+                    ${/* html */ statusBadge(match.status)}
                   </div>
                   <div class="next-match-card-sub">
-                    ${clubLine}
+                    ${/* html */ clubLine}
                   </div>
                 </div>
                 <div class="next-match-card-arrow">›</div>

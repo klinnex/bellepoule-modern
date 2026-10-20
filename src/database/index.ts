@@ -34,11 +34,23 @@ import {
   validateId,
   validateSessionState,
   sanitizeId,
+  sanitizeText,
   validateCompetitionData,
 } from './validation';
 import { logger, LogCategory } from '../shared/services/logger';
 import { MigrationManager } from './migrations';
 import { ALL_MIGRATIONS } from './migrations/migrations';
+
+// Champs texte d'un tireur normalisés avant stockage (#1147)
+const FENCER_TEXT_FIELDS = new Set([
+  'lastName',
+  'firstName',
+  'nationality',
+  'club',
+  'region',
+  'license',
+  'exclusionReason',
+]);
 
 // Taille max du cache de statements : les requêtes `IN (?,?,…)` à arité variable
 // créeraient sinon une entrée par taille, sans borne (#1007).
@@ -400,14 +412,14 @@ export class DatabaseManager {
           id,
           competitionId,
           ref,
-          fencer.lastName || '',
-          fencer.firstName || '',
+          sanitizeText(fencer.lastName),
+          sanitizeText(fencer.firstName),
           fencer.birthDate ? fencer.birthDate.toISOString() : null,
           fencer.gender || 'M',
-          fencer.nationality || 'FRA',
-          fencer.club || null,
-          fencer.region || null,
-          fencer.license || null,
+          sanitizeText(fencer.nationality) || 'FRA',
+          sanitizeText(fencer.club) || null,
+          sanitizeText(fencer.region) || null,
+          sanitizeText(fencer.license) || null,
           fencer.ranking || null,
           fencer.status || 'N',
           fencer.photo || null,
@@ -574,7 +586,10 @@ export class DatabaseManager {
     for (const [key, col] of Object.entries(fieldMap)) {
       if (key in updates) {
         setClauses.push(`${col} = ?`);
-        values.push((updates as Record<string, unknown>)[key] ?? null);
+        const value = (updates as Record<string, unknown>)[key] ?? null;
+        values.push(
+          typeof value === 'string' && FENCER_TEXT_FIELDS.has(key) ? sanitizeText(value) : value
+        );
       }
     }
     if (updates.poolStats !== undefined) {

@@ -254,7 +254,7 @@ class RemoteRefereeApp {
                         ${escapeHtml(match.fencerA?.name || '-')} vs ${escapeHtml(match.fencerB?.name || '-')}
                     </div>
                     <div class="match-item-details">
-                        Piste ${match.stripNumber || '-'}
+                        Piste ${escapeHtml(match.stripNumber || '-')}
                     </div>
                 </div>
                 <div class="match-item-status">En attente</div>
@@ -275,7 +275,7 @@ class RemoteRefereeApp {
                         ${escapeHtml(match.fencerA?.name || '-')} vs ${escapeHtml(match.fencerB?.name || '-')}
                     </div>
                     <div class="match-item-details">
-                        Score: ${match.scoreA || 0} - ${match.scoreB || 0}
+                        Score: ${escapeHtml(match.scoreA || 0)} - ${escapeHtml(match.scoreB || 0)}
                     </div>
                 </div>
                 <div class="match-item-status">Terminé</div>

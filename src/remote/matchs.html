@@ -95,6 +95,7 @@
         margin-top: 40px;
       }
     </style>
+    <script src="/common.js"></script>
     <script src="/i18n.js"></script>
   </head>
   <body>
@@ -114,8 +115,7 @@
         const arenaNumber = m ? m[1] : '1';
         document.getElementById('arena-number').textContent = arenaNumber;
 
-        const esc = s =>
-          String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+        const esc = window.escHtml;
 
         async function load() {
           try {
@@ -134,7 +134,7 @@
                     : x.status === 'current'
                       ? 'En cours'
                       : 'vs';
-                return `<li class="${esc(x.status)}"><span class="num">${esc(x.order)}</span><span class="a">${esc(x.fencerA)}</span><span class="score">${score}</span><span class="b">${esc(x.fencerB)}</span></li>`;
+                return `<li class="${esc(x.status)}"><span class="num">${esc(x.order)}</span><span class="a">${esc(x.fencerA)}</span><span class="score">${/* html */ score}</span><span class="b">${esc(x.fencerB)}</span></li>`;
               })
               .join('');
             document.getElementById('updated').textContent =

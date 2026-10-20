@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Classement en Direct - BellePoule Modern</title>
+    <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -728,13 +729,7 @@
         }, 1000);
       }
 
-      // Échappement HTML des données issues des tireurs (noms, clubs)
-      function escHtml(v) {
-        return String(v == null ? '' : v).replace(
-          /[&<>"']/g,
-          c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
-        );
-      }
+      // escHtml : helper partagé (/common.js)
 
       // Update Rankings
       function updateRankings(data) {
@@ -750,14 +745,14 @@
             (r, i) => `
           <tr class="${i < 3 ? 'top-3' : ''}">
             <td class="rank rank-${i + 1}">
-              ${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}
+              ${escHtml(i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1)}
             </td>
             <td>
               <div class="fencer-name">${escHtml(r.lastName)} ${escHtml(r.firstName)}</div>
             </td>
             <td class="club">${escHtml(r.club || '-')}</td>
-            <td class="victories">${r.victories}</td>
-            <td class="quest">${r.quest}</td>
+            <td class="victories">${escHtml(r.victories)}</td>
+            <td class="quest">${escHtml(r.quest)}</td>
           </tr>
         `
           )
@@ -785,7 +780,7 @@
             pool => `
           <div class="pool-card">
             <div class="pool-header">
-              <h3>Poule ${pool.number}</h3>
+              <h3>Poule ${escHtml(pool.number)}</h3>
               <span class="pool-status ${pool.isComplete ? '' : 'in-progress'}">
                 ${pool.isComplete ? 'Terminée' : 'En cours'}
               </span>
@@ -811,9 +806,9 @@
                       <div class="fencer-name">${escHtml(r.lastName)} ${escHtml(r.firstName)}</div>
                       <div class="club">${escHtml(r.club || '')}</div>
                     </td>
-                    <td class="victories">${r.victories}</td>
-                    <td class="quest">${r.quest}</td>
-                    <td class="ind">${r.indicator}</td>
+                    <td class="victories">${escHtml(r.victories)}</td>
+                    <td class="quest">${escHtml(r.quest)}</td>
+                    <td class="ind">${escHtml(r.indicator)}</td>
                     <td class="score">${r.touchesScored - r.touchesReceived}</td>
                   </tr>
                 `
@@ -848,17 +843,17 @@
             match => `
           <div class="match-card">
             <div class="match-header">
-              <span class="match-number">Match #${match.number}</span>
-              <span class="match-pool">Poule ${match.poolNumber || '-'}</span>
+              <span class="match-number">Match #${escHtml(match.number)}</span>
+              <span class="match-pool">Poule ${escHtml(match.poolNumber || '-')}</span>
             </div>
             <div class="match-score">
               <div class="match-fencer ${match.winner === 'A' ? 'winner' : ''}">
                 <div class="name">${escHtml(match.fencerA)}</div>
                 <div class="club">${escHtml(match.clubA || '')}</div>
               </div>
-              <div class="score-display score-a">${match.scoreA}</div>
+              <div class="score-display score-a">${escHtml(match.scoreA)}</div>
               <span class="vs">VS</span>
-              <div class="score-display score-b">${match.scoreB}</div>
+              <div class="score-display score-b">${escHtml(match.scoreB)}</div>
               <div class="match-fencer ${match.winner === 'B' ? 'winner' : ''}">
                 <div class="name">${escHtml(match.fencerB)}</div>
                 <div class="club">${escHtml(match.clubB || '')}</div>
