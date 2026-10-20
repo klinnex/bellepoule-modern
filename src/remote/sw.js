@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-const CACHE_NAME = 'bellepoule-referee-v4';
+const CACHE_NAME = 'bellepoule-referee-v5';
 // Seuls les fichiers réellement servis (pas de /styles.css ni /app.js qui sont inline)
 const ASSETS = ['/', '/referee.html', '/arena.html', '/common.js'];
 

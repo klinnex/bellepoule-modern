@@ -4,6 +4,7 @@
  */
 
 import { MatchStatus } from '../../../shared/types';
+import { sendHtmlPage } from '../csp';
 import { renderArenaJournalPage, renderCompetitionResultsPage } from '../htmlPages';
 import type { RouteContext } from './context';
 
@@ -421,8 +422,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       return res.status(400).send('Identifiant invalide');
     }
     const html = renderCompetitionResultsPage(competitionId);
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send(html);
+    sendHtmlPage(res, html);
   });
 
   // Journal du match en cours (tablette arbitre - lecture seule)
@@ -447,7 +447,6 @@ export function registerResultsRoutes(ctx: RouteContext): void {
       return res.status(400).send('Numéro de piste invalide');
     }
     const html = renderArenaJournalPage(arenaNum);
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send(html);
+    sendHtmlPage(res, html);
   });
 }

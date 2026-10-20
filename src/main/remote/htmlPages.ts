@@ -43,7 +43,7 @@ export function renderCompetitionResultsPage(competitionId: string): string {
 </head>
 <body>
   <div id="app"><div class="loading">Chargement des résultats…</div></div>
-  <button class="refresh" onclick="load()" title="Actualiser">↻</button>
+  <button class="refresh" id="refresh-btn" title="Actualiser">↻</button>
   <script>
     const competitionId = ${JSON.stringify(competitionId).replace(/</g, '\\u003c')};
     async function load() {
@@ -89,6 +89,7 @@ export function renderCompetitionResultsPage(competitionId: string): string {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
     load();
+    document.getElementById('refresh-btn').addEventListener('click', load);
     setInterval(load, 30000);
   </script>
 </body>

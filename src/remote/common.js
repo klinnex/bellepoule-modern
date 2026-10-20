@@ -60,6 +60,54 @@
   root.escHtml = escHtml;
   root.escapeHtml = escHtml;
   root.html = html;
+  root.bpResolveAction = resolvePath;
+
+  /**
+   * Délégation d'événements (#1149) : remplace les onclick/onchange/oninput inline, interdits
+   * par la CSP (script-src sans 'unsafe-inline').
+   *   <button data-click="refereeApp.undo" data-args='["A"]'>
+   * data-click | data-change | data-input = chemin pointé résolu depuis window ; data-args = tableau
+   * JSON, "$el" = l'élément, "$value" = sa valeur. Les fonctions de page restent globales.
+   */
+  function resolvePath(path) {
+    var parts = String(path).split('.');
+    var parent = root;
+    var fn = root;
+    for (var i = 0; i < parts.length; i++) {
+      parent = fn;
+      fn = fn == null ? undefined : fn[parts[i]];
+    }
+    return typeof fn === 'function' ? { fn: fn, parent: parent } : null;
+  }
+
+  function dispatch(event, attr) {
+    var el = event.target && event.target.closest ? event.target.closest('[data-' + attr + ']') : null;
+    if (!el) return;
+    var target = resolvePath(el.getAttribute('data-' + attr));
+    if (!target) return;
+    var args = [];
+    var raw = el.getAttribute('data-args');
+    if (raw) {
+      try {
+        args = JSON.parse(raw);
+      } catch (e) {
+        args = [];
+      }
+      args = args.map(function (a) {
+        return a === '$el' ? el : a === '$value' ? el.value : a;
+      });
+    }
+    if (attr === 'click' && el.tagName === 'A') event.preventDefault();
+    target.fn.apply(target.parent, args);
+  }
+
+  if (typeof document !== 'undefined') {
+    ['click', 'change', 'input'].forEach(function (type) {
+      document.addEventListener(type, function (e) {
+        dispatch(e, type);
+      });
+    });
+  }
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = { escHtml: escHtml, html: html };

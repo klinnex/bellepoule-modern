@@ -1330,28 +1330,28 @@
         <button
           id="btn-poules"
           class="active"
-          onclick="switchView('poules')"
+          data-click="switchView" data-args='["poules"]'
           data-i18n="kiosk.pools"
         >
           Poules
         </button>
         <button
           id="btn-classement"
-          onclick="switchView('classement')"
+          data-click="switchView" data-args='["classement"]'
           data-i18n="kiosk.provisional_ranking"
         >
           Classement Provisoire
         </button>
-        <button id="btn-final" onclick="switchView('final')" data-i18n="kiosk.final_ranking">
+        <button id="btn-final" data-click="switchView" data-args='["final"]' data-i18n="kiosk.final_ranking">
           Classement Final
         </button>
-        <button id="btn-direct" onclick="switchView('direct')" data-i18n="kiosk.live">
+        <button id="btn-direct" data-click="switchView" data-args='["direct"]' data-i18n="kiosk.live">
           Matchs en direct
         </button>
-        <button id="btn-suivants" onclick="switchView('suivants')" data-i18n="kiosk.next_matches">
+        <button id="btn-suivants" data-click="switchView" data-args='["suivants"]' data-i18n="kiosk.next_matches">
           Matchs suivants
         </button>
-        <button id="btn-tableau" onclick="switchView('tableau')" data-i18n="kiosk.de_bracket">
+        <button id="btn-tableau" data-click="switchView" data-args='["tableau"]' data-i18n="kiosk.de_bracket">
           Tableau DE
         </button>
         <div style="position: relative; margin-left: 0.5rem">

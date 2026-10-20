@@ -236,6 +236,7 @@
     }
     .obs-hint .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
   </style>
+  <script src="/common.js"></script>
   <script src="/i18n.js"></script>
 </head>
 <body>
@@ -288,10 +289,10 @@
           </label>
         </div>
         <div class="chips">
-          <label class="chip" onclick="setSize(1280,160)"><span>1280×160</span></label>
-          <label class="chip" onclick="setSize(1920,80)"><span>1920×80</span></label>
-          <label class="chip" onclick="setSize(1920,160)"><span>1920×160</span></label>
-          <label class="chip" onclick="setSize(400,220)"><span data-i18n="overlay.size_corner">400×220 coin</span></label>
+          <label class="chip" data-click="setSize" data-args='[1280,160]'><span>1280×160</span></label>
+          <label class="chip" data-click="setSize" data-args='[1920,80]'><span>1920×80</span></label>
+          <label class="chip" data-click="setSize" data-args='[1920,160]'><span>1920×160</span></label>
+          <label class="chip" data-click="setSize" data-args='[400,220]'><span data-i18n="overlay.size_corner">400×220 coin</span></label>
         </div>
       </div>
     </div>
@@ -302,19 +303,19 @@
       <div class="section-body">
         <div class="chips">
           <label class="chip active" id="chip-timer">
-            <input type="checkbox" checked onchange="toggleHide('timer', this)" /> <span data-i18n="overlay.el_timer">⏱ Timer</span>
+            <input type="checkbox" checked data-change="toggleHide" data-args='["timer","$el"]' /> <span data-i18n="overlay.el_timer">⏱ Timer</span>
           </label>
           <label class="chip active" id="chip-cards">
-            <input type="checkbox" checked onchange="toggleHide('cards', this)" /> <span data-i18n="overlay.el_cards">🟨 Cartons</span>
+            <input type="checkbox" checked data-change="toggleHide" data-args='["cards","$el"]' /> <span data-i18n="overlay.el_cards">🟨 Cartons</span>
           </label>
           <label class="chip active" id="chip-club">
-            <input type="checkbox" checked onchange="toggleHide('club', this)" /> <span data-i18n="overlay.el_club">🏟 Club</span>
+            <input type="checkbox" checked data-change="toggleHide" data-args='["club","$el"]' /> <span data-i18n="overlay.el_club">🏟 Club</span>
           </label>
           <label class="chip active" id="chip-phase">
-            <input type="checkbox" checked onchange="toggleHide('phase', this)" /> <span data-i18n="overlay.el_phase"># Phase</span>
+            <input type="checkbox" checked data-change="toggleHide" data-args='["phase","$el"]' /> <span data-i18n="overlay.el_phase"># Phase</span>
           </label>
           <label class="chip" id="chip-swap">
-            <input type="checkbox" onchange="toggleSwap(this)" /> <span data-i18n="overlay.el_swap">↔ Inverser vert/rouge</span>
+            <input type="checkbox" data-change="toggleSwap" data-args='["$el"]' /> <span data-i18n="overlay.el_swap">↔ Inverser vert/rouge</span>
           </label>
         </div>
       </div>
@@ -325,10 +326,10 @@
       <div class="section-header" data-i18n="overlay.score_position">Position du score</div>
       <div class="section-body">
         <div class="chips">
-          <label class="chip active" id="chip-scores-inner" onclick="setScorePos('inner')">
+          <label class="chip active" id="chip-scores-inner" data-click="setScorePos" data-args='["inner"]'>
             <span data-i18n="overlay.score_outer">[Nom·Score] ⬛ [Score·Nom] — côté extérieur</span>
           </label>
-          <label class="chip" id="chip-scores-outer" onclick="setScorePos('outer')">
+          <label class="chip" id="chip-scores-outer" data-click="setScorePos" data-args='["outer"]'>
             <span data-i18n="overlay.score_inner">[Score·Nom] ⬛ [Nom·Score] — côté centre</span>
           </label>
         </div>
@@ -356,8 +357,8 @@
       <div class="section-body">
         <div class="url-box" id="generated-url">—</div>
         <div class="btn-row">
-          <button class="btn btn-primary" id="copy-btn" onclick="copyUrl()" data-i18n="overlay.copy_url">📋 Copier l'URL</button>
-          <button class="btn btn-ghost" onclick="openPreviewTab()" data-i18n="overlay.open">↗ Ouvrir</button>
+          <button class="btn btn-primary" id="copy-btn" data-click="copyUrl" data-i18n="overlay.copy_url">📋 Copier l'URL</button>
+          <button class="btn btn-ghost" data-click="openPreviewTab" data-i18n="overlay.open">↗ Ouvrir</button>
         </div>
         <div class="obs-hint">
           <span class="icon">🎬</span>

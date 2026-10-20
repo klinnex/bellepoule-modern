@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Accès protégé - BellePoule</title>
+    <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <style>
       * {
@@ -129,7 +130,7 @@
       <p class="subtitle" id="subtitle">Piste —</p>
       <label for="password" data-i18n="login.password_label">Mot de passe</label>
       <input type="password" id="password" data-i18n-placeholder="login.password_placeholder" placeholder="Saisir le mot de passe" autofocus />
-      <button id="submit-btn" onclick="doLogin()" data-i18n="login.submit">Valider</button>
+      <button id="submit-btn" data-click="doLogin" data-i18n="login.submit">Valider</button>
       <div class="error-msg" id="error-msg" data-i18n="login.error_incorrect">Mot de passe incorrect</div>
     </div>
 

@@ -1317,8 +1317,8 @@
         <span><span id="arena-label">Arène</span> <span id="arena-number">1</span></span>
       </h1>
       <div class="connection-status">
-        <button id="btn-swap" class="swap-btn" onclick="refereeApp.toggleSwap()" data-i18n-title="referee.swap_colors" title="Inverser rouge/vert">⇄</button>
-        <button id="btn-colorblind" class="swap-btn" onclick="refereeApp.toggleColorblind()" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)">👁</button>
+        <button id="btn-swap" class="swap-btn" data-click="refereeApp.toggleSwap" data-i18n-title="referee.swap_colors" title="Inverser rouge/vert">⇄</button>
+        <button id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)">👁</button>
         <div id="status-dot" class="status-dot"></div>
         <span id="connection-text" data-i18n="remote.connecting">Connexion...</span>
         <span
@@ -1363,7 +1363,7 @@
         >📣</button>
         <button
           id="btn-journal"
-          onclick="window.open(`/arene${refereeApp?.arenaNumber || document.getElementById('arena-number').textContent}/journal`, '_blank')"
+          data-click="openJournal"
           title="Journal du match"
           aria-label="Journal"
           style="background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.4); color:#c4b5fd; border-radius:0.5rem; padding:0.3rem 0.6rem; font-size:1rem; cursor:pointer;"
@@ -1377,7 +1377,7 @@
         <div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem;">
           <button
             id="btn-back-to-list"
-            onclick="if(!refereeApp.timerRunning) window.location.reload();"
+            data-click="reloadIfIdle"
             style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);border-radius:0.5rem;color:#fff;font-weight:600;padding:0.35rem 0.85rem;font-size:0.85rem;cursor:pointer;"
             title="Retour à la liste des matchs"
             data-i18n="referee.back" data-i18n-title="referee.back_title"
@@ -1424,7 +1424,7 @@
                 id="btn-card-black-a"
                 class="card-btn card-btn-black"
                 title="Carton noir (exclusion)"
-                onclick="refereeApp.requestBlackCard('A')"
+                data-click="refereeApp.requestBlackCard" data-args='["A"]'
               >
                 N
               </button>
@@ -1474,7 +1474,7 @@
                 id="btn-card-black-b"
                 class="card-btn card-btn-black"
                 title="Carton noir (exclusion)"
-                onclick="refereeApp.requestBlackCard('B')"
+                data-click="refereeApp.requestBlackCard" data-args='["B"]'
               >
                 N
               </button>
@@ -1505,7 +1505,7 @@
               class="rest-btn"
               style="display: none"
               disabled
-              onclick="refereeApp.startRest()"
+              data-click="refereeApp.startRest"
             >
               Repos
             </button>
@@ -1533,7 +1533,7 @@
           <div style="display:flex;justify-content:center;margin-top:0.4rem;">
             <button
               id="btn-tts-toggle"
-              onclick="refereeApp.toggleTTS()"
+              data-click="refereeApp.toggleTTS"
               title="Minuteur vocal"
               style="background:none;border:1px solid rgba(255,255,255,0.3);border-radius:0.5rem;color:rgba(255,255,255,0.7);font-size:0.8rem;padding:0.2rem 0.6rem;cursor:pointer;"
             >🔇 Voix</button>
@@ -1545,14 +1545,14 @@
           <button
             class="control-btn btn-start"
             id="btn-start"
-            onclick="refereeApp.handleStartPauseClick()"
+            data-click="refereeApp.handleStartPauseClick"
           >
             <span data-i18n="referee.start">▶️ Démarrer</span>
           </button>
           <button
             class="control-btn btn-finish"
             id="btn-finish"
-            onclick="refereeApp.showFinishModal()"
+            data-click="refereeApp.showFinishModal"
             disabled
           >
             <span data-i18n="referee.finish">🏁 Terminer</span>
@@ -1563,14 +1563,14 @@
           <button
             class="control-btn btn-arena-exit-red"
             id="btn-exit-a"
-            onclick="refereeApp.arenaExit('A')"
+            data-click="refereeApp.arenaExit" data-args='["A"]'
           >
             <span data-i18n="referee.exit_red">🚪 Sortie rouge</span>
           </button>
           <button
             class="control-btn btn-undo"
             id="btn-undo"
-            onclick="refereeApp.undoLastAction()"
+            data-click="refereeApp.undoLastAction"
             disabled
           >
             <span data-i18n="referee.undo">↩ Annuler</span>
@@ -1578,7 +1578,7 @@
           <button
             class="control-btn btn-arena-exit-green"
             id="btn-exit-b"
-            onclick="refereeApp.arenaExit('B')"
+            data-click="refereeApp.arenaExit" data-args='["B"]'
           >
             <span data-i18n="referee.exit_green">🚪 Sortie verte</span>
           </button>
@@ -1588,9 +1588,9 @@
         <div class="referee-bar hidden" id="referee-bar">
           <div class="referee-bar-label" data-i18n="referee.referee_label">⚖️ Arbitre :</div>
           <div class="referee-bar-name" id="referee-bar-name">—</div>
-          <button class="referee-change-btn" id="referee-change-btn" onclick="refereeApp.toggleRefereeSelector()" data-i18n="referee.change">Changer</button>
+          <button class="referee-change-btn" id="referee-change-btn" data-click="refereeApp.toggleRefereeSelector" data-i18n="referee.change">Changer</button>
           <div class="referee-selector hidden" id="referee-selector">
-            <select id="referee-select" onchange="refereeApp.changeReferee(this.value)">
+            <select id="referee-select" data-change="refereeApp.changeReferee" data-args='["$value"]'>
               <option value="">— Sélectionner un arbitre —</option>
             </select>
           </div>
@@ -1605,7 +1605,7 @@
           id="match-search"
           data-i18n-placeholder="referee.search_placeholder"
           placeholder="🔍 Rechercher un tireur..."
-          oninput="refereeApp.filterMatches(this.value)"
+          data-input="refereeApp.filterMatches" data-args='["$value"]'
           style="
             width: 100%;
             padding: 0.75rem;
@@ -1637,10 +1637,10 @@
           </p>
         </div>
         <div class="modal-buttons">
-          <button class="modal-btn modal-btn-cancel" onclick="refereeApp.hideFinishModal()">
+          <button class="modal-btn modal-btn-cancel" data-click="refereeApp.hideFinishModal">
             <span data-i18n="referee.cancel">Annuler</span>
           </button>
-          <button class="modal-btn modal-btn-confirm" onclick="refereeApp.confirmFinish()">
+          <button class="modal-btn modal-btn-confirm" data-click="refereeApp.confirmFinish">
             <span data-i18n="referee.confirm">Confirmer</span>
           </button>
         </div>
@@ -1657,8 +1657,8 @@
           <p style="text-align:center;font-size:0.875rem;color:#6b7280" data-i18n="referee.black_card_desc">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
         </div>
         <div class="modal-buttons">
-          <button class="modal-btn modal-btn-cancel" onclick="refereeApp.cancelBlackCard()" data-i18n="referee.cancel">Annuler</button>
-          <button class="modal-btn modal-btn-confirm" style="background:#111;color:#fff" onclick="refereeApp.confirmBlackCard()" data-i18n="referee.black_card_confirm">⬛ Confirmer l'élimination</button>
+          <button class="modal-btn modal-btn-cancel" data-click="refereeApp.cancelBlackCard" data-i18n="referee.cancel">Annuler</button>
+          <button class="modal-btn modal-btn-confirm" style="background:#111;color:#fff" data-click="refereeApp.confirmBlackCard" data-i18n="referee.black_card_confirm">⬛ Confirmer l'élimination</button>
         </div>
       </div>
     </div>
@@ -1670,7 +1670,7 @@
         <div class="coin-flip-confirm-label" data-i18n="referee.coin_flip_winner">Tirage au sort — Vainqueur :</div>
         <div class="coin-flip-confirm-winner" id="coin-flip-confirm-name">—</div>
         <div class="coin-flip-confirm-color" id="coin-flip-confirm-color">—</div>
-        <button class="btn-confirm-coin-flip" onclick="refereeApp.confirmCoinFlipFinish()">
+        <button class="btn-confirm-coin-flip" data-click="refereeApp.confirmCoinFlipFinish">
           🏁 Terminer le match
         </button>
       </div>
@@ -4416,7 +4416,7 @@
                     <div style="font-weight:700;">${escHtml(c.fencerName) || '?'}</div>
                     <div style="font-size:0.8rem;opacity:0.75;">contre ${escHtml(c.opponentName) || '?'}</div>
                   </div>
-                  <button onclick="refereeApp.cancelBlackCardFromList('${escHtml(c.fencerId)}')"
+                  <button data-click="refereeApp.cancelBlackCardFromList" data-args="${escHtml(JSON.stringify([c.fencerId]))}"
                     style="padding:0.6rem 1rem;border:none;border-radius:0.5rem;background:#f9fafb;color:#111;font-weight:700;font-size:0.9rem;cursor:pointer;">
                     ↩ Annuler le carton
                   </button>
@@ -4470,14 +4470,14 @@
           };
           container.innerHTML = matches
             .map(match => {
-              const safeId = escHtml(match.id);
+              const argsId = escHtml(JSON.stringify([match.id]));
               const clubLine =
                 [match.fencerA?.club, match.fencerB?.club]
                   .filter(Boolean)
                   .map(escHtml)
                   .join(' · ') || '';
               return `
-              <div class="next-match-card" onclick="refereeApp.selectMatchFromNextScreen('${safeId}')">
+              <div class="next-match-card" data-click="refereeApp.selectMatchFromNextScreen" data-args="${/* html */ argsId}">
                 <div>
                   <div class="next-match-card-names">
                     ${escHtml(match.fencerA?.lastName) || '?'} <span style="opacity:0.6;font-weight:400">vs</span> ${escHtml(match.fencerB?.lastName) || '?'}
@@ -4534,11 +4534,20 @@
 
       // Initialisation
       let refereeApp;
+      // Actions des boutons (data-click) : plus de handlers inline (CSP, #1149)
+      function openJournal() {
+        const n = refereeApp?.arenaNumber || document.getElementById('arena-number')?.textContent;
+        window.open('/arene' + encodeURIComponent(n) + '/journal', '_blank');
+      }
+      function reloadIfIdle() {
+        if (!refereeApp.timerRunning) window.location.reload();
+      }
       document.addEventListener('DOMContentLoaded', async () => {
         try {
           await window.initRemoteI18n();
           document.title = window.T('referee.title');
           refereeApp = new RefereeApp();
+          window.refereeApp = refereeApp; // résolu par la délégation data-click (common.js)
         } catch (e) {
           console.error('[RefereeApp] Erreur init:', e);
           const dot = document.getElementById('status-dot');
@@ -4557,7 +4566,7 @@
       </div>
       <div class="reason-selector-body" id="reason-selector-body"></div>
       <div class="reason-selector-footer">
-        <button class="reason-cancel-btn" onclick="refereeApp.cancelReasonSelector()">
+        <button class="reason-cancel-btn" data-click="refereeApp.cancelReasonSelector">
           ✕ Annuler — carton donné sans annonce
         </button>
       </div>
@@ -4568,10 +4577,10 @@
       <div class="pco-icon">✍️</div>
       <h1 class="pco-title" data-i18n="referee.pool_complete">POULE TERMINÉE</h1>
       <p class="pco-sub" data-i18n="referee.pool_complete_sub">Tous les matchs sont terminés</p>
-      <button class="pco-btn" onclick="refereeApp.goToSignature()">
+      <button class="pco-btn" data-click="refereeApp.goToSignature">
         ✍️ SIGNATURE
       </button>
-      <button class="pco-btn" onclick="window.open(`/arene${refereeApp.arenaNumber}/journal`, '_blank')" style="margin-top:1rem; background:#4c1d95; animation:none; font-size:1.2rem; padding:0.9rem 2rem;">
+      <button class="pco-btn" data-click="openJournal" style="margin-top:1rem; background:#4c1d95; animation:none; font-size:1.2rem; padding:0.9rem 2rem;">
         📋 JOURNAL
       </button>
     </div>
@@ -4589,17 +4598,17 @@
           <div id="match-sig-pad-a" class="match-sig-pad">
             <div class="match-sig-fencer"><span class="match-sig-letter">A</span> <strong id="match-sig-name-a"></strong></div>
             <canvas id="match-sig-canvas-a" class="match-sig-canvas"></canvas>
-            <button class="match-sig-clear" onclick="refereeApp.clearMatchSig('a')" data-i18n="referee.sig_clear">Effacer</button>
+            <button class="match-sig-clear" data-click="refereeApp.clearMatchSig" data-args='["a"]' data-i18n="referee.sig_clear">Effacer</button>
           </div>
           <div id="match-sig-pad-b" class="match-sig-pad">
             <div class="match-sig-fencer"><span class="match-sig-letter">B</span> <strong id="match-sig-name-b"></strong></div>
             <canvas id="match-sig-canvas-b" class="match-sig-canvas"></canvas>
-            <button class="match-sig-clear" onclick="refereeApp.clearMatchSig('b')" data-i18n="referee.sig_clear">Effacer</button>
+            <button class="match-sig-clear" data-click="refereeApp.clearMatchSig" data-args='["b"]' data-i18n="referee.sig_clear">Effacer</button>
           </div>
         </div>
         <div class="match-sig-actions">
-          <button class="match-sig-skip" onclick="refereeApp.closeMatchSignature()" data-i18n="referee.sig_skip">Passer</button>
-          <button id="match-sig-submit" class="match-sig-validate" onclick="refereeApp.submitMatchSignatures()" data-i18n="referee.sig_submit">Valider les signatures</button>
+          <button class="match-sig-skip" data-click="refereeApp.closeMatchSignature" data-i18n="referee.sig_skip">Passer</button>
+          <button id="match-sig-submit" class="match-sig-validate" data-click="refereeApp.submitMatchSignatures" data-i18n="referee.sig_submit">Valider les signatures</button>
         </div>
       </div>
     </div>
