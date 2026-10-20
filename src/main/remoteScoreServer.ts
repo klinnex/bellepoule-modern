@@ -209,6 +209,8 @@ export class RemoteScoreServer {
   // Fichiers statiques JS/CSS communs (pré-compressés, revalidation par ETag)
   private staticFiles: Map<string, StoredBody> = new Map();
   private remoteBasePath: string | null = null;
+  private unsubscribeDb: (() => void) | null = null;
+  private kioskDataTimer: NodeJS.Timeout | null = null;
 
   // Client socket.io chargé en mémoire au démarrage (injecté inline dans le HTML)
   private socketIoClientJs: string | null = null;
@@ -267,6 +269,8 @@ export class RemoteScoreServer {
   ) {
     console.log('[RemoteScoreServer] Initialisation du serveur de saisie distante...');
     this.db = db;
+    // Écritures en base => « données modifiées » poussé aux kiosques (plus de polling, #1152)
+    this.unsubscribeDb = db.onChange?.(() => this.notifyKioskData()) ?? null;
     this.port = port;
     this.host = host;
     this.useHttps = !!tlsOptions;
@@ -3599,6 +3603,7 @@ export class RemoteScoreServer {
     // Émission limitée à la room de l'arène (les clients join_arena à la connexion) :
     // évite d'envoyer chaque update (photos base64 incluses) à tous les clients de toutes les arènes
     this.io.to(`arena:${arenaId}`).emit(`arena:${arenaId}:update`, payload);
+    this.notifyKioskData();
 
     if ((global as any).mainWindow) {
       (global as any).mainWindow.webContents.send('arena:update', {
@@ -3824,7 +3829,22 @@ export class RemoteScoreServer {
     });
   }
 
+  /** Signale aux kiosques que les données ont changé (regroupé sur 300 ms) */
+  public notifyKioskData(): void {
+    if (this.kioskDataTimer || !this.io) return;
+    this.kioskDataTimer = setTimeout(() => {
+      this.kioskDataTimer = null;
+      this.io?.emit('kiosk:data');
+    }, 300);
+  }
+
   public stop(): void {
+    this.unsubscribeDb?.();
+    this.unsubscribeDb = null;
+    if (this.kioskDataTimer) {
+      clearTimeout(this.kioskDataTimer);
+      this.kioskDataTimer = null;
+    }
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
@@ -4182,6 +4202,7 @@ export class RemoteScoreServer {
     // Créer la session - utiliser allMatches au lieu de pendingMatches
     const assignedMatchCount = Math.min(allMatches.length, strips);
     const sessionReferees = this.loadSessionReferees(competitionId);
+    this.notifyKioskData();
     this.session = {
       competitionId,
       strips: Array.from({ length: strips }, (_, i) => ({
@@ -4223,6 +4244,7 @@ export class RemoteScoreServer {
     this.isTrainingMode = false;
     this.trainingCustomRules = null;
     this.session = null;
+    this.notifyKioskData();
     this.sessionMatches = [];
     this.sessionPoolArenas = new Map();
     this.arenaMatchQueue.clear();
@@ -4280,6 +4302,7 @@ export class RemoteScoreServer {
     this.poolSignaturesCache.clear();
     this.setArenaCount(effectiveStrips);
     this.sessionMatches = [];
+    this.notifyKioskData();
     this.session = {
       competitionId: '__training__',
       strips: Array.from({ length: effectiveStrips }, (_, i) => ({

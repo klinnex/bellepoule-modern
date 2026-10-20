@@ -95,16 +95,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 10 | 161 |
+| `src/main/` | 10 | 163 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| `src/remote/` | 4 | 25 |
+| `src/remote/` | 5 | 29 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **144** | **1479** |
+| **Total** | **145** | **1485** |
 
-Unitaires : 136 fichiers, 1448 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 137 fichiers, 1454 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2013,7 +2013,7 @@ Unitaires : 136 fichiers, 1448 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 93 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 95 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -2038,6 +2038,9 @@ Unitaires : 136 fichiers, 1448 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - **persistArenaState**
     - n'appelle pas saveArenaState si pas de session
     - appelle saveArenaState si une session est active
+  - **kiosk:data (#1152)**
+    - regroupe les notifications sur 300 ms
+    - s’abonne aux écritures de la base et se désabonne à l’arrêt
   - **broadcastDashboardUpdate (#1069)**
     - ne relit pas la base quand aucun dashboard n’est abonné
     - diffuse aux dashboards abonnés
@@ -2904,6 +2907,17 @@ Unitaires : 136 fichiers, 1448 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 ### `src/remote/`
+
+<details>
+<summary><code>src/remote/kioskNoPolling.test.ts</code> — 4 tests</summary>
+
+- **kiosk.html sans polling HTTP (#1152)**
+  - aucun setInterval ne déclenche un fetch
+  - se resynchronise sur événements, reconnexion, visibilité et retour réseau
+  - backoff exponentiel avec jitter sur échec
+  - timers d’animation suspendus quand la page est masquée
+
+</details>
 
 <details>
 <summary><code>src/remote/refereeOfflineQueue.test.ts</code> — 8 tests</summary>

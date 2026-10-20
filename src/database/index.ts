@@ -126,8 +126,29 @@ export class DatabaseManager {
     return stmt;
   }
 
+  // Abonnés aux écritures (le serveur distant pousse « données modifiées » aux kiosques, #1152)
+  private changeListeners = new Set<() => void>();
+
+  /** S'abonne aux écritures ; renvoie la fonction de désabonnement */
+  public onChange(listener: () => void): () => void {
+    this.changeListeners.add(listener);
+    return () => this.changeListeners.delete(listener);
+  }
+
+  private notifyChange(): void {
+    for (const fn of this.changeListeners) {
+      try {
+        fn();
+      } catch {
+        /* un abonné défaillant ne doit pas bloquer l'écriture */
+      }
+    }
+  }
+
   private run(sql: string, params: unknown[] = []): Database.RunResult {
-    return this.prepare(sql).run(...params);
+    const result = this.prepare(sql).run(...params);
+    this.notifyChange();
+    return result;
   }
 
   private queryOne<T>(sql: string, params: unknown[] = []): T | null {
