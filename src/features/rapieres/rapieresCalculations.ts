@@ -7,6 +7,7 @@
 
 import { Fencer, FencerStatus, MatchStatus, Pool, PoolRanking } from '../../shared/types';
 import { calculatePoolRanking } from '../../shared/utils/poolCalculations';
+import type { TableauMatchForPDF } from '../../shared/utils/pdfExport/tableauPdf';
 import {
   RAPIERES_LEVELS,
   RapieresAgeCategory,
@@ -157,6 +158,38 @@ export function waveMatchIds(pools: Pool[], wave: number): Set<string> {
   if (wave < 1) return ids;
   for (const pool of pools) for (const [id, w] of poolMatchWaves(pool)) if (w === wave) ids.add(id);
   return ids;
+}
+
+/**
+ * Matchs de la vague `wave` au format des feuilles d'arbitrage du tableau (#1118).
+ * Triés par poule puis par ordre de rencontre ; la piste de la poule est reprise si elle existe.
+ * Les matchs annulés ou avec une équipe retirée sont exclus (rien à arbitrer).
+ */
+export function waveSheetMatches(pools: Pool[], wave: number): TableauMatchForPDF[] {
+  const result: TableauMatchForPDF[] = [];
+  for (const pool of [...pools].sort((a, b) => a.number - b.number)) {
+    const ids = waveMatchIds([pool], wave);
+    pool.matches
+      .filter(m => ids.has(m.id) && m.fencerA && m.fencerB)
+      .filter(m => m.status !== MatchStatus.CANCELLED)
+      .filter(m => !isWithdrawn(m.fencerA) && !isWithdrawn(m.fencerB))
+      .forEach((m, i) => {
+        result.push({
+          id: m.id,
+          round: 0,
+          position: pool.number * 1000 + i,
+          label: `Vague ${wave} — Poule ${pool.number}`,
+          fencerA: m.fencerA,
+          fencerB: m.fencerB,
+          scoreA: null,
+          scoreB: null,
+          winner: null,
+          isBye: false,
+          arena: m.strip ?? pool.strip ?? null,
+        });
+      });
+  }
+  return result;
 }
 
 /** Vague terminée : chaque match joué, annulé, ou avec une équipe retirée */

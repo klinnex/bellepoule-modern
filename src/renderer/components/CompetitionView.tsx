@@ -82,9 +82,11 @@ import {
   RAPIERES_MAX_POOL_SIZE,
   teamMembersLabel,
   waveMatchIds,
+  waveSheetMatches,
   waveMatchOrder,
 } from '../../features/rapieres/rapieresCalculations';
 import RapieresTeamModal, { RapieresTeamDraft } from '../../features/rapieres/RapieresTeamModal';
+import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import RapieresWaveBar from '../../features/rapieres/RapieresWaveBar';
 import RapieresRankingPanel, {
   RapieresTeamStats,
@@ -1221,6 +1223,31 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       isRapieres && !rapieres.wavesEnded ? waveMatchIds(pools, rapieres.launchedWave) : undefined,
     [isRapieres, pools, rapieres.launchedWave, rapieres.wavesEnded]
   );
+
+  // Impression des feuilles de match de la vague active (même rendu que les feuilles du tableau) (#1118)
+  const handlePrintWaveSheets = useCallback(async () => {
+    const wave = rapieres.launchedWave;
+    const sheets = waveSheetMatches(pools, wave);
+    if (sheets.length === 0) {
+      showToast(t('rapieres.print_wave_sheets_empty'), 'error');
+      return;
+    }
+    try {
+      const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
+      const { printTableauHTML } = await import('../../shared/utils/pdfExport');
+      await printTableauHTML(
+        sheets,
+        3,
+        `${competition.title} — Vague ${wave}`,
+        logo,
+        usePdfTemplateStore.getState().templates.tableau,
+        undefined,
+        { subtitle: `Feuilles d'arbitrage — Vague ${wave}`, badge: 'V' + wave }
+      );
+    } catch (e) {
+      showToast((e as Error).message, 'error');
+    }
+  }, [pools, rapieres.launchedWave, competition.title, showToast, t]);
 
   // Saisie distante active : QR de la piste sur chaque feuille de poule (#1037)
   const poolsRemoteInfo =
@@ -2406,6 +2433,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                       setCurrentPhase('ranking');
                     }}
                     onResumeWaves={() => updateRapieres({ wavesEnded: false })}
+                    onPrintWaveSheets={handlePrintWaveSheets}
                   />
                 )}
                 <div

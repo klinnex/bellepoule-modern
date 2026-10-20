@@ -79,7 +79,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 34 | 542 |
+| `src/shared/utils/` | 35 | 544 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -90,7 +90,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 2 | 11 |
+| Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 123 |
 | `src/main/` | 6 | 123 |
@@ -100,9 +100,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 2 | 10 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **137** | **1416** |
+| **Total** | **138** | **1422** |
 
-Unitaires : 129 fichiers, 1385 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 130 fichiers, 1391 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -576,6 +576,15 @@ Unitaires : 129 fichiers, 1385 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **generateRefereeCommentsHTML (#989)**
   - une page par arbitre commenté, textes échappés
   - message si aucun commentaire
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/tableauPdf.test.ts</code> — 2 tests</summary>
+
+- **generateTableauHTML – feuilles d’arbitrage**
+  - par défaut : sous-titre et pastille de l’élimination directe
+  - options : sous-titre, pastille et libellé de tour personnalisés (feuilles de vague)
 
 </details>
 
@@ -1552,7 +1561,7 @@ Unitaires : 129 fichiers, 1385 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 9 tests</summary>
+<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 13 tests</summary>
 
 - **Tournoi des rapières (#1118)**
   - libellé des tireurs de l’équipe
@@ -1563,6 +1572,11 @@ Unitaires : 129 fichiers, 1385 tests. E2E : 8 fichiers, 31 tests (comptage stati
     - ordre des matchs de la poule suivant les vagues
     - vague suivante lancée seulement quand la précédente est saisie
     - équipe retirée : ses matchs ne bloquent pas la vague
+  - **feuilles de la vague active**
+    - ne contient que les matchs de la vague, triés par poule
+    - vague 0 ou inexistante : aucune feuille
+    - exclut les matchs annulés et ceux d’une équipe retirée
+    - reprend la piste de la poule
   - **qualification**
     - 3 poules ou moins : 1ers et 2es ; au-delà : 1ers
   - **classements**

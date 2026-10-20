@@ -644,6 +644,8 @@
     "waves_ended": "Waves stopped: ranking based on the bouts fenced.",
     "resume_waves": "Resume waves",
     "end_waves": "End waves",
+    "print_wave_sheets": "Print wave sheets",
+    "print_wave_sheets_empty": "No match to print in this wave",
     "wave_legend": "Bouts of the current wave",
     "confirm_end_waves": "Stop the waves now? Unfenced bouts do not count; moving on to the intermediate overall ranking."
   }

@@ -17,6 +17,8 @@ interface RapieresWaveBarProps {
   onLaunchWave: (wave: number) => void;
   onEndWaves: () => void;
   onResumeWaves: () => void;
+  /** Imprime les feuilles de match de la vague active (même rendu que les feuilles du tableau) */
+  onPrintWaveSheets?: () => void;
 }
 
 const RapieresWaveBar: React.FC<RapieresWaveBarProps> = ({
@@ -26,6 +28,7 @@ const RapieresWaveBar: React.FC<RapieresWaveBarProps> = ({
   onLaunchWave,
   onEndWaves,
   onResumeWaves,
+  onPrintWaveSheets,
 }) => {
   const { t } = useTranslation();
   const total = waveCount(pools);
@@ -77,6 +80,11 @@ const RapieresWaveBar: React.FC<RapieresWaveBarProps> = ({
             <span className="text-muted">{t('rapieres.wave_incomplete')}</span>
           )}
           {allDone && <span className="text-muted">{t('rapieres.all_waves_done')}</span>}
+          {launchedWave > 0 && onPrintWaveSheets && (
+            <button type="button" className="btn btn-secondary" onClick={onPrintWaveSheets}>
+              {t('rapieres.print_wave_sheets')}
+            </button>
+          )}
           {launchedWave > 0 && !allDone && (
             <button type="button" className="btn btn-warning" onClick={onEndWaves}>
               {t('rapieres.end_waves')}

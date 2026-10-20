@@ -644,6 +644,8 @@
     "waves_ended": "Gwagennoù paouezet : renkadur diouzh an emgannoù graet.",
     "resume_waves": "Adkregiñ gant ar gwagennoù",
     "end_waves": "Echuiñ ar gwagennoù",
+    "print_wave_sheets": "Moullañ follennoù ar wagenn",
+    "print_wave_sheets_empty": "Emgann ebet da voullañ er wagenn-mañ",
     "wave_legend": "Emgannoù ar wagenn a-vremañ",
     "confirm_end_waves": "Paouez gant ar gwagennoù bremañ ? An emgannoù n'int ket bet graet ne gontont ket ; tremen d'ar renkadur hollek etre."
   }

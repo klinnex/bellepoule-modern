@@ -644,6 +644,8 @@
     "waves_ended": "Onades aturades: classificació segons els assalts disputats.",
     "resume_waves": "Reprèn les onades",
     "end_waves": "Acaba les onades",
+    "print_wave_sheets": "Imprimeix els fulls de l'onada",
+    "print_wave_sheets_empty": "No hi ha cap combat per imprimir en aquesta onada",
     "wave_legend": "Assalts de l'onada en curs",
     "confirm_end_waves": "Aturar les onades ara? Els assalts no disputats no compten; es passa a la classificació general intermèdia."
   }
