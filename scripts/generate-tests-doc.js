@@ -166,6 +166,8 @@ dépendent de ce job.
 Hors CI (manuel) : \`npm run lint\`, \`npm run format:check\`, \`npm run test:coverage\`,
 \`npm run test:e2e\`.
 
+Sécurité : \`.github/workflows/codeql.yml\` (CodeQL JS/TS, PR vers \`dev\` + hebdo) et \`security.yml\` (\`npm audit --omit=dev\` non bloquant + SBOM CycloneDX), Dependabot (\`.github/dependabot.yml\`).
+
 Revue de code automatique : \`.github/workflows/claude-code-review.yml\` sur les PR.
 
 ## Tests unitaires — Vitest

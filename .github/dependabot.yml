@@ -1,0 +1,20 @@
+# Mises à jour automatiques des dépendances (#1150). Les PR visent dev.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      npm-patch-minor:
+        update-types: [patch, minor]
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']

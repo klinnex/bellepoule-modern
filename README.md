@@ -21,7 +21,7 @@ Merci pour votre soutien ! / Thank you for your support!
 | Équipes | [Compétitions par équipes](docs/TEAM_COMPETITIONS.md) |
 | Exports | [Guide export PDF](docs/USER_GUIDE_PDF_EXPORT.md) · [Formats de fichiers](FILE_FORMATS.md) |
 | Développeur | [Architecture](ARCHITECTURE.md) · **[Stack technique et versions](docs/STACK_TECHNIQUE.md)** · [Guide de développement](DEVELOPMENT_GUIDE.md) · [Contribuer](CONTRIBUTING.md) |
-| Divers | [Dépannage](TROUBLESHOOTING.md) · [Mises à jour](UPDATE_SYSTEM.md) · [Sécurité saisie distante](docs/SECURITE_SAISIE_DISTANTE.md) · [Index complet](docs/README.md) |
+| Divers | [Dépannage](TROUBLESHOOTING.md) · [Mises à jour](UPDATE_SYSTEM.md) · [Sécurité saisie distante](docs/SECURITE_SAISIE_DISTANTE.md) · [Politique de sécurité](SECURITY.md) · [Index complet](docs/README.md) |
 
 ### 🔧 **Installation**
 

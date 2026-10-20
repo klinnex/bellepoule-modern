@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Moindre privilège : les jobs qui publient déclarent contents: write (#1150)
+permissions:
+  contents: read
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -12,10 +16,9 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '22'
           cache: npm
@@ -58,8 +61,7 @@ jobs:
       title: ${{ steps.version.outputs.title }}
 
     steps:
-      - uses: actions/checkout@v6
-
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       # Pas de nouveau numéro de build : la release stable reprend le build dev promu
       # (cf. docs/VERSIONING.md). Aucun commit n'est poussé sur main.
       - name: Read version
@@ -80,17 +82,17 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.sha }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '22'
 
       - name: Cache npm dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
@@ -119,7 +121,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: windows-exe
           path: release/*.exe
@@ -130,17 +132,17 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.sha }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '22'
 
       - name: Cache npm dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
@@ -148,7 +150,7 @@ jobs:
             ${{ runner.os }}-npm-
 
       - name: Cache Electron binaries
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/Library/Caches/electron
           key: ${{ runner.os }}-electron-${{ hashFiles('package-lock.json') }}
@@ -156,7 +158,7 @@ jobs:
             ${{ runner.os }}-electron-
 
       - name: Cache electron-builder
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/Library/Caches/electron-builder
           key: ${{ runner.os }}-electron-builder-${{ hashFiles('package-lock.json') }}
@@ -191,7 +193,7 @@ jobs:
           ELECTRON_BUILDER_CACHE: ~/Library/Caches/electron-builder
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: macos-x64-dmg
           path: release/*.dmg
@@ -202,17 +204,17 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.sha }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '22'
 
       - name: Cache npm dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
@@ -220,7 +222,7 @@ jobs:
             ${{ runner.os }}-npm-
 
       - name: Cache Electron binaries
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/Library/Caches/electron
           key: ${{ runner.os }}-electron-${{ hashFiles('package-lock.json') }}
@@ -228,7 +230,7 @@ jobs:
             ${{ runner.os }}-electron-
 
       - name: Cache electron-builder
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/Library/Caches/electron-builder
           key: ${{ runner.os }}-electron-builder-${{ hashFiles('package-lock.json') }}
@@ -263,7 +265,7 @@ jobs:
           ELECTRON_BUILDER_CACHE: ~/Library/Caches/electron-builder
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: macos-arm64-dmg
           path: release/*.dmg
@@ -274,17 +276,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.sha }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '22'
 
       - name: Cache npm dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
@@ -312,7 +314,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: linux-x64-appimage
           path: release/*.AppImage
@@ -324,17 +326,17 @@ jobs:
     continue-on-error: true
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.sha }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '22'
 
       - name: Cache npm dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
@@ -362,7 +364,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: linux-arm64-appimage
           path: release/*.AppImage
@@ -385,7 +387,7 @@ jobs:
 
     steps:
       - name: Download All Artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           path: builds
 
@@ -393,7 +395,7 @@ jobs:
         run: find builds -type f
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: ${{ needs.version.outputs.tag }}
           target_commitish: ${{ github.sha }}
@@ -455,7 +457,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: dev
           token: ${{ secrets.GITHUB_TOKEN }}
