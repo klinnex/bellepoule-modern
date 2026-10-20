@@ -25,6 +25,7 @@ import { AutoUpdater } from './autoUpdater';
 import { Card, Competition, Fencer, FencerStatus, Match, MatchStatus, Pool } from '../shared/types';
 import type { MatchSignatureRequest } from '../shared/types/remote';
 import { decodeTextFile } from '../shared/utils/fileParser/detect';
+import { eventLoopMonitor } from './eventLoopMonitor';
 import { isAllowedExternalUrl, isAppUrl, isPermissionAllowed } from './windowSecurity';
 import {
   assertAuthorizedPath,
@@ -1733,6 +1734,11 @@ ipcMain.handle('file:previewHtmlAsPDF', async (_, html: string) => {
 });
 
 // Shell handlers
+// Lag de la boucle d'événements du main (#1154) ; `reset` ouvre une nouvelle fenêtre de mesure
+ipcMain.handle('perf:getEventLoopDelay', (_, reset?: boolean) =>
+  eventLoopMonitor.snapshot(reset === true)
+);
+
 ipcMain.handle('shell:openExternal', async (_, url: string) => {
   // N'autoriser que les URLs https:// pour éviter les exploits via des schémas arbitraires
   if (typeof url !== 'string' || !url.startsWith('https://')) {
@@ -3057,6 +3063,7 @@ if (process.platform === 'linux' && process.env.BELLEPOULE_SW_RENDER === '1') {
 }
 
 app.whenReady().then(async () => {
+  eventLoopMonitor.start();
   // Afficher le splash immédiatement pendant que tout le reste charge
   createSplashWindow();
 

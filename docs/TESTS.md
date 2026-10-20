@@ -95,16 +95,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 10 | 163 |
+| `src/main/` | 11 | 166 |
 | `src/renderer/services/` | 2 | 16 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 6 | 34 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **146** | **1490** |
+| **Total** | **147** | **1493** |
 
-Unitaires : 138 fichiers, 1459 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 139 fichiers, 1462 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1903,6 +1903,16 @@ Unitaires : 138 fichiers, 1459 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **certManager**
   - buildAltNames : localhost, loopback et IPv4 externes uniquement
   - ensureCert génère un certificat avec SAN réels, puis le réutilise
+
+</details>
+
+<details>
+<summary><code>src/main/eventLoopMonitor.test.ts</code> — 3 tests</summary>
+
+- **EventLoopMonitor (#1154)**
+  - snapshot vide avant toute mesure
+  - détecte un blocage synchrone et se remet à zéro
+  - start/stop idempotents
 
 </details>
 
