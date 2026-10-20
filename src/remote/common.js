@@ -107,7 +107,7 @@
    * distance, tablette arbitre. Mémorisée sur l'appareil ; `?scale=1` revient à la normale.
    */
   function applyScale() {
-    var scale = NaN;
+    var scale;
     try {
       var param = new URLSearchParams(location.search).get('scale');
       if (param !== null) {
