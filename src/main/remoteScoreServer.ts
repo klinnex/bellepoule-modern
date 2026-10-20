@@ -57,7 +57,15 @@ import {
   sendLoginLimited,
   verifyPassword,
 } from './remote/auth';
-import { sendHtmlPage } from './remote/csp';
+import { applyPageCsp, sendHtmlPage } from './remote/csp';
+import {
+  buildPage,
+  jsonCompression,
+  sendStored,
+  storeBody,
+  type StoredBody,
+  type StoredPage,
+} from './remote/pageStore';
 import { registerPageRoutes } from './remote/routes/pageRoutes';
 import { registerResultsRoutes } from './remote/routes/resultsRoutes';
 import {
@@ -195,6 +203,12 @@ export class RemoteScoreServer {
 
   // Stocker le contenu des fichiers HTML en mémoire pour éviter les problèmes de chemin
   private htmlFiles: Map<string, string> = new Map();
+  // Pages prêtes à servir (scripts extraits, pré-compressées, ETag) + assets versionnés /_a/<hash>.js (#1151)
+  private pages: Map<string, StoredPage> = new Map();
+  private assets: Map<string, StoredBody> = new Map();
+  // Fichiers statiques JS/CSS communs (pré-compressés, revalidation par ETag)
+  private staticFiles: Map<string, StoredBody> = new Map();
+  private remoteBasePath: string | null = null;
 
   // Client socket.io chargé en mémoire au démarrage (injecté inline dans le HTML)
   private socketIoClientJs: string | null = null;
@@ -416,6 +430,7 @@ export class RemoteScoreServer {
             console.log(
               `[RemoteScoreServer] ${this.htmlFiles.size} fichiers chargés depuis: ${basePath}`
             );
+            this.remoteBasePath = basePath;
             break;
           }
         }
@@ -452,12 +467,43 @@ export class RemoteScoreServer {
         '[RemoteScoreServer] ATTENTION: client socket.io non chargé, fallback sur /bp-sio.js'
       );
     }
+    this.buildPageStore();
+  }
+
+  // Extrait les scripts inline en assets versionnés et pré-compresse pages + JS/CSS communs (#1151)
+  private buildPageStore(): void {
+    this.pages.clear();
+    this.assets.clear();
+    this.staticFiles.clear();
+    for (const [name, html] of this.htmlFiles) {
+      this.pages.set(name, buildPage(html, this.assets));
+    }
+    if (this.remoteBasePath) {
+      const fs = require('fs');
+      const types: Record<string, string> = {
+        '.js': 'text/javascript; charset=utf-8',
+        '.css': 'text/css; charset=utf-8',
+      };
+      for (const file of ['common.js', 'i18n.js', 'app.js', 'styles.css']) {
+        const filePath = path.join(this.remoteBasePath, file);
+        if (!fs.existsSync(filePath)) continue;
+        this.staticFiles.set(
+          '/' + file,
+          storeBody(fs.readFileSync(filePath, 'utf-8'), types[path.extname(file)], 'no-cache')
+        );
+      }
+    }
   }
 
   // Servir un fichier HTML depuis la mémoire
   private sendHtmlFromMemory(filename: string, res: express.Response): void {
+    const page = this.pages.get(filename);
     const html = this.htmlFiles.get(filename);
-    if (html) {
+    if (page && !page.hasInlineScript) {
+      // Plus aucun script inline : CSP fixe script-src 'self', réponse pré-compressée + ETag
+      applyPageCsp(res);
+      sendStored(res.req, res, page);
+    } else if (html) {
       sendHtmlPage(res, html);
     } else {
       console.error(`[RemoteScoreServer] ERREUR: Fichier ${filename} non trouvé en mémoire`);
@@ -681,6 +727,9 @@ export class RemoteScoreServer {
       next();
     });
 
+    // Compression gzip des réponses JSON volumineuses (classements, tableaux…)
+    this.app.use(jsonCompression());
+
     // En-têtes de sécurité de base (fichiers statiques, API). Les pages HTML reçoivent une CSP
     // avec nonce (script-src sans 'unsafe-inline') via sendHtmlPage (remote/csp.ts, #1149).
     // frame-ancestors 'self' remplace X-Frame-Options (overlay-config.html prévisualise
@@ -775,6 +824,13 @@ export class RemoteScoreServer {
         return this.sendHtmlFromMemory(name, res);
       }
       next();
+    });
+    // Assets versionnés (cache immuable) et JS/CSS communs pré-compressés
+    this.app.use((req, res, next) => {
+      if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+      const item = this.assets.get(req.path) ?? this.staticFiles.get(req.path);
+      if (!item) return next();
+      return sendStored(req, res, item);
     });
     this.app.use(express.static(remotePath));
 
