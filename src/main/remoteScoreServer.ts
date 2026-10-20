@@ -55,7 +55,7 @@ import {
   parseCookies,
   purgeExpiredTokens,
   sendLoginLimited,
-  verifyPassword,
+  verifyPasswordAsync,
 } from './remote/auth';
 import { applyPageCsp, sendHtmlPage } from './remote/csp';
 import {
@@ -628,7 +628,7 @@ export class RemoteScoreServer {
   // Délégués vers src/main/remote/auth.ts (noms conservés pour les routes existantes)
   private parseCookies = parseCookies;
   private hashPassword = hashPassword;
-  private verifyPassword = verifyPassword;
+  private verifyPassword = verifyPasswordAsync;
   private assertPasswordStrength = assertPasswordStrength;
   private issueToken = issueToken;
   private isTokenValid = isTokenValid;
@@ -919,7 +919,7 @@ export class RemoteScoreServer {
         value: (ip: string, target: string) => self.checkLoginAllowed(ip, target),
       },
       sendLoginLimited: { value: sendLoginLimited },
-      verifyPassword: { value: verifyPassword },
+      verifyPassword: { value: verifyPasswordAsync },
       issueToken: { value: issueToken },
       recordLoginFailure: {
         value: (ip: string, target: string) => self.recordLoginFailure(ip, target),

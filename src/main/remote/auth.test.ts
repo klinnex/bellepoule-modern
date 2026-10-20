@@ -11,6 +11,7 @@ import {
   parseCookies,
   purgeExpiredTokens,
   verifyPassword,
+  verifyPasswordAsync,
 } from './auth';
 
 afterEach(() => vi.useRealTimers());
@@ -34,6 +35,16 @@ describe('mots de passe scrypt', () => {
     expect(verifyPassword('secret124', h)).toBe(false);
     expect(verifyPassword(42, h)).toBe(false);
     expect(verifyPassword('secret123', 'md5$x$y')).toBe(false);
+  });
+
+  it('variante asynchrone équivalente (#1154)', async () => {
+    const h = hashPassword('secret123');
+    await expect(verifyPasswordAsync('secret123', h)).resolves.toBe(true);
+    await expect(verifyPasswordAsync('secret124', h)).resolves.toBe(false);
+    await expect(verifyPasswordAsync(42, h)).resolves.toBe(false);
+    await expect(verifyPasswordAsync('secret123', null)).resolves.toBe(false);
+    await expect(verifyPasswordAsync('secret123', 'md5$x$y')).resolves.toBe(false);
+    await expect(verifyPasswordAsync('secret123', 'scrypt$zz$')).resolves.toBe(false);
   });
 
   it('refuse un mot de passe trop court, accepte le vide (suppression)', () => {

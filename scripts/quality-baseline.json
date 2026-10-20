@@ -16,7 +16,7 @@
     "src/remote/arena.html": 2302,
     "src/remote/kiosk.html": 3488,
     "src/remote/referee.html": 4616,
-    "src/main/main.ts": 3212,
+    "src/main/main.ts": 2265,
     "src/main/remoteScoreServer.ts": 5061,
     "src/database/index.ts": 3210
   }

@@ -1007,15 +1007,15 @@ describe('RemoteScoreServer', () => {
       return layer?.route?.stack?.[0]?.handle;
     }
 
-    function login(password: string): { res: any; cookie: string; done: Promise<void> } {
+    async function login(password: string): Promise<{ res: any; cookie: string }> {
       const res = makeRes();
-      const done = findHandler('post', '/api/checkin/login')(
+      await findHandler('post', '/api/checkin/login')(
         makeReq({ body: { password }, socket: { remoteAddress: '10.0.0.' + Math.random() } }),
         res,
         vi.fn()
       );
       const header = res.setHeader.mock.calls.find((c: any[]) => c[0] === 'Set-Cookie')?.[1] ?? '';
-      return { res, cookie: String(header).split(';')[0], done };
+      return { res, cookie: String(header).split(';')[0] };
     }
 
     beforeEach(() => {
@@ -1029,20 +1029,19 @@ describe('RemoteScoreServer', () => {
       ]);
     });
 
-    it("refuse la connexion tant que le DT n'a pas défini de mot de passe", () => {
-      const { res } = login('x');
+    it("refuse la connexion tant que le DT n'a pas défini de mot de passe", async () => {
+      const { res } = await login('x');
       expect(res.status).toHaveBeenCalledWith(403);
     });
 
     it('refuse un mot de passe incorrect et ne stocke pas le mot de passe en clair', async () => {
       server.setCheckinPassword('appel4242');
       expect((server as any).checkinPassword).not.toBe('appel4242');
-      const { res, done } = login('faux');
-      await done;
+      const { res } = await login('faux');
       expect(res.status).toHaveBeenCalledWith(401);
     });
 
-    it('liste tireurs/arbitres uniquement avec un cookie valide', () => {
+    it('liste tireurs/arbitres uniquement avec un cookie valide', async () => {
       server.setCheckinPassword('appel4242');
       const list = findHandler('get', '/api/checkin/list');
 
@@ -1050,7 +1049,7 @@ describe('RemoteScoreServer', () => {
       list(makeReq(), denied, vi.fn());
       expect(denied.status).toHaveBeenCalledWith(401);
 
-      const { cookie } = login('appel4242');
+      const { cookie } = await login('appel4242');
       const res = makeRes();
       list(makeReq({ headers: { cookie } }), res, vi.fn());
       const body = res.json.mock.calls[0][0];
@@ -1060,9 +1059,9 @@ describe('RemoteScoreServer', () => {
       expect(body.referees[0]).toMatchObject({ id: 'r1', present: false, editable: true });
     });
 
-    it('pointe un tireur présent (statut P) et un arbitre disponible', () => {
+    it('pointe un tireur présent (statut P) et un arbitre disponible', async () => {
       server.setCheckinPassword('appel4242');
-      const { cookie } = login('appel4242');
+      const { cookie } = await login('appel4242');
       const update = findHandler('post', '/api/checkin/:kind/:id');
 
       const res = makeRes();
@@ -1090,9 +1089,9 @@ describe('RemoteScoreServer', () => {
       expect(mockDb.updateReferee).toHaveBeenCalledWith('r1', { status: 'available' });
     });
 
-    it("n'écrase pas un statut sportif (éliminé)", () => {
+    it("n'écrase pas un statut sportif (éliminé)", async () => {
       server.setCheckinPassword('appel4242');
-      const { cookie } = login('appel4242');
+      const { cookie } = await login('appel4242');
       const res = makeRes();
       findHandler('post', '/api/checkin/:kind/:id')(
         makeReq({
@@ -1107,18 +1106,18 @@ describe('RemoteScoreServer', () => {
       expect(mockDb.updateFencer).not.toHaveBeenCalled();
     });
 
-    it("ferme l'appel hors phase CHECKIN", () => {
+    it("ferme l'appel hors phase CHECKIN", async () => {
       server.setCheckinPassword('appel4242');
-      const { cookie } = login('appel4242');
+      const { cookie } = await login('appel4242');
       server.setCheckinEnabled(false);
       const res = makeRes();
       findHandler('get', '/api/checkin/list')(makeReq({ headers: { cookie } }), res, vi.fn());
       expect(res.status).toHaveBeenCalledWith(403);
     });
 
-    it('invalide les sessions quand le mot de passe change', () => {
+    it('invalide les sessions quand le mot de passe change', async () => {
       server.setCheckinPassword('appel4242');
-      const { cookie } = login('appel4242');
+      const { cookie } = await login('appel4242');
       server.setCheckinPassword('nouveau-mdp');
       const res = makeRes();
       findHandler('get', '/api/checkin/list')(makeReq({ headers: { cookie } }), res, vi.fn());
@@ -1167,7 +1166,7 @@ describe('RemoteScoreServer', () => {
       return { handlers, socket };
     }
 
-    function protectArena(password = 'secret123'): string {
+    async function protectArena(password = 'secret123'): Promise<string> {
       (server as any).arenas.set('arena1', {
         id: 'arena1',
         number: 1,
@@ -1178,7 +1177,7 @@ describe('RemoteScoreServer', () => {
       });
       server.setArenaPassword('1', password);
       const res = makeRes();
-      findLayers('post', '/api/auth/login/:arenaId')[0](
+      await findLayers('post', '/api/auth/login/:arenaId')[0](
         makeReq({ params: { arenaId: '1' }, body: { password } }),
         res,
         vi.fn()
@@ -1190,7 +1189,7 @@ describe('RemoteScoreServer', () => {
     it.each(['assign', 'start', 'pause', 'score', 'finish'])(
       'POST /api/arenas/:arenaId/%s refuse sans cookie (401)',
       async action => {
-        protectArena();
+        await protectArena();
         const spy = vi
           .spyOn(
             server as any,
@@ -1210,7 +1209,7 @@ describe('RemoteScoreServer', () => {
     );
 
     it('POST /api/arenas/:arenaId/score accepte avec un cookie valide', async () => {
-      const cookie = protectArena();
+      const cookie = await protectArena();
       const spy = vi.spyOn(server as any, 'updateArenaScore').mockImplementation(() => {});
       const res = makeRes();
       await run(
@@ -1246,7 +1245,7 @@ describe('RemoteScoreServer', () => {
     });
 
     it('POST /api/sync refuse sans cookie (401)', async () => {
-      protectArena();
+      await protectArena();
       const spy = vi.spyOn(server as any, 'updateMatchScore').mockResolvedValue(undefined);
       const res = makeRes();
       await run(
@@ -1269,8 +1268,8 @@ describe('RemoteScoreServer', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it("socket arena_control refusé sans cookie, sans avoir rejoint l'arène", () => {
-      protectArena();
+    it("socket arena_control refusé sans cookie, sans avoir rejoint l'arène", async () => {
+      await protectArena();
       const spy = vi.spyOn(server as any, 'handleArenaControl').mockImplementation(() => {});
       const { handlers, socket } = connectSocket();
       handlers.arena_control({ arenaId: 'arena1', action: 'update_score', scoreA: 5, scoreB: 0 });
@@ -1278,16 +1277,16 @@ describe('RemoteScoreServer', () => {
       expect(socket.emit).toHaveBeenCalledWith('auth_error', expect.anything());
     });
 
-    it('socket arena_control accepté avec cookie valide', () => {
-      const cookie = protectArena();
+    it('socket arena_control accepté avec cookie valide', async () => {
+      const cookie = await protectArena();
       const spy = vi.spyOn(server as any, 'handleArenaControl').mockImplementation(() => {});
       const { handlers } = connectSocket(cookie);
       handlers.arena_control({ arenaId: 'arena1', action: 'update_score', scoreA: 5, scoreB: 0 });
       expect(spy).toHaveBeenCalled();
     });
 
-    it("socket arena_control toggle_swap reste autorisé pour l'écran d'arène", () => {
-      protectArena();
+    it("socket arena_control toggle_swap reste autorisé pour l'écran d'arène", async () => {
+      await protectArena();
       const spy = vi.spyOn(server as any, 'handleArenaControl').mockImplementation(() => {});
       const { handlers } = connectSocket();
       handlers.arena_control({ arenaId: 'arena1', action: 'toggle_swap' });
@@ -1327,8 +1326,8 @@ describe('RemoteScoreServer', () => {
         ['team_advance_bout', {}],
         ['team_card', { teamId: 't1', type: 'yellow' }],
         ['team_fencer_card', { side: 'A', reason: 'early_start' }],
-      ])('%s refusé sans cookie', (ev, extra) => {
-        protectArena();
+      ])('%s refusé sans cookie', async (ev, extra) => {
+        await protectArena();
         const state = seedTeamState();
         state.liveScoreA = 2;
         (mockDb as any).updateTeamBout = vi.fn();
@@ -1365,8 +1364,8 @@ describe('RemoteScoreServer', () => {
           },
         ];
 
-        it('touche simple uniquement (pas de zones hors mode points)', () => {
-          const cookie = protectArena();
+        it('touche simple uniquement (pas de zones hors mode points)', async () => {
+          const cookie = await protectArena();
           const state = seedTeamState({
             format: 'fie-relay',
             isLaserPoints: false,
@@ -1380,8 +1379,8 @@ describe('RemoteScoreServer', () => {
           expect(state.liveScoreB).toBe(1);
         });
 
-        it('relais suivant : vainqueur au cumul, score du relais persisté', () => {
-          const cookie = protectArena();
+        it('relais suivant : vainqueur au cumul, score du relais persisté', async () => {
+          const cookie = await protectArena();
           // Relais 2 perdu 2-3 par A, mais cumul 7-6 → relais attribué à A
           const state = seedTeamState({
             format: 'fie-relay',
@@ -1398,8 +1397,8 @@ describe('RemoteScoreServer', () => {
           expect(state.currentBoutIndex).toBe(-1);
         });
 
-        it('carton individuel : escalade, persistance, motif inconnu refusé', () => {
-          const cookie = protectArena();
+        it('carton individuel : escalade, persistance, motif inconnu refusé', async () => {
+          const cookie = await protectArena();
           const state = seedTeamState({
             format: 'fie-relay',
             weapon: 'E',
@@ -1451,8 +1450,8 @@ describe('RemoteScoreServer', () => {
         });
       });
 
-      it('team_touch accepté avec cookie, points invalides ignorés', () => {
-        const cookie = protectArena();
+      it('team_touch accepté avec cookie, points invalides ignorés', async () => {
+        const cookie = await protectArena();
         const state = seedTeamState();
         const { handlers } = connectSocket(cookie);
         handlers.team_touch({ arenaId: 'arena1', side: 'A', points: 3 });
@@ -1503,14 +1502,14 @@ describe('RemoteScoreServer', () => {
       server.setArenaPassword('1', 'secret123');
     });
 
-    it('hash scrypt salé : deux hash du même mot de passe diffèrent et se vérifient', () => {
+    it('hash scrypt salé : deux hash du même mot de passe diffèrent et se vérifient', async () => {
       const h1 = (server as any).hashPassword('secret123');
       const h2 = (server as any).hashPassword('secret123');
       expect(h1).toMatch(/^scrypt\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
       expect(h1).not.toBe(h2);
-      expect((server as any).verifyPassword('secret123', h1)).toBe(true);
-      expect((server as any).verifyPassword('secret124', h1)).toBe(false);
-      expect((server as any).verifyPassword('secret123', 'abc')).toBe(false);
+      await expect((server as any).verifyPassword('secret123', h1)).resolves.toBe(true);
+      await expect((server as any).verifyPassword('secret124', h1)).resolves.toBe(false);
+      await expect((server as any).verifyPassword('secret123', 'abc')).resolves.toBe(false);
     });
 
     it('refuse un mot de passe de moins de 8 caractères (arène et appel), vide autorisé', () => {

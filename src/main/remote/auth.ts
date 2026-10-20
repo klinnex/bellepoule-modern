@@ -5,7 +5,7 @@
  * Licensed under GPL-3.0
  */
 import type express from 'express';
-import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
+import { randomBytes, scrypt, scryptSync, timingSafeEqual } from 'crypto';
 import { PASSWORD_MIN_LENGTH } from './network';
 
 // Sessions : durée de vie serveur + plafond par arène / appel
@@ -53,6 +53,37 @@ export function verifyPassword(password: unknown, stored: string | null | undefi
   } catch {
     return false;
   }
+}
+
+/**
+ * Variante asynchrone de verifyPassword (#1154) : scrypt tourne dans le pool libuv,
+ * la boucle d'événements du main n'est pas bloquée (~50 ms par tentative de connexion).
+ */
+export function verifyPasswordAsync(
+  password: unknown,
+  stored: string | null | undefined
+): Promise<boolean> {
+  if (typeof password !== 'string' || !password || !stored) return Promise.resolve(false);
+  const [algo, saltHex, hashHex] = stored.split('$');
+  if (algo !== 'scrypt' || !saltHex || !hashHex) return Promise.resolve(false);
+  const expected = Buffer.from(hashHex, 'hex');
+  if (expected.length === 0) return Promise.resolve(false);
+  return new Promise(resolve => {
+    scrypt(
+      password,
+      Buffer.from(saltHex, 'hex'),
+      expected.length,
+      { N: 16384, r: 8, p: 1 },
+      (err, actual) => {
+        if (err) return resolve(false);
+        try {
+          resolve(timingSafeEqual(actual, expected));
+        } catch {
+          resolve(false);
+        }
+      }
+    );
+  });
 }
 
 export function assertPasswordStrength(password: string): void {

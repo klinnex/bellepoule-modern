@@ -94,6 +94,9 @@ npm run e2e:debug       # Playwright debug mode
 ```
 Main Process (src/main/)
 ├── main.ts                  # Window management, menu (i18n: fr/en/de), IPC handlers, DB lifecycle
+├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*) — registerXxxHandlers(ctx)
+├── menuLabels.ts            # Libellés du menu natif (fr/en/de/zh-HK)
+├── remoteRegistry.ts        # Serveurs distants actifs (remoteServers, ports, stopRemoteServer)
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
 ├── splash-preload.ts / splash.html  # Splash screen
 ├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
