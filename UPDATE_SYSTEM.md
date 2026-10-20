@@ -30,6 +30,10 @@ Code : `src/main/autoUpdater.ts`, `src/main/updateIntegrity.ts`,
 Configuration (`AutoUpdaterConfig`, passée dans `main.ts`) : `autoDownload`,
 `autoInstall`, `checkInterval` (heures), `betaChannel`, `silent`, `installOnQuit`.
 
+## Signature des builds
+
+État du dépôt : **aucune étape de signature** n'est configurée (ni certificat Windows Authenticode, ni signature/notarisation macOS dans `package.json` ou les workflows). Les installeurs sont donc non signés : SmartScreen (Windows) et Gatekeeper (macOS) peuvent avertir au premier lancement. L'intégrité des mises à jour repose sur HTTPS + SHA-256 des assets GitHub (`updateIntegrity.ts`). Pour signer : secrets `CSC_LINK`/`CSC_KEY_PASSWORD` (Windows/macOS) et `APPLE_ID`/notarisation, lus par electron-builder.
+
 ## API renderer (`window.electronAPI.updater`)
 
 `check()`, `setSilentMode(enabled)`, `getSilentMode()`, `hasPendingUpdate()`,
