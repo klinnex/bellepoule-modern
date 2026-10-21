@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Competition, PoolRanking } from '../../shared/types';
 import { calculateOverallRankingQuest } from '../../shared/utils/poolCalculations';
 import { useToast } from './Toast';
+import { useTranslation } from '../hooks/useTranslation';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -101,6 +102,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
   availableCompetitions = [],
   availablePoolsByComp = {},
 }) => {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const [ranking, setRanking] = useState<SeasonEntry[]>([]);
   const [competitions, setCompetitions] = useState<SeasonCompetition[]>([]);
@@ -227,10 +229,10 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Classement saisonnier Quest</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('season.title')}</h2>
             <p className="text-sm text-gray-500">
-              {competitions.length} compétition{competitions.length > 1 ? 's' : ''} ·{' '}
-              {ranking.length} tireurs
+              {t('season.competitions_count', { count: competitions.length })} ·{' '}
+              {t('season.fencers_count', { count: ranking.length })}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -246,7 +248,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
               disabled={ranking.length === 0}
               className="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 text-sm rounded hover:bg-red-100 disabled:opacity-40"
             >
-              Réinitialiser saison
+              {t('season.reset_season')}
             </button>
             <button
               onClick={onClose}
@@ -265,20 +267,20 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${activeTab === tab ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
               onClick={() => setActiveTab(tab)}
             >
-              {tab === 'ranking' ? 'Classement' : 'Compétitions'}
+              {tab === 'ranking' ? t('season.tab_ranking') : t('season.tab_competitions')}
             </button>
           ))}
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {loading ? (
-            <div className="text-center text-gray-400 py-16">Chargement…</div>
+            <div className="text-center text-gray-400 py-16">{t('season.loading')}</div>
           ) : activeTab === 'ranking' ? (
             ranking.length === 0 ? (
               <div className="text-center text-gray-400 py-16">
                 <div className="text-4xl mb-3">🏆</div>
-                <p className="font-medium">Aucune compétition dans la saison.</p>
-                <p className="text-sm mt-1">Allez dans l'onglet "Compétitions" pour en ajouter.</p>
+                <p className="font-medium">{t('season.empty')}</p>
+                <p className="text-sm mt-1">{t('season.empty_hint')}</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -289,24 +291,24 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
                         #
                       </th>
                       <th className="px-2 py-2 text-xs font-semibold text-gray-500 uppercase text-left">
-                        Nom
+                        {t('season.col_name')}
                       </th>
                       <th className="px-2 py-2 text-xs font-semibold text-gray-500 uppercase text-left">
-                        Club
+                        {t('season.col_club')}
                       </th>
-                      <Th k="ratio" label="V/M" title="Ratio victoires/matchs" />
-                      <Th k="totalQuestPoints" label="QP" title="Points Quest cumulés" />
-                      <Th k="totalQuestV4" label="V4" title="Victoires 4 pts (écart ≥12)" />
-                      <Th k="totalQuestV3" label="V3" title="Victoires 3 pts (écart 8–11)" />
-                      <Th k="totalQuestV2" label="V2" title="Victoires 2 pts (écart 4–7)" />
-                      <Th k="totalQuestV1" label="V1" title="Victoires 1 pt (écart ≤3)" />
-                      <Th k="totalRedCards" label="🔴" title="Cartons rouges" />
-                      <Th k="totalTouchesScored" label="TD" title="Touches données" />
-                      <Th k="totalTouchesReceived" label="TR" title="Touches reçues" />
+                      <Th k="ratio" label="V/M" title={t('season.t_ratio')} />
+                      <Th k="totalQuestPoints" label="QP" title={t('season.t_qp')} />
+                      <Th k="totalQuestV4" label="V4" title={t('season.t_v4')} />
+                      <Th k="totalQuestV3" label="V3" title={t('season.t_v3')} />
+                      <Th k="totalQuestV2" label="V2" title={t('season.t_v2')} />
+                      <Th k="totalQuestV1" label="V1" title={t('season.t_v1')} />
+                      <Th k="totalRedCards" label="🔴" title={t('season.t_red')} />
+                      <Th k="totalTouchesScored" label="TD" title={t('season.t_td')} />
+                      <Th k="totalTouchesReceived" label="TR" title={t('season.t_tr')} />
                       <Th
                         k="competitionCount"
-                        label="Compét."
-                        title="Nombre de compétitions disputées"
+                        label={t('season.l_comp')}
+                        title={t('season.t_comp')}
                       />
                     </tr>
                   </thead>
@@ -365,7 +367,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
               {competitions.length > 0 && (
                 <div>
                   <div className="text-xs font-semibold text-gray-500 uppercase mb-2">
-                    Dans la saison
+                    {t('season.in_season')}
                   </div>
                   <div className="space-y-2">
                     {competitions.map(c => (
@@ -376,15 +378,15 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
                         <div>
                           <div className="font-medium text-gray-900">{c.competitionTitle}</div>
                           <div className="text-xs text-gray-500">
-                            {new Date(c.competitionDate).toLocaleDateString()} · {c.fencerCount}{' '}
-                            tireurs
+                            {new Date(c.competitionDate).toLocaleDateString()} ·{' '}
+                            {t('season.fencers_count', { count: c.fencerCount })}
                           </div>
                         </div>
                         <button
                           onClick={() => handleRemove(c.competitionId)}
                           className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50"
                         >
-                          Retirer
+                          {t('season.remove')}
                         </button>
                       </div>
                     ))}
@@ -396,7 +398,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
               {questComps.length > 0 && (
                 <div>
                   <div className="text-xs font-semibold text-gray-500 uppercase mb-2">
-                    Disponibles (Laser Sabre / Quest)
+                    {t('season.available')}
                   </div>
                   <div className="space-y-2">
                     {questComps.map(c => {
@@ -413,7 +415,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
                                 ? c.date.toLocaleDateString()
                                 : String(c.date ?? '')}
                               {!hasPools && (
-                                <span className="text-yellow-600 ml-2">⚠ Aucune poule</span>
+                                <span className="text-yellow-600 ml-2">{t('season.no_pool')}</span>
                               )}
                             </div>
                           </div>
@@ -422,7 +424,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
                             disabled={adding || !hasPools}
                             className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-40"
                           >
-                            {adding ? '…' : '+ Ajouter'}
+                            {adding ? '…' : t('season.add')}
                           </button>
                         </div>
                       );
@@ -432,9 +434,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
               )}
 
               {questComps.length === 0 && competitions.length === 0 && (
-                <div className="text-center text-gray-400 py-12">
-                  Aucune compétition Sabre Laser disponible dans cette session.
-                </div>
+                <div className="text-center text-gray-400 py-12">{t('season.none_available')}</div>
               )}
             </div>
           )}
@@ -444,23 +444,20 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
         {confirmReset && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl z-10">
             <div className="bg-white rounded-lg p-6 shadow-2xl max-w-sm w-full mx-4">
-              <h3 className="font-bold text-gray-900 mb-2">Réinitialiser la saison ?</h3>
-              <p className="text-sm text-gray-500 mb-4">
-                Toutes les compétitions et tous les classements saisonniers seront effacés. Cette
-                action est irréversible.
-              </p>
+              <h3 className="font-bold text-gray-900 mb-2">{t('season.reset_q')}</h3>
+              <p className="text-sm text-gray-500 mb-4">{t('season.reset_warn')}</p>
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => setConfirmReset(false)}
                   className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
                 >
-                  Annuler
+                  {t('actions.cancel')}
                 </button>
                 <button
                   onClick={handleReset}
                   className="px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
                 >
-                  Réinitialiser
+                  {t('actions.reset')}
                 </button>
               </div>
             </div>

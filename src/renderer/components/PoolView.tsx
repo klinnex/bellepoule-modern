@@ -1175,7 +1175,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           onClick={e => e.stopPropagation()}
         >
           <div className="modal-header" style={{ cursor: 'move' }}>
-            <h3 className="modal-title">Saisie rapide du score</h3>
+            <h3 className="modal-title">{t('poolView.quick_score')}</h3>
           </div>
           <div className="modal-body" style={{ padding: '2rem' }}>
             {/* Ligne unique avec les deux tireurs côte à côte */}
@@ -1319,7 +1319,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 className="text-sm text-muted"
                 style={{ textAlign: 'center', marginBottom: '1rem' }}
               >
-                💡 En cas d'égalité, cliquez sur V pour attribuer la victoire
+                {t('poolView.tie_hint')}
               </p>
             )}
 
@@ -1330,21 +1330,21 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 onClick={() => handleSpecialStatus('abandon')}
                 style={SPECIAL_BTN}
               >
-                🚴 Abandon
+                {t('poolView.btn_abandon')}
               </button>
               <button
                 className="btn btn-warning"
                 onClick={() => handleSpecialStatus('forfait')}
                 style={SPECIAL_BTN}
               >
-                📋 Forfait
+                {t('poolView.btn_forfeit')}
               </button>
               <button
                 className="btn btn-danger"
                 onClick={() => handleSpecialStatus('exclusion')}
                 style={SPECIAL_BTN}
               >
-                🚫 Exclusion
+                {t('poolView.btn_exclusion')}
               </button>
               {onMatchCancel && editingMatch !== null && (
                 <button
@@ -1361,7 +1361,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   }}
                   style={SPECIAL_BTN}
                 >
-                  ⏸ Annuler match
+                  {t('poolView.btn_cancel_match')}
                 </button>
               )}
             </div>
@@ -1374,10 +1374,10 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 setIsMatchInverted(false);
               }}
             >
-              Annuler
+              {t('actions.cancel')}
             </button>
             <button className="btn btn-primary" onClick={handleScoreSubmit}>
-              Valider
+              {t('actions.validate')}
             </button>
           </div>
         </div>
@@ -1396,16 +1396,16 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
     const statusLabel =
       pendingSpecialStatus === 'abandon'
-        ? 'abandonné'
+        ? t('poolView.st_abandon')
         : pendingSpecialStatus === 'forfait'
-          ? 'forfait'
-          : 'exclu';
+          ? t('poolView.st_forfeit')
+          : t('poolView.st_excluded');
     const statusHint =
       pendingSpecialStatus === 'abandon'
-        ? 'Il perd ce match ; son adversaire est déclaré vainqueur.'
+        ? t('poolView.hint_loses')
         : pendingSpecialStatus === 'forfait'
-          ? 'Il perd ce match ; son adversaire est déclaré vainqueur.'
-          : 'Il est exclu ; son adversaire est déclaré vainqueur de ce match.';
+          ? t('poolView.hint_loses')
+          : t('poolView.hint_excluded');
 
     const fencerName = (f?: typeof fencerLeft) =>
       f ? `${f.lastName} ${f.firstName ?? ''}`.trim() : '—';
@@ -1418,7 +1418,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       >
         <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
           <div className="modal-header">
-            <h2 className="modal-title">Quel est le combattant {statusLabel} ?</h2>
+            <h2 className="modal-title">{t('poolView.which_fencer', { status: statusLabel })}</h2>
           </div>
           <div className="modal-body">
             <p style={MUTED_HINT}>{statusHint}</p>
@@ -1447,7 +1447,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               className="btn btn-secondary"
               onClick={() => setPendingSpecialStatus(null)}
             >
-              Annuler
+              {t('actions.cancel')}
             </button>
           </div>
         </div>
@@ -1503,7 +1503,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             >
               ▶
             </span>
-            Journal des matchs terminés ({orderedMatches.finished.length})
+            {t('poolView.finished_log', { count: orderedMatches.finished.length })}
           </button>
           {showFinishedLog && (
             <div style={LOG_WRAP}>
@@ -1512,9 +1512,9 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   key={match.id}
                   onClick={() => setAuditMatchId(match.id)}
                   style={LOG_ITEM}
-                  title="Voir le journal du match"
+                  title={t('poolView.view_match_log')}
                 >
-                  📋 {match.fencerA?.lastName} vs {match.fencerB?.lastName}
+                  📋 {match.fencerA?.lastName} {t('poolView.vs')} {match.fencerB?.lastName}
                 </button>
               ))}
             </div>
@@ -1545,13 +1545,13 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       return (
         <div style={{ ...NEXT_MATCH_BOX, background: '#6b7280', opacity: 0.7 }}>
           <div style={ROW_BETWEEN}>
-            <div style={MATCH_LABEL}>✕ Match non disputé</div>
+            <div style={MATCH_LABEL}>{t('poolView.not_fenced')}</div>
             <div style={MATCH_CENTER}>
               <span style={abandonName(fencerAAbandoned)}>
                 {nextMatch.match.fencerA?.lastName} {nextMatch.match.fencerA?.firstName?.charAt(0)}.
                 {fencerAAbandoned && ' ✕'}
               </span>
-              <span style={VS}>vs</span>
+              <span style={VS}>{t('poolView.vs')}</span>
               <span style={abandonName(fencerBAbandoned)}>
                 {nextMatch.match.fencerB?.lastName} {nextMatch.match.fencerB?.firstName?.charAt(0)}.
                 {fencerBAbandoned && ' ✕'}
@@ -1571,20 +1571,20 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         }}
       >
         <div style={ROW_BETWEEN}>
-          <div style={MATCH_LABEL}>⚔️ Prochain match</div>
+          <div style={MATCH_LABEL}>{t('poolView.next_match')}</div>
           <div style={MATCH_CENTER}>
             <span style={FENCER_NAME}>
               {nextMatch.match.fencerA?.lastName} {nextMatch.match.fencerA?.firstName?.charAt(0)}.
               {nextMatch.match.fencerA?.ranking && ` #${nextMatch.match.fencerA.ranking}`}
             </span>
-            <span style={VS}>vs</span>
+            <span style={VS}>{t('poolView.vs')}</span>
             <span style={FENCER_NAME}>
               {nextMatch.match.fencerB?.lastName} {nextMatch.match.fencerB?.firstName?.charAt(0)}.
               {nextMatch.match.fencerB?.ranking && ` #${nextMatch.match.fencerB.ranking}`}
             </span>
           </div>
           <button onClick={() => openScoreModal(nextMatch.index)} style={NEXT_MATCH_SUBMIT}>
-            Saisir
+            {t('poolView.enter')}
           </button>
         </div>
       </div>
@@ -1595,16 +1595,12 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     <>
       <div className="card">
         <Confetti active={showPoolConfetti} particleCount={100} origin={{ x: 0.5, y: 0.5 }} />
-        {isLocked && (
-          <div style={LOCKED_BANNER}>
-            🔒 Feuille signée par tous les combattants — scores verrouillés
-          </div>
-        )}
+        {isLocked && <div style={LOCKED_BANNER}>{t('poolView.locked')}</div>}
         <div className="card-header pv-header">
           <div className="pv-header-left">
-            <span>Poule {pool.number}</span>
+            <span>{t('poolView.pool_n', { n: pool.number })}</span>
             <span className={`badge ${pool.isComplete ? 'badge-success' : 'badge-warning'}`}>
-              {pool.isComplete ? 'Terminée' : `${finishedCount}/${totalMatches}`}
+              {pool.isComplete ? t('poolView.finished') : `${finishedCount}/${totalMatches}`}
             </span>
             {!pool.isComplete && totalMatches > 0 && (
               <div className="pv-progress">
@@ -1661,8 +1657,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               onClick={undo}
               disabled={!canUndo}
               className="pv-icon-btn is-gray"
-              title="Annuler (Ctrl+Z)"
-              aria-label="Annuler la dernière action"
+              title={t('poolView.undo_title')}
+              aria-label={t('poolView.undo_aria')}
             >
               ↩
             </button>
@@ -1670,40 +1666,40 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               onClick={redo}
               disabled={!canRedo}
               className="pv-icon-btn is-gray"
-              title="Rétablir (Ctrl+Y)"
-              aria-label="Rétablir l'action annulée"
+              title={t('poolView.redo_title')}
+              aria-label={t('poolView.redo_aria')}
             >
               ↪
             </button>
             <button
               onClick={handleAutoFillScores}
               className="pv-icon-btn is-amber"
-              title="Remplir automatiquement les scores (test)"
-              aria-label="Remplir automatiquement les scores (test)"
+              title={t('poolView.autofill')}
+              aria-label={t('poolView.autofill')}
             >
               🎲
             </button>
             <button
               onClick={handlePrintPool}
               className="pv-icon-btn is-primary"
-              title="Imprimer la feuille de poule (Ctrl+P)"
-              aria-label="Imprimer la feuille de poule"
+              title={t('poolView.print_title')}
+              aria-label={t('poolView.print_aria')}
             >
               🖨️
             </button>
             <button
               onClick={handlePreviewPool}
               className="pv-icon-btn is-violet"
-              title="Aperçu avant impression (ouvre un PDF dans le lecteur par défaut)"
-              aria-label="Aperçu avant impression"
+              title={t('poolView.preview_title')}
+              aria-label={t('poolView.preview_aria')}
             >
               👁️
             </button>
             <button
               onClick={handleExportPDF}
               className="pv-icon-btn is-green"
-              title="Exporter la poule en PDF"
-              aria-label="Exporter la poule en PDF"
+              title={t('poolView.export_pdf')}
+              aria-label={t('poolView.export_pdf')}
             >
               📄
             </button>
@@ -1718,8 +1714,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   }
                 }}
                 className="pv-icon-btn is-indigo"
-                title={`Page signatures — arène ${defaultArena}`}
-                aria-label="Page signatures"
+                title={t('poolView.signatures_title', { arena: defaultArena })}
+                aria-label={t('poolView.signatures')}
               >
                 ✍️
               </button>
@@ -1728,8 +1724,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               <button
                 onClick={() => setShowAddFencerModal(true)}
                 className="pv-icon-btn"
-                title="Ajouter un tireur à cette poule"
-                aria-label="Ajouter un tireur à cette poule"
+                title={t('poolView.add_fencer')}
+                aria-label={t('poolView.add_fencer')}
               >
                 ➕
               </button>
@@ -1738,18 +1734,14 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               <button
                 onClick={() => setShowColumnMenu(!showColumnMenu)}
                 className={`pv-icon-btn${showColumnMenu ? ' is-open' : ''}${columnFilterEdited ? ' is-edited' : ''}`}
-                title={
-                  columnFilterEdited
-                    ? 'Afficher/masquer les colonnes (filtre modifié)'
-                    : 'Afficher/masquer les colonnes'
-                }
-                aria-label="Afficher/masquer les colonnes"
+                title={columnFilterEdited ? t('poolView.columns_edited') : t('poolView.columns')}
+                aria-label={t('poolView.columns')}
               >
                 <Funnel size={14} />
               </button>
               {showColumnMenu && (
                 <div style={COL_MENU}>
-                  <div style={COL_MENU_HEADER}>Colonnes à afficher</div>
+                  <div style={COL_MENU_HEADER}>{t('poolView.columns_shown')}</div>
                   {POOL_COLUMNS.filter(col => col.id !== 'quest' || isLaserSabre).map(col => (
                     <label key={col.id} className="pv-col-menu-label">
                       <input
@@ -1762,7 +1754,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                     </label>
                   ))}
                   <div className="pv-col-menu-section" style={COL_MENU_HEADER}>
-                    Export PDF / impression
+                    {t('poolView.pdf_print')}
                   </div>
                   <label className="pv-col-menu-label">
                     <input
@@ -1771,7 +1763,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                       onChange={togglePdfHideStatColumns}
                       className="cursor-pointer"
                     />
-                    Masquer V, V/M, TD, TR, Ind, Rg
+                    {t('poolView.hide_stats')}
                   </label>
                   <label className="pv-col-menu-label">
                     <input
@@ -1780,7 +1772,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                       onChange={togglePdfLandscape}
                       className="cursor-pointer"
                     />
-                    Format paysage
+                    {t('poolView.landscape')}
                   </label>
                 </div>
               )}
@@ -1789,16 +1781,16 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               <button
                 onClick={() => setViewMode('grid')}
                 className={`pv-icon-btn${viewMode === 'grid' ? ' is-active' : ''}`}
-                title="Vue tableau"
-                aria-label="Vue tableau"
+                title={t('poolView.grid_view')}
+                aria-label={t('poolView.grid_view')}
               >
                 📊
               </button>
               <button
                 onClick={() => setViewMode('matches')}
                 className={`pv-icon-btn${viewMode === 'matches' ? ' is-active' : ''}`}
-                title="Vue matchs"
-                aria-label="Vue matchs"
+                title={t('poolView.matches_view')}
+                aria-label={t('poolView.matches_view')}
               >
                 ⚔️
               </button>
@@ -1867,7 +1859,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 {isMultiReferee ? 'Assigner les arbitres' : 'Assigner un arbitre'}
               </h3>
               <button className="btn-close" onClick={() => setShowRefereeModal(false)}>
-                &times;
+                ×
               </button>
             </div>
             <div className="modal-body" style={{ padding: '1.5rem' }}>
@@ -1888,11 +1880,11 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   onClick={() => handleAssignReferee(null)}
                   style={REF_BTN}
                 >
-                  ✕ Aucun arbitre
+                  {t('poolView.no_referee')}
                 </button>
-                {isLoadingReferees && <p style={REF_EMPTY}>Chargement des arbitres…</p>}
+                {isLoadingReferees && <p style={REF_EMPTY}>{t('poolView.loading_referees')}</p>}
                 {!isLoadingReferees && competitionReferees.length === 0 && (
-                  <p style={REF_EMPTY}>Aucun arbitre pointé pour cette compétition</p>
+                  <p style={REF_EMPTY}>{t('poolView.no_checked_referee')}</p>
                 )}
                 {!isLoadingReferees &&
                   isMultiReferee &&
@@ -1924,7 +1916,10 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                     onClick={confirmPendingReferees}
                     style={REF_BTN}
                   >
-                    ✓ Valider ({pendingRefereeIds.length}/{maxRefereesPerPool})
+                    {t('poolView.validate_n', {
+                      n: pendingRefereeIds.length,
+                      max: maxRefereesPerPool,
+                    })}
                   </button>
                 )}
                 {!isLoadingReferees &&

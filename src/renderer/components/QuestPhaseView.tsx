@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import {
   Fencer,
   QuestPhaseConfig,
@@ -53,6 +54,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
   onQuestComplete,
   onConfigUpdate,
 }) => {
+  const { t } = useTranslation();
   const [state, setState] = useState<QuestState>('config');
 
   // Config
@@ -221,10 +223,10 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
             alignItems: 'center',
           }}
         >
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Tour Quest en cours</h2>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{t('questPhase.running_title')}</h2>
           {allComplete && (
             <button className="btn btn-primary" onClick={() => onQuestComplete(ranking ?? [])}>
-              Valider le Tour Quest →
+              {t('questPhase.validate')}
             </button>
           )}
         </div>
@@ -245,7 +247,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
 
         {/* Compteur de cartons */}
         <div style={CARD_TOP}>
-          <p style={CARD_TITLE}>Cartons reçus</p>
+          <p style={CARD_TITLE}>{t('questPhase.cards_received')}</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {fencers.map(f => {
               const count = cardCounts[f.id] ?? 0;
@@ -313,7 +315,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
         {/* Classement final (affiché quand tous les matchs sont terminés) */}
         {allComplete && ranking && (
           <div style={CARD_TOP}>
-            <p style={CARD_TITLE}>Classement Tour Quest</p>
+            <p style={CARD_TITLE}>{t('questPhase.ranking_title')}</p>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ background: 'var(--color-bg)' }}>
@@ -325,17 +327,17 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                       width: '3rem',
                     }}
                   >
-                    Rg
+                    {t('questPhase.rank')}
                   </th>
-                  <th style={TH_LEFT}>Tireur</th>
-                  <th style={TH_CENTER} title="Victoires / Matchs joués">
-                    V/M
+                  <th style={TH_LEFT}>{t('questPhase.fencer')}</th>
+                  <th style={TH_CENTER} title={t('questPhase.vm_title')}>
+                    {t('questPhase.vm')}
                   </th>
-                  <th style={TH_CENTER} title="Points Quest">
-                    Pts Q
+                  <th style={TH_CENTER} title={t('questPhase.pts_title')}>
+                    {t('questPhase.pts')}
                   </th>
-                  <th style={TH_CENTER} title="Cartons reçus (moins = mieux)">
-                    Cart.
+                  <th style={TH_CENTER} title={t('questPhase.cards_title')}>
+                    {t('questPhase.cards')}
                   </th>
                 </tr>
               </thead>
@@ -398,7 +400,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                 marginTop: '0.75rem',
               }}
             >
-              Critères : V/M décroissant → Points Quest décroissants → Cartons croissants
+              {t('questPhase.criteria')}
             </p>
           </div>
         )}
@@ -409,12 +411,12 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
   return (
     <div className="content" style={{ maxWidth: '900px', margin: '0 auto' }}>
       <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem' }}>
-        Configuration du Tour Quest
+        {t('questPhase.config_title')}
       </h2>
 
       {/* Section calcul du nombre de combats */}
       <div style={CARD}>
-        <p style={sectionTitle}>Nombre de combats</p>
+        <p style={sectionTitle}>{t('questPhase.fight_count')}</p>
 
         <div
           style={{
@@ -425,7 +427,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
           }}
         >
           <div>
-            <label style={labelStyle}>Temps disponible (min)</label>
+            <label style={labelStyle}>{t('questPhase.time_available')}</label>
             <input
               type="number"
               style={inputStyle}
@@ -439,7 +441,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
             />
           </div>
           <div>
-            <label style={labelStyle}>Nombre d'arènes</label>
+            <label style={labelStyle}>{t('questPhase.arena_count')}</label>
             <input
               type="number"
               style={inputStyle}
@@ -453,7 +455,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
             />
           </div>
           <div>
-            <label style={labelStyle}>Tireurs qualifiés</label>
+            <label style={labelStyle}>{t('questPhase.qualified')}</label>
             <input type="number" style={inputStyle} value={fencers.length} disabled />
           </div>
         </div>
@@ -471,13 +473,13 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
           }}
         >
           <span style={{ fontSize: '0.875rem', color: '#1e40af' }}>
-            Formule : (2 × {timeMinutes} min × {arenas} arènes) / ({fencers.length} tireurs × 5 min)
-            = <strong>{autoFights} combats/tireur</strong>
+            {t('questPhase.formula', { time: timeMinutes, arenas, fencers: fencers.length })}{' '}
+            <strong>{t('questPhase.fights_per_fencer', { n: autoFights })}</strong>
           </span>
         </div>
 
         <div>
-          <label style={labelStyle}>Override manuel (laissez vide pour utiliser la formule)</label>
+          <label style={labelStyle}>{t('questPhase.manual_override')}</label>
           <input
             type="number"
             style={{ ...inputStyle, maxWidth: '200px' }}
@@ -491,16 +493,19 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
             }}
           />
           <p style={smallText}>
-            Valeur effective : <strong>{effectiveFights} combats/tireur</strong>
+            {t('questPhase.effective')}{' '}
+            <strong>{t('questPhase.fights_per_fencer', { n: effectiveFights })}</strong>
             {fencers.length > 1 &&
-              ` → ${Math.floor((fencers.length * effectiveFights) / 2)} combats au total`}
+              t('questPhase.total_fights', {
+                n: Math.floor((fencers.length * effectiveFights) / 2),
+              })}
           </p>
         </div>
       </div>
 
       {/* Contrainte d'adversaire */}
       <div style={CARD}>
-        <p style={sectionTitle}>Contrainte d'opposition</p>
+        <p style={sectionTitle}>{t('questPhase.constraint')}</p>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           {(['none', 'club', 'region', 'nation'] as OpponentConstraint[]).map(c => (
             <label
@@ -523,10 +528,10 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                   onConfigUpdate?.({ opponentConstraint: c });
                 }}
               />
-              {c === 'none' && 'Aucune'}
-              {c === 'club' && 'Pas même club (régionale)'}
-              {c === 'region' && 'Pas même région (nationale)'}
-              {c === 'nation' && 'Pas même nation (internationale)'}
+              {c === 'none' && t('questPhase.c_none')}
+              {c === 'club' && t('questPhase.c_club')}
+              {c === 'region' && t('questPhase.c_region')}
+              {c === 'nation' && t('questPhase.c_nation')}
             </label>
           ))}
         </div>
@@ -539,11 +544,11 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
           onClick={handleGenerate}
           disabled={fencers.length < 2 || effectiveFights <= 0}
         >
-          {schedule.length === 0 ? 'Générer le planning' : 'Régénérer'}
+          {schedule.length === 0 ? t('questPhase.generate') : t('questPhase.regenerate')}
         </button>
         {fencers.length < 2 && (
           <p style={{ ...smallText, color: '#dc2626', marginTop: '0.5rem' }}>
-            Il faut au moins 2 tireurs pour générer un planning.
+            {t('questPhase.need_two')}
           </p>
         )}
       </div>
@@ -559,7 +564,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
               marginBottom: '1rem',
             }}
           >
-            <p style={sectionTitle}>Planning — {schedule.length} combats</p>
+            <p style={sectionTitle}>{t('questPhase.schedule_title', { n: schedule.length })}</p>
             {!isValid && (
               <span style={{ fontSize: '0.75rem', color: '#dc2626' }}>⚠ {errors[0]}</span>
             )}
@@ -596,7 +601,9 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                 <span className="flex-1">
                   <strong>{fight.fencerA.lastName}</strong> {fight.fencerA.firstName}
                   {fight.fencerA.club && <span style={MUTED}> ({fight.fencerA.club})</span>}
-                  <span style={{ margin: '0 0.5rem', color: 'var(--color-text-muted)' }}>vs</span>
+                  <span style={{ margin: '0 0.5rem', color: 'var(--color-text-muted)' }}>
+                    {t('questPhase.vs')}
+                  </span>
                   <strong>{fight.fencerB.lastName}</strong> {fight.fencerB.firstName}
                   {fight.fencerB.club && <span style={MUTED}> ({fight.fencerB.club})</span>}
                 </span>
@@ -641,7 +648,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
             <summary
               style={{ cursor: 'pointer', fontSize: '0.8rem', color: 'var(--color-text-light)' }}
             >
-              Répartition par tireur
+              {t('questPhase.per_fencer')}
             </summary>
             <div style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
               {fencers.map(f => {
@@ -674,7 +681,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
             onClick={handleLaunch}
             style={{ fontSize: '1rem', padding: '0.75rem 2rem' }}
           >
-            Lancer le Tour Quest →
+            {t('questPhase.launch')}
           </button>
         </div>
       )}

@@ -50,7 +50,7 @@ describe('FencerList', () => {
 
   it('filtre via la recherche (debounce)', async () => {
     setup();
-    fireEvent.change(screen.getByPlaceholderText('Rechercher un tireur…'), {
+    fireEvent.change(screen.getByPlaceholderText('fencerList.search_placeholder'), {
       target: { value: 'martin' },
     });
     await waitFor(() => expect(screen.queryByText('Dupont')).not.toBeInTheDocument());
