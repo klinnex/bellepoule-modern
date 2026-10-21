@@ -117,3 +117,9 @@ html {
   font-size: var(--fs-sm);
   color: var(--color-text-light);
 }
+
+/* Saisie tactile arbitre : aucun bouton sous la zone tactile minimale (#1156) */
+.touch-referee-interface button {
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+}
