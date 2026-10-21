@@ -535,7 +535,9 @@ export interface RemoteServerAPI {
     competitionId: string,
     matchId: string,
     scoreA: number,
-    scoreB: number
+    scoreB: number,
+    winner?: 'A' | 'B',
+    specialStatus?: 'abandon' | 'forfait' | 'exclusion'
   ) => Promise<{ success: boolean; error?: string }>;
   setTeamArenaMatch: (
     competitionId: string,

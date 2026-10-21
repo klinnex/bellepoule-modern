@@ -70,4 +70,8 @@ describe('configuration Electron (#1148)', () => {
     const html = readFileSync(join(__dirname, '../renderer/index.html'), 'utf8');
     expect(html).toMatch(/script-src 'self';/);
   });
+  it('meta CSP du renderer sans unsafe-inline pour les styles (#1157)', () => {
+    const html = readFileSync(join(__dirname, '../renderer/index.html'), 'utf8');
+    expect(html).toMatch(/style-src 'self';/);
+  });
 });

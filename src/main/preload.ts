@@ -677,8 +677,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('remote:requestMatchSignature', competitionId, arenaId, request),
     resetPoolMatch: (competitionId: string, matchId: string) =>
       ipcRenderer.invoke('remote:resetPoolMatch', competitionId, matchId),
-    finishPoolMatch: (competitionId: string, matchId: string, scoreA: number, scoreB: number) =>
-      ipcRenderer.invoke('remote:finishPoolMatch', competitionId, matchId, scoreA, scoreB),
+    finishPoolMatch: (
+      competitionId: string,
+      matchId: string,
+      scoreA: number,
+      scoreB: number,
+      winner?: 'A' | 'B',
+      specialStatus?: 'abandon' | 'forfait' | 'exclusion'
+    ) =>
+      ipcRenderer.invoke(
+        'remote:finishPoolMatch',
+        competitionId,
+        matchId,
+        scoreA,
+        scoreB,
+        winner,
+        specialStatus
+      ),
     setTeamArenaMatch: (
       competitionId: string,
       arenaId: string,

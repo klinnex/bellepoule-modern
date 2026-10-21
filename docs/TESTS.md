@@ -95,17 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 15 | 192 |
+| `src/main/` | 15 | 195 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 31 | 154 |
-| E2E Playwright (`e2e/`) | 8 | 31 |
+| E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 8 | 40 |
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **159** | **1557** |
+| `src/renderer/utils/` | 1 | 1 |
+| **Total** | **161** | **1565** |
 
-Unitaires : 151 fichiers, 1526 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 152 fichiers, 1530 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2109,7 +2110,7 @@ Unitaires : 151 fichiers, 1526 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 98 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 100 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -2235,6 +2236,9 @@ Unitaires : 151 fichiers, 1526 tests. E2E : 8 fichiers, 31 tests (comptage stati
     - fermé tant que non activé / sans mot de passe
     - login puis commentaire enregistré ; sans cookie → 401
     - mauvais mot de passe refusé
+  - **finishPoolMatch (saisie dans l'application)**
+    - conserve le drapeau forfait sur le perdant (#1144)
+    - sans statut spécial : score simple, aucun drapeau
 
 </details>
 
@@ -2255,7 +2259,7 @@ Unitaires : 151 fichiers, 1526 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/windowSecurity.test.ts</code> — 7 tests</summary>
+<summary><code>src/main/windowSecurity.test.ts</code> — 8 tests</summary>
 
 - **isAppUrl (#1148)**
   - prod : file:// du bundle uniquement
@@ -2268,6 +2272,7 @@ Unitaires : 151 fichiers, 1526 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - fenêtre principale en sandbox avec garde-fous
   - fuses : RunAsNode off, asar seul
   - meta CSP du renderer sans unsafe-inline pour les scripts
+  - meta CSP du renderer sans unsafe-inline pour les styles (#1157)
 
 </details>
 
@@ -2954,12 +2959,14 @@ Unitaires : 151 fichiers, 1526 tests. E2E : 8 fichiers, 31 tests (comptage stati
 ### E2E Playwright (`e2e/`)
 
 <details>
-<summary><code>e2e/accessibility.spec.ts</code> — 3 tests</summary>
+<summary><code>e2e/accessibility.spec.ts</code> — 5 tests</summary>
 
 - **Accessibility**
   - should have proper ARIA labels
   - should be keyboard navigable
   - should respect reduced motion preference
+  - should pass axe color-contrast (${scheme})
+  - should have no critical axe violations
 
 </details>
 
@@ -3038,6 +3045,15 @@ Unitaires : 151 fichiers, 1526 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - l'onglet Tableau est accessible depuis une compétition
   - ouvrir le tableau affiche le bracket ou un état vide
   - les contrôles de zoom du bracket fonctionnent si un tableau existe
+
+</details>
+
+<details>
+<summary><code>e2e/visual.spec.ts</code> — 2 tests</summary>
+
+- **Visual regression**
+  - accueil (${scheme})
+  - nouvelle compétition (${scheme})
 
 </details>
 
@@ -3170,5 +3186,15 @@ Unitaires : 151 fichiers, 1526 tests. E2E : 8 fichiers, 31 tests (comptage stati
 
 - **utilities.css**
   - définit toutes les classes utilitaires utilisées par les composants
+
+</details>
+
+### `src/renderer/utils/`
+
+<details>
+<summary><code>src/renderer/utils/writeHtmlWithCssom.test.ts</code> — 1 test</summary>
+
+- **writeHtmlWithCssom**
+  - écrit le document et réapplique les attributs style par CSSOM
 
 </details>

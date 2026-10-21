@@ -18,6 +18,10 @@ export default defineConfig({
   /* Opt out of parallel tests on CI */
   workers: process.env.CI ? 1 : undefined,
 
+  /* Captures de référence (toHaveScreenshot) par plateforme, créées si absentes (#1157) */
+  updateSnapshots: 'missing',
+  snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{testFilePath}/{arg}{ext}',
+
   /* Reporter to use */
   reporter: 'html',
 

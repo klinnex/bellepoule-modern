@@ -1337,11 +1337,11 @@ ipcMain.handle('remote:resetPoolMatch', async (_, competitionId: string, matchId
 
 ipcMain.handle(
   'remote:finishPoolMatch',
-  async (_, competitionId: string, matchId: string, scoreA: number, scoreB: number) => {
+  async (_, competitionId: string, ...args: Parameters<RemoteScoreServer['finishPoolMatch']>) => {
     try {
       const entry = remoteServers.get(competitionId);
       if (!entry) return { success: true };
-      entry.server.finishPoolMatch(matchId, scoreA, scoreB);
+      entry.server.finishPoolMatch(...args);
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur' };

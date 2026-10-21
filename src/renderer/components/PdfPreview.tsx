@@ -7,6 +7,7 @@ import {
 } from '../../shared/utils/pdfExport';
 import { PREVIEW_POOL, PREVIEW_TABLEAU, PREVIEW_RANKING } from '../../shared/utils/pdfPreviewData';
 import { translateStatic } from '../contexts/TranslationContext';
+import { writeHtmlWithCssom } from '../utils/writeHtmlWithCssom';
 
 const LOGO_KEY = 'bellepoule-logo';
 const A4_W = 794;
@@ -86,9 +87,7 @@ const PdfPreview: React.FC<Props> = ({ template, docType }) => {
     if (!iframe) return;
     const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
     if (!doc) return;
-    doc.open();
-    doc.write(html);
-    doc.close();
+    writeHtmlWithCssom(doc, html);
   }, [html]);
 
   return (

@@ -64,7 +64,7 @@ reste est intégré par Webpack.
 | ts-loader | 9.6.2 |
 | html-webpack-plugin | 5.6.8 |
 | copy-webpack-plugin | 14.0.0 |
-| css-loader / style-loader | 7.1.5 / 4.0.0 |
+| css-loader / mini-css-extract-plugin | 7.1.5 / 2.10.2 |
 | terser-webpack-plugin | 5.6.1 |
 | webpack-bundle-analyzer | 4.10.2 |
 | electron-builder | 26.17.0 |
@@ -84,6 +84,7 @@ reste est intégré par Webpack.
 | @testing-library/jest-dom | 6.9.1 |
 | @testing-library/user-event | 14.6.7 |
 | @playwright/test | 1.63.0 |
+| @axe-core/playwright | 4.14.0 |
 | eslint | 9.39.5 (flat config `eslint.config.js`) |
 | @eslint/js | 9.39.5 |
 | @typescript-eslint/parser, eslint-plugin | 8.71.1 |
