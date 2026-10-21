@@ -60,6 +60,7 @@ import {
 import { applyPageCsp, sendHtmlPage } from './remote/csp';
 import { sanitizeAnnouncement } from './remote/announcement';
 import * as slots from './remote/arenaSlots';
+import { createPublicParser, publicJson } from './remote/publicDto';
 import {
   buildPage,
   jsonCompression,
@@ -285,6 +286,7 @@ export class RemoteScoreServer {
     this.io = new SocketIOServer(this.server, {
       // 1 Mo : select_match peut transporter les photos base64 des tireurs
       maxHttpBufferSize: 1e6,
+      parser: createPublicParser(() => this.sessionShowPhotos), // sans données personnelles (#1194)
       // Origine vérifiée à la poignée de main (WebSocket n'est pas soumis au CORS navigateur)
       allowRequest: (req, callback) => {
         callback(null, this.isAllowedOrigin(req.headers.origin, req.headers.host));
@@ -737,6 +739,7 @@ export class RemoteScoreServer {
 
     // Compression gzip des réponses JSON volumineuses (classements, tableaux…)
     this.app.use(jsonCompression());
+    this.app.use(publicJson()); // réponses sans données personnelles (#1194)
 
     // En-têtes de sécurité de base (fichiers statiques, API). Les pages HTML reçoivent une CSP
     // avec nonce (script-src sans 'unsafe-inline') via sendHtmlPage (remote/csp.ts, #1149).
@@ -3854,14 +3857,10 @@ export class RemoteScoreServer {
     kioskViews?: { poules: boolean; classement: boolean; direct: boolean; suivants: boolean },
     cardAnnounce?: boolean
   ): Promise<RemoteSession> {
-    if (this.session) {
-      throw new Error('Session déjà active');
-    }
+    if (this.session) throw new Error('Session déjà active');
 
     const competition = this.db.getCompetition(competitionId);
-    if (!competition) {
-      throw new Error('Compétition non trouvée');
-    }
+    if (!competition) throw new Error('Compétition non trouvée');
 
     // Stocker le réglage d'affichage des photos
     this.sessionShowPhotos = showPhotos ?? false;
@@ -4332,9 +4331,7 @@ export class RemoteScoreServer {
   }
 
   public updateStripCount(newCount: number): RemoteSession | null {
-    if (!this.session) {
-      throw new Error('Aucune session active');
-    }
+    if (!this.session) throw new Error('Aucune session active');
 
     const currentCount = this.session.strips.length;
 

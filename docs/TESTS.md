@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 14 | 181 |
+| `src/main/` | 15 | 189 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
@@ -103,9 +103,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/remote/` | 8 | 40 |
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **156** | **1535** |
+| **Total** | **157** | **1543** |
 
-Unitaires : 148 fichiers, 1504 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 149 fichiers, 1512 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2054,6 +2054,23 @@ Unitaires : 148 fichiers, 1504 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - compresse au-delà du seuil seulement
 - **critère #1151 : referee.html \< 60 Ko en brotli (client socket.io compris)**
   - premier chargement
+
+</details>
+
+<details>
+<summary><code>src/main/remote/publicDto.test.ts</code> — 8 tests</summary>
+
+- **stripPersonalData**
+  - retire date de naissance, licence et photo à toute profondeur, sans muter
+  - photo conservée sur demande (affichage des photos actif)
+  - retire le code (licence) des arbitres et les IP des événements
+  - valeurs non objets et instances (Date, Buffer) inchangées
+- **publicJson (REST)**
+  - GET sans cookie : aucune donnée personnelle dans le JSON
+- **createPublicParser (Socket.IO)**
+  - paquet sortant filtré, paquet source intact
+  - photo diffusée quand l’affichage des photos est actif, jamais la licence
+  - décodage côté client inchangé (format standard)
 
 </details>
 

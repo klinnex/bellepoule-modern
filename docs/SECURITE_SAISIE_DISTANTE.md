@@ -38,6 +38,10 @@ Le sélecteur d'interface (section **Réseau**) limite l'écoute à une carte r�
 
 L'IP client est celle de la connexion TCP. `X-Forwarded-For` est ignoré, sauf derrière un reverse proxy de confiance (`setTrustProxy(true)`).
 
+## Données personnelles (#1194)
+
+Aucune réponse REST (`res.json`) ni aucun paquet Socket.IO ne contient de date de naissance, de licence (tireurs, `code` des arbitres) ou d'IP de tablette (`ipAddress` du journal). Les photos ne sont diffusées par Socket.IO que si l'affichage des photos est activé, jamais en REST. Filtrage central : `src/main/remote/publicDto.ts` (middleware `publicJson`, encodeur Socket.IO `createPublicParser`).
+
 ## IPC fichiers (processus principal, #1146)
 
 - Le renderer ne peut lire/écrire que des chemins renvoyés par une boîte de dialogue native (`dialog:openFile`, `dialog:saveFile`) ou par le menu Importer (`.bpf`). `src/main/pathAuthorization.ts` les mémorise (10 min, 200 max, sens lecture/écriture).
