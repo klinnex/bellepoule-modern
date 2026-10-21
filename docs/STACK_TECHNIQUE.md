@@ -64,7 +64,7 @@ reste est intégré par Webpack.
 | ts-loader | 9.6.2 |
 | html-webpack-plugin | 5.6.8 |
 | copy-webpack-plugin | 14.0.0 |
-| css-loader / style-loader | 7.1.5 / 4.0.0 |
+| css-loader / mini-css-extract-plugin | 7.1.5 / 2.10.2 |
 | terser-webpack-plugin | 5.6.1 |
 | webpack-bundle-analyzer | 4.10.2 |
 | electron-builder | 26.17.0 |

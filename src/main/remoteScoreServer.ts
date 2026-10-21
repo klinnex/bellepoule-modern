@@ -79,6 +79,7 @@ import {
 import { registerPoolRoutes, type PoolRouteContext } from './remote/routes/poolRoutes';
 import { registerMatchRoutes, type MatchRouteContext } from './remote/routes/matchRoutes';
 import { registerApiRoutes, type ApiRouteContext } from './remote/routes/apiRoutes';
+import { buildPoolScores } from './remote/poolScore';
 
 export { PASSWORD_MIN_LENGTH };
 import {
@@ -2326,28 +2327,9 @@ export class RemoteScoreServer {
   // Marque un match de poule comme terminé depuis l'UI principale (ex: auto-fill).
   // Met à jour sessionMatchScores + sessionMatches, libère l'arène si nécessaire,
   // puis diffuse la mise à jour à la tablette.
-  // Forfait / abandon / exclusion : drapeau porté par le perdant, comme dans le renderer (#1144).
-  public finishPoolMatch(
-    matchId: string,
-    scoreA: number,
-    scoreB: number,
-    winner?: 'A' | 'B',
-    specialStatus?: 'abandon' | 'forfait' | 'exclusion'
-  ): void {
-    const isVictoryA = winner === 'A' || (!winner && scoreA > scoreB);
-    const isVictoryB = winner === 'B' || (!winner && scoreB > scoreA);
-    const specialOnA = !!specialStatus && !isVictoryA;
-    const specialOnB = !!specialStatus && !specialOnA && !isVictoryB;
-    const toScore = (value: number, isVictory: boolean, special: boolean): Score => ({
-      value,
-      isVictory,
-      isAbstention: special && specialStatus === 'abandon',
-      isExclusion: special && specialStatus === 'exclusion',
-      isForfait: special && specialStatus === 'forfait',
-    });
+  public finishPoolMatch(matchId: string, ...score: Parameters<typeof buildPoolScores>): void {
     this.sessionMatchScores.set(matchId, {
-      scoreA: toScore(scoreA, isVictoryA, specialOnA),
-      scoreB: toScore(scoreB, isVictoryB, specialOnB),
+      ...buildPoolScores(...score),
       status: MatchStatus.FINISHED,
     });
 

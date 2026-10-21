@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 module.exports = (env = {}) => ({
@@ -101,7 +102,8 @@ module.exports = (env = {}) => ({
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
+        // Fichiers .css liés (<link>) : aucune balise <style>, CSP sans 'unsafe-inline' (#1157)
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
       {
         test: /\.(png|svg|jpg|jpeg|gif|ico)$/i,
@@ -114,6 +116,7 @@ module.exports = (env = {}) => ({
     ],
   },
   plugins: [
+    new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
       template: './src/renderer/index.html',
       filename: 'index.html',
