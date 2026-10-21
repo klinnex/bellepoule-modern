@@ -683,7 +683,11 @@
     "no_referee": "✕ 無裁判",
     "loading_referees": "正在載入裁判…",
     "no_checked_referee": "本賽事未有已報到的裁判",
-    "validate_n": "✓ 確認（{{n}}/{{max}}）"
+    "validate_n": "✓ 確認（{{n}}/{{max}}）",
+    "assign_referees": "指派裁判",
+    "assign_referee": "指派裁判",
+    "select_referees": "為小組 {{n}} 選擇最多 {{max}} 名裁判（首位為主裁判）：",
+    "select_referee": "為小組 {{n}} 選擇裁判："
   },
   "presentation": {
     "no_club": "沒有所屬會",

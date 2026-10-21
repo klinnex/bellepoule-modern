@@ -6,8 +6,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import Modal from './common/Modal';
 import { useToast } from './Toast';
-import { useFocusTrap } from '../hooks/useFocusTrap';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 interface ReportIssueModalProps {
@@ -22,7 +22,6 @@ interface VersionInfo {
 
 const ReportIssueModal: React.FC<ReportIssueModalProps> = ({ onClose }) => {
   const { t } = useTranslation();
-  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const { showToast } = useToast();
   const [issueType, setIssueType] = useState<'bug' | 'feature'>('bug');
   const [title, setTitle] = useState('');
@@ -115,146 +114,11 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        ref={modalRef}
-        className="modal"
-        onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '500px' }}
-        role="dialog"
-        aria-modal="true"
-      >
-        <div className="modal-header">
-          <h2>{t('reportIssue.title')}</h2>
-          <button className="btn-close" onClick={onClose}>
-            ×
-          </button>
-        </div>
-
-        <div className="modal-body">
-          {/* Type selector */}
-          <div className="form-group">
-            <label>{t('reportIssue.type')}</label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                type="button"
-                onClick={() => setIssueType('bug')}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem',
-                  border: `2px solid ${issueType === 'bug' ? '#ef4444' : 'var(--color-border)'}`,
-                  borderRadius: '8px',
-                  background: issueType === 'bug' ? '#fef2f2' : 'white',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: issueType === 'bug' ? '600' : '400',
-                  color: issueType === 'bug' ? '#dc2626' : 'var(--color-text)',
-                }}
-              >
-                {t('reportIssue.bug')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIssueType('feature')}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem',
-                  border: `2px solid ${issueType === 'feature' ? '#22c55e' : 'var(--color-border)'}`,
-                  borderRadius: '8px',
-                  background: issueType === 'feature' ? '#f0fdf4' : 'white',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: issueType === 'feature' ? '600' : '400',
-                  color: issueType === 'feature' ? '#16a34a' : 'var(--color-text)',
-                }}
-              >
-                {t('reportIssue.suggestion')}
-              </button>
-            </div>
-          </div>
-
-          {/* Title */}
-          <div className="form-group">
-            <label htmlFor="issue-title">
-              {issueType === 'bug' ? 'Résumé du problème' : 'Titre de la suggestion'}
-            </label>
-            <input
-              type="text"
-              id="issue-title"
-              className="form-input"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder={
-                issueType === 'bug'
-                  ? "Ex: Le score ne s'enregistre pas correctement"
-                  : "Ex: Ajouter l'export PDF des résultats"
-              }
-              autoFocus
-            />
-          </div>
-
-          {/* Description */}
-          <div className="form-group">
-            <label htmlFor="issue-description">
-              {issueType === 'bug' ? "Que s'est-il passé ?" : 'Décrivez votre idée'}
-            </label>
-            <textarea
-              id="issue-description"
-              className="form-input"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder={
-                issueType === 'bug'
-                  ? "Décrivez ce qui s'est passé et ce que vous attendiez..."
-                  : 'Expliquez votre suggestion en détail...'
-              }
-              rows={4}
-              style={{ resize: 'vertical' }}
-            />
-          </div>
-
-          {/* System info */}
-          <div
-            style={{
-              padding: '0.75rem',
-              background: 'var(--color-bg)',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-              color: 'var(--color-text-light)',
-            }}
-          >
-            <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--color-text)' }}>
-              {t('reportIssue.auto_info')}
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem' }}>
-              <span>{t('reportIssue.version')}</span>
-              <span style={{ fontFamily: 'monospace' }}>
-                {versionInfo
-                  ? `${versionInfo.version}-build.${versionInfo.build}`
-                  : 'Chargement...'}
-              </span>
-              <span>{t('reportIssue.system')}</span>
-              <span>{systemInfo || t('reportIssue.loading')}</span>
-              <span>{t('reportIssue.date')}</span>
-              <span>{new Date().toLocaleString(getActiveLocale())}</span>
-            </div>
-          </div>
-
-          <p
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--color-text-muted)',
-              marginTop: '0.75rem',
-              textAlign: 'center',
-            }}
-          >
-            {t('reportIssue.gh_hint_1')}
-            <br />
-            {t('reportIssue.gh_hint_2')}
-          </p>
-        </div>
-
-        <div className="modal-footer">
+    <Modal
+      title={t('reportIssue.title')}
+      onClose={onClose}
+      footer={
+        <>
           <button type="button" className="btn btn-secondary" onClick={onClose}>
             {t('actions.cancel')}
           </button>
@@ -271,9 +135,128 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
           >
             {t('reportIssue.create')}
           </button>
+        </>
+      }
+    >
+      {/* Type selector */}
+      <div className="form-group">
+        <label>{t('reportIssue.type')}</label>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            type="button"
+            onClick={() => setIssueType('bug')}
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              border: `2px solid ${issueType === 'bug' ? '#ef4444' : 'var(--color-border)'}`,
+              borderRadius: '8px',
+              background: issueType === 'bug' ? '#fef2f2' : 'white',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: issueType === 'bug' ? '600' : '400',
+              color: issueType === 'bug' ? '#dc2626' : 'var(--color-text)',
+            }}
+          >
+            {t('reportIssue.bug')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setIssueType('feature')}
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              border: `2px solid ${issueType === 'feature' ? '#22c55e' : 'var(--color-border)'}`,
+              borderRadius: '8px',
+              background: issueType === 'feature' ? '#f0fdf4' : 'white',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: issueType === 'feature' ? '600' : '400',
+              color: issueType === 'feature' ? '#16a34a' : 'var(--color-text)',
+            }}
+          >
+            {t('reportIssue.suggestion')}
+          </button>
         </div>
       </div>
-    </div>
+
+      {/* Title */}
+      <div className="form-group">
+        <label htmlFor="issue-title">
+          {issueType === 'bug' ? 'Résumé du problème' : 'Titre de la suggestion'}
+        </label>
+        <input
+          type="text"
+          id="issue-title"
+          className="form-input"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          placeholder={
+            issueType === 'bug'
+              ? "Ex: Le score ne s'enregistre pas correctement"
+              : "Ex: Ajouter l'export PDF des résultats"
+          }
+          autoFocus
+        />
+      </div>
+
+      {/* Description */}
+      <div className="form-group">
+        <label htmlFor="issue-description">
+          {issueType === 'bug' ? "Que s'est-il passé ?" : 'Décrivez votre idée'}
+        </label>
+        <textarea
+          id="issue-description"
+          className="form-input"
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          placeholder={
+            issueType === 'bug'
+              ? "Décrivez ce qui s'est passé et ce que vous attendiez..."
+              : 'Expliquez votre suggestion en détail...'
+          }
+          rows={4}
+          style={{ resize: 'vertical' }}
+        />
+      </div>
+
+      {/* System info */}
+      <div
+        style={{
+          padding: '0.75rem',
+          background: 'var(--color-bg)',
+          borderRadius: '8px',
+          fontSize: '0.875rem',
+          color: 'var(--color-text-light)',
+        }}
+      >
+        <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--color-text)' }}>
+          {t('reportIssue.auto_info')}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem' }}>
+          <span>{t('reportIssue.version')}</span>
+          <span style={{ fontFamily: 'monospace' }}>
+            {versionInfo ? `${versionInfo.version}-build.${versionInfo.build}` : 'Chargement...'}
+          </span>
+          <span>{t('reportIssue.system')}</span>
+          <span>{systemInfo || t('reportIssue.loading')}</span>
+          <span>{t('reportIssue.date')}</span>
+          <span>{new Date().toLocaleString(getActiveLocale())}</span>
+        </div>
+      </div>
+
+      <p
+        style={{
+          fontSize: '0.75rem',
+          color: 'var(--color-text-muted)',
+          marginTop: '0.75rem',
+          textAlign: 'center',
+        }}
+      >
+        {t('reportIssue.gh_hint_1')}
+        <br />
+        {t('reportIssue.gh_hint_2')}
+      </p>
+    </Modal>
   );
 };
 

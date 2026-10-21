@@ -640,7 +640,6 @@ const ResultsView: React.FC<ResultsViewProps> = ({
 
   return (
     <div style={RV_STYLES.wrapper}>
-      <style>{`@keyframes rv-spin { to { transform: rotate(360deg); } }`}</style>
       {isExportingFull && (
         <div style={RV_STYLES.overlay}>
           <div style={RV_STYLES.overlaySpinner} />

@@ -172,66 +172,6 @@ const styles: Record<string, React.CSSProperties> = {
 // Tip bleu clash   : x=155px, y≈47px  ┐
 // Tip rouge clash  : x=147px, y≈47px  ┘ → croisement ~151px ≈ 50% largeur ✓
 
-let injected = false;
-function injectKeyframes() {
-  if (injected || typeof document === 'undefined') return;
-  injected = true;
-  const style = document.createElement('style');
-  style.textContent = `
-    /* Poule gauche miroir (face droite), avance vers centre */
-    @keyframes bp-hen-left {
-      0%,100% { left: 5px; }
-      38%,58% { left: 80px; }
-    }
-    /* Poule droite naturelle (face gauche), avance vers centre */
-    @keyframes bp-hen-right {
-      0%,100% { left: 221px; }
-      38%,58% { left: 146px; }
-    }
-    /* Sabre bleu — tenu par la poule gauche, POINTE VERS LE HAUT
-       Au repos : quasi vertical (-85°), avance et se penche vers le centre (-62°) */
-    @keyframes bp-saber-blue {
-      0%,100% {
-        left: 49px;
-        transform: translateY(-50%) rotate(-85deg);
-        box-shadow: 0 0 8px 3px #39f, 0 0 2px 1px #9cf;
-      }
-      38%,58% {
-        left: 124px;
-        transform: translateY(-50%) rotate(-62deg);
-        box-shadow: 0 0 20px 7px #39f, 0 0 5px 2px #9cf;
-      }
-    }
-    /* Sabre rouge — tenu par la poule droite, POINTE VERS LE HAUT
-       Au repos : quasi vertical (+85°), avance et se penche vers le centre (+62°) */
-    @keyframes bp-saber-red {
-      0%,100% {
-        left: 146px;
-        transform: translateY(-50%) rotate(85deg);
-        box-shadow: 0 0 8px 3px #f33, 0 0 2px 1px #f99;
-      }
-      38%,58% {
-        left: 71px;
-        transform: translateY(-50%) rotate(62deg);
-        box-shadow: 0 0 20px 7px #f33, 0 0 5px 2px #f99;
-      }
-    }
-    /* Étincelles au point de croisement (~50% largeur, ~30% hauteur) */
-    @keyframes bp-spark {
-      0%,34%,64%,100% { opacity: 0; transform: translate(-50%,-180%) scale(0) rotate(0deg); }
-      44%             { opacity: 1; transform: translate(-50%,-180%) scale(1.6) rotate(15deg); }
-      52%             { opacity: 0.8; transform: translate(-50%,-180%) scale(1.1) rotate(-10deg); }
-      58%             { opacity: 0; transform: translate(-50%,-180%) scale(0.2) rotate(5deg); }
-    }
-    /* Pulsation subtile sur le numéro de build */
-    @keyframes bp-build-pulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(255,180,50,0); color: var(--text-muted,#aaa); }
-      50%     { box-shadow: 0 0 0 3px rgba(255,180,50,0.25); color: #ffa; }
-    }
-  `;
-  document.head.appendChild(style);
-}
-
 const ANIM_DURATION = '2s';
 const ANIM_ITER = '5';
 const ANIM_EASE = 'ease-in-out';
@@ -243,7 +183,6 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    injectKeyframes();
     window.electronAPI
       ?.getVersionInfo()
       .then(setVersionInfo)

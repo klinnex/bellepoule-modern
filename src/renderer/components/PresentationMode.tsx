@@ -221,7 +221,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
                     padding: '20px',
                     backgroundColor: '#dc2626',
                     borderRadius: '12px',
-                    animation: 'pulse 2s infinite',
+                    animation: 'pm-pulse 2s infinite',
                   }}
                 >
                   <div
@@ -271,13 +271,6 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
       >
         {t('presentation.keys')}
       </div>
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-      `}</style>
     </div>
   );
 };

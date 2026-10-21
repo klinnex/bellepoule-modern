@@ -6,7 +6,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
-import { useFocusTrap } from '../hooks/useFocusTrap';
+import Modal from './common/Modal';
 import { Fencer, Pool, MatchStatus } from '../../shared/types';
 
 interface ChangePoolModalProps {
@@ -25,7 +25,6 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
-  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [selectedPoolIndex, setSelectedPoolIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const dragRef = useRef<boolean>(false);
@@ -50,192 +49,12 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        ref={modalRef}
-        className="modal"
-        onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '450px' }}
-        role="dialog"
-        aria-modal="true"
-      >
-        <div className="modal-header">
-          <h2>{t('changePool.title')}</h2>
-          <button className="btn-close" onClick={onClose}>
-            ×
-          </button>
-        </div>
-
-        <div className="modal-body">
-          <div
-            draggable
-            onDragStart={() => {
-              dragRef.current = true;
-            }}
-            onDragEnd={() => {
-              dragRef.current = false;
-              setDragOverIndex(null);
-            }}
-            style={{
-              padding: '1rem',
-              background: 'var(--color-bg)',
-              borderRadius: '8px',
-              marginBottom: '1rem',
-              textAlign: 'center',
-              cursor: 'grab',
-              userSelect: 'none',
-            }}
-          >
-            <div
-              style={{
-                fontSize: '0.875rem',
-                color: 'var(--color-text-light)',
-                marginBottom: '0.25rem',
-              }}
-            >
-              {t('changePool.drag')}
-            </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>
-              {fencer.firstName} {fencer.lastName}
-            </div>
-            <div className="u-hint">{t('changePool.current', { n: currentPool.number })}</div>
-          </div>
-
-          {hasPlayedMatches && (
-            <div
-              style={{
-                padding: '0.75rem',
-                background: '#fef3c7',
-                borderRadius: '6px',
-                marginBottom: '1rem',
-                color: '#92400e',
-                fontSize: '0.875rem',
-              }}
-            >
-              ⚠️ <strong>{t('changePool.warning')}</strong> {t('changePool.warning_text')}
-            </div>
-          )}
-
-          <div className="mb-4">
-            <label
-              style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                marginBottom: '0.5rem',
-              }}
-            >
-              {t('changePool.move_to')}
-            </label>
-
-            {otherPools.length === 0 ? (
-              <div
-                style={{
-                  padding: '1rem',
-                  textAlign: 'center',
-                  color: 'var(--color-text-light)',
-                  background: 'var(--color-surface-2)',
-                  borderRadius: '6px',
-                }}
-              >
-                {t('changePool.none')}
-              </div>
-            ) : (
-              <div className="u-stack-2">
-                {otherPools.map(({ pool, index }) => {
-                  const matchesPlayed = pool.matches.filter(
-                    m => m.status === MatchStatus.FINISHED
-                  ).length;
-                  const isSelected = selectedPoolIndex === index;
-
-                  return (
-                    <div
-                      key={pool.id}
-                      onClick={() => setSelectedPoolIndex(index)}
-                      onDragOver={e => {
-                        e.preventDefault();
-                        setDragOverIndex(index);
-                      }}
-                      onDragLeave={() => setDragOverIndex(null)}
-                      onDrop={e => {
-                        e.preventDefault();
-                        setSelectedPoolIndex(index);
-                        setDragOverIndex(null);
-                      }}
-                      style={{
-                        padding: '0.75rem 1rem',
-                        border: `2px solid ${isSelected || dragOverIndex === index ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        background: isSelected
-                          ? '#eff6ff'
-                          : dragOverIndex === index
-                            ? '#dbeafe'
-                            : 'white',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <div className="u-row-between">
-                        <div>
-                          <span style={{ fontWeight: '600' }}>
-                            {t('changePool.pool_n', { n: pool.number })}
-                          </span>
-                          <span
-                            style={{
-                              marginLeft: '0.5rem',
-                              fontSize: '0.875rem',
-                              color: 'var(--color-text-light)',
-                            }}
-                          >
-                            {t('changePool.fencers_n', { n: pool.fencers.length })}
-                          </span>
-                        </div>
-                        {matchesPlayed > 0 && (
-                          <span
-                            style={{
-                              fontSize: '0.75rem',
-                              padding: '0.125rem 0.5rem',
-                              background: '#fef3c7',
-                              color: '#92400e',
-                              borderRadius: '4px',
-                            }}
-                          >
-                            {t('changePool.played', { count: matchesPlayed })}
-                          </span>
-                        )}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '0.75rem',
-                          color: 'var(--color-text-muted)',
-                          marginTop: '0.25rem',
-                        }}
-                      >
-                        {pool.fencers.map(f => f.lastName).join(', ')}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {selectedPoolIndex !== null && (
-            <div
-              style={{
-                padding: '0.75rem',
-                background: '#f0fdf4',
-                borderRadius: '6px',
-                color: '#166534',
-                fontSize: '0.875rem',
-              }}
-            >
-              {t('changePool.recalc')}
-            </div>
-          )}
-        </div>
-
-        <div className="modal-footer">
+    <Modal
+      title={t('changePool.title')}
+      onClose={onClose}
+      size="sm"
+      footer={
+        <>
           <button className="btn btn-secondary" onClick={onClose}>
             {t('actions.cancel')}
           </button>
@@ -246,9 +65,176 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
           >
             {t('changePool.move')}
           </button>
+        </>
+      }
+    >
+      <div
+        draggable
+        onDragStart={() => {
+          dragRef.current = true;
+        }}
+        onDragEnd={() => {
+          dragRef.current = false;
+          setDragOverIndex(null);
+        }}
+        style={{
+          padding: '1rem',
+          background: 'var(--color-bg)',
+          borderRadius: '8px',
+          marginBottom: '1rem',
+          textAlign: 'center',
+          cursor: 'grab',
+          userSelect: 'none',
+        }}
+      >
+        <div
+          style={{
+            fontSize: '0.875rem',
+            color: 'var(--color-text-light)',
+            marginBottom: '0.25rem',
+          }}
+        >
+          {t('changePool.drag')}
         </div>
+        <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>
+          {fencer.firstName} {fencer.lastName}
+        </div>
+        <div className="u-hint">{t('changePool.current', { n: currentPool.number })}</div>
       </div>
-    </div>
+
+      {hasPlayedMatches && (
+        <div
+          style={{
+            padding: '0.75rem',
+            background: '#fef3c7',
+            borderRadius: '6px',
+            marginBottom: '1rem',
+            color: '#92400e',
+            fontSize: '0.875rem',
+          }}
+        >
+          ⚠️ <strong>{t('changePool.warning')}</strong> {t('changePool.warning_text')}
+        </div>
+      )}
+
+      <div className="mb-4">
+        <label
+          style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            marginBottom: '0.5rem',
+          }}
+        >
+          {t('changePool.move_to')}
+        </label>
+
+        {otherPools.length === 0 ? (
+          <div
+            style={{
+              padding: '1rem',
+              textAlign: 'center',
+              color: 'var(--color-text-light)',
+              background: 'var(--color-surface-2)',
+              borderRadius: '6px',
+            }}
+          >
+            {t('changePool.none')}
+          </div>
+        ) : (
+          <div className="u-stack-2">
+            {otherPools.map(({ pool, index }) => {
+              const matchesPlayed = pool.matches.filter(
+                m => m.status === MatchStatus.FINISHED
+              ).length;
+              const isSelected = selectedPoolIndex === index;
+
+              return (
+                <div
+                  key={pool.id}
+                  onClick={() => setSelectedPoolIndex(index)}
+                  onDragOver={e => {
+                    e.preventDefault();
+                    setDragOverIndex(index);
+                  }}
+                  onDragLeave={() => setDragOverIndex(null)}
+                  onDrop={e => {
+                    e.preventDefault();
+                    setSelectedPoolIndex(index);
+                    setDragOverIndex(null);
+                  }}
+                  style={{
+                    padding: '0.75rem 1rem',
+                    border: `2px solid ${isSelected || dragOverIndex === index ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    background: isSelected
+                      ? '#eff6ff'
+                      : dragOverIndex === index
+                        ? '#dbeafe'
+                        : 'white',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <div className="u-row-between">
+                    <div>
+                      <span style={{ fontWeight: '600' }}>
+                        {t('changePool.pool_n', { n: pool.number })}
+                      </span>
+                      <span
+                        style={{
+                          marginLeft: '0.5rem',
+                          fontSize: '0.875rem',
+                          color: 'var(--color-text-light)',
+                        }}
+                      >
+                        {t('changePool.fencers_n', { n: pool.fencers.length })}
+                      </span>
+                    </div>
+                    {matchesPlayed > 0 && (
+                      <span
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '0.125rem 0.5rem',
+                          background: '#fef3c7',
+                          color: '#92400e',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        {t('changePool.played', { count: matchesPlayed })}
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--color-text-muted)',
+                      marginTop: '0.25rem',
+                    }}
+                  >
+                    {pool.fencers.map(f => f.lastName).join(', ')}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {selectedPoolIndex !== null && (
+        <div
+          style={{
+            padding: '0.75rem',
+            background: '#f0fdf4',
+            borderRadius: '6px',
+            color: '#166534',
+            fontSize: '0.875rem',
+          }}
+        >
+          {t('changePool.recalc')}
+        </div>
+      )}
+    </Modal>
   );
 };
 

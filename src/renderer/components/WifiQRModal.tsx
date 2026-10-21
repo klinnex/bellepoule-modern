@@ -5,7 +5,7 @@
 
 import React, { useState, useCallback, memo } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
-import { useFocusTrap } from '../hooks/useFocusTrap';
+import Modal from './common/Modal';
 import { logger, LogCategory } from '@shared/services/logger';
 
 type SecurityType = 'WPA' | 'WEP' | 'nopass';
@@ -23,7 +23,6 @@ interface WifiQRModalProps {
 
 const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
   const { t } = useTranslation();
-  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [config, setConfig] = useState<WifiConfig>({
     ssid: '',
     security: 'WPA',
@@ -91,137 +90,13 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        ref={modalRef}
-        className="modal modal--md"
-        onClick={e => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="wifi-qr-title"
-      >
-        <div className="modal-header">
-          <h2 className="modal-title" id="wifi-qr-title">
-            {t('wifiQr.title')}
-          </h2>
-          <button className="modal__close" onClick={onClose} aria-label={t('actions.close')}>
-            ×
-          </button>
-        </div>
-
-        <div className="modal-body wifi-qr-body">
-          <p
-            style={{
-              fontSize: '0.875rem',
-              color: 'var(--text-muted, #6b7280)',
-              marginBottom: '1rem',
-              textAlign: 'center',
-            }}
-          >
-            {t('wifiQr.hint')}
-          </p>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="wifi-ssid">
-              {t('wifiQr.ssid')}
-            </label>
-            <input
-              id="wifi-ssid"
-              type="text"
-              className="form-input"
-              placeholder={t('wifiQr.ssid_ph')}
-              value={config.ssid}
-              onChange={e => handleChange('ssid', e.target.value)}
-              autoFocus
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="wifi-security">
-              {t('wifiQr.security')}
-            </label>
-            <select
-              id="wifi-security"
-              className="form-input"
-              value={config.security}
-              onChange={e => handleChange('security', e.target.value as SecurityType)}
-            >
-              <option value="WPA">WPA / WPA2 / WPA3</option>
-              <option value="WEP">WEP</option>
-              <option value="nopass">{t('wifiQr.open')}</option>
-            </select>
-          </div>
-
-          {config.security !== 'nopass' && (
-            <div className="form-group">
-              <label className="form-label" htmlFor="wifi-password">
-                {t('wifiQr.password')}
-              </label>
-              <input
-                id="wifi-password"
-                type="text"
-                className="form-input"
-                placeholder={t('wifiQr.password_ph')}
-                value={config.password}
-                onChange={e => handleChange('password', e.target.value)}
-              />
-            </div>
-          )}
-
-          <div
-            className="form-group"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.5rem',
-            }}
-          >
-            <input
-              id="wifi-hidden"
-              type="checkbox"
-              checked={config.hidden}
-              onChange={e => handleChange('hidden', e.target.checked)}
-            />
-            <label
-              htmlFor="wifi-hidden"
-              className="form-label"
-              style={{ marginBottom: 0, cursor: 'pointer' }}
-            >
-              {t('wifiQr.hidden')}
-            </label>
-          </div>
-
-          {error && (
-            <div className="alert alert--error" style={{ marginTop: '0.5rem' }}>
-              {error}
-            </div>
-          )}
-
-          {qrDataUrl && (
-            <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
-              <img
-                src={qrDataUrl}
-                alt={t('wifiQr.qr_alt')}
-                width={280}
-                height={280}
-                style={{ borderRadius: '8px' }}
-              />
-              <p
-                style={{
-                  fontSize: '0.8rem',
-                  color: 'var(--text-muted, #6b7280)',
-                  marginTop: '0.5rem',
-                }}
-              >
-                {t('wifiQr.network')} <strong>{config.ssid}</strong> ·{' '}
-                {config.security !== 'nopass' ? config.security : t('wifiQr.open_short')}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="modal-footer" style={{ justifyContent: 'center' }}>
+    <Modal
+      title={t('wifiQr.title')}
+      onClose={onClose}
+      size="md"
+      bodyClassName="wifi-qr-body"
+      footer={
+        <>
           {qrDataUrl && (
             <button className="btn btn-secondary" onClick={download}>
               {t('wifiQr.download')}
@@ -234,9 +109,119 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
           >
             {isGenerating ? 'Génération...' : '📶 Générer le QR Code'}
           </button>
-        </div>
+        </>
+      }
+    >
+      <p
+        style={{
+          fontSize: '0.875rem',
+          color: 'var(--text-muted, #6b7280)',
+          marginBottom: '1rem',
+          textAlign: 'center',
+        }}
+      >
+        {t('wifiQr.hint')}
+      </p>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="wifi-ssid">
+          {t('wifiQr.ssid')}
+        </label>
+        <input
+          id="wifi-ssid"
+          type="text"
+          className="form-input"
+          placeholder={t('wifiQr.ssid_ph')}
+          value={config.ssid}
+          onChange={e => handleChange('ssid', e.target.value)}
+          autoFocus
+        />
       </div>
-    </div>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="wifi-security">
+          {t('wifiQr.security')}
+        </label>
+        <select
+          id="wifi-security"
+          className="form-input"
+          value={config.security}
+          onChange={e => handleChange('security', e.target.value as SecurityType)}
+        >
+          <option value="WPA">WPA / WPA2 / WPA3</option>
+          <option value="WEP">WEP</option>
+          <option value="nopass">{t('wifiQr.open')}</option>
+        </select>
+      </div>
+
+      {config.security !== 'nopass' && (
+        <div className="form-group">
+          <label className="form-label" htmlFor="wifi-password">
+            {t('wifiQr.password')}
+          </label>
+          <input
+            id="wifi-password"
+            type="text"
+            className="form-input"
+            placeholder={t('wifiQr.password_ph')}
+            value={config.password}
+            onChange={e => handleChange('password', e.target.value)}
+          />
+        </div>
+      )}
+
+      <div
+        className="form-group"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.5rem',
+        }}
+      >
+        <input
+          id="wifi-hidden"
+          type="checkbox"
+          checked={config.hidden}
+          onChange={e => handleChange('hidden', e.target.checked)}
+        />
+        <label
+          htmlFor="wifi-hidden"
+          className="form-label"
+          style={{ marginBottom: 0, cursor: 'pointer' }}
+        >
+          {t('wifiQr.hidden')}
+        </label>
+      </div>
+
+      {error && (
+        <div className="alert alert--error" style={{ marginTop: '0.5rem' }}>
+          {error}
+        </div>
+      )}
+
+      {qrDataUrl && (
+        <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+          <img
+            src={qrDataUrl}
+            alt={t('wifiQr.qr_alt')}
+            width={280}
+            height={280}
+            style={{ borderRadius: '8px' }}
+          />
+          <p
+            style={{
+              fontSize: '0.8rem',
+              color: 'var(--text-muted, #6b7280)',
+              marginTop: '0.5rem',
+            }}
+          >
+            {t('wifiQr.network')} <strong>{config.ssid}</strong> ·{' '}
+            {config.security !== 'nopass' ? config.security : t('wifiQr.open_short')}
+          </p>
+        </div>
+      )}
+    </Modal>
   );
 };
 

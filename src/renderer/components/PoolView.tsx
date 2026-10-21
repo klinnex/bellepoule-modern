@@ -7,7 +7,7 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Funnel } from 'lucide-react';
 import { useModalResize } from '../hooks/useModalResize';
-import { useFocusTrap } from '../hooks/useFocusTrap';
+import Modal from './common/Modal';
 import {
   Pool,
   Fencer,
@@ -255,7 +255,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   }, [competitionId, assignedReferees]);
 
   const closeRefereeModal = useCallback(() => setShowRefereeModal(false), []);
-  const refereeModalRef = useFocusTrap<HTMLDivElement>(showRefereeModal, closeRefereeModal);
 
   const applyReferees = useCallback(
     (referees: Referee[]) => {
@@ -1411,47 +1410,41 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       f ? `${f.lastName} ${f.firstName ?? ''}`.trim() : '—';
 
     return (
-      <div
-        className="modal-overlay"
-        onClick={() => setPendingSpecialStatus(null)}
-        style={{ zIndex: 11000 }}
+      <Modal
+        title={t('poolView.which_fencer', { status: statusLabel })}
+        onClose={() => setPendingSpecialStatus(null)}
+        size="sm"
+        elevated
+        footer={
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setPendingSpecialStatus(null)}
+          >
+            {t('actions.cancel')}
+          </button>
+        }
       >
-        <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
-          <div className="modal-header">
-            <h2 className="modal-title">{t('poolView.which_fencer', { status: statusLabel })}</h2>
-          </div>
-          <div className="modal-body">
-            <p style={MUTED_HINT}>{statusHint}</p>
-            <div style={COL_GAP}>
-              <button
-                type="button"
-                className="btn btn-warning"
-                onClick={() => applySpecialStatus('left')}
-                style={STATUS_BTN}
-              >
-                {fencerName(fencerLeft)}
-              </button>
-              <button
-                type="button"
-                className="btn btn-warning"
-                onClick={() => applySpecialStatus('right')}
-                style={STATUS_BTN}
-              >
-                {fencerName(fencerRight)}
-              </button>
-            </div>
-          </div>
-          <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setPendingSpecialStatus(null)}
-            >
-              {t('actions.cancel')}
-            </button>
-          </div>
+        <p style={MUTED_HINT}>{statusHint}</p>
+        <div style={COL_GAP}>
+          <button
+            type="button"
+            className="btn btn-warning"
+            onClick={() => applySpecialStatus('left')}
+            style={STATUS_BTN}
+          >
+            {fencerName(fencerLeft)}
+          </button>
+          <button
+            type="button"
+            className="btn btn-warning"
+            onClick={() => applySpecialStatus('right')}
+            style={STATUS_BTN}
+          >
+            {fencerName(fencerRight)}
+          </button>
         </div>
-      </div>
+      </Modal>
     );
   };
 
@@ -1844,105 +1837,71 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         </React.Suspense>
       )}
       {showRefereeModal && (
-        <div className="modal-overlay" onClick={() => setShowRefereeModal(false)}>
-          <div
-            ref={refereeModalRef}
-            className="modal"
-            onClick={e => e.stopPropagation()}
-            style={{ maxWidth: '400px' }}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="referee-modal-title"
-          >
-            <div className="modal-header">
-              <h3 className="modal-title" id="referee-modal-title">
-                {isMultiReferee ? 'Assigner les arbitres' : 'Assigner un arbitre'}
-              </h3>
-              <button className="btn-close" onClick={() => setShowRefereeModal(false)}>
-                ×
-              </button>
-            </div>
-            <div className="modal-body" style={{ padding: '1.5rem' }}>
-              <p
-                style={{
-                  marginBottom: '1rem',
-                  color: 'var(--color-text-light)',
-                  fontSize: '0.875rem',
-                }}
-              >
-                {isMultiReferee
-                  ? `Sélectionnez jusqu'à ${maxRefereesPerPool} arbitres pour la poule ${pool.number} (le premier sélectionné est l'arbitre principal) :`
-                  : `Sélectionnez l'arbitre pour la poule ${pool.number} :`}
-              </p>
-              <div style={COL_GAP}>
-                <button
-                  className={`btn ${!assignedReferee ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => handleAssignReferee(null)}
-                  style={REF_BTN}
-                >
-                  {t('poolView.no_referee')}
-                </button>
-                {isLoadingReferees && <p style={REF_EMPTY}>{t('poolView.loading_referees')}</p>}
-                {!isLoadingReferees && competitionReferees.length === 0 && (
-                  <p style={REF_EMPTY}>{t('poolView.no_checked_referee')}</p>
-                )}
-                {!isLoadingReferees &&
-                  isMultiReferee &&
-                  competitionReferees.map(ref => {
-                    const order = pendingRefereeIds.indexOf(ref.id);
-                    const selected = order >= 0;
-                    const disabled = !selected && pendingRefereeIds.length >= maxRefereesPerPool;
-                    return (
-                      <button
-                        key={ref.id}
-                        className={`btn ${selected ? 'btn-primary' : 'btn-secondary'}`}
-                        onClick={() => togglePendingReferee(ref.id)}
-                        disabled={disabled}
-                        aria-pressed={selected}
-                        style={{ ...REF_BTN, textAlign: 'left' }}
-                      >
-                        {selected ? `☑ ${order + 1}.` : '☐'} 🧑‍⚖️ {ref.lastName} {ref.firstName}
-                        {ref.club && (
-                          <span style={{ marginLeft: '0.5rem', opacity: 0.6, fontSize: '0.8rem' }}>
-                            ({ref.club})
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                {!isLoadingReferees && isMultiReferee && competitionReferees.length > 0 && (
+        <Modal
+          title={isMultiReferee ? t('poolView.assign_referees') : t('poolView.assign_referee')}
+          onClose={closeRefereeModal}
+          size="sm"
+        >
+          <p className="u-hint mb-4">
+            {isMultiReferee
+              ? t('poolView.select_referees', { max: maxRefereesPerPool, n: pool.number })
+              : t('poolView.select_referee', { n: pool.number })}
+          </p>
+          <div style={COL_GAP}>
+            <button
+              className={`btn ${!assignedReferee ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => handleAssignReferee(null)}
+              style={REF_BTN}
+            >
+              {t('poolView.no_referee')}
+            </button>
+            {isLoadingReferees && <p style={REF_EMPTY}>{t('poolView.loading_referees')}</p>}
+            {!isLoadingReferees && competitionReferees.length === 0 && (
+              <p style={REF_EMPTY}>{t('poolView.no_checked_referee')}</p>
+            )}
+            {!isLoadingReferees &&
+              isMultiReferee &&
+              competitionReferees.map(ref => {
+                const order = pendingRefereeIds.indexOf(ref.id);
+                const selected = order >= 0;
+                const disabled = !selected && pendingRefereeIds.length >= maxRefereesPerPool;
+                return (
                   <button
-                    className="btn btn-primary"
-                    onClick={confirmPendingReferees}
+                    key={ref.id}
+                    onClick={() => togglePendingReferee(ref.id)}
+                    disabled={disabled}
+                    aria-pressed={selected}
                     style={REF_BTN}
+                    className={`btn pv-ref-btn ${selected ? 'btn-primary' : 'btn-secondary'}`}
                   >
-                    {t('poolView.validate_n', {
-                      n: pendingRefereeIds.length,
-                      max: maxRefereesPerPool,
-                    })}
+                    {selected ? `☑ ${order + 1}.` : '☐'} 🧑‍⚖️ {ref.lastName} {ref.firstName}
+                    {ref.club && <span className="pv-ref-club">({ref.club})</span>}
                   </button>
-                )}
-                {!isLoadingReferees &&
-                  !isMultiReferee &&
-                  competitionReferees.map(ref => (
-                    <button
-                      key={ref.id}
-                      className={`btn ${assignedReferee?.id === ref.id ? 'btn-primary' : 'btn-secondary'}`}
-                      onClick={() => handleAssignReferee(ref)}
-                      style={{ ...REF_BTN, textAlign: 'left' }}
-                    >
-                      🧑‍⚖️ {ref.lastName} {ref.firstName}
-                      {ref.club && (
-                        <span style={{ marginLeft: '0.5rem', opacity: 0.6, fontSize: '0.8rem' }}>
-                          ({ref.club})
-                        </span>
-                      )}
-                    </button>
-                  ))}
-              </div>
-            </div>
+                );
+              })}
+            {!isLoadingReferees && isMultiReferee && competitionReferees.length > 0 && (
+              <button className="btn btn-primary" onClick={confirmPendingReferees} style={REF_BTN}>
+                {t('poolView.validate_n', {
+                  n: pendingRefereeIds.length,
+                  max: maxRefereesPerPool,
+                })}
+              </button>
+            )}
+            {!isLoadingReferees &&
+              !isMultiReferee &&
+              competitionReferees.map(ref => (
+                <button
+                  key={ref.id}
+                  onClick={() => handleAssignReferee(ref)}
+                  style={REF_BTN}
+                  className={`btn pv-ref-btn ${assignedReferee?.id === ref.id ? 'btn-primary' : 'btn-secondary'}`}
+                >
+                  🧑‍⚖️ {ref.lastName} {ref.firstName}
+                  {ref.club && <span className="pv-ref-club">({ref.club})</span>}
+                </button>
+              ))}
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );

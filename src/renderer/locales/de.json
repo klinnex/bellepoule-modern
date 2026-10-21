@@ -683,7 +683,11 @@
     "no_referee": "✕ Kein Kampfrichter",
     "loading_referees": "Kampfrichter werden geladen…",
     "no_checked_referee": "Kein Kampfrichter für diesen Wettkampf anwesend",
-    "validate_n": "✓ Bestätigen ({{n}}/{{max}})"
+    "validate_n": "✓ Bestätigen ({{n}}/{{max}})",
+    "assign_referees": "Kampfrichter zuweisen",
+    "assign_referee": "Kampfrichter zuweisen",
+    "select_referees": "Wählen Sie bis zu {{max}} Kampfrichter für Pool {{n}} (der zuerst gewählte ist Hauptkampfrichter):",
+    "select_referee": "Wählen Sie den Kampfrichter für Pool {{n}}:"
   },
   "presentation": {
     "no_club": "Kein Verein",

@@ -123,3 +123,29 @@ html {
   min-width: var(--touch-target);
   min-height: var(--touch-target);
 }
+
+/* Primitives Modal / Card (components/common, #1157) */
+.modal.modal--sm {
+  max-width: 450px;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.modal-overlay.modal-overlay--top {
+  z-index: 11000;
+}
+
+.modal.modal--scroll {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
+
+.modal--scroll > .modal-body {
+  flex: 1;
+  overflow: auto;
+}

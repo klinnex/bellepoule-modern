@@ -202,27 +202,12 @@ const CompetitionViewSkeleton_: React.FC = () => {
   );
 };
 
-// Add shimmer keyframes to global styles
-const SkeletonStyles_: React.FC = () => (
-  <style>{`
-    @keyframes shimmer {
-      0% {
-        background-position: 200% 0;
-      }
-      100% {
-        background-position: -200% 0;
-      }
-    }
-  `}</style>
-);
-
 export const Skeleton = React.memo(Skeleton_);
 export const CompetitionCardSkeleton = React.memo(CompetitionCardSkeleton_);
 export const PoolViewSkeleton = React.memo(PoolViewSkeleton_);
 export const TableRowSkeleton = React.memo(TableRowSkeleton_);
 export const StatsCardSkeleton = React.memo(StatsCardSkeleton_);
 export const CompetitionViewSkeleton = React.memo(CompetitionViewSkeleton_);
-export const SkeletonStyles = React.memo(SkeletonStyles_);
 
 export default {
   Skeleton,
@@ -231,5 +216,4 @@ export default {
   TableRowSkeleton,
   StatsCardSkeleton,
   CompetitionViewSkeleton,
-  SkeletonStyles,
 };

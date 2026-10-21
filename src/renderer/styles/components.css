@@ -1,0 +1,392 @@
+/* BellePoule Modern - styles de composants sortis des balises <style> inline
+ * (CSP du renderer sans 'unsafe-inline' pour les feuilles de style, #1157). */
+
+/* PresentationMode */
+@keyframes pm-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* KioskDisplay */
+@keyframes kioskPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+[data-kiosk-scroll]::-webkit-scrollbar {
+  display: none;
+}
+[data-kiosk-scroll] {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* TouchOptimizedReferee */
+@keyframes swipe-left {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-20px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes swipe-right {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(20px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-swipe-left {
+  animation: swipe-left 0.3s ease-out;
+}
+
+.animate-swipe-right {
+  animation: swipe-right 0.3s ease-out;
+}
+
+/* ResultsView */
+@keyframes rv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* TiebreakerAnimation */
+.tiebreaker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: tieFadeIn 0.3s ease-out;
+}
+
+.tiebreaker-container {
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  max-width: 520px;
+  width: 90%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  animation: tieScaleIn 0.4s ease-out;
+}
+
+.tiebreaker-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tiebreaker-subtitle {
+  color: #9ca3af;
+  margin: -1rem 0 0;
+  font-size: 0.9rem;
+}
+
+.coin-scene {
+  perspective: 1000px;
+  width: 220px;
+  height: 220px;
+}
+
+.coin-3d {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+.coin-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow:
+    0 0 30px rgba(0, 0, 0, 0.5),
+    inset 0 0 15px rgba(255, 255, 255, 0.12);
+}
+
+.coin-green {
+  background: radial-gradient(circle at 35% 35%, #4ade80, #16a34a 60%, #14532d);
+  border: 5px solid rgba(255, 255, 255, 0.2);
+}
+
+.coin-red {
+  background: radial-gradient(circle at 35% 35%, #f87171, #dc2626 60%, #7f1d1d);
+  border: 5px solid rgba(255, 255, 255, 0.2);
+  transform: rotateY(180deg);
+}
+
+.coin-color-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.coin-fencer-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  padding: 0 0.5rem;
+  word-break: break-word;
+  max-width: 85%;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.tiebreaker-result {
+  font-size: 1.4rem;
+  font-weight: 800;
+  padding: 0.75rem 2rem;
+  border-radius: 12px;
+  animation: resultPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tiebreaker-result.result-green {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  border: 2px solid #22c55e;
+}
+
+.tiebreaker-result.result-red {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border: 2px solid #ef4444;
+}
+
+.result-color {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  font-weight: 600;
+}
+
+.btn-continue {
+  padding: 0.85rem 2.5rem;
+  font-size: 1.1rem;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+.btn-continue:hover {
+  background: #2563eb;
+}
+
+@keyframes tieFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes tieScaleIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes resultPop {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* PoolRankingView */
+@media print {
+  .pool-ranking-view .btn {
+    display: none !important;
+  }
+  .pool-ranking-view .card {
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .pool-ranking-view table {
+    font-size: 12pt !important;
+  }
+  .pool-ranking-view th,
+  .pool-ranking-view td {
+    padding: 4px !important;
+  }
+}
+
+/* ModernVisualComponents */
+@keyframes ripple {
+  to {
+    width: 200px;
+    height: 200px;
+    opacity: 0;
+  }
+}
+
+/* ModernVisualComponents */
+@keyframes mv-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ModernVisualComponents */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* AboutModal (easter egg) */
+/* Poule gauche miroir (face droite), avance vers centre */
+@keyframes bp-hen-left {
+  0%,
+  100% {
+    left: 5px;
+  }
+  38%,
+  58% {
+    left: 80px;
+  }
+}
+/* Poule droite naturelle (face gauche), avance vers centre */
+@keyframes bp-hen-right {
+  0%,
+  100% {
+    left: 221px;
+  }
+  38%,
+  58% {
+    left: 146px;
+  }
+}
+/* Sabre bleu — tenu par la poule gauche, POINTE VERS LE HAUT
+       Au repos : quasi vertical (-85°), avance et se penche vers le centre (-62°) */
+@keyframes bp-saber-blue {
+  0%,
+  100% {
+    left: 49px;
+    transform: translateY(-50%) rotate(-85deg);
+    box-shadow:
+      0 0 8px 3px #39f,
+      0 0 2px 1px #9cf;
+  }
+  38%,
+  58% {
+    left: 124px;
+    transform: translateY(-50%) rotate(-62deg);
+    box-shadow:
+      0 0 20px 7px #39f,
+      0 0 5px 2px #9cf;
+  }
+}
+/* Sabre rouge — tenu par la poule droite, POINTE VERS LE HAUT
+       Au repos : quasi vertical (+85°), avance et se penche vers le centre (+62°) */
+@keyframes bp-saber-red {
+  0%,
+  100% {
+    left: 146px;
+    transform: translateY(-50%) rotate(85deg);
+    box-shadow:
+      0 0 8px 3px #f33,
+      0 0 2px 1px #f99;
+  }
+  38%,
+  58% {
+    left: 71px;
+    transform: translateY(-50%) rotate(62deg);
+    box-shadow:
+      0 0 20px 7px #f33,
+      0 0 5px 2px #f99;
+  }
+}
+/* Étincelles au point de croisement (~50% largeur, ~30% hauteur) */
+@keyframes bp-spark {
+  0%,
+  34%,
+  64%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -180%) scale(0) rotate(0deg);
+  }
+  44% {
+    opacity: 1;
+    transform: translate(-50%, -180%) scale(1.6) rotate(15deg);
+  }
+  52% {
+    opacity: 0.8;
+    transform: translate(-50%, -180%) scale(1.1) rotate(-10deg);
+  }
+  58% {
+    opacity: 0;
+    transform: translate(-50%, -180%) scale(0.2) rotate(5deg);
+  }
+}
+/* Pulsation subtile sur le numéro de build */
+@keyframes bp-build-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 180, 50, 0);
+    color: var(--text-muted, #aaa);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(255, 180, 50, 0.25);
+    color: #ffa;
+  }
+}

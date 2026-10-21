@@ -747,32 +747,6 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
           onComplete={handleTiebreakerComplete}
         />
       )}
-
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-        @keyframes swipe-left {
-          0% { transform: translateX(0); }
-          50% { transform: translateX(-20px); }
-          100% { transform: translateX(0); }
-        }
-
-        @keyframes swipe-right {
-          0% { transform: translateX(0); }
-          50% { transform: translateX(20px); }
-          100% { transform: translateX(0); }
-        }
-
-        .animate-swipe-left {
-          animation: swipe-left 0.3s ease-out;
-        }
-
-        .animate-swipe-right {
-          animation: swipe-right 0.3s ease-out;
-        }
-      `,
-        }}
-      />
     </div>
   );
 };
