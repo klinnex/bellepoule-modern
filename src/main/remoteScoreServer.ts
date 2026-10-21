@@ -60,6 +60,7 @@ import {
 import { applyPageCsp, sendHtmlPage } from './remote/csp';
 import { sanitizeAnnouncement } from './remote/announcement';
 import * as slots from './remote/arenaSlots';
+import { applySmartMatchOrder, isMatchPlayable } from './remote/matchOrder';
 import { createPublicParser, publicJson } from './remote/publicDto';
 import {
   buildPage,
@@ -118,6 +119,8 @@ export class RemoteScoreServer {
   private sessionMatches: any[] = []; // Matches passés depuis le renderer
   /** Tournoi des rapières : seuls les matchs de la vague active sont proposés aux tablettes (#1118). `null` = pas de filtre. */
   private activeWaveMatchIds: Set<string> | null = null;
+  /** Rapières : vagues terminées, plus aucun match de poule proposé aux tablettes (#1118) */
+  private poolsClosed = false;
   private arenaSlots = new slots.ArenaSlotRegistry();
   private sessionPoolArenas = new Map<string, number>(); // poolId → piste prévue (#1078)
   // Durées réelles (ms) des derniers matchs terminés sur les arènes (#1077)
@@ -974,6 +977,7 @@ export class RemoteScoreServer {
       getArenaBlackCards: { value: (a: string) => self.getArenaBlackCards(a) },
       guestQueue: { value: (a: string) => self.guestQueue(a) },
       isInActiveWave: { value: (m: { id: string }) => self.isInActiveWave(m) },
+      isArenaMatchOpened: { value: (a: string) => self.arenaRefereeSelected.get(a) === true },
       claimArenaSlot: { value: (a: string, k: string, c?: string) => self.claimArenaSlot(a, k, c) },
       isMatchPlayable: { value: (m: Match | ArenaMatch) => self.isMatchPlayable(m) },
       isPendingMatch: { value: (m: ArenaMatch) => self.isPendingMatch(m) },
@@ -1624,6 +1628,13 @@ export class RemoteScoreServer {
           this.arenaEventTimes.delete(data.arenaId);
         }
         break;
+      case 'release_match':
+        // Retour à la liste sans avoir lancé le chrono : match de nouveau proposé
+        // aux autres tablettes de la piste (rapières, #1118)
+        if (arena.status !== 'in_progress' && !arena.currentMatch?.startTime) {
+          this.arenaRefereeSelected.set(data.arenaId, false);
+        }
+        break;
       case 'start':
         this.startArenaMatch(data.arenaId);
         break;
@@ -2123,11 +2134,17 @@ export class RemoteScoreServer {
 
   /** Match de la vague active (ou aucun filtre de vague) (#1118) */
   private isInActiveWave(m: { id: string }): boolean {
+    if (this.poolsClosed) return false;
     return this.activeWaveMatchIds === null || this.activeWaveMatchIds.has(m.id);
   }
 
-  /** Définit les matchs de la vague active (`null` : tous les matchs, hors mode rapières) (#1118) */
-  public setActiveWaveMatchIds(ids: string[] | null): void {
+  /**
+   * Définit les matchs de la vague active (`null` : tous les matchs, hors mode rapières).
+   * `poolsClosed` : vagues terminées, les matchs de poule restants ne sont plus joués (#1118).
+   */
+  public setActiveWaveMatchIds(ids: string[] | null, poolsClosed = false): void {
+    if (poolsClosed && !this.poolsClosed) this.dropPendingPoolMatches();
+    this.poolsClosed = poolsClosed;
     const prev = this.activeWaveMatchIds;
     this.activeWaveMatchIds = ids === null ? null : new Set(ids);
     const same = prev && ids && prev.size === ids.length && ids.every(id => prev.has(id));
@@ -2136,6 +2153,27 @@ export class RemoteScoreServer {
     if (ids === null) {
       for (const [id, a] of this.arenas) {
         if (slots.isSlotArenaId(id) && a.status !== 'in_progress') this.arenas.delete(id);
+      }
+    }
+  }
+
+  /** Fin des vagues : match de poule non commencé retiré des pistes, place au tableau (#1118) */
+  private dropPendingPoolMatches(): void {
+    for (const [arenaId, arena] of this.arenas) {
+      const cur = arena.currentMatch;
+      if (!cur?.poolId || cur.isTableau || arena.status === 'in_progress') continue;
+      this.arenaRefereeSelected.set(arenaId, false);
+      const queue = (this.arenaMatchQueue.get(arenaId) || []).filter(m => !m.poolId || m.isTableau);
+      const next = queue[0];
+      this.arenaMatchQueue.set(arenaId, queue.slice(next ? 1 : 0));
+      if (next) {
+        this.assignMatchToArena(arenaId, next);
+      } else {
+        arena.currentMatch = null;
+        arena.status = 'idle';
+        arena.startTime = null;
+        this.updateArena(arenaId, { status: 'idle', currentMatch: null, startTime: null });
+        this.persistArenaState(arenaId);
       }
     }
   }
@@ -2154,57 +2192,11 @@ export class RemoteScoreServer {
   }
 
   private isMatchPlayable(m: Match | ArenaMatch): boolean {
-    const inactive = new Set([FencerStatus.ABANDONED, FencerStatus.FORFAIT, FencerStatus.EXCLUDED]);
-    return (
-      !inactive.has(m.fencerA?.status as FencerStatus) &&
-      !inactive.has(m.fencerB?.status as FencerStatus)
-    );
+    return isMatchPlayable(m);
   }
 
   private applySmartMatchOrder(matches: Match[]): Match[] {
-    const pending = matches.filter(
-      m => m.status !== MatchStatus.FINISHED && this.isMatchPlayable(m)
-    );
-    const finished = matches.filter(m => m.status === MatchStatus.FINISHED);
-
-    if (pending.length === 0) return matches;
-
-    const ordered: Match[] = [];
-    const remaining = [...pending];
-    let lastFencerIds: Set<string> = new Set();
-
-    if (finished.length > 0) {
-      const lastMatch = finished[finished.length - 1];
-      if (lastMatch.fencerA) lastFencerIds.add(lastMatch.fencerA.id);
-      if (lastMatch.fencerB) lastFencerIds.add(lastMatch.fencerB.id);
-    }
-
-    while (remaining.length > 0) {
-      let bestIdx = -1;
-      let bestScore = -1;
-
-      for (let i = 0; i < remaining.length; i++) {
-        const match = remaining[i];
-        let score = 0;
-        if (!lastFencerIds.has(match.fencerA?.id || '')) score++;
-        if (!lastFencerIds.has(match.fencerB?.id || '')) score++;
-
-        if (score > bestScore) {
-          bestScore = score;
-          bestIdx = i;
-        }
-        if (score === 2) break;
-      }
-
-      const chosen = remaining.splice(bestIdx >= 0 ? bestIdx : 0, 1)[0];
-      ordered.push(chosen);
-
-      lastFencerIds = new Set();
-      if (chosen.fencerA) lastFencerIds.add(chosen.fencerA.id);
-      if (chosen.fencerB) lastFencerIds.add(chosen.fencerB.id);
-    }
-
-    return [...finished, ...ordered];
+    return applySmartMatchOrder(matches);
   }
 
   private async updateMatchScore(matchId: string, update: RemoteScoreUpdate): Promise<void> {
@@ -3242,7 +3234,11 @@ export class RemoteScoreServer {
       const poolMatches = this.applySmartMatchOrder(rawPoolMatches as Match[]).filter(
         m => m.status !== MatchStatus.FINISHED && this.isMatchPlayable(m)
       );
-      const taken = slots.matchesTakenBySiblings(this.arenas, arenaId);
+      const taken = slots.matchesTakenBySiblings(
+        this.arenas,
+        arenaId,
+        id => this.arenaRefereeSelected.get(id) === true
+      );
       const nextMatch = poolMatches.find(m => {
         if (m.id === currentMatchId || taken.has(m.id)) return false;
         const override = this.poolMatchArenaOverrides.get(m.id);

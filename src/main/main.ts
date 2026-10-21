@@ -1282,8 +1282,8 @@ ipcMain.handle(
 
 ipcMain.handle(
   'remote:setActiveWave',
-  async (_, competitionId: string, matchIds: string[] | null) => {
-    setActiveWave(competitionId, matchIds);
+  async (_, competitionId: string, matchIds: string[] | null, poolsClosed?: boolean) => {
+    setActiveWave(competitionId, matchIds, poolsClosed);
     return { success: true };
   }
 );

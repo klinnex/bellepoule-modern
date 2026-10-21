@@ -28,11 +28,22 @@ export function siblingArenas(arenas: Map<string, Arena>, arenaId: string): Aren
   return [...arenas.values()].filter(a => a.id !== arenaId && baseArenaId(a.id) === base);
 }
 
-/** Matchs chargés (non terminés) sur les autres sous-pistes : à ne pas proposer ici. */
-export function matchesTakenBySiblings(arenas: Map<string, Arena>, arenaId: string): Set<string> {
+/**
+ * Matchs ouverts (non terminés) sur les autres sous-pistes : à ne pas proposer ici.
+ * Un match seulement préchargé (premier de la liste) reste proposé : il n'est pris
+ * qu'une fois ouvert par une tablette (`isOpened`) ou son chrono lancé.
+ */
+export function matchesTakenBySiblings(
+  arenas: Map<string, Arena>,
+  arenaId: string,
+  isOpened: (arenaId: string) => boolean
+): Set<string> {
   const taken = new Set<string>();
   for (const a of siblingArenas(arenas, arenaId)) {
-    if (a.currentMatch && a.status !== 'finished') taken.add(a.currentMatch.id);
+    if (!a.currentMatch || a.status === 'finished') continue;
+    if (a.status === 'in_progress' || a.currentMatch.startTime || isOpened(a.id)) {
+      taken.add(a.currentMatch.id);
+    }
   }
   return taken;
 }

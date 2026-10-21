@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 15 | 189 |
+| `src/main/` | 15 | 192 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 31 | 154 |
@@ -103,9 +103,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/remote/` | 8 | 40 |
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **159** | **1554** |
+| **Total** | **159** | **1557** |
 
-Unitaires : 151 fichiers, 1523 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 151 fichiers, 1526 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1973,17 +1973,18 @@ Unitaires : 151 fichiers, 1523 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/activeWave.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/remote/activeWave.test.ts</code> — 4 tests</summary>
 
 - **applyActiveWave**
   - réapplique la vague mémorisée (y compris aucune vague lancée = liste vide)
+  - vagues terminées : fermeture des poules réappliquée au redémarrage (#1118)
   - rien de mémorisé (hors rapières) : serveur laissé sans filtre
   - setActiveWave sans serveur : mémorisé ; avec serveur : appliqué ; non-tableau = null
 
 </details>
 
 <details>
-<summary><code>src/main/remote/arenaSlots.test.ts</code> — 6 tests</summary>
+<summary><code>src/main/remote/arenaSlots.test.ts</code> — 7 tests</summary>
 
 - **sous-pistes des rapières (#1118)**
   - identifiants : piste de base et détection
@@ -1992,6 +1993,7 @@ Unitaires : 151 fichiers, 1523 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - préférence pour la sous-piste actuelle, plafond par piste
   - libération : seules les sous-pistes sans match en cours
   - matchs pris par les autres sous-pistes (terminés exclus)
+  - match seulement préchargé (ni ouvert, ni chrono lancé) : pas pris
 
 </details>
 
@@ -2107,7 +2109,7 @@ Unitaires : 151 fichiers, 1523 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 97 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 98 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -2165,6 +2167,7 @@ Unitaires : 151 fichiers, 1523 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - **réassignation manuelle de piste (#1037)**
     - match réassigné en tête de liste de la piste cible, retiré de la piste source
     - rapières : seuls les matchs de la vague active sont proposés aux tablettes (#1118)
+    - rapières : vagues terminées, plus aucun match de poule proposé (#1118)
     - rapières : une sous-piste par tablette, matchs non partagés entre sous-pistes (#1118)
     - rapières : sous-piste authentifiée avec le jeton de la piste (#1118)
     - les réassignations suivantes se rajoutent par le haut

@@ -95,7 +95,22 @@ describe('sous-pistes des rapières (#1118)', () => {
     done.currentMatch = match('m3');
     done.status = 'finished';
     arenas.get('arena2')!.currentMatch = match('m4');
-    expect([...matchesTakenBySiblings(arenas, 'arena1s2')]).toEqual(['m1']);
-    expect([...matchesTakenBySiblings(arenas, 'arena1')].sort()).toEqual(['m2']);
+    const opened = () => true;
+    expect([...matchesTakenBySiblings(arenas, 'arena1s2', opened)]).toEqual(['m1']);
+    expect([...matchesTakenBySiblings(arenas, 'arena1', opened)].sort()).toEqual(['m2']);
+  });
+
+  it('match seulement préchargé (ni ouvert, ni chrono lancé) : pas pris', () => {
+    const { arenas, create } = setup();
+    arenas.get('arena1')!.currentMatch = match('m1');
+    const slot = create(arenas.get('arena1')!, 2);
+    slot.currentMatch = match('m2');
+    const none = () => false;
+    expect([...matchesTakenBySiblings(arenas, 'arena1s3', none)]).toEqual([]);
+    expect([...matchesTakenBySiblings(arenas, 'arena1s3', id => id === 'arena1s2')]).toEqual([
+      'm2',
+    ]);
+    slot.currentMatch = { id: 'm2', startTime: new Date() } as Arena['currentMatch'];
+    expect([...matchesTakenBySiblings(arenas, 'arena1s3', none)]).toEqual(['m2']);
   });
 });
