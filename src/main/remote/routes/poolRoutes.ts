@@ -6,7 +6,7 @@
 import path from 'path';
 import os from 'os';
 import type { Server as SocketIOServer } from 'socket.io';
-import { MatchStatus, type Score } from '../../../shared/types';
+import { MatchStatus, Weapon, type Score } from '../../../shared/types';
 import type { RegistrationRouteContext } from './registrationRoutes';
 import { baseArenaId } from '../arenaSlots';
 
@@ -105,7 +105,20 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
         ctx.poolSignaturesCache.set(poolId, new Map(Object.entries(signatures)));
       }
 
-      res.json({ poolId, poolName, arenaId, fencers, matches, isComplete, signatures });
+      // Sabre Laser : un forfait en cours de match conserve les points marqués (#1144)
+      const keepForfeitPoints =
+        !!ctx.session && ctx.db.getCompetition(ctx.session.competitionId)?.weapon === Weapon.LASER;
+
+      res.json({
+        poolId,
+        poolName,
+        arenaId,
+        fencers,
+        matches,
+        isComplete,
+        signatures,
+        keepForfeitPoints,
+      });
     } catch (err) {
       console.error('[RemoteScoreServer] Erreur pool-data:', err);
       res.status(500).json({ error: 'internal' });

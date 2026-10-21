@@ -601,6 +601,7 @@
       let currentTab = 'tableau';
       let signaturesData = {};   // { fencerId: dataURL }
       let signingFencer = null;
+      let keepForfeitPoints = false; // Sabre Laser : points du match forfait conservés
 
       // ── Navigation ──
       function goBackToReferee() {
@@ -651,6 +652,7 @@
             return;
           }
           poolData = await res.json();
+          keepForfeitPoints = !!poolData.keepForfeitPoints;
           if (poolData.signatures) signaturesData = poolData.signatures;
           renderAll(poolData);
         } catch (e) {
@@ -850,8 +852,9 @@
         const fA = match.fencerA || fencers.find(f => f.id === match.fencerAId);
         const fB = match.fencerB || fencers.find(f => f.id === match.fencerBId);
 
-        const sA = match.scoreA;
-        const sB = match.scoreB;
+        const voided = isVoidedByForfeit(match);
+        const sA = voided && !isFlagged(match.scoreA) ? null : match.scoreA;
+        const sB = voided && !isFlagged(match.scoreB) ? null : match.scoreB;
         const winnerA = sA && sA.isVictory;
         const winnerB = sB && sB.isVictory;
 
@@ -886,7 +889,8 @@
       }
 
       function scoreClass(score, finished) {
-        if (!finished || !score) return '';
+        if (!finished) return '';
+        if (!score) return 'special';
         if (score.isAbstention || score.isForfait || score.isExclusion) return 'special';
         return score.isVictory ? 'victory' : 'defeat';
       }
@@ -900,6 +904,19 @@
       }
 
       // ── Helpers ──
+      function isFlagged(score) {
+        return !!score && !!(score.isAbstention || score.isForfait || score.isExclusion);
+      }
+
+      // Match annulé par forfait / abandon / exclusion : non joué (0-0), le vainqueur
+      // ne reçoit pas le score max (#1144). Sabre Laser : points marqués conservés.
+      function isVoidedByForfeit(match) {
+        if (!match || match.status !== 'finished') return false;
+        if (!isFlagged(match.scoreA) && !isFlagged(match.scoreB)) return false;
+        if (!keepForfeitPoints) return true;
+        return match.scoreA?.value == null || match.scoreB?.value == null;
+      }
+
       function findMatch(matches, fencerAId, fencerBId) {
         return matches.find(
           m =>
@@ -919,6 +936,11 @@
 
         if (!scoreForRow || match.status !== 'finished') {
           td.classList.add('not-played');
+          return;
+        }
+
+        if (isVoidedByForfeit(match) && !isFlagged(scoreForRow)) {
+          td.classList.add('special'); td.textContent = '–';
           return;
         }
 
