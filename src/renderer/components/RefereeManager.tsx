@@ -29,6 +29,7 @@ import {
   ROW_BORDER,
   ROW_ALT,
 } from './refereeManager.styles';
+import { useTranslation } from '../hooks/useTranslation';
 
 const PRESENCE_COLORS: Record<RefereePresence, string> = {
   not_checked_in: '#9ca3af',
@@ -63,6 +64,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
   onRefereesChange,
   onAssignmentsChange,
 }) => {
+  const { t } = useTranslation();
   const [config, setConfig] = useState<RefereeRotationConfig>({
     maxConsecutiveMatches: 3,
     minRestTimeMinutes: 15,
@@ -523,8 +525,9 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                   color: importStatus.errors.length ? '#dc2626' : '#166534',
                 }}
               >
-                {importStatus.count} arbitre(s) importé(s)
-                {importStatus.errors.length > 0 && ` — ${importStatus.errors.length} erreur(s)`}
+                {t('plural.referees_imported', { count: importStatus.count })}
+                {importStatus.errors.length > 0 &&
+                  ` — ${t('plural.errors', { count: importStatus.errors.length })}`}
               </span>
             )}
           </div>

@@ -9,6 +9,7 @@ import { Competition, Fencer, FencerStatus } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { useToast } from '../components/Toast';
 import { importRankingFromFFF, RankingImportResult } from '../../shared/utils/fileParser';
+import { useTranslation } from './useTranslation';
 
 interface UseFencerManagementProps {
   competition: Competition;
@@ -17,6 +18,7 @@ interface UseFencerManagementProps {
 
 export const useFencerManagement = ({ competition, onUpdate }: UseFencerManagementProps) => {
   const { showToast } = useToast();
+  const { t } = useTranslation();
   const [fencers, setFencers] = useState<Fencer[]>(competition.fencers || []);
   const competitionRef = useRef(competition);
   const onUpdateRef = useRef(onUpdate);
@@ -190,8 +192,8 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     );
 
     await Promise.allSettled(promises);
-    showToast(`${notCheckedIn.length} tireur(s) pointé(s)`, 'success');
-  }, [fencers, competition, onUpdate, showToast]);
+    showToast(t('plural.fencers_checked_in', { count: notCheckedIn.length }), 'success');
+  }, [fencers, competition, onUpdate, showToast, t]);
 
   // Dépointer tous les tireurs
   const uncheckAll = useCallback(async () => {
@@ -218,8 +220,8 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     );
 
     await Promise.allSettled(promises);
-    showToast(`${checkedIn.length} tireur(s) dépointé(s)`, 'success');
-  }, [fencers, competition, onUpdate, showToast]);
+    showToast(t('plural.fencers_checked_out', { count: checkedIn.length }), 'success');
+  }, [fencers, competition, onUpdate, showToast, t]);
 
   // Obtenir les tireurs pointés
   const getCheckedInFencers = useCallback(() => {

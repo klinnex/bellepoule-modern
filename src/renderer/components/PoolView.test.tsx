@@ -11,6 +11,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import PoolView from './PoolView';
 import { Pool, Fencer, Match, MatchStatus, Gender, FencerStatus } from '../../shared/types';
 
+vi.mock('../hooks/useTranslation', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
+
 const fencer = (id: string, last: string): Fencer => ({
   id,
   ref: Number(id),

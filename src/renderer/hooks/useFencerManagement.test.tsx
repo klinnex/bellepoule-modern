@@ -9,6 +9,8 @@ import { renderHook, act } from '@testing-library/react';
 import { useFencerManagement } from './useFencerManagement';
 import { Competition, Fencer, Gender, FencerStatus } from '../../shared/types';
 
+vi.mock('./useTranslation', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
+
 const fencer = (id: string): Fencer => ({
   id,
   ref: Number(id),

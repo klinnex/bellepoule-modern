@@ -12,6 +12,7 @@ import {
   PSEUDO_LOCALE_STORAGE_KEY,
 } from '@shared/utils/pseudoLocale';
 import { pluralKeys, setActiveLanguage } from '@shared/utils/localeFormat';
+import { setPdfTranslator } from '@shared/utils/pdfExport/core';
 import frTranslations from '../locales/fr.json';
 import enTranslations from '../locales/en.json';
 import deTranslations from '../locales/de.json';
@@ -239,6 +240,9 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
     },
     [translations, pseudoLocale, language]
   );
+
+  // PDF générés dans la langue de l'interface (#1159)
+  useEffect(() => setPdfTranslator(t, language), [t, language]);
 
   const value: TranslationContextValue = {
     language,

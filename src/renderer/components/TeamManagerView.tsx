@@ -601,7 +601,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       <span className="ml-2 text-xs text-green-600 font-medium">✓ Complète</span>
                     ) : (
                       <span className="ml-2 text-xs text-yellow-600 font-medium">
-                        ⚠ {teamSize - mainFencers.length} tireur(s) manquant(s)
+                        ⚠ {t('plural.fencers_missing', { count: teamSize - mainFencers.length })}
                       </span>
                     )}
                   </div>
