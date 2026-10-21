@@ -82,6 +82,9 @@ export function usesModernRules(
   settings: Partial<CompetitionSettings> | undefined
 ): boolean {
   if (weapon === Weapon.EPEE || weapon === Weapon.FOIL || weapon === Weapon.SABRE) return true;
+  // Rapières : règles choisies dans la formule, armes modernes par défaut (#1118)
+  if (isRapieresMode(weapon ?? undefined, settings))
+    return settings?.customFormula?.ruleSet !== 'laser';
   return getActiveFormula(weapon ?? undefined, settings)?.ruleSet === 'modern';
 }
 

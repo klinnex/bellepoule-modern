@@ -176,6 +176,7 @@ export interface ArenaUpdate {
   referees?: RemoteReferee[]; // liste de tous les arbitres de la compétition
   timerDuration?: number; // durée du chrono en secondes pour ce match
   restSeconds?: number; // durée du repos entre périodes (escrime olympique, 0 = désactivé)
+  modernRules?: boolean; // règles armes modernes (E/F/S, formule ou rapières) (#1118)
   poolComplete?: boolean; // vrai quand tous les matchs de la poule sont terminés
   completedPoolId?: string; // id de la poule terminée
   refereeSelected?: boolean; // vrai quand l'arbitre a explicitement sélectionné le match

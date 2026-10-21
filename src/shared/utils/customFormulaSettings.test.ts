@@ -114,4 +114,17 @@ describe('customFormulaSettings (#1125)', () => {
     expect(usesModernRules(Weapon.CUSTOM, settings)).toBe(true);
     expect(usesModernRules(Weapon.LASER, settings)).toBe(false);
   });
+
+  it('usesModernRules : rapières en armes modernes par défaut, Sabre Laser si choisi (#1118)', () => {
+    const f = formula();
+    const settings = { specialMode: 'rapieres', customFormula: f } as CompetitionSettings;
+    expect(usesModernRules(Weapon.CUSTOM, settings)).toBe(true);
+    expect(usesModernRules(Weapon.CUSTOM, { specialMode: 'rapieres' } as CompetitionSettings)).toBe(
+      true
+    );
+    f.ruleSet = 'laser';
+    expect(usesModernRules(Weapon.CUSTOM, settings)).toBe(false);
+    f.ruleSet = 'modern';
+    expect(usesModernRules(Weapon.CUSTOM, settings)).toBe(true);
+  });
 });

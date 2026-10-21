@@ -36,20 +36,21 @@ export function registerResultsRoutes(ctx: RouteContext): void {
             index: r.index ?? 0,
           }));
           // Poule terminée : plus aucun match jouable (forfait/abandon/exclusion : matchs restants annulés, #1144)
-          const outIds = new Set<string>(
-            (pool.fencers || [])
-              .filter((f: any) =>
-                [FencerStatus.FORFAIT, FencerStatus.ABANDONED, FencerStatus.EXCLUDED].includes(
-                  f?.status
-                )
-              )
-              .map((f: any) => f.id)
+          type Side = { id?: string; status?: string } | null | undefined;
+          const outStatuses: string[] = [
+            FencerStatus.FORFAIT,
+            FencerStatus.ABANDONED,
+            FencerStatus.EXCLUDED,
+          ];
+          const fencers: Side[] = pool.fencers || [];
+          const outIds = new Set(
+            fencers.filter(f => outStatuses.includes(f?.status ?? '')).map(f => f?.id)
           );
-          const matches: any[] = pool.matches || [];
+          const matches: { status?: string; fencerA?: Side; fencerB?: Side }[] = pool.matches || [];
           const isComplete =
             matches.length > 0 &&
             matches.every(
-              (m: any) =>
+              m =>
                 m.status === MatchStatus.FINISHED ||
                 m.status === MatchStatus.CANCELLED ||
                 outIds.has(m.fencerA?.id) ||

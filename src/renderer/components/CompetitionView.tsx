@@ -1224,9 +1224,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     [isRapieres, pools, rapieres.launchedWave, rapieres.wavesEnded]
   );
 
-  // Tablettes arbitre : uniquement les matchs de la vague active (tournoi des rapières) (#1118)
+  // Tablettes arbitre : matchs de la vague active seulement (rapières, #1118), mémorisé par le main
   useEffect(() => {
-    if (!isRapieres || !isRemoteActive || !competition?.id) return;
+    if (!isRapieres || !competition?.id) return;
     window.electronAPI?.remote
       ?.setActiveWave?.(competition.id, currentWaveMatchIds ? [...currentWaveMatchIds] : null)
       ?.catch?.(() => undefined);
