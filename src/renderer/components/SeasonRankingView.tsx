@@ -303,8 +303,16 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
                       <Th k="totalQuestV2" label="V2" title={t('season.t_v2')} />
                       <Th k="totalQuestV1" label="V1" title={t('season.t_v1')} />
                       <Th k="totalRedCards" label="🔴" title={t('season.t_red')} />
-                      <Th k="totalTouchesScored" label="TD" title={t('season.t_td')} />
-                      <Th k="totalTouchesReceived" label="TR" title={t('season.t_tr')} />
+                      <Th
+                        k="totalTouchesScored"
+                        label={t('ranking.touches_scored')}
+                        title={t('season.t_td')}
+                      />
+                      <Th
+                        k="totalTouchesReceived"
+                        label={t('ranking.touches_received')}
+                        title={t('season.t_tr')}
+                      />
                       <Th
                         k="competitionCount"
                         label={t('season.l_comp')}

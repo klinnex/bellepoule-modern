@@ -34,6 +34,7 @@ vi.mock('../ConflictResolutionModal', () => ({
 }));
 
 // Import après les mocks
+vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
 import { OfflineStatus } from '../OfflineStatus';
 import { offlineSync } from '../../../renderer/services/offlineSync';
 import { offlineStorage } from '../../../renderer/services/offlineStorage';
@@ -91,7 +92,7 @@ describe('OfflineStatus', () => {
       fireEvent.click(toggle!);
     });
 
-    expect(screen.getByText('Connexion:')).toBeInTheDocument();
+    expect(screen.getByText('Connexion :')).toBeInTheDocument();
   });
 
   it("affiche le nombre d'actions en attente", async () => {
@@ -108,13 +109,13 @@ describe('OfflineStatus', () => {
     expect(screen.getByText('3 en attente')).toBeInTheDocument();
   });
 
-  it('affiche "Synchronisation..." pendant la synchro', async () => {
+  it('affiche "Synchronisation…" pendant la synchro', async () => {
     (offlineSync.isCurrentlySyncing as any).mockReturnValue(true);
 
     await act(async () => {
       render(<OfflineStatus />);
     });
 
-    expect(screen.getByText('Synchronisation...')).toBeInTheDocument();
+    expect(screen.getByText('Synchronisation…')).toBeInTheDocument();
   });
 });

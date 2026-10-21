@@ -18,6 +18,8 @@ const hookState = {
     { code: 'en', name: 'English', flag: '🇬🇧' },
   ],
   isLoading: false,
+  t: (k: string) =>
+    ({ 'ui.language_label': 'Langue :', 'messages.loading': 'Chargement...' })[k] ?? k,
 };
 vi.mock('../hooks/useTranslation', () => ({ useTranslation: () => hookState }));
 

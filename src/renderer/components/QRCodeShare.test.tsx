@@ -8,6 +8,7 @@ import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+vi.mock('../hooks/useTranslation', () => import('../testUtils/i18nMock'));
 import { QRCodeShare } from './QRCodeShare';
 import { Competition } from '../../shared/types';
 

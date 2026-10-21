@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface MatchTimerProps {
   duration?: number;
@@ -31,6 +32,7 @@ export const MatchTimer: React.FC<MatchTimerProps> = ({
   onPause,
   onResume,
 }) => {
+  const { t } = useTranslation();
   const [remaining, setRemaining] = useState(duration);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasCalledOnTimeUp = useRef(false);
@@ -97,21 +99,21 @@ export const MatchTimer: React.FC<MatchTimerProps> = ({
               onClick={onResume}
               className="px-6 py-3 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600 transition-colors"
             >
-              ▶️ Reprendre
+              {t('matchTimer.resume')}
             </button>
           ) : (
             <button
               onClick={onPause}
               className="px-6 py-3 bg-yellow-500 text-white rounded-lg font-bold hover:bg-yellow-600 transition-colors"
             >
-              ⏸️ Pause (Incident)
+              {t('matchTimer.pause')}
             </button>
           )}
         </div>
       )}
 
       {isPaused && (
-        <div className="text-yellow-600 font-bold animate-pulse">⚠️ PAUSE - Incident en cours</div>
+        <div className="text-yellow-600 font-bold animate-pulse">{t('matchTimer.paused')}</div>
       )}
     </div>
   );

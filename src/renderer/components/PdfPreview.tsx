@@ -6,6 +6,7 @@ import {
   generateRankingHTML,
 } from '../../shared/utils/pdfExport';
 import { PREVIEW_POOL, PREVIEW_TABLEAU, PREVIEW_RANKING } from '../../shared/utils/pdfPreviewData';
+import { translateStatic } from '../contexts/TranslationContext';
 import { writeHtmlWithCssom } from '../utils/writeHtmlWithCssom';
 
 const LOGO_KEY = 'bellepoule-logo';
@@ -104,7 +105,7 @@ const PdfPreview: React.FC<Props> = ({ template, docType }) => {
       >
         <iframe
           ref={iframeRef}
-          title="PDF Preview"
+          title={translateStatic('pdfModal.iframe_title')}
           sandbox="allow-same-origin"
           style={{
             width: `${A4_W}px`,

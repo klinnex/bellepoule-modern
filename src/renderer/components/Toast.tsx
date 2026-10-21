@@ -6,6 +6,7 @@
 import React, { useState, useEffect, createContext, useContext, useCallback, useRef } from 'react';
 import { CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
 import { logger, LogCategory } from '@shared/services/logger';
+import { translateStatic } from '../contexts/TranslationContext';
 
 export type ToastType = 'info' | 'success' | 'warning' | 'error';
 
@@ -165,7 +166,7 @@ const ToastItemComponent: React.FC<{
             display: 'flex',
             alignItems: 'center',
           }}
-          aria-label="Fermer"
+          aria-label={translateStatic('actions.close')}
         >
           <span aria-hidden="true">✕</span>
         </button>

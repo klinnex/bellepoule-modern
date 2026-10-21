@@ -4,6 +4,7 @@
 
 import React, { memo } from 'react';
 import { AdvancementMode, AdvancementRule } from '../../../shared/types';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface Props {
   rule: AdvancementRule;
@@ -39,6 +40,7 @@ const MODE_LABELS: Record<AdvancementMode, string> = {
 };
 
 const AdvancementRuleEditor_: React.FC<Props> = ({ rule, onChange, inputFencers, readOnly }) => {
+  const { t } = useTranslation();
   const advancing = inputFencers ? computeAdvancing(inputFencers, rule) : null;
 
   const setMode = (mode: AdvancementMode) => {
@@ -94,14 +96,12 @@ const AdvancementRuleEditor_: React.FC<Props> = ({ rule, onChange, inputFencers,
               onChange={e => onChange({ ...rule, count: Number(e.target.value) })}
               disabled={readOnly}
             />
-            <span className="advancement-unit">tireurs</span>
+            <span className="advancement-unit">{t('formulaSim.fencers')}</span>
           </div>
         )}
 
         {advancing !== null && (
-          <span className="advancement-preview">
-            → <strong>{advancing}</strong> avancent
-          </span>
+          <span className="advancement-preview">{t('formulaSim.advancing', { n: advancing })}</span>
         )}
       </div>
     </div>

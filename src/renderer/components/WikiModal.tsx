@@ -17,7 +17,7 @@ interface Props {
 }
 
 const WikiModal: React.FC<Props> = ({ onClose }) => {
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
   const ref = useFocusTrap<HTMLDivElement>(true, onClose);
   const lang = getLang(language);
 
@@ -76,7 +76,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
         ref={ref}
         role="dialog"
         aria-modal="true"
-        aria-label="Documentation"
+        aria-label={t('wiki.title')}
         style={{
           background: 'var(--color-surface, #fff)',
           borderRadius: 12,
@@ -108,7 +108,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
               color: 'var(--color-text)',
             }}
           >
-            Documentation
+            {t('wiki.title')}
           </h1>
           <input
             type="search"
@@ -128,7 +128,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
           />
           <button
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={t('actions.close')}
             style={{
               background: 'none',
               border: 'none',

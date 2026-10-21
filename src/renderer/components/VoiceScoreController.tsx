@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface VoiceCommand {
   command: string;
@@ -50,6 +51,7 @@ export const VoiceScoreController: React.FC<{
   onFinish?: () => void;
   language?: string;
 }> = ({ onScoreA, onScoreB, onStart, onPause, onFinish, language = 'fr' }) => {
+  const { t } = useTranslation();
   const langKey = Object.keys(LANG_CONFIG).find(k => language.startsWith(k)) ?? 'fr';
   const lang = LANG_CONFIG[langKey];
   const [isListening, setIsListening] = useState(false);
@@ -214,11 +216,11 @@ export const VoiceScoreController: React.FC<{
           🎤
         </div>
         <div>
-          <h3 style={{ margin: 0, fontSize: '1.125rem' }}>Contrôle Vocal</h3>
+          <h3 style={{ margin: 0, fontSize: '1.125rem' }}>{t('voice.title')}</h3>
           <p
             style={{ margin: '4px 0 0 0', color: 'var(--color-text-light)', fontSize: '0.875rem' }}
           >
-            {isListening ? 'Écoute en cours...' : 'Appuyez pour activer'}
+            {isListening ? t('voice.listening') : t('voice.press')}
           </p>
         </div>
       </div>
@@ -253,7 +255,7 @@ export const VoiceScoreController: React.FC<{
           transition: 'all 0.2s',
         }}
       >
-        {isListening ? "Arrêter l'écoute" : 'Activer la voix'}
+        {isListening ? t('voice.stop') : t('voice.start')}
       </button>
 
       {transcript && (
@@ -266,7 +268,7 @@ export const VoiceScoreController: React.FC<{
             fontSize: '0.875rem',
           }}
         >
-          <strong>Dernière commande:</strong> {transcript}
+          <strong>{t('voice.last')}</strong> {transcript}
         </div>
       )}
 
@@ -287,7 +289,7 @@ export const VoiceScoreController: React.FC<{
 
       <div style={{ marginTop: '16px' }}>
         <h4 style={{ margin: '0 0 8px 0', fontSize: '0.875rem', color: 'var(--color-text)' }}>
-          Commandes disponibles:
+          {t('voice.available')}
         </h4>
         <ul
           style={{

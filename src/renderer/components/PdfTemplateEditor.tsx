@@ -149,12 +149,12 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
 
       {/* Logo */}
       <div>
-        <div style={SUBHEAD}>Logo</div>
+        <div style={SUBHEAD}>{t('pdfEditor.logo')}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {logo ? (
             <img
               src={logo}
-              alt="Logo"
+              alt={t('pdfEditor.logo')}
               style={{
                 height: '48px',
                 maxWidth: '120px',
@@ -179,7 +179,7 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
                 color: 'var(--color-muted, #9ca3af)',
               }}
             >
-              Aucun logo
+              {t('pdfEditor.no_logo')}
             </div>
           )}
           <button
@@ -195,7 +195,7 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
               style={{ fontSize: '0.8rem', color: 'var(--danger, #ef4444)' }}
               onClick={handleLogoRemove}
             >
-              Supprimer
+              {t('actions.delete')}
             </button>
           )}
           <input
@@ -210,7 +210,7 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
 
       {/* Couleurs */}
       <div>
-        <div style={SUBHEAD}>Couleurs</div>
+        <div style={SUBHEAD}>{t('pdfEditor.colors')}</div>
         {/* Presets */}
         <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
           {COLOR_PRESETS.map(preset => (
@@ -276,7 +276,7 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
 
       {/* Ordre et visibilité des sections */}
       <div>
-        <div style={SUBHEAD}>Sections</div>
+        <div style={SUBHEAD}>{t('pdfEditor.sections')}</div>
         <div
           style={{
             border: '1px solid var(--color-border, #d1d5db)',

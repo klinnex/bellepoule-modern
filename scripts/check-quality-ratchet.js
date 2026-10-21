@@ -49,6 +49,19 @@ const COUNTERS = ['jsxText', 'jsxAttr', 'any', 'console', 'inlineStyle', 'fontSi
 const I18N_ATTRS = new Set(['title', 'placeholder', 'aria-label', 'alt', 'label']);
 // Au moins deux lettres (latin + accents) : ignore ponctuation, symboles, chiffres.
 const WORDISH_RE = /\p{L}{2,}/u;
+// Sigles et formats identiques dans toutes les langues : pas de clé de traduction (#1158).
+const UNIVERSAL_TEXT = new Set([
+  'CSV', 'JSON', 'HTML', 'PDF', 'XML FFE', 'URL', 'IP', 'QR Code', 'VS', 'FRA',
+  'WEP', 'WPA / WPA2 / WPA3', 'Ctrl', 'Ctrl K', 'Esc', 'Quest', 'QP', 'Overlay', 'Webcam',
+  'Logo', 'min',
+]);
+const isTranslatable = text => {
+  const raw = text.replace(/&[a-z]+;/g, ' ').trim();
+  // URL ou chemin (`/lobby`) : pas du texte
+  if (/^(https?:|\/)/.test(raw)) return false;
+  const norm = raw.replace(/[^\p{L}\p{N}/+#.\s-]/gu, ' ').replace(/\s+/g, ' ').trim();
+  return WORDISH_RE.test(norm) && !UNIVERSAL_TEXT.has(norm.replace(/^\/ /, ''));
+};
 
 function walk(dir) {
   const files = [];
@@ -85,7 +98,7 @@ function analyze(file) {
     ) {
       hits.console.push(at(node));
     }
-    if (renderer && ts.isJsxText(node) && WORDISH_RE.test(node.text)) {
+    if (renderer && ts.isJsxText(node) && isTranslatable(node.text)) {
       hits.jsxText.push(at(node));
     }
     if (
@@ -94,7 +107,7 @@ function analyze(file) {
       I18N_ATTRS.has(node.name.getText(sf)) &&
       node.initializer &&
       ts.isStringLiteral(node.initializer) &&
-      WORDISH_RE.test(node.initializer.text)
+      isTranslatable(node.initializer.text)
     ) {
       hits.jsxAttr.push(at(node));
     }

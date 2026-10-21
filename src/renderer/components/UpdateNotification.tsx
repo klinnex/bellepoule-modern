@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useToast } from './Toast';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface UpdateNotificationProps {
   visible?: boolean;
@@ -21,6 +22,7 @@ interface UpdateInfo {
 }
 
 const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVisible }) => {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const [visible, setVisible] = useState(propVisible || false);
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
@@ -49,14 +51,14 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
   const handleDownload = () => {
     // Ouvre directement vers la dernière release (pas l'historique complet)
     window.open('https://github.com/klinnex/bellepoule-modern/releases/latest', '_blank');
-    showToast('Redirection vers la page de téléchargement...', 'info');
+    showToast(t('updateNotif.redirect'), 'info');
     setVisible(false);
   };
 
   const handleDismiss = () => {
     setDismissed(true);
     setVisible(false);
-    showToast('Vous pourrez mettre à jour plus tard depuis le menu Aide', 'info');
+    showToast(t('updateNotif.later'), 'info');
   };
 
   const handleViewRelease = () => {
@@ -78,22 +80,23 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
       <div className="update-notification-content">
         <div className="update-notification-icon">🚀</div>
         <div className="update-notification-text">
-          <h4>Mise à jour disponible !</h4>
+          <h4>{t('updateNotif.title')}</h4>
           <p>
-            Version <strong>v{updateInfo.latestVersion}</strong> (Build #{updateInfo.latestBuild})
+            {t('updateNotif.version')} <strong>v{updateInfo.latestVersion}</strong>{' '}
+            {`(Build #${updateInfo.latestBuild})`}
           </p>
           {updateInfo.latestBuild - updateInfo.currentBuild > 1 && (
             <p className="update-notification-multiple">
-              Vous avez {updateInfo.latestBuild - updateInfo.currentBuild} mises à jour de retard
+              {t('updateNotif.behind', { n: updateInfo.latestBuild - updateInfo.currentBuild })}
             </p>
           )}
         </div>
         <div className="update-notification-actions">
           <button className="btn btn-primary btn-sm" onClick={handleDownload}>
-            📥 Télécharger
+            {t('updateNotif.download')}
           </button>
           <button className="btn btn-secondary btn-sm" onClick={handleViewRelease}>
-            📋 Voir les notes
+            {t('updateNotif.notes')}
           </button>
           <button className="btn btn-ghost btn-sm" onClick={handleDismiss}>
             ✖️

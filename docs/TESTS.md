@@ -2840,7 +2840,7 @@ Unitaires : 152 fichiers, 1530 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - affiche "Hors ligne" quand hors ligne
   - le clic sur le status toggle affiche les détails
   - affiche le nombre d'actions en attente
-  - affiche "Synchronisation..." pendant la synchro
+  - affiche "Synchronisation…" pendant la synchro
 
 </details>
 

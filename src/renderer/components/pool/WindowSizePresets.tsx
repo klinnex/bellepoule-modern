@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const STORAGE_KEY = 'bellepoule-pool-window-size';
 
@@ -41,6 +42,7 @@ interface WindowSizePresetsProps {
 }
 
 const WindowSizePresets: React.FC<WindowSizePresetsProps> = ({ value: active, onChange }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const ref = useRef<HTMLDivElement>(null);
@@ -93,9 +95,9 @@ const WindowSizePresets: React.FC<WindowSizePresetsProps> = ({ value: active, on
         onClick={() => setOpen(o => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        title="Taille des cartes de poule"
+        title={t('poolCards.title')}
       >
-        🗔 Cartes : {active} ▾
+        {t('poolCards.button', { size: t(`poolCards.${active}`) })}
       </button>
       {open &&
         createPortal(

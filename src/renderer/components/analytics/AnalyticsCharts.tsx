@@ -6,6 +6,9 @@
 import React, { useEffect, useState } from 'react';
 import { Competition, FencerCompetitionStats, Weapon } from '../../../shared/types';
 import { TouchZoneHeatmap } from './TouchZoneHeatmap';
+import { useTranslation } from '../../hooks/useTranslation';
+
+type TFn = ReturnType<typeof useTranslation>['t'];
 
 interface Props {
   competition: Competition;
@@ -68,6 +71,7 @@ const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: strin
   title,
   centerLabel,
 }) => {
+  const { t } = useTranslation();
   const total = slices.reduce((s, x) => s + x.value, 0);
   if (total === 0)
     return (
@@ -75,7 +79,7 @@ const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: strin
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
           {title}
         </div>
-        <div className="text-center text-gray-300 text-sm py-8">Aucune donnée</div>
+        <div className="text-center text-gray-300 text-sm py-8">{t('analyticsCharts.no_data')}</div>
       </div>
     );
 
@@ -148,6 +152,7 @@ const Donut: React.FC<{ slices: DonutSlice[]; title: string; centerLabel?: strin
 // ── Aggregated heatmap (moyenne sur tous les tireurs) ──────────────────────────
 
 const AggregateHeatmap: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats }) => {
+  const { t } = useTranslation();
   const totA = stats.reduce((s, x) => s + x.touchesZoneA, 0);
   const totB = stats.reduce((s, x) => s + x.touchesZoneB, 0);
   const totC = stats.reduce((s, x) => s + x.touchesZoneC, 0);
@@ -156,7 +161,7 @@ const AggregateHeatmap: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats
   return (
     <div className="bg-white rounded-lg border border-gray-100 p-4">
       <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-        Zones de touches — {stats.length} tireurs
+        {t('analyticsCharts.zones_title', { n: stats.length })}
       </div>
       <div className="flex items-center gap-6">
         <TouchZoneHeatmap zoneA={totA} zoneB={totB} zoneC={totC} />
@@ -168,7 +173,7 @@ const AggregateHeatmap: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats
               pts: 1,
               color: '#bfdbfe',
               border: '#93c5fd',
-              text: 'Main/Arme',
+              text: t('analyticsCharts.zone_a'),
             },
             {
               zone: 'B',
@@ -176,7 +181,7 @@ const AggregateHeatmap: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats
               pts: 3,
               color: '#60a5fa',
               border: '#3b82f6',
-              text: 'Bras/Jambes',
+              text: t('analyticsCharts.zone_b'),
             },
             {
               zone: 'C',
@@ -184,7 +189,7 @@ const AggregateHeatmap: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats
               pts: 5,
               color: '#1d4ed8',
               border: '#1e40af',
-              text: 'Tête/Torse',
+              text: t('analyticsCharts.zone_c'),
             },
           ].map(z => {
             const total = totA + totB + totC;
@@ -193,7 +198,7 @@ const AggregateHeatmap: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats
               <div key={z.zone}>
                 <div className="flex justify-between text-xs text-gray-600 mb-1">
                   <span>
-                    Zone {z.zone} · {z.text} · {z.pts}pt{z.pts > 1 ? 's' : ''}
+                    {t('analyticsCharts.zone_line', { zone: z.zone, text: z.text, count: z.pts })}
                   </span>
                   <span className="font-mono">
                     {z.count} ({pct}%)
@@ -213,7 +218,8 @@ const AggregateHeatmap: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats
             );
           })}
           <div className="text-xs text-gray-400 mt-2">
-            Total points marqués : <span className="font-bold text-gray-700">{totalPts}</span>
+            {t('analyticsCharts.total_points')}{' '}
+            <span className="font-bold text-gray-700">{totalPts}</span>
           </div>
         </div>
       </div>
@@ -227,6 +233,7 @@ const TopFencersChart: React.FC<{ stats: FencerCompetitionStats[]; isLaser: bool
   stats,
   isLaser,
 }) => {
+  const { t } = useTranslation();
   const sorted = [...stats]
     .sort((a, b) =>
       isLaser ? b.totalTouchPoints - a.totalTouchPoints : b.matchesPlayed - a.matchesPlayed
@@ -243,14 +250,14 @@ const TopFencersChart: React.FC<{ stats: FencerCompetitionStats[]; isLaser: bool
     label: `${i + 1}. ${s.fencerLastName}`,
     value: isLaser ? s.totalTouchPoints : s.matchesPlayed,
     color: i === 0 ? '#f59e0b' : i === 1 ? '#9ca3af' : i === 2 ? '#b45309' : '#3b82f6',
-    sublabel: isLaser ? 'pts' : 'M',
+    sublabel: isLaser ? t('analyticsCharts.pts') : t('analyticsCharts.m'),
   }));
 
   return (
     <HBar
       items={items}
       maxValue={max}
-      title={isLaser ? 'Top tireurs — Points touches' : 'Top tireurs — Matchs joués'}
+      title={isLaser ? t('analyticsCharts.top_points') : t('analyticsCharts.top_matches')}
     />
   );
 };
@@ -258,6 +265,7 @@ const TopFencersChart: React.FC<{ stats: FencerCompetitionStats[]; isLaser: bool
 // ── Durée moyenne par tireur (histogram) ──────────────────────────────────────
 
 const DurationChart: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats }) => {
+  const { t } = useTranslation();
   const withDuration = stats.filter(s => s.averageDurationSeconds > 0);
   if (withDuration.length === 0) return null;
 
@@ -275,35 +283,16 @@ const DurationChart: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats })
       s => s.averageDurationSeconds >= b.min && s.averageDurationSeconds < b.max
     ).length,
     color: b.color,
-    sublabel: 't.',
+    sublabel: t('analyticsCharts.fencers_short'),
   }));
 
-  return <HBar items={items} title="Distribution durée moyenne des matchs" />;
+  return <HBar items={items} title={t('analyticsCharts.duration_title')} />;
 };
 
 // ── Cards by reason ──────────────────────────────────────────────────────────
 
-const CARD_REASON_FR: Record<string, string> = {
-  EARLY_START: 'Départ anticipé',
-  LATE_STOP: 'Arrêt tardif',
-  BODY_CONTACT: 'Contact corporel',
-  COUNTER_ATTACK: 'Contre-attaque',
-  TARGET_SUBSTITUTION: 'Substitution cible',
-  VOLUNTARY_DROP: 'Abandon arme',
-  TIME_WASTING: 'Perte de temps',
-  NON_COMPLIANT_GEAR: 'Équip. non conforme',
-  ESTOC: 'Estoc',
-  UNARMED_HAND: 'Main libre',
-  VOLUNTARY_EXIT: 'Sortie volontaire',
-  HEAVY_HIT: 'Coup violent',
-  BRUTALITY: 'Brutalité',
-  DANGEROUS: 'Dangereux',
-  REFUSAL: 'Refus',
-  UNSPORTSMANLIKE: 'Antisportif',
-  CHEATING: 'Triche',
-};
-
 const CardsByReason: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats }) => {
+  const { t } = useTranslation();
   const totals: Record<string, number> = {};
   for (const s of stats) {
     for (const [reason, count] of Object.entries(s.cardsByReason ?? {})) {
@@ -317,31 +306,34 @@ const CardsByReason: React.FC<{ stats: FencerCompetitionStats[] }> = ({ stats })
 
   if (entries.length === 0) return null;
 
-  const items: BarItem[] = entries.map(([reason, count]) => ({
-    label: CARD_REASON_FR[reason] ?? reason,
-    value: count,
-    color: '#f59e0b',
-  }));
+  const items: BarItem[] = entries.map(([reason, count]) => {
+    const label = t(`cardReasons.${reason}`);
+    return {
+      label: label.startsWith('cardReasons.') ? reason : label,
+      value: count,
+      color: '#f59e0b',
+    };
+  });
 
-  return <HBar items={items} title="Cartons par motif" />;
+  return <HBar items={items} title={t('analyticsCharts.cards_by_reason')} />;
 };
 
 // ── Export CSV ─────────────────────────────────────────────────────────────────
 
-async function exportCSV(competition: Competition, stats: FencerCompetitionStats[]) {
+async function exportCSV(t: TFn, competition: Competition, stats: FencerCompetitionStats[]) {
   const isLaser = competition.weapon === Weapon.LASER;
   const headers = [
-    'Nom',
-    'Prénom',
-    'Club',
-    ...(isLaser ? ['Zone A', 'Zone B', 'Zone C', 'Points total'] : []),
-    'Cartons blancs',
-    'Cartons jaunes',
-    'Cartons rouges',
-    'Sorties piste',
-    'Matchs joués',
-    'Durée moy. (s)',
-    'Fins anticipées',
+    t('ranking.name'),
+    t('analyticsCharts.csv_first_name'),
+    t('ranking.club'),
+    ...(isLaser ? ['A', 'B', 'C', t('analyticsCharts.csv_total_points')] : []),
+    t('analyticsCharts.csv_white'),
+    t('analyticsCharts.csv_yellow'),
+    t('analyticsCharts.csv_red'),
+    t('analyticsCharts.csv_exits'),
+    t('analyticsCharts.csv_matches'),
+    t('analyticsCharts.csv_avg'),
+    t('analyticsCharts.csv_early'),
   ];
 
   const rows = stats.map(s => [
@@ -375,6 +367,7 @@ async function exportCSV(competition: Competition, stats: FencerCompetitionStats
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
+  const { t } = useTranslation();
   const [exporting, setExporting] = useState(false);
   const isLaser = competition.weapon === Weapon.LASER;
 
@@ -386,7 +379,7 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
     return (
       <div className="text-center py-16 text-gray-400">
         <div className="text-4xl mb-3">📊</div>
-        <div>Aucune statistique disponible — lancez des matchs d'abord.</div>
+        <div>{t('analyticsCharts.empty')}</div>
       </div>
     );
   }
@@ -394,7 +387,7 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
   const handleExportCSV = async () => {
     setExporting(true);
     try {
-      await exportCSV(competition, stats);
+      await exportCSV(t, competition, stats);
     } finally {
       setExporting(false);
     }
@@ -409,7 +402,7 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
           disabled={exporting}
           className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
         >
-          {exporting ? 'Export…' : '⬇ CSV'}
+          {exporting ? t('analyticsCharts.exporting') : '⬇ CSV'}
         </button>
       </div>
 
@@ -419,12 +412,12 @@ export const AnalyticsCharts: React.FC<Props> = ({ competition, stats }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Donut cartons */}
         <Donut
-          title="Répartition des cartons"
+          title={t('analyticsCharts.cards_split')}
           centerLabel={String(totalWhite + totalYellow + totalRed)}
           slices={[
-            { label: 'Blancs', value: totalWhite, color: '#d1d5db' },
-            { label: 'Jaunes', value: totalYellow, color: '#f59e0b' },
-            { label: 'Rouges', value: totalRed, color: '#ef4444' },
+            { label: t('analyticsCharts.white'), value: totalWhite, color: '#d1d5db' },
+            { label: t('analyticsCharts.yellow'), value: totalYellow, color: '#f59e0b' },
+            { label: t('analyticsCharts.red'), value: totalRed, color: '#ef4444' },
           ]}
         />
 

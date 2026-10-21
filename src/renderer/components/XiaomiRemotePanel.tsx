@@ -345,7 +345,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
           >
             {t('xiaomi.refresh_all')}
           </button>
-          <button className="btn-close" onClick={onClose} aria-label="Fermer">
+          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
             ×
           </button>
         </div>

@@ -95,7 +95,7 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
                 marginBottom: '0.5rem',
               }}
             >
-              Prévisualisation
+              {t('pdfModal.preview')}
             </div>
             <PdfPreview template={current} docType={activeType} />
           </div>

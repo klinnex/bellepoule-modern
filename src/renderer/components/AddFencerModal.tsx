@@ -94,7 +94,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
       >
         <div className="modal-header">
           <h2 className="modal-title">{t('fencer.add')}</h2>
-          <button className="btn-close" onClick={onClose} aria-label="Fermer">
+          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
             ×
           </button>
         </div>
@@ -118,7 +118,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="DUPONT"
+                  placeholder={t('addFencer.last_name_ph')}
                   value={lastName}
                   onChange={e => setLastName(e.target.value)}
                   required
@@ -130,7 +130,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Jean"
+                  placeholder={t('addFencer.first_name_ph')}
                   value={firstName}
                   onChange={e => setFirstName(e.target.value)}
                   required
@@ -182,7 +182,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
               <input
                 type="text"
                 className="form-input"
-                placeholder="PARIS USM"
+                placeholder={t('addFencer.club_ph')}
                 value={club}
                 onChange={e => setClub(e.target.value)}
               />
@@ -194,7 +194,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Île-de-France"
+                  placeholder={t('addFencer.region_ph')}
                   value={region}
                   onChange={e => setRegion(e.target.value)}
                 />

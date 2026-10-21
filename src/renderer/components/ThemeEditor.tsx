@@ -1180,10 +1180,10 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                               lineHeight: 1.1,
                             }}
                           >
-                            MARTIN B.
+                            {t('themeEditor.sample_a')}
                           </div>
                           <div style={{ fontSize: '1.375rem', color: 'var(--fencer-club-color)' }}>
-                            CE Orléans
+                            {t('themeEditor.sample_club_a')}
                           </div>
                           <div
                             style={{
@@ -1251,10 +1251,10 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                               lineHeight: 1.1,
                             }}
                           >
-                            DUPONT A.
+                            {t('themeEditor.sample_b')}
                           </div>
                           <div style={{ fontSize: '1.375rem', color: 'var(--fencer-club-color)' }}>
-                            Escrime Paris
+                            {t('themeEditor.sample_club_b')}
                           </div>
                           <div
                             style={{

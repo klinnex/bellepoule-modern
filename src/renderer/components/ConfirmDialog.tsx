@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react';
+import { translateStatic } from '../contexts/TranslationContext';
 
 interface ConfirmOptions {
   message: string;
@@ -59,7 +60,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setPending({
         message: options.message,
         confirmLabel: options.confirmLabel || 'OK',
-        cancelLabel: options.cancelLabel || 'Annuler',
+        cancelLabel: options.cancelLabel || translateStatic('actions.cancel'),
         resolve: value => resolve(value !== null),
       });
     });
@@ -74,7 +75,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setPending({
         message: options.message,
         confirmLabel: options.confirmLabel || 'OK',
-        cancelLabel: options.cancelLabel || 'Annuler',
+        cancelLabel: options.cancelLabel || translateStatic('actions.cancel'),
         input: { placeholder: options.placeholder },
         resolve,
       });
@@ -124,7 +125,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
           >
             <div className="modal-header">
               <h2 className="modal-title" id="confirm-dialog-title">
-                Confirmation
+                {translateStatic('confirmDialog.title')}
               </h2>
             </div>
             <div className="modal-body">

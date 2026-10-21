@@ -6,7 +6,16 @@
     "close_tab": "關閉標籤",
     "load_error_title": "載入錯誤",
     "load_error_message": "載入比賽列表時發生錯誤。",
-    "reload": "重新載入應用程式"
+    "reload": "重新載入應用程式",
+    "palette_title": "開啟命令面板（Ctrl+K）",
+    "search": "搜尋…",
+    "training_hide": "隱藏訓練面板",
+    "training_show": "顯示訓練面板",
+    "training_mode": "訓練模式",
+    "training": "訓練",
+    "tools": "工具",
+    "wifi_qr": "WiFi 二維碼",
+    "tv_remote": "電視遙控器"
   },
   "menu": {
     "new_competition": "新增比賽",
@@ -468,7 +477,8 @@
     "print_sheets": "列印小組賽 / 對戰表"
   },
   "wiki": {
-    "button_title": "說明文件"
+    "button_title": "說明文件",
+    "title": "說明文件"
   },
   "formula": {
     "builder_title": "賽制編輯器",
@@ -633,7 +643,16 @@
     "move": "調動劍手"
   },
   "competitionHeader": {
-    "kiosk_mode": "資訊站模式"
+    "kiosk_mode": "資訊站模式",
+    "matches": "比賽",
+    "actions": "操作",
+    "collapse": "收起",
+    "expand": "展開",
+    "season_quest": "Quest 賽季排名",
+    "share": "分享",
+    "presentation": "簡報模式",
+    "kiosk_public": "公眾資訊站",
+    "properties": "屬性"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} 位劍手",
@@ -726,7 +745,14 @@
     "poule": "小組",
     "rotation_label": "輪替 (秒)：",
     "send_kiosk": "傳送至資訊站",
-    "views_label": "顯示畫面："
+    "views_label": "顯示畫面：",
+    "more_rows_one": "… 另外 {{count}} 項 — 展開",
+    "more_rows_other": "… 另外 {{count}} 項 — 展開",
+    "language_label": "語言：",
+    "expand": "展開",
+    "expand_hidden_one": "展開（{{count}} 項已隱藏）",
+    "expand_hidden_other": "展開（{{count}} 項已隱藏）",
+    "compact": "精簡"
   },
   "replay": {
     "title": "▶ 重播",
@@ -1421,7 +1447,11 @@
     "l_referee": "裁判平板",
     "l_pool": "小組顯示",
     "l_all": "所有劍道",
-    "l_strip": "劍道 {{n}}"
+    "l_strip": "劍道 {{n}}",
+    "sample_a": "陳 B.",
+    "sample_club_a": "香港劍擊會",
+    "sample_b": "李 A.",
+    "sample_club_b": "九龍劍擊會"
   },
   "teamManager": {
     "generate_pool": "產生小組",
@@ -2023,5 +2053,363 @@
     "pools": "{{a}}/{{b}} 個小組",
     "matches": "{{a}}/{{b}} 場",
     "tableau": "{{a}}/{{b}} 淘汰賽"
+  },
+  "offline": {
+    "never": "從未",
+    "just_now": "剛剛",
+    "minutes_ago": "{{n}} 分鐘前",
+    "hours_ago": "{{n}} 小時前",
+    "offline": "離線",
+    "online": "在線",
+    "syncing": "同步中…",
+    "pending_count": "{{count}} 項待處理",
+    "conflicts_count": "{{count}} 個衝突",
+    "connected": "已連接",
+    "connection": "連接：",
+    "last_sync": "上次同步：",
+    "pending_actions": "待處理操作：",
+    "conflicts": "衝突：",
+    "resolve_one": "解決 {{count}} 個衝突",
+    "resolve_other": "解決 {{count}} 個衝突",
+    "sync_now": "立即同步",
+    "sync_in_progress": "正在同步…",
+    "mode_title": "離線模式：",
+    "mode_text": "連線恢復後，變更將自動同步。"
+  },
+  "formulaSim": {
+    "title": "模擬 — {{n}} 名劍手",
+    "fencers": "劍手",
+    "pools_one": "{{count}} 個小組",
+    "pools_other": "{{count}} 個小組",
+    "pool_sizes": "（{{sizes}} 名劍手）",
+    "matches": "{{n}} 場比賽",
+    "advancing": "→ {{n}} 人晉級",
+    "total_matches": "比賽總數",
+    "duration": "預計時長",
+    "de": "直接淘汰",
+    "final_ranking": "最終排名"
+  },
+  "tableauScore": {
+    "quick_entry": "{{round}} - 快速輸入",
+    "max_score": "💡 最高分數：{{n}} 劍",
+    "abandon": "棄權",
+    "forfait": "缺席",
+    "exclusion": "取消資格",
+    "who_abandon": "哪位劍手棄權？",
+    "who_forfait": "哪位劍手缺席？",
+    "who_exclusion": "哪位劍手被取消資格？"
+  },
+  "addFencerPool": {
+    "title": "新增劍手 – 第 {{n}} 組",
+    "rescue_title": "補救操作：",
+    "rescue_text": "劍手將直接加入，不會重新分組。將建立與所有在場劍手的比賽。",
+    "search_ph": "按姓名搜尋…",
+    "search_aria": "按姓名搜尋劍手",
+    "loading": "正在載入劍手…",
+    "none": "沒有可用的劍手",
+    "adding": "新增中…",
+    "add": "新增劍手",
+    "sync_failed": "已新增劍手，但資料庫同步失敗",
+    "add_error": "新增時出錯：{{msg}}",
+    "unknown_error": "未知錯誤"
+  },
+  "conflicts": {
+    "title": "同步衝突（{{n}}）",
+    "type_competition": "比賽",
+    "type_fencer": "劍手",
+    "type_match": "比賽場次",
+    "local": "本地",
+    "remote": "遠端",
+    "keep_local": "保留本地",
+    "keep_remote": "保留遠端",
+    "none": "沒有需要解決的衝突。"
+  },
+  "updateNotif": {
+    "title": "有可用更新！",
+    "version": "版本",
+    "behind": "您落後 {{n}} 個更新",
+    "download": "📥 下載",
+    "notes": "📋 查看說明",
+    "redirect": "正在前往下載頁面…",
+    "later": "您可以稍後從「說明」選單更新"
+  },
+  "analyticsCharts": {
+    "no_data": "沒有資料",
+    "zones_title": "擊中區域 — {{n}} 名劍手",
+    "zone_a": "手/武器",
+    "zone_b": "手臂/腿",
+    "zone_c": "頭/軀幹",
+    "zone_line_one": "區域 {{zone}} · {{text}} · {{count}} 分",
+    "zone_line_other": "區域 {{zone}} · {{text}} · {{count}} 分",
+    "total_points": "總得分：",
+    "pts": "分",
+    "m": "場",
+    "top_points": "最佳劍手 — 擊中分數",
+    "top_matches": "最佳劍手 — 已比賽場次",
+    "fencers_short": "人",
+    "duration_title": "平均比賽時長分佈",
+    "cards_by_reason": "按原因統計的牌",
+    "cards_split": "牌的分佈",
+    "white": "白牌",
+    "yellow": "黃牌",
+    "red": "紅牌",
+    "empty": "沒有統計資料 — 請先開始比賽。",
+    "exporting": "匯出中…",
+    "csv_first_name": "名字",
+    "csv_total_points": "總分",
+    "csv_white": "白牌",
+    "csv_yellow": "黃牌",
+    "csv_red": "紅牌",
+    "csv_exits": "出界次數",
+    "csv_matches": "已比賽場次",
+    "csv_avg": "平均時長（秒）",
+    "csv_early": "提前結束"
+  },
+  "formulaTemplate": {
+    "name_required": "請輸入賽制名稱。",
+    "invalid_file": "檔案無效 — 無法讀取賽制。",
+    "save_title": "儲存賽制",
+    "load_title": "載入賽制",
+    "name": "賽制名稱",
+    "name_ph": "例如：標準俱樂部賽",
+    "save": "儲存",
+    "empty": "沒有已儲存的賽制。",
+    "phases_one": "{{count}} 個階段",
+    "phases_other": "{{count}} 個階段",
+    "load": "載入",
+    "export_json": "匯出 JSON",
+    "import_json": "從 JSON 檔案匯入"
+  },
+  "about": {
+    "easter_title": "按兩下有驚喜…",
+    "hint": "💡 按兩下建置編號…",
+    "desc_1": "劍擊賽事管理軟件。",
+    "desc_2": "小組賽、直接淘汰賽、即時遠程裁判。",
+    "licence": "授權：GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
+    "easter": "🐔  咯咯！  🐔"
+  },
+  "bracket": {
+    "expand_all": "全部展開",
+    "collapse_all": "全部收起",
+    "bye": "輪空",
+    "horizontal": "橫向檢視",
+    "pyramid": "金字塔檢視",
+    "final": "決賽",
+    "semis": "準決賽",
+    "quarters": "八強",
+    "r16": "十六強",
+    "r32": "三十二強",
+    "r64": "六十四強",
+    "r128": "一百二十八強",
+    "round_n": "第 {{n}} 輪"
+  },
+  "ffeExport": {
+    "code_required": "必須填寫比賽代碼",
+    "failed": "匯出失敗",
+    "title": "匯出至 FFE Connect",
+    "code": "比賽代碼 *",
+    "code_ph": "例如：2024-IDF-001",
+    "api_key": "API 金鑰（選填）",
+    "api_key_ph": "您的 FFE API 金鑰",
+    "missing_license": " — {{n}} 名沒有會員編號（已略過）",
+    "success": "結果已成功傳送至 FFE。",
+    "sending": "傳送中…"
+  },
+  "photoBooth": {
+    "no_media": "此環境無法使用網絡攝影機（缺少 mediaDevices）。",
+    "denied": "權限被拒 [{{name}}]。請在系統設定中確認應用程式可使用相機。",
+    "not_found": "未偵測到相機 [{{name}}]。請確認網絡攝影機已連接。",
+    "error": "無法存取相機 [{{name}}]：{{msg}}",
+    "webcam_error": "網絡攝影機錯誤：",
+    "start": "啟動相機",
+    "capture": "📸 拍攝",
+    "preview": "預覽",
+    "retake": "重拍",
+    "use": "使用此相片"
+  },
+  "splitCompetition": {
+    "title": "獨立比賽 — {{group}}",
+    "text_one": "{{count}} 名劍手將複製到新比賽，按小組賽後排名排序。",
+    "text_other": "{{count}} 名劍手將複製到新比賽，按小組賽後排名排序。",
+    "name": "比賽名稱",
+    "create": "建立比賽"
+  },
+  "tiebreaker": {
+    "title": "抽籤",
+    "subtitle": "時間到 — 仍然平手",
+    "green": "綠",
+    "red": "紅",
+    "wins": "🏆 {{name}} 勝出！",
+    "continue": "繼續"
+  },
+  "scoringZones": {
+    "head": "頭",
+    "torso": "軀幹",
+    "limbs": "手臂/腿",
+    "color": "顏色",
+    "name_ph": "區域名稱",
+    "pts": "分",
+    "remove": "刪除此區域",
+    "add": "+ 新增區域",
+    "max": "每劍最高："
+  },
+  "pdfEditor": {
+    "logo": "標誌",
+    "no_logo": "沒有標誌",
+    "colors": "顏色",
+    "sections": "區段"
+  },
+  "tableauSignatures": {
+    "title": "比賽簽名",
+    "resend": "重新傳送簽名至劍道",
+    "no_strip": "遠端伺服器未啟動或沒有可用劍道",
+    "strip": "劍道",
+    "strip_n": "劍道 {{n}}",
+    "busy": "（比賽進行中）"
+  },
+  "commandPalette": {
+    "no_result": "沒有結果",
+    "navigate": "瀏覽",
+    "select": "選擇",
+    "close": "關閉",
+    "aria": "命令面板",
+    "placeholder": "搜尋比賽或操作…",
+    "search_aria": "搜尋命令"
+  },
+  "dtCall": {
+    "title": "📣 召喚 DT",
+    "strip": " — 劍道 {{n}}",
+    "black_card": "⬛ 黑牌",
+    "black_card_note": "（取消資格，須向總會報告）",
+    "match_n": "第 {{n}} 場",
+    "pending": "⏳ 處理中…",
+    "resolve": "✅ DT 已出發 — 已解決"
+  },
+  "qrShare": {
+    "generating": "正在產生二維碼…",
+    "url": "網址：",
+    "copy": "📋 複製",
+    "download": "💾 下載二維碼",
+    "server_required": "必須啟動遠端伺服器才能分享結果。\n請在對應分頁啟用遠端計分。",
+    "error": "產生二維碼時出錯",
+    "copied": "網址已複製到剪貼簿！",
+    "results_title": "分享結果",
+    "results_desc": "掃描此二維碼查看「{{title}}」的結果",
+    "results_info": "觀眾可即時查看結果。",
+    "checkin_title": "報到二維碼",
+    "checkin_desc": "「{{title}}」的劍手掃描即可自行報到。",
+    "checkin_info": "在場館入口展示此二維碼，讓劍手確認出席。",
+    "tab_results": "🏆 結果",
+    "tab_checkin": "✅ 報到"
+  },
+  "kioskEntry": {
+    "quit": "✕ 離開資訊站模式",
+    "title": "資訊站模式 - 輸入分數",
+    "all_done": "✓ 所有比賽已完成 - 查看排名"
+  },
+  "tableauArena": {
+    "title": "分配劍道",
+    "hint": "選擇此場比賽的劍道："
+  },
+  "tableauReferee": {
+    "title_multi": "分配裁判",
+    "title_one": "分配一位裁判",
+    "hint_multi": "為此場比賽選擇最多 {{n}} 名裁判（第一位為主裁判）：",
+    "hint_one": "選擇此場比賽的裁判：",
+    "none": "✕ 無裁判",
+    "none_checked": "此比賽沒有已報到的裁判",
+    "validate": "✓ 確認（{{n}}/{{max}}）"
+  },
+  "dashboardCards": {
+    "vs_last_month": "對比上月",
+    "you": "（您）",
+    "pts": "分"
+  },
+  "matchTimer": {
+    "resume": "▶️ 繼續",
+    "pause": "⏸️ 暫停（事故）",
+    "paused": "⚠️ 暫停 - 事故處理中"
+  },
+  "voice": {
+    "title": "語音控制",
+    "listening": "聆聽中…",
+    "press": "按下以啟用",
+    "stop": "停止聆聽",
+    "start": "啟用語音",
+    "last": "上一個指令：",
+    "available": "可用指令："
+  },
+  "fencerPhoto": {
+    "invalid_select": "請選擇有效的圖片",
+    "invalid_drop": "請放入有效的圖片",
+    "too_big": "圖片不得超過 5 MB",
+    "error": "處理圖片時出錯",
+    "click_or_drop": "點擊或拖放相片",
+    "remove": "刪除相片",
+    "drop_here": "放在這裡",
+    "webcam_title": "用網絡攝影機拍照",
+    "take": "拍照"
+  },
+  "poolColumns": {
+    "button": "欄位（所有小組）",
+    "header": "欄位 — 套用至所有小組"
+  },
+  "fencerStats": {
+    "loading": "載入中…",
+    "count_one": "{{count}} 名劍手",
+    "count_other": "{{count}} 名劍手",
+    "name": "姓 / 名",
+    "detail": "點擊查看詳情",
+    "exporting": "匯出中…"
+  },
+  "confirmDialog": {
+    "title": "確認"
+  },
+  "poolGrid": {
+    "not_played": "比賽未進行（棄權/缺席）",
+    "fencer": "劍手"
+  },
+  "pdfModal": {
+    "preview": "預覽",
+    "iframe_title": "PDF 預覽"
+  },
+  "touchHeatmap": {
+    "touches_one": "{{count}} 劍",
+    "touches_other": "{{count}} 劍"
+  },
+  "poolCards": {
+    "title": "小組卡片大小",
+    "button": "🗔 卡片：{{size}} ▾",
+    "Compact": "精簡",
+    "Normal": "標準",
+    "Large": "大"
+  },
+  "consolation": {
+    "done": "已完成"
+  },
+  "matchCard": {
+    "bye": "輪空",
+    "signatures": "查看簽名"
+  },
+  "seedingTable": {
+    "title": "小組賽後排名"
+  },
+  "pendingSection": {
+    "matches_one": "{{count}} 場比賽",
+    "matches_other": "{{count}} 場比賽"
+  },
+  "addFencer": {
+    "last_name_ph": "陳",
+    "first_name_ph": "大文",
+    "club_ph": "香港劍擊會",
+    "region_ph": "香港"
+  },
+  "keypad": {
+    "aria": "數字鍵盤",
+    "clear": "清除",
+    "backspace": "退格"
+  },
+  "rankingCriteria": {
+    "drag": "拖曳以重新排序"
   }
 }

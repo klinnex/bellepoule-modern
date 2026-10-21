@@ -1,6 +1,7 @@
 import React from 'react';
 import { PoolRanking } from '../../../shared/types';
 import { CollapseToggle, useCollapsed } from '../common/CollapseToggle';
+import { translateStatic } from '../../contexts/TranslationContext';
 
 interface SeedingTableProps {
   ranking: PoolRanking[];
@@ -21,7 +22,7 @@ const SeedingTable: React.FC<SeedingTableProps> = ({ ranking, tableauSize }) => 
           gap: '0.5rem',
         }}
       >
-        Classement après poules
+        {translateStatic('seedingTable.title')}
         <CollapseToggle collapsed={collapsed} onToggle={toggleCollapsed} />
       </h3>
       {!collapsed && (

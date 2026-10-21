@@ -7,7 +7,7 @@ import type { ScoreAuditEntry } from '../../../shared/types/preload';
 import { ScoreAuditLog } from '../ScoreAuditLog';
 
 vi.mock('../Toast', () => ({ useToast: () => ({ showToast: vi.fn() }) }));
-vi.mock('../../hooks/useTranslation', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
+vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
 
 function entry(id: string, matchId: string, extra: Partial<ScoreAuditEntry> = {}): ScoreAuditEntry {
   return {

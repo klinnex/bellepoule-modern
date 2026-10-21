@@ -8,6 +8,7 @@ import '@testing-library/jest-dom';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+vi.mock('../hooks/useTranslation', () => import('../testUtils/i18nMock'));
 import AboutModal from './AboutModal';
 
 afterEach(() => {

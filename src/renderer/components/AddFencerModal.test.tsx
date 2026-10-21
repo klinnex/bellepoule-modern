@@ -25,8 +25,12 @@ const setup = () => {
 describe('AddFencerModal', () => {
   it('ajoute un tireur avec nom en majuscules puis ferme', () => {
     const { onAdd, onClose, container } = setup();
-    fireEvent.change(screen.getByPlaceholderText('DUPONT'), { target: { value: 'dupont' } });
-    fireEvent.change(screen.getByPlaceholderText('Jean'), { target: { value: 'Jean' } });
+    fireEvent.change(screen.getByPlaceholderText('addFencer.last_name_ph'), {
+      target: { value: 'dupont' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('addFencer.first_name_ph'), {
+      target: { value: 'Jean' },
+    });
     fireEvent.submit(container.querySelector('form')!);
     expect(onAdd).toHaveBeenCalledTimes(1);
     expect(onAdd.mock.calls[0][0].lastName).toBe('DUPONT');
