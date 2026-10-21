@@ -8,6 +8,12 @@ import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('../../hooks/useTranslation', () => ({
+  useTranslation: () => ({
+    t: (k: string, p?: Record<string, unknown>) => (p ? `${k} ${JSON.stringify(p)}` : k),
+  }),
+}));
 import PoolMatchList from './PoolMatchList';
 import { Fencer, Match, MatchStatus, Gender, FencerStatus } from '../../../shared/types';
 
@@ -86,10 +92,10 @@ const f3 = fencer('3', 'Bernard');
 describe('PoolMatchList', () => {
   it('affiche le prochain match et déclenche openScoreModal', () => {
     const props = renderList({ pending: [pending(f1, f2, 0)], finished: [], cancelled: [] });
-    expect(screen.getByText('⚔ Prochain match')).toBeInTheDocument();
+    expect(screen.getByText('poolMatches.next')).toBeInTheDocument();
     expect(screen.getByText('Dupont')).toBeInTheDocument();
     expect(screen.getByText('Martin')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Saisir le score'));
+    fireEvent.click(screen.getByText('poolMatches.enter_score'));
     expect(props.openScoreModal).toHaveBeenCalledWith(0);
   });
 
@@ -99,12 +105,12 @@ describe('PoolMatchList', () => {
       finished: [],
       cancelled: [],
     });
-    expect(screen.getByText(/À venir/)).toBeInTheDocument();
+    expect(screen.getByText(/poolMatches.upcoming/)).toBeInTheDocument();
   });
 
   it('affiche « Poule terminée » sans match en attente', () => {
     renderList({ pending: [], finished: [], cancelled: [] });
-    expect(screen.getByText('Poule terminée')).toBeInTheDocument();
+    expect(screen.getByText('poolMatches.done')).toBeInTheDocument();
   });
 
   it("le bouton supprimer d'un match terminé n'apparaît qu'au survol de la ligne", () => {
@@ -112,7 +118,7 @@ describe('PoolMatchList', () => {
       { pending: [], finished: [finished(f1, f2, 0)], cancelled: [] },
       { onMatchReset: vi.fn() }
     );
-    const deleteBtn = screen.getByTitle(/Supprimer ce résultat/);
+    const deleteBtn = screen.getByTitle('poolMatches.delete_result');
     expect(deleteBtn).toHaveStyle({ opacity: '0' });
 
     fireEvent.mouseEnter(deleteBtn.closest('div')!);
@@ -127,7 +133,7 @@ describe('PoolMatchList', () => {
       { pending: [], finished: [finished(f1, f2, 0)], cancelled: [] },
       { onMatchReset: vi.fn() }
     );
-    fireEvent.click(screen.getByTitle(/Supprimer ce résultat/));
+    fireEvent.click(screen.getByTitle('poolMatches.delete_result'));
     expect(props.onMatchReset).toHaveBeenCalledWith(0);
   });
 });

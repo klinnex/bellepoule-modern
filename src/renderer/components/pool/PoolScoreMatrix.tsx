@@ -7,6 +7,7 @@ import {
   isMatchVoidedByForfeit,
 } from '../../../shared/utils/poolCalculations';
 import { ColumnId } from '../../hooks/useColumnVisibility';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface PoolScoreMatrixProps {
   pool: Pool;
@@ -83,6 +84,7 @@ const ScoreCell = React.memo<ScoreCellProps>(
     onInlineSubmit,
     onInlineCancel,
   }) => {
+    const { t } = useTranslation();
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -119,7 +121,7 @@ const ScoreCell = React.memo<ScoreCellProps>(
             backgroundColor: 'var(--color-border)',
             color: 'var(--color-text-muted)',
           }}
-          title="Match non disputé (abandon/forfait)"
+          title={t('poolMatrix.not_fenced')}
         >
           <span>-</span>
         </div>
@@ -233,8 +235,8 @@ const ScoreCell = React.memo<ScoreCellProps>(
                   e.stopPropagation();
                   onMatchReset(rowFencer, colFencer);
                 }}
-                title="Annuler ce résultat"
-                aria-label="Annuler ce résultat"
+                title={t('poolMatrix.reset')}
+                aria-label={t('poolMatrix.reset')}
                 className="pool-cell-reset-btn"
                 style={{
                   position: 'absolute',
@@ -294,6 +296,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
   onInlineSubmit,
   onInlineCancel,
 }) => {
+  const { t } = useTranslation();
   const fencers = pool.fencers;
   const [flashCell, setFlashCell] = useState<string | null>(null);
   const prevMatchesRef = useRef<typeof pool.matches>(pool.matches);
@@ -442,9 +445,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'victories');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            V
+            {t('ranking.victories')}
           </div>
         )}
         {isVisible('ratio') && (
@@ -454,9 +457,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'ratio');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            V/M
+            {t('ranking.ratio')}
           </div>
         )}
         {isVisible('td') && (
@@ -466,9 +469,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'td');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            TD
+            {t('ranking.touches_scored')}
           </div>
         )}
         {isVisible('tr') && (
@@ -478,9 +481,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'tr');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            TR
+            {t('ranking.touches_received')}
           </div>
         )}
         {isVisible('quest') && isLaserSabre && (
@@ -491,7 +494,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'quest');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
             Quest
           </div>
@@ -503,9 +506,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'index');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            Ind
+            {t('poolMatrix.ind')}
           </div>
         )}
         {isVisible('rank') && (
@@ -515,9 +518,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'rank');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            Rg
+            {t('ranking.rank')}
           </div>
         )}
         {isVisible('club') && (
@@ -527,9 +530,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'club');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            Club
+            {t('ranking.club')}
           </div>
         )}
         {isVisible('nation') && (
@@ -539,9 +542,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'nation');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            Nat
+            {t('poolMatrix.nat')}
           </div>
         )}
         {isVisible('region') && (
@@ -551,9 +554,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'region');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            Rég
+            {t('poolMatrix.reg')}
           </div>
         )}
       </div>
@@ -643,8 +646,8 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                     e.stopPropagation();
                     onFencerChangePool(rowFencer);
                   }}
-                  title="Changer de poule"
-                  aria-label={`Changer ${rowFencer.lastName} de poule`}
+                  title={t('poolMatrix.change_pool')}
+                  aria-label={t('poolMatrix.change_pool_aria', { name: rowFencer.lastName })}
                   style={{
                     padding: '0.125rem 0.25rem',
                     fontSize: '0.625rem',

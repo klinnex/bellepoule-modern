@@ -233,7 +233,7 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
     const onMatchReset = vi.fn();
     render(<PoolView pool={testPool} onScoreUpdate={vi.fn()} onMatchReset={onMatchReset} />);
 
-    fireEvent.click(screen.getAllByLabelText('Annuler ce résultat')[0]);
+    fireEvent.click(screen.getAllByLabelText('poolMatrix.reset')[0]);
 
     expect(onMatchReset).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();

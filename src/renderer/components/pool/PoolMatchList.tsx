@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslation } from '../../hooks/useTranslation';
 import { Match, Fencer, FencerStatus } from '../../../shared/types';
 import { Arena } from '../../../shared/types/remote';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -111,6 +112,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
   waveMatchIds,
   onMatchArenaChange,
 }) => {
+  const { t } = useTranslation();
   const [showArenaModal, setShowArenaModal] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [highlightedMatchId, setHighlightedMatchId] = useState<string | null>(null);
@@ -163,7 +165,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
           if (isAbandonMatch) {
             return (
               <div className="pml-next is-void">
-                <div className="pml-next-label">✕ Match non disputé</div>
+                <div className="pml-next-label">{t('poolMatches.not_fenced')}</div>
                 <div className="pml-duel">
                   <div className="pml-side">
                     <div className={`pml-name${fencerAAbandoned ? ' is-struck' : ''}`}>
@@ -172,7 +174,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                     </div>
                     <div className="pml-firstname">{nextMatch.match.fencerA?.firstName}</div>
                   </div>
-                  <div className="pml-vs">vs</div>
+                  <div className="pml-vs">{t('poolMatches.vs')}</div>
                   <div className="pml-side">
                     <div className={`pml-name${fencerBAbandoned ? ' is-struck' : ''}`}>
                       {nextMatch.match.fencerB?.lastName}
@@ -188,7 +190,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
           return (
             <div className="pml-next">
               <div className="pml-next-head">
-                <span className="pml-next-label">⚔ Prochain match</span>
+                <span className="pml-next-label">{t('poolMatches.next')}</span>
                 <ArenaBadge
                   match={nextMatch.match}
                   defaultArena={defaultArena}
@@ -215,7 +217,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                 onClick={() => openScoreModal(nextMatch.index)}
                 className="pml-cta pool-cta-pulse"
               >
-                Saisir le score
+                {t('poolMatches.enter_score')}
               </button>
             </div>
           );
@@ -224,7 +226,9 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
       {/* Matches restants — strip horizontal scrollable */}
       {orderedMatches.pending.length > 1 && (
         <div className="mb-4">
-          <div className="pml-section-title">À venir ({orderedMatches.pending.length - 1})</div>
+          <div className="pml-section-title">
+            {t('poolMatches.upcoming', { n: orderedMatches.pending.length - 1 })}
+          </div>
           <div className="pml-strip">
             {orderedMatches.pending.slice(1).map(({ match, index }, i) => {
               const fencerAAbandoned = isOut(match.fencerA);
@@ -249,7 +253,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                   <span className={`pml-chip-name${fencerAAbandoned ? ' is-struck' : ''}`}>
                     {match.fencerA?.lastName}
                   </span>
-                  <span className="pml-chip-vs">vs</span>
+                  <span className="pml-chip-vs">{t('poolMatches.vs')}</span>
                   <span className={`pml-chip-name${fencerBAbandoned ? ' is-struck' : ''}`}>
                     {match.fencerB?.lastName}
                   </span>
@@ -273,7 +277,9 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
       {/* Matches terminés */}
       {orderedMatches.finished.length > 0 && (
         <div>
-          <div className="pml-section-title">Terminés ({orderedMatches.finished.length})</div>
+          <div className="pml-section-title">
+            {t('poolMatches.finished', { n: orderedMatches.finished.length })}
+          </div>
           <div className="pml-list">
             {orderedMatches.finished.map(({ match, index }) => {
               const fencerAAbandoned = isOut(match.fencerA);
@@ -330,7 +336,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                         e.stopPropagation();
                         onShowMatchAudit(match.id);
                       }}
-                      title="Journal du match"
+                      title={t('poolMatches.match_log')}
                       className="pml-icon-btn"
                     >
                       📋
@@ -342,7 +348,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                         e.stopPropagation();
                         onMatchReset(index);
                       }}
-                      title="Supprimer ce résultat (Ctrl+Z pour annuler la suppression)"
+                      title={t('poolMatches.delete_result')}
                       className="pml-icon-btn is-danger"
                       style={{ opacity: isHighlighted ? 1 : 0 }}
                     >
@@ -359,21 +365,23 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
       {/* Matches annulés */}
       {orderedMatches.cancelled.length > 0 && (
         <div className="pml-cancelled">
-          <div className="pml-section-title">Annulés ({orderedMatches.cancelled.length})</div>
+          <div className="pml-section-title">
+            {t('poolMatches.cancelled', { n: orderedMatches.cancelled.length })}
+          </div>
           <div className="pml-list">
             {orderedMatches.cancelled.map(({ match, index }) => (
               <div key={index} className="pml-cancelled-row">
                 <span className="pml-cancelled-icon">⏸</span>
                 <span className="pml-cancelled-name">
-                  {match.fencerA?.lastName} vs {match.fencerB?.lastName}
+                  {match.fencerA?.lastName} {t('poolMatches.vs')} {match.fencerB?.lastName}
                 </span>
                 {!isLocked && onMatchReset && (
                   <button
                     onClick={() => onMatchReset(index)}
-                    title="Relancer ce match"
+                    title={t('poolMatches.restart_title')}
                     className="pml-icon-btn is-info"
                   >
-                    ▶ Relancer
+                    {t('poolMatches.restart')}
                   </button>
                 )}
               </div>
@@ -386,8 +394,8 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
       {orderedMatches.pending.length === 0 && orderedMatches.cancelled.length === 0 && (
         <div className="pml-done">
           <div className="pml-done-icon">🏁</div>
-          <div className="pml-done-title">Poule terminée</div>
-          <div className="pml-done-sub">Tous les matches ont été joués</div>
+          <div className="pml-done-title">{t('poolMatches.done')}</div>
+          <div className="pml-done-sub">{t('poolMatches.done_sub')}</div>
         </div>
       )}
 
@@ -404,20 +412,20 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
           >
             <div className="modal-header">
               <h3 className="modal-title" id="pool-arena-title">
-                Assigner à une piste
+                {t('poolMatches.assign')}
               </h3>
               <button className="btn-close" onClick={closeArenaModal}>
-                &times;
+                ×
               </button>
             </div>
             <div className="modal-body">
-              <p className="u-hint mb-4">Sélectionnez la piste pour ce match :</p>
+              <p className="u-hint mb-4">{t('poolMatches.select_strip')}</p>
               <div className="pml-arena-grid">
                 <button
                   className={`btn is-full ${!matchArenaOverrides?.has(selectedMatch.id) ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => handleAssignArena(null)}
                 >
-                  ↩ Piste par défaut (Piste {defaultArena})
+                  {t('poolMatches.default_strip', { n: defaultArena })}
                 </button>
                 {Array.from({ length: arenaCount }, (_, i) => i + 1).map(arenaNum => {
                   const arenaObj = arenas.find(a => a.number === arenaNum);
@@ -436,7 +444,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                       className={`btn ${isCurrentArena ? 'btn-primary' : 'btn-secondary'}`}
                       onClick={() => handleAssignArena(arenaNum)}
                     >
-                      Piste {arenaNum}
+                      {t('poolMatches.strip_n', { n: arenaNum })}
                       {statusIcon}
                     </button>
                   );

@@ -1,6 +1,6 @@
 {
-  "jsxText": 593,
-  "jsxAttr": 135,
+  "jsxText": 491,
+  "jsxAttr": 99,
   "any": 553,
   "console": 303,
   "inlineStyle": 1343,
@@ -11,7 +11,7 @@
   "lineExceptions": {
     "src/renderer/styles/design.css": 2087,
     "src/renderer/styles/main.css": 2997,
-    "src/renderer/components/CompetitionView.tsx": 3141,
+    "src/renderer/components/CompetitionView.tsx": 3135,
     "src/renderer/components/PoolView.tsx": 1952,
     "src/renderer/components/RemoteScoreManager.tsx": 2523,
     "src/renderer/components/TableauView.tsx": 1630,

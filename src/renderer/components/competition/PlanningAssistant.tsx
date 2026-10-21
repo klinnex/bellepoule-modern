@@ -7,6 +7,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useTranslation } from '../../hooks/useTranslation';
 import { Competition, MatchStatus, Pool } from '../../../shared/types';
 import {
   TournamentFlowManager,
@@ -33,6 +34,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
   suggestedArenaCount,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const isTableau = !!tableauBrackets;
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [arenaCount, setArenaCount] = useState(Math.max(1, suggestedArenaCount));
@@ -106,13 +108,13 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
       >
         <div className="modal-header">
           <h2 className="modal-title" id="planning-assistant-title">
-            🗓️ Assistant de planning
+            {t('planning.title')}
           </h2>
         </div>
         <div className="modal-body u-stack-4">
           <div className="u-row">
             <label htmlFor="planning-arena-count" style={{ fontSize: '0.875rem', fontWeight: 600 }}>
-              Nombre de pistes disponibles
+              {t('planning.strips')}
             </label>
             <input
               id="planning-arena-count"
@@ -136,20 +138,20 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
                   fontSize: '0.875rem',
                 }}
               >
-                <strong>Fin estimée :</strong>{' '}
+                <strong>{t('planning.finish')}</strong>{' '}
                 {tableauResult.estimatedFinishTime.toLocaleTimeString(getActiveLocale(), {
                   hour: '2-digit',
                   minute: '2-digit',
                 })}{' '}
                 ({Math.round(tableauResult.totalDuration / 60000)} min)
                 <br />
-                <strong>Duels prêts :</strong> {tableauResult.readyCount} ·{' '}
-                <strong>en attente :</strong> {tableauResult.waitingCount}
+                <strong>{t('planning.ready')}</strong> {tableauResult.readyCount} ·{' '}
+                <strong>{t('planning.waiting')}</strong> {tableauResult.waitingCount}
                 <br />
-                <strong>Pistes utiles :</strong> {tableauResult.maxConcurrent}
+                <strong>{t('planning.useful')}</strong> {tableauResult.maxConcurrent}
               </div>
               {tableauResult.recommendations.length === 0 ? (
-                <p className="u-hint">Aucun point de vigilance détecté avec cette configuration.</p>
+                <p className="u-hint">{t('planning.no_issue')}</p>
               ) : (
                 <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.875rem' }}>
                   {tableauResult.recommendations.map((r, i) => (
@@ -158,19 +160,18 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
                 </ul>
               )}
               <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-light)' }}>
-                Estimation : {DEFAULT_TOURNAMENT_CONFIG.minRestTime} min de repos entre deux duels
-                d&apos;un tireur.
+                {t('planning.rest', { n: DEFAULT_TOURNAMENT_CONFIG.minRestTime })}
               </div>
             </>
           )}
 
           {!isTableau && loading && (
-            <p style={{ color: 'var(--color-text-light)' }}>Calcul en cours…</p>
+            <p style={{ color: 'var(--color-text-light)' }}>{t('planning.computing')}</p>
           )}
 
           {!isTableau && !loading && error && (
             <p role="alert" style={{ color: 'var(--color-danger, #dc2626)', fontSize: '0.875rem' }}>
-              Calcul impossible : {error}
+              {t('planning.error', { error })}
             </p>
           )}
 
@@ -185,17 +186,17 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
                   fontSize: '0.875rem',
                 }}
               >
-                <strong>Fin estimée :</strong>{' '}
+                <strong>{t('planning.finish')}</strong>{' '}
                 {insights.estimatedFinishTime.toLocaleTimeString(getActiveLocale(), {
                   hour: '2-digit',
                   minute: '2-digit',
                 })}
                 <br />
-                <strong>Matchs restants :</strong> {remainingMatches}
+                <strong>{t('planning.remaining')}</strong> {remainingMatches}
               </div>
 
               {recommendations.length === 0 && insights.bottlenecks.length === 0 ? (
-                <p className="u-hint">Aucun point de vigilance détecté avec cette configuration.</p>
+                <p className="u-hint">{t('planning.no_issue')}</p>
               ) : (
                 <ul
                   style={{
@@ -218,9 +219,10 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
 
               {result && result.schedule.length > 0 && (
                 <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-light)' }}>
-                  Attente entre deux matchs (poule la plus grande, ordre officiel) : moyenne{' '}
-                  {Math.max(0, Math.round(result.metrics.averageWaitTime))} min, max{' '}
-                  {Math.max(0, Math.round(result.metrics.maxFencerWait))} min
+                  {t('planning.wait', {
+                    avg: Math.max(0, Math.round(result.metrics.averageWaitTime)),
+                    max: Math.max(0, Math.round(result.metrics.maxFencerWait)),
+                  })}
                 </div>
               )}
             </>
@@ -228,7 +230,7 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
         </div>
         <div className="modal-footer">
           <button type="button" className="btn btn-primary" onClick={onClose}>
-            Fermer
+            {t('actions.close')}
           </button>
         </div>
       </div>
