@@ -1946,7 +1946,7 @@ describe('RemoteScoreServer', () => {
       expect(res.status).toHaveBeenCalledWith(401);
     });
   });
-  describe('finishPoolMatch (saisie dans l\'application)', () => {
+  describe("finishPoolMatch (saisie dans l'application)", () => {
     beforeEach(() => {
       (server as any).io = { emit: vi.fn(), to: () => ({ emit: vi.fn() }) };
     });
