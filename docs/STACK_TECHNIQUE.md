@@ -84,6 +84,7 @@ reste est intégré par Webpack.
 | @testing-library/jest-dom | 6.9.1 |
 | @testing-library/user-event | 14.6.7 |
 | @playwright/test | 1.63.0 |
+| @axe-core/playwright | 4.14.0 |
 | eslint | 9.39.5 (flat config `eslint.config.js`) |
 | @eslint/js | 9.39.5 |
 | @typescript-eslint/parser, eslint-plugin | 8.71.1 |

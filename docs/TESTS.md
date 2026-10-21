@@ -99,13 +99,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 31 | 154 |
-| E2E Playwright (`e2e/`) | 8 | 31 |
+| E2E Playwright (`e2e/`) | 8 | 33 |
 | `src/remote/` | 8 | 40 |
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **159** | **1559** |
+| **Total** | **159** | **1561** |
 
-Unitaires : 151 fichiers, 1528 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 151 fichiers, 1528 tests. E2E : 8 fichiers, 33 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2957,12 +2957,14 @@ Unitaires : 151 fichiers, 1528 tests. E2E : 8 fichiers, 31 tests (comptage stati
 ### E2E Playwright (`e2e/`)
 
 <details>
-<summary><code>e2e/accessibility.spec.ts</code> — 3 tests</summary>
+<summary><code>e2e/accessibility.spec.ts</code> — 5 tests</summary>
 
 - **Accessibility**
   - should have proper ARIA labels
   - should be keyboard navigable
   - should respect reduced motion preference
+  - should pass axe color-contrast (${scheme})
+  - should have no critical axe violations
 
 </details>
 
