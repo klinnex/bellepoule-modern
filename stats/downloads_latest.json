@@ -1,142 +1,142 @@
 {
-  "date": "2026-10-20T11:15:05Z",
+  "date": "2026-10-21T11:31:00Z",
   "releases": [
     {
-      "tag": "v1.1.1-dev.1415",
-      "name": "🧪 BellePoule Modern 1.1.1-dev.1415 (Build #1415)",
-      "published_at": "2026-10-20T04:14:01Z",
+      "tag": "v1.1.1-dev.1442",
+      "name": "🧪 BellePoule Modern 1.1.1-dev.1442 (Build #1442)",
+      "published_at": "2026-10-21T10:36:28Z",
       "total_downloads": 0,
       "assets": [
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1415-linux-arm64.AppImage",
+          "name": "BellePoule-Modern-1.1.1-dev.1442-linux-arm64.AppImage",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1415-linux-x86_64.AppImage",
+          "name": "BellePoule-Modern-1.1.1-dev.1442-linux-x86_64.AppImage",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1415-mac-arm64.dmg",
+          "name": "BellePoule-Modern-1.1.1-dev.1442-mac-arm64.dmg",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1415-mac-x64.dmg",
+          "name": "BellePoule-Modern-1.1.1-dev.1442-mac-x64.dmg",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1415-win-x64-portable.exe",
+          "name": "BellePoule-Modern-1.1.1-dev.1442-win-x64-portable.exe",
           "downloads": 0
         }
       ]
     },
     {
-      "tag": "v1.1.1-dev.1414",
-      "name": "🧪 BellePoule Modern 1.1.1-dev.1414 (Build #1414)",
-      "published_at": "2026-10-19T12:55:33Z",
-      "total_downloads": 1,
-      "assets": [
-        {
-          "name": "BellePoule-Modern-1.1.1-dev.1414-linux-arm64.AppImage",
-          "downloads": 0
-        },
-        {
-          "name": "BellePoule-Modern-1.1.1-dev.1414-linux-x86_64.AppImage",
-          "downloads": 0
-        },
-        {
-          "name": "BellePoule-Modern-1.1.1-dev.1414-mac-arm64.dmg",
-          "downloads": 0
-        },
-        {
-          "name": "BellePoule-Modern-1.1.1-dev.1414-mac-x64.dmg",
-          "downloads": 0
-        },
-        {
-          "name": "BellePoule-Modern-1.1.1-dev.1414-win-x64-portable.exe",
-          "downloads": 1
-        }
-      ]
-    },
-    {
-      "tag": "v1.1.1-dev.1412",
-      "name": "🧪 BellePoule Modern 1.1.1-dev.1412 (Build #1412)",
-      "published_at": "2026-10-19T04:11:52Z",
+      "tag": "v1.1.1-dev.1441",
+      "name": "🧪 BellePoule Modern 1.1.1-dev.1441 (Build #1441)",
+      "published_at": "2026-10-21T10:28:53Z",
       "total_downloads": 0,
       "assets": [
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1412-linux-arm64.AppImage",
+          "name": "BellePoule-Modern-1.1.1-dev.1441-linux-arm64.AppImage",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1412-linux-x86_64.AppImage",
+          "name": "BellePoule-Modern-1.1.1-dev.1441-linux-x86_64.AppImage",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1412-mac-arm64.dmg",
+          "name": "BellePoule-Modern-1.1.1-dev.1441-mac-arm64.dmg",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1412-mac-x64.dmg",
+          "name": "BellePoule-Modern-1.1.1-dev.1441-mac-x64.dmg",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1412-win-x64-portable.exe",
+          "name": "BellePoule-Modern-1.1.1-dev.1441-win-x64-portable.exe",
           "downloads": 0
         }
       ]
     },
     {
-      "tag": "v1.1.1-dev.1411",
-      "name": "🧪 BellePoule Modern 1.1.1-dev.1411 (Build #1411)",
-      "published_at": "2026-10-18T21:23:51Z",
-      "total_downloads": 1,
+      "tag": "v1.1.1-dev.1440",
+      "name": "🧪 BellePoule Modern 1.1.1-dev.1440 (Build #1440)",
+      "published_at": "2026-10-21T08:12:39Z",
+      "total_downloads": 0,
       "assets": [
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1411-linux-arm64.AppImage",
+          "name": "BellePoule-Modern-1.1.1-dev.1440-linux-arm64.AppImage",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1411-linux-x86_64.AppImage",
+          "name": "BellePoule-Modern-1.1.1-dev.1440-linux-x86_64.AppImage",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1411-mac-arm64.dmg",
+          "name": "BellePoule-Modern-1.1.1-dev.1440-mac-arm64.dmg",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1411-mac-x64.dmg",
+          "name": "BellePoule-Modern-1.1.1-dev.1440-mac-x64.dmg",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1411-win-x64-portable.exe",
-          "downloads": 1
+          "name": "BellePoule-Modern-1.1.1-dev.1440-win-x64-portable.exe",
+          "downloads": 0
         }
       ]
     },
     {
-      "tag": "v1.1.1-dev.1409",
-      "name": "🧪 BellePoule Modern 1.1.1-dev.1409 (Build #1409)",
-      "published_at": "2026-10-18T16:17:04Z",
+      "tag": "v1.1.1-dev.1439",
+      "name": "🧪 BellePoule Modern 1.1.1-dev.1439 (Build #1439)",
+      "published_at": "2026-10-21T07:21:35Z",
+      "total_downloads": 0,
+      "assets": [
+        {
+          "name": "BellePoule-Modern-1.1.1-dev.1439-linux-arm64.AppImage",
+          "downloads": 0
+        },
+        {
+          "name": "BellePoule-Modern-1.1.1-dev.1439-linux-x86_64.AppImage",
+          "downloads": 0
+        },
+        {
+          "name": "BellePoule-Modern-1.1.1-dev.1439-mac-arm64.dmg",
+          "downloads": 0
+        },
+        {
+          "name": "BellePoule-Modern-1.1.1-dev.1439-mac-x64.dmg",
+          "downloads": 0
+        },
+        {
+          "name": "BellePoule-Modern-1.1.1-dev.1439-win-x64-portable.exe",
+          "downloads": 0
+        }
+      ]
+    },
+    {
+      "tag": "v1.1.1-dev.1436",
+      "name": "🧪 BellePoule Modern 1.1.1-dev.1436 (Build #1436)",
+      "published_at": "2026-10-20T18:37:30Z",
       "total_downloads": 1,
       "assets": [
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1409-linux-arm64.AppImage",
+          "name": "BellePoule-Modern-1.1.1-dev.1436-linux-arm64.AppImage",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1409-linux-x86_64.AppImage",
+          "name": "BellePoule-Modern-1.1.1-dev.1436-linux-x86_64.AppImage",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1409-mac-arm64.dmg",
+          "name": "BellePoule-Modern-1.1.1-dev.1436-mac-arm64.dmg",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1409-mac-x64.dmg",
+          "name": "BellePoule-Modern-1.1.1-dev.1436-mac-x64.dmg",
           "downloads": 0
         },
         {
-          "name": "BellePoule-Modern-1.1.1-dev.1409-win-x64-portable.exe",
+          "name": "BellePoule-Modern-1.1.1-dev.1436-win-x64-portable.exe",
           "downloads": 1
         }
       ]
