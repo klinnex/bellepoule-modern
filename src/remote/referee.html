@@ -3365,17 +3365,11 @@
         updateBackButton() {
           const btn = document.getElementById('btn-back-to-list');
           if (!btn) return;
-          if (this.timerRunning) {
-            btn.disabled = true;
-            btn.style.opacity = '0.4';
-            btn.style.cursor = 'not-allowed';
-            btn.title = 'Retour désactivé pendant le chrono';
-          } else {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
-            btn.title = 'Retour à la liste des matchs';
-          }
+          const busy = this.timerRunning;
+          btn.disabled = busy;
+          btn.style.opacity = busy ? '0.4' : '1';
+          btn.style.cursor = busy ? 'not-allowed' : 'pointer';
+          btn.title = busy ? 'Retour désactivé pendant le chrono' : 'Retour à la liste des matchs';
         }
 
         startTimer() {
@@ -4538,7 +4532,11 @@
         window.open('/arene' + encodeURIComponent(n) + '/journal', '_blank');
       }
       function reloadIfIdle() {
-        if (!refereeApp.timerRunning) window.location.reload();
+        if (refereeApp.timerRunning) return;
+        // Chrono jamais lancé : le match redevient disponible pour les autres tablettes (#1118)
+        const open = !!refereeApp.currentMatch;
+        if (open) refereeApp.socket?.emit('arena_control', { arenaId: refereeApp.arenaId, action: 'release_match' });
+        setTimeout(() => window.location.reload(), open ? 200 : 0);
       }
       document.addEventListener('DOMContentLoaded', async () => {
         try {

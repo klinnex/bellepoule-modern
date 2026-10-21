@@ -7,18 +7,31 @@
 import { remoteServers } from '../remoteRegistry';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 
-export const activeWaves = new Map<string, string[] | null>();
+export interface ActiveWaveState {
+  ids: string[] | null;
+  /** Vagues terminées : plus aucun match de poule proposé */
+  poolsClosed: boolean;
+}
 
-/** Mémorise la vague (`null` : aucun filtre) et l'applique au serveur s'il tourne. */
-export function setActiveWave(competitionId: string, matchIds: unknown): void {
+export const activeWaves = new Map<string, ActiveWaveState>();
+
+/**
+ * Mémorise la vague (`null` : aucun filtre) et la fin des vagues, et les applique au
+ * serveur s'il tourne.
+ */
+export function setActiveWave(
+  competitionId: string,
+  matchIds: unknown,
+  poolsClosed: unknown = false
+): void {
   const ids = Array.isArray(matchIds) ? matchIds.filter(id => typeof id === 'string') : null;
-  activeWaves.set(competitionId, ids);
-  remoteServers.get(competitionId)?.server.setActiveWaveMatchIds(ids);
+  const closed = poolsClosed === true;
+  activeWaves.set(competitionId, { ids, poolsClosed: closed });
+  remoteServers.get(competitionId)?.server.setActiveWaveMatchIds(ids, closed);
 }
 
 /** Réapplique la vague mémorisée à un serveur (re)démarré. */
 export function applyActiveWave(competitionId: string, server: RemoteScoreServer): void {
-  if (activeWaves.has(competitionId)) {
-    server.setActiveWaveMatchIds(activeWaves.get(competitionId) ?? null);
-  }
+  const state = activeWaves.get(competitionId);
+  if (state) server.setActiveWaveMatchIds(state.ids, state.poolsClosed);
 }

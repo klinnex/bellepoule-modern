@@ -795,6 +795,20 @@ describe('RemoteScoreServer', () => {
       expect(matchesOf('arena1')).toEqual(['p1-m1', 'p1-m2']);
     });
 
+    it('rapières : vagues terminées, plus aucun match de poule proposé (#1118)', () => {
+      server.setActiveWaveMatchIds(['p1-m1', 'p1-m2']);
+      server.setActiveWaveMatchIds(null, true);
+      expect(matchesOf('arena1')).toEqual([]);
+      expect(matchesOf('arena2')).toEqual([]);
+      // Match de poule préchargé retiré de la piste
+      expect((server as any).arenas.get('arena1').currentMatch).toBeNull();
+      // Réappliqué au redémarrage : toujours fermé ; reprise des vagues : de nouveau proposé
+      server.setActiveWaveMatchIds(null, true);
+      expect(matchesOf('arena1')).toEqual([]);
+      server.setActiveWaveMatchIds(['p1-m2']);
+      expect(matchesOf('arena1')).toEqual(['p1-m2']);
+    });
+
     it('rapières : une sous-piste par tablette, matchs non partagés entre sous-pistes (#1118)', () => {
       // Hors vagues : toujours la piste
       expect(server.claimArenaSlot('arena1', 'devA')).toBe('arena1');
@@ -806,9 +820,24 @@ describe('RemoteScoreServer', () => {
       expect(server.claimArenaSlot('arena1s2', 'devB')).toBe('arena1s2');
       const slot = (server as any).arenas.get('arena1s2');
       expect(slot).toMatchObject({ number: 1, status: 'idle', currentMatch: null });
-      // Le match chargé sur la piste n'est pas proposé à la sous-piste
+      // Match préchargé sur la piste mais pas ouvert : toujours proposé à la sous-piste
+      expect(matchesOf('arena1s2')).toEqual(['p1-m1', 'p1-m2']);
+      // Ouvert par la tablette de la piste : plus proposé à la sous-piste
+      const arena1 = (server as any).arenas.get('arena1');
+      server.assignMatchToArena('arena1', arena1.currentMatch, true);
       expect(matchesOf('arena1s2')).toEqual(['p1-m2']);
       expect(matchesOf('arena1')).toEqual(['p1-m1', 'p1-m2']);
+      // Retour à la liste sans chrono : de nouveau proposé
+      const socket = { emit: vi.fn() };
+      (server as any).handleArenaControl(socket, { arenaId: 'arena1', action: 'release_match' });
+      expect(matchesOf('arena1s2')).toEqual(['p1-m1', 'p1-m2']);
+      // Chrono lancé : pris, même après retour à la liste
+      server.assignMatchToArena('arena1', arena1.currentMatch, true);
+      server.startArenaMatch('arena1');
+      (server as any).handleArenaControl(socket, { arenaId: 'arena1', action: 'release_match' });
+      expect(matchesOf('arena1s2')).toEqual(['p1-m2']);
+      server.pauseArenaMatch('arena1');
+      arena1.status = 'ready';
       // Fin des vagues : sous-piste supprimée, retour sur la piste
       server.setActiveWaveMatchIds(null);
       expect((server as any).arenas.has('arena1s2')).toBe(false);

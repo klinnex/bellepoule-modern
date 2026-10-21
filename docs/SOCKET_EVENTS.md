@@ -31,7 +31,7 @@ Guide fonctionnel : [ARBITRAGE.md](ARBITRAGE.md), [REMOTE_SCORE_GUIDE.md](../REM
 ### Actions `arena_control`
 
 Champ `action` de l'événement `arena_control` (`handleArenaControl`) :
-`add_card`, `arena_exit`, `card_announcement`, `change_referee`, `coin_flip`, `dt_call`, `dt_cancel`, `exit_announcement`, `finish`, `next`, `pause`, `pause_timer`, `reset_scores`, `reset_timer`, `select_match`, `start`, `toggle_swap`, `update_score`, `update_timer`, `waiting_overtime`.
+`add_card`, `arena_exit`, `card_announcement`, `change_referee`, `coin_flip`, `dt_call`, `dt_cancel`, `exit_announcement`, `finish`, `next`, `pause`, `pause_timer`, `release_match`, `reset_scores`, `reset_timer`, `select_match`, `start`, `toggle_swap`, `update_score`, `update_timer`, `waiting_overtime`.
 
 ## Serveur → client
 

@@ -441,10 +441,14 @@ export interface RemoteServerAPI {
     competitionId: string,
     updates: Array<{ poolId: string; fencers: any[] }>
   ) => Promise<{ success: boolean; error?: string }>;
-  /** Tournoi des rapières : matchs de la vague active proposés aux tablettes (`null` : tous) (#1118) */
+  /**
+   * Tournoi des rapières : matchs de la vague active proposés aux tablettes (`null` : tous) ;
+   * `poolsClosed` : vagues terminées, plus aucun match de poule proposé (#1118)
+   */
   setActiveWave: (
     competitionId: string,
-    matchIds: string[] | null
+    matchIds: string[] | null,
+    poolsClosed?: boolean
   ) => Promise<{ success: boolean; error?: string }>;
   syncPoolMatches: (
     competitionId: string,

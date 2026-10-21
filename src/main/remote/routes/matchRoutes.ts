@@ -32,6 +32,8 @@ export interface MatchRouteContext extends PoolRouteContext {
   getArenaBlackCards(arenaId: string): BlackCardRecord[];
   guestQueue(arenaId: string): ArenaMatch[];
   isInActiveWave(match: { id: string }): boolean;
+  /** Match de l'arène ouvert par sa tablette arbitre (sélectionné dans la liste) */
+  isArenaMatchOpened(arenaId: string): boolean;
   claimArenaSlot(arenaId: string, deviceKey: string, current?: string): string;
   isMatchPlayable(match: Match | ArenaMatch): boolean;
   isPendingMatch(match: ArenaMatch): boolean;
@@ -64,7 +66,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       // atteigne la file d'attente DE (Tier 3) au lieu de bloquer dessus.
       const currentPoolId = arena ? ctx.arenaHomePoolId(arena) : undefined;
       if (arena && currentPoolId && ctx.sessionMatches.length > 0) {
-        const taken = matchesTakenBySiblings(ctx.arenas, arenaId);
+        const taken = matchesTakenBySiblings(ctx.arenas, arenaId, id => ctx.isArenaMatchOpened(id));
         const rawPoolMatches = ctx.sessionMatches
           .filter((m: any) => {
             const matchPoolId = m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;

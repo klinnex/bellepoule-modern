@@ -1227,10 +1227,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // Tablettes arbitre : matchs de la vague active seulement (rapières, #1118), mémorisé par le main
   useEffect(() => {
     if (!isRapieres || !competition?.id) return;
-    window.electronAPI?.remote
-      ?.setActiveWave?.(competition.id, currentWaveMatchIds ? [...currentWaveMatchIds] : null)
-      ?.catch?.(() => undefined);
-  }, [isRapieres, isRemoteActive, competition?.id, currentWaveMatchIds]);
+    const ids = currentWaveMatchIds ? [...currentWaveMatchIds] : null;
+    const api = window.electronAPI?.remote;
+    api?.setActiveWave?.(competition.id, ids, !!rapieres.wavesEnded)?.catch?.(() => undefined);
+  }, [isRapieres, isRemoteActive, competition?.id, currentWaveMatchIds, rapieres.wavesEnded]);
 
   // Impression des feuilles de match de la vague active (même rendu que les feuilles du tableau) (#1118)
   const handlePrintWaveSheets = useCallback(async () => {
