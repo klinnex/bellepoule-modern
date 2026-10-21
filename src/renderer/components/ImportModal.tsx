@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useTranslation } from '../hooks/useTranslation';
 import { TD, TD_CENTER, TD_LEFT, LIST_INDENT, TABLE, STICKY_HEAD } from './importModal.styles';
 import { Fencer } from '../../shared/types';
 import {
@@ -36,6 +37,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
   onImportRanking,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [rankingResult, setRankingResult] = useState<RankingImportResult | null>(null);
@@ -111,9 +113,11 @@ const ImportModal: React.FC<ImportModalProps> = ({
         aria-modal="true"
       >
         <div className="modal-header">
-          <h2>{isRankingImport ? 'Importer un classement' : 'Importer des tireurs'}</h2>
+          <h2>
+            {isRankingImport ? t('importModal.title_ranking') : t('importModal.title_fencers')}
+          </h2>
           <button className="btn-close" onClick={onClose}>
-            &times;
+            ×
           </button>
         </div>
 
@@ -126,9 +130,9 @@ const ImportModal: React.FC<ImportModalProps> = ({
               borderRadius: '6px',
             }}
           >
-            <strong>Fichier:</strong> {filename}
+            <strong>{t('importModal.file')}</strong> {filename}
             <br />
-            <strong>Format:</strong> {format.toUpperCase()}
+            <strong>{t('importModal.format')}</strong> {format.toUpperCase()}
           </div>
 
           {/* Affichage pour l'import de classement */}
@@ -144,7 +148,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
                     color: '#dc2626',
                   }}
                 >
-                  <strong>Erreurs:</strong>
+                  <strong>{t('importModal.errors')}</strong>
                   <ul style={LIST_INDENT}>
                     {rankingResult.errors.map((err, i) => (
                       <li key={i}>{err}</li>
@@ -161,19 +165,19 @@ const ImportModal: React.FC<ImportModalProps> = ({
                   borderRadius: '6px',
                 }}
               >
-                <strong>Résultat:</strong>
+                <strong>{t('importModal.result')}</strong>
                 <ul style={LIST_INDENT}>
                   <li>
                     <span style={{ color: '#059669', fontWeight: 'bold' }}>
                       {rankingResult.updated}
                     </span>{' '}
-                    tireurs trouvés et mis à jour
+                    {t('importModal.updated')}
                   </li>
                   <li>
                     <span style={{ color: '#dc2626', fontWeight: 'bold' }}>
                       {rankingResult.notFound}
                     </span>{' '}
-                    tireurs non trouvés dans la liste d'appel
+                    {t('importModal.not_found')}
                   </li>
                 </ul>
               </div>
@@ -181,7 +185,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
               {rankingResult.details.length > 0 && (
                 <>
                   <div className="mb-2">
-                    <strong>Détails des mises à jour:</strong>
+                    <strong>{t('importModal.details')}</strong>
                   </div>
                   <div
                     style={{
@@ -194,11 +198,11 @@ const ImportModal: React.FC<ImportModalProps> = ({
                     <table style={TABLE}>
                       <thead style={STICKY_HEAD}>
                         <tr>
-                          <th style={TD_LEFT}>Nom</th>
-                          <th style={TD_LEFT}>Prénom</th>
-                          <th style={TD_LEFT}>Club</th>
-                          <th style={TD_CENTER}>Classement</th>
-                          <th style={TD_CENTER}>Statut</th>
+                          <th style={TD_LEFT}>{t('importModal.last_name')}</th>
+                          <th style={TD_LEFT}>{t('importModal.first_name')}</th>
+                          <th style={TD_LEFT}>{t('importModal.club')}</th>
+                          <th style={TD_CENTER}>{t('importModal.ranking')}</th>
+                          <th style={TD_CENTER}>{t('importModal.status')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -220,9 +224,11 @@ const ImportModal: React.FC<ImportModalProps> = ({
                             </td>
                             <td style={TD_CENTER}>
                               {detail.matched ? (
-                                <span style={{ color: '#059669' }}>✓ Mis à jour</span>
+                                <span style={{ color: '#059669' }}>{t('importModal.matched')}</span>
                               ) : (
-                                <span style={{ color: '#dc2626' }}>✗ Non trouvé</span>
+                                <span style={{ color: '#dc2626' }}>
+                                  {t('importModal.unmatched')}
+                                </span>
                               )}
                             </td>
                           </tr>
@@ -246,7 +252,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
                 color: '#dc2626',
               }}
             >
-              <strong>Erreurs:</strong>
+              <strong>{t('importModal.errors')}</strong>
               <ul style={LIST_INDENT}>
                 {result.errors.map((err, i) => (
                   <li key={i}>{err}</li>
@@ -265,7 +271,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
                 color: '#d97706',
               }}
             >
-              <strong>Avertissements:</strong>
+              <strong>{t('importModal.warnings')}</strong>
               <ul
                 style={{
                   margin: '0.5rem 0 0 1rem',
@@ -292,7 +298,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
                 }}
               >
                 <span>
-                  <strong>{result.fencers.length}</strong> tireurs trouvés
+                  <strong>{result.fencers.length}</strong> {t('importModal.found')}
                 </span>
                 <button
                   onClick={toggleAll}
@@ -307,8 +313,8 @@ const ImportModal: React.FC<ImportModalProps> = ({
                   }}
                 >
                   {selectedFencers.size === result.fencers.length
-                    ? 'Désélectionner tout'
-                    : 'Sélectionner tout'}
+                    ? t('importModal.deselect_all')
+                    : t('importModal.select_all')}
                 </button>
               </div>
 
@@ -324,11 +330,11 @@ const ImportModal: React.FC<ImportModalProps> = ({
                   <thead style={STICKY_HEAD}>
                     <tr>
                       <th style={{ padding: '0.5rem', textAlign: 'center', width: '40px' }}>✓</th>
-                      <th style={TD_LEFT}>Nom</th>
-                      <th style={TD_LEFT}>Prénom</th>
-                      <th style={TD_CENTER}>Sexe</th>
-                      <th style={TD_LEFT}>Club</th>
-                      <th style={TD_CENTER}>Classement</th>
+                      <th style={TD_LEFT}>{t('importModal.last_name')}</th>
+                      <th style={TD_LEFT}>{t('importModal.first_name')}</th>
+                      <th style={TD_CENTER}>{t('importModal.sex')}</th>
+                      <th style={TD_LEFT}>{t('importModal.club')}</th>
+                      <th style={TD_CENTER}>{t('importModal.ranking')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -368,16 +374,16 @@ const ImportModal: React.FC<ImportModalProps> = ({
             </>
           ) : !isRankingImport && result ? (
             <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-light)' }}>
-              Aucun tireur trouvé dans ce fichier
+              {t('importModal.none_in_file')}
             </div>
           ) : !isRankingImport ? (
-            <div style={{ textAlign: 'center', padding: '2rem' }}>Chargement...</div>
+            <div style={{ textAlign: 'center', padding: '2rem' }}>{t('importModal.loading')}</div>
           ) : null}
         </div>
 
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={onClose}>
-            Annuler
+            {t('actions.cancel')}
           </button>
           <button
             className="btn btn-primary"
@@ -389,8 +395,8 @@ const ImportModal: React.FC<ImportModalProps> = ({
             }
           >
             {isRankingImport
-              ? `Mettre à jour ${rankingResult?.updated || 0} classement${(rankingResult?.updated || 0) > 1 ? 's' : ''}`
-              : `Importer ${selectedFencers.size} tireur${selectedFencers.size > 1 ? 's' : ''}`}
+              ? t('importModal.update_n', { count: rankingResult?.updated || 0 })
+              : t('importModal.import_n', { count: selectedFencers.size })}
           </button>
         </div>
       </div>

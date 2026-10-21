@@ -1,6 +1,6 @@
 {
-  "jsxText": 788,
-  "jsxAttr": 164,
+  "jsxText": 593,
+  "jsxAttr": 135,
   "any": 553,
   "console": 303,
   "inlineStyle": 1343,
@@ -15,7 +15,7 @@
     "src/renderer/components/PoolView.tsx": 1952,
     "src/renderer/components/RemoteScoreManager.tsx": 2523,
     "src/renderer/components/TableauView.tsx": 1630,
-    "src/renderer/components/ThemeEditor.tsx": 1532,
+    "src/renderer/components/ThemeEditor.tsx": 1529,
     "src/renderer/components/wiki/wikiData.ts": 2765,
     "src/remote/arena.html": 2302,
     "src/remote/kiosk.html": 3488,

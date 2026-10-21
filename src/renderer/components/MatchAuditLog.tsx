@@ -299,14 +299,14 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
               alignItems: 'center',
             }}
           >
-            Arbitre :
+            {t('matchAudit.referee')}
             <select
-              aria-label="Filtrer par arbitre"
+              aria-label={t('matchAudit.filter_referee')}
               value={selectedReferee}
               onChange={e => setSelectedReferee(e.target.value)}
               style={selectStyle}
             >
-              <option value="">Tous les arbitres</option>
+              <option value="">{t('matchAudit.all_referees')}</option>
               {refereeNames.map(r => (
                 <option key={r} value={r}>
                   {r}
@@ -323,14 +323,14 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
               alignItems: 'center',
             }}
           >
-            Match :
+            {t('matchAudit.match')}
             <select
-              aria-label="Sélectionner un match"
+              aria-label={t('matchAudit.select_match')}
               value={selectedMatchId}
               onChange={e => setSelectedMatchId(e.target.value)}
               style={selectStyle}
             >
-              <option value="">Tous les matchs ({matchChoices.length})</option>
+              <option value="">{t('matchAudit.all_matches', { n: matchChoices.length })}</option>
               {matchChoices.map(c => (
                 <option key={c.id} value={c.id}>
                   {c.label}
@@ -372,7 +372,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     marginBottom: '0.4rem',
                   }}
                 >
-                  Côté {side}
+                  {t('matchAudit.side', { side })}
                 </div>
                 {(['A', 'B', 'C'] as const).map(z => {
                   const count = s[z];
@@ -440,7 +440,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
         <span
           style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', marginRight: '0.25rem' }}
         >
-          Filtrer :
+          {t('matchAudit.filter')}
         </span>
         {ALL_TYPES.map(t => {
           const active = filterTypes.length === 0 || filterTypes.includes(t);
@@ -464,7 +464,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
           );
         })}
         <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-          {filtered.length} événement{filtered.length !== 1 ? 's' : ''}
+          {t('matchAudit.events', { count: filtered.length })}
         </span>
         <button
           onClick={() => setRefereeView(v => !v)}
@@ -479,7 +479,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             cursor: 'pointer',
           }}
         >
-          Par arbitre
+          {t('matchAudit.by_referee')}
         </button>
         {singleMatch && (
           <button
@@ -514,7 +514,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             cursor: scopedEntries.length === 0 ? 'not-allowed' : 'pointer',
           }}
         >
-          Export JSON
+          {t('matchAudit.export_json')}
         </button>
       </div>
 
@@ -526,7 +526,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
       <div style={{ overflowY: 'auto', flex: 1 }}>
         {isLoading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-light)' }}>
-            Chargement…
+            {t('matchAudit.loading')}
           </div>
         ) : refereeView ? (
           refereeLastActions.length === 0 ? (
@@ -538,7 +538,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                 fontSize: '0.875rem',
               }}
             >
-              Aucune saisie de score enregistrée.
+              {t('matchAudit.no_score')}
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
@@ -557,7 +557,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       color: 'var(--color-text-light)',
                     }}
                   >
-                    Arbitre
+                    {t('matchAudit.col_referee')}
                   </th>
                   <th
                     style={{
@@ -577,7 +577,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       color: 'var(--color-text-light)',
                     }}
                   >
-                    Dernière saisie
+                    {t('matchAudit.col_last')}
                   </th>
                   {showMatchColumn && (
                     <th
@@ -588,7 +588,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                         color: 'var(--color-text-light)',
                       }}
                     >
-                      Match
+                      {t('matchAudit.col_match')}
                     </th>
                   )}
                   <th
@@ -599,7 +599,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       color: 'var(--color-text-light)',
                     }}
                   >
-                    Score
+                    {t('matchAudit.col_score')}
                   </th>
                 </tr>
               </thead>
@@ -684,7 +684,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  Heure
+                  {t('matchAudit.col_time')}
                 </th>
                 {showMatchColumn && (
                   <th
@@ -695,7 +695,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       color: 'var(--color-text-light)',
                     }}
                   >
-                    Match
+                    {t('matchAudit.col_match')}
                   </th>
                 )}
                 <th
@@ -706,7 +706,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     color: 'var(--color-text-light)',
                   }}
                 >
-                  Type
+                  {t('matchAudit.col_type')}
                 </th>
                 <th
                   style={{
@@ -716,7 +716,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     color: 'var(--color-text-light)',
                   }}
                 >
-                  Tireur
+                  {t('matchAudit.col_fencer')}
                 </th>
                 <th
                   style={{
@@ -726,7 +726,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     color: 'var(--color-text-light)',
                   }}
                 >
-                  Description
+                  {t('matchAudit.col_desc')}
                 </th>
               </tr>
             </thead>
@@ -756,7 +756,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                         <button
                           type="button"
                           onClick={() => setSelectedMatchId(entry.matchId)}
-                          title="Afficher uniquement ce match"
+                          title={t('matchAudit.only_match')}
                           style={{
                             background: 'none',
                             border: 'none',
@@ -812,7 +812,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             color: 'var(--color-text)',
           }}
         >
-          {competitionMode ? 'Journal des matchs' : 'Journal du match'}
+          {competitionMode ? t('matchAudit.matches_log') : t('matchAudit.match_log')}
         </h3>
         {content}
       </div>
@@ -840,10 +840,11 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
           }}
         >
           <h2 id="match-audit-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>
-            Journal du match{matchTitle ? ` — ${matchTitle}` : ''}
+            {t('matchAudit.match_log')}
+            {matchTitle ? ` — ${matchTitle}` : ''}
           </h2>
           <button className="btn-close" onClick={onClose}>
-            &times;
+            ×
           </button>
         </div>
         {content}
