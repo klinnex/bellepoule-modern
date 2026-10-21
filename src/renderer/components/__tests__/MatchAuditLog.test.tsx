@@ -70,21 +70,23 @@ describe('MatchAuditLog — vue compétition', () => {
 
   it('affiche tous les matchs avec colonne Match, puis filtre par match', async () => {
     render(<MatchAuditLog competitionId="c1" matchOptions={options} />);
-    expect(await screen.findByText('3 événements')).toBeInTheDocument();
-    expect(screen.getByText('Journal des matchs')).toBeInTheDocument();
+    expect(await screen.findByText('matchAudit.events {"count":3}')).toBeInTheDocument();
+    expect(screen.getByText('matchAudit.matches_log')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText('Sélectionner un match'), { target: { value: 'm2' } });
-    expect(screen.getByText('1 événement')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('matchAudit.select_match'), { target: { value: 'm2' } });
+    expect(screen.getByText('matchAudit.events {"count":1}')).toBeInTheDocument();
   });
 
   it('filtre par arbitre (saisie ou assignation)', async () => {
     render(<MatchAuditLog competitionId="c1" matchOptions={options} />);
-    await screen.findByText('3 événements');
+    await screen.findByText('matchAudit.events {"count":3}');
 
-    fireEvent.change(screen.getByLabelText('Filtrer par arbitre'), { target: { value: 'Durand' } });
-    expect(screen.getByText('2 événements')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('matchAudit.filter_referee'), {
+      target: { value: 'Durand' },
+    });
+    expect(screen.getByText('matchAudit.events {"count":2}')).toBeInTheDocument();
 
-    const matchSelect = screen.getByLabelText('Sélectionner un match') as HTMLSelectElement;
+    const matchSelect = screen.getByLabelText('matchAudit.select_match') as HTMLSelectElement;
     expect(Array.from(matchSelect.options).map(o => o.value)).toEqual(['', 'm1']);
   });
 });
@@ -101,10 +103,10 @@ describe('MatchAuditLog — replay (#1074)', () => {
 
   it('rejoue le match sélectionné événement par événement', async () => {
     render(<MatchAuditLog competitionId="c1" matchOptions={options} />);
-    await screen.findByText('3 événements');
+    await screen.findByText('matchAudit.events {"count":3}');
     expect(screen.queryByText('replay.title')).not.toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText('Sélectionner un match'), { target: { value: 'm1' } });
+    fireEvent.change(screen.getByLabelText('matchAudit.select_match'), { target: { value: 'm1' } });
     fireEvent.click(screen.getByText('replay.title'));
     expect(screen.getByText('replay.event_n {"current":1,"total":2}')).toBeInTheDocument();
 

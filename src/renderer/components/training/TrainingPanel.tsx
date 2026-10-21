@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from '../../hooks/useTranslation';
 import {
   Swords,
   Clock,
@@ -15,11 +16,11 @@ import type { TrainingMatchRecord } from '../../../shared/types/preload';
 import { getActiveLocale } from '../../../shared/utils/localeFormat';
 
 const WEAPON_LABELS: Record<string, string> = {
-  E: 'Épée',
-  F: 'Fleuret',
-  S: 'Sabre',
-  L: 'Laser',
-  C: 'Custom',
+  E: 'weapons.epee',
+  F: 'weapons.foil',
+  S: 'weapons.sabre',
+  L: 'weapons.laser',
+  C: 'weapons.custom',
 };
 
 function formatDuration(sec: number): string {
@@ -35,6 +36,7 @@ interface UrlRowProps {
   qrDataUrl: string | null;
 }
 const UrlRow: React.FC<UrlRowProps> = ({ label, url, qrDataUrl }) => {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -113,7 +115,7 @@ const UrlRow: React.FC<UrlRowProps> = ({ label, url, qrDataUrl }) => {
           </code>
           <button
             onClick={handleCopy}
-            title="Copier l'URL"
+            title={t('trainingPanel.copy_url')}
             style={{
               border: 'none',
               background: 'transparent',
@@ -138,6 +140,7 @@ interface KioskBlockProps {
   kioskUrl: string;
 }
 const KioskBlock: React.FC<KioskBlockProps> = ({ kioskUrl }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
 
@@ -186,7 +189,7 @@ const KioskBlock: React.FC<KioskBlockProps> = ({ kioskUrl }) => {
             gap: '0.4rem',
           }}
         >
-          <Monitor size={13} /> Kiosk grand écran
+          <Monitor size={13} /> {t('trainingPanel.kiosk_big')}
         </span>
         <div
           style={{
@@ -203,7 +206,7 @@ const KioskBlock: React.FC<KioskBlockProps> = ({ kioskUrl }) => {
       </button>
       {open && (
         <div style={{ padding: '0.5rem 0.75rem', borderTop: '1px solid var(--color-border)' }}>
-          <UrlRow label="Kiosk" url={kioskUrl} qrDataUrl={qr} />
+          <UrlRow label={t('trainingPanel.kiosk')} url={kioskUrl} qrDataUrl={qr} />
         </div>
       )}
     </div>
@@ -217,6 +220,7 @@ interface ArenaBlockProps {
   displayUrl: string;
 }
 const ArenaBlock: React.FC<ArenaBlockProps> = ({ number, refereeUrl, displayUrl }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [qrReferee, setQrReferee] = useState<string | null>(null);
   const [qrDisplay, setQrDisplay] = useState<string | null>(null);
@@ -264,7 +268,9 @@ const ArenaBlock: React.FC<ArenaBlockProps> = ({ number, refereeUrl, displayUrl 
           color: 'var(--color-text)',
         }}
       >
-        <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Piste {number}</span>
+        <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>
+          {t('trainingPanel.strip_n', { n: number })}
+        </span>
         <div
           style={{
             display: 'flex',
@@ -290,9 +296,9 @@ const ArenaBlock: React.FC<ArenaBlockProps> = ({ number, refereeUrl, displayUrl 
             gap: '0.25rem',
           }}
         >
-          <UrlRow label="Arbitre" url={refereeUrl} qrDataUrl={qrReferee} />
+          <UrlRow label={t('trainingPanel.referee')} url={refereeUrl} qrDataUrl={qrReferee} />
           <div style={{ height: '1px', background: 'var(--color-border)', margin: '0.25rem 0' }} />
-          <UrlRow label="Affichage" url={displayUrl} qrDataUrl={qrDisplay} />
+          <UrlRow label={t('trainingPanel.display')} url={displayUrl} qrDataUrl={qrDisplay} />
         </div>
       )}
     </div>
@@ -317,6 +323,7 @@ const TrainingPanel: React.FC<Props> = ({
   onStop,
   onOpenSettings,
 }) => {
+  const { t } = useTranslation();
   const [history, setHistory] = useState<TrainingMatchRecord[]>([]);
 
   const refreshHistory = useCallback(async () => {
@@ -387,7 +394,9 @@ const TrainingPanel: React.FC<Props> = ({
             }}
           >
             <Swords size={18} />
-            Entraînement — {WEAPON_LABELS[weapon] ?? weapon}
+            {t('trainingPanel.title', {
+              weapon: WEAPON_LABELS[weapon] ? t(WEAPON_LABELS[weapon]) : weapon,
+            })}
             <span
               style={{
                 display: 'inline-flex',
@@ -411,14 +420,14 @@ const TrainingPanel: React.FC<Props> = ({
                   display: 'inline-block',
                 }}
               />
-              EN COURS
+              {t('trainingPanel.in_progress')}
             </span>
           </h2>
           <button
             className="btn-close"
             onClick={onClose}
-            title="Fermer (l'entraînement continue)"
-            aria-label="Fermer"
+            title={t('trainingPanel.close_title')}
+            aria-label={t('actions.close')}
           >
             ×
           </button>
@@ -450,7 +459,7 @@ const TrainingPanel: React.FC<Props> = ({
               }}
             >
               <QrCode size={13} style={{ verticalAlign: 'middle', marginRight: '0.25rem' }} />
-              Pistes — {strips} piste{strips > 1 ? 's' : ''} (clic pour QR + copier)
+              {t('trainingPanel.strips', { count: strips })}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
               {arenas.map(({ number, referee, display }) => (
@@ -477,7 +486,7 @@ const TrainingPanel: React.FC<Props> = ({
               }}
             >
               <Trophy size={13} style={{ verticalAlign: 'middle', marginRight: '0.25rem' }} />
-              Historique session ({history.length} combat{history.length !== 1 ? 's' : ''})
+              {t('trainingPanel.history', { count: history.length })}
             </div>
             {history.length === 0 ? (
               <div
@@ -490,7 +499,7 @@ const TrainingPanel: React.FC<Props> = ({
                   borderRadius: '8px',
                 }}
               >
-                Aucun combat terminé
+                {t('trainingPanel.no_bout')}
               </div>
             ) : (
               <div
@@ -525,7 +534,7 @@ const TrainingPanel: React.FC<Props> = ({
                         fontSize: '0.75rem',
                       }}
                     >
-                      Piste {rec.arenaNumber}
+                      {t('trainingPanel.strip_n', { n: rec.arenaNumber })}
                     </span>
                     <span style={{ flex: 1, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                       {rec.scoreA} — {rec.scoreB}
@@ -569,12 +578,12 @@ const TrainingPanel: React.FC<Props> = ({
           <button
             className="btn btn-secondary btn-icon-label"
             onClick={onOpenSettings}
-            title="Paramètres"
+            title={t('trainingPanel.settings')}
           >
-            <Settings size={14} /> Paramètres
+            <Settings size={14} /> {t('trainingPanel.settings')}
           </button>
           <button className="btn btn-danger" onClick={onStop}>
-            Arrêter l'entraînement
+            {t('trainingPanel.stop')}
           </button>
         </div>
       </div>

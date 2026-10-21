@@ -297,7 +297,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
           paddingBottom: '0.5rem',
         }}
       >
-        👨‍⚖️ Gestion des Arbitres
+        {t('refereeManager.title')}
       </h2>
 
       {/* Onglets */}
@@ -351,31 +351,31 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
               }}
             >
               <input
-                placeholder="Prénom Nom *"
+                placeholder={t('refereeManager.ph_name')}
                 value={newReferee.name}
                 onChange={e => setNewReferee({ ...newReferee, name: e.target.value })}
                 style={INPUT}
               />
               <input
-                placeholder="Club"
+                placeholder={t('refereeManager.ph_club')}
                 value={newReferee.club}
                 onChange={e => setNewReferee({ ...newReferee, club: e.target.value })}
                 style={INPUT}
               />
               <input
-                placeholder="Licence"
+                placeholder={t('refereeManager.ph_license')}
                 value={newReferee.license}
                 onChange={e => setNewReferee({ ...newReferee, license: e.target.value })}
                 style={INPUT}
               />
               <input
-                placeholder="Catégorie (Régional…)"
+                placeholder={t('refereeManager.ph_category')}
                 value={newReferee.category}
                 onChange={e => setNewReferee({ ...newReferee, category: e.target.value })}
                 style={INPUT}
               />
               <input
-                placeholder="Nationalité (FRA)"
+                placeholder={t('refereeManager.ph_nationality')}
                 value={newReferee.nationality}
                 onChange={e => setNewReferee({ ...newReferee, nationality: e.target.value })}
                 style={INPUT}
@@ -471,7 +471,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     });
                   }}
                 >
-                  Annuler
+                  {t('actions.cancel')}
                 </button>
               )}
             </div>
@@ -488,7 +488,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              title="Format attendu : NOM;Prénom;Sexe(M/F);Catégorie;Club;Région;Nationalité — une ligne par arbitre, séparateur « ; », .txt ou .csv"
+              title={t('refereeManager.import_title')}
               style={{
                 background: '#6d28d9',
                 color: 'white',
@@ -499,12 +499,12 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 fontWeight: '500',
               }}
             >
-              📂 Importer fichier Arbitres
+              {t('refereeManager.import_btn')}
             </button>
             <button
               onClick={handleExportFile}
               disabled={referees.length === 0}
-              title="Exporte la liste en CSV — même format que l'import : NOM;Prénom;Sexe(M/F);Catégorie;Club;Région;Nationalité"
+              title={t('refereeManager.export_title')}
               style={{
                 background: '#059669',
                 color: 'white',
@@ -516,7 +516,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 opacity: referees.length === 0 ? 0.5 : 1,
               }}
             >
-              💾 Exporter fichier Arbitres
+              {t('refereeManager.export_btn')}
             </button>
             {importStatus && (
               <span
@@ -534,18 +534,25 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
 
           {/* Liste arbitres */}
           {referees.length === 0 ? (
-            <p style={MUTED_ITALIC}>Aucun arbitre enregistré.</p>
+            <p style={MUTED_ITALIC}>{t('refereeManager.none')}</p>
           ) : (
             <table style={TABLE}>
               <thead>
                 <tr style={ROW_ALT}>
-                  {['#', 'Nom', 'Club', 'Licence', 'Catégorie', 'Nationalité', 'Statut', ''].map(
-                    h => (
-                      <th key={h} style={TH}>
-                        {h}
-                      </th>
-                    )
-                  )}
+                  {[
+                    '#',
+                    t('refereeManager.h_name'),
+                    t('refereeManager.ph_club'),
+                    t('refereeManager.ph_license'),
+                    t('refereeManager.h_category'),
+                    t('refereeManager.h_nationality'),
+                    t('refereeManager.h_status'),
+                    '',
+                  ].map(h => (
+                    <th key={h} style={TH}>
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -603,7 +610,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                           cursor: 'pointer',
                           fontSize: '1rem',
                         }}
-                        title="Modifier"
+                        title={t('actions.edit')}
                       >
                         ✏️
                       </button>
@@ -623,7 +630,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                           color: '#ef4444',
                           fontSize: '1rem',
                         }}
-                        title="Supprimer"
+                        title={t('actions.delete')}
                       >
                         🗑
                       </button>
@@ -639,18 +646,23 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
       {activeTab === 'stats' && (
         <div>
           {matchStats.length === 0 ? (
-            <p style={MUTED_ITALIC}>Aucun arbitre enregistré.</p>
+            <p style={MUTED_ITALIC}>{t('refereeManager.none')}</p>
           ) : (
             <table style={TABLE}>
               <thead>
                 <tr style={ROW_ALT}>
-                  {['Arbitre', 'Club', 'Poules', 'Tableau', 'Total arbitrés', 'En attente'].map(
-                    h => (
-                      <th key={h} style={TH}>
-                        {h}
-                      </th>
-                    )
-                  )}
+                  {[
+                    t('refereeManager.col_referee'),
+                    t('refereeManager.ph_club'),
+                    t('refereeManager.h_pools'),
+                    t('refereeManager.tableau'),
+                    t('refereeManager.h_total_refereed'),
+                    t('refereeManager.h_pending'),
+                  ].map(h => (
+                    <th key={h} style={TH}>
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -670,7 +682,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
               <tfoot>
                 <tr className="referee-stats-total">
                   <td style={TD_BOLD} colSpan={2}>
-                    Total
+                    {t('refereeManager.total')}
                   </td>
                   {(
                     ['poolMatches', 'tableauMatches', 'totalMatches', 'pendingMatches'] as const
@@ -699,22 +711,28 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 background: 'var(--color-surface)',
               }}
             >
-              ↻ Actualiser
+              {t('refereeManager.refresh')}
             </button>
           </div>
           {historyRows.length === 0 ? (
-            <p style={MUTED_ITALIC}>Aucun match avec arbitre assigné.</p>
+            <p style={MUTED_ITALIC}>{t('refereeManager.no_history')}</p>
           ) : (
             <table style={TABLE}>
               <thead>
                 <tr style={ROW_ALT}>
-                  {['Poule', 'Match', 'Tireur A', 'Tireur B', 'Score', 'Statut', 'Arbitre'].map(
-                    h => (
-                      <th key={h} style={TH}>
-                        {h}
-                      </th>
-                    )
-                  )}
+                  {[
+                    t('refereeManager.h_pool'),
+                    t('refereeManager.h_match'),
+                    t('refereeManager.h_fencer_a'),
+                    t('refereeManager.h_fencer_b'),
+                    t('refereeManager.h_score'),
+                    t('refereeManager.h_status'),
+                    t('refereeManager.col_referee'),
+                  ].map(h => (
+                    <th key={h} style={TH}>
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -759,7 +777,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
             }}
           >
             <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--color-text)' }}>
-              Configuration de Rotation
+              {t('refereeManager.rotation_config')}
             </h3>
             <div
               style={{
@@ -774,7 +792,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                   checked={config.avoidSameClub}
                   onChange={e => setConfig({ ...config, avoidSameClub: e.target.checked })}
                 />
-                Éviter les arbitres du même club
+                {t('refereeManager.avoid_club')}
               </label>
               <label style={FLEX_GAP}>
                 <input
@@ -782,10 +800,10 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                   checked={config.balanceAssignment}
                   onChange={e => setConfig({ ...config, balanceAssignment: e.target.checked })}
                 />
-                Équilibrer les assignations
+                {t('refereeManager.balance')}
               </label>
               <label style={{ ...FLEX_GAP, whiteSpace: 'nowrap' }}>
-                Matchs consécutifs max :
+                {t('refereeManager.max_consecutive')}
                 <input
                   type="number"
                   value={config.maxConsecutiveMatches}
@@ -798,7 +816,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 />
               </label>
               <label style={{ ...FLEX_GAP, whiteSpace: 'nowrap' }}>
-                Temps de repos minimum :
+                {t('refereeManager.min_rest')}
                 <input
                   type="number"
                   value={config.minRestTimeMinutes}
@@ -828,7 +846,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 fontWeight: '500',
               }}
             >
-              🔄 Assignation Automatique
+              {t('refereeManager.auto_assign')}
             </button>
             <button
               onClick={() => setShowReport(!showReport)}
@@ -843,7 +861,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 fontWeight: '500',
               }}
             >
-              📊 {showReport ? 'Masquer' : 'Afficher'} le Rapport
+              {showReport ? t('refereeManager.hide_report') : t('refereeManager.show_report')}
             </button>
           </div>
 
@@ -858,26 +876,35 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 border: '1px solid #86efac',
               }}
             >
-              <h3 style={{ marginBottom: '1rem', color: '#166534' }}>Rapport de Rotation</h3>
+              <h3 style={{ marginBottom: '1rem', color: '#166534' }}>
+                {t('refereeManager.rotation_report')}
+              </h3>
               <table
                 style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--color-text)' }}
               >
                 <thead>
                   <tr style={{ background: '#dcfce7' }}>
-                    {['Arbitre', 'Matchs', 'Consécutifs', 'Fatigue', 'Violations', 'Conflits'].map(
-                      h => (
-                        <th
-                          key={h}
-                          style={{
-                            padding: '0.5rem',
-                            textAlign: h === 'Arbitre' ? 'left' : 'center',
-                            borderBottom: '2px solid #86efac',
-                          }}
-                        >
-                          {h}
-                        </th>
-                      )
-                    )}
+                    {(
+                      [
+                        'col_referee',
+                        'col_matches',
+                        'col_consecutive',
+                        'col_fatigue',
+                        'col_violations',
+                        'col_conflicts',
+                      ] as const
+                    ).map(h => (
+                      <th
+                        key={h}
+                        style={{
+                          padding: '0.5rem',
+                          textAlign: h === 'col_referee' ? 'left' : 'center',
+                          borderBottom: '2px solid #86efac',
+                        }}
+                      >
+                        {t(`refereeManager.${h}`)}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -897,7 +924,9 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                         }}
                       >
                         <td style={{ padding: '0.5rem' }}>
-                          {row.needsRest && <span title="Repos recommandé">⚠️ </span>}
+                          {row.needsRest && (
+                            <span title={t('refereeManager.rest_recommended')}>⚠️ </span>
+                          )}
                           {row.refereeName}
                         </td>
                         <td style={{ padding: '0.5rem', textAlign: 'center' }}>
@@ -944,7 +973,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
 
           {/* Arbitres List */}
           <div style={{ marginBottom: '1.5rem' }}>
-            <h3 style={HEADING}>Arbitres Disponibles</h3>
+            <h3 style={HEADING}>{t('refereeManager.available')}</h3>
             <div
               style={{
                 display: 'grid',
@@ -984,11 +1013,11 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     </div>
                     <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
                       <span style={{ color: 'var(--color-text)' }}>
-                        Matchs aujourd'hui: {stats.todayMatches}
+                        {t('refereeManager.today_matches', { n: stats.todayMatches })}
                       </span>
                       <br />
                       <span style={{ color: 'var(--color-text)' }}>
-                        Total: {stats.totalMatches}
+                        {t('refereeManager.total_n', { n: stats.totalMatches })}
                       </span>
                     </div>
                   </div>
@@ -999,9 +1028,9 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
 
           {/* Match Assignments */}
           <div>
-            <h3 style={HEADING}>Assignations des Matchs</h3>
+            <h3 style={HEADING}>{t('refereeManager.assignments')}</h3>
             {pendingMatches.length === 0 && (
-              <p style={MUTED_ITALIC}>Aucun match en attente d'arbitre.</p>
+              <p style={MUTED_ITALIC}>{t('refereeManager.no_pending')}</p>
             )}
             <div className="u-stack-2">
               {pendingMatches.map(match => {
@@ -1027,20 +1056,23 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                   >
                     <div className="flex-1">
                       <div style={{ fontWeight: '500' }}>
-                        {match.fencerA?.firstName} {match.fencerA?.lastName} vs{' '}
-                        {match.fencerB?.firstName} {match.fencerB?.lastName}
+                        {match.fencerA?.firstName} {match.fencerA?.lastName}{' '}
+                        {t('refereeManager.vs')} {match.fencerB?.firstName}{' '}
+                        {match.fencerB?.lastName}
                       </div>
                       {match.poolId ? (
                         <div style={SUB_TEXT}>
-                          Poule {pools.find(p => p.id === match.poolId)?.number}
+                          {t('refereeManager.pool_n', {
+                            n: pools.find(p => p.id === match.poolId)?.number ?? '',
+                          })}
                         </div>
                       ) : match.round ? (
                         <div style={SUB_TEXT}>
-                          Tableau{' '}
+                          {t('refereeManager.tableau')}{' '}
                           {match.round === 2
-                            ? 'Finale'
+                            ? t('refereeManager.final')
                             : match.round === 3
-                              ? '3e place'
+                              ? t('refereeManager.third')
                               : `T${match.round}`}
                         </div>
                       ) : null}
@@ -1062,7 +1094,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                           background: 'var(--color-surface)',
                         }}
                       >
-                        <option value="">-- Choisir un arbitre --</option>
+                        <option value="">{t('refereeManager.choose')}</option>
                         {referees
                           .filter(r => r.status !== 'unavailable' || r.id === assignedReferee?.id)
                           .map(referee => (

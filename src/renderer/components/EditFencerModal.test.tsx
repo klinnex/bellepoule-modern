@@ -8,6 +8,12 @@ import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('../hooks/useTranslation', () => ({
+  useTranslation: () => ({
+    t: (k: string, p?: Record<string, unknown>) => (p ? `${k} ${JSON.stringify(p)}` : k),
+  }),
+}));
 import EditFencerModal from './EditFencerModal';
 import { Fencer, Gender, FencerStatus } from '../../shared/types';
 

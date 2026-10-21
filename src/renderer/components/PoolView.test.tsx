@@ -195,7 +195,7 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
     expect(screen.getAllByText('0/1').length).toBeGreaterThan(0);
 
     rerender(<PoolView pool={{ ...testPool, isComplete: true }} onScoreUpdate={vi.fn()} />);
-    expect(screen.getByText('Terminée')).toBeInTheDocument();
+    expect(screen.getByText('poolView.finished')).toBeInTheDocument();
   });
 
   it("saisie des deux cases d'un match neuf : un seul onScoreUpdate avec les deux scores", () => {
@@ -233,7 +233,7 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
     const onMatchReset = vi.fn();
     render(<PoolView pool={testPool} onScoreUpdate={vi.fn()} onMatchReset={onMatchReset} />);
 
-    fireEvent.click(screen.getAllByLabelText('Annuler ce résultat')[0]);
+    fireEvent.click(screen.getAllByLabelText('poolMatrix.reset')[0]);
 
     expect(onMatchReset).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
@@ -247,7 +247,7 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
     const onScoreUpdate = vi.fn();
     render(<PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} />);
 
-    expect(await screen.findByText(/scores verrouillés/i)).toBeInTheDocument();
+    expect(await screen.findByText('poolView.locked')).toBeInTheDocument();
     fireEvent.click(screen.getAllByLabelText(/saisir le score/i)[0]);
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
   });

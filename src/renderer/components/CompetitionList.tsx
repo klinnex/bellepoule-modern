@@ -93,10 +93,30 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
 
   if (competitions.length === 0) {
     const steps = [
-      { step: '1', Icon: Trophy, label: 'Créer', desc: 'une compétition' },
-      { step: '2', Icon: Users, label: 'Ajouter', desc: 'les tireurs' },
-      { step: '3', Icon: LayoutGrid, label: 'Générer', desc: 'les poules' },
-      { step: '4', Icon: Medal, label: 'Publier', desc: 'les résultats' },
+      {
+        step: '1',
+        Icon: Trophy,
+        label: t('competitionList.s1_label'),
+        desc: t('competitionList.s1_desc'),
+      },
+      {
+        step: '2',
+        Icon: Users,
+        label: t('competitionList.s2_label'),
+        desc: t('competitionList.s2_desc'),
+      },
+      {
+        step: '3',
+        Icon: LayoutGrid,
+        label: t('competitionList.s3_label'),
+        desc: t('competitionList.s3_desc'),
+      },
+      {
+        step: '4',
+        Icon: Medal,
+        label: t('competitionList.s4_label'),
+        desc: t('competitionList.s4_desc'),
+      },
     ];
     return (
       <div className="content">
@@ -126,7 +146,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                 marginBottom: '0.5rem',
               }}
             >
-              Bienvenue sur {t('app.title')}
+              {t('competitionList.welcome', { app: t('app.title') })}
             </h1>
             <p
               style={{
@@ -136,12 +156,12 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                 margin: '0 auto',
               }}
             >
-              Gérez vos compétitions d&apos;escrime de l&apos;appel au podium.
+              {t('competitionList.tagline')}
             </p>
           </div>
 
           <ol
-            aria-label="Étapes"
+            aria-label={t('competitionList.steps')}
             style={{
               display: 'flex',
               gap: '1rem',
@@ -187,7 +207,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                       textTransform: 'uppercase',
                     }}
                   >
-                    Étape {step}
+                    {t('competitionList.step_n', { n: step })}
                   </div>
                   <div style={{ textAlign: 'center', fontSize: '0.8125rem', fontWeight: 600 }}>
                     {label}
@@ -244,8 +264,8 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           </div>
 
           <p style={{ color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>
-            Astuce : appuyez sur <kbd>?</kbd> pour voir les raccourcis clavier, ou <kbd>Ctrl</kbd>+
-            <kbd>K</kbd> pour ouvrir la palette de commandes.
+            {t('competitionList.tip_1')} <kbd>?</kbd> {t('competitionList.tip_2')} <kbd>Ctrl</kbd>+
+            <kbd>K</kbd> {t('competitionList.tip_3')}
           </p>
         </div>
       </div>
@@ -331,8 +351,10 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
               </div>
 
               <div className="comp-card-footer">
-                <span className="comp-card-fencers">🤺 {competition.fencers.length} tireurs</span>
-                <span className="comp-card-open">Ouvrir →</span>
+                <span className="comp-card-fencers">
+                  {t('competitionList.fencers', { n: competition.fencers.length })}
+                </span>
+                <span className="comp-card-open">{t('competitionList.open')}</span>
               </div>
             </div>
           </div>
@@ -354,7 +376,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             className="btn btn-secondary btn-sm"
             onClick={goToFirst}
             disabled={!hasPrev}
-            title="Première page"
+            title={t('competitionList.first_page')}
           >
             «
           </button>
@@ -362,7 +384,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             className="btn btn-secondary btn-sm"
             onClick={goToPrev}
             disabled={!hasPrev}
-            title="Page précédente"
+            title={t('competitionList.prev_page')}
           >
             ‹
           </button>
@@ -373,7 +395,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             className="btn btn-secondary btn-sm"
             onClick={goToNext}
             disabled={!hasNext}
-            title="Page suivante"
+            title={t('competitionList.next_page')}
           >
             ›
           </button>
@@ -381,7 +403,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             className="btn btn-secondary btn-sm"
             onClick={goToLast}
             disabled={!hasNext}
-            title="Dernière page"
+            title={t('competitionList.last_page')}
           >
             »
           </button>
@@ -393,7 +415,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           >
             {pageSizeOptions.map(s => (
               <option key={s} value={s}>
-                {s} / page
+                {t('competitionList.per_page', { n: s })}
               </option>
             ))}
           </select>

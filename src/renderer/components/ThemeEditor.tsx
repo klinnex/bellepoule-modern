@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useId } from 'react';
 import { CustomTheme, ThemeTargetType } from '../../shared/types/remote';
+import { useTranslation } from '../hooks/useTranslation';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Valeurs par défaut (thème dark)
@@ -439,6 +440,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
   onApply,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const instanceId = useId();
   const effectiveType = (targetType ?? 'arena') as ThemeTargetType;
   const isKiosk = effectiveType === 'kiosk';
@@ -679,17 +681,11 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
   };
 
   const arenaLabel =
-    effectiveType === 'kiosk'
-      ? 'Kiosque'
-      : effectiveType === 'public'
-        ? 'Affichage public'
-        : effectiveType === 'referee'
-          ? 'Tablette arbitre'
-          : effectiveType === 'pool'
-            ? 'Affichage poule'
-            : targetArenaId === 'all'
-              ? 'Toutes les pistes'
-              : `Piste ${targetArenaId.replace('arena', '')}`;
+    effectiveType !== 'arena'
+      ? t(`themeEditor.l_${effectiveType}`)
+      : targetArenaId === 'all'
+        ? t('themeEditor.l_all')
+        : t('themeEditor.l_strip', { n: targetArenaId.replace('arena', '') });
 
   return (
     <div className="theme-editor-overlay" onClick={onClose}>
@@ -697,9 +693,9 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
         {/* ── En-tête ── */}
         <div className="theme-editor-header">
           <div>
-            <h3 style={{ margin: 0 }}>Éditeur de thème</h3>
+            <h3 style={{ margin: 0 }}>{t('themeEditor.title')}</h3>
             <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.2rem' }}>
-              Cible : <strong style={{ color: '#60a5fa' }}>{arenaLabel}</strong>
+              {t('themeEditor.target')} <strong style={{ color: '#60a5fa' }}>{arenaLabel}</strong>
             </div>
           </div>
           <div className="u-row">
@@ -708,18 +704,18 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
               onClick={() => {
                 void handleImport();
               }}
-              title="Importer un thème JSON"
+              title={t('themeEditor.import_title')}
             >
-              ↑ Importer
+              {t('themeEditor.import')}
             </button>
             <button
               className="theme-editor-btn secondary"
               onClick={() => {
                 void handleExport();
               }}
-              title="Exporter comme JSON"
+              title={t('themeEditor.export_title')}
             >
-              ↓ Exporter
+              {t('themeEditor.export')}
             </button>
             <button className="theme-editor-btn close" onClick={onClose}>
               ✕
@@ -753,7 +749,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                   marginBottom: '0.3rem',
                 }}
               >
-                Nom du thème
+                {t('themeEditor.name')}
               </label>
               <input
                 type="text"
@@ -800,7 +796,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                   }}
                 >
                   <div className="var-row">
-                    <label className="var-label">Image fond</label>
+                    <label className="var-label">{t('themeEditor.bg_image')}</label>
                     <div className="var-control" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
                       <label
                         style={{
@@ -814,7 +810,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        📷 Choisir image
+                        {t('themeEditor.choose_image')}
                         <input
                           type="file"
                           accept="image/*"
@@ -835,13 +831,13 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                             cursor: 'pointer',
                           }}
                         >
-                          ✕ Retirer
+                          {t('themeEditor.remove')}
                         </button>
                       )}
                     </div>
                   </div>
                   <div className="var-row">
-                    <label className="var-label">Mode Overlay</label>
+                    <label className="var-label">{t('themeEditor.overlay_mode')}</label>
                     <div className="var-control">
                       <label className="u-row cursor-pointer">
                         <input
@@ -858,7 +854,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                         <span
                           style={{ fontSize: '0.8rem', color: overlayMode ? '#60a5fa' : '#94a3b8' }}
                         >
-                          Panneaux transparents sur l'image
+                          {t('themeEditor.overlay_hint')}
                         </span>
                       </label>
                     </div>
@@ -888,7 +884,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                     fontWeight: 600,
                   }}
                 >
-                  Thèmes sauvegardés
+                  {t('themeEditor.saved')}
                 </div>
                 <div
                   style={{
@@ -899,9 +895,9 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                     overflowY: 'auto',
                   }}
                 >
-                  {savedThemes.map(t => (
+                  {savedThemes.map(theme => (
                     <div
-                      key={t.id}
+                      key={theme.id}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -918,12 +914,12 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                           color: '#e2e8f0',
                           cursor: 'pointer',
                         }}
-                        onClick={() => handleLoadSaved(t)}
+                        onClick={() => handleLoadSaved(theme)}
                       >
-                        {t.name}
+                        {theme.name}
                       </span>
                       <button
-                        onClick={() => handleDeleteSaved(t.id)}
+                        onClick={() => handleDeleteSaved(theme.id)}
                         style={{
                           background: 'none',
                           border: 'none',
@@ -931,7 +927,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                           cursor: 'pointer',
                           fontSize: '0.9rem',
                         }}
-                        title="Supprimer"
+                        title={t('actions.delete')}
                       >
                         ✕
                       </button>
@@ -953,7 +949,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                 textAlign: 'center',
               }}
             >
-              Aperçu en direct
+              {t('themeEditor.live_preview')}
             </div>
             {/* Conteneur externe : clips + ratio 16:9 fixe */}
             <div
@@ -1015,7 +1011,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                       <span
                         style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--k-accent)' }}
                       >
-                        🏆 Classement provisoire
+                        {t('themeEditor.provisional')}
                       </span>
                       <span
                         style={{
@@ -1027,7 +1023,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                           color: 'var(--k-accent2)',
                         }}
                       >
-                        16 tireurs
+                        {t('themeEditor.sample_fencers')}
                       </span>
                     </div>
                     {/* Lignes de classement */}
@@ -1128,7 +1124,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                         flexShrink: 0,
                       }}
                     >
-                      <span style={{ fontWeight: 700 }}>⚔ Arène 1</span>
+                      <span style={{ fontWeight: 700 }}>{t('themeEditor.arena_1')}</span>
                       <span
                         style={{
                           background: '#22c55e',
@@ -1139,7 +1135,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                           color: '#fff',
                         }}
                       >
-                        EN COURS
+                        {t('themeEditor.in_progress')}
                       </span>
                     </div>
 
@@ -1333,7 +1329,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                       >
                         2
                       </span>{' '}
-                      — Arène en attente
+                      {t('themeEditor.waiting')}
                     </div>
                   </>
                 )}
@@ -1345,14 +1341,14 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
         {/* ── Pied de page ── */}
         <div className="theme-editor-footer">
           <button className="theme-editor-btn secondary" onClick={handleSave}>
-            💾 Sauvegarder
+            {t('themeEditor.save')}
           </button>
           <div className="flex-1" />
           <button className="theme-editor-btn secondary" onClick={onClose}>
-            Annuler
+            {t('actions.cancel')}
           </button>
           <button className="theme-editor-btn primary" onClick={handleApply}>
-            ✓ Appliquer à {arenaLabel}
+            {t('themeEditor.apply_to', { target: arenaLabel })}
           </button>
         </div>
       </div>
@@ -1372,6 +1368,7 @@ interface VarRowProps {
 }
 
 const VarRow: React.FC<VarRowProps> = ({ varKey, label, type, value, onChange }) => {
+  const { t } = useTranslation();
   const isSimpleColor = (v: string) => /^#[0-9a-fA-F]{3,8}$/.test(v.trim());
 
   if (type === 'size') {
@@ -1520,7 +1517,7 @@ const VarRow: React.FC<VarRowProps> = ({ varKey, label, type, value, onChange })
           value={value}
           onChange={e => onChange(e.target.value)}
           className="var-text-input"
-          placeholder="ex: linear-gradient(135deg,#000,#111)"
+          placeholder={t('themeEditor.gradient_ph')}
         />
       </div>
     </div>

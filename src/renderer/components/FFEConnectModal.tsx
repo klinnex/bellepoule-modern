@@ -88,20 +88,20 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
         aria-modal="true"
       >
         <div className="modal-header">
-          <h2 className="modal-title">Importer depuis FFE Connect</h2>
+          <h2 className="modal-title">{t('ffeConnect.title')}</h2>
           <button className="btn btn-icon btn-secondary" onClick={onClose}>
-            &times;
+            ×
           </button>
         </div>
 
         <div className="modal-body" style={{ flex: 1, overflow: 'auto' }}>
           <div className="form-row" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
             <div className="form-group" style={{ flex: 2 }}>
-              <label className="form-label">Code de compétition *</label>
+              <label className="form-label">{t('ffeConnect.code')}</label>
               <input
                 className="form-input"
                 type="text"
-                placeholder="ex: 2024-IDF-001"
+                placeholder={t('ffeConnect.code_ph')}
                 value={competitionCode}
                 onChange={e => setCompetitionCode(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleImportFetch()}
@@ -109,11 +109,11 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
               />
             </div>
             <div className="form-group" style={{ flex: 2 }}>
-              <label className="form-label">Clé API (optionnelle)</label>
+              <label className="form-label">{t('ffeConnect.api_key')}</label>
               <input
                 className="form-input"
                 type="password"
-                placeholder="Votre clé API FFE"
+                placeholder={t('ffeConnect.api_key_ph')}
                 value={apiKey}
                 onChange={e => setApiKey(e.target.value)}
                 disabled={loading}
@@ -177,14 +177,14 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
                   <thead>
                     <tr>
                       <th style={{ width: 36 }}></th>
-                      <th>Licence</th>
-                      <th>Nom</th>
-                      <th>Prénom</th>
-                      <th>Club</th>
-                      <th>Ligue</th>
-                      <th>Sexe</th>
-                      <th>Nationalité</th>
-                      <th>Classement</th>
+                      <th>{t('fencer.license')}</th>
+                      <th>{t('fencer.last_name')}</th>
+                      <th>{t('fencer.first_name')}</th>
+                      <th>{t('fencer.club')}</th>
+                      <th>{t('ffeConnect.league')}</th>
+                      <th>{t('ffeConnect.sex')}</th>
+                      <th>{t('fencer.nationality')}</th>
+                      <th>{t('fencer.ranking')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -229,10 +229,10 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
           style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', padding: '1rem' }}
         >
           <button className="btn btn-secondary" onClick={onClose}>
-            Annuler
+            {t('actions.cancel')}
           </button>
           <button className="btn btn-primary" onClick={handleAdd} disabled={selected.size === 0}>
-            Ajouter les sélectionnés ({selected.size})
+            {t('ffeConnect.add_selected', { n: selected.size })}
           </button>
         </div>
       </div>

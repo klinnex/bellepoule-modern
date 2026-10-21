@@ -2418,12 +2418,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             ) : pools.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon">🎯</div>
-                <h2 className="empty-state-title">Pas de poules</h2>
-                <p className="empty-state-description">
-                  Retournez à l'appel pour générer les poules
-                </p>
+                <h2 className="empty-state-title">{t('competitionView.no_pools')}</h2>
+                <p className="empty-state-description">{t('competitionView.no_pools_hint')}</p>
                 <button className="btn btn-primary" onClick={() => setCurrentPhase('checkin')}>
-                  Retour à l'appel
+                  {t('competitionView.back_checkin')}
                 </button>
               </div>
             ) : (
@@ -2461,22 +2459,22 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                     style={{ width: 'auto', fontWeight: 600 }}
                     value={poolsViewMode}
                     onChange={e => setPoolsViewMode(e.target.value as 'grid' | 'single')}
-                    title="Mode d'affichage des poules"
-                    aria-label="Mode d'affichage des poules"
+                    title={t('competitionView.pools_mode')}
+                    aria-label={t('competitionView.pools_mode')}
                   >
-                    <option value="grid">🗂️ Vue globale</option>
-                    <option value="single">🎯 Vue poule unique</option>
+                    <option value="grid">{t('competitionView.grid_view')}</option>
+                    <option value="single">{t('competitionView.single_view')}</option>
                   </select>
                   <button
                     className="btn btn-primary"
                     onClick={handlePrintAllPoolsPDF}
-                    title="Imprimer les feuilles de poule (Ctrl+P)"
+                    title={t('competitionView.print_title')}
                   >
-                    🖨️ Imprimer les feuilles de poule
+                    {t('competitionView.print')}
                   </button>
                   {pools.length > 1 && (
                     <button className="btn btn-success" onClick={handleExportAllPoolsPDF}>
-                      📄 Exporter toutes les poules en PDF
+                      {t('competitionView.export_all')}
                     </button>
                   )}
                 </div>
@@ -2497,8 +2495,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                           setSinglePoolIndex(i => (i - 1 + pools.length) % pools.length)
                         }
                         disabled={pools.length <= 1}
-                        title="Poule précédente"
-                        aria-label="Poule précédente"
+                        title={t('competitionView.prev_pool')}
+                        aria-label={t('competitionView.prev_pool')}
                       >
                         ◀
                       </button>
@@ -2507,11 +2505,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                         style={{ width: 'auto', fontWeight: 600, textAlign: 'center' }}
                         value={singlePoolIndex}
                         onChange={e => setSinglePoolIndex(Number(e.target.value))}
-                        aria-label="Sélectionner une poule"
+                        aria-label={t('competitionView.select_pool')}
                       >
                         {pools.map((pool, i) => (
                           <option key={pool.id} value={i}>
-                            Poule {pool.number}
+                            {t('competitionView.pool_n', { n: pool.number })}
                           </option>
                         ))}
                       </select>
@@ -2519,8 +2517,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                         className="btn btn-secondary"
                         onClick={() => setSinglePoolIndex(i => (i + 1) % pools.length)}
                         disabled={pools.length <= 1}
-                        title="Poule suivante"
-                        aria-label="Poule suivante"
+                        title={t('competitionView.next_pool')}
+                        aria-label={t('competitionView.next_pool')}
                       >
                         ▶
                       </button>
@@ -2656,7 +2654,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               <div
                 style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-light)' }}
               >
-                Chargement tableau…
+                {t('competitionView.loading_tableau')}
               </div>
             }
           >
@@ -2707,14 +2705,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                   color: 'var(--color-notice-text)',
                 }}
               >
-                <span>🔒 Tableau en lecture seule — résultats finaux générés.</span>
+                <span>{t('competitionView.readonly')}</span>
                 <button
                   onClick={async () => {
-                    if (
-                      await confirm(
-                        'Modifier le tableau effacera les résultats finaux. Continuer ?'
-                      )
-                    ) {
+                    if (await confirm(t('competitionView.edit_confirm'))) {
                       setFinalResults([]);
                     }
                   }}
@@ -2730,7 +2724,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                     fontWeight: '600',
                   }}
                 >
-                  ✏️ Modifier le tableau
+                  {t('competitionView.edit_tableau')}
                 </button>
               </div>
             )}
@@ -3038,10 +3032,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             <h3 style={CV_STYLES.thirdPlaceTitle}>{t('competition.third_place_match_dialog')}</h3>
             <div style={CV_STYLES.thirdPlaceBtnRow}>
               <button className="btn btn-secondary" onClick={() => handleThirdPlaceDecision(false)}>
-                Non
+                {t('actions.no')}
               </button>
               <button className="btn btn-primary" onClick={() => handleThirdPlaceDecision(true)}>
-                Oui
+                {t('actions.yes')}
               </button>
             </div>
           </div>

@@ -11,7 +11,7 @@ import {
   isPseudoLocaleEnabled,
   PSEUDO_LOCALE_STORAGE_KEY,
 } from '@shared/utils/pseudoLocale';
-import { pluralKeys, setActiveLanguage } from '@shared/utils/localeFormat';
+import { getActiveLanguage, pluralKeys, setActiveLanguage } from '@shared/utils/localeFormat';
 import { setPdfTranslator } from '@shared/utils/pdfExport/core';
 import frTranslations from '../locales/fr.json';
 import enTranslations from '../locales/en.json';
@@ -279,4 +279,17 @@ export const useTranslation = (): TranslationContextValue => {
     throw new Error('useTranslation must be used within a TranslationProvider');
   }
   return context;
+};
+
+/**
+ * Traduction hors contexte React (composants classe, ErrorBoundary rendu hors du
+ * TranslationProvider) : langue active de localeFormat, repli sur la clé (#1158).
+ */
+export const translateStatic = (key: TranslationKey, params?: Record<string, string | number>) => {
+  let value: unknown = loadTranslations(getActiveLanguage() as Language);
+  for (const k of key.split('.')) {
+    value = value && typeof value === 'object' ? (value as Record<string, unknown>)[k] : undefined;
+  }
+  if (typeof value !== 'string') return key;
+  return value.replace(/\{\{(\w+)\}\}/g, (match, p) => (params?.[p] ?? match).toString());
 };

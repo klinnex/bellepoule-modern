@@ -521,7 +521,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
           onClick={handleGeneratePool}
           className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
         >
-          Générer la poule
+          {t('teamManager.generate_pool')}
         </button>
       )}
       {canExportPdf && (
@@ -543,21 +543,25 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
           {/* Formulaire création */}
           <div className="bg-gray-50 rounded-lg p-4 flex gap-3 items-end">
             <div className="flex-1">
-              <label className="text-xs font-medium text-gray-500 block mb-1">Nom équipe</label>
+              <label className="text-xs font-medium text-gray-500 block mb-1">
+                {t('teamManager.team_name')}
+              </label>
               <input
                 value={newTeamName}
                 onChange={e => setNewTeamName(e.target.value)}
-                placeholder="Ex : équipe A"
+                placeholder={t('teamManager.team_name_ph')}
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
                 onKeyDown={e => e.key === 'Enter' && handleCreateTeam()}
               />
             </div>
             <div className="flex-1">
-              <label className="text-xs font-medium text-gray-500 block mb-1">Club</label>
+              <label className="text-xs font-medium text-gray-500 block mb-1">
+                {t('teamManager.club')}
+              </label>
               <input
                 value={newTeamClub}
                 onChange={e => setNewTeamClub(e.target.value)}
-                placeholder="Club / association"
+                placeholder={t('teamManager.club_ph')}
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
               />
             </div>
@@ -566,14 +570,12 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
               disabled={creating || !newTeamName.trim()}
               className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-40 whitespace-nowrap"
             >
-              + Créer
+              {t('teamManager.create')}
             </button>
           </div>
 
           {teams.length === 0 && (
-            <div className="text-center text-gray-400 py-10">
-              Aucune équipe — créez-en une ci-dessus.
-            </div>
+            <div className="text-center text-gray-400 py-10">{t('teamManager.no_team')}</div>
           )}
 
           {/* Liste équipes */}
@@ -598,7 +600,9 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                     <span className="font-semibold text-gray-900">{team.name}</span>
                     <span className="text-sm text-gray-400 ml-2">{team.club}</span>
                     {valid ? (
-                      <span className="ml-2 text-xs text-green-600 font-medium">✓ Complète</span>
+                      <span className="ml-2 text-xs text-green-600 font-medium">
+                        {t('teamManager.complete')}
+                      </span>
                     ) : (
                       <span className="ml-2 text-xs text-yellow-600 font-medium">
                         ⚠ {t('plural.fencers_missing', { count: teamSize - mainFencers.length })}
@@ -647,7 +651,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       key={reserve.fencerId}
                       className="flex items-center gap-1 bg-gray-50 border border-gray-300 rounded px-2 py-1 text-xs"
                     >
-                      <span className="text-gray-500">Rés.</span>
+                      <span className="text-gray-500">{t('teamManager.reserve_short')}</span>
                       <span>
                         {reserve.fencerLastName} {reserve.fencerFirstName}
                       </span>
@@ -662,7 +666,9 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                     </div>
                   ))}
                   {team.fencers.length === 0 && (
-                    <span className="text-xs text-gray-400 italic">Aucun tireur</span>
+                    <span className="text-xs text-gray-400 italic">
+                      {t('teamManager.no_fencer')}
+                    </span>
                   )}
                 </div>
 
@@ -670,13 +676,15 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                 {isEditing && (
                   <div className="px-4 py-3 bg-blue-50 border-t border-blue-100 flex gap-3 items-end flex-wrap">
                     <div>
-                      <label className="text-xs text-gray-600 block mb-1">Tireur</label>
+                      <label className="text-xs text-gray-600 block mb-1">
+                        {t('teamManager.fencer')}
+                      </label>
                       <select
                         value={selectedFencerId}
                         onChange={e => setSelectedFencerId(e.target.value)}
                         className="border border-gray-300 rounded px-2 py-1.5 text-sm"
                       >
-                        <option value="">-- sélectionner --</option>
+                        <option value="">{t('teamManager.select')}</option>
                         {availableFencers.map(f => (
                           <option key={f.id} value={f.id}>
                             {f.lastName} {f.firstName ?? ''}
@@ -685,7 +693,9 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-600 block mb-1">Position</label>
+                      <label className="text-xs text-gray-600 block mb-1">
+                        {t('teamManager.position')}
+                      </label>
                       <select
                         value={selectedOrder}
                         onChange={e => setSelectedOrder(Number(e.target.value))}
@@ -710,7 +720,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                         onChange={e => setSelectedIsReserve(e.target.checked)}
                       />
                       <label htmlFor={`res-${team.id}`} className="text-sm text-gray-600">
-                        Réserviste (max {reserveCount})
+                        {t('teamManager.reserve_max', { n: reserveCount })}
                       </label>
                     </div>
                     <button
@@ -723,7 +733,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       }
                       className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-40"
                     >
-                      Affecter
+                      {t('teamManager.assign')}
                     </button>
                   </div>
                 )}
@@ -828,12 +838,12 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                   URL.revokeObjectURL(url);
                 }}
               >
-                ↓ Exporter CSV
+                {t('teamManager.export_csv')}
               </button>
             </div>
           )}
           {laserRankings.length === 0 ? (
-            <div className="text-center text-gray-400 py-10">Aucun match joué.</div>
+            <div className="text-center text-gray-400 py-10">{t('teamManager.no_match')}</div>
           ) : (
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50">
@@ -842,7 +852,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                     #
                   </th>
                   <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-left">
-                    Équipe
+                    {t('teamManager.team')}
                   </th>
                   <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
                     V
@@ -852,18 +862,18 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                   </th>
                   <th
                     className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
-                    title="Critère principal du règlement : total de points marqués sur toutes les rencontres de poule"
+                    title={t('teamManager.points_plus_title')}
                   >
-                    Points+
+                    {t('teamManager.points_plus')}
                   </th>
                   <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
-                    Points-
+                    {t('teamManager.points_minus')}
                   </th>
                   <th
                     className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
-                    title="1er critère de départage : ratio points marqués / points reçus"
+                    title={t('teamManager.ratio_title')}
                   >
-                    Ratio
+                    {t('teamManager.ratio')}
                   </th>
                 </tr>
               </thead>
@@ -940,12 +950,12 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                   URL.revokeObjectURL(url);
                 }}
               >
-                ↓ Exporter CSV
+                {t('teamManager.export_csv')}
               </button>
             </div>
           )}
           {fieRankings.length === 0 ? (
-            <div className="text-center text-gray-400 py-10">Aucun match joué.</div>
+            <div className="text-center text-gray-400 py-10">{t('teamManager.no_match')}</div>
           ) : (
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50">
@@ -954,7 +964,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                     #
                   </th>
                   <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-left">
-                    Équipe
+                    {t('teamManager.team')}
                   </th>
                   <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
                     V
@@ -975,19 +985,19 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                     {t('teams.relaysLost')}
                   </th>
                   <th className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center">
-                    Ind.
+                    {t('teamManager.ind')}
                   </th>
                   <th
                     className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
-                    title="Touches cumulées (règle FIE)"
+                    title={t('teamManager.fie_title')}
                   >
-                    Touches+
+                    {t('teamManager.touches_plus')}
                   </th>
                   <th
                     className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase text-center"
-                    title="Touches cumulées (règle FIE)"
+                    title={t('teamManager.fie_title')}
                   >
-                    Touches-
+                    {t('teamManager.touches_minus')}
                   </th>
                 </tr>
               </thead>

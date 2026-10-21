@@ -8,6 +8,12 @@ import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('../hooks/useTranslation', () => ({
+  useTranslation: () => ({
+    t: (k: string, p?: Record<string, unknown>) => (p ? `${k} ${JSON.stringify(p)}` : k),
+  }),
+}));
 import ChangePoolModal from './ChangePoolModal';
 import { Fencer, Pool, Gender, FencerStatus } from '../../shared/types';
 
@@ -60,20 +66,20 @@ const setup = () => {
 describe('ChangePoolModal', () => {
   it('liste les autres poules (pas la poule courante)', () => {
     setup();
-    expect(screen.getByText('Poule 2')).toBeInTheDocument();
-    expect(screen.getByText('Poule 3')).toBeInTheDocument();
-    expect(screen.queryByText('Poule 1')).not.toBeInTheDocument();
+    expect(screen.getByText('changePool.pool_n {"n":2}')).toBeInTheDocument();
+    expect(screen.getByText('changePool.pool_n {"n":3}')).toBeInTheDocument();
+    expect(screen.queryByText('changePool.pool_n {"n":1}')).not.toBeInTheDocument();
   });
 
   it('le bouton déplacer est désactivé tant qu’aucune poule n’est choisie', () => {
     setup();
-    expect(screen.getByText('Déplacer le tireur')).toBeDisabled();
+    expect(screen.getByText('changePool.move')).toBeDisabled();
   });
 
   it('sélectionner une poule puis déplacer appelle onMove + onClose', () => {
     const { onMove, onClose } = setup();
-    fireEvent.click(screen.getByText('Poule 3'));
-    const btn = screen.getByText('Déplacer le tireur');
+    fireEvent.click(screen.getByText('changePool.pool_n {"n":3}'));
+    const btn = screen.getByText('changePool.move');
     expect(btn).not.toBeDisabled();
     fireEvent.click(btn);
     // onMove(fencerId, fromIndex=0, toIndex=2)

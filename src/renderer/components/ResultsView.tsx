@@ -644,14 +644,14 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       {isExportingFull && (
         <div style={RV_STYLES.overlay}>
           <div style={RV_STYLES.overlaySpinner} />
-          <div style={RV_STYLES.overlayText}>Génération du PDF complet…</div>
+          <div style={RV_STYLES.overlayText}>{t('resultsView.generating_pdf')}</div>
         </div>
       )}
       {/* En-tête avec le champion */}
       {champion && (
         <div style={RV_STYLES.champHeader}>
           <div style={RV_STYLES.champTrophy}>🏆</div>
-          <h1 style={RV_STYLES.champTitle}>Champion</h1>
+          <h1 style={RV_STYLES.champTitle}>{t('resultsView.champion')}</h1>
           <div style={RV_STYLES.champName}>
             {champion.fencer.firstName} {champion.fencer.lastName}
           </div>
@@ -666,7 +666,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           <div style={RV_STYLES.podium2}>
             <div style={RV_STYLES.podium2Medal}>🥈</div>
             <div style={RV_STYLES.podium2Name}>{resultsToDisplay[1].fencer.lastName}</div>
-            <div style={RV_STYLES.podium2Place}>2ème</div>
+            <div style={RV_STYLES.podium2Place}>{t('resultsView.second')}</div>
           </div>
         )}
 
@@ -675,7 +675,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           <div style={RV_STYLES.podium1}>
             <div style={RV_STYLES.podium1Medal}>🥇</div>
             <div style={RV_STYLES.podium1Name}>{resultsToDisplay[0].fencer.lastName}</div>
-            <div style={RV_STYLES.podium1Place}>1er</div>
+            <div style={RV_STYLES.podium1Place}>{t('resultsView.first')}</div>
           </div>
         )}
 
@@ -684,7 +684,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           <div style={RV_STYLES.podium3}>
             <div style={RV_STYLES.podium3Medal}>🥉</div>
             <div style={RV_STYLES.podium3Name}>{resultsToDisplay[2].fencer.lastName}</div>
-            <div style={RV_STYLES.podium3Place}>3ème</div>
+            <div style={RV_STYLES.podium3Place}>{t('resultsView.third')}</div>
           </div>
         )}
       </div>
@@ -692,16 +692,16 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       {/* Tableau complet des résultats */}
       <div style={RV_STYLES.tableWrapper}>
         <div style={RV_STYLES.tableHeader}>
-          📊 Classement final - {resultsToDisplay.length} tireurs
+          {t('resultsView.final_title', { n: resultsToDisplay.length })}
         </div>
 
         <table style={RV_STYLES.table}>
           <thead>
             <tr style={RV_STYLES.thead}>
-              <th style={RV_STYLES.thRank}>Rang</th>
-              <th style={RV_STYLES.thLeft}>Tireur</th>
-              <th style={RV_STYLES.thLeft}>Club</th>
-              <th style={RV_STYLES.thCenter}>Éliminé en</th>
+              <th style={RV_STYLES.thRank}>{t('resultsView.rank')}</th>
+              <th style={RV_STYLES.thLeft}>{t('resultsView.fencer')}</th>
+              <th style={RV_STYLES.thLeft}>{t('resultsView.club')}</th>
+              <th style={RV_STYLES.thCenter}>{t('resultsView.eliminated_in')}</th>
             </tr>
           </thead>
           <tbody>
@@ -724,8 +724,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   {result.fencer.status === FencerStatus.EXCLUDED &&
                     (result.fencer.exclusionReason === 'black_card' ? (
                       <span
-                        title="Exclu — carton noir"
-                        aria-label="Exclu — carton noir"
+                        title={t('resultsView.black_card')}
+                        aria-label={t('resultsView.black_card')}
                         data-testid="black-card-icon"
                         style={RV_STYLES.blackCard}
                       />
@@ -744,7 +744,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       {/* Boutons d'export */}
       <div style={RV_STYLES.exportRow}>
         <button onClick={() => window.electronAPI.print()} style={RV_STYLES.btnPrint}>
-          🖨️ Imprimer
+          {t('resultsView.print')}
         </button>
         <button
           onClick={() => {
@@ -755,11 +755,11 @@ const ResultsView: React.FC<ResultsViewProps> = ({
               )
               .join('\n');
             navigator.clipboard.writeText(text);
-            showToast('Résultats copiés dans le presse-papier !', 'success');
+            showToast(t('resultsView.copied'), 'success');
           }}
           style={RV_STYLES.btnCopy}
         >
-          📋 Copier
+          {t('resultsView.copy')}
         </button>
         <div ref={exportMenuRef} style={RV_STYLES.dropdownWrap}>
           <button
@@ -840,7 +840,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       </div>
 
       {/* Légende */}
-      <div style={RV_STYLES.legend}>(A) = Abandon • (F) = Forfait • (X) = Exclu</div>
+      <div style={RV_STYLES.legend}>{t('resultsView.legend')}</div>
     </div>
   );
 };

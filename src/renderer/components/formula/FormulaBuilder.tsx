@@ -177,7 +177,7 @@ const FormulaBuilder_: React.FC<Props> = ({
             className="form-input formula-name-input"
             value={formula.formulaName ?? ''}
             onChange={e => updateFormulaName(e.target.value)}
-            placeholder="Nom de la formule"
+            placeholder={t('formulaBuilder.name_ph')}
             disabled={readOnly}
           />
         </div>
@@ -188,25 +188,25 @@ const FormulaBuilder_: React.FC<Props> = ({
               type="button"
               className="btn btn-secondary btn-sm formula-add-btn pool-add"
               onClick={addPoolRound}
-              title="Ajouter un tour de poules"
+              title={t('formula.add_pool_round')}
             >
-              + Poules
+              {t('formulaBuilder.pools_btn')}
             </button>
             <button
               type="button"
               className="btn btn-secondary btn-sm formula-add-btn de-add"
               onClick={addDE}
-              title="Ajouter une phase d'élimination directe"
+              title={t('formulaBuilder.add_de_title')}
             >
-              + DE
+              {t('formulaBuilder.de_btn')}
             </button>
             <button
               type="button"
               className="btn btn-secondary btn-sm formula-add-btn class-add"
               onClick={addClassification}
-              title="Ajouter une phase de classement"
+              title={t('formulaBuilder.add_cls_title')}
             >
-              + Classement
+              {t('formulaBuilder.cls_btn')}
             </button>
           </div>
         )}
@@ -217,18 +217,18 @@ const FormulaBuilder_: React.FC<Props> = ({
               type="button"
               className="btn btn-secondary btn-sm"
               onClick={() => setTemplateModal('save')}
-              title="Enregistrer comme modèle"
+              title={t('formula.save_template')}
             >
-              Enregistrer modèle
+              {t('formulaBuilder.save_btn')}
             </button>
           )}
           <button
             type="button"
             className="btn btn-secondary btn-sm"
             onClick={() => setTemplateModal('load')}
-            title="Charger un modèle"
+            title={t('formula.load_template')}
           >
-            Charger modèle
+            {t('formulaBuilder.load_btn')}
           </button>
           {onSpecialModeChange && !readOnly && (
             <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -296,8 +296,8 @@ const FormulaBuilder_: React.FC<Props> = ({
           <div className="formula-pipeline">
             {formula.phases.length === 0 ? (
               <div className="formula-empty-state">
-                <p>Aucune phase configurée.</p>
-                <p>Utilisez les boutons ci-dessus pour ajouter des phases.</p>
+                <p>{t('formulaBuilder.empty')}</p>
+                <p>{t('formulaBuilder.empty_hint')}</p>
               </div>
             ) : (
               formula.phases.map((node, index) => (
@@ -371,12 +371,12 @@ const FormulaBuilder_: React.FC<Props> = ({
             </div>
 
             <div className="formula-notes-group">
-              <label className="form-label">Notes</label>
+              <label className="form-label">{t('formulaBuilder.notes')}</label>
               <textarea
                 className="form-input formula-notes-input"
                 value={formula.notes ?? ''}
                 onChange={e => updateNotes(e.target.value)}
-                placeholder="Notes sur la formule (optionnel)"
+                placeholder={t('formulaBuilder.notes_ph')}
                 rows={3}
                 disabled={readOnly}
               />

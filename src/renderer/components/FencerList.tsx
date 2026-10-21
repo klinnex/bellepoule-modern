@@ -502,9 +502,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               <button
                 className="btn btn-secondary"
                 onClick={() => setImportMenuOpen(o => !o)}
-                title="Importer"
+                title={t('actions.import')}
               >
-                📥 Importer ▾
+                {t('fencerList.import_menu')}
               </button>
               {importMenuOpen && (
                 <div
@@ -532,7 +532,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       setImportMenuOpen(false);
                     }}
                   >
-                    Importer XML (BellePoule)
+                    {t('fencerList.import_xml_bp')}
                   </button>
                   <button
                     className="btn btn-ghost"
@@ -542,7 +542,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       setImportMenuOpen(false);
                     }}
                   >
-                    Importer liste FFE (.fff)
+                    {t('fencerList.import_fff')}
                   </button>
                   <button
                     className="btn btn-ghost"
@@ -552,7 +552,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       setImportMenuOpen(false);
                     }}
                   >
-                    Importer classement (FFF / CSV)
+                    {t('fencerList.import_ranking')}
                   </button>
                   {onImportFFEConnect && (
                     <button
@@ -563,7 +563,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         setImportMenuOpen(false);
                       }}
                     >
-                      🔗 Importer depuis FFE Connect
+                      {t('fencerList.import_ffe_connect')}
                     </button>
                   )}
                   {competitionId && (
@@ -576,7 +576,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                           setImportMenuOpen(false);
                         }}
                       >
-                        Importer tireurs + photos (.bpf)
+                        {t('fencerList.import_bpf')}
                       </button>
                       <button
                         className="btn btn-ghost"
@@ -586,7 +586,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                           setImportMenuOpen(false);
                         }}
                       >
-                        Importer photos (.zip)
+                        {t('fencerList.import_photos')}
                       </button>
                     </>
                   )}
@@ -600,9 +600,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                 <button
                   className="btn btn-secondary"
                   onClick={() => setColMenuOpen(o => !o)}
-                  title="Afficher/masquer des colonnes"
+                  title={t('fencerList.columns_title')}
                 >
-                  ⚙ Colonnes ▾
+                  {t('fencerList.columns_menu')}
                 </button>
                 {colMenuOpen && (
                   <div
@@ -664,7 +664,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       }}
                       onClick={() => setColOrder(COLUMNS.map(c => c.id))}
                     >
-                      ↺ Réinitialiser l&apos;ordre
+                      {t('fencerList.reset_order')}
                     </button>
                   </div>
                 )}
@@ -673,9 +673,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                 <button
                   className="btn btn-secondary"
                   onClick={() => setExportMenuOpen(o => !o)}
-                  title="Exporter"
+                  title={t('actions.export')}
                 >
-                  📤 Exporter ▾
+                  {t('fencerList.export_menu')}
                 </button>
                 {exportMenuOpen && (
                   <div
@@ -703,7 +703,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         setExportMenuOpen(false);
                       }}
                     >
-                      Exporter PDF (appel)
+                      {t('fencerList.export_pdf_appel')}
                     </button>
                     <button
                       className="btn btn-ghost"
@@ -713,7 +713,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         setExportMenuOpen(false);
                       }}
                     >
-                      Exporter TXT
+                      {t('fencerList.export_txt')}
                     </button>
                     <button
                       className="btn btn-ghost"
@@ -723,7 +723,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         setExportMenuOpen(false);
                       }}
                     >
-                      Exporter FFF
+                      {t('fencerList.export_fff')}
                     </button>
                     <button
                       className="btn btn-ghost"
@@ -733,7 +733,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         setExportMenuOpen(false);
                       }}
                     >
-                      Exporter tireurs + photos (.bpf)
+                      {t('fencerList.export_bpf')}
                     </button>
                     <button
                       className="btn btn-ghost"
@@ -743,7 +743,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         setExportMenuOpen(false);
                       }}
                     >
-                      Exporter photos (.zip)
+                      {t('fencerList.export_photos')}
                     </button>
                   </div>
                 )}
@@ -757,7 +757,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               onClick={() => setShowRegisterQR(true)}
               style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
             >
-              <span>📱</span> QR Inscription
+              <span>📱</span> {t('fencerList.qr_register')}
             </button>
           )}
           {!readOnly && (
@@ -795,7 +795,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             onClick={e => e.stopPropagation()}
           >
             <h3 style={{ marginBottom: '0.75rem', fontSize: '1.1rem', fontWeight: 700 }}>
-              📱 Inscription tireur
+              {t('fencerList.register_title')}
             </h3>
             <p
               style={{
@@ -804,12 +804,12 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                 marginBottom: '1rem',
               }}
             >
-              Scannez ce QR code avec la tablette pour accéder au formulaire d&apos;inscription
+              {t('fencerList.register_hint')}
             </p>
             {registerQRDataUrl ? (
               <img
                 src={registerQRDataUrl}
-                alt="QR code inscription"
+                alt={t('fencerList.register_qr_alt')}
                 width={220}
                 height={220}
                 style={{ borderRadius: 8 }}
@@ -825,7 +825,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                   margin: '0 auto',
                 }}
               >
-                Génération…
+                {t('fencerList.generating')}
               </div>
             )}
             <code
@@ -844,7 +844,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               style={{ marginTop: '1rem', width: '100%' }}
               onClick={() => setShowRegisterQR(false)}
             >
-              Fermer
+              {t('actions.close')}
             </button>
           </div>
         </div>
@@ -871,7 +871,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               marginBottom: '5px',
             }}
           >
-            <span>Pointage</span>
+            <span>{t('fencerList.checkin')}</span>
             <span
               style={{
                 fontWeight: 600,
@@ -923,7 +923,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             type="text"
             className="form-input"
             style={{ width: '100%', paddingLeft: '2.25rem', boxSizing: 'border-box' }}
-            placeholder="Rechercher un tireur…"
+            placeholder={t('fencerList.search_placeholder')}
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
@@ -935,10 +935,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           {fencers.length === 0 ? (
             <>
               <div className="empty-state-icon">🤺</div>
-              <h2 className="empty-state-title">Aucun tireur inscrit</h2>
-              <p className="empty-state-description">
-                Importez une liste ou ajoutez des tireurs manuellement
-              </p>
+              <h2 className="empty-state-title">{t('fencerList.empty_title')}</h2>
+              <p className="empty-state-description">{t('fencerList.empty_desc')}</p>
               <div
                 style={{
                   display: 'flex',
@@ -958,13 +956,13 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       className="btn btn-secondary"
                       onClick={() => handleImportFencers('fff')}
                     >
-                      📥 Importer FFE (.fff)
+                      {t('fencerList.empty_import_fff')}
                     </button>
                     <button
                       className="btn btn-secondary"
                       onClick={() => handleImportFencers('xml')}
                     >
-                      📥 Importer XML
+                      {t('fencerList.empty_import_xml')}
                     </button>
                   </CoachMark>
                 )}
@@ -976,9 +974,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           ) : (
             <>
               <div className="empty-state-icon">🔍</div>
-              <h2 className="empty-state-title">Aucun résultat</h2>
+              <h2 className="empty-state-title">{t('fencerList.no_result_title')}</h2>
               <p className="empty-state-description">
-                « {searchTerm} » ne correspond à aucun tireur
+                {t('fencerList.no_result_desc', { term: searchTerm })}
               </p>
             </>
           )}
@@ -1018,7 +1016,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       {sortBy === col.id ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
                     </th>
                   ))}
-                  <th>Actions</th>
+                  <th>{t('fencerList.actions')}</th>
                 </tr>
               </thead>
             </table>
@@ -1064,7 +1062,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         {sortBy === col.id ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
                       </th>
                     ))}
-                    <th style={W250}>Actions</th>
+                    <th style={W250}>{t('fencerList.actions')}</th>
                   </tr>
                 </thead>
               )}
@@ -1140,7 +1138,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                           <button
                             className="btn btn-sm btn-secondary"
                             onClick={() => openEdit(fencer)}
-                            title="Modifier"
+                            title={t('actions.edit')}
                             style={SMALL_BTN}
                           >
                             ✏️
@@ -1165,7 +1163,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                     })
                                   )
                                 }
-                                title="Abandonner"
+                                title={t('fencerList.abandon')}
                                 style={SMALL_BTN}
                               >
                                 🚶
@@ -1181,7 +1179,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                     })
                                   )
                                 }
-                                title="Forfait"
+                                title={t('fencerList.forfeit')}
                                 style={SMALL_BTN}
                               >
                                 📋
@@ -1202,7 +1200,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                     })
                                   )
                                 }
-                                title="Réactiver"
+                                title={t('fencerList.reactivate')}
                                 style={SMALL_BTN}
                               >
                                 ✅
@@ -1212,7 +1210,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                             <button
                               className="btn btn-sm btn-danger"
                               onClick={() => handleDeleteFencer(fencer.id)}
-                              title="Supprimer"
+                              title={t('actions.delete')}
                               style={SMALL_BTN}
                             >
                               🗑️

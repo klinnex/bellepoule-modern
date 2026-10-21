@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { logger, LogCategory } from '@shared/services/logger';
 
@@ -31,6 +32,7 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
   fencerName,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [results, setResults] = useState<CompetitionResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,15 +82,15 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
         aria-modal="true"
       >
         <div className="modal-header flex-shrink-0">
-          <h2 style={{ margin: 0 }}>Historique — {fencerName}</h2>
+          <h2 style={{ margin: 0 }}>{t('historicalStats.title', { name: fencerName })}</h2>
           <button className="btn-close" onClick={onClose}>
-            &times;
+            ×
           </button>
         </div>
 
         {loading ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-            Chargement…
+            {t('historicalStats.loading')}
           </div>
         ) : (
           <>
@@ -103,10 +105,20 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                 flexShrink: 0,
               }}
             >
-              <StatCard label="Compétitions" value={totalCompetitions.toString()} />
-              <StatCard label="Meilleur rang" value={bestRank !== null ? `${bestRank}e` : '—'} />
-              <StatCard label="Victoires" value={totalVictories.toString()} color="#16a34a" />
-              <StatCard label="% victoires" value={`${ratio}%`} />
+              <StatCard
+                label={t('historicalStats.competitions')}
+                value={totalCompetitions.toString()}
+              />
+              <StatCard
+                label={t('historicalStats.best_rank')}
+                value={bestRank !== null ? t('historicalStats.rank_n', { n: bestRank }) : '—'}
+              />
+              <StatCard
+                label={t('historicalStats.victories')}
+                value={totalVictories.toString()}
+                color="#16a34a"
+              />
+              <StatCard label={t('historicalStats.win_pct')} value={`${ratio}%`} />
             </div>
 
             <div style={{ overflowY: 'auto', flex: 1 }}>
@@ -114,7 +126,7 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                 <div
                   style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}
                 >
-                  Aucun historique disponible
+                  {t('historicalStats.none')}
                 </div>
               ) : (
                 <>
@@ -133,13 +145,15 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                   >
                     <thead>
                       <tr style={{ background: 'var(--color-bg)' }}>
-                        <th style={thS}>Date</th>
-                        <th style={{ ...thS, textAlign: 'left' }}>Compétition</th>
-                        <th style={thS}>Arme</th>
-                        <th style={thS}>Rang</th>
-                        <th style={thS}>V</th>
-                        <th style={thS}>D</th>
-                        <th style={thS}>TD/TR</th>
+                        <th style={thS}>{t('historicalStats.date')}</th>
+                        <th style={{ ...thS, textAlign: 'left' }}>
+                          {t('historicalStats.competition')}
+                        </th>
+                        <th style={thS}>{t('historicalStats.weapon')}</th>
+                        <th style={thS}>{t('historicalStats.rank')}</th>
+                        <th style={thS}>{t('ranking.victories')}</th>
+                        <th style={thS}>{t('historicalStats.defeats')}</th>
+                        <th style={thS}>{t('historicalStats.td_tr')}</th>
                       </tr>
                     </thead>
                     <tbody>

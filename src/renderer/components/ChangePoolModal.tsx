@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useRef } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { Fencer, Pool, MatchStatus } from '../../shared/types';
 
@@ -23,6 +24,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
   onMove,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [selectedPoolIndex, setSelectedPoolIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -58,9 +60,9 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
         aria-modal="true"
       >
         <div className="modal-header">
-          <h2>Changer de poule</h2>
+          <h2>{t('changePool.title')}</h2>
           <button className="btn-close" onClick={onClose}>
-            &times;
+            ×
           </button>
         </div>
 
@@ -91,12 +93,12 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                 marginBottom: '0.25rem',
               }}
             >
-              ↕ Tireur (glisser vers une poule)
+              {t('changePool.drag')}
             </div>
             <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>
               {fencer.firstName} {fencer.lastName}
             </div>
-            <div className="u-hint">Actuellement en Poule {currentPool.number}</div>
+            <div className="u-hint">{t('changePool.current', { n: currentPool.number })}</div>
           </div>
 
           {hasPlayedMatches && (
@@ -110,8 +112,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                 fontSize: '0.875rem',
               }}
             >
-              ⚠️ <strong>Attention :</strong> Ce tireur a déjà disputé des matches dans cette poule.
-              Le déplacement supprimera ses résultats.
+              ⚠️ <strong>{t('changePool.warning')}</strong> {t('changePool.warning_text')}
             </div>
           )}
 
@@ -124,7 +125,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                 marginBottom: '0.5rem',
               }}
             >
-              Déplacer vers :
+              {t('changePool.move_to')}
             </label>
 
             {otherPools.length === 0 ? (
@@ -137,7 +138,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                   borderRadius: '6px',
                 }}
               >
-                Aucune autre poule disponible
+                {t('changePool.none')}
               </div>
             ) : (
               <div className="u-stack-2">
@@ -176,7 +177,9 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                     >
                       <div className="u-row-between">
                         <div>
-                          <span style={{ fontWeight: '600' }}>Poule {pool.number}</span>
+                          <span style={{ fontWeight: '600' }}>
+                            {t('changePool.pool_n', { n: pool.number })}
+                          </span>
                           <span
                             style={{
                               marginLeft: '0.5rem',
@@ -184,7 +187,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                               color: 'var(--color-text-light)',
                             }}
                           >
-                            ({pool.fencers.length} tireurs)
+                            {t('changePool.fencers_n', { n: pool.fencers.length })}
                           </span>
                         </div>
                         {matchesPlayed > 0 && (
@@ -197,8 +200,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                               borderRadius: '4px',
                             }}
                           >
-                            {matchesPlayed} match{matchesPlayed > 1 ? 's' : ''} joué
-                            {matchesPlayed > 1 ? 's' : ''}
+                            {t('changePool.played', { count: matchesPlayed })}
                           </span>
                         )}
                       </div>
@@ -228,21 +230,21 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                 fontSize: '0.875rem',
               }}
             >
-              ✓ Les matches des deux poules seront recalculés
+              {t('changePool.recalc')}
             </div>
           )}
         </div>
 
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={onClose}>
-            Annuler
+            {t('actions.cancel')}
           </button>
           <button
             className="btn btn-primary"
             onClick={handleMove}
             disabled={selectedPoolIndex === null}
           >
-            Déplacer le tireur
+            {t('changePool.move')}
           </button>
         </div>
       </div>

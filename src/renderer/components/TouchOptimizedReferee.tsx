@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import {
   Fencer,
   Match,
@@ -133,6 +134,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
   onMatchEnd,
   onVoiceCommand,
 }) => {
+  const { t } = useTranslation();
   const [scoreA, setScoreA] = useState(match.scoreA?.value || 0);
   const [scoreB, setScoreB] = useState(match.scoreB?.value || 0);
   const [matchTime, setMatchTime] = useState(180);
@@ -453,19 +455,21 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
       {/* Header */}
       <div className="bg-white shadow-md p-4">
         <div className="flex justify-between items-center">
-          <div className="text-2xl font-bold text-gray-800">Piste {match.number || 1}</div>
+          <div className="text-2xl font-bold text-gray-800">
+            {t('touchReferee.strip', { n: match.number || 1 })}
+          </div>
           <div className="flex items-center space-x-4">
             {overtimeActive &&
               (matchMode === MatchMode.SUDDEN_DEATH_TIMEOUT ||
                 matchMode === MatchMode.SUDDEN_DEATH_CHALLENGER) && (
                 <div className="px-3 py-1 rounded-full text-sm font-bold animate-pulse bg-orange-100 text-orange-700">
-                  ⚡ MORT SUBITE
+                  {t('touchReferee.sudden_death')}
                 </div>
               )}
             {overtimeActive &&
               (matchMode === MatchMode.SUPPLEMENTARY_TIME || supplementaryActive) && (
                 <div className="px-3 py-1 rounded-full text-sm font-bold animate-pulse bg-blue-100 text-blue-700">
-                  ⏱ 30s SUPPLEMENTAIRE
+                  {t('touchReferee.extra_30')}
                 </div>
               )}
             <div
@@ -534,7 +538,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
                 </div>
               </div>
               <div className="mt-4 text-sm text-gray-600 text-center">
-                Glisser vers la gauche ou toucher +1 pour ajouter un point
+                {t('touchReferee.swipe_left')}
               </div>
             </div>
 
@@ -587,7 +591,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
                 </div>
               </div>
               <div className="mt-4 text-sm text-gray-600 text-center">
-                Glisser vers la droite ou toucher +1 pour ajouter un point
+                {t('touchReferee.swipe_right')}
               </div>
             </div>
           </div>
@@ -598,7 +602,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
               <span>
                 {scoreA} / {maxScore}
               </span>
-              <span>Premier à {maxScore} points</span>
+              <span>{t('touchReferee.first_to', { n: maxScore })}</span>
               <span>
                 {scoreB} / {maxScore}
               </span>
@@ -621,7 +625,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
           <div className="bg-white rounded-lg p-3 mb-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                Log du combat
+                {t('touchReferee.log')}
                 {entries.length > 0 && (
                   <span className="ml-2 font-normal text-gray-400">({entries.length})</span>
                 )}
@@ -638,7 +642,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
                 <button
                   onClick={() => loadMatchTimeline(match.id)}
                   className="text-xs text-gray-400 hover:text-gray-600"
-                  title="Actualiser"
+                  title={t('touchReferee.refresh')}
                 >
                   ↺
                 </button>
@@ -646,7 +650,7 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
             </div>
             {chips.length === 0 ? (
               <div className="text-xs text-gray-400 text-center py-2">
-                Aucun événement enregistré
+                {t('touchReferee.no_event')}
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
@@ -696,13 +700,13 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
               }}
               className="bg-yellow-500 text-white px-6 py-4 rounded-lg font-medium text-lg active:scale-95 transition-transform"
             >
-              Réinitialiser Score
+              {t('touchReferee.reset')}
             </button>
             <button
               onClick={handleMatchEnd}
               className="bg-blue-500 text-white px-6 py-4 rounded-lg font-medium text-lg active:scale-95 transition-transform"
             >
-              Terminer Match
+              {t('touchReferee.end')}
             </button>
           </div>
         </div>
@@ -728,13 +732,11 @@ const TouchOptimizedReferee_: React.FC<TouchOptimizedRefereeProps> = ({
             {isListening && (
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                <span className="text-sm text-gray-600">Écoute...</span>
+                <span className="text-sm text-gray-600">{t('touchReferee.listening')}</span>
               </div>
             )}
           </div>
-          <div className="text-sm text-gray-600">
-            Commandes: "Point rouge/vert", "Pause", "Reprendre", "Terminer"
-          </div>
+          <div className="text-sm text-gray-600">{t('touchReferee.commands')}</div>
         </div>
       </div>
 
