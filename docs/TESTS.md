@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 36 | 556 |
+| `src/shared/utils/` | 37 | 560 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -103,9 +103,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/remote/` | 8 | 40 |
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **157** | **1543** |
+| **Total** | **158** | **1547** |
 
-Unitaires : 149 fichiers, 1512 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 150 fichiers, 1516 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -573,6 +573,17 @@ Unitaires : 149 fichiers, 1512 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - includes ranking table headers
   - renders fencer row in final results
   - renders pool ranking row
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/pdfI18n.test.ts</code> — 4 tests</summary>
+
+- **pdfT**
+  - sans traducteur : texte français, paramètres interpolés, lang fr
+  - avec traducteur : langue active ; clé absente → repli français
+  - chaque appel du code a sa clé dans fr.json, avec le même texte
+  - PDF en anglais : aucun libellé français dans la liste d’appel et le classement
 
 </details>
 

@@ -15,7 +15,7 @@ import {
   calculateLaserArenaMatchScore,
   calculateLaserArenaPoolRanking,
 } from '../../../features/teams/utils/laserArenaCalculations';
-import { savePDF, BASE_CSS } from './core';
+import { savePDF, BASE_CSS, pdfLang, pdfT } from './core';
 import { getActiveLocale } from '../localeFormat';
 
 export interface TeamPdfOptions {
@@ -38,12 +38,12 @@ const esc = (s: string | number | null | undefined) =>
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-const ROUND_LABELS: Record<number, string> = {
-  1: 'Finale',
-  2: 'Demi-finales',
-  4: 'Quarts de finale',
-};
-const roundLabel = (round: number) => ROUND_LABELS[round] ?? `Tableau de ${round * 2}`;
+const roundLabel = (round: number): string =>
+  ({
+    1: pdfT('round_final', 'Finale'),
+    2: pdfT('round_semi', 'Demi-finales'),
+    4: pdfT('round_quarter', 'Quarts de finale'),
+  })[round] ?? pdfT('round_table', 'Tableau de {{n}}', { n: round * 2 });
 
 function matchScore(m: TeamMatchRow, isLaserArena?: boolean) {
   return isLaserArena
@@ -151,7 +151,7 @@ function wrapDocument(title: string, subtitle: string, badge: string, body: stri
     year: 'numeric',
   });
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
   <title>${esc(title)}</title>
@@ -206,7 +206,7 @@ function matchTable(
   <table>
     <thead><tr>
       <th style="text-align:left">${esc(a)}</th>
-      <th style="width:28mm">${finished ? 'Score' : m.status === 'in_progress' ? 'En cours' : 'À jouer'}</th>
+      <th style="width:28mm">${finished ? pdfT('score', 'Score') : m.status === 'in_progress' ? pdfT('in_progress', 'En cours') : pdfT('to_play', 'À jouer')}</th>
       <th style="text-align:left">${esc(b)}</th>
     </tr></thead>
     <tbody>
@@ -235,7 +235,7 @@ function poolRankingTable(
       </tr>`
       )
       .join('');
-    return `<table><thead><tr><th style="width:10mm">Rg</th><th style="text-align:left">Équipe</th><th style="text-align:left">Club</th><th>V</th><th>D</th><th>Points+</th><th>Points-</th></tr></thead><tbody>${rows}</tbody></table>`;
+    return `<table><thead><tr><th style="width:10mm">${pdfT('col_rank', 'Rg')}</th><th style="text-align:left">${pdfT('col_team', 'Équipe')}</th><th style="text-align:left">${pdfT('col_club', 'Club')}</th><th>${pdfT('col_v', 'V')}</th><th>${pdfT('col_d', 'D')}</th><th>${pdfT('col_points_for', 'Points+')}</th><th>${pdfT('col_points_against', 'Points-')}</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
   const rows = calculateTeamPoolRanking(pool.teams, pool.matches)
     .map(
@@ -248,7 +248,7 @@ function poolRankingTable(
       </tr>`
     )
     .join('');
-  return `<table><thead><tr><th style="width:10mm">Rg</th><th style="text-align:left">Équipe</th><th style="text-align:left">Club</th><th>V</th><th>D</th><th>Relais G</th><th>Relais P</th><th>Touches+</th><th>Touches-</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return `<table><thead><tr><th style="width:10mm">${pdfT('col_rank', 'Rg')}</th><th style="text-align:left">${pdfT('col_team', 'Équipe')}</th><th style="text-align:left">${pdfT('col_club', 'Club')}</th><th>${pdfT('col_v', 'V')}</th><th>${pdfT('col_d', 'D')}</th><th>${pdfT('col_relays_won', 'Relais G')}</th><th>${pdfT('col_relays_lost', 'Relais P')}</th><th>${pdfT('col_touches_for', 'Touches+')}</th><th>${pdfT('col_touches_against', 'Touches-')}</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 export function generateTeamPoolsHTML(opts: TeamPdfOptions, matches: TeamMatchRow[]): string {
@@ -258,25 +258,27 @@ export function generateTeamPoolsHTML(opts: TeamPdfOptions, matches: TeamMatchRo
     .map(pool => {
       const label =
         pools.length > 1
-          ? `Poule ${opts.isLaserArena ? String.fromCharCode(64 + pool.number) : pool.number}`
-          : 'Poule';
+          ? pdfT('pool_n', 'Poule {{n}}', {
+              n: opts.isLaserArena ? String.fromCharCode(64 + pool.number) : pool.number,
+            })
+          : pdfT('pool', 'Poule');
       const list = pool.matches
         .map(m => matchTable(m, teamById, opts.fencerName, opts.isLaserArena))
         .join('');
       return `
   <div class="section">
-    <h2>${esc(label)} — ${pool.teams.length} équipes</h2>
+    <h2>${esc(label)} — ${pdfT('teams_count', '{{count}} équipes', { count: pool.teams.length })}</h2>
     ${poolRankingTable(pool, opts.isLaserArena)}
   </div>
-  <h3>Rencontres</h3>
+  <h3>${pdfT('team_matches', 'Rencontres')}</h3>
   ${list}`;
     })
     .join('');
   return wrapDocument(
     opts.title,
-    `Poules équipes — ${opts.teams.length} équipes, ${matches.length} rencontres`,
+    `${pdfT('team_pools_title', 'Poules équipes')} — ${pdfT('teams_count', '{{count}} équipes', { count: opts.teams.length })}, ${pdfT('team_matches_count', '{{count}} rencontres', { count: matches.length })}`,
     'PE',
-    body || '<p class="muted">Aucune rencontre.</p>'
+    body || `<p class="muted">${pdfT('team_no_match', 'Aucune rencontre.')}</p>`
   );
 }
 
@@ -305,14 +307,14 @@ export function generateTeamTableauHTML(
       }
       if (slot.match) return matchTable(slot.match, teamById, opts.fencerName, opts.isLaserArena);
       if (slot.teamA && slot.teamB)
-        return `<p class="muted">${esc(slot.teamA.name)} – ${esc(slot.teamB.name)} : à jouer</p>`;
-      return '<p class="muted">En attente du tour précédent</p>';
+        return `<p class="muted">${esc(slot.teamA.name)} – ${esc(slot.teamB.name)} : ${pdfT('to_play', 'À jouer')}</p>`;
+      return `<p class="muted">${pdfT('waiting_previous_round', 'En attente du tour précédent')}</p>`;
     }).join('');
     sections.push(`<div class="section"><h2>${esc(roundLabel(round))}</h2>${items}</div>`);
   }
   return wrapDocument(
     opts.title,
-    `Tableau équipes — ${rankedTeams.length} équipes (tableau de ${tableSize})`,
+    `${pdfT('team_tableau_title', 'Tableau équipes')} — ${pdfT('teams_count', '{{count}} équipes', { count: rankedTeams.length })} (${pdfT('table_of', 'tableau de {{n}}', { n: tableSize })})`,
     'TE',
     sections.join('')
   );
@@ -326,7 +328,7 @@ export function generateTeamRankingHTML(
   const { rows, provisional } = computeTeamFinalRanking(rankedTeams, tableauMatches);
   const body = `
   <table>
-    <thead><tr><th style="width:12mm">Rg</th><th style="text-align:left">Équipe</th><th style="text-align:left">Club</th><th style="text-align:left">Tireurs</th></tr></thead>
+    <thead><tr><th style="width:12mm">${pdfT('col_rank', 'Rg')}</th><th style="text-align:left">${pdfT('col_team', 'Équipe')}</th><th style="text-align:left">${pdfT('col_club', 'Club')}</th><th style="text-align:left">${pdfT('fencers', 'Tireurs')}</th></tr></thead>
     <tbody>${rows
       .map(
         r => `
@@ -345,7 +347,7 @@ export function generateTeamRankingHTML(
   </table>`;
   return wrapDocument(
     opts.title,
-    `Classement équipes${provisional ? ' (provisoire)' : ''} — ${rows.length} équipes`,
+    `${pdfT('team_ranking_title', 'Classement équipes')}${provisional ? ` (${pdfT('provisional', 'provisoire')})` : ''} — ${pdfT('teams_count', '{{count}} équipes', { count: rows.length })}`,
     'CE',
     body
   );
@@ -357,7 +359,8 @@ export async function exportTeamPoolsToPDF(
   opts: TeamPdfOptions,
   matches: TeamMatchRow[]
 ): Promise<void> {
-  if (matches.length === 0) throw new Error('Aucune rencontre de poule');
+  if (matches.length === 0)
+    throw new Error(pdfT('team_no_pool_match', 'Aucune rencontre de poule'));
   await savePDF(generateTeamPoolsHTML(opts, matches), 'poules-equipes.pdf');
 }
 
@@ -366,7 +369,7 @@ export async function exportTeamTableauToPDF(
   rankedTeams: TeamRow[],
   tableauMatches: TeamMatchRow[]
 ): Promise<void> {
-  if (rankedTeams.length < 2) throw new Error('Au moins 2 équipes requises');
+  if (rankedTeams.length < 2) throw new Error(pdfT('team_min_two', 'Au moins 2 équipes requises'));
   await savePDF(generateTeamTableauHTML(opts, rankedTeams, tableauMatches), 'tableau-equipes.pdf');
 }
 
@@ -375,7 +378,7 @@ export async function exportTeamRankingToPDF(
   rankedTeams: TeamRow[],
   tableauMatches: TeamMatchRow[]
 ): Promise<void> {
-  if (rankedTeams.length === 0) throw new Error('Aucune équipe');
+  if (rankedTeams.length === 0) throw new Error(pdfT('team_none', 'Aucune équipe'));
   await savePDF(
     generateTeamRankingHTML(opts, rankedTeams, tableauMatches),
     'classement-equipes.pdf'

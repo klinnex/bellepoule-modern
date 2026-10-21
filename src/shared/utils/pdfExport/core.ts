@@ -6,15 +6,43 @@
 
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
 
+// ─── Traduction des PDF (#1159) ───────────────────────────────────────────────
+
+type PdfParams = Record<string, string | number>;
+type PdfTranslator = (key: string, params?: PdfParams) => string;
+let pdfTranslator: PdfTranslator | null = null;
+let pdfLanguage = 'fr';
+
+/** Branché par TranslationContext : les PDF suivent la langue de l'interface. */
+export function setPdfTranslator(t: PdfTranslator | null, language = 'fr'): void {
+  pdfTranslator = t;
+  pdfLanguage = language;
+}
+
+/** Langue des PDF (attribut `lang` du document). */
+export const pdfLang = (): string => pdfLanguage;
+
+/**
+ * Libellé `pdf.<key>` des locales (pluriel via `count`), repli sur le texte français
+ * fourni (identique à fr.json, vérifié par test) hors interface (tests, process principal).
+ */
+export function pdfT(key: string, fr: string, params?: PdfParams): string {
+  const full = `pdf.${key}`;
+  const out = pdfTranslator?.(full, params);
+  if (out && out !== full) return out;
+  if (!params) return fr;
+  return fr.replace(/\{\{(\w+)\}\}/g, (m, k) => (params[k] === undefined ? m : String(params[k])));
+}
+
 /** Sauvegarde PDF via Electron IPC, avec dialogue de fichier. */
 export async function savePDF(html: string, defaultName: string): Promise<void> {
   const api = (window as any).electronAPI;
   if (!api?.dialog?.saveFile || !api?.file?.printHtmlToPDF) {
-    throw new Error('API Electron non disponible');
+    throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
   }
 
   const result = await api.dialog.saveFile({
-    title: 'Enregistrer le PDF',
+    title: pdfT('save_title', 'Enregistrer le PDF'),
     defaultPath: defaultName,
     filters: [{ name: 'PDF', extensions: ['pdf'] }],
   });
@@ -23,7 +51,7 @@ export async function savePDF(html: string, defaultName: string): Promise<void> 
 
   const res = await api.file.printHtmlToPDF(html, result.filePath);
   if (!res.success) {
-    throw new Error(res.error ?? 'Échec de la génération PDF');
+    throw new Error(res.error ?? pdfT('generation_failed', 'Échec de la génération PDF'));
   }
 }
 

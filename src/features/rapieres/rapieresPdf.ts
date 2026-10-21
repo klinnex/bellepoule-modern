@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import { BASE_CSS, savePDF } from '../../shared/utils/pdfExport/core';
+import { BASE_CSS, pdfLang, savePDF } from '../../shared/utils/pdfExport/core';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 export interface RapieresPdfTable {
@@ -27,7 +27,7 @@ export function generateRapieresRankingHTML(table: RapieresPdfTable): string {
     year: 'numeric',
   });
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
   <title>${esc(table.title)}</title>

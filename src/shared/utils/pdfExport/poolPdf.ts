@@ -7,7 +7,7 @@
 import { Pool, Match, MatchStatus, Fencer } from '../../types';
 import { calculateFencerQuestStats } from '../poolCalculations';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides, assembleBody, BASE_CSS } from './core';
+import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
 import { getActiveLocale } from '../localeFormat';
 
 export interface PoolExportOptions {
@@ -97,22 +97,43 @@ type RankData = {
   questPoints: number;
 };
 
-const STAT_COLS: { id: string; header: string; cls: string; render: (d: RankData) => string }[] = [
-  { id: 'victories', header: 'V', cls: 'stat-cell', render: d => `${d.stats.v}` },
-  { id: 'ratio', header: 'V/M', cls: 'stat-cell', render: d => d.stats.ratio.toFixed(2) },
-  { id: 'td', header: 'TD', cls: 'stat-cell', render: d => `${d.stats.td}` },
-  { id: 'tr', header: 'TR', cls: 'stat-cell', render: d => `${d.stats.tr}` },
+type StatCol = { id: string; header: string; cls: string; render: (d: RankData) => string };
+const statCols = (): StatCol[] => [
+  { id: 'victories', header: pdfT('col_v', 'V'), cls: 'stat-cell', render: d => `${d.stats.v}` },
+  {
+    id: 'ratio',
+    header: pdfT('col_ratio', 'V/M'),
+    cls: 'stat-cell',
+    render: d => d.stats.ratio.toFixed(2),
+  },
+  { id: 'td', header: pdfT('col_td', 'TD'), cls: 'stat-cell', render: d => `${d.stats.td}` },
+  { id: 'tr', header: pdfT('col_tr', 'TR'), cls: 'stat-cell', render: d => `${d.stats.tr}` },
   {
     id: 'index',
-    header: 'Ind',
+    header: pdfT('col_ind', 'Ind'),
     cls: 'stat-cell',
     render: d => (d.stats.ind >= 0 ? `+${d.stats.ind}` : `${d.stats.ind}`),
   },
-  { id: 'rank', header: 'Rg', cls: 'rank-cell', render: d => `${d.rank}` },
+  { id: 'rank', header: pdfT('col_rank', 'Rg'), cls: 'rank-cell', render: d => `${d.rank}` },
   { id: 'quest', header: 'Quest', cls: 'stat-cell', render: d => `${d.questPoints}` },
-  { id: 'club', header: 'Club', cls: 'name-cell', render: d => d.fencer.club ?? '' },
-  { id: 'nation', header: 'Nation', cls: 'stat-cell', render: d => d.fencer.nationality ?? '' },
-  { id: 'region', header: 'Région', cls: 'name-cell', render: d => d.fencer.region ?? '' },
+  {
+    id: 'club',
+    header: pdfT('col_club', 'Club'),
+    cls: 'name-cell',
+    render: d => d.fencer.club ?? '',
+  },
+  {
+    id: 'nation',
+    header: pdfT('col_nation', 'Nation'),
+    cls: 'stat-cell',
+    render: d => d.fencer.nationality ?? '',
+  },
+  {
+    id: 'region',
+    header: pdfT('col_region', 'Région'),
+    cls: 'name-cell',
+    render: d => d.fencer.region ?? '',
+  },
 ];
 
 export function generatePoolHTML(
@@ -120,7 +141,7 @@ export function generatePoolHTML(
   options: PoolExportOptions,
   template?: PdfTemplate
 ): string {
-  const runtimeTitle = `Poule ${pool.number}`;
+  const runtimeTitle = pdfT('pool_n', 'Poule {{n}}', { n: pool.number });
   const effectiveTitle = template?.customTitle?.trim() || options.title || runtimeTitle;
   const { competitionName = '', weapon = '', category = '', logoBase64, qrDataUrl } = options;
   const fencers = pool.fencers ?? [];
@@ -135,10 +156,10 @@ export function generatePoolHTML(
   const isLaserSabre = options.weapon === 'L';
   const activeCols = (
     options.visibleColumns
-      ? STAT_COLS.filter(
+      ? statCols().filter(
           c => options.visibleColumns!.includes(c.id) && (c.id !== 'quest' || isLaserSabre)
         )
-      : STAT_COLS.filter(c => c.id !== 'quest' || isLaserSabre)
+      : statCols().filter(c => c.id !== 'quest' || isLaserSabre)
   ).filter(c => !options.hideStatColumns || !POOL_PDF_STAT_COLUMN_IDS.includes(c.id));
 
   const rankings = fencers.map(f => ({
@@ -191,7 +212,7 @@ export function generatePoolHTML(
     pending.length === 0
       ? ''
       : `
-    <div class="section-label">Matchs à jouer (${pending.length})</div>
+    <div class="section-label">${pdfT('matches_to_play', 'Matchs à jouer')} (${pending.length})</div>
     <div class="match-grid">
       ${pending
         .map(m => {
@@ -208,7 +229,7 @@ export function generatePoolHTML(
     finished.length === 0
       ? ''
       : `
-    <div class="section-label" style="margin-top:4mm">Résultats (${finished.length})</div>
+    <div class="section-label" style="margin-top:4mm">${pdfT('results', 'Résultats')} (${finished.length})</div>
     <div class="match-grid match-grid-2col">
       ${finished
         .map(m => {
@@ -220,9 +241,11 @@ export function generatePoolHTML(
         .join('')}
     </div>`;
 
-  const weaponLabel = weapon ? `<span class="chip"><strong>Arme</strong> ${weapon}</span>` : '';
+  const weaponLabel = weapon
+    ? `<span class="chip"><strong>${pdfT('weapon', 'Arme')}</strong> ${weapon}</span>`
+    : '';
   const catLabel = category
-    ? `<span class="chip"><strong>Catégorie</strong> ${category}</span>`
+    ? `<span class="chip"><strong>${pdfT('category', 'Catégorie')}</strong> ${category}</span>`
     : '';
 
   const assignedReferees = pool.referees ?? [];
@@ -237,11 +260,11 @@ export function generatePoolHTML(
     ${logoBase64 ? `<img class="doc-header-logo" src="${logoBase64}" alt="Logo" />` : ''}
     <div class="doc-header-left">
       <h1>${effectiveTitle}</h1>
-      <div class="subtitle">Grille de poule • ${finishedCount}/${matches.length} matchs joués${refereeLabel ? ' &nbsp;' + refereeLabel : ''}</div>
+      <div class="subtitle">${pdfT('pool_sheet', 'Grille de poule')} • ${pdfT('matches_played', '{{done}}/{{total}} matchs joués', { done: finishedCount, total: matches.length })}${refereeLabel ? ' &nbsp;' + refereeLabel : ''}</div>
     </div>
     ${
       options.stripQrDataUrl
-        ? `<div class="doc-header-strip-qr" title="Piste ${options.stripNumber ?? ''}"><img src="${options.stripQrDataUrl}" alt="QR piste" /><span>Piste ${options.stripNumber ?? ''}</span></div>`
+        ? `<div class="doc-header-strip-qr" title="${pdfT('strip', 'Piste')} ${options.stripNumber ?? ''}"><img src="${options.stripQrDataUrl}" alt="QR" /><span>${pdfT('strip', 'Piste')} ${options.stripNumber ?? ''}</span></div>`
         : ''
     }
     <div class="doc-header-badge">P${pool.number}</div>
@@ -253,19 +276,19 @@ export function generatePoolHTML(
     'meta-chips': `
   <div class="meta-row">
     ${weaponLabel}${catLabel}
-    <span class="chip"><strong>Tireurs</strong> ${fencers.length}</span>
-    <span class="chip"><strong>Matchs</strong> ${finishedCount}/${matches.length}</span>
+    <span class="chip"><strong>${pdfT('fencers', 'Tireurs')}</strong> ${fencers.length}</span>
+    <span class="chip"><strong>${pdfT('matches', 'Matchs')}</strong> ${finishedCount}/${matches.length}</span>
   </div>`,
     'score-grid': `
-  <div class="section-label">Grille des scores</div>
+  <div class="section-label">${pdfT('score_grid', 'Grille des scores')}</div>
   <table class="score-grid">
     <thead>
       <tr>
         <th class="num-header">#</th>
-        <th class="name-header">Tireur</th>
+        <th class="name-header">${pdfT('fencer', 'Tireur')}</th>
         ${colHeaders}
         ${activeCols.map(c => `<th class="${c.cls === 'rank-cell' ? 'rank-header' : 'stat-header'}">${c.header}</th>`).join('')}
-        <th class="sig-header">Signature</th>
+        <th class="sig-header">${pdfT('signature', 'Signature')}</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
@@ -299,7 +322,7 @@ export function generatePoolHTML(
   const cssOverrides = template ? buildCssOverrides(template) : '';
 
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
   <title>${effectiveTitle}</title>
@@ -437,11 +460,11 @@ async function buildPoolExportHTML(
   template?: PdfTemplate
 ): Promise<string> {
   if (!pool.fencers || pool.fencers.length === 0)
-    throw new Error('La poule ne contient aucun tireur');
+    throw new Error(pdfT('pool_no_fencer', 'La poule ne contient aucun tireur'));
   if (!pool.matches || pool.matches.length === 0)
-    throw new Error('La poule ne contient aucun match');
+    throw new Error(pdfT('pool_no_match', 'La poule ne contient aucun match'));
 
-  const title = options.title ?? `Poule ${pool.number}`;
+  const title = options.title ?? pdfT('pool_n', 'Poule {{n}}', { n: pool.number });
 
   let qrDataUrl: string | undefined;
   try {
@@ -490,18 +513,18 @@ export interface PoolStripQr {
 
 export async function exportMultiplePoolsToPDF(
   pools: Pool[],
-  title: string = 'Export des Poules',
+  title: string = pdfT('pools_export_title', 'Export des Poules'),
   logoBase64?: string,
   template?: PdfTemplate,
   competitionName?: string,
   stripQrs?: Record<string, PoolStripQr>
 ): Promise<void> {
-  if (pools.length === 0) throw new Error('Aucune poule à exporter');
+  if (pools.length === 0) throw new Error(pdfT('no_pool_export', 'Aucune poule à exporter'));
   for (const pool of pools) {
     await exportPoolToPDF(
       pool,
       {
-        title: `${title} - Poule ${pool.number}`,
+        title: `${title} - ${pdfT('pool_n', 'Poule {{n}}', { n: pool.number })}`,
         logoBase64,
         competitionName,
         stripQrUrl: stripQrs?.[pool.id]?.url,
@@ -522,28 +545,28 @@ export async function printPoolHTML(
   const html = await buildPoolExportHTML(pool, options, template);
   const api = (window as any).electronAPI;
   if (!api?.file?.printHtml) {
-    throw new Error('API Electron non disponible');
+    throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
   }
   const res = await api.file.printHtml(html);
   if (!res?.success) {
-    throw new Error(res?.error ?? "Échec de l'impression");
+    throw new Error(res?.error ?? pdfT('print_failed', "Échec de l'impression"));
   }
 }
 
 export async function printMultiplePoolsHTML(
   pools: Pool[],
-  title: string = 'Impression des Poules',
+  title: string = pdfT('pools_print_title', 'Impression des Poules'),
   logoBase64?: string,
   template?: PdfTemplate,
   competitionName?: string,
   stripQrs?: Record<string, PoolStripQr>
 ): Promise<void> {
-  if (pools.length === 0) throw new Error('Aucune poule à imprimer');
+  if (pools.length === 0) throw new Error(pdfT('no_pool_print', 'Aucune poule à imprimer'));
   for (const pool of pools) {
     await printPoolHTML(
       pool,
       {
-        title: `${title} - Poule ${pool.number}`,
+        title: `${title} - ${pdfT('pool_n', 'Poule {{n}}', { n: pool.number })}`,
         logoBase64,
         competitionName,
         stripQrUrl: stripQrs?.[pool.id]?.url,
@@ -564,10 +587,10 @@ export async function previewPoolHTML(
   const html = await buildPoolExportHTML(pool, options, template);
   const api = (window as any).electronAPI;
   if (!api?.file?.previewHtmlAsPDF) {
-    throw new Error('API Electron non disponible');
+    throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
   }
   const res = await api.file.previewHtmlAsPDF(html);
   if (!res?.success) {
-    throw new Error(res?.error ?? "Échec de la génération de l'aperçu");
+    throw new Error(res?.error ?? pdfT('preview_failed', "Échec de la génération de l'aperçu"));
   }
 }

@@ -151,7 +151,7 @@ describe('teamPdf', () => {
     expect(html).toContain('Demi-finales');
     expect(html).toContain('Finale');
     expect(html).toContain('Équipe A — exempt');
-    expect(html).toContain('à jouer');
+    expect(html).toContain(': À jouer');
   });
 
   it('HTML classement : rangs et tireurs titulaires', () => {

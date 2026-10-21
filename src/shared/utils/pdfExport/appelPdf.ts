@@ -6,30 +6,30 @@
 
 import { Fencer } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides, assembleBody, BASE_CSS } from './core';
+import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
 import { getActiveLocale } from '../localeFormat';
 
 // ─── Export Liste d'Appel ──────────────────────────────────────────────────────
 
-const APPEL_COL_HEADERS: Record<string, string> = {
-  ref: 'N°',
-  lastName: 'Nom',
-  firstName: 'Prénom',
-  birthDate: 'Né(e)',
-  club: 'Club',
-  ranking: 'Classement',
-  status: 'Statut',
-};
+const APPEL_COL_HEADERS = (): Record<string, string> => ({
+  ref: pdfT('col_ref', 'N°'),
+  lastName: pdfT('col_last_name', 'Nom'),
+  firstName: pdfT('col_first_name', 'Prénom'),
+  birthDate: pdfT('col_born', 'Né(e)'),
+  club: pdfT('col_club', 'Club'),
+  ranking: pdfT('col_ranking', 'Classement'),
+  status: pdfT('col_status', 'Statut'),
+});
 
-const APPEL_STATUS_LABELS: Record<string, string> = {
-  Q: 'Qualifié',
-  E: 'Éliminé',
-  A: 'Abandon',
-  X: 'Exclu',
-  N: 'Non pointé',
-  P: 'Pointé',
-  F: 'Forfait',
-};
+const APPEL_STATUS_LABELS = (): Record<string, string> => ({
+  Q: pdfT('status_qualified', 'Qualifié'),
+  E: pdfT('status_eliminated', 'Éliminé'),
+  A: pdfT('status_abandoned', 'Abandon'),
+  X: pdfT('status_excluded', 'Exclu'),
+  N: pdfT('status_not_checked_in', 'Non pointé'),
+  P: pdfT('status_checked_in', 'Pointé'),
+  F: pdfT('status_forfait', 'Forfait'),
+});
 
 function getFencerCellValue(fencer: Fencer, col: string): string {
   switch (col) {
@@ -46,7 +46,7 @@ function getFencerCellValue(fencer: Fencer, col: string): string {
     case 'ranking':
       return fencer.ranking ? `#${fencer.ranking}` : '-';
     case 'status':
-      return APPEL_STATUS_LABELS[fencer.status] ?? fencer.status;
+      return APPEL_STATUS_LABELS()[fencer.status] ?? fencer.status;
     default:
       return '';
   }
@@ -68,7 +68,8 @@ export function generateAppelHTML(
   const effectiveTitle = template?.customTitle?.trim() || title;
   const cssOverrides = template ? buildCssOverrides(template) : '';
 
-  const headers = visibleColumns.map(col => `<th>${APPEL_COL_HEADERS[col] ?? col}</th>`).join('');
+  const colHeaders = APPEL_COL_HEADERS();
+  const headers = visibleColumns.map(col => `<th>${colHeaders[col] ?? col}</th>`).join('');
 
   const rows = fencers
     .map(fencer => {
@@ -79,9 +80,11 @@ export function generateAppelHTML(
     })
     .join('');
 
-  const subtitle = competitionName
-    ? `${competitionName} — ${fencers.length} tireur${fencers.length > 1 ? 's' : ''}`
-    : `${fencers.length} tireur${fencers.length > 1 ? 's' : ''}`;
+  const count = fencers.length;
+  const fencersLabel = pdfT('fencers_count', count > 1 ? '{{count}} tireurs' : '{{count}} tireur', {
+    count,
+  });
+  const subtitle = competitionName ? `${competitionName} — ${fencersLabel}` : fencersLabel;
 
   const sections: Record<string, string> = {
     header: `
@@ -110,7 +113,7 @@ export function generateAppelHTML(
   const body = assembleBody(sections, template, defaultOrder);
 
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
   <title>${effectiveTitle}</title>
@@ -144,12 +147,13 @@ export async function exportAppelToPDF(
     'ranking',
     'status',
   ],
-  title: string = "Liste d'appel",
+  title: string = pdfT('appel_title', "Liste d'appel"),
   competitionName?: string,
   logoBase64?: string,
   template?: PdfTemplate
 ): Promise<void> {
-  if (fencers.length === 0) throw new Error("Aucun tireur dans la liste d'appel");
+  if (fencers.length === 0)
+    throw new Error(pdfT('appel_empty', "Aucun tireur dans la liste d'appel"));
   const html = generateAppelHTML(
     fencers,
     visibleColumns,
