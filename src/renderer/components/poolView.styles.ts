@@ -16,28 +16,6 @@ export const TOOLBAR_BTN: CSSProperties = {
   cursor: 'pointer',
 };
 
-// Base des boutons icône undo/redo (border-radius/cursor variables)
-export const ICON_BTN: CSSProperties = {
-  padding: '0.375rem 0.6rem',
-  fontSize: '0.8rem',
-  border: 'none',
-  borderRadius: '4px',
-};
-
-// Boutons compacts icône seule (libellé affiché en info-bulle au survol via `title`)
-export const ICON_ONLY_BTN: CSSProperties = {
-  width: '2rem',
-  height: '2rem',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  fontSize: '0.95rem',
-  border: 'none',
-  borderRadius: '4px',
-  cursor: 'pointer',
-  flexShrink: 0,
-};
-
 // Boutons de statut spécial (abandon/forfait/exclusion/annuler)
 export const SPECIAL_BTN: CSSProperties = { fontSize: '0.8rem', padding: '0.4rem 0.75rem' };
 
@@ -201,27 +179,8 @@ export const LOCKED_BANNER: CSSProperties = {
   fontSize: '0.875rem',
 };
 
-export const HEADER_LEFT: CSSProperties = { display: 'flex', alignItems: 'center', gap: '0.75rem' };
-export const TOOLBAR_GROUP: CSSProperties = {
-  display: 'flex',
-  gap: '0.5rem',
-  flexWrap: 'wrap',
-  justifyContent: 'flex-end',
-};
-export const VIEW_GROUP: CSSProperties = { display: 'flex', gap: '0.25rem' };
 export const RELATIVE: CSSProperties = { position: 'relative' };
 export const VS: CSSProperties = { opacity: 0.7 };
-
-// Pastille (badge) en-tête : base commune signatures/arbitre
-export const BADGE_PILL: CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '0.25rem',
-  padding: '0.2rem 0.5rem',
-  borderRadius: '12px',
-  fontSize: '0.75rem',
-  fontWeight: 600,
-};
 
 // ── Menu de colonnes ──────────────────────────────────────────────────────
 export const COL_MENU: CSSProperties = {
@@ -245,16 +204,6 @@ export const COL_MENU_HEADER: CSSProperties = {
   padding: '0.25rem 0.5rem',
   borderBottom: '1px solid var(--color-border)',
   marginBottom: '0.25rem',
-};
-
-export const COL_MENU_LABEL: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.5rem',
-  padding: '0.375rem 0.5rem',
-  cursor: 'pointer',
-  borderRadius: '4px',
-  fontSize: '0.8rem',
 };
 
 // Bouton « Saisir » du bloc prochain match

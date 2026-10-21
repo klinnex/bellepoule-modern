@@ -33,8 +33,6 @@ import { MatchAuditLog } from './MatchAuditLog';
 import { autoAssignReferees } from '../../shared/utils/refereeStats';
 import { LASER_FORFEIT_WINNER_SCORE } from '../../shared/utils/poolCalculations';
 import {
-  ICON_BTN,
-  ICON_ONLY_BTN,
   SPECIAL_BTN,
   ROW_BETWEEN,
   MATCH_LABEL,
@@ -59,15 +57,10 @@ import {
   LOG_WRAP,
   LOG_ITEM,
   LOCKED_BANNER,
-  HEADER_LEFT,
-  TOOLBAR_GROUP,
-  VIEW_GROUP,
   RELATIVE,
   VS,
-  BADGE_PILL,
   COL_MENU,
   COL_MENU_HEADER,
-  COL_MENU_LABEL,
   NEXT_MATCH_SUBMIT,
   abandonName,
   scoreInput,
@@ -1607,41 +1600,21 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             🔒 Feuille signée par tous les combattants — scores verrouillés
           </div>
         )}
-        <div className="card-header" style={ROW_BETWEEN}>
-          <div style={HEADER_LEFT}>
+        <div className="card-header pv-header">
+          <div className="pv-header-left">
             <span>Poule {pool.number}</span>
             <span className={`badge ${pool.isComplete ? 'badge-success' : 'badge-warning'}`}>
               {pool.isComplete ? 'Terminée' : `${finishedCount}/${totalMatches}`}
             </span>
             {!pool.isComplete && totalMatches > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                <div
-                  style={{
-                    width: '72px',
-                    height: '5px',
-                    background: 'var(--color-border)',
-                    borderRadius: '3px',
-                    overflow: 'hidden',
-                  }}
-                >
+              <div className="pv-progress">
+                <div className="pv-progress-track">
                   <div
-                    style={{
-                      height: '100%',
-                      width: `${(finishedCount / totalMatches) * 100}%`,
-                      background: finishedCount / totalMatches >= 0.7 ? '#10b981' : '#f59e0b',
-                      borderRadius: '3px',
-                      transition: 'width 0.4s ease',
-                    }}
+                    className={`pv-progress-bar${finishedCount / totalMatches >= 0.7 ? ' is-high' : ''}`}
+                    style={{ width: `${(finishedCount / totalMatches) * 100}%` }}
                   />
                 </div>
-                <span
-                  style={{
-                    fontSize: '0.7rem',
-                    color: 'var(--color-text-muted)',
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+                <span className="pv-progress-label">
                   {finishedCount}/{totalMatches}
                 </span>
               </div>
@@ -1660,16 +1633,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                       ? 'Tous les combattants ont signé — PDF disponible'
                       : t('plural.signatures', { signed, count: total })
                   }
-                  style={{
-                    ...BADGE_PILL,
-                    background: allSigned ? '#d1fae5' : noneSigned ? 'var(--color-bg)' : '#fef3c7',
-                    color: allSigned
-                      ? '#065f46'
-                      : noneSigned
-                        ? 'var(--color-text-light)'
-                        : '#92400e',
-                    border: `1px solid ${allSigned ? '#6ee7b7' : noneSigned ? 'var(--color-border)' : '#fcd34d'}`,
-                  }}
+                  className={`pv-pill${allSigned ? ' is-done' : noneSigned ? '' : ' is-partial'}`}
                 >
                   ✍️ {signed}/{total}
                 </span>
@@ -1684,13 +1648,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                     ? 'Assigner des arbitres'
                     : 'Assigner un arbitre'
               }
-              style={{
-                ...BADGE_PILL,
-                cursor: 'pointer',
-                background: assignedReferee ? '#dbeafe' : 'var(--color-bg)',
-                color: assignedReferee ? 'var(--color-primary-dark)' : 'var(--color-text-light)',
-                border: `1px solid ${assignedReferee ? '#93c5fd' : 'var(--color-border)'}`,
-              }}
+              className={`pv-pill${assignedReferee ? ' is-assigned' : ''}`}
             >
               🧑‍⚖️{' '}
               {assignedReferees.length > 0
@@ -1698,16 +1656,11 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 : '+Arbitre'}
             </button>
           </div>
-          <div style={TOOLBAR_GROUP}>
+          <div className="pv-toolbar">
             <button
               onClick={undo}
               disabled={!canUndo}
-              style={{
-                ...ICON_BTN,
-                background: canUndo ? '#6b7280' : 'var(--color-border)',
-                color: canUndo ? 'white' : 'var(--color-text-muted)',
-                cursor: canUndo ? 'pointer' : 'not-allowed',
-              }}
+              className="pv-icon-btn is-gray"
               title="Annuler (Ctrl+Z)"
               aria-label="Annuler la dernière action"
             >
@@ -1716,12 +1669,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             <button
               onClick={redo}
               disabled={!canRedo}
-              style={{
-                ...ICON_BTN,
-                background: canRedo ? '#6b7280' : 'var(--color-border)',
-                color: canRedo ? 'white' : 'var(--color-text-muted)',
-                cursor: canRedo ? 'pointer' : 'not-allowed',
-              }}
+              className="pv-icon-btn is-gray"
               title="Rétablir (Ctrl+Y)"
               aria-label="Rétablir l'action annulée"
             >
@@ -1729,7 +1677,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             </button>
             <button
               onClick={handleAutoFillScores}
-              style={{ ...ICON_ONLY_BTN, background: '#f59e0b', color: 'white' }}
+              className="pv-icon-btn is-amber"
               title="Remplir automatiquement les scores (test)"
               aria-label="Remplir automatiquement les scores (test)"
             >
@@ -1737,7 +1685,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             </button>
             <button
               onClick={handlePrintPool}
-              style={{ ...ICON_ONLY_BTN, background: 'var(--color-primary)', color: 'white' }}
+              className="pv-icon-btn is-primary"
               title="Imprimer la feuille de poule (Ctrl+P)"
               aria-label="Imprimer la feuille de poule"
             >
@@ -1745,7 +1693,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             </button>
             <button
               onClick={handlePreviewPool}
-              style={{ ...ICON_ONLY_BTN, background: '#8b5cf6', color: 'white' }}
+              className="pv-icon-btn is-violet"
               title="Aperçu avant impression (ouvre un PDF dans le lecteur par défaut)"
               aria-label="Aperçu avant impression"
             >
@@ -1753,7 +1701,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             </button>
             <button
               onClick={handleExportPDF}
-              style={{ ...ICON_ONLY_BTN, background: '#10b981', color: 'white' }}
+              className="pv-icon-btn is-green"
               title="Exporter la poule en PDF"
               aria-label="Exporter la poule en PDF"
             >
@@ -1769,7 +1717,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                     window.open(url, '_blank');
                   }
                 }}
-                style={{ ...ICON_ONLY_BTN, background: '#6366f1', color: 'white' }}
+                className="pv-icon-btn is-indigo"
                 title={`Page signatures — arène ${defaultArena}`}
                 aria-label="Page signatures"
               >
@@ -1779,11 +1727,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             {competitionId && (
               <button
                 onClick={() => setShowAddFencerModal(true)}
-                style={{
-                  ...ICON_ONLY_BTN,
-                  background: 'var(--color-border)',
-                  color: 'var(--color-text)',
-                }}
+                className="pv-icon-btn"
                 title="Ajouter un tireur à cette poule"
                 aria-label="Ajouter un tireur à cette poule"
               >
@@ -1793,12 +1737,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             <div style={RELATIVE} ref={columnMenuRef}>
               <button
                 onClick={() => setShowColumnMenu(!showColumnMenu)}
-                style={{
-                  ...ICON_ONLY_BTN,
-                  background: showColumnMenu ? '#6b7280' : 'var(--color-border)',
-                  color: showColumnMenu ? 'white' : 'var(--color-text)',
-                  ...(columnFilterEdited ? { border: '2px solid #f97316' } : {}),
-                }}
+                className={`pv-icon-btn${showColumnMenu ? ' is-open' : ''}${columnFilterEdited ? ' is-edited' : ''}`}
                 title={
                   columnFilterEdited
                     ? 'Afficher/masquer les colonnes (filtre modifié)'
@@ -1812,14 +1751,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 <div style={COL_MENU}>
                   <div style={COL_MENU_HEADER}>Colonnes à afficher</div>
                   {POOL_COLUMNS.filter(col => col.id !== 'quest' || isLaserSabre).map(col => (
-                    <label
-                      key={col.id}
-                      style={COL_MENU_LABEL}
-                      onMouseEnter={e =>
-                        (e.currentTarget.style.background = 'var(--color-surface-2)')
-                      }
-                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    >
+                    <label key={col.id} className="pv-col-menu-label">
                       <input
                         type="checkbox"
                         checked={isVisible(col.id)}
@@ -1829,16 +1761,10 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                       {col.label}
                     </label>
                   ))}
-                  <div style={{ ...COL_MENU_HEADER, marginTop: '0.5rem' }}>
+                  <div className="pv-col-menu-section" style={COL_MENU_HEADER}>
                     Export PDF / impression
                   </div>
-                  <label
-                    style={COL_MENU_LABEL}
-                    onMouseEnter={e =>
-                      (e.currentTarget.style.background = 'var(--color-surface-2)')
-                    }
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
+                  <label className="pv-col-menu-label">
                     <input
                       type="checkbox"
                       checked={pdfHideStatColumns}
@@ -1847,13 +1773,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                     />
                     Masquer V, V/M, TD, TR, Ind, Rg
                   </label>
-                  <label
-                    style={COL_MENU_LABEL}
-                    onMouseEnter={e =>
-                      (e.currentTarget.style.background = 'var(--color-surface-2)')
-                    }
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
+                  <label className="pv-col-menu-label">
                     <input
                       type="checkbox"
                       checked={pdfLandscape}
@@ -1865,15 +1785,10 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 </div>
               )}
             </div>
-            <div style={VIEW_GROUP}>
+            <div className="pv-view-group">
               <button
                 onClick={() => setViewMode('grid')}
-                style={{
-                  ...ICON_ONLY_BTN,
-                  background: viewMode === 'grid' ? 'var(--color-primary)' : 'var(--color-border)',
-                  color: viewMode === 'grid' ? 'white' : 'var(--color-text)',
-                  borderRadius: '4px 0 0 4px',
-                }}
+                className={`pv-icon-btn${viewMode === 'grid' ? ' is-active' : ''}`}
                 title="Vue tableau"
                 aria-label="Vue tableau"
               >
@@ -1881,13 +1796,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               </button>
               <button
                 onClick={() => setViewMode('matches')}
-                style={{
-                  ...ICON_ONLY_BTN,
-                  background:
-                    viewMode === 'matches' ? 'var(--color-primary)' : 'var(--color-border)',
-                  color: viewMode === 'matches' ? 'white' : 'var(--color-text)',
-                  borderRadius: '0 4px 4px 0',
-                }}
+                className={`pv-icon-btn${viewMode === 'matches' ? ' is-active' : ''}`}
                 title="Vue matchs"
                 aria-label="Vue matchs"
               >
@@ -1896,7 +1805,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             </div>
           </div>
         </div>
-        <div className="card-body" style={{ overflowX: 'auto' }}>
+        <div className="card-body pv-body">
           {viewMode === 'grid' ? (
             <>
               {renderGridView()}

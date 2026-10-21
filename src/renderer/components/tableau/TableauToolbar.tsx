@@ -65,80 +65,33 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '1rem',
-        gap: '0.75rem',
-      }}
-    >
+    <div className="tt-bar">
       {/* Left: title + champion */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: '600', margin: 0, whiteSpace: 'nowrap' }}>
+      <div className="tt-left">
+        <h2 className="tt-title">
           Tableau de {tableauSize}
-          <span
-            style={{
-              fontWeight: 400,
-              color: 'var(--color-text-light)',
-              fontSize: '1rem',
-              marginLeft: '0.375rem',
-            }}
-          >
-            — {rankingCount} qualifiés
-          </span>
+          <span className="tt-title-sub">— {rankingCount} qualifiés</span>
         </h2>
         {champion && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.375rem',
-              background: '#fef3c7',
-              padding: '0.375rem 0.75rem',
-              borderRadius: '999px',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              border: '1px solid #fcd34d',
-            }}
-          >
+          <div className="tt-champion">
             🏆 {champion.lastName} {champion.firstName}
           </div>
         )}
       </div>
 
       {/* Right: view toggles + FAB */}
-      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+      <div className="tt-right">
         {/* View mode toggles — toujours visibles */}
         <button
           onClick={onViewModeToggle}
-          style={{
-            background: viewMode === 'pending' ? 'var(--color-primary)' : 'var(--color-border)',
-            color: viewMode === 'pending' ? 'white' : 'var(--color-text)',
-            border: 'none',
-            padding: '0.5rem 0.75rem',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-          }}
+          className={`tt-toggle${viewMode === 'pending' ? ' is-active' : ''}`}
           title={viewMode === 'full' ? 'Liste des matchs' : 'Tableau complet'}
         >
           {viewMode === 'full' ? '📋 Liste des matchs' : '📊 Tableau'}
         </button>
         <button
           onClick={onPyramidViewModeToggle}
-          style={{
-            background: pyramidViewMode ? '#8b5cf6' : 'var(--color-border)',
-            color: pyramidViewMode ? 'white' : 'var(--color-text)',
-            border: 'none',
-            padding: '0.5rem 0.75rem',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-          }}
+          className={`tt-toggle${pyramidViewMode ? ' is-pyramid' : ''}`}
           title={pyramidViewMode ? 'Vue tableau' : 'Vue pyramidale'}
         >
           {pyramidViewMode ? '🔲 Tableau' : '🔺 Pyramide'}
@@ -159,20 +112,7 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
               {arenaCount > 0 && (
                 <>
                   <span className="tableau-fab-section-label">Pistes</span>
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      background: autoAssignArenas ? 'rgba(59,130,246,0.08)' : 'transparent',
-                      color: autoAssignArenas ? 'var(--color-primary)' : 'var(--color-text)',
-                    }}
-                  >
+                  <label className={`tt-fab-check${autoAssignArenas ? ' is-on' : ''}`}>
                     <input
                       type="checkbox"
                       checked={autoAssignArenas}

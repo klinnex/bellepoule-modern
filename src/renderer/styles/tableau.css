@@ -1,0 +1,131 @@
+/* ============================================================
+   TABLEAU ÉLIMINATOIRE (#1157) — remplace les style={{…}} de TableauToolbar / TableauView
+   ============================================================ */
+
+.tt-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.tt-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.tt-title {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.tt-title-sub {
+  font-weight: 400;
+  color: var(--color-text-light);
+  font-size: var(--fs-md);
+  margin-left: 0.375rem;
+}
+
+.tt-champion {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.375rem var(--space-3);
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  border: 1px solid #fcd34d;
+}
+
+.tt-right {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.tt-toggle {
+  background: var(--color-border);
+  color: var(--color-text);
+  border: none;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.tt-toggle.is-active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.tt-toggle.is-pyramid {
+  background: #8b5cf6;
+  color: white;
+}
+
+.tt-fab-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.tt-fab-check.is-on {
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--color-primary);
+}
+
+/* Résumé des pistes (vue liste des matchs) */
+.tv-arena-chip {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-raised);
+  border-radius: 4px;
+  font-size: var(--fs-xs);
+  border: 1px solid var(--color-border);
+}
+
+.tv-arena-chip.is-busy {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.tv-arena-chip.is-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Fenêtre réduite (#1156) : actions sous le titre, alignées à gauche */
+@media (max-width: 1024px) {
+  .tt-right {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+/* Tablette / petite fenêtre : titre sur plusieurs lignes, boutons à la taille tactile */
+@media (max-width: 768px) {
+  .tt-title {
+    white-space: normal;
+  }
+
+  .tt-toggle,
+  .tableau-fab-trigger {
+    min-height: var(--touch-target);
+  }
+}

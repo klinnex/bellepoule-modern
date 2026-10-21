@@ -1271,59 +1271,6 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     });
   };
 
-  const renderPendingSection = (round: number) => {
-    const roundMatches = matches
-      .filter(m => m.round === round)
-      .sort((a, b) => a.position - b.position);
-    const isExpanded = expandedRounds.has(round);
-    const roundName = round === 3 ? 'Petite Finale' : `Tableau de ${round}`;
-
-    return (
-      <div
-        key={round}
-        style={{
-          background: 'var(--tableau-panel, white)',
-          borderRadius: '8px',
-          marginBottom: '0.5rem',
-          overflow: 'hidden',
-          border: '1px solid var(--tableau-border, var(--color-border))',
-        }}
-      >
-        <div
-          onClick={() => toggleRoundExpansion(round)}
-          style={{
-            padding: '0.75rem 1rem',
-            background: 'var(--tableau-panel-header, var(--color-bg))',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            userSelect: 'none',
-          }}
-        >
-          <div className="u-row">
-            <span style={{ fontSize: '1rem' }}>{isExpanded ? '▼' : '▶'}</span>
-            <span style={{ fontWeight: '600', color: 'var(--tableau-title, var(--color-text))' }}>
-              {roundName}
-            </span>
-          </div>
-          <span className="u-hint">
-            {roundMatches.length} match{roundMatches.length !== 1 ? 's' : ''}
-          </span>
-        </div>
-        {isExpanded && (
-          <div style={{ padding: '0.5rem' }}>
-            {roundMatches.map(match => (
-              <div key={match.id} className="mb-2">
-                {renderMatch(match)}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div style={TV_STYLES.root}>
       <TableauToolbar
@@ -1432,13 +1379,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                     return (
                       <div
                         key={arenaNum}
-                        style={{
-                          padding: '0.5rem 0.75rem',
-                          background: arenaMatches.length > 0 ? '#d1fae5' : 'white',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          border: '1px solid var(--color-border)',
-                        }}
+                        className={`tv-arena-chip${arenaMatches.length > 0 ? ' is-busy' : ''}`}
                       >
                         <strong>Piste {arenaNum}</strong>: {arenaMatches.length} match
                         {arenaMatches.length !== 1 ? 's' : ''}
@@ -1446,14 +1387,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                     );
                   })}
                   <div
-                    style={{
-                      padding: '0.5rem 0.75rem',
-                      background:
-                        pendingMatches.filter(m => !m.arena).length > 0 ? '#fef3c7' : 'white',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      border: '1px solid var(--color-border)',
-                    }}
+                    className={`tv-arena-chip${pendingMatches.some(m => !m.arena) ? ' is-warning' : ''}`}
                   >
                     <strong>Non assignés</strong>: {pendingMatches.filter(m => !m.arena).length}{' '}
                     match{pendingMatches.filter(m => !m.arena).length !== 1 ? 's' : ''}
