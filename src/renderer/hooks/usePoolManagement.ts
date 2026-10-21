@@ -28,6 +28,7 @@ import {
   calculateOverallRankingQuest,
 } from '../../shared/utils/poolCalculations';
 import { mergeRoundRankings } from '../../shared/utils/poolRounds';
+import { useTranslation } from './useTranslation';
 
 interface UsePoolManagementProps {
   isLaserSabre: boolean;
@@ -42,6 +43,7 @@ export const usePoolManagement = ({
   showToast,
   competitionId,
 }: UsePoolManagementProps) => {
+  const { t } = useTranslation();
   const [pools, setPools] = useState<Pool[]>([]);
   const [poolHistory, setPoolHistory] = useState<Pool[][]>([]);
   // Appel figé de chaque tour terminé (#1051) — non resynchronisé avec les tireurs
@@ -439,10 +441,7 @@ export const usePoolManagement = ({
         // Recalculer le classement général (tous les tours cumulés)
         setOverallRanking(computeOverallRankingAllRounds(updatedPools));
         if (modifiedCount > 0) {
-          showToast(
-            `${modifiedCount} match(s) marqué(s) comme non disputés (${status})`,
-            'success'
-          );
+          showToast(t('plural.matches_not_played', { count: modifiedCount, status }), 'success');
         }
 
         return updatedPools;
@@ -455,6 +454,7 @@ export const usePoolManagement = ({
       computePoolRanking,
       computeOverallRankingAllRounds,
       showToast,
+      t,
     ]
   );
 
@@ -548,7 +548,7 @@ export const usePoolManagement = ({
         setOverallRanking(newOverallRanking);
 
         if (restoredCount > 0) {
-          showToast(`Abandon annulé — ${restoredCount} match(s) restauré(s)`, 'success');
+          showToast(t('plural.matches_restored', { count: restoredCount }), 'success');
         } else {
           showToast('Statut restauré (aucun match à rétablir)', 'info');
         }
@@ -561,7 +561,7 @@ export const usePoolManagement = ({
         await window.electronAPI.db.deleteAbandonSnapshot(fencerId).catch(() => {});
       }
     },
-    [competitionId, computePoolRanking, computeOverallRankingAllRounds, showToast]
+    [competitionId, computePoolRanking, computeOverallRankingAllRounds, showToast, t]
   );
 
   // Mettre à jour un match depuis une source externe (serveur distant)

@@ -72,6 +72,7 @@ import {
   abandonName,
   scoreInput,
 } from './poolView.styles';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface PoolViewProps {
   pool: Pool;
@@ -146,6 +147,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   onAutoFillReferees,
   waveMatchIds,
 }) => {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   // Paires de la vague en cours, repérées par tireurs (cellules de la matrice)
   const waveHighlightPairs = useMemo(() => {
@@ -390,9 +392,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         setShowColumnMenu(false);
       }
     };
-    if (showColumnMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    if (showColumnMenu) document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -1163,7 +1163,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     });
     applyGenerated();
 
-    showToast(`Scores générés pour ${pendingMatches.length} match(s)`, 'success');
+    showToast(t('plural.scores_generated', { count: pendingMatches.length }), 'success');
   };
 
   // Render Score Modal
@@ -1658,7 +1658,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   title={
                     allSigned
                       ? 'Tous les combattants ont signé — PDF disponible'
-                      : `${signed}/${total} signature(s)`
+                      : t('plural.signatures', { signed, count: total })
                   }
                   style={{
                     ...BADGE_PILL,

@@ -769,7 +769,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       setAppliedCommonPassword(commonArenaPassword || null);
       showToast(
         commonArenaPassword
-          ? `Mot de passe commun défini pour ${numbers.length} piste(s)`
+          ? t('plural.common_password_set', { count: numbers.length })
           : 'Mots de passe des pistes supprimés',
         'success'
       );

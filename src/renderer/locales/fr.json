@@ -582,13 +582,15 @@
     "url_no_arena": "URL sans arena :"
   },
   "changePool": {
-    "matches_played_count": "{{count}} match(s) joué(s)"
+    "matches_played_count_one": "{{count}} match joué",
+    "matches_played_count_other": "{{count}} matchs joués"
   },
   "competitionHeader": {
     "kiosk_mode": "Mode kiosque"
   },
   "poolView": {
-    "fencers_count_suffix": "{{count}} tireur(s)"
+    "fencers_count_suffix_one": "{{count}} tireur",
+    "fencers_count_suffix_other": "{{count}} tireurs"
   },
   "presentation": {
     "no_club": "Pas de club"
@@ -752,5 +754,35 @@
     "max_referees_pool": "Arbitres max par poule",
     "max_referees_match": "Arbitres max par match (tableau)",
     "save": "Enregistrer"
+  },
+  "plural": {
+    "common_password_set_one": "Mot de passe commun défini pour {{count}} piste",
+    "common_password_set_other": "Mot de passe commun défini pour {{count}} pistes",
+    "ranking_imported_one": "Classement importé : {{count}} tireur mis à jour",
+    "ranking_imported_other": "Classement importé : {{count}} tireurs mis à jour",
+    "scores_generated_one": "Scores générés pour {{count}} match",
+    "scores_generated_other": "Scores générés pour {{count}} matchs",
+    "referees_imported_one": "{{count}} arbitre importé",
+    "referees_imported_other": "{{count}} arbitres importés",
+    "errors_one": "{{count}} erreur",
+    "errors_other": "{{count}} erreurs",
+    "fencers_missing_one": "{{count}} tireur manquant",
+    "fencers_missing_other": "{{count}} tireurs manquants",
+    "fencers_ready_export_one": "{{count}} tireur prêt à exporter",
+    "fencers_ready_export_other": "{{count}} tireurs prêts à exporter",
+    "signatures_one": "{{signed}}/{{count}} signature",
+    "signatures_other": "{{signed}}/{{count}} signatures",
+    "participants_found_one": "participant trouvé",
+    "participants_found_other": "participants trouvés",
+    "selected_one": "sélectionné",
+    "selected_other": "sélectionnés",
+    "fencers_checked_in_one": "{{count}} tireur pointé",
+    "fencers_checked_in_other": "{{count}} tireurs pointés",
+    "fencers_checked_out_one": "{{count}} tireur dépointé",
+    "fencers_checked_out_other": "{{count}} tireurs dépointés",
+    "matches_not_played_one": "{{count}} match marqué comme non disputé ({{status}})",
+    "matches_not_played_other": "{{count}} matchs marqués comme non disputés ({{status}})",
+    "matches_restored_one": "Abandon annulé — {{count}} match restauré",
+    "matches_restored_other": "Abandon annulé — {{count}} matchs restaurés"
   }
 }

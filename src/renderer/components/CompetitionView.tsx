@@ -1355,7 +1355,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       });
 
       showToast(
-        `Classement importé: ${result.updated} tireur(s) mis à jour`,
+        t('plural.ranking_imported', { count: result.updated }),
         result.errors.length > 0 ? 'warning' : 'success'
       );
       setImportData(null);

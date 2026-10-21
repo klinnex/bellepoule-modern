@@ -582,13 +582,15 @@
     "nav_ranking": "Ranking"
   },
   "changePool": {
-    "matches_played_count": "{{count}} match(es) played"
+    "matches_played_count_one": "{{count}} match played",
+    "matches_played_count_other": "{{count}} matches played"
   },
   "competitionHeader": {
     "kiosk_mode": "Kiosk mode"
   },
   "poolView": {
-    "fencers_count_suffix": "{{count}} fencer(s)"
+    "fencers_count_suffix_one": "{{count}} fencer",
+    "fencers_count_suffix_other": "{{count}} fencers"
   },
   "presentation": {
     "no_club": "No club"
@@ -752,5 +754,35 @@
     "max_referees_pool": "Max referees per pool",
     "max_referees_match": "Max referees per bout (bracket)",
     "save": "Save"
+  },
+  "plural": {
+    "common_password_set_one": "Shared password set for {{count}} strip",
+    "common_password_set_other": "Shared password set for {{count}} strips",
+    "ranking_imported_one": "Ranking imported: {{count}} fencer updated",
+    "ranking_imported_other": "Ranking imported: {{count}} fencers updated",
+    "scores_generated_one": "Scores generated for {{count}} match",
+    "scores_generated_other": "Scores generated for {{count}} matches",
+    "referees_imported_one": "{{count}} referee imported",
+    "referees_imported_other": "{{count}} referees imported",
+    "errors_one": "{{count}} error",
+    "errors_other": "{{count}} errors",
+    "fencers_missing_one": "{{count}} fencer missing",
+    "fencers_missing_other": "{{count}} fencers missing",
+    "fencers_ready_export_one": "{{count}} fencer ready to export",
+    "fencers_ready_export_other": "{{count}} fencers ready to export",
+    "signatures_one": "{{signed}}/{{count}} signature",
+    "signatures_other": "{{signed}}/{{count}} signatures",
+    "participants_found_one": "participant found",
+    "participants_found_other": "participants found",
+    "selected_one": "selected",
+    "selected_other": "selected",
+    "fencers_checked_in_one": "{{count}} fencer checked in",
+    "fencers_checked_in_other": "{{count}} fencers checked in",
+    "fencers_checked_out_one": "{{count}} fencer checked out",
+    "fencers_checked_out_other": "{{count}} fencers checked out",
+    "matches_not_played_one": "{{count}} match marked as not fenced ({{status}})",
+    "matches_not_played_other": "{{count}} matches marked as not fenced ({{status}})",
+    "matches_restored_one": "Withdrawal cancelled — {{count}} match restored",
+    "matches_restored_other": "Withdrawal cancelled — {{count}} matches restored"
   }
 }

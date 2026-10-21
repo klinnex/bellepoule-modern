@@ -582,13 +582,15 @@
     "url_no_arena": "URL sense arena:"
   },
   "changePool": {
-    "matches_played_count": "{{count}} combat(s) jugat(s)"
+    "matches_played_count_one": "{{count}} combat disputat",
+    "matches_played_count_other": "{{count}} combats disputats"
   },
   "competitionHeader": {
     "kiosk_mode": "Mode quiosc"
   },
   "poolView": {
-    "fencers_count_suffix": "{{count}} tirador(s)"
+    "fencers_count_suffix_one": "{{count}} tirador",
+    "fencers_count_suffix_other": "{{count}} tiradors"
   },
   "presentation": {
     "no_club": "Sense club"
@@ -752,5 +754,35 @@
     "max_referees_pool": "Àrbitres màx. per poule",
     "max_referees_match": "Àrbitres màx. per combat (quadre)",
     "save": "Desa"
+  },
+  "plural": {
+    "common_password_set_one": "Contrasenya comuna definida per a {{count}} pista",
+    "common_password_set_other": "Contrasenya comuna definida per a {{count}} pistes",
+    "ranking_imported_one": "Classificació importada: {{count}} tirador actualitzat",
+    "ranking_imported_other": "Classificació importada: {{count}} tiradors actualitzats",
+    "scores_generated_one": "Puntuacions generades per a {{count}} combat",
+    "scores_generated_other": "Puntuacions generades per a {{count}} combats",
+    "referees_imported_one": "{{count}} àrbitre importat",
+    "referees_imported_other": "{{count}} àrbitres importats",
+    "errors_one": "{{count}} error",
+    "errors_other": "{{count}} errors",
+    "fencers_missing_one": "Falta {{count}} tirador",
+    "fencers_missing_other": "Falten {{count}} tiradors",
+    "fencers_ready_export_one": "{{count}} tirador llest per exportar",
+    "fencers_ready_export_other": "{{count}} tiradors llestos per exportar",
+    "signatures_one": "{{signed}}/{{count}} signatura",
+    "signatures_other": "{{signed}}/{{count}} signatures",
+    "participants_found_one": "participant trobat",
+    "participants_found_other": "participants trobats",
+    "selected_one": "seleccionat",
+    "selected_other": "seleccionats",
+    "fencers_checked_in_one": "{{count}} tirador registrat",
+    "fencers_checked_in_other": "{{count}} tiradors registrats",
+    "fencers_checked_out_one": "{{count}} tirador desmarcat",
+    "fencers_checked_out_other": "{{count}} tiradors desmarcats",
+    "matches_not_played_one": "{{count}} combat marcat com a no disputat ({{status}})",
+    "matches_not_played_other": "{{count}} combats marcats com a no disputats ({{status}})",
+    "matches_restored_one": "Abandonament anul·lat — {{count}} combat restaurat",
+    "matches_restored_other": "Abandonament anul·lat — {{count}} combats restaurats"
   }
 }

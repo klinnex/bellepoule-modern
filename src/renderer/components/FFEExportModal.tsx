@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { PoolRanking } from '../../shared/types';
 import { FFEConnectService, FFEResultEntry } from '@shared/services/ffeConnectService';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface FFEExportModalProps {
   ranking: PoolRanking[];
@@ -38,6 +39,7 @@ function toResultEntries(ranking: PoolRanking[]): {
 }
 
 const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [competitionCode, setCompetitionCode] = useState('');
   const [apiKey, setApiKey] = useState('');
@@ -109,7 +111,7 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
           </div>
 
           <p style={{ fontSize: '0.85rem', color: 'var(--color-text-light)' }}>
-            {entries.length} tireur(s) prêt(s) à exporter
+            {t('plural.fencers_ready_export', { count: entries.length })}
             {missingLicense > 0 && ` — ${missingLicense} sans numéro de licence (ignoré(s))`}
           </p>
 

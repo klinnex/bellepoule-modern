@@ -582,13 +582,15 @@
     "url_no_arena": "沒有場地的 URL："
   },
   "changePool": {
-    "matches_played_count": "已進行 {{count}} 場比賽"
+    "matches_played_count_one": "已進行 {{count}} 場比賽",
+    "matches_played_count_other": "已進行 {{count}} 場比賽"
   },
   "competitionHeader": {
     "kiosk_mode": "資訊站模式"
   },
   "poolView": {
-    "fencers_count_suffix": "{{count}} 位劍手"
+    "fencers_count_suffix_one": "{{count}} 位劍手",
+    "fencers_count_suffix_other": "{{count}} 位劍手"
   },
   "presentation": {
     "no_club": "沒有所屬會"
@@ -752,5 +754,35 @@
     "max_referees_pool": "每組最多裁判",
     "max_referees_match": "每場最多裁判（淘汰賽）",
     "save": "儲存"
+  },
+  "plural": {
+    "common_password_set_one": "已為 {{count}} 條劍道設定共用密碼",
+    "common_password_set_other": "已為 {{count}} 條劍道設定共用密碼",
+    "ranking_imported_one": "排名已匯入：已更新 {{count}} 位劍手",
+    "ranking_imported_other": "排名已匯入：已更新 {{count}} 位劍手",
+    "scores_generated_one": "已為 {{count}} 場比賽產生比分",
+    "scores_generated_other": "已為 {{count}} 場比賽產生比分",
+    "referees_imported_one": "已匯入 {{count}} 位裁判",
+    "referees_imported_other": "已匯入 {{count}} 位裁判",
+    "errors_one": "{{count}} 個錯誤",
+    "errors_other": "{{count}} 個錯誤",
+    "fencers_missing_one": "欠 {{count}} 位劍手",
+    "fencers_missing_other": "欠 {{count}} 位劍手",
+    "fencers_ready_export_one": "{{count}} 位劍手可匯出",
+    "fencers_ready_export_other": "{{count}} 位劍手可匯出",
+    "signatures_one": "{{signed}}/{{count}} 個簽名",
+    "signatures_other": "{{signed}}/{{count}} 個簽名",
+    "participants_found_one": "位參加者",
+    "participants_found_other": "位參加者",
+    "selected_one": "已選",
+    "selected_other": "已選",
+    "fencers_checked_in_one": "已為 {{count}} 位劍手報到",
+    "fencers_checked_in_other": "已為 {{count}} 位劍手報到",
+    "fencers_checked_out_one": "已取消 {{count}} 位劍手報到",
+    "fencers_checked_out_other": "已取消 {{count}} 位劍手報到",
+    "matches_not_played_one": "{{count}} 場比賽已標記為未進行（{{status}}）",
+    "matches_not_played_other": "{{count}} 場比賽已標記為未進行（{{status}}）",
+    "matches_restored_one": "已取消棄權 — 已還原 {{count}} 場比賽",
+    "matches_restored_other": "已取消棄權 — 已還原 {{count}} 場比賽"
   }
 }

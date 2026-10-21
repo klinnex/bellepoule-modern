@@ -1,5 +1,5 @@
 {
-  "jsxText": 1063,
+  "jsxText": 1058,
   "jsxAttr": 267,
   "any": 553,
   "console": 303,
@@ -21,7 +21,7 @@
     "src/remote/kiosk.html": 3488,
     "src/remote/referee.html": 4614,
     "src/main/main.ts": 2248,
-    "src/main/remoteScoreServer.ts": 5042,
+    "src/main/remoteScoreServer.ts": 5039,
     "src/database/index.ts": 3210
   }
 }

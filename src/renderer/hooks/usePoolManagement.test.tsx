@@ -9,6 +9,8 @@ import { renderHook, act } from '@testing-library/react';
 import { usePoolManagement } from './usePoolManagement';
 import { Fencer, Pool, Match, MatchStatus, Gender, FencerStatus } from '../../shared/types';
 
+vi.mock('./useTranslation', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
+
 const fencer = (id: number): Fencer => ({
   id: String(id),
   ref: id,

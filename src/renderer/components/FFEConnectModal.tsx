@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { Fencer } from '../../shared/types';
 import { FFEConnectService, FFEParticipant } from '@shared/services/ffeConnectService';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface FFEConnectModalProps {
   onImport: (fencers: Partial<Fencer>[]) => void;
@@ -15,6 +16,7 @@ interface FFEConnectModalProps {
 }
 
 const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [competitionCode, setCompetitionCode] = useState('');
   const [apiKey, setApiKey] = useState('');
@@ -155,8 +157,9 @@ const FFEConnectModal: React.FC<FFEConnectModalProps> = ({ onImport, onClose }) 
                 }}
               >
                 <span>
-                  <strong>{participants.length}</strong> participant(s) trouvé(s) —{' '}
-                  <strong>{selected.size}</strong> sélectionné(s)
+                  <strong>{participants.length}</strong>{' '}
+                  {t('plural.participants_found', { count: participants.length })} —{' '}
+                  <strong>{selected.size}</strong> {t('plural.selected', { count: selected.size })}
                 </span>
                 <button
                   className="btn btn-secondary"

@@ -582,13 +582,15 @@
     "url_no_arena": "URL sin arena:"
   },
   "changePool": {
-    "matches_played_count": "{{count}} combate(s) jugado(s)"
+    "matches_played_count_one": "{{count}} combate disputado",
+    "matches_played_count_other": "{{count}} combates disputados"
   },
   "competitionHeader": {
     "kiosk_mode": "Modo quiosco"
   },
   "poolView": {
-    "fencers_count_suffix": "{{count}} tirador(es)"
+    "fencers_count_suffix_one": "{{count}} tirador",
+    "fencers_count_suffix_other": "{{count}} tiradores"
   },
   "presentation": {
     "no_club": "Sin club"
@@ -752,5 +754,35 @@
     "max_referees_pool": "Árbitros máx. por poule",
     "max_referees_match": "Árbitros máx. por combate (cuadro)",
     "save": "Guardar"
+  },
+  "plural": {
+    "common_password_set_one": "Contraseña común definida para {{count}} pista",
+    "common_password_set_other": "Contraseña común definida para {{count}} pistas",
+    "ranking_imported_one": "Clasificación importada: {{count}} tirador actualizado",
+    "ranking_imported_other": "Clasificación importada: {{count}} tiradores actualizados",
+    "scores_generated_one": "Puntuaciones generadas para {{count}} combate",
+    "scores_generated_other": "Puntuaciones generadas para {{count}} combates",
+    "referees_imported_one": "{{count}} árbitro importado",
+    "referees_imported_other": "{{count}} árbitros importados",
+    "errors_one": "{{count}} error",
+    "errors_other": "{{count}} errores",
+    "fencers_missing_one": "Falta {{count}} tirador",
+    "fencers_missing_other": "Faltan {{count}} tiradores",
+    "fencers_ready_export_one": "{{count}} tirador listo para exportar",
+    "fencers_ready_export_other": "{{count}} tiradores listos para exportar",
+    "signatures_one": "{{signed}}/{{count}} firma",
+    "signatures_other": "{{signed}}/{{count}} firmas",
+    "participants_found_one": "participante encontrado",
+    "participants_found_other": "participantes encontrados",
+    "selected_one": "seleccionado",
+    "selected_other": "seleccionados",
+    "fencers_checked_in_one": "{{count}} tirador registrado",
+    "fencers_checked_in_other": "{{count}} tiradores registrados",
+    "fencers_checked_out_one": "{{count}} tirador desmarcado",
+    "fencers_checked_out_other": "{{count}} tiradores desmarcados",
+    "matches_not_played_one": "{{count}} combate marcado como no disputado ({{status}})",
+    "matches_not_played_other": "{{count}} combates marcados como no disputados ({{status}})",
+    "matches_restored_one": "Abandono anulado — {{count}} combate restaurado",
+    "matches_restored_other": "Abandono anulado — {{count}} combates restaurados"
   }
 }

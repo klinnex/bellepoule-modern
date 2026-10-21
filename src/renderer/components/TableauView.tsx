@@ -54,6 +54,7 @@ import {
   calculateMatchVerticalPosition,
 } from './tableau/tableauCalculations';
 import { autoAssignReferees } from '../../shared/utils/refereeStats';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface BracketMatch {
   id: string;
@@ -226,6 +227,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   maxRefereesPerMatch = 1,
   autoFillReferees,
 }) => {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const tableauTemplate = usePdfTemplateStore(s => s.templates.tableau);
@@ -548,9 +550,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         const updated = matches.map(m => (!m.winner ? { ...m, arena: null as number | null } : m));
         onMatchesChange(updated);
         matches.forEach(m => {
-          if (m.arena != null && !m.winner) {
-            onMatchArenaChange?.(m.id, m.arena, null);
-          }
+          if (m.arena != null && !m.winner) onMatchArenaChange?.(m.id, m.arena, null);
         });
       }
     },
@@ -766,7 +766,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         updatedBrackets.map(b => ({ ...b, matches: withAutoReferees(b.matches) }))
       );
       onMatchesChange(withAutoReferees(updatedMatches));
-      showToast(`Scores générés pour ${filledCount} match(s)`, 'success');
+      showToast(t('plural.scores_generated', { count: filledCount }), 'success');
       return;
     }
 
@@ -777,7 +777,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     // Créer une copie profonde pour forcer React à re-renderer
     const matchesCopy = updatedMatches.map(m => ({ ...m }));
     onMatchesChange(matchesCopy);
-    showToast(`Scores générés pour ${filledCount} match(s)`, 'success');
+    showToast(t('plural.scores_generated', { count: filledCount }), 'success');
 
     // Vérifier si le tableau est complet
     const champion = updatedMatches.find(m => m.round === 2)?.winner;

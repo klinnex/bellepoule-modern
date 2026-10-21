@@ -582,13 +582,15 @@
     "url_no_arena": "URL hep arena :"
   },
   "changePool": {
-    "matches_played_count": "{{count}} c'hoari c'hoariet"
+    "matches_played_count_one": "{{count}} c'hoari c'hoariet",
+    "matches_played_count_other": "{{count}} c'hoari c'hoariet"
   },
   "competitionHeader": {
     "kiosk_mode": "Mod kiosk"
   },
   "poolView": {
-    "fencers_count_suffix": "{{count}} c'hleze"
+    "fencers_count_suffix_one": "{{count}} c'hleze",
+    "fencers_count_suffix_other": "{{count}} c'hleze"
   },
   "presentation": {
     "no_club": "Klub ebet"
@@ -752,5 +754,35 @@
     "max_referees_pool": "Breutaerien d'ar muiañ dre boull",
     "max_referees_match": "Breutaerien d'ar muiañ dre genstrivadenn (taolenn)",
     "save": "Enrollañ"
+  },
+  "plural": {
+    "common_password_set_one": "Ger-tremen boutin termenet evit {{count}} leurenn",
+    "common_password_set_other": "Ger-tremen boutin termenet evit {{count}} leurenn",
+    "ranking_imported_one": "Renkadur enporzhiet : {{count}} c'hleze hizivaet",
+    "ranking_imported_other": "Renkadur enporzhiet : {{count}} c'hleze hizivaet",
+    "scores_generated_one": "Skorioù krouet evit {{count}} c'hoari",
+    "scores_generated_other": "Skorioù krouet evit {{count}} c'hoari",
+    "referees_imported_one": "{{count}} breutaer enporzhiet",
+    "referees_imported_other": "{{count}} breutaer enporzhiet",
+    "errors_one": "{{count}} fazi",
+    "errors_other": "{{count}} fazi",
+    "fencers_missing_one": "{{count}} c'hleze a vank",
+    "fencers_missing_other": "{{count}} c'hleze a vank",
+    "fencers_ready_export_one": "{{count}} c'hleze prest da ezporzhiañ",
+    "fencers_ready_export_other": "{{count}} c'hleze prest da ezporzhiañ",
+    "signatures_one": "{{signed}}/{{count}} sinadur",
+    "signatures_other": "{{signed}}/{{count}} sinadur",
+    "participants_found_one": "perzhiad kavet",
+    "participants_found_other": "perzhiad kavet",
+    "selected_one": "dibabet",
+    "selected_other": "dibabet",
+    "fencers_checked_in_one": "{{count}} c'hleze merket",
+    "fencers_checked_in_other": "{{count}} c'hleze merket",
+    "fencers_checked_out_one": "{{count}} c'hleze diverket",
+    "fencers_checked_out_other": "{{count}} c'hleze diverket",
+    "matches_not_played_one": "{{count}} c'hoari merket evel n'eo ket bet c'hoariet ({{status}})",
+    "matches_not_played_other": "{{count}} c'hoari merket evel n'int ket bet c'hoariet ({{status}})",
+    "matches_restored_one": "Dilezel nullet — {{count}} c'hoari adsavet",
+    "matches_restored_other": "Dilezel nullet — {{count}} c'hoari adsavet"
   }
 }
