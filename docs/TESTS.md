@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 36 | 555 |
+| `src/shared/utils/` | 36 | 556 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -95,17 +95,17 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 13 | 178 |
+| `src/main/` | 14 | 181 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
-| `src/remote/` | 8 | 39 |
+| `src/remote/` | 8 | 40 |
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **155** | **1530** |
+| **Total** | **156** | **1535** |
 
-Unitaires : 147 fichiers, 1499 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 148 fichiers, 1504 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -264,7 +264,7 @@ Unitaires : 147 fichiers, 1499 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 8 tests</summary>
+<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 9 tests</summary>
 
 - **customFormulaSettings (#1125)**
   - dérive score max, chrono, tours et 3e place de la formule
@@ -275,6 +275,7 @@ Unitaires : 147 fichiers, 1499 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - applique la coupure au classement du tableau, égalités retenues
   - règles armes modernes choisies dans la formule : repos dérivé (défaut 60 s)
   - usesModernRules : E/F/S toujours, CUSTOM selon la formule, Laser jamais
+  - usesModernRules : rapières en armes modernes par défaut, Sabre Laser si choisi (#1118)
 
 </details>
 
@@ -1961,6 +1962,16 @@ Unitaires : 147 fichiers, 1499 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/remote/activeWave.test.ts</code> — 3 tests</summary>
+
+- **applyActiveWave**
+  - réapplique la vague mémorisée (y compris aucune vague lancée = liste vide)
+  - rien de mémorisé (hors rapières) : serveur laissé sans filtre
+  - setActiveWave sans serveur : mémorisé ; avec serveur : appliqué ; non-tableau = null
+
+</details>
+
+<details>
 <summary><code>src/main/remote/arenaSlots.test.ts</code> — 6 tests</summary>
 
 - **sous-pistes des rapières (#1118)**
@@ -2986,10 +2997,11 @@ Unitaires : 147 fichiers, 1499 tests. E2E : 8 fichiers, 31 tests (comptage stati
 ### `src/remote/`
 
 <details>
-<summary><code>src/remote/arenaSlotClient.test.ts</code> — 2 tests</summary>
+<summary><code>src/remote/arenaSlotClient.test.ts</code> — 3 tests</summary>
 
 - **claimArenaSlot (/common.js)**
-  - envoie la clé persistante de la tablette et la sous-piste courante
+  - envoie la clé de l'onglet (distincte entre onglets) et la sous-piste courante
+  - deux onglets du même navigateur : deux clés différentes
   - refus, erreur réseau ou réponse invalide : piste ou sous-piste courante
 
 </details>

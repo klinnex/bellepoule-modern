@@ -2122,12 +2122,8 @@
           .map(pool => {
             const rankings = pool.rankings || [];
             const expectedMatches = Math.max(0, rankings.length - 1);
-            // isComplete fourni par le serveur : tient compte des forfaits/abandons (#1144)
-            const isComplete =
-              typeof pool.isComplete === 'boolean'
-                ? pool.isComplete
-                : rankings.length > 0 &&
-                  rankings.every(r => (r.matchesPlayed || 0) >= expectedMatches);
+            const isComplete = typeof pool.isComplete === 'boolean' ? pool.isComplete // serveur : forfaits/abandons (#1144)
+              : rankings.length > 0 && rankings.every(r => (r.matchesPlayed || 0) >= expectedMatches);
             const rows = rankings
               .map((r, i) => {
                 const ind = (r.index >= 0 ? '+' : '') + (r.index || 0);

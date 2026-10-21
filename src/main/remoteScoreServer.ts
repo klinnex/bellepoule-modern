@@ -2029,9 +2029,7 @@ export class RemoteScoreServer {
     fencerId: string
   ): { success: true; matchId: string } | { success: false; status: number; error: string } {
     const record = this.getArenaBlackCards(arenaId).find(r => r.fencerId === fencerId);
-    if (!record) {
-      return { success: false, status: 404, error: 'black_card_not_found' };
-    }
+    if (!record) return { success: false, status: 404, error: 'black_card_not_found' };
     const { matchId } = record;
     const dbMatch = this.db.getMatch(matchId);
     const sessionMatch = this.sessionMatches.find((m: any) => m.id === matchId);
@@ -3594,6 +3592,7 @@ export class RemoteScoreServer {
       referees: this.getSessionReferees(),
       timerDuration: isPoolMatch ? this.sessionPoolTimerSeconds : this.sessionTableTimerSeconds,
       restSeconds: this.sessionRestSeconds,
+      modernRules: this.sessionModernRules,
       refereeSelected: this.arenaRefereeSelected.get(arenaId) ?? false,
     };
 

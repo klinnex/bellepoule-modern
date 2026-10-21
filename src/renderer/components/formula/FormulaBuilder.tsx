@@ -28,6 +28,8 @@ interface Props {
   onSpecialModeChange?: (mode: CompetitionSpecialMode | undefined) => void;
   /** Grise « Avancement vers la phase suivante » (par défaut : actif en mode rapières) (#1118) */
   advancementDisabled?: boolean;
+  /** Règles affichées quand la formule n'en choisit pas (armes modernes en mode rapières, #1118) */
+  defaultRuleSet?: 'modern' | 'laser';
 }
 
 const SPECIAL_MODES: CompetitionSpecialMode[] = ['rapieres'];
@@ -106,6 +108,7 @@ const FormulaBuilder_: React.FC<Props> = ({
   specialMode,
   onSpecialModeChange,
   advancementDisabled: advancementDisabledProp,
+  defaultRuleSet,
 }) => {
   const { t } = useTranslation();
   const advancementDisabled = advancementDisabledProp ?? specialMode === 'rapieres';
@@ -160,7 +163,8 @@ const FormulaBuilder_: React.FC<Props> = ({
 
   const updateNotes = (notes: string) => onChange({ ...formula, notes });
 
-  const ruleSet = formula.ruleSet ?? 'laser';
+  const ruleSet =
+    formula.ruleSet ?? defaultRuleSet ?? (specialMode === 'rapieres' ? 'modern' : 'laser');
   const restTimeSeconds = formula.restTimeSeconds ?? 60;
 
   return (

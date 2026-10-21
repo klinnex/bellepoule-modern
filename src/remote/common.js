@@ -153,9 +153,26 @@
    * les vagues (plusieurs matchs d'une même piste en simultané), sinon la piste elle-même.
    * Résout `current` (ou la piste) si le serveur est injoignable ou refuse.
    */
+  /**
+   * Clé de sous-piste propre à l'onglet (sessionStorage : survit au rechargement, distincte
+   * entre deux onglets d'un même navigateur, qui partagent `bp_screen_id`) (#1118).
+   */
+  function slotKey() {
+    try {
+      var id = sessionStorage.getItem('bp_slot_key');
+      if (!id) {
+        id = 'tab_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+        sessionStorage.setItem('bp_slot_key', id);
+      }
+      return id;
+    } catch (e) {
+      return screenId();
+    }
+  }
+
   function claimArenaSlot(baseId, current) {
     var fallback = current || baseId;
-    var key = screenId();
+    var key = slotKey();
     if (!key || typeof fetch !== 'function') return Promise.resolve(fallback);
     return fetch('/api/arenas/' + encodeURIComponent(baseId) + '/slot', {
       method: 'POST',

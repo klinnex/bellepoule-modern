@@ -29,6 +29,7 @@ import { fmt, getL, getUiLanguage, setUiLanguage } from './menuLabels';
 import { registerDbHandlers } from './ipc/dbHandlers';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
 import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from './remoteRegistry';
+import { applyActiveWave, setActiveWave } from './remote/activeWave';
 import { isAllowedExternalUrl, isAppUrl, isPermissionAllowed } from './windowSecurity';
 import {
   assertAuthorizedPath,
@@ -1129,6 +1130,7 @@ ipcMain.handle(
         console.error('Error binding remote server port:', startError);
         return { success: false, error: startError?.message ?? 'Port indisponible' };
       }
+      applyActiveWave(competitionId, server);
       remoteServers.set(competitionId, {
         server,
         port: effectivePort,
@@ -1281,14 +1283,8 @@ ipcMain.handle(
 ipcMain.handle(
   'remote:setActiveWave',
   async (_, competitionId: string, matchIds: string[] | null) => {
-    try {
-      const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'server_not_started' };
-      entry.server.setActiveWaveMatchIds(Array.isArray(matchIds) ? matchIds : null);
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
-    }
+    setActiveWave(competitionId, matchIds);
+    return { success: true };
   }
 );
 
@@ -1801,6 +1797,7 @@ ipcMain.handle('remote:changePort', async (_, competitionId: string, newPort: nu
     usedPorts.delete(entry.port);
     const server = new RemoteScoreServer(db, newPort, host, tlsOptions);
     server.start();
+    applyActiveWave(competitionId, server);
     remoteServers.set(competitionId, {
       server,
       port: newPort,

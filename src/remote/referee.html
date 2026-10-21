@@ -2025,7 +2025,7 @@
               this.customScoring = s.weapon === 'C' ? s.customScoring || null : null;
               this.applyScoringButtons();
               // Formule personnalisée : règles choisies dans la formule (#1125)
-              this.isModernFencing = ['E', 'F', 'S'].includes(s.weapon) || s.modernRules === true;
+              this.isModernFencing = ['E', 'F', 'S'].includes(s.weapon) || s.modernRules === true; this.rulesLoaded = true;
               if (s.trainingCustomRules) this.trainingCustomRules = s.trainingCustomRules;
               this.blackCardEnabled = s.blackCardEnabled === true;
               this.applyBlackCardSetting();
@@ -2120,9 +2120,7 @@
             .catch(() => ({ synced: 0, failed: size }));
           this.showSyncIndicator(false);
           this.updateOfflineBadge();
-          if (result.synced > 0) {
-            this.showNotification(`✅ ${result.synced} action(s) synchronisée(s)`);
-          }
+          if (result.synced > 0) this.showNotification(`✅ ${result.synced} action(s) synchronisée(s)`);
         }
 
         setupLongPressInteractions() {
@@ -4140,6 +4138,7 @@
 
         handleArenaUpdate(data) {
           if (data.screenThemes?.referee) { applyScreenTheme(data.screenThemes.referee.variables); }
+          if (this.rulesLoaded && typeof data.modernRules === 'boolean' && data.modernRules !== this.isModernFencing && !this.timerRunning && this.matchStatus !== 'in_progress') return window.location.reload(); // règles changées en propriétés (#1118)
 
           if (data.timerDuration !== undefined && data.timerDuration > 0) {
             this.defaultTimerSeconds = data.timerDuration;

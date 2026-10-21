@@ -9,9 +9,14 @@ const { claimArenaSlot } = require('./common.js') as {
 };
 
 const store = new Map<string, string>();
+const session = new Map<string, string>();
 vi.stubGlobal('localStorage', {
   getItem: (k: string) => store.get(k) ?? null,
   setItem: (k: string, v: string) => void store.set(k, v),
+});
+vi.stubGlobal('sessionStorage', {
+  getItem: (k: string) => session.get(k) ?? null,
+  setItem: (k: string, v: string) => void session.set(k, v),
 });
 
 function mockFetch(impl: () => Promise<unknown>) {
@@ -21,7 +26,7 @@ function mockFetch(impl: () => Promise<unknown>) {
 }
 
 describe('claimArenaSlot (/common.js)', () => {
-  it('envoie la clé persistante de la tablette et la sous-piste courante', async () => {
+  it("envoie la clé de l'onglet (distincte entre onglets) et la sous-piste courante", async () => {
     const fetch = mockFetch(async () => ({
       ok: true,
       json: async () => ({ arenaId: 'arena3s2' }),
@@ -30,8 +35,23 @@ describe('claimArenaSlot (/common.js)', () => {
     const [url, init] = fetch.mock.calls[0] as unknown as [string, { body: string }];
     expect(url).toBe('/api/arenas/arena3/slot');
     const body = JSON.parse(init.body);
-    expect(body.deviceKey).toBe(store.get('bp_screen_id'));
+    expect(body.deviceKey).toBe(session.get('bp_slot_key'));
+    expect(body.deviceKey).toMatch(/^tab_/);
     expect(body.current).toBe('arena3s2');
+  });
+
+  it('deux onglets du même navigateur : deux clés différentes', async () => {
+    const fetch = mockFetch(async () => ({ ok: true, json: async () => ({ arenaId: 'arena3' }) }));
+    await claimArenaSlot('arena3');
+    const first = JSON.parse(
+      (fetch.mock.calls[0] as unknown as [string, { body: string }])[1].body
+    );
+    session.clear(); // nouvel onglet : sessionStorage vide, localStorage partagé
+    await claimArenaSlot('arena3');
+    const second = JSON.parse(
+      (fetch.mock.calls[1] as unknown as [string, { body: string }])[1].body
+    );
+    expect(second.deviceKey).not.toBe(first.deviceKey);
   });
 
   it('refus, erreur réseau ou réponse invalide : piste ou sous-piste courante', async () => {

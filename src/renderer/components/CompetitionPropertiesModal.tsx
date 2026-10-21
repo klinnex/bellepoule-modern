@@ -621,6 +621,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                 fencerCount={32}
                 onChange={setCustomFormula}
                 advancementDisabled={isRapieresMode(competition.weapon, competition.settings)}
+                defaultRuleSet={
+                  isRapieresMode(competition.weapon, competition.settings) ? 'modern' : 'laser'
+                }
               />
             )}
 
