@@ -2326,10 +2326,28 @@ export class RemoteScoreServer {
   // Marque un match de poule comme terminé depuis l'UI principale (ex: auto-fill).
   // Met à jour sessionMatchScores + sessionMatches, libère l'arène si nécessaire,
   // puis diffuse la mise à jour à la tablette.
-  public finishPoolMatch(matchId: string, scoreA: number, scoreB: number): void {
+  // Forfait / abandon / exclusion : drapeau porté par le perdant, comme dans le renderer (#1144).
+  public finishPoolMatch(
+    matchId: string,
+    scoreA: number,
+    scoreB: number,
+    winner?: 'A' | 'B',
+    specialStatus?: 'abandon' | 'forfait' | 'exclusion'
+  ): void {
+    const isVictoryA = winner === 'A' || (!winner && scoreA > scoreB);
+    const isVictoryB = winner === 'B' || (!winner && scoreB > scoreA);
+    const specialOnA = !!specialStatus && !isVictoryA;
+    const specialOnB = !!specialStatus && !specialOnA && !isVictoryB;
+    const toScore = (value: number, isVictory: boolean, special: boolean): Score => ({
+      value,
+      isVictory,
+      isAbstention: special && specialStatus === 'abandon',
+      isExclusion: special && specialStatus === 'exclusion',
+      isForfait: special && specialStatus === 'forfait',
+    });
     this.sessionMatchScores.set(matchId, {
-      scoreA: { value: scoreA, isVictory: scoreA > scoreB },
-      scoreB: { value: scoreB, isVictory: scoreB > scoreA },
+      scoreA: toScore(scoreA, isVictoryA, specialOnA),
+      scoreB: toScore(scoreB, isVictoryB, specialOnB),
       status: MatchStatus.FINISHED,
     });
 

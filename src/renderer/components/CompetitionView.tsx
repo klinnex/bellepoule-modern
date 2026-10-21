@@ -2129,7 +2129,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             const match = pool.matches[matchIndex];
             if (match) {
               window.electronAPI.remote
-                .finishPoolMatch(competition.id, match.id, scoreA, scoreB)
+                .finishPoolMatch(competition.id, match.id, scoreA, scoreB, winner, specialStatus)
                 .catch(() => {});
             }
           }

@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 15 | 192 |
+| `src/main/` | 15 | 194 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 31 | 154 |
@@ -103,9 +103,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/remote/` | 8 | 40 |
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **159** | **1557** |
+| **Total** | **159** | **1559** |
 
-Unitaires : 151 fichiers, 1526 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 151 fichiers, 1528 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2109,7 +2109,7 @@ Unitaires : 151 fichiers, 1526 tests. E2E : 8 fichiers, 31 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 98 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 100 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -2235,6 +2235,9 @@ Unitaires : 151 fichiers, 1526 tests. E2E : 8 fichiers, 31 tests (comptage stati
     - fermé tant que non activé / sans mot de passe
     - login puis commentaire enregistré ; sans cookie → 401
     - mauvais mot de passe refusé
+  - **finishPoolMatch (saisie dans l'application)**
+    - conserve le drapeau forfait sur le perdant (#1144)
+    - sans statut spécial : score simple, aucun drapeau
 
 </details>
 
