@@ -37,6 +37,9 @@ export interface RegistrationRouteContext extends RouteContext {
   arenaMatchLabel(arena: Arena): string;
 }
 
+/** Longueur max d'un champ texte de l'inscription distante. */
+const MAX_REGISTER_FIELD_LENGTH = 200;
+
 /** Inscription, appel et espace formateur. */
 export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void {
   ctx.app.get('/api/register/status', (_req, res) => {
@@ -73,19 +76,27 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
       return res.status(503).json({ error: 'no_competition' });
     }
 
+    // Champs texte bornés avant tout traitement (#1193)
+    for (const v of [lastName, firstName, club, license, nationality, birthDate]) {
+      if (typeof v === 'string' && v.length > MAX_REGISTER_FIELD_LENGTH) {
+        return res.status(400).json({ error: 'field_too_long' });
+      }
+    }
+
     // Valider la taille de la photo (base64, max ~500 KB → ~667 KB en base64)
     if (photo && typeof photo === 'string' && photo.length > 700_000) {
       return res.status(400).json({ error: 'photo_too_large' });
     }
 
     try {
-      const strip = (s: string | null | undefined, max = 100) =>
-        s
+      // Troncature AVANT nettoyage et sans regex à balayage (ReDoS, #1193)
+      const strip = (s: unknown, max = 100) =>
+        typeof s === 'string'
           ? s
-              .replace(/<[^>]*>/g, '')
-              .replace(/&[a-z]+;/gi, '')
-              .trim()
               .substring(0, max)
+              // eslint-disable-next-line no-control-regex
+              .replace(/[<>"`\u0000-\u001f]/g, '')
+              .trim()
           : undefined;
 
       const strippedLast = strip(lastName, 100);

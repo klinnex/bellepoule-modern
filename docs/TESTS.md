@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 12 | 175 |
+| `src/main/` | 13 | 178 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 30 | 147 |
@@ -103,9 +103,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/remote/` | 8 | 39 |
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **154** | **1524** |
+| **Total** | **155** | **1527** |
 
-Unitaires : 146 fichiers, 1493 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 147 fichiers, 1496 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2050,6 +2050,16 @@ Unitaires : 146 fichiers, 1493 tests. E2E : 8 fichiers, 31 tests (comptage stati
   - planning tireur : matchs de tableau terminés lus en base
   - planning tireur : 404 inconnu, 400 identifiant invalide
   - ETA publique : null sans session ou en entraînement
+
+</details>
+
+<details>
+<summary><code>src/main/remote/routes/registrationRoutes.test.ts</code> — 3 tests</summary>
+
+- **POST /api/register**
+  - refuse un champ texte de plus de 200 caractères sans le traiter
+  - retire chevrons et caractères de contrôle, garde apostrophes et &
+  - ignore les champs non textuels sans planter
 
 </details>
 
