@@ -6,7 +6,16 @@
     "close_tab": "Close tab",
     "load_error_title": "Loading Error",
     "load_error_message": "An error occurred while loading the competition list.",
-    "reload": "Reload Application"
+    "reload": "Reload Application",
+    "palette_title": "Open the command palette (Ctrl+K)",
+    "search": "Search…",
+    "training_hide": "Hide the training panel",
+    "training_show": "Show the training panel",
+    "training_mode": "Training mode",
+    "training": "Training",
+    "tools": "Tools",
+    "wifi_qr": "WiFi QR code",
+    "tv_remote": "TV remote"
   },
   "menu": {
     "new_competition": "New Competition",
@@ -498,7 +507,8 @@
     "rest_time": "Rest time (seconds)"
   },
   "wiki": {
-    "button_title": "Documentation"
+    "button_title": "Documentation",
+    "title": "Documentation"
   },
   "dialogs": {
     "exportScoreHistory": "Export score history",
@@ -633,7 +643,16 @@
     "move": "Move the fencer"
   },
   "competitionHeader": {
-    "kiosk_mode": "Kiosk mode"
+    "kiosk_mode": "Kiosk mode",
+    "matches": "bouts",
+    "actions": "Actions",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "season_quest": "Quest season ranking",
+    "share": "Share",
+    "presentation": "Presentation mode",
+    "kiosk_public": "Public kiosk",
+    "properties": "Properties"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} fencer",
@@ -726,7 +745,14 @@
     "poule": "Pool",
     "rotation_label": "Rotation (s):",
     "send_kiosk": "Send to kiosk",
-    "views_label": "Views to display:"
+    "views_label": "Views to display:",
+    "more_rows_one": "… {{count}} more — expand",
+    "more_rows_other": "… {{count}} more — expand",
+    "language_label": "Language:",
+    "expand": "Expand",
+    "expand_hidden_one": "Expand ({{count}} hidden)",
+    "expand_hidden_other": "Expand ({{count}} hidden)",
+    "compact": "Compact"
   },
   "replay": {
     "title": "▶ Replay",
@@ -1421,7 +1447,11 @@
     "l_referee": "Referee tablet",
     "l_pool": "Pool display",
     "l_all": "All strips",
-    "l_strip": "Strip {{n}}"
+    "l_strip": "Strip {{n}}",
+    "sample_a": "SMITH B.",
+    "sample_club_a": "London FC",
+    "sample_b": "JONES A.",
+    "sample_club_b": "Fencing Leeds"
   },
   "teamManager": {
     "generate_pool": "Generate the pool",
@@ -2023,5 +2053,363 @@
     "pools": "{{a}}/{{b}} pools",
     "matches": "{{a}}/{{b}} bouts",
     "tableau": "{{a}}/{{b}} bracket"
+  },
+  "offline": {
+    "never": "Never",
+    "just_now": "Just now",
+    "minutes_ago": "{{n}} min ago",
+    "hours_ago": "{{n}} h ago",
+    "offline": "Offline",
+    "online": "Online",
+    "syncing": "Syncing…",
+    "pending_count": "{{count}} pending",
+    "conflicts_count": "{{count}} conflicts",
+    "connected": "Connected",
+    "connection": "Connection:",
+    "last_sync": "Last sync:",
+    "pending_actions": "Pending actions:",
+    "conflicts": "Conflicts:",
+    "resolve_one": "Resolve {{count}} conflict",
+    "resolve_other": "Resolve {{count}} conflicts",
+    "sync_now": "Sync now",
+    "sync_in_progress": "Sync in progress…",
+    "mode_title": "Offline mode:",
+    "mode_text": "Changes will sync automatically once the connection is restored."
+  },
+  "formulaSim": {
+    "title": "Simulation — {{n}} fencers",
+    "fencers": "fencers",
+    "pools_one": "{{count}} pool",
+    "pools_other": "{{count}} pools",
+    "pool_sizes": "({{sizes}} fencers)",
+    "matches": "{{n}} bouts",
+    "advancing": "→ {{n}} advance",
+    "total_matches": "Total bouts",
+    "duration": "Estimated duration",
+    "de": "Direct elimination",
+    "final_ranking": "Final ranking"
+  },
+  "tableauScore": {
+    "quick_entry": "{{round}} - Quick entry",
+    "max_score": "💡 Maximum score: {{n}} touches",
+    "abandon": "Withdrawal",
+    "forfait": "Forfeit",
+    "exclusion": "Exclusion",
+    "who_abandon": "Which fencer withdraws?",
+    "who_forfait": "Which fencer forfeits?",
+    "who_exclusion": "Which fencer is excluded?"
+  },
+  "addFencerPool": {
+    "title": "Add a fencer – Pool {{n}}",
+    "rescue_title": "Rescue operation:",
+    "rescue_text": "the fencer will be added without rebalancing. Bouts against all fencers present will be created.",
+    "search_ph": "Search by name…",
+    "search_aria": "Search a fencer by name",
+    "loading": "Loading fencers…",
+    "none": "No fencer available",
+    "adding": "Adding…",
+    "add": "Add the fencer",
+    "sync_failed": "Fencer added, but the database sync failed",
+    "add_error": "Error while adding: {{msg}}",
+    "unknown_error": "Unknown error"
+  },
+  "conflicts": {
+    "title": "Sync conflicts ({{n}})",
+    "type_competition": "Competition",
+    "type_fencer": "Fencer",
+    "type_match": "Bout",
+    "local": "Local",
+    "remote": "Remote",
+    "keep_local": "Keep local",
+    "keep_remote": "Keep remote",
+    "none": "No conflict to resolve."
+  },
+  "updateNotif": {
+    "title": "Update available!",
+    "version": "Version",
+    "behind": "You are {{n}} updates behind",
+    "download": "📥 Download",
+    "notes": "📋 View notes",
+    "redirect": "Redirecting to the download page…",
+    "later": "You can update later from the Help menu"
+  },
+  "analyticsCharts": {
+    "no_data": "No data",
+    "zones_title": "Touch zones — {{n}} fencers",
+    "zone_a": "Hand/Weapon",
+    "zone_b": "Arms/Legs",
+    "zone_c": "Head/Torso",
+    "zone_line_one": "Zone {{zone}} · {{text}} · {{count}} pt",
+    "zone_line_other": "Zone {{zone}} · {{text}} · {{count}} pts",
+    "total_points": "Total points scored:",
+    "pts": "pts",
+    "m": "B",
+    "top_points": "Top fencers — Touch points",
+    "top_matches": "Top fencers — Bouts fenced",
+    "fencers_short": "f.",
+    "duration_title": "Average bout duration distribution",
+    "cards_by_reason": "Cards by reason",
+    "cards_split": "Card breakdown",
+    "white": "White",
+    "yellow": "Yellow",
+    "red": "Red",
+    "empty": "No statistics available — start some bouts first.",
+    "exporting": "Exporting…",
+    "csv_first_name": "First name",
+    "csv_total_points": "Total points",
+    "csv_white": "White cards",
+    "csv_yellow": "Yellow cards",
+    "csv_red": "Red cards",
+    "csv_exits": "Strip exits",
+    "csv_matches": "Bouts fenced",
+    "csv_avg": "Avg. duration (s)",
+    "csv_early": "Early finishes"
+  },
+  "formulaTemplate": {
+    "name_required": "Enter a name for the formula.",
+    "invalid_file": "Invalid file — unable to read the formula.",
+    "save_title": "Save the formula",
+    "load_title": "Load a formula",
+    "name": "Formula name",
+    "name_ph": "E.g.: Standard club tournament",
+    "save": "Save",
+    "empty": "No saved formula.",
+    "phases_one": "{{count}} phase",
+    "phases_other": "{{count}} phases",
+    "load": "Load",
+    "export_json": "Export JSON",
+    "import_json": "Import from a JSON file"
+  },
+  "about": {
+    "easter_title": "Double-click for a surprise…",
+    "hint": "💡 Double-click the build number…",
+    "desc_1": "Fencing tournament management software.",
+    "desc_2": "Pools, direct elimination, real-time remote refereeing.",
+    "licence": "License: GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
+    "easter": "🐔  Cluck cluck!  🐔"
+  },
+  "bracket": {
+    "expand_all": "Expand all",
+    "collapse_all": "Collapse all",
+    "bye": "BYE",
+    "horizontal": "Horizontal view",
+    "pyramid": "Pyramid view",
+    "final": "Final",
+    "semis": "Semi-finals",
+    "quarters": "Quarter-finals",
+    "r16": "Last 16",
+    "r32": "Last 32",
+    "r64": "Last 64",
+    "r128": "Last 128",
+    "round_n": "Round {{n}}"
+  },
+  "ffeExport": {
+    "code_required": "The competition code is required",
+    "failed": "Export failed",
+    "title": "Export to FFE Connect",
+    "code": "Competition code *",
+    "code_ph": "e.g.: 2024-IDF-001",
+    "api_key": "API key (optional)",
+    "api_key_ph": "Your FFE API key",
+    "missing_license": " — {{n}} without licence number (skipped)",
+    "success": "Results sent to the FFE successfully.",
+    "sending": "Sending…"
+  },
+  "photoBooth": {
+    "no_media": "Webcam access is not available in this context (mediaDevices missing).",
+    "denied": "Permission denied [{{name}}]. Check that the app can access the camera in the system settings.",
+    "not_found": "No camera detected [{{name}}]. Check that the webcam is connected.",
+    "error": "Unable to access the camera [{{name}}]: {{msg}}",
+    "webcam_error": "Webcam error:",
+    "start": "Start camera",
+    "capture": "📸 Capture",
+    "preview": "Preview",
+    "retake": "Retake",
+    "use": "Use this photo"
+  },
+  "splitCompetition": {
+    "title": "Separate competition — {{group}}",
+    "text_one": "{{count}} fencer will be copied into a new competition, seeded by the ranking after pools.",
+    "text_other": "{{count}} fencers will be copied into a new competition, seeded by the ranking after pools.",
+    "name": "Competition name",
+    "create": "Create the competition"
+  },
+  "tiebreaker": {
+    "title": "Coin toss",
+    "subtitle": "Time up — Still tied",
+    "green": "GREEN",
+    "red": "RED",
+    "wins": "🏆 {{name}} wins!",
+    "continue": "Continue"
+  },
+  "scoringZones": {
+    "head": "Head",
+    "torso": "Torso",
+    "limbs": "Arms/Legs",
+    "color": "Colour",
+    "name_ph": "Zone name",
+    "pts": "pts",
+    "remove": "Remove this zone",
+    "add": "+ Add a zone",
+    "max": "Max per touch:"
+  },
+  "pdfEditor": {
+    "logo": "Logo",
+    "no_logo": "No logo",
+    "colors": "Colours",
+    "sections": "Sections"
+  },
+  "tableauSignatures": {
+    "title": "Bout signatures",
+    "resend": "Send the signature back to a strip",
+    "no_strip": "Remote server not started or no strip available",
+    "strip": "Strip",
+    "strip_n": "Strip {{n}}",
+    "busy": " (bout in progress)"
+  },
+  "commandPalette": {
+    "no_result": "No result",
+    "navigate": "navigate",
+    "select": "select",
+    "close": "close",
+    "aria": "Command palette",
+    "placeholder": "Search a competition or an action…",
+    "search_aria": "Search commands"
+  },
+  "dtCall": {
+    "title": "📣 DT call",
+    "strip": " — Strip {{n}}",
+    "black_card": "⬛ Black card",
+    "black_card_note": "(exclusion, federation report)",
+    "match_n": "Bout no. {{n}}",
+    "pending": "⏳ In progress…",
+    "resolve": "✅ DT on the way — Resolved"
+  },
+  "qrShare": {
+    "generating": "Generating QR code…",
+    "url": "URL:",
+    "copy": "📋 Copy",
+    "download": "💾 Download the QR code",
+    "server_required": "The remote server must be running to share results.\nEnable remote scoring from its tab.",
+    "error": "Error generating the QR code",
+    "copied": "URL copied to the clipboard!",
+    "results_title": "Share results",
+    "results_desc": "Scan this QR code to view the results of “{{title}}”",
+    "results_info": "Spectators can follow the results in real time.",
+    "checkin_title": "Check-in QR code",
+    "checkin_desc": "Fencers of “{{title}}” scan to check themselves in.",
+    "checkin_info": "Display this QR code at the venue entrance so fencers can confirm their presence.",
+    "tab_results": "🏆 Results",
+    "tab_checkin": "✅ Check-in"
+  },
+  "kioskEntry": {
+    "quit": "✕ Exit kiosk mode",
+    "title": "Kiosk mode - Score entry",
+    "all_done": "✓ All bouts are finished - View the ranking"
+  },
+  "tableauArena": {
+    "title": "Assign to a strip",
+    "hint": "Select the strip for this bout:"
+  },
+  "tableauReferee": {
+    "title_multi": "Assign referees",
+    "title_one": "Assign a referee",
+    "hint_multi": "Select up to {{n}} referees for this bout (the first selected is the main referee):",
+    "hint_one": "Select the referee for this bout:",
+    "none": "✕ No referee",
+    "none_checked": "No referee checked in for this competition",
+    "validate": "✓ Confirm ({{n}}/{{max}})"
+  },
+  "dashboardCards": {
+    "vs_last_month": "vs last month",
+    "you": "(You)",
+    "pts": "pts"
+  },
+  "matchTimer": {
+    "resume": "▶️ Resume",
+    "pause": "⏸️ Pause (Incident)",
+    "paused": "⚠️ PAUSED - Incident in progress"
+  },
+  "voice": {
+    "title": "Voice control",
+    "listening": "Listening…",
+    "press": "Press to activate",
+    "stop": "Stop listening",
+    "start": "Enable voice",
+    "last": "Last command:",
+    "available": "Available commands:"
+  },
+  "fencerPhoto": {
+    "invalid_select": "Please select a valid image",
+    "invalid_drop": "Please drop a valid image",
+    "too_big": "The image must not exceed 5 MB",
+    "error": "Error while processing the image",
+    "click_or_drop": "Click or drag and drop a photo",
+    "remove": "Remove the photo",
+    "drop_here": "Drop here",
+    "webcam_title": "Take a photo with the webcam",
+    "take": "Take a photo"
+  },
+  "poolColumns": {
+    "button": "Columns (all pools)",
+    "header": "Columns — applied to all pools"
+  },
+  "fencerStats": {
+    "loading": "Loading…",
+    "count_one": "{{count}} fencer",
+    "count_other": "{{count}} fencers",
+    "name": "Last / first name",
+    "detail": "Click to see details",
+    "exporting": "Exporting…"
+  },
+  "confirmDialog": {
+    "title": "Confirmation"
+  },
+  "poolGrid": {
+    "not_played": "Bout not fenced (withdrawal/forfeit)",
+    "fencer": "Fencer"
+  },
+  "pdfModal": {
+    "preview": "Preview",
+    "iframe_title": "PDF preview"
+  },
+  "touchHeatmap": {
+    "touches_one": "{{count}} touch",
+    "touches_other": "{{count}} touches"
+  },
+  "poolCards": {
+    "title": "Pool card size",
+    "button": "🗔 Cards: {{size}} ▾",
+    "Compact": "Compact",
+    "Normal": "Normal",
+    "Large": "Large"
+  },
+  "consolation": {
+    "done": "Finished"
+  },
+  "matchCard": {
+    "bye": "Bye",
+    "signatures": "View signatures"
+  },
+  "seedingTable": {
+    "title": "Ranking after pools"
+  },
+  "pendingSection": {
+    "matches_one": "{{count}} bout",
+    "matches_other": "{{count}} bouts"
+  },
+  "addFencer": {
+    "last_name_ph": "SMITH",
+    "first_name_ph": "John",
+    "club_ph": "LONDON FC",
+    "region_ph": "Greater London"
+  },
+  "keypad": {
+    "aria": "Numeric keypad",
+    "clear": "Clear",
+    "backspace": "Backspace"
+  },
+  "rankingCriteria": {
+    "drag": "Drag to reorder"
   }
 }

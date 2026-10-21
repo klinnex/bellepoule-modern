@@ -4,6 +4,7 @@
 
 import React, { useRef, useState, memo } from 'react';
 import { RankingCriterion, RankingCriterionId } from '../../../shared/types';
+import { translateStatic } from '../../contexts/TranslationContext';
 
 const CRITERION_LABELS: Record<RankingCriterionId, string> = {
   vm_ratio: 'V/M (ratio victoires)',
@@ -92,7 +93,7 @@ const RankingCriteriaEditor_: React.FC<Props> = ({ criteria, onChange, readOnly 
             onDragEnd={handleDragEnd}
           >
             {/* Grip + priorité */}
-            <div className="criterion-grip" title="Glisser pour réordonner">
+            <div className="criterion-grip" title={translateStatic('rankingCriteria.drag')}>
               <span className="criterion-priority">
                 {criterion.enabled ? activePriority(index) : '—'}
               </span>

@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { translateStatic } from '../../contexts/TranslationContext';
 import { TableauMatch } from './tableauTypes';
 
 interface TableauPendingSectionProps {
@@ -56,7 +57,9 @@ const TableauPendingSectionComponent: React.FC<TableauPendingSectionProps> = ({
           </span>
         </div>
         <span className="u-hint">
-          {roundMatches.length} match{roundMatches.length !== 1 ? 's' : ''}
+          {translateStatic(`pendingSection.matches_${roundMatches.length > 1 ? 'other' : 'one'}`, {
+            count: roundMatches.length,
+          })}
         </span>
       </div>
       {isExpanded && (

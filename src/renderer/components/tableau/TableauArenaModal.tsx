@@ -7,6 +7,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useTranslation } from '../../hooks/useTranslation';
 import { TableauMatch } from './tableauTypes';
 
 interface TableauArenaModalProps {
@@ -47,6 +48,7 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
   onAssign,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
   return createPortal(
@@ -62,14 +64,14 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
       >
         <div className="modal-header">
           <h3 className="modal-title" id="tableau-arena-title">
-            Assigner à une piste
+            {t('tableauArena.title')}
           </h3>
-          <button className="btn-close" onClick={onClose}>
-            &times;
+          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
+            ×
           </button>
         </div>
         <div className="modal-body" style={ARENA_STYLES.arenaModalBody}>
-          <p style={ARENA_STYLES.arenaModalHint}>Sélectionnez la piste pour ce match :</p>
+          <p style={ARENA_STYLES.arenaModalHint}>{t('tableauArena.hint')}</p>
           <div style={ARENA_STYLES.arenaModalGrid}>
             <button
               className={`btn ${!currentArena ? 'btn-primary' : 'btn-secondary'}`}
@@ -89,7 +91,7 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
                   onClick={() => onAssign(arenaNum)}
                   style={{ padding: '0.75rem', position: 'relative' }}
                 >
-                  Piste {arenaNum}
+                  {t('tableauSignatures.strip_n', { n: arenaNum })}
                   {queueCount > 0 && (
                     <span style={ARENA_STYLES.arenaQueueHint}>(+{queueCount})</span>
                   )}

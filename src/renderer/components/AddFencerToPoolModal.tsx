@@ -10,6 +10,7 @@ import { logger, LogCategory } from '@shared/services/logger';
 import { useToast } from './Toast';
 import { useDebounce } from '../hooks/useDebounce';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface AddFencerToPoolModalProps {
   pool: Pool;
@@ -73,6 +74,7 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
   onConfirm,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [allFencers, setAllFencers] = useState<Fencer[]>([]);
@@ -115,12 +117,14 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
         await window.electronAPI.db.syncPoolSnapshot(competitionId, toSnapshot(updatedPool));
       } catch (err) {
         logger.error(LogCategory.DATABASE, 'syncPoolSnapshot failed', err as Error);
-        showToast('Tireur ajouté, mais la synchronisation en base a échoué', 'warning');
+        showToast(t('addFencerPool.sync_failed'), 'warning');
       }
       onConfirm(updatedPool);
     } catch (err) {
       showToast(
-        "Erreur lors de l'ajout : " + (err instanceof Error ? err.message : 'Erreur inconnue'),
+        t('addFencerPool.add_error', {
+          msg: err instanceof Error ? err.message : t('addFencerPool.unknown_error'),
+        }),
         'error'
       );
     } finally {
@@ -140,9 +144,9 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
         aria-labelledby="add-fencer-title"
       >
         <div className="modal-header">
-          <h2 id="add-fencer-title">Ajouter un tireur – Poule {pool.number}</h2>
-          <button className="btn-close" onClick={onClose}>
-            &times;
+          <h2 id="add-fencer-title">{t('addFencerPool.title', { n: pool.number })}</h2>
+          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
+            ×
           </button>
         </div>
 
@@ -157,14 +161,13 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
               fontSize: '0.875rem',
             }}
           >
-            ⚠️ <strong>Opération de sauvetage :</strong> le tireur sera ajouté sans rééquilibrage.
-            Des matchs contre tous les tireurs présents seront créés.
+            ⚠️ <strong>{t('addFencerPool.rescue_title')}</strong> {t('addFencerPool.rescue_text')}
           </div>
 
           <input
             type="text"
-            placeholder="Rechercher par nom…"
-            aria-label="Rechercher un tireur par nom"
+            placeholder={t('addFencerPool.search_ph')}
+            aria-label={t('addFencerPool.search_aria')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             autoFocus
@@ -196,7 +199,7 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
                   fontSize: '0.875rem',
                 }}
               >
-                Chargement des tireurs…
+                {t('addFencerPool.loading')}
               </div>
             ) : available.length === 0 ? (
               <div
@@ -207,7 +210,7 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
                   fontSize: '0.875rem',
                 }}
               >
-                Aucun tireur disponible
+                {t('addFencerPool.none')}
               </div>
             ) : (
               available.map(f => {
@@ -252,14 +255,14 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
 
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={onClose}>
-            Annuler
+            {t('actions.cancel')}
           </button>
           <button
             className="btn btn-primary"
             onClick={handleAdd}
             disabled={!selectedFencer || isLoading}
           >
-            {isLoading ? 'Ajout…' : 'Ajouter le tireur'}
+            {isLoading ? t('addFencerPool.adding') : t('addFencerPool.add')}
           </button>
         </div>
       </div>

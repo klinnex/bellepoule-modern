@@ -5,9 +5,10 @@
  */
 
 import '@testing-library/jest-dom';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
 import { CollapseToggle, useCollapsed } from './CollapseToggle';
 
 const Harness: React.FC = () => {

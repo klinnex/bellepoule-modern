@@ -484,7 +484,7 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
                   fontSize: '0.875rem',
                 }}
               >
-                TD
+                {t('ranking.touches_scored')}
               </th>
               <th
                 style={{
@@ -494,7 +494,7 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
                   fontSize: '0.875rem',
                 }}
               >
-                TR
+                {t('ranking.touches_received')}
               </th>
               <th
                 style={{

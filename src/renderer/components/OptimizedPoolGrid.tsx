@@ -6,6 +6,7 @@
 
 import React, { memo } from 'react';
 import { Fencer, Match, MatchStatus } from '../../shared/types';
+import { translateStatic } from '../contexts/TranslationContext';
 
 interface PoolGridProps {
   fencers: Fencer[];
@@ -66,7 +67,7 @@ const GridCell = memo(
             color: '#9ca3af',
             cursor: 'not-allowed',
           }}
-          title="Match non disputé (abandon/forfait)"
+          title={translateStatic('poolGrid.not_played')}
         >
           -
         </td>
@@ -152,7 +153,7 @@ const HeaderRow = memo(({ fencers }: { fencers: Fencer[] }) => (
         fontSize: '0.75rem',
       }}
     >
-      Tireur
+      {translateStatic('poolGrid.fencer')}
     </th>
     {fencers.map(fencer => (
       <th

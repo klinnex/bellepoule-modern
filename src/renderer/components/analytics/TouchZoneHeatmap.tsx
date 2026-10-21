@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { translateStatic } from '../../contexts/TranslationContext';
 
 interface Props {
   zoneA: number;
@@ -118,7 +119,7 @@ export const TouchZoneHeatmap: React.FC<Props> = ({ zoneA, zoneB, zoneC, label }
       </div>
       {total > 0 && (
         <div className="text-[10px] text-gray-400">
-          {total} touche{total > 1 ? 's' : ''}
+          {translateStatic(`touchHeatmap.touches_${total > 1 ? 'other' : 'one'}`, { count: total })}
         </div>
       )}
     </div>

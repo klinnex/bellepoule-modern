@@ -6,7 +6,16 @@
     "close_tab": "Serriñ an ivinell",
     "load_error_title": "Fazi kargañ",
     "load_error_message": "Ur fazi zo chegnet en ur gargañ al roll kenstrivadegoù.",
-    "reload": "Adkargañ an arlivañ"
+    "reload": "Adkargañ an arlivañ",
+    "palette_title": "Digeriñ paletenn an urzhioù (Ctrl+K)",
+    "search": "Klask…",
+    "training_hide": "Kuzhat panell ar stummañ",
+    "training_show": "Diskouez panell ar stummañ",
+    "training_mode": "Mod stummañ",
+    "training": "Stummañ",
+    "tools": "Ostilhoù",
+    "wifi_qr": "Kod QR WiFi",
+    "tv_remote": "Pellurzhier TV"
   },
   "menu": {
     "new_competition": "Nevezompetañ",
@@ -468,7 +477,8 @@
     "print_sheets": "Moullañ follennoù ar poulennoù / mataboliezhioù"
   },
   "wiki": {
-    "button_title": "Teuliadur"
+    "button_title": "Teuliadur",
+    "title": "Teuliadur"
   },
   "formula": {
     "builder_title": "Saver reoladur",
@@ -633,7 +643,16 @@
     "move": "Dilec'hiañ ar c'hleizeier"
   },
   "competitionHeader": {
-    "kiosk_mode": "Mod kiosk"
+    "kiosk_mode": "Mod kiosk",
+    "matches": "emgann",
+    "actions": "Oberoù",
+    "collapse": "Bihanaat",
+    "expand": "Astenn",
+    "season_quest": "Renkadur koulzad Quest",
+    "share": "Rannañ",
+    "presentation": "Mod kinnig",
+    "kiosk_public": "Kiosk foran",
+    "properties": "Perzhioù"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} c'hleze",
@@ -726,7 +745,14 @@
     "poule": "Poulenn",
     "rotation_label": "C'hweladenn (eil):",
     "send_kiosk": "Kas d'ar c'hiosk",
-    "views_label": "Gweladennoù da ziskouez:"
+    "views_label": "Gweladennoù da ziskouez:",
+    "more_rows_one": "… {{count}} all — astenn",
+    "more_rows_other": "… {{count}} all — astenn",
+    "language_label": "Yezh :",
+    "expand": "Astenn",
+    "expand_hidden_one": "Astenn ({{count}} kuzhet)",
+    "expand_hidden_other": "Astenn ({{count}} kuzhet)",
+    "compact": "Stankaat"
   },
   "replay": {
     "title": "▶ Adlenn",
@@ -1421,7 +1447,11 @@
     "l_referee": "Tablezenn arbitr",
     "l_pool": "Diskwel poulenn",
     "l_all": "An holl dachennoù",
-    "l_strip": "Tachenn {{n}}"
+    "l_strip": "Tachenn {{n}}",
+    "sample_a": "LE GALL B.",
+    "sample_club_a": "CE Kemper",
+    "sample_b": "KERMARREC A.",
+    "sample_club_b": "Skrim Brest"
   },
   "teamManager": {
     "generate_pool": "Genel ar boulenn",
@@ -2023,5 +2053,363 @@
     "pools": "{{a}}/{{b}} poulenn",
     "matches": "{{a}}/{{b}} emgann",
     "tableau": "{{a}}/{{b}} taolenn"
+  },
+  "offline": {
+    "never": "Biken",
+    "just_now": "Bremañ",
+    "minutes_ago": "{{n}} munut zo",
+    "hours_ago": "{{n}} eur zo",
+    "offline": "Ezlinenn",
+    "online": "Enlinenn",
+    "syncing": "O kempredañ…",
+    "pending_count": "{{count}} o c'hortoz",
+    "conflicts_count": "{{count}} tabut",
+    "connected": "Kevreet",
+    "connection": "Kevreadur :",
+    "last_sync": "Kempredadur diwezhañ :",
+    "pending_actions": "Oberoù o c'hortoz :",
+    "conflicts": "Tabutoù :",
+    "resolve_one": "Diskoulmañ {{count}} tabut",
+    "resolve_other": "Diskoulmañ {{count}} tabut",
+    "sync_now": "Kempredañ bremañ",
+    "sync_in_progress": "Kempredadur war ober…",
+    "mode_title": "Mod ezlinenn :",
+    "mode_text": "Kempredet e vo ar c'hemmoù ent emgefre pa vo adkavet ar c'hevreadur."
+  },
+  "formulaSim": {
+    "title": "Simuladur — {{n}} c'hoarier",
+    "fencers": "c'hoarierien",
+    "pools_one": "{{count}} poulenn",
+    "pools_other": "{{count}} poulenn",
+    "pool_sizes": "({{sizes}} c'hoarier)",
+    "matches": "{{n}} emgann",
+    "advancing": "→ {{n}} a ya war-raok",
+    "total_matches": "Emgannoù en holl",
+    "duration": "Padelezh priziet",
+    "de": "Dilamadur war-eeun",
+    "final_ranking": "Renkadur diwezhañ"
+  },
+  "tableauScore": {
+    "quick_entry": "{{round}} - Enankañ buan",
+    "max_score": "💡 Skor uhelañ : {{n}} taol",
+    "abandon": "Dilez",
+    "forfait": "Forfed",
+    "exclusion": "Skarzhadur",
+    "who_abandon": "Peseurt c'hoarier a zilez ?",
+    "who_forfait": "Peseurt c'hoarier a ra forfed ?",
+    "who_exclusion": "Peseurt c'hoarier a vez skarzhet ?"
+  },
+  "addFencerPool": {
+    "title": "Ouzhpennañ ur c'hoarier – Poulenn {{n}}",
+    "rescue_title": "Oberiadenn saveteiñ :",
+    "rescue_text": "ouzhpennet e vo ar c'hoarier hep adkempouezañ. Krouet e vo emgannoù a-enep an holl c'hoarierien bezant.",
+    "search_ph": "Klask dre an anv…",
+    "search_aria": "Klask ur c'hoarier dre e anv",
+    "loading": "O kargañ ar c'hoarierien…",
+    "none": "C'hoarier ebet da gaout",
+    "adding": "Oc'h ouzhpennañ…",
+    "add": "Ouzhpennañ ar c'hoarier",
+    "sync_failed": "Ouzhpennet eo ar c'hoarier, met c'hwitet eo ar c'hempredañ gant an diaz",
+    "add_error": "Fazi en ur ouzhpennañ : {{msg}}",
+    "unknown_error": "Fazi dianav"
+  },
+  "conflicts": {
+    "title": "Tabutoù kempredañ ({{n}})",
+    "type_competition": "Kenstrivadeg",
+    "type_fencer": "C'hoarier",
+    "type_match": "Emgann",
+    "local": "Lec'hel",
+    "remote": "A-bell",
+    "keep_local": "Mirout al lec'hel",
+    "keep_remote": "Mirout an a-bell",
+    "none": "Tabut ebet da ziskoulmañ."
+  },
+  "updateNotif": {
+    "title": "Hizivadur da gaout !",
+    "version": "Stumm",
+    "behind": "{{n}} hizivadur dale ho peus",
+    "download": "📥 Pellgargañ",
+    "notes": "📋 Gwelet an notennoù",
+    "redirect": "O vont d'ar bajenn bellgargañ…",
+    "later": "Hizivaat a c'hellot diwezhatoc'h dre al lañser Skoazell"
+  },
+  "analyticsCharts": {
+    "no_data": "Roadenn ebet",
+    "zones_title": "Takadoù taoliñ — {{n}} c'hoarier",
+    "zone_a": "Dorn/Arm",
+    "zone_b": "Divrec'h/Divesker",
+    "zone_c": "Penn/Bruched",
+    "zone_line_one": "Takad {{zone}} · {{text}} · {{count}} pt",
+    "zone_line_other": "Takad {{zone}} · {{text}} · {{count}} pt",
+    "total_points": "Poentoù merket en holl :",
+    "pts": "pt",
+    "m": "E",
+    "top_points": "C'hoarierien wellañ — Poentoù taol",
+    "top_matches": "C'hoarierien wellañ — Emgannoù c'hoariet",
+    "fencers_short": "c'h.",
+    "duration_title": "Dasparzh padelezh keitat an emgannoù",
+    "cards_by_reason": "Kartennoù dre abeg",
+    "cards_split": "Dasparzh ar c'hartennoù",
+    "white": "Gwenn",
+    "yellow": "Melen",
+    "red": "Ruz",
+    "empty": "Stadegoù ebet — loc'hit emgannoù da gentañ.",
+    "exporting": "Oc'h ezporzhiañ…",
+    "csv_first_name": "Anv-bihan",
+    "csv_total_points": "Poentoù en holl",
+    "csv_white": "Kartennoù gwenn",
+    "csv_yellow": "Kartennoù melen",
+    "csv_red": "Kartennoù ruz",
+    "csv_exits": "Ermaeziadennoù leurenn",
+    "csv_matches": "Emgannoù c'hoariet",
+    "csv_avg": "Padelezh keitat (s)",
+    "csv_early": "Echuoù abred"
+  },
+  "formulaTemplate": {
+    "name_required": "Roit un anv d'ar formulenn.",
+    "invalid_file": "Restr direizh — n'haller ket lenn ar formulenn.",
+    "save_title": "Enrollañ ar formulenn",
+    "load_title": "Kargañ ur formulenn",
+    "name": "Anv ar formulenn",
+    "name_ph": "Sk. : Tournamant klub boas",
+    "save": "Enrollañ",
+    "empty": "Formulenn enrollet ebet.",
+    "phases_one": "{{count}} prantad",
+    "phases_other": "{{count}} prantad",
+    "load": "Kargañ",
+    "export_json": "Ezporzhiañ JSON",
+    "import_json": "Enporzhiañ diwar ur restr JSON"
+  },
+  "about": {
+    "easter_title": "Daou-glik evit ur souezhenn…",
+    "hint": "💡 Daou-glikit war niverenn ar build…",
+    "desc_1": "Meziant merañ tournamantoù skrim.",
+    "desc_2": "Poulennoù, taolennoù war-eeun, breutaerezh a-bell war ar prim.",
+    "licence": "Aotre : GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
+    "easter": "🐔  Kot-kot !  🐔"
+  },
+  "bracket": {
+    "expand_all": "Astenn pep tra",
+    "collapse_all": "Plegañ pep tra",
+    "bye": "DIGOR",
+    "horizontal": "Gwel a-blaen",
+    "pyramid": "Gwel piramidek",
+    "final": "Dibenn",
+    "semis": "Hanter-dibennoù",
+    "quarters": "Kerennoù",
+    "r16": "16vet",
+    "r32": "32vet",
+    "r64": "64vet",
+    "r128": "128vet",
+    "round_n": "Tro {{n}}"
+  },
+  "ffeExport": {
+    "code_required": "Ret eo kod ar genstrivadeg",
+    "failed": "C'hwitet eo an ezporzhiañ",
+    "title": "Ezporzhiañ da FFE Connect",
+    "code": "Kod ar genstrivadeg *",
+    "code_ph": "sk. : 2024-IDF-001",
+    "api_key": "Alc'hwez API (diret)",
+    "api_key_ph": "Hoc'h alc'hwez API FFE",
+    "missing_license": " — {{n}} hep niverenn lañvaz (lezet a-gostez)",
+    "success": "Disoc'hoù kaset d'ar FFE gant berzh.",
+    "sending": "O kas…"
+  },
+  "photoBooth": {
+    "no_media": "N'eus ket tu da dizhout ar webcam amañ (mediaDevices o vankout).",
+    "denied": "Aotre nac'het [{{name}}]. Gwiriit en arventennoù ar reizhiad e c'hall an arload tizhout ar c'hamera.",
+    "not_found": "Kamera ebet kavet [{{name}}]. Gwiriit eo kevreet ar webcam.",
+    "error": "N'haller ket tizhout ar c'hamera [{{name}}] : {{msg}}",
+    "webcam_error": "Fazi webcam :",
+    "start": "Loc'hañ ar c'hamera",
+    "capture": "📸 Tapout",
+    "preview": "Rakwel",
+    "retake": "Adkregiñ",
+    "use": "Implijout al luc'hskeudenn-mañ"
+  },
+  "splitCompetition": {
+    "title": "Kenstrivadeg disrannet — {{group}}",
+    "text_one": "{{count}} c'hoarier a vo eilet en ur genstrivadeg nevez, renket hervez ar renkadur goude ar poulennoù.",
+    "text_other": "{{count}} c'hoarier a vo eilet en ur genstrivadeg nevez, renket hervez ar renkadur goude ar poulennoù.",
+    "name": "Anv ar genstrivadeg",
+    "create": "Krouiñ ar genstrivadeg"
+  },
+  "tiebreaker": {
+    "title": "Tennañ d'ar sord",
+    "subtitle": "Amzer echu — Kevatal c'hoazh",
+    "green": "GLAS",
+    "red": "RUZ",
+    "wins": "🏆 {{name}} a c'hounez !",
+    "continue": "Kenderc'hel"
+  },
+  "scoringZones": {
+    "head": "Penn",
+    "torso": "Bruched",
+    "limbs": "Divrec'h/Divesker",
+    "color": "Liv",
+    "name_ph": "Anv an takad",
+    "pts": "pt",
+    "remove": "Dilemel an takad-mañ",
+    "add": "+ Ouzhpennañ un takad",
+    "max": "Uhelañ dre daol :"
+  },
+  "pdfEditor": {
+    "logo": "Logo",
+    "no_logo": "Logo ebet",
+    "colors": "Livioù",
+    "sections": "Rannoù"
+  },
+  "tableauSignatures": {
+    "title": "Sinadurioù an emgann",
+    "resend": "Kas en-dro ar sinadur d'ul leurenn",
+    "no_strip": "Servijer a-bell n'eo ket loc'het pe leurenn ebet da gaout",
+    "strip": "Leurenn",
+    "strip_n": "Leurenn {{n}}",
+    "busy": " (emgann o vont en-dro)"
+  },
+  "commandPalette": {
+    "no_result": "Disoc'h ebet",
+    "navigate": "merdeiñ",
+    "select": "diuzañ",
+    "close": "serriñ",
+    "aria": "Paletenn an urzhioù",
+    "placeholder": "Klask ur genstrivadeg pe un ober…",
+    "search_aria": "Klask urzhioù"
+  },
+  "dtCall": {
+    "title": "📣 Galv DT",
+    "strip": " — Leurenn {{n}}",
+    "black_card": "⬛ Kartenn du",
+    "black_card_note": "(skarzhadur, danevell kevread)",
+    "match_n": "Emgann niv. {{n}}",
+    "pending": "⏳ O vont en-dro…",
+    "resolve": "✅ DT war an hent — Diskoulmet"
+  },
+  "qrShare": {
+    "generating": "O c'henel ar c'hod QR…",
+    "url": "URL :",
+    "copy": "📋 Eilañ",
+    "download": "💾 Pellgargañ ar c'hod QR",
+    "server_required": "Ret eo loc'hañ ar servijer a-bell evit rannañ an disoc'hoù.\nGweredekait an enankañ a-bell diwar an ivinell.",
+    "error": "Fazi en ur c'henel ar c'hod QR",
+    "copied": "URL eilet er golver !",
+    "results_title": "Rannañ an disoc'hoù",
+    "results_desc": "Skanit ar c'hod QR-mañ evit gwelet disoc'hoù « {{title}} »",
+    "results_info": "An arvesterien a c'hall gwelet an disoc'hoù war ar prim.",
+    "checkin_title": "Kod QR evit en em enskrivañ",
+    "checkin_desc": "C'hoarierien « {{title}} » a skan evit en em enrollañ o-unan.",
+    "checkin_info": "Diskouezit ar c'hod QR-mañ e toull-dor ar sal evit ma kadarnfe ar c'hoarierien emaint eno.",
+    "tab_results": "🏆 Disoc'hoù",
+    "tab_checkin": "✅ Enrolladur"
+  },
+  "kioskEntry": {
+    "quit": "✕ Kuitaat ar mod kiosk",
+    "title": "Mod kiosk - Enankañ ar skorioù",
+    "all_done": "✓ Echu eo an holl emgannoù - Gwelet ar renkadur"
+  },
+  "tableauArena": {
+    "title": "Lakaat war ul leurenn",
+    "hint": "Diuzit al leurenn evit an emgann-mañ :"
+  },
+  "tableauReferee": {
+    "title_multi": "Lakaat ar vreutaerien",
+    "title_one": "Lakaat ur breutaer",
+    "hint_multi": "Diuzit betek {{n}} breutaer evit an emgann-mañ (an hini kentañ eo ar penn-breutaer) :",
+    "hint_one": "Diuzit ar breutaer evit an emgann-mañ :",
+    "none": "✕ Breutaer ebet",
+    "none_checked": "Breutaer enrollet ebet evit ar genstrivadeg-mañ",
+    "validate": "✓ Kadarnaat ({{n}}/{{max}})"
+  },
+  "dashboardCards": {
+    "vs_last_month": "e-keñver ar miz diwezhañ",
+    "you": "(C'hwi)",
+    "pts": "pt"
+  },
+  "matchTimer": {
+    "resume": "▶️ Kenderc'hel",
+    "pause": "⏸️ Ehan (Darvoud)",
+    "paused": "⚠️ EHAN - Darvoud o vont en-dro"
+  },
+  "voice": {
+    "title": "Kontroll dre vouezh",
+    "listening": "O selaou…",
+    "press": "Pouezit evit gweredekaat",
+    "stop": "Paouez da selaou",
+    "start": "Gweredekaat ar vouezh",
+    "last": "Urzh diwezhañ :",
+    "available": "Urzhioù da gaout :"
+  },
+  "fencerPhoto": {
+    "invalid_select": "Diuzit ur skeudenn reizh, mar plij",
+    "invalid_drop": "Lakait ur skeudenn reizh, mar plij",
+    "too_big": "Ne dle ket ar skeudenn mont dreist 5 Mo",
+    "error": "Fazi en ur dretiñ ar skeudenn",
+    "click_or_drop": "Klikit pe riklit ul luc'hskeudenn",
+    "remove": "Dilemel al luc'hskeudenn",
+    "drop_here": "Lakait amañ",
+    "webcam_title": "Tennañ ul luc'hskeudenn gant ar webcam",
+    "take": "Tennañ ul luc'hskeudenn"
+  },
+  "poolColumns": {
+    "button": "Bannoù (an holl poulennoù)",
+    "header": "Bannoù — lakaet d'an holl poulennoù"
+  },
+  "fencerStats": {
+    "loading": "O kargañ…",
+    "count_one": "{{count}} c'hoarier",
+    "count_other": "{{count}} c'hoarier",
+    "name": "Anv / Anv-bihan",
+    "detail": "Klikit evit gwelet ar munudoù",
+    "exporting": "Oc'h ezporzhiañ…"
+  },
+  "confirmDialog": {
+    "title": "Kadarnadur"
+  },
+  "poolGrid": {
+    "not_played": "Emgann n'eo ket bet c'hoariet (dilez/forfed)",
+    "fencer": "C'hoarier"
+  },
+  "pdfModal": {
+    "preview": "Rakwel",
+    "iframe_title": "Rakwel PDF"
+  },
+  "touchHeatmap": {
+    "touches_one": "{{count}} taol",
+    "touches_other": "{{count}} taol"
+  },
+  "poolCards": {
+    "title": "Ment kartennoù ar poulennoù",
+    "button": "🗔 Kartennoù : {{size}} ▾",
+    "Compact": "Stank",
+    "Normal": "Boas",
+    "Large": "Bras"
+  },
+  "consolation": {
+    "done": "Echu"
+  },
+  "matchCard": {
+    "bye": "Digor",
+    "signatures": "Gwelet ar sinadurioù"
+  },
+  "seedingTable": {
+    "title": "Renkadur goude ar poulennoù"
+  },
+  "pendingSection": {
+    "matches_one": "{{count}} emgann",
+    "matches_other": "{{count}} emgann"
+  },
+  "addFencer": {
+    "last_name_ph": "LE GALL",
+    "first_name_ph": "Yann",
+    "club_ph": "CE KEMPER",
+    "region_ph": "Breizh"
+  },
+  "keypad": {
+    "aria": "Klavier niverel",
+    "clear": "Diverkañ",
+    "backspace": "Distro"
+  },
+  "rankingCriteria": {
+    "drag": "Riklañ evit adurzhiañ"
   }
 }

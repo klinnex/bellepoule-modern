@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useTranslation } from '../hooks/useTranslation';
 import type { VersionInfo } from '../../shared/types/preload';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 
@@ -177,6 +178,7 @@ const ANIM_ITER = '5';
 const ANIM_EASE = 'ease-in-out';
 
 const AboutModal: React.FC<Props> = ({ onClose }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [easterActive, setEasterActive] = useState(false);
@@ -217,11 +219,11 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
   return (
     <div style={styles.overlay} onClick={handleOverlayClick}>
       <div ref={modalRef} style={styles.modal} role="dialog" aria-modal="true">
-        <button style={styles.closeBtn} onClick={onClose} title="Fermer">
+        <button style={styles.closeBtn} onClick={onClose} title={t('actions.close')}>
           ✕
         </button>
 
-        <div style={styles.title}>BellePoule Modern</div>
+        <div style={styles.title}>{t('app.title')}</div>
 
         <div style={styles.versionLine}>
           <span style={styles.versionBadge}>
@@ -232,24 +234,22 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
           <span
             style={styles.buildBadge}
             onDoubleClick={triggerEasterEgg}
-            title="Double-clic pour une surprise…"
+            title={t('about.easter_title')}
           >
             #{versionInfo?.build ?? '…'}
           </span>
           <span style={styles.meta}>— {buildDate}</span>
         </div>
 
-        <div style={styles.hint}>💡 Double-clique sur le numéro de build…</div>
+        <div style={styles.hint}>{t('about.hint')}</div>
 
         <div style={styles.desc}>
-          Logiciel de gestion de tournois d'escrime.
+          {t('about.desc_1')}
           <br />
-          Poules, tableaux directs, arbitrage déporté en temps réel.
+          {t('about.desc_2')}
         </div>
 
-        <div style={styles.licence}>
-          Licence : GPL-3.0 &nbsp;·&nbsp; © 2024-2026 BellePoule Modern Contributors
-        </div>
+        <div style={styles.licence}>{t('about.licence')}</div>
 
         {easterActive && (
           <>
@@ -334,7 +334,7 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
               </div>
             </div>
 
-            <div style={styles.easterText}>🐔 &nbsp; Cot-cot ! &nbsp; 🐔</div>
+            <div style={styles.easterText}>{t('about.easter')}</div>
           </>
         )}
       </div>

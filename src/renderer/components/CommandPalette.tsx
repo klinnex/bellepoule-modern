@@ -125,7 +125,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
         className="command-palette"
         onClick={e => e.stopPropagation()}
         role="dialog"
-        aria-label="Command palette"
+        aria-label={t('commandPalette.aria')}
       >
         <div className="command-palette-search">
           <span className="command-palette-search-icon">⌘</span>
@@ -135,9 +135,9 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Rechercher une compétition ou une action…"
+            placeholder={t('commandPalette.placeholder')}
             className="command-palette-input"
-            aria-label="Search commands"
+            aria-label={t('commandPalette.search_aria')}
           />
           {query && (
             <button className="command-palette-clear" onClick={() => setQuery('')}>
@@ -148,7 +148,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
 
         <div ref={listRef} className="command-palette-list" role="listbox">
           {filtered.length === 0 ? (
-            <div className="command-palette-empty">Aucun résultat</div>
+            <div className="command-palette-empty">{t('commandPalette.no_result')}</div>
           ) : (
             filtered.map((cmd, i) => (
               <div
@@ -173,13 +173,13 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
 
         <div className="command-palette-footer">
           <span>
-            <kbd>↑↓</kbd> naviguer
+            <kbd>↑↓</kbd> {t('commandPalette.navigate')}
           </span>
           <span>
-            <kbd>↵</kbd> sélectionner
+            <kbd>↵</kbd> {t('commandPalette.select')}
           </span>
           <span>
-            <kbd>Esc</kbd> fermer
+            <kbd>Esc</kbd> {t('commandPalette.close')}
           </span>
         </div>
       </div>

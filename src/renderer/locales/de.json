@@ -35,7 +35,16 @@
     "load_error_message": "Beim Laden der Wettbewerbliste ist ein Fehler aufgetreten.",
     "load_error_title": "Ladefehler",
     "reload": "Anwendung neu laden",
-    "title": "BellePoule Modern"
+    "title": "BellePoule Modern",
+    "palette_title": "Befehlspalette öffnen (Strg+K)",
+    "search": "Suchen…",
+    "training_hide": "Trainingsbereich ausblenden",
+    "training_show": "Trainingsbereich anzeigen",
+    "training_mode": "Trainingsmodus",
+    "training": "Training",
+    "tools": "Werkzeuge",
+    "wifi_qr": "WLAN-QR-Code",
+    "tv_remote": "TV-Fernbedienung"
   },
   "cardGroups": {
     "GROUP_1": "Gruppe 1 (Weiß → Gelb → Gelb)",
@@ -444,7 +453,8 @@
     "validate": "Bestätigen / Öffnen"
   },
   "wiki": {
-    "button_title": "Dokumentation"
+    "button_title": "Dokumentation",
+    "title": "Dokumentation"
   },
   "stats": {
     "arena_exits": "Verlassen der Bahn",
@@ -633,7 +643,16 @@
     "move": "Fechter verschieben"
   },
   "competitionHeader": {
-    "kiosk_mode": "Kiosk-Modus"
+    "kiosk_mode": "Kiosk-Modus",
+    "matches": "Gefechte",
+    "actions": "Aktionen",
+    "collapse": "Einklappen",
+    "expand": "Ausklappen",
+    "season_quest": "Quest-Saisonrangliste",
+    "share": "Teilen",
+    "presentation": "Präsentationsmodus",
+    "kiosk_public": "Öffentlicher Kiosk",
+    "properties": "Eigenschaften"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} Fechter",
@@ -726,7 +745,14 @@
     "poule": "Poule",
     "rotation_label": "Rotation (s):",
     "send_kiosk": "An Kiosk senden",
-    "views_label": "Anzuzeigende Ansichten:"
+    "views_label": "Anzuzeigende Ansichten:",
+    "more_rows_one": "… {{count}} weiterer — ausklappen",
+    "more_rows_other": "… {{count}} weitere — ausklappen",
+    "language_label": "Sprache:",
+    "expand": "Ausklappen",
+    "expand_hidden_one": "Ausklappen ({{count}} ausgeblendet)",
+    "expand_hidden_other": "Ausklappen ({{count}} ausgeblendet)",
+    "compact": "Kompakt"
   },
   "replay": {
     "title": "▶ Wiederholung",
@@ -1421,7 +1447,11 @@
     "l_referee": "Kampfrichter-Tablet",
     "l_pool": "Pool-Anzeige",
     "l_all": "Alle Bahnen",
-    "l_strip": "Bahn {{n}}"
+    "l_strip": "Bahn {{n}}",
+    "sample_a": "MÜLLER B.",
+    "sample_club_a": "FC Berlin",
+    "sample_b": "SCHMIDT A.",
+    "sample_club_b": "Fechten Köln"
   },
   "teamManager": {
     "generate_pool": "Pool erstellen",
@@ -2023,5 +2053,363 @@
     "pools": "{{a}}/{{b}} Pools",
     "matches": "{{a}}/{{b}} Gefechte",
     "tableau": "{{a}}/{{b}} Tableau"
+  },
+  "offline": {
+    "never": "Nie",
+    "just_now": "Gerade eben",
+    "minutes_ago": "Vor {{n}} Min.",
+    "hours_ago": "Vor {{n}} Std.",
+    "offline": "Offline",
+    "online": "Online",
+    "syncing": "Synchronisierung…",
+    "pending_count": "{{count}} ausstehend",
+    "conflicts_count": "{{count}} Konflikte",
+    "connected": "Verbunden",
+    "connection": "Verbindung:",
+    "last_sync": "Letzte Synchronisierung:",
+    "pending_actions": "Ausstehende Aktionen:",
+    "conflicts": "Konflikte:",
+    "resolve_one": "{{count}} Konflikt lösen",
+    "resolve_other": "{{count}} Konflikte lösen",
+    "sync_now": "Jetzt synchronisieren",
+    "sync_in_progress": "Synchronisierung läuft…",
+    "mode_title": "Offline-Modus:",
+    "mode_text": "Änderungen werden automatisch synchronisiert, sobald die Verbindung wiederhergestellt ist."
+  },
+  "formulaSim": {
+    "title": "Simulation — {{n}} Fechter",
+    "fencers": "Fechter",
+    "pools_one": "{{count}} Pool",
+    "pools_other": "{{count}} Pools",
+    "pool_sizes": "({{sizes}} Fechter)",
+    "matches": "{{n}} Gefechte",
+    "advancing": "→ {{n}} kommen weiter",
+    "total_matches": "Gefechte gesamt",
+    "duration": "Geschätzte Dauer",
+    "de": "Direktausscheidung",
+    "final_ranking": "Endrangliste"
+  },
+  "tableauScore": {
+    "quick_entry": "{{round}} - Schnelleingabe",
+    "max_score": "💡 Höchstpunktzahl: {{n}} Treffer",
+    "abandon": "Aufgabe",
+    "forfait": "Forfait",
+    "exclusion": "Ausschluss",
+    "who_abandon": "Welcher Fechter gibt auf?",
+    "who_forfait": "Welcher Fechter tritt nicht an?",
+    "who_exclusion": "Welcher Fechter wird ausgeschlossen?"
+  },
+  "addFencerPool": {
+    "title": "Fechter hinzufügen – Pool {{n}}",
+    "rescue_title": "Notfallmaßnahme:",
+    "rescue_text": "der Fechter wird ohne Neuverteilung hinzugefügt. Gefechte gegen alle anwesenden Fechter werden erstellt.",
+    "search_ph": "Nach Name suchen…",
+    "search_aria": "Fechter nach Name suchen",
+    "loading": "Fechter werden geladen…",
+    "none": "Kein Fechter verfügbar",
+    "adding": "Wird hinzugefügt…",
+    "add": "Fechter hinzufügen",
+    "sync_failed": "Fechter hinzugefügt, aber die Datenbanksynchronisierung ist fehlgeschlagen",
+    "add_error": "Fehler beim Hinzufügen: {{msg}}",
+    "unknown_error": "Unbekannter Fehler"
+  },
+  "conflicts": {
+    "title": "Synchronisierungskonflikte ({{n}})",
+    "type_competition": "Wettkampf",
+    "type_fencer": "Fechter",
+    "type_match": "Gefecht",
+    "local": "Lokal",
+    "remote": "Entfernt",
+    "keep_local": "Lokal behalten",
+    "keep_remote": "Entfernt behalten",
+    "none": "Keine Konflikte zu lösen."
+  },
+  "updateNotif": {
+    "title": "Update verfügbar!",
+    "version": "Version",
+    "behind": "Sie sind {{n}} Updates im Rückstand",
+    "download": "📥 Herunterladen",
+    "notes": "📋 Hinweise ansehen",
+    "redirect": "Weiterleitung zur Download-Seite…",
+    "later": "Sie können später über das Hilfe-Menü aktualisieren"
+  },
+  "analyticsCharts": {
+    "no_data": "Keine Daten",
+    "zones_title": "Trefferzonen — {{n}} Fechter",
+    "zone_a": "Hand/Waffe",
+    "zone_b": "Arme/Beine",
+    "zone_c": "Kopf/Rumpf",
+    "zone_line_one": "Zone {{zone}} · {{text}} · {{count}} Pkt.",
+    "zone_line_other": "Zone {{zone}} · {{text}} · {{count}} Pkt.",
+    "total_points": "Erzielte Punkte gesamt:",
+    "pts": "Pkt.",
+    "m": "G",
+    "top_points": "Beste Fechter — Trefferpunkte",
+    "top_matches": "Beste Fechter — Gefochtene Gefechte",
+    "fencers_short": "F.",
+    "duration_title": "Verteilung der durchschnittlichen Gefechtsdauer",
+    "cards_by_reason": "Karten nach Grund",
+    "cards_split": "Kartenverteilung",
+    "white": "Weiß",
+    "yellow": "Gelb",
+    "red": "Rot",
+    "empty": "Keine Statistiken verfügbar — starten Sie zuerst Gefechte.",
+    "exporting": "Export…",
+    "csv_first_name": "Vorname",
+    "csv_total_points": "Gesamtpunkte",
+    "csv_white": "Weiße Karten",
+    "csv_yellow": "Gelbe Karten",
+    "csv_red": "Rote Karten",
+    "csv_exits": "Pistenaustritte",
+    "csv_matches": "Gefochtene Gefechte",
+    "csv_avg": "Durchschn. Dauer (s)",
+    "csv_early": "Vorzeitige Enden"
+  },
+  "formulaTemplate": {
+    "name_required": "Geben Sie einen Namen für die Formel ein.",
+    "invalid_file": "Ungültige Datei — Formel kann nicht gelesen werden.",
+    "save_title": "Formel speichern",
+    "load_title": "Formel laden",
+    "name": "Name der Formel",
+    "name_ph": "z. B.: Standard-Vereinsturnier",
+    "save": "Speichern",
+    "empty": "Keine gespeicherte Formel.",
+    "phases_one": "{{count}} Phase",
+    "phases_other": "{{count}} Phasen",
+    "load": "Laden",
+    "export_json": "JSON exportieren",
+    "import_json": "Aus JSON-Datei importieren"
+  },
+  "about": {
+    "easter_title": "Doppelklick für eine Überraschung…",
+    "hint": "💡 Doppelklick auf die Build-Nummer…",
+    "desc_1": "Software zur Verwaltung von Fechtturnieren.",
+    "desc_2": "Pools, Direktausscheidung, Kampfrichter-Fernbedienung in Echtzeit.",
+    "licence": "Lizenz: GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
+    "easter": "🐔  Gack gack!  🐔"
+  },
+  "bracket": {
+    "expand_all": "Alle ausklappen",
+    "collapse_all": "Alle einklappen",
+    "bye": "FREILOS",
+    "horizontal": "Horizontale Ansicht",
+    "pyramid": "Pyramidenansicht",
+    "final": "Finale",
+    "semis": "Halbfinale",
+    "quarters": "Viertelfinale",
+    "r16": "Achtelfinale",
+    "r32": "Runde der 32",
+    "r64": "Runde der 64",
+    "r128": "Runde der 128",
+    "round_n": "Runde {{n}}"
+  },
+  "ffeExport": {
+    "code_required": "Der Wettkampfcode ist erforderlich",
+    "failed": "Export fehlgeschlagen",
+    "title": "Nach FFE Connect exportieren",
+    "code": "Wettkampfcode *",
+    "code_ph": "z. B.: 2024-IDF-001",
+    "api_key": "API-Schlüssel (optional)",
+    "api_key_ph": "Ihr FFE-API-Schlüssel",
+    "missing_license": " — {{n}} ohne Lizenznummer (übersprungen)",
+    "success": "Ergebnisse erfolgreich an die FFE gesendet.",
+    "sending": "Wird gesendet…"
+  },
+  "photoBooth": {
+    "no_media": "Webcam-Zugriff ist in diesem Kontext nicht verfügbar (mediaDevices fehlt).",
+    "denied": "Zugriff verweigert [{{name}}]. Prüfen Sie in den Systemeinstellungen, ob die App auf die Kamera zugreifen darf.",
+    "not_found": "Keine Kamera erkannt [{{name}}]. Prüfen Sie, ob die Webcam angeschlossen ist.",
+    "error": "Kein Zugriff auf die Kamera [{{name}}]: {{msg}}",
+    "webcam_error": "Webcam-Fehler:",
+    "start": "Kamera starten",
+    "capture": "📸 Aufnehmen",
+    "preview": "Vorschau",
+    "retake": "Wiederholen",
+    "use": "Dieses Foto verwenden"
+  },
+  "splitCompetition": {
+    "title": "Getrennter Wettkampf — {{group}}",
+    "text_one": "{{count}} Fechter wird in einen neuen Wettkampf kopiert, gesetzt nach der Rangliste nach den Pools.",
+    "text_other": "{{count}} Fechter werden in einen neuen Wettkampf kopiert, gesetzt nach der Rangliste nach den Pools.",
+    "name": "Name des Wettkampfs",
+    "create": "Wettkampf erstellen"
+  },
+  "tiebreaker": {
+    "title": "Münzwurf",
+    "subtitle": "Zeit abgelaufen — Weiterhin unentschieden",
+    "green": "GRÜN",
+    "red": "ROT",
+    "wins": "🏆 {{name}} gewinnt!",
+    "continue": "Weiter"
+  },
+  "scoringZones": {
+    "head": "Kopf",
+    "torso": "Rumpf",
+    "limbs": "Arme/Beine",
+    "color": "Farbe",
+    "name_ph": "Name der Zone",
+    "pts": "Pkt.",
+    "remove": "Diese Zone entfernen",
+    "add": "+ Zone hinzufügen",
+    "max": "Max. pro Treffer:"
+  },
+  "pdfEditor": {
+    "logo": "Logo",
+    "no_logo": "Kein Logo",
+    "colors": "Farben",
+    "sections": "Abschnitte"
+  },
+  "tableauSignatures": {
+    "title": "Unterschriften des Gefechts",
+    "resend": "Unterschrift erneut an eine Piste senden",
+    "no_strip": "Fernserver nicht gestartet oder keine Piste verfügbar",
+    "strip": "Piste",
+    "strip_n": "Piste {{n}}",
+    "busy": " (Gefecht läuft)"
+  },
+  "commandPalette": {
+    "no_result": "Kein Ergebnis",
+    "navigate": "navigieren",
+    "select": "auswählen",
+    "close": "schließen",
+    "aria": "Befehlspalette",
+    "placeholder": "Wettkampf oder Aktion suchen…",
+    "search_aria": "Befehle suchen"
+  },
+  "dtCall": {
+    "title": "📣 DT-Ruf",
+    "strip": " — Piste {{n}}",
+    "black_card": "⬛ Schwarze Karte",
+    "black_card_note": "(Ausschluss, Verbandsbericht)",
+    "match_n": "Gefecht Nr. {{n}}",
+    "pending": "⏳ Läuft…",
+    "resolve": "✅ DT unterwegs — Erledigt"
+  },
+  "qrShare": {
+    "generating": "QR-Code wird erstellt…",
+    "url": "URL:",
+    "copy": "📋 Kopieren",
+    "download": "💾 QR-Code herunterladen",
+    "server_required": "Der Fernserver muss laufen, um Ergebnisse zu teilen.\nAktivieren Sie die Ferneingabe im entsprechenden Tab.",
+    "error": "Fehler beim Erstellen des QR-Codes",
+    "copied": "URL in die Zwischenablage kopiert!",
+    "results_title": "Ergebnisse teilen",
+    "results_desc": "Scannen Sie diesen QR-Code, um die Ergebnisse von „{{title}}“ zu sehen",
+    "results_info": "Zuschauer können die Ergebnisse in Echtzeit verfolgen.",
+    "checkin_title": "Check-in-QR-Code",
+    "checkin_desc": "Die Fechter von „{{title}}“ scannen, um sich selbst einzuchecken.",
+    "checkin_info": "Zeigen Sie diesen QR-Code am Halleneingang, damit die Fechter ihre Anwesenheit bestätigen.",
+    "tab_results": "🏆 Ergebnisse",
+    "tab_checkin": "✅ Check-in"
+  },
+  "kioskEntry": {
+    "quit": "✕ Kioskmodus beenden",
+    "title": "Kioskmodus - Ergebniseingabe",
+    "all_done": "✓ Alle Gefechte sind beendet - Rangliste ansehen"
+  },
+  "tableauArena": {
+    "title": "Einer Piste zuweisen",
+    "hint": "Wählen Sie die Piste für dieses Gefecht:"
+  },
+  "tableauReferee": {
+    "title_multi": "Kampfrichter zuweisen",
+    "title_one": "Kampfrichter zuweisen",
+    "hint_multi": "Wählen Sie bis zu {{n}} Kampfrichter für dieses Gefecht (der erste ist der Hauptkampfrichter):",
+    "hint_one": "Wählen Sie den Kampfrichter für dieses Gefecht:",
+    "none": "✕ Kein Kampfrichter",
+    "none_checked": "Kein Kampfrichter für diesen Wettkampf eingecheckt",
+    "validate": "✓ Bestätigen ({{n}}/{{max}})"
+  },
+  "dashboardCards": {
+    "vs_last_month": "vs. Vormonat",
+    "you": "(Sie)",
+    "pts": "Pkt."
+  },
+  "matchTimer": {
+    "resume": "▶️ Fortsetzen",
+    "pause": "⏸️ Pause (Zwischenfall)",
+    "paused": "⚠️ PAUSE - Zwischenfall läuft"
+  },
+  "voice": {
+    "title": "Sprachsteuerung",
+    "listening": "Hört zu…",
+    "press": "Zum Aktivieren drücken",
+    "stop": "Zuhören beenden",
+    "start": "Sprache aktivieren",
+    "last": "Letzter Befehl:",
+    "available": "Verfügbare Befehle:"
+  },
+  "fencerPhoto": {
+    "invalid_select": "Bitte wählen Sie ein gültiges Bild",
+    "invalid_drop": "Bitte legen Sie ein gültiges Bild ab",
+    "too_big": "Das Bild darf 5 MB nicht überschreiten",
+    "error": "Fehler bei der Bildverarbeitung",
+    "click_or_drop": "Klicken oder ein Foto hineinziehen",
+    "remove": "Foto entfernen",
+    "drop_here": "Hier ablegen",
+    "webcam_title": "Foto mit der Webcam aufnehmen",
+    "take": "Foto aufnehmen"
+  },
+  "poolColumns": {
+    "button": "Spalten (alle Pools)",
+    "header": "Spalten — für alle Pools"
+  },
+  "fencerStats": {
+    "loading": "Wird geladen…",
+    "count_one": "{{count}} Fechter",
+    "count_other": "{{count}} Fechter",
+    "name": "Name / Vorname",
+    "detail": "Klicken für Details",
+    "exporting": "Export…"
+  },
+  "confirmDialog": {
+    "title": "Bestätigung"
+  },
+  "poolGrid": {
+    "not_played": "Gefecht nicht ausgetragen (Aufgabe/Forfait)",
+    "fencer": "Fechter"
+  },
+  "pdfModal": {
+    "preview": "Vorschau",
+    "iframe_title": "PDF-Vorschau"
+  },
+  "touchHeatmap": {
+    "touches_one": "{{count}} Treffer",
+    "touches_other": "{{count}} Treffer"
+  },
+  "poolCards": {
+    "title": "Größe der Poolkarten",
+    "button": "🗔 Karten: {{size}} ▾",
+    "Compact": "Kompakt",
+    "Normal": "Normal",
+    "Large": "Groß"
+  },
+  "consolation": {
+    "done": "Beendet"
+  },
+  "matchCard": {
+    "bye": "Freilos",
+    "signatures": "Unterschriften ansehen"
+  },
+  "seedingTable": {
+    "title": "Rangliste nach den Pools"
+  },
+  "pendingSection": {
+    "matches_one": "{{count}} Gefecht",
+    "matches_other": "{{count}} Gefechte"
+  },
+  "addFencer": {
+    "last_name_ph": "MÜLLER",
+    "first_name_ph": "Hans",
+    "club_ph": "FC BERLIN",
+    "region_ph": "Berlin"
+  },
+  "keypad": {
+    "aria": "Ziffernblock",
+    "clear": "Löschen",
+    "backspace": "Rücktaste"
+  },
+  "rankingCriteria": {
+    "drag": "Zum Neuordnen ziehen"
   }
 }

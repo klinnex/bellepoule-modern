@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 
 // Modern Stat Card with icon and trend
 interface StatCardProps {
@@ -16,6 +17,7 @@ interface StatCardProps {
 }
 
 const ModernStatCard_: React.FC<StatCardProps> = ({ title, value, icon, trend, color }) => {
+  const { t } = useTranslation();
   const colors = {
     blue: { bg: '#eff6ff', icon: '#3b82f6', text: '#1e40af' },
     green: { bg: '#f0fdf4', icon: '#10b981', text: '#065f46' },
@@ -77,7 +79,7 @@ const ModernStatCard_: React.FC<StatCardProps> = ({ title, value, icon, trend, c
               {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
             </span>
             <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
-              vs dernier mois
+              {t('dashboardCards.vs_last_month')}
             </span>
           </div>
         )}
@@ -273,6 +275,7 @@ const LeaderboardItem_: React.FC<{
   avatar?: string;
   isCurrentUser?: boolean;
 }> = ({ rank, name, score, avatar, isCurrentUser }) => {
+  const { t } = useTranslation();
   const getRankColor = () => {
     switch (rank) {
       case 1:
@@ -357,7 +360,7 @@ const LeaderboardItem_: React.FC<{
               fontWeight: '500',
             }}
           >
-            (Vous)
+            {t('dashboardCards.you')}
           </span>
         )}
       </div>
@@ -367,7 +370,7 @@ const LeaderboardItem_: React.FC<{
           {score}
         </span>
         <span style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginLeft: '4px' }}>
-          pts
+          {t('dashboardCards.pts')}
         </span>
       </div>
     </div>

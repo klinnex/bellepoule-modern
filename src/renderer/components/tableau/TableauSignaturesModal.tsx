@@ -173,10 +173,10 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
       >
         <div className="modal-header">
           <h3 className="modal-title" id="tableau-signatures-title">
-            Signatures du match
+            {t('tableauSignatures.title')}
           </h3>
-          <button className="btn-close" onClick={onClose} aria-label="Fermer">
-            &times;
+          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
+            ×
           </button>
         </div>
         <div
@@ -196,7 +196,7 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
               }}
             >
               <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                Renvoyer la signature sur une piste
+                {t('tableauSignatures.resend')}
               </div>
               {arenas.length === 0 ? (
                 <div
@@ -206,7 +206,7 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
                     fontStyle: 'italic',
                   }}
                 >
-                  Serveur distant non démarré ou aucune piste disponible
+                  {t('tableauSignatures.no_strip')}
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -217,12 +217,12 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
                       setArenaId(e.target.value);
                       setSendState(null);
                     }}
-                    aria-label="Piste"
+                    aria-label={t('tableauSignatures.strip')}
                   >
                     {arenas.map(a => (
                       <option key={a.id} value={a.id}>
-                        Piste {a.number}
-                        {a.status === 'in_progress' ? ' (match en cours)' : ''}
+                        {t('tableauSignatures.strip_n', { n: a.number })}
+                        {a.status === 'in_progress' ? t('tableauSignatures.busy') : ''}
                       </option>
                     ))}
                   </select>

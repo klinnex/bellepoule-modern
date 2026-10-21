@@ -8,7 +8,7 @@ import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React, { useState } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-vi.mock('../hooks/useTranslation', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
+vi.mock('../hooks/useTranslation', () => import('../testUtils/i18nMock'));
 
 import TableauView from './TableauView';
 import { TableauMatch, FinalResult } from './tableau/tableauTypes';

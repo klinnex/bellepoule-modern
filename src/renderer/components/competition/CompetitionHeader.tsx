@@ -152,7 +152,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                       <span className="comp-stat-value">
                         {matchProgress.done}/{matchProgress.total}
                       </span>
-                      <span className="comp-stat-label">matchs</span>
+                      <span className="comp-stat-label">{t('competitionHeader.matches')}</span>
                     </div>
                   </>
                 )}
@@ -163,7 +163,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
             <button
               className="comp-header-collapse-btn"
               onClick={toggleExpanded}
-              title={expanded ? 'Réduire' : 'Développer'}
+              title={expanded ? t('competitionHeader.collapse') : t('competitionHeader.expand')}
               aria-expanded={expanded}
             >
               {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -179,7 +179,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                 <button
                   className="comp-header-menu-btn"
                   onClick={() => setShowActionsMenu(v => !v)}
-                  title="Actions"
+                  title={t('competitionHeader.actions')}
                 >
                   <MoreHorizontal size={18} />
                 </button>
@@ -212,7 +212,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                         setShowActionsMenu(false);
                       }}
                     >
-                      <Trophy size={14} /> Classement saison Quest
+                      <Trophy size={14} /> {t('competitionHeader.season_quest')}
                     </button>
                   )}
                   <button
@@ -222,7 +222,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                       setShowActionsMenu(false);
                     }}
                   >
-                    <Share2 size={14} /> Partager
+                    <Share2 size={14} /> {t('competitionHeader.share')}
                   </button>
                   {currentPhase === 'pools' && pools.length > 0 && (
                     <>
@@ -233,7 +233,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                           setShowActionsMenu(false);
                         }}
                       >
-                        <Monitor size={14} /> Mode Présentation
+                        <Monitor size={14} /> {t('competitionHeader.presentation')}
                       </button>
                       <button
                         className="comp-header-dropdown-item"
@@ -242,7 +242,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                           setShowActionsMenu(false);
                         }}
                       >
-                        <Smartphone size={14} /> Mode Kiosk
+                        <Smartphone size={14} /> {t('competitionHeader.kiosk_mode')}
                       </button>
                     </>
                   )}
@@ -254,7 +254,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                         setShowActionsMenu(false);
                       }}
                     >
-                      <Monitor size={14} /> Kiosk Public
+                      <Monitor size={14} /> {t('competitionHeader.kiosk_public')}
                     </button>
                   )}
                   <button
@@ -264,7 +264,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                       setShowActionsMenu(false);
                     }}
                   >
-                    <Download size={14} /> Exporter
+                    <Download size={14} /> {t('actions.export')}
                   </button>
                   <div className="comp-header-dropdown-sep" />
                   <button
@@ -274,7 +274,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                       setShowActionsMenu(false);
                     }}
                   >
-                    <Settings size={14} /> Propriétés
+                    <Settings size={14} /> {t('competitionHeader.properties')}
                   </button>
                 </div>
               )}

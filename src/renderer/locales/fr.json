@@ -6,7 +6,16 @@
     "close_tab": "Fermer l'onglet",
     "load_error_title": "Erreur de chargement",
     "load_error_message": "Une erreur est survenue lors du chargement de la liste des compétitions.",
-    "reload": "Recharger l'application"
+    "reload": "Recharger l'application",
+    "palette_title": "Ouvrir la palette de commandes (Ctrl+K)",
+    "search": "Rechercher…",
+    "training_hide": "Masquer le panneau entraînement",
+    "training_show": "Afficher le panneau entraînement",
+    "training_mode": "Mode entraînement",
+    "training": "Entraînement",
+    "tools": "Outils",
+    "wifi_qr": "QR Code WiFi",
+    "tv_remote": "Télécommande TV"
   },
   "menu": {
     "new_competition": "Nouvelle compétition",
@@ -468,7 +477,8 @@
     "print_sheets": "Imprimer les feuilles de poule / de match"
   },
   "wiki": {
-    "button_title": "Documentation"
+    "button_title": "Documentation",
+    "title": "Documentation"
   },
   "formula": {
     "builder_title": "Constructeur de formule",
@@ -633,7 +643,16 @@
     "move": "Déplacer le tireur"
   },
   "competitionHeader": {
-    "kiosk_mode": "Mode kiosque"
+    "kiosk_mode": "Mode kiosque",
+    "matches": "matchs",
+    "actions": "Actions",
+    "collapse": "Réduire",
+    "expand": "Développer",
+    "season_quest": "Classement saison Quest",
+    "share": "Partager",
+    "presentation": "Mode Présentation",
+    "kiosk_public": "Kiosque public",
+    "properties": "Propriétés"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} tireur",
@@ -726,7 +745,14 @@
     "poule": "Poule",
     "rotation_label": "Rotation (s) :",
     "send_kiosk": "Envoyer au kiosque",
-    "views_label": "Vues à afficher :"
+    "views_label": "Vues à afficher :",
+    "more_rows_one": "… {{count}} autre — déplier",
+    "more_rows_other": "… {{count}} autres — déplier",
+    "language_label": "Langue :",
+    "expand": "Déplier",
+    "expand_hidden_one": "Déplier ({{count}} masqué)",
+    "expand_hidden_other": "Déplier ({{count}} masqués)",
+    "compact": "Compacter"
   },
   "replay": {
     "title": "▶ Replay",
@@ -1421,7 +1447,11 @@
     "l_referee": "Tablette arbitre",
     "l_pool": "Affichage poule",
     "l_all": "Toutes les pistes",
-    "l_strip": "Piste {{n}}"
+    "l_strip": "Piste {{n}}",
+    "sample_a": "MARTIN B.",
+    "sample_club_a": "CE Orléans",
+    "sample_b": "DUPONT A.",
+    "sample_club_b": "Escrime Paris"
   },
   "teamManager": {
     "generate_pool": "Générer la poule",
@@ -2023,5 +2053,363 @@
     "pools": "{{a}}/{{b}} poules",
     "matches": "{{a}}/{{b}} matchs",
     "tableau": "{{a}}/{{b}} tableau"
+  },
+  "offline": {
+    "never": "Jamais",
+    "just_now": "À l'instant",
+    "minutes_ago": "Il y a {{n}} min",
+    "hours_ago": "Il y a {{n}} h",
+    "offline": "Hors ligne",
+    "online": "En ligne",
+    "syncing": "Synchronisation…",
+    "pending_count": "{{count}} en attente",
+    "conflicts_count": "{{count}} conflits",
+    "connected": "Connecté",
+    "connection": "Connexion :",
+    "last_sync": "Dernière synchro :",
+    "pending_actions": "Actions en attente :",
+    "conflicts": "Conflits :",
+    "resolve_one": "Résoudre {{count}} conflit",
+    "resolve_other": "Résoudre {{count}} conflits",
+    "sync_now": "Synchroniser maintenant",
+    "sync_in_progress": "Synchronisation en cours…",
+    "mode_title": "Mode hors ligne :",
+    "mode_text": "Les modifications seront synchronisées automatiquement lorsque la connexion sera rétablie."
+  },
+  "formulaSim": {
+    "title": "Simulation — {{n}} tireurs",
+    "fencers": "tireurs",
+    "pools_one": "{{count}} poule",
+    "pools_other": "{{count}} poules",
+    "pool_sizes": "({{sizes}} tireurs)",
+    "matches": "{{n}} matchs",
+    "advancing": "→ {{n}} avancent",
+    "total_matches": "Total matchs",
+    "duration": "Durée estimée",
+    "de": "Élimination directe",
+    "final_ranking": "Classement final"
+  },
+  "tableauScore": {
+    "quick_entry": "{{round}} - Saisie rapide",
+    "max_score": "💡 Score maximum : {{n}} touches",
+    "abandon": "Abandon",
+    "forfait": "Forfait",
+    "exclusion": "Exclusion",
+    "who_abandon": "Quel tireur abandonne ?",
+    "who_forfait": "Quel tireur déclare forfait ?",
+    "who_exclusion": "Quel tireur est exclu ?"
+  },
+  "addFencerPool": {
+    "title": "Ajouter un tireur – Poule {{n}}",
+    "rescue_title": "Opération de sauvetage :",
+    "rescue_text": "le tireur sera ajouté sans rééquilibrage. Des matchs contre tous les tireurs présents seront créés.",
+    "search_ph": "Rechercher par nom…",
+    "search_aria": "Rechercher un tireur par nom",
+    "loading": "Chargement des tireurs…",
+    "none": "Aucun tireur disponible",
+    "adding": "Ajout…",
+    "add": "Ajouter le tireur",
+    "sync_failed": "Tireur ajouté, mais la synchronisation en base a échoué",
+    "add_error": "Erreur lors de l'ajout : {{msg}}",
+    "unknown_error": "Erreur inconnue"
+  },
+  "conflicts": {
+    "title": "Conflits de synchronisation ({{n}})",
+    "type_competition": "Compétition",
+    "type_fencer": "Tireur",
+    "type_match": "Match",
+    "local": "Local",
+    "remote": "Distant",
+    "keep_local": "Garder local",
+    "keep_remote": "Garder distant",
+    "none": "Aucun conflit à résoudre."
+  },
+  "updateNotif": {
+    "title": "Mise à jour disponible !",
+    "version": "Version",
+    "behind": "Vous avez {{n}} mises à jour de retard",
+    "download": "📥 Télécharger",
+    "notes": "📋 Voir les notes",
+    "redirect": "Redirection vers la page de téléchargement…",
+    "later": "Vous pourrez mettre à jour plus tard depuis le menu Aide"
+  },
+  "analyticsCharts": {
+    "no_data": "Aucune donnée",
+    "zones_title": "Zones de touches — {{n}} tireurs",
+    "zone_a": "Main/Arme",
+    "zone_b": "Bras/Jambes",
+    "zone_c": "Tête/Torse",
+    "zone_line_one": "Zone {{zone}} · {{text}} · {{count}} pt",
+    "zone_line_other": "Zone {{zone}} · {{text}} · {{count}} pts",
+    "total_points": "Total points marqués :",
+    "pts": "pts",
+    "m": "M",
+    "top_points": "Top tireurs — Points touches",
+    "top_matches": "Top tireurs — Matchs joués",
+    "fencers_short": "t.",
+    "duration_title": "Distribution durée moyenne des matchs",
+    "cards_by_reason": "Cartons par motif",
+    "cards_split": "Répartition des cartons",
+    "white": "Blancs",
+    "yellow": "Jaunes",
+    "red": "Rouges",
+    "empty": "Aucune statistique disponible — lancez des matchs d'abord.",
+    "exporting": "Export…",
+    "csv_first_name": "Prénom",
+    "csv_total_points": "Points total",
+    "csv_white": "Cartons blancs",
+    "csv_yellow": "Cartons jaunes",
+    "csv_red": "Cartons rouges",
+    "csv_exits": "Sorties piste",
+    "csv_matches": "Matchs joués",
+    "csv_avg": "Durée moy. (s)",
+    "csv_early": "Fins anticipées"
+  },
+  "formulaTemplate": {
+    "name_required": "Entrez un nom pour la formule.",
+    "invalid_file": "Fichier invalide — impossible de lire la formule.",
+    "save_title": "Enregistrer la formule",
+    "load_title": "Charger une formule",
+    "name": "Nom de la formule",
+    "name_ph": "Ex : Tournoi club standard",
+    "save": "Enregistrer",
+    "empty": "Aucune formule sauvegardée.",
+    "phases_one": "{{count}} phase",
+    "phases_other": "{{count}} phases",
+    "load": "Charger",
+    "export_json": "Exporter JSON",
+    "import_json": "Importer depuis un fichier JSON"
+  },
+  "about": {
+    "easter_title": "Double-clic pour une surprise…",
+    "hint": "💡 Double-clique sur le numéro de build…",
+    "desc_1": "Logiciel de gestion de tournois d'escrime.",
+    "desc_2": "Poules, tableaux directs, arbitrage déporté en temps réel.",
+    "licence": "Licence : GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
+    "easter": "🐔  Cot-cot !  🐔"
+  },
+  "bracket": {
+    "expand_all": "Tout déplier",
+    "collapse_all": "Tout replier",
+    "bye": "EXEMPT",
+    "horizontal": "Vue horizontale",
+    "pyramid": "Vue pyramidale",
+    "final": "Finale",
+    "semis": "Demi-finales",
+    "quarters": "Quarts",
+    "r16": "16èmes",
+    "r32": "32èmes",
+    "r64": "64èmes",
+    "r128": "128èmes",
+    "round_n": "Tour {{n}}"
+  },
+  "ffeExport": {
+    "code_required": "Le code de compétition est requis",
+    "failed": "Échec de l'export",
+    "title": "Exporter vers FFE Connect",
+    "code": "Code de compétition *",
+    "code_ph": "ex : 2024-IDF-001",
+    "api_key": "Clé API (optionnelle)",
+    "api_key_ph": "Votre clé API FFE",
+    "missing_license": " — {{n}} sans numéro de licence (ignoré(s))",
+    "success": "Résultats envoyés à la FFE avec succès.",
+    "sending": "Envoi…"
+  },
+  "photoBooth": {
+    "no_media": "L'accès à la webcam n'est pas disponible dans ce contexte (mediaDevices absent).",
+    "denied": "Permission refusée [{{name}}]. Vérifiez que l'application a accès à la caméra dans les paramètres système.",
+    "not_found": "Aucune caméra détectée [{{name}}]. Vérifiez que la webcam est connectée.",
+    "error": "Impossible d'accéder à la caméra [{{name}}] : {{msg}}",
+    "webcam_error": "Erreur webcam :",
+    "start": "Démarrer la caméra",
+    "capture": "📸 Capturer",
+    "preview": "Aperçu",
+    "retake": "Recommencer",
+    "use": "Utiliser cette photo"
+  },
+  "splitCompetition": {
+    "title": "Compétition séparée — {{group}}",
+    "text_one": "{{count}} tireur sera copié dans une nouvelle compétition, classé selon le classement après poules.",
+    "text_other": "{{count}} tireurs seront copiés dans une nouvelle compétition, classés selon le classement après poules.",
+    "name": "Nom de la compétition",
+    "create": "Créer la compétition"
+  },
+  "tiebreaker": {
+    "title": "Tirage au sort",
+    "subtitle": "Temps écoulé — Égalité persistante",
+    "green": "VERT",
+    "red": "ROUGE",
+    "wins": "🏆 {{name}} gagne !",
+    "continue": "Continuer"
+  },
+  "scoringZones": {
+    "head": "Tête",
+    "torso": "Tronc",
+    "limbs": "Bras/Jambes",
+    "color": "Couleur",
+    "name_ph": "Nom de la zone",
+    "pts": "pts",
+    "remove": "Supprimer cette zone",
+    "add": "+ Ajouter une zone",
+    "max": "Max sur touche :"
+  },
+  "pdfEditor": {
+    "logo": "Logo",
+    "no_logo": "Aucun logo",
+    "colors": "Couleurs",
+    "sections": "Sections"
+  },
+  "tableauSignatures": {
+    "title": "Signatures du match",
+    "resend": "Renvoyer la signature sur une piste",
+    "no_strip": "Serveur distant non démarré ou aucune piste disponible",
+    "strip": "Piste",
+    "strip_n": "Piste {{n}}",
+    "busy": " (match en cours)"
+  },
+  "commandPalette": {
+    "no_result": "Aucun résultat",
+    "navigate": "naviguer",
+    "select": "sélectionner",
+    "close": "fermer",
+    "aria": "Palette de commandes",
+    "placeholder": "Rechercher une compétition ou une action…",
+    "search_aria": "Rechercher des commandes"
+  },
+  "dtCall": {
+    "title": "📣 Appel DT",
+    "strip": " — Piste {{n}}",
+    "black_card": "⬛ Carton noir",
+    "black_card_note": "(exclusion, rapport fédéral)",
+    "match_n": "Match n° {{n}}",
+    "pending": "⏳ En cours…",
+    "resolve": "✅ DT en route — Résolu"
+  },
+  "qrShare": {
+    "generating": "Génération du QR code…",
+    "url": "URL :",
+    "copy": "📋 Copier",
+    "download": "💾 Télécharger le QR Code",
+    "server_required": "Le serveur distant doit être démarré pour partager les résultats.\nActivez la saisie distante depuis l'onglet correspondant.",
+    "error": "Erreur lors de la génération du QR code",
+    "copied": "URL copiée dans le presse-papier !",
+    "results_title": "Partager les résultats",
+    "results_desc": "Scannez ce QR code pour accéder aux résultats de la compétition « {{title}} »",
+    "results_info": "Les spectateurs peuvent voir les résultats en temps réel.",
+    "checkin_title": "QR Code de pointage",
+    "checkin_desc": "Les tireurs de « {{title}} » scannent pour se pointer eux-mêmes.",
+    "checkin_info": "Affichez ce QR code à l'entrée de la salle pour que les tireurs confirment leur présence.",
+    "tab_results": "🏆 Résultats",
+    "tab_checkin": "✅ Pointage"
+  },
+  "kioskEntry": {
+    "quit": "✕ Quitter le mode kiosque",
+    "title": "Mode kiosque - Saisie des scores",
+    "all_done": "✓ Tous les matchs sont terminés - Voir le classement"
+  },
+  "tableauArena": {
+    "title": "Assigner à une piste",
+    "hint": "Sélectionnez la piste pour ce match :"
+  },
+  "tableauReferee": {
+    "title_multi": "Assigner les arbitres",
+    "title_one": "Assigner un arbitre",
+    "hint_multi": "Sélectionnez jusqu'à {{n}} arbitres pour ce match (le premier sélectionné est l'arbitre principal) :",
+    "hint_one": "Sélectionnez l'arbitre pour ce match :",
+    "none": "✕ Aucun arbitre",
+    "none_checked": "Aucun arbitre pointé pour cette compétition",
+    "validate": "✓ Valider ({{n}}/{{max}})"
+  },
+  "dashboardCards": {
+    "vs_last_month": "vs dernier mois",
+    "you": "(Vous)",
+    "pts": "pts"
+  },
+  "matchTimer": {
+    "resume": "▶️ Reprendre",
+    "pause": "⏸️ Pause (Incident)",
+    "paused": "⚠️ PAUSE - Incident en cours"
+  },
+  "voice": {
+    "title": "Contrôle vocal",
+    "listening": "Écoute en cours…",
+    "press": "Appuyez pour activer",
+    "stop": "Arrêter l'écoute",
+    "start": "Activer la voix",
+    "last": "Dernière commande :",
+    "available": "Commandes disponibles :"
+  },
+  "fencerPhoto": {
+    "invalid_select": "Veuillez sélectionner une image valide",
+    "invalid_drop": "Veuillez déposer une image valide",
+    "too_big": "L'image ne doit pas dépasser 5 Mo",
+    "error": "Erreur lors du traitement de l'image",
+    "click_or_drop": "Cliquer ou glisser-déposer une photo",
+    "remove": "Supprimer la photo",
+    "drop_here": "Déposer ici",
+    "webcam_title": "Prendre une photo avec la webcam",
+    "take": "Prendre une photo"
+  },
+  "poolColumns": {
+    "button": "Colonnes (toutes les poules)",
+    "header": "Colonnes — appliqué à toutes les poules"
+  },
+  "fencerStats": {
+    "loading": "Chargement…",
+    "count_one": "{{count}} combattant",
+    "count_other": "{{count}} combattants",
+    "name": "Nom / Prénom",
+    "detail": "Cliquer pour voir le détail",
+    "exporting": "Export…"
+  },
+  "confirmDialog": {
+    "title": "Confirmation"
+  },
+  "poolGrid": {
+    "not_played": "Match non disputé (abandon/forfait)",
+    "fencer": "Tireur"
+  },
+  "pdfModal": {
+    "preview": "Prévisualisation",
+    "iframe_title": "Aperçu PDF"
+  },
+  "touchHeatmap": {
+    "touches_one": "{{count}} touche",
+    "touches_other": "{{count}} touches"
+  },
+  "poolCards": {
+    "title": "Taille des cartes de poule",
+    "button": "🗔 Cartes : {{size}} ▾",
+    "Compact": "Compact",
+    "Normal": "Normal",
+    "Large": "Large"
+  },
+  "consolation": {
+    "done": "Terminé"
+  },
+  "matchCard": {
+    "bye": "Exempt",
+    "signatures": "Consulter les signatures"
+  },
+  "seedingTable": {
+    "title": "Classement après poules"
+  },
+  "pendingSection": {
+    "matches_one": "{{count}} match",
+    "matches_other": "{{count}} matchs"
+  },
+  "addFencer": {
+    "last_name_ph": "DUPONT",
+    "first_name_ph": "Jean",
+    "club_ph": "PARIS USM",
+    "region_ph": "Île-de-France"
+  },
+  "keypad": {
+    "aria": "Pavé numérique",
+    "clear": "Effacer",
+    "backspace": "Retour arrière"
+  },
+  "rankingCriteria": {
+    "drag": "Glisser pour réordonner"
   }
 }

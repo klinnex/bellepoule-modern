@@ -5,6 +5,8 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
+import { formatTime } from '../../shared/utils/localeFormat';
 
 interface DTCallEntry {
   id: string;
@@ -19,6 +21,7 @@ interface DTCallEntry {
 }
 
 const DTCallNotification: React.FC = () => {
+  const { t } = useTranslation();
   const [calls, setCalls] = useState<DTCallEntry[]>([]);
 
   useEffect(() => {
@@ -108,7 +111,8 @@ const DTCallNotification: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '4px' }}>
-            📣 Appel DT{call.arenaNumber != null ? ` — Piste ${call.arenaNumber}` : ''}
+            {t('dtCall.title')}
+            {call.arenaNumber != null ? t('dtCall.strip', { n: call.arenaNumber }) : ''}
           </div>
           {call.reason === 'black_card' && (
             <div
@@ -119,17 +123,17 @@ const DTCallNotification: React.FC = () => {
                 marginBottom: '4px',
               }}
             >
-              ⬛ Carton noir{call.fencerName ? ` — ${call.fencerName}` : ''} (exclusion, rapport
-              fédéral)
+              {t('dtCall.black_card')}
+              {call.fencerName ? ` — ${call.fencerName}` : ''} {t('dtCall.black_card_note')}
             </div>
           )}
           {call.matchNumber != null && (
             <div style={{ fontSize: '0.8125rem', color: '#9ca3af', marginBottom: '4px' }}>
-              Match n° {call.matchNumber}
+              {t('dtCall.match_n', { n: call.matchNumber })}
             </div>
           )}
           <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '10px' }}>
-            {new Date(call.timestamp).toLocaleTimeString()}
+            {formatTime(call.timestamp)}
           </div>
           <button
             onClick={() => acknowledge(call)}
@@ -146,7 +150,7 @@ const DTCallNotification: React.FC = () => {
               width: '100%',
             }}
           >
-            {call.acknowledging ? '⏳ En cours...' : '✅ DT en route — Résolu'}
+            {call.acknowledging ? t('dtCall.pending') : t('dtCall.resolve')}
           </button>
         </div>
       ))}

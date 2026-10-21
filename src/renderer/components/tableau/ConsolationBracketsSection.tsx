@@ -9,6 +9,7 @@ import { TableauMatch, ConsolationBracket } from './tableauTypes';
 import { BASE_MATCH_HEIGHT } from './tableauCalculations';
 import MatchCard from './MatchCard';
 import { CollapseToggle } from '../common/CollapseToggle';
+import { translateStatic } from '../../contexts/TranslationContext';
 
 interface ConsolationBracketsSectionProps {
   consolationBrackets: ConsolationBracket[];
@@ -156,7 +157,9 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
                 />
                 <h3 style={CONS_STYLES.consolationTitle}>🥋 {bracket.name}</h3>
                 {bracket.isComplete && (
-                  <span style={CONS_STYLES.consolationDoneBadge}>Terminé</span>
+                  <span style={CONS_STYLES.consolationDoneBadge}>
+                    {translateStatic('consolation.done')}
+                  </span>
                 )}
                 {finalM?.winner && (
                   <span style={CONS_STYLES.consolationWinnerBadge}>

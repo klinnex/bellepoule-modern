@@ -174,7 +174,7 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
   );
 
   if (loading) {
-    return <div className="p-8 text-center text-gray-500">Chargement…</div>;
+    return <div className="p-8 text-center text-gray-500">{t('fencerStats.loading')}</div>;
   }
 
   if (stats.length === 0) {
@@ -197,7 +197,7 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
       <div>
         <div className="flex justify-between items-center mb-3">
           <p className="text-xs text-gray-500">
-            {sorted.length} combattant{sorted.length > 1 ? 's' : ''}
+            {t('fencerStats.count', { count: sorted.length })}
             {isLaser ? ` — ${t('stats.laser_only')}` : ''}
           </p>
           <div className="flex gap-2">
@@ -206,7 +206,7 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
               disabled={exportingComp}
               className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 disabled:opacity-50"
             >
-              {exportingComp ? 'Export…' : t('stats.export_competition_pdf')}
+              {exportingComp ? t('fencerStats.exporting') : t('stats.export_competition_pdf')}
             </button>
             <button
               onClick={exportPdf}
@@ -221,8 +221,8 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
           <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <Th k="fencerLastName" label="Nom / Prénom" />
-                <Th k="fencerClub" label="Club" />
+                <Th k="fencerLastName" label={t('fencerStats.name')} />
+                <Th k="fencerClub" label={t('ranking.club')} />
                 {isLaser && (
                   <>
                     <Th k="touchesZoneA" label={t('stats.zone_a')} />
@@ -246,7 +246,7 @@ const FencerStatsTableComponent: React.FC<FencerStatsTableProps> = ({ competitio
                   key={s.fencerId}
                   className="hover:bg-blue-50 cursor-pointer"
                   onClick={() => setSelectedFencer(s)}
-                  title="Cliquer pour voir le détail"
+                  title={t('fencerStats.detail')}
                 >
                   <td className="px-2 py-2 font-medium whitespace-nowrap underline decoration-dotted decoration-gray-400">
                     {s.fencerLastName} {s.fencerFirstName}

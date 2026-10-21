@@ -6,6 +6,7 @@
 import React from 'react';
 import { SyncConflict } from '@shared/services/cloudSyncService';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface ConflictResolutionModalProps {
   conflicts: SyncConflict[];
@@ -20,12 +21,13 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
   onClose,
   isOpen,
 }) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   const typeLabel: Record<SyncConflict['type'], string> = {
-    competition: 'Compétition',
-    fencer: 'Tireur',
-    match: 'Match',
+    competition: t('conflicts.type_competition'),
+    fencer: t('conflicts.type_fencer'),
+    match: t('conflicts.type_match'),
   };
 
   return (
@@ -33,12 +35,12 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800">
-            Conflits de synchronisation ({conflicts.length})
+            {t('conflicts.title', { n: conflicts.length })}
           </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="Fermer"
+            aria-label={t('actions.close')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -66,13 +68,13 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
 
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
-                  <p className="text-xs font-medium text-gray-500 mb-1">Local</p>
+                  <p className="text-xs font-medium text-gray-500 mb-1">{t('conflicts.local')}</p>
                   <pre className="text-xs bg-gray-50 border border-gray-200 rounded p-2 overflow-auto max-h-32 whitespace-pre-wrap break-all">
                     {JSON.stringify(conflict.localData, null, 2)}
                   </pre>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 mb-1">Distant</p>
+                  <p className="text-xs font-medium text-gray-500 mb-1">{t('conflicts.remote')}</p>
                   <pre className="text-xs bg-gray-50 border border-gray-200 rounded p-2 overflow-auto max-h-32 whitespace-pre-wrap break-all">
                     {JSON.stringify(conflict.remoteData, null, 2)}
                   </pre>
@@ -84,20 +86,20 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                   onClick={() => onResolve(conflict.id, 'local')}
                   className="flex-1 px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
                 >
-                  Garder local
+                  {t('conflicts.keep_local')}
                 </button>
                 <button
                   onClick={() => onResolve(conflict.id, 'remote')}
                   className="flex-1 px-3 py-2 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 transition-colors"
                 >
-                  Garder distant
+                  {t('conflicts.keep_remote')}
                 </button>
               </div>
             </div>
           ))}
 
           {conflicts.length === 0 && (
-            <p className="text-sm text-gray-500 text-center py-8">Aucun conflit à résoudre.</p>
+            <p className="text-sm text-gray-500 text-center py-8">{t('conflicts.none')}</p>
           )}
         </div>
 
@@ -106,7 +108,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
             onClick={onClose}
             className="w-full px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors"
           >
-            Fermer
+            {t('actions.close')}
           </button>
         </div>
       </div>

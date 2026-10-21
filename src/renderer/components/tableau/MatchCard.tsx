@@ -1,5 +1,6 @@
 import React from 'react';
 import { TableauMatch } from './tableauTypes';
+import { translateStatic } from '../../contexts/TranslationContext';
 
 interface MatchCardProps {
   match: TableauMatch;
@@ -139,8 +140,8 @@ const MatchCard: React.FC<MatchCardProps> = ({
           <button
             className="match-badge-btn"
             onClick={handleSignaturesClick}
-            title="Consulter les signatures"
-            aria-label="Consulter les signatures"
+            title={translateStatic('matchCard.signatures')}
+            aria-label={translateStatic('matchCard.signatures')}
           >
             ✍
           </button>
@@ -189,7 +190,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       </div>
 
       {/* Bye */}
-      {match.isBye && <div className="match-bye">Exempt</div>}
+      {match.isBye && <div className="match-bye">{translateStatic('matchCard.bye')}</div>}
 
       {/* CTA bar — mode liste seulement */}
       {canEdit && viewMode !== 'full' && (

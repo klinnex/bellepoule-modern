@@ -551,9 +551,9 @@ const AppContent: React.FC = () => {
             <button
               className="header-search-hint"
               onClick={() => setShowCommandPalette(true)}
-              title="Ouvrir la palette de commandes (Ctrl+K)"
+              title={t('app.palette_title')}
             >
-              <span>Rechercher…</span>
+              <span>{t('app.search')}</span>
               <kbd>Ctrl K</kbd>
             </button>
           )}
@@ -589,13 +589,13 @@ const AppContent: React.FC = () => {
               title={
                 trainingActive
                   ? showTrainingPanel
-                    ? 'Masquer le panneau entraînement'
-                    : 'Afficher le panneau entraînement'
-                  : 'Mode entraînement'
+                    ? t('app.training_hide')
+                    : t('app.training_show')
+                  : t('app.training_mode')
               }
             >
               <Swords size={15} />
-              Entraînement
+              {t('app.training')}
             </button>
             {view === 'competition' && currentCompetition && (
               <button
@@ -634,11 +634,11 @@ const AppContent: React.FC = () => {
                   ref={toolsBtnRef}
                   className="btn btn-secondary btn-icon-label"
                   onClick={() => setShowToolsMenu(v => !v)}
-                  title="Outils"
+                  title={t('app.tools')}
                   aria-haspopup="true"
                   aria-expanded={showToolsMenu}
                 >
-                  <Wrench size={15} /> Outils
+                  <Wrench size={15} /> {t('app.tools')}
                 </button>
                 {showToolsMenu && (
                   <div
@@ -670,7 +670,7 @@ const AppContent: React.FC = () => {
                         gap: '0.5rem',
                       }}
                     >
-                      <Wifi size={15} /> QR Code WiFi
+                      <Wifi size={15} /> {t('app.wifi_qr')}
                     </button>
                     <button
                       className="comp-header-dropdown-item"
@@ -686,7 +686,7 @@ const AppContent: React.FC = () => {
                         gap: '0.5rem',
                       }}
                     >
-                      <Tv2 size={15} /> Télécommande TV
+                      <Tv2 size={15} /> {t('app.tv_remote')}
                     </button>
                   </div>
                 )}
