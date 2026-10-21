@@ -6,6 +6,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Fencer } from '../../../shared/types';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface TableauToolbarProps {
   tableauSize: number;
@@ -44,6 +45,7 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
   onExportTreeClick,
   champion,
 }) => {
+  const { t } = useTranslation();
   const [fabOpen, setFabOpen] = useState(false);
   const fabRef = useRef<HTMLDivElement>(null);
 
@@ -69,8 +71,8 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
       {/* Left: title + champion */}
       <div className="tt-left">
         <h2 className="tt-title">
-          Tableau de {tableauSize}
-          <span className="tt-title-sub">— {rankingCount} qualifiés</span>
+          {t('tableauToolbar.title', { n: tableauSize })}
+          <span className="tt-title-sub">{t('tableauToolbar.qualified', { n: rankingCount })}</span>
         </h2>
         {champion && (
           <div className="tt-champion">
@@ -102,56 +104,56 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
           <button
             className="tableau-fab-trigger"
             onClick={() => setFabOpen(o => !o)}
-            title="Options du tableau"
+            title={t('tableauToolbar.options_title')}
           >
-            {fabOpen ? '✕' : '⋮'} Options
+            {fabOpen ? '✕' : '⋮'} {t('tableauToolbar.options')}
           </button>
 
           {fabOpen && (
             <div className="tableau-fab-menu">
               {arenaCount > 0 && (
                 <>
-                  <span className="tableau-fab-section-label">Pistes</span>
+                  <span className="tableau-fab-section-label">{t('tableauToolbar.strips')}</span>
                   <label className={`tt-fab-check${autoAssignArenas ? ' is-on' : ''}`}>
                     <input
                       type="checkbox"
                       checked={autoAssignArenas}
                       onChange={e => onAutoAssignToggle(e.target.checked)}
                     />
-                    🏟️ Assignation auto
+                    {t('tableauToolbar.auto_assign')}
                   </label>
                   <button
                     className="tableau-fab-item tableau-fab-item--danger"
                     onClick={() => closeAndRun(onBulkDeassign)}
                   >
-                    ❌ Désaffecter tout
+                    {t('tableauToolbar.unassign')}
                   </button>
                   <div className="tableau-fab-divider" />
                 </>
               )}
 
-              <span className="tableau-fab-section-label">Actions</span>
+              <span className="tableau-fab-section-label">{t('tableauToolbar.actions')}</span>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onAutoFillScores)}>
-                🎲 Remplir auto (test)
+                {t('tableauToolbar.autofill')}
               </button>
 
               <div className="tableau-fab-divider" />
-              <span className="tableau-fab-section-label">Export</span>
+              <span className="tableau-fab-section-label">{t('tableauToolbar.export')}</span>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onPrintClick)}>
-                🖨️ Imprimer
+                {t('tableauToolbar.print')}
               </button>
               <button
                 className="tableau-fab-item"
                 onClick={() => closeAndRun(onPreviewClick)}
-                title="Ouvre un PDF dans le lecteur par défaut pour voir un aperçu avant d'imprimer"
+                title={t('tableauToolbar.preview_title')}
               >
-                👁️ Aperçu avant impression
+                {t('tableauToolbar.preview')}
               </button>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onExportPdfClick)}>
-                📄 Export PDF
+                {t('tableauToolbar.export_pdf')}
               </button>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onExportTreeClick)}>
-                🌲 Arbre PDF
+                {t('tableauToolbar.tree_pdf')}
               </button>
             </div>
           )}

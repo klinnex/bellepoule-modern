@@ -24,7 +24,7 @@ const setup = () => {
 describe('NewCompetitionModal', () => {
   it('crée une compétition avec le titre saisi', () => {
     const { onCreate, container } = setup();
-    fireEvent.change(screen.getByPlaceholderText('Ex: Championnat Régional'), {
+    fireEvent.change(screen.getByPlaceholderText('newCompetition.title_ph'), {
       target: { value: 'Mon Open' },
     });
     fireEvent.submit(container.querySelector('form')!);

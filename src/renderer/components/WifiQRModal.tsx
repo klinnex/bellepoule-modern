@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useCallback, memo } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { logger, LogCategory } from '@shared/services/logger';
 
@@ -21,6 +22,7 @@ interface WifiQRModalProps {
 }
 
 const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [config, setConfig] = useState<WifiConfig>({
     ssid: '',
@@ -100,9 +102,9 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
       >
         <div className="modal-header">
           <h2 className="modal-title" id="wifi-qr-title">
-            📶 Générateur QR Code WiFi
+            {t('wifiQr.title')}
           </h2>
-          <button className="modal__close" onClick={onClose} aria-label="Fermer">
+          <button className="modal__close" onClick={onClose} aria-label={t('actions.close')}>
             ×
           </button>
         </div>
@@ -116,18 +118,18 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
               textAlign: 'center',
             }}
           >
-            Les tablettes arbitres scannent ce QR code pour rejoindre le réseau WiFi.
+            {t('wifiQr.hint')}
           </p>
 
           <div className="form-group">
             <label className="form-label" htmlFor="wifi-ssid">
-              Nom du réseau (SSID)
+              {t('wifiQr.ssid')}
             </label>
             <input
               id="wifi-ssid"
               type="text"
               className="form-input"
-              placeholder="Mon-Réseau-WiFi"
+              placeholder={t('wifiQr.ssid_ph')}
               value={config.ssid}
               onChange={e => handleChange('ssid', e.target.value)}
               autoFocus
@@ -136,7 +138,7 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
 
           <div className="form-group">
             <label className="form-label" htmlFor="wifi-security">
-              Type de sécurité
+              {t('wifiQr.security')}
             </label>
             <select
               id="wifi-security"
@@ -146,20 +148,20 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
             >
               <option value="WPA">WPA / WPA2 / WPA3</option>
               <option value="WEP">WEP</option>
-              <option value="nopass">Aucune (réseau ouvert)</option>
+              <option value="nopass">{t('wifiQr.open')}</option>
             </select>
           </div>
 
           {config.security !== 'nopass' && (
             <div className="form-group">
               <label className="form-label" htmlFor="wifi-password">
-                Mot de passe
+                {t('wifiQr.password')}
               </label>
               <input
                 id="wifi-password"
                 type="text"
                 className="form-input"
-                placeholder="Mot de passe WiFi"
+                placeholder={t('wifiQr.password_ph')}
                 value={config.password}
                 onChange={e => handleChange('password', e.target.value)}
               />
@@ -186,7 +188,7 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
               className="form-label"
               style={{ marginBottom: 0, cursor: 'pointer' }}
             >
-              Réseau masqué (SSID caché)
+              {t('wifiQr.hidden')}
             </label>
           </div>
 
@@ -200,7 +202,7 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
             <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
               <img
                 src={qrDataUrl}
-                alt="QR Code WiFi"
+                alt={t('wifiQr.qr_alt')}
                 width={280}
                 height={280}
                 style={{ borderRadius: '8px' }}
@@ -212,8 +214,8 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
                   marginTop: '0.5rem',
                 }}
               >
-                Réseau : <strong>{config.ssid}</strong> ·{' '}
-                {config.security !== 'nopass' ? config.security : 'Ouvert'}
+                {t('wifiQr.network')} <strong>{config.ssid}</strong> ·{' '}
+                {config.security !== 'nopass' ? config.security : t('wifiQr.open_short')}
               </p>
             </div>
           )}
@@ -222,7 +224,7 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
         <div className="modal-footer" style={{ justifyContent: 'center' }}>
           {qrDataUrl && (
             <button className="btn btn-secondary" onClick={download}>
-              💾 Télécharger
+              {t('wifiQr.download')}
             </button>
           )}
           <button
