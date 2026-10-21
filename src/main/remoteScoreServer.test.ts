@@ -1946,4 +1946,24 @@ describe('RemoteScoreServer', () => {
       expect(res.status).toHaveBeenCalledWith(401);
     });
   });
+  describe("finishPoolMatch (saisie dans l'application)", () => {
+    beforeEach(() => {
+      (server as any).io = { emit: vi.fn(), to: () => ({ emit: vi.fn() }) };
+    });
+
+    it('conserve le drapeau forfait sur le perdant (#1144)', () => {
+      server.finishPoolMatch('m1', 21, 0, 'A', 'forfait');
+      const saved = (server as any).sessionMatchScores.get('m1');
+      expect(saved.status).toBe('finished');
+      expect(saved.scoreA).toMatchObject({ value: 21, isVictory: true, isForfait: false });
+      expect(saved.scoreB).toMatchObject({ value: 0, isVictory: false, isForfait: true });
+    });
+
+    it('sans statut spécial : score simple, aucun drapeau', () => {
+      server.finishPoolMatch('m1', 3, 5);
+      const saved = (server as any).sessionMatchScores.get('m1');
+      expect(saved.scoreA).toMatchObject({ value: 3, isVictory: false, isForfait: false });
+      expect(saved.scoreB).toMatchObject({ value: 5, isVictory: true, isAbstention: false });
+    });
+  });
 });

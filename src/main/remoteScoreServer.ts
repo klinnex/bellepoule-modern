@@ -79,6 +79,7 @@ import {
 import { registerPoolRoutes, type PoolRouteContext } from './remote/routes/poolRoutes';
 import { registerMatchRoutes, type MatchRouteContext } from './remote/routes/matchRoutes';
 import { registerApiRoutes, type ApiRouteContext } from './remote/routes/apiRoutes';
+import { buildPoolScores } from './remote/poolScore';
 
 export { PASSWORD_MIN_LENGTH };
 import {
@@ -2326,10 +2327,9 @@ export class RemoteScoreServer {
   // Marque un match de poule comme terminé depuis l'UI principale (ex: auto-fill).
   // Met à jour sessionMatchScores + sessionMatches, libère l'arène si nécessaire,
   // puis diffuse la mise à jour à la tablette.
-  public finishPoolMatch(matchId: string, scoreA: number, scoreB: number): void {
+  public finishPoolMatch(matchId: string, ...score: Parameters<typeof buildPoolScores>): void {
     this.sessionMatchScores.set(matchId, {
-      scoreA: { value: scoreA, isVictory: scoreA > scoreB },
-      scoreB: { value: scoreB, isVictory: scoreB > scoreA },
+      ...buildPoolScores(...score),
       status: MatchStatus.FINISHED,
     });
 
