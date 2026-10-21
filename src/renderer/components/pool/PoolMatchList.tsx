@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Match, Fencer, FencerStatus } from '../../../shared/types';
 import { Arena } from '../../../shared/types/remote';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { isMatchVoidedByForfeit } from '../../../shared/utils/poolCalculations';
 import {
   ROW_BETWEEN,
   CELL_CENTER,
@@ -517,7 +518,13 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                 match.fencerB?.status === FencerStatus.ABANDONED ||
                 match.fencerB?.status === FencerStatus.FORFAIT ||
                 match.fencerB?.status === FencerStatus.EXCLUDED;
-              const isAbandonMatch = fencerAAbandoned || fencerBAbandoned;
+              // Match terminé : grisé seulement s'il a été annulé par le forfait/abandon,
+              // les matchs disputés avant restent visibles (#1144)
+              const isAbandonMatch =
+                (fencerAAbandoned || fencerBAbandoned) &&
+                (match.fencerA?.status === FencerStatus.EXCLUDED ||
+                  match.fencerB?.status === FencerStatus.EXCLUDED ||
+                  isMatchVoidedByForfeit(match));
               const winnerA = !!match.scoreA?.isVictory;
               const isHighlighted = highlightedMatchId === match.id;
 

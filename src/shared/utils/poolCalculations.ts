@@ -189,6 +189,17 @@ export function isMatchCancelledByForfeit(match: Match): boolean {
   );
 }
 
+/**
+ * Match saisi comme forfait / abandon / exclusion (armes olympiques incluses) :
+ * considéré non joué, sans effet sur V/M, TD, TR ni indice (#1144).
+ */
+export function isMatchVoidedByForfeit(match: Match): boolean {
+  if (match.status !== MatchStatus.FINISHED) return false;
+  const flagged = (s: Score | null | undefined) =>
+    !!s && (s.isForfait || s.isAbstention || s.isExclusion);
+  return flagged(match.scoreA) || flagged(match.scoreB) || isMatchCancelledByForfeit(match);
+}
+
 export interface FencerPoolStatsOptions {
   /**
    * Règle Sabre Laser (forfait en cours de poule) : les matchs disputés avant
