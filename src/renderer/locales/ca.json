@@ -683,7 +683,11 @@
     "no_referee": "✕ Cap àrbitre",
     "loading_referees": "S'estan carregant els àrbitres…",
     "no_checked_referee": "Cap àrbitre registrat per a aquesta competició",
-    "validate_n": "✓ Valida ({{n}}/{{max}})"
+    "validate_n": "✓ Valida ({{n}}/{{max}})",
+    "assign_referees": "Assigna els àrbitres",
+    "assign_referee": "Assigna un àrbitre",
+    "select_referees": "Seleccioneu fins a {{max}} àrbitres per a la poule {{n}} (el primer seleccionat és l'àrbitre principal):",
+    "select_referee": "Seleccioneu l'àrbitre per a la poule {{n}}:"
   },
   "presentation": {
     "no_club": "Sense club",

@@ -683,7 +683,11 @@
     "no_referee": "✕ Arbitr ebet",
     "loading_referees": "O kargañ an arbitred…",
     "no_checked_referee": "Arbitr merket ebet evit ar c'hevezadeg-mañ",
-    "validate_n": "✓ Kadarnaat ({{n}}/{{max}})"
+    "validate_n": "✓ Kadarnaat ({{n}}/{{max}})",
+    "assign_referees": "Deverkañ an arbitred",
+    "assign_referee": "Deverkañ un arbitr",
+    "select_referees": "Dibabit betek {{max}} arbitr evit ar boulenn {{n}} (an hini kentañ dibabet eo an arbitr pennañ) :",
+    "select_referee": "Dibabit an arbitr evit ar boulenn {{n}} :"
   },
   "presentation": {
     "no_club": "Klub ebet",

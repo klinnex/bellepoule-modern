@@ -15,6 +15,7 @@ import './styles/tokens.css';
 import './styles/pool.css';
 import './styles/tableau.css';
 import './styles/utilities.css';
+import './styles/components.css';
 /// <reference path="./types.d.ts" />
 
 // Log unhandled rejections so they appear in DevTools console and don't silently crash

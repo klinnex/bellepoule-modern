@@ -683,7 +683,11 @@
     "no_referee": "✕ No referee",
     "loading_referees": "Loading referees…",
     "no_checked_referee": "No referee checked in for this competition",
-    "validate_n": "✓ Confirm ({{n}}/{{max}})"
+    "validate_n": "✓ Confirm ({{n}}/{{max}})",
+    "assign_referees": "Assign referees",
+    "assign_referee": "Assign a referee",
+    "select_referees": "Select up to {{max}} referees for pool {{n}} (the first one selected is the main referee):",
+    "select_referee": "Select the referee for pool {{n}}:"
   },
   "presentation": {
     "no_club": "No club",

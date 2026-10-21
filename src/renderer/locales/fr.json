@@ -683,7 +683,11 @@
     "no_referee": "✕ Aucun arbitre",
     "loading_referees": "Chargement des arbitres…",
     "no_checked_referee": "Aucun arbitre pointé pour cette compétition",
-    "validate_n": "✓ Valider ({{n}}/{{max}})"
+    "validate_n": "✓ Valider ({{n}}/{{max}})",
+    "assign_referees": "Assigner les arbitres",
+    "assign_referee": "Assigner un arbitre",
+    "select_referees": "Sélectionnez jusqu'à {{max}} arbitres pour la poule {{n}} (le premier sélectionné est l'arbitre principal) :",
+    "select_referee": "Sélectionnez l'arbitre pour la poule {{n}} :"
   },
   "presentation": {
     "no_club": "Pas de club",

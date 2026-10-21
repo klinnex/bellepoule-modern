@@ -380,7 +380,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
   };
 
   return (
-    <div className="content" style={{ padding: '1rem' }}>
+    <div className="content pool-ranking-view" style={{ padding: '1rem' }}>
       <div
         style={{
           display: 'flex',
@@ -824,29 +824,6 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
           )}
         </div>
       </div>
-
-      {/* CSS pour l'impression */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-          @media print {
-            .btn {
-              display: none !important;
-            }
-            .card {
-              border: none !important;
-              box-shadow: none !important;
-            }
-            table {
-              font-size: 12pt !important;
-            }
-            th, td {
-              padding: 4px !important;
-            }
-          }
-        `,
-        }}
-      />
     </div>
   );
 };

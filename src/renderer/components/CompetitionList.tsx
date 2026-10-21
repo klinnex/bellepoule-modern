@@ -19,7 +19,7 @@ import { Competition, Weapon, Gender, Category } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
 import { usePagination } from '../hooks/usePagination';
-import { CompetitionCardSkeleton, SkeletonStyles } from './Skeleton';
+import { CompetitionCardSkeleton } from './Skeleton';
 import { useConfirm } from './ConfirmDialog';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 
@@ -78,7 +78,6 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   if (isLoading) {
     return (
       <div className="content">
-        <SkeletonStyles />
         <div className="flex justify-between items-center mb-4">
           <h1 className="page-title">{t('app.title')}</h1>
         </div>

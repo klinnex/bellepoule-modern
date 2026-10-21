@@ -6,8 +6,8 @@
  */
 
 import React from 'react';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../hooks/useTranslation';
+import Modal from '../common/Modal';
 import { Fencer, Pool, PoolRanking } from '../../../shared/types';
 import { FinalResult } from '../tableau/tableauTypes';
 
@@ -77,162 +77,140 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
   onExportFFE,
   onExportCompetition,
 }) => {
-  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const { t } = useTranslation();
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 11000 }}>
-      <div
-        ref={modalRef}
-        className="modal"
-        onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '620px', maxHeight: '85vh', overflowY: 'auto' }}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="export-center-title"
-      >
-        <div className="modal-header">
-          <h2 className="modal-title" id="export-center-title">
-            {t('exportCenter.title')}
-          </h2>
-        </div>
-        <div className="modal-body">
-          {onExportCompetition && (
-            <Section title={t('competition.export_section')}>
-              <button className="btn btn-secondary" onClick={onExportCompetition}>
-                {t('competition.save_progress_bpm')}
-              </button>
-            </Section>
-          )}
-
-          {fencers.length > 0 && (
-            <Section title={t('exportCenter.fencers')}>
-              <button
-                className="btn btn-secondary"
-                onClick={() => exportFencersList(fencers, 'txt')}
-              >
-                {t('exportCenter.list_txt')}
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => exportFencersList(fencers, 'fff')}
-              >
-                {t('exportCenter.list_fff')}
-              </button>
-            </Section>
-          )}
-
-          {pools.length > 0 && (
-            <Section title={t('exportCenter.pools')}>
-              <button
-                className="btn btn-secondary"
-                onClick={() => exportPoolsPDF(pools, currentPoolRound)}
-              >
-                {t('exportCenter.export_pdf')}
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => printPoolsPDF(pools, currentPoolRound)}
-              >
-                {t('exportCenter.print')}
-              </button>
-            </Section>
-          )}
-
-          {tableauMatchesCount > 0 && (
-            <Section title={t('exportCenter.tableau')}>
-              <button className="btn btn-secondary" onClick={onGoToTableau}>
-                {t('exportCenter.go_tableau')}
-              </button>
-            </Section>
-          )}
-
-          {overallRanking.length > 0 && (
-            <Section title={t('exportCenter.ranking')}>
-              <button
-                className="btn btn-secondary"
-                onClick={() => exportRanking(overallRanking, 'csv', isLaserSabre)}
-              >
-                CSV
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => exportRankingExcelCSV(overallRanking)}
-              >
-                {t('exportCenter.csv_excel')}
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => exportRanking(overallRanking, 'json', isLaserSabre)}
-              >
-                JSON
-              </button>
-              <button className="btn btn-secondary" onClick={onExportFFE}>
-                {t('exportCenter.send_ffe')}
-              </button>
-            </Section>
-          )}
-
-          {finalResults.length > 0 && (
-            <Section title={t('exportCenter.final_results')}>
-              <button
-                className="btn btn-secondary"
-                onClick={() => exportResults(finalResults, 'csv')}
-              >
-                CSV
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => exportResults(finalResults, 'json')}
-              >
-                JSON
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => exportResultsHTML(overallRanking, finalResults)}
-              >
-                HTML
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => exportResultsXML(overallRanking, finalResults, pools)}
-              >
-                XML FFE
-              </button>
-            </Section>
-          )}
-
-          {pools.length > 0 && overallRanking.length > 0 && (
-            <Section title={t('exportCenter.stats')}>
-              <button
-                className="btn btn-secondary"
-                onClick={() => exportDetailedStats(pools, overallRanking)}
-              >
-                {t('exportCenter.stats_csv')}
-              </button>
-            </Section>
-          )}
-
-          {finalResults.length > 0 && (
-            <Section title={t('exportCenter.full')}>
-              <button className="btn btn-secondary" onClick={onGoToResults}>
-                {t('exportCenter.go_results')}
-              </button>
-            </Section>
-          )}
-
-          {fencers.length === 0 && pools.length === 0 && (
-            <p style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
-              {t('exportCenter.empty')}
-            </p>
-          )}
-        </div>
-        <div className="modal-footer">
+    <Modal
+      title={t('exportCenter.title')}
+      onClose={onClose}
+      size="md"
+      elevated
+      scroll
+      footer={
+        <>
           <button type="button" className="btn btn-primary" onClick={onClose}>
             {t('actions.close')}
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      {onExportCompetition && (
+        <Section title={t('competition.export_section')}>
+          <button className="btn btn-secondary" onClick={onExportCompetition}>
+            {t('competition.save_progress_bpm')}
+          </button>
+        </Section>
+      )}
+
+      {fencers.length > 0 && (
+        <Section title={t('exportCenter.fencers')}>
+          <button className="btn btn-secondary" onClick={() => exportFencersList(fencers, 'txt')}>
+            {t('exportCenter.list_txt')}
+          </button>
+          <button className="btn btn-secondary" onClick={() => exportFencersList(fencers, 'fff')}>
+            {t('exportCenter.list_fff')}
+          </button>
+        </Section>
+      )}
+
+      {pools.length > 0 && (
+        <Section title={t('exportCenter.pools')}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => exportPoolsPDF(pools, currentPoolRound)}
+          >
+            {t('exportCenter.export_pdf')}
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => printPoolsPDF(pools, currentPoolRound)}
+          >
+            {t('exportCenter.print')}
+          </button>
+        </Section>
+      )}
+
+      {tableauMatchesCount > 0 && (
+        <Section title={t('exportCenter.tableau')}>
+          <button className="btn btn-secondary" onClick={onGoToTableau}>
+            {t('exportCenter.go_tableau')}
+          </button>
+        </Section>
+      )}
+
+      {overallRanking.length > 0 && (
+        <Section title={t('exportCenter.ranking')}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => exportRanking(overallRanking, 'csv', isLaserSabre)}
+          >
+            CSV
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => exportRankingExcelCSV(overallRanking)}
+          >
+            {t('exportCenter.csv_excel')}
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => exportRanking(overallRanking, 'json', isLaserSabre)}
+          >
+            JSON
+          </button>
+          <button className="btn btn-secondary" onClick={onExportFFE}>
+            {t('exportCenter.send_ffe')}
+          </button>
+        </Section>
+      )}
+
+      {finalResults.length > 0 && (
+        <Section title={t('exportCenter.final_results')}>
+          <button className="btn btn-secondary" onClick={() => exportResults(finalResults, 'csv')}>
+            CSV
+          </button>
+          <button className="btn btn-secondary" onClick={() => exportResults(finalResults, 'json')}>
+            JSON
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => exportResultsHTML(overallRanking, finalResults)}
+          >
+            HTML
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => exportResultsXML(overallRanking, finalResults, pools)}
+          >
+            XML FFE
+          </button>
+        </Section>
+      )}
+
+      {pools.length > 0 && overallRanking.length > 0 && (
+        <Section title={t('exportCenter.stats')}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => exportDetailedStats(pools, overallRanking)}
+          >
+            {t('exportCenter.stats_csv')}
+          </button>
+        </Section>
+      )}
+
+      {finalResults.length > 0 && (
+        <Section title={t('exportCenter.full')}>
+          <button className="btn btn-secondary" onClick={onGoToResults}>
+            {t('exportCenter.go_results')}
+          </button>
+        </Section>
+      )}
+
+      {fencers.length === 0 && pools.length === 0 && (
+        <p style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
+          {t('exportCenter.empty')}
+        </p>
+      )}
+    </Modal>
   );
 };
 

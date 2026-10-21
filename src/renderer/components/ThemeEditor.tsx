@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect, useCallback, useRef, useId } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CustomTheme, ThemeTargetType } from '../../shared/types/remote';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -441,7 +441,6 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
-  const instanceId = useId();
   const effectiveType = (targetType ?? 'arena') as ThemeTargetType;
   const isKiosk = effectiveType === 'kiosk';
   const activeDefaults =
@@ -494,34 +493,18 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
   }, [effectiveType]);
   const [importError, setImportError] = useState('');
   const [overlayMode, setOverlayMode] = useState(initialTheme?.overlayMode ?? false);
-  const previewStyleId = `theme-preview-${instanceId.replace(/:/g, '')}`;
 
   // Canvas virtuel scalé pour le preview
   const previewOuterRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(0.3);
 
-  const updatePreviewStyle = useCallback(
-    (variables: Record<string, string>) => {
-      let styleEl = document.getElementById(previewStyleId);
-      if (!styleEl) {
-        styleEl = document.createElement('style');
-        styleEl.id = previewStyleId;
-        document.head.appendChild(styleEl);
-      }
-      const cssVars = Object.entries(variables)
-        .map(([k, v]) => `  ${k}: ${v};`)
-        .join('\n');
-      styleEl.textContent = `.theme-preview-scope-${previewStyleId} {\n${cssVars}\n}`;
-    },
-    [previewStyleId]
-  );
-
+  // Variables du thème posées par CSSOM sur le canevas d'aperçu : aucune balise <style>
+  // injectée (CSP sans 'unsafe-inline', #1157)
+  const previewScopeRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    updatePreviewStyle(vars);
-    return () => {
-      document.getElementById(previewStyleId)?.remove();
-    };
-  }, [vars, updatePreviewStyle, previewStyleId]);
+    const el = previewScopeRef.current;
+    if (el) for (const [k, v] of Object.entries(vars)) el.style.setProperty(k, v);
+  }, [vars]);
 
   useEffect(() => {
     const el = previewOuterRef.current;
@@ -966,7 +949,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
             >
               {/* Canvas virtuel 1280×720 */}
               <div
-                className={`theme-preview-scope-${previewStyleId}`}
+                ref={previewScopeRef}
                 style={{
                   position: 'absolute',
                   top: 0,

@@ -98,14 +98,14 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 15 | 189 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 30 | 147 |
+| `src/renderer/components/` | 31 | 154 |
 | E2E Playwright (`e2e/`) | 8 | 31 |
 | `src/remote/` | 8 | 40 |
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
-| **Total** | **158** | **1547** |
+| **Total** | **159** | **1554** |
 
-Unitaires : 150 fichiers, 1516 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 151 fichiers, 1523 tests. E2E : 8 fichiers, 31 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2852,6 +2852,22 @@ Unitaires : 150 fichiers, 1516 tests. E2E : 8 fichiers, 31 tests (comptage stati
 - **CollapseToggle**
   - compacte puis déplie le contenu
   - mémorise l'état entre deux montages
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/common/primitives.test.tsx</code> — 7 tests</summary>
+
+- **Modal**
+  - rend titre, corps et pied ; le dialogue est nommé par son titre
+  - ferme via le bouton, Échap et l’overlay ; pas via un clic dans la boîte
+  - classes de taille, défilement et overlay au premier plan
+- **Button**
+  - variante, taille et type="button" par défaut
+  - secondaire par défaut, icône + libellé
+- **Card**
+  - en-tête, corps et pied
+  - sans titre ni actions : pas d’en-tête
 
 </details>
 

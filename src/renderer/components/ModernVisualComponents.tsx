@@ -205,15 +205,6 @@ const RippleButton_: React.FC<
         />
       ))}
       {children}
-      <style>{`
-        @keyframes ripple {
-          to {
-            width: 200px;
-            height: 200px;
-            opacity: 0;
-          }
-        }
-      `}</style>
     </button>
   );
 };
@@ -273,17 +264,11 @@ const StatusBadge_: React.FC<{
             height: '6px',
             borderRadius: '50%',
             backgroundColor: color.border,
-            animation: 'pulse 2s infinite',
+            animation: 'mv-pulse 2s infinite',
           }}
         />
       )}
       {children}
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
     </span>
   );
 };
@@ -467,18 +452,6 @@ const Confetti_: React.FC<{ trigger: boolean }> = ({ trigger }) => {
           }}
         />
       ))}
-      <style>{`
-        @keyframes confetti-fall {
-          0% {
-            transform: translateY(0) rotate(0deg);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(${window.innerHeight}px) rotate(720deg);
-            opacity: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 };

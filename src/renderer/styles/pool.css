@@ -610,3 +610,14 @@ button.pv-pill {
     height: var(--touch-target);
   }
 }
+
+/* Choix des arbitres de la poule (#1157) */
+.pv-ref-btn {
+  text-align: left;
+}
+
+.pv-ref-club {
+  margin-left: 0.5rem;
+  opacity: 0.6;
+  font-size: 0.8rem;
+}
