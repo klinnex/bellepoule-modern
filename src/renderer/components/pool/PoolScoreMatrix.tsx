@@ -4,6 +4,7 @@ import {
   formatRatio,
   formatIndex,
   isMatchCancelledByForfeit,
+  isMatchVoidedByForfeit,
 } from '../../../shared/utils/poolCalculations';
 import { ColumnId } from '../../hooks/useColumnVisibility';
 
@@ -332,8 +333,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
       map.get(id) ?? map.set(id, { v: 0, d: 0, td: 0, tr: 0, index: 0, ratio: 0 }).get(id)!;
     for (const match of pool.matches) {
       if (match.status !== MatchStatus.FINISHED) continue;
-      // Sabre Laser : les matchs annulés après un forfait ne comptent pas
-      if (isLaserSabre && isMatchCancelledByForfeit(match)) continue;
+      // Match annulé par un forfait / abandon : compte comme non joué (0-0) (#1144).
+      // Sabre Laser : le forfait en cours de match conserve ses points marqués.
+      if (isLaserSabre ? isMatchCancelledByForfeit(match) : isMatchVoidedByForfeit(match)) continue;
       const a = match.fencerA?.id;
       const b = match.fencerB?.id;
       if (a) {
@@ -379,16 +381,17 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
     return set;
   }, [fencers]);
 
-  // Sabre Laser : seuls les matchs annulés (non disputés) du forfait sont rayés,
-  // les matchs disputés avant le forfait restent affichés.
+  // Seuls les matchs annulés (non disputés) du forfait sont rayés,
+  // les matchs disputés avant le forfait restent affichés (#1144).
   const isCellAbandoned = (rowFencer: Fencer, colFencer: Fencer): boolean => {
     if (!abandonedIds.has(rowFencer.id) && !abandonedIds.has(colFencer.id)) return false;
-    if (!isLaserSabre) return true;
     if (rowFencer.status === FencerStatus.EXCLUDED || colFencer.status === FencerStatus.EXCLUDED)
       return true;
     const score = getScore(rowFencer, colFencer);
     const mirror = getScore(colFencer, rowFencer);
-    return score?.value == null || mirror?.value == null;
+    if (score?.value == null || mirror?.value == null) return true;
+    if (isLaserSabre) return false;
+    return !!(score.isForfait || score.isAbstention || mirror.isForfait || mirror.isAbstention);
   };
 
   // Données par ligne précalculées : sparkline + rang. Évite un filtre O(n·m) par rendu.

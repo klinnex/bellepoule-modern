@@ -15,6 +15,7 @@ import {
   calculatePoolRankingQuest,
   formatQuestPerMatch,
   isDnf,
+  isMatchVoidedByForfeit,
 } from './poolCalculations';
 import { Fencer, FencerStatus, Match, MatchStatus, Pool, Score, Weapon, Gender } from '../types';
 
@@ -763,5 +764,37 @@ describe('forfait en cours de poule (Sabre Laser)', () => {
     const { pool } = build();
     const overall = calculateOverallRankingQuest([pool]);
     expect(overall[overall.length - 1].fencer.id).toBe('a');
+  });
+});
+
+describe('isMatchVoidedByForfeit (#1144)', () => {
+  const sc = (over: Partial<Score> = {}): Score => ({
+    value: 0,
+    isVictory: false,
+    isAbstention: false,
+    isExclusion: false,
+    isForfait: false,
+    ...over,
+  });
+  const mk = (a: Score, b: Score, status = MatchStatus.FINISHED): Match =>
+    ({ status, scoreA: a, scoreB: b }) as unknown as Match;
+
+  it('match terminé normal : non annulé', () => {
+    expect(isMatchVoidedByForfeit(mk(sc({ value: 5, isVictory: true }), sc({ value: 3 })))).toBe(
+      false
+    );
+  });
+  it('forfait ou abandon saisi sur un score : annulé', () => {
+    expect(
+      isMatchVoidedByForfeit(mk(sc({ value: 5, isVictory: true }), sc({ isForfait: true })))
+    ).toBe(true);
+    expect(
+      isMatchVoidedByForfeit(mk(sc({ isAbstention: true }), sc({ value: 5, isVictory: true })))
+    ).toBe(true);
+  });
+  it('match non terminé : jamais annulé', () => {
+    expect(isMatchVoidedByForfeit(mk(sc({ isForfait: true }), sc(), MatchStatus.NOT_STARTED))).toBe(
+      false
+    );
   });
 });

@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import { MatchStatus } from '../../../shared/types';
+import { FencerStatus, MatchStatus } from '../../../shared/types';
 import { sendHtmlPage } from '../csp';
 import { renderArenaJournalPage, renderCompetitionResultsPage } from '../htmlPages';
 import type { RouteContext } from './context';
@@ -35,10 +35,31 @@ export function registerResultsRoutes(ctx: RouteContext): void {
             touchesAgainst: r.touchesReceived ?? 0,
             index: r.index ?? 0,
           }));
+          // Poule terminée : plus aucun match jouable (forfait/abandon/exclusion : matchs restants annulés, #1144)
+          const outIds = new Set<string>(
+            (pool.fencers || [])
+              .filter((f: any) =>
+                [FencerStatus.FORFAIT, FencerStatus.ABANDONED, FencerStatus.EXCLUDED].includes(
+                  f?.status
+                )
+              )
+              .map((f: any) => f.id)
+          );
+          const matches: any[] = pool.matches || [];
+          const isComplete =
+            matches.length > 0 &&
+            matches.every(
+              (m: any) =>
+                m.status === MatchStatus.FINISHED ||
+                m.status === MatchStatus.CANCELLED ||
+                outIds.has(m.fencerA?.id) ||
+                outIds.has(m.fencerB?.id)
+            );
           return {
             id: pool.id,
             number: pool.number,
             name: 'Poule ' + pool.number,
+            isComplete,
             rankings,
           };
         });
