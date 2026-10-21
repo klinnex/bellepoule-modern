@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import { useToast } from './Toast';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
@@ -20,6 +21,7 @@ interface VersionInfo {
 }
 
 const ReportIssueModal: React.FC<ReportIssueModalProps> = ({ onClose }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const { showToast } = useToast();
   const [issueType, setIssueType] = useState<'bug' | 'feature'>('bug');
@@ -123,16 +125,16 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
         aria-modal="true"
       >
         <div className="modal-header">
-          <h2>📝 Signaler un bug / Suggestion</h2>
+          <h2>{t('reportIssue.title')}</h2>
           <button className="btn-close" onClick={onClose}>
-            &times;
+            ×
           </button>
         </div>
 
         <div className="modal-body">
           {/* Type selector */}
           <div className="form-group">
-            <label>Type</label>
+            <label>{t('reportIssue.type')}</label>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 type="button"
@@ -149,7 +151,7 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
                   color: issueType === 'bug' ? '#dc2626' : 'var(--color-text)',
                 }}
               >
-                🐛 Bug
+                {t('reportIssue.bug')}
               </button>
               <button
                 type="button"
@@ -166,7 +168,7 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
                   color: issueType === 'feature' ? '#16a34a' : 'var(--color-text)',
                 }}
               >
-                ✨ Suggestion
+                {t('reportIssue.suggestion')}
               </button>
             </div>
           </div>
@@ -222,18 +224,18 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
             }}
           >
             <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--color-text)' }}>
-              ℹ️ Informations automatiquement incluses :
+              {t('reportIssue.auto_info')}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem' }}>
-              <span>• Version :</span>
+              <span>{t('reportIssue.version')}</span>
               <span style={{ fontFamily: 'monospace' }}>
                 {versionInfo
                   ? `${versionInfo.version}-build.${versionInfo.build}`
                   : 'Chargement...'}
               </span>
-              <span>• Système :</span>
-              <span>{systemInfo || 'Chargement...'}</span>
-              <span>• Date :</span>
+              <span>{t('reportIssue.system')}</span>
+              <span>{systemInfo || t('reportIssue.loading')}</span>
+              <span>{t('reportIssue.date')}</span>
               <span>{new Date().toLocaleString(getActiveLocale())}</span>
             </div>
           </div>
@@ -246,15 +248,15 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
               textAlign: 'center',
             }}
           >
-            Cliquer sur "Créer sur GitHub" ouvrira votre navigateur.
+            {t('reportIssue.gh_hint_1')}
             <br />
-            Vous devrez vous connecter à GitHub pour soumettre l'issue.
+            {t('reportIssue.gh_hint_2')}
           </p>
         </div>
 
         <div className="modal-footer">
           <button type="button" className="btn btn-secondary" onClick={onClose}>
-            Annuler
+            {t('actions.cancel')}
           </button>
           <button
             type="button"
@@ -267,7 +269,7 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
               gap: '0.5rem',
             }}
           >
-            Créer sur GitHub 🔗
+            {t('reportIssue.create')}
           </button>
         </div>
       </div>

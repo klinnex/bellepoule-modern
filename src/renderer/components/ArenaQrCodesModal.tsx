@@ -178,22 +178,22 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
       >
         <div className="modal-header">
           <h2 className="modal-title" id="arena-qr-title">
-            📱 QR Codes des pistes
+            {t('arenaQr.title')}
           </h2>
-          <button className="btn-close" onClick={onClose} aria-label="Fermer">
+          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
             ×
           </button>
         </div>
         <div className="modal-body u-stack-4">
           <div>
-            <div className="form-label">QR Codes à inclure</div>
+            <div className="form-label">{t('arenaQr.include')}</div>
             <label className="u-row">
               <input
                 type="checkbox"
                 checked={withReferee}
                 onChange={e => setWithReferee(e.target.checked)}
               />
-              Arbitres (tablette de saisie)
+              {t('arenaQr.referees')}
             </label>
             <label className="u-row">
               <input
@@ -201,7 +201,7 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
                 checked={withMatches}
                 onChange={e => setWithMatches(e.target.checked)}
               />
-              Matchs (ordre des matchs, lecture seule)
+              {t('arenaQr.matches')}
             </label>
             {fencers.length > 0 && (
               <label className="u-row">
@@ -216,7 +216,7 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
           </div>
           <div>
             <label className="form-label" htmlFor="arena-qr-per-page">
-              QR Codes par feuille
+              {t('arenaQr.per_page')}
             </label>
             <select
               id="arena-qr-per-page"
@@ -232,8 +232,8 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
             </select>
           </div>
           <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-            {arenas.length} piste{arenas.length > 1 ? 's' : ''} · {count} QR Code
-            {count > 1 ? 's' : ''} · {pageCount} feuille{pageCount > 1 ? 's' : ''}
+            {t('arenaQr.strips', { count: arenas.length })} · {t('arenaQr.codes', { count })} ·{' '}
+            {t('arenaQr.sheets', { count: pageCount })}
           </div>
         </div>
         <div className="modal-footer">
@@ -242,14 +242,14 @@ const ArenaQrCodesModal: React.FC<ArenaQrCodesModalProps> = ({
             onClick={() => run('print')}
             disabled={busy || count === 0}
           >
-            🖨️ Imprimer
+            {t('arenaQr.print')}
           </button>
           <button
             className="btn btn-primary"
             onClick={() => run('pdf')}
             disabled={busy || count === 0}
           >
-            📄 Exporter en PDF
+            {t('arenaQr.export_pdf')}
           </button>
         </div>
       </div>

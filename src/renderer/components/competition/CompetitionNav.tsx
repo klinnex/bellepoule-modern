@@ -125,7 +125,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           {currentPhase !== 'checkin' && (
             <button className="btn btn-secondary btn-icon-label" onClick={handleGoBack}>
-              <ChevronLeft size={15} /> Retour
+              <ChevronLeft size={15} /> {t('competitionNav.back')}
             </button>
           )}
           {currentPhase === 'checkin' &&
@@ -137,7 +137,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                 onClick={() => setCurrentPhase('quest')}
                 disabled={getCheckedInFencers().length < 2}
               >
-                Tour Quest <ChevronRight size={15} />
+                {t('competitionNav.quest')} <ChevronRight size={15} />
               </button>
             )}
           {currentPhase === 'checkin' && isTeamEvent && (
@@ -173,7 +173,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                       : undefined
                   }
                 >
-                  Générer les poules
+                  {t('competitionNav.generate')}
                   {getCheckedInFencers().length < 4 && (
                     <span className="btn-count-hint">{getCheckedInFencers().length}/4</span>
                   )}
@@ -217,16 +217,16 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                 }
                 style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
               >
-                <CalendarClock size={14} /> Planning
+                <CalendarClock size={14} /> {t('competitionNav.planning')}
               </button>
             )}
           <button
             className={`btn btn-secondary btn-icon-label${currentPhase === 'logs' ? ' btn-active' : ''}`}
             onClick={() => setCurrentPhase(currentPhase === 'logs' ? 'checkin' : 'logs')}
-            title="Journal des événements de match"
+            title={t('competitionNav.log_title')}
             style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
           >
-            <ScrollText size={14} /> Journal
+            <ScrollText size={14} /> {t('competitionNav.log')}
           </button>
         </div>
       </div>
@@ -239,7 +239,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
               <Swords size={13} />
             </span>
             <span>
-              {getCheckedInFencers().length}/{fencers.length} tireurs
+              {t('competitionNav.fencers', { a: getCheckedInFencers().length, b: fencers.length })}
             </span>
           </div>
           {pools.length > 0 && (
@@ -250,7 +250,10 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                   <Target size={13} />
                 </span>
                 <span>
-                  {pools.filter(p => p.isComplete).length}/{pools.length} poules
+                  {t('competitionNav.pools', {
+                    a: pools.filter(p => p.isComplete).length,
+                    b: pools.length,
+                  })}
                 </span>
               </div>
               <div className="comp-stats-bar-sep" />
@@ -259,11 +262,13 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                   <Zap size={13} />
                 </span>
                 <span>
-                  {pools.reduce(
-                    (s, p) => s + p.matches.filter(m => m.status === MatchStatus.FINISHED).length,
-                    0
-                  )}
-                  /{pools.reduce((s, p) => s + p.matches.length, 0)} matchs
+                  {t('competitionNav.matches', {
+                    a: pools.reduce(
+                      (s, p) => s + p.matches.filter(m => m.status === MatchStatus.FINISHED).length,
+                      0
+                    ),
+                    b: pools.reduce((s, p) => s + p.matches.length, 0),
+                  })}
                 </span>
               </div>
             </>
@@ -276,8 +281,10 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                   <Trophy size={13} />
                 </span>
                 <span>
-                  {tableauMatches.filter(m => m.winner !== null).length}/
-                  {tableauMatches.filter(m => m.fencerA && m.fencerB).length} tableau
+                  {t('competitionNav.tableau', {
+                    a: tableauMatches.filter(m => m.winner !== null).length,
+                    b: tableauMatches.filter(m => m.fencerA && m.fencerB).length,
+                  })}
                 </span>
               </div>
             </>

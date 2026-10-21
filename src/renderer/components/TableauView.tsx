@@ -1216,10 +1216,8 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     return (
       <div className="empty-state">
         <div className="empty-state-icon">🏆</div>
-        <h2 className="empty-state-title">Tableau à élimination directe</h2>
-        <p className="empty-state-description">
-          Terminez d'abord les poules pour générer le tableau
-        </p>
+        <h2 className="empty-state-title">{t('tableauView.empty_title')}</h2>
+        <p className="empty-state-description">{t('tableauView.empty_hint')}</p>
       </div>
     );
   }
@@ -1324,7 +1322,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
             <button
               className="bracket-zoom-btn"
               onClick={() => setZoom(z => Math.min(2.5, parseFloat((z + 0.1).toFixed(2))))}
-              title="Zoom avant"
+              title={t('tableauView.zoom_in')}
             >
               +
             </button>
@@ -1335,14 +1333,14 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                 setZoom(1);
                 setPan({ x: 0, y: 0 });
               }}
-              title="Réinitialiser"
+              title={t('tableauView.zoom_reset')}
             >
               ⊙
             </button>
             <button
               className="bracket-zoom-btn"
               onClick={() => setZoom(z => Math.max(0.3, parseFloat((z - 0.1).toFixed(2))))}
-              title="Zoom arrière"
+              title={t('tableauView.zoom_out')}
             >
               −
             </button>
@@ -1372,7 +1370,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
               ))}
 
               <div style={TV_STYLES.summaryBox}>
-                <h4 style={TV_STYLES.summaryTitle}>Résumé des pistes</h4>
+                <h4 style={TV_STYLES.summaryTitle}>{t('tableauView.strips_summary')}</h4>
                 <div style={TV_STYLES.summaryFlex}>
                   {Array.from({ length: arenaCount }, (_, i) => i + 1).map(arenaNum => {
                     const arenaMatches = pendingMatches.filter(m => m.arena === arenaNum);
@@ -1381,22 +1379,24 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                         key={arenaNum}
                         className={`tv-arena-chip${arenaMatches.length > 0 ? ' is-busy' : ''}`}
                       >
-                        <strong>Piste {arenaNum}</strong>: {arenaMatches.length} match
-                        {arenaMatches.length !== 1 ? 's' : ''}
+                        <strong>{t('tableauView.strip_n', { n: arenaNum })}</strong>:{' '}
+                        {t('tableauView.matches', { count: arenaMatches.length })}
                       </div>
                     );
                   })}
                   <div
                     className={`tv-arena-chip${pendingMatches.some(m => !m.arena) ? ' is-warning' : ''}`}
                   >
-                    <strong>Non assignés</strong>: {pendingMatches.filter(m => !m.arena).length}{' '}
-                    match{pendingMatches.filter(m => !m.arena).length !== 1 ? 's' : ''}
+                    <strong>{t('tableauView.unassigned')}</strong>:{' '}
+                    {t('tableauView.matches', {
+                      count: pendingMatches.filter(m => !m.arena).length,
+                    })}
                   </div>
                 </div>
               </div>
             </>
           ) : (
-            <div style={TV_STYLES.pendingEmpty}>✓ Tous les matchs sont terminés</div>
+            <div style={TV_STYLES.pendingEmpty}>{t('tableauView.all_done')}</div>
           )
         ) : pyramidViewMode ? (
           <Bracket matches={convertToBracketMatches()} tableSize={tableauSize} />
@@ -1410,7 +1410,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           >
             {playAllPositions && matches.some(m => m.round === tableauSize * 2) && (
               <div style={TV_STYLES.barragesBox}>
-                <div style={TV_STYLES.barragesTitle}>Barrages</div>
+                <div style={TV_STYLES.barragesTitle}>{t('tableauView.barrages')}</div>
                 <div style={TV_STYLES.barragesFlex}>
                   {matches
                     .filter(m => m.round === tableauSize * 2)
