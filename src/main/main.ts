@@ -85,7 +85,7 @@ const splashConfirmPromise = new Promise<string>(resolve => {
 function createSplashWindow(): void {
   splashWindow = new BrowserWindow({
     width: 520,
-    height: 460,
+    height: 480,
     frame: false,
     resizable: false,
     movable: true,

@@ -109,6 +109,21 @@
       border: 1px solid rgba(217, 119, 6, 0.3);
     }
 
+    .thanks {
+      font-size: 10px;
+      color: #6b7a9a;
+      font-style: italic;
+      letter-spacing: 0.04em;
+      margin-top: -6px;
+      margin-bottom: 14px;
+    }
+
+    .thanks strong {
+      color: #c8a264;
+      font-weight: 600;
+      font-style: normal;
+    }
+
     /* ---- Armes ---- */
     .weapons-wrap {
       display: flex;
@@ -375,6 +390,7 @@
       <span id="version-text" class="version-text">v1.0.0 · Build #0</span>
       <span id="channel-badge" class="channel-badge main">main</span>
     </div>
+    <div class="thanks"><span id="thanks-label">Remerciements spéciaux à</span> <strong>Luc Van Gramberen</strong></div>
 
     <div class="weapons-wrap">
       <!-- Épée -->
@@ -510,6 +526,16 @@
       ca: 'Gestió de Torneigs d\'Esgrima',
     };
 
+    var THANKS_LABELS = {
+      fr: 'Remerciements spéciaux à',
+      en: 'Special thanks to',
+      de: 'Besonderer Dank an',
+      es: 'Agradecimiento especial a',
+      'zh-HK': '特別鳴謝',
+      br: 'Trugarez ispisial da',
+      ca: 'Agraïment especial a',
+    };
+
     var CONFIRM_LABELS = {
       fr: 'Entrer dans BellePoule',
       en: 'Enter BellePoule',
@@ -535,6 +561,8 @@
       if (btn && !btn.disabled) btn.textContent = CONFIRM_LABELS[lang] || CONFIRM_LABELS['en'];
       var sub = document.getElementById('subtitle');
       if (sub) sub.textContent = SUBTITLE_LABELS[lang] || SUBTITLE_LABELS['en'];
+      var thanks = document.getElementById('thanks-label');
+      if (thanks) thanks.textContent = THANKS_LABELS[lang] || THANKS_LABELS['en'];
       var phrases = PHRASE_LABELS[lang] || PHRASE_LABELS['en'];
       var p1 = document.getElementById('phrase1');
       var p2 = document.getElementById('phrase2');
