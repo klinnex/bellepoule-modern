@@ -110,6 +110,7 @@ const DEFAULT_KIOSK_CONFIG: KioskScreenConfig = {
   suivants: true,
   tableau: true,
   rotationSec: 15,
+  eta: true,
 };
 
 const KIOSK_CONFIG_STORAGE_KEY = 'bp_kiosk_config';
@@ -134,6 +135,7 @@ function buildKioskViews(
     { key: 'direct', label: t('remote_score.view_live_matches') },
     { key: 'suivants', label: t('remote_score.view_next_matches') },
     { key: 'tableau', label: t('remote_score.view_bracket') },
+    { key: 'eta', label: t('remote_score.view_eta') },
   ];
 }
 
@@ -343,7 +345,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
           >
             {t('xiaomi.refresh_all')}
           </button>
-          <button className="btn-close" onClick={onClose} aria-label="Fermer">
+          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
             ×
           </button>
         </div>
@@ -599,10 +601,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                   </button>
 
                   {/* Naviguer (tous types) */}
-                  <div
-                    ref={openNav === client.socketId ? navRef : null}
-                    style={{ position: 'relative' }}
-                  >
+                  <div ref={openNav === client.socketId ? navRef : null} className="relative">
                     <button
                       className="btn btn-secondary"
                       style={{ padding: '0.2rem 0.45rem', fontSize: '0.75rem' }}
@@ -733,7 +732,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
           >
             {t('xiaomi.global_message_label')}
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className="u-row">
             <input
               type="text"
               value={message}
@@ -833,7 +832,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
               >
                 <input
                   type="checkbox"
-                  checked={kioskConfig[key] as boolean}
+                  checked={kioskConfig[key] !== false}
                   onChange={e => setKioskConfig(c => ({ ...c, [key]: e.target.checked }))}
                 />
                 {label}
@@ -873,7 +872,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
               />
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={sendKiosk}>
+              <button className="btn btn-primary flex-1" onClick={sendKiosk}>
                 {t('ui.send_kiosk')}
               </button>
               <button className="btn btn-secondary" onClick={() => setKioskTarget(null)}>

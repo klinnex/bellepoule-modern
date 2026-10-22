@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface VoiceCommand {
   command: string;
@@ -50,6 +51,7 @@ export const VoiceScoreController: React.FC<{
   onFinish?: () => void;
   language?: string;
 }> = ({ onScoreA, onScoreB, onStart, onPause, onFinish, language = 'fr' }) => {
+  const { t } = useTranslation();
   const langKey = Object.keys(LANG_CONFIG).find(k => language.startsWith(k)) ?? 'fr';
   const lang = LANG_CONFIG[langKey];
   const [isListening, setIsListening] = useState(false);
@@ -202,11 +204,11 @@ export const VoiceScoreController: React.FC<{
             width: '48px',
             height: '48px',
             borderRadius: '50%',
-            backgroundColor: isListening ? '#ef4444' : '#e5e7eb',
+            backgroundColor: isListening ? '#ef4444' : 'var(--color-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '24px',
+            fontSize: '1.5rem',
             transition: 'all 0.3s',
             animation: isListening ? 'pulse 1.5s infinite' : 'none',
           }}
@@ -214,9 +216,11 @@ export const VoiceScoreController: React.FC<{
           🎤
         </div>
         <div>
-          <h3 style={{ margin: 0, fontSize: '18px' }}>Contrôle Vocal</h3>
-          <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
-            {isListening ? 'Écoute en cours...' : 'Appuyez pour activer'}
+          <h3 style={{ margin: 0, fontSize: '1.125rem' }}>{t('voice.title')}</h3>
+          <p
+            style={{ margin: '4px 0 0 0', color: 'var(--color-text-light)', fontSize: '0.875rem' }}
+          >
+            {isListening ? t('voice.listening') : t('voice.press')}
           </p>
         </div>
       </div>
@@ -229,7 +233,7 @@ export const VoiceScoreController: React.FC<{
             borderRadius: '8px',
             color: '#991b1b',
             marginBottom: '16px',
-            fontSize: '14px',
+            fontSize: '0.875rem',
           }}
         >
           {error}
@@ -241,17 +245,17 @@ export const VoiceScoreController: React.FC<{
         style={{
           width: '100%',
           padding: '12px',
-          backgroundColor: isListening ? '#ef4444' : '#3b82f6',
+          backgroundColor: isListening ? '#ef4444' : 'var(--color-primary)',
           color: 'white',
           border: 'none',
           borderRadius: '8px',
-          fontSize: '16px',
+          fontSize: '1rem',
           fontWeight: '600',
           cursor: 'pointer',
           transition: 'all 0.2s',
         }}
       >
-        {isListening ? "Arrêter l'écoute" : 'Activer la voix'}
+        {isListening ? t('voice.stop') : t('voice.start')}
       </button>
 
       {transcript && (
@@ -259,12 +263,12 @@ export const VoiceScoreController: React.FC<{
           style={{
             marginTop: '16px',
             padding: '12px',
-            backgroundColor: '#f3f4f6',
+            backgroundColor: 'var(--color-bg)',
             borderRadius: '8px',
-            fontSize: '14px',
+            fontSize: '0.875rem',
           }}
         >
-          <strong>Dernière commande:</strong> {transcript}
+          <strong>{t('voice.last')}</strong> {transcript}
         </div>
       )}
 
@@ -275,7 +279,7 @@ export const VoiceScoreController: React.FC<{
             padding: '12px',
             backgroundColor: '#d1fae5',
             borderRadius: '8px',
-            fontSize: '14px',
+            fontSize: '0.875rem',
             color: '#065f46',
           }}
         >
@@ -284,10 +288,17 @@ export const VoiceScoreController: React.FC<{
       )}
 
       <div style={{ marginTop: '16px' }}>
-        <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#374151' }}>
-          Commandes disponibles:
+        <h4 style={{ margin: '0 0 8px 0', fontSize: '0.875rem', color: 'var(--color-text)' }}>
+          {t('voice.available')}
         </h4>
-        <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: '#6b7280' }}>
+        <ul
+          style={{
+            margin: 0,
+            paddingLeft: '20px',
+            fontSize: '0.8125rem',
+            color: 'var(--color-text-light)',
+          }}
+        >
           {commands.map((cmd, idx) => (
             <li key={idx}>{cmd.description}</li>
           ))}

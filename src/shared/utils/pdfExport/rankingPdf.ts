@@ -6,8 +6,9 @@
 
 import { PoolRanking, Weapon } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides, assembleBody, BASE_CSS } from './core';
-import { formatQuestPerMatch } from '../poolCalculations';
+import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
+import { formatQuestPerMatch, isDnf } from '../poolCalculations';
+import { getActiveLocale } from '../localeFormat';
 
 // ─── Export Classement Général ───────────────────────────────────────────────
 
@@ -20,7 +21,7 @@ export function generateRankingHTML(
   template?: PdfTemplate
 ): string {
   const vis = (col: string) => visibleColumns.includes(col);
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -36,7 +37,7 @@ export function generateRankingHTML(
           : '';
       return `
 <tr>
-  ${vis('rank') ? `<td style="text-align:center;font-weight:700;color:var(--navy)">${r.rank}</td>` : ''}
+  ${vis('rank') ? `<td style="text-align:center;font-weight:700;color:var(--navy)">${isDnf(r) ? pdfT('dnf', 'DNF') : r.rank}</td>` : ''}
   ${vis('lastName') ? `<td style="font-weight:600">${r.fencer.lastName.toUpperCase()}${abandoned}</td>` : ''}
   ${vis('firstName') ? `<td>${r.fencer.firstName ?? ''}</td>` : ''}
   ${vis('club') ? `<td style="color:var(--gray-dark)">${r.fencer.club ?? ''}</td>` : ''}
@@ -54,18 +55,18 @@ export function generateRankingHTML(
     vis(col) ? `<th style="${style}">${label}</th>` : '';
 
   const headers = [
-    th('rank', 'Rg', 'width:10mm'),
-    th('lastName', 'Nom', 'text-align:left'),
-    th('firstName', 'Prénom', 'text-align:left'),
-    th('club', 'Club', 'text-align:left'),
-    th('victories', 'V'),
-    th('ratio', 'V/M'),
-    th('td', 'TD'),
-    th('tr', 'TR'),
+    th('rank', pdfT('col_rank', 'Rg'), 'width:10mm'),
+    th('lastName', pdfT('col_last_name', 'Nom'), 'text-align:left'),
+    th('firstName', pdfT('col_first_name', 'Prénom'), 'text-align:left'),
+    th('club', pdfT('col_club', 'Club'), 'text-align:left'),
+    th('victories', pdfT('col_v', 'V')),
+    th('ratio', pdfT('col_ratio', 'V/M')),
+    th('td', pdfT('col_td', 'TD')),
+    th('tr', pdfT('col_tr', 'TR')),
     vis('quest') && isLaserSabre
       ? '<th style="color:var(--white)">Quest</th><th style="color:var(--white)">Q/M</th>'
       : '',
-    th('index', 'Indice'),
+    th('index', pdfT('col_index', 'Indice')),
   ].join('');
 
   const effectiveTitle = template?.customTitle?.trim() || title;
@@ -77,7 +78,7 @@ export function generateRankingHTML(
     ${logoBase64 ? `<img class="doc-header-logo" src="${logoBase64}" alt="Logo" />` : ''}
     <div class="doc-header-left">
       <h1>${effectiveTitle}</h1>
-      <div class="subtitle">Classement général — ${ranking.length} tireur${ranking.length > 1 ? 's' : ''}</div>
+      <div class="subtitle">${pdfT('overall_ranking', 'Classement général')} — ${pdfT('fencers_count', ranking.length > 1 ? '{{count}} tireurs' : '{{count}} tireur', { count: ranking.length })}</div>
     </div>
     <div class="doc-header-badge" style="font-size:11pt">RG</div>
   </div>`,
@@ -98,7 +99,7 @@ export function generateRankingHTML(
   const body = assembleBody(sections, template, defaultOrder);
 
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
   <title>${effectiveTitle}</title>
@@ -127,13 +128,14 @@ ${body}
 
 export async function exportRankingToPDF(
   ranking: PoolRanking[],
-  title: string = 'Classement Général',
+  title: string = pdfT('ranking_title', 'Classement Général'),
   weapon?: Weapon,
   visibleColumns?: string[],
   logoBase64?: string,
   template?: PdfTemplate
 ): Promise<void> {
-  if (ranking.length === 0) throw new Error('Aucun tireur dans le classement');
+  if (ranking.length === 0)
+    throw new Error(pdfT('ranking_empty', 'Aucun tireur dans le classement'));
   const isLaserSabre = weapon === 'L' || weapon === ('LASER' as any);
   const cols = visibleColumns ?? [
     'rank',

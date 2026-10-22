@@ -46,13 +46,13 @@ const CompetitionCardSkeleton_: React.FC = () => {
         padding: '20px',
         backgroundColor: 'white',
         borderRadius: '12px',
-        border: '1px solid #e5e7eb',
+        border: '1px solid var(--color-border)',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="u-row-between">
         <Skeleton width="60%" height="24px" />
         <Skeleton width="80px" height="20px" borderRadius="12px" />
       </div>
@@ -85,7 +85,7 @@ const PoolViewSkeleton_: React.FC = () => {
                 padding: '16px',
                 backgroundColor: 'white',
                 borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid var(--color-border)',
               }}
             >
               <Skeleton width="50%" height="20px" style={{ marginBottom: '12px' }} />
@@ -97,7 +97,7 @@ const PoolViewSkeleton_: React.FC = () => {
                     justifyContent: 'space-between',
                     marginBottom: '8px',
                     padding: '8px 0',
-                    borderBottom: j < 3 ? '1px solid #f3f4f6' : 'none',
+                    borderBottom: j < 3 ? '1px solid var(--color-bg)' : 'none',
                   }}
                 >
                   <Skeleton width="40%" height="16px" />
@@ -121,7 +121,7 @@ const TableRowSkeleton_: React.FC<{ columns?: number }> = ({ columns = 5 }) => {
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
         gap: '16px',
         padding: '12px 16px',
-        borderBottom: '1px solid #e5e7eb',
+        borderBottom: '1px solid var(--color-border)',
         alignItems: 'center',
       }}
     >
@@ -140,14 +140,14 @@ const StatsCardSkeleton_: React.FC = () => {
         padding: '20px',
         backgroundColor: 'white',
         borderRadius: '12px',
-        border: '1px solid #e5e7eb',
+        border: '1px solid var(--color-border)',
         display: 'flex',
         alignItems: 'center',
         gap: '16px',
       }}
     >
       <Skeleton width="48px" height="48px" borderRadius="12px" />
-      <div style={{ flex: 1 }}>
+      <div className="flex-1">
         <Skeleton width="60%" height="16px" style={{ marginBottom: '8px' }} />
         <Skeleton width="40%" height="28px" />
       </div>
@@ -189,11 +189,11 @@ const CompetitionViewSkeleton_: React.FC = () => {
               padding: '1rem',
               backgroundColor: 'white',
               borderRadius: '8px',
-              border: '1px solid #e5e7eb',
+              border: '1px solid var(--color-border)',
             }}
           >
             <Skeleton width="60%" height="18px" style={{ marginBottom: '0.75rem' }} />
-            <Skeleton width="100%" height="14px" style={{ marginBottom: '0.5rem' }} />
+            <Skeleton width="100%" height="14px" className="mb-2" />
             <Skeleton width="80%" height="14px" />
           </div>
         ))}
@@ -202,27 +202,12 @@ const CompetitionViewSkeleton_: React.FC = () => {
   );
 };
 
-// Add shimmer keyframes to global styles
-const SkeletonStyles_: React.FC = () => (
-  <style>{`
-    @keyframes shimmer {
-      0% {
-        background-position: 200% 0;
-      }
-      100% {
-        background-position: -200% 0;
-      }
-    }
-  `}</style>
-);
-
 export const Skeleton = React.memo(Skeleton_);
 export const CompetitionCardSkeleton = React.memo(CompetitionCardSkeleton_);
 export const PoolViewSkeleton = React.memo(PoolViewSkeleton_);
 export const TableRowSkeleton = React.memo(TableRowSkeleton_);
 export const StatsCardSkeleton = React.memo(StatsCardSkeleton_);
 export const CompetitionViewSkeleton = React.memo(CompetitionViewSkeleton_);
-export const SkeletonStyles = React.memo(SkeletonStyles_);
 
 export default {
   Skeleton,
@@ -231,5 +216,4 @@ export default {
   TableRowSkeleton,
   StatsCardSkeleton,
   CompetitionViewSkeleton,
-  SkeletonStyles,
 };

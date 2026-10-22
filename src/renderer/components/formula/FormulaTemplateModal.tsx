@@ -4,6 +4,7 @@
 
 import React, { useRef, useState, memo } from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useTranslation } from '../../hooks/useTranslation';
 import { CustomFormulaConfig } from '../../../shared/types';
 import {
   deleteCustomFormulaTemplate,
@@ -12,6 +13,7 @@ import {
   importFormulaFromJSON,
   saveCustomFormulaTemplate,
 } from '../../../shared/utils/tournamentTemplates';
+import { getActiveLocale } from '../../../shared/utils/localeFormat';
 
 interface Props {
   mode: 'save' | 'load';
@@ -21,6 +23,7 @@ interface Props {
 }
 
 const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, onClose }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [name, setName] = useState('');
   const [templates, setTemplates] = useState(() => getCustomFormulaTemplates());
@@ -31,7 +34,7 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
 
   const handleSave = () => {
     if (!name.trim()) {
-      setError('Entrez un nom pour la formule.');
+      setError(t('formulaTemplate.name_required'));
       return;
     }
     if (!currentFormula) return;
@@ -68,7 +71,7 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
         onLoad(formula);
         onClose();
       } else {
-        setError('Fichier invalide — impossible de lire la formule.');
+        setError(t('formulaTemplate.invalid_file'));
       }
     };
     reader.readAsText(file);
@@ -85,9 +88,13 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
       >
         <div className="modal-header">
           <h2 className="modal-title">
-            {mode === 'save' ? 'Enregistrer la formule' : 'Charger une formule'}
+            {mode === 'save' ? t('formulaTemplate.save_title') : t('formulaTemplate.load_title')}
           </h2>
-          <button className="btn btn-icon btn-secondary" onClick={onClose}>
+          <button
+            className="btn btn-icon btn-secondary"
+            onClick={onClose}
+            aria-label={t('actions.close')}
+          >
             ✕
           </button>
         </div>
@@ -95,19 +102,19 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
         <div className="modal-body">
           {mode === 'save' && (
             <div className="form-group">
-              <label className="form-label">Nom de la formule</label>
+              <label className="form-label">{t('formulaTemplate.name')}</label>
               <div className="input-row">
                 <input
                   type="text"
                   className="form-input"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  placeholder="Ex: Club Tournoi Standard"
+                  placeholder={t('formulaTemplate.name_ph')}
                   onKeyDown={e => e.key === 'Enter' && handleSave()}
                   autoFocus
                 />
                 <button type="button" className="btn btn-primary" onClick={handleSave}>
-                  Enregistrer
+                  {t('formulaTemplate.save')}
                 </button>
               </div>
               {error && <p className="form-error">{error}</p>}
@@ -116,18 +123,17 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
 
           <div className="template-list">
             {templates.length === 0 ? (
-              <p className="template-empty">Aucune formule sauvegardée.</p>
+              <p className="template-empty">{t('formulaTemplate.empty')}</p>
             ) : (
               templates.map(entry => (
                 <div key={entry.name} className="template-entry">
                   <div className="template-entry-info">
                     <strong>{entry.name}</strong>
                     <span className="template-entry-date">
-                      {new Date(entry.savedAt).toLocaleDateString('fr-FR')}
+                      {new Date(entry.savedAt).toLocaleDateString(getActiveLocale())}
                     </span>
                     <span className="template-entry-phases">
-                      {entry.formula.phases.length} phase
-                      {entry.formula.phases.length > 1 ? 's' : ''}
+                      {t('formulaTemplate.phases', { count: entry.formula.phases.length })}
                     </span>
                   </div>
                   <div className="template-entry-actions">
@@ -140,7 +146,7 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
                           onClose();
                         }}
                       >
-                        Charger
+                        {t('formulaTemplate.load')}
                       </button>
                     )}
                     <button
@@ -148,7 +154,7 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
                       className="btn btn-secondary btn-sm"
                       onClick={() => handleExport(entry.formula, entry.name)}
                     >
-                      Exporter JSON
+                      {t('formulaTemplate.export_json')}
                     </button>
                     <button
                       type="button"
@@ -177,7 +183,7 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
                 className="btn btn-secondary"
                 onClick={() => fileRef.current?.click()}
               >
-                Importer depuis un fichier JSON
+                {t('formulaTemplate.import_json')}
               </button>
               {error && <p className="form-error">{error}</p>}
             </div>

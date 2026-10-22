@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 
 // Modern Stat Card with icon and trend
 interface StatCardProps {
@@ -16,6 +17,7 @@ interface StatCardProps {
 }
 
 const ModernStatCard_: React.FC<StatCardProps> = ({ title, value, icon, trend, color }) => {
+  const { t } = useTranslation();
   const colors = {
     blue: { bg: '#eff6ff', icon: '#3b82f6', text: '#1e40af' },
     green: { bg: '#f0fdf4', icon: '#10b981', text: '#065f46' },
@@ -33,7 +35,7 @@ const ModernStatCard_: React.FC<StatCardProps> = ({ title, value, icon, trend, c
         borderRadius: '16px',
         padding: '24px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        border: '1px solid #f3f4f6',
+        border: '1px solid var(--color-bg)',
         display: 'flex',
         alignItems: 'center',
         gap: '16px',
@@ -48,14 +50,21 @@ const ModernStatCard_: React.FC<StatCardProps> = ({ title, value, icon, trend, c
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '28px',
+          fontSize: '1.75rem',
         }}
       >
         {icon}
       </div>
-      <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>{title}</p>
-        <h3 style={{ margin: '4px 0 0 0', fontSize: '28px', fontWeight: '700', color: '#111827' }}>
+      <div className="flex-1">
+        <p style={{ margin: 0, color: 'var(--color-text-light)', fontSize: '0.875rem' }}>{title}</p>
+        <h3
+          style={{
+            margin: '4px 0 0 0',
+            fontSize: '1.75rem',
+            fontWeight: '700',
+            color: 'var(--color-text)',
+          }}
+        >
           {value}
         </h3>
         {trend && (
@@ -63,13 +72,15 @@ const ModernStatCard_: React.FC<StatCardProps> = ({ title, value, icon, trend, c
             <span
               style={{
                 color: trend.isPositive ? '#10b981' : '#ef4444',
-                fontSize: '12px',
+                fontSize: '0.75rem',
                 fontWeight: '600',
               }}
             >
               {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
             </span>
-            <span style={{ color: '#9ca3af', fontSize: '12px' }}>vs dernier mois</span>
+            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
+              {t('dashboardCards.vs_last_month')}
+            </span>
           </div>
         )}
       </div>
@@ -101,7 +112,7 @@ const ActivityTimeline_: React.FC<{ items: TimelineItem[] }> = ({ items }) => {
                 top: '40px',
                 bottom: '-20px',
                 width: '2px',
-                backgroundColor: '#e5e7eb',
+                backgroundColor: 'var(--color-border)',
               }}
             />
           )}
@@ -116,7 +127,7 @@ const ActivityTimeline_: React.FC<{ items: TimelineItem[] }> = ({ items }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '18px',
+              fontSize: '1.125rem',
               flexShrink: 0,
               zIndex: 1,
             }}
@@ -126,12 +137,23 @@ const ActivityTimeline_: React.FC<{ items: TimelineItem[] }> = ({ items }) => {
 
           {/* Content */}
           <div style={{ flex: 1, paddingBottom: '24px' }}>
-            <p style={{ margin: 0, color: '#9ca3af', fontSize: '12px' }}>{item.time}</p>
-            <h4 style={{ margin: '4px 0', fontSize: '14px', fontWeight: '600', color: '#111827' }}>
+            <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
+              {item.time}
+            </p>
+            <h4
+              style={{
+                margin: '4px 0',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: 'var(--color-text)',
+              }}
+            >
               {item.title}
             </h4>
             {item.description && (
-              <p style={{ margin: 0, color: '#6b7280', fontSize: '13px' }}>{item.description}</p>
+              <p style={{ margin: 0, color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>
+                {item.description}
+              </p>
             )}
           </div>
         </div>
@@ -189,8 +211,10 @@ const ComparisonBar_: React.FC<{
   return (
     <div style={{ marginBottom: '16px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{label}</span>
-        <div style={{ display: 'flex', gap: '16px', fontSize: '13px' }}>
+        <span style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--color-text)' }}>
+          {label}
+        </span>
+        <div style={{ display: 'flex', gap: '16px', fontSize: '0.8125rem' }}>
           <span style={{ color: colorA }}>
             {labelA}: {valueA}
           </span>
@@ -202,7 +226,7 @@ const ComparisonBar_: React.FC<{
       <div
         style={{
           height: '24px',
-          backgroundColor: '#f3f4f6',
+          backgroundColor: 'var(--color-bg)',
           borderRadius: '12px',
           overflow: 'hidden',
           display: 'flex',
@@ -217,7 +241,7 @@ const ComparisonBar_: React.FC<{
             alignItems: 'center',
             justifyContent: 'center',
             color: 'white',
-            fontSize: '11px',
+            fontSize: '0.6875rem',
             fontWeight: '600',
           }}
         >
@@ -232,7 +256,7 @@ const ComparisonBar_: React.FC<{
             alignItems: 'center',
             justifyContent: 'center',
             color: 'white',
-            fontSize: '11px',
+            fontSize: '0.6875rem',
             fontWeight: '600',
           }}
         >
@@ -251,6 +275,7 @@ const LeaderboardItem_: React.FC<{
   avatar?: string;
   isCurrentUser?: boolean;
 }> = ({ rank, name, score, avatar, isCurrentUser }) => {
+  const { t } = useTranslation();
   const getRankColor = () => {
     switch (rank) {
       case 1:
@@ -280,7 +305,7 @@ const LeaderboardItem_: React.FC<{
         padding: '12px 16px',
         backgroundColor: isCurrentUser ? '#eff6ff' : 'white',
         borderRadius: '12px',
-        border: isCurrentUser ? '2px solid #3b82f6' : '1px solid #f3f4f6',
+        border: isCurrentUser ? '2px solid var(--color-primary)' : '1px solid var(--color-bg)',
         marginBottom: '8px',
         transition: 'all 0.2s',
       }}
@@ -313,31 +338,40 @@ const LeaderboardItem_: React.FC<{
             width: '40px',
             height: '40px',
             borderRadius: '50%',
-            backgroundColor: '#e5e7eb',
+            backgroundColor: 'var(--color-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '16px',
+            fontSize: '1rem',
           }}
         >
           {name.charAt(0)}
         </div>
       )}
 
-      <div style={{ flex: 1 }}>
-        <span style={{ fontWeight: '600', color: '#111827' }}>{name}</span>
+      <div className="flex-1">
+        <span style={{ fontWeight: '600', color: 'var(--color-text)' }}>{name}</span>
         {isCurrentUser && (
           <span
-            style={{ marginLeft: '8px', fontSize: '12px', color: '#3b82f6', fontWeight: '500' }}
+            style={{
+              marginLeft: '8px',
+              fontSize: '0.75rem',
+              color: 'var(--color-primary)',
+              fontWeight: '500',
+            }}
           >
-            (Vous)
+            {t('dashboardCards.you')}
           </span>
         )}
       </div>
 
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#111827' }}>{score}</span>
-        <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '4px' }}>pts</span>
+        <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--color-text)' }}>
+          {score}
+        </span>
+        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginLeft: '4px' }}>
+          {t('dashboardCards.pts')}
+        </span>
       </div>
     </div>
   );
@@ -367,18 +401,27 @@ const EmptyState_: React.FC<{
           width: '120px',
           height: '120px',
           borderRadius: '50%',
-          backgroundColor: '#f3f4f6',
+          backgroundColor: 'var(--color-bg)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '60px',
+          fontSize: '3.75rem',
           marginBottom: '24px',
         }}
       >
         {icon}
       </div>
-      <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#374151' }}>{title}</h3>
-      <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#6b7280', maxWidth: '400px' }}>
+      <h3 style={{ margin: '0 0 8px 0', fontSize: '1.25rem', color: 'var(--color-text)' }}>
+        {title}
+      </h3>
+      <p
+        style={{
+          margin: '0 0 24px 0',
+          fontSize: '0.875rem',
+          color: 'var(--color-text-light)',
+          maxWidth: '400px',
+        }}
+      >
         {description}
       </p>
       {actionLabel && onAction && (
@@ -386,11 +429,11 @@ const EmptyState_: React.FC<{
           onClick={onAction}
           style={{
             padding: '12px 24px',
-            backgroundColor: '#3b82f6',
+            backgroundColor: 'var(--color-primary)',
             color: 'white',
             border: 'none',
             borderRadius: '8px',
-            fontSize: '14px',
+            fontSize: '0.875rem',
             fontWeight: '600',
             cursor: 'pointer',
             transition: 'all 0.2s',
@@ -448,15 +491,20 @@ const ConditionWidget_: React.FC<{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '24px',
+          fontSize: '1.5rem',
         }}
       >
         {theme.icon}
       </div>
       <div>
-        <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>{label}</p>
+        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-light)' }}>{label}</p>
         <p
-          style={{ margin: '2px 0 0 0', fontSize: '18px', fontWeight: 'bold', color: theme.color }}
+          style={{
+            margin: '2px 0 0 0',
+            fontSize: '1.125rem',
+            fontWeight: 'bold',
+            color: theme.color,
+          }}
         >
           {value}
         </p>

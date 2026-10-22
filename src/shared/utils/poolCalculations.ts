@@ -189,6 +189,17 @@ export function isMatchCancelledByForfeit(match: Match): boolean {
   );
 }
 
+/**
+ * Match saisi comme forfait / abandon / exclusion (armes olympiques incluses) :
+ * considéré non joué, sans effet sur V/M, TD, TR ni indice (#1144).
+ */
+export function isMatchVoidedByForfeit(match: Match): boolean {
+  if (match.status !== MatchStatus.FINISHED) return false;
+  const flagged = (s: Score | null | undefined) =>
+    !!s && (s.isForfait || s.isAbstention || s.isExclusion);
+  return flagged(match.scoreA) || flagged(match.scoreB) || isMatchCancelledByForfeit(match);
+}
+
 export interface FencerPoolStatsOptions {
   /**
    * Règle Sabre Laser (forfait en cours de poule) : les matchs disputés avant
@@ -199,10 +210,17 @@ export interface FencerPoolStatsOptions {
 }
 
 /** Statut d'adversaire qui annule le match pour le tireur */
-function voidsMatchForOpponent(status: FencerStatus | undefined, keepPlayed: boolean): boolean {
+function voidsMatchForOpponent(
+  status: FencerStatus | undefined,
+  keepPlayed: boolean,
+  opponentScore?: Score | null
+): boolean {
   if (status === FencerStatus.EXCLUDED) return true;
   if (keepPlayed) return false;
-  return status === FencerStatus.FORFAIT || status === FencerStatus.ABANDONED;
+  if (status !== FencerStatus.FORFAIT && status !== FencerStatus.ABANDONED) return false;
+  // Armes olympiques : seul le match annulé par le forfait/abandon (score marqué) est ignoré.
+  // Les matchs déjà disputés avant restent comptés pour les tireurs restants.
+  return !!opponentScore && !!(opponentScore.isForfait || opponentScore.isAbstention);
 }
 
 /**
@@ -243,7 +261,7 @@ export function calculateFencerPoolStats(
     if (keepPlayed && isMatchCancelledByForfeit(match)) continue;
 
     // Si l'adversaire est en forfait/abandon/exclusion, le match ne compte pas
-    if (voidsMatchForOpponent(opponent?.status, keepPlayed)) continue;
+    if (voidsMatchForOpponent(opponent?.status, keepPlayed, oppScore)) continue;
 
     matchesPlayed++;
     maxSingleMatchScore = Math.max(maxSingleMatchScore, myScore.value ?? 0);
@@ -324,6 +342,14 @@ function appendForfeitFencers(rankings: PoolRanking[], forfeitFencers: PoolRanki
       rankings.push(ff);
     });
   }
+}
+
+/** Forfait / abandon en poule : non classé, rang remplacé par « DNF » */
+export function isDnf(ranking: { fencer: { status?: FencerStatus } }): boolean {
+  return (
+    ranking.fencer.status === FencerStatus.FORFAIT ||
+    ranking.fencer.status === FencerStatus.ABANDONED
+  );
 }
 
 /** Statuts classés d'office en fin de classement (forfait, abandon, carton noir) */

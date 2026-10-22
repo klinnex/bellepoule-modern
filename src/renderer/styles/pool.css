@@ -1,0 +1,623 @@
+/* ============================================================
+   LISTE DES MATCHS DE POULE (#1157) — remplace les style={{…}} de PoolMatchList
+   Couleurs via tokens : suivent le thème sombre (puces « À venir » comprises).
+   ============================================================ */
+
+.pml-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-2);
+}
+
+.pml-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+/* Badge de piste ; --badge-scale agrandit le badge du prochain match */
+.pml-arena-badge {
+  --badge-scale: 1;
+  padding: calc(0.15rem * var(--badge-scale)) calc(0.45rem * var(--badge-scale));
+  font-size: calc(0.7rem * var(--badge-scale));
+  font-weight: 600;
+  border-radius: 4px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.pml-arena-badge.is-dark {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.pml-arena-badge.is-overridden {
+  border-color: #f59e0b;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pml-arena-badge:disabled {
+  cursor: not-allowed;
+  border-color: var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+/* Prochain match : carte sombre */
+.pml-next {
+  background: #0f172a;
+  border-radius: 10px;
+  padding: var(--space-5) var(--space-6);
+  margin-bottom: var(--space-4);
+  border-left: 4px solid #f97316;
+}
+
+.pml-next.is-void {
+  background: #374151;
+  color: white;
+  opacity: 0.75;
+  border-left-color: #9ca3af;
+}
+
+.pml-next-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.pml-next-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.pml-next.is-void .pml-next-label {
+  display: block;
+  color: var(--color-text-muted);
+  font-weight: 400;
+  margin-bottom: var(--space-3);
+}
+
+.pml-duel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.pml-next.is-void .pml-duel {
+  gap: var(--space-4);
+  margin-bottom: 0;
+}
+
+.pml-side {
+  flex: 1;
+  text-align: right;
+}
+
+.pml-side + .pml-vs + .pml-side {
+  text-align: left;
+}
+
+.pml-name {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1.1;
+}
+
+.pml-next.is-void .pml-name {
+  font-size: 1.5rem;
+}
+
+.pml-firstname {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: var(--space-1);
+}
+
+.pml-next.is-void .pml-firstname {
+  color: var(--color-text-muted);
+  margin-top: 0.2rem;
+}
+
+.pml-vs {
+  font-size: 1.75rem;
+  color: #f97316;
+  flex-shrink: 0;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.pml-next.is-void .pml-vs {
+  font-size: 1.25rem;
+  color: var(--color-text-light);
+  font-weight: 400;
+}
+
+.is-struck {
+  text-decoration: line-through;
+}
+
+.pml-cta {
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: 0.875rem;
+  background: #f97316;
+  border: none;
+  border-radius: 7px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+
+/* Matchs à venir : bande horizontale de puces */
+.pml-strip {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-1);
+}
+
+.pml-chip {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.375rem var(--space-3);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  cursor: pointer;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+}
+
+.pml-chip:hover {
+  background: var(--color-raised-hover);
+  border-color: var(--color-border-dark);
+}
+
+.pml-chip.is-void {
+  background: var(--color-bg);
+  border-color: var(--color-border-dark);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.pml-chip.is-wave {
+  border: 2px solid #7c3aed;
+}
+
+.pml-chip-num {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.pml-chip-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.pml-chip-vs {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+/* Matchs terminés */
+.pml-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3) var(--space-2) 0.875rem;
+  background: var(--color-raised);
+  border-radius: 7px;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid #dc2626;
+  cursor: pointer;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+}
+
+.pml-row.is-win-a {
+  border-left-color: #059669;
+}
+
+.pml-row.is-highlighted {
+  background: var(--color-raised-hover);
+  border-top-color: #94a3b8;
+  border-right-color: #94a3b8;
+  border-bottom-color: #94a3b8;
+}
+
+.pml-row.is-locked {
+  cursor: default;
+}
+
+.pml-row.is-void {
+  border-left-color: #9ca3af;
+  cursor: default;
+  opacity: 0.55;
+}
+
+.pml-row-name {
+  flex: 1;
+  font-size: var(--fs-sm);
+  color: var(--color-text-light);
+}
+
+.pml-row-name.is-right {
+  text-align: right;
+}
+
+.pml-row-name.is-winner {
+  font-weight: 700;
+  color: var(--color-win-text);
+}
+
+.pml-row.is-void .pml-row-name {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.pml-score {
+  padding: 0.2rem 0.625rem;
+  background: var(--color-raised-hover);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+
+.pml-row.is-void .pml-score {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.pml-icon-btn {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.7rem;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #7c3aed;
+}
+
+.pml-icon-btn.is-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+  transition: opacity 0.1s;
+}
+
+.pml-icon-btn.is-info {
+  padding: 0.2rem var(--space-2);
+  font-size: var(--fs-xs);
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: var(--color-primary);
+}
+
+/* Matchs annulés */
+.pml-cancelled {
+  margin: var(--space-3) 0 var(--space-6);
+}
+
+.pml-cancelled-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) 0.875rem;
+  background: var(--color-surface-2);
+  border-radius: 7px;
+  border: 1px dashed var(--color-border-dark);
+  opacity: 0.8;
+}
+
+.pml-cancelled-icon {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  min-width: 24px;
+}
+
+.pml-cancelled-name {
+  flex: 1;
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: var(--fs-sm);
+  text-decoration: line-through;
+}
+
+/* Poule terminée */
+.pml-done {
+  text-align: center;
+  padding: 2.5rem var(--space-8);
+  color: var(--color-text-light);
+}
+
+.pml-done-icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-3);
+}
+
+.pml-done-title {
+  font-weight: 700;
+  font-size: var(--fs-md);
+  color: var(--color-text);
+}
+
+.pml-done-sub {
+  font-size: 0.8rem;
+  margin-top: var(--space-1);
+}
+
+/* Modale d'assignation de piste */
+.pml-arena-modal {
+  max-width: 400px;
+}
+
+.pml-arena-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+}
+
+.pml-arena-grid .btn {
+  min-height: var(--touch-target);
+  padding: var(--space-3);
+  font-size: var(--fs-sm);
+}
+
+.pml-arena-grid .is-full {
+  grid-column: 1 / -1;
+}
+
+/* Fenêtre étroite (#1156) : carte prochain match compacte, grille de pistes sur 3 colonnes */
+@media (max-width: 768px) {
+  .pml-next {
+    padding: var(--space-4);
+  }
+
+  .pml-name {
+    font-size: 1.35rem;
+  }
+
+  .pml-arena-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ============================================================
+   EN-TÊTE DE POULE (PoolView) — barre d'outils, pastilles, menu de colonnes
+   ============================================================ */
+
+.pv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.pv-header-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.pv-toolbar {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pv-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pv-progress-track {
+  width: 72px;
+  height: 5px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pv-progress-bar {
+  height: 100%;
+  background: #f59e0b;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.pv-progress-bar.is-high {
+  background: #10b981;
+}
+
+.pv-progress-label {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pv-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.2rem var(--space-2);
+  border-radius: 12px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  background: var(--color-bg);
+  color: var(--color-text-light);
+  border: 1px solid var(--color-border);
+}
+
+button.pv-pill {
+  cursor: pointer;
+}
+
+.pv-pill.is-partial {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.pv-pill.is-done {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+
+.pv-pill.is-assigned {
+  background: #dbeafe;
+  color: var(--color-primary-dark);
+  border-color: #93c5fd;
+}
+
+.pv-icon-btn {
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.pv-icon-btn:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.pv-icon-btn.is-gray:not(:disabled),
+.pv-icon-btn.is-open {
+  background: #6b7280;
+  color: white;
+}
+
+.pv-icon-btn.is-amber {
+  background: #f59e0b;
+  color: white;
+}
+
+.pv-icon-btn.is-primary,
+.pv-icon-btn.is-active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.pv-icon-btn.is-violet {
+  background: #8b5cf6;
+  color: white;
+}
+
+.pv-icon-btn.is-green {
+  background: #10b981;
+  color: white;
+}
+
+.pv-icon-btn.is-indigo {
+  background: #6366f1;
+  color: white;
+}
+
+.pv-icon-btn.is-edited {
+  border: 2px solid #f97316;
+}
+
+.pv-view-group {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.pv-view-group .pv-icon-btn:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.pv-view-group .pv-icon-btn:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.pv-col-menu-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.375rem var(--space-2);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.pv-col-menu-label:hover {
+  background: var(--color-surface-2);
+}
+
+.pv-col-menu-section {
+  margin-top: var(--space-2);
+}
+
+.pv-body {
+  overflow-x: auto;
+}
+
+/* Fenêtre réduite (#1156) : la barre d'outils passe sous le titre de la poule */
+@media (max-width: 1024px) {
+  .pv-toolbar {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Tablette / petite fenêtre : boutons icône à la taille tactile minimale */
+@media (max-width: 768px) {
+  .pv-icon-btn {
+    width: var(--touch-target);
+    height: var(--touch-target);
+  }
+}
+
+/* Choix des arbitres de la poule (#1157) */
+.pv-ref-btn {
+  text-align: left;
+}
+
+.pv-ref-club {
+  margin-left: 0.5rem;
+  opacity: 0.6;
+  font-size: 0.8rem;
+}

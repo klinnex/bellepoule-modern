@@ -5,6 +5,7 @@
 
 import { FencerMatchRecord } from '../types/preload';
 import { Competition, FencerCompetitionStats } from '../types';
+import { pdfLang, pdfT } from './pdfExport/core';
 
 function fmt(seconds: number): string {
   if (!seconds) return '—';
@@ -40,6 +41,7 @@ function matchOutcome(rec: FencerMatchRecord): {
   myScore: number | null;
   oppScore: number | null;
   isVictory: boolean;
+  isDefeat: boolean;
   outcomeLabel: string;
 } {
   const sA = parseScore(rec.scoreA);
@@ -47,16 +49,24 @@ function matchOutcome(rec: FencerMatchRecord): {
   const mine = rec.side === 'A' ? sA : sB;
   const opp = rec.side === 'A' ? sB : sA;
   const isVictory = mine?.isVictory ?? false;
+  const isDefeat =
+    !mine?.isVictory && !mine?.isExclusion && !mine?.isForfait && !mine?.isAbstention;
   const outcomeLabel = mine?.isVictory
-    ? 'Victoire'
+    ? pdfT('victory', 'Victoire')
     : mine?.isExclusion
-      ? 'Exclusion'
+      ? pdfT('exclusion', 'Exclusion')
       : mine?.isForfait
-        ? 'Forfait'
+        ? pdfT('status_forfait', 'Forfait')
         : mine?.isAbstention
-          ? 'Abstention'
-          : 'Défaite';
-  return { myScore: mine?.value ?? null, oppScore: opp?.value ?? null, isVictory, outcomeLabel };
+          ? pdfT('abstention', 'Abstention')
+          : pdfT('defeat', 'Défaite');
+  return {
+    myScore: mine?.value ?? null,
+    oppScore: opp?.value ?? null,
+    isVictory,
+    isDefeat,
+    outcomeLabel,
+  };
 }
 
 const CARD_EMOJI: Record<string, string> = {
@@ -131,26 +141,30 @@ function fencerPageHtml(
   const laserBox = isLaser
     ? `
     <div class="summary-box">
-      <div class="label">Touches Laser</div>
+      <div class="label">${pdfT('laser_touches', 'Touches Laser')}</div>
       <div class="value">${fencer.totalTouchPoints} pts</div>
       <div class="sub">A: ${fencer.touchesZoneA} · B: ${fencer.touchesZoneB} · C: ${fencer.touchesZoneC}</div>
     </div>`
     : `
     <div class="summary-box">
-      <div class="label">Sorties d'arène</div>
+      <div class="label">${pdfT('arena_exits', "Sorties d'arène")}</div>
       <div class="value">${fencer.arenaExits}</div>
       <div class="sub">&nbsp;</div>
     </div>`;
 
   const matchRows = matches
     .map((rec, i) => {
-      const { myScore, oppScore, isVictory, outcomeLabel } = matchOutcome(rec);
+      const { myScore, oppScore, isVictory, isDefeat, outcomeLabel } = matchOutcome(rec);
       const oppName = rec.opponentLastName
         ? `${rec.opponentLastName}${rec.opponentFirstName ? ' ' + rec.opponentFirstName : ''}`
         : '—';
       const scoreStr = myScore !== null && oppScore !== null ? `${myScore} – ${oppScore}` : '';
       const durStr = rec.duration ? fmt(rec.duration) : '—';
-      const phaseStr = rec.poolId ? 'Poule' : rec.tableId ? `Tour ${rec.round ?? ''}` : '';
+      const phaseStr = rec.poolId
+        ? pdfT('pool', 'Poule')
+        : rec.tableId
+          ? pdfT('round_n', 'Tour {{n}}', { n: rec.round ?? '' })
+          : '';
 
       type RawTouch = (typeof rec.touches)[0];
       type RawCard = (typeof rec.cards)[0];
@@ -175,28 +189,31 @@ function fencerPageHtml(
                   : t.zone === 'C'
                     ? 'Zone C – 5 pts'
                     : `Zone ${t.zone}`;
-            const reversed = t.isReversed ? ' <span class="t-reversed">(annulée)</span>' : '';
+            const reversed = t.isReversed
+              ? ` <span class="t-reversed">(${pdfT('cancelled', 'annulée')})</span>`
+              : '';
             return `<li class="timeline-item"><span class="t-time">${time}</span><span class="t-touch">● ${zoneLabel}${reversed}</span></li>`;
           } else {
             const c = ev.data;
             const ct = c.cardType.toLowerCase();
             const emoji = CARD_EMOJI[ct] ?? '❓';
             const reason = cardLabel(c.reason, cardReasonLabels);
-            const excl = c.resultingExclusion ? ' → <strong>Exclusion</strong>' : '';
+            const excl = c.resultingExclusion
+              ? ` → <strong>${pdfT('exclusion', 'Exclusion')}</strong>`
+              : '';
             return `<li class="timeline-item"><span class="t-time">${time}</span><span class="t-card-${ct}">${emoji} ${reason}${excl}</span></li>`;
           }
         })
         .join('');
 
       const noEvents =
-        events.length === 0 ? '<li class="no-events">Aucun événement enregistré</li>' : '';
+        events.length === 0
+          ? `<li class="no-events">${pdfT('no_events', 'Aucun événement enregistré')}</li>`
+          : '';
 
-      const resultClass = isVictory
-        ? 'victory'
-        : outcomeLabel !== 'Défaite'
-          ? 'other-result'
-          : 'defeat';
-      const matchLabel = phaseStr ? `Match ${i + 1} (${phaseStr})` : `Match ${i + 1}`;
+      const resultClass = isVictory ? 'victory' : !isDefeat ? 'other-result' : 'defeat';
+      const matchNum = pdfT('match_n', 'Match {{n}}', { n: i + 1 });
+      const matchLabel = phaseStr ? `${matchNum} (${phaseStr})` : matchNum;
 
       return `
       <div class="match">
@@ -217,24 +234,24 @@ function fencerPageHtml(
       </div>
       <div class="summary-grid">
         <div class="summary-box">
-          <div class="label">Matchs</div>
+          <div class="label">${pdfT('matches', 'Matchs')}</div>
           <div class="value">${fencer.matchesPlayed}</div>
           <div class="sub">${victories}V · ${defeats}D</div>
         </div>
         <div class="summary-box">
-          <div class="label">Durée moy.</div>
+          <div class="label">${pdfT('avg_duration', 'Durée moy.')}</div>
           <div class="value">${fmt(fencer.averageDurationSeconds)}</div>
-          <div class="sub">Total : ${fmt(fencer.totalDurationSeconds)}</div>
+          <div class="sub">${pdfT('total', 'Total')} : ${fmt(fencer.totalDurationSeconds)}</div>
         </div>
         <div class="summary-box">
-          <div class="label">Cartons</div>
+          <div class="label">${pdfT('cards', 'Cartons')}</div>
           <div class="value">${cardTotal || '—'}</div>
           <div class="sub">${cardSub}</div>
         </div>
         ${laserBox}
       </div>
-      <div class="section-title">Détail des matchs</div>
-      ${matches.length ? matchRows : '<p class="no-events">Aucun match terminé enregistré.</p>'}
+      <div class="section-title">${pdfT('match_details', 'Détail des matchs')}</div>
+      ${matches.length ? matchRows : `<p class="no-events">${pdfT('no_finished_match', 'Aucun match terminé enregistré.')}</p>`}
     </div>`;
 }
 
@@ -271,20 +288,20 @@ function rankingPageHtml(
   return `
     <div class="ranking-page">
       <div class="header">
-        <h1>Statistiques globales — ${competitionTitle}</h1>
+        <h1>${pdfT('global_stats', 'Statistiques globales')} — ${competitionTitle}</h1>
         <h2>${competitionDate}</h2>
       </div>
       <table class="ranking-table"><thead><tr>
-        <th>#</th><th>Nom / Prénom</th><th>Club</th><th class="tc">Matchs</th>
+        <th>#</th><th>${pdfT('col_full_name', 'Nom / Prénom')}</th><th>${pdfT('col_club', 'Club')}</th><th class="tc">${pdfT('matches', 'Matchs')}</th>
         ${laserTh}
         <th class="tc">⬜</th><th class="tc">🟡</th><th class="tc">🔴</th>
-        <th class="tc">Sorties</th><th class="tc">Durée moy.</th>
+        <th class="tc">${pdfT('exits', 'Sorties')}</th><th class="tc">${pdfT('avg_duration', 'Durée moy.')}</th>
       </tr></thead><tbody>${rows}</tbody></table>
     </div>`;
 }
 
 function wrapHtml(body: string): string {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>${body}</body></html>`;
+  return `<!DOCTYPE html><html lang="${pdfLang()}"><head><meta charset="utf-8"><style>${CSS}</style></head><body>${body}</body></html>`;
 }
 
 function competitionDateStr(competition: Competition): string {

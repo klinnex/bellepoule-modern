@@ -12,8 +12,8 @@ export function renderSection(section: WikiSection, idx: number): React.ReactNod
             fontWeight: 700,
             marginTop: '1.5rem',
             marginBottom: '0.5rem',
-            color: 'var(--color-primary, #3b82f6)',
-            borderBottom: '2px solid var(--color-primary, #3b82f6)',
+            color: 'var(--color-primary)',
+            borderBottom: '2px solid var(--color-primary)',
             paddingBottom: '0.25rem',
           }}
         >
@@ -29,7 +29,7 @@ export function renderSection(section: WikiSection, idx: number): React.ReactNod
             fontWeight: 600,
             marginTop: '1rem',
             marginBottom: '0.25rem',
-            color: 'var(--color-text, #1f2937)',
+            color: 'var(--color-text)',
           }}
         >
           {section.text}
@@ -37,10 +37,7 @@ export function renderSection(section: WikiSection, idx: number): React.ReactNod
       );
     case 'p':
       return (
-        <p
-          key={idx}
-          style={{ margin: '0.5rem 0', lineHeight: 1.7, color: 'var(--color-text, #1f2937)' }}
-        >
+        <p key={idx} style={{ margin: '0.5rem 0', lineHeight: 1.7, color: 'var(--color-text)' }}>
           {section.text}
         </p>
       );
@@ -56,7 +53,7 @@ export function renderSection(section: WikiSection, idx: number): React.ReactNod
           }}
         >
           {section.items?.map((item, i) => (
-            <li key={i} style={{ lineHeight: 1.6, color: 'var(--color-text, #1f2937)' }}>
+            <li key={i} style={{ lineHeight: 1.6, color: 'var(--color-text)' }}>
               {item}
             </li>
           ))}
@@ -74,7 +71,7 @@ export function renderSection(section: WikiSection, idx: number): React.ReactNod
           }}
         >
           {section.items?.map((item, i) => (
-            <li key={i} style={{ lineHeight: 1.6, color: 'var(--color-text, #1f2937)' }}>
+            <li key={i} style={{ lineHeight: 1.6, color: 'var(--color-text)' }}>
               {item}
             </li>
           ))}
@@ -136,15 +133,15 @@ export function renderSection(section: WikiSection, idx: number): React.ReactNod
                 alignItems: 'center',
                 gap: '0.75rem',
                 padding: '0.3rem 0',
-                borderBottom: '1px solid var(--color-border, #e5e7eb)',
+                borderBottom: '1px solid var(--color-border)',
               }}
             >
               <kbd
                 style={{
-                  background: '#f3f4f6',
+                  background: 'var(--color-bg)',
                   // Touche claire dans les deux thèmes : texte noir (#1032)
-                  color: '#111827',
-                  border: '1px solid #d1d5db',
+                  color: 'var(--color-text)',
+                  border: '1px solid var(--color-border-dark)',
                   borderRadius: 4,
                   padding: '0.15rem 0.5rem',
                   fontFamily: 'monospace',
@@ -156,9 +153,7 @@ export function renderSection(section: WikiSection, idx: number): React.ReactNod
               >
                 {s.key}
               </kbd>
-              <span style={{ color: 'var(--color-text, #1f2937)', fontSize: '0.9rem' }}>
-                {s.desc}
-              </span>
+              <span style={{ color: 'var(--color-text)', fontSize: '0.9rem' }}>{s.desc}</span>
             </div>
           ))}
         </div>

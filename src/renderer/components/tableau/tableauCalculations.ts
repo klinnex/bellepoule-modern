@@ -5,6 +5,7 @@
  */
 
 import { Fencer, PoolRanking } from '../../../shared/types';
+import { generateSeedingChart } from '../../../shared/utils/tableCalculations';
 import {
   TableauMatch,
   FinalResult,
@@ -52,7 +53,8 @@ export const generateFIESeeding = (size: number): number[] => {
       114, 79, 50, 47, 82, 111, 18, 31, 98, 95, 34, 63, 66, 127, 2,
     ];
   }
-  return Array.from({ length: size }, (_, i) => i + 1);
+  // 256 et au-delà : même construction FIE (sinon 1 contre 2 au premier tour)
+  return generateSeedingChart(size);
 };
 
 // Génère les matchs d'un bracket (utilisé pour les brackets de consolation)

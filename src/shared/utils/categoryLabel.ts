@@ -26,3 +26,31 @@ export function categoryLabel(
   const key = CATEGORY_KEYS[category];
   return key ? t(`categories.${key}`) : category;
 }
+
+const WEAPON_KEYS: Record<string, string> = {
+  E: 'epee',
+  F: 'foil',
+  S: 'sabre',
+  L: 'laser',
+  C: 'custom',
+};
+
+const GENDER_KEYS: Record<string, string> = {
+  M: 'male',
+  F: 'female',
+  X: 'mixed',
+};
+
+/** Code arme (E, F, S, L, C) → libellé traduit (Épée, Sabre Laser…) */
+export function weaponLabel(weapon: string | undefined | null, t: (key: string) => string): string {
+  if (!weapon) return '';
+  const key = WEAPON_KEYS[weapon];
+  return key ? t(`weapons.${key}`) : weapon;
+}
+
+/** Code genre (M, F, X) → libellé traduit (Masculin, Féminin, Mixte) */
+export function genderLabel(gender: string | undefined | null, t: (key: string) => string): string {
+  if (!gender) return '';
+  const key = GENDER_KEYS[gender];
+  return key ? t(`genders.${key}`) : gender;
+}

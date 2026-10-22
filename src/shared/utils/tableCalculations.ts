@@ -41,43 +41,37 @@ export function calculateByeCount(fencerCount: number, tableSize: number): numbe
 // ============================================================================
 
 /**
- * Génère la position de placement pour un classement donné
- * Utilise l'algorithme standard FIE pour le placement en tableau
+ * Génère le tableau de placement FIE : chart[position] = seed.
  *
- * Pour un tableau de 8:
- * Position 1: Seed 1 vs Seed 8
- * Position 2: Seed 4 vs Seed 5
- * Position 3: Seed 3 vs Seed 6
- * Position 4: Seed 2 vs Seed 7
+ * Construction par dédoublement : à chaque tour, chaque seed s d'indice i
+ * devient la paire [s, n+1-s] (i pair) ou [n+1-s, s] (i impair).
+ * Tableau de 8 : [1, 8, 5, 4, 3, 6, 7, 2]
+ *   → 1-8, 5-4, 3-6, 7-2 ; 1 et 2 ne se rencontrent qu'en finale.
  */
-export function getSeedPosition(seed: number, tableSize: number): number {
-  if (seed === 1) return 0;
-  if (seed === 2) return tableSize - 1;
-
-  const rounds = Math.log2(tableSize);
-  let position = 0;
-  let range = tableSize;
-
-  for (let round = 0; round < rounds; round++) {
-    range = range / 2;
-    const bit = ((seed - 1) >> (rounds - 1 - round)) & 1;
-    if (bit === 1) {
-      position += range;
-    }
+export function generateSeedingChart(tableSize: number): number[] {
+  if (!Number.isInteger(tableSize) || tableSize < 1 || (tableSize & (tableSize - 1)) !== 0) {
+    throw new RangeError(
+      `generateSeedingChart: tableSize doit être une puissance de 2 (reçu: ${tableSize})`
+    );
   }
-
-  return position;
+  let chart = [1];
+  for (let n = 2; n <= tableSize; n *= 2) {
+    const next: number[] = [];
+    chart.forEach((seed, i) => {
+      const opponent = n + 1 - seed;
+      if (i % 2 === 0) next.push(seed, opponent);
+      else next.push(opponent, seed);
+    });
+    chart = next;
+  }
+  return chart;
 }
 
 /**
- * Génère le tableau de placement complet pour une taille donnée
+ * Position (0-based) d'une tête de série dans le tableau, selon le placement FIE.
  */
-export function generateSeedingChart(tableSize: number): number[] {
-  const chart: number[] = [];
-  for (let seed = 1; seed <= tableSize; seed++) {
-    chart[getSeedPosition(seed, tableSize)] = seed;
-  }
-  return chart;
+export function getSeedPosition(seed: number, tableSize: number): number {
+  return generateSeedingChart(tableSize).indexOf(seed);
 }
 
 /**

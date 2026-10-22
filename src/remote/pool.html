@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Saisie Poule – BellePoule</title>
+    <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
@@ -536,16 +537,16 @@
         <div class="header-title" id="pool-title" data-i18n="pool.loading">Chargement…</div>
         <div class="header-badge" id="match-count-badge" style="display:none"></div>
       </div>
-      <button class="back-to-referee-btn" onclick="goBackToReferee()">← Arbitre</button>
+      <button class="back-to-referee-btn" data-click="goBackToReferee">← Arbitre</button>
       <a href="/poule-ocr" class="back-to-referee-btn" style="text-decoration:none;margin-left:6px" title="Saisie par photo (OCR)" aria-label="Saisie par photo (OCR)">📷</a>
       <div class="connection-badge" id="connection-badge" role="status" aria-live="polite">⚡ Connexion…</div>
     </header>
 
     <div class="tabs" role="tablist" aria-label="Vue de la poule">
-      <button class="tab-btn active" id="tab-tableau" role="tab" aria-selected="true" aria-controls="pool-container" onclick="switchTab('tableau')">
+      <button class="tab-btn active" id="tab-tableau" role="tab" aria-selected="true" aria-controls="pool-container" data-click="switchTab" data-args='["tableau"]'>
         <span data-i18n="pool.tab_grid">⊞ Tableau</span>
       </button>
-      <button class="tab-btn" id="tab-matches" role="tab" aria-selected="false" aria-controls="pool-container" onclick="switchTab('matches')">
+      <button class="tab-btn" id="tab-matches" role="tab" aria-selected="false" aria-controls="pool-container" data-click="switchTab" data-args='["matches"]'>
         <span data-i18n="pool.tab_matches">⚔ Matchs</span>
       </button>
     </div>
@@ -600,6 +601,7 @@
       let currentTab = 'tableau';
       let signaturesData = {};   // { fencerId: dataURL }
       let signingFencer = null;
+      let keepForfeitPoints = false; // Sabre Laser : points du match forfait conservés
 
       // ── Navigation ──
       function goBackToReferee() {
@@ -646,10 +648,11 @@
           const res = await fetch(`/api/arenas/${arenaNumber}/pool-data`);
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
-            showStatusMessage(err.error || window.T('pool.no_pool'));
+            showStatusMessage(window.errorText(err, window.T('pool.no_pool')));
             return;
           }
           poolData = await res.json();
+          keepForfeitPoints = !!poolData.keepForfeitPoints;
           if (poolData.signatures) signaturesData = poolData.signatures;
           renderAll(poolData);
         } catch (e) {
@@ -659,7 +662,7 @@
 
       function showStatusMessage(msg) {
         document.getElementById('pool-container').innerHTML =
-          `<div class="status-message">${msg}</div>`;
+          `<div class="status-message">${escHtml(msg)}</div>`;
       }
 
       // ── Rendu principal ──
@@ -849,8 +852,9 @@
         const fA = match.fencerA || fencers.find(f => f.id === match.fencerAId);
         const fB = match.fencerB || fencers.find(f => f.id === match.fencerBId);
 
-        const sA = match.scoreA;
-        const sB = match.scoreB;
+        const voided = isVoidedByForfeit(match);
+        const sA = voided && !isFlagged(match.scoreA) ? null : match.scoreA;
+        const sB = voided && !isFlagged(match.scoreB) ? null : match.scoreB;
         const winnerA = sA && sA.isVictory;
         const winnerB = sB && sB.isVictory;
 
@@ -885,7 +889,8 @@
       }
 
       function scoreClass(score, finished) {
-        if (!finished || !score) return '';
+        if (!finished) return '';
+        if (!score) return 'special';
         if (score.isAbstention || score.isForfait || score.isExclusion) return 'special';
         return score.isVictory ? 'victory' : 'defeat';
       }
@@ -899,6 +904,19 @@
       }
 
       // ── Helpers ──
+      function isFlagged(score) {
+        return !!score && !!(score.isAbstention || score.isForfait || score.isExclusion);
+      }
+
+      // Match annulé par forfait / abandon / exclusion : non joué (0-0), le vainqueur
+      // ne reçoit pas le score max (#1144). Sabre Laser : points marqués conservés.
+      function isVoidedByForfeit(match) {
+        if (!match || match.status !== 'finished') return false;
+        if (!isFlagged(match.scoreA) && !isFlagged(match.scoreB)) return false;
+        if (!keepForfeitPoints) return true;
+        return match.scoreA?.value == null || match.scoreB?.value == null;
+      }
+
       function findMatch(matches, fencerAId, fencerBId) {
         return matches.find(
           m =>
@@ -918,6 +936,11 @@
 
         if (!scoreForRow || match.status !== 'finished') {
           td.classList.add('not-played');
+          return;
+        }
+
+        if (isVoidedByForfeit(match) && !isFlagged(scoreForRow)) {
+          td.classList.add('special'); td.textContent = '–';
           return;
         }
 
@@ -1037,7 +1060,7 @@
           );
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
-            alert(err.error || 'Erreur lors de la sauvegarde de la signature.');
+            alert(window.errorText(err, window.T('error.signature_save_failed')));
             return;
           }
           signaturesData[signingFencer.id] = dataURL;

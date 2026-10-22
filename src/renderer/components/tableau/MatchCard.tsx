@@ -1,5 +1,6 @@
 import React from 'react';
 import { TableauMatch } from './tableauTypes';
+import { translateStatic } from '../../contexts/TranslationContext';
 
 interface MatchCardProps {
   match: TableauMatch;
@@ -11,6 +12,8 @@ interface MatchCardProps {
   onRefereeClick?: (matchId: string) => void;
   onSignaturesClick?: (match: TableauMatch) => void;
   readOnly?: boolean;
+  /** Rang de sortie de poules par tireur (#1119) ; sinon classement d'entrée */
+  seedRanks?: Map<string, number>;
 }
 
 const BASE_MATCH_HEIGHT = 100;
@@ -25,6 +28,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
   onRefereeClick,
   onSignaturesClick,
   readOnly = false,
+  seedRanks,
 }) => {
   const canEdit = !readOnly && !!(match.fencerA && match.fencerB && !match.isBye) && !!onMatchClick;
   const hasScore = match.scoreA !== null && match.scoreB !== null;
@@ -62,6 +66,10 @@ const MatchCard: React.FC<MatchCardProps> = ({
     : match.referee
       ? [match.referee]
       : [];
+
+  const seedOf = (f: typeof match.fencerA) => (f ? (seedRanks?.get(f.id) ?? f.ranking) : undefined);
+  const seedA = seedOf(match.fencerA);
+  const seedB = seedOf(match.fencerB);
 
   const fencerName = (f: typeof match.fencerA) =>
     f ? `${f.lastName} ${f.firstName.charAt(0)}.` : '—';
@@ -132,8 +140,8 @@ const MatchCard: React.FC<MatchCardProps> = ({
           <button
             className="match-badge-btn"
             onClick={handleSignaturesClick}
-            title="Consulter les signatures"
-            aria-label="Consulter les signatures"
+            title={translateStatic('matchCard.signatures')}
+            aria-label={translateStatic('matchCard.signatures')}
           >
             ✍
           </button>
@@ -150,9 +158,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             <span className="match-fencer-name">{fencerName(match.fencerA)}</span>
             {match.fencerA?.club && <span className="match-fencer-club">{match.fencerA.club}</span>}
           </div>
-          {match.fencerA?.ranking && (
-            <span className="match-fencer-seed">#{match.fencerA.ranking}</span>
-          )}
+          {seedA && <span className="match-fencer-seed">#{seedA}</span>}
         </div>
         {hasScore && (
           <span className={`match-score ${winnerA ? 'match-score-winner' : 'match-score-loser'}`}>
@@ -174,9 +180,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             <span className="match-fencer-name">{fencerName(match.fencerB)}</span>
             {match.fencerB?.club && <span className="match-fencer-club">{match.fencerB.club}</span>}
           </div>
-          {match.fencerB?.ranking && (
-            <span className="match-fencer-seed">#{match.fencerB.ranking}</span>
-          )}
+          {seedB && <span className="match-fencer-seed">#{seedB}</span>}
         </div>
         {hasScore && (
           <span className={`match-score ${winnerB ? 'match-score-winner' : 'match-score-loser'}`}>
@@ -186,7 +190,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       </div>
 
       {/* Bye */}
-      {match.isBye && <div className="match-bye">Exempt</div>}
+      {match.isBye && <div className="match-bye">{translateStatic('matchCard.bye')}</div>}
 
       {/* CTA bar — mode liste seulement */}
       {canEdit && viewMode !== 'full' && (

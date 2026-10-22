@@ -148,6 +148,25 @@ describe('DatabaseManager', () => {
       const result = manager.createCompetition({ id: customId });
       expect(result.id).toBe(customId);
     });
+
+    it('persiste isTeamEvent (#1087)', () => {
+      const stmt = makeStmt();
+      mockDb.prepare.mockReturnValue(stmt);
+      manager.createCompetition({ title: 'Équipes', isTeamEvent: true });
+      const insertCall = mockDb.prepare.mock.calls.findIndex((c: string[]) =>
+        c[0].includes('INSERT INTO competitions')
+      );
+      expect(mockDb.prepare.mock.calls[insertCall][0]).toContain('is_team_event');
+      expect(stmt.run.mock.calls[0]).toContain(1);
+
+      stmt.run.mockClear();
+      manager.updateCompetition('c1', { isTeamEvent: false });
+      const update = mockDb.prepare.mock.calls.find((c: string[]) =>
+        c[0].includes('SET is_team_event')
+      );
+      expect(update).toBeDefined();
+      expect(stmt.run.mock.calls[0][0]).toBe(0);
+    });
   });
 
   describe('getFencer', () => {
@@ -188,6 +207,54 @@ describe('DatabaseManager', () => {
       expect(result).not.toBeNull();
       expect(result!.lastName).toBe('Dupont');
       expect(result!.firstName).toBe('Jean');
+    });
+  });
+
+  describe('addFencer : texte normalisé (#1147)', () => {
+    beforeEach(async () => {
+      await manager.open();
+    });
+
+    const row = {
+      id: 'f1',
+      ref: 1,
+      last_name: 'X',
+      first_name: 'Y',
+      birth_date: null,
+      gender: 'M',
+      nationality: 'FRA',
+      region: null,
+      club: null,
+      license: null,
+      ranking: null,
+      status: 'N',
+      seed_number: null,
+      final_ranking: null,
+      pool_stats: null,
+      photo: null,
+      m: 0,
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z',
+    };
+
+    it('retire < > et caractères de contrôle des champs texte avant insertion', () => {
+      const run = vi.fn().mockReturnValue({ changes: 1 });
+      mockDb.prepare.mockReturnValue(makeStmt({ run, get: vi.fn().mockReturnValue(row) }));
+      manager.addFencer('c1', {
+        lastName: '<img src=x onerror=1>DUPONT\n',
+        firstName: 'Jean\t<b>',
+        club: '<script>Club</script>',
+        region: ' IDF ',
+        license: '12<3>',
+      });
+      const params = run.mock.calls.find(c => c.length >= 12)!;
+      // id, competition_id, ref, last_name, first_name, birth_date, gender, nationality,
+      // club, region, license
+      expect(params[3]).toBe('img src=x onerror=1DUPONT');
+      expect(params[4]).toBe('Jean b');
+      expect(params[8]).toBe('scriptClub/script');
+      expect(params[9]).toBe('IDF');
+      expect(params[10]).toBe('123');
     });
   });
 
@@ -295,6 +362,47 @@ describe('DatabaseManager', () => {
       const result = manager.getPoolsByPhase('phase-1');
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('pool-1');
+    });
+  });
+
+  describe('cartons des relais par équipes (#1086)', () => {
+    beforeEach(async () => {
+      await manager.open();
+    });
+
+    it('createTeamBoutCard stocke le carton sérialisé, getTeamBoutCards le restitue', () => {
+      const run = vi.fn().mockReturnValue({ changes: 1 });
+      const card = {
+        id: 'c1',
+        matchId: 'tm1',
+        fencerId: 'f1',
+        type: 'YELLOW',
+        reason: 'early_start',
+        group: 1,
+        timestamp: new Date('2026-01-01T10:00:00Z'),
+        pointsAwarded: 1,
+        resultingExclusion: false,
+      } as any;
+      mockDb.prepare.mockReturnValue(makeStmt({ run }));
+      manager.createTeamBoutCard('b1', card);
+      expect(run).toHaveBeenCalledWith(
+        'c1',
+        'tm1',
+        'b1',
+        'f1',
+        JSON.stringify(card),
+        '2026-01-01T10:00:00.000Z'
+      );
+
+      mockDb.prepare.mockReturnValue(
+        makeStmt({
+          all: vi.fn().mockReturnValue([{ bout_id: 'b1', card_json: JSON.stringify(card) }]),
+        })
+      );
+      const [row] = manager.getTeamBoutCards('tm1');
+      expect(row.boutId).toBe('b1');
+      expect(row.card.type).toBe('YELLOW');
+      expect(row.card.timestamp).toBeInstanceOf(Date);
     });
   });
 

@@ -6,7 +6,8 @@
 
 import { Fencer, FencerStatus } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides, assembleBody, BASE_CSS } from './core';
+import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
+import { getActiveLocale } from '../localeFormat';
 
 // ─── Export Résultats Finaux ───────────────────────────────────────────────────
 
@@ -22,7 +23,7 @@ export function generateResultsHTML(
   logoBase64?: string,
   template?: PdfTemplate
 ): string {
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -39,7 +40,7 @@ export function generateResultsHTML(
             ? ' <span style="color:#ef4444;font-size:8pt">(F)</span>'
             : r.fencer.status === FencerStatus.EXCLUDED
               ? r.fencer.exclusionReason === 'black_card'
-                ? ' <span title="Carton noir" style="display:inline-block;width:7pt;height:10pt;margin-left:4pt;background:#000;border-radius:1pt;vertical-align:-1pt"></span>'
+                ? ` <span title="${pdfT('black_card', 'Carton noir')}" style="display:inline-block;width:7pt;height:10pt;margin-left:4pt;background:#000;border-radius:1pt;vertical-align:-1pt"></span>`
                 : ' <span style="color:#ef4444;font-size:8pt">(X)</span>'
               : '';
       return `
@@ -62,7 +63,7 @@ export function generateResultsHTML(
     ${logoBase64 ? `<img class="doc-header-logo" src="${logoBase64}" alt="Logo" />` : ''}
     <div class="doc-header-left">
       <h1>${effectiveTitle}</h1>
-      <div class="subtitle">Classement final — ${results.length} tireur${results.length > 1 ? 's' : ''}</div>
+      <div class="subtitle">${pdfT('final_ranking', 'Classement final')} — ${pdfT('fencers_count', results.length > 1 ? '{{count}} tireurs' : '{{count}} tireur', { count: results.length })}</div>
     </div>
     <div class="doc-header-badge" style="font-size:11pt">RF</div>
   </div>`,
@@ -71,11 +72,11 @@ export function generateResultsHTML(
   <table>
     <thead>
       <tr>
-        <th style="width:10mm">Rg</th>
-        <th style="text-align:left">Nom</th>
-        <th style="text-align:left">Prénom</th>
-        <th style="text-align:left">Club</th>
-        <th>Éliminé en</th>
+        <th style="width:10mm">${pdfT('col_rank', 'Rg')}</th>
+        <th style="text-align:left">${pdfT('col_last_name', 'Nom')}</th>
+        <th style="text-align:left">${pdfT('col_first_name', 'Prénom')}</th>
+        <th style="text-align:left">${pdfT('col_club', 'Club')}</th>
+        <th>${pdfT('col_eliminated_in', 'Éliminé en')}</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
@@ -91,7 +92,7 @@ export function generateResultsHTML(
   const body = assembleBody(sections, template, defaultOrder);
 
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
   <title>${effectiveTitle}</title>
@@ -119,11 +120,11 @@ ${body}
 
 export async function exportResultsToPDF(
   results: FinalResultForPDF[],
-  title: string = 'Résultats Finaux',
+  title: string = pdfT('results_title', 'Résultats Finaux'),
   logoBase64?: string,
   template?: PdfTemplate
 ): Promise<void> {
-  if (results.length === 0) throw new Error('Aucun résultat à exporter');
+  if (results.length === 0) throw new Error(pdfT('results_empty', 'Aucun résultat à exporter'));
   const html = generateResultsHTML(results, title, logoBase64, template);
   await savePDF(html, 'resultats-finaux.pdf');
 }

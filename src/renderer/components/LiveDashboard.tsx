@@ -17,6 +17,8 @@ import {
   SUB_TEXT,
   ROW_TEXT,
 } from './liveDashboard.styles';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface LiveDashboardProps {
   competition: Competition;
@@ -35,6 +37,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
   finalResults = [],
   weapon,
 }) => {
+  const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState<'pools' | 'tableau' | 'ranking'>('pools');
   const [refreshInterval, setRefreshInterval] = useState<number>(5000);
@@ -67,7 +70,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
     totalMatches > 0 ? Math.round((completedMatches.length / totalMatches) * 100) : 0;
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('fr-FR', {
+    return date.toLocaleTimeString(getActiveLocale(), {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -103,11 +106,19 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
           }}
         >
           <div>
-            <h1 style={{ margin: 0, fontSize: '2rem', color: '#1f2937', fontWeight: '700' }}>
+            <h1
+              style={{ margin: 0, fontSize: '2rem', color: 'var(--color-text)', fontWeight: '700' }}
+            >
               🏆 {competition.title}
             </h1>
-            <p style={{ margin: '0.5rem 0 0 0', color: '#6b7280', fontSize: '1.1rem' }}>
-              {new Date(competition.date).toLocaleDateString('fr-FR', {
+            <p
+              style={{
+                margin: '0.5rem 0 0 0',
+                color: 'var(--color-text-light)',
+                fontSize: '1.1rem',
+              }}
+            >
+              {new Date(competition.date).toLocaleDateString(getActiveLocale(), {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',
@@ -121,37 +132,45 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
               style={{
                 fontSize: '2.5rem',
                 fontWeight: '700',
-                color: '#1f2937',
+                color: 'var(--color-text)',
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
               {formatTime(currentTime)}
             </div>
-            <div style={{ color: '#10b981', fontSize: '1rem', fontWeight: '500' }}>● EN DIRECT</div>
+            <div style={{ color: '#10b981', fontSize: '1rem', fontWeight: '500' }}>
+              {t('liveDashboard.live')}
+            </div>
           </div>
         </div>
       </header>
 
       {/* Progress Bar */}
-      <div style={{ background: 'white', padding: '1rem 2rem', borderBottom: '1px solid #e5e7eb' }}>
+      <div
+        style={{
+          background: 'white',
+          padding: '1rem 2rem',
+          borderBottom: '1px solid var(--color-border)',
+        }}
+      >
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
           <div
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               marginBottom: '0.5rem',
-              color: '#374151',
+              color: 'var(--color-text)',
             }}
           >
-            <span>Progression: {completionRate}%</span>
+            <span>{t('liveDashboard.progress', { rate: completionRate })}</span>
             <span>
-              {completedMatches.length} / {totalMatches} matchs terminés
+              {t('liveDashboard.finished', { done: completedMatches.length, total: totalMatches })}
             </span>
           </div>
           <div
             style={{
               height: '8px',
-              background: '#e5e7eb',
+              background: 'var(--color-border)',
               borderRadius: '4px',
               overflow: 'hidden',
             }}
@@ -170,7 +189,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
       </div>
 
       {/* Navigation Tabs */}
-      <div style={{ background: 'white', borderBottom: '1px solid #e5e7eb' }}>
+      <div style={{ background: 'white', borderBottom: '1px solid var(--color-border)' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex' }}>
           {(['pools', 'tableau', 'ranking'] as const).map(tab => (
             <button
@@ -179,13 +198,14 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
               style={{
                 padding: '1rem 2rem',
                 border: 'none',
-                background: activeTab === tab ? '#3b82f6' : 'transparent',
-                color: activeTab === tab ? 'white' : '#6b7280',
+                background: activeTab === tab ? 'var(--color-primary)' : 'transparent',
+                color: activeTab === tab ? 'white' : 'var(--color-text-light)',
                 fontSize: '1rem',
                 fontWeight: '600',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                borderBottom: activeTab === tab ? '3px solid #2563eb' : '3px solid transparent',
+                borderBottom:
+                  activeTab === tab ? '3px solid var(--color-primary)' : '3px solid transparent',
               }}
             >
               {tab === 'pools' && '📊 Poules'}
@@ -203,7 +223,9 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
             {/* Live Matches */}
             {matchesInProgress.length > 0 && (
               <div style={{ marginBottom: '2rem' }}>
-                <h2 style={PANEL_TITLE}>🔴 Matchs en cours ({matchesInProgress.length})</h2>
+                <h2 style={PANEL_TITLE}>
+                  {t('liveDashboard.in_progress', { n: matchesInProgress.length })}
+                </h2>
                 <div
                   style={{
                     display: 'grid',
@@ -220,7 +242,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
 
             {/* Pool Results */}
             <div>
-              <h2 style={PANEL_TITLE}>📋 Résultats des Poules</h2>
+              <h2 style={PANEL_TITLE}>{t('liveDashboard.pool_results')}</h2>
               <div
                 style={{
                   display: 'grid',
@@ -238,14 +260,14 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
 
         {activeTab === 'tableau' && (
           <div>
-            <h2 style={PANEL_TITLE}>⚔️ Phase Éliminatoire</h2>
+            <h2 style={PANEL_TITLE}>{t('liveDashboard.elimination')}</h2>
             <TableauView matches={tableauMatches} />
           </div>
         )}
 
         {activeTab === 'ranking' && (
           <div>
-            <h2 style={PANEL_TITLE}>🏅 Classement Final</h2>
+            <h2 style={PANEL_TITLE}>{t('liveDashboard.final_ranking')}</h2>
             <FinalRankingView results={finalResults} />
           </div>
         )}
@@ -261,11 +283,9 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
           marginTop: '2rem',
         }}
       >
-        <p style={{ margin: 0, opacity: 0.8 }}>
-          BellePoule Modern • Suivez la compétition en temps réel
-        </p>
+        <p style={{ margin: 0, opacity: 0.8 }}>{t('liveDashboard.footer')}</p>
         <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', opacity: 0.6 }}>
-          Actualisation automatique toutes les {refreshInterval / 1000} secondes
+          {t('liveDashboard.auto_refresh', { n: refreshInterval / 1000 })}
         </p>
       </footer>
     </div>
@@ -274,6 +294,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
 
 // Live Match Card Component
 const LiveMatchCard_: React.FC<{ match: Match; index: number }> = ({ match, index }) => {
+  const { t } = useTranslation();
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
@@ -316,14 +337,14 @@ const LiveMatchCard_: React.FC<{ match: Match; index: number }> = ({ match, inde
             fontWeight: '600',
           }}
         >
-          🔴 LIVE • {formatElapsed(elapsed)}
+          {t('liveDashboard.live_badge', { t: formatElapsed(elapsed) })}
         </span>
-        <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-          Piste {match.strip || index + 1}
+        <span style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
+          {t('liveDashboard.strip', { n: match.strip || index + 1 })}
         </span>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="u-row-between">
         <div style={CELL_CENTER_FLEX}>
           <div style={STAT_VALUE}>
             {match.fencerA?.firstName} {match.fencerA?.lastName}
@@ -342,7 +363,7 @@ const LiveMatchCard_: React.FC<{ match: Match; index: number }> = ({ match, inde
           >
             {match.scoreA?.value || 0}
           </span>
-          <span style={{ fontSize: '1.5rem', color: '#9ca3af' }}>:</span>
+          <span style={{ fontSize: '1.5rem', color: 'var(--color-text-muted)' }}>:</span>
           <span
             style={{
               fontSize: '3rem',
@@ -371,6 +392,7 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
   pool,
   isLaserSabre = false,
 }) => {
+  const { t } = useTranslation();
   const completedCount = pool.matches.filter(m => m.status === MatchStatus.FINISHED).length;
   const progress = pool.matches.length > 0 ? (completedCount / pool.matches.length) * 100 : 0;
 
@@ -391,7 +413,9 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
           marginBottom: '1rem',
         }}
       >
-        <h3 style={{ margin: 0, color: '#1f2937', fontSize: '1.25rem' }}>Poule {pool.number}</h3>
+        <h3 style={{ margin: 0, color: 'var(--color-text)', fontSize: '1.25rem' }}>
+          {t('liveDashboard.pool', { n: pool.number })}
+        </h3>
         <span
           style={{
             background: pool.isComplete ? '#d1fae5' : '#fef3c7',
@@ -409,32 +433,32 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
       {pool.ranking.length > 0 ? (
         <table style={TABLE}>
           <thead>
-            <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+            <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
               <th
                 style={{
                   textAlign: 'left',
                   padding: '0.5rem',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
-                Rang
+                {t('liveDashboard.rank')}
               </th>
               <th
                 style={{
                   textAlign: 'left',
                   padding: '0.5rem',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
-                Tireur
+                {t('liveDashboard.fencer')}
               </th>
               <th
                 style={{
                   textAlign: 'center',
                   padding: '0.5rem',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
@@ -449,55 +473,55 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
                     fontSize: '0.875rem',
                   }}
                 >
-                  Quest
+                  {t('liveDashboard.quest')}
                 </th>
               )}
               <th
                 style={{
                   textAlign: 'center',
                   padding: '0.5rem',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
-                TD
+                {t('ranking.touches_scored')}
               </th>
               <th
                 style={{
                   textAlign: 'center',
                   padding: '0.5rem',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
-                TR
+                {t('ranking.touches_received')}
               </th>
               <th
                 style={{
                   textAlign: 'center',
                   padding: '0.5rem',
-                  color: '#6b7280',
+                  color: 'var(--color-text-light)',
                   fontSize: '0.875rem',
                 }}
               >
-                Ind
+                {t('liveDashboard.ind')}
               </th>
             </tr>
           </thead>
           <tbody>
             {pool.ranking.slice(0, 5).map((rank, idx) => (
-              <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
+              <tr key={idx} style={{ borderBottom: '1px solid var(--color-bg)' }}>
                 <td
                   style={{
                     padding: '0.5rem',
                     fontWeight: '700',
-                    color: idx < 3 ? '#f59e0b' : '#6b7280',
+                    color: idx < 3 ? '#f59e0b' : 'var(--color-text-light)',
                   }}
                 >
                   {idx + 1}
                 </td>
                 <td style={{ padding: '0.5rem' }}>
-                  <div style={{ fontWeight: '500', color: '#1f2937' }}>
+                  <div style={{ fontWeight: '500', color: 'var(--color-text)' }}>
                     {rank.fencer.firstName} {rank.fencer.lastName}
                   </div>
                 </td>
@@ -534,8 +558,8 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
           </tbody>
         </table>
       ) : (
-        <p style={{ color: '#6b7280', textAlign: 'center', padding: '1rem' }}>
-          Pas encore de résultats
+        <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: '1rem' }}>
+          {t('liveDashboard.no_results')}
         </p>
       )}
     </div>
@@ -544,6 +568,7 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
 
 // Tableau View Component
 const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
+  const { t } = useTranslation();
   const rounds = [128, 64, 32, 16, 8, 4, 2, 1];
 
   return (
@@ -556,8 +581,8 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
       }}
     >
       {matches.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#6b7280', fontSize: '1.1rem' }}>
-          Le tableau n'a pas encore commencé
+        <p style={{ textAlign: 'center', color: 'var(--color-text-light)', fontSize: '1.1rem' }}>
+          {t('liveDashboard.tableau_not_started')}
         </p>
       ) : (
         <div style={{ display: 'flex', gap: '2rem', overflowX: 'auto' }}>
@@ -571,7 +596,7 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
                   style={{
                     textAlign: 'center',
                     marginBottom: '1rem',
-                    color: '#1f2937',
+                    color: 'var(--color-text)',
                     fontSize: '0.875rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
@@ -579,14 +604,18 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
                 >
                   {round === 1 ? 'Finale' : round === 2 ? 'Demi-finales' : `1/${round}`}
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="u-stack-4">
                   {roundMatches.map(match => (
                     <div
                       key={match.id}
                       style={{
-                        background: match.status === MatchStatus.FINISHED ? '#f0fdf4' : '#f9fafb',
+                        background:
+                          match.status === MatchStatus.FINISHED
+                            ? '#f0fdf4'
+                            : 'var(--color-surface-2)',
                         border: '1px solid',
-                        borderColor: match.status === MatchStatus.FINISHED ? '#86efac' : '#e5e7eb',
+                        borderColor:
+                          match.status === MatchStatus.FINISHED ? '#86efac' : 'var(--color-border)',
                         borderRadius: '8px',
                         padding: '1rem',
                       }}
@@ -616,13 +645,7 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
                           {match.scoreA?.value ?? '-'}
                         </span>
                       </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
+                      <div className="u-row-between">
                         <span style={ROW_TEXT}>
                           {match.fencerB?.firstName?.charAt(0)}. {match.fencerB?.lastName}
                         </span>
@@ -654,6 +677,7 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
 
 // Final Ranking View
 const FinalRankingView_: React.FC<{ results: any[] }> = ({ results }) => {
+  const { t } = useTranslation();
   return (
     <div
       style={{
@@ -664,40 +688,47 @@ const FinalRankingView_: React.FC<{ results: any[] }> = ({ results }) => {
       }}
     >
       {results.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem', fontSize: '1.1rem' }}>
-          La compétition n'est pas encore terminée
+        <p
+          style={{
+            textAlign: 'center',
+            color: 'var(--color-text-light)',
+            padding: '2rem',
+            fontSize: '1.1rem',
+          }}
+        >
+          {t('liveDashboard.not_finished')}
         </p>
       ) : (
         <table style={TABLE}>
           <thead>
-            <tr style={{ background: '#f3f4f6' }}>
+            <tr style={{ background: 'var(--color-bg)' }}>
               <th
                 style={{
                   padding: '1rem',
                   textAlign: 'center',
-                  color: '#374151',
+                  color: 'var(--color-text)',
                   fontWeight: '600',
                 }}
               >
-                Rang
+                {t('liveDashboard.rank')}
               </th>
-              <th style={TH}>Tireur</th>
-              <th style={TH}>Club</th>
+              <th style={TH}>{t('liveDashboard.fencer')}</th>
+              <th style={TH}>{t('liveDashboard.club')}</th>
               <th
                 style={{
                   padding: '1rem',
                   textAlign: 'center',
-                  color: '#374151',
+                  color: 'var(--color-text)',
                   fontWeight: '600',
                 }}
               >
-                Phase
+                {t('liveDashboard.phase')}
               </th>
             </tr>
           </thead>
           <tbody>
             {results.map((result, idx) => (
-              <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
+              <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
                 <td style={{ padding: '1rem', textAlign: 'center' }}>
                   <span
                     style={{
@@ -715,18 +746,22 @@ const FinalRankingView_: React.FC<{ results: any[] }> = ({ results }) => {
                             : idx === 2
                               ? '#f59e0b'
                               : '#f3f4f6',
-                      color: idx < 3 ? 'white' : '#6b7280',
+                      color: idx < 3 ? 'white' : 'var(--color-text-light)',
                       fontWeight: '700',
                     }}
                   >
                     {idx + 1}
                   </span>
                 </td>
-                <td style={{ padding: '1rem', fontWeight: '500', color: '#1f2937' }}>
+                <td style={{ padding: '1rem', fontWeight: '500', color: 'var(--color-text)' }}>
                   {result.fencer?.firstName} {result.fencer?.lastName}
                 </td>
-                <td style={{ padding: '1rem', color: '#6b7280' }}>{result.fencer?.club || '-'}</td>
-                <td style={{ padding: '1rem', textAlign: 'center', color: '#6b7280' }}>
+                <td style={{ padding: '1rem', color: 'var(--color-text-light)' }}>
+                  {result.fencer?.club || '-'}
+                </td>
+                <td
+                  style={{ padding: '1rem', textAlign: 'center', color: 'var(--color-text-light)' }}
+                >
                   {result.round === 1
                     ? '🥇 Finale'
                     : result.round === 2

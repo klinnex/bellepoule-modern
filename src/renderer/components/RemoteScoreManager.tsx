@@ -7,7 +7,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
-import { Competition, Pool } from '../../shared/types';
+import { Competition, FencerStatus, Pool } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { TableauMatch, ConsolationBracket } from './tableau/tableauTypes';
 import { useToast } from './Toast';
@@ -17,6 +17,7 @@ import { OBSOverlayConfig } from './OBSOverlayConfig';
 import { CustomTheme, DisplayTheme } from '../../shared/types/remote';
 import { ConnectedClient, KioskScreenConfig } from '../../shared/types/preload';
 import { useTranslation } from '../hooks/useTranslation';
+import { ipcErrorText } from '../services/ipcError';
 
 interface RemoteScoreManagerProps {
   competition: Competition;
@@ -46,6 +47,8 @@ interface RemoteSession {
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
+
+const ORG_NOTE_PREFIXES = ['resume', 'start', 'end', 'break', 'lunch', 'ceremony'] as const;
 
 const RSM_STYLES = {
   httpWarning: {
@@ -227,7 +230,7 @@ const RSM_STYLES = {
   pisteresumeSummary: {
     marginTop: '1rem',
     padding: '0.75rem',
-    background: '#f3f4f6',
+    background: 'var(--color-bg)',
     borderRadius: '8px',
   } satisfies React.CSSProperties,
   pisteresumeFlex: {
@@ -317,7 +320,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   const [orgNoteType, setOrgNoteType] = useState<'free' | 'target_time'>('free');
   const [orgNoteMessage, setOrgNoteMessage] = useState('');
   const [orgNoteTime, setOrgNoteTime] = useState('');
-  const [orgNotePrefix, setOrgNotePrefix] = useState('Reprise');
+  const [orgNotePrefix, setOrgNotePrefix] = useState('resume');
   const [orgNoteActive, setOrgNoteActive] = useState(false);
   // Thèmes par arène : arenaId → { theme, customTheme?, screenThemes }
   const [arenaThemes, setArenaThemes] = useState<
@@ -365,7 +368,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     const result = await window.electronAPI.remote.updateKioskTheme(competition.id, {
       '--k-preset': preset,
     });
-    if (!result?.success) showToast(result?.error ?? 'Erreur thème kiosk', 'error');
+    if (!result?.success) showToast(ipcErrorText(t, result, 'Erreur thème kiosk'), 'error');
   };
   // Thèmes sauvegardés (depuis IPC)
   const [savedThemes, setSavedThemes] = useState<CustomTheme[]>([]);
@@ -388,6 +391,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     suivants: true,
     tableau: true,
     rotationSec: 15,
+    eta: true,
   });
 
   useEffect(() => {
@@ -448,8 +452,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     });
   }, [pools, isRemoteActive, session]);
 
-  // Synchroniser le cache poolFencersCache du serveur distant quand les poules changent
-  // (interversion de combattants entre poules pendant une session active).
+  // Cache poolFencersCache du serveur resynchronisé si les poules changent en session
   const sessionPoolsFingerprintRef = useRef<string>('');
   useEffect(() => {
     const fingerprint = pools
@@ -588,7 +591,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         onServerStarted?.(result.serverInfo.url);
         await startSession(result.serverInfo.url, effectivePending);
       } else {
-        showToast(`Erreur: ${result.error || 'Impossible de démarrer le serveur'}`, 'error');
+        showToast(`Erreur: ${ipcErrorText(t, result, 'Échec du démarrage')}`, 'error');
       }
     } catch (error) {
       logger.error(LogCategory.UI, 'Failed to start remote server', error as Error);
@@ -658,7 +661,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           prevDeMatchesKeyRef.current = deMatchesKey(deMatches);
         }
       } else {
-        showToast(`Erreur session: ${result.error}`, 'error');
+        showToast(`Erreur session: ${ipcErrorText(t, result)}`, 'error');
       }
     } catch (error) {
       logger.error(LogCategory.UI, 'Failed to start session', error as Error);
@@ -680,7 +683,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           localStorage.setItem(`bellepoule-remote-strips-${competition.id}`, String(newCount));
           showToast('Nombre de pistes mis à jour', 'success');
         } else {
-          showToast(`Erreur: ${result.error}`, 'error');
+          showToast(`Erreur: ${ipcErrorText(t, result)}`, 'error');
         }
       } catch (error) {
         logger.error(LogCategory.UI, 'Failed to update strip count', error as Error);
@@ -709,7 +712,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         setServerUrl(result.serverInfo.url);
         showToast(`Port changé : ${result.serverInfo.port}`, 'success');
       } else {
-        showToast(`Erreur: ${result.error}`, 'error');
+        showToast(`Erreur: ${ipcErrorText(t, result)}`, 'error');
       }
     } catch (error) {
       logger.error(LogCategory.UI, 'Failed to change port', error as Error);
@@ -728,7 +731,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         showToast('Saisie distante arrêtée', 'success');
         onStopRemote();
       } else {
-        showToast(`Erreur: ${result.error || "Impossible d'arrêter le serveur"}`, 'error');
+        showToast(`Erreur: ${ipcErrorText(t, result, "Impossible d'arrêter le serveur")}`, 'error');
       }
     } catch (error) {
       logger.error(LogCategory.UI, 'Failed to stop remote server', error as Error);
@@ -750,7 +753,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         pwd
       );
       if (!result.success) {
-        showToast(result.error ?? 'Erreur', 'error');
+        showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
         return false;
       }
     }
@@ -762,13 +765,27 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     return true;
   };
 
+  const applyArenaPassword = async (n: number) => {
+    const pwd = arenaPasswords[`arena${n}`] ?? '';
+    const result = await window.electronAPI.remote.setArenaPassword(
+      competition.id,
+      `arena${n}`,
+      pwd
+    );
+    if (result.success) {
+      showToast(t(pwd ? 'rsm.pwd_set' : 'rsm.pwd_removed', { number: n }), 'success');
+    } else {
+      showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
+    }
+  };
+
   const handleApplyCommonPassword = async () => {
     const numbers = Array.from({ length: arenaCount }, (_, i) => i + 1);
     if (await applyCommonArenaPassword(commonArenaPassword, numbers)) {
       setAppliedCommonPassword(commonArenaPassword || null);
       showToast(
         commonArenaPassword
-          ? `Mot de passe commun défini pour ${numbers.length} piste(s)`
+          ? t('plural.common_password_set', { count: numbers.length })
           : 'Mots de passe des pistes supprimés',
         'success'
       );
@@ -794,7 +811,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         'success'
       );
     } else {
-      showToast(result.error ?? 'Erreur', 'error');
+      showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
     }
   };
 
@@ -830,7 +847,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         'success'
       );
     } else {
-      showToast(result.error ?? 'Erreur', 'error');
+      showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
     }
   };
 
@@ -972,7 +989,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       });
       setKioskTheme(theme);
       if (result?.success) showToast(`Thème "${theme.name}" appliqué au kiosque`, 'success');
-      else showToast(result?.error ?? 'Erreur', 'error');
+      else showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
     } else {
       // public / referee / pool → appliquer à toutes les arènes pour ce type d'écran
       const count = session ? session.strips.length : effectiveCommitted;
@@ -1027,6 +1044,20 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     overlayUrl: `${serverUrl}/arene${i + 1}/overlay`,
   }));
 
+  // QR personnels des tireurs engagés (#1078)
+  const fencerQrTargets = (competition.fencers ?? [])
+    .filter(
+      f =>
+        f.status !== FencerStatus.ABANDONED &&
+        f.status !== FencerStatus.EXCLUDED &&
+        f.status !== FencerStatus.FORFAIT
+    )
+    .map(f => ({
+      name: `${f.lastName.toUpperCase()} ${f.firstName}`.trim(),
+      club: f.club,
+      url: `${serverUrl}/tireur/${encodeURIComponent(f.id)}`,
+    }));
+
   // Contrôles +/− communs aux deux vues (pending uniquement, sans appel IPC direct)
   const stripCountControls = (
     <div style={RSM_STYLES.stripCountControls}>
@@ -1048,7 +1079,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         +
       </button>
       {hasPendingChanges && (
-        <span style={RSM_STYLES.stripCountPending} title="Modifications non sauvegardées">
+        <span style={RSM_STYLES.stripCountPending} title={t('rsm.unsaved')}>
           ●
         </span>
       )}
@@ -1058,22 +1089,23 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         disabled={!hasPendingChanges || isLoading}
         style={RSM_STYLES.stripCountSave}
       >
-        Sauvegarder
+        {t('rsm.save')}
       </button>
       {serverUrl && (
         <button
           className="btn btn-secondary"
           onClick={() => setShowArenaQrModal(true)}
-          title="Exporter / imprimer les QR Codes des pistes"
+          title={t('rsm.qr_export_title')}
           style={RSM_STYLES.stripCountSave}
         >
-          📱 QR Codes
+          {t('rsm.qr_codes')}
         </button>
       )}
       {showArenaQrModal &&
         createPortal(
           <ArenaQrCodesModal
             arenas={arenaUrls}
+            fencers={fencerQrTargets}
             competitionTitle={competition.title}
             onClose={() => setShowArenaQrModal(false)}
           />,
@@ -1095,10 +1127,10 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
 
     const kioskPills = (
       [
-        { key: 'poules', label: 'Poules' },
-        { key: 'classement', label: 'Classement' },
-        { key: 'direct', label: 'En direct' },
-        { key: 'suivants', label: 'Suivants' },
+        { key: 'poules', label: t('rsm.view_pools') },
+        { key: 'classement', label: t('rsm.view_ranking') },
+        { key: 'direct', label: t('rsm.view_live') },
+        { key: 'suivants', label: t('rsm.view_next') },
       ] as const
     ).map(({ key, label }) => (
       <button
@@ -1119,10 +1151,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             <span className="rsm-status-dot rsm-status-dot--off" />
             <div>
               <h3 className="rsm-hero-title">{t('remote.inactive_title')}</h3>
-              <p className="rsm-hero-desc">
-                Les arbitres saisissent les scores depuis une tablette via navigateur web sur le
-                réseau local.
-              </p>
+              <p className="rsm-hero-desc">{t('rsm.inactive_desc')}</p>
             </div>
           </div>
 
@@ -1130,20 +1159,20 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           <div className="rsm-sections">
             {/* Pistes */}
             <div className="rsm-section">
-              <div className="rsm-section-label">Pistes</div>
+              <div className="rsm-section-label">{t('rsm.section_strips')}</div>
               <div className="rsm-strip-row">{stripCountControls}</div>
             </div>
 
             {/* Options d'affichage */}
             <div className="rsm-section">
-              <div className="rsm-section-label">Affichage</div>
+              <div className="rsm-section-label">{t('rsm.section_display')}</div>
               <label className="rsm-toggle-row">
                 <input
                   type="checkbox"
                   checked={showPhotos}
                   onChange={e => setShowPhotos(e.target.checked)}
                 />
-                Photos combattants
+                {t('rsm.fighter_photos')}
               </label>
               <label className="rsm-toggle-row">
                 <input
@@ -1151,19 +1180,19 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   checked={cardAnnounce}
                   onChange={e => setCardAnnounce(e.target.checked)}
                 />
-                📣 Bandeau carton
+                {t('rsm.card_banner')}
               </label>
             </div>
 
             {/* Vues kiosque — pills */}
             <div className="rsm-section rsm-section--full">
-              <div className="rsm-section-label">Vues kiosque</div>
+              <div className="rsm-section-label">{t('rsm.section_kiosk_views')}</div>
               <div className="rsm-pills">{kioskPills}</div>
             </div>
 
             {/* Réseau */}
             <div className="rsm-section rsm-section--full">
-              <div className="rsm-section-label">Réseau</div>
+              <div className="rsm-section-label">{t('rsm.section_network')}</div>
               <div className="rsm-network-grid">
                 <select
                   id="remote-interface"
@@ -1191,7 +1220,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   disabled={isLoading}
                 />
               </div>
-              {!portValid && <div className="rsm-port-error">Port invalide (1–65535)</div>}
+              {!portValid && <div className="rsm-port-error">{t('rsm.port_invalid')}</div>}
               <label
                 style={{
                   display: 'flex',
@@ -1210,7 +1239,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   }}
                   disabled={isLoading}
                 />
-                🔒 Activer HTTPS (connexion chiffrée)
+                {t('rsm.enable_https')}
               </label>
               {useHttps ? (
                 <div
@@ -1221,13 +1250,11 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     lineHeight: 1.4,
                   }}
                 >
-                  Certificat auto-signé — les tablettes devront accepter l&apos;avertissement de
-                  sécurité du navigateur une seule fois.
+                  {t('rsm.https_hint')}
                 </div>
               ) : (
                 <div role="alert" style={RSM_STYLES.httpWarning}>
-                  ⚠️ Réseau non chiffré : mots de passe et sessions lisibles par tout appareil du
-                  Wi-Fi.
+                  {t('rsm.http_warning')}
                 </div>
               )}
               <span className="rsm-network-preview">{networkPreview}</span>
@@ -1241,7 +1268,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             disabled={!portValid || isLoading}
           >
             {isLoading ? <span className="rsm-spinner" /> : '⚡'}
-            Démarrer la saisie distante
+            {t('rsm.start')}
           </button>
         </div>
       </div>
@@ -1256,7 +1283,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           <div style={{ flex: 1, minWidth: 0 }}>
             <h3 className="rsm-hero-title">{t('remote.active_title')}</h3>
             <p className="rsm-hero-desc">
-              Serveur: <strong>{serverUrl}</strong>
+              {t('rsm.server')} <strong>{serverUrl}</strong>
             </p>
             {certFingerprint ? (
               <p
@@ -1267,14 +1294,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   wordBreak: 'break-all',
                 }}
               >
-                🔒 Empreinte cert. SHA-256 :{' '}
+                {t('rsm.cert_fingerprint')}{' '}
                 <code style={{ fontSize: '0.7rem' }}>{certFingerprint}</code>
               </p>
             ) : (
               serverUrl.startsWith('http://') && (
                 <p role="alert" style={RSM_STYLES.httpWarning}>
-                  ⚠️ Réseau non chiffré (HTTP) : mots de passe et sessions lisibles sur le Wi-Fi.
-                  Activez HTTPS en redémarrant le serveur.
+                  {t('rsm.http_warning_active')}
                 </p>
               )
             )}
@@ -1283,7 +1309,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 htmlFor={`remote-port-active-${competition.id}`}
                 style={RSM_STYLES.portActiveLabel}
               >
-                Port :
+                {t('rsm.port')}
               </label>
               <input
                 id={`remote-port-active-${competition.id}`}
@@ -1299,10 +1325,10 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 className="btn-secondary"
                 onClick={handleChangePort}
                 disabled={isLoading}
-                title="Redémarrer le serveur sur ce port"
+                title={t('rsm.restart_port_title')}
                 style={RSM_STYLES.portActiveBtn}
               >
-                🔄 Recharger
+                {t('rsm.reload')}
               </button>
             </div>
           </div>
@@ -1313,7 +1339,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           disabled={isLoading}
         >
           {isLoading ? <span className="rsm-spinner" /> : '🛑'}
-          Arrêter la saisie distante
+          {t('rsm.stop')}
         </button>
       </div>
 
@@ -1321,11 +1347,11 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         {/* Pistes et options : deux cartes sur une ligne, comme l'écran d'attente (#1006) */}
         <div className="rsm-sections">
           <div className="rsm-section">
-            <div className="rsm-section-label">Pistes ({arenaCount})</div>
+            <div className="rsm-section-label">{t('rsm.strips_n', { count: arenaCount })}</div>
             <div className="rsm-strip-row">{stripCountControls}</div>
           </div>
           <div className="rsm-section">
-            <div className="rsm-section-label">Affichage</div>
+            <div className="rsm-section-label">{t('rsm.section_display')}</div>
             <label className="rsm-toggle-row">
               <input
                 type="checkbox"
@@ -1338,7 +1364,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   );
                 }}
               />
-              Afficher les photos des combattants avant le combat
+              {t('rsm.show_photos_long')}
             </label>
             <label className="rsm-toggle-row">
               <input
@@ -1352,18 +1378,18 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   );
                 }}
               />
-              📣 Carton avancé (afficher bandeau + raison sur les écrans)
+              {t('rsm.card_announce_long')}
             </label>
           </div>
         </div>
         <div style={RSM_STYLES.themeSection}>
-          <div style={RSM_STYLES.themeTitle}>Thème de l'affichage :</div>
+          <div style={RSM_STYLES.themeTitle}>{t('rsm.display_theme')}</div>
           <div style={RSM_STYLES.themeRow}>
             {(
               [
-                { value: 'dark', label: 'Sombre', icon: '🌙' },
-                { value: 'light', label: 'Clair', icon: '☀️' },
-                { value: 'neon', label: 'Néon', icon: '⚡' },
+                { value: 'dark', label: t('rsm.theme_dark'), icon: '🌙' },
+                { value: 'light', label: t('rsm.theme_light'), icon: '☀️' },
+                { value: 'neon', label: t('rsm.theme_neon'), icon: '⚡' },
                 { value: 'unicorn', label: 'Unicorn', icon: '🦄' },
               ] as const
             ).map(({ value, label, icon }) => (
@@ -1377,8 +1403,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   flex: 1,
                   padding: '0.35rem 0.5rem',
                   borderRadius: '0.375rem',
-                  border: `2px solid ${displayTheme === value ? '#3b82f6' : 'var(--color-border)'}`,
-                  background: displayTheme === value ? '#1d4ed8' : 'var(--color-surface)',
+                  border: `2px solid ${displayTheme === value ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                  background:
+                    displayTheme === value ? 'var(--color-primary-dark)' : 'var(--color-surface)',
                   color: displayTheme === value ? '#fff' : 'var(--color-text)',
                   cursor: 'pointer',
                   fontWeight: displayTheme === value ? 700 : 400,
@@ -1392,13 +1419,17 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           </div>
         </div>
         <div style={RSM_STYLES.wallpaperSection}>
-          <div style={RSM_STYLES.wallpaperTitle}>Fond d'écran arènes (écran d'attente) :</div>
+          <div style={RSM_STYLES.wallpaperTitle}>{t('rsm.wallpaper_title')}</div>
           <div style={RSM_STYLES.wallpaperRow}>
             {arenaWallpaper && (
-              <img src={arenaWallpaper} alt="Fond d'écran" style={RSM_STYLES.wallpaperImg} />
+              <img
+                src={arenaWallpaper}
+                alt={t('rsm.wallpaper_alt')}
+                style={RSM_STYLES.wallpaperImg}
+              />
             )}
             <label style={RSM_STYLES.wallpaperImportLabel}>
-              {arenaWallpaper ? '🖼 Changer' : '🖼 Importer'}
+              {arenaWallpaper ? t('rsm.wallpaper_change') : t('rsm.wallpaper_import')}
               <input
                 type="file"
                 accept="image/*"
@@ -1425,19 +1456,19 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 }}
                 style={RSM_STYLES.wallpaperDeleteBtn}
               >
-                ✕ Supprimer
+                {t('rsm.delete')}
               </button>
             )}
           </div>
         </div>
         <div style={RSM_STYLES.kioskViewsSection}>
-          <div style={RSM_STYLES.kioskViewsTitle}>Vues kiosk :</div>
+          <div style={RSM_STYLES.kioskViewsTitle}>{t('rsm.kiosk_views')}</div>
           <div className="rsm-pills">
             {(
               [
-                { key: 'poules', label: 'Poules' },
-                { key: 'classement', label: 'Classement' },
-                { key: 'direct', label: 'Matchs en direct' },
+                { key: 'poules', label: t('rsm.view_pools') },
+                { key: 'classement', label: t('rsm.view_ranking') },
+                { key: 'direct', label: t('rsm.view_live_matches') },
               ] as const
             ).map(({ key, label }) => (
               <button
@@ -1460,7 +1491,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
 
         {/* Note d'organisation */}
         <div style={RSM_STYLES.orgNoteBox}>
-          <div style={RSM_STYLES.orgNoteTitle}>Note d'organisation (kiosk)</div>
+          <div style={RSM_STYLES.orgNoteTitle}>{t('rsm.org_note_title')}</div>
           <div style={RSM_STYLES.orgNoteTypeRow}>
             <label style={RSM_STYLES.orgNoteRadioLabel}>
               <input
@@ -1469,7 +1500,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 checked={orgNoteType === 'free'}
                 onChange={() => setOrgNoteType('free')}
               />
-              Message libre
+              {t('rsm.org_note_free')}
             </label>
             <label style={RSM_STYLES.orgNoteRadioLabel}>
               <input
@@ -1478,11 +1509,11 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 checked={orgNoteType === 'target_time'}
                 onChange={() => setOrgNoteType('target_time')}
               />
-              Heure de reprise
+              {t('rsm.org_note_target')}
             </label>
           </div>
           <textarea
-            placeholder="Message (ex: Déjeuner des arbitres)"
+            placeholder={t('rsm.org_note_placeholder')}
             value={orgNoteMessage}
             onChange={e => setOrgNoteMessage(e.target.value)}
             rows={3}
@@ -1495,9 +1526,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 onChange={e => setOrgNotePrefix(e.target.value)}
                 style={RSM_STYLES.orgNoteSelect}
               >
-                {['Reprise', 'Début', 'Fin', 'Pause', 'Déjeuner', 'Cérémonie'].map(p => (
+                {ORG_NOTE_PREFIXES.map(p => (
                   <option key={p} value={p}>
-                    {p}
+                    {t(`rsm.prefix_${p}`)}
                   </option>
                 ))}
               </select>
@@ -1517,7 +1548,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   type: orgNoteType,
                   message: orgNoteMessage.trim(),
                   ...(orgNoteType === 'target_time'
-                    ? { targetTime: orgNoteTime, countdownPrefix: orgNotePrefix }
+                    ? { targetTime: orgNoteTime, countdownPrefix: t(`rsm.prefix_${orgNotePrefix}`) }
                     : {}),
                   createdAt: new Date().toISOString(),
                 };
@@ -1529,13 +1560,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 padding: '0.4rem',
                 borderRadius: '0.3rem',
                 border: 'none',
-                background: orgNoteActive ? '#1d4ed8' : '#2563eb',
+                background: orgNoteActive ? 'var(--color-primary-dark)' : 'var(--color-primary)',
                 color: '#fff',
                 cursor: 'pointer',
                 fontWeight: 500,
               }}
             >
-              {orgNoteActive ? '↻ Mettre à jour' : '▶ Afficher'}
+              {orgNoteActive ? t('rsm.org_note_update') : t('rsm.org_note_show')}
             </button>
             {orgNoteActive && (
               <button
@@ -1545,19 +1576,19 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 }}
                 style={RSM_STYLES.orgNoteHideBtn}
               >
-                ✕ Masquer
+                {t('rsm.hide')}
               </button>
             )}
           </div>
-          {orgNoteActive && <div style={RSM_STYLES.orgNoteActive}>● Note visible sur le kiosk</div>}
+          {orgNoteActive && <div style={RSM_STYLES.orgNoteActive}>{t('rsm.org_note_visible')}</div>}
         </div>
 
         <div className="arena-url-row" style={{ marginBottom: '0.75rem' }}>
-          <span className="arena-url-label">🔒 MDP commun</span>
+          <span className="arena-url-label">{t('rsm.common_pwd')}</span>
           <input
             type="password"
             className="arena-password-input"
-            placeholder="Toutes les pistes · 8 car. min. (vide = accès libre)"
+            placeholder={t('rsm.common_pwd_placeholder')}
             value={commonArenaPassword}
             onChange={e => setCommonArenaPassword(e.target.value)}
             onKeyDown={e => {
@@ -1566,7 +1597,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           />
           <button
             className="btn-copy"
-            title="Appliquer à toutes les pistes"
+            title={t('rsm.apply_all_strips')}
             onClick={handleApplyCommonPassword}
           >
             ✓
@@ -1579,10 +1610,10 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             const arenaTheme = arenaThemes[arenaId];
             const screenTab = arenaScreenTab[arenaId] ?? 'arena';
             const screenThemeTypes = [
-              { value: 'arena' as const, label: 'Affichage' },
-              { value: 'public' as const, label: 'Public' },
-              { value: 'referee' as const, label: 'Arbitre' },
-              { value: 'pool' as const, label: 'Poule' },
+              { value: 'arena' as const, label: t('rsm.screen_display') },
+              { value: 'public' as const, label: t('rsm.screen_public') },
+              { value: 'referee' as const, label: t('rsm.screen_referee') },
+              { value: 'pool' as const, label: t('rsm.screen_pool') },
             ] as const;
             const filteredForScreen = savedThemes.filter(
               t => (t.targetType ?? 'arena') === screenTab
@@ -1590,7 +1621,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             return (
               <div key={arena.number} className="arena-url-card">
                 <div className="arena-url-header">
-                  <strong>Piste {arena.number}</strong>
+                  <strong>{t('rsm.strip_n', { number: arena.number })}</strong>
                 </div>
                 {/* Onglets type d'écran */}
                 <div style={{ display: 'flex', gap: '0.25rem', margin: '0.4rem 0 0.25rem' }}>
@@ -1602,8 +1633,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                         padding: '0.15rem 0.45rem',
                         fontSize: '0.7rem',
                         borderRadius: '0.25rem',
-                        border: `1px solid ${screenTab === value ? '#3b82f6' : '#475569'}`,
-                        background: screenTab === value ? '#1d4ed8' : 'transparent',
+                        border: `1px solid ${screenTab === value ? 'var(--color-primary)' : '#475569'}`,
+                        background:
+                          screenTab === value ? 'var(--color-primary-dark)' : 'transparent',
                         color: screenTab === value ? '#fff' : '#94a3b8',
                         cursor: 'pointer',
                         fontWeight: screenTab === value ? 700 : 400,
@@ -1618,9 +1650,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   {screenTab === 'arena' ? (
                     <>
                       {[
-                        { value: 'dark' as const, icon: '🌙', title: 'Sombre' },
-                        { value: 'light' as const, icon: '☀️', title: 'Clair' },
-                        { value: 'neon' as const, icon: '⚡', title: 'Néon' },
+                        { value: 'dark' as const, icon: '🌙', title: t('rsm.theme_dark') },
+                        { value: 'light' as const, icon: '☀️', title: t('rsm.theme_light') },
+                        { value: 'neon' as const, icon: '⚡', title: t('rsm.theme_neon') },
                       ].map(({ value, icon, title }) => (
                         <button
                           key={value}
@@ -1632,7 +1664,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                         </button>
                       ))}
                       <button
-                        title="Thème personnalisé"
+                        title={t('rsm.theme_custom')}
                         className={`arena-theme-btn ${arenaTheme?.theme === 'custom' ? 'active' : ''}`}
                         onClick={() => {
                           setThemeEditorScreenType('arena');
@@ -1643,7 +1675,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                       </button>
                       {arenaThemes[arenaId] && (
                         <button
-                          title="Déverrouiller — suivre le thème global"
+                          title={t('rsm.unlock_theme')}
                           className="arena-theme-btn"
                           style={{ color: '#f59e0b', borderColor: '#f59e0b' }}
                           onClick={() => void handleClearArenaThemeOverride(arenaId)}
@@ -1655,7 +1687,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   ) : (
                     <>
                       <button
-                        title={`Personnaliser ${screenTab}`}
+                        title={t('rsm.customize_screen', { screen: screenTab })}
                         className={`arena-theme-btn ${arenaTheme?.screenThemes?.[screenTab] ? 'active' : ''}`}
                         onClick={() => {
                           setThemeEditorScreenType(screenTab);
@@ -1666,7 +1698,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                       </button>
                       {arenaTheme?.screenThemes?.[screenTab] && (
                         <button
-                          title="Déverrouiller — suivre le thème global"
+                          title={t('rsm.unlock_theme')}
                           className="arena-theme-btn"
                           style={{ color: '#f59e0b', borderColor: '#f59e0b' }}
                           onClick={() => void handleClearArenaScreenTheme(arenaId, screenTab)}
@@ -1678,7 +1710,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   )}
                   {filteredForScreen.length > 0 && (
                     <select
-                      title="Appliquer un thème sauvegardé"
+                      title={t('rsm.apply_saved_theme')}
                       value=""
                       onChange={async e => {
                         const t = savedThemes.find(x => x.id === e.target.value);
@@ -1701,7 +1733,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                         maxWidth: 110,
                       }}
                     >
-                      <option value="">📦 Thèmes…</option>
+                      <option value="">{t('rsm.themes_option')}</option>
                       {filteredForScreen.map(t => (
                         <option key={t.id} value={t.id}>
                           {t.name}
@@ -1711,12 +1743,12 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   )}
                 </div>
                 <div className="arena-url-row">
-                  <span className="arena-url-label">Arbitre</span>
+                  <span className="arena-url-label">{t('rsm.screen_referee')}</span>
                   <code className="arena-url-value">{arena.refereeUrl}</code>
                   <button
                     className="btn-copy"
                     onClick={() => copyToClipboard(arena.refereeUrl, arena.number * 10)}
-                    title="Copier l'URL"
+                    title={t('rsm.copy_url')}
                   >
                     {copiedIndex === arena.number * 10 ? '✓' : '📋'}
                   </button>
@@ -1725,21 +1757,24 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() =>
                       setActiveQR({
                         url: arena.refereeUrl,
-                        label: `Piste ${arena.number} – Arbitre`,
+                        label: t('rsm.qr_label', {
+                          number: arena.number,
+                          screen: t('rsm.screen_referee'),
+                        }),
                       })
                     }
-                    title="QR code"
+                    title={t('rsm.qr_code')}
                   >
                     📱
                   </button>
                 </div>
                 <div className="arena-url-row">
-                  <span className="arena-url-label">Affichage</span>
+                  <span className="arena-url-label">{t('rsm.screen_display')}</span>
                   <code className="arena-url-value">{arena.displayUrl}</code>
                   <button
                     className="btn-copy"
                     onClick={() => copyToClipboard(arena.displayUrl, arena.number * 10 + 1)}
-                    title="Copier l'URL"
+                    title={t('rsm.copy_url')}
                   >
                     {copiedIndex === arena.number * 10 + 1 ? '✓' : '📋'}
                   </button>
@@ -1748,21 +1783,24 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() =>
                       setActiveQR({
                         url: arena.displayUrl,
-                        label: `Piste ${arena.number} – Affichage`,
+                        label: t('rsm.qr_label', {
+                          number: arena.number,
+                          screen: t('rsm.screen_display'),
+                        }),
                       })
                     }
-                    title="QR code"
+                    title={t('rsm.qr_code')}
                   >
                     📱
                   </button>
                 </div>
                 <div className="arena-url-row">
-                  <span className="arena-url-label">Poule</span>
+                  <span className="arena-url-label">{t('rsm.screen_pool')}</span>
                   <code className="arena-url-value">{arena.poolUrl}</code>
                   <button
                     className="btn-copy"
                     onClick={() => copyToClipboard(arena.poolUrl, arena.number * 10 + 2)}
-                    title="Copier l'URL"
+                    title={t('rsm.copy_url')}
                   >
                     {copiedIndex === arena.number * 10 + 2 ? '✓' : '📋'}
                   </button>
@@ -1771,26 +1809,26 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() =>
                       setActiveQR({
                         url: arena.poolUrl,
-                        label: `Piste ${arena.number} – Poule`,
+                        label: t('rsm.qr_label', {
+                          number: arena.number,
+                          screen: t('rsm.screen_pool'),
+                        }),
                       })
                     }
-                    title="QR code"
+                    title={t('rsm.qr_code')}
                   >
                     📱
                   </button>
                 </div>
                 <div className="arena-url-row">
-                  <span
-                    className="arena-url-label"
-                    title="Ordre des matchs de la poule, lecture seule, pour les tireurs"
-                  >
-                    Matchs
+                  <span className="arena-url-label" title={t('rsm.matches_title')}>
+                    {t('rsm.matches')}
                   </span>
                   <code className="arena-url-value">{arena.matchOrderUrl}</code>
                   <button
                     className="btn-copy"
                     onClick={() => copyToClipboard(arena.matchOrderUrl, arena.number * 10 + 5)}
-                    title="Copier l'URL"
+                    title={t('rsm.copy_url')}
                   >
                     {copiedIndex === arena.number * 10 + 5 ? '✓' : '📋'}
                   </button>
@@ -1799,21 +1837,24 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() =>
                       setActiveQR({
                         url: arena.matchOrderUrl,
-                        label: `Piste ${arena.number} – Ordre des matchs`,
+                        label: t('rsm.qr_label', {
+                          number: arena.number,
+                          screen: t('rsm.match_order'),
+                        }),
                       })
                     }
-                    title="QR code"
+                    title={t('rsm.qr_code')}
                   >
                     📱
                   </button>
                 </div>
                 <div className="arena-url-row">
-                  <span className="arena-url-label">Public</span>
+                  <span className="arena-url-label">{t('rsm.screen_public')}</span>
                   <code className="arena-url-value">{arena.publicUrl}</code>
                   <button
                     className="btn-copy"
                     onClick={() => copyToClipboard(arena.publicUrl, arena.number * 10 + 3)}
-                    title="Copier l'URL"
+                    title={t('rsm.copy_url')}
                   >
                     {copiedIndex === arena.number * 10 + 3 ? '✓' : '📋'}
                   </button>
@@ -1822,26 +1863,26 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() =>
                       setActiveQR({
                         url: arena.publicUrl,
-                        label: `Piste ${arena.number} – Public`,
+                        label: t('rsm.qr_label', {
+                          number: arena.number,
+                          screen: t('rsm.screen_public'),
+                        }),
                       })
                     }
-                    title="QR code"
+                    title={t('rsm.qr_code')}
                   >
                     📱
                   </button>
                 </div>
                 <div className="arena-url-row">
-                  <span
-                    className="arena-url-label"
-                    title="À coller dans OBS > Sources > Navigateur"
-                  >
+                  <span className="arena-url-label" title={t('rsm.overlay_title')}>
                     🎥 Overlay
                   </span>
                   <code className="arena-url-value">{arena.overlayUrl}</code>
                   <button
                     className="btn-copy"
                     onClick={() => copyToClipboard(arena.overlayUrl, arena.number * 10 + 4)}
-                    title="Copier l'URL overlay (OBS Browser Source)"
+                    title={t('rsm.overlay_copy_title')}
                   >
                     {copiedIndex === arena.number * 10 + 4 ? '✓' : '📋'}
                   </button>
@@ -1850,20 +1891,23 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() =>
                       setActiveQR({
                         url: arena.overlayUrl,
-                        label: `Piste ${arena.number} – Overlay stream`,
+                        label: t('rsm.qr_label', {
+                          number: arena.number,
+                          screen: t('rsm.overlay_stream'),
+                        }),
                       })
                     }
-                    title="QR code"
+                    title={t('rsm.qr_code')}
                   >
                     📱
                   </button>
                 </div>
                 <div className="arena-url-row">
-                  <span className="arena-url-label">🔒 MDP</span>
+                  <span className="arena-url-label">{t('rsm.pwd')}</span>
                   <input
                     type="password"
                     className="arena-password-input"
-                    placeholder="Aucun (accès libre) · 8 car. min."
+                    placeholder={t('rsm.strip_pwd_placeholder')}
                     value={arenaPasswords[`arena${arena.number}`] ?? ''}
                     onChange={e =>
                       setArenaPasswords(p => ({
@@ -1871,48 +1915,14 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                         [`arena${arena.number}`]: e.target.value,
                       }))
                     }
-                    onKeyDown={async e => {
-                      if (e.key === 'Enter') {
-                        const pwd = arenaPasswords[`arena${arena.number}`] ?? '';
-                        const result = await window.electronAPI.remote.setArenaPassword(
-                          competition.id,
-                          `arena${arena.number}`,
-                          pwd
-                        );
-                        if (result.success) {
-                          showToast(
-                            pwd
-                              ? `Mot de passe défini pour la piste ${arena.number}`
-                              : `Mot de passe supprimé pour la piste ${arena.number}`,
-                            'success'
-                          );
-                        } else {
-                          showToast(result.error ?? 'Erreur', 'error');
-                        }
-                      }
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') void applyArenaPassword(arena.number);
                     }}
                   />
                   <button
                     className="btn-copy"
-                    title="Définir le mot de passe"
-                    onClick={async () => {
-                      const pwd = arenaPasswords[`arena${arena.number}`] ?? '';
-                      const result = await window.electronAPI.remote.setArenaPassword(
-                        competition.id,
-                        `arena${arena.number}`,
-                        pwd
-                      );
-                      if (result.success) {
-                        showToast(
-                          pwd
-                            ? `Mot de passe défini pour la piste ${arena.number}`
-                            : `Mot de passe supprimé pour la piste ${arena.number}`,
-                          'success'
-                        );
-                      } else {
-                        showToast(result.error ?? 'Erreur', 'error');
-                      }
-                    }}
+                    title={t('rsm.set_pwd')}
+                    onClick={() => void applyArenaPassword(arena.number)}
                   >
                     ✓
                   </button>
@@ -1931,7 +1941,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           return (
             <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
               <div className="arena-url-header">
-                <strong>🎨 Thème global</strong>
+                <strong>{t('rsm.global_theme')}</strong>
               </div>
               <div
                 style={{
@@ -1957,11 +1967,11 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     fontSize: '0.85rem',
                   }}
                 >
-                  <option value="arena">⚔️ Affichage piste</option>
-                  <option value="kiosk">🖥️ Kiosque</option>
-                  <option value="public">👥 Public</option>
-                  <option value="referee">🤝 Arbitre</option>
-                  <option value="pool">📋 Poule</option>
+                  <option value="arena">{t('rsm.gt_arena')}</option>
+                  <option value="kiosk">{t('rsm.gt_kiosk')}</option>
+                  <option value="public">{t('rsm.gt_public')}</option>
+                  <option value="referee">{t('rsm.gt_referee')}</option>
+                  <option value="pool">{t('rsm.gt_pool')}</option>
                 </select>
                 <select
                   value={globalThemeId}
@@ -1977,7 +1987,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     fontSize: '0.85rem',
                   }}
                 >
-                  <option value="">— Choisir un thème —</option>
+                  <option value="">{t('rsm.choose_theme')}</option>
                   {filteredForSection.map(t => (
                     <option key={t.id} value={t.id}>
                       {t.name}
@@ -1990,7 +2000,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   onClick={() => void handleGlobalThemeApply()}
                   style={{ whiteSpace: 'nowrap' }}
                 >
-                  Appliquer à tous
+                  {t('rsm.apply_all')}
                 </button>
               </div>
             </div>
@@ -1999,37 +2009,34 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
 
         <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
           <div className="arena-url-header">
-            <strong>🎥 Overlay streaming (OBS / vMix)</strong>
+            <strong>{t('rsm.overlay_card')}</strong>
           </div>
           <OBSOverlayConfig serverUrl={serverUrl} arenaCount={arenaCount} />
         </div>
 
         <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
-          <div
-            className="arena-url-header"
-            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-          >
-            <strong>🖥️ Kiosk (affichage public)</strong>
+          <div className="arena-url-header u-row-between">
+            <strong>{t('rsm.kiosk_card')}</strong>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <select
                 className="form-input"
                 style={{ width: 'auto', padding: '0.2rem 0.4rem', fontSize: '0.8rem' }}
                 value={kioskTheme ? '' : kioskPreset}
                 onChange={e => applyKioskPreset(e.target.value as 'default' | 'neon' | 'light')}
-                title="Aspect du kiosk"
-                aria-label="Aspect du kiosk"
+                title={t('rsm.kiosk_look')}
+                aria-label={t('rsm.kiosk_look')}
               >
-                {kioskTheme && <option value="">Personnalisé</option>}
-                <option value="default">🌙 Sombre</option>
-                <option value="neon">⚡ Néon</option>
-                <option value="light">☀️ Clair</option>
+                {kioskTheme && <option value="">{t('rsm.custom')}</option>}
+                <option value="default">{t('rsm.opt_dark')}</option>
+                <option value="neon">{t('rsm.opt_neon')}</option>
+                <option value="light">{t('rsm.opt_light')}</option>
               </select>
               <button
-                title="Thème personnalisé kiosk"
+                title={t('rsm.kiosk_custom_theme')}
                 className={`arena-theme-btn ${kioskTheme ? 'active' : ''}`}
                 onClick={() => setKioskThemeEditorOpen(true)}
               >
-                ✏️ Thème
+                {t('rsm.theme_btn')}
               </button>
             </div>
           </div>
@@ -2039,14 +2046,14 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             <button
               className="btn-copy"
               onClick={() => copyToClipboard(kioskUrl, 999)}
-              title="Copier l'URL"
+              title={t('rsm.copy_url')}
             >
               {copiedIndex === 999 ? '✓' : '📋'}
             </button>
             <button
               className="btn-qr"
-              onClick={() => setActiveQR({ url: kioskUrl, label: 'Kiosk – Affichage public' })}
-              title="QR code"
+              onClick={() => setActiveQR({ url: kioskUrl, label: t('rsm.kiosk_qr') })}
+              title={t('rsm.qr_code')}
             >
               📱
             </button>
@@ -2055,7 +2062,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
 
         <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
           <div className="arena-url-header">
-            <strong>📋 Appel (pointage tireurs / arbitres)</strong>
+            <strong>{t('rsm.checkin_card')}</strong>
           </div>
           <div className="arena-url-row">
             <span className="arena-url-label">URL</span>
@@ -2063,35 +2070,31 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             <button
               className="btn-copy"
               onClick={() => copyToClipboard(checkinUrl, 996)}
-              title="Copier l'URL"
+              title={t('rsm.copy_url')}
             >
               {copiedIndex === 996 ? '✓' : '📋'}
             </button>
             <button
               className="btn-qr"
-              onClick={() => setActiveQR({ url: checkinUrl, label: 'Appel – Pointage' })}
-              title="QR code"
+              onClick={() => setActiveQR({ url: checkinUrl, label: t('rsm.checkin_qr') })}
+              title={t('rsm.qr_code')}
             >
               📱
             </button>
           </div>
           <div className="arena-url-row">
-            <span className="arena-url-label">🔒 MDP</span>
+            <span className="arena-url-label">{t('rsm.pwd')}</span>
             <input
               type="password"
               className="arena-password-input"
-              placeholder="Obligatoire pour ouvrir l'appel · 8 car. min."
+              placeholder={t('rsm.checkin_pwd_placeholder')}
               value={checkinPassword}
               onChange={e => setCheckinPassword(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter') applyCheckinPassword();
               }}
             />
-            <button
-              className="btn-copy"
-              title="Définir le mot de passe"
-              onClick={applyCheckinPassword}
-            >
+            <button className="btn-copy" title={t('rsm.set_pwd')} onClick={applyCheckinPassword}>
               ✓
             </button>
           </div>
@@ -2100,7 +2103,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         {trainerEnabled && (
           <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
             <div className="arena-url-header">
-              <strong>🎓 Formateurs (commentaires d'arbitrage)</strong>
+              <strong>{t('rsm.trainer_card')}</strong>
             </div>
             <div className="arena-url-row">
               <span className="arena-url-label">URL</span>
@@ -2108,41 +2111,37 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
               <button
                 className="btn-copy"
                 onClick={() => copyToClipboard(trainerUrl, 995)}
-                title="Copier l'URL"
+                title={t('rsm.copy_url')}
               >
                 {copiedIndex === 995 ? '✓' : '📋'}
               </button>
               <button
                 className="btn-qr"
-                onClick={() => setActiveQR({ url: trainerUrl, label: 'Formateurs' })}
-                title="QR code"
+                onClick={() => setActiveQR({ url: trainerUrl, label: t('rsm.trainers') })}
+                title={t('rsm.qr_code')}
               >
                 📱
               </button>
             </div>
             <div className="arena-url-row">
-              <span className="arena-url-label">🔒 MDP</span>
+              <span className="arena-url-label">{t('rsm.pwd')}</span>
               <input
                 type="password"
                 className="arena-password-input"
-                placeholder="Obligatoire, distinct des pistes · 8 car. min."
+                placeholder={t('rsm.trainer_pwd_placeholder')}
                 value={trainerPassword}
                 onChange={e => setTrainerPassword(e.target.value)}
                 onKeyDown={e => {
                   if (e.key === 'Enter') applyTrainerPassword();
                 }}
               />
-              <button
-                className="btn-copy"
-                title="Définir le mot de passe"
-                onClick={applyTrainerPassword}
-              >
+              <button className="btn-copy" title={t('rsm.set_pwd')} onClick={applyTrainerPassword}>
                 ✓
               </button>
             </div>
             <div className="arena-url-row">
               <button className="btn btn-secondary btn-sm" onClick={exportTrainerComments}>
-                📄 Compte rendu PDF des commentaires
+                {t('rsm.trainer_pdf')}
               </button>
             </div>
           </div>
@@ -2150,7 +2149,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
 
         <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
           <div className="arena-url-header">
-            <strong>🚪 Lobby (salle d'attente arbitres)</strong>
+            <strong>{t('rsm.lobby_card')}</strong>
           </div>
           <div className="arena-url-row">
             <span className="arena-url-label">URL</span>
@@ -2158,14 +2157,14 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             <button
               className="btn-copy"
               onClick={() => copyToClipboard(lobbyUrl, 997)}
-              title="Copier l'URL"
+              title={t('rsm.copy_url')}
             >
               {copiedIndex === 997 ? '✓' : '📋'}
             </button>
             <button
               className="btn-qr"
-              onClick={() => setActiveQR({ url: lobbyUrl, label: "Lobby – Salle d'attente" })}
-              title="QR code"
+              onClick={() => setActiveQR({ url: lobbyUrl, label: t('rsm.lobby_qr') })}
+              title={t('rsm.qr_code')}
             >
               📱
             </button>
@@ -2175,21 +2174,21 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
 
       {/* ── Section : Écrans connectés ── */}
       {connectedClients.length > 0 && (
-        <div className="arena-url-card" style={{ marginTop: '1rem' }}>
+        <div className="arena-url-card mt-4">
           <div className="arena-url-header">
-            <strong>📺 Écrans connectés ({connectedClients.length})</strong>
+            <strong>{t('rsm.connected_screens', { count: connectedClients.length })}</strong>
           </div>
           {connectedClients.map(client => {
             const clientLabel =
               client.label || client.screenId?.slice(0, 8) || client.socketId.slice(0, 8);
             const typeLabel: Record<string, string> = {
               kiosk: 'Kiosk',
-              arena: 'Arène',
-              public: 'Public',
-              pool: 'Poule',
+              arena: t('rsm.client_arena'),
+              public: t('rsm.screen_public'),
+              pool: t('rsm.screen_pool'),
               dashboard: 'Dashboard',
               lobby: 'Lobby',
-              referee: 'Arbitre',
+              referee: t('rsm.screen_referee'),
             };
             return (
               <div
@@ -2228,7 +2227,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{client.ip}</span>
                 {client.battery && (
                   <span
-                    title={client.battery.charging ? 'En charge' : 'Sur batterie'}
+                    title={client.battery.charging ? t('rsm.charging') : t('rsm.on_battery')}
                     style={{
                       fontSize: '0.75rem',
                       padding: '0.15rem 0.4rem',
@@ -2254,16 +2253,16 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   <button
                     className="btn-secondary"
                     style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
-                    title="Faire clignoter cet écran pour l'identifier"
+                    title={t('rsm.identify_title')}
                     onClick={() =>
                       window.electronAPI.remote.identifyClient(competition.id, client.socketId)
                     }
                   >
-                    🔦 Identifier
+                    {t('rsm.identify')}
                   </button>
                   <input
                     type="text"
-                    placeholder="Renommer…"
+                    placeholder={t('rsm.rename_placeholder')}
                     value={renameValues[client.socketId] ?? ''}
                     onChange={e =>
                       setRenameValues(v => ({ ...v, [client.socketId]: e.target.value }))
@@ -2292,7 +2291,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   <button
                     className="btn-secondary"
                     style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
-                    title="Renommer"
+                    title={t('rsm.rename')}
                     onClick={async () => {
                       const lbl = renameValues[client.socketId]?.trim();
                       if (lbl)
@@ -2308,7 +2307,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   <button
                     className="btn-primary"
                     style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
-                    title="Configurer et envoyer en mode kiosk"
+                    title={t('ui.configure_send_kiosk')}
                     onClick={() => {
                       setKioskModal(client.socketId);
                       setKioskModalConfig({
@@ -2319,10 +2318,11 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                         suivants: true,
                         tableau: true,
                         rotationSec: 15,
+                        eta: true,
                       });
                     }}
                   >
-                    🖥️ Mode kiosk
+                    {t('rsm.kiosk_mode')}
                   </button>
                 </div>
               </div>
@@ -2332,14 +2332,12 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       )}
 
       <div className="remote-instructions">
-        <h5>Instructions pour les arbitres</h5>
+        <h5>{t('rsm.instructions_title')}</h5>
         <ol>
-          <li>Ouvrir un navigateur web sur la tablette</li>
-          <li>
-            Aller à l'URL <strong>Arbitre</strong> correspondant à sa piste
-          </li>
-          <li>Saisir les scores du match en cours</li>
-          <li>Cliquer sur "Match suivant" pour passer au match suivant</li>
+          <li>{t('rsm.instr_1')}</li>
+          <li>{t('rsm.instr_2')}</li>
+          <li>{t('rsm.instr_3')}</li>
+          <li>{t('rsm.instr_4')}</li>
         </ol>
       </div>
 
@@ -2352,19 +2350,20 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
               onClick={e => e.stopPropagation()}
               style={{ minWidth: '20rem', maxWidth: '26rem' }}
             >
-              <strong style={{ fontSize: '1rem' }}>🖥️ Configurer le mode kiosk</strong>
+              <strong style={{ fontSize: '1rem' }}>{t('rsm.kiosk_modal_title')}</strong>
               <div style={{ margin: '0.75rem 0', textAlign: 'left' }}>
                 <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
-                  Vues à afficher :
+                  {t('rsm.views_label')}
                 </div>
                 {(
                   [
-                    { key: 'poules', label: 'Poules' },
-                    { key: 'classement', label: 'Classement' },
-                    { key: 'final', label: 'Classement final' },
-                    { key: 'direct', label: 'Matchs en direct' },
-                    { key: 'suivants', label: 'Matchs suivants' },
-                    { key: 'tableau', label: 'Tableau DE' },
+                    { key: 'poules', label: t('rsm.view_pools') },
+                    { key: 'classement', label: t('rsm.view_ranking') },
+                    { key: 'final', label: t('rsm.view_final') },
+                    { key: 'direct', label: t('rsm.view_live_matches') },
+                    { key: 'suivants', label: t('rsm.view_next_matches') },
+                    { key: 'tableau', label: t('rsm.view_bracket') },
+                    { key: 'eta', label: t('rsm.view_eta') },
                   ] as const
                 ).map(({ key, label }) => (
                   <label
@@ -2380,7 +2379,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   >
                     <input
                       type="checkbox"
-                      checked={kioskModalConfig[key]}
+                      checked={kioskModalConfig[key] !== false}
                       onChange={e => setKioskModalConfig(c => ({ ...c, [key]: e.target.checked }))}
                     />
                     {label}
@@ -2395,7 +2394,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   }}
                 >
                   <label style={{ fontSize: '0.85rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                    Rotation (s) :
+                    {t('rsm.rotation')}
                   </label>
                   <input
                     type="number"
@@ -2421,8 +2420,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                 <button
-                  className="btn btn-primary"
-                  style={{ flex: 1 }}
+                  className="btn btn-primary flex-1"
                   onClick={async () => {
                     await window.electronAPI.remote.setClientKioskMode(
                       competition.id,
@@ -2430,13 +2428,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                       kioskModalConfig
                     );
                     setKioskModal(null);
-                    showToast('Écran basculé en mode kiosk', 'success');
+                    showToast(t('rsm.kiosk_sent'), 'success');
                   }}
                 >
-                  Envoyer en kiosk
+                  {t('rsm.send_kiosk')}
                 </button>
                 <button className="btn btn-secondary" onClick={() => setKioskModal(null)}>
-                  Annuler
+                  {t('rsm.cancel')}
                 </button>
               </div>
             </div>
@@ -2466,7 +2464,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
               );
             }
             setThemeEditorTarget(null);
-            showToast('Thème personnalisé appliqué', 'success');
+            showToast(t('rsm.custom_theme_applied'), 'success');
           }}
           onClose={() => {
             setThemeEditorTarget(null);
@@ -2488,9 +2486,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             });
             setKioskThemeEditorOpen(false);
             if (result?.success) {
-              showToast('Thème kiosk appliqué', 'success');
+              showToast(t('rsm.kiosk_theme_applied'), 'success');
             } else {
-              showToast(result?.error ?? 'Erreur application thème kiosk', 'error');
+              showToast(ipcErrorText(t, result, t('rsm.kiosk_theme_error')), 'error');
             }
           }}
           onClose={() => {
@@ -2506,13 +2504,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             <div className="qr-popup" onClick={e => e.stopPropagation()}>
               <strong>{activeQR.label}</strong>
               {qrDataUrl ? (
-                <img src={qrDataUrl} alt="QR code" width={220} height={220} />
+                <img src={qrDataUrl} alt={t('rsm.qr_code')} width={220} height={220} />
               ) : (
-                <div style={RSM_STYLES.qrSpinner}>Génération…</div>
+                <div style={RSM_STYLES.qrSpinner}>{t('rsm.generating')}</div>
               )}
               <code style={RSM_STYLES.qrCode}>{activeQR.url}</code>
               <button className="btn btn-secondary" onClick={() => setActiveQR(null)}>
-                Fermer
+                {t('rsm.close')}
               </button>
             </div>
           </div>,

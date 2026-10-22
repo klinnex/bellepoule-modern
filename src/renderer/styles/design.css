@@ -8,7 +8,28 @@
    DESIGN TOKENS — override main.css :root
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Inter embarquée (OFL, assets/fonts/Inter-OFL.txt) : aucune requête vers un domaine tiers (#1153) */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/Inter-latin-ext-Variable.woff2') format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/Inter-latin-Variable.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 :root {
   /* Palette warm neutrals */
@@ -34,6 +55,24 @@
   --color-warning: #d97706;
   --color-danger: #dc2626;
   --color-secondary: #0d9488;
+
+  /* Surfaces élevées (toasts, pop-up, lignes terminées) : blanc ; bleu-gris en sombre (#1114) */
+  --color-raised: #ffffff;
+  --color-raised-hover: #f3f4f6;
+  /* Encadrés d'information (mode expert, lecture seule) */
+  --color-notice-bg: #fefce8;
+  --color-notice-border: #fde047;
+  --color-notice-text: #713f12;
+  --color-win-text: #065f46;
+  --color-seed-bg: #ffffff;
+  --color-seed-top-bg: #dbeafe;
+  /* Podium / classement final */
+  --color-gold-bg: #fef3c7;
+  --color-gold-border: #f59e0b;
+  --color-gold-text: #92400e;
+  --color-silver-bg: #f3f4f6;
+  --color-bronze-bg: #fed7aa;
+  --color-champion-bg: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
 
   /* Radius */
   --radius-sm: 0.25rem;
@@ -581,7 +620,12 @@ select:focus {
 }
 
 .phase-step-disabled {
-  opacity: 0.35;
+  opacity: 0.5;
+}
+
+.phase-step:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .phase-step-number {
@@ -773,6 +817,21 @@ select:focus {
 }
 
 /* ============================================================
+   REDUCED MOTION — accessibility (WCAG 2.3.3)
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
    DARK MODE OVERRIDES
    ============================================================ */
 
@@ -786,6 +845,23 @@ select:focus {
   --color-text-light: #a39e93;
   --color-text-muted: #6e6860;
   --color-primary-glow: rgba(59, 91, 219, 0.25);
+
+  /* Bleu-gris (#1114) */
+  --color-raised: #334155;
+  --color-raised-hover: #3e4c63;
+  --color-notice-bg: #334155;
+  --color-notice-border: #475569;
+  --color-notice-text: #e2e8f0;
+  --color-win-text: #6ee7b7;
+  --color-seed-bg: linear-gradient(90deg, #1e293b, #334155);
+  --color-seed-top-bg: linear-gradient(90deg, #1e3a5f, #3b5070);
+  /* Or, argent, bronze sombres (#1114) */
+  --color-gold-bg: #6b5410;
+  --color-gold-border: #a8841c;
+  --color-gold-text: #fde68a;
+  --color-silver-bg: #4b5563;
+  --color-bronze-bg: #6e3f1c;
+  --color-champion-bg: linear-gradient(135deg, #8a6d14 0%, #5c470c 100%);
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.35);

@@ -12,7 +12,21 @@ import {
   generatePoolMatchOrder,
   SeparationCriterionKey,
 } from '../../shared/utils/poolCalculations';
+import {
+  countConflicts,
+  minConflicts,
+  optimizePoolConflicts,
+} from '../../shared/utils/poolOptimizer';
 import PoolMatchOrderModal from './pool/PoolMatchOrderModal';
+import { useTranslation } from '../hooks/useTranslation';
+
+const HINT_DISMISSED_KEY = 'bp_poolprep_hint_dismissed';
+
+const CRITERION_NOUN: Record<SeparationCriterionKey, string> = {
+  byClub: 'pools.prep_crit_club',
+  byRegion: 'pools.prep_crit_region',
+  byNation: 'pools.prep_crit_nation',
+};
 
 interface PoolPrepViewProps {
   fencers: Fencer[];
@@ -30,6 +44,13 @@ interface PoolPrepViewProps {
   onSettingsChange?: (min: number, max: number) => void;
   /** Expose le bouton « Lancer les poules » à la barre de navigation (#945) */
   onLaunchActionChange?: (action: PoolPrepLaunchAction | null) => void;
+  /**
+   * Répartition spécifique (tournoi des rapières : regroupement par niveau).
+   * Remplace la répartition serpentin et désactive les critères de séparation.
+   */
+  customDistribution?: (fencers: Fencer[], poolCount: number) => Fencer[][];
+  /** Ordre des matchs spécifique (paires 1-indexées), ex. vagues des rapières */
+  customMatchOrder?: (poolFencers: Fencer[]) => [number, number][];
 }
 
 export interface PoolPrepLaunchAction {
@@ -59,7 +80,10 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   onSkipPools,
   onSettingsChange,
   onLaunchActionChange,
+  customDistribution,
+  customMatchOrder,
 }) => {
+  const { t } = useTranslation();
   const [poolCount, setPoolCount] = useState<number>(0);
   const [minFencersPerPool, setMinFencersPerPool] = useState<number>(initialMin);
   const [maxFencersPerPool, setMaxFencersPerPool] = useState<number>(initialMax);
@@ -75,8 +99,8 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     enabled: boolean;
   }
   const [separationCriteria, setSeparationCriteria] = useState<SeparationCriterion[]>([
-    { key: 'byClub', label: 'Club', enabled: true },
-    { key: 'byRegion', label: 'Région', enabled: true },
+    { key: 'byClub', label: 'Club', enabled: !customDistribution },
+    { key: 'byRegion', label: 'Région', enabled: !customDistribution },
     { key: 'byNation', label: 'Nation', enabled: false },
   ]);
   const [dragCriterionIdx, setDragCriterionIdx] = useState<number | null>(null);
@@ -95,6 +119,21 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState<number>(-1);
   const [timeSinceLastChange, setTimeSinceLastChange] = useState<number>(0);
   const [showMatchOrderModal, setShowMatchOrderModal] = useState(false);
+  const [hintDismissed, setHintDismissed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(HINT_DISMISSED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const dismissHint = () => {
+    setHintDismissed(true);
+    try {
+      localStorage.setItem(HINT_DISMISSED_KEY, '1');
+    } catch {
+      // stockage indisponible : masqué pour la session seulement
+    }
+  };
   const RESTORE_WINDOW_MINUTES = 5;
 
   // Timer pour mettre à jour le temps écoulé
@@ -185,14 +224,14 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const generatePools = (count: number, criteria: SeparationCriterion[]) => {
     if (fencers.length === 0 || count <= 0) return;
 
-    const distribution = distributeFencersToPoolsSerpentine(
-      fencers,
-      count,
-      getActiveCriteria(criteria)
-    );
+    const distribution = customDistribution
+      ? customDistribution(fencers, count)
+      : distributeFencersToPoolsSerpentine(fencers, count, getActiveCriteria(criteria));
 
     const generatedPools: Pool[] = distribution.map((poolFencers, index) => {
-      const matchOrder = generatePoolMatchOrder(poolFencers.length);
+      const matchOrder = customMatchOrder
+        ? customMatchOrder(poolFencers)
+        : generatePoolMatchOrder(poolFencers.length);
       const now = new Date();
       // IDs uniques : persistés en DB (clé primaire globale, toutes compétitions confondues)
       const poolId = crypto.randomUUID();
@@ -287,7 +326,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   };
 
   const regenerateMatches = (pool: Pool): Pool => {
-    const matchOrder = generatePoolMatchOrder(pool.fencers.length);
+    const matchOrder = customMatchOrder
+      ? customMatchOrder(pool.fencers)
+      : generatePoolMatchOrder(pool.fencers.length);
     const now = new Date();
 
     const newMatches: Match[] = matchOrder.map(([a, b], matchIndex) => ({
@@ -369,6 +410,24 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     setPools(updatedPools);
   };
 
+  // Échanges de tireurs entre poules pour atteindre le minimum de conflits
+  const handleOptimize = () => {
+    const optimized = optimizePoolConflicts(
+      pools.map(p => p.fencers),
+      getActiveCriteria(separationCriteria)
+    );
+    const changed = optimized.some((fs, i) => fs.some((f, j) => f.id !== pools[i].fencers[j]?.id));
+    if (!changed) return;
+    saveToHistory();
+    setPools(
+      pools.map((p, i) =>
+        optimized[i].every((f, j) => f.id === p.fencers[j]?.id)
+          ? p
+          : regenerateMatches({ ...p, fencers: optimized[i] })
+      )
+    );
+  };
+
   const handleStripChange = (poolIndex: number, strip: number | undefined) => {
     const pool = pools[poolIndex];
     setPools(pools.map((p, i) => (i === poolIndex ? { ...p, strip } : p)));
@@ -403,6 +462,20 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
   const stats = getFencerCountStats();
 
+  // Conflits actuels vs minimum théorique, par critère actif
+  const fencerPools = pools.map(p => p.fencers);
+  const conflictSummary = getActiveCriteria(separationCriteria).map(key => ({
+    key,
+    current: countConflicts(fencerPools, key),
+    min: minConflicts(fencerPools, key),
+  }));
+  const canOptimize = conflictSummary.some(c => c.current > c.min);
+
+  const suggestedPoolCount =
+    fencers.length > 0
+      ? calculateOptimalPoolCount(fencers.length, minFencersPerPool, maxFencersPerPool)
+      : 0;
+
   const POOL_ACCENTS = ['#3B5BDB', '#0D9488', '#7C3AED', '#D97706', '#DB2777', '#16A34A'];
   const POOL_ACCENT_BGS = [
     'rgba(59,91,219,0.10)',
@@ -413,16 +486,38 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     'rgba(22,163,74,0.10)',
   ];
 
-  const getPoolClubConflicts = (pool: Pool): Set<string> => {
+  /** Valeurs en double dans une poule (club, région…) → nombre d'occurrences */
+  const getPoolConflicts = (
+    pool: Pool,
+    pick: (f: Fencer) => string | undefined
+  ): Map<string, number> => {
     const counts = new Map<string, number>();
     pool.fencers.forEach(f => {
-      if (f.club) counts.set(f.club, (counts.get(f.club) || 0) + 1);
+      const v = pick(f)?.trim();
+      if (v) counts.set(v, (counts.get(v) || 0) + 1);
     });
-    const conflicts = new Set<string>();
-    counts.forEach((n, club) => {
-      if (n > 1) conflicts.add(club);
+    counts.forEach((n, v) => {
+      if (n < 2) counts.delete(v);
     });
-    return conflicts;
+    return counts;
+  };
+
+  const isCriterionEnabled = (key: SeparationCriterionKey) =>
+    separationCriteria.some(c => c.key === key && c.enabled);
+
+  /** « Club Street Fighter » → « Street Fighter » (gain de place, nom complet en infobulle) */
+  const shortClub = (club: string) => club.replace(/^club\s+/i, '');
+
+  const formatConflicts = (conflicts: Map<string, number>) =>
+    [...conflicts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([v, n]) => `${n}× ${v}`)
+      .join(', ');
+
+  /** Classement moyen des tireurs classés de la poule (force de la poule) */
+  const getPoolAvgRanking = (pool: Pool): number | null => {
+    const ranks = pool.fencers.map(f => f.ranking).filter((r): r is number => r != null && r > 0);
+    return ranks.length ? Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length) : null;
   };
 
   const launchDisabled =
@@ -472,9 +567,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 letterSpacing: '0.05em',
               }}
             >
-              Nombre de poules
+              {t('pools.prep_pool_count')}
             </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="u-row">
               <div className="pool-prep-stepper">
                 <button
                   className="pool-prep-stepper-btn"
@@ -496,10 +591,23 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 <button
                   className="btn btn-secondary"
                   onClick={() => handlePoolCountChange(1)}
-                  title="Mettre tous les tireurs dans une seule poule"
+                  title={t('pools.prep_single_title')}
                   style={{ fontSize: '0.75rem', padding: '0.2rem 0.65rem', borderRadius: '999px' }}
                 >
-                  Poule unique
+                  {t('pools.prep_single')}
+                </button>
+              )}
+              {poolCount > 0 && suggestedPoolCount > 0 && suggestedPoolCount !== poolCount && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => handlePoolCountChange(suggestedPoolCount)}
+                  title={t('pools.prep_suggested_title', {
+                    min: minFencersPerPool,
+                    max: maxFencersPerPool,
+                  })}
+                  style={{ fontSize: '0.75rem', padding: '0.2rem 0.65rem', borderRadius: '999px' }}
+                >
+                  {t('pools.prep_suggested', { n: suggestedPoolCount })}
                 </button>
               )}
             </div>
@@ -518,7 +626,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 letterSpacing: '0.05em',
               }}
             >
-              Tireurs / poule
+              {t('pools.prep_per_pool')}
             </label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <input
@@ -560,74 +668,80 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
           </div>
 
           {/* Separation pill toggles with drag-and-drop priority */}
-          <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '0.7rem',
-                fontWeight: 600,
-                marginBottom: '0.4rem',
-                color: 'var(--color-text-light)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              Séparation{' '}
-              <span
+          {!customDistribution && (
+            <div>
+              <label
                 style={{
-                  fontWeight: 400,
-                  textTransform: 'none',
-                  fontSize: '0.65rem',
-                  opacity: 0.7,
+                  display: 'block',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  marginBottom: '0.4rem',
+                  color: 'var(--color-text-light)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
                 }}
               >
-                (glisser pour priorité)
-              </span>
-            </label>
-            <div style={{ display: 'flex', gap: '0.4rem' }}>
-              {separationCriteria.map((criterion, idx) => (
-                <button
-                  key={criterion.key}
-                  draggable
-                  onDragStart={() => setDragCriterionIdx(idx)}
-                  onDragOver={e => {
-                    e.preventDefault();
+                {t('pools.prep_separation')}{' '}
+                <span
+                  style={{
+                    fontWeight: 400,
+                    textTransform: 'none',
+                    fontSize: '0.65rem',
+                    opacity: 0.7,
                   }}
-                  onDrop={e => {
-                    e.preventDefault();
-                    if (dragCriterionIdx === null || dragCriterionIdx === idx) return;
-                    const next = [...separationCriteria];
-                    const [moved] = next.splice(dragCriterionIdx, 1);
-                    next.splice(idx, 0, moved);
-                    setSeparationCriteria(next);
-                    setDragCriterionIdx(null);
-                    if (poolCount > 0) generatePools(poolCount, next);
-                  }}
-                  onDragEnd={() => setDragCriterionIdx(null)}
-                  onClick={() => {
-                    const next = separationCriteria.map((c, i) =>
-                      i === idx ? { ...c, enabled: !c.enabled } : c
-                    );
-                    setSeparationCriteria(next);
-                    if (poolCount > 0) generatePools(poolCount, next);
-                  }}
-                  className={`pool-prep-pill-toggle${criterion.enabled ? ' active' : ''}`}
-                  style={{ cursor: 'grab', userSelect: 'none' }}
-                  title={`Priorité ${idx + 1} — glisser pour réordonner`}
                 >
-                  <span style={{ fontSize: '0.6rem', opacity: 0.6, marginRight: '0.2rem' }}>
-                    {idx + 1}.
-                  </span>
-                  {criterion.label}
-                </button>
-              ))}
+                  {t('pools.prep_drag_priority')}
+                </span>
+              </label>
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                {separationCriteria.map((criterion, idx) => (
+                  <button
+                    key={criterion.key}
+                    draggable
+                    onDragStart={() => setDragCriterionIdx(idx)}
+                    onDragOver={e => {
+                      e.preventDefault();
+                    }}
+                    onDrop={e => {
+                      e.preventDefault();
+                      if (dragCriterionIdx === null || dragCriterionIdx === idx) return;
+                      const next = [...separationCriteria];
+                      const [moved] = next.splice(dragCriterionIdx, 1);
+                      next.splice(idx, 0, moved);
+                      setSeparationCriteria(next);
+                      setDragCriterionIdx(null);
+                      if (poolCount > 0) generatePools(poolCount, next);
+                    }}
+                    onDragEnd={() => setDragCriterionIdx(null)}
+                    onClick={() => {
+                      const next = separationCriteria.map((c, i) =>
+                        i === idx ? { ...c, enabled: !c.enabled } : c
+                      );
+                      setSeparationCriteria(next);
+                      if (poolCount > 0) generatePools(poolCount, next);
+                    }}
+                    className={`pool-prep-pill-toggle${criterion.enabled ? ' active' : ''}`}
+                    style={{ cursor: 'grab', userSelect: 'none' }}
+                    aria-pressed={criterion.enabled}
+                    title={`Priorité ${idx + 1} — ${criterion.enabled ? 'active' : 'désactivée'} (clic : activer / désactiver, glisser : réordonner)`}
+                  >
+                    <span className="pool-prep-pill-grip" aria-hidden="true">
+                      ⠿
+                    </span>
+                    <span style={{ fontSize: '0.6rem', opacity: 0.6, marginRight: '0.2rem' }}>
+                      {idx + 1}.
+                    </span>
+                    {criterion.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <button
             className="btn btn-secondary"
             onClick={() => setShowMatchOrderModal(true)}
-            title="Afficher l'ordre officiel FIE/FFE des matchs par taille de poule"
+            title={t('pools.prep_match_order_title')}
             style={{
               fontSize: '0.8rem',
               padding: '0.35rem 0.8rem',
@@ -635,17 +749,46 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
               whiteSpace: 'nowrap',
             }}
           >
-            Ordre des matchs
+            {t('pools.prep_match_order')}
           </button>
+
+          {conflictSummary.length > 0 && pools.length > 1 && (
+            <div className="pool-prep-conflict-summary">
+              {conflictSummary.map(c => (
+                <span
+                  key={c.key}
+                  className={c.current > c.min ? 'over' : undefined}
+                  title={t('pools.prep_conflicts_title', {
+                    crit: t(CRITERION_NOUN[c.key]),
+                    n: c.current,
+                    min: c.min,
+                  })}
+                >
+                  {t(CRITERION_NOUN[c.key])} {c.current}
+                  <span style={{ opacity: 0.6 }}> / min {c.min}</span>
+                </span>
+              ))}
+              <button
+                className="btn btn-secondary"
+                onClick={handleOptimize}
+                disabled={!canOptimize}
+                title={canOptimize ? t('pools.prep_optimize_title') : t('pools.prep_optimize_min')}
+                style={{ fontSize: '0.75rem', padding: '0.2rem 0.65rem', borderRadius: '999px' }}
+              >
+                {t('pools.prep_optimize')}
+              </button>
+            </div>
+          )}
 
           <div style={{ marginLeft: 'auto' }} className="pool-prep-stats-badge">
             <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text)' }}>
-              {fencers.length} tireurs répartis
+              {t('pools.prep_pools', { count: pools.length })} ·{' '}
+              {t('pools.prep_fencers', { count: fencers.length })}
             </span>
             <span
               style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.15rem' }}
             >
-              Min {stats.min} · Max {stats.max} · Moy {stats.avg}
+              {t('pools.prep_stats', { min: stats.min, max: stats.max, avg: stats.avg })}
             </span>
           </div>
         </div>
@@ -668,21 +811,23 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
               <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏭</div>
               <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-                Aucune poule
+                {t('pools.prep_no_pool')}
               </div>
-              <div style={{ fontSize: '0.9rem' }}>
-                Passage direct au classement initial des tireurs
-              </div>
+              <div style={{ fontSize: '0.9rem' }}>{t('pools.prep_no_pool_hint')}</div>
             </div>
           ) : null}
 
           {pools.map((pool, poolIndex) => {
             const accent = POOL_ACCENTS[poolIndex % POOL_ACCENTS.length];
             const accentBg = POOL_ACCENT_BGS[poolIndex % POOL_ACCENT_BGS.length];
-            const clubConflicts = separationCriteria.find(c => c.key === 'byClub')?.enabled
-              ? getPoolClubConflicts(pool)
-              : new Set<string>();
-            const hasConflicts = clubConflicts.size > 0;
+            const clubConflicts = isCriterionEnabled('byClub')
+              ? getPoolConflicts(pool, f => f.club)
+              : new Map<string, number>();
+            const regionConflicts = isCriterionEnabled('byRegion')
+              ? getPoolConflicts(pool, f => f.region)
+              : new Map<string, number>();
+            const topClubConflict = [...clubConflicts.entries()].sort((a, b) => b[1] - a[1])[0];
+            const avgRanking = getPoolAvgRanking(pool);
             const isOutOfRange =
               pools.length > 1 &&
               (pool.fencers.length < minFencersPerPool || pool.fencers.length > maxFencersPerPool);
@@ -697,25 +842,43 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                   { '--pool-accent': accent, '--pool-accent-bg': accentBg } as React.CSSProperties
                 }
               >
-                <div
-                  className="pool-prep-card-header"
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
+                <div className="pool-prep-card-header u-row-between">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: accent }}>
-                      Poule {pool.number}
+                      {t('pools.prep_pool_n', { n: pool.number })}
                     </h3>
-                    {pools.length === 1 && <span className="pool-prep-badge-unique">unique</span>}
-                    {hasConflicts && (
+                    {pools.length === 1 && (
+                      <span className="pool-prep-badge-unique">{t('pools.prep_unique')}</span>
+                    )}
+                    {topClubConflict && (
                       <span
                         className="pool-prep-conflict-warning"
-                        title="Même club dans cette poule"
+                        title={t('pools.prep_same_club', { list: formatConflicts(clubConflicts) })}
                       >
-                        ⚠ club
+                        ⚠ {topClubConflict[1]}× {shortClub(topClubConflict[0])}
+                        {clubConflicts.size > 1 && ` +${clubConflicts.size - 1}`}
+                      </span>
+                    )}
+                    {regionConflicts.size > 0 && (
+                      <span
+                        className="pool-prep-conflict-warning"
+                        title={t('pools.prep_same_region', {
+                          list: formatConflicts(regionConflicts),
+                        })}
+                      >
+                        {t('pools.prep_region_warn')}
                       </span>
                     )}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div className="u-row">
+                    {avgRanking != null && (
+                      <span
+                        className="pool-prep-strength"
+                        title={t('pools.prep_avg_ranking_title')}
+                      >
+                        {t('pools.prep_avg', { n: avgRanking })}
+                      </span>
+                    )}
                     {expertMode && (
                       <label
                         style={{
@@ -726,7 +889,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                           color: 'var(--color-text-muted)',
                         }}
                       >
-                        Piste
+                        {t('pools.prep_strip')}
                         <select
                           value={pool.strip ?? ''}
                           onChange={e => {
@@ -760,7 +923,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                   {pool.fencers.map((fencer, fencerIndex) => {
-                    const hasClubConflict = fencer.club ? clubConflicts.has(fencer.club) : false;
+                    const hasClubConflict = fencer.club
+                      ? clubConflicts.has(fencer.club.trim())
+                      : false;
                     return (
                       <div
                         key={fencer.id}
@@ -797,24 +962,24 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                         >
                           {fencer.firstName} {fencer.lastName.charAt(0)}.
                         </span>
-                        {fencer.club && (
+                        {fencer.ranking != null && fencer.ranking > 0 && (
                           <span
-                            className="pool-prep-club-pill"
-                            title={fencer.club}
-                            style={
-                              hasClubConflict
-                                ? {
-                                    borderColor: 'var(--color-warning)',
-                                    color: 'var(--color-warning)',
-                                    background: 'rgba(217,119,6,0.08)',
-                                  }
-                                : undefined
-                            }
+                            className="pool-prep-ranking"
+                            title={t('pools.prep_initial_ranking')}
                           >
-                            {fencer.club}
+                            #{fencer.ranking}
                           </span>
                         )}
-                        {hasClubConflict && <span className="pool-prep-conflict-dot" />}
+                        {fencer.club && (
+                          <span
+                            className={`pool-prep-club-pill${hasClubConflict ? ' conflict' : ''}`}
+                            title={
+                              fencer.region ? `${fencer.club} — ${fencer.region}` : fencer.club
+                            }
+                          >
+                            {shortClub(fencer.club)}
+                          </span>
+                        )}
                       </div>
                     );
                   })}
@@ -829,7 +994,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                       fontSize: '0.875rem',
                     }}
                   >
-                    Déposez des tireurs ici
+                    {t('pools.prep_drop_here')}
                   </div>
                 )}
               </div>
@@ -837,11 +1002,20 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
           })}
         </div>
 
-        {/* Instructions */}
-        <div className="pool-prep-hint">
-          Glissez-déposez les tireurs entre poules pour les déplacer, ou vers le haut / bas pour les
-          réordonner.
-        </div>
+        {/* Instructions (masquables) */}
+        {!hintDismissed && (
+          <div className="pool-prep-hint">
+            <span>{t('pools.prep_hint')}</span>
+            <button
+              className="pool-prep-hint-close"
+              onClick={dismissHint}
+              aria-label={t('pools.prep_hide_help')}
+              title={t('pools.prep_hide_help')}
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         {/* Footer */}
         <div
@@ -865,7 +1039,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 opacity: canRestore() ? 1 : 0.5,
               }}
             >
-              ↩ Annuler
+              {t('pools.prep_undo')}
             </button>
             {canRestore() && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
@@ -886,20 +1060,26 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                         : 'var(--color-text-muted)',
                   }}
                 >
-                  {formatElapsedTime(timeSinceLastChange)} / {RESTORE_WINDOW_MINUTES}min
+                  {t('pools.prep_window', {
+                    elapsed: formatElapsedTime(timeSinceLastChange),
+                    max: RESTORE_WINDOW_MINUTES,
+                  })}
                 </span>
               </div>
             )}
           </div>
 
-          <button
-            className="btn btn-primary"
-            onClick={handleLaunch}
-            disabled={launchDisabled}
-            style={{ fontSize: '1rem', padding: '0.75rem 2rem', borderRadius: '10px' }}
-          >
-            {launchLabel} →
-          </button>
+          {/* Bouton déjà présent dans la barre de navigation (#945) : pas de doublon */}
+          {!onLaunchActionChange && (
+            <button
+              className="btn btn-primary"
+              onClick={handleLaunch}
+              disabled={launchDisabled}
+              style={{ fontSize: '1rem', padding: '0.75rem 2rem', borderRadius: '10px' }}
+            >
+              {launchLabel} →
+            </button>
+          )}
         </div>
       </div>
       {showMatchOrderModal && <PoolMatchOrderModal onClose={() => setShowMatchOrderModal(false)} />}

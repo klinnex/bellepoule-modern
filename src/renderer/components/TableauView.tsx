@@ -20,6 +20,7 @@ import {
   deriveFirstRound,
   isBracketComplete,
   TableauSpecialStatus,
+  resetTableauMatch,
 } from './tableau/tableauTypes';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
@@ -53,6 +54,7 @@ import {
   calculateMatchVerticalPosition,
 } from './tableau/tableauCalculations';
 import { autoAssignReferees } from '../../shared/utils/refereeStats';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface BracketMatch {
   id: string;
@@ -105,7 +107,7 @@ const TV_STYLES = {
   root: { padding: '1rem' } satisfies React.CSSProperties,
   scrollArea: {
     padding: '1rem',
-    background: 'var(--tableau-bg, #f9fafb)',
+    background: 'var(--tableau-bg, var(--color-surface-2))',
     borderRadius: '8px',
     maxHeight: '70vh',
     overflowY: 'auto' as const,
@@ -116,14 +118,14 @@ const TV_STYLES = {
     justifyContent: 'flex-end' as const,
   } satisfies React.CSSProperties,
   pendingOrderBtn: {
-    background: '#e5e7eb',
+    background: 'var(--color-border)',
     border: 'none',
     padding: '0.375rem 0.75rem',
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '0.875rem',
     fontWeight: '500',
-    color: '#374151',
+    color: 'var(--color-text)',
     display: 'flex',
     alignItems: 'center',
     gap: '0.25rem',
@@ -131,7 +133,7 @@ const TV_STYLES = {
   summaryBox: {
     marginTop: '1rem',
     padding: '0.75rem',
-    background: '#f3f4f6',
+    background: 'var(--color-bg)',
     borderRadius: '8px',
   } satisfies React.CSSProperties,
   summaryTitle: {
@@ -148,12 +150,12 @@ const TV_STYLES = {
     padding: '0.5rem 0.75rem',
     borderRadius: '4px',
     fontSize: '0.75rem',
-    border: '1px solid #e5e7eb',
+    border: '1px solid var(--color-border)',
   } satisfies React.CSSProperties,
   pendingEmpty: {
     padding: '2rem',
     textAlign: 'center' as const,
-    color: '#6b7280',
+    color: 'var(--color-text-light)',
   } satisfies React.CSSProperties,
   roundCol: {
     display: 'flex',
@@ -165,13 +167,18 @@ const TV_STYLES = {
     textAlign: 'center' as const,
     fontWeight: '600',
     marginBottom: '0.5rem',
-    color: 'var(--tableau-title, #374151)',
+    color: 'var(--tableau-title, var(--color-text))',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '0.5rem',
     userSelect: 'none' as const,
+    width: '100%',
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    font: 'inherit',
   } satisfies React.CSSProperties,
   roundHeaderChevron: {
     fontSize: '1rem',
@@ -220,6 +227,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   maxRefereesPerMatch = 1,
   autoFillReferees,
 }) => {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const tableauTemplate = usePdfTemplateStore(s => s.templates.tableau);
@@ -234,6 +242,8 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   const [viewMode, setViewMode] = useState<'full' | 'pending'>('full');
   const [pendingOrder, setPendingOrder] = useState<'asc' | 'desc'>('desc');
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
+  // Vue arbre : tours compactés un par un, sans effet sur les autres (#1133)
+  const [collapsedRounds, setCollapsedRounds] = useState<Set<number>>(new Set());
   const [showArenaModal, setShowArenaModal] = useState(false);
   const [selectedMatchForArena, setSelectedMatchForArena] = useState<string | null>(null);
   const [showRefereeModal, setShowRefereeModal] = useState(false);
@@ -282,7 +292,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       }
       return prev;
     });
-  }, [viewMode, pyramidViewMode, tableauSize]);
+  }, [viewMode, pyramidViewMode, tableauSize, collapsedRounds]);
 
   // Remet à zéro le zoom/pan si on change de mode
   useEffect(() => {
@@ -354,17 +364,36 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     isPanningRef.current = false;
   }, []);
 
+  // Tours repliés (#1115) : le plus grand tour déplié sert de première colonne
+  // visuelle ; les cases se resserrent et les liaisons des tours repliés disparaissent.
+  const isRoundExpanded = useCallback(
+    (round: number) => !collapsedRounds.has(round),
+    [collapsedRounds]
+  );
+  const visualBaseRound = useMemo(() => {
+    let base = 0;
+    for (let r = tableauSize; r >= 2; r /= 2) {
+      if (isRoundExpanded(r)) {
+        base = r;
+        break;
+      }
+    }
+    return base || tableauSize;
+  }, [tableauSize, isRoundExpanded]);
+
   // Connecteurs SVG entre les MatchCards
   const svgConnectors = useMemo(() => {
     if (viewMode !== 'full' || pyramidViewMode || colMeasures.size === 0 || tableauSize === 0)
       return null;
-    const totalH = (tableauSize / 2) * SLOT_HEIGHT;
+    const totalH = (visualBaseRound / 2) * SLOT_HEIGHT;
     const paths: React.ReactNode[] = [];
 
     for (const match of matches) {
       if (match.round <= 2 || match.round === 3) continue; // pas de parent pour la finale/petite-finale
       const parentRound = match.round / 2;
       const parentPos = Math.floor(match.position / 2);
+      if (match.round > visualBaseRound || !isRoundExpanded(match.round)) continue;
+      if (!isRoundExpanded(parentRound)) continue;
 
       const childMeasure = colMeasures.get(match.round);
       const parentMeasure = colMeasures.get(parentRound);
@@ -375,10 +404,11 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       const midX = (childRight + parentLeft) / 2;
 
       const childY =
-        calculateMatchVerticalPosition(match.round, match.position, tableauSize) +
+        calculateMatchVerticalPosition(match.round, match.position, visualBaseRound) +
         BASE_MATCH_HEIGHT / 2;
       const parentY =
-        calculateMatchVerticalPosition(parentRound, parentPos, tableauSize) + BASE_MATCH_HEIGHT / 2;
+        calculateMatchVerticalPosition(parentRound, parentPos, visualBaseRound) +
+        BASE_MATCH_HEIGHT / 2;
 
       const hasWinner = !!match.winner;
       paths.push(
@@ -405,7 +435,15 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         {paths}
       </svg>
     );
-  }, [viewMode, pyramidViewMode, colMeasures, matches, tableauSize]);
+  }, [
+    viewMode,
+    pyramidViewMode,
+    colMeasures,
+    matches,
+    tableauSize,
+    visualBaseRound,
+    isRoundExpanded,
+  ]);
 
   const isUnlimitedScore = maxScore === 999;
   const prevMatchesLengthRef = useRef(0);
@@ -512,9 +550,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         const updated = matches.map(m => (!m.winner ? { ...m, arena: null as number | null } : m));
         onMatchesChange(updated);
         matches.forEach(m => {
-          if (m.arena != null && !m.winner) {
-            onMatchArenaChange?.(m.id, m.arena, null);
-          }
+          if (m.arena != null && !m.winner) onMatchArenaChange?.(m.id, m.arena, null);
         });
       }
     },
@@ -730,7 +766,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         updatedBrackets.map(b => ({ ...b, matches: withAutoReferees(b.matches) }))
       );
       onMatchesChange(withAutoReferees(updatedMatches));
-      showToast(`Scores générés pour ${filledCount} match(s)`, 'success');
+      showToast(t('plural.scores_generated', { count: filledCount }), 'success');
       return;
     }
 
@@ -741,7 +777,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     // Créer une copie profonde pour forcer React à re-renderer
     const matchesCopy = updatedMatches.map(m => ({ ...m }));
     onMatchesChange(matchesCopy);
-    showToast(`Scores générés pour ${filledCount} match(s)`, 'success');
+    showToast(t('plural.scores_generated', { count: filledCount }), 'success');
 
     // Vérifier si le tableau est complet
     const champion = updatedMatches.find(m => m.round === 2)?.winner;
@@ -860,6 +896,40 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
 
     setShowScoreModal(false);
     setEditingMatch(null);
+    setEditScoreA('');
+    setEditScoreB('');
+    setVictoryA(false);
+    setVictoryB(false);
+  };
+
+  // Annulation d'un match (#1115) : score effacé, vainqueur retiré du tour suivant
+  const handleMatchCancel = () => {
+    if (!editingMatch) return;
+    if (editingConsolationId) {
+      const bracket = consolationBrackets.find(b => b.id === editingConsolationId);
+      const reset = bracket ? resetTableauMatch(bracket.matches, editingMatch) : null;
+      if (!bracket || !reset) {
+        showToast('Impossible : le match suivant a déjà été joué', 'error');
+        return;
+      }
+      setConsolationBrackets(prev =>
+        prev.map(b =>
+          b.id === editingConsolationId
+            ? { ...b, matches: reset, isComplete: isBracketComplete(reset) }
+            : b
+        )
+      );
+    } else {
+      const reset = resetTableauMatch(matches, editingMatch);
+      if (!reset) {
+        showToast('Impossible : le match suivant a déjà été joué', 'error');
+        return;
+      }
+      onMatchesChange(reset);
+    }
+    setShowScoreModal(false);
+    setEditingMatch(null);
+    setEditingConsolationId(null);
     setEditScoreA('');
     setEditScoreB('');
     setVictoryA(false);
@@ -1049,6 +1119,9 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     setVictoryB(false);
   };
 
+  // Rang de sortie de poules affiché sur les cartes (#1119)
+  const seedRanks = useMemo(() => new Map(ranking.map(r => [r.fencer.id, r.rank])), [ranking]);
+
   const renderMatch = (match: TableauMatch, verticalPosition?: number) => (
     <MatchCard
       key={match.id}
@@ -1064,13 +1137,14 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       onRefereeClick={openRefereeModal}
       onSignaturesClick={setSignaturesMatch}
       readOnly={readOnly}
+      seedRanks={seedRanks}
     />
   );
 
   const getMatchPosition = (match: TableauMatch): number => {
     if (viewMode === 'pending') return match.position;
 
-    return calculateMatchVerticalPosition(match.round, match.position, tableauSize);
+    return calculateMatchVerticalPosition(match.round, match.position, visualBaseRound);
   };
 
   const renderRound = (round: number) => {
@@ -1080,7 +1154,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         : matches.filter(m => m.round === round);
     const sortedMatches = [...roundMatches].sort((a, b) => a.position - b.position);
 
-    const isExpanded = expandedRounds.size === 0 || expandedRounds.has(round);
+    const isExpanded = isRoundExpanded(round);
 
     return (
       <div
@@ -1090,15 +1164,22 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         }}
         style={TV_STYLES.roundCol}
       >
-        <div onClick={() => toggleRoundExpansion(round)} style={TV_STYLES.roundHeader}>
-          <span style={TV_STYLES.roundHeaderChevron}>{isExpanded ? '▼' : '▶'}</span>
+        <button
+          type="button"
+          onClick={() => toggleRoundCollapse(round)}
+          style={TV_STYLES.roundHeader}
+          aria-expanded={isExpanded}
+        >
+          <span style={TV_STYLES.roundHeaderChevron} aria-hidden="true">
+            {isExpanded ? '▼' : '▶'}
+          </span>
           {getRoundName(round)}
-        </div>
+        </button>
         {isExpanded && (
           <div
             style={
               viewMode === 'full'
-                ? { position: 'relative', height: `${(tableauSize / 2) * SLOT_HEIGHT}px` }
+                ? { position: 'relative', height: `${(visualBaseRound / 2) * SLOT_HEIGHT}px` }
                 : {}
             }
           >
@@ -1135,10 +1216,8 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     return (
       <div className="empty-state">
         <div className="empty-state-icon">🏆</div>
-        <h2 className="empty-state-title">Tableau à élimination directe</h2>
-        <p className="empty-state-description">
-          Terminez d'abord les poules pour générer le tableau
-        </p>
+        <h2 className="empty-state-title">{t('tableauView.empty_title')}</h2>
+        <p className="empty-state-description">{t('tableauView.empty_hint')}</p>
       </div>
     );
   }
@@ -1169,6 +1248,15 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         )
       : [];
 
+  const toggleRoundCollapse = (round: number) => {
+    setCollapsedRounds(prev => {
+      const next = new Set(prev);
+      if (next.has(round)) next.delete(round);
+      else next.add(round);
+      return next;
+    });
+  };
+
   const toggleRoundExpansion = (round: number) => {
     setExpandedRounds(prev => {
       const newSet = new Set(prev);
@@ -1179,59 +1267,6 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       }
       return newSet;
     });
-  };
-
-  const renderPendingSection = (round: number) => {
-    const roundMatches = matches
-      .filter(m => m.round === round)
-      .sort((a, b) => a.position - b.position);
-    const isExpanded = expandedRounds.has(round);
-    const roundName = round === 3 ? 'Petite Finale' : `Tableau de ${round}`;
-
-    return (
-      <div
-        key={round}
-        style={{
-          background: 'var(--tableau-panel, white)',
-          borderRadius: '8px',
-          marginBottom: '0.5rem',
-          overflow: 'hidden',
-          border: '1px solid var(--tableau-border, #e5e7eb)',
-        }}
-      >
-        <div
-          onClick={() => toggleRoundExpansion(round)}
-          style={{
-            padding: '0.75rem 1rem',
-            background: 'var(--tableau-panel-header, #f3f4f6)',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            userSelect: 'none',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '1rem' }}>{isExpanded ? '▼' : '▶'}</span>
-            <span style={{ fontWeight: '600', color: 'var(--tableau-title, #374151)' }}>
-              {roundName}
-            </span>
-          </div>
-          <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-            {roundMatches.length} match{roundMatches.length !== 1 ? 's' : ''}
-          </span>
-        </div>
-        {isExpanded && (
-          <div style={{ padding: '0.5rem' }}>
-            {roundMatches.map(match => (
-              <div key={match.id} style={{ marginBottom: '0.5rem' }}>
-                {renderMatch(match)}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -1287,7 +1322,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
             <button
               className="bracket-zoom-btn"
               onClick={() => setZoom(z => Math.min(2.5, parseFloat((z + 0.1).toFixed(2))))}
-              title="Zoom avant"
+              title={t('tableauView.zoom_in')}
             >
               +
             </button>
@@ -1298,14 +1333,14 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                 setZoom(1);
                 setPan({ x: 0, y: 0 });
               }}
-              title="Réinitialiser"
+              title={t('tableauView.zoom_reset')}
             >
               ⊙
             </button>
             <button
               className="bracket-zoom-btn"
               onClick={() => setZoom(z => Math.max(0.3, parseFloat((z - 0.1).toFixed(2))))}
-              title="Zoom arrière"
+              title={t('tableauView.zoom_out')}
             >
               −
             </button>
@@ -1335,44 +1370,33 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
               ))}
 
               <div style={TV_STYLES.summaryBox}>
-                <h4 style={TV_STYLES.summaryTitle}>Résumé des pistes</h4>
+                <h4 style={TV_STYLES.summaryTitle}>{t('tableauView.strips_summary')}</h4>
                 <div style={TV_STYLES.summaryFlex}>
                   {Array.from({ length: arenaCount }, (_, i) => i + 1).map(arenaNum => {
                     const arenaMatches = pendingMatches.filter(m => m.arena === arenaNum);
                     return (
                       <div
                         key={arenaNum}
-                        style={{
-                          padding: '0.5rem 0.75rem',
-                          background: arenaMatches.length > 0 ? '#d1fae5' : 'white',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          border: '1px solid #e5e7eb',
-                        }}
+                        className={`tv-arena-chip${arenaMatches.length > 0 ? ' is-busy' : ''}`}
                       >
-                        <strong>Piste {arenaNum}</strong>: {arenaMatches.length} match
-                        {arenaMatches.length !== 1 ? 's' : ''}
+                        <strong>{t('tableauView.strip_n', { n: arenaNum })}</strong>:{' '}
+                        {t('tableauView.matches', { count: arenaMatches.length })}
                       </div>
                     );
                   })}
                   <div
-                    style={{
-                      padding: '0.5rem 0.75rem',
-                      background:
-                        pendingMatches.filter(m => !m.arena).length > 0 ? '#fef3c7' : 'white',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      border: '1px solid #e5e7eb',
-                    }}
+                    className={`tv-arena-chip${pendingMatches.some(m => !m.arena) ? ' is-warning' : ''}`}
                   >
-                    <strong>Non assignés</strong>: {pendingMatches.filter(m => !m.arena).length}{' '}
-                    match{pendingMatches.filter(m => !m.arena).length !== 1 ? 's' : ''}
+                    <strong>{t('tableauView.unassigned')}</strong>:{' '}
+                    {t('tableauView.matches', {
+                      count: pendingMatches.filter(m => !m.arena).length,
+                    })}
                   </div>
                 </div>
               </div>
             </>
           ) : (
-            <div style={TV_STYLES.pendingEmpty}>✓ Tous les matches sont terminés</div>
+            <div style={TV_STYLES.pendingEmpty}>{t('tableauView.all_done')}</div>
           )
         ) : pyramidViewMode ? (
           <Bracket matches={convertToBracketMatches()} tableSize={tableauSize} />
@@ -1386,7 +1410,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           >
             {playAllPositions && matches.some(m => m.round === tableauSize * 2) && (
               <div style={TV_STYLES.barragesBox}>
-                <div style={TV_STYLES.barragesTitle}>Barrages</div>
+                <div style={TV_STYLES.barragesTitle}>{t('tableauView.barrages')}</div>
                 <div style={TV_STYLES.barragesFlex}>
                   {matches
                     .filter(m => m.round === tableauSize * 2)
@@ -1405,12 +1429,13 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                         onRefereeClick={openRefereeModal}
                         onSignaturesClick={setSignaturesMatch}
                         readOnly={readOnly}
+                        seedRanks={seedRanks}
                       />
                     ))}
                 </div>
               </div>
             )}
-            <div style={{ position: 'relative' }} ref={bracketWrapRef}>
+            <div className="relative" ref={bracketWrapRef}>
               {svgConnectors}
               <div style={TV_STYLES.fullRoundsRow}>{rounds.map(round => renderRound(round))}</div>
             </div>
@@ -1435,6 +1460,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           }}
           onRefereeClick={openRefereeModal}
           onSignaturesClick={setSignaturesMatch}
+          seedRanks={seedRanks}
         />
       )}
 
@@ -1461,6 +1487,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
               onClose={() => setShowScoreModal(false)}
               onSubmit={handleScoreSubmit}
               onSpecialStatus={handleSpecialStatus}
+              onMatchCancel={match.round <= tableauSize ? handleMatchCancel : undefined}
               getRoundName={getRoundName}
             />
           );

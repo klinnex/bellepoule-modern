@@ -6,6 +6,8 @@
 
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useTranslation } from '../../hooks/useTranslation';
 
 type RefereeInfo = { id: string; firstName: string; lastName: string };
 
@@ -29,6 +31,7 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
   onAssign,
   onClose,
 }) => {
+  const { t } = useTranslation();
   // Arbitres non pointés masqués, sauf ceux déjà assignés (#977)
   const referees = allReferees.filter(
     r => r.status !== 'unavailable' || currentReferees.some(c => c.id === r.id)
@@ -55,34 +58,51 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
   };
 
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
+  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   return createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+      <div
+        ref={modalRef}
+        className="modal"
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '400px' }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tableau-referee-title"
+      >
         <div className="modal-header">
-          <h3 className="modal-title">
-            {isMulti ? 'Assigner les arbitres' : 'Assigner un arbitre'}
+          <h3 className="modal-title" id="tableau-referee-title">
+            {isMulti ? t('tableauReferee.title_multi') : t('tableauReferee.title_one')}
           </h3>
-          <button className="btn-close" onClick={onClose}>
-            &times;
+          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
+            ×
           </button>
         </div>
         <div className="modal-body" style={{ padding: '1.5rem' }}>
-          <p style={{ marginBottom: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+          <p
+            style={{ marginBottom: '1rem', color: 'var(--color-text-light)', fontSize: '0.875rem' }}
+          >
             {isMulti
-              ? `Sélectionnez jusqu'à ${maxReferees} arbitres pour ce match (le premier sélectionné est l'arbitre principal) :`
-              : "Sélectionnez l'arbitre pour ce match :"}
+              ? t('tableauReferee.hint_multi', { n: maxReferees })
+              : t('tableauReferee.hint_one')}
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div className="u-stack-2">
             <button
               className={`btn ${currentReferees.length === 0 ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => onAssign([])}
               style={REF_BTN}
             >
-              ✕ Aucun arbitre
+              {t('tableauReferee.none')}
             </button>
             {referees.length === 0 && (
-              <p style={{ color: '#9ca3af', fontSize: '0.875rem', textAlign: 'center' }}>
-                Aucun arbitre pointé pour cette compétition
+              <p
+                style={{
+                  color: 'var(--color-text-muted)',
+                  fontSize: '0.875rem',
+                  textAlign: 'center',
+                }}
+              >
+                {t('tableauReferee.none_checked')}
               </p>
             )}
             {isMulti &&
@@ -105,7 +125,7 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
               })}
             {isMulti && referees.length > 0 && (
               <button className="btn btn-primary" onClick={confirm} style={REF_BTN}>
-                ✓ Valider ({pendingIds.length}/{maxReferees})
+                {t('tableauReferee.validate', { n: pendingIds.length, max: maxReferees })}
               </button>
             )}
             {!isMulti &&

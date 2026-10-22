@@ -4,18 +4,38 @@
  */
 
 import React from 'react';
+import {
+  ChevronRight,
+  Download,
+  FolderOpen,
+  LayoutGrid,
+  Medal,
+  Plus,
+  Swords,
+  Trophy,
+  Users,
+} from 'lucide-react';
 import { Competition, Weapon, Gender, Category } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
 import { usePagination } from '../hooks/usePagination';
-import { CompetitionCardSkeleton, SkeletonStyles } from './Skeleton';
+import { CompetitionCardSkeleton } from './Skeleton';
+import { useConfirm } from './ConfirmDialog';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
+
+const OPEN_FILE_LABEL = 'Ouvrir…';
+const OPEN_FILE_TITLE = 'Ouvrir un fichier .bpm, .db ou .cotcot';
 
 interface CompetitionListProps {
   competitions: Competition[];
   isLoading: boolean;
   onSelect: (competition: Competition) => void;
   onDelete: (id: string) => void;
+  /** Exporte la compétition en .bpm (#1117) */
+  onExport?: (id: string) => void;
   onNewCompetition: () => void;
+  /** Ouvre un fichier compétition existant (absent hors Electron) */
+  onOpenFile?: () => void;
 }
 
 const CompetitionListComponent: React.FC<CompetitionListProps> = ({
@@ -23,9 +43,20 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   isLoading,
   onSelect,
   onDelete,
+  onExport,
   onNewCompetition,
+  onOpenFile,
 }) => {
   const { t } = useTranslation();
+  const { confirm } = useConfirm();
+
+  const handleDelete = async (competition: Competition) => {
+    const ok = await confirm({
+      message: t('competition.delete_confirm', { title: competition.title }),
+      confirmLabel: t('actions.delete'),
+    });
+    if (ok) onDelete(competition.id);
+  };
   const {
     items: paginatedCompetitions,
     page,
@@ -47,7 +78,6 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   if (isLoading) {
     return (
       <div className="content">
-        <SkeletonStyles />
         <div className="flex justify-between items-center mb-4">
           <h1 className="page-title">{t('app.title')}</h1>
         </div>
@@ -61,6 +91,32 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   }
 
   if (competitions.length === 0) {
+    const steps = [
+      {
+        step: '1',
+        Icon: Trophy,
+        label: t('competitionList.s1_label'),
+        desc: t('competitionList.s1_desc'),
+      },
+      {
+        step: '2',
+        Icon: Users,
+        label: t('competitionList.s2_label'),
+        desc: t('competitionList.s2_desc'),
+      },
+      {
+        step: '3',
+        Icon: LayoutGrid,
+        label: t('competitionList.s3_label'),
+        desc: t('competitionList.s3_desc'),
+      },
+      {
+        step: '4',
+        Icon: Medal,
+        label: t('competitionList.s4_label'),
+        desc: t('competitionList.s4_desc'),
+      },
+    ];
     return (
       <div className="content">
         <div
@@ -69,12 +125,18 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            minHeight: '70vh',
-            gap: '3rem',
+            minHeight: 'calc(100vh - 220px)',
+            gap: '2.5rem',
           }}
         >
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🤺</div>
+          <div className="text-center">
+            <Swords
+              size={56}
+              strokeWidth={1.5}
+              color="var(--color-primary)"
+              aria-hidden="true"
+              className="mb-4"
+            />
             <h1
               style={{
                 fontSize: '1.75rem',
@@ -83,29 +145,34 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                 marginBottom: '0.5rem',
               }}
             >
-              Bienvenue sur BellePoule
+              {t('competitionList.welcome', { app: t('app.title') })}
             </h1>
             <p
               style={{
                 color: 'var(--color-text-light)',
                 fontSize: '1rem',
-                maxWidth: '36ch',
+                maxWidth: '48ch',
                 margin: '0 auto',
               }}
             >
-              Gérez vos compétitions d&apos;escrime de l&apos;appel au podium.
+              {t('competitionList.tagline')}
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            {[
-              { step: '1', icon: '🏆', label: 'Créer', desc: 'une compétition' },
-              { step: '2', icon: '🤺', label: 'Ajouter', desc: 'les tireurs' },
-              { step: '3', icon: '🎯', label: 'Générer', desc: 'les poules' },
-              { step: '4', icon: '🏅', label: 'Publier', desc: 'les résultats' },
-            ]
-              .map(({ step, icon, label, desc }) => (
-                <div
+          <ol
+            aria-label={t('competitionList.steps')}
+            style={{
+              display: 'flex',
+              gap: '1rem',
+              alignItems: 'flex-start',
+              listStyle: 'none',
+              padding: 0,
+              margin: 0,
+            }}
+          >
+            {steps
+              .map(({ step, Icon, label, desc }) => (
+                <li
                   key={step}
                   style={{
                     display: 'flex',
@@ -116,32 +183,30 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                   }}
                 >
                   <div
+                    aria-hidden="true"
                     style={{
                       width: 48,
                       height: 48,
                       borderRadius: '50%',
-                      background: 'var(--color-primary)',
-                      color: '#fff',
+                      background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)',
+                      color: 'var(--color-primary)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '1.25rem',
-                      fontWeight: 700,
-                      boxShadow: '0 4px 12px var(--color-primary-glow)',
                     }}
                   >
-                    {icon}
+                    <Icon size={22} strokeWidth={1.75} />
                   </div>
                   <div
                     style={{
                       fontSize: '0.6875rem',
                       fontWeight: 700,
-                      color: 'var(--color-text-muted)',
+                      color: 'var(--color-text-light)',
                       letterSpacing: '0.05em',
                       textTransform: 'uppercase',
                     }}
                   >
-                    Étape {step}
+                    {t('competitionList.step_n', { n: step })}
                   </div>
                   <div style={{ textAlign: 'center', fontSize: '0.8125rem', fontWeight: 600 }}>
                     {label}
@@ -155,38 +220,51 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                   >
                     {desc}
                   </div>
-                </div>
+                </li>
               ))
               .reduce<React.ReactNode[]>((acc, el, i) => {
                 if (i > 0)
                   acc.push(
-                    <div
+                    <li
                       key={`arrow-${i}`}
-                      style={{
-                        color: 'var(--color-border-dark)',
-                        marginTop: '1rem',
-                        fontSize: '1.25rem',
-                      }}
+                      aria-hidden="true"
+                      style={{ color: 'var(--color-text-light)', marginTop: '0.875rem' }}
                     >
-                      →
-                    </div>
+                      <ChevronRight size={20} />
+                    </li>
                   );
                 acc.push(el);
                 return acc;
               }, [])}
+          </ol>
+
+          <div
+            style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}
+          >
+            <button
+              className="btn btn-primary btn-lg btn-icon-label"
+              onClick={onNewCompetition}
+              style={{ padding: '0.75rem 2rem' }}
+            >
+              <Plus size={18} />
+              {t('menu.new_competition')}
+            </button>
+            {onOpenFile && (
+              <button
+                className="btn btn-secondary btn-lg btn-icon-label"
+                onClick={onOpenFile}
+                style={{ padding: '0.75rem 1.5rem' }}
+                title={OPEN_FILE_TITLE}
+              >
+                <FolderOpen size={18} />
+                {OPEN_FILE_LABEL}
+              </button>
+            )}
           </div>
 
-          <button
-            className="btn btn-primary btn-lg"
-            onClick={onNewCompetition}
-            style={{ padding: '0.75rem 2rem' }}
-          >
-            + {t('menu.new_competition')}
-          </button>
-
-          <p style={{ color: 'var(--color-text-light)', fontSize: '0.75rem' }}>
-            Astuce : appuyez sur <kbd>?</kbd> pour voir les raccourcis clavier, ou <kbd>Ctrl</kbd>+
-            <kbd>K</kbd> pour ouvrir la palette de commandes.
+          <p style={{ color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>
+            {t('competitionList.tip_1')} <kbd>?</kbd> {t('competitionList.tip_2')} <kbd>Ctrl</kbd>+
+            <kbd>K</kbd> {t('competitionList.tip_3')}
           </p>
         </div>
       </div>
@@ -194,7 +272,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   }
 
   const formatDate = (date: Date): string => {
-    return new Date(date).toLocaleDateString('fr-FR', {
+    return new Date(date).toLocaleDateString(getActiveLocale(), {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
@@ -206,9 +284,21 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     <div className="content">
       <div className="flex justify-between items-center mb-4">
         <h1 className="page-title">{t('app.title')}</h1>
-        <button className="btn btn-primary btn-lg" onClick={onNewCompetition}>
-          + {t('menu.new_competition')}
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          {onOpenFile && (
+            <button
+              className="btn btn-secondary btn-lg btn-icon-label"
+              onClick={onOpenFile}
+              title={OPEN_FILE_TITLE}
+            >
+              <FolderOpen size={18} />
+              {OPEN_FILE_LABEL}
+            </button>
+          )}
+          <button className="btn btn-primary btn-lg" onClick={onNewCompetition}>
+            + {t('menu.new_competition')}
+          </button>
+        </div>
       </div>
 
       <div className="competition-grid">
@@ -225,11 +315,24 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                   <h3 className="comp-card-title">{competition.title}</h3>
                   <p className="comp-card-date">{formatDate(competition.date)}</p>
                 </div>
+                {onExport && (
+                  <button
+                    className="btn btn-icon btn-secondary comp-card-delete"
+                    onClick={e => {
+                      e.stopPropagation();
+                      onExport(competition.id);
+                    }}
+                    title={t('competition.export_bpm')}
+                    aria-label={t('competition.export_bpm')}
+                  >
+                    <Download size={16} />
+                  </button>
+                )}
                 <button
                   className="btn btn-icon btn-secondary comp-card-delete"
                   onClick={e => {
                     e.stopPropagation();
-                    onDelete(competition.id);
+                    void handleDelete(competition);
                   }}
                   title={t('actions.delete')}
                 >
@@ -247,8 +350,10 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
               </div>
 
               <div className="comp-card-footer">
-                <span className="comp-card-fencers">🤺 {competition.fencers.length} tireurs</span>
-                <span className="comp-card-open">Ouvrir →</span>
+                <span className="comp-card-fencers">
+                  {t('competitionList.fencers', { n: competition.fencers.length })}
+                </span>
+                <span className="comp-card-open">{t('competitionList.open')}</span>
               </div>
             </div>
           </div>
@@ -270,7 +375,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             className="btn btn-secondary btn-sm"
             onClick={goToFirst}
             disabled={!hasPrev}
-            title="Première page"
+            title={t('competitionList.first_page')}
           >
             «
           </button>
@@ -278,7 +383,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             className="btn btn-secondary btn-sm"
             onClick={goToPrev}
             disabled={!hasPrev}
-            title="Page précédente"
+            title={t('competitionList.prev_page')}
           >
             ‹
           </button>
@@ -289,7 +394,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             className="btn btn-secondary btn-sm"
             onClick={goToNext}
             disabled={!hasNext}
-            title="Page suivante"
+            title={t('competitionList.next_page')}
           >
             ›
           </button>
@@ -297,7 +402,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             className="btn btn-secondary btn-sm"
             onClick={goToLast}
             disabled={!hasNext}
-            title="Dernière page"
+            title={t('competitionList.last_page')}
           >
             »
           </button>
@@ -309,7 +414,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           >
             {pageSizeOptions.map(s => (
               <option key={s} value={s}>
-                {s} / page
+                {t('competitionList.per_page', { n: s })}
               </option>
             ))}
           </select>

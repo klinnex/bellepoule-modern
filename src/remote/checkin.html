@@ -296,7 +296,7 @@
             const body = await res.json().catch(() => null);
             if (handleDenied(res, body)) return;
             if (!res.ok) {
-              $('list-error').textContent = (body && body.error) || window.T('login.error_connection');
+              $('list-error').textContent = window.errorText(body, window.T('login.error_connection'));
               return;
             }
             data = body;
@@ -321,7 +321,7 @@
             const body = await res.json().catch(() => null);
             if (handleDenied(res, body)) return;
             if (!res.ok) {
-              $('list-error').textContent = (body && body.error) || window.T('login.error_connection');
+              $('list-error').textContent = window.errorText(body, window.T('login.error_connection'));
             } else {
               p.present = !p.present;
               $('list-error').textContent = '';
@@ -350,7 +350,7 @@
               showMessage('checkin.not_configured');
             } else {
               $('login-error').textContent =
-                res.status === 401 ? window.T('login.error_incorrect') : (body && body.error) || '';
+                res.status === 401 ? window.T('login.error_incorrect') : window.errorText(body, '');
             }
           } catch (err) {
             $('login-error').textContent = window.T('login.error_connection');

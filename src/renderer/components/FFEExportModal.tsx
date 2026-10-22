@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { PoolRanking } from '../../shared/types';
 import { FFEConnectService, FFEResultEntry } from '@shared/services/ffeConnectService';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface FFEExportModalProps {
   ranking: PoolRanking[];
@@ -38,6 +39,7 @@ function toResultEntries(ranking: PoolRanking[]): {
 }
 
 const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [competitionCode, setCompetitionCode] = useState('');
   const [apiKey, setApiKey] = useState('');
@@ -49,7 +51,7 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
 
   const handleExport = async () => {
     if (!competitionCode.trim()) {
-      setErrors(['Le code de compétition est requis']);
+      setErrors([t('ffeExport.code_required')]);
       return;
     }
     setSending(true);
@@ -61,7 +63,7 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
 
     setSending(false);
     if (!result.success) {
-      setErrors(result.errors.length > 0 ? result.errors : ["Échec de l'export"]);
+      setErrors(result.errors.length > 0 ? result.errors : [t('ffeExport.failed')]);
       return;
     }
     setSuccess(true);
@@ -78,30 +80,34 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
         aria-modal="true"
       >
         <div className="modal-header">
-          <h2 className="modal-title">Exporter vers FFE Connect</h2>
-          <button className="btn btn-icon btn-secondary" onClick={onClose}>
-            &times;
+          <h2 className="modal-title">{t('ffeExport.title')}</h2>
+          <button
+            className="btn btn-icon btn-secondary"
+            onClick={onClose}
+            aria-label={t('actions.close')}
+          >
+            ×
           </button>
         </div>
 
         <div className="modal-body">
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
-            <label className="form-label">Code de compétition *</label>
+          <div className="form-group mb-4">
+            <label className="form-label">{t('ffeExport.code')}</label>
             <input
               className="form-input"
               type="text"
-              placeholder="ex: 2024-IDF-001"
+              placeholder={t('ffeExport.code_ph')}
               value={competitionCode}
               onChange={e => setCompetitionCode(e.target.value)}
               disabled={sending}
             />
           </div>
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
-            <label className="form-label">Clé API (optionnelle)</label>
+          <div className="form-group mb-4">
+            <label className="form-label">{t('ffeExport.api_key')}</label>
             <input
               className="form-input"
               type="password"
-              placeholder="Votre clé API FFE"
+              placeholder={t('ffeExport.api_key_ph')}
               value={apiKey}
               onChange={e => setApiKey(e.target.value)}
               disabled={sending}
@@ -109,8 +115,8 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
           </div>
 
           <p style={{ fontSize: '0.85rem', color: 'var(--color-text-light)' }}>
-            {entries.length} tireur(s) prêt(s) à exporter
-            {missingLicense > 0 && ` — ${missingLicense} sans numéro de licence (ignoré(s))`}
+            {t('plural.fencers_ready_export', { count: entries.length })}
+            {missingLicense > 0 && t('ffeExport.missing_license', { n: missingLicense })}
           </p>
 
           {errors.length > 0 && (
@@ -138,7 +144,7 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
                 color: '#15803d',
               }}
             >
-              Résultats envoyés à la FFE avec succès.
+              {t('ffeExport.success')}
             </div>
           )}
         </div>
@@ -148,14 +154,14 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
           style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}
         >
           <button className="btn btn-secondary" onClick={onClose}>
-            Fermer
+            {t('actions.close')}
           </button>
           <button
             className="btn btn-primary"
             onClick={handleExport}
             disabled={sending || entries.length === 0 || !competitionCode.trim()}
           >
-            {sending ? 'Envoi…' : 'Exporter'}
+            {sending ? t('ffeExport.sending') : t('actions.export')}
           </button>
         </div>
       </div>

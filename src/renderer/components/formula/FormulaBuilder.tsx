@@ -5,6 +5,7 @@
 
 import React, { useMemo, useState, memo } from 'react';
 import {
+  CompetitionSpecialMode,
   CustomDEConfig,
   CustomFormulaConfig,
   CustomPoolRoundConfig,
@@ -15,13 +16,23 @@ import { createDefaultCustomFormula } from '../../../shared/utils/tournamentTemp
 import { FormulaPhaseCard } from './FormulaPhaseCard';
 import { FormulaSimulationPreview } from './FormulaSimulationPreview';
 import { FormulaTemplateModal } from './FormulaTemplateModal';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface Props {
   formula: CustomFormulaConfig;
   fencerCount?: number;
   onChange: (formula: CustomFormulaConfig) => void;
   readOnly?: boolean;
+  /** Mode spécial choisi (bouton « Modes spéciaux » affiché si `onSpecialModeChange`) (#1118) */
+  specialMode?: CompetitionSpecialMode;
+  onSpecialModeChange?: (mode: CompetitionSpecialMode | undefined) => void;
+  /** Grise « Avancement vers la phase suivante » (par défaut : actif en mode rapières) (#1118) */
+  advancementDisabled?: boolean;
+  /** Règles affichées quand la formule n'en choisit pas (armes modernes en mode rapières, #1118) */
+  defaultRuleSet?: 'modern' | 'laser';
 }
+
+const SPECIAL_MODES: CompetitionSpecialMode[] = ['rapieres'];
 
 function uid(): string {
   return `phase_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -89,8 +100,20 @@ function computeInputFencers(phases: FormulaPhaseNode[], index: number, initial:
   return count;
 }
 
-const FormulaBuilder_: React.FC<Props> = ({ formula, fencerCount = 32, onChange, readOnly }) => {
+const FormulaBuilder_: React.FC<Props> = ({
+  formula,
+  fencerCount = 32,
+  onChange,
+  readOnly,
+  specialMode,
+  onSpecialModeChange,
+  advancementDisabled: advancementDisabledProp,
+  defaultRuleSet,
+}) => {
+  const { t } = useTranslation();
+  const advancementDisabled = advancementDisabledProp ?? specialMode === 'rapieres';
   const [templateModal, setTemplateModal] = useState<'save' | 'load' | null>(null);
+  const [specialMenuOpen, setSpecialMenuOpen] = useState(false);
 
   const simulation = useMemo(() => simulateFormula(fencerCount, formula), [fencerCount, formula]);
 
@@ -140,6 +163,10 @@ const FormulaBuilder_: React.FC<Props> = ({ formula, fencerCount = 32, onChange,
 
   const updateNotes = (notes: string) => onChange({ ...formula, notes });
 
+  const ruleSet =
+    formula.ruleSet ?? defaultRuleSet ?? (specialMode === 'rapieres' ? 'modern' : 'laser');
+  const restTimeSeconds = formula.restTimeSeconds ?? 60;
+
   return (
     <div className="formula-builder">
       {/* Barre d'outils */}
@@ -150,7 +177,7 @@ const FormulaBuilder_: React.FC<Props> = ({ formula, fencerCount = 32, onChange,
             className="form-input formula-name-input"
             value={formula.formulaName ?? ''}
             onChange={e => updateFormulaName(e.target.value)}
-            placeholder="Nom de la formule"
+            placeholder={t('formulaBuilder.name_ph')}
             disabled={readOnly}
           />
         </div>
@@ -161,25 +188,25 @@ const FormulaBuilder_: React.FC<Props> = ({ formula, fencerCount = 32, onChange,
               type="button"
               className="btn btn-secondary btn-sm formula-add-btn pool-add"
               onClick={addPoolRound}
-              title="Ajouter un tour de poules"
+              title={t('formula.add_pool_round')}
             >
-              + Poules
+              {t('formulaBuilder.pools_btn')}
             </button>
             <button
               type="button"
               className="btn btn-secondary btn-sm formula-add-btn de-add"
               onClick={addDE}
-              title="Ajouter une phase d'élimination directe"
+              title={t('formulaBuilder.add_de_title')}
             >
-              + DE
+              {t('formulaBuilder.de_btn')}
             </button>
             <button
               type="button"
               className="btn btn-secondary btn-sm formula-add-btn class-add"
               onClick={addClassification}
-              title="Ajouter une phase de classement"
+              title={t('formulaBuilder.add_cls_title')}
             >
-              + Classement
+              {t('formulaBuilder.cls_btn')}
             </button>
           </div>
         )}
@@ -190,69 +217,173 @@ const FormulaBuilder_: React.FC<Props> = ({ formula, fencerCount = 32, onChange,
               type="button"
               className="btn btn-secondary btn-sm"
               onClick={() => setTemplateModal('save')}
-              title="Enregistrer comme modèle"
+              title={t('formula.save_template')}
             >
-              Enregistrer modèle
+              {t('formulaBuilder.save_btn')}
             </button>
           )}
           <button
             type="button"
             className="btn btn-secondary btn-sm"
             onClick={() => setTemplateModal('load')}
-            title="Charger un modèle"
+            title={t('formula.load_template')}
           >
-            Charger modèle
+            {t('formulaBuilder.load_btn')}
           </button>
-        </div>
-      </div>
-
-      {/* Contenu principal : pipeline + simulation */}
-      <div className="formula-builder-content">
-        {/* Pipeline de phases */}
-        <div className="formula-pipeline">
-          {formula.phases.length === 0 ? (
-            <div className="formula-empty-state">
-              <p>Aucune phase configurée.</p>
-              <p>Utilisez les boutons ci-dessus pour ajouter des phases.</p>
+          {onSpecialModeChange && !readOnly && (
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <button
+                type="button"
+                className={`btn btn-sm ${specialMode ? 'btn-primary' : 'btn-secondary'}`}
+                aria-haspopup="menu"
+                aria-expanded={specialMenuOpen}
+                onClick={() => setSpecialMenuOpen(o => !o)}
+              >
+                {specialMode
+                  ? `${t('rapieres.special_modes')} : ${t(`rapieres.mode_${specialMode}`)}`
+                  : t('rapieres.special_modes')}
+                {' ▾'}
+              </button>
+              {specialMenuOpen && (
+                <div
+                  role="menu"
+                  className="card"
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: '100%',
+                    zIndex: 20,
+                    minWidth: '16rem',
+                    padding: '0.25rem',
+                    display: 'grid',
+                  }}
+                >
+                  {[undefined, ...SPECIAL_MODES].map(mode => (
+                    <button
+                      key={mode ?? 'none'}
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={specialMode === mode}
+                      className="btn btn-sm btn-ghost"
+                      style={{
+                        justifyContent: 'flex-start',
+                        fontWeight: specialMode === mode ? 700 : 400,
+                      }}
+                      onClick={() => {
+                        onSpecialModeChange(mode);
+                        setSpecialMenuOpen(false);
+                      }}
+                    >
+                      {mode ? t(`rapieres.mode_${mode}`) : t('rapieres.mode_none')}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          ) : (
-            formula.phases.map((node, index) => (
-              <React.Fragment key={node.id}>
-                <FormulaPhaseCard
-                  node={node}
-                  index={index}
-                  inputFencers={computeInputFencers(formula.phases, index, fencerCount)}
-                  onUpdate={updated => updatePhase(index, updated)}
-                  onRemove={() => removePhase(index)}
-                  readOnly={readOnly}
-                  canMoveUp={index > 0}
-                  canMoveDown={index < formula.phases.length - 1}
-                  onMoveUp={() => movePhase(index, index - 1)}
-                  onMoveDown={() => movePhase(index, index + 1)}
-                />
-                {index < formula.phases.length - 1 && <div className="phase-connector">↓</div>}
-              </React.Fragment>
-            ))
           )}
         </div>
+      </div>
 
-        {/* Simulation temps réel */}
-        <div className="formula-simulation-panel">
-          <FormulaSimulationPreview simulation={simulation} fencerCount={fencerCount} />
+      {specialMode ? (
+        <div className="card" style={{ padding: '1rem', marginTop: '0.75rem' }}>
+          <strong>{t(`rapieres.mode_${specialMode}`)}</strong>
+          <p style={{ marginTop: '0.5rem' }}>{t(`rapieres.mode_description`)}</p>
+        </div>
+      ) : (
+        /* Contenu principal : pipeline + simulation */
+        <div className="formula-builder-content">
+          {/* Pipeline de phases */}
+          <div className="formula-pipeline">
+            {formula.phases.length === 0 ? (
+              <div className="formula-empty-state">
+                <p>{t('formulaBuilder.empty')}</p>
+                <p>{t('formulaBuilder.empty_hint')}</p>
+              </div>
+            ) : (
+              formula.phases.map((node, index) => (
+                <React.Fragment key={node.id}>
+                  <FormulaPhaseCard
+                    node={node}
+                    index={index}
+                    inputFencers={computeInputFencers(formula.phases, index, fencerCount)}
+                    onUpdate={updated => updatePhase(index, updated)}
+                    onRemove={() => removePhase(index)}
+                    readOnly={readOnly}
+                    canMoveUp={index > 0}
+                    canMoveDown={index < formula.phases.length - 1}
+                    onMoveUp={() => movePhase(index, index - 1)}
+                    onMoveDown={() => movePhase(index, index + 1)}
+                    advancementDisabled={advancementDisabled}
+                  />
+                  {index < formula.phases.length - 1 && <div className="phase-connector">↓</div>}
+                </React.Fragment>
+              ))
+            )}
+          </div>
 
-          <div className="formula-notes-group">
-            <label className="form-label">Notes</label>
-            <textarea
-              className="form-input formula-notes-input"
-              value={formula.notes ?? ''}
-              onChange={e => updateNotes(e.target.value)}
-              placeholder="Notes sur la formule (optionnel)"
-              rows={3}
-              disabled={readOnly}
-            />
+          {/* Simulation temps réel */}
+          <div className="formula-simulation-panel">
+            <FormulaSimulationPreview simulation={simulation} fencerCount={fencerCount} />
+
+            {/* Règles de match appliquées par les tablettes arbitre (#1125) */}
+            <div className="formula-notes-group">
+              <label className="form-label" htmlFor="formula-rule-set">
+                {t('formula.rule_set')}
+              </label>
+              <select
+                id="formula-rule-set"
+                className="form-input"
+                value={ruleSet}
+                onChange={e =>
+                  onChange({ ...formula, ruleSet: e.target.value as 'modern' | 'laser' })
+                }
+                disabled={readOnly}
+              >
+                <option value="laser">{t('formula.rule_set_laser')}</option>
+                <option value="modern">{t('formula.rule_set_modern')}</option>
+              </select>
+              {ruleSet === 'modern' && (
+                <>
+                  <label className="form-label" htmlFor="formula-rest-time">
+                    {t('formula.rest_time')}
+                  </label>
+                  <input
+                    id="formula-rest-time"
+                    type="number"
+                    className="form-input"
+                    min={0}
+                    value={restTimeSeconds}
+                    onChange={e =>
+                      onChange({
+                        ...formula,
+                        restTimeSeconds: Math.max(0, parseInt(e.target.value) || 0),
+                      })
+                    }
+                    disabled={readOnly}
+                  />
+                  <small>
+                    {restTimeSeconds === 0
+                      ? '0 = bouton « Repos » désactivé'
+                      : 'Bouton « Repos » de la tablette arbitre, quand le chrono arrive à 00:00'}
+                  </small>
+                </>
+              )}
+            </div>
+
+            <div className="formula-notes-group">
+              <label className="form-label">{t('formulaBuilder.notes')}</label>
+              <textarea
+                className="form-input formula-notes-input"
+                value={formula.notes ?? ''}
+                onChange={e => updateNotes(e.target.value)}
+                placeholder={t('formulaBuilder.notes_ph')}
+                rows={3}
+                disabled={readOnly}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Modals */}
       {templateModal && (

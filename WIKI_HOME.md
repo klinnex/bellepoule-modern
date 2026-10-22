@@ -62,7 +62,7 @@ BellePoule Modern is a complete rewrite of legendary BellePoule fencing tourname
 3. **[Create](USER_MANUAL.md#-creating-a-competition)** your first competition
 4. **[Import fencers](USER_MANUAL.md#importing-fencers)** from FFF/CSV files
 5. **[Generate pools](USER_MANUAL.md#phase-2-pool-rounds)** automatically
-6. **[Start scoring](REMOTE_SCORE_QUICKSTART.md)** matches from tablets
+6. **[Start scoring](REMOTE_SCORE_GUIDE.md#démarrage-express)** matches from tablets
 
 ### For Users Migrating from Original BellePoule
 

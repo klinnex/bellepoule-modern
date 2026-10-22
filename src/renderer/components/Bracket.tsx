@@ -6,6 +6,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { Fencer } from '../../shared/types';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface BracketMatch {
   id: string;
@@ -40,6 +41,17 @@ const MATCH_HEIGHT = 70;
 const HORIZONTAL_GAP = 80;
 const VERTICAL_GAP = 10;
 
+/** Libellé des tours (1 = finale, 2 = demi-finales…) */
+const ROUND_KEYS: Record<number, string> = {
+  1: 'bracket.final',
+  2: 'bracket.semis',
+  3: 'bracket.quarters',
+  4: 'bracket.r16',
+  5: 'bracket.r32',
+  6: 'bracket.r64',
+  7: 'bracket.r128',
+};
+
 const Bracket: React.FC<BracketProps> = ({
   matches,
   tableSize,
@@ -48,6 +60,7 @@ const Bracket: React.FC<BracketProps> = ({
   thirdPlaceMatch = false,
   className = '',
 }) => {
+  const { t } = useTranslation();
   const [hoveredMatch, setHoveredMatch] = useState<string | null>(null);
   const [editingMatch, setEditingMatch] = useState<string | null>(null);
   const [layoutMode, setLayoutMode] = useState<'horizontal' | 'pyramid'>('horizontal');
@@ -236,7 +249,7 @@ const Bracket: React.FC<BracketProps> = ({
             style={{
               fontWeight: isWinner ? 'bold' : 'normal',
               color: textColor,
-              fontSize: '13px',
+              fontSize: '0.8125rem',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -244,7 +257,9 @@ const Bracket: React.FC<BracketProps> = ({
           >
             {fencer ? `${fencer.lastName} ${fencer.firstName.charAt(0)}.` : 'TBD'}
           </div>
-          {fencer?.club && <div style={{ fontSize: '10px', color: '#6c757d' }}>{fencer.club}</div>}
+          {fencer?.club && (
+            <div style={{ fontSize: '0.625rem', color: '#6c757d' }}>{fencer.club}</div>
+          )}
         </div>
         <div
           style={{
@@ -254,7 +269,7 @@ const Bracket: React.FC<BracketProps> = ({
             justifyContent: 'center',
             borderLeft: `1px solid ${border}`,
             fontWeight: 'bold',
-            fontSize: '14px',
+            fontSize: '0.875rem',
             color: textColor,
             flexShrink: 0,
           }}
@@ -271,19 +286,7 @@ const Bracket: React.FC<BracketProps> = ({
 
     // round=1=Finale, round=2=Demi, round=3=Quarts, round=4=16èmes, ...
     const roundName = (round: number) =>
-      round === 1
-        ? 'Finale'
-        : round === 2
-          ? 'Demi-finales'
-          : round === 3
-            ? 'Quarts'
-            : round === 4
-              ? '16èmes'
-              : round === 5
-                ? '32èmes'
-                : round === 6
-                  ? '64èmes'
-                  : `Tour ${round}`;
+      ROUND_KEYS[round] && round <= 6 ? t(ROUND_KEYS[round]) : t('bracket.round_n', { n: round });
 
     return (
       <div
@@ -308,7 +311,7 @@ const Bracket: React.FC<BracketProps> = ({
               fontSize: '0.75rem',
             }}
           >
-            Tout déplier
+            {t('bracket.expand_all')}
           </button>
           <button
             onClick={collapseAll}
@@ -322,7 +325,7 @@ const Bracket: React.FC<BracketProps> = ({
               fontSize: '0.75rem',
             }}
           >
-            Tout replier
+            {t('bracket.collapse_all')}
           </button>
         </div>
         {sortedRounds.map(round => {
@@ -348,7 +351,7 @@ const Bracket: React.FC<BracketProps> = ({
                   textAlign: 'center',
                   fontWeight: '600',
                   marginBottom: '1rem',
-                  color: '#374151',
+                  color: 'var(--color-text)',
                   fontSize: '1.1rem',
                   cursor: 'pointer',
                   display: 'flex',
@@ -397,12 +400,12 @@ const Bracket: React.FC<BracketProps> = ({
                           <div
                             style={{
                               textAlign: 'center',
-                              fontSize: '10px',
+                              fontSize: '0.625rem',
                               color: '#6c757d',
                               marginBottom: '2px',
                             }}
                           >
-                            EXEMPT
+                            {t('bracket.bye')}
                           </div>
                         )}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -428,8 +431,9 @@ const Bracket: React.FC<BracketProps> = ({
         <button
           onClick={() => setLayoutMode('horizontal')}
           style={{
-            background: layoutMode === 'horizontal' ? '#3b82f6' : '#e5e7eb',
-            color: layoutMode === 'horizontal' ? 'white' : '#374151',
+            background:
+              layoutMode === 'horizontal' ? 'var(--color-primary)' : 'var(--color-border)',
+            color: layoutMode === 'horizontal' ? 'white' : 'var(--color-text)',
             border: 'none',
             padding: '0.5rem 1rem',
             borderRadius: '6px',
@@ -440,15 +444,15 @@ const Bracket: React.FC<BracketProps> = ({
             alignItems: 'center',
             gap: '0.25rem',
           }}
-          title="Vue horizontale"
+          title={t('bracket.horizontal')}
         >
-          🔲 Vue horizontale
+          🔲 {t('bracket.horizontal')}
         </button>
         <button
           onClick={() => setLayoutMode('pyramid')}
           style={{
-            background: layoutMode === 'pyramid' ? '#8b5cf6' : '#e5e7eb',
-            color: layoutMode === 'pyramid' ? 'white' : '#374151',
+            background: layoutMode === 'pyramid' ? '#8b5cf6' : 'var(--color-border)',
+            color: layoutMode === 'pyramid' ? 'white' : 'var(--color-text)',
             border: 'none',
             padding: '0.5rem 1rem',
             borderRadius: '6px',
@@ -459,9 +463,9 @@ const Bracket: React.FC<BracketProps> = ({
             alignItems: 'center',
             gap: '0.25rem',
           }}
-          title="Vue pyramidale"
+          title={t('bracket.pyramid')}
         >
-          🔺 Vue pyramidale
+          🔺 {t('bracket.pyramid')}
         </button>
       </div>
 
@@ -525,7 +529,7 @@ const Bracket: React.FC<BracketProps> = ({
                     fill="#6c757d"
                     fontSize={10}
                   >
-                    EXEMPT
+                    {t('bracket.bye')}
                   </text>
                 )}
 
@@ -542,7 +546,7 @@ const Bracket: React.FC<BracketProps> = ({
                     fill="#6c757d"
                     fontSize={10}
                   >
-                    {match.position <= tableSize / 4 ? `1/${tableSize / 2}` : 'Finale'}
+                    {match.position <= tableSize / 4 ? `1/${tableSize / 2}` : t('bracket.final')}
                   </text>
                 )}
               </g>
@@ -553,15 +557,9 @@ const Bracket: React.FC<BracketProps> = ({
           {Array.from(rounds.keys()).map(round => {
             const pos = calculateMatchPosition(round, 1);
             // round=1=Finale, round=2=Demi, round=3=Quarts, round=4=16èmes, ...
-            const roundNames: Record<number, string> = {
-              1: 'Finale',
-              2: 'Demi-finales',
-              3: 'Quarts',
-              4: '16èmes',
-              5: '32èmes',
-              6: '64èmes',
-              7: '128èmes',
-            };
+            const roundNames: Record<number, string> = Object.fromEntries(
+              Object.entries(ROUND_KEYS).map(([r, key]) => [r, t(key)])
+            );
 
             return (
               <text
@@ -573,7 +571,7 @@ const Bracket: React.FC<BracketProps> = ({
                 fontSize={12}
                 fontWeight="bold"
               >
-                {roundNames[round] || `Tour ${round}`}
+                {roundNames[round] || t('bracket.round_n', { n: round })}
               </text>
             );
           })}

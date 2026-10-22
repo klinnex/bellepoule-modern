@@ -5,7 +5,8 @@
  */
 
 import type { Referee, RefereeComment } from '../../types';
-import { savePDF, BASE_CSS } from './core';
+import { savePDF, BASE_CSS, pdfLang, pdfT } from './core';
+import { getActiveLocale } from '../localeFormat';
 
 const esc = (s: unknown): string =>
   String(s ?? '').replace(
@@ -19,7 +20,7 @@ export function generateRefereeCommentsHTML(
   competitionName?: string,
   logoBase64?: string
 ): string {
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -40,7 +41,7 @@ export function generateRefereeCommentsHTML(
           (c, i) => `
       <tr>
         <td class="num">${i + 1}</td>
-        <td class="when">${esc(new Date(c.createdAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}</td>
+        <td class="when">${esc(new Date(c.createdAt).toLocaleString(getActiveLocale(), { dateStyle: 'short', timeStyle: 'short' }))}</td>
         <td class="ctx">${esc(c.matchLabel ?? '—')}</td>
         <td class="author">${esc(c.author ?? '—')}</td>
         <td class="text">${esc(c.comment)}</td>
@@ -53,14 +54,14 @@ export function generateRefereeCommentsHTML(
       ${logoBase64 ? `<img class="doc-header-logo" src="${logoBase64}" alt="Logo" />` : ''}
       <div class="doc-header-left">
         <h1>${esc(`${r.lastName ?? ''} ${r.firstName ?? ''}`.trim())}</h1>
-        <div class="subtitle">${esc(competitionName ? `${competitionName} — ` : '')}Compte rendu de formation · ${list.length} commentaire${list.length > 1 ? 's' : ''}</div>
+        <div class="subtitle">${esc(competitionName ? `${competitionName} — ` : '')}${pdfT('training_report', 'Compte rendu de formation')} · ${pdfT('comments_count', list.length > 1 ? '{{count}} commentaires' : '{{count}} commentaire', { count: list.length })}</div>
       </div>
       <div class="doc-header-badge" style="font-size:11pt">AR</div>
     </div>
     <div class="gold-bar"></div>
     <table>
       <colgroup><col class="num"><col class="when"><col class="ctx"><col class="author"><col></colgroup>
-      <thead><tr><th>#</th><th>Date</th><th>Match</th><th>Formateur</th><th>Commentaire</th></tr></thead>
+      <thead><tr><th>#</th><th>${pdfT('col_date', 'Date')}</th><th>${pdfT('col_match', 'Match')}</th><th>${pdfT('col_trainer', 'Formateur')}</th><th>${pdfT('col_comment', 'Commentaire')}</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
     <div class="doc-footer">
@@ -72,10 +73,10 @@ export function generateRefereeCommentsHTML(
     .join('\n');
 
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
-  <title>Commentaires arbitres</title>
+  <title>${pdfT('referee_comments_title', 'Commentaires arbitres')}</title>
   <style>
     ${BASE_CSS}
     .page { page-break-after: always; }
@@ -101,7 +102,7 @@ export function generateRefereeCommentsHTML(
   </style>
 </head>
 <body>
-${pages || '<div class="empty">Aucun commentaire enregistré.</div>'}
+${pages || `<div class="empty">${pdfT('referee_comments_empty', 'Aucun commentaire enregistré.')}</div>`}
 </body>
 </html>`;
 }

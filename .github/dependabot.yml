@@ -1,0 +1,25 @@
+# Mises à jour automatiques des dépendances (#1150). Les PR visent dev.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    # Pas de bump majeur automatique (Electron, webpack, vitest… à traiter à la main) ;
+    # les alertes de sécurité restent proposées par Dependabot.
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    groups:
+      npm-patch-minor:
+        update-types: [patch, minor]
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']

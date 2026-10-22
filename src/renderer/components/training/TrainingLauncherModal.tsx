@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from '../../hooks/useTranslation';
 import { X, Swords, Minus, Plus, Clock, Zap, Network } from 'lucide-react';
 import { Weapon, TargetZone, ZONE_POINTS, ZONE_LABELS } from '../../../shared/types';
 import type { TrainingCustomRules } from '../../../shared/types/preload';
@@ -42,6 +43,7 @@ function loadSavedInterface(): string {
 }
 
 const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }) => {
+  const { t } = useTranslation();
   const [weapon, setWeapon] = useState<string>(Weapon.EPEE);
   const [strips, setStrips] = useState(1);
   const [matchDuration, setMatchDuration] = useState(180);
@@ -160,9 +162,9 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               gap: '0.5rem',
             }}
           >
-            <Swords size={18} /> Mode Entraînement
+            <Swords size={18} /> {t('trainingLauncher.title')}
           </h2>
-          <button className="btn btn-icon" onClick={onClose} title="Fermer">
+          <button className="btn btn-icon" onClick={onClose} title={t('actions.close')}>
             <X size={16} />
           </button>
         </div>
@@ -178,7 +180,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                 fontSize: '0.875rem',
               }}
             >
-              Arme
+              {t('trainingLauncher.weapon')}
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
               {Object.entries(WEAPON_LABELS).map(([key, label]) => (
@@ -220,7 +222,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                 fontSize: '0.875rem',
               }}
             >
-              Nombre de pistes
+              {t('trainingLauncher.strips')}
             </label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <button
@@ -256,7 +258,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                   marginLeft: '0.25rem',
                 }}
               >
-                piste{strips > 1 ? 's' : ''}
+                {t('trainingLauncher.strip_unit', { count: strips })}
               </span>
             </div>
           </div>
@@ -273,7 +275,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                 fontSize: '0.875rem',
               }}
             >
-              <Clock size={14} /> Durée du combat — <strong>{durationLabel}</strong>
+              <Clock size={14} /> {t('trainingLauncher.duration')} <strong>{durationLabel}</strong>
             </label>
             <input
               type="range"
@@ -329,14 +331,14 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                 fontSize: '0.875rem',
               }}
             >
-              <Network size={14} /> Interface réseau
+              <Network size={14} /> {t('trainingLauncher.network')}
             </label>
             <select
               id="training-interface"
               value={selectedInterface}
               onChange={e => handleInterfaceChange(e.target.value)}
               disabled={isLoading}
-              style={{ width: '100%' }}
+              className="w-full"
             >
               {networkInterfaces.map(iface => (
                 <option key={iface.address} value={iface.address}>
@@ -359,7 +361,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                     fontSize: '0.875rem',
                   }}
                 >
-                  Zones autorisées{' '}
+                  {t('trainingLauncher.zones')}{' '}
                   <span
                     style={{
                       fontWeight: 400,
@@ -367,7 +369,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                       fontSize: '0.8125rem',
                     }}
                   >
-                    (vide = toutes)
+                    {t('trainingLauncher.zones_hint')}
                   </span>
                 </label>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -399,9 +401,11 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                           transition: 'all 0.15s',
                         }}
                       >
-                        <div style={{ fontSize: '1rem', fontWeight: 700 }}>Zone {zone}</div>
+                        <div style={{ fontSize: '1rem', fontWeight: 700 }}>
+                          {t('trainingLauncher.zone_n', { z: zone })}
+                        </div>
                         <div style={{ fontSize: '0.75rem' }}>
-                          {pts} pt{pts > 1 ? 's' : ''}
+                          {t('trainingLauncher.pts', { count: pts })}
                         </div>
                         <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>{label}</div>
                       </button>
@@ -459,7 +463,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                     }}
                   >
                     <Zap size={14} />
-                    Désactiver la mort subite
+                    {t('trainingLauncher.no_sudden_death')}
                   </span>
                 </label>
                 {disableSuddenDeath && (
@@ -470,7 +474,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                       color: 'var(--color-text-muted)',
                     }}
                   >
-                    Égalité à temps → fin du match sans prolongation.
+                    {t('trainingLauncher.no_sudden_death_hint')}
                   </p>
                 )}
               </div>
@@ -479,7 +483,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
 
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
             <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Annuler
+              {t('actions.cancel')}
             </button>
             <button type="submit" className="btn btn-primary" disabled={isLoading}>
               {isLoading ? 'Démarrage…' : 'Lancer'}

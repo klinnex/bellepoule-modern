@@ -47,6 +47,7 @@ import { CompetitionViewSkeleton } from './components/Skeleton';
 import { ToastProvider, useToast } from './components/Toast';
 import { ConfirmProvider, useConfirm } from './components/ConfirmDialog';
 import { TranslationProvider, useTranslation, Theme } from './contexts/TranslationContext';
+import { ipcErrorText } from './services/ipcError';
 import { ErrorBoundary, CompetitionErrorBoundary } from './components/ErrorBoundary';
 import { useAppState } from './hooks/useAppState';
 
@@ -119,6 +120,9 @@ const AppContent: React.FC = () => {
     handleTabSwitch,
   } = useAppState(showToast);
 
+  // Accueil sans compétition : l'état vide porte déjà le CTA principal
+  const isEmptyHome = view === 'home' && !isLoading && competitions.length === 0;
+
   // Load competitions on mount — attendre db:ready si la fenêtre s'ouvre avant la DB
   useEffect(() => {
     if (window.electronAPI?.onDbReady) {
@@ -147,9 +151,20 @@ const AppContent: React.FC = () => {
       window.electronAPI.onShowAbout(() => setShowAboutModal(true));
 
       // Listen for file operations
-      window.electronAPI.onFileOpened(async (filepath: string) => {
-        logger.debug(LogCategory.UI, 'Fichier .BPM ouvert', { filepath });
+      window.electronAPI.onFileOpened(async (filepath: string, competitionIds?: string[]) => {
+        logger.debug(LogCategory.UI, 'Fichier .BPM ouvert', { filepath, competitionIds });
         await loadCompetitions();
+        if (competitionIds?.length) {
+          showToast(
+            competitionIds.length === 1
+              ? 'Compétition importée'
+              : `${competitionIds.length} compétitions importées`,
+            'success'
+          );
+        }
+        // Une seule compétition : l'ouvrir avec son état sauvegardé (#1117)
+        if (competitionIds?.length === 1)
+          await openImportedCompetitionRef.current(competitionIds[0]);
       });
 
       window.electronAPI.onFileSaved(async (filepath: string) => {
@@ -345,6 +360,50 @@ const AppContent: React.FC = () => {
     [handleSelectCompetition, showToast]
   );
 
+  // Ouvre (ou recharge) une compétition fusionnée depuis un .bpm (#1117)
+  const openImportedCompetition = useCallback(
+    async (id: string) => {
+      const comp = await window.electronAPI.db.getCompetition(id);
+      if (!comp) return;
+      comp.fencers = await window.electronAPI.db.getFencersByCompetition(id);
+      // Onglet déjà ouvert : le démonter pour relire l'état importé
+      setOpenCompetitions(prev => prev.filter(open => open.competition.id !== id));
+      setCurrentCompetition(null);
+      setActiveTabId(null);
+      await new Promise(resolve => setTimeout(resolve, 0));
+      setOpenCompetitions(prev => [
+        ...prev.filter(open => open.competition.id !== id),
+        { competition: comp, isDirty: false },
+      ]);
+      setActiveTabId(comp.id);
+      setCurrentCompetition(comp);
+      setView('competition');
+    },
+    [setOpenCompetitions, setCurrentCompetition, setActiveTabId, setView]
+  );
+  const openImportedCompetitionRef = useRef(openImportedCompetition);
+  openImportedCompetitionRef.current = openImportedCompetition;
+
+  // Compétition affichée → main (« Enregistrer sous » l'exporte seule, #1117)
+  useEffect(() => {
+    window.electronAPI?.setCurrentCompetition?.(
+      view === 'competition' && currentCompetition ? currentCompetition.id : null
+    );
+  }, [view, currentCompetition]);
+
+  const handleExportCompetition = useCallback(
+    async (id: string) => {
+      try {
+        const res = await window.electronAPI?.file?.exportCompetition?.(id);
+        if (res?.success) showToast('Compétition exportée', 'success');
+      } catch (error) {
+        logger.error(LogCategory.UI, 'Failed to export competition', error as Error);
+        showToast("Échec de l'export de la compétition", 'error');
+      }
+    },
+    [showToast]
+  );
+
   const handleTabClose = useCallback(
     async (competitionId: string, e?: React.MouseEvent) => {
       if (e) {
@@ -393,7 +452,7 @@ const AppContent: React.FC = () => {
       try {
         const startRes = await window.electronAPI.training.startServer(undefined, host);
         if (!startRes.success || !startRes.serverInfo) {
-          showToast(startRes.error ?? 'Impossible de démarrer le serveur', 'error');
+          showToast(ipcErrorText(t, startRes, 'Impossible de démarrer le serveur'), 'error');
           return;
         }
         const sessionRes = await window.electronAPI.training.startSession(
@@ -403,7 +462,7 @@ const AppContent: React.FC = () => {
         );
         if (!sessionRes.success) {
           await window.electronAPI.training.stopServer();
-          showToast(sessionRes.error ?? 'Impossible de démarrer la session', 'error');
+          showToast(ipcErrorText(t, sessionRes, 'Impossible de démarrer la session'), 'error');
           return;
         }
         setTrainingServerUrl(startRes.serverInfo.url);
@@ -418,7 +477,7 @@ const AppContent: React.FC = () => {
         setTrainingLaunching(false);
       }
     },
-    [showToast]
+    [showToast, t]
   );
 
   const handleStopTraining = useCallback(async () => {
@@ -487,15 +546,17 @@ const AppContent: React.FC = () => {
             <Swords size={22} strokeWidth={1.75} />
             {t('app.title')}
           </div>
-          {/* Ctrl+K hint — clickable */}
-          <button
-            className="header-search-hint"
-            onClick={() => setShowCommandPalette(true)}
-            title="Ouvrir la palette de commandes (Ctrl+K)"
-          >
-            <span>Rechercher…</span>
-            <kbd>Ctrl K</kbd>
-          </button>
+          {/* Ctrl+K hint — clickable (inutile tant qu'il n'y a rien à chercher) */}
+          {!isEmptyHome && (
+            <button
+              className="header-search-hint"
+              onClick={() => setShowCommandPalette(true)}
+              title={t('app.palette_title')}
+            >
+              <span>{t('app.search')}</span>
+              <kbd>Ctrl K</kbd>
+            </button>
+          )}
           <div className="header-nav">
             {openCompetitions.length > 0 && view === 'competition' && (
               <button
@@ -510,13 +571,15 @@ const AppContent: React.FC = () => {
                 {t('app.home')}
               </button>
             )}
-            <button
-              className="btn btn-primary btn-icon-label"
-              onClick={() => setShowNewCompetitionModal(true)}
-            >
-              <Plus size={15} />
-              {t('menu.new_competition')}
-            </button>
+            {!isEmptyHome && (
+              <button
+                className="btn btn-primary btn-icon-label"
+                onClick={() => setShowNewCompetitionModal(true)}
+              >
+                <Plus size={15} />
+                {t('menu.new_competition')}
+              </button>
+            )}
             <button
               className={`btn btn-icon-label ${trainingActive ? 'btn-danger' : 'btn-secondary'}`}
               onClick={() => {
@@ -526,13 +589,13 @@ const AppContent: React.FC = () => {
               title={
                 trainingActive
                   ? showTrainingPanel
-                    ? 'Masquer le panneau entraînement'
-                    : 'Afficher le panneau entraînement'
-                  : 'Mode entraînement'
+                    ? t('app.training_hide')
+                    : t('app.training_show')
+                  : t('app.training_mode')
               }
             >
               <Swords size={15} />
-              Entraînement
+              {t('app.training')}
             </button>
             {view === 'competition' && currentCompetition && (
               <button
@@ -553,6 +616,7 @@ const AppContent: React.FC = () => {
                 changeTheme(next);
               }}
               title={`Thème : ${theme}`}
+              aria-label={`Thème : ${theme}`}
             >
               <ThemeIcon theme={theme} />
             </button>
@@ -560,20 +624,21 @@ const AppContent: React.FC = () => {
               className="btn btn-icon"
               onClick={() => setShowWikiModal(true)}
               title={t('wiki.button_title')}
+              aria-label={t('wiki.button_title')}
             >
               <BookOpen size={16} />
             </button>
             {view === 'competition' && currentCompetition && (
-              <div ref={toolsMenuRef} style={{ position: 'relative' }}>
+              <div ref={toolsMenuRef} className="relative">
                 <button
                   ref={toolsBtnRef}
                   className="btn btn-secondary btn-icon-label"
                   onClick={() => setShowToolsMenu(v => !v)}
-                  title="Outils"
+                  title={t('app.tools')}
                   aria-haspopup="true"
                   aria-expanded={showToolsMenu}
                 >
-                  <Wrench size={15} /> Outils
+                  <Wrench size={15} /> {t('app.tools')}
                 </button>
                 {showToolsMenu && (
                   <div
@@ -605,7 +670,7 @@ const AppContent: React.FC = () => {
                         gap: '0.5rem',
                       }}
                     >
-                      <Wifi size={15} /> QR Code WiFi
+                      <Wifi size={15} /> {t('app.wifi_qr')}
                     </button>
                     <button
                       className="comp-header-dropdown-item"
@@ -621,7 +686,7 @@ const AppContent: React.FC = () => {
                         gap: '0.5rem',
                       }}
                     >
-                      <Tv2 size={15} /> Télécommande TV
+                      <Tv2 size={15} /> {t('app.tv_remote')}
                     </button>
                   </div>
                 )}
@@ -839,7 +904,13 @@ const AppContent: React.FC = () => {
                 isLoading={isLoading}
                 onSelect={handleSelectCompetition}
                 onDelete={handleDeleteCompetition}
+                onExport={handleExportCompetition}
                 onNewCompetition={() => setShowNewCompetitionModal(true)}
+                onOpenFile={
+                  window.electronAPI?.file?.openDialog
+                    ? () => void window.electronAPI.file.openDialog()
+                    : undefined
+                }
               />
             </ErrorBoundary>
           )}

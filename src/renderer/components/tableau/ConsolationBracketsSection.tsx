@@ -9,6 +9,7 @@ import { TableauMatch, ConsolationBracket } from './tableauTypes';
 import { BASE_MATCH_HEIGHT } from './tableauCalculations';
 import MatchCard from './MatchCard';
 import { CollapseToggle } from '../common/CollapseToggle';
+import { translateStatic } from '../../contexts/TranslationContext';
 
 interface ConsolationBracketsSectionProps {
   consolationBrackets: ConsolationBracket[];
@@ -18,6 +19,7 @@ interface ConsolationBracketsSectionProps {
   onArenaClick: (matchId: string, bracketId: string) => void;
   onRefereeClick: (matchId: string) => void;
   onSignaturesClick?: (match: TableauMatch) => void;
+  seedRanks?: Map<string, number>;
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
@@ -25,11 +27,11 @@ interface ConsolationBracketsSectionProps {
 const CONS_STYLES = {
   consolationSection: { marginTop: '1.5rem' } satisfies React.CSSProperties,
   consolationCard: {
-    background: 'var(--tableau-bg, #f9fafb)',
+    background: 'var(--tableau-bg, var(--color-surface-2))',
     borderRadius: '8px',
     padding: '1rem',
     marginBottom: '1rem',
-    border: '1px solid var(--tableau-border, #e5e7eb)',
+    border: '1px solid var(--tableau-border, var(--color-border))',
   } satisfies React.CSSProperties,
   consolationToolbar: {
     display: 'flex',
@@ -47,7 +49,7 @@ const CONS_STYLES = {
     margin: 0,
     fontSize: '1rem',
     fontWeight: 600,
-    color: 'var(--tableau-title, #374151)',
+    color: 'var(--tableau-title, var(--color-text))',
   } satisfies React.CSSProperties,
   consolationDoneBadge: {
     background: '#d1fae5',
@@ -78,7 +80,7 @@ const CONS_STYLES = {
     textAlign: 'center' as const,
     fontWeight: 600,
     marginBottom: '0.5rem',
-    color: 'var(--tableau-title, #374151)',
+    color: 'var(--tableau-title, var(--color-text))',
     fontSize: '0.875rem',
   } satisfies React.CSSProperties,
   consolationRoundMatches: {
@@ -96,6 +98,7 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
   onArenaClick,
   onRefereeClick,
   onSignaturesClick,
+  seedRanks,
 }) => {
   // Fenêtres « Places X–Y » repliées (ids des brackets)
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set());
@@ -154,7 +157,9 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
                 />
                 <h3 style={CONS_STYLES.consolationTitle}>🥋 {bracket.name}</h3>
                 {bracket.isComplete && (
-                  <span style={CONS_STYLES.consolationDoneBadge}>Terminé</span>
+                  <span style={CONS_STYLES.consolationDoneBadge}>
+                    {translateStatic('consolation.done')}
+                  </span>
                 )}
                 {finalM?.winner && (
                   <span style={CONS_STYLES.consolationWinnerBadge}>
@@ -205,6 +210,7 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
                               }
                               onSignaturesClick={onSignaturesClick}
                               readOnly={readOnly}
+                              seedRanks={seedRanks}
                             />
                           ))}
                         </div>

@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mon parcours – BellePoule</title>
+    <script src="/i18n.js"></script>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --accent: #fbbf24;
+        --win: #22c55e;
+        --loss: #ef4444;
+        --border: rgba(255, 255, 255, 0.08);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 16px;
+        max-width: 640px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.4rem;
+      }
+      .club {
+        color: var(--muted);
+        margin-bottom: 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      .label {
+        color: var(--muted);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+      }
+      .next-arena {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--accent);
+      }
+      .next-opponent {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .now {
+        display: inline-block;
+        background: var(--accent);
+        color: #111;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 2px 10px;
+        font-size: 0.8rem;
+        margin-top: 8px;
+      }
+      ul {
+        list-style: none;
+      }
+      li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      li:last-child {
+        border-bottom: none;
+      }
+      .score {
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .score.win {
+        color: var(--win);
+      }
+      .score.loss {
+        color: var(--loss);
+      }
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+      .tabs button {
+        flex: 1;
+        padding: 8px 0;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--muted);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .tabs button.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #111;
+      }
+      .footer {
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="name">…</h1>
+    <div class="club" id="club"></div>
+
+    <div class="card" id="next-card">
+      <div class="label" data-i18n="fencer.next">Prochain match</div>
+      <div id="next-body" class="muted" data-i18n="remote.loading">Chargement...</div>
+    </div>
+
+    <div class="card">
+      <div class="label">
+        <span data-i18n="fencer.bouts">Mes matchs</span> <span id="record"></span>
+      </div>
+      <div class="tabs" id="tabs" role="tablist" hidden>
+        <button type="button" id="tab-pool" role="tab" data-tab="pool" data-i18n="fencer.pool_bouts">Poules</button>
+        <button type="button" id="tab-tableau" role="tab" data-tab="tableau" data-i18n="fencer.tableau_bouts">Tableau</button>
+      </div>
+      <ul id="matches"></ul>
+      <ul id="tableau-matches" hidden></ul>
+    </div>
+
+    <div class="footer">
+      <span data-i18n="fencer.updated">Mis à jour</span> <span id="updated">--:--</span>
+    </div>
+
+    <script>
+      (function () {
+        const fencerId = decodeURIComponent(
+          location.pathname.split('/').filter(Boolean).pop() || ''
+        );
+        const T = (k, p) => (window.T ? window.T(k, p) : k);
+        const el = id => document.getElementById(id);
+
+        function text(tag, value, cls) {
+          const node = document.createElement(tag);
+          node.textContent = value;
+          if (cls) node.className = cls;
+          return node;
+        }
+
+        function renderNext(data) {
+          const body = el('next-body');
+          body.textContent = '';
+          body.className = '';
+          const next = data.next;
+          if (!next) {
+            body.className = 'muted';
+            body.textContent = T('fencer.no_next');
+            return;
+          }
+          body.appendChild(
+            text(
+              'div',
+              next.arena ? window.getArenaLabel() + ' ' + next.arena : T('fencer.arena_unknown'),
+              'next-arena'
+            )
+          );
+          body.appendChild(text('div', T('fencer.vs') + ' ' + next.opponent, 'next-opponent'));
+          if (next.opponentClub) body.appendChild(text('div', next.opponentClub, 'muted'));
+          if (next.status === 'current') {
+            body.appendChild(text('span', T('fencer.now'), 'now'));
+          } else if (data.matchesBeforeNext !== null) {
+            body.appendChild(
+              text('div', T('fencer.before', { count: data.matchesBeforeNext }), 'muted')
+            );
+          }
+        }
+
+        function roundLabel(round) {
+          if (round === 2) return T('fencer.final');
+          if (round === 3) return T('fencer.third_place');
+          if (round === 4) return T('fencer.semi');
+          if (round === 8) return T('fencer.quarter');
+          return T('fencer.round', { n: round });
+        }
+
+        function matchItem(m) {
+          const li = document.createElement('li');
+          li.appendChild(
+            text(
+              'span',
+              (m.phase === 'tableau' && m.round ? roundLabel(m.round) + ' · ' : '') + m.opponent
+            )
+          );
+          let score = '—';
+          let cls = 'score';
+          if (m.status === 'finished') {
+            score = (m.victory ? 'V' : 'D') + ' ' + m.myScore + '–' + m.opponentScore;
+            cls += m.victory ? ' win' : ' loss';
+          } else if (m.status === 'current') {
+            score = T('fencer.now');
+          } else if (m.arena) {
+            score = window.getArenaLabel() + ' ' + m.arena;
+          }
+          li.appendChild(text('span', score, cls));
+          return li;
+        }
+
+        // Matchs de poule et de tableau : un onglet par phase (#1078)
+        let activeTab = null;
+        function showTab(tab) {
+          activeTab = tab;
+          el('matches').hidden = tab !== 'pool';
+          el('tableau-matches').hidden = tab !== 'tableau';
+          el('tab-pool').classList.toggle('active', tab === 'pool');
+          el('tab-tableau').classList.toggle('active', tab === 'tableau');
+        }
+        el('tab-pool').addEventListener('click', () => showTab('pool'));
+        el('tab-tableau').addEventListener('click', () => showTab('tableau'));
+
+        function renderMatches(data) {
+          const pools = data.matches.filter(m => m.phase !== 'tableau');
+          const tableau = data.matches.filter(m => m.phase === 'tableau');
+          const fill = (listId, items) => {
+            const list = el(listId);
+            list.textContent = '';
+            for (const m of items) list.appendChild(matchItem(m));
+          };
+          fill('matches', pools);
+          fill('tableau-matches', tableau);
+          // Onglets seulement si les deux phases existent ; sinon la seule liste est affichée
+          el('tabs').hidden = pools.length === 0 || tableau.length === 0;
+          if (tableau.length === 0) showTab('pool');
+          else if (pools.length === 0) showTab('tableau');
+          else if (activeTab === null) {
+            // Par défaut : la phase du prochain match, sinon le tableau
+            showTab(data.next && data.next.phase === 'pool' ? 'pool' : 'tableau');
+          } else showTab(activeTab);
+          el('record').textContent = '(' + data.victories + 'V / ' + data.defeats + 'D)';
+        }
+
+        async function refresh() {
+          try {
+            const res = await fetch(
+              '/api/public/fencers/' + encodeURIComponent(fencerId) + '/schedule',
+              {
+                cache: 'no-store',
+              }
+            );
+            if (res.status === 404) {
+              el('name').textContent = T('fencer.not_found');
+              el('next-body').textContent = '';
+              return;
+            }
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            el('name').textContent = data.fencer.name;
+            el('club').textContent = data.fencer.club;
+            document.title = data.fencer.name + ' – BellePoule';
+            renderNext(data);
+            renderMatches(data);
+            el('updated').textContent = new Date().toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+          } catch (e) {
+            el('next-body').textContent = T('remote.error_connection');
+          }
+        }
+
+        (async () => {
+          if (window.initRemoteI18n) await window.initRemoteI18n();
+          refresh();
+          setInterval(refresh, 15000);
+        })();
+      })();
+    </script>
+  </body>
+</html>

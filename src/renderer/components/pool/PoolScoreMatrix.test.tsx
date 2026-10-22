@@ -8,6 +8,12 @@ import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
+
+vi.mock('../../hooks/useTranslation', () => ({
+  useTranslation: () => ({
+    t: (k: string, p?: Record<string, unknown>) => (p ? `${k} ${JSON.stringify(p)}` : k),
+  }),
+}));
 import PoolScoreMatrix from './PoolScoreMatrix';
 import { Pool, Fencer, Match, MatchStatus, Gender, FencerStatus } from '../../../shared/types';
 
@@ -75,7 +81,7 @@ describe('PoolScoreMatrix', () => {
 
   it('affiche la colonne Victoires quand isVisible le permet', () => {
     renderMatrix(match(MatchStatus.NOT_STARTED));
-    expect(screen.getByText('V')).toBeInTheDocument();
+    expect(screen.getByText('ranking.victories')).toBeInTheDocument();
   });
 
   it('affiche le score V5 pour un match gagné', () => {
@@ -98,5 +104,10 @@ describe('PoolScoreMatrix', () => {
     const cell = screen.getByLabelText(/Dupont F contre Martin F/i);
     fireEvent.click(cell);
     expect(props.onCellClick).not.toHaveBeenCalled();
+  });
+
+  it('rapières : cases de la vague en cours surlignées en violet (#1118)', () => {
+    renderMatrix(match(MatchStatus.NOT_STARTED), { waveHighlightPairs: new Set(['1|2']) });
+    expect(screen.getByLabelText(/Dupont F contre Martin F/i).style.outline).toContain('#7c3aed');
   });
 });

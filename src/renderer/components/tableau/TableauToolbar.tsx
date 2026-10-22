@@ -6,6 +6,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Fencer } from '../../../shared/types';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface TableauToolbarProps {
   tableauSize: number;
@@ -44,6 +45,7 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
   onExportTreeClick,
   champion,
 }) => {
+  const { t } = useTranslation();
   const [fabOpen, setFabOpen] = useState(false);
   const fabRef = useRef<HTMLDivElement>(null);
 
@@ -65,75 +67,33 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '1rem',
-        gap: '0.75rem',
-      }}
-    >
+    <div className="tt-bar">
       {/* Left: title + champion */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: '600', margin: 0, whiteSpace: 'nowrap' }}>
-          Tableau de {tableauSize}
-          <span
-            style={{ fontWeight: 400, color: '#6b7280', fontSize: '1rem', marginLeft: '0.375rem' }}
-          >
-            — {rankingCount} qualifiés
-          </span>
+      <div className="tt-left">
+        <h2 className="tt-title">
+          {t('tableauToolbar.title', { n: tableauSize })}
+          <span className="tt-title-sub">{t('tableauToolbar.qualified', { n: rankingCount })}</span>
         </h2>
         {champion && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.375rem',
-              background: '#fef3c7',
-              padding: '0.375rem 0.75rem',
-              borderRadius: '999px',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              border: '1px solid #fcd34d',
-            }}
-          >
+          <div className="tt-champion">
             🏆 {champion.lastName} {champion.firstName}
           </div>
         )}
       </div>
 
       {/* Right: view toggles + FAB */}
-      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+      <div className="tt-right">
         {/* View mode toggles — toujours visibles */}
         <button
           onClick={onViewModeToggle}
-          style={{
-            background: viewMode === 'pending' ? '#3b82f6' : '#e5e7eb',
-            color: viewMode === 'pending' ? 'white' : '#374151',
-            border: 'none',
-            padding: '0.5rem 0.75rem',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-          }}
+          className={`tt-toggle${viewMode === 'pending' ? ' is-active' : ''}`}
           title={viewMode === 'full' ? 'Liste des matchs' : 'Tableau complet'}
         >
           {viewMode === 'full' ? '📋 Liste des matchs' : '📊 Tableau'}
         </button>
         <button
           onClick={onPyramidViewModeToggle}
-          style={{
-            background: pyramidViewMode ? '#8b5cf6' : '#e5e7eb',
-            color: pyramidViewMode ? 'white' : '#374151',
-            border: 'none',
-            padding: '0.5rem 0.75rem',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-          }}
+          className={`tt-toggle${pyramidViewMode ? ' is-pyramid' : ''}`}
           title={pyramidViewMode ? 'Vue tableau' : 'Vue pyramidale'}
         >
           {pyramidViewMode ? '🔲 Tableau' : '🔺 Pyramide'}
@@ -144,69 +104,56 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
           <button
             className="tableau-fab-trigger"
             onClick={() => setFabOpen(o => !o)}
-            title="Options du tableau"
+            title={t('tableauToolbar.options_title')}
           >
-            {fabOpen ? '✕' : '⋮'} Options
+            {fabOpen ? '✕' : '⋮'} {t('tableauToolbar.options')}
           </button>
 
           {fabOpen && (
             <div className="tableau-fab-menu">
               {arenaCount > 0 && (
                 <>
-                  <span className="tableau-fab-section-label">Pistes</span>
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      background: autoAssignArenas ? 'rgba(59,130,246,0.08)' : 'transparent',
-                      color: autoAssignArenas ? '#2563eb' : 'var(--color-text)',
-                    }}
-                  >
+                  <span className="tableau-fab-section-label">{t('tableauToolbar.strips')}</span>
+                  <label className={`tt-fab-check${autoAssignArenas ? ' is-on' : ''}`}>
                     <input
                       type="checkbox"
                       checked={autoAssignArenas}
                       onChange={e => onAutoAssignToggle(e.target.checked)}
                     />
-                    🏟️ Assignation auto
+                    {t('tableauToolbar.auto_assign')}
                   </label>
                   <button
                     className="tableau-fab-item tableau-fab-item--danger"
                     onClick={() => closeAndRun(onBulkDeassign)}
                   >
-                    ❌ Désaffecter tout
+                    {t('tableauToolbar.unassign')}
                   </button>
                   <div className="tableau-fab-divider" />
                 </>
               )}
 
-              <span className="tableau-fab-section-label">Actions</span>
+              <span className="tableau-fab-section-label">{t('tableauToolbar.actions')}</span>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onAutoFillScores)}>
-                🎲 Remplir auto (test)
+                {t('tableauToolbar.autofill')}
               </button>
 
               <div className="tableau-fab-divider" />
-              <span className="tableau-fab-section-label">Export</span>
+              <span className="tableau-fab-section-label">{t('tableauToolbar.export')}</span>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onPrintClick)}>
-                🖨️ Imprimer
+                {t('tableauToolbar.print')}
               </button>
               <button
                 className="tableau-fab-item"
                 onClick={() => closeAndRun(onPreviewClick)}
-                title="Ouvre un PDF dans le lecteur par défaut pour voir un aperçu avant d'imprimer"
+                title={t('tableauToolbar.preview_title')}
               >
-                👁️ Aperçu avant impression
+                {t('tableauToolbar.preview')}
               </button>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onExportPdfClick)}>
-                📄 Export PDF
+                {t('tableauToolbar.export_pdf')}
               </button>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onExportTreeClick)}>
-                🌲 Arbre PDF
+                {t('tableauToolbar.tree_pdf')}
               </button>
             </div>
           )}

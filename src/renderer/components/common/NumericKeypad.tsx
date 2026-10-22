@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { translateStatic } from '../../contexts/TranslationContext';
 
 interface NumericKeypadProps {
   /** Valeur courante (chaîne de chiffres, '' si vide). */
@@ -25,9 +26,9 @@ const KEY_STYLE: React.CSSProperties = {
   minHeight: '56px',
   fontSize: '1.5rem',
   fontWeight: 600,
-  border: '1px solid #d1d5db',
+  border: '1px solid var(--color-border-dark)',
   borderRadius: '8px',
-  background: '#f9fafb',
+  background: 'var(--color-surface-2)',
   cursor: 'pointer',
   touchAction: 'manipulation',
   userSelect: 'none',
@@ -61,7 +62,7 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
   return (
     <div
       role="group"
-      aria-label="Pavé numérique"
+      aria-label={translateStatic('keypad.aria')}
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',
@@ -72,7 +73,7 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
       <button
         type="button"
         onClick={clear}
-        aria-label="Effacer"
+        aria-label={translateStatic('keypad.clear')}
         style={{ ...KEY_STYLE, fontSize: '1rem', color: '#dc2626' }}
       >
         C
@@ -81,7 +82,7 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
       <button
         type="button"
         onClick={backspace}
-        aria-label="Retour arrière"
+        aria-label={translateStatic('keypad.backspace')}
         style={{ ...KEY_STYLE, fontSize: '1.25rem' }}
       >
         ⌫
@@ -91,12 +92,12 @@ const NumericKeypad: React.FC<NumericKeypadProps> = ({
           type="button"
           onClick={onConfirm}
           disabled={confirmDisabled}
-          aria-label="Valider"
+          aria-label={translateStatic('actions.validate')}
           style={{
             ...KEY_STYLE,
             gridColumn: '1 / -1',
-            background: confirmDisabled ? '#e5e7eb' : '#10b981',
-            color: confirmDisabled ? '#9ca3af' : 'white',
+            background: confirmDisabled ? 'var(--color-border)' : '#10b981',
+            color: confirmDisabled ? 'var(--color-text-muted)' : 'white',
             cursor: confirmDisabled ? 'not-allowed' : 'pointer',
           }}
         >

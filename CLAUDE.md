@@ -94,9 +94,13 @@ npm run e2e:debug       # Playwright debug mode
 ```
 Main Process (src/main/)
 ├── main.ts                  # Window management, menu (i18n: fr/en/de), IPC handlers, DB lifecycle
+├── ipc/                     # Handlers IPC extraits : dbHandlers (db:*), trainingHandlers (training:*) — registerXxxHandlers(ctx)
+├── menuLabels.ts            # Libellés du menu natif (fr/en/de/zh-HK)
+├── remoteRegistry.ts        # Serveurs distants actifs (remoteServers, ports, stopRemoteServer)
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
 ├── splash-preload.ts / splash.html  # Splash screen
 ├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
+├── remote/                  # Extraits du serveur distant : network, types, htmlPages, fencerSchedule, auth (mots de passe, jetons, limites), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
 ├── certManager.ts           # Self-signed TLS certificate (selfsigned)
 ├── autoUpdater.ts           # Auto-update (GitHub Releases)
 └── updateIntegrity.ts       # SHA-256 + trusted URL checks for updates
@@ -127,6 +131,7 @@ Feature Modules (src/features/)
 ├── pdfTemplates/        # usePdfTemplateStore
 ├── penalties/           # PenaltyUtils + usePenaltyStore + penalty.types
 ├── pools/               # PoolCalculator + PoolService + usePoolStore + pool.types
+├── rapieres/            # Tournoi des rapières (mode spécial arme CUSTOM) dans CompetitionView : équipe = tireur (club = niveau), composition + vagues dans session_state (clé rapieres)
 └── teams/               # teamCalculations, teamBracketService, laserArena* (Sabre Laser team format), useTeamStore
 
 Shared (src/shared/)
@@ -178,14 +183,15 @@ Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
 ├── login.html / checkin.html / register.html / trainer.html
 ├── app.js
 ├── i18n.js                  # Client-side i18n for remote interfaces
+├── common.js                # escHtml / html`` partagés : toute donnée dynamique passe par escHtml avant innerHTML (cliquet remoteUnescaped)
 ├── styles.css
 ├── sw.js                    # Service worker for offline tablet support
-└── offlineQueue.ts          # Offline action queue for tablets
+└── (file hors-ligne : classe OfflineQueueInline dans referee.html, testée par refereeOfflineQueue.test.ts)
 
 Database (src/database/)
 ├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db
 ├── validation.ts        # Input validation
-└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 18 versions)
+└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 19 versions)
 ```
 
 ### Key Patterns

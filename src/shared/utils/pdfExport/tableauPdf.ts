@@ -5,7 +5,8 @@
  */
 
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides, assembleBody, BASE_CSS } from './core';
+import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
+import { getActiveLocale } from '../localeFormat';
 
 // ─── Export Tableau Élimination Directe ──────────────────────────────────────
 
@@ -20,6 +21,18 @@ export interface TableauMatchForPDF {
   winner: { id: string } | null;
   isBye: boolean;
   arena?: number | null;
+  /** Libellé affiché à la place du nom du tour (ex. « Vague 2 — Poule 3 ») */
+  label?: string;
+}
+
+/** Variantes de rendu des feuilles (ex. feuilles de vague du tournoi des rapières, #1118) */
+export interface TableauSheetOptions {
+  /** Sous-titre de l'en-tête (défaut : « Feuilles d'arbitrage — Élimination directe ») */
+  subtitle?: string;
+  /** Pastille de l'en-tête (défaut : « ED ») */
+  badge?: string;
+  /** Nom du fichier PDF (défaut : tableau-elimination.pdf) */
+  fileName?: string;
 }
 
 /** Matchs réels (non-exempts, deux tireurs assignés). */
@@ -29,16 +42,12 @@ function realMatches(matches: TableauMatchForPDF[]): TableauMatchForPDF[] {
 
 export function getTableauRoundName(round: number): string {
   const names: Record<number, string> = {
-    2: 'Finale',
-    3: 'Petite finale',
-    4: 'Demi-finales',
-    8: 'Quarts de finale',
-    16: 'Tableau de 16',
-    32: 'Tableau de 32',
-    64: 'Tableau de 64',
-    128: 'Tableau de 128',
+    2: pdfT('round_final', 'Finale'),
+    3: pdfT('round_third_place', 'Petite finale'),
+    4: pdfT('round_semi', 'Demi-finales'),
+    8: pdfT('round_quarter', 'Quarts de finale'),
   };
-  return names[round] ?? `Tableau de ${round}`;
+  return names[round] ?? pdfT('round_table', 'Tableau de {{n}}', { n: round });
 }
 
 export function generateTableauHTML(
@@ -48,24 +57,25 @@ export function generateTableauHTML(
   logoBase64?: string,
   template?: PdfTemplate,
   showScores = false,
-  signatures?: Record<string, { A?: string; B?: string }>
+  signatures?: Record<string, { A?: string; B?: string }>,
+  options?: TableauSheetOptions
 ): string {
   const real = realMatches(matches);
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
   });
 
   const renderMatchCard = (match: TableauMatchForPDF, num: number): string => {
-    const roundName = getTableauRoundName(match.round);
+    const roundName = match.label ?? getTableauRoundName(match.round);
     const nameA =
       `${match.fencerA!.lastName.toUpperCase()} ${match.fencerA!.firstName ?? ''}`.trim();
     const nameB =
       `${match.fencerB!.lastName.toUpperCase()} ${match.fencerB!.firstName ?? ''}`.trim();
     const clubA = match.fencerA!.club ?? '';
     const clubB = match.fencerB!.club ?? '';
-    const pisteLabel = match.arena != null ? `Piste ${match.arena}` : 'Piste ___';
+    const pisteLabel = `${pdfT('strip', 'Piste')} ${match.arena ?? '___'}`;
     const winnerId = match.winner?.id;
     const isWinnerA = winnerId != null && winnerId === (match.fencerA as any)?.id;
     const isWinnerB = winnerId != null && winnerId === (match.fencerB as any)?.id;
@@ -96,9 +106,9 @@ export function generateTableauHTML(
     <thead>
       <tr>
         <th></th>
-        <th style="text-align:left">Tireur</th>
-        <th>Score</th>
-        <th>Signature</th>
+        <th style="text-align:left">${pdfT('fencer', 'Tireur')}</th>
+        <th>${pdfT('score', 'Score')}</th>
+        <th>${pdfT('signature', 'Signature')}</th>
       </tr>
     </thead>
     <tbody>
@@ -118,8 +128,8 @@ export function generateTableauHTML(
   </table>
   <div class="match-card-footer">
     <span>${pisteLabel}</span>
-    <span>Arbitre ________________________________</span>
-    <span>Heure ___:___</span>
+    <span>${pdfT('referee', 'Arbitre')} ________________________________</span>
+    <span>${pdfT('time', 'Heure')} ___:___</span>
   </div>
 </div>`;
   };
@@ -156,10 +166,11 @@ export function generateTableauHTML(
 
     for (const key of keys) {
       const group = arenaMap.get(key)!;
-      const label = key > 0 ? `Piste ${key}` : 'Non assignés';
+      const label =
+        key > 0 ? `${pdfT('strip', 'Piste')} ${key}` : pdfT('unassigned', 'Non assignés');
       for (let i = 0; i < group.length; i += matchesPerPage) {
         const chunk = group.slice(i, i + matchesPerPage);
-        const chunkLabel = i === 0 ? label : `${label} (suite)`;
+        const chunkLabel = i === 0 ? label : `${label} (${pdfT('continued', 'suite')})`;
         pages.push({ matches: chunk, label: chunkLabel });
       }
     }
@@ -178,30 +189,29 @@ export function generateTableauHTML(
     ${logoBase64 ? `<img class="doc-header-logo" src="${logoBase64}" alt="Logo" />` : ''}
     <div class="doc-header-left">
       <h1>${effectiveTitle}</h1>
-      <div class="subtitle">Feuilles d'arbitrage — Élimination directe</div>
+      <div class="subtitle">${options?.subtitle ?? pdfT('tableau_sheets_subtitle', "Feuilles d'arbitrage — Élimination directe")}</div>
     </div>
-    <div class="doc-header-badge">ED</div>
+    <div class="doc-header-badge">${options?.badge ?? pdfT('de_badge', 'ED')}</div>
   </div>
   <div class="gold-bar"></div>`;
 
   let globalMatchNum = 0;
   const pagesHTML = pages
     .map((page, pageIdx) => {
-      let lastRound: number | null = null;
+      let lastRound: string | null = null;
       const cards = page.matches
         .map(match => {
           globalMatchNum++;
+          const roundName = match.label ?? getTableauRoundName(match.round);
           const roundHeader =
-            match.round !== lastRound
-              ? `<div class="round-sub-header">${getTableauRoundName(match.round)}</div>`
-              : '';
-          lastRound = match.round;
+            roundName !== lastRound ? `<div class="round-sub-header">${roundName}</div>` : '';
+          lastRound = roundName;
           return roundHeader + renderMatchCard(match, globalMatchNum);
         })
         .join('');
 
       const sectionHeader = page.label
-        ? `<div class="piste-section-header">${page.label} — ${page.matches.length} combat${page.matches.length !== 1 ? 's' : ''}</div>`
+        ? `<div class="piste-section-header">${page.label} — ${pdfT('bouts_count', page.matches.length !== 1 ? '{{count}} combats' : '{{count}} combat', { count: page.matches.length })}</div>`
         : '';
 
       const isLast = pageIdx === pages.length - 1;
@@ -222,7 +232,7 @@ export function generateTableauHTML(
   const body = assembleBody(sections, template, defaultOrder);
 
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
   <title>${effectiveTitle}</title>
@@ -371,14 +381,20 @@ ${body}
 export async function exportTableauToPDF(
   matches: TableauMatchForPDF[],
   matchesPerPage: number,
-  title: string = 'Tableau Élimination Directe',
+  title: string = pdfT('tableau_title', 'Tableau Élimination Directe'),
   logoBase64?: string,
   template?: PdfTemplate,
-  signatures?: Record<string, { A?: string; B?: string }>
+  signatures?: Record<string, { A?: string; B?: string }>,
+  options?: TableauSheetOptions
 ): Promise<void> {
   const real = realMatches(matches);
   if (real.length === 0) {
-    throw new Error('Aucun match à exporter (tous sont des exempts ou sans tireurs assignés)');
+    throw new Error(
+      pdfT(
+        'tableau_no_match_export',
+        'Aucun match à exporter (tous sont des exempts ou sans tireurs assignés)'
+      )
+    );
   }
 
   const html = generateTableauHTML(
@@ -388,22 +404,29 @@ export async function exportTableauToPDF(
     logoBase64,
     template,
     false,
-    signatures
+    signatures,
+    options
   );
-  await savePDF(html, `tableau-elimination.pdf`);
+  await savePDF(html, options?.fileName ?? 'tableau-elimination.pdf');
 }
 
 export async function printTableauHTML(
   matches: TableauMatchForPDF[],
   matchesPerPage: number,
-  title: string = 'Tableau Élimination Directe',
+  title: string = pdfT('tableau_title', 'Tableau Élimination Directe'),
   logoBase64?: string,
   template?: PdfTemplate,
-  signatures?: Record<string, { A?: string; B?: string }>
+  signatures?: Record<string, { A?: string; B?: string }>,
+  options?: TableauSheetOptions
 ): Promise<void> {
   const real = realMatches(matches);
   if (real.length === 0) {
-    throw new Error('Aucun match à imprimer (tous sont des exempts ou sans tireurs assignés)');
+    throw new Error(
+      pdfT(
+        'tableau_no_match_print',
+        'Aucun match à imprimer (tous sont des exempts ou sans tireurs assignés)'
+      )
+    );
   }
   const html = generateTableauHTML(
     matches,
@@ -412,15 +435,16 @@ export async function printTableauHTML(
     logoBase64,
     template,
     false,
-    signatures
+    signatures,
+    options
   );
   const api = (window as any).electronAPI;
   if (!api?.file?.printHtml) {
-    throw new Error('API Electron non disponible');
+    throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
   }
   const res = await api.file.printHtml(html);
   if (!res?.success) {
-    throw new Error(res?.error ?? "Échec de l'impression");
+    throw new Error(res?.error ?? pdfT('print_failed', "Échec de l'impression"));
   }
 }
 
@@ -429,14 +453,20 @@ export async function printTableauHTML(
 export async function previewTableauHTML(
   matches: TableauMatchForPDF[],
   matchesPerPage: number,
-  title: string = 'Tableau Élimination Directe',
+  title: string = pdfT('tableau_title', 'Tableau Élimination Directe'),
   logoBase64?: string,
   template?: PdfTemplate,
-  signatures?: Record<string, { A?: string; B?: string }>
+  signatures?: Record<string, { A?: string; B?: string }>,
+  options?: TableauSheetOptions
 ): Promise<void> {
   const real = realMatches(matches);
   if (real.length === 0) {
-    throw new Error('Aucun match à imprimer (tous sont des exempts ou sans tireurs assignés)');
+    throw new Error(
+      pdfT(
+        'tableau_no_match_print',
+        'Aucun match à imprimer (tous sont des exempts ou sans tireurs assignés)'
+      )
+    );
   }
   const html = generateTableauHTML(
     matches,
@@ -445,14 +475,15 @@ export async function previewTableauHTML(
     logoBase64,
     template,
     false,
-    signatures
+    signatures,
+    options
   );
   const api = (window as any).electronAPI;
   if (!api?.file?.previewHtmlAsPDF) {
-    throw new Error('API Electron non disponible');
+    throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
   }
   const res = await api.file.previewHtmlAsPDF(html);
   if (!res?.success) {
-    throw new Error(res?.error ?? "Échec de la génération de l'aperçu");
+    throw new Error(res?.error ?? pdfT('preview_failed', "Échec de la génération de l'aperçu"));
   }
 }

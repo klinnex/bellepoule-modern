@@ -12,6 +12,7 @@ import {
   MatchStatus,
   MatchEventEntry,
 } from '../types';
+import { getActiveLocale } from './localeFormat';
 
 /**
  * Export results as HTML web page
@@ -101,7 +102,7 @@ export function exportResultsHTML(
   <div class="header">
     <h1>🏆 ${competition.title}</h1>
     <div class="meta">
-      📅 ${new Date(competition.date).toLocaleDateString('fr-FR')} | 
+      📅 ${new Date(competition.date).toLocaleDateString(getActiveLocale())} | 
       📍 ${competition.location || 'Lieu non défini'} |
       ⚔️ ${competition.weapon}
     </div>
@@ -172,7 +173,7 @@ export function exportResultsHTML(
   </div>
 
   <div class="footer">
-    <p>Généré par BellePoule Modern le ${new Date().toLocaleString('fr-FR')}</p>
+    <p>Généré par BellePoule Modern le ${new Date().toLocaleString(getActiveLocale())}</p>
   </div>
 </body>
 </html>`;
@@ -520,7 +521,7 @@ export function exportDetailedStatsCSV(
   ];
 
   let csv = `Compétition: ${competition.title}\n`;
-  csv += `Date: ${new Date(competition.date).toLocaleDateString('fr-FR')}\n\n`;
+  csv += `Date: ${new Date(competition.date).toLocaleDateString(getActiveLocale())}\n\n`;
   csv += headers.join(';') + '\n';
 
   poolRanking.forEach((ranking, index) => {

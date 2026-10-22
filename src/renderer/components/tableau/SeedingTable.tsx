@@ -1,6 +1,7 @@
 import React from 'react';
 import { PoolRanking } from '../../../shared/types';
 import { CollapseToggle, useCollapsed } from '../common/CollapseToggle';
+import { translateStatic } from '../../contexts/TranslationContext';
 
 interface SeedingTableProps {
   ranking: PoolRanking[];
@@ -21,7 +22,7 @@ const SeedingTable: React.FC<SeedingTableProps> = ({ ranking, tableauSize }) => 
           gap: '0.5rem',
         }}
       >
-        Classement après poules
+        {translateStatic('seedingTable.title')}
         <CollapseToggle collapsed={collapsed} onToggle={toggleCollapsed} />
       </h3>
       {!collapsed && (
@@ -41,9 +42,9 @@ const SeedingTable: React.FC<SeedingTableProps> = ({ ranking, tableauSize }) => 
                 display: 'flex',
                 gap: '0.5rem',
                 padding: '0.25rem 0.5rem',
-                background: idx < 8 ? '#dbeafe' : 'white',
-                // Fond clair dans les deux thèmes : texte sombre forcé (#1032)
-                color: '#1f2937',
+                // Clair : bleu / blanc ; sombre : dégradé bleu-gris (#1114)
+                background: idx < 8 ? 'var(--color-seed-top-bg)' : 'var(--color-seed-bg)',
+                color: 'var(--color-text)',
                 borderRadius: '4px',
                 fontSize: '0.875rem',
               }}
@@ -53,13 +54,13 @@ const SeedingTable: React.FC<SeedingTableProps> = ({ ranking, tableauSize }) => 
                 <span>
                   {r.fencer.lastName} {r.fencer.firstName}
                 </span>
-                <span style={{ fontSize: '0.625rem', color: '#6b7280' }}>
+                <span style={{ fontSize: '0.625rem', color: 'var(--color-text-light)' }}>
                   {r.fencer.club && r.fencer.club}
                   {r.fencer.birthDate && ` • ${new Date(r.fencer.birthDate).getFullYear()}`}
                   {r.fencer.ranking && ` • #${r.fencer.ranking}`}
                 </span>
               </div>
-              <span style={{ marginLeft: 'auto', color: '#6b7280' }}>
+              <span style={{ marginLeft: 'auto', color: 'var(--color-text-light)' }}>
                 {(r.ratio * 100).toFixed(0)}%
               </span>
             </div>

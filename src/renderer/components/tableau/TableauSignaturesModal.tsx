@@ -7,6 +7,9 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useTranslation } from '../../contexts/TranslationContext';
+import { ipcErrorText } from '../../services/ipcError';
 import { TableauMatch } from './tableauTypes';
 
 interface TableauSignaturesModalProps {
@@ -27,7 +30,7 @@ const SIG_IMG_STYLE: React.CSSProperties = {
   maxHeight: '140px',
   objectFit: 'contain',
   background: '#fff',
-  border: '1px solid #e5e7eb',
+  border: '1px solid var(--color-border)',
   borderRadius: '6px',
 };
 
@@ -36,6 +39,7 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
   competitionId,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [sigs, setSigs] = useState<{ A?: string; B?: string }>({});
   const [arenas, setArenas] = useState<ArenaOption[]>([]);
@@ -122,7 +126,7 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
       setSendState(
         res.success
           ? { ok: true, msg: `Signature envoyée sur la piste ${arena?.number ?? ''}` }
-          : { ok: false, msg: res.error ?? 'Échec de l’envoi' }
+          : { ok: false, msg: ipcErrorText(t, res, 'Échec de l’envoi') }
       );
     } catch (e) {
       setSendState({ ok: false, msg: e instanceof Error ? e.message : 'Échec de l’envoi' });
@@ -144,7 +148,9 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
         {data ? (
           <img src={data} alt={`Signature ${fencer?.lastName ?? ''}`} style={SIG_IMG_STYLE} />
         ) : (
-          <div style={{ color: '#9ca3af', fontSize: '0.8rem', fontStyle: 'italic' }}>
+          <div
+            style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}
+          >
             {loading ? 'Chargement…' : 'Non signé'}
           </div>
         )}
@@ -153,13 +159,24 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
   };
 
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
+  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   return createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+      <div
+        ref={modalRef}
+        className="modal"
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '480px' }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tableau-signatures-title"
+      >
         <div className="modal-header">
-          <h3 className="modal-title">Signatures du match</h3>
-          <button className="btn-close" onClick={onClose} aria-label="Fermer">
-            &times;
+          <h3 className="modal-title" id="tableau-signatures-title">
+            {t('tableauSignatures.title')}
+          </h3>
+          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
+            ×
           </button>
         </div>
         <div
@@ -171,7 +188,7 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
           {canSend && (
             <div
               style={{
-                borderTop: '1px solid #e5e7eb',
+                borderTop: '1px solid var(--color-border)',
                 paddingTop: '1rem',
                 display: 'flex',
                 flexDirection: 'column',
@@ -179,28 +196,33 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
               }}
             >
               <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                Renvoyer la signature sur une piste
+                {t('tableauSignatures.resend')}
               </div>
               {arenas.length === 0 ? (
-                <div style={{ color: '#9ca3af', fontSize: '0.8rem', fontStyle: 'italic' }}>
-                  Serveur distant non démarré ou aucune piste disponible
+                <div
+                  style={{
+                    color: 'var(--color-text-muted)',
+                    fontSize: '0.8rem',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {t('tableauSignatures.no_strip')}
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <select
-                    className="form-input"
+                    className="form-input flex-1"
                     value={arenaId}
                     onChange={e => {
                       setArenaId(e.target.value);
                       setSendState(null);
                     }}
-                    aria-label="Piste"
-                    style={{ flex: 1 }}
+                    aria-label={t('tableauSignatures.strip')}
                   >
                     {arenas.map(a => (
                       <option key={a.id} value={a.id}>
-                        Piste {a.number}
-                        {a.status === 'in_progress' ? ' (match en cours)' : ''}
+                        {t('tableauSignatures.strip_n', { n: a.number })}
+                        {a.status === 'in_progress' ? t('tableauSignatures.busy') : ''}
                       </option>
                     ))}
                   </select>

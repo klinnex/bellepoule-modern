@@ -302,12 +302,10 @@ describe('placeRankedTeamsInTable / resolveTeamTableauSlot', () => {
   const row = (id: string): TeamRow => ({ id, name: id, club: 'C', fencers: [] });
 
   it('place la tête de série n°1 en première position', () => {
-    // Note : generateSeedingChart a une collision connue seed 2 / seed tableSize
-    // (cf. tableCalculations.test.ts) — seule la position de la tête n°1 est garantie.
     const teams = [row('A'), row('B'), row('C'), row('D')];
     const placements = placeRankedTeamsInTable(teams, 4);
-    expect(placements[0]?.id).toBe('A');
-    expect(placements.filter(p => p !== null).length).toBeGreaterThanOrEqual(3);
+    // Placement FIE [1, 4, 3, 2] : A-D, C-B ; toutes les équipes placées (#1080)
+    expect(placements.map(p => p?.id)).toEqual(['A', 'D', 'C', 'B']);
   });
 
   it('résout un exempt (bye) quand une équipe est seule dans son couple de départ', () => {
@@ -356,5 +354,32 @@ describe('placeRankedTeamsInTable / resolveTeamTableauSlot', () => {
     expect(final.teamA?.id).toBe('A');
     expect(final.teamB?.id).toBe('D');
     expect(final.isBye).toBe(false);
+  });
+
+  it('demi-finale terminée + autre en cours : finale en attente, pas d’exempt prématuré', () => {
+    const teams = [row('A'), row('B'), row('C'), row('D')];
+    const placements = placeRankedTeamsInTable(teams, 4);
+    const teamById = new Map(teams.map(t => [t.id, t]));
+    const sf = (position: number, status: string, winnerId: string | null): TeamMatchRow => ({
+      id: `sf-${position}`,
+      round: 2,
+      position,
+      teamAId: 'x',
+      teamBId: 'y',
+      scoreBoutsA: 0,
+      scoreBoutsB: 0,
+      status,
+      winnerId,
+      currentBoutIndex: 0,
+      bouts: [],
+    });
+    const matchesByKey = new Map([
+      ['2-0', sf(0, 'finished', 'A')],
+      ['2-1', sf(1, 'in_progress', null)],
+    ]);
+    const final = resolveTeamTableauSlot(1, 0, 4, placements, matchesByKey, teamById);
+    expect(final.isBye).toBe(false);
+    expect(final.team).toBeNull();
+    expect(final.teamA).toBeNull();
   });
 });

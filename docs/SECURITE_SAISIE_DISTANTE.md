@@ -37,3 +37,44 @@ Le sélecteur d'interface (section **Réseau**) limite l'écoute à une carte r�
 | Saturation                                   | 30 connexions Socket.IO max par IP ; 20 événements/s par connexion (rafale 40) ; corps JSON 4 Ko sur les routes de connexion              |
 
 L'IP client est celle de la connexion TCP. `X-Forwarded-For` est ignoré, sauf derrière un reverse proxy de confiance (`setTrustProxy(true)`).
+
+## Données personnelles (#1194)
+
+Aucune réponse REST (`res.json`) ni aucun paquet Socket.IO ne contient de date de naissance, de licence (tireurs, `code` des arbitres) ou d'IP de tablette (`ipAddress` du journal). Les photos ne sont diffusées par Socket.IO que si l'affichage des photos est activé, jamais en REST. Filtrage central : `src/main/remote/publicDto.ts` (middleware `publicJson`, encodeur Socket.IO `createPublicParser`).
+
+## IPC fichiers (processus principal, #1146)
+
+- Le renderer ne peut lire/écrire que des chemins renvoyés par une boîte de dialogue native (`dialog:openFile`, `dialog:saveFile`) ou par le menu Importer (`.bpf`). `src/main/pathAuthorization.ts` les mémorise (10 min, 200 max, sens lecture/écriture).
+- `file:writeContent`, `file:export/import`, `file:exportPhotos/importPhotos`, `file:exportFencersArchive/importFencersArchive`, `file:printHtmlToPDF` refusent tout autre chemin, les liens symboliques, les extensions exécutables en écriture (`.exe`, `.sh`, `.js`…) et exigent `.zip` / `.bpf` / `.pdf` selon l'usage.
+- Imports ZIP bornés (surchargeables : `BP_ZIP_MAX_FILE_BYTES` 50 Mo, `BP_ZIP_MAX_ENTRIES` 5000, `BP_ZIP_MAX_UNCOMPRESSED_BYTES` 200 Mo, `BP_ZIP_MAX_ENTRY_BYTES` 20 Mo, `BP_IMPORT_MAX_FENCERS` 20000) ; entrées `..`, absolues ou avec `\` ignorées ; `fencers.json` validé (tableau, champs texte bornés) avant `upsertFencersByLicense`.
+
+## CSP des pages distantes (#1149)
+
+- Chaque page HTML est servie par `sendHtmlPage` (`src/main/remote/csp.ts`) : nonce aléatoire (16 octets) ajouté à tous les `<script>`/`<style>`, en-tête `script-src 'nonce-…' 'self'` **sans `'unsafe-inline'`**, `object-src 'none'`, `base-uri 'self'`, `connect-src 'self' ws: wss:`. Les `.html` ne sont plus servis en statique brut.
+- Plus de handlers inline (`onclick=`…) ni de `javascript:` : délégation `data-click` / `data-change` / `data-input` + `data-args` (JSON, `"$el"`, `"$value"`) dans `common.js`. Les cibles sont des fonctions globales de la page (`window.refereeApp` pour l'arbitre). Nouvelle page avec action : charger `/common.js` et utiliser ces attributs ; les arguments dynamiques passent par `escHtml(JSON.stringify([...]))`.
+- `style-src` garde `'unsafe-inline'` (attributs `style=` trop nombreux, voir #1157).
+- `BP_CSP_REPORT_ONLY=1` : politique stricte en mode rapport seul (diagnostic d'une casse sur le terrain). Pas d'endpoint `/csp-report` : le navigateur journalise les violations en console.
+- Test `csp.test.ts` : nonce sur chaque script, aucun handler inline dans `src/remote` ni dans les pages générées, chaque `data-click` statique cible une fonction définie.
+
+## Performance des pages distantes (#1151)
+
+- Au démarrage, `remote/pageStore.ts` extrait chaque `<script>` inline (client socket.io compris) vers un asset `/_a/<hash>.js` (`Cache-Control: public, max-age=31536000, immutable`, dédupliqué entre pages) ; plus aucun script inline ⇒ CSP fixe `script-src 'self'` (sans nonce). Une page qui garde un bloc inline non extractible (ex. JSON) retombe sur le nonce par réponse (#1149).
+- Pages et `common.js`/`i18n.js`/`app.js`/`styles.css` sont pré-compressés (brotli q9 + gzip), servis selon `Accept-Encoding` (q-values), avec `ETag` + `Cache-Control: no-cache` (304 au rechargement) et `Vary: Accept-Encoding`.
+- Les réponses `res.json()` > 1 Ko sont compressées en gzip (`jsonCompression`).
+- Mesure (Chromium, `referee.html` complet, socket.io inclus) : ~60 Ko au premier chargement contre ~220 Ko avant (chiffre de l'issue) ; test `pageStore.test.ts` : page + assets brotli < 60 Ko.
+- Service worker : cache `bellepoule-referee-v6` ; les assets `/_a/*` sont mis en cache à la volée (réseau d'abord, repli cache hors-ligne).
+
+## Kiosque sans polling (#1152)
+
+- `kiosk.html` n'interroge plus le serveur périodiquement (avant : session/pools 15 s, tableau 15 s, logo 30 s, ETA 30 s). Chargement initial, puis rechargement sur événements Socket.IO : `kiosk:data` (toute écriture en base via `DatabaseManager.onChange`, mise à jour d'une piste, début/fin de session ; regroupé sur 300 ms par `notifyKioskData`), `bracket:update`, `logo:update`.
+- Resynchronisation complète à la **reconnexion** Socket.IO, au retour de **visibilité** de la page et à l'événement `online` ; en cas d'échec de chargement : backoff exponentiel (1 s → 30 s) avec jitter.
+- Les timers d'animation (barres de progression, pan du tableau) ne travaillent pas quand la page est masquée. Remplacement par `requestAnimationFrame`/CSS non fait.
+- Mesure (Chromium + serveur Socket.IO réel, kiosque inactif) : 0 requête HTTP en 15–40 s ; 7 requêtes de rechargement par événement `kiosk:data` ; 7 après coupure/reprise du réseau.
+- Tests : `kioskNoPolling.test.ts`, `remoteScoreServer.test.ts` (`kiosk:data`).
+
+## Polices embarquées (#1153)
+
+- Inter variable (OFL, latin + latin-ext, `font-display: swap`) est servie localement : `src/renderer/assets/fonts/` (bundle webpack) et `src/remote/fonts/` + `src/remote/fonts.css` (pages kiosque/dashboard, `/fonts/*` en cache 1 an, préchargement `Inter-latin`, précache du service worker v7). DSEG7 était déjà embarquée.
+- Plus aucun hôte Google Fonts : retirés des CSP (`main.ts`, `index.html`, `remote/csp.ts`), des `preconnect` et de `design.css` ; aucune IP d'appareil envoyée à un tiers, rendu identique hors-ligne.
+- zh-HK : Inter ne couvre pas le CJK ; les piles `font-family` retombent sur les polices système, comme avant.
+- Test : `embeddedFonts.test.ts` ; vérifié dans Chromium : seul l'hôte local est contacté et Inter se charge.

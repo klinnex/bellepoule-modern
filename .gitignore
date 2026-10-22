@@ -8,7 +8,8 @@ out/
 # IDE
 .vscode/
 .idea/
-.claude/
+.claude/*
+!.claude/agents/
 *.swp
 *.swo
 
@@ -38,3 +39,8 @@ coverage/
 
 # Build output (compilé depuis src/ via npm run build)
 dist/
+/translations/
+
+# Rapports Playwright
+playwright-report/
+test-results/

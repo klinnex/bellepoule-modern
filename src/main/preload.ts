@@ -388,6 +388,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
       reason: string
     ) => ipcRenderer.invoke('db:createTeamMatchCard', matchId, teamId, type, reason),
     getTeamMatchCards: (matchId: string) => ipcRenderer.invoke('db:getTeamMatchCards', matchId),
+    createTeamBoutCard: (boutId: string, card: unknown) =>
+      ipcRenderer.invoke('db:createTeamBoutCard', boutId, card),
+    getTeamBoutCards: (matchId: string) => ipcRenderer.invoke('db:getTeamBoutCards', matchId),
   },
 
   // File operations with validation
@@ -404,6 +407,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
       }
       return ipcRenderer.invoke('file:import', filepath);
     },
+    openDialog: () => ipcRenderer.invoke('file:openDialog'),
+    exportCompetition: (competitionId: string) =>
+      ipcRenderer.invoke('file:exportCompetition', competitionId),
     writeContent: (filepath: string, content: string) => {
       if (!filepath || typeof filepath !== 'string') {
         throw new Error('Filepath is required and must be a string');
@@ -505,8 +511,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onMenuOpenSettings: (callback: () => void) => ipcRenderer.on('menu:open-settings', callback),
   onMenuReportIssue: (callback: () => void) => ipcRenderer.on('menu:report-issue', callback),
   onShowAbout: (callback: () => void) => ipcRenderer.on('menu:show-about', callback),
-  onFileOpened: (callback: (filepath: string) => void) =>
-    ipcRenderer.on('file:opened', (_, filepath) => callback(filepath)),
+  onFileOpened: (callback: (filepath: string, competitionIds?: string[]) => void) =>
+    ipcRenderer.on('file:opened', (_, filepath, competitionIds) =>
+      callback(filepath, competitionIds)
+    ),
+  setCurrentCompetition: (competitionId: string | null) =>
+    ipcRenderer.send('app:current-competition', competitionId),
   onFileSaved: (callback: (filepath: string) => void) =>
     ipcRenderer.on('file:saved', (_, filepath) => callback(filepath)),
   onAutosaveCompleted: (callback: () => void) => ipcRenderer.on('autosave:completed', callback),
@@ -518,6 +528,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setWindowSize: (width: number, height: number, options?: { force?: boolean }) =>
     ipcRenderer.invoke('window:setSize', width, height, options),
   openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),
+  getEventLoopDelay: (reset?: boolean) =>
+    ipcRenderer.invoke('perf:getEventLoopDelay', reset === true),
   getVersionInfo: () => ipcRenderer.invoke('app:getVersionInfo'),
 
   // Updater functions
@@ -617,6 +629,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       competitionId: string,
       updates: Array<{ poolId: string; fencers: any[] }>
     ) => ipcRenderer.invoke('remote:updatePoolFencers', competitionId, updates),
+    setActiveWave: (competitionId: string, matchIds: string[] | null, poolsClosed?: boolean) =>
+      ipcRenderer.invoke('remote:setActiveWave', competitionId, matchIds, poolsClosed),
     syncPoolMatches: (
       competitionId: string,
       poolsData: Array<{ poolId: string; matches: any[] }>
@@ -663,8 +677,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('remote:requestMatchSignature', competitionId, arenaId, request),
     resetPoolMatch: (competitionId: string, matchId: string) =>
       ipcRenderer.invoke('remote:resetPoolMatch', competitionId, matchId),
-    finishPoolMatch: (competitionId: string, matchId: string, scoreA: number, scoreB: number) =>
-      ipcRenderer.invoke('remote:finishPoolMatch', competitionId, matchId, scoreA, scoreB),
+    finishPoolMatch: (
+      competitionId: string,
+      matchId: string,
+      scoreA: number,
+      scoreB: number,
+      winner?: 'A' | 'B',
+      specialStatus?: 'abandon' | 'forfait' | 'exclusion'
+    ) =>
+      ipcRenderer.invoke(
+        'remote:finishPoolMatch',
+        competitionId,
+        matchId,
+        scoreA,
+        scoreB,
+        winner,
+        specialStatus
+      ),
     setTeamArenaMatch: (
       competitionId: string,
       arenaId: string,

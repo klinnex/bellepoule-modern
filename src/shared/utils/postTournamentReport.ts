@@ -5,6 +5,7 @@
  */
 
 import { Competition, FencerCompetitionStats } from '../types';
+import { getActiveLocale } from './localeFormat';
 
 interface MatchWithReferee {
   matchId: string;
@@ -100,7 +101,7 @@ export function generatePostTournamentReportHTML(
 
   const refereeStats = buildRefereeStats(matchesWithRefs);
 
-  const date = new Date().toLocaleDateString('fr-FR', {
+  const date = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -224,7 +225,7 @@ export function generatePostTournamentReportHTML(
   }
 
   <div class="footer">
-    Rapport généré par BellePoule Modern · ${new Date().toLocaleString('fr-FR')}
+    Rapport généré par BellePoule Modern · ${new Date().toLocaleString(getActiveLocale())}
   </div>
 </body>
 </html>`;

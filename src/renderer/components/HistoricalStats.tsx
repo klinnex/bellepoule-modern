@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { logger, LogCategory } from '@shared/services/logger';
 
@@ -31,6 +32,7 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
   fencerName,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [results, setResults] = useState<CompetitionResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,15 +81,17 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
         role="dialog"
         aria-modal="true"
       >
-        <div className="modal-header" style={{ flexShrink: 0 }}>
-          <h2 style={{ margin: 0 }}>Historique — {fencerName}</h2>
+        <div className="modal-header flex-shrink-0">
+          <h2 style={{ margin: 0 }}>{t('historicalStats.title', { name: fencerName })}</h2>
           <button className="btn-close" onClick={onClose}>
-            &times;
+            ×
           </button>
         </div>
 
         {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>Chargement…</div>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+            {t('historicalStats.loading')}
+          </div>
         ) : (
           <>
             <div
@@ -96,21 +100,33 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                 gridTemplateColumns: 'repeat(4, 1fr)',
                 gap: '1rem',
                 padding: '1rem 1.5rem',
-                background: '#f9fafb',
-                borderBottom: '1px solid #e5e7eb',
+                background: 'var(--color-surface-2)',
+                borderBottom: '1px solid var(--color-border)',
                 flexShrink: 0,
               }}
             >
-              <StatCard label="Compétitions" value={totalCompetitions.toString()} />
-              <StatCard label="Meilleur rang" value={bestRank !== null ? `${bestRank}e` : '—'} />
-              <StatCard label="Victoires" value={totalVictories.toString()} color="#16a34a" />
-              <StatCard label="% victoires" value={`${ratio}%`} />
+              <StatCard
+                label={t('historicalStats.competitions')}
+                value={totalCompetitions.toString()}
+              />
+              <StatCard
+                label={t('historicalStats.best_rank')}
+                value={bestRank !== null ? t('historicalStats.rank_n', { n: bestRank }) : '—'}
+              />
+              <StatCard
+                label={t('historicalStats.victories')}
+                value={totalVictories.toString()}
+                color="#16a34a"
+              />
+              <StatCard label={t('historicalStats.win_pct')} value={`${ratio}%`} />
             </div>
 
             <div style={{ overflowY: 'auto', flex: 1 }}>
               {results.length === 0 ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>
-                  Aucun historique disponible
+                <div
+                  style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}
+                >
+                  {t('historicalStats.none')}
                 </div>
               ) : (
                 <>
@@ -118,7 +134,7 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                     style={{
                       padding: '0.75rem 1.5rem',
                       fontSize: '0.75rem',
-                      color: '#6b7280',
+                      color: 'var(--color-text-light)',
                       fontFamily: 'monospace',
                     }}
                   >
@@ -128,19 +144,24 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
                     style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}
                   >
                     <thead>
-                      <tr style={{ background: '#f3f4f6' }}>
-                        <th style={thS}>Date</th>
-                        <th style={{ ...thS, textAlign: 'left' }}>Compétition</th>
-                        <th style={thS}>Arme</th>
-                        <th style={thS}>Rang</th>
-                        <th style={thS}>V</th>
-                        <th style={thS}>D</th>
-                        <th style={thS}>TD/TR</th>
+                      <tr style={{ background: 'var(--color-bg)' }}>
+                        <th style={thS}>{t('historicalStats.date')}</th>
+                        <th style={{ ...thS, textAlign: 'left' }}>
+                          {t('historicalStats.competition')}
+                        </th>
+                        <th style={thS}>{t('historicalStats.weapon')}</th>
+                        <th style={thS}>{t('historicalStats.rank')}</th>
+                        <th style={thS}>{t('ranking.victories')}</th>
+                        <th style={thS}>{t('historicalStats.defeats')}</th>
+                        <th style={thS}>{t('historicalStats.td_tr')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {results.map((r, i) => (
-                        <tr key={r.competitionId + i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <tr
+                          key={r.competitionId + i}
+                          style={{ borderBottom: '1px solid var(--color-bg)' }}
+                        >
                           <td style={tdS}>{r.date}</td>
                           <td style={{ ...tdS, textAlign: 'left', fontWeight: 500 }}>
                             {r.competitionTitle}
@@ -170,9 +191,13 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
 
 function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: '1.5rem', fontWeight: 700, color: color ?? '#1f2937' }}>{value}</div>
-      <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>{label}</div>
+    <div className="text-center">
+      <div style={{ fontSize: '1.5rem', fontWeight: 700, color: color ?? 'var(--color-text)' }}>
+        {value}
+      </div>
+      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginTop: '0.25rem' }}>
+        {label}
+      </div>
     </div>
   );
 }
@@ -204,8 +229,8 @@ const thS: React.CSSProperties = {
   textAlign: 'center',
   fontWeight: 600,
   fontSize: '0.75rem',
-  color: '#4b5563',
-  borderBottom: '2px solid #e5e7eb',
+  color: 'var(--color-text-light)',
+  borderBottom: '2px solid var(--color-border)',
 };
 const tdS: React.CSSProperties = { padding: '0.5rem 0.75rem', textAlign: 'center' };
 

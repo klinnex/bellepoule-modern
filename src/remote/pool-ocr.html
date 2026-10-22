@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Saisie par photo — BellePoule</title>
+  <title data-i18n="ocr.page_title">Saisie par photo — BellePoule</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -192,34 +192,30 @@
     .row-actions { display: flex; gap: 8px; }
     .label-sm { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
   </style>
+  <script src="/common.js"></script>
+  <script src="/i18n.js"></script>
 </head>
 <body>
 
 <div class="topbar">
-  <a class="back" href="javascript:history.back()">← Retour</a>
-  <h1>📸 Saisie par photo</h1>
+  <a class="back" href="#" data-click="history.back" data-i18n="ocr.back">← Retour</a>
+  <h1 data-i18n="ocr.title">📸 Saisie par photo</h1>
 </div>
 
 <!-- ════ STAGE : SCAN ════ -->
 <div id="stage-scan" class="stage active">
   <label class="upload-zone" for="photo-input" id="upload-zone">
     <div class="icon">📷</div>
-    <strong>Photographier la feuille de poule</strong>
-    <p>Appuyez pour prendre une photo ou choisir une image</p>
+    <strong data-i18n="ocr.take_photo">Photographier la feuille de poule</strong>
+    <p data-i18n="ocr.take_photo_hint">Appuyez pour prendre une photo ou choisir une image</p>
   </label>
   <input type="file" id="photo-input" accept="image/*" capture="environment" />
-  <p class="hint-box">
-    La feuille doit avoir été générée par BellePoule (QR code en bas à droite).
-    Posez-la à plat et photographiez-la de face.
-  </p>
+  <p class="hint-box" data-i18n="ocr.scan_hint">La feuille doit avoir été générée par BellePoule (QR code en bas à droite). Posez-la à plat et photographiez-la de face.</p>
 </div>
 
 <!-- ════ STAGE : CORNERS ════ -->
 <div id="stage-corners" class="stage">
-  <div class="hint-box">
-    Déplacez les 4 poignées dorées vers les <strong>4 coins de la grille des scores</strong>
-    (zone des cellules V/D, hors colonnes Nom, #, Stats et Signature).
-  </div>
+  <div class="hint-box" data-i18n="ocr.corners_hint">Déplacez les 4 poignées dorées vers les 4 coins de la grille des scores (zone des cellules V/D, hors colonnes Nom, #, Stats et Signature).</div>
   <div class="canvas-wrap" id="canvas-wrap">
     <canvas id="preview-canvas"></canvas>
     <div class="handle" id="h0"><span class="handle-label">TL</span></div>
@@ -227,10 +223,10 @@
     <div class="handle" id="h2"><span class="handle-label">BR</span></div>
     <div class="handle" id="h3"><span class="handle-label">BL</span></div>
   </div>
-  <p class="pool-info" id="qr-status">Recherche du QR code…</p>
+  <p class="pool-info" id="qr-status" data-i18n="ocr.qr_searching">Recherche du QR code…</p>
   <div class="row-actions">
-    <button class="btn btn-secondary" id="btn-back-scan">← Reprendre</button>
-    <button class="btn btn-primary" id="btn-analyze" style="flex:1" disabled>Analyser →</button>
+    <button class="btn btn-secondary" id="btn-back-scan" data-i18n="ocr.retake">← Reprendre</button>
+    <button class="btn btn-primary" id="btn-analyze" style="flex:1" disabled data-i18n="ocr.analyze">Analyser →</button>
   </div>
 </div>
 
@@ -238,27 +234,27 @@
 <div id="stage-processing" class="stage">
   <div class="processing-center">
     <div class="spinner"></div>
-    <p id="proc-msg">Correction de perspective…</p>
+    <p id="proc-msg" data-i18n="ocr.perspective">Correction de perspective…</p>
   </div>
 </div>
 
 <!-- ════ STAGE : VALIDATE ════ -->
 <div id="stage-validate" class="stage">
   <div>
-    <p class="label-sm">Poule détectée</p>
+    <p class="label-sm" data-i18n="ocr.pool_detected">Poule détectée</p>
     <p id="val-pool-name" style="font-weight:700;font-size:1rem"></p>
     <p class="pool-info" id="val-fencer-count"></p>
   </div>
   <p class="hint-box">
-    Cases en <span style="color:var(--gold)">jaune</span> = faible confiance OCR — vérifiez.
-    Cases vides = score non reconnu — saisissez manuellement.
+    <span data-i18n="ocr.validate_hint_yellow">Cases en jaune = faible confiance OCR — vérifiez.</span>
+    <span data-i18n="ocr.validate_hint_empty">Cases vides = score non reconnu — saisissez manuellement.</span>
   </p>
   <div class="score-table-wrap">
     <table class="score-table" id="val-table"></table>
   </div>
   <div class="row-actions">
-    <button class="btn btn-secondary" id="btn-back-corners">← Recadrer</button>
-    <button class="btn btn-success btn-block" id="btn-import">Importer les scores →</button>
+    <button class="btn btn-secondary" id="btn-back-corners" data-i18n="ocr.recrop">← Recadrer</button>
+    <button class="btn btn-success btn-block" id="btn-import" data-i18n="ocr.import">Importer les scores →</button>
   </div>
 </div>
 
@@ -266,9 +262,9 @@
 <div id="stage-done" class="stage">
   <div class="done-center">
     <div class="done-icon">✅</div>
-    <h2>Import terminé</h2>
+    <h2 data-i18n="ocr.done">Import terminé</h2>
     <p id="done-msg"></p>
-    <a href="javascript:history.back()" class="btn btn-secondary">Retour</a>
+    <a href="#" data-click="history.back" class="btn btn-secondary" data-i18n="ocr.back_short">Retour</a>
   </div>
 </div>
 
@@ -276,6 +272,9 @@
 
 <script>
 'use strict';
+// Traduction (src/remote/i18n.js) ; repli sur la clé si i18n.js absent
+const tk = (key, params) => (window.T ? window.T(key, params) : key);
+if (window.initRemoteI18n) window.initRemoteI18n();
 
 // ── State ───────────────────────────────────────────────────────────────────
 const S = {
@@ -329,7 +328,7 @@ $('photo-input').addEventListener('change', e => {
     initCornersStage();
     showStage('corners');
   };
-  img.onerror = () => toast('Impossible de charger l\'image');
+  img.onerror = () => toast(tk('ocr.image_error'));
   img.src = url;
 });
 
@@ -427,7 +426,7 @@ function drawOverlay() {
 
 // ── QR detection (BarcodeDetector or canvas scan) ────────────────────────────
 async function detectQR() {
-  $('qr-status').textContent = 'Recherche du QR code…';
+  $('qr-status').textContent = tk('ocr.qr_searching');
   $('btn-analyze').disabled = true;
 
   try {
@@ -441,7 +440,7 @@ async function detectQR() {
   } catch { /* BarcodeDetector not available or failed */ }
 
   // BarcodeDetector unavailable or no QR found
-  $('qr-status').textContent = '⚠️ QR non détecté — sélectionnez la poule manuellement';
+  $('qr-status').textContent = tk('ocr.qr_not_found');
   showPoolSelector();
 }
 
@@ -450,7 +449,7 @@ function tryParseQR(raw) {
     const d = JSON.parse(raw);
     if (d.v === 1 && d.pid) {
       S.qrData = d;
-      $('qr-status').textContent = `✅ QR détecté (poule ${d.pid.slice(0,8)}…)`;
+      $('qr-status').textContent = tk('ocr.qr_found', { id: d.pid.slice(0, 8) });
       $('btn-analyze').disabled = false;
       return true;
     }
@@ -469,15 +468,15 @@ function showPoolSelector() {
       }
       const sel = document.createElement('select');
       sel.style.cssText = 'background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:8px;font-size:.9rem;width:100%;margin-top:8px';
-      sel.innerHTML = '<option value="">— Choisir la poule —</option>';
+      sel.innerHTML = '<option value="">' + tk('ocr.choose_pool') + '</option>';
       pools.forEach(p => {
-        const label = p.name || `Poule ${p.number || '?'}`;
-        sel.innerHTML += `<option value="${p.id}">${label}</option>`;
+        const label = p.name || tk('ocr.pool_n', { n: p.number || '?' });
+        sel.innerHTML += `<option value="${escHtml(p.id)}">${escHtml(label)}</option>`;
       });
       sel.addEventListener('change', () => {
         if (sel.value) {
           S.qrData = { v: 1, pid: sel.value, cid: '' };
-          $('qr-status').textContent = '✅ Poule sélectionnée manuellement';
+          $('qr-status').textContent = tk('ocr.pool_manual');
           $('btn-analyze').disabled = false;
         }
       });
@@ -538,31 +537,31 @@ $('btn-back-corners').addEventListener('click', () => showStage('corners'));
 // ── Analyze ──────────────────────────────────────────────────────────────────
 $('btn-analyze').addEventListener('click', async () => {
   showStage('processing');
-  setProcMsg('Récupération des données de la poule…');
+  setProcMsg(tk('ocr.fetching'));
 
   try {
     // 1. Fetch pool data
     const pid = S.qrData?.pid;
-    if (!pid) throw new Error('ID de poule manquant');
+    if (!pid) throw new Error(tk('ocr.missing_pool'));
 
     const resp = await fetch(`/api/pools/${encodeURIComponent(pid)}/data`, { credentials: 'include' });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     S.poolData = await resp.json();
 
     const n = S.poolData.fencers.length;
-    if (n < 2) throw new Error('Données de poule invalides');
+    if (n < 2) throw new Error(tk('ocr.invalid_pool'));
 
     // 2. Warp score grid to canonical N*60 × N*60 canvas
-    setProcMsg('Correction de perspective…');
+    setProcMsg(tk('ocr.perspective'));
     const CELL_PX = 64;
     const warpedCanvas = warpQuadToCanvas(S.imgEl, S.handles, n * CELL_PX, n * CELL_PX);
 
     // 3. Extract N×N cell images
-    setProcMsg('Extraction des cellules…');
+    setProcMsg(tk('ocr.extracting'));
     const cells = extractCells(warpedCanvas, n, CELL_PX);
 
     // 4. Send to server OCR
-    setProcMsg('Reconnaissance OCR (Tesseract)…');
+    setProcMsg(tk('ocr.recognizing'));
     const ocrResp = await fetch('/api/ocr/pool-sheet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -571,7 +570,7 @@ $('btn-analyze').addEventListener('click', async () => {
     });
     if (!ocrResp.ok) {
       const err = await ocrResp.json().catch(() => ({}));
-      throw new Error(err.error || `HTTP ${ocrResp.status}`);
+      throw new Error(window.errorText(err, `HTTP ${ocrResp.status}`));
     }
     const ocrData = await ocrResp.json();
     S.cellResults = ocrData.cells || [];
@@ -579,7 +578,7 @@ $('btn-analyze').addEventListener('click', async () => {
     buildValidationUI();
     showStage('validate');
   } catch (err) {
-    toast('Erreur : ' + err.message);
+    toast(tk('ocr.error', { message: err.message }));
     showStage('corners');
   }
 });
@@ -669,7 +668,7 @@ function buildValidationUI() {
   const n = fencers.length;
 
   $('val-pool-name').textContent = poolName;
-  $('val-fencer-count').textContent = `${n} tireurs · ${matches.length} matchs`;
+  $('val-fencer-count').textContent = tk('ocr.counts', { fencers: n, matches: matches.length });
 
   // Build lookup: (fencerAId, fencerBId) → matchId
   const matchLookup = {};
@@ -700,7 +699,7 @@ function buildValidationUI() {
   for (let row = 0; row < n; row++) {
     const f = fencers[row];
     const fname = f ? `${(f.lastName || '').toUpperCase()} ${f.firstName || ''}`.trim() : `T${row+1}`;
-    let tr = `<tr><td>${row+1}</td><td class="cell-name" title="${fname}">${fname}</td>`;
+    let tr = `<tr><td>${escHtml(row+1)}</td><td class="cell-name" title="${escHtml(fname)}">${escHtml(fname)}</td>`;
 
     for (let col = 0; col < n; col++) {
       if (row === col) {
@@ -713,7 +712,7 @@ function buildValidationUI() {
       const hiConf = conf >= 70;
       const cls = hiConf ? 'hi-conf' : 'low-conf';
       const badge = conf > 0
-        ? `<span class="conf-badge ${cls}">${conf}%</span>`
+        ? `<span class="conf-badge ${cls}">${escHtml(conf)}%</span>`
         : '';
 
       // fencerA = fencers[row], fencerB = fencers[col]
@@ -726,21 +725,17 @@ function buildValidationUI() {
           type="text"
           value="${escHtml(text)}"
           maxlength="4"
-          data-row="${row}"
-          data-col="${col}"
-          data-mid="${mid}"
+          data-row="${escHtml(row)}"
+          data-col="${escHtml(col)}"
+          data-mid="${escHtml(mid)}"
           placeholder="V5"
-          aria-label="Score ${row+1} vs ${col+1}"
-        />${badge}
+          aria-label="Score ${escHtml(row+1)} vs ${escHtml(col+1)}"
+        />${/* html */ badge}
       </td>`;
     }
     tr += '</tr>';
     tbl.innerHTML += tr;
   }
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── Import scores ─────────────────────────────────────────────────────────────
@@ -790,12 +785,12 @@ $('btn-import').addEventListener('click', async () => {
   }
 
   if (toSubmit.length === 0) {
-    toast('Aucun score valide à importer');
+    toast(tk('ocr.nothing_to_import'));
     return;
   }
 
   $('btn-import').disabled = true;
-  $('btn-import').textContent = 'Import en cours…';
+  $('btn-import').textContent = tk('ocr.importing');
 
   let ok = 0, fail = 0;
   const pid = S.poolData.poolId;
@@ -812,7 +807,8 @@ $('btn-import').addEventListener('click', async () => {
     } catch { fail++; }
   }
 
-  $('done-msg').textContent = `${ok} score${ok > 1 ? 's' : ''} importé${ok > 1 ? 's' : ''}${fail > 0 ? ` · ${fail} échec(s)` : ''}`;
+  $('done-msg').textContent =
+    tk('ocr.imported', { count: ok }) + (fail > 0 ? ' · ' + tk('ocr.failed', { count: fail }) : '');
   showStage('done');
 });
 

@@ -8,6 +8,12 @@ import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('../hooks/useTranslation', () => ({
+  useTranslation: () => ({
+    t: (k: string, p?: Record<string, unknown>) => (p ? `${k} ${JSON.stringify(p)}` : k),
+  }),
+}));
 import ImportModal from './ImportModal';
 
 const setup = (over: Partial<Record<string, any>> = {}) => {
@@ -37,7 +43,7 @@ describe('ImportModal', () => {
 
   it('importe les tireurs sélectionnés (tous par défaut) puis ferme', () => {
     const { onImport, onClose } = setup();
-    fireEvent.click(screen.getByText(/Importer 2 tireurs/));
+    fireEvent.click(screen.getByText('importModal.import_n {"count":2}'));
     expect(onImport).toHaveBeenCalledTimes(1);
     expect(onImport.mock.calls[0][0]).toHaveLength(2);
     expect(onClose).toHaveBeenCalled();

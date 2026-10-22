@@ -9,6 +9,12 @@ import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { getRoundName } from './tableau/tableauCalculations';
 import type { MatchAuditOption } from './MatchAuditLog';
+import {
+  CollapseToggle,
+  CollapsedRow,
+  useCollapsed,
+  COMPACT_ROW_COUNT,
+} from './common/CollapseToggle';
 
 interface Props {
   competitionId: string;
@@ -95,6 +101,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
   const { t } = useTranslation();
   const [entries, setEntries] = useState<ScoreAuditEntry[]>([]);
   const [loading, setLoading] = useState(false);
+  const [collapsed, toggleCollapsed] = useCollapsed('score-audit-log');
   const [filterPool, setFilterPool] = useState('');
   const [filterReferee, setFilterReferee] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('time');
@@ -187,6 +194,9 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
     }
   }, [filtered, refereeOf, showToast, t]);
 
+  const visibleRows = collapsed ? filtered.slice(0, COMPACT_ROW_COUNT) : filtered;
+  const hiddenCount = filtered.length - visibleRows.length;
+
   return (
     <div style={{ padding: '1.5rem', maxWidth: '100%', overflowX: 'auto' }}>
       <div
@@ -199,7 +209,12 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
         }}
       >
         <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)' }}>
-          📜 Historique des scores
+          {t('scoreAudit.title')}
+          <CollapseToggle
+            collapsed={collapsed}
+            onToggle={toggleCollapsed}
+            hiddenCount={Math.max(0, filtered.length - COMPACT_ROW_COUNT)}
+          />
         </h2>
 
         <select
@@ -213,19 +228,19 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
             color: 'var(--color-text)',
           }}
         >
-          <option value="">Toutes les phases</option>
+          <option value="">{t('scoreAudit.all_phases')}</option>
           {poolNumbers.map(n => (
             <option key={n} value={String(n)}>
-              Poule {n}
+              {t('scoreAudit.pool_n', { n })}
             </option>
           ))}
-          {hasTableau && <option value={TABLEAU_FILTER}>Tableau</option>}
+          {hasTableau && <option value={TABLEAU_FILTER}>{t('scoreAudit.tableau')}</option>}
         </select>
 
         <select
           value={sortMode}
           onChange={e => setSortMode(e.target.value as SortMode)}
-          aria-label="Trier l'historique"
+          aria-label={t('scoreAudit.sort_aria')}
           style={{
             padding: '0.3rem 0.6rem',
             borderRadius: 4,
@@ -234,15 +249,15 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
             color: 'var(--color-text)',
           }}
         >
-          <option value="time">Tri : par heure</option>
-          <option value="pool">Tri : par poule / tour</option>
-          <option value="match">Tri : par ordre des matchs</option>
-          <option value="referee">Tri : par arbitre</option>
+          <option value="time">{t('scoreAudit.sort_time')}</option>
+          <option value="pool">{t('scoreAudit.sort_pool')}</option>
+          <option value="match">{t('scoreAudit.sort_match')}</option>
+          <option value="referee">{t('scoreAudit.sort_referee')}</option>
         </select>
 
         <input
           type="text"
-          placeholder="Filtrer arbitre…"
+          placeholder={t('scoreAudit.filter_referee')}
           value={filterReferee}
           onChange={e => setFilterReferee(e.target.value)}
           style={{
@@ -256,7 +271,7 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
         />
 
         <button className="btn btn-secondary" onClick={exportCsv} disabled={filtered.length === 0}>
-          ⬇ Export CSV
+          {t('scoreAudit.export_csv')}
         </button>
 
         <button
@@ -277,17 +292,17 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
           <thead>
             <tr style={{ background: 'var(--color-surface-2)', textAlign: 'left' }}>
-              <th style={th}>Horodatage</th>
-              <th style={th}>Poule / Tour</th>
-              <th style={th}>Match</th>
-              <th style={th}>Avant</th>
-              <th style={th}>Après</th>
-              <th style={th}>Arbitre</th>
+              <th style={th}>{t('scoreAudit.h_time')}</th>
+              <th style={th}>{t('scoreAudit.h_round')}</th>
+              <th style={th}>{t('scoreAudit.h_match')}</th>
+              <th style={th}>{t('scoreAudit.h_before')}</th>
+              <th style={th}>{t('scoreAudit.h_after')}</th>
+              <th style={th}>{t('scoreAudit.h_referee')}</th>
               <th style={th}>IP</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map(e => (
+            {visibleRows.map(e => (
               <tr key={e.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                 <td style={td}>{new Date(e.changedAt).toLocaleString()}</td>
                 <td style={td}>{phaseLabel(e)}</td>
@@ -306,13 +321,16 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
                 </td>
               </tr>
             ))}
+            {hiddenCount > 0 && (
+              <CollapsedRow colSpan={7} hiddenCount={hiddenCount} onExpand={toggleCollapsed} />
+            )}
           </tbody>
         </table>
       )}
 
-      <div style={{ marginTop: '0.75rem', color: '#9CA3AF', fontSize: '0.75rem' }}>
-        {filtered.length} entrée{filtered.length !== 1 ? 's' : ''}
-        {entries.length !== filtered.length ? ` (${entries.length} au total)` : ''}
+      <div style={{ marginTop: '0.75rem', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
+        {t('scoreAudit.entries', { count: filtered.length })}
+        {entries.length !== filtered.length ? t('scoreAudit.total', { n: entries.length }) : ''}
       </div>
     </div>
   );

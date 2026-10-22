@@ -8,7 +8,11 @@ import { createPortal } from 'react-dom';
 import type { MatchEventEntry, MatchEventType } from '../../shared/types';
 import { useMatchAuditStore } from '../../features/matchAuditLog/hooks/useMatchAuditStore';
 import { useToast } from './Toast';
+import { useTranslation } from '../contexts/TranslationContext';
+import { useFocusTrap } from '../hooks/useFocusTrap';
+import MatchReplay from './MatchReplay';
 import { describeMatchEvent, exportMatchTimelineJSON } from '../../shared/utils/multiFormatExport';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 /** Match sélectionnable dans le journal (vue compétition) */
 export interface MatchAuditOption {
@@ -46,7 +50,7 @@ const ALL_TYPES: MatchEventType[] = ['touch', 'card', 'arena_exit', 'score_chang
 
 function formatTimestamp(ts: string, baseTs: string | null): string {
   const d = new Date(ts);
-  const abs = d.toLocaleTimeString('fr-FR', {
+  const abs = d.toLocaleTimeString(getActiveLocale(), {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
@@ -115,7 +119,10 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
   onClose,
 }) => {
   const { showToast } = useToast();
+  const { t } = useTranslation();
+  const modalRef = useFocusTrap<HTMLDivElement>(!!onClose, onClose);
   const [refereeView, setRefereeView] = useState(false);
+  const [showReplay, setShowReplay] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState('');
   const [selectedReferee, setSelectedReferee] = useState('');
   const competitionMode = !matchId && !!competitionId;
@@ -201,6 +208,16 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
   }, [entries, competitionMode, selectedMatchId, selectedReferee, refereesByMatch]);
 
   const singleMatch = !!matchId || !!selectedMatchId;
+  const replayNames = useMemo(() => {
+    const names: { A?: string; B?: string } = {};
+    for (const e of scopedEntries) {
+      if (e.fencerSide && !names[e.fencerSide] && e.fencerLastName)
+        names[e.fencerSide] = [e.fencerLastName.toUpperCase(), e.fencerFirstName]
+          .filter(Boolean)
+          .join(' ');
+    }
+    return names;
+  }, [scopedEntries]);
   const showMatchColumn = competitionMode && !selectedMatchId;
   // Temps relatif seulement pertinent dans un même match
   const baseTs = singleMatch && scopedEntries.length > 0 ? scopedEntries[0].timestamp : null;
@@ -282,14 +299,14 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
               alignItems: 'center',
             }}
           >
-            Arbitre :
+            {t('matchAudit.referee')}
             <select
-              aria-label="Filtrer par arbitre"
+              aria-label={t('matchAudit.filter_referee')}
               value={selectedReferee}
               onChange={e => setSelectedReferee(e.target.value)}
               style={selectStyle}
             >
-              <option value="">Tous les arbitres</option>
+              <option value="">{t('matchAudit.all_referees')}</option>
               {refereeNames.map(r => (
                 <option key={r} value={r}>
                   {r}
@@ -306,14 +323,14 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
               alignItems: 'center',
             }}
           >
-            Match :
+            {t('matchAudit.match')}
             <select
-              aria-label="Sélectionner un match"
+              aria-label={t('matchAudit.select_match')}
               value={selectedMatchId}
               onChange={e => setSelectedMatchId(e.target.value)}
               style={selectStyle}
             >
-              <option value="">Tous les matchs ({matchChoices.length})</option>
+              <option value="">{t('matchAudit.all_matches', { n: matchChoices.length })}</option>
               {matchChoices.map(c => (
                 <option key={c.id} value={c.id}>
                   {c.label}
@@ -345,7 +362,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             };
             const ZONE_PTS: Record<string, string> = { A: '1pt', B: '3pt', C: '5pt' };
             return (
-              <div key={side} style={{ flex: 1 }}>
+              <div key={side} className="flex-1">
                 <div
                   style={{
                     fontSize: '0.7rem',
@@ -355,7 +372,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     marginBottom: '0.4rem',
                   }}
                 >
-                  Côté {side}
+                  {t('matchAudit.side', { side })}
                 </div>
                 {(['A', 'B', 'C'] as const).map(z => {
                   const count = s[z];
@@ -423,7 +440,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
         <span
           style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', marginRight: '0.25rem' }}
         >
-          Filtrer :
+          {t('matchAudit.filter')}
         </span>
         {ALL_TYPES.map(t => {
           const active = filterTypes.length === 0 || filterTypes.includes(t);
@@ -446,8 +463,8 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             </button>
           );
         })}
-        <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: '#9ca3af' }}>
-          {filtered.length} événement{filtered.length !== 1 ? 's' : ''}
+        <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+          {t('matchAudit.events', { count: filtered.length })}
         </span>
         <button
           onClick={() => setRefereeView(v => !v)}
@@ -462,8 +479,27 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             cursor: 'pointer',
           }}
         >
-          Par arbitre
+          {t('matchAudit.by_referee')}
         </button>
+        {singleMatch && (
+          <button
+            onClick={() => setShowReplay(v => !v)}
+            disabled={scopedEntries.length === 0}
+            aria-pressed={showReplay}
+            style={{
+              padding: '0.3rem 0.75rem',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              borderRadius: '6px',
+              border: '1px solid #0ea5e9',
+              background: showReplay ? '#0ea5e9' : 'transparent',
+              color: showReplay ? 'white' : '#0ea5e9',
+              cursor: scopedEntries.length === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {t('replay.title')}
+          </button>
+        )}
         <button
           onClick={handleExportJSON}
           disabled={scopedEntries.length === 0}
@@ -473,20 +509,24 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             fontWeight: '600',
             borderRadius: '6px',
             border: '1px solid #374151',
-            background: scopedEntries.length === 0 ? '#f3f4f6' : '#1f2937',
-            color: scopedEntries.length === 0 ? '#9ca3af' : 'white',
+            background: scopedEntries.length === 0 ? 'var(--color-bg)' : '#1f2937',
+            color: scopedEntries.length === 0 ? 'var(--color-text-muted)' : 'white',
             cursor: scopedEntries.length === 0 ? 'not-allowed' : 'pointer',
           }}
         >
-          Export JSON
+          {t('matchAudit.export_json')}
         </button>
       </div>
+
+      {singleMatch && showReplay && (
+        <MatchReplay entries={scopedEntries} nameA={replayNames.A} nameB={replayNames.B} />
+      )}
 
       {/* Tableau */}
       <div style={{ overflowY: 'auto', flex: 1 }}>
         {isLoading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-light)' }}>
-            Chargement…
+            {t('matchAudit.loading')}
           </div>
         ) : refereeView ? (
           refereeLastActions.length === 0 ? (
@@ -494,11 +534,11 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
               style={{
                 textAlign: 'center',
                 padding: '3rem',
-                color: '#9ca3af',
+                color: 'var(--color-text-muted)',
                 fontSize: '0.875rem',
               }}
             >
-              Aucune saisie de score enregistrée.
+              {t('matchAudit.no_score')}
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
@@ -517,7 +557,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       color: 'var(--color-text-light)',
                     }}
                   >
-                    Arbitre
+                    {t('matchAudit.col_referee')}
                   </th>
                   <th
                     style={{
@@ -537,7 +577,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       color: 'var(--color-text-light)',
                     }}
                   >
-                    Dernière saisie
+                    {t('matchAudit.col_last')}
                   </th>
                   {showMatchColumn && (
                     <th
@@ -548,7 +588,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                         color: 'var(--color-text-light)',
                       }}
                     >
-                      Match
+                      {t('matchAudit.col_match')}
                     </th>
                   )}
                   <th
@@ -559,7 +599,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       color: 'var(--color-text-light)',
                     }}
                   >
-                    Score
+                    {t('matchAudit.col_score')}
                   </th>
                 </tr>
               </thead>
@@ -615,7 +655,12 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
           )
         ) : filtered.length === 0 ? (
           <div
-            style={{ textAlign: 'center', padding: '3rem', color: '#9ca3af', fontSize: '0.875rem' }}
+            style={{
+              textAlign: 'center',
+              padding: '3rem',
+              color: 'var(--color-text-muted)',
+              fontSize: '0.875rem',
+            }}
           >
             {competitionMode && !selectedMatchId
               ? 'Aucun événement enregistré.'
@@ -639,7 +684,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  Heure
+                  {t('matchAudit.col_time')}
                 </th>
                 {showMatchColumn && (
                   <th
@@ -650,7 +695,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       color: 'var(--color-text-light)',
                     }}
                   >
-                    Match
+                    {t('matchAudit.col_match')}
                   </th>
                 )}
                 <th
@@ -661,7 +706,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     color: 'var(--color-text-light)',
                   }}
                 >
-                  Type
+                  {t('matchAudit.col_type')}
                 </th>
                 <th
                   style={{
@@ -671,7 +716,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     color: 'var(--color-text-light)',
                   }}
                 >
-                  Tireur
+                  {t('matchAudit.col_fencer')}
                 </th>
                 <th
                   style={{
@@ -681,7 +726,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                     color: 'var(--color-text-light)',
                   }}
                 >
-                  Description
+                  {t('matchAudit.col_desc')}
                 </th>
               </tr>
             </thead>
@@ -711,12 +756,12 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                         <button
                           type="button"
                           onClick={() => setSelectedMatchId(entry.matchId)}
-                          title="Afficher uniquement ce match"
+                          title={t('matchAudit.only_match')}
                           style={{
                             background: 'none',
                             border: 'none',
                             padding: 0,
-                            color: '#2563eb',
+                            color: 'var(--color-primary)',
                             cursor: 'pointer',
                             textAlign: 'left',
                             fontSize: 'inherit',
@@ -767,7 +812,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             color: 'var(--color-text)',
           }}
         >
-          {competitionMode ? 'Journal des matchs' : 'Journal du match'}
+          {competitionMode ? t('matchAudit.matches_log') : t('matchAudit.match_log')}
         </h3>
         {content}
       </div>
@@ -778,8 +823,12 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
   return createPortal(
     <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1000 }}>
       <div
+        ref={modalRef}
         className="modal modal--xl"
         onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="match-audit-title"
         style={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
       >
         <div
@@ -790,11 +839,12 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             marginBottom: '1rem',
           }}
         >
-          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>
-            Journal du match{matchTitle ? ` — ${matchTitle}` : ''}
+          <h2 id="match-audit-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>
+            {t('matchAudit.match_log')}
+            {matchTitle ? ` — ${matchTitle}` : ''}
           </h2>
           <button className="btn-close" onClick={onClose}>
-            &times;
+            ×
           </button>
         </div>
         {content}

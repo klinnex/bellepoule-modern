@@ -13,7 +13,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
         width: '64px',
         height: '32px',
         borderRadius: '16px',
-        border: '2px solid #e5e7eb',
+        border: '2px solid var(--color-border)',
         backgroundColor: isDark ? '#1f2937' : '#ffffff',
         position: 'relative',
         cursor: 'pointer',
@@ -29,7 +29,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
         style={{
           position: 'absolute',
           left: '8px',
-          fontSize: '14px',
+          fontSize: '0.875rem',
           opacity: isDark ? 0 : 1,
           transition: 'opacity 0.3s',
         }}
@@ -42,7 +42,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
         style={{
           position: 'absolute',
           right: '8px',
-          fontSize: '14px',
+          fontSize: '0.875rem',
           opacity: isDark ? 1 : 0,
           transition: 'opacity 0.3s',
         }}
@@ -56,7 +56,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
           width: '24px',
           height: '24px',
           borderRadius: '50%',
-          backgroundColor: isDark ? '#3b82f6' : '#f59e0b',
+          backgroundColor: isDark ? 'var(--color-primary)' : '#f59e0b',
           transform: isDark ? 'translateX(32px)' : 'translateX(0)',
           transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
           boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
@@ -65,7 +65,7 @@ const ModernThemeToggle_: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) =>
           justifyContent: 'center',
         }}
       >
-        <span style={{ fontSize: '12px' }}>{isDark ? '🌑' : '☀️'}</span>
+        <span style={{ fontSize: '0.75rem' }}>{isDark ? '🌑' : '☀️'}</span>
       </div>
     </button>
   );
@@ -171,7 +171,7 @@ const RippleButton_: React.FC<
         padding: '12px 24px',
         borderRadius: '8px',
         border: 'none',
-        fontSize: '16px',
+        fontSize: '1rem',
         fontWeight: '600',
         cursor: 'pointer',
         transition: 'transform 0.1s, box-shadow 0.2s',
@@ -205,15 +205,6 @@ const RippleButton_: React.FC<
         />
       ))}
       {children}
-      <style>{`
-        @keyframes ripple {
-          to {
-            width: 200px;
-            height: 200px;
-            opacity: 0;
-          }
-        }
-      `}</style>
     </button>
   );
 };
@@ -223,7 +214,7 @@ const GradientText_: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   return (
     <span
       style={{
-        background: 'linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)',
+        background: 'linear-gradient(135deg, var(--color-primary), #8b5cf6, #ec4899)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
@@ -261,7 +252,7 @@ const StatusBadge_: React.FC<{
         borderRadius: '9999px',
         backgroundColor: color.bg,
         color: color.text,
-        fontSize: '12px',
+        fontSize: '0.75rem',
         fontWeight: '600',
         border: `1px solid ${color.border}`,
       }}
@@ -273,17 +264,11 @@ const StatusBadge_: React.FC<{
             height: '6px',
             borderRadius: '50%',
             backgroundColor: color.border,
-            animation: 'pulse 2s infinite',
+            animation: 'mv-pulse 2s infinite',
           }}
         />
       )}
       {children}
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
     </span>
   );
 };
@@ -304,11 +289,11 @@ const FloatingActionButton_: React.FC<{
         width: '56px',
         height: '56px',
         borderRadius: '50%',
-        background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+        background: 'linear-gradient(135deg, var(--color-primary), #8b5cf6)',
         border: 'none',
         boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
         cursor: 'pointer',
-        fontSize: '24px',
+        fontSize: '1.5rem',
         color: 'white',
         transition: 'all 0.3s ease',
         display: 'flex',
@@ -373,9 +358,9 @@ const ProgressRing_: React.FC<{
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          fontSize: '14px',
+          fontSize: '0.875rem',
           fontWeight: 'bold',
-          color: '#374151',
+          color: 'var(--color-text)',
         }}
       >
         {Math.round(progress)}%
@@ -392,7 +377,7 @@ const HoverCard_: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         padding: '20px',
         backgroundColor: 'white',
         borderRadius: '12px',
-        border: '1px solid #e5e7eb',
+        border: '1px solid var(--color-border)',
         transition: 'all 0.3s ease',
         cursor: 'pointer',
       }}
@@ -467,18 +452,6 @@ const Confetti_: React.FC<{ trigger: boolean }> = ({ trigger }) => {
           }}
         />
       ))}
-      <style>{`
-        @keyframes confetti-fall {
-          0% {
-            transform: translateY(0) rotate(0deg);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(${window.innerHeight}px) rotate(720deg);
-            opacity: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 };

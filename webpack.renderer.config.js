@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 module.exports = (env = {}) => ({
@@ -88,12 +89,21 @@ module.exports = (env = {}) => ({
     rules: [
       {
         test: /\.tsx?$/,
-        use: { loader: 'ts-loader', options: { ignoreDiagnostics: [5011, 5103] } },
+        use: {
+          loader: 'ts-loader',
+          options: {
+            ignoreDiagnostics: [5011, 5103],
+            // Modules ES pour Webpack : en commonjs, TypeScript réécrit import() en
+            // require() et React.lazy ne produit aucun chunk séparé.
+            compilerOptions: { module: 'esnext', moduleResolution: 'bundler' },
+          },
+        },
         exclude: /node_modules/,
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
+        // Fichiers .css liés (<link>) : aucune balise <style>, CSP sans 'unsafe-inline' (#1157)
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
       {
         test: /\.(png|svg|jpg|jpeg|gif|ico)$/i,
@@ -106,6 +116,7 @@ module.exports = (env = {}) => ({
     ],
   },
   plugins: [
+    new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
       template: './src/renderer/index.html',
       filename: 'index.html',

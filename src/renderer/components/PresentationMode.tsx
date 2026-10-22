@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import { Competition, Pool, Match, MatchStatus } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 
@@ -19,6 +20,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
   pools,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const [currentPoolIndex, setCurrentPoolIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -114,14 +116,14 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
         <div>
           <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 'bold' }}>{competition.title}</h1>
           <p style={{ margin: '10px 0 0 0', fontSize: '1.2rem', color: '#94a3b8' }}>
-            Poule {currentPool.number} sur {pools.length}
+            {t('presentation.pool_of', { n: currentPool.number, total: pools.length })}
           </p>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '3rem', fontWeight: 'bold', color: '#3b82f6' }}>
             {completedMatches}/{totalMatches}
           </div>
-          <div style={{ fontSize: '1rem', color: '#64748b' }}>matchs terminés</div>
+          <div style={{ fontSize: '1rem', color: '#64748b' }}>{t('presentation.finished')}</div>
         </div>
       </div>
 
@@ -149,8 +151,10 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
       {/* Grille des scores */}
       <div style={{ flex: 1, display: 'flex', gap: '30px' }}>
         {/* Liste des tireurs */}
-        <div style={{ flex: 1 }}>
-          <h2 style={{ marginBottom: '20px', fontSize: '1.5rem', color: '#94a3b8' }}>Classement</h2>
+        <div className="flex-1">
+          <h2 style={{ marginBottom: '20px', fontSize: '1.5rem', color: '#94a3b8' }}>
+            {t('presentation.ranking')}
+          </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             {currentPool.ranking?.slice(0, 8).map((rank, index) => (
               <div
@@ -180,7 +184,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
                 >
                   {index + 1}
                 </div>
-                <div style={{ flex: 1 }}>
+                <div className="flex-1">
                   <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>
                     {rank.fencer.lastName} {rank.fencer.firstName}
                   </div>
@@ -193,7 +197,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
                     {rank.victories}V - {rank.defeats}D
                   </div>
                   <div style={{ fontSize: '1rem', color: '#64748b' }}>
-                    TD: {rank.touchesScored} | TR: {rank.touchesReceived}
+                    {t('presentation.td_tr', { td: rank.touchesScored, tr: rank.touchesReceived })}
                   </div>
                 </div>
               </div>
@@ -204,7 +208,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
         {/* Matchs en cours */}
         <div style={{ width: '400px' }}>
           <h2 style={{ marginBottom: '20px', fontSize: '1.5rem', color: '#94a3b8' }}>
-            Matchs en cours
+            {t('presentation.in_progress')}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             {currentPool.matches
@@ -217,7 +221,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
                     padding: '20px',
                     backgroundColor: '#dc2626',
                     borderRadius: '12px',
-                    animation: 'pulse 2s infinite',
+                    animation: 'pm-pulse 2s infinite',
                   }}
                 >
                   <div
@@ -234,7 +238,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
                     <span>{match.fencerB?.lastName || 'TBD'}</span>
                   </div>
                   <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '1.1rem' }}>
-                    Piste {match.strip || idx + 1} - En cours
+                    {t('presentation.strip_live', { n: match.strip || idx + 1 })}
                   </div>
                 </div>
               ))}
@@ -248,7 +252,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
                   fontSize: '1.2rem',
                 }}
               >
-                Aucun match en cours
+                {t('presentation.none')}
               </div>
             )}
           </div>
@@ -265,15 +269,8 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
           color: '#475569',
         }}
       >
-        ← → Naviguer | Echap Quitter
+        {t('presentation.keys')}
       </div>
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-      `}</style>
     </div>
   );
 };

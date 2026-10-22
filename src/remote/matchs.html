@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ordre des matchs – BellePoule</title>
+    <title data-i18n="matchs.page_title">Ordre des matchs – BellePoule</title>
     <style>
       :root {
         --bg: #0f172a;
@@ -95,29 +95,34 @@
         margin-top: 40px;
       }
     </style>
+    <script src="/common.js"></script>
+    <script src="/i18n.js"></script>
   </head>
   <body>
     <header>
-      <h1>Piste <span id="arena-number"></span> – <span id="pool-name">Poule</span></h1>
+      <h1><span data-i18n="remote.piste">Piste</span> <span id="arena-number"></span> – <span id="pool-name" data-i18n="matchs.pool">Poule</span></h1>
       <span id="updated"></span>
     </header>
     <ol id="list"></ol>
-    <p class="empty" id="empty" hidden>Aucune poule en cours sur cette piste.</p>
+    <p class="empty" id="empty" hidden data-i18n="matchs.empty">Aucune poule en cours sur cette piste.</p>
     <script>
       (function () {
+        // Traduction (src/remote/i18n.js) ; repli sur la clé si i18n.js absent
+        const tk = (key, params) => (window.T ? window.T(key, params) : key);
+        if (window.initRemoteI18n) window.initRemoteI18n();
+
         const m = window.location.pathname.match(/\/aren[ae](\d+)/);
         const arenaNumber = m ? m[1] : '1';
         document.getElementById('arena-number').textContent = arenaNumber;
 
-        const esc = s =>
-          String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+        const esc = window.escHtml;
 
         async function load() {
           try {
             const res = await fetch(`/api/arenas/${arenaNumber}/pool-order`, { cache: 'no-store' });
             if (!res.ok) return;
             const data = await res.json();
-            document.getElementById('pool-name').textContent = data.poolName || 'Poule';
+            document.getElementById('pool-name').textContent = data.poolName || tk('matchs.pool');
             const list = document.getElementById('list');
             const matches = data.matches || [];
             document.getElementById('empty').hidden = matches.length > 0;
@@ -127,13 +132,13 @@
                   x.status === 'finished'
                     ? `${esc(x.scoreA)} – ${esc(x.scoreB)}`
                     : x.status === 'current'
-                      ? 'En cours'
+                      ? esc(tk('matchs.current'))
                       : 'vs';
-                return `<li class="${esc(x.status)}"><span class="num">${esc(x.order)}</span><span class="a">${esc(x.fencerA)}</span><span class="score">${score}</span><span class="b">${esc(x.fencerB)}</span></li>`;
+                return `<li class="${esc(x.status)}"><span class="num">${esc(x.order)}</span><span class="a">${esc(x.fencerA)}</span><span class="score">${/* html */ score}</span><span class="b">${esc(x.fencerB)}</span></li>`;
               })
               .join('');
             document.getElementById('updated').textContent =
-              'Mis à jour ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+              tk('kiosk.updated') + ' ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
           } catch {
             /* serveur indisponible : nouvel essai au prochain cycle */
           }

@@ -9,6 +9,8 @@ import { renderHook, act } from '@testing-library/react';
 import { useFencerManagement } from './useFencerManagement';
 import { Competition, Fencer, Gender, FencerStatus } from '../../shared/types';
 
+vi.mock('./useTranslation', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
+
 const fencer = (id: string): Fencer => ({
   id,
   ref: Number(id),
@@ -76,6 +78,51 @@ describe('updateFencer', () => {
     });
     expect(db.updateFencer).toHaveBeenCalledWith('1', { lastName: 'Neuf' });
     expect(onUpdate.mock.calls[0][0].fencers[0].lastName).toBe('Neuf');
+  });
+});
+
+describe('setFencersStatus', () => {
+  it('met à jour plusieurs tireurs en un seul état (#1051)', async () => {
+    const comp = { ...competition, fencers: [fencer('1'), fencer('2'), fencer('3')] };
+    const r = renderHook(() =>
+      useFencerManagement({
+        competition: comp,
+        onUpdate: onUpdate as unknown as (c: Competition) => void,
+      })
+    ).result;
+    await act(async () => {
+      await r.current.setFencersStatus(['1', '3'], FencerStatus.ELIMINATED);
+    });
+    expect(db.updateFencer).toHaveBeenCalledTimes(2);
+    expect(r.current.fencers.map(f => f.status)).toEqual([
+      FencerStatus.ELIMINATED,
+      FencerStatus.NOT_CHECKED_IN,
+      FencerStatus.ELIMINATED,
+    ]);
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('updateFencers', () => {
+  it('applique des MAJ différentes par tireur en un seul état (#1051)', async () => {
+    const comp = { ...competition, fencers: [fencer('1'), fencer('2')] };
+    const r = renderHook(() =>
+      useFencerManagement({
+        competition: comp,
+        onUpdate: onUpdate as unknown as (c: Competition) => void,
+      })
+    ).result;
+    await act(async () => {
+      await r.current.updateFencers({
+        '1': { status: FencerStatus.ELIMINATED },
+        '2': { ranking: 1 },
+      });
+    });
+    expect(db.updateFencer).toHaveBeenCalledWith('1', { status: FencerStatus.ELIMINATED });
+    expect(db.updateFencer).toHaveBeenCalledWith('2', { ranking: 1 });
+    expect(r.current.fencers[0].status).toBe(FencerStatus.ELIMINATED);
+    expect(r.current.fencers[1].ranking).toBe(1);
+    expect(onUpdate).toHaveBeenCalledTimes(1);
   });
 });
 

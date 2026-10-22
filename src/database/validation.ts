@@ -358,6 +358,19 @@ export const sanitizeString = (value: string): string => {
   return value.trim().replace(/[<>]/g, ''); // Remove potential HTML tags
 };
 
+/**
+ * Normalise un texte saisi ou importé (nom, prénom, club…) avant stockage (#1147) :
+ * retire `<` et `>` et les caractères de contrôle (les retours à la ligne deviennent des espaces),
+ * réduit les espaces multiples. Défense en profondeur : l'affichage échappe quand même.
+ */
+export const sanitizeText = (value: string | null | undefined): string =>
+  String(value ?? '')
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u001F\u007F-\u009F\u2028\u2029]/g, ' ')
+    .replace(/[<>]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
 export const sanitizeId = (value: string): string => {
   return sanitizeString(value).replace(/[^a-zA-Z0-9_-]/g, ''); // Keep only safe characters
 };

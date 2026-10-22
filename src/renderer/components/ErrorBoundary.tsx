@@ -6,6 +6,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logError, logComponentError } from '../../shared/utils/errorLogger';
+import { translateStatic } from '../contexts/TranslationContext';
 
 interface Props {
   children: ReactNode;
@@ -71,10 +72,11 @@ export class ErrorBoundary extends Component<Props, State> {
             fontFamily: 'Arial, sans-serif',
           }}
         >
-          <h2 style={{ color: '#cc0000', marginTop: 0 }}>🚫 Une erreur est survenue</h2>
+          <h2 style={{ color: '#cc0000', marginTop: 0 }}>
+            {translateStatic('errorBoundary.title')}
+          </h2>
           <p style={{ color: '#666', marginBottom: '20px' }}>
-            BellePoule Modern a rencontré une erreur technique. Veuillez rafraîchir la page ou
-            contacter le support.
+            {translateStatic('errorBoundary.desc')}
           </p>
 
           {process.env.NODE_ENV === 'development' && this.state.error && (
@@ -87,16 +89,16 @@ export class ErrorBoundary extends Component<Props, State> {
               }}
             >
               <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>
-                Détails techniques (développement)
+                {translateStatic('errorBoundary.details')}
               </summary>
               <div style={{ marginTop: '10px' }}>
-                <h4>Erreur:</h4>
+                <h4>{translateStatic('errorBoundary.error')}</h4>
                 <pre
                   style={{
                     backgroundColor: '#fff',
                     padding: '10px',
                     borderRadius: '4px',
-                    fontSize: '12px',
+                    fontSize: '0.75rem',
                     overflow: 'auto',
                     maxHeight: '200px',
                   }}
@@ -106,13 +108,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
                 {this.state.errorInfo && (
                   <>
-                    <h4>Component Stack:</h4>
+                    <h4>{translateStatic('errorBoundary.stack')}</h4>
                     <pre
                       style={{
                         backgroundColor: '#fff',
                         padding: '10px',
                         borderRadius: '4px',
-                        fontSize: '12px',
+                        fontSize: '0.75rem',
                         overflow: 'auto',
                         maxHeight: '200px',
                       }}
@@ -138,7 +140,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 marginRight: '10px',
               }}
             >
-              🔄 Réessayer
+              {translateStatic('errorBoundary.retry')}
             </button>
             <button
               onClick={() => window.location.reload()}
@@ -151,7 +153,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 cursor: 'pointer',
               }}
             >
-              🔄 Rafraîchir la page
+              {translateStatic('errorBoundary.refresh')}
             </button>
           </div>
         </div>
@@ -180,9 +182,11 @@ export class CompetitionErrorBoundary extends Component<Props> {
         }}
         fallback={
           <div style={{ padding: '20px', textAlign: 'center' }}>
-            <h3>🤺 Erreur de compétition</h3>
-            <p>Une erreur est survenue lors du chargement de la compétition.</p>
-            <button onClick={() => window.location.reload()}>Recharger l'application</button>
+            <h3>{translateStatic('errorBoundary.comp_title')}</h3>
+            <p>{translateStatic('errorBoundary.comp_desc')}</p>
+            <button onClick={() => window.location.reload()}>
+              {translateStatic('errorBoundary.reload_app')}
+            </button>
           </div>
         }
       >
@@ -199,9 +203,11 @@ export class PoolErrorBoundary extends Component<Props> {
         {...this.props}
         fallback={
           <div style={{ padding: '20px', textAlign: 'center' }}>
-            <h3>🏊 Erreur de poule</h3>
-            <p>Une erreur est survenue lors du calcul des poules.</p>
-            <button onClick={() => window.location.reload()}>Recharger la page</button>
+            <h3>{translateStatic('errorBoundary.pool_title')}</h3>
+            <p>{translateStatic('errorBoundary.pool_desc')}</p>
+            <button onClick={() => window.location.reload()}>
+              {translateStatic('errorBoundary.reload_page')}
+            </button>
           </div>
         }
       >
@@ -231,10 +237,12 @@ export class DatabaseErrorBoundary extends Component<Props> {
         }}
         fallback={
           <div style={{ padding: '20px', textAlign: 'center' }}>
-            <h3>💾 Erreur de base de données</h3>
-            <p>Une erreur est survenue lors de l'accès aux données.</p>
-            <p>Les données peuvent être corrompues. Veuillez contacter le support.</p>
-            <button onClick={() => window.location.reload()}>Redémarrer l'application</button>
+            <h3>{translateStatic('errorBoundary.db_title')}</h3>
+            <p>{translateStatic('errorBoundary.db_desc')}</p>
+            <p>{translateStatic('errorBoundary.db_corrupt')}</p>
+            <button onClick={() => window.location.reload()}>
+              {translateStatic('errorBoundary.restart_app')}
+            </button>
           </div>
         }
       >

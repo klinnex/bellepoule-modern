@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch *)",
+      "Bash(git checkout *)",
+      "Bash(git status *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(npm run *)",
+      "Bash(npm ci *)",
+      "Bash(npm test *)",
+      "Bash(npx vitest *)",
+      "Bash(npx prettier *)",
+      "mcp__github__list_issues",
+      "mcp__github__issue_read",
+      "mcp__github__list_pull_requests",
+      "mcp__github__pull_request_read",
+      "mcp__github__create_pull_request",
+      "mcp__github__update_pull_request",
+      "mcp__github__add_issue_comment",
+      "mcp__github__enable_pr_auto_merge"
+    ],
+    "deny": [
+      "Bash(git push * main)",
+      "Bash(git push origin main*)"
+    ]
+  }
+}

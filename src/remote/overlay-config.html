@@ -7,7 +7,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configurateur Overlay – BellePoule</title>
+  <title data-i18n="overlay.config_page_title">Configurateur Overlay – BellePoule</title>
   <style>
     :root {
       --bg: #0f1117;
@@ -236,12 +236,14 @@
     }
     .obs-hint .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
   </style>
+  <script src="/common.js"></script>
+  <script src="/i18n.js"></script>
 </head>
 <body>
 <div class="app">
   <header>
     <span class="logo">🎥</span>
-    Overlay Streaming — Configurateur
+    <span data-i18n="overlay.config_title">Overlay Streaming — Configurateur</span>
     <span class="sub">BellePoule Modern</span>
   </header>
 
@@ -250,7 +252,7 @@
 
     <!-- Piste -->
     <div class="section">
-      <div class="section-header">Piste (arène)</div>
+      <div class="section-header" data-i18n="overlay.strip">Piste (arène)</div>
       <div class="section-body">
         <div class="arena-pills" id="arena-pills"></div>
       </div>
@@ -258,15 +260,15 @@
 
     <!-- Apparence -->
     <div class="section">
-      <div class="section-header">Apparence</div>
+      <div class="section-header" data-i18n="overlay.appearance">Apparence</div>
       <div class="section-body">
         <label>
-          <span class="label-text">Thème</span>
+          <span class="label-text" data-i18n="overlay.theme">Thème</span>
           <select id="theme">
-            <option value="transparent">Transparent (OBS sans fond)</option>
-            <option value="dark">Dark (fond bleu foncé)</option>
-            <option value="neon">Neon (fond noir, couleurs vives)</option>
-            <option value="light">Light (fond clair)</option>
+            <option value="transparent" data-i18n="overlay.theme_transparent">Transparent (OBS sans fond)</option>
+            <option value="dark" data-i18n="overlay.theme_dark">Dark (fond bleu foncé)</option>
+            <option value="neon" data-i18n="overlay.theme_neon">Neon (fond noir, couleurs vives)</option>
+            <option value="light" data-i18n="overlay.theme_light">Light (fond clair)</option>
           </select>
         </label>
       </div>
@@ -274,46 +276,46 @@
 
     <!-- Dimensions -->
     <div class="section">
-      <div class="section-header">Dimensions</div>
+      <div class="section-header" data-i18n="overlay.dimensions">Dimensions</div>
       <div class="section-body">
         <div class="row2">
           <label>
-            <span class="label-text">Largeur (px)</span>
+            <span class="label-text" data-i18n="overlay.width">Largeur (px)</span>
             <input type="number" id="width" value="1280" min="200" max="3840" step="10" />
           </label>
           <label>
-            <span class="label-text">Hauteur (px)</span>
+            <span class="label-text" data-i18n="overlay.height">Hauteur (px)</span>
             <input type="number" id="height" value="160" min="60" max="800" step="10" />
           </label>
         </div>
         <div class="chips">
-          <label class="chip" onclick="setSize(1280,160)"><span>1280×160</span></label>
-          <label class="chip" onclick="setSize(1920,80)"><span>1920×80</span></label>
-          <label class="chip" onclick="setSize(1920,160)"><span>1920×160</span></label>
-          <label class="chip" onclick="setSize(400,220)"><span>400×220 coin</span></label>
+          <label class="chip" data-click="setSize" data-args='[1280,160]'><span>1280×160</span></label>
+          <label class="chip" data-click="setSize" data-args='[1920,80]'><span>1920×80</span></label>
+          <label class="chip" data-click="setSize" data-args='[1920,160]'><span>1920×160</span></label>
+          <label class="chip" data-click="setSize" data-args='[400,220]'><span data-i18n="overlay.size_corner">400×220 coin</span></label>
         </div>
       </div>
     </div>
 
     <!-- Éléments visibles -->
     <div class="section">
-      <div class="section-header">Éléments affichés</div>
+      <div class="section-header" data-i18n="overlay.elements">Éléments affichés</div>
       <div class="section-body">
         <div class="chips">
           <label class="chip active" id="chip-timer">
-            <input type="checkbox" checked onchange="toggleHide('timer', this)" /> ⏱ Timer
+            <input type="checkbox" checked data-change="toggleHide" data-args='["timer","$el"]' /> <span data-i18n="overlay.el_timer">⏱ Timer</span>
           </label>
           <label class="chip active" id="chip-cards">
-            <input type="checkbox" checked onchange="toggleHide('cards', this)" /> 🟨 Cartons
+            <input type="checkbox" checked data-change="toggleHide" data-args='["cards","$el"]' /> <span data-i18n="overlay.el_cards">🟨 Cartons</span>
           </label>
           <label class="chip active" id="chip-club">
-            <input type="checkbox" checked onchange="toggleHide('club', this)" /> 🏟 Club
+            <input type="checkbox" checked data-change="toggleHide" data-args='["club","$el"]' /> <span data-i18n="overlay.el_club">🏟 Club</span>
           </label>
           <label class="chip active" id="chip-phase">
-            <input type="checkbox" checked onchange="toggleHide('phase', this)" /> # Phase
+            <input type="checkbox" checked data-change="toggleHide" data-args='["phase","$el"]' /> <span data-i18n="overlay.el_phase"># Phase</span>
           </label>
           <label class="chip" id="chip-swap">
-            <input type="checkbox" onchange="toggleSwap(this)" /> ↔ Inverser vert/rouge
+            <input type="checkbox" data-change="toggleSwap" data-args='["$el"]' /> <span data-i18n="overlay.el_swap">↔ Inverser vert/rouge</span>
           </label>
         </div>
       </div>
@@ -321,14 +323,14 @@
 
     <!-- Position du score -->
     <div class="section">
-      <div class="section-header">Position du score</div>
+      <div class="section-header" data-i18n="overlay.score_position">Position du score</div>
       <div class="section-body">
         <div class="chips">
-          <label class="chip active" id="chip-scores-inner" onclick="setScorePos('inner')">
-            <span>[Nom·Score] ⬛ [Score·Nom] — côté extérieur</span>
+          <label class="chip active" id="chip-scores-inner" data-click="setScorePos" data-args='["inner"]'>
+            <span data-i18n="overlay.score_outer">[Nom·Score] ⬛ [Score·Nom] — côté extérieur</span>
           </label>
-          <label class="chip" id="chip-scores-outer" onclick="setScorePos('outer')">
-            <span>[Score·Nom] ⬛ [Nom·Score] — côté centre</span>
+          <label class="chip" id="chip-scores-outer" data-click="setScorePos" data-args='["outer"]'>
+            <span data-i18n="overlay.score_inner">[Score·Nom] ⬛ [Nom·Score] — côté centre</span>
           </label>
         </div>
       </div>
@@ -336,31 +338,31 @@
 
     <!-- Logo -->
     <div class="section">
-      <div class="section-header">Logo compétition (optionnel)</div>
+      <div class="section-header" data-i18n="overlay.logo">Logo compétition (optionnel)</div>
       <div class="section-body">
         <label>
-          <span class="label-text">URL de l'image (accessible en HTTP local)</span>
+          <span class="label-text" data-i18n="overlay.logo_url">URL de l'image (accessible en HTTP local)</span>
           <input type="url" id="logo-url" placeholder="http://192.168.1.x/logo.png" />
         </label>
         <div class="obs-hint">
           <span class="icon">💡</span>
-          <span>Astuce : dans OBS, tu peux aussi superposer une source Image directement sur ta scène pour plus de contrôle.</span>
+          <span data-i18n="overlay.logo_tip">Astuce : dans OBS, tu peux aussi superposer une source Image directement sur ta scène pour plus de contrôle.</span>
         </div>
       </div>
     </div>
 
     <!-- URL générée -->
     <div class="section">
-      <div class="section-header">URL à coller dans OBS</div>
+      <div class="section-header" data-i18n="overlay.url_title">URL à coller dans OBS</div>
       <div class="section-body">
         <div class="url-box" id="generated-url">—</div>
         <div class="btn-row">
-          <button class="btn btn-primary" id="copy-btn" onclick="copyUrl()">📋 Copier l'URL</button>
-          <button class="btn btn-ghost" onclick="openPreviewTab()">↗ Ouvrir</button>
+          <button class="btn btn-primary" id="copy-btn" data-click="copyUrl" data-i18n="overlay.copy_url">📋 Copier l'URL</button>
+          <button class="btn btn-ghost" data-click="openPreviewTab" data-i18n="overlay.open">↗ Ouvrir</button>
         </div>
         <div class="obs-hint">
           <span class="icon">🎬</span>
-          <span>Dans OBS : Sources → + → <strong>Navigateur</strong> → coller l'URL → saisir la largeur et hauteur ci-dessus → ✔ Actualiser quand la scène devient active.</span>
+          <span data-i18n="overlay.obs_howto">Dans OBS : Sources → + → Navigateur → coller l'URL → saisir la largeur et hauteur ci-dessus → ✔ Actualiser quand la scène devient active.</span>
         </div>
       </div>
     </div>
@@ -369,12 +371,12 @@
 
   <!-- Prévisualisation -->
   <main class="preview-area">
-    <div class="preview-label">Prévisualisation live</div>
+    <div class="preview-label" data-i18n="overlay.preview">Prévisualisation live</div>
     <div class="preview-wrapper">
       <div class="checkerboard" id="checker">
         <iframe id="preview" src="" scrolling="no"></iframe>
       </div>
-      <div class="preview-hint">Le damier simule la transparence OBS. Le rendu final dépend de ton fond de scène.</div>
+      <div class="preview-hint" data-i18n="overlay.preview_hint">Le damier simule la transparence OBS. Le rendu final dépend de ton fond de scène.</div>
     </div>
   </main>
 </div>
@@ -416,7 +418,7 @@
     for (let i = 1; i <= count; i++) {
       const btn = document.createElement('button');
       btn.className = 'arena-pill' + (i === 1 ? ' active' : '');
-      btn.textContent = 'Piste ' + i;
+      btn.textContent = (window.T ? window.T('remote.piste') : 'Piste') + ' ' + i;
       btn.onclick = () => selectArena(i);
       pills.appendChild(btn);
     }
@@ -515,15 +517,19 @@
   function copyUrl() {
     navigator.clipboard.writeText(buildUrl()).then(() => {
       const btn = document.getElementById('copy-btn');
-      btn.textContent = '✓ Copié !';
+      btn.textContent = window.T ? window.T('overlay.copied') : '✓ Copié !';
       btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = '📋 Copier l\'URL'; btn.classList.remove('copied'); }, 2000);
+      setTimeout(() => { btn.textContent = window.T ? window.T('overlay.copy_url') : '📋 Copier l\'URL'; btn.classList.remove('copied'); }, 2000);
     });
   }
   function openPreviewTab() { window.open(buildUrl(), '_blank'); }
 
   /* ── Boot ── */
-  initArenas().then(() => refresh());
+  // Langue chargée avant les libellés générés (boutons de piste)
+  (window.initRemoteI18n ? window.initRemoteI18n() : Promise.resolve())
+    .catch(() => {})
+    .then(() => initArenas())
+    .then(() => refresh());
   window.addEventListener('resize', () => refresh());
 </script>
 </body>

@@ -17,6 +17,8 @@ import { TeamTargetRule, getRelayCap } from '../../features/teams/utils/teamCalc
 import { LaserArenaBoutCap } from '../../features/teams/utils/laserArenaCalculations';
 import { determineTeamCardEscalation } from '../../features/teams/utils/teamCardEscalation';
 import { CARD_REASON_LABELS, getAvailableReasons } from '../../shared/utils/cardSystem';
+import { useConfirm } from './ConfirmDialog';
+import { useTranslation } from '../contexts/TranslationContext';
 
 const CARD_BADGE: Record<string, string> = { WHITE: '⬜', YELLOW: '🟨', RED: '🟥', BLACK: '⬛' };
 const TEAM_CARD_BADGE: Record<string, string> = {
@@ -95,7 +97,9 @@ const TeamPoolView: React.FC<Props> = ({
   onAddTeamCard,
   onAssignArena,
 }) => {
-  const teamById = new Map(teams.map(t => [t.id, t]));
+  const { prompt } = useConfirm();
+  const { t } = useTranslation();
+  const teamById = new Map(teams.map(team => [team.id, team]));
 
   if (matches.length === 0) {
     return <div className="text-center text-gray-400 py-10">{emptyLabel}</div>;
@@ -131,10 +135,12 @@ const TeamPoolView: React.FC<Props> = ({
                     className={`text-xs font-medium ${m.status === 'finished' ? 'text-green-600' : m.status === 'in_progress' ? 'text-yellow-600' : 'text-gray-400'}`}
                   >
                     {m.status === 'finished'
-                      ? (m.winnerId === m.teamAId ? ta?.name : tb?.name) + ' gagne'
+                      ? t('teams.matchWon', {
+                          team: (m.winnerId === m.teamAId ? ta?.name : tb?.name) ?? '—',
+                        })
                       : m.status === 'in_progress'
-                        ? 'En cours'
-                        : 'À commencer'}
+                        ? t('teams.matchInProgress')
+                        : t('teams.matchNotStarted')}
                   </div>
                 </div>
                 <div className="text-center flex-1">
@@ -142,26 +148,26 @@ const TeamPoolView: React.FC<Props> = ({
                   <div className="text-xs text-gray-400">{tb?.club}</div>
                 </div>
               </div>
-              {isLaserArena && onAssignArena && (
+              {onAssignArena && (
                 <button
-                  onClick={() => {
-                    // eslint-disable-next-line no-alert -- TODO: remplacer par une modale (prompt non supporté par Electron)
-                    const arenaId = window.prompt(
-                      "Numéro d'arène pour la saisie tablette (ex : 1)"
-                    );
+                  onClick={async () => {
+                    const arenaId = await prompt({
+                      message: t('teams.arenaPrompt'),
+                      placeholder: '1',
+                    });
                     if (arenaId?.trim()) onAssignArena(m.id, arenaId.trim());
                   }}
-                  title="Envoyer cette rencontre sur une arène pour saisie tablette temps réel"
+                  title={t('teams.arenaTooltip')}
                   className="ml-4 text-xs px-3 py-1.5 rounded border border-gray-300 text-gray-600 hover:bg-gray-50"
                 >
-                  📡 Arène
+                  📡 {t('teams.arenaButton')}
                 </button>
               )}
               <button
                 onClick={() => onToggleScoring(m.id)}
                 className={`ml-4 text-xs px-3 py-1.5 rounded border ${isScoring ? 'bg-gray-200 border-gray-300 text-gray-700' : 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700'}`}
               >
-                {isScoring ? 'Fermer' : 'Scorer'}
+                {isScoring ? t('actions.close') : t('teams.score')}
               </button>
             </div>
 
@@ -170,7 +176,7 @@ const TeamPoolView: React.FC<Props> = ({
               <div className="border-t border-gray-200 px-4 py-3 space-y-1">
                 <div className="grid grid-cols-[1fr_auto_1fr] text-xs text-gray-500 font-medium mb-2">
                   <span>{ta?.name}</span>
-                  <span className="text-center w-24">Assaut</span>
+                  <span className="text-center w-24">{t('teams.bout')}</span>
                   <span className="text-right">{tb?.name}</span>
                 </div>
                 {m.bouts.map(bout => {
@@ -206,7 +212,10 @@ const TeamPoolView: React.FC<Props> = ({
                                   key={zone}
                                   onClick={() => onScoreBout(bout, 'A', ZONE_POINTS[zone])}
                                   disabled={done}
-                                  title={`Zone ${zone} (${ZONE_POINTS[zone]} pts)`}
+                                  title={t('teams.zoneTooltip', {
+                                    zone,
+                                    points: ZONE_POINTS[zone],
+                                  })}
                                   className="w-6 h-8 text-xs font-bold rounded bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-40 flex-shrink-0"
                                 >
                                   {zone}
@@ -237,7 +246,7 @@ const TeamPoolView: React.FC<Props> = ({
                                   : { boutId: bout.id, fencerId: bout.fencerAId }
                               )
                             }
-                            title="Ajouter un carton"
+                            title={t('teams.addCard')}
                             className="text-[10px] text-gray-400 hover:text-gray-600 flex-shrink-0"
                           >
                             🚩
@@ -263,10 +272,10 @@ const TeamPoolView: React.FC<Props> = ({
                             <button
                               onClick={() => onScoreBout(bout, 'double')}
                               disabled={done}
-                              title="Touche double simultanée (pas de priorité en épée)"
+                              title={t('teams.doubleTooltip')}
                               className="mt-0.5 text-[10px] px-1.5 py-0.5 rounded border border-purple-300 text-purple-700 bg-purple-50 hover:bg-purple-100 disabled:opacity-40"
                             >
-                              ⚔ double
+                              ⚔ {t('teams.double')}
                             </button>
                           )}
                         </div>
@@ -281,7 +290,7 @@ const TeamPoolView: React.FC<Props> = ({
                                   : { boutId: bout.id, fencerId: bout.fencerBId }
                               )
                             }
-                            title="Ajouter un carton"
+                            title={t('teams.addCard')}
                             className="text-[10px] text-gray-400 hover:text-gray-600 flex-shrink-0"
                           >
                             🚩
@@ -301,7 +310,10 @@ const TeamPoolView: React.FC<Props> = ({
                                   key={zone}
                                   onClick={() => onScoreBout(bout, 'B', ZONE_POINTS[zone])}
                                   disabled={done}
-                                  title={`Zone ${zone} (${ZONE_POINTS[zone]} pts)`}
+                                  title={t('teams.zoneTooltip', {
+                                    zone,
+                                    points: ZONE_POINTS[zone],
+                                  })}
                                   className="w-6 h-8 text-xs font-bold rounded bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-40 flex-shrink-0"
                                 >
                                   {zone}
@@ -321,7 +333,7 @@ const TeamPoolView: React.FC<Props> = ({
                             <button
                               onClick={() => onResetBout(bout)}
                               className="w-6 h-6 text-xs rounded text-red-400 hover:text-red-600 flex-shrink-0"
-                              title="Réinitialiser cet assaut"
+                              title={t('teams.resetBout')}
                             >
                               ↩
                             </button>
@@ -331,14 +343,14 @@ const TeamPoolView: React.FC<Props> = ({
                       {cardTarget?.boutId === bout.id && (
                         <div className="flex items-center gap-2 px-2 py-1.5 bg-yellow-50 border border-yellow-200 rounded text-xs">
                           <span className="text-gray-600">
-                            Carton pour {fencerName(cardTarget.fencerId)} :
+                            {t('teams.cardFor', { name: fencerName(cardTarget.fencerId) })}
                           </span>
                           <select
                             value={selectedReason}
                             onChange={e => onSelectReason(e.target.value as CardReason)}
                             className="border border-gray-300 rounded px-1.5 py-1 text-xs"
                           >
-                            <option value="">-- motif --</option>
+                            <option value="">{t('teams.reasonPlaceholder')}</option>
                             {getAvailableReasons(weapon as any).map(reason => (
                               <option key={reason} value={reason}>
                                 {CARD_REASON_LABELS[reason]}
@@ -350,13 +362,13 @@ const TeamPoolView: React.FC<Props> = ({
                             disabled={!selectedReason}
                             className="px-2 py-1 bg-yellow-600 text-white rounded disabled:opacity-40"
                           >
-                            Ajouter
+                            {t('actions.add')}
                           </button>
                           <button
                             onClick={() => onSetCardTarget(null)}
                             className="text-gray-400 hover:text-gray-600"
                           >
-                            Annuler
+                            {t('actions.cancel')}
                           </button>
                         </div>
                       )}
@@ -372,7 +384,7 @@ const TeamPoolView: React.FC<Props> = ({
                         return (
                           <div key={side} className={side === 'B' ? 'text-right' : ''}>
                             <div className="text-gray-500 mb-1">
-                              Cartons équipe « E » — {team?.name ?? '—'}
+                              {t('teams.teamCardsTitle', { team: team?.name ?? '—' })}
                             </div>
                             <div
                               className={`flex items-center gap-1 flex-wrap ${side === 'B' ? 'justify-end' : ''}`}
@@ -381,7 +393,12 @@ const TeamPoolView: React.FC<Props> = ({
                                 <button
                                   key={type}
                                   onClick={() => onAddTeamCard(m.id, teamId, type)}
-                                  title={`Carton ${type} E${type === suggested ? ' (suggéré)' : ''}`}
+                                  title={t(
+                                    type === suggested
+                                      ? 'teams.teamCardTooltipSuggested'
+                                      : 'teams.teamCardTooltip',
+                                    { type }
+                                  )}
                                   className={`px-1.5 py-0.5 rounded border hover:bg-gray-50 ${type === suggested ? 'border-blue-400 ring-1 ring-blue-300' : 'border-gray-200'}`}
                                 >
                                   {TEAM_CARD_BADGE[type]}

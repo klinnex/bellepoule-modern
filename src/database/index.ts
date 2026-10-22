@@ -8,7 +8,9 @@ import Database from 'better-sqlite3';
 import * as path from 'path';
 import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { keepOnlyCompetition, mergeAttachedDatabase } from './competitionArchive';
 import {
+  Card,
   Competition,
   CompetitionSettings,
   Fencer,
@@ -32,11 +34,23 @@ import {
   validateId,
   validateSessionState,
   sanitizeId,
+  sanitizeText,
   validateCompetitionData,
 } from './validation';
 import { logger, LogCategory } from '../shared/services/logger';
 import { MigrationManager } from './migrations';
 import { ALL_MIGRATIONS } from './migrations/migrations';
+
+// Champs texte d'un tireur normalisés avant stockage (#1147)
+const FENCER_TEXT_FIELDS = new Set([
+  'lastName',
+  'firstName',
+  'nationality',
+  'club',
+  'region',
+  'license',
+  'exclusionReason',
+]);
 
 // Taille max du cache de statements : les requêtes `IN (?,?,…)` à arité variable
 // créeraient sinon une entrée par taille, sans borne (#1007).
@@ -112,8 +126,29 @@ export class DatabaseManager {
     return stmt;
   }
 
+  // Abonnés aux écritures (le serveur distant pousse « données modifiées » aux kiosques, #1152)
+  private changeListeners = new Set<() => void>();
+
+  /** S'abonne aux écritures ; renvoie la fonction de désabonnement */
+  public onChange(listener: () => void): () => void {
+    this.changeListeners.add(listener);
+    return () => this.changeListeners.delete(listener);
+  }
+
+  private notifyChange(): void {
+    for (const fn of this.changeListeners) {
+      try {
+        fn();
+      } catch {
+        /* un abonné défaillant ne doit pas bloquer l'écriture */
+      }
+    }
+  }
+
   private run(sql: string, params: unknown[] = []): Database.RunResult {
-    return this.prepare(sql).run(...params);
+    const result = this.prepare(sql).run(...params);
+    this.notifyChange();
+    return result;
   }
 
   private queryOne<T>(sql: string, params: unknown[] = []): T | null {
@@ -213,8 +248,8 @@ export class DatabaseManager {
     };
     validateCompetitionData(normalized);
     this.run(
-      `INSERT INTO competitions (id, title, date, weapon, gender, category, location, color, settings, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO competitions (id, title, date, weapon, gender, category, location, color, settings, is_team_event, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         comp.title || 'Nouvelle compétition',
@@ -225,6 +260,7 @@ export class DatabaseManager {
         comp.location || '',
         comp.color || '#3B82F6',
         JSON.stringify(comp.settings || {}),
+        comp.isTeamEvent ? 1 : 0,
         now,
         now,
       ]
@@ -357,6 +393,12 @@ export class DatabaseManager {
           now,
           id,
         ]);
+      if (updates.isTeamEvent !== undefined)
+        this.run('UPDATE competitions SET is_team_event = ?, updated_at = ? WHERE id = ?', [
+          updates.isTeamEvent ? 1 : 0,
+          now,
+          id,
+        ]);
       if (updates.status !== undefined)
         this.run('UPDATE competitions SET status = ?, updated_at = ? WHERE id = ?', [
           updates.status,
@@ -391,14 +433,14 @@ export class DatabaseManager {
           id,
           competitionId,
           ref,
-          fencer.lastName || '',
-          fencer.firstName || '',
+          sanitizeText(fencer.lastName),
+          sanitizeText(fencer.firstName),
           fencer.birthDate ? fencer.birthDate.toISOString() : null,
           fencer.gender || 'M',
-          fencer.nationality || 'FRA',
-          fencer.club || null,
-          fencer.region || null,
-          fencer.license || null,
+          sanitizeText(fencer.nationality) || 'FRA',
+          sanitizeText(fencer.club) || null,
+          sanitizeText(fencer.region) || null,
+          sanitizeText(fencer.license) || null,
           fencer.ranking || null,
           fencer.status || 'N',
           fencer.photo || null,
@@ -565,7 +607,10 @@ export class DatabaseManager {
     for (const [key, col] of Object.entries(fieldMap)) {
       if (key in updates) {
         setClauses.push(`${col} = ?`);
-        values.push((updates as Record<string, unknown>)[key] ?? null);
+        const value = (updates as Record<string, unknown>)[key] ?? null;
+        values.push(
+          typeof value === 'string' && FENCER_TEXT_FIELDS.has(key) ? sanitizeText(value) : value
+        );
       }
     }
     if (updates.poolStats !== undefined) {
@@ -2032,6 +2077,50 @@ export class DatabaseManager {
     await this.open();
   }
 
+  /** Exporte une seule compétition (état d'avancement compris) dans un .bpm (#1117) */
+  public async exportCompetitionToFile(competitionId: string, filepath: string): Promise<void> {
+    if (!this.db) throw new Error('Database not open');
+    await this.db.backup(filepath);
+    const copy = new Database(filepath);
+    try {
+      // Fichier autonome (pas de -wal à côté)
+      copy.pragma('journal_mode = DELETE');
+      keepOnlyCompetition(copy, competitionId);
+      copy.exec('VACUUM');
+    } finally {
+      copy.close();
+    }
+  }
+
+  /**
+   * Ouvre un .bpm : fusionne ses compétitions dans la base active (#1117).
+   * Le fichier est copié puis migré à part : l'original n'est pas modifié.
+   * Renvoie les identifiants des compétitions importées.
+   */
+  public async mergeFromFile(filepath: string): Promise<string[]> {
+    if (!this.db) throw new Error('Database not open');
+    const tmp = path.join(
+      path.dirname(this.dbPath),
+      `.import-${Date.now()}-${Math.random().toString(36).slice(2)}.bpm`
+    );
+    await fs.promises.copyFile(filepath, tmp);
+    try {
+      const source = new DatabaseManager(tmp);
+      await source.open();
+      source.close();
+      this.db.prepare('ATTACH DATABASE ? AS bpm_import').run(tmp);
+      try {
+        return mergeAttachedDatabase(this.db, 'bpm_import', id => this.deleteCompetition(id));
+      } finally {
+        this.db.exec('DETACH DATABASE bpm_import');
+      }
+    } finally {
+      for (const f of [tmp, `${tmp}-wal`, `${tmp}-shm`]) {
+        await fs.promises.unlink(f).catch(() => undefined);
+      }
+    }
+  }
+
   // ─── Bracket nodes (élimination directe) ────────────────────────────────────
 
   public upsertBracketNode(node: {
@@ -2944,6 +3033,41 @@ export class DatabaseManager {
       [id, matchId, teamId, type, reason, now]
     );
     return { id };
+  }
+
+  // ── Cartons individuels des relais par équipes (#1086) ─────────────────────
+
+  public createTeamBoutCard(boutId: string, card: Card): { id: string } {
+    if (!this.db) throw new Error('Database not open');
+    this.run(
+      `INSERT INTO team_bout_cards (id, match_id, bout_id, fencer_id, card_json, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        card.id,
+        card.matchId,
+        boutId,
+        card.fencerId,
+        JSON.stringify(card),
+        new Date(card.timestamp).toISOString(),
+      ]
+    );
+    return { id: card.id };
+  }
+
+  /** Cartons d'une rencontre, groupés par relais (ordre chronologique). */
+  public getTeamBoutCards(matchId: string): Array<{ boutId: string; card: Card }> {
+    if (!this.db) return [];
+    const rows = this.queryAll<{ bout_id: string; card_json: string }>(
+      'SELECT bout_id, card_json FROM team_bout_cards WHERE match_id = ? ORDER BY created_at',
+      [matchId]
+    );
+    return rows.map(r => {
+      const card = JSON.parse(r.card_json) as Card;
+      return {
+        boutId: r.bout_id,
+        card: { ...card, timestamp: new Date(card.timestamp) },
+      };
+    });
   }
 
   // ── Commentaires de formation des arbitres (#989) ──────────────────────────

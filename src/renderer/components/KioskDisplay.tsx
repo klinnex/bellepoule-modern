@@ -1208,15 +1208,6 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
           )}
         </div>
       )}
-
-      <style>{`
-        @keyframes kioskPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.6; }
-        }
-        [data-kiosk-scroll]::-webkit-scrollbar { display: none; }
-        [data-kiosk-scroll] { scrollbar-width: none; -ms-overflow-style: none; }
-      `}</style>
     </div>
   );
 };

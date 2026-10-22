@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { translateStatic } from '../../contexts/TranslationContext';
 import { TableauMatch } from './tableauTypes';
 
 interface TableauPendingSectionProps {
@@ -34,14 +35,14 @@ const TableauPendingSectionComponent: React.FC<TableauPendingSectionProps> = ({
         borderRadius: '8px',
         marginBottom: '0.5rem',
         overflow: 'hidden',
-        border: '1px solid var(--tableau-border, #e5e7eb)',
+        border: '1px solid var(--tableau-border, var(--color-border))',
       }}
     >
       <div
         onClick={() => onToggle(round)}
         style={{
           padding: '0.75rem 1rem',
-          background: 'var(--tableau-panel-header, #f3f4f6)',
+          background: 'var(--tableau-panel-header, var(--color-bg))',
           cursor: 'pointer',
           display: 'flex',
           justifyContent: 'space-between',
@@ -49,20 +50,22 @@ const TableauPendingSectionComponent: React.FC<TableauPendingSectionProps> = ({
           userSelect: 'none',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="u-row">
           <span style={{ fontSize: '1rem' }}>{isExpanded ? '▼' : '▶'}</span>
-          <span style={{ fontWeight: '600', color: 'var(--tableau-title, #374151)' }}>
+          <span style={{ fontWeight: '600', color: 'var(--tableau-title, var(--color-text))' }}>
             {roundName}
           </span>
         </div>
-        <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-          {roundMatches.length} match{roundMatches.length !== 1 ? 's' : ''}
+        <span className="u-hint">
+          {translateStatic(`pendingSection.matches_${roundMatches.length > 1 ? 'other' : 'one'}`, {
+            count: roundMatches.length,
+          })}
         </span>
       </div>
       {isExpanded && (
         <div style={{ padding: '0.5rem' }}>
           {roundMatches.map(match => (
-            <div key={match.id} style={{ marginBottom: '0.5rem' }}>
+            <div key={match.id} className="mb-2">
               {renderMatch(match)}
             </div>
           ))}

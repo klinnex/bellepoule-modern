@@ -20,7 +20,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   onLanguageChange,
   value,
 }) => {
-  const { language, changeLanguage, availableLanguages, isLoading } = useTranslation();
+  const { language, changeLanguage, availableLanguages, isLoading, t } = useTranslation();
 
   const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newLanguage = event.target.value as Language;
@@ -37,14 +37,14 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   if (isLoading) {
     return (
       <div className={`language-selector ${className}`}>
-        {showLabel && <span>Chargement...</span>}
+        {showLabel && <span>{t('messages.loading')}</span>}
       </div>
     );
   }
 
   return (
     <div className={`language-selector ${className}`}>
-      {showLabel && <label htmlFor="language-select">Langue :</label>}
+      {showLabel && <label htmlFor="language-select">{t('ui.language_label')}</label>}
       <select
         id="language-select"
         value={value !== undefined ? value : language}

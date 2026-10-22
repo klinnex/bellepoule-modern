@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { Pool, Match, MatchStatus } from '../../shared/types';
 
@@ -28,6 +29,7 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
   onMatchAssigned,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [strips, setStrips] = useState<StripState[]>(() =>
     Array.from({ length: stripCount }, (_, i) => ({
@@ -114,27 +116,27 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
         role="dialog"
         aria-modal="true"
       >
-        <div className="modal-header" style={{ flexShrink: 0 }}>
-          <h2 style={{ margin: 0 }}>Gestion multi-pistes ({stripCount} pistes)</h2>
+        <div className="modal-header flex-shrink-0">
+          <h2 style={{ margin: 0 }}>{t('multiStrip.title', { n: stripCount })}</h2>
           <button className="btn-close" onClick={onClose}>
-            &times;
+            ×
           </button>
         </div>
 
         <div
           style={{
             padding: '1rem 1.5rem',
-            background: '#f9fafb',
-            borderBottom: '1px solid #e5e7eb',
+            background: 'var(--color-surface-2)',
+            borderBottom: '1px solid var(--color-border)',
             flexShrink: 0,
           }}
         >
           <div style={{ display: 'flex', gap: '2rem' }}>
             <span style={{ fontSize: '0.875rem' }}>
-              <strong>{finishedMatches}</strong>/{totalMatches} matchs terminés
+              <strong>{finishedMatches}</strong>/{totalMatches} {t('multiStrip.finished')}
             </span>
             <span style={{ fontSize: '0.875rem', color: '#16a34a' }}>
-              <strong>{pendingMatches.length}</strong> matchs en attente
+              <strong>{pendingMatches.length}</strong> {t('multiStrip.pending')}
             </span>
           </div>
         </div>
@@ -155,7 +157,7 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                 <div
                   key={strip.id}
                   style={{
-                    border: `2px solid ${isOccupied ? '#3b82f6' : '#e5e7eb'}`,
+                    border: `2px solid ${isOccupied ? 'var(--color-primary)' : 'var(--color-border)'}`,
                     borderRadius: '8px',
                     padding: '1rem',
                     background: isOccupied ? '#eff6ff' : '#fff',
@@ -168,14 +170,16 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                       marginBottom: '0.75rem',
                     }}
                   >
-                    <span style={{ fontWeight: 700, fontSize: '1rem' }}>Piste {strip.id}</span>
+                    <span style={{ fontWeight: 700, fontSize: '1rem' }}>
+                      {t('multiStrip.strip_n', { n: strip.id })}
+                    </span>
                     <span
                       style={{
                         fontSize: '0.75rem',
                         padding: '0.125rem 0.5rem',
                         borderRadius: '9999px',
-                        background: isOccupied ? '#3b82f6' : '#e5e7eb',
-                        color: isOccupied ? '#fff' : '#6b7280',
+                        background: isOccupied ? 'var(--color-primary)' : 'var(--color-border)',
+                        color: isOccupied ? '#fff' : 'var(--color-text-light)',
                       }}
                     >
                       {isOccupied ? 'Occupée' : 'Libre'}
@@ -185,12 +189,19 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                   {match ? (
                     <div>
                       <div
-                        style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#6b7280' }}
+                        style={{
+                          fontSize: '0.875rem',
+                          marginBottom: '0.5rem',
+                          color: 'var(--color-text-light)',
+                        }}
                       >
-                        Poule {pools[strip.assignedPoolIndex!]?.number}
+                        {t('multiStrip.pool_n', {
+                          n: pools[strip.assignedPoolIndex!]?.number ?? '',
+                        })}
                       </div>
                       <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>
-                        {match.fencerA?.lastName ?? '?'} vs {match.fencerB?.lastName ?? '?'}
+                        {match.fencerA?.lastName ?? '?'} {t('multiStrip.vs')}{' '}
+                        {match.fencerB?.lastName ?? '?'}
                       </div>
                       <button
                         className="btn btn-secondary"
@@ -202,7 +213,7 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                         }}
                         onClick={() => releaseStrip(strip.id)}
                       >
-                        Libérer la piste
+                        {t('multiStrip.free')}
                       </button>
                     </div>
                   ) : (
@@ -212,12 +223,12 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                           <div
                             style={{
                               fontSize: '0.75rem',
-                              color: '#9ca3af',
+                              color: 'var(--color-text-muted)',
                               marginBottom: '0.5rem',
                             }}
                           >
-                            Prochain : Poule {pendingMatches[0].poolNumber} —{' '}
-                            {pendingMatches[0].match.fencerA?.lastName ?? '?'} vs{' '}
+                            {t('multiStrip.next', { n: pendingMatches[0].poolNumber })}{' '}
+                            {pendingMatches[0].match.fencerA?.lastName ?? '?'} {t('multiStrip.vs')}{' '}
                             {pendingMatches[0].match.fencerB?.lastName ?? '?'}
                           </div>
                           <button
@@ -225,12 +236,12 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                             style={{ width: '100%', fontSize: '0.75rem', padding: '0.375rem' }}
                             onClick={() => assignNextMatch(strip.id)}
                           >
-                            Assigner match suivant
+                            {t('multiStrip.assign_next')}
                           </button>
                         </>
                       ) : (
-                        <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                          Aucun match en attente
+                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                          {t('multiStrip.none')}
                         </div>
                       )}
                     </div>

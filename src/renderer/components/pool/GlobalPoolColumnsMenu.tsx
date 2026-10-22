@@ -8,6 +8,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Funnel } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 import { useColumnVisibility, POOL_COLUMNS, ColumnId } from '../../hooks/useColumnVisibility';
 
 interface GlobalPoolColumnsMenuProps {
@@ -15,6 +16,7 @@ interface GlobalPoolColumnsMenuProps {
 }
 
 const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSabre }) => {
+  const { t } = useTranslation();
   const { visibility, setAllPoolColumns } = useColumnVisibility();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -74,7 +76,7 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
           ...(filterEdited ? { border: '2px solid #f97316' } : {}),
         }}
       >
-        <Funnel size={15} /> Colonnes (toutes les poules)
+        <Funnel size={15} /> {t('poolColumns.button')}
       </button>
       {open &&
         createPortal(
@@ -105,7 +107,7 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
                 marginBottom: '0.25rem',
               }}
             >
-              Colonnes — appliqué à toutes les poules
+              {t('poolColumns.header')}
             </div>
             {columns.map(col => (
               <label
@@ -126,7 +128,7 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
                   type="checkbox"
                   checked={visibility.pool.includes(col.id)}
                   onChange={() => toggle(col.id)}
-                  style={{ cursor: 'pointer' }}
+                  className="cursor-pointer"
                 />
                 {col.label}
               </label>

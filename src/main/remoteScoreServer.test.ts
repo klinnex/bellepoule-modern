@@ -85,7 +85,7 @@ describe('RemoteScoreServer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server = new RemoteScoreServer(mockDb as any, 8066);
-    (server as any).loginFailureDelayMs = 0;
+    (server as any).loginGuard.failureDelayMs = 0;
   });
 
   describe('démarrage du serveur', () => {
@@ -312,6 +312,158 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('kiosk:data (#1152)', () => {
+    it('regroupe les notifications sur 300 ms', () => {
+      vi.useFakeTimers();
+      try {
+        const emit = vi.fn();
+        (server as any).io = { emit };
+        server.notifyKioskData();
+        server.notifyKioskData();
+        server.notifyKioskData();
+        expect(emit).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(300);
+        expect(emit).toHaveBeenCalledTimes(1);
+        expect(emit).toHaveBeenCalledWith('kiosk:data');
+        server.notifyKioskData();
+        vi.advanceTimersByTime(300);
+        expect(emit).toHaveBeenCalledTimes(2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('s’abonne aux écritures de la base et se désabonne à l’arrêt', () => {
+      const unsub = vi.fn();
+      const db = { ...mockDb, onChange: vi.fn().mockReturnValue(unsub) };
+      const srv = new RemoteScoreServer(db as any, 8067);
+      expect(db.onChange).toHaveBeenCalledOnce();
+      const spy = vi.spyOn(srv, 'notifyKioskData');
+      db.onChange.mock.calls[0][0]();
+      expect(spy).toHaveBeenCalledOnce();
+      srv.stop();
+      expect(unsub).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('broadcastDashboardUpdate (#1069)', () => {
+    const withRooms = (rooms: Map<string, Set<string>>) => {
+      (server as any).io = {
+        sockets: { adapter: { rooms } },
+        to: vi.fn().mockReturnThis(),
+        emit: vi.fn(),
+      };
+      return vi.spyOn(server as any, 'buildDashboardSnapshot').mockReturnValue({
+        rankings: [],
+        pools: [],
+        liveMatches: [],
+      });
+    };
+
+    it('ne relit pas la base quand aucun dashboard n’est abonné', () => {
+      const build = withRooms(new Map());
+      server.broadcastDashboardUpdate();
+      expect(build).not.toHaveBeenCalled();
+      expect((server as any).io.emit).not.toHaveBeenCalled();
+    });
+
+    it('diffuse aux dashboards abonnés', () => {
+      const build = withRooms(new Map([['dashboard', new Set(['s1'])]]));
+      server.broadcastDashboardUpdate();
+      expect(build).toHaveBeenCalledOnce();
+      expect((server as any).io.to).toHaveBeenCalledWith('dashboard');
+      expect((server as any).io.emit).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('horodatage des touches pour le replay (#1074)', () => {
+    it('conserve la date des événements déjà vus et date les nouveaux', () => {
+      vi.useFakeTimers();
+      try {
+        vi.setSystemTime(new Date('2026-01-01T10:00:00Z'));
+        (server as any).stampArenaEvents('arena1', 'touchesA', 1);
+        vi.setSystemTime(new Date('2026-01-01T10:00:30Z'));
+        (server as any).stampArenaEvents('arena1', 'touchesA', 2);
+        expect((server as any).arenaEventTimes.get('arena1').touchesA).toEqual([
+          '2026-01-01T10:00:00.000Z',
+          '2026-01-01T10:00:30.000Z',
+        ]);
+        // Touche annulée puis rejouée : nouvelle date
+        (server as any).stampArenaEvents('arena1', 'touchesA', 1);
+        vi.setSystemTime(new Date('2026-01-01T10:01:00Z'));
+        (server as any).stampArenaEvents('arena1', 'touchesA', 2);
+        expect((server as any).arenaEventTimes.get('arena1').touchesA[1]).toBe(
+          '2026-01-01T10:01:00.000Z'
+        );
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
+  describe('fin estimée de phase (#1077)', () => {
+    it('le snapshot dashboard inclut une ETA basée sur les durées réelles', () => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+      mockDb.getFencersByCompetition.mockReturnValueOnce([]);
+      (server as any).sessionMatches = [
+        { id: 'm1', poolId: 'p1', status: 'finished' },
+        { id: 'm2', poolId: 'p1', status: 'not_started' },
+        { id: 'm3', poolId: 'p1', status: 'not_started' },
+      ];
+      (server as any).recentMatchDurationsMs = [180_000, 180_000, 180_000];
+      (server as any).arenas = new Map(); // → 1 piste
+      const before = Date.now();
+      const { eta } = (server as any).buildDashboardSnapshot();
+      expect(eta.basis).toBe('measured');
+      expect(eta.remainingMatches).toBe(2);
+      expect(eta.perMatchMinutes).toBe(4); // 3 min + 1 min de changement
+      // 1 piste : 2 vagues de 4 min
+      expect(new Date(eta.finishAt).getTime()).toBeGreaterThanOrEqual(before + 8 * 60_000);
+    });
+
+    it('tableau : seul le tour en cours est estimé, sur les pistes de la session', () => {
+      (server as any).session = {
+        competitionId: 'comp-1',
+        referees: [],
+        strips: [{ number: 1 }, { number: 2 }],
+      };
+      mockDb.getFencersByCompetition.mockReturnValueOnce([]);
+      (server as any).sessionMatches = [
+        { id: 'p1', poolId: 'p1', status: 'finished' },
+        ...[1, 2, 3, 4].map(i => ({
+          id: `t16-${i}`,
+          isTableau: true,
+          round: 16,
+          status: 'not_started',
+        })),
+        { id: 't8-1', isTableau: true, round: 8, status: 'not_started' },
+      ];
+      (server as any).recentMatchDurationsMs = [180_000, 180_000, 180_000];
+      const before = Date.now();
+      const { eta } = (server as any).buildDashboardSnapshot();
+      expect(eta.phase).toBe('tableau');
+      expect(eta.round).toBe(16);
+      expect(eta.remainingMatches).toBe(4);
+      // 4 matchs sur 2 pistes : 2 vagues de 4 min
+      const ms = new Date(eta.finishAt).getTime() - before;
+      expect(ms).toBeGreaterThanOrEqual(8 * 60_000 - 1000);
+      expect(ms).toBeLessThan(9 * 60_000);
+    });
+
+    it('ajouter des pistes en cours de session crée les arènes', () => {
+      (server as any).session = {
+        competitionId: 'comp-1',
+        referees: [],
+        strips: [{ number: 1, status: 'available' }],
+      };
+      (server as any).arenas = new Map();
+      (server as any).createArena(1);
+      server.updateStripCount(3);
+      expect(server.getAllArenas().map(a => a.id)).toEqual(['arena1', 'arena2', 'arena3']);
+      expect(server.getArenaCount()).toBe(3);
+    });
+  });
+
   describe('liste des arbitres de session', () => {
     it('inclut les arbitres ajoutés après le démarrage de la session', () => {
       (server as any).session = { competitionId: 'comp-1', referees: [] };
@@ -457,6 +609,71 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('score max et repos issus des paramètres (#1125 #1134)', () => {
+    function limit(match: any): number {
+      return (server as any).getScoreLimit(match);
+    }
+
+    beforeEach(() => {
+      (server as any).session = { competitionId: 'comp-1', referees: [] };
+      vi.spyOn(server as any, 'broadcastArenaUpdate').mockImplementation(() => {});
+    });
+
+    it('épée : score max poules / tableau des propriétés, pas 15', () => {
+      mockDb.getCompetition.mockReturnValue({
+        id: 'comp-1',
+        weapon: 'E',
+        settings: { defaultPoolMaxScore: 21, defaultTableMaxScore: 21, restTimeSeconds: 45 },
+      });
+      server.refreshCompetitionSettings();
+      expect(limit({ id: 'p1', poolId: 'pool-1' })).toBe(21);
+      expect(limit({ id: 't1', isTableau: true })).toBe(21);
+      expect((server as any).sessionRestSeconds).toBe(45);
+    });
+
+    it('formule personnalisée : score max du tableau appliqué aux matchs de tableau', () => {
+      mockDb.getCompetition.mockReturnValue({
+        id: 'comp-1',
+        weapon: 'C',
+        settings: {
+          defaultPoolMaxScore: 5,
+          defaultTableMaxScore: 15,
+          customFormula: {
+            phases: [
+              { id: 'p', type: 'pool_round', config: { maxScore: 7 } },
+              { id: 'd', type: 'direct_elimination', config: { maxScore: 11 } },
+            ],
+          },
+        },
+      });
+      server.refreshCompetitionSettings();
+      expect(limit({ id: 'p1', poolId: 'pool-1' })).toBe(7);
+      expect(limit({ id: 't1', isTableau: true })).toBe(11);
+    });
+
+    it('tableau illimité (0) : pas de notification de fin', () => {
+      mockDb.getCompetition.mockReturnValue({
+        id: 'comp-1',
+        weapon: 'F',
+        settings: { defaultPoolMaxScore: 5, defaultTableMaxScore: 0, restTimeSeconds: 0 },
+      });
+      server.refreshCompetitionSettings();
+      expect(limit({ id: 't1', isTableau: true })).toBe(Infinity);
+      expect((server as any).sessionRestSeconds).toBe(0);
+    });
+
+    it('Laser Sabre : 15 inchangé', () => {
+      mockDb.getCompetition.mockReturnValue({
+        id: 'comp-1',
+        weapon: 'L',
+        settings: { defaultPoolMaxScore: 5, defaultTableMaxScore: 21 },
+      });
+      server.refreshCompetitionSettings();
+      (server as any).sessionWeapon = 'L';
+      expect(limit({ id: 't1', isTableau: true })).toBe(15);
+    });
+  });
+
   describe('piste assignée aux poules (pool.strip)', () => {
     const f = (id: string) => ({ id, firstName: id, lastName: id });
     const poolMatches = (poolId: string) => [
@@ -513,6 +730,151 @@ describe('RemoteScoreServer', () => {
       const arenas = (server as any).arenas;
       expect(arenas.get('arena1').currentMatch?.id).toBe('p1-m1');
       expect(arenas.get('arena2').currentMatch?.id).toBe('p2-m1');
+    });
+  });
+
+  describe('réassignation manuelle de piste (#1037)', () => {
+    const f = (id: string) => ({ id, firstName: id, lastName: id });
+    const pm = (poolId: string, n: number) => ({
+      id: `${poolId}-m${n}`,
+      poolId,
+      number: n,
+      fencerA: f(`${poolId}a${n}`),
+      fencerB: f(`${poolId}b${n}`),
+      status: 'not_started',
+    });
+    const marker = (poolId: string, poolNumber: number, strip: number) => ({
+      __poolFencers: true,
+      poolId,
+      poolNumber,
+      strip,
+      fencers: [],
+    });
+    function matchesOf(arenaId: string): string[] {
+      const app = (server as any).app;
+      const stack = (app.router ?? app._router)?.stack ?? [];
+      const handler = stack.find(
+        (l: any) => l?.route?.path === '/api/arenas/:arenaId/matches' && l.route.methods?.get
+      ).route.stack[0].handle;
+      const res = makeRes();
+      handler(makeReq({ params: { arenaId } }), res, vi.fn());
+      return res.json.mock.calls[0][0].matches.map((m: any) => m.id);
+    }
+
+    beforeEach(async () => {
+      mockDb.getCompetition.mockReturnValue({ id: 'comp-1', settings: {} });
+      (mockDb as any).getPoolCount = vi.fn().mockReturnValue(2);
+      vi.spyOn(server as any, 'loadSessionReferees').mockReturnValue([]);
+      await server.startSession('comp-1', 2, [
+        marker('p1', 1, 1),
+        pm('p1', 1),
+        pm('p1', 2),
+        marker('p2', 2, 2),
+        pm('p2', 1),
+        pm('p2', 2),
+      ]);
+    });
+
+    it('match réassigné en tête de liste de la piste cible, retiré de la piste source', () => {
+      server.updateMatchArena('p2-m1', 2, 1);
+      expect(matchesOf('arena1')).toEqual(['p2-m1', 'p1-m1', 'p1-m2']);
+      const arenas = (server as any).arenas;
+      expect(arenas.get('arena1').currentMatch.id).toBe('p1-m1');
+      expect(arenas.get('arena2').currentMatch.id).toBe('p2-m2');
+      expect(matchesOf('arena2')).toEqual(['p2-m2']);
+    });
+
+    it('rapières : seuls les matchs de la vague active sont proposés aux tablettes (#1118)', () => {
+      server.setActiveWaveMatchIds(['p1-m2']);
+      expect(matchesOf('arena1')).toEqual(['p1-m2']);
+      // Vague pas encore lancée : le match courant préchargé n'est pas proposé non plus
+      server.setActiveWaveMatchIds([]);
+      expect(matchesOf('arena1')).toEqual([]);
+      // Fin des vagues / autre mode : plus de filtre
+      server.setActiveWaveMatchIds(null);
+      expect(matchesOf('arena1')).toEqual(['p1-m1', 'p1-m2']);
+    });
+
+    it('rapières : vagues terminées, plus aucun match de poule proposé (#1118)', () => {
+      server.setActiveWaveMatchIds(['p1-m1', 'p1-m2']);
+      server.setActiveWaveMatchIds(null, true);
+      expect(matchesOf('arena1')).toEqual([]);
+      expect(matchesOf('arena2')).toEqual([]);
+      // Match de poule préchargé retiré de la piste
+      expect((server as any).arenas.get('arena1').currentMatch).toBeNull();
+      // Réappliqué au redémarrage : toujours fermé ; reprise des vagues : de nouveau proposé
+      server.setActiveWaveMatchIds(null, true);
+      expect(matchesOf('arena1')).toEqual([]);
+      server.setActiveWaveMatchIds(['p1-m2']);
+      expect(matchesOf('arena1')).toEqual(['p1-m2']);
+    });
+
+    it('rapières : une sous-piste par tablette, matchs non partagés entre sous-pistes (#1118)', () => {
+      // Hors vagues : toujours la piste
+      expect(server.claimArenaSlot('arena1', 'devA')).toBe('arena1');
+      server.setActiveWaveMatchIds(['p1-m1', 'p1-m2']);
+      expect(server.claimArenaSlot('arena1', 'devA')).toBe('arena1');
+      expect(server.claimArenaSlot('1', 'devB')).toBe('arena1s2');
+      // Rechargement : même sous-piste
+      expect(server.claimArenaSlot('arena1', 'devA')).toBe('arena1');
+      expect(server.claimArenaSlot('arena1s2', 'devB')).toBe('arena1s2');
+      const slot = (server as any).arenas.get('arena1s2');
+      expect(slot).toMatchObject({ number: 1, status: 'idle', currentMatch: null });
+      // Match préchargé sur la piste mais pas ouvert : toujours proposé à la sous-piste
+      expect(matchesOf('arena1s2')).toEqual(['p1-m1', 'p1-m2']);
+      // Ouvert par la tablette de la piste : plus proposé à la sous-piste
+      const arena1 = (server as any).arenas.get('arena1');
+      server.assignMatchToArena('arena1', arena1.currentMatch, true);
+      expect(matchesOf('arena1s2')).toEqual(['p1-m2']);
+      expect(matchesOf('arena1')).toEqual(['p1-m1', 'p1-m2']);
+      // Retour à la liste sans chrono : de nouveau proposé
+      const socket = { emit: vi.fn() };
+      (server as any).handleArenaControl(socket, { arenaId: 'arena1', action: 'release_match' });
+      expect(matchesOf('arena1s2')).toEqual(['p1-m1', 'p1-m2']);
+      // Chrono lancé : pris, même après retour à la liste
+      server.assignMatchToArena('arena1', arena1.currentMatch, true);
+      server.startArenaMatch('arena1');
+      (server as any).handleArenaControl(socket, { arenaId: 'arena1', action: 'release_match' });
+      expect(matchesOf('arena1s2')).toEqual(['p1-m2']);
+      server.pauseArenaMatch('arena1');
+      arena1.status = 'ready';
+      // Fin des vagues : sous-piste supprimée, retour sur la piste
+      server.setActiveWaveMatchIds(null);
+      expect((server as any).arenas.has('arena1s2')).toBe(false);
+      expect(server.claimArenaSlot('arena1s2', 'devB')).toBe('arena1');
+    });
+
+    it('rapières : sous-piste authentifiée avec le jeton de la piste (#1118)', () => {
+      server.setActiveWaveMatchIds(['p1-m1', 'p1-m2']);
+      server.claimArenaSlot('arena1', 'devA');
+      server.claimArenaSlot('arena1', 'devB');
+      server.setArenaPassword('1', 'secret123');
+      const store = new Map<string, number>();
+      (server as any).arenaTokens.set('arena1', store);
+      const token = (server as any).issueToken(store);
+      const check = (id: string, cookie?: string) => (server as any).checkArenaAuth(id, cookie);
+      expect(check('arena1s2', undefined)).toBe(false);
+      expect(check('arena1s2', `bp_token_arena1=${token}`)).toBe(true);
+      expect(check('arena1s2', `bp_token_arena1s2=${token}`)).toBe(false);
+    });
+
+    it('les réassignations suivantes se rajoutent par le haut', () => {
+      server.updateMatchArena('p2-m1', 2, 1);
+      server.updateMatchArena('p2-m2', 2, 1);
+      expect(matchesOf('arena1').slice(0, 2)).toEqual(['p2-m2', 'p2-m1']);
+    });
+
+    it('joué ensuite, puis la piste reprend sa propre poule', () => {
+      server.updateMatchArena('p2-m1', 2, 1);
+      const arena1 = (server as any).arenas.get('arena1');
+      const done = { scoreA: 5, scoreB: 0, status: 'finished' };
+      (server as any).sessionMatchScores.set('p1-m1', done);
+      (server as any).loadNextMatch('arena1');
+      expect(arena1.currentMatch.id).toBe('p2-m1');
+      expect(arena1.activePoolId).toBe('p1');
+      (server as any).sessionMatchScores.set('p2-m1', done);
+      (server as any).loadNextMatch('arena1');
+      expect(arena1.currentMatch.id).toBe('p1-m2');
     });
   });
 
@@ -708,15 +1070,15 @@ describe('RemoteScoreServer', () => {
       return layer?.route?.stack?.[0]?.handle;
     }
 
-    function login(password: string): { res: any; cookie: string; done: Promise<void> } {
+    async function login(password: string): Promise<{ res: any; cookie: string }> {
       const res = makeRes();
-      const done = findHandler('post', '/api/checkin/login')(
+      await findHandler('post', '/api/checkin/login')(
         makeReq({ body: { password }, socket: { remoteAddress: '10.0.0.' + Math.random() } }),
         res,
         vi.fn()
       );
       const header = res.setHeader.mock.calls.find((c: any[]) => c[0] === 'Set-Cookie')?.[1] ?? '';
-      return { res, cookie: String(header).split(';')[0], done };
+      return { res, cookie: String(header).split(';')[0] };
     }
 
     beforeEach(() => {
@@ -730,20 +1092,19 @@ describe('RemoteScoreServer', () => {
       ]);
     });
 
-    it("refuse la connexion tant que le DT n'a pas défini de mot de passe", () => {
-      const { res } = login('x');
+    it("refuse la connexion tant que le DT n'a pas défini de mot de passe", async () => {
+      const { res } = await login('x');
       expect(res.status).toHaveBeenCalledWith(403);
     });
 
     it('refuse un mot de passe incorrect et ne stocke pas le mot de passe en clair', async () => {
       server.setCheckinPassword('appel4242');
       expect((server as any).checkinPassword).not.toBe('appel4242');
-      const { res, done } = login('faux');
-      await done;
+      const { res } = await login('faux');
       expect(res.status).toHaveBeenCalledWith(401);
     });
 
-    it('liste tireurs/arbitres uniquement avec un cookie valide', () => {
+    it('liste tireurs/arbitres uniquement avec un cookie valide', async () => {
       server.setCheckinPassword('appel4242');
       const list = findHandler('get', '/api/checkin/list');
 
@@ -751,7 +1112,7 @@ describe('RemoteScoreServer', () => {
       list(makeReq(), denied, vi.fn());
       expect(denied.status).toHaveBeenCalledWith(401);
 
-      const { cookie } = login('appel4242');
+      const { cookie } = await login('appel4242');
       const res = makeRes();
       list(makeReq({ headers: { cookie } }), res, vi.fn());
       const body = res.json.mock.calls[0][0];
@@ -761,9 +1122,9 @@ describe('RemoteScoreServer', () => {
       expect(body.referees[0]).toMatchObject({ id: 'r1', present: false, editable: true });
     });
 
-    it('pointe un tireur présent (statut P) et un arbitre disponible', () => {
+    it('pointe un tireur présent (statut P) et un arbitre disponible', async () => {
       server.setCheckinPassword('appel4242');
-      const { cookie } = login('appel4242');
+      const { cookie } = await login('appel4242');
       const update = findHandler('post', '/api/checkin/:kind/:id');
 
       const res = makeRes();
@@ -791,9 +1152,9 @@ describe('RemoteScoreServer', () => {
       expect(mockDb.updateReferee).toHaveBeenCalledWith('r1', { status: 'available' });
     });
 
-    it("n'écrase pas un statut sportif (éliminé)", () => {
+    it("n'écrase pas un statut sportif (éliminé)", async () => {
       server.setCheckinPassword('appel4242');
-      const { cookie } = login('appel4242');
+      const { cookie } = await login('appel4242');
       const res = makeRes();
       findHandler('post', '/api/checkin/:kind/:id')(
         makeReq({
@@ -808,18 +1169,18 @@ describe('RemoteScoreServer', () => {
       expect(mockDb.updateFencer).not.toHaveBeenCalled();
     });
 
-    it("ferme l'appel hors phase CHECKIN", () => {
+    it("ferme l'appel hors phase CHECKIN", async () => {
       server.setCheckinPassword('appel4242');
-      const { cookie } = login('appel4242');
+      const { cookie } = await login('appel4242');
       server.setCheckinEnabled(false);
       const res = makeRes();
       findHandler('get', '/api/checkin/list')(makeReq({ headers: { cookie } }), res, vi.fn());
       expect(res.status).toHaveBeenCalledWith(403);
     });
 
-    it('invalide les sessions quand le mot de passe change', () => {
+    it('invalide les sessions quand le mot de passe change', async () => {
       server.setCheckinPassword('appel4242');
-      const { cookie } = login('appel4242');
+      const { cookie } = await login('appel4242');
       server.setCheckinPassword('nouveau-mdp');
       const res = makeRes();
       findHandler('get', '/api/checkin/list')(makeReq({ headers: { cookie } }), res, vi.fn());
@@ -868,7 +1229,7 @@ describe('RemoteScoreServer', () => {
       return { handlers, socket };
     }
 
-    function protectArena(password = 'secret123'): string {
+    async function protectArena(password = 'secret123'): Promise<string> {
       (server as any).arenas.set('arena1', {
         id: 'arena1',
         number: 1,
@@ -879,7 +1240,7 @@ describe('RemoteScoreServer', () => {
       });
       server.setArenaPassword('1', password);
       const res = makeRes();
-      findLayers('post', '/api/auth/login/:arenaId')[0](
+      await findLayers('post', '/api/auth/login/:arenaId')[0](
         makeReq({ params: { arenaId: '1' }, body: { password } }),
         res,
         vi.fn()
@@ -891,7 +1252,7 @@ describe('RemoteScoreServer', () => {
     it.each(['assign', 'start', 'pause', 'score', 'finish'])(
       'POST /api/arenas/:arenaId/%s refuse sans cookie (401)',
       async action => {
-        protectArena();
+        await protectArena();
         const spy = vi
           .spyOn(
             server as any,
@@ -911,7 +1272,7 @@ describe('RemoteScoreServer', () => {
     );
 
     it('POST /api/arenas/:arenaId/score accepte avec un cookie valide', async () => {
-      const cookie = protectArena();
+      const cookie = await protectArena();
       const spy = vi.spyOn(server as any, 'updateArenaScore').mockImplementation(() => {});
       const res = makeRes();
       await run(
@@ -947,7 +1308,7 @@ describe('RemoteScoreServer', () => {
     });
 
     it('POST /api/sync refuse sans cookie (401)', async () => {
-      protectArena();
+      await protectArena();
       const spy = vi.spyOn(server as any, 'updateMatchScore').mockResolvedValue(undefined);
       const res = makeRes();
       await run(
@@ -970,8 +1331,8 @@ describe('RemoteScoreServer', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it("socket arena_control refusé sans cookie, sans avoir rejoint l'arène", () => {
-      protectArena();
+    it("socket arena_control refusé sans cookie, sans avoir rejoint l'arène", async () => {
+      await protectArena();
       const spy = vi.spyOn(server as any, 'handleArenaControl').mockImplementation(() => {});
       const { handlers, socket } = connectSocket();
       handlers.arena_control({ arenaId: 'arena1', action: 'update_score', scoreA: 5, scoreB: 0 });
@@ -979,16 +1340,16 @@ describe('RemoteScoreServer', () => {
       expect(socket.emit).toHaveBeenCalledWith('auth_error', expect.anything());
     });
 
-    it('socket arena_control accepté avec cookie valide', () => {
-      const cookie = protectArena();
+    it('socket arena_control accepté avec cookie valide', async () => {
+      const cookie = await protectArena();
       const spy = vi.spyOn(server as any, 'handleArenaControl').mockImplementation(() => {});
       const { handlers } = connectSocket(cookie);
       handlers.arena_control({ arenaId: 'arena1', action: 'update_score', scoreA: 5, scoreB: 0 });
       expect(spy).toHaveBeenCalled();
     });
 
-    it("socket arena_control toggle_swap reste autorisé pour l'écran d'arène", () => {
-      protectArena();
+    it("socket arena_control toggle_swap reste autorisé pour l'écran d'arène", async () => {
+      await protectArena();
       const spy = vi.spyOn(server as any, 'handleArenaControl').mockImplementation(() => {});
       const { handlers } = connectSocket();
       handlers.arena_control({ arenaId: 'arena1', action: 'toggle_swap' });
@@ -996,8 +1357,13 @@ describe('RemoteScoreServer', () => {
     });
 
     describe('événements team_*', () => {
-      function seedTeamState() {
-        const state = {
+      function seedTeamState(over: Record<string, unknown> = {}) {
+        const state: any = {
+          format: 'laser-arena',
+          weapon: 'L',
+          relayRule: { stepSize: 5, target: 45 },
+          fencerCards: [],
+          isLaserPoints: true,
           competitionId: 'comp-1',
           matchId: 'tm1',
           bouts: [
@@ -1009,6 +1375,7 @@ describe('RemoteScoreServer', () => {
           elapsedAccumulatedSec: 0,
           timerStartedAt: null,
           cards: [],
+          ...over,
         };
         (server as any).teamArenaState.set('arena1', state);
         vi.spyOn(server as any, 'getPublicTeamArenaState').mockReturnValue({});
@@ -1021,8 +1388,9 @@ describe('RemoteScoreServer', () => {
         ['team_timer_start', {}],
         ['team_advance_bout', {}],
         ['team_card', { teamId: 't1', type: 'yellow' }],
-      ])('%s refusé sans cookie', (ev, extra) => {
-        protectArena();
+        ['team_fencer_card', { side: 'A', reason: 'early_start' }],
+      ])('%s refusé sans cookie', async (ev, extra) => {
+        await protectArena();
         const state = seedTeamState();
         state.liveScoreA = 2;
         (mockDb as any).updateTeamBout = vi.fn();
@@ -1033,11 +1401,120 @@ describe('RemoteScoreServer', () => {
         expect(state.liveScoreA).toBe(2);
         expect(state.timerStartedAt).toBeNull();
         expect(state.cards).toHaveLength(0);
+        expect(state.fencerCards).toHaveLength(0);
         expect((mockDb as any).updateTeamBout).not.toHaveBeenCalled();
       });
 
-      it('team_touch accepté avec cookie, points invalides ignorés', () => {
-        const cookie = protectArena();
+      describe('relais FIE (#1086)', () => {
+        const relayBouts = () => [
+          {
+            id: 'b1',
+            boutOrder: 1,
+            fencerAId: 'a1',
+            fencerBId: 'b1',
+            status: 'finished',
+            scoreA: 5,
+            scoreB: 3,
+          },
+          {
+            id: 'b2',
+            boutOrder: 2,
+            fencerAId: 'a2',
+            fencerBId: 'b2',
+            status: 'pending',
+            scoreA: 0,
+            scoreB: 0,
+          },
+        ];
+
+        it('touche simple uniquement (pas de zones hors mode points)', async () => {
+          const cookie = await protectArena();
+          const state = seedTeamState({
+            format: 'fie-relay',
+            isLaserPoints: false,
+            bouts: relayBouts(),
+            currentBoutIndex: 1,
+          });
+          const { handlers } = connectSocket(cookie);
+          handlers.team_touch({ arenaId: 'arena1', side: 'A', points: 3 });
+          expect(state.liveScoreA).toBe(0);
+          handlers.team_touch({ arenaId: 'arena1', side: 'B', points: 1 });
+          expect(state.liveScoreB).toBe(1);
+        });
+
+        it('relais suivant : vainqueur au cumul, score du relais persisté', async () => {
+          const cookie = await protectArena();
+          // Relais 2 perdu 2-3 par A, mais cumul 7-6 → relais attribué à A
+          const state = seedTeamState({
+            format: 'fie-relay',
+            isLaserPoints: false,
+            bouts: relayBouts(),
+            currentBoutIndex: 1,
+            liveScoreA: 2,
+            liveScoreB: 3,
+          });
+          (mockDb as any).updateTeamBout = vi.fn();
+          const { handlers } = connectSocket(cookie);
+          handlers.team_advance_bout({ arenaId: 'arena1' });
+          expect((mockDb as any).updateTeamBout).toHaveBeenCalledWith('b2', 2, 3, 'finished', 'a2');
+          expect(state.currentBoutIndex).toBe(-1);
+        });
+
+        it('carton individuel : escalade, persistance, motif inconnu refusé', async () => {
+          const cookie = await protectArena();
+          const state = seedTeamState({
+            format: 'fie-relay',
+            weapon: 'E',
+            isLaserPoints: false,
+            bouts: relayBouts(),
+            currentBoutIndex: 1,
+          });
+          const stored: any[] = [];
+          (mockDb as any).getTeamBoutCards = vi.fn(() =>
+            stored.map(card => ({ boutId: 'b2', card }))
+          );
+          (mockDb as any).createTeamBoutCard = vi.fn((_b: string, card: any) => {
+            stored.push(card);
+            return { id: card.id };
+          });
+          const { handlers } = connectSocket(cookie);
+          handlers.team_fencer_card({ arenaId: 'arena1', side: 'A', reason: 'not_a_reason' });
+          expect(state.fencerCards).toHaveLength(0);
+          handlers.team_fencer_card({ arenaId: 'arena1', side: 'A', reason: 'early_start' });
+          handlers.team_fencer_card({ arenaId: 'arena1', side: 'A', reason: 'early_start' });
+          expect(state.fencerCards.map((c: any) => [c.fencerId, c.boutId])).toEqual([
+            ['a2', 'b2'],
+            ['a2', 'b2'],
+          ]);
+          expect(state.fencerCards[0].type).toBe('WHITE');
+          expect(state.fencerCards[1].type).toBe('YELLOW'); // escalade depuis l'historique persisté
+          expect((mockDb as any).createTeamBoutCard).toHaveBeenCalledTimes(2);
+        });
+
+        it('état public : cumul, palier du relais, cible, motifs de carton', () => {
+          seedTeamState({
+            format: 'fie-relay',
+            weapon: 'E',
+            isLaserPoints: false,
+            bouts: relayBouts(),
+            currentBoutIndex: 1,
+            liveScoreA: 4,
+            liveScoreB: 1,
+          });
+          (server as any).getPublicTeamArenaState.mockRestore();
+          mockDb.getCompetition.mockReturnValue({ id: 'comp-1', settings: {} });
+          const pub = (server as any).getPublicTeamArenaState('arena1');
+          expect(pub.cumulA).toBe(9);
+          expect(pub.cumulB).toBe(4);
+          expect(pub.cap.maxTouches).toBe(10);
+          expect(pub.boutComplete).toBe(false);
+          expect(pub.target).toBe(45);
+          expect(pub.cardReasons).toContain('early_start');
+        });
+      });
+
+      it('team_touch accepté avec cookie, points invalides ignorés', async () => {
+        const cookie = await protectArena();
         const state = seedTeamState();
         const { handlers } = connectSocket(cookie);
         handlers.team_touch({ arenaId: 'arena1', side: 'A', points: 3 });
@@ -1088,14 +1565,14 @@ describe('RemoteScoreServer', () => {
       server.setArenaPassword('1', 'secret123');
     });
 
-    it('hash scrypt salé : deux hash du même mot de passe diffèrent et se vérifient', () => {
+    it('hash scrypt salé : deux hash du même mot de passe diffèrent et se vérifient', async () => {
       const h1 = (server as any).hashPassword('secret123');
       const h2 = (server as any).hashPassword('secret123');
       expect(h1).toMatch(/^scrypt\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
       expect(h1).not.toBe(h2);
-      expect((server as any).verifyPassword('secret123', h1)).toBe(true);
-      expect((server as any).verifyPassword('secret124', h1)).toBe(false);
-      expect((server as any).verifyPassword('secret123', 'abc')).toBe(false);
+      await expect((server as any).verifyPassword('secret123', h1)).resolves.toBe(true);
+      await expect((server as any).verifyPassword('secret124', h1)).resolves.toBe(false);
+      await expect((server as any).verifyPassword('secret123', 'abc')).resolves.toBe(false);
     });
 
     it('refuse un mot de passe de moins de 8 caractères (arène et appel), vide autorisé', () => {
@@ -1109,7 +1586,7 @@ describe('RemoteScoreServer', () => {
       for (let i = 0; i < 5; i++) {
         const res = await attempt('mauvais!', '192.168.1.50', { 'x-forwarded-for': `10.9.9.${i}` });
         expect(res.status).toHaveBeenCalledWith(401);
-        (server as any).loginFailures.clear(); // isole la limite par minute du blocage
+        (server as any).loginGuard.failures.clear(); // isole la limite par minute du blocage
       }
       const res = await attempt('mauvais!', '192.168.1.50', { 'x-forwarded-for': '10.9.9.99' });
       expect(res.status).toHaveBeenCalledWith(429);
@@ -1138,7 +1615,7 @@ describe('RemoteScoreServer', () => {
       const diag = vi.spyOn(server as any, 'sendDiag').mockImplementation(() => {});
       for (let i = 0; i < 5; i++) {
         await attempt('mauvais!');
-        (server as any).loginAttempts.clear();
+        (server as any).loginGuard.attempts.clear();
       }
       expect(diag).toHaveBeenCalledWith(expect.stringContaining('192.168.1.50'));
       const res = await attempt('secret123');
@@ -1146,9 +1623,9 @@ describe('RemoteScoreServer', () => {
       expect(res.setHeader).toHaveBeenCalledWith('Retry-After', '30');
 
       // Échec suivant après expiration du blocage → durée doublée
-      (server as any).loginFailures.get('192.168.1.50').lockedUntil = 0;
+      (server as any).loginGuard.failures.get('192.168.1.50').lockedUntil = 0;
       await attempt('mauvais!');
-      const f = (server as any).loginFailures.get('192.168.1.50');
+      const f = (server as any).loginGuard.failures.get('192.168.1.50');
       expect(f.lockedUntil - Date.now()).toBeGreaterThan(55_000);
     });
 
@@ -1156,7 +1633,7 @@ describe('RemoteScoreServer', () => {
       for (let i = 0; i < 3; i++) await attempt('mauvais!');
       const res = await attempt('secret123');
       expect(res.json).toHaveBeenCalledWith({ success: true });
-      expect((server as any).loginFailures.has('192.168.1.50')).toBe(false);
+      expect((server as any).loginGuard.failures.has('192.168.1.50')).toBe(false);
     });
 
     it('jeton expiré côté serveur refusé', async () => {
@@ -1350,6 +1827,7 @@ describe('RemoteScoreServer', () => {
       'client:register',
       'client:battery',
       'team_touch',
+      'team_fencer_card',
     ])('%s avec données nulles : aucune exception', ev => {
       const handlers = connect();
       expect(() => handlers[ev](null)).not.toThrow();
@@ -1399,7 +1877,7 @@ describe('RemoteScoreServer', () => {
 
     beforeEach(() => {
       (server as any).session = { competitionId: 'comp-1', strips: [] };
-      (server as any).loginFailureDelayMs = 0;
+      (server as any).loginGuard.failureDelayMs = 0;
       (mockDb as any).getRefereeComments = vi.fn().mockReturnValue([]);
       (mockDb as any).addRefereeComment = vi.fn().mockReturnValue({ id: 'c1' });
       mockDb.getRefereesByCompetition.mockReturnValue([
@@ -1466,6 +1944,26 @@ describe('RemoteScoreServer', () => {
       const res = makeRes();
       await findHandler('post', '/api/trainer/login')(makeReq({ body: { password: 'nope' } }), res);
       expect(res.status).toHaveBeenCalledWith(401);
+    });
+  });
+  describe("finishPoolMatch (saisie dans l'application)", () => {
+    beforeEach(() => {
+      (server as any).io = { emit: vi.fn(), to: () => ({ emit: vi.fn() }) };
+    });
+
+    it('conserve le drapeau forfait sur le perdant (#1144)', () => {
+      server.finishPoolMatch('m1', 21, 0, 'A', 'forfait');
+      const saved = (server as any).sessionMatchScores.get('m1');
+      expect(saved.status).toBe('finished');
+      expect(saved.scoreA).toMatchObject({ value: 21, isVictory: true, isForfait: false });
+      expect(saved.scoreB).toMatchObject({ value: 0, isVictory: false, isForfait: true });
+    });
+
+    it('sans statut spécial : score simple, aucun drapeau', () => {
+      server.finishPoolMatch('m1', 3, 5);
+      const saved = (server as any).sessionMatchScores.get('m1');
+      expect(saved.scoreA).toMatchObject({ value: 3, isVictory: false, isForfait: false });
+      expect(saved.scoreB).toMatchObject({ value: 5, isVictory: true, isAbstention: false });
     });
   });
 });

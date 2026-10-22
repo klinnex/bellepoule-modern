@@ -116,7 +116,7 @@ bellepoule-modern/
 │   │   ├── public.html, overlay.html, overlay-config.html, matchs.html
 │   │   ├── kiosk.html, dashboard.html, lobby.html
 │   │   ├── login.html, checkin.html, register.html, trainer.html
-│   │   ├── app.js, i18n.js, styles.css, sw.js, offlineQueue.ts
+│   │   ├── app.js, common.js, i18n.js, styles.css, sw.js
 │   │   └── unicorn-bg.png
 │   │
 │   └── examples/
@@ -194,6 +194,7 @@ Détails : [REMOTE_SCORE_GUIDE.md](REMOTE_SCORE_GUIDE.md) et [docs/ARBITRAGE.md]
 - **Flux d'un score** : tablette → `arena_control/update_score` (temps réel, écrans) +
   `POST /api/matches/:id/score` (persistance) → fin : `POST /api/matches/:id/finish` →
   DB + IPC `match:finished` → renderer met à jour poule/tableau.
+- **Charge du process principal (#1154)** : le serveur distant, l'UI et les IPC `db:*` partagent la boucle d'événements du main. `src/main/eventLoopMonitor.ts` mesure son lag (`perf_hooks.monitorEventLoopDelay`, IPC `perf:getEventLoopDelay` / `electronAPI.getEventLoopDelay(reset?)` → moyenne, p50, p99, max en ms). Découpage prévu, à décider après mesure sur un export réel : (1) workers pour les tâches CPU (PDF, ZIP, `scryptSync` des mots de passe — `auth.ts`), (2) à défaut, serveur distant dans un `utilityProcess` derrière une façade `remoteServers` (lecture SQLite dédiée, écritures sérialisées via le main).
 
 ## 7. État côté interface
 

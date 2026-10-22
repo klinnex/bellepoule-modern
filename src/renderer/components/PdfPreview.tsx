@@ -6,6 +6,8 @@ import {
   generateRankingHTML,
 } from '../../shared/utils/pdfExport';
 import { PREVIEW_POOL, PREVIEW_TABLEAU, PREVIEW_RANKING } from '../../shared/utils/pdfPreviewData';
+import { translateStatic } from '../contexts/TranslationContext';
+import { writeHtmlWithCssom } from '../utils/writeHtmlWithCssom';
 
 const LOGO_KEY = 'bellepoule-logo';
 const A4_W = 794;
@@ -85,13 +87,11 @@ const PdfPreview: React.FC<Props> = ({ template, docType }) => {
     if (!iframe) return;
     const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
     if (!doc) return;
-    doc.open();
-    doc.write(html);
-    doc.close();
+    writeHtmlWithCssom(doc, html);
   }, [html]);
 
   return (
-    <div ref={containerRef} style={{ width: '100%' }}>
+    <div ref={containerRef} className="w-full">
       <div
         style={{
           width: '100%',
@@ -105,7 +105,7 @@ const PdfPreview: React.FC<Props> = ({ template, docType }) => {
       >
         <iframe
           ref={iframeRef}
-          title="PDF Preview"
+          title={translateStatic('pdfModal.iframe_title')}
           sandbox="allow-same-origin"
           style={{
             width: `${A4_W}px`,

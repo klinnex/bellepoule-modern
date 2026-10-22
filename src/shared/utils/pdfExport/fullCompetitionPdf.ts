@@ -7,7 +7,7 @@
 import { Fencer, Pool, PoolRanking } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
 import { MAX_MATCHES_PER_PAGE_TABLEAU } from '../pdfConstants';
-import { savePDF } from './core';
+import { savePDF, pdfLang, pdfT } from './core';
 import { generatePoolHTML } from './poolPdf';
 import { TableauMatchForPDF, generateTableauHTML, getTableauRoundName } from './tableauPdf';
 import { generateRankingHTML } from './rankingPdf';
@@ -33,6 +33,8 @@ export interface FullCompetitionExportData {
   fencers: Fencer[];
   /** Colonnes visibles de la feuille d'appel (respecte la config UI) */
   appelVisibleColumns?: string[];
+  /** Appel figé de chaque tour de poules terminé ; `fencers` = appel du dernier tour (#1051) */
+  appelHistory?: Fencer[][];
   pools: Pool[];
   overallRanking: PoolRanking[];
   tableauMatches: TableauMatchForPDF[];
@@ -52,6 +54,7 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
   const {
     fencers,
     appelVisibleColumns,
+    appelHistory = [],
     pools,
     overallRanking,
     tableauMatches,
@@ -66,29 +69,47 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
 
   const sections: string[] = [];
 
+  const appelCols = appelVisibleColumns ?? [
+    'ref',
+    'lastName',
+    'firstName',
+    'birthDate',
+    'club',
+    'ranking',
+    'status',
+  ];
+  const byRanking = (list: Fencer[]) =>
+    [...list].sort(
+      (a, b) =>
+        (a.ranking ?? Infinity) - (b.ranking ?? Infinity) || a.lastName.localeCompare(b.lastName)
+    );
+  // Plusieurs tours : une feuille d'appel par tour terminé, puis celle du tour courant
+  const appelRounds = appelHistory.filter(r => r.length > 0);
+  appelRounds.forEach((roundFencers, i) => {
+    sections.push(
+      generateAppelHTML(
+        byRanking(roundFencers),
+        appelCols,
+        `${pdfT('appel_sheet', "Feuille d'appel")} — ${pdfT('round_n', 'Tour {{n}}', { n: i + 1 })} — ${competitionTitle}`,
+        competitionTitle,
+        logo,
+        undefined
+      )
+    );
+  });
+
   if (fencers.length > 0) {
-    const appelCols = appelVisibleColumns ?? [
-      'ref',
-      'lastName',
-      'firstName',
-      'birthDate',
-      'club',
-      'ranking',
-      'status',
-    ];
     // Si les tireurs viennent de l'appel, ils sont déjà triés ; sinon tri par défaut
-    const appelFencerList = appelVisibleColumns
-      ? fencers
-      : [...fencers].sort(
-          (a, b) =>
-            (a.ranking ?? Infinity) - (b.ranking ?? Infinity) ||
-            a.lastName.localeCompare(b.lastName)
-        );
+    const appelFencerList = appelVisibleColumns ? fencers : byRanking(fencers);
+    const roundLabel =
+      appelRounds.length > 0
+        ? `${pdfT('round_n', 'Tour {{n}}', { n: appelRounds.length + 1 })} — `
+        : '';
     sections.push(
       generateAppelHTML(
         appelFencerList,
         appelCols,
-        `Feuille d'appel — ${competitionTitle}`,
+        `${pdfT('appel_sheet', "Feuille d'appel")} — ${roundLabel}${competitionTitle}`,
         competitionTitle,
         logo,
         undefined
@@ -101,7 +122,7 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
       generatePoolHTML(
         pool,
         {
-          title: `Poule ${pool.number} — ${competitionTitle}`,
+          title: `${pdfT('pool_n', 'Poule {{n}}', { n: pool.number })} — ${competitionTitle}`,
           logoBase64: logo,
           competitionName: competitionTitle,
           signatures: poolSignatures?.[pool.id],
@@ -129,7 +150,7 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
     sections.push(
       generateRankingHTML(
         overallRanking,
-        `Classement provisoire — ${competitionTitle}`,
+        `${pdfT('provisional_ranking', 'Classement provisoire')} — ${competitionTitle}`,
         isLaserSabre,
         rankCols,
         logo,
@@ -176,11 +197,16 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
 
   if (finalResults.length > 0) {
     sections.push(
-      generateResultsHTML(finalResults, `Classement final — ${competitionTitle}`, logo, undefined)
+      generateResultsHTML(
+        finalResults,
+        `${pdfT('final_ranking', 'Classement final')} — ${competitionTitle}`,
+        logo,
+        undefined
+      )
     );
   }
 
-  if (sections.length === 0) throw new Error('Aucune donnée à exporter');
+  if (sections.length === 0) throw new Error(pdfT('no_data', 'Aucune donnée à exporter'));
 
   const allStyles = sections.map(extractStyleContent).join('\n');
   const allBodies = sections
@@ -191,10 +217,10 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
     .join('\n');
 
   const combined = `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
-  <title>Export complet — ${competitionTitle}</title>
+  <title>${pdfT('full_export', 'Export complet')} — ${competitionTitle}</title>
   <style>
     ${allStyles}
     .full-export-break { break-before: page; }
@@ -235,7 +261,7 @@ export async function exportPoolsAndTableauxNoSignaturePDF(
       generatePoolHTML(
         pool,
         {
-          title: `Poule ${pool.number} — ${competitionTitle}`,
+          title: `${pdfT('pool_n', 'Poule {{n}}', { n: pool.number })} — ${competitionTitle}`,
           logoBase64: logo,
           competitionName: competitionTitle,
         },
@@ -278,7 +304,7 @@ export async function exportPoolsAndTableauxNoSignaturePDF(
     }
   }
 
-  if (sections.length === 0) throw new Error('Aucune donnée à exporter');
+  if (sections.length === 0) throw new Error(pdfT('no_data', 'Aucune donnée à exporter'));
 
   const allStyles = sections.map(extractStyleContent).join('\n');
   const allBodies = sections
@@ -289,10 +315,10 @@ export async function exportPoolsAndTableauxNoSignaturePDF(
     .join('\n');
 
   const combined = `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
-  <title>Export sans signature — ${competitionTitle}</title>
+  <title>${pdfT('export_no_signature', 'Export sans signature')} — ${competitionTitle}</title>
   <style>
     ${allStyles}
     .full-export-break { break-before: page; }

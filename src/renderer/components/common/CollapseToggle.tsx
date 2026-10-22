@@ -5,6 +5,7 @@
 
 import React, { useCallback, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 /** Nombre de lignes visibles en mode compact */
 export const COMPACT_ROW_COUNT = 8;
@@ -47,9 +48,12 @@ export const CollapseToggle: React.FC<CollapseToggleProps> = ({
   onToggle,
   hiddenCount,
 }) => {
+  const { t } = useTranslation();
   const label = collapsed
-    ? `Déplier${hiddenCount ? ` (${hiddenCount} masqué${hiddenCount > 1 ? 's' : ''})` : ''}`
-    : 'Compacter';
+    ? hiddenCount
+      ? t('ui.expand_hidden', { count: hiddenCount })
+      : t('ui.expand')
+    : t('ui.compact');
   return (
     <button
       type="button"
@@ -71,14 +75,17 @@ interface CollapsedRowProps {
 }
 
 /** Ligne de tableau « … N autres » affichée en mode compact */
-export const CollapsedRow: React.FC<CollapsedRowProps> = ({ colSpan, hiddenCount, onExpand }) => (
-  <tr className="collapse-more-row">
-    <td colSpan={colSpan}>
-      <button type="button" className="collapse-more-btn" onClick={onExpand}>
-        … {hiddenCount} autre{hiddenCount > 1 ? 's' : ''} — déplier
-      </button>
-    </td>
-  </tr>
-);
+export const CollapsedRow: React.FC<CollapsedRowProps> = ({ colSpan, hiddenCount, onExpand }) => {
+  const { t } = useTranslation();
+  return (
+    <tr className="collapse-more-row">
+      <td colSpan={colSpan}>
+        <button type="button" className="collapse-more-btn" onClick={onExpand}>
+          {t('ui.more_rows', { count: hiddenCount })}
+        </button>
+      </td>
+    </tr>
+  );
+};
 
 export default CollapseToggle;

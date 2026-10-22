@@ -14,6 +14,13 @@ import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
 import { logger, LogCategory } from '@shared/services/logger';
 import { isWebhookUrlSafe } from '@shared/services/notificationService';
+import {
+  UI_SCALES,
+  loadUiScale,
+  normalizeUiScale,
+  saveUiScale,
+  type UiScale,
+} from '../services/uiScale';
 
 const LOGO_STORAGE_KEY = 'bellepoule-logo';
 const WEBHOOK_STORAGE_KEY = 'bellepoule-webhook-url';
@@ -35,13 +42,14 @@ const DEFAULT_TTS_CONFIG: TtsConfig = {
 };
 
 // Paliers annoncés par le minuteur vocal — clé de config + libellé affiché
+// Paliers annoncés : clé de config → clé de traduction (settings.*)
 const TTS_THRESHOLDS: { key: string; label: string }[] = [
-  { key: '60', label: '1 minute' },
-  { key: '30', label: '30 secondes' },
-  { key: '10', label: '10 secondes' },
-  { key: '5', label: '5 secondes' },
-  { key: 'countdown', label: 'Décompte 4 → 1' },
-  { key: '0', label: '« Temps ! » (fin)' },
+  { key: '60', label: 'settings.tts_m60' },
+  { key: '30', label: 'settings.tts_m30' },
+  { key: '10', label: 'settings.tts_m10' },
+  { key: '5', label: 'settings.tts_m5' },
+  { key: 'countdown', label: 'settings.tts_countdown' },
+  { key: '0', label: 'settings.tts_m0' },
 ];
 
 function loadTtsConfig(): TtsConfig {
@@ -98,7 +106,8 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
-  const { t, language, theme, changeLanguage, changeTheme } = useTranslation();
+  const { t, language, theme, changeLanguage, changeTheme, pseudoLocale, setPseudoLocale } =
+    useTranslation();
   const [showPdfEditor, setShowPdfEditor] = useState(false);
   const [settings, setSettings] = useState({
     language: language,
@@ -122,6 +131,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     () => localStorage.getItem(SIMPLIFIED_INPUT_KEY) === 'true'
   );
 
+  const [uiScale, setUiScale] = useState<UiScale>(() => loadUiScale());
   const [confettiDisabled, setConfettiDisabled] = useState<boolean>(() => isConfettiDisabled());
   const [webhookUrl, setWebhookUrl] = useState<string>(
     () => localStorage.getItem(WEBHOOK_STORAGE_KEY) ?? ''
@@ -288,9 +298,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     if (!webhookUrl.trim()) return;
     if (!isWebhookUrlSafe(webhookUrl)) {
       setWebhookTestStatus('error');
-      setWebhookTestMessage(
-        'URL invalide — doit être https vers un hôte public (pas localhost ni IP privée)'
-      );
+      setWebhookTestMessage(t('settings.webhook_invalid'));
       return;
     }
     setWebhookTestStatus('testing');
@@ -305,10 +313,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
         }),
       });
       setWebhookTestStatus('success');
-      setWebhookTestMessage('Webhook envoyé avec succès !');
+      setWebhookTestMessage(t('settings.webhook_success'));
     } catch {
       setWebhookTestStatus('error');
-      setWebhookTestMessage("Échec de l'envoi — vérifiez l'URL et la connectivité réseau");
+      setWebhookTestMessage(t('settings.webhook_failed'));
     }
   };
 
@@ -325,6 +333,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   const handleConfettiDisabledChange = (disabled: boolean) => {
     setConfettiDisabled(disabled);
     localStorage.setItem(CONFETTI_DISABLED_KEY, String(disabled));
+  };
+
+  // Taille du texte : appliquée et enregistrée immédiatement (#1156)
+  const handleUiScaleChange = (scale: UiScale) => {
+    setUiScale(scale);
+    saveUiScale(scale);
   };
 
   const handleSimplifiedInputModeChange = (enabled: boolean) => {
@@ -372,22 +386,50 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
             </div>
 
             <div className="form-group">
+              <label className="u-row">
+                <input
+                  type="checkbox"
+                  checked={pseudoLocale}
+                  onChange={e => setPseudoLocale(e.target.checked)}
+                />
+                {t('settings.pseudo_locale')}
+              </label>
+              <p style={HINT}>{t('settings.pseudo_locale_hint')}</p>
+            </div>
+
+            <div className="form-group">
               <label>{t('settings.theme')}</label>
               <select
                 className="form-input form-select"
                 value={settings.theme}
                 onChange={e => handleThemeChange(e.target.value as 'default' | 'light' | 'dark')}
               >
-                <option value="default">Default</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
+                <option value="default">{t('settings.theme_default')}</option>
+                <option value="light">{t('settings.theme_light')}</option>
+                <option value="dark">{t('settings.theme_dark')}</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="settings-ui-scale">{t('settings.text_size')}</label>
+              <select
+                id="settings-ui-scale"
+                className="form-input form-select"
+                value={uiScale}
+                onChange={e => handleUiScaleChange(normalizeUiScale(e.target.value))}
+              >
+                {UI_SCALES.map(scale => (
+                  <option key={scale} value={scale}>
+                    {Math.round(scale * 100)} %
+                  </option>
+                ))}
               </select>
             </div>
 
             {/* Logo organisateur */}
             <div className="form-group">
-              <label>Logo organisateur</label>
-              <p style={HINT}>Affiché en haut à gauche des PDF exportés et dans le mode kiosque.</p>
+              <label>{t('settings.logo_title')}</label>
+              <p style={HINT}>{t('settings.logo_hint')}</p>
               <div
                 onDragOver={e => {
                   e.preventDefault();
@@ -397,7 +439,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
                 style={{
-                  border: `2px dashed ${isDragging ? 'var(--primary, #3b82f6)' : 'var(--border, #d1d5db)'}`,
+                  border: `2px dashed ${isDragging ? 'var(--primary, var(--color-primary))' : 'var(--border, var(--color-border-dark))'}`,
                   borderRadius: '8px',
                   padding: '1rem',
                   textAlign: 'center',
@@ -409,7 +451,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 {logo ? (
                   <img
                     src={logo}
-                    alt="Logo organisateur"
+                    alt={t('settings.logo_title')}
                     style={{
                       maxHeight: '60px',
                       maxWidth: '100%',
@@ -419,19 +461,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                     }}
                   />
                 ) : (
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted, #6b7280)' }}>
-                    Glissez une image ici ou cliquez pour choisir
+                  <span
+                    style={{
+                      fontSize: '0.85rem',
+                      color: 'var(--text-muted, var(--color-text-light))',
+                    }}
+                  >
+                    {t('settings.logo_drop')}
                   </span>
                 )}
                 <span
                   style={{
                     fontSize: '0.75rem',
-                    color: 'var(--text-muted, #9ca3af)',
+                    color: 'var(--text-muted, var(--color-text-muted))',
                     display: 'block',
                     marginTop: logo ? '0' : '0.25rem',
                   }}
                 >
-                  PNG, JPG, SVG — max 5 Mo
+                  {t('settings.logo_formats')}
                 </span>
               </div>
               <input
@@ -458,14 +505,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   style={{ marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.25rem 0.75rem' }}
                   onClick={handleRemoveLogo}
                 >
-                  Supprimer le logo
+                  {t('settings.logo_remove')}
                 </button>
               )}
             </div>
             {/* PDF Templates */}
             <div className="form-group" style={SECTION_DIVIDER}>
-              <label style={BOLD}>Exports PDF</label>
-              <p style={HINT}>Personnalisez l'apparence de chaque type d'export PDF.</p>
+              <label style={BOLD}>{t('settings.pdf_title')}</label>
+              <p style={HINT}>{t('settings.pdf_hint')}</p>
               <button
                 className="btn btn-secondary"
                 style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
@@ -477,91 +524,72 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
 
             {/* Saisie rapide souris */}
             <div className="form-group" style={SECTION_DIVIDER}>
-              <label style={BOLD}>Saisie rapide souris</label>
-              <p style={HINT}>
-                Survol d'une cellule : met en évidence la cellule miroir et les noms. Roulette : ±1
-                au score du tireur (ligne). Shift+roulette : score de l'adversaire (colonne). Score
-                nul en laser sabre → ouvre la modal de victoire.
-              </p>
-              <label
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
-              >
+              <label style={BOLD}>{t('settings.quick_mouse_title')}</label>
+              <p style={HINT}>{t('settings.quick_mouse_hint')}</p>
+              <label className="u-row cursor-pointer">
                 <input
                   type="checkbox"
                   checked={quickMouseScoring}
                   onChange={e => handleQuickMouseScoringChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>Activer la saisie rapide à la souris</span>
+                <span style={{ fontSize: '0.875rem' }}>{t('settings.quick_mouse_enable')}</span>
               </label>
             </div>
 
             {/* Mode de saisie simplifiée */}
             <div className="form-group" style={SECTION_DIVIDER}>
-              <label style={BOLD}>Mode de saisie simplifiée</label>
-              <p style={HINT}>
-                Clic sur une cellule de poule : saisie directe des scores dans la case, sans
-                ouverture de modal. Score nul en laser sabre → ouvre tout de même la modal de
-                victoire.
-              </p>
-              <label
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
-              >
+              <label style={BOLD}>{t('settings.simplified_title')}</label>
+              <p style={HINT}>{t('settings.simplified_hint')}</p>
+              <label className="u-row cursor-pointer">
                 <input
                   type="checkbox"
                   checked={simplifiedInputMode}
                   onChange={e => handleSimplifiedInputModeChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>
-                  Activer la saisie simplifiée dans les cases
-                </span>
+                <span style={{ fontSize: '0.875rem' }}>{t('settings.simplified_enable')}</span>
               </label>
             </div>
 
             {/* Journal des scores */}
             <div className="form-group" style={SECTION_DIVIDER}>
-              <label style={BOLD}>Journal des scores</label>
-              <p style={HINT}>Active l'onglet "Historique des scores" dans la vue compétition.</p>
-              <label
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
-              >
+              <label style={BOLD}>{t('settings.audit_title')}</label>
+              <p style={HINT}>{t('settings.audit_hint')}</p>
+              <label className="u-row cursor-pointer">
                 <input
                   type="checkbox"
                   checked={auditLogEnabled}
                   onChange={e => handleAuditLogChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>Activer le journal d'audit des scores</span>
+                <span style={{ fontSize: '0.875rem' }}>{t('settings.audit_enable')}</span>
               </label>
             </div>
 
             {/* Animations */}
             <div className="form-group" style={SECTION_DIVIDER}>
-              <label style={BOLD}>Animations</label>
-              <p style={HINT}>Feux d'artifice affichés à la fin des poules.</p>
-              <label
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
-              >
+              <label style={BOLD}>{t('settings.animations_title')}</label>
+              <p style={HINT}>{t('settings.animations_hint')}</p>
+              <label className="u-row cursor-pointer">
                 <input
                   type="checkbox"
                   checked={confettiDisabled}
                   onChange={e => handleConfettiDisabledChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>Désactiver les feux d'artifice</span>
+                <span style={{ fontSize: '0.875rem' }}>{t('settings.animations_disable')}</span>
               </label>
             </div>
 
             {/* Notifications webhook */}
             <div className="form-group" style={SECTION_DIVIDER}>
-              <label style={BOLD}>Notifications webhook</label>
-              <p style={HINT}>URL Discord / Slack / personnalisée (HTTPS uniquement).</p>
+              <label style={BOLD}>{t('settings.webhook_title')}</label>
+              <p style={HINT}>{t('settings.webhook_hint')}</p>
               <input
                 type="url"
-                className="form-input"
+                className="form-input mb-2"
                 placeholder="https://hooks.slack.com/services/..."
                 value={webhookUrl}
                 onChange={e => handleWebhookUrlChange(e.target.value)}
-                style={{ marginBottom: '0.5rem' }}
               />
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <div className="u-row">
                 <button
                   className="btn btn-secondary"
                   style={SMALL_BTN}
@@ -576,7 +604,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                     style={SMALL_BTN}
                     onClick={() => handleWebhookUrlChange('')}
                   >
-                    Supprimer
+                    {t('settings.webhook_remove')}
                   </button>
                 )}
               </div>
@@ -598,10 +626,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
 
             {/* Tableau arbitrage — minuteur vocal (TTS) */}
             <div className="form-group" style={SECTION_DIVIDER}>
-              <label style={BOLD}>Tableau arbitrage — minuteur vocal</label>
-              <p style={HINT}>Voix et paliers de temps annoncés sur les tablettes d'arbitrage.</p>
+              <label style={BOLD}>{t('settings.tts_title')}</label>
+              <p style={HINT}>{t('settings.tts_hint')}</p>
 
-              <label style={{ fontSize: '0.85rem' }}>Voix</label>
+              <label style={{ fontSize: '0.85rem' }}>{t('settings.tts_voice')}</label>
               <div
                 style={{
                   display: 'flex',
@@ -611,12 +639,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 }}
               >
                 <select
-                  className="form-input form-select"
+                  className="form-input form-select flex-1"
                   value={ttsConfig.voiceName ?? ''}
                   onChange={e => handleTtsVoiceChange(e.target.value)}
-                  style={{ flex: 1 }}
                 >
-                  <option value="">Voix par défaut (selon la langue)</option>
+                  <option value="">{t('settings.tts_voice_default')}</option>
                   {voices.map(v => (
                     <option key={v.name} value={v.name}>
                       {v.name} ({v.lang})
@@ -628,11 +655,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   style={SMALL_BTN}
                   onClick={handleTtsTestVoice}
                 >
-                  🔊 Tester
+                  {t('settings.tts_test')}
                 </button>
               </div>
 
-              <label style={{ fontSize: '0.85rem' }}>Vitesse : {ttsConfig.rate.toFixed(1)}×</label>
+              <label style={{ fontSize: '0.85rem' }}>
+                {t('settings.tts_rate', { rate: ttsConfig.rate.toFixed(1) })}
+              </label>
               <input
                 type="range"
                 min="0.5"
@@ -644,25 +673,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
               />
 
               <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem' }}>
-                Paliers annoncés
+                {t('settings.tts_milestones')}
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {TTS_THRESHOLDS.map(({ key, label }) => (
-                  <label
-                    key={key}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      cursor: 'pointer',
-                    }}
-                  >
+                  <label key={key} className="u-row cursor-pointer">
                     <input
                       type="checkbox"
                       checked={ttsConfig.announce[key] !== false}
                       onChange={e => handleTtsThresholdToggle(key, e.target.checked)}
                     />
-                    <span style={{ fontSize: '0.875rem' }}>{label}</span>
+                    <span style={{ fontSize: '0.875rem' }}>{t(label)}</span>
                   </label>
                 ))}
               </div>

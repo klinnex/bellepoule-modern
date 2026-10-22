@@ -14,6 +14,8 @@ import {
   calculateOverallRankingQuest,
   calculatePoolRankingQuest,
   formatQuestPerMatch,
+  isDnf,
+  isMatchVoidedByForfeit,
 } from './poolCalculations';
 import { Fencer, FencerStatus, Match, MatchStatus, Pool, Score, Weapon, Gender } from '../types';
 
@@ -219,9 +221,9 @@ describe('calculateFencerPoolStats', () => {
     expect(stats.victoryRatio).toBe(0);
   });
 
-  it('devrait annuler les matchs déjà disputés contre un tireur déclaré forfait', () => {
-    // Règle : si un adversaire est FORFAIT, les points acquis lors de TOUS
-    // ses matchs (même déjà joués) sont annulés pour les deux parties.
+  it('devrait conserver les matchs déjà disputés contre un tireur déclaré forfait (#1144)', () => {
+    // Règle armes olympiques : seul le match annulé par le forfait est ignoré,
+    // les matchs déjà disputés restent comptés pour les tireurs restants.
     const forfaitFencer = createMockFencer('ff', 99, 'Forfait');
     forfaitFencer.status = FencerStatus.FORFAIT;
 
@@ -236,11 +238,10 @@ describe('calculateFencerPoolStats', () => {
 
     const stats = calculateFencerPoolStats(fencer1, [matchVsFF, otherMatch]);
 
-    // Seul le match contre fencer2 doit compter
-    expect(stats.matchesPlayed).toBe(1);
-    expect(stats.victories).toBe(1);
-    expect(stats.touchesScored).toBe(5);
-    expect(stats.touchesReceived).toBe(3);
+    expect(stats.matchesPlayed).toBe(2);
+    expect(stats.victories).toBe(2);
+    expect(stats.touchesScored).toBe(10);
+    expect(stats.touchesReceived).toBe(5);
   });
 });
 
@@ -735,9 +736,19 @@ describe('forfait en cours de poule (Sabre Laser)', () => {
     expect(sd.matchesPlayed).toBe(2);
   });
 
-  it('règle classique inchangée : tous les matchs contre le forfait sont annulés', () => {
-    const { b, pool } = build();
-    expect(calculateFencerPoolStats(b, pool.matches).matchesPlayed).toBe(2);
+  it('armes olympiques : match du forfait annulé, matchs déjà disputés conservés (#1144)', () => {
+    const { b, c, pool } = build();
+    // B a affronté A avant son forfait : match conservé (A, B, C... → 3 matchs)
+    expect(calculateFencerPoolStats(b, pool.matches).matchesPlayed).toBe(3);
+    // C affrontait A au moment du forfait : match annulé (2 matchs)
+    expect(calculateFencerPoolStats(c, pool.matches).matchesPlayed).toBe(2);
+  });
+
+  it('armes olympiques : le forfait est classé en fin de poule', () => {
+    const { pool } = build();
+    const ranking = calculatePoolRanking(pool);
+    expect(ranking[ranking.length - 1].fencer.id).toBe('a');
+    expect(isDnf(ranking[ranking.length - 1])).toBe(true);
   });
 
   it('classe le forfait sur ses matchs disputés dans la poule', () => {
@@ -753,5 +764,37 @@ describe('forfait en cours de poule (Sabre Laser)', () => {
     const { pool } = build();
     const overall = calculateOverallRankingQuest([pool]);
     expect(overall[overall.length - 1].fencer.id).toBe('a');
+  });
+});
+
+describe('isMatchVoidedByForfeit (#1144)', () => {
+  const sc = (over: Partial<Score> = {}): Score => ({
+    value: 0,
+    isVictory: false,
+    isAbstention: false,
+    isExclusion: false,
+    isForfait: false,
+    ...over,
+  });
+  const mk = (a: Score, b: Score, status = MatchStatus.FINISHED): Match =>
+    ({ status, scoreA: a, scoreB: b }) as unknown as Match;
+
+  it('match terminé normal : non annulé', () => {
+    expect(isMatchVoidedByForfeit(mk(sc({ value: 5, isVictory: true }), sc({ value: 3 })))).toBe(
+      false
+    );
+  });
+  it('forfait ou abandon saisi sur un score : annulé', () => {
+    expect(
+      isMatchVoidedByForfeit(mk(sc({ value: 5, isVictory: true }), sc({ isForfait: true })))
+    ).toBe(true);
+    expect(
+      isMatchVoidedByForfeit(mk(sc({ isAbstention: true }), sc({ value: 5, isVictory: true })))
+    ).toBe(true);
+  });
+  it('match non terminé : jamais annulé', () => {
+    expect(isMatchVoidedByForfeit(mk(sc({ isForfait: true }), sc(), MatchStatus.NOT_STARTED))).toBe(
+      false
+    );
   });
 });

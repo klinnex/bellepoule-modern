@@ -6,6 +6,13 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { logger, LogCategory } from '@shared/services/logger';
+import {
+  pseudoLocalize,
+  isPseudoLocaleEnabled,
+  PSEUDO_LOCALE_STORAGE_KEY,
+} from '@shared/utils/pseudoLocale';
+import { getActiveLanguage, pluralKeys, setActiveLanguage } from '@shared/utils/localeFormat';
+import { setPdfTranslator } from '@shared/utils/pdfExport/core';
 import frTranslations from '../locales/fr.json';
 import enTranslations from '../locales/en.json';
 import deTranslations from '../locales/de.json';
@@ -32,6 +39,9 @@ interface TranslationContextValue {
   t: (key: TranslationKey, params?: { [key: string]: string | number }) => string;
   changeLanguage: (lang: Language) => Promise<void>;
   changeTheme: (theme: Theme) => void;
+  /** Debug i18n : chaînes traduites marquées [!! … !!] (#1063) */
+  pseudoLocale: boolean;
+  setPseudoLocale: (enabled: boolean) => void;
   availableLanguages: readonly { code: Language; name: string; flag: string }[];
   availableThemes: readonly { code: Theme; name: string }[];
 }
@@ -174,33 +184,65 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
     initialize();
   }, []);
 
+  // Langue active : formats Intl (dates, nombres), attribut lang du document (lecteurs
+  // d'écran, césure, correcteur orthographique) (#1160)
+  useEffect(() => {
+    setActiveLanguage(language);
+    document.documentElement.lang = language;
+    document.documentElement.dir = 'ltr';
+  }, [language]);
+
+  // Debug i18n : chaînes traduites marquées [!! … !!] (voir pseudoLocale.ts)
+  const [pseudoLocale, setPseudoLocaleState] = useState(() =>
+    isPseudoLocaleEnabled(typeof localStorage === 'undefined' ? undefined : localStorage)
+  );
+  const setPseudoLocale = useCallback((enabled: boolean) => {
+    try {
+      if (enabled) localStorage.setItem(PSEUDO_LOCALE_STORAGE_KEY, '1');
+      else localStorage.removeItem(PSEUDO_LOCALE_STORAGE_KEY);
+    } catch {
+      /* stockage indisponible : réglage limité à la session */
+    }
+    setPseudoLocaleState(enabled);
+  }, []);
+
   const t = useCallback(
     (key: TranslationKey, params?: { [key: string]: string | number }): string => {
-      const keys = key.split('.');
-      let value: unknown = translations;
-
-      for (const k of keys) {
-        if (value && typeof value === 'object') {
+      const lookup = (path: string): string | undefined => {
+        let value: unknown = translations;
+        for (const k of path.split('.')) {
+          if (!value || typeof value !== 'object') return undefined;
           value = (value as Record<string, unknown>)[k];
-        } else {
-          return key;
         }
-      }
+        return typeof value === 'string' ? value : undefined;
+      };
 
-      if (typeof value !== 'string') {
-        return key;
+      // Pluriel : `key_one` / `key_other` (… `_few`, `_many` selon la langue) si `count` (#1160)
+      const count = params?.count;
+      const candidates = typeof count === 'number' ? pluralKeys(key, language, count) : [key];
+      let value: string | undefined;
+      for (const candidate of candidates) {
+        value = lookup(candidate);
+        if (value !== undefined) break;
       }
+      if (value === undefined) return key;
+
+      const template = pseudoLocale ? pseudoLocalize(value) : value;
 
       if (params) {
-        return value.replace(/\{\{(\w+)\}\}/g, (match, paramKey) => {
-          return String(params[paramKey] || match);
+        return template.replace(/\{\{(\w+)\}\}/g, (match, paramKey) => {
+          const param = params[paramKey];
+          return param === undefined || param === null ? match : String(param);
         });
       }
 
-      return value;
+      return template;
     },
-    [translations]
+    [translations, pseudoLocale, language]
   );
+
+  // PDF générés dans la langue de l'interface (#1159)
+  useEffect(() => setPdfTranslator(t, language), [t, language]);
 
   const value: TranslationContextValue = {
     language,
@@ -210,6 +252,8 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
     t,
     changeLanguage,
     changeTheme,
+    pseudoLocale,
+    setPseudoLocale,
     availableLanguages: [
       { code: 'fr', name: 'Français', flag: '🇫🇷' },
       { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -235,4 +279,17 @@ export const useTranslation = (): TranslationContextValue => {
     throw new Error('useTranslation must be used within a TranslationProvider');
   }
   return context;
+};
+
+/**
+ * Traduction hors contexte React (composants classe, ErrorBoundary rendu hors du
+ * TranslationProvider) : langue active de localeFormat, repli sur la clé (#1158).
+ */
+export const translateStatic = (key: TranslationKey, params?: Record<string, string | number>) => {
+  let value: unknown = loadTranslations(getActiveLanguage() as Language);
+  for (const k of key.split('.')) {
+    value = value && typeof value === 'object' ? (value as Record<string, unknown>)[k] : undefined;
+  }
+  if (typeof value !== 'string') return key;
+  return value.replace(/\{\{(\w+)\}\}/g, (match, p) => (params?.[p] ?? match).toString());
 };

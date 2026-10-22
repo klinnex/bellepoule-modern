@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Inscription tireur</title>
+  <title data-i18n="register.page_title">Inscription tireur</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -230,21 +230,22 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
+  <script src="/i18n.js"></script>
 </head>
 <body>
 
 <div id="toast"></div>
 
 <header>
-  <h1>⚔️ Inscription compétiteur</h1>
-  <p id="subtitle">Remplissez le formulaire puis prenez un selfie</p>
+  <h1 data-i18n="register.title">⚔️ Inscription compétiteur</h1>
+  <p id="subtitle" data-i18n="register.subtitle">Remplissez le formulaire puis prenez un selfie</p>
 </header>
 
 <!-- Closed state -->
 <div id="closed-banner">
   <div class="icon">🔒</div>
-  <h2>Inscription fermée</h2>
-  <p>Les poules ont été générées.<br>Contactez l'organisateur pour toute modification.</p>
+  <h2 data-i18n="register.closed">Inscription fermée</h2>
+  <p><span data-i18n="register.closed_pools">Les poules ont été générées.</span><br><span data-i18n="register.closed_contact">Contactez l'organisateur pour toute modification.</span></p>
 </div>
 
 <!-- Form -->
@@ -253,51 +254,51 @@
 
     <div class="row-2">
       <div class="form-group">
-        <label for="lastName">Nom <span class="req">*</span></label>
-        <input id="lastName" type="text" autocomplete="family-name" autocapitalize="words" placeholder="DUPONT" required />
+        <label for="lastName"><span data-i18n="register.last_name">Nom</span> <span class="req">*</span></label>
+        <input id="lastName" type="text" autocomplete="family-name" autocapitalize="words" placeholder="DUPONT" data-i18n-placeholder="register.ph_last_name" required />
       </div>
       <div class="form-group">
-        <label for="firstName">Prénom <span class="req">*</span></label>
-        <input id="firstName" type="text" autocomplete="given-name" autocapitalize="words" placeholder="Jean" required />
+        <label for="firstName"><span data-i18n="register.first_name">Prénom</span> <span class="req">*</span></label>
+        <input id="firstName" type="text" autocomplete="given-name" autocapitalize="words" placeholder="Jean" data-i18n-placeholder="register.ph_first_name" required />
       </div>
     </div>
 
     <div class="form-group">
-      <label for="gender">Genre <span class="req">*</span></label>
+      <label for="gender"><span data-i18n="register.gender">Genre</span> <span class="req">*</span></label>
       <select id="gender" required>
-        <option value="">— Sélectionner —</option>
-        <option value="M">Homme</option>
-        <option value="F">Femme</option>
-        <option value="X">Autre</option>
+        <option value="" data-i18n="register.select">— Sélectionner —</option>
+        <option value="M" data-i18n="register.male">Homme</option>
+        <option value="F" data-i18n="register.female">Femme</option>
+        <option value="X" data-i18n="register.other">Autre</option>
       </select>
     </div>
 
     <div class="row-2">
       <div class="form-group">
-        <label for="club">Club</label>
-        <input id="club" type="text" autocapitalize="words" placeholder="Nom du club" />
+        <label for="club" data-i18n="register.club">Club</label>
+        <input id="club" type="text" autocapitalize="words" placeholder="Nom du club" data-i18n-placeholder="register.ph_club" />
       </div>
       <div class="form-group">
-        <label for="license">Licence</label>
-        <input id="license" type="text" placeholder="N° licence" />
+        <label for="license" data-i18n="register.license">Licence</label>
+        <input id="license" type="text" placeholder="N° licence" data-i18n-placeholder="register.ph_license" />
       </div>
     </div>
 
     <div class="row-2">
       <div class="form-group">
-        <label for="nationality">Nationalité</label>
+        <label for="nationality" data-i18n="register.nationality">Nationalité</label>
         <input id="nationality" type="text" maxlength="3" placeholder="FRA" style="text-transform:uppercase" />
       </div>
       <div class="form-group">
-        <label for="birthDate">Date naissance</label>
+        <label for="birthDate" data-i18n="register.birth_date">Date naissance</label>
         <input id="birthDate" type="date" />
       </div>
     </div>
 
     <!-- Camera -->
     <div class="photo-section">
-      <h2>📷 Photo (selfie)</h2>
-      <div id="placeholder-area" style="text-align:center;padding:1.5rem 0;color:var(--text-muted);font-size:0.875rem;">
+      <h2 data-i18n="register.photo">📷 Photo (selfie)</h2>
+      <div id="placeholder-area" style="text-align:center;padding:1.5rem 0;color:var(--text-muted);font-size:0.875rem;" data-i18n="register.no_photo">
         Aucune photo — optionnelle
       </div>
       <div id="camera-area">
@@ -309,19 +310,19 @@
       <canvas id="canvas"></canvas>
 
       <div class="camera-btns" id="camera-btns-open" style="margin-top:0.75rem;">
-        <button type="button" class="btn btn-secondary" id="btn-open-camera">📷 Ouvrir caméra</button>
+        <button type="button" class="btn btn-secondary" id="btn-open-camera" data-i18n="register.open_camera">📷 Ouvrir caméra</button>
       </div>
       <div class="camera-btns" id="camera-btns-live" style="display:none;">
-        <button type="button" class="btn btn-secondary" id="btn-capture">📸 Prendre selfie</button>
-        <button type="button" class="btn btn-danger-outline" id="btn-cancel-camera">✕ Annuler</button>
+        <button type="button" class="btn btn-secondary" id="btn-capture" data-i18n="register.take_selfie">📸 Prendre selfie</button>
+        <button type="button" class="btn btn-danger-outline" id="btn-cancel-camera" data-i18n="register.cancel">✕ Annuler</button>
       </div>
       <div class="camera-btns" id="camera-btns-preview" style="display:none;">
-        <button type="button" class="btn btn-secondary" id="btn-retake">🔄 Reprendre</button>
-        <button type="button" class="btn btn-danger-outline" id="btn-remove-photo">✕ Supprimer</button>
+        <button type="button" class="btn btn-secondary" id="btn-retake" data-i18n="register.retake">🔄 Reprendre</button>
+        <button type="button" class="btn btn-danger-outline" id="btn-remove-photo" data-i18n="register.remove_photo">✕ Supprimer</button>
       </div>
     </div>
 
-    <button type="submit" class="btn btn-primary btn-submit" id="btn-submit">
+    <button type="submit" class="btn btn-primary btn-submit" id="btn-submit" data-i18n="register.submit">
       ✅ S'inscrire
     </button>
 
@@ -331,6 +332,9 @@
 <script>
 (function () {
   'use strict';
+  // Traduction (src/remote/i18n.js) ; repli sur la clé si i18n.js absent
+  const tk = (key, params) => (window.T ? window.T(key, params) : key);
+  if (window.initRemoteI18n) window.initRemoteI18n();
 
   let photoBase64 = null;
   let stream = null;
@@ -360,7 +364,7 @@
   function showClosed() {
     document.getElementById('form-card').style.display = 'none';
     document.getElementById('closed-banner').style.display = 'block';
-    document.getElementById('subtitle').textContent = 'Inscription fermée';
+    document.getElementById('subtitle').textContent = tk('register.closed');
     stopCamera();
   }
 
@@ -405,7 +409,7 @@
       video.srcObject = stream;
       showLive();
     } catch {
-      showToast('Caméra non disponible', 'error');
+      showToast(tk('register.camera_unavailable'), 'error');
     }
   });
 
@@ -438,7 +442,7 @@
       showLive();
     } catch {
       showPlaceholder();
-      showToast('Caméra non disponible', 'error');
+      showToast(tk('register.camera_unavailable'), 'error');
     }
   });
 
@@ -466,7 +470,7 @@
     const gender = document.getElementById('gender').value;
 
     if (!lastName || !firstName || !gender) {
-      showToast('Nom, prénom et genre sont obligatoires', 'error');
+      showToast(tk('register.required'), 'error');
       return;
     }
 
@@ -502,7 +506,7 @@
       }
 
       if (!res.ok) {
-        throw new Error(data.error || 'Erreur serveur');
+        throw new Error(window.errorText(data, tk('register.server_error')));
       }
 
       // Success
@@ -513,10 +517,10 @@
       showPlaceholder();
 
     } catch (err) {
-      showToast(err.message || 'Erreur réseau', 'error');
+      showToast(err.message || tk('register.network_error'), 'error');
     } finally {
       btnSubmit.disabled = false;
-      btnSubmit.innerHTML = '✅ S\'inscrire';
+      btnSubmit.textContent = tk('register.submit');
     }
   });
 

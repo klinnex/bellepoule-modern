@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface SplitCompetitionModalProps {
   groupLabel: string;
@@ -20,6 +21,7 @@ const SplitCompetitionModal: React.FC<SplitCompetitionModalProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  const { t } = useTranslation();
   const [title, setTitle] = useState(defaultTitle);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -49,17 +51,14 @@ const SplitCompetitionModal: React.FC<SplitCompetitionModalProps> = ({
       >
         <div className="modal-header">
           <h2 className="modal-title" id="split-competition-title">
-            Compétition séparée — {groupLabel}
+            {t('splitCompetition.title', { group: groupLabel })}
           </h2>
         </div>
         <div className="modal-body">
-          <p style={{ marginTop: 0 }}>
-            {fencerCount} tireur{fencerCount > 1 ? 's' : ''} seront copiés dans une nouvelle
-            compétition, classés selon le classement après poules.
-          </p>
+          <p style={{ marginTop: 0 }}>{t('splitCompetition.text', { count: fencerCount })}</p>
           <div className="form-group">
             <label className="form-label" htmlFor="split-competition-name">
-              Nom de la compétition
+              {t('splitCompetition.name')}
             </label>
             <input
               ref={inputRef}
@@ -74,10 +73,10 @@ const SplitCompetitionModal: React.FC<SplitCompetitionModalProps> = ({
         </div>
         <div className="modal-footer">
           <button type="button" className="btn btn-secondary" onClick={onCancel}>
-            Annuler
+            {t('actions.cancel')}
           </button>
           <button type="submit" className="btn btn-primary" disabled={!title.trim()}>
-            Créer la compétition
+            {t('splitCompetition.create')}
           </button>
         </div>
       </form>

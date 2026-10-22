@@ -5,8 +5,9 @@
  */
 
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides } from './core';
+import { savePDF, buildCssOverrides, pdfLang, pdfT } from './core';
 import { TableauMatchForPDF, getTableauRoundName } from './tableauPdf';
+import { getActiveLocale } from '../localeFormat';
 
 // ─── Export Arbre (Bracket Tree) ─────────────────────────────────────────────
 
@@ -33,7 +34,7 @@ export function generateBracketTreeHTML(
   const mainMatches = matches.filter(m => m.round !== 3 && m.round >= 2);
 
   if (mainMatches.length === 0) {
-    throw new Error('Aucun match dans le tableau principal');
+    throw new Error(pdfT('bracket_no_match', 'Aucun match dans le tableau principal'));
   }
 
   const tableauSize = Math.max(...mainMatches.map(m => m.round));
@@ -67,7 +68,7 @@ export function generateBracketTreeHTML(
   const navy = template?.colors.navy ?? '#1a2e4a';
   const gold = template?.colors.gold ?? '#c9a227';
   const green = template?.colors.green ?? '#166534';
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -82,9 +83,9 @@ export function generateBracketTreeHTML(
         ${logoBase64 ? '' : 'text-anchor="middle"'}>${title}</text>
   <text x="${logoBase64 ? 62 : VBW / 2}" y="52"
         font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#f5e6a3"
-        ${logoBase64 ? '' : 'text-anchor="middle"'}>Tableau d'élimination directe — ${now}</text>
+        ${logoBase64 ? '' : 'text-anchor="middle"'}>${pdfT('bracket_subtitle', "Tableau d'élimination directe")} — ${now}</text>
   <text x="${VBW - 14}" y="40" font-family="'Segoe UI',Arial,sans-serif"
-        font-size="22" font-weight="900" fill="${gold}" text-anchor="end">ED</text>`;
+        font-size="22" font-weight="900" fill="${gold}" text-anchor="end">${pdfT('de_badge', 'ED')}</text>`;
 
   // ── SVG: gold bar ───────────────────────────────────────────────────────────
   const svgGoldBar = `
@@ -105,7 +106,7 @@ export function generateBracketTreeHTML(
     ? `
   <text x="${colX(2) + MATCH_W / 2}" y="${SVG_H - BOT_MARGIN - MATCH_H - 8}"
         font-family="'Segoe UI',Arial,sans-serif"
-        font-size="8" font-weight="600" fill="${navy}" text-anchor="middle">Petite finale</text>`
+        font-size="8" font-weight="600" fill="${navy}" text-anchor="middle">${pdfT('round_third_place', 'Petite finale')}</text>`
     : '';
 
   // ── SVG: connection lines ───────────────────────────────────────────────────
@@ -162,7 +163,7 @@ export function generateBracketTreeHTML(
         }
         <text x="${x + MATCH_W / 2}" y="${yTop + MATCH_H / 2 + fs + 2}"
               text-anchor="middle"
-              font-family="'Segoe UI',Arial,sans-serif" font-size="${clubFs}" fill="#94a3b8" font-style="italic">Exempté</text>
+              font-family="'Segoe UI',Arial,sans-serif" font-size="${clubFs}" fill="#94a3b8" font-style="italic">${pdfT('bye', 'Exempté')}</text>
       </g>`;
     }
 
@@ -232,7 +233,7 @@ export function generateBracketTreeHTML(
   const cssOverrides = template ? buildCssOverrides(template) : '';
 
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
   <title>${title}</title>
@@ -284,7 +285,8 @@ export function generateBracketTreeMultiPageHTML(
   const petiteFinale = matches.find(m => m.round === 3);
   const mainMatches = matches.filter(m => m.round !== 3 && m.round >= 2);
 
-  if (mainMatches.length === 0) throw new Error('Aucun match dans le tableau principal');
+  if (mainMatches.length === 0)
+    throw new Error(pdfT('bracket_no_match', 'Aucun match dans le tableau principal'));
 
   const tableauSize = Math.max(...mainMatches.map(m => m.round));
   const numRounds = Math.round(Math.log2(tableauSize));
@@ -336,7 +338,7 @@ export function generateBracketTreeMultiPageHTML(
   const navy = template?.colors.navy ?? '#1a2e4a';
   const gold = template?.colors.gold ?? '#c9a227';
   const green = template?.colors.green ?? '#166534';
-  const now = new Date().toLocaleDateString('fr-FR', {
+  const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -351,9 +353,9 @@ export function generateBracketTreeMultiPageHTML(
         ${logoBase64 ? '' : 'text-anchor="middle"'}>${title}</text>
   <text x="${logoBase64 ? 56 : VBW / 2}" y="43"
         font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#f5e6a3"
-        ${logoBase64 ? '' : 'text-anchor="middle"'}>Tableau d'élimination directe — ${now}</text>
+        ${logoBase64 ? '' : 'text-anchor="middle"'}>${pdfT('bracket_subtitle', "Tableau d'élimination directe")} — ${now}</text>
   <text x="${VBW - 16}" y="38" font-family="'Segoe UI',Arial,sans-serif"
-        font-size="26" font-weight="900" fill="${gold}" text-anchor="end">ED</text>`;
+        font-size="26" font-weight="900" fill="${gold}" text-anchor="end">${pdfT('de_badge', 'ED')}</text>`;
 
   const svgGoldBar = `
   <rect x="0" y="${HEADER_H}" width="${VBW}" height="${GOLD_H}" fill="${gold}"/>`;
@@ -375,7 +377,7 @@ export function generateBracketTreeMultiPageHTML(
     ? `
   <text x="${colX(2) + MATCH_W / 2}" y="${SVG_H - BOT_MARGIN - MATCH_H - 10}"
         font-family="'Segoe UI',Arial,sans-serif"
-        font-size="10" font-weight="600" fill="${navy}" text-anchor="middle">Petite finale</text>`
+        font-size="10" font-weight="600" fill="${navy}" text-anchor="middle">${pdfT('round_third_place', 'Petite finale')}</text>`
     : '';
 
   // ── SVG: connection lines ─────────────────────────────────────────────────────
@@ -427,7 +429,7 @@ export function generateBracketTreeMultiPageHTML(
         }
         <text x="${x + MATCH_W / 2}" y="${yTop + MATCH_H / 2 + fs + 3}"
               text-anchor="middle"
-              font-family="'Segoe UI',Arial,sans-serif" font-size="${clubFs}" fill="#94a3b8" font-style="italic">Exempté</text>
+              font-family="'Segoe UI',Arial,sans-serif" font-size="${clubFs}" fill="#94a3b8" font-style="italic">${pdfT('bye', 'Exempté')}</text>
       </g>`;
     }
 
@@ -508,8 +510,8 @@ export function generateBracketTreeMultiPageHTML(
     const col = i % cols;
     const row = Math.floor(i / cols);
     const num = i + 1;
-    const vDesc = row === 0 ? 'Haut' : 'Bas';
-    const hDesc = cols === 2 ? (col === 0 ? 'Gauche' : 'Droite') : '';
+    const vDesc = row === 0 ? pdfT('top', 'Haut') : pdfT('bottom', 'Bas');
+    const hDesc = cols === 2 ? (col === 0 ? pdfT('left', 'Gauche') : pdfT('right', 'Droite')) : '';
     const desc = [vDesc, hDesc].filter(Boolean).join(' ');
     const adj: string[] = [];
     if (row > 0) adj.push(`↑ p.${(row - 1) * cols + col + 1}`);
@@ -541,7 +543,7 @@ export function generateBracketTreeMultiPageHTML(
   }).join('\n');
 
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
   <title>${title}</title>
@@ -585,7 +587,7 @@ ${pagesHtml}
 
 export async function exportBracketTreeToPDF(
   matches: TableauMatchForPDF[],
-  title: string = 'Arbre — Élimination Directe',
+  title: string = pdfT('bracket_title', 'Arbre — Élimination Directe'),
   logoBase64?: string,
   template?: PdfTemplate
 ): Promise<void> {
@@ -601,7 +603,7 @@ export async function exportBracketTreeToPDF(
 
 export async function printBracketTreeHTML(
   matches: TableauMatchForPDF[],
-  title: string = 'Arbre — Élimination Directe',
+  title: string = pdfT('bracket_title', 'Arbre — Élimination Directe'),
   logoBase64?: string,
   template?: PdfTemplate
 ): Promise<void> {
@@ -613,7 +615,8 @@ export async function printBracketTreeHTML(
       ? generateBracketTreeMultiPageHTML(matches, title, logoBase64, template)
       : generateBracketTreeHTML(matches, title, logoBase64, template);
   const api = (window as any).electronAPI;
-  if (!api?.file?.printHtml) throw new Error('API Electron non disponible');
+  if (!api?.file?.printHtml)
+    throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
   const res = await api.file.printHtml(html);
-  if (!res?.success) throw new Error(res?.error ?? "Échec de l'impression");
+  if (!res?.success) throw new Error(res?.error ?? pdfT('print_failed', "Échec de l'impression"));
 }

@@ -3,6 +3,13 @@
  * Frontend for remote score entry
  */
 
+// Échappement HTML des données issues des tireurs (noms)
+function escapeHtml(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+}
+
 class RemoteRefereeApp {
     constructor() {
         this.socket = null;
@@ -236,7 +243,7 @@ class RemoteRefereeApp {
 
     updateNextMatchesList() {
         if (this.nextMatches.length === 0) {
-            this.nextMatchesList.innerHTML = '<p class="no-matches">Aucun match prévu</p>';
+            this.nextMatchesList.innerHTML = '<p class="no-matches">' + escapeHtml(window.T ? window.T('remote.no_scheduled') : 'Aucun match prévu') + '</p>';
             return;
         }
         
@@ -244,10 +251,10 @@ class RemoteRefereeApp {
             <div class="match-item">
                 <div class="match-item-info">
                     <div class="match-item-fencers">
-                        ${match.fencerA?.name || '-'} vs ${match.fencerB?.name || '-'}
+                        ${escapeHtml(match.fencerA?.name || '-')} vs ${escapeHtml(match.fencerB?.name || '-')}
                     </div>
                     <div class="match-item-details">
-                        Piste ${match.stripNumber || '-'}
+                        ${escapeHtml(window.T ? window.T('remote.piste') : 'Piste')} ${escapeHtml(match.stripNumber || '-')}
                     </div>
                 </div>
                 <div class="match-item-status">En attente</div>
@@ -265,10 +272,10 @@ class RemoteRefereeApp {
             <div class="match-item">
                 <div class="match-item-info">
                     <div class="match-item-fencers">
-                        ${match.fencerA?.name || '-'} vs ${match.fencerB?.name || '-'}
+                        ${escapeHtml(match.fencerA?.name || '-')} vs ${escapeHtml(match.fencerB?.name || '-')}
                     </div>
                     <div class="match-item-details">
-                        Score: ${match.scoreA || 0} - ${match.scoreB || 0}
+                        Score: ${escapeHtml(match.scoreA || 0)} - ${escapeHtml(match.scoreB || 0)}
                     </div>
                 </div>
                 <div class="match-item-status">Terminé</div>

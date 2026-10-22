@@ -8,6 +8,7 @@ import React from 'react';
 import { Fencer, PoolRanking, Competition, FencerStatus } from '../../shared/types';
 import type { Pool } from '../../shared/types';
 import { useToast } from './Toast';
+import { useTranslation } from '../hooks/useTranslation';
 import { exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import type { TableauMatchForPDF, FinalResultForPDF } from '../../shared/utils/pdfExport';
@@ -32,6 +33,8 @@ interface ResultsViewProps {
   isLaserSabre?: boolean;
   /** Tireurs triés/filtrés tels qu'affichés dans l'appel */
   appelFencers?: Fencer[];
+  /** Appel figé de chaque tour de poules terminé (#1051) */
+  appelHistory?: Fencer[][];
   /** Colonnes visibles telles que configurées dans l'appel */
   appelVisibleColumns?: string[];
 }
@@ -43,7 +46,7 @@ const RV_STYLES = {
   champHeader: {
     textAlign: 'center' as const,
     padding: '2rem',
-    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+    background: 'var(--color-champion-bg)',
     borderRadius: '12px',
     marginBottom: '2rem',
     color: 'white',
@@ -63,7 +66,7 @@ const RV_STYLES = {
   } satisfies React.CSSProperties,
   podium2: {
     textAlign: 'center' as const,
-    background: '#e5e7eb',
+    background: 'var(--color-silver-bg)',
     padding: '1rem',
     borderRadius: '8px 8px 0 0',
     minWidth: '150px',
@@ -74,10 +77,13 @@ const RV_STYLES = {
   } satisfies React.CSSProperties,
   podium2Medal: { fontSize: '2rem' } satisfies React.CSSProperties,
   podium2Name: { fontWeight: '600', fontSize: '0.875rem' } satisfies React.CSSProperties,
-  podium2Place: { fontSize: '0.75rem', color: '#6b7280' } satisfies React.CSSProperties,
+  podium2Place: {
+    fontSize: '0.75rem',
+    color: 'var(--color-text-light)',
+  } satisfies React.CSSProperties,
   podium1: {
     textAlign: 'center' as const,
-    background: '#fef3c7',
+    background: 'var(--color-gold-bg)',
     padding: '1rem',
     borderRadius: '8px 8px 0 0',
     minWidth: '150px',
@@ -85,14 +91,17 @@ const RV_STYLES = {
     display: 'flex',
     flexDirection: 'column' as const,
     justifyContent: 'flex-end' as const,
-    border: '2px solid #f59e0b',
+    border: '2px solid var(--color-gold-border)',
   } satisfies React.CSSProperties,
   podium1Medal: { fontSize: '2.5rem' } satisfies React.CSSProperties,
   podium1Name: { fontWeight: '700', fontSize: '1rem' } satisfies React.CSSProperties,
-  podium1Place: { fontSize: '0.875rem', color: '#92400e' } satisfies React.CSSProperties,
+  podium1Place: {
+    fontSize: '0.875rem',
+    color: 'var(--color-gold-text)',
+  } satisfies React.CSSProperties,
   podium3: {
     textAlign: 'center' as const,
-    background: '#fed7aa',
+    background: 'var(--color-bronze-bg)',
     padding: '1rem',
     borderRadius: '8px 8px 0 0',
     minWidth: '150px',
@@ -103,27 +112,33 @@ const RV_STYLES = {
   } satisfies React.CSSProperties,
   podium3Medal: { fontSize: '1.5rem' } satisfies React.CSSProperties,
   podium3Name: { fontWeight: '600', fontSize: '0.875rem' } satisfies React.CSSProperties,
-  podium3Place: { fontSize: '0.75rem', color: '#6b7280' } satisfies React.CSSProperties,
-  // Carte blanche dans les deux thèmes : texte sombre forcé (#1032)
+  podium3Place: {
+    fontSize: '0.75rem',
+    color: 'var(--color-text-light)',
+  } satisfies React.CSSProperties,
+  // Carte blanche ; bleu-gris en thème sombre (#1114)
   tableWrapper: {
-    background: 'white',
-    color: '#1f2937',
+    background: 'var(--color-raised)',
+    color: 'var(--color-text)',
     borderRadius: '8px',
     boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
     overflow: 'hidden',
   } satisfies React.CSSProperties,
   tableHeader: {
     padding: '1rem',
-    background: '#f9fafb',
-    borderBottom: '1px solid #e5e7eb',
+    background: 'var(--color-surface-2)',
+    borderBottom: '1px solid var(--color-border)',
     fontWeight: '600',
   } satisfies React.CSSProperties,
   table: {
     width: '100%',
     borderCollapse: 'collapse' as const,
-    color: '#1f2937',
+    color: 'var(--color-text)',
   } satisfies React.CSSProperties,
-  thead: { background: '#f9fafb', borderBottom: '2px solid #e5e7eb' } satisfies React.CSSProperties,
+  thead: {
+    background: 'var(--color-surface-2)',
+    borderBottom: '2px solid var(--color-border)',
+  } satisfies React.CSSProperties,
   thRank: {
     padding: '0.75rem',
     textAlign: 'left' as const,
@@ -143,11 +158,11 @@ const RV_STYLES = {
     verticalAlign: '-0.1em',
     boxShadow: '0 0 0 1px #6b7280',
   } satisfies React.CSSProperties,
-  tdClub: { padding: '0.75rem', color: '#6b7280' } satisfies React.CSSProperties,
+  tdClub: { padding: '0.75rem', color: 'var(--color-text-light)' } satisfies React.CSSProperties,
   tdElim: {
     padding: '0.75rem',
     textAlign: 'center' as const,
-    color: '#6b7280',
+    color: 'var(--color-text-light)',
   } satisfies React.CSSProperties,
   exportRow: {
     display: 'flex',
@@ -158,7 +173,7 @@ const RV_STYLES = {
   } satisfies React.CSSProperties,
   btnPrint: {
     padding: '0.75rem 1.5rem',
-    background: '#3b82f6',
+    background: 'var(--color-primary)',
     color: 'white',
     border: 'none',
     borderRadius: '6px',
@@ -180,43 +195,7 @@ const RV_STYLES = {
     alignItems: 'center',
     gap: '0.5rem',
   } satisfies React.CSSProperties,
-  btnCsv: {
-    padding: '0.75rem 1.5rem',
-    background: '#f59e0b',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  } satisfies React.CSSProperties,
-  btnXml: {
-    padding: '0.75rem 1.5rem',
-    background: '#8b5cf6',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  } satisfies React.CSSProperties,
-  btnPdf: {
-    padding: '0.75rem 1.5rem',
-    background: '#ef4444',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  } satisfies React.CSSProperties,
-  btnFullPdf: {
+  btnExport: {
     padding: '0.75rem 1.5rem',
     background: '#166534',
     color: 'white',
@@ -228,11 +207,38 @@ const RV_STYLES = {
     alignItems: 'center',
     gap: '0.5rem',
   } satisfies React.CSSProperties,
+  dropdownWrap: {
+    position: 'relative' as const,
+  } satisfies React.CSSProperties,
+  dropdownMenu: {
+    position: 'absolute' as const,
+    bottom: 'calc(100% + 4px)',
+    left: 0,
+    minWidth: '100%',
+    background: 'var(--color-surface, white)',
+    border: '1px solid var(--color-border)',
+    borderRadius: '6px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    zIndex: 100,
+    overflow: 'hidden',
+  } satisfies React.CSSProperties,
+  dropdownItem: {
+    display: 'block',
+    width: '100%',
+    padding: '0.6rem 1rem',
+    background: 'transparent',
+    color: 'var(--color-text)',
+    border: 'none',
+    textAlign: 'left' as const,
+    cursor: 'pointer',
+    fontSize: '0.875rem',
+    whiteSpace: 'nowrap' as const,
+  } satisfies React.CSSProperties,
   legend: {
     textAlign: 'center' as const,
     marginTop: '1.5rem',
     fontSize: '0.875rem',
-    color: '#6b7280',
+    color: 'var(--color-text-light)',
   } satisfies React.CSSProperties,
   spinner: {
     display: 'inline-block',
@@ -279,11 +285,33 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   consolationBrackets,
   isLaserSabre,
   appelFencers,
+  appelHistory,
   appelVisibleColumns,
 }) => {
   const { showToast } = useToast();
+  const { t } = useTranslation();
   const rankingTemplate = usePdfTemplateStore(s => s.templates.ranking);
   const [isExportingFull, setIsExportingFull] = React.useState(false);
+  const [isExportMenuOpen, setIsExportMenuOpen] = React.useState(false);
+  const exportMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!isExportMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setIsExportMenuOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsExportMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isExportMenuOpen]);
 
   const getMedalEmoji = (rank: number): string => {
     if (rank === 1) return '🥇';
@@ -293,9 +321,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   };
 
   const getRowStyle = (rank: number): React.CSSProperties => {
-    if (rank === 1) return { background: '#fef3c7', fontWeight: '600' };
-    if (rank === 2) return { background: '#f3f4f6', fontWeight: '500' };
-    if (rank === 3) return { background: '#fed7aa', fontWeight: '500' };
+    if (rank === 1) return { background: 'var(--color-gold-bg)', fontWeight: '600' };
+    if (rank === 2) return { background: 'var(--color-silver-bg)', fontWeight: '500' };
+    if (rank === 3) return { background: 'var(--color-bronze-bg)', fontWeight: '500' };
     return {};
   };
 
@@ -518,6 +546,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       const { exportFullCompetitionPDF } = await import('../../shared/utils/pdfExport');
       await exportFullCompetitionPDF({
         fencers: effectiveFencers,
+        appelHistory,
         appelVisibleColumns,
         pools: effectivePools,
         overallRanking: poolRanking,
@@ -611,18 +640,17 @@ const ResultsView: React.FC<ResultsViewProps> = ({
 
   return (
     <div style={RV_STYLES.wrapper}>
-      <style>{`@keyframes rv-spin { to { transform: rotate(360deg); } }`}</style>
       {isExportingFull && (
         <div style={RV_STYLES.overlay}>
           <div style={RV_STYLES.overlaySpinner} />
-          <div style={RV_STYLES.overlayText}>Génération du PDF complet…</div>
+          <div style={RV_STYLES.overlayText}>{t('resultsView.generating_pdf')}</div>
         </div>
       )}
       {/* En-tête avec le champion */}
       {champion && (
         <div style={RV_STYLES.champHeader}>
           <div style={RV_STYLES.champTrophy}>🏆</div>
-          <h1 style={RV_STYLES.champTitle}>Champion</h1>
+          <h1 style={RV_STYLES.champTitle}>{t('resultsView.champion')}</h1>
           <div style={RV_STYLES.champName}>
             {champion.fencer.firstName} {champion.fencer.lastName}
           </div>
@@ -637,7 +665,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           <div style={RV_STYLES.podium2}>
             <div style={RV_STYLES.podium2Medal}>🥈</div>
             <div style={RV_STYLES.podium2Name}>{resultsToDisplay[1].fencer.lastName}</div>
-            <div style={RV_STYLES.podium2Place}>2ème</div>
+            <div style={RV_STYLES.podium2Place}>{t('resultsView.second')}</div>
           </div>
         )}
 
@@ -646,7 +674,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           <div style={RV_STYLES.podium1}>
             <div style={RV_STYLES.podium1Medal}>🥇</div>
             <div style={RV_STYLES.podium1Name}>{resultsToDisplay[0].fencer.lastName}</div>
-            <div style={RV_STYLES.podium1Place}>1er</div>
+            <div style={RV_STYLES.podium1Place}>{t('resultsView.first')}</div>
           </div>
         )}
 
@@ -655,7 +683,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           <div style={RV_STYLES.podium3}>
             <div style={RV_STYLES.podium3Medal}>🥉</div>
             <div style={RV_STYLES.podium3Name}>{resultsToDisplay[2].fencer.lastName}</div>
-            <div style={RV_STYLES.podium3Place}>3ème</div>
+            <div style={RV_STYLES.podium3Place}>{t('resultsView.third')}</div>
           </div>
         )}
       </div>
@@ -663,16 +691,16 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       {/* Tableau complet des résultats */}
       <div style={RV_STYLES.tableWrapper}>
         <div style={RV_STYLES.tableHeader}>
-          📊 Classement final - {resultsToDisplay.length} tireurs
+          {t('resultsView.final_title', { n: resultsToDisplay.length })}
         </div>
 
         <table style={RV_STYLES.table}>
           <thead>
             <tr style={RV_STYLES.thead}>
-              <th style={RV_STYLES.thRank}>Rang</th>
-              <th style={RV_STYLES.thLeft}>Tireur</th>
-              <th style={RV_STYLES.thLeft}>Club</th>
-              <th style={RV_STYLES.thCenter}>Éliminé en</th>
+              <th style={RV_STYLES.thRank}>{t('resultsView.rank')}</th>
+              <th style={RV_STYLES.thLeft}>{t('resultsView.fencer')}</th>
+              <th style={RV_STYLES.thLeft}>{t('resultsView.club')}</th>
+              <th style={RV_STYLES.thCenter}>{t('resultsView.eliminated_in')}</th>
             </tr>
           </thead>
           <tbody>
@@ -681,7 +709,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 key={result.fencer.id}
                 style={{
                   ...getRowStyle(result.rank),
-                  borderBottom: '1px solid #e5e7eb',
+                  borderBottom: '1px solid var(--color-border)',
                 }}
               >
                 <td style={RV_STYLES.tdPad}>
@@ -695,8 +723,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   {result.fencer.status === FencerStatus.EXCLUDED &&
                     (result.fencer.exclusionReason === 'black_card' ? (
                       <span
-                        title="Exclu — carton noir"
-                        aria-label="Exclu — carton noir"
+                        title={t('resultsView.black_card')}
+                        aria-label={t('resultsView.black_card')}
                         data-testid="black-card-icon"
                         style={RV_STYLES.blackCard}
                       />
@@ -715,7 +743,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       {/* Boutons d'export */}
       <div style={RV_STYLES.exportRow}>
         <button onClick={() => window.electronAPI.print()} style={RV_STYLES.btnPrint}>
-          🖨️ Imprimer
+          {t('resultsView.print')}
         </button>
         <button
           onClick={() => {
@@ -726,60 +754,92 @@ const ResultsView: React.FC<ResultsViewProps> = ({
               )
               .join('\n');
             navigator.clipboard.writeText(text);
-            showToast('Résultats copiés dans le presse-papier !', 'success');
+            showToast(t('resultsView.copied'), 'success');
           }}
           style={RV_STYLES.btnCopy}
         >
-          📋 Copier
+          {t('resultsView.copy')}
         </button>
-        <button onClick={exportCSV} style={RV_STYLES.btnCsv}>
-          📊 CSV
-        </button>
-        <button onClick={exportXML} style={RV_STYLES.btnXml}>
-          📝 XML
-        </button>
-        <button onClick={exportPDF} style={RV_STYLES.btnPdf}>
-          📄 PDF
-        </button>
-        <button
-          onClick={exportFullPDF}
-          style={{
-            ...RV_STYLES.btnFullPdf,
-            opacity: isExportingFull ? 0.6 : 1,
-            cursor: isExportingFull ? 'wait' : 'pointer',
-          }}
-          disabled={isExportingFull}
-        >
-          {isExportingFull ? (
-            <>
-              <span style={RV_STYLES.spinner} /> Génération…
-            </>
-          ) : (
-            '📦 Export complet PDF'
+        <div ref={exportMenuRef} style={RV_STYLES.dropdownWrap}>
+          <button
+            onClick={() => setIsExportMenuOpen(o => !o)}
+            style={{
+              ...RV_STYLES.btnExport,
+              opacity: isExportingFull ? 0.6 : 1,
+              cursor: isExportingFull ? 'wait' : 'pointer',
+            }}
+            disabled={isExportingFull}
+            aria-haspopup="menu"
+            aria-expanded={isExportMenuOpen}
+          >
+            {isExportingFull ? (
+              <>
+                <span style={RV_STYLES.spinner} /> {t('results.exporting')}
+              </>
+            ) : (
+              '📤 Export ▾'
+            )}
+          </button>
+          {isExportMenuOpen && !isExportingFull && (
+            <div role="menu" style={RV_STYLES.dropdownMenu}>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportCSV();
+                }}
+              >
+                {t('results.export_csv')}
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportXML();
+                }}
+              >
+                {t('results.export_xml_ffe')}
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportPDF();
+                }}
+              >
+                {t('results.export_pdf_ranking')}
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportFullPDF();
+                }}
+              >
+                {t('results.export_pdf_full_signed')}
+              </button>
+              <button
+                role="menuitem"
+                style={RV_STYLES.dropdownItem}
+                title={t('results.export_pdf_full_unsigned_title')}
+                onClick={() => {
+                  setIsExportMenuOpen(false);
+                  exportNoSignaturePDF();
+                }}
+              >
+                {t('results.export_pdf_full_unsigned')}
+              </button>
+            </div>
           )}
-        </button>
-        <button
-          onClick={exportNoSignaturePDF}
-          style={{
-            ...RV_STYLES.btnFullPdf,
-            opacity: isExportingFull ? 0.6 : 1,
-            cursor: isExportingFull ? 'wait' : 'pointer',
-          }}
-          disabled={isExportingFull}
-          title="Poules et tableaux d'élimination directe, sans les signatures des combattants"
-        >
-          {isExportingFull ? (
-            <>
-              <span style={RV_STYLES.spinner} /> Génération…
-            </>
-          ) : (
-            '📄 Export PDF complet sans signature'
-          )}
-        </button>
+        </div>
       </div>
 
       {/* Légende */}
-      <div style={RV_STYLES.legend}>(A) = Abandon • (F) = Forfait • (X) = Exclu</div>
+      <div style={RV_STYLES.legend}>{t('resultsView.legend')}</div>
     </div>
   );
 };

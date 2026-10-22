@@ -40,7 +40,7 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
         role="dialog"
         aria-modal="true"
       >
-        <div className="modal-header" style={{ flexShrink: 0 }}>
+        <div className="modal-header flex-shrink-0">
           <h2 className="modal-title">{t('pdfTemplate.modalTitle')}</h2>
           <button
             className="btn btn-secondary"
@@ -89,19 +89,19 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
               style={{
                 fontSize: '0.8rem',
                 fontWeight: 600,
-                color: 'var(--color-muted, #9ca3af)',
+                color: 'var(--color-muted, var(--color-text-muted))',
                 textTransform: 'uppercase',
                 letterSpacing: '0.8px',
                 marginBottom: '0.5rem',
               }}
             >
-              Prévisualisation
+              {t('pdfModal.preview')}
             </div>
             <PdfPreview template={current} docType={activeType} />
           </div>
         </div>
 
-        <div className="modal-footer" style={{ flexShrink: 0 }}>
+        <div className="modal-footer flex-shrink-0">
           <button className="btn btn-primary" onClick={onClose}>
             {t('actions.close') || 'Fermer'}
           </button>

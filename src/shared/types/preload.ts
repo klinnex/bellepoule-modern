@@ -5,6 +5,7 @@
  */
 
 import {
+  Card,
   Competition,
   Fencer,
   Match,
@@ -371,6 +372,8 @@ export interface KioskScreenConfig {
   suivants: boolean;
   tableau: boolean;
   rotationSec: number;
+  /** Badge « fin estimée » de la phase en cours (défaut : affiché, #1077) */
+  eta?: boolean;
 }
 
 export interface TVCommand {
@@ -437,6 +440,15 @@ export interface RemoteServerAPI {
   updatePoolFencers: (
     competitionId: string,
     updates: Array<{ poolId: string; fencers: any[] }>
+  ) => Promise<{ success: boolean; error?: string }>;
+  /**
+   * Tournoi des rapières : matchs de la vague active proposés aux tablettes (`null` : tous) ;
+   * `poolsClosed` : vagues terminées, plus aucun match de poule proposé (#1118)
+   */
+  setActiveWave: (
+    competitionId: string,
+    matchIds: string[] | null,
+    poolsClosed?: boolean
   ) => Promise<{ success: boolean; error?: string }>;
   syncPoolMatches: (
     competitionId: string,
@@ -523,7 +535,9 @@ export interface RemoteServerAPI {
     competitionId: string,
     matchId: string,
     scoreA: number,
-    scoreB: number
+    scoreB: number,
+    winner?: 'A' | 'B',
+    specialStatus?: 'abandon' | 'forfait' | 'exclusion'
   ) => Promise<{ success: boolean; error?: string }>;
   setTeamArenaMatch: (
     competitionId: string,
@@ -949,11 +963,20 @@ export interface DatabaseAPI {
       createdAt: string;
     }>
   >;
+  /** Cartons individuels des relais par équipes, persistés (#1086) */
+  createTeamBoutCard: (boutId: string, card: Card) => Promise<{ id: string }>;
+  getTeamBoutCards: (matchId: string) => Promise<Array<{ boutId: string; card: Card }>>;
 }
 
 export interface FileAPI {
   export: (filepath: string) => Promise<FileSaveResult>;
   import: (filepath: string) => Promise<FileOpenResult>;
+  /** Ouvre le dialogue « Ouvrir » (.bpm/.db/.cotcot) — même flux que Fichier › Ouvrir */
+  openDialog: () => Promise<void>;
+  /** Exporte une compétition seule (état d'avancement compris) dans un .bpm nommé d'après elle */
+  exportCompetition: (
+    competitionId: string
+  ) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>;
   writeContent: (filepath: string, content: string) => Promise<void>;
   printHtml: (html: string) => Promise<{ success: boolean; error?: string }>;
   printHtmlToPDF: (
@@ -990,7 +1013,10 @@ export interface MenuAPI {
   onMenuOpenSettings: (callback: () => void) => void;
   onMenuReportIssue: (callback: () => void) => void;
   onShowAbout: (callback: () => void) => void;
-  onFileOpened: (callback: (filepath: string) => void) => void;
+  /** competitionIds : compétitions fusionnées depuis le .bpm ouvert (#1117) */
+  onFileOpened: (callback: (filepath: string, competitionIds?: string[]) => void) => void;
+  /** Compétition affichée : « Enregistrer sous » l'exporte seule */
+  setCurrentCompetition?: (competitionId: string | null) => void;
   onFileSaved: (callback: (filepath: string) => void) => void;
   onAutosaveCompleted: (callback: () => void) => void;
   onAutosaveFailed: (callback: () => void) => void;
@@ -1002,6 +1028,14 @@ export interface UtilityAPI {
   /** `force` : préréglage explicite → sort du maximisé / plein écran ; sinon ignoré si maximisée */
   setWindowSize: (width: number, height: number, options?: { force?: boolean }) => Promise<void>;
   openExternal: (url: string) => Promise<void>;
+  /** Lag de la boucle d'événements du process principal (ms) ; `reset` démarre une nouvelle fenêtre */
+  getEventLoopDelay: (reset?: boolean) => Promise<{
+    samples: number;
+    meanMs: number;
+    p50Ms: number;
+    p99Ms: number;
+    maxMs: number;
+  }>;
   getVersionInfo: () => Promise<VersionInfo>;
   removeAllListeners: (channel: string) => void;
 }

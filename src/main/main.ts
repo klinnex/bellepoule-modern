@@ -22,34 +22,25 @@ import { DatabaseManager } from '../database';
 import { RemoteScoreServer } from './remoteScoreServer';
 import { ensureCert } from './certManager';
 import { AutoUpdater } from './autoUpdater';
-import { Competition, Fencer, FencerStatus, Match, MatchStatus, Pool } from '../shared/types';
 import type { MatchSignatureRequest } from '../shared/types/remote';
 import { decodeTextFile } from '../shared/utils/fileParser/detect';
+import { eventLoopMonitor } from './eventLoopMonitor';
+import { fmt, getL, getUiLanguage, setUiLanguage } from './menuLabels';
+import { registerDbHandlers } from './ipc/dbHandlers';
+import { registerTrainingHandlers } from './ipc/trainingHandlers';
+import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from './remoteRegistry';
+import { applyActiveWave, setActiveWave } from './remote/activeWave';
+import { isAllowedExternalUrl, isAppUrl, isPermissionAllowed } from './windowSecurity';
+import {
+  assertAuthorizedPath,
+  authorizePath,
+  checkZipEntries,
+  readBoundedFile,
+  validateImportedFencers,
+} from './pathAuthorization';
 
 // Database instance
 const db = new DatabaseManager();
-
-// Remote score servers — one per competition (key = competitionId)
-const remoteServers = new Map<
-  string,
-  {
-    server: RemoteScoreServer;
-    port: number;
-    host: string;
-    useHttps: boolean;
-    certFingerprint?: string;
-  }
->();
-const usedPorts = new Set<number>();
-const BASE_REMOTE_PORT = 8066;
-
-function findAvailablePort(preferred?: number): number {
-  if (preferred && !usedPorts.has(preferred)) return preferred;
-  const start = preferred ? preferred + 1 : BASE_REMOTE_PORT;
-  let port = start;
-  while (usedPorts.has(port)) port++;
-  return port;
-}
 
 // Auto updater
 let autoUpdater: AutoUpdater | null = null;
@@ -145,7 +136,7 @@ ipcMain.once('splash:confirm', (_event, lang: string) => {
   const validLangs = ['fr', 'en', 'de', 'es', 'zh-HK', 'br', 'ca'];
   const confirmed = validLangs.includes(lang) ? lang : 'fr';
   saveLanguageToFile(confirmed);
-  currentMenuLanguage = confirmed;
+  setUiLanguage(confirmed);
   splashConfirmResolve?.(confirmed);
 });
 
@@ -180,366 +171,6 @@ function closeSplash(onClosed?: () => void): void {
       onClosed?.();
     }, 420);
   }, remaining);
-}
-
-// Current UI language (kept in sync via IPC)
-let currentMenuLanguage = 'fr';
-
-// ============================================================================
-// Menu Translations
-// ============================================================================
-
-type MenuLang = 'fr' | 'en' | 'de' | 'zh-HK';
-
-const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
-  fr: {
-    file: 'Fichier',
-    newCompetition: 'Nouvelle compétition',
-    open: 'Ouvrir...',
-    save: 'Enregistrer',
-    saveAs: 'Enregistrer sous...',
-    export: 'Exporter',
-    exportXml: 'Exporter en XML (BellePoule)',
-    exportCsv: 'Exporter en CSV',
-    exportPdf: 'Exporter en PDF',
-    exportFencersTxt: 'Exporter tireurs (.txt)',
-    exportFencersFff: 'Exporter tireurs (.fff)',
-    exportFencersBpf: 'Exporter tireurs + photos (.bpf)',
-    exportPhotos: 'Exporter photos (.zip)',
-    import: 'Importer',
-    importXml: 'Importer XML (BellePoule)',
-    importFff: 'Importer liste FFE (.fff)',
-    importRanking: 'Importer classement FFE',
-    importFencersBpf: 'Importer tireurs + photos (.bpf)',
-    settings: 'Paramètres...',
-    quit: 'Quitter',
-    edit: 'Édition',
-    undo: 'Annuler',
-    redo: 'Rétablir',
-    cut: 'Couper',
-    copy: 'Copier',
-    paste: 'Coller',
-    selectAll: 'Tout sélectionner',
-    competition: 'Compétition',
-    properties: 'Propriétés',
-    addFencer: 'Ajouter un tireur',
-    addReferee: 'Ajouter un arbitre',
-    startRemote: '⚡ Démarrer saisie distante',
-    stopRemote: '🛑 Arrêter saisie distante',
-    nextPhase: 'Tour suivant',
-    view: 'Affichage',
-    reload: 'Recharger',
-    forceReload: 'Forcer le rechargement',
-    devTools: 'Outils de développement',
-    resetZoom: 'Réinitialiser le zoom',
-    zoomIn: 'Zoom avant',
-    zoomOut: 'Zoom arrière',
-    fullscreen: 'Plein écran',
-    help: 'Aide',
-    about: 'À propos de BellePoule Modern',
-    updates: '🔄 Vérifier les mises à jour...',
-    updatesUnavailable: "Le système de mise à jour n'est pas disponible",
-    updatesTitle: 'Mises à jour',
-    docs: 'Documentation',
-    reportBug: '📝 Signaler un bug / Suggestion',
-    remoteTitle: 'Saisie distante',
-    remoteAlreadyStarted: 'Le serveur de saisie distante est déjà démarré',
-    remoteStartedTitle: 'Saisie distante démarrée',
-    remoteStartedMsg: 'Les arbitres peuvent maintenant se connecter',
-    remoteDetailTemplate:
-      'Arène 1: {url}/arene1/arbitre\nArène 2: {url}/arene2/arbitre\nArène 3: {url}/arene3/arbitre\nArène 4: {url}/arene4/arbitre\n\nAffichage kiosk (grand écran public): {url}/kiosk\nClassement en direct: {url}/\n\nPartagez ces URLs avec les arbitres munis de tablettes.\nAssurez-vous que le pare-feu Windows autorise les connexions sur le port {port}.',
-    remoteNotStarted: "Le serveur de saisie distante n'est pas démarré",
-    remoteStoppedTitle: 'Saisie distante arrêtée',
-    remoteStoppedMsg: 'Le serveur de saisie distante a été arrêté',
-    errTitle: 'Erreur',
-    remoteErrStart: 'Impossible de démarrer le serveur distant:',
-    remoteErrStop: "Impossible d'arrêter le serveur distant:",
-    openTitle: 'Ouvrir une compétition',
-    filterBpm: 'BellePoule Modern',
-    filterClassic: 'BellePoule Classic',
-    filterAll: 'Tous les fichiers',
-    openErr: "Impossible d'ouvrir le fichier:",
-    saveTitle: 'Enregistrer la compétition',
-    saveErr: "Impossible d'enregistrer:",
-    importTitle: 'Importer',
-    importXmlTitle: 'Importer un fichier XML BellePoule',
-    importFffTitle: 'Importer une liste FFE',
-    importRankingTitle: 'Importer un classement FFE',
-    importBpfTitle: 'Importer tireurs + photos (.bpf)',
-    filterXmlBP: 'XML BellePoule',
-    filterFfe: 'Fichier FFE',
-    filterRanking: 'Fichier classement',
-    importReadErr: 'Impossible de lire le fichier:',
-    importErrTitle: "Erreur d'import",
-    aboutTitle: 'À propos de BellePoule Modern',
-    aboutSoftware: "Logiciel de gestion de compétitions d'escrime.",
-    aboutRewrite: 'Réécriture moderne du logiciel BellePoule original créé par Yann Deboeuf.',
-    aboutBugHint: 'Pour signaler un bug, mentionnez:',
-  },
-  en: {
-    file: 'File',
-    newCompetition: 'New Competition',
-    open: 'Open...',
-    save: 'Save',
-    saveAs: 'Save As...',
-    export: 'Export',
-    exportXml: 'Export XML (BellePoule)',
-    exportCsv: 'Export CSV',
-    exportPdf: 'Export PDF',
-    exportFencersTxt: 'Export fencers (.txt)',
-    exportFencersFff: 'Export fencers (.fff)',
-    exportFencersBpf: 'Export fencers + photos (.bpf)',
-    exportPhotos: 'Export photos (.zip)',
-    import: 'Import',
-    importXml: 'Import XML (BellePoule)',
-    importFff: 'Import FFE list (.fff)',
-    importRanking: 'Import FFE ranking',
-    importFencersBpf: 'Import fencers + photos (.bpf)',
-    settings: 'Settings...',
-    quit: 'Quit',
-    edit: 'Edit',
-    undo: 'Undo',
-    redo: 'Redo',
-    cut: 'Cut',
-    copy: 'Copy',
-    paste: 'Paste',
-    selectAll: 'Select All',
-    competition: 'Competition',
-    properties: 'Properties',
-    addFencer: 'Add Fencer',
-    addReferee: 'Add Referee',
-    startRemote: '⚡ Start Remote Scoring',
-    stopRemote: '🛑 Stop Remote Scoring',
-    nextPhase: 'Next Round',
-    view: 'View',
-    reload: 'Reload',
-    forceReload: 'Force Reload',
-    devTools: 'Developer Tools',
-    resetZoom: 'Reset Zoom',
-    zoomIn: 'Zoom In',
-    zoomOut: 'Zoom Out',
-    fullscreen: 'Toggle Fullscreen',
-    help: 'Help',
-    about: 'About BellePoule Modern',
-    updates: '🔄 Check for Updates...',
-    updatesUnavailable: 'Update system is not available',
-    updatesTitle: 'Updates',
-    docs: 'Documentation',
-    reportBug: '📝 Report a Bug / Suggestion',
-    remoteTitle: 'Remote Scoring',
-    remoteAlreadyStarted: 'The remote scoring server is already started',
-    remoteStartedTitle: 'Remote scoring started',
-    remoteStartedMsg: 'Referees can now connect',
-    remoteDetailTemplate:
-      'Arena 1: {url}/arene1/arbitre\nArena 2: {url}/arene2/arbitre\nArena 3: {url}/arene3/arbitre\nArena 4: {url}/arene4/arbitre\n\nKiosk display (public screen): {url}/kiosk\nLive ranking: {url}/\n\nShare these URLs with referees using tablets.\nMake sure Windows firewall allows connections on port {port}.',
-    remoteNotStarted: 'The remote scoring server is not started',
-    remoteStoppedTitle: 'Remote scoring stopped',
-    remoteStoppedMsg: 'The remote scoring server has been stopped',
-    errTitle: 'Error',
-    remoteErrStart: 'Unable to start the remote server:',
-    remoteErrStop: 'Unable to stop the remote server:',
-    openTitle: 'Open Competition',
-    filterBpm: 'BellePoule Modern',
-    filterClassic: 'BellePoule Classic',
-    filterAll: 'All Files',
-    openErr: 'Unable to open file:',
-    saveTitle: 'Save Competition',
-    saveErr: 'Unable to save:',
-    importTitle: 'Import',
-    importXmlTitle: 'Import BellePoule XML file',
-    importFffTitle: 'Import FFE list',
-    importRankingTitle: 'Import FFE ranking',
-    importBpfTitle: 'Import fencers + photos (.bpf)',
-    filterXmlBP: 'XML BellePoule',
-    filterFfe: 'FFE File',
-    filterRanking: 'Ranking file',
-    importReadErr: 'Unable to read file:',
-    importErrTitle: 'Import Error',
-    aboutTitle: 'About BellePoule Modern',
-    aboutSoftware: 'Fencing competition management software.',
-    aboutRewrite: 'Modern rewrite of the original BellePoule software created by Yann Deboeuf.',
-    aboutBugHint: 'To report a bug, mention:',
-  },
-  de: {
-    file: 'Datei',
-    newCompetition: 'Neuer Wettkampf',
-    open: 'Öffnen...',
-    save: 'Speichern',
-    saveAs: 'Speichern unter...',
-    export: 'Exportieren',
-    exportXml: 'XML exportieren (BellePoule)',
-    exportCsv: 'CSV exportieren',
-    exportPdf: 'PDF exportieren',
-    exportFencersTxt: 'Fechter exportieren (.txt)',
-    exportFencersFff: 'Fechter exportieren (.fff)',
-    exportFencersBpf: 'Fechter + Fotos exportieren (.bpf)',
-    exportPhotos: 'Fotos exportieren (.zip)',
-    import: 'Importieren',
-    importXml: 'XML importieren (BellePoule)',
-    importFff: 'FFE-Liste importieren (.fff)',
-    importRanking: 'FFE-Rangliste importieren',
-    importFencersBpf: 'Fechter + Fotos importieren (.bpf)',
-    settings: 'Einstellungen...',
-    quit: 'Beenden',
-    edit: 'Bearbeiten',
-    undo: 'Rückgängig',
-    redo: 'Wiederholen',
-    cut: 'Ausschneiden',
-    copy: 'Kopieren',
-    paste: 'Einfügen',
-    selectAll: 'Alles auswählen',
-    competition: 'Wettkampf',
-    properties: 'Eigenschaften',
-    addFencer: 'Fechter hinzufügen',
-    addReferee: 'Schiedsrichter hinzufügen',
-    startRemote: '⚡ Fernpunkteingabe starten',
-    stopRemote: '🛑 Fernpunkteingabe stoppen',
-    nextPhase: 'Nächste Phase',
-    view: 'Ansicht',
-    reload: 'Neu laden',
-    forceReload: 'Vollständig neu laden',
-    devTools: 'Entwicklertools',
-    resetZoom: 'Zoom zurücksetzen',
-    zoomIn: 'Vergrößern',
-    zoomOut: 'Verkleinern',
-    fullscreen: 'Vollbild',
-    help: 'Hilfe',
-    about: 'Über BellePoule Modern',
-    updates: '🔄 Updates prüfen...',
-    updatesUnavailable: 'Das Update-System ist nicht verfügbar',
-    updatesTitle: 'Updates',
-    docs: 'Dokumentation',
-    reportBug: '📝 Bug melden / Vorschlag',
-    remoteTitle: 'Fernpunkteingabe',
-    remoteAlreadyStarted: 'Der Fernpunkteingabe-Server ist bereits gestartet',
-    remoteStartedTitle: 'Fernpunkteingabe gestartet',
-    remoteStartedMsg: 'Schiedsrichter können sich jetzt verbinden',
-    remoteDetailTemplate:
-      'Arena 1: {url}/arene1/arbitre\nArena 2: {url}/arene2/arbitre\nArena 3: {url}/arene3/arbitre\nArena 4: {url}/arene4/arbitre\n\nKiosk-Anzeige (öffentlicher Bildschirm): {url}/kiosk\nLive-Rangliste: {url}/\n\nTeilen Sie diese URLs mit Schiedsrichtern mit Tablets.\nStellen Sie sicher, dass die Windows-Firewall Verbindungen auf Port {port} zulässt.',
-    remoteNotStarted: 'Der Fernpunkteingabe-Server ist nicht gestartet',
-    remoteStoppedTitle: 'Fernpunkteingabe gestoppt',
-    remoteStoppedMsg: 'Der Fernpunkteingabe-Server wurde gestoppt',
-    errTitle: 'Fehler',
-    remoteErrStart: 'Fernserver konnte nicht gestartet werden:',
-    remoteErrStop: 'Fernserver konnte nicht gestoppt werden:',
-    openTitle: 'Wettkampf öffnen',
-    filterBpm: 'BellePoule Modern',
-    filterClassic: 'BellePoule Classic',
-    filterAll: 'Alle Dateien',
-    openErr: 'Datei konnte nicht geöffnet werden:',
-    saveTitle: 'Wettkampf speichern',
-    saveErr: 'Speichern nicht möglich:',
-    importTitle: 'Importieren',
-    importXmlTitle: 'BellePoule XML-Datei importieren',
-    importFffTitle: 'FFE-Liste importieren',
-    importRankingTitle: 'FFE-Rangliste importieren',
-    importBpfTitle: 'Fechter + Fotos importieren (.bpf)',
-    filterXmlBP: 'XML BellePoule',
-    filterFfe: 'FFE-Datei',
-    filterRanking: 'Ranglistendatei',
-    importReadErr: 'Datei konnte nicht gelesen werden:',
-    importErrTitle: 'Importfehler',
-    aboutTitle: 'Über BellePoule Modern',
-    aboutSoftware: 'Fechtwettkampf-Verwaltungssoftware.',
-    aboutRewrite:
-      'Moderne Neuentwicklung der originalen BellePoule-Software erstellt von Yann Deboeuf.',
-    aboutBugHint: 'Zum Melden eines Fehlers bitte angeben:',
-  },
-  'zh-HK': {
-    file: '檔案',
-    newCompetition: '新建比賽',
-    open: '開啟...',
-    save: '儲存',
-    saveAs: '另存為...',
-    export: '匯出',
-    exportXml: '匯出 XML (BellePoule)',
-    exportCsv: '匯出 CSV',
-    exportPdf: '匯出 PDF',
-    exportFencersTxt: '匯出劍手 (.txt)',
-    exportFencersFff: '匯出劍手 (.fff)',
-    exportFencersBpf: '匯出劍手 + 照片 (.bpf)',
-    exportPhotos: '匯出照片 (.zip)',
-    import: '匯入',
-    importXml: '匯入 XML (BellePoule)',
-    importFff: '匯入 FFE 名單 (.fff)',
-    importRanking: '匯入 FFE 排名',
-    importFencersBpf: '匯入劍手 + 照片 (.bpf)',
-    settings: '設定...',
-    quit: '退出',
-    edit: '編輯',
-    undo: '復原',
-    redo: '重做',
-    cut: '剪切',
-    copy: '複製',
-    paste: '貼上',
-    selectAll: '全選',
-    competition: '比賽',
-    properties: '屬性',
-    addFencer: '新增劍手',
-    addReferee: '新增裁判',
-    startRemote: '⚡ 啟動遠程計分',
-    stopRemote: '🛑 停止遠程計分',
-    nextPhase: '下一輪',
-    view: '顯示',
-    reload: '重新載入',
-    forceReload: '強制重新載入',
-    devTools: '開發者工具',
-    resetZoom: '重置縮放',
-    zoomIn: '放大',
-    zoomOut: '縮小',
-    fullscreen: '切換全螢幕',
-    help: '說明',
-    about: '關於 BellePoule Modern',
-    updates: '🔄 檢查更新...',
-    updatesUnavailable: '更新系統不可用',
-    updatesTitle: '更新',
-    docs: '文件',
-    reportBug: '📝 回報錯誤 / 建議',
-    remoteTitle: '遠程計分',
-    remoteAlreadyStarted: '遠程計分伺服器已啟動',
-    remoteStartedTitle: '遠程計分已啟動',
-    remoteStartedMsg: '裁判現在可以連線',
-    remoteDetailTemplate:
-      '賽場 1: {url}/arene1/arbitre\n賽場 2: {url}/arene2/arbitre\n賽場 3: {url}/arene3/arbitre\n賽場 4: {url}/arene4/arbitre\n\nKiosk 顯示（公開大螢幕）: {url}/kiosk\n即時排名: {url}/\n\n請將這些網址分享給使用平板電腦的裁判。\n請確保 Windows 防火牆允許連接埠 {port} 上的連線。',
-    remoteNotStarted: '遠程計分伺服器尚未啟動',
-    remoteStoppedTitle: '遠程計分已停止',
-    remoteStoppedMsg: '遠程計分伺服器已停止',
-    errTitle: '錯誤',
-    remoteErrStart: '無法啟動遠程伺服器:',
-    remoteErrStop: '無法停止遠程伺服器:',
-    openTitle: '開啟比賽',
-    filterBpm: 'BellePoule Modern',
-    filterClassic: 'BellePoule Classic',
-    filterAll: '所有檔案',
-    openErr: '無法開啟檔案:',
-    saveTitle: '儲存比賽',
-    saveErr: '無法儲存:',
-    importTitle: '匯入',
-    importXmlTitle: '匯入 BellePoule XML 檔案',
-    importFffTitle: '匯入 FFE 名單',
-    importRankingTitle: '匯入 FFE 排名',
-    importBpfTitle: '匯入劍手 + 照片 (.bpf)',
-    filterXmlBP: 'XML BellePoule',
-    filterFfe: 'FFE 檔案',
-    filterRanking: '排名檔案',
-    importReadErr: '無法讀取檔案:',
-    importErrTitle: '匯入錯誤',
-    aboutTitle: '關於 BellePoule Modern',
-    aboutSoftware: '劍擊比賽管理軟件。',
-    aboutRewrite: '由 Yann Deboeuf 創建的 BellePoule 原版軟件的現代重寫版本。',
-    aboutBugHint: '回報錯誤時請提及:',
-  },
-};
-
-// ============================================================================
-// Localized Label Helper
-// ============================================================================
-
-function getL(): Record<string, string> {
-  const lang = (
-    MENU_LABELS[currentMenuLanguage as MenuLang] ? currentMenuLanguage : 'fr'
-  ) as MenuLang;
-  return MENU_LABELS[lang];
 }
 
 // ============================================================================
@@ -609,6 +240,7 @@ function createWindow(initialLang?: string): void {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
       preload: path.join(__dirname, 'preload.js'),
       v8CacheOptions: 'code',
       additionalArguments: initialLang ? [`--initial-lang=${initialLang}`] : [],
@@ -626,12 +258,33 @@ function createWindow(initialLang?: string): void {
     closeSplash(() => mainWindow?.show());
   });
 
-  // Allow camera access for webcam photo capture
-  const cameraPermissions = new Set(['media', 'camera', 'microphone']);
-  mainWindow.webContents.session.setPermissionRequestHandler(
-    (_webContents, permission, callback) => {
-      callback(cameraPermissions.has(permission));
-    }
+  // Sécurité (#1148) : ni navigation ni fenêtre hors de l'application
+  const isDev = process.env.NODE_ENV === 'development';
+  const appUrlOpts = { dev: isDev, rendererDir: path.join(__dirname, '../renderer') };
+  const isApp = (url: string) => isAppUrl(url, appUrlOpts);
+  const wc = mainWindow.webContents;
+  wc.setWindowOpenHandler(({ url }) => {
+    if (isAllowedExternalUrl(url)) void shell.openExternal(url);
+    return { action: 'deny' };
+  });
+  const blockNavigation = (event: Electron.Event, url: string) => {
+    if (isApp(url)) return;
+    event.preventDefault();
+    if (isAllowedExternalUrl(url)) void shell.openExternal(url);
+  };
+  wc.on('will-navigate', blockNavigation);
+  wc.on('will-redirect', blockNavigation);
+  wc.on('will-attach-webview', event => event.preventDefault());
+
+  // Caméra (photo tireur) : application uniquement, vidéo seulement, jamais le micro
+  const session = wc.session;
+  session.setPermissionRequestHandler((contents, permission, callback, details) => {
+    const url = details.requestingUrl || contents.getURL();
+    const mediaTypes = (details as { mediaTypes?: string[] }).mediaTypes;
+    callback(isPermissionAllowed(permission, url, isApp, mediaTypes));
+  });
+  session.setPermissionCheckHandler((contents, permission, requestingOrigin) =>
+    isPermissionAllowed(permission, requestingOrigin || contents?.getURL() || '', isApp)
   );
 
   // Security: Set CSP headers for all requests
@@ -642,8 +295,8 @@ function createWindow(initialLang?: string): void {
         'Content-Security-Policy': [
           "default-src 'self'; " +
             "script-src 'self'; " +
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-            "font-src 'self' https://fonts.gstatic.com; " +
+            "style-src 'self' 'unsafe-inline'; " +
+            "font-src 'self'; " +
             "img-src 'self' data: blob:; " +
             "media-src 'self' blob:; " +
             "connect-src 'self' http://localhost:* https://api.github.com https://api.ffe.fr; " +
@@ -697,20 +350,20 @@ function createWindow(initialLang?: string): void {
   // Create application menu using saved language preference
   mainWindow.webContents.once('did-finish-load', async () => {
     if (initialLang) {
-      currentMenuLanguage = initialLang;
+      setUiLanguage(initialLang);
     } else {
       try {
         const savedLang = await mainWindow!.webContents.executeJavaScript(
           'localStorage.getItem("bellepoule-language")'
         );
         if (savedLang && typeof savedLang === 'string') {
-          currentMenuLanguage = savedLang;
+          setUiLanguage(savedLang);
         }
       } catch {
         // ignore
       }
     }
-    createMenu(currentMenuLanguage);
+    createMenu(getUiLanguage());
 
     // Restore persisted logo and sync to renderer localStorage if not already set
     const logoPath = path.join(app.getPath('userData'), 'logo.dat');
@@ -730,8 +383,8 @@ function createWindow(initialLang?: string): void {
 // ============================================================================
 
 function createMenu(language?: string): void {
-  const lang = (MENU_LABELS[language as MenuLang] ? language : 'fr') as MenuLang;
-  const L = MENU_LABELS[lang];
+  if (language) setUiLanguage(language);
+  const L = getL();
 
   const template: Electron.MenuItemConstructorOptions[] = [
     {
@@ -756,6 +409,7 @@ function createMenu(language?: string): void {
               db.forceSave();
               console.log('Sauvegarde manuelle effectuée');
               mainWindow?.webContents.send('menu:save');
+              void saveGlobalBackup();
             } catch (error) {
               console.error('Échec sauvegarde manuelle:', error);
               mainWindow?.webContents.send('autosave:failed');
@@ -925,7 +579,7 @@ function startRemoteScoreServer(): void {
   dialog.showMessageBox(mainWindow!, {
     type: 'info',
     title: L.remoteTitle,
-    message: 'Utilisez le panneau "Saisie distante" dans l\'onglet compétition.',
+    message: L.remoteUsePanel,
     buttons: ['OK'],
   });
 }
@@ -953,30 +607,97 @@ async function handleOpenFile(): Promise<void> {
   if (!result.canceled && result.filePaths.length > 0) {
     const filepath = result.filePaths[0];
     try {
-      await db.importFromFile(filepath);
-      mainWindow?.webContents.send('file:opened', filepath);
+      if (/\.(cotcot|cocot)$/i.test(filepath)) {
+        // Fichier BellePoule classique : import XML dans la compétition ouverte
+        const content = decodeTextFile(await fs.promises.readFile(filepath));
+        mainWindow?.webContents.send('menu:import', 'xml', filepath, content);
+        return;
+      }
+      // Fusion dans la base active, état d'avancement compris (#1117)
+      const ids = await db.mergeFromFile(filepath);
+      mainWindow?.webContents.send('file:opened', filepath, ids);
     } catch (error) {
       dialog.showErrorBox(L.errTitle, `${L.openErr} ${error}`);
     }
   }
 }
 
-async function handleSaveAs(): Promise<void> {
+// Compétition affichée dans le renderer : « Enregistrer sous » l'exporte seule (#1117)
+let currentCompetitionId: string | null = null;
+
+/** Nom de fichier sûr tiré du titre de la compétition */
+function competitionFileName(title: string | undefined): string {
+  const base = (title ?? '')
+    // eslint-disable-next-line no-control-regex
+    .replace(/[<>:"/\\|?*\x00-\x1f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120);
+  return `${base || 'competition'}.bpm`;
+}
+
+async function exportCompetitionDialog(
+  competitionId: string
+): Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }> {
+  const L = getL();
+  const competition = db.getCompetition(competitionId);
+  if (!competition) return { success: false, error: 'competition_not_found' };
+  const result = await dialog.showSaveDialog(mainWindow!, {
+    title: L.saveTitle,
+    defaultPath: competitionFileName(competition.title),
+    filters: [{ name: L.filterBpm, extensions: ['bpm'] }],
+  });
+  if (result.canceled || !result.filePath) return { success: false, canceled: true };
+  try {
+    await db.exportCompetitionToFile(competitionId, result.filePath);
+    mainWindow?.webContents.send('file:saved', result.filePath);
+    return { success: true, path: result.filePath };
+  } catch (error) {
+    dialog.showErrorBox(L.errTitle, `${L.saveErr} ${error}`);
+    return { success: false, error: String(error) };
+  }
+}
+
+// Dernier fichier .bpm global (toutes compétitions) de la session : cible de Ctrl+S (#1140)
+let sessionBackupPath: string | null = null;
+
+/** Écrit le fichier global mémorisé, sinon demande l'emplacement (« Enregistrer sous » global) */
+async function saveGlobalBackup(): Promise<void> {
+  if (sessionBackupPath && fs.existsSync(path.dirname(sessionBackupPath))) {
+    try {
+      await db.exportToFile(sessionBackupPath);
+      mainWindow?.webContents.send('file:saved', sessionBackupPath);
+      return;
+    } catch {
+      // Écriture impossible : repli sur « Enregistrer sous » ci-dessous
+    }
+  }
+  await saveGlobalAs();
+}
+
+async function saveGlobalAs(): Promise<void> {
   const L = getL();
   const result = await dialog.showSaveDialog(mainWindow!, {
     title: L.saveTitle,
-    defaultPath: 'competition.bpm',
+    defaultPath: sessionBackupPath ?? 'competition.bpm',
     filters: [{ name: L.filterBpm, extensions: ['bpm'] }],
   });
-
-  if (!result.canceled && result.filePath) {
-    try {
-      await db.exportToFile(result.filePath);
-      mainWindow?.webContents.send('file:saved', result.filePath);
-    } catch (error) {
-      dialog.showErrorBox(L.errTitle, `${L.saveErr} ${error}`);
-    }
+  if (result.canceled || !result.filePath) return;
+  try {
+    await db.exportToFile(result.filePath);
+    sessionBackupPath = result.filePath;
+    mainWindow?.webContents.send('file:saved', result.filePath);
+  } catch (error) {
+    dialog.showErrorBox(L.errTitle, `${L.saveErr} ${error}`);
   }
+}
+
+async function handleSaveAs(): Promise<void> {
+  if (currentCompetitionId && db.getCompetition(currentCompetitionId)) {
+    await exportCompetitionDialog(currentCompetitionId);
+    return;
+  }
+  await saveGlobalAs();
 }
 
 async function handleExport(format: string): Promise<void> {
@@ -1020,6 +741,7 @@ async function handleImport(format: string): Promise<void> {
     try {
       if (format === 'fencers-bpf') {
         // Fichier binaire : envoyer uniquement le chemin, le renderer appellera importFencersArchive
+        authorizePath(filepath, 'read');
         mainWindow?.webContents.send('menu:import', format, filepath, '');
       } else {
         const content = decodeTextFile(await fs.promises.readFile(filepath));
@@ -1039,300 +761,30 @@ function showAbout(): void {
 // IPC Handlers - Database Operations
 // ============================================================================
 
-// Competition handlers
-ipcMain.handle('db:createCompetition', async (_, data) => {
-  return db.createCompetition(data);
-});
-
-ipcMain.handle('db:getCompetition', async (_, id) => {
-  return db.getCompetition(id);
-});
-
-ipcMain.handle('db:getAllCompetitions', async () => {
-  return db.getAllCompetitions();
-});
-
-ipcMain.handle('db:deleteCompetition', async (_, id) => {
-  // Saisie distante encore active : l'arrêter, sinon elle survit à la compétition (#1009)
-  stopRemoteServer(id);
-  return db.deleteCompetition(id);
-});
-
-ipcMain.handle('db:updateCompetition', async (_, id, updates) => {
-  const result = db.updateCompetition(id, updates);
-  // Propager le paramètre carton noir aux tablettes si une session distante est active
-  const blackCard = updates?.settings?.blackCardEnabled;
-  if (blackCard !== undefined) {
-    remoteServers.get(id)?.server.updateBlackCardEnabled(blackCard === true);
-  }
-  return result;
-});
-
-// Fencer handlers
-ipcMain.handle('db:addFencer', async (_, competitionId, fencer) => {
-  return db.addFencer(competitionId, fencer);
-});
-
-ipcMain.handle('db:getFencer', async (_, id) => {
-  return db.getFencer(id);
-});
-
-ipcMain.handle('db:getFencersByCompetition', async (_, competitionId) => {
-  return db.getFencersByCompetition(competitionId);
-});
-
-ipcMain.handle('db:updateFencer', async (_, id, updates) => {
-  return db.updateFencer(id, updates);
-});
-
-ipcMain.handle('db:deleteFencer', async (_, id) => {
-  return db.deleteFencer(id);
-});
-
-ipcMain.handle('db:deleteAllFencers', async (_, competitionId) => {
-  return db.deleteAllFencers(competitionId);
-});
-
-// Match handlers
-ipcMain.handle('db:createMatch', async (_, match, poolId) => {
-  return db.createMatch(match, poolId);
-});
-
-ipcMain.handle('db:getMatch', async (_, id) => {
-  return db.getMatch(id);
-});
-
-ipcMain.handle('db:getMatchesByPool', async (_, poolId) => {
-  return db.getMatchesByPool(poolId);
-});
-
-ipcMain.handle('db:updateMatch', async (_, id, updates) => {
-  const hasScore = updates.scoreA !== undefined || updates.scoreB !== undefined;
-  if (hasScore) {
-    try {
-      const prev = db.getMatch(id);
-      db.updateMatch(id, updates);
-      if (prev) {
-        db.logScoreChange({
-          matchId: id,
-          poolId: prev.poolId ?? undefined,
-          previousScoreA: prev.scoreA,
-          previousScoreB: prev.scoreB,
-          newScoreA: updates.scoreA ?? prev.scoreA,
-          newScoreB: updates.scoreB ?? prev.scoreB,
-          changedBy: 'ui',
-        });
-      }
-    } catch {
-      db.updateMatch(id, updates);
-    }
-  } else {
-    db.updateMatch(id, updates);
-  }
-
-  // Propager l'assignation d'arbitre au serveur distant
-  if (updates.refereeId) {
-    for (const { server } of remoteServers.values()) {
-      try {
-        server.assignRefereeToMatch(id, updates.refereeId);
-      } catch {
-        /* non bloquant */
-      }
-    }
-  }
-});
-
-ipcMain.handle('db:upsertTableauMatch', async (_, params) => {
-  return db.upsertTableauMatch(params);
-});
-
-ipcMain.handle(
-  'db:upsertMultipleTableauMatches',
-  async (_, competitionId: string, matches: any[]) => {
-    return db.upsertMultipleTableauMatches(competitionId, matches);
-  }
-);
-
-ipcMain.handle('db:getTableauMatchesForExport', async (_, competitionId: string) => {
-  return db.getTableauMatchesForExport(competitionId);
-});
-
-// Session State handlers
-ipcMain.handle('db:saveSessionState', async (_, competitionId, state) => {
-  return db.saveSessionState(competitionId, state);
-});
-
-ipcMain.handle('db:getSessionState', async (_, competitionId) => {
-  return db.getSessionState(competitionId);
-});
-
-// Sync save for beforeunload (renderer cannot await async IPC on close)
-ipcMain.on('db:saveSessionStateSync', (event, competitionId: string, state: unknown) => {
-  try {
-    db.saveSessionState(competitionId, state);
-    db.forceSave();
-    event.returnValue = true;
-  } catch (e) {
-    console.error('[DB] Sync session state save failed', e);
-    event.returnValue = false;
-  }
-});
-
-ipcMain.handle('db:clearSessionState', async (_, competitionId) => {
-  return db.clearSessionState(competitionId);
-});
-
-// Pool handlers
-ipcMain.handle('db:updatePool', async (_, pool) => {
-  return db.updatePool(pool);
-});
-ipcMain.handle('db:updatePoolReferee', async (_, poolId, refereeId) => {
-  return db.updatePoolReferee(poolId, refereeId);
-});
-ipcMain.handle('db:updatePoolReferees', async (_, poolId, refereeIds) => {
-  return db.updatePoolReferees(poolId, Array.isArray(refereeIds) ? refereeIds : []);
-});
-ipcMain.handle('db:createPool', async (_, phaseId, number, poolId) => {
-  return db.createPool(phaseId, number, poolId);
-});
-ipcMain.handle('db:clearPoolsForPhase', async (_, phaseId) => {
-  return db.clearPoolsForPhase(phaseId);
-});
-ipcMain.handle('db:addFencerToPool', async (_, poolId, fencerId, position) => {
-  return db.addFencerToPool(poolId, fencerId, position);
-});
-ipcMain.handle('db:syncPoolSnapshot', async (_, competitionId, snapshot) => {
-  return db.syncPoolSnapshot(competitionId, snapshot);
-});
-ipcMain.handle('db:getPoolFencers', async (_, poolId) => {
-  return db.getPoolFencers(poolId);
-});
-ipcMain.handle('db:getPoolsByPhase', async (_, phaseId) => {
-  return db.getPoolsByPhase(phaseId);
-});
-ipcMain.handle('db:getPoolSignatures', async (_, poolId: string) => {
-  return db.getPoolSignatures(poolId);
-});
-ipcMain.handle('db:getDEMatchSignaturesByMatchIds', async (_, matchIds: string[]) => {
-  return db.getDEMatchSignaturesByMatchIds(matchIds);
-});
-
-// Phase handlers
-ipcMain.handle('db:createPhase', async (_, competitionId, type, order, name) => {
-  return db.createPhase(competitionId, type, order, name);
-});
-ipcMain.handle('db:getPhase', async (_, id) => {
-  return db.getPhase(id);
-});
-ipcMain.handle('db:getPhasesByCompetition', async (_, competitionId) => {
-  return db.getPhasesByCompetition(competitionId);
-});
-ipcMain.handle('db:updatePhase', async (_, id, updates) => {
-  return db.updatePhase(id, updates);
-});
-ipcMain.handle('db:deletePhase', async (_, id) => {
-  return db.deletePhase(id);
-});
-
-// Referee handlers
-ipcMain.handle('db:createReferee', async (_, competitionId, data) => {
-  return db.createReferee(competitionId, data);
-});
-ipcMain.handle('db:getReferee', async (_, id) => {
-  return db.getReferee(id);
-});
-ipcMain.handle('db:getRefereeComments', async (_, competitionId: string, refereeId?: string) => {
-  return db.getRefereeComments(competitionId, refereeId);
-});
-
-ipcMain.handle('db:getRefereesByCompetition', async (_, competitionId) => {
-  return db.getRefereesByCompetition(competitionId);
-});
-ipcMain.handle('db:updateReferee', async (_, id, updates) => {
-  return db.updateReferee(id, updates);
-});
-ipcMain.handle('db:deleteReferee', async (_, id) => {
-  return db.deleteReferee(id);
-});
-ipcMain.handle('db:getMatchesWithReferees', async (_, competitionId) => {
-  return db.getMatchesWithReferees(competitionId);
-});
-ipcMain.handle('db:getRefereeStats', async (_, competitionId) => {
-  return db.getRefereeStats(competitionId);
-});
-
-// Touch / Card read handlers
-ipcMain.handle('db:getTouches', async (_, matchId) => {
-  return db.getTouches(matchId);
-});
-ipcMain.handle('db:getCards', async (_, matchId) => {
-  return db.getCards(matchId);
-});
-
-// Statistiques combattants
-ipcMain.handle('db:saveTouch', async (_, touch) => {
-  return db.saveTouch(touch);
-});
-
-ipcMain.handle('db:saveCard', async (_, card) => {
-  return db.saveCard(card);
-});
-
-ipcMain.handle('db:updateMatchTiming', async (_, timing) => {
-  return db.updateMatchTiming(timing.matchId, timing.startTime, timing.endTime, timing.duration);
-});
-
-ipcMain.handle('db:getFencerHistory', async (_, fencerId) => {
-  return db.getFencerHistory(fencerId);
-});
-
-ipcMain.handle('db:saveArenaExit', async (_, exit) => {
-  return db.saveArenaExit(exit);
-});
-
-ipcMain.handle('db:getFencerCompetitionStats', async (_, fencerId) => {
-  return db.getFencerCompetitionStats(fencerId);
-});
-
-ipcMain.handle('db:getCompetitionFencerStats', async (_, competitionId) => {
-  return db.getCompetitionFencerStats(competitionId);
-});
-
-// Abandon snapshot handlers
-ipcMain.handle(
-  'db:saveAbandonSnapshot',
-  async (_, fencerId, competitionId, previousStatus, abandonType, snapshots) => {
-    db.saveAbandonSnapshot(fencerId, competitionId, previousStatus, abandonType, snapshots);
-  }
-);
-
-ipcMain.handle('db:getAbandonSnapshot', async (_, fencerId) => {
-  return db.getAbandonSnapshot(fencerId);
-});
-
-ipcMain.handle('db:deleteAbandonSnapshot', async (_, fencerId) => {
-  db.deleteAbandonSnapshot(fencerId);
-});
-
-ipcMain.handle('db:getScoreAuditLogByCompetition', async (_, competitionId) => {
-  return db.getScoreAuditLogByCompetition(competitionId);
-});
-
-ipcMain.handle('db:getMatchTimeline', async (_, matchId: string) => {
-  return db.getMatchTimeline(matchId);
-});
-
-ipcMain.handle('db:getCompetitionTimeline', async (_, competitionId: string) => {
-  return db.getCompetitionTimeline(competitionId);
-});
+registerDbHandlers({ db, remoteServers, stopRemoteServer });
 
 // File handlers
 ipcMain.handle('file:export', async (_, filepath) => {
-  await db.exportToFile(filepath);
+  await db.exportToFile(assertAuthorizedPath(filepath, 'write'));
 });
 
 ipcMain.handle('file:import', async (_, filepath) => {
-  await db.importFromFile(filepath);
+  await db.importFromFile(assertAuthorizedPath(filepath, 'read'));
+});
+
+ipcMain.handle('file:openDialog', async () => {
+  await handleOpenFile();
+});
+
+ipcMain.handle('file:exportCompetition', async (_, competitionId: string) => {
+  if (!competitionId || typeof competitionId !== 'string') {
+    return { success: false, error: 'invalid_competition_id' };
+  }
+  return exportCompetitionDialog(competitionId);
+});
+
+ipcMain.on('app:current-competition', (_, competitionId: unknown) => {
+  currentCompetitionId = typeof competitionId === 'string' ? competitionId : null;
 });
 
 // Écriture atomique asynchrone (temp + rename) — ne bloque pas le main thread
@@ -1353,10 +805,8 @@ async function writeFileAtomic(filepath: string, content: Buffer | string): Prom
 
 // File content write handler
 ipcMain.handle('file:writeContent', async (_, filepath: string, content: string) => {
-  if (!filepath || typeof filepath !== 'string' || !path.isAbsolute(filepath)) {
-    throw new Error('Invalid file path');
-  }
-  const resolved = path.resolve(filepath);
+  // Chemin issu d'une boîte de dialogue native uniquement (#1146)
+  const resolved = assertAuthorizedPath(filepath, 'write');
   const appDir = path.resolve(app.getAppPath());
   if (resolved.startsWith(appDir)) {
     throw new Error('Writing inside app directory is not allowed');
@@ -1366,6 +816,7 @@ ipcMain.handle('file:writeContent', async (_, filepath: string, content: string)
 
 // Photo ZIP export handler
 ipcMain.handle('file:exportPhotos', async (_, competitionId: string, filepath: string) => {
+  filepath = assertAuthorizedPath(filepath, 'write');
   const photos = db.getFencerPhotos(competitionId);
   const zip = new JSZip();
 
@@ -1386,13 +837,15 @@ ipcMain.handle('file:exportPhotos', async (_, competitionId: string, filepath: s
 
 // Photo ZIP import handler
 ipcMain.handle('file:importPhotos', async (_, competitionId: string, filepath: string) => {
-  const buffer = await fs.promises.readFile(filepath);
+  filepath = assertAuthorizedPath(filepath, 'read', ['.zip']);
+  const buffer = await readBoundedFile(filepath);
   const zip = await JSZip.loadAsync(buffer);
+  const safeNames = checkZipEntries(zip);
 
   const photos: { license: string; photo: string }[] = [];
 
-  for (const [filename, file] of Object.entries(zip.files)) {
-    if (file.dir) continue;
+  for (const filename of safeNames) {
+    const file = zip.files[filename];
     const ext = path.extname(filename).toLowerCase();
     if (!['.jpg', '.jpeg', '.png'].includes(ext)) continue;
     const basename = path.basename(filename, ext);
@@ -1406,6 +859,7 @@ ipcMain.handle('file:importPhotos', async (_, competitionId: string, filepath: s
 
 // Fencer archive (.bpf) export handler
 ipcMain.handle('file:exportFencersArchive', async (_, competitionId: string, filepath: string) => {
+  filepath = assertAuthorizedPath(filepath, 'write');
   const fencers = db.getFencersByCompetition(competitionId);
   const competition = db.getCompetition(competitionId);
   const zip = new JSZip();
@@ -1426,11 +880,13 @@ ipcMain.handle('file:exportFencersArchive', async (_, competitionId: string, fil
 
 // Fencer archive (.bpf) import handler
 ipcMain.handle('file:importFencersArchive', async (_, competitionId: string, filepath: string) => {
-  const buffer = await fs.promises.readFile(filepath);
+  filepath = assertAuthorizedPath(filepath, 'read', ['.bpf']);
+  const buffer = await readBoundedFile(filepath);
   const zip = await JSZip.loadAsync(buffer);
+  checkZipEntries(zip);
   const fencersFile = zip.file('fencers.json');
   if (!fencersFile) throw new Error('Format .bpf invalide : fencers.json manquant');
-  const fencers = JSON.parse(await fencersFile.async('string'));
+  const fencers = validateImportedFencers(JSON.parse(await fencersFile.async('string')));
   return db.upsertFencersByLicense(competitionId, fencers);
 });
 
@@ -1440,6 +896,7 @@ ipcMain.handle('dialog:openFile', async (_, options) => {
 
   if (!result.canceled && result.filePaths.length > 0) {
     const filePath = result.filePaths[0];
+    authorizePath(filePath, 'read');
     try {
       const content = decodeTextFile(await fs.promises.readFile(filePath));
       return { filePath, content };
@@ -1453,7 +910,9 @@ ipcMain.handle('dialog:openFile', async (_, options) => {
 });
 
 ipcMain.handle('dialog:saveFile', async (_, options) => {
-  return dialog.showSaveDialog(mainWindow!, options);
+  const result = await dialog.showSaveDialog(mainWindow!, options);
+  if (!result.canceled && result.filePath) authorizePath(result.filePath, 'write');
+  return result;
 });
 
 // Window resize handler
@@ -1491,7 +950,7 @@ ipcMain.handle('file:printHtml', async (_, html: string) => {
   try {
     await fs.promises.writeFile(tmpFile, html, 'utf-8');
   } catch (e) {
-    return { success: false, error: `Impossible de créer le fichier temporaire: ${e}` };
+    return { success: false, error: 'temp_file_failed', detail: String(e) };
   }
 
   return new Promise<{ success: boolean; error?: string }>(resolve => {
@@ -1525,7 +984,7 @@ ipcMain.handle('file:printHtml', async (_, html: string) => {
         /* ignore */
       }
       printWin.destroy();
-      resolve({ success: false, error: 'Chargement HTML échoué' });
+      resolve({ success: false, error: 'html_load_failed' });
     });
   });
 });
@@ -1581,8 +1040,9 @@ function renderHtmlToPdfBuffer(html: string): Promise<Buffer> {
 // PDF generation via hidden BrowserWindow (propre, sans menus d'application)
 ipcMain.handle('file:printHtmlToPDF', async (_, html: string, outputPath: string) => {
   try {
+    const target = assertAuthorizedPath(outputPath, 'write', ['.pdf']);
     const data = await renderHtmlToPdfBuffer(html);
-    await fs.promises.writeFile(outputPath, data);
+    await fs.promises.writeFile(target, data);
     return { success: true, path: outputPath };
   } catch (e) {
     return { success: false, error: e instanceof Error ? e.message : String(e) };
@@ -1609,6 +1069,11 @@ ipcMain.handle('file:previewHtmlAsPDF', async (_, html: string) => {
 });
 
 // Shell handlers
+// Lag de la boucle d'événements du main (#1154) ; `reset` ouvre une nouvelle fenêtre de mesure
+ipcMain.handle('perf:getEventLoopDelay', (_, reset?: boolean) =>
+  eventLoopMonitor.snapshot(reset === true)
+);
+
 ipcMain.handle('shell:openExternal', async (_, url: string) => {
   // N'autoriser que les URLs https:// pour éviter les exploits via des schémas arbitraires
   if (typeof url !== 'string' || !url.startsWith('https://')) {
@@ -1639,7 +1104,7 @@ ipcMain.handle(
   async (_event, competitionId: string, port?: number, host?: string, useHttps?: boolean) => {
     try {
       if (remoteServers.has(competitionId)) {
-        return { success: false, error: 'Le serveur est déjà démarré pour cette compétition' };
+        return { success: false, error: 'remote_already_started' };
       }
 
       const effectivePort = findAvailablePort(port);
@@ -1654,7 +1119,7 @@ ipcMain.handle(
           certFingerprint = bundle.fingerprint;
         } catch (certError) {
           console.error('Erreur génération certificat TLS:', certError);
-          return { success: false, error: 'Impossible de générer le certificat TLS' };
+          return { success: false, error: 'tls_cert_failed' };
         }
       }
 
@@ -1665,6 +1130,7 @@ ipcMain.handle(
         console.error('Error binding remote server port:', startError);
         return { success: false, error: startError?.message ?? 'Port indisponible' };
       }
+      applyActiveWave(competitionId, server);
       remoteServers.set(competitionId, {
         server,
         port: effectivePort,
@@ -1701,19 +1167,10 @@ ipcMain.handle(
   }
 );
 
-function stopRemoteServer(competitionId: string): boolean {
-  const entry = remoteServers.get(competitionId);
-  if (!entry) return false;
-  entry.server.stop();
-  usedPorts.delete(entry.port);
-  remoteServers.delete(competitionId);
-  return true;
-}
-
 ipcMain.handle('remote:stopServer', async (_event, competitionId: string) => {
   try {
     if (!stopRemoteServer(competitionId)) {
-      return { success: false, error: "Le serveur n'est pas démarré pour cette compétition" };
+      return { success: false, error: 'remote_not_started' };
     }
 
     return { success: true };
@@ -1726,7 +1183,7 @@ ipcMain.handle('remote:stopServer', async (_event, competitionId: string) => {
 ipcMain.handle('remote:getServerInfo', async (_event, competitionId: string) => {
   const entry = remoteServers.get(competitionId);
   if (!entry) {
-    return { success: false, error: "Le serveur n'est pas démarré pour cette compétition" };
+    return { success: false, error: 'remote_not_started' };
   }
 
   return {
@@ -1767,7 +1224,7 @@ ipcMain.handle(
       if (!entry) {
         return {
           success: false,
-          error: 'Le serveur distant n est pas démarré pour cette compétition',
+          error: 'remote_not_started',
         };
       }
 
@@ -1800,7 +1257,7 @@ ipcMain.handle(
   ) => {
     try {
       const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      if (!entry) return { success: false, error: 'server_not_started' };
       entry.server.updateMatchArena(matchId, fromArena, toArena, fencerA, fencerB);
       return { success: true };
     } catch (error) {
@@ -1814,7 +1271,7 @@ ipcMain.handle(
   async (_, competitionId: string, updates: Array<{ poolId: string; fencers: any[] }>) => {
     try {
       const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      if (!entry) return { success: false, error: 'server_not_started' };
       entry.server.updatePoolFencers(updates);
       return { success: true };
     } catch (error) {
@@ -1824,11 +1281,19 @@ ipcMain.handle(
 );
 
 ipcMain.handle(
+  'remote:setActiveWave',
+  async (_, competitionId: string, matchIds: string[] | null, poolsClosed?: boolean) => {
+    setActiveWave(competitionId, matchIds, poolsClosed);
+    return { success: true };
+  }
+);
+
+ipcMain.handle(
   'remote:syncPoolMatches',
   async (_, competitionId: string, poolsData: Array<{ poolId: string; matches: any[] }>) => {
     try {
       const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      if (!entry) return { success: false, error: 'server_not_started' };
       entry.server.syncPoolMatches(poolsData);
       return { success: true };
     } catch (error) {
@@ -1840,7 +1305,7 @@ ipcMain.handle(
 ipcMain.handle('remote:assignPools', async (_, competitionId: string, poolsData: any[]) => {
   try {
     const entry = remoteServers.get(competitionId);
-    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    if (!entry) return { success: false, error: 'server_not_started' };
     entry.server.assignPools(poolsData);
     return { success: true };
   } catch (error) {
@@ -1851,7 +1316,7 @@ ipcMain.handle('remote:assignPools', async (_, competitionId: string, poolsData:
 ipcMain.handle('remote:refreshDeMatches', async (_, competitionId: string, matches: any[]) => {
   try {
     const entry = remoteServers.get(competitionId);
-    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    if (!entry) return { success: false, error: 'server_not_started' };
     entry.server.refreshDeMatches(matches);
     return { success: true };
   } catch (error) {
@@ -1872,11 +1337,11 @@ ipcMain.handle('remote:resetPoolMatch', async (_, competitionId: string, matchId
 
 ipcMain.handle(
   'remote:finishPoolMatch',
-  async (_, competitionId: string, matchId: string, scoreA: number, scoreB: number) => {
+  async (_, competitionId: string, ...args: Parameters<RemoteScoreServer['finishPoolMatch']>) => {
     try {
       const entry = remoteServers.get(competitionId);
       if (!entry) return { success: true };
-      entry.server.finishPoolMatch(matchId, scoreA, scoreB);
+      entry.server.finishPoolMatch(...args);
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
@@ -1891,9 +1356,9 @@ ipcMain.handle(
   async (_, competitionId: string, arenaId: string, matchId: string, isLaserPoints: boolean) => {
     try {
       const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'Serveur distant non démarré' };
+      if (!entry) return { success: false, error: 'remote_not_started' };
       const ok = entry.server.setTeamArenaMatch(arenaId, matchId, isLaserPoints);
-      return ok ? { success: true } : { success: false, error: 'Match introuvable' };
+      return ok ? { success: true } : { success: false, error: 'match_not_found' };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
     }
@@ -1917,7 +1382,7 @@ ipcMain.handle('remote:stopSession', async (_event, competitionId: string) => {
     if (!entry) {
       return {
         success: false,
-        error: 'Le serveur distant n est pas démarré pour cette compétition',
+        error: 'remote_not_started',
       };
     }
 
@@ -1935,7 +1400,7 @@ ipcMain.handle('remote:launchCompetition', async (_event, competitionId: string)
     if (!entry) {
       return {
         success: false,
-        error: 'Le serveur distant n est pas démarré pour cette compétition',
+        error: 'remote_not_started',
       };
     }
 
@@ -1950,7 +1415,7 @@ ipcMain.handle('remote:launchCompetition', async (_event, competitionId: string)
 ipcMain.handle('remote:getSession', async (_event, competitionId: string) => {
   const entry = remoteServers.get(competitionId);
   if (!entry) {
-    return { success: false, error: 'Le serveur distant n est pas démarré pour cette compétition' };
+    return { success: false, error: 'remote_not_started' };
   }
 
   return { success: true, session: entry.server.getSession() };
@@ -1959,7 +1424,7 @@ ipcMain.handle('remote:getSession', async (_event, competitionId: string) => {
 ipcMain.handle('remote:getArenas', async (_event, competitionId: string) => {
   const entry = remoteServers.get(competitionId);
   if (!entry) {
-    return { success: false, error: 'Le serveur distant n est pas démarré pour cette compétition' };
+    return { success: false, error: 'remote_not_started' };
   }
 
   return { success: true, arenas: entry.server.getAllArenas() };
@@ -1971,7 +1436,7 @@ ipcMain.handle('remote:updateStripCount', async (_, competitionId: string, newCo
     if (!entry) {
       return {
         success: false,
-        error: 'Le serveur distant n est pas démarré pour cette compétition',
+        error: 'remote_not_started',
       };
     }
 
@@ -1989,7 +1454,7 @@ ipcMain.handle('remote:updateShowPhotos', async (_, competitionId: string, value
     if (!entry) {
       return {
         success: false,
-        error: 'Le serveur distant n est pas démarré pour cette compétition',
+        error: 'remote_not_started',
       };
     }
     entry.server.updateShowPhotos(value);
@@ -2006,7 +1471,7 @@ ipcMain.handle('remote:updateCardAnnounce', async (_, competitionId: string, val
     if (!entry) {
       return {
         success: false,
-        error: 'Le serveur distant n est pas démarré pour cette compétition',
+        error: 'remote_not_started',
       };
     }
     entry.server.updateCardAnnounce(value);
@@ -2023,7 +1488,7 @@ ipcMain.handle('remote:updateTheme', async (_, competitionId: string, theme: str
     if (!entry) {
       return {
         success: false,
-        error: 'Le serveur distant n est pas démarré pour cette compétition',
+        error: 'remote_not_started',
       };
     }
     entry.server.updateTheme(theme as any);
@@ -2042,7 +1507,7 @@ ipcMain.handle(
       if (!entry) {
         return {
           success: false,
-          error: 'Le serveur distant n est pas démarré pour cette compétition',
+          error: 'remote_not_started',
         };
       }
       entry.server.updateArenaTheme(arenaId, theme as any, customTheme);
@@ -2062,7 +1527,7 @@ ipcMain.handle(
       if (!entry)
         return {
           success: false,
-          error: 'Le serveur distant n est pas démarré pour cette compétition',
+          error: 'remote_not_started',
         };
       entry.server.clearArenaThemeOverride(arenaId);
       return { success: true };
@@ -2084,7 +1549,7 @@ ipcMain.handle(
       if (!entry) {
         return {
           success: false,
-          error: 'Le serveur distant n est pas démarré pour cette compétition',
+          error: 'remote_not_started',
         };
       }
       entry.server.updateKioskViews(views);
@@ -2104,7 +1569,7 @@ ipcMain.handle(
       if (!entry) {
         return {
           success: false,
-          error: 'Le serveur distant n est pas démarré pour cette compétition',
+          error: 'remote_not_started',
         };
       }
       entry.server.updateKioskTheme(variables);
@@ -2121,7 +1586,7 @@ ipcMain.handle(
   async (_, competitionId: string, arenaId: string, targetType: string, customTheme?: any) => {
     try {
       const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      if (!entry) return { success: false, error: 'server_not_started' };
       entry.server.updateArenaScreenTheme(arenaId, targetType as any, customTheme);
       return { success: true };
     } catch (error) {
@@ -2186,7 +1651,7 @@ ipcMain.handle(
       if (!entry) {
         return {
           success: false,
-          error: 'Le serveur distant n est pas démarré pour cette compétition',
+          error: 'remote_not_started',
         };
       }
       entry.server.setArenaPassword(arenaId, password);
@@ -2204,7 +1669,7 @@ ipcMain.handle('remote:setOrgNote', async (_, competitionId: string, note: any) 
     if (!entry) {
       return {
         success: false,
-        error: 'Le serveur distant n est pas démarré pour cette compétition',
+        error: 'remote_not_started',
       };
     }
     entry.server.setOrgNote(note);
@@ -2222,7 +1687,7 @@ ipcMain.handle('remote:clearOrgNote', async (_event, competitionId: string) => {
     if (!entry) {
       return {
         success: false,
-        error: 'Le serveur distant n est pas démarré pour cette compétition',
+        error: 'remote_not_started',
       };
     }
     entry.server.clearOrgNote();
@@ -2237,7 +1702,7 @@ ipcMain.handle('remote:clearOrgNote', async (_event, competitionId: string) => {
 ipcMain.handle('remote:acknowledgeDTCall', async (_, competitionId: string, arenaId: string) => {
   try {
     const entry = remoteServers.get(competitionId);
-    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    if (!entry) return { success: false, error: 'server_not_started' };
     entry.server.acknowledgeDTCall(arenaId);
     return { success: true };
   } catch (error) {
@@ -2251,9 +1716,9 @@ ipcMain.handle(
   async (_, competitionId: string, arenaId: string, request: MatchSignatureRequest) => {
     try {
       const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      if (!entry) return { success: false, error: 'server_not_started' };
       if (!entry.server.requestMatchSignature(arenaId, request)) {
-        return { success: false, error: 'Piste introuvable' };
+        return { success: false, error: 'strip_not_found' };
       }
       return { success: true };
     } catch (error) {
@@ -2313,10 +1778,10 @@ ipcMain.handle('remote:changePort', async (_, competitionId: string, newPort: nu
   try {
     const entry = remoteServers.get(competitionId);
     if (!entry) {
-      return { success: false, error: 'Le serveur n est pas démarré pour cette compétition' };
+      return { success: false, error: 'remote_not_started' };
     }
     if (usedPorts.has(newPort) && newPort !== entry.port) {
-      return { success: false, error: `Le port ${newPort} est déjà utilisé` };
+      return { success: false, error: 'port_in_use', port: newPort };
     }
     const { host, useHttps, certFingerprint } = entry;
     let tlsOptions: { cert: string; key: string } | undefined;
@@ -2332,6 +1797,7 @@ ipcMain.handle('remote:changePort', async (_, competitionId: string, newPort: nu
     usedPorts.delete(entry.port);
     const server = new RemoteScoreServer(db, newPort, host, tlsOptions);
     server.start();
+    applyActiveWave(competitionId, server);
     remoteServers.set(competitionId, {
       server,
       port: newPort,
@@ -2360,7 +1826,7 @@ ipcMain.handle(
   async (_, competitionId: string, enabled: boolean) => {
     try {
       const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      if (!entry) return { success: false, error: 'server_not_started' };
       entry.server.setRegistrationEnabled(enabled);
       return { success: true };
     } catch (error) {
@@ -2372,7 +1838,7 @@ ipcMain.handle(
 ipcMain.handle('remote:setCheckinEnabled', async (_, competitionId: string, enabled: boolean) => {
   try {
     const entry = remoteServers.get(competitionId);
-    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    if (!entry) return { success: false, error: 'server_not_started' };
     entry.server.setCheckinEnabled(enabled);
     return { success: true };
   } catch (error) {
@@ -2383,7 +1849,7 @@ ipcMain.handle('remote:setCheckinEnabled', async (_, competitionId: string, enab
 ipcMain.handle('remote:setCheckinPassword', async (_, competitionId: string, password: string) => {
   try {
     const entry = remoteServers.get(competitionId);
-    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    if (!entry) return { success: false, error: 'server_not_started' };
     entry.server.setCheckinPassword(typeof password === 'string' ? password : '');
     return { success: true };
   } catch (error) {
@@ -2395,7 +1861,7 @@ ipcMain.handle('remote:setCheckinPassword', async (_, competitionId: string, pas
 ipcMain.handle('remote:setTrainerEnabled', async (_, competitionId: string, enabled: boolean) => {
   try {
     const entry = remoteServers.get(competitionId);
-    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    if (!entry) return { success: false, error: 'server_not_started' };
     entry.server.setTrainerEnabled(!!enabled);
     return { success: true };
   } catch (error) {
@@ -2406,7 +1872,7 @@ ipcMain.handle('remote:setTrainerEnabled', async (_, competitionId: string, enab
 ipcMain.handle('remote:setTrainerPassword', async (_, competitionId: string, password: string) => {
   try {
     const entry = remoteServers.get(competitionId);
-    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    if (!entry) return { success: false, error: 'server_not_started' };
     entry.server.setTrainerPassword(typeof password === 'string' ? password : '');
     return { success: true };
   } catch (error) {
@@ -2432,7 +1898,7 @@ ipcMain.handle(
   async (_, competitionId: string, socketId: string, command: any) => {
     try {
       const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      if (!entry) return { success: false, error: 'server_not_started' };
       entry.server.sendClientCommand(socketId, command);
       return { success: true };
     } catch (error) {
@@ -2444,7 +1910,7 @@ ipcMain.handle(
 ipcMain.handle('remote:broadcastCommand', async (_, competitionId: string, command: any) => {
   try {
     const entry = remoteServers.get(competitionId);
-    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    if (!entry) return { success: false, error: 'server_not_started' };
     entry.server.broadcastCommand(command);
     return { success: true };
   } catch (error) {
@@ -2457,7 +1923,7 @@ ipcMain.handle(
   async (_, competitionId: string, socketId: string, label: string) => {
     try {
       const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      if (!entry) return { success: false, error: 'server_not_started' };
       entry.server.renameClient(socketId, label);
       return { success: true };
     } catch (error) {
@@ -2469,7 +1935,7 @@ ipcMain.handle(
 ipcMain.handle('remote:identifyClient', async (_, competitionId: string, socketId: string) => {
   try {
     const entry = remoteServers.get(competitionId);
-    if (!entry) return { success: false, error: 'Serveur non démarré' };
+    if (!entry) return { success: false, error: 'server_not_started' };
     entry.server.identifyClient(socketId);
     return { success: true };
   } catch (error) {
@@ -2482,7 +1948,7 @@ ipcMain.handle(
   async (_, competitionId: string, socketId: string, config: any) => {
     try {
       const entry = remoteServers.get(competitionId);
-      if (!entry) return { success: false, error: 'Serveur non démarré' };
+      if (!entry) return { success: false, error: 'server_not_started' };
       entry.server.setClientKioskMode(socketId, config);
       return { success: true };
     } catch (error) {
@@ -2504,152 +1970,7 @@ ipcMain.handle('remote:setTtsConfig', async (_, config: unknown) => {
   }
 });
 
-// Training mode handlers
-const TRAINING_ID = '__training__';
-
-ipcMain.handle(
-  'training:startServer',
-  async (_event, port?: number, host?: string, useHttps?: boolean) => {
-    try {
-      if (remoteServers.has(TRAINING_ID)) {
-        return { success: false, error: 'Serveur entraînement déjà démarré' };
-      }
-      const effectivePort = findAvailablePort(port);
-      const effectiveHost = host ?? '0.0.0.0';
-      let tlsOptions: { cert: string; key: string } | undefined;
-      let certFingerprint: string | undefined;
-      if (useHttps) {
-        try {
-          const bundle = await ensureCert(app.getPath('userData'));
-          tlsOptions = { cert: bundle.cert, key: bundle.key };
-          certFingerprint = bundle.fingerprint;
-        } catch (certError) {
-          return { success: false, error: 'Impossible de générer le certificat TLS' };
-        }
-      }
-      const server = new RemoteScoreServer(db, effectivePort, effectiveHost, tlsOptions);
-      try {
-        await server.start();
-      } catch (startError: any) {
-        return { success: false, error: startError?.message ?? 'Port indisponible' };
-      }
-      remoteServers.set(TRAINING_ID, {
-        server,
-        port: effectivePort,
-        host: effectiveHost,
-        useHttps: !!useHttps,
-        certFingerprint,
-      });
-      usedPorts.add(effectivePort);
-      try {
-        const ttsPath = path.join(app.getPath('userData'), 'tts-config.json');
-        server.setTtsConfig(JSON.parse(await fs.promises.readFile(ttsPath, 'utf-8')));
-      } catch {
-        /* optionnel */
-      }
-      (global as any).mainWindow = mainWindow;
-      return {
-        success: true,
-        serverInfo: {
-          url: server.getServerUrl(),
-          ip: server.getLocalIPAddress(),
-          port: effectivePort,
-          useHttps: !!useHttps,
-          certFingerprint,
-        },
-      };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
-    }
-  }
-);
-
-ipcMain.handle('training:stopServer', async () => {
-  try {
-    const entry = remoteServers.get(TRAINING_ID);
-    if (!entry) return { success: false, error: 'Serveur entraînement non démarré' };
-    entry.server.stop();
-    usedPorts.delete(entry.port);
-    remoteServers.delete(TRAINING_ID);
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
-  }
-});
-
-ipcMain.handle(
-  'training:startSession',
-  async (_event, strips: number, weapon: string, customRules?: any) => {
-    try {
-      const entry = remoteServers.get(TRAINING_ID);
-      if (!entry) return { success: false, error: 'Serveur entraînement non démarré' };
-      const session = await entry.server.startTrainingSession(strips, weapon, customRules);
-      return { success: true, session };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
-    }
-  }
-);
-
-ipcMain.handle('training:stopSession', async () => {
-  try {
-    const entry = remoteServers.get(TRAINING_ID);
-    if (!entry) return { success: false, error: 'Serveur entraînement non démarré' };
-    entry.server.stopTrainingSession();
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
-  }
-});
-
-ipcMain.handle('training:getHistory', async () => {
-  try {
-    const entry = remoteServers.get(TRAINING_ID);
-    if (!entry) return { success: true, history: [] };
-    return { success: true, history: entry.server.getTrainingHistory() };
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
-  }
-});
-
-ipcMain.handle('training:getSession', async () => {
-  try {
-    const entry = remoteServers.get(TRAINING_ID);
-    if (!entry) return { success: true, session: null };
-    return { success: true, session: entry.server.getSession() };
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
-  }
-});
-
-ipcMain.handle('training:getArenas', async () => {
-  try {
-    const entry = remoteServers.get(TRAINING_ID);
-    if (!entry) return { success: true, arenas: [] };
-    return { success: true, arenas: entry.server.getAllArenas() };
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
-  }
-});
-
-ipcMain.handle('training:getServerInfo', async () => {
-  try {
-    const entry = remoteServers.get(TRAINING_ID);
-    if (!entry) return { success: false, error: 'Serveur non démarré' };
-    return {
-      success: true,
-      serverInfo: {
-        url: entry.server.getServerUrl(),
-        ip: entry.server.getLocalIPAddress(),
-        port: entry.port,
-        useHttps: entry.useHttps,
-        certFingerprint: entry.certFingerprint,
-      },
-    };
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
-  }
-});
+registerTrainingHandlers({ db, getMainWindow: () => mainWindow });
 
 ipcMain.handle('app:getTtsConfig', async () => {
   const ttsPath = path.join(app.getPath('userData'), 'tts-config.json');
@@ -2676,7 +1997,7 @@ ipcMain.handle('app:getVersionInfo', async () => {
 
 // Language change handler — rebuild native menu in the new language
 ipcMain.on('app:language-changed', (_, lang: string) => {
-  currentMenuLanguage = lang;
+  setUiLanguage(lang);
   saveLanguageToFile(lang);
   createMenu(lang);
   for (const { server } of remoteServers.values()) {
@@ -2697,7 +2018,7 @@ ipcMain.handle('updater:setSilentMode', async (_, enabled: boolean) => {
     autoUpdater.setSilentMode(enabled);
     return { success: true, silent: enabled };
   }
-  return { success: false, error: 'AutoUpdater not initialized' };
+  return { success: false, error: 'updater_unavailable' };
 });
 
 ipcMain.handle('updater:getSilentMode', async () => {
@@ -2726,7 +2047,7 @@ ipcMain.handle('updater:installPendingUpdate', async () => {
     await autoUpdater.checkAndInstallPendingUpdate();
     return { success: true };
   }
-  return { success: false, error: 'AutoUpdater not initialized' };
+  return { success: false, error: 'updater_unavailable' };
 });
 
 // ============================================================================
@@ -2747,138 +2068,6 @@ ipcMain.handle('crypto:unprotect', async (_, ciphertextB64: string) => {
   if (typeof ciphertextB64 !== 'string') throw new Error('ciphertext must be a string');
   if (!safeStorage.isEncryptionAvailable()) return null;
   return safeStorage.decryptString(Buffer.from(ciphertextB64, 'base64'));
-});
-
-// ── Classement saisonnier Quest ───────────────────────────────────────────────
-
-ipcMain.handle(
-  'db:addCompetitionToSeason',
-  async (_, payload: Parameters<typeof db.addCompetitionToSeason>[0]) => {
-    return db.addCompetitionToSeason(payload);
-  }
-);
-
-ipcMain.handle('db:getSeasonRanking', async () => {
-  return db.getSeasonRanking();
-});
-
-ipcMain.handle('db:getSeasonCompetitions', async () => {
-  return db.getSeasonCompetitions();
-});
-
-ipcMain.handle('db:removeCompetitionFromSeason', async (_, competitionId: string) => {
-  return db.removeCompetitionFromSeason(competitionId);
-});
-
-ipcMain.handle('db:resetSeason', async () => {
-  return db.resetSeason();
-});
-
-// ── Équipes ───────────────────────────────────────────────────────────────────
-
-ipcMain.handle('db:createTeam', async (_, competitionId: string, name: string, club: string) => {
-  return db.createTeam(competitionId, name, club);
-});
-
-ipcMain.handle('db:getTeamsByCompetition', async (_, competitionId: string) => {
-  return db.getTeamsByCompetition(competitionId);
-});
-
-ipcMain.handle('db:deleteTeam', async (_, teamId: string) => {
-  return db.deleteTeam(teamId);
-});
-
-ipcMain.handle(
-  'db:upsertTeamFencer',
-  async (_, teamId: string, fencerId: string, teamOrder: number, isReserve: boolean) => {
-    return db.upsertTeamFencer(teamId, fencerId, teamOrder, isReserve);
-  }
-);
-
-ipcMain.handle('db:removeTeamFencer', async (_, teamId: string, fencerId: string) => {
-  return db.removeTeamFencer(teamId, fencerId);
-});
-
-ipcMain.handle(
-  'db:createTeamMatch',
-  async (
-    _,
-    competitionId: string,
-    poolNumber: number,
-    teamAId: string,
-    teamBId: string,
-    round?: number
-  ) => {
-    return db.createTeamMatch(competitionId, poolNumber, teamAId, teamBId, round);
-  }
-);
-
-ipcMain.handle('db:getTeamMatchesByCompetition', async (_, competitionId: string) => {
-  return db.getTeamMatchesByCompetition(competitionId);
-});
-
-ipcMain.handle(
-  'db:createTeamBout',
-  async (
-    _,
-    matchId: string,
-    boutOrder: number,
-    fencerAId: string,
-    fencerBId: string,
-    maxScore: number
-  ) => {
-    return db.createTeamBout(matchId, boutOrder, fencerAId, fencerBId, maxScore);
-  }
-);
-
-ipcMain.handle(
-  'db:updateTeamBout',
-  async (
-    _,
-    boutId: string,
-    scoreA: number,
-    scoreB: number,
-    status: string,
-    winnerId: string | null
-  ) => {
-    return db.updateTeamBout(boutId, scoreA, scoreB, status, winnerId);
-  }
-);
-
-ipcMain.handle(
-  'db:createTeamTableauMatch',
-  async (
-    _,
-    competitionId: string,
-    tableId: string,
-    round: number,
-    position: number,
-    teamAId: string,
-    teamBId: string
-  ) => {
-    return db.createTeamTableauMatch(competitionId, tableId, round, position, teamAId, teamBId);
-  }
-);
-
-ipcMain.handle('db:getTeamTableauMatches', async (_, competitionId: string, tableId: string) => {
-  return db.getTeamTableauMatches(competitionId, tableId);
-});
-
-ipcMain.handle(
-  'db:createTeamMatchCard',
-  async (
-    _,
-    matchId: string,
-    teamId: string,
-    type: 'white' | 'yellow' | 'red' | 'black',
-    reason: string
-  ) => {
-    return db.createTeamMatchCard(matchId, teamId, type, reason);
-  }
-);
-
-ipcMain.handle('db:getTeamMatchCards', async (_, matchId: string) => {
-  return db.getTeamMatchCards(matchId);
 });
 
 // ============================================================================
@@ -2910,6 +2099,7 @@ if (process.platform === 'linux' && process.env.BELLEPOULE_SW_RENDER === '1') {
 }
 
 app.whenReady().then(async () => {
+  eventLoopMonitor.start();
   // Afficher le splash immédiatement pendant que tout le reste charge
   createSplashWindow();
 
@@ -2965,13 +2155,13 @@ app.whenReady().then(async () => {
       if (autoUpdater.hasPendingUpdate()) {
         const pendingInfo = autoUpdater.getPendingUpdateInfo();
         console.log(`[Main] Mise à jour en attente trouvée: v${pendingInfo?.version}`);
+        const L = getL();
         const result = await dialog.showMessageBox(win, {
           type: 'info',
-          title: 'Mise à jour en attente',
-          message: `La version ${pendingInfo?.version} est prête à être installée.`,
-          detail:
-            "Voulez-vous installer cette mise à jour maintenant ? L'application va redémarrer.",
-          buttons: ['Installer maintenant', 'Plus tard'],
+          title: L.updPendingTitle,
+          message: fmt(L.updPendingMsg, { version: pendingInfo?.version }),
+          detail: L.updInstallDetail,
+          buttons: [L.updInstallNow, L.updLater],
           defaultId: 0,
           cancelId: 1,
         });
@@ -3051,8 +2241,8 @@ process.on('uncaughtException', error => {
   void dialog
     .showMessageBox({
       type: 'error',
-      title: 'Erreur',
-      message: `Une erreur inattendue s'est produite: ${error.message}`,
+      title: getL().errTitle,
+      message: fmt(getL().unexpectedError, { error: error.message }),
     })
     .catch(() => undefined);
 });

@@ -7,6 +7,7 @@
 import React from 'react';
 import { Pool } from '../../../shared/types';
 import { FencerPhoto } from '../FencerPhoto';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface KioskScoreEntryProps {
   pools: Pool[];
@@ -27,7 +28,7 @@ const KIOSK_STYLES = {
     right: 0,
     bottom: 0,
     zIndex: 9999,
-    background: '#f3f4f6',
+    background: 'var(--color-bg)',
     overflow: 'auto' as const,
   } satisfies React.CSSProperties,
   kioskCloseWrapper: {
@@ -49,7 +50,7 @@ const KIOSK_STYLES = {
     fontWeight: 'bold' as const,
   } satisfies React.CSSProperties,
   kioskContent: { padding: '2rem' } satisfies React.CSSProperties,
-  kioskHeading: { marginBottom: '2rem', color: '#1f2937' } satisfies React.CSSProperties,
+  kioskHeading: { marginBottom: '2rem', color: 'var(--color-text)' } satisfies React.CSSProperties,
   kioskPoolCard: {
     marginBottom: '3rem',
     background: 'white',
@@ -59,8 +60,8 @@ const KIOSK_STYLES = {
   } satisfies React.CSSProperties,
   kioskPoolTitle: {
     marginBottom: '1rem',
-    color: '#374151',
-    borderBottom: '2px solid #e5e7eb',
+    color: 'var(--color-text)',
+    borderBottom: '2px solid var(--color-border)',
     paddingBottom: '0.5rem',
   } satisfies React.CSSProperties,
   kioskMatchGrid: { display: 'grid', gap: '1rem' } satisfies React.CSSProperties,
@@ -80,13 +81,13 @@ const KIOSK_STYLES = {
     padding: '0.5rem',
     fontSize: '1.25rem',
     textAlign: 'center' as const,
-    border: '2px solid #d1d5db',
+    border: '2px solid var(--color-border-dark)',
     borderRadius: '6px',
   } satisfies React.CSSProperties,
   kioskMatchSep: {
     fontSize: '1.5rem',
     fontWeight: 'bold' as const,
-    color: '#6b7280',
+    color: 'var(--color-text-light)',
   } satisfies React.CSSProperties,
   kioskMatchFencerB: {
     display: 'flex',
@@ -117,18 +118,19 @@ const KioskScoreEntry: React.FC<KioskScoreEntryProps> = ({
   onClose,
   onFinish,
 }) => {
+  const { t } = useTranslation();
   return (
     <div style={KIOSK_STYLES.kioskOverlay}>
       <div style={KIOSK_STYLES.kioskCloseWrapper}>
         <button onClick={onClose} style={KIOSK_STYLES.kioskCloseBtn}>
-          ✕ Quitter Mode Kiosk
+          {t('kioskEntry.quit')}
         </button>
       </div>
       <div style={KIOSK_STYLES.kioskContent}>
-        <h2 style={KIOSK_STYLES.kioskHeading}>Mode Kiosk - Saisie des scores</h2>
+        <h2 style={KIOSK_STYLES.kioskHeading}>{t('kioskEntry.title')}</h2>
         {pools.map((pool, poolIndex) => (
           <div key={pool.id} style={KIOSK_STYLES.kioskPoolCard}>
-            <h3 style={KIOSK_STYLES.kioskPoolTitle}>Poule {pool.number}</h3>
+            <h3 style={KIOSK_STYLES.kioskPoolTitle}>{t('analytics.pool_n', { n: pool.number })}</h3>
             <div style={KIOSK_STYLES.kioskMatchGrid}>
               {pool.matches.map(
                 (match, matchIndex) =>
@@ -140,7 +142,8 @@ const KioskScoreEntry: React.FC<KioskScoreEntryProps> = ({
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: '1rem',
-                        background: match.status === 'in_progress' ? '#fef3c7' : '#f9fafb',
+                        background:
+                          match.status === 'in_progress' ? '#fef3c7' : 'var(--color-surface-2)',
                         borderRadius: '8px',
                         border:
                           match.status === 'in_progress'
@@ -212,7 +215,7 @@ const KioskScoreEntry: React.FC<KioskScoreEntryProps> = ({
         {allPoolsComplete && (
           <div style={KIOSK_STYLES.kioskFinishRow}>
             <button onClick={onFinish} style={KIOSK_STYLES.kioskFinishBtn}>
-              ✓ Tous les matchs sont terminés - Voir le classement
+              {t('kioskEntry.all_done')}
             </button>
           </div>
         )}

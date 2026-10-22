@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useTranslation } from '../hooks/useTranslation';
 import type { VersionInfo } from '../../shared/types/preload';
+import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 interface Props {
   onClose: () => void;
@@ -171,78 +173,18 @@ const styles: Record<string, React.CSSProperties> = {
 // Tip bleu clash   : x=155px, y≈47px  ┐
 // Tip rouge clash  : x=147px, y≈47px  ┘ → croisement ~151px ≈ 50% largeur ✓
 
-let injected = false;
-function injectKeyframes() {
-  if (injected || typeof document === 'undefined') return;
-  injected = true;
-  const style = document.createElement('style');
-  style.textContent = `
-    /* Poule gauche miroir (face droite), avance vers centre */
-    @keyframes bp-hen-left {
-      0%,100% { left: 5px; }
-      38%,58% { left: 80px; }
-    }
-    /* Poule droite naturelle (face gauche), avance vers centre */
-    @keyframes bp-hen-right {
-      0%,100% { left: 221px; }
-      38%,58% { left: 146px; }
-    }
-    /* Sabre bleu — tenu par la poule gauche, POINTE VERS LE HAUT
-       Au repos : quasi vertical (-85°), avance et se penche vers le centre (-62°) */
-    @keyframes bp-saber-blue {
-      0%,100% {
-        left: 49px;
-        transform: translateY(-50%) rotate(-85deg);
-        box-shadow: 0 0 8px 3px #39f, 0 0 2px 1px #9cf;
-      }
-      38%,58% {
-        left: 124px;
-        transform: translateY(-50%) rotate(-62deg);
-        box-shadow: 0 0 20px 7px #39f, 0 0 5px 2px #9cf;
-      }
-    }
-    /* Sabre rouge — tenu par la poule droite, POINTE VERS LE HAUT
-       Au repos : quasi vertical (+85°), avance et se penche vers le centre (+62°) */
-    @keyframes bp-saber-red {
-      0%,100% {
-        left: 146px;
-        transform: translateY(-50%) rotate(85deg);
-        box-shadow: 0 0 8px 3px #f33, 0 0 2px 1px #f99;
-      }
-      38%,58% {
-        left: 71px;
-        transform: translateY(-50%) rotate(62deg);
-        box-shadow: 0 0 20px 7px #f33, 0 0 5px 2px #f99;
-      }
-    }
-    /* Étincelles au point de croisement (~50% largeur, ~30% hauteur) */
-    @keyframes bp-spark {
-      0%,34%,64%,100% { opacity: 0; transform: translate(-50%,-180%) scale(0) rotate(0deg); }
-      44%             { opacity: 1; transform: translate(-50%,-180%) scale(1.6) rotate(15deg); }
-      52%             { opacity: 0.8; transform: translate(-50%,-180%) scale(1.1) rotate(-10deg); }
-      58%             { opacity: 0; transform: translate(-50%,-180%) scale(0.2) rotate(5deg); }
-    }
-    /* Pulsation subtile sur le numéro de build */
-    @keyframes bp-build-pulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(255,180,50,0); color: var(--text-muted,#aaa); }
-      50%     { box-shadow: 0 0 0 3px rgba(255,180,50,0.25); color: #ffa; }
-    }
-  `;
-  document.head.appendChild(style);
-}
-
 const ANIM_DURATION = '2s';
 const ANIM_ITER = '5';
 const ANIM_EASE = 'ease-in-out';
 
 const AboutModal: React.FC<Props> = ({ onClose }) => {
+  const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [easterActive, setEasterActive] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    injectKeyframes();
     window.electronAPI
       ?.getVersionInfo()
       .then(setVersionInfo)
@@ -265,7 +207,7 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
   };
 
   const buildDate = versionInfo
-    ? new Date(versionInfo.date).toLocaleDateString('fr-FR', {
+    ? new Date(versionInfo.date).toLocaleDateString(getActiveLocale(), {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -277,11 +219,11 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
   return (
     <div style={styles.overlay} onClick={handleOverlayClick}>
       <div ref={modalRef} style={styles.modal} role="dialog" aria-modal="true">
-        <button style={styles.closeBtn} onClick={onClose} title="Fermer">
+        <button style={styles.closeBtn} onClick={onClose} title={t('actions.close')}>
           ✕
         </button>
 
-        <div style={styles.title}>BellePoule Modern</div>
+        <div style={styles.title}>{t('app.title')}</div>
 
         <div style={styles.versionLine}>
           <span style={styles.versionBadge}>
@@ -292,24 +234,22 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
           <span
             style={styles.buildBadge}
             onDoubleClick={triggerEasterEgg}
-            title="Double-clic pour une surprise…"
+            title={t('about.easter_title')}
           >
             #{versionInfo?.build ?? '…'}
           </span>
           <span style={styles.meta}>— {buildDate}</span>
         </div>
 
-        <div style={styles.hint}>💡 Double-clique sur le numéro de build…</div>
+        <div style={styles.hint}>{t('about.hint')}</div>
 
         <div style={styles.desc}>
-          Logiciel de gestion de tournois d'escrime.
+          {t('about.desc_1')}
           <br />
-          Poules, tableaux directs, arbitrage déporté en temps réel.
+          {t('about.desc_2')}
         </div>
 
-        <div style={styles.licence}>
-          Licence : GPL-3.0 &nbsp;·&nbsp; © 2024-2026 BellePoule Modern Contributors
-        </div>
+        <div style={styles.licence}>{t('about.licence')}</div>
 
         {easterActive && (
           <>
@@ -394,7 +334,7 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
               </div>
             </div>
 
-            <div style={styles.easterText}>🐔 &nbsp; Cot-cot ! &nbsp; 🐔</div>
+            <div style={styles.easterText}>{t('about.easter')}</div>
           </>
         )}
       </div>

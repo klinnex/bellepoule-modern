@@ -9,6 +9,8 @@ import { renderHook, act } from '@testing-library/react';
 import { usePoolManagement } from './usePoolManagement';
 import { Fencer, Pool, Match, MatchStatus, Gender, FencerStatus } from '../../shared/types';
 
+vi.mock('./useTranslation', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
+
 const fencer = (id: number): Fencer => ({
   id: String(id),
   ref: id,
@@ -57,6 +59,23 @@ describe('generatePools', () => {
     // chaque poule a des matchs
     expect(r.current.pools.every(p => p.matches.length > 0)).toBe(true);
     expect(showToast).toHaveBeenCalledWith(expect.stringContaining('poules créées'), 'success');
+  });
+});
+
+describe('nextPoolRound', () => {
+  it('archive le tour et fige son appel (#1051)', () => {
+    const r = setup();
+    const fencers = Array.from({ length: 8 }, (_, i) => fencer(i + 1));
+    act(() => {
+      r.current.generatePools(fencers);
+    });
+    act(() => {
+      r.current.nextPoolRound(fencers);
+    });
+    expect(r.current.poolHistory).toHaveLength(1);
+    expect(r.current.pools).toHaveLength(0);
+    expect(r.current.currentPoolRound).toBe(2);
+    expect(r.current.appelHistory).toEqual([fencers]);
   });
 });
 

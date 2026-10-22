@@ -9,6 +9,7 @@ import { Competition, Fencer, FencerStatus } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 import { useToast } from '../components/Toast';
 import { importRankingFromFFF, RankingImportResult } from '../../shared/utils/fileParser';
+import { useTranslation } from './useTranslation';
 
 interface UseFencerManagementProps {
   competition: Competition;
@@ -17,6 +18,7 @@ interface UseFencerManagementProps {
 
 export const useFencerManagement = ({ competition, onUpdate }: UseFencerManagementProps) => {
   const { showToast } = useToast();
+  const { t } = useTranslation();
   const [fencers, setFencers] = useState<Fencer[]>(competition.fencers || []);
   const competitionRef = useRef(competition);
   const onUpdateRef = useRef(onUpdate);
@@ -97,6 +99,38 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     [fencers, competition, onUpdate, showToast]
   );
 
+  // Mettre à jour plusieurs tireurs en une seule mise à jour d'état
+  // (updateFencer en boucle écrase les MAJ : closure sur `fencers` périmée)
+  const updateFencers = useCallback(
+    async (updates: Record<string, Partial<Fencer>>) => {
+      const ids = Object.keys(updates);
+      if (ids.length === 0) return;
+      const now = new Date();
+      const updatedFencers = fencers.map(f =>
+        updates[f.id] ? { ...f, ...updates[f.id], updatedAt: now } : f
+      );
+      setFencers(updatedFencers);
+      onUpdate({ ...competition, fencers: updatedFencers });
+      await Promise.allSettled(
+        ids.map(id =>
+          window.electronAPI?.db
+            ?.updateFencer?.(id, updates[id])
+            .catch(err =>
+              logger.error(LogCategory.UI, `Failed to update fencer ${id}`, err as Error)
+            )
+        )
+      );
+    },
+    [fencers, competition, onUpdate]
+  );
+
+  // Changer le statut de plusieurs tireurs
+  const setFencersStatus = useCallback(
+    (fencerIds: string[], status: FencerStatus) =>
+      updateFencers(Object.fromEntries(fencerIds.map(id => [id, { status }]))),
+    [updateFencers]
+  );
+
   // Supprimer un tireur
   const deleteFencer = useCallback(
     async (fencerId: string) => {
@@ -158,8 +192,8 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     );
 
     await Promise.allSettled(promises);
-    showToast(`${notCheckedIn.length} tireur(s) pointé(s)`, 'success');
-  }, [fencers, competition, onUpdate, showToast]);
+    showToast(t('plural.fencers_checked_in', { count: notCheckedIn.length }), 'success');
+  }, [fencers, competition, onUpdate, showToast, t]);
 
   // Dépointer tous les tireurs
   const uncheckAll = useCallback(async () => {
@@ -186,8 +220,8 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     );
 
     await Promise.allSettled(promises);
-    showToast(`${checkedIn.length} tireur(s) dépointé(s)`, 'success');
-  }, [fencers, competition, onUpdate, showToast]);
+    showToast(t('plural.fencers_checked_out', { count: checkedIn.length }), 'success');
+  }, [fencers, competition, onUpdate, showToast, t]);
 
   // Obtenir les tireurs pointés
   const getCheckedInFencers = useCallback(() => {
@@ -303,6 +337,8 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
     addFencer,
     bulkAddFencers,
     updateFencer,
+    updateFencers,
+    setFencersStatus,
     deleteFencer,
     deleteAllFencers,
     checkInAll,

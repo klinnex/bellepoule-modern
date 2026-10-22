@@ -466,11 +466,18 @@ export interface FormulaPhaseNode {
   config: CustomPoolRoundConfig | CustomDEConfig;
 }
 
+/** Modes spéciaux de l'arme « À la carte » (#1118) */
+export type CompetitionSpecialMode = 'rapieres';
+
 export interface CustomFormulaConfig {
   version: 1;
   phases: FormulaPhaseNode[];
   formulaName?: string;
   notes?: string;
+  /** Règles appliquées en match : armes modernes (épée, fleuret, sabre) ou Sabre Laser (défaut) (#1125) */
+  ruleSet?: 'modern' | 'laser';
+  /** Repos entre périodes, règles armes modernes (défaut 60, 0 = désactivé) */
+  restTimeSeconds?: number;
 }
 
 export interface FormulaPhaseSimulation {
@@ -590,6 +597,7 @@ export interface CompetitionSettings {
   defaultTableMaxScore: number; // Score max en tableau (défaut: 10 ou 15)
   defaultPoolTimerSeconds: number; // Durée chrono poules en secondes (défaut: 180)
   defaultTableTimerSeconds: number; // Durée chrono tableau en secondes (défaut: 180)
+  restTimeSeconds?: number; // Repos entre périodes, escrime olympique (défaut: 60, 0 = désactivé)
   poolRounds: number; // Nombre de tours de poules (défaut: 1)
   poolRoundQualifiers?: number[]; // Qualifiés pour le tour i+2 (0/absent = tous) (#1051)
   hasDirectElimination: boolean; // Phase d'élimination directe activée (défaut: true)
@@ -610,6 +618,7 @@ export interface CompetitionSettings {
   blackCardEnabled?: boolean; // Carton noir activé sur les tablettes (défaut: false)
   trainerCommentsEnabled?: boolean; // Saisie distante formateurs : commentaires d'arbitrage (#989)
   customFormula?: CustomFormulaConfig; // Formule à la carte (arme CUSTOM uniquement)
+  specialMode?: CompetitionSpecialMode; // Mode spécial (arme CUSTOM) : tournoi des rapières (#1118)
   playAllPositions?: boolean; // Jouer toutes les places (tableaux de classement)
   expertMode?: boolean; // Mode expert : édition avancée des pistes et arbitres
   maxRefereesPerPool?: number; // Nombre max d'arbitres par poule (mode expert)

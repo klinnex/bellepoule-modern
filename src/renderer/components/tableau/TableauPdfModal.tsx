@@ -5,7 +5,9 @@
  */
 
 import React from 'react';
+import { useTranslation } from '../../hooks/useTranslation';
 import { createPortal } from 'react-dom';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { MAX_MATCHES_PER_PAGE_TABLEAU } from '../../../shared/utils/pdfConstants';
 import { TableauMatch } from './tableauTypes';
 import { getRoundName } from './tableauCalculations';
@@ -27,7 +29,7 @@ const PDF_STYLES = {
   pdfModalBody: { padding: '1.5rem' } satisfies React.CSSProperties,
   pdfModalHint: {
     marginBottom: '1rem',
-    color: '#6b7280',
+    color: 'var(--color-text-light)',
     fontSize: '0.875rem',
   } satisfies React.CSSProperties,
   pdfModalLabel: {
@@ -35,7 +37,10 @@ const PDF_STYLES = {
     fontWeight: '600',
     marginBottom: '0.5rem',
   } satisfies React.CSSProperties,
-  pdfModalMaxHint: { fontWeight: '400', color: '#6b7280' } satisfies React.CSSProperties,
+  pdfModalMaxHint: {
+    fontWeight: '400',
+    color: 'var(--color-text-light)',
+  } satisfies React.CSSProperties,
   pdfModalBtnRow: {
     display: 'flex',
     gap: '0.5rem',
@@ -44,7 +49,7 @@ const PDF_STYLES = {
   pdfModalCountHint: {
     marginTop: '0.75rem',
     fontSize: '0.8rem',
-    color: '#9ca3af',
+    color: 'var(--color-text-muted)',
   } satisfies React.CSSProperties,
   pdfModalFooter: {
     display: 'flex',
@@ -63,31 +68,40 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
   onExport,
   onClose,
 }) => {
+  const { t } = useTranslation();
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
+  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   return createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+      <div
+        ref={modalRef}
+        className="modal"
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '400px' }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tableau-pdf-title"
+      >
         <div className="modal-header">
-          <h3 className="modal-title">
+          <h3 className="modal-title" id="tableau-pdf-title">
             {pdfMode === 'print'
-              ? 'Imprimer'
+              ? t('tableauPdf.print')
               : pdfMode === 'preview'
-                ? 'Aperçu avant impression'
-                : 'Export PDF'}{' '}
-            – Feuilles de match
+                ? t('tableauPdf.preview')
+                : t('tableauPdf.export')}{' '}
+            {t('tableauPdf.sheets')}
           </h3>
           <button className="btn-close" onClick={onClose}>
-            &times;
+            ×
           </button>
         </div>
         <div className="modal-body" style={PDF_STYLES.pdfModalBody}>
-          <p style={PDF_STYLES.pdfModalHint}>
-            Chaque fiche contient le nom complet des combattants, une case score et une case
-            signature.
-          </p>
+          <p style={PDF_STYLES.pdfModalHint}>{t('tableauPdf.hint')}</p>
           <label style={PDF_STYLES.pdfModalLabel}>
-            Matchs par feuille A4{' '}
-            <span style={PDF_STYLES.pdfModalMaxHint}>(max {MAX_MATCHES_PER_PAGE_TABLEAU})</span>
+            {t('tableauPdf.per_a4')}{' '}
+            <span style={PDF_STYLES.pdfModalMaxHint}>
+              {t('tableauPdf.max', { n: MAX_MATCHES_PER_PAGE_TABLEAU })}
+            </span>
           </label>
           <div style={PDF_STYLES.pdfModalBtnRow}>
             {Array.from({ length: MAX_MATCHES_PER_PAGE_TABLEAU }, (_, i) => i + 1).map(n => (
@@ -97,8 +111,8 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
                 style={{
                   flex: 1,
                   padding: '0.6rem',
-                  background: pdfMatchesPerPage === n ? '#10b981' : '#e5e7eb',
-                  color: pdfMatchesPerPage === n ? 'white' : '#374151',
+                  background: pdfMatchesPerPage === n ? '#10b981' : 'var(--color-border)',
+                  color: pdfMatchesPerPage === n ? 'white' : 'var(--color-text)',
                   border: 'none',
                   borderRadius: '6px',
                   cursor: 'pointer',
@@ -110,7 +124,9 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
               </button>
             ))}
           </div>
-          <label style={{ ...PDF_STYLES.pdfModalLabel, marginTop: '1rem' }}>Phases à inclure</label>
+          <label style={{ ...PDF_STYLES.pdfModalLabel, marginTop: '1rem' }}>
+            {t('tableauPdf.phases')}
+          </label>
           <div
             style={{
               display: 'flex',
@@ -143,17 +159,13 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
                     }}
                   />
                   {getRoundName(round)}
-                  <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
                     (
-                    {
-                      matches.filter(m => m.round === round && m.fencerA && m.fencerB && !m.isBye)
-                        .length
-                    }{' '}
-                    match
-                    {matches.filter(m => m.round === round && m.fencerA && m.fencerB && !m.isBye)
-                      .length > 1
-                      ? 's'
-                      : ''}
+                    {t('tableauPdf.matches', {
+                      count: matches.filter(
+                        m => m.round === round && m.fencerA && m.fencerB && !m.isBye
+                      ).length,
+                    })}
                     )
                   </span>
                 </label>
@@ -165,15 +177,15 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
             ).length;
             return (
               <p style={PDF_STYLES.pdfModalCountHint}>
-                {count} match{count > 1 ? 's' : ''} → {Math.ceil(count / pdfMatchesPerPage)} feuille
-                {Math.ceil(count / pdfMatchesPerPage) > 1 ? 's' : ''}
+                {t('tableauPdf.matches', { count })} →{' '}
+                {t('tableauPdf.sheets', { count: Math.ceil(count / pdfMatchesPerPage) })}
               </p>
             );
           })()}
         </div>
         <div className="modal-footer" style={PDF_STYLES.pdfModalFooter}>
           <button className="btn btn-secondary" onClick={onClose}>
-            Annuler
+            {t('actions.cancel')}
           </button>
           <button
             className="btn btn-primary"

@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslation } from '../../hooks/useTranslation';
 import { generatePoolMatchOrder } from '../../../shared/utils/poolCalculations';
 
 interface PoolMatchOrderModalProps {
@@ -11,6 +12,7 @@ interface PoolMatchOrderModalProps {
 }
 
 const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) => {
+  const { t } = useTranslation();
   const [poolSize, setPoolSize] = useState(6);
 
   const matches = generatePoolMatchOrder(poolSize);
@@ -55,7 +57,7 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
           }}
         >
           <div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>Ordre officiel des matchs</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>{t('matchOrder.title')}</div>
             <span
               style={{
                 fontSize: '0.7rem',
@@ -69,10 +71,10 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
                 display: 'inline-block',
               }}
             >
-              Référence FIE / FFE
+              {t('matchOrder.ref')}
             </span>
           </div>
-          <button className="btn-close" onClick={onClose} aria-label="Fermer">
+          <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
             ×
           </button>
         </div>
@@ -90,7 +92,7 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
             htmlFor="pool-order-size"
             style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}
           >
-            Taille de poule :
+            {t('matchOrder.size')}
           </label>
           <select
             id="pool-order-size"
@@ -107,17 +109,18 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
           >
             {[3, 4, 5, 6, 7, 8, 9].map(n => (
               <option key={n} value={n}>
-                {n} tireurs — {(n * (n - 1)) / 2} matchs{n >= 9 ? ' (Berger)' : ''}
+                {t('matchOrder.option', { n, m: (n * (n - 1)) / 2 })}
+                {n >= 9 ? ' (Berger)' : ''}
               </option>
             ))}
           </select>
           <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-            {matchCount} matchs
+            {t('matchOrder.matches', { n: matchCount })}
           </span>
         </div>
 
         {/* Liste des matchs — même format que "Matches à venir" dans PoolMatchList */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className="u-stack-2">
           {matches.map(([a, b], i) => (
             <div
               key={i}
@@ -137,9 +140,13 @@ const PoolMatchOrderModal: React.FC<PoolMatchOrderModalProps> = ({ onClose }) =>
               >
                 #{i + 1}
               </span>
-              <span style={{ flex: 1, fontWeight: 500 }}>Tireur {a}</span>
-              <span style={{ color: 'var(--color-text-muted)', padding: '0 0.5rem' }}>vs</span>
-              <span style={{ flex: 1, textAlign: 'right', fontWeight: 500 }}>Tireur {b}</span>
+              <span style={{ flex: 1, fontWeight: 500 }}>{t('matchOrder.fencer', { n: a })}</span>
+              <span style={{ color: 'var(--color-text-muted)', padding: '0 0.5rem' }}>
+                {t('matchOrder.vs')}
+              </span>
+              <span style={{ flex: 1, textAlign: 'right', fontWeight: 500 }}>
+                {t('matchOrder.fencer', { n: b })}
+              </span>
             </div>
           ))}
         </div>

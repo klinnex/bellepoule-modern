@@ -10,6 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { parseSha256Digest, isTrustedDownloadUrl, verifyFileSha256 } from './updateIntegrity';
+import { fmt, getL } from './menuLabels';
 
 interface UpdateInfo {
   hasUpdate: boolean;
@@ -485,7 +486,7 @@ export class AutoUpdater {
       console.error('❌ Auto download failed:', error);
       if (this.mainWindow) {
         this.mainWindow.webContents.send('update:error', {
-          message: 'Échec du téléchargement automatique',
+          message: getL().updAutoDownloadFailed,
           error: String(error),
         });
       }
@@ -499,12 +500,13 @@ export class AutoUpdater {
   ): void {
     if (!this.mainWindow) return;
 
+    const L = getL();
     const response = dialog.showMessageBoxSync(this.mainWindow, {
       type: 'question',
-      title: 'Mise à jour prête',
-      message: `BellePoule v${updateInfo.latestVersion} a été téléchargé`,
-      detail: "Voulez-vous installer la mise à jour maintenant ? L'application va redémarrer.",
-      buttons: ['Installer maintenant', 'Plus tard'],
+      title: L.updReadyTitle,
+      message: fmt(L.updDownloaded, { version: updateInfo.latestVersion }),
+      detail: L.updInstallDetail,
+      buttons: [L.updInstallNow, L.updLater],
       defaultId: 0,
       cancelId: 1,
     });
@@ -654,10 +656,7 @@ export class AutoUpdater {
       } catch {
         // ignore
       }
-      dialog.showErrorBox(
-        "Erreur d'installation",
-        "L'intégrité de la mise à jour n'a pas pu être vérifiée. Installation annulée."
-      );
+      dialog.showErrorBox(getL().installErrTitle, getL().installIntegrityErr);
       return;
     }
 
@@ -694,10 +693,7 @@ export class AutoUpdater {
         // Gestion des erreurs du processus
         installer.on('error', (err: Error) => {
           console.error('Installer launch error:', err);
-          dialog.showErrorBox(
-            "Erreur d'installation",
-            "Impossible de lancer l'installateur. Veuillez installer manuellement."
-          );
+          dialog.showErrorBox(getL().installErrTitle, getL().installLaunchErr);
         });
 
         // Attendre que l'installateur démarre avant de quitter
@@ -731,10 +727,7 @@ export class AutoUpdater {
       }, 2000);
     } catch (error) {
       console.error('Failed to launch installer:', error);
-      dialog.showErrorBox(
-        "Erreur d'installation",
-        "Une erreur est survenue lors du lancement de l'installateur."
-      );
+      dialog.showErrorBox(getL().installErrTitle, getL().installGenericErr);
     }
   }
 
@@ -766,10 +759,9 @@ export class AutoUpdater {
       if (!updateInfo) {
         dialog.showMessageBox(this.mainWindow!, {
           type: 'info',
-          title: 'Mises à jour',
-          message: 'Aucune release disponible',
-          detail:
-            "Aucune version publiée n'est disponible pour le moment. Vous utilisez déjà la dernière version de développement.",
+          title: getL().updTitle,
+          message: getL().updNoRelease,
+          detail: getL().updNoReleaseDetail,
           buttons: ['OK'],
         });
         return;
@@ -781,9 +773,12 @@ export class AutoUpdater {
     } else {
       dialog.showMessageBox(this.mainWindow!, {
         type: 'info',
-        title: 'Mises à jour',
-        message: '🎉 Vous utilisez la dernière version !',
-        detail: `Version actuelle : v${this.getCurrentVersion().version} (Build #${this.getCurrentVersion().build})`,
+        title: getL().updTitle,
+        message: getL().updUpToDate,
+        detail: fmt(getL().updCurrentVersion, {
+          version: this.getCurrentVersion().version,
+          build: this.getCurrentVersion().build,
+        }),
         buttons: ['OK'],
       });
     }
@@ -792,12 +787,19 @@ export class AutoUpdater {
   private showUpdateOptionsDialog(): void {
     if (!this.updateInfo || !this.mainWindow) return;
 
+    const L = getL();
+    const notes = this.updateInfo.releaseNotes;
     const response = dialog.showMessageBoxSync(this.mainWindow!, {
       type: 'info',
-      title: '🚀 Mise à jour disponible',
-      message: `Une nouvelle version est disponible !`,
-      detail: `Version actuelle : Build #${this.updateInfo.currentBuild}\nNouvelle version : Build #${this.updateInfo.latestBuild} (v${this.updateInfo.latestVersion})\n\n${this.updateInfo.releaseNotes ? '\nNotes de version:\n' + this.updateInfo.releaseNotes.substring(0, 200) + '...' : ''}`,
-      buttons: ['📥 Télécharger maintenant', '🔗 Voir les releases', '✖️ Plus tard'],
+      title: L.updAvailableTitle,
+      message: L.updAvailableMsg,
+      detail:
+        fmt(L.updAvailableDetail, {
+          current: this.updateInfo.currentBuild,
+          latest: this.updateInfo.latestBuild,
+          version: this.updateInfo.latestVersion,
+        }) + (notes ? `\n\n\n${L.updReleaseNotes}\n${notes.substring(0, 200)}...` : ''),
+      buttons: [L.updDownloadNow, L.updViewReleases, `✖️ ${L.updLater}`],
       defaultId: 0,
       cancelId: 2,
     });
@@ -834,10 +836,9 @@ export class AutoUpdater {
 
         dialog.showMessageBox(this.mainWindow!, {
           type: 'info',
-          title: '📥 Téléchargement',
-          message: 'Redirection vers la page de téléchargement...',
-          detail:
-            "Téléchargez la version correspondant à votre système et remplacez l'application actuelle.",
+          title: getL().updDownloadTitle,
+          message: getL().updDownloadRedirect,
+          detail: getL().updDownloadDetail,
           buttons: ['OK'],
         });
       } else {

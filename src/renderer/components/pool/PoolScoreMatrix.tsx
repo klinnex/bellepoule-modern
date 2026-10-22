@@ -4,8 +4,10 @@ import {
   formatRatio,
   formatIndex,
   isMatchCancelledByForfeit,
+  isMatchVoidedByForfeit,
 } from '../../../shared/utils/poolCalculations';
 import { ColumnId } from '../../hooks/useColumnVisibility';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface PoolScoreMatrixProps {
   pool: Pool;
@@ -18,6 +20,8 @@ interface PoolScoreMatrixProps {
   isLocked?: boolean;
   quickMouseScoring?: boolean;
   highlightedFencerIds?: Set<string>;
+  /** Tournoi des rapières : rencontres de la vague en cours (clés « idA|idB » triées), en violet */
+  waveHighlightPairs?: ReadonlySet<string>;
   onHoverCell?: (rowFencer: Fencer, colFencer: Fencer) => void;
   onHoverLeave?: () => void;
   onWheelScore?: (rowFencer: Fencer, colFencer: Fencer, shiftKey: boolean, delta: number) => void;
@@ -40,6 +44,7 @@ interface ScoreCellProps {
   onCellClick: (rowFencer: Fencer, colFencer: Fencer) => void;
   onMatchReset?: (rowFencer: Fencer, colFencer: Fencer) => void;
   isHighlighted?: boolean;
+  isWaveCurrent?: boolean;
   quickMouseScoring?: boolean;
   simplifiedInputMode?: boolean;
   onHoverIn?: () => void;
@@ -66,6 +71,7 @@ const ScoreCell = React.memo<ScoreCellProps>(
     onCellClick,
     onMatchReset,
     isHighlighted,
+    isWaveCurrent,
     quickMouseScoring,
     simplifiedInputMode,
     onHoverIn,
@@ -78,6 +84,7 @@ const ScoreCell = React.memo<ScoreCellProps>(
     onInlineSubmit,
     onInlineCancel,
   }) => {
+    const { t } = useTranslation();
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -111,10 +118,10 @@ const ScoreCell = React.memo<ScoreCellProps>(
           className="pool-cell pool-cell-forfeit"
           style={{
             cursor: 'not-allowed',
-            backgroundColor: '#e5e7eb',
-            color: '#9ca3af',
+            backgroundColor: 'var(--color-border)',
+            color: 'var(--color-text-muted)',
           }}
-          title="Match non disputé (abandon/forfait)"
+          title={t('poolMatrix.not_fenced')}
         >
           <span>-</span>
         </div>
@@ -133,14 +140,20 @@ const ScoreCell = React.memo<ScoreCellProps>(
           outlineOffset: '-2px',
           background: 'rgba(59,130,246,0.10)',
         }
-      : {};
+      : isWaveCurrent
+        ? {
+            outline: '2px solid #7c3aed',
+            outlineOffset: '-2px',
+            ...(score ? {} : { background: 'rgba(124,58,237,0.18)' }),
+          }
+        : {};
 
     const inlineInputStyle: React.CSSProperties = {
       width: '26px',
       textAlign: 'center',
       fontSize: '0.7rem',
       padding: '1px 2px',
-      border: '1px solid #3b82f6',
+      border: '1px solid var(--color-primary)',
       borderRadius: '2px',
       outline: 'none',
       background: 'white',
@@ -157,7 +170,7 @@ const ScoreCell = React.memo<ScoreCellProps>(
             position: 'relative',
             padding: '2px',
             background: 'rgba(59,130,246,0.08)',
-            outline: '2px solid #3b82f6',
+            outline: '2px solid var(--color-primary)',
             outlineOffset: '-2px',
           }}
           onClick={e => e.stopPropagation()}
@@ -222,8 +235,8 @@ const ScoreCell = React.memo<ScoreCellProps>(
                   e.stopPropagation();
                   onMatchReset(rowFencer, colFencer);
                 }}
-                title="Annuler ce résultat"
-                aria-label="Annuler ce résultat"
+                title={t('poolMatrix.reset')}
+                aria-label={t('poolMatrix.reset')}
                 className="pool-cell-reset-btn"
                 style={{
                   position: 'absolute',
@@ -248,11 +261,11 @@ const ScoreCell = React.memo<ScoreCellProps>(
             )}
           </>
         ) : bufferedScore !== undefined ? (
-          <span style={{ color: '#3b82f6', fontStyle: 'italic', fontSize: '0.85rem' }}>
+          <span style={{ color: 'var(--color-primary)', fontStyle: 'italic', fontSize: '0.85rem' }}>
             {bufferedScore}
           </span>
         ) : (
-          <span style={{ color: '#9CA3AF' }}>-</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>-</span>
         )}
       </div>
     );
@@ -271,6 +284,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
   isLocked = false,
   quickMouseScoring = false,
   highlightedFencerIds,
+  waveHighlightPairs,
   onHoverCell,
   onHoverLeave,
   onWheelScore,
@@ -282,6 +296,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
   onInlineSubmit,
   onInlineCancel,
 }) => {
+  const { t } = useTranslation();
   const fencers = pool.fencers;
   const [flashCell, setFlashCell] = useState<string | null>(null);
   const prevMatchesRef = useRef<typeof pool.matches>(pool.matches);
@@ -321,8 +336,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
       map.get(id) ?? map.set(id, { v: 0, d: 0, td: 0, tr: 0, index: 0, ratio: 0 }).get(id)!;
     for (const match of pool.matches) {
       if (match.status !== MatchStatus.FINISHED) continue;
-      // Sabre Laser : les matchs annulés après un forfait ne comptent pas
-      if (isLaserSabre && isMatchCancelledByForfeit(match)) continue;
+      // Match annulé par un forfait / abandon : compte comme non joué (0-0) (#1144).
+      // Sabre Laser : le forfait en cours de match conserve ses points marqués.
+      if (isLaserSabre ? isMatchCancelledByForfeit(match) : isMatchVoidedByForfeit(match)) continue;
       const a = match.fencerA?.id;
       const b = match.fencerB?.id;
       if (a) {
@@ -368,16 +384,17 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
     return set;
   }, [fencers]);
 
-  // Sabre Laser : seuls les matchs annulés (non disputés) du forfait sont rayés,
-  // les matchs disputés avant le forfait restent affichés.
+  // Seuls les matchs annulés (non disputés) du forfait sont rayés,
+  // les matchs disputés avant le forfait restent affichés (#1144).
   const isCellAbandoned = (rowFencer: Fencer, colFencer: Fencer): boolean => {
     if (!abandonedIds.has(rowFencer.id) && !abandonedIds.has(colFencer.id)) return false;
-    if (!isLaserSabre) return true;
     if (rowFencer.status === FencerStatus.EXCLUDED || colFencer.status === FencerStatus.EXCLUDED)
       return true;
     const score = getScore(rowFencer, colFencer);
     const mirror = getScore(colFencer, rowFencer);
-    return score?.value == null || mirror?.value == null;
+    if (score?.value == null || mirror?.value == null) return true;
+    if (isLaserSabre) return false;
+    return !!(score.isForfait || score.isAbstention || mirror.isForfait || mirror.isAbstention);
   };
 
   // Données par ligne précalculées : sparkline + rang. Évite un filtre O(n·m) par rendu.
@@ -428,9 +445,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'victories');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            V
+            {t('ranking.victories')}
           </div>
         )}
         {isVisible('ratio') && (
@@ -440,9 +457,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'ratio');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            V/M
+            {t('ranking.ratio')}
           </div>
         )}
         {isVisible('td') && (
@@ -452,9 +469,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'td');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            TD
+            {t('ranking.touches_scored')}
           </div>
         )}
         {isVisible('tr') && (
@@ -464,9 +481,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'tr');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            TR
+            {t('ranking.touches_received')}
           </div>
         )}
         {isVisible('quest') && isLaserSabre && (
@@ -477,7 +494,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'quest');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
             Quest
           </div>
@@ -489,9 +506,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'index');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            Ind
+            {t('poolMatrix.ind')}
           </div>
         )}
         {isVisible('rank') && (
@@ -501,9 +518,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'rank');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            Rg
+            {t('ranking.rank')}
           </div>
         )}
         {isVisible('club') && (
@@ -513,9 +530,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'club');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            Club
+            {t('ranking.club')}
           </div>
         )}
         {isVisible('nation') && (
@@ -525,9 +542,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'nation');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            Nat
+            {t('poolMatrix.nat')}
           </div>
         )}
         {isVisible('region') && (
@@ -537,9 +554,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               e.preventDefault();
               toggleColumn('pool', 'region');
             }}
-            title="Clic droit pour masquer"
+            title={t('poolMatrix.right_click_hide')}
           >
-            Rég
+            {t('poolMatrix.reg')}
           </div>
         )}
       </div>
@@ -598,12 +615,18 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               })()}
               <span className="truncate" style={{ flex: 1, fontSize: '0.8rem' }}>
                 <span style={{ fontWeight: 700 }}>{rowFencer.lastName}</span>
-                <span style={{ fontSize: '0.7rem', color: '#6b7280', marginLeft: '0.25rem' }}>
+                <span
+                  style={{
+                    fontSize: '0.7rem',
+                    color: 'var(--color-text-light)',
+                    marginLeft: '0.25rem',
+                  }}
+                >
                   {rowFencer.firstName?.charAt(0)}.
                 </span>
               </span>
               {sparkBars.length > 0 && (
-                <svg width="28" height="14" style={{ flexShrink: 0 }} aria-hidden="true">
+                <svg width="28" height="14" className="flex-shrink-0" aria-hidden="true">
                   {sparkBars.map((won, i) => (
                     <rect
                       key={i}
@@ -623,12 +646,12 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                     e.stopPropagation();
                     onFencerChangePool(rowFencer);
                   }}
-                  title="Changer de poule"
-                  aria-label={`Changer ${rowFencer.lastName} de poule`}
+                  title={t('poolMatrix.change_pool')}
+                  aria-label={t('poolMatrix.change_pool_aria', { name: rowFencer.lastName })}
                   style={{
                     padding: '0.125rem 0.25rem',
                     fontSize: '0.625rem',
-                    background: '#e5e7eb',
+                    background: 'var(--color-border)',
                     border: 'none',
                     borderRadius: '3px',
                     cursor: 'pointer',
@@ -668,6 +691,13 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                   onCellClick={onCellClick}
                   onMatchReset={onMatchReset}
                   isHighlighted={isHighlighted}
+                  isWaveCurrent={
+                    !!waveHighlightPairs?.has(
+                      rowFencer.id < colFencer.id
+                        ? `${rowFencer.id}|${colFencer.id}`
+                        : `${colFencer.id}|${rowFencer.id}`
+                    )
+                  }
                   quickMouseScoring={quickMouseScoring}
                   simplifiedInputMode={simplifiedInputMode}
                   onHoverIn={onHoverCell ? () => onHoverCell(rowFencer, colFencer) : undefined}
@@ -716,7 +746,10 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               </div>
             )}
             {isVisible('club') && (
-              <div className="pool-cell" style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+              <div
+                className="pool-cell"
+                style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}
+              >
                 {rowFencer.club ?? ''}
               </div>
             )}
@@ -726,7 +759,10 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               </div>
             )}
             {isVisible('region') && (
-              <div className="pool-cell" style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+              <div
+                className="pool-cell"
+                style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}
+              >
                 {rowFencer.region ?? ''}
               </div>
             )}

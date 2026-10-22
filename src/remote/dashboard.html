@@ -4,13 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Classement en Direct - BellePoule Modern</title>
+    <script src="/common.js"></script>
     <script src="/i18n.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/fonts.css" />
     <script src="/socket.io.min.js"></script>
     <style>
       * {
@@ -487,6 +484,10 @@
           <div class="competition-name" id="competition-name">Coupe Régionale - Sabre Laser</div>
         </div>
         <div class="header-right">
+          <div class="last-update" id="eta" role="status" aria-live="polite" hidden>
+            <span id="eta-label">Fin estimée</span> <span class="time" id="eta-time">--:--</span>
+            <span id="eta-detail"></span>
+          </div>
           <div class="last-update" role="status" aria-live="polite">
             Mis à jour: <span class="time" id="last-update-time">--:--:--</span>
           </div>
@@ -499,9 +500,36 @@
 
       <!-- Tab Navigation -->
       <nav class="tab-nav" role="tablist" aria-label="Vue du tableau de bord">
-        <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-poules" data-tab="poules" data-i18n="dashboard.pools">Poules</button>
-        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-classement" data-tab="classement" data-i18n="dashboard.ranking">Classement Général</button>
-        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-direct" data-tab="direct" data-i18n="dashboard.live">Matchs en Cours</button>
+        <button
+          class="tab-btn active"
+          role="tab"
+          aria-selected="true"
+          aria-controls="tab-poules"
+          data-tab="poules"
+          data-i18n="dashboard.pools"
+        >
+          Poules
+        </button>
+        <button
+          class="tab-btn"
+          role="tab"
+          aria-selected="false"
+          aria-controls="tab-classement"
+          data-tab="classement"
+          data-i18n="dashboard.ranking"
+        >
+          Classement Général
+        </button>
+        <button
+          class="tab-btn"
+          role="tab"
+          aria-selected="false"
+          aria-controls="tab-direct"
+          data-tab="direct"
+          data-i18n="dashboard.live"
+        >
+          Matchs en Cours
+        </button>
       </nav>
 
       <!-- Tab: Poules -->
@@ -510,7 +538,9 @@
           <div class="no-data">
             <div class="no-data-icon" aria-hidden="true">🤺</div>
             <h3 data-i18n="dashboard.no_pools">Aucune poule en cours</h3>
-            <p data-i18n="dashboard.no_pools_hint">Les poules apparaîtront ici une fois la compétition démarrée</p>
+            <p data-i18n="dashboard.no_pools_hint">
+              Les poules apparaîtront ici une fois la compétition démarrée
+            </p>
           </div>
         </div>
       </div>
@@ -562,6 +592,8 @@
     </div>
 
     <script>
+      // Traduction (src/remote/i18n.js) ; repli sur la clé si i18n.js absent
+      const tr = (key, params) => (window.T ? window.T(key, params) : key);
       // Dashboard State
       const dashboard = {
         socket: null,
@@ -579,7 +611,12 @@
 
       // WebSocket Connection
       function connectWebSocket() {
-        dashboard.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
+        dashboard.socket = io({
+          reconnection: true,
+          reconnectionDelay: 200,
+          reconnectionDelayMax: 5000,
+          randomizationFactor: 0.5,
+        });
 
         dashboard.socket.on('connect', () => {
           updateConnectionStatus(true);
@@ -601,6 +638,39 @@
         dashboard.socket.on('matches:update', data => {
           updateLiveMatches(data);
         });
+
+        dashboard.socket.on('eta:update', data => {
+          updateEta(data);
+        });
+      }
+
+      // Fin estimée de la phase en cours (durées réelles des matchs, #1077)
+      function etaPhaseLabel(T, eta) {
+        if (eta.phase === 'tableau' && eta.round) {
+          return eta.round === 2
+            ? T('dashboard.eta_final')
+            : T('dashboard.eta_tableau', { n: eta.round });
+        }
+        return eta.phase === 'pools' ? T('dashboard.eta_pools') : T('dashboard.eta');
+      }
+
+      function updateEta(data) {
+        const box = document.getElementById('eta');
+        if (!box) return;
+        if (!data || !data.remainingMatches) {
+          box.hidden = true;
+          return;
+        }
+        const T = window.T || (k => k);
+        const finish = new Date(data.finishAt);
+        document.getElementById('eta-label').textContent = etaPhaseLabel(T, data);
+        document.getElementById('eta-time').textContent = finish.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        document.getElementById('eta-detail').textContent =
+          '(' + T('dashboard.eta_remaining', { count: data.remainingMatches }) + ')';
+        box.hidden = false;
       }
 
       // Update Connection Status
@@ -657,12 +727,14 @@
         }, 1000);
       }
 
+      // escHtml : helper partagé (/common.js)
+
       // Update Rankings
       function updateRankings(data) {
         const tbody = document.getElementById('ranking-body');
         if (!data.rankings || data.rankings.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="5" style="text-align: center; color: #9ca3af; padding: 2rem;">En attente des résultats...</td></tr>';
+            '<tr><td colspan="5" style="text-align: center; color: #9ca3af; padding: 2rem;">' + escHtml(tr('dashboard.ranking_waiting')) + '</td></tr>';
           return;
         }
 
@@ -671,14 +743,14 @@
             (r, i) => `
           <tr class="${i < 3 ? 'top-3' : ''}">
             <td class="rank rank-${i + 1}">
-              ${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}
+              ${escHtml(i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1)}
             </td>
             <td>
-              <div class="fencer-name">${r.lastName} ${r.firstName}</div>
+              <div class="fencer-name">${escHtml(r.lastName)} ${escHtml(r.firstName)}</div>
             </td>
-            <td class="club">${r.club || '-'}</td>
-            <td class="victories">${r.victories}</td>
-            <td class="quest">${r.quest}</td>
+            <td class="club">${escHtml(r.club || '-')}</td>
+            <td class="victories">${escHtml(r.victories)}</td>
+            <td class="quest">${escHtml(r.quest)}</td>
           </tr>
         `
           )
@@ -706,9 +778,9 @@
             pool => `
           <div class="pool-card">
             <div class="pool-header">
-              <h3>Poule ${pool.number}</h3>
+              <h3>${escHtml(tr('dashboard.pool_n', { n: pool.number }))}</h3>
               <span class="pool-status ${pool.isComplete ? '' : 'in-progress'}">
-                ${pool.isComplete ? 'Terminée' : 'En cours'}
+                ${escHtml(tr(pool.isComplete ? 'dashboard.pool_done' : 'dashboard.pool_running'))}
               </span>
             </div>
             <table class="pool-table">
@@ -729,12 +801,12 @@
                   <tr>
                     <td class="rank rank-${i + 1}">${i + 1}</td>
                     <td>
-                      <div class="fencer-name">${r.lastName} ${r.firstName}</div>
-                      <div class="club">${r.club || ''}</div>
+                      <div class="fencer-name">${escHtml(r.lastName)} ${escHtml(r.firstName)}</div>
+                      <div class="club">${escHtml(r.club || '')}</div>
                     </td>
-                    <td class="victories">${r.victories}</td>
-                    <td class="quest">${r.quest}</td>
-                    <td class="ind">${r.indicator}</td>
+                    <td class="victories">${escHtml(r.victories)}</td>
+                    <td class="quest">${escHtml(r.quest)}</td>
+                    <td class="ind">${escHtml(r.indicator)}</td>
                     <td class="score">${r.touchesScored - r.touchesReceived}</td>
                   </tr>
                 `
@@ -769,20 +841,20 @@
             match => `
           <div class="match-card">
             <div class="match-header">
-              <span class="match-number">Match #${match.number}</span>
-              <span class="match-pool">Poule ${match.poolNumber || '-'}</span>
+              <span class="match-number">Match #${escHtml(match.number)}</span>
+              <span class="match-pool">${escHtml(tr('dashboard.pool_n', { n: match.poolNumber || '-' }))}</span>
             </div>
             <div class="match-score">
               <div class="match-fencer ${match.winner === 'A' ? 'winner' : ''}">
-                <div class="name">${match.fencerA}</div>
-                <div class="club">${match.clubA || ''}</div>
+                <div class="name">${escHtml(match.fencerA)}</div>
+                <div class="club">${escHtml(match.clubA || '')}</div>
               </div>
-              <div class="score-display score-a">${match.scoreA}</div>
+              <div class="score-display score-a">${escHtml(match.scoreA)}</div>
               <span class="vs">VS</span>
-              <div class="score-display score-b">${match.scoreB}</div>
+              <div class="score-display score-b">${escHtml(match.scoreB)}</div>
               <div class="match-fencer ${match.winner === 'B' ? 'winner' : ''}">
-                <div class="name">${match.fencerB}</div>
-                <div class="club">${match.clubB || ''}</div>
+                <div class="name">${escHtml(match.fencerB)}</div>
+                <div class="club">${escHtml(match.clubB || '')}</div>
               </div>
             </div>
           </div>

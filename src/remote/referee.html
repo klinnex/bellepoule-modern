@@ -7,6 +7,7 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>Arbitrage - Arène BellePoule</title>
+    <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
@@ -484,6 +485,42 @@
         display: inline-block;
         transition: all 0.2s;
         position: relative;
+      }
+
+      /* Chrono centré, bouton Repos dans la colonne de gauche (#1134) */
+      .timer-row {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .timer-row .timer-display {
+        grid-column: 2;
+      }
+
+      .rest-btn {
+        grid-column: 1;
+        justify-self: end;
+        padding: 0.6rem 1rem;
+        margin-bottom: 0.75rem;
+        border: 2px solid #38bdf8;
+        border-radius: 0.75rem;
+        background: rgba(56, 189, 248, 0.15);
+        color: #38bdf8;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+      .rest-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      .rest-btn.active {
+        background: #38bdf8;
+        color: #0f172a;
       }
 
       .timer-display:hover {
@@ -1280,8 +1317,8 @@
         <span><span id="arena-label">Arène</span> <span id="arena-number">1</span></span>
       </h1>
       <div class="connection-status">
-        <button id="btn-swap" class="swap-btn" onclick="refereeApp.toggleSwap()" data-i18n-title="referee.swap_colors" title="Inverser rouge/vert">⇄</button>
-        <button id="btn-colorblind" class="swap-btn" onclick="refereeApp.toggleColorblind()" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)">👁</button>
+        <button id="btn-swap" class="swap-btn" data-click="refereeApp.toggleSwap" data-i18n-title="referee.swap_colors" title="Inverser rouge/vert">⇄</button>
+        <button id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)">👁</button>
         <div id="status-dot" class="status-dot"></div>
         <span id="connection-text" data-i18n="remote.connecting">Connexion...</span>
         <span
@@ -1326,7 +1363,7 @@
         >📣</button>
         <button
           id="btn-journal"
-          onclick="window.open(`/arene${refereeApp?.arenaNumber || document.getElementById('arena-number').textContent}/journal`, '_blank')"
+          data-click="openJournal"
           title="Journal du match"
           aria-label="Journal"
           style="background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.4); color:#c4b5fd; border-radius:0.5rem; padding:0.3rem 0.6rem; font-size:1rem; cursor:pointer;"
@@ -1340,9 +1377,10 @@
         <div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem;">
           <button
             id="btn-back-to-list"
-            onclick="if(!refereeApp.timerRunning) window.location.reload();"
+            data-click="reloadIfIdle"
             style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);border-radius:0.5rem;color:#fff;font-weight:600;padding:0.35rem 0.85rem;font-size:0.85rem;cursor:pointer;"
             title="Retour à la liste des matchs"
+            data-i18n="referee.back" data-i18n-title="referee.back_title"
           >← Retour</button>
         </div>
         <div class="fencers-container">
@@ -1386,7 +1424,7 @@
                 id="btn-card-black-a"
                 class="card-btn card-btn-black"
                 title="Carton noir (exclusion)"
-                onclick="refereeApp.requestBlackCard('A')"
+                data-click="refereeApp.requestBlackCard" data-args='["A"]'
               >
                 N
               </button>
@@ -1436,7 +1474,7 @@
                 id="btn-card-black-b"
                 class="card-btn card-btn-black"
                 title="Carton noir (exclusion)"
-                onclick="refereeApp.requestBlackCard('B')"
+                data-click="refereeApp.requestBlackCard" data-args='["B"]'
               >
                 N
               </button>
@@ -1461,7 +1499,18 @@
           >
             ⚡ MORT SUBITE – Zone C uniquement !
           </div>
-          <div class="timer-display" id="timer-display">03:00</div>
+          <div class="timer-row">
+            <button
+              id="btn-rest"
+              class="rest-btn"
+              style="display: none"
+              disabled
+              data-click="refereeApp.startRest"
+            >
+              Repos
+            </button>
+            <div class="timer-display" id="timer-display">03:00</div>
+          </div>
           <div
             id="sudden-death-label"
             data-i18n="referee.supplementary_time"
@@ -1484,7 +1533,7 @@
           <div style="display:flex;justify-content:center;margin-top:0.4rem;">
             <button
               id="btn-tts-toggle"
-              onclick="refereeApp.toggleTTS()"
+              data-click="refereeApp.toggleTTS"
               title="Minuteur vocal"
               style="background:none;border:1px solid rgba(255,255,255,0.3);border-radius:0.5rem;color:rgba(255,255,255,0.7);font-size:0.8rem;padding:0.2rem 0.6rem;cursor:pointer;"
             >🔇 Voix</button>
@@ -1496,14 +1545,14 @@
           <button
             class="control-btn btn-start"
             id="btn-start"
-            onclick="refereeApp.handleStartPauseClick()"
+            data-click="refereeApp.handleStartPauseClick"
           >
             <span data-i18n="referee.start">▶️ Démarrer</span>
           </button>
           <button
             class="control-btn btn-finish"
             id="btn-finish"
-            onclick="refereeApp.showFinishModal()"
+            data-click="refereeApp.showFinishModal"
             disabled
           >
             <span data-i18n="referee.finish">🏁 Terminer</span>
@@ -1514,14 +1563,14 @@
           <button
             class="control-btn btn-arena-exit-red"
             id="btn-exit-a"
-            onclick="refereeApp.arenaExit('A')"
+            data-click="refereeApp.arenaExit" data-args='["A"]'
           >
             <span data-i18n="referee.exit_red">🚪 Sortie rouge</span>
           </button>
           <button
             class="control-btn btn-undo"
             id="btn-undo"
-            onclick="refereeApp.undoLastAction()"
+            data-click="refereeApp.undoLastAction"
             disabled
           >
             <span data-i18n="referee.undo">↩ Annuler</span>
@@ -1529,7 +1578,7 @@
           <button
             class="control-btn btn-arena-exit-green"
             id="btn-exit-b"
-            onclick="refereeApp.arenaExit('B')"
+            data-click="refereeApp.arenaExit" data-args='["B"]'
           >
             <span data-i18n="referee.exit_green">🚪 Sortie verte</span>
           </button>
@@ -1537,11 +1586,11 @@
 
         <!-- Barre arbitre (visible si refereeFeatureEnabled) -->
         <div class="referee-bar hidden" id="referee-bar">
-          <div class="referee-bar-label">⚖️ Arbitre :</div>
+          <div class="referee-bar-label" data-i18n="referee.referee_label">⚖️ Arbitre :</div>
           <div class="referee-bar-name" id="referee-bar-name">—</div>
-          <button class="referee-change-btn" id="referee-change-btn" onclick="refereeApp.toggleRefereeSelector()">Changer</button>
+          <button class="referee-change-btn" id="referee-change-btn" data-click="refereeApp.toggleRefereeSelector" data-i18n="referee.change">Changer</button>
           <div class="referee-selector hidden" id="referee-selector">
-            <select id="referee-select" onchange="refereeApp.changeReferee(this.value)">
+            <select id="referee-select" data-change="refereeApp.changeReferee" data-args='["$value"]'>
               <option value="">— Sélectionner un arbitre —</option>
             </select>
           </div>
@@ -1556,7 +1605,7 @@
           id="match-search"
           data-i18n-placeholder="referee.search_placeholder"
           placeholder="🔍 Rechercher un tireur..."
-          oninput="refereeApp.filterMatches(this.value)"
+          data-input="refereeApp.filterMatches" data-args='["$value"]'
           style="
             width: 100%;
             padding: 0.75rem;
@@ -1588,10 +1637,10 @@
           </p>
         </div>
         <div class="modal-buttons">
-          <button class="modal-btn modal-btn-cancel" onclick="refereeApp.hideFinishModal()">
+          <button class="modal-btn modal-btn-cancel" data-click="refereeApp.hideFinishModal">
             <span data-i18n="referee.cancel">Annuler</span>
           </button>
-          <button class="modal-btn modal-btn-confirm" onclick="refereeApp.confirmFinish()">
+          <button class="modal-btn modal-btn-confirm" data-click="refereeApp.confirmFinish">
             <span data-i18n="referee.confirm">Confirmer</span>
           </button>
         </div>
@@ -1601,15 +1650,15 @@
     <!-- Overlay confirmation carton noir -->
     <div class="modal-overlay" id="black-card-modal">
       <div class="modal-content" style="border:3px solid #111">
-        <div class="modal-title" style="background:#111;color:#fff">⬛ Carton Noir</div>
+        <div class="modal-title" style="background:#111;color:#fff" data-i18n="referee.black_card_title">⬛ Carton Noir</div>
         <div class="modal-body">
           <p id="black-card-fencer-name" style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:0.5rem">—</p>
           <p id="black-card-cause" style="text-align:center;color:#dc2626"><strong>CARTON NOIR</strong> direct</p>
-          <p style="text-align:center;font-size:0.875rem;color:#6b7280">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
+          <p style="text-align:center;font-size:0.875rem;color:#6b7280" data-i18n="referee.black_card_desc">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
         </div>
         <div class="modal-buttons">
-          <button class="modal-btn modal-btn-cancel" onclick="refereeApp.cancelBlackCard()">Annuler</button>
-          <button class="modal-btn modal-btn-confirm" style="background:#111;color:#fff" onclick="refereeApp.confirmBlackCard()">⬛ Confirmer l'élimination</button>
+          <button class="modal-btn modal-btn-cancel" data-click="refereeApp.cancelBlackCard" data-i18n="referee.cancel">Annuler</button>
+          <button class="modal-btn modal-btn-confirm" style="background:#111;color:#fff" data-click="refereeApp.confirmBlackCard" data-i18n="referee.black_card_confirm">⬛ Confirmer l'élimination</button>
         </div>
       </div>
     </div>
@@ -1618,10 +1667,10 @@
     <div id="coin-flip-confirm">
       <div class="coin-flip-confirm-content">
         <div style="font-size:2.5rem;margin-bottom:0.75rem">🪙</div>
-        <div class="coin-flip-confirm-label">Tirage au sort — Vainqueur :</div>
+        <div class="coin-flip-confirm-label" data-i18n="referee.coin_flip_winner">Tirage au sort — Vainqueur :</div>
         <div class="coin-flip-confirm-winner" id="coin-flip-confirm-name">—</div>
         <div class="coin-flip-confirm-color" id="coin-flip-confirm-color">—</div>
-        <button class="btn-confirm-coin-flip" onclick="refereeApp.confirmCoinFlipFinish()">
+        <button class="btn-confirm-coin-flip" data-click="refereeApp.confirmCoinFlipFinish">
           🏁 Terminer le match
         </button>
       </div>
@@ -1644,16 +1693,7 @@
         styleEl.textContent = `:root {\n${vars}\n}`;
       }
 
-      // ─── Utilitaire sécurité : encodage HTML pour éviter les XSS ───────────
-      function escHtml(str) {
-        if (str === null || str === undefined) return '';
-        return String(str)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#x27;');
-      }
+      // escHtml : helper partagé (/common.js)
     </script>
     <script>
       // ─── Queue hors-ligne (IndexedDB) ───────────────────────────────────────
@@ -1694,6 +1734,8 @@
             type,
             payload,
             timestamp: Date.now(),
+            // Départage des actions de la même milliseconde
+            seq: ++OfflineQueueInline.seq,
             retries: 0,
           };
           return new Promise((resolve, reject) => {
@@ -1730,35 +1772,72 @@
           });
         }
 
+        /**
+         * Rejoue la file vers le serveur, en un seul lot, dans l'ordre chronologique.
+         * - getAll() trie par clé (UUID aléatoire) : on retrie par horodatage.
+         * - score_save porte un score absolu : seul le dernier par match compte,
+         *   les précédents sont supprimés (un ancien score ne peut plus écraser
+         *   le récent si son envoi échoue puis réussit plus tard).
+         * - Un seul sync à la fois (reconnexion + bouton manuel simultanés).
+         */
         async sync(endpoint) {
-          const actions = await this.getAllActions();
-          if (actions.length === 0) return { synced: 0, failed: 0 };
-          let synced = 0,
-            failed = 0;
-          for (const action of actions) {
+          if (this._syncing) return { synced: 0, failed: 0 };
+          this._syncing = true;
+          try {
+            const actions = (await this.getAllActions()).sort(
+              (a, b) => a.timestamp - b.timestamp || (a.seq || 0) - (b.seq || 0)
+            );
+            const latestScore = new Map();
+            for (const a of actions) {
+              if (a.type === 'score_save' && a.payload && a.payload.matchId) {
+                latestScore.set(a.payload.matchId, a.id);
+              }
+            }
+            const pending = [];
+            for (const a of actions) {
+              const matchId = a.type === 'score_save' && a.payload ? a.payload.matchId : null;
+              if (matchId && latestScore.get(matchId) !== a.id) await this.removeAction(a.id);
+              else pending.push(a);
+            }
+            const batch = pending.slice(0, OfflineQueueInline.BATCH_SIZE);
+            if (batch.length === 0) return { synced: 0, failed: 0 };
+
+            let resp;
             try {
-              const resp = await fetch(endpoint, {
+              resp = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ actions: [action] }),
+                body: JSON.stringify({ actions: batch }),
               });
-              if (resp.ok) {
-                await this.removeAction(action.id);
-                synced++;
-              } else {
-                failed++;
-              }
             } catch {
-              failed++;
+              return { synced: 0, failed: batch.length };
             }
+            if (!resp.ok) return { synced: 0, failed: batch.length };
+            const data = await resp.json().catch(() => ({}));
+            const ok = new Set(
+              (Array.isArray(data.results) ? data.results : [])
+                .filter(r => r && r.success)
+                .map(r => r.id)
+            );
+            let synced = 0;
+            for (const a of batch) {
+              if (ok.has(a.id)) {
+                await this.removeAction(a.id);
+                synced++;
+              }
+            }
+            return { synced, failed: batch.length - synced };
+          } finally {
+            this._syncing = false;
           }
-          return { synced, failed };
         }
 
         isOnline() {
           return navigator.onLine;
         }
       }
+      OfflineQueueInline.seq = 0;
+      OfflineQueueInline.BATCH_SIZE = 50;
       // ────────────────────────────────────────────────────────────────────────
 
       const FAULT_REASONS = [
@@ -1854,9 +1933,10 @@
       };
 
       class RefereeApp {
-        constructor() {
+        constructor(slotArenaId) {
           this.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
-          this.arenaId = this.getArenaId();
+          this.baseArenaId = this.getArenaId();
+          this.arenaId = slotArenaId || this.baseArenaId;
           this.arenaNumber = this.arenaNumberFromId();
           {
             const cbParam = new URLSearchParams(window.location.search).get('cb');
@@ -1884,9 +1964,13 @@
           this.timerRunning = false;
           this.longPressTimer = null;
           this.isLaserSabre = false;
+          this.customScoring = null; // Système de score de la formule personnalisée (#1125)
           this.isModernFencing = false; // Épée, fleuret, sabre (règles olympiques)
+          this.restSeconds = 0; // Repos entre périodes (paramètre compétition, 0 = désactivé, #1134)
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
+          this.isResting = false;
           this.overtimeType = null; // 'supplementary' | 'challenger' | null
           this.coinFlipWinner = null; // 'A' | 'B' | null — vainqueur par tirage au sort
           this._pendingBlackCardFencer = null; // fenceur en attente de carton noir
@@ -1918,12 +2002,14 @@
         }
 
         arenaNumberFromId() {
-          return this.arenaId.replace('arena', '');
+          return this.baseArenaId.replace('arena', '');
         }
 
         init() {
-          document.getElementById('arena-number').textContent = this.arenaNumber;
-          document.getElementById('next-arena-number').textContent = this.arenaNumber;
+          const slotNum = (/s(\d+)$/.exec(this.arenaId) || [])[1]; // sous-piste « 3 · 2 » (#1118)
+          const arenaLabel = slotNum ? `${this.arenaNumber} · ${slotNum}` : this.arenaNumber;
+          document.getElementById('arena-number').textContent = arenaLabel;
+          document.getElementById('next-arena-number').textContent = arenaLabel;
           this.setupSocketListeners();
           this.setupTimerInteractions();
           this.setupLongPressInteractions();
@@ -1936,7 +2022,10 @@
             .then(s => {
               if (s) {
               this.isLaserSabre = s.weapon === 'L';
-              this.isModernFencing = ['E', 'F', 'S'].includes(s.weapon);
+              this.customScoring = s.weapon === 'C' ? s.customScoring || null : null;
+              this.applyScoringButtons();
+              // Formule personnalisée : règles choisies dans la formule (#1125)
+              this.isModernFencing = ['E', 'F', 'S'].includes(s.weapon) || s.modernRules === true; this.rulesLoaded = true;
               if (s.trainingCustomRules) this.trainingCustomRules = s.trainingCustomRules;
               this.blackCardEnabled = s.blackCardEnabled === true;
               this.applyBlackCardSetting();
@@ -1945,7 +2034,10 @@
                 document.getElementById('arena-label').textContent = pisteLabel;
                 const nextLabel = document.getElementById('next-arena-label');
                 if (nextLabel) nextLabel.textContent = pisteLabel;
-                document.querySelectorAll('.btn-plus-3, .btn-plus-5').forEach(b => (b.style.display = 'none'));
+                if (!this.customScoring) {
+                  document.querySelectorAll('.btn-plus-3, .btn-plus-5').forEach(b => (b.style.display = 'none'));
+                }
+                this.updateRestButton();
                 // Carton blanc remplacé par le carton de passivité (#1026)
                 ['btn-card-white-a', 'btn-card-white-b'].forEach(id => {
                   const b = document.getElementById(id);
@@ -1973,10 +2065,7 @@
             .catch(() => {});
           // Service Worker PWA
           if ('serviceWorker' in navigator) {
-            navigator.serviceWorker
-              .register('/sw.js')
-              .then(() => console.log('[SW] Service Worker enregistré'))
-              .catch(err => console.warn('[SW] Enregistrement échoué:', err));
+            navigator.serviceWorker.register('/sw.js').catch(err => console.warn('[SW] Enregistrement échoué:', err));
           }
           // Indicateurs hors-ligne
           window.addEventListener('online', () => {
@@ -2031,9 +2120,7 @@
             .catch(() => ({ synced: 0, failed: size }));
           this.showSyncIndicator(false);
           this.updateOfflineBadge();
-          if (result.synced > 0) {
-            this.showNotification(`✅ ${result.synced} action(s) synchronisée(s)`);
-          }
+          if (result.synced > 0) this.showNotification(`✅ ${result.synced} action(s) synchronisée(s)`);
         }
 
         setupLongPressInteractions() {
@@ -2060,7 +2147,7 @@
               btn.classList.add('long-press-active');
               longPressTimer = setTimeout(() => {
                 btn.classList.remove('long-press-active');
-                this.removeScore(config.fencer, config.points);
+                this.removeScore(config.fencer, this.slotPoints(config.points));
                 longPressTimer = null;
               }, LONG_PRESS_DURATION);
             });
@@ -2070,7 +2157,7 @@
                 // Appui court : ajouter le score
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
-                this.addScore(config.fencer, config.points);
+                this.addScore(config.fencer, this.slotPoints(config.points));
               }
               btn.classList.remove('long-press-active');
             });
@@ -2089,7 +2176,7 @@
               btn.classList.add('long-press-active');
               longPressTimer = setTimeout(() => {
                 btn.classList.remove('long-press-active');
-                this.removeScore(config.fencer, config.points);
+                this.removeScore(config.fencer, this.slotPoints(config.points));
                 longPressTimer = null;
               }, LONG_PRESS_DURATION);
             });
@@ -2100,7 +2187,7 @@
                 // Appui court : ajouter le score
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
-                this.addScore(config.fencer, config.points);
+                this.addScore(config.fencer, this.slotPoints(config.points));
               }
               btn.classList.remove('long-press-active');
             });
@@ -2238,7 +2325,7 @@
             document.body.appendChild(ov);
           }
           ov.innerHTML = '<div style="background:rgba(0,0,0,0.85);border:3px solid #3b82f6;border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">'
-            + '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">🤺 ' + String(label).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])) + '</div>'
+            + '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">🤺 ' + escHtml(label) + '</div>'
             + '<div style="font-size:1rem;color:#94a3b8;">Identification tablette arbitre</div>'
             + '</div>';
           ov.style.display = 'flex';
@@ -2248,11 +2335,7 @@
 
         setupSocketListeners() {
           // Identifiant persistant de cette tablette (survit aux rechargements/reconnexions)
-          let _screenId = localStorage.getItem('bp_screen_id');
-          if (!_screenId) {
-            _screenId = 'scr_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-            localStorage.setItem('bp_screen_id', _screenId);
-          }
+          const _screenId = window.bpScreenId() || 'scr_anon';
 
           // Mise à jour live de la config TTS depuis les paramètres globaux
           this.socket.on('tts:update', d => { if (d) this.applyTtsConfig(d); });
@@ -2444,6 +2527,8 @@
           this.timerSeconds = this.defaultTimerSeconds;
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
+          this.isResting = false;
           this.overtimeType = null;
           this.actionHistory = [];
           this.swapped = false;
@@ -2453,6 +2538,7 @@
 
           // Charger les infos du match
           this.applySwapState();
+          this.applyScoringButtons();
           this.updateTimerDisplay();
           this.updateMatchStatus();
           this.updateControlButtons();
@@ -2475,6 +2561,51 @@
           });
         }
 
+        // Zones de score actives (formule personnalisée) pour le match courant, sinon null
+        activeCustomZones() {
+          const cs = this.customScoring;
+          if (!cs) return null;
+          const scoring = this.currentMatch && this.currentMatch.isTableau ? cs.de : cs.pool;
+          if (!scoring) return null;
+          if (scoring.type === 'zones' && scoring.zones && scoring.zones.length > 0) {
+            return scoring.zones.slice(0, 3).map(z => ({ label: z.label, points: z.points }));
+          }
+          return [{ label: '', points: 1 }];
+        }
+
+        // Points réellement attribués par le bouton du palier 1 / 3 / 5
+        slotPoints(slot) {
+          const zones = this.activeCustomZones();
+          if (!zones) return slot;
+          const idx = slot === 1 ? 0 : slot === 3 ? 1 : 2;
+          return zones[idx] ? zones[idx].points : slot;
+        }
+
+        zoneLetter(points) {
+          const zones = this.activeCustomZones();
+          if (zones) {
+            const idx = zones.findIndex(z => z.points === points);
+            return ['A', 'B', 'C'][idx < 0 ? 0 : idx];
+          }
+          return points === 1 ? 'A' : points === 3 ? 'B' : 'C';
+        }
+
+        // Affiche uniquement les boutons de score du système choisi (+1 en standard)
+        applyScoringButtons() {
+          const zones = this.activeCustomZones();
+          if (!zones) return;
+          [[1, 'btn-plus-1'], [3, 'btn-plus-3'], [5, 'btn-plus-5']].forEach(([slot, base], idx) => {
+            ['a', 'b'].forEach(side => {
+              const btn = document.getElementById(`${base}-${side}`);
+              if (!btn) return;
+              const z = zones[idx];
+              btn.style.display = z ? '' : 'none';
+              if (z) btn.textContent = `+${z.points}`;
+              btn.title = z && z.label ? z.label : '';
+            });
+          });
+        }
+
         addScore(fencer, points) {
           if (!this.currentMatch) return;
           if (this.matchStatus === 'not_started') {
@@ -2494,7 +2625,7 @@
           }
 
           // Restriction de zones en mode entraînement
-          const _zone = points === 1 ? 'A' : points === 3 ? 'B' : 'C';
+          const _zone = this.zoneLetter(points);
           if (
             this.trainingCustomRules &&
             this.trainingCustomRules.allowedZones &&
@@ -2510,7 +2641,7 @@
           if (navigator.vibrate) navigator.vibrate(points === 5 ? 120 : points === 3 ? 80 : 40);
 
           const ef = this._effectiveFencer(fencer);
-          const zone = points === 1 ? 'A' : points === 3 ? 'B' : 'C';
+          const zone = this.zoneLetter(points);
           if (ef === 'A') {
             this.scoreA = Math.max(0, this.scoreA + points);
             this.touchesA.push(zone);
@@ -2904,6 +3035,7 @@
             isSuddenDeath: this.isSuddenDeath,
             overtimeType: this.overtimeType,
             waitingOvertimeStart: this.waitingOvertimeStart,
+            waitingCoinFlip: this.waitingCoinFlip,
           };
           this.actionHistory.push(snapshot);
           if (this.actionHistory.length > 10) this.actionHistory.shift();
@@ -2946,6 +3078,7 @@
           this.isSuddenDeath = prev.isSuddenDeath;
           this.overtimeType = prev.overtimeType;
           this.waitingOvertimeStart = prev.waitingOvertimeStart ?? false;
+          this.waitingCoinFlip = prev.waitingCoinFlip ?? false;
           this.updateScores();
           this.updateCardsDisplay();
           this.updateSuddenDeathUI();
@@ -3040,7 +3173,7 @@
 
           if (navigator.vibrate) navigator.vibrate(30);
           const ef = this._effectiveFencer(fencer);
-          const zone = points === 1 ? 'A' : points === 3 ? 'B' : 'C';
+          const zone = this.zoneLetter(points);
           if (ef === 'A') {
             this.scoreA = Math.max(0, this.scoreA - points);
             const idx = this.touchesA.lastIndexOf(zone);
@@ -3205,6 +3338,7 @@
             scoreAEl.classList.remove('not-started');
             scoreBEl.classList.remove('not-started');
           }
+          if (this.waitingCoinFlip) this.updateControlButtons();
         }
 
         updateCardsDisplay() {
@@ -3212,7 +3346,7 @@
             cards
               .map(
                 card =>
-                  `<div class="card card-${card}">${PASSIVITY_CARDS.includes(card) ? 'P' : card === 'white' ? 'B' : card === 'yellow' ? 'J' : card === 'black' ? 'N' : 'R'}</div>`
+                  `<div class="card card-${escHtml(card)}">${PASSIVITY_CARDS.includes(card) ? 'P' : card === 'white' ? 'B' : card === 'yellow' ? 'J' : card === 'black' ? 'N' : 'R'}</div>`
               )
               .join('');
 
@@ -3231,17 +3365,11 @@
         updateBackButton() {
           const btn = document.getElementById('btn-back-to-list');
           if (!btn) return;
-          if (this.timerRunning) {
-            btn.disabled = true;
-            btn.style.opacity = '0.4';
-            btn.style.cursor = 'not-allowed';
-            btn.title = 'Retour désactivé pendant le chrono';
-          } else {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
-            btn.title = 'Retour à la liste des matchs';
-          }
+          const busy = this.timerRunning;
+          btn.disabled = busy;
+          btn.style.opacity = busy ? '0.4' : '1';
+          btn.style.cursor = busy ? 'not-allowed' : 'pointer';
+          btn.title = busy ? 'Retour désactivé pendant le chrono' : 'Retour à la liste des matchs';
         }
 
         startTimer() {
@@ -3263,20 +3391,66 @@
               if (this.timerSeconds === 0) {
                 this.stopTimer();
                 if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+                if (this.isResting) {
+                  this.endRest();
+                  return;
+                }
                 const _sdDisabled = this.trainingCustomRules && this.trainingCustomRules.disableSuddenDeath;
                 if (!_sdDisabled && this.scoreA === this.scoreB &&
                     (!this.isSuddenDeath || this.overtimeType === 'challenger')) {
                   // Égalité : attente manuelle de l'arbitre pour lancer le temps supplémentaire
                   this.prepareSuddenDeath();
                 } else if (!_sdDisabled && this.isSuddenDeath && this.scoreA === this.scoreB) {
-                  // Fin du temps supplémentaire avec égalité → tirage au sort
-                  this.triggerTiebreaker();
+                  // Fin du temps supplémentaire avec égalité → tirage au sort sur action de l'arbitre (#1136)
+                  this.prepareCoinFlip();
                 } else {
                   this.showNotification('⏰ Temps écoulé !');
                 }
               }
             }
           }, 1000);
+        }
+
+        // Repos (escrime olympique) : chrono à 00:00, met le temps de repos sans fin de match (#1134)
+        canStartRest() {
+          return (
+            this.isModernFencing &&
+            this.restSeconds > 0 &&
+            !!this.currentMatch &&
+            this.matchStatus === 'in_progress' &&
+            this.timerSeconds === 0 &&
+            !this.timerRunning &&
+            !this.isResting
+          );
+        }
+
+        updateRestButton() {
+          const btn = document.getElementById('btn-rest');
+          if (!btn) return;
+          btn.style.display = this.isModernFencing && this.restSeconds > 0 ? '' : 'none';
+          btn.disabled = !this.canStartRest();
+          btn.classList.toggle('active', this.isResting);
+        }
+
+        startRest() {
+          if (!this.canStartRest()) return;
+          this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
+          this.isResting = true;
+          this.timerSeconds = this.restSeconds;
+          this.updateControlButtons();
+          this.startTimer();
+          this.showNotification('☕ Repos');
+        }
+
+        // Fin du repos : le chrono retrouve sa durée initiale, le match continue
+        endRest() {
+          this.isResting = false;
+          this.timerSeconds = this.defaultTimerSeconds;
+          this.updateTimerDisplay();
+          this.broadcastTimerUpdate();
+          this.updateControlButtons();
+          this.showNotification('⏰ Fin du repos');
         }
 
         pauseTimer() {
@@ -3292,12 +3466,15 @@
           }
           this.timerRunning = false;
           this.updateBackButton();
+          this.updateRestButton();
         }
 
         resetTimer() {
           this.stopTimer();
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
+          this.isResting = false;
           this.overtimeType = null;
           this.timerSeconds = this.defaultTimerSeconds;
           this._ttsAnnouncedSeconds = new Set();
@@ -3420,6 +3597,8 @@
 
         launchSuddenDeath() {
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
+          this.isResting = false;
           this.triggerSuddenDeath();
         }
 
@@ -3445,7 +3624,16 @@
           this.startTimer();
         }
 
+        // Attente du tirage au sort : l'arbitre peut corriger le score avant de le lancer (#1136)
+        prepareCoinFlip() {
+          this.waitingCoinFlip = true;
+          this.updateControlButtons();
+          this.showNotification('⚖️ Égalité ! Corrigez le score si besoin, ou appuyez sur "Tirage au sort".');
+        }
+
         triggerTiebreaker() {
+          this.waitingCoinFlip = false;
+          this.updateControlButtons();
           const winner = Math.random() < 0.5 ? 'A' : 'B';
           this.coinFlipWinner = winner;
 
@@ -3501,6 +3689,8 @@
 
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
+          this.isResting = false;
           this.overtimeType = null;
           this.updateSuddenDeathUI();
           this.matchStatus = 'finished';
@@ -3569,6 +3759,7 @@
 
           // Affichage mort subite (synchronise label + état boutons)
           this.updateSuddenDeathUI();
+          this.updateRestButton();
         }
 
         broadcastTimerUpdate() {
@@ -3727,6 +3918,8 @@
               this.timerSeconds = this.defaultTimerSeconds;
               this.isSuddenDeath = false;
               this.waitingOvertimeStart = false;
+              this.waitingCoinFlip = false;
+              this.isResting = false;
               this.overtimeType = null;
               this.updateTimerDisplay();
               document.getElementById('active-match').classList.remove('visible');
@@ -3748,8 +3941,8 @@
           // Rappel du score et indication du vainqueur (V)
           document.getElementById('match-sig-score').textContent = `${scoreA} – ${scoreB}`;
           const vTag = win => (win ? '<span class="match-sig-victory">V</span> ' : '');
-          document.getElementById('match-sig-name-a').innerHTML = vTag(aWins) + fullName(match.fencerA);
-          document.getElementById('match-sig-name-b').innerHTML = vTag(bWins) + fullName(match.fencerB);
+          document.getElementById('match-sig-name-a').innerHTML = /* html */ vTag(aWins) + escHtml(fullName(match.fencerA));
+          document.getElementById('match-sig-name-b').innerHTML = /* html */ vTag(bWins) + escHtml(fullName(match.fencerB));
           document.getElementById('match-sig-pad-a').classList.toggle('winner', aWins);
           document.getElementById('match-sig-pad-b').classList.toggle('winner', bWins);
           overlay.classList.add('visible');
@@ -3861,6 +4054,17 @@
             return;
           }
 
+          // Fin du temps supplémentaire à égalité : tirage au sort manuel (#1136)
+          if (this.waitingCoinFlip && this.scoreA === this.scoreB) {
+            startBtn.disabled = false;
+            startBtn.textContent = '🪙 Tirage au sort';
+            startBtn.className = 'control-btn btn-launch-overtime';
+            if (finishBtn) finishBtn.disabled = false;
+            this.updateScoreButtons();
+            this.updateRestButton();
+            return;
+          }
+
           // Réinitialiser les classes
           startBtn.className = 'control-btn btn-start';
 
@@ -3884,6 +4088,7 @@
 
           finishBtn.disabled = this.matchStatus !== 'in_progress';
           this.updateScoreButtons();
+          this.updateRestButton();
         }
 
         updateScoreButtons() {
@@ -3896,6 +4101,10 @@
         handleStartPauseClick() {
           if (this.waitingOvertimeStart) {
             this.launchSuddenDeath();
+            return;
+          }
+          if (this.waitingCoinFlip && this.scoreA === this.scoreB) {
+            this.triggerTiebreaker();
             return;
           }
           if (this.matchStatus === 'not_started') {
@@ -3923,9 +4132,14 @@
 
         handleArenaUpdate(data) {
           if (data.screenThemes?.referee) { applyScreenTheme(data.screenThemes.referee.variables); }
+          if (this.rulesLoaded && typeof data.modernRules === 'boolean' && data.modernRules !== this.isModernFencing && !this.timerRunning && this.matchStatus !== 'in_progress') return window.location.reload(); // règles changées en propriétés (#1118)
 
           if (data.timerDuration !== undefined && data.timerDuration > 0) {
             this.defaultTimerSeconds = data.timerDuration;
+          }
+          if (typeof data.restSeconds === 'number') {
+            this.restSeconds = Math.max(0, data.restSeconds);
+            this.updateRestButton();
           }
 
           if (data.trainingCustomRules !== undefined) {
@@ -4056,6 +4270,8 @@
           this.matchStatus = 'not_started';
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
+          this.waitingCoinFlip = false;
+          this.isResting = false;
           this.overtimeType = null;
           this.actionHistory = [];
           this.timerSeconds = this.defaultTimerSeconds;
@@ -4136,6 +4352,9 @@
         }
 
         async loadNextMatches() {
+          // Vague lancée ou terminée depuis le chargement : changer de sous-piste (#1118)
+          const idle = !this.timerRunning && this.matchStatus !== 'in_progress';
+          if (idle && (await window.bpClaimArenaSlot(this.baseArenaId, this.arenaId)) !== this.arenaId) return window.location.reload();
           const container = document.getElementById('next-matches-list');
           container.innerHTML = `<div class="next-matches-empty">${window.T('remote.loading')}</div>`;
           try {
@@ -4189,7 +4408,7 @@
                     <div style="font-weight:700;">${escHtml(c.fencerName) || '?'}</div>
                     <div style="font-size:0.8rem;opacity:0.75;">contre ${escHtml(c.opponentName) || '?'}</div>
                   </div>
-                  <button onclick="refereeApp.cancelBlackCardFromList('${escHtml(c.fencerId)}')"
+                  <button data-click="refereeApp.cancelBlackCardFromList" data-args="${escHtml(JSON.stringify([c.fencerId]))}"
                     style="padding:0.6rem 1rem;border:none;border-radius:0.5rem;background:#f9fafb;color:#111;font-weight:700;font-size:0.9rem;cursor:pointer;">
                     ↩ Annuler le carton
                   </button>
@@ -4207,7 +4426,7 @@
             });
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) {
-              this.showNotification(`❌ ${data.error || 'Annulation impossible'}`, true);
+              this.showNotification(`❌ ${window.errorText(data, window.T('error.update_failed'))}`, true);
               return;
             }
             this.showNotification('✅ Carton noir annulé — combattant réintégré');
@@ -4227,10 +4446,10 @@
             container.innerHTML = `
               <div class="next-matches-empty">✅ Tous les matchs de cette arène sont terminés</div>
               <div style="display:flex;gap:0.75rem;justify-content:center;margin-top:1.25rem;flex-wrap:wrap;">
-                <a href="/arene${arenaNum}/poule" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.85rem 1.5rem;background:#4f46e5;color:#fff;border-radius:0.75rem;font-size:1rem;font-weight:700;text-decoration:none;">
+                <a href="/arene${escHtml(arenaNum)}/poule" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.85rem 1.5rem;background:#4f46e5;color:#fff;border-radius:0.75rem;font-size:1rem;font-weight:700;text-decoration:none;">
                   ✍️ SIGNATURE
                 </a>
-                <a href="/arene${arenaNum}/journal" target="_blank" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.85rem 1.5rem;background:#4c1d95;color:#c4b5fd;border-radius:0.75rem;font-size:1rem;font-weight:700;text-decoration:none;">
+                <a href="/arene${escHtml(arenaNum)}/journal" target="_blank" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.85rem 1.5rem;background:#4c1d95;color:#c4b5fd;border-radius:0.75rem;font-size:1rem;font-weight:700;text-decoration:none;">
                   📋 JOURNAL
                 </a>
               </div>`;
@@ -4243,21 +4462,21 @@
           };
           container.innerHTML = matches
             .map(match => {
-              const safeId = escHtml(match.id);
+              const argsId = escHtml(JSON.stringify([match.id]));
               const clubLine =
                 [match.fencerA?.club, match.fencerB?.club]
                   .filter(Boolean)
                   .map(escHtml)
                   .join(' · ') || '';
               return `
-              <div class="next-match-card" onclick="refereeApp.selectMatchFromNextScreen('${safeId}')">
+              <div class="next-match-card" data-click="refereeApp.selectMatchFromNextScreen" data-args="${/* html */ argsId}">
                 <div>
                   <div class="next-match-card-names">
                     ${escHtml(match.fencerA?.lastName) || '?'} <span style="opacity:0.6;font-weight:400">vs</span> ${escHtml(match.fencerB?.lastName) || '?'}
-                    ${statusBadge(match.status)}
+                    ${/* html */ statusBadge(match.status)}
                   </div>
                   <div class="next-match-card-sub">
-                    ${clubLine}
+                    ${/* html */ clubLine}
                   </div>
                 </div>
                 <div class="next-match-card-arrow">›</div>
@@ -4307,11 +4526,24 @@
 
       // Initialisation
       let refereeApp;
+      // Actions des boutons (data-click) : plus de handlers inline (CSP, #1149)
+      function openJournal() {
+        const n = refereeApp?.arenaNumber || document.getElementById('arena-number')?.textContent;
+        window.open('/arene' + encodeURIComponent(n) + '/journal', '_blank');
+      }
+      function reloadIfIdle() {
+        if (refereeApp.timerRunning) return;
+        // Chrono jamais lancé : le match redevient disponible pour les autres tablettes (#1118)
+        const open = !!refereeApp.currentMatch;
+        if (open) refereeApp.socket?.emit('arena_control', { arenaId: refereeApp.arenaId, action: 'release_match' });
+        setTimeout(() => window.location.reload(), open ? 200 : 0);
+      }
       document.addEventListener('DOMContentLoaded', async () => {
         try {
           await window.initRemoteI18n();
           document.title = window.T('referee.title');
-          refereeApp = new RefereeApp();
+          refereeApp = new RefereeApp(await window.bpClaimArenaSlot(RefereeApp.prototype.getArenaId()));
+          window.refereeApp = refereeApp; // résolu par la délégation data-click (common.js)
         } catch (e) {
           console.error('[RefereeApp] Erreur init:', e);
           const dot = document.getElementById('status-dot');
@@ -4330,7 +4562,7 @@
       </div>
       <div class="reason-selector-body" id="reason-selector-body"></div>
       <div class="reason-selector-footer">
-        <button class="reason-cancel-btn" onclick="refereeApp.cancelReasonSelector()">
+        <button class="reason-cancel-btn" data-click="refereeApp.cancelReasonSelector">
           ✕ Annuler — carton donné sans annonce
         </button>
       </div>
@@ -4339,12 +4571,12 @@
     <!-- Overlay plein-écran : fin de poule / signature -->
     <div id="pool-complete-overlay" class="pool-complete-overlay">
       <div class="pco-icon">✍️</div>
-      <h1 class="pco-title">POULE TERMINÉE</h1>
-      <p class="pco-sub">Tous les matchs sont terminés</p>
-      <button class="pco-btn" onclick="refereeApp.goToSignature()">
+      <h1 class="pco-title" data-i18n="referee.pool_complete">POULE TERMINÉE</h1>
+      <p class="pco-sub" data-i18n="referee.pool_complete_sub">Tous les matchs sont terminés</p>
+      <button class="pco-btn" data-click="refereeApp.goToSignature">
         ✍️ SIGNATURE
       </button>
-      <button class="pco-btn" onclick="window.open(`/arene${refereeApp.arenaNumber}/journal`, '_blank')" style="margin-top:1rem; background:#4c1d95; animation:none; font-size:1.2rem; padding:0.9rem 2rem;">
+      <button class="pco-btn" data-click="openJournal" style="margin-top:1rem; background:#4c1d95; animation:none; font-size:1.2rem; padding:0.9rem 2rem;">
         📋 JOURNAL
       </button>
     </div>
@@ -4352,27 +4584,27 @@
     <!-- Overlay signature des combattants après un match du tableau -->
     <div id="match-sig-overlay" class="match-sig-overlay">
       <div class="match-sig-box">
-        <h2>✍️ Signature des combattants</h2>
-        <p class="match-sig-instructions">Chaque tireur signe pour valider le score du match</p>
+        <h2 data-i18n="referee.sig_title">✍️ Signature des combattants</h2>
+        <p class="match-sig-instructions" data-i18n="referee.sig_instructions">Chaque tireur signe pour valider le score du match</p>
         <div class="match-sig-score-recall">
-          <span class="match-sig-score-label">Score final</span>
+          <span class="match-sig-score-label" data-i18n="referee.sig_final_score">Score final</span>
           <span id="match-sig-score" class="match-sig-score-value"></span>
         </div>
         <div class="match-sig-grid">
           <div id="match-sig-pad-a" class="match-sig-pad">
             <div class="match-sig-fencer"><span class="match-sig-letter">A</span> <strong id="match-sig-name-a"></strong></div>
             <canvas id="match-sig-canvas-a" class="match-sig-canvas"></canvas>
-            <button class="match-sig-clear" onclick="refereeApp.clearMatchSig('a')">Effacer</button>
+            <button class="match-sig-clear" data-click="refereeApp.clearMatchSig" data-args='["a"]' data-i18n="referee.sig_clear">Effacer</button>
           </div>
           <div id="match-sig-pad-b" class="match-sig-pad">
             <div class="match-sig-fencer"><span class="match-sig-letter">B</span> <strong id="match-sig-name-b"></strong></div>
             <canvas id="match-sig-canvas-b" class="match-sig-canvas"></canvas>
-            <button class="match-sig-clear" onclick="refereeApp.clearMatchSig('b')">Effacer</button>
+            <button class="match-sig-clear" data-click="refereeApp.clearMatchSig" data-args='["b"]' data-i18n="referee.sig_clear">Effacer</button>
           </div>
         </div>
         <div class="match-sig-actions">
-          <button class="match-sig-skip" onclick="refereeApp.closeMatchSignature()">Passer</button>
-          <button id="match-sig-submit" class="match-sig-validate" onclick="refereeApp.submitMatchSignatures()">Valider les signatures</button>
+          <button class="match-sig-skip" data-click="refereeApp.closeMatchSignature" data-i18n="referee.sig_skip">Passer</button>
+          <button id="match-sig-submit" class="match-sig-validate" data-click="refereeApp.submitMatchSignatures" data-i18n="referee.sig_submit">Valider les signatures</button>
         </div>
       </div>
     </div>
