@@ -39,11 +39,21 @@
   <!-- bavette -->
   <path d="M158 222 L242 222 L258 274 Q200 294 142 274 Z" fill="#f4f6fa" stroke="#c3cad6" stroke-width="1.5"/>
   <path d="M146 268 Q200 286 254 268" fill="none" stroke="#ff3b5c" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <!-- crête de coq -->
+  <path d="M168 128 C158 104 176 90 186 106 C182 82 208 78 206 100 C214 80 238 88 228 110 C240 108 242 124 232 130 Z" fill="#e63950" stroke="#7a1229" stroke-width="2"/>
   <!-- masque -->
   <path d="M150 152 C150 106 250 106 250 152 L246 214 C243 248 157 248 154 214 Z" fill="#0b1630"/>
   <path d="M150 152 C150 106 250 106 250 152 L246 214 C243 248 157 248 154 214 Z" fill="url(#mesh)"/>
   <path d="M150 152 C150 106 250 106 250 152 L246 214 C243 248 157 248 154 214 Z" fill="none" stroke="url(#steel)" stroke-width="5"/>
   <path d="M166 134 C176 116 200 112 214 116" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity=".35"/>
+  <!-- tête de coq sur le grillage -->
+  <path d="M166 148 L190 158" stroke="#ffb703" stroke-width="4" stroke-linecap="round"/>
+  <path d="M234 148 L210 158" stroke="#ffb703" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="180" cy="168" r="9" fill="#ffffff"/><circle cx="182" cy="170" r="4.5" fill="#0b1630"/><circle cx="180.5" cy="168" r="1.5" fill="#ffffff"/>
+  <circle cx="220" cy="168" r="9" fill="#ffffff"/><circle cx="218" cy="170" r="4.5" fill="#0b1630"/><circle cx="216.5" cy="168" r="1.5" fill="#ffffff"/>
+  <path d="M194 200 C186 224 204 230 203 212 C210 226 216 206 207 198 Z" fill="#e63950" stroke="#7a1229" stroke-width="1.5"/>
+  <path d="M186 180 L214 180 L200 206 Z" fill="#ffb703" stroke="#c77700" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M189 187 L211 187" stroke="#c77700" stroke-width="1.5"/>
   
   <path d="M60 352 L104 352 L104 390 L60 390 L74 371 Z" fill="#b3203d"/>
   <path d="M340 352 L296 352 L296 390 L340 390 L326 371 Z" fill="#b3203d"/>
@@ -56,5 +66,5 @@
   <text x="200" y="436" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="38" letter-spacing="5" fill="#ffffff">CONTRIBUTOR</text>
   <g stroke="#6b84e8" stroke-width="1.5"><line x1="70" y1="456" x2="150" y2="456"/><line x1="250" y1="456" x2="330" y2="456"/></g>
   <text x="200" y="460" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="11" letter-spacing="3" fill="#6b84e8">ORDRE 66</text>
-  <text x="200" y="486" text-anchor="middle" font-family="DejaVu Sans Mono, Consolas, monospace" font-size="12" fill="#c3cad6">git commit -m "<tspan fill="#ff3b5c" font-weight="bold">Touché !</tspan>"</text>
+  <text x="200" y="486" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="12" letter-spacing="4" fill="#c3cad6">EN GARDE · PRÊTS · <tspan fill="#ff3b5c">ALLEZ !</tspan></text>
 </svg>
