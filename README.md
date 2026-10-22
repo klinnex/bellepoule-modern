@@ -16,12 +16,21 @@ Merci pour votre soutien ! / Thank you for your support!
 
 | Public | Document |
 |---|---|
+| Aperçu | **[Captures d'écran des menus](docs/SCREENSHOTS.md)** |
 | Organisateur | [Manuel utilisateur](USER_MANUAL.md) · [Installation](INSTALLATION.md) · [Saisie distante](REMOTE_SCORE_GUIDE.md) · [Démarrage express](REMOTE_SCORE_GUIDE.md#démarrage-express) |
 | Arbitre | **[Interface d'arbitrage](docs/ARBITRAGE.md)** · **[Scénarios de match](docs/SCENARIOS_MATCH.md)** |
 | Équipes | [Compétitions par équipes](docs/TEAM_COMPETITIONS.md) |
 | Exports | [Guide export PDF](docs/USER_GUIDE_PDF_EXPORT.md) · [Formats de fichiers](FILE_FORMATS.md) |
 | Développeur | [Architecture](ARCHITECTURE.md) · **[Stack technique et versions](docs/STACK_TECHNIQUE.md)** · [Guide de développement](DEVELOPMENT_GUIDE.md) · [Contribuer](CONTRIBUTING.md) |
 | Divers | [Dépannage](TROUBLESHOOTING.md) · [Mises à jour](UPDATE_SYSTEM.md) · [Sécurité saisie distante](docs/SECURITE_SAISIE_DISTANTE.md) · [Politique de sécurité](SECURITY.md) · [Index complet](docs/README.md) |
+
+### 📸 **Captures d'écran**
+
+| Poules | Tableau |
+|---|---|
+| [![Poules](docs/screenshots/06-poules.png)](docs/SCREENSHOTS.md#poules) | [![Tableau](docs/screenshots/08-tableau.png)](docs/SCREENSHOTS.md#tableau) |
+
+Tous les menus : **[docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)**.
 
 ### 🔧 **Installation**
 

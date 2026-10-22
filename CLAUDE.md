@@ -82,6 +82,7 @@ npm run check:bundle-size # Bundle budget (CI)
 npm run check:tests-doc # docs/TESTS.md à jour (CI)
 npm run docs:tests      # Régénère docs/TESTS.md (inventaire des tests)
 npm run docs:api        # TypeDoc API docs
+npm run docs:screenshots # Captures docs/screenshots (après build ; xvfb-run -a sous Linux)
 npm run analyze         # Webpack bundle analyzer (opens browser)
 npm run test:e2e        # Playwright E2E tests
 npm run e2e:debug       # Playwright debug mode

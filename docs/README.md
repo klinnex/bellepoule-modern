@@ -7,6 +7,7 @@
 | Document | Contenu |
 |---|---|
 | [../README.md](../README.md) | Présentation, téléchargement, fonctionnalités |
+| **[SCREENSHOTS.md](SCREENSHOTS.md)** | **Captures d'écran des écrans et menus** |
 | [../INSTALLATION.md](../INSTALLATION.md) | Installation Windows / macOS / Linux, depuis les sources |
 | [../USER_MANUAL.md](../USER_MANUAL.md) | Manuel utilisateur (EN) : compétition, import, poules, tableau, exports |
 | [../MIGRATION_GUIDE.md](../MIGRATION_GUIDE.md) | Passer de BellePoule historique à BellePoule Modern |
