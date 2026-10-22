@@ -1,30 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 360" width="3000" height="3600">
-  <!-- Dos, ~30 cm de large. Fond transparent : textile marine (#1a365d) -->
-  <g transform="translate(70 0) scale(0.8)">
-  <circle cx="100" cy="100" r="92" fill="none" stroke="#6b84e8" stroke-width="5"/>
-  <circle cx="100" cy="100" r="82" fill="none" stroke="#6b84e8" stroke-width="1.5" stroke-dasharray="3 5"/>
-  <!-- sabre laser -->
-  <line x1="40" y1="160" x2="152" y2="48" stroke="#ff3b3b" stroke-width="11" stroke-linecap="round"/>
-  <line x1="44" y1="156" x2="150" y2="50" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
-  <rect x="22" y="160" width="30" height="11" rx="2" fill="#d9dde3" transform="rotate(-45 37 165.5)"/>
-  <rect x="25" y="163" width="4" height="5" fill="#ff3b3b" transform="rotate(-45 37 165.5)"/>
-  <!-- fleuret -->
-  <line x1="58" y1="58" x2="164" y2="164" stroke="#d9dde3" stroke-width="3.5" stroke-linecap="round"/>
-  <circle cx="164" cy="164" r="3.5" fill="#d9dde3"/>
-  <ellipse cx="60" cy="60" rx="15" ry="8" fill="#d9dde3" transform="rotate(-45 60 60)"/>
-  <line x1="56" y1="56" x2="38" y2="38" stroke="#d9dde3" stroke-width="6" stroke-linecap="round"/>
-  <circle cx="35" cy="35" r="5" fill="#d9dde3"/></g>
-  <text x="150" y="200" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="40" fill="#ffffff">BELLEPOULE</text>
-  <text x="150" y="226" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="500" font-size="17" letter-spacing="14" fill="#6b84e8">MODERN</text>
-  <!-- piste -->
-  <g stroke="#d9dde3" stroke-width="1.5">
-    <line x1="30" y1="252" x2="270" y2="252"/>
-    <line x1="30" y1="246" x2="30" y2="258"/><line x1="270" y1="246" x2="270" y2="258"/>
-    <line x1="150" y1="247" x2="150" y2="257"/>
-    <line x1="120" y1="248" x2="120" y2="256"/><line x1="180" y1="248" x2="180" y2="256"/>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 400 500" width="4000" height="5000">
+  <!-- Dos ~30 cm. Fond transparent, prévu pour textile marine/noir. Impression DTG (dégradés). -->
+  <defs>
+    <pattern id="mesh" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M0 0L5 5M5 0L0 5" stroke="#8fa3c9" stroke-width=".8"/></pattern>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#c3cad6"/><stop offset="1" stop-color="#7d8798"/></linearGradient>
+    <radialGradient id="field" cx=".5" cy=".4" r=".6"><stop offset="0" stop-color="#1f3f73"/><stop offset="1" stop-color="#0e2244"/></radialGradient>
+    <path id="arcTop" d="M63 195 A137 137 0 0 1 337 195"/>
+  </defs>
+  
+  <circle cx="200" cy="195" r="168" fill="none" stroke="#c3cad6" stroke-width="5"/>
+  <circle cx="200" cy="195" r="160" fill="none" stroke="#6b84e8" stroke-width="1.5"/>
+  <circle cx="200" cy="195" r="128" fill="url(#field)" stroke="#6b84e8" stroke-width="2"/>
+  <circle cx="200" cy="195" r="121" fill="none" stroke="#6b84e8" stroke-width="1" stroke-dasharray="2 4" opacity=".7"/>
+  <!-- lampes de touche -->
+  <circle cx="54" cy="195" r="13" fill="#2ee86b" opacity=".2"/><circle cx="54" cy="195" r="7" fill="#2ee86b"/><circle cx="52" cy="193" r="2.2" fill="#fff" opacity=".8"/>
+  <circle cx="346" cy="195" r="13" fill="#ff3b5c" opacity=".2"/><circle cx="346" cy="195" r="7" fill="#ff3b5c"/><circle cx="344" cy="193" r="2.2" fill="#fff" opacity=".8"/>
+  <text font-family="Inter, Arial, sans-serif" font-weight="900" font-size="21" letter-spacing="5" fill="#ffffff"><textPath xlink:href="#arcTop" href="#arcTop" startOffset="50%" text-anchor="middle">BELLEPOULE</textPath></text>
+  
+  <!-- fleuret : garde en bas à droite, pointe en haut à gauche -->
+  <polygon points="88,83 92,81 298,293 292,299" fill="url(#steel)"/>
+  <circle cx="88" cy="82" r="3.5" fill="#c3cad6"/>
+  <line x1="306" y1="306" x2="324" y2="324" stroke="#2a2a2e" stroke-width="8" stroke-linecap="round"/>
+  <line x1="309" y1="309" x2="321" y2="321" stroke="#4a4a50" stroke-width="8" stroke-dasharray="1.5 2.5"/>
+  <circle cx="328" cy="328" r="7" fill="url(#steel)" stroke="#5d6676" stroke-width="1.2"/>
+  <ellipse cx="300" cy="300" rx="27" ry="10" transform="rotate(-45 300 300)" fill="url(#steel)" stroke="#5d6676" stroke-width="1.5"/>
+  <!-- sabre laser : poignée en bas à gauche, lame vers haut droite -->
+  <g stroke-linecap="round">
+    <line x1="104" y1="290" x2="312" y2="82" stroke="#ff2d55" stroke-width="24" opacity=".15"/>
+    <line x1="104" y1="290" x2="312" y2="82" stroke="#ff2d55" stroke-width="13" opacity=".45"/>
+    <line x1="104" y1="290" x2="312" y2="82" stroke="#ff3b5c" stroke-width="7"/>
+    <line x1="106" y1="288" x2="310" y2="84" stroke="#fff4f6" stroke-width="2.6"/>
   </g>
-  <circle cx="150" cy="252" r="4" fill="#ff3b3b"/>
-  <text x="150" y="286" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="22" letter-spacing="4" fill="#ffffff">CONTRIBUTOR</text>
-  <text x="150" y="310" text-anchor="middle" font-family="DejaVu Sans Mono, Consolas, monospace" font-size="11" fill="#d9dde3">git commit -m "<tspan fill="#ff3b3b">Touché !</tspan>"</text>
-  <text x="150" y="340" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="600" font-size="9" letter-spacing="3" fill="#6b84e8">EN GARDE · PRÊTS · ALLEZ · PORT 8066</text>
+  <g transform="rotate(-45 90 304)">
+    <rect x="68" y="296" width="46" height="16" rx="3" fill="url(#steel)" stroke="#5d6676" stroke-width="1.2"/>
+    <rect x="76" y="296" width="3" height="16" fill="#2a2a2e"/><rect x="82" y="296" width="3" height="16" fill="#2a2a2e"/><rect x="88" y="296" width="3" height="16" fill="#2a2a2e"/>
+    <rect x="112" y="293" width="8" height="22" rx="2" fill="#5d6676"/>
+    <circle cx="100" cy="304" r="2.6" fill="#ff3b5c"/>
+  </g>
+  <!-- bavette -->
+  <path d="M158 222 L242 222 L258 274 Q200 294 142 274 Z" fill="#f4f6fa" stroke="#c3cad6" stroke-width="1.5"/>
+  <path d="M146 268 Q200 286 254 268" fill="none" stroke="#ff3b5c" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <!-- masque -->
+  <path d="M150 152 C150 106 250 106 250 152 L246 214 C243 248 157 248 154 214 Z" fill="#0b1630"/>
+  <path d="M150 152 C150 106 250 106 250 152 L246 214 C243 248 157 248 154 214 Z" fill="url(#mesh)"/>
+  <path d="M150 152 C150 106 250 106 250 152 L246 214 C243 248 157 248 154 214 Z" fill="none" stroke="url(#steel)" stroke-width="5"/>
+  <path d="M166 134 C176 116 200 112 214 116" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity=".35"/>
+  
+  <path d="M60 352 L104 352 L104 390 L60 390 L74 371 Z" fill="#b3203d"/>
+  <path d="M340 352 L296 352 L296 390 L340 390 L326 371 Z" fill="#b3203d"/>
+  <path d="M90 342 L104 352 L104 390 L90 380 Z" fill="#7a1229"/>
+  <path d="M310 342 L296 352 L296 390 L310 380 Z" fill="#7a1229"/>
+  <rect x="90" y="332" width="220" height="48" rx="2" fill="#e63950"/>
+  <line x1="96" y1="338" x2="304" y2="338" stroke="#fff" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/>
+  <line x1="96" y1="374" x2="304" y2="374" stroke="#fff" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/>
+  <text x="200" y="364" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="22" letter-spacing="9" fill="#ffffff">MODERN</text>
+  <text x="200" y="436" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="38" letter-spacing="5" fill="#ffffff">CONTRIBUTOR</text>
+  <g stroke="#6b84e8" stroke-width="1.5"><line x1="70" y1="456" x2="150" y2="456"/><line x1="250" y1="456" x2="330" y2="456"/></g>
+  <text x="200" y="460" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="11" letter-spacing="3" fill="#6b84e8">ORDRE 66</text>
+  <text x="200" y="486" text-anchor="middle" font-family="DejaVu Sans Mono, Consolas, monospace" font-size="12" fill="#c3cad6">git commit -m "<tspan fill="#ff3b5c" font-weight="bold">Touché !</tspan>"</text>
 </svg>
