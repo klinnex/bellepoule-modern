@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 70" width="800" height="280">
+  <!-- Manche gauche ~7 cm -->
+  <text x="100" y="52" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="54" letter-spacing="2" fill="none" stroke="#c3cad6" stroke-width="2.5">8066</text>
+  <circle cx="14" cy="34" r="6" fill="#2ee86b"/><circle cx="186" cy="34" r="6" fill="#ff3b5c"/>
+</svg>
