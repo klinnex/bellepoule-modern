@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" width="1000" height="1250">
+  <!-- Cœur gauche, ~9 cm de large. Fond transparent : textile marine (#1a365d) -->
+  <g>
+  <circle cx="100" cy="100" r="92" fill="none" stroke="#6b84e8" stroke-width="5"/>
+  <circle cx="100" cy="100" r="82" fill="none" stroke="#6b84e8" stroke-width="1.5" stroke-dasharray="3 5"/>
+  <!-- sabre laser -->
+  <line x1="40" y1="160" x2="152" y2="48" stroke="#ff3b3b" stroke-width="11" stroke-linecap="round"/>
+  <line x1="44" y1="156" x2="150" y2="50" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+  <rect x="22" y="160" width="30" height="11" rx="2" fill="#d9dde3" transform="rotate(-45 37 165.5)"/>
+  <rect x="25" y="163" width="4" height="5" fill="#ff3b3b" transform="rotate(-45 37 165.5)"/>
+  <!-- fleuret -->
+  <line x1="58" y1="58" x2="164" y2="164" stroke="#d9dde3" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="164" cy="164" r="3.5" fill="#d9dde3"/>
+  <ellipse cx="60" cy="60" rx="15" ry="8" fill="#d9dde3" transform="rotate(-45 60 60)"/>
+  <line x1="56" y1="56" x2="38" y2="38" stroke="#d9dde3" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="35" cy="35" r="5" fill="#d9dde3"/></g>
+  <text x="100" y="222" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="25" letter-spacing="1" fill="#ffffff">BellePoule</text>
+  <text x="100" y="244" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="500" font-size="13" letter-spacing="7" fill="#6b84e8">MODERN</text>
+</svg>
