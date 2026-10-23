@@ -819,7 +819,11 @@
     "print_wave_sheets": "列印本輪次賽程表",
     "print_wave_sheets_empty": "此輪次沒有可列印的比賽",
     "wave_legend": "本輪比賽",
-    "confirm_end_waves": "現在停止輪次？未進行的比賽不計；進入中期總排名。"
+    "confirm_end_waves": "現在停止輪次？未進行的比賽不計；進入中期總排名。",
+    "import_teams": "匯入隊伍（CSV / Excel）",
+    "import_empty": "檔案中找不到隊伍（需要 D/E、T/U 及 Y 欄）。",
+    "import_done": "已匯入 {{n}} 隊。",
+    "import_skipped": "已略過的列（不完整）：{{lines}}。"
   },
   "errors": {
     "server_not_started": "伺服器未啟動",

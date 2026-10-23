@@ -819,7 +819,11 @@
     "print_wave_sheets": "Imprimeix els fulls de l'onada",
     "print_wave_sheets_empty": "No hi ha cap combat per imprimir en aquesta onada",
     "wave_legend": "Assalts de l'onada en curs",
-    "confirm_end_waves": "Aturar les onades ara? Els assalts no disputats no compten; es passa a la classificació general intermèdia."
+    "confirm_end_waves": "Aturar les onades ara? Els assalts no disputats no compten; es passa a la classificació general intermèdia.",
+    "import_teams": "Importa els equips (CSV / Excel)",
+    "import_empty": "No s'ha trobat cap equip al fitxer (s'esperen les columnes D/E, T/U i Y).",
+    "import_done": "{{n}} equip(s) importat(s).",
+    "import_skipped": "Files omeses (incompletes): {{lines}}."
   },
   "errors": {
     "server_not_started": "Servidor no iniciat",

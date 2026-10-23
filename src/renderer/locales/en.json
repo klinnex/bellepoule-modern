@@ -819,7 +819,11 @@
     "print_wave_sheets": "Print wave sheets",
     "print_wave_sheets_empty": "No match to print in this wave",
     "wave_legend": "Bouts of the current wave",
-    "confirm_end_waves": "Stop the waves now? Unfenced bouts do not count; moving on to the intermediate overall ranking."
+    "confirm_end_waves": "Stop the waves now? Unfenced bouts do not count; moving on to the intermediate overall ranking.",
+    "import_teams": "Import teams (CSV / Excel)",
+    "import_empty": "No team found in the file (columns D/E, T/U and Y expected).",
+    "import_done": "{{n}} team(s) imported.",
+    "import_skipped": "Skipped rows (incomplete): {{lines}}."
   },
   "errors": {
     "server_not_started": "Server not started",
