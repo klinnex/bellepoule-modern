@@ -822,7 +822,11 @@
     "print_wave_sheets": "Imprimer les feuilles de la vague",
     "print_wave_sheets_empty": "Aucun match à imprimer dans cette vague",
     "wave_legend": "Matchs de la vague en cours",
-    "confirm_end_waves": "Arrêter les vagues maintenant ? Les matchs non joués ne comptent pas ; passage au classement général intermédiaire."
+    "confirm_end_waves": "Arrêter les vagues maintenant ? Les matchs non joués ne comptent pas ; passage au classement général intermédiaire.",
+    "import_teams": "Importer les équipes (CSV / Excel)",
+    "import_empty": "Aucune équipe trouvée dans le fichier (colonnes D/E, T/U et Y attendues).",
+    "import_done": "{{n}} équipe(s) importée(s).",
+    "import_skipped": "Lignes ignorées (incomplètes) : {{lines}}."
   },
   "errors": {
     "server_not_started": "Serveur non démarré",
