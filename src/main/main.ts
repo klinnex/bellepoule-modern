@@ -23,7 +23,6 @@ import { RemoteScoreServer } from './remoteScoreServer';
 import { ensureCert } from './certManager';
 import { AutoUpdater } from './autoUpdater';
 import type { MatchSignatureRequest } from '../shared/types/remote';
-import { decodeTextFile } from '../shared/utils/fileParser/detect';
 import { eventLoopMonitor } from './eventLoopMonitor';
 import { fmt, getL, getUiLanguage, setUiLanguage } from './menuLabels';
 import { registerDbHandlers } from './ipc/dbHandlers';
@@ -38,7 +37,7 @@ import {
   readBoundedFile,
   validateImportedFencers,
 } from './pathAuthorization';
-import { xlsxToCsv } from './xlsxToCsv';
+import { readImportText } from './xlsxToCsv';
 
 // Database instance
 const db = new DatabaseManager();
@@ -610,7 +609,7 @@ async function handleOpenFile(): Promise<void> {
     try {
       if (/\.(cotcot|cocot)$/i.test(filepath)) {
         // Fichier BellePoule classique : import XML dans la compétition ouverte
-        const content = decodeTextFile(await fs.promises.readFile(filepath));
+        const content = await readImportText(filepath);
         mainWindow?.webContents.send('menu:import', 'xml', filepath, content);
         return;
       }
@@ -745,7 +744,7 @@ async function handleImport(format: string): Promise<void> {
         authorizePath(filepath, 'read');
         mainWindow?.webContents.send('menu:import', format, filepath, '');
       } else {
-        const content = decodeTextFile(await fs.promises.readFile(filepath));
+        const content = await readImportText(filepath);
         mainWindow?.webContents.send('menu:import', format, filepath, content);
       }
     } catch (error) {
@@ -899,10 +898,7 @@ ipcMain.handle('dialog:openFile', async (_, options) => {
     const filePath = result.filePaths[0];
     authorizePath(filePath, 'read');
     try {
-      // Classeur Excel : converti en CSV « ; » pour les parseurs d'import (#1211)
-      const content = /\.xlsx$/i.test(filePath)
-        ? await xlsxToCsv(await readBoundedFile(filePath))
-        : decodeTextFile(await fs.promises.readFile(filePath));
+      const content = await readImportText(filePath);
       return { filePath, content };
     } catch (error) {
       console.error('Error reading file:', error);

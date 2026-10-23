@@ -5,8 +5,10 @@
  * Licensed under GPL-3.0
  */
 
+import fs from 'fs';
 import JSZip from 'jszip';
-import { checkZipEntries } from './pathAuthorization';
+import { decodeTextFile } from '../shared/utils/fileParser/detect';
+import { checkZipEntries, readBoundedFile } from './pathAuthorization';
 
 const decodeXml = (s: string): string =>
   s
@@ -86,4 +88,11 @@ export function rowsToCsv(rows: string[][]): string {
 
 export async function xlsxToCsv(buffer: Buffer): Promise<string> {
   return rowsToCsv(await xlsxToRows(buffer));
+}
+
+/** Contenu texte d'un fichier d'import ; classeur Excel converti en CSV « ; » pour les parseurs */
+export async function readImportText(filePath: string): Promise<string> {
+  return /\.xlsx$/i.test(filePath)
+    ? xlsxToCsv(await readBoundedFile(filePath))
+    : decodeTextFile(await fs.promises.readFile(filePath));
 }
