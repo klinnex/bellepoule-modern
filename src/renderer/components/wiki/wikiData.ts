@@ -1,4 +1,5 @@
 import type { WikiArticle, WikiLang } from './wiki.types';
+import { ADVANCED_ARTICLES } from './wikiAdvancedArticles';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const ARTICLES: WikiArticle[] = [
@@ -269,7 +270,7 @@ export const ARTICLES: WikiArticle[] = [
             '🤺 Fleuret — cible limitée au torse, scoring standard',
             '🗡️ Sabre — touche au-dessus de la ceinture, scoring rapide',
             '⚡ Sabre Laser — zones A/B/C avec points variables (1/3/5)',
-            '🎛️ À la carte — formule entièrement personnalisable',
+            '🎛️ À la carte — formule entièrement personnalisable, avec le mode spécial « Tournoi des rapières » (binômes)',
           ],
         },
         { type: 'h2', text: 'Catégories' },
@@ -277,7 +278,7 @@ export const ARTICLES: WikiArticle[] = [
         { type: 'h2', text: 'Formules' },
         {
           type: 'p',
-          text: "BellePoule propose des formules prédéfinies adaptées au nombre de tireurs. Vous pouvez aussi utiliser le Constructeur de formule pour créer des enchaînements de phases (poules → tableau → classement) avec des règles d'avancement personnalisées.",
+          text: "La formule se définit à la création (ou dans Propriétés) avec le Constructeur de formule : enchaînement de phases (poules → tableau → classement) et règles d'avancement. Une formule peut être enregistrée comme modèle et réutilisée.",
         },
         {
           type: 'tip',
@@ -297,7 +298,7 @@ export const ARTICLES: WikiArticle[] = [
             '🤺 Foil — target limited to torso, standard scoring',
             '🗡️ Sabre — touches above the waist, fast scoring',
             '⚡ Laser Sabre — zones A/B/C with variable points (1/3/5)',
-            '🎛️ Custom — fully customizable formula',
+            '🎛️ Custom — fully customizable formula, including the "Rapier tournament" special mode (pairs)',
           ],
         },
         { type: 'h2', text: 'Categories' },
@@ -312,7 +313,7 @@ export const ARTICLES: WikiArticle[] = [
         { type: 'h2', text: 'Formulas' },
         {
           type: 'p',
-          text: 'BellePoule provides predefined formulas adapted to the number of fencers. You can also use the Formula Builder to create phase sequences (pools → bracket → ranking) with custom advancement rules.',
+          text: 'The formula is defined at creation (or in Properties) with the Formula Builder: a chain of phases (pools → bracket → ranking) with advancement rules. A formula can be saved as a template and reused.',
         },
         {
           type: 'tip',
@@ -332,7 +333,7 @@ export const ARTICLES: WikiArticle[] = [
             '🤺 Florett — Trefferfläche auf den Rumpf begrenzt',
             '🗡️ Säbel — Treffer oberhalb der Taille, schnelle Wertung',
             '⚡ Lasersäbel — Zonen A/B/C mit variablen Punkten (1/3/5)',
-            '🎛️ Benutzerdefiniert — vollständig anpassbare Formel',
+            '🎛️ Benutzerdefiniert — vollständig anpassbare Formel, inklusive Sondermodus „Rapier-Turnier“ (Zweierteams)',
           ],
         },
         { type: 'h2', text: 'Kategorien' },
@@ -347,7 +348,7 @@ export const ARTICLES: WikiArticle[] = [
         { type: 'h2', text: 'Formeln' },
         {
           type: 'p',
-          text: 'BellePoule bietet vordefinierte Formeln je nach Fechteranzahl. Mit dem Formel-Builder können Sie Phasenabfolgen (Pools → Tableau → Rangliste) mit benutzerdefinierten Aufstiegsregeln erstellen.',
+          text: 'Die Formel wird beim Erstellen (oder in den Eigenschaften) mit dem Formel-Editor festgelegt: Abfolge von Phasen (Pools → Tableau → Rangliste) mit Aufstiegsregeln. Eine Formel kann als Vorlage gespeichert und wiederverwendet werden.',
         },
         {
           type: 'tip',
@@ -367,7 +368,7 @@ export const ARTICLES: WikiArticle[] = [
             '🤺 Florete — blanco limitado al torso, puntuación estándar',
             '🗡️ Sable — toques por encima de la cintura, puntuación rápida',
             '⚡ Sable Láser — zonas A/B/C con puntos variables (1/3/5)',
-            '🎛️ Personalizado — fórmula completamente configurable',
+            '🎛️ Personalizado — fórmula completamente configurable, con el modo especial «Torneo de las roperas» (parejas)',
           ],
         },
         { type: 'h2', text: 'Categorías' },
@@ -382,7 +383,7 @@ export const ARTICLES: WikiArticle[] = [
         { type: 'h2', text: 'Fórmulas' },
         {
           type: 'p',
-          text: 'BellePoule ofrece fórmulas predefinidas adaptadas al número de tiradores. También puedes usar el Constructor de fórmulas para crear secuencias de fases (poules → cuadro → clasificación) con reglas de avance personalizadas.',
+          text: 'La fórmula se define al crear la competición (o en Propiedades) con el Constructor de fórmulas: secuencia de fases (poules → cuadro → clasificación) con reglas de avance. Una fórmula puede guardarse como plantilla y reutilizarse.',
         },
         {
           type: 'tip',
@@ -399,7 +400,7 @@ export const ARTICLES: WikiArticle[] = [
             '🤺 花劍 — 有效部位限軀幹，標準計分',
             '🗡️ 軍刀 — 腰以上有效，快速計分',
             '⚡ 激光軍刀 — A/B/C 區域，可變分值（1/3/5）',
-            '🎛️ 自訂 — 完全可配置賽制',
+            '🎛️ 自訂 — 完全可配置賽制，包括「細劍錦標賽」特別模式',
           ],
         },
         { type: 'h2', text: '組別' },
@@ -410,7 +411,7 @@ export const ARTICLES: WikiArticle[] = [
         { type: 'h2', text: '賽制' },
         {
           type: 'p',
-          text: 'BellePoule 提供根據選手人數預設的賽制。您也可使用賽制生成器建立自訂賽段序列（分組→淘汰賽→排名），並設定晉級規則。',
+          text: '賽制於建立比賽時（或在「屬性」中）以賽制編輯器設定：階段順序（分組 → 淘汰賽 → 排名）及晉級規則。賽制可儲存為範本重複使用。',
         },
         { type: 'tip', text: '比賽顏色有助於在多個比賽同時開啟時區分分頁。' },
       ],
@@ -427,7 +428,7 @@ export const ARTICLES: WikiArticle[] = [
             "🤺 Floret — tachenn rediataet d'ar c'horf",
             '🗡️ Gouriz — pouez dreist ar gouriz, notadeg buan',
             '⚡ Gouriz Laser — zonoù A/B/C gant poentoù kemmadus (1/3/5)',
-            '🎛️ Diboell — formula personalizet a-bezh',
+            '🎛️ Diboell — formula personalizet a-bezh, gant ar mod ispisial « Tournamant ar rapierennoù » (daouadoù)',
           ],
         },
         { type: 'h2', text: 'Rummadoù' },
@@ -442,7 +443,7 @@ export const ARTICLES: WikiArticle[] = [
         { type: 'h2', text: 'Formulaoù' },
         {
           type: 'p',
-          text: "BellePoule a ro formulaoù rakdifinet degaset d'an niver a glañvourien. Gallout a rit ivez implijout ar Savour Formula da grouiñ rummadoù fazioù (poulloù → daolenn → renk) gant reolioù personalizet.",
+          text: 'Termenet e vez ar formulenn pa vez krouet ar genstrivadeg (pe en Perzhioù) gant Saver ar formulennoù : heuliad prantadoù (poulloù → taolenn → renkadur) ha reolennoù araokaat. Gallout a reer enrollañ ur formulenn evel patrom hag adimplijout anezhi.',
         },
         {
           type: 'tip',
@@ -462,7 +463,7 @@ export const ARTICLES: WikiArticle[] = [
             '🤺 Floret — blanc limitat al tors, puntuació estàndard',
             '🗡️ Sabre — tocs per sobre la cintura, puntuació ràpida',
             '⚡ Sabre Làser — zones A/B/C amb punts variables (1/3/5)',
-            '🎛️ Personalitzat — fórmula completament configurable',
+            '🎛️ Personalitzat — fórmula completament configurable, amb el mode especial «Torneig de les roperes» (parelles)',
           ],
         },
         { type: 'h2', text: 'Categories' },
@@ -477,7 +478,7 @@ export const ARTICLES: WikiArticle[] = [
         { type: 'h2', text: 'Fórmules' },
         {
           type: 'p',
-          text: "BellePoule ofereix fórmules predefinides adaptades al nombre de tiradors. També podeu fer servir el Constructor de fórmules per crear seqüències de fases (poules → quadre → classificació) amb regles d'avanç personalitzades.",
+          text: "La fórmula es defineix en crear la competició (o a Propietats) amb el Constructor de fórmules: seqüència de fases (poules → quadre → classificació) amb regles d'avançament. Una fórmula es pot desar com a plantilla i reutilitzar.",
         },
         {
           type: 'tip',
@@ -521,14 +522,14 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'Format CSV — colonnes : Nom, Prénom, Club, Licence, Classement',
-            'Format XML — export standard FFE',
-            'Format FFE Connect — connexion directe à la fédération',
+            'XML BellePoule (.xml, .cotcot) et liste FFE (.fff, .csv, .txt)',
+            'Classement (FFF, CSV ou XLSX : NOM, PRÉNOM, CLASSEMENT) et archive de tireurs .bpf (photos comprises)',
+            'FFE Connect — import direct depuis la fédération ; Tournoi des rapières : import des équipes (CSV / XLSX)',
           ],
         },
         {
           type: 'warning',
-          text: "Il faut au minimum 4 tireurs pointés pour générer les poules. Un message d'erreur s'affiche si ce seuil n'est pas atteint.",
+          text: "Chaque poule doit compter au moins 3 tireurs pour lancer les poules (2 en Tournoi des rapières) : le bouton « Lancer les poules » reste grisé sinon. Le nombre et la taille des poules s'ajustent dans la phase de Préparation.",
         },
         { type: 'h2', text: 'Statuts des tireurs' },
         {
@@ -538,7 +539,7 @@ export const ARTICLES: WikiArticle[] = [
             '🟢 Présent — pointé, participera à la compétition',
             '🔵 Qualifié — a passé les poules avec succès',
             '🔴 Éliminé — sorti du tableau',
-            '⚫ Forfait / Abandon — retiré de la compétition',
+            '⚫ Forfait / Abandon / Exclu — retiré de la compétition',
           ],
         },
       ],
@@ -561,14 +562,14 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'CSV format — columns: Last name, First name, Club, License, Ranking',
-            'XML format — standard FFE export',
-            'FFE Connect — direct federation connection',
+            'BellePoule XML (.xml, .cotcot) and FFE list (.fff, .csv, .txt)',
+            'Ranking (FFF, CSV or XLSX: LAST NAME, FIRST NAME, RANKING) and .bpf fencer archive (photos included)',
+            'FFE Connect — direct import from the federation; Rapier tournament: team import (CSV / XLSX)',
           ],
         },
         {
           type: 'warning',
-          text: 'At least 4 checked-in fencers are required to generate pools. An error message is shown if this threshold is not met.',
+          text: 'Each pool needs at least 3 fencers to launch the pools (2 in the Rapier tournament): the "Launch pools" button stays disabled otherwise. The number and size of pools are adjusted in the Preparation phase.',
         },
         { type: 'h2', text: 'Fencer Statuses' },
         {
@@ -578,7 +579,7 @@ export const ARTICLES: WikiArticle[] = [
             '🟢 Present — checked in, will compete',
             '🔵 Qualified — passed the pool phase',
             '🔴 Eliminated — knocked out of the bracket',
-            '⚫ Forfeit / Withdrawal — removed from competition',
+            '⚫ Forfeit / Withdrawn / Excluded — removed from the competition',
           ],
         },
       ],
@@ -601,14 +602,14 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'CSV-Format — Spalten: Nachname, Vorname, Verein, Lizenz, Rangliste',
-            'XML-Format — Standard-FFE-Export',
-            'FFE Connect — direkte Verbindung zum Verband',
+            'BellePoule-XML (.xml, .cotcot) und FFE-Liste (.fff, .csv, .txt)',
+            'Rangliste (FFF, CSV oder XLSX: NAME, VORNAME, RANG) und .bpf-Fechterarchiv (inkl. Fotos)',
+            'FFE Connect — Direktimport vom Verband; Rapier-Turnier: Teamimport (CSV / XLSX)',
           ],
         },
         {
           type: 'warning',
-          text: 'Mindestens 4 eingecheckte Fechter sind erforderlich, um Pools zu generieren.',
+          text: 'Jeder Pool braucht mindestens 3 Fechter, um die Pools zu starten (2 beim Rapier-Turnier); sonst bleibt die Schaltfläche „Pools starten“ deaktiviert. Anzahl und Größe der Pools werden in der Vorbereitungsphase angepasst.',
         },
         { type: 'h2', text: 'Fechterstatus' },
         {
@@ -618,7 +619,7 @@ export const ARTICLES: WikiArticle[] = [
             '🟢 Anwesend — eingecheckt, nimmt teil',
             '🔵 Qualifiziert — Pool-Phase bestanden',
             '🔴 Ausgeschieden — aus dem Tableau ausgeschieden',
-            '⚫ Aufgabe / Rückzug — aus dem Wettkampf zurückgezogen',
+            '⚫ Forfait / Aufgabe / Ausgeschlossen — aus dem Wettkampf entfernt',
           ],
         },
       ],
@@ -641,14 +642,14 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'Formato CSV — columnas: Apellido, Nombre, Club, Licencia, Clasificación',
-            'Formato XML — exportación estándar FFE',
-            'FFE Connect — conexión directa con la federación',
+            'XML BellePoule (.xml, .cotcot) y lista FFE (.fff, .csv, .txt)',
+            'Clasificación (FFF, CSV o XLSX: APELLIDO, NOMBRE, CLASIFICACIÓN) y archivo de tiradores .bpf (fotos incluidas)',
+            'FFE Connect — importación directa desde la federación; Torneo de las roperas: importación de equipos (CSV / XLSX)',
           ],
         },
         {
           type: 'warning',
-          text: 'Se necesitan al menos 4 tiradores inscritos para generar las poules.',
+          text: 'Cada poule necesita al menos 3 tiradores para lanzar las poules (2 en el Torneo de las roperas); si no, el botón «Lanzar las poules» permanece desactivado. El número y el tamaño de las poules se ajustan en la fase de Preparación.',
         },
         { type: 'h2', text: 'Estados de los tiradores' },
         {
@@ -658,7 +659,7 @@ export const ARTICLES: WikiArticle[] = [
             '🟢 Presente — inscrito, participará',
             '🔵 Clasificado — superó la fase de poules',
             '🔴 Eliminado — fuera del cuadro',
-            '⚫ Retirado / Abandono — excluido de la competición',
+            '⚫ Forfait / Abandono / Excluido — retirado de la competición',
           ],
         },
       ],
@@ -678,12 +679,15 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'CSV 格式 — 欄位：姓名、名字、俱樂部、執照、排名',
-            'XML 格式 — 標準 FFE 匯出',
-            'FFE Connect — 直接連接聯盟',
+            'BellePoule XML（.xml、.cotcot）及 FFE 名單（.fff、.csv、.txt）',
+            '排名（FFF、CSV 或 XLSX：姓、名、排名）及 .bpf 選手封存檔（含相片）',
+            'FFE Connect — 直接從總會匯入；細劍錦標賽：匯入隊伍（CSV / XLSX）',
           ],
         },
-        { type: 'warning', text: '生成分組至少需要 4 名已報到的選手，否則將顯示錯誤訊息。' },
+        {
+          type: 'warning',
+          text: '每個分組至少需要 3 名選手才能開始分組賽（細劍錦標賽為 2 名），否則「開始分組賽」按鈕會停用。分組數目及大小可於「準備」階段調整。',
+        },
         { type: 'h2', text: '選手狀態' },
         {
           type: 'ul',
@@ -692,7 +696,7 @@ export const ARTICLES: WikiArticle[] = [
             '🟢 出席 — 已報到，將參賽',
             '🔵 晉級 — 通過分組賽',
             '🔴 淘汰 — 已出局',
-            '⚫ 棄權 / 退賽 — 已退出比賽',
+            '⚫ 棄權 / 退賽 / 取消資格 — 退出比賽',
           ],
         },
       ],
@@ -715,12 +719,15 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'Furmad CSV — kolonnelloù: Anv, Kentanv, Klub, Roadenn, Renk',
-            'Furmad XML — ezporzhadur reizh FFE',
-            'FFE Connect — kevreadenn resis ouzh ar gevredigezh',
+            'XML BellePoule (.xml, .cotcot) ha roll FFE (.fff, .csv, .txt)',
+            'Renkadur (FFF, CSV pe XLSX : ANV, ANV-BIHAN, RENK) hag diell klezeourien .bpf (gant ar poltredoù)',
+            "FFE Connect — enporzhiañ war-eeun eus ar c'hevredad ; Tournamant ar rapierennoù : enporzhiañ ar skipailhoù (CSV / XLSX)",
           ],
         },
-        { type: 'warning', text: 'Ret eo bet 4 klañvouer notet evit sevel ar poulloù.' },
+        {
+          type: 'warning',
+          text: "Ret eo kaout 3 klezeour d'an nebeutañ e pep poull evit loc'hañ ar poulloù (2 e Tournamant ar rapierennoù) : chom a ra ar bouton « Loc'hañ ar poulloù » dizimplijadus a-hend-all. Niver ha ment ar poulloù a vez reizhet er prantad Prientiñ.",
+        },
         { type: 'h2', text: 'Stadoù klañvourien' },
         {
           type: 'ul',
@@ -729,7 +736,7 @@ export const ARTICLES: WikiArticle[] = [
             "🟢 C'hourennant — notet, a vo er genstrivadeg",
             '🔵 Kualifiet — tre ar poulloù gant mad',
             '🔴 Eliminaet — diwar ar daolenn',
-            '⚫ Enkredek / Lezel — tennit eus ar genstrivadeg',
+            '⚫ Forfed / Dilezet / Skarzhet — tennet eus ar genstrivadeg',
           ],
         },
       ],
@@ -752,12 +759,15 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'Format CSV — columnes: Cognom, Nom, Club, Llicència, Classificació',
-            'Format XML — exportació estàndard FFE',
-            'FFE Connect — connexió directa amb la federació',
+            'XML BellePoule (.xml, .cotcot) i llista FFE (.fff, .csv, .txt)',
+            'Classificació (FFF, CSV o XLSX: COGNOM, NOM, CLASSIFICACIÓ) i arxiu de tiradors .bpf (fotos incloses)',
+            "FFE Connect — importació directa des de la federació; Torneig de les roperes: importació d'equips (CSV / XLSX)",
           ],
         },
-        { type: 'warning', text: 'Calen almenys 4 tiradors inscrits per generar les poules.' },
+        {
+          type: 'warning',
+          text: "Cada poule necessita almenys 3 tiradors per llançar les poules (2 al Torneig de les roperes); si no, el botó «Llançar les poules» resta desactivat. El nombre i la mida de les poules s'ajusten a la fase de Preparació.",
+        },
         { type: 'h2', text: 'Estats dels tiradors' },
         {
           type: 'ul',
@@ -766,7 +776,7 @@ export const ARTICLES: WikiArticle[] = [
             '🟢 Present — inscrit, participarà',
             '🔵 Classificat — ha superat la fase de poules',
             '🔴 Eliminat — fora del quadre',
-            '⚫ Retirat / Abandonament — exclòs de la competició',
+            '⚫ Forfet / Abandonament / Exclòs — retirat de la competició',
           ],
         },
       ],
@@ -1096,9 +1106,9 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'Tableau classique — élimination simple, de 2 à 256 tireurs',
-            'Double élimination — les perdants passent dans un bracket repêchage',
-            'Petite finale — match pour la 3ème place (configurable)',
+            'Tableau classique — élimination simple, taille automatique selon le nombre de qualifiés',
+            'Taille forcée — tableau de 4 à 128 choisi dans le Constructeur de formule',
+            'Petite finale — match pour la 3e place (et pour la 5e place en option)',
           ],
         },
         { type: 'h2', text: 'Têtes de série' },
@@ -1122,7 +1132,7 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'tip',
-          text: 'Le chronomètre est intégré à chaque match. Raccourci : Espace pour démarrer/pauser.',
+          text: "Le chronomètre et les cartons se gèrent sur la tablette arbitre (saisie distante), qui renvoie le score en temps réel à l'application.",
         },
       ],
       en: [
@@ -1134,9 +1144,9 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'Classic bracket — single elimination, 2 to 256 fencers',
-            'Double elimination — losers move to a repechage bracket',
-            'Bronze medal match — 3rd place match (configurable)',
+            'Classic bracket — single elimination, size set automatically from the number of qualifiers',
+            'Forced size — bracket of 4 to 128 chosen in the Formula Builder',
+            'Bronze match — match for 3rd place (and optionally for 5th place)',
           ],
         },
         { type: 'h2', text: 'Seeding' },
@@ -1160,7 +1170,7 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'tip',
-          text: 'A timer is integrated into each match. Shortcut: Space to start/pause.',
+          text: 'The timer and cards are handled on the referee tablet (remote scoring), which sends the score to the application in real time.',
         },
       ],
       de: [
@@ -1172,9 +1182,9 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'Klassisches Tableau — einfache Ausscheidung, 2 bis 256 Fechter',
-            'Doppelausscheidung — Verlierer wechseln in ein Hoffnungsrunden-Tableau',
-            'Spiel um Platz 3 — konfigurierbar',
+            'Klassisches Tableau — einfaches K.-o.-System, Größe automatisch nach Anzahl der Qualifizierten',
+            'Feste Größe — Tableau von 4 bis 128 im Formel-Editor wählbar',
+            'Kleines Finale — Gefecht um Platz 3 (optional auch um Platz 5)',
           ],
         },
         { type: 'h2', text: 'Setzung' },
@@ -1198,7 +1208,7 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'tip',
-          text: 'Eine Stoppuhr ist in jeden Kampf integriert. Kürzel: Leertaste zum Starten/Pausieren.',
+          text: 'Uhr und Karten werden auf dem Kampfrichter-Tablet (Fernwertung) verwaltet, das den Stand in Echtzeit an die Anwendung sendet.',
         },
       ],
       es: [
@@ -1210,9 +1220,9 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'Cuadro clásico — eliminación simple, de 2 a 256 tiradores',
-            'Doble eliminación — los perdedores pasan a un cuadro de repesca',
-            'Tercer puesto — combate por el bronce (configurable)',
+            'Cuadro clásico — eliminación simple, tamaño automático según el número de clasificados',
+            'Tamaño forzado — cuadro de 4 a 128 elegido en el Constructor de fórmulas',
+            'Final de consolación — combate por el 3.er puesto (y opcionalmente por el 5.º)',
           ],
         },
         { type: 'h2', text: 'Cabezas de serie' },
@@ -1236,7 +1246,7 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'tip',
-          text: 'El cronómetro está integrado en cada combate. Atajo: Espacio para iniciar/pausar.',
+          text: 'El cronómetro y las tarjetas se gestionan en la tablet del árbitro (puntuación remota), que envía el marcador a la aplicación en tiempo real.',
         },
       ],
       'zh-HK': [
@@ -1245,9 +1255,9 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            '標準淘汰 — 單敗淘汰，2 至 256 名選手',
-            '雙敗淘汰 — 敗者進入復活賽',
-            '季軍賽 — 第三名對決（可配置）',
+            '標準淘汰賽 — 單敗淘汰，大小按晉級人數自動決定',
+            '指定大小 — 於賽制編輯器選擇 4 至 128 人的淘汰表',
+            '季軍戰 — 爭奪第 3 名（可選第 5 名賽）',
           ],
         },
         { type: 'h2', text: '種子排列' },
@@ -1266,7 +1276,10 @@ export const ARTICLES: WikiArticle[] = [
           ],
         },
         { type: 'warning', text: '所有分組賽完成且排名確認後，才能進入淘汰賽。' },
-        { type: 'tip', text: '每場比賽內建計時器，快捷鍵：空白鍵開始/暫停。' },
+        {
+          type: 'tip',
+          text: '計時器及警告卡於裁判平板（遠端記分）上操作，比分會即時傳回應用程式。',
+        },
       ],
       br: [
         {
@@ -1277,9 +1290,9 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'Daolenn klassik — eliminadur eeun, eus 2 da 256 klañvouer',
-            "Eliminadur doubl — ar re kollet a ya d'ur bracket adtreuziñ",
-            "Final bihan — match evit ar 3vet lec'h (kustomizabl)",
+            'Taolenn klasel — eliminerezh eeun, ment emgefreek hervez an niver a dud dibabet',
+            'Ment rediet — taolenn eus 4 betek 128 dibabet e Saver ar formulennoù',
+            'Final vihan — emgann evit an 3de plas (hag evit ar 5vet plas ma fell)',
           ],
         },
         { type: 'h2', text: 'Pennreoù rummad' },
@@ -1303,7 +1316,7 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'tip',
-          text: 'Un amzer a zo integraet e pep match. Berradur: Barzh evit kregiñ/ehan.',
+          text: "Ar c'hronometr hag ar c'hartennoù a vez meret war tablet an arbitr (enrollañ eus-pell), a gas ar skor d'ar meziant war an taol.",
         },
       ],
       ca: [
@@ -1315,9 +1328,9 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'Quadre clàssic — eliminació simple, de 2 a 256 tiradors',
-            'Doble eliminació — els perdedors passen a un quadre de repesca',
-            'Tercer lloc — combat pel bronze (configurable)',
+            'Quadre clàssic — eliminació simple, mida automàtica segons el nombre de classificats',
+            'Mida forçada — quadre de 4 a 128 escollit al Constructor de fórmules',
+            'Final de consolació — combat pel 3r lloc (i opcionalment pel 5è)',
           ],
         },
         { type: 'h2', text: 'Caps de sèrie' },
@@ -1341,7 +1354,7 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'tip',
-          text: 'El cronòmetre està integrat en cada combat. Drecera: Espai per iniciar/pausar.',
+          text: "El cronòmetre i les targetes es gestionen a la tauleta de l'àrbitre (puntuació remota), que envia el marcador a l'aplicació en temps real.",
         },
       ],
     },
@@ -1365,28 +1378,30 @@ export const ARTICLES: WikiArticle[] = [
       fr: [
         {
           type: 'p',
-          text: "La saisie distante permet aux arbitres de saisir les scores depuis une tablette ou un smartphone via Wi-Fi. Un serveur Express est intégré à l'application (port 8066).",
+          text: "La saisie distante permet aux arbitres de saisir les scores depuis une tablette ou un smartphone via Wi-Fi. Un serveur Express est intégré à l'application (port 8066, ou le suivant s'il est occupé ; HTTPS activable).",
         },
         { type: 'h2', text: 'Démarrer la saisie distante' },
         {
           type: 'ol',
           items: [
-            'Cliquez sur "📡 Saisie distante" dans la barre d\'en-tête',
-            'Cliquez sur "Démarrer" — le serveur se lance',
-            "Notez l'adresse IP et le port affichés",
+            "Ouvrez l'onglet « 📡 Saisie distante » de la compétition",
+            'Cliquez sur « Démarrer la saisie distante » — le serveur se lance',
+            "Notez l'adresse affichée (ou scannez le QR code)",
             "Sur la tablette arbitre : ouvrez un navigateur et entrez l'adresse",
-            "Entrez le code d'accès arbitre pour vous connecter",
+            "Entrez le mot de passe de l'arène pour accéder à l'interface arbitre",
           ],
         },
         { type: 'h2', text: 'Interfaces disponibles' },
         {
           type: 'ul',
           items: [
-            'Arbitre (/areneN/arbitre) — saisie des scores, chronomètre',
-            'Arène (/areneN) — affichage public des scores en temps réel',
-            "Tableau de bord (/dashboard) — vue d'ensemble des arènes actives",
+            "Accueil (/lobby, ou /) — écran en attente, affecté à une arène depuis l'application",
+            'Arbitre (/areneN/arbitre) — saisie des scores, chronomètre, cartons',
+            'Arène (/areneN) — affichage des scores ; variantes /areneN/public, /areneN/matchs, /areneN/overlay (OBS), /areneN/poule (feuille de poule)',
             'Kiosque (/kiosk) — affichage en boucle pour écran public',
-            'Public (/public) — classement en temps réel',
+            'Tireurs (/tireur/ID) — parcours personnel ; résultats (/competition/ID/results)',
+            'Appel (/appel) et inscription (/inscription) — pointage et inscription sur place',
+            'Formateur (/formateur) — suivi des arbitres ; Sabre Laser par équipes (/equipeN, /equipeN/arbitre)',
           ],
         },
         { type: 'h2', text: 'Mode hors-ligne' },
@@ -1396,34 +1411,36 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'warning',
-          text: "L'ordinateur principal et les tablettes doivent être sur le même réseau Wi-Fi local. Le port 8066 ne doit pas être bloqué par le pare-feu.",
+          text: "L'ordinateur principal et les tablettes doivent être sur le même réseau Wi-Fi local. Le port affiché (8066 par défaut) ne doit pas être bloqué par le pare-feu.",
         },
       ],
       en: [
         {
           type: 'p',
-          text: 'Remote scoring allows referees to enter scores from a tablet or smartphone via Wi-Fi. An Express server is built into the application (port 8066).',
+          text: 'Remote scoring lets referees enter scores from a tablet or smartphone over Wi-Fi. An Express server is built into the application (port 8066, or the next free one; HTTPS can be enabled).',
         },
         { type: 'h2', text: 'Starting Remote Scoring' },
         {
           type: 'ol',
           items: [
-            'Click "📡 Remote Scoring" in the header bar',
-            'Click "Start" — the server launches',
-            'Note the displayed IP address and port',
+            'Open the competition\'s "📡 Remote scoring" tab',
+            'Click "Start remote scoring" — the server starts',
+            'Note the displayed address (or scan the QR code)',
             'On the referee tablet: open a browser and enter the address',
-            'Enter the referee access code to connect',
+            'Enter the arena password to access the referee interface',
           ],
         },
         { type: 'h2', text: 'Available Interfaces' },
         {
           type: 'ul',
           items: [
-            'Referee (/arenaN/arbitre) — score entry, timer',
-            'Arena (/arenaN) — public real-time score display',
-            'Dashboard (/dashboard) — overview of active arenas',
-            'Kiosk (/kiosk) — looping display for public screen',
-            'Public (/public) — real-time ranking',
+            'Home (/lobby, or /) — waiting screen, assigned to an arena from the application',
+            'Referee (/areneN/arbitre) — score entry, timer, cards',
+            'Arena (/areneN) — score display; variants /areneN/public, /areneN/matchs, /areneN/overlay (OBS), /areneN/poule (pool sheet)',
+            'Kiosk (/kiosk) — looping display for a public screen',
+            'Fencers (/tireur/ID) — personal schedule; results (/competition/ID/results)',
+            'Check-in (/appel) and registration (/inscription) — on-site check-in and sign-up',
+            'Trainer (/formateur) — referee monitoring; Laser Sabre teams (/equipeN, /equipeN/arbitre)',
           ],
         },
         { type: 'h2', text: 'Offline Mode' },
@@ -1433,34 +1450,36 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'warning',
-          text: 'The main computer and tablets must be on the same local Wi-Fi network. Port 8066 must not be blocked by the firewall.',
+          text: 'The main computer and the tablets must be on the same local Wi-Fi network. The displayed port (8066 by default) must not be blocked by the firewall.',
         },
       ],
       de: [
         {
           type: 'p',
-          text: 'Die Fernwertung ermöglicht Schiedsrichtern, Ergebnisse über WLAN per Tablet oder Smartphone einzugeben. Ein Express-Server ist in die Anwendung integriert (Port 8066).',
+          text: 'Mit der Fernwertung geben Kampfrichter die Ergebnisse per WLAN auf Tablet oder Smartphone ein. Ein Express-Server ist in die Anwendung integriert (Port 8066 oder der nächste freie; HTTPS aktivierbar).',
         },
         { type: 'h2', text: 'Fernwertung starten' },
         {
           type: 'ol',
           items: [
-            'Klicken Sie auf „📡 Fernwertung" in der Kopfzeile',
-            'Klicken Sie auf „Starten" — der Server startet',
-            'Notieren Sie die angezeigte IP-Adresse und den Port',
-            'Auf dem Schiedsrichter-Tablet: Browser öffnen und Adresse eingeben',
-            'Zugangscode eingeben, um sich zu verbinden',
+            'Den Reiter „📡 Fernwertung“ des Wettkampfs öffnen',
+            'Auf „Fernwertung starten“ klicken — der Server startet',
+            'Angezeigte Adresse notieren (oder QR-Code scannen)',
+            'Auf dem Kampfrichter-Tablet: Browser öffnen und Adresse eingeben',
+            'Passwort der Arena eingeben, um die Kampfrichter-Oberfläche zu öffnen',
           ],
         },
         { type: 'h2', text: 'Verfügbare Oberflächen' },
         {
           type: 'ul',
           items: [
-            'Schiedsrichter (/areneN/arbitre) — Ergebniseingabe, Stoppuhr',
-            'Arena (/areneN) — öffentliche Echtzeit-Anzeige',
-            'Dashboard (/dashboard) — Übersicht aller aktiven Pisten',
-            'Kiosk (/kiosk) — Endlosanzeige für öffentlichen Bildschirm',
-            'Öffentlich (/public) — Echtzeit-Rangliste',
+            'Startseite (/lobby oder /) — Warteschirm, wird in der Anwendung einer Arena zugewiesen',
+            'Kampfrichter (/areneN/arbitre) — Ergebniseingabe, Uhr, Karten',
+            'Arena (/areneN) — Ergebnisanzeige; Varianten /areneN/public, /areneN/matchs, /areneN/overlay (OBS), /areneN/poule (Poolblatt)',
+            'Kiosk (/kiosk) — Endlosanzeige für öffentliche Bildschirme',
+            'Fechter (/tireur/ID) — persönlicher Ablauf; Ergebnisse (/competition/ID/results)',
+            'Eincheck (/appel) und Anmeldung (/inscription) — Vor-Ort-Eincheck und -Anmeldung',
+            'Ausbilder (/formateur) — Kampfrichterbetreuung; Laserschwert-Teams (/equipeN, /equipeN/arbitre)',
           ],
         },
         { type: 'h2', text: 'Offline-Modus' },
@@ -1470,34 +1489,36 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'warning',
-          text: 'Der Hauptcomputer und die Tablets müssen sich im selben lokalen WLAN befinden. Port 8066 darf nicht von der Firewall geblockt werden.',
+          text: 'Hauptrechner und Tablets müssen im selben lokalen WLAN sein. Der angezeigte Port (standardmäßig 8066) darf nicht von der Firewall blockiert werden.',
         },
       ],
       es: [
         {
           type: 'p',
-          text: 'La puntuación remota permite a los árbitros introducir puntuaciones desde una tablet o smartphone vía Wi-Fi. Un servidor Express está integrado en la aplicación (puerto 8066).',
+          text: 'La puntuación remota permite a los árbitros introducir los marcadores desde una tablet o un smartphone por Wi-Fi. La aplicación integra un servidor Express (puerto 8066, o el siguiente libre; HTTPS activable).',
         },
         { type: 'h2', text: 'Iniciar puntuación remota' },
         {
           type: 'ol',
           items: [
-            'Haz clic en "📡 Puntuación remota" en la barra de cabecera',
-            'Haz clic en "Iniciar" — el servidor se lanza',
-            'Anota la dirección IP y el puerto mostrados',
-            'En la tablet árbitro: abre un navegador e introduce la dirección',
-            'Introduce el código de acceso del árbitro para conectarte',
+            'Abra la pestaña «📡 Puntuación remota» de la competición',
+            'Haga clic en «Iniciar la puntuación remota» — el servidor arranca',
+            'Anote la dirección mostrada (o escanee el código QR)',
+            'En la tablet del árbitro: abra un navegador e introduzca la dirección',
+            'Introduzca la contraseña de la pista para acceder a la interfaz de árbitro',
           ],
         },
         { type: 'h2', text: 'Interfaces disponibles' },
         {
           type: 'ul',
           items: [
-            'Árbitro (/arenaN/arbitre) — introducción de puntuaciones, cronómetro',
-            'Arena (/arenaA) — visualización pública en tiempo real',
-            'Panel (/dashboard) — vista general de pistas activas',
-            'Kiosco (/kiosk) — visualización en bucle para pantalla pública',
-            'Público (/public) — clasificación en tiempo real',
+            'Inicio (/lobby, o /) — pantalla en espera, asignada a una pista desde la aplicación',
+            'Árbitro (/areneN/arbitre) — introducción de marcadores, cronómetro, tarjetas',
+            'Pista (/areneN) — visualización de marcadores; variantes /areneN/public, /areneN/matchs, /areneN/overlay (OBS), /areneN/poule (hoja de poule)',
+            'Quiosco (/kiosk) — visualización en bucle para pantalla pública',
+            'Tiradores (/tireur/ID) — recorrido personal; resultados (/competition/ID/results)',
+            'Llamada (/appel) e inscripción (/inscription) — control de presencia e inscripción in situ',
+            'Formador (/formateur) — seguimiento de árbitros; Sable Láser por equipos (/equipeN, /equipeN/arbitre)',
           ],
         },
         { type: 'h2', text: 'Modo sin conexión' },
@@ -1507,34 +1528,36 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'warning',
-          text: 'El ordenador principal y las tablets deben estar en la misma red Wi-Fi local. El puerto 8066 no debe estar bloqueado por el cortafuegos.',
+          text: 'El ordenador principal y las tablets deben estar en la misma red Wi-Fi local. El puerto mostrado (8066 por defecto) no debe estar bloqueado por el cortafuegos.',
         },
       ],
       'zh-HK': [
         {
           type: 'p',
-          text: '遠端記分讓裁判透過 Wi-Fi 使用平板或手機輸入成績，應用程式內建 Express 伺服器（埠 8066）。',
+          text: '遠端記分讓裁判透過 Wi-Fi 在平板或手機輸入比分。應用程式內建 Express 伺服器（連接埠 8066，如被佔用則使用下一個；可啟用 HTTPS）。',
         },
         { type: 'h2', text: '啟動遠端記分' },
         {
           type: 'ol',
           items: [
-            '點擊標頭列中的「📡 遠端記分」',
-            '點擊「啟動」— 伺服器啟動',
-            '記下顯示的 IP 位址和埠',
-            '在裁判平板上：開啟瀏覽器並輸入位址',
-            '輸入裁判存取碼連線',
+            '開啟比賽的「📡 遠端記分」分頁',
+            '按「啟動遠端記分」— 伺服器隨即啟動',
+            '記下顯示的網址（或掃描 QR 碼）',
+            '在裁判平板上開啟瀏覽器並輸入網址',
+            '輸入劍道密碼以進入裁判介面',
           ],
         },
         { type: 'h2', text: '可用介面' },
         {
           type: 'ul',
           items: [
-            '裁判 (/areneN/arbitre) — 成績輸入、計時器',
-            '賽場 (/areneN) — 即時公開比分顯示',
-            '控制台 (/dashboard) — 所有活躍賽場概覽',
-            '資訊亭 (/kiosk) — 公共螢幕循環顯示',
-            '公開 (/public) — 即時排名',
+            '首頁（/lobby 或 /）— 等候畫面，由應用程式指派至劍道',
+            '裁判（/areneN/arbitre）— 輸入比分、計時、警告卡',
+            '劍道（/areneN）— 顯示比分；另有 /areneN/public、/areneN/matchs、/areneN/overlay（OBS）、/areneN/poule（分組表）',
+            '資訊站（/kiosk）— 公眾螢幕循環播放',
+            '選手（/tireur/ID）— 個人賽程；結果（/competition/ID/results）',
+            '報到（/appel）及報名（/inscription）— 現場報到及報名',
+            '導師（/formateur）— 裁判跟進；光劍團體賽（/equipeN、/equipeN/arbitre）',
           ],
         },
         { type: 'h2', text: '離線模式' },
@@ -1544,34 +1567,36 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'warning',
-          text: '主電腦和平板必須在同一個本地 Wi-Fi 網路上，且埠 8066 不得被防火牆封鎖。',
+          text: '主電腦與平板必須連接同一個本地 Wi-Fi 網絡。顯示的連接埠（預設 8066）不可被防火牆封鎖。',
         },
       ],
       br: [
         {
           type: 'p',
-          text: 'Ar skoazell pellek a ro da vrezelourien teurel notadoù deus ur tablet pe ur smartphone dre Wi-Fi. Ur servij Express a zo integraet en arloadenn (porzh 8066).',
+          text: "Gant an enrollañ eus-pell e c'hall an arbitred enrollañ ar skorioù diwar un tablet pe ur pellgomzer dre Wi-Fi. Ur servijer Express a zo enframmet er meziant (porzh 8066, pe an hini da heul ma'z eo implijet ; HTTPS da weredekaat).",
         },
         { type: 'h2', text: 'Kregiñ gant ar skoazell pellek' },
         {
           type: 'ol',
           items: [
-            'Klikit war „📡 Skoazell pellek" el lerc\'hienn',
-            'Klikit war „Kregiñ" — ar servij a zo lakaet',
-            "Notit ar chomlec'h IP hag ar porzh diskouezet",
-            "War ar tablet arbitr: digorit ur merdeer hag enskrivit ar chomlec'h",
-            "Enskrivit ar c'hod tizout arbitr evit kevreañ",
+            'Digorit ivinell « 📡 Enrollañ eus-pell » ar genstrivadeg',
+            "Klikit war « Kregiñ gant an enrollañ eus-pell » — loc'hañ a ra ar servijer",
+            "Notennit ar chomlec'h diskouezet (pe skanit ar c'hod QR)",
+            "War tablet an arbitr : digorit ur merdeer ha skrivit ar chomlec'h",
+            'Skrivit ger-tremen an dachenn evit tizhout etrefas an arbitr',
           ],
         },
         { type: 'h2', text: 'Etrewebezhioù hegerz' },
         {
           type: 'ul',
           items: [
-            'Arbitr (/areneN/arbitre) — pourvezañ notadoù, amzerenn',
-            'Kaer (/areneN) — diskouez publik notadoù en amzer gwir',
-            "Taolenn-stur (/dashboard) — sell hollek war ar c'haerojù oberiant",
-            'Kioskenn (/kiosk) — diskouez en dro evit skramm publik',
-            'Publik (/public) — renk en amzer gwir',
+            "Degemer (/lobby, pe /) — skramm o c'hortoz, staget ouzh un dachenn diwar ar meziant",
+            'Arbitr (/areneN/arbitre) — enrollañ ar skorioù, kronometr, kartennoù',
+            'Tachenn (/areneN) — diskouez ar skorioù ; stummoù /areneN/public, /areneN/matchs, /areneN/overlay (OBS), /areneN/poule (follenn poull)',
+            "Kiosk (/kiosk) — diskouez e kelc'h evit ur skramm foran",
+            "Klezeourien (/tireur/ID) — hent personel ; disoc'hoù (/competition/ID/results)",
+            "Galv (/appel) hag enskrivadur (/inscription) — merkañ ha enskrivañ war al lec'h",
+            'Stummer (/formateur) — heuliañ an arbitred ; Klezeour laser a skipailh (/equipeN, /equipeN/arbitre)',
           ],
         },
         { type: 'h2', text: 'Mod hep kevreadenn' },
@@ -1581,34 +1606,36 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'warning',
-          text: "Ret eo d'an urzhiataer pennañ hag ar tablettennoù bezañ war ar memes rouedad Wi-Fi lec'hel. N'haller ket stankañ porzh 8066 dre ar mur-tan.",
+          text: "An urzhiataer pennañ hag an tabletoù a rank bezañ war ar memes rouedad Wi-Fi lec'hel. Ar porzh diskouezet (8066 dre ziouer) ne rank ket bezañ stanket gant ar maogan.",
         },
       ],
       ca: [
         {
           type: 'p',
-          text: "La puntuació remota permet als àrbitres introduir puntuacions des d'una tauleta o smartphone via Wi-Fi. Un servidor Express està integrat a l'aplicació (port 8066).",
+          text: "La puntuació remota permet als àrbitres introduir els marcadors des d'una tauleta o un telèfon via Wi-Fi. L'aplicació integra un servidor Express (port 8066, o el següent lliure; HTTPS activable).",
         },
         { type: 'h2', text: 'Iniciar puntuació remota' },
         {
           type: 'ol',
           items: [
-            'Feu clic a "📡 Puntuació remota" a la barra de capçalera',
-            'Feu clic a "Iniciar" — el servidor s\'engega',
-            "Anoteu l'adreça IP i el port mostrats",
-            "A la tauleta àrbitre: obriu un navegador i introduïu l'adreça",
-            "Introduïu el codi d'accés de l'àrbitre per connectar-vos",
+            'Obriu la pestanya «📡 Puntuació remota» de la competició',
+            "Feu clic a «Iniciar la puntuació remota» — el servidor s'inicia",
+            "Anoteu l'adreça mostrada (o escanegeu el codi QR)",
+            "A la tauleta de l'àrbitre: obriu un navegador i introduïu l'adreça",
+            "Introduïu la contrasenya de la pista per accedir a la interfície d'àrbitre",
           ],
         },
         { type: 'h2', text: 'Interfícies disponibles' },
         {
           type: 'ul',
           items: [
-            'Àrbitre (/areneN/arbitre) — introducció de puntuacions, cronòmetre',
-            'Arena (/areneN) — visualització pública en temps real',
-            'Tauler (/dashboard) — vista general de pistes actives',
+            "Inici (/lobby, o /) — pantalla en espera, assignada a una pista des de l'aplicació",
+            'Àrbitre (/areneN/arbitre) — introducció de marcadors, cronòmetre, targetes',
+            'Pista (/areneN) — visualització de marcadors; variants /areneN/public, /areneN/matchs, /areneN/overlay (OBS), /areneN/poule (full de poule)',
             'Quiosc (/kiosk) — visualització en bucle per a pantalla pública',
-            'Públic (/public) — classificació en temps real',
+            'Tiradors (/tireur/ID) — recorregut personal; resultats (/competition/ID/results)',
+            'Crida (/appel) i inscripció (/inscription) — control de presència i inscripció in situ',
+            'Formador (/formateur) — seguiment dels àrbitres; Sabre Làser per equips (/equipeN, /equipeN/arbitre)',
           ],
         },
         { type: 'h2', text: 'Mode sense connexió' },
@@ -1618,7 +1645,7 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'warning',
-          text: "L'ordinador principal i les tauletes han d'estar a la mateixa xarxa Wi-Fi local. El port 8066 no ha d'estar bloquejat pel tallafoc.",
+          text: "L'ordinador principal i les tauletes han d'estar a la mateixa xarxa Wi-Fi local. El port mostrat (8066 per defecte) no ha d'estar bloquejat pel tallafoc.",
         },
       ],
     },
@@ -1649,7 +1676,7 @@ export const ARTICLES: WikiArticle[] = [
           type: 'ul',
           items: [
             "Tour de poules — round-robin avec règles d'avancement",
-            'Élimination directe — tableau simple ou double élimination',
+            'Élimination directe — tableau simple (taille automatique ou forcée, matchs pour la 3e / 5e place)',
             'Classement — phase finale de classement sans élimination',
           ],
         },
@@ -1660,18 +1687,19 @@ export const ARTICLES: WikiArticle[] = [
             "Tous avancent — pas d'élimination à cette phase",
             'Top % — ex. 80% des tireurs avancent',
             'Nombre fixe — ex. les 32 premiers',
-            'Tableau direct — tous passent dans le tableau',
+            'Tableau suivant — nombre de places du tableau suivant',
+            'Vainqueur de poule — seuls les premiers de poule avancent',
           ],
         },
         { type: 'h2', text: 'Critères de classement personnalisés' },
         {
           type: 'p',
-          text: "Pour chaque phase de poules, vous pouvez choisir l'ordre des critères de classement : V/M, Indice, TD, TR, Confrontation directe, Classement initial.",
+          text: "Pour chaque phase de poules, vous pouvez choisir l'ordre des critères de classement : V/M, Indice, TD, TR, Confrontation directe, Classement initial, Points personnalisés.",
         },
         { type: 'h2', text: 'Modèles de formule' },
         {
           type: 'p',
-          text: 'Enregistrez vos formules comme modèles réutilisables. Les modèles prédéfinis incluent des configurations standard pour 8, 16, 32, 64+ tireurs.',
+          text: "Enregistrez vos formules comme modèles réutilisables. Les modèles s'exportent et s'importent en JSON pour les partager entre ordinateurs.",
         },
         {
           type: 'tip',
@@ -1688,7 +1716,7 @@ export const ARTICLES: WikiArticle[] = [
           type: 'ul',
           items: [
             'Pool round — round-robin with advancement rules',
-            'Direct elimination — single or double elimination bracket',
+            'Direct elimination — single bracket (automatic or forced size, 3rd / 5th place matches)',
             'Classification — final ranking phase without elimination',
           ],
         },
@@ -1698,19 +1726,20 @@ export const ARTICLES: WikiArticle[] = [
           items: [
             'All advance — no elimination at this phase',
             'Top % — e.g. 80% of fencers advance',
-            'Fixed number — e.g. top 32',
-            'Direct bracket — all move to the bracket',
+            'Fixed number — e.g. the top 32',
+            'Next bracket — number of places in the next bracket',
+            'Pool winner — only pool winners advance',
           ],
         },
         { type: 'h2', text: 'Custom Ranking Criteria' },
         {
           type: 'p',
-          text: 'For each pool phase, you can choose the order of ranking criteria: V/M, Index, TS, TR, Direct encounter, Initial seeding.',
+          text: 'For each pool phase, you can choose the order of ranking criteria: W/M, Index, TS, TR, Head-to-head, Initial ranking, Custom points.',
         },
         { type: 'h2', text: 'Formula Templates' },
         {
           type: 'p',
-          text: 'Save your formulas as reusable templates. Predefined templates include standard configurations for 8, 16, 32, 64+ fencers.',
+          text: 'Save your formulas as reusable templates. Templates can be exported and imported as JSON to share them between computers.',
         },
         {
           type: 'tip',
@@ -1727,7 +1756,7 @@ export const ARTICLES: WikiArticle[] = [
           type: 'ul',
           items: [
             'Pool-Runde — Round-Robin mit Aufstiegsregeln',
-            'Direkte Ausscheidung — einfaches oder Doppel-Ausscheidungs-Tableau',
+            'Direktausscheidung — einfaches Tableau (automatische oder feste Größe, Gefechte um Platz 3 / 5)',
             'Klassifizierung — abschließende Ranglistenphase ohne Ausscheidung',
           ],
         },
@@ -1736,20 +1765,21 @@ export const ARTICLES: WikiArticle[] = [
           type: 'ul',
           items: [
             'Alle steigen auf — keine Ausscheidung in dieser Phase',
-            'Top % — z.B. 80% der Fechter steigen auf',
-            'Feste Anzahl — z.B. die besten 32',
-            'Direktes Tableau — alle wechseln ins Tableau',
+            'Top % — z. B. 80 % der Fechter steigen auf',
+            'Feste Anzahl — z. B. die besten 32',
+            'Nächstes Tableau — Anzahl der Plätze im nächsten Tableau',
+            'Poolsieger — nur die Poolsieger steigen auf',
           ],
         },
         { type: 'h2', text: 'Benutzerdefinierte Ranglistenkriterien' },
         {
           type: 'p',
-          text: 'Für jede Pool-Phase können Sie die Reihenfolge der Kriterien wählen: V/M, Index, GT, GE, Direktbegegnung, Erstrangierung.',
+          text: 'Für jede Poolphase lässt sich die Reihenfolge der Ranglistenkriterien wählen: S/G, Index, GT, ET, Direktvergleich, Ausgangsrangliste, Eigene Punkte.',
         },
         { type: 'h2', text: 'Formelvorlagen' },
         {
           type: 'p',
-          text: 'Speichern Sie Ihre Formeln als wiederverwendbare Vorlagen. Vordefinierte Vorlagen umfassen Standardkonfigurationen für 8, 16, 32, 64+ Fechter.',
+          text: 'Speichern Sie Ihre Formeln als wiederverwendbare Vorlagen. Vorlagen lassen sich als JSON exportieren und importieren, um sie zwischen Rechnern zu teilen.',
         },
         {
           type: 'tip',
@@ -1766,7 +1796,7 @@ export const ARTICLES: WikiArticle[] = [
           type: 'ul',
           items: [
             'Ronda de poules — todos contra todos con reglas de avance',
-            'Eliminación directa — cuadro de eliminación simple o doble',
+            'Eliminación directa — cuadro simple (tamaño automático o forzado, combates por el 3.er / 5.º puesto)',
             'Clasificación — fase de clasificación final sin eliminación',
           ],
         },
@@ -1775,20 +1805,21 @@ export const ARTICLES: WikiArticle[] = [
           type: 'ul',
           items: [
             'Todos avanzan — sin eliminación en esta fase',
-            'Top % — ej. 80% de los tiradores avanzan',
-            'Número fijo — ej. los 32 primeros',
-            'Cuadro directo — todos pasan al cuadro',
+            'Top % — p. ej. avanza el 80% de los tiradores',
+            'Número fijo — p. ej. los 32 primeros',
+            'Cuadro siguiente — número de plazas del cuadro siguiente',
+            'Ganador de poule — solo avanzan los primeros de poule',
           ],
         },
         { type: 'h2', text: 'Criterios de clasificación personalizados' },
         {
           type: 'p',
-          text: 'Para cada fase de poules, puedes elegir el orden de los criterios: V/M, Índice, TD, TR, Enfrentamiento directo, Clasificación inicial.',
+          text: 'Para cada fase de poules puede elegir el orden de los criterios de clasificación: V/C, Índice, TD, TR, Enfrentamiento directo, Clasificación inicial, Puntos personalizados.',
         },
         { type: 'h2', text: 'Plantillas de fórmula' },
         {
           type: 'p',
-          text: 'Guarda tus fórmulas como plantillas reutilizables. Las plantillas predefinidas incluyen configuraciones estándar para 8, 16, 32, 64+ tiradores.',
+          text: 'Guarde sus fórmulas como plantillas reutilizables. Las plantillas se exportan e importan en JSON para compartirlas entre ordenadores.',
         },
         {
           type: 'tip',
@@ -1802,7 +1833,7 @@ export const ARTICLES: WikiArticle[] = [
           type: 'ul',
           items: [
             '分組輪次 — 循環賽加晉級規則',
-            '直接淘汰 — 單敗或雙敗淘汰',
+            '直接淘汰 — 單敗淘汰表（自動或指定大小，第 3 / 5 名賽）',
             '排名賽 — 無淘汰的最終排名賽段',
           ],
         },
@@ -1810,21 +1841,22 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            '全部晉級 — 此賽段無淘汰',
-            '前 % — 例如 80% 的選手晉級',
+            '全部晉級 — 此階段不淘汰',
+            '前 % — 例如 80% 選手晉級',
             '固定人數 — 例如前 32 名',
-            '直接進入淘汰賽 — 全部進入淘汰賽',
+            '下一淘汰表 — 下一淘汰表的名額',
+            '分組首名 — 只有各組首名晉級',
           ],
         },
         { type: 'h2', text: '自訂排名標準' },
         {
           type: 'p',
-          text: '每個分組賽段可選擇排名標準順序：V/M、指數、得分、失分、直接對陣、初始種子。',
+          text: '每個分組階段可自訂排名準則次序：勝率、淨得分、得分、失分、直接對賽、初始排名、自訂積分。',
         },
         { type: 'h2', text: '賽制模板' },
         {
           type: 'p',
-          text: '將賽制儲存為可重複使用的模板，預設模板涵蓋 8、16、32、64+ 名選手的標準配置。',
+          text: '可將賽制儲存為範本重複使用。範本可匯出及匯入為 JSON，方便在不同電腦間共用。',
         },
         { type: 'tip', text: '賽制生成器中的模擬功能可在確認前預覽選手如何依當前賽制分配。' },
       ],
@@ -1838,7 +1870,7 @@ export const ARTICLES: WikiArticle[] = [
           type: 'ul',
           items: [
             'Taol poulloù — round-robin gant reolioù ironed',
-            'Eliminadur resis — daolenn eeun pe doubl eliminadur',
+            'Eliminerezh war-eeun — taolenn eeun (ment emgefreek pe rediet, emgannoù evit an 3de / 5vet plas)',
             'Renk — faz renk dibenn hep eliminadur',
           ],
         },
@@ -1846,21 +1878,22 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'An holl a ya war-raok — eliminadur ebet en traoù-se',
-            "Krenn % — da sk. 80% eus ar c'hlañvourien a ya war-raok",
-            'Niver reizh — da sk. ar 32 kentañ',
-            'Daolenn resis — an holl a ya er daolenn',
+            'An holl a ya war-raok — eliminerezh ebet er prantad-mañ',
+            'Top % — sk. 80% eus ar glezeourien a ya war-raok',
+            'Niver start — sk. an 32 kentañ',
+            'Taolenn da heul — niver a blasoù en daolenn da heul',
+            'Gounezer ar poull — ar re gentañ hepken a ya war-raok',
           ],
         },
         { type: 'h2', text: 'Arvesterioù renk personalizet' },
         {
           type: 'p',
-          text: "Evit pep faz poulloù e c'hallit dibab urzh an arvesterioù renk: V/M, Indez, TD, TR, Enebadeg resis, Renk kentañ.",
+          text: "Evit pep prantad poulloù e c'hallit dibab urzh an dezverkoù renkañ : T/E, Meneg, TR, TB, Emgann war-eeun, Renkadur kentañ, Poentoù personelaet.",
         },
         { type: 'h2', text: 'Patromoù formula' },
         {
           type: 'p',
-          text: 'Enrollit ho formulaoù evel patromoù adrimpladus. Ar patromoù rakdifinet a ginnig kefluniadegoù reizh evit 8, 16, 32, 64+ klañvouer.',
+          text: 'Enrollit ho formulennoù evel patromoù adimplijadus. Ar patromoù a vez ezporzhiet hag enporzhiet e JSON evit o rannañ etre urzhiataerioù.',
         },
         {
           type: 'tip',
@@ -1877,7 +1910,7 @@ export const ARTICLES: WikiArticle[] = [
           type: 'ul',
           items: [
             "Ronda de poules — tots contra tots amb regles d'avanç",
-            "Eliminació directa — quadre d'eliminació simple o doble",
+            'Eliminació directa — quadre simple (mida automàtica o forçada, combats pel 3r / 5è lloc)',
             'Classificació — fase de classificació final sense eliminació',
           ],
         },
@@ -1886,20 +1919,21 @@ export const ARTICLES: WikiArticle[] = [
           type: 'ul',
           items: [
             'Tots avancen — sense eliminació en aquesta fase',
-            'Top % — ex. 80% dels tiradors avancen',
-            'Nombre fix — ex. els 32 primers',
-            'Quadre directe — tots passen al quadre',
+            'Top % — p. ex. avança el 80% dels tiradors',
+            'Nombre fix — p. ex. els 32 primers',
+            'Quadre següent — nombre de places del quadre següent',
+            'Guanyador de poule — només avancen els primers de poule',
           ],
         },
         { type: 'h2', text: 'Criteris de classificació personalitzats' },
         {
           type: 'p',
-          text: "Per a cada fase de poules, podeu triar l'ordre dels criteris: V/M, Índex, TD, TR, Enfrontament directe, Classificació inicial.",
+          text: "Per a cada fase de poules podeu triar l'ordre dels criteris de classificació: V/C, Índex, TD, TR, Enfrontament directe, Classificació inicial, Punts personalitzats.",
         },
         { type: 'h2', text: 'Plantilles de fórmula' },
         {
           type: 'p',
-          text: 'Deseu les vostres fórmules com a plantilles reutilitzables. Les plantilles predefinides inclouen configuracions estàndard per a 8, 16, 32, 64+ tiradors.',
+          text: "Deseu les vostres fórmules com a plantilles reutilitzables. Les plantilles s'exporten i s'importen en JSON per compartir-les entre ordinadors.",
         },
         {
           type: 'tip',
@@ -1908,771 +1942,7 @@ export const ARTICLES: WikiArticle[] = [
       ],
     },
   },
-
-  // ─── LASER SABRE ────────────────────────────────────────────────────────────
-  {
-    id: 'laser',
-    icon: '⚡',
-    category: 'advanced',
-    title: {
-      fr: 'Sabre Laser',
-      en: 'Laser Sabre',
-      de: 'Lasersäbel',
-      es: 'Sable Láser',
-      'zh-HK': '激光軍刀',
-      br: 'Gouriz Laser',
-      ca: 'Sabre Làser',
-    },
-    content: {
-      fr: [
-        {
-          type: 'p',
-          text: "Le mode Sabre Laser est une variante de l'escrime sportive avec un système de zones de touches à points variables et un système de cartons spécifique.",
-        },
-        { type: 'h2', text: 'Zones de touches' },
-        {
-          type: 'ul',
-          items: [
-            '🟢 Zone A — touche standard : 1 point',
-            '🟡 Zone B — touche zone intermédiaire : 3 points',
-            '🔴 Zone C — touche zone cible : 5 points',
-          ],
-        },
-        { type: 'h2', text: 'Quest Points' },
-        {
-          type: 'p',
-          text: 'Le classement des poules en Sabre Laser utilise les "Quest Points" au lieu du ratio V/M standard. Le total des points de zones remplace l\'indice de touches.',
-        },
-        { type: 'h2', text: 'Système de cartons' },
-        { type: 'p', text: 'Les cartons sont regroupés en 4 groupes de fautes progressives :' },
-        {
-          type: 'ul',
-          items: [
-            'Groupe 1 — Blanc → Jaune → Jaune (fautes légères)',
-            'Groupe 2 — Jaune → Rouge → Rouge (fautes moyennes)',
-            'Groupe 3 — Rouge → Exclusion (fautes graves)',
-            'Groupe 4 — Exclusion immédiate (brutalité, tricherie)',
-          ],
-        },
-        {
-          type: 'tip',
-          text: "Les statistiques par zone (A/B/C) sont disponibles dans l'onglet Analytics de chaque compétition Sabre Laser.",
-        },
-      ],
-      en: [
-        {
-          type: 'p',
-          text: 'Laser Sabre mode is a variant of sport fencing with a variable-point touch zone system and a specific card system.',
-        },
-        { type: 'h2', text: 'Touch Zones' },
-        {
-          type: 'ul',
-          items: [
-            '🟢 Zone A — standard touch: 1 point',
-            '🟡 Zone B — mid zone touch: 3 points',
-            '🔴 Zone C — target zone touch: 5 points',
-          ],
-        },
-        { type: 'h2', text: 'Quest Points' },
-        {
-          type: 'p',
-          text: 'Laser Sabre pool ranking uses "Quest Points" instead of the standard V/M ratio. Zone point totals replace the touch index.',
-        },
-        { type: 'h2', text: 'Card System' },
-        { type: 'p', text: 'Cards are grouped into 4 progressive fault groups:' },
-        {
-          type: 'ul',
-          items: [
-            'Group 1 — White → Yellow → Yellow (minor faults)',
-            'Group 2 — Yellow → Red → Red (moderate faults)',
-            'Group 3 — Red → Exclusion (serious faults)',
-            'Group 4 — Immediate exclusion (brutality, cheating)',
-          ],
-        },
-        {
-          type: 'tip',
-          text: 'Per-zone statistics (A/B/C) are available in the Analytics tab of each Laser Sabre competition.',
-        },
-      ],
-      de: [
-        {
-          type: 'p',
-          text: 'Der Lasersäbel-Modus ist eine Fechtvariante mit variablen Trefferzonen-Punkten und einem spezifischen Kartensystem.',
-        },
-        { type: 'h2', text: 'Trefferzonen' },
-        {
-          type: 'ul',
-          items: [
-            '🟢 Zone A — Standardtreffer: 1 Punkt',
-            '🟡 Zone B — Mitteltreffer: 3 Punkte',
-            '🔴 Zone C — Zieltreffer: 5 Punkte',
-          ],
-        },
-        { type: 'h2', text: 'Quest Points' },
-        {
-          type: 'p',
-          text: 'Die Pool-Rangliste beim Lasersäbel verwendet „Quest Points" statt des Standard-V/M-Verhältnisses. Der Gesamtpunktestand der Zonen ersetzt den Trefferindex.',
-        },
-        { type: 'h2', text: 'Kartensystem' },
-        { type: 'p', text: 'Karten sind in 4 progressive Fehlergruppen unterteilt:' },
-        {
-          type: 'ul',
-          items: [
-            'Gruppe 1 — Weiß → Gelb → Gelb (leichte Fehler)',
-            'Gruppe 2 — Gelb → Rot → Rot (mittlere Fehler)',
-            'Gruppe 3 — Rot → Ausschluss (schwere Fehler)',
-            'Gruppe 4 — Sofortiger Ausschluss (Brutalität, Betrug)',
-          ],
-        },
-        {
-          type: 'tip',
-          text: 'Statistiken pro Zone (A/B/C) sind im Analyse-Reiter jedes Lasersäbel-Wettkampfs verfügbar.',
-        },
-      ],
-      es: [
-        {
-          type: 'p',
-          text: 'El modo Sable Láser es una variante de la esgrima deportiva con un sistema de zonas de toque con puntos variables y un sistema de tarjetas específico.',
-        },
-        { type: 'h2', text: 'Zonas de toque' },
-        {
-          type: 'ul',
-          items: [
-            '🟢 Zona A — toque estándar: 1 punto',
-            '🟡 Zona B — toque de zona intermedia: 3 puntos',
-            '🔴 Zona C — toque de zona objetivo: 5 puntos',
-          ],
-        },
-        { type: 'h2', text: 'Quest Points' },
-        {
-          type: 'p',
-          text: 'La clasificación de poules en Sable Láser utiliza "Quest Points" en lugar del ratio V/M estándar. El total de puntos de zona sustituye al índice de toques.',
-        },
-        { type: 'h2', text: 'Sistema de tarjetas' },
-        { type: 'p', text: 'Las tarjetas se agrupan en 4 grupos de faltas progresivas:' },
-        {
-          type: 'ul',
-          items: [
-            'Grupo 1 — Blanca → Amarilla → Amarilla (faltas leves)',
-            'Grupo 2 — Amarilla → Roja → Roja (faltas medias)',
-            'Grupo 3 — Roja → Exclusión (faltas graves)',
-            'Grupo 4 — Exclusión inmediata (brutalidad, trampa)',
-          ],
-        },
-        {
-          type: 'tip',
-          text: 'Las estadísticas por zona (A/B/C) están disponibles en la pestaña Análisis de cada competición de Sable Láser.',
-        },
-      ],
-      'zh-HK': [
-        {
-          type: 'p',
-          text: '激光軍刀模式是擊劍運動的變體，採用可變分值觸碰區域系統和特定牌罰系統。',
-        },
-        { type: 'h2', text: '觸碰區域' },
-        {
-          type: 'ul',
-          items: [
-            '🟢 A 區 — 標準觸碰：1 分',
-            '🟡 B 區 — 中間區域觸碰：3 分',
-            '🔴 C 區 — 目標區域觸碰：5 分',
-          ],
-        },
-        { type: 'h2', text: 'Quest Points' },
-        {
-          type: 'p',
-          text: '激光軍刀的分組排名使用「Quest Points」代替標準 V/M 比率，各區域總分取代觸碰指數。',
-        },
-        { type: 'h2', text: '牌罰系統' },
-        { type: 'p', text: '牌罰分為 4 個遞進違規組：' },
-        {
-          type: 'ul',
-          items: [
-            '第 1 組 — 白→黃→黃（輕微違規）',
-            '第 2 組 — 黃→紅→紅（中度違規）',
-            '第 3 組 — 紅→取消資格（嚴重違規）',
-            '第 4 組 — 立即取消資格（暴力、作弊）',
-          ],
-        },
-        { type: 'tip', text: '每個激光軍刀比賽的分析分頁中可查看各區域（A/B/C）統計數據。' },
-      ],
-      br: [
-        {
-          type: 'p',
-          text: 'Ar mod Gouriz Laser a zo ur variant eus ar klezeourezh sportif gant ur sistem zonoù pouezioù kemmadus ha ur sistem kartelloù spesifik.',
-        },
-        { type: 'h2', text: 'Zonoù pouezioù' },
-        {
-          type: 'ul',
-          items: [
-            '🟢 Zon A — pouez reizh: 1 poent',
-            '🟡 Zon B — pouez zon etre-daou: 3 poent',
-            '🔴 Zon C — pouez tachenn: 5 poent',
-          ],
-        },
-        { type: 'h2', text: 'Quest Points' },
-        {
-          type: 'p',
-          text: "Renk ar poulloù er Gouriz Laser a implij „Quest Points\" e-lec'h ar rapport V/M reizh. Hollad ar pouezioù zon a zisplec'h an indez.",
-        },
-        { type: 'h2', text: 'Sistem kartelloù' },
-        { type: 'p', text: 'Ar kartelloù a zo rummet e 4 strollad fazioù irennant:' },
-        {
-          type: 'ul',
-          items: [
-            'Strollad 1 — Gwenn → Melen → Melen (fazioù bihan)',
-            'Strollad 2 — Melen → Ruz → Ruz (fazioù etre-daou)',
-            'Strollad 3 — Ruz → Diviñs (fazioù bras)',
-            'Strollad 4 — Diviñs emgefreek (gwallvezer, tricher)',
-          ],
-        },
-        {
-          type: 'tip',
-          text: 'Ar stadegoù dre zon (A/B/C) a zo hegerz en ivinell Analytikoù pep genstrivadeg Gouriz Laser.',
-        },
-      ],
-      ca: [
-        {
-          type: 'p',
-          text: "El mode Sabre Làser és una variant de l'esgrima esportiva amb un sistema de zones de toc amb punts variables i un sistema de targetes específic.",
-        },
-        { type: 'h2', text: 'Zones de toc' },
-        {
-          type: 'ul',
-          items: [
-            '🟢 Zona A — toc estàndard: 1 punt',
-            '🟡 Zona B — toc de zona intermèdia: 3 punts',
-            '🔴 Zona C — toc de zona objectiu: 5 punts',
-          ],
-        },
-        { type: 'h2', text: 'Quest Points' },
-        {
-          type: 'p',
-          text: 'La classificació de poules al Sabre Làser utilitza "Quest Points" en lloc de la ràtio V/M estàndard. El total de punts de zona substitueix l\'índex de tocs.',
-        },
-        { type: 'h2', text: 'Sistema de targetes' },
-        { type: 'p', text: "Les targetes s'agrupen en 4 grups de faltes progressives:" },
-        {
-          type: 'ul',
-          items: [
-            'Grup 1 — Blanca → Groga → Groga (faltes lleus)',
-            'Grup 2 — Groga → Vermella → Vermella (faltes mitjanes)',
-            'Grup 3 — Vermella → Exclusió (faltes greus)',
-            'Grup 4 — Exclusió immediata (brutalitat, trampa)',
-          ],
-        },
-        {
-          type: 'tip',
-          text: 'Les estadístiques per zona (A/B/C) estan disponibles a la pestanya Analítica de cada competició de Sabre Làser.',
-        },
-      ],
-    },
-  },
-
-  // ─── EXPORT ─────────────────────────────────────────────────────────────────
-  {
-    id: 'export',
-    icon: '📤',
-    category: 'advanced',
-    title: {
-      fr: 'Import & Export',
-      en: 'Import & Export',
-      de: 'Import & Export',
-      es: 'Importar y Exportar',
-      'zh-HK': '匯入與匯出',
-      br: 'Ezporzhadur & Enporzhadur',
-      ca: 'Importar i Exportar',
-    },
-    content: {
-      fr: [
-        { type: 'h2', text: "Formats d'export" },
-        {
-          type: 'ul',
-          items: [
-            'PDF — classement, poules, tableau (personnalisable via Paramètres → PDF)',
-            'CSV — données brutes pour tableur',
-            'JSON — export complet de la compétition',
-            'XML — format FFE standard',
-            '.BPM — format natif BellePoule (sauvegarde complète)',
-          ],
-        },
-        { type: 'h2', text: 'Export PDF personnalisé' },
-        {
-          type: 'p',
-          text: 'Dans Paramètres → Personnaliser les PDF, vous pouvez configurer : couleurs, logo du club, sections à inclure, titre personnalisé. Les templates sont exportables/importables en JSON.',
-        },
-        { type: 'h2', text: "Formats d'import" },
-        {
-          type: 'ul',
-          items: [
-            'CSV tireurs — Nom, Prénom, Club, Licence, Classement, Nationalité',
-            'XML FFE — format standard de la fédération française',
-            "FFE Connect — import direct depuis l'API fédérale",
-            ".BPM — réouverture d'une compétition sauvegardée",
-          ],
-        },
-        { type: 'h2', text: 'Sync cloud' },
-        {
-          type: 'p',
-          text: 'BellePoule supporte la synchronisation chiffrée (AES-GCM) avec Dropbox, Google Drive et OneDrive. Configurez la sync dans Paramètres → Cloud Sync.',
-        },
-        {
-          type: 'warning',
-          text: "Le format .BPM est le seul format qui préserve l'intégralité de la compétition (scores, cartons, historique des matchs). Utilisez-le pour les sauvegardes.",
-        },
-      ],
-      en: [
-        { type: 'h2', text: 'Export Formats' },
-        {
-          type: 'ul',
-          items: [
-            'PDF — ranking, pools, bracket (customizable via Settings → PDF)',
-            'CSV — raw data for spreadsheets',
-            'JSON — full competition export',
-            'XML — standard FFE format',
-            '.BPM — native BellePoule format (full backup)',
-          ],
-        },
-        { type: 'h2', text: 'Custom PDF Export' },
-        {
-          type: 'p',
-          text: 'In Settings → Customize PDFs, you can configure: colors, club logo, included sections, custom title. Templates are exportable/importable as JSON.',
-        },
-        { type: 'h2', text: 'Import Formats' },
-        {
-          type: 'ul',
-          items: [
-            'CSV fencers — Last name, First name, Club, License, Ranking, Nationality',
-            'XML FFE — standard French federation format',
-            'FFE Connect — direct import from the federal API',
-            '.BPM — reopen a saved competition',
-          ],
-        },
-        { type: 'h2', text: 'Cloud Sync' },
-        {
-          type: 'p',
-          text: 'BellePoule supports encrypted sync (AES-GCM) with Dropbox, Google Drive, and OneDrive. Configure sync in Settings → Cloud Sync.',
-        },
-        {
-          type: 'warning',
-          text: 'The .BPM format is the only format that preserves the entire competition (scores, cards, match history). Use it for backups.',
-        },
-      ],
-      de: [
-        { type: 'h2', text: 'Exportformate' },
-        {
-          type: 'ul',
-          items: [
-            'PDF — Rangliste, Pools, Tableau (anpassbar über Einstellungen → PDF)',
-            'CSV — Rohdaten für Tabellenkalkulationen',
-            'JSON — vollständiger Wettkampfexport',
-            'XML — Standard-FFE-Format',
-            '.BPM — natives BellePoule-Format (Vollsicherung)',
-          ],
-        },
-        { type: 'h2', text: 'Benutzerdefinierter PDF-Export' },
-        {
-          type: 'p',
-          text: 'In Einstellungen → PDFs anpassen können Sie konfigurieren: Farben, Vereinslogo, enthaltene Abschnitte, benutzerdefinierten Titel. Vorlagen sind als JSON ex-/importierbar.',
-        },
-        { type: 'h2', text: 'Importformate' },
-        {
-          type: 'ul',
-          items: [
-            'CSV Fechter — Nachname, Vorname, Verein, Lizenz, Rangliste, Nationalität',
-            'XML FFE — Standard-Format des französischen Verbands',
-            'FFE Connect — Direktimport über die Verbands-API',
-            '.BPM — gespeicherten Wettkampf wieder öffnen',
-          ],
-        },
-        { type: 'h2', text: 'Cloud-Synchronisation' },
-        {
-          type: 'p',
-          text: 'BellePoule unterstützt verschlüsselte Synchronisation (AES-GCM) mit Dropbox, Google Drive und OneDrive. Konfigurieren Sie die Sync unter Einstellungen → Cloud Sync.',
-        },
-        {
-          type: 'warning',
-          text: 'Das .BPM-Format ist das einzige Format, das den gesamten Wettkampf (Ergebnisse, Karten, Kampfhistorie) bewahrt. Für Sicherungen verwenden.',
-        },
-      ],
-      es: [
-        { type: 'h2', text: 'Formatos de exportación' },
-        {
-          type: 'ul',
-          items: [
-            'PDF — clasificación, poules, cuadro (personalizable en Ajustes → PDF)',
-            'CSV — datos brutos para hoja de cálculo',
-            'JSON — exportación completa de la competición',
-            'XML — formato estándar FFE',
-            '.BPM — formato nativo BellePoule (copia de seguridad completa)',
-          ],
-        },
-        { type: 'h2', text: 'Exportación PDF personalizada' },
-        {
-          type: 'p',
-          text: 'En Ajustes → Personalizar PDFs puedes configurar: colores, logo del club, secciones incluidas, título personalizado. Las plantillas son exportables/importables en JSON.',
-        },
-        { type: 'h2', text: 'Formatos de importación' },
-        {
-          type: 'ul',
-          items: [
-            'CSV tiradores — Apellido, Nombre, Club, Licencia, Clasificación, Nacionalidad',
-            'XML FFE — formato estándar de la federación francesa',
-            'FFE Connect — importación directa desde la API federal',
-            '.BPM — reabrir una competición guardada',
-          ],
-        },
-        { type: 'h2', text: 'Sincronización en la nube' },
-        {
-          type: 'p',
-          text: 'BellePoule soporta sincronización cifrada (AES-GCM) con Dropbox, Google Drive y OneDrive. Configura la sync en Ajustes → Cloud Sync.',
-        },
-        {
-          type: 'warning',
-          text: 'El formato .BPM es el único que preserva toda la competición (puntuaciones, tarjetas, historial de combates). Úsalo para las copias de seguridad.',
-        },
-      ],
-      'zh-HK': [
-        { type: 'h2', text: '匯出格式' },
-        {
-          type: 'ul',
-          items: [
-            'PDF — 排名、分組、淘汰賽（可在設定→PDF 自訂）',
-            'CSV — 試算表用原始數據',
-            'JSON — 完整比賽匯出',
-            'XML — 標準 FFE 格式',
-            '.BPM — BellePoule 原生格式（完整備份）',
-          ],
-        },
-        { type: 'h2', text: '自訂 PDF 匯出' },
-        {
-          type: 'p',
-          text: '在設定→自訂 PDF 中可配置：顏色、俱樂部標誌、包含章節、自訂標題。模板可以 JSON 格式匯出/匯入。',
-        },
-        { type: 'h2', text: '匯入格式' },
-        {
-          type: 'ul',
-          items: [
-            'CSV 選手 — 姓氏、名字、俱樂部、執照、排名、國籍',
-            'XML FFE — 法國聯盟標準格式',
-            'FFE Connect — 直接從聯盟 API 匯入',
-            '.BPM — 重新開啟已儲存的比賽',
-          ],
-        },
-        { type: 'h2', text: '雲端同步' },
-        {
-          type: 'p',
-          text: 'BellePoule 支援與 Dropbox、Google Drive 和 OneDrive 的加密同步（AES-GCM），在設定→Cloud Sync 中配置。',
-        },
-        {
-          type: 'warning',
-          text: '.BPM 格式是唯一完整保留比賽資料（成績、牌罰、賽事歷史）的格式，請用於備份。',
-        },
-      ],
-      br: [
-        { type: 'h2', text: 'Furmadoù ezporzhadur' },
-        {
-          type: 'ul',
-          items: [
-            'PDF — renk, poulloù, daolenn (kustomizabl dre Parametroù → PDF)',
-            'CSV — roadennoù dav evit daolenn-niverennoù',
-            'JSON — ezporzhadur klok ar genstrivadeg',
-            'XML — furmad reizh FFE',
-            ".BPM — furmad nativel BellePoule (marc'h-enklask klok)",
-          ],
-        },
-        { type: 'h2', text: 'Ezporzhadur PDF personalizet' },
-        {
-          type: 'p',
-          text: "E Parametroù → Personaliziñ ar PDFoù e c'hallit kefluniañ: livioù, logo ar klub, rannioù da bignañ, titl personalizet. Ar patromoù a zo ezporzhiadus/enporzhiadus e JSON.",
-        },
-        { type: 'h2', text: 'Furmadoù enporzhadur' },
-        {
-          type: 'ul',
-          items: [
-            'CSV klañvourien — Anv, Kentanv, Klub, Roadenn, Renk, Broadelezh',
-            'XML FFE — furmad reizh kevredigezh Frañs',
-            'FFE Connect — enporzhadur resis eus an API kevredel',
-            '.BPM — addigeriñ ur genstrivadeg savetaet',
-          ],
-        },
-        { type: 'h2', text: 'Sinkroniezh cloud' },
-        {
-          type: 'p',
-          text: 'BellePoule a skor sinkroniezh kryptaet (AES-GCM) gant Dropbox, Google Drive hag OneDrive. Kefluniit ar sinkroniezh e Parametroù → Cloud Sync.',
-        },
-        {
-          type: 'warning',
-          text: "Ar furmad .BPM eo an hini nemetañ a ra gant an hollad ar genstrivadeg (notadoù, kartelloù, istor ar matchoù). Implij anezhañ evit ar marc'hadurioù.",
-        },
-      ],
-      ca: [
-        { type: 'h2', text: "Formats d'exportació" },
-        {
-          type: 'ul',
-          items: [
-            'PDF — classificació, poules, quadre (personalitzable a Configuració → PDF)',
-            'CSV — dades en brut per a fulls de càlcul',
-            'JSON — exportació completa de la competició',
-            'XML — format estàndard FFE',
-            '.BPM — format natiu BellePoule (còpia de seguretat completa)',
-          ],
-        },
-        { type: 'h2', text: 'Exportació PDF personalitzada' },
-        {
-          type: 'p',
-          text: 'A Configuració → Personalitzar PDFs podeu configurar: colors, logotip del club, seccions incloses, títol personalitzat. Les plantilles són exportables/importables en JSON.',
-        },
-        { type: 'h2', text: "Formats d'importació" },
-        {
-          type: 'ul',
-          items: [
-            'CSV tiradors — Cognom, Nom, Club, Llicència, Classificació, Nacionalitat',
-            'XML FFE — format estàndard de la federació francesa',
-            "FFE Connect — importació directa des de l'API federal",
-            '.BPM — tornar a obrir una competició desada',
-          ],
-        },
-        { type: 'h2', text: 'Sincronització al núvol' },
-        {
-          type: 'p',
-          text: 'BellePoule admet sincronització xifrada (AES-GCM) amb Dropbox, Google Drive i OneDrive. Configureu la sync a Configuració → Cloud Sync.',
-        },
-        {
-          type: 'warning',
-          text: "El format .BPM és l'únic que preserva tota la competició (puntuacions, targetes, historial de combats). Useu-lo per a les còpies de seguretat.",
-        },
-      ],
-    },
-  },
-
-  // ─── SHORTCUTS ──────────────────────────────────────────────────────────────
-  {
-    id: 'shortcuts',
-    icon: '⌨️',
-    category: 'advanced',
-    title: {
-      fr: 'Raccourcis clavier',
-      en: 'Keyboard Shortcuts',
-      de: 'Tastenkürzel',
-      es: 'Atajos de teclado',
-      'zh-HK': '鍵盤快捷鍵',
-      br: 'Berradurioù klavier',
-      ca: 'Dreceres de teclat',
-    },
-    content: {
-      fr: [
-        { type: 'h2', text: 'Globaux' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Ctrl+K', desc: 'Palette de commandes' },
-            { key: '?', desc: 'Aide raccourcis clavier' },
-            { key: 'Ctrl+N', desc: 'Nouvelle compétition' },
-            { key: 'Échap', desc: 'Fermer / Annuler' },
-            { key: 'Ctrl+S', desc: 'Sauvegarder' },
-            { key: 'Ctrl+Z', desc: 'Annuler (Undo)' },
-            { key: 'Ctrl+Y', desc: 'Refaire (Redo)' },
-            { key: 'F5', desc: 'Rafraîchir les données' },
-          ],
-        },
-        { type: 'h2', text: 'Navigation' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Tab', desc: 'Navigation entre champs' },
-            { key: '↑ ↓', desc: 'Naviguer dans une liste' },
-            { key: 'Entrée', desc: 'Valider / Ouvrir' },
-            { key: 'Alt+P', desc: 'Aller aux poules' },
-            { key: 'Alt+T', desc: 'Aller au tableau' },
-            { key: 'Alt+R', desc: 'Aller aux résultats' },
-          ],
-        },
-        { type: 'h2', text: 'Compétition' },
-        { type: 'kbd', shortcuts: [{ key: 'Espace', desc: 'Démarrer/Pause le chronomètre' }] },
-      ],
-      en: [
-        { type: 'h2', text: 'Global' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Ctrl+K', desc: 'Command palette' },
-            { key: '?', desc: 'Keyboard shortcuts help' },
-            { key: 'Ctrl+N', desc: 'New competition' },
-            { key: 'Esc', desc: 'Close / Cancel' },
-            { key: 'Ctrl+S', desc: 'Save' },
-            { key: 'Ctrl+Z', desc: 'Undo' },
-            { key: 'Ctrl+Y', desc: 'Redo' },
-            { key: 'F5', desc: 'Refresh data' },
-          ],
-        },
-        { type: 'h2', text: 'Navigation' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Tab', desc: 'Field navigation' },
-            { key: '↑ ↓', desc: 'Navigate a list' },
-            { key: 'Enter', desc: 'Validate / Open' },
-            { key: 'Alt+P', desc: 'Go to pools' },
-            { key: 'Alt+T', desc: 'Go to bracket' },
-            { key: 'Alt+R', desc: 'Go to results' },
-          ],
-        },
-        { type: 'h2', text: 'Competition' },
-        { type: 'kbd', shortcuts: [{ key: 'Space', desc: 'Start/Pause timer' }] },
-      ],
-      de: [
-        { type: 'h2', text: 'Global' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Ctrl+K', desc: 'Befehlspalette' },
-            { key: '?', desc: 'Tastenkürzel-Hilfe' },
-            { key: 'Ctrl+N', desc: 'Neuer Wettkampf' },
-            { key: 'Esc', desc: 'Schließen / Abbrechen' },
-            { key: 'Ctrl+S', desc: 'Speichern' },
-            { key: 'Ctrl+Z', desc: 'Rückgängig' },
-            { key: 'Ctrl+Y', desc: 'Wiederholen' },
-            { key: 'F5', desc: 'Daten aktualisieren' },
-          ],
-        },
-        { type: 'h2', text: 'Navigation' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Tab', desc: 'Feldnavigation' },
-            { key: '↑ ↓', desc: 'Liste navigieren' },
-            { key: 'Enter', desc: 'Bestätigen / Öffnen' },
-            { key: 'Alt+P', desc: 'Zu Pools' },
-            { key: 'Alt+T', desc: 'Zum Tableau' },
-            { key: 'Alt+R', desc: 'Zu Ergebnissen' },
-          ],
-        },
-        { type: 'h2', text: 'Wettkampf' },
-        { type: 'kbd', shortcuts: [{ key: 'Leertaste', desc: 'Stoppuhr starten/pausieren' }] },
-      ],
-      es: [
-        { type: 'h2', text: 'Globales' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Ctrl+K', desc: 'Paleta de comandos' },
-            { key: '?', desc: 'Ayuda de atajos de teclado' },
-            { key: 'Ctrl+N', desc: 'Nueva competición' },
-            { key: 'Esc', desc: 'Cerrar / Cancelar' },
-            { key: 'Ctrl+S', desc: 'Guardar' },
-            { key: 'Ctrl+Z', desc: 'Deshacer' },
-            { key: 'Ctrl+Y', desc: 'Rehacer' },
-            { key: 'F5', desc: 'Actualizar datos' },
-          ],
-        },
-        { type: 'h2', text: 'Navegación' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Tab', desc: 'Navegación entre campos' },
-            { key: '↑ ↓', desc: 'Navegar en una lista' },
-            { key: 'Enter', desc: 'Validar / Abrir' },
-            { key: 'Alt+P', desc: 'Ir a poules' },
-            { key: 'Alt+T', desc: 'Ir al cuadro' },
-            { key: 'Alt+R', desc: 'Ir a resultados' },
-          ],
-        },
-        { type: 'h2', text: 'Competición' },
-        { type: 'kbd', shortcuts: [{ key: 'Espacio', desc: 'Iniciar/Pausar cronómetro' }] },
-      ],
-      'zh-HK': [
-        { type: 'h2', text: '全局' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Ctrl+K', desc: '命令面板' },
-            { key: '?', desc: '鍵盤快捷鍵說明' },
-            { key: 'Ctrl+N', desc: '新增比賽' },
-            { key: 'Esc', desc: '關閉 / 取消' },
-            { key: 'Ctrl+S', desc: '儲存' },
-            { key: 'Ctrl+Z', desc: '復原' },
-            { key: 'Ctrl+Y', desc: '重做' },
-            { key: 'F5', desc: '重新整理資料' },
-          ],
-        },
-        { type: 'h2', text: '導航' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Tab', desc: '欄位導航' },
-            { key: '↑ ↓', desc: '瀏覽清單' },
-            { key: 'Enter', desc: '確認 / 開啟' },
-            { key: 'Alt+P', desc: '前往分組' },
-            { key: 'Alt+T', desc: '前往淘汰賽' },
-            { key: 'Alt+R', desc: '前往結果' },
-          ],
-        },
-        { type: 'h2', text: '比賽' },
-        { type: 'kbd', shortcuts: [{ key: '空白鍵', desc: '開始/暫停計時器' }] },
-      ],
-      br: [
-        { type: 'h2', text: 'Hollek' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Ctrl+K', desc: 'Palet urzhioù' },
-            { key: '?', desc: 'Skoazell berradurioù klavier' },
-            { key: 'Ctrl+N', desc: 'Kenstrivadeg nevez' },
-            { key: 'Esc', desc: 'Serriñ / Nullañ' },
-            { key: 'Ctrl+S', desc: 'Saveteiñ' },
-            { key: 'Ctrl+Z', desc: 'Nullañ (Undo)' },
-            { key: 'Ctrl+Y', desc: 'Adober (Redo)' },
-            { key: 'F5', desc: 'Aozañ ar roadennoù' },
-          ],
-        },
-        { type: 'h2', text: 'Levezon' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Tab', desc: 'Levezon etre burujoù' },
-            { key: '↑ ↓', desc: 'Levezon e ur roll' },
-            { key: 'Enankañ', desc: 'Kadarnaat / Digeriñ' },
-            { key: 'Alt+P', desc: "Mont d'ar poulloù" },
-            { key: 'Alt+T', desc: "Mont d'an daolenn" },
-            { key: 'Alt+R', desc: "Mont d'ar disoc'hoù" },
-          ],
-        },
-        { type: 'h2', text: 'Kenstrivadeg' },
-        { type: 'kbd', shortcuts: [{ key: 'Barzh', desc: "Kregiñ/Ehan ar c'hronomet" }] },
-      ],
-      ca: [
-        { type: 'h2', text: 'Globals' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Ctrl+K', desc: "Paleta d'ordres" },
-            { key: '?', desc: 'Ajuda de dreceres de teclat' },
-            { key: 'Ctrl+N', desc: 'Nova competició' },
-            { key: 'Esc', desc: 'Tancar / Cancel·lar' },
-            { key: 'Ctrl+S', desc: 'Desar' },
-            { key: 'Ctrl+Z', desc: 'Desfer' },
-            { key: 'Ctrl+Y', desc: 'Refer' },
-            { key: 'F5', desc: 'Actualitzar dades' },
-          ],
-        },
-        { type: 'h2', text: 'Navegació' },
-        {
-          type: 'kbd',
-          shortcuts: [
-            { key: 'Tab', desc: 'Navegació entre camps' },
-            { key: '↑ ↓', desc: 'Navegar en una llista' },
-            { key: 'Enter', desc: 'Validar / Obrir' },
-            { key: 'Alt+P', desc: 'Anar a poules' },
-            { key: 'Alt+T', desc: 'Anar al quadre' },
-            { key: 'Alt+R', desc: 'Anar a resultats' },
-          ],
-        },
-        { type: 'h2', text: 'Competició' },
-        { type: 'kbd', shortcuts: [{ key: 'Espai', desc: 'Iniciar/Pausar cronòmetre' }] },
-      ],
-    },
-  },
+  ...ADVANCED_ARTICLES,
 ];
 
 // ─── Category labels ─────────────────────────────────────────────────────────
