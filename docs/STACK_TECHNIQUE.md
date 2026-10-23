@@ -1,6 +1,6 @@
 # Stack technique et dépendances
 
-> Relevé au **9 octobre 2026** — version **1.0.3**, build **#1365**
+> Relevé au **23 octobre 2026** — version **1.2.1**, build **#1450**
 > (`package.json` / `version.json`). Versions = versions résolues dans `package-lock.json`.
 
 ---
@@ -11,8 +11,8 @@
 |---|---|---|
 | Node.js | **22.x** | Utilisé par la CI (`actions/setup-node`, `node-version: '22'`). Requis par better-sqlite3 13. |
 | npm | ≥ 10 | Lockfile v3. |
-| Electron | **44.5.1** | Chromium + Node embarqués. |
-| TypeScript | **6.0.3** | `strict: true`, cible ES2020, modules CommonJS, `jsx: react-jsx`. |
+| Electron | **45.0.0** | Chromium + Node 24 embarqués. |
+| TypeScript | **6.0.3** | TS 7 bloqué par typescript-eslint (`<6.1`). `strict: true`, cible ES2020, modules CommonJS, `jsx: react-jsx`. |
 | OS supportés (build) | Windows x64, macOS x64/arm64, Linux x64 | electron-builder. |
 
 `postinstall` : `electron-rebuild -f -w better-sqlite3` (recompile le module natif pour
@@ -28,7 +28,7 @@ reste est intégré par Webpack.
 | Paquet | Version | Rôle |
 |---|---|---|
 | better-sqlite3 | 13.0.3 | SQLite synchrone natif (`src/database/index.ts`). Externe Webpack, décompressé hors asar. |
-| lucide-react | 1.52.0 | Icônes React. |
+| lucide-react | 1.61.0 | Icônes React. |
 | selfsigned | 5.5.0 | Certificat TLS auto-signé du serveur HTTPS (`src/main/certManager.ts`). |
 
 ## 3. Dépendances de build / bundlées (`devDependencies`)
@@ -37,68 +37,68 @@ reste est intégré par Webpack.
 
 | Paquet | Version | Rôle |
 |---|---|---|
-| react / react-dom | 19.3.0 | UI. |
-| zustand | 5.0.15 | Stores par fonctionnalité (`src/features/*/hooks/use*Store.ts`). |
-| immer | 10.2.0 | Mises à jour immuables (middleware zustand). |
+| react / react-dom | 19.3.1 | UI. |
+| zustand | 5.0.16 | Stores par fonctionnalité (`src/features/*/hooks/use*Store.ts`). |
+| immer | 11.2.9 | Mises à jour immuables (middleware zustand). |
 | jspdf | 4.2.1 | Génération PDF (`src/shared/utils/pdfExport/`). |
-| jspdf-autotable | 5.0.8 | Tableaux PDF. |
+| jspdf-autotable | 5.0.9 | Tableaux PDF. |
 | jszip | 3.10.2 | Archives tireurs/photos. |
 | qrcode | 1.5.4 | QR codes (chargé à la demande). |
-| tesseract.js | 5.1.1 | OCR des feuilles de poule (chargé à la demande, hors asar). |
-| uuid | 11.1.1 | Identifiants. |
+| tesseract.js | 7.0.0 | OCR des feuilles de poule (chargé à la demande, hors asar). |
+| uuid | 14.0.3 | Identifiants (renderer : build navigateur `dist/index.js` aliasé dans Webpack). |
 
 ### Processus principal / serveur distant
 
 | Paquet | Version | Rôle |
 |---|---|---|
-| express | 5.2.1 | Serveur HTTP(S) des tablettes (`remoteScoreServer.ts`). |
+| express | 5.3.0 | Serveur HTTP(S) des tablettes (`remoteScoreServer.ts`). |
 | socket.io | 4.8.4 | Temps réel. Client servi en mémoire sur `/bp-sio.js`. |
 
 ### Build et packaging
 
 | Paquet | Version |
 |---|---|
-| webpack | 5.111.1 |
-| webpack-cli | 6.0.1 |
-| webpack-dev-server | 5.2.6 (port 8066) |
+| webpack | 5.112.2 |
+| webpack-cli | 7.2.3 |
+| webpack-dev-server | 6.1.0 (port 8066) |
 | ts-loader | 9.6.2 |
 | html-webpack-plugin | 5.6.8 |
 | copy-webpack-plugin | 14.0.0 |
 | css-loader / mini-css-extract-plugin | 7.1.5 / 2.10.2 |
 | terser-webpack-plugin | 5.6.1 |
-| webpack-bundle-analyzer | 4.10.2 |
+| webpack-bundle-analyzer | 5.4.0 |
 | electron-builder | 26.17.0 |
-| @electron/rebuild | 4.2.0 |
-| concurrently | 9.2.4 |
-| wait-on | 8.0.5 |
+| @electron/rebuild | 4.2.1 |
+| concurrently | 10.0.6 |
+| wait-on | 9.5.1 |
 
 ### Qualité et tests
 
 | Paquet | Version |
 |---|---|
-| vitest | 4.1.11 |
-| @vitest/coverage-v8 | 4.1.11 |
-| jsdom | 25.0.1 |
-| fake-indexeddb | 6.2.5 |
+| vitest | 5.0.5 (bench : `test(…, ({ bench }) => bench(…).run())`) |
+| @vitest/coverage-v8 | 5.0.5 |
+| jsdom | 30.1.3 |
+| fake-indexeddb | 6.2.6 |
 | @testing-library/react | 16.3.3 |
-| @testing-library/jest-dom | 6.9.1 |
-| @testing-library/user-event | 14.6.7 |
-| @playwright/test | 1.63.0 |
+| @testing-library/jest-dom | 7.0.1 (typage Vitest 5 : `src/renderer/jest-dom.d.ts`) |
+| @testing-library/user-event | 14.6.8 |
+| @playwright/test | 1.64.1 |
 | @axe-core/playwright | 4.14.0 |
-| eslint | 9.39.5 (flat config `eslint.config.js`) |
+| eslint | 9.39.5 (flat config `eslint.config.js` ; ESLint 10 bloqué par eslint-plugin-react) |
 | @eslint/js | 9.39.5 |
-| @typescript-eslint/parser, eslint-plugin | 8.71.1 |
+| @typescript-eslint/parser, eslint-plugin | 8.72.0 |
 | eslint-plugin-react | 7.37.5 |
-| eslint-plugin-react-hooks | 5.2.0 |
-| eslint-plugin-prettier | 5.5.6 |
+| eslint-plugin-react-hooks | 7.1.1 (règles React Compiler en `warn`) |
+| eslint-plugin-prettier | 5.5.7 |
 | eslint-config-prettier | 10.1.8 |
-| prettier | 3.9.9 |
-| globals | 16.5.0 |
+| prettier | 3.9.10 |
+| globals | 17.13.0 |
 
 ### Types
 
-`@types/node` 22.20.5, `@types/react` / `@types/react-dom` 19.3.0, `@types/express`
-5.0.6, `@types/better-sqlite3` 7.6.13, `@types/qrcode` 1.5.6, `@types/uuid` 10.0.0.
+`@types/node` 24.19.2 (Node d'Electron 45), `@types/react` / `@types/react-dom` 19.3.0, `@types/express`
+5.0.6, `@types/better-sqlite3` 9.6.0, `@types/qrcode` 1.5.6 (uuid fournit ses propres types).
 
 ---
 

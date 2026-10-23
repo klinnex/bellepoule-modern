@@ -294,13 +294,13 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 ## 🔧 **Technologies**
 
-- **Electron 44.5** (Node 22) : application de bureau multi-plateforme
+- **Electron 45** (Node 24) : application de bureau multi-plateforme
 - **React 19.3** + **Zustand 5** : interface et état
 - **TypeScript 6.0** (strict) + **Webpack 5**
 - **SQLite** via **better-sqlite3 13**
 - **Express 5** + **Socket.IO 4.8** : serveur temps réel des tablettes
 - **jsPDF 4** : génération PDF
-- **Vitest 4** + **Playwright 1.63** : tests
+- **Vitest 5** + **Playwright 1.64** : tests
 
 Liste complète et versions : [docs/STACK_TECHNIQUE.md](docs/STACK_TECHNIQUE.md).
 - **safeStorage (OS)** : chiffrement des secrets locaux
