@@ -208,7 +208,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 ### 🖥️ **Tableau de Bord Live**
 
-- 📺 **Affichage Public** (`/dashboard.html`, `/kiosk`) - Interface optimisée pour écrans géants
+- 📺 **Affichage Public** (`/kiosk`, `/areneN/public`) - Interface optimisée pour écrans géants
 - 🔴 **Matchs en Direct** - Suivi en temps réel des scores avec animations
 - 📊 **3 Vues Disponibles** : Poules / Tableau / Classement Final
 - 📱 **Design Responsive** - Adapté pour tous les écrans
