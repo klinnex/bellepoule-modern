@@ -2,7 +2,7 @@
  * Benchmarks des calculs de compétition (npm run bench).
  * Données générées par le simulateur, déterministes.
  */
-import { bench, describe } from 'vitest';
+import { describe, test } from 'vitest';
 import { simulateTournament } from './tournamentSimulator';
 import { calculateOverallRanking, calculatePoolRanking } from './poolCalculations';
 import {
@@ -20,31 +20,43 @@ const seeded = large.table.nodes
   );
 
 describe('poules', () => {
-  bench('classement poule de 7', () => {
-    calculatePoolRanking(small.pools[0]);
+  test('classement poule de 7', async ({ bench }) => {
+    await bench('classement poule de 7', () => {
+      calculatePoolRanking(small.pools[0]);
+    }).run();
   });
 
-  bench(`classement général (${large.pools.length} poules, 200 tireurs)`, () => {
-    calculateOverallRanking(large.pools);
+  test(`classement général (${large.pools.length} poules, 200 tireurs)`, async ({ bench }) => {
+    await bench(`classement général (${large.pools.length} poules, 200 tireurs)`, () => {
+      calculateOverallRanking(large.pools);
+    }).run();
   });
 });
 
 describe('tableau', () => {
-  bench('placement FIE tableau de 256', () => {
-    generateSeedingChart(256);
+  test('placement FIE tableau de 256', async ({ bench }) => {
+    await bench('placement FIE tableau de 256', () => {
+      generateSeedingChart(256);
+    }).run();
   });
 
-  bench('création tableau de 256 (200 tireurs)', () => {
-    createDirectEliminationTable(seeded, 15);
+  test('création tableau de 256 (200 tireurs)', async ({ bench }) => {
+    await bench('création tableau de 256 (200 tireurs)', () => {
+      createDirectEliminationTable(seeded, 15);
+    }).run();
   });
 
-  bench('classement final tableau de 256', () => {
-    calculateTableRanking(large.table);
+  test('classement final tableau de 256', async ({ bench }) => {
+    await bench('classement final tableau de 256', () => {
+      calculateTableRanking(large.table);
+    }).run();
   });
 });
 
 describe('tournoi complet', () => {
-  bench('200 tireurs : poules → tableau → classement', () => {
-    simulateTournament({ fencerCount: 200, seed: 2 });
+  test('200 tireurs : poules → tableau → classement', async ({ bench }) => {
+    await bench('200 tireurs : poules → tableau → classement', () => {
+      simulateTournament({ fencerCount: 200, seed: 2 });
+    }).run();
   });
 });

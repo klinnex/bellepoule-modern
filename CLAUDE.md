@@ -269,7 +269,7 @@ Core interfaces: `Fencer`, `Referee`, `Competition`, `Pool`, `Match`, `PoolRanki
 - Pool calculations include special "Quest Points" system for Laser Sabre weapon
 - Only native/runtime modules are in `dependencies` (better-sqlite3, lucide-react, selfsigned); everything else (React, Express, Socket.IO, `@types/*`) is a devDependency bundled by Webpack. Versions: `docs/STACK_TECHNIQUE.md`
 - Window: 1400×900, min 1024×768; CSP enforced (no inline scripts)
-- Electron 44.5; React 19.3; TypeScript 6.0; Express 5; Socket.IO 4.8; better-sqlite3 13 (Node 22); Vitest 4; Playwright 1.63
+- Electron 45; React 19.3; TypeScript 6.0; Express 5; Socket.IO 4.8; better-sqlite3 13 (Node 22 CI, Node 24 Electron); Vitest 5; Playwright 1.64
 
 ## Git Conventions
 

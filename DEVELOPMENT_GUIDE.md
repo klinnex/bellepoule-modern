@@ -21,7 +21,7 @@ BellePoule Modern is built using modern web technologies wrapped in an Electron 
 
 | Component | Technology | Version | Purpose |
 |-----------|------------|---------|---------|
-| **Framework** | Electron | 44.5 | Cross-platform desktop application (Node 22) |
+| **Framework** | Electron | 45.0 | Cross-platform desktop application (Node 24) |
 | **UI Library** | React | 19.3 | User interface components |
 | **State** | Zustand (+ immer) | 5.0 | Feature stores |
 | **Language** | TypeScript | 6.0 | Strict type-safe code |
@@ -573,7 +573,7 @@ export class CompetitionRepository {
 
 ### Testing Framework Setup
 
-Unit tests use **Vitest 4** (`vitest.config.ts`) with `jsdom`, `@testing-library/react`,
+Unit tests use **Vitest 5** (`vitest.config.ts`) with `jsdom`, `@testing-library/react`,
 `@testing-library/jest-dom` and `fake-indexeddb`. Test files are co-located with the code
 (`*.test.ts` / `*.test.tsx`, plus `src/renderer/components/__tests__/`).
 
