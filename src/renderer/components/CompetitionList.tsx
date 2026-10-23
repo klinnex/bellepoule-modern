@@ -23,9 +23,6 @@ import { CompetitionCardSkeleton } from './Skeleton';
 import { useConfirm } from './ConfirmDialog';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 
-const OPEN_FILE_LABEL = 'Ouvrir…';
-const OPEN_FILE_TITLE = 'Ouvrir un fichier .bpm, .db ou .cotcot';
-
 interface CompetitionListProps {
   competitions: Competition[];
   isLoading: boolean;
@@ -254,10 +251,10 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                 className="btn btn-secondary btn-lg btn-icon-label"
                 onClick={onOpenFile}
                 style={{ padding: '0.75rem 1.5rem' }}
-                title={OPEN_FILE_TITLE}
+                title={t('competitionList.open_file_title')}
               >
                 <FolderOpen size={18} />
-                {OPEN_FILE_LABEL}
+                {t('competitionList.open_file')}
               </button>
             )}
           </div>
@@ -289,10 +286,10 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             <button
               className="btn btn-secondary btn-lg btn-icon-label"
               onClick={onOpenFile}
-              title={OPEN_FILE_TITLE}
+              title={t('competitionList.open_file_title')}
             >
               <FolderOpen size={18} />
-              {OPEN_FILE_LABEL}
+              {t('competitionList.open_file')}
             </button>
           )}
           <button className="btn btn-primary btn-lg" onClick={onNewCompetition}>

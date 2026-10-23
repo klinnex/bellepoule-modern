@@ -186,7 +186,16 @@
     "prep_drop_here": "Suelte tiradores aquí",
     "prep_hint": "Arrastre y suelte los tiradores entre poules para moverlos, o arriba / abajo para reordenarlos.",
     "prep_undo": "↩ Deshacer el cambio",
-    "prep_window": "{{elapsed}} / {{max}} min"
+    "prep_window": "{{elapsed}} / {{max}} min",
+    "prep_sep_club": "Club",
+    "prep_sep_region": "Región",
+    "prep_sep_nation": "Nación",
+    "prep_sep_title_on": "Prioridad {{n}} — activa (clic: activar / desactivar, arrastrar: reordenar)",
+    "prep_sep_title_off": "Prioridad {{n}} — desactivada (clic: activar / desactivar, arrastrar: reordenar)",
+    "prep_skip_pools": "Ir a la clasificación inicial",
+    "prep_launch": "Lanzar las poules",
+    "prep_strip_duplicate": "Pista asignada a varias poules",
+    "prep_strip_title": "Pista de la puntuación remota"
   },
   "ranking": {
     "rank": "Pos",
@@ -649,7 +658,8 @@
     "share": "Compartir",
     "presentation": "Modo presentación",
     "kiosk_public": "Quiosco público",
-    "properties": "Propiedades"
+    "properties": "Propiedades",
+    "actions_hint": "Comparación, analíticas, compartir QR..."
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} tirador",
@@ -703,7 +713,32 @@
     "assign_referees": "Asignar los árbitros",
     "assign_referee": "Asignar un árbitro",
     "select_referees": "Seleccione hasta {{max}} árbitros para la poule {{n}} (el primero seleccionado es el árbitro principal):",
-    "select_referee": "Seleccione el árbitro para la poule {{n}}:"
+    "select_referee": "Seleccione el árbitro para la poule {{n}}:",
+    "max_score": "Puntuación máxima: {{max}}",
+    "draw_impossible": "¡Empate imposible!",
+    "max_score_a": "La puntuación del tirador A no puede superar {{max}}",
+    "max_score_b": "La puntuación del tirador B no puede superar {{max}}",
+    "draw_laser": "Empate: haga clic en V para atribuir la victoria",
+    "draw_live": "¡Empate imposible! En un combate en directo, la muerte súbita de 30 s se aplica automáticamente",
+    "pdf_done": "Exportación PDF de la poule {{n}} generada",
+    "pdf_error": "Error al generar el PDF: {{error}}",
+    "print_error": "Error al imprimir: {{error}}",
+    "preview_error": "Error al generar la vista previa: {{error}}",
+    "unknown_error": "Error desconocido",
+    "autofill_confirm": "¿Rellenar automáticamente todos los marcadores de los combates no terminados?\n\nLos marcadores se generarán aleatoriamente para pruebas.",
+    "autofill_ok": "Rellenar",
+    "all_finished": "Todos los combates ya están terminados",
+    "all_signed": "Todos los tiradores han firmado — PDF disponible",
+    "referees_title_one": "Árbitro: {{list}}",
+    "referees_title_other": "Árbitros: {{list}}",
+    "add_referee": "+Árbitro",
+    "arena_reassign": "Pista {{n}} — Clic para reasignar",
+    "remote_not_started": "Servidor remoto no iniciado",
+    "cell_victory": "victoria",
+    "cell_defeat": "derrota",
+    "not_fenced_title": "Combate no disputado",
+    "cell_vs": "contra",
+    "cell_enter": "introducir el marcador"
   },
   "presentation": {
     "no_club": "Sin club",
@@ -1261,7 +1296,41 @@
     "actions": "Acciones",
     "abandon": "Abandonar",
     "forfeit": "Forfait",
-    "reactivate": "Reactivar"
+    "reactivate": "Reactivar",
+    "col_ref": "N.º",
+    "col_last_name": "Apellido",
+    "col_first_name": "Nombre",
+    "col_birth": "Nac.",
+    "col_club": "Club",
+    "col_ranking": "Clasificación",
+    "col_status": "Estado",
+    "appel": "Llamada",
+    "registered_count_one": "{{count}} tirador inscrito",
+    "registered_count_other": "{{count}} tiradores inscritos",
+    "checked_in_count_one": "{{count}} presente",
+    "checked_in_count_other": "{{count}} presentes",
+    "waiting_count_one": "{{count}} pendiente",
+    "waiting_count_other": "{{count}} pendientes",
+    "check_in_all_title_one": "Marcar al tirador pendiente",
+    "check_in_all_title_other": "Marcar a los {{count}} tiradores pendientes",
+    "delete_all_title_one": "Eliminar al tirador",
+    "delete_all_title_other": "Eliminar a los {{count}} tiradores",
+    "import_formats_hint": "Formatos aceptados: XML BellePoule, lista FFE (.fff/.csv/.txt)",
+    "double_click_edit": "Doble clic para editar",
+    "check": "Marcar",
+    "uncheck": "Anular",
+    "all_files": "Todos los archivos",
+    "photos_exported_one": "{{count}} foto exportada",
+    "photos_exported_other": "{{count}} fotos exportadas",
+    "photos_imported_one": "{{matched}}/{{count}} foto importada",
+    "photos_imported_other": "{{matched}}/{{count}} fotos importadas",
+    "export_error": "Error al exportar",
+    "import_error": "Error al importar",
+    "bpf_exported_one": "{{count}} tirador exportado (.bpf)",
+    "bpf_exported_other": "{{count}} tiradores exportados (.bpf)",
+    "bpf_export_error": "Error al exportar .bpf",
+    "bpf_imported": "{{added}} añadido(s), {{updated}} actualizado(s) (.bpf)",
+    "bpf_import_error": "Error al importar .bpf"
   },
   "questPhase": {
     "running_title": "Ronda Quest en curso",
@@ -1508,7 +1577,12 @@
     "bracket_of": "Cuadro de {{n}}",
     "third_place": "Final de consolación (3.er puesto)",
     "fifth_place": "Combate por el 5.º puesto",
-    "classification_hint": "Fase de clasificación final: no requiere configuración."
+    "classification_hint": "Fase de clasificación final: no requiere configuración.",
+    "type_pool_round": "Ronda de poules",
+    "type_direct_elimination": "Eliminación directa",
+    "type_classification": "Clasificación final",
+    "collapse": "Plegar",
+    "expand": "Desplegar"
   },
   "matchAudit": {
     "referee": "Árbitro:",
@@ -1639,7 +1713,38 @@
     "create_women": "Crear la competición ♀ Mujeres…",
     "tableau_men": "Cuadro ♂ Hombres →",
     "tableau_women": "Cuadro ♀ Mujeres →",
-    "see_results": "Ver los resultados →"
+    "see_results": "Ver los resultados →",
+    "recalc_changed": "¡Clasificación recalculada y modificada! El cuadro se regenerará.",
+    "recalc_ok": "¡Clasificación recalculada!",
+    "csv_ok": "Exportación CSV realizada",
+    "saved_changed": "Clasificación modificada — el cuadro se regenerará con el nuevo orden.",
+    "saved_unchanged": "Clasificación guardada (sin cambios).",
+    "title_initial": "Clasificación inicial",
+    "title_after_pools": "Clasificación tras las poules",
+    "fencers_count_one": "{{count}} tirador",
+    "fencers_count_other": "{{count}} tiradores",
+    "pools_count_one": "{{count}} poule",
+    "pools_count_other": "{{count}} poules",
+    "starting_ranking": "Clasificación de salida",
+    "edit_mode": "modo edición",
+    "finish": "Terminar",
+    "edit": "Modificar",
+    "legend_v": "V",
+    "legend_v_full": "Victorias",
+    "legend_m": "C",
+    "legend_m_full": "Combates",
+    "legend_vm": "V/C",
+    "legend_vm_full": "Ratio",
+    "legend_td": "TD",
+    "legend_td_full": "Tocados dados",
+    "legend_tr": "TR",
+    "legend_tr_full": "Tocados recibidos",
+    "legend_index": "Índice",
+    "legend_index_full": "TD − TR",
+    "legend_quest_full": "Puntos Sable Láser",
+    "legend_qm_full": "Puntos Quest / combates",
+    "go_tableau_winners": "Cuadro ({{n}} ganadores) →",
+    "go_tableau": "Pasar al cuadro →"
   },
   "poolMatrix": {
     "not_fenced": "Combate no disputado (abandono/forfait)",
@@ -1804,7 +1909,13 @@
     "preview_title": "Abre un PDF en el lector predeterminado para previsualizar antes de imprimir",
     "preview": "👁️ Vista previa de impresión",
     "export_pdf": "📄 Exportar PDF",
-    "tree_pdf": "🌲 Árbol PDF"
+    "tree_pdf": "🌲 Árbol PDF",
+    "match_list": "Lista de combates",
+    "full_bracket": "Cuadro completo",
+    "bracket": "Cuadro",
+    "bracket_view": "Vista de cuadro",
+    "pyramid_view": "Vista piramidal",
+    "pyramid": "Pirámide"
   },
   "formulaBuilder": {
     "name_ph": "Nombre de la fórmula",
@@ -1818,7 +1929,9 @@
     "empty": "Ninguna fase configurada.",
     "empty_hint": "Use los botones de arriba para añadir fases.",
     "notes": "Notas",
-    "notes_ph": "Notas sobre la fórmula (opcional)"
+    "notes_ph": "Notas sobre la fórmula (opcional)",
+    "rest_off": "0 = botón «Descanso» desactivado",
+    "rest_on": "Botón «Descanso» de la tablet del árbitro, cuando el cronómetro llega a 00:00"
   },
   "wifiQr": {
     "title": "📶 Generador de código QR WiFi",
@@ -1887,7 +2000,9 @@
     "prev_page": "Página anterior",
     "next_page": "Página siguiente",
     "last_page": "Última página",
-    "per_page": "{{n}} / página"
+    "per_page": "{{n}} / página",
+    "open_file": "Abrir…",
+    "open_file_title": "Abrir un archivo .bpm, .db o .cotcot"
   },
   "trainingLauncher": {
     "title": "Modo entrenamiento",
@@ -1903,7 +2018,10 @@
     "pts_one": "{{count}} pt",
     "pts_other": "{{count}} pts",
     "no_sudden_death": "Desactivar la muerte súbita",
-    "no_sudden_death_hint": "Empate al final del tiempo → fin del combate sin prórroga."
+    "no_sudden_death_hint": "Empate al final del tiempo → fin del combate sin prórroga.",
+    "all_interfaces": "Todas las interfaces",
+    "starting": "Iniciando…",
+    "launch": "Lanzar"
   },
   "reportIssue": {
     "title": "📝 Informar de un error / Sugerencia",
@@ -2003,7 +2121,16 @@
     "matches_other": "{{count}} combates",
     "unassigned": "Sin asignar",
     "all_done": "✓ Todos los combates han terminado",
-    "barrages": "Desempates"
+    "barrages": "Desempates",
+    "no_draw": "Los marcadores no pueden ser iguales en eliminación directa",
+    "max_score": "El marcador no puede superar {{max}}",
+    "next_played": "Imposible: el combate siguiente ya se ha disputado",
+    "order_asc_title": "Orden ascendente",
+    "order_desc_title": "Orden descendente",
+    "order_asc": "🔼 Ascendente",
+    "order_desc": "🔽 Descendente",
+    "expand_all": "Desplegar todo",
+    "collapse_all": "Plegar todo"
   },
   "arenaQr": {
     "title": "📱 Códigos QR de las pistas",
@@ -2032,7 +2159,10 @@
     "matches_one": "{{count}} combate",
     "matches_other": "{{count}} combates",
     "sheets_one": "{{count}} hoja",
-    "sheets_other": "{{count}} hojas"
+    "sheets_other": "{{count}} hojas",
+    "do_print": "🖨️ Imprimir",
+    "do_preview": "👁️ Vista previa",
+    "do_generate": "📄 Generar PDF"
   },
   "matchOrder": {
     "title": "Orden oficial de los combates",
@@ -2053,7 +2183,9 @@
     "fencers": "{{a}}/{{b}} tiradores",
     "pools": "{{a}}/{{b}} poules",
     "matches": "{{a}}/{{b}} combates",
-    "tableau": "{{a}}/{{b}} cuadro"
+    "tableau": "{{a}}/{{b}} cuadro",
+    "generate_hint": "Haga clic aquí después de marcar a todos sus tiradores",
+    "next_step_hint": "Paso siguiente una vez terminadas las poules"
   },
   "offline": {
     "never": "Nunca",
@@ -2353,7 +2485,20 @@
   },
   "poolColumns": {
     "button": "Columnas (todas las poules)",
-    "header": "Columnas — aplicado a todas las poules"
+    "header": "Columnas — aplicado a todas las poules",
+    "col_victories": "Victorias",
+    "col_ratio": "Ratio V/C",
+    "col_td": "TD (Tocados dados)",
+    "col_tr": "TR (Tocados recibidos)",
+    "col_quest": "Quest",
+    "col_index": "Índice (TD-TR)",
+    "col_rank": "Puesto",
+    "col_club": "Club",
+    "col_nation": "Nación",
+    "col_region": "Región",
+    "col_lastName": "Apellido",
+    "col_firstName": "Nombre",
+    "col_matches": "Combates"
   },
   "fencerStats": {
     "loading": "Cargando…",
@@ -2390,7 +2535,15 @@
   },
   "matchCard": {
     "bye": "Exento",
-    "signatures": "Ver las firmas"
+    "signatures": "Ver las firmas",
+    "status_done": "Terminado",
+    "status_ready": "Por disputar",
+    "status_waiting": "En espera",
+    "strip_n": "Pista {{n}}",
+    "assign_strip": "Asignar una pista",
+    "referee": "Árbitro: {{list}}",
+    "referees": "Árbitros: {{list}}",
+    "enter_score": "Introducir marcador"
   },
   "seedingTable": {
     "title": "Clasificación tras las poules"
@@ -2411,6 +2564,24 @@
     "backspace": "Retroceso"
   },
   "rankingCriteria": {
-    "drag": "Arrastre para reordenar"
+    "drag": "Arrastre para reordenar",
+    "vm_ratio": "V/C (ratio de victorias)",
+    "index": "Índice (TD − TR)",
+    "touches_scored": "Tocados dados",
+    "touches_received": "Tocados recibidos",
+    "direct_bout": "Enfrentamiento directo",
+    "initial_ranking": "Clasificación inicial",
+    "custom_points": "Puntos personalizados",
+    "desc": "Descendente",
+    "asc": "Ascendente",
+    "disable": "Desactivar",
+    "enable": "Activar"
+  },
+  "advancement": {
+    "mode_all": "Todos avanzan",
+    "mode_percentage": "Top %",
+    "mode_fixed_count": "Número fijo",
+    "mode_fixed_bracket": "Cuadro siguiente",
+    "mode_pool_winner": "Ganador de poule"
   }
 }

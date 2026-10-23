@@ -28,6 +28,12 @@ const CRITERION_NOUN: Record<SeparationCriterionKey, string> = {
   byNation: 'pools.prep_crit_nation',
 };
 
+const CRITERION_LABEL: Record<SeparationCriterionKey, string> = {
+  byClub: 'pools.prep_sep_club',
+  byRegion: 'pools.prep_sep_region',
+  byNation: 'pools.prep_sep_nation',
+};
+
 interface PoolPrepViewProps {
   fencers: Fencer[];
   initialPools?: Pool[];
@@ -522,7 +528,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
   const launchDisabled =
     poolCount > 0 && (pools.length === 0 || pools.some(p => p.fencers.length < 3));
-  const launchLabel = poolCount === 0 ? 'Passer au classement initial' : 'Lancer les poules';
+  const launchLabel = poolCount === 0 ? t('pools.prep_skip_pools') : t('pools.prep_launch');
   const handleLaunch = () => (poolCount === 0 ? onSkipPools?.() : onPoolsConfirm(pools));
   const handleLaunchRef = useRef(handleLaunch);
   useEffect(() => {
@@ -723,7 +729,10 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     className={`pool-prep-pill-toggle${criterion.enabled ? ' active' : ''}`}
                     style={{ cursor: 'grab', userSelect: 'none' }}
                     aria-pressed={criterion.enabled}
-                    title={`Priorité ${idx + 1} — ${criterion.enabled ? 'active' : 'désactivée'} (clic : activer / désactiver, glisser : réordonner)`}
+                    title={t(
+                      criterion.enabled ? 'pools.prep_sep_title_on' : 'pools.prep_sep_title_off',
+                      { n: String(idx + 1) }
+                    )}
                   >
                     <span className="pool-prep-pill-grip" aria-hidden="true">
                       ⠿
@@ -731,7 +740,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     <span style={{ fontSize: '0.6rem', opacity: 0.6, marginRight: '0.2rem' }}>
                       {idx + 1}.
                     </span>
-                    {criterion.label}
+                    {t(CRITERION_LABEL[criterion.key])}
                   </button>
                 ))}
               </div>
@@ -901,8 +910,8 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                           }}
                           title={
                             pool.strip != null && duplicateStrips.has(pool.strip)
-                              ? 'Piste attribuée à plusieurs poules'
-                              : 'Piste de la saisie distante'
+                              ? t('pools.prep_strip_duplicate')
+                              : t('pools.prep_strip_title')
                           }
                           className={`pool-prep-strip-select${pool.strip != null && duplicateStrips.has(pool.strip) ? ' duplicate' : ''}`}
                         >

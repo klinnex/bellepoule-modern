@@ -67,6 +67,7 @@ const ArenaBadge: React.FC<ArenaBadgeProps> = ({
   scale = 1,
   onClick,
 }) => {
+  const { t } = useTranslation();
   if (arenaCount <= 0) return null;
   const assignedArena = matchArenaOverrides?.get(match.id) ?? defaultArena;
   const isOverridden = matchArenaOverrides?.has(match.id) ?? false;
@@ -84,8 +85,8 @@ const ArenaBadge: React.FC<ArenaBadgeProps> = ({
       onClick={isRemoteActive ? onClick : undefined}
       title={
         isRemoteActive
-          ? `Piste ${assignedArena} — Cliquer pour réassigner`
-          : 'Serveur distant non démarré'
+          ? t('poolView.arena_reassign', { n: assignedArena })
+          : t('poolView.remote_not_started')
       }
       disabled={!isRemoteActive}
       className={className}
@@ -246,7 +247,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                 <div
                   key={index}
                   onClick={() => !isAbandonMatch && openScoreModal(index)}
-                  title={isAbandonMatch ? 'Match non disputé' : undefined}
+                  title={isAbandonMatch ? t('poolView.not_fenced_title') : undefined}
                   className={chipClass}
                 >
                   <span className="pml-chip-num">#{i + 2}</span>

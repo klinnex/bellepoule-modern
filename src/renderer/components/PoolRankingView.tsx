@@ -156,9 +156,9 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
     setRecalcKey(prev => prev + 1);
 
     if (rankingChanged) {
-      showToast('Classement recalculé et modifié ! Le tableau sera régénéré.', 'warning');
+      showToast(t('poolRanking.recalc_changed'), 'warning');
     } else {
-      showToast('Classement recalculé avec succès !', 'success');
+      showToast(t('poolRanking.recalc_ok'), 'success');
     }
   }, [pools, isLaserSabre, onPoolsChange, onRankingChange, showToast, overallRanking]);
 
@@ -216,7 +216,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('Export CSV réussi', 'success');
+    showToast(t('poolRanking.csv_ok'), 'success');
   };
 
   const handlePrint = () => {
@@ -297,9 +297,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
     justSaved.current = true;
     setIsEditing(false);
     showToast(
-      rankingChanged
-        ? 'Classement modifié — le tableau sera régénéré avec le nouvel ordre.'
-        : 'Classement sauvegardé (inchangé).',
+      rankingChanged ? t('poolRanking.saved_changed') : t('poolRanking.saved_unchanged'),
       rankingChanged ? 'warning' : 'success'
     );
   };
@@ -399,7 +397,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               gap: '0.5rem',
             }}
           >
-            {isInitialRanking ? 'Classement initial' : 'Classement après poules'}
+            {isInitialRanking ? t('poolRanking.title_initial') : t('poolRanking.title_after_pools')}
             {!isEditing && (
               <CollapseToggle
                 collapsed={collapsed}
@@ -410,9 +408,9 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
           </h2>
           <p className="text-sm text-muted">
             {isInitialRanking
-              ? `${editedRanking.length} tireur${editedRanking.length > 1 ? 's' : ''} • Classement de départ`
-              : `${pools.length} poule${pools.length > 1 ? 's' : ''} • ${editedRanking.length} tireur${editedRanking.length > 1 ? 's' : ''}`}
-            {isEditing && ' (mode édition)'}
+              ? `${t('poolRanking.fencers_count', { count: editedRanking.length })} • ${t('poolRanking.starting_ranking')}`
+              : `${t('poolRanking.pools_count', { count: pools.length })} • ${t('poolRanking.fencers_count', { count: editedRanking.length })}`}
+            {isEditing && ` (${t('poolRanking.edit_mode')})`}
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -469,7 +467,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               onClick={() => (isEditing ? saveChanges() : setIsEditing(true))}
               style={{ fontSize: '0.8rem' }}
             >
-              {isEditing ? 'Terminer' : 'Modifier'}
+              {isEditing ? t('poolRanking.finish') : t('poolRanking.edit')}
             </button>
           )}
           <div className="relative" ref={columnMenuRef}>
@@ -492,7 +490,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                       onChange={() => toggleColumn('ranking', col.id)}
                       className="cursor-pointer"
                     />
-                    {col.label}
+                    {t(`poolColumns.col_${col.id}`)}
                   </label>
                 ))}
               </div>
@@ -743,16 +741,16 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
       >
         <div className="ranking-legend">
           {[
-            ['V', 'Victoires'],
-            ['M', 'Matchs'],
-            ['V/M', 'Ratio'],
-            ['TD', 'Touches données'],
-            ['TR', 'Touches reçues'],
-            ['Indice', 'TD − TR'],
+            [t('poolRanking.legend_v'), t('poolRanking.legend_v_full')],
+            [t('poolRanking.legend_m'), t('poolRanking.legend_m_full')],
+            [t('poolRanking.legend_vm'), t('poolRanking.legend_vm_full')],
+            [t('poolRanking.legend_td'), t('poolRanking.legend_td_full')],
+            [t('poolRanking.legend_tr'), t('poolRanking.legend_tr_full')],
+            [t('poolRanking.legend_index'), t('poolRanking.legend_index_full')],
             ...(isLaserSabre
               ? [
-                  ['Quest', 'Points Sabre Laser'],
-                  ['Q/M', 'Points Quest / matchs'],
+                  ['Quest', t('poolRanking.legend_quest_full')],
+                  [t('poolRanking.qm'), t('poolRanking.legend_qm_full')],
                 ]
               : []),
           ].map(([abbr, full]) => (
@@ -813,8 +811,8 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
             ) : (
               <button className="btn btn-primary" onClick={() => onGoToTableau?.()}>
                 {poolWinnersOnly
-                  ? `Tableau (${poolWinnerIds?.size ?? '?'} vainqueurs) →`
-                  : 'Passer au tableau →'}
+                  ? t('poolRanking.go_tableau_winners', { n: poolWinnerIds?.size ?? '?' })
+                  : t('poolRanking.go_tableau')}
               </button>
             )
           ) : (

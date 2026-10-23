@@ -781,11 +781,11 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
       const effectiveMax = maxScore || pool.matches[matchIndex]?.maxScore || 0;
       if (effectiveMax > 0 && (actualScoreA > effectiveMax || actualScoreB > effectiveMax)) {
-        showToast(`Score maximum : ${effectiveMax}`, 'error');
+        showToast(t('poolView.max_score', { max: effectiveMax }), 'error');
         return;
       }
       if (actualScoreA === actualScoreB && !isLaserSabre) {
-        showToast('Match nul impossible !', 'error');
+        showToast(t('poolView.draw_impossible'), 'error');
         return;
       }
 
@@ -815,11 +815,11 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const effectiveMax = maxScore || pool.matches[editingMatch]?.maxScore || 0;
     if (effectiveMax > 0) {
       if (scoreLeft > effectiveMax) {
-        showToast(`Le score du tireur A ne peut pas dépasser ${effectiveMax}`, 'error');
+        showToast(t('poolView.max_score_a', { max: effectiveMax }), 'error');
         return;
       }
       if (scoreRight > effectiveMax) {
-        showToast(`Le score du tireur B ne peut pas dépasser ${effectiveMax}`, 'error');
+        showToast(t('poolView.max_score_b', { max: effectiveMax }), 'error');
         return;
       }
     }
@@ -860,7 +860,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         });
         onScoreUpdate(editingMatch, actualScoreA, actualScoreB, winner);
       } else if (isLaserSabre) {
-        showToast('Match nul : cliquez sur V pour attribuer la victoire', 'warning');
+        showToast(t('poolView.draw_laser'), 'warning');
         return;
       } else if (victoryA || victoryB) {
         // Tirage au sort déjà décidé (ex: résultat importé depuis une tablette arbitre)
@@ -885,10 +885,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         });
         onScoreUpdate(editingMatch, actualScoreA, actualScoreB, winner);
       } else {
-        showToast(
-          "Match nul impossible ! En match en direct, la mort subite de 30s s'applique automatiquement",
-          'error'
-        );
+        showToast(t('poolView.draw_live'), 'error');
         return;
       }
     } else {
@@ -1033,19 +1030,18 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     };
   };
 
+  const errorText = (e: unknown) => (e instanceof Error ? e.message : t('poolView.unknown_error'));
+
   // Export PDF function
   const handleExportPDF = async () => {
     try {
       const options = await buildPoolPrintOptions();
       const { exportPoolToPDF } = await import('../../shared/utils/pdfExport');
       await exportPoolToPDF(pool, options, poolTemplate);
-      showToast(`Export PDF de la poule ${pool.number} généré avec succès`, 'success');
+      showToast(t('poolView.pdf_done', { n: pool.number }), 'success');
     } catch (error) {
       logger.error(LogCategory.UI, "Erreur lors de l'export PDF", error as Error);
-      showToast(
-        `Erreur lors de la génération du PDF: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
-        'error'
-      );
+      showToast(t('poolView.pdf_error', { error: errorText(error) }), 'error');
     }
   };
 
@@ -1057,10 +1053,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       await printPoolHTML(pool, options, poolTemplate);
     } catch (error) {
       logger.error(LogCategory.UI, "Erreur lors de l'impression de la poule", error as Error);
-      showToast(
-        `Erreur lors de l'impression: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
-        'error'
-      );
+      showToast(t('poolView.print_error', { error: errorText(error) }), 'error');
     }
   };
 
@@ -1073,20 +1066,16 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       await previewPoolHTML(pool, options, poolTemplate);
     } catch (error) {
       logger.error(LogCategory.UI, "Erreur lors de l'aperçu de la poule", error as Error);
-      showToast(
-        `Erreur lors de la génération de l'aperçu: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
-        'error'
-      );
+      showToast(t('poolView.preview_error', { error: errorText(error) }), 'error');
     }
   };
 
   // Fonction pour remplir automatiquement tous les scores de la poule (pour les tests)
   const handleAutoFillScores = async () => {
     const confirmed = await confirm({
-      message:
-        'Remplir automatiquement tous les scores des matchs non terminés ?\n\nLes scores seront générés aléatoirement pour les tests.',
-      confirmLabel: 'Remplir',
-      cancelLabel: 'Annuler',
+      message: t('poolView.autofill_confirm'),
+      confirmLabel: t('poolView.autofill_ok'),
+      cancelLabel: t('actions.cancel'),
     });
 
     if (!confirmed) return;
@@ -1096,7 +1085,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       .filter(({ match }) => match.status !== MatchStatus.FINISHED);
 
     if (pendingMatches.length === 0) {
-      showToast('Tous les matchs sont déjà terminés', 'info');
+      showToast(t('poolView.all_finished'), 'info');
       return;
     }
 
@@ -1619,7 +1608,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 <span
                   title={
                     allSigned
-                      ? 'Tous les combattants ont signé — PDF disponible'
+                      ? t('poolView.all_signed')
                       : t('plural.signatures', { signed, count: total })
                   }
                   className={`pv-pill${allSigned ? ' is-done' : noneSigned ? '' : ' is-partial'}`}
@@ -1632,17 +1621,20 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               onClick={openRefereeModal}
               title={
                 assignedReferees.length > 0
-                  ? `${assignedReferees.length > 1 ? 'Arbitres' : 'Arbitre'} : ${assignedReferees.map(r => `${r.lastName} ${r.firstName}`).join(', ')}`
+                  ? t('poolView.referees_title', {
+                      count: assignedReferees.length,
+                      list: assignedReferees.map(r => `${r.lastName} ${r.firstName}`).join(', '),
+                    })
                   : isMultiReferee
-                    ? 'Assigner des arbitres'
-                    : 'Assigner un arbitre'
+                    ? t('poolView.assign_referees')
+                    : t('poolView.assign_referee')
               }
               className={`pv-pill${assignedReferee ? ' is-assigned' : ''}`}
             >
               🧑‍⚖️{' '}
               {assignedReferees.length > 0
                 ? assignedReferees.map(r => r.lastName).join(' / ')
-                : '+Arbitre'}
+                : t('poolView.add_referee')}
             </button>
           </div>
           <div className="pv-toolbar">
@@ -1743,7 +1735,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                         onChange={() => toggleColumn('pool', col.id, pool.id)}
                         className="cursor-pointer"
                       />
-                      {col.label}
+                      {t(`poolColumns.col_${col.id}`)}
                     </label>
                   ))}
                   <div className="pv-col-menu-section" style={COL_MENU_HEADER}>

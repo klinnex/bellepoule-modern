@@ -212,10 +212,10 @@ const ScoreCell = React.memo<ScoreCellProps>(
         onMouseLeave={quickMouseScoring || simplifiedInputMode ? onHoverOut : undefined}
         role="button"
         tabIndex={isLocked ? -1 : 0}
-        aria-label={`${rowFencer.lastName} ${rowFencer.firstName} contre ${colFencer.lastName} ${colFencer.firstName}${
+        aria-label={`${rowFencer.lastName} ${rowFencer.firstName} ${t('poolView.cell_vs')} ${colFencer.lastName} ${colFencer.firstName}${
           score
-            ? ` : ${score.isVictory ? 'victoire ' : 'défaite '}${score.value}`
-            : ', saisir le score'
+            ? ` : ${t(score.isVictory ? 'poolView.cell_victory' : 'poolView.cell_defeat')} ${score.value}`
+            : `, ${t('poolView.cell_enter')}`
         }`}
         style={{
           cursor: isLocked ? 'default' : 'pointer',

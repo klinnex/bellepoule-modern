@@ -716,9 +716,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   const handleAutoFillScores = async () => {
     if (readOnly) return;
     // window.confirm natif casse le focus clavier sous Electron/Windows
-    const confirmed = await confirm(
-      'Remplir automatiquement tous les scores des matchs non terminés ?\n\nLes scores seront générés aléatoirement pour les tests.'
-    );
+    const confirmed = await confirm(t('poolView.autofill_confirm'));
 
     if (!confirmed) return;
 
@@ -820,13 +818,13 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
 
     // Validation
     if (scoreA === scoreB && !victoryA && !victoryB) {
-      showToast('Les scores ne peuvent pas être égaux en élimination directe', 'error');
+      showToast(t('tableauView.no_draw'), 'error');
       return;
     }
 
     if (!isUnlimitedScore && maxScore > 0) {
       if (scoreA > maxScore || scoreB > maxScore) {
-        showToast(`Le score ne peut pas dépasser ${maxScore}`, 'error');
+        showToast(t('tableauView.max_score', { max: maxScore }), 'error');
         return;
       }
     }
@@ -909,7 +907,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       const bracket = consolationBrackets.find(b => b.id === editingConsolationId);
       const reset = bracket ? resetTableauMatch(bracket.matches, editingMatch) : null;
       if (!bracket || !reset) {
-        showToast('Impossible : le match suivant a déjà été joué', 'error');
+        showToast(t('tableauView.next_played'), 'error');
         return;
       }
       setConsolationBrackets(prev =>
@@ -922,7 +920,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     } else {
       const reset = resetTableauMatch(matches, editingMatch);
       if (!reset) {
-        showToast('Impossible : le match suivant a déjà été joué', 'error');
+        showToast(t('tableauView.next_played'), 'error');
         return;
       }
       onMatchesChange(reset);
@@ -1173,7 +1171,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           <span style={TV_STYLES.roundHeaderChevron} aria-hidden="true">
             {isExpanded ? '▼' : '▶'}
           </span>
-          {getRoundName(round)}
+          {getRoundName(round, t)}
         </button>
         {isExpanded && (
           <div
@@ -1353,9 +1351,9 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                 <button
                   onClick={() => setPendingOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))}
                   style={TV_STYLES.pendingOrderBtn}
-                  title={pendingOrder === 'asc' ? 'Affichage croissant' : 'Affichage décroissant'}
+                  title={t(`tableauView.order_${pendingOrder}_title`)}
                 >
-                  {pendingOrder === 'asc' ? '🔼 Croissant' : '🔽 Décroissant'}
+                  {t(`tableauView.order_${pendingOrder}`)}
                 </button>
               </div>
               {pendingViewRounds.map(round => (
@@ -1488,7 +1486,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
               onSubmit={handleScoreSubmit}
               onSpecialStatus={handleSpecialStatus}
               onMatchCancel={match.round <= tableauSize ? handleMatchCancel : undefined}
-              getRoundName={getRoundName}
+              getRoundName={r => getRoundName(r, t)}
             />
           );
         })()}

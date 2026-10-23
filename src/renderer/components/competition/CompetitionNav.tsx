@@ -153,7 +153,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
             (!questEnabled || questConfig?.hasPreliminaryPools) && (
               <CoachMark
                 id="generate-pools"
-                message="Cliquez ici après avoir pointé tous vos tireurs"
+                message={t('competitionNav.generate_hint')}
                 position="bottom"
               >
                 <button
@@ -196,7 +196,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
           {currentPhase === 'pools' && poolsNextAction && (
             <CoachMark
               id="pools-next-action"
-              message="Étape suivante une fois les poules terminées"
+              message={t('competitionNav.next_step_hint')}
               position="bottom"
             >
               <button className="btn btn-primary" onClick={poolsNextAction.action}>

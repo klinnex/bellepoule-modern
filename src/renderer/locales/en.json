@@ -186,7 +186,16 @@
     "prep_drop_here": "Drop fencers here",
     "prep_hint": "Drag and drop fencers between pools to move them, or up / down to reorder them.",
     "prep_undo": "↩ Undo the change",
-    "prep_window": "{{elapsed}} / {{max}} min"
+    "prep_window": "{{elapsed}} / {{max}} min",
+    "prep_sep_club": "Club",
+    "prep_sep_region": "Region",
+    "prep_sep_nation": "Nation",
+    "prep_sep_title_on": "Priority {{n}} — on (click: toggle, drag: reorder)",
+    "prep_sep_title_off": "Priority {{n}} — off (click: toggle, drag: reorder)",
+    "prep_skip_pools": "Go to initial ranking",
+    "prep_launch": "Launch pools",
+    "prep_strip_duplicate": "Strip assigned to several pools",
+    "prep_strip_title": "Remote scoring strip"
   },
   "ranking": {
     "rank": "Rank",
@@ -649,7 +658,8 @@
     "share": "Share",
     "presentation": "Presentation mode",
     "kiosk_public": "Public kiosk",
-    "properties": "Properties"
+    "properties": "Properties",
+    "actions_hint": "Comparison, analytics, QR sharing..."
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} fencer",
@@ -703,7 +713,32 @@
     "assign_referees": "Assign referees",
     "assign_referee": "Assign a referee",
     "select_referees": "Select up to {{max}} referees for pool {{n}} (the first one selected is the main referee):",
-    "select_referee": "Select the referee for pool {{n}}:"
+    "select_referee": "Select the referee for pool {{n}}:",
+    "max_score": "Maximum score: {{max}}",
+    "draw_impossible": "A draw is not allowed!",
+    "max_score_a": "Fencer A's score cannot exceed {{max}}",
+    "max_score_b": "Fencer B's score cannot exceed {{max}}",
+    "draw_laser": "Draw: click V to award the victory",
+    "draw_live": "A draw is not allowed! In a live bout, the 30 s sudden death applies automatically",
+    "pdf_done": "PDF export of pool {{n}} generated",
+    "pdf_error": "Error generating the PDF: {{error}}",
+    "print_error": "Printing error: {{error}}",
+    "preview_error": "Error generating the preview: {{error}}",
+    "unknown_error": "Unknown error",
+    "autofill_confirm": "Automatically fill in all scores of unfinished bouts?\n\nScores will be generated randomly for testing.",
+    "autofill_ok": "Fill in",
+    "all_finished": "All bouts are already finished",
+    "all_signed": "All fencers have signed — PDF available",
+    "referees_title_one": "Referee: {{list}}",
+    "referees_title_other": "Referees: {{list}}",
+    "add_referee": "+Referee",
+    "arena_reassign": "Strip {{n}} — Click to reassign",
+    "remote_not_started": "Remote server not started",
+    "cell_victory": "victory",
+    "cell_defeat": "defeat",
+    "not_fenced_title": "Bout not fenced",
+    "cell_vs": "vs",
+    "cell_enter": "enter the score"
   },
   "presentation": {
     "no_club": "No club",
@@ -1261,7 +1296,41 @@
     "actions": "Actions",
     "abandon": "Withdraw",
     "forfeit": "Forfeit",
-    "reactivate": "Reactivate"
+    "reactivate": "Reactivate",
+    "col_ref": "No.",
+    "col_last_name": "Last name",
+    "col_first_name": "First name",
+    "col_birth": "Born",
+    "col_club": "Club",
+    "col_ranking": "Ranking",
+    "col_status": "Status",
+    "appel": "Check-in",
+    "registered_count_one": "{{count}} fencer registered",
+    "registered_count_other": "{{count}} fencers registered",
+    "checked_in_count_one": "{{count}} checked in",
+    "checked_in_count_other": "{{count}} checked in",
+    "waiting_count_one": "{{count}} pending",
+    "waiting_count_other": "{{count}} pending",
+    "check_in_all_title_one": "Check in the remaining fencer",
+    "check_in_all_title_other": "Check in the {{count}} remaining fencers",
+    "delete_all_title_one": "Delete the fencer",
+    "delete_all_title_other": "Delete the {{count}} fencers",
+    "import_formats_hint": "Accepted formats: BellePoule XML, FFE list (.fff/.csv/.txt)",
+    "double_click_edit": "Double-click to edit",
+    "check": "Check in",
+    "uncheck": "Undo",
+    "all_files": "All files",
+    "photos_exported_one": "{{count}} photo exported",
+    "photos_exported_other": "{{count}} photos exported",
+    "photos_imported_one": "{{matched}}/{{count}} photo imported",
+    "photos_imported_other": "{{matched}}/{{count}} photos imported",
+    "export_error": "Export error",
+    "import_error": "Import error",
+    "bpf_exported_one": "{{count}} fencer exported (.bpf)",
+    "bpf_exported_other": "{{count}} fencers exported (.bpf)",
+    "bpf_export_error": ".bpf export error",
+    "bpf_imported": "{{added}} added, {{updated}} updated (.bpf)",
+    "bpf_import_error": ".bpf import error"
   },
   "questPhase": {
     "running_title": "Quest round in progress",
@@ -1508,7 +1577,12 @@
     "bracket_of": "Bracket of {{n}}",
     "third_place": "Bronze match (3rd place)",
     "fifth_place": "5th place bout",
-    "classification_hint": "Final ranking phase — no configuration required."
+    "classification_hint": "Final ranking phase — no configuration required.",
+    "type_pool_round": "Pool round",
+    "type_direct_elimination": "Direct elimination",
+    "type_classification": "Final ranking",
+    "collapse": "Collapse",
+    "expand": "Expand"
   },
   "matchAudit": {
     "referee": "Referee:",
@@ -1639,7 +1713,38 @@
     "create_women": "Create the ♀ Women competition…",
     "tableau_men": "♂ Men's bracket →",
     "tableau_women": "♀ Women's bracket →",
-    "see_results": "See the results →"
+    "see_results": "See the results →",
+    "recalc_changed": "Ranking recalculated and changed! The bracket will be regenerated.",
+    "recalc_ok": "Ranking recalculated!",
+    "csv_ok": "CSV export done",
+    "saved_changed": "Ranking changed — the bracket will be regenerated with the new order.",
+    "saved_unchanged": "Ranking saved (unchanged).",
+    "title_initial": "Initial ranking",
+    "title_after_pools": "Ranking after pools",
+    "fencers_count_one": "{{count}} fencer",
+    "fencers_count_other": "{{count}} fencers",
+    "pools_count_one": "{{count}} pool",
+    "pools_count_other": "{{count}} pools",
+    "starting_ranking": "Starting ranking",
+    "edit_mode": "edit mode",
+    "finish": "Done",
+    "edit": "Edit",
+    "legend_v": "W",
+    "legend_v_full": "Victories",
+    "legend_m": "B",
+    "legend_m_full": "Bouts",
+    "legend_vm": "W/B",
+    "legend_vm_full": "Ratio",
+    "legend_td": "TS",
+    "legend_td_full": "Touches scored",
+    "legend_tr": "TR",
+    "legend_tr_full": "Touches received",
+    "legend_index": "Index",
+    "legend_index_full": "TS − TR",
+    "legend_quest_full": "Laser Sabre points",
+    "legend_qm_full": "Quest points / bouts",
+    "go_tableau_winners": "Bracket ({{n}} winners) →",
+    "go_tableau": "Go to bracket →"
   },
   "poolMatrix": {
     "not_fenced": "Bout not fenced (withdrawal/forfeit)",
@@ -1804,7 +1909,13 @@
     "preview_title": "Opens a PDF in the default viewer to preview before printing",
     "preview": "👁️ Print preview",
     "export_pdf": "📄 PDF export",
-    "tree_pdf": "🌲 Tree PDF"
+    "tree_pdf": "🌲 Tree PDF",
+    "match_list": "Match list",
+    "full_bracket": "Full bracket",
+    "bracket": "Bracket",
+    "bracket_view": "Bracket view",
+    "pyramid_view": "Pyramid view",
+    "pyramid": "Pyramid"
   },
   "formulaBuilder": {
     "name_ph": "Formula name",
@@ -1818,7 +1929,9 @@
     "empty": "No phases configured.",
     "empty_hint": "Use the buttons above to add phases.",
     "notes": "Notes",
-    "notes_ph": "Notes on the formula (optional)"
+    "notes_ph": "Notes on the formula (optional)",
+    "rest_off": "0 = \"Rest\" button disabled",
+    "rest_on": "\"Rest\" button on the referee tablet, when the timer reaches 00:00"
   },
   "wifiQr": {
     "title": "📶 WiFi QR code generator",
@@ -1887,7 +2000,9 @@
     "prev_page": "Previous page",
     "next_page": "Next page",
     "last_page": "Last page",
-    "per_page": "{{n}} / page"
+    "per_page": "{{n}} / page",
+    "open_file": "Open…",
+    "open_file_title": "Open a .bpm, .db or .cotcot file"
   },
   "trainingLauncher": {
     "title": "Training mode",
@@ -1903,7 +2018,10 @@
     "pts_one": "{{count}} pt",
     "pts_other": "{{count}} pts",
     "no_sudden_death": "Disable sudden death",
-    "no_sudden_death_hint": "Tie at time → bout ends without extra time."
+    "no_sudden_death_hint": "Tie at time → bout ends without extra time.",
+    "all_interfaces": "All interfaces",
+    "starting": "Starting…",
+    "launch": "Launch"
   },
   "reportIssue": {
     "title": "📝 Report a bug / Suggestion",
@@ -2003,7 +2121,16 @@
     "matches_other": "{{count}} bouts",
     "unassigned": "Unassigned",
     "all_done": "✓ All bouts are finished",
-    "barrages": "Barrages"
+    "barrages": "Barrages",
+    "no_draw": "Scores cannot be tied in direct elimination",
+    "max_score": "The score cannot exceed {{max}}",
+    "next_played": "Not possible: the next bout has already been fenced",
+    "order_asc_title": "Ascending order",
+    "order_desc_title": "Descending order",
+    "order_asc": "🔼 Ascending",
+    "order_desc": "🔽 Descending",
+    "expand_all": "Expand all",
+    "collapse_all": "Collapse all"
   },
   "arenaQr": {
     "title": "📱 Strip QR codes",
@@ -2032,7 +2159,10 @@
     "matches_one": "{{count}} bout",
     "matches_other": "{{count}} bouts",
     "sheets_one": "{{count}} sheet",
-    "sheets_other": "{{count}} sheets"
+    "sheets_other": "{{count}} sheets",
+    "do_print": "🖨️ Print",
+    "do_preview": "👁️ Preview",
+    "do_generate": "📄 Generate PDF"
   },
   "matchOrder": {
     "title": "Official bout order",
@@ -2053,7 +2183,9 @@
     "fencers": "{{a}}/{{b}} fencers",
     "pools": "{{a}}/{{b}} pools",
     "matches": "{{a}}/{{b}} bouts",
-    "tableau": "{{a}}/{{b}} bracket"
+    "tableau": "{{a}}/{{b}} bracket",
+    "generate_hint": "Click here once all your fencers are checked in",
+    "next_step_hint": "Next step once the pools are finished"
   },
   "offline": {
     "never": "Never",
@@ -2353,7 +2485,20 @@
   },
   "poolColumns": {
     "button": "Columns (all pools)",
-    "header": "Columns — applied to all pools"
+    "header": "Columns — applied to all pools",
+    "col_victories": "Victories",
+    "col_ratio": "W/M ratio",
+    "col_td": "TS (Touches scored)",
+    "col_tr": "TR (Touches received)",
+    "col_quest": "Quest",
+    "col_index": "Index (TS-TR)",
+    "col_rank": "Rank",
+    "col_club": "Club",
+    "col_nation": "Nation",
+    "col_region": "Region",
+    "col_lastName": "Last name",
+    "col_firstName": "First name",
+    "col_matches": "Bouts"
   },
   "fencerStats": {
     "loading": "Loading…",
@@ -2390,7 +2535,15 @@
   },
   "matchCard": {
     "bye": "Bye",
-    "signatures": "View signatures"
+    "signatures": "View signatures",
+    "status_done": "Finished",
+    "status_ready": "Ready",
+    "status_waiting": "Waiting",
+    "strip_n": "Strip {{n}}",
+    "assign_strip": "Assign a strip",
+    "referee": "Referee: {{list}}",
+    "referees": "Referees: {{list}}",
+    "enter_score": "Enter score"
   },
   "seedingTable": {
     "title": "Ranking after pools"
@@ -2411,6 +2564,24 @@
     "backspace": "Backspace"
   },
   "rankingCriteria": {
-    "drag": "Drag to reorder"
+    "drag": "Drag to reorder",
+    "vm_ratio": "W/M (win ratio)",
+    "index": "Index (TS − TR)",
+    "touches_scored": "Touches scored",
+    "touches_received": "Touches received",
+    "direct_bout": "Head-to-head",
+    "initial_ranking": "Initial ranking",
+    "custom_points": "Custom points",
+    "desc": "Descending",
+    "asc": "Ascending",
+    "disable": "Disable",
+    "enable": "Enable"
+  },
+  "advancement": {
+    "mode_all": "All advance",
+    "mode_percentage": "Top %",
+    "mode_fixed_count": "Fixed number",
+    "mode_fixed_bracket": "Next bracket",
+    "mode_pool_winner": "Pool winner"
   }
 }

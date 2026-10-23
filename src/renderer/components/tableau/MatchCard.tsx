@@ -99,7 +99,13 @@ const MatchCard: React.FC<MatchCardProps> = ({
       <span
         className="match-status-dot"
         style={{ background: statusColor }}
-        title={isMatchComplete ? 'Terminé' : isInProgress ? 'À jouer' : 'En attente'}
+        title={translateStatic(
+          isMatchComplete
+            ? 'matchCard.status_done'
+            : isInProgress
+              ? 'matchCard.status_ready'
+              : 'matchCard.status_waiting'
+        )}
       />
 
       {/* Arena + Referee badges */}
@@ -109,7 +115,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
             <button
               className={`match-badge-btn ${match.arena ? 'match-badge-btn--active' : ''}`}
               onClick={handleArenaClick}
-              title={match.arena ? `Piste ${match.arena}` : 'Assigner une piste'}
+              title={
+                match.arena
+                  ? translateStatic('matchCard.strip_n', { n: match.arena })
+                  : translateStatic('matchCard.assign_strip')
+              }
             >
               {match.arena ? `P${match.arena}` : '+P'}
             </button>
@@ -120,8 +130,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
               onClick={handleRefereeClick}
               title={
                 matchReferees.length > 0
-                  ? `${matchReferees.length > 1 ? 'Arbitres' : 'Arbitre'} : ${matchReferees.map(r => `${r.lastName} ${r.firstName}`).join(', ')}`
-                  : 'Assigner un arbitre'
+                  ? translateStatic(
+                      matchReferees.length > 1 ? 'matchCard.referees' : 'matchCard.referee',
+                      { list: matchReferees.map(r => `${r.lastName} ${r.firstName}`).join(', ') }
+                    )
+                  : translateStatic('poolView.assign_referee')
               }
             >
               {matchReferees.length > 0
@@ -195,7 +208,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
       {/* CTA bar — mode liste seulement */}
       {canEdit && viewMode !== 'full' && (
         <div className={`match-cta ${hasScore ? 'match-cta-edit' : 'match-cta-enter'}`}>
-          {hasScore ? '✏️ Modifier' : '➕ Saisir score'}
+          {hasScore
+            ? `✏️ ${translateStatic('poolRanking.edit')}`
+            : `➕ ${translateStatic('matchCard.enter_score')}`}
         </div>
       )}
     </div>

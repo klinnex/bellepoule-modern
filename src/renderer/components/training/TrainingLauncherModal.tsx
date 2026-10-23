@@ -16,10 +16,10 @@ interface Props {
 }
 
 const WEAPON_LABELS: Record<string, string> = {
-  [Weapon.EPEE]: 'Épée',
-  [Weapon.FOIL]: 'Fleuret',
-  [Weapon.SABRE]: 'Sabre',
-  [Weapon.LASER]: 'Sabre Laser',
+  [Weapon.EPEE]: 'weapons.epee',
+  [Weapon.FOIL]: 'weapons.foil',
+  [Weapon.SABRE]: 'weapons.sabre',
+  [Weapon.LASER]: 'weapons.laser',
 };
 
 const ALL_ZONES: TargetZone[] = [TargetZone.ZONE_A, TargetZone.ZONE_B, TargetZone.ZONE_C];
@@ -206,7 +206,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                     transition: 'all 0.15s',
                   }}
                 >
-                  {label}
+                  {t(label)}
                 </button>
               ))}
             </div>
@@ -342,7 +342,9 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
             >
               {networkInterfaces.map(iface => (
                 <option key={iface.address} value={iface.address}>
-                  {iface.name}
+                  {iface.address === ALL_INTERFACES
+                    ? t('trainingLauncher.all_interfaces')
+                    : iface.name}
                 </option>
               ))}
             </select>
@@ -486,7 +488,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               {t('actions.cancel')}
             </button>
             <button type="submit" className="btn btn-primary" disabled={isLoading}>
-              {isLoading ? 'Démarrage…' : 'Lancer'}
+              {isLoading ? t('trainingLauncher.starting') : t('trainingLauncher.launch')}
             </button>
           </div>
         </form>

@@ -320,7 +320,16 @@
     "prep_drop_here": "Fechter hier ablegen",
     "prep_hint": "Fechter per Drag-and-drop zwischen Pools verschieben oder nach oben / unten umsortieren.",
     "prep_undo": "↩ Änderung rückgängig machen",
-    "prep_window": "{{elapsed}} / {{max}} Min."
+    "prep_window": "{{elapsed}} / {{max}} Min.",
+    "prep_sep_club": "Verein",
+    "prep_sep_region": "Region",
+    "prep_sep_nation": "Nation",
+    "prep_sep_title_on": "Priorität {{n}} — aktiv (Klick: ein/aus, Ziehen: neu ordnen)",
+    "prep_sep_title_off": "Priorität {{n}} — inaktiv (Klick: ein/aus, Ziehen: neu ordnen)",
+    "prep_skip_pools": "Zur Ausgangsrangliste",
+    "prep_launch": "Pools starten",
+    "prep_strip_duplicate": "Bahn mehreren Pools zugewiesen",
+    "prep_strip_title": "Bahn der Fernwertung"
   },
   "ranking": {
     "club": "Verein",
@@ -649,7 +658,8 @@
     "share": "Teilen",
     "presentation": "Präsentationsmodus",
     "kiosk_public": "Öffentlicher Kiosk",
-    "properties": "Eigenschaften"
+    "properties": "Eigenschaften",
+    "actions_hint": "Vergleich, Analysen, QR-Teilen..."
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} Fechter",
@@ -703,7 +713,32 @@
     "assign_referees": "Kampfrichter zuweisen",
     "assign_referee": "Kampfrichter zuweisen",
     "select_referees": "Wählen Sie bis zu {{max}} Kampfrichter für Pool {{n}} (der zuerst gewählte ist Hauptkampfrichter):",
-    "select_referee": "Wählen Sie den Kampfrichter für Pool {{n}}:"
+    "select_referee": "Wählen Sie den Kampfrichter für Pool {{n}}:",
+    "max_score": "Höchstpunktzahl: {{max}}",
+    "draw_impossible": "Unentschieden nicht möglich!",
+    "max_score_a": "Die Punktzahl von Fechter A darf {{max}} nicht überschreiten",
+    "max_score_b": "Die Punktzahl von Fechter B darf {{max}} nicht überschreiten",
+    "draw_laser": "Unentschieden: auf V klicken, um den Sieg zu vergeben",
+    "draw_live": "Unentschieden nicht möglich! Im Live-Gefecht gilt automatisch der 30-s-Sudden-Death",
+    "pdf_done": "PDF-Export von Pool {{n}} erstellt",
+    "pdf_error": "Fehler beim Erstellen der PDF: {{error}}",
+    "print_error": "Fehler beim Drucken: {{error}}",
+    "preview_error": "Fehler beim Erstellen der Vorschau: {{error}}",
+    "unknown_error": "Unbekannter Fehler",
+    "autofill_confirm": "Alle Ergebnisse nicht beendeter Gefechte automatisch ausfüllen?\n\nDie Ergebnisse werden zu Testzwecken zufällig erzeugt.",
+    "autofill_ok": "Ausfüllen",
+    "all_finished": "Alle Gefechte sind bereits beendet",
+    "all_signed": "Alle Fechter haben unterschrieben — PDF verfügbar",
+    "referees_title_one": "Kampfrichter: {{list}}",
+    "referees_title_other": "Kampfrichter: {{list}}",
+    "add_referee": "+Kampfrichter",
+    "arena_reassign": "Bahn {{n}} — Klicken zum Neuzuweisen",
+    "remote_not_started": "Fernserver nicht gestartet",
+    "cell_victory": "Sieg",
+    "cell_defeat": "Niederlage",
+    "not_fenced_title": "Gefecht nicht ausgetragen",
+    "cell_vs": "gegen",
+    "cell_enter": "Ergebnis eingeben"
   },
   "presentation": {
     "no_club": "Kein Verein",
@@ -1261,7 +1296,41 @@
     "actions": "Aktionen",
     "abandon": "Aufgeben",
     "forfeit": "Forfait",
-    "reactivate": "Reaktivieren"
+    "reactivate": "Reaktivieren",
+    "col_ref": "Nr.",
+    "col_last_name": "Name",
+    "col_first_name": "Vorname",
+    "col_birth": "Geb.",
+    "col_club": "Verein",
+    "col_ranking": "Rangliste",
+    "col_status": "Status",
+    "appel": "Eincheck",
+    "registered_count_one": "{{count}} Fechter angemeldet",
+    "registered_count_other": "{{count}} Fechter angemeldet",
+    "checked_in_count_one": "{{count}} eingecheckt",
+    "checked_in_count_other": "{{count}} eingecheckt",
+    "waiting_count_one": "{{count}} ausstehend",
+    "waiting_count_other": "{{count}} ausstehend",
+    "check_in_all_title_one": "Den verbleibenden Fechter einchecken",
+    "check_in_all_title_other": "Die {{count}} verbleibenden Fechter einchecken",
+    "delete_all_title_one": "Den Fechter löschen",
+    "delete_all_title_other": "Die {{count}} Fechter löschen",
+    "import_formats_hint": "Akzeptierte Formate: BellePoule-XML, FFE-Liste (.fff/.csv/.txt)",
+    "double_click_edit": "Doppelklicken zum Bearbeiten",
+    "check": "Einchecken",
+    "uncheck": "Rückgängig",
+    "all_files": "Alle Dateien",
+    "photos_exported_one": "{{count}} Foto exportiert",
+    "photos_exported_other": "{{count}} Fotos exportiert",
+    "photos_imported_one": "{{matched}}/{{count}} Foto importiert",
+    "photos_imported_other": "{{matched}}/{{count}} Fotos importiert",
+    "export_error": "Fehler beim Export",
+    "import_error": "Fehler beim Import",
+    "bpf_exported_one": "{{count}} Fechter exportiert (.bpf)",
+    "bpf_exported_other": "{{count}} Fechter exportiert (.bpf)",
+    "bpf_export_error": "Fehler beim .bpf-Export",
+    "bpf_imported": "{{added}} hinzugefügt, {{updated}} aktualisiert (.bpf)",
+    "bpf_import_error": "Fehler beim .bpf-Import"
   },
   "questPhase": {
     "running_title": "Quest-Runde läuft",
@@ -1508,7 +1577,12 @@
     "bracket_of": "Tableau mit {{n}}",
     "third_place": "Kleines Finale (Platz 3)",
     "fifth_place": "Gefecht um Platz 5",
-    "classification_hint": "Phase der Endrangliste — keine Konfiguration erforderlich."
+    "classification_hint": "Phase der Endrangliste — keine Konfiguration erforderlich.",
+    "type_pool_round": "Poolrunde",
+    "type_direct_elimination": "Direktausscheidung",
+    "type_classification": "Endrangliste",
+    "collapse": "Zuklappen",
+    "expand": "Aufklappen"
   },
   "matchAudit": {
     "referee": "Kampfrichter:",
@@ -1639,7 +1713,38 @@
     "create_women": "♀ Damen-Wettkampf erstellen…",
     "tableau_men": "♂ Herren-Tableau →",
     "tableau_women": "♀ Damen-Tableau →",
-    "see_results": "Ergebnisse ansehen →"
+    "see_results": "Ergebnisse ansehen →",
+    "recalc_changed": "Rangliste neu berechnet und geändert! Das Tableau wird neu erstellt.",
+    "recalc_ok": "Rangliste neu berechnet!",
+    "csv_ok": "CSV-Export erfolgreich",
+    "saved_changed": "Rangliste geändert — das Tableau wird mit der neuen Reihenfolge neu erstellt.",
+    "saved_unchanged": "Rangliste gespeichert (unverändert).",
+    "title_initial": "Ausgangsrangliste",
+    "title_after_pools": "Rangliste nach den Pools",
+    "fencers_count_one": "{{count}} Fechter",
+    "fencers_count_other": "{{count}} Fechter",
+    "pools_count_one": "{{count}} Pool",
+    "pools_count_other": "{{count}} Pools",
+    "starting_ranking": "Startrangliste",
+    "edit_mode": "Bearbeitungsmodus",
+    "finish": "Fertig",
+    "edit": "Bearbeiten",
+    "legend_v": "S",
+    "legend_v_full": "Siege",
+    "legend_m": "G",
+    "legend_m_full": "Gefechte",
+    "legend_vm": "S/G",
+    "legend_vm_full": "Quote",
+    "legend_td": "GT",
+    "legend_td_full": "Gegebene Treffer",
+    "legend_tr": "ET",
+    "legend_tr_full": "Erhaltene Treffer",
+    "legend_index": "Index",
+    "legend_index_full": "GT − ET",
+    "legend_quest_full": "Laserschwert-Punkte",
+    "legend_qm_full": "Quest-Punkte / Gefechte",
+    "go_tableau_winners": "Tableau ({{n}} Sieger) →",
+    "go_tableau": "Zum Tableau →"
   },
   "poolMatrix": {
     "not_fenced": "Gefecht nicht ausgetragen (Aufgabe/Forfait)",
@@ -1804,7 +1909,13 @@
     "preview_title": "Öffnet ein PDF im Standardbetrachter als Vorschau vor dem Drucken",
     "preview": "👁️ Druckvorschau",
     "export_pdf": "📄 PDF-Export",
-    "tree_pdf": "🌲 Baum-PDF"
+    "tree_pdf": "🌲 Baum-PDF",
+    "match_list": "Gefechtsliste",
+    "full_bracket": "Vollständiges Tableau",
+    "bracket": "Tableau",
+    "bracket_view": "Tableau-Ansicht",
+    "pyramid_view": "Pyramidenansicht",
+    "pyramid": "Pyramide"
   },
   "formulaBuilder": {
     "name_ph": "Name der Formel",
@@ -1818,7 +1929,9 @@
     "empty": "Keine Phasen konfiguriert.",
     "empty_hint": "Verwenden Sie die Schaltflächen oben, um Phasen hinzuzufügen.",
     "notes": "Notizen",
-    "notes_ph": "Notizen zur Formel (optional)"
+    "notes_ph": "Notizen zur Formel (optional)",
+    "rest_off": "0 = Schaltfläche „Pause“ deaktiviert",
+    "rest_on": "Schaltfläche „Pause“ auf dem Kampfrichter-Tablet, wenn die Uhr 00:00 erreicht"
   },
   "wifiQr": {
     "title": "📶 WLAN-QR-Code-Generator",
@@ -1887,7 +2000,9 @@
     "prev_page": "Vorherige Seite",
     "next_page": "Nächste Seite",
     "last_page": "Letzte Seite",
-    "per_page": "{{n}} / Seite"
+    "per_page": "{{n}} / Seite",
+    "open_file": "Öffnen…",
+    "open_file_title": "Eine .bpm-, .db- oder .cotcot-Datei öffnen"
   },
   "trainingLauncher": {
     "title": "Trainingsmodus",
@@ -1903,7 +2018,10 @@
     "pts_one": "{{count}} Pkt.",
     "pts_other": "{{count}} Pkt.",
     "no_sudden_death": "Sudden Death deaktivieren",
-    "no_sudden_death_hint": "Gleichstand bei Zeitablauf → Gefechtsende ohne Verlängerung."
+    "no_sudden_death_hint": "Gleichstand bei Zeitablauf → Gefechtsende ohne Verlängerung.",
+    "all_interfaces": "Alle Schnittstellen",
+    "starting": "Wird gestartet…",
+    "launch": "Starten"
   },
   "reportIssue": {
     "title": "📝 Fehler melden / Vorschlag",
@@ -2003,7 +2121,16 @@
     "matches_other": "{{count}} Gefechte",
     "unassigned": "Nicht zugewiesen",
     "all_done": "✓ Alle Gefechte sind beendet",
-    "barrages": "Stichkämpfe"
+    "barrages": "Stichkämpfe",
+    "no_draw": "Bei Direktausscheidung sind gleiche Punktzahlen nicht möglich",
+    "max_score": "Die Punktzahl darf {{max}} nicht überschreiten",
+    "next_played": "Nicht möglich: Das nächste Gefecht wurde bereits ausgetragen",
+    "order_asc_title": "Aufsteigende Reihenfolge",
+    "order_desc_title": "Absteigende Reihenfolge",
+    "order_asc": "🔼 Aufsteigend",
+    "order_desc": "🔽 Absteigend",
+    "expand_all": "Alle aufklappen",
+    "collapse_all": "Alle zuklappen"
   },
   "arenaQr": {
     "title": "📱 QR-Codes der Bahnen",
@@ -2032,7 +2159,10 @@
     "matches_one": "{{count}} Gefecht",
     "matches_other": "{{count}} Gefechte",
     "sheets_one": "{{count}} Blatt",
-    "sheets_other": "{{count}} Blätter"
+    "sheets_other": "{{count}} Blätter",
+    "do_print": "🖨️ Drucken",
+    "do_preview": "👁️ Vorschau",
+    "do_generate": "📄 PDF erstellen"
   },
   "matchOrder": {
     "title": "Offizielle Gefechtsreihenfolge",
@@ -2053,7 +2183,9 @@
     "fencers": "{{a}}/{{b}} Fechter",
     "pools": "{{a}}/{{b}} Pools",
     "matches": "{{a}}/{{b}} Gefechte",
-    "tableau": "{{a}}/{{b}} Tableau"
+    "tableau": "{{a}}/{{b}} Tableau",
+    "generate_hint": "Hier klicken, nachdem alle Fechter eingecheckt sind",
+    "next_step_hint": "Nächster Schritt nach Abschluss der Pools"
   },
   "offline": {
     "never": "Nie",
@@ -2353,7 +2485,20 @@
   },
   "poolColumns": {
     "button": "Spalten (alle Pools)",
-    "header": "Spalten — für alle Pools"
+    "header": "Spalten — für alle Pools",
+    "col_victories": "Siege",
+    "col_ratio": "S/G-Quote",
+    "col_td": "GT (Gegebene Treffer)",
+    "col_tr": "ET (Erhaltene Treffer)",
+    "col_quest": "Quest",
+    "col_index": "Index (GT-ET)",
+    "col_rank": "Rang",
+    "col_club": "Verein",
+    "col_nation": "Nation",
+    "col_region": "Region",
+    "col_lastName": "Name",
+    "col_firstName": "Vorname",
+    "col_matches": "Gefechte"
   },
   "fencerStats": {
     "loading": "Wird geladen…",
@@ -2390,7 +2535,15 @@
   },
   "matchCard": {
     "bye": "Freilos",
-    "signatures": "Unterschriften ansehen"
+    "signatures": "Unterschriften ansehen",
+    "status_done": "Beendet",
+    "status_ready": "Bereit",
+    "status_waiting": "Wartend",
+    "strip_n": "Bahn {{n}}",
+    "assign_strip": "Bahn zuweisen",
+    "referee": "Kampfrichter: {{list}}",
+    "referees": "Kampfrichter: {{list}}",
+    "enter_score": "Ergebnis eingeben"
   },
   "seedingTable": {
     "title": "Rangliste nach den Pools"
@@ -2411,6 +2564,24 @@
     "backspace": "Rücktaste"
   },
   "rankingCriteria": {
-    "drag": "Zum Neuordnen ziehen"
+    "drag": "Zum Neuordnen ziehen",
+    "vm_ratio": "S/G (Siegquote)",
+    "index": "Index (GT − ET)",
+    "touches_scored": "Gegebene Treffer",
+    "touches_received": "Erhaltene Treffer",
+    "direct_bout": "Direktvergleich",
+    "initial_ranking": "Ausgangsrangliste",
+    "custom_points": "Eigene Punkte",
+    "desc": "Absteigend",
+    "asc": "Aufsteigend",
+    "disable": "Deaktivieren",
+    "enable": "Aktivieren"
+  },
+  "advancement": {
+    "mode_all": "Alle steigen auf",
+    "mode_percentage": "Top %",
+    "mode_fixed_count": "Feste Anzahl",
+    "mode_fixed_bracket": "Nächstes Tableau",
+    "mode_pool_winner": "Poolsieger"
   }
 }

@@ -87,16 +87,24 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
         <button
           onClick={onViewModeToggle}
           className={`tt-toggle${viewMode === 'pending' ? ' is-active' : ''}`}
-          title={viewMode === 'full' ? 'Liste des matchs' : 'Tableau complet'}
+          title={
+            viewMode === 'full' ? t('tableauToolbar.match_list') : t('tableauToolbar.full_bracket')
+          }
         >
-          {viewMode === 'full' ? '📋 Liste des matchs' : '📊 Tableau'}
+          {viewMode === 'full'
+            ? `📋 ${t('tableauToolbar.match_list')}`
+            : `📊 ${t('tableauToolbar.bracket')}`}
         </button>
         <button
           onClick={onPyramidViewModeToggle}
           className={`tt-toggle${pyramidViewMode ? ' is-pyramid' : ''}`}
-          title={pyramidViewMode ? 'Vue tableau' : 'Vue pyramidale'}
+          title={
+            pyramidViewMode ? t('tableauToolbar.bracket_view') : t('tableauToolbar.pyramid_view')
+          }
         >
-          {pyramidViewMode ? '🔲 Tableau' : '🔺 Pyramide'}
+          {pyramidViewMode
+            ? `🔲 ${t('tableauToolbar.bracket')}`
+            : `🔺 ${t('tableauToolbar.pyramid')}`}
         </button>
 
         {/* FAB */}

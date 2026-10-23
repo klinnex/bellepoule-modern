@@ -130,7 +130,7 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
                   onChange={() => toggle(col.id)}
                   className="cursor-pointer"
                 />
-                {col.label}
+                {t(`poolColumns.col_${col.id}`)}
               </label>
             ))}
           </div>,

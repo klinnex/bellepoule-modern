@@ -186,7 +186,16 @@
     "prep_drop_here": "Déposez des tireurs ici",
     "prep_hint": "Glissez-déposez les tireurs entre poules pour les déplacer, ou vers le haut / bas pour les réordonner.",
     "prep_undo": "↩ Annuler la modification",
-    "prep_window": "{{elapsed}} / {{max}} min"
+    "prep_window": "{{elapsed}} / {{max}} min",
+    "prep_sep_club": "Club",
+    "prep_sep_region": "Région",
+    "prep_sep_nation": "Nation",
+    "prep_sep_title_on": "Priorité {{n}} — active (clic : activer / désactiver, glisser : réordonner)",
+    "prep_sep_title_off": "Priorité {{n}} — désactivée (clic : activer / désactiver, glisser : réordonner)",
+    "prep_skip_pools": "Passer au classement initial",
+    "prep_launch": "Lancer les poules",
+    "prep_strip_duplicate": "Piste attribuée à plusieurs poules",
+    "prep_strip_title": "Piste de la saisie distante"
   },
   "ranking": {
     "rank": "Rg",
@@ -649,7 +658,8 @@
     "share": "Partager",
     "presentation": "Mode Présentation",
     "kiosk_public": "Kiosque public",
-    "properties": "Propriétés"
+    "properties": "Propriétés",
+    "actions_hint": "Comparaison, analytiques, partage QR..."
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} tireur",
@@ -703,7 +713,32 @@
     "assign_referees": "Assigner les arbitres",
     "assign_referee": "Assigner un arbitre",
     "select_referees": "Sélectionnez jusqu'à {{max}} arbitres pour la poule {{n}} (le premier sélectionné est l'arbitre principal) :",
-    "select_referee": "Sélectionnez l'arbitre pour la poule {{n}} :"
+    "select_referee": "Sélectionnez l'arbitre pour la poule {{n}} :",
+    "max_score": "Score maximum : {{max}}",
+    "draw_impossible": "Match nul impossible !",
+    "max_score_a": "Le score du tireur A ne peut pas dépasser {{max}}",
+    "max_score_b": "Le score du tireur B ne peut pas dépasser {{max}}",
+    "draw_laser": "Match nul : cliquez sur V pour attribuer la victoire",
+    "draw_live": "Match nul impossible ! En match en direct, la mort subite de 30s s'applique automatiquement",
+    "pdf_done": "Export PDF de la poule {{n}} généré avec succès",
+    "pdf_error": "Erreur lors de la génération du PDF : {{error}}",
+    "print_error": "Erreur lors de l'impression : {{error}}",
+    "preview_error": "Erreur lors de la génération de l'aperçu : {{error}}",
+    "unknown_error": "Erreur inconnue",
+    "autofill_confirm": "Remplir automatiquement tous les scores des matchs non terminés ?\n\nLes scores seront générés aléatoirement pour les tests.",
+    "autofill_ok": "Remplir",
+    "all_finished": "Tous les matchs sont déjà terminés",
+    "all_signed": "Tous les combattants ont signé — PDF disponible",
+    "referees_title_one": "Arbitre : {{list}}",
+    "referees_title_other": "Arbitres : {{list}}",
+    "add_referee": "+Arbitre",
+    "arena_reassign": "Piste {{n}} — Cliquer pour réassigner",
+    "remote_not_started": "Serveur distant non démarré",
+    "cell_victory": "victoire",
+    "cell_defeat": "défaite",
+    "not_fenced_title": "Match non disputé",
+    "cell_vs": "contre",
+    "cell_enter": "saisir le score"
   },
   "presentation": {
     "no_club": "Pas de club",
@@ -1261,7 +1296,41 @@
     "actions": "Actions",
     "abandon": "Abandonner",
     "forfeit": "Forfait",
-    "reactivate": "Réactiver"
+    "reactivate": "Réactiver",
+    "col_ref": "N°",
+    "col_last_name": "Nom",
+    "col_first_name": "Prénom",
+    "col_birth": "Né(e)",
+    "col_club": "Club",
+    "col_ranking": "Classement",
+    "col_status": "Statut",
+    "appel": "Appel",
+    "registered_count_one": "{{count}} tireur inscrit",
+    "registered_count_other": "{{count}} tireurs inscrits",
+    "checked_in_count_one": "{{count}} pointé",
+    "checked_in_count_other": "{{count}} pointés",
+    "waiting_count_one": "{{count}} en attente",
+    "waiting_count_other": "{{count}} en attente",
+    "check_in_all_title_one": "Pointer le tireur non pointé",
+    "check_in_all_title_other": "Pointer les {{count}} tireurs non pointés",
+    "delete_all_title_one": "Supprimer le tireur",
+    "delete_all_title_other": "Supprimer les {{count}} tireurs",
+    "import_formats_hint": "Formats acceptés : XML BellePoule, liste FFE (.fff/.csv/.txt)",
+    "double_click_edit": "Double-cliquer pour modifier",
+    "check": "Pointer",
+    "uncheck": "Annuler",
+    "all_files": "Tous les fichiers",
+    "photos_exported_one": "{{count}} photo exportée",
+    "photos_exported_other": "{{count}} photos exportées",
+    "photos_imported_one": "{{matched}}/{{count}} photo importée",
+    "photos_imported_other": "{{matched}}/{{count}} photos importées",
+    "export_error": "Erreur lors de l'export",
+    "import_error": "Erreur lors de l'import",
+    "bpf_exported_one": "{{count}} tireur exporté (.bpf)",
+    "bpf_exported_other": "{{count}} tireurs exportés (.bpf)",
+    "bpf_export_error": "Erreur lors de l'export .bpf",
+    "bpf_imported": "{{added}} ajouté(s), {{updated}} mis à jour (.bpf)",
+    "bpf_import_error": "Erreur lors de l'import .bpf"
   },
   "questPhase": {
     "running_title": "Tour Quest en cours",
@@ -1508,7 +1577,12 @@
     "bracket_of": "Tableau de {{n}}",
     "third_place": "Petite finale (3e place)",
     "fifth_place": "Match pour la 5e place",
-    "classification_hint": "Phase de classement final — aucune configuration requise."
+    "classification_hint": "Phase de classement final — aucune configuration requise.",
+    "type_pool_round": "Tour de poules",
+    "type_direct_elimination": "Élimination directe",
+    "type_classification": "Classement final",
+    "collapse": "Réduire",
+    "expand": "Développer"
   },
   "matchAudit": {
     "referee": "Arbitre :",
@@ -1639,7 +1713,38 @@
     "create_women": "Créer la compétition ♀ Femmes…",
     "tableau_men": "Tableau ♂ Hommes →",
     "tableau_women": "Tableau ♀ Femmes →",
-    "see_results": "Voir les résultats →"
+    "see_results": "Voir les résultats →",
+    "recalc_changed": "Classement recalculé et modifié ! Le tableau sera régénéré.",
+    "recalc_ok": "Classement recalculé avec succès !",
+    "csv_ok": "Export CSV réussi",
+    "saved_changed": "Classement modifié — le tableau sera régénéré avec le nouvel ordre.",
+    "saved_unchanged": "Classement sauvegardé (inchangé).",
+    "title_initial": "Classement initial",
+    "title_after_pools": "Classement après poules",
+    "fencers_count_one": "{{count}} tireur",
+    "fencers_count_other": "{{count}} tireurs",
+    "pools_count_one": "{{count}} poule",
+    "pools_count_other": "{{count}} poules",
+    "starting_ranking": "Classement de départ",
+    "edit_mode": "mode édition",
+    "finish": "Terminer",
+    "edit": "Modifier",
+    "legend_v": "V",
+    "legend_v_full": "Victoires",
+    "legend_m": "M",
+    "legend_m_full": "Matchs",
+    "legend_vm": "V/M",
+    "legend_vm_full": "Ratio",
+    "legend_td": "TD",
+    "legend_td_full": "Touches données",
+    "legend_tr": "TR",
+    "legend_tr_full": "Touches reçues",
+    "legend_index": "Indice",
+    "legend_index_full": "TD − TR",
+    "legend_quest_full": "Points Sabre Laser",
+    "legend_qm_full": "Points Quest / matchs",
+    "go_tableau_winners": "Tableau ({{n}} vainqueurs) →",
+    "go_tableau": "Passer au tableau →"
   },
   "poolMatrix": {
     "not_fenced": "Match non disputé (abandon/forfait)",
@@ -1804,7 +1909,13 @@
     "preview_title": "Ouvre un PDF dans le lecteur par défaut pour voir un aperçu avant d'imprimer",
     "preview": "👁️ Aperçu avant impression",
     "export_pdf": "📄 Export PDF",
-    "tree_pdf": "🌲 Arbre PDF"
+    "tree_pdf": "🌲 Arbre PDF",
+    "match_list": "Liste des matchs",
+    "full_bracket": "Tableau complet",
+    "bracket": "Tableau",
+    "bracket_view": "Vue tableau",
+    "pyramid_view": "Vue pyramidale",
+    "pyramid": "Pyramide"
   },
   "formulaBuilder": {
     "name_ph": "Nom de la formule",
@@ -1818,7 +1929,9 @@
     "empty": "Aucune phase configurée.",
     "empty_hint": "Utilisez les boutons ci-dessus pour ajouter des phases.",
     "notes": "Notes",
-    "notes_ph": "Notes sur la formule (optionnel)"
+    "notes_ph": "Notes sur la formule (optionnel)",
+    "rest_off": "0 = bouton « Repos » désactivé",
+    "rest_on": "Bouton « Repos » de la tablette arbitre, quand le chrono arrive à 00:00"
   },
   "wifiQr": {
     "title": "📶 Générateur QR Code WiFi",
@@ -1887,7 +2000,9 @@
     "prev_page": "Page précédente",
     "next_page": "Page suivante",
     "last_page": "Dernière page",
-    "per_page": "{{n}} / page"
+    "per_page": "{{n}} / page",
+    "open_file": "Ouvrir…",
+    "open_file_title": "Ouvrir un fichier .bpm, .db ou .cotcot"
   },
   "trainingLauncher": {
     "title": "Mode Entraînement",
@@ -1903,7 +2018,10 @@
     "pts_one": "{{count}} pt",
     "pts_other": "{{count}} pts",
     "no_sudden_death": "Désactiver la mort subite",
-    "no_sudden_death_hint": "Égalité à temps → fin du match sans prolongation."
+    "no_sudden_death_hint": "Égalité à temps → fin du match sans prolongation.",
+    "all_interfaces": "Toutes les interfaces",
+    "starting": "Démarrage…",
+    "launch": "Lancer"
   },
   "reportIssue": {
     "title": "📝 Signaler un bug / Suggestion",
@@ -2003,7 +2121,16 @@
     "matches_other": "{{count}} matchs",
     "unassigned": "Non assignés",
     "all_done": "✓ Tous les matchs sont terminés",
-    "barrages": "Barrages"
+    "barrages": "Barrages",
+    "no_draw": "Les scores ne peuvent pas être égaux en élimination directe",
+    "max_score": "Le score ne peut pas dépasser {{max}}",
+    "next_played": "Impossible : le match suivant a déjà été joué",
+    "order_asc_title": "Affichage croissant",
+    "order_desc_title": "Affichage décroissant",
+    "order_asc": "🔼 Croissant",
+    "order_desc": "🔽 Décroissant",
+    "expand_all": "Tout déplier",
+    "collapse_all": "Tout compacter"
   },
   "arenaQr": {
     "title": "📱 QR Codes des pistes",
@@ -2032,7 +2159,10 @@
     "matches_one": "{{count}} match",
     "matches_other": "{{count}} matchs",
     "sheets_one": "{{count}} feuille",
-    "sheets_other": "{{count}} feuilles"
+    "sheets_other": "{{count}} feuilles",
+    "do_print": "🖨️ Imprimer",
+    "do_preview": "👁️ Aperçu",
+    "do_generate": "📄 Générer PDF"
   },
   "matchOrder": {
     "title": "Ordre officiel des matchs",
@@ -2053,7 +2183,9 @@
     "fencers": "{{a}}/{{b}} tireurs",
     "pools": "{{a}}/{{b}} poules",
     "matches": "{{a}}/{{b}} matchs",
-    "tableau": "{{a}}/{{b}} tableau"
+    "tableau": "{{a}}/{{b}} tableau",
+    "generate_hint": "Cliquez ici après avoir pointé tous vos tireurs",
+    "next_step_hint": "Étape suivante une fois les poules terminées"
   },
   "offline": {
     "never": "Jamais",
@@ -2353,7 +2485,20 @@
   },
   "poolColumns": {
     "button": "Colonnes (toutes les poules)",
-    "header": "Colonnes — appliqué à toutes les poules"
+    "header": "Colonnes — appliqué à toutes les poules",
+    "col_victories": "Victoires",
+    "col_ratio": "Ratio V/M",
+    "col_td": "TD (Touches données)",
+    "col_tr": "TR (Touches reçues)",
+    "col_quest": "Quest",
+    "col_index": "Indice (TD-TR)",
+    "col_rank": "Rang",
+    "col_club": "Club",
+    "col_nation": "Nation",
+    "col_region": "Région",
+    "col_lastName": "Nom",
+    "col_firstName": "Prénom",
+    "col_matches": "Matchs"
   },
   "fencerStats": {
     "loading": "Chargement…",
@@ -2390,7 +2535,15 @@
   },
   "matchCard": {
     "bye": "Exempt",
-    "signatures": "Consulter les signatures"
+    "signatures": "Consulter les signatures",
+    "status_done": "Terminé",
+    "status_ready": "À jouer",
+    "status_waiting": "En attente",
+    "strip_n": "Piste {{n}}",
+    "assign_strip": "Assigner une piste",
+    "referee": "Arbitre : {{list}}",
+    "referees": "Arbitres : {{list}}",
+    "enter_score": "Saisir score"
   },
   "seedingTable": {
     "title": "Classement après poules"
@@ -2411,6 +2564,24 @@
     "backspace": "Retour arrière"
   },
   "rankingCriteria": {
-    "drag": "Glisser pour réordonner"
+    "drag": "Glisser pour réordonner",
+    "vm_ratio": "V/M (ratio victoires)",
+    "index": "Indice (TD − TR)",
+    "touches_scored": "Touches données",
+    "touches_received": "Touches reçues",
+    "direct_bout": "Confrontation directe",
+    "initial_ranking": "Classement initial",
+    "custom_points": "Points personnalisés",
+    "desc": "Décroissant",
+    "asc": "Croissant",
+    "disable": "Désactiver",
+    "enable": "Activer"
+  },
+  "advancement": {
+    "mode_all": "Tous avancent",
+    "mode_percentage": "Top %",
+    "mode_fixed_count": "Nombre fixe",
+    "mode_fixed_bracket": "Tableau suivant",
+    "mode_pool_winner": "Vainqueur de poule"
   }
 }
