@@ -186,7 +186,16 @@
     "prep_drop_here": "將劍手拖放至此",
     "prep_hint": "在小組之間拖放劍手以移動，或上下拖動以重新排序。",
     "prep_undo": "↩ 復原變更",
-    "prep_window": "{{elapsed}} / {{max}} 分鐘"
+    "prep_window": "{{elapsed}} / {{max}} 分鐘",
+    "prep_sep_club": "會",
+    "prep_sep_region": "地區",
+    "prep_sep_nation": "國家",
+    "prep_sep_title_on": "優先 {{n}} — 已啟用（點擊：啟用 / 停用，拖曳：重新排序）",
+    "prep_sep_title_off": "優先 {{n}} — 已停用（點擊：啟用 / 停用，拖曳：重新排序）",
+    "prep_skip_pools": "前往初始排名",
+    "prep_launch": "開始分組賽",
+    "prep_strip_duplicate": "劍道已分配給多個分組",
+    "prep_strip_title": "遠端記分劍道"
   },
   "ranking": {
     "rank": "排名",
@@ -652,7 +661,8 @@
     "share": "分享",
     "presentation": "簡報模式",
     "kiosk_public": "公眾資訊站",
-    "properties": "屬性"
+    "properties": "屬性",
+    "actions_hint": "比較、分析、QR 分享…"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} 位劍手",
@@ -706,7 +716,32 @@
     "assign_referees": "指派裁判",
     "assign_referee": "指派裁判",
     "select_referees": "為小組 {{n}} 選擇最多 {{max}} 名裁判（首位為主裁判）：",
-    "select_referee": "為小組 {{n}} 選擇裁判："
+    "select_referee": "為小組 {{n}} 選擇裁判：",
+    "max_score": "最高分數：{{max}}",
+    "draw_impossible": "不可打和！",
+    "max_score_a": "選手 A 的分數不可超過 {{max}}",
+    "max_score_b": "選手 B 的分數不可超過 {{max}}",
+    "draw_laser": "打和：按 V 判定勝方",
+    "draw_live": "不可打和！現場比賽會自動進行 30 秒驟死",
+    "pdf_done": "已產生第 {{n}} 組 PDF",
+    "pdf_error": "產生 PDF 時發生錯誤：{{error}}",
+    "print_error": "列印時發生錯誤：{{error}}",
+    "preview_error": "產生預覽時發生錯誤：{{error}}",
+    "unknown_error": "未知錯誤",
+    "autofill_confirm": "自動填寫所有未完成比賽的比分？\n\n比分會隨機產生，僅供測試。",
+    "autofill_ok": "填寫",
+    "all_finished": "所有比賽已完成",
+    "all_signed": "所有選手已簽名 — 可取得 PDF",
+    "referees_title_one": "裁判：{{list}}",
+    "referees_title_other": "裁判：{{list}}",
+    "add_referee": "+裁判",
+    "arena_reassign": "劍道 {{n}} — 按此重新指派",
+    "remote_not_started": "遠端伺服器未啟動",
+    "cell_victory": "勝",
+    "cell_defeat": "負",
+    "not_fenced_title": "未進行的比賽",
+    "cell_vs": "對",
+    "cell_enter": "輸入比分"
   },
   "presentation": {
     "no_club": "沒有所屬會",
@@ -1260,7 +1295,41 @@
     "actions": "操作",
     "abandon": "退賽",
     "forfeit": "棄權",
-    "reactivate": "重新啟用"
+    "reactivate": "重新啟用",
+    "col_ref": "編號",
+    "col_last_name": "姓",
+    "col_first_name": "名",
+    "col_birth": "出生",
+    "col_club": "會",
+    "col_ranking": "排名",
+    "col_status": "狀態",
+    "appel": "報到",
+    "registered_count_one": "{{count}} 名選手已報名",
+    "registered_count_other": "{{count}} 名選手已報名",
+    "checked_in_count_one": "{{count}} 已報到",
+    "checked_in_count_other": "{{count}} 已報到",
+    "waiting_count_one": "{{count}} 待報到",
+    "waiting_count_other": "{{count}} 待報到",
+    "check_in_all_title_one": "為餘下 1 名選手報到",
+    "check_in_all_title_other": "為餘下 {{count}} 名選手報到",
+    "delete_all_title_one": "刪除選手",
+    "delete_all_title_other": "刪除 {{count}} 名選手",
+    "import_formats_hint": "接受格式：BellePoule XML、FFE 名單（.fff/.csv/.txt）",
+    "double_click_edit": "按兩下以編輯",
+    "check": "報到",
+    "uncheck": "取消",
+    "all_files": "所有檔案",
+    "photos_exported_one": "已匯出 {{count}} 張相片",
+    "photos_exported_other": "已匯出 {{count}} 張相片",
+    "photos_imported_one": "已匯入 {{matched}}/{{count}} 張相片",
+    "photos_imported_other": "已匯入 {{matched}}/{{count}} 張相片",
+    "export_error": "匯出時發生錯誤",
+    "import_error": "匯入時發生錯誤",
+    "bpf_exported_one": "已匯出 {{count}} 名選手（.bpf）",
+    "bpf_exported_other": "已匯出 {{count}} 名選手（.bpf）",
+    "bpf_export_error": "匯出 .bpf 時發生錯誤",
+    "bpf_imported": "新增 {{added}}，更新 {{updated}}（.bpf）",
+    "bpf_import_error": "匯入 .bpf 時發生錯誤"
   },
   "questPhase": {
     "running_title": "Quest 回合進行中",
@@ -1507,7 +1576,12 @@
     "bracket_of": "{{n}} 人淘汰賽",
     "third_place": "季軍戰",
     "fifth_place": "第五名賽",
-    "classification_hint": "最終排名階段 — 無需設定。"
+    "classification_hint": "最終排名階段 — 無需設定。",
+    "type_pool_round": "分組賽",
+    "type_direct_elimination": "直接淘汰",
+    "type_classification": "最終排名",
+    "collapse": "收起",
+    "expand": "展開"
   },
   "matchAudit": {
     "referee": "裁判：",
@@ -1638,7 +1712,38 @@
     "create_women": "建立 ♀ 女子賽事…",
     "tableau_men": "♂ 男子淘汰賽 →",
     "tableau_women": "♀ 女子淘汰賽 →",
-    "see_results": "查看結果 →"
+    "see_results": "查看結果 →",
+    "recalc_changed": "排名已重新計算並更改！淘汰表將重新產生。",
+    "recalc_ok": "排名已重新計算！",
+    "csv_ok": "CSV 匯出完成",
+    "saved_changed": "排名已更改 — 淘汰表將按新次序重新產生。",
+    "saved_unchanged": "排名已儲存（未更改）。",
+    "title_initial": "初始排名",
+    "title_after_pools": "分組賽後排名",
+    "fencers_count_one": "{{count}} 名選手",
+    "fencers_count_other": "{{count}} 名選手",
+    "pools_count_one": "{{count}} 個分組",
+    "pools_count_other": "{{count}} 個分組",
+    "starting_ranking": "起始排名",
+    "edit_mode": "編輯模式",
+    "finish": "完成",
+    "edit": "編輯",
+    "legend_v": "勝",
+    "legend_v_full": "勝場",
+    "legend_m": "場",
+    "legend_m_full": "比賽",
+    "legend_vm": "勝率",
+    "legend_vm_full": "比率",
+    "legend_td": "得",
+    "legend_td_full": "得分",
+    "legend_tr": "失",
+    "legend_tr_full": "失分",
+    "legend_index": "淨得分",
+    "legend_index_full": "得分 − 失分",
+    "legend_quest_full": "光劍積分",
+    "legend_qm_full": "Quest 積分 / 比賽",
+    "go_tableau_winners": "淘汰賽（{{n}} 名勝方）→",
+    "go_tableau": "前往淘汰賽 →"
   },
   "poolMatrix": {
     "not_fenced": "比賽未進行（退賽／棄權）",
@@ -1803,7 +1908,13 @@
     "preview_title": "以預設檢視器開啟 PDF，列印前預覽",
     "preview": "👁️ 預覽列印",
     "export_pdf": "📄 匯出 PDF",
-    "tree_pdf": "🌲 樹狀圖 PDF"
+    "tree_pdf": "🌲 樹狀圖 PDF",
+    "match_list": "比賽列表",
+    "full_bracket": "完整淘汰表",
+    "bracket": "淘汰表",
+    "bracket_view": "淘汰表檢視",
+    "pyramid_view": "金字塔檢視",
+    "pyramid": "金字塔"
   },
   "formulaBuilder": {
     "name_ph": "公式名稱",
@@ -1817,7 +1928,9 @@
     "empty": "未設定任何階段。",
     "empty_hint": "使用上方按鈕新增階段。",
     "notes": "備註",
-    "notes_ph": "公式備註（選填）"
+    "notes_ph": "公式備註（選填）",
+    "rest_off": "0 = 停用「休息」按鈕",
+    "rest_on": "計時器到 00:00 時，裁判平板上的「休息」按鈕"
   },
   "wifiQr": {
     "title": "📶 Wi-Fi QR 碼產生器",
@@ -1886,7 +1999,9 @@
     "prev_page": "上一頁",
     "next_page": "下一頁",
     "last_page": "最後一頁",
-    "per_page": "每頁 {{n}}"
+    "per_page": "每頁 {{n}}",
+    "open_file": "開啟…",
+    "open_file_title": "開啟 .bpm、.db 或 .cotcot 檔案"
   },
   "trainingLauncher": {
     "title": "訓練模式",
@@ -1902,7 +2017,10 @@
     "pts_one": "{{count}} 分",
     "pts_other": "{{count}} 分",
     "no_sudden_death": "停用驟死",
-    "no_sudden_death_hint": "時間到平手 → 比賽結束，不設加時。"
+    "no_sudden_death_hint": "時間到平手 → 比賽結束，不設加時。",
+    "all_interfaces": "所有介面",
+    "starting": "啟動中…",
+    "launch": "開始"
   },
   "reportIssue": {
     "title": "📝 回報錯誤／建議",
@@ -2002,7 +2120,16 @@
     "matches_other": "{{count}} 場",
     "unassigned": "未指派",
     "all_done": "✓ 所有比賽已完成",
-    "barrages": "附加賽"
+    "barrages": "附加賽",
+    "no_draw": "直接淘汰賽不可同分",
+    "max_score": "分數不可超過 {{max}}",
+    "next_played": "無法執行：下一場比賽已進行",
+    "order_asc_title": "遞增排序",
+    "order_desc_title": "遞減排序",
+    "order_asc": "🔼 遞增",
+    "order_desc": "🔽 遞減",
+    "expand_all": "全部展開",
+    "collapse_all": "全部收起"
   },
   "arenaQr": {
     "title": "📱 劍道 QR 碼",
@@ -2031,7 +2158,10 @@
     "matches_one": "{{count}} 場",
     "matches_other": "{{count}} 場",
     "sheets_one": "{{count}} 頁",
-    "sheets_other": "{{count}} 頁"
+    "sheets_other": "{{count}} 頁",
+    "do_print": "🖨️ 列印",
+    "do_preview": "👁️ 預覽",
+    "do_generate": "📄 產生 PDF"
   },
   "matchOrder": {
     "title": "官方比賽次序",
@@ -2052,7 +2182,9 @@
     "fencers": "{{a}}/{{b}} 名劍手",
     "pools": "{{a}}/{{b}} 個小組",
     "matches": "{{a}}/{{b}} 場",
-    "tableau": "{{a}}/{{b}} 淘汰賽"
+    "tableau": "{{a}}/{{b}} 淘汰賽",
+    "generate_hint": "所有選手報到後按此",
+    "next_step_hint": "分組賽完成後的下一步"
   },
   "offline": {
     "never": "從未",
@@ -2352,7 +2484,20 @@
   },
   "poolColumns": {
     "button": "欄位（所有小組）",
-    "header": "欄位 — 套用至所有小組"
+    "header": "欄位 — 套用至所有小組",
+    "col_victories": "勝場",
+    "col_ratio": "勝率",
+    "col_td": "得分",
+    "col_tr": "失分",
+    "col_quest": "Quest",
+    "col_index": "淨得分",
+    "col_rank": "名次",
+    "col_club": "會",
+    "col_nation": "國家",
+    "col_region": "地區",
+    "col_lastName": "姓",
+    "col_firstName": "名",
+    "col_matches": "比賽"
   },
   "fencerStats": {
     "loading": "載入中…",
@@ -2389,7 +2534,15 @@
   },
   "matchCard": {
     "bye": "輪空",
-    "signatures": "查看簽名"
+    "signatures": "查看簽名",
+    "status_done": "已完成",
+    "status_ready": "待比賽",
+    "status_waiting": "等候中",
+    "strip_n": "劍道 {{n}}",
+    "assign_strip": "指派劍道",
+    "referee": "裁判：{{list}}",
+    "referees": "裁判：{{list}}",
+    "enter_score": "輸入比分"
   },
   "seedingTable": {
     "title": "小組賽後排名"
@@ -2410,6 +2563,24 @@
     "backspace": "退格"
   },
   "rankingCriteria": {
-    "drag": "拖曳以重新排序"
+    "drag": "拖曳以重新排序",
+    "vm_ratio": "勝率",
+    "index": "淨得分（得分 − 失分）",
+    "touches_scored": "得分",
+    "touches_received": "失分",
+    "direct_bout": "直接對賽",
+    "initial_ranking": "初始排名",
+    "custom_points": "自訂積分",
+    "desc": "遞減",
+    "asc": "遞增",
+    "disable": "停用",
+    "enable": "啟用"
+  },
+  "advancement": {
+    "mode_all": "全部晉級",
+    "mode_percentage": "前 %",
+    "mode_fixed_count": "固定人數",
+    "mode_fixed_bracket": "下一淘汰表",
+    "mode_pool_winner": "分組首名"
   }
 }

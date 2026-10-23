@@ -179,14 +179,22 @@ export const getRoundLosers = (
   return losers;
 };
 
-export const getRoundName = (round: number): string => {
+/** Nom du tour ; traduit si `t` est fourni (sinon français, ex. PDF / journaux) */
+export const getRoundName = (
+  round: number,
+  t?: (key: string, params?: Record<string, string | number>) => string
+): string => {
+  if (t) {
+    if (round === 2) return t('pdf.round_final');
+    if (round === 3) return t('pdf.round_third_place');
+    if (round === 4) return t('pdf.round_semi');
+    if (round === 8) return t('pdf.round_quarter');
+    return t('pdf.round_table', { n: round });
+  }
   if (round === 2) return 'Finale';
   if (round === 3) return 'Petite finale';
   if (round === 4) return 'Demi-finales';
   if (round === 8) return 'Quarts de finale';
-  if (round === 16) return 'Tableau de 16';
-  if (round === 32) return 'Tableau de 32';
-  if (round === 64) return 'Tableau de 64';
   return `Tableau de ${round}`;
 };
 

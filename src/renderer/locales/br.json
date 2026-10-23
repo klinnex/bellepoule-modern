@@ -186,7 +186,16 @@
     "prep_drop_here": "Laoskit kleizeidi amañ",
     "prep_hint": "Riklit ha laoskit ar c'hleizeidi etre ar poulennoù evit o dilec'hiañ, pe d'an nec'h / d'an traoñ evit o adurzhiañ.",
     "prep_undo": "↩ Dizober ar c'hemm",
-    "prep_window": "{{elapsed}} / {{max}} munut"
+    "prep_window": "{{elapsed}} / {{max}} munut",
+    "prep_sep_club": "Klub",
+    "prep_sep_region": "Rannvro",
+    "prep_sep_nation": "Broad",
+    "prep_sep_title_on": "Tevet {{n}} — gweredekaet (klik : gweredekaat / diweredekaat, riklañ : adurzhiañ)",
+    "prep_sep_title_off": "Tevet {{n}} — diweredekaet (klik : gweredekaat / diweredekaat, riklañ : adurzhiañ)",
+    "prep_skip_pools": "Mont d’ar renkadur kentañ",
+    "prep_launch": "Loc'hañ ar poulloù",
+    "prep_strip_duplicate": "Leurenn roet da veur a boull",
+    "prep_strip_title": "Leurenn an enrollañ eus-pell"
   },
   "ranking": {
     "rank": "Renk",
@@ -652,7 +661,8 @@
     "share": "Rannañ",
     "presentation": "Mod kinnig",
     "kiosk_public": "Kiosk foran",
-    "properties": "Perzhioù"
+    "properties": "Perzhioù",
+    "actions_hint": "Keñveriañ, dielfennañ, rannañ QR..."
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} c'hleze",
@@ -706,7 +716,32 @@
     "assign_referees": "Deverkañ an arbitred",
     "assign_referee": "Deverkañ un arbitr",
     "select_referees": "Dibabit betek {{max}} arbitr evit ar boulenn {{n}} (an hini kentañ dibabet eo an arbitr pennañ) :",
-    "select_referee": "Dibabit an arbitr evit ar boulenn {{n}} :"
+    "select_referee": "Dibabit an arbitr evit ar boulenn {{n}} :",
+    "max_score": "Skor uhelañ : {{max}}",
+    "draw_impossible": "Emgann par dibosupl !",
+    "max_score_a": "Skor ar c'hlezeour A ne c'hall ket mont dreist {{max}}",
+    "max_score_b": "Skor ar c'hlezeour B ne c'hall ket mont dreist {{max}}",
+    "draw_laser": "Emgann par : klikit war V evit reiñ an trec'h",
+    "draw_live": "Emgann par dibosupl ! En un emgann war-eeun e vez lakaet ar marv trumm 30 eilenn ent emgefreek",
+    "pdf_done": "Ezporzhiadur PDF ar poull {{n}} graet",
+    "pdf_error": "Fazi o krouiñ ar PDF : {{error}}",
+    "print_error": "Fazi o voullañ : {{error}}",
+    "preview_error": "Fazi o krouiñ ar rakwel : {{error}}",
+    "unknown_error": "Fazi dianav",
+    "autofill_confirm": "Leuniañ ent emgefreek holl skorioù an emgannoù n'int ket echu ?\n\nAr skorioù a vo krouet dre zegouezh evit an amprouennoù.",
+    "autofill_ok": "Leuniañ",
+    "all_finished": "Echu eo an holl emgannoù dija",
+    "all_signed": "Sinet o deus an holl glezeourien — PDF hegerz",
+    "referees_title_one": "Arbitr : {{list}}",
+    "referees_title_other": "Arbitred : {{list}}",
+    "add_referee": "+Arbitr",
+    "arena_reassign": "Leurenn {{n}} — Klikit evit adlakaat",
+    "remote_not_started": "Servijer eus-pell n'eo ket loc'het",
+    "cell_victory": "trec'h",
+    "cell_defeat": "koll",
+    "not_fenced_title": "Emgann n'eo ket bet c'hoariet",
+    "cell_vs": "a-enep",
+    "cell_enter": "enrollañ ar skor"
   },
   "presentation": {
     "no_club": "Klub ebet",
@@ -1260,7 +1295,41 @@
     "actions": "Oberoù",
     "abandon": "Dilezel",
     "forfeit": "Forfed",
-    "reactivate": "Adweredekaat"
+    "reactivate": "Adweredekaat",
+    "col_ref": "Niv.",
+    "col_last_name": "Anv",
+    "col_first_name": "Anv-bihan",
+    "col_birth": "Ganet",
+    "col_club": "Klub",
+    "col_ranking": "Renkadur",
+    "col_status": "Statud",
+    "appel": "Galv",
+    "registered_count_one": "{{count}} klezeour enskrivet",
+    "registered_count_other": "{{count}} klezeour enskrivet",
+    "checked_in_count_one": "{{count}} merket",
+    "checked_in_count_other": "{{count}} merket",
+    "waiting_count_one": "{{count}} o c'hortoz",
+    "waiting_count_other": "{{count}} o c'hortoz",
+    "check_in_all_title_one": "Merkañ ar c'hlezeour na'z eo ket merket",
+    "check_in_all_title_other": "Merkañ an {{count}} klezeour n'int ket merket",
+    "delete_all_title_one": "Dilemel ar c'hlezeour",
+    "delete_all_title_other": "Dilemel an {{count}} klezeour",
+    "import_formats_hint": "Furmadoù degemeret : XML BellePoule, roll FFE (.fff/.csv/.txt)",
+    "double_click_edit": "Daouglikañ evit kemmañ",
+    "check": "Merkañ",
+    "uncheck": "Nullañ",
+    "all_files": "An holl restroù",
+    "photos_exported_one": "{{count}} poltred ezporzhiet",
+    "photos_exported_other": "{{count}} poltred ezporzhiet",
+    "photos_imported_one": "{{matched}}/{{count}} poltred enporzhiet",
+    "photos_imported_other": "{{matched}}/{{count}} poltred enporzhiet",
+    "export_error": "Fazi en ezporzhiañ",
+    "import_error": "Fazi en enporzhiañ",
+    "bpf_exported_one": "{{count}} klezeour ezporzhiet (.bpf)",
+    "bpf_exported_other": "{{count}} klezeour ezporzhiet (.bpf)",
+    "bpf_export_error": "Fazi en ezporzhiañ .bpf",
+    "bpf_imported": "{{added}} ouzhpennet, {{updated}} hizivaet (.bpf)",
+    "bpf_import_error": "Fazi en enporzhiañ .bpf"
   },
   "questPhase": {
     "running_title": "Tro Quest o vont en-dro",
@@ -1507,7 +1576,12 @@
     "bracket_of": "Taolenn {{n}}",
     "third_place": "Finalenn vihan (3vet plas)",
     "fifth_place": "Emgann evit ar 5vet plas",
-    "classification_hint": "Prantad renkadur diwezhañ — kefluniadur ebet ezhomm."
+    "classification_hint": "Prantad renkadur diwezhañ — kefluniadur ebet ezhomm.",
+    "type_pool_round": "Tro poulloù",
+    "type_direct_elimination": "Eliminerezh war-eeun",
+    "type_classification": "Renkadur diwezhañ",
+    "collapse": "Pakañ",
+    "expand": "Displegañ"
   },
   "matchAudit": {
     "referee": "Arbitr :",
@@ -1638,7 +1712,38 @@
     "create_women": "Krouiñ kevezadeg ♀ ar merc'hed…",
     "tableau_men": "Taolenn ♂ ar baotred →",
     "tableau_women": "Taolenn ♀ ar merc'hed →",
-    "see_results": "Gwelet an disoc'hoù →"
+    "see_results": "Gwelet an disoc'hoù →",
+    "recalc_changed": "Renkadur adjedet ha kemmet ! Adkrouet e vo an daolenn.",
+    "recalc_ok": "Renkadur adjedet !",
+    "csv_ok": "Ezporzhiadur CSV graet",
+    "saved_changed": "Renkadur kemmet — adkrouet e vo an daolenn gant an urzh nevez.",
+    "saved_unchanged": "Renkadur enrollet (digemm).",
+    "title_initial": "Renkadur kentañ",
+    "title_after_pools": "Renkadur goude ar poulloù",
+    "fencers_count_one": "{{count}} klezeour",
+    "fencers_count_other": "{{count}} klezeour",
+    "pools_count_one": "{{count}} poull",
+    "pools_count_other": "{{count}} poull",
+    "starting_ranking": "Renkadur loc'hañ",
+    "edit_mode": "mod kemmañ",
+    "finish": "Echuiñ",
+    "edit": "Kemmañ",
+    "legend_v": "T",
+    "legend_v_full": "Trec'hioù",
+    "legend_m": "E",
+    "legend_m_full": "Emgannoù",
+    "legend_vm": "T/E",
+    "legend_vm_full": "Feur",
+    "legend_td": "TR",
+    "legend_td_full": "Taolioù roet",
+    "legend_tr": "TB",
+    "legend_tr_full": "Taolioù bet",
+    "legend_index": "Meneg",
+    "legend_index_full": "TR − TB",
+    "legend_quest_full": "Poentoù Klezeour laser",
+    "legend_qm_full": "Poentoù Quest / emgannoù",
+    "go_tableau_winners": "Taolenn ({{n}} gounezer) →",
+    "go_tableau": "Mont d’an daolenn →"
   },
   "poolMatrix": {
     "not_fenced": "Emgann n'eo ket bet c'hoariet (dilezel/forfed)",
@@ -1803,7 +1908,13 @@
     "preview_title": "Digeriñ a ra ur PDF el lenner dre ziouer evit rakwelout a-raok moullañ",
     "preview": "👁️ Rakwel ar moullañ",
     "export_pdf": "📄 Ezporzhiañ PDF",
-    "tree_pdf": "🌲 Gwezenn PDF"
+    "tree_pdf": "🌲 Gwezenn PDF",
+    "match_list": "Roll an emgannoù",
+    "full_bracket": "Taolenn klok",
+    "bracket": "Taolenn",
+    "bracket_view": "Gwel taolenn",
+    "pyramid_view": "Gwel piramidek",
+    "pyramid": "Piramidenn"
   },
   "formulaBuilder": {
     "name_ph": "Anv ar formulenn",
@@ -1817,7 +1928,9 @@
     "empty": "Prantad kefluniet ebet.",
     "empty_hint": "Implijit an nozelennoù a-us evit ouzhpennañ prantadoù.",
     "notes": "Notennoù",
-    "notes_ph": "Notennoù diwar-benn ar formulenn (diret)"
+    "notes_ph": "Notennoù diwar-benn ar formulenn (diret)",
+    "rest_off": "0 = bouton « Ehan » diweredekaet",
+    "rest_on": "Bouton « Ehan » war tablet an arbitr, pa zegouezh ar c'hronometr gant 00:00"
   },
   "wifiQr": {
     "title": "📶 Ganer kod QR Wi-Fi",
@@ -1886,7 +1999,9 @@
     "prev_page": "Pajenn gent",
     "next_page": "Pajenn war-lerc'h",
     "last_page": "Pajenn ziwezhañ",
-    "per_page": "{{n}} / pajenn"
+    "per_page": "{{n}} / pajenn",
+    "open_file": "Digeriñ…",
+    "open_file_title": "Digeriñ ur restr .bpm, .db pe .cotcot"
   },
   "trainingLauncher": {
     "title": "Mod embregerezh",
@@ -1902,7 +2017,10 @@
     "pts_one": "{{count}} poent",
     "pts_other": "{{count}} poent",
     "no_sudden_death": "Diweredekaat ar marv trumm",
-    "no_sudden_death_hint": "Kevatal en amzer → fin an emgann hep astenn."
+    "no_sudden_death_hint": "Kevatal en amzer → fin an emgann hep astenn.",
+    "all_interfaces": "An holl etrefasoù",
+    "starting": "O loc'hañ…",
+    "launch": "Loc'hañ"
   },
   "reportIssue": {
     "title": "📝 Danevelliñ un draen / Kinnig",
@@ -2002,7 +2120,16 @@
     "matches_other": "{{count}} emgann",
     "unassigned": "Dizeverket",
     "all_done": "✓ Echu eo an holl emgannoù",
-    "barrages": "Dispartiadegoù"
+    "barrages": "Dispartiadegoù",
+    "no_draw": "Ne c'hall ket ar skorioù bezañ par en eliminerezh war-eeun",
+    "max_score": "Ne c'hall ket ar skor mont dreist {{max}}",
+    "next_played": "Dibosupl : c'hoariet eo bet an emgann da heul dija",
+    "order_asc_title": "Urzh o kreskiñ",
+    "order_desc_title": "Urzh o tigreskiñ",
+    "order_asc": "🔼 O kreskiñ",
+    "order_desc": "🔽 O tigreskiñ",
+    "expand_all": "Displegañ pep tra",
+    "collapse_all": "Pakañ pep tra"
   },
   "arenaQr": {
     "title": "📱 Kodoù QR an tachennoù",
@@ -2031,7 +2158,10 @@
     "matches_one": "{{count}} emgann",
     "matches_other": "{{count}} emgann",
     "sheets_one": "{{count}} follenn",
-    "sheets_other": "{{count}} follenn"
+    "sheets_other": "{{count}} follenn",
+    "do_print": "🖨️ Moullañ",
+    "do_preview": "👁️ Rakwel",
+    "do_generate": "📄 Krouiñ PDF"
   },
   "matchOrder": {
     "title": "Urzh ofisiel an emgannoù",
@@ -2052,7 +2182,9 @@
     "fencers": "{{a}}/{{b}} kleizeier",
     "pools": "{{a}}/{{b}} poulenn",
     "matches": "{{a}}/{{b}} emgann",
-    "tableau": "{{a}}/{{b}} taolenn"
+    "tableau": "{{a}}/{{b}} taolenn",
+    "generate_hint": "Klikit amañ goude bezañ merket hoc'h holl glezeourien",
+    "next_step_hint": "Pazenn da heul pa vo echu ar poulloù"
   },
   "offline": {
     "never": "Biken",
@@ -2352,7 +2484,20 @@
   },
   "poolColumns": {
     "button": "Bannoù (an holl poulennoù)",
-    "header": "Bannoù — lakaet d'an holl poulennoù"
+    "header": "Bannoù — lakaet d'an holl poulennoù",
+    "col_victories": "Trec'hioù",
+    "col_ratio": "Feur T/E",
+    "col_td": "TR (Taolioù roet)",
+    "col_tr": "TB (Taolioù bet)",
+    "col_quest": "Quest",
+    "col_index": "Meneg (TR-TB)",
+    "col_rank": "Renk",
+    "col_club": "Klub",
+    "col_nation": "Broad",
+    "col_region": "Rannvro",
+    "col_lastName": "Anv",
+    "col_firstName": "Anv-bihan",
+    "col_matches": "Emgannoù"
   },
   "fencerStats": {
     "loading": "O kargañ…",
@@ -2389,7 +2534,15 @@
   },
   "matchCard": {
     "bye": "Digor",
-    "signatures": "Gwelet ar sinadurioù"
+    "signatures": "Gwelet ar sinadurioù",
+    "status_done": "Echu",
+    "status_ready": "Da c'hoari",
+    "status_waiting": "O c'hortoz",
+    "strip_n": "Leurenn {{n}}",
+    "assign_strip": "Lakaat ul leurenn",
+    "referee": "Arbitr : {{list}}",
+    "referees": "Arbitred : {{list}}",
+    "enter_score": "Enrollañ ar skor"
   },
   "seedingTable": {
     "title": "Renkadur goude ar poulennoù"
@@ -2410,6 +2563,24 @@
     "backspace": "Distro"
   },
   "rankingCriteria": {
-    "drag": "Riklañ evit adurzhiañ"
+    "drag": "Riklañ evit adurzhiañ",
+    "vm_ratio": "T/E (feur trec'hioù)",
+    "index": "Meneg (TR − TB)",
+    "touches_scored": "Taolioù roet",
+    "touches_received": "Taolioù bet",
+    "direct_bout": "Emgann war-eeun",
+    "initial_ranking": "Renkadur kentañ",
+    "custom_points": "Poentoù personelaet",
+    "desc": "O tigreskiñ",
+    "asc": "O kreskiñ",
+    "disable": "Diweredekaat",
+    "enable": "Gweredekaat"
+  },
+  "advancement": {
+    "mode_all": "An holl a ya war-raok",
+    "mode_percentage": "Top %",
+    "mode_fixed_count": "Niver start",
+    "mode_fixed_bracket": "Taolenn da heul",
+    "mode_pool_winner": "Gounezer ar poull"
   }
 }

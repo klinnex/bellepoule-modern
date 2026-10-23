@@ -193,10 +193,10 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
             disabled={selectedRounds.size === 0}
           >
             {pdfMode === 'print'
-              ? '🖨️ Imprimer'
+              ? t('tableauPdf.do_print')
               : pdfMode === 'preview'
-                ? '👁️ Aperçu'
-                : '📄 Générer PDF'}
+                ? t('tableauPdf.do_preview')
+                : t('tableauPdf.do_generate')}
           </button>
         </div>
       </div>

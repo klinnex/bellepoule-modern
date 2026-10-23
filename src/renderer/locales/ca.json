@@ -186,7 +186,16 @@
     "prep_drop_here": "Deixeu anar tiradors aquí",
     "prep_hint": "Arrossegueu i deixeu anar els tiradors entre poules per moure'ls, o amunt / avall per reordenar-los.",
     "prep_undo": "↩ Desfés el canvi",
-    "prep_window": "{{elapsed}} / {{max}} min"
+    "prep_window": "{{elapsed}} / {{max}} min",
+    "prep_sep_club": "Club",
+    "prep_sep_region": "Regió",
+    "prep_sep_nation": "Nació",
+    "prep_sep_title_on": "Prioritat {{n}} — activa (clic: activar / desactivar, arrossegar: reordenar)",
+    "prep_sep_title_off": "Prioritat {{n}} — desactivada (clic: activar / desactivar, arrossegar: reordenar)",
+    "prep_skip_pools": "Anar a la classificació inicial",
+    "prep_launch": "Llançar les poules",
+    "prep_strip_duplicate": "Pista assignada a diverses poules",
+    "prep_strip_title": "Pista de la puntuació remota"
   },
   "ranking": {
     "rank": "Pos",
@@ -652,7 +661,8 @@
     "share": "Comparteix",
     "presentation": "Mode presentació",
     "kiosk_public": "Quiosc públic",
-    "properties": "Propietats"
+    "properties": "Propietats",
+    "actions_hint": "Comparació, analítiques, compartir QR..."
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} tirador",
@@ -706,7 +716,32 @@
     "assign_referees": "Assigna els àrbitres",
     "assign_referee": "Assigna un àrbitre",
     "select_referees": "Seleccioneu fins a {{max}} àrbitres per a la poule {{n}} (el primer seleccionat és l'àrbitre principal):",
-    "select_referee": "Seleccioneu l'àrbitre per a la poule {{n}}:"
+    "select_referee": "Seleccioneu l'àrbitre per a la poule {{n}}:",
+    "max_score": "Puntuació màxima: {{max}}",
+    "draw_impossible": "Empat impossible!",
+    "max_score_a": "La puntuació del tirador A no pot superar {{max}}",
+    "max_score_b": "La puntuació del tirador B no pot superar {{max}}",
+    "draw_laser": "Empat: feu clic a V per atribuir la victòria",
+    "draw_live": "Empat impossible! En un combat en directe, la mort sobtada de 30 s s'aplica automàticament",
+    "pdf_done": "Exportació PDF de la poule {{n}} generada",
+    "pdf_error": "Error en generar el PDF: {{error}}",
+    "print_error": "Error en imprimir: {{error}}",
+    "preview_error": "Error en generar la previsualització: {{error}}",
+    "unknown_error": "Error desconegut",
+    "autofill_confirm": "Omplir automàticament tots els marcadors dels combats no acabats?\n\nEls marcadors es generaran aleatòriament per a proves.",
+    "autofill_ok": "Omplir",
+    "all_finished": "Tots els combats ja estan acabats",
+    "all_signed": "Tots els tiradors han signat — PDF disponible",
+    "referees_title_one": "Àrbitre: {{list}}",
+    "referees_title_other": "Àrbitres: {{list}}",
+    "add_referee": "+Àrbitre",
+    "arena_reassign": "Pista {{n}} — Clic per reassignar",
+    "remote_not_started": "Servidor remot no iniciat",
+    "cell_victory": "victòria",
+    "cell_defeat": "derrota",
+    "not_fenced_title": "Combat no disputat",
+    "cell_vs": "contra",
+    "cell_enter": "introduir el marcador"
   },
   "presentation": {
     "no_club": "Sense club",
@@ -1260,7 +1295,41 @@
     "actions": "Accions",
     "abandon": "Abandona",
     "forfeit": "Forfet",
-    "reactivate": "Reactiva"
+    "reactivate": "Reactiva",
+    "col_ref": "Núm.",
+    "col_last_name": "Cognom",
+    "col_first_name": "Nom",
+    "col_birth": "Nat/da",
+    "col_club": "Club",
+    "col_ranking": "Classificació",
+    "col_status": "Estat",
+    "appel": "Crida",
+    "registered_count_one": "{{count}} tirador inscrit",
+    "registered_count_other": "{{count}} tiradors inscrits",
+    "checked_in_count_one": "{{count}} present",
+    "checked_in_count_other": "{{count}} presents",
+    "waiting_count_one": "{{count}} pendent",
+    "waiting_count_other": "{{count}} pendents",
+    "check_in_all_title_one": "Marcar el tirador pendent",
+    "check_in_all_title_other": "Marcar els {{count}} tiradors pendents",
+    "delete_all_title_one": "Suprimir el tirador",
+    "delete_all_title_other": "Suprimir els {{count}} tiradors",
+    "import_formats_hint": "Formats acceptats: XML BellePoule, llista FFE (.fff/.csv/.txt)",
+    "double_click_edit": "Feu doble clic per editar",
+    "check": "Marcar",
+    "uncheck": "Anul·lar",
+    "all_files": "Tots els fitxers",
+    "photos_exported_one": "{{count}} foto exportada",
+    "photos_exported_other": "{{count}} fotos exportades",
+    "photos_imported_one": "{{matched}}/{{count}} foto importada",
+    "photos_imported_other": "{{matched}}/{{count}} fotos importades",
+    "export_error": "Error en l'exportació",
+    "import_error": "Error en la importació",
+    "bpf_exported_one": "{{count}} tirador exportat (.bpf)",
+    "bpf_exported_other": "{{count}} tiradors exportats (.bpf)",
+    "bpf_export_error": "Error en l'exportació .bpf",
+    "bpf_imported": "{{added}} afegit(s), {{updated}} actualitzat(s) (.bpf)",
+    "bpf_import_error": "Error en la importació .bpf"
   },
   "questPhase": {
     "running_title": "Ronda Quest en curs",
@@ -1507,7 +1576,12 @@
     "bracket_of": "Quadre de {{n}}",
     "third_place": "Final de consolació (3a plaça)",
     "fifth_place": "Combat pel 5è lloc",
-    "classification_hint": "Fase de classificació final: no cal cap configuració."
+    "classification_hint": "Fase de classificació final: no cal cap configuració.",
+    "type_pool_round": "Ronda de poules",
+    "type_direct_elimination": "Eliminació directa",
+    "type_classification": "Classificació final",
+    "collapse": "Plegar",
+    "expand": "Desplegar"
   },
   "matchAudit": {
     "referee": "Àrbitre:",
@@ -1638,7 +1712,38 @@
     "create_women": "Crea la competició ♀ Dones…",
     "tableau_men": "Quadre ♂ Homes →",
     "tableau_women": "Quadre ♀ Dones →",
-    "see_results": "Mostra els resultats →"
+    "see_results": "Mostra els resultats →",
+    "recalc_changed": "Classificació recalculada i modificada! El quadre es regenerarà.",
+    "recalc_ok": "Classificació recalculada!",
+    "csv_ok": "Exportació CSV feta",
+    "saved_changed": "Classificació modificada — el quadre es regenerarà amb el nou ordre.",
+    "saved_unchanged": "Classificació desada (sense canvis).",
+    "title_initial": "Classificació inicial",
+    "title_after_pools": "Classificació després de les poules",
+    "fencers_count_one": "{{count}} tirador",
+    "fencers_count_other": "{{count}} tiradors",
+    "pools_count_one": "{{count}} poule",
+    "pools_count_other": "{{count}} poules",
+    "starting_ranking": "Classificació de sortida",
+    "edit_mode": "mode edició",
+    "finish": "Acabar",
+    "edit": "Modificar",
+    "legend_v": "V",
+    "legend_v_full": "Victòries",
+    "legend_m": "C",
+    "legend_m_full": "Combats",
+    "legend_vm": "V/C",
+    "legend_vm_full": "Ràtio",
+    "legend_td": "TD",
+    "legend_td_full": "Tocats donats",
+    "legend_tr": "TR",
+    "legend_tr_full": "Tocats rebuts",
+    "legend_index": "Índex",
+    "legend_index_full": "TD − TR",
+    "legend_quest_full": "Punts Sabre Làser",
+    "legend_qm_full": "Punts Quest / combats",
+    "go_tableau_winners": "Quadre ({{n}} guanyadors) →",
+    "go_tableau": "Passar al quadre →"
   },
   "poolMatrix": {
     "not_fenced": "Combat no disputat (abandonament/forfet)",
@@ -1803,7 +1908,13 @@
     "preview_title": "Obre un PDF al lector predeterminat per previsualitzar abans d'imprimir",
     "preview": "👁️ Previsualització d'impressió",
     "export_pdf": "📄 Exporta PDF",
-    "tree_pdf": "🌲 Arbre PDF"
+    "tree_pdf": "🌲 Arbre PDF",
+    "match_list": "Llista de combats",
+    "full_bracket": "Quadre complet",
+    "bracket": "Quadre",
+    "bracket_view": "Vista de quadre",
+    "pyramid_view": "Vista piramidal",
+    "pyramid": "Piràmide"
   },
   "formulaBuilder": {
     "name_ph": "Nom de la fórmula",
@@ -1817,7 +1928,9 @@
     "empty": "Cap fase configurada.",
     "empty_hint": "Feu servir els botons de dalt per afegir fases.",
     "notes": "Notes",
-    "notes_ph": "Notes sobre la fórmula (opcional)"
+    "notes_ph": "Notes sobre la fórmula (opcional)",
+    "rest_off": "0 = botó «Descans» desactivat",
+    "rest_on": "Botó «Descans» de la tauleta de l'àrbitre, quan el cronòmetre arriba a 00:00"
   },
   "wifiQr": {
     "title": "📶 Generador de codi QR wifi",
@@ -1886,7 +1999,9 @@
     "prev_page": "Pàgina anterior",
     "next_page": "Pàgina següent",
     "last_page": "Darrera pàgina",
-    "per_page": "{{n}} / pàgina"
+    "per_page": "{{n}} / pàgina",
+    "open_file": "Obrir…",
+    "open_file_title": "Obrir un fitxer .bpm, .db o .cotcot"
   },
   "trainingLauncher": {
     "title": "Mode entrenament",
@@ -1902,7 +2017,10 @@
     "pts_one": "{{count}} pt",
     "pts_other": "{{count}} pts",
     "no_sudden_death": "Desactiva la mort sobtada",
-    "no_sudden_death_hint": "Empat en acabar el temps → fi del combat sense pròrroga."
+    "no_sudden_death_hint": "Empat en acabar el temps → fi del combat sense pròrroga.",
+    "all_interfaces": "Totes les interfícies",
+    "starting": "Iniciant…",
+    "launch": "Llançar"
   },
   "reportIssue": {
     "title": "📝 Informa d'un error / Suggeriment",
@@ -2002,7 +2120,16 @@
     "matches_other": "{{count}} combats",
     "unassigned": "Sense assignar",
     "all_done": "✓ Tots els combats han acabat",
-    "barrages": "Desempats"
+    "barrages": "Desempats",
+    "no_draw": "Els marcadors no poden ser iguals en eliminació directa",
+    "max_score": "El marcador no pot superar {{max}}",
+    "next_played": "Impossible: el combat següent ja s'ha disputat",
+    "order_asc_title": "Ordre ascendent",
+    "order_desc_title": "Ordre descendent",
+    "order_asc": "🔼 Ascendent",
+    "order_desc": "🔽 Descendent",
+    "expand_all": "Desplegar-ho tot",
+    "collapse_all": "Plegar-ho tot"
   },
   "arenaQr": {
     "title": "📱 Codis QR de les pistes",
@@ -2031,7 +2158,10 @@
     "matches_one": "{{count}} combat",
     "matches_other": "{{count}} combats",
     "sheets_one": "{{count}} full",
-    "sheets_other": "{{count}} fulls"
+    "sheets_other": "{{count}} fulls",
+    "do_print": "🖨️ Imprimir",
+    "do_preview": "👁️ Previsualització",
+    "do_generate": "📄 Generar PDF"
   },
   "matchOrder": {
     "title": "Ordre oficial dels combats",
@@ -2052,7 +2182,9 @@
     "fencers": "{{a}}/{{b}} tiradors",
     "pools": "{{a}}/{{b}} poules",
     "matches": "{{a}}/{{b}} combats",
-    "tableau": "{{a}}/{{b}} quadre"
+    "tableau": "{{a}}/{{b}} quadre",
+    "generate_hint": "Feu clic aquí després de marcar tots els tiradors",
+    "next_step_hint": "Pas següent un cop acabades les poules"
   },
   "offline": {
     "never": "Mai",
@@ -2352,7 +2484,20 @@
   },
   "poolColumns": {
     "button": "Columnes (totes les poules)",
-    "header": "Columnes — aplicat a totes les poules"
+    "header": "Columnes — aplicat a totes les poules",
+    "col_victories": "Victòries",
+    "col_ratio": "Ràtio V/C",
+    "col_td": "TD (Tocats donats)",
+    "col_tr": "TR (Tocats rebuts)",
+    "col_quest": "Quest",
+    "col_index": "Índex (TD-TR)",
+    "col_rank": "Posició",
+    "col_club": "Club",
+    "col_nation": "Nació",
+    "col_region": "Regió",
+    "col_lastName": "Cognom",
+    "col_firstName": "Nom",
+    "col_matches": "Combats"
   },
   "fencerStats": {
     "loading": "Carregant…",
@@ -2389,7 +2534,15 @@
   },
   "matchCard": {
     "bye": "Exempt",
-    "signatures": "Mostra les signatures"
+    "signatures": "Mostra les signatures",
+    "status_done": "Acabat",
+    "status_ready": "Per disputar",
+    "status_waiting": "En espera",
+    "strip_n": "Pista {{n}}",
+    "assign_strip": "Assignar una pista",
+    "referee": "Àrbitre: {{list}}",
+    "referees": "Àrbitres: {{list}}",
+    "enter_score": "Introduir marcador"
   },
   "seedingTable": {
     "title": "Classificació després de les poules"
@@ -2410,6 +2563,24 @@
     "backspace": "Retrocés"
   },
   "rankingCriteria": {
-    "drag": "Arrossegueu per reordenar"
+    "drag": "Arrossegueu per reordenar",
+    "vm_ratio": "V/C (ràtio de victòries)",
+    "index": "Índex (TD − TR)",
+    "touches_scored": "Tocats donats",
+    "touches_received": "Tocats rebuts",
+    "direct_bout": "Enfrontament directe",
+    "initial_ranking": "Classificació inicial",
+    "custom_points": "Punts personalitzats",
+    "desc": "Descendent",
+    "asc": "Ascendent",
+    "disable": "Desactivar",
+    "enable": "Activar"
+  },
+  "advancement": {
+    "mode_all": "Tots avancen",
+    "mode_percentage": "Top %",
+    "mode_fixed_count": "Nombre fix",
+    "mode_fixed_bracket": "Quadre següent",
+    "mode_pool_winner": "Guanyador de poule"
   }
 }

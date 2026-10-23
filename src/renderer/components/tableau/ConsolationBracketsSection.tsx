@@ -124,7 +124,9 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
             style={{ fontSize: '0.75rem' }}
             onClick={toggleAll}
           >
-            {allCollapsed ? 'Tout déplier' : 'Tout compacter'}
+            {allCollapsed
+              ? translateStatic('tableauView.expand_all')
+              : translateStatic('tableauView.collapse_all')}
           </button>
         </div>
       )}
@@ -175,14 +177,14 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
                       .sort((a, b) => a.position - b.position);
                     const roundName =
                       round === 3
-                        ? 'Petite finale'
+                        ? translateStatic('pdf.round_third_place')
                         : round === 2
-                          ? 'Finale'
+                          ? translateStatic('pdf.round_final')
                           : round === 4
-                            ? 'Demi-finales'
+                            ? translateStatic('pdf.round_semi')
                             : round === 8
-                              ? 'Quarts'
-                              : `Tableau de ${round}`;
+                              ? translateStatic('pdf.round_quarter')
+                              : translateStatic('pdf.round_table', { n: round });
                     return (
                       <div key={round} style={CONS_STYLES.consolationRoundCol}>
                         <div style={CONS_STYLES.consolationRoundTitle}>{roundName}</div>

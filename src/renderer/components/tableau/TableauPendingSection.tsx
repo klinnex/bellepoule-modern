@@ -26,7 +26,10 @@ const TableauPendingSectionComponent: React.FC<TableauPendingSectionProps> = ({
   const roundMatches = matches
     .filter(m => m.round === round)
     .sort((a, b) => a.position - b.position);
-  const roundName = round === 3 ? 'Petite Finale' : `Tableau de ${round}`;
+  const roundName =
+    round === 3
+      ? translateStatic('pdf.round_third_place')
+      : translateStatic('pdf.round_table', { n: round });
 
   return (
     <div

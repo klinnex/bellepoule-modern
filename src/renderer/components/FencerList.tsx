@@ -19,13 +19,13 @@ import { MENU_ITEM, SMALL_BTN, W250, DROPDOWN_WRAP } from './fencerList.styles';
 type SortableCol = 'ref' | 'lastName' | 'firstName' | 'birthDate' | 'club' | 'ranking' | 'status';
 
 const COLUMNS = [
-  { id: 'ref' as SortableCol, label: 'N°', width: '50px' },
-  { id: 'lastName' as SortableCol, label: 'Nom' },
-  { id: 'firstName' as SortableCol, label: 'Prénom' },
-  { id: 'birthDate' as SortableCol, label: 'Né(e)', width: '70px' },
-  { id: 'club' as SortableCol, label: 'Club' },
-  { id: 'ranking' as SortableCol, label: 'Classement', width: '110px' },
-  { id: 'status' as SortableCol, label: 'Statut', width: '90px' },
+  { id: 'ref' as SortableCol, labelKey: 'fencerList.col_ref', width: '50px' },
+  { id: 'lastName' as SortableCol, labelKey: 'fencerList.col_last_name' },
+  { id: 'firstName' as SortableCol, labelKey: 'fencerList.col_first_name' },
+  { id: 'birthDate' as SortableCol, labelKey: 'fencerList.col_birth', width: '70px' },
+  { id: 'club' as SortableCol, labelKey: 'fencerList.col_club' },
+  { id: 'ranking' as SortableCol, labelKey: 'fencerList.col_ranking', width: '110px' },
+  { id: 'status' as SortableCol, labelKey: 'fencerList.col_status', width: '90px' },
 ];
 
 interface FencerListProps {
@@ -261,7 +261,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       defaultPath: `tireurs.${extension}`,
       filters: [
         { name: filterName, extensions: [extension] },
-        { name: 'Tous les fichiers', extensions: ['*'] },
+        { name: t('fencerList.all_files'), extensions: ['*'] },
       ],
     });
 
@@ -295,11 +295,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           competitionId,
           result.filePath
         );
-        showPhotoMessage(
-          `${count} photo${count !== 1 ? 's' : ''} exportée${count !== 1 ? 's' : ''}`
-        );
+        showPhotoMessage(t('fencerList.photos_exported', { count }));
       } catch {
-        showPhotoMessage("Erreur lors de l'export");
+        showPhotoMessage(t('fencerList.export_error'));
       }
     }
   };
@@ -317,10 +315,10 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           result.filePath
         );
         showPhotoMessage(
-          `${matched}/${total} photo${total !== 1 ? 's' : ''} importée${total !== 1 ? 's' : ''}`
+          t('fencerList.photos_imported', { count: total, matched: String(matched) })
         );
       } catch {
-        showPhotoMessage("Erreur lors de l'import");
+        showPhotoMessage(t('fencerList.import_error'));
       }
     }
   };
@@ -338,11 +336,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           competitionId,
           result.filePath
         );
-        showPhotoMessage(
-          `${count} tireur${count !== 1 ? 's' : ''} exporté${count !== 1 ? 's' : ''} (.bpf)`
-        );
+        showPhotoMessage(t('fencerList.bpf_exported', { count }));
       } catch {
-        showPhotoMessage("Erreur lors de l'export .bpf");
+        showPhotoMessage(t('fencerList.bpf_export_error'));
       }
     }
   };
@@ -350,7 +346,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   const handleImportFencersArchive = async () => {
     if (!competitionId) return;
     const result = await window.electronAPI.dialog.openFile({
-      title: 'Importer tireurs + photos (.bpf)',
+      title: t('fencerList.import_bpf'),
       filters: [{ name: 'BellePoule Fencers', extensions: ['bpf'] }],
     });
     if (result && result.filePath) {
@@ -359,10 +355,12 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           competitionId,
           result.filePath
         );
-        showPhotoMessage(`${added} ajouté${added !== 1 ? 's' : ''}, ${updated} mis à jour (.bpf)`);
+        showPhotoMessage(
+          t('fencerList.bpf_imported', { added: String(added), updated: String(updated) })
+        );
         if (onFencersImported) onFencersImported();
       } catch {
-        showPhotoMessage("Erreur lors de l'import .bpf");
+        showPhotoMessage(t('fencerList.bpf_import_error'));
       }
     }
   };
@@ -415,8 +413,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       colOrder
         .map(id => COLUMNS.find(c => c.id === id)!)
         .filter(c => c && !hiddenCols.has(c.id))
-        .map(c => ({ ...c, label: columnLabels?.[c.id] ?? c.label })),
-    [colOrder, hiddenCols, columnLabels]
+        .map(c => ({ ...c, label: columnLabels?.[c.id] ?? t(c.labelKey) })),
+    [colOrder, hiddenCols, columnLabels, t]
   );
   const colSpanTotal = visibleCols.length + 1;
 
@@ -442,12 +440,13 @@ const FencerListComponent: React.FC<FencerListProps> = ({
         <div>
           <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>
             {fencers.length > 0
-              ? `${fencers.length} tireur${fencers.length > 1 ? 's' : ''} inscrit${fencers.length > 1 ? 's' : ''}`
-              : 'Appel'}
+              ? t('fencerList.registered_count', { count: fencers.length })
+              : t('fencerList.appel')}
           </h2>
           {fencers.length > 0 && (
             <p className="text-sm text-muted">
-              {`${checkedInCount} pointé${checkedInCount !== 1 ? 's' : ''} · ${notCheckedInCount} en attente`}
+              {t('fencerList.checked_in_count', { count: checkedInCount })} ·{' '}
+              {t('fencerList.waiting_count', { count: notCheckedInCount })}
             </p>
           )}
         </div>
@@ -458,7 +457,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                 <button
                   className="btn btn-secondary"
                   onClick={onCheckInAll}
-                  title={`Pointer les ${notCheckedInCount} tireurs non pointés`}
+                  title={t('fencerList.check_in_all_title', { count: notCheckedInCount })}
                 >
                   ✓ {t('actions.check_in_all')}
                 </button>
@@ -480,7 +479,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       onDeleteAllFencers();
                     }
                   }}
-                  title={`Supprimer les ${fencers.length} tireurs`}
+                  title={t('fencerList.delete_all_title', { count: fencers.length })}
                   style={{ padding: '0.4rem 0.6rem' }}
                 >
                   🗑️
@@ -645,7 +644,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                             });
                           }}
                         />
-                        {columnLabels?.[col.id] ?? col.label}
+                        {columnLabels?.[col.id] ?? t(col.labelKey)}
                       </label>
                     ))}
                     <div
@@ -949,7 +948,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                 {onImport && (
                   <CoachMark
                     id="import-fencers"
-                    message="Formats acceptés : XML BellePoule, liste FFE (.fff/.csv/.txt)"
+                    message={t('fencerList.import_formats_hint')}
                     position="bottom"
                   >
                     <button
@@ -1077,7 +1076,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                     key={fencer.id}
                     onDoubleClick={readOnly ? undefined : () => openEdit(fencer)}
                     style={readOnly ? undefined : { cursor: 'pointer' }}
-                    title={readOnly ? undefined : 'Double-cliquer pour modifier'}
+                    title={readOnly ? undefined : t('fencerList.double_click_edit')}
                   >
                     {visibleCols.map(col => {
                       switch (col.id) {
@@ -1148,7 +1147,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                             onClick={() => onCheckIn(fencer.id)}
                             style={SMALL_BTN}
                           >
-                            {fencer.status === FencerStatus.CHECKED_IN ? 'Annuler' : 'Pointer'}
+                            {fencer.status === FencerStatus.CHECKED_IN
+                              ? t('fencerList.uncheck')
+                              : t('fencerList.check')}
                           </button>
                           {onSetFencerStatus && fencer.status === FencerStatus.CHECKED_IN && (
                             <>

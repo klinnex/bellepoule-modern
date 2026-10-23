@@ -92,7 +92,7 @@ describe('PoolScoreMatrix', () => {
   it('clic sur une cellule éditable déclenche onCellClick', () => {
     const props = renderMatrix(match(MatchStatus.NOT_STARTED));
     // cellule Dupont vs Martin (aria-label commence par "Dupont")
-    const cell = screen.getByLabelText(/Dupont F contre Martin F/i);
+    const cell = screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i);
     fireEvent.click(cell);
     expect(props.onCellClick).toHaveBeenCalledTimes(1);
     expect(props.onCellClick.mock.calls[0][0].id).toBe('1');
@@ -101,13 +101,15 @@ describe('PoolScoreMatrix', () => {
 
   it('ne déclenche pas onCellClick si verrouillé', () => {
     const props = renderMatrix(match(MatchStatus.NOT_STARTED), { isLocked: true });
-    const cell = screen.getByLabelText(/Dupont F contre Martin F/i);
+    const cell = screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i);
     fireEvent.click(cell);
     expect(props.onCellClick).not.toHaveBeenCalled();
   });
 
   it('rapières : cases de la vague en cours surlignées en violet (#1118)', () => {
     renderMatrix(match(MatchStatus.NOT_STARTED), { waveHighlightPairs: new Set(['1|2']) });
-    expect(screen.getByLabelText(/Dupont F contre Martin F/i).style.outline).toContain('#7c3aed');
+    expect(screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i).style.outline).toContain(
+      '#7c3aed'
+    );
   });
 });

@@ -75,9 +75,9 @@ interface Props {
 }
 
 const NODE_TYPE_LABELS: Record<FormulaPhaseNodeType, string> = {
-  pool_round: 'Tour de poules',
-  direct_elimination: 'Élimination directe',
-  classification: 'Classement final',
+  pool_round: 'formulaPhase.type_pool_round',
+  direct_elimination: 'formulaPhase.type_direct_elimination',
+  classification: 'formulaPhase.type_classification',
 };
 
 const NODE_TYPE_COLORS: Record<FormulaPhaseNodeType, string> = {
@@ -121,12 +121,12 @@ const FormulaPhaseCard_: React.FC<Props> = ({
       <div className="phase-card-header">
         <div className="phase-card-title-row">
           <span className="phase-type-badge" style={{ background: NODE_TYPE_COLORS[node.type] }}>
-            {NODE_TYPE_LABELS[node.type]}
+            {t(NODE_TYPE_LABELS[node.type])}
           </span>
           <input
             type="text"
             className="phase-label-input"
-            value={node.label ?? NODE_TYPE_LABELS[node.type]}
+            value={node.label ?? t(NODE_TYPE_LABELS[node.type])}
             onChange={e => onUpdate({ ...node, label: e.target.value })}
             disabled={readOnly}
             placeholder={t('formulaPhase.phase_name')}
@@ -167,7 +167,7 @@ const FormulaPhaseCard_: React.FC<Props> = ({
             type="button"
             className="btn btn-icon btn-secondary"
             onClick={() => setExpanded(e => !e)}
-            title={expanded ? 'Réduire' : 'Développer'}
+            title={expanded ? t('formulaPhase.collapse') : t('formulaPhase.expand')}
           >
             {expanded ? '▲' : '▼'}
           </button>

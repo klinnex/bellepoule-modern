@@ -32,11 +32,11 @@ function computeAdvancing(fencers: number, rule: AdvancementRule): number {
 }
 
 const MODE_LABELS: Record<AdvancementMode, string> = {
-  all: 'Tous avancent',
-  percentage: 'Top %',
-  fixed_count: 'Nombre fixe',
-  fixed_bracket: 'Tableau suivant',
-  pool_winner: 'Vainqueur de poule',
+  all: 'advancement.mode_all',
+  percentage: 'advancement.mode_percentage',
+  fixed_count: 'advancement.mode_fixed_count',
+  fixed_bracket: 'advancement.mode_fixed_bracket',
+  pool_winner: 'advancement.mode_pool_winner',
 };
 
 const AdvancementRuleEditor_: React.FC<Props> = ({ rule, onChange, inputFencers, readOnly }) => {
@@ -65,7 +65,7 @@ const AdvancementRuleEditor_: React.FC<Props> = ({ rule, onChange, inputFencers,
         >
           {(Object.entries(MODE_LABELS) as [AdvancementMode, string][]).map(([mode, label]) => (
             <option key={mode} value={mode}>
-              {label}
+              {t(label)}
             </option>
           ))}
         </select>

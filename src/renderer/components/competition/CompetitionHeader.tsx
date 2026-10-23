@@ -173,7 +173,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
             <div className="comp-header-actions" ref={actionsMenuRef}>
               <CoachMark
                 id="actions-menu"
-                message="Comparaison, analytiques, partage QR..."
+                message={t('competitionHeader.actions_hint')}
                 position="left"
               >
                 <button
