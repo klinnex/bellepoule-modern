@@ -25,6 +25,16 @@ export const teamMembersLabel = (fencers: [RapieresFencer, RapieresFencer]): str
     .filter(Boolean)
     .join(' / ');
 
+/** Champs du tireur portant l'équipe : nom = équipe, prénom = tireurs, club = niveau (#1118) */
+export const rapieresTeamFields = (
+  team: { name: string; info: RapieresTeamInfo },
+  t: (key: string) => string
+) => ({
+  lastName: team.name,
+  firstName: teamMembersLabel(team.info.fencers),
+  club: t(`rapieres.level_${team.info.level}`),
+});
+
 const isWithdrawn = (f: Fencer | null | undefined): boolean =>
   f?.status === FencerStatus.ABANDONED ||
   f?.status === FencerStatus.FORFAIT ||

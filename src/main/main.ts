@@ -38,7 +38,7 @@ import {
   readBoundedFile,
   validateImportedFencers,
 } from './pathAuthorization';
-import { xlsxToCsv } from './xlsxToCsv';
+import { readImportText } from './xlsxToCsv';
 
 // Database instance
 const db = new DatabaseManager();
@@ -894,23 +894,10 @@ ipcMain.handle('file:importFencersArchive', async (_, competitionId: string, fil
 // Dialog handlers
 ipcMain.handle('dialog:openFile', async (_, options) => {
   const result = await dialog.showOpenDialog(mainWindow!, options);
-
-  if (!result.canceled && result.filePaths.length > 0) {
-    const filePath = result.filePaths[0];
-    authorizePath(filePath, 'read');
-    try {
-      // Classeur Excel : converti en CSV « ; » pour les parseurs d'import (#1211)
-      const content = /\.xlsx$/i.test(filePath)
-        ? await xlsxToCsv(await readBoundedFile(filePath))
-        : decodeTextFile(await fs.promises.readFile(filePath));
-      return { filePath, content };
-    } catch (error) {
-      console.error('Error reading file:', error);
-      return { filePath, content: '' };
-    }
-  }
-
-  return null;
+  if (result.canceled || result.filePaths.length === 0) return null;
+  const filePath = result.filePaths[0];
+  authorizePath(filePath, 'read');
+  return { filePath, content: await readImportText(filePath) };
 });
 
 ipcMain.handle('dialog:saveFile', async (_, options) => {

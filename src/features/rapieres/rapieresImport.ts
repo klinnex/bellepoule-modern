@@ -119,3 +119,38 @@ export function parseRapieresTeams(content: string, refDate?: Date): RapieresImp
   });
   return { teams, skipped };
 }
+
+type ToastType = 'success' | 'error' | 'warning' | 'info';
+
+/** Bouton d'import pour la liste d'appel : choix du fichier, analyse, ajout des équipes */
+export const rapieresImporter = (
+  t: (key: string, params?: Record<string, string | number>) => string,
+  showToast: (message: string, type: ToastType) => void,
+  competitionDate: Date | string | undefined,
+  save: (team: RapieresTeamDraft) => Promise<void>
+) => ({
+  label: t('rapieres.import_teams'),
+  onClick: async () => {
+    const result = await window.electronAPI.dialog.openFile({
+      title: t('rapieres.import_teams'),
+      filters: [
+        { name: 'CSV / Excel', extensions: ['csv', 'xlsx'] },
+        { name: '*', extensions: ['*'] },
+      ],
+      properties: ['openFile'],
+    });
+    if (!result?.filePath) return;
+    const refDate = competitionDate ? new Date(competitionDate) : new Date();
+    const { teams, skipped } = parseRapieresTeams(result.content || '', refDate);
+    if (teams.length === 0) {
+      showToast(t('rapieres.import_empty'), 'error');
+      return;
+    }
+    for (const team of teams) await save(team);
+    showToast(
+      t('rapieres.import_done', { n: teams.length }) +
+        (skipped.length ? ' ' + t('rapieres.import_skipped', { lines: skipped.join(', ') }) : ''),
+      skipped.length ? 'warning' : 'success'
+    );
+  },
+});
