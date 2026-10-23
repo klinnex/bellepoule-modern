@@ -86,6 +86,7 @@ import {
   waveMatchOrder,
 } from '../../features/rapieres/rapieresCalculations';
 import RapieresTeamModal, { RapieresTeamDraft } from '../../features/rapieres/RapieresTeamModal';
+import { parseRapieresTeams } from '../../features/rapieres/rapieresImport';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import RapieresWaveBar from '../../features/rapieres/RapieresWaveBar';
 import RapieresRankingPanel, {
@@ -1150,6 +1151,31 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       status: FencerStatus.NOT_CHECKED_IN,
     } as Omit<Fencer, 'id' | 'createdAt' | 'updatedAt'>);
     if (added) setRapieresTeam(added.id, team.info);
+  };
+
+  // Import d'un export d'inscriptions (CSV / XLSX), une équipe par ligne (#1211)
+  const handleImportRapieresTeams = async () => {
+    const result = await window.electronAPI.dialog.openFile({
+      title: t('rapieres.import_teams'),
+      filters: [
+        { name: 'CSV / Excel', extensions: ['csv', 'xlsx'] },
+        { name: '*', extensions: ['*'] },
+      ],
+      properties: ['openFile'],
+    });
+    if (!result?.filePath) return;
+    const refDate = competition.date ? new Date(competition.date) : new Date();
+    const { teams, skipped } = parseRapieresTeams(result.content || '', refDate);
+    if (teams.length === 0) {
+      showToast(t('rapieres.import_empty'), 'error');
+      return;
+    }
+    for (const team of teams) await handleSaveRapieresTeam(team);
+    showToast(
+      t('rapieres.import_done', { n: String(teams.length) }) +
+        (skipped.length ? ' ' + t('rapieres.import_skipped', { lines: skipped.join(', ') }) : ''),
+      skipped.length ? 'warning' : 'success'
+    );
   };
 
   // Migration de la première version (vue dédiée) : équipes recréées comme tireurs
@@ -2284,6 +2310,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                   },
                   hiddenColumns: ['birthDate', 'ranking'],
                   onEditRequest: (fencer: Fencer) => setRapieresTeamModal({ fencer }),
+                  customImport: {
+                    label: t('rapieres.import_teams'),
+                    onClick: handleImportRapieresTeams,
+                  },
                 }
               : {})}
             registerUrl={

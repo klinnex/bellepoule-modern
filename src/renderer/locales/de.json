@@ -857,7 +857,11 @@
     "print_wave_sheets": "Wellenblätter drucken",
     "print_wave_sheets_empty": "Keine Begegnung zum Drucken in dieser Welle",
     "wave_legend": "Gefechte der aktuellen Welle",
-    "confirm_end_waves": "Wellen jetzt beenden? Nicht ausgetragene Gefechte zählen nicht; weiter zur Zwischenwertung."
+    "confirm_end_waves": "Wellen jetzt beenden? Nicht ausgetragene Gefechte zählen nicht; weiter zur Zwischenwertung.",
+    "import_teams": "Teams importieren (CSV / Excel)",
+    "import_empty": "Keine Teams in der Datei gefunden (Spalten D/E, T/U und Y erwartet).",
+    "import_done": "{{n}} Team(s) importiert.",
+    "import_skipped": "Übersprungene Zeilen (unvollständig): {{lines}}."
   },
   "errors": {
     "server_not_started": "Server nicht gestartet",

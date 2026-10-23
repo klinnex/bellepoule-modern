@@ -857,7 +857,11 @@
     "print_wave_sheets": "Imprimir hojas de la oleada",
     "print_wave_sheets_empty": "No hay combates que imprimir en esta oleada",
     "wave_legend": "Asaltos de la oleada en curso",
-    "confirm_end_waves": "¿Detener las oleadas ahora? Los asaltos no disputados no cuentan; se pasa a la clasificación general intermedia."
+    "confirm_end_waves": "¿Detener las oleadas ahora? Los asaltos no disputados no cuentan; se pasa a la clasificación general intermedia.",
+    "import_teams": "Importar equipos (CSV / Excel)",
+    "import_empty": "No se encontró ningún equipo en el archivo (se esperan las columnas D/E, T/U e Y).",
+    "import_done": "{{n}} equipo(s) importado(s).",
+    "import_skipped": "Filas omitidas (incompletas): {{lines}}."
   },
   "errors": {
     "server_not_started": "Servidor no iniciado",
