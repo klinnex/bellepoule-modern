@@ -80,13 +80,12 @@ import {
   filterRapieresQualifiers,
   mergeFinalRanking,
   RAPIERES_MAX_POOL_SIZE,
-  teamMembersLabel,
   waveMatchIds,
   waveSheetMatches,
   waveMatchOrder,
 } from '../../features/rapieres/rapieresCalculations';
-import RapieresTeamModal, { RapieresTeamDraft } from '../../features/rapieres/RapieresTeamModal';
-import { parseRapieresTeams } from '../../features/rapieres/rapieresImport';
+import RapieresTeamModal from '../../features/rapieres/RapieresTeamModal';
+import { useRapieresTeams } from '../../features/rapieres/useRapieresTeams';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import RapieresWaveBar from '../../features/rapieres/RapieresWaveBar';
 import RapieresRankingPanel, {
@@ -1131,52 +1130,13 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   };
 
   // ─── Tournoi des rapières : équipes enregistrées comme tireurs (#1118) ─────
-  // Nom = nom d'équipe, prénom = noms des deux tireurs, club = niveau (affiché partout)
-  const rapieresFencerFields = (team: RapieresTeamDraft) => ({
-    lastName: team.name,
-    firstName: teamMembersLabel(team.info.fencers),
-    club: t(`rapieres.level_${team.info.level}`),
-  });
-
-  const handleSaveRapieresTeam = async (team: RapieresTeamDraft, fencer?: Fencer) => {
-    if (fencer) {
-      await updateFencer(fencer.id, rapieresFencerFields(team));
-      setRapieresTeam(fencer.id, team.info);
-      return;
-    }
-    const added = await addFencer({
-      ...rapieresFencerFields(team),
-      gender: Gender.MIXED,
-      nationality: 'FRA',
-      status: FencerStatus.NOT_CHECKED_IN,
-    } as Omit<Fencer, 'id' | 'createdAt' | 'updatedAt'>);
-    if (added) setRapieresTeam(added.id, team.info);
-  };
-
-  // Import d'un export d'inscriptions (CSV / XLSX), une équipe par ligne (#1211)
-  const handleImportRapieresTeams = async () => {
-    const result = await window.electronAPI.dialog.openFile({
-      title: t('rapieres.import_teams'),
-      filters: [
-        { name: 'CSV / Excel', extensions: ['csv', 'xlsx'] },
-        { name: '*', extensions: ['*'] },
-      ],
-      properties: ['openFile'],
+  const { rapieresFencerFields, handleSaveRapieresTeam, handleImportRapieresTeams } =
+    useRapieresTeams({
+      competitionDate: competition.date,
+      addFencer,
+      updateFencer,
+      setRapieresTeam,
     });
-    if (!result?.filePath) return;
-    const refDate = competition.date ? new Date(competition.date) : new Date();
-    const { teams, skipped } = parseRapieresTeams(result.content || '', refDate);
-    if (teams.length === 0) {
-      showToast(t('rapieres.import_empty'), 'error');
-      return;
-    }
-    for (const team of teams) await handleSaveRapieresTeam(team);
-    showToast(
-      t('rapieres.import_done', { n: String(teams.length) }) +
-        (skipped.length ? ' ' + t('rapieres.import_skipped', { lines: skipped.join(', ') }) : ''),
-      skipped.length ? 'warning' : 'success'
-    );
-  };
 
   // Migration de la première version (vue dédiée) : équipes recréées comme tireurs
   const rapieresMigrating = useRef(false);
