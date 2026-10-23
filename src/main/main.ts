@@ -38,6 +38,7 @@ import {
   readBoundedFile,
   validateImportedFencers,
 } from './pathAuthorization';
+import { xlsxToCsv } from './xlsxToCsv';
 
 // Database instance
 const db = new DatabaseManager();
@@ -898,7 +899,10 @@ ipcMain.handle('dialog:openFile', async (_, options) => {
     const filePath = result.filePaths[0];
     authorizePath(filePath, 'read');
     try {
-      const content = decodeTextFile(await fs.promises.readFile(filePath));
+      // Classeur Excel : converti en CSV « ; » pour les parseurs d'import (#1211)
+      const content = /\.xlsx$/i.test(filePath)
+        ? await xlsxToCsv(await readBoundedFile(filePath))
+        : decodeTextFile(await fs.promises.readFile(filePath));
       return { filePath, content };
     } catch (error) {
       console.error('Error reading file:', error);

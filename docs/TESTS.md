@@ -92,10 +92,10 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 2 | 15 |
+| Feature `rapieres` (`src/features/rapieres/`) | 3 | 19 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 15 | 195 |
+| `src/main/` | 16 | 197 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 31 | 154 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **161** | **1565** |
+| **Total** | **163** | **1571** |
 
-Unitaires : 152 fichiers, 1530 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 154 fichiers, 1536 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1621,6 +1621,17 @@ Unitaires : 152 fichiers, 1530 tests. E2E : 9 fichiers, 35 tests (comptage stati
 
 </details>
 
+<details>
+<summary><code>src/features/rapieres/rapieresImport.test.ts</code> — 4 tests</summary>
+
+- **rapieresImport (#1211)**
+  - parseDelimited gère BOM, guillemets et CRLF
+  - parseBirthDate lit JJ/MM/AAAA, ISO et série Excel
+  - catégorie selon l’âge atteint dans l’année de début de saison
+  - parseRapieresTeams lit D/E/Q, T/U/V et Y, ignore l’en-tête et les lignes incomplètes
+
+</details>
+
 ### Feature `teams` (`src/features/teams/`)
 
 <details>
@@ -2273,6 +2284,15 @@ Unitaires : 152 fichiers, 1530 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - fuses : RunAsNode off, asar seul
   - meta CSP du renderer sans unsafe-inline pour les scripts
   - meta CSP du renderer sans unsafe-inline pour les styles (#1157)
+
+</details>
+
+<details>
+<summary><code>src/main/xlsxToCsv.test.ts</code> — 2 tests</summary>
+
+- **xlsxToCsv (#1211)**
+  - lit chaînes partagées, chaînes en ligne, nombres et cellules manquantes
+  - rowsToCsv protège séparateurs et guillemets
 
 </details>
 
