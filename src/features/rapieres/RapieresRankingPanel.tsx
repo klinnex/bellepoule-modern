@@ -11,6 +11,7 @@ import { useTranslation } from '../../renderer/hooks/useTranslation';
 import { useToast } from '../../renderer/components/Toast';
 import {
   RAPIERES_AGE_CATEGORIES,
+  RAPIERES_GENDERS,
   RAPIERES_LEVELS,
   RapieresFencer,
   RapieresTeamInfo,
@@ -69,11 +70,19 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
         label: t('rapieres.ranking_category', { category: t(`rapieres.cat_${category}`) }),
         filter: { kind: 'category', category },
       });
+    for (const gender of RAPIERES_GENDERS)
+      list.push({
+        key: `gender:${gender}`,
+        label: t('rapieres.ranking_gender', {
+          gender: t(gender === 'M' ? 'genders.male' : 'genders.female'),
+        }),
+        filter: { kind: 'gender', gender },
+      });
     return list;
   }, [t]);
 
   const selected = filters.find(f => f.key === filterKey) ?? filters[0];
-  const individual = selected.filter.kind === 'category';
+  const individual = selected.filter.kind === 'category' || selected.filter.kind === 'gender';
   const byId = new Map(fencers.map(f => [f.id, f]));
   const rows = filterRanking(ranked, teams, selected.filter);
 
