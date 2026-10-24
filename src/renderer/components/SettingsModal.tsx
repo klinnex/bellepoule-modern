@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useFocusTrap } from '../hooks/useFocusTrap';
-import { HINT, SECTION_DIVIDER, BOLD, SMALL_BTN } from './settingsModal.styles';
+import { HINT, SECTION_DIVIDER, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
 import type { Language } from '../contexts/TranslationContext';
 import LanguageSelector from './LanguageSelector';
 import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
@@ -541,7 +541,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   checked={printPreview}
                   onChange={e => handlePrintPreviewChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>{t('settings.print_preview_enable')}</span>
+                <span style={TOGGLE_LABEL}>{t('settings.print_preview_enable')}</span>
               </label>
             </div>
 
@@ -555,7 +555,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   checked={quickMouseScoring}
                   onChange={e => handleQuickMouseScoringChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>{t('settings.quick_mouse_enable')}</span>
+                <span style={TOGGLE_LABEL}>{t('settings.quick_mouse_enable')}</span>
               </label>
             </div>
 
@@ -569,7 +569,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   checked={simplifiedInputMode}
                   onChange={e => handleSimplifiedInputModeChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>{t('settings.simplified_enable')}</span>
+                <span style={TOGGLE_LABEL}>{t('settings.simplified_enable')}</span>
               </label>
             </div>
 
@@ -583,7 +583,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   checked={auditLogEnabled}
                   onChange={e => handleAuditLogChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>{t('settings.audit_enable')}</span>
+                <span style={TOGGLE_LABEL}>{t('settings.audit_enable')}</span>
               </label>
             </div>
 
@@ -597,7 +597,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   checked={confettiDisabled}
                   onChange={e => handleConfettiDisabledChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>{t('settings.animations_disable')}</span>
+                <span style={TOGGLE_LABEL}>{t('settings.animations_disable')}</span>
               </label>
             </div>
 
@@ -706,7 +706,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                       checked={ttsConfig.announce[key] !== false}
                       onChange={e => handleTtsThresholdToggle(key, e.target.checked)}
                     />
-                    <span style={{ fontSize: '0.875rem' }}>{t(label)}</span>
+                    <span style={TOGGLE_LABEL}>{t(label)}</span>
                   </label>
                 ))}
               </div>
