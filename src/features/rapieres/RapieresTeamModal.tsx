@@ -9,9 +9,11 @@ import { useFocusTrap } from '../../renderer/hooks/useFocusTrap';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
 import {
   RAPIERES_AGE_CATEGORIES,
+  RAPIERES_GENDERS,
   RAPIERES_LEVELS,
   RapieresAgeCategory,
   RapieresFencer,
+  RapieresGender,
   RapieresLevel,
   RapieresTeamInfo,
 } from './rapieres.types';
@@ -135,7 +137,9 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
                 <legend className="form-label" style={{ fontWeight: 600 }}>
                   {t('rapieres.fencer_n', { n: String(i + 1) })}
                 </legend>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                <div
+                  style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem' }}
+                >
                   <div className="form-group">
                     <label className="form-label" htmlFor={`rapieres-f${i}-last`}>
                       {t('rapieres.last_name')} *
@@ -175,6 +179,26 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
                       {RAPIERES_AGE_CATEGORIES.map(c => (
                         <option key={c} value={c}>
                           {t(`rapieres.cat_${c}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor={`rapieres-f${i}-gender`}>
+                      {t('rapieres.gender')}
+                    </label>
+                    <select
+                      id={`rapieres-f${i}-gender`}
+                      className="form-input"
+                      value={fencers[i].gender ?? ''}
+                      onChange={e =>
+                        setFencer(i, { gender: (e.target.value || undefined) as RapieresGender })
+                      }
+                    >
+                      <option value="">{t('rapieres.gender_unset')}</option>
+                      {RAPIERES_GENDERS.map(g => (
+                        <option key={g} value={g}>
+                          {t(g === 'M' ? 'genders.male' : 'genders.female')}
                         </option>
                       ))}
                     </select>

@@ -265,6 +265,32 @@ describe('Tournoi des rapières (#1118)', () => {
       ]);
     });
 
+    it('filtre par sexe : un rang par tireur, non renseignés exclus (#1211)', () => {
+      const g: Record<string, RapieresTeamInfo> = {
+        x: {
+          level: 'expert',
+          fencers: [
+            { firstName: 'A', lastName: 'x1', category: 'M20', gender: 'F' },
+            { firstName: 'B', lastName: 'x2', category: 'V1', gender: 'M' },
+          ],
+        },
+        y: {
+          level: 'beginner',
+          fencers: [
+            { firstName: 'A', lastName: 'y1', category: 'M20', gender: 'F' },
+            { firstName: 'B', lastName: 'y2', category: 'M20' },
+          ],
+        },
+      };
+      expect(filterRanking(ranked, g, { kind: 'gender', gender: 'F' })).toEqual([
+        { teamId: 'x', fencerIndex: 0, rank: 1 },
+        { teamId: 'y', fencerIndex: 0, rank: 2 },
+      ]);
+      expect(filterRanking(ranked, g, { kind: 'gender', gender: 'M' })).toEqual([
+        { teamId: 'x', fencerIndex: 1, rank: 1 },
+      ]);
+    });
+
     it('final : tableau, puis non qualifiées, exclues en dernier', () => {
       const [a, b, c, d] = ['a', 'b', 'c', 'd'].map(id => fencer(id));
       d.status = FencerStatus.EXCLUDED;

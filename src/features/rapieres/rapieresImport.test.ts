@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   parseBirthDate,
   parseDelimited,
+  parseRapieresGender,
   parseRapieresTeams,
   rapieresCategoryFromBirthDate,
 } from './rapieresImport';
@@ -46,6 +47,25 @@ describe('rapieresImport (#1211)', () => {
     expect(rapieresCategoryFromBirthDate(null, REF)).toBe('SENIOR');
     // Janvier 2026 : toujours la saison 2025-2026
     expect(rapieresCategoryFromBirthDate(new Date(2006, 0, 1), new Date(2026, 0, 10))).toBe('M20');
+  });
+
+  it('parseRapieresGender reconnaît homme/femme et variantes', () => {
+    expect(parseRapieresGender('Femme')).toBe('F');
+    expect(parseRapieresGender('féminin')).toBe('F');
+    expect(parseRapieresGender('F')).toBe('F');
+    expect(parseRapieresGender('Homme')).toBe('M');
+    expect(parseRapieresGender('H')).toBe('M');
+    expect(parseRapieresGender('masculin')).toBe('M');
+    expect(parseRapieresGender('')).toBeUndefined();
+    expect(parseRapieresGender('?')).toBeUndefined();
+  });
+
+  it('parseRapieresTeams lit le sexe en R et W', () => {
+    const csv = row({ 3: 'A', 4: 'a', 17: 'Femme', 19: 'B', 20: 'b', 22: 'Homme', 24: 'T' });
+    expect(parseRapieresTeams(csv, REF).teams[0].info.fencers.map(f => f.gender)).toEqual([
+      'F',
+      'M',
+    ]);
   });
 
   it('parseRapieresTeams lit D/E/Q, T/U/V et Y, ignore l’en-tête et les lignes incomplètes', () => {

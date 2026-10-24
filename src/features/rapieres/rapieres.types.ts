@@ -22,10 +22,16 @@ export const RAPIERES_AGE_CATEGORIES: RapieresAgeCategory[] = [
   'HANDI',
 ];
 
+/** Sexe d'un tireur (absent = non renseigné) */
+export type RapieresGender = 'M' | 'F';
+
+export const RAPIERES_GENDERS: RapieresGender[] = ['M', 'F'];
+
 export interface RapieresFencer {
   firstName: string;
   lastName: string;
   category: RapieresAgeCategory;
+  gender?: RapieresGender;
 }
 
 /** Composition d'une équipe (tireur de la compétition portant le nom d'équipe) */
