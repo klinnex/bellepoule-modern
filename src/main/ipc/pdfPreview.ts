@@ -37,10 +37,14 @@ export async function previewPdf(
   html: string,
   title = 'BellePoule Modern'
 ): Promise<PdfPreviewResult> {
-  const pdfPath = path.join(deps.tmpDir, `bp-preview-${deps.now()}.pdf`);
-  const cleanup = () => fs.promises.unlink(pdfPath).catch(() => {});
+  // Dossier privé (mkdtemp, 0700) + création exclusive 0600 : pas de fichier prévisible dans le tmp partagé
+  let dir: string | undefined;
+  const cleanup = () =>
+    dir ? fs.promises.rm(dir, { recursive: true, force: true }).catch(() => {}) : Promise.resolve();
   try {
-    await fs.promises.writeFile(pdfPath, await deps.render(html));
+    dir = await fs.promises.mkdtemp(path.join(deps.tmpDir, 'bp-preview-'));
+    const pdfPath = path.join(dir, `bp-preview-${deps.now()}.pdf`);
+    await fs.promises.writeFile(pdfPath, await deps.render(html), { mode: 0o600, flag: 'wx' });
     const external = async () => {
       // Le fichier reste en place : le lecteur externe en a besoin (comportement historique)
       const err = await deps.openExternal(pdfPath);

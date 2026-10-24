@@ -26,15 +26,17 @@ describe('previewPdf (#1214)', () => {
   it('écrit un PDF temporaire, l’ouvre dans la fenêtre interne et le supprime à la fermeture', async () => {
     const deps = makeDeps();
     const res = await previewPdf(deps, '<html></html>', 'Poule 1');
-    const file = path.join(dir, 'bp-preview-42.pdf');
-    expect(res).toEqual({ success: true, path: file });
+    const file = res.path!;
+    expect(res.success).toBe(true);
+    expect(path.dirname(path.dirname(file))).toBe(dir);
+    expect(path.basename(file)).toBe('bp-preview-42.pdf');
     expect(fs.existsSync(file)).toBe(true);
     const [p, title, handlers] = (deps.openWindow as ReturnType<typeof vi.fn>).mock.calls[0];
     expect(p).toBe(file);
     expect(title).toBe('Poule 1');
     handlers.onClosed();
     await new Promise(r => setTimeout(r, 20));
-    expect(fs.existsSync(file)).toBe(false);
+    expect(fs.existsSync(path.dirname(file))).toBe(false);
     expect(deps.openExternal).not.toHaveBeenCalled();
   });
 
@@ -45,7 +47,7 @@ describe('previewPdf (#1214)', () => {
       }),
     });
     const res = await previewPdf(deps, '<html></html>');
-    expect(deps.openExternal).toHaveBeenCalledWith(path.join(dir, 'bp-preview-42.pdf'));
+    expect(deps.openExternal).toHaveBeenCalledWith(res.path);
     expect(res.success).toBe(true);
   });
 
