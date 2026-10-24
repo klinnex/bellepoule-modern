@@ -21,3 +21,5 @@ export const SECTION_DIVIDER: CSSProperties = {
 export const BOLD: CSSProperties = { fontWeight: 600 };
 
 export const SMALL_BTN: CSSProperties = { fontSize: '0.8rem', padding: '0.25rem 0.75rem' };
+
+export const TOGGLE_LABEL: CSSProperties = { fontSize: '0.875rem' };
