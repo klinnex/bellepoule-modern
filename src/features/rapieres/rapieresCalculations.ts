@@ -11,6 +11,7 @@ import type { TableauMatchForPDF } from '../../shared/utils/pdfExport/tableauPdf
 import {
   RAPIERES_LEVELS,
   RapieresAgeCategory,
+  RapieresGender,
   RapieresFencer,
   RapieresLevel,
   RapieresTeamInfo,
@@ -238,7 +239,8 @@ export function filterRapieresQualifiers(pools: Pool[], overall: PoolRanking[]):
 export type RapieresRankingFilter =
   | { kind: 'teams' }
   | { kind: 'level'; level: RapieresLevel }
-  | { kind: 'category'; category: RapieresAgeCategory };
+  | { kind: 'category'; category: RapieresAgeCategory }
+  | { kind: 'gender'; gender: RapieresGender };
 
 export interface RapieresDisplayRow {
   rank: number;
@@ -249,7 +251,7 @@ export interface RapieresDisplayRow {
 
 /**
  * Applique un filtre à un classement d'équipes déjà ordonné (rangs recalculés dans le filtre,
- * ex æquo conservés). Par catégorie : un rang par tireur, avec le résultat de son équipe.
+ * ex æquo conservés). Par catégorie ou par sexe : un rang par tireur, avec le résultat de son équipe.
  */
 export function filterRanking(
   ranked: { teamId: string; rank: number }[],
@@ -265,7 +267,9 @@ export function filterRanking(
       if (team.level === filter.level) rows.push({ rank: 0, teamId: r.teamId, source: r.rank });
     } else {
       team.fencers.forEach((f, i) => {
-        if (f.category === filter.category)
+        if (
+          filter.kind === 'category' ? f.category === filter.category : f.gender === filter.gender
+        )
           rows.push({ rank: 0, teamId: r.teamId, fencerIndex: i as 0 | 1, source: r.rank });
       });
     }

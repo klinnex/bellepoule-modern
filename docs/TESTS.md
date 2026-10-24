@@ -92,7 +92,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 3 | 19 |
+| Feature `rapieres` (`src/features/rapieres/`) | 3 | 22 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
 | `src/main/` | 17 | 201 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **164** | **1575** |
+| **Total** | **164** | **1578** |
 
-Unitaires : 155 fichiers, 1540 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 155 fichiers, 1543 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1597,7 +1597,7 @@ Unitaires : 155 fichiers, 1540 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 13 tests</summary>
+<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 14 tests</summary>
 
 - **Tournoi des rapières (#1118)**
   - libellé des tireurs de l’équipe
@@ -1617,17 +1617,20 @@ Unitaires : 155 fichiers, 1540 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - 3 poules ou moins : 1ers et 2es ; au-delà : 1ers
   - **classements**
     - filtres : niveau et catégorie d’âge (un rang par tireur)
+    - filtre par sexe : un rang par tireur, non renseignés exclus (#1211)
     - final : tableau, puis non qualifiées, exclues en dernier
 
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresImport.test.ts</code> — 4 tests</summary>
+<summary><code>src/features/rapieres/rapieresImport.test.ts</code> — 6 tests</summary>
 
 - **rapieresImport (#1211)**
   - parseDelimited gère BOM, guillemets et CRLF
   - parseBirthDate lit JJ/MM/AAAA, ISO et série Excel
   - catégorie selon l’âge atteint dans l’année de début de saison
+  - parseRapieresGender reconnaît homme/femme et variantes
+  - parseRapieresTeams lit le sexe en R et W
   - parseRapieresTeams lit D/E/Q, T/U/V et Y, ignore l’en-tête et les lignes incomplètes
 
 </details>
