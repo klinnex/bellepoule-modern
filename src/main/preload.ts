@@ -423,7 +423,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
       if (!html || typeof html !== 'string') {
         throw new Error('HTML content is required');
       }
-      return ipcRenderer.invoke('file:printHtml', html);
+      // Aperçu avant impression (#1214) : actif par défaut, désactivable dans les paramètres
+      let preview = true;
+      try {
+        preview = localStorage.getItem('bellepoule-print-preview') !== 'false';
+      } catch {
+        /* stockage indisponible : aperçu actif */
+      }
+      return ipcRenderer.invoke('file:printHtml', html, { preview });
+    },
+    previewPdf: (html: string, title?: string) => {
+      if (!html || typeof html !== 'string') {
+        throw new Error('HTML content is required');
+      }
+      return ipcRenderer.invoke('file:previewPdf', html, title);
     },
     printHtmlToPDF: (html: string, outputPath: string) => {
       if (!html || typeof html !== 'string') {

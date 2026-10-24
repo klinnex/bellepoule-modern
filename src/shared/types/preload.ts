@@ -983,6 +983,10 @@ export interface FileAPI {
     html: string,
     outputPath: string
   ) => Promise<{ success: boolean; path?: string; error?: string }>;
+  previewPdf: (
+    html: string,
+    title?: string
+  ) => Promise<{ success: boolean; path?: string; error?: string }>;
   previewHtmlAsPDF: (html: string) => Promise<{ success: boolean; path?: string; error?: string }>;
   exportPhotos: (competitionId: string, filepath: string) => Promise<{ count: number }>;
   importPhotos: (

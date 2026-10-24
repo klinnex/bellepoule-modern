@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 3 | 22 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 16 | 197 |
+| `src/main/` | 17 | 201 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 31 | 154 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 3 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **163** | **1574** |
+| **Total** | **164** | **1578** |
 
-Unitaires : 154 fichiers, 1539 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 155 fichiers, 1543 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1984,6 +1984,17 @@ Unitaires : 154 fichiers, 1539 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **validation fencers.json (#1146)**
   - accepte une liste valide
   - refuse non-tableau, éléments mal formés, champs trop longs
+
+</details>
+
+<details>
+<summary><code>src/main/pdfPreview.test.ts</code> — 4 tests</summary>
+
+- **previewPdf (#1214)**
+  - écrit un PDF temporaire, l’ouvre dans la fenêtre interne et le supprime à la fermeture
+  - repli sur le lecteur externe si la fenêtre ne peut pas s’ouvrir
+  - repli sur le lecteur externe si le chargement échoue
+  - erreur de rendu : échec sans fichier résiduel
 
 </details>
 

@@ -27,6 +27,7 @@ import { eventLoopMonitor } from './eventLoopMonitor';
 import { fmt, getL, getUiLanguage, setUiLanguage } from './menuLabels';
 import { registerDbHandlers } from './ipc/dbHandlers';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
+import { previewPdf, registerPdfPreviewHandlers } from './ipc/pdfPreview';
 import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from './remoteRegistry';
 import { applyActiveWave, setActiveWave } from './remote/activeWave';
 import { isAllowedExternalUrl, isAppUrl, isPermissionAllowed } from './windowSecurity';
@@ -945,7 +946,9 @@ ipcMain.handle('window:print', async () => {
 });
 
 // Print via hidden BrowserWindow — opens system print dialog on clean HTML
-ipcMain.handle('file:printHtml', async (_, html: string) => {
+ipcMain.handle('file:printHtml', async (_, html: string, opts?: { preview?: boolean }) => {
+  // Aperçu d'abord (#1214) ; l'impression se lance depuis la visionneuse
+  if (opts?.preview) return previewPdf(pdfPreviewDeps, html);
   const tmpFile = path.join(os.tmpdir(), `bp-print-${Date.now()}.html`);
   try {
     await fs.promises.writeFile(tmpFile, html, 'utf-8');
@@ -1049,24 +1052,14 @@ ipcMain.handle('file:printHtmlToPDF', async (_, html: string, outputPath: string
   }
 });
 
-// Aperçu avant impression : génère le PDF et l'ouvre dans le lecteur PDF par défaut de l'OS.
-// Contourne la limitation de Windows 11 où la boîte de dialogue d'impression native
-// n'affiche pas d'aperçu pour les applications Win32/Electron (Chromium n'expose pas
-// sa propre page d'aperçu via webContents.print()).
-ipcMain.handle('file:previewHtmlAsPDF', async (_, html: string) => {
-  const tmpPdfFile = path.join(os.tmpdir(), `bp-preview-${Date.now()}.pdf`);
-  try {
-    const data = await renderHtmlToPdfBuffer(html);
-    await fs.promises.writeFile(tmpPdfFile, data);
-    const openError = await shell.openPath(tmpPdfFile);
-    if (openError) {
-      return { success: false, error: openError };
-    }
-    return { success: true, path: tmpPdfFile };
-  } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : String(e) };
-  }
+// Aperçu avant impression (#1214) : visionneuse PDF interne, repli sur le lecteur externe de l'OS.
+// `file:previewHtmlAsPDF` conservé (alias de `file:previewPdf`).
+const pdfPreviewDeps = registerPdfPreviewHandlers({
+  getMainWindow: () => mainWindow,
+  render: renderHtmlToPdfBuffer,
+  openExternal: p => shell.openPath(p),
 });
+ipcMain.handle('file:previewHtmlAsPDF', (_, html: string) => previewPdf(pdfPreviewDeps, html));
 
 // Shell handlers
 // Lag de la boucle d'événements du main (#1154) ; `reset` ouvre une nouvelle fenêtre de mesure
