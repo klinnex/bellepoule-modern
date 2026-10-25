@@ -22,6 +22,7 @@ import Confetti from '../Confetti';
 import CoachMark from '../CoachMark';
 import { Phase } from '../../hooks/useCompetitionSession';
 import { categoryLabel, weaponLabel, genderLabel } from '../../../shared/utils/categoryLabel';
+import { toBcp47 } from '../../../shared/utils/localeFormat';
 
 interface MatchProgress {
   done: number;
@@ -118,15 +119,12 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
             <h1 className="comp-header-title">{competition.title}</h1>
             {expanded && (
               <p className="comp-header-meta">
-                {new Date(competition.date).toLocaleDateString(
-                  language === 'zh-HK' ? 'zh-HK' : language,
-                  {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  }
-                )}
+                {new Date(competition.date).toLocaleDateString(toBcp47(language), {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
                 {competition.location && ` · ${competition.location}`}
               </p>
             )}
