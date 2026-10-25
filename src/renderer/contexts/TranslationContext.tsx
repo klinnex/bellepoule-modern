@@ -184,10 +184,12 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
     initialize();
   }, []);
 
-  // Langue active : formats Intl (dates, nombres), attribut lang du document (lecteurs
-  // d'écran, césure, correcteur orthographique) (#1160)
+  // Langue active des formats Intl (dates, nombres) : fixée pendant le rendu, avant celui
+  // des enfants, sinon ils formatent avec la langue précédente (#1213)
+  setActiveLanguage(language);
+
+  // Attribut lang du document (lecteurs d'écran, césure, correcteur orthographique) (#1160)
   useEffect(() => {
-    setActiveLanguage(language);
     document.documentElement.lang = language;
     document.documentElement.dir = 'ltr';
   }, [language]);
