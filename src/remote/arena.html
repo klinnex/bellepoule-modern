@@ -1314,16 +1314,16 @@
     <!-- Overlay tirage au sort (pièce 3D) -->
     <div id="coin-flip-overlay" class="hidden">
       <div class="coin-flip-content">
-        <div class="coin-flip-title">Tirage au sort</div>
-        <div class="coin-flip-subtitle">Égalité persistante — fin du temps supplémentaire</div>
+        <div class="coin-flip-title" data-i18n="arena.coin_title">Tirage au sort</div>
+        <div class="coin-flip-subtitle" data-i18n="arena.coin_subtitle">Égalité persistante — fin du temps supplémentaire</div>
         <div class="coin-scene">
           <div class="coin" id="coin-3d">
             <div class="coin-face coin-front">
-              <span class="coin-face-label">VERT</span>
+              <span class="coin-face-label" data-i18n="arena.coin_green">VERT</span>
               <span class="coin-face-name" id="coin-name-green">—</span>
             </div>
             <div class="coin-face coin-back">
-              <span class="coin-face-label">ROUGE</span>
+              <span class="coin-face-label" data-i18n="arena.coin_red">ROUGE</span>
               <span class="coin-face-name" id="coin-name-red">—</span>
             </div>
           </div>
@@ -1335,13 +1335,13 @@
     <div id="card-announcement-banner" class="card-announcement-banner"></div>
 
     <div class="arena-number-strip">
-      <span class="arena-word-label">Arène</span> <span id="arena-strip-number">1</span>
+      <span class="arena-word-label" data-i18n="remote.arena">Arène</span> <span id="arena-strip-number">1</span>
     </div>
 
     <header class="header">
       <div class="arena-title">
         <span aria-hidden="true">⚔️</span>
-        <span><span class="arena-word-label">Arène</span> <span id="arena-number">1</span></span>
+        <span><span class="arena-word-label" data-i18n="remote.arena">Arène</span> <span id="arena-number">1</span></span>
       </div>
       <div class="status-section">
         <div class="inversion-toggle">
@@ -1361,7 +1361,7 @@
       <div class="waiting-screen" id="waiting-screen">
         <!-- Aperçu prochain combat (visible quand nextMatch disponible) -->
         <div class="next-idle-preview hidden" id="next-idle-preview">
-          <div class="next-idle-label">⚔ Prochain combat</div>
+          <div class="next-idle-label" data-i18n="arena.next_fight">⚔ Prochain combat</div>
           <div class="next-idle-fighters">
             <!-- Tireur A (Vert) -->
             <div class="photo-card photo-card-a">
@@ -1400,7 +1400,7 @@
               <div class="intro-fencer-club" id="idle-club-b"></div>
             </div>
           </div>
-          <div class="idle-referee-banner hidden" id="idle-referee-banner">⚖️ Arbitre : <span id="idle-referee-label"></span></div>
+          <div class="idle-referee-banner hidden" id="idle-referee-banner"><span data-i18n="referee.referee_label">⚖️ Arbitre :</span> <span id="idle-referee-label"></span></div>
         </div>
         <!-- Grand numéro (visible quand pas de nextMatch) -->
         <div class="arena-idle-number" id="arena-idle-number">1</div>
@@ -1453,7 +1453,7 @@
       <div class="match-display" id="match-display">
         <div class="fencers-row">
           <!-- Tireur A (Rouge) -->
-          <div id="fencer-a-display" class="fencer-display red-side" role="region" aria-label="Tireur rouge">
+          <div id="fencer-a-display" class="fencer-display red-side" role="region" aria-label="Tireur rouge" data-i18n-aria-label="arena.fencer_red">
             <div id="color-badge-a" class="color-badge red" aria-hidden="true"></div>
             <div class="fencer-name" id="fencer-a-name">-</div>
             <div class="fencer-club" id="fencer-a-club">-</div>
@@ -1465,7 +1465,7 @@
           <div class="vs-divider" aria-hidden="true">VS</div>
 
           <!-- Tireur B (Vert) -->
-          <div id="fencer-b-display" class="fencer-display green-side" role="region" aria-label="Tireur vert">
+          <div id="fencer-b-display" class="fencer-display green-side" role="region" aria-label="Tireur vert" data-i18n-aria-label="arena.fencer_green">
             <div id="color-badge-b" class="color-badge green" aria-hidden="true"></div>
             <div class="fencer-name" id="fencer-b-name">-</div>
             <div class="fencer-club" id="fencer-b-club">-</div>
@@ -1476,16 +1476,16 @@
 
         <!-- Chronomètre -->
         <div class="timer-section">
-          <div class="mort-subite-banner" id="mort-subite-banner">⚡ MORT SUBITE</div>
-          <div class="timer-display" id="timer-display" role="timer" aria-label="Temps restant">03:00</div>
-          <div class="waiting-overtime-banner" id="waiting-overtime-banner">⚖️ ÉGALITÉ – attente arbitre</div>
-          <div class="sudden-death-banner" id="sudden-death-banner">⏱ 30s SUPPLEMENTAIRE</div>
-          <div class="timer-label">Temps restant</div>
+          <div class="mort-subite-banner" id="mort-subite-banner" data-i18n="referee.sudden_death">⚡ MORT SUBITE</div>
+          <div class="timer-display" id="timer-display" role="timer" aria-label="Temps restant" data-i18n-aria-label="arena.time_left">03:00</div>
+          <div class="waiting-overtime-banner" id="waiting-overtime-banner" data-i18n="arena.waiting_overtime">⚖️ ÉGALITÉ – attente arbitre</div>
+          <div class="sudden-death-banner" id="sudden-death-banner" data-i18n="referee.supplementary_time">⏱ 30s SUPPLEMENTAIRE</div>
+          <div class="timer-label" data-i18n="arena.time_left">Temps restant</div>
         </div>
 
         <!-- Prochain combat (affiché quand status=finished et nextMatch disponible) -->
         <div class="next-match-panel hidden" id="next-match-panel">
-          <div class="next-match-label">⚔ Prochain</div>
+          <div class="next-match-label" data-i18n="arena.next_short">⚔ Prochain</div>
           <div class="next-match-fighters">
             <div class="next-fighter next-fighter-a">
               <div class="next-photo-wrap">
@@ -1579,7 +1579,7 @@
                 document.querySelectorAll('.arena-word-label').forEach(el => (el.textContent = window.T('remote.piste')));
                 // Temps supplémentaire d'une minute en escrime olympique (#1027)
                 const banner = document.getElementById('sudden-death-banner');
-                if (banner) banner.textContent = '⏱ 1 MIN SUPPLÉMENTAIRE';
+                if (banner) banner.textContent = window.T('arena.supplementary_1min');
               }
             })
             .catch(() => {});

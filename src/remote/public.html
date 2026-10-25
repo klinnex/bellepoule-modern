@@ -754,16 +754,16 @@
     <!-- Overlay tirage au sort (pièce 3D) -->
     <div id="coin-flip-overlay" class="hidden">
       <div class="coin-flip-content">
-        <div class="coin-flip-title">Tirage au sort</div>
-        <div class="coin-flip-subtitle">Égalité persistante — fin du temps supplémentaire</div>
+        <div class="coin-flip-title" data-i18n="arena.coin_title">Tirage au sort</div>
+        <div class="coin-flip-subtitle" data-i18n="arena.coin_subtitle">Égalité persistante — fin du temps supplémentaire</div>
         <div class="coin-scene">
           <div class="coin" id="coin-3d">
             <div class="coin-face coin-front">
-              <span class="coin-face-label">VERT</span>
+              <span class="coin-face-label" data-i18n="arena.coin_green">VERT</span>
               <span class="coin-face-name" id="coin-name-green">—</span>
             </div>
             <div class="coin-face coin-back">
-              <span class="coin-face-label">ROUGE</span>
+              <span class="coin-face-label" data-i18n="arena.coin_red">ROUGE</span>
               <span class="coin-face-name" id="coin-name-red">—</span>
             </div>
           </div>
@@ -777,7 +777,7 @@
     <div class="header">
       <div class="arena-title">
         <span>⚔️</span>
-        <span><span id="arena-word-label">Arène</span> <span id="arena-number">1</span></span>
+        <span><span id="arena-word-label" data-i18n="remote.arena">Arène</span> <span id="arena-number">1</span></span>
       </div>
       <div class="status-section">
         <div class="inversion-toggle">
@@ -868,10 +868,10 @@
 
         <!-- Chronomètre -->
         <div class="timer-section">
-          <div class="mort-subite-banner" id="mort-subite-banner">⚡ MORT SUBITE</div>
+          <div class="mort-subite-banner" id="mort-subite-banner" data-i18n="referee.sudden_death">⚡ MORT SUBITE</div>
           <div class="timer-display" id="timer-display">03:00</div>
-          <div class="sudden-death-banner" id="sudden-death-banner">⏱ 30s SUPPLEMENTAIRE</div>
-          <div class="timer-label">Temps restant</div>
+          <div class="sudden-death-banner" id="sudden-death-banner" data-i18n="referee.supplementary_time">⏱ 30s SUPPLEMENTAIRE</div>
+          <div class="timer-label" data-i18n="arena.time_left">Temps restant</div>
         </div>
       </div>
     </div>
@@ -1366,7 +1366,7 @@
 
       document.addEventListener('DOMContentLoaded', async () => {
         await window.initRemoteI18n();
-        document.title = window.T('arena.title');
+        document.title = window.T('public.title');
         new PublicDisplay();
       });
     </script>
