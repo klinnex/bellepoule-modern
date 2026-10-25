@@ -98,8 +98,11 @@ export function useRapieresTeams({
     rapieresFencerFields,
     handleSaveRapieresTeam,
     handleImportRapieresTeams,
-    rapieresImport,
-    closeRapieresImport: () => setRapieresImport(null),
-    confirmRapieresImport,
+    /** Props de la fenêtre de sélection (null = fermée) */
+    rapieresImportModal: rapieresImport && {
+      ...rapieresImport,
+      onImport: confirmRapieresImport,
+      onClose: () => setRapieresImport(null),
+    },
   };
 }

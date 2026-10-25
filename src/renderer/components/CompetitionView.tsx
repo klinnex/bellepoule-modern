@@ -71,6 +71,7 @@ import {
 } from '../../shared/utils/customFormulaSettings';
 import {
   createRapieresSession,
+  emptyRapieresTeamInfo,
   RapieresLegacyState,
   RapieresSession,
   RapieresTeamInfo,
@@ -1131,20 +1132,14 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   };
 
   // ─── Tournoi des rapières : équipes enregistrées comme tireurs (#1118) ─────
-  const {
-    rapieresFencerFields,
-    handleSaveRapieresTeam,
-    handleImportRapieresTeams,
-    rapieresImport,
-    closeRapieresImport,
-    confirmRapieresImport,
-  } = useRapieresTeams({
+  const rapieresTeams = useRapieresTeams({
     competitionDate: competition.date,
     addFencer,
     bulkAddFencers,
     updateFencer,
     setRapieresTeam,
   });
+  const { rapieresFencerFields, handleSaveRapieresTeam, handleImportRapieresTeams } = rapieresTeams;
 
   // Migration de la première version (vue dédiée) : équipes recréées comme tireurs
   const rapieresMigrating = useRef(false);
@@ -2952,14 +2947,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         </Suspense>
       )}
 
-      {rapieresImport && (
-        <RapieresImportModal
-          filename={rapieresImport.filename}
-          teams={rapieresImport.teams}
-          skipped={rapieresImport.skipped}
-          onImport={confirmRapieresImport}
-          onClose={closeRapieresImport}
-        />
+      {rapieresTeams.rapieresImportModal && (
+        <RapieresImportModal {...rapieresTeams.rapieresImportModal} />
       )}
       {rapieresTeamModal && (
         <RapieresTeamModal
@@ -2967,13 +2956,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             rapieresTeamModal.fencer
               ? {
                   name: rapieresTeamModal.fencer.lastName,
-                  info: rapieres.teams[rapieresTeamModal.fencer.id] ?? {
-                    level: 'beginner',
-                    fencers: [
-                      { lastName: '', firstName: '', category: 'SENIOR' },
-                      { lastName: '', firstName: '', category: 'SENIOR' },
-                    ],
-                  },
+                  info: rapieres.teams[rapieresTeamModal.fencer.id] ?? emptyRapieresTeamInfo(),
                 }
               : undefined
           }

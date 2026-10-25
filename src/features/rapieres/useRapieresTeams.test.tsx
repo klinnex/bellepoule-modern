@@ -38,12 +38,12 @@ describe('useRapieresTeams : import des équipes (#1211)', () => {
       })
     );
     await act(() => result.current.handleImportRapieresTeams());
-    const pending = result.current.rapieresImport;
+    const pending = result.current.rapieresImportModal;
     expect(pending?.filename).toBe('export.csv');
     expect(pending?.teams.map(t => t.name)).toEqual(['Alpha', 'Beta']);
     expect(bulkAddFencers).not.toHaveBeenCalled();
 
-    await act(() => result.current.confirmRapieresImport(pending!.teams));
+    await act(() => pending!.onImport(pending!.teams));
     expect(addFencer).not.toHaveBeenCalled();
     expect(bulkAddFencers).toHaveBeenCalledTimes(1);
     expect(bulkAddFencers.mock.calls[0][0].map((f: Fencer) => f.lastName)).toEqual([
