@@ -237,7 +237,7 @@ enum Weapon { EPEE = 'E', FOIL = 'F', SABRE = 'S', LASER = 'L', CUSTOM = 'C' }
 
 enum Gender { MALE, FEMALE, MIXED }
 
-enum Category { U11, U13, U15, U17, U20, SENIOR, V1, V2, V3, V4 }
+enum Category { U9, U11, U13, U15, U17, U20, SENIOR, V1, V2, V3, V4 }
 
 enum FencerStatus {
   QUALIFIED, ELIMINATED, ABANDONED, EXCLUDED,

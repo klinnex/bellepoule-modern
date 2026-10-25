@@ -205,6 +205,7 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
                   value={category}
                   onChange={e => setCategory(e.target.value as Category)}
                 >
+                  <option value={Category.U9}>{t('categories.U9')}</option>
                   <option value={Category.U11}>{t('categories.U11')}</option>
                   <option value={Category.U13}>{t('categories.U13')}</option>
                   <option value={Category.U15}>{t('categories.U15')}</option>

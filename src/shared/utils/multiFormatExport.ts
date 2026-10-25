@@ -248,6 +248,7 @@ export interface TableauMatchForXML {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
+  U9: 'M9',
   U11: 'M11',
   U13: 'M13',
   U15: 'M15',

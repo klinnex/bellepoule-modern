@@ -86,6 +86,7 @@
     "VOLUNTARY_EXIT": "Freiwilliges Verlassen der Bahn"
   },
   "categories": {
+    "U9": "U9",
     "U11": "U11",
     "U13": "U13",
     "U15": "U15",
