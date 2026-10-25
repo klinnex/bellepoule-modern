@@ -62,7 +62,7 @@ const RapieresImportModal: React.FC<RapieresImportModalProps> = ({
     <>
       {[f.lastName.toUpperCase(), f.firstName].filter(Boolean).join(' ')}
       <br />
-      <small style={{ opacity: 0.8 }}>
+      <small className="rapieres-import-meta">
         {t(`rapieres.cat_${f.category}`)}
         {f.gender ? ` · ${t(f.gender === 'M' ? 'genders.male' : 'genders.female')}` : ''}
       </small>
@@ -90,57 +90,28 @@ const RapieresImportModal: React.FC<RapieresImportModalProps> = ({
         </>
       }
     >
-      <div
-        style={{
-          marginBottom: '1rem',
-          padding: '0.75rem',
-          background: 'var(--color-bg)',
-          borderRadius: '6px',
-        }}
-      >
+      <div className="rapieres-import-info">
         <strong>{t('importModal.file')}</strong> {filename}
       </div>
 
       {skipped.length > 0 && (
-        <div
-          style={{
-            marginBottom: '1rem',
-            padding: '0.75rem',
-            background: '#fef3c7',
-            borderRadius: '6px',
-            color: '#d97706',
-          }}
-        >
+        <div className="rapieres-import-warning">
           {t('rapieres.import_skipped', { lines: skipped.join(', ') })}
         </div>
       )}
 
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '0.5rem',
-        }}
-      >
+      <div className="rapieres-import-toolbar">
         <span>{t('rapieres.import_found', { n: String(teams.length) })}</span>
         <button className="btn btn-secondary btn-sm" onClick={toggleAll}>
           {allSelected ? t('importModal.deselect_all') : t('importModal.select_all')}
         </button>
       </div>
 
-      <div
-        style={{
-          border: '1px solid var(--color-border)',
-          borderRadius: '6px',
-          maxHeight: '400px',
-          overflow: 'auto',
-        }}
-      >
+      <div className="rapieres-import-table">
         <table style={TABLE}>
           <thead style={STICKY_HEAD}>
             <tr>
-              <th style={{ padding: '0.5rem', textAlign: 'center', width: '40px' }}>✓</th>
+              <th className="rapieres-import-check">✓</th>
               <th style={TD_LEFT}>{t('rapieres.team')}</th>
               <th style={TD_LEFT}>{t('rapieres.fencer')} 1</th>
               <th style={TD_LEFT}>{t('rapieres.fencer')} 2</th>
@@ -154,12 +125,7 @@ const RapieresImportModal: React.FC<RapieresImportModalProps> = ({
                 <tr
                   key={index}
                   onClick={() => toggle(index)}
-                  style={{
-                    cursor: 'pointer',
-                    background: on ? 'var(--color-primary)' : 'transparent',
-                    color: on ? '#FFFFFF' : 'var(--color-text)',
-                    borderBottom: '1px solid var(--color-border)',
-                  }}
+                  className={`rapieres-import-row${on ? ' is-selected' : ''}`}
                 >
                   <td style={TD_CENTER}>
                     <input

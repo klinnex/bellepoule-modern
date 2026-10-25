@@ -62,6 +62,15 @@ export interface RapieresLegacyState {
   }[];
 }
 
+/** Composition vide (équipe sans composition enregistrée) */
+export const emptyRapieresTeamInfo = (): RapieresTeamInfo => ({
+  level: 'beginner',
+  fencers: [
+    { lastName: '', firstName: '', category: 'SENIOR' },
+    { lastName: '', firstName: '', category: 'SENIOR' },
+  ],
+});
+
 export const createRapieresSession = (): RapieresSession => ({
   version: 2,
   teams: {},
