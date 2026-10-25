@@ -4,12 +4,12 @@ Les pages `src/remote/*.html` utilisent `src/remote/i18n.js` (langues : **fr, en
 
 ## Plan
 
-| Étape | Contenu                                                                                                    | État    |
-| ----- | ---------------------------------------------------------------------------------------------------------- | ------- |
-| 1     | Inventaire des textes en dur par page : `node scripts/inventory-remote-i18n.js`                            | fait    |
-| 2     | Passage en `data-i18n` / `data-i18n-placeholder` / `data-i18n-title` ou `T()` (page par page, PR séparées) | à faire |
-| 3     | Ajout de de / es / ca / br dans `i18n.js`                                                                  | à faire |
-| 4     | Contrôle CI de complétude des langues (comme `check:i18n`)                                                 | à faire |
+| Étape | Contenu                                                                                                                             | État                           |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| 1     | Inventaire des textes en dur par page : `node scripts/inventory-remote-i18n.js`                                                     | fait                           |
+| 2     | Passage en `data-i18n` / `data-i18n-placeholder` / `data-i18n-title` / `data-i18n-aria-label` ou `T()` (page par page, PR séparées) | en cours : arena, public faits |
+| 3     | Ajout de de / es / ca / br dans `i18n.js`                                                                                           | à faire                        |
+| 4     | Contrôle CI de complétude des langues (comme `check:i18n`)                                                                          | à faire                        |
 
 ## Inventaire (étape 1)
 
@@ -17,10 +17,10 @@ Textes visibles et attributs `placeholder` / `title` / `aria-label` sans balise,
 
 | Page                                            |    En dur | Balisés |
 | ----------------------------------------------- | --------: | ------: |
-| arena.html                                      |        21 |       4 |
+| arena.html                                      |         5 |      20 |
 | referee.html                                    |        23 |      42 |
 | pool.html                                       |        12 |       5 |
-| public.html                                     |        11 |       4 |
+| public.html                                     |         3 |      12 |
 | dashboard.html (non servie)                     |        11 |      10 |
 | teamReferee.html                                |         5 |       9 |
 | pool-ocr.html                                   |         4 |      18 |
@@ -31,7 +31,7 @@ Textes visibles et attributs `placeholder` / `title` / `aria-label` sans balise,
 | checkin / overlay / register / tireur / trainer | 1 chacune |       — |
 | lobby / matchs                                  |         0 |       — |
 
-Total : 102 textes en dur. Détail : `node scripts/inventory-remote-i18n.js`.
+Total : 102 textes en dur à l'étape 1 (arena et public : reste `<title>` posé par JS et « VS »). Détail : `node scripts/inventory-remote-i18n.js`.
 
 ## Tester la traduction actuelle
 

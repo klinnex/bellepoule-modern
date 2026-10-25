@@ -92,6 +92,18 @@
       'arena.status_next': 'Prochain',
       'arena.status_in_progress': 'En cours',
       'arena.status_finished': 'Terminé',
+      'arena.coin_title': 'Tirage au sort',
+      'arena.coin_subtitle': 'Égalité persistante — fin du temps supplémentaire',
+      'arena.coin_green': 'VERT',
+      'arena.coin_red': 'ROUGE',
+      'arena.next_fight': '⚔ Prochain combat',
+      'arena.next_short': '⚔ Prochain',
+      'arena.fencer_red': 'Tireur rouge',
+      'arena.fencer_green': 'Tireur vert',
+      'arena.time_left': 'Temps restant',
+      'arena.waiting_overtime': '⚖️ ÉGALITÉ – attente arbitre',
+      'arena.supplementary_1min': '⏱ 1 MIN SUPPLÉMENTAIRE',
+      'public.title': 'Vue Publique – BellePoule',
       /* pool */
       'pool.title': 'BellePoule',
       'pool.loading': 'Chargement…',
@@ -530,6 +542,18 @@
       'arena.status_next': 'Next',
       'arena.status_in_progress': 'In progress',
       'arena.status_finished': 'Finished',
+      'arena.coin_title': 'Coin toss',
+      'arena.coin_subtitle': 'Tie persists — end of extra time',
+      'arena.coin_green': 'GREEN',
+      'arena.coin_red': 'RED',
+      'arena.next_fight': '⚔ Next bout',
+      'arena.next_short': '⚔ Next',
+      'arena.fencer_red': 'Red fencer',
+      'arena.fencer_green': 'Green fencer',
+      'arena.time_left': 'Time remaining',
+      'arena.waiting_overtime': '⚖️ TIE – waiting for referee',
+      'arena.supplementary_1min': '⏱ 1 MIN EXTRA TIME',
+      'public.title': 'Public View – BellePoule',
       /* pool */
       'pool.title': 'BellePoule',
       'pool.loading': 'Loading…',
@@ -966,6 +990,18 @@
       'arena.status_next': '下一場',
       'arena.status_in_progress': '進行中',
       'arena.status_finished': '已完成',
+      'arena.coin_title': '抽籤',
+      'arena.coin_subtitle': '仍然平手 — 加時結束',
+      'arena.coin_green': '綠',
+      'arena.coin_red': '紅',
+      'arena.next_fight': '⚔ 下一場比賽',
+      'arena.next_short': '⚔ 下一場',
+      'arena.fencer_red': '紅方劍手',
+      'arena.fencer_green': '綠方劍手',
+      'arena.time_left': '剩餘時間',
+      'arena.waiting_overtime': '⚖️ 平手 – 等待裁判',
+      'arena.supplementary_1min': '⏱ 加時 1 分鐘',
+      'public.title': '公開檢視 – BellePoule',
       /* pool */
       'pool.title': 'BellePoule',
       'pool.loading': '載入中…',
@@ -1346,6 +1382,10 @@
     document.querySelectorAll('[data-i18n-title]').forEach(function (el) {
       const key = el.getAttribute('data-i18n-title');
       el.setAttribute('title', window.T(key));
+    });
+    document.querySelectorAll('[data-i18n-aria-label]').forEach(function (el) {
+      const key = el.getAttribute('data-i18n-aria-label');
+      el.setAttribute('aria-label', window.T(key));
     });
   }
 
