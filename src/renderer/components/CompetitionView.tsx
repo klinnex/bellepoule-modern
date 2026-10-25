@@ -85,6 +85,7 @@ import {
   waveMatchOrder,
 } from '../../features/rapieres/rapieresCalculations';
 import RapieresTeamModal from '../../features/rapieres/RapieresTeamModal';
+import RapieresImportModal from '../../features/rapieres/RapieresImportModal';
 import { useRapieresTeams } from '../../features/rapieres/useRapieresTeams';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import RapieresWaveBar from '../../features/rapieres/RapieresWaveBar';
@@ -1130,13 +1131,20 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   };
 
   // ─── Tournoi des rapières : équipes enregistrées comme tireurs (#1118) ─────
-  const { rapieresFencerFields, handleSaveRapieresTeam, handleImportRapieresTeams } =
-    useRapieresTeams({
-      competitionDate: competition.date,
-      addFencer,
-      updateFencer,
-      setRapieresTeam,
-    });
+  const {
+    rapieresFencerFields,
+    handleSaveRapieresTeam,
+    handleImportRapieresTeams,
+    rapieresImport,
+    closeRapieresImport,
+    confirmRapieresImport,
+  } = useRapieresTeams({
+    competitionDate: competition.date,
+    addFencer,
+    bulkAddFencers,
+    updateFencer,
+    setRapieresTeam,
+  });
 
   // Migration de la première version (vue dédiée) : équipes recréées comme tireurs
   const rapieresMigrating = useRef(false);
@@ -2944,6 +2952,15 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         </Suspense>
       )}
 
+      {rapieresImport && (
+        <RapieresImportModal
+          filename={rapieresImport.filename}
+          teams={rapieresImport.teams}
+          skipped={rapieresImport.skipped}
+          onImport={confirmRapieresImport}
+          onClose={closeRapieresImport}
+        />
+      )}
       {rapieresTeamModal && (
         <RapieresTeamModal
           initial={

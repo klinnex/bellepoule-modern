@@ -865,7 +865,9 @@
     "import_teams": "Import teams (CSV / Excel)",
     "import_empty": "No team found in the file (columns D/E, T/U and Y expected).",
     "import_done": "{{n}} team(s) imported.",
-    "import_skipped": "Skipped rows (incomplete): {{lines}}."
+    "import_skipped": "Skipped rows (incomplete): {{lines}}.",
+    "import_found": "{{n}} team(s) found in the file",
+    "import_n": "Import {{n}} team(s)"
   },
   "errors": {
     "server_not_started": "Server not started",

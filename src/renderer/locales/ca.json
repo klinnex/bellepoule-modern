@@ -865,7 +865,9 @@
     "import_teams": "Importa els equips (CSV / Excel)",
     "import_empty": "No s'ha trobat cap equip al fitxer (s'esperen les columnes D/E, T/U i Y).",
     "import_done": "{{n}} equip(s) importat(s).",
-    "import_skipped": "Files omeses (incompletes): {{lines}}."
+    "import_skipped": "Files omeses (incompletes): {{lines}}.",
+    "import_found": "{{n}} equip(s) trobat(s) al fitxer",
+    "import_n": "Importa {{n}} equip(s)"
   },
   "errors": {
     "server_not_started": "Servidor no iniciat",

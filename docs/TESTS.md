@@ -92,7 +92,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 3 | 22 |
+| Feature `rapieres` (`src/features/rapieres/`) | 4 | 24 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
 | `src/main/` | 17 | 201 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **164** | **1579** |
+| **Total** | **165** | **1581** |
 
-Unitaires : 155 fichiers, 1544 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 156 fichiers, 1546 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1588,11 +1588,12 @@ Unitaires : 155 fichiers, 1544 tests. E2E : 9 fichiers, 35 tests (comptage stati
 ### Feature `rapieres` (`src/features/rapieres/`)
 
 <details>
-<summary><code>src/features/rapieres/RapieresComponents.test.tsx</code> — 2 tests</summary>
+<summary><code>src/features/rapieres/RapieresComponents.test.tsx</code> — 3 tests</summary>
 
 - **Tournoi des rapières : composants (#1118)**
   - fenêtre équipe : nom, niveau, deux tireurs avec catégorie
   - barre des vagues : lancement, vague incomplète, fin anticipée
+  - fenêtre d'import : équipes cochées par défaut, sélection transmise (#1211)
 
 </details>
 
@@ -1632,6 +1633,14 @@ Unitaires : 155 fichiers, 1544 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - parseRapieresGender reconnaît homme/femme et variantes
   - parseRapieresTeams lit le sexe en R et W
   - parseRapieresTeams lit D/E/Q, T/U/V et Y, ignore l’en-tête et les lignes incomplètes
+
+</details>
+
+<details>
+<summary><code>src/features/rapieres/useRapieresTeams.test.tsx</code> — 1 test</summary>
+
+- **useRapieresTeams : import des équipes (#1211)**
+  - ouvre la fenêtre de sélection puis ajoute toutes les équipes en un lot
 
 </details>
 

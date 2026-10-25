@@ -865,7 +865,9 @@
     "import_teams": "Enporzhiañ ar skipailhoù (CSV / Excel)",
     "import_empty": "Skipailh ebet kavet er restr (bannoù D/E, T/U ha Y gortozet).",
     "import_done": "{{n}} skipailh enporzhiet.",
-    "import_skipped": "Linennoù lezet a-gostez (diglok) : {{lines}}."
+    "import_skipped": "Linennoù lezet a-gostez (diglok) : {{lines}}.",
+    "import_found": "{{n}} skipailh kavet er restr",
+    "import_n": "Enporzhiañ {{n}} skipailh"
   },
   "errors": {
     "server_not_started": "N'eo ket loc'het ar servijer",
