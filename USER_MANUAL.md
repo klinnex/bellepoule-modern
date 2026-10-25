@@ -62,6 +62,8 @@ When you first open BellePoule Modern, you'll see the main competition list scre
 │                                                             │
 │ Gender:           [Male ▼]                                │
 │                                                             │
+│ Category:         [Senior ▼]                              │
+│                                                             │
 │ Date:             [2024-03-15       ]                     │
 │                                                             │
 │ Location:         [Fencing Club du Centre ]               │
@@ -72,6 +74,8 @@ When you first open BellePoule Modern, you'll see the main competition list scre
 │           [Cancel]                   [Create Competition]   │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+**Age categories** (FFE labels in French): M9, M11, M13, M15, M17, M20, Seniors, Veterans 1 (40-49), Veterans 2 (50-59), Veterans 3 (60-69), Veterans 4 (70+). Also editable later in Competition Properties.
 
 3. **Competition Properties** (after creation):
 

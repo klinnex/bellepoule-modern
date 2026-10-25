@@ -4,6 +4,7 @@
  */
 
 const CATEGORY_KEYS: Record<string, string> = {
+  U9: 'U9',
   U11: 'U11',
   U13: 'U13',
   U15: 'U15',

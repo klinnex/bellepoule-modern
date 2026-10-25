@@ -157,6 +157,7 @@ export enum PhaseType {
 }
 
 export enum Category {
+  U9 = 'U9', // M9
   U11 = 'U11', // M11
   U13 = 'U13', // M13
   U15 = 'U15', // M15

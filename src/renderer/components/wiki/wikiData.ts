@@ -274,7 +274,7 @@ export const ARTICLES: WikiArticle[] = [
           ],
         },
         { type: 'h2', text: 'Catégories' },
-        { type: 'ul', items: ['M11, M13, M15', 'M17, M20, Seniors', 'Vétérans 1 à 4'] },
+        { type: 'ul', items: ['M9, M11, M13, M15', 'M17, M20, Seniors', 'Vétérans 1 à 4'] },
         { type: 'h2', text: 'Formules' },
         {
           type: 'p',
@@ -305,7 +305,7 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'U11, U13, U15 (Youth)',
+            'U9, U11, U13, U15 (Youth)',
             'U17 (Cadet), U20 (Junior), Senior',
             'Veterans V1 to V4',
           ],
@@ -340,7 +340,7 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'U11, U13, U15 (Jugend)',
+            'U9, U11, U13, U15 (Jugend)',
             'U17 (Kadett), U20 (Junior), Senior',
             'Veteranen V1 bis V4',
           ],
@@ -406,7 +406,7 @@ export const ARTICLES: WikiArticle[] = [
         { type: 'h2', text: '組別' },
         {
           type: 'ul',
-          items: ['U11、U13、U15（青少年）', 'U17（少年）、U20（青年）、成年', '老將 V1 至 V4'],
+          items: ['U9、U11、U13、U15（青少年）', 'U17（少年）、U20（青年）、成年', '老將 V1 至 V4'],
         },
         { type: 'h2', text: '賽制' },
         {
@@ -435,7 +435,7 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'U11, U13, U15 (Yaouankiz)',
+            'U9, U11, U13, U15 (Yaouankiz)',
             'U17 (Kadet), U20 (Junior), Senior',
             'Veteraned V1 da V4',
           ],
@@ -470,7 +470,7 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'ul',
           items: [
-            'U11, U13, U15 (Infantil)',
+            'U9, U11, U13, U15 (Infantil)',
             'U17 (Cadet), U20 (Junior), Sènior',
             'Veterans V1 a V4',
           ],
