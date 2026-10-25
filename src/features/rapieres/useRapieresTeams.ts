@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 
+import { useState } from 'react';
 import { Fencer, FencerStatus, Gender } from '../../shared/types';
 import { useToast } from '../../renderer/components/Toast';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
@@ -17,6 +18,8 @@ type NewFencer = Omit<Fencer, 'id' | 'createdAt' | 'updatedAt'>;
 interface UseRapieresTeamsOptions {
   competitionDate?: Date | string;
   addFencer: (fencer: NewFencer) => Promise<Fencer | null | undefined>;
+  /** Ajout groupé : addFencer en boucle n'en garde qu'un (closure sur la liste périmée) */
+  bulkAddFencers: (fencers: NewFencer[]) => Promise<Fencer[]>;
   updateFencer: (id: string, updates: Partial<Fencer>) => Promise<void>;
   setRapieresTeam: (id: string, info: RapieresTeamInfo) => void;
 }
@@ -24,11 +27,18 @@ interface UseRapieresTeamsOptions {
 export function useRapieresTeams({
   competitionDate,
   addFencer,
+  bulkAddFencers,
   updateFencer,
   setRapieresTeam,
 }: UseRapieresTeamsOptions) {
   const { t } = useTranslation();
   const { showToast } = useToast();
+  // Fichier lu, en attente de sélection des équipes (fenêtre d'import)
+  const [rapieresImport, setRapieresImport] = useState<{
+    filename: string;
+    teams: RapieresTeamDraft[];
+    skipped: number[];
+  } | null>(null);
 
   // Nom = nom d'équipe, prénom = noms des deux tireurs, club = niveau (affiché partout)
   const rapieresFencerFields = (team: RapieresTeamDraft) => ({
@@ -37,18 +47,21 @@ export function useRapieresTeams({
     club: t(`rapieres.level_${team.info.level}`),
   });
 
+  const newTeamFencer = (team: RapieresTeamDraft) =>
+    ({
+      ...rapieresFencerFields(team),
+      gender: Gender.MIXED,
+      nationality: 'FRA',
+      status: FencerStatus.NOT_CHECKED_IN,
+    }) as NewFencer;
+
   const handleSaveRapieresTeam = async (team: RapieresTeamDraft, fencer?: Fencer) => {
     if (fencer) {
       await updateFencer(fencer.id, rapieresFencerFields(team));
       setRapieresTeam(fencer.id, team.info);
       return;
     }
-    const added = await addFencer({
-      ...rapieresFencerFields(team),
-      gender: Gender.MIXED,
-      nationality: 'FRA',
-      status: FencerStatus.NOT_CHECKED_IN,
-    } as NewFencer);
+    const added = await addFencer(newTeamFencer(team));
     if (added) setRapieresTeam(added.id, team.info);
   };
 
@@ -69,13 +82,24 @@ export function useRapieresTeams({
       showToast(t('rapieres.import_empty'), 'error');
       return;
     }
-    for (const team of teams) await handleSaveRapieresTeam(team);
-    showToast(
-      t('rapieres.import_done', { n: String(teams.length) }) +
-        (skipped.length ? ' ' + t('rapieres.import_skipped', { lines: skipped.join(', ') }) : ''),
-      skipped.length ? 'warning' : 'success'
-    );
+    const filename = result.filePath.split(/[/\\]/).pop() || result.filePath;
+    setRapieresImport({ filename, teams, skipped });
   };
 
-  return { rapieresFencerFields, handleSaveRapieresTeam, handleImportRapieresTeams };
+  // Équipes cochées dans la fenêtre d'import : ajout groupé
+  const confirmRapieresImport = async (teams: RapieresTeamDraft[]) => {
+    if (teams.length === 0) return;
+    const added = await bulkAddFencers(teams.map(newTeamFencer));
+    added.forEach((fencer, i) => setRapieresTeam(fencer.id, teams[i].info));
+    showToast(t('rapieres.import_done', { n: String(added.length) }), 'success');
+  };
+
+  return {
+    rapieresFencerFields,
+    handleSaveRapieresTeam,
+    handleImportRapieresTeams,
+    rapieresImport,
+    closeRapieresImport: () => setRapieresImport(null),
+    confirmRapieresImport,
+  };
 }

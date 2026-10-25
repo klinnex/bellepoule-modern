@@ -865,7 +865,9 @@
     "import_teams": "匯入隊伍（CSV / Excel）",
     "import_empty": "檔案中找不到隊伍（需要 D/E、T/U 及 Y 欄）。",
     "import_done": "已匯入 {{n}} 隊。",
-    "import_skipped": "已略過的列（不完整）：{{lines}}。"
+    "import_skipped": "已略過的列（不完整）：{{lines}}。",
+    "import_found": "檔案中找到 {{n}} 支隊伍",
+    "import_n": "匯入 {{n}} 支隊伍"
   },
   "errors": {
     "server_not_started": "伺服器未啟動",

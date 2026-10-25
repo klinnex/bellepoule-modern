@@ -6,7 +6,9 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { Fencer, FencerStatus, Gender, Match, MatchStatus, Pool } from '../../shared/types';
 import RapieresTeamModal from './RapieresTeamModal';
 import RapieresWaveBar from './RapieresWaveBar';
+import RapieresImportModal from './RapieresImportModal';
 import { waveMatchOrder } from './rapieresCalculations';
+import { RapieresFencer } from './rapieres.types';
 
 vi.mock('../../renderer/hooks/useTranslation', () => ({
   useTranslation: () => ({
@@ -104,5 +106,41 @@ describe('Tournoi des rapières : composants (#1118)', () => {
     expect(screen.getByText('rapieres.wave_incomplete')).toBeInTheDocument();
     fireEvent.click(screen.getByText('rapieres.end_waves'));
     expect(onEndWaves).toHaveBeenCalled();
+  });
+
+  it("fenêtre d'import : équipes cochées par défaut, sélection transmise (#1211)", async () => {
+    const team = (name: string) => ({
+      name,
+      info: {
+        level: 'beginner' as const,
+        fencers: [
+          {
+            firstName: 'A',
+            lastName: `${name}1`,
+            category: 'SENIOR' as const,
+            gender: 'M' as const,
+          },
+          { firstName: 'B', lastName: `${name}2`, category: 'V1' as const },
+        ] as [RapieresFencer, RapieresFencer],
+      },
+    });
+    const teams = [team('Alpha'), team('Beta'), team('Gamma')];
+    const onImport = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <RapieresImportModal
+        filename="export.csv"
+        teams={teams}
+        skipped={[4]}
+        onImport={onImport}
+        onClose={onClose}
+      />
+    );
+    expect(screen.getByText('rapieres.import_found:3')).toBeInTheDocument();
+    expect(screen.getByText('rapieres.import_skipped:4')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Beta'));
+    fireEvent.click(screen.getByText('rapieres.import_n:2'));
+    await vi.waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(onImport).toHaveBeenCalledWith([teams[0], teams[2]]);
   });
 });

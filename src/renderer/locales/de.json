@@ -865,7 +865,9 @@
     "import_teams": "Teams importieren (CSV / Excel)",
     "import_empty": "Keine Teams in der Datei gefunden (Spalten D/E, T/U und Y erwartet).",
     "import_done": "{{n}} Team(s) importiert.",
-    "import_skipped": "Übersprungene Zeilen (unvollständig): {{lines}}."
+    "import_skipped": "Übersprungene Zeilen (unvollständig): {{lines}}.",
+    "import_found": "{{n}} Team(s) in der Datei gefunden",
+    "import_n": "{{n}} Team(s) importieren"
   },
   "errors": {
     "server_not_started": "Server nicht gestartet",

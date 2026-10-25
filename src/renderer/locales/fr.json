@@ -865,7 +865,9 @@
     "import_teams": "Importer les équipes (CSV / Excel)",
     "import_empty": "Aucune équipe trouvée dans le fichier (colonnes D/E, T/U et Y attendues).",
     "import_done": "{{n}} équipe(s) importée(s).",
-    "import_skipped": "Lignes ignorées (incomplètes) : {{lines}}."
+    "import_skipped": "Lignes ignorées (incomplètes) : {{lines}}.",
+    "import_found": "{{n}} équipe(s) trouvée(s) dans le fichier",
+    "import_n": "Importer {{n}} équipe(s)"
   },
   "errors": {
     "server_not_started": "Serveur non démarré",
