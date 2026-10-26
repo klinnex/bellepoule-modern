@@ -155,7 +155,7 @@ dépendent de ce job.
 | Étape | Commande | Échoue si |
 |---|---|---|
 | Typage | \`npm run type-check\` | erreur TypeScript (\`tsc --noEmit\`, mode strict) |
-| i18n | \`npm run check:i18n\` | clé manquante / en trop vs \`fr.json\` (\`scripts/check-i18n-completeness.js\`) |
+| i18n | \`npm run check:i18n\` | clé manquante / en trop vs \`fr.json\`, ou vs \`src/remote/i18n/fr.js\` pour les pages distantes (paramètres \`{{x}}\` compris) (\`scripts/check-i18n-completeness.js\`) |
 | Doc des tests | \`npm run check:tests-doc\` | \`docs/TESTS.md\` pas à jour vs fichiers de test |
 | Doc i18n | \`npm run check:i18n-doc\` | \`docs/I18N.md\` pas à jour, ou clé \`data-i18n\` d'une page distante absente de \`src/remote/i18n.js\` |
 | Doc Socket.IO | \`npm run check:socket-doc\` | \`docs/SOCKET_EVENTS.md\` pas à jour, ou événement émis par une page sans écouteur serveur |

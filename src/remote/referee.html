@@ -3492,7 +3492,7 @@
           if (this.ttsEnabled) {
             const MSG = {
               fr: 'Minuteur vocal activé', en: 'Voice timer enabled',
-              de: 'Sprachtimer aktiviert', 'zh-HK': '語音計時器已啟用',
+              de: 'Sprachtimer aktiviert', 'zh-HK': '語音計時器已啟用', es: 'Temporizador por voz activado', ca: 'Temporitzador per veu activat',
             };
             this.ttsSpeak(MSG[this.ttsLangCode()] || MSG.fr);
           }
@@ -3508,18 +3508,17 @@
           }
         }
 
-        // Code de langue normalisé pour le TTS (fr / en / de / zh-HK)
+        // Code de langue normalisé pour le TTS (fr / en / de / es / ca / zh-HK ; br → fr, pas de voix bretonne)
         ttsLangCode() {
           const lang = (document.documentElement.lang || 'fr').toLowerCase();
-          if (lang.startsWith('de')) return 'de';
-          if (lang.startsWith('en')) return 'en';
+          const m = /^(de|en|es|ca)/.exec(lang); if (m) return m[1];
           if (lang.startsWith('zh')) return 'zh-HK';
           return 'fr';
         }
 
         // Balise BCP-47 pour SpeechSynthesisUtterance.lang
         ttsBcp47(code) {
-          return { fr: 'fr-FR', en: 'en-GB', de: 'de-DE', 'zh-HK': 'zh-HK' }[code] || 'fr-FR';
+          return { fr: 'fr-FR', en: 'en-GB', de: 'de-DE', es: 'es-ES', ca: 'ca-ES', 'zh-HK': 'zh-HK' }[code] || 'fr-FR';
         }
 
         ttsSpeak(text) {
@@ -3547,6 +3546,7 @@
             fr: { 60: 'Une minute', 30: 'Trente secondes', 10: 'Dix secondes', 0: 'Temps !' },
             en: { 60: 'One minute', 30: 'Thirty seconds', 10: 'Ten seconds', 0: 'Time!' },
             de: { 60: 'Eine Minute', 30: 'Dreißig Sekunden', 10: 'Zehn Sekunden', 0: 'Zeit!' },
+            es: { 60: 'Un minuto', 30: 'Treinta segundos', 10: 'Diez segundos', 0: '¡Tiempo!' }, ca: { 60: 'Un minut', 30: 'Trenta segons', 10: 'Deu segons', 0: 'Temps!' },
             'zh-HK': { 60: '一分鐘', 30: '三十秒', 10: '十秒', 0: '時間！' },
           };
           const NUMS = {
@@ -3555,7 +3555,7 @@
             de: { 5: '5', 4: '4', 3: '3', 2: '2', 1: '1' },
             'zh-HK': { 5: '五', 4: '四', 3: '三', 2: '二', 1: '一' },
           };
-          const THRESHOLDS = { ...PHRASES[L], ...NUMS[L] };
+          const THRESHOLDS = { ...PHRASES[L], ...(NUMS[L] || NUMS.fr) };
           // Quel palier (clé de config announce) correspond à cette seconde ?
           const a = this.ttsConfig.announce || {};
           let key = null;
