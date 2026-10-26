@@ -1192,8 +1192,8 @@ export interface PrintDialogSettings {
   copies: number;
   /** Plages « 1-3, 5 », vide = toutes */
   pages: string;
-  landscape: boolean;
-  paperSize: 'A3' | 'A4' | 'A5' | 'Letter' | 'Legal';
+  orientation: 'auto' | 'portrait' | 'landscape';
+  paperSize: 'auto' | 'A3' | 'A4' | 'A5' | 'Letter' | 'Legal';
   color: boolean;
   duplex: 'simplex' | 'shortEdge' | 'longEdge';
   margins: 'default' | 'none' | 'minimum';
@@ -1211,6 +1211,17 @@ export interface PrintDialogAPI {
     html: string,
     settings?: Partial<PrintDialogSettings>
   ) => Promise<{ success: boolean; error?: string }>;
+  savePdf: (
+    html: string,
+    settings?: Partial<PrintDialogSettings>,
+    title?: string
+  ) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>;
+  /** Boîte d'impression native du système (secours) */
+  systemDialog: (html: string) => Promise<{ success: boolean; error?: string }>;
+  /** Enregistre la fenêtre qui traite les demandes `file.printHtml` (null = désenregistrer) */
+  setHandler: (
+    handler: ((html: string) => Promise<{ success: boolean; error?: string }>) | null
+  ) => void;
 }
 
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
