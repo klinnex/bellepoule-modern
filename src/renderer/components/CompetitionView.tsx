@@ -110,6 +110,8 @@ import WindowSizePresets, {
   type PresetLabel,
 } from './pool/WindowSizePresets';
 import { useColumnVisibility } from '../hooks/useColumnVisibility';
+import { useModalFlags } from '../hooks/useModalFlags';
+import { MODAL_FLAGS } from './competition/modalFlags';
 
 const PoolView = React.lazy(() => import('./PoolView'));
 const TableauView = React.lazy(() => import('./TableauView'));
@@ -293,10 +295,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     }
   }, [requestPhase]);
 
-  const [showAddFencerModal, setShowAddFencerModal] = useState(false);
-  const [showPlanningAssistant, setShowPlanningAssistant] = useState(false);
-  const [showExportCenter, setShowExportCenter] = useState(false);
-  const [showPropertiesModal, setShowPropertiesModal] = useState(false);
+  // Modales / menus : un seul état (#1241)
+  const modals = useModalFlags(MODAL_FLAGS);
+  const { setShowConfetti, setShowActionsMenu } = modals;
   const [importData, setImportData] = useState<{
     format: string;
     filepath: string;
@@ -309,7 +310,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     onRemoteServerChange?.(remoteServerUrl, remoteArenaCount);
   }, [remoteServerUrl, remoteArenaCount]);
   const [arenaStates, setArenaStates] = useState<Arena[]>([]);
-  const [showThirdPlaceDialog, setShowThirdPlaceDialog] = useState(false);
   const [tableauMatches, setTableauMatches] = useState<TableauMatch[]>([]);
   const [consolationBrackets, setConsolationBrackets] = useState<ConsolationBracket[]>([]);
   // Refs pour connaître la présence d'un match dans le tableau/consolante de façon synchrone
@@ -326,15 +326,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     setAppelVisibleColumns(cols);
   }, []);
   const [tableauEditUnlocked, setTableauEditUnlocked] = useState(false);
-  const [showFencerComparison, setShowFencerComparison] = useState(false);
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [showSeasonRanking, setShowSeasonRanking] = useState(false);
-  const [showFFEConnect, setShowFFEConnect] = useState(false);
-  const [showFFEExport, setShowFFEExport] = useState(false);
-  const [showQRCode, setShowQRCode] = useState(false);
-  const [showKiosk, setShowKiosk] = useState(false);
-  const [showPresentation, setShowPresentation] = useState(false);
-  const [showKioskDisplay, setShowKioskDisplay] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [referees, setReferees] = useState<Referee[]>([]);
 
@@ -1010,8 +1001,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // Menu events
   useMenuEvents({
     currentPhase,
-    onShowProperties: () => setShowPropertiesModal(true),
-    onShowAddFencer: () => setShowAddFencerModal(true),
+    onShowProperties: () => modals.setShowPropertiesModal(true),
+    onShowAddFencer: () => modals.setShowAddFencerModal(true),
     onExportFencers: format => exportFencersList(fencers, format),
     onExportFencersBpf: async () => {
       const result = await window.electronAPI.dialog.saveFile({
@@ -1435,7 +1426,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       handleThirdPlaceDecision(thirdPlaceMatch);
       return;
     }
-    setShowThirdPlaceDialog(true);
+    modals.setShowThirdPlaceDialog(true);
   };
 
   // Basculer vers un autre groupe dans un tableau déjà ouvert
@@ -1545,7 +1536,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     setTableauMatches([]);
     setConsolationBrackets([]);
     setCurrentPhase('tableau');
-    setShowThirdPlaceDialog(false);
+    modals.setShowThirdPlaceDialog(false);
   };
 
   // Tour suivant (#1051) : qualifiés selon le classement du tour terminé, non-qualifiés
@@ -1951,8 +1942,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const [poolPrepLaunch, setPoolPrepLaunch] = useState<PoolPrepLaunchAction | null>(null);
 
   // Confetti + menu état
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [showActionsMenu, setShowActionsMenu] = useState(false);
   const prevAllPoolsComplete = useRef(false);
   const prevChampion = useRef<string | null>(null);
   const actionsMenuRef = useRef<HTMLDivElement>(null);
@@ -1965,11 +1954,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       setTimeout(() => setShowConfetti(false), 3200);
     }
     prevAllPoolsComplete.current = allDone;
-  }, [canAdvanceFromPools, pools.length]);
+  }, [canAdvanceFromPools, pools.length, setShowConfetti]);
 
   // Fermer le menu actions au clic extérieur
   useEffect(() => {
-    if (!showActionsMenu) return;
+    if (!modals.showActionsMenu) return;
     const handler = (e: MouseEvent) => {
       if (actionsMenuRef.current && !actionsMenuRef.current.contains(e.target as Node)) {
         setShowActionsMenu(false);
@@ -1977,7 +1966,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [showActionsMenu]);
+  }, [modals.showActionsMenu, setShowActionsMenu]);
 
   // Groupes disponibles pour la séparation (pour les onglets du tableau)
   const splitGroups = useMemo((): string[] => {
@@ -2198,24 +2187,24 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         language={language}
         t={t}
         matchProgress={matchProgress}
-        showConfetti={showConfetti}
-        showActionsMenu={showActionsMenu}
-        setShowActionsMenu={setShowActionsMenu}
+        showConfetti={modals.showConfetti}
+        showActionsMenu={modals.showActionsMenu}
+        setShowActionsMenu={modals.setShowActionsMenu}
         actionsMenuRef={actionsMenuRef}
         currentPhase={currentPhase}
         pools={pools}
         tableauMatches={tableauMatches}
         fencersCount={fencers.length}
         checkedInCount={getCheckedInFencers().length}
-        setShowFencerComparison={setShowFencerComparison}
-        setShowAnalytics={setShowAnalytics}
-        setShowSeasonRanking={setShowSeasonRanking}
-        setShowQRCode={setShowQRCode}
-        setShowPresentation={setShowPresentation}
-        setShowKiosk={setShowKiosk}
-        setShowKioskDisplay={setShowKioskDisplay}
-        setShowPropertiesModal={setShowPropertiesModal}
-        setShowExportCenter={setShowExportCenter}
+        setShowFencerComparison={modals.setShowFencerComparison}
+        setShowAnalytics={modals.setShowAnalytics}
+        setShowSeasonRanking={modals.setShowSeasonRanking}
+        setShowQRCode={modals.setShowQRCode}
+        setShowPresentation={modals.setShowPresentation}
+        setShowKiosk={modals.setShowKiosk}
+        setShowKioskDisplay={modals.setShowKioskDisplay}
+        setShowPropertiesModal={modals.setShowPropertiesModal}
+        setShowExportCenter={modals.setShowExportCenter}
       />
       <CompetitionNav
         competition={competition}
@@ -2234,7 +2223,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         getCheckedInFencers={getCheckedInFencers}
         pools={pools}
         tableauMatches={tableauMatches}
-        onOpenPlanningAssistant={() => setShowPlanningAssistant(true)}
+        onOpenPlanningAssistant={() => modals.setShowPlanningAssistant(true)}
         isTeamEvent={isTeamEvent}
       />
 
@@ -2262,7 +2251,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             competitionId={competition.id}
             onCheckIn={handleCheckInFencer}
             onAddFencer={() =>
-              isRapieres ? setRapieresTeamModal({}) : setShowAddFencerModal(true)
+              isRapieres ? setRapieresTeamModal({}) : modals.setShowAddFencerModal(true)
             }
             {...(isRapieres
               ? {
@@ -2289,7 +2278,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             onCheckInAll={checkInAll}
             onUncheckAll={uncheckAll}
             onImport={isRapieres ? undefined : type => handleOpenImportDialog(type)}
-            onImportFFEConnect={isRapieres ? undefined : () => setShowFFEConnect(true)}
+            onImportFFEConnect={isRapieres ? undefined : () => modals.setShowFFEConnect(true)}
             onFencersImported={loadFencers}
             onAppelStateChange={handleAppelStateChange}
             onSetFencerStatus={(id, status) => {
@@ -2877,7 +2866,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       </div>
 
       {/* Modals */}
-      {showPlanningAssistant && (
+      {modals.showPlanningAssistant && (
         <Suspense fallback={null}>
           <PlanningAssistant
             competition={competition}
@@ -2888,12 +2877,12 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                 : undefined
             }
             suggestedArenaCount={arenaStates.length || Math.min(pools.length, 4) || 1}
-            onClose={() => setShowPlanningAssistant(false)}
+            onClose={() => modals.setShowPlanningAssistant(false)}
           />
         </Suspense>
       )}
 
-      {showExportCenter && (
+      {modals.showExportCenter && (
         <Suspense fallback={null}>
           <ExportCenterModal
             fencers={fencers}
@@ -2903,7 +2892,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             finalResults={finalResults}
             tableauMatchesCount={tableauMatches.length}
             isLaserSabre={isLaserSabre}
-            onClose={() => setShowExportCenter(false)}
+            onClose={() => modals.setShowExportCenter(false)}
             exportFencersList={exportFencersList}
             exportPoolsPDF={(p, round) => exportPoolsPDF(p, round, poolsRemoteInfo)}
             printPoolsPDF={(p, round) => printPoolsPDF(p, round, poolsRemoteInfo)}
@@ -2915,11 +2904,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             exportDetailedStats={exportDetailedStats}
             onGoToTableau={() => {
               setCurrentPhase('tableau');
-              setShowExportCenter(false);
+              modals.setShowExportCenter(false);
             }}
             onGoToResults={() => {
               setCurrentPhase('results');
-              setShowExportCenter(false);
+              modals.setShowExportCenter(false);
             }}
             onExportCompetition={
               window.electronAPI?.file?.exportCompetition
@@ -2934,16 +2923,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                 : undefined
             }
             onExportFFE={() => {
-              setShowFFEExport(true);
-              setShowExportCenter(false);
+              modals.setShowFFEExport(true);
+              modals.setShowExportCenter(false);
             }}
           />
         </Suspense>
       )}
 
-      {showFFEExport && (
+      {modals.showFFEExport && (
         <Suspense fallback={null}>
-          <FFEExportModal ranking={overallRanking} onClose={() => setShowFFEExport(false)} />
+          <FFEExportModal ranking={overallRanking} onClose={() => modals.setShowFFEExport(false)} />
         </Suspense>
       )}
 
@@ -2965,9 +2954,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         />
       )}
 
-      {showAddFencerModal && (
+      {modals.showAddFencerModal && (
         <AddFencerModal
-          onClose={() => setShowAddFencerModal(false)}
+          onClose={() => modals.setShowAddFencerModal(false)}
           onAdd={fencer => addFencer(fencer as any)}
           competitionGender={competition.gender}
         />
@@ -2989,7 +2978,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         />
       )}
 
-      {showPropertiesModal && (
+      {modals.showPropertiesModal && (
         <CompetitionPropertiesModal
           competition={competition}
           onSave={async updates => {
@@ -3000,7 +2989,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               await window.electronAPI.db.updateCompetition(competition.id, updatedCompetition);
             }
           }}
-          onClose={() => setShowPropertiesModal(false)}
+          onClose={() => modals.setShowPropertiesModal(false)}
         />
       )}
 
@@ -3016,7 +3005,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         />
       )}
 
-      {showThirdPlaceDialog && (
+      {modals.showThirdPlaceDialog && (
         <div className="modal-overlay" style={CV_STYLES.thirdPlaceOverlay}>
           <div style={CV_STYLES.thirdPlaceModal}>
             <h3 style={CV_STYLES.thirdPlaceTitle}>{t('competition.third_place_match_dialog')}</h3>
@@ -3033,87 +3022,89 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       )}
 
       {/* Nouveaux modals */}
-      {showFencerComparison && (
+      {modals.showFencerComparison && (
         <Suspense fallback={null}>
           <FencerComparison
             fencers={fencers}
             pools={pools}
             tableauMatches={tableauMatches}
-            onClose={() => setShowFencerComparison(false)}
+            onClose={() => modals.setShowFencerComparison(false)}
           />
         </Suspense>
       )}
 
-      {showAnalytics && (
+      {modals.showAnalytics && (
         <Suspense fallback={null}>
           <AnalyticsDashboard
             competition={competition}
             pools={pools}
             matches={pools.flatMap(p => p.matches ?? [])}
             fencers={fencers}
-            onClose={() => setShowAnalytics(false)}
+            onClose={() => modals.setShowAnalytics(false)}
           />
         </Suspense>
       )}
 
-      {showQRCode && <QRCodeShare competition={competition} onClose={() => setShowQRCode(false)} />}
+      {modals.showQRCode && (
+        <QRCodeShare competition={competition} onClose={() => modals.setShowQRCode(false)} />
+      )}
 
-      {showSeasonRanking && (
+      {modals.showSeasonRanking && (
         <Suspense fallback={null}>
           <SeasonRankingView
-            onClose={() => setShowSeasonRanking(false)}
+            onClose={() => modals.setShowSeasonRanking(false)}
             availableCompetitions={[competition]}
             availablePoolsByComp={{ [competition.id]: pools }}
           />
         </Suspense>
       )}
 
-      {showFFEConnect && (
+      {modals.showFFEConnect && (
         <Suspense fallback={null}>
           <FFEConnectModal
             onImport={async imported => {
               await handleImportFencers(imported);
-              setShowFFEConnect(false);
+              modals.setShowFFEConnect(false);
             }}
-            onClose={() => setShowFFEConnect(false)}
+            onClose={() => modals.setShowFFEConnect(false)}
           />
         </Suspense>
       )}
 
       {/* Mode Présentation */}
-      {showPresentation && (
+      {modals.showPresentation && (
         <Suspense fallback={null}>
           <PresentationMode
             competition={competition}
             pools={pools}
-            onClose={() => setShowPresentation(false)}
+            onClose={() => modals.setShowPresentation(false)}
           />
         </Suspense>
       )}
 
       {/* Mode Kiosk Public - Affichage grand écran */}
-      {showKioskDisplay && (
+      {modals.showKioskDisplay && (
         <Suspense fallback={null}>
           <KioskDisplay
             competition={competition}
             pools={pools}
             weapon={competition.weapon}
             tableauMatches={tableauMatches}
-            onClose={() => setShowKioskDisplay(false)}
+            onClose={() => modals.setShowKioskDisplay(false)}
           />
         </Suspense>
       )}
 
       {/* Mode Kiosk - Interface tablette arbitre */}
-      {showKiosk && pools.length > 0 && (
+      {modals.showKiosk && pools.length > 0 && (
         <KioskScoreEntry
           pools={pools}
           poolMaxScore={poolMaxScore}
           allPoolsComplete={areAllPoolsComplete()}
           updateScore={updateScore}
-          onClose={() => setShowKiosk(false)}
+          onClose={() => modals.setShowKiosk(false)}
           onFinish={() => {
-            setShowKiosk(false);
+            modals.setShowKiosk(false);
             handleGoToRanking();
           }}
         />

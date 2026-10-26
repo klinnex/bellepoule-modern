@@ -97,16 +97,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 19 | 225 |
 | `src/renderer/services/` | 4 | 22 |
-| `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 32 | 167 |
+| `src/renderer/hooks/` | 17 | 99 |
+| `src/renderer/components/` | 33 | 170 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 8 | 40 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **171** | **1631** |
+| **Total** | **173** | **1636** |
 
-Unitaires : 162 fichiers, 1596 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 164 fichiers, 1601 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2610,6 +2610,15 @@ Unitaires : 162 fichiers, 1596 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/hooks/useModalFlags.test.tsx</code> — 2 tests</summary>
+
+- **useModalFlags**
+  - démarre à false et accepte valeur ou fonction
+  - garde des setters stables entre les rendus
+
+</details>
+
+<details>
 <summary><code>src/renderer/hooks/useOffline.test.tsx</code> — 6 tests</summary>
 
 - **useOffline**
@@ -3042,6 +3051,17 @@ Unitaires : 162 fichiers, 1596 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **plages de pages côté renderer (#1214)**
   - isValidPageRanges(%j) = %s _(each)_
   - pageRangesBeyond
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/remotePanels.test.tsx</code> — 3 tests</summary>
+
+- **OrgNotePanel**
+  - publie puis masque la note
+- **ConnectedScreensPanel**
+  - ne requête rien hors session distante
+  - liste les écrans, renomme et envoie le mode kiosk
 
 </details>
 

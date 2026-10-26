@@ -14,8 +14,9 @@ import { useToast } from './Toast';
 import ThemeEditor from './ThemeEditor';
 import ArenaQrCodesModal from './ArenaQrCodesModal';
 import { OBSOverlayConfig } from './OBSOverlayConfig';
+import { OrgNotePanel } from './remote/OrgNotePanel';
+import { ConnectedScreensPanel } from './remote/ConnectedScreensPanel';
 import { CustomTheme, DisplayTheme } from '../../shared/types/remote';
-import { ConnectedClient, KioskScreenConfig } from '../../shared/types/preload';
 import { useTranslation } from '../hooks/useTranslation';
 import { ipcErrorText } from '../services/ipcError';
 
@@ -47,8 +48,6 @@ interface RemoteSession {
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
-
-const ORG_NOTE_PREFIXES = ['resume', 'start', 'end', 'break', 'lunch', 'ceremony'] as const;
 
 const RSM_STYLES = {
   httpWarning: {
@@ -150,83 +149,6 @@ const RSM_STYLES = {
     cursor: 'pointer',
     fontSize: '0.8rem',
   } satisfies React.CSSProperties,
-  orgNoteBox: {
-    margin: '0.75rem 0',
-    padding: '0.75rem',
-    border: '1px solid #334155',
-    borderRadius: '0.5rem',
-    background: '#1e293b',
-  } satisfies React.CSSProperties,
-  orgNoteTitle: {
-    fontSize: '0.875rem',
-    fontWeight: 600,
-    marginBottom: '0.5rem',
-    color: '#94a3b8',
-  } satisfies React.CSSProperties,
-  orgNoteTypeRow: {
-    display: 'flex',
-    gap: '1rem',
-    marginBottom: '0.5rem',
-  } satisfies React.CSSProperties,
-  orgNoteRadioLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.4rem',
-    cursor: 'pointer',
-    color: '#e2e8f0',
-  } satisfies React.CSSProperties,
-  orgNoteTextarea: {
-    width: '100%',
-    padding: '0.4rem 0.6rem',
-    borderRadius: '0.3rem',
-    border: '1px solid #475569',
-    background: '#0f172a',
-    color: '#e2e8f0',
-    boxSizing: 'border-box' as const,
-    marginBottom: '0.4rem',
-    resize: 'vertical' as const,
-    fontFamily: 'inherit',
-    fontSize: 'inherit',
-  } satisfies React.CSSProperties,
-  orgNoteTimeRow: {
-    display: 'flex',
-    gap: '0.5rem',
-    alignItems: 'center',
-    marginBottom: '0.4rem',
-  } satisfies React.CSSProperties,
-  orgNoteSelect: {
-    padding: '0.4rem 0.6rem',
-    borderRadius: '0.3rem',
-    border: '1px solid #475569',
-    background: '#0f172a',
-    color: '#e2e8f0',
-    cursor: 'pointer',
-  } satisfies React.CSSProperties,
-  orgNoteTimeInput: {
-    padding: '0.4rem 0.6rem',
-    borderRadius: '0.3rem',
-    border: '1px solid #475569',
-    background: '#0f172a',
-    color: '#e2e8f0',
-  } satisfies React.CSSProperties,
-  orgNoteBtnRow: {
-    display: 'flex',
-    gap: '0.5rem',
-    marginTop: '0.25rem',
-  } satisfies React.CSSProperties,
-  orgNoteHideBtn: {
-    padding: '0.4rem 0.75rem',
-    borderRadius: '0.3rem',
-    border: 'none',
-    background: '#475569',
-    color: '#fff',
-    cursor: 'pointer',
-  } satisfies React.CSSProperties,
-  orgNoteActive: {
-    fontSize: '0.75rem',
-    color: '#22c55e',
-    marginTop: '0.4rem',
-  } satisfies React.CSSProperties,
   pisteresumeSummary: {
     marginTop: '1rem',
     padding: '0.75rem',
@@ -317,11 +239,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     direct: true,
     suivants: true,
   });
-  const [orgNoteType, setOrgNoteType] = useState<'free' | 'target_time'>('free');
-  const [orgNoteMessage, setOrgNoteMessage] = useState('');
-  const [orgNoteTime, setOrgNoteTime] = useState('');
-  const [orgNotePrefix, setOrgNotePrefix] = useState('resume');
-  const [orgNoteActive, setOrgNoteActive] = useState(false);
   // Thèmes par arène : arenaId → { theme, customTheme?, screenThemes }
   const [arenaThemes, setArenaThemes] = useState<
     Record<
@@ -377,22 +294,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     'arena' | 'kiosk' | 'public' | 'referee' | 'pool'
   >('arena');
   const [globalThemeId, setGlobalThemeId] = useState('');
-
-  // Écrans connectés
-  const [connectedClients, setConnectedClients] = useState<ConnectedClient[]>([]);
-  const [renameValues, setRenameValues] = useState<Record<string, string>>({});
-  // kioskModal : socketId de l'écran pour lequel on configure le mode kiosk
-  const [kioskModal, setKioskModal] = useState<string | null>(null);
-  const [kioskModalConfig, setKioskModalConfig] = useState<KioskScreenConfig>({
-    poules: true,
-    classement: true,
-    final: false,
-    direct: true,
-    suivants: true,
-    tableau: true,
-    rotationSec: 15,
-    eta: true,
-  });
 
   useEffect(() => {
     window.electronAPI.remote.getNetworkInterfaces().then((res: any) => {
@@ -533,17 +434,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         );
       });
   }, [pendingDeMatches, isRemoteActive, session]);
-
-  // Abonnement aux mises à jour de la liste des clients connectés
-  useEffect(() => {
-    if (!isRemoteActive) return;
-    window.electronAPI.remote.getConnectedClients(competition.id).then((res: any) => {
-      if (res.success) setConnectedClients(res.clients ?? []);
-    });
-    return window.electronAPI.remote.onClientListUpdate((clients: ConnectedClient[]) => {
-      setConnectedClients(clients);
-    });
-  }, [isRemoteActive, competition.id]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -1490,98 +1380,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         </div>
 
         {/* Note d'organisation */}
-        <div style={RSM_STYLES.orgNoteBox}>
-          <div style={RSM_STYLES.orgNoteTitle}>{t('rsm.org_note_title')}</div>
-          <div style={RSM_STYLES.orgNoteTypeRow}>
-            <label style={RSM_STYLES.orgNoteRadioLabel}>
-              <input
-                type="radio"
-                name="orgNoteType"
-                checked={orgNoteType === 'free'}
-                onChange={() => setOrgNoteType('free')}
-              />
-              {t('rsm.org_note_free')}
-            </label>
-            <label style={RSM_STYLES.orgNoteRadioLabel}>
-              <input
-                type="radio"
-                name="orgNoteType"
-                checked={orgNoteType === 'target_time'}
-                onChange={() => setOrgNoteType('target_time')}
-              />
-              {t('rsm.org_note_target')}
-            </label>
-          </div>
-          <textarea
-            placeholder={t('rsm.org_note_placeholder')}
-            value={orgNoteMessage}
-            onChange={e => setOrgNoteMessage(e.target.value)}
-            rows={3}
-            style={RSM_STYLES.orgNoteTextarea}
-          />
-          {orgNoteType === 'target_time' && (
-            <div style={RSM_STYLES.orgNoteTimeRow}>
-              <select
-                value={orgNotePrefix}
-                onChange={e => setOrgNotePrefix(e.target.value)}
-                style={RSM_STYLES.orgNoteSelect}
-              >
-                {ORG_NOTE_PREFIXES.map(p => (
-                  <option key={p} value={p}>
-                    {t(`rsm.prefix_${p}`)}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="time"
-                value={orgNoteTime}
-                onChange={e => setOrgNoteTime(e.target.value)}
-                style={RSM_STYLES.orgNoteTimeInput}
-              />
-            </div>
-          )}
-          <div style={RSM_STYLES.orgNoteBtnRow}>
-            <button
-              disabled={!orgNoteMessage.trim() || (orgNoteType === 'target_time' && !orgNoteTime)}
-              onClick={async () => {
-                const note = {
-                  type: orgNoteType,
-                  message: orgNoteMessage.trim(),
-                  ...(orgNoteType === 'target_time'
-                    ? { targetTime: orgNoteTime, countdownPrefix: t(`rsm.prefix_${orgNotePrefix}`) }
-                    : {}),
-                  createdAt: new Date().toISOString(),
-                };
-                await window.electronAPI.remote.setOrgNote(competition.id, note);
-                setOrgNoteActive(true);
-              }}
-              style={{
-                flex: 1,
-                padding: '0.4rem',
-                borderRadius: '0.3rem',
-                border: 'none',
-                background: orgNoteActive ? 'var(--color-primary-dark)' : 'var(--color-primary)',
-                color: '#fff',
-                cursor: 'pointer',
-                fontWeight: 500,
-              }}
-            >
-              {orgNoteActive ? t('rsm.org_note_update') : t('rsm.org_note_show')}
-            </button>
-            {orgNoteActive && (
-              <button
-                onClick={async () => {
-                  await window.electronAPI.remote.clearOrgNote(competition.id);
-                  setOrgNoteActive(false);
-                }}
-                style={RSM_STYLES.orgNoteHideBtn}
-              >
-                {t('rsm.hide')}
-              </button>
-            )}
-          </div>
-          {orgNoteActive && <div style={RSM_STYLES.orgNoteActive}>{t('rsm.org_note_visible')}</div>}
-        </div>
+        <OrgNotePanel competitionId={competition.id} />
 
         <div className="arena-url-row" style={{ marginBottom: '0.75rem' }}>
           <span className="arena-url-label">{t('rsm.common_pwd')}</span>
@@ -2172,164 +1971,8 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         </div>
       </div>
 
-      {/* ── Section : Écrans connectés ── */}
-      {connectedClients.length > 0 && (
-        <div className="arena-url-card mt-4">
-          <div className="arena-url-header">
-            <strong>{t('rsm.connected_screens', { count: connectedClients.length })}</strong>
-          </div>
-          {connectedClients.map(client => {
-            const clientLabel =
-              client.label || client.screenId?.slice(0, 8) || client.socketId.slice(0, 8);
-            const typeLabel: Record<string, string> = {
-              kiosk: 'Kiosk',
-              arena: t('rsm.client_arena'),
-              public: t('rsm.screen_public'),
-              pool: t('rsm.screen_pool'),
-              dashboard: 'Dashboard',
-              lobby: 'Lobby',
-              referee: t('rsm.screen_referee'),
-            };
-            return (
-              <div
-                key={client.socketId}
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 0',
-                  borderBottom: '1px solid #1e293b',
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: '0.75rem',
-                    padding: '0.15rem 0.4rem',
-                    borderRadius: '0.3rem',
-                    background: '#1e3a5f',
-                    color: '#7dd3fc',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {typeLabel[client.clientType] ?? client.clientType}
-                </span>
-                <span
-                  style={{
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    color: '#e2e8f0',
-                    minWidth: '6rem',
-                  }}
-                >
-                  {clientLabel}
-                </span>
-                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{client.ip}</span>
-                {client.battery && (
-                  <span
-                    title={client.battery.charging ? t('rsm.charging') : t('rsm.on_battery')}
-                    style={{
-                      fontSize: '0.75rem',
-                      padding: '0.15rem 0.4rem',
-                      borderRadius: '0.3rem',
-                      background:
-                        client.battery.level <= 0.2 && !client.battery.charging
-                          ? '#7f1d1d'
-                          : '#1e293b',
-                      color:
-                        client.battery.level <= 0.2 && !client.battery.charging
-                          ? '#fca5a5'
-                          : '#94a3b8',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {client.battery.charging ? '🔌' : '🔋'} {Math.round(client.battery.level * 100)}
-                    %
-                  </span>
-                )}
-                <div
-                  style={{ display: 'flex', gap: '0.35rem', marginLeft: 'auto', flexWrap: 'wrap' }}
-                >
-                  <button
-                    className="btn-secondary"
-                    style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
-                    title={t('rsm.identify_title')}
-                    onClick={() =>
-                      window.electronAPI.remote.identifyClient(competition.id, client.socketId)
-                    }
-                  >
-                    {t('rsm.identify')}
-                  </button>
-                  <input
-                    type="text"
-                    placeholder={t('rsm.rename_placeholder')}
-                    value={renameValues[client.socketId] ?? ''}
-                    onChange={e =>
-                      setRenameValues(v => ({ ...v, [client.socketId]: e.target.value }))
-                    }
-                    onKeyDown={async e => {
-                      if (e.key === 'Enter') {
-                        const lbl = renameValues[client.socketId]?.trim();
-                        if (lbl)
-                          await window.electronAPI.remote.renameClient(
-                            competition.id,
-                            client.socketId,
-                            lbl
-                          );
-                      }
-                    }}
-                    style={{
-                      width: '8rem',
-                      fontSize: '0.75rem',
-                      padding: '0.2rem 0.4rem',
-                      borderRadius: '0.3rem',
-                      border: '1px solid #475569',
-                      background: '#0f172a',
-                      color: '#e2e8f0',
-                    }}
-                  />
-                  <button
-                    className="btn-secondary"
-                    style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
-                    title={t('rsm.rename')}
-                    onClick={async () => {
-                      const lbl = renameValues[client.socketId]?.trim();
-                      if (lbl)
-                        await window.electronAPI.remote.renameClient(
-                          competition.id,
-                          client.socketId,
-                          lbl
-                        );
-                    }}
-                  >
-                    ✓
-                  </button>
-                  <button
-                    className="btn-primary"
-                    style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
-                    title={t('ui.configure_send_kiosk')}
-                    onClick={() => {
-                      setKioskModal(client.socketId);
-                      setKioskModalConfig({
-                        poules: true,
-                        classement: true,
-                        final: false,
-                        direct: true,
-                        suivants: true,
-                        tableau: true,
-                        rotationSec: 15,
-                        eta: true,
-                      });
-                    }}
-                  >
-                    {t('rsm.kiosk_mode')}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {/* ── Section : Écrans connectés (+ modale kiosk) ── */}
+      <ConnectedScreensPanel competitionId={competition.id} isRemoteActive={isRemoteActive} />
 
       <div className="remote-instructions">
         <h5>{t('rsm.instructions_title')}</h5>
@@ -2340,107 +1983,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           <li>{t('rsm.instr_4')}</li>
         </ol>
       </div>
-
-      {/* ── Modal kiosk config ── */}
-      {kioskModal &&
-        createPortal(
-          <div className="qr-popup-overlay" onClick={() => setKioskModal(null)}>
-            <div
-              className="qr-popup"
-              onClick={e => e.stopPropagation()}
-              style={{ minWidth: '20rem', maxWidth: '26rem' }}
-            >
-              <strong style={{ fontSize: '1rem' }}>{t('rsm.kiosk_modal_title')}</strong>
-              <div style={{ margin: '0.75rem 0', textAlign: 'left' }}>
-                <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
-                  {t('rsm.views_label')}
-                </div>
-                {(
-                  [
-                    { key: 'poules', label: t('rsm.view_pools') },
-                    { key: 'classement', label: t('rsm.view_ranking') },
-                    { key: 'final', label: t('rsm.view_final') },
-                    { key: 'direct', label: t('rsm.view_live_matches') },
-                    { key: 'suivants', label: t('rsm.view_next_matches') },
-                    { key: 'tableau', label: t('rsm.view_bracket') },
-                    { key: 'eta', label: t('rsm.view_eta') },
-                  ] as const
-                ).map(({ key, label }) => (
-                  <label
-                    key={key}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      margin: '0.3rem 0',
-                      cursor: 'pointer',
-                      color: '#e2e8f0',
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={kioskModalConfig[key] !== false}
-                      onChange={e => setKioskModalConfig(c => ({ ...c, [key]: e.target.checked }))}
-                    />
-                    {label}
-                  </label>
-                ))}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    marginTop: '0.75rem',
-                  }}
-                >
-                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                    {t('rsm.rotation')}
-                  </label>
-                  <input
-                    type="number"
-                    min={3}
-                    max={300}
-                    value={kioskModalConfig.rotationSec}
-                    onChange={e =>
-                      setKioskModalConfig(c => ({
-                        ...c,
-                        rotationSec: Math.max(3, parseInt(e.target.value) || 15),
-                      }))
-                    }
-                    style={{
-                      width: '5rem',
-                      padding: '0.3rem 0.5rem',
-                      borderRadius: '0.3rem',
-                      border: '1px solid #475569',
-                      background: '#0f172a',
-                      color: '#e2e8f0',
-                    }}
-                  />
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                <button
-                  className="btn btn-primary flex-1"
-                  onClick={async () => {
-                    await window.electronAPI.remote.setClientKioskMode(
-                      competition.id,
-                      kioskModal,
-                      kioskModalConfig
-                    );
-                    setKioskModal(null);
-                    showToast(t('rsm.kiosk_sent'), 'success');
-                  }}
-                >
-                  {t('rsm.send_kiosk')}
-                </button>
-                <button className="btn btn-secondary" onClick={() => setKioskModal(null)}>
-                  {t('rsm.cancel')}
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
 
       {themeEditorTarget && (
         <ThemeEditor
