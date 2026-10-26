@@ -32,8 +32,6 @@ import {
   Weapon,
 } from '../shared/types';
 import { DatabaseManager } from '../database';
-import { estimatePhaseEta } from '../shared/utils/phaseEta';
-import { resolveCompetitionSettings, usesModernRules } from '../shared/utils/customFormulaSettings';
 import {
   PASSWORD_MIN_LENGTH,
   isLocalNetworkOrigin,
@@ -106,6 +104,23 @@ import {
   refreshDeMatches,
   type ArenaQueueContext,
 } from './remote/arenaQueue';
+import {
+  updateStripCount,
+  updateShowPhotos,
+  applyCompetitionSettings,
+  refreshCompetitionSettings,
+  updateBlackCardEnabled,
+  updateCardAnnounce,
+  updateTheme,
+  updateArenaTheme,
+  clearArenaThemeOverride,
+  updateArenaScreenTheme,
+  updateKioskViews,
+  updateKioskTheme,
+  type SessionSettingsContext,
+} from './remote/sessionSettings';
+import { getArenaBlackCards, cancelBlackCard, type BlackCardsContext } from './remote/blackCards';
+import { buildDashboardSnapshot, computePhaseEta, type DashboardContext } from './remote/dashboard';
 
 export type ArenaEventList = 'touchesA' | 'touchesB' | 'cardsA' | 'cardsB' | 'exits';
 
@@ -716,6 +731,205 @@ export class RemoteScoreServer {
     });
   }
   private _arenaQueueCtx?: ArenaQueueContext;
+
+  /** Contexte de sessionSettings.ts (#1240) */
+  private get sessionSettingsCtx(): SessionSettingsContext {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    type S = RemoteScoreServer;
+    return (this._sessionSettingsCtx ??= {
+      applyCompetitionSettings: (...a: Parameters<S['applyCompetitionSettings']>) =>
+        self.applyCompetitionSettings(...a),
+      get arenaCount(): S['arenaCount'] {
+        return self.arenaCount;
+      },
+      set arenaCount(v: S['arenaCount']) {
+        self.arenaCount = v;
+      },
+      get arenaEventBuffer(): S['arenaEventBuffer'] {
+        return self.arenaEventBuffer;
+      },
+      get arenaMatchQueue(): S['arenaMatchQueue'] {
+        return self.arenaMatchQueue;
+      },
+      get arenaNextMatchIndex(): S['arenaNextMatchIndex'] {
+        return self.arenaNextMatchIndex;
+      },
+      get arenaScreenThemes(): S['arenaScreenThemes'] {
+        return self.arenaScreenThemes;
+      },
+      get arenaThemeOverrides(): S['arenaThemeOverrides'] {
+        return self.arenaThemeOverrides;
+      },
+      get arenas(): S['arenas'] {
+        return self.arenas;
+      },
+      broadcastArenaUpdate: (...a: Parameters<S['broadcastArenaUpdate']>) =>
+        self.broadcastArenaUpdate(...a),
+      get connectedClients(): S['connectedClients'] {
+        return self.connectedClients;
+      },
+      createArena: (...a: Parameters<S['createArena']>) => self.createArena(...a),
+      get db(): S['db'] {
+        return self.db;
+      },
+      getAllArenas: (...a: Parameters<S['getAllArenas']>) => self.getAllArenas(...a),
+      get io(): S['io'] {
+        return self.io;
+      },
+      get isTrainingMode(): S['isTrainingMode'] {
+        return self.isTrainingMode;
+      },
+      get kioskThemeVariables(): S['kioskThemeVariables'] {
+        return self.kioskThemeVariables;
+      },
+      set kioskThemeVariables(v: S['kioskThemeVariables']) {
+        self.kioskThemeVariables = v;
+      },
+      get session(): S['session'] {
+        return self.session;
+      },
+      get sessionBlackCardEnabled(): S['sessionBlackCardEnabled'] {
+        return self.sessionBlackCardEnabled;
+      },
+      set sessionBlackCardEnabled(v: S['sessionBlackCardEnabled']) {
+        self.sessionBlackCardEnabled = v;
+      },
+      get sessionCardAnnounce(): S['sessionCardAnnounce'] {
+        return self.sessionCardAnnounce;
+      },
+      set sessionCardAnnounce(v: S['sessionCardAnnounce']) {
+        self.sessionCardAnnounce = v;
+      },
+      get sessionKioskViews(): S['sessionKioskViews'] {
+        return self.sessionKioskViews;
+      },
+      set sessionKioskViews(v: S['sessionKioskViews']) {
+        self.sessionKioskViews = v;
+      },
+      get sessionModernRules(): S['sessionModernRules'] {
+        return self.sessionModernRules;
+      },
+      set sessionModernRules(v: S['sessionModernRules']) {
+        self.sessionModernRules = v;
+      },
+      get sessionPoolMaxScore(): S['sessionPoolMaxScore'] {
+        return self.sessionPoolMaxScore;
+      },
+      set sessionPoolMaxScore(v: S['sessionPoolMaxScore']) {
+        self.sessionPoolMaxScore = v;
+      },
+      get sessionPoolTimerSeconds(): S['sessionPoolTimerSeconds'] {
+        return self.sessionPoolTimerSeconds;
+      },
+      set sessionPoolTimerSeconds(v: S['sessionPoolTimerSeconds']) {
+        self.sessionPoolTimerSeconds = v;
+      },
+      get sessionRestSeconds(): S['sessionRestSeconds'] {
+        return self.sessionRestSeconds;
+      },
+      set sessionRestSeconds(v: S['sessionRestSeconds']) {
+        self.sessionRestSeconds = v;
+      },
+      get sessionShowPhotos(): S['sessionShowPhotos'] {
+        return self.sessionShowPhotos;
+      },
+      set sessionShowPhotos(v: S['sessionShowPhotos']) {
+        self.sessionShowPhotos = v;
+      },
+      get sessionTableMaxScore(): S['sessionTableMaxScore'] {
+        return self.sessionTableMaxScore;
+      },
+      set sessionTableMaxScore(v: S['sessionTableMaxScore']) {
+        self.sessionTableMaxScore = v;
+      },
+      get sessionTableTimerSeconds(): S['sessionTableTimerSeconds'] {
+        return self.sessionTableTimerSeconds;
+      },
+      set sessionTableTimerSeconds(v: S['sessionTableTimerSeconds']) {
+        self.sessionTableTimerSeconds = v;
+      },
+      get sessionTheme(): S['sessionTheme'] {
+        return self.sessionTheme;
+      },
+      set sessionTheme(v: S['sessionTheme']) {
+        self.sessionTheme = v;
+      },
+      toPublicArena: (...a: Parameters<S['toPublicArena']>) => self.toPublicArena(...a),
+      updateArenaTheme: (...a: Parameters<S['updateArenaTheme']>) => self.updateArenaTheme(...a),
+    });
+  }
+  private _sessionSettingsCtx?: SessionSettingsContext;
+
+  /** Contexte de blackCards.ts (#1240) */
+  private get blackCardsCtx(): BlackCardsContext {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    type S = RemoteScoreServer;
+    return (this._blackCardsCtx ??= {
+      get arenaMatchQueue(): S['arenaMatchQueue'] {
+        return self.arenaMatchQueue;
+      },
+      get arenas(): S['arenas'] {
+        return self.arenas;
+      },
+      get db(): S['db'] {
+        return self.db;
+      },
+      formatFencerName: (...a: Parameters<S['formatFencerName']>) => self.formatFencerName(...a),
+      getArenaBlackCards: (...a: Parameters<S['getArenaBlackCards']>) =>
+        self.getArenaBlackCards(...a),
+      matchPoolId: (...a: Parameters<S['matchPoolId']>) => self.matchPoolId(...a),
+      get poolFencersCache(): S['poolFencersCache'] {
+        return self.poolFencersCache;
+      },
+      get sessionBlackCards(): S['sessionBlackCards'] {
+        return self.sessionBlackCards;
+      },
+      get sessionMatchScores(): S['sessionMatchScores'] {
+        return self.sessionMatchScores;
+      },
+      get sessionMatches(): S['sessionMatches'] {
+        return self.sessionMatches;
+      },
+      set sessionMatches(v: S['sessionMatches']) {
+        self.sessionMatches = v;
+      },
+    });
+  }
+  private _blackCardsCtx?: BlackCardsContext;
+
+  /** Contexte de dashboard.ts (#1240) */
+  private get dashboardCtx(): DashboardContext {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    type S = RemoteScoreServer;
+    return (this._dashboardCtx ??= {
+      get arenas(): S['arenas'] {
+        return self.arenas;
+      },
+      computePhaseEta: (...a: Parameters<S['computePhaseEta']>) => self.computePhaseEta(...a),
+      get db(): S['db'] {
+        return self.db;
+      },
+      get isTrainingMode(): S['isTrainingMode'] {
+        return self.isTrainingMode;
+      },
+      get recentMatchDurationsMs(): S['recentMatchDurationsMs'] {
+        return self.recentMatchDurationsMs;
+      },
+      get session(): S['session'] {
+        return self.session;
+      },
+      get sessionMatchScores(): S['sessionMatchScores'] {
+        return self.sessionMatchScores;
+      },
+      get sessionMatches(): S['sessionMatches'] {
+        return self.sessionMatches;
+      },
+    });
+  }
+  private _dashboardCtx?: DashboardContext;
 
   constructor(
     db: DatabaseManager,
@@ -1545,53 +1759,7 @@ export class RemoteScoreServer {
    * sont reconstituées depuis les matchs de poule de la session.
    */
   private getArenaBlackCards(arenaId: string): BlackCardRecord[] {
-    // Reconstituer les cartons noirs absents de la mémoire (session relancée)
-    for (const m of this.sessionMatches) {
-      if (m.isTableau) continue;
-      for (const f of [m.fencerA, m.fencerB]) {
-        if (
-          !f?.id ||
-          f.status !== FencerStatus.EXCLUDED ||
-          f.exclusionReason !== 'black_card' ||
-          this.sessionBlackCards.has(f.id)
-        )
-          continue;
-        const last = this.sessionMatches
-          .filter(
-            (x: any) =>
-              !x.isTableau &&
-              (x.fencerA?.id === f.id || x.fencerB?.id === f.id) &&
-              (this.sessionMatchScores.get(x.id)?.status ?? x.status) === MatchStatus.FINISHED
-          )
-          .sort(
-            (a: any, b: any) =>
-              new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime()
-          )[0];
-        if (!last) continue;
-        const opponent = last.fencerA?.id === f.id ? last.fencerB : last.fencerA;
-        this.sessionBlackCards.set(f.id, {
-          fencerId: f.id,
-          matchId: last.id,
-          arenaId: null,
-          poolId: this.matchPoolId(last),
-          previousStatus: FencerStatus.CHECKED_IN,
-          fencerName: this.formatFencerName(f),
-          opponentName: this.formatFencerName(opponent),
-          timestamp: new Date(last.updatedAt ?? Date.now()).getTime(),
-        });
-      }
-    }
-
-    // Écarter les exclusions déjà levées ailleurs (ex. depuis le poste DT)
-    for (const [fencerId] of this.sessionBlackCards) {
-      const f = this.db.getFencer(fencerId);
-      if (f && f.status !== FencerStatus.EXCLUDED) this.sessionBlackCards.delete(fencerId);
-    }
-
-    const arenaPoolId = this.arenas.get(arenaId)?.currentMatch?.poolId ?? null;
-    return Array.from(this.sessionBlackCards.values())
-      .filter(r => r.arenaId === arenaId || (arenaPoolId !== null && r.poolId === arenaPoolId))
-      .sort((a, b) => b.timestamp - a.timestamp);
+    return getArenaBlackCards(this.blackCardsCtx, arenaId);
   }
 
   /** Annule un carton noir : réintègre le combattant et rouvre le match interrompu */
@@ -1599,94 +1767,7 @@ export class RemoteScoreServer {
     arenaId: string,
     fencerId: string
   ): { success: true; matchId: string } | { success: false; status: number; error: string } {
-    const record = this.getArenaBlackCards(arenaId).find(r => r.fencerId === fencerId);
-    if (!record) return { success: false, status: 404, error: 'black_card_not_found' };
-    const { matchId } = record;
-    const dbMatch = this.db.getMatch(matchId);
-    const sessionMatch = this.sessionMatches.find((m: any) => m.id === matchId);
-    if ((dbMatch && !dbMatch.poolId) || sessionMatch?.isTableau) {
-      return {
-        success: false,
-        status: 409,
-        error: 'cancel_tableau_forbidden',
-      };
-    }
-
-    const status = record.previousStatus;
-    try {
-      this.db.updateFencer(fencerId, { status, exclusionReason: null });
-    } catch (e) {
-      console.error('[RemoteScoreServer] Erreur réintégration combattant:', e);
-      return { success: false, status: 500, error: 'reinstate_failed' };
-    }
-
-    // Rouvrir le match interrompu par le carton noir avec le score atteint
-    const current = this.sessionMatchScores.get(matchId);
-    const valueOf = (s: any): number =>
-      typeof s === 'object' && s !== null ? Number(s.value ?? 0) : Number(s ?? 0);
-    const scoreA = valueOf(current?.scoreA ?? dbMatch?.scoreA ?? sessionMatch?.scoreA);
-    const scoreB = valueOf(current?.scoreB ?? dbMatch?.scoreB ?? sessionMatch?.scoreB);
-    const reopened = (value: number): Score => ({
-      value,
-      isVictory: false,
-      isAbstention: false,
-      isExclusion: false,
-      isForfait: false,
-    });
-    if (dbMatch) {
-      this.db.updateMatch(matchId, {
-        scoreA: reopened(scoreA),
-        scoreB: reopened(scoreB),
-        status: MatchStatus.IN_PROGRESS,
-      });
-    }
-    this.sessionMatchScores.set(matchId, {
-      scoreA: reopened(scoreA),
-      scoreB: reopened(scoreB),
-      status: MatchStatus.IN_PROGRESS,
-    });
-
-    // Propager le statut dans les copies en mémoire : ses matchs suivants redeviennent jouables
-    const patch = (f: any) => (f?.id === fencerId ? { ...f, status, exclusionReason: null } : f);
-    this.sessionMatches = this.sessionMatches.map((m: any) =>
-      m.fencerA?.id === fencerId || m.fencerB?.id === fencerId
-        ? { ...m, fencerA: patch(m.fencerA), fencerB: patch(m.fencerB) }
-        : m
-    );
-    for (const [qArenaId, queue] of this.arenaMatchQueue) {
-      this.arenaMatchQueue.set(
-        qArenaId,
-        queue.map(m => ({ ...m, fencerA: patch(m.fencerA), fencerB: patch(m.fencerB) }))
-      );
-    }
-    for (const [poolId, fencers] of this.poolFencersCache) {
-      this.poolFencersCache.set(poolId, fencers.map(patch));
-    }
-    for (const arena of this.arenas.values()) {
-      if (!arena.currentMatch) continue;
-      arena.currentMatch = {
-        ...arena.currentMatch,
-        fencerA: patch(arena.currentMatch.fencerA),
-        fencerB: patch(arena.currentMatch.fencerB),
-      };
-    }
-
-    this.sessionBlackCards.delete(fencerId);
-    console.log(
-      `[RemoteScoreServer] Carton noir annulé : combattant ${fencerId} réintégré, match ${matchId} rouvert`
-    );
-
-    const mainWin = (global as any).mainWindow;
-    if (mainWin) {
-      mainWin.webContents.send('remote:fencer_reinstated', {
-        fencerId,
-        matchId,
-        status,
-        scoreA,
-        scoreB,
-      });
-    }
-    return { success: true, matchId };
+    return cancelBlackCard(this.blackCardsCtx, arenaId, fencerId);
   }
 
   /** Match de la vague active (ou aucun filtre de vague) (#1118) */
@@ -2332,81 +2413,10 @@ export class RemoteScoreServer {
     return loadNextMatch(this.arenaQueueCtx, arenaId);
   }
 
-  private buildDashboardSnapshot(): {
-    rankings: any[];
-    pools: any[];
-    liveMatches: any[];
-    eta?: { finishAt: string; basis: string; remainingMatches: number; perMatchMinutes: number };
-  } | null {
-    if (!this.session) return null;
-    if (this.isTrainingMode) return { rankings: [], pools: [], liveMatches: [] };
-    const { competitionId } = this.session;
-
-    // Classement global (depuis les poules terminées)
-    let rankings: any[] = [];
-    try {
-      const fencers = this.db.getFencersByCompetition(competitionId);
-      rankings = fencers
-        .filter((f: any) => f.poolStats)
-        .map((f: any) => {
-          const stats = typeof f.poolStats === 'string' ? JSON.parse(f.poolStats) : f.poolStats;
-          return {
-            lastName: f.lastName,
-            firstName: f.firstName,
-            club: f.club || '',
-            victories: stats?.victories ?? 0,
-            quest: stats?.questPoints ?? stats?.touchesScored ?? 0,
-          };
-        })
-        .sort((a: any, b: any) => b.victories - a.victories || b.quest - a.quest);
-    } catch {
-      /* */
-    }
-
-    // État des poules
-    const pools: any[] = [];
-    try {
-      const matchesByPool = new Map<string, any[]>();
-      for (const m of this.sessionMatches) {
-        const pid = m.poolId || m.pool?.id;
-        if (!pid) continue;
-        if (!matchesByPool.has(pid)) matchesByPool.set(pid, []);
-        matchesByPool.get(pid)!.push(m);
-      }
-      let poolNum = 1;
-      for (const [pid, pMatches] of matchesByPool) {
-        const isComplete = pMatches.every((m: any) => {
-          const u = this.sessionMatchScores.get(m.id);
-          return u ? u.status === 'finished' : m.status === 'finished';
-        });
-        pools.push({ id: pid, number: poolNum++, isComplete, ranking: [] });
-      }
-    } catch {
-      /* */
-    }
-
-    // Matchs en direct (arènes actives)
-    const liveMatches: any[] = [];
-    for (const arena of this.arenas.values()) {
-      if (arena.currentMatch && arena.status === 'in_progress') {
-        const m = arena.currentMatch;
-        liveMatches.push({
-          number: arena.number,
-          poolNumber: m.poolId || null,
-          fencerA: `${m.fencerA?.lastName ?? ''} ${m.fencerA?.firstName ?? ''}`.trim(),
-          fencerB: `${m.fencerB?.lastName ?? ''} ${m.fencerB?.firstName ?? ''}`.trim(),
-          clubA: m.fencerA?.club || '',
-          clubB: m.fencerB?.club || '',
-          scoreA: m.scoreA,
-          scoreB: m.scoreB,
-          winner: m.status === 'finished' ? (m.scoreA > m.scoreB ? 'A' : 'B') : null,
-        });
-      }
-    }
-
-    const eta = this.computePhaseEta();
-
-    return { rankings, pools, liveMatches, eta };
+  private buildDashboardSnapshot(
+    ...args: Tail<Parameters<typeof buildDashboardSnapshot>>
+  ): ReturnType<typeof buildDashboardSnapshot> {
+    return buildDashboardSnapshot(this.dashboardCtx, ...args);
   }
 
   /**
@@ -2416,45 +2426,7 @@ export class RemoteScoreServer {
    * poule s'enchaîne sur une piste ; parallélisme = nombre de pistes de la session.
    */
   private computePhaseEta(): PhaseEtaSummary {
-    const pending = this.sessionMatches.filter(m => {
-      const u = this.sessionMatchScores.get(m.id);
-      return (u ? u.status : m.status) !== 'finished';
-    });
-    const tableau = pending.filter(m => m.isTableau);
-    let phase: PhaseEtaSummary['phase'] = 'pools';
-    let round: number | null = null;
-    let remaining = pending;
-    let sequentialGroups: number[] | undefined;
-    if (tableau.length > 0) {
-      phase = 'tableau';
-      // Petite finale (3) jouée avec la finale (2)
-      const roundOf = (m: { round?: unknown }) =>
-        Number(m.round) === 3 ? 2 : Number(m.round) || 0;
-      round = Math.max(...tableau.map(roundOf)) || null;
-      remaining = tableau.filter(m => roundOf(m) === (round ?? 0));
-    } else {
-      const byPool = new Map<string, number>();
-      for (const m of pending) {
-        const key = m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`;
-        byPool.set(key, (byPool.get(key) ?? 0) + 1);
-      }
-      sequentialGroups = [...byPool.values()];
-    }
-    const estimate = estimatePhaseEta({
-      durationsMs: this.recentMatchDurationsMs,
-      remainingMatches: remaining.length,
-      sequentialGroups,
-      activeArenas: this.session?.strips?.length || this.arenas.size,
-      now: Date.now(),
-    });
-    return {
-      finishAt: new Date(estimate.finishAt).toISOString(),
-      basis: estimate.basis,
-      remainingMatches: estimate.remainingMatches,
-      perMatchMinutes: Math.round(estimate.perMatchMs / 60_000),
-      phase,
-      round,
-    };
+    return computePhaseEta(this.dashboardCtx);
   }
 
   public broadcastDashboardUpdate(): void {
@@ -2895,192 +2867,42 @@ export class RemoteScoreServer {
   }
 
   public updateStripCount(newCount: number): RemoteSession | null {
-    if (!this.session) throw new Error('Aucune session active');
-
-    const currentCount = this.session.strips.length;
-
-    if (newCount > currentCount) {
-      // Add new strips
-      for (let i = currentCount; i < newCount; i++) {
-        this.session.strips.push({
-          number: i + 1,
-          status: 'available',
-        });
-        // Pistes ajoutées en cours de session : arènes correspondantes (#1077)
-        if (!this.arenas.has(`arena${i + 1}`)) this.createArena(i + 1);
-      }
-      this.arenaCount = newCount;
-      this.io?.emit(
-        'arenas:updated',
-        this.getAllArenas().map(a => this.toPublicArena(a))
-      );
-    } else if (newCount < currentCount) {
-      // Remove strips (only available ones)
-      const availableStrips = this.session.strips.filter(s => s.status === 'available');
-      const toRemove = currentCount - newCount;
-
-      if (availableStrips.length < toRemove) {
-        throw new Error(
-          `Impossible de réduire à ${newCount} pistes: ${toRemove - availableStrips.length} pistes occupées`
-        );
-      }
-
-      // Remove from the end (available ones)
-      let removed = 0;
-      for (let i = this.session.strips.length - 1; i >= 0 && removed < toRemove; i--) {
-        if (this.session.strips[i].status === 'available') {
-          this.session.strips.splice(i, 1);
-          removed++;
-        }
-      }
-
-      // Renumber strips
-      this.session.strips.forEach((strip, idx) => {
-        strip.number = idx + 1;
-      });
-
-      // Supprimer les arènes au-delà du nouveau count
-      for (let i = newCount + 1; i <= currentCount; i++) {
-        const arenaId = `arena${i}`;
-        this.arenas.delete(arenaId);
-        this.arenaMatchQueue.delete(arenaId);
-        this.arenaEventBuffer.delete(arenaId);
-        this.arenaNextMatchIndex.delete(arenaId);
-      }
-      this.arenaCount = newCount;
-      this.io?.emit(
-        'arenas:updated',
-        this.getAllArenas().map(a => this.toPublicArena(a))
-      );
-    }
-
-    return this.session;
+    return updateStripCount(this.sessionSettingsCtx, newCount);
   }
 
   public updateShowPhotos(value: boolean): void {
-    if (!this.session) throw new Error('Aucune session active');
-    this.sessionShowPhotos = value;
-    // Re-broadcast à toutes les pistes pour propager le nouveau réglage
-    for (const [arenaId, arena] of this.arenas.entries()) {
-      this.broadcastArenaUpdate(arenaId, {
-        arenaId,
-        match: arena.currentMatch,
-        scoreA: arena.currentMatch?.scoreA,
-        scoreB: arena.currentMatch?.scoreB,
-        status: arena.status,
-        fencerA: arena.currentMatch?.fencerA,
-        fencerB: arena.currentMatch?.fencerB,
-      });
-    }
+    return updateShowPhotos(this.sessionSettingsCtx, value);
   }
 
   /** Chronos, score max et repos issus des réglages effectifs de la compétition (#1134) */
   private applyCompetitionSettings(competition: Competition): void {
-    const settings = resolveCompetitionSettings(competition.weapon, competition.settings);
-    this.sessionPoolTimerSeconds = settings?.defaultPoolTimerSeconds ?? 180;
-    this.sessionTableTimerSeconds = settings?.defaultTableTimerSeconds ?? 180;
-    this.sessionPoolMaxScore = settings?.defaultPoolMaxScore ?? null;
-    this.sessionTableMaxScore = settings?.defaultTableMaxScore ?? null;
-    this.sessionRestSeconds = Math.max(0, settings?.restTimeSeconds ?? 60);
-    this.sessionModernRules = usesModernRules(competition.weapon, competition.settings);
+    return applyCompetitionSettings(this.sessionSettingsCtx, competition);
   }
 
   /** Relit les réglages de la compétition à chaud (propriétés modifiées en cours de session) */
   public refreshCompetitionSettings(): void {
-    if (!this.session || this.isTrainingMode) return;
-    const competition = this.db.getCompetition(this.session.competitionId);
-    if (!competition) return;
-    this.applyCompetitionSettings(competition);
-    for (const [arenaId, arena] of this.arenas.entries()) {
-      this.broadcastArenaUpdate(arenaId, {
-        arenaId,
-        match: arena.currentMatch,
-        scoreA: arena.currentMatch?.scoreA,
-        scoreB: arena.currentMatch?.scoreB,
-        status: arena.status,
-      });
-    }
+    return refreshCompetitionSettings(this.sessionSettingsCtx);
   }
 
   /** Active/désactive le carton noir à chaud (propriétés compétition modifiées en cours de session) */
   public updateBlackCardEnabled(value: boolean): void {
-    if (!this.session || this.sessionBlackCardEnabled === value) return;
-    this.sessionBlackCardEnabled = value;
-    for (const [arenaId, arena] of this.arenas.entries()) {
-      this.broadcastArenaUpdate(arenaId, {
-        arenaId,
-        match: arena.currentMatch,
-        scoreA: arena.currentMatch?.scoreA,
-        scoreB: arena.currentMatch?.scoreB,
-        status: arena.status,
-      });
-    }
+    return updateBlackCardEnabled(this.sessionSettingsCtx, value);
   }
 
   public updateCardAnnounce(value: boolean): void {
-    if (!this.session) throw new Error('Aucune session active');
-    this.sessionCardAnnounce = value;
-    for (const [arenaId, arena] of this.arenas.entries()) {
-      this.broadcastArenaUpdate(arenaId, {
-        arenaId,
-        match: arena.currentMatch,
-        scoreA: arena.currentMatch?.scoreA,
-        scoreB: arena.currentMatch?.scoreB,
-        status: arena.status,
-      });
-    }
+    return updateCardAnnounce(this.sessionSettingsCtx, value);
   }
 
   public updateTheme(theme: DisplayTheme): void {
-    if (!this.session) throw new Error('Aucune session active');
-    this.sessionTheme = theme;
-    for (const [arenaId, arena] of this.arenas.entries()) {
-      this.broadcastArenaUpdate(arenaId, {
-        arenaId,
-        match: arena.currentMatch,
-        scoreA: arena.currentMatch?.scoreA,
-        scoreB: arena.currentMatch?.scoreB,
-        status: arena.status,
-        fencerA: arena.currentMatch?.fencerA,
-        fencerB: arena.currentMatch?.fencerB,
-      });
-    }
+    return updateTheme(this.sessionSettingsCtx, theme);
   }
 
   public updateArenaTheme(arenaId: string, theme: DisplayTheme, customTheme?: CustomTheme): void {
-    if (!this.session) throw new Error('Aucune session active');
-    const fullId = arenaId.startsWith('arena') ? arenaId : `arena${arenaId}`;
-    this.arenaThemeOverrides.set(fullId, { theme, customTheme });
-    const arena = this.arenas.get(fullId);
-    if (arena) {
-      this.broadcastArenaUpdate(fullId, {
-        arenaId: fullId,
-        match: arena.currentMatch,
-        scoreA: arena.currentMatch?.scoreA,
-        scoreB: arena.currentMatch?.scoreB,
-        status: arena.status,
-        fencerA: arena.currentMatch?.fencerA,
-        fencerB: arena.currentMatch?.fencerB,
-      });
-    }
+    return updateArenaTheme(this.sessionSettingsCtx, arenaId, theme, customTheme);
   }
 
   public clearArenaThemeOverride(arenaId: string): void {
-    if (!this.session) throw new Error('Aucune session active');
-    const fullId = arenaId.startsWith('arena') ? arenaId : `arena${arenaId}`;
-    this.arenaThemeOverrides.delete(fullId);
-    const arena = this.arenas.get(fullId);
-    if (arena) {
-      this.broadcastArenaUpdate(fullId, {
-        arenaId: fullId,
-        match: arena.currentMatch,
-        scoreA: arena.currentMatch?.scoreA,
-        scoreB: arena.currentMatch?.scoreB,
-        status: arena.status,
-        fencerA: arena.currentMatch?.fencerA,
-        fencerB: arena.currentMatch?.fencerB,
-      });
-    }
+    return clearArenaThemeOverride(this.sessionSettingsCtx, arenaId);
   }
 
   public updateArenaScreenTheme(
@@ -3088,36 +2910,7 @@ export class RemoteScoreServer {
     targetType: ThemeTargetType,
     customTheme?: CustomTheme
   ): void {
-    if (!this.session) throw new Error('Aucune session active');
-    const fullId = arenaId.startsWith('arena') ? arenaId : `arena${arenaId}`;
-    const existing = this.arenaScreenThemes.get(fullId) ?? {};
-    if (customTheme) existing[targetType] = customTheme;
-    else delete existing[targetType];
-    this.arenaScreenThemes.set(fullId, existing);
-
-    if (targetType === 'arena') {
-      this.updateArenaTheme(arenaId, customTheme ? 'custom' : 'dark', customTheme);
-      return;
-    }
-
-    // Envoyer le thème immédiatement aux clients connectés du bon type
-    for (const [, client] of this.connectedClients) {
-      if (client.arenaId !== fullId) continue;
-      if (client.clientType === targetType) {
-        this.io.to(client.socketId).emit('server:command', {
-          type: `${targetType}:theme`,
-          variables: customTheme?.variables ?? null,
-        });
-      }
-    }
-
-    // Pour pool : diffuser aussi via la room pool
-    if (targetType === 'pool') {
-      this.io.to(`pool:${fullId}`).emit('server:command', {
-        type: 'pool:theme',
-        variables: customTheme?.variables ?? null,
-      });
-    }
+    return updateArenaScreenTheme(this.sessionSettingsCtx, arenaId, targetType, customTheme);
   }
 
   public updateKioskViews(views: {
@@ -3127,18 +2920,11 @@ export class RemoteScoreServer {
     suivants: boolean;
     tableau?: boolean;
   }): void {
-    if (!this.session) throw new Error('Aucune session active');
-    this.sessionKioskViews = { tableau: true, ...views };
+    return updateKioskViews(this.sessionSettingsCtx, views);
   }
 
   public updateKioskTheme(variables: Record<string, string>): void {
-    if (!this.session) throw new Error('Aucune session active');
-    this.kioskThemeVariables = variables;
-    for (const [, client] of this.connectedClients) {
-      if (client.clientType === 'kiosk') {
-        this.io.to(client.socketId).emit('server:command', { type: 'kiosk:theme', variables });
-      }
-    }
+    return updateKioskTheme(this.sessionSettingsCtx, variables);
   }
 
   public updatePoolFencers(updates: Array<{ poolId: string; fencers: any[] }>): void {
