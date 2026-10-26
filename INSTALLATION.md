@@ -43,7 +43,7 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 
 #### macOS
 
-1. Pick the `.dmg` matching your Mac (`x64` Intel, `arm64` Apple Silicon) and open it
+1. Pick the `.dmg` matching your Mac (`x64` Intel, `arm64` Apple Silicon — how to tell: [docs/MAC_VERSION.md](docs/MAC_VERSION.md)) and open it
 2. Drag BellePoule Modern to your Applications folder
 3. Right-click the app and select "Open" (first time only to bypass Gatekeeper)
 4. Launch from Applications folder

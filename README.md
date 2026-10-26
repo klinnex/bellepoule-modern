@@ -316,7 +316,7 @@ Liste complète et versions : [docs/STACK_TECHNIQUE.md](docs/STACK_TECHNIQUE.md)
 | Plateforme | Fichiers |
 |---|---|
 | **Windows** x64 | `BellePoule Modern-<version>-setup.exe` (installeur), `-portable.exe` |
-| **macOS** x64 / arm64 | `BellePoule Modern-<version>-<arch>.dmg` / `.zip` |
+| **macOS** x64 / arm64 | `BellePoule-Modern-<version>-mac-<arch>.dmg` — quelle version ? → [docs/MAC_VERSION.md](docs/MAC_VERSION.md) |
 | **Linux** x64 | `BellePoule Modern-<version>-<arch>.AppImage` / `.deb` / `.rpm` |
 
 ### 🧪 **Version de Développement** (Tests)
@@ -341,7 +341,7 @@ Mêmes formats, publiés en pré-release à chaque push sur `dev`.
 3. Glisser l'application dans le dossier Applications
 4. Accepter les permissions demandées
 
-Apple Silicon (M1+, MacBook Neo) : prendre le `.dmg` **arm64** (natif, sans Rosetta). App signée ad-hoc, non notarisée : au 1er lancement, Réglages Système → Confidentialité et sécurité → « Ouvrir quand même » (ou `xattr -cr "/Applications/BellePoule Modern.app"`).
+Apple Silicon (M1+, MacBook Neo) : prendre le `.dmg` **arm64** ; Intel : **x64** (guide : [docs/MAC_VERSION.md](docs/MAC_VERSION.md)) (natif, sans Rosetta). App signée ad-hoc, non notarisée : au 1er lancement, Réglages Système → Confidentialité et sécurité → « Ouvrir quand même » (ou `xattr -cr "/Applications/BellePoule Modern.app"`).
 
 #### **Linux**
 
