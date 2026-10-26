@@ -536,6 +536,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onAutosaveFailed: (callback: () => void) => ipcRenderer.on('autosave:failed', callback),
   onDbReady: (callback: () => void) => ipcRenderer.once('db:ready', callback),
 
+  // Boîte d'impression intégrée (#1214)
+  printDialog: {
+    getPrinters: () => ipcRenderer.invoke('print:getPrinters'),
+    render: (html: string, settings?: Record<string, unknown>) => {
+      if (!html || typeof html !== 'string') throw new Error('HTML content is required');
+      return ipcRenderer.invoke('print:render', html, settings);
+    },
+    execute: (html: string, settings?: Record<string, unknown>) => {
+      if (!html || typeof html !== 'string') throw new Error('HTML content is required');
+      return ipcRenderer.invoke('print:execute', html, settings);
+    },
+  },
+
   // Utility functions
   print: () => ipcRenderer.invoke('window:print'),
   setWindowSize: (width: number, height: number, options?: { force?: boolean }) =>
