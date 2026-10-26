@@ -6,7 +6,15 @@
 
 import { Fencer, FencerStatus } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
+import {
+  savePDF,
+  printHTML,
+  buildCssOverrides,
+  assembleBody,
+  BASE_CSS,
+  pdfLang,
+  pdfT,
+} from './core';
 import { getActiveLocale } from '../localeFormat';
 
 // ─── Export Résultats Finaux ───────────────────────────────────────────────────
@@ -127,4 +135,15 @@ export async function exportResultsToPDF(
   if (results.length === 0) throw new Error(pdfT('results_empty', 'Aucun résultat à exporter'));
   const html = generateResultsHTML(results, title, logoBase64, template);
   await savePDF(html, 'resultats-finaux.pdf');
+}
+
+/** Impression des résultats finaux (boîte d'impression intégrée avec aperçu, #1214) */
+export async function printResultsHTML(
+  results: FinalResultForPDF[],
+  title: string = pdfT('results_title', 'Résultats Finaux'),
+  logoBase64?: string,
+  template?: PdfTemplate
+): Promise<void> {
+  if (results.length === 0) throw new Error(pdfT('results_empty', 'Aucun résultat à exporter'));
+  await printHTML(generateResultsHTML(results, title, logoBase64, template));
 }

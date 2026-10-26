@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import { BASE_CSS, pdfLang, savePDF } from '../../shared/utils/pdfExport/core';
+import { BASE_CSS, pdfLang, printHTML, savePDF } from '../../shared/utils/pdfExport/core';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 export interface RapieresPdfTable {
@@ -63,4 +63,9 @@ export async function exportRapieresRankingToPDF(
   fileName: string
 ): Promise<void> {
   await savePDF(generateRapieresRankingHTML(table), fileName);
+}
+
+/** Impression du classement (boîte d'impression intégrée avec aperçu, #1214) */
+export async function printRapieresRanking(table: RapieresPdfTable): Promise<void> {
+  await printHTML(generateRapieresRankingHTML(table));
 }

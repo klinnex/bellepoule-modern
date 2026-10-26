@@ -6,7 +6,15 @@
 
 import { PoolRanking, Weapon } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
+import {
+  savePDF,
+  printHTML,
+  buildCssOverrides,
+  assembleBody,
+  BASE_CSS,
+  pdfLang,
+  pdfT,
+} from './core';
 import { formatQuestPerMatch, isDnf } from '../poolCalculations';
 import { getActiveLocale } from '../localeFormat';
 
@@ -126,14 +134,14 @@ ${body}
 </html>`;
 }
 
-export async function exportRankingToPDF(
+function buildRankingHTML(
   ranking: PoolRanking[],
   title: string = pdfT('ranking_title', 'Classement Général'),
   weapon?: Weapon,
   visibleColumns?: string[],
   logoBase64?: string,
   template?: PdfTemplate
-): Promise<void> {
+): string {
   if (ranking.length === 0)
     throw new Error(pdfT('ranking_empty', 'Aucun tireur dans le classement'));
   const isLaserSabre = weapon === 'L' || weapon === ('LASER' as any);
@@ -149,6 +157,18 @@ export async function exportRankingToPDF(
     'quest',
     'index',
   ];
-  const html = generateRankingHTML(ranking, title, isLaserSabre, cols, logoBase64, template);
-  await savePDF(html, 'classement-general.pdf');
+  return generateRankingHTML(ranking, title, isLaserSabre, cols, logoBase64, template);
+}
+
+export async function exportRankingToPDF(
+  ...args: Parameters<typeof buildRankingHTML>
+): Promise<void> {
+  await savePDF(buildRankingHTML(...args), 'classement-general.pdf');
+}
+
+/** Impression du classement (boîte d'impression intégrée avec aperçu, #1214) */
+export async function printRankingHTML(
+  ...args: Parameters<typeof buildRankingHTML>
+): Promise<void> {
+  await printHTML(buildRankingHTML(...args));
 }
