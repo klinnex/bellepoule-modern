@@ -492,6 +492,7 @@
     "excluded": "Ausgeschlossen",
     "finished": "Beendet",
     "forfeit": "Nicht Angetreten",
+    "forfeit_dns": "Nicht angetreten (DNS)",
     "in_progress": "In Bearbeitung",
     "not_checked_in": "Nicht Eingecheckt",
     "not_started": "Nicht Gestartet",

@@ -104,6 +104,7 @@
     "abandoned": "Abandoned",
     "excluded": "Excluded",
     "forfeit": "Withdraw",
+    "forfeit_dns": "Withdraw (DNS)",
     "not_started": "Not Started",
     "in_progress": "In Progress",
     "finished": "Finished"

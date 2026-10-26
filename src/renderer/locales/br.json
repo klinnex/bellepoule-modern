@@ -104,6 +104,7 @@
     "abandoned": "Dilezet",
     "excluded": "Skarzhet",
     "forfeit": "Dilez",
+    "forfeit_dns": "Dilez (DNS)",
     "not_started": "N'eo krog",
     "in_progress": "E-brient",
     "finished": "Echuet"

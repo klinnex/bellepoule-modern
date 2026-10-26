@@ -104,6 +104,7 @@
     "abandoned": "Abandonado",
     "excluded": "Excluido",
     "forfeit": "No Presentado",
+    "forfeit_dns": "No presentado (DNS)",
     "not_started": "No Iniciado",
     "in_progress": "En Curso",
     "finished": "Terminado"
