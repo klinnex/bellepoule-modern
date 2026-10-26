@@ -23,7 +23,6 @@ import {
   MatchSignatureRequest,
 } from '../shared/types/remote';
 import {
-  CardReason,
   Competition,
   CustomScoringConfig,
   Match,
@@ -61,10 +60,9 @@ import { applyPageCsp, sendHtmlPage } from './remote/csp';
 import { sanitizeAnnouncement } from './remote/announcement';
 import * as slots from './remote/arenaSlots';
 import { applySmartMatchOrder, isMatchPlayable } from './remote/matchOrder';
-import { createPublicParser, publicJson } from './remote/publicDto';
+import { createPublicParser } from './remote/publicDto';
 import {
   buildPage,
-  jsonCompression,
   sendStored,
   storeBody,
   type StoredBody,
@@ -93,11 +91,19 @@ import {
   isRelayComplete,
   relayCapFor,
   relayCumul,
-  relayWinnerSide,
 } from '../features/teams/utils/teamRelayLive';
-import { createCard, getAvailableReasons } from '../shared/utils/cardSystem';
+import { getAvailableReasons } from '../shared/utils/cardSystem';
+import { setupSocketHandlers, type SocketHandlersContext } from './remote/socketHandlers';
+import { handleArenaControl, type ArenaControlContext } from './remote/arenaControl';
+import { setupMiddleware, type MiddlewareContext } from './remote/middleware';
+import { startSession, type SessionStartContext } from './remote/sessionStart';
+import { finishArenaMatch, type MatchFinishContext } from './remote/matchFinish';
 
-type ArenaEventList = 'touchesA' | 'touchesB' | 'cardsA' | 'cardsB' | 'exits';
+export type ArenaEventList = 'touchesA' | 'touchesB' | 'cardsA' | 'cardsB' | 'exits';
+
+/** Raccourcis de type pour les modules extraits (#1240) : état du serveur, paramètres hors contexte */
+type S = RemoteScoreServer;
+type Tail<T extends unknown[]> = T extends [unknown, ...infer R] ? R : never;
 
 export class RemoteScoreServer {
   private app: express.Application;
@@ -269,6 +275,370 @@ export class RemoteScoreServer {
 
   // Labels persistants par screenId (survivent aux reconnexions)
   private screenLabels: Map<string, string> = new Map();
+
+  /** Contexte de socketHandlers.ts (#1240) */
+  private get socketCtx(): SocketHandlersContext {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return (this._socketCtx ??= {
+      get MAX_SOCKETS_PER_IP(): S['MAX_SOCKETS_PER_IP'] {
+        return self.MAX_SOCKETS_PER_IP;
+      },
+      get SOCKET_EVENTS_PER_SEC(): S['SOCKET_EVENTS_PER_SEC'] {
+        return self.SOCKET_EVENTS_PER_SEC;
+      },
+      get SOCKET_EVENT_BURST(): S['SOCKET_EVENT_BURST'] {
+        return self.SOCKET_EVENT_BURST;
+      },
+      get arenaEventBuffer(): S['arenaEventBuffer'] {
+        return self.arenaEventBuffer;
+      },
+      get arenaRefereeSelected(): S['arenaRefereeSelected'] {
+        return self.arenaRefereeSelected;
+      },
+      get arenaScreenThemes(): S['arenaScreenThemes'] {
+        return self.arenaScreenThemes;
+      },
+      get arenaThemeOverrides(): S['arenaThemeOverrides'] {
+        return self.arenaThemeOverrides;
+      },
+      broadcastClientList: (...a: Parameters<S['broadcastClientList']>) =>
+        self.broadcastClientList(...a),
+      buildDashboardSnapshot: (...a: Parameters<S['buildDashboardSnapshot']>) =>
+        self.buildDashboardSnapshot(...a),
+      checkArenaAuth: (...a: Parameters<S['checkArenaAuth']>) => self.checkArenaAuth(...a),
+      checkSocketArenaAuth: (...a: Parameters<S['checkSocketArenaAuth']>) =>
+        self.checkSocketArenaAuth(...a),
+      get connectedClients(): S['connectedClients'] {
+        return self.connectedClients;
+      },
+      get db(): S['db'] {
+        return self.db;
+      },
+      getArena: (...a: Parameters<S['getArena']>) => self.getArena(...a),
+      getPublicTeamArenaState: (...a: Parameters<S['getPublicTeamArenaState']>) =>
+        self.getPublicTeamArenaState(...a),
+      getSessionReferees: (...a: Parameters<S['getSessionReferees']>) =>
+        self.getSessionReferees(...a),
+      handleArenaControl: (...a: Parameters<S['handleArenaControl']>) =>
+        self.handleArenaControl(...a),
+      handleDisconnect: (...a: Parameters<S['handleDisconnect']>) => self.handleDisconnect(...a),
+      get io(): S['io'] {
+        return self.io;
+      },
+      get isTrainingMode(): S['isTrainingMode'] {
+        return self.isTrainingMode;
+      },
+      get kioskThemeVariables(): S['kioskThemeVariables'] {
+        return self.kioskThemeVariables;
+      },
+      peekNextMatch: (...a: Parameters<S['peekNextMatch']>) => self.peekNextMatch(...a),
+      get screenLabels(): S['screenLabels'] {
+        return self.screenLabels;
+      },
+      sendDiag: (...a: Parameters<S['sendDiag']>) => self.sendDiag(...a),
+      get session(): S['session'] {
+        return self.session;
+      },
+      get sessionBlackCardEnabled(): S['sessionBlackCardEnabled'] {
+        return self.sessionBlackCardEnabled;
+      },
+      get sessionCardAnnounce(): S['sessionCardAnnounce'] {
+        return self.sessionCardAnnounce;
+      },
+      get sessionPoolTimerSeconds(): S['sessionPoolTimerSeconds'] {
+        return self.sessionPoolTimerSeconds;
+      },
+      get sessionRefereeFeatureEnabled(): S['sessionRefereeFeatureEnabled'] {
+        return self.sessionRefereeFeatureEnabled;
+      },
+      get sessionRestSeconds(): S['sessionRestSeconds'] {
+        return self.sessionRestSeconds;
+      },
+      get sessionShowPhotos(): S['sessionShowPhotos'] {
+        return self.sessionShowPhotos;
+      },
+      get sessionTableTimerSeconds(): S['sessionTableTimerSeconds'] {
+        return self.sessionTableTimerSeconds;
+      },
+      get sessionTheme(): S['sessionTheme'] {
+        return self.sessionTheme;
+      },
+      get socketsPerIp(): S['socketsPerIp'] {
+        return self.socketsPerIp;
+      },
+      teamArenaElapsedSec: (...a: Parameters<S['teamArenaElapsedSec']>) =>
+        self.teamArenaElapsedSec(...a),
+      get teamArenaState(): S['teamArenaState'] {
+        return self.teamArenaState;
+      },
+      get trainingCustomRules(): S['trainingCustomRules'] {
+        return self.trainingCustomRules;
+      },
+    });
+  }
+  private _socketCtx?: SocketHandlersContext;
+
+  /** Contexte de arenaControl.ts (#1240) */
+  private get arenaControlCtx(): ArenaControlContext {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return (this._arenaControlCtx ??= {
+      get SCORE_UPDATE_DEBOUNCE_MS(): S['SCORE_UPDATE_DEBOUNCE_MS'] {
+        return self.SCORE_UPDATE_DEBOUNCE_MS;
+      },
+      get arenaCards(): S['arenaCards'] {
+        return self.arenaCards;
+      },
+      get arenaEventTimes(): S['arenaEventTimes'] {
+        return self.arenaEventTimes;
+      },
+      get arenaExits(): S['arenaExits'] {
+        return self.arenaExits;
+      },
+      get arenaOvertimeType(): S['arenaOvertimeType'] {
+        return self.arenaOvertimeType;
+      },
+      get arenaRefereeSelected(): S['arenaRefereeSelected'] {
+        return self.arenaRefereeSelected;
+      },
+      get arenaSuddenDeath(): S['arenaSuddenDeath'] {
+        return self.arenaSuddenDeath;
+      },
+      get arenaTouches(): S['arenaTouches'] {
+        return self.arenaTouches;
+      },
+      get arenaWaitingOvertime(): S['arenaWaitingOvertime'] {
+        return self.arenaWaitingOvertime;
+      },
+      assignMatchToArena: (...a: Parameters<S['assignMatchToArena']>) =>
+        self.assignMatchToArena(...a),
+      broadcastArenaUpdate: (...a: Parameters<S['broadcastArenaUpdate']>) =>
+        self.broadcastArenaUpdate(...a),
+      get db(): S['db'] {
+        return self.db;
+      },
+      finishArenaMatch: (...a: Parameters<S['finishArenaMatch']>) => self.finishArenaMatch(...a),
+      getArena: (...a: Parameters<S['getArena']>) => self.getArena(...a),
+      get io(): S['io'] {
+        return self.io;
+      },
+      get isTrainingMode(): S['isTrainingMode'] {
+        return self.isTrainingMode;
+      },
+      loadNextMatch: (...a: Parameters<S['loadNextMatch']>) => self.loadNextMatch(...a),
+      pauseArenaMatch: (...a: Parameters<S['pauseArenaMatch']>) => self.pauseArenaMatch(...a),
+      resolveReferee: (...a: Parameters<S['resolveReferee']>) => self.resolveReferee(...a),
+      get scoreUpdateDebounce(): S['scoreUpdateDebounce'] {
+        return self.scoreUpdateDebounce;
+      },
+      sendDiag: (...a: Parameters<S['sendDiag']>) => self.sendDiag(...a),
+      get session(): S['session'] {
+        return self.session;
+      },
+      get sessionCardAnnounce(): S['sessionCardAnnounce'] {
+        return self.sessionCardAnnounce;
+      },
+      get sessionMatches(): S['sessionMatches'] {
+        return self.sessionMatches;
+      },
+      stampArenaEvents: (...a: Parameters<S['stampArenaEvents']>) => self.stampArenaEvents(...a),
+      startArenaMatch: (...a: Parameters<S['startArenaMatch']>) => self.startArenaMatch(...a),
+      get trainingCustomRules(): S['trainingCustomRules'] {
+        return self.trainingCustomRules;
+      },
+      updateArenaScore: (...a: Parameters<S['updateArenaScore']>) => self.updateArenaScore(...a),
+    });
+  }
+  private _arenaControlCtx?: ArenaControlContext;
+
+  /** Contexte de middleware.ts (#1240) */
+  private get middlewareCtx(): MiddlewareContext {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return (this._middlewareCtx ??= {
+      get app(): S['app'] {
+        return self.app;
+      },
+      get assets(): S['assets'] {
+        return self.assets;
+      },
+      get htmlFiles(): S['htmlFiles'] {
+        return self.htmlFiles;
+      },
+      isAllowedOrigin: (...a: Parameters<S['isAllowedOrigin']>) => self.isAllowedOrigin(...a),
+      sendHtmlFromMemory: (...a: Parameters<S['sendHtmlFromMemory']>) =>
+        self.sendHtmlFromMemory(...a),
+      get staticFiles(): S['staticFiles'] {
+        return self.staticFiles;
+      },
+    });
+  }
+  private _middlewareCtx?: MiddlewareContext;
+
+  /** Contexte de sessionStart.ts (#1240) */
+  private get sessionStartCtx(): SessionStartContext {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return (this._sessionStartCtx ??= {
+      applyCompetitionSettings: (...a: Parameters<S['applyCompetitionSettings']>) =>
+        self.applyCompetitionSettings(...a),
+      get arenaMatchQueue(): S['arenaMatchQueue'] {
+        return self.arenaMatchQueue;
+      },
+      get arenaNextMatchIndex(): S['arenaNextMatchIndex'] {
+        return self.arenaNextMatchIndex;
+      },
+      get arenas(): S['arenas'] {
+        return self.arenas;
+      },
+      assignMatchToArena: (...a: Parameters<S['assignMatchToArena']>) =>
+        self.assignMatchToArena(...a),
+      get db(): S['db'] {
+        return self.db;
+      },
+      loadSessionReferees: (...a: Parameters<S['loadSessionReferees']>) =>
+        self.loadSessionReferees(...a),
+      notifyKioskData: (...a: Parameters<S['notifyKioskData']>) => self.notifyKioskData(...a),
+      get poolFencersCache(): S['poolFencersCache'] {
+        return self.poolFencersCache;
+      },
+      get poolSignaturesCache(): S['poolSignaturesCache'] {
+        return self.poolSignaturesCache;
+      },
+      get session(): S['session'] {
+        return self.session;
+      },
+      set session(v: S['session']) {
+        self.session = v;
+      },
+      get sessionBlackCardEnabled(): S['sessionBlackCardEnabled'] {
+        return self.sessionBlackCardEnabled;
+      },
+      set sessionBlackCardEnabled(v: S['sessionBlackCardEnabled']) {
+        self.sessionBlackCardEnabled = v;
+      },
+      get sessionCardAnnounce(): S['sessionCardAnnounce'] {
+        return self.sessionCardAnnounce;
+      },
+      set sessionCardAnnounce(v: S['sessionCardAnnounce']) {
+        self.sessionCardAnnounce = v;
+      },
+      get sessionCustomScoring(): S['sessionCustomScoring'] {
+        return self.sessionCustomScoring;
+      },
+      set sessionCustomScoring(v: S['sessionCustomScoring']) {
+        self.sessionCustomScoring = v;
+      },
+      get sessionKioskViews(): S['sessionKioskViews'] {
+        return self.sessionKioskViews;
+      },
+      set sessionKioskViews(v: S['sessionKioskViews']) {
+        self.sessionKioskViews = v;
+      },
+      get sessionMatchScores(): S['sessionMatchScores'] {
+        return self.sessionMatchScores;
+      },
+      get sessionMatches(): S['sessionMatches'] {
+        return self.sessionMatches;
+      },
+      set sessionMatches(v: S['sessionMatches']) {
+        self.sessionMatches = v;
+      },
+      get sessionPoolArenas(): S['sessionPoolArenas'] {
+        return self.sessionPoolArenas;
+      },
+      set sessionPoolArenas(v: S['sessionPoolArenas']) {
+        self.sessionPoolArenas = v;
+      },
+      get sessionRefereeFeatureEnabled(): S['sessionRefereeFeatureEnabled'] {
+        return self.sessionRefereeFeatureEnabled;
+      },
+      set sessionRefereeFeatureEnabled(v: S['sessionRefereeFeatureEnabled']) {
+        self.sessionRefereeFeatureEnabled = v;
+      },
+      get sessionShowPhotos(): S['sessionShowPhotos'] {
+        return self.sessionShowPhotos;
+      },
+      set sessionShowPhotos(v: S['sessionShowPhotos']) {
+        self.sessionShowPhotos = v;
+      },
+      get sessionWeapon(): S['sessionWeapon'] {
+        return self.sessionWeapon;
+      },
+      set sessionWeapon(v: S['sessionWeapon']) {
+        self.sessionWeapon = v;
+      },
+      setArenaCount: (...a: Parameters<S['setArenaCount']>) => self.setArenaCount(...a),
+    });
+  }
+  private _sessionStartCtx?: SessionStartContext;
+
+  /** Contexte de matchFinish.ts (#1240) */
+  private get matchFinishCtx(): MatchFinishContext {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return (this._matchFinishCtx ??= {
+      get arenaCards(): S['arenaCards'] {
+        return self.arenaCards;
+      },
+      get arenaEventTimes(): S['arenaEventTimes'] {
+        return self.arenaEventTimes;
+      },
+      get arenaExits(): S['arenaExits'] {
+        return self.arenaExits;
+      },
+      get arenaMatchQueue(): S['arenaMatchQueue'] {
+        return self.arenaMatchQueue;
+      },
+      get arenaRefereeSelected(): S['arenaRefereeSelected'] {
+        return self.arenaRefereeSelected;
+      },
+      get arenaTouches(): S['arenaTouches'] {
+        return self.arenaTouches;
+      },
+      get arenas(): S['arenas'] {
+        return self.arenas;
+      },
+      broadcastArenaUpdate: (...a: Parameters<S['broadcastArenaUpdate']>) =>
+        self.broadcastArenaUpdate(...a),
+      broadcastDashboardUpdate: (...a: Parameters<S['broadcastDashboardUpdate']>) =>
+        self.broadcastDashboardUpdate(...a),
+      createTrainingMatch: (...a: Parameters<S['createTrainingMatch']>) =>
+        self.createTrainingMatch(...a),
+      get db(): S['db'] {
+        return self.db;
+      },
+      fireWebhook: (...a: Parameters<S['fireWebhook']>) => self.fireWebhook(...a),
+      get isTrainingMode(): S['isTrainingMode'] {
+        return self.isTrainingMode;
+      },
+      loadNextMatch: (...a: Parameters<S['loadNextMatch']>) => self.loadNextMatch(...a),
+      peekNextMatch: (...a: Parameters<S['peekNextMatch']>) => self.peekNextMatch(...a),
+      persistArenaState: (...a: Parameters<S['persistArenaState']>) => self.persistArenaState(...a),
+      get recentMatchDurationsMs(): S['recentMatchDurationsMs'] {
+        return self.recentMatchDurationsMs;
+      },
+      resolveDbMatchId: (...a: Parameters<S['resolveDbMatchId']>) => self.resolveDbMatchId(...a),
+      sendDiag: (...a: Parameters<S['sendDiag']>) => self.sendDiag(...a),
+      get session(): S['session'] {
+        return self.session;
+      },
+      get sessionMatchScores(): S['sessionMatchScores'] {
+        return self.sessionMatchScores;
+      },
+      get sessionModernRules(): S['sessionModernRules'] {
+        return self.sessionModernRules;
+      },
+      get sessionWeapon(): S['sessionWeapon'] {
+        return self.sessionWeapon;
+      },
+      get trainingHistory(): S['trainingHistory'] {
+        return self.trainingHistory;
+      },
+    });
+  }
+  private _matchFinishCtx?: MatchFinishContext;
 
   constructor(
     db: DatabaseManager,
@@ -717,155 +1087,7 @@ export class RemoteScoreServer {
   private static isLoginPath = isLoginPath;
 
   private setupMiddleware(): void {
-    console.log('[RemoteScoreServer] Configuration du middleware...');
-    // Limite de taille : les photos d'inscription (base64 ~700KB) sont le plus gros payload légitime.
-    // Routes de connexion : 4 Ko suffisent (mot de passe seul).
-    const smallJson = express.json({ limit: '4kb' });
-    const largeJson = express.json({ limit: '1mb' });
-    this.app.use((req, res, next) =>
-      (RemoteScoreServer.isLoginPath(req.path) ? smallJson : largeJson)(req, res, next)
-    );
-
-    // Requêtes mutantes : refus d'une Origin étrangère (page web tierce → CSRF).
-    this.app.use((req, res, next) => {
-      if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
-      if (!this.isAllowedOrigin(req.headers.origin, req.headers.host)) {
-        res.status(403).json({ error: 'origin_refused' });
-        return;
-      }
-      next();
-    });
-
-    // Compression gzip des réponses JSON volumineuses (classements, tableaux…)
-    this.app.use(jsonCompression());
-    this.app.use(publicJson()); // réponses sans données personnelles (#1194)
-
-    // En-têtes de sécurité de base (fichiers statiques, API). Les pages HTML reçoivent une CSP
-    // avec nonce (script-src sans 'unsafe-inline') via sendHtmlPage (remote/csp.ts, #1149).
-    // frame-ancestors 'self' remplace X-Frame-Options (overlay-config.html prévisualise
-    // overlay.html dans une iframe same-origin).
-    this.app.use((_req, res, next) => {
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-      res.setHeader('Referrer-Policy', 'no-referrer');
-      res.setHeader(
-        'Content-Security-Policy',
-        "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
-      );
-      next();
-    });
-
-    // Déterminer le chemin des fichiers remote
-    let remotePath: string;
-    const isDev = process.env.NODE_ENV === 'development';
-
-    if (isDev) {
-      // En développement
-      remotePath = path.join(__dirname, '../remote'); // dist/remote/ (après webpack)
-      if (!require('fs').existsSync(remotePath)) {
-        remotePath = path.join(__dirname, '../../src/remote'); // src/remote/ (sans webpack)
-      }
-    } else {
-      // En production - utiliser process.resourcesPath qui est plus fiable
-      // Les fichiers unpacked sont dans resourcesPath/app.asar.unpacked/dist/remote
-      // __dirname est dans resourcesPath/app.asar/dist/main/
-
-      // Essayer plusieurs chemins possibles
-      const possiblePaths = [
-        // Chemin standard avec asarUnpack (process.resourcesPath n'existe que sous Electron)
-        ...(process.resourcesPath
-          ? [path.join(process.resourcesPath, 'app.asar.unpacked', 'dist', 'remote')]
-          : []),
-        // Chemin relatif depuis __dirname
-        path.join(__dirname, '..', 'remote').replace('app.asar', 'app.asar.unpacked'),
-        // Dernier recours: chemin relatif standard
-        path.join(__dirname, '..', 'remote'),
-        // Fallback source sans webpack
-        path.join(__dirname, '../../src/remote'),
-      ];
-
-      remotePath = '';
-      const fs = require('fs');
-      for (const p of possiblePaths) {
-        console.log(`[RemoteScoreServer] Vérification chemin: ${p}`);
-        if (fs.existsSync(p)) {
-          remotePath = p;
-          console.log(`[RemoteScoreServer] Chemin valide trouvé: ${p}`);
-          break;
-        }
-      }
-
-      if (!remotePath) {
-        console.error('[RemoteScoreServer] ERREUR: Aucun chemin valide trouvé!');
-        console.error('[RemoteScoreServer] Chemins testés:', possiblePaths);
-        // Utiliser le dernier chemin comme fallback
-        remotePath = possiblePaths[possiblePaths.length - 1];
-      }
-    }
-
-    console.log('[RemoteScoreServer] Chemin des fichiers distants:', remotePath);
-    console.log('[RemoteScoreServer] NODE_ENV:', process.env.NODE_ENV || 'production');
-    console.log('[RemoteScoreServer] __dirname:', __dirname);
-    console.log('[RemoteScoreServer] process.resourcesPath:', process.resourcesPath);
-
-    // Vérifier que le dossier existe
-    try {
-      const fs = require('fs');
-      if (fs.existsSync(remotePath)) {
-        console.log('[RemoteScoreServer] Dossier distant trouvé ✓');
-        const files = fs.readdirSync(remotePath);
-        console.log('[RemoteScoreServer] Fichiers disponibles:', files);
-      } else {
-        console.error('[RemoteScoreServer] ERREUR: Dossier distant non trouvé!', remotePath);
-      }
-    } catch (err) {
-      console.error('[RemoteScoreServer] ERREUR lors de la vérification du dossier:', err);
-    }
-
-    // Pages HTML : toujours via la mémoire (nonce CSP), jamais en fichier statique brut
-    this.app.use((req, res, next) => {
-      if (req.method !== 'GET' && req.method !== 'HEAD') return next();
-      const name = req.path === '/' ? 'index.html' : path.posix.basename(req.path);
-      if (
-        (req.path === '/' || req.path.endsWith('.html')) &&
-        this.htmlFiles.has(name) &&
-        path.posix.dirname(req.path) === '/'
-      ) {
-        return this.sendHtmlFromMemory(name, res);
-      }
-      next();
-    });
-    // Assets versionnés (cache immuable) et JS/CSS communs pré-compressés
-    this.app.use((req, res, next) => {
-      if (req.method !== 'GET' && req.method !== 'HEAD') return next();
-      const item = this.assets.get(req.path) ?? this.staticFiles.get(req.path);
-      if (!item) return next();
-      return sendStored(req, res, item);
-    });
-    // Polices embarquées (Inter, #1153) : cache long
-    this.app.use(
-      '/fonts',
-      express.static(path.join(remotePath, 'fonts'), { maxAge: '365d', immutable: true })
-    );
-    this.app.use(express.static(remotePath));
-
-    this.app.use((req, res, next) => {
-      console.log(`[RemoteScoreServer] ${req.method} ${req.url} - ${new Date().toISOString()}`);
-      // Restreindre CORS au réseau local uniquement (même logique que Socket.IO)
-      const origin = req.headers.origin;
-      if (origin && isLocalNetworkOrigin(origin)) {
-        res.header('Access-Control-Allow-Origin', origin);
-        res.header('Access-Control-Allow-Credentials', 'true');
-      }
-      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-      if (req.method === 'OPTIONS') {
-        res.sendStatus(204);
-        return;
-      }
-      next();
-    });
-    console.log('[RemoteScoreServer] Middleware configuré ✓');
+    return setupMiddleware(this.middlewareCtx);
   }
 
   /** État exposé aux modules de routes (src/main/remote/routes/), en accesseurs. */
@@ -1045,399 +1267,7 @@ export class RemoteScoreServer {
   }
 
   private setupSocketHandlers(): void {
-    this.io.on('connection', (socket: any) => {
-      console.log('Client connected:', socket.id);
-
-      // Toute exception d'un handler reste locale : sans ce garde, une donnée nulle
-      // (ex. `join_arena` null) remonte en uncaughtException et gèle l'app (#993).
-      const rawOn = socket.on.bind(socket);
-      socket.on = (event: string, handler: (...args: unknown[]) => unknown) =>
-        rawOn(event, (...args: unknown[]) => {
-          try {
-            return handler(...args);
-          } catch (err) {
-            this.sendDiag(
-              `[Sécurité] Événement socket « ${event} » rejeté : ${(err as Error)?.message}`
-            );
-          }
-        });
-      socket.on('error', (err: Error) => {
-        console.error('Socket.IO error', socket.id, err?.message);
-      });
-
-      // Plafond de connexions simultanées par IP
-      const clientIp = RemoteScoreServer.normalizeIp(socket.handshake?.address);
-      const count = (this.socketsPerIp.get(clientIp) ?? 0) + 1;
-      if (count > this.MAX_SOCKETS_PER_IP && !RemoteScoreServer.isLoopbackAddress(clientIp)) {
-        this.sendDiag(`[Sécurité] Trop de connexions socket depuis ${clientIp} — refusée`);
-        socket.disconnect(true);
-        return;
-      }
-      this.socketsPerIp.set(clientIp, count);
-      socket.on('disconnect', () => {
-        const n = (this.socketsPerIp.get(clientIp) ?? 1) - 1;
-        if (n <= 0) this.socketsPerIp.delete(clientIp);
-        else this.socketsPerIp.set(clientIp, n);
-      });
-
-      // Seau à jetons : rafale de SOCKET_EVENT_BURST, recharge SOCKET_EVENTS_PER_SEC/s
-      let tokens = this.SOCKET_EVENT_BURST;
-      let lastRefill = Date.now();
-      socket.use?.((_packet: unknown, next: (err?: Error) => void) => {
-        const now = Date.now();
-        tokens = Math.min(
-          this.SOCKET_EVENT_BURST,
-          tokens + ((now - lastRefill) / 1000) * this.SOCKET_EVENTS_PER_SEC
-        );
-        lastRefill = now;
-        if (tokens < 1) {
-          this.sendDiag(`[Sécurité] Flood socket depuis ${clientIp} — déconnecté`);
-          socket.disconnect(true);
-          return;
-        }
-        tokens -= 1;
-        next();
-      });
-
-      // Gestion des arènes
-      socket.on('join_arena', (data: { arenaId: string; role?: string; lastSeen?: number }) => {
-        if (!data || typeof data.arenaId !== 'string' || !data.arenaId) return;
-        console.log(
-          `Client ${socket.id} joining arena ${data.arenaId} as ${data.role || 'spectator'}`
-        );
-        if (data.role === 'referee') {
-          if (!this.checkArenaAuth(data.arenaId, socket.handshake.headers.cookie as string)) {
-            socket.emit('auth_error', { message: 'Authentification requise' });
-            socket.disconnect(true);
-            return;
-          }
-        }
-        socket.join(`arena:${data.arenaId}`);
-
-        const arena = this.getArena(data.arenaId);
-        if (!arena && this.session) {
-          // Arène inconnue mais session active → débloquer l'arbitre
-          socket.emit(`arena:${data.arenaId}:update`, {
-            arenaId: data.arenaId,
-            match: null,
-            status: 'idle',
-            showPhotos: this.sessionShowPhotos,
-            cardAnnounce: this.sessionCardAnnounce,
-            theme: this.sessionTheme,
-            refereeFeatureEnabled: this.sessionRefereeFeatureEnabled,
-            blackCardEnabled: this.sessionBlackCardEnabled,
-            referees: this.getSessionReferees(),
-          });
-        }
-        if (arena) {
-          const override = this.arenaThemeOverrides.get(data.arenaId);
-
-          // Replay des événements manqués si lastSeen fourni
-          if (data.lastSeen && data.lastSeen > 0) {
-            const buf = this.arenaEventBuffer.get(data.arenaId) ?? [];
-            const missed = buf.filter(e => e.timestamp > data.lastSeen!);
-            if (missed.length > 0) {
-              socket.emit(`arena:${data.arenaId}:replay`, {
-                events: missed.map(e => e.event),
-              });
-              return; // pas besoin d'envoyer l'état courant séparément
-            }
-          }
-
-          // Sinon : état courant complet
-          const isPoolMatch = !!arena.currentMatch?.poolId;
-          socket.emit(`arena:${data.arenaId}:update`, {
-            arenaId: data.arenaId,
-            match: arena.currentMatch,
-            scoreA: arena.currentMatch?.scoreA,
-            scoreB: arena.currentMatch?.scoreB,
-            status: arena.status,
-            swapped: arena.swapped ?? false,
-            showPhotos: this.sessionShowPhotos,
-            cardAnnounce: this.sessionCardAnnounce,
-            theme: override?.theme ?? this.sessionTheme,
-            customTheme: override?.customTheme,
-            screenThemes: this.arenaScreenThemes.get(data.arenaId),
-            fencerA: arena.currentMatch?.fencerA,
-            fencerB: arena.currentMatch?.fencerB,
-            refereeFeatureEnabled: this.sessionRefereeFeatureEnabled,
-            blackCardEnabled: this.sessionBlackCardEnabled,
-            referees: this.getSessionReferees(),
-            refereeSelected: this.arenaRefereeSelected.get(data.arenaId) ?? false,
-            timerDuration: isPoolMatch
-              ? this.sessionPoolTimerSeconds
-              : this.sessionTableTimerSeconds,
-            restSeconds: this.sessionRestSeconds,
-            ...(this.isTrainingMode && this.trainingCustomRules
-              ? { trainingCustomRules: this.trainingCustomRules }
-              : {}),
-            ...(arena.status === 'finished' && {
-              nextMatch: this.peekNextMatch(data.arenaId),
-            }),
-          });
-        }
-      });
-
-      socket.on('join_pool', (data: { arenaId: string }) => {
-        if (!data || typeof data.arenaId !== 'string' || !data.arenaId) return;
-        socket.join(`pool:${data.arenaId}`);
-        const poolTheme = this.arenaScreenThemes.get(data.arenaId)?.pool;
-        if (poolTheme) {
-          socket.emit('server:command', { type: 'pool:theme', variables: poolTheme.variables });
-        }
-      });
-
-      socket.on('dashboard:subscribe', () => {
-        socket.join('dashboard');
-        // Envoyer l'état courant immédiatement
-        const snapshot = this.buildDashboardSnapshot();
-        if (snapshot) {
-          socket.emit('rankings:update', { rankings: snapshot.rankings });
-          socket.emit('pools:update', { pools: snapshot.pools });
-          socket.emit('matches:update', { matches: snapshot.liveMatches });
-          if (snapshot.eta) socket.emit('eta:update', snapshot.eta);
-        }
-      });
-
-      socket.on(
-        'arena_control',
-        (data: { arenaId: string; action: string; scoreA?: number; scoreB?: number }) => {
-          if (!data || typeof data !== 'object') return;
-          // toggle_swap : inversion d'affichage déclenchée par l'écran d'arène (sans cookie)
-          if (data.action !== 'toggle_swap' && !this.checkSocketArenaAuth(socket, data.arenaId)) {
-            return;
-          }
-          this.handleArenaControl(socket, data);
-        }
-      );
-
-      // Enregistrement client TV/affichage pour la télécommande
-      socket.on(
-        'client:register',
-        (data: {
-          clientType: 'arena' | 'kiosk' | 'public' | 'pool' | 'dashboard' | 'lobby' | 'referee';
-          arenaId?: string;
-          userAgent?: string;
-          screenId?: string;
-        }) => {
-          if (!data || typeof data !== 'object') return;
-          const now = new Date().toISOString();
-          const screenId = data.screenId;
-          const label = screenId ? this.screenLabels.get(screenId) : undefined;
-          this.connectedClients.set(socket.id, {
-            socketId: socket.id,
-            clientType: data.clientType ?? 'arena',
-            arenaId: data.arenaId,
-            ip: RemoteScoreServer.normalizeIp(socket.handshake.address),
-            userAgent: data.userAgent ?? '',
-            connectedAt: now,
-            lastSeen: now,
-            label,
-            screenId,
-          });
-          if (data.clientType === 'kiosk' && this.kioskThemeVariables) {
-            socket.emit('server:command', {
-              type: 'kiosk:theme',
-              variables: this.kioskThemeVariables,
-            });
-          }
-          if (data.arenaId && (data.clientType === 'referee' || data.clientType === 'public')) {
-            const screenTheme = this.arenaScreenThemes.get(data.arenaId)?.[data.clientType];
-            if (screenTheme) {
-              socket.emit('server:command', {
-                type: `${data.clientType}:theme`,
-                variables: screenTheme.variables,
-              });
-            }
-          }
-          this.broadcastClientList();
-        }
-      );
-
-      socket.on('client:pong', () => {
-        const client = this.connectedClients.get(socket.id);
-        if (client) {
-          client.lastSeen = new Date().toISOString();
-        }
-      });
-
-      // ── Format arène Sabre Laser équipe : saisie temps réel ────────────────────
-      // Room dédiée `team-arena:{arenaId}`, événements `team_*` — aucun recouvrement
-      // avec les événements `arena_control`/`join_arena` du scoring individuel.
-      socket.on('join_team_arena', (data: { arenaId: string; role?: string }) => {
-        if (!data || typeof data.arenaId !== 'string' || !data.arenaId) return;
-        if (
-          data.role === 'referee' &&
-          !this.checkArenaAuth(data.arenaId, socket.handshake.headers.cookie as string)
-        ) {
-          socket.emit('auth_error', { message: 'Authentification requise' });
-          socket.disconnect(true);
-          return;
-        }
-        socket.join(`team-arena:${data.arenaId}`);
-        socket.emit('team_arena_state', this.getPublicTeamArenaState(data.arenaId));
-      });
-
-      const broadcastTeamArena = (arenaId: string) => {
-        this.io
-          .to(`team-arena:${arenaId}`)
-          .emit('team_arena_state', this.getPublicTeamArenaState(arenaId));
-      };
-
-      // Touche (simple, ou zone A/B/C = 1/3/5 en mode points) — assaut plafonné
-      // à 5 touches valides cumulées, vérifié après chaque saisie.
-      socket.on('team_touch', (data: { arenaId: string; side: 'A' | 'B'; points: number }) => {
-        if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
-        if (data.side !== 'A' && data.side !== 'B') return;
-        if (![1, 3, 5].includes(data.points)) return;
-        const state = this.teamArenaState.get(data.arenaId);
-        if (!state) return;
-        if (!state.isLaserPoints && data.points !== 1) return;
-        const bout = state.bouts[state.currentBoutIndex];
-        if (!bout || bout.status === 'finished') return;
-        if (data.side === 'A') state.liveScoreA += data.points;
-        else state.liveScoreB += data.points;
-        broadcastTeamArena(data.arenaId);
-      });
-
-      // Réinitialise l'assaut en cours (score et chrono), sans le terminer.
-      socket.on('team_reset_bout', (data: { arenaId: string }) => {
-        if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
-        const state = this.teamArenaState.get(data.arenaId);
-        if (!state) return;
-        state.liveScoreA = 0;
-        state.liveScoreB = 0;
-        state.elapsedAccumulatedSec = 0;
-        state.timerStartedAt = null;
-        broadcastTeamArena(data.arenaId);
-      });
-
-      socket.on('team_timer_start', (data: { arenaId: string }) => {
-        if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
-        const state = this.teamArenaState.get(data.arenaId);
-        if (!state || state.timerStartedAt !== null) return;
-        state.timerStartedAt = Date.now();
-        broadcastTeamArena(data.arenaId);
-      });
-
-      socket.on('team_timer_pause', (data: { arenaId: string }) => {
-        if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
-        const state = this.teamArenaState.get(data.arenaId);
-        if (!state || state.timerStartedAt === null) return;
-        state.elapsedAccumulatedSec = this.teamArenaElapsedSec(state);
-        state.timerStartedAt = null;
-        broadcastTeamArena(data.arenaId);
-      });
-
-      // Termine l'assaut en cours (persiste le score), avance au suivant s'il en reste.
-      socket.on('team_advance_bout', (data: { arenaId: string }) => {
-        if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
-        const state = this.teamArenaState.get(data.arenaId);
-        if (!state) return;
-        const bout = state.bouts[state.currentBoutIndex];
-        if (!bout || bout.status === 'finished') return;
-        const scoreA = state.liveScoreA;
-        const scoreB = state.liveScoreB;
-        // Relais FIE : vainqueur du relais = équipe en tête au cumul ; arène : score de l'assaut
-        const { cumulA, cumulB } = relayCumul(state.bouts, bout, scoreA, scoreB);
-        const side =
-          state.format === 'fie-relay'
-            ? relayWinnerSide(cumulA, cumulB)
-            : relayWinnerSide(scoreA, scoreB);
-        const winnerId = side === 'A' ? bout.fencerAId : side === 'B' ? bout.fencerBId : null;
-        this.db.updateTeamBout(bout.id, scoreA, scoreB, 'finished', winnerId);
-        bout.scoreA = scoreA;
-        bout.scoreB = scoreB;
-        bout.status = 'finished';
-        bout.winnerId = winnerId;
-        state.currentBoutIndex = state.bouts.findIndex(b => b.status !== 'finished');
-        state.liveScoreA = 0;
-        state.liveScoreB = 0;
-        state.elapsedAccumulatedSec = 0;
-        state.timerStartedAt = null;
-        broadcastTeamArena(data.arenaId);
-      });
-
-      // Carton d'équipe "E" (traçabilité, pas d'impact automatique sur le score).
-      socket.on(
-        'team_card',
-        (data: { arenaId: string; teamId: string; type: 'white' | 'yellow' | 'red' | 'black' }) => {
-          if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
-          if (!['white', 'yellow', 'red', 'black'].includes(data.type)) return;
-          const state = this.teamArenaState.get(data.arenaId);
-          if (!state) return;
-          if (
-            data.type === 'black' &&
-            this.db.getCompetition(state.competitionId)?.settings?.blackCardEnabled !== true
-          ) {
-            return; // carton noir désactivé sur cette compétition
-          }
-          const { id } = this.db.createTeamMatchCard(
-            state.matchId,
-            data.teamId,
-            data.type,
-            'late_designation'
-          );
-          state.cards.push({
-            id,
-            teamId: data.teamId,
-            type: data.type,
-            createdAt: new Date().toISOString(),
-          });
-          broadcastTeamArena(data.arenaId);
-        }
-      );
-
-      // Carton individuel du tireur en piste (relais) : escalade identique à l'application,
-      // persisté en base (#1086). Pas d'impact automatique sur le score.
-      socket.on(
-        'team_fencer_card',
-        (data: { arenaId: string; side: 'A' | 'B'; reason: CardReason }) => {
-          if (!this.checkSocketArenaAuth(socket, data?.arenaId)) return;
-          if (data.side !== 'A' && data.side !== 'B') return;
-          const state = this.teamArenaState.get(data.arenaId);
-          if (!state) return;
-          if (!getAvailableReasons(state.weapon).includes(data.reason)) return;
-          const bout = state.bouts[state.currentBoutIndex];
-          if (!bout) return;
-          const fencerId = data.side === 'A' ? bout.fencerAId : bout.fencerBId;
-          const previous = this.db
-            .getTeamBoutCards(state.matchId)
-            .map(c => c.card)
-            .filter(c => c.fencerId === fencerId);
-          const card = createCard(state.matchId, fencerId, data.reason, previous, state.weapon);
-          this.db.createTeamBoutCard(bout.id, card);
-          state.fencerCards.push({
-            id: card.id,
-            boutId: bout.id,
-            fencerId,
-            type: card.type,
-            reason: card.reason,
-          });
-          broadcastTeamArena(data.arenaId);
-        }
-      );
-
-      // Niveau de batterie remonté par les tablettes arbitre
-      socket.on('client:battery', (data: { level: number; charging: boolean }) => {
-        if (!data || typeof data.level !== 'number') return;
-        const client = this.connectedClients.get(socket.id);
-        if (!client) return;
-        client.battery = {
-          level: Math.max(0, Math.min(1, data.level)),
-          charging: !!data.charging,
-          updatedAt: new Date().toISOString(),
-        };
-        this.broadcastClientList();
-      });
-
-      socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
-        this.connectedClients.delete(socket.id);
-        this.broadcastClientList();
-        this.handleDisconnect(socket);
-      });
-    });
+    return setupSocketHandlers(this.socketCtx);
   }
 
   static sanitizeAnnouncement = sanitizeAnnouncement;
@@ -1554,354 +1384,8 @@ export class RemoteScoreServer {
     this.arenaPhotoSentForMatch.clear();
   }
 
-  private handleArenaControl(
-    socket: any,
-    data: {
-      arenaId: string;
-      action: string;
-      match?: ArenaMatch;
-      scoreA?: number;
-      scoreB?: number;
-      time?: number;
-      timerStatus?: 'running' | 'paused' | 'reset';
-      fencer?: 'A' | 'B';
-      cardType?: 'white' | 'yellow' | 'red';
-      cardsA?: string[];
-      cardsB?: string[];
-      touchesA?: string[];
-      touchesB?: string[];
-      suddenDeath?: boolean;
-      winner?: 'A' | 'B';
-      overtimeType?: string | null;
-      isVoluntary?: boolean;
-      matchId?: string;
-      refereeId?: string;
-      announcement?: {
-        fencer: 'A' | 'B';
-        fencerName: string;
-        cardType: string;
-        isRevalorisation: boolean;
-        fromCard: string | null;
-        toCard: string | null;
-      };
-    }
-  ): void {
-    const arena = this.getArena(data.arenaId);
-    if (!arena) {
-      socket.emit('error', { message: 'Arène non trouvée' });
-      return;
-    }
-
-    switch (data.action) {
-      case 'select_match':
-        // Sélection d'un match par l'arbitre (depuis sa tablette)
-        if (data.match) {
-          const m = data.match;
-          this.sendDiag(
-            `[select_match] arena=${data.arenaId} matchId=${m.id} isTableau=${(m as any).isTableau}`
-          );
-          // Restaurer isTableau depuis sessionMatches car la tablette ne le transmet pas
-          const sessionMatch = this.sessionMatches.find(sm => sm.id === m.id);
-          this.assignMatchToArena(
-            data.arenaId,
-            {
-              ...m,
-              isTableau: m.isTableau ?? sessionMatch?.isTableau ?? false,
-              scoreA:
-                typeof (m.scoreA as unknown) === 'object'
-                  ? ((m.scoreA as unknown as { value?: number })?.value ?? 0)
-                  : (m.scoreA ?? 0),
-              scoreB:
-                typeof (m.scoreB as unknown) === 'object'
-                  ? ((m.scoreB as unknown as { value?: number })?.value ?? 0)
-                  : (m.scoreB ?? 0),
-            },
-            true
-          );
-          this.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
-          this.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
-          this.arenaExits.set(data.arenaId, []);
-          this.arenaEventTimes.delete(data.arenaId);
-        }
-        break;
-      case 'release_match':
-        // Retour à la liste sans avoir lancé le chrono : match de nouveau proposé
-        // aux autres tablettes de la piste (rapières, #1118)
-        if (arena.status !== 'in_progress' && !arena.currentMatch?.startTime) {
-          this.arenaRefereeSelected.set(data.arenaId, false);
-        }
-        break;
-      case 'start':
-        this.startArenaMatch(data.arenaId);
-        break;
-      case 'pause':
-        this.pauseArenaMatch(data.arenaId);
-        break;
-      case 'finish':
-        this.sendDiag(`[socket finish] arena=${data.arenaId}`);
-        this.arenaSuddenDeath.set(data.arenaId, false);
-        this.arenaOvertimeType.set(data.arenaId, null);
-        this.arenaWaitingOvertime.set(data.arenaId, false);
-        this.finishArenaMatch(data.arenaId);
-        this.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
-        this.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
-        this.arenaExits.set(data.arenaId, []);
-        this.arenaEventTimes.delete(data.arenaId);
-        break;
-      case 'waiting_overtime':
-        this.arenaWaitingOvertime.set(data.arenaId, true);
-        this.broadcastArenaUpdate(data.arenaId, {
-          arenaId: data.arenaId,
-          match: arena.currentMatch,
-          time: 0,
-          timerStatus: 'paused',
-          suddenDeath: false,
-          overtimeType: null,
-          waitingOvertime: true,
-          status: arena.status,
-        });
-        break;
-      case 'coin_flip':
-        if (data.winner === 'A' || data.winner === 'B') {
-          this.io.to(`arena:${data.arenaId}`).emit(`arena:${data.arenaId}:coin_flip`, {
-            winner: data.winner,
-            fencerA: arena.currentMatch?.fencerA,
-            fencerB: arena.currentMatch?.fencerB,
-          });
-        }
-        break;
-      case 'dt_call': {
-        const mainWin = (global as any).mainWindow;
-        if (mainWin) {
-          mainWin.webContents.send('remote:dt_call', {
-            arenaId: data.arenaId,
-            arenaNumber: arena.number,
-            matchNumber: null,
-            competitionId: this.session?.competitionId ?? null,
-            timestamp: Date.now(),
-          });
-        }
-        break;
-      }
-      case 'dt_cancel': {
-        const mainWin = (global as any).mainWindow;
-        if (mainWin) {
-          mainWin.webContents.send('remote:dt_cancel', { arenaId: data.arenaId });
-        }
-        break;
-      }
-      case 'next':
-        this.loadNextMatch(data.arenaId);
-        this.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
-        this.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
-        this.arenaExits.set(data.arenaId, []);
-        this.arenaEventTimes.delete(data.arenaId);
-        this.arenaSuddenDeath.set(data.arenaId, false);
-        this.arenaOvertimeType.set(data.arenaId, null);
-        this.arenaWaitingOvertime.set(data.arenaId, false);
-        break;
-      case 'update_score': {
-        const debounceKey = `${socket.id}:${data.arenaId}`;
-        const lastUpdate = this.scoreUpdateDebounce.get(debounceKey) ?? 0;
-        if (Date.now() - lastUpdate < this.SCORE_UPDATE_DEBOUNCE_MS) break;
-        this.scoreUpdateDebounce.set(debounceKey, Date.now());
-        // Supprimer la mort subite si désactivée en entraînement
-        const effectiveSuddenDeath =
-          this.isTrainingMode && this.trainingCustomRules?.disableSuddenDeath
-            ? false
-            : data.suddenDeath;
-        if (effectiveSuddenDeath !== undefined) {
-          this.arenaSuddenDeath.set(data.arenaId, effectiveSuddenDeath);
-        }
-        if (data.overtimeType !== undefined) {
-          this.arenaOvertimeType.set(data.arenaId, data.overtimeType);
-        }
-        if (data.scoreA !== undefined && data.scoreB !== undefined) {
-          this.updateArenaScore(data.arenaId, data.scoreA, data.scoreB);
-        }
-        // Mettre à jour aussi les cartons si fournis
-        if (data.cardsA !== undefined || data.cardsB !== undefined) {
-          const currentCards = this.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
-          if (data.cardsA !== undefined) currentCards.cardsA = data.cardsA;
-          if (data.cardsB !== undefined) currentCards.cardsB = data.cardsB;
-          this.arenaCards.set(data.arenaId, currentCards);
-          // Mettre à jour les touches par zone si fournies
-          const currentTouches = this.arenaTouches.get(data.arenaId) || {
-            touchesA: [],
-            touchesB: [],
-          };
-          if (data.touchesA !== undefined) currentTouches.touchesA = data.touchesA;
-          if (data.touchesB !== undefined) currentTouches.touchesB = data.touchesB;
-          this.arenaTouches.set(data.arenaId, currentTouches);
-          this.stampArenaEvents(data.arenaId, 'cardsA', currentCards.cardsA.length);
-          this.stampArenaEvents(data.arenaId, 'cardsB', currentCards.cardsB.length);
-          this.stampArenaEvents(data.arenaId, 'touchesA', currentTouches.touchesA.length);
-          this.stampArenaEvents(data.arenaId, 'touchesB', currentTouches.touchesB.length);
-
-          this.broadcastArenaUpdate(data.arenaId, {
-            arenaId: data.arenaId,
-            match: arena.currentMatch,
-            scoreA: data.scoreA ?? arena.currentMatch?.scoreA,
-            scoreB: data.scoreB ?? arena.currentMatch?.scoreB,
-            cardsA: currentCards.cardsA,
-            cardsB: currentCards.cardsB,
-            touchesA: currentTouches.touchesA,
-            touchesB: currentTouches.touchesB,
-            suddenDeath: this.arenaSuddenDeath.get(data.arenaId) ?? false,
-            overtimeType: this.arenaOvertimeType.get(data.arenaId) ?? null,
-            waitingOvertime: this.arenaWaitingOvertime.get(data.arenaId) ?? false,
-            status: arena.status,
-          });
-        }
-        break;
-      }
-      case 'add_card':
-        // Gestion des cartons
-        if (data.fencer && data.cardType) {
-          const currentCards = this.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
-          const targetCards = data.fencer === 'A' ? currentCards.cardsA : currentCards.cardsB;
-          targetCards.push(data.cardType);
-          this.arenaCards.set(data.arenaId, currentCards);
-          this.stampArenaEvents(
-            data.arenaId,
-            data.fencer === 'A' ? 'cardsA' : 'cardsB',
-            targetCards.length
-          );
-          this.broadcastArenaUpdate(data.arenaId, {
-            arenaId: data.arenaId,
-            match: arena.currentMatch,
-            scoreA: arena.currentMatch?.scoreA,
-            scoreB: arena.currentMatch?.scoreB,
-            cardsA: currentCards.cardsA,
-            cardsB: currentCards.cardsB,
-            status: arena.status,
-          });
-        }
-        break;
-      case 'arena_exit':
-        if (data.fencer) {
-          const exits = this.arenaExits.get(data.arenaId) || [];
-          exits.push({ fencer: data.fencer as 'A' | 'B', isVoluntary: !!data.isVoluntary });
-          this.arenaExits.set(data.arenaId, exits);
-          this.stampArenaEvents(data.arenaId, 'exits', exits.length);
-        }
-        break;
-      case 'reset_scores':
-        if (arena.currentMatch) {
-          this.arenaSuddenDeath.set(data.arenaId, false);
-          this.arenaOvertimeType.set(data.arenaId, null);
-          this.arenaWaitingOvertime.set(data.arenaId, false);
-          this.updateArenaScore(data.arenaId, 0, 0);
-          this.arenaCards.set(data.arenaId, { cardsA: [], cardsB: [] });
-          this.arenaTouches.set(data.arenaId, { touchesA: [], touchesB: [] });
-          this.arenaExits.set(data.arenaId, []);
-          this.arenaEventTimes.delete(data.arenaId);
-          this.broadcastArenaUpdate(data.arenaId, {
-            arenaId: data.arenaId,
-            match: arena.currentMatch,
-            scoreA: 0,
-            scoreB: 0,
-            cardsA: [],
-            cardsB: [],
-            suddenDeath: false,
-            overtimeType: null,
-            waitingOvertime: false,
-            status: arena.status,
-          });
-        }
-        break;
-      case 'toggle_swap': {
-        arena.swapped = !(arena.swapped ?? false);
-        const cards = this.arenaCards.get(data.arenaId) || { cardsA: [], cardsB: [] };
-        this.broadcastArenaUpdate(data.arenaId, {
-          arenaId: data.arenaId,
-          match: arena.currentMatch,
-          scoreA: arena.currentMatch?.scoreA,
-          scoreB: arena.currentMatch?.scoreB,
-          cardsA: cards.cardsA,
-          cardsB: cards.cardsB,
-          suddenDeath: this.arenaSuddenDeath.get(data.arenaId) ?? false,
-          status: arena.status,
-        });
-        break;
-      }
-      case 'card_announcement': {
-        const ann = RemoteScoreServer.sanitizeAnnouncement(data.announcement);
-        if (ann) {
-          this.io.to(`arena:${data.arenaId}`).emit(`arena:${data.arenaId}:card_announcement`, ann);
-        }
-        break;
-      }
-      case 'exit_announcement': {
-        const ann = RemoteScoreServer.sanitizeAnnouncement(data.announcement);
-        if (ann && this.sessionCardAnnounce) {
-          this.io.to(`arena:${data.arenaId}`).emit(`arena:${data.arenaId}:exit_announcement`, ann);
-        }
-        break;
-      }
-      case 'update_timer':
-      case 'pause_timer':
-      case 'reset_timer': {
-        const timerSuddenDeath =
-          this.isTrainingMode && this.trainingCustomRules?.disableSuddenDeath
-            ? false
-            : data.suddenDeath;
-        if (timerSuddenDeath !== undefined) {
-          this.arenaSuddenDeath.set(data.arenaId, timerSuddenDeath);
-        }
-        if (data.overtimeType !== undefined) {
-          this.arenaOvertimeType.set(data.arenaId, data.overtimeType);
-        }
-        // Clear waiting state when sudden death actually starts
-        if (timerSuddenDeath) {
-          this.arenaWaitingOvertime.set(data.arenaId, false);
-        }
-        this.broadcastArenaUpdate(data.arenaId, {
-          arenaId: data.arenaId,
-          match: arena.currentMatch,
-          time: data.time,
-          timerStatus: data.timerStatus,
-          suddenDeath: this.arenaSuddenDeath.get(data.arenaId) ?? false,
-          overtimeType: this.arenaOvertimeType.get(data.arenaId) ?? null,
-          waitingOvertime: this.arenaWaitingOvertime.get(data.arenaId) ?? false,
-          status: arena.status,
-        });
-        break;
-      }
-      case 'change_referee': {
-        if (!data.matchId || !data.refereeId || !arena.currentMatch) break;
-        if (arena.currentMatch.id !== data.matchId) break;
-        this.db.updateMatch(data.matchId, { refereeId: data.refereeId });
-        // Mettre à jour sessionMatches en mémoire
-        const idx = this.sessionMatches.findIndex((m: any) => m.id === data.matchId);
-        if (idx >= 0)
-          this.sessionMatches[idx] = { ...this.sessionMatches[idx], refereeId: data.refereeId };
-        // Mettre à jour l'ArenaMatch courant
-        const resolvedRef = this.resolveReferee(data.refereeId);
-        arena.currentMatch = {
-          ...arena.currentMatch,
-          ...(resolvedRef ? { referee: resolvedRef } : {}),
-        };
-        // Application organisateur : sinon son état en mémoire réécrit l'ancien arbitre (#977)
-        const mainWin = (global as any).mainWindow;
-        if (mainWin && !mainWin.isDestroyed?.()) {
-          mainWin.webContents.send('remote:referee_changed', {
-            matchId: data.matchId,
-            refereeId: data.refereeId,
-          });
-        }
-        this.broadcastArenaUpdate(data.arenaId, {
-          arenaId: data.arenaId,
-          match: arena.currentMatch,
-          scoreA: arena.currentMatch.scoreA,
-          scoreB: arena.currentMatch.scoreB,
-          status: arena.status,
-        });
-        break;
-      }
-      default:
-        socket.emit('error', { message: 'Action non reconnue' });
-    }
+  private handleArenaControl(...args: Tail<Parameters<typeof handleArenaControl>>): void {
+    return handleArenaControl(this.arenaControlCtx, ...args);
   }
 
   private async createSession(competitionId: string, strips: number): Promise<RemoteSession> {
@@ -2771,319 +2255,7 @@ export class RemoteScoreServer {
   }
 
   public finishArenaMatch(arenaId: string): void {
-    const arena = this.arenas.get(arenaId);
-    this.sendDiag(
-      `[finishArenaMatch] arena=${arenaId} hasCurrent=${!!arena?.currentMatch} status=${arena?.status} matchId=${arena?.currentMatch?.id} isTableau=${(arena?.currentMatch as any)?.isTableau}`
-    );
-    if (!arena || !arena.currentMatch) return;
-    // Éviter le double-déclenchement (REST + Socket.IO)
-    if (arena.status === 'finished') return;
-
-    // Réinitialiser le flag de sélection arbitre (match terminé)
-    this.arenaRefereeSelected.set(arenaId, false);
-
-    const finishedMatch = { ...arena.currentMatch };
-
-    arena.status = 'finished';
-    arena.currentMatch.status = 'finished';
-    arena.currentMatch.endTime = new Date();
-
-    if (arena.startTime) {
-      const wallMs = new Date().getTime() - arena.startTime.getTime();
-      arena.currentMatch.duration = Math.floor(wallMs / 1000);
-      // Durées réelles pour l'estimation de fin de phase (#1077)
-      this.recentMatchDurationsMs.push(wallMs);
-      if (this.recentMatchDurationsMs.length > 50) this.recentMatchDurationsMs.shift();
-    }
-
-    // Persistance secondaire (timing / cartons / touches / sorties) : ces écritures
-    // utilisent arena.currentMatch.id qui, pour un match de tableau, n'est PAS l'id DB
-    // (stocké en composite). Une éventuelle exception (ex: contrainte FK) NE DOIT PAS
-    // empêcher l'émission de match:finished vers le renderer (sinon : vainqueur jamais
-    // remonté, pas de passage au tour suivant). On isole donc tout ce bloc.
-    if (!this.isTrainingMode)
-      try {
-        // Id DB du match : composite pour un match de tableau (sinon FK rejetée → journal vide, #1031)
-        const matchId = this.resolveDbMatchId(arena.currentMatch);
-        // Persister le timing en DB
-        if (matchId && arena.startTime) {
-          const durationSec = arena.currentMatch.duration ?? 0;
-          this.db.updateMatchTiming(
-            matchId,
-            arena.startTime.toISOString(),
-            arena.currentMatch.endTime!.toISOString(),
-            durationSec
-          );
-        }
-
-        // Persister les cartons accumulés en mémoire
-        const cards = this.arenaCards.get(arenaId) ?? { cardsA: [], cardsB: [] };
-        const now = new Date().toISOString();
-        const times = this.arenaEventTimes.get(arenaId);
-        // Horodatage réel de l'événement (replay #1074), sinon fin de match
-        const timeOf = (list: ArenaEventList, i: number) => times?.[list][i] ?? now;
-        if (matchId) {
-          const persistCards = (
-            list: string[],
-            fencerId: string | undefined,
-            key: ArenaEventList
-          ) => {
-            if (!fencerId) return;
-            for (const [i, cardType] of list.entries()) {
-              this.db.saveCard({
-                id: `${matchId}-${fencerId}-${cardType}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                matchId,
-                fencerId,
-                cardType,
-                reason: 'unknown',
-                cardGroup: 1,
-                timestamp: timeOf(key, i),
-                pointsAwarded: 0,
-                resultingExclusion: false,
-              });
-            }
-          };
-          persistCards(cards.cardsA, arena.currentMatch.fencerA?.id, 'cardsA');
-          persistCards(cards.cardsB, arena.currentMatch.fencerB?.id, 'cardsB');
-
-          // Persister les touches par zone
-          const touches = this.arenaTouches.get(arenaId) ?? { touchesA: [], touchesB: [] };
-          const persistTouches = (
-            zoneList: string[],
-            fencerId: string | undefined,
-            key: ArenaEventList
-          ) => {
-            if (!fencerId) return;
-            const ZONE_POINTS: Record<string, number> = { A: 1, B: 3, C: 5 };
-            for (const [i, zone] of zoneList.entries()) {
-              this.db.saveTouch({
-                id: `${matchId}-${fencerId}-${zone}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                matchId,
-                fencerId,
-                zone,
-                points: ZONE_POINTS[zone] ?? 1,
-                timestamp: timeOf(key, i),
-                isValidInSuddenDeath: false,
-                isReversed: false,
-              });
-            }
-          };
-          persistTouches(touches.touchesA, arena.currentMatch.fencerA?.id, 'touchesA');
-          persistTouches(touches.touchesB, arena.currentMatch.fencerB?.id, 'touchesB');
-
-          // Persister les sorties d'arène
-          const exits = this.arenaExits.get(arenaId) ?? [];
-          for (const [i, exit] of exits.entries()) {
-            const fencerId =
-              exit.fencer === 'A' ? arena.currentMatch.fencerA?.id : arena.currentMatch.fencerB?.id;
-            if (!fencerId) continue;
-            this.db.saveArenaExit({
-              id: `${matchId}-${fencerId}-exit-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-              matchId,
-              fencerId,
-              exitType: exit.isVoluntary ? 'arena_exit_voluntary' : 'arena_exit',
-              timestamp: timeOf('exits', i),
-              // Escrime olympique : une touche ; Sabre Laser : 3 points (#1027)
-              pointsAwarded: this.sessionModernRules ? 1 : 3,
-            });
-          }
-        }
-      } catch (e) {
-        this.sendDiag(
-          `[finishArenaMatch] persistance secondaire échouée (non bloquant): ${(e as Error)?.message}`
-        );
-        console.warn(
-          '[RemoteScoreServer] Persistance secondaire (timing/cartons/touches) échouée:',
-          e
-        );
-      }
-
-    // Enregistrement mode entraînement (pas de DB)
-    if (this.isTrainingMode) {
-      this.trainingHistory.push({
-        id: finishedMatch.id,
-        arenaId,
-        arenaNumber: arena.number,
-        weapon: this.sessionWeapon ?? '',
-        scoreA: finishedMatch.scoreA,
-        scoreB: finishedMatch.scoreB,
-        durationSec: finishedMatch.duration ?? 0,
-        finishedAt: new Date().toISOString(),
-      });
-      // Pré-charger le prochain match entraînement dans la file
-      const queue = this.arenaMatchQueue.get(arenaId) ?? [];
-      this.arenaMatchQueue.set(arenaId, [...queue, this.createTrainingMatch()]);
-    }
-
-    const nextMatch = this.peekNextMatch(arenaId);
-
-    // Mettre à jour l'état en mémoire sans broadcaster (on fait le broadcast manuellement
-    // pour pouvoir inclure nextMatch, absent de Arena)
-    const arenaRef = this.arenas.get(arenaId)!;
-    Object.assign(arenaRef, { status: 'finished', currentMatch: arena.currentMatch });
-
-    this.broadcastArenaUpdate(arenaId, {
-      arenaId,
-      match: arena.currentMatch,
-      scoreA: arena.currentMatch?.scoreA,
-      scoreB: arena.currentMatch?.scoreB,
-      status: 'finished',
-      fencerA: arena.currentMatch?.fencerA,
-      fencerB: arena.currentMatch?.fencerB,
-      nextMatch,
-    });
-
-    // Webhook résultats
-    this.fireWebhook({
-      event: 'match_finished',
-      arenaId,
-      matchId: finishedMatch.id,
-      fencerA: finishedMatch.fencerA
-        ? {
-            id: finishedMatch.fencerA.id,
-            name: `${finishedMatch.fencerA.lastName} ${finishedMatch.fencerA.firstName}`,
-            club: finishedMatch.fencerA.club,
-          }
-        : null,
-      fencerB: finishedMatch.fencerB
-        ? {
-            id: finishedMatch.fencerB.id,
-            name: `${finishedMatch.fencerB.lastName} ${finishedMatch.fencerB.firstName}`,
-            club: finishedMatch.fencerB.club,
-          }
-        : null,
-      scoreA: finishedMatch.scoreA,
-      scoreB: finishedMatch.scoreB,
-      winner:
-        finishedMatch.scoreA > finishedMatch.scoreB
-          ? 'A'
-          : finishedMatch.scoreB > finishedMatch.scoreA
-            ? 'B'
-            : null,
-      duration: finishedMatch.duration ?? null,
-      timestamp: new Date().toISOString(),
-      // Compatibilité Slack/Discord : champ text en clair
-      text: `Match terminé — ${finishedMatch.fencerA ? `${finishedMatch.fencerA.lastName} ${finishedMatch.fencerA.firstName}` : '?'} ${finishedMatch.scoreA} – ${finishedMatch.scoreB} ${finishedMatch.fencerB ? `${finishedMatch.fencerB.lastName} ${finishedMatch.fencerB.firstName}` : '?'}`,
-    });
-
-    // Persister le score final dans la DB et dans l'audit log (pas en mode entraînement)
-    if (!this.isTrainingMode)
-      try {
-        const finalMatchId = finishedMatch.id;
-        const dbMatch = this.db.getMatch(finalMatchId);
-        // Pour les matchs TED, l'ID en base est "${competitionId}-${matchId}"
-        const compositeId = this.session?.competitionId
-          ? `${this.session.competitionId}-${finalMatchId}`
-          : null;
-        const dbTableauMatch =
-          !dbMatch && !finishedMatch.poolId && compositeId ? this.db.getMatch(compositeId) : null;
-        const effectiveDbMatch = dbMatch ?? dbTableauMatch;
-        const effectiveDbId = dbMatch ? finalMatchId : compositeId;
-
-        if (effectiveDbMatch && effectiveDbId) {
-          let winner: 'A' | 'B' | null =
-            finishedMatch.scoreA > finishedMatch.scoreB
-              ? 'A'
-              : finishedMatch.scoreB > finishedMatch.scoreA
-                ? 'B'
-                : null;
-          if (!winner) {
-            const mem = this.sessionMatchScores.get(finishedMatch.id);
-            if ((mem?.scoreA as any)?.isVictory) winner = 'A';
-            else if ((mem?.scoreB as any)?.isVictory) winner = 'B';
-          }
-          const scoreAObj = {
-            value: finishedMatch.scoreA,
-            isVictory: winner === 'A',
-            isAbstention: false,
-            isExclusion: false,
-            isForfait: false,
-          };
-          const scoreBObj = {
-            value: finishedMatch.scoreB,
-            isVictory: winner === 'B',
-            isAbstention: false,
-            isExclusion: false,
-            isForfait: false,
-          };
-          this.db.updateMatch(effectiveDbId, {
-            scoreA: scoreAObj,
-            scoreB: scoreBObj,
-            status: MatchStatus.FINISHED,
-          });
-          this.db.logScoreChange({
-            matchId: effectiveDbId,
-            arenaId,
-            previousScoreA: effectiveDbMatch.scoreA ?? null,
-            previousScoreB: effectiveDbMatch.scoreB ?? null,
-            newScoreA: scoreAObj,
-            newScoreB: scoreBObj,
-            changedBy: 'referee',
-            reason: 'arena_finish',
-            poolId: finishedMatch.poolId,
-          });
-        }
-      } catch (e) {
-        console.warn('[RemoteScoreServer] logScoreChange (finishArenaMatch) failed:', e);
-      }
-
-    // Émettre l'event pour le renderer (pour sauvegarder le score dans les pools)
-    const mainWindow = (global as any).mainWindow;
-    if (mainWindow && !this.isTrainingMode) {
-      // Dériver le vainqueur depuis la DB pour gérer le cas tirage au sort (scores égaux)
-      let winnerForRenderer: 'A' | 'B' | null =
-        finishedMatch.scoreA > finishedMatch.scoreB
-          ? 'A'
-          : finishedMatch.scoreB > finishedMatch.scoreA
-            ? 'B'
-            : null;
-      if (!winnerForRenderer) {
-        try {
-          const dbM = this.db.getMatch(finishedMatch.id) as any;
-          if (dbM?.scoreA?.isVictory) winnerForRenderer = 'A';
-          else if (dbM?.scoreB?.isVictory) winnerForRenderer = 'B';
-        } catch (err) {
-          console.warn(
-            `[RemoteScoreServer] Lecture DB échouée pour le vainqueur du match ${finishedMatch.id}:`,
-            err
-          );
-        }
-      }
-      // Fallback pour les matchs en mémoire (non persistés en DB) : tirage au sort
-      if (!winnerForRenderer) {
-        const memScore = this.sessionMatchScores.get(finishedMatch.id);
-        if ((memScore?.scoreA as any)?.isVictory) winnerForRenderer = 'A';
-        else if ((memScore?.scoreB as any)?.isVictory) winnerForRenderer = 'B';
-      }
-      mainWindow.webContents.send('match:finished', {
-        matchId: finishedMatch.id,
-        scoreA: finishedMatch.scoreA,
-        scoreB: finishedMatch.scoreB,
-        winner: winnerForRenderer,
-        poolId: finishedMatch.poolId,
-        isTableau: finishedMatch.isTableau ?? false,
-      });
-      console.log(
-        `[RemoteScoreServer] Émission match:finished pour ${finishedMatch.id}: ${finishedMatch.scoreA}-${finishedMatch.scoreB}`
-      );
-    }
-    if (mainWindow && this.isTrainingMode) {
-      mainWindow.webContents.send('training:match_finished', {
-        record: this.trainingHistory[this.trainingHistory.length - 1] ?? null,
-      });
-    }
-
-    this.persistArenaState(arenaId);
-    this.broadcastDashboardUpdate();
-
-    // Charger automatiquement le prochain match après un délai
-    // (loadNextMatch gère aussi le cas "plus de matchs" → arène idle)
-    setTimeout(() => {
-      const a = this.arenas.get(arenaId);
-      if (a && a.status === 'finished') {
-        this.loadNextMatch(arenaId);
-      }
-    }, 3000);
+    return finishArenaMatch(this.matchFinishCtx, arenaId);
   }
 
   /** Arbitres de la compétition au format session (lus en base). */
@@ -3841,359 +3013,9 @@ export class RemoteScoreServer {
   }
 
   public async startSession(
-    competitionId: string,
-    strips: number,
-    matchesFromRenderer?: any[],
-    showPhotos?: boolean,
-    kioskViews?: { poules: boolean; classement: boolean; direct: boolean; suivants: boolean },
-    cardAnnounce?: boolean
+    ...args: Tail<Parameters<typeof startSession>>
   ): Promise<RemoteSession> {
-    if (this.session) throw new Error('Session déjà active');
-
-    const competition = this.db.getCompetition(competitionId);
-    if (!competition) throw new Error('Compétition non trouvée');
-
-    // Stocker le réglage d'affichage des photos
-    this.sessionShowPhotos = showPhotos ?? false;
-
-    // Stocker le réglage d'annonce de carton
-    this.sessionCardAnnounce = cardAnnounce ?? false;
-
-    // Stocker l'activation de la gestion des arbitres
-    this.sessionRefereeFeatureEnabled = competition.settings?.refereeFeatureEnabled ?? false;
-
-    // Carton noir : désactivé par défaut, activable dans les propriétés de la compétition
-    this.sessionBlackCardEnabled = competition.settings?.blackCardEnabled === true;
-
-    // Stocker les vues kiosk activées
-    this.sessionKioskViews = {
-      tableau: true,
-      ...(kioskViews ?? {
-        poules: true,
-        classement: true,
-        direct: true,
-        suivants: true,
-      }),
-    };
-
-    // Stocker le type d'arme pour l'arrêt automatique à 15 points en Laser Sabre
-    this.sessionWeapon = competition.weapon || null;
-    const formulaPhases = competition.settings?.customFormula?.phases ?? [];
-    this.sessionCustomScoring =
-      this.sessionWeapon === Weapon.CUSTOM
-        ? {
-            pool: formulaPhases.find(p => p.type === 'pool_round')?.config.scoring,
-            de: formulaPhases.find(p => p.type === 'direct_elimination')?.config.scoring,
-          }
-        : null;
-    this.applyCompetitionSettings(competition);
-    console.log(`[RemoteScoreServer] Type d'arme de la compétition: ${this.sessionWeapon}`);
-
-    // Auto-detect number of strips from pool count if not specified or too small.
-    // Ne pas ajuster pour une session DE pure (uniquement des matchs tableau) car le nombre de
-    // poules de la phase précédente ne doit pas gonfler le nombre d'arènes d'élimination.
-    const poolCount = this.db.getPoolCount(competitionId);
-    const isDeOnlySession =
-      matchesFromRenderer &&
-      matchesFromRenderer.length > 0 &&
-      matchesFromRenderer.every((m: any) => m.isTableau || m.__poolFencers);
-    if (!isDeOnlySession && strips <= 0) {
-      const actualStrips = poolCount > 0 ? poolCount : 1;
-      console.log(
-        `[RemoteScoreServer] Strips invalide (${strips}), ajustement automatique: ${actualStrips} (basé sur ${poolCount} poules)`
-      );
-      strips = actualStrips;
-    }
-
-    // Pistes assignées aux poules (pool.strip) : poolId → n° de piste.
-    // Le nombre d'arènes est étendu si une poule vise une piste au-delà du nombre configuré.
-    const poolStripMap = new Map<string, number>();
-    for (const m of matchesFromRenderer ?? []) {
-      const s = Number((m as any).__poolFencers ? (m as any).strip : NaN);
-      if (Number.isInteger(s) && s > 0 && s <= 20) poolStripMap.set(m.poolId, s);
-    }
-    const maxPoolStrip = Math.max(0, ...poolStripMap.values());
-    if (maxPoolStrip > strips) {
-      console.log(
-        `[RemoteScoreServer] Nombre d'arènes étendu de ${strips} à ${maxPoolStrip} (piste assignée à une poule)`
-      );
-      strips = maxPoolStrip;
-    }
-
-    // Configurer le nombre d'arènes
-    this.setArenaCount(strips);
-
-    // Réinitialiser les caches pour éviter toute pollution d'une session précédente
-    this.poolFencersCache.clear();
-    this.poolSignaturesCache.clear();
-
-    // Utiliser les matches passés depuis le renderer si disponibles, sinon chercher dans la DB
-    let allMatches: any[] = [];
-    const poolNumberMap = new Map<string, number>();
-    if (matchesFromRenderer && matchesFromRenderer.length > 0) {
-      console.log(`[RemoteScoreServer] ${matchesFromRenderer.length} matchs reçus du renderer`);
-
-      // Extraire les marqueurs d'ordre des tireurs injectés par le renderer (__poolFencers)
-      // Nécessaire car l'ordre FIE (ex: 4 tireurs: [1,4],[2,3],...) ne permet pas de reconstruire
-      // l'ordre correct par simple extraction des paires de matchs.
-      const fencerOrderMap = new Map<string, any[]>();
-      const realMatches: any[] = [];
-      for (const m of matchesFromRenderer) {
-        if ((m as any).__poolFencers) {
-          fencerOrderMap.set(m.poolId, m.fencers);
-          if ((m as any).poolNumber != null) poolNumberMap.set(m.poolId, (m as any).poolNumber);
-        } else {
-          realMatches.push(m);
-        }
-      }
-      // Pré-remplir le cache uniquement si la liste de tireurs est non vide
-      for (const [poolId, fencers] of fencerOrderMap) {
-        if (fencers && fencers.length > 0) {
-          this.poolFencersCache.set(poolId, fencers);
-          console.log(
-            `[RemoteScoreServer] Cache tireurs pre-rempli pour pool ${poolId}: ${fencers.length} tireurs`
-          );
-        } else {
-          console.warn(
-            `[RemoteScoreServer] Marqueur __poolFencers vide pour pool ${poolId}, fallback DB`
-          );
-        }
-      }
-
-      allMatches = realMatches.filter(
-        m =>
-          m.isTableau
-            ? (!m.status || m.status === 'not_started' || m.status === 'in_progress') &&
-              m.fencerA &&
-              m.fencerB
-            : true // Tous les matchs de poule, y compris finished (nécessaires pour la grille)
-      );
-      console.log(`[RemoteScoreServer] ${allMatches.length} matchs après filtrage`);
-    } else {
-      // Récupérer les matchs en attente depuis la DB
-      console.log('[RemoteScoreServer] Pas de matches reçus, recherche dans la DB...');
-      const pendingMatches = this.db.getPendingMatches(competitionId);
-      console.log(
-        `[RemoteScoreServer] ${pendingMatches.length} matchs en attente trouvés pour la compétition ${competitionId}`
-      );
-
-      // Si pas de matchs trouvés via getPendingMatches (phases), essayer de récupérer via pool_fencers
-      allMatches = pendingMatches;
-      if (pendingMatches.length === 0) {
-        console.log('[RemoteScoreServer] Tentative de récupération des matchs via pool_fencers...');
-        allMatches = this.db.getAllPendingMatchesFromPools(competitionId);
-        console.log(`[RemoteScoreServer] ${allMatches.length} matchs trouvés via fallback`);
-      }
-    }
-
-    // Stocker les matches pour pouvoir les utiliser pour charger le match suivant
-    this.sessionMatches = allMatches;
-    console.log(`[RemoteScoreServer] ${this.sessionMatches.length} matches stockés en mémoire`);
-
-    // Grouper les matches par pool
-    const matchesByPool = new Map<string, any[]>();
-    for (const match of allMatches) {
-      if (match.isTableau) continue; // Les matchs DE sont traités séparément plus bas
-      const poolId = match.poolId || match.pool?.id || `pool-${match.poolNumber || match.number}`;
-      if (!matchesByPool.has(poolId)) {
-        matchesByPool.set(poolId, []);
-      }
-      matchesByPool.get(poolId)!.push(match);
-    }
-    console.log(
-      `[RemoteScoreServer] ${matchesByPool.size} pools trouvées:`,
-      Array.from(matchesByPool.keys())
-    );
-
-    // Construire le cache des tireurs par pool depuis la DB (ordre par position)
-    // Note: les pools déjà remplis via les marqueurs __poolFencers du renderer sont conservés.
-    this.sessionMatchScores.clear();
-    for (const [poolId, poolMatches] of matchesByPool) {
-      // Déjà rempli par les marqueurs du renderer → ordre correct garanti
-      if (this.poolFencersCache.has(poolId)) continue;
-      const dbFencers = this.db.getPoolFencers(poolId);
-      if (dbFencers.length > 0) {
-        this.poolFencersCache.set(poolId, dbFencers);
-      } else {
-        // Fallback si poolId synthétique (pool-N) sans correspondance DB.
-        // Trier par number avant d'extraire pour reconstruire l'ordre naturel du pool :
-        // la première apparition de chaque tireur dans l'ordre des matchs FIE correspond
-        // à sa position dans la poule (match 1 : pos1 vs pos4, match 2 : pos2 vs pos3…).
-        const sortedMatches = [...poolMatches].sort(
-          (a: any, b: any) => (a.number || 0) - (b.number || 0)
-        );
-        const fencerMap = new Map<string, any>();
-        for (const match of sortedMatches) {
-          if (match.fencerA?.id) fencerMap.set(match.fencerA.id, match.fencerA);
-          if (match.fencerB?.id) fencerMap.set(match.fencerB.id, match.fencerB);
-        }
-        this.poolFencersCache.set(poolId, Array.from(fencerMap.values()));
-      }
-    }
-
-    // Assigner les matchs aux arènes par pool (Pool 1 -> Arena 1, Pool 2 -> Arena 2, etc.)
-    console.log(`[RemoteScoreServer] Assignation des matches par pool aux ${strips} arènes`);
-
-    // Trier les poules par numéro pour garantir Poule 1 → Arène 1, Poule 2 → Arène 2, etc.
-    // poolNumberMap est peuplé par les marqueurs __poolFencers du renderer ;
-    // le fallback extrait les chiffres du poolId (ex: "pool-0" → 0, "pool-1" → 1).
-    const sortedPoolEntries = Array.from(matchesByPool.entries()).sort((a, b) => {
-      const numA = poolNumberMap.get(a[0]) ?? parseInt(a[0].replace(/\D/g, '') || '999', 10);
-      const numB = poolNumberMap.get(b[0]) ?? parseInt(b[0].replace(/\D/g, '') || '999', 10);
-      return numA - numB;
-    });
-
-    // Piste cible par poule : pool.strip si défini, sinon première piste libre (ordre des poules)
-    const poolArenaMap = new Map<string, number>();
-    const usedStrips = new Set(poolStripMap.values());
-    let nextFreeStrip = 1;
-    for (const [poolId] of sortedPoolEntries) {
-      const assigned = poolStripMap.get(poolId);
-      if (assigned) {
-        poolArenaMap.set(poolId, assigned);
-        continue;
-      }
-      while (usedStrips.has(nextFreeStrip)) nextFreeStrip++;
-      if (nextFreeStrip > strips) continue;
-      poolArenaMap.set(poolId, nextFreeStrip);
-      usedStrips.add(nextFreeStrip);
-    }
-
-    this.sessionPoolArenas = poolArenaMap;
-
-    for (const [poolId, poolMatches] of sortedPoolEntries) {
-      const arenaNumber = poolArenaMap.get(poolId);
-      if (!arenaNumber) continue;
-
-      const arenaId = `arena${arenaNumber}`;
-
-      // Premier match non terminé et non en cours (évite le curseur orange au démarrage)
-      const firstMatch = poolMatches.find(
-        m => m.status !== 'finished' && m.status !== 'in_progress'
-      );
-
-      if (!firstMatch) {
-        // Tous les matchs sont terminés ou en cours : lier la pool à l'arène sans assigner de match
-        const anyMatch = poolMatches[0];
-        const arena = this.arenas.get(arenaId);
-        if (anyMatch && arena && !arena.currentMatch) {
-          arena.activePoolId = poolId;
-          this.arenaNextMatchIndex.set(arenaId, poolMatches.length);
-        }
-        continue;
-      }
-
-      console.log(
-        `[RemoteScoreServer] Pool ${poolId} -> Arène ${arenaId}, ${poolMatches.length} matches`
-      );
-
-      const arenaMatch: ArenaMatch = {
-        id: firstMatch.id,
-        poolId: poolId,
-        fencerA: firstMatch.fencerA!,
-        fencerB: firstMatch.fencerB!,
-        scoreA: firstMatch.scoreA?.value ?? 0,
-        scoreB: firstMatch.scoreB?.value ?? 0,
-        status: 'not_started',
-        startTime: null,
-        endTime: null,
-      };
-
-      if (this.arenas.get(arenaId)?.currentMatch) {
-        // Piste déjà occupée par une autre poule → cette poule enchaîne ensuite (file)
-        const queue = this.arenaMatchQueue.get(arenaId) || [];
-        this.arenaMatchQueue.set(arenaId, [...queue, arenaMatch]);
-        console.log(
-          `[RemoteScoreServer] Pool ${poolId} mise en file sur l'arène ${arenaId} (piste partagée)`
-        );
-        continue;
-      }
-
-      this.assignMatchToArena(arenaId, arenaMatch);
-
-      // Index du prochain match = position de firstMatch + 1 dans la liste originale
-      const firstMatchIndex = poolMatches.findIndex(m => m.id === firstMatch.id);
-      this.arenaNextMatchIndex.set(arenaId, firstMatchIndex + 1);
-
-      console.log(
-        `[RemoteScoreServer] Match ${firstMatch.id} (Pool ${poolId}) assigné à l'arène ${arenaId}`
-      );
-    }
-
-    // Distribuer les matchs d'élimination directe (sans poolId) dans les files par arène
-    // Tri décroissant : 8ès en premier, finale en dernier → pistes chargées dans l'ordre logique
-    const deMatches = allMatches
-      .filter(m => !m.poolId && (m.round !== undefined || m.isTableau) && m.fencerA && m.fencerB)
-      .sort((a: any, b: any) => (b.round || 0) - (a.round || 0));
-
-    if (deMatches.length > 0) {
-      console.log(
-        `[RemoteScoreServer] ${deMatches.length} matchs DE à distribuer sur ${strips} arènes`
-      );
-      const queuesByArena = new Map<string, ArenaMatch[]>();
-      for (let i = 1; i <= strips; i++) queuesByArena.set(`arena${i}`, []);
-
-      for (const match of deMatches) {
-        if (!match.arena) continue; // pas de piste assignée → ne pas distribuer
-        const targetArenaId = `arena${match.arena}`;
-        if (!queuesByArena.has(targetArenaId)) continue; // hors plage → ignorer
-        queuesByArena.get(targetArenaId)!.push({
-          id: match.id,
-          fencerA: match.fencerA,
-          fencerB: match.fencerB,
-          scoreA: 0,
-          scoreB: 0,
-          status: 'not_started',
-          startTime: null,
-          endTime: null,
-          isTableau: true,
-        });
-      }
-
-      for (const [arenaId, queue] of queuesByArena) {
-        const arena = this.arenas.get(arenaId);
-        if (!arena) continue;
-        const firstPlayable = !arena.currentMatch && queue.length > 0 ? queue[0] : undefined;
-        if (firstPlayable) {
-          // Arène libre → charger le premier match non bloqué directement
-          this.assignMatchToArena(arenaId, firstPlayable);
-          this.arenaMatchQueue.set(
-            arenaId,
-            queue.filter(m => m.id !== firstPlayable.id)
-          );
-          console.log(
-            `[RemoteScoreServer] Match DE ${firstPlayable.id} chargé sur arène ${arenaId}, ${queue.length - 1} en file`
-          );
-        } else {
-          // Arène occupée ou tous les matchs bloqués → tout en file
-          const existing = this.arenaMatchQueue.get(arenaId) || [];
-          this.arenaMatchQueue.set(arenaId, [...existing, ...queue]);
-          console.log(
-            `[RemoteScoreServer] ${queue.length} matchs DE mis en file sur arène ${arenaId}`
-          );
-        }
-      }
-    }
-
-    // Créer la session - utiliser allMatches au lieu de pendingMatches
-    const assignedMatchCount = Math.min(allMatches.length, strips);
-    const sessionReferees = this.loadSessionReferees(competitionId);
-    this.notifyKioskData();
-    this.session = {
-      competitionId,
-      strips: Array.from({ length: strips }, (_, i) => ({
-        number: i + 1,
-        status: i < assignedMatchCount ? 'occupied' : 'available',
-      })),
-      referees: sessionReferees,
-      activeMatches: [],
-      isRunning: true,
-      startTime: new Date(),
-    };
-
-    console.log(`[RemoteScoreServer] Session créée avec ${assignedMatchCount} matchs assignés`);
-
-    return this.session;
+    return startSession(this.sessionStartCtx, ...args);
   }
 
   public launchCompetition(): void {
