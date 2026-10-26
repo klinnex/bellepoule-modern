@@ -1186,7 +1186,35 @@ export interface TrainingAPI {
   }>;
 }
 
+/** Boîte d'impression intégrée (#1214) */
+export interface PrintDialogSettings {
+  printer: string;
+  copies: number;
+  /** Plages « 1-3, 5 », vide = toutes */
+  pages: string;
+  landscape: boolean;
+  paperSize: 'A3' | 'A4' | 'A5' | 'Letter' | 'Legal';
+  color: boolean;
+  duplex: 'simplex' | 'shortEdge' | 'longEdge';
+  margins: 'default' | 'none' | 'minimum';
+  /** Échelle en % (10-200) */
+  scale: number;
+}
+
+export interface PrintDialogAPI {
+  getPrinters: () => Promise<{ name: string; displayName: string; isDefault: boolean }[]>;
+  render: (
+    html: string,
+    settings?: Partial<PrintDialogSettings>
+  ) => Promise<{ success: boolean; data?: Uint8Array; error?: string }>;
+  execute: (
+    html: string,
+    settings?: Partial<PrintDialogSettings>
+  ) => Promise<{ success: boolean; error?: string }>;
+}
+
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
+  printDialog: PrintDialogAPI;
   db: DatabaseAPI;
   file: FileAPI;
   dialog: DialogAPI;

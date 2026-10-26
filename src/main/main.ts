@@ -28,6 +28,7 @@ import { fmt, getL, getUiLanguage, setUiLanguage } from './menuLabels';
 import { registerDbHandlers } from './ipc/dbHandlers';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
 import { previewPdf, registerPdfPreviewHandlers } from './ipc/pdfPreview';
+import { registerPrintDialogHandlers } from './ipc/printDialog';
 import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from './remoteRegistry';
 import { applyActiveWave, setActiveWave } from './remote/activeWave';
 import { isAllowedExternalUrl, isAppUrl, isPermissionAllowed } from './windowSecurity';
@@ -993,7 +994,16 @@ ipcMain.handle('file:printHtml', async (_, html: string, opts?: { preview?: bool
 });
 
 // Rendu HTML → buffer PDF via une fenêtre Electron cachée (partagé par export et aperçu)
-function renderHtmlToPdfBuffer(html: string): Promise<Buffer> {
+function renderHtmlToPdfBuffer(
+  html: string,
+  pdfOptions: Electron.PrintToPDFOptions = {
+    printBackground: true,
+    landscape: false,
+    pageSize: 'A4',
+    preferCSSPageSize: true,
+    margins: { top: 0, bottom: 0, left: 0, right: 0 },
+  }
+): Promise<Buffer> {
   const tmpFile = path.join(os.tmpdir(), `bp-pdf-${Date.now()}.html`);
   return fs.promises.writeFile(tmpFile, html, 'utf-8').then(
     () =>
@@ -1010,13 +1020,7 @@ function renderHtmlToPdfBuffer(html: string): Promise<Buffer> {
         pdfWin.webContents.once('did-finish-load', () => {
           setTimeout(() => {
             pdfWin.webContents
-              .printToPDF({
-                printBackground: true,
-                landscape: false,
-                pageSize: 'A4',
-                preferCSSPageSize: true,
-                margins: { top: 0, bottom: 0, left: 0, right: 0 },
-              })
+              .printToPDF(pdfOptions)
               .then((data: Buffer) => {
                 pdfWin.destroy();
                 fs.promises.unlink(tmpFile).catch(() => {});
@@ -1060,6 +1064,47 @@ const pdfPreviewDeps = registerPdfPreviewHandlers({
   openExternal: p => shell.openPath(p),
 });
 ipcMain.handle('file:previewHtmlAsPDF', (_, html: string) => previewPdf(pdfPreviewDeps, html));
+
+// Boîte d'impression intégrée (#1214) : imprimantes, aperçu PDF en mémoire, impression silencieuse
+function printHtmlSilently(
+  html: string,
+  options: Electron.WebContentsPrintOptions
+): Promise<boolean> {
+  const tmpFile = path.join(os.tmpdir(), `bp-print-${Date.now()}.html`);
+  return fs.promises.writeFile(tmpFile, html, 'utf-8').then(
+    () =>
+      new Promise<boolean>(resolve => {
+        const printWin = new BrowserWindow({
+          show: false,
+          width: 1200,
+          height: 1600,
+          webPreferences: { contextIsolation: true, nodeIntegration: false, javascript: false },
+        });
+        const done = (ok: boolean) => {
+          printWin.destroy();
+          fs.promises.unlink(tmpFile).catch(() => {});
+          resolve(ok);
+        };
+        printWin.setMenu(null);
+        printWin.loadFile(tmpFile);
+        printWin.webContents.once('did-finish-load', () => {
+          setTimeout(() => printWin.webContents.print(options, ok => done(ok)), 800);
+        });
+        printWin.webContents.once('did-fail-load', () => done(false));
+      }),
+    () => false
+  );
+}
+registerPrintDialogHandlers({
+  listPrinters: async () =>
+    (await (mainWindow?.webContents.getPrintersAsync() ?? Promise.resolve([]))).map(p => ({
+      name: p.name,
+      displayName: p.displayName || p.name,
+      isDefault: !!(p as { isDefault?: boolean }).isDefault,
+    })),
+  renderPdf: renderHtmlToPdfBuffer,
+  printHtml: printHtmlSilently,
+});
 
 // Shell handlers
 // Lag de la boucle d'événements du main (#1154) ; `reset` ouvre une nouvelle fenêtre de mesure

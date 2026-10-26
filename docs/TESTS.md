@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 4 | 24 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 17 | 201 |
+| `src/main/` | 18 | 216 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 31 | 154 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **165** | **1581** |
+| **Total** | **166** | **1596** |
 
-Unitaires : 156 fichiers, 1546 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 157 fichiers, 1561 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2004,6 +2004,31 @@ Unitaires : 156 fichiers, 1546 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - repli sur le lecteur externe si la fenêtre ne peut pas s’ouvrir
   - repli sur le lecteur externe si le chargement échoue
   - erreur de rendu : échec sans fichier résiduel
+
+</details>
+
+<details>
+<summary><code>src/main/printDialog.test.ts</code> — 15 tests</summary>
+
+- **parsePageRanges (#1214)**
+  - vide = toutes les pages
+  - page seule et plage
+  - trie et fusionne les plages qui se touchent
+  - rejette %s _(each)_
+  - format printToPDF
+- **normalizePrintSettings (#1214)**
+  - valeurs par défaut pour une entrée invalide
+  - borne copies et échelle, rejette énumérations et plages inconnues
+  - conserve des réglages valides
+- **options Electron (#1214)**
+  - printToPDF : échelle en fraction, marges en pouces
+  - print : silencieux, imprimante, pages 0-indexées
+  - print : imprimante par défaut et toutes les pages sans clés superflues
+- **handlers print:\* (#1214)**
+  - liste les imprimantes, \[\] en cas d’erreur
+  - aperçu : PDF en mémoire avec les réglages normalisés
+  - refuse un HTML vide ou non textuel
+  - impression : envoie les options et remonte les échecs
 
 </details>
 
