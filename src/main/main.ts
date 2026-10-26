@@ -231,12 +231,14 @@ function getVersionInfo(): {
 
 function createWindow(initialLang?: string): void {
   const versionInfo = getVersionInfo();
+  // Petits écrans (MacBook Neo 13" : ~1204×720 utiles) : la fenêtre doit tenir dans l'espace de travail
+  const workArea = screen.getPrimaryDisplay().workAreaSize;
 
   mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
-    minWidth: 1024,
-    minHeight: 768,
+    width: Math.min(1400, workArea.width),
+    height: Math.min(900, workArea.height),
+    minWidth: Math.min(1024, workArea.width),
+    minHeight: Math.min(768, workArea.height),
     show: false,
     backgroundColor: '#f3f4f6',
     title: `BellePoule Modern v${versionInfo.version} (Build #${versionInfo.build})`,

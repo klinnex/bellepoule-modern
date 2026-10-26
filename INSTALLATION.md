@@ -6,7 +6,7 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 
 ### Minimum Requirements
 
-- **Operating System**: Windows 10+, macOS 10.14+, or Linux (Ubuntu 18.04+)
+- **Operating System**: Windows 10+, macOS 12+, or Linux (Ubuntu 18.04+)
 - **RAM**: 4 GB minimum, 8 GB recommended
 - **Storage**: 500 MB free space
 - **Network**: Internet connection for updates and remote scoring

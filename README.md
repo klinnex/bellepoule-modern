@@ -276,7 +276,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 ### **Configuration minimale**
 
-- **OS** : Windows 10+, macOS 10.15+, Linux (Ubuntu 20.04+)
+- **OS** : Windows 10+, macOS 12+ (Apple Silicon natif arm64), Linux (Ubuntu 20.04+)
 - **RAM** : 4 Go minimum (8 Go recommandé)
 - **Stockage** : 500 Mo d'espace disque
 - **Réseau** : Connexion internet pour les fonctionnalités réseau (optionnel)
@@ -340,6 +340,8 @@ Mêmes formats, publiés en pré-release à chaque push sur `dev`.
 2. Double-cliquer pour monter l'image disque
 3. Glisser l'application dans le dossier Applications
 4. Accepter les permissions demandées
+
+Apple Silicon (M1+, MacBook Neo) : prendre le `.dmg` **arm64** (natif, sans Rosetta). App signée ad-hoc, non notarisée : au 1er lancement, Réglages Système → Confidentialité et sécurité → « Ouvrir quand même » (ou `xattr -cr "/Applications/BellePoule Modern.app"`).
 
 #### **Linux**
 

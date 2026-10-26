@@ -124,6 +124,14 @@
       ],
       "icon": "resources/icons/icon.icns",
       "category": "public.app-category.sports",
+      "minimumSystemVersion": "12.0",
+      "identity": "-",
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSCameraUsageDescription": "BellePoule Modern utilise la caméra pour la photo des tireurs."
+      },
       "artifactName": "BellePoule-Modern-${version}-mac-${arch}.${ext}"
     },
     "linux": {
