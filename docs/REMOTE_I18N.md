@@ -1,6 +1,6 @@
 # Traduction des pages distantes (plan, #1213)
 
-Les pages `src/remote/*.html` chargent `/i18n.js` (langues : **fr, en, zh-HK** ; de / es / ca / br retombent sur le français). La langue suit celle de l'application.
+Les pages `src/remote/*.html` chargent `/i18n.js` (langues : **fr, en, de, es, ca, br, zh-HK**, comme l'application). La langue suit celle de l'application.
 
 Traductions : un fichier par langue, `src/remote/i18n/<langue>.js` ; moteur (`T()`, `data-i18n*`) : `src/remote/i18n.js`. Le serveur distant sert `/i18n.js` = fichiers de langue + moteur concaténés (`src/main/remote/i18nBundle.ts`). Ajouter une langue = ajouter son fichier.
 
@@ -9,9 +9,9 @@ Traductions : un fichier par langue, `src/remote/i18n/<langue>.js` ; moteur (`T(
 | Étape | Contenu                                                                                                                             | État                                          |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | 1     | Inventaire des textes en dur par page : `node scripts/inventory-remote-i18n.js`                                                     | fait                                          |
-| 2     | Passage en `data-i18n` / `data-i18n-placeholder` / `data-i18n-title` / `data-i18n-aria-label` ou `T()` (page par page, PR séparées) | en cours : arena, public, pool, referee faits |
-| 3     | Ajout de de / es / ca / br : fichiers `i18n/<langue>.js`                                                                            | à faire                                       |
-| 4     | Contrôle CI de complétude des langues (comme `check:i18n`)                                                                          | à faire                                       |
+| 2     | Passage en `data-i18n` / `data-i18n-placeholder` / `data-i18n-title` / `data-i18n-aria-label` ou `T()` (page par page, PR séparées) | fait                                          |
+| 3     | Ajout de de / es / ca / br : fichiers `i18n/<langue>.js`                                                                            | fait                                          |
+| 4     | Contrôle CI de complétude des langues : `npm run check:i18n` (clés + paramètres `{{x}}` vs `fr.js`)                                 | fait                                          |
 
 ## Inventaire (étape 1)
 

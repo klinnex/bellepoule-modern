@@ -1510,12 +1510,12 @@
           <table class="ranking-table">
             <thead>
               <tr>
-                <th style="width: 60px">Rg</th>
+                <th style="width: 60px" data-i18n="kiosk.col_rank">Rg</th>
                 <th data-i18n="kiosk.col_fencer">Tireur</th>
                 <th data-i18n="kiosk.col_club">Club</th>
                 <th style="text-align: center">V</th>
                 <th style="text-align: center" data-i18n="kiosk.col_index">Ind</th>
-                <th style="text-align: center">TD</th>
+                <th style="text-align: center" data-i18n="kiosk.col_ts">TD</th>
               </tr>
             </thead>
             <tbody id="ranking-body">
@@ -1578,7 +1578,7 @@
       <div class="view-header">
         <div>
           <div class="view-title" data-i18n="kiosk.bracket_title">Tableau d'Élimination</div>
-          <div class="view-subtitle" id="tableau-subtitle">Tableau direct</div>
+          <div class="view-subtitle" id="tableau-subtitle" data-i18n="kiosk.de_subtitle">Tableau direct</div>
         </div>
         <div class="view-badge" id="tableau-badge">—</div>
       </div>
@@ -1678,7 +1678,7 @@
           const [hh, mm] = note.targetTime.split(':').map(Number);
           const fmtTime = String(hh).padStart(2, '0') + 'h' + String(mm).padStart(2, '0');
           document.getElementById('org-note-time').textContent =
-            (note.countdownPrefix || window.T('kiosk.resume_at')) + ' à ' + fmtTime;
+            window.T('kiosk.resume_time', { prefix: note.countdownPrefix || window.T('kiosk.resume_at'), time: fmtTime });
 
           const computeCountdown = () => {
             const now = new Date();
@@ -2143,13 +2143,13 @@
 
             return `<div class="pool-card">
             <div class="pool-card-header">
-              <h3>${escHtml(pool.name || 'Poule ' + (pool.number || ''))}</h3>
-              <span class="pool-pill ${isComplete ? '' : 'ongoing'}">${isComplete ? 'Terminée' : 'En cours'}</span>
+              <h3>${escHtml(pool.name || tk('kiosk.pool_n', { n: pool.number || '' }))}</h3>
+              <span class="pool-pill ${isComplete ? '' : 'ongoing'}">${isComplete ? escHtml(tk('kiosk.status_finished')) : escHtml(tk('kiosk.status_ongoing'))}</span>
             </div>
             <table class="pool-table">
               <thead>
                 <tr>
-                  <th>Rg</th><th data-i18n="kiosk.col_fencer">Tireur</th><th>M</th><th>V</th><th>Ind</th><th>TD</th>
+                  <th>${escHtml(tk('kiosk.col_rank'))}</th><th>${escHtml(tk('kiosk.col_fencer'))}</th><th>M</th><th>V</th><th>${escHtml(tk('kiosk.col_index'))}</th><th>${escHtml(tk('kiosk.col_ts'))}</th>
                 </tr>
               </thead>
               <tbody>${/* html */ rows}</tbody>
@@ -2346,9 +2346,9 @@
           <table class="ranking-table">
             <thead>
               <tr>
-                <th style="width:60px">Rg</th>
-                <th data-i18n="kiosk.col_fencer">Tireur</th>
-                <th data-i18n="kiosk.col_club">Club</th>
+                <th style="width:60px">${escHtml(tk('kiosk.col_rank'))}</th>
+                <th>${escHtml(tk('kiosk.col_fencer'))}</th>
+                <th>${escHtml(tk('kiosk.col_club'))}</th>
               </tr>
             </thead>
             <tbody>
@@ -2373,7 +2373,7 @@
 
         const pending = matches.filter(m => m.status !== 'finished');
         document.getElementById('suivants-badge').textContent =
-          pending.length + ' match' + (pending.length > 1 ? 's' : '');
+          tk('kiosk.count_matches', { count: pending.length });
 
         if (!matches || matches.length === 0) {
           container.innerHTML =
@@ -2415,8 +2415,8 @@
             const statusLabel = isOngoing
               ? m.arenaName
                 ? escHtml(m.arenaName)
-                : 'En cours'
-              : 'À venir';
+                : escHtml(tk('kiosk.status_ongoing'))
+              : escHtml(tk('kiosk.status_upcoming'));
             html += `<div class="suivants-row${isOngoing ? ' ongoing' : ''}">
               <span class="suivants-num">${escHtml(m.number || '')}</span>
               <span class="suivants-fencer">${/* html */ nameA}${/* html */ clubA}</span>
@@ -2490,10 +2490,10 @@
             if (!m) {
               return `<div class="arena-card">
               <div class="arena-card-header">
-                <span class="arena-name">Piste ${escHtml(aid)}</span>
-                <span class="arena-status-pill">En attente</span>
+                <span class="arena-name">${escHtml(window.getArenaLabel())} ${escHtml(aid)}</span>
+                <span class="arena-status-pill">${escHtml(tk('kiosk.status_waiting'))}</span>
               </div>
-              <div class="arena-idle">Aucun match assigné</div>
+              <div class="arena-idle">${escHtml(tk('kiosk.no_assigned'))}</div>
             </div>`;
             }
 
@@ -2519,8 +2519,8 @@
 
             return `<div class="arena-card ${isActive ? 'match-active' : ''}">
             <div class="arena-card-header">
-              <span class="arena-name">Piste ${escHtml(aid)}</span>
-              <span class="arena-status-pill ${isActive ? 'in-progress' : ''}">${isActive ? 'En cours' : 'Assigné'}</span>
+              <span class="arena-name">${escHtml(window.getArenaLabel())} ${escHtml(aid)}</span>
+              <span class="arena-status-pill ${isActive ? 'in-progress' : ''}">${isActive ? escHtml(tk('kiosk.status_ongoing')) : escHtml(tk('kiosk.status_assigned'))}</span>
             </div>
             <div class="arena-matchup">
               <div class="arena-fencer side-left fencer-${escHtml(leftColor)}">
