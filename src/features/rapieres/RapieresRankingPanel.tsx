@@ -17,7 +17,7 @@ import {
   RapieresTeamInfo,
 } from './rapieres.types';
 import { filterRanking, RapieresRankingFilter } from './rapieresCalculations';
-import { exportRapieresRankingToPDF } from './rapieresPdf';
+import { exportRapieresRankingToPDF, printRapieresRanking } from './rapieresPdf';
 
 export interface RapieresRankedTeam {
   teamId: string;
@@ -114,19 +114,30 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
     ];
   });
 
+  const pdfTable = () => ({
+    title: competitionTitle,
+    subtitle: `${title} — ${selected.label}`,
+    headers,
+    rows: tableRows,
+  });
+
   const exportPdf = async () => {
     try {
       await exportRapieresRankingToPDF(
-        {
-          title: competitionTitle,
-          subtitle: `${title} — ${selected.label}`,
-          headers,
-          rows: tableRows,
-        },
+        pdfTable(),
         `classement-${selected.key.replace(':', '-')}.pdf`
       );
     } catch {
       showToast(t('rapieres.pdf_error'), 'error');
+    }
+  };
+
+  // Boîte d'impression intégrée avec aperçu (#1214)
+  const print = async () => {
+    try {
+      await printRapieresRanking(pdfTable());
+    } catch (e) {
+      showToast((e as Error).message, 'error');
     }
   };
 
@@ -154,6 +165,14 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
           onClick={exportPdf}
         >
           {t('rapieres.export_pdf')}
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          disabled={rows.length === 0}
+          onClick={print}
+        >
+          {t('rapieres.print')}
         </button>
       </div>
       {rows.length === 0 ? (

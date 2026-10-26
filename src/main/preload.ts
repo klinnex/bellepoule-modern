@@ -442,6 +442,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       if (!html || typeof html !== 'string') {
         throw new Error('HTML content is required');
       }
+      // Aperçu dans la boîte d'impression intégrée (#1214) : plus de fichier temporaire
+      if (printRequestHandler) return printRequestHandler(html);
       return ipcRenderer.invoke('file:previewPdf', html, title);
     },
     printHtmlToPDF: (html: string, outputPath: string) => {
@@ -457,6 +459,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       if (!html || typeof html !== 'string') {
         throw new Error('HTML content is required');
       }
+      // Boutons « Aperçu » des poules et du tableau : boîte d'impression intégrée (#1214)
+      if (printRequestHandler) return printRequestHandler(html);
       return ipcRenderer.invoke('file:previewHtmlAsPDF', html);
     },
     exportPhotos: (competitionId: string, filepath: string) => {

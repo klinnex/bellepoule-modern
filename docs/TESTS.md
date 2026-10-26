@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 37 | 560 |
+| `src/shared/utils/` | 38 | 565 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 4 | 24 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 19 | 224 |
+| `src/main/` | 19 | 225 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
 | `src/renderer/components/` | 32 | 167 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **168** | **1617** |
+| **Total** | **169** | **1623** |
 
-Unitaires : 159 fichiers, 1582 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 160 fichiers, 1588 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -599,6 +599,18 @@ Unitaires : 159 fichiers, 1582 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **generatePoolHTML – couleurs du modèle (#992)**
   - la surcharge de couleurs suit le CSS de base (sinon écrasée)
   - couleur invalide ignorée (injection CSS)
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/printHtml.test.ts</code> — 5 tests</summary>
+
+- **impression via la boîte intégrée (#1214)**
+  - printHTML transmet le HTML à file.printHtml
+  - printHTML : annulation = pas d’erreur, échec = erreur
+  - classement intermédiaire : imprime le HTML du classement
+  - résultats finaux : imprime le HTML des résultats
+  - rapières : imprime le tableau de classement
 
 </details>
 
@@ -1997,12 +2009,13 @@ Unitaires : 159 fichiers, 1582 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/pdfPreview.test.ts</code> — 4 tests</summary>
+<summary><code>src/main/pdfPreview.test.ts</code> — 5 tests</summary>
 
 - **previewPdf (#1214)**
   - écrit un PDF temporaire, l’ouvre dans la fenêtre interne et le supprime à la fermeture
   - repli sur le lecteur externe si la fenêtre ne peut pas s’ouvrir
   - repli sur le lecteur externe si le chargement échoue
+  - repli externe : le PDF n’est pas supprimé à la fermeture de la fenêtre ratée
   - erreur de rendu : échec sans fichier résiduel
 
 </details>

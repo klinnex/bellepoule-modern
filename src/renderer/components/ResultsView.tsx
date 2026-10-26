@@ -407,6 +407,22 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     }
   };
 
+  // Impression : boîte d'impression intégrée avec aperçu (#1214)
+  const printResults = async () => {
+    try {
+      const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
+      const { printResultsHTML } = await import('../../shared/utils/pdfExport');
+      await printResultsHTML(
+        resultsToDisplay,
+        `Résultats — ${competition.title}`,
+        logo,
+        rankingTemplate
+      );
+    } catch (e) {
+      showToast((e as Error).message, 'error');
+    }
+  };
+
   // Export XML
   const exportXML = () => {
     const xmlContent = exportResultsXMLFFE(
@@ -742,7 +758,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
 
       {/* Boutons d'export */}
       <div style={RV_STYLES.exportRow}>
-        <button onClick={() => window.electronAPI.print()} style={RV_STYLES.btnPrint}>
+        <button onClick={printResults} style={RV_STYLES.btnPrint}>
           {t('resultsView.print')}
         </button>
         <button

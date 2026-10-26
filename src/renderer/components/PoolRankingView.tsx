@@ -219,23 +219,26 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
     showToast(t('poolRanking.csv_ok'), 'success');
   };
 
-  const handlePrint = () => {
-    window.electronAPI.print();
+  const rankingPdfArgs = () => {
+    const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
+    const cols = getVisibleColumns('ranking').filter(col => col !== 'quest' || isLaserSabre);
+    return [overallRanking, 'Classement Général', weapon, cols, logo, rankingTemplate] as const;
+  };
+
+  // Boîte d'impression intégrée avec aperçu (#1214), comme les poules et le tableau
+  const handlePrint = async () => {
+    try {
+      const { printRankingHTML } = await import('../../shared/utils/pdfExport');
+      await printRankingHTML(...rankingPdfArgs());
+    } catch (e) {
+      showToast((e as Error).message, 'error');
+    }
   };
 
   const handleExportPDF = async () => {
     try {
-      const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
-      const cols = getVisibleColumns('ranking').filter(col => col !== 'quest' || isLaserSabre);
       const { exportRankingToPDF } = await import('../../shared/utils/pdfExport');
-      await exportRankingToPDF(
-        overallRanking,
-        'Classement Général',
-        weapon,
-        cols,
-        logo,
-        rankingTemplate
-      );
+      await exportRankingToPDF(...rankingPdfArgs());
     } catch (e) {
       showToast((e as Error).message, 'error');
     }
