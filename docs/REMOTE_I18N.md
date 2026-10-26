@@ -4,12 +4,12 @@ Les pages `src/remote/*.html` utilisent `src/remote/i18n.js` (langues : **fr, en
 
 ## Plan
 
-| Étape | Contenu                                                                                                                             | État                           |
-| ----- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| 1     | Inventaire des textes en dur par page : `node scripts/inventory-remote-i18n.js`                                                     | fait                           |
-| 2     | Passage en `data-i18n` / `data-i18n-placeholder` / `data-i18n-title` / `data-i18n-aria-label` ou `T()` (page par page, PR séparées) | en cours : arena, public faits |
-| 3     | Ajout de de / es / ca / br dans `i18n.js`                                                                                           | à faire                        |
-| 4     | Contrôle CI de complétude des langues (comme `check:i18n`)                                                                          | à faire                        |
+| Étape | Contenu                                                                                                                             | État                                 |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| 1     | Inventaire des textes en dur par page : `node scripts/inventory-remote-i18n.js`                                                     | fait                                 |
+| 2     | Passage en `data-i18n` / `data-i18n-placeholder` / `data-i18n-title` / `data-i18n-aria-label` ou `T()` (page par page, PR séparées) | en cours : arena, public, pool faits |
+| 3     | Ajout de de / es / ca / br dans `i18n.js`                                                                                           | à faire                              |
+| 4     | Contrôle CI de complétude des langues (comme `check:i18n`)                                                                          | à faire                              |
 
 ## Inventaire (étape 1)
 
@@ -19,7 +19,7 @@ Textes visibles et attributs `placeholder` / `title` / `aria-label` sans balise,
 | ----------------------------------------------- | --------: | ------: |
 | arena.html                                      |         5 |      20 |
 | referee.html                                    |        23 |      42 |
-| pool.html                                       |        12 |       5 |
+| pool.html                                       |         0 |      17 |
 | public.html                                     |         3 |      12 |
 | dashboard.html (non servie)                     |        11 |      10 |
 | teamReferee.html                                |         5 |       9 |
