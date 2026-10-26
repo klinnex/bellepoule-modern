@@ -1,7 +1,8 @@
 /**
  * BellePoule Modern - Boîte d'impression intégrée : canaux IPC `print:*` (#1214, étape 1)
  * `print:getPrinters` (imprimantes installées), `print:render` (PDF d'aperçu en mémoire,
- * sans fichier temporaire), `print:execute` (impression silencieuse avec les réglages choisis).
+ * sans fichier temporaire), `print:execute` (impression silencieuse avec les réglages choisis),
+ * `print:savePdf` (enregistrement via le dialogue natif), `print:systemDialog` (boîte du système).
  * Licensed under GPL-3.0
  */
 import { ipcMain } from 'electron';
@@ -24,6 +25,11 @@ export interface PrintDialogDeps {
   renderPdf(html: string, options: ReturnType<typeof buildPdfOptions>): Promise<Buffer>;
   /** HTML → imprimante avec les options webContents.print */
   printHtml(html: string, options: ReturnType<typeof buildPrintOptions>): Promise<boolean>;
+  /** Dialogue « Enregistrer sous » natif : chemin choisi, undefined si annulé */
+  chooseSavePath(defaultName: string): Promise<string | undefined>;
+  writeFile(filePath: string, data: Buffer): Promise<void>;
+  /** Impression avec la boîte de dialogue native du système */
+  printWithSystemDialog(html: string): Promise<{ success: boolean; error?: string }>;
 }
 
 export interface PrintResult {
@@ -70,6 +76,40 @@ export async function executePrint(
   }
 }
 
+/** Nom de fichier proposé : sans séparateur ni caractère interdit, extension .pdf */
+export function pdfFileName(title: unknown): string {
+  const base =
+    (typeof title === 'string' ? title : '')
+      .replace(/[\\/:*?"<>|]/g, ' ')
+      // Caractères de contrôle
+      .split('')
+      .map(c => (c.charCodeAt(0) < 32 ? ' ' : c))
+      .join('')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 80) || 'BellePoule';
+  return `${base}.pdf`;
+}
+
+/** Rend le PDF avec les réglages choisis puis l'enregistre là où l'utilisateur le décide */
+export async function savePdf(
+  deps: PrintDialogDeps,
+  html: unknown,
+  settings?: Partial<PrintSettings>,
+  title?: unknown
+): Promise<PrintResult & { canceled?: boolean; path?: string }> {
+  if (!checkHtml(html)) return { success: false, error: 'html_required' };
+  try {
+    const target = await deps.chooseSavePath(pdfFileName(title));
+    if (!target) return { success: false, canceled: true };
+    const pdf = await deps.renderPdf(html, buildPdfOptions(normalizePrintSettings(settings)));
+    await deps.writeFile(target, pdf);
+    return { success: true, path: target };
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 export function registerPrintDialogHandlers(deps: PrintDialogDeps): void {
   ipcMain.handle('print:getPrinters', () => getPrinters(deps));
   ipcMain.handle('print:render', (_e, html: unknown, settings?: Partial<PrintSettings>) =>
@@ -77,5 +117,15 @@ export function registerPrintDialogHandlers(deps: PrintDialogDeps): void {
   );
   ipcMain.handle('print:execute', (_e, html: unknown, settings?: Partial<PrintSettings>) =>
     executePrint(deps, html, settings)
+  );
+  ipcMain.handle(
+    'print:savePdf',
+    (_e, html: unknown, settings?: Partial<PrintSettings>, title?: unknown) =>
+      savePdf(deps, html, settings, title)
+  );
+  ipcMain.handle('print:systemDialog', async (_e, html: unknown) =>
+    checkHtml(html)
+      ? deps.printWithSystemDialog(html)
+      : ({ success: false, error: 'html_required' } as PrintResult)
   );
 }

@@ -75,6 +75,10 @@ const validateMatchData = (match: MatchCreateData): void => {
 
 // Expose protected methods that allow the renderer process
 // to use the ipcRenderer without exposing the entire object
+// Fenêtre d'impression intégrée enregistrée par le renderer (#1214)
+type PrintRequestHandler = (html: string) => Promise<{ success: boolean; error?: string }>;
+let printRequestHandler: PrintRequestHandler | null = null;
+
 contextBridge.exposeInMainWorld('electronAPI', {
   // Database operations with validation
   db: {
@@ -430,6 +434,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       } catch {
         /* stockage indisponible : aperçu actif */
       }
+      // Boîte d'impression intégrée (#1214) si le renderer l'a enregistrée ; sinon aperçu PDF
+      if (preview && printRequestHandler) return printRequestHandler(html);
       return ipcRenderer.invoke('file:printHtml', html, { preview });
     },
     previewPdf: (html: string, title?: string) => {
@@ -546,6 +552,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
     execute: (html: string, settings?: Record<string, unknown>) => {
       if (!html || typeof html !== 'string') throw new Error('HTML content is required');
       return ipcRenderer.invoke('print:execute', html, settings);
+    },
+    savePdf: (html: string, settings?: Record<string, unknown>, title?: string) => {
+      if (!html || typeof html !== 'string') throw new Error('HTML content is required');
+      return ipcRenderer.invoke('print:savePdf', html, settings, title);
+    },
+    systemDialog: (html: string) => {
+      if (!html || typeof html !== 'string') throw new Error('HTML content is required');
+      return ipcRenderer.invoke('print:systemDialog', html);
+    },
+    /** Le renderer enregistre la fenêtre d'impression qui traite les demandes `file.printHtml` */
+    setHandler: (handler: PrintRequestHandler | null) => {
+      printRequestHandler = typeof handler === 'function' ? handler : null;
     },
   },
 

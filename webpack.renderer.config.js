@@ -141,6 +141,11 @@ module.exports = (env = {}) => ({
           to: '../remote/socket.io.min.js',
         },
         {
+          // pdf.js (aperçu de la boîte d'impression, #1214) : chargé à la demande, hors bundle
+          from: 'node_modules/pdfjs-dist/build/{pdf.min.mjs,pdf.worker.min.mjs}',
+          to: 'pdfjs/[name][ext]',
+        },
+        {
           from: 'src/main/splash.html',
           to: path.resolve(__dirname, 'dist/main/splash.html'),
           noErrorOnMissing: true,

@@ -4,7 +4,9 @@
  * Licensed under GPL-3.0
  */
 
-export type PrintPaperSize = 'A3' | 'A4' | 'A5' | 'Letter' | 'Legal';
+/** `auto` = format et orientation définis par le document (@page) */
+export type PrintPaperSize = 'auto' | 'A3' | 'A4' | 'A5' | 'Letter' | 'Legal';
+export type PrintOrientation = 'auto' | 'portrait' | 'landscape';
 export type PrintDuplex = 'simplex' | 'shortEdge' | 'longEdge';
 export type PrintMargins = 'default' | 'none' | 'minimum';
 
@@ -14,7 +16,7 @@ export interface PrintSettings {
   copies: number;
   /** Plages saisies (« 1-3, 5 »), vide = toutes les pages */
   pages: string;
-  landscape: boolean;
+  orientation: PrintOrientation;
   paperSize: PrintPaperSize;
   color: boolean;
   duplex: PrintDuplex;
@@ -27,15 +29,16 @@ export const DEFAULT_PRINT_SETTINGS: PrintSettings = {
   printer: '',
   copies: 1,
   pages: '',
-  landscape: false,
-  paperSize: 'A4',
+  orientation: 'auto',
+  paperSize: 'auto',
   color: true,
   duplex: 'simplex',
   margins: 'default',
   scale: 100,
 };
 
-const PAPER_SIZES: readonly PrintPaperSize[] = ['A3', 'A4', 'A5', 'Letter', 'Legal'];
+const ORIENTATIONS: readonly PrintOrientation[] = ['auto', 'portrait', 'landscape'];
+const PAPER_SIZES: readonly PrintPaperSize[] = ['auto', 'A3', 'A4', 'A5', 'Letter', 'Legal'];
 const DUPLEX_MODES: readonly PrintDuplex[] = ['simplex', 'shortEdge', 'longEdge'];
 const MARGIN_MODES: readonly PrintMargins[] = ['default', 'none', 'minimum'];
 
@@ -53,7 +56,9 @@ export function normalizePrintSettings(input: unknown): PrintSettings {
     printer: typeof raw.printer === 'string' ? raw.printer.slice(0, 256) : d.printer,
     copies: clampInt(raw.copies, 1, 99, d.copies),
     pages: parsePageRanges(pages) ? pages : d.pages,
-    landscape: typeof raw.landscape === 'boolean' ? raw.landscape : d.landscape,
+    orientation: ORIENTATIONS.includes(raw.orientation as PrintOrientation)
+      ? (raw.orientation as PrintOrientation)
+      : d.orientation,
     paperSize: PAPER_SIZES.includes(raw.paperSize as PrintPaperSize)
       ? (raw.paperSize as PrintPaperSize)
       : d.paperSize,
@@ -107,15 +112,18 @@ export function pageRangesToPdfString(ranges: PageRange[]): string {
 
 const MARGIN_INCHES: Record<PrintMargins, number> = { default: 0.4, none: 0, minimum: 0.2 };
 
+/** Le document décide du format (@page) tant que ni papier ni orientation ne sont imposés */
+const followsDocument = (s: PrintSettings) => s.paperSize === 'auto' && s.orientation === 'auto';
+
 /** Options de `webContents.printToPDF` (aperçu et export PDF) */
 export function buildPdfOptions(s: PrintSettings) {
-  const m = MARGIN_INCHES[s.margins];
+  // « Par défaut » : marges du document lui-même tant qu'il décide du format
+  const m = s.margins === 'default' && followsDocument(s) ? 0 : MARGIN_INCHES[s.margins];
   return {
     printBackground: true,
-    landscape: s.landscape,
-    pageSize: s.paperSize,
-    // Les marges CSS (@page) du document priment quand il en définit
-    preferCSSPageSize: true,
+    landscape: s.orientation === 'landscape',
+    pageSize: s.paperSize === 'auto' ? 'A4' : s.paperSize,
+    preferCSSPageSize: followsDocument(s),
     scale: s.scale / 100,
     margins: { top: m, bottom: m, left: m, right: m },
   };
@@ -130,12 +138,12 @@ export function buildPrintOptions(s: PrintSettings) {
     ...(s.printer ? { deviceName: s.printer } : {}),
     copies: s.copies,
     color: s.color,
-    landscape: s.landscape,
+    landscape: s.orientation === 'landscape',
     scaleFactor: s.scale,
     duplexMode: s.duplex,
     // Electron : pages 0-indexées
     ...(ranges.length ? { pageRanges: ranges.map(r => ({ from: r.from - 1, to: r.to - 1 })) } : {}),
-    pageSize: s.paperSize,
+    ...(s.paperSize === 'auto' ? {} : { pageSize: s.paperSize }),
     margins: {
       marginType: s.margins === 'none' ? ('none' as const) : ('default' as const),
     },

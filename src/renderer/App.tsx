@@ -45,6 +45,7 @@ const TrainingLauncherModal = React.lazy(
 const TrainingPanel = React.lazy(() => import('./components/training/TrainingPanel'));
 import { CompetitionViewSkeleton } from './components/Skeleton';
 import { ToastProvider, useToast } from './components/Toast';
+import PrintDialogHost from './components/print/PrintDialogHost';
 import { ConfirmProvider, useConfirm } from './components/ConfirmDialog';
 import { TranslationProvider, useTranslation, Theme } from './contexts/TranslationContext';
 import { ipcErrorText } from './services/ipcError';
@@ -954,6 +955,8 @@ const AppContent: React.FC = () => {
             <AboutModal onClose={() => setShowAboutModal(false)} />
           </Suspense>
         )}
+
+        <PrintDialogHost />
 
         {showSettingsModal && (
           <Suspense fallback={null}>

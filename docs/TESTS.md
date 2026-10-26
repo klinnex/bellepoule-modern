@@ -95,18 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 4 | 24 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 3 | 127 |
-| `src/main/` | 18 | 216 |
+| `src/main/` | 18 | 221 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
-| `src/renderer/components/` | 31 | 154 |
+| `src/renderer/components/` | 32 | 167 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 8 | 40 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **166** | **1596** |
+| **Total** | **167** | **1614** |
 
-Unitaires : 157 fichiers, 1561 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 158 fichiers, 1579 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2008,7 +2008,7 @@ Unitaires : 157 fichiers, 1561 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/printDialog.test.ts</code> — 15 tests</summary>
+<summary><code>src/main/printDialog.test.ts</code> — 20 tests</summary>
 
 - **parsePageRanges (#1214)**
   - vide = toutes les pages
@@ -2022,6 +2022,7 @@ Unitaires : 157 fichiers, 1561 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - conserve des réglages valides
 - **options Electron (#1214)**
   - printToPDF : échelle en fraction, marges en pouces
+  - printToPDF : le document décide du format tant que rien n’est imposé
   - print : silencieux, imprimante, pages 0-indexées
   - print : imprimante par défaut et toutes les pages sans clés superflues
 - **handlers print:\* (#1214)**
@@ -2029,6 +2030,11 @@ Unitaires : 157 fichiers, 1561 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - aperçu : PDF en mémoire avec les réglages normalisés
   - refuse un HTML vide ou non textuel
   - impression : envoie les options et remonte les échecs
+- **enregistrement PDF (#1214)**
+  - nom de fichier sans caractère interdit
+  - rend avec les réglages puis écrit au chemin choisi
+  - annulation du dialogue : rien n’est rendu ni écrit
+  - erreur d’écriture remontée, HTML vide refusé
 
 </details>
 
@@ -2969,6 +2975,28 @@ Unitaires : 157 fichiers, 1561 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - clic sur une cellule éditable déclenche onCellClick
   - ne déclenche pas onCellClick si verrouillé
   - rapières : cases de la vague en cours surlignées en violet (#1118)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 13 tests</summary>
+
+- **PrintDialog (#1214)**
+  - présélectionne l’imprimante par défaut et génère l’aperçu avec les réglages
+  - Imprimer : envoie les réglages choisis puis ferme et mémorise (sans pages)
+  - plage invalide ou hors document : impression bloquée
+  - échec d’impression : message affiché, boîte conservée
+  - Enregistrer en PDF : titre du document proposé
+  - enregistrement annulé dans le dialogue : la boîte reste ouverte
+  - Boîte de dialogue système : bascule sur l’impression native
+  - Annuler : fermeture sans erreur (pas de toast d’échec chez l’appelant)
+  - aperçu en échec : impression et enregistrement restent possibles
+- **PrintDialogHost (#1214)**
+  - enregistre le gestionnaire, ouvre la boîte à la demande et renvoie le résultat
+  - désenregistre le gestionnaire au démontage
+- **plages de pages côté renderer (#1214)**
+  - isValidPageRanges(%j) = %s _(each)_
+  - pageRangesBeyond
 
 </details>
 

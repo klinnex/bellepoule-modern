@@ -25,6 +25,8 @@ function walkJsFiles(dir) {
   const files = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const fullPath = path.join(dir, entry.name);
+    // pdf.js (boîte d'impression, #1214) : ressource statique chargée à la demande, hors bundle
+    if (entry.isDirectory() && entry.name === 'pdfjs') continue;
     if (entry.isDirectory()) {
       files.push(...walkJsFiles(fullPath));
     } else if (entry.name.endsWith('.js') && !entry.name.endsWith('.map.js')) {
