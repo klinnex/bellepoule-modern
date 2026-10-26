@@ -58,6 +58,16 @@ describe('previewPdf (#1214)', () => {
     expect(deps.openExternal).toHaveBeenCalledTimes(1);
   });
 
+  it('repli externe : le PDF n’est pas supprimé à la fermeture de la fenêtre ratée', async () => {
+    const deps = makeDeps();
+    const res = await previewPdf(deps, '<html></html>');
+    const handlers = (deps.openWindow as ReturnType<typeof vi.fn>).mock.calls[0][2];
+    handlers.onFailed();
+    handlers.onClosed();
+    await new Promise(r => setTimeout(r, 20));
+    expect(fs.existsSync(res.path!)).toBe(true);
+  });
+
   it('erreur de rendu : échec sans fichier résiduel', async () => {
     const deps = makeDeps({ render: vi.fn().mockRejectedValue(new Error('render')) });
     const res = await previewPdf(deps, '<html></html>');

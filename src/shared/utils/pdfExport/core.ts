@@ -55,6 +55,18 @@ export async function savePDF(html: string, defaultName: string): Promise<void> 
   }
 }
 
+/** Impression via `file.printHtml` : boîte d'impression intégrée (aperçu) ou boîte système (#1214). */
+export async function printHTML(html: string): Promise<void> {
+  const api = window.electronAPI;
+  if (!api?.file?.printHtml) {
+    throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
+  }
+  const res = await api.file.printHtml(html);
+  if (!res?.success) {
+    throw new Error(res?.error ?? pdfT('print_failed', "Échec de l'impression"));
+  }
+}
+
 // ─── Template helpers ─────────────────────────────────────────────────────────
 
 /** Variables de couleur du modèle — à insérer APRÈS BASE_CSS, qui redéfinit :root (#992). */

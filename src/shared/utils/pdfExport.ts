@@ -37,11 +37,11 @@ export {
 } from './pdfExport/bracketTreePdf';
 
 // ─── Classement Général ───────────────────────────────────────────────────────
-export { generateRankingHTML, exportRankingToPDF } from './pdfExport/rankingPdf';
+export { generateRankingHTML, exportRankingToPDF, printRankingHTML } from './pdfExport/rankingPdf';
 
 // ─── Résultats Finaux ─────────────────────────────────────────────────────────
 export type { FinalResultForPDF } from './pdfExport/resultsPdf';
-export { exportResultsToPDF } from './pdfExport/resultsPdf';
+export { exportResultsToPDF, printResultsHTML } from './pdfExport/resultsPdf';
 
 // ─── Liste d'Appel ────────────────────────────────────────────────────────────
 export { exportAppelToPDF } from './pdfExport/appelPdf';

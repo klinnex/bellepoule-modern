@@ -51,9 +51,17 @@ export async function previewPdf(
       return err ? { success: false, error: err } : { success: true, path: pdfPath };
     };
     try {
+      // Repli externe : le fichier doit survivre à la fermeture de la fenêtre ratée,
+      // sinon le lecteur ouvre un chemin déjà supprimé (#1214)
+      let handedOff = false;
       deps.openWindow(pdfPath, title, {
-        onClosed: () => void cleanup(),
-        onFailed: () => void deps.openExternal(pdfPath),
+        onClosed: () => {
+          if (!handedOff) void cleanup();
+        },
+        onFailed: () => {
+          handedOff = true;
+          void deps.openExternal(pdfPath);
+        },
       });
       return { success: true, path: pdfPath };
     } catch {
@@ -98,8 +106,8 @@ export function createPdfPreviewDeps(ctx: PdfPreviewContext): PdfPreviewDeps {
       win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
       win.webContents.on('will-navigate', e => e.preventDefault());
       win.webContents.once('did-fail-load', () => {
-        win.destroy();
         onFailed();
+        win.destroy();
       });
       win.on('closed', onClosed);
       void win.loadURL(pathToFileURL(pdfPath).toString());
