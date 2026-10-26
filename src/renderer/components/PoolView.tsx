@@ -1057,19 +1057,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     }
   };
 
-  // Aperçu avant impression : ouvre le PDF dans le lecteur par défaut de l'OS
-  // (utile sur Windows 11, où la boîte de dialogue d'impression native n'affiche pas d'aperçu)
-  const handlePreviewPool = async () => {
-    try {
-      const options = await buildPoolPrintOptions();
-      const { previewPoolHTML } = await import('../../shared/utils/pdfExport');
-      await previewPoolHTML(pool, options, poolTemplate);
-    } catch (error) {
-      logger.error(LogCategory.UI, "Erreur lors de l'aperçu de la poule", error as Error);
-      showToast(t('poolView.preview_error', { error: errorText(error) }), 'error');
-    }
-  };
-
   // Fonction pour remplir automatiquement tous les scores de la poule (pour les tests)
   const handleAutoFillScores = async () => {
     const confirmed = await confirm({
@@ -1671,14 +1658,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               aria-label={t('poolView.print_aria')}
             >
               🖨️
-            </button>
-            <button
-              onClick={handlePreviewPool}
-              className="pv-icon-btn is-violet"
-              title={t('poolView.preview_title')}
-              aria-label={t('poolView.preview_aria')}
-            >
-              👁️
             </button>
             <button
               onClick={handleExportPDF}

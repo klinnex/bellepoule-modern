@@ -576,21 +576,3 @@ export async function printMultiplePoolsHTML(
     );
   }
 }
-
-// ─── Aperçu avant impression (ouvre le PDF dans le lecteur par défaut de l'OS) ─
-
-export async function previewPoolHTML(
-  pool: Pool,
-  options: PoolExportOptions = {},
-  template?: PdfTemplate
-): Promise<void> {
-  const html = await buildPoolExportHTML(pool, options, template);
-  const api = (window as any).electronAPI;
-  if (!api?.file?.previewHtmlAsPDF) {
-    throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
-  }
-  const res = await api.file.previewHtmlAsPDF(html);
-  if (!res?.success) {
-    throw new Error(res?.error ?? pdfT('preview_failed', "Échec de la génération de l'aperçu"));
-  }
-}
