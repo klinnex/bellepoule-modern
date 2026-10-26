@@ -51,6 +51,7 @@ const mockDb = {
 import express from 'express';
 import { createServer } from 'http';
 import { RemoteScoreServer } from './remoteScoreServer';
+import { setUiLanguage } from './menuLabels';
 
 // Helpers pour simuler request / response Express
 function makeReq(overrides: Record<string, any> = {}): any {
@@ -91,6 +92,16 @@ describe('RemoteScoreServer', () => {
   describe('démarrage du serveur', () => {
     it('construit une instance sans erreur', () => {
       expect(server).toBeInstanceOf(RemoteScoreServer);
+    });
+
+    it("reprend la langue de l'application dès la création (#1213)", () => {
+      setUiLanguage('de');
+      try {
+        const srv = new RemoteScoreServer(mockDb as any, 8066);
+        expect((srv as any).currentLang).toBe('de');
+      } finally {
+        setUiLanguage('fr');
+      }
     });
 
     it('getServerUrl retourne une URL avec le bon port', () => {

@@ -95,18 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 4 | 24 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 19 | 225 |
+| `src/main/` | 19 | 226 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 18 | 102 |
 | `src/renderer/components/` | 33 | 170 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 8 | 40 |
+| `src/remote/` | 9 | 45 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **174** | **1639** |
+| **Total** | **175** | **1645** |
 
-Unitaires : 165 fichiers, 1604 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 166 fichiers, 1610 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2220,11 +2220,12 @@ Unitaires : 165 fichiers, 1604 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 100 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 101 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
     - construit une instance sans erreur
+    - reprend la langue de l'application dès la création (#1213)
     - getServerUrl retourne une URL avec le bon port
     - getLocalIPAddress retourne une chaîne non vide
     - start() appelle server.listen
@@ -3317,6 +3318,19 @@ Unitaires : 165 fichiers, 1604 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **échappement HTML des pages distantes**
   - dashboard.html échappe noms et clubs
   - app.js échappe les noms des tireurs
+
+</details>
+
+<details>
+<summary><code>src/remote/remoteI18nLabels.test.ts</code> — 5 tests</summary>
+
+- **kiosk.html : noms de poule traduits (#1213)**
+  - cartes de poule : nom construit depuis le numéro
+  - prochains matchs : regroupement par numéro de poule traduit
+- **referee.html : raisons de carton avancé traduites (#1213)**
+  - chaque raison a une clé et la valeur enregistrée reste en français
+  - le texte français de la clé = valeur enregistrée
+  - %s : toutes les raisons traduites _(each)_
 
 </details>
 
