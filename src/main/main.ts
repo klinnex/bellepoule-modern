@@ -1066,34 +1066,39 @@ const pdfPreviewDeps = registerPdfPreviewHandlers({
 ipcMain.handle('file:previewHtmlAsPDF', (_, html: string) => previewPdf(pdfPreviewDeps, html));
 
 // Boîte d'impression intégrée (#1214) : imprimantes, aperçu PDF en mémoire, impression silencieuse
-function printHtmlSilently(
+async function printHtmlSilently(
   html: string,
   options: Electron.WebContentsPrintOptions
 ): Promise<boolean> {
-  const tmpFile = path.join(os.tmpdir(), `bp-print-${Date.now()}.html`);
-  return fs.promises.writeFile(tmpFile, html, 'utf-8').then(
-    () =>
-      new Promise<boolean>(resolve => {
-        const printWin = new BrowserWindow({
-          show: false,
-          width: 1200,
-          height: 1600,
-          webPreferences: { contextIsolation: true, nodeIntegration: false, javascript: false },
-        });
-        const done = (ok: boolean) => {
-          printWin.destroy();
-          fs.promises.unlink(tmpFile).catch(() => {});
-          resolve(ok);
-        };
-        printWin.setMenu(null);
-        printWin.loadFile(tmpFile);
-        printWin.webContents.once('did-finish-load', () => {
-          setTimeout(() => printWin.webContents.print(options, ok => done(ok)), 800);
-        });
-        printWin.webContents.once('did-fail-load', () => done(false));
-      }),
-    () => false
-  );
+  // Dossier privé (mkdtemp, 0700) + création exclusive 0600 : pas de fichier prévisible dans le tmp partagé
+  let dir: string;
+  let tmpFile: string;
+  try {
+    dir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'bp-print-'));
+    tmpFile = path.join(dir, 'print.html');
+    await fs.promises.writeFile(tmpFile, html, { encoding: 'utf-8', mode: 0o600, flag: 'wx' });
+  } catch {
+    return false;
+  }
+  return new Promise<boolean>(resolve => {
+    const printWin = new BrowserWindow({
+      show: false,
+      width: 1200,
+      height: 1600,
+      webPreferences: { contextIsolation: true, nodeIntegration: false, javascript: false },
+    });
+    const done = (ok: boolean) => {
+      printWin.destroy();
+      fs.promises.rm(dir, { recursive: true, force: true }).catch(() => {});
+      resolve(ok);
+    };
+    printWin.setMenu(null);
+    printWin.loadFile(tmpFile);
+    printWin.webContents.once('did-finish-load', () => {
+      setTimeout(() => printWin.webContents.print(options, ok => done(ok)), 800);
+    });
+    printWin.webContents.once('did-fail-load', () => done(false));
+  });
 }
 registerPrintDialogHandlers({
   listPrinters: async () =>
