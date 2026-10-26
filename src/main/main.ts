@@ -231,9 +231,7 @@ function getVersionInfo(): {
 
 function createWindow(initialLang?: string): void {
   const versionInfo = getVersionInfo();
-  // Petits écrans (MacBook Neo 13" : ~1204×720 utiles) : la fenêtre doit tenir dans l'espace de travail
-  const workArea = screen.getPrimaryDisplay().workAreaSize;
-
+  const workArea = screen.getPrimaryDisplay().workAreaSize; // Petits écrans (MacBook Neo 13" ~1204×720) : fenêtre bornée
   mainWindow = new BrowserWindow({
     width: Math.min(1400, workArea.width),
     height: Math.min(900, workArea.height),
