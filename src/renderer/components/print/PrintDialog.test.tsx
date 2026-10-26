@@ -16,8 +16,11 @@ vi.mock('./pdfjsLoader', () => ({
     getDocument: () => ({
       promise: Promise.resolve({
         numPages: 3,
-        // jsdom n'a pas de canvas : getContext renvoie null, la page n'est pas dessinée
-        getPage: vi.fn().mockResolvedValue({ getViewport: () => ({ width: 100, height: 140 }) }),
+        // getContext peut renvoyer un contexte si le paquet canvas est compilé (CI) : render requis
+        getPage: vi.fn().mockResolvedValue({
+          getViewport: () => ({ width: 100, height: 140 }),
+          render: () => ({ promise: Promise.resolve() }),
+        }),
         destroy: vi.fn().mockResolvedValue(undefined),
       }),
     }),
