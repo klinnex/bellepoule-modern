@@ -21,7 +21,6 @@ interface TableauToolbarProps {
   pyramidViewMode: boolean;
   onPyramidViewModeToggle: () => void;
   onPrintClick: () => void;
-  onPreviewClick: () => void;
   onExportPdfClick: () => void;
   onExportTreeClick: () => void;
   champion: Fencer | null | undefined;
@@ -40,7 +39,6 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
   pyramidViewMode,
   onPyramidViewModeToggle,
   onPrintClick,
-  onPreviewClick,
   onExportPdfClick,
   onExportTreeClick,
   champion,
@@ -149,13 +147,6 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
               <span className="tableau-fab-section-label">{t('tableauToolbar.export')}</span>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onPrintClick)}>
                 {t('tableauToolbar.print')}
-              </button>
-              <button
-                className="tableau-fab-item"
-                onClick={() => closeAndRun(onPreviewClick)}
-                title={t('tableauToolbar.preview_title')}
-              >
-                {t('tableauToolbar.preview')}
               </button>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onExportPdfClick)}>
                 {t('tableauToolbar.export_pdf')}
