@@ -94,7 +94,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 4 | 24 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 3 | 127 |
+| `src/database/` | 4 | 131 |
 | `src/main/` | 19 | 225 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 16 | 97 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **169** | **1623** |
+| **Total** | **170** | **1627** |
 
-Unitaires : 160 fichiers, 1588 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 161 fichiers, 1592 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1848,6 +1848,17 @@ Unitaires : 160 fichiers, 1588 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - retourne le repli sur null / vide
 - **cache de statements borné (#1007)**
   - ne dépasse pas la taille max et réutilise les statements
+
+</details>
+
+<details>
+<summary><code>src/database/repos/signatureRepo.test.ts</code> — 4 tests</summary>
+
+- **SignatureRepo**
+  - enregistre une signature de poule (upsert)
+  - mappe les lignes en camelCase
+  - ne requête pas sans identifiants de match
+  - requête par lot avec placeholders
 
 </details>
 

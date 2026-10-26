@@ -39,6 +39,7 @@ import {
 } from './validation';
 import { logger, LogCategory } from '../shared/services/logger';
 import { MigrationManager } from './migrations';
+import { SignatureRepo } from './repos/signatureRepo';
 import { ALL_MIGRATIONS } from './migrations/migrations';
 
 // Champs texte d'un tireur normalisés avant stockage (#1147)
@@ -75,6 +76,11 @@ export class DatabaseManager {
   // Cache des prepared statements : évite de re-parser le SQL à chaque appel.
   // SQLite re-prépare automatiquement un statement si le schéma change.
   private stmtCache = new Map<string, Database.Statement>();
+  private readonly signatures = new SignatureRepo({
+    run: (sql, params) => this.run(sql, params),
+    queryOne: (sql, params) => this.queryOne(sql, params),
+    queryAll: (sql, params) => this.queryAll(sql, params),
+  });
 
   constructor(dbPath?: string) {
     this.dbPath = dbPath || path.join(process.cwd(), 'bellepoule.db');
@@ -2486,39 +2492,25 @@ export class DatabaseManager {
     this.run(`DELETE FROM arena_state WHERE competition_id=?`, [competitionId]);
   }
 
+  // ── Signatures (poules + matchs de tableau) : voir repos/signatureRepo.ts ──
   public savePoolSignature(poolId: string, fencerId: string, signatureData: string): void {
     if (!this.db) throw new Error('Database not open');
-    this.run(
-      `INSERT INTO pool_signatures (id, pool_id, fencer_id, signature_data, signed_at) VALUES (?, ?, ?, ?, ?)
-       ON CONFLICT(pool_id, fencer_id) DO UPDATE SET signature_data = excluded.signature_data, signed_at = excluded.signed_at`,
-      [uuidv4(), poolId, fencerId, signatureData, new Date().toISOString()]
-    );
+    this.signatures.savePool(poolId, fencerId, signatureData);
   }
 
   public getPoolSignatures(poolId: string): { fencerId: string; signatureData: string }[] {
     if (!this.db) throw new Error('Database not open');
-    return this.queryAll<{ fencer_id: string; signature_data: string }>(
-      `SELECT fencer_id, signature_data FROM pool_signatures WHERE pool_id = ?`,
-      [poolId]
-    ).map(row => ({ fencerId: row.fencer_id, signatureData: row.signature_data }));
+    return this.signatures.getPool(poolId);
   }
 
-  // ── Signatures des matchs de tableau (élimination directe) ──
   public saveDEMatchSignature(matchId: string, fencerId: string, signatureData: string): void {
     if (!this.db) throw new Error('Database not open');
-    this.run(
-      `INSERT INTO de_match_signatures (id, match_id, fencer_id, signature_data, signed_at) VALUES (?, ?, ?, ?, ?)
-       ON CONFLICT(match_id, fencer_id) DO UPDATE SET signature_data = excluded.signature_data, signed_at = excluded.signed_at`,
-      [uuidv4(), matchId, fencerId, signatureData, new Date().toISOString()]
-    );
+    this.signatures.saveDEMatch(matchId, fencerId, signatureData);
   }
 
   public getDEMatchSignatures(matchId: string): { fencerId: string; signatureData: string }[] {
     if (!this.db) throw new Error('Database not open');
-    return this.queryAll<{ fencer_id: string; signature_data: string }>(
-      `SELECT fencer_id, signature_data FROM de_match_signatures WHERE match_id = ?`,
-      [matchId]
-    ).map(row => ({ fencerId: row.fencer_id, signatureData: row.signature_data }));
+    return this.signatures.getDEMatch(matchId);
   }
 
   /** Signatures de tableau pour un ensemble de matchs (pour export PDF). */
@@ -2526,16 +2518,7 @@ export class DatabaseManager {
     matchIds: string[]
   ): { matchId: string; fencerId: string; signatureData: string }[] {
     if (!this.db) throw new Error('Database not open');
-    if (matchIds.length === 0) return [];
-    const placeholders = matchIds.map(() => '?').join(',');
-    return this.queryAll<{ match_id: string; fencer_id: string; signature_data: string }>(
-      `SELECT match_id, fencer_id, signature_data FROM de_match_signatures WHERE match_id IN (${placeholders})`,
-      matchIds
-    ).map(row => ({
-      matchId: row.match_id,
-      fencerId: row.fencer_id,
-      signatureData: row.signature_data,
-    }));
+    return this.signatures.getDEMatchesByIds(matchIds);
   }
 
   // ─── Classement saisonnier Quest ────────────────────────────────────────────
