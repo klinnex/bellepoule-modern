@@ -16,6 +16,7 @@ import ArenaQrCodesModal from './ArenaQrCodesModal';
 import { OBSOverlayConfig } from './OBSOverlayConfig';
 import { OrgNotePanel } from './remote/OrgNotePanel';
 import { ConnectedScreensPanel } from './remote/ConnectedScreensPanel';
+import { useRemoteNetworkSettings } from '../hooks/useRemoteNetworkSettings';
 import { CustomTheme, DisplayTheme } from '../../shared/types/remote';
 import { useTranslation } from '../hooks/useTranslation';
 import { ipcErrorText } from '../services/ipcError';
@@ -205,21 +206,17 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   const [session, setSession] = useState<RemoteSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [serverUrl, setServerUrl] = useState<string>('');
-  const [useHttps, setUseHttps] = useState<boolean>(() => {
-    // HTTPS par défaut : HTTP seulement si désactivé explicitement
-    return localStorage.getItem('bellepoule-remote-https') !== 'false';
-  });
-  const [certFingerprint, setCertFingerprint] = useState<string | null>(null);
-  const [remotePort, setRemotePort] = useState<number>(() => {
-    const saved = localStorage.getItem(`bellepoule-remote-port-${competition.id}`);
-    return saved ? parseInt(saved, 10) : 8066;
-  });
-  const [networkInterfaces, setNetworkInterfaces] = useState<{ name: string; address: string }[]>([
-    { name: 'Toutes les interfaces', address: '0.0.0.0' },
-  ]);
-  const [selectedInterface, setSelectedInterface] = useState<string>(() => {
-    return localStorage.getItem('bellepoule-remote-interface') ?? '0.0.0.0';
-  });
+  const {
+    useHttps,
+    setUseHttps,
+    certFingerprint,
+    setCertFingerprint,
+    remotePort,
+    setRemotePort,
+    networkInterfaces,
+    selectedInterface,
+    setSelectedInterface,
+  } = useRemoteNetworkSettings(competition.id);
   // pendingCount : valeur affichée (modifiée par +/−, non encore appliquée)
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   // committedCount : valeur appliquée au serveur ou confirmée par l'utilisateur
@@ -294,14 +291,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     'arena' | 'kiosk' | 'public' | 'referee' | 'pool'
   >('arena');
   const [globalThemeId, setGlobalThemeId] = useState('');
-
-  useEffect(() => {
-    window.electronAPI.remote.getNetworkInterfaces().then((res: any) => {
-      if (res?.success && res.interfaces?.length) {
-        setNetworkInterfaces(res.interfaces);
-      }
-    });
-  }, []);
 
   useEffect(() => {
     if (!activeQR) {
