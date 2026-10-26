@@ -80,6 +80,7 @@ import { registerPoolRoutes, type PoolRouteContext } from './remote/routes/poolR
 import { registerMatchRoutes, type MatchRouteContext } from './remote/routes/matchRoutes';
 import { registerApiRoutes, type ApiRouteContext } from './remote/routes/apiRoutes';
 import { buildPoolScores } from './remote/poolScore';
+import { readRemoteSharedFiles } from './remote/i18nBundle';
 
 export { PASSWORD_MIN_LENGTH };
 import {
@@ -492,18 +493,12 @@ export class RemoteScoreServer {
       this.pages.set(name, buildPage(html, this.assets));
     }
     if (this.remoteBasePath) {
-      const fs = require('fs');
       const types: Record<string, string> = {
         '.js': 'text/javascript; charset=utf-8',
         '.css': 'text/css; charset=utf-8',
       };
-      for (const file of ['common.js', 'i18n.js', 'app.js', 'styles.css']) {
-        const filePath = path.join(this.remoteBasePath, file);
-        if (!fs.existsSync(filePath)) continue;
-        this.staticFiles.set(
-          '/' + file,
-          storeBody(fs.readFileSync(filePath, 'utf-8'), types[path.extname(file)], 'no-cache')
-        );
+      for (const [file, body] of readRemoteSharedFiles(this.remoteBasePath)) {
+        this.staticFiles.set('/' + file, storeBody(body, types[path.extname(file)], 'no-cache'));
       }
     }
   }

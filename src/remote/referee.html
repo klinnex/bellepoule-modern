@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Arbitrage - Arène BellePoule</title>
+    <title data-i18n="referee.title">Arbitrage - Arène BellePoule</title>
     <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
@@ -1351,21 +1351,21 @@
             font-size: 0.7rem;
             margin-left: 0.4rem;
           "
-          title="Batterie faible"
+          title="Batterie faible" data-i18n-title="referee.battery_low"
         >
           🔋 <span id="battery-level">--</span>%
         </span>
         <button
           id="btn-dt-icon"
           class="dt-icon-btn"
-          title="Appel DT (appui long = annuler)"
-          aria-label="Appel DT"
+          title="Appel DT (appui long = annuler)" data-i18n-title="referee.dt_call_title"
+          aria-label="Appel DT" data-i18n-aria-label="referee.dt_call_label"
         >📣</button>
         <button
           id="btn-journal"
           data-click="openJournal"
-          title="Journal du match"
-          aria-label="Journal"
+          title="Journal du match" data-i18n-title="referee.journal_title"
+          aria-label="Journal" data-i18n-aria-label="referee.journal_label"
           style="background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.4); color:#c4b5fd; border-radius:0.5rem; padding:0.3rem 0.6rem; font-size:1rem; cursor:pointer;"
         >📋</button>
       </div>
@@ -1423,7 +1423,7 @@
               <button
                 id="btn-card-black-a"
                 class="card-btn card-btn-black"
-                title="Carton noir (exclusion)"
+                title="Carton noir (exclusion)" data-i18n-title="referee.black_card_btn"
                 data-click="refereeApp.requestBlackCard" data-args='["A"]'
               >
                 N
@@ -1473,7 +1473,7 @@
               <button
                 id="btn-card-black-b"
                 class="card-btn card-btn-black"
-                title="Carton noir (exclusion)"
+                title="Carton noir (exclusion)" data-i18n-title="referee.black_card_btn"
                 data-click="refereeApp.requestBlackCard" data-args='["B"]'
               >
                 N
@@ -1495,7 +1495,7 @@
               margin-bottom: 0.3rem;
               letter-spacing: 0.1em;
               animation: pulse-timer 0.6s infinite;
-            "
+            " data-i18n="referee.sd_zone_c"
           >
             ⚡ MORT SUBITE – Zone C uniquement !
           </div>
@@ -1505,7 +1505,7 @@
               class="rest-btn"
               style="display: none"
               disabled
-              data-click="refereeApp.startRest"
+              data-click="refereeApp.startRest" data-i18n="referee.rest"
             >
               Repos
             </button>
@@ -1534,7 +1534,7 @@
             <button
               id="btn-tts-toggle"
               data-click="refereeApp.toggleTTS"
-              title="Minuteur vocal"
+              title="Minuteur vocal" data-i18n-title="referee.voice_title" data-i18n="referee.voice_off"
               style="background:none;border:1px solid rgba(255,255,255,0.3);border-radius:0.5rem;color:rgba(255,255,255,0.7);font-size:0.8rem;padding:0.2rem 0.6rem;cursor:pointer;"
             >🔇 Voix</button>
           </div>
@@ -1591,7 +1591,7 @@
           <button class="referee-change-btn" id="referee-change-btn" data-click="refereeApp.toggleRefereeSelector" data-i18n="referee.change">Changer</button>
           <div class="referee-selector hidden" id="referee-selector">
             <select id="referee-select" data-change="refereeApp.changeReferee" data-args='["$value"]'>
-              <option value="">— Sélectionner un arbitre —</option>
+              <option value="" data-i18n="referee.select_referee">— Sélectionner un arbitre —</option>
             </select>
           </div>
         </div>
@@ -1599,7 +1599,7 @@
 
       <!-- Écran de sélection de match -->
       <div class="next-matches-screen" id="next-matches-screen">
-        <h2>📋 Matchs — <span id="next-arena-label">Arène</span> <span id="next-arena-number">1</span></h2>
+        <h2><span data-i18n="referee.matches_prefix">📋 Matchs —</span> <span id="next-arena-label">Arène</span> <span id="next-arena-number">1</span></h2>
         <input
           type="search"
           id="match-search"
@@ -1653,7 +1653,7 @@
         <div class="modal-title" style="background:#111;color:#fff" data-i18n="referee.black_card_title">⬛ Carton Noir</div>
         <div class="modal-body">
           <p id="black-card-fencer-name" style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:0.5rem">—</p>
-          <p id="black-card-cause" style="text-align:center;color:#dc2626"><strong>CARTON NOIR</strong> direct</p>
+          <p id="black-card-cause" style="text-align:center;color:#dc2626"><strong data-i18n="referee.black_card_direct">CARTON NOIR direct</strong></p>
           <p style="text-align:center;font-size:0.875rem;color:#6b7280" data-i18n="referee.black_card_desc">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
         </div>
         <div class="modal-buttons">
@@ -1670,7 +1670,7 @@
         <div class="coin-flip-confirm-label" data-i18n="referee.coin_flip_winner">Tirage au sort — Vainqueur :</div>
         <div class="coin-flip-confirm-winner" id="coin-flip-confirm-name">—</div>
         <div class="coin-flip-confirm-color" id="coin-flip-confirm-color">—</div>
-        <button class="btn-confirm-coin-flip" data-click="refereeApp.confirmCoinFlipFinish">
+        <button class="btn-confirm-coin-flip" data-click="refereeApp.confirmCoinFlipFinish" data-i18n="referee.finish_match">
           🏁 Terminer le match
         </button>
       </div>
@@ -2043,16 +2043,16 @@
                   const b = document.getElementById(id);
                   if (!b) return;
                   b.textContent = 'P';
-                  b.title = 'Carton de passivité (aux deux tireurs)';
+                  b.title = window.T('referee.passivity_title');
                   b.classList.add('card-btn-passivity');
                 });
                 ['btn-card-yellow-a', 'btn-card-yellow-b'].forEach(id => {
                   const b = document.getElementById(id);
-                  if (b) b.title = 'Carton jaune (avertissement)';
+                  if (b) b.title = window.T('referee.yellow_warning_title');
                 });
                 ['btn-card-red-a', 'btn-card-red-b'].forEach(id => {
                   const b = document.getElementById(id);
-                  if (b) b.title = 'Carton rouge (+1 adv)';
+                  if (b) b.title = window.T('referee.red_plus1_title');
                 });
               }
             }
@@ -2120,7 +2120,7 @@
             .catch(() => ({ synced: 0, failed: size }));
           this.showSyncIndicator(false);
           this.updateOfflineBadge();
-          if (result.synced > 0) this.showNotification(`✅ ${result.synced} action(s) synchronisée(s)`);
+          if (result.synced > 0) this.showNotification(window.T('referee.synced', { n: result.synced }));
         }
 
         setupLongPressInteractions() {
@@ -2326,7 +2326,7 @@
           }
           ov.innerHTML = '<div style="background:rgba(0,0,0,0.85);border:3px solid #3b82f6;border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">'
             + '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">🤺 ' + escHtml(label) + '</div>'
-            + '<div style="font-size:1rem;color:#94a3b8;">Identification tablette arbitre</div>'
+            + '<div style="font-size:1rem;color:#94a3b8;">' + escHtml(window.T('referee.identify')) + '</div>'
             + '</div>';
           ov.style.display = 'flex';
           clearTimeout(ov._t);
@@ -2344,7 +2344,7 @@
             this.updateConnectionStatus(true);
             this.socket.emit('join_arena', { arenaId: this.arenaId, role: 'referee' });
             this.socket.emit('client:register', { clientType: 'referee', arenaId: this.arenaId, userAgent: navigator.userAgent, screenId: _screenId });
-            this.showNotification('✅ Connecté au serveur');
+            this.showNotification(window.T('referee.connected_server'));
             // Synchroniser les actions mises en file hors-ligne
             this.syncOfflineQueue();
           });
@@ -2367,13 +2367,13 @@
 
           this.socket.on('disconnect', () => {
             this.updateConnectionStatus(false);
-            this.showNotification('❌ Déconnecté', true);
+            this.showNotification(`❌ ${window.T('remote.disconnected')}`, true);
           });
 
           this.socket.on('connect_error', (err) => {
             this.updateConnectionStatus(false);
             const text = document.getElementById('connection-text');
-            if (text) text.textContent = `❌ ${err?.message || 'Erreur réseau'}`;
+            if (text) text.textContent = `❌ ${err?.message || window.T('referee.network_error')}`;
           });
 
           this.socket.on('auth_error', () => {
@@ -2400,13 +2400,13 @@
             if (btn) {
               btn.classList.remove('dt-active');
               btn.classList.add('dt-ack');
-              btn.title = 'DT en route (appui long = annuler)';
+              btn.title = window.T('referee.dt_en_route_title');
             }
-            this.showNotification('✅ DT en route !');
+            this.showNotification(window.T('referee.dt_en_route_notif'));
             setTimeout(() => {
               this._resetDTButton();
               const b = document.getElementById('btn-dt-icon');
-              if (b) b.title = 'Appel DT (appui long = annuler)';
+              if (b) b.title = window.T('referee.dt_call_title');
             }, 10000);
           });
         }
@@ -2498,7 +2498,7 @@
               }
             }
             if (low && force) {
-              this.showNotification(`🔋 Batterie faible (${pct}%)`, true);
+              this.showNotification(window.T('referee.battery_low_pct', { pct }), true);
             }
           };
 
@@ -2609,7 +2609,7 @@
         addScore(fencer, points) {
           if (!this.currentMatch) return;
           if (this.matchStatus === 'not_started') {
-            this.showNotification('⏱ Démarrez le match pour saisir des touches');
+            this.showNotification(window.T('referee.start_first'));
             return;
           }
           if (this.matchStatus === 'finished') return;
@@ -2620,7 +2620,7 @@
             (this.overtimeType === 'challenger' || this.overtimeType === 'challenger_supplementary') &&
             points !== 5
           ) {
-            this.showNotification('⚡ Mort subite : Zone C uniquement !');
+            this.showNotification(window.T('referee.sd_zone_c_notif'));
             return;
           }
 
@@ -2633,7 +2633,7 @@
             !this.trainingCustomRules.allowedZones.includes(_zone)
           ) {
             const allowed = this.trainingCustomRules.allowedZones.join(', ');
-            this.showNotification(`Zone ${_zone} non autorisée (entraînement : ${allowed} uniquement)`);
+            this.showNotification(window.T('referee.zone_not_allowed', { zone: _zone, allowed }));
             return;
           }
 
@@ -2672,7 +2672,7 @@
         addCard(fencer, cardType) {
           if (!this.currentMatch) return;
           if (this.matchStatus === 'not_started') {
-            this.showNotification('⏱ Démarrez le match pour saisir des touches');
+            this.showNotification(window.T('referee.start_first'));
             return;
           }
           if (this.matchStatus === 'finished') return;
@@ -2688,7 +2688,7 @@
             const whiteCount = cards.filter(c => c === 'white').length;
             if (whiteCount >= 1) {
               cardType = 'yellow';
-              this.showNotification('⚠️ 2ème blanc = Jaune automatique');
+              this.showNotification(window.T('referee.second_white'));
             }
           }
 
@@ -2698,17 +2698,17 @@
             if (cardType === 'red') {
               if (ef === 'A') this.scoreB += 1;
               else this.scoreA += 1;
-              this.showNotification("🟥 +1 point pour l'adversaire");
+              this.showNotification(window.T('referee.opp_plus1'));
             }
             // jaune = avertissement sans point en escrime moderne
           } else if (cardType === 'yellow') {
             if (ef === 'A') this.scoreB += 3;
             else this.scoreA += 3;
-            this.showNotification("🟨 +3 points pour l'adversaire");
+            this.showNotification(window.T('referee.opp_plus3'));
           } else if (cardType === 'red') {
             if (ef === 'A') this.scoreB += 5;
             else this.scoreA += 5;
-            this.showNotification("🟥 +5 points pour l'adversaire");
+            this.showNotification(window.T('referee.opp_plus5'));
           }
 
           this.updateScores();
@@ -2760,7 +2760,7 @@
         addPassivityCard() {
           if (!this.currentMatch) return;
           if (this.matchStatus === 'not_started') {
-            this.showNotification('⏱ Démarrez le match pour saisir des touches');
+            this.showNotification(window.T('referee.start_first'));
             return;
           }
           if (this.matchStatus === 'finished') return;
@@ -2777,7 +2777,7 @@
             this.updateCardsDisplay();
             this.broadcastUpdate();
             this.saveScore();
-            this.showNotification('🟥 Passivité : P-rouge, +1 point à chaque tireur');
+            this.showNotification(window.T('referee.passivity_red'));
             return;
           }
           this.cardsA.push('p-black');
@@ -2794,7 +2794,7 @@
           const idxA = lastIndexWhere(this.cardsA, c => PASSIVITY_CARDS.includes(c));
           const idxB = lastIndexWhere(this.cardsB, c => PASSIVITY_CARDS.includes(c));
           if (idxA === -1 && idxB === -1) {
-            this.showNotification('Aucun carton à retirer');
+            this.showNotification(window.T('referee.no_card_to_remove'));
             return;
           }
           if (navigator.vibrate) navigator.vibrate(30);
@@ -2809,14 +2809,14 @@
           this.updateCardsDisplay();
           this.broadcastUpdate();
           this.saveScore();
-          this.showNotification('↩ Dernier carton de passivité annulé');
+          this.showNotification(window.T('referee.passivity_undone'));
         }
 
         // P-noir : vainqueur = score le plus haut ; à égalité, le mieux classé au départ ;
         // sans classement, tirage au sort
         finishByPassivity() {
           if (this.scoreA !== this.scoreB) {
-            this.confirmFinishWithCoinFlip(this.scoreA > this.scoreB ? 'A' : 'B', 'passivité');
+            this.confirmFinishWithCoinFlip(this.scoreA > this.scoreB ? 'A' : 'B', window.T('referee.reason_passivity'));
             return;
           }
           const rankOf = f => {
@@ -2828,7 +2828,7 @@
           if (rA !== null || rB !== null) {
             const winner = rB === null || (rA !== null && rA < rB) ? 'A' : 'B';
             if (rA !== rB) {
-              this.confirmFinishWithCoinFlip(winner, 'passivité, meilleur classement');
+              this.confirmFinishWithCoinFlip(winner, window.T('referee.reason_passivity_seed'));
               return;
             }
           }
@@ -2860,9 +2860,9 @@
 
           const displayPos = this._effectiveFencer(fencer); // _effectiveFencer is its own inverse
           const nameEl = document.getElementById(`fencer-${displayPos.toLowerCase()}-name`);
-          const fencerName = nameEl ? nameEl.textContent.trim() : `Tireur ${fencer}`;
+          const fencerName = nameEl ? nameEl.textContent.trim() : window.T('referee.fencer_default', { pos: fencer });
           document.getElementById('reason-selector-title').textContent =
-            `Raison du carton — ${fencerName}`;
+            window.T('referee.reason_title_name', { name: fencerName });
 
           // Construire la liste des raisons filtrée selon le carton cliqué
           const body = document.getElementById('reason-selector-body');
@@ -2877,7 +2877,7 @@
           filteredReasons.forEach(({ group, label, faults }) => {
             const preview = this.determineCardFromGroup(group, fencer);
             const previewLabel =
-              preview === 'white' ? 'Blanc' : preview === 'yellow' ? 'Jaune' : 'Rouge';
+              window.T(preview === 'white' ? 'referee.card_white_short' : preview === 'yellow' ? 'referee.card_yellow_short' : 'referee.card_red_short');
             const titleEl = document.createElement('div');
             titleEl.className = 'reason-group-title';
             titleEl.textContent = `${label} → ${previewLabel}`;
@@ -2911,7 +2911,7 @@
 
           // Annonce avec raison
           const nameEl = document.getElementById(`fencer-${fencer.toLowerCase()}-name`);
-          const fencerName = nameEl ? nameEl.textContent.trim() : `Tireur ${fencer}`;
+          const fencerName = nameEl ? nameEl.textContent.trim() : window.T('referee.fencer_default', { pos: fencer });
           this.socket.emit('arena_control', {
             arenaId: this.arenaId,
             action: 'card_announcement',
@@ -2941,16 +2941,16 @@
         requestBlackCard(fencer) {
           if (!this.blackCardEnabled || !this.currentMatch) return;
           if (this.matchStatus === 'not_started') {
-            this.showNotification('⏱ Démarrez le match pour saisir des touches');
+            this.showNotification(window.T('referee.start_first'));
             return;
           }
           if (this.matchStatus === 'finished') return;
           const ef = this._effectiveFencer(fencer);
           this._pendingBlackCardFencer = ef;
           const nameEl = document.getElementById(`fencer-${fencer.toLowerCase()}-name`);
-          const fencerName = nameEl ? nameEl.textContent.trim() : `Tireur ${ef}`;
+          const fencerName = nameEl ? nameEl.textContent.trim() : window.T('referee.fencer_default', { pos: ef });
           document.getElementById('black-card-fencer-name').textContent = fencerName;
-          document.getElementById('black-card-cause').innerHTML = '<strong>CARTON NOIR</strong> direct';
+          document.getElementById('black-card-cause').innerHTML = `<strong>${escHtml(window.T('referee.black_card_direct'))}</strong>`;
           document.getElementById('black-card-modal').classList.add('active');
         }
 
@@ -2972,7 +2972,7 @@
           this.updateCardsDisplay();
           this.broadcastUpdate();
 
-          this.showNotification('⬛ Carton noir — combattant exclu, DT appelé');
+          this.showNotification(window.T('referee.black_card_notif'));
           if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
           // Appel DT émis côté serveur à la réception du carton noir
           document.getElementById('btn-dt-icon')?.classList.add('dt-active');
@@ -3056,7 +3056,7 @@
           if (!btn || (!btn.classList.contains('dt-active') && !btn.classList.contains('dt-ack'))) return;
           this._resetDTButton();
           this.socket.emit('arena_control', { arenaId: this.arenaId, action: 'dt_cancel' });
-          this.showNotification('❌ Appel DT annulé');
+          this.showNotification(window.T('referee.dt_call_cancelled'));
         }
 
         _resetDTButton() {
@@ -3085,7 +3085,7 @@
           this.updateControlButtons();
           this.broadcastUpdate();
           this.saveScore();
-          this.showNotification('↩ Action annulée');
+          this.showNotification(window.T('referee.action_undone'));
           document.getElementById('btn-undo').disabled = this.actionHistory.length === 0;
         }
 
@@ -3100,7 +3100,7 @@
           if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
           this.updateSuddenDeathUI();
           this.showNotification(
-            '⚡ MORT SUBITE – Les deux tireurs ont 10 pts ! Zone C uniquement.'
+            window.T('referee.sd_both_10')
           );
         }
 
@@ -3116,7 +3116,7 @@
 
           if (sdLabel) {
             sdLabel.style.display = isSupplementary ? 'block' : 'none';
-            if (this.isModernFencing) sdLabel.textContent = '⏱ 1 MIN SUPPLÉMENTAIRE';
+            if (this.isModernFencing) sdLabel.textContent = window.T('arena.supplementary_1min');
           }
           if (msLabel) {
             msLabel.style.display = isChallengerSD ? 'block' : 'none';
@@ -3202,7 +3202,7 @@
           this.updateScores();
           this.broadcastUpdate();
           this.saveScore();
-          this.showNotification(`-${points} point${points > 1 ? 's' : ''}`);
+          this.showNotification(window.T(points > 1 ? 'referee.points_removed' : 'referee.point_removed', { n: points }));
         }
 
         // Appui long sur un bouton carton : P retire un carton de passivité (escrime olympique)
@@ -3224,7 +3224,7 @@
           // Les cartons de passivité sont hors cumul : ignorés ici (#1026)
           const lastIdx = lastIndexWhere(cards, isStandardCard);
           if (lastIdx === -1) {
-            this.showNotification('Aucun carton à retirer');
+            this.showNotification(window.T('referee.no_card_to_remove'));
             return;
           }
 
@@ -3274,8 +3274,8 @@
           this.updateCardsDisplay();
           this.broadcastUpdate();
           this.saveScore();
-          const label = lastCard === 'white' ? 'blanc' : lastCard === 'yellow' ? 'jaune' : 'rouge';
-          this.showNotification(`↩ Dernier carton ${label} annulé`);
+          const undoKey = lastCard === 'white' ? 'referee.undo_white' : lastCard === 'yellow' ? 'referee.undo_yellow' : 'referee.undo_red';
+          this.showNotification(window.T(undoKey));
         }
 
         toggleColorblind(force) {
@@ -3404,7 +3404,7 @@
                   // Fin du temps supplémentaire avec égalité → tirage au sort sur action de l'arbitre (#1136)
                   this.prepareCoinFlip();
                 } else {
-                  this.showNotification('⏰ Temps écoulé !');
+                  this.showNotification(window.T('referee.time_up'));
                 }
               }
             }
@@ -3440,7 +3440,7 @@
           this.timerSeconds = this.restSeconds;
           this.updateControlButtons();
           this.startTimer();
-          this.showNotification('☕ Repos');
+          this.showNotification(window.T('referee.rest_notif'));
         }
 
         // Fin du repos : le chrono retrouve sa durée initiale, le match continue
@@ -3450,7 +3450,7 @@
           this.updateTimerDisplay();
           this.broadcastTimerUpdate();
           this.updateControlButtons();
-          this.showNotification('⏰ Fin du repos');
+          this.showNotification(window.T('referee.rest_end'));
         }
 
         pauseTimer() {
@@ -3482,13 +3482,13 @@
           this.broadcastTimerUpdate();
           this.updateSuddenDeathUI();
           this.updateControlButtons();
-          this.showNotification('🔄 Chronomètre réinitialisé');
+          this.showNotification(window.T('referee.timer_reset'));
         }
 
         toggleTTS() {
           this.ttsEnabled = !this.ttsEnabled;
           const btn = document.getElementById('btn-tts-toggle');
-          if (btn) btn.textContent = this.ttsEnabled ? '🔊 Voix' : '🔇 Voix';
+          if (btn) btn.textContent = window.T(this.ttsEnabled ? 'referee.voice_on' : 'referee.voice_off');
           if (this.ttsEnabled) {
             const MSG = {
               fr: 'Minuteur vocal activé', en: 'Voice timer enabled',
@@ -3582,7 +3582,7 @@
             timerStatus: 'paused',
           });
           this.showNotification(
-            `⚖️ Égalité ! Appuyez sur "Lancer ${this.overtimeLabel()}" pour démarrer le temps supplémentaire.`
+            window.T('referee.tie_launch', { label: this.overtimeLabel() })
           );
         }
 
@@ -3616,10 +3616,10 @@
           this.broadcastTimerUpdate();
           this.updateSuddenDeathUI();
           const msg = this.overtimeType === 'challenger_supplementary'
-            ? '⏱ 30s SUPPLEMENTAIRE – Égalité ! Zone C uniquement (Mort Subite Challenger).'
+            ? window.T('referee.ot_challenger')
             : this.isModernFencing
-              ? '⏱ 1 MIN SUPPLÉMENTAIRE – Égalité ! Tirage au sort du vainqueur si égalité à la fin.'
-              : '⏱ 30s SUPPLEMENTAIRE – Égalité à temps ! Toutes les zones sont valides.';
+              ? window.T('referee.ot_modern')
+              : window.T('referee.ot_laser');
           this.showNotification(msg);
           this.startTimer();
         }
@@ -3628,7 +3628,7 @@
         prepareCoinFlip() {
           this.waitingCoinFlip = true;
           this.updateControlButtons();
-          this.showNotification('⚖️ Égalité ! Corrigez le score si besoin, ou appuyez sur "Tirage au sort".');
+          this.showNotification(window.T('referee.tie_coin'));
         }
 
         triggerTiebreaker() {
@@ -3644,7 +3644,7 @@
             winner,
           });
 
-          this.showNotification('🪙 Tirage au sort — animation en cours...');
+          this.showNotification(window.T('referee.coin_anim'));
 
           // Afficher la confirmation sur la tablette après la fin de l'animation
           setTimeout(() => this.showCoinFlipConfirm(winner), 4500);
@@ -3653,10 +3653,10 @@
         showCoinFlipConfirm(winner) {
           const winnerFencer = winner === 'A' ? this.currentMatch?.fencerA : this.currentMatch?.fencerB;
           const winnerName = winnerFencer
-            ? `${winnerFencer.lastName || ''} ${winnerFencer.firstName || ''}`.trim() || `Tireur ${winner}`
-            : `Tireur ${winner}`;
+            ? `${winnerFencer.lastName || ''} ${winnerFencer.firstName || ''}`.trim() || window.T('referee.fencer_default', { pos: winner })
+            : window.T('referee.fencer_default', { pos: winner });
           // fencerA est toujours côté VERT (logical), fencerB toujours ROUGE
-          const colorLabel = winner === 'A' ? 'VERT' : 'ROUGE';
+          const colorLabel = window.T(winner === 'A' ? 'arena.coin_green' : 'arena.coin_red');
 
           const nameDisplay = document.getElementById('coin-flip-confirm-name');
           const colorDisplay = document.getElementById('coin-flip-confirm-color');
@@ -3678,14 +3678,14 @@
           }
         }
 
-        async confirmFinishWithCoinFlip(winner, reasonLabel = 'tirage au sort') {
+        async confirmFinishWithCoinFlip(winner, reasonLabel = window.T('referee.reason_coin')) {
           if (!this.currentMatch) return;
 
           const fencer = winner === 'A' ? this.currentMatch.fencerA : this.currentMatch.fencerB;
           const winnerName = fencer
-            ? `${fencer.lastName || ''} ${fencer.firstName || ''}`.trim() || `Tireur ${winner}`
-            : `Tireur ${winner}`;
-          this.showNotification(`🏆 ${winnerName} remporte le match (${reasonLabel})`);
+            ? `${fencer.lastName || ''} ${fencer.firstName || ''}`.trim() || window.T('referee.fencer_default', { pos: winner })
+            : window.T('referee.fencer_default', { pos: winner });
+          this.showNotification(window.T('referee.wins', { name: winnerName, reason: reasonLabel }));
 
           this.isSuddenDeath = false;
           this.waitingOvertimeStart = false;
@@ -3838,7 +3838,7 @@
             action: 'start',
           });
 
-          this.showNotification('▶️ Match démarré !');
+          this.showNotification(window.T('referee.match_started'));
         }
 
         showFinishModal() {
@@ -3896,7 +3896,7 @@
               action: 'finish',
             });
 
-            this.showNotification('✅ Match terminé et enregistré !');
+            this.showNotification(window.T('referee.match_saved'));
 
             // Signature requise sur tablette après un match du tableau
             if (result.requireSignature && finishedMatch.fencerA?.id && finishedMatch.fencerB?.id) {
@@ -4008,7 +4008,7 @@
           const canvasA = document.getElementById('match-sig-canvas-a');
           const canvasB = document.getElementById('match-sig-canvas-b');
           if (!canvasA._hasInk || !canvasB._hasInk) {
-            this.showNotification('✍️ Les deux tireurs doivent signer', true);
+            this.showNotification(window.T('referee.both_sign'), true);
             return;
           }
           const btn = document.getElementById('match-sig-submit');
@@ -4026,7 +4026,7 @@
               send(match.fencerA.id, canvasA.toDataURL('image/png')),
               send(match.fencerB.id, canvasB.toDataURL('image/png')),
             ]);
-            this.showNotification('✅ Signatures enregistrées');
+            this.showNotification(window.T('referee.sigs_saved'));
             this.closeMatchSignature();
           } catch (e) {
             console.error('Erreur signatures match:', e);
@@ -4047,7 +4047,7 @@
           // État d'attente : l'arbitre doit déclencher manuellement les 30s
           if (this.waitingOvertimeStart) {
             startBtn.disabled = false;
-            startBtn.textContent = `⏱ Lancer ${this.overtimeLabel()}`;
+            startBtn.textContent = window.T('referee.launch_overtime', { label: this.overtimeLabel() });
             startBtn.className = 'control-btn btn-launch-overtime';
             if (finishBtn) finishBtn.disabled = false;
             this.updateScoreButtons();
@@ -4057,7 +4057,7 @@
           // Fin du temps supplémentaire à égalité : tirage au sort manuel (#1136)
           if (this.waitingCoinFlip && this.scoreA === this.scoreB) {
             startBtn.disabled = false;
-            startBtn.textContent = '🪙 Tirage au sort';
+            startBtn.textContent = window.T('referee.coin_btn');
             startBtn.className = 'control-btn btn-launch-overtime';
             if (finishBtn) finishBtn.disabled = false;
             this.updateScoreButtons();
@@ -4174,7 +4174,7 @@
               return;
             }
             if (this.matchStatus === 'in_progress') {
-              this.showNotification('⚠️ Match clôturé depuis l\'application principale');
+              this.showNotification(window.T('referee.closed_by_app'));
               this.stopTimer();
               setTimeout(() => {
                 this._clearActiveMatch();
@@ -4205,7 +4205,7 @@
             if (idx >= 0) this.matches[idx] = restored; else this.matches.push(restored);
             this.loadNextMatches();
             this.showNextMatchesScreen();
-            this.showNotification('↩ Match en cours — appuyez pour reprendre');
+            this.showNotification(window.T('referee.match_resume_hint'));
             return;
           }
 
@@ -4216,7 +4216,7 @@
             if (this.currentMatch && this.currentMatch.id === data.match.id) return;
             // Notifier sans interrompre un match en cours
             if (this.matchStatus === 'in_progress') {
-              this.showNotification('⏭️ Prochain match disponible après ce match');
+              this.showNotification(window.T('referee.next_after'));
               return;
             }
 
@@ -4253,7 +4253,7 @@
             // Rafraîchir et afficher l'écran de sélection
             this.loadNextMatches();
             this.showNextMatchesScreen();
-            this.showNotification('⏭️ Match suivant disponible !');
+            this.showNotification(window.T('referee.next_available'));
           }
         }
 
@@ -4295,7 +4295,7 @@
 
           const sel = document.getElementById('referee-select');
           if (sel) {
-            sel.innerHTML = '<option value="">— Sélectionner un arbitre —</option>';
+            sel.innerHTML = `<option value="">${escHtml(window.T('referee.select_referee'))}</option>`;
             for (const r of (this.refereesList || [])) {
               const opt = document.createElement('option');
               opt.value = r.id;
@@ -4327,7 +4327,7 @@
           }
           const sel = document.getElementById('referee-selector');
           if (sel) sel.classList.add('hidden');
-          this.showNotification('✅ Arbitre mis à jour');
+          this.showNotification(window.T('referee.referee_updated'));
         }
 
         showNextMatchesScreen() {
@@ -4399,18 +4399,18 @@
           }
           container.innerHTML = `
             <div style="margin-bottom:1rem;padding:0.75rem;border:2px solid #111;border-radius:0.75rem;background:rgba(0,0,0,0.35);">
-              <div style="font-weight:700;margin-bottom:0.5rem;">⬛ Cartons noirs</div>
+              <div style="font-weight:700;margin-bottom:0.5rem;">${escHtml(window.T('referee.black_cards'))}</div>
               ${cards
                 .map(
                   c => `
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;padding:0.4rem 0;">
                   <div>
                     <div style="font-weight:700;">${escHtml(c.fencerName) || '?'}</div>
-                    <div style="font-size:0.8rem;opacity:0.75;">contre ${escHtml(c.opponentName) || '?'}</div>
+                    <div style="font-size:0.8rem;opacity:0.75;">${escHtml(window.T('referee.against'))} ${escHtml(c.opponentName) || '?'}</div>
                   </div>
                   <button data-click="refereeApp.cancelBlackCardFromList" data-args="${escHtml(JSON.stringify([c.fencerId]))}"
                     style="padding:0.6rem 1rem;border:none;border-radius:0.5rem;background:#f9fafb;color:#111;font-weight:700;font-size:0.9rem;cursor:pointer;">
-                    ↩ Annuler le carton
+                    ${escHtml(window.T('referee.cancel_card'))}
                   </button>
                 </div>`
                 )
@@ -4419,7 +4419,7 @@
         }
 
         async cancelBlackCardFromList(fencerId) {
-          if (!confirm('Annuler ce carton noir ?\nLe combattant est réintégré : ses résultats et ceux de ses adversaires comptent de nouveau, le match interrompu est rouvert.')) return;
+          if (!confirm(window.T('referee.confirm_cancel_black'))) return;
           try {
             const resp = await fetch(`/api/arenas/${this.arenaId}/black-cards/${encodeURIComponent(fencerId)}/cancel`, {
               method: 'POST',
@@ -4429,7 +4429,7 @@
               this.showNotification(`❌ ${window.errorText(data, window.T('error.update_failed'))}`, true);
               return;
             }
-            this.showNotification('✅ Carton noir annulé — combattant réintégré');
+            this.showNotification(window.T('referee.black_card_cancelled'));
             // Le match rouvert doit être rechargé avec son score
             this.matches = this.matches.filter(m => m.id !== data.matchId);
             this.loadNextMatches();
@@ -4444,21 +4444,21 @@
           if (matches.length === 0) {
             const arenaNum = this.arenaNumber || document.getElementById('arena-number').textContent;
             container.innerHTML = `
-              <div class="next-matches-empty">✅ Tous les matchs de cette arène sont terminés</div>
+              <div class="next-matches-empty">${escHtml(window.T('referee.all_done'))}</div>
               <div style="display:flex;gap:0.75rem;justify-content:center;margin-top:1.25rem;flex-wrap:wrap;">
                 <a href="/arene${escHtml(arenaNum)}/poule" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.85rem 1.5rem;background:#4f46e5;color:#fff;border-radius:0.75rem;font-size:1rem;font-weight:700;text-decoration:none;">
-                  ✍️ SIGNATURE
+                  ${escHtml(window.T('referee.signature_btn'))}
                 </a>
                 <a href="/arene${escHtml(arenaNum)}/journal" target="_blank" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.85rem 1.5rem;background:#4c1d95;color:#c4b5fd;border-radius:0.75rem;font-size:1rem;font-weight:700;text-decoration:none;">
-                  📋 JOURNAL
+                  ${escHtml(window.T('referee.journal_btn'))}
                 </a>
               </div>`;
             return;
           }
           const statusBadge = status => {
             if (status === 'in_progress')
-              return '<span style="background:#f59e0b;color:#fff;font-size:0.7rem;padding:0.15rem 0.4rem;border-radius:0.75rem;margin-left:0.4rem;">⚔️ En cours</span>';
-            return '<span style="background:#3b82f6;color:#fff;font-size:0.7rem;padding:0.15rem 0.4rem;border-radius:0.75rem;margin-left:0.4rem;">🕐 À jouer</span>';
+              return '<span style="background:#f59e0b;color:#fff;font-size:0.7rem;padding:0.15rem 0.4rem;border-radius:0.75rem;margin-left:0.4rem;">' + escHtml(window.T('referee.status_in_progress')) + '</span>';
+            return '<span style="background:#3b82f6;color:#fff;font-size:0.7rem;padding:0.15rem 0.4rem;border-radius:0.75rem;margin-left:0.4rem;">' + escHtml(window.T('referee.status_to_play')) + '</span>';
           };
           container.innerHTML = matches
             .map(match => {
@@ -4549,7 +4549,7 @@
           const dot = document.getElementById('status-dot');
           const text = document.getElementById('connection-text');
           if (dot) { dot.classList.add('disconnected'); dot.classList.remove('connected'); }
-          if (text) text.textContent = '❌ Erreur: ' + (e?.message || e);
+          if (text) text.textContent = `❌ ${window.T('referee.error')}: ${e?.message || e}`;
         }
       });
     </script>
@@ -4557,12 +4557,12 @@
     <!-- Modal sélecteur de raison de carton -->
     <div id="reason-selector-overlay" class="reason-selector-overlay">
       <div class="reason-selector-header">
-        <h2 id="reason-selector-title">Raison du carton</h2>
+        <h2 id="reason-selector-title" data-i18n="referee.reason_title">Raison du carton</h2>
         <span id="reason-card-preview" class="reason-card-preview"></span>
       </div>
       <div class="reason-selector-body" id="reason-selector-body"></div>
       <div class="reason-selector-footer">
-        <button class="reason-cancel-btn" data-click="refereeApp.cancelReasonSelector">
+        <button class="reason-cancel-btn" data-click="refereeApp.cancelReasonSelector" data-i18n="referee.reason_cancel">
           ✕ Annuler — carton donné sans annonce
         </button>
       </div>
@@ -4573,10 +4573,10 @@
       <div class="pco-icon">✍️</div>
       <h1 class="pco-title" data-i18n="referee.pool_complete">POULE TERMINÉE</h1>
       <p class="pco-sub" data-i18n="referee.pool_complete_sub">Tous les matchs sont terminés</p>
-      <button class="pco-btn" data-click="refereeApp.goToSignature">
+      <button class="pco-btn" data-click="refereeApp.goToSignature" data-i18n="referee.signature_btn">
         ✍️ SIGNATURE
       </button>
-      <button class="pco-btn" data-click="openJournal" style="margin-top:1rem; background:#4c1d95; animation:none; font-size:1.2rem; padding:0.9rem 2rem;">
+      <button class="pco-btn" data-click="openJournal" data-i18n="referee.journal_btn" style="margin-top:1rem; background:#4c1d95; animation:none; font-size:1.2rem; padding:0.9rem 2rem;">
         📋 JOURNAL
       </button>
     </div>

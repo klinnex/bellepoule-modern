@@ -6,11 +6,11 @@
  *   node scripts/generate-i18n-doc.js --check  → échoue (exit 1) si la doc
  *                                                n'est plus à jour ou si une
  *                                                page distante utilise une
- *                                                clé absente de i18n.js
+ *                                                clé absente de i18n/<langue>.js
  *
  * Couvre :
  *   - application (src/renderer/locales/*.json, référence fr.json)
- *   - pages distantes (src/remote/i18n.js + attributs data-i18n* des .html)
+ *   - pages distantes (src/remote/i18n/<langue>.js + attributs data-i18n* des .html)
  *
  * Indicateurs par langue : clés présentes, clés identiques au français
  * (probablement non traduites), clés vides. Liste des clés non référencées
@@ -49,14 +49,21 @@ function loadAppLocales() {
   return locales;
 }
 
-/** Exécute i18n.js dans un bac à sable et récupère l'objet TRANSLATIONS. */
+/** Fichiers de traduction des pages distantes : src/remote/i18n/<langue>.js (#1213) */
+function remoteLangFiles() {
+  const dir = path.join(REMOTE_DIR, 'i18n');
+  return fs
+    .readdirSync(dir)
+    .filter(f => f.endsWith('.js'))
+    .sort()
+    .map(f => path.join(dir, f));
+}
+
+/** Exécute les fichiers de langue dans un bac à sable et récupère les traductions. */
 function loadRemoteLocales() {
-  const src = fs
-    .readFileSync(path.join(REMOTE_DIR, 'i18n.js'), 'utf8')
-    .replace('const TRANSLATIONS =', 'const TRANSLATIONS = window.__TRANSLATIONS__ =');
-  const sandbox = { window: {}, document: undefined, fetch: () => Promise.reject() };
-  vm.runInNewContext(src, sandbox);
-  return sandbox.window.__TRANSLATIONS__;
+  const sandbox = { window: {} };
+  for (const file of remoteLangFiles()) vm.runInNewContext(fs.readFileSync(file, 'utf8'), sandbox);
+  return sandbox.window.BP_REMOTE_I18N;
 }
 
 function walk(dir, re) {
@@ -169,12 +176,10 @@ function generate() {
   const remoteKeys = Object.keys(remote[REFERENCE]).sort();
   const remoteTable = languageTable(remote, remoteKeys, 'remote');
   // Clé dupliquée dans un bloc de langue : la dernière écrase silencieusement la première
-  {
-    const src = fs.readFileSync(path.join(REMOTE_DIR, 'i18n.js'), 'utf8');
-    let seen = new Set();
-    for (const line of src.split('\n')) {
-      if (/^    (fr|en|'zh-HK'): \{$/.test(line)) seen = new Set();
-      const m = /^      '([^']+)':/.exec(line);
+  for (const file of remoteLangFiles()) {
+    const seen = new Set();
+    for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+      const m = /^  '([^']+)':/.exec(line);
       if (!m) continue;
       if (seen.has(m[1])) problems.push(`clé distante dupliquée: ${m[1]}`);
       seen.add(m[1]);
@@ -217,7 +222,7 @@ Texte littéral dans le JSX, suivi par \`npm run check:quality\`
 (\`scripts/check-quality-ratchet.js\`, compteurs \`jsxText\` / \`jsxAttr\`).
 Détail : \`node scripts/check-quality-ratchet.js --list jsxText\`.
 
-## Pages distantes (\`src/remote/i18n.js\`)
+## Pages distantes (\`src/remote/i18n/<langue>.js\`)
 
 Tablettes arbitres, écrans d'arène, kiosque, appel… Langues : ${Object.keys(remote)
     .sort()
