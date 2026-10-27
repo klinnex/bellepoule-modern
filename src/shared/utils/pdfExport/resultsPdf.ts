@@ -16,7 +16,7 @@ import {
   pdfT,
 } from './core';
 import { getActiveLocale } from '../localeFormat';
-import { forfeitCode } from '../forfeit';
+import { forfeitCode, finalRankLabel } from '../forfeit';
 
 // ─── Export Résultats Finaux ───────────────────────────────────────────────────
 
@@ -54,7 +54,7 @@ export function generateResultsHTML(
               : '';
       return `
 <tr>
-  <td style="text-align:center;font-weight:700;color:var(--navy)">${medal} ${r.rank}</td>
+  <td style="text-align:center;font-weight:700;color:var(--navy)">${medal} ${finalRankLabel(r.rank, r.fencer, r.eliminatedAt)}</td>
   <td style="font-weight:600">${r.fencer.lastName.toUpperCase()}${status}</td>
   <td>${r.fencer.firstName ?? ''}</td>
   <td style="color:var(--gray-dark)">${r.fencer.club ?? ''}</td>

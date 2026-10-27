@@ -9,6 +9,7 @@ import {
   checkInStatusUpdate,
   isDns,
   forfeitCode,
+  finalRankLabel,
 } from './forfeit';
 import { Fencer, FencerStatus, Match, MatchStatus, Pool, Score } from '../types';
 
@@ -94,5 +95,20 @@ describe('checkInStatusUpdate', () => {
     expect(checkInStatusUpdate([], 'a', FencerStatus.EXCLUDED)).toEqual({
       status: FencerStatus.EXCLUDED,
     });
+  });
+});
+
+describe('finalRankLabel', () => {
+  const f = (status: FencerStatus, exclusionReason?: string) =>
+    ({ status, exclusionReason }) as Pick<Fencer, 'status' | 'exclusionReason'>;
+  it('DNS en poules', () =>
+    expect(finalRankLabel(9, f(FencerStatus.FORFAIT, 'dns'), 'Poules')).toBe('DNS'));
+  it('DNF forfait/abandon en poules', () => {
+    expect(finalRankLabel(9, f(FencerStatus.FORFAIT), 'Poules')).toBe('DNF');
+    expect(finalRankLabel(9, f(FencerStatus.ABANDONED), 'Poules')).toBe('DNF');
+  });
+  it('rang conservé pendant le tableau ou sans forfait', () => {
+    expect(finalRankLabel(5, f(FencerStatus.FORFAIT), 'Quarts de finale')).toBe('5');
+    expect(finalRankLabel(9, f(FencerStatus.CHECKED_IN), 'Poules')).toBe('9');
   });
 });

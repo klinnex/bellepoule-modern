@@ -12,7 +12,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import type { TableauMatchForPDF, FinalResultForPDF } from '../../shared/utils/pdfExport';
-import { forfeitCode } from '../../shared/utils/forfeit';
+import { forfeitCode, finalRankLabel } from '../../shared/utils/forfeit';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import type { ConsolationBracket, TableauMatch } from './tableau/tableauTypes';
 import { logger, LogCategory } from '@shared/services/logger';
@@ -374,7 +374,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
 
     const rows = resultsToDisplay.map(r => {
       return [
-        r.rank,
+        finalRankLabel(r.rank, r.fencer, r.eliminatedAt),
         r.fencer.lastName,
         r.fencer.firstName,
         r.fencer.club || '',
@@ -731,7 +731,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
               >
                 <td style={RV_STYLES.tdPad}>
                   <span style={RV_STYLES.tdMedalSpan}>{getMedalEmoji(result.rank)}</span>
-                  {result.rank}
+                  {finalRankLabel(result.rank, result.fencer, result.eliminatedAt)}
                 </td>
                 <td style={RV_STYLES.tdPad}>
                   {result.fencer.firstName} {result.fencer.lastName}

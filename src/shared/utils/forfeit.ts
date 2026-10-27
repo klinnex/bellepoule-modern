@@ -39,6 +39,22 @@ export function forfeitCode(fencer: Pick<Fencer, 'status' | 'exclusionReason'>):
 }
 
 /**
+ * Libellé du rang au classement final : forfait / abandon pendant les poules (ou DNS) → DNF / DNS,
+ * sans numéro. Forfait pendant le tableau : numéro conservé.
+ */
+export function finalRankLabel(
+  rank: number,
+  fencer: Pick<Fencer, 'status' | 'exclusionReason'>,
+  eliminatedAt?: string
+): string {
+  if (eliminatedAt !== 'Poules') return String(rank);
+  if (isDns(fencer)) return 'DNS';
+  if (fencer.status === FencerStatus.FORFAIT || fencer.status === FencerStatus.ABANDONED)
+    return 'DNF';
+  return String(rank);
+}
+
+/**
  * Mise à jour du tireur pour un statut posé depuis l'appel : DNS si forfait sans match de poule
  * commencé (à calculer avant l'annulation des matchs), motif effacé sinon. Exclusion : motif
  * (carton noir) laissé tel quel.
