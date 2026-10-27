@@ -20,6 +20,7 @@ import { useRemoteNetworkSettings } from '../hooks/useRemoteNetworkSettings';
 import { CustomTheme, DisplayTheme } from '../../shared/types/remote';
 import { useTranslation } from '../hooks/useTranslation';
 import { ipcErrorText } from '../services/ipcError';
+import { useKioskTheme, type KioskPreset } from '../hooks/useKioskTheme';
 
 interface RemoteScoreManagerProps {
   competition: Competition;
@@ -256,32 +257,17 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   const [themeEditorScreenType, setThemeEditorScreenType] = useState<
     'arena' | 'public' | 'referee' | 'pool'
   >('arena');
-  // Éditeur de thème kiosk
-  const [kioskThemeEditorOpen, setKioskThemeEditorOpen] = useState(false);
   const [showArenaQrModal, setShowArenaQrModal] = useState(false);
-  const [kioskTheme, setKioskTheme] = useState<CustomTheme | undefined>(undefined);
-  // Thème prédéfini du kiosk (néon / clair, basés sur l'affichage des pistes) (#1036)
-  const kioskPresetKey = `bellepoule-kiosk-preset-${competition.id}`;
-  const [kioskPreset, setKioskPreset] = useState<'default' | 'neon' | 'light'>(() => {
-    try {
-      const v = localStorage.getItem(kioskPresetKey);
-      return v === 'neon' || v === 'light' ? v : 'default';
-    } catch {
-      return 'default';
-    }
-  });
-  const applyKioskPreset = async (preset: 'default' | 'neon' | 'light') => {
-    setKioskPreset(preset);
-    setKioskTheme(undefined);
-    try {
-      localStorage.setItem(kioskPresetKey, preset);
-    } catch {
-      /* stockage indisponible */
-    }
-    if (!session) return;
-    const result = await window.electronAPI.remote.updateKioskTheme(competition.id, {
-      '--k-preset': preset,
-    });
+  const {
+    kioskTheme,
+    kioskPreset,
+    kioskThemeEditorOpen,
+    setKioskThemeEditorOpen,
+    applyKioskPreset: applyKioskPresetRaw,
+    applyKioskCustomTheme,
+  } = useKioskTheme(competition.id);
+  const applyKioskPreset = async (preset: KioskPreset) => {
+    const result = await applyKioskPresetRaw(preset, !!session);
     if (!result?.success) showToast(ipcErrorText(t, result, 'Erreur thème kiosk'), 'error');
   };
   // Thèmes sauvegardés (depuis IPC)
@@ -862,11 +848,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       await handleArenaThemeChange('all', 'custom', theme);
       showToast(`Thème "${theme.name}" appliqué à toutes les pistes`, 'success');
     } else if (globalThemeSection === 'kiosk') {
-      const result = await window.electronAPI.remote.updateKioskTheme(competition.id, {
-        '--k-preset': 'default',
-        ...theme.variables,
-      });
-      setKioskTheme(theme);
+      const result = await applyKioskCustomTheme(theme);
       if (result?.success) showToast(`Thème "${theme.name}" appliqué au kiosque`, 'success');
       else showToast(ipcErrorText(t, result, t('rsm.error')), 'error');
     } else {
@@ -1810,7 +1792,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 className="form-input"
                 style={{ width: 'auto', padding: '0.2rem 0.4rem', fontSize: '0.8rem' }}
                 value={kioskTheme ? '' : kioskPreset}
-                onChange={e => applyKioskPreset(e.target.value as 'default' | 'neon' | 'light')}
+                onChange={e => applyKioskPreset(e.target.value as KioskPreset)}
                 title={t('rsm.kiosk_look')}
                 aria-label={t('rsm.kiosk_look')}
               >
@@ -2010,11 +1992,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           targetType="kiosk"
           initialTheme={kioskTheme}
           onApply={async (_arenaId, theme) => {
-            setKioskTheme(theme);
-            const result = await window.electronAPI.remote.updateKioskTheme(competition.id, {
-              '--k-preset': 'default',
-              ...theme.variables,
-            });
+            const result = await applyKioskCustomTheme(theme);
             setKioskThemeEditorOpen(false);
             if (result?.success) {
               showToast(t('rsm.kiosk_theme_applied'), 'success');

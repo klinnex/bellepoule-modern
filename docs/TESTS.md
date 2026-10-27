@@ -97,16 +97,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 19 | 226 |
 | `src/renderer/services/` | 4 | 22 |
-| `src/renderer/hooks/` | 18 | 102 |
+| `src/renderer/hooks/` | 19 | 106 |
 | `src/renderer/components/` | 33 | 170 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 45 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **177** | **1659** |
+| **Total** | **178** | **1663** |
 
-Unitaires : 168 fichiers, 1624 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 169 fichiers, 1628 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2638,6 +2638,17 @@ Unitaires : 168 fichiers, 1624 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - appelle preventDefault par défaut
   - respecte preventDefault=false
   - capture les erreurs de l’action sans planter
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useKioskTheme.test.tsx</code> — 4 tests</summary>
+
+- **useKioskTheme**
+  - préréglage par défaut, relu par compétition
+  - applyKioskPreset : mémorise, envoie seulement si session active
+  - applyKioskCustomTheme : thème courant + variables envoyées, préréglage effacé ensuite
+  - ouverture / fermeture de l'éditeur
 
 </details>
 
