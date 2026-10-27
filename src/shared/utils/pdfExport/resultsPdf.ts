@@ -16,6 +16,7 @@ import {
   pdfT,
 } from './core';
 import { getActiveLocale } from '../localeFormat';
+import { forfeitCode } from '../forfeit';
 
 // ─── Export Résultats Finaux ───────────────────────────────────────────────────
 
@@ -45,7 +46,7 @@ export function generateResultsHTML(
         r.fencer.status === FencerStatus.ABANDONED
           ? ' <span style="color:#ef4444;font-size:8pt">(A)</span>'
           : r.fencer.status === FencerStatus.FORFAIT
-            ? ' <span style="color:#ef4444;font-size:8pt">(F)</span>'
+            ? ` <span style="color:#ef4444;font-size:8pt">(${forfeitCode(r.fencer)})</span>`
             : r.fencer.status === FencerStatus.EXCLUDED
               ? r.fencer.exclusionReason === 'black_card'
                 ? ` <span title="${pdfT('black_card', 'Carton noir')}" style="display:inline-block;width:7pt;height:10pt;margin-left:4pt;background:#000;border-radius:1pt;vertical-align:-1pt"></span>`

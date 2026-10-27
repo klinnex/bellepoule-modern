@@ -10,6 +10,7 @@ import { Fencer, FencerStatus } from '../../shared/types';
 import EditFencerModal from './EditFencerModal';
 import { useTranslation } from '../hooks/useTranslation';
 import { exportFencersToTXT, exportFencersToFFF } from '../../shared/utils/fencerExport';
+import { isDns } from '../../shared/utils/forfeit';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import { useConfirm } from './ConfirmDialog';
 import CoachMark from './CoachMark';
@@ -1124,7 +1125,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                           return (
                             <td key="status">
                               <span className={`badge ${statusLabels[fencer.status].color}`}>
-                                {statusLabels[fencer.status].label}
+                                {isDns(fencer)
+                                  ? t('status.forfeit_dns')
+                                  : statusLabels[fencer.status].label}
                               </span>
                             </td>
                           );

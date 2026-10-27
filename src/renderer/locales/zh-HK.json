@@ -104,6 +104,7 @@
     "abandoned": "已棄賽",
     "excluded": "已除名",
     "forfeit": "已放棄",
+    "forfeit_dns": "已放棄 (DNS)",
     "not_started": "未開始",
     "in_progress": "進行中",
     "finished": "已結束"
