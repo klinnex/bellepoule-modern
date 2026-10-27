@@ -132,7 +132,7 @@ export const useDEBracketStore = create<DEBracketState & DEBracketActions>()(
           id: 'final-1',
           round: 1,
           bracket: 'final',
-          matchNumber: matchNumber++,
+          matchNumber,
           isComplete: false,
         });
 

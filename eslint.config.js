@@ -1,4 +1,4 @@
-// ESLint flat config (ESLint 9). Remplace .eslintrc.json (déprécié).
+// ESLint flat config (ESLint 9+). Remplace .eslintrc.json (déprécié).
 const js = require('@eslint/js');
 const tseslint = require('@typescript-eslint/eslint-plugin');
 const tsparser = require('@typescript-eslint/parser');
@@ -42,7 +42,8 @@ module.exports = [
       prettier,
     },
     settings: {
-      react: { version: 'detect' },
+      // Version explicite : 'detect' appelle context.getFilename(), retiré d'ESLint 10.
+      react: { version: require('react/package.json').version },
     },
     rules: {
       ...tseslint.configs.recommended.rules,

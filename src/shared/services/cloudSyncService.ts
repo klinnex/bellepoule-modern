@@ -100,7 +100,7 @@ export class CloudSyncService {
       );
     } catch (error) {
       logger.error(LogCategory.SYSTEM, 'Encryption init failed', error as Error);
-      throw new Error('Encryption initialization failed');
+      throw new Error('Encryption initialization failed', { cause: error });
     }
   }
 

@@ -163,7 +163,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
     "@electron/rebuild": "^4.2.1",
-    "@eslint/js": "^9.39.5",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -174,15 +174,15 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@typescript-eslint/eslint-plugin": "^8.72.0",
-    "@typescript-eslint/parser": "^8.72.0",
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
+    "@typescript-eslint/parser": "^8.72.1",
     "@vitest/coverage-v8": "^5.0.5",
     "concurrently": "^10.0.6",
     "copy-webpack-plugin": "^14.0.0",
     "css-loader": "^7.1.5",
     "electron": "^45.0.0",
     "electron-builder": "^26.18.0",
-    "eslint": "^9.39.5",
+    "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.7",
     "eslint-plugin-react": "^7.37.5",
@@ -216,5 +216,10 @@
     "webpack-cli": "^7.2.3",
     "webpack-dev-server": "^6.1.0",
     "zustand": "^5.0.16"
+  },
+  "overrides": {
+    "eslint-plugin-react": {
+      "eslint": "$eslint"
+    }
   }
 }

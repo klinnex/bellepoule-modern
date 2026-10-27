@@ -375,7 +375,7 @@ export class MatchRepo {
 
   public getAllPendingMatchesFromPools(competitionId: string): Match[] {
     if (!this.sql.db) throw new Error('Database not open');
-    let poolIds: string[] = [];
+    let poolIds: string[];
     try {
       poolIds = this.sql
         .queryAll<{ id: string }>(

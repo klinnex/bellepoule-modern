@@ -124,7 +124,7 @@ export async function startSession(
   ctx.poolSignaturesCache.clear();
 
   // Utiliser les matches passés depuis le renderer si disponibles, sinon chercher dans la DB
-  let allMatches: any[] = [];
+  let allMatches: any[];
   const poolNumberMap = new Map<string, number>();
   if (matchesFromRenderer && matchesFromRenderer.length > 0) {
     console.log(`[RemoteScoreServer] ${matchesFromRenderer.length} matchs reçus du renderer`);
