@@ -197,7 +197,7 @@
     "jspdf-autotable": "^5.0.9",
     "jszip": "^3.10.2",
     "mini-css-extract-plugin": "^2.10.2",
-    "pdfjs-dist": "4.10.38",
+    "pdfjs-dist": "6.4.299",
     "postcss": "^8.5.31",
     "prettier": "^3.9.10",
     "qrcode": "^1.5.4",
