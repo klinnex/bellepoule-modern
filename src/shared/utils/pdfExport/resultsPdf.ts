@@ -77,7 +77,8 @@ export function generateResultsHTML(
     <div class="doc-header-badge" style="font-size:11pt">RF</div>
   </div>`,
     'gold-bar': `  <div class="gold-bar"></div>`,
-    'results-table': `
+    // Même id que le modèle « ranking » (sinon la table disparaît, #1214)
+    'ranking-table': `
   <table>
     <thead>
       <tr>
@@ -97,7 +98,7 @@ export function generateResultsHTML(
   </div>`,
   };
 
-  const defaultOrder = ['header', 'gold-bar', 'results-table', 'footer'];
+  const defaultOrder = ['header', 'gold-bar', 'ranking-table', 'footer'];
   const body = assembleBody(sections, template, defaultOrder);
 
   return `<!DOCTYPE html>

@@ -26,7 +26,6 @@ const LOGO_STORAGE_KEY = 'bellepoule-logo';
 const WEBHOOK_STORAGE_KEY = 'bellepoule-webhook-url';
 const AUDIT_LOG_KEY = 'bellepoule-audit-log-enabled';
 const TTS_CONFIG_KEY = 'bellepoule-tts-config';
-export const PRINT_PREVIEW_KEY = 'bellepoule-print-preview';
 export const QUICK_MOUSE_KEY = 'bellepoule-quick-mouse-scoring';
 export const SIMPLIFIED_INPUT_KEY = 'bellepoule-simplified-input-mode';
 
@@ -124,9 +123,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     () => localStorage.getItem(AUDIT_LOG_KEY) !== 'false'
   );
 
-  const [printPreview, setPrintPreview] = useState<boolean>(
-    () => localStorage.getItem(PRINT_PREVIEW_KEY) !== 'false'
-  );
   const [quickMouseScoring, setQuickMouseScoring] = useState<boolean>(
     () => localStorage.getItem(QUICK_MOUSE_KEY) === 'true'
   );
@@ -329,11 +325,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     localStorage.setItem(AUDIT_LOG_KEY, String(enabled));
   };
 
-  const handlePrintPreviewChange = (enabled: boolean) => {
-    setPrintPreview(enabled);
-    localStorage.setItem(PRINT_PREVIEW_KEY, String(enabled));
-  };
-
   const handleQuickMouseScoringChange = (enabled: boolean) => {
     setQuickMouseScoring(enabled);
     localStorage.setItem(QUICK_MOUSE_KEY, String(enabled));
@@ -529,20 +520,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
               >
                 {t('pdfTemplate.openButton')}
               </button>
-            </div>
-
-            {/* Aperçu avant impression (#1214) */}
-            <div className="form-group" style={SECTION_DIVIDER}>
-              <label style={BOLD}>{t('settings.print_preview_title')}</label>
-              <p style={HINT}>{t('settings.print_preview_hint')}</p>
-              <label className="u-row cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={printPreview}
-                  onChange={e => handlePrintPreviewChange(e.target.checked)}
-                />
-                <span style={TOGGLE_LABEL}>{t('settings.print_preview_enable')}</span>
-              </label>
             </div>
 
             {/* Saisie rapide souris */}

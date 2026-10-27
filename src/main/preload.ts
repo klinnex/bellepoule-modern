@@ -427,16 +427,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
       if (!html || typeof html !== 'string') {
         throw new Error('HTML content is required');
       }
-      // Aperçu avant impression (#1214) : actif par défaut, désactivable dans les paramètres
-      let preview = true;
-      try {
-        preview = localStorage.getItem('bellepoule-print-preview') !== 'false';
-      } catch {
-        /* stockage indisponible : aperçu actif */
-      }
-      // Boîte d'impression intégrée (#1214) si le renderer l'a enregistrée ; sinon aperçu PDF
-      if (preview && printRequestHandler) return printRequestHandler(html);
-      return ipcRenderer.invoke('file:printHtml', html, { preview });
+      // Boîte d'impression intégrée (#1214), toujours active ; sinon aperçu PDF
+      if (printRequestHandler) return printRequestHandler(html);
+      return ipcRenderer.invoke('file:printHtml', html, { preview: true });
     },
     previewPdf: (html: string, title?: string) => {
       if (!html || typeof html !== 'string') {
@@ -454,14 +447,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
         throw new Error('Output path is required');
       }
       return ipcRenderer.invoke('file:printHtmlToPDF', html, outputPath);
-    },
-    previewHtmlAsPDF: (html: string) => {
-      if (!html || typeof html !== 'string') {
-        throw new Error('HTML content is required');
-      }
-      // Boutons « Aperçu » des poules et du tableau : boîte d'impression intégrée (#1214)
-      if (printRequestHandler) return printRequestHandler(html);
-      return ipcRenderer.invoke('file:previewHtmlAsPDF', html);
     },
     exportPhotos: (competitionId: string, filepath: string) => {
       if (!competitionId || typeof competitionId !== 'string') {
