@@ -121,6 +121,7 @@ import {
 } from './remote/sessionSettings';
 import { getArenaBlackCards, cancelBlackCard, type BlackCardsContext } from './remote/blackCards';
 import { buildDashboardSnapshot, computePhaseEta, type DashboardContext } from './remote/dashboard';
+import { getUiLanguage } from './menuLabels';
 
 export type ArenaEventList = 'touchesA' | 'touchesB' | 'cardsA' | 'cardsB' | 'exits';
 
@@ -207,14 +208,11 @@ export class RemoteScoreServer {
     rate: 1.1,
     announce: { '60': true, '30': true, '10': true, '5': true, countdown: true, '0': true },
   };
-  private currentLang: string = 'fr'; // Langue courante de l'interface (fr, en, zh-HK, ...)
-  private sessionKioskViews: {
-    poules: boolean;
-    classement: boolean;
-    direct: boolean;
-    suivants: boolean;
-    tableau: boolean;
-  } = {
+  private currentLang: string = getUiLanguage(); // Langue de l'application dès le lancement (#1213)
+  private sessionKioskViews: Record<
+    'poules' | 'classement' | 'direct' | 'suivants' | 'tableau',
+    boolean
+  > = {
     poules: true,
     classement: true,
     direct: true,
