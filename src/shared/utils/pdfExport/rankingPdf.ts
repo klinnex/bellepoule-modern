@@ -5,6 +5,7 @@
  */
 
 import { PoolRanking, Weapon } from '../../types';
+import { statusCode } from '../forfeit';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
 import {
   savePDF,
@@ -39,10 +40,8 @@ export function generateRankingHTML(
     .map(r => {
       const ratio = r.matchesPlayed > 0 ? (r.victories / r.matchesPlayed).toFixed(2) : '0.00';
       const idx = r.index >= 0 ? `+${r.index}` : `${r.index}`;
-      const abandoned =
-        (r.fencer as any).status === 'ABANDONED'
-          ? ' <span style="color:#ef4444;font-size:8pt">(A)</span>'
-          : '';
+      const code = statusCode(r.fencer.status);
+      const abandoned = code ? ` <span style="color:#ef4444;font-size:8pt">(${code})</span>` : '';
       return `
 <tr>
   ${vis('rank') ? `<td style="text-align:center;font-weight:700;color:var(--navy)">${isDnf(r) ? pdfT('dnf', 'DNF') : r.rank}</td>` : ''}

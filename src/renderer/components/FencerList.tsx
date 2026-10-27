@@ -8,6 +8,7 @@ import { useVirtualList } from '../../shared/services/performanceService';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import { Fencer, FencerStatus } from '../../shared/types';
 import EditFencerModal from './EditFencerModal';
+import { MedicalCrossIcon } from './common/MedicalCrossIcon';
 import { useTranslation } from '../hooks/useTranslation';
 import { exportFencersToTXT, exportFencersToFFF } from '../../shared/utils/fencerExport';
 import { isDns } from '../../shared/utils/forfeit';
@@ -1126,7 +1127,11 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                             <td key="status">
                               <span className={`badge ${statusLabels[fencer.status].color}`}>
                                 {isDns(fencer)
-                                  ? t('status.forfeit_dns')
+                                  ? t(
+                                      fencer.status === FencerStatus.ABANDONED
+                                        ? 'status.medical_dns'
+                                        : 'status.forfeit_dns'
+                                    )
                                   : statusLabels[fencer.status].label}
                               </span>
                             </td>
@@ -1178,7 +1183,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                 title={t('fencerList.abandon')}
                                 style={SMALL_BTN}
                               >
-                                🚶
+                                <MedicalCrossIcon />
                               </button>
                               <button
                                 className="btn btn-sm btn-warning"

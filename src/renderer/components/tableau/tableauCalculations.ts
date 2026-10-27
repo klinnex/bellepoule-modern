@@ -581,12 +581,12 @@ export const getPoolTouches = (fencerId: string, ranking: PoolRanking[]): number
 };
 
 const SPECIAL_STATUS_LABELS: Record<TableauSpecialStatusType, string> = {
-  abandon: 'abandon',
+  abandon: 'médical', // #1256 : abandon renommé « Médical »
   forfait: 'forfait',
   exclusion: 'exclusion',
 };
 
-/** Ajoute « (abandon) », « (forfait) » ou « (exclusion) » au tour d'élimination (#1012) */
+/** Ajoute « (médical) », « (forfait) » ou « (exclusion) » au tour d'élimination (#1012) */
 const annotateSpecialStatus = (
   results: FinalResult[],
   matchList: TableauMatch[]

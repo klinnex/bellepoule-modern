@@ -89,7 +89,7 @@
     "delete": "Delete",
     "check_in": "Check In",
     "uncheck": "Uncheck",
-    "abandon": "Abandon",
+    "abandon": "Medical withdrawal",
     "forfait": "Withdraw",
     "reactivate": "Reactivate",
     "points": "Points",
@@ -101,10 +101,11 @@
     "not_checked_in": "Not Checked In",
     "qualified": "Qualified",
     "eliminated": "Eliminated",
-    "abandoned": "Abandoned",
+    "abandoned": "Medical",
     "excluded": "Excluded",
     "forfeit": "Withdraw",
     "forfeit_dns": "Withdraw (DNS)",
+    "medical_dns": "Medical (DNS)",
     "not_started": "Not Started",
     "in_progress": "In Progress",
     "finished": "Finished"
@@ -344,7 +345,7 @@
   },
   "messages": {
     "confirm_delete_fencer": "Are you sure you want to delete this fencer? This action is irreversible.",
-    "confirm_abandon": "{{name}} abandons the competition. All remaining matches will be lost by forfeit. Confirm?",
+    "confirm_abandon": "{{name}} leaves the competition for medical reasons. All remaining matches will be lost by forfeit. Confirm?",
     "confirm_forfait": "{{name}} withdraws from the competition. All remaining matches will be lost. Confirm?",
     "confirm_reactivate": "Reactivate {{name}}? Already finished matches will remain unchanged.",
     "fencer_not_found": "This fencer no longer exists in the list. Refreshing...",
@@ -668,12 +669,12 @@
     "fencers_count_suffix_other": "{{count}} fencers",
     "quick_score": "Quick score entry",
     "tie_hint": "💡 In case of a tie, click V to award the victory",
-    "btn_abandon": "🚴 Withdrawal",
+    "btn_abandon": "Medical",
     "btn_forfeit": "📋 Forfeit",
     "btn_exclusion": "🚫 Exclusion",
     "btn_cancel_match": "⏸ Cancel bout",
     "which_fencer": "Which fencer is {{status}}?",
-    "st_abandon": "withdrawn",
+    "st_abandon": "out for medical reasons",
     "st_forfeit": "forfeited",
     "st_excluded": "excluded",
     "hint_loses": "They lose this bout; their opponent is declared the winner.",
@@ -954,8 +955,8 @@
     "fencers_checked_out_other": "{{count}} fencers checked out",
     "matches_not_played_one": "{{count}} match marked as not fenced ({{status}})",
     "matches_not_played_other": "{{count}} matches marked as not fenced ({{status}})",
-    "matches_restored_one": "Withdrawal cancelled — {{count}} match restored",
-    "matches_restored_other": "Withdrawal cancelled — {{count}} matches restored"
+    "matches_restored_one": "Medical withdrawal cancelled — {{count}} match restored",
+    "matches_restored_other": "Medical withdrawal cancelled — {{count}} matches restored"
   },
   "pdf": {
     "abstention": "Abstention",
@@ -1066,7 +1067,7 @@
     "score": "Score",
     "score_grid": "Score grid",
     "signature": "Signature",
-    "status_abandoned": "Withdrawn",
+    "status_abandoned": "Medical",
     "status_checked_in": "Checked in",
     "status_eliminated": "Eliminated",
     "status_excluded": "Excluded",
@@ -1298,7 +1299,7 @@
     "no_result_title": "No results",
     "no_result_desc": "“{{term}}” matches no fencer",
     "actions": "Actions",
-    "abandon": "Withdraw",
+    "abandon": "Medical withdrawal",
     "forfeit": "Forfeit",
     "reactivate": "Reactivate",
     "col_ref": "No.",
@@ -1710,7 +1711,7 @@
     "general": "🌐 Overall",
     "qm": "Q/M",
     "qualif": "Qual.",
-    "abandon": "Withdrawal",
+    "abandon": "Medical",
     "forfeit": "Forfeit",
     "excluded": "Excluded",
     "open_women": "Open the ♀ Women competition →",
@@ -1751,7 +1752,7 @@
     "go_tableau": "Go to bracket →"
   },
   "poolMatrix": {
-    "not_fenced": "Bout not fenced (withdrawal/forfeit)",
+    "not_fenced": "Bout not fenced (medical/forfeit)",
     "reset": "Clear this result",
     "right_click_hide": "Right-click to hide",
     "ind": "Ind",
@@ -1886,7 +1887,7 @@
     "print": "🖨️ Print",
     "copy": "📋 Copy",
     "copied": "Results copied to the clipboard!",
-    "legend": "(A) = Withdrawal • (F) = Forfeit • (X) = Excluded"
+    "legend": "(MED) = Medical • (F) = Forfeit • (X) = Excluded • DNF / DNS = out in pools / before first bout"
   },
   "ffeConnect": {
     "title": "Import from FFE Connect",
@@ -2225,10 +2226,10 @@
   "tableauScore": {
     "quick_entry": "{{round}} - Quick entry",
     "max_score": "💡 Maximum score: {{n}} touches",
-    "abandon": "Withdrawal",
+    "abandon": "Medical",
     "forfait": "Forfeit",
     "exclusion": "Exclusion",
-    "who_abandon": "Which fencer withdraws?",
+    "who_abandon": "Which fencer withdraws for medical reasons?",
     "who_forfait": "Which fencer forfeits?",
     "who_exclusion": "Which fencer is excluded?"
   },
@@ -2512,7 +2513,7 @@
     "title": "Confirmation"
   },
   "poolGrid": {
-    "not_played": "Bout not fenced (withdrawal/forfeit)",
+    "not_played": "Bout not fenced (medical/forfeit)",
     "fencer": "Fencer"
   },
   "pdfModal": {

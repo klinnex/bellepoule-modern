@@ -13,6 +13,7 @@ import {
   PostPoolSplitCriteria,
   Gender,
 } from '../../shared/types';
+import { statusCode } from '../../shared/utils/forfeit';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import { CENTER, W40, W50, W60, SM, FLEX_GAP } from './poolRankingView.styles';
@@ -316,7 +317,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
     const getStatusLabel = (status: FencerStatus) => {
       switch (status) {
         case FencerStatus.ABANDONED:
-          return 'A';
+          return 'MED';
         case FencerStatus.FORFAIT:
           return 'F';
         case FencerStatus.EXCLUDED:
@@ -646,7 +647,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                       {ranking.fencer.lastName}
                       {ranking.fencer.status === FencerStatus.ABANDONED && (
                         <span className="ranking-status-badge ranking-status-badge--abandon">
-                          A
+                          {statusCode(FencerStatus.ABANDONED)}
                         </span>
                       )}
                       {ranking.fencer.status === FencerStatus.FORFAIT && (
@@ -766,7 +767,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               className="ranking-status-badge ranking-status-badge--abandon"
               style={{ marginLeft: 0 }}
             >
-              A
+              {statusCode(FencerStatus.ABANDONED)}
             </span>{' '}
             {t('poolRanking.abandon')}
           </span>

@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 40 | 582 |
+| `src/shared/utils/` | 40 | 584 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 19 | 226 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 19 | 106 |
-| `src/renderer/components/` | 33 | 170 |
+| `src/renderer/components/` | 34 | 173 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 45 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **178** | **1666** |
+| **Total** | **179** | **1671** |
 
-Unitaires : 169 fichiers, 1631 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 170 fichiers, 1636 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -479,7 +479,7 @@ Unitaires : 169 fichiers, 1631 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/forfeit.test.ts</code> — 14 tests</summary>
+<summary><code>src/shared/utils/forfeit.test.ts</code> — 16 tests</summary>
 
 - **hasStartedPoolMatch**
   - aucun match commencé
@@ -489,16 +489,18 @@ Unitaires : 169 fichiers, 1631 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **checkInForfeitReason**
   - DNS si aucun match de poule commencé
   - pas DNS si un match est commencé
-- **isDns / forfeitCode**
-  - DNS uniquement pour un forfait marqué dns
-  - sigle DNS ou F
+- **isDns / statusCode / poolEliminatedAt**
+  - DNS uniquement pour un forfait ou médical marqué dns
+  - sigle MED, F, X
+  - motif de sortie dans « Éliminé en »
 - **checkInStatusUpdate**
   - forfait à l’appel : DNS ou motif effacé
-  - réactivation / abandon : motif effacé
+  - médical à l’appel : DNS ou motif effacé
+  - réactivation : motif effacé
   - exclusion : motif inchangé
 - **finalRankLabel**
-  - DNS en poules
-  - DNF forfait/abandon en poules
+  - DNS en poules (forfait ou médical)
+  - DNF forfait/médical en poules
   - rang conservé pendant le tableau ou sans forfait
 
 </details>
@@ -555,7 +557,7 @@ Unitaires : 169 fichiers, 1631 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - assigns sequential rank numbers
   - marks FORFAIT fencer with F
   - marks EXCLUDED fencer with X
-  - marks ABANDONED fencer with A
+  - marks ABANDONED fencer with MED (médical, #1256)
   - normal fencer has empty status cell
   - outputs Excel formula when includeFormulas=true
   - outputs numeric index when includeFormulas=false
@@ -3090,6 +3092,15 @@ Unitaires : 169 fichiers, 1631 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/pool/PoolSpecialStatusModal.test.tsx</code> — 2 tests</summary>
+
+- **PoolSpecialStatusModal**
+  - médical : titre et choix du tireur
+  - Annuler appelle onCancel ; tireur absent affiché « — »
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 13 tests</summary>
 
 - **PrintDialog (#1214)**
@@ -3123,12 +3134,13 @@ Unitaires : 169 fichiers, 1631 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 4 tests</summary>
 
 - **TableauScoreModal**
   - affiche le nom du tour et les tireurs
   - saisir un score appelle setEditScoreA
   - Valider déclenche onSubmit
+  - bouton Médical : croix rouge médicale (#1256)
 
 </details>
 

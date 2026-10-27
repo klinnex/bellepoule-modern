@@ -89,7 +89,7 @@
     "delete": "Dilemel",
     "check_in": "Enrollañ",
     "uncheck": "Dizenrollañ",
-    "abandon": "Dilez",
+    "abandon": "Dilez yec'hed",
     "forfait": "Dilez",
     "reactivate": "Adilhañ",
     "points": "Poentoù",
@@ -101,10 +101,11 @@
     "not_checked_in": "N'eo ket enrolañet",
     "qualified": "Klaskaet",
     "eliminated": "Dilizet",
-    "abandoned": "Dilezet",
+    "abandoned": "Yec'hed",
     "excluded": "Skarzhet",
     "forfeit": "Dilez",
     "forfeit_dns": "Dilez (DNS)",
+    "medical_dns": "Yec'hed (DNS)",
     "not_started": "N'eo krog",
     "in_progress": "E-brient",
     "finished": "Echuet"
@@ -344,7 +345,7 @@
   },
   "messages": {
     "confirm_delete_fencer": "TODO(br): révision par un locuteur natif breton requise — Ha sur oc'h evid ? Fell eo an dilemelañ ar c'hoarzh ? An den dra zo diwezheg. VEOUS anv raoud bezañ.",
-    "confirm_abandon": "TODO(br): révision par un locuteur natif breton requise — {{name}} en emañ ar c'hoarzh. Holl an emgann. An holl an holl an tremañ d'an diwezheg. Kadarnañ ?",
+    "confirm_abandon": "{{name}} a guita ar genstrivadeg evit abegoù yec'hed. Kollet e vo an holl emgannoù a chom dre forfed. Kadarnaat ?",
     "confirm_forfait": "TODO(br): révision par un locuteur natif breton requise — {{name}} a zilañ evit an kenstr. An holl an holl an tremañ d'an diwezheg. Kadarnañ ?",
     "confirm_reactivate": "TODO(br): révision par un locuteur natif breton requise — Adilhañ {{name}} ? Emgannoù klok ar gwerzhet. Disoc'hoùezioù a chench evet ebet.",
     "fencer_not_found": "TODO(br): révision par un locuteur natif breton requise — An henger-mañ n'ez ket en an roll. Hizivaat...",
@@ -668,12 +669,12 @@
     "fencers_count_suffix_other": "{{count}} c'hleze",
     "quick_score": "Enankañ buan ar skor",
     "tie_hint": "💡 Ma vez kevatal, klikit war V evit reiñ an trec'h",
-    "btn_abandon": "🚴 Dilezel",
+    "btn_abandon": "Yec'hed",
     "btn_forfeit": "📋 Forfed",
     "btn_exclusion": "🚫 Skarzhadur",
     "btn_cancel_match": "⏸ Nullañ an emgann",
     "which_fencer": "Peseurt kleizeier a zo {{status}} ?",
-    "st_abandon": "dilezet",
+    "st_abandon": "er-maez evit abegoù yec'hed",
     "st_forfeit": "forfed",
     "st_excluded": "skarzhet",
     "hint_loses": "Koll a ra an emgann-mañ ; e enebour a vez disklêriet trec'h.",
@@ -954,8 +955,8 @@
     "fencers_checked_out_other": "{{count}} c'hleze diverket",
     "matches_not_played_one": "{{count}} c'hoari merket evel n'eo ket bet c'hoariet ({{status}})",
     "matches_not_played_other": "{{count}} c'hoari merket evel n'int ket bet c'hoariet ({{status}})",
-    "matches_restored_one": "Dilezel nullet — {{count}} c'hoari adsavet",
-    "matches_restored_other": "Dilezel nullet — {{count}} c'hoari adsavet"
+    "matches_restored_one": "Dilez yec'hed nullet — {{count}} c'hoari adsavet",
+    "matches_restored_other": "Dilez yec'hed nullet — {{count}} c'hoari adsavet"
   },
   "pdf": {
     "abstention": "Ehan",
@@ -1066,7 +1067,7 @@
     "score": "Skor",
     "score_grid": "Kael ar skorioù",
     "signature": "Sinadur",
-    "status_abandoned": "Dilezel",
+    "status_abandoned": "Yec'hed",
     "status_checked_in": "Merket",
     "status_eliminated": "Dilamet",
     "status_excluded": "Skarzhet",
@@ -1298,7 +1299,7 @@
     "no_result_title": "Disoc'h ebet",
     "no_result_desc": "« {{term}} » ne glot gant kleizeier ebet",
     "actions": "Oberoù",
-    "abandon": "Dilezel",
+    "abandon": "Dilez yec'hed",
     "forfeit": "Forfed",
     "reactivate": "Adweredekaat",
     "col_ref": "Niv.",
@@ -1710,7 +1711,7 @@
     "general": "🌐 Hollek",
     "qm": "Q/E",
     "qualif": "Dibab.",
-    "abandon": "Dilezel",
+    "abandon": "Yec'hed",
     "forfeit": "Forfed",
     "excluded": "Skarzhet",
     "open_women": "Digeriñ kevezadeg ♀ ar merc'hed →",
@@ -1751,7 +1752,7 @@
     "go_tableau": "Mont d’an daolenn →"
   },
   "poolMatrix": {
-    "not_fenced": "Emgann n'eo ket bet c'hoariet (dilezel/forfed)",
+    "not_fenced": "Emgann n'eo ket bet c'hoariet (yec'hed/forfed)",
     "reset": "Nullañ an disoc'h-mañ",
     "right_click_hide": "Klik dehou evit kuzhat",
     "ind": "Men",
@@ -1886,7 +1887,7 @@
     "print": "🖨️ Moullañ",
     "copy": "📋 Eilañ",
     "copied": "Disoc'hoù eilet er golver !",
-    "legend": "(A) = Dilezel • (F) = Forfed • (X) = Skarzhet"
+    "legend": "(MED) = Yec'hed • (F) = Forfed • (X) = Skarzhet • DNF / DNS = er-maez er poulloù / a-raok an emgann kentañ"
   },
   "ffeConnect": {
     "title": "Enporzhiañ eus FFE Connect",
@@ -2225,10 +2226,10 @@
   "tableauScore": {
     "quick_entry": "{{round}} - Enankañ buan",
     "max_score": "💡 Skor uhelañ : {{n}} taol",
-    "abandon": "Dilez",
+    "abandon": "Yec'hed",
     "forfait": "Forfed",
     "exclusion": "Skarzhadur",
-    "who_abandon": "Peseurt c'hoarier a zilez ?",
+    "who_abandon": "Peseurt c'hoarier a zilez evit abegoù yec'hed ?",
     "who_forfait": "Peseurt c'hoarier a ra forfed ?",
     "who_exclusion": "Peseurt c'hoarier a vez skarzhet ?"
   },
@@ -2512,7 +2513,7 @@
     "title": "Kadarnadur"
   },
   "poolGrid": {
-    "not_played": "Emgann n'eo ket bet c'hoariet (dilez/forfed)",
+    "not_played": "Emgann n'eo ket bet c'hoariet (yec'hed/forfed)",
     "fencer": "C'hoarier"
   },
   "pdfModal": {

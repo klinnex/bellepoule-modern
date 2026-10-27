@@ -89,7 +89,7 @@
     "delete": "Eliminar",
     "check_in": "Registrar",
     "uncheck": "Cancelar Registro",
-    "abandon": "Abandonar",
+    "abandon": "Retirada médica",
     "forfait": "No Presentarse",
     "reactivate": "Reactivar",
     "points": "Puntos",
@@ -101,10 +101,11 @@
     "not_checked_in": "No Registrado",
     "qualified": "Clasificado",
     "eliminated": "Eliminado",
-    "abandoned": "Abandonado",
+    "abandoned": "Médico",
     "excluded": "Excluido",
     "forfeit": "No Presentado",
     "forfeit_dns": "No presentado (DNS)",
+    "medical_dns": "Médico (DNS)",
     "not_started": "No Iniciado",
     "in_progress": "En Curso",
     "finished": "Terminado"
@@ -344,7 +345,7 @@
   },
   "messages": {
     "confirm_delete_fencer": "¿Está seguro de que desea eliminar a este esgrimista? Esta acción es irreversible.",
-    "confirm_abandon": "{{name}} abandona la competición. Todos los partidos restantes se perderán por no presentarse. ¿Confirmar?",
+    "confirm_abandon": "{{name}} abandona la competición por motivos médicos. Todos los partidos restantes se perderán por no presentarse. ¿Confirmar?",
     "confirm_forfait": "{{name}} declara no presentarse para la competición. Todos los partidos restantes se perderán. ¿Confirmar?",
     "confirm_reactivate": "¿Reactivar {{name}}? Los partidos ya terminados permanecerán sin cambios.",
     "fencer_not_found": "Este esgrimista ya no existe en la lista. Actualizando...",
@@ -668,12 +669,12 @@
     "fencers_count_suffix_other": "{{count}} tiradores",
     "quick_score": "Entrada rápida del resultado",
     "tie_hint": "💡 En caso de empate, pulse V para atribuir la victoria",
-    "btn_abandon": "🚴 Abandono",
+    "btn_abandon": "Médico",
     "btn_forfeit": "📋 Forfait",
     "btn_exclusion": "🚫 Exclusión",
     "btn_cancel_match": "⏸ Anular combate",
     "which_fencer": "¿Qué tirador está {{status}}?",
-    "st_abandon": "retirado",
+    "st_abandon": "retirado por motivos médicos",
     "st_forfeit": "en forfait",
     "st_excluded": "excluido",
     "hint_loses": "Pierde este combate; su adversario es declarado vencedor.",
@@ -954,8 +955,8 @@
     "fencers_checked_out_other": "{{count}} tiradores desmarcados",
     "matches_not_played_one": "{{count}} combate marcado como no disputado ({{status}})",
     "matches_not_played_other": "{{count}} combates marcados como no disputados ({{status}})",
-    "matches_restored_one": "Abandono anulado — {{count}} combate restaurado",
-    "matches_restored_other": "Abandono anulado — {{count}} combates restaurados"
+    "matches_restored_one": "Retirada médica anulada — {{count}} combate restaurado",
+    "matches_restored_other": "Retirada médica anulada — {{count}} combates restaurados"
   },
   "pdf": {
     "abstention": "Abstención",
@@ -1066,7 +1067,7 @@
     "score": "Puntuación",
     "score_grid": "Cuadrícula de puntuaciones",
     "signature": "Firma",
-    "status_abandoned": "Abandono",
+    "status_abandoned": "Médico",
     "status_checked_in": "Registrado",
     "status_eliminated": "Eliminado",
     "status_excluded": "Excluido",
@@ -1298,7 +1299,7 @@
     "no_result_title": "Sin resultados",
     "no_result_desc": "«{{term}}» no corresponde a ningún tirador",
     "actions": "Acciones",
-    "abandon": "Abandonar",
+    "abandon": "Retirada médica",
     "forfeit": "Forfait",
     "reactivate": "Reactivar",
     "col_ref": "N.º",
@@ -1710,7 +1711,7 @@
     "general": "🌐 General",
     "qm": "Q/C",
     "qualif": "Clasif.",
-    "abandon": "Abandono",
+    "abandon": "Médico",
     "forfeit": "Forfait",
     "excluded": "Excluido",
     "open_women": "Abrir la competición ♀ Mujeres →",
@@ -1751,7 +1752,7 @@
     "go_tableau": "Pasar al cuadro →"
   },
   "poolMatrix": {
-    "not_fenced": "Combate no disputado (abandono/forfait)",
+    "not_fenced": "Combate no disputado (médico/forfait)",
     "reset": "Anular este resultado",
     "right_click_hide": "Clic derecho para ocultar",
     "ind": "Ind",
@@ -1886,7 +1887,7 @@
     "print": "🖨️ Imprimir",
     "copy": "📋 Copiar",
     "copied": "¡Resultados copiados al portapapeles!",
-    "legend": "(A) = Abandono • (F) = Forfait • (X) = Excluido"
+    "legend": "(MED) = Médico • (F) = Forfait • (X) = Excluido • DNF / DNS = retirado en poules / antes del primer combate"
   },
   "ffeConnect": {
     "title": "Importar desde FFE Connect",
@@ -2225,10 +2226,10 @@
   "tableauScore": {
     "quick_entry": "{{round}} - Entrada rápida",
     "max_score": "💡 Puntuación máxima: {{n}} tocados",
-    "abandon": "Abandono",
+    "abandon": "Médico",
     "forfait": "Forfait",
     "exclusion": "Exclusión",
-    "who_abandon": "¿Qué tirador abandona?",
+    "who_abandon": "¿Qué tirador se retira por motivos médicos?",
     "who_forfait": "¿Qué tirador declara forfait?",
     "who_exclusion": "¿Qué tirador es excluido?"
   },
@@ -2512,7 +2513,7 @@
     "title": "Confirmación"
   },
   "poolGrid": {
-    "not_played": "Combate no disputado (abandono/forfait)",
+    "not_played": "Combate no disputado (médico/forfait)",
     "fencer": "Tirador"
   },
   "pdfModal": {

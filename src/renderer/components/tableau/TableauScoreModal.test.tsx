@@ -59,4 +59,10 @@ describe('TableauScoreModal', () => {
     fireEvent.click(screen.getByText('Valider'));
     expect(props.onSubmit).toHaveBeenCalledTimes(1);
   });
+
+  it('bouton Médical : croix rouge médicale (#1256)', () => {
+    setup();
+    const btn = screen.getByText('Médical').closest('button')!;
+    expect(btn.querySelector('[data-testid="medical-cross-icon"]')).not.toBeNull();
+  });
 });

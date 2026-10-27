@@ -89,7 +89,7 @@
     "delete": "Eliminar",
     "check_in": "Registrar",
     "uncheck": "Cancel·lar Registre",
-    "abandon": "Abandonar",
+    "abandon": "Retirada mèdica",
     "forfait": "No Presentar-se",
     "reactivate": "Reactivar",
     "points": "Punts",
@@ -101,10 +101,11 @@
     "not_checked_in": "No Registrat",
     "qualified": "Classificat",
     "eliminated": "Eliminat",
-    "abandoned": "Abandonat",
+    "abandoned": "Mèdic",
     "excluded": "Exclòs",
     "forfeit": "No Presentat",
     "forfeit_dns": "No presentat (DNS)",
+    "medical_dns": "Mèdic (DNS)",
     "not_started": "No Iniciat",
     "in_progress": "En Curs",
     "finished": "Finalitzat"
@@ -344,7 +345,7 @@
   },
   "messages": {
     "confirm_delete_fencer": "Esteu segur que voleu eliminar aquest tirador? Aquesta acció és irreversible.",
-    "confirm_abandon": "{{name}} abandona la competició. Tots els combats restants es perdran per no presentació. Confirmeu?",
+    "confirm_abandon": "{{name}} abandona la competició per motius mèdics. Tots els combats restants es perdran per no presentació. Confirmeu?",
     "confirm_forfait": "{{name}} declara no presentar-se a la competició. Tots els combats restants es perdran. Confirmeu?",
     "confirm_reactivate": "Reactivar {{name}}? Els combats ja finalitzats restaran sense canvis.",
     "fencer_not_found": "Aquest tirador ja no existeix a la llista. Actualitzant...",
@@ -668,12 +669,12 @@
     "fencers_count_suffix_other": "{{count}} tiradors",
     "quick_score": "Entrada ràpida del resultat",
     "tie_hint": "💡 En cas d'empat, feu clic a V per atribuir la victòria",
-    "btn_abandon": "🚴 Abandonament",
+    "btn_abandon": "Mèdic",
     "btn_forfeit": "📋 Forfet",
     "btn_exclusion": "🚫 Exclusió",
     "btn_cancel_match": "⏸ Anul·la el combat",
     "which_fencer": "Quin tirador està {{status}}?",
-    "st_abandon": "retirat",
+    "st_abandon": "retirat per motius mèdics",
     "st_forfeit": "en forfet",
     "st_excluded": "exclòs",
     "hint_loses": "Perd aquest combat; el seu adversari és declarat guanyador.",
@@ -954,8 +955,8 @@
     "fencers_checked_out_other": "{{count}} tiradors desmarcats",
     "matches_not_played_one": "{{count}} combat marcat com a no disputat ({{status}})",
     "matches_not_played_other": "{{count}} combats marcats com a no disputats ({{status}})",
-    "matches_restored_one": "Abandonament anul·lat — {{count}} combat restaurat",
-    "matches_restored_other": "Abandonament anul·lat — {{count}} combats restaurats"
+    "matches_restored_one": "Retirada mèdica anul·lada — {{count}} combat restaurat",
+    "matches_restored_other": "Retirada mèdica anul·lada — {{count}} combats restaurats"
   },
   "pdf": {
     "abstention": "Abstenció",
@@ -1066,7 +1067,7 @@
     "score": "Puntuació",
     "score_grid": "Graella de puntuacions",
     "signature": "Signatura",
-    "status_abandoned": "Abandonament",
+    "status_abandoned": "Mèdic",
     "status_checked_in": "Registrat",
     "status_eliminated": "Eliminat",
     "status_excluded": "Exclòs",
@@ -1298,7 +1299,7 @@
     "no_result_title": "Cap resultat",
     "no_result_desc": "«{{term}}» no correspon a cap tirador",
     "actions": "Accions",
-    "abandon": "Abandona",
+    "abandon": "Retirada mèdica",
     "forfeit": "Forfet",
     "reactivate": "Reactiva",
     "col_ref": "Núm.",
@@ -1710,7 +1711,7 @@
     "general": "🌐 General",
     "qm": "Q/C",
     "qualif": "Classif.",
-    "abandon": "Abandonament",
+    "abandon": "Mèdic",
     "forfeit": "Forfet",
     "excluded": "Exclòs",
     "open_women": "Obre la competició ♀ Dones →",
@@ -1751,7 +1752,7 @@
     "go_tableau": "Passar al quadre →"
   },
   "poolMatrix": {
-    "not_fenced": "Combat no disputat (abandonament/forfet)",
+    "not_fenced": "Combat no disputat (mèdic/forfet)",
     "reset": "Anul·la aquest resultat",
     "right_click_hide": "Feu clic dret per amagar",
     "ind": "Ind",
@@ -1886,7 +1887,7 @@
     "print": "🖨️ Imprimeix",
     "copy": "📋 Copia",
     "copied": "Resultats copiats al porta-retalls!",
-    "legend": "(A) = Abandonament • (F) = Forfet • (X) = Exclòs"
+    "legend": "(MED) = Mèdic • (F) = Forfet • (X) = Exclòs • DNF / DNS = retirat a les poules / abans del primer combat"
   },
   "ffeConnect": {
     "title": "Importa des de FFE Connect",
@@ -2225,10 +2226,10 @@
   "tableauScore": {
     "quick_entry": "{{round}} - Entrada ràpida",
     "max_score": "💡 Puntuació màxima: {{n}} tocats",
-    "abandon": "Abandonament",
+    "abandon": "Mèdic",
     "forfait": "Forfait",
     "exclusion": "Exclusió",
-    "who_abandon": "Quin tirador abandona?",
+    "who_abandon": "Quin tirador es retira per motius mèdics?",
     "who_forfait": "Quin tirador declara forfait?",
     "who_exclusion": "Quin tirador és exclòs?"
   },
@@ -2512,7 +2513,7 @@
     "title": "Confirmació"
   },
   "poolGrid": {
-    "not_played": "Combat no disputat (abandonament/forfait)",
+    "not_played": "Combat no disputat (mèdic/forfet)",
     "fencer": "Tirador"
   },
   "pdfModal": {
