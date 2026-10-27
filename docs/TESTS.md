@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 38 | 565 |
+| `src/shared/utils/` | 39 | 568 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **175** | **1645** |
+| **Total** | **176** | **1648** |
 
-Unitaires : 166 fichiers, 1610 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 167 fichiers, 1613 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -620,6 +620,16 @@ Unitaires : 166 fichiers, 1610 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **generateRefereeCommentsHTML (#989)**
   - une page par arbitre commenté, textes échappés
   - message si aucun commentaire
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/resultsPdf.test.ts</code> — 3 tests</summary>
+
+- **generateResultsHTML**
+  - affiche le classement sans modèle
+  - affiche le classement avec le modèle « ranking » (feuille vide avant)
+  - masque la table si l’élément est masqué dans le modèle
 
 </details>
 

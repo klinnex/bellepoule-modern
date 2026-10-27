@@ -13,7 +13,7 @@ import { TableauMatch } from './tableauTypes';
 import { getRoundName } from './tableauCalculations';
 
 interface TableauPdfModalProps {
-  pdfMode: 'print' | 'pdf' | 'preview';
+  pdfMode: 'print' | 'pdf';
   matches: TableauMatch[];
   pdfMatchesPerPage: number;
   setPdfMatchesPerPage: (n: number) => void;
@@ -84,11 +84,7 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
       >
         <div className="modal-header">
           <h3 className="modal-title" id="tableau-pdf-title">
-            {pdfMode === 'print'
-              ? t('tableauPdf.print')
-              : pdfMode === 'preview'
-                ? t('tableauPdf.preview')
-                : t('tableauPdf.export')}{' '}
+            {pdfMode === 'print' ? t('tableauPdf.print') : t('tableauPdf.export')}{' '}
             {t('tableauPdf.sheets')}
           </h3>
           <button className="btn-close" onClick={onClose}>
@@ -192,11 +188,7 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
             onClick={onExport}
             disabled={selectedRounds.size === 0}
           >
-            {pdfMode === 'print'
-              ? t('tableauPdf.do_print')
-              : pdfMode === 'preview'
-                ? t('tableauPdf.do_preview')
-                : t('tableauPdf.do_generate')}
+            {pdfMode === 'print' ? t('tableauPdf.do_print') : t('tableauPdf.do_generate')}
           </button>
         </div>
       </div>

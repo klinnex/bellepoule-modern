@@ -1018,13 +1018,11 @@ ipcMain.handle('file:printHtmlToPDF', async (_, html: string, outputPath: string
 });
 
 // Aperçu avant impression (#1214) : visionneuse PDF interne, repli sur le lecteur externe de l'OS.
-// `file:previewHtmlAsPDF` conservé (alias de `file:previewPdf`).
 const pdfPreviewDeps = registerPdfPreviewHandlers({
   getMainWindow: () => mainWindow,
   render: renderHtmlToPdfBuffer,
   openExternal: p => shell.openPath(p),
 });
-ipcMain.handle('file:previewHtmlAsPDF', (_, html: string) => previewPdf(pdfPreviewDeps, html));
 
 registerPrintDialogHandlers({
   chooseSavePath: async defaultName => {
