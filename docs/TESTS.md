@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 39 | 568 |
+| `src/shared/utils/` | 40 | 579 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **176** | **1648** |
+| **Total** | **177** | **1659** |
 
-Unitaires : 167 fichiers, 1613 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 168 fichiers, 1624 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -475,6 +475,27 @@ Unitaires : 167 fichiers, 1613 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - affecte le classement par nom + prénom, sans accents ni casse
   - identifie en priorité par numéro de licence
   - ignore les lignes sans classement valide
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/forfeit.test.ts</code> — 11 tests</summary>
+
+- **hasStartedPoolMatch**
+  - aucun match commencé
+  - match en cours ou joué
+  - match clos par le forfait de l'adversaire : non commencé
+  - ignore les matchs d'autres tireurs
+- **checkInForfeitReason**
+  - DNS si aucun match de poule commencé
+  - pas DNS si un match est commencé
+- **isDns / forfeitCode**
+  - DNS uniquement pour un forfait marqué dns
+  - sigle DNS ou F
+- **checkInStatusUpdate**
+  - forfait à l’appel : DNS ou motif effacé
+  - réactivation / abandon : motif effacé
+  - exclusion : motif inchangé
 
 </details>
 

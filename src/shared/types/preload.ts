@@ -80,7 +80,7 @@ export interface FencerUpdateData {
   ranking?: number;
   status?: string;
   photo?: string;
-  exclusionReason?: 'black_card' | null;
+  exclusionReason?: 'black_card' | 'dns' | null;
 }
 
 export interface MatchCreateData {

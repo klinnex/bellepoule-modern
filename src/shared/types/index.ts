@@ -184,7 +184,8 @@ export interface BaseEntity {
 // Fencer (Tireur)
 // ============================================================================
 
-export type ExclusionReason = 'black_card';
+// black_card : exclusion (carton noir) ; dns : forfait à l'appel, aucun match de poule commencé (#1256)
+export type ExclusionReason = 'black_card' | 'dns';
 
 export interface Fencer extends BaseEntity {
   ref: number; // Numéro de référence unique dans la compétition
@@ -198,7 +199,7 @@ export interface Fencer extends BaseEntity {
   license?: string; // Numéro de licence
   ranking?: number; // Classement
   status: FencerStatus; // Statut dans la compétition
-  exclusionReason?: ExclusionReason | null; // Motif d'exclusion (rapport fédéral)
+  exclusionReason?: ExclusionReason | null; // Motif d'exclusion ou de forfait (rapport fédéral)
   seedNumber?: number; // Tête de série
   initialRanking?: number; // Classement initial
   finalRanking?: number; // Classement final

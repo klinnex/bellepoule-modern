@@ -95,6 +95,7 @@ import RapieresRankingPanel, {
 } from '../../features/rapieres/RapieresRankingPanel';
 import { QRCodeShare } from './QRCodeShare';
 import { computePoolStrips } from '../../shared/utils/poolStrips';
+import { checkInStatusUpdate } from '../../shared/utils/forfeit';
 import { TouchOptimizedReferee } from './TouchOptimizedReferee';
 import KioskScoreEntry from './competition/KioskScoreEntry';
 import { ScoreAuditLog } from './ScoreAuditLog';
@@ -2282,6 +2283,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             onFencersImported={loadFencers}
             onAppelStateChange={handleAppelStateChange}
             onSetFencerStatus={(id, status) => {
+              const update = checkInStatusUpdate(pools, id, status); // DNS (#1256), avant annulation
               // Si forfait, abandon ou exclusion, mettre à jour tous les matchs du tireur
               if (status === FencerStatus.FORFAIT) {
                 handleFencerForfeit(id, 'forfait');
@@ -2296,11 +2298,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                   currentFencer?.status === FencerStatus.ABANDONED ||
                   currentFencer?.status === FencerStatus.FORFAIT ||
                   currentFencer?.status === FencerStatus.EXCLUDED;
-                if (wasInSpecialStatus) {
-                  handleUndoAbandon(id);
-                }
+                if (wasInSpecialStatus) handleUndoAbandon(id);
               }
-              updateFencer(id, { status });
+              updateFencer(id, update);
             }}
           />
         )}

@@ -12,6 +12,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import type { TableauMatchForPDF, FinalResultForPDF } from '../../shared/utils/pdfExport';
+import { forfeitCode } from '../../shared/utils/forfeit';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import type { ConsolationBracket, TableauMatch } from './tableau/tableauTypes';
 import { logger, LogCategory } from '@shared/services/logger';
@@ -363,7 +364,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         case FencerStatus.ABANDONED:
           return 'A';
         case FencerStatus.FORFAIT:
-          return 'F';
+          return forfeitCode(fencer);
         case FencerStatus.EXCLUDED:
           return fencer.exclusionReason === 'black_card' ? 'X (carton noir)' : 'X';
         default:
@@ -735,7 +736,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 <td style={RV_STYLES.tdPad}>
                   {result.fencer.firstName} {result.fencer.lastName}
                   {result.fencer.status === FencerStatus.ABANDONED && ' (A)'}
-                  {result.fencer.status === FencerStatus.FORFAIT && ' (F)'}
+                  {result.fencer.status === FencerStatus.FORFAIT &&
+                    ` (${forfeitCode(result.fencer)})`}
                   {result.fencer.status === FencerStatus.EXCLUDED &&
                     (result.fencer.exclusionReason === 'black_card' ? (
                       <span
