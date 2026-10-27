@@ -709,7 +709,7 @@ async function handleExport(format: string): Promise<void> {
 
 async function handleImport(format: string): Promise<void> {
   const L = getL();
-  let filters: Electron.FileFilter[] = [];
+  let filters: Electron.FileFilter[];
   let title = L.importTitle;
 
   switch (format) {

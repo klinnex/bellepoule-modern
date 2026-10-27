@@ -123,7 +123,7 @@
     "delete_confirm": "Wettkampf „{{title}}“ endgültig löschen? Dies kann nicht rückgängig gemacht werden."
   },
   "fencer": {
-    "abandon": "Aufgeben",
+    "abandon": "Medizinischer Ausfall",
     "add": "Fechter Hinzufügen",
     "birth_date": "Geburtsdatum",
     "check_in": "Anmelden",
@@ -188,7 +188,7 @@
     "report_issue": "Problem Melden"
   },
   "messages": {
-    "confirm_abandon": "{{name}} gibt den Wettbewerb auf. Alle verbleibenden Matches werden durch Nichtantreten verloren. Bestätigen?",
+    "confirm_abandon": "{{name}} verlässt den Wettbewerb aus medizinischen Gründen. Alle verbleibenden Matches werden durch Nichtantreten verloren. Bestätigen?",
     "confirm_delete_fencer": "Sind Sie sicher, dass Sie diesen Fechter löschen möchten? Diese Aktion ist nicht umkehrbar.",
     "confirm_forfait": "{{name}} erklärt das Nichtantreten für den Wettbewerb. Alle verbleibenden Matches werden verloren. Bestätigen?",
     "confirm_reactivate": "{{name}} reaktivieren? Bereits beendete Matches bleiben unverändert.",
@@ -483,13 +483,14 @@
     "zone_c": "Zone C (5 Pt.)"
   },
   "status": {
-    "abandoned": "Aufgegeben",
+    "abandoned": "Medizinisch",
     "checked_in": "Eingecheckt",
     "eliminated": "Ausgeschieden",
     "excluded": "Ausgeschlossen",
     "finished": "Beendet",
     "forfeit": "Nicht Angetreten",
     "forfeit_dns": "Nicht angetreten (DNS)",
+    "medical_dns": "Medizinisch (DNS)",
     "in_progress": "In Bearbeitung",
     "not_checked_in": "Nicht Eingecheckt",
     "not_started": "Nicht Gestartet",
@@ -668,12 +669,12 @@
     "fencers_count_suffix_other": "{{count}} Fechter",
     "quick_score": "Schnelle Ergebniseingabe",
     "tie_hint": "💡 Bei Gleichstand auf V klicken, um den Sieg zu vergeben",
-    "btn_abandon": "🚴 Aufgabe",
+    "btn_abandon": "Medizinisch",
     "btn_forfeit": "📋 Forfait",
     "btn_exclusion": "🚫 Ausschluss",
     "btn_cancel_match": "⏸ Gefecht annullieren",
     "which_fencer": "Welcher Fechter ist {{status}}?",
-    "st_abandon": "ausgeschieden",
+    "st_abandon": "aus medizinischen Gründen ausgeschieden",
     "st_forfeit": "Forfait",
     "st_excluded": "ausgeschlossen",
     "hint_loses": "Er verliert dieses Gefecht; sein Gegner wird zum Sieger erklärt.",
@@ -954,8 +955,8 @@
     "fencers_checked_out_other": "{{count}} Fechter abgemeldet",
     "matches_not_played_one": "{{count}} Gefecht als nicht ausgetragen markiert ({{status}})",
     "matches_not_played_other": "{{count}} Gefechte als nicht ausgetragen markiert ({{status}})",
-    "matches_restored_one": "Aufgabe aufgehoben — {{count}} Gefecht wiederhergestellt",
-    "matches_restored_other": "Aufgabe aufgehoben — {{count}} Gefechte wiederhergestellt"
+    "matches_restored_one": "Medizinischer Ausfall aufgehoben — {{count}} Gefecht wiederhergestellt",
+    "matches_restored_other": "Medizinischer Ausfall aufgehoben — {{count}} Gefechte wiederhergestellt"
   },
   "pdf": {
     "abstention": "Enthaltung",
@@ -1066,7 +1067,7 @@
     "score": "Ergebnis",
     "score_grid": "Ergebnisraster",
     "signature": "Unterschrift",
-    "status_abandoned": "Aufgegeben",
+    "status_abandoned": "Medizinisch",
     "status_checked_in": "Angemeldet",
     "status_eliminated": "Ausgeschieden",
     "status_excluded": "Ausgeschlossen",
@@ -1298,7 +1299,7 @@
     "no_result_title": "Keine Ergebnisse",
     "no_result_desc": "„{{term}}“ passt zu keinem Fechter",
     "actions": "Aktionen",
-    "abandon": "Aufgeben",
+    "abandon": "Medizinischer Ausfall",
     "forfeit": "Forfait",
     "reactivate": "Reaktivieren",
     "col_ref": "Nr.",
@@ -1710,7 +1711,7 @@
     "general": "🌐 Gesamt",
     "qm": "Q/G",
     "qualif": "Qual.",
-    "abandon": "Aufgabe",
+    "abandon": "Medizinisch",
     "forfeit": "Forfait",
     "excluded": "Ausgeschlossen",
     "open_women": "♀ Damen-Wettkampf öffnen →",
@@ -1751,7 +1752,7 @@
     "go_tableau": "Zum Tableau →"
   },
   "poolMatrix": {
-    "not_fenced": "Gefecht nicht ausgetragen (Aufgabe/Forfait)",
+    "not_fenced": "Gefecht nicht ausgetragen (medizinisch/Forfait)",
     "reset": "Dieses Ergebnis löschen",
     "right_click_hide": "Rechtsklick zum Ausblenden",
     "ind": "Ind",
@@ -1886,7 +1887,7 @@
     "print": "🖨️ Drucken",
     "copy": "📋 Kopieren",
     "copied": "Ergebnisse in die Zwischenablage kopiert!",
-    "legend": "(A) = Aufgabe • (F) = Forfait • (X) = Ausgeschlossen"
+    "legend": "(MED) = Medizinisch • (F) = Forfait • (X) = Ausgeschlossen • DNF / DNS = in der Runde / vor dem ersten Gefecht ausgeschieden"
   },
   "ffeConnect": {
     "title": "Aus FFE Connect importieren",
@@ -2225,10 +2226,10 @@
   "tableauScore": {
     "quick_entry": "{{round}} - Schnelleingabe",
     "max_score": "💡 Höchstpunktzahl: {{n}} Treffer",
-    "abandon": "Aufgabe",
+    "abandon": "Medizinisch",
     "forfait": "Forfait",
     "exclusion": "Ausschluss",
-    "who_abandon": "Welcher Fechter gibt auf?",
+    "who_abandon": "Welcher Fechter scheidet aus medizinischen Gründen aus?",
     "who_forfait": "Welcher Fechter tritt nicht an?",
     "who_exclusion": "Welcher Fechter wird ausgeschlossen?"
   },
@@ -2512,7 +2513,7 @@
     "title": "Bestätigung"
   },
   "poolGrid": {
-    "not_played": "Gefecht nicht ausgetragen (Aufgabe/Forfait)",
+    "not_played": "Gefecht nicht ausgetragen (medizinisch/Forfait)",
     "fencer": "Fechter"
   },
   "pdfModal": {

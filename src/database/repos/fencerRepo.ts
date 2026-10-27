@@ -207,7 +207,8 @@ export class FencerRepo {
       console.error('Erreur lors de la suppression du tireur:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(
-        `Erreur de base de données lors de la suppression du tireur: ${errorMessage}`
+        `Erreur de base de données lors de la suppression du tireur: ${errorMessage}`,
+        { cause: error }
       );
     }
   }
@@ -236,7 +237,8 @@ export class FencerRepo {
       console.error('Erreur lors de la suppression des tireurs:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(
-        `Erreur de base de données lors de la suppression des tireurs: ${errorMessage}`
+        `Erreur de base de données lors de la suppression des tireurs: ${errorMessage}`,
+        { cause: error }
       );
     }
   }

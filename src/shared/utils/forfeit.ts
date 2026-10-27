@@ -1,7 +1,8 @@
 /**
  * BellePoule Modern - Forfait DNS / DNF (#1256)
- * DNS (Did Not Start) : forfait déclaré à l'appel pour un tireur n'ayant commencé aucun match de poule.
- * Tout autre forfait (match de poule, ou après un match commencé) reste un forfait classique (DNF).
+ * DNS (Did Not Start) : forfait ou sortie médicale déclaré à l'appel pour un tireur n'ayant commencé
+ * aucun match de poule. Tout autre forfait / sortie médicale en poules reste un DNF.
+ * Le statut ABANDONED est affiché « Médical » (MED).
  * Licensed under GPL-3.0
  */
 
@@ -29,34 +30,57 @@ export function checkInForfeitReason(pools: Pool[], fencerId: string): 'dns' | n
   return hasStartedPoolMatch(pools, fencerId) ? null : 'dns';
 }
 
+const isOut = (status: FencerStatus) =>
+  status === FencerStatus.FORFAIT || status === FencerStatus.ABANDONED;
+
 export function isDns(fencer: Pick<Fencer, 'status' | 'exclusionReason'>): boolean {
-  return fencer.status === FencerStatus.FORFAIT && fencer.exclusionReason === 'dns';
+  return isOut(fencer.status) && fencer.exclusionReason === 'dns';
 }
 
-/** Sigle court du forfait : DNS ou F */
-export function forfeitCode(fencer: Pick<Fencer, 'status' | 'exclusionReason'>): string {
-  return isDns(fencer) ? 'DNS' : 'F';
+/** Sigle court du motif de sortie : MED (médical), F (forfait), X (exclusion), '' sinon */
+export function statusCode(status: FencerStatus): string {
+  switch (status) {
+    case FencerStatus.ABANDONED:
+      return 'MED';
+    case FencerStatus.FORFAIT:
+      return 'F';
+    case FencerStatus.EXCLUDED:
+      return 'X';
+    default:
+      return '';
+  }
+}
+
+const POOL_EXIT_LABELS: Partial<Record<FencerStatus, string>> = {
+  [FencerStatus.ABANDONED]: 'médical',
+  [FencerStatus.FORFAIT]: 'forfait',
+  [FencerStatus.EXCLUDED]: 'exclusion',
+};
+
+/** « Éliminé en » d'un tireur sorti en poules : « Poules (forfait) », « Poules (médical) »… */
+export function poolEliminatedAt(fencer: Pick<Fencer, 'status'>): string {
+  const label = POOL_EXIT_LABELS[fencer.status];
+  return label ? `Poules (${label})` : 'Poules';
 }
 
 /**
- * Libellé du rang au classement final : forfait / abandon pendant les poules (ou DNS) → DNF / DNS,
- * sans numéro. Forfait pendant le tableau : numéro conservé.
+ * Libellé du rang au classement final : forfait / médical pendant les poules (ou DNS) → DNF / DNS,
+ * sans numéro. Sortie pendant le tableau : numéro conservé.
  */
 export function finalRankLabel(
   rank: number,
   fencer: Pick<Fencer, 'status' | 'exclusionReason'>,
   eliminatedAt?: string
 ): string {
-  if (eliminatedAt !== 'Poules') return String(rank);
+  if (!eliminatedAt?.startsWith('Poules')) return String(rank);
   if (isDns(fencer)) return 'DNS';
-  if (fencer.status === FencerStatus.FORFAIT || fencer.status === FencerStatus.ABANDONED)
-    return 'DNF';
+  if (isOut(fencer.status)) return 'DNF';
   return String(rank);
 }
 
 /**
- * Mise à jour du tireur pour un statut posé depuis l'appel : DNS si forfait sans match de poule
- * commencé (à calculer avant l'annulation des matchs), motif effacé sinon. Exclusion : motif
+ * Mise à jour du tireur pour un statut posé depuis l'appel : DNS si forfait / médical sans match de
+ * poule commencé (à calculer avant l'annulation des matchs), motif effacé sinon. Exclusion : motif
  * (carton noir) laissé tel quel.
  */
 export function checkInStatusUpdate(
@@ -65,7 +89,6 @@ export function checkInStatusUpdate(
   status: FencerStatus
 ): Pick<Fencer, 'status' | 'exclusionReason'> {
   if (status === FencerStatus.EXCLUDED) return { status };
-  const exclusionReason =
-    status === FencerStatus.FORFAIT ? checkInForfeitReason(pools, fencerId) : null;
+  const exclusionReason = isOut(status) ? checkInForfeitReason(pools, fencerId) : null;
   return { status, exclusionReason };
 }

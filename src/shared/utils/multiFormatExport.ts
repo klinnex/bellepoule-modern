@@ -205,7 +205,7 @@ export function exportRankingCSV(
   const getStatusLabel = (status: FencerStatus) => {
     switch (status) {
       case FencerStatus.ABANDONED:
-        return 'A';
+        return 'MED';
       case FencerStatus.FORFAIT:
         return 'F';
       case FencerStatus.EXCLUDED:

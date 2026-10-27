@@ -30,6 +30,8 @@ import PoolMatchList from './pool/PoolMatchList';
 import Confetti from './Confetti';
 import AddFencerToPoolModal from './AddFencerToPoolModal';
 import { MatchAuditLog } from './MatchAuditLog';
+import { MedicalCrossIcon } from './common/MedicalCrossIcon';
+import PoolSpecialStatusModal, { type PoolSpecialStatus } from './pool/PoolSpecialStatusModal';
 import { autoAssignReferees } from '../../shared/utils/refereeStats';
 import { LASER_FORFEIT_WINNER_SCORE } from '../../shared/utils/poolCalculations';
 import {
@@ -160,9 +162,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   const [editingMatch, setEditingMatch] = useState<number | null>(null);
   const [isMatchInverted, setIsMatchInverted] = useState(false);
   // Statut spécial en attente de désignation du combattant (abandon/forfait/exclusion)
-  const [pendingSpecialStatus, setPendingSpecialStatus] = useState<
-    'abandon' | 'forfait' | 'exclusion' | null
-  >(null);
+  const [pendingSpecialStatus, setPendingSpecialStatus] = useState<PoolSpecialStatus | null>(null);
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   // Options d'export PDF / impression de la feuille de poule (persistées localement)
   const [pdfHideStatColumns, setPdfHideStatColumns] = useState(
@@ -920,7 +920,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
   // Ouvre la modale « Quel est le combattant … ? ». Les erreurs arrivent : on
   // ne déclenche rien tant que le référent n'a pas désigné un combattant.
-  const handleSpecialStatus = (status: 'abandon' | 'forfait' | 'exclusion') => {
+  const handleSpecialStatus = (status: PoolSpecialStatus) => {
     if (editingMatch === null) return;
     setPendingSpecialStatus(status);
   };
@@ -1305,7 +1305,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 onClick={() => handleSpecialStatus('abandon')}
                 style={SPECIAL_BTN}
               >
-                {t('poolView.btn_abandon')}
+                <MedicalCrossIcon /> {t('poolView.btn_abandon')}
               </button>
               <button
                 className="btn btn-warning"
@@ -1362,68 +1362,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
   // Modale de désignation du combattant pour abandon / forfait / exclusion.
   // Un bouton par combattant + un bouton Annuler (les erreurs, ça arrive).
-  const renderSpecialStatusModal = () => {
-    if (pendingSpecialStatus === null || editingMatch === null) return null;
-
-    const match = pool.matches[editingMatch];
-    const fencerLeft = isMatchInverted ? match.fencerB : match.fencerA;
-    const fencerRight = isMatchInverted ? match.fencerA : match.fencerB;
-
-    const statusLabel =
-      pendingSpecialStatus === 'abandon'
-        ? t('poolView.st_abandon')
-        : pendingSpecialStatus === 'forfait'
-          ? t('poolView.st_forfeit')
-          : t('poolView.st_excluded');
-    const statusHint =
-      pendingSpecialStatus === 'abandon'
-        ? t('poolView.hint_loses')
-        : pendingSpecialStatus === 'forfait'
-          ? t('poolView.hint_loses')
-          : t('poolView.hint_excluded');
-
-    const fencerName = (f?: typeof fencerLeft) =>
-      f ? `${f.lastName} ${f.firstName ?? ''}`.trim() : '—';
-
-    return (
-      <Modal
-        title={t('poolView.which_fencer', { status: statusLabel })}
-        onClose={() => setPendingSpecialStatus(null)}
-        size="sm"
-        elevated
-        footer={
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => setPendingSpecialStatus(null)}
-          >
-            {t('actions.cancel')}
-          </button>
-        }
-      >
-        <p style={MUTED_HINT}>{statusHint}</p>
-        <div style={COL_GAP}>
-          <button
-            type="button"
-            className="btn btn-warning"
-            onClick={() => applySpecialStatus('left')}
-            style={STATUS_BTN}
-          >
-            {fencerName(fencerLeft)}
-          </button>
-          <button
-            type="button"
-            className="btn btn-warning"
-            onClick={() => applySpecialStatus('right')}
-            style={STATUS_BTN}
-          >
-            {fencerName(fencerRight)}
-          </button>
-        </div>
-      </Modal>
-    );
-  };
-
   // Render Grid View
   const renderGridView = () => (
     <>
@@ -1786,7 +1724,15 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             />
           )}
           {renderScoreModal()}
-          {renderSpecialStatusModal()}
+          {pendingSpecialStatus !== null && editingMatch !== null && (
+            <PoolSpecialStatusModal
+              status={pendingSpecialStatus}
+              fencerLeft={pool.matches[editingMatch][isMatchInverted ? 'fencerB' : 'fencerA']}
+              fencerRight={pool.matches[editingMatch][isMatchInverted ? 'fencerA' : 'fencerB']}
+              onPick={applySpecialStatus}
+              onCancel={() => setPendingSpecialStatus(null)}
+            />
+          )}
         </div>
       </div>
       {showAddFencerModal && competitionId && (

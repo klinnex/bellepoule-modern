@@ -24,7 +24,7 @@ const APPEL_COL_HEADERS = (): Record<string, string> => ({
 const APPEL_STATUS_LABELS = (): Record<string, string> => ({
   Q: pdfT('status_qualified', 'Qualifié'),
   E: pdfT('status_eliminated', 'Éliminé'),
-  A: pdfT('status_abandoned', 'Abandon'),
+  A: pdfT('status_abandoned', 'Médical'),
   X: pdfT('status_excluded', 'Exclu'),
   N: pdfT('status_not_checked_in', 'Non pointé'),
   P: pdfT('status_checked_in', 'Pointé'),

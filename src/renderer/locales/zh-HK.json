@@ -89,7 +89,7 @@
     "delete": "刪除",
     "check_in": "報到",
     "uncheck": "取消報到",
-    "abandon": "棄賽",
+    "abandon": "因傷病退賽",
     "forfait": "放棄資格",
     "reactivate": "重新啟用",
     "points": "分數",
@@ -101,10 +101,11 @@
     "not_checked_in": "未報到",
     "qualified": "晉級",
     "eliminated": "已淘汰",
-    "abandoned": "已棄賽",
+    "abandoned": "傷病",
     "excluded": "已除名",
     "forfeit": "已放棄",
     "forfeit_dns": "已放棄 (DNS)",
+    "medical_dns": "傷病 (DNS)",
     "not_started": "未開始",
     "in_progress": "進行中",
     "finished": "已結束"
@@ -344,7 +345,7 @@
   },
   "messages": {
     "confirm_delete_fencer": "確定要刪除此劍手嗎？此操作不可復原。",
-    "confirm_abandon": "{{name}} 退出比賽。所有剩餘賽事將以棄權計負。確認？",
+    "confirm_abandon": "{{name}} 因傷病退出比賽。所有剩餘賽事將以棄權計負。確認？",
     "confirm_forfait": "{{name}} 放棄參賽資格。所有剩餘賽事將計負。確認？",
     "confirm_reactivate": "重新啟用 {{name}}？已完成的比賽結果不受影響。",
     "fencer_not_found": "此劍手已不存在於名單中。正在更新...",
@@ -668,12 +669,12 @@
     "fencers_count_suffix_other": "{{count}} 位劍手",
     "quick_score": "快速輸入分數",
     "tie_hint": "💡 如平手，按 V 判定勝方",
-    "btn_abandon": "🚴 退賽",
+    "btn_abandon": "傷病",
     "btn_forfeit": "📋 棄權",
     "btn_exclusion": "🚫 取消資格",
     "btn_cancel_match": "⏸ 取消比賽",
     "which_fencer": "哪位劍手{{status}}？",
-    "st_abandon": "退賽",
+    "st_abandon": "因傷病退賽",
     "st_forfeit": "棄權",
     "st_excluded": "被取消資格",
     "hint_loses": "此劍手輸掉本場；對手獲判勝出。",
@@ -954,8 +955,8 @@
     "fencers_checked_out_other": "已取消 {{count}} 位劍手報到",
     "matches_not_played_one": "{{count}} 場比賽已標記為未進行（{{status}}）",
     "matches_not_played_other": "{{count}} 場比賽已標記為未進行（{{status}}）",
-    "matches_restored_one": "已取消棄權 — 已還原 {{count}} 場比賽",
-    "matches_restored_other": "已取消棄權 — 已還原 {{count}} 場比賽"
+    "matches_restored_one": "已取消傷病退賽 — 已還原 {{count}} 場比賽",
+    "matches_restored_other": "已取消傷病退賽 — 已還原 {{count}} 場比賽"
   },
   "pdf": {
     "abstention": "棄賽",
@@ -1066,7 +1067,7 @@
     "score": "比分",
     "score_grid": "比分表",
     "signature": "簽名",
-    "status_abandoned": "退出",
+    "status_abandoned": "傷病",
     "status_checked_in": "已報到",
     "status_eliminated": "已淘汰",
     "status_excluded": "取消資格",
@@ -1298,7 +1299,7 @@
     "no_result_title": "沒有結果",
     "no_result_desc": "「{{term}}」沒有相符的劍手",
     "actions": "操作",
-    "abandon": "退賽",
+    "abandon": "因傷病退賽",
     "forfeit": "棄權",
     "reactivate": "重新啟用",
     "col_ref": "編號",
@@ -1710,7 +1711,7 @@
     "general": "🌐 總排名",
     "qm": "Q/賽",
     "qualif": "晉級",
-    "abandon": "退賽",
+    "abandon": "傷病",
     "forfeit": "棄權",
     "excluded": "取消資格",
     "open_women": "開啟 ♀ 女子賽事 →",
@@ -1751,7 +1752,7 @@
     "go_tableau": "前往淘汰賽 →"
   },
   "poolMatrix": {
-    "not_fenced": "比賽未進行（退賽／棄權）",
+    "not_fenced": "比賽未進行（傷病／棄權）",
     "reset": "取消此結果",
     "right_click_hide": "按右鍵隱藏",
     "ind": "指數",
@@ -1886,7 +1887,7 @@
     "print": "🖨️ 列印",
     "copy": "📋 複製",
     "copied": "結果已複製到剪貼簿！",
-    "legend": "(A) = 退賽 • (F) = 棄權 • (X) = 取消資格"
+    "legend": "(MED) = 傷病 • (F) = 棄權 • (X) = 取消資格 • DNF / DNS = 分組賽中退出 / 首場前退出"
   },
   "ffeConnect": {
     "title": "從 FFE Connect 匯入",
@@ -2225,10 +2226,10 @@
   "tableauScore": {
     "quick_entry": "{{round}} - 快速輸入",
     "max_score": "💡 最高分數：{{n}} 劍",
-    "abandon": "棄權",
+    "abandon": "傷病",
     "forfait": "缺席",
     "exclusion": "取消資格",
-    "who_abandon": "哪位劍手棄權？",
+    "who_abandon": "哪位劍手因傷病退賽？",
     "who_forfait": "哪位劍手缺席？",
     "who_exclusion": "哪位劍手被取消資格？"
   },
@@ -2512,7 +2513,7 @@
     "title": "確認"
   },
   "poolGrid": {
-    "not_played": "比賽未進行（棄權/缺席）",
+    "not_played": "比賽未進行（傷病／棄權）",
     "fencer": "劍手"
   },
   "pdfModal": {

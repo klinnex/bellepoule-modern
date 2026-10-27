@@ -330,7 +330,8 @@ export class SimplePdfTemplateManager {
     } catch (error) {
       console.error("Erreur lors de l'export avec template:", error);
       throw new Error(
-        `Échec de l'export: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+        `Échec de l'export: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+        { cause: error }
       );
     }
   }
@@ -348,7 +349,7 @@ export class SimplePdfTemplateManager {
 
       let scoreV = '';
       let scoreP = '';
-      let status = '';
+      let status: string;
 
       if (match.status === MatchStatus.FINISHED && match.scoreA && match.scoreB) {
         scoreV = match.scoreA.value?.toString() || '';

@@ -42,6 +42,7 @@ reste est intégré par Webpack.
 | immer | 11.2.9 | Mises à jour immuables (middleware zustand). |
 | jspdf | 4.2.1 | Génération PDF (`src/shared/utils/pdfExport/`). |
 | jspdf-autotable | 5.0.9 | Tableaux PDF. |
+| pdfjs-dist | 6.4.299 | Aperçu de la boîte d'impression (`components/print/pdfjsLoader.ts`, copié dans `dist/renderer/pdfjs`). |
 | jszip | 3.10.2 | Archives tireurs/photos. |
 | qrcode | 1.5.4 | QR codes (chargé à la demande). |
 | tesseract.js | 7.0.0 | OCR des feuilles de poule (chargé à la demande, hors asar). |
@@ -85,9 +86,9 @@ reste est intégré par Webpack.
 | @testing-library/user-event | 14.6.8 |
 | @playwright/test | 1.64.1 |
 | @axe-core/playwright | 4.14.0 |
-| eslint | 9.39.5 (flat config `eslint.config.js` ; ESLint 10 bloqué par eslint-plugin-react) |
-| @eslint/js | 9.39.5 |
-| @typescript-eslint/parser, eslint-plugin | 8.72.0 |
+| eslint | 10.13.0 (flat config `eslint.config.js` ; `overrides` npm : eslint-plugin-react n'annonce pas ESLint 10, version React explicite au lieu de `detect`) |
+| @eslint/js | 10.0.1 |
+| @typescript-eslint/parser, eslint-plugin | 8.72.1 |
 | eslint-plugin-react | 7.37.5 |
 | eslint-plugin-react-hooks | 7.1.1 (règles React Compiler en `warn`) |
 | eslint-plugin-prettier | 5.5.7 |

@@ -16,7 +16,7 @@ import {
   pdfT,
 } from './core';
 import { getActiveLocale } from '../localeFormat';
-import { forfeitCode, finalRankLabel } from '../forfeit';
+import { statusCode, finalRankLabel } from '../forfeit';
 
 // ─── Export Résultats Finaux ───────────────────────────────────────────────────
 
@@ -43,15 +43,13 @@ export function generateResultsHTML(
     .map(r => {
       const medal = medals[r.rank] ?? '';
       const status =
-        r.fencer.status === FencerStatus.ABANDONED
-          ? ' <span style="color:#ef4444;font-size:8pt">(A)</span>'
-          : r.fencer.status === FencerStatus.FORFAIT
-            ? ` <span style="color:#ef4444;font-size:8pt">(${forfeitCode(r.fencer)})</span>`
-            : r.fencer.status === FencerStatus.EXCLUDED
-              ? r.fencer.exclusionReason === 'black_card'
-                ? ` <span title="${pdfT('black_card', 'Carton noir')}" style="display:inline-block;width:7pt;height:10pt;margin-left:4pt;background:#000;border-radius:1pt;vertical-align:-1pt"></span>`
-                : ' <span style="color:#ef4444;font-size:8pt">(X)</span>'
-              : '';
+        r.fencer.status === FencerStatus.ABANDONED || r.fencer.status === FencerStatus.FORFAIT
+          ? ` <span style="color:#ef4444;font-size:8pt">(${statusCode(r.fencer.status)})</span>`
+          : r.fencer.status === FencerStatus.EXCLUDED
+            ? r.fencer.exclusionReason === 'black_card'
+              ? ` <span title="${pdfT('black_card', 'Carton noir')}" style="display:inline-block;width:7pt;height:10pt;margin-left:4pt;background:#000;border-radius:1pt;vertical-align:-1pt"></span>`
+              : ' <span style="color:#ef4444;font-size:8pt">(X)</span>'
+            : '';
       return `
 <tr>
   <td style="text-align:center;font-weight:700;color:var(--navy)">${medal} ${finalRankLabel(r.rank, r.fencer, r.eliminatedAt)}</td>

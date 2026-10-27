@@ -1,7 +1,7 @@
 /**
  * BellePoule Modern - Chargement de pdf.js à la demande (boîte d'impression, #1214)
  * Modules copiés dans dist/renderer/pdfjs (CopyWebpackPlugin) : rien au démarrage de l'application.
- * pdf.js 4.x : la 3.x ne rend pas les polices des PDF Chromium récents (erreur OTS « cmap »).
+ * pdf.js ≥ 4.x (actuellement 6.x) : la 3.x ne rend pas les polices des PDF Chromium récents (erreur OTS « cmap »).
  * Licensed under GPL-3.0
  */
 

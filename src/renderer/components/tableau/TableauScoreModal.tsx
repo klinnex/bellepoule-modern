@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TableauMatch } from './tableauTypes';
 import { useTranslation } from '../../hooks/useTranslation';
+import { MedicalCrossIcon } from '../common/MedicalCrossIcon';
 
 interface TableauScoreModalProps {
   match: TableauMatch;
@@ -251,7 +252,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
                 onClick={() => setPendingStatus('abandon')}
                 style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
               >
-                🚴 {t('tableauScore.abandon')}
+                <MedicalCrossIcon /> {t('tableauScore.abandon')}
               </button>
               <button
                 className="btn btn-warning"

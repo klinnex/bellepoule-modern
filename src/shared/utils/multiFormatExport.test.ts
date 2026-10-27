@@ -130,10 +130,10 @@ describe('exportRankingCSV', () => {
     expect(csv).toContain(';X;');
   });
 
-  it('marks ABANDONED fencer with A', () => {
+  it('marks ABANDONED fencer with MED (médical, #1256)', () => {
     const f = makeFencer('f1', 1, { status: FencerStatus.ABANDONED });
     const csv = exportRankingCSV([makeRanking(f)]);
-    expect(csv).toContain(';A;');
+    expect(csv).toContain(';MED;');
   });
 
   it('normal fencer has empty status cell', () => {

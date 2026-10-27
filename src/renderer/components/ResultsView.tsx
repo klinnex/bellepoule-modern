@@ -12,7 +12,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import type { TableauMatchForPDF, FinalResultForPDF } from '../../shared/utils/pdfExport';
-import { forfeitCode, finalRankLabel } from '../../shared/utils/forfeit';
+import { statusCode, finalRankLabel, poolEliminatedAt } from '../../shared/utils/forfeit';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import type { ConsolationBracket, TableauMatch } from './tableau/tableauTypes';
 import { logger, LogCategory } from '@shared/services/logger';
@@ -338,20 +338,22 @@ const ResultsView: React.FC<ResultsViewProps> = ({
 
   const resultsToDisplay = (() => {
     if (finalResults.length === 0) {
-      return poolRanking.map((pr, idx) => ({
-        rank: idx + 1,
-        fencer: freshFencer(pr.fencer),
-        eliminatedAt: 'Poules' as const,
-      }));
+      return poolRanking.map((pr, idx) => {
+        const fencer = freshFencer(pr.fencer);
+        return { rank: idx + 1, fencer, eliminatedAt: poolEliminatedAt(fencer) };
+      });
     }
     const tableauIds = new Set(finalResults.map(r => r.fencer.id));
     const poolEliminated = poolRanking
       .filter(pr => !tableauIds.has(pr.fencer.id))
-      .map((pr, idx) => ({
-        rank: finalResults.length + idx + 1,
-        fencer: freshFencer(pr.fencer),
-        eliminatedAt: 'Poules' as const,
-      }));
+      .map((pr, idx) => {
+        const fencer = freshFencer(pr.fencer);
+        return {
+          rank: finalResults.length + idx + 1,
+          fencer,
+          eliminatedAt: poolEliminatedAt(fencer),
+        };
+      });
     return [...finalResults.map(r => ({ ...r, fencer: freshFencer(r.fencer) })), ...poolEliminated];
   })();
 
@@ -360,16 +362,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     const headers = ['Rang', 'Nom', 'Prénom', 'Club', 'Statut', 'Éliminé à'];
 
     const getStatusLabel = (fencer: Fencer) => {
-      switch (fencer.status) {
-        case FencerStatus.ABANDONED:
-          return 'A';
-        case FencerStatus.FORFAIT:
-          return forfeitCode(fencer);
-        case FencerStatus.EXCLUDED:
-          return fencer.exclusionReason === 'black_card' ? 'X (carton noir)' : 'X';
-        default:
-          return '';
-      }
+      if (fencer.status === FencerStatus.EXCLUDED && fencer.exclusionReason === 'black_card')
+        return 'X (carton noir)';
+      return statusCode(fencer.status);
     };
 
     const rows = resultsToDisplay.map(r => {
@@ -735,9 +730,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 </td>
                 <td style={RV_STYLES.tdPad}>
                   {result.fencer.firstName} {result.fencer.lastName}
-                  {result.fencer.status === FencerStatus.ABANDONED && ' (A)'}
-                  {result.fencer.status === FencerStatus.FORFAIT &&
-                    ` (${forfeitCode(result.fencer)})`}
+                  {(result.fencer.status === FencerStatus.ABANDONED ||
+                    result.fencer.status === FencerStatus.FORFAIT) &&
+                    ` (${statusCode(result.fencer.status)})`}
                   {result.fencer.status === FencerStatus.EXCLUDED &&
                     (result.fencer.exclusionReason === 'black_card' ? (
                       <span
