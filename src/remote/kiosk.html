@@ -2143,7 +2143,7 @@
 
             return `<div class="pool-card">
             <div class="pool-card-header">
-              <h3>${escHtml(pool.name || tk('kiosk.pool_n', { n: pool.number || '' }))}</h3>
+              <h3>${escHtml(pool.number ? tk('kiosk.pool_n', { n: pool.number }) : pool.name || '')}</h3>
               <span class="pool-pill ${isComplete ? '' : 'ongoing'}">${isComplete ? escHtml(tk('kiosk.status_finished')) : escHtml(tk('kiosk.status_ongoing'))}</span>
             </div>
             <table class="pool-table">
@@ -2388,7 +2388,7 @@
         // Grouper par pool
         const byPool = new Map();
         for (const m of matches) {
-          const key = m.poolName || tk('kiosk.no_pool');
+          const key = m.poolNumber ? tk('kiosk.pool_n', { n: m.poolNumber }) : m.poolName || tk('kiosk.no_pool');
           if (!byPool.has(key)) byPool.set(key, []);
           byPool.get(key).push(m);
         }
