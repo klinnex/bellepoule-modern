@@ -24,6 +24,7 @@ Give answer. Stop.
 - Réponds majoritairement en **diff unifié** quand on parle de modification de fichier
 - Si aucun changement nécessaire → réponds **uniquement** "OK – à jour" ou "Aucun changement"
 - Jamais plus de 450 lignes de diff par réponse
+- HTML : jamais de nettoyage par regex (`replace(/<script…/)`) → jsdom (scripts/tests) ou `escHtml` (remote). Sinon alerte CodeQL `js/incomplete-multi-character-sanitization`
 - Préfère Haiku 4.5 ou Sonnet 4.6 pour les tâches de doc (beaucoup moins cher)
 
 ## Documentation des tests – règle absolue

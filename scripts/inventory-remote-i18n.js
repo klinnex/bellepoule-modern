@@ -3,38 +3,32 @@
  * Inventaire des textes en dur des pages distantes (src/remote/*.html) (#1213).
  * Liste, par page, les textes visibles et attributs (placeholder, title, aria-label)
  * qui n'ont pas de balise data-i18n*. Usage : node scripts/inventory-remote-i18n.js [--json]
- * Heuristique (regex) : sert de base au passage en data-i18n, pas de contrôle bloquant.
+ * Heuristique (DOM jsdom) : sert de base au passage en data-i18n, pas de contrôle bloquant.
  */
 const fs = require('fs');
 const path = require('path');
+const { JSDOM } = require('jsdom');
 
 const dir = path.join(__dirname, '..', 'src', 'remote');
 const hasLetters = s => /\p{L}{2,}/u.test(s);
 
 function scanPage(html) {
-  const body = html
-    .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '');
+  // Parsing DOM (jsdom), pas de nettoyage HTML par regex (CodeQL)
+  const { document, NodeFilter } = new JSDOM(html).window;
+  document.querySelectorAll('script, style, template').forEach(n => n.remove());
   const found = [];
-  // Texte entre balises, en suivant la balise ouvrante la plus proche
-  const textRe = /<([a-z][a-z0-9]*)([^>]*)>([^<]+)/gi;
-  let m;
-  while ((m = textRe.exec(body))) {
-    const text = m[3]
-      .replace(/&[a-z]+;|&#\d+;/gi, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+  const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const text = node.textContent.replace(/\s+/g, ' ').trim();
     if (!text || !hasLetters(text) || /^\{\{.*\}\}$/.test(text)) continue;
-    if (/data-i18n(?!-)/.test(m[2])) continue;
+    if (node.parentElement && node.parentElement.hasAttribute('data-i18n')) continue;
     found.push({ kind: 'text', value: text });
   }
-  const attrRe = /<[a-z][^>]*>/gi;
-  while ((m = attrRe.exec(body))) {
+  for (const el of document.querySelectorAll('[placeholder], [title], [aria-label]')) {
     for (const attr of ['placeholder', 'title', 'aria-label']) {
-      const a = new RegExp(`\\s${attr}="([^"]+)"`, 'i').exec(m[0]);
-      if (a && hasLetters(a[1]) && !new RegExp(`data-i18n-${attr}=`).test(m[0]))
-        found.push({ kind: attr, value: a[1] });
+      const value = el.getAttribute(attr);
+      if (value && hasLetters(value) && !el.hasAttribute(`data-i18n-${attr}`))
+        found.push({ kind: attr, value });
     }
   }
   return found;
