@@ -15,6 +15,7 @@ import {
   calculatePoolRankingQuest,
   formatQuestPerMatch,
   isDnf,
+  isDnsRanking,
   isMatchVoidedByForfeit,
 } from './poolCalculations';
 import { Fencer, FencerStatus, Match, MatchStatus, Pool, Score, Weapon, Gender } from '../types';
@@ -749,6 +750,18 @@ describe('forfait en cours de poule (Sabre Laser)', () => {
     const ranking = calculatePoolRanking(pool);
     expect(ranking[ranking.length - 1].fencer.id).toBe('a');
     expect(isDnf(ranking[ranking.length - 1])).toBe(true);
+  });
+
+  it("DNS : forfait déclaré à l'appel (motif dns) ≠ DNF (#1256)", () => {
+    const { pool } = build();
+    const last = calculatePoolRanking(pool).slice(-1)[0];
+    expect(isDnsRanking(last)).toBe(false);
+    expect(isDnsRanking({ fencer: { ...last.fencer, exclusionReason: 'dns' as never } })).toBe(
+      true
+    );
+    expect(
+      isDnsRanking({ fencer: { status: FencerStatus.CHECKED_IN, exclusionReason: 'dns' as never } })
+    ).toBe(false);
   });
 
   it('classe le forfait sur ses matchs disputés dans la poule', () => {

@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 40 | 584 |
+| `src/shared/utils/` | 40 | 585 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -720,7 +720,7 @@ Unitaires : 170 fichiers, 1637 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 41 tests</summary>
+<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 42 tests</summary>
 
 - **generatePoolMatchOrder**
   - should generate correct match order for pool of 3 fencers
@@ -766,6 +766,7 @@ Unitaires : 170 fichiers, 1637 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - conserve les matchs disputés et le match du forfait, ignore les matchs annulés
   - armes olympiques : match du forfait annulé, matchs déjà disputés conservés (#1144)
   - armes olympiques : le forfait est classé en fin de poule
+  - DNS : forfait déclaré à l'appel (motif dns) ≠ DNF (#1256)
   - classe le forfait sur ses matchs disputés dans la poule
   - place le forfait en fin de classement général (non qualifié pour le tableau)
 - **isMatchVoidedByForfeit (#1144)**
