@@ -14,7 +14,7 @@
     "src/renderer/components/CompetitionView.tsx": 3116,
     "src/renderer/components/PoolView.tsx": 1828,
     "src/renderer/components/RemoteScoreManager.tsx": 2032,
-    "src/renderer/components/TableauView.tsx": 1608,
+    "src/renderer/components/TableauView.tsx": 1594,
     "src/renderer/components/ThemeEditor.tsx": 1512,
     "src/renderer/components/wiki/wikiData.ts": 2035,
     "src/remote/arena.html": 2302,

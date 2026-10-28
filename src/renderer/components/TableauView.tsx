@@ -25,6 +25,14 @@ import {
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
 import { useModalResize } from '../hooks/useModalResize';
+import { useStateGroup } from '../hooks/useStateGroup';
+import { useColumnMeasures } from '../hooks/useColumnMeasures';
+import {
+  SCORE_EDIT_INIT,
+  ASSIGN_MODALS_INIT,
+  PDF_DIALOG_INIT,
+  loadDESignatures,
+} from './tableau/tableauDialogState';
 import Bracket from './Bracket';
 // pdfExport (jsPDF) chargé à la demande ; seule la constante reste en import statique léger
 import { MAX_MATCHES_PER_PAGE_TABLEAU } from '../../shared/utils/pdfConstants';
@@ -232,68 +240,69 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   const { confirm } = useConfirm();
   const tableauTemplate = usePdfTemplateStore(s => s.templates.tableau);
   const [tableauSize, setTableauSize] = useState<number>(0);
-  const [editingMatch, setEditingMatch] = useState<string | null>(null);
-  const [editingConsolationId, setEditingConsolationId] = useState<string | null>(null);
-  const [showScoreModal, setShowScoreModal] = useState(false);
-  const [editScoreA, setEditScoreA] = useState<string>('');
-  const [editScoreB, setEditScoreB] = useState<string>('');
-  const [victoryA, setVictoryA] = useState(false);
-  const [victoryB, setVictoryB] = useState(false);
+  // États de la modale de score regroupés (#1241)
+  const {
+    editingMatch,
+    setEditingMatch,
+    editingConsolationId,
+    setEditingConsolationId,
+    showScoreModal,
+    setShowScoreModal,
+    editScoreA,
+    setEditScoreA,
+    editScoreB,
+    setEditScoreB,
+    victoryA,
+    setVictoryA,
+    victoryB,
+    setVictoryB,
+  } = useStateGroup(SCORE_EDIT_INIT);
   const [viewMode, setViewMode] = useState<'full' | 'pending'>('full');
   const [pendingOrder, setPendingOrder] = useState<'asc' | 'desc'>('desc');
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
   // Vue arbre : tours compactés un par un, sans effet sur les autres (#1133)
   const [collapsedRounds, setCollapsedRounds] = useState<Set<number>>(new Set());
-  const [showArenaModal, setShowArenaModal] = useState(false);
-  const [selectedMatchForArena, setSelectedMatchForArena] = useState<string | null>(null);
-  const [showRefereeModal, setShowRefereeModal] = useState(false);
-  const [signaturesMatch, setSignaturesMatch] = useState<TableauMatch | null>(null);
-  const [selectedMatchForReferee, setSelectedMatchForReferee] = useState<string | null>(null);
+  // Modales arène / arbitre / signatures regroupées (#1241)
+  const {
+    showArenaModal,
+    setShowArenaModal,
+    selectedMatchForArena,
+    setSelectedMatchForArena,
+    showRefereeModal,
+    setShowRefereeModal,
+    signaturesMatch,
+    setSignaturesMatch,
+    selectedMatchForReferee,
+    setSelectedMatchForReferee,
+    selectedMatchConsolationBracketId,
+    setSelectedMatchConsolationBracketId,
+  } = useStateGroup(ASSIGN_MODALS_INIT);
   const [competitionReferees, setCompetitionReferees] = useState<
     Array<{ id: string; firstName: string; lastName: string; club?: string; status?: string }>
   >([]);
-  const [selectedMatchConsolationBracketId, setSelectedMatchConsolationBracketId] = useState<
-    string | null
-  >(null);
   const [pyramidViewMode, setPyramidViewMode] = useState<boolean>(false);
   // Zoom / pan state (vue bracket full uniquement)
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const isPanningRef = useRef(false);
   const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
-  // SVG connector measures
-  const colRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
-  const bracketWrapRef = useRef<HTMLDivElement | null>(null);
-  const [colMeasures, setColMeasures] = useState<Map<number, { left: number; width: number }>>(
-    new Map()
+  // Mesures des colonnes pour les connecteurs SVG (#1241)
+  const { colRefs, bracketWrapRef, colMeasures } = useColumnMeasures(
+    viewMode === 'full' && !pyramidViewMode,
+    [tableauSize, collapsedRounds]
   );
-  const [showPdfModal, setShowPdfModal] = useState(false);
-  const [pdfMode, setPdfMode] = useState<'print' | 'pdf'>('pdf');
-  const [pdfMatchesPerPage, setPdfMatchesPerPage] = useState<number>(MAX_MATCHES_PER_PAGE_TABLEAU);
-  const [selectedRounds, setSelectedRounds] = useState<Set<number>>(new Set());
+  // Options de la modale PDF/impression regroupées (#1241)
+  const {
+    showPdfModal,
+    setShowPdfModal,
+    pdfMode,
+    setPdfMode,
+    pdfMatchesPerPage,
+    setPdfMatchesPerPage,
+    selectedRounds,
+    setSelectedRounds,
+  } = useStateGroup(PDF_DIALOG_INIT);
   const [autoAssignArenas, setAutoAssignArenas] = useState(false);
-  // Mesure les positions des colonnes pour les connecteurs SVG
-  useLayoutEffect(() => {
-    if (viewMode !== 'full' || pyramidViewMode || !bracketWrapRef.current) return;
-    const wrapLeft = bracketWrapRef.current.getBoundingClientRect().left;
-    const measures = new Map<number, { left: number; width: number }>();
-    colRefs.current.forEach((el, round) => {
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        measures.set(round, { left: rect.left - wrapLeft, width: rect.width });
-      }
-    });
-    // Updater fonctionnel : retourne prev si valeurs identiques → évite re-render inutile
-    setColMeasures(prev => {
-      if (prev.size !== measures.size) return measures;
-      for (const [round, { left, width }] of measures) {
-        const p = prev.get(round);
-        if (!p || p.left !== left || p.width !== width) return measures;
-      }
-      return prev;
-    });
-  }, [viewMode, pyramidViewMode, tableauSize, collapsedRounds]);
-
   // Remet à zéro le zoom/pan si on change de mode
   useEffect(() => {
     setZoom(1);
@@ -954,30 +963,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     const title = `Tableau de ${tableauSize}${roundLabel ? ` — ${roundLabel}` : ''}`;
     const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
     try {
-      // Récupérer les signatures des combattants (saisies sur tablette)
-      let signatures: Record<string, { A?: string; B?: string }> | undefined;
-      try {
-        const api = (window as any).electronAPI;
-        const ids = filteredMatches.map(m => m.id).filter(Boolean);
-        const rows = (await api?.db?.getDEMatchSignaturesByMatchIds?.(ids)) ?? [];
-        if (rows.length > 0) {
-          signatures = {};
-          for (const row of rows) {
-            const match = filteredMatches.find(m => m.id === row.matchId);
-            if (!match) continue;
-            const slot =
-              match.fencerA?.id === row.fencerId
-                ? 'A'
-                : match.fencerB?.id === row.fencerId
-                  ? 'B'
-                  : null;
-            if (!slot) continue;
-            (signatures[row.matchId] ??= {})[slot] = row.signatureData;
-          }
-        }
-      } catch {
-        /* signatures optionnelles */
-      }
+      const signatures = await loadDESignatures(filteredMatches);
 
       const { printTableauHTML, exportTableauToPDF } = await import('../../shared/utils/pdfExport');
       if (pdfMode === 'print') {
