@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 19 | 226 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 19 | 106 |
-| `src/renderer/components/` | 34 | 173 |
+| `src/renderer/components/` | 34 | 174 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 45 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **179** | **1671** |
+| **Total** | **179** | **1672** |
 
-Unitaires : 170 fichiers, 1636 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 170 fichiers, 1637 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3101,7 +3101,7 @@ Unitaires : 170 fichiers, 1636 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 13 tests</summary>
+<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 14 tests</summary>
 
 - **PrintDialog (#1214)**
   - présélectionne l’imprimante par défaut et génère l’aperçu avec les réglages
@@ -3112,6 +3112,7 @@ Unitaires : 170 fichiers, 1636 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - enregistrement annulé dans le dialogue : la boîte reste ouverte
   - Boîte de dialogue système : bascule sur l’impression native
   - Annuler : fermeture sans erreur (pas de toast d’échec chez l’appelant)
+  - fermeture après aperçu : libère pdf.js sans planter (croix ou Annuler)
   - aperçu en échec : impression et enregistrement restent possibles
 - **PrintDialogHost (#1214)**
   - enregistre le gestionnaire, ouvre la boîte à la demande et renvoie le résultat

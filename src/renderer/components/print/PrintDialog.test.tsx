@@ -10,10 +10,14 @@ vi.mock('../../hooks/useTranslation', () => ({
   }),
 }));
 
+const taskDestroy = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+
 vi.mock('./pdfjsLoader', () => ({
   loadPdfJs: vi.fn().mockResolvedValue({
     GlobalWorkerOptions: { workerSrc: '' },
+    // pdf.js ≥ 5 : destroy() est sur la tâche de chargement, pas sur le document
     getDocument: () => ({
+      destroy: taskDestroy,
       promise: Promise.resolve({
         numPages: 3,
         // getContext peut renvoyer un contexte si le paquet canvas est compilé (CI) : render requis
@@ -21,7 +25,6 @@ vi.mock('./pdfjsLoader', () => ({
           getViewport: () => ({ width: 100, height: 140 }),
           render: () => ({ promise: Promise.resolve() }),
         }),
-        destroy: vi.fn().mockResolvedValue(undefined),
       }),
     }),
   }),
@@ -147,6 +150,13 @@ describe('PrintDialog (#1214)', () => {
     fireEvent.click(screen.getByText('actions.cancel'));
     expect(onDone).toHaveBeenCalledWith({ success: true, canceled: true });
     expect(api.execute).not.toHaveBeenCalled();
+  });
+
+  it('fermeture après aperçu : libère pdf.js sans planter (croix ou Annuler)', async () => {
+    const { unmount } = render(<PrintDialog html="<p>a</p>" onDone={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText('print.print')).toBeEnabled());
+    expect(() => unmount()).not.toThrow();
+    expect(taskDestroy).toHaveBeenCalled();
   });
 
   it('aperçu en échec : impression et enregistrement restent possibles', async () => {

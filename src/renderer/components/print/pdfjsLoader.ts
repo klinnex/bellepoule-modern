@@ -22,14 +22,17 @@ export interface PdfPage {
 export interface PdfDocument {
   numPages: number;
   getPage(n: number): Promise<PdfPage>;
+}
+
+/** pdf.js ≥ 5 : la libération passe par la tâche de chargement (PDFDocumentProxy n'a plus destroy) */
+export interface PdfLoadingTask {
+  promise: Promise<PdfDocument>;
   destroy(): Promise<void>;
 }
 
 export interface PdfJsLib {
   GlobalWorkerOptions: { workerSrc: string };
-  getDocument(params: { data: Uint8Array; isEvalSupported: boolean }): {
-    promise: Promise<PdfDocument>;
-  };
+  getDocument(params: { data: Uint8Array; isEvalSupported: boolean }): PdfLoadingTask;
 }
 
 let loading: Promise<PdfJsLib> | null = null;
