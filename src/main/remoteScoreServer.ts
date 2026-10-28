@@ -40,7 +40,7 @@ import {
   localIPv4Address,
   normalizeIp,
 } from './remote/network';
-import type { BlackCardRecord, TeamArenaCard, TeamArenaState } from './remote/types';
+import type { BlackCardRecord, TeamArenaState } from './remote/types';
 import type { PhaseEtaSummary, RouteContext } from './remote/routes/context';
 import {
   LoginGuard,
@@ -79,22 +79,23 @@ import { buildPoolScores } from './remote/poolScore';
 import { readRemoteSharedFiles } from './remote/i18nBundle';
 
 export { PASSWORD_MIN_LENGTH };
-import {
-  getLaserArenaBoutCap,
-  isLaserArenaBoutComplete,
-} from '../features/teams/utils/laserArenaCalculations';
-import { getTeamTargetRule } from '../features/teams/utils/teamCalculations';
-import {
-  FIE_RELAY_DURATION_SEC,
-  isRelayComplete,
-  relayCapFor,
-  relayCumul,
-} from '../features/teams/utils/teamRelayLive';
-import { getAvailableReasons } from '../shared/utils/cardSystem';
 import { setupSocketHandlers, type SocketHandlersContext } from './remote/socketHandlers';
 import { handleArenaControl, type ArenaControlContext } from './remote/arenaControl';
 import { setupMiddleware, type MiddlewareContext } from './remote/middleware';
 import { startSession, type SessionStartContext } from './remote/sessionStart';
+import { liveContext } from './remote/liveContext';
+import {
+  setTeamArenaMatch,
+  clearTeamArenaMatch,
+  teamArenaElapsedSec,
+  getPublicTeamArenaState,
+  type TeamArenaContext,
+} from './remote/teamArena';
+import {
+  startTrainingSession,
+  createTrainingMatch,
+  type TrainingSessionContext,
+} from './remote/trainingSession';
 import { finishArenaMatch, type MatchFinishContext } from './remote/matchFinish';
 import {
   peekNextMatch,
@@ -496,6 +497,49 @@ export class RemoteScoreServer {
     });
   }
   private _middlewareCtx?: MiddlewareContext;
+
+  /** Contexte de trainingSession.ts (#1240) */
+  private get trainingSessionCtx(): TrainingSessionContext {
+    return (this._trainingSessionCtx ??= liveContext<TrainingSessionContext>(
+      this,
+      [
+        'poolFencersCache',
+        'poolSignaturesCache',
+        'sessionBlackCards',
+        'sessionMatchScores',
+        'isTrainingMode',
+        'session',
+        'sessionBlackCardEnabled',
+        'sessionCardAnnounce',
+        'sessionCustomScoring',
+        'sessionKioskViews',
+        'sessionMatches',
+        'sessionModernRules',
+        'sessionPoolMaxScore',
+        'sessionPoolTimerSeconds',
+        'sessionRefereeFeatureEnabled',
+        'sessionRestSeconds',
+        'sessionShowPhotos',
+        'sessionTableMaxScore',
+        'sessionTableTimerSeconds',
+        'sessionWeapon',
+        'trainingCustomRules',
+        'trainingHistory',
+      ],
+      ['assignMatchToArena', 'notifyKioskData', 'setArenaCount']
+    ));
+  }
+  private _trainingSessionCtx?: TrainingSessionContext;
+
+  /** Contexte de teamArena.ts (#1240) */
+  private get teamArenaCtx(): TeamArenaContext {
+    return (this._teamArenaCtx ??= liveContext<TeamArenaContext>(this, [
+      'db',
+      'io',
+      'teamArenaState',
+    ]));
+  }
+  private _teamArenaCtx?: TeamArenaContext;
 
   /** Contexte de sessionStart.ts (#1240) */
   private get sessionStartCtx(): SessionStartContext {
@@ -1178,114 +1222,26 @@ export class RemoteScoreServer {
     }
   }
 
-  // ── Format arène Sabre Laser équipe : saisie temps réel ──────────────────────
-  // API publique appelée depuis les IPC handlers (renderer → main → ici), suivant
-  // le même modèle que les arènes individuelles mais sur un état séparé.
+  // ── Format arène Sabre Laser équipe : saisie temps réel (src/main/remote/teamArena.ts) ──
 
   /** Assigne une rencontre d'équipe à une arène pour saisie temps réel. */
-  public setTeamArenaMatch(arenaId: string, matchId: string, isLaserPoints: boolean): boolean {
-    const detail = this.db.getTeamMatchDetail(matchId);
-    if (!detail) return false;
-    const competition = this.db.getCompetition(detail.competitionId);
-    const settings = competition?.settings;
-    const weapon = (competition?.weapon ?? Weapon.EPEE) as Weapon;
-    const rule = getTeamTargetRule(
-      weapon,
-      settings?.minTeamSize ?? 3,
-      settings?.laserTeamMode ?? 'touches',
-      settings?.teamRelayStepSize ?? 5
-    );
-    this.teamArenaState.set(arenaId, {
-      format: settings?.teamFormat === 'laser-arena' ? 'laser-arena' : 'fie-relay',
-      weapon,
-      relayRule: { stepSize: rule.stepSize, target: rule.target },
-      fencerCards: this.db.getTeamBoutCards(matchId).map(({ boutId, card }) => ({
-        id: card.id,
-        boutId,
-        fencerId: card.fencerId,
-        type: card.type,
-        reason: card.reason,
-      })),
-      matchId: detail.id,
-      competitionId: detail.competitionId,
-      teamAId: detail.teamAId,
-      teamAName: detail.teamAName,
-      teamBId: detail.teamBId,
-      teamBName: detail.teamBName,
-      isLaserPoints,
-      bouts: detail.bouts,
-      currentBoutIndex: detail.bouts.findIndex(b => b.status !== 'finished'),
-      liveScoreA: 0,
-      liveScoreB: 0,
-      elapsedAccumulatedSec: 0,
-      timerStartedAt: null,
-      cards: this.db.getTeamMatchCards(matchId) as TeamArenaCard[],
-    });
-    this.io
-      .to(`team-arena:${arenaId}`)
-      .emit('team_arena_state', this.getPublicTeamArenaState(arenaId));
-    return true;
+  public setTeamArenaMatch(...args: Tail<Parameters<typeof setTeamArenaMatch>>): boolean {
+    return setTeamArenaMatch(this.teamArenaCtx, ...args);
   }
 
   /** Retire l'assignation d'une arène (fin de saisie temps réel pour cette arène). */
-  public clearTeamArenaMatch(arenaId: string): void {
-    this.teamArenaState.delete(arenaId);
-    this.io.to(`team-arena:${arenaId}`).emit('team_arena_state', null);
+  public clearTeamArenaMatch(...args: Tail<Parameters<typeof clearTeamArenaMatch>>): void {
+    clearTeamArenaMatch(this.teamArenaCtx, ...args);
   }
 
   private teamArenaElapsedSec(state: TeamArenaState): number {
-    const running = state.timerStartedAt ? (Date.now() - state.timerStartedAt) / 1000 : 0;
-    return state.elapsedAccumulatedSec + running;
+    return teamArenaElapsedSec(state);
   }
 
-  private getPublicTeamArenaState(arenaId: string): unknown {
-    const state = this.teamArenaState.get(arenaId);
-    if (!state) return null;
-    const currentBout = state.bouts[state.currentBoutIndex] ?? null;
-    const elapsedSec = this.teamArenaElapsedSec(state);
-    const relay = state.format === 'fie-relay';
-    const { cumulA, cumulB } = relayCumul(
-      state.bouts,
-      currentBout,
-      state.liveScoreA,
-      state.liveScoreB
-    );
-    const relayCap = currentBout ? relayCapFor(currentBout.boutOrder, state.relayRule) : 0;
-    const cap = relay
-      ? { maxTouches: relayCap, maxDurationSec: FIE_RELAY_DURATION_SEC }
-      : getLaserArenaBoutCap();
-    const boutComplete = !currentBout
-      ? false
-      : relay
-        ? isRelayComplete(cumulA, cumulB, relayCap, elapsedSec)
-        : isLaserArenaBoutComplete(state.liveScoreA, state.liveScoreB, elapsedSec, cap);
-    return {
-      format: state.format,
-      cumulA,
-      cumulB,
-      target: state.relayRule.target,
-      fencerCards: state.fencerCards,
-      cardReasons: relay ? getAvailableReasons(state.weapon) : [],
-      matchId: state.matchId,
-      teamAId: state.teamAId,
-      teamAName: state.teamAName,
-      teamBId: state.teamBId,
-      teamBName: state.teamBName,
-      isLaserPoints: state.isLaserPoints,
-      bouts: state.bouts,
-      currentBoutIndex: state.currentBoutIndex,
-      currentBout,
-      liveScoreA: state.liveScoreA,
-      liveScoreB: state.liveScoreB,
-      elapsedSec,
-      timerRunning: state.timerStartedAt !== null,
-      cap,
-      boutComplete,
-      matchComplete: !currentBout,
-      cards: state.cards,
-      blackCardEnabled:
-        this.db.getCompetition(state.competitionId)?.settings?.blackCardEnabled === true,
-    };
+  private getPublicTeamArenaState(
+    ...args: Tail<Parameters<typeof getPublicTeamArenaState>>
+  ): unknown {
+    return getPublicTeamArenaState(this.teamArenaCtx, ...args);
   }
 
   // Délégués vers src/main/remote/auth.ts (noms conservés pour les routes existantes)
@@ -2778,82 +2734,13 @@ export class RemoteScoreServer {
   }
 
   public async startTrainingSession(
-    strips: number,
-    weapon: string,
-    customRules?: {
-      matchDurationSeconds?: number;
-      allowedZones?: string[];
-      disableSuddenDeath?: boolean;
-    }
+    ...args: Tail<Parameters<typeof startTrainingSession>>
   ): Promise<RemoteSession> {
-    if (this.session) throw new Error('Session déjà active');
-    const effectiveStrips = Math.max(1, Math.min(strips, 20));
-    this.isTrainingMode = true;
-    this.trainingHistory = [];
-    this.sessionWeapon = weapon;
-    this.sessionCustomScoring = null;
-    const duration = customRules?.matchDurationSeconds ?? 180;
-    this.sessionPoolTimerSeconds = duration;
-    this.sessionTableTimerSeconds = duration;
-    this.sessionPoolMaxScore = null;
-    this.sessionTableMaxScore = null;
-    this.sessionRestSeconds = 0;
-    this.sessionModernRules = ['E', 'F', 'S'].includes(weapon ?? '');
-    this.trainingCustomRules = {
-      matchDurationSeconds: duration,
-      allowedZones: customRules?.allowedZones ?? [],
-      disableSuddenDeath: customRules?.disableSuddenDeath ?? false,
-    };
-    this.sessionShowPhotos = false;
-    this.sessionCardAnnounce = false;
-    this.sessionRefereeFeatureEnabled = false;
-    this.sessionBlackCardEnabled = false;
-    this.sessionBlackCards.clear();
-    this.sessionKioskViews = {
-      poules: false,
-      classement: true,
-      direct: true,
-      suivants: false,
-      tableau: false,
-    };
-    this.sessionMatchScores.clear();
-    this.poolFencersCache.clear();
-    this.poolSignaturesCache.clear();
-    this.setArenaCount(effectiveStrips);
-    this.sessionMatches = [];
-    this.notifyKioskData();
-    this.session = {
-      competitionId: '__training__',
-      strips: Array.from({ length: effectiveStrips }, (_, i) => ({
-        number: i + 1,
-        status: 'available' as const,
-      })),
-      referees: [],
-      activeMatches: [],
-      isRunning: true,
-      startTime: new Date(),
-    };
-    for (let i = 1; i <= effectiveStrips; i++) {
-      this.assignMatchToArena(`arena${i}`, this.createTrainingMatch());
-    }
-    console.log(
-      `[RemoteScoreServer] Session entraînement démarrée: ${effectiveStrips} pistes, arme=${weapon}`
-    );
-    return this.session;
+    return startTrainingSession(this.trainingSessionCtx, ...args);
   }
 
   private createTrainingMatch(): ArenaMatch {
-    return {
-      id: `training-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      poolId: '__training__',
-      fencerA: { id: 'training-A', firstName: '', lastName: 'Tireur A', club: '', ref: 0 } as any,
-      fencerB: { id: 'training-B', firstName: '', lastName: 'Tireur B', club: '', ref: 0 } as any,
-      scoreA: 0,
-      scoreB: 0,
-      status: 'not_started',
-      startTime: null,
-      endTime: null,
-    };
+    return createTrainingMatch();
   }
 
   public getTrainingHistory() {
