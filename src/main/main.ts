@@ -29,7 +29,7 @@ import { registerDbHandlers } from './ipc/dbHandlers';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
 import { previewPdf, registerPdfPreviewHandlers } from './ipc/pdfPreview';
 import { registerPrintDialogHandlers } from './ipc/printDialog';
-import { postWebhook } from './webhook';
+import { registerWebhookHandlers } from './ipc/webhookHandlers';
 import { printHtmlSilently, printHtmlWithSystemDialog } from './printWindows';
 import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from './remoteRegistry';
 import { applyActiveWave, setActiveWave } from './remote/activeWave';
@@ -1708,22 +1708,7 @@ ipcMain.handle(
   }
 );
 
-ipcMain.handle('remote:setWebhookUrl', async (_, url: string | null) => {
-  try {
-    for (const { server } of remoteServers.values()) {
-      server.setWebhookUrl(url);
-    }
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
-  }
-});
-
-// Test du webhook depuis les réglages : envoi côté main (la CSP du renderer bloque les hôtes externes) (#1269)
-ipcMain.handle('remote:testWebhook', async (_, url: unknown) => {
-  if (typeof url !== 'string') return { success: false, error: 'invalid_url' };
-  return postWebhook(url, { text: '✅ BellePoule Modern — test de notification webhook' });
-});
+registerWebhookHandlers();
 
 ipcMain.handle('remote:updateLogo', async (_, logo: string | null) => {
   try {
