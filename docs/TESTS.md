@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 4 | 24 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 19 | 226 |
+| `src/main/` | 20 | 232 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 19 | 106 |
 | `src/renderer/components/` | 34 | 174 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **179** | **1673** |
+| **Total** | **180** | **1679** |
 
-Unitaires : 170 fichiers, 1638 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 171 fichiers, 1644 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2404,6 +2404,19 @@ Unitaires : 170 fichiers, 1638 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - calcule le sha256
   - valide un hash correct
   - rejette un hash incorrect ou invalide
+
+</details>
+
+<details>
+<summary><code>src/main/webhook.test.ts</code> — 6 tests</summary>
+
+- **webhook (#1269)**
+  - ajoute content (Discord) à partir de text (Slack) et conserve les champs
+  - ajoute text à partir de content
+  - message par défaut si le corps est sans texte
+  - refuse une URL non sécurisée sans requête
+  - succès sur 204 (Discord) et envoie le JSON avec content
+  - échec explicite sur 4xx et sur erreur réseau
 
 </details>
 

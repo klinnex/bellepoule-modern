@@ -698,6 +698,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         customTheme
       ),
     setWebhookUrl: (url: string | null) => ipcRenderer.invoke('remote:setWebhookUrl', url),
+    testWebhook: (url: string) => ipcRenderer.invoke('remote:testWebhook', url),
     updateLogo: (logo: string | null) => ipcRenderer.invoke('remote:updateLogo', logo),
     setTtsConfig: (config: unknown) => ipcRenderer.invoke('remote:setTtsConfig', config),
     setWallpaper: (competitionId: string, wallpaper: string | null) =>

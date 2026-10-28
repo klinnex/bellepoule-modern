@@ -304,19 +304,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     setWebhookTestStatus('testing');
     setWebhookTestMessage('');
     try {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: '✅ BellePoule Modern — test de notification webhook',
-          username: 'BellePoule',
-        }),
-      });
+      // Envoi côté main : la CSP du renderer bloque les hôtes externes (#1269)
+      const res = await window.electronAPI?.remote?.testWebhook?.(webhookUrl.trim());
+      if (!res?.success) throw new Error(res?.error ?? 'failed');
       setWebhookTestStatus('success');
       setWebhookTestMessage(t('settings.webhook_success'));
-    } catch {
+    } catch (e) {
       setWebhookTestStatus('error');
-      setWebhookTestMessage(t('settings.webhook_failed'));
+      const detail =
+        e instanceof Error && e.message.startsWith('http_') ? ` (HTTP ${e.message.slice(5)})` : '';
+      setWebhookTestMessage(t('settings.webhook_failed') + detail);
     }
   };
 

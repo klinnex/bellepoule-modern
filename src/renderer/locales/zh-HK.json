@@ -868,6 +868,7 @@
   },
   "errors": {
     "server_not_started": "伺服器未啟動",
+    "invalid_url": "網址無效 — 必須是指向公開主機的 https",
     "remote_not_started": "此比賽的遠端伺服器未啟動",
     "remote_already_started": "此比賽的伺服器已啟動",
     "training_not_started": "訓練伺服器未啟動",
