@@ -16,7 +16,7 @@ import {
   pdfLang,
   pdfT,
 } from './core';
-import { formatQuestPerMatch, isDnf } from '../poolCalculations';
+import { formatQuestPerMatch, isDnf, isDnsRanking } from '../poolCalculations';
 import { getActiveLocale } from '../localeFormat';
 
 // ─── Export Classement Général ───────────────────────────────────────────────
@@ -44,7 +44,7 @@ export function generateRankingHTML(
       const abandoned = code ? ` <span style="color:#ef4444;font-size:8pt">(${code})</span>` : '';
       return `
 <tr>
-  ${vis('rank') ? `<td style="text-align:center;font-weight:700;color:var(--navy)">${isDnf(r) ? pdfT('dnf', 'DNF') : r.rank}</td>` : ''}
+  ${vis('rank') ? `<td style="text-align:center;font-weight:700;color:var(--navy)">${isDnsRanking(r) ? pdfT('dns', 'DNS') : isDnf(r) ? pdfT('dnf', 'DNF') : r.rank}</td>` : ''}
   ${vis('lastName') ? `<td style="font-weight:600">${r.fencer.lastName.toUpperCase()}${abandoned}</td>` : ''}
   ${vis('firstName') ? `<td>${r.fencer.firstName ?? ''}</td>` : ''}
   ${vis('club') ? `<td style="color:var(--gray-dark)">${r.fencer.club ?? ''}</td>` : ''}

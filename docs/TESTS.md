@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 40 | 584 |
+| `src/shared/utils/` | 40 | 585 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 20 | 232 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 19 | 106 |
-| `src/renderer/components/` | 34 | 173 |
+| `src/renderer/components/` | 34 | 174 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 45 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **180** | **1677** |
+| **Total** | **180** | **1679** |
 
-Unitaires : 171 fichiers, 1642 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 171 fichiers, 1644 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -720,7 +720,7 @@ Unitaires : 171 fichiers, 1642 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 41 tests</summary>
+<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 42 tests</summary>
 
 - **generatePoolMatchOrder**
   - should generate correct match order for pool of 3 fencers
@@ -766,6 +766,7 @@ Unitaires : 171 fichiers, 1642 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - conserve les matchs disputés et le match du forfait, ignore les matchs annulés
   - armes olympiques : match du forfait annulé, matchs déjà disputés conservés (#1144)
   - armes olympiques : le forfait est classé en fin de poule
+  - DNS : forfait déclaré à l'appel (motif dns) ≠ DNF (#1256)
   - classe le forfait sur ses matchs disputés dans la poule
   - place le forfait en fin de classement général (non qualifié pour le tableau)
 - **isMatchVoidedByForfeit (#1144)**
@@ -3114,7 +3115,7 @@ Unitaires : 171 fichiers, 1642 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 13 tests</summary>
+<summary><code>src/renderer/components/print/PrintDialog.test.tsx</code> — 14 tests</summary>
 
 - **PrintDialog (#1214)**
   - présélectionne l’imprimante par défaut et génère l’aperçu avec les réglages
@@ -3125,6 +3126,7 @@ Unitaires : 171 fichiers, 1642 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - enregistrement annulé dans le dialogue : la boîte reste ouverte
   - Boîte de dialogue système : bascule sur l’impression native
   - Annuler : fermeture sans erreur (pas de toast d’échec chez l’appelant)
+  - fermeture après aperçu : libère pdf.js sans planter (croix ou Annuler)
   - aperçu en échec : impression et enregistrement restent possibles
 - **PrintDialogHost (#1214)**
   - enregistre le gestionnaire, ouvre la boîte à la demande et renvoie le résultat

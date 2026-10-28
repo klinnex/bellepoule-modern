@@ -9,7 +9,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Modal from '../common/Modal';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { PrintDialogSettings } from '../../../shared/types/preload';
-import { loadPdfJs, type PdfDocument } from './pdfjsLoader';
+import { loadPdfJs, type PdfDocument, type PdfLoadingTask } from './pdfjsLoader';
 import { isValidPageRanges, loadSettings, pageRangesBeyond, saveSettings } from './printSettings';
 
 export interface PrintDialogResult {
@@ -33,6 +33,15 @@ const PREVIEW_DELAY_MS = 350;
 const documentTitle = (html: string): string | undefined =>
   /<title>([^<]{1,120})<\/title>/i.exec(html)?.[1]?.trim();
 
+/** Libère le document pdf.js ; une erreur de libération ne doit jamais faire planter l'interface */
+const destroyTask = (task: PdfLoadingTask | null) => {
+  try {
+    void Promise.resolve(task?.destroy()).catch(() => {});
+  } catch {
+    /* ignoré */
+  }
+};
+
 const PrintDialog: React.FC<PrintDialogProps> = ({ html, onDone }) => {
   const { t } = useTranslation();
   const api = window.electronAPI.printDialog;
@@ -46,6 +55,7 @@ const PrintDialog: React.FC<PrintDialogProps> = ({ html, onDone }) => {
   const [error, setError] = useState('');
   const pagesRef = useRef<HTMLDivElement>(null);
   const docRef = useRef<PdfDocument | null>(null);
+  const taskRef = useRef<PdfLoadingTask | null>(null);
 
   const update = <K extends keyof PrintDialogSettings>(key: K, value: PrintDialogSettings[K]) =>
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -122,16 +132,18 @@ const PrintDialog: React.FC<PrintDialogProps> = ({ html, onDone }) => {
         const [lib, res] = await Promise.all([loadPdfJs(), api.render(html, settings)]);
         if (stale) return;
         if (!res.success || !res.data) throw new Error(res.error || 'render_failed');
-        const doc = await lib.getDocument({ data: res.data, isEvalSupported: false }).promise;
+        const task = lib.getDocument({ data: res.data, isEvalSupported: false });
+        const doc = await task.promise;
         if (stale) {
-          void doc.destroy();
+          destroyTask(task);
           return;
         }
-        const previous = docRef.current;
+        const previous = taskRef.current;
         docRef.current = doc;
+        taskRef.current = task;
         setPageCount(doc.numPages);
         await renderPages(doc, zoomRef.current, () => stale);
-        void previous?.destroy();
+        destroyTask(previous);
       } catch {
         if (!stale) setPreviewError(t('print.preview_failed'));
       } finally {
@@ -159,7 +171,8 @@ const PrintDialog: React.FC<PrintDialogProps> = ({ html, onDone }) => {
 
   useEffect(
     () => () => {
-      void docRef.current?.destroy();
+      destroyTask(taskRef.current);
+      taskRef.current = null;
       docRef.current = null;
     },
     []

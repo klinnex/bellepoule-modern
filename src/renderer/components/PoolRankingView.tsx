@@ -29,6 +29,7 @@ import {
   getPoolWinnerIds,
   splitRankingByGender,
   isDnf,
+  isDnsRanking,
 } from '../../shared/utils/poolCalculations';
 import { useToast } from './Toast';
 import { useColumnVisibility, RANKING_COLUMNS, ColumnId } from '../hooks/useColumnVisibility';
@@ -328,7 +329,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
     };
 
     const rows = editedRanking.map(r => [
-      isDnf(r) ? 'DNF' : r.rank,
+      isDnsRanking(r) ? 'DNS' : isDnf(r) ? 'DNF' : r.rank,
       r.fencer.lastName,
       r.fencer.firstName,
       r.fencer.club || '',
@@ -637,7 +638,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                         </div>
                       ) : (
                         <span className={getRankBadgeClass(ranking.rank)}>
-                          {isDnf(ranking) ? 'DNF' : ranking.rank}
+                          {isDnsRanking(ranking) ? 'DNS' : isDnf(ranking) ? 'DNF' : ranking.rank}
                         </span>
                       )}
                     </td>
