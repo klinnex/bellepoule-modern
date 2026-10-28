@@ -123,6 +123,8 @@ import {
 import { getArenaBlackCards, cancelBlackCard, type BlackCardsContext } from './remote/blackCards';
 import { buildDashboardSnapshot, computePhaseEta, type DashboardContext } from './remote/dashboard';
 import { getUiLanguage } from './menuLabels';
+import { isWebhookUrlSafe } from '../shared/services/notificationService';
+import { postWebhook } from './webhook';
 
 export type ArenaEventList = 'touchesA' | 'touchesB' | 'cardsA' | 'cardsB' | 'exits';
 
@@ -2941,18 +2943,13 @@ export class RemoteScoreServer {
   }
 
   public setWebhookUrl(url: string | null): void {
-    this.webhookUrl = url && url.startsWith('https://') ? url : null;
+    this.webhookUrl = url && isWebhookUrlSafe(url) ? url : null;
   }
 
   private fireWebhook(payload: Record<string, unknown>): void {
     if (!this.webhookUrl) return;
-    fetch(this.webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }).catch(() => {
-      /* silencieux — ne pas bloquer le flux */
-    });
+    // Silencieux : ne jamais bloquer le flux de match (#1269)
+    void postWebhook(this.webhookUrl, payload);
   }
 
   public setLogo(logo: string | null): void {

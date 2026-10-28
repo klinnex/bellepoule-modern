@@ -508,6 +508,7 @@ export interface RemoteServerAPI {
     customTheme?: import('../types/remote').CustomTheme
   ) => Promise<{ success: boolean; error?: string }>;
   setWebhookUrl: (url: string | null) => Promise<{ success: boolean; error?: string }>;
+  testWebhook: (url: string) => Promise<{ success: boolean; status?: number; error?: string }>;
   updateLogo: (logo: string | null) => Promise<{ success: boolean; error?: string }>;
   setTtsConfig: (config: TtsConfig) => Promise<{ success: boolean; error?: string }>;
   setWallpaper: (

@@ -868,6 +868,7 @@
   },
   "errors": {
     "server_not_started": "N'eo ket loc'het ar servijer",
+    "invalid_url": "URL direizh — rankout a ra bezañ https etrezek un ostiz foran",
     "remote_not_started": "N'eo ket loc'het ar servijer a-bell evit ar genstrivadeg-mañ",
     "remote_already_started": "Loc'het eo ar servijer evit ar genstrivadeg-mañ dija",
     "training_not_started": "N'eo ket loc'het servijer an embregerezh",

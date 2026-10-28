@@ -868,6 +868,7 @@
   },
   "errors": {
     "server_not_started": "Server not started",
+    "invalid_url": "Invalid URL — must be https to a public host",
     "remote_not_started": "The remote server is not started for this competition",
     "remote_already_started": "The server is already started for this competition",
     "training_not_started": "Training server not started",

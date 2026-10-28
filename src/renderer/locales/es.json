@@ -868,6 +868,7 @@
   },
   "errors": {
     "server_not_started": "Servidor no iniciado",
+    "invalid_url": "URL no válida — debe ser https hacia un host público",
     "remote_not_started": "El servidor remoto no está iniciado para esta competición",
     "remote_already_started": "El servidor ya está iniciado para esta competición",
     "training_not_started": "Servidor de entrenamiento no iniciado",
