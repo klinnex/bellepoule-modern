@@ -97,16 +97,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 19 | 226 |
 | `src/renderer/services/` | 4 | 22 |
-| `src/renderer/hooks/` | 19 | 106 |
-| `src/renderer/components/` | 34 | 174 |
+| `src/renderer/hooks/` | 21 | 111 |
+| `src/renderer/components/` | 35 | 177 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 45 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **179** | **1672** |
+| **Total** | **182** | **1681** |
 
-Unitaires : 170 fichiers, 1637 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 173 fichiers, 1646 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2514,6 +2514,15 @@ Unitaires : 170 fichiers, 1637 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/hooks/useColumnMeasures.test.tsx</code> — 2 tests</summary>
+
+- **useColumnMeasures**
+  - reste vide sans conteneur ou inactif
+  - mesure les colonnes relativement au conteneur
+
+</details>
+
+<details>
 <summary><code>src/renderer/hooks/useColumnVisibility.test.tsx</code> — 6 tests</summary>
 
 - **useColumnVisibility**
@@ -2738,6 +2747,16 @@ Unitaires : 170 fichiers, 1637 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - valeurs par défaut : HTTPS, port 8066, toutes les interfaces
   - relit les réglages enregistrés (port par compétition)
   - charge la liste des interfaces réseau
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useStateGroup.test.tsx</code> — 3 tests</summary>
+
+- **useStateGroup**
+  - expose les valeurs initiales et accepte valeur ou fonction
+  - garde des setters stables
+  - gère les Set immuables
 
 </details>
 
@@ -3156,6 +3175,16 @@ Unitaires : 170 fichiers, 1637 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **generateFIESeeding (#1080)**
   - tables en dur identiques à la construction FIE générique
   - tableau de 256 seedé (1 et 2 ne se rencontrent qu’en finale)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/tableau/tableauDialogState.test.ts</code> — 3 tests</summary>
+
+- **tableauDialogState**
+  - états initiaux
+  - loadDESignatures associe signature au bon côté
+  - retourne undefined sans lignes ou en cas d erreur
 
 </details>
 
