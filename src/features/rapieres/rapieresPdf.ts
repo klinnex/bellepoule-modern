@@ -20,6 +20,16 @@ const esc = (s: string | number) =>
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
+/** Même mise en page que le classement après poules : rang en gras, textes à gauche, chiffres centrés */
+const rankingCellStyle = (i: number) =>
+  i === 0
+    ? 'text-align:center;font-weight:700;color:var(--navy)'
+    : i <= 3
+      ? i === 1
+        ? 'font-weight:600'
+        : ''
+      : 'text-align:center';
+
 export function generateRapieresRankingHTML(table: RapieresPdfTable): string {
   const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
@@ -42,11 +52,16 @@ export function generateRapieresRankingHTML(table: RapieresPdfTable): string {
   </div>
   <div class="gold-bar"></div>
   <table>
-    <thead><tr>${table.headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
+    <thead><tr>${table.headers
+      .map(
+        (h, i) =>
+          `<th style="${i === 0 ? 'width:10mm' : i <= 3 ? 'text-align:left' : ''}">${esc(h)}</th>`
+      )
+      .join('')}</tr></thead>
     <tbody>${table.rows
       .map(
         r =>
-          `<tr>${r.map((c, i) => `<td${i === 0 ? ' class="c"' : ''}>${esc(c)}</td>`).join('')}</tr>`
+          `<tr>${r.map((c, i) => `<td style="${rankingCellStyle(i)}">${esc(c)}</td>`).join('')}</tr>`
       )
       .join('')}</tbody>
   </table>

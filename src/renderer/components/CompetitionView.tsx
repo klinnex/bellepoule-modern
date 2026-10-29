@@ -2585,7 +2585,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         {currentPhase === 'ranking' && isRapieres && !viewedRoundPools && (
           <RapieresRankingPanel
             competitionTitle={competition.title}
-            title={t('rapieres.ranking_intermediate')}
+            wave={rapieres.launchedWave}
             ranked={overallRanking.map(r => ({ teamId: r.fencer.id, rank: r.rank }))}
             fencers={fencers}
             teams={rapieres.teams}
@@ -2780,11 +2780,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         {currentPhase === 'results' && isRapieres && (
           <RapieresRankingPanel
             competitionTitle={competition.title}
-            title={
-              finalResults.length > 0
-                ? t('rapieres.ranking_final')
-                : t('rapieres.ranking_intermediate')
-            }
+            final={finalResults.length > 0}
+            wave={rapieres.launchedWave}
             ranked={mergeFinalRanking(finalResults, overallRanking)}
             fencers={fencers}
             teams={rapieres.teams}

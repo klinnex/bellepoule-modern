@@ -33,7 +33,9 @@ export interface RapieresTeamStats {
 
 interface RapieresRankingPanelProps {
   competitionTitle: string;
-  title: string;
+  /** Classement final (sinon intermédiaire, titré avec la vague en cours) */
+  final?: boolean;
+  wave: number;
   ranked: RapieresRankedTeam[];
   fencers: Fencer[];
   teams: Record<string, RapieresTeamInfo>;
@@ -44,7 +46,8 @@ const fencerName = (f: RapieresFencer) => `${f.lastName.toUpperCase()} ${f.first
 
 const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
   competitionTitle,
-  title,
+  final = false,
+  wave,
   ranked,
   fencers,
   teams,
@@ -52,6 +55,11 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
+  const title = final
+    ? t('rapieres.ranking_final')
+    : wave > 0
+      ? t('rapieres.ranking_intermediate_wave', { n: wave })
+      : t('rapieres.ranking_intermediate');
   const [filterKey, setFilterKey] = useState('teams');
 
   const filters = useMemo(() => {

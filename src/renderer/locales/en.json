@@ -836,6 +836,7 @@
     "gender_unset": "Not set",
     "ranking_gender": "{{gender}} fencers",
     "ranking_intermediate": "Intermediate ranking (after pools)",
+    "ranking_intermediate_wave": "Intermediate ranking (wave {{n}})",
     "ranking_final": "Final ranking",
     "export_pdf": "Export to PDF",
     "print": "Print",
