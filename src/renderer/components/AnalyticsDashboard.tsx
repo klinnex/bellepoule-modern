@@ -298,7 +298,6 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
   >([]);
   const [selectedTimeframe, setSelectedTimeframe] = useState<'live' | 'last30min' | 'all'>('live');
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState(new Date());
   const [exporting, setExporting] = useState(false);
 
   const loadFencerStats = useCallback(async () => {
@@ -329,20 +328,21 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
     }
   };
 
-  const analyticsData = useMemo(
-    () => calculateAnalytics(competition, pools, matches, fencers, selectedTimeframe),
+  const latest = useMemo(
+    () => ({
+      data: calculateAnalytics(competition, pools, matches, fencers, selectedTimeframe),
+      at: new Date(),
+      timeframe: selectedTimeframe,
+    }),
     [competition, pools, matches, fencers, selectedTimeframe]
   );
-
-  useEffect(() => {
-    if (!autoRefresh || selectedTimeframe !== 'live') return;
-
-    const interval = setInterval(() => {
-      setLastUpdate(new Date());
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [autoRefresh, selectedTimeframe]);
+  // Auto-refresh décoché en mode live : on fige le dernier instantané (#1293)
+  const [snapshot, setSnapshot] = useState(latest);
+  const following = autoRefresh || selectedTimeframe !== 'live' || snapshot.timeframe !== 'live';
+  if (following && snapshot !== latest) setSnapshot(latest);
+  const shown = following ? latest : snapshot;
+  const analyticsData = shown.data;
+  const lastUpdate = shown.at;
 
   return (
     <div className="modal-overlay" onClick={onClose}>

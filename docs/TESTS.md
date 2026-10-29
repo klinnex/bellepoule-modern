@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 21 | 235 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 22 | 114 |
-| `src/renderer/components/` | 35 | 177 |
+| `src/renderer/components/` | 36 | 178 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 45 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **186** | **1695** |
+| **Total** | **187** | **1696** |
 
-Unitaires : 177 fichiers, 1660 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 178 fichiers, 1661 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2849,6 +2849,14 @@ Unitaires : 177 fichiers, 1660 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - ajoute quand même le tireur si la poule est absente de la base (#905)
   - exclut les tireurs déjà placés dans une autre poule
   - le bouton ajouter est désactivé sans sélection
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/AnalyticsDashboard.test.tsx</code> — 1 test</summary>
+
+- **AnalyticsDashboard**
+  - n'avance l'horodatage que lorsque les données changent, sans timer
 
 </details>
 
