@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Competition, Pool, Match, MatchStatus, PoolRanking, Weapon } from '../../shared/types';
 import { formatIndex } from '../../shared/utils/poolCalculations';
 import {
