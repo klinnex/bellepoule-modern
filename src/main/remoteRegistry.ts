@@ -35,3 +35,11 @@ export function stopRemoteServer(competitionId: string): boolean {
   remoteServers.delete(competitionId);
   return true;
 }
+
+/** Pousse la liste des clients à la fenêtre, avec l'id de compétition du serveur émetteur (#1292) */
+export function sendClientListToWindow(server: RemoteScoreServer, clients: unknown[]): void {
+  const mainWin = (global as any).mainWindow;
+  if (!mainWin) return;
+  const owner = [...remoteServers].find(([, e]) => e.server === server)?.[0] ?? null;
+  mainWin.webContents.send('remote:clientListUpdate', clients, owner);
+}

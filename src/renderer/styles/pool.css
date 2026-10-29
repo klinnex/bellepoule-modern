@@ -621,3 +621,19 @@ button.pv-pill {
   opacity: 0.6;
   font-size: 0.8rem;
 }
+
+/* Bouton « Colonnes » des classements (#1279) */
+.ranking-col-wrap {
+  position: relative;
+}
+.ranking-col-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ranking-col-btn-active {
+  border: 2px solid #f97316;
+}
+.ranking-col-icon {
+  vertical-align: middle;
+}

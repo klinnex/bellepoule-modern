@@ -483,7 +483,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               style={{ fontSize: '0.8rem', padding: '0.375rem 0.65rem' }}
               title={t('poolRanking.columns_title')}
             >
-              <Funnel size={14} style={{ verticalAlign: 'middle' }} /> {t('poolRanking.columns')}
+              <Funnel size={14} className="ranking-col-icon" /> {t('poolRanking.columns')}
             </button>
             {showColumnMenu && (
               <div className="ranking-col-menu">
