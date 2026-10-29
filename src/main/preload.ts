@@ -4,10 +4,10 @@
  * Licensed under GPL-3.0
  */
 
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
 
 // DIAGNOSTIC inconditionnel : affiche les sondes serveur dans la console renderer.
-ipcRenderer.on('remote:diag', (_: any, msg: string) => {
+ipcRenderer.on('remote:diag', (_: IpcRendererEvent, msg: string) => {
   console.warn('[DIAG serveur]', msg);
 });
 import type {
@@ -79,7 +79,7 @@ const validateMatchData = (match: MatchCreateData): void => {
 type PrintRequestHandler = (html: string) => Promise<{ success: boolean; error?: string }>;
 let printRequestHandler: PrintRequestHandler | null = null;
 
-contextBridge.exposeInMainWorld('electronAPI', {
+const electronApi = {
   // Database operations with validation
   db: {
     // Competitions
@@ -607,7 +607,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       strips: number,
       matches?: any[],
       showPhotos?: boolean,
-      kioskViews?: { poules: boolean; classement: boolean; direct: boolean; suivants: boolean },
+      kioskViews?: Record<string, boolean>,
       cardAnnounce?: boolean
     ) =>
       ipcRenderer.invoke(
@@ -632,15 +632,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('remote:updateCardAnnounce', competitionId, value),
     updateTheme: (competitionId: string, theme: string) =>
       ipcRenderer.invoke('remote:updateTheme', competitionId, theme),
-    updateKioskViews: (
-      competitionId: string,
-      views: {
-        poules: boolean;
-        classement: boolean;
-        direct: boolean;
-        suivants: boolean;
-      }
-    ) => ipcRenderer.invoke('remote:updateKioskViews', competitionId, views),
+    updateKioskViews: (competitionId: string, views: Record<string, boolean>) =>
+      ipcRenderer.invoke('remote:updateKioskViews', competitionId, views),
     updateMatchArena: (
       competitionId: string,
       matchId: string,
@@ -760,7 +753,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     broadcastCommand: (competitionId: string, command: any) =>
       ipcRenderer.invoke('remote:broadcastCommand', competitionId, command),
     onClientListUpdate: (cb: (clients: any[]) => void) => {
-      const handler = (_: any, clients: any[]) => cb(clients);
+      const handler = (_: IpcRendererEvent, clients: any[]) => cb(clients);
       ipcRenderer.on('remote:clientListUpdate', handler);
       return () => ipcRenderer.removeListener('remote:clientListUpdate', handler);
     },
@@ -787,12 +780,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Remote event listeners (for real-time updates)
   onRemoteArenaUpdate: (callback: (data: any) => void) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('arena:update', handler);
     return () => ipcRenderer.removeListener('arena:update', handler);
   },
   onRemoteMatchFinished: (callback: (data: any) => void) => {
-    const handler = (_: any, data: any) => {
+    const handler = (_: IpcRendererEvent, data: any) => {
       // DIAGNOSTIC : confirmer que l'IPC match:finished atteint bien le renderer.
       console.warn(
         '[preload] IPC match:finished reçu',
@@ -808,14 +801,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('match:finished', handler);
   },
   onTrainingMatchFinished: (callback: (data: any) => void) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('training:match_finished', handler);
     return () => ipcRenderer.removeListener('training:match_finished', handler);
   },
   onRemoteFencerExcluded: (
     callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void
   ) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('remote:fencer_excluded', handler);
     return () => ipcRenderer.removeListener('remote:fencer_excluded', handler);
   },
@@ -828,24 +821,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
       scoreB: number;
     }) => void
   ) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('remote:fencer_reinstated', handler);
     return () => ipcRenderer.removeListener('remote:fencer_reinstated', handler);
   },
   onRemoteCheckinUpdated: (
     callback: (data: { kind: 'fencer' | 'referee'; id: string; present: boolean }) => void
   ) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('remote:checkin_updated', handler);
     return () => ipcRenderer.removeListener('remote:checkin_updated', handler);
   },
   onRemoteRefereeChanged: (callback: (data: { matchId: string; refereeId: string }) => void) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('remote:referee_changed', handler);
     return () => ipcRenderer.removeListener('remote:referee_changed', handler);
   },
   onKioskNoteUpdate: (callback: (note: any) => void) => {
-    const handler = (_: any, note: any) => callback(note);
+    const handler = (_: IpcRendererEvent, note: any) => callback(note);
     ipcRenderer.on('kiosk:note', handler);
     return () => ipcRenderer.removeListener('kiosk:note', handler);
   },
@@ -860,18 +853,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
       fencerName?: string | null;
     }) => void
   ) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('remote:dt_call', handler);
     return () => ipcRenderer.removeListener('remote:dt_call', handler);
   },
   onDTCallCancel: (callback: (data: { arenaId: string }) => void) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('remote:dt_cancel', handler);
     return () => ipcRenderer.removeListener('remote:dt_cancel', handler);
   },
 
   onScoreIpConflict: (callback: (data: any) => void) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('score:ip-conflict', handler);
     return () => ipcRenderer.removeListener('score:ip-conflict', handler);
   },
@@ -879,13 +872,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onPoolSignatureUpdated: (
     callback: (data: { poolId: string; signedFencerIds: string[]; totalFencers: number }) => void
   ) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('pool:signature:updated', handler);
     return () => ipcRenderer.removeListener('pool:signature:updated', handler);
   },
 
   onTableauSignatureUpdated: (callback: (data: { matchId: string; fencerId: string }) => void) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('tableau:signature:updated', handler);
     return () => ipcRenderer.removeListener('tableau:signature:updated', handler);
   },
@@ -893,7 +886,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getLogo: () => ipcRenderer.invoke('app:getLogo'),
   getTtsConfig: () => ipcRenderer.invoke('app:getTtsConfig'),
   onLogoLoaded: (callback: (logo: string | null) => void) => {
-    const handler = (_: any, logo: string | null) => callback(logo);
+    const handler = (_: IpcRendererEvent, logo: string | null) => callback(logo);
     ipcRenderer.on('app:logoLoaded', handler);
     return () => ipcRenderer.removeListener('app:logoLoaded', handler);
   },
@@ -916,7 +909,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const arg = process.argv.find(a => a.startsWith('--initial-lang='));
     return arg ? arg.slice('--initial-lang='.length) : null;
   })(),
-});
+} satisfies ElectronAPI;
+
+contextBridge.exposeInMainWorld('electronAPI', electronApi);
 
 // Type declarations for the renderer
 declare global {
