@@ -515,3 +515,159 @@
   vertical-align: -0.125em;
   flex-shrink: 0;
 }
+
+/* Parcours guidé (#1305) */
+.guided-tour {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 900;
+  width: 20rem;
+  max-width: calc(100vw - 2.5rem);
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #111827);
+  border: 1px solid var(--color-border, #e5e7eb);
+  box-shadow: 0 12px 32px rgba(30, 64, 175, 0.25);
+  animation: guided-tour-in 0.45s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+.guided-tour-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1e40af;
+}
+.guided-tour-header strong {
+  flex: 1;
+}
+.guided-tour-skip {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  padding: 0.2rem;
+  border-radius: 0.4rem;
+}
+.guided-tour-skip:hover {
+  background: rgba(30, 64, 175, 0.1);
+}
+.guided-tour-steps {
+  list-style: none;
+  margin: 0.7rem 0 0.5rem;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.guided-tour-step {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.85rem;
+  opacity: 0.65;
+  transition: opacity 0.3s ease;
+}
+.guided-tour-step.is-current {
+  opacity: 1;
+  font-weight: 600;
+}
+.guided-tour-step.is-done {
+  opacity: 0.85;
+}
+.guided-tour-bullet {
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  border: 1px solid #93c5fd;
+  flex-shrink: 0;
+}
+.guided-tour-step.is-current .guided-tour-bullet {
+  background: #1e40af;
+  border-color: #1e40af;
+  color: #fff;
+  animation: guided-tour-pulse 1.8s ease-out infinite;
+}
+.guided-tour-step.is-done .guided-tour-bullet {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+  animation: guided-tour-pop 0.4s ease-out;
+}
+.guided-tour-hint {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+.guided-tour-progress {
+  width: 100%;
+  height: 0.35rem;
+  border: none;
+  border-radius: 999px;
+  overflow: hidden;
+  appearance: none;
+  margin-bottom: 0.6rem;
+}
+.guided-tour-progress::-webkit-progress-bar {
+  background: #dbeafe;
+}
+.guided-tour-progress::-webkit-progress-value {
+  background: linear-gradient(90deg, #3b82f6, #16a34a);
+  transition: width 0.5s ease;
+}
+.guided-tour-action {
+  width: 100%;
+  font-size: 0.8rem;
+}
+/* Repère sur l'étape de navigation concernée */
+.phase-step.tour-highlight {
+  animation: guided-tour-ring 1.8s ease-out infinite;
+}
+@keyframes guided-tour-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes guided-tour-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(30, 64, 175, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 0 0.6rem rgba(30, 64, 175, 0);
+  }
+}
+@keyframes guided-tour-pop {
+  0% {
+    transform: scale(0.5);
+  }
+  70% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes guided-tour-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 0.7rem rgba(59, 130, 246, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guided-tour,
+  .guided-tour-step.is-current .guided-tour-bullet,
+  .guided-tour-step.is-done .guided-tour-bullet,
+  .phase-step.tour-highlight {
+    animation: none;
+  }
+}

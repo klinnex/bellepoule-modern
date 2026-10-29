@@ -14,6 +14,7 @@ import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
 import { logger, LogCategory } from '@shared/services/logger';
 import { isWebhookUrlSafe } from '@shared/services/notificationService';
+import { restartGuidedTour } from './guidedTour';
 import {
   UI_SCALES,
   loadUiScale,
@@ -516,6 +517,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 onClick={() => setShowPdfEditor(true)}
               >
                 {t('pdfTemplate.openButton')}
+              </button>
+            </div>
+
+            {/* Parcours guidé (#1305) */}
+            <div className="form-group" style={SECTION_DIVIDER}>
+              <label style={BOLD}>{t('settings.tour_title')}</label>
+              <p style={HINT}>{t('settings.tour_hint')}</p>
+              <button type="button" className="btn btn-secondary" onClick={restartGuidedTour}>
+                {t('settings.tour_restart')}
               </button>
             </div>
 

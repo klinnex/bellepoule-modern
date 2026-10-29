@@ -312,7 +312,10 @@
     "tts_m10": "10 secondes",
     "tts_m5": "5 secondes",
     "tts_countdown": "Décompte 4 → 1",
-    "tts_m0": "« Temps ! » (fin)"
+    "tts_m0": "« Temps ! » (fin)",
+    "tour_title": "Parcours guidé",
+    "tour_hint": "Un guide en 5 étapes pour votre première compétition (tireurs, pointage, poules, scores, tableau).",
+    "tour_restart": "Relancer le parcours guidé"
   },
   "actions": {
     "add": "Ajouter",
@@ -2626,5 +2629,22 @@
     "save_pdf": "Enregistrer en PDF",
     "system_dialog": "Boîte de dialogue système…",
     "failed": "Échec de l'impression"
+  },
+  "tour": {
+    "title": "Première compétition",
+    "skip": "Passer le parcours",
+    "close": "Terminer",
+    "finished_title": "Bravo, parcours terminé !",
+    "finished_hint": "Vous connaissez maintenant le déroulé d'une compétition. Relancez ce guide depuis les paramètres.",
+    "step_fencers": "Ajouter les tireurs",
+    "step_checkin": "Faire le pointage",
+    "step_pools": "Générer les poules",
+    "step_scores": "Saisir les scores",
+    "step_tableau": "Lancer le tableau",
+    "hint_fencers": "Importez un fichier ou ajoutez les tireurs à la main dans l'onglet Appel.",
+    "hint_checkin": "Pointez les tireurs présents (clic sur la ligne du tireur).",
+    "hint_pools": "Cliquez sur « Générer les poules » (4 tireurs pointés minimum).",
+    "hint_scores": "Ouvrez une poule et saisissez le score d'un match.",
+    "hint_tableau": "Une fois les poules terminées, passez au tableau d'élimination directe."
   }
 }

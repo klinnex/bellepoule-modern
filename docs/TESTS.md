@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 21 | 235 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 21 | 108 |
-| `src/renderer/components/` | 38 | 181 |
+| `src/renderer/components/` | 40 | 190 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 45 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **188** | **1693** |
+| **Total** | **190** | **1702** |
 
-Unitaires : 179 fichiers, 1658 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 181 fichiers, 1667 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2950,6 +2950,18 @@ Unitaires : 179 fichiers, 1658 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 5 tests</summary>
+
+- **GuidedTour**
+  - se propose une fois sur une compétition vide
+  - ne se propose pas sur une compétition déjà remplie
+  - passer le parcours le masque et ne le refait pas apparaître
+  - se relance depuis les paramètres
+  - met en évidence la phase de l’étape en cours
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/ImportModal.test.tsx</code> — 3 tests</summary>
 
 - **ImportModal**
@@ -3124,6 +3136,17 @@ Unitaires : 179 fichiers, 1658 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **Card**
   - en-tête, corps et pied
   - sans titre ni actions : pas d’en-tête
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/guidedTour.test.ts</code> — 4 tests</summary>
+
+- **guidedTour**
+  - commence par l’ajout des tireurs sur une compétition vide
+  - valide les étapes selon l’état de la compétition
+  - retourne null quand toutes les étapes sont faites
+  - mémorise le drapeau et ignore les valeurs invalides
 
 </details>
 

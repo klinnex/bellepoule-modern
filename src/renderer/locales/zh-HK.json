@@ -312,7 +312,10 @@
     "tts_m10": "10 秒",
     "tts_m5": "5 秒",
     "tts_countdown": "倒數 4 → 1",
-    "tts_m0": "「時間到！」（結束）"
+    "tts_m0": "「時間到！」（結束）",
+    "tour_title": "導覽",
+    "tour_hint": "首次比賽的 5 步驟指南（劍手、報到、小組、比分、淘汰賽表）。",
+    "tour_restart": "重新啟動導覽"
   },
   "actions": {
     "add": "新增",
@@ -2626,5 +2629,22 @@
     "save_pdf": "儲存為 PDF",
     "system_dialog": "系統對話框…",
     "failed": "列印失敗"
+  },
+  "tour": {
+    "title": "首次比賽",
+    "skip": "略過導覽",
+    "close": "完成",
+    "finished_title": "做得好，導覽完成！",
+    "finished_hint": "你現在已了解比賽的流程。可隨時在設定中重新啟動此導覽。",
+    "step_fencers": "新增劍手",
+    "step_checkin": "劍手報到",
+    "step_pools": "產生小組",
+    "step_scores": "輸入比分",
+    "step_tableau": "開始淘汰賽表",
+    "hint_fencers": "匯入檔案，或在報到分頁手動新增劍手。",
+    "hint_checkin": "為已到場的劍手報到（點擊劍手所在列）。",
+    "hint_pools": "按「產生小組」（至少需 4 位已報到劍手）。",
+    "hint_scores": "開啟一個小組並輸入一場比賽的比分。",
+    "hint_tableau": "小組賽結束後，進入直接淘汰賽表。"
   }
 }

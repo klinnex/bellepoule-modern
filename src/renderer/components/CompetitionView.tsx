@@ -2040,8 +2040,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   );
 
   // Rendu d'une carte de poule (réutilisé par la vue grille et la vue poule unique)
-  // Pools affichées en consultation : tour sélectionné, ou dernier tour terminé
-  // pendant l'appel / la préparation du tour suivant (#1051)
+  // Pools en consultation : tour sélectionné, ou dernier tour terminé pendant l'appel (#1051)
   const historyPoolsToShow =
     viewedRoundPools ??
     (pools.length === 0 && poolHistory.length > 0 ? poolHistory[poolHistory.length - 1] : null);
@@ -2215,6 +2214,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         tableauMatches={tableauMatches}
         onOpenPlanningAssistant={() => modals.setShowPlanningAssistant(true)}
         isTeamEvent={isTeamEvent}
+        tourReady={isLoaded}
       />
 
       {/* Content — keyed pour animation de transition */}
