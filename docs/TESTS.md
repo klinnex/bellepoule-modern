@@ -92,7 +92,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 5 | 26 |
+| Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
 | `src/main/` | 21 | 235 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **190** | **1702** |
+| **Total** | **190** | **1703** |
 
-Unitaires : 181 fichiers, 1667 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 181 fichiers, 1668 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1687,11 +1687,12 @@ Unitaires : 181 fichiers, 1667 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresPdf.test.ts</code> — 2 tests</summary>
+<summary><code>src/features/rapieres/rapieresPdf.test.ts</code> — 3 tests</summary>
 
 - **generateRapieresRankingHTML**
   - aligne les colonnes selon leur nature quand des colonnes sont masquées (#1279)
   - garde la mise en page par défaut sans kinds
+  - reprend le style du classement après poules et colore l'indice (#1279)
 
 </details>
 

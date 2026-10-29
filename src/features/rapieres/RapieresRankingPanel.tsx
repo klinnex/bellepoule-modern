@@ -42,7 +42,7 @@ const COLUMN_KINDS: RapieresColumnKind[] = [
   'text',
   'num',
   'num',
-  'num',
+  'index',
   'num',
 ];
 
