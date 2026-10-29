@@ -32,6 +32,7 @@ import {
   isDnsRanking,
 } from '../../shared/utils/poolCalculations';
 import { useToast } from './Toast';
+import { Funnel } from 'lucide-react';
 import { useColumnVisibility, RANKING_COLUMNS, ColumnId } from '../hooks/useColumnVisibility';
 import {
   CollapseToggle,
@@ -482,7 +483,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               style={{ fontSize: '0.8rem', padding: '0.375rem 0.65rem' }}
               title={t('poolRanking.columns_title')}
             >
-              {t('poolRanking.columns')}
+              <Funnel size={14} style={{ verticalAlign: 'middle' }} /> {t('poolRanking.columns')}
             </button>
             {showColumnMenu && (
               <div className="ranking-col-menu">
