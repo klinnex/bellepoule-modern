@@ -21,13 +21,30 @@ import { getActiveLocale } from '../localeFormat';
 
 // ─── Export Classement Général ───────────────────────────────────────────────
 
+/** Style du tableau de classement, partagé avec le classement du tournoi des rapières (#1279) */
+export const RANKING_TABLE_CSS = `
+table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+th {
+  background: var(--navy); color: var(--white);
+  font-size: 8pt; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; padding: 2.5mm 3mm; text-align: center;
+}
+td { padding: 2mm 3mm; border-bottom: 1px solid var(--gray-light); vertical-align: middle; overflow-wrap: anywhere; }
+tr:nth-child(even) td { background: var(--gray-xlight); }
+tr:nth-child(1) td, tr:nth-child(2) td, tr:nth-child(3) td { font-size: 9.5pt; }
+tr:nth-child(1) td:first-child { color: #d97706; font-size: 11pt; }
+tr:nth-child(2) td:first-child { color: #6b7280; font-size: 11pt; }
+tr:nth-child(3) td:first-child { color: #92400e; font-size: 11pt; }
+`;
+
 export function generateRankingHTML(
   ranking: PoolRanking[],
   title: string,
   isLaserSabre: boolean,
   visibleColumns: string[],
   logoBase64?: string,
-  template?: PdfTemplate
+  template?: PdfTemplate,
+  nameLabels?: { lastName: string; firstName: string }
 ): string {
   const vis = (col: string) => visibleColumns.includes(col);
   const now = new Date().toLocaleDateString(getActiveLocale(), {
@@ -63,8 +80,8 @@ export function generateRankingHTML(
 
   const headers = [
     th('rank', pdfT('col_rank', 'Rg'), 'width:10mm'),
-    th('lastName', pdfT('col_last_name', 'Nom'), 'text-align:left'),
-    th('firstName', pdfT('col_first_name', 'Prénom'), 'text-align:left'),
+    th('lastName', nameLabels?.lastName ?? pdfT('col_last_name', 'Nom'), 'text-align:left'),
+    th('firstName', nameLabels?.firstName ?? pdfT('col_first_name', 'Prénom'), 'text-align:left'),
     th('club', pdfT('col_club', 'Club'), 'text-align:left'),
     th('victories', pdfT('col_v', 'V')),
     th('ratio', pdfT('col_ratio', 'V/M')),
@@ -113,18 +130,7 @@ export function generateRankingHTML(
   <style>
     ${BASE_CSS}
     ${cssOverrides}
-    table { width: 100%; border-collapse: collapse; font-size: 9pt; }
-    th {
-      background: var(--navy); color: var(--white);
-      font-size: 8pt; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.8px; padding: 2.5mm 3mm; text-align: center;
-    }
-    td { padding: 2mm 3mm; border-bottom: 1px solid var(--gray-light); vertical-align: middle; }
-    tr:nth-child(even) td { background: var(--gray-xlight); }
-    tr:nth-child(1) td, tr:nth-child(2) td, tr:nth-child(3) td { font-size: 9.5pt; }
-    tr:nth-child(1) td:first-child { color: #d97706; font-size: 11pt; }
-    tr:nth-child(2) td:first-child { color: #6b7280; font-size: 11pt; }
-    tr:nth-child(3) td:first-child { color: #92400e; font-size: 11pt; }
+    ${RANKING_TABLE_CSS}
   </style>
 </head>
 <body>
@@ -139,7 +145,8 @@ function buildRankingHTML(
   weapon?: Weapon,
   visibleColumns?: string[],
   logoBase64?: string,
-  template?: PdfTemplate
+  template?: PdfTemplate,
+  nameLabels?: { lastName: string; firstName: string }
 ): string {
   if (ranking.length === 0)
     throw new Error(pdfT('ranking_empty', 'Aucun tireur dans le classement'));
@@ -156,7 +163,7 @@ function buildRankingHTML(
     'quest',
     'index',
   ];
-  return generateRankingHTML(ranking, title, isLaserSabre, cols, logoBase64, template);
+  return generateRankingHTML(ranking, title, isLaserSabre, cols, logoBase64, template, nameLabels);
 }
 
 export async function exportRankingToPDF(

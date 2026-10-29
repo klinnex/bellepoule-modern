@@ -2538,6 +2538,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             ranking={computeOverallRanking(viewedRoundPools)}
             weapon={competition.weapon}
             hasDirectElimination={hasDirectElimination}
+            rapieres={isRapieres}
           />
         )}
         {currentPhase === 'ranking' && !viewedRoundPools && (
@@ -2547,6 +2548,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             weapon={competition.weapon}
             hasDirectElimination={hasDirectElimination}
             isInitialRanking={skipPoolPhase}
+            rapieres={isRapieres}
             onGoToTableau={handleGoToTableau}
             onGoToResults={() => setCurrentPhase('results')}
             onPoolsChange={(updatedPools, hasRankingChanged) => {

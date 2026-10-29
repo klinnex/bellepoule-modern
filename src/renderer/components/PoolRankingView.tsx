@@ -60,6 +60,8 @@ interface PoolRankingViewProps {
   onSplitOff?: (group: string) => void;
   /** Tour de poules intermédiaire : remplace le passage au tableau (#1051) */
   nextRoundAction?: { label: string; onClick: () => void };
+  /** Tournoi des rapières : « Nom » / « Prénom » deviennent « Équipe » / « Tireurs » (#1279) */
+  rapieres?: boolean;
 }
 
 const PoolRankingView: React.FC<PoolRankingViewProps> = ({
@@ -78,6 +80,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
   splitOffGroups,
   onSplitOff,
   nextRoundAction,
+  rapieres = false,
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -225,7 +228,18 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
   const rankingPdfArgs = () => {
     const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
     const cols = getVisibleColumns('ranking').filter(col => col !== 'quest' || isLaserSabre);
-    return [overallRanking, 'Classement Général', weapon, cols, logo, rankingTemplate] as const;
+    const nameLabels = rapieres
+      ? { lastName: t('rapieres.team'), firstName: t('rapieres.fencers') }
+      : undefined;
+    return [
+      overallRanking,
+      'Classement Général',
+      weapon,
+      cols,
+      logo,
+      rankingTemplate,
+      nameLabels,
+    ] as const;
   };
 
   // Boîte d'impression intégrée avec aperçu (#1214), comme les poules et le tableau
@@ -496,7 +510,11 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                       onChange={() => toggleColumn('ranking', col.id)}
                       className="cursor-pointer"
                     />
-                    {t(`poolColumns.col_${col.id}`)}
+                    {rapieres && col.id === 'lastName'
+                      ? t('rapieres.team')
+                      : rapieres && col.id === 'firstName'
+                        ? t('rapieres.fencers')
+                        : t(`poolColumns.col_${col.id}`)}
                   </label>
                 ))}
               </div>
@@ -536,8 +554,12 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
           <thead>
             <tr>
               {isVisible('rank') && <th style={W50}>{t('ranking.rank')}</th>}
-              {isVisible('lastName') && <th>{t('ranking.name')}</th>}
-              {isVisible('firstName') && <th>{t('ranking.first_name')}</th>}
+              {isVisible('lastName') && (
+                <th>{rapieres ? t('rapieres.team') : t('ranking.name')}</th>
+              )}
+              {isVisible('firstName') && (
+                <th>{rapieres ? t('rapieres.fencers') : t('ranking.first_name')}</th>
+              )}
               {isVisible('club') && <th>{t('ranking.club')}</th>}
               {isVisible('victories') && <th style={W40}>{t('ranking.victories')}</th>}
               {isVisible('matches') && <th style={W40}>{t('ranking.matches')}</th>}

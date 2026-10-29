@@ -24,4 +24,21 @@ describe('generateRapieresRankingHTML', () => {
     });
     expect(html).toContain('<th style="width:10mm">Rg</th>');
   });
+
+  it("reprend le style du classement après poules et colore l'indice (#1279)", () => {
+    const html = generateRapieresRankingHTML({
+      title: 'T',
+      subtitle: 'S',
+      headers: ['Rg', 'Équipe', 'Indice'],
+      rows: [
+        [1, 'Les As', '+3'],
+        [2, 'Les Rois', '-2'],
+      ],
+      kinds: ['rank', 'text', 'index'],
+    });
+    expect(html).toContain('background: var(--navy)');
+    expect(html).toContain('tr:nth-child(even) td');
+    expect(html).toContain('color:var(--green)">+3');
+    expect(html).toContain('color:#dc2626">-2');
+  });
 });
