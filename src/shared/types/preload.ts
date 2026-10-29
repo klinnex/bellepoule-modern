@@ -582,7 +582,9 @@ export interface RemoteServerAPI {
     competitionId: string,
     command: TVCommand
   ) => Promise<{ success: boolean; error?: string }>;
-  onClientListUpdate: (cb: (clients: ConnectedClient[]) => void) => () => void;
+  onClientListUpdate: (
+    cb: (clients: ConnectedClient[], competitionId?: string | null) => void
+  ) => () => void;
   renameClient: (
     competitionId: string,
     socketId: string,

@@ -142,6 +142,8 @@ export class RemoteScoreServer {
   private useHttps: boolean = false;
   private db: DatabaseManager;
   private session: RemoteSession | null = null;
+  /** Compétition propriétaire du serveur (joint à remote:clientListUpdate, #1292) */
+  competitionId: string | null = null;
   private arenas: Map<string, Arena> = new Map();
   private arenaCount: number = 4; // Nombre d'arènes par défaut
   private sessionWeapon: string | null = null; // Type d'arme de la compétition (L = Laser)
@@ -1386,7 +1388,11 @@ export class RemoteScoreServer {
   private broadcastClientList(): void {
     const mainWin = (global as any).mainWindow;
     if (mainWin) {
-      mainWin.webContents.send('remote:clientListUpdate', this.getConnectedClients());
+      mainWin.webContents.send(
+        'remote:clientListUpdate',
+        this.getConnectedClients(),
+        this.competitionId
+      );
     }
   }
 

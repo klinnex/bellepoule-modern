@@ -40,6 +40,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
           }
         }
         const server = new RemoteScoreServer(db, effectivePort, effectiveHost, tlsOptions);
+        server.competitionId = TRAINING_ID;
         try {
           await server.start();
         } catch (startError: any) {
