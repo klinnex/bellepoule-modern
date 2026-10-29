@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 21 | 235 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 22 | 114 |
-| `src/renderer/components/` | 37 | 180 |
+| `src/renderer/components/` | 38 | 182 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 45 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **188** | **1698** |
+| **Total** | **189** | **1700** |
 
-Unitaires : 179 fichiers, 1663 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 180 fichiers, 1665 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3072,6 +3072,15 @@ Unitaires : 179 fichiers, 1663 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - empile plusieurs toasts
 - **useToast hors provider**
   - fournit un showToast no-op sans planter
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/XiaomiRemotePanel.test.tsx</code> — 2 tests</summary>
+
+- **XiaomiRemotePanel**
+  - charge la liste une fois puis ne réinterroge pas le processus principal
+  - ignore la liste poussée par une autre compétition
 
 </details>
 
