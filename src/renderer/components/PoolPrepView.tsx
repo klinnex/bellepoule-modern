@@ -18,6 +18,7 @@ import {
   optimizePoolConflicts,
 } from '../../shared/utils/poolOptimizer';
 import PoolMatchOrderModal from './pool/PoolMatchOrderModal';
+import { appendHistory } from './poolPrepHistory';
 import { useTranslation } from '../hooks/useTranslation';
 
 const HINT_DISMISSED_KEY = 'bp_poolprep_hint_dismissed';
@@ -142,24 +143,26 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   };
   const RESTORE_WINDOW_MINUTES = 5;
 
-  // Timer pour mettre à jour le temps écoulé
+  // Décompte uniquement quand la barre d'annulation est affichée et dans la fenêtre de restauration
+  const undoBarActive = currentHistoryIndex > 0;
   useEffect(() => {
+    if (!undoBarActive) return;
+    const windowSec = RESTORE_WINDOW_MINUTES * 60;
     const interval = setInterval(() => {
-      if (history.length > 0 && currentHistoryIndex >= 0) {
-        const lastChange = history[currentHistoryIndex]?.timestamp || Date.now();
-        const elapsed = Math.floor((Date.now() - lastChange) / 1000);
-        setTimeSinceLastChange(elapsed);
-      }
+      const lastChange = history[currentHistoryIndex]?.timestamp || Date.now();
+      const elapsed = Math.floor((Date.now() - lastChange) / 1000);
+      setTimeSinceLastChange(elapsed);
+      if (elapsed >= windowSec) clearInterval(interval);
     }, 1000);
     return () => clearInterval(interval);
-  }, [history, currentHistoryIndex]);
+  }, [undoBarActive, history, currentHistoryIndex]);
 
   // Initialisation de l'historique à la première génération de poules
   useEffect(() => {
     if (pools.length > 0 && !historyInitialized.current) {
       historyInitialized.current = true;
       const initialState: PoolStateHistory = {
-        pools: JSON.parse(JSON.stringify(pools)),
+        pools: structuredClone(pools),
         poolCount,
         minFencersPerPool,
         maxFencersPerPool,
@@ -174,22 +177,19 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const saveToHistory = () => {
     const now = Date.now();
     const newState: PoolStateHistory = {
-      pools: JSON.parse(JSON.stringify(pools)),
+      pools: structuredClone(pools),
       poolCount,
       minFencersPerPool,
       maxFencersPerPool,
       timestamp: now,
     };
 
-    const newHistory = history.slice(0, currentHistoryIndex + 1);
-    newHistory.push(newState);
-
-    const cutoffTime = now - RESTORE_WINDOW_MINUTES * 60 * 1000;
-    const filteredHistory = newHistory.filter(state => state.timestamp >= cutoffTime);
-
-    if (filteredHistory.length > 20) {
-      filteredHistory.shift();
-    }
+    const filteredHistory = appendHistory(
+      history,
+      currentHistoryIndex,
+      newState,
+      RESTORE_WINDOW_MINUTES * 60 * 1000
+    );
 
     setHistory(filteredHistory);
     setCurrentHistoryIndex(filteredHistory.length - 1);
@@ -283,7 +283,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       setPools(initialPools);
       setPoolCount(initialPools.length);
       const initialState: PoolStateHistory = {
-        pools: JSON.parse(JSON.stringify(initialPools)),
+        pools: structuredClone(initialPools),
         poolCount: initialPools.length,
         minFencersPerPool,
         maxFencersPerPool,
