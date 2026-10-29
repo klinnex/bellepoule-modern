@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { Pool, PoolRanking, Weapon, MatchStatus } from '../../shared/types';
@@ -34,10 +34,7 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
 }) => {
   const { t } = useTranslation();
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
-  const [ranking, setRanking] = useState<RankedEntry[]>([]);
-  const [lastUpdate, setLastUpdate] = useState(new Date());
-
-  const buildRanking = useCallback(() => {
+  const ranking = useMemo<RankedEntry[]>(() => {
     const overall = isLaserSabre
       ? calculateOverallRankingQuest(pools)
       : calculateOverallRanking(pools);
@@ -49,20 +46,14 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
       }
     }
 
-    const entries: RankedEntry[] = overall.map(r => ({
+    return overall.map(r => ({
       ...r,
       poolNumber: fencerPoolMap.get(r.fencer.id) ?? 0,
     }));
-
-    setRanking(entries);
-    setLastUpdate(new Date());
   }, [pools, isLaserSabre]);
-
-  useEffect(() => {
-    buildRanking();
-    const interval = setInterval(buildRanking, 3000);
-    return () => clearInterval(interval);
-  }, [buildRanking]);
+  // Horodatage = dernier changement réel des données (#1288)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const lastUpdate = useMemo(() => new Date(), [ranking]);
 
   const totalMatches = pools.reduce((s, p) => s + p.matches.length, 0);
   const finishedMatches = pools.reduce(
