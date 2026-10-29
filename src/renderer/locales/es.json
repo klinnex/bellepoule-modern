@@ -836,6 +836,7 @@
     "gender_unset": "Sin indicar",
     "ranking_gender": "Tiradores {{gender}}",
     "ranking_intermediate": "Clasificación intermedia (fin de poules)",
+    "ranking_intermediate_wave": "Clasificación intermedia (oleada {{n}})",
     "ranking_final": "Clasificación final",
     "export_pdf": "Exportar a PDF",
     "print": "Imprimir",

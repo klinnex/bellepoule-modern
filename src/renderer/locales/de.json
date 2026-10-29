@@ -836,6 +836,7 @@
     "gender_unset": "Nicht angegeben",
     "ranking_gender": "Fechter {{gender}}",
     "ranking_intermediate": "Zwischenrangliste (nach den Pools)",
+    "ranking_intermediate_wave": "Zwischenrangliste (Welle {{n}})",
     "ranking_final": "Endrangliste",
     "export_pdf": "Als PDF exportieren",
     "print": "Drucken",

@@ -836,6 +836,7 @@
     "gender_unset": "Anspis",
     "ranking_gender": "Skrimerien {{gender}}",
     "ranking_intermediate": "Renkadur etre (dibenn ar poulennoù)",
+    "ranking_intermediate_wave": "Renkadur etre (gwagenn {{n}})",
     "ranking_final": "Renkadur diwezhañ",
     "export_pdf": "Ezporzhiañ e PDF",
     "print": "Moullañ",
