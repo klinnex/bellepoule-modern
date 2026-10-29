@@ -201,6 +201,14 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
   });
 
   // Webhook résultats
+  let competitionName = '';
+  try {
+    competitionName = ctx.session?.competitionId
+      ? (ctx.db.getCompetition(ctx.session.competitionId)?.title ?? '')
+      : '';
+  } catch {
+    // nom indisponible : message sans nom de compétition
+  }
   ctx.fireWebhook({
     event: 'match_finished',
     arenaId,
@@ -230,7 +238,9 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     duration: finishedMatch.duration ?? null,
     timestamp: new Date().toISOString(),
     // Compatibilité Slack/Discord : champ text en clair
-    text: `Match terminé — ${finishedMatch.fencerA ? `${finishedMatch.fencerA.lastName} ${finishedMatch.fencerA.firstName}` : '?'} ${finishedMatch.scoreA} – ${finishedMatch.scoreB} ${finishedMatch.fencerB ? `${finishedMatch.fencerB.lastName} ${finishedMatch.fencerB.firstName}` : '?'}`,
+    competitionName,
+    arenaNumber: arenaRef.number,
+    text: `${competitionName ? `${competitionName} — ` : ''}Match terminé — Piste ${arenaRef.number} — ${finishedMatch.fencerA ? `${finishedMatch.fencerA.lastName} ${finishedMatch.fencerA.firstName}` : '?'} ${finishedMatch.scoreA} – ${finishedMatch.scoreB} ${finishedMatch.fencerB ? `${finishedMatch.fencerB.lastName} ${finishedMatch.fencerB.firstName}` : '?'}`,
   });
 
   // Persister le score final dans la DB et dans l'audit log (pas en mode entraînement)
