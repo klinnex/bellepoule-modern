@@ -9,6 +9,7 @@ import { createPortal } from 'react-dom';
 import { TableauMatch } from './tableauTypes';
 import { useTranslation } from '../../hooks/useTranslation';
 import { MedicalCrossIcon } from '../common/MedicalCrossIcon';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface TableauScoreModalProps {
   match: TableauMatch;
@@ -55,6 +56,8 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   getRoundName,
 }) => {
   const { t } = useTranslation();
+  // Focus piégé + Échap sur l'overlay (le ref du dialogue reste réservé au redimensionnement)
+  const trapRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [pendingStatus, setPendingStatus] = useState<'abandon' | 'forfait' | 'exclusion' | null>(
     null
   );
@@ -65,7 +68,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
   return createPortal(
     // Clic hors de la fenêtre : ne ferme pas (#1115)
-    <div className="modal-overlay">
+    <div className="modal-overlay" ref={trapRef}>
       <div
         ref={modalRef}
         className="modal resizable"
