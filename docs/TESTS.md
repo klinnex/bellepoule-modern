@@ -92,7 +92,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 4 | 24 |
+| Feature `rapieres` (`src/features/rapieres/`) | 5 | 26 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
 | `src/main/` | 20 | 232 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **183** | **1687** |
+| **Total** | **184** | **1689** |
 
-Unitaires : 174 fichiers, 1652 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 175 fichiers, 1654 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1683,6 +1683,15 @@ Unitaires : 174 fichiers, 1652 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - parseRapieresGender reconnaît homme/femme et variantes
   - parseRapieresTeams lit le sexe en R et W
   - parseRapieresTeams lit D/E/Q, T/U/V et Y, ignore l’en-tête et les lignes incomplètes
+
+</details>
+
+<details>
+<summary><code>src/features/rapieres/rapieresPdf.test.ts</code> — 2 tests</summary>
+
+- **generateRapieresRankingHTML**
+  - aligne les colonnes selon leur nature quand des colonnes sont masquées (#1279)
+  - garde la mise en page par défaut sans kinds
 
 </details>
 

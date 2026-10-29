@@ -11,7 +11,11 @@ export interface RapieresPdfTable {
   subtitle: string;
   headers: string[];
   rows: (string | number)[][];
+  /** Nature de chaque colonne (défaut : rang, 3 textes, chiffres) — utile quand des colonnes sont masquées */
+  kinds?: RapieresColumnKind[];
 }
+
+export type RapieresColumnKind = 'rank' | 'text' | 'num';
 
 const esc = (s: string | number) =>
   String(s)
@@ -21,16 +25,20 @@ const esc = (s: string | number) =>
     .replace(/"/g, '&quot;');
 
 /** Même mise en page que le classement après poules : rang en gras, textes à gauche, chiffres centrés */
-const rankingCellStyle = (i: number) =>
-  i === 0
+const defaultKind = (i: number): RapieresColumnKind => (i === 0 ? 'rank' : i <= 3 ? 'text' : 'num');
+
+const rankingCellStyle = (kind: RapieresColumnKind, firstText: boolean) =>
+  kind === 'rank'
     ? 'text-align:center;font-weight:700;color:var(--navy)'
-    : i <= 3
-      ? i === 1
+    : kind === 'text'
+      ? firstText
         ? 'font-weight:600'
         : ''
       : 'text-align:center';
 
 export function generateRapieresRankingHTML(table: RapieresPdfTable): string {
+  const kinds = table.headers.map((_, i) => table.kinds?.[i] ?? defaultKind(i));
+  const firstText = kinds.indexOf('text');
   const now = new Date().toLocaleDateString(getActiveLocale(), {
     day: '2-digit',
     month: 'long',
@@ -55,13 +63,13 @@ export function generateRapieresRankingHTML(table: RapieresPdfTable): string {
     <thead><tr>${table.headers
       .map(
         (h, i) =>
-          `<th style="${i === 0 ? 'width:10mm' : i <= 3 ? 'text-align:left' : ''}">${esc(h)}</th>`
+          `<th style="${kinds[i] === 'rank' ? 'width:10mm' : kinds[i] === 'text' ? 'text-align:left' : ''}">${esc(h)}</th>`
       )
       .join('')}</tr></thead>
     <tbody>${table.rows
       .map(
         r =>
-          `<tr>${r.map((c, i) => `<td style="${rankingCellStyle(i)}">${esc(c)}</td>`).join('')}</tr>`
+          `<tr>${r.map((c, i) => `<td style="${rankingCellStyle(kinds[i], i === firstText)}">${esc(c)}</td>`).join('')}</tr>`
       )
       .join('')}</tbody>
   </table>
