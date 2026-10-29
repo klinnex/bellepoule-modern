@@ -105,13 +105,10 @@ import CompetitionNav from './competition/CompetitionNav';
 const PlanningAssistant = React.lazy(() => import('./competition/PlanningAssistant'));
 const ExportCenterModal = React.lazy(() => import('./competition/ExportCenterModal'));
 import GlobalPoolColumnsMenu from './pool/GlobalPoolColumnsMenu';
-import WindowSizePresets, {
-  presetScale,
-  readSavedPoolCardSize,
-  type PresetLabel,
-} from './pool/WindowSizePresets';
+import WindowSizePresets, { presetScale, type PresetLabel } from './pool/WindowSizePresets';
 import { useColumnVisibility } from '../hooks/useColumnVisibility';
 import { useModalFlags } from '../hooks/useModalFlags';
+import { usePoolsViewSettings } from '../hooks/usePoolsViewSettings';
 import { MODAL_FLAGS } from './competition/modalFlags';
 
 const PoolView = React.lazy(() => import('./PoolView'));
@@ -359,13 +356,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const [minFencersPerPool, setMinFencersPerPool] = useState<number>(5);
   const [maxFencersPerPool, setMaxFencersPerPool] = useState<number>(7);
 
-  // Affichage des poules : grille (toutes les poules) ou poule unique avec navigation
-  const [poolCardSize, setPoolCardSize] = useState<PresetLabel>(readSavedPoolCardSize);
-  const [poolsViewMode, setPoolsViewMode] = useState<'grid' | 'single'>(
-    () => (localStorage.getItem('bellepoule-pools-view-mode') as 'grid' | 'single') || 'grid'
-  );
-  const [singlePoolIndex, setSinglePoolIndex] = useState(0);
-
   // Flag pour indiquer si le classement a changé (nécessite régénération du tableau)
   const [rankingChanged, setRankingChanged] = useState(false);
 
@@ -429,6 +419,16 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     syncFencersToPool,
   } = usePoolManagement({ isLaserSabre, poolMaxScore, showToast, competitionId: competition?.id });
 
+  // Affichage des poules : grille (toutes les poules) ou poule unique avec navigation
+  const {
+    poolCardSize,
+    setPoolCardSize,
+    poolsViewMode,
+    setPoolsViewMode,
+    singlePoolIndex,
+    setSinglePoolIndex,
+  } = usePoolsViewSettings(pools.length);
+
   // Tours de poules (#1051) : seed du tirage = classement du tour précédent
   const previousRoundRanking = useMemo(
     () =>
@@ -460,17 +460,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     viewedPoolRound !== null && viewedPoolRound < currentPoolRound
       ? (poolHistory[viewedPoolRound - 1] ?? null)
       : null;
-
-  useEffect(() => {
-    localStorage.setItem('bellepoule-pools-view-mode', poolsViewMode);
-  }, [poolsViewMode]);
-
-  // Recale l'index sélectionné si le nombre de poules change (ex: fusion/suppression)
-  useEffect(() => {
-    if (singlePoolIndex >= pools.length) {
-      setSinglePoolIndex(Math.max(0, pools.length - 1));
-    }
-  }, [pools.length, singlePoolIndex]);
 
   // Ajuste la taille de la fenêtre à l'entrée en vue "poule unique" (colonnes choisies
   // + nb de tireurs de la poule affichée) pour éviter les ascenseurs. Ne se redéclenche
