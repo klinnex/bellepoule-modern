@@ -434,7 +434,10 @@
     "tts_m10": "10 Sekunden",
     "tts_m5": "5 Sekunden",
     "tts_countdown": "Countdown 4 → 1",
-    "tts_m0": "„Zeit!\" (Ende)"
+    "tts_m0": "„Zeit!\" (Ende)",
+    "tour_title": "Geführter Rundgang",
+    "tour_hint": "Eine Anleitung in 5 Schritten für Ihr erstes Turnier (Fechter, Anwesenheit, Gruppen, Ergebnisse, Tableau).",
+    "tour_restart": "Geführten Rundgang neu starten"
   },
   "shortcuts": {
     "category_actions": "Aktionen",
@@ -2626,5 +2629,22 @@
     "save_pdf": "Als PDF speichern",
     "system_dialog": "Systemdialog…",
     "failed": "Drucken fehlgeschlagen"
+  },
+  "tour": {
+    "title": "Erstes Turnier",
+    "skip": "Rundgang überspringen",
+    "close": "Beenden",
+    "finished_title": "Geschafft, Rundgang beendet!",
+    "finished_hint": "Sie kennen jetzt den Ablauf eines Turniers. Starten Sie diese Anleitung jederzeit in den Einstellungen neu.",
+    "step_fencers": "Fechter hinzufügen",
+    "step_checkin": "Anwesenheit prüfen",
+    "step_pools": "Gruppen erzeugen",
+    "step_scores": "Ergebnisse eingeben",
+    "step_tableau": "Tableau starten",
+    "hint_fencers": "Importieren Sie eine Datei oder fügen Sie Fechter im Tab Anwesenheit von Hand hinzu.",
+    "hint_checkin": "Haken Sie die anwesenden Fechter ab (Klick auf die Zeile des Fechters).",
+    "hint_pools": "Klicken Sie auf „Gruppen erzeugen“ (mindestens 4 anwesende Fechter).",
+    "hint_scores": "Öffnen Sie eine Gruppe und tragen Sie das Ergebnis eines Gefechts ein.",
+    "hint_tableau": "Nach den Gruppen geht es weiter zum K.-o.-Tableau."
   }
 }
