@@ -7,6 +7,7 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Funnel } from 'lucide-react';
 import { useModalResize } from '../hooks/useModalResize';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import Modal from './common/Modal';
 import {
   Pool,
@@ -611,6 +612,13 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     minHeight: 300,
   });
 
+  // Focus piégé + Échap sur la modale de score (clic extérieur : ne ferme pas, #1115)
+  const closeScoreModal = useCallback(() => {
+    setEditingMatch(null);
+    setIsMatchInverted(false);
+  }, []);
+  const scoreTrapRef = useFocusTrap<HTMLDivElement>(editingMatch !== null, closeScoreModal);
+
   const openScoreModal = (matchIndex: number, inverted = false) => {
     const match = pool.matches[matchIndex];
     setEditingMatch(matchIndex);
@@ -1142,12 +1150,14 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
     return (
       // Clic hors de la fenêtre : ne ferme pas (#1115)
-      <div className="modal-overlay">
+      <div className="modal-overlay" ref={scoreTrapRef}>
         <div
           ref={modalRef}
           className="modal resizable"
           style={SCORE_MODAL}
           onClick={e => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
         >
           <div className="modal-header" style={{ cursor: 'move' }}>
             <h3 className="modal-title">{t('poolView.quick_score')}</h3>

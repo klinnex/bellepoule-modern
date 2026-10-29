@@ -65,4 +65,16 @@ describe('TableauScoreModal', () => {
     const btn = screen.getByText('Médical').closest('button')!;
     expect(btn.querySelector('[data-testid="medical-cross-icon"]')).not.toBeNull();
   });
+
+  it('Échap ferme la modale', () => {
+    const { props } = setup();
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    expect(props.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('le clic hors de la fenêtre ne ferme pas (#1115)', () => {
+    const { props, utils } = setup();
+    fireEvent.click(utils.baseElement.querySelector('.modal-overlay') as Element);
+    expect(props.onClose).not.toHaveBeenCalled();
+  });
 });
