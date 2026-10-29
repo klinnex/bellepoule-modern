@@ -97,16 +97,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 21 | 235 |
 | `src/renderer/services/` | 4 | 22 |
-| `src/renderer/hooks/` | 21 | 111 |
+| `src/renderer/hooks/` | 22 | 114 |
 | `src/renderer/components/` | 35 | 177 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 45 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **185** | **1692** |
+| **Total** | **186** | **1695** |
 
-Unitaires : 176 fichiers, 1657 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 177 fichiers, 1660 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2769,6 +2769,16 @@ Unitaires : 176 fichiers, 1657 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - formate l’affichage long et court
 - **usePoolGridData**
   - remplit la grille avec scores et vainqueur
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/usePoolsViewSettings.test.tsx</code> — 3 tests</summary>
+
+- **usePoolsViewSettings**
+  - mode grille et index 0 par défaut
+  - relit et persiste le mode
+  - recale l'index quand le nombre de poules diminue
 
 </details>
 
