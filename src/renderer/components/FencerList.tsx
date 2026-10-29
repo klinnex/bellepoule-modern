@@ -48,8 +48,6 @@ interface FencerListProps {
   onFencersImported?: () => void;
   /** URL de la page d'inscription distante (ex: http://192.168.x.x:8066/register) */
   registerUrl?: string;
-  /** Callback pour recharger la liste après inscription distante */
-  onFencersChanged?: () => void;
   /** Notifie le parent des tireurs triés/filtrés et des colonnes visibles actuels */
   onAppelStateChange?: (fencers: Fencer[], visibleColumns: string[]) => void;
   /** Consultation seule (appel d'un tour de poules terminé, #1051) */
@@ -78,7 +76,6 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   customImport,
   onFencersImported,
   registerUrl,
-  onFencersChanged,
   onAppelStateChange,
   readOnly = false,
   columnLabels,
@@ -157,13 +154,6 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       .then(setRegisterQRDataUrl)
       .catch(() => setRegisterQRDataUrl(null));
   }, [registerUrl]);
-
-  // Recharger la liste toutes les 5 s si le modal QR est ouvert (inscription en cours)
-  useEffect(() => {
-    if (!showRegisterQR || !onFencersChanged) return;
-    const id = setInterval(onFencersChanged, 5000);
-    return () => clearInterval(id);
-  }, [showRegisterQR, onFencersChanged]);
 
   useEffect(() => {
     localStorage.setItem('bellepoule-fencer-col-order', JSON.stringify(colOrder));

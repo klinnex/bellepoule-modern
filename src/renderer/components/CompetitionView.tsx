@@ -2261,7 +2261,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             registerUrl={
               isRemoteActive && remoteServerUrl ? `${remoteServerUrl}/register` : undefined
             }
-            onFencersChanged={loadFencers}
             onEditFencer={updateFencer}
             onDeleteFencer={deleteFencer}
             onDeleteAllFencers={deleteAllFencers}
