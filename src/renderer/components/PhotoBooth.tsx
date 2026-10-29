@@ -26,17 +26,12 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
 
   const videoCallbackRef = useCallback((video: HTMLVideoElement | null) => {
     videoRef.current = video;
-    console.log('[PhotoBooth] video ref mounted, stream available:', !!streamRef.current);
     if (video && streamRef.current) {
       video.srcObject = streamRef.current;
-      video
-        .play()
-        .then(() => console.log('[PhotoBooth] video.play() resolved'))
-        .catch(err => {
-          console.error('[PhotoBooth] video.play() rejected:', err);
-          logger.error(LogCategory.UI, 'Error playing video stream', err as Error);
-          setError(`Erreur lecture vidéo : ${(err as Error).message}`);
-        });
+      video.play().catch(err => {
+        logger.error(LogCategory.UI, 'Error playing video stream', err as Error);
+        setError(`Erreur lecture vidéo : ${(err as Error).message}`);
+      });
     }
   }, []);
 
@@ -58,25 +53,18 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
 
   const startCamera = useCallback(async () => {
     setError(null);
-    console.log(
-      '[PhotoBooth] startCamera — navigator.mediaDevices:',
-      !!navigator.mediaDevices?.getUserMedia
-    );
     if (!navigator.mediaDevices?.getUserMedia) {
       setError(t('photoBooth.no_media'));
       return;
     }
     try {
-      console.log('[PhotoBooth] calling getUserMedia...');
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480 },
         audio: false,
       });
-      console.log('[PhotoBooth] getUserMedia OK, tracks:', stream.getVideoTracks().length);
       streamRef.current = stream;
       setIsCapturing(true);
     } catch (err) {
-      console.error('[PhotoBooth] getUserMedia error:', err);
       logger.error(LogCategory.UI, 'Error accessing camera', err as Error);
       const domErr = err as DOMException;
       const msg =
@@ -97,14 +85,6 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    console.log(
-      '[PhotoBooth] takePhoto — readyState:',
-      video.readyState,
-      'size:',
-      video.videoWidth,
-      'x',
-      video.videoHeight
-    );
     if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
       setError(
         `Caméra pas encore prête (readyState=${video.readyState}, ${video.videoWidth}×${video.videoHeight}). Réessayez.`
@@ -141,7 +121,6 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
         stopCamera();
       }
     } catch (err) {
-      console.error('[PhotoBooth] capture error:', err);
       logger.error(LogCategory.UI, 'Error capturing photo', err as Error);
       setError(`Erreur capture : ${(err as Error).message || String(err)}`);
     }
