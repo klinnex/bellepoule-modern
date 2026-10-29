@@ -182,15 +182,11 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
 
   useEffect(() => {
     fetchClients();
-    const interval = setInterval(fetchClients, 5000);
     const unsub = window.electronAPI.remote.onClientListUpdate((updated, id) => {
       if (id && id !== competitionId) return;
       setClients(updated);
     });
-    return () => {
-      clearInterval(interval);
-      unsub();
-    };
+    return unsub;
   }, [fetchClients, competitionId]);
 
   useEffect(() => {

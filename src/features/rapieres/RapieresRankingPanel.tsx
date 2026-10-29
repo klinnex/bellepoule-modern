@@ -218,16 +218,10 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
             </option>
           ))}
         </select>
-        <div style={{ position: 'relative' }}>
+        <div className="ranking-col-wrap">
           <button
             type="button"
-            className="btn btn-secondary"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              ...(hidden.length > 0 ? { border: '2px solid #f97316' } : {}),
-            }}
+            className={`btn btn-secondary ranking-col-btn${hidden.length > 0 ? ' ranking-col-btn-active' : ''}`}
             title={t('poolRanking.columns_title')}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(o => !o)}
