@@ -12,6 +12,7 @@ import {
   Pool,
   PoolSnapshot,
   Referee,
+  Score,
   RefereeComment,
   CompetitionSettings,
   ImportResult,
@@ -633,8 +634,8 @@ export interface DatabaseAPI {
     position: number;
     fencerAId?: string | null;
     fencerBId?: string | null;
-    scoreA?: any | null;
-    scoreB?: any | null;
+    scoreA?: Partial<Score> | null;
+    scoreB?: Partial<Score> | null;
     status?: string;
     maxScore?: number;
     isBye?: boolean;
@@ -647,8 +648,8 @@ export interface DatabaseAPI {
       position: number;
       fencerAId?: string | null;
       fencerBId?: string | null;
-      scoreA?: any | null;
-      scoreB?: any | null;
+      scoreA?: Partial<Score> | null;
+      scoreB?: Partial<Score> | null;
       status?: string;
       maxScore?: number;
       isBye?: boolean;
@@ -1084,10 +1085,10 @@ export interface ScoreAuditEntry {
   poolId: string | null;
   matchNumber: number | null;
   poolNumber: number | null;
-  previousScoreA: any | null;
-  previousScoreB: any | null;
-  newScoreA: any;
-  newScoreB: any;
+  previousScoreA: Partial<Score> | null;
+  previousScoreB: Partial<Score> | null;
+  newScoreA: Partial<Score> | null;
+  newScoreB: Partial<Score> | null;
   changedBy: string;
   changedAt: string; // ISO 8601
   reason: string | null;
