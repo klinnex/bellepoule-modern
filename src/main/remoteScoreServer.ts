@@ -55,6 +55,7 @@ import {
   verifyPasswordAsync,
 } from './remote/auth';
 import { applyPageCsp, sendHtmlPage } from './remote/csp';
+import { loadRemoteHtmlFiles, loadSocketIoClient } from './remote/htmlLoader';
 import { sanitizeAnnouncement } from './remote/announcement';
 import * as slots from './remote/arenaSlots';
 import { applySmartMatchOrder, isMatchPlayable } from './remote/matchOrder';
@@ -1036,156 +1037,15 @@ export class RemoteScoreServer {
     console.log(`[RemoteScoreServer] Serveur initialisé avec ${this.arenaCount} arènes`);
   }
 
-  // Localiser et charger le client socket.io en mémoire.
-  // Plusieurs stratégies pour couvrir dev, app.asar et asar.unpacked.
+  // Client socket.io + pages HTML en mémoire (src/main/remote/htmlLoader.ts)
   private loadSocketIoClient(): void {
-    const fs = require('fs');
-    const candidates: string[] = [];
-
-    // 1) Fichier copié dans dist/remote au build (cas packagé : node_modules absent)
-    candidates.push(
-      path.join(__dirname, '../remote/socket.io.min.js'), // dist/main → dist/remote
-      ...(process.resourcesPath
-        ? [
-            path.join(process.resourcesPath, 'app.asar.unpacked', 'dist/remote/socket.io.min.js'),
-            path.join(process.resourcesPath, 'app.asar', 'dist/remote/socket.io.min.js'),
-          ]
-        : []),
-      path.join(__dirname, '../../src/remote/socket.io.min.js') // fallback dev sans webpack
-    );
-
-    // 2) Résolution via node_modules (dev / si présent dans le package)
-    for (const sub of ['client-dist/socket.io.min.js', 'client-dist/socket.io.js']) {
-      try {
-        candidates.push(require.resolve(`socket.io/${sub}`));
-      } catch {
-        /* ignore */
-      }
-    }
-
-    for (const candidate of candidates) {
-      try {
-        if (fs.existsSync(candidate)) {
-          this.socketIoClientJs = fs.readFileSync(candidate, 'utf-8');
-          console.log(`[RemoteScoreServer] Client socket.io chargé depuis: ${candidate}`);
-          return;
-        }
-      } catch (err) {
-        console.error(`[RemoteScoreServer] Erreur lecture client socket.io ${candidate}:`, err);
-      }
-    }
-
-    console.error(
-      '[RemoteScoreServer] ERREUR: client socket.io introuvable! Chemins testés:',
-      candidates
-    );
+    this.socketIoClientJs = loadSocketIoClient();
   }
 
-  // Charger les fichiers HTML en mémoire pour éviter les problèmes de chemin
   private loadHtmlFiles(): void {
-    const fs = require('fs');
-    const isDev = process.env.NODE_ENV === 'development';
-
-    // Liste des fichiers à charger
-    const filesToLoad = [
-      'referee.html',
-      'arena.html',
-      'dashboard.html',
-      'index.html',
-      'pool.html',
-      'pool-ocr.html',
-      'kiosk.html',
-      'lobby.html',
-      'login.html',
-      'public.html',
-      'overlay.html',
-      'overlay-config.html',
-      'register.html',
-      'checkin.html',
-      'trainer.html',
-      'matchs.html',
-      'tireur.html',
-      'teamArena.html',
-      'teamReferee.html',
-    ];
-
-    // Essayer plusieurs chemins pour trouver les fichiers
-    const possiblePaths = isDev
-      ? [
-          path.join(__dirname, '../remote'), // dist/remote/ (après webpack)
-          path.join(__dirname, '../../src/remote'), // src/remote/ (sans webpack)
-        ]
-      : [
-          // process.resourcesPath n'existe que sous Electron (pas en tests Node)
-          ...(process.resourcesPath
-            ? [path.join(process.resourcesPath, 'app.asar.unpacked', 'dist', 'remote')]
-            : []),
-          path.join(__dirname, '..', 'remote').replace('app.asar', 'app.asar.unpacked'),
-          path.join(__dirname, '..', 'remote'),
-          path.join(__dirname, '../../src/remote'), // fallback source sans webpack
-        ];
-
-    console.log('[RemoteScoreServer] Chargement des fichiers HTML...');
-
-    for (const basePath of possiblePaths) {
-      console.log(`[RemoteScoreServer] Essai chemin: ${basePath}`);
-
-      try {
-        if (fs.existsSync(basePath)) {
-          console.log(`[RemoteScoreServer] Chemin trouvé: ${basePath}`);
-
-          for (const file of filesToLoad) {
-            const filePath = path.join(basePath, file);
-            if (fs.existsSync(filePath)) {
-              this.htmlFiles.set(file, fs.readFileSync(filePath, 'utf-8'));
-              console.log(`[RemoteScoreServer] Chargé: ${file}`);
-            } else {
-              console.log(`[RemoteScoreServer] Fichier non trouvé: ${filePath}`);
-            }
-          }
-
-          // Si on a chargé au moins un fichier, on utilise ce chemin
-          if (this.htmlFiles.size > 0) {
-            console.log(
-              `[RemoteScoreServer] ${this.htmlFiles.size} fichiers chargés depuis: ${basePath}`
-            );
-            this.remoteBasePath = basePath;
-            break;
-          }
-        }
-      } catch (err) {
-        console.error(`[RemoteScoreServer] Erreur avec chemin ${basePath}:`, err);
-      }
-    }
-
-    if (this.htmlFiles.size === 0) {
-      console.error('[RemoteScoreServer] ERREUR: Aucun fichier HTML chargé!');
-    } else {
-      console.log(
-        `[RemoteScoreServer] Chargement terminé: ${Array.from(this.htmlFiles.keys()).join(', ')}`
-      );
-    }
-
-    // Injecter le client socket.io inline dans chaque HTML : élimine la requête
-    // séparée /bp-sio.js (cache service worker, résolution de chemin runtime…).
-    if (this.socketIoClientJs) {
-      const inlineTag = `<script>${this.socketIoClientJs}</script>`;
-      for (const [name, content] of this.htmlFiles) {
-        // Nouvelle instance de regex à chaque itération (évite l'état lastIndex partagé).
-        // Remplaçant en fonction : une chaîne interpréterait les motifs spéciaux `$&`, `$'`…
-        // présents dans le client minifié (socket.io 4.8.4 : `this.$&&…`) → script corrompu (#1009).
-        const updated = content.replace(
-          /<script\s+src=["'](?:\/socket\.io\.min\.js|\/bp-sio\.js|\/socket\.io\/socket\.io\.js)["']><\/script>/g,
-          () => inlineTag
-        );
-        if (updated !== content) this.htmlFiles.set(name, updated);
-      }
-      console.log('[RemoteScoreServer] Client socket.io injecté inline dans le HTML ✓');
-    } else {
-      console.error(
-        '[RemoteScoreServer] ATTENTION: client socket.io non chargé, fallback sur /bp-sio.js'
-      );
-    }
+    const { htmlFiles, remoteBasePath } = loadRemoteHtmlFiles(this.socketIoClientJs);
+    for (const [name, html] of htmlFiles) this.htmlFiles.set(name, html);
+    this.remoteBasePath = remoteBasePath;
     this.buildPageStore();
   }
 

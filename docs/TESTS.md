@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 26 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 20 | 232 |
+| `src/main/` | 21 | 235 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 21 | 111 |
 | `src/renderer/components/` | 35 | 177 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **184** | **1689** |
+| **Total** | **185** | **1692** |
 
-Unitaires : 175 fichiers, 1654 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 176 fichiers, 1657 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2195,6 +2195,16 @@ Unitaires : 175 fichiers, 1654 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - prochain match de tableau : piste assignée au match
     - piste du match en cours prioritaire sur la piste prévue
     - piste prévue de la poule quand aucune arène ne la joue encore (#1078)
+
+</details>
+
+<details>
+<summary><code>src/main/remote/htmlLoader.test.ts</code> — 3 tests</summary>
+
+- **htmlLoader**
+  - inlineSocketIoClient remplace la balise sans interpréter les motifs \`$&\`
+  - inlineSocketIoClient laisse le HTML intact sans balise connue
+  - loadRemoteHtmlFiles ne charge que des pages connues et injecte le client
 
 </details>
 
