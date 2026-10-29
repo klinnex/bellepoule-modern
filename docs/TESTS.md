@@ -97,16 +97,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 21 | 235 |
 | `src/renderer/services/` | 4 | 22 |
-| `src/renderer/hooks/` | 22 | 114 |
-| `src/renderer/components/` | 39 | 187 |
+| `src/renderer/hooks/` | 21 | 108 |
+| `src/renderer/components/` | 38 | 181 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 45 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **190** | **1705** |
+| **Total** | **188** | **1693** |
 
-Unitaires : 181 fichiers, 1670 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 179 fichiers, 1658 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2710,19 +2710,6 @@ Unitaires : 181 fichiers, 1670 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useOffline.test.tsx</code> — 6 tests</summary>
-
-- **useOffline**
-  - charge le statut de synchro au montage
-  - charge les données en cache
-  - sync déclenche triggerSync quand en ligne
-  - sync est ignoré hors ligne
-  - refreshCache appelle le service en ligne
-  - réagit à l’évènement offline
-
-</details>
-
-<details>
 <summary><code>src/renderer/hooks/usePagination.test.tsx</code> — 6 tests</summary>
 
 - **usePagination**
@@ -3102,19 +3089,6 @@ Unitaires : 181 fichiers, 1670 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - filtre par arbitre (saisie ou assignation)
 - **MatchAuditLog — replay (#1074)**
   - rejoue le match sélectionné événement par événement
-
-</details>
-
-<details>
-<summary><code>src/renderer/components/__tests__/OfflineStatus.test.tsx</code> — 6 tests</summary>
-
-- **OfflineStatus**
-  - se rend sans crash
-  - affiche "Connecté" quand en ligne sans actions en attente
-  - affiche "Hors ligne" quand hors ligne
-  - le clic sur le status toggle affiche les détails
-  - affiche le nombre d'actions en attente
-  - affiche "Synchronisation…" pendant la synchro
 
 </details>
 

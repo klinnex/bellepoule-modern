@@ -611,15 +611,11 @@ export const calculateFinalResults = (
   ranking: PoolRanking[],
   tableauSize: number
 ): FinalResult[] => {
-  // DEBUG: console.log('=== calculateFinalResults ===');
-  // DEBUG: console.log('Nombre de matchs:', matchList.length);
-
   const results: FinalResult[] = [];
   const processed = new Set<string>();
 
   // Champion (gagnant de la finale)
   const finalMatch = matchList.find(m => m.round === 2);
-  // DEBUG: console.log('Finale:', finalMatch?.fencerA?.lastName, 'vs', finalMatch?.fencerB?.lastName, 'winner:', finalMatch?.winner?.lastName);
 
   if (finalMatch?.winner) {
     const winnerPoolData = ranking.find(r => r.fencer.id === finalMatch.winner!.id);
@@ -648,13 +644,11 @@ export const calculateFinalResults = (
         totalTouches: (loserPoolData?.touchesScored ?? 0) + getTableTouches(loser.id, matchList),
       });
       processed.add(loser.id);
-      // DEBUG: console.log('2ème place:', loser.lastName);
     }
   }
 
   // Match pour la 3ème place (existe si présent)
   const thirdPlaceMatch = matchList.find(m => m.round === 3);
-  // DEBUG: console.log('Petite finale:', thirdPlaceMatch?.fencerA?.lastName, 'vs', thirdPlaceMatch?.fencerB?.lastName, 'winner:', thirdPlaceMatch?.winner?.lastName);
 
   if (thirdPlaceMatch?.winner) {
     const winnerPoolData = ranking.find(r => r.fencer.id === thirdPlaceMatch.winner!.id);
@@ -669,7 +663,6 @@ export const calculateFinalResults = (
         getTableTouches(thirdPlaceMatch.winner.id, matchList),
     });
     processed.add(thirdPlaceMatch.winner.id);
-    // DEBUG: console.log('3ème place:', thirdPlaceMatch.winner.lastName);
 
     // 4ème place (perdant du match pour la 3ème place)
     const fourthPlace =
@@ -688,7 +681,6 @@ export const calculateFinalResults = (
           (fourthPoolData?.touchesScored ?? 0) + getTableTouches(fourthPlace.id, matchList),
       });
       processed.add(fourthPlace.id);
-      // DEBUG: console.log('4ème place:', fourthPlace.lastName);
     }
   }
 
@@ -703,8 +695,6 @@ export const calculateFinalResults = (
       : tableauSize;
   const rounds = [4, 8, 16, 32, 64, 128].filter(r => r <= effectiveSize);
   let currentRank = thirdPlaceMatch?.winner ? 5 : 3;
-
-  // DEBUG: console.log('Rounds à traiter:', rounds, 'currentRank de départ:', currentRank);
 
   for (const round of rounds) {
     const roundMatches = matchList.filter(m => m.round === round && m.winner);
@@ -750,8 +740,6 @@ export const calculateFinalResults = (
       currentRank++;
     }
   }
-
-  // DEBUG: console.log('Résultats finaux:', results.map(r => `${r.rank}. ${r.fencer.lastName}`).join(', '));
 
   return annotateSpecialStatus(
     results.sort((a, b) => a.rank - b.rank),

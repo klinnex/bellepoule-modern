@@ -612,12 +612,17 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     minHeight: 300,
   });
 
-  // Focus piégé + Échap sur la modale de score (clic extérieur : ne ferme pas, #1115)
-  const closeScoreModal = useCallback(() => {
+  const closeAndResetScoreModal = () => {
     setEditingMatch(null);
     setIsMatchInverted(false);
-  }, []);
-  const scoreTrapRef = useFocusTrap<HTMLDivElement>(editingMatch !== null, closeScoreModal);
+    setEditScoreA('');
+    setEditScoreB('');
+    setVictoryA(false);
+    setVictoryB(false);
+  };
+
+  // Focus piégé + Échap sur la modale de score (clic extérieur : ne ferme pas, #1115)
+  const scoreTrapRef = useFocusTrap<HTMLDivElement>(editingMatch !== null, closeAndResetScoreModal);
 
   const openScoreModal = (matchIndex: number, inverted = false) => {
     const match = pool.matches[matchIndex];
@@ -915,12 +920,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     setMatchesUpdateTrigger(prev => prev + 1);
 
     // Fermer le modal immédiatement après la mise à jour
-    setEditingMatch(null);
-    setIsMatchInverted(false);
-    setEditScoreA('');
-    setEditScoreB('');
-    setVictoryA(false);
-    setVictoryB(false);
+    closeAndResetScoreModal();
   };
 
   // Mettre à jour la ref avec la fonction actuelle
@@ -1002,12 +1002,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
     // Fermer les modales immédiatement après la mise à jour
     setPendingSpecialStatus(null);
-    setEditingMatch(null);
-    setIsMatchInverted(false);
-    setEditScoreA('');
-    setEditScoreB('');
-    setVictoryA(false);
-    setVictoryB(false);
+    closeAndResetScoreModal();
   };
 
   const finishedCount = useMemo(
@@ -1337,12 +1332,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   onClick={() => {
                     if (editingMatch === null) return;
                     onMatchCancel(editingMatch);
-                    setEditingMatch(null);
-                    setIsMatchInverted(false);
-                    setEditScoreA('');
-                    setEditScoreB('');
-                    setVictoryA(false);
-                    setVictoryB(false);
+                    closeAndResetScoreModal();
                   }}
                   style={SPECIAL_BTN}
                 >
