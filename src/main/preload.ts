@@ -752,8 +752,9 @@ const electronApi = {
       ipcRenderer.invoke('remote:sendClientCommand', competitionId, socketId, command),
     broadcastCommand: (competitionId: string, command: any) =>
       ipcRenderer.invoke('remote:broadcastCommand', competitionId, command),
-    onClientListUpdate: (cb: (clients: any[]) => void) => {
-      const handler = (_: IpcRendererEvent, clients: any[]) => cb(clients);
+    onClientListUpdate: (cb: (clients: any[], competitionId?: string | null) => void) => {
+      const handler = (_: IpcRendererEvent, clients: any[], competitionId?: string | null) =>
+        cb(clients, competitionId);
       ipcRenderer.on('remote:clientListUpdate', handler);
       return () => ipcRenderer.removeListener('remote:clientListUpdate', handler);
     },

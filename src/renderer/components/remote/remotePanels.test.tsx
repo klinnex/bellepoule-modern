@@ -7,7 +7,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 
 vi.mock('../../hooks/useTranslation', () => ({
   useTranslation: () => ({
@@ -63,6 +63,20 @@ describe('ConnectedScreensPanel', () => {
   it('ne requête rien hors session distante', () => {
     render(<ConnectedScreensPanel competitionId="c1" isRemoteActive={false} />);
     expect(remote.getConnectedClients).not.toHaveBeenCalled();
+  });
+
+  it("ignore la liste poussée par le serveur d'une autre compétition (#1292)", async () => {
+    let push: (c: any[], id?: string | null) => void = () => {};
+    remote.onClientListUpdate.mockImplementation(((cb: typeof push) => {
+      push = cb;
+      return () => {};
+    }) as any);
+    render(<ConnectedScreensPanel competitionId="c1" isRemoteActive />);
+    expect(await screen.findByText('Hall')).toBeInTheDocument();
+    act(() => push([{ socketId: 'zzzzzzzz1', clientType: 'kiosk', label: 'Autre' }], 'c2'));
+    expect(screen.queryByText('Autre')).not.toBeInTheDocument();
+    act(() => push([{ socketId: 'zzzzzzzz1', clientType: 'kiosk', label: 'Propre' }], 'c1'));
+    expect(screen.getByText('Propre')).toBeInTheDocument();
   });
 
   it('liste les écrans, renomme et envoie le mode kiosk', async () => {

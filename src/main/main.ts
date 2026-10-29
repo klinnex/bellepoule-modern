@@ -1104,6 +1104,7 @@ ipcMain.handle(
       }
 
       const server = new RemoteScoreServer(db, effectivePort, effectiveHost, tlsOptions);
+      server.competitionId = competitionId;
       try {
         await server.start();
       } catch (startError: any) {
@@ -1767,6 +1768,7 @@ ipcMain.handle('remote:changePort', async (_, competitionId: string, newPort: nu
     entry.server.stop();
     usedPorts.delete(entry.port);
     const server = new RemoteScoreServer(db, newPort, host, tlsOptions);
+    server.competitionId = competitionId;
     server.start();
     applyActiveWave(competitionId, server);
     remoteServers.set(competitionId, {
