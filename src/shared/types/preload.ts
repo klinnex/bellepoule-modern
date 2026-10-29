@@ -20,7 +20,7 @@ import {
   DirectEliminationTable,
   FencerCompetitionStats,
 } from '../types';
-import type { MatchSignatureRequest } from './remote';
+import type { MatchSignatureRequest, RemoteSession, Arena } from './remote';
 
 // Re-export Pool for preload
 export type { Pool, PoolSnapshot } from '../types';
@@ -404,23 +404,23 @@ export interface RemoteServerAPI {
   startSession: (
     competitionId: string,
     strips: number,
-    matches?: any[],
+    matches?: unknown[],
     showPhotos?: boolean,
     kioskViews?: Record<string, boolean>,
     cardAnnounce?: boolean
-  ) => Promise<{ success: boolean; session?: any; error?: string }>;
+  ) => Promise<{ success: boolean; session?: RemoteSession; error?: string }>;
   stopSession: (competitionId: string) => Promise<{ success: boolean; error?: string }>;
   launchCompetition: (competitionId: string) => Promise<{ success: boolean; error?: string }>;
   getSession: (
     competitionId: string
-  ) => Promise<{ success: boolean; session?: any; error?: string }>;
+  ) => Promise<{ success: boolean; session?: RemoteSession; error?: string }>;
   getArenas: (
     competitionId: string
-  ) => Promise<{ success: boolean; arenas?: any[]; error?: string }>;
+  ) => Promise<{ success: boolean; arenas?: Arena[]; error?: string }>;
   updateStripCount: (
     competitionId: string,
     count: number
-  ) => Promise<{ success: boolean; session?: any; error?: string }>;
+  ) => Promise<{ success: boolean; session?: RemoteSession; error?: string }>;
   updateShowPhotos: (
     competitionId: string,
     value: boolean
@@ -439,7 +439,7 @@ export interface RemoteServerAPI {
   ) => Promise<{ success: boolean; error?: string }>;
   updatePoolFencers: (
     competitionId: string,
-    updates: Array<{ poolId: string; fencers: any[] }>
+    updates: Array<{ poolId: string; fencers: Fencer[] }>
   ) => Promise<{ success: boolean; error?: string }>;
   /**
    * Tournoi des rapières : matchs de la vague active proposés aux tablettes (`null` : tous) ;
@@ -452,7 +452,7 @@ export interface RemoteServerAPI {
   ) => Promise<{ success: boolean; error?: string }>;
   syncPoolMatches: (
     competitionId: string,
-    poolsData: Array<{ poolId: string; matches: any[] }>
+    poolsData: Array<{ poolId: string; matches: unknown[] }>
   ) => Promise<{ success: boolean; error?: string }>;
   /** Réassigne les poules aux pistes pendant une session active (#1037) */
   assignPools: (
@@ -461,13 +461,13 @@ export interface RemoteServerAPI {
       poolId: string;
       poolNumber?: number;
       strip?: number | null;
-      fencers?: any[];
-      matches: any[];
+      fencers?: Fencer[];
+      matches: unknown[];
     }>
   ) => Promise<{ success: boolean; error?: string }>;
   refreshDeMatches: (
     competitionId: string,
-    matches: any[]
+    matches: unknown[]
   ) => Promise<{ success: boolean; error?: string }>;
   setArenaPassword: (
     competitionId: string,
@@ -1170,11 +1170,11 @@ export interface TrainingAPI {
     strips: number,
     weapon: string,
     customRules?: TrainingCustomRules
-  ) => Promise<{ success: boolean; session?: any; error?: string }>;
+  ) => Promise<{ success: boolean; session?: RemoteSession; error?: string }>;
   stopSession: () => Promise<{ success: boolean; error?: string }>;
   getHistory: () => Promise<{ success: boolean; history: TrainingMatchRecord[]; error?: string }>;
-  getSession: () => Promise<{ success: boolean; session: any | null; error?: string }>;
-  getArenas: () => Promise<{ success: boolean; arenas: any[]; error?: string }>;
+  getSession: () => Promise<{ success: boolean; session: RemoteSession | null; error?: string }>;
+  getArenas: () => Promise<{ success: boolean; arenas: Arena[]; error?: string }>;
   getServerInfo: () => Promise<{
     success: boolean;
     serverInfo?: {
