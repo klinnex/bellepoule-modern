@@ -2029,6 +2029,8 @@
     "pts_other": "{{count}} pts",
     "no_sudden_death": "Disable sudden death",
     "no_sudden_death_hint": "Tie at time → bout ends without extra time.",
+    "demo_mode": "Demo mode",
+    "demo_mode_hint": "Random matches played automatically on the arenas (demonstration, no manual entry).",
     "all_interfaces": "All interfaces",
     "starting": "Starting…",
     "launch": "Launch"

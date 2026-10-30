@@ -2029,6 +2029,8 @@
     "pts_other": "{{count}} pts",
     "no_sudden_death": "Desactiva la mort sobtada",
     "no_sudden_death_hint": "Empat en acabar el temps → fi del combat sense pròrroga.",
+    "demo_mode": "Mode demo",
+    "demo_mode_hint": "Combats aleatoris jugats automàticament a les arenes (demostració, sense introducció manual).",
     "all_interfaces": "Totes les interfícies",
     "starting": "Iniciant…",
     "launch": "Llançar"

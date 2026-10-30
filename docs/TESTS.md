@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 22 | 239 |
+| `src/main/` | 23 | 248 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 21 | 108 |
 | `src/renderer/components/` | 41 | 191 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **192** | **1710** |
+| **Total** | **193** | **1719** |
 
-Unitaires : 183 fichiers, 1675 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 184 fichiers, 1684 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2183,6 +2183,22 @@ Unitaires : 183 fichiers, 1675 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/remote/demoMode.test.ts</code> — 8 tests</summary>
+
+- **decideDemoAction**
+  - démarre un match prêt
+  - ne fait rien hors match en cours (arène terminée ou libre)
+  - termine dès qu’un tireur atteint la limite
+  - marque un point du côté tiré au sort quand le tirage passe le seuil
+- **DemoPlayer**
+  - génère des matchs avec deux tireurs fictifs et des identifiants uniques
+  - joue un match complet de bout en bout jusqu’à la limite
+  - ignore les arènes sans match
+  - pilote l’arbitrage à intervalle régulier et s’arrête sur demande
+
+</details>
+
+<details>
 <summary><code>src/main/remote/fencerSchedule.test.ts</code> — 9 tests</summary>
 
 - **buildFencerSchedule (#1078)**
@@ -2289,7 +2305,7 @@ Unitaires : 183 fichiers, 1675 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 101 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 102 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -2419,6 +2435,8 @@ Unitaires : 183 fichiers, 1675 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - **finishPoolMatch (saisie dans l'application)**
     - conserve le drapeau forfait sur le perdant (#1144)
     - sans statut spécial : score simple, aucun drapeau
+- **mode démo (session d’entraînement)**
+  - joue seule les matchs de chaque arène jusqu’à la fin et alimente l’historique
 
 </details>
 

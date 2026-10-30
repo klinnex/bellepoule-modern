@@ -2029,6 +2029,8 @@
     "pts_other": "{{count}} Pkt.",
     "no_sudden_death": "Sudden Death deaktivieren",
     "no_sudden_death_hint": "Gleichstand bei Zeitablauf → Gefechtsende ohne Verlängerung.",
+    "demo_mode": "Demo-Modus",
+    "demo_mode_hint": "Zufällige Gefechte, die automatisch auf den Bahnen ausgetragen werden (Vorführung, ohne Eingabe).",
     "all_interfaces": "Alle Schnittstellen",
     "starting": "Wird gestartet…",
     "launch": "Starten"
