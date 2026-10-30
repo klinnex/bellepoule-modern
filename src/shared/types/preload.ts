@@ -1220,6 +1220,17 @@ export interface GregAPI {
   }) => Promise<{ success: boolean; error?: string }>;
 }
 
+/** Connecteur FTP/FTPS : dépôt du fichier de résultats (#1331) */
+export interface FtpAPI {
+  publish: (request: {
+    fileName: string;
+    xml: string;
+    url: string;
+    user: string;
+    password: string;
+  }) => Promise<{ success: boolean; error?: string }>;
+}
+
 export interface PrintDialogAPI {
   getPrinters: () => Promise<{ name: string; displayName: string; isDefault: boolean }[]>;
   render: (
@@ -1251,6 +1262,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   updater: UpdaterAPI;
   diagnostic: DiagnosticAPI;
   greg: GregAPI;
+  ftp: FtpAPI;
   crypto: CryptoAPI;
   remote: RemoteServerAPI;
   training: TrainingAPI;

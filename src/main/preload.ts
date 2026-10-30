@@ -590,6 +590,11 @@ const electronApi = {
     publish: (request: unknown) => ipcRenderer.invoke('greg:publish', request),
   },
 
+  // Connecteur FTP/FTPS : dépôt du fichier de résultats (#1331)
+  ftp: {
+    publish: (request: unknown) => ipcRenderer.invoke('ftp:publish', request),
+  },
+
   // Chiffrement OS (safeStorage) pour secrets locaux
   crypto: {
     isAvailable: (): Promise<boolean> => ipcRenderer.invoke('crypto:isAvailable'),

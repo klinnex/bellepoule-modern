@@ -72,7 +72,7 @@ const CATEGORY_GREG: Partial<Record<Category, string>> = {
 
 const pad2 = (n: number): string => String(n).padStart(2, '0');
 
-/** Nom du fichier envoyé : sans caractères spéciaux, extension .xml */
+/** Nom du fichier envoyé (GREG et FTP) : sans caractères spéciaux, extension .xml */
 export function gregFileName(title: string): string {
   return `resultats_${title.replace(/[^a-z0-9]/gi, '_')}.xml`;
 }
@@ -107,10 +107,11 @@ export function buildGregFields(competition: GregCompetition): GregFormFields {
 }
 
 /**
+ * Racine native du XML envoyé (GREG et connecteur FTP, #1331).
  * L'export BellePoule écrit `<CompetitionParEquipe>` ; l'ancien fichier natif, et donc le formulaire
  * GREG, utilisent le pluriel `<CompetitionParEquipes>`. Remplacement exact des balises racine.
  */
-export function toGregRootTag(xml: string, isTeamEvent: boolean): string {
+export function toNativeRootTag(xml: string, isTeamEvent: boolean): string {
   if (!isTeamEvent) return xml;
   return xml
     .replace('<CompetitionParEquipe ', '<CompetitionParEquipes ')
