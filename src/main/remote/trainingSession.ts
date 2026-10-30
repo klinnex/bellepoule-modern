@@ -11,6 +11,7 @@ type S = RemoteScoreServer;
 /** État et services du serveur utilisés par ce module (accesseurs : valeurs toujours à jour). */
 export interface TrainingSessionContext {
   readonly assignMatchToArena: S['assignMatchToArena'];
+  readonly createTrainingMatch: S['createTrainingMatch'];
   readonly notifyKioskData: S['notifyKioskData'];
   readonly poolFencersCache: S['poolFencersCache'];
   readonly poolSignaturesCache: S['poolSignaturesCache'];
@@ -45,6 +46,8 @@ export async function startTrainingSession(
     matchDurationSeconds?: number;
     allowedZones?: string[];
     disableSuddenDeath?: boolean;
+    /** Mode démo : matchs aléatoires joués automatiquement (voir demoMode.ts). */
+    demo?: boolean;
   }
 ): Promise<RemoteSession> {
   if (ctx.session) throw new Error('Session déjà active');
@@ -95,7 +98,7 @@ export async function startTrainingSession(
     startTime: new Date(),
   };
   for (let i = 1; i <= effectiveStrips; i++) {
-    ctx.assignMatchToArena(`arena${i}`, createTrainingMatch());
+    ctx.assignMatchToArena(`arena${i}`, ctx.createTrainingMatch());
   }
   console.log(
     `[RemoteScoreServer] Session entraînement démarrée: ${effectiveStrips} pistes, arme=${weapon}`

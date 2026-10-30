@@ -2029,6 +2029,8 @@
     "pts_other": "{{count}} pts",
     "no_sudden_death": "Desactivar la muerte súbita",
     "no_sudden_death_hint": "Empate al final del tiempo → fin del combate sin prórroga.",
+    "demo_mode": "Modo demo",
+    "demo_mode_hint": "Combates aleatorios jugados automáticamente en las arenas (demostración, sin introducción manual).",
     "all_interfaces": "Todas las interfaces",
     "starting": "Iniciando…",
     "launch": "Lanzar"

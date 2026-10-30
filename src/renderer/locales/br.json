@@ -2029,6 +2029,8 @@
     "pts_other": "{{count}} poent",
     "no_sudden_death": "Diweredekaat ar marv trumm",
     "no_sudden_death_hint": "Kevatal en amzer → fin an emgann hep astenn.",
+    "demo_mode": "Mod diskouezadeg",
+    "demo_mode_hint": "Emgannoù dizammet a vez lakaet da c'hoarvezout emgefreek war ar c'harrezennoù (diskouezadeg, hep enrollañ dre zorn).",
     "all_interfaces": "An holl etrefasoù",
     "starting": "O loc'hañ…",
     "launch": "Loc'hañ"

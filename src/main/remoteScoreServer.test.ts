@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock fs avant l'import du module
 vi.mock('fs', () => ({
@@ -1976,5 +1976,64 @@ describe('RemoteScoreServer', () => {
       expect(saved.scoreA).toMatchObject({ value: 3, isVictory: false, isForfait: false });
       expect(saved.scoreB).toMatchObject({ value: 5, isVictory: true, isAbstention: false });
     });
+  });
+});
+
+describe('mode démo (session d’entraînement)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('joue seule les matchs de chaque arène jusqu’à la fin et alimente l’historique', async () => {
+    const srv = new RemoteScoreServer(mockDb as any, 8068);
+    await srv.startTrainingSession(2, 'E', {
+      matchDurationSeconds: 180,
+      allowedZones: [],
+      disableSuddenDeath: false,
+      demo: true,
+    });
+
+    // Chaque arène a déjà un match fictif assigné, sans action humaine
+    const arena1 = srv.getArena('arena1');
+    expect(arena1?.currentMatch?.fencerA.id).toMatch(/^demo-/);
+
+    vi.advanceTimersByTime(600_000);
+
+    const history = srv.getTrainingHistory();
+    expect(history.length).toBeGreaterThanOrEqual(2);
+    for (const record of history) {
+      expect(Math.max(record.scoreA, record.scoreB)).toBe(15);
+    }
+
+    srv.stopSession();
+    const remaining = srv.getTrainingHistory().length;
+    vi.advanceTimersByTime(600_000);
+    expect(srv.getTrainingHistory().length).toBe(remaining);
+  });
+
+  it('simule l’arme choisie : Laser restreint à la zone C → scores par tranches de 5', async () => {
+    const srv = new RemoteScoreServer(mockDb as any, 8069);
+    await srv.startTrainingSession(1, 'L', {
+      matchDurationSeconds: 180,
+      allowedZones: ['C'],
+      disableSuddenDeath: false,
+      demo: true,
+    });
+
+    vi.advanceTimersByTime(600_000);
+
+    const history = srv.getTrainingHistory();
+    expect(history.length).toBeGreaterThanOrEqual(1);
+    for (const record of history) {
+      expect(record.weapon).toBe('L');
+      expect(record.scoreA % 5).toBe(0);
+      expect(record.scoreB % 5).toBe(0);
+      expect(Math.max(record.scoreA, record.scoreB)).toBe(15);
+    }
+    srv.stopSession();
   });
 });

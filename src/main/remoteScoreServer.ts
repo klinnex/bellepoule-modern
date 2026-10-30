@@ -105,6 +105,7 @@ import {
   createTrainingMatch,
   type TrainingSessionContext,
 } from './remote/trainingSession';
+import { DemoPlayer } from './remote/demoMode';
 import { finishArenaMatch, type MatchFinishContext } from './remote/matchFinish';
 import {
   peekNextMatch,
@@ -190,6 +191,8 @@ export class RemoteScoreServer {
   private kioskThemeVariables: Record<string, string> | null = null; // Thème CSS vars pour le kiosk
   private orgNote: OrgNote | null = null; // Note d'organisation affichée sur le kiosk
   private isTrainingMode: boolean = false;
+  /** Arbitre virtuel du mode démo (null hors démo) */
+  private demoPlayer: DemoPlayer | null = null;
   private trainingHistory: Array<{
     id: string;
     arenaId: string;
@@ -538,7 +541,7 @@ export class RemoteScoreServer {
         'trainingCustomRules',
         'trainingHistory',
       ],
-      ['assignMatchToArena', 'notifyKioskData', 'setArenaCount']
+      ['assignMatchToArena', 'createTrainingMatch', 'notifyKioskData', 'setArenaCount']
     ));
   }
   private _trainingSessionCtx?: TrainingSessionContext;
@@ -2528,6 +2531,7 @@ export class RemoteScoreServer {
   }
 
   public stopSession(): void {
+    this.stopDemoPlayer();
     this.isTrainingMode = false;
     this.trainingCustomRules = null;
     this.session = null;
@@ -2548,11 +2552,33 @@ export class RemoteScoreServer {
   public async startTrainingSession(
     ...args: Tail<Parameters<typeof startTrainingSession>>
   ): Promise<RemoteSession> {
-    return startTrainingSession(this.trainingSessionCtx, ...args);
+    const [, weapon, customRules] = args;
+    // Démo : l'arbitre virtuel est armé avant l'assignation des premiers matchs
+    if (customRules?.demo) {
+      this.demoPlayer = new DemoPlayer(
+        {
+          arenas: () => this.arenas,
+          startArenaMatch: id => this.startArenaMatch(id),
+          updateArenaScore: (id, a, b) => this.updateArenaScore(id, a, b),
+          finishArenaMatch: id => this.finishArenaMatch(id),
+          getScoreLimit: m => this.getScoreLimit(m),
+        },
+        Date.now(),
+        { weapon, allowedZones: customRules.allowedZones ?? [] }
+      );
+    }
+    const session = await startTrainingSession(this.trainingSessionCtx, ...args);
+    this.demoPlayer?.start();
+    return session;
   }
 
   private createTrainingMatch(): ArenaMatch {
-    return createTrainingMatch();
+    return this.demoPlayer ? this.demoPlayer.createMatch() : createTrainingMatch();
+  }
+
+  private stopDemoPlayer(): void {
+    this.demoPlayer?.stop();
+    this.demoPlayer = null;
   }
 
   public getTrainingHistory() {

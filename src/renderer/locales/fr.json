@@ -2029,6 +2029,8 @@
     "pts_other": "{{count}} pts",
     "no_sudden_death": "Désactiver la mort subite",
     "no_sudden_death_hint": "Égalité à temps → fin du match sans prolongation.",
+    "demo_mode": "Mode démo",
+    "demo_mode_hint": "Matchs aléatoires joués automatiquement sur les arènes (démonstration, sans saisie).",
     "all_interfaces": "Toutes les interfaces",
     "starting": "Démarrage…",
     "launch": "Lancer"

@@ -1137,6 +1137,8 @@ export interface TrainingCustomRules {
   matchDurationSeconds: number;
   allowedZones: string[];
   disableSuddenDeath: boolean;
+  /** Mode démo : matchs aléatoires joués automatiquement */
+  demo?: boolean;
 }
 
 export interface TrainingMatchRecord {

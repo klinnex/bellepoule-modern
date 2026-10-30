@@ -2029,6 +2029,8 @@
     "pts_other": "{{count}} 分",
     "no_sudden_death": "停用驟死",
     "no_sudden_death_hint": "時間到平手 → 比賽結束，不設加時。",
+    "demo_mode": "示範模式",
+    "demo_mode_hint": "在場地自動進行隨機比賽（示範用，無需手動輸入）。",
     "all_interfaces": "所有介面",
     "starting": "啟動中…",
     "launch": "開始"
