@@ -1512,10 +1512,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const handleThirdPlaceDecision = (shouldHaveThirdPlace: boolean) => {
     const updatedCompetition = {
       ...competition,
-      settings: {
-        ...competition.settings,
-        thirdPlaceMatch: shouldHaveThirdPlace,
-      },
+      settings: { ...competition.settings, thirdPlaceMatch: shouldHaveThirdPlace },
     };
 
     if (window.electronAPI) {
