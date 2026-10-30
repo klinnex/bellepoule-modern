@@ -14,7 +14,7 @@ import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
 import { logger, LogCategory } from '@shared/services/logger';
 import { isWebhookUrlSafe } from '@shared/services/notificationService';
-import { restartGuidedTour } from './guidedTour';
+import { restartGuidedTour } from './guidedTourFlags';
 import {
   UI_SCALES,
   loadUiScale,

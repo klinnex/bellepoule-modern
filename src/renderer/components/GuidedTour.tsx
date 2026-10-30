@@ -17,7 +17,7 @@ import {
   readTourFlag,
   tourStepDone,
   writeTourFlag,
-} from './guidedTour';
+} from './guidedTourFlags';
 
 interface GuidedTourProps extends Omit<TourState, 'poolsCount' | 'finishedPoolMatches'> {
   pools: Array<{ matches: Array<{ status: MatchStatus }> }>;

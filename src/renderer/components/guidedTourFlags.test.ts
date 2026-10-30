@@ -7,7 +7,7 @@ import {
   readTourFlag,
   tourStepDone,
   writeTourFlag,
-} from './guidedTour';
+} from './guidedTourFlags';
 
 const empty: TourState = {
   fencersCount: 0,

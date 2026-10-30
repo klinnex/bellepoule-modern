@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import GuidedTour from './GuidedTour';
-import { readTourFlag, writeTourFlag, restartGuidedTour } from './guidedTour';
+import { readTourFlag, writeTourFlag, restartGuidedTour } from './guidedTourFlags';
 
 const t = (k: string) => k;
 const base = {

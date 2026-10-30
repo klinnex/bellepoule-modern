@@ -3152,7 +3152,7 @@ Unitaires : 182 fichiers, 1674 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/guidedTour.test.ts</code> — 4 tests</summary>
+<summary><code>src/renderer/components/guidedTourFlags.test.ts</code> — 4 tests</summary>
 
 - **guidedTour**
   - commence par l’ajout des tireurs sur une compétition vide
