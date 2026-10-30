@@ -72,6 +72,11 @@ const CATEGORY_GREG: Partial<Record<Category, string>> = {
 
 const pad2 = (n: number): string => String(n).padStart(2, '0');
 
+/** Même détection que l'ancien BellePoule : toute adresse contenant escrime-info.com part vers GREG */
+export function isGregUrl(url: string): boolean {
+  return url.toLowerCase().includes('escrime-info.com');
+}
+
 /** Nom du fichier envoyé (GREG et FTP) : sans caractères spéciaux, extension .xml */
 export function gregFileName(title: string): string {
   return `resultats_${title.replace(/[^a-z0-9]/gi, '_')}.xml`;

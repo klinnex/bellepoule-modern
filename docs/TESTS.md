@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 41 | 594 |
+| `src/shared/utils/` | 41 | 596 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **197** | **1758** |
+| **Total** | **197** | **1760** |
 
-Unitaires : 188 fichiers, 1723 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 188 fichiers, 1725 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -506,7 +506,7 @@ Unitaires : 188 fichiers, 1723 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/gregPublication.test.ts</code> — 9 tests</summary>
+<summary><code>src/shared/utils/gregPublication.test.ts</code> — 11 tests</summary>
 
 - **buildGregFields (#1328)**
   - traduit une compétition individuelle en champs GREG
@@ -520,6 +520,9 @@ Unitaires : 188 fichiers, 1723 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **toNativeRootTag (#1328)**
   - passe au pluriel pour les équipes
   - laisse le XML individuel intact
+- **isGregUrl (#1331)**
+  - reconnaît les adresses escrime-info.com comme l'ancien BellePoule
+  - laisse passer les autres serveurs
 
 </details>
 

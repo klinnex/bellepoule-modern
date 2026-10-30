@@ -9,8 +9,8 @@ import { useTranslation } from '../../hooks/useTranslation';
 import type { FtpPublishConfig } from '../../hooks/useExport';
 
 const STORAGE_KEY = 'bellepoule-ftp-config';
-// Serveur par défaut de l'ancien BellePoule (escrime-info.com), en HTTPS : l'ancien code utilisait HTTP en clair
-const DEFAULT_URL = 'https://escrime-info.com';
+// Adresse proposée par l'ancien BellePoule : elle part vers GREG (voir isGregUrl), sans identifiant
+const DEFAULT_URL = 'escrime-info.com';
 // Exemple d'adresse, non traduisible
 const URL_EXAMPLE = 'ftp://serveur/dossier';
 
