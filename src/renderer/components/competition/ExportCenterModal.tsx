@@ -10,6 +10,8 @@ import { useTranslation } from '../../hooks/useTranslation';
 import Modal from '../common/Modal';
 import { Fencer, Pool, PoolRanking } from '../../../shared/types';
 import { FinalResult } from '../tableau/tableauTypes';
+import type { XmlExportTarget } from '../../hooks/useExport';
+import FtpPublishForm from './FtpPublishForm';
 
 interface ExportCenterModalProps {
   fencers: Fencer[];
@@ -31,8 +33,8 @@ interface ExportCenterModalProps {
     ranking: PoolRanking[],
     results: FinalResult[],
     pools?: Pool[],
-    target?: 'file' | 'greg'
-  ) => void;
+    target?: XmlExportTarget
+  ) => void | Promise<void>;
   exportDetailedStats: (pools: Pool[], ranking: PoolRanking[]) => void;
   onGoToTableau: () => void;
   onGoToResults: () => void;
@@ -194,6 +196,16 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
           >
             {t('exportCenter.publish_greg')}
           </button>
+        </Section>
+      )}
+
+      {finalResults.length > 0 && (
+        <Section title={t('exportCenter.ftp_section')}>
+          <FtpPublishForm
+            onPublish={config =>
+              exportResultsXML(overallRanking, finalResults, pools, { ftp: config })
+            }
+          />
         </Section>
       )}
 

@@ -22,7 +22,7 @@ import { registerPrintDialogHandlers } from './ipc/printDialog';
 import { registerWebhookHandlers } from './ipc/webhookHandlers';
 import { createDiagnosticDeps, registerDiagnosticHandlers } from './ipc/diagnosticHandlers';
 import { getVersionInfo } from './versionInfo';
-import './ipc/gregHandlers'; // enregistre `greg:publish` à l'import (#1328)
+import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
 import { printHtmlSilently, printHtmlWithSystemDialog } from './printWindows';
 import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from './remoteRegistry';
 import { applyActiveWave, setActiveWave } from './remote/activeWave';

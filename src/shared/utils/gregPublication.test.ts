@@ -3,7 +3,7 @@ import { Category, Gender, Weapon } from '../types';
 import {
   buildGregFields,
   gregFileName,
-  toGregRootTag,
+  toNativeRootTag,
   type GregCompetition,
 } from './gregPublication';
 
@@ -75,17 +75,17 @@ describe('gregFileName (#1328)', () => {
   });
 });
 
-describe('toGregRootTag (#1328)', () => {
+describe('toNativeRootTag (#1328)', () => {
   const xml = '<CompetitionParEquipe Couleur="#fff" ID="x"><Tireurs/></CompetitionParEquipe>';
 
   it('passe au pluriel pour les équipes', () => {
-    expect(toGregRootTag(xml, true)).toBe(
+    expect(toNativeRootTag(xml, true)).toBe(
       '<CompetitionParEquipes Couleur="#fff" ID="x"><Tireurs/></CompetitionParEquipes>'
     );
   });
 
   it('laisse le XML individuel intact', () => {
     const individual = '<CompetitionIndividuelle ID="x"></CompetitionIndividuelle>';
-    expect(toGregRootTag(individual, false)).toBe(individual);
+    expect(toNativeRootTag(individual, false)).toBe(individual);
   });
 });
