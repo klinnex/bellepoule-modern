@@ -72,9 +72,19 @@ const CATEGORY_GREG: Partial<Record<Category, string>> = {
 
 const pad2 = (n: number): string => String(n).padStart(2, '0');
 
-/** Même détection que l'ancien BellePoule : toute adresse contenant escrime-info.com part vers GREG */
+/**
+ * Même routage que l'ancien BellePoule (escrime-info.com et ses sous-domaines), mais sur le nom d'hôte
+ * et non sur la sous-chaîne : `escrime-info.com.exemple.org` ou `exemple.org/?escrime-info.com` ne passent pas.
+ */
 export function isGregUrl(url: string): boolean {
-  return url.toLowerCase().includes('escrime-info.com');
+  const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(url) ? url : `http://${url}`;
+  let host: string;
+  try {
+    host = new URL(withScheme).hostname;
+  } catch {
+    return false;
+  }
+  return host === 'escrime-info.com' || host.endsWith('.escrime-info.com');
 }
 
 /** Nom du fichier envoyé (GREG et FTP) : sans caractères spéciaux, extension .xml */

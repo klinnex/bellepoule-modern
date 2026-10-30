@@ -101,5 +101,7 @@ describe('isGregUrl (#1331)', () => {
   it('laisse passer les autres serveurs', () => {
     expect(isGregUrl('ftp://monclub.fr/resultats')).toBe(false);
     expect(isGregUrl('https://example.org/escrime-info')).toBe(false);
+    expect(isGregUrl('https://escrime-info.com.exemple.org/')).toBe(false);
+    expect(isGregUrl('https://exemple.org/?x=escrime-info.com')).toBe(false);
   });
 });
