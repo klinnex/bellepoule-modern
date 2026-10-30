@@ -64,6 +64,24 @@ export function resolveWinnerFromScores(match: TableauMatch): void {
 }
 
 /**
+ * Vainqueur d'un match saisi à la main. Hors égalité, le score décide. En égalité
+ * (Sabre Laser), seul le vainqueur désigné (V manuel ou tirage au sort) compte.
+ */
+export function resolveTableauWinner(
+  fencerA: Fencer | null,
+  fencerB: Fencer | null,
+  scoreA: number,
+  scoreB: number,
+  tieWinner: 'A' | 'B' | null
+): Fencer | null {
+  if (scoreA > scoreB) return fencerA;
+  if (scoreB > scoreA) return fencerB;
+  if (tieWinner === 'A') return fencerA;
+  if (tieWinner === 'B') return fencerB;
+  return null;
+}
+
+/**
  * Déduit le premier tour du tableau principal à partir des matchs existants.
  * Source de vérité robuste face à un `size` absent (0), périmé (restauration de
  * session avant que `tableauSize` ne soit recalculé) ou trop grand (round de

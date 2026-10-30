@@ -2141,6 +2141,7 @@
     "all_done": "✓ Tots els combats han acabat",
     "barrages": "Desempats",
     "no_draw": "Els marcadors no poden ser iguals en eliminació directa",
+    "tie_need_winner": "Empat: designa el guanyador (V) o fes un sorteig",
     "max_score": "El marcador no pot superar {{max}}",
     "next_played": "Impossible: el combat següent ja s'ha disputat",
     "order_asc_title": "Ordre ascendent",
@@ -2246,7 +2247,9 @@
     "exclusion": "Exclusió",
     "who_abandon": "Quin tirador es retira per motius mèdics?",
     "who_forfait": "Quin tirador declara forfait?",
-    "who_exclusion": "Quin tirador és exclòs?"
+    "who_exclusion": "Quin tirador és exclòs?",
+    "tie_hint": "Empat: tria el guanyador o fes un sorteig",
+    "coin_flip": "Sorteig"
   },
   "addFencerPool": {
     "title": "Afegir un tirador – Poule {{n}}",

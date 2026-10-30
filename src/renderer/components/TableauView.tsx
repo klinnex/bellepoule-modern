@@ -21,6 +21,7 @@ import {
   isBracketComplete,
   TableauSpecialStatus,
   resetTableauMatch,
+  resolveTableauWinner,
 } from './tableau/tableauTypes';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
@@ -107,6 +108,8 @@ interface TableauViewProps {
     club?: string;
     status?: string;
   }>;
+  /** Sabre Laser : une égalité est tranchée par V (manuel) ou tirage au sort */
+  isLaserSabre?: boolean;
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
@@ -234,6 +237,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   readOnly = false,
   maxRefereesPerMatch = 1,
   autoFillReferees,
+  isLaserSabre = false,
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -825,11 +829,18 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     const scoreA = parseInt(editScoreA) || 0;
     const scoreB = parseInt(editScoreB) || 0;
 
-    // Validation
-    if (scoreA === scoreB && !victoryA && !victoryB) {
-      showToast(t('tableauView.no_draw'), 'error');
-      return;
+    // Validation : pas d'égalité hors Sabre Laser ; en Laser, l'égalité exige un vainqueur (V ou tirage)
+    if (scoreA === scoreB) {
+      if (!isLaserSabre) {
+        showToast(t('tableauView.no_draw'), 'error');
+        return;
+      }
+      if (!victoryA && !victoryB) {
+        showToast(t('tableauView.tie_need_winner'), 'error');
+        return;
+      }
     }
+    const tieWinner = victoryA ? 'A' : victoryB ? 'B' : null;
 
     if (!isUnlimitedScore && maxScore > 0) {
       if (scoreA > maxScore || scoreB > maxScore) {
@@ -843,11 +854,13 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       const bracket = consolationBrackets.find(b => b.id === editingConsolationId);
       if (bracket) {
         const match = bracket.matches.find(m => m.id === editingMatch);
-        let winner: Fencer | null = null;
-        if (victoryA) winner = match?.fencerA || null;
-        else if (victoryB) winner = match?.fencerB || null;
-        else if (scoreA > scoreB) winner = match?.fencerA || null;
-        else if (scoreB > scoreA) winner = match?.fencerB || null;
+        const winner = resolveTableauWinner(
+          match?.fencerA ?? null,
+          match?.fencerB ?? null,
+          scoreA,
+          scoreB,
+          tieWinner
+        );
         updateConsolationMatch(editingConsolationId, editingMatch, scoreA, scoreB, winner);
       }
       setShowScoreModal(false);
@@ -861,16 +874,14 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     }
 
     // Déterminer le vainqueur
-    let winner: Fencer | null = null;
-    if (victoryA) {
-      winner = matches.find(m => m.id === editingMatch)?.fencerA || null;
-    } else if (victoryB) {
-      winner = matches.find(m => m.id === editingMatch)?.fencerB || null;
-    } else if (scoreA > scoreB) {
-      winner = matches.find(m => m.id === editingMatch)?.fencerA || null;
-    } else if (scoreB > scoreA) {
-      winner = matches.find(m => m.id === editingMatch)?.fencerB || null;
-    }
+    const editedMatch = matches.find(m => m.id === editingMatch);
+    const winner = resolveTableauWinner(
+      editedMatch?.fencerA ?? null,
+      editedMatch?.fencerB ?? null,
+      scoreA,
+      scoreB,
+      tieWinner
+    );
 
     const updatedMatches = matches.map(match => {
       if (match.id === editingMatch) {
@@ -948,8 +959,10 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     setEditingConsolationId(consolationId ?? null);
     setEditScoreA(match.scoreA?.toString() || '');
     setEditScoreB(match.scoreB?.toString() || '');
-    setVictoryA(false);
-    setVictoryB(false);
+    // Égalité déjà tranchée (V ou tirage) : on restaure le vainqueur saisi
+    const tieResolved = match.scoreA != null && match.scoreA === match.scoreB;
+    setVictoryA(tieResolved && !!match.winner && match.winner.id === match.fencerA?.id);
+    setVictoryB(tieResolved && !!match.winner && match.winner.id === match.fencerB?.id);
     setShowScoreModal(true);
   };
 
@@ -1453,6 +1466,13 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
               onSpecialStatus={handleSpecialStatus}
               onMatchCancel={match.round <= tableauSize ? handleMatchCancel : undefined}
               getRoundName={r => getRoundName(r, t)}
+              isLaserSabre={isLaserSabre}
+              victoryA={victoryA}
+              victoryB={victoryB}
+              onVictoryChange={side => {
+                setVictoryA(side === 'A');
+                setVictoryB(side === 'B');
+              }}
             />
           );
         })()}

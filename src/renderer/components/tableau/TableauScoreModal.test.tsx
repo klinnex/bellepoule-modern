@@ -7,7 +7,7 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
 
 import TableauScoreModal from './TableauScoreModal';
@@ -76,5 +76,59 @@ describe('TableauScoreModal', () => {
     const { props, utils } = setup();
     fireEvent.click(utils.baseElement.querySelector('.modal-overlay') as Element);
     expect(props.onClose).not.toHaveBeenCalled();
+  });
+
+  describe('égalité Sabre Laser', () => {
+    const laserSetup = (over: Partial<Record<string, any>> = {}) =>
+      setup({ isLaserSabre: true, editScoreA: '10', editScoreB: '10', ...over });
+
+    it('hors Laser : aucun bouton V ni tirage au sort, même en égalité', () => {
+      setup({ isLaserSabre: false, editScoreA: '10', editScoreB: '10' });
+      expect(screen.queryByText(/V · /)).toBeNull();
+      expect(screen.queryByText('Tirage au sort')).toBeNull();
+    });
+
+    it('Laser sans égalité : pas de bloc vainqueur', () => {
+      setup({ isLaserSabre: true, editScoreA: '10', editScoreB: '9' });
+      expect(screen.queryByText(/V · /)).toBeNull();
+    });
+
+    it('Laser sans score saisi : pas de bloc vainqueur', () => {
+      setup({ isLaserSabre: true, editScoreA: '', editScoreB: '' });
+      expect(screen.queryByText(/V · /)).toBeNull();
+    });
+
+    it('égalité : V manuel pour chaque tireur', () => {
+      const onVictoryChange = vi.fn();
+      laserSetup({ onVictoryChange });
+      fireEvent.click(screen.getByText('V · Dupont'));
+      expect(onVictoryChange).toHaveBeenCalledWith('A');
+      fireEvent.click(screen.getByText('V · Martin'));
+      expect(onVictoryChange).toHaveBeenCalledWith('B');
+    });
+
+    it('V déjà actif : un second clic le retire', () => {
+      const onVictoryChange = vi.fn();
+      laserSetup({ victoryA: true, onVictoryChange });
+      fireEvent.click(screen.getByText('V · Dupont'));
+      expect(onVictoryChange).toHaveBeenCalledWith(null);
+    });
+
+    it('tirage au sort : le résultat désigne le vainqueur', () => {
+      vi.useFakeTimers({ toFake: ['setTimeout'] });
+      try {
+        const onVictoryChange = vi.fn();
+        laserSetup({ onVictoryChange });
+        fireEvent.click(screen.getByRole('button', { name: /Tirage au sort/ }));
+        act(() => {
+          vi.advanceTimersByTime(3700);
+        });
+        fireEvent.click(screen.getByText('Continuer'));
+        expect(onVictoryChange).toHaveBeenCalledTimes(1);
+        expect(['A', 'B']).toContain(onVictoryChange.mock.calls[0][0]);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 });
