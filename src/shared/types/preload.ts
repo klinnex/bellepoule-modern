@@ -1206,6 +1206,11 @@ export interface PrintDialogSettings {
   scale: number;
 }
 
+/** Rapport de diagnostic exporté en JSON (#1326) */
+export interface DiagnosticAPI {
+  exportReport: () => Promise<{ success: boolean; cancelled?: boolean; error?: string }>;
+}
+
 export interface PrintDialogAPI {
   getPrinters: () => Promise<{ name: string; displayName: string; isDefault: boolean }[]>;
   render: (
@@ -1235,6 +1240,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   file: FileAPI;
   dialog: DialogAPI;
   updater: UpdaterAPI;
+  diagnostic: DiagnosticAPI;
   crypto: CryptoAPI;
   remote: RemoteServerAPI;
   training: TrainingAPI;

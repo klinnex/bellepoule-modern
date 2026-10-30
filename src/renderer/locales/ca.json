@@ -2329,7 +2329,10 @@
     "desc_1": "Programari de gestió de tornejos d'esgrima.",
     "desc_2": "Poules, eliminació directa, arbitratge remot en temps real.",
     "licence": "Llicència: GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
-    "easter": "🐔  Coc-coc!  🐔"
+    "easter": "🐔  Coc-coc!  🐔",
+    "diagnostic_button": "Exporta un informe de diagnòstic",
+    "diagnostic_saved": "Informe de diagnòstic desat",
+    "diagnostic_failed": "Ha fallat l'exportació de l'informe"
   },
   "bracket": {
     "expand_all": "Desplega-ho tot",

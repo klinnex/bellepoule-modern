@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 23 | 252 |
+| `src/main/` | 24 | 258 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 21 | 108 |
 | `src/renderer/components/` | 41 | 191 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **193** | **1723** |
+| **Total** | **194** | **1729** |
 
-Unitaires : 184 fichiers, 1688 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 185 fichiers, 1694 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2042,6 +2042,21 @@ Unitaires : 184 fichiers, 1688 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **certManager**
   - buildAltNames : localhost, loopback et IPv4 externes uniquement
   - ensureCert génère un certificat avec SAN réels, puis le réutilise
+
+</details>
+
+<details>
+<summary><code>src/main/diagnosticReport.test.ts</code> — 6 tests</summary>
+
+- **buildDiagnosticReport (#1326)**
+  - ne garde que la liste blanche de champs
+  - sérialise la date en ISO et conserve les versions
+- **diagnosticFileName (#1326)**
+  - produit un nom de fichier horodaté sans caractères interdits
+- **exportDiagnosticReport (#1326)**
+  - écrit le JSON au chemin choisi avec le nom proposé
+  - signale une annulation sans rien écrire
+  - renvoie une erreur lisible si l'écriture échoue
 
 </details>
 

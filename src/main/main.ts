@@ -30,6 +30,8 @@ import { registerTrainingHandlers } from './ipc/trainingHandlers';
 import { previewPdf, registerPdfPreviewHandlers } from './ipc/pdfPreview';
 import { registerPrintDialogHandlers } from './ipc/printDialog';
 import { registerWebhookHandlers } from './ipc/webhookHandlers';
+import { registerDiagnosticHandlers } from './ipc/diagnosticHandlers';
+import type { DiagnosticInput } from './diagnosticReport';
 import { printHtmlSilently, printHtmlWithSystemDialog } from './printWindows';
 import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from './remoteRegistry';
 import { applyActiveWave, setActiveWave } from './remote/activeWave';
@@ -1709,6 +1711,41 @@ ipcMain.handle(
 );
 
 registerWebhookHandlers();
+
+function collectDiagnosticInput(): DiagnosticInput {
+  const info = getVersionInfo();
+  return {
+    appVersion: info.version,
+    build: info.build,
+    channel: info.channel ?? 'unknown',
+    platform: process.platform,
+    arch: process.arch,
+    osRelease: os.release(),
+    locale: app.getLocale(),
+    electronVersion: process.versions.electron ?? 'unknown',
+    chromeVersion: process.versions.chrome ?? 'unknown',
+    nodeVersion: process.versions.node,
+    uptimeSeconds: Math.round(process.uptime()),
+    memoryRssMb: Math.round(process.memoryUsage().rss / 1048576),
+    activeRemoteServers: remoteServers.size,
+    generatedAt: new Date(),
+  };
+}
+
+registerDiagnosticHandlers({
+  collect: collectDiagnosticInput,
+  chooseSavePath: async defaultName => {
+    const result = await dialog.showSaveDialog(mainWindow!, {
+      defaultPath: defaultName,
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+    });
+    if (result.canceled || !result.filePath) return undefined;
+    authorizePath(result.filePath, 'write');
+    return result.filePath;
+  },
+  writeFile: (filePath, content) =>
+    fs.promises.writeFile(assertAuthorizedPath(filePath, 'write', ['.json']), content, 'utf-8'),
+});
 
 ipcMain.handle('remote:updateLogo', async (_, logo: string | null) => {
   try {
