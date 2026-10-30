@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 26 | 278 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 21 | 108 |
-| `src/renderer/components/` | 41 | 191 |
+| `src/renderer/components/` | 41 | 200 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 47 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **197** | **1760** |
+| **Total** | **197** | **1769** |
 
-Unitaires : 188 fichiers, 1725 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 188 fichiers, 1734 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3348,7 +3348,7 @@ Unitaires : 188 fichiers, 1725 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 12 tests</summary>
 
 - **TableauScoreModal**
   - affiche le nom du tour et les tireurs
@@ -3357,6 +3357,13 @@ Unitaires : 188 fichiers, 1725 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - bouton Médical : croix rouge médicale (#1256)
   - Échap ferme la modale
   - le clic hors de la fenêtre ne ferme pas (#1115)
+  - **égalité Sabre Laser**
+    - hors Laser : aucun bouton V ni tirage au sort, même en égalité
+    - Laser sans égalité : pas de bloc vainqueur
+    - Laser sans score saisi : pas de bloc vainqueur
+    - égalité : V manuel pour chaque tireur
+    - V déjà actif : un second clic le retire
+    - tirage au sort : le résultat désigne le vainqueur
 
 </details>
 
@@ -3384,7 +3391,7 @@ Unitaires : 188 fichiers, 1725 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/tableauTypes.test.ts</code> — 8 tests</summary>
+<summary><code>src/renderer/components/tableau/tableauTypes.test.ts</code> — 11 tests</summary>
 
 - **propagateWinners**
   - apparie les feeders par position même si matchList est désordonné
@@ -3398,6 +3405,10 @@ Unitaires : 188 fichiers, 1725 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - efface le score et retire le vainqueur du tour suivant
   - refuse si le match suivant a déjà été joué
   - vide les perdants de la petite finale pour une demi-finale
+- **resolveTableauWinner**
+  - le score décide hors égalité, un V éventuel est ignoré
+  - en égalité, le vainqueur désigné (V ou tirage) gagne
+  - en égalité sans vainqueur désigné, pas de vainqueur
 
 </details>
 
