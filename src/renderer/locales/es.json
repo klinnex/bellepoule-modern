@@ -2141,6 +2141,7 @@
     "all_done": "✓ Todos los combates han terminado",
     "barrages": "Desempates",
     "no_draw": "Los marcadores no pueden ser iguales en eliminación directa",
+    "tie_need_winner": "Empate: designe al vencedor (V) o haga un sorteo",
     "max_score": "El marcador no puede superar {{max}}",
     "next_played": "Imposible: el combate siguiente ya se ha disputado",
     "order_asc_title": "Orden ascendente",
@@ -2246,7 +2247,9 @@
     "exclusion": "Exclusión",
     "who_abandon": "¿Qué tirador se retira por motivos médicos?",
     "who_forfait": "¿Qué tirador declara forfait?",
-    "who_exclusion": "¿Qué tirador es excluido?"
+    "who_exclusion": "¿Qué tirador es excluido?",
+    "tie_hint": "Empate: elija al vencedor o haga un sorteo",
+    "coin_flip": "Sorteo"
   },
   "addFencerPool": {
     "title": "Añadir un tirador – Poule {{n}}",

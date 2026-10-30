@@ -10,6 +10,7 @@ import { TableauMatch } from './tableauTypes';
 import { useTranslation } from '../../hooks/useTranslation';
 import { MedicalCrossIcon } from '../common/MedicalCrossIcon';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import TiebreakerAnimation from '../TiebreakerAnimation';
 
 interface TableauScoreModalProps {
   match: TableauMatch;
@@ -26,6 +27,11 @@ interface TableauScoreModalProps {
   /** Annule le match (score effacé) — absent pour les barrages */
   onMatchCancel?: () => void;
   getRoundName: (round: number) => string;
+  /** Sabre Laser : une égalité se tranche par V (manuel) ou tirage au sort */
+  isLaserSabre?: boolean;
+  victoryA?: boolean;
+  victoryB?: boolean;
+  onVictoryChange?: (side: 'A' | 'B' | null) => void;
 }
 
 const STATUS_LABELS: Record<'abandon' | 'forfait' | 'exclusion', string> = {
@@ -54,6 +60,10 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   onSpecialStatus,
   onMatchCancel,
   getRoundName,
+  isLaserSabre = false,
+  victoryA = false,
+  victoryB = false,
+  onVictoryChange,
 }) => {
   const { t } = useTranslation();
   // Focus piégé + Échap sur l'overlay (le ref du dialogue reste réservé au redimensionnement)
@@ -61,9 +71,18 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   const [pendingStatus, setPendingStatus] = useState<'abandon' | 'forfait' | 'exclusion' | null>(
     null
   );
+  const [showCoinFlip, setShowCoinFlip] = useState(false);
 
   const fencerName = (f: TableauMatch['fencerA']) =>
     f ? `${f.lastName} ${f.firstName}`.trim() : '';
+
+  // Égalité saisie (scores renseignés des deux côtés) : Sabre Laser uniquement
+  const hasBothScores = editScoreA !== '' && editScoreB !== '';
+  const isTie =
+    isLaserSabre &&
+    hasBothScores &&
+    (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0);
+  const canDrawLots = isTie && !!match.fencerA && !!match.fencerB;
 
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
   return createPortal(
@@ -238,6 +257,59 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
             </p>
           )}
 
+          {/* Égalité Sabre Laser : vainqueur par V manuel ou tirage au sort */}
+          {isTie && (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+                alignItems: 'center',
+                marginBottom: '1rem',
+              }}
+            >
+              <p style={{ fontWeight: 600, margin: 0, textAlign: 'center' }}>
+                {t('tableauScore.tie_hint')}
+              </p>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                }}
+              >
+                <button
+                  type="button"
+                  className={victoryA ? 'btn btn-primary' : 'btn btn-secondary'}
+                  aria-pressed={victoryA}
+                  disabled={!match.fencerA}
+                  onClick={() => onVictoryChange?.(victoryA ? null : 'A')}
+                >
+                  V · {match.fencerA?.lastName}
+                </button>
+                {canDrawLots && (
+                  <button
+                    type="button"
+                    className="btn btn-warning"
+                    onClick={() => setShowCoinFlip(true)}
+                  >
+                    🪙 {t('tableauScore.coin_flip')}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className={victoryB ? 'btn btn-primary' : 'btn btn-secondary'}
+                  aria-pressed={victoryB}
+                  disabled={!match.fencerB}
+                  onClick={() => onVictoryChange?.(victoryB ? null : 'B')}
+                >
+                  V · {match.fencerB?.lastName}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Boutons spéciaux sur une ligne */}
           {!pendingStatus ? (
             <div
@@ -337,6 +409,16 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
           </button>
         </div>
       </div>
+      {showCoinFlip && canDrawLots && (
+        <TiebreakerAnimation
+          fencerA={match.fencerA!}
+          fencerB={match.fencerB!}
+          onComplete={winner => {
+            setShowCoinFlip(false);
+            onVictoryChange?.(winner);
+          }}
+        />
+      )}
     </div>,
     document.body
   );
