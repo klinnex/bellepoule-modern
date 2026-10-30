@@ -121,6 +121,17 @@ const styles: Record<string, React.CSSProperties> = {
   meta: { fontSize: '0.82rem', color: 'var(--text-muted, #888)' },
   desc: { fontSize: '0.9rem', marginTop: '1rem', lineHeight: 1.6 },
   licence: { fontSize: '0.8rem', color: 'var(--text-muted, #888)', marginTop: '0.8rem' },
+  diagBtn: {
+    marginTop: '1rem',
+    padding: '0.4rem 0.9rem',
+    fontSize: '0.82rem',
+    borderRadius: '6px',
+    border: '1px solid var(--border-color, #444)',
+    background: 'transparent',
+    color: 'inherit',
+    cursor: 'pointer',
+  },
+  diagStatus: { fontSize: '0.78rem', color: 'var(--text-muted, #888)', marginTop: '0.4rem' },
   hint: {
     fontSize: '0.72rem',
     color: 'var(--text-muted, #555)',
@@ -182,6 +193,7 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [easterActive, setEasterActive] = useState(false);
+  const [diagStatus, setDiagStatus] = useState<'idle' | 'busy' | 'saved' | 'failed'>('idle');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -200,6 +212,17 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
     playImperialMarch();
     // Mélodie ~8s + marge animation
     timerRef.current = setTimeout(() => setEasterActive(false), 10200);
+  };
+
+  const exportDiagnostic = async () => {
+    setDiagStatus('busy');
+    try {
+      const result = await window.electronAPI.diagnostic.exportReport();
+      if (result.cancelled) setDiagStatus('idle');
+      else setDiagStatus(result.success ? 'saved' : 'failed');
+    } catch {
+      setDiagStatus('failed');
+    }
   };
 
   const handleOverlayClick = (e: React.MouseEvent) => {
@@ -250,6 +273,24 @@ const AboutModal: React.FC<Props> = ({ onClose }) => {
         </div>
 
         <div style={styles.licence}>{t('about.licence')}</div>
+
+        {window.electronAPI?.diagnostic && (
+          <>
+            <button
+              style={styles.diagBtn}
+              onClick={exportDiagnostic}
+              disabled={diagStatus === 'busy'}
+            >
+              {t('about.diagnostic_button')}
+            </button>
+            {diagStatus === 'saved' && (
+              <div style={styles.diagStatus}>{t('about.diagnostic_saved')}</div>
+            )}
+            {diagStatus === 'failed' && (
+              <div style={styles.diagStatus}>{t('about.diagnostic_failed')}</div>
+            )}
+          </>
+        )}
 
         {easterActive && (
           <>

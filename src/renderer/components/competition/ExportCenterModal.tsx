@@ -10,6 +10,8 @@ import { useTranslation } from '../../hooks/useTranslation';
 import Modal from '../common/Modal';
 import { Fencer, Pool, PoolRanking } from '../../../shared/types';
 import { FinalResult } from '../tableau/tableauTypes';
+import type { XmlExportTarget } from '../../hooks/useExport';
+import FtpPublishForm from './FtpPublishForm';
 
 interface ExportCenterModalProps {
   fencers: Fencer[];
@@ -27,7 +29,12 @@ interface ExportCenterModalProps {
   exportRankingExcelCSV: (ranking: PoolRanking[]) => void;
   exportResults: (results: FinalResult[], format: 'csv' | 'json') => void;
   exportResultsHTML: (ranking: PoolRanking[], results: FinalResult[]) => void;
-  exportResultsXML: (ranking: PoolRanking[], results: FinalResult[], pools?: Pool[]) => void;
+  exportResultsXML: (
+    ranking: PoolRanking[],
+    results: FinalResult[],
+    pools?: Pool[],
+    target?: XmlExportTarget
+  ) => void | Promise<void>;
   exportDetailedStats: (pools: Pool[], ranking: PoolRanking[]) => void;
   onGoToTableau: () => void;
   onGoToResults: () => void;
@@ -183,6 +190,22 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
           >
             XML FFE
           </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => exportResultsXML(overallRanking, finalResults, pools, 'greg')}
+          >
+            {t('exportCenter.publish_greg')}
+          </button>
+        </Section>
+      )}
+
+      {finalResults.length > 0 && (
+        <Section title={t('exportCenter.ftp_section')}>
+          <FtpPublishForm
+            onPublish={config =>
+              exportResultsXML(overallRanking, finalResults, pools, { ftp: config })
+            }
+          />
         </Section>
       )}
 

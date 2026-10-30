@@ -483,67 +483,21 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                 )}
               </div>
               {/* Mode démo */}
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                  }}
-                >
+              <div className="training-demo">
+                <label className="training-demo-toggle">
                   <div
-                    style={{
-                      width: '40px',
-                      height: '22px',
-                      borderRadius: '11px',
-                      background: demoMode
-                        ? 'var(--color-primary, #3b82f6)'
-                        : 'var(--color-border)',
-                      position: 'relative',
-                      transition: 'background 0.2s',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                    }}
+                    className={`training-demo-switch${demoMode ? ' is-on' : ''}`}
                     onClick={() => setDemoMode(v => !v)}
                   >
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '3px',
-                        left: demoMode ? '21px' : '3px',
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '50%',
-                        background: '#fff',
-                        transition: 'left 0.2s',
-                      }}
-                    />
+                    <div className="training-demo-knob" />
                   </div>
-                  <span
-                    style={{
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                    }}
-                  >
+                  <span className="training-demo-label">
                     <Shuffle size={14} />
                     {t('trainingLauncher.demo_mode')}
                   </span>
                 </label>
                 {demoMode && (
-                  <p
-                    style={{
-                      margin: '0.35rem 0 0 3.25rem',
-                      fontSize: '0.8rem',
-                      color: 'var(--color-text-muted)',
-                    }}
-                  >
-                    {t('trainingLauncher.demo_mode_hint')}
-                  </p>
+                  <p className="training-demo-hint">{t('trainingLauncher.demo_mode_hint')}</p>
                 )}
               </div>
             </>

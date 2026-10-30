@@ -93,6 +93,7 @@ import { handleArenaControl, type ArenaControlContext } from './remote/arenaCont
 import { setupMiddleware, type MiddlewareContext } from './remote/middleware';
 import { startSession, type SessionStartContext } from './remote/sessionStart';
 import { liveContext } from './remote/liveContext';
+import { syncPoolMatches, updatePoolFencers, type PoolSyncContext } from './remote/poolSync';
 import {
   setTeamArenaMatch,
   clearTeamArenaMatch,
@@ -555,6 +556,16 @@ export class RemoteScoreServer {
     ]));
   }
   private _teamArenaCtx?: TeamArenaContext;
+
+  /** Contexte de poolSync.ts (#1240) */
+  private get poolSyncCtx(): PoolSyncContext {
+    return (this._poolSyncCtx ??= liveContext<PoolSyncContext>(
+      this,
+      ['arenas', 'db', 'io', 'poolFencersCache', 'sessionMatches', 'sessionMatchScores'],
+      ['broadcastArenaUpdate', 'resolveReferee']
+    ));
+  }
+  private _poolSyncCtx?: PoolSyncContext;
 
   /** Contexte de sessionStart.ts (#1240) */
   private get sessionStartCtx(): SessionStartContext {
@@ -2531,7 +2542,8 @@ export class RemoteScoreServer {
   }
 
   public stopSession(): void {
-    this.stopDemoPlayer();
+    this.demoPlayer?.stop();
+    this.demoPlayer = null;
     this.isTrainingMode = false;
     this.trainingCustomRules = null;
     this.session = null;
@@ -2574,11 +2586,6 @@ export class RemoteScoreServer {
 
   private createTrainingMatch(): ArenaMatch {
     return this.demoPlayer ? this.demoPlayer.createMatch() : createTrainingMatch();
-  }
-
-  private stopDemoPlayer(): void {
-    this.demoPlayer?.stop();
-    this.demoPlayer = null;
   }
 
   public getTrainingHistory() {
@@ -2651,92 +2658,11 @@ export class RemoteScoreServer {
   }
 
   public updatePoolFencers(updates: Array<{ poolId: string; fencers: any[] }>): void {
-    for (const { poolId, fencers } of updates) {
-      if (fencers && fencers.length > 0) {
-        this.poolFencersCache.set(poolId, fencers);
-      }
-    }
-    // Notifier les tablettes connectées sur une arène affichant une poule modifiée
-    for (const { poolId } of updates) {
-      for (const [aId, arena] of this.arenas) {
-        if (arena.currentMatch?.poolId !== poolId) continue;
-        const updatedFencers = this.poolFencersCache.get(poolId) ?? [];
-        const inMemory = this.sessionMatches
-          .filter(m => (m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`) === poolId)
-          .sort((a: any, b: any) => (a.number || 0) - (b.number || 0));
-        const matches =
-          inMemory.length > 0
-            ? inMemory.map(m => {
-                const u = this.sessionMatchScores.get(m.id);
-                return u ? { ...m, ...u } : m;
-              })
-            : this.db.getMatchesByPool(poolId);
-        const isComplete = matches.every((m: any) => m.status === MatchStatus.FINISHED);
-        this.io
-          .to(`pool:${aId}`)
-          .emit(`pool:${aId}:update`, { poolId, fencers: updatedFencers, matches, isComplete });
-        break;
-      }
-    }
+    return updatePoolFencers(this.poolSyncCtx, updates);
   }
 
   public syncPoolMatches(poolsData: Array<{ poolId: string; matches: any[] }>): void {
-    const updatedPoolIds = new Set<string>();
-
-    for (const { poolId, matches } of poolsData) {
-      this.sessionMatches = [
-        ...this.sessionMatches.filter(
-          (m: any) =>
-            m.isTableau || (m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`) !== poolId
-        ),
-        ...matches,
-      ];
-      updatedPoolIds.add(poolId);
-    }
-
-    for (const poolId of updatedPoolIds) {
-      const fencers = this.poolFencersCache.get(poolId) ?? this.db.getPoolFencers(poolId);
-      const inMemory = this.sessionMatches
-        .filter(
-          (m: any) =>
-            !m.isTableau &&
-            (m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`) === poolId
-        )
-        .sort((a: any, b: any) => (a.number || 0) - (b.number || 0));
-      const poolMatches =
-        inMemory.length > 0
-          ? inMemory.map((m: any) => {
-              const u = this.sessionMatchScores.get(m.id);
-              return u ? { ...m, ...u } : m;
-            })
-          : this.db.getMatchesByPool(poolId);
-      const isComplete =
-        poolMatches.length > 0 && poolMatches.every((m: any) => m.status === MatchStatus.FINISHED);
-      for (const [aId, arena] of this.arenas) {
-        if ((arena.currentMatch?.poolId ?? arena.activePoolId) !== poolId) continue;
-        if (arena.currentMatch) {
-          const currentMatch = arena.currentMatch;
-          const updatedMatch = this.sessionMatches.find((m: any) => m.id === currentMatch.id);
-          if (updatedMatch?.refereeId && updatedMatch.refereeId !== currentMatch.referee?.id) {
-            const resolvedRef = this.resolveReferee(updatedMatch.refereeId);
-            arena.currentMatch = {
-              ...currentMatch,
-              ...(resolvedRef ? { referee: resolvedRef } : {}),
-            };
-            this.broadcastArenaUpdate(aId, {
-              arenaId: aId,
-              match: arena.currentMatch,
-              scoreA: arena.currentMatch.scoreA,
-              scoreB: arena.currentMatch.scoreB,
-              status: arena.status,
-            });
-          }
-        }
-        this.io
-          .to(`pool:${aId}`)
-          .emit(`pool:${aId}:update`, { poolId, fencers, matches: poolMatches, isComplete });
-      }
-    }
+    return syncPoolMatches(this.poolSyncCtx, poolsData);
   }
 
   /**

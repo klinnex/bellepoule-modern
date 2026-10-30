@@ -1700,6 +1700,12 @@
     "ranking": "Rangliste",
     "csv_excel": "Excel-CSV",
     "send_ffe": "📡 An die FFE senden",
+    "publish_greg": "🌐 Auf GREG veröffentlichen",
+    "ftp_section": "FTP-Server",
+    "ftp_url": "Serveradresse (ftp://, ftps://, http:// oder https://)",
+    "ftp_user": "Benutzername",
+    "ftp_password": "Passwort",
+    "ftp_publish": "Auf den FTP-Server hochladen",
     "final_results": "Endergebnisse",
     "stats": "Statistiken",
     "stats_csv": "Detaillierte Statistik (CSV)",
@@ -2332,7 +2338,10 @@
     "desc_1": "Software zur Verwaltung von Fechtturnieren.",
     "desc_2": "Pools, Direktausscheidung, Kampfrichter-Fernbedienung in Echtzeit.",
     "licence": "Lizenz: GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
-    "easter": "🐔  Gack gack!  🐔"
+    "easter": "🐔  Gack gack!  🐔",
+    "diagnostic_button": "Diagnosebericht exportieren",
+    "diagnostic_saved": "Diagnosebericht gespeichert",
+    "diagnostic_failed": "Export des Berichts fehlgeschlagen"
   },
   "bracket": {
     "expand_all": "Alle ausklappen",

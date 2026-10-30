@@ -20,6 +20,7 @@ import {
 } from '../../shared/utils/multiFormatExport';
 
 import { computePoolStrips } from '../../shared/utils/poolStrips';
+import { buildGregFields, gregFileName, toNativeRootTag } from '../../shared/utils/gregPublication';
 import type { PoolStripQr } from '../../shared/utils/pdfExport';
 
 /** Saisie distante active : URL du serveur et nombre de pistes (QR sur les feuilles) */
@@ -40,6 +41,16 @@ function buildStripQrs(
   }
   return out;
 }
+
+/** Coordonnées du dépôt FTP saisies dans le centre d'export (#1331) */
+export interface FtpPublishConfig {
+  url: string;
+  user: string;
+  password: string;
+}
+
+/** Destination du XML de résultats : fichier local, GREG, ou serveur FTP */
+export type XmlExportTarget = 'file' | 'greg' | { ftp: FtpPublishConfig };
 
 interface UseExportProps {
   competition: Competition;
@@ -315,17 +326,55 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
     [competition.title, downloadFile, showToast]
   );
 
-  // Export XML FFE
+  // Export XML FFE (fichier), ou publication du même XML sur GREG (#1328) ou un serveur FTP (#1331)
   const exportResultsXML = useCallback(
-    (poolRanking: PoolRanking[], finalResults: FinalResult[], pools?: Pool[]) => {
+    async (
+      poolRanking: PoolRanking[],
+      finalResults: FinalResult[],
+      pools?: Pool[],
+      target: XmlExportTarget = 'file'
+    ) => {
       try {
-        const content = exportResultsXMLFFE(competition, poolRanking, finalResults, pools);
+        const xml = exportResultsXMLFFE(competition, poolRanking, finalResults, pools);
+        if (target === 'greg') {
+          const api = window.electronAPI?.greg;
+          if (!api) throw new Error('Publication GREG indisponible dans cette version');
+          const result = await api.publish({
+            fileName: gregFileName(competition.title),
+            xml: toNativeRootTag(xml, competition.isTeamEvent),
+            fields: { ...buildGregFields(competition) },
+          });
+          if (result.success) showToast('Résultats envoyés à GREG', 'success');
+          else
+            showToast(
+              `Échec de la publication GREG : ${result.error ?? 'erreur inconnue'}`,
+              'error'
+            );
+          return;
+        }
+        if (typeof target === 'object') {
+          const api = window.electronAPI?.ftp;
+          if (!api) throw new Error('Connecteur FTP indisponible dans cette version');
+          const result = await api.publish({
+            fileName: gregFileName(competition.title),
+            xml: toNativeRootTag(xml, competition.isTeamEvent),
+            url: target.ftp.url,
+            user: target.ftp.user,
+            password: target.ftp.password,
+          });
+          if (result.success) showToast('Résultats envoyés sur le serveur FTP', 'success');
+          else showToast(`Échec de l'envoi FTP : ${result.error ?? 'erreur inconnue'}`, 'error');
+          return;
+        }
         const filename = `resultats_${competition.title.replace(/[^a-z0-9]/gi, '_')}.xml`;
-        downloadFile(content, filename, 'application/xml');
+        downloadFile(xml, filename, 'application/xml');
         showToast('Export XML FFE réussi', 'success');
       } catch (error) {
         logger.error(LogCategory.UI, 'Export XML failed', error as Error);
-        showToast('Export XML échoué', 'error');
+        showToast(
+          error instanceof Error && target !== 'file' ? error.message : 'Export XML échoué',
+          'error'
+        );
       }
     },
     [competition, downloadFile, showToast]

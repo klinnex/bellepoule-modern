@@ -1700,6 +1700,12 @@
     "ranking": "Clasificación",
     "csv_excel": "CSV Excel",
     "send_ffe": "📡 Enviar a la FFE",
+    "publish_greg": "🌐 Publicar en GREG",
+    "ftp_section": "Servidor FTP",
+    "ftp_url": "Dirección del servidor (ftp://, ftps://, http:// o https://)",
+    "ftp_user": "Usuario",
+    "ftp_password": "Contraseña",
+    "ftp_publish": "Publicar en el servidor FTP",
     "final_results": "Resultados finales",
     "stats": "Estadísticas",
     "stats_csv": "Estadísticas detalladas (CSV)",
@@ -2332,7 +2338,10 @@
     "desc_1": "Software de gestión de torneos de esgrima.",
     "desc_2": "Poules, eliminación directa, arbitraje remoto en tiempo real.",
     "licence": "Licencia: GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
-    "easter": "🐔  ¡Coc coc!  🐔"
+    "easter": "🐔  ¡Coc coc!  🐔",
+    "diagnostic_button": "Exportar informe de diagnóstico",
+    "diagnostic_saved": "Informe de diagnóstico guardado",
+    "diagnostic_failed": "Error al exportar el informe"
   },
   "bracket": {
     "expand_all": "Desplegar todo",

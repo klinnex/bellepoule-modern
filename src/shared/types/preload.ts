@@ -1206,6 +1206,31 @@ export interface PrintDialogSettings {
   scale: number;
 }
 
+/** Rapport de diagnostic exporté en JSON (#1326) */
+export interface DiagnosticAPI {
+  exportReport: () => Promise<{ success: boolean; cancelled?: boolean; error?: string }>;
+}
+
+/** Publication GREG (escrime-info.com) : fichier XML + champs du formulaire (#1328) */
+export interface GregAPI {
+  publish: (request: {
+    fileName: string;
+    xml: string;
+    fields: Record<string, string>;
+  }) => Promise<{ success: boolean; error?: string }>;
+}
+
+/** Connecteur FTP/FTPS : dépôt du fichier de résultats (#1331) */
+export interface FtpAPI {
+  publish: (request: {
+    fileName: string;
+    xml: string;
+    url: string;
+    user: string;
+    password: string;
+  }) => Promise<{ success: boolean; error?: string }>;
+}
+
 export interface PrintDialogAPI {
   getPrinters: () => Promise<{ name: string; displayName: string; isDefault: boolean }[]>;
   render: (
@@ -1235,6 +1260,9 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   file: FileAPI;
   dialog: DialogAPI;
   updater: UpdaterAPI;
+  diagnostic: DiagnosticAPI;
+  greg: GregAPI;
+  ftp: FtpAPI;
   crypto: CryptoAPI;
   remote: RemoteServerAPI;
   training: TrainingAPI;

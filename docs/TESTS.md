@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 40 | 585 |
+| `src/shared/utils/` | 41 | 594 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 23 | 252 |
+| `src/main/` | 26 | 278 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 21 | 108 |
 | `src/renderer/components/` | 41 | 200 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **193** | **1732** |
+| **Total** | **197** | **1767** |
 
-Unitaires : 184 fichiers, 1697 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 188 fichiers, 1732 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -502,6 +502,24 @@ Unitaires : 184 fichiers, 1697 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - DNS en poules (forfait ou médical)
   - DNF forfait/médical en poules
   - rang conservé pendant le tableau ou sans forfait
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/gregPublication.test.ts</code> — 9 tests</summary>
+
+- **buildGregFields (#1328)**
+  - traduit une compétition individuelle en champs GREG
+  - bascule sur les équipes, le sexe féminin et le statut terminé
+  - mixte = H comme dans l'ancien BellePoule
+  - refuse une compétition sans lieu (le serveur l'exige)
+  - refuse les armes et catégories sans code GREG
+  - mappe les catégories jeunes sur leur code M\<âge\>
+- **gregFileName (#1328)**
+  - produit un nom sûr avec extension .xml
+- **toNativeRootTag (#1328)**
+  - passe au pluriel pour les équipes
+  - laisse le XML individuel intact
 
 </details>
 
@@ -2046,12 +2064,66 @@ Unitaires : 184 fichiers, 1697 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/diagnosticReport.test.ts</code> — 6 tests</summary>
+
+- **buildDiagnosticReport (#1326)**
+  - ne garde que la liste blanche de champs
+  - sérialise la date en ISO et conserve les versions
+- **diagnosticFileName (#1326)**
+  - produit un nom de fichier horodaté sans caractères interdits
+- **exportDiagnosticReport (#1326)**
+  - écrit le JSON au chemin choisi avec le nom proposé
+  - signale une annulation sans rien écrire
+  - renvoie une erreur lisible si l'écriture échoue
+
+</details>
+
+<details>
 <summary><code>src/main/eventLoopMonitor.test.ts</code> — 3 tests</summary>
 
 - **EventLoopMonitor (#1154)**
   - snapshot vide avant toute mesure
   - détecte un blocage synchrone et se remet à zéro
   - start/stop idempotents
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/ftpHandlers.test.ts</code> — 12 tests</summary>
+
+- **parseRemoteUrl (#1331)**
+  - accepte ftp et ftps, avec port et dossier décodé
+  - accepte http et https pour un dépôt HTTP PUT
+  - refuse les autres schémas, les URL sans hôte et les identifiants dans l'URL
+- **parseFtpRequest (#1331)**
+  - accepte une requête bien formée
+  - refuse un nom de fichier, un XML, une URL ou des identifiants invalides
+- **publishRemote en FTP/FTPS (#1331)**
+  - se connecte, va dans le dossier, dépose le fichier puis ferme
+  - n'envoie pas d'identifiant vide et ne change pas de dossier à la racine
+  - ferme toujours la connexion et remonte l'erreur, sans le mot de passe
+- **publishRemote en HTTP PUT (#1331)**
+  - envoie le XML en PUT vers \<dossier\>/\<fichier\> avec authentification Basic
+  - sans identifiant complet, n'envoie pas d'en-tête Authorization
+  - remonte le code HTTP en cas d'échec, sans le mot de passe
+- **publishRemote : URL refusée (#1331)**
+  - ne se connecte pas si le schéma est refusé
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/gregHandlers.test.ts</code> — 8 tests</summary>
+
+- **parseGregRequest (#1328)**
+  - accepte une requête bien formée
+  - refuse un nom de fichier qui sort du dossier attendu
+  - refuse un champ inconnu ou manquant
+  - ignore les champs supplémentaires (jamais transmis)
+  - refuse un XML vide ou une requête non objet
+- **publishToGreg (#1328)**
+  - envoie le fichier puis valide le formulaire, dans cet ordre
+  - s'arrête à la première étape en erreur HTTP
+  - remonte une erreur réseau sans lever d'exception
 
 </details>
 

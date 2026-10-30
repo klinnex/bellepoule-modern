@@ -1700,6 +1700,12 @@
     "ranking": "排名",
     "csv_excel": "Excel CSV",
     "send_ffe": "📡 傳送至 FFE",
+    "publish_greg": "🌐 發布至 GREG",
+    "ftp_section": "FTP 伺服器",
+    "ftp_url": "伺服器位址（ftp://、ftps://、http:// 或 https://）",
+    "ftp_user": "使用者名稱",
+    "ftp_password": "密碼",
+    "ftp_publish": "發布至 FTP 伺服器",
     "final_results": "最終結果",
     "stats": "統計",
     "stats_csv": "詳細統計（CSV）",
@@ -2332,7 +2338,10 @@
     "desc_1": "劍擊賽事管理軟件。",
     "desc_2": "小組賽、直接淘汰賽、即時遠程裁判。",
     "licence": "授權：GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
-    "easter": "🐔  咯咯！  🐔"
+    "easter": "🐔  咯咯！  🐔",
+    "diagnostic_button": "匯出診斷報告",
+    "diagnostic_saved": "診斷報告已儲存",
+    "diagnostic_failed": "匯出報告失敗"
   },
   "bracket": {
     "expand_all": "全部展開",
