@@ -20,7 +20,12 @@ import {
 } from '../../shared/utils/multiFormatExport';
 
 import { computePoolStrips } from '../../shared/utils/poolStrips';
-import { buildGregFields, gregFileName, toNativeRootTag } from '../../shared/utils/gregPublication';
+import {
+  buildGregFields,
+  gregFileName,
+  isGregUrl,
+  toNativeRootTag,
+} from '../../shared/utils/gregPublication';
 import type { PoolStripQr } from '../../shared/utils/pdfExport';
 
 /** Saisie distante active : URL du serveur et nombre de pistes (QR sur les feuilles) */
@@ -326,7 +331,7 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
     [competition.title, downloadFile, showToast]
   );
 
-  // Export XML FFE (fichier), ou publication du même XML sur GREG (#1328) ou un serveur FTP (#1331)
+  // Export XML FFE (fichier), ou publication du même XML sur GREG (#1328) ou un serveur distant (#1331)
   const exportResultsXML = useCallback(
     async (
       poolRanking: PoolRanking[],
@@ -336,7 +341,8 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
     ) => {
       try {
         const xml = exportResultsXMLFFE(competition, poolRanking, finalResults, pools);
-        if (target === 'greg') {
+        // Comme l'ancien BellePoule : une adresse escrime-info.com part toujours vers GREG (sans identifiant)
+        if (target === 'greg' || (typeof target === 'object' && isGregUrl(target.ftp.url))) {
           const api = window.electronAPI?.greg;
           if (!api) throw new Error('Publication GREG indisponible dans cette version');
           const result = await api.publish({

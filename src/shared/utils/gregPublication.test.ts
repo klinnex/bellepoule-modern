@@ -3,6 +3,7 @@ import { Category, Gender, Weapon } from '../types';
 import {
   buildGregFields,
   gregFileName,
+  isGregUrl,
   toNativeRootTag,
   type GregCompetition,
 } from './gregPublication';
@@ -87,5 +88,18 @@ describe('toNativeRootTag (#1328)', () => {
   it('laisse le XML individuel intact', () => {
     const individual = '<CompetitionIndividuelle ID="x"></CompetitionIndividuelle>';
     expect(toNativeRootTag(individual, false)).toBe(individual);
+  });
+});
+
+describe('isGregUrl (#1331)', () => {
+  it("reconnaît les adresses escrime-info.com comme l'ancien BellePoule", () => {
+    expect(isGregUrl('escrime-info.com')).toBe(true);
+    expect(isGregUrl('https://www.escrime-info.com/x')).toBe(true);
+    expect(isGregUrl('ftp://ESCRIME-INFO.COM/')).toBe(true);
+  });
+
+  it('laisse passer les autres serveurs', () => {
+    expect(isGregUrl('ftp://monclub.fr/resultats')).toBe(false);
+    expect(isGregUrl('https://example.org/escrime-info')).toBe(false);
   });
 });
