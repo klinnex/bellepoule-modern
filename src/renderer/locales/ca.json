@@ -1702,7 +1702,7 @@
     "send_ffe": "📡 Envia a la FFE",
     "publish_greg": "🌐 Publica a GREG",
     "ftp_section": "Servidor FTP",
-    "ftp_url": "Adreça FTP (ftp:// o ftps://)",
+    "ftp_url": "Adreça del servidor (ftp://, ftps://, http:// o https://)",
     "ftp_user": "Usuari",
     "ftp_password": "Contrasenya",
     "ftp_publish": "Publica al servidor FTP",

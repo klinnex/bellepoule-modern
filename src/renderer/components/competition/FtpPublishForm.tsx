@@ -9,6 +9,8 @@ import { useTranslation } from '../../hooks/useTranslation';
 import type { FtpPublishConfig } from '../../hooks/useExport';
 
 const STORAGE_KEY = 'bellepoule-ftp-config';
+// Serveur par défaut de l'ancien BellePoule (escrime-info.com), en HTTPS : l'ancien code utilisait HTTP en clair
+const DEFAULT_URL = 'https://escrime-info.com';
 // Exemple d'adresse, non traduisible
 const URL_EXAMPLE = 'ftp://serveur/dossier';
 
@@ -30,7 +32,7 @@ const loadSaved = (): SavedFields => {
   } catch {
     // stockage indisponible : on repart d'un formulaire vide
   }
-  return { url: '', user: '' };
+  return { url: DEFAULT_URL, user: '' };
 };
 
 const saveFields = (fields: SavedFields): void => {

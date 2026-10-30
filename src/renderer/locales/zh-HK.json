@@ -1702,7 +1702,7 @@
     "send_ffe": "📡 傳送至 FFE",
     "publish_greg": "🌐 發布至 GREG",
     "ftp_section": "FTP 伺服器",
-    "ftp_url": "FTP 位址（ftp:// 或 ftps://）",
+    "ftp_url": "伺服器位址（ftp://、ftps://、http:// 或 https://）",
     "ftp_user": "使用者名稱",
     "ftp_password": "密碼",
     "ftp_publish": "發布至 FTP 伺服器",

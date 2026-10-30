@@ -6,8 +6,8 @@ vi.mock('basic-ftp', () => ({ Client: class {} }));
 
 import {
   parseFtpRequest,
-  parseFtpUrl,
-  publishToFtp,
+  parseRemoteUrl,
+  publishRemote,
   type FtpClientLike,
   type FtpPublishRequest,
 } from './ftpHandlers';
@@ -50,15 +50,22 @@ function fakeClient(failOn?: 'access' | 'cd' | 'uploadFrom') {
   return { client, calls, uploaded: () => uploaded };
 }
 
-describe('parseFtpUrl (#1331)', () => {
+function fakeFetch(status = 201) {
+  const fetchImpl = vi.fn(async () => new Response('', { status }));
+  return fetchImpl as unknown as typeof fetch & ReturnType<typeof vi.fn>;
+}
+
+describe('parseRemoteUrl (#1331)', () => {
   it('accepte ftp et ftps, avec port et dossier décodé', () => {
-    expect(parseFtpUrl('ftp://host/mes%20resultats')).toEqual({
+    expect(parseRemoteUrl('ftp://host/mes%20resultats')).toEqual({
+      kind: 'ftp',
       host: 'host',
       port: undefined,
       secure: false,
       directory: '/mes resultats',
     });
-    expect(parseFtpUrl('ftps://host:2121/')).toEqual({
+    expect(parseRemoteUrl('ftps://host:2121/')).toEqual({
+      kind: 'ftp',
       host: 'host',
       port: 2121,
       secure: true,
@@ -66,12 +73,22 @@ describe('parseFtpUrl (#1331)', () => {
     });
   });
 
+  it('accepte http et https pour un dépôt HTTP PUT', () => {
+    const target = parseRemoteUrl('https://escrime-info.com/dossier');
+    expect(target).toEqual({
+      kind: 'http',
+      directoryUrl: expect.any(URL),
+    });
+    if (typeof target === 'string' || target.kind !== 'http') throw new Error('attendu http');
+    expect(target.directoryUrl.href).toBe('https://escrime-info.com/dossier/');
+  });
+
   it("refuse les autres schémas, les URL sans hôte et les identifiants dans l'URL", () => {
-    expect(parseFtpUrl('http://host/dir')).toBe('invalid_url_scheme');
-    expect(parseFtpUrl('file:///etc')).toBe('invalid_url_scheme');
-    expect(parseFtpUrl('ftp:///dir')).toBe('invalid_url');
-    expect(parseFtpUrl('pas une url')).toBe('invalid_url_scheme');
-    expect(parseFtpUrl('ftp://user:pass@host/dir')).toBe('credentials_in_url');
+    expect(parseRemoteUrl('file:///etc')).toBe('invalid_url_scheme');
+    expect(parseRemoteUrl('pas une url')).toBe('invalid_url_scheme');
+    expect(parseRemoteUrl('ftp:///dir')).toBe('invalid_url');
+    expect(parseRemoteUrl('https:///dir')).toBe('invalid_url');
+    expect(parseRemoteUrl('ftp://user:pass@host/dir')).toBe('credentials_in_url');
   });
 });
 
@@ -90,10 +107,10 @@ describe('parseFtpRequest (#1331)', () => {
   });
 });
 
-describe('publishToFtp (#1331)', () => {
+describe('publishRemote en FTP/FTPS (#1331)', () => {
   it('se connecte, va dans le dossier, dépose le fichier puis ferme', async () => {
     const { client, calls, uploaded } = fakeClient();
-    const result = await publishToFtp(request, () => client);
+    const result = await publishRemote(request, { createClient: () => client });
     expect(result).toEqual({ success: true });
     expect(calls).toEqual(['access', 'cd:/public/resultats', 'upload:resultats_test.xml', 'close']);
     expect(uploaded()).toBe('<CompetitionIndividuelle/>');
@@ -106,9 +123,12 @@ describe('publishToFtp (#1331)', () => {
     });
   });
 
-  it("n'envoie pas d'identifiant vide (connexion anonyme) et ne change pas de dossier à la racine", async () => {
+  it("n'envoie pas d'identifiant vide et ne change pas de dossier à la racine", async () => {
     const { client, calls } = fakeClient();
-    await publishToFtp({ ...request, url: 'ftp://host/', user: '', password: '' }, () => client);
+    await publishRemote(
+      { ...request, url: 'ftp://host/', user: '', password: '' },
+      { createClient: () => client }
+    );
     expect(calls).toEqual(['access', 'upload:resultats_test.xml', 'close']);
     expect(client.access).toHaveBeenCalledWith(
       expect.objectContaining({ user: undefined, password: undefined, secure: false })
@@ -118,18 +138,64 @@ describe('publishToFtp (#1331)', () => {
   it("ferme toujours la connexion et remonte l'erreur, sans le mot de passe", async () => {
     for (const failOn of ['access', 'cd', 'uploadFrom'] as const) {
       const { client, calls } = fakeClient(failOn);
-      const result = await publishToFtp(request, () => client);
+      const result = await publishRemote(request, { createClient: () => client });
       expect(result.success).toBe(false);
       expect(result.error).toMatch(/^(530|550|553) /);
       expect(calls[calls.length - 1]).toBe('close');
       expect(JSON.stringify(result)).not.toContain('secret-pass');
     }
   });
+});
 
-  it("ne se connecte pas si l'URL est refusée", async () => {
+describe('publishRemote en HTTP PUT (#1331)', () => {
+  it('envoie le XML en PUT vers <dossier>/<fichier> avec authentification Basic', async () => {
+    const fetchImpl = fakeFetch();
+    const result = await publishRemote(
+      { ...request, url: 'https://escrime-info.com/dossier', user: 'club', password: 'pw' },
+      { fetchImpl }
+    );
+    expect(result).toEqual({ success: true });
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [URL, RequestInit];
+    expect(String(url)).toBe('https://escrime-info.com/dossier/resultats_test.xml');
+    expect(init.method).toBe('PUT');
+    expect(init.redirect).toBe('error');
+    expect(init.body).toBe('<CompetitionIndividuelle/>');
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      `Basic ${Buffer.from('club:pw').toString('base64')}`
+    );
+  });
+
+  it("sans identifiant complet, n'envoie pas d'en-tête Authorization", async () => {
+    const fetchImpl = fakeFetch();
+    await publishRemote(
+      { ...request, url: 'https://escrime-info.com', user: 'club', password: '' },
+      { fetchImpl }
+    );
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [URL, RequestInit];
+    expect(String(url)).toBe('https://escrime-info.com/resultats_test.xml');
+    expect((init.headers as Record<string, string>).Authorization).toBeUndefined();
+  });
+
+  it("remonte le code HTTP en cas d'échec, sans le mot de passe", async () => {
+    const result = await publishRemote(
+      { ...request, url: 'https://escrime-info.com/', user: 'club', password: 'secret-pass' },
+      { fetchImpl: fakeFetch(401) }
+    );
+    expect(result).toEqual({ success: false, error: 'HTTP 401' });
+    expect(JSON.stringify(result)).not.toContain('secret-pass');
+  });
+});
+
+describe('publishRemote : URL refusée (#1331)', () => {
+  it('ne se connecte pas si le schéma est refusé', async () => {
     const factory = vi.fn();
-    const result = await publishToFtp({ ...request, url: 'http://host/' }, factory);
+    const fetchImpl = fakeFetch();
+    const result = await publishRemote(
+      { ...request, url: 'file:///etc/' },
+      { createClient: factory, fetchImpl }
+    );
     expect(result).toEqual({ success: false, error: 'invalid_url_scheme' });
     expect(factory).not.toHaveBeenCalled();
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 });

@@ -1702,7 +1702,7 @@
     "send_ffe": "📡 An die FFE senden",
     "publish_greg": "🌐 Auf GREG veröffentlichen",
     "ftp_section": "FTP-Server",
-    "ftp_url": "FTP-Adresse (ftp:// oder ftps://)",
+    "ftp_url": "Serveradresse (ftp://, ftps://, http:// oder https://)",
     "ftp_user": "Benutzername",
     "ftp_password": "Passwort",
     "ftp_publish": "Auf den FTP-Server hochladen",

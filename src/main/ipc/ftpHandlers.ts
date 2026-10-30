@@ -1,6 +1,8 @@
 /**
- * BellePoule Modern - Canal IPC `ftp:publish` : envoi du fichier de résultats vers un serveur FTP/FTPS (#1331)
+ * BellePoule Modern - Canal IPC `ftp:publish` : dépôt du fichier de résultats sur un serveur distant (#1331)
  * Équivalent de l'ancien `FileUploader` (libcurl) : le fichier est déposé dans le dossier indiqué par l'URL.
+ * - ftp:// et ftps:// : protocole FTP (basic-ftp)
+ * - http:// et https:// : HTTP PUT vers `<dossier>/<fichier>`, comme l'ancien BellePoule avec escrime-info.com
  * Le renderer ne fait aucun appel réseau : l'envoi part du main.
  * Licensed under GPL-3.0
  */
@@ -16,7 +18,7 @@ const FILE_NAME_RE = /^[A-Za-z0-9_.-]{1,120}\.xml$/;
 export interface FtpPublishRequest {
   fileName: string;
   xml: string;
-  /** URL du dossier de dépôt : ftp://hôte[:port]/dossier ou ftps://… */
+  /** URL du dossier de dépôt : ftp(s)://hôte[:port]/dossier ou http(s)://hôte/dossier */
   url: string;
   user: string;
   password: string;
@@ -41,26 +43,22 @@ export interface FtpClientLike {
   close(): void;
 }
 
-export interface FtpTarget {
-  host: string;
-  port?: number;
-  secure: boolean;
-  directory: string;
-}
+export type RemoteTarget =
+  | { kind: 'ftp'; host: string; port?: number; secure: boolean; directory: string }
+  | { kind: 'http'; directoryUrl: URL };
 
-/** Valide une URL de dépôt : schéma ftp/ftps, hôte, aucun identifiant dans l'URL */
-export function parseFtpUrl(raw: string): FtpTarget | string {
+/** Valide une URL de dépôt : schéma ftp/ftps/http/https, hôte explicite, aucun identifiant dans l'URL */
+export function parseRemoteUrl(raw: string): RemoteTarget | string {
   const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(raw)?.[1]?.toLowerCase();
-  if (scheme !== 'ftp' && scheme !== 'ftps') return 'invalid_url_scheme';
+  if (!scheme || !['ftp', 'ftps', 'http', 'https'].includes(scheme)) return 'invalid_url_scheme';
   // « ftp:///dir » serait lu par l'analyseur comme hôte « dir » : on exige un hôte explicite
-  if (!/^ftps?:\/\/[^/]/i.test(raw)) return 'invalid_url';
+  if (!/^[a-z]+:\/\/[^/]/i.test(raw)) return 'invalid_url';
   let url: URL;
   try {
     url = new URL(raw);
   } catch {
     return 'invalid_url';
   }
-  if (url.protocol !== 'ftp:' && url.protocol !== 'ftps:') return 'invalid_url_scheme';
   if (!url.hostname) return 'invalid_url';
   if (url.username || url.password) return 'credentials_in_url';
 
@@ -72,7 +70,15 @@ export function parseFtpUrl(raw: string): FtpTarget | string {
   }
   if (directory.includes('\0')) return 'invalid_url';
 
+  if (url.protocol === 'http:' || url.protocol === 'https:') {
+    const directoryUrl = new URL(url.href);
+    directoryUrl.pathname = directory.endsWith('/') ? directory : `${directory}/`;
+    directoryUrl.search = '';
+    directoryUrl.hash = '';
+    return { kind: 'http', directoryUrl };
+  }
   return {
+    kind: 'ftp',
     host: url.hostname,
     port: url.port ? Number(url.port) : undefined,
     secure: url.protocol === 'ftps:',
@@ -96,17 +102,12 @@ export function parseFtpRequest(raw: unknown): FtpPublishRequest | string {
 
 const defaultClient = (): FtpClientLike => new Client(TIMEOUT_MS);
 
-/**
- * Dépose le fichier dans le dossier de l'URL. Le client est toujours fermé, même en erreur.
- * Les identifiants ne sont jamais journalisés.
- */
-export async function publishToFtp(
+/** Dépôt FTP/FTPS. Le client est toujours fermé, même en erreur. */
+async function uploadOverFtp(
   request: FtpPublishRequest,
-  createClient: () => FtpClientLike = defaultClient
+  target: Extract<RemoteTarget, { kind: 'ftp' }>,
+  createClient: () => FtpClientLike
 ): Promise<FtpPublishResult> {
-  const target = parseFtpUrl(request.url);
-  if (typeof target === 'string') return { success: false, error: target };
-
   const client = createClient();
   try {
     await client.access({
@@ -126,8 +127,49 @@ export async function publishToFtp(
   }
 }
 
+/**
+ * HTTP PUT vers `<dossier>/<fichier>`, authentification Basic seulement si identifiant et mot de passe sont fournis
+ * (comme l'ancien FileUploader). Pas de redirection : les identifiants ne suivent pas un autre hôte.
+ */
+async function uploadOverHttp(
+  request: FtpPublishRequest,
+  target: Extract<RemoteTarget, { kind: 'http' }>,
+  fetchImpl: typeof fetch
+): Promise<FtpPublishResult> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/xml' };
+  if (request.user && request.password) {
+    headers.Authorization = `Basic ${Buffer.from(`${request.user}:${request.password}`).toString('base64')}`;
+  }
+  try {
+    const response = await fetchImpl(new URL(request.fileName, target.directoryUrl), {
+      method: 'PUT',
+      headers,
+      body: request.xml,
+      redirect: 'error',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!response.ok) return { success: false, error: `HTTP ${response.status}` };
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+  }
+}
+
+/** Dépose le fichier dans le dossier de l'URL, en FTP/FTPS ou en HTTP PUT selon le schéma */
+export async function publishRemote(
+  request: FtpPublishRequest,
+  options: { createClient?: () => FtpClientLike; fetchImpl?: typeof fetch } = {}
+): Promise<FtpPublishResult> {
+  const target = parseRemoteUrl(request.url);
+  if (typeof target === 'string') return { success: false, error: target };
+  if (target.kind === 'http') {
+    return uploadOverHttp(request, target, options.fetchImpl ?? fetch);
+  }
+  return uploadOverFtp(request, target, options.createClient ?? defaultClient);
+}
+
 ipcMain.handle('ftp:publish', async (_, raw: unknown): Promise<FtpPublishResult> => {
   const request = parseFtpRequest(raw);
   if (typeof request === 'string') return { success: false, error: request };
-  return publishToFtp(request);
+  return publishRemote(request);
 });

@@ -1702,7 +1702,7 @@
     "send_ffe": "📡 Send to the FFE",
     "publish_greg": "🌐 Publish to GREG",
     "ftp_section": "FTP server",
-    "ftp_url": "FTP address (ftp:// or ftps://)",
+    "ftp_url": "Server address (ftp://, ftps://, http:// or https://)",
     "ftp_user": "Username",
     "ftp_password": "Password",
     "ftp_publish": "Publish to the FTP server",
