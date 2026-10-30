@@ -2135,6 +2135,7 @@
     "all_done": "✓ Alle Gefechte sind beendet",
     "barrages": "Stichkämpfe",
     "no_draw": "Bei Direktausscheidung sind gleiche Punktzahlen nicht möglich",
+    "tie_need_winner": "Gleichstand: Sieger per V festlegen oder auslosen",
     "max_score": "Die Punktzahl darf {{max}} nicht überschreiten",
     "next_played": "Nicht möglich: Das nächste Gefecht wurde bereits ausgetragen",
     "order_asc_title": "Aufsteigende Reihenfolge",
@@ -2240,7 +2241,9 @@
     "exclusion": "Ausschluss",
     "who_abandon": "Welcher Fechter scheidet aus medizinischen Gründen aus?",
     "who_forfait": "Welcher Fechter tritt nicht an?",
-    "who_exclusion": "Welcher Fechter wird ausgeschlossen?"
+    "who_exclusion": "Welcher Fechter wird ausgeschlossen?",
+    "tie_hint": "Gleichstand: Sieger wählen oder auslosen",
+    "coin_flip": "Auslosen"
   },
   "addFencerPool": {
     "title": "Fechter hinzufügen – Pool {{n}}",

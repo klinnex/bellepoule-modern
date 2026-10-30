@@ -2135,6 +2135,7 @@
     "all_done": "✓ Echu eo an holl emgannoù",
     "barrages": "Dispartiadegoù",
     "no_draw": "Ne c'hall ket ar skorioù bezañ par en eliminerezh war-eeun",
+    "tie_need_winner": "Kevatal : diuzit ar wenner (V) pe tennit ar sord",
     "max_score": "Ne c'hall ket ar skor mont dreist {{max}}",
     "next_played": "Dibosupl : c'hoariet eo bet an emgann da heul dija",
     "order_asc_title": "Urzh o kreskiñ",
@@ -2240,7 +2241,9 @@
     "exclusion": "Skarzhadur",
     "who_abandon": "Peseurt c'hoarier a zilez evit abegoù yec'hed ?",
     "who_forfait": "Peseurt c'hoarier a ra forfed ?",
-    "who_exclusion": "Peseurt c'hoarier a vez skarzhet ?"
+    "who_exclusion": "Peseurt c'hoarier a vez skarzhet ?",
+    "tie_hint": "Kevatal : dibab ar wenner pe tennit ar sord",
+    "coin_flip": "Tennañ ar sord"
   },
   "addFencerPool": {
     "title": "Ouzhpennañ ur c'hoarier – Poulenn {{n}}",

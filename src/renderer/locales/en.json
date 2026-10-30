@@ -2135,6 +2135,7 @@
     "all_done": "✓ All bouts are finished",
     "barrages": "Barrages",
     "no_draw": "Scores cannot be tied in direct elimination",
+    "tie_need_winner": "Tie: designate the winner (V) or draw lots",
     "max_score": "The score cannot exceed {{max}}",
     "next_played": "Not possible: the next bout has already been fenced",
     "order_asc_title": "Ascending order",
@@ -2240,7 +2241,9 @@
     "exclusion": "Exclusion",
     "who_abandon": "Which fencer withdraws for medical reasons?",
     "who_forfait": "Which fencer forfeits?",
-    "who_exclusion": "Which fencer is excluded?"
+    "who_exclusion": "Which fencer is excluded?",
+    "tie_hint": "Tie: pick the winner or draw lots",
+    "coin_flip": "Draw lots"
   },
   "addFencerPool": {
     "title": "Add a fencer – Pool {{n}}",

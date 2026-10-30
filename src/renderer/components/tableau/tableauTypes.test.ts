@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { propagateWinners, resetTableauMatch, TableauMatch } from './tableauTypes';
+import {
+  propagateWinners,
+  resetTableauMatch,
+  resolveTableauWinner,
+  TableauMatch,
+} from './tableauTypes';
 
 const F = (id: string) => ({ id, firstName: id, lastName: id }) as any;
 
@@ -170,5 +175,25 @@ describe('resetTableauMatch (#1115)', () => {
     expect(third.fencerA).toBeNull();
     expect(third.fencerB).toBeNull();
     expect(res.find(m => m.round === 2)!.fencerB).toBeNull();
+  });
+});
+
+describe('resolveTableauWinner', () => {
+  const a = F('a');
+  const b = F('b');
+
+  it('le score décide hors égalité, un V éventuel est ignoré', () => {
+    expect(resolveTableauWinner(a, b, 15, 10, null)).toBe(a);
+    expect(resolveTableauWinner(a, b, 10, 15, 'A')).toBe(b);
+  });
+
+  // Sabre Laser : égalité tranchée par V manuel ou tirage au sort
+  it('en égalité, le vainqueur désigné (V ou tirage) gagne', () => {
+    expect(resolveTableauWinner(a, b, 10, 10, 'A')).toBe(a);
+    expect(resolveTableauWinner(a, b, 10, 10, 'B')).toBe(b);
+  });
+
+  it('en égalité sans vainqueur désigné, pas de vainqueur', () => {
+    expect(resolveTableauWinner(a, b, 10, 10, null)).toBeNull();
   });
 });

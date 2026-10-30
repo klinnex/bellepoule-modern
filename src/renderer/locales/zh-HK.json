@@ -2135,6 +2135,7 @@
     "all_done": "✓ 所有比賽已完成",
     "barrages": "附加賽",
     "no_draw": "直接淘汰賽不可同分",
+    "tie_need_winner": "同分：請指定勝方（V）或抽籤",
     "max_score": "分數不可超過 {{max}}",
     "next_played": "無法執行：下一場比賽已進行",
     "order_asc_title": "遞增排序",
@@ -2240,7 +2241,9 @@
     "exclusion": "取消資格",
     "who_abandon": "哪位劍手因傷病退賽？",
     "who_forfait": "哪位劍手缺席？",
-    "who_exclusion": "哪位劍手被取消資格？"
+    "who_exclusion": "哪位劍手被取消資格？",
+    "tie_hint": "同分：請選擇勝方或抽籤",
+    "coin_flip": "抽籤"
   },
   "addFencerPool": {
     "title": "新增劍手 – 第 {{n}} 組",

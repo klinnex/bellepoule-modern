@@ -2714,6 +2714,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               competitionId={competition.id}
               maxRefereesPerMatch={maxRefereesPerMatch}
               autoFillReferees={autoFillReferees}
+              isLaserSabre={isLaserSabre}
               onComplete={results => {
                 setFinalResults(results);
                 setTableauEditUnlocked(false);

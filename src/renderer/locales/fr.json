@@ -2135,6 +2135,7 @@
     "all_done": "✓ Tous les matchs sont terminés",
     "barrages": "Barrages",
     "no_draw": "Les scores ne peuvent pas être égaux en élimination directe",
+    "tie_need_winner": "Égalité : désignez le vainqueur (V) ou faites un tirage au sort",
     "max_score": "Le score ne peut pas dépasser {{max}}",
     "next_played": "Impossible : le match suivant a déjà été joué",
     "order_asc_title": "Affichage croissant",
@@ -2240,7 +2241,9 @@
     "exclusion": "Exclusion",
     "who_abandon": "Quel tireur sort pour raison médicale ?",
     "who_forfait": "Quel tireur déclare forfait ?",
-    "who_exclusion": "Quel tireur est exclu ?"
+    "who_exclusion": "Quel tireur est exclu ?",
+    "tie_hint": "Égalité : désignez le vainqueur ou lancez un tirage au sort",
+    "coin_flip": "Tirage au sort"
   },
   "addFencerPool": {
     "title": "Ajouter un tireur – Poule {{n}}",
