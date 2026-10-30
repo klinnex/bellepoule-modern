@@ -2329,7 +2329,10 @@
     "desc_1": "劍擊賽事管理軟件。",
     "desc_2": "小組賽、直接淘汰賽、即時遠程裁判。",
     "licence": "授權：GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
-    "easter": "🐔  咯咯！  🐔"
+    "easter": "🐔  咯咯！  🐔",
+    "diagnostic_button": "匯出診斷報告",
+    "diagnostic_saved": "診斷報告已儲存",
+    "diagnostic_failed": "匯出報告失敗"
   },
   "bracket": {
     "expand_all": "全部展開",

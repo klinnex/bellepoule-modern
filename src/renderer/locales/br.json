@@ -2329,7 +2329,10 @@
     "desc_1": "Meziant merañ tournamantoù skrim.",
     "desc_2": "Poulennoù, taolennoù war-eeun, breutaerezh a-bell war ar prim.",
     "licence": "Aotre : GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
-    "easter": "🐔  Kot-kot !  🐔"
+    "easter": "🐔  Kot-kot !  🐔",
+    "diagnostic_button": "Ezporzhiañ ur frammad diagnostik",
+    "diagnostic_saved": "Frammad diagnostik enrollet",
+    "diagnostic_failed": "Fazi en ezporzhiadenn ar frammad"
   },
   "bracket": {
     "expand_all": "Astenn pep tra",

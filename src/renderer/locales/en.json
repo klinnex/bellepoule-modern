@@ -2329,7 +2329,10 @@
     "desc_1": "Fencing tournament management software.",
     "desc_2": "Pools, direct elimination, real-time remote refereeing.",
     "licence": "License: GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
-    "easter": "🐔  Cluck cluck!  🐔"
+    "easter": "🐔  Cluck cluck!  🐔",
+    "diagnostic_button": "Export diagnostic report",
+    "diagnostic_saved": "Diagnostic report saved",
+    "diagnostic_failed": "Failed to export the report"
   },
   "bracket": {
     "expand_all": "Expand all",

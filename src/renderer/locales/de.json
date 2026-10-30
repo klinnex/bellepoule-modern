@@ -2329,7 +2329,10 @@
     "desc_1": "Software zur Verwaltung von Fechtturnieren.",
     "desc_2": "Pools, Direktausscheidung, Kampfrichter-Fernbedienung in Echtzeit.",
     "licence": "Lizenz: GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
-    "easter": "🐔  Gack gack!  🐔"
+    "easter": "🐔  Gack gack!  🐔",
+    "diagnostic_button": "Diagnosebericht exportieren",
+    "diagnostic_saved": "Diagnosebericht gespeichert",
+    "diagnostic_failed": "Export des Berichts fehlgeschlagen"
   },
   "bracket": {
     "expand_all": "Alle ausklappen",

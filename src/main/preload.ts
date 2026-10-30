@@ -580,6 +580,11 @@ const electronApi = {
     installPendingUpdate: () => ipcRenderer.invoke('updater:installPendingUpdate'),
   },
 
+  // Rapport de diagnostic (fichier JSON, sans port réseau) (#1326)
+  diagnostic: {
+    exportReport: () => ipcRenderer.invoke('diagnostic:exportReport'),
+  },
+
   // Chiffrement OS (safeStorage) pour secrets locaux
   crypto: {
     isAvailable: (): Promise<boolean> => ipcRenderer.invoke('crypto:isAvailable'),

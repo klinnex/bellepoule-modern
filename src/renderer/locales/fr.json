@@ -2329,7 +2329,10 @@
     "desc_1": "Logiciel de gestion de tournois d'escrime.",
     "desc_2": "Poules, tableaux directs, arbitrage déporté en temps réel.",
     "licence": "Licence : GPL-3.0 · © 2024-2026 BellePoule Modern Contributors",
-    "easter": "🐔  Cot-cot !  🐔"
+    "easter": "🐔  Cot-cot !  🐔",
+    "diagnostic_button": "Exporter un rapport de diagnostic",
+    "diagnostic_saved": "Rapport de diagnostic enregistré",
+    "diagnostic_failed": "Échec de l'export du rapport"
   },
   "bracket": {
     "expand_all": "Tout déplier",

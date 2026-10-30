@@ -30,6 +30,8 @@ import { registerTrainingHandlers } from './ipc/trainingHandlers';
 import { previewPdf, registerPdfPreviewHandlers } from './ipc/pdfPreview';
 import { registerPrintDialogHandlers } from './ipc/printDialog';
 import { registerWebhookHandlers } from './ipc/webhookHandlers';
+import { createDiagnosticDeps, registerDiagnosticHandlers } from './ipc/diagnosticHandlers';
+import { getVersionInfo } from './versionInfo';
 import { printHtmlSilently, printHtmlWithSystemDialog } from './printWindows';
 import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from './remoteRegistry';
 import { applyActiveWave, setActiveWave } from './remote/activeWave';
@@ -175,55 +177,6 @@ function closeSplash(onClosed?: () => void): void {
       onClosed?.();
     }, 420);
   }, remaining);
-}
-
-// ============================================================================
-// Version Information
-// ============================================================================
-
-function getVersionInfo(): {
-  version: string;
-  build: number;
-  date: string;
-  channel?: 'dev' | 'stable';
-} {
-  try {
-    const versionPaths = [
-      path.join(app.getAppPath(), 'version.json'),
-      path.join(app.getAppPath(), '..', 'version.json'),
-      path.join(__dirname, '..', '..', 'version.json'),
-      path.join(process.cwd(), 'version.json'),
-    ];
-
-    for (const versionPath of versionPaths) {
-      if (fs.existsSync(versionPath)) {
-        const content = fs.readFileSync(versionPath, 'utf-8');
-        return JSON.parse(content);
-      }
-    }
-  } catch (e) {
-    console.error('Failed to read version.json:', e);
-  }
-
-  // Fallback: lire depuis package.json
-  try {
-    const pkgPath = path.join(app.getAppPath(), 'package.json');
-    if (fs.existsSync(pkgPath)) {
-      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-      const match = pkg.version.match(/(\d+\.\d+\.\d+)(?:-(?:build|dev)\.(\d+))?/);
-      if (match) {
-        return {
-          version: match[1],
-          build: parseInt(match[2]) || 0,
-          date: new Date().toISOString(),
-        };
-      }
-    }
-  } catch (e) {
-    console.error('Failed to read package.json:', e);
-  }
-
-  return { version: '1.0.0', build: 0, date: 'Unknown' };
 }
 
 // ============================================================================
@@ -1709,6 +1662,8 @@ ipcMain.handle(
 );
 
 registerWebhookHandlers();
+
+registerDiagnosticHandlers(createDiagnosticDeps({ getWindow: () => mainWindow, getVersionInfo }));
 
 ipcMain.handle('remote:updateLogo', async (_, logo: string | null) => {
   try {
