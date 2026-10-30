@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 21 | 235 |
+| `src/main/` | 22 | 239 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 21 | 108 |
 | `src/renderer/components/` | 40 | 190 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **190** | **1703** |
+| **Total** | **191** | **1707** |
 
-Unitaires : 181 fichiers, 1668 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 182 fichiers, 1672 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2253,6 +2253,17 @@ Unitaires : 181 fichiers, 1668 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - paquet sortant filtré, paquet source intact
   - photo diffusée quand l’affichage des photos est actif, jamais la licence
   - décodage côté client inchangé (format standard)
+
+</details>
+
+<details>
+<summary><code>src/main/remote/refereeResolver.test.ts</code> — 4 tests</summary>
+
+- **refereeResolver (#1240)**
+  - resolveReferee : trouve par id, null sinon ou sans session
+  - resolvePoolReferee : joint les arbitres de la poule, repli sur les champs du payload
+  - resolveTableauMatchReferees : seulement à partir de 2 arbitres, consolantes incluses
+  - resolveDeMatchReferee : referees, puis referee, puis refereeId
 
 </details>
 
