@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 21 | 108 |
 | `src/renderer/components/` | 40 | 190 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 9 | 45 |
+| `src/remote/` | 9 | 47 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **190** | **1703** |
+| **Total** | **190** | **1705** |
 
-Unitaires : 181 fichiers, 1668 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 181 fichiers, 1670 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3442,7 +3442,7 @@ Unitaires : 181 fichiers, 1668 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/remote/refereeOfflineQueue.test.ts</code> — 8 tests</summary>
+<summary><code>src/remote/refereeOfflineQueue.test.ts</code> — 10 tests</summary>
 
 - extrait bien la classe depuis referee.html
 - **OfflineQueueInline — chaos réseau**
@@ -3453,6 +3453,9 @@ Unitaires : 181 fichiers, 1668 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - action refusée par le serveur : seule celle-ci reste en file
   - deux sync simultanés (reconnexion + bouton) : aucun doublon envoyé
   - envoie par lots de 50 au plus
+- **Badge de synchronisation (#1304)**
+  - hors ligne prime sur un échec de synchronisation
+  - en ligne : échec signalé, sinon état normal
 
 </details>
 

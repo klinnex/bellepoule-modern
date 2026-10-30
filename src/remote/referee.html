@@ -78,6 +78,22 @@
         background: #22c55e;
       }
 
+      .sync-badge {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        padding: 0.5rem 1rem;
+        font-size: 1.15rem;
+        font-weight: 700;
+        text-align: center;
+        color: #fff;
+        border: 0;
+        width: 100%;
+      }
+      .sync-badge.online { background: #15803d; }
+      .sync-badge.offline { background: #b45309; }
+      .sync-badge.failed { background: #b91c1c; cursor: pointer; }
+
       @keyframes pulse {
         0%,
         100% {
@@ -1322,26 +1338,6 @@
         <div id="status-dot" class="status-dot"></div>
         <span id="connection-text" data-i18n="remote.connecting">Connexion...</span>
         <span
-          id="offline-badge"
-          style="
-            display: none;
-            background: #ef4444;
-            padding: 0.15rem 0.45rem;
-            border-radius: 1rem;
-            font-size: 0.7rem;
-            margin-left: 0.4rem;
-          "
-        >
-          📴 <span id="pending-count">0</span>
-        </span>
-        <span
-          id="sync-indicator"
-          style="display: none; font-size: 0.7rem; margin-left: 0.4rem; opacity: 0.85"
-          data-i18n="remote.syncing"
-        >
-          ⟳ Sync...
-        </span>
-        <span
           id="battery-badge"
           style="
             display: none;
@@ -1370,6 +1366,8 @@
         >📋</button>
       </div>
     </div>
+
+    <button type="button" id="sync-badge" class="sync-badge online" role="status" aria-live="polite" data-click="refereeApp.retrySync"></button>
 
     <div class="main-container">
       <!-- Match actif -->
@@ -1836,6 +1834,9 @@
           return navigator.onLine;
         }
       }
+      // État du badge de synchronisation : 'online' | 'offline' | 'failed'
+      OfflineQueueInline.badgeState = (online, failed) =>
+        !online ? 'offline' : failed ? 'failed' : 'online';
       OfflineQueueInline.seq = 0;
       OfflineQueueInline.BATCH_SIZE = 50;
       // ────────────────────────────────────────────────────────────────────────
@@ -2088,27 +2089,46 @@
         }
 
         updateConnectionUI(online) {
-          // Gère uniquement le badge hors-ligne ; la dot est pilotée par l'état socket
-          const badge = document.getElementById('offline-badge');
-          if (online) {
-            if (badge) badge.style.display = 'none';
-          } else {
-            if (badge) badge.style.display = 'inline';
-            this.updateOfflineBadge();
-          }
+          // La dot est pilotée par l'état socket ; ici seulement le badge de synchronisation
+          this._online = online;
+          this.updateOfflineBadge();
         }
 
         showSyncIndicator(show) {
-          const el = document.getElementById('sync-indicator');
-          if (el) el.style.display = show ? 'inline' : 'none';
+          this._syncing = show;
+          this.renderSyncBadge(this._pending || 0);
+        }
+
+        renderSyncBadge(pending) {
+          const el = document.getElementById('sync-badge');
+          if (!el) return;
+          const online = this._online !== false;
+          const state = OfflineQueueInline.badgeState(online, !!this._syncFailed);
+          el.className = 'sync-badge ' + state;
+          if (state === 'offline') {
+            el.textContent = pending > 0
+              ? window.T('referee.sync_offline_pending', { n: pending })
+              : window.T('referee.sync_offline');
+          } else if (state === 'failed') {
+            el.textContent = window.T('referee.sync_failed');
+          } else {
+            el.textContent = this._syncing
+              ? window.T('remote.syncing')
+              : pending > 0
+                ? window.T('referee.sync_pending', { n: pending })
+                : window.T('referee.sync_online');
+          }
         }
 
         async updateOfflineBadge() {
           const count = await this.offlineQueue.getQueueSize().catch(() => 0);
-          const el = document.getElementById('pending-count');
-          if (el) el.textContent = count;
-          const badge = document.getElementById('offline-badge');
-          if (badge) badge.style.display = count > 0 ? 'inline' : 'none';
+          this._pending = count;
+          if (count === 0) this._syncFailed = false;
+          this.renderSyncBadge(count);
+        }
+
+        retrySync() {
+          this.syncOfflineQueue();
         }
 
         async syncOfflineQueue() {
@@ -2118,6 +2138,7 @@
           const result = await this.offlineQueue
             .sync('/api/sync')
             .catch(() => ({ synced: 0, failed: size }));
+          this._syncFailed = result.failed > 0;
           this.showSyncIndicator(false);
           this.updateOfflineBadge();
           if (result.synced > 0) this.showNotification(window.T('referee.synced', { n: result.synced }));

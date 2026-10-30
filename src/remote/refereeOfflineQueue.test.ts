@@ -138,3 +138,19 @@ describe('OfflineQueueInline — chaos réseau', () => {
     expect(await q.getQueueSize()).toBe(0);
   });
 });
+
+describe('Badge de synchronisation (#1304)', () => {
+  const badgeState = new Function(
+    `${classSource}\nreturn OfflineQueueInline.badgeState;`
+  )() as (online: boolean, failed: boolean) => string;
+
+  it('hors ligne prime sur un échec de synchronisation', () => {
+    expect(badgeState(false, false)).toBe('offline');
+    expect(badgeState(false, true)).toBe('offline');
+  });
+
+  it('en ligne : échec signalé, sinon état normal', () => {
+    expect(badgeState(true, true)).toBe('failed');
+    expect(badgeState(true, false)).toBe('online');
+  });
+});
