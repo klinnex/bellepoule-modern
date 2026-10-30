@@ -21,7 +21,9 @@ import {
   isBracketComplete,
   TableauSpecialStatus,
   resetTableauMatch,
-  resolveTableauWinner,
+  resolveMatchWinner,
+  tieScoreError,
+  tieVictoryOf,
 } from './tableau/tableauTypes';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
@@ -830,17 +832,8 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     const scoreB = parseInt(editScoreB) || 0;
 
     // Validation : pas d'égalité hors Sabre Laser ; en Laser, l'égalité exige un vainqueur (V ou tirage)
-    if (scoreA === scoreB) {
-      if (!isLaserSabre) {
-        showToast(t('tableauView.no_draw'), 'error');
-        return;
-      }
-      if (!victoryA && !victoryB) {
-        showToast(t('tableauView.tie_need_winner'), 'error');
-        return;
-      }
-    }
-    const tieWinner = victoryA ? 'A' : victoryB ? 'B' : null;
+    const tieError = tieScoreError(scoreA, scoreB, victoryA || victoryB, isLaserSabre);
+    if (tieError) return showToast(t(tieError), 'error');
 
     if (!isUnlimitedScore && maxScore > 0) {
       if (scoreA > maxScore || scoreB > maxScore) {
@@ -854,13 +847,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       const bracket = consolationBrackets.find(b => b.id === editingConsolationId);
       if (bracket) {
         const match = bracket.matches.find(m => m.id === editingMatch);
-        const winner = resolveTableauWinner(
-          match?.fencerA ?? null,
-          match?.fencerB ?? null,
-          scoreA,
-          scoreB,
-          tieWinner
-        );
+        const winner = resolveMatchWinner(match, scoreA, scoreB, victoryA, victoryB);
         updateConsolationMatch(editingConsolationId, editingMatch, scoreA, scoreB, winner);
       }
       setShowScoreModal(false);
@@ -873,15 +860,8 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       return;
     }
 
-    // Déterminer le vainqueur
     const editedMatch = matches.find(m => m.id === editingMatch);
-    const winner = resolveTableauWinner(
-      editedMatch?.fencerA ?? null,
-      editedMatch?.fencerB ?? null,
-      scoreA,
-      scoreB,
-      tieWinner
-    );
+    const winner = resolveMatchWinner(editedMatch, scoreA, scoreB, victoryA, victoryB);
 
     const updatedMatches = matches.map(match => {
       if (match.id === editingMatch) {
@@ -959,10 +939,9 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     setEditingConsolationId(consolationId ?? null);
     setEditScoreA(match.scoreA?.toString() || '');
     setEditScoreB(match.scoreB?.toString() || '');
-    // Égalité déjà tranchée (V ou tirage) : on restaure le vainqueur saisi
-    const tieResolved = match.scoreA != null && match.scoreA === match.scoreB;
-    setVictoryA(tieResolved && !!match.winner && match.winner.id === match.fencerA?.id);
-    setVictoryB(tieResolved && !!match.winner && match.winner.id === match.fencerB?.id);
+    const tie = tieVictoryOf(match);
+    setVictoryA(tie.a);
+    setVictoryB(tie.b);
     setShowScoreModal(true);
   };
 

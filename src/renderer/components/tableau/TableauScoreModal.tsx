@@ -259,26 +259,9 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
 
           {/* Égalité Sabre Laser : vainqueur par V manuel ou tirage au sort */}
           {isTie && (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-                alignItems: 'center',
-                marginBottom: '1rem',
-              }}
-            >
-              <p style={{ fontWeight: 600, margin: 0, textAlign: 'center' }}>
-                {t('tableauScore.tie_hint')}
-              </p>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.5rem',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center',
-                }}
-              >
+            <div className="tableau-tie">
+              <p className="tableau-tie-hint">{t('tableauScore.tie_hint')}</p>
+              <div className="tableau-tie-actions">
                 <button
                   type="button"
                   className={victoryA ? 'btn btn-primary' : 'btn btn-secondary'}
