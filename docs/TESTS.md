@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 23 | 248 |
+| `src/main/` | 23 | 252 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 21 | 108 |
 | `src/renderer/components/` | 41 | 191 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **193** | **1719** |
+| **Total** | **193** | **1723** |
 
-Unitaires : 184 fichiers, 1684 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 184 fichiers, 1688 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2183,8 +2183,11 @@ Unitaires : 184 fichiers, 1684 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/demoMode.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/remote/demoMode.test.ts</code> — 11 tests</summary>
 
+- **touchPoints**
+  - compte 1 point par touche hors Laser
+  - Laser : zone tirée parmi les zones autorisées (1, 3 ou 5 points)
 - **decideDemoAction**
   - démarre un match prêt
   - ne fait rien hors match en cours (arène terminée ou libre)
@@ -2193,6 +2196,7 @@ Unitaires : 184 fichiers, 1684 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **DemoPlayer**
   - génère des matchs avec deux tireurs fictifs et des identifiants uniques
   - joue un match complet de bout en bout jusqu’à la limite
+  - Laser restreint à la zone C : chaque touche vaut 5 points
   - ignore les arènes sans match
   - pilote l’arbitrage à intervalle régulier et s’arrête sur demande
 
@@ -2305,7 +2309,7 @@ Unitaires : 184 fichiers, 1684 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 102 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 103 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -2437,6 +2441,7 @@ Unitaires : 184 fichiers, 1684 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - sans statut spécial : score simple, aucun drapeau
 - **mode démo (session d’entraînement)**
   - joue seule les matchs de chaque arène jusqu’à la fin et alimente l’historique
+  - simule l’arme choisie : Laser restreint à la zone C → scores par tranches de 5
 
 </details>
 

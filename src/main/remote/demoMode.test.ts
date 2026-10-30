@@ -1,8 +1,30 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { DemoPlayer, decideDemoAction, type DemoArenaView, type DemoPlayerHost } from './demoMode';
+import {
+  DemoPlayer,
+  decideDemoAction,
+  touchPoints,
+  type DemoArenaView,
+  type DemoPlayerHost,
+} from './demoMode';
 import type { ArenaMatch } from '../../shared/types/remote';
+import { Weapon } from '../../shared/types';
 
 const constantRng = (value: number) => () => value;
+
+describe('touchPoints', () => {
+  it('compte 1 point par touche hors Laser', () => {
+    for (const weapon of [Weapon.EPEE, Weapon.FOIL, Weapon.SABRE, Weapon.CUSTOM]) {
+      expect(touchPoints({ weapon, allowedZones: [] }, constantRng(0.99))).toBe(1);
+    }
+  });
+
+  it('Laser : zone tirée parmi les zones autorisées (1, 3 ou 5 points)', () => {
+    const profile = { weapon: Weapon.LASER, allowedZones: [] };
+    expect(touchPoints(profile, constantRng(0))).toBe(1);
+    expect(touchPoints(profile, constantRng(0.99))).toBe(5);
+    expect(touchPoints({ weapon: Weapon.LASER, allowedZones: ['B'] }, constantRng(0.99))).toBe(3);
+  });
+});
 
 describe('decideDemoAction', () => {
   it('démarre un match prêt', () => {
@@ -93,6 +115,22 @@ describe('DemoPlayer', () => {
     expect(Math.max(match.scoreA, match.scoreB)).toBe(15);
     expect(host.startArenaMatch).toHaveBeenCalledWith('arena1');
     expect(host.finishArenaMatch).toHaveBeenCalledWith('arena1');
+  });
+
+  it('Laser restreint à la zone C : chaque touche vaut 5 points', () => {
+    const arenas = new Map<string, DemoArenaView>();
+    const host = makeHost(arenas);
+    const player = new DemoPlayer(host, 11, { weapon: Weapon.LASER, allowedZones: ['C'] });
+    arenas.set('arena1', readyArena(player));
+
+    for (let i = 0; i < 500 && arenas.get('arena1')!.status !== 'finished'; i++) {
+      player.tick();
+    }
+
+    const match = arenas.get('arena1')!.currentMatch!;
+    expect(match.scoreA % 5).toBe(0);
+    expect(match.scoreB % 5).toBe(0);
+    expect(Math.max(match.scoreA, match.scoreB)).toBe(15);
   });
 
   it('ignore les arènes sans match', () => {

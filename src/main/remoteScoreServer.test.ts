@@ -2014,4 +2014,26 @@ describe('mode démo (session d’entraînement)', () => {
     vi.advanceTimersByTime(600_000);
     expect(srv.getTrainingHistory().length).toBe(remaining);
   });
+
+  it('simule l’arme choisie : Laser restreint à la zone C → scores par tranches de 5', async () => {
+    const srv = new RemoteScoreServer(mockDb as any, 8069);
+    await srv.startTrainingSession(1, 'L', {
+      matchDurationSeconds: 180,
+      allowedZones: ['C'],
+      disableSuddenDeath: false,
+      demo: true,
+    });
+
+    vi.advanceTimersByTime(600_000);
+
+    const history = srv.getTrainingHistory();
+    expect(history.length).toBeGreaterThanOrEqual(1);
+    for (const record of history) {
+      expect(record.weapon).toBe('L');
+      expect(record.scoreA % 5).toBe(0);
+      expect(record.scoreB % 5).toBe(0);
+      expect(Math.max(record.scoreA, record.scoreB)).toBe(15);
+    }
+    srv.stopSession();
+  });
 });

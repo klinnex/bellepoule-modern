@@ -2552,7 +2552,7 @@ export class RemoteScoreServer {
   public async startTrainingSession(
     ...args: Tail<Parameters<typeof startTrainingSession>>
   ): Promise<RemoteSession> {
-    const customRules = args[2];
+    const [, weapon, customRules] = args;
     // Démo : l'arbitre virtuel est armé avant l'assignation des premiers matchs
     if (customRules?.demo) {
       this.demoPlayer = new DemoPlayer(
@@ -2563,7 +2563,8 @@ export class RemoteScoreServer {
           finishArenaMatch: id => this.finishArenaMatch(id),
           getScoreLimit: m => this.getScoreLimit(m),
         },
-        Date.now()
+        Date.now(),
+        { weapon, allowedZones: customRules.allowedZones ?? [] }
       );
     }
     const session = await startTrainingSession(this.trainingSessionCtx, ...args);

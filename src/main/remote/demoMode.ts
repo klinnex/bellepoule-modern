@@ -6,6 +6,7 @@
  * Licensed under GPL-3.0
  */
 import type { ArenaMatch } from '../../shared/types/remote';
+import { TargetZone, Weapon, ZONE_POINTS } from '../../shared/types';
 import { createRng } from '../../shared/utils/tournamentSimulator';
 
 /** Intervalle entre deux décisions de l'arbitre virtuel (ms). */
@@ -99,6 +100,24 @@ function randomItem<T>(items: readonly T[], rng: () => number): T {
   return items[Math.floor(rng() * items.length)];
 }
 
+/** Arme simulée par la démo et zones autorisées (Laser uniquement). */
+export interface DemoWeaponProfile {
+  weapon: string;
+  allowedZones: string[];
+}
+
+/**
+ * Points d'une touche selon l'arme simulée : 1 pour E/F/S/C ; en Laser, la zone touchée
+ * est tirée parmi les zones autorisées (toutes si aucune restriction) → 1, 3 ou 5 points.
+ */
+export function touchPoints(profile: DemoWeaponProfile, rng: () => number): number {
+  if (profile.weapon !== Weapon.LASER) return 1;
+  const allowed = Object.values(TargetZone).filter(
+    zone => profile.allowedZones.length === 0 || profile.allowedZones.includes(zone)
+  );
+  return ZONE_POINTS[randomItem(allowed, rng)];
+}
+
 /** Tireur fictif aléatoire (même forme que le tireur d'entraînement). */
 function createDemoFencer(id: string, rng: () => number): ArenaMatch['fencerA'] {
   return {
@@ -121,7 +140,8 @@ export class DemoPlayer {
 
   constructor(
     private readonly host: DemoPlayerHost,
-    seed: number = Date.now()
+    seed: number = Date.now(),
+    private readonly profile: DemoWeaponProfile = { weapon: Weapon.EPEE, allowedZones: [] }
   ) {
     this.rng = createRng(seed);
   }
@@ -174,8 +194,9 @@ export class DemoPlayer {
       if (action.kind === 'start') {
         this.host.startArenaMatch(arenaId);
       } else if (action.kind === 'point') {
-        const scoreA = match.scoreA + (action.side === 'A' ? 1 : 0);
-        const scoreB = match.scoreB + (action.side === 'B' ? 1 : 0);
+        const points = touchPoints(this.profile, this.rng);
+        const scoreA = match.scoreA + (action.side === 'A' ? points : 0);
+        const scoreB = match.scoreB + (action.side === 'B' ? points : 0);
         this.host.updateArenaScore(arenaId, scoreA, scoreB);
       } else if (action.kind === 'finish') {
         this.host.finishArenaMatch(arenaId);
