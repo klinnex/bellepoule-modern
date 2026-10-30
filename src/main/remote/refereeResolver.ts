@@ -19,7 +19,7 @@ interface RefLike {
 }
 
 /** Entrée loosely typée de session_state (poule, match…). */
-interface StateEntry {
+export interface StateEntry {
   id?: string;
   referees?: unknown;
   referee?: RefLike;

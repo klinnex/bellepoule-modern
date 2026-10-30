@@ -62,7 +62,7 @@ import {
   resolveTableauMatchReferees,
   resolveDeMatchReferee,
   type RefereeResolverContext,
-  type ResolvedReferee,
+  type StateEntry,
 } from './remote/refereeResolver';
 import { sanitizeAnnouncement } from './remote/announcement';
 import * as slots from './remote/arenaSlots';
@@ -2144,21 +2144,19 @@ export class RemoteScoreServer {
     };
   }
 
-  private resolveReferee(refereeId?: string | null): ResolvedReferee | null {
+  private resolveReferee(refereeId?: string | null): ReturnType<typeof resolveReferee> {
     return resolveReferee(this.refereeResolverCtx, refereeId);
   }
 
-  private resolvePoolReferee(poolId?: string | null): ResolvedReferee | null {
+  private resolvePoolReferee(poolId?: string | null): ReturnType<typeof resolveReferee> {
     return resolvePoolReferee(this.refereeResolverCtx, poolId);
   }
 
-  private resolveTableauMatchReferees(matchId?: string | null): ResolvedReferee | null {
+  private resolveTableauMatchReferees(matchId?: string | null): ReturnType<typeof resolveReferee> {
     return resolveTableauMatchReferees(this.refereeResolverCtx, matchId);
   }
 
-  private resolveDeMatchReferee(
-    m: Parameters<typeof resolveDeMatchReferee>[1]
-  ): ResolvedReferee | null {
+  private resolveDeMatchReferee(m: StateEntry | null): ReturnType<typeof resolveReferee> {
     return resolveDeMatchReferee(this.refereeResolverCtx, m);
   }
 
