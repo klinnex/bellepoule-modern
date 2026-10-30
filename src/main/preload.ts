@@ -580,6 +580,11 @@ const electronApi = {
     installPendingUpdate: () => ipcRenderer.invoke('updater:installPendingUpdate'),
   },
 
+  // Publication des résultats sur GREG (escrime-info.com), envoi fait par le main (#1328)
+  greg: {
+    publish: (request: unknown) => ipcRenderer.invoke('greg:publish', request),
+  },
+
   // Chiffrement OS (safeStorage) pour secrets locaux
   crypto: {
     isAvailable: (): Promise<boolean> => ipcRenderer.invoke('crypto:isAvailable'),

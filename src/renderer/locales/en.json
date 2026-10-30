@@ -1700,6 +1700,7 @@
     "ranking": "Ranking",
     "csv_excel": "Excel CSV",
     "send_ffe": "📡 Send to the FFE",
+    "publish_greg": "🌐 Publish to GREG",
     "final_results": "Final results",
     "stats": "Statistics",
     "stats_csv": "Detailed stats (CSV)",

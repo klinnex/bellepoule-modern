@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 40 | 585 |
+| `src/shared/utils/` | 41 | 594 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 23 | 252 |
+| `src/main/` | 24 | 260 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 21 | 108 |
 | `src/renderer/components/` | 41 | 191 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **193** | **1723** |
+| **Total** | **195** | **1740** |
 
-Unitaires : 184 fichiers, 1688 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 186 fichiers, 1705 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -502,6 +502,24 @@ Unitaires : 184 fichiers, 1688 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - DNS en poules (forfait ou médical)
   - DNF forfait/médical en poules
   - rang conservé pendant le tableau ou sans forfait
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/gregPublication.test.ts</code> — 9 tests</summary>
+
+- **buildGregFields (#1328)**
+  - traduit une compétition individuelle en champs GREG
+  - bascule sur les équipes, le sexe féminin et le statut terminé
+  - mixte = H comme dans l'ancien BellePoule
+  - refuse une compétition sans lieu (le serveur l'exige)
+  - refuse les armes et catégories sans code GREG
+  - mappe les catégories jeunes sur leur code M\<âge\>
+- **gregFileName (#1328)**
+  - produit un nom sûr avec extension .xml
+- **toGregRootTag (#1328)**
+  - passe au pluriel pour les équipes
+  - laisse le XML individuel intact
 
 </details>
 
@@ -2052,6 +2070,22 @@ Unitaires : 184 fichiers, 1688 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - snapshot vide avant toute mesure
   - détecte un blocage synchrone et se remet à zéro
   - start/stop idempotents
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/gregHandlers.test.ts</code> — 8 tests</summary>
+
+- **parseGregRequest (#1328)**
+  - accepte une requête bien formée
+  - refuse un nom de fichier qui sort du dossier attendu
+  - refuse un champ inconnu ou manquant
+  - ignore les champs supplémentaires (jamais transmis)
+  - refuse un XML vide ou une requête non objet
+- **publishToGreg (#1328)**
+  - envoie le fichier puis valide le formulaire, dans cet ordre
+  - s'arrête à la première étape en erreur HTTP
+  - remonte une erreur réseau sans lever d'exception
 
 </details>
 

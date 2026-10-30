@@ -3,17 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import {
-  app,
-  BrowserWindow,
-  ipcMain,
-  dialog,
-  Menu,
-  shell,
-  safeStorage,
-  screen,
-  session,
-} from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, Menu, shell, safeStorage, screen } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -30,6 +20,7 @@ import { registerTrainingHandlers } from './ipc/trainingHandlers';
 import { previewPdf, registerPdfPreviewHandlers } from './ipc/pdfPreview';
 import { registerPrintDialogHandlers } from './ipc/printDialog';
 import { registerWebhookHandlers } from './ipc/webhookHandlers';
+import './ipc/gregHandlers'; // enregistre `greg:publish` à l'import (#1328)
 import { printHtmlSilently, printHtmlWithSystemDialog } from './printWindows';
 import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from './remoteRegistry';
 import { applyActiveWave, setActiveWave } from './remote/activeWave';

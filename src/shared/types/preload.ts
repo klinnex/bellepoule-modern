@@ -1206,6 +1206,15 @@ export interface PrintDialogSettings {
   scale: number;
 }
 
+/** Publication GREG (escrime-info.com) : fichier XML + champs du formulaire (#1328) */
+export interface GregAPI {
+  publish: (request: {
+    fileName: string;
+    xml: string;
+    fields: Record<string, string>;
+  }) => Promise<{ success: boolean; error?: string }>;
+}
+
 export interface PrintDialogAPI {
   getPrinters: () => Promise<{ name: string; displayName: string; isDefault: boolean }[]>;
   render: (
@@ -1235,6 +1244,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   file: FileAPI;
   dialog: DialogAPI;
   updater: UpdaterAPI;
+  greg: GregAPI;
   crypto: CryptoAPI;
   remote: RemoteServerAPI;
   training: TrainingAPI;
