@@ -2156,7 +2156,9 @@ export class RemoteScoreServer {
     return resolveTableauMatchReferees(this.refereeResolverCtx, matchId);
   }
 
-  private resolveDeMatchReferee(m: any): ResolvedReferee | null {
+  private resolveDeMatchReferee(
+    m: Parameters<typeof resolveDeMatchReferee>[1]
+  ): ResolvedReferee | null {
     return resolveDeMatchReferee(this.refereeResolverCtx, m);
   }
 

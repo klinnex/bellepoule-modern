@@ -10,15 +10,42 @@ export interface ResolvedReferee {
   name: string;
 }
 
+/** Arbitre tel que stocké dans session_state / envoyé par l'appli. */
+interface RefLike {
+  id?: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+/** Entrée loosely typée de session_state (poule, match…). */
+interface StateEntry {
+  id?: string;
+  referees?: unknown;
+  referee?: RefLike;
+  refereeId?: string | null;
+  matches?: unknown;
+}
+
+interface SessionStateLike {
+  pools?: unknown;
+  tableauMatches?: unknown;
+  consolationBrackets?: unknown;
+}
+
+const asList = <T>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
+const refsOf = (e: StateEntry | undefined): RefLike[] =>
+  asList<RefLike>(e?.referees).filter(r => r?.id);
+
 export interface RefereeResolverContext {
   getSession(): RemoteSession | null;
   /** Liste des arbitres de la session, rafraîchie depuis la base. */
   getSessionReferees(): RemoteSession['referees'];
-  getSessionState(competitionId: string): any;
+  getSessionState(competitionId: string): SessionStateLike | null | undefined;
 }
 
 /** Nom d'un arbitre : session d'abord, sinon les champs du payload. */
-function refereeName(ctx: RefereeResolverContext, r: any): string {
+function refereeName(ctx: RefereeResolverContext, r: RefLike): string {
   return (
     resolveReferee(ctx, r.id)?.name ??
     ([r.lastName, r.firstName].filter(Boolean).join(' ') || r.name || '')
@@ -26,9 +53,9 @@ function refereeName(ctx: RefereeResolverContext, r: any): string {
 }
 
 /** id = arbitre principal ; name = tous les arbitres, séparés par « / ». */
-function joinReferees(ctx: RefereeResolverContext, refs: any[]): ResolvedReferee {
+function joinReferees(ctx: RefereeResolverContext, refs: RefLike[]): ResolvedReferee {
   const names = refs.map(r => refereeName(ctx, r));
-  return { id: refs[0].id, name: names.filter(Boolean).join(' / ') };
+  return { id: refs[0].id as string, name: names.filter(Boolean).join(' / ') };
 }
 
 export function resolveReferee(
@@ -52,10 +79,8 @@ export function resolvePoolReferee(
   if (!poolId || !session) return null;
   try {
     const state = ctx.getSessionState(session.competitionId);
-    const pool = (state?.pools || []).find((p: any) => p?.id === poolId);
-    const refs: any[] = Array.isArray(pool?.referees)
-      ? pool.referees.filter((r: any) => r?.id)
-      : [];
+    const pool = asList<StateEntry>(state?.pools).find(p => p?.id === poolId);
+    const refs = refsOf(pool);
     return refs.length === 0 ? null : joinReferees(ctx, refs);
   } catch {
     return null;
@@ -74,16 +99,13 @@ export function resolveTableauMatchReferees(
   if (!matchId || !session) return null;
   try {
     const state = ctx.getSessionState(session.competitionId);
-    const all: any[] = [
-      ...(Array.isArray(state?.tableauMatches) ? state.tableauMatches : []),
-      ...(Array.isArray(state?.consolationBrackets)
-        ? state.consolationBrackets.flatMap((b: any) =>
-            Array.isArray(b?.matches) ? b.matches : []
-          )
-        : []),
+    const all = [
+      ...asList<StateEntry>(state?.tableauMatches),
+      ...asList<StateEntry>(state?.consolationBrackets).flatMap(b =>
+        asList<StateEntry>(b?.matches)
+      ),
     ];
-    const m = all.find((x: any) => x?.id === matchId);
-    const refs: any[] = Array.isArray(m?.referees) ? m.referees.filter((r: any) => r?.id) : [];
+    const refs = refsOf(all.find(x => x?.id === matchId));
     return refs.length < 2 ? null : joinReferees(ctx, refs);
   } catch {
     return null;
@@ -91,8 +113,11 @@ export function resolveTableauMatchReferees(
 }
 
 /** Arbitre(s) d'un match de tableau envoyé par l'appli (referees mode expert, sinon referee) (#977). */
-export function resolveDeMatchReferee(ctx: RefereeResolverContext, m: any): ResolvedReferee | null {
-  const refs: any[] = Array.isArray(m?.referees) ? m.referees.filter((r: any) => r?.id) : [];
+export function resolveDeMatchReferee(
+  ctx: RefereeResolverContext,
+  m: StateEntry | null | undefined
+): ResolvedReferee | null {
+  const refs = refsOf(m ?? undefined);
   if (refs.length === 0 && m?.referee?.id) refs.push(m.referee);
   if (refs.length === 0) return resolveReferee(ctx, m?.refereeId);
   return joinReferees(ctx, refs);
