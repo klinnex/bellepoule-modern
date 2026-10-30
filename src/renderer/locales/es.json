@@ -2011,7 +2011,8 @@
     "last_page": "Última página",
     "per_page": "{{n}} / página",
     "open_file": "Abrir…",
-    "open_file_title": "Abrir un archivo .bpm, .db o .cotcot"
+    "open_file_title": "Abrir un archivo .bpm, .db o .cotcot",
+    "guided_start": "¿Primera vez? Crear con el recorrido guiado"
   },
   "trainingLauncher": {
     "title": "Modo entrenamiento",

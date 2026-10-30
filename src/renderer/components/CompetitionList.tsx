@@ -11,6 +11,7 @@ import {
   LayoutGrid,
   Medal,
   Plus,
+  Sparkles,
   Swords,
   Trophy,
   Users,
@@ -22,6 +23,7 @@ import { usePagination } from '../hooks/usePagination';
 import { CompetitionCardSkeleton } from './Skeleton';
 import { useConfirm } from './ConfirmDialog';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
+import { restartGuidedTour } from './guidedTourFlags';
 
 interface CompetitionListProps {
   competitions: Competition[];
@@ -258,6 +260,19 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
               </button>
             )}
           </div>
+
+          {/* Parcours guidé (#1305) : réactivé même s'il a déjà été fermé */}
+          <button
+            type="button"
+            className="btn btn-secondary btn-icon-label"
+            onClick={() => {
+              restartGuidedTour();
+              onNewCompetition();
+            }}
+          >
+            <Sparkles size={16} />
+            {t('competitionList.guided_start')}
+          </button>
 
           <p style={{ color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>
             {t('competitionList.tip_1')} <kbd>?</kbd> {t('competitionList.tip_2')} <kbd>Ctrl</kbd>+

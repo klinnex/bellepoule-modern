@@ -2011,7 +2011,8 @@
     "last_page": "Pajenn ziwezhañ",
     "per_page": "{{n}} / pajenn",
     "open_file": "Digeriñ…",
-    "open_file_title": "Digeriñ ur restr .bpm, .db pe .cotcot"
+    "open_file_title": "Digeriñ ur restr .bpm, .db pe .cotcot",
+    "guided_start": "Ar wech kentañ? Krouiñ gant an hentad heñchet"
   },
   "trainingLauncher": {
     "title": "Mod embregerezh",
