@@ -14,6 +14,7 @@ import './styles/design.css';
 import './styles/tokens.css';
 import './styles/pool.css';
 import './styles/tableau.css';
+import './styles/training.css';
 import './styles/utilities.css';
 import './styles/components.css';
 /// <reference path="./types.d.ts" />
