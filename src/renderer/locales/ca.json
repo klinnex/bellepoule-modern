@@ -2011,7 +2011,8 @@
     "last_page": "Darrera pàgina",
     "per_page": "{{n}} / pàgina",
     "open_file": "Obrir…",
-    "open_file_title": "Obrir un fitxer .bpm, .db o .cotcot"
+    "open_file_title": "Obrir un fitxer .bpm, .db o .cotcot",
+    "guided_start": "Primera vegada? Crear amb el recorregut guiat"
   },
   "trainingLauncher": {
     "title": "Mode entrenament",

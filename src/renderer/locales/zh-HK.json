@@ -2011,7 +2011,8 @@
     "last_page": "最後一頁",
     "per_page": "每頁 {{n}}",
     "open_file": "開啟…",
-    "open_file_title": "開啟 .bpm、.db 或 .cotcot 檔案"
+    "open_file_title": "開啟 .bpm、.db 或 .cotcot 檔案",
+    "guided_start": "第一次使用？透過導覽建立"
   },
   "trainingLauncher": {
     "title": "訓練模式",
