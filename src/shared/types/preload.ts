@@ -1211,6 +1211,15 @@ export interface DiagnosticAPI {
   exportReport: () => Promise<{ success: boolean; cancelled?: boolean; error?: string }>;
 }
 
+/** Publication GREG (escrime-info.com) : fichier XML + champs du formulaire (#1328) */
+export interface GregAPI {
+  publish: (request: {
+    fileName: string;
+    xml: string;
+    fields: Record<string, string>;
+  }) => Promise<{ success: boolean; error?: string }>;
+}
+
 export interface PrintDialogAPI {
   getPrinters: () => Promise<{ name: string; displayName: string; isDefault: boolean }[]>;
   render: (
@@ -1241,6 +1250,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   dialog: DialogAPI;
   updater: UpdaterAPI;
   diagnostic: DiagnosticAPI;
+  greg: GregAPI;
   crypto: CryptoAPI;
   remote: RemoteServerAPI;
   training: TrainingAPI;

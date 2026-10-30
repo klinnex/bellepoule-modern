@@ -27,7 +27,12 @@ interface ExportCenterModalProps {
   exportRankingExcelCSV: (ranking: PoolRanking[]) => void;
   exportResults: (results: FinalResult[], format: 'csv' | 'json') => void;
   exportResultsHTML: (ranking: PoolRanking[], results: FinalResult[]) => void;
-  exportResultsXML: (ranking: PoolRanking[], results: FinalResult[], pools?: Pool[]) => void;
+  exportResultsXML: (
+    ranking: PoolRanking[],
+    results: FinalResult[],
+    pools?: Pool[],
+    target?: 'file' | 'greg'
+  ) => void;
   exportDetailedStats: (pools: Pool[], ranking: PoolRanking[]) => void;
   onGoToTableau: () => void;
   onGoToResults: () => void;
@@ -182,6 +187,12 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
             onClick={() => exportResultsXML(overallRanking, finalResults, pools)}
           >
             XML FFE
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => exportResultsXML(overallRanking, finalResults, pools, 'greg')}
+          >
+            {t('exportCenter.publish_greg')}
           </button>
         </Section>
       )}
