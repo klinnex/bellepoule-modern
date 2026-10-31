@@ -72,9 +72,22 @@ const CATEGORY_GREG: Partial<Record<Category, string>> = {
 
 const pad2 = (n: number): string => String(n).padStart(2, '0');
 
-/** Même détection que l'ancien BellePoule : toute adresse contenant escrime-info.com part vers GREG */
+const GREG_HOST = 'escrime-info.com';
+
+/**
+ * Même détection que l'ancien BellePoule : toute adresse dont l'hôte est escrime-info.com
+ * (ou un sous-domaine) part vers GREG. Analyse l'hôte réel : une simple recherche de sous-chaîne
+ * accepterait des hôtes arbitraires (ex. escrime-info.com.evil.net, evil.net/escrime-info.com).
+ */
 export function isGregUrl(url: string): boolean {
-  return url.toLowerCase().includes('escrime-info.com');
+  const trimmed = url.trim();
+  const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`;
+  try {
+    const host = new URL(withScheme).hostname.toLowerCase();
+    return host === GREG_HOST || host.endsWith(`.${GREG_HOST}`);
+  } catch {
+    return false;
+  }
 }
 
 /** Nom du fichier envoyé (GREG et FTP) : sans caractères spéciaux, extension .xml */

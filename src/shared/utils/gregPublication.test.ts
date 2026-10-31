@@ -96,10 +96,15 @@ describe('isGregUrl (#1331)', () => {
     expect(isGregUrl('escrime-info.com')).toBe(true);
     expect(isGregUrl('https://www.escrime-info.com/x')).toBe(true);
     expect(isGregUrl('ftp://ESCRIME-INFO.COM/')).toBe(true);
+    expect(isGregUrl('  https://sub.escrime-info.com/x  ')).toBe(true);
   });
 
   it('laisse passer les autres serveurs', () => {
     expect(isGregUrl('ftp://monclub.fr/resultats')).toBe(false);
     expect(isGregUrl('https://example.org/escrime-info')).toBe(false);
+    expect(isGregUrl('https://escrime-info.com.evil.net/')).toBe(false);
+    expect(isGregUrl('https://evil.net/?next=escrime-info.com')).toBe(false);
+    expect(isGregUrl('https://notescrime-info.com/')).toBe(false);
+    expect(isGregUrl('')).toBe(false);
   });
 });
