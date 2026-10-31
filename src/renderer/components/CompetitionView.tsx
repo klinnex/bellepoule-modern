@@ -96,7 +96,6 @@ import RapieresRankingPanel, {
 import { QRCodeShare } from './QRCodeShare';
 import { computePoolStrips } from '../../shared/utils/poolStrips';
 import { checkInStatusUpdate } from '../../shared/utils/forfeit';
-import { TouchOptimizedReferee } from './TouchOptimizedReferee';
 import KioskScoreEntry from './competition/KioskScoreEntry';
 import { ScoreAuditLog } from './ScoreAuditLog';
 import { RefereeManagerComponent } from './RefereeManager';
@@ -105,7 +104,7 @@ import CompetitionNav from './competition/CompetitionNav';
 const PlanningAssistant = React.lazy(() => import('./competition/PlanningAssistant'));
 const ExportCenterModal = React.lazy(() => import('./competition/ExportCenterModal'));
 import GlobalPoolColumnsMenu from './pool/GlobalPoolColumnsMenu';
-import WindowSizePresets, { presetScale, type PresetLabel } from './pool/WindowSizePresets';
+import WindowSizePresets, { presetScale } from './pool/WindowSizePresets';
 import { useColumnVisibility } from '../hooks/useColumnVisibility';
 import { useModalFlags } from '../hooks/useModalFlags';
 import { usePoolsViewSettings } from '../hooks/usePoolsViewSettings';
@@ -1930,7 +1929,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
 
   // Confetti + menu état
   const prevAllPoolsComplete = useRef(false);
-  const prevChampion = useRef<string | null>(null);
   const actionsMenuRef = useRef<HTMLDivElement>(null);
 
   // Détecter complétion des poules → confetti
