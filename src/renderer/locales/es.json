@@ -314,7 +314,7 @@
     "tts_countdown": "Cuenta atrás 4 → 1",
     "tts_m0": "«¡Tiempo!» (final)",
     "tour_title": "Recorrido guiado",
-    "tour_hint": "Una guía de 5 pasos para su primera competición (tiradores, lista, poules, resultados, cuadro).",
+    "tour_hint": "Una guía de 6 pasos para su primera competición (tiradores, lista, poules, entrada remota, resultados, cuadro).",
     "tour_restart": "Relanzar el recorrido guiado"
   },
   "actions": {
@@ -2654,11 +2654,13 @@
     "step_fencers": "Añadir los tiradores",
     "step_checkin": "Pasar lista",
     "step_pools": "Generar las poules",
+    "step_remote": "Activar la entrada remota",
     "step_scores": "Introducir los resultados",
     "step_tableau": "Iniciar el cuadro",
     "hint_fencers": "Importe un archivo o añada los tiradores a mano en la pestaña Lista.",
     "hint_checkin": "Marque los tiradores presentes (clic en la fila del tirador).",
     "hint_pools": "Pulse «Generar poules» (mínimo 4 tiradores presentes).",
+    "hint_remote": "Inicie la entrada remota para que los árbitros introduzcan los resultados desde una tableta (o introdúzcalos directamente en este equipo).",
     "hint_scores": "Abra una poule e introduzca el resultado de un asalto.",
     "hint_tableau": "Terminadas las poules, pase al cuadro de eliminación directa."
   }

@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 26 | 278 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 21 | 108 |
-| `src/renderer/components/` | 41 | 200 |
+| `src/renderer/components/` | 41 | 202 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 47 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **197** | **1769** |
+| **Total** | **197** | **1771** |
 
-Unitaires : 188 fichiers, 1734 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 188 fichiers, 1736 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3068,13 +3068,14 @@ Unitaires : 188 fichiers, 1734 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 5 tests</summary>
+<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 6 tests</summary>
 
 - **GuidedTour**
   - se propose une fois sur une compétition vide
   - ne se propose pas sur une compétition déjà remplie
   - passer le parcours le masque et ne le refait pas apparaître
   - se relance depuis les paramètres
+  - propose la saisie distante après la génération des poules
   - met en évidence la phase de l’étape en cours
 
 </details>
@@ -3258,11 +3259,12 @@ Unitaires : 188 fichiers, 1734 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/guidedTourFlags.test.ts</code> — 4 tests</summary>
+<summary><code>src/renderer/components/guidedTourFlags.test.ts</code> — 5 tests</summary>
 
 - **guidedTour**
   - commence par l’ajout des tireurs sur une compétition vide
   - valide les étapes selon l’état de la compétition
+  - la saisie distante est validée par le serveur actif ou par une saisie sur ce poste
   - retourne null quand toutes les étapes sont faites
   - mémorise le drapeau et ignore les valeurs invalides
 

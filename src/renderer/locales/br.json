@@ -314,7 +314,7 @@
     "tts_countdown": "Kontadenn 4 → 1",
     "tts_m0": "« Amzer ! » (fin)",
     "tour_title": "Rakstur sturiet",
-    "tour_hint": "Ur sturier e 5 pazenn evit ho kentañ kevezadenn (tennerien, pointañ, poulennoù, skoreoù, taolenn).",
+    "tour_hint": "Ur sturier e 6 pazenn evit ho kentañ kevezadenn (tennerien, pointañ, poulennoù, enrollañ a-bell, skoreoù, taolenn).",
     "tour_restart": "Adloc'hañ ar rakstur sturiet"
   },
   "actions": {
@@ -2654,11 +2654,13 @@
     "step_fencers": "Ouzhpennañ an tennerien",
     "step_checkin": "Pointañ an dud",
     "step_pools": "Krouiñ ar poulennoù",
+    "step_remote": "Gweredekaat an enrollañ a-bell",
     "step_scores": "Enankañ ar skoreoù",
     "step_tableau": "Loc'hañ an daolenn",
     "hint_fencers": "Enporzhiit ur restr pe ouzhpennit an tennerien dre zorn en ivinell Pointañ.",
     "hint_checkin": "Pointit an tennerien a zo er-maez (klik war linenn an tenner).",
     "hint_pools": "Klikit war « Krouiñ ar poulennoù » (da nebeutañ 4 tenner pointet).",
+    "hint_remote": "Lañsit an enrollañ a-bell evit ma enrollo an arbitrerien ar skoreoù gant un tablezenn (pe enrollit anezho war ar post-mañ).",
     "hint_scores": "Digorit ur boulenn hag enankit skor un emgann.",
     "hint_tableau": "Pa vez echu ar poulennoù, kit d'an daolenn dilemel war-eeun."
   }

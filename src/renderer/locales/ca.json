@@ -314,7 +314,7 @@
     "tts_countdown": "Compte enrere 4 → 1",
     "tts_m0": "«Temps!» (final)",
     "tour_title": "Recorregut guiat",
-    "tour_hint": "Una guia de 5 passos per a la primera competició (tiradors, llista, poules, resultats, quadre).",
+    "tour_hint": "Una guia de 6 passos per a la primera competició (tiradors, llista, poules, entrada remota, resultats, quadre).",
     "tour_restart": "Rellançar el recorregut guiat"
   },
   "actions": {
@@ -2654,11 +2654,13 @@
     "step_fencers": "Afegir els tiradors",
     "step_checkin": "Passar llista",
     "step_pools": "Generar les poules",
+    "step_remote": "Activar l'entrada remota",
     "step_scores": "Introduir els resultats",
     "step_tableau": "Iniciar el quadre",
     "hint_fencers": "Importeu un fitxer o afegiu els tiradors a mà a la pestanya Llista.",
     "hint_checkin": "Marqueu els tiradors presents (clic a la fila del tirador).",
     "hint_pools": "Premeu «Generar poules» (mínim 4 tiradors presents).",
+    "hint_remote": "Inicieu l'entrada remota perquè els àrbitres introdueixin els resultats des d'una tauleta (o introduïu-los directament en aquest ordinador).",
     "hint_scores": "Obriu una poule i introduïu el resultat d'un assalt.",
     "hint_tableau": "Acabades les poules, passeu al quadre d'eliminació directa."
   }

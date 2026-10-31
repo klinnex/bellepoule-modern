@@ -2212,6 +2212,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         onOpenPlanningAssistant={() => modals.setShowPlanningAssistant(true)}
         isTeamEvent={isTeamEvent}
         tourReady={isLoaded}
+        remoteActive={isRemoteActive}
       />
 
       {/* Content — keyed pour animation de transition */}

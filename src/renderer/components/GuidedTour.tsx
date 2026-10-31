@@ -33,6 +33,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
   checkedInCount,
   pools,
   tableauMatchesCount,
+  remoteActive,
 }) => {
   const [flag, setFlag] = useState<TourFlag | null>(() => {
     const stored = readTourFlag();
@@ -51,6 +52,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
       0
     ),
     tableauMatchesCount,
+    remoteActive,
   };
 
   // Proposé une seule fois, sur une compétition vide (voir l'initialisation du drapeau)

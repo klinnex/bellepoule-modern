@@ -15,6 +15,7 @@ const empty: TourState = {
   poolsCount: 0,
   finishedPoolMatches: 0,
   tableauMatchesCount: 0,
+  remoteActive: false,
 };
 
 describe('guidedTour', () => {
@@ -29,8 +30,16 @@ describe('guidedTour', () => {
     expect(tourStepDone('checkin', { ...empty, fencersCount: 3 })).toBe(false);
     expect(currentTourStep({ ...empty, fencersCount: 8, checkedInCount: 8 })).toBe('pools');
     expect(currentTourStep({ ...empty, fencersCount: 8, checkedInCount: 8, poolsCount: 2 })).toBe(
-      'scores'
+      'remote'
     );
+  });
+
+  it('la saisie distante est validée par le serveur actif ou par une saisie sur ce poste', () => {
+    const pools = { ...empty, fencersCount: 8, checkedInCount: 8, poolsCount: 2 };
+    expect(tourStepDone('remote', pools)).toBe(false);
+    expect(tourStepDone('remote', { ...pools, remoteActive: true })).toBe(true);
+    expect(currentTourStep({ ...pools, remoteActive: true })).toBe('scores');
+    expect(currentTourStep({ ...pools, finishedPoolMatches: 1 })).toBe('tableau');
   });
 
   it('retourne null quand toutes les étapes sont faites', () => {
@@ -41,6 +50,7 @@ describe('guidedTour', () => {
         poolsCount: 2,
         finishedPoolMatches: 5,
         tableauMatchesCount: 7,
+        remoteActive: false,
       })
     ).toBeNull();
   });

@@ -436,7 +436,7 @@
     "tts_countdown": "Countdown 4 → 1",
     "tts_m0": "„Zeit!\" (Ende)",
     "tour_title": "Geführter Rundgang",
-    "tour_hint": "Eine Anleitung in 5 Schritten für Ihr erstes Turnier (Fechter, Anwesenheit, Gruppen, Ergebnisse, Tableau).",
+    "tour_hint": "Eine Anleitung in 6 Schritten für Ihr erstes Turnier (Fechter, Anwesenheit, Gruppen, Ferneingabe, Ergebnisse, Tableau).",
     "tour_restart": "Geführten Rundgang neu starten"
   },
   "shortcuts": {
@@ -2654,11 +2654,13 @@
     "step_fencers": "Fechter hinzufügen",
     "step_checkin": "Anwesenheit prüfen",
     "step_pools": "Gruppen erzeugen",
+    "step_remote": "Ferneingabe aktivieren",
     "step_scores": "Ergebnisse eingeben",
     "step_tableau": "Tableau starten",
     "hint_fencers": "Importieren Sie eine Datei oder fügen Sie Fechter im Tab Anwesenheit von Hand hinzu.",
     "hint_checkin": "Haken Sie die anwesenden Fechter ab (Klick auf die Zeile des Fechters).",
     "hint_pools": "Klicken Sie auf „Gruppen erzeugen“ (mindestens 4 anwesende Fechter).",
+    "hint_remote": "Starten Sie die Ferneingabe, damit die Schiedsrichter die Ergebnisse per Tablet eingeben können (oder geben Sie sie direkt an diesem Rechner ein).",
     "hint_scores": "Öffnen Sie eine Gruppe und tragen Sie das Ergebnis eines Gefechts ein.",
     "hint_tableau": "Nach den Gruppen geht es weiter zum K.-o.-Tableau."
   }

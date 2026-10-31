@@ -314,7 +314,7 @@
     "tts_countdown": "Countdown 4 → 1",
     "tts_m0": "\"Time!\" (end)",
     "tour_title": "Guided tour",
-    "tour_hint": "A 5-step guide for your first competition (fencers, check-in, pools, scores, bracket).",
+    "tour_hint": "A 6-step guide for your first competition (fencers, check-in, pools, remote entry, scores, bracket).",
     "tour_restart": "Restart the guided tour"
   },
   "actions": {
@@ -2654,11 +2654,13 @@
     "step_fencers": "Add the fencers",
     "step_checkin": "Check fencers in",
     "step_pools": "Generate the pools",
+    "step_remote": "Enable remote entry",
     "step_scores": "Enter the scores",
     "step_tableau": "Start the bracket",
     "hint_fencers": "Import a file or add fencers by hand in the Check-in tab.",
     "hint_checkin": "Check in the fencers who are present (click the fencer's row).",
     "hint_pools": "Click “Generate pools” (at least 4 fencers checked in).",
+    "hint_remote": "Start remote entry so referees can enter scores from a tablet (or enter them directly on this computer).",
     "hint_scores": "Open a pool and enter the score of one match.",
     "hint_tableau": "Once the pools are over, move on to the direct elimination bracket."
   }

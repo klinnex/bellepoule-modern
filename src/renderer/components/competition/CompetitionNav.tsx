@@ -71,6 +71,8 @@ interface CompetitionNavProps {
   isTeamEvent?: boolean;
   /** Compétition chargée : le parcours guidé (#1305) peut se proposer */
   tourReady?: boolean;
+  /** Saisie distante active (étape « Saisie distante » du parcours guidé) */
+  remoteActive?: boolean;
 }
 
 const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
@@ -92,6 +94,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
   onOpenPlanningAssistant,
   isTeamEvent = false,
   tourReady = false,
+  remoteActive = false,
 }) => {
   const [tourHighlightPhase, setTourHighlightPhase] = useState<string | null>(null);
   return (
@@ -104,6 +107,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
           checkedInCount={getCheckedInFencers().length}
           pools={pools}
           tableauMatchesCount={tableauMatches.length}
+          remoteActive={remoteActive}
         />
       )}
       {/* Navigation */}

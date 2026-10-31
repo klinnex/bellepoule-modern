@@ -12,6 +12,7 @@ const base = {
   checkedInCount: 0,
   pools: [],
   tableauMatchesCount: 0,
+  remoteActive: false,
 };
 
 describe('GuidedTour', () => {
@@ -43,6 +44,12 @@ describe('GuidedTour', () => {
     expect(screen.queryByRole('status')).toBeNull();
     act(() => restartGuidedTour());
     expect(screen.getByRole('status')).toBeTruthy();
+  });
+
+  it('propose la saisie distante après la génération des poules', () => {
+    writeTourFlag('active');
+    render(<GuidedTour {...base} fencersCount={8} checkedInCount={8} pools={[{ matches: [] }]} />);
+    expect(screen.getByText('tour.hint_remote')).toBeTruthy();
   });
 
   it('met en évidence la phase de l’étape en cours', () => {

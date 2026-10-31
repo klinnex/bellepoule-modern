@@ -3,18 +3,26 @@
  * Licensed under GPL-3.0
  */
 
-export type TourStepId = 'fencers' | 'checkin' | 'pools' | 'scores' | 'tableau';
+export type TourStepId = 'fencers' | 'checkin' | 'pools' | 'remote' | 'scores' | 'tableau';
 
 /** Phase de navigation à mettre en évidence pour chaque étape */
 export const TOUR_STEP_PHASE: Record<TourStepId, string> = {
   fencers: 'checkin',
   checkin: 'checkin',
   pools: 'checkin',
+  remote: 'remote',
   scores: 'pools',
   tableau: 'tableau',
 };
 
-export const TOUR_STEPS: TourStepId[] = ['fencers', 'checkin', 'pools', 'scores', 'tableau'];
+export const TOUR_STEPS: TourStepId[] = [
+  'fencers',
+  'checkin',
+  'pools',
+  'remote',
+  'scores',
+  'tableau',
+];
 
 export const TOUR_STORAGE_KEY = 'bellepoule-guided-tour';
 export const TOUR_RESTART_EVENT = 'bellepoule:restart-tour';
@@ -27,6 +35,8 @@ export interface TourState {
   poolsCount: number;
   finishedPoolMatches: number;
   tableauMatchesCount: number;
+  /** Saisie distante démarrée (serveur tablettes actif) */
+  remoteActive: boolean;
 }
 
 /** Une étape est validée dès que l'état de la compétition le montre */
@@ -38,6 +48,9 @@ export function tourStepDone(step: TourStepId, s: TourState): boolean {
       return s.checkedInCount > 0;
     case 'pools':
       return s.poolsCount > 0;
+    case 'remote':
+      // Facultative : validée aussi si les scores sont saisis directement sur ce poste
+      return s.remoteActive || s.finishedPoolMatches > 0;
     case 'scores':
       return s.finishedPoolMatches > 0;
     case 'tableau':
