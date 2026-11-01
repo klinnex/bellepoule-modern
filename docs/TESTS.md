@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 26 | 278 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 21 | 108 |
-| `src/renderer/components/` | 41 | 202 |
+| `src/renderer/components/` | 42 | 205 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 47 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **197** | **1771** |
+| **Total** | **198** | **1774** |
 
-Unitaires : 188 fichiers, 1736 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 189 fichiers, 1739 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3267,6 +3267,16 @@ Unitaires : 188 fichiers, 1736 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - la saisie distante est validée par le serveur actif ou par une saisie sur ce poste
   - retourne null quand toutes les étapes sont faites
   - mémorise le drapeau et ignore les valeurs invalides
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/liveViewsRenderGuard.test.tsx</code> — 3 tests</summary>
+
+- **garde-fou de rendus — vues live (#1302)**
+  - LiveInterPoolRanking : 0 rendu en 10 s
+  - PoolPrepView : 0 rendu en 10 s
+  - LiveDashboard : seule l'horloge (1 Hz) rend, soit au plus 10 rendus en 10 s
 
 </details>
 
