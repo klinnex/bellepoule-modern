@@ -821,6 +821,16 @@ const electronApi = {
     ipcRenderer.on('training:match_finished', handler);
     return () => ipcRenderer.removeListener('training:match_finished', handler);
   },
+  onCompetitionEvent: (
+    callback: (event: { type: 'fencers:changed'; competitionId?: string }) => void
+  ) => {
+    const handler = (
+      _: IpcRendererEvent,
+      data: { type: 'fencers:changed'; competitionId?: string }
+    ) => callback(data);
+    ipcRenderer.on('competition:event', handler);
+    return () => ipcRenderer.removeListener('competition:event', handler);
+  },
   onRemoteFencerExcluded: (
     callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void
   ) => {

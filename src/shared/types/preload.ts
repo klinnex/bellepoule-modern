@@ -1278,6 +1278,10 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   onRemoteRefereeChanged?: (
     callback: (data: { matchId: string; refereeId: string }) => void
   ) => () => void;
+  /** Bus d'événements de données main → renderer (#1298) */
+  onCompetitionEvent: (
+    callback: (event: { type: 'fencers:changed'; competitionId?: string }) => void
+  ) => () => void;
   onRemoteFencerExcluded: (
     callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void
   ) => () => void;

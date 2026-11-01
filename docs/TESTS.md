@@ -97,16 +97,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 26 | 278 |
 | `src/renderer/services/` | 4 | 22 |
-| `src/renderer/hooks/` | 21 | 108 |
+| `src/renderer/hooks/` | 22 | 111 |
 | `src/renderer/components/` | 42 | 205 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 47 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **198** | **1774** |
+| **Total** | **199** | **1777** |
 
-Unitaires : 189 fichiers, 1739 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 190 fichiers, 1742 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2674,6 +2674,16 @@ Unitaires : 189 fichiers, 1739 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - réglage par poule indépendant du défaut global
   - setAllPoolColumns applique à tous et efface les réglages propres
   - persiste dans localStorage
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useCompetitionEvent.test.ts</code> — 3 tests</summary>
+
+- **useCompetitionEvent**
+  - appelle le callback pour la compétition concernée uniquement
+  - se désabonne au démontage
+  - ne plante pas sans electronAPI
 
 </details>
 

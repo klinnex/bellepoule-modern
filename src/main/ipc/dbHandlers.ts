@@ -2,7 +2,7 @@
  * BellePoule Modern - Handlers IPC `db:*` (extraits de main.ts, #1155).
  * Licensed under GPL-3.0
  */
-import { ipcMain } from 'electron';
+import { BrowserWindow, ipcMain } from 'electron';
 import type { DatabaseManager } from '../../database';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { Card } from '../../shared/types';
@@ -11,6 +11,13 @@ export interface DbHandlersContext {
   db: DatabaseManager;
   remoteServers: Map<string, { server: RemoteScoreServer }>;
   stopRemoteServer(competitionId: string): boolean;
+}
+
+/** Diffuse un événement de données aux fenêtres du renderer (bus main → renderer, #1298). */
+export function emitCompetitionEvent(type: 'fencers:changed', competitionId?: string): void {
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (!win.isDestroyed()) win.webContents.send('competition:event', { type, competitionId });
+  }
 }
 
 export function registerDbHandlers({
@@ -51,7 +58,9 @@ export function registerDbHandlers({
 
   // Fencer handlers
   ipcMain.handle('db:addFencer', async (_, competitionId, fencer) => {
-    return db.addFencer(competitionId, fencer);
+    const created = db.addFencer(competitionId, fencer);
+    emitCompetitionEvent('fencers:changed', competitionId);
+    return created;
   });
 
   ipcMain.handle('db:getFencer', async (_, id) => {
@@ -63,15 +72,21 @@ export function registerDbHandlers({
   });
 
   ipcMain.handle('db:updateFencer', async (_, id, updates) => {
-    return db.updateFencer(id, updates);
+    const updated = db.updateFencer(id, updates);
+    emitCompetitionEvent('fencers:changed');
+    return updated;
   });
 
   ipcMain.handle('db:deleteFencer', async (_, id) => {
-    return db.deleteFencer(id);
+    const deleted = db.deleteFencer(id);
+    emitCompetitionEvent('fencers:changed');
+    return deleted;
   });
 
   ipcMain.handle('db:deleteAllFencers', async (_, competitionId) => {
-    return db.deleteAllFencers(competitionId);
+    const deleted = db.deleteAllFencers(competitionId);
+    emitCompetitionEvent('fencers:changed', competitionId);
+    return deleted;
   });
 
   // Match handlers
