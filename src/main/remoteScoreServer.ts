@@ -117,6 +117,14 @@ import {
   type ArenaQueueContext,
 } from './remote/arenaQueue';
 import {
+  assignMatchToArena,
+  startArenaMatch,
+  pauseArenaMatch,
+  getScoreLimit,
+  updateArenaScore,
+  type ArenaOpsContext,
+} from './remote/arenaOps';
+import {
   updateStripCount,
   updateShowPhotos,
   applyCompetitionSettings,
@@ -730,6 +738,57 @@ export class RemoteScoreServer {
     });
   }
   private _matchFinishCtx?: MatchFinishContext;
+
+  /** Contexte de arenaOps.ts (#1240) */
+  private get arenaOpsCtx(): ArenaOpsContext {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    type S = RemoteScoreServer;
+    return (this._arenaOpsCtx ??= {
+      get arenaOvertimeType(): S['arenaOvertimeType'] {
+        return self.arenaOvertimeType;
+      },
+      get arenaRefereeSelected(): S['arenaRefereeSelected'] {
+        return self.arenaRefereeSelected;
+      },
+      get arenaSuddenDeath(): S['arenaSuddenDeath'] {
+        return self.arenaSuddenDeath;
+      },
+      get arenas(): S['arenas'] {
+        return self.arenas;
+      },
+      broadcastArenaUpdate: (...a: Parameters<S['broadcastArenaUpdate']>) =>
+        self.broadcastArenaUpdate(...a),
+      get db(): S['db'] {
+        return self.db;
+      },
+      get io(): S['io'] {
+        return self.io;
+      },
+      isGuestMatch: (...a: Parameters<S['isGuestMatch']>) => self.isGuestMatch(...a),
+      persistArenaState: (...a: Parameters<S['persistArenaState']>) => self.persistArenaState(...a),
+      resolveDbMatchId: (...a: Parameters<S['resolveDbMatchId']>) => self.resolveDbMatchId(...a),
+      resolvePoolReferee: (...a: Parameters<S['resolvePoolReferee']>) =>
+        self.resolvePoolReferee(...a),
+      resolveReferee: (...a: Parameters<S['resolveReferee']>) => self.resolveReferee(...a),
+      resolveTableauMatchReferees: (...a: Parameters<S['resolveTableauMatchReferees']>) =>
+        self.resolveTableauMatchReferees(...a),
+      get sessionMatches(): S['sessionMatches'] {
+        return self.sessionMatches;
+      },
+      get sessionPoolMaxScore(): S['sessionPoolMaxScore'] {
+        return self.sessionPoolMaxScore;
+      },
+      get sessionTableMaxScore(): S['sessionTableMaxScore'] {
+        return self.sessionTableMaxScore;
+      },
+      get sessionWeapon(): S['sessionWeapon'] {
+        return self.sessionWeapon;
+      },
+      updateArena: (...a: Parameters<S['updateArena']>) => self.updateArena(...a),
+    });
+  }
+  private _arenaOpsCtx?: ArenaOpsContext;
 
   /** Contexte de arenaQueue.ts (#1240) */
   private get arenaQueueCtx(): ArenaQueueContext {
@@ -1954,157 +2013,28 @@ export class RemoteScoreServer {
     );
   }
 
-  public assignMatchToArena(arenaId: string, match: ArenaMatch, fromReferee = false): void {
-    console.log(
-      `[RemoteScoreServer] assignMatchToArena called: arenaId=${arenaId}, matchId=${match.id}, fromReferee=${fromReferee}`
-    );
-    const arena = this.arenas.get(arenaId);
-    if (!arena) {
-      console.error(`[RemoteScoreServer] ERREUR: Arène ${arenaId} n'existe pas!`);
-      return;
-    }
+  public assignMatchToArena(...args: Tail<Parameters<typeof assignMatchToArena>>): void {
+    return assignMatchToArena(this.arenaOpsCtx, ...args);
+  }
 
-    // Mettre à jour le flag de sélection arbitre avant le broadcast
-    this.arenaRefereeSelected.set(arenaId, fromReferee);
+  public startArenaMatch(...args: Tail<Parameters<typeof startArenaMatch>>): void {
+    return startArenaMatch(this.arenaOpsCtx, ...args);
+  }
 
-    // Arbitre par défaut : celui du match, sinon celui/ceux de la poule (#908)
-    if (!match.referee) {
-      const defaultRef =
-        this.resolveTableauMatchReferees(match.poolId ? null : match.id) ??
-        this.resolveReferee((match as any).refereeId) ??
-        this.resolvePoolReferee(match.poolId);
-      if (defaultRef) match = { ...match, referee: defaultRef };
-    }
+  public pauseArenaMatch(...args: Tail<Parameters<typeof pauseArenaMatch>>): void {
+    return pauseArenaMatch(this.arenaOpsCtx, ...args);
+  }
 
-    arena.currentMatch = match;
-    arena.status = 'ready';
-    if (match.poolId && !this.isGuestMatch(arenaId, match)) arena.activePoolId = match.poolId;
+  public updateArenaScore(...args: Tail<Parameters<typeof updateArenaScore>>): void {
+    return updateArenaScore(this.arenaOpsCtx, ...args);
+  }
 
-    this.updateArena(arenaId, {
-      status: 'ready',
-      currentMatch: match,
-    });
-
-    this.persistArenaState(arenaId);
-    console.log(`[RemoteScoreServer] Match assigné avec succès à l'arène ${arenaId}`);
+  private getScoreLimit(...args: Tail<Parameters<typeof getScoreLimit>>): number {
+    return getScoreLimit(this.arenaOpsCtx, ...args);
   }
 
   public updateMatchArena(...args: Tail<Parameters<typeof updateMatchArena>>): void {
     return updateMatchArena(this.arenaQueueCtx, ...args);
-  }
-
-  public startArenaMatch(arenaId: string): void {
-    const arena = this.arenas.get(arenaId);
-    if (!arena || !arena.currentMatch) return;
-
-    arena.status = 'in_progress';
-    arena.startTime = new Date();
-    arena.currentMatch.status = 'in_progress';
-    arena.currentMatch.startTime = new Date();
-
-    this.updateArena(arenaId, {
-      status: 'in_progress',
-      startTime: arena.startTime,
-      currentMatch: arena.currentMatch,
-    });
-    this.persistArenaState(arenaId);
-  }
-
-  public pauseArenaMatch(arenaId: string): void {
-    const arena = this.arenas.get(arenaId);
-    if (!arena) return;
-
-    arena.status = 'ready';
-
-    this.updateArena(arenaId, { status: 'ready' });
-  }
-
-  public updateArenaScore(arenaId: string, scoreA: number, scoreB: number): void {
-    const arena = this.arenas.get(arenaId);
-    if (!arena || !arena.currentMatch) return;
-
-    // Ignorer si le match est terminé
-    if (arena.status === 'finished' || arena.currentMatch.status === 'finished') {
-      console.log(
-        `[RemoteScoreServer] Match terminé, mise à jour du score ignorée pour arène ${arenaId}`
-      );
-      return;
-    }
-
-    const previousScoreA = arena.currentMatch.scoreA;
-    const previousScoreB = arena.currentMatch.scoreB;
-
-    arena.currentMatch.scoreA = scoreA;
-    arena.currentMatch.scoreB = scoreB;
-
-    // Audit trail si le match est en DB
-    try {
-      // Id DB : composite pour un match de tableau (sinon aucun score_change → replay figé, #1074)
-      const matchId = this.resolveDbMatchId(arena.currentMatch);
-      if (this.db.getMatch(matchId)) {
-        this.db.logScoreChange({
-          matchId,
-          arenaId,
-          previousScoreA: { value: previousScoreA },
-          previousScoreB: { value: previousScoreB },
-          newScoreA: { value: scoreA },
-          newScoreB: { value: scoreB },
-          changedBy: 'referee',
-          reason: 'remote_entry',
-        });
-      }
-    } catch (e) {
-      console.warn('[RemoteScoreServer] logScoreChange (updateArenaScore) failed:', e);
-    }
-
-    // Envoyer la mise à jour via WebSocket
-    this.broadcastArenaUpdate(arenaId, {
-      arenaId,
-      match: arena.currentMatch,
-      scoreA,
-      scoreB,
-      suddenDeath: this.arenaSuddenDeath.get(arenaId) ?? false,
-      overtimeType: this.arenaOvertimeType.get(arenaId) ?? null,
-      status: arena.status,
-    });
-
-    // Vérifier si le match doit s'arrêter automatiquement en Laser Sabre
-    this.checkAndAutoFinishMatch(arenaId, scoreA, scoreB, previousScoreA, previousScoreB);
-  }
-
-  /** Score max du match : paramètres de la compétition / formule (#1125 #1134), 15 en Laser Sabre */
-  private getScoreLimit(match: ArenaMatch): number {
-    if (this.sessionWeapon === Weapon.LASER) return 15;
-    const sessionMatch = this.sessionMatches.find(m => m.id === match.id);
-    const isTableau = match.isTableau || sessionMatch?.isTableau;
-    const max = isTableau
-      ? this.sessionTableMaxScore
-      : (this.sessionPoolMaxScore ?? sessionMatch?.maxScore);
-    if (typeof max !== 'number') return 15;
-    return max <= 0 || max >= 999 ? Infinity : max;
-  }
-
-  private checkAndAutoFinishMatch(
-    arenaId: string,
-    scoreA: number,
-    scoreB: number,
-    previousScoreA: number,
-    previousScoreB: number
-  ): void {
-    const arena = this.arenas.get(arenaId);
-    if (!arena || arena.status === 'finished' || !arena.currentMatch) return;
-
-    // Notifier la tablette arbitre uniquement quand un tireur franchit le seuil de 15 points
-    const SCORE_LIMIT = this.getScoreLimit(arena.currentMatch);
-    const justCrossed =
-      (scoreA >= SCORE_LIMIT && previousScoreA < SCORE_LIMIT) ||
-      (scoreB >= SCORE_LIMIT && previousScoreB < SCORE_LIMIT);
-    if (justCrossed) {
-      console.log(
-        `[RemoteScoreServer] Score limite (${SCORE_LIMIT}) atteint - notification arbitre pour l'arène ${arenaId}`
-      );
-      this.io.to(`arena:${arenaId}`).emit(`arena:${arenaId}:score_limit_reached`);
-    }
   }
 
   // DIAGNOSTIC : envoie un message visible dans la console DevTools du renderer
