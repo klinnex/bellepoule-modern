@@ -55,7 +55,7 @@ describe('isPermissionAllowed', () => {
 });
 
 describe('configuration Electron (#1148)', () => {
-  const main = readFileSync(join(__dirname, 'main.ts'), 'utf8');
+  const main = readFileSync(join(__dirname, 'mainWindow.ts'), 'utf8');
   const pkg = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf8'));
   it('fenêtre principale en sandbox avec garde-fous', () => {
     expect(main).toMatch(
