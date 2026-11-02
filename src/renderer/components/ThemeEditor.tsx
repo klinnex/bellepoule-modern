@@ -926,16 +926,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                           {row.name} <span className="is-cd4091">· {row.club}</span>
                         </span>
                         <span className="is-bdc612">{row.v}V</span>
-                        <span
-                          style={{
-                            fontSize: '1.25rem',
-                            color: 'var(--k-accent2)',
-                            width: 60,
-                            textAlign: 'right',
-                          }}
-                        >
-                          {row.ind}
-                        </span>
+                        <span className="is-2d6f20">{row.ind}</span>
                       </div>
                     ))}
                   </>
@@ -943,225 +934,42 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                   // ── Aperçu Arène ──
                   <>
                     {/* En-tête arène */}
-                    <div
-                      style={{
-                        background: 'var(--header-bg)',
-                        borderRadius: '10px',
-                        padding: '14px 28px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: '1.625rem',
-                        color: 'var(--text)',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <span style={{ fontWeight: 700 }}>{t('themeEditor.arena_1')}</span>
-                      <span
-                        style={{
-                          background: '#22c55e',
-                          borderRadius: '999px',
-                          padding: '4px 18px',
-                          fontSize: '1.25rem',
-                          fontWeight: 700,
-                          color: '#fff',
-                        }}
-                      >
-                        {t('themeEditor.in_progress')}
-                      </span>
+                    <div className="is-887608">
+                      <span className="is-42acb6">{t('themeEditor.arena_1')}</span>
+                      <span className="is-f59432">{t('themeEditor.in_progress')}</span>
                     </div>
 
                     {/* Corps du match */}
-                    <div
-                      style={{
-                        background: 'var(--match-bg)',
-                        borderRadius: '14px',
-                        flex: 1,
-                        padding: '18px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '14px',
-                        minHeight: 0,
-                      }}
-                    >
+                    <div className="is-2f0e56">
                       {/* Grille combattants */}
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '1fr 80px 1fr',
-                          gap: '14px',
-                          flex: 1,
-                          minHeight: 0,
-                          overflow: 'hidden',
-                        }}
-                      >
+                      <div className="is-32e44d">
                         {/* Côté rouge */}
-                        <div
-                          style={{
-                            background: 'var(--red-side-bg)',
-                            border: '6px solid var(--red-side-border)',
-                            borderRadius: '12px',
-                            padding: '14px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: '50%',
-                              background: 'linear-gradient(135deg,#ef4444,#dc2626)',
-                              flexShrink: 0,
-                            }}
-                          />
-                          <div
-                            style={{
-                              fontSize: 'var(--fencer-name-font-size)',
-                              fontFamily: 'var(--fencer-name-font-family)',
-                              fontWeight: 800,
-                              color: 'var(--fencer-name-color)',
-                              textAlign: 'center',
-                              lineHeight: 1.1,
-                            }}
-                          >
-                            {t('themeEditor.sample_a')}
-                          </div>
-                          <div style={{ fontSize: '1.375rem', color: 'var(--fencer-club-color)' }}>
-                            {t('themeEditor.sample_club_a')}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: 'var(--score-font-family)',
-                              fontSize: 'var(--score-font-size)',
-                              fontWeight: 'bold',
-                              color: 'var(--score-red)',
-                              background: 'var(--score-bg)',
-                              padding: '0.05em 0.2em',
-                              borderRadius: '8px',
-                              lineHeight: 1,
-                              flexShrink: 0,
-                            }}
-                          >
-                            5
-                          </div>
+                        <div className="is-7f769a">
+                          <div className="is-ec8469" />
+                          <div className="is-d8677c">{t('themeEditor.sample_a')}</div>
+                          <div className="is-488bab">{t('themeEditor.sample_club_a')}</div>
+                          <div className="is-91fdba">5</div>
                         </div>
 
                         {/* VS */}
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '2.25rem',
-                            fontWeight: 900,
-                            color: 'var(--vs-color)',
-                            fontFamily: 'var(--vs-font-family)',
-                          }}
-                        >
-                          VS
-                        </div>
+                        <div className="is-e5ddc2">VS</div>
 
                         {/* Côté vert */}
-                        <div
-                          style={{
-                            background: 'var(--green-side-bg)',
-                            border: '6px solid var(--green-side-border)',
-                            borderRadius: '12px',
-                            padding: '14px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: '50%',
-                              background: 'linear-gradient(135deg,#22c55e,#16a34a)',
-                              flexShrink: 0,
-                            }}
-                          />
-                          <div
-                            style={{
-                              fontSize: 'var(--fencer-name-font-size)',
-                              fontFamily: 'var(--fencer-name-font-family)',
-                              fontWeight: 800,
-                              color: 'var(--fencer-name-color)',
-                              textAlign: 'center',
-                              lineHeight: 1.1,
-                            }}
-                          >
-                            {t('themeEditor.sample_b')}
-                          </div>
-                          <div style={{ fontSize: '1.375rem', color: 'var(--fencer-club-color)' }}>
-                            {t('themeEditor.sample_club_b')}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: 'var(--score-font-family)',
-                              fontSize: 'var(--score-font-size)',
-                              fontWeight: 'bold',
-                              color: 'var(--score-green)',
-                              background: 'var(--score-bg)',
-                              padding: '0.05em 0.2em',
-                              borderRadius: '8px',
-                              lineHeight: 1,
-                              flexShrink: 0,
-                            }}
-                          >
-                            3
-                          </div>
+                        <div className="is-85d495">
+                          <div className="is-265fb3" />
+                          <div className="is-d8677c">{t('themeEditor.sample_b')}</div>
+                          <div className="is-488bab">{t('themeEditor.sample_club_b')}</div>
+                          <div className="is-72a37b">3</div>
                         </div>
                       </div>
 
                       {/* Chronomètre */}
-                      <div
-                        style={{
-                          background: 'var(--timer-bg)',
-                          border: '4px solid var(--timer-run-border)',
-                          borderRadius: '10px',
-                          padding: '10px',
-                          textAlign: 'center',
-                          fontFamily: 'var(--timer-font-family)',
-                          fontSize: 'var(--timer-font-size)',
-                          fontWeight: 'bold',
-                          color: 'var(--timer-run-color)',
-                          flexShrink: 0,
-                          lineHeight: 1,
-                        }}
-                      >
-                        02:30
-                      </div>
+                      <div className="is-969781">02:30</div>
                     </div>
 
                     {/* Écran attente */}
-                    <div
-                      style={{
-                        textAlign: 'center',
-                        fontSize: '1.375rem',
-                        color: 'var(--idle-label-color)',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: '2.25rem',
-                          fontWeight: 900,
-                          color: 'var(--idle-number-color)',
-                        }}
-                      >
-                        2
-                      </span>{' '}
-                      {t('themeEditor.waiting')}
+                    <div className="is-efa7ff">
+                      <span className="is-2483be">2</span> {t('themeEditor.waiting')}
                     </div>
                   </>
                 )}
