@@ -16,6 +16,7 @@ import {
   isAppUrl,
   isPermissionAllowed,
 } from './windowSecurity';
+import { logger, LogCategory } from '../shared/services/logger';
 
 export interface MainWindowContext {
   initialLang?: string;
@@ -123,7 +124,10 @@ export function createMainWindow({
   // Reload renderer when it crashes (blank screen symptom)
   mainWindow.webContents.on('render-process-gone', (_event, details) => {
     closeSplash();
-    console.error('[Main] Renderer process gone:', details.reason, details.exitCode);
+    logger.error(LogCategory.SYSTEM, '[Main] Renderer process gone:', undefined, [
+      details.reason,
+      details.exitCode,
+    ]);
     if (details.reason !== 'clean-exit') {
       setTimeout(() => {
         if (mainWindow && !mainWindow.isDestroyed()) {
@@ -138,11 +142,11 @@ export function createMainWindow({
   });
 
   mainWindow.webContents.on('unresponsive', () => {
-    console.warn('[Main] Renderer became unresponsive');
+    logger.warn(LogCategory.SYSTEM, '[Main] Renderer became unresponsive');
   });
 
   mainWindow.webContents.on('responsive', () => {
-    console.log('[Main] Renderer became responsive again');
+    logger.info(LogCategory.SYSTEM, '[Main] Renderer became responsive again');
   });
 
   // Create application menu using saved language preference

@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { setUiLanguage } from './menuLabels';
 import { getVersionInfo } from './versionInfo';
+import { logger, LogCategory, toError } from '../shared/services/logger';
 
 // Splash window shown during startup
 let splashWindow: BrowserWindow | null = null;
@@ -33,7 +34,7 @@ export function saveLanguageToFile(lang: string): void {
     if (!fs.existsSync(userDataPath)) fs.mkdirSync(userDataPath, { recursive: true });
     fs.writeFileSync(LANG_FILE(), JSON.stringify({ language: lang }), 'utf-8');
   } catch (e) {
-    console.error('Failed to save language preference:', e);
+    logger.error(LogCategory.SYSTEM, 'Failed to save language preference:', toError(e));
   }
 }
 

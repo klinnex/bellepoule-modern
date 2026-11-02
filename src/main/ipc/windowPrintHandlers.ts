@@ -12,6 +12,7 @@ import { printHtmlSilently, printHtmlWithSystemDialog } from '../printWindows';
 import { assertAuthorizedPath, authorizePath } from '../pathAuthorization';
 import { previewPdf, registerPdfPreviewHandlers } from './pdfPreview';
 import { registerPrintDialogHandlers } from './printDialog';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 export interface WindowPrintHandlersContext {
   getMainWindow(): BrowserWindow | null;
@@ -168,7 +169,7 @@ export function registerWindowPrintHandlers({ getMainWindow }: WindowPrintHandle
   ipcMain.handle('shell:openExternal', async (_, url: string) => {
     // N'autoriser que les URLs https:// pour éviter les exploits via des schémas arbitraires
     if (typeof url !== 'string' || !url.startsWith('https://')) {
-      console.warn('[shell:openExternal] URL rejetée (schéma non-https):', url);
+      logger.warn(LogCategory.SYSTEM, '[shell:openExternal] URL rejetée (schéma non-https):', url);
       return;
     }
     await shell.openExternal(url);

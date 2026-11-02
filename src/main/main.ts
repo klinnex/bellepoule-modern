@@ -32,6 +32,7 @@ import { createDiagnosticDeps, registerDiagnosticHandlers } from './ipc/diagnost
 import { getVersionInfo } from './versionInfo';
 import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
 import { remoteServers, stopRemoteServer } from './remoteRegistry';
+import { logger, LogCategory, toError } from '../shared/services/logger';
 
 // Database instance
 const db = new DatabaseManager();
@@ -173,9 +174,9 @@ app.whenReady().then(async () => {
     try {
       if (!fs.existsSync(userDataPath)) fs.mkdirSync(userDataPath, { recursive: true });
       fs.copyFileSync(legacyDbPath, dbPath);
-      console.log(`Migration BDD: ${legacyDbPath} -> ${dbPath}`);
+      logger.info(LogCategory.SYSTEM, `Migration BDD: ${legacyDbPath} -> ${dbPath}`);
     } catch (e) {
-      console.error('Échec migration BDD:', e);
+      logger.error(LogCategory.SYSTEM, 'Échec migration BDD:', toError(e));
     }
   }
 
@@ -186,7 +187,7 @@ app.whenReady().then(async () => {
   createWindow(confirmedLang);
 
   await db.open(dbPath);
-  console.log('Base de données ouverte:', db.getPath());
+  logger.info(LogCategory.SYSTEM, 'Base de données ouverte:', db.getPath());
 
   // Signaler au renderer que la DB est prête
   mainWindow?.webContents.send('db:ready');
@@ -208,7 +209,10 @@ app.whenReady().then(async () => {
       if (!autoUpdater) return;
       if (autoUpdater.hasPendingUpdate()) {
         const pendingInfo = autoUpdater.getPendingUpdateInfo();
-        console.log(`[Main] Mise à jour en attente trouvée: v${pendingInfo?.version}`);
+        logger.info(
+          LogCategory.SYSTEM,
+          `[Main] Mise à jour en attente trouvée: v${pendingInfo?.version}`
+        );
         const L = getL();
         const result = await dialog.showMessageBox(win, {
           type: 'info',
@@ -238,10 +242,10 @@ app.whenReady().then(async () => {
         autosaveInFlight = true;
         try {
           await db.saveAsync(); // async I/O — ne bloque pas le main thread
-          console.log('Autosave completed at', new Date().toISOString());
+          logger.info(LogCategory.SYSTEM, 'Autosave completed at', new Date().toISOString());
           mainWindow?.webContents.send('autosave:completed');
         } catch (error) {
-          console.error('Autosave failed:', error);
+          logger.error(LogCategory.SYSTEM, 'Autosave failed:', toError(error));
           mainWindow?.webContents.send('autosave:failed');
         } finally {
           autosaveInFlight = false;
@@ -279,16 +283,16 @@ app.on('before-quit', () => {
 
 // Promesses rejetées non gérées : journaliser sans terminer le processus (#1007)
 process.on('unhandledRejection', reason => {
-  console.error('Unhandled Rejection:', reason);
+  logger.error(LogCategory.SYSTEM, 'Unhandled Rejection:', toError(reason));
 });
 
 // Handle uncaught exceptions - save before crash
 process.on('uncaughtException', error => {
-  console.error('Uncaught Exception:', error);
+  logger.error(LogCategory.SYSTEM, 'Uncaught Exception:', toError(error));
   try {
     db.saveSync();
   } catch (e) {
-    console.error('Failed to save on crash:', e);
+    logger.error(LogCategory.SYSTEM, 'Failed to save on crash:', toError(e));
   }
   // showMessageBox est asynchrone : showErrorBox bloquerait le processus principal
   // (serveur distant compris) jusqu'au clic de l'opérateur (#993).

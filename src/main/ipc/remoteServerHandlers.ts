@@ -13,6 +13,7 @@ import { ensureCert } from '../certManager';
 import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from '../remoteRegistry';
 import { applyActiveWave } from '../remote/activeWave';
 import { setSharedMainWindow } from '../mainWindowRef';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export interface RemoteServerHandlersContext {
   db: DatabaseManager;
@@ -58,7 +59,11 @@ export function registerRemoteServerHandlers({
             tlsOptions = { cert: bundle.cert, key: bundle.key };
             certFingerprint = bundle.fingerprint;
           } catch (certError) {
-            console.error('Erreur génération certificat TLS:', certError);
+            logger.error(
+              LogCategory.NETWORK,
+              'Erreur génération certificat TLS:',
+              toError(certError)
+            );
             return { success: false, error: 'tls_cert_failed' };
           }
         }
@@ -67,7 +72,11 @@ export function registerRemoteServerHandlers({
         try {
           await server.start();
         } catch (startError: any) {
-          console.error('Error binding remote server port:', startError);
+          logger.error(
+            LogCategory.NETWORK,
+            'Error binding remote server port:',
+            toError(startError)
+          );
           return { success: false, error: startError?.message ?? 'Port indisponible' };
         }
         applyActiveWave(competitionId, server);
@@ -100,7 +109,7 @@ export function registerRemoteServerHandlers({
           },
         };
       } catch (error) {
-        console.error('Error starting remote server:', error);
+        logger.error(LogCategory.NETWORK, 'Error starting remote server:', toError(error));
         return {
           success: false,
           error: error instanceof Error ? error.message : 'Erreur inconnue',
@@ -117,7 +126,7 @@ export function registerRemoteServerHandlers({
 
       return { success: true };
     } catch (error) {
-      console.error('Error stopping remote server:', error);
+      logger.error(LogCategory.NETWORK, 'Error stopping remote server:', toError(error));
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }
   });
