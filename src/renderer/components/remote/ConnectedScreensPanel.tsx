@@ -67,40 +67,12 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
                 referee: t('rsm.screen_referee'),
               };
               return (
-                <div
-                  key={client.socketId}
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.5rem 0',
-                    borderBottom: '1px solid #1e293b',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: '0.75rem',
-                      padding: '0.15rem 0.4rem',
-                      borderRadius: '0.3rem',
-                      background: '#1e3a5f',
-                      color: '#7dd3fc',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
+                <div key={client.socketId} className="is-baf1ec">
+                  <span className="is-73469e">
                     {typeLabel[client.clientType] ?? client.clientType}
                   </span>
-                  <span
-                    style={{
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                      color: '#e2e8f0',
-                      minWidth: '6rem',
-                    }}
-                  >
-                    {clientLabel}
-                  </span>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{client.ip}</span>
+                  <span className="is-1217ec">{clientLabel}</span>
+                  <span className="is-d05aef">{client.ip}</span>
                   {client.battery && (
                     <span
                       title={client.battery.charging ? t('rsm.charging') : t('rsm.on_battery')}
@@ -123,14 +95,7 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
                       {Math.round(client.battery.level * 100)}%
                     </span>
                   )}
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '0.35rem',
-                      marginLeft: 'auto',
-                      flexWrap: 'wrap',
-                    }}
-                  >
+                  <div className="is-8afc24">
                     <button
                       className="btn-secondary"
                       style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}

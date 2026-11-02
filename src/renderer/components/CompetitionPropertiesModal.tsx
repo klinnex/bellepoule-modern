@@ -234,7 +234,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               </small>
               {!questEnabled &&
                 Array.from({ length: Math.max(0, poolRounds - 1) }, (_, i) => (
-                  <div key={i} style={{ marginTop: '0.5rem' }}>
+                  <div key={i} className="is-0dc8cc">
                     <label htmlFor={`poolRoundQualifiers-${i}`}>
                       {t('properties.qualified_round')} {i + 2}
                     </label>
@@ -276,14 +276,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
             </small>
           </div>
         </div>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '1rem',
-            marginTop: '1rem',
-          }}
-        >
+        <div className="is-cf6b91">
           <div className="form-group">
             <label htmlFor="poolMaxScore">{t('properties.pool_max_score')}</label>
             <input
@@ -467,17 +460,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
         <form onSubmit={handleSubmit} className="modal-body">
           {/* Informations générales */}
           <div style={MB15}>
-            <h3
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: 'var(--color-text-light)',
-                marginBottom: '0.75rem',
-                textTransform: 'uppercase',
-              }}
-            >
-              {t('properties.general_info')}
-            </h3>
+            <h3 className="is-18e387">{t('properties.general_info')}</h3>
 
             <div className="form-group">
               <label htmlFor="title">{t('competition.title')}</label>
@@ -530,19 +513,9 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
 
           {/* Configuration */}
           <div style={MB15}>
-            <h3
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: 'var(--color-text-light)',
-                marginBottom: '0.75rem',
-                textTransform: 'uppercase',
-              }}
-            >
-              {t('properties.configuration')}
-            </h3>
+            <h3 className="is-18e387">{t('properties.configuration')}</h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+            <div className="is-80ae82">
               <div className="form-group">
                 <label htmlFor="weapon">{t('competition.weapon')}</label>
                 <select
@@ -603,17 +576,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
 
           {/* Paramètres de formule */}
           <div style={MB1}>
-            <h3
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: 'var(--color-text-light)',
-                marginBottom: '0.75rem',
-                textTransform: 'uppercase',
-              }}
-            >
-              {t('properties.formula')}
-            </h3>
+            <h3 className="is-18e387">{t('properties.formula')}</h3>
 
             {/* Formule à la carte — remplace tout le reste pour arme CUSTOM */}
             {isCustomWeapon && (
@@ -634,20 +597,10 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
           {/* Tour Quest — visible uniquement pour Sabre Laser */}
           {weapon === Weapon.LASER && (
             <div style={MB1}>
-              <h3
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  color: 'var(--color-text-light)',
-                  marginBottom: '0.75rem',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {t('properties.quest_round')}
-              </h3>
+              <h3 className="is-18e387">{t('properties.quest_round')}</h3>
 
               {/* Oui / Non */}
-              <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+              <div className="form-group is-b57afc">
                 <label style={FIELD_LABEL}>{t('properties.quest_enabled')}</label>
                 <div style={FLEX1}>
                   <label style={CHECK_LABEL}>
@@ -672,17 +625,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               </div>
 
               {questEnabled && (
-                <div
-                  style={{
-                    background: '#f0fdf4',
-                    border: '1px solid #86efac',
-                    borderRadius: '8px',
-                    padding: '1rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.75rem',
-                  }}
-                >
+                <div className="is-3aae76">
                   {/* Sans / Avec poules préliminaires */}
                   <div className="form-group">
                     <label style={FIELD_LABEL}>{t('properties.preliminary_pools')}</label>
@@ -717,18 +660,17 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
                       <input
                         type="number"
                         id="questQualifiers"
-                        className="form-input"
+                        className="form-input is-9829e6"
                         value={questQualifiers}
                         min={2}
                         onChange={e =>
                           setQuestQualifiers(Math.max(2, parseInt(e.target.value) || 2))
                         }
-                        style={{ maxWidth: '150px', marginTop: '0.25rem' }}
                       />
                     </div>
                   )}
 
-                  <small style={{ color: '#166534', fontSize: '0.75rem' }}>
+                  <small className="is-f233f0">
                     {questHasPools
                       ? `Formule : 1 tour de poules → Top ${questQualifiers} qualifiés → Tour Quest → Tableau`
                       : 'Formule : Tour Quest direct → Tableau'}
@@ -740,17 +682,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
 
           {/* Gestion des arbitres */}
           <div style={MB1}>
-            <h3
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: 'var(--color-text-light)',
-                marginBottom: '0.75rem',
-                textTransform: 'uppercase',
-              }}
-            >
-              {t('properties.refereeing')}
-            </h3>
+            <h3 className="is-18e387">{t('properties.refereeing')}</h3>
             <div className="form-group">
               <label style={CHECK_LABEL_SM}>
                 <input
@@ -762,7 +694,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               </label>
               <small style={HINT_INDENT}>{t('properties.referees_enable_hint')}</small>
             </div>
-            <div className="form-group" style={{ marginTop: '0.75rem' }}>
+            <div className="form-group is-342d98">
               <label style={CHECK_LABEL_SM}>
                 <input
                   type="checkbox"
@@ -773,7 +705,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               </label>
               <small style={HINT_INDENT}>{t('properties.black_card_hint')}</small>
             </div>
-            <div className="form-group" style={{ marginTop: '0.75rem' }}>
+            <div className="form-group is-342d98">
               <label style={CHECK_LABEL_SM}>
                 <input
                   type="checkbox"
@@ -784,7 +716,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               </label>
               <small style={HINT_INDENT}>{t('properties.trainers_hint')}</small>
             </div>
-            <div className="form-group" style={{ marginTop: '0.75rem' }}>
+            <div className="form-group is-342d98">
               <label style={CHECK_LABEL_SM}>
                 <input
                   type="checkbox"
@@ -796,20 +728,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
               <small style={HINT_INDENT}>{t('properties.expert_mode_hint')}</small>
             </div>
             {expertMode && (
-              <div
-                style={{
-                  // Jaune clair ; bleu-gris en thème sombre (#1114)
-                  background: 'var(--color-notice-bg)',
-                  color: 'var(--color-text)',
-                  border: '1px solid var(--color-notice-border)',
-                  borderRadius: '8px',
-                  padding: '1rem',
-                  marginTop: '0.75rem',
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '1rem',
-                }}
-              >
+              <div className="is-70cddd">
                 <div className="form-group">
                   <label htmlFor="maxRefereesPerPool" style={{ ...SM, color: 'var(--color-text)' }}>
                     {t('properties.max_referees_pool')}
