@@ -7,6 +7,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logError, logComponentError } from '../../shared/utils/errorLogger';
 import { translateStatic } from '../contexts/TranslationContext';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 interface Props {
   children: ReactNode;
@@ -31,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error Boundary caught an error:', error, errorInfo);
+    logger.error(LogCategory.UI, 'Error Boundary caught an error:', undefined, [error, errorInfo]);
 
     this.setState({
       error,
@@ -258,7 +259,7 @@ export class DatabaseErrorBoundary extends Component<Props> {
 
 export const useErrorHandler = () => {
   return (error: Error, errorInfo?: ErrorInfo) => {
-    console.error('Unhandled error in component:', error, errorInfo);
+    logger.error(LogCategory.UI, 'Unhandled error in component:', undefined, [error, errorInfo]);
 
     // Always log to centralized error logger
     logError(error, 'Component', {
