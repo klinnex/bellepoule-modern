@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 29 | 288 |
+| `src/main/` | 30 | 292 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 24 | 115 |
 | `src/renderer/components/` | 44 | 209 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **207** | **1799** |
+| **Total** | **208** | **1803** |
 
-Unitaires : 198 fichiers, 1764 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 199 fichiers, 1768 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2099,6 +2099,17 @@ Unitaires : 198 fichiers, 1764 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - snapshot vide avant toute mesure
   - détecte un blocage synchrone et se remet à zéro
   - start/stop idempotents
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/cryptoHandlers.test.ts</code> — 4 tests</summary>
+
+- **registerCryptoHandlers (#1341)**
+  - enregistre les trois canaux crypto:\*
+  - protect / unprotect font l’aller-retour en base64
+  - renvoie null sans chiffrement disponible
+  - refuse les entrées non-chaîne
 
 </details>
 
