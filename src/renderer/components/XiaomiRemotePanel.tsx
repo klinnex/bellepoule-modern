@@ -280,58 +280,26 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.6)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
+      className="is-9c7831"
       onClick={e => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div
-        ref={modalRef}
-        style={{
-          background: 'var(--color-surface)',
-          color: 'var(--color-text)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '12px',
-          width: '600px',
-          maxWidth: '96vw',
-          maxHeight: '88vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-      >
+      <div ref={modalRef} className="is-bd5ac6">
         {/* Header */}
-        <div
-          style={{
-            padding: '1rem 1.25rem',
-            borderBottom: '1px solid var(--color-border)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-          }}
-        >
-          <span style={{ fontSize: '1.2rem' }}>📺</span>
-          <span style={{ fontWeight: 600, fontSize: '1rem', flex: 1 }}>{t('xiaomi.title')}</span>
+        <div className="is-3e5b11">
+          <span className="is-199b90">📺</span>
+          <span className="is-683bfc">{t('xiaomi.title')}</span>
           <button
-            className={`btn ${locked ? 'btn-primary' : 'btn-secondary'}`}
+            className={`btn ${locked ? 'btn-primary' : 'btn-secondary'} is-c90036`}
             onClick={toggleLock}
-            style={{ padding: '0.25rem 0.6rem', fontSize: '0.78rem' }}
             title={locked ? t('xiaomi.unlock_tooltip') : t('xiaomi.lock_tooltip')}
           >
             {locked ? t('xiaomi.locked_label') : t('xiaomi.lock_label')}
           </button>
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary is-c90036"
             onClick={fetchClients}
-            style={{ padding: '0.25rem 0.6rem', fontSize: '0.78rem' }}
             title={t('xiaomi.refresh')}
           >
             ↻
@@ -350,18 +318,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
         </div>
 
         {/* Lobby URL hint */}
-        <div
-          style={{
-            padding: '0.55rem 1.25rem',
-            background: 'rgba(56,189,248,0.1)',
-            borderBottom: '1px solid var(--color-border)',
-            fontSize: '0.78rem',
-            color: 'var(--color-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
+        <div className="is-b37067">
           <span>💡</span>
           <span>
             {t('xiaomi.url_no_arena')} <strong>{base}/lobby</strong> {t('xiaomi.screens_waiting')}
@@ -370,18 +327,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
 
         {/* Bandeau verrou */}
         {locked && (
-          <div
-            style={{
-              padding: '0.55rem 1.25rem',
-              background: 'rgba(34,197,94,0.1)',
-              borderBottom: '1px solid rgba(34,197,94,0.3)',
-              fontSize: '0.78rem',
-              color: '#86efac',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
+          <div className="is-3f0040">
             <span>🔒</span>
             <span>{t('xiaomi.locked')}</span>
           </div>
@@ -398,17 +344,10 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
           }}
         >
           {clients.length === 0 ? (
-            <div
-              style={{
-                color: 'var(--color-text-light)',
-                textAlign: 'center',
-                padding: '2rem',
-                fontSize: '0.9rem',
-              }}
-            >
+            <div className="is-c8fe5c">
               {t('xiaomi.no_screen')}
               <br />
-              <span style={{ fontSize: '0.8rem' }}>{t('xiaomi.connect_tv')}</span>
+              <span className="is-22b62c">{t('xiaomi.connect_tv')}</span>
             </div>
           ) : (
             clients.map(client => {
@@ -440,7 +379,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                   />
 
                   {/* Label + IP */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="is-d6ee47">
                     {renameTarget === client.socketId ? (
                       <input
                         autoFocus
@@ -456,26 +395,11 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                           }
                         }}
                         placeholder={t('xiaomi.screen_name')}
-                        style={{
-                          width: '100%',
-                          padding: '0.2rem 0.4rem',
-                          fontSize: '0.85rem',
-                          background: 'var(--color-bg)',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: '5px',
-                          color: 'inherit',
-                        }}
+                        className="is-a5a491"
                       />
                     ) : (
                       <div
-                        style={{
-                          fontWeight: 500,
-                          fontSize: '0.88rem',
-                          cursor: 'text',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.35rem',
-                        }}
+                        className="is-5b7d90"
                         title={t('xiaomi.click_rename')}
                         onClick={() => {
                           setRenameTarget(client.socketId);
@@ -483,18 +407,10 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                         }}
                       >
                         {clientLabel(client, t)}
-                        <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>✎</span>
+                        <span className="is-086f3b">✎</span>
                       </div>
                     )}
-                    <div
-                      style={{
-                        fontSize: '0.73rem',
-                        color: 'var(--color-text-light)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                    <div className="is-90616e">
                       {client.ip} · {formatLastSeen(client.lastSeen, t)}
                     </div>
                   </div>
@@ -510,14 +426,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                             onChange={e =>
                               applyAssign(client, e.target.value as AssignRole, a.arena)
                             }
-                            style={{
-                              padding: '0.2rem 0.3rem',
-                              fontSize: '0.75rem',
-                              background: 'var(--color-bg)',
-                              border: '1px solid var(--color-border)',
-                              borderRadius: '5px',
-                              color: 'inherit',
-                            }}
+                            className="is-27fcf1"
                             title={t('xiaomi.tablet_role')}
                           >
                             {assignRoles.map(r => (
@@ -530,14 +439,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                             <select
                               value={a.arena}
                               onChange={e => applyAssign(client, a.role, Number(e.target.value))}
-                              style={{
-                                padding: '0.2rem 0.3rem',
-                                fontSize: '0.75rem',
-                                background: 'var(--color-bg)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: '5px',
-                                color: 'inherit',
-                              }}
+                              className="is-27fcf1"
                               title={t('xiaomi.arena')}
                             >
                               {Array.from({ length: arenaCount }, (_, i) => (
@@ -553,8 +455,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
 
                   {/* Identifier */}
                   <button
-                    className="btn btn-secondary"
-                    style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+                    className="btn btn-secondary is-8078b9"
                     onClick={() =>
                       window.electronAPI.remote.identifyClient(competitionId, client.socketId)
                     }
@@ -565,8 +466,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
 
                   {/* Renommer */}
                   <button
-                    className="btn btn-secondary"
-                    style={{ padding: '0.2rem 0.45rem', fontSize: '0.75rem' }}
+                    className="btn btn-secondary is-01ebbc"
                     onClick={() => {
                       setRenameTarget(client.socketId);
                       setRenameValue(client.label ?? '');
@@ -578,8 +478,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
 
                   {/* Mode kiosk */}
                   <button
-                    className="btn btn-secondary"
-                    style={{ padding: '0.2rem 0.45rem', fontSize: '0.75rem' }}
+                    className="btn btn-secondary is-01ebbc"
                     onClick={() => {
                       setKioskTarget(client.socketId);
                       setKioskConfig(loadKioskConfig());
@@ -591,8 +490,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
 
                   {/* Rafraîchir */}
                   <button
-                    className="btn btn-secondary"
-                    style={{ padding: '0.2rem 0.45rem', fontSize: '0.75rem' }}
+                    className="btn btn-secondary is-01ebbc"
                     onClick={() => sendCmd(client.socketId, { type: 'refresh' })}
                     title={t('xiaomi.refresh')}
                   >
@@ -602,8 +500,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                   {/* Naviguer (tous types) */}
                   <div ref={openNav === client.socketId ? navRef : null} className="relative">
                     <button
-                      className="btn btn-secondary"
-                      style={{ padding: '0.2rem 0.45rem', fontSize: '0.75rem' }}
+                      className="btn btn-secondary is-01ebbc"
                       onClick={() =>
                         setOpenNav(openNav === client.socketId ? null : client.socketId)
                       }
@@ -611,25 +508,11 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                       ▾
                     </button>
                     {openNav === client.socketId && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          right: 0,
-                          top: 'calc(100% + 4px)',
-                          background: 'var(--color-surface)',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: '8px',
-                          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                          minWidth: '170px',
-                          zIndex: 300,
-                          overflow: 'hidden',
-                        }}
-                      >
+                      <div className="is-4db2d1">
                         {allNavTargets.map(t => (
                           <button
                             key={t.url}
-                            className="comp-header-dropdown-item"
-                            style={{ width: '100%', textAlign: 'left', fontSize: '0.82rem' }}
+                            className="comp-header-dropdown-item is-5f8a9c"
                             onClick={() => {
                               sendCmd(client.socketId, { type: 'navigate', url: t.url });
                               setOpenNav(null);
@@ -666,17 +549,8 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
 
         {/* Bandeau intervertir */}
         {swapSet.size > 0 && (
-          <div
-            style={{
-              padding: '0.65rem 1.25rem',
-              background: 'rgba(249,115,22,0.12)',
-              borderTop: '1px solid rgba(249,115,22,0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-            }}
-          >
-            <span style={{ fontSize: '0.88rem', flex: 1, color: '#ea580c' }}>
+          <div className="is-e6752a">
+            <span className="is-80a756">
               {t('xiaomi.swap_label')}{' '}
               {swapCandidates
                 .map(c => <strong key={c.socketId}>{clientLabel(c, t)}</strong>)
@@ -684,28 +558,18 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                   (a, b) =>
                     (
                       <>
-                        {a} <span style={{ color: '#94a3b8' }}>↔</span> {b}
+                        {a} <span className="is-4cd15e">↔</span> {b}
                       </>
                     ) as any
                 )}
-              {swapSet.size === 1 && (
-                <span style={{ color: '#94a3b8' }}> {t('xiaomi.select_2nd')}</span>
-              )}
+              {swapSet.size === 1 && <span className="is-4cd15e"> {t('xiaomi.select_2nd')}</span>}
             </span>
             {canSwap && (
-              <button
-                className="btn btn-primary"
-                style={{ padding: '0.3rem 0.75rem', fontSize: '0.82rem' }}
-                onClick={confirmSwap}
-              >
+              <button className="btn btn-primary is-6c53bb" onClick={confirmSwap}>
                 {t('actions.confirm')}
               </button>
             )}
-            <button
-              className="btn btn-secondary"
-              style={{ padding: '0.3rem 0.6rem', fontSize: '0.82rem' }}
-              onClick={() => setSwapSet(new Set())}
-            >
+            <button className="btn btn-secondary is-e7eeed" onClick={() => setSwapSet(new Set())}>
               {t('actions.cancel')}
             </button>
           </div>
@@ -720,17 +584,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
             opacity: locked ? 0.55 : 1,
           }}
         >
-          <div
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--color-text-light)',
-              marginBottom: '0.4rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
-            {t('xiaomi.global_message_label')}
-          </div>
+          <div className="is-faf931">{t('xiaomi.global_message_label')}</div>
           <div className="u-row">
             <input
               type="text"
