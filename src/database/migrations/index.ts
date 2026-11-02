@@ -4,6 +4,7 @@
  */
 
 import Database from 'better-sqlite3';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 export interface Migration {
   version: number;
@@ -24,13 +25,16 @@ export class MigrationManager {
     const dbWrapper = { run: (sql: string) => this.db.exec(sql) };
 
     for (const migration of pending) {
-      console.log(`[DB] Migration v${migration.version}: ${migration.description}`);
+      logger.info(
+        LogCategory.DATABASE,
+        `[DB] Migration v${migration.version}: ${migration.description}`
+      );
       migration.up(dbWrapper);
       this.recordMigration(migration.version, migration.description);
     }
 
     if (pending.length > 0) {
-      console.log(`[DB] ${pending.length} migration(s) appliquée(s)`);
+      logger.info(LogCategory.DATABASE, `[DB] ${pending.length} migration(s) appliquée(s)`);
     }
     return pending.length;
   }

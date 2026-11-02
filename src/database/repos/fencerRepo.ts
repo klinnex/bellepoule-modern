@@ -4,6 +4,7 @@ import { sanitizeText } from '../validation';
 import { FENCER_TEXT_FIELDS } from './dbUtils';
 import type { SqlExecutor } from './sqlExecutor';
 import { parseFencerRow } from './rowMappers';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 /** Tireurs : CRUD, photos, historique, statistiques, instantanés d'abandon (#1242) */
 export class FencerRepo {
@@ -47,7 +48,7 @@ export class FencerRepo {
       if (!created) throw new Error('Failed to retrieve created fencer');
       return created;
     } catch (error) {
-      console.error('Database error in addFencer:', error);
+      logger.error(LogCategory.DATABASE, 'Database error in addFencer:', toError(error));
       throw error;
     }
   }
@@ -59,7 +60,7 @@ export class FencerRepo {
     try {
       return parseFencerRow(row);
     } catch (error) {
-      console.error('DB: Error parsing fencer data:', error);
+      logger.error(LogCategory.DATABASE, 'DB: Error parsing fencer data:', toError(error));
       throw error;
     }
   }
@@ -204,7 +205,11 @@ export class FencerRepo {
         if (result.changes === 0) throw new Error(`Échec de la suppression du tireur ${id}`);
       });
     } catch (error) {
-      console.error('Erreur lors de la suppression du tireur:', error);
+      logger.error(
+        LogCategory.DATABASE,
+        'Erreur lors de la suppression du tireur:',
+        toError(error)
+      );
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(
         `Erreur de base de données lors de la suppression du tireur: ${errorMessage}`,
@@ -234,7 +239,11 @@ export class FencerRepo {
         }
       });
     } catch (error) {
-      console.error('Erreur lors de la suppression des tireurs:', error);
+      logger.error(
+        LogCategory.DATABASE,
+        'Erreur lors de la suppression des tireurs:',
+        toError(error)
+      );
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(
         `Erreur de base de données lors de la suppression des tireurs: ${errorMessage}`,
@@ -503,7 +512,11 @@ export class FencerRepo {
     try {
       matchSnapshots = JSON.parse((row.match_snapshots as string) || '[]');
     } catch (err) {
-      console.error('[Database] match_snapshots JSON invalide, ignoré:', err);
+      logger.error(
+        LogCategory.DATABASE,
+        '[Database] match_snapshots JSON invalide, ignoré:',
+        toError(err)
+      );
     }
     return {
       id: row.id as string,

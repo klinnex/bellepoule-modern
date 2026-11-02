@@ -3,6 +3,7 @@ import { Fencer, Pool, PoolSnapshot, Referee } from '../../shared/types';
 import type { SqlExecutor } from './sqlExecutor';
 import type { DatabaseManager } from '../index';
 import { parseFencerRow, parsePoolRefereeIds } from './rowMappers';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 /** Poules : composition, arbitres, instantanés (#1242) */
 export class PoolRepo {
@@ -30,7 +31,7 @@ export class PoolRepo {
       );
       if (pools.length > 0) return pools.map(p => ({ id: p.id, name: 'Poule ' + p.number }));
     } catch (e) {
-      console.warn('[Database] Error getting pools:', e);
+      logger.warn(LogCategory.DATABASE, '[Database] Error getting pools:', e);
     }
     try {
       return this.sql
@@ -40,7 +41,7 @@ export class PoolRepo {
         )
         .map(p => ({ id: p.id, name: 'Poule ' + p.number }));
     } catch (e) {
-      console.warn('[Database] Error getting pools via phases:', e);
+      logger.warn(LogCategory.DATABASE, '[Database] Error getting pools via phases:', e);
     }
     return [];
   }
@@ -54,7 +55,7 @@ export class PoolRepo {
       );
       if (row && row.count > 0) return row.count;
     } catch (e) {
-      console.warn('[Database] Error getting pool count:', e);
+      logger.warn(LogCategory.DATABASE, '[Database] Error getting pool count:', e);
     }
     try {
       const row = this.sql.queryOne<{ count: number }>(
@@ -63,7 +64,7 @@ export class PoolRepo {
       );
       return row?.count ?? 0;
     } catch (e) {
-      console.warn('[Database] Error getting pool count via phases:', e);
+      logger.warn(LogCategory.DATABASE, '[Database] Error getting pool count via phases:', e);
     }
     return 0;
   }

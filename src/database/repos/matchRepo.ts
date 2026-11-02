@@ -10,6 +10,7 @@ import {
   parseAuditRow,
   parseTimelineRow,
 } from './rowMappers';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 /** Matchs (poules + tableau), touches, cartons, arbre, journal des scores et chronologie (#1242) */
 export class MatchRepo {
@@ -350,7 +351,11 @@ export class MatchRepo {
         )
         .map(r => r.id);
     } catch (e) {
-      console.warn('[Database] Falling back to pool_fencers approach for getPendingMatches:', e);
+      logger.warn(
+        LogCategory.DATABASE,
+        '[Database] Falling back to pool_fencers approach for getPendingMatches:',
+        e
+      );
     }
     if (poolIds.length === 0) {
       try {
@@ -361,7 +366,7 @@ export class MatchRepo {
           )
           .map(r => r.id);
       } catch (e) {
-        console.warn('[Database] Alternative approach also failed:', e);
+        logger.warn(LogCategory.DATABASE, '[Database] Alternative approach also failed:', e);
       }
     }
     if (poolIds.length === 0) return [];
@@ -384,7 +389,7 @@ export class MatchRepo {
         )
         .map(r => r.id);
     } catch (e) {
-      console.warn('[Database] Error getting pools via pool_fencers:', e);
+      logger.warn(LogCategory.DATABASE, '[Database] Error getting pools via pool_fencers:', e);
       return [];
     }
     if (poolIds.length === 0) return [];
@@ -413,7 +418,11 @@ export class MatchRepo {
         return this.hydrateMatchRows(matchRows);
       }
     } catch (e) {
-      console.error('[Database] getPendingMatchesDirectly: Error:', e);
+      logger.error(
+        LogCategory.DATABASE,
+        '[Database] getPendingMatchesDirectly: Error:',
+        toError(e)
+      );
     }
     try {
       const compFencers = new Set(
@@ -432,7 +441,11 @@ export class MatchRepo {
         return compFencers.has(m.fencerA.id) || compFencers.has(m.fencerB.id);
       });
     } catch (e) {
-      console.error('[Database] getPendingMatchesDirectly: Fallback error:', e);
+      logger.error(
+        LogCategory.DATABASE,
+        '[Database] getPendingMatchesDirectly: Fallback error:',
+        toError(e)
+      );
     }
     return [];
   }
