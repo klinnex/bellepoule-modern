@@ -8,7 +8,14 @@ import { app, dialog, shell, BrowserWindow } from 'electron';
 import https from 'https';
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
+import { spawn } from 'child_process';
+import {
+  ensurePrivateDir,
+  randomInstallerName,
+  readPendingUpdate,
+  clearPendingUpdate,
+  writePendingUpdate,
+} from './pendingUpdate';
 import { parseSha256Digest, isTrustedDownloadUrl, verifyFileSha256 } from './updateIntegrity';
 import { fmt, getL } from './menuLabels';
 
@@ -527,8 +534,10 @@ export class AutoUpdater {
         return;
       }
 
-      const tempDir = os.tmpdir();
-      const downloadPath = path.join(tempDir, `bellepoule-update-${filename}`);
+      const downloadPath = path.join(
+        ensurePrivateDir(app.getPath('userData')),
+        randomInstallerName(filename)
+      );
 
       // Supprimer l'ancien fichier s'il existe
       if (fs.existsSync(downloadPath)) {
@@ -539,7 +548,7 @@ export class AutoUpdater {
         }
       }
 
-      const file = fs.createWriteStream(downloadPath);
+      const file = fs.createWriteStream(downloadPath, { mode: 0o600 });
       let downloadedBytes = 0;
       let totalBytes = 0;
 
@@ -605,16 +614,12 @@ export class AutoUpdater {
   }
 
   private saveDownloadedUpdate(downloadPath: string, updateInfo: UpdateInfo, sha256: string): void {
-    const updateData = {
+    writePendingUpdate(app.getPath('userData'), {
       version: updateInfo.latestVersion,
       path: downloadPath,
       sha256,
       downloadedAt: new Date().toISOString(),
-    };
-
-    // Sauvegarder dans un fichier de config
-    const configPath = path.join(os.tmpdir(), 'bellepoule-pending-update.json');
-    fs.writeFileSync(configPath, JSON.stringify(updateData, null, 2));
+    });
   }
 
   /**
@@ -622,18 +627,13 @@ export class AutoUpdater {
    */
   async checkAndInstallPendingUpdate(): Promise<void> {
     try {
-      const configPath = path.join(os.tmpdir(), 'bellepoule-pending-update.json');
-
-      if (fs.existsSync(configPath)) {
-        const updateData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-
-        // Supprimer le fichier de config (usage unique)
-        fs.unlinkSync(configPath);
-
-        if (fs.existsSync(updateData.path)) {
-          console.log(`🔄 Installation de la mise à jour ${updateData.version}...`);
-          await this.launchVerifiedInstaller(updateData.path, updateData.sha256);
-        }
+      const userData = app.getPath('userData');
+      const updateData = readPendingUpdate(userData);
+      // Usage unique
+      clearPendingUpdate(userData);
+      if (updateData) {
+        console.log(`🔄 Installation de la mise à jour ${updateData.version}...`);
+        await this.launchVerifiedInstaller(updateData.path, updateData.sha256);
       }
     } catch (error) {
       console.error('Failed to install pending update:', error);
@@ -642,7 +642,7 @@ export class AutoUpdater {
 
   /**
    * Revérifier l'empreinte SHA-256 juste avant le lancement
-   * (le fichier réside dans un dossier temporaire modifiable).
+   * (défense en profondeur : dossier privé userData).
    */
   private async launchVerifiedInstaller(installerPath: string, sha256: unknown): Promise<void> {
     const valid =
@@ -664,7 +664,6 @@ export class AutoUpdater {
   }
 
   private launchInstaller(installerPath: string): void {
-    const { spawn } = require('child_process');
     const platform = process.platform;
 
     try {
@@ -714,7 +713,7 @@ export class AutoUpdater {
         });
       } else if (platform === 'linux') {
         // Linux: rendre exécutable et lancer
-        require('fs').chmodSync(installerPath, '755');
+        fs.chmodSync(installerPath, '755');
         spawn(installerPath, [], {
           detached: true,
           stdio: 'ignore',
@@ -882,45 +881,15 @@ export class AutoUpdater {
    * Vérifier s'il y a une mise à jour téléchargée en attente d'installation
    */
   hasPendingUpdate(): boolean {
-    try {
-      const configPath = require('path').join(
-        require('os').tmpdir(),
-        'bellepoule-pending-update.json'
-      );
-
-      if (require('fs').existsSync(configPath)) {
-        const updateData = JSON.parse(require('fs').readFileSync(configPath, 'utf8'));
-        return require('fs').existsSync(updateData.path);
-      }
-    } catch (error) {
-      console.error('Failed to check pending update:', error);
-    }
-    return false;
+    return readPendingUpdate(app.getPath('userData')) !== null;
   }
 
   /**
    * Récupérer les informations de la mise à jour en attente
    */
   getPendingUpdateInfo(): { version: string; path: string } | null {
-    try {
-      const configPath = require('path').join(
-        require('os').tmpdir(),
-        'bellepoule-pending-update.json'
-      );
-
-      if (require('fs').existsSync(configPath)) {
-        const updateData = JSON.parse(require('fs').readFileSync(configPath, 'utf8'));
-        if (require('fs').existsSync(updateData.path)) {
-          return {
-            version: updateData.version,
-            path: updateData.path,
-          };
-        }
-      }
-    } catch (error) {
-      console.error('Failed to get pending update info:', error);
-    }
-    return null;
+    const data = readPendingUpdate(app.getPath('userData'));
+    return data ? { version: data.version, path: data.path } : null;
   }
 }
 
