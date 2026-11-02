@@ -215,15 +215,8 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
 
     return (
       <div className="content">
-        <div
-          style={{
-            marginBottom: '1rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{t('questPhase.running_title')}</h2>
+        <div className="is-4d99ac">
+          <h2 className="is-28d934">{t('questPhase.running_title')}</h2>
           {allComplete && (
             <button className="btn btn-primary" onClick={() => onQuestComplete(ranking ?? [])}>
               {t('questPhase.validate')}
@@ -248,7 +241,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
         {/* Compteur de cartons */}
         <div style={CARD_TOP}>
           <p style={CARD_TITLE}>{t('questPhase.cards_received')}</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div className="is-510b9c">
             {fencers.map(f => {
               const count = cardCounts[f.id] ?? 0;
               return (
@@ -265,7 +258,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     fontSize: '0.85rem',
                   }}
                 >
-                  <span style={{ fontWeight: 500 }}>
+                  <span className="is-af5bb0">
                     {f.lastName} {f.firstName?.charAt(0)}.
                   </span>
                   <button
@@ -293,17 +286,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                   >
                     {count}
                   </span>
-                  <button
-                    onClick={() => addCard(f.id)}
-                    style={{
-                      padding: '0 0.35rem',
-                      border: '1px solid var(--color-border-dark)',
-                      borderRadius: '4px',
-                      background: 'white',
-                      cursor: 'pointer',
-                      lineHeight: 1.4,
-                    }}
-                  >
+                  <button onClick={() => addCard(f.id)} className="is-c67cf9">
                     +
                   </button>
                 </div>
@@ -316,19 +299,10 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
         {allComplete && ranking && (
           <div style={CARD_TOP}>
             <p style={CARD_TITLE}>{t('questPhase.ranking_title')}</p>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+            <table className="is-81776f">
               <thead>
-                <tr style={{ background: 'var(--color-bg)' }}>
-                  <th
-                    style={{
-                      padding: '0.5rem 0.75rem',
-                      textAlign: 'center',
-                      borderBottom: '2px solid var(--color-border)',
-                      width: '3rem',
-                    }}
-                  >
-                    {t('questPhase.rank')}
-                  </th>
+                <tr className="is-0727f9">
+                  <th className="is-750d9b">{t('questPhase.rank')}</th>
                   <th style={TH_LEFT}>{t('questPhase.fencer')}</th>
                   <th style={TH_CENTER} title={t('questPhase.vm_title')}>
                     {t('questPhase.vm')}
@@ -360,26 +334,12 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     >
                       {r.rank}
                     </td>
-                    <td style={{ padding: '0.5rem 0.75rem', fontWeight: 500 }}>
+                    <td className="is-138330">
                       {r.fencer.lastName} {r.fencer.firstName}
-                      {r.fencer.club && (
-                        <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>
-                          {' '}
-                          ({r.fencer.club})
-                        </span>
-                      )}
+                      {r.fencer.club && <span className="is-98dde6"> ({r.fencer.club})</span>}
                     </td>
                     <td style={TD_CENTER}>{formatRatio(r.ratio)}</td>
-                    <td
-                      style={{
-                        padding: '0.5rem 0.75rem',
-                        textAlign: 'center',
-                        fontWeight: 600,
-                        color: 'var(--color-primary-dark)',
-                      }}
-                    >
-                      {r.questPoints ?? 0}
-                    </td>
+                    <td className="is-bcaaba">{r.questPoints ?? 0}</td>
                     <td
                       style={{
                         padding: '0.5rem 0.75rem',
@@ -393,15 +353,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                 ))}
               </tbody>
             </table>
-            <p
-              style={{
-                fontSize: '0.75rem',
-                color: 'var(--color-text-light)',
-                marginTop: '0.75rem',
-              }}
-            >
-              {t('questPhase.criteria')}
-            </p>
+            <p className="is-a23f77">{t('questPhase.criteria')}</p>
           </div>
         )}
       </div>
@@ -409,23 +361,14 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
   }
 
   return (
-    <div className="content" style={{ maxWidth: '900px', margin: '0 auto' }}>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem' }}>
-        {t('questPhase.config_title')}
-      </h2>
+    <div className="content is-9ec166">
+      <h2 className="is-9fab89">{t('questPhase.config_title')}</h2>
 
       {/* Section calcul du nombre de combats */}
       <div style={CARD}>
         <p style={sectionTitle}>{t('questPhase.fight_count')}</p>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr',
-            gap: '1rem',
-            marginBottom: '1rem',
-          }}
-        >
+        <div className="is-007ec8">
           <div>
             <label style={labelStyle}>{t('questPhase.time_available')}</label>
             <input
@@ -460,19 +403,8 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
           </div>
         </div>
 
-        <div
-          style={{
-            background: '#eff6ff',
-            border: '1px solid #bfdbfe',
-            borderRadius: '6px',
-            padding: '0.75rem',
-            marginBottom: '1rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          <span style={{ fontSize: '0.875rem', color: '#1e40af' }}>
+        <div className="is-6c0fc7">
+          <span className="is-bac809">
             {t('questPhase.formula', { time: timeMinutes, arenas, fencers: fencers.length })}{' '}
             <strong>{t('questPhase.fights_per_fencer', { n: autoFights })}</strong>
           </span>
@@ -506,18 +438,9 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
       {/* Contrainte d'adversaire */}
       <div style={CARD}>
         <p style={sectionTitle}>{t('questPhase.constraint')}</p>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="is-a3f0fc">
           {(['none', 'club', 'region', 'nation'] as OpponentConstraint[]).map(c => (
-            <label
-              key={c}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-              }}
-            >
+            <label key={c} className="is-fcbedc">
               <input
                 type="radio"
                 name="constraint"
@@ -538,7 +461,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
       </div>
 
       {/* Actions de génération */}
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div className="is-f0b24e">
         <button
           className="btn btn-secondary"
           onClick={handleGenerate}
@@ -556,58 +479,23 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
       {/* Planning généré */}
       {schedule.length > 0 && (
         <div style={CARD}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '1rem',
-            }}
-          >
+          <div className="is-b69013">
             <p style={sectionTitle}>{t('questPhase.schedule_title', { n: schedule.length })}</p>
-            {!isValid && (
-              <span style={{ fontSize: '0.75rem', color: '#dc2626' }}>⚠ {errors[0]}</span>
-            )}
+            {!isValid && <span className="is-47a0db">⚠ {errors[0]}</span>}
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.5rem',
-              maxHeight: '400px',
-              overflowY: 'auto',
-            }}
-          >
+          <div className="is-ef56f1">
             {schedule.map((fight, index) => (
-              <div
-                key={index}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.6rem 0.75rem',
-                  background: 'white',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '6px',
-                  fontSize: '0.875rem',
-                }}
-              >
-                <span
-                  style={{ color: 'var(--color-text-muted)', minWidth: '2rem', textAlign: 'right' }}
-                >
-                  {index + 1}.
-                </span>
+              <div key={index} className="is-a15791">
+                <span className="is-a120ba">{index + 1}.</span>
                 <span className="flex-1">
                   <strong>{fight.fencerA.lastName}</strong> {fight.fencerA.firstName}
                   {fight.fencerA.club && <span style={MUTED}> ({fight.fencerA.club})</span>}
-                  <span style={{ margin: '0 0.5rem', color: 'var(--color-text-muted)' }}>
-                    {t('questPhase.vs')}
-                  </span>
+                  <span className="is-15ad85">{t('questPhase.vs')}</span>
                   <strong>{fight.fencerB.lastName}</strong> {fight.fencerB.firstName}
                   {fight.fencerB.club && <span style={MUTED}> ({fight.fencerB.club})</span>}
                 </span>
-                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                <div className="is-499f0c">
                   <button
                     onClick={() => moveUp(index)}
                     disabled={index === 0}
@@ -645,12 +533,8 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
 
           {/* Récap combats par tireur */}
           <details className="mt-4">
-            <summary
-              style={{ cursor: 'pointer', fontSize: '0.8rem', color: 'var(--color-text-light)' }}
-            >
-              {t('questPhase.per_fencer')}
-            </summary>
-            <div style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <summary className="is-1b2297">{t('questPhase.per_fencer')}</summary>
+            <div className="is-1a8ae8">
               {fencers.map(f => {
                 const count = (fightsPerFencer ?? new Map()).get(f.id) ?? 0;
                 return (
@@ -675,12 +559,8 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
 
       {/* Bouton lancer */}
       {schedule.length > 0 && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button
-            className="btn btn-primary"
-            onClick={handleLaunch}
-            style={{ fontSize: '1rem', padding: '0.75rem 2rem' }}
-          >
+        <div className="is-2f47ea">
+          <button className="btn btn-primary is-1f9e99" onClick={handleLaunch}>
             {t('questPhase.launch')}
           </button>
         </div>

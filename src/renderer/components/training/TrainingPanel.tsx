@@ -58,9 +58,7 @@ const UrlRow: React.FC<UrlRowProps> = ({ label, url, qrDataUrl }) => {
   };
 
   return (
-    <div
-      style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.375rem 0' }}
-    >
+    <div className="is-9de27a">
       {qrDataUrl ? (
         <img
           src={qrDataUrl}
