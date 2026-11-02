@@ -16,6 +16,8 @@ interface TableauToolbarProps {
   onAutoAssignToggle: (enabled: boolean) => void;
   onBulkDeassign: () => void;
   onAutoFillScores: () => void;
+  /** Annulation discrète du dernier placement (#1301) : absent = masquée */
+  onUndo?: () => void;
   viewMode: 'full' | 'pending';
   onViewModeToggle: () => void;
   pyramidViewMode: boolean;
@@ -34,6 +36,7 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
   onAutoAssignToggle,
   onBulkDeassign,
   onAutoFillScores,
+  onUndo,
   viewMode,
   onViewModeToggle,
   pyramidViewMode,
@@ -81,6 +84,11 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
 
       {/* Right: view toggles + FAB */}
       <div className="tt-right">
+        {onUndo && (
+          <button onClick={onUndo} className="tt-toggle" title={t('tableauToolbar.undo')}>
+            ↩ {t('tableauToolbar.undo')}
+          </button>
+        )}
         {/* View mode toggles — toujours visibles */}
         <button
           onClick={onViewModeToggle}

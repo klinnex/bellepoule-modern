@@ -1916,6 +1916,7 @@
     "add_selected": "Añadir los seleccionados ({{n}})"
   },
   "tableauToolbar": {
+    "undo": "Deshacer",
     "title": "Cuadro de {{n}}",
     "qualified": "— {{n}} clasificados",
     "options_title": "Opciones del cuadro",

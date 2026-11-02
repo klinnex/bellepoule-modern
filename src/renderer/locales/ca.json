@@ -1916,6 +1916,7 @@
     "add_selected": "Afegeix els seleccionats ({{n}})"
   },
   "tableauToolbar": {
+    "undo": "Desfés",
     "title": "Quadre de {{n}}",
     "qualified": "— {{n}} classificats",
     "options_title": "Opcions del quadre",
