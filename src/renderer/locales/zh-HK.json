@@ -2666,6 +2666,9 @@
     "hint_pools": "按「產生小組」（至少需 4 位已報到劍手）。",
     "hint_remote": "啟動遠程輸入，讓裁判用平板輸入比分（或直接在此電腦輸入）。",
     "hint_scores": "開啟一個小組並輸入一場比賽的比分。",
-    "hint_tableau": "小組賽結束後，進入直接淘汰賽表。"
+    "hint_tableau": "小組賽結束後，進入直接淘汰賽表。",
+    "remote_explain": "裁判喺平板開啟顯示嘅網址，逐場輸入得分，成績會即時傳到呢部電腦。",
+    "remote_mock_arena": "劍道 1",
+    "remote_mock_validate": "確認比賽"
   }
 }

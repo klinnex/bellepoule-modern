@@ -2666,6 +2666,9 @@
     "hint_pools": "Cliquez sur « Générer les poules » (4 tireurs pointés minimum).",
     "hint_remote": "Démarrez la saisie distante pour que les arbitres saisissent les scores sur tablette (ou saisissez-les directement sur ce poste).",
     "hint_scores": "Ouvrez une poule et saisissez le score d'un match.",
-    "hint_tableau": "Une fois les poules terminées, passez au tableau d'élimination directe."
+    "hint_tableau": "Une fois les poules terminées, passez au tableau d'élimination directe.",
+    "remote_explain": "Les arbitres ouvrent l'adresse affichée sur leur tablette, saisissent les touches match par match, et les scores arrivent ici en direct.",
+    "remote_mock_arena": "Arène 1",
+    "remote_mock_validate": "Valider le match"
   }
 }
