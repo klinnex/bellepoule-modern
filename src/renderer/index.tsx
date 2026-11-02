@@ -19,16 +19,17 @@ import './styles/utilities.css';
 import './styles/components.css';
 import './styles/extracted.css';
 import './styles/extracted-2.css';
+import { logger, LogCategory, toError } from '../shared/services/logger';
 /// <reference path="./types.d.ts" />
 
 // Log unhandled rejections so they appear in DevTools console and don't silently crash
 window.addEventListener('unhandledrejection', event => {
-  console.error('[Renderer] Unhandled promise rejection:', event.reason);
+  logger.error(LogCategory.UI, '[Renderer] Unhandled promise rejection:', toError(event.reason));
   event.preventDefault(); // Prevent crash in some Electron versions
 });
 
 window.addEventListener('error', event => {
-  console.error('[Renderer] Uncaught error:', event.error ?? event.message);
+  logger.error(LogCategory.UI, '[Renderer] Uncaught error:', toError(event.error ?? event.message));
 });
 
 // Taille du texte choisie dans les paramètres (#1156), avant le premier rendu
