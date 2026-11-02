@@ -1916,6 +1916,7 @@
     "add_selected": "Ouzhpennañ ar re diuzet ({{n}})"
   },
   "tableauToolbar": {
+    "undo": "Dizober",
     "title": "Taolenn {{n}}",
     "qualified": "— {{n}} dibabet",
     "options_title": "Dibarzhioù an daolenn",

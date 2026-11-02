@@ -1916,6 +1916,7 @@
     "add_selected": "Ausgewählte hinzufügen ({{n}})"
   },
   "tableauToolbar": {
+    "undo": "Rückgängig",
     "title": "Tableau mit {{n}}",
     "qualified": "— {{n}} qualifiziert",
     "options_title": "Tableau-Optionen",

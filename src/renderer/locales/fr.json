@@ -1916,6 +1916,7 @@
     "add_selected": "Ajouter les sélectionnés ({{n}})"
   },
   "tableauToolbar": {
+    "undo": "Annuler",
     "title": "Tableau de {{n}}",
     "qualified": "— {{n}} qualifiés",
     "options_title": "Options du tableau",

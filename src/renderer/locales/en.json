@@ -1916,6 +1916,7 @@
     "add_selected": "Add selected ({{n}})"
   },
   "tableauToolbar": {
+    "undo": "Undo",
     "title": "Bracket of {{n}}",
     "qualified": "— {{n}} qualified",
     "options_title": "Bracket options",

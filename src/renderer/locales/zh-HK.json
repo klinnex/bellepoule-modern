@@ -1916,6 +1916,7 @@
     "add_selected": "加入已選取（{{n}}）"
   },
   "tableauToolbar": {
+    "undo": "復原",
     "title": "{{n}} 人淘汰賽",
     "qualified": "— {{n}} 人晉級",
     "options_title": "淘汰賽選項",
