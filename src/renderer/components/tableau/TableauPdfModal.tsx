@@ -75,9 +75,8 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
+        className="modal is-2c8110"
         onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '400px' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="tableau-pdf-title"
@@ -123,27 +122,11 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
           <label style={{ ...PDF_STYLES.pdfModalLabel, marginTop: '1rem' }}>
             {t('tableauPdf.phases')}
           </label>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.4rem',
-              marginBottom: '0.75rem',
-            }}
-          >
+          <div className="is-682752">
             {[...new Set(matches.filter(m => m.fencerA && m.fencerB && !m.isBye).map(m => m.round))]
               .sort((a, b) => b - a)
               .map(round => (
-                <label
-                  key={round}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                  }}
-                >
+                <label key={round} className="is-fcbedc">
                   <input
                     type="checkbox"
                     checked={selectedRounds.has(round)}
@@ -155,7 +138,7 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
                     }}
                   />
                   {getRoundName(round)}
-                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
+                  <span className="is-99ac94">
                     (
                     {t('tableauPdf.matches', {
                       count: matches.filter(
