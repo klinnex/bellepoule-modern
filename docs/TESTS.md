@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 35 | 305 |
+| `src/main/` | 36 | 307 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 124 |
 | `src/renderer/components/` | 44 | 209 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **217** | **1835** |
+| **Total** | **218** | **1837** |
 
-Unitaires : 208 fichiers, 1800 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 209 fichiers, 1802 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2195,6 +2195,15 @@ Unitaires : 208 fichiers, 1800 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **registerRemoteSessionHandlers (#1341)**
   - enregistre les canaux de session et de réglages
   - stopSession : serveur absent
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/remoteSettingsHandlers.test.ts</code> — 2 tests</summary>
+
+- **registerRemoteSettingsHandlers (#1341)**
+  - enregistre les canaux de réglages
+  - setCheckinEnabled : serveur absent
 
 </details>
 
