@@ -809,6 +809,17 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     );
   };
 
+  // Ferme la modale de score et remet le formulaire à zéro
+  const closeScoreModal = () => {
+    setShowScoreModal(false);
+    setEditingMatch(null);
+    setEditingConsolationId(null);
+    setEditScoreA('');
+    setEditScoreB('');
+    setVictoryA(false);
+    setVictoryB(false);
+  };
+
   const handleScoreSubmit = () => {
     if (!editingMatch) return;
 
@@ -834,16 +845,11 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         const winner = resolveMatchWinner(match, scoreA, scoreB, victoryA, victoryB);
         updateConsolationMatch(editingConsolationId, editingMatch, scoreA, scoreB, winner);
       }
-      setShowScoreModal(false);
-      setEditingMatch(null);
-      setEditingConsolationId(null);
-      setEditScoreA('');
-      setEditScoreB('');
-      setVictoryA(false);
-      setVictoryB(false);
+      closeScoreModal();
       return;
     }
 
+    undo.record(matches);
     const editedMatch = matches.find(m => m.id === editingMatch);
     const winner = resolveMatchWinner(editedMatch, scoreA, scoreB, victoryA, victoryB);
 
@@ -876,12 +882,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       onComplete(finalResults);
     }
 
-    setShowScoreModal(false);
-    setEditingMatch(null);
-    setEditScoreA('');
-    setEditScoreB('');
-    setVictoryA(false);
-    setVictoryB(false);
+    closeScoreModal();
   };
 
   // Annulation d'un match (#1115) : score effacé, vainqueur retiré du tour suivant
@@ -907,15 +908,10 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         showToast(t('tableauView.next_played'), 'error');
         return;
       }
+      undo.record(matches);
       onMatchesChange(reset);
     }
-    setShowScoreModal(false);
-    setEditingMatch(null);
-    setEditingConsolationId(null);
-    setEditScoreA('');
-    setEditScoreB('');
-    setVictoryA(false);
-    setVictoryB(false);
+    closeScoreModal();
   };
 
   const openScoreModal = (match: TableauMatch, consolationId?: string) => {
@@ -1053,12 +1049,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       onComplete(calculateFinalResults(updatedMatches, ranking, tableauSize));
     }
 
-    setShowScoreModal(false);
-    setEditingMatch(null);
-    setEditScoreA('');
-    setEditScoreB('');
-    setVictoryA(false);
-    setVictoryB(false);
+    closeScoreModal();
   };
 
   // Rang de sortie de poules affiché sur les cartes (#1119)
