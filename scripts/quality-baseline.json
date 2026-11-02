@@ -1,7 +1,7 @@
 {
   "jsxText": 0,
   "jsxAttr": 0,
-  "any": 456,
+  "any": 453,
   "console": 292,
   "inlineStyle": 1278,
   "fontSizePx": 0,
@@ -21,6 +21,6 @@
     "src/remote/arena.html": 2302,
     "src/remote/kiosk.html": 3488,
     "src/remote/referee.html": 4633,
-    "src/main/remoteScoreServer.ts": 2705
+    "src/main/remoteScoreServer.ts": 2593
   }
 }

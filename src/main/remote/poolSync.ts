@@ -5,6 +5,7 @@
  * Licensed under GPL-3.0
  */
 import type { SessionMatch } from './types';
+import { buildPoolScores } from './poolScore';
 import { MatchStatus } from '../../shared/types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 
@@ -114,4 +115,80 @@ export function syncPoolMatches(
         .emit(`pool:${aId}:update`, { poolId, fencers, matches: poolMatches, isComplete });
     }
   }
+}
+
+/** Diffuse l'état d'une poule (tireurs, matchs avec scores en mémoire) aux tablettes qui l'affichent. */
+function notifyPoolUpdate(ctx: PoolSyncContext, poolId: string): void {
+  const fencers = ctx.poolFencersCache.get(poolId) ?? ctx.db.getPoolFencers(poolId);
+  const poolMatches = ctx.sessionMatches
+    .filter(m => !m.isTableau && (m.poolId ?? m.pool?.id) === poolId)
+    .sort((a, b) => (a.number || 0) - (b.number || 0))
+    .map(m => {
+      const u = ctx.sessionMatchScores.get(m.id);
+      return u ? { ...m, ...u } : m;
+    });
+  const isComplete =
+    poolMatches.length > 0 &&
+    poolMatches.every(m => m.status === MatchStatus.FINISHED || m.status === 'finished');
+  for (const [aId, arena] of ctx.arenas) {
+    if ((arena.currentMatch?.poolId ?? arena.activePoolId) === poolId) {
+      ctx.io
+        .to(`pool:${aId}`)
+        .emit(`pool:${aId}:update`, { poolId, fencers, matches: poolMatches, isComplete });
+    }
+  }
+}
+
+export function resetPoolMatch(ctx: PoolSyncContext, matchId: string): void {
+  ctx.sessionMatchScores.delete(matchId);
+  ctx.io.emit('match:reset', { matchId });
+
+  const match = ctx.sessionMatches.find(m => m.id === matchId);
+  const poolId = match?.poolId ?? match?.pool?.id;
+  if (poolId) notifyPoolUpdate(ctx, poolId);
+}
+
+/**
+ * Marque un match de poule comme terminé depuis l'UI principale (ex: auto-fill).
+ * Met à jour sessionMatchScores + sessionMatches, libère l'arène si nécessaire,
+ * puis diffuse la mise à jour à la tablette.
+ */
+export function finishPoolMatch(
+  ctx: PoolSyncContext,
+  matchId: string,
+  ...score: Parameters<typeof buildPoolScores>
+): void {
+  ctx.sessionMatchScores.set(matchId, {
+    ...buildPoolScores(...score),
+    status: MatchStatus.FINISHED,
+  });
+
+  const matchIdx = ctx.sessionMatches.findIndex(m => m.id === matchId);
+  if (matchIdx >= 0) {
+    ctx.sessionMatches[matchIdx].status = MatchStatus.FINISHED;
+  }
+
+  // Si le match est actif sur une arène, la marquer terminée
+  for (const [arenaId, arena] of ctx.arenas) {
+    if (arena.currentMatch?.id === matchId && arena.status !== 'finished') {
+      arena.status = 'finished';
+      arena.currentMatch.status = 'finished';
+      ctx.broadcastArenaUpdate(arenaId, {
+        arenaId,
+        status: 'finished',
+        match: arena.currentMatch,
+        scoreA: arena.currentMatch.scoreA,
+        scoreB: arena.currentMatch.scoreB,
+        fencerA: arena.currentMatch.fencerA,
+        fencerB: arena.currentMatch.fencerB,
+      });
+      break;
+    }
+  }
+
+  ctx.io.emit('match:finished', { matchId });
+
+  const match = matchIdx >= 0 ? ctx.sessionMatches[matchIdx] : null;
+  const poolId = match?.poolId ?? match?.pool?.id;
+  if (poolId) notifyPoolUpdate(ctx, poolId);
 }

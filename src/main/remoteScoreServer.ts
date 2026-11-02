@@ -84,7 +84,6 @@ import {
 import { registerPoolRoutes, type PoolRouteContext } from './remote/routes/poolRoutes';
 import { registerMatchRoutes, type MatchRouteContext } from './remote/routes/matchRoutes';
 import { registerApiRoutes, type ApiRouteContext } from './remote/routes/apiRoutes';
-import { buildPoolScores } from './remote/poolScore';
 import { readRemoteSharedFiles } from './remote/i18nBundle';
 
 export { PASSWORD_MIN_LENGTH };
@@ -93,7 +92,13 @@ import { handleArenaControl, type ArenaControlContext } from './remote/arenaCont
 import { setupMiddleware, type MiddlewareContext } from './remote/middleware';
 import { startSession, type SessionStartContext } from './remote/sessionStart';
 import { liveContext } from './remote/liveContext';
-import { syncPoolMatches, updatePoolFencers, type PoolSyncContext } from './remote/poolSync';
+import {
+  syncPoolMatches,
+  updatePoolFencers,
+  resetPoolMatch,
+  finishPoolMatch,
+  type PoolSyncContext,
+} from './remote/poolSync';
 import {
   setTeamArenaMatch,
   clearTeamArenaMatch,
@@ -116,6 +121,11 @@ import {
   refreshDeMatches,
   type ArenaQueueContext,
 } from './remote/arenaQueue';
+import {
+  broadcastArenaUpdate,
+  persistArenaState,
+  type ArenaBroadcastContext,
+} from './remote/arenaBroadcast';
 import {
   assignMatchToArena,
   startArenaMatch,
@@ -739,6 +749,38 @@ export class RemoteScoreServer {
     });
   }
   private _matchFinishCtx?: MatchFinishContext;
+
+  /** Contexte de arenaBroadcast.ts (#1240) */
+  private get arenaBroadcastCtx(): ArenaBroadcastContext {
+    return (this._arenaBroadcastCtx ??= liveContext<ArenaBroadcastContext>(
+      this,
+      [
+        'arenaEventBuffer',
+        'arenaMatchQueue',
+        'arenaPhotoSentForMatch',
+        'arenaRefereeSelected',
+        'arenaScreenThemes',
+        'arenaThemeOverrides',
+        'arenas',
+        'db',
+        'EVENT_BUFFER_MAX',
+        'EVENT_BUFFER_TTL_MS',
+        'io',
+        'session',
+        'sessionBlackCardEnabled',
+        'sessionCardAnnounce',
+        'sessionModernRules',
+        'sessionPoolTimerSeconds',
+        'sessionRefereeFeatureEnabled',
+        'sessionRestSeconds',
+        'sessionShowPhotos',
+        'sessionTableTimerSeconds',
+        'sessionTheme',
+      ],
+      ['getArena', 'getSessionReferees', 'notifyKioskData']
+    ));
+  }
+  private _arenaBroadcastCtx?: ArenaBroadcastContext;
 
   /** Contexte de arenaOps.ts (#1240) */
   private get arenaOpsCtx(): ArenaOpsContext {
@@ -1827,90 +1869,12 @@ export class RemoteScoreServer {
     console.log(`[RemoteScoreServer] ${arenaCount} arènes initialisées avec succès ✓`);
   }
 
-  // Méthode publique pour mettre à jour le nombre d'arènes
-  public resetPoolMatch(matchId: string): void {
-    this.sessionMatchScores.delete(matchId);
-    this.io.emit('match:reset', { matchId });
-
-    const match = this.sessionMatches.find((m: any) => m.id === matchId);
-    const poolId = match?.poolId ?? match?.pool?.id;
-    if (!poolId) return;
-
-    const fencers = this.poolFencersCache.get(poolId) ?? this.db.getPoolFencers(poolId);
-    const poolMatches = this.sessionMatches
-      .filter(m => !m.isTableau && (m.poolId ?? m.pool?.id) === poolId)
-      .sort((a, b) => (a.number || 0) - (b.number || 0))
-      .map(m => {
-        const u = this.sessionMatchScores.get(m.id);
-        return u ? { ...m, ...u } : m;
-      });
-    const isComplete =
-      poolMatches.length > 0 && poolMatches.every((m: any) => m.status === MatchStatus.FINISHED);
-    for (const [aId, arena] of this.arenas) {
-      if ((arena.currentMatch?.poolId ?? arena.activePoolId) === poolId) {
-        this.io
-          .to(`pool:${aId}`)
-          .emit(`pool:${aId}:update`, { poolId, fencers, matches: poolMatches, isComplete });
-      }
-    }
+  public resetPoolMatch(...args: Tail<Parameters<typeof resetPoolMatch>>): void {
+    return resetPoolMatch(this.poolSyncCtx, ...args);
   }
 
-  // Marque un match de poule comme terminé depuis l'UI principale (ex: auto-fill).
-  // Met à jour sessionMatchScores + sessionMatches, libère l'arène si nécessaire,
-  // puis diffuse la mise à jour à la tablette.
-  public finishPoolMatch(matchId: string, ...score: Parameters<typeof buildPoolScores>): void {
-    this.sessionMatchScores.set(matchId, {
-      ...buildPoolScores(...score),
-      status: MatchStatus.FINISHED,
-    });
-
-    const matchIdx = this.sessionMatches.findIndex(m => m.id === matchId);
-    if (matchIdx >= 0) {
-      this.sessionMatches[matchIdx].status = MatchStatus.FINISHED;
-    }
-
-    // Si le match est actif sur une arène, la marquer terminée
-    for (const [arenaId, arena] of this.arenas) {
-      if (arena.currentMatch?.id === matchId && arena.status !== 'finished') {
-        arena.status = 'finished';
-        arena.currentMatch.status = 'finished';
-        this.broadcastArenaUpdate(arenaId, {
-          arenaId,
-          status: 'finished',
-          match: arena.currentMatch,
-          scoreA: arena.currentMatch.scoreA,
-          scoreB: arena.currentMatch.scoreB,
-          fencerA: arena.currentMatch.fencerA,
-          fencerB: arena.currentMatch.fencerB,
-        });
-        break;
-      }
-    }
-
-    this.io.emit('match:finished', { matchId });
-
-    const match = matchIdx >= 0 ? this.sessionMatches[matchIdx] : null;
-    const poolId = match?.poolId ?? match?.pool?.id;
-    if (!poolId) return;
-
-    const fencers = this.poolFencersCache.get(poolId) ?? this.db.getPoolFencers(poolId);
-    const poolMatches = this.sessionMatches
-      .filter(m => !m.isTableau && (m.poolId ?? m.pool?.id) === poolId)
-      .sort((a, b) => (a.number || 0) - (b.number || 0))
-      .map(m => {
-        const u = this.sessionMatchScores.get(m.id);
-        return u ? { ...m, ...u } : m;
-      });
-    const isComplete =
-      poolMatches.length > 0 &&
-      poolMatches.every((m: any) => m.status === MatchStatus.FINISHED || m.status === 'finished');
-    for (const [aId, arena] of this.arenas) {
-      if ((arena.currentMatch?.poolId ?? arena.activePoolId) === poolId) {
-        this.io
-          .to(`pool:${aId}`)
-          .emit(`pool:${aId}:update`, { poolId, fencers, matches: poolMatches, isComplete });
-      }
-    }
+  public finishPoolMatch(...args: Tail<Parameters<typeof finishPoolMatch>>): void {
+    return finishPoolMatch(this.poolSyncCtx, ...args);
   }
 
   public setLanguage(lang: string): void {
@@ -2155,88 +2119,12 @@ export class RemoteScoreServer {
   // suivants du même match sont envoyés sans photos (delta ~1 Ko au lieu de ~1 Mo)
   private arenaPhotoSentForMatch: Map<string, string> = new Map();
 
-  /** Clone l'update sans les photos base64 (sans muter l'état partagé de l'arène). */
-  private stripPhotosFromUpdate(update: ArenaUpdate): ArenaUpdate {
-    const stripFencer = <T extends { photo?: string } | null | undefined>(f: T): T => {
-      if (!f || !(f as any).photo) return f;
-      const { photo: _photo, ...rest } = f as any;
-      return rest as T;
-    };
-    const stripMatch = (m: ArenaUpdate['match']): ArenaUpdate['match'] =>
-      m ? { ...m, fencerA: stripFencer(m.fencerA), fencerB: stripFencer(m.fencerB) } : m;
-    return {
-      ...update,
-      match: stripMatch(update.match),
-      nextMatch: update.nextMatch ? stripMatch(update.nextMatch) : update.nextMatch,
-      fencerA: stripFencer(update.fencerA),
-      fencerB: stripFencer(update.fencerB),
-    };
+  private broadcastArenaUpdate(...args: Tail<Parameters<typeof broadcastArenaUpdate>>): void {
+    return broadcastArenaUpdate(this.arenaBroadcastCtx, ...args);
   }
 
-  private broadcastArenaUpdate(arenaId: string, update: ArenaUpdate): void {
-    const arena = this.getArena(arenaId);
-    const override = this.arenaThemeOverrides.get(arenaId);
-    const isPoolMatch = !!arena?.currentMatch?.poolId;
-    const updateWithPhotos: ArenaUpdate = {
-      ...update,
-      swapped: arena?.swapped ?? false,
-      showPhotos: this.sessionShowPhotos,
-      cardAnnounce: this.sessionCardAnnounce,
-      theme: override?.theme ?? this.sessionTheme,
-      customTheme: override?.customTheme,
-      screenThemes: this.arenaScreenThemes.get(arenaId),
-      refereeFeatureEnabled: this.sessionRefereeFeatureEnabled,
-      blackCardEnabled: this.sessionBlackCardEnabled,
-      referees: this.getSessionReferees(),
-      timerDuration: isPoolMatch ? this.sessionPoolTimerSeconds : this.sessionTableTimerSeconds,
-      restSeconds: this.sessionRestSeconds,
-      modernRules: this.sessionModernRules,
-      refereeSelected: this.arenaRefereeSelected.get(arenaId) ?? false,
-    };
-
-    // Photos envoyées une seule fois par match : les updates suivants partent sans
-    // (les clients qui rejoignent en cours de match reçoivent l'état complet au join_arena)
-    const matchId = updateWithPhotos.match?.id;
-    let payload = updateWithPhotos;
-    if (matchId) {
-      if (this.arenaPhotoSentForMatch.get(arenaId) === matchId) {
-        payload = this.stripPhotosFromUpdate(updateWithPhotos);
-      } else {
-        this.arenaPhotoSentForMatch.set(arenaId, matchId);
-      }
-    }
-
-    // Stocker dans le buffer de replay (TTL + max size)
-    const now = Date.now();
-    let buf = this.arenaEventBuffer.get(arenaId) ?? [];
-    buf = buf.filter(e => now - e.timestamp < this.EVENT_BUFFER_TTL_MS);
-    buf.push({ event: payload, timestamp: now });
-    if (buf.length > this.EVENT_BUFFER_MAX) buf = buf.slice(-this.EVENT_BUFFER_MAX);
-    this.arenaEventBuffer.set(arenaId, buf);
-
-    // Émission limitée à la room de l'arène (les clients join_arena à la connexion) :
-    // évite d'envoyer chaque update (photos base64 incluses) à tous les clients de toutes les arènes
-    this.io.to(`arena:${arenaId}`).emit(`arena:${arenaId}:update`, payload);
-    this.notifyKioskData();
-
-    getSharedMainWindow()?.webContents.send('arena:update', { arenaId, update: payload });
-  }
-
-  private persistArenaState(arenaId: string): void {
-    if (!this.session) return;
-    try {
-      const arena = this.arenas.get(arenaId);
-      if (!arena) return;
-      this.db.saveArenaState(arenaId, {
-        competitionId: this.session.competitionId,
-        currentMatch: arena.currentMatch,
-        matchQueue: this.arenaMatchQueue.get(arenaId) ?? [],
-        settings: arena.settings,
-        status: arena.status,
-      });
-    } catch (err) {
-      console.error(`[RemoteScoreServer] Erreur persistance arène ${arenaId}:`, err);
-    }
+  private persistArenaState(...args: Tail<Parameters<typeof persistArenaState>>): void {
+    return persistArenaState(this.arenaBroadcastCtx, ...args);
   }
 
   public setCheckinEnabled(enabled: boolean): void {
