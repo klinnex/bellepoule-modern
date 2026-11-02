@@ -96,13 +96,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
   const isLaserSabre = weapon === Weapon.LASER;
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-      }}
-    >
+    <div className="is-b477c3">
       {/* Header */}
       <header
         style={{

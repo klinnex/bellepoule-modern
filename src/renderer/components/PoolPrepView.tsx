@@ -485,34 +485,12 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
   return (
     <>
-      <div style={{ padding: '1rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div className="is-b80bf3">
         {/* Configuration Panel */}
-        <div
-          className="pool-prep-config"
-          style={{
-            padding: '1rem 1.25rem',
-            marginBottom: '1rem',
-            display: 'flex',
-            gap: '1.5rem',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-          }}
-        >
+        <div className="pool-prep-config is-73233b">
           {/* Pool count stepper */}
           <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '0.7rem',
-                fontWeight: 600,
-                marginBottom: '0.4rem',
-                color: 'var(--color-text-light)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              {t('pools.prep_pool_count')}
-            </label>
+            <label className="is-4a41e7">{t('pools.prep_pool_count')}</label>
             <div className="u-row">
               <div className="pool-prep-stepper">
                 <button
@@ -533,23 +511,21 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
               </div>
               {poolCount !== 1 && (
                 <button
-                  className="btn btn-secondary"
+                  className="btn btn-secondary is-8ee77f"
                   onClick={() => handlePoolCountChange(1)}
                   title={t('pools.prep_single_title')}
-                  style={{ fontSize: '0.75rem', padding: '0.2rem 0.65rem', borderRadius: '999px' }}
                 >
                   {t('pools.prep_single')}
                 </button>
               )}
               {poolCount > 0 && suggestedPoolCount > 0 && suggestedPoolCount !== poolCount && (
                 <button
-                  className="btn btn-secondary"
+                  className="btn btn-secondary is-8ee77f"
                   onClick={() => handlePoolCountChange(suggestedPoolCount)}
                   title={t('pools.prep_suggested_title', {
                     min: minFencersPerPool,
                     max: maxFencersPerPool,
                   })}
-                  style={{ fontSize: '0.75rem', padding: '0.2rem 0.65rem', borderRadius: '999px' }}
                 >
                   {t('pools.prep_suggested', { n: suggestedPoolCount })}
                 </button>
@@ -559,54 +535,24 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
           {/* Min / Max fencers */}
           <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '0.7rem',
-                fontWeight: 600,
-                marginBottom: '0.4rem',
-                color: 'var(--color-text-light)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              {t('pools.prep_per_pool')}
-            </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <label className="is-4a41e7">{t('pools.prep_per_pool')}</label>
+            <div className="is-5c17a8">
               <input
                 type="number"
                 value={minFencersPerPool}
                 onChange={e => handleMinFencersChange(parseInt(e.target.value) || 5)}
                 min={3}
                 max={maxFencersPerPool}
-                style={{
-                  width: '60px',
-                  padding: '0.35rem 0.5rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--color-border)',
-                  fontSize: '0.875rem',
-                  textAlign: 'center',
-                  background: 'var(--color-surface)',
-                  color: 'var(--color-text)',
-                }}
+                className="is-e30a97"
               />
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>–</span>
+              <span className="is-ab16fb">–</span>
               <input
                 type="number"
                 value={maxFencersPerPool}
                 onChange={e => handleMaxFencersChange(parseInt(e.target.value) || 7)}
                 min={minFencersPerPool}
                 max={64}
-                style={{
-                  width: '60px',
-                  padding: '0.35rem 0.5rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--color-border)',
-                  fontSize: '0.875rem',
-                  textAlign: 'center',
-                  background: 'var(--color-surface)',
-                  color: 'var(--color-text)',
-                }}
+                className="is-e30a97"
               />
             </div>
           </div>
@@ -614,30 +560,11 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
           {/* Separation pill toggles with drag-and-drop priority */}
           {!customDistribution && (
             <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '0.7rem',
-                  fontWeight: 600,
-                  marginBottom: '0.4rem',
-                  color: 'var(--color-text-light)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
-              >
+              <label className="is-4a41e7">
                 {t('pools.prep_separation')}{' '}
-                <span
-                  style={{
-                    fontWeight: 400,
-                    textTransform: 'none',
-                    fontSize: '0.65rem',
-                    opacity: 0.7,
-                  }}
-                >
-                  {t('pools.prep_drag_priority')}
-                </span>
+                <span className="is-a1a583">{t('pools.prep_drag_priority')}</span>
               </label>
-              <div style={{ display: 'flex', gap: '0.4rem' }}>
+              <div className="is-d105ea">
                 {separationCriteria.map((criterion, idx) => (
                   <button
                     key={criterion.key}
@@ -664,8 +591,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                       setSeparationCriteria(next);
                       if (poolCount > 0) generatePools(poolCount, next);
                     }}
-                    className={`pool-prep-pill-toggle${criterion.enabled ? ' active' : ''}`}
-                    style={{ cursor: 'grab', userSelect: 'none' }}
+                    className={`pool-prep-pill-toggle${criterion.enabled ? ' active' : ''} is-4b8e01`}
                     aria-pressed={criterion.enabled}
                     title={t(
                       criterion.enabled ? 'pools.prep_sep_title_on' : 'pools.prep_sep_title_off',
@@ -675,9 +601,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     <span className="pool-prep-pill-grip" aria-hidden="true">
                       ⠿
                     </span>
-                    <span style={{ fontSize: '0.6rem', opacity: 0.6, marginRight: '0.2rem' }}>
-                      {idx + 1}.
-                    </span>
+                    <span className="is-d68a6d">{idx + 1}.</span>
                     {t(CRITERION_LABEL[criterion.key])}
                   </button>
                 ))}
@@ -686,15 +610,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
           )}
 
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary is-e39735"
             onClick={() => setShowMatchOrderModal(true)}
             title={t('pools.prep_match_order_title')}
-            style={{
-              fontSize: '0.8rem',
-              padding: '0.35rem 0.8rem',
-              alignSelf: 'flex-end',
-              whiteSpace: 'nowrap',
-            }}
           >
             {t('pools.prep_match_order')}
           </button>
@@ -712,29 +630,26 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                   })}
                 >
                   {t(CRITERION_NOUN[c.key])} {c.current}
-                  <span style={{ opacity: 0.6 }}> / min {c.min}</span>
+                  <span className="is-bfc11c"> / min {c.min}</span>
                 </span>
               ))}
               <button
-                className="btn btn-secondary"
+                className="btn btn-secondary is-8ee77f"
                 onClick={handleOptimize}
                 disabled={!canOptimize}
                 title={canOptimize ? t('pools.prep_optimize_title') : t('pools.prep_optimize_min')}
-                style={{ fontSize: '0.75rem', padding: '0.2rem 0.65rem', borderRadius: '999px' }}
               >
                 {t('pools.prep_optimize')}
               </button>
             </div>
           )}
 
-          <div style={{ marginLeft: 'auto' }} className="pool-prep-stats-badge">
-            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text)' }}>
+          <div className="pool-prep-stats-badge is-538764">
+            <span className="is-e65801">
               {t('pools.prep_pools', { count: pools.length })} ·{' '}
               {t('pools.prep_fencers', { count: fencers.length })}
             </span>
-            <span
-              style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.15rem' }}
-            >
+            <span className="is-7718ed">
               {t('pools.prep_stats', { min: stats.min, max: stats.max, avg: stats.avg })}
             </span>
           </div>
@@ -755,12 +670,10 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
           }}
         >
           {poolCount === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏭</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-                {t('pools.prep_no_pool')}
-              </div>
-              <div style={{ fontSize: '0.9rem' }}>{t('pools.prep_no_pool_hint')}</div>
+            <div className="is-4019f6">
+              <div className="is-a4f6e6">⏭</div>
+              <div className="is-fa1333">{t('pools.prep_no_pool')}</div>
+              <div className="is-27895a">{t('pools.prep_no_pool_hint')}</div>
             </div>
           ) : null}
 
@@ -790,7 +703,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 }
               >
                 <div className="pool-prep-card-header u-row-between">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <div className="is-5c17a8">
                     <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: accent }}>
                       {t('pools.prep_pool_n', { n: pool.number })}
                     </h3>
@@ -827,15 +740,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                       </span>
                     )}
                     {expertMode && (
-                      <label
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.3rem',
-                          fontSize: '0.78rem',
-                          color: 'var(--color-text-muted)',
-                        }}
-                      >
+                      <label className="is-2c9d44">
                         {t('pools.prep_strip')}
                         <select
                           value={pool.strip ?? ''}
@@ -868,7 +773,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <div className="is-146dad">
                   {pool.fencers.map((fencer, fencerIndex) => {
                     const hasClubConflict = fencer.club
                       ? clubConflicts.has(fencer.club.trim())
@@ -897,16 +802,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                       >
                         <span className="pool-prep-drag-handle">⠿</span>
                         <span className="pool-prep-position">{fencerIndex + 1}</span>
-                        <span
-                          style={{
-                            flex: 1,
-                            fontWeight: 500,
-                            fontSize: '0.85rem',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
+                        <span className="is-b2764b">
                           {fencer.firstName} {fencer.lastName.charAt(0)}.
                         </span>
                         {fencer.ranking != null && fencer.ranking > 0 && (
@@ -933,16 +829,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 </div>
 
                 {pool.fencers.length === 0 && (
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      padding: '2rem',
-                      color: 'var(--color-text-muted)',
-                      fontSize: '0.875rem',
-                    }}
-                  >
-                    {t('pools.prep_drop_here')}
-                  </div>
+                  <div className="is-ac92cf">{t('pools.prep_drop_here')}</div>
                 )}
               </div>
             );
@@ -965,17 +852,8 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
         )}
 
         {/* Footer */}
-        <div
-          className="pool-prep-footer"
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: '1rem',
-            paddingTop: '1rem',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="pool-prep-footer is-045666">
+          <div className="is-d06f59">
             <button
               className="btn btn-secondary"
               onClick={handleRestore}
@@ -989,7 +867,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
               {t('pools.prep_undo')}
             </button>
             {canRestore() && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              <div className="is-9a904f">
                 <div className="pool-prep-undo-bar">
                   <div
                     className={`pool-prep-undo-bar-fill${timeSinceLastChange > RESTORE_WINDOW_MINUTES * 60 - 60 ? ' expiring' : ''}`}
@@ -1019,10 +897,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
           {/* Bouton déjà présent dans la barre de navigation (#945) : pas de doublon */}
           {!onLaunchActionChange && (
             <button
-              className="btn btn-primary"
+              className="btn btn-primary is-be99a9"
               onClick={handleLaunch}
               disabled={launchDisabled}
-              style={{ fontSize: '1rem', padding: '0.75rem 2rem', borderRadius: '10px' }}
             >
               {launchLabel} →
             </button>
