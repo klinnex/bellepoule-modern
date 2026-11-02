@@ -7,6 +7,7 @@ import { ipcMain } from 'electron';
 import { RemoteScoreServer } from '../remoteScoreServer';
 import { remoteServers } from '../remoteRegistry';
 import { setActiveWave } from '../remote/activeWave';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export function registerRemoteMatchHandlers(): void {
   // Remote session handlers
@@ -40,7 +41,7 @@ export function registerRemoteMatchHandlers(): void {
         );
         return { success: true, session };
       } catch (error) {
-        console.error('Error starting session:', error);
+        logger.error(LogCategory.NETWORK, 'Error starting session:', toError(error));
         return {
           success: false,
           error: error instanceof Error ? error.message : 'Erreur inconnue',

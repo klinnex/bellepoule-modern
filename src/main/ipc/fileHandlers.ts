@@ -16,6 +16,7 @@ import {
   validateImportedFencers,
 } from '../pathAuthorization';
 import { readImportText } from '../xlsxToCsv';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export interface FileHandlersContext {
   db: DatabaseManager;
@@ -151,7 +152,7 @@ export function registerFileHandlers({ db, getMainWindow }: FileHandlersContext)
         const content = await readImportText(filePath);
         return { filePath, content };
       } catch (error) {
-        console.error('Error reading file:', error);
+        logger.error(LogCategory.SYSTEM, 'Error reading file:', toError(error));
         return { filePath, content: '' };
       }
     }

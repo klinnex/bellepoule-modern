@@ -5,6 +5,7 @@
  */
 import { ipcMain } from 'electron';
 import { remoteServers } from '../remoteRegistry';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export function registerRemoteSessionHandlers(): void {
   ipcMain.handle('remote:stopSession', async (_event, competitionId: string) => {
@@ -20,7 +21,7 @@ export function registerRemoteSessionHandlers(): void {
       entry.server.stopSession();
       return { success: true };
     } catch (error) {
-      console.error('Error stopping session:', error);
+      logger.error(LogCategory.NETWORK, 'Error stopping session:', toError(error));
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }
   });
@@ -38,7 +39,7 @@ export function registerRemoteSessionHandlers(): void {
       entry.server.launchCompetition();
       return { success: true };
     } catch (error) {
-      console.error('Error launching competition:', error);
+      logger.error(LogCategory.NETWORK, 'Error launching competition:', toError(error));
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }
   });
@@ -74,7 +75,7 @@ export function registerRemoteSessionHandlers(): void {
       const session = entry.server.updateStripCount(newCount);
       return { success: true, session };
     } catch (error) {
-      console.error('Error updating strip count:', error);
+      logger.error(LogCategory.NETWORK, 'Error updating strip count:', toError(error));
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }
   });
@@ -91,7 +92,7 @@ export function registerRemoteSessionHandlers(): void {
       entry.server.updateShowPhotos(value);
       return { success: true };
     } catch (error) {
-      console.error('Error updating showPhotos:', error);
+      logger.error(LogCategory.NETWORK, 'Error updating showPhotos:', toError(error));
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }
   });
@@ -108,7 +109,7 @@ export function registerRemoteSessionHandlers(): void {
       entry.server.updateCardAnnounce(value);
       return { success: true };
     } catch (error) {
-      console.error('Error updating cardAnnounce:', error);
+      logger.error(LogCategory.NETWORK, 'Error updating cardAnnounce:', toError(error));
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }
   });
@@ -125,7 +126,7 @@ export function registerRemoteSessionHandlers(): void {
       entry.server.updateTheme(theme as any);
       return { success: true };
     } catch (error) {
-      console.error('Error updating theme:', error);
+      logger.error(LogCategory.NETWORK, 'Error updating theme:', toError(error));
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }
   });
@@ -144,7 +145,7 @@ export function registerRemoteSessionHandlers(): void {
         entry.server.updateArenaTheme(arenaId, theme as any, customTheme);
         return { success: true };
       } catch (error) {
-        console.error('Error updating arena theme:', error);
+        logger.error(LogCategory.NETWORK, 'Error updating arena theme:', toError(error));
         return {
           success: false,
           error: error instanceof Error ? error.message : 'Erreur inconnue',

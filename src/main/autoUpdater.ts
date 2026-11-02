@@ -18,6 +18,7 @@ import {
 } from './pendingUpdate';
 import { parseSha256Digest, isTrustedDownloadUrl, verifyFileSha256 } from './updateIntegrity';
 import { fmt, getL } from './menuLabels';
+import { logger, LogCategory, toError } from '../shared/services/logger';
 
 interface UpdateInfo {
   hasUpdate: boolean;
@@ -87,7 +88,7 @@ export class AutoUpdater {
         this.showUpdateNotification(updateInfo);
       }
     } catch (error) {
-      console.error('Auto-update check failed:', error);
+      logger.error(LogCategory.SYSTEM, 'Auto-update check failed:', toError(error));
     }
   }
 
@@ -166,7 +167,7 @@ export class AutoUpdater {
       this.lastCheck = new Date();
       return this.updateInfo;
     } catch (error) {
-      console.error('Failed to check for updates:', error);
+      logger.error(LogCategory.SYSTEM, 'Failed to check for updates:', toError(error));
       return null;
     }
   }
@@ -194,7 +195,7 @@ export class AutoUpdater {
       // Si aucune release stable, retourner la première release (dev)
       return releases[0];
     } catch (error) {
-      console.error('Failed to fetch release:', error);
+      logger.error(LogCategory.SYSTEM, 'Failed to fetch release:', toError(error));
       // En cas d'erreur, essayer avec les tags comme fallback
       const tags = await this.fetchTags();
       if (tags && tags.length > 0) {
@@ -355,7 +356,11 @@ export class AutoUpdater {
         }
       }
     } catch (e) {
-      console.error('Failed to read version:', e instanceof Error ? e.message : e);
+      logger.error(
+        LogCategory.SYSTEM,
+        'Failed to read version:',
+        toError(e instanceof Error ? e.message : e)
+      );
     }
 
     // Fallback depuis package.json
@@ -372,7 +377,11 @@ export class AutoUpdater {
         }
       }
     } catch (e) {
-      console.error('Failed to read package.json:', e instanceof Error ? e.message : e);
+      logger.error(
+        LogCategory.SYSTEM,
+        'Failed to read package.json:',
+        toError(e instanceof Error ? e.message : e)
+      );
     }
 
     // Fallback depuis package.json
@@ -389,7 +398,7 @@ export class AutoUpdater {
         }
       }
     } catch (e) {
-      console.error('Failed to read package.json:', e);
+      logger.error(LogCategory.SYSTEM, 'Failed to read package.json:', toError(e));
     }
 
     return { version: '1.0.0', build: 0 };
@@ -397,13 +406,17 @@ export class AutoUpdater {
 
   private showUpdateNotification(updateInfo: UpdateInfo): void {
     // Notification discrète dans la console
-    console.log(
+    logger.info(
+      LogCategory.SYSTEM,
       `🚀 Mise à jour disponible: v${updateInfo.latestVersion} (Build #${updateInfo.latestBuild})`
     );
 
     // En mode silencieux, ne pas afficher de notification visuelle
     if (this.config.silent) {
-      console.log('[AutoUpdater] Mode silencieux - pas de notification visuelle');
+      logger.info(
+        LogCategory.SYSTEM,
+        '[AutoUpdater] Mode silencieux - pas de notification visuelle'
+      );
     } else {
       // Notification système si disponible
       if (this.mainWindow) {
@@ -423,20 +436,22 @@ export class AutoUpdater {
       const asset = this.findAssetForPlatform(updateInfo.assets, platform);
 
       if (!asset) {
-        console.log('No suitable asset found for current platform');
+        logger.info(LogCategory.SYSTEM, 'No suitable asset found for current platform');
         return;
       }
 
       // Intégrité : exiger une URL GitHub HTTPS et un SHA-256 publié par GitHub
       const expectedSha256 = parseSha256Digest(asset.digest);
       if (!isTrustedDownloadUrl(asset.browser_download_url) || !expectedSha256) {
-        console.warn(
+        logger.warn(
+          LogCategory.SYSTEM,
           `[AutoUpdater] Téléchargement automatique ignoré : ${asset.name} sans URL de confiance ou empreinte SHA-256`
         );
         return;
       }
 
-      console.log(
+      logger.info(
+        LogCategory.SYSTEM,
         `📥 Téléchargement automatique de ${asset.name} (${(asset.size / 1024 / 1024).toFixed(2)} MB)...`
       );
 
@@ -466,7 +481,7 @@ export class AutoUpdater {
           fs.unlinkSync(downloadPath);
           throw new Error(`Empreinte SHA-256 invalide pour ${asset.name}`);
         }
-        console.log(`✅ Mise à jour téléchargée et vérifiée: ${downloadPath}`);
+        logger.info(LogCategory.SYSTEM, `✅ Mise à jour téléchargée et vérifiée: ${downloadPath}`);
 
         // Sauvegarder les informations pour l'installation au redémarrage
         this.saveDownloadedUpdate(downloadPath, updateInfo, expectedSha256);
@@ -484,13 +499,14 @@ export class AutoUpdater {
         if (platform === 'windows' && !this.config.silent) {
           this.promptForImmediateInstall(updateInfo, downloadPath, expectedSha256);
         } else if (platform === 'windows' && this.config.silent) {
-          console.log(
+          logger.info(
+            LogCategory.SYSTEM,
             '[AutoUpdater] Mode silencieux - installation différée au prochain redémarrage'
           );
         }
       }
     } catch (error) {
-      console.error('❌ Auto download failed:', error);
+      logger.error(LogCategory.SYSTEM, '❌ Auto download failed:', toError(error));
       if (this.mainWindow) {
         this.mainWindow.webContents.send('update:error', {
           message: getL().updAutoDownloadFailed,
@@ -544,7 +560,7 @@ export class AutoUpdater {
         try {
           fs.unlinkSync(downloadPath);
         } catch (e) {
-          console.warn('Could not remove old update file:', e);
+          logger.warn(LogCategory.SYSTEM, 'Could not remove old update file:', e);
         }
       }
 
@@ -587,7 +603,10 @@ export class AutoUpdater {
             reject(new Error('Download incomplete - size mismatch'));
             return;
           }
-          console.log(`✅ Download completed: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+          logger.info(
+            LogCategory.SYSTEM,
+            `✅ Download completed: ${(stats.size / 1024 / 1024).toFixed(2)} MB`
+          );
           resolve(downloadPath);
         });
       });
@@ -632,11 +651,14 @@ export class AutoUpdater {
       // Usage unique
       clearPendingUpdate(userData);
       if (updateData) {
-        console.log(`🔄 Installation de la mise à jour ${updateData.version}...`);
+        logger.info(
+          LogCategory.SYSTEM,
+          `🔄 Installation de la mise à jour ${updateData.version}...`
+        );
         await this.launchVerifiedInstaller(updateData.path, updateData.sha256);
       }
     } catch (error) {
-      console.error('Failed to install pending update:', error);
+      logger.error(LogCategory.SYSTEM, 'Failed to install pending update:', toError(error));
     }
   }
 
@@ -650,7 +672,10 @@ export class AutoUpdater {
       (await verifyFileSha256(installerPath, sha256).catch(() => false));
 
     if (!valid) {
-      console.error(`[AutoUpdater] Installeur rejeté (intégrité non vérifiée): ${installerPath}`);
+      logger.error(
+        LogCategory.SYSTEM,
+        `[AutoUpdater] Installeur rejeté (intégrité non vérifiée): ${installerPath}`
+      );
       try {
         fs.unlinkSync(installerPath);
       } catch {
@@ -670,7 +695,7 @@ export class AutoUpdater {
       if (platform === 'win32') {
         // Vérifier que c'est bien un fichier .exe valide
         if (!installerPath.endsWith('.exe')) {
-          console.error('Invalid Windows installer format');
+          logger.error(LogCategory.SYSTEM, 'Invalid Windows installer format');
           return;
         }
 
@@ -691,13 +716,13 @@ export class AutoUpdater {
 
         // Gestion des erreurs du processus
         installer.on('error', (err: Error) => {
-          console.error('Installer launch error:', err);
+          logger.error(LogCategory.SYSTEM, 'Installer launch error:', toError(err));
           dialog.showErrorBox(getL().installErrTitle, getL().installLaunchErr);
         });
 
         // Attendre que l'installateur démarre avant de quitter
         installer.on('spawn', () => {
-          console.log('✅ Installateur Windows lancé');
+          logger.info(LogCategory.SYSTEM, '✅ Installateur Windows lancé');
           // Attendre 3 secondes pour que l'installateur prenne le relais
           setTimeout(() => {
             app.quit();
@@ -725,7 +750,7 @@ export class AutoUpdater {
         app.quit();
       }, 2000);
     } catch (error) {
-      console.error('Failed to launch installer:', error);
+      logger.error(LogCategory.SYSTEM, 'Failed to launch installer:', toError(error));
       dialog.showErrorBox(getL().installErrTitle, getL().installGenericErr);
     }
   }
@@ -844,7 +869,7 @@ export class AutoUpdater {
         shell.openExternal(downloadUrl);
       }
     } catch (error) {
-      console.error('Download failed:', error);
+      logger.error(LogCategory.SYSTEM, 'Download failed:', toError(error));
       shell.openExternal('https://github.com/klinnex/bellepoule-modern/releases/latest');
     }
   }
@@ -870,7 +895,10 @@ export class AutoUpdater {
     this.config.silent = enabled;
     this.config.autoDownload = enabled;
     this.config.installOnQuit = enabled;
-    console.log(`[AutoUpdater] Mode silencieux ${enabled ? 'activé' : 'désactivé'}`);
+    logger.info(
+      LogCategory.SYSTEM,
+      `[AutoUpdater] Mode silencieux ${enabled ? 'activé' : 'désactivé'}`
+    );
   }
 
   isSilentMode(): boolean {

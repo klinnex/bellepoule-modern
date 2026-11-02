@@ -6,6 +6,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { app } from 'electron';
+import { logger, LogCategory, toError } from '../shared/services/logger';
 
 export function getVersionInfo(): {
   version: string;
@@ -28,7 +29,7 @@ export function getVersionInfo(): {
       }
     }
   } catch (e) {
-    console.error('Failed to read version.json:', e);
+    logger.error(LogCategory.SYSTEM, 'Failed to read version.json:', toError(e));
   }
 
   // Fallback: lire depuis package.json
@@ -46,7 +47,7 @@ export function getVersionInfo(): {
       }
     }
   } catch (e) {
-    console.error('Failed to read package.json:', e);
+    logger.error(LogCategory.SYSTEM, 'Failed to read package.json:', toError(e));
   }
 
   return { version: '1.0.0', build: 0, date: 'Unknown' };
