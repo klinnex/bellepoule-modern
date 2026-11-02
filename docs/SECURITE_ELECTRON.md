@@ -7,3 +7,4 @@
 - **Fuses** (`build.electronFuses`) : `runAsNode`, `enableNodeOptionsEnvironmentVariable`, `enableNodeCliInspectArguments` désactivés ; `onlyLoadAppFromAsar` activé.
 - **`disable-gpu-sandbox`** : uniquement avec `BELLEPOULE_SW_RENDER=1` (Linux/VM sans GPU), jamais par défaut.
 - Hors périmètre : fenêtres d'impression cachées (JS désactivé, HTML local) ; test E2E Playwright de démarrage à ajouter.
+- **Mise à jour en attente** (#1342) : installeur + `pending-update.json` stockés dans `<userData>/pending-update/` (dossier `0700`, fichiers `0600`, nom aléatoire), plus jamais dans `os.tmpdir()`. Relecture via `src/main/pendingUpdate.ts` (helper unique) : rejet si le chemin sort du dossier privé, si le propriétaire (uid) n’est pas l’utilisateur courant ou si les droits sont trop larges ; le SHA-256 reste revérifié avant lancement. Testé dans `pendingUpdate.test.ts`.

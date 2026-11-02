@@ -2666,6 +2666,9 @@
     "hint_pools": "Klicken Sie auf „Gruppen erzeugen“ (mindestens 4 anwesende Fechter).",
     "hint_remote": "Starten Sie die Ferneingabe, damit die Schiedsrichter die Ergebnisse per Tablet eingeben können (oder geben Sie sie direkt an diesem Rechner ein).",
     "hint_scores": "Öffnen Sie eine Gruppe und tragen Sie das Ergebnis eines Gefechts ein.",
-    "hint_tableau": "Nach den Gruppen geht es weiter zum K.-o.-Tableau."
+    "hint_tableau": "Nach den Gruppen geht es weiter zum K.-o.-Tableau.",
+    "remote_explain": "Die Kampfrichter öffnen die angezeigte Adresse auf ihrem Tablet, erfassen die Treffer Gefecht für Gefecht, und die Ergebnisse erscheinen hier live.",
+    "remote_mock_arena": "Bahn 1",
+    "remote_mock_validate": "Gefecht bestätigen"
   }
 }

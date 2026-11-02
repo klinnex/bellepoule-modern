@@ -26,6 +26,22 @@ interface GuidedTourProps extends Omit<TourState, 'poolsCount' | 'finishedPoolMa
   onHighlightPhase: (phase: string | null) => void;
 }
 
+/** Maquette animée de la tablette arbitre (décorative) */
+const RemoteMockup: React.FC<{ t: GuidedTourProps['t'] }> = ({ t }) => (
+  <div className="tour-mock" aria-hidden="true">
+    <div className="tour-mock-tablet">
+      <div className="tour-mock-bar">{t('tour.remote_mock_arena')}</div>
+      <div className="tour-mock-scores">
+        <span className="tour-mock-score tour-mock-score-a" />
+        <span className="tour-mock-vs">VS</span>
+        <span className="tour-mock-score tour-mock-score-b" />
+      </div>
+      <div className="tour-mock-btn">{t('tour.remote_mock_validate')}</div>
+      <span className="tour-mock-finger" />
+    </div>
+  </div>
+);
+
 const GuidedTour: React.FC<GuidedTourProps> = ({
   t,
   onHighlightPhase,
@@ -116,6 +132,12 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
       <p className="guided-tour-hint">
         {finished ? t('tour.finished_hint') : t(`tour.hint_${current}`)}
       </p>
+      {current === 'remote' && (
+        <>
+          <RemoteMockup t={t} />
+          <p className="guided-tour-hint">{t('tour.remote_explain')}</p>
+        </>
+      )}
       <progress
         className="guided-tour-progress"
         value={doneCount}

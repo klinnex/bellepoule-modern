@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 28 | 285 |
+| `src/main/` | 29 | 291 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 24 | 115 |
 | `src/renderer/components/` | 44 | 209 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **206** | **1796** |
+| **Total** | **207** | **1802** |
 
-Unitaires : 197 fichiers, 1761 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 198 fichiers, 1767 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2191,6 +2191,19 @@ Unitaires : 197 fichiers, 1761 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - repli sur le lecteur externe si le chargement échoue
   - repli externe : le PDF n’est pas supprimé à la fermeture de la fenêtre ratée
   - erreur de rendu : échec sans fichier résiduel
+
+</details>
+
+<details>
+<summary><code>src/main/pendingUpdate.test.ts</code> — 6 tests</summary>
+
+- **pendingUpdate**
+  - relit un JSON valide
+  - rejette un chemin hors du dossier privé
+  - rejette un traversal de chemin
+  - rejette un JSON falsifié (champs manquants / invalide)
+  - rejette des droits trop larges
+  - nom aléatoire sans traversal
 
 </details>
 

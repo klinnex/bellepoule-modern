@@ -50,6 +50,8 @@ describe('GuidedTour', () => {
     writeTourFlag('active');
     render(<GuidedTour {...base} fencersCount={8} checkedInCount={8} pools={[{ matches: [] }]} />);
     expect(screen.getByText('tour.hint_remote')).toBeTruthy();
+    expect(screen.getByText('tour.remote_explain')).toBeTruthy();
+    expect(screen.getByText('tour.remote_mock_validate')).toBeTruthy();
   });
 
   it('met en évidence la phase de l’étape en cours', () => {
