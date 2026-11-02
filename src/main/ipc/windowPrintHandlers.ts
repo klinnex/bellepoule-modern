@@ -67,44 +67,54 @@ export function registerWindowPrintHandlers({ getMainWindow }: WindowPrintHandle
       margins: { top: 0, bottom: 0, left: 0, right: 0 },
     }
   ): Promise<Buffer> {
-    const tmpFile = path.join(os.tmpdir(), `bp-pdf-${Date.now()}.html`);
-    return fs.promises.writeFile(tmpFile, html, 'utf-8').then(
-      () =>
-        new Promise<Buffer>((resolve, reject) => {
-          const pdfWin = new BrowserWindow({
-            show: false,
-            width: 1200,
-            height: 1600,
-            webPreferences: { contextIsolation: true, nodeIntegration: false, javascript: false },
-          });
-          pdfWin.setMenu(null);
-          pdfWin.loadFile(tmpFile);
+    // Dossier privé (mkdtemp, 0700) + création exclusive 0600 : pas de fichier prévisible dans le tmp partagé
+    let dir = '';
+    let tmpFile = '';
+    const cleanup = () => fs.promises.rm(dir, { recursive: true, force: true }).catch(() => {});
+    return fs.promises
+      .mkdtemp(path.join(os.tmpdir(), 'bp-pdf-'))
+      .then(d => {
+        dir = d;
+        tmpFile = path.join(d, 'print.html');
+        return fs.promises.writeFile(tmpFile, html, { encoding: 'utf-8', mode: 0o600, flag: 'wx' });
+      })
+      .then(
+        () =>
+          new Promise<Buffer>((resolve, reject) => {
+            const pdfWin = new BrowserWindow({
+              show: false,
+              width: 1200,
+              height: 1600,
+              webPreferences: { contextIsolation: true, nodeIntegration: false, javascript: false },
+            });
+            pdfWin.setMenu(null);
+            pdfWin.loadFile(tmpFile);
 
-          pdfWin.webContents.once('did-finish-load', () => {
-            setTimeout(() => {
-              pdfWin.webContents
-                .printToPDF(pdfOptions)
-                .then((data: Buffer) => {
-                  pdfWin.destroy();
-                  fs.promises.unlink(tmpFile).catch(() => {});
-                  resolve(data);
-                })
-                .catch((err: Error) => {
-                  pdfWin.destroy();
-                  fs.promises.unlink(tmpFile).catch(() => {});
-                  reject(err);
-                });
-            }, 800);
-          });
+            pdfWin.webContents.once('did-finish-load', () => {
+              setTimeout(() => {
+                pdfWin.webContents
+                  .printToPDF(pdfOptions)
+                  .then((data: Buffer) => {
+                    pdfWin.destroy();
+                    void cleanup();
+                    resolve(data);
+                  })
+                  .catch((err: Error) => {
+                    pdfWin.destroy();
+                    void cleanup();
+                    reject(err);
+                  });
+              }, 800);
+            });
 
-          pdfWin.webContents.once('did-fail-load', () => {
-            pdfWin.destroy();
-            fs.promises.unlink(tmpFile).catch(() => {});
-            reject(new Error('Chargement HTML échoué'));
-          });
-        }),
-      e => Promise.reject(new Error(`Impossible de créer le fichier temporaire: ${e}`))
-    );
+            pdfWin.webContents.once('did-fail-load', () => {
+              pdfWin.destroy();
+              void cleanup();
+              reject(new Error('Chargement HTML échoué'));
+            });
+          }),
+        e => Promise.reject(new Error(`Impossible de créer le fichier temporaire: ${e}`))
+      );
   }
 
   // PDF generation via hidden BrowserWindow (propre, sans menus d'application)
