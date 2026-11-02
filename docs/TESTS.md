@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 40 | 319 |
+| `src/main/` | 41 | 323 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 124 |
 | `src/renderer/components/` | 44 | 209 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **222** | **1849** |
+| **Total** | **223** | **1853** |
 
-Unitaires : 213 fichiers, 1814 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 214 fichiers, 1818 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2664,6 +2664,17 @@ Unitaires : 213 fichiers, 1814 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **mode démo (session d’entraînement)**
   - joue seule les matchs de chaque arène jusqu’à la fin et alimente l’historique
   - simule l’arme choisie : Laser restreint à la zone C → scores par tranches de 5
+
+</details>
+
+<details>
+<summary><code>src/main/splash.test.ts</code> — 4 tests</summary>
+
+- **splash : langue mémorisée (#1341)**
+  - fr par défaut sans fichier
+  - aller-retour de la langue enregistrée
+  - fichier corrompu : repli sur fr
+  - closeSplash sans fenêtre appelle le rappel immédiatement
 
 </details>
 
