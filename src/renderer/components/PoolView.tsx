@@ -177,7 +177,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     setVictoryA,
     victoryB,
     setVictoryB,
-    matchesUpdateTrigger,
     setMatchesUpdateTrigger,
     keyboardFocusField,
     setKeyboardFocusField,

@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 import type { Arena } from '../../../shared/types/remote';
-import type { Fencer, Match, Referee } from '../../../shared/types';
+import type { Fencer, Referee } from '../../../shared/types';
 import type { ConsolationBracket, FinalResult, TableauMatch } from '../tableau/tableauTypes';
 
 export const CV_REMOTE_INIT = {
@@ -38,6 +38,5 @@ export const CV_DATA_INIT = {
   appelFencers: [] as Fencer[],
   appelVisibleColumns: [] as string[],
   tableauEditUnlocked: false,
-  selectedMatch: null as Match | null,
   referees: [] as Referee[],
 };

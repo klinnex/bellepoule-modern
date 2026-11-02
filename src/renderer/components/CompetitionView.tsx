@@ -32,7 +32,6 @@ import { RankingImportResult } from '../../shared/utils/fileParser';
 import FencerList from './FencerList';
 import {
   TableauMatch,
-  FinalResult,
   propagateWinners,
   ConsolationBracket,
   isBracketComplete,
@@ -81,8 +80,6 @@ import {
 import {
   createRapieresSession,
   emptyRapieresTeamInfo,
-  RapieresLegacyState,
-  RapieresSession,
   RapieresTeamInfo,
 } from '../../features/rapieres/rapieres.types';
 import {
@@ -334,10 +331,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     setAppelFencers,
     appelVisibleColumns,
     setAppelVisibleColumns,
-    tableauEditUnlocked,
     setTableauEditUnlocked,
-    selectedMatch,
-    setSelectedMatch,
     referees,
     setReferees,
   } = useStateGroup(CV_DATA_INIT);

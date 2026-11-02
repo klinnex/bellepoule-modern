@@ -19,7 +19,6 @@ import { OBSOverlayConfig } from './OBSOverlayConfig';
 import { OrgNotePanel } from './remote/OrgNotePanel';
 import { ConnectedScreensPanel } from './remote/ConnectedScreensPanel';
 import { useRemoteNetworkSettings } from '../hooks/useRemoteNetworkSettings';
-import { CustomTheme, DisplayTheme } from '../../shared/types/remote';
 import { useTranslation } from '../hooks/useTranslation';
 import { ipcErrorText } from '../services/ipcError';
 import { useKioskTheme, type KioskPreset } from '../hooks/useKioskTheme';
@@ -262,7 +261,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     kioskViews,
     setKioskViews,
     arenaThemes,
-    setArenaThemes,
     arenaScreenTab,
     setArenaScreenTab,
     themeEditorTarget,
@@ -272,7 +270,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     showArenaQrModal,
     setShowArenaQrModal,
     savedThemes,
-    setSavedThemes,
     globalThemeSection,
     setGlobalThemeSection,
     globalThemeId,
