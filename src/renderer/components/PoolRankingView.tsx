@@ -398,25 +398,10 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
   };
 
   return (
-    <div className="content pool-ranking-view" style={{ padding: '1rem' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem',
-        }}
-      >
+    <div className="content pool-ranking-view is-ef7142">
+      <div className="is-b69013">
         <div>
-          <h2
-            style={{
-              fontSize: '1.25rem',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
+          <h2 className="is-5515fd">
             {isInitialRanking ? t('poolRanking.title_initial') : t('poolRanking.title_after_pools')}
             {!isEditing && (
               <CollapseToggle
@@ -433,59 +418,31 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
             {isEditing && ` (${t('poolRanking.edit_mode')})`}
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        <div className="is-5c17a8">
           {!isInitialRanking && pools.length > 0 && (
             <button
-              className="btn btn-secondary"
+              className="btn btn-secondary is-22b62c"
               onClick={handleRecalculate}
               title={t('poolRanking.recalc_title')}
-              style={{ fontSize: '0.8rem' }}
             >
               {t('poolRanking.recalc')}
             </button>
           )}
-          <div
-            style={{
-              width: '1px',
-              height: '22px',
-              background: 'var(--color-border)',
-              margin: '0 0.15rem',
-            }}
-          />
-          <button
-            className="btn btn-secondary"
-            onClick={() => handleExport('csv')}
-            style={{ fontSize: '0.8rem' }}
-          >
+          <div className="is-4565f9" />
+          <button className="btn btn-secondary is-22b62c" onClick={() => handleExport('csv')}>
             CSV
           </button>
-          <button
-            className="btn btn-secondary"
-            onClick={handleExportPDF}
-            style={{ fontSize: '0.8rem' }}
-          >
+          <button className="btn btn-secondary is-22b62c" onClick={handleExportPDF}>
             PDF
           </button>
-          <button
-            className="btn btn-secondary"
-            onClick={handlePrint}
-            style={{ fontSize: '0.8rem' }}
-          >
+          <button className="btn btn-secondary is-22b62c" onClick={handlePrint}>
             {t('poolRanking.print')}
           </button>
-          <div
-            style={{
-              width: '1px',
-              height: '22px',
-              background: 'var(--color-border)',
-              margin: '0 0.15rem',
-            }}
-          />
+          <div className="is-4565f9" />
           {!isInSplitGroupTab && (
             <button
-              className={`btn ${isEditing ? 'btn-primary' : 'btn-secondary'}`}
+              className={`btn ${isEditing ? 'btn-primary' : 'btn-secondary'} is-22b62c`}
               onClick={() => (isEditing ? saveChanges() : setIsEditing(true))}
-              style={{ fontSize: '0.8rem' }}
             >
               {isEditing ? t('poolRanking.finish') : t('poolRanking.edit')}
             </button>
@@ -493,8 +450,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
           <div className="relative" ref={columnMenuRef}>
             <button
               onClick={() => setShowColumnMenu(!showColumnMenu)}
-              className="btn btn-secondary"
-              style={{ fontSize: '0.8rem', padding: '0.375rem 0.65rem' }}
+              className="btn btn-secondary is-c0e18e"
               title={t('poolRanking.columns_title')}
             >
               <Funnel size={14} className="ranking-col-icon" /> {t('poolRanking.columns')}
@@ -525,7 +481,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
 
       {/* Onglets de séparation (compétition couplée) */}
       {splitCriteria && splitGroups.length > 0 && (
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+        <div className="is-0f4b57">
           <button
             className={splitTab === 'all' ? 'btn btn-primary' : 'btn btn-secondary'}
             style={SM}
@@ -568,12 +524,12 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
               {isVisible('tr') && <th style={W50}>{t('ranking.touches_received')}</th>}
               {isVisible('quest') && isLaserSabre && (
                 <>
-                  <th style={{ width: '70px', color: '#7c3aed' }}>Quest</th>
-                  <th style={{ width: '60px', color: '#7c3aed' }}>{t('poolRanking.qm')}</th>
+                  <th className="is-6c4608">Quest</th>
+                  <th className="is-0a3d27">{t('poolRanking.qm')}</th>
                 </>
               )}
               {isVisible('index') && <th style={W60}>{t('ranking.index')}</th>}
-              {poolWinnersOnly && <th style={{ width: '70px' }}>{t('poolRanking.qualif')}</th>}
+              {poolWinnersOnly && <th className="is-be8da0">{t('poolRanking.qualif')}</th>}
             </tr>
           </thead>
           <tbody>
@@ -600,7 +556,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                   {isVisible('rank') && (
                     <td>
                       {isEditing ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                        <div className="is-de14c6">
                           <input
                             type="number"
                             min={1}
@@ -633,14 +589,9 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                                 (e.target as HTMLInputElement).blur();
                               }
                             }}
-                            style={{
-                              width: '44px',
-                              textAlign: 'center',
-                              padding: '1px 4px',
-                              fontWeight: '600',
-                            }}
+                            className="is-f2b86b"
                           />
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <div className="is-3710c2">
                             <button
                               onClick={() => moveUp(index)}
                               disabled={index === 0}
@@ -688,9 +639,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                   {isVisible('club') && (
                     <td className="text-sm text-muted">{ranking.fencer.club || '—'}</td>
                   )}
-                  {isVisible('victories') && (
-                    <td style={{ textAlign: 'center', fontWeight: '600' }}>{ranking.victories}</td>
-                  )}
+                  {isVisible('victories') && <td className="is-0a6076">{ranking.victories}</td>}
                   {isVisible('matches') && (
                     <td style={CENTER}>{ranking.victories + ranking.defeats}</td>
                   )}
@@ -698,7 +647,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                   {isVisible('td') && <td style={CENTER}>{ranking.touchesScored}</td>}
                   {isVisible('tr') && <td style={CENTER}>{ranking.touchesReceived}</td>}
                   {isVisible('quest') && isLaserSabre && (
-                    <td style={{ textAlign: 'center', fontWeight: '600', color: '#7c3aed' }}>
+                    <td className="is-017e40">
                       {isEditing ? (
                         <input
                           type="number"

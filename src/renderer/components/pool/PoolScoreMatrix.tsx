@@ -114,15 +114,7 @@ const ScoreCell = React.memo<ScoreCellProps>(
 
     if (abandoned) {
       return (
-        <div
-          className="pool-cell pool-cell-forfeit"
-          style={{
-            cursor: 'not-allowed',
-            backgroundColor: 'var(--color-border)',
-            color: 'var(--color-text-muted)',
-          }}
-          title={t('poolMatrix.not_fenced')}
-        >
+        <div className="pool-cell pool-cell-forfeit is-792fc1" title={t('poolMatrix.not_fenced')}>
           <span>-</span>
         </div>
       );
@@ -237,22 +229,7 @@ const ScoreCell = React.memo<ScoreCellProps>(
                 }}
                 title={t('poolMatrix.reset')}
                 aria-label={t('poolMatrix.reset')}
-                className="pool-cell-reset-btn"
-                style={{
-                  position: 'absolute',
-                  top: '1px',
-                  right: '1px',
-                  padding: '0 2px',
-                  fontSize: '0.55rem',
-                  lineHeight: 1,
-                  background: 'rgba(239,68,68,0.15)',
-                  border: 'none',
-                  borderRadius: '2px',
-                  cursor: 'pointer',
-                  opacity: 0,
-                  transition: 'opacity 0.15s',
-                  color: '#dc2626',
-                }}
+                className="pool-cell-reset-btn is-ea49ea"
                 onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
                 onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
               >
@@ -261,11 +238,9 @@ const ScoreCell = React.memo<ScoreCellProps>(
             )}
           </>
         ) : bufferedScore !== undefined ? (
-          <span style={{ color: 'var(--color-primary)', fontStyle: 'italic', fontSize: '0.85rem' }}>
-            {bufferedScore}
-          </span>
+          <span className="is-9cc4cd">{bufferedScore}</span>
         ) : (
-          <span style={{ color: 'var(--color-text-muted)' }}>-</span>
+          <span className="is-7326de">-</span>
         )}
       </div>
     );
@@ -488,8 +463,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
         )}
         {isVisible('quest') && isLaserSabre && (
           <div
-            className="pool-cell pool-cell-header"
-            style={{ color: '#7c3aed' }}
+            className="pool-cell pool-cell-header is-4d7bdb"
             onContextMenu={e => {
               e.preventDefault();
               toggleColumn('pool', 'quest');
@@ -613,17 +587,9 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                   </div>
                 );
               })()}
-              <span className="truncate" style={{ flex: 1, fontSize: '0.8rem' }}>
-                <span style={{ fontWeight: 700 }}>{rowFencer.lastName}</span>
-                <span
-                  style={{
-                    fontSize: '0.7rem',
-                    color: 'var(--color-text-light)',
-                    marginLeft: '0.25rem',
-                  }}
-                >
-                  {rowFencer.firstName?.charAt(0)}.
-                </span>
+              <span className="truncate is-669843">
+                <span className="is-42acb6">{rowFencer.lastName}</span>
+                <span className="is-fd4ffc">{rowFencer.firstName?.charAt(0)}.</span>
               </span>
               {sparkBars.length > 0 && (
                 <svg width="28" height="14" className="flex-shrink-0" aria-hidden="true">
@@ -648,16 +614,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
                   }}
                   title={t('poolMatrix.change_pool')}
                   aria-label={t('poolMatrix.change_pool_aria', { name: rowFencer.lastName })}
-                  style={{
-                    padding: '0.125rem 0.25rem',
-                    fontSize: '0.625rem',
-                    background: 'var(--color-border)',
-                    border: 'none',
-                    borderRadius: '3px',
-                    cursor: 'pointer',
-                    opacity: 0.6,
-                    transition: 'opacity 0.15s',
-                  }}
+                  className="is-2184a2"
                   onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
                   onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}
                 >
@@ -717,20 +674,14 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               );
             })}
 
-            {isVisible('victories') && (
-              <div className="pool-cell" style={{ fontWeight: 600 }}>
-                {stats.v}
-              </div>
-            )}
+            {isVisible('victories') && <div className="pool-cell is-5c05f4">{stats.v}</div>}
             {isVisible('ratio') && (
               <div className="pool-cell text-sm">{formatRatio(stats.ratio)}</div>
             )}
             {isVisible('td') && <div className="pool-cell">{stats.td}</div>}
             {isVisible('tr') && <div className="pool-cell">{stats.tr}</div>}
             {isVisible('quest') && isLaserSabre && (
-              <div className="pool-cell" style={{ fontWeight: 600, color: '#7c3aed' }}>
-                {rankEntry?.questPoints ?? '-'}
-              </div>
+              <div className="pool-cell is-5b9f81">{rankEntry?.questPoints ?? '-'}</div>
             )}
             {isVisible('index') && (
               <div
@@ -741,30 +692,14 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
               </div>
             )}
             {isVisible('rank') && (
-              <div className="pool-cell" style={{ fontWeight: 600 }}>
-                {rankEntry?.rank || '-'}
-              </div>
+              <div className="pool-cell is-5c05f4">{rankEntry?.rank || '-'}</div>
             )}
-            {isVisible('club') && (
-              <div
-                className="pool-cell"
-                style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}
-              >
-                {rowFencer.club ?? ''}
-              </div>
-            )}
+            {isVisible('club') && <div className="pool-cell is-935fcc">{rowFencer.club ?? ''}</div>}
             {isVisible('nation') && (
-              <div className="pool-cell" style={{ fontWeight: 600, textTransform: 'uppercase' }}>
-                {rowFencer.nationality ?? ''}
-              </div>
+              <div className="pool-cell is-d3c128">{rowFencer.nationality ?? ''}</div>
             )}
             {isVisible('region') && (
-              <div
-                className="pool-cell"
-                style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}
-              >
-                {rowFencer.region ?? ''}
-              </div>
+              <div className="pool-cell is-935fcc">{rowFencer.region ?? ''}</div>
             )}
           </div>
         );
