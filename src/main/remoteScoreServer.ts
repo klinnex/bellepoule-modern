@@ -123,6 +123,18 @@ import {
 } from './remote/arenaQueue';
 import { createSession, updateMatchScore, type SessionOpsContext } from './remote/sessionOps';
 import {
+  setCheckinEnabled,
+  setCheckinPassword,
+  checkCheckinAuth,
+  checkinGuard,
+  setTrainerEnabled,
+  setTrainerPassword,
+  checkTrainerAuth,
+  trainerGuard,
+  type AccessGuardsContext,
+  type GuardRefusal,
+} from './remote/accessGuards';
+import {
   startServer,
   stopServer,
   notifyKioskData,
@@ -344,201 +356,100 @@ export class RemoteScoreServer {
 
   /** Contexte de socketHandlers.ts (#1240) */
   private get socketCtx(): SocketHandlersContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    return (this._socketCtx ??= {
-      get MAX_SOCKETS_PER_IP(): S['MAX_SOCKETS_PER_IP'] {
-        return self.MAX_SOCKETS_PER_IP;
-      },
-      get SOCKET_EVENTS_PER_SEC(): S['SOCKET_EVENTS_PER_SEC'] {
-        return self.SOCKET_EVENTS_PER_SEC;
-      },
-      get SOCKET_EVENT_BURST(): S['SOCKET_EVENT_BURST'] {
-        return self.SOCKET_EVENT_BURST;
-      },
-      get arenaEventBuffer(): S['arenaEventBuffer'] {
-        return self.arenaEventBuffer;
-      },
-      get arenaRefereeSelected(): S['arenaRefereeSelected'] {
-        return self.arenaRefereeSelected;
-      },
-      get arenaScreenThemes(): S['arenaScreenThemes'] {
-        return self.arenaScreenThemes;
-      },
-      get arenaThemeOverrides(): S['arenaThemeOverrides'] {
-        return self.arenaThemeOverrides;
-      },
-      broadcastClientList: (...a: Parameters<S['broadcastClientList']>) =>
-        self.broadcastClientList(...a),
-      buildDashboardSnapshot: (...a: Parameters<S['buildDashboardSnapshot']>) =>
-        self.buildDashboardSnapshot(...a),
-      checkArenaAuth: (...a: Parameters<S['checkArenaAuth']>) => self.checkArenaAuth(...a),
-      checkSocketArenaAuth: (...a: Parameters<S['checkSocketArenaAuth']>) =>
-        self.checkSocketArenaAuth(...a),
-      get connectedClients(): S['connectedClients'] {
-        return self.connectedClients;
-      },
-      get db(): S['db'] {
-        return self.db;
-      },
-      getArena: (...a: Parameters<S['getArena']>) => self.getArena(...a),
-      getPublicTeamArenaState: (...a: Parameters<S['getPublicTeamArenaState']>) =>
-        self.getPublicTeamArenaState(...a),
-      getSessionReferees: (...a: Parameters<S['getSessionReferees']>) =>
-        self.getSessionReferees(...a),
-      handleArenaControl: (...a: Parameters<S['handleArenaControl']>) =>
-        self.handleArenaControl(...a),
-      handleDisconnect: (...a: Parameters<S['handleDisconnect']>) => self.handleDisconnect(...a),
-      get io(): S['io'] {
-        return self.io;
-      },
-      get isTrainingMode(): S['isTrainingMode'] {
-        return self.isTrainingMode;
-      },
-      get kioskThemeVariables(): S['kioskThemeVariables'] {
-        return self.kioskThemeVariables;
-      },
-      peekNextMatch: (...a: Parameters<S['peekNextMatch']>) => self.peekNextMatch(...a),
-      get screenLabels(): S['screenLabels'] {
-        return self.screenLabels;
-      },
-      sendDiag: (...a: Parameters<S['sendDiag']>) => self.sendDiag(...a),
-      get session(): S['session'] {
-        return self.session;
-      },
-      get sessionBlackCardEnabled(): S['sessionBlackCardEnabled'] {
-        return self.sessionBlackCardEnabled;
-      },
-      get sessionCardAnnounce(): S['sessionCardAnnounce'] {
-        return self.sessionCardAnnounce;
-      },
-      get sessionPoolTimerSeconds(): S['sessionPoolTimerSeconds'] {
-        return self.sessionPoolTimerSeconds;
-      },
-      get sessionRefereeFeatureEnabled(): S['sessionRefereeFeatureEnabled'] {
-        return self.sessionRefereeFeatureEnabled;
-      },
-      get sessionRestSeconds(): S['sessionRestSeconds'] {
-        return self.sessionRestSeconds;
-      },
-      get sessionShowPhotos(): S['sessionShowPhotos'] {
-        return self.sessionShowPhotos;
-      },
-      get sessionTableTimerSeconds(): S['sessionTableTimerSeconds'] {
-        return self.sessionTableTimerSeconds;
-      },
-      get sessionTheme(): S['sessionTheme'] {
-        return self.sessionTheme;
-      },
-      get socketsPerIp(): S['socketsPerIp'] {
-        return self.socketsPerIp;
-      },
-      teamArenaElapsedSec: (...a: Parameters<S['teamArenaElapsedSec']>) =>
-        self.teamArenaElapsedSec(...a),
-      get teamArenaState(): S['teamArenaState'] {
-        return self.teamArenaState;
-      },
-      get trainingCustomRules(): S['trainingCustomRules'] {
-        return self.trainingCustomRules;
-      },
-    });
+    return (this._socketCtx ??= liveContext<SocketHandlersContext>(
+      this,
+      [
+        'MAX_SOCKETS_PER_IP',
+        'SOCKET_EVENTS_PER_SEC',
+        'SOCKET_EVENT_BURST',
+        'arenaEventBuffer',
+        'arenaRefereeSelected',
+        'arenaScreenThemes',
+        'arenaThemeOverrides',
+        'connectedClients',
+        'db',
+        'io',
+        'isTrainingMode',
+        'kioskThemeVariables',
+        'screenLabels',
+        'session',
+        'sessionBlackCardEnabled',
+        'sessionCardAnnounce',
+        'sessionPoolTimerSeconds',
+        'sessionRefereeFeatureEnabled',
+        'sessionRestSeconds',
+        'sessionShowPhotos',
+        'sessionTableTimerSeconds',
+        'sessionTheme',
+        'socketsPerIp',
+        'teamArenaState',
+        'trainingCustomRules',
+      ],
+      [
+        'broadcastClientList',
+        'buildDashboardSnapshot',
+        'checkArenaAuth',
+        'checkSocketArenaAuth',
+        'getArena',
+        'getPublicTeamArenaState',
+        'getSessionReferees',
+        'handleArenaControl',
+        'handleDisconnect',
+        'peekNextMatch',
+        'sendDiag',
+        'teamArenaElapsedSec',
+      ]
+    ));
   }
   private _socketCtx?: SocketHandlersContext;
 
   /** Contexte de arenaControl.ts (#1240) */
   private get arenaControlCtx(): ArenaControlContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    return (this._arenaControlCtx ??= {
-      get SCORE_UPDATE_DEBOUNCE_MS(): S['SCORE_UPDATE_DEBOUNCE_MS'] {
-        return self.SCORE_UPDATE_DEBOUNCE_MS;
-      },
-      get arenaCards(): S['arenaCards'] {
-        return self.arenaCards;
-      },
-      get arenaEventTimes(): S['arenaEventTimes'] {
-        return self.arenaEventTimes;
-      },
-      get arenaExits(): S['arenaExits'] {
-        return self.arenaExits;
-      },
-      get arenaOvertimeType(): S['arenaOvertimeType'] {
-        return self.arenaOvertimeType;
-      },
-      get arenaRefereeSelected(): S['arenaRefereeSelected'] {
-        return self.arenaRefereeSelected;
-      },
-      get arenaSuddenDeath(): S['arenaSuddenDeath'] {
-        return self.arenaSuddenDeath;
-      },
-      get arenaTouches(): S['arenaTouches'] {
-        return self.arenaTouches;
-      },
-      get arenaWaitingOvertime(): S['arenaWaitingOvertime'] {
-        return self.arenaWaitingOvertime;
-      },
-      assignMatchToArena: (...a: Parameters<S['assignMatchToArena']>) =>
-        self.assignMatchToArena(...a),
-      broadcastArenaUpdate: (...a: Parameters<S['broadcastArenaUpdate']>) =>
-        self.broadcastArenaUpdate(...a),
-      get db(): S['db'] {
-        return self.db;
-      },
-      finishArenaMatch: (...a: Parameters<S['finishArenaMatch']>) => self.finishArenaMatch(...a),
-      getArena: (...a: Parameters<S['getArena']>) => self.getArena(...a),
-      get io(): S['io'] {
-        return self.io;
-      },
-      get isTrainingMode(): S['isTrainingMode'] {
-        return self.isTrainingMode;
-      },
-      loadNextMatch: (...a: Parameters<S['loadNextMatch']>) => self.loadNextMatch(...a),
-      pauseArenaMatch: (...a: Parameters<S['pauseArenaMatch']>) => self.pauseArenaMatch(...a),
-      resolveReferee: (...a: Parameters<S['resolveReferee']>) => self.resolveReferee(...a),
-      get scoreUpdateDebounce(): S['scoreUpdateDebounce'] {
-        return self.scoreUpdateDebounce;
-      },
-      sendDiag: (...a: Parameters<S['sendDiag']>) => self.sendDiag(...a),
-      get session(): S['session'] {
-        return self.session;
-      },
-      get sessionCardAnnounce(): S['sessionCardAnnounce'] {
-        return self.sessionCardAnnounce;
-      },
-      get sessionMatches(): S['sessionMatches'] {
-        return self.sessionMatches;
-      },
-      stampArenaEvents: (...a: Parameters<S['stampArenaEvents']>) => self.stampArenaEvents(...a),
-      startArenaMatch: (...a: Parameters<S['startArenaMatch']>) => self.startArenaMatch(...a),
-      get trainingCustomRules(): S['trainingCustomRules'] {
-        return self.trainingCustomRules;
-      },
-      updateArenaScore: (...a: Parameters<S['updateArenaScore']>) => self.updateArenaScore(...a),
-    });
+    return (this._arenaControlCtx ??= liveContext<ArenaControlContext>(
+      this,
+      [
+        'SCORE_UPDATE_DEBOUNCE_MS',
+        'arenaCards',
+        'arenaEventTimes',
+        'arenaExits',
+        'arenaOvertimeType',
+        'arenaRefereeSelected',
+        'arenaSuddenDeath',
+        'arenaTouches',
+        'arenaWaitingOvertime',
+        'db',
+        'io',
+        'isTrainingMode',
+        'scoreUpdateDebounce',
+        'session',
+        'sessionCardAnnounce',
+        'sessionMatches',
+        'trainingCustomRules',
+      ],
+      [
+        'assignMatchToArena',
+        'broadcastArenaUpdate',
+        'finishArenaMatch',
+        'getArena',
+        'loadNextMatch',
+        'pauseArenaMatch',
+        'resolveReferee',
+        'sendDiag',
+        'stampArenaEvents',
+        'startArenaMatch',
+        'updateArenaScore',
+      ]
+    ));
   }
   private _arenaControlCtx?: ArenaControlContext;
 
   /** Contexte de middleware.ts (#1240) */
   private get middlewareCtx(): MiddlewareContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    return (this._middlewareCtx ??= {
-      get app(): S['app'] {
-        return self.app;
-      },
-      get assets(): S['assets'] {
-        return self.assets;
-      },
-      get htmlFiles(): S['htmlFiles'] {
-        return self.htmlFiles;
-      },
-      isAllowedOrigin: (...a: Parameters<S['isAllowedOrigin']>) => self.isAllowedOrigin(...a),
-      sendHtmlFromMemory: (...a: Parameters<S['sendHtmlFromMemory']>) =>
-        self.sendHtmlFromMemory(...a),
-      get staticFiles(): S['staticFiles'] {
-        return self.staticFiles;
-      },
-    });
+    return (this._middlewareCtx ??= liveContext<MiddlewareContext>(
+      this,
+      ['app', 'assets', 'htmlFiles', 'staticFiles'],
+      ['isAllowedOrigin', 'sendHtmlFromMemory']
+    ));
   }
   private _middlewareCtx?: MiddlewareContext;
 
@@ -597,165 +508,71 @@ export class RemoteScoreServer {
 
   /** Contexte de sessionStart.ts (#1240) */
   private get sessionStartCtx(): SessionStartContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    return (this._sessionStartCtx ??= {
-      applyCompetitionSettings: (...a: Parameters<S['applyCompetitionSettings']>) =>
-        self.applyCompetitionSettings(...a),
-      get arenaMatchQueue(): S['arenaMatchQueue'] {
-        return self.arenaMatchQueue;
-      },
-      get arenaNextMatchIndex(): S['arenaNextMatchIndex'] {
-        return self.arenaNextMatchIndex;
-      },
-      get arenas(): S['arenas'] {
-        return self.arenas;
-      },
-      assignMatchToArena: (...a: Parameters<S['assignMatchToArena']>) =>
-        self.assignMatchToArena(...a),
-      get db(): S['db'] {
-        return self.db;
-      },
-      loadSessionReferees: (...a: Parameters<S['loadSessionReferees']>) =>
-        self.loadSessionReferees(...a),
-      notifyKioskData: (...a: Parameters<S['notifyKioskData']>) => self.notifyKioskData(...a),
-      get poolFencersCache(): S['poolFencersCache'] {
-        return self.poolFencersCache;
-      },
-      get poolSignaturesCache(): S['poolSignaturesCache'] {
-        return self.poolSignaturesCache;
-      },
-      get session(): S['session'] {
-        return self.session;
-      },
-      set session(v: S['session']) {
-        self.session = v;
-      },
-      get sessionBlackCardEnabled(): S['sessionBlackCardEnabled'] {
-        return self.sessionBlackCardEnabled;
-      },
-      set sessionBlackCardEnabled(v: S['sessionBlackCardEnabled']) {
-        self.sessionBlackCardEnabled = v;
-      },
-      get sessionCardAnnounce(): S['sessionCardAnnounce'] {
-        return self.sessionCardAnnounce;
-      },
-      set sessionCardAnnounce(v: S['sessionCardAnnounce']) {
-        self.sessionCardAnnounce = v;
-      },
-      get sessionCustomScoring(): S['sessionCustomScoring'] {
-        return self.sessionCustomScoring;
-      },
-      set sessionCustomScoring(v: S['sessionCustomScoring']) {
-        self.sessionCustomScoring = v;
-      },
-      get sessionKioskViews(): S['sessionKioskViews'] {
-        return self.sessionKioskViews;
-      },
-      set sessionKioskViews(v: S['sessionKioskViews']) {
-        self.sessionKioskViews = v;
-      },
-      get sessionMatchScores(): S['sessionMatchScores'] {
-        return self.sessionMatchScores;
-      },
-      get sessionMatches(): S['sessionMatches'] {
-        return self.sessionMatches;
-      },
-      set sessionMatches(v: S['sessionMatches']) {
-        self.sessionMatches = v;
-      },
-      get sessionPoolArenas(): S['sessionPoolArenas'] {
-        return self.sessionPoolArenas;
-      },
-      set sessionPoolArenas(v: S['sessionPoolArenas']) {
-        self.sessionPoolArenas = v;
-      },
-      get sessionRefereeFeatureEnabled(): S['sessionRefereeFeatureEnabled'] {
-        return self.sessionRefereeFeatureEnabled;
-      },
-      set sessionRefereeFeatureEnabled(v: S['sessionRefereeFeatureEnabled']) {
-        self.sessionRefereeFeatureEnabled = v;
-      },
-      get sessionShowPhotos(): S['sessionShowPhotos'] {
-        return self.sessionShowPhotos;
-      },
-      set sessionShowPhotos(v: S['sessionShowPhotos']) {
-        self.sessionShowPhotos = v;
-      },
-      get sessionWeapon(): S['sessionWeapon'] {
-        return self.sessionWeapon;
-      },
-      set sessionWeapon(v: S['sessionWeapon']) {
-        self.sessionWeapon = v;
-      },
-      setArenaCount: (...a: Parameters<S['setArenaCount']>) => self.setArenaCount(...a),
-    });
+    return (this._sessionStartCtx ??= liveContext<SessionStartContext>(
+      this,
+      [
+        'arenaMatchQueue',
+        'arenaNextMatchIndex',
+        'arenas',
+        'db',
+        'poolFencersCache',
+        'poolSignaturesCache',
+        'session',
+        'sessionBlackCardEnabled',
+        'sessionCardAnnounce',
+        'sessionCustomScoring',
+        'sessionKioskViews',
+        'sessionMatchScores',
+        'sessionMatches',
+        'sessionPoolArenas',
+        'sessionRefereeFeatureEnabled',
+        'sessionShowPhotos',
+        'sessionWeapon',
+      ],
+      [
+        'applyCompetitionSettings',
+        'assignMatchToArena',
+        'loadSessionReferees',
+        'notifyKioskData',
+        'setArenaCount',
+      ]
+    ));
   }
   private _sessionStartCtx?: SessionStartContext;
 
   /** Contexte de matchFinish.ts (#1240) */
   private get matchFinishCtx(): MatchFinishContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    return (this._matchFinishCtx ??= {
-      get arenaCards(): S['arenaCards'] {
-        return self.arenaCards;
-      },
-      get arenaEventTimes(): S['arenaEventTimes'] {
-        return self.arenaEventTimes;
-      },
-      get arenaExits(): S['arenaExits'] {
-        return self.arenaExits;
-      },
-      get arenaMatchQueue(): S['arenaMatchQueue'] {
-        return self.arenaMatchQueue;
-      },
-      get arenaRefereeSelected(): S['arenaRefereeSelected'] {
-        return self.arenaRefereeSelected;
-      },
-      get arenaTouches(): S['arenaTouches'] {
-        return self.arenaTouches;
-      },
-      get arenas(): S['arenas'] {
-        return self.arenas;
-      },
-      broadcastArenaUpdate: (...a: Parameters<S['broadcastArenaUpdate']>) =>
-        self.broadcastArenaUpdate(...a),
-      broadcastDashboardUpdate: (...a: Parameters<S['broadcastDashboardUpdate']>) =>
-        self.broadcastDashboardUpdate(...a),
-      createTrainingMatch: (...a: Parameters<S['createTrainingMatch']>) =>
-        self.createTrainingMatch(...a),
-      get db(): S['db'] {
-        return self.db;
-      },
-      fireWebhook: (...a: Parameters<S['fireWebhook']>) => self.fireWebhook(...a),
-      get isTrainingMode(): S['isTrainingMode'] {
-        return self.isTrainingMode;
-      },
-      loadNextMatch: (...a: Parameters<S['loadNextMatch']>) => self.loadNextMatch(...a),
-      peekNextMatch: (...a: Parameters<S['peekNextMatch']>) => self.peekNextMatch(...a),
-      persistArenaState: (...a: Parameters<S['persistArenaState']>) => self.persistArenaState(...a),
-      get recentMatchDurationsMs(): S['recentMatchDurationsMs'] {
-        return self.recentMatchDurationsMs;
-      },
-      resolveDbMatchId: (...a: Parameters<S['resolveDbMatchId']>) => self.resolveDbMatchId(...a),
-      sendDiag: (...a: Parameters<S['sendDiag']>) => self.sendDiag(...a),
-      get session(): S['session'] {
-        return self.session;
-      },
-      get sessionMatchScores(): S['sessionMatchScores'] {
-        return self.sessionMatchScores;
-      },
-      get sessionModernRules(): S['sessionModernRules'] {
-        return self.sessionModernRules;
-      },
-      get sessionWeapon(): S['sessionWeapon'] {
-        return self.sessionWeapon;
-      },
-      get trainingHistory(): S['trainingHistory'] {
-        return self.trainingHistory;
-      },
-    });
+    return (this._matchFinishCtx ??= liveContext<MatchFinishContext>(
+      this,
+      [
+        'arenaCards',
+        'arenaEventTimes',
+        'arenaExits',
+        'arenaMatchQueue',
+        'arenaRefereeSelected',
+        'arenaTouches',
+        'arenas',
+        'db',
+        'isTrainingMode',
+        'recentMatchDurationsMs',
+        'session',
+        'sessionMatchScores',
+        'sessionModernRules',
+        'sessionWeapon',
+        'trainingHistory',
+      ],
+      [
+        'broadcastArenaUpdate',
+        'broadcastDashboardUpdate',
+        'createTrainingMatch',
+        'fireWebhook',
+        'loadNextMatch',
+        'peekNextMatch',
+        'persistArenaState',
+        'resolveDbMatchId',
+        'sendDiag',
+      ]
+    ));
   }
   private _matchFinishCtx?: MatchFinishContext;
 
@@ -836,322 +653,162 @@ export class RemoteScoreServer {
   }
   private _sessionOpsCtx?: SessionOpsContext;
 
+  /** Contexte de accessGuards.ts (#1240) */
+  private get accessGuardsCtx(): AccessGuardsContext {
+    return (this._accessGuardsCtx ??= liveContext<AccessGuardsContext>(this, [
+      'checkinEnabled',
+      'checkinPassword',
+      'checkinTokens',
+      'trainerEnabled',
+      'trainerPassword',
+      'trainerTokens',
+    ]));
+  }
+  private _accessGuardsCtx?: AccessGuardsContext;
+
   /** Contexte de arenaOps.ts (#1240) */
   private get arenaOpsCtx(): ArenaOpsContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    type S = RemoteScoreServer;
-    return (this._arenaOpsCtx ??= {
-      get arenaOvertimeType(): S['arenaOvertimeType'] {
-        return self.arenaOvertimeType;
-      },
-      get arenaRefereeSelected(): S['arenaRefereeSelected'] {
-        return self.arenaRefereeSelected;
-      },
-      get arenaSuddenDeath(): S['arenaSuddenDeath'] {
-        return self.arenaSuddenDeath;
-      },
-      get arenas(): S['arenas'] {
-        return self.arenas;
-      },
-      broadcastArenaUpdate: (...a: Parameters<S['broadcastArenaUpdate']>) =>
-        self.broadcastArenaUpdate(...a),
-      get db(): S['db'] {
-        return self.db;
-      },
-      get io(): S['io'] {
-        return self.io;
-      },
-      isGuestMatch: (...a: Parameters<S['isGuestMatch']>) => self.isGuestMatch(...a),
-      persistArenaState: (...a: Parameters<S['persistArenaState']>) => self.persistArenaState(...a),
-      resolveDbMatchId: (...a: Parameters<S['resolveDbMatchId']>) => self.resolveDbMatchId(...a),
-      resolvePoolReferee: (...a: Parameters<S['resolvePoolReferee']>) =>
-        self.resolvePoolReferee(...a),
-      resolveReferee: (...a: Parameters<S['resolveReferee']>) => self.resolveReferee(...a),
-      resolveTableauMatchReferees: (...a: Parameters<S['resolveTableauMatchReferees']>) =>
-        self.resolveTableauMatchReferees(...a),
-      get sessionMatches(): S['sessionMatches'] {
-        return self.sessionMatches;
-      },
-      get sessionPoolMaxScore(): S['sessionPoolMaxScore'] {
-        return self.sessionPoolMaxScore;
-      },
-      get sessionTableMaxScore(): S['sessionTableMaxScore'] {
-        return self.sessionTableMaxScore;
-      },
-      get sessionWeapon(): S['sessionWeapon'] {
-        return self.sessionWeapon;
-      },
-      updateArena: (...a: Parameters<S['updateArena']>) => self.updateArena(...a),
-    });
+    return (this._arenaOpsCtx ??= liveContext<ArenaOpsContext>(
+      this,
+      [
+        'arenaOvertimeType',
+        'arenaRefereeSelected',
+        'arenaSuddenDeath',
+        'arenas',
+        'db',
+        'io',
+        'sessionMatches',
+        'sessionPoolMaxScore',
+        'sessionTableMaxScore',
+        'sessionWeapon',
+      ],
+      [
+        'broadcastArenaUpdate',
+        'isGuestMatch',
+        'persistArenaState',
+        'resolveDbMatchId',
+        'resolvePoolReferee',
+        'resolveReferee',
+        'resolveTableauMatchReferees',
+        'updateArena',
+      ]
+    ));
   }
   private _arenaOpsCtx?: ArenaOpsContext;
 
   /** Contexte de arenaQueue.ts (#1240) */
   private get arenaQueueCtx(): ArenaQueueContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    type S = RemoteScoreServer;
-    return (this._arenaQueueCtx ??= {
-      applySmartMatchOrder: (...a: Parameters<S['applySmartMatchOrder']>) =>
-        self.applySmartMatchOrder(...a),
-      get arenaCount(): S['arenaCount'] {
-        return self.arenaCount;
-      },
-      arenaHomePoolId: (...a: Parameters<S['arenaHomePoolId']>) => self.arenaHomePoolId(...a),
-      get arenaMatchQueue(): S['arenaMatchQueue'] {
-        return self.arenaMatchQueue;
-      },
-      get arenaNextMatchIndex(): S['arenaNextMatchIndex'] {
-        return self.arenaNextMatchIndex;
-      },
-      get arenaRefereeSelected(): S['arenaRefereeSelected'] {
-        return self.arenaRefereeSelected;
-      },
-      get arenas(): S['arenas'] {
-        return self.arenas;
-      },
-      assignMatchToArena: (...a: Parameters<S['assignMatchToArena']>) =>
-        self.assignMatchToArena(...a),
-      broadcastArenaUpdate: (...a: Parameters<S['broadcastArenaUpdate']>) =>
-        self.broadcastArenaUpdate(...a),
-      get db(): S['db'] {
-        return self.db;
-      },
-      guestQueue: (...a: Parameters<S['guestQueue']>) => self.guestQueue(...a),
-      get io(): S['io'] {
-        return self.io;
-      },
-      isGuestMatch: (...a: Parameters<S['isGuestMatch']>) => self.isGuestMatch(...a),
-      isInActiveWave: (...a: Parameters<S['isInActiveWave']>) => self.isInActiveWave(...a),
-      isMatchPlayable: (...a: Parameters<S['isMatchPlayable']>) => self.isMatchPlayable(...a),
-      get isTrainingMode(): S['isTrainingMode'] {
-        return self.isTrainingMode;
-      },
-      loadNextMatch: (...a: Parameters<S['loadNextMatch']>) => self.loadNextMatch(...a),
-      persistArenaState: (...a: Parameters<S['persistArenaState']>) => self.persistArenaState(...a),
-      get poolFencersCache(): S['poolFencersCache'] {
-        return self.poolFencersCache;
-      },
-      get poolMatchArenaOverrides(): S['poolMatchArenaOverrides'] {
-        return self.poolMatchArenaOverrides;
-      },
-      resolveDeMatchReferee: (...a: Parameters<S['resolveDeMatchReferee']>) =>
-        self.resolveDeMatchReferee(...a),
-      resolveReferee: (...a: Parameters<S['resolveReferee']>) => self.resolveReferee(...a),
-      get session(): S['session'] {
-        return self.session;
-      },
-      get sessionMatchScores(): S['sessionMatchScores'] {
-        return self.sessionMatchScores;
-      },
-      get sessionMatches(): S['sessionMatches'] {
-        return self.sessionMatches;
-      },
-      set sessionMatches(v: S['sessionMatches']) {
-        self.sessionMatches = v;
-      },
-      updateArena: (...a: Parameters<S['updateArena']>) => self.updateArena(...a),
-    });
+    return (this._arenaQueueCtx ??= liveContext<ArenaQueueContext>(
+      this,
+      [
+        'arenaCount',
+        'arenaMatchQueue',
+        'arenaNextMatchIndex',
+        'arenaRefereeSelected',
+        'arenas',
+        'db',
+        'io',
+        'isTrainingMode',
+        'poolFencersCache',
+        'poolMatchArenaOverrides',
+        'session',
+        'sessionMatchScores',
+        'sessionMatches',
+      ],
+      [
+        'applySmartMatchOrder',
+        'arenaHomePoolId',
+        'assignMatchToArena',
+        'broadcastArenaUpdate',
+        'guestQueue',
+        'isGuestMatch',
+        'isInActiveWave',
+        'isMatchPlayable',
+        'loadNextMatch',
+        'persistArenaState',
+        'resolveDeMatchReferee',
+        'resolveReferee',
+        'updateArena',
+      ]
+    ));
   }
   private _arenaQueueCtx?: ArenaQueueContext;
 
   /** Contexte de sessionSettings.ts (#1240) */
   private get sessionSettingsCtx(): SessionSettingsContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    type S = RemoteScoreServer;
-    return (this._sessionSettingsCtx ??= {
-      applyCompetitionSettings: (...a: Parameters<S['applyCompetitionSettings']>) =>
-        self.applyCompetitionSettings(...a),
-      get arenaCount(): S['arenaCount'] {
-        return self.arenaCount;
-      },
-      set arenaCount(v: S['arenaCount']) {
-        self.arenaCount = v;
-      },
-      get arenaEventBuffer(): S['arenaEventBuffer'] {
-        return self.arenaEventBuffer;
-      },
-      get arenaMatchQueue(): S['arenaMatchQueue'] {
-        return self.arenaMatchQueue;
-      },
-      get arenaNextMatchIndex(): S['arenaNextMatchIndex'] {
-        return self.arenaNextMatchIndex;
-      },
-      get arenaScreenThemes(): S['arenaScreenThemes'] {
-        return self.arenaScreenThemes;
-      },
-      get arenaThemeOverrides(): S['arenaThemeOverrides'] {
-        return self.arenaThemeOverrides;
-      },
-      get arenas(): S['arenas'] {
-        return self.arenas;
-      },
-      broadcastArenaUpdate: (...a: Parameters<S['broadcastArenaUpdate']>) =>
-        self.broadcastArenaUpdate(...a),
-      get connectedClients(): S['connectedClients'] {
-        return self.connectedClients;
-      },
-      createArena: (...a: Parameters<S['createArena']>) => self.createArena(...a),
-      get db(): S['db'] {
-        return self.db;
-      },
-      getAllArenas: (...a: Parameters<S['getAllArenas']>) => self.getAllArenas(...a),
-      get io(): S['io'] {
-        return self.io;
-      },
-      get isTrainingMode(): S['isTrainingMode'] {
-        return self.isTrainingMode;
-      },
-      get kioskThemeVariables(): S['kioskThemeVariables'] {
-        return self.kioskThemeVariables;
-      },
-      set kioskThemeVariables(v: S['kioskThemeVariables']) {
-        self.kioskThemeVariables = v;
-      },
-      get session(): S['session'] {
-        return self.session;
-      },
-      get sessionBlackCardEnabled(): S['sessionBlackCardEnabled'] {
-        return self.sessionBlackCardEnabled;
-      },
-      set sessionBlackCardEnabled(v: S['sessionBlackCardEnabled']) {
-        self.sessionBlackCardEnabled = v;
-      },
-      get sessionCardAnnounce(): S['sessionCardAnnounce'] {
-        return self.sessionCardAnnounce;
-      },
-      set sessionCardAnnounce(v: S['sessionCardAnnounce']) {
-        self.sessionCardAnnounce = v;
-      },
-      get sessionKioskViews(): S['sessionKioskViews'] {
-        return self.sessionKioskViews;
-      },
-      set sessionKioskViews(v: S['sessionKioskViews']) {
-        self.sessionKioskViews = v;
-      },
-      get sessionModernRules(): S['sessionModernRules'] {
-        return self.sessionModernRules;
-      },
-      set sessionModernRules(v: S['sessionModernRules']) {
-        self.sessionModernRules = v;
-      },
-      get sessionPoolMaxScore(): S['sessionPoolMaxScore'] {
-        return self.sessionPoolMaxScore;
-      },
-      set sessionPoolMaxScore(v: S['sessionPoolMaxScore']) {
-        self.sessionPoolMaxScore = v;
-      },
-      get sessionPoolTimerSeconds(): S['sessionPoolTimerSeconds'] {
-        return self.sessionPoolTimerSeconds;
-      },
-      set sessionPoolTimerSeconds(v: S['sessionPoolTimerSeconds']) {
-        self.sessionPoolTimerSeconds = v;
-      },
-      get sessionRestSeconds(): S['sessionRestSeconds'] {
-        return self.sessionRestSeconds;
-      },
-      set sessionRestSeconds(v: S['sessionRestSeconds']) {
-        self.sessionRestSeconds = v;
-      },
-      get sessionShowPhotos(): S['sessionShowPhotos'] {
-        return self.sessionShowPhotos;
-      },
-      set sessionShowPhotos(v: S['sessionShowPhotos']) {
-        self.sessionShowPhotos = v;
-      },
-      get sessionTableMaxScore(): S['sessionTableMaxScore'] {
-        return self.sessionTableMaxScore;
-      },
-      set sessionTableMaxScore(v: S['sessionTableMaxScore']) {
-        self.sessionTableMaxScore = v;
-      },
-      get sessionTableTimerSeconds(): S['sessionTableTimerSeconds'] {
-        return self.sessionTableTimerSeconds;
-      },
-      set sessionTableTimerSeconds(v: S['sessionTableTimerSeconds']) {
-        self.sessionTableTimerSeconds = v;
-      },
-      get sessionTheme(): S['sessionTheme'] {
-        return self.sessionTheme;
-      },
-      set sessionTheme(v: S['sessionTheme']) {
-        self.sessionTheme = v;
-      },
-      toPublicArena: (...a: Parameters<S['toPublicArena']>) => self.toPublicArena(...a),
-      updateArenaTheme: (...a: Parameters<S['updateArenaTheme']>) => self.updateArenaTheme(...a),
-    });
+    return (this._sessionSettingsCtx ??= liveContext<SessionSettingsContext>(
+      this,
+      [
+        'arenaCount',
+        'arenaEventBuffer',
+        'arenaMatchQueue',
+        'arenaNextMatchIndex',
+        'arenaScreenThemes',
+        'arenaThemeOverrides',
+        'arenas',
+        'connectedClients',
+        'db',
+        'io',
+        'isTrainingMode',
+        'kioskThemeVariables',
+        'session',
+        'sessionBlackCardEnabled',
+        'sessionCardAnnounce',
+        'sessionKioskViews',
+        'sessionModernRules',
+        'sessionPoolMaxScore',
+        'sessionPoolTimerSeconds',
+        'sessionRestSeconds',
+        'sessionShowPhotos',
+        'sessionTableMaxScore',
+        'sessionTableTimerSeconds',
+        'sessionTheme',
+      ],
+      [
+        'applyCompetitionSettings',
+        'broadcastArenaUpdate',
+        'createArena',
+        'getAllArenas',
+        'toPublicArena',
+        'updateArenaTheme',
+      ]
+    ));
   }
   private _sessionSettingsCtx?: SessionSettingsContext;
 
   /** Contexte de blackCards.ts (#1240) */
   private get blackCardsCtx(): BlackCardsContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    type S = RemoteScoreServer;
-    return (this._blackCardsCtx ??= {
-      get arenaMatchQueue(): S['arenaMatchQueue'] {
-        return self.arenaMatchQueue;
-      },
-      get arenas(): S['arenas'] {
-        return self.arenas;
-      },
-      get db(): S['db'] {
-        return self.db;
-      },
-      formatFencerName: (...a: Parameters<S['formatFencerName']>) => self.formatFencerName(...a),
-      getArenaBlackCards: (...a: Parameters<S['getArenaBlackCards']>) =>
-        self.getArenaBlackCards(...a),
-      matchPoolId: (...a: Parameters<S['matchPoolId']>) => self.matchPoolId(...a),
-      get poolFencersCache(): S['poolFencersCache'] {
-        return self.poolFencersCache;
-      },
-      get sessionBlackCards(): S['sessionBlackCards'] {
-        return self.sessionBlackCards;
-      },
-      get sessionMatchScores(): S['sessionMatchScores'] {
-        return self.sessionMatchScores;
-      },
-      get sessionMatches(): S['sessionMatches'] {
-        return self.sessionMatches;
-      },
-      set sessionMatches(v: S['sessionMatches']) {
-        self.sessionMatches = v;
-      },
-    });
+    return (this._blackCardsCtx ??= liveContext<BlackCardsContext>(
+      this,
+      [
+        'arenaMatchQueue',
+        'arenas',
+        'db',
+        'poolFencersCache',
+        'sessionBlackCards',
+        'sessionMatchScores',
+        'sessionMatches',
+      ],
+      ['formatFencerName', 'getArenaBlackCards', 'matchPoolId']
+    ));
   }
   private _blackCardsCtx?: BlackCardsContext;
 
   /** Contexte de dashboard.ts (#1240) */
   private get dashboardCtx(): DashboardContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    type S = RemoteScoreServer;
-    return (this._dashboardCtx ??= {
-      get arenas(): S['arenas'] {
-        return self.arenas;
-      },
-      computePhaseEta: (...a: Parameters<S['computePhaseEta']>) => self.computePhaseEta(...a),
-      get db(): S['db'] {
-        return self.db;
-      },
-      get isTrainingMode(): S['isTrainingMode'] {
-        return self.isTrainingMode;
-      },
-      get recentMatchDurationsMs(): S['recentMatchDurationsMs'] {
-        return self.recentMatchDurationsMs;
-      },
-      get session(): S['session'] {
-        return self.session;
-      },
-      get sessionMatchScores(): S['sessionMatchScores'] {
-        return self.sessionMatchScores;
-      },
-      get sessionMatches(): S['sessionMatches'] {
-        return self.sessionMatches;
-      },
-    });
+    return (this._dashboardCtx ??= liveContext<DashboardContext>(
+      this,
+      [
+        'arenas',
+        'db',
+        'isTrainingMode',
+        'recentMatchDurationsMs',
+        'session',
+        'sessionMatchScores',
+        'sessionMatches',
+      ],
+      ['computePhaseEta']
+    ));
   }
   private _dashboardCtx?: DashboardContext;
 
@@ -2085,69 +1742,37 @@ export class RemoteScoreServer {
   }
 
   public setCheckinEnabled(enabled: boolean): void {
-    this.checkinEnabled = enabled;
-    console.log(`[RemoteScoreServer] Appel distant ${enabled ? 'activé' : 'désactivé'}`);
+    return setCheckinEnabled(this.accessGuardsCtx, enabled);
   }
 
   public setCheckinPassword(password: string): void {
-    // Stocké hashé ; tout changement invalide les sessions ouvertes
-    this.assertPasswordStrength(password);
-    this.checkinPassword = password ? this.hashPassword(password) : null;
-    this.checkinTokens.clear();
-    console.log(`[RemoteScoreServer] Mot de passe appel ${password ? 'défini' : 'supprimé'}`);
+    return setCheckinPassword(this.accessGuardsCtx, password);
   }
 
   private checkCheckinAuth(cookieHeader: string | undefined): boolean {
-    if (!this.checkinPassword) return false;
-    const token = this.parseCookies(cookieHeader)['bp_checkin_token'];
-    return this.isTokenValid(this.checkinTokens, token);
+    return checkCheckinAuth(this.accessGuardsCtx, cookieHeader);
   }
 
   /** Refus d'accès à l'API d'appel, ou null si autorisé. */
-  private checkinGuard(
-    cookieHeader: string | undefined
-  ): { status: number; body: Record<string, unknown> } | null {
-    if (!this.checkinEnabled) {
-      return { status: 403, body: { closed: true, error: 'checkin_closed' } };
-    }
-    if (!this.checkinPassword) {
-      return { status: 403, body: { notConfigured: true, error: 'checkin_not_configured' } };
-    }
-    if (!this.checkCheckinAuth(cookieHeader)) {
-      return { status: 401, body: { unauthorized: true, error: 'auth_required' } };
-    }
-    return null;
+  private checkinGuard(cookieHeader: string | undefined): GuardRefusal {
+    return checkinGuard(this.accessGuardsCtx, cookieHeader);
   }
 
   public setTrainerEnabled(enabled: boolean): void {
-    this.trainerEnabled = enabled;
-    if (!enabled) this.trainerTokens.clear();
+    return setTrainerEnabled(this.accessGuardsCtx, enabled);
   }
 
   public setTrainerPassword(password: string): void {
-    this.assertPasswordStrength(password);
-    this.trainerPassword = password ? this.hashPassword(password) : null;
-    this.trainerTokens.clear();
-    console.log(`[RemoteScoreServer] Mot de passe formateurs ${password ? 'défini' : 'supprimé'}`);
+    return setTrainerPassword(this.accessGuardsCtx, password);
   }
 
   private checkTrainerAuth(cookieHeader: string | undefined): boolean {
-    if (!this.trainerPassword) return false;
-    const token = this.parseCookies(cookieHeader)['bp_trainer_token'];
-    return this.isTokenValid(this.trainerTokens, token);
+    return checkTrainerAuth(this.accessGuardsCtx, cookieHeader);
   }
 
   /** Refus d'accès à l'espace formateurs, ou null si autorisé. */
-  private trainerGuard(
-    cookieHeader: string | undefined
-  ): { status: number; body: Record<string, unknown> } | null {
-    if (!this.trainerEnabled || !this.trainerPassword) {
-      return { status: 403, body: { notConfigured: true, error: 'trainer_closed' } };
-    }
-    if (!this.checkTrainerAuth(cookieHeader)) {
-      return { status: 401, body: { unauthorized: true, error: 'auth_required' } };
-    }
-    return null;
+  private trainerGuard(cookieHeader: string | undefined): GuardRefusal {
+    return trainerGuard(this.accessGuardsCtx, cookieHeader);
   }
 
   /** Piste où l'arbitre officie actuellement (match assigné ou en cours). */
