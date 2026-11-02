@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import { app, BrowserWindow, ipcMain, dialog, Menu, shell, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, shell, screen } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -14,6 +14,7 @@ import { fmt, getL, getUiLanguage, setUiLanguage } from './menuLabels';
 import { registerDbHandlers } from './ipc/dbHandlers';
 import { registerFileHandlers } from './ipc/fileHandlers';
 import { createMenuActions } from './menuActions';
+import { createMenu } from './menu';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
 import { registerRemoteClientsHandlers } from './ipc/remoteClientsHandlers';
 import { registerRemoteSettingsHandlers } from './ipc/remoteSettingsHandlers';
@@ -309,7 +310,7 @@ function createWindow(initialLang?: string): void {
         // ignore
       }
     }
-    createMenu(getUiLanguage());
+    buildMenu(getUiLanguage());
 
     // Restore persisted logo and sync to renderer localStorage if not already set
     const logoPath = path.join(app.getPath('userData'), 'logo.dat');
@@ -325,213 +326,21 @@ function createWindow(initialLang?: string): void {
 }
 
 // ============================================================================
-// Application Menu
-// ============================================================================
-
-function createMenu(language?: string): void {
-  if (language) setUiLanguage(language);
-  const L = getL();
-
-  const template: Electron.MenuItemConstructorOptions[] = [
-    {
-      label: L.file,
-      submenu: [
-        {
-          label: L.newCompetition,
-          accelerator: 'CmdOrCtrl+N',
-          click: () => mainWindow?.webContents.send('menu:new-competition'),
-        },
-        {
-          label: L.open,
-          accelerator: 'CmdOrCtrl+O',
-          click: handleOpenFile,
-        },
-        { type: 'separator' },
-        {
-          label: L.save,
-          accelerator: 'CmdOrCtrl+S',
-          click: () => {
-            try {
-              db.forceSave();
-              console.log('Sauvegarde manuelle effectuée');
-              mainWindow?.webContents.send('menu:save');
-              void saveGlobalBackup();
-            } catch (error) {
-              console.error('Échec sauvegarde manuelle:', error);
-              mainWindow?.webContents.send('autosave:failed');
-            }
-          },
-        },
-        {
-          label: L.saveAs,
-          accelerator: 'CmdOrCtrl+Shift+S',
-          click: handleSaveAs,
-        },
-        { type: 'separator' },
-        {
-          label: L.export,
-          submenu: [
-            { label: L.exportXml, click: () => handleExport('xml') },
-            { label: L.exportCsv, click: () => handleExport('csv') },
-            { label: L.exportPdf, click: () => handleExport('pdf') },
-            { type: 'separator' },
-            { label: L.exportFencersTxt, click: () => handleExport('fencers-txt') },
-            { label: L.exportFencersFff, click: () => handleExport('fencers-fff') },
-            { label: L.exportFencersBpf, click: () => handleExport('fencers-bpf') },
-            { label: L.exportPhotos, click: () => handleExport('photos') },
-          ],
-        },
-        {
-          label: L.import,
-          submenu: [
-            { label: L.importXml, click: () => handleImport('xml') },
-            { label: L.importFff, click: () => handleImport('fff') },
-            { label: L.importRanking, click: () => handleImport('ranking') },
-            { label: L.importFencersBpf, click: () => handleImport('fencers-bpf') },
-          ],
-        },
-        { type: 'separator' },
-        {
-          label: L.settings,
-          accelerator: 'CmdOrCtrl+,',
-          click: () => mainWindow?.webContents.send('menu:open-settings'),
-        },
-        { type: 'separator' },
-        {
-          label: L.quit,
-          accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Alt+F4',
-          click: () => app.quit(),
-        },
-      ],
-    },
-    {
-      label: L.edit,
-      submenu: [
-        { role: 'undo', label: L.undo },
-        { role: 'redo', label: L.redo },
-        { type: 'separator' },
-        { role: 'cut', label: L.cut },
-        { role: 'copy', label: L.copy },
-        { role: 'paste', label: L.paste },
-        { role: 'selectAll', label: L.selectAll },
-      ],
-    },
-    {
-      label: L.competition,
-      submenu: [
-        {
-          label: L.properties,
-          click: () => mainWindow?.webContents.send('menu:competition-properties'),
-        },
-        { type: 'separator' },
-        {
-          label: L.addFencer,
-          accelerator: 'CmdOrCtrl+T',
-          click: () => mainWindow?.webContents.send('menu:add-fencer'),
-        },
-        {
-          label: L.addReferee,
-          click: () => mainWindow?.webContents.send('menu:add-referee'),
-        },
-        { type: 'separator' },
-        {
-          label: L.startRemote,
-          click: () => startRemoteScoreServer(),
-        },
-        {
-          label: L.stopRemote,
-          click: () => stopRemoteScoreServer(),
-        },
-        { type: 'separator' },
-        {
-          label: L.nextPhase,
-          accelerator: 'CmdOrCtrl+Right',
-          click: () => mainWindow?.webContents.send('menu:next-phase'),
-        },
-      ],
-    },
-    {
-      label: L.view,
-      submenu: [
-        { role: 'reload', label: L.reload },
-        { role: 'forceReload', label: L.forceReload },
-        { role: 'toggleDevTools', label: L.devTools },
-        { type: 'separator' },
-        { role: 'resetZoom', label: L.resetZoom },
-        { role: 'zoomIn', label: L.zoomIn },
-        { role: 'zoomOut', label: L.zoomOut },
-        { type: 'separator' },
-        { role: 'togglefullscreen', label: L.fullscreen },
-      ],
-    },
-    {
-      label: L.help,
-      submenu: [
-        {
-          label: L.about,
-          accelerator: 'F1',
-          click: showAbout,
-        },
-        {
-          label: L.updates,
-          click: async () => {
-            if (autoUpdater) {
-              await autoUpdater.showUpdateDialog();
-            } else {
-              dialog.showMessageBox(mainWindow!, {
-                type: 'warning',
-                title: L.updatesTitle,
-                message: L.updatesUnavailable,
-                buttons: ['OK'],
-              });
-            }
-          },
-        },
-        { type: 'separator' },
-        {
-          label: L.docs,
-          click: () => {
-            shell.openExternal('https://github.com/klinnex/bellepoule-modern/wiki');
-          },
-        },
-        {
-          label: L.reportBug,
-          accelerator: 'CmdOrCtrl+Shift+I',
-          click: () => {
-            mainWindow?.webContents.send('menu:report-issue');
-          },
-        },
-        { type: 'separator' },
-        {
-          label: 'GitHub',
-          click: () => {
-            shell.openExternal('https://github.com/klinnex/bellepoule-modern');
-          },
-        },
-      ],
-    },
-  ];
-
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
-}
-
-// ============================================================================
 // IPC Handlers - Database Operations
 // ============================================================================
 
-const {
-  handleOpenFile,
-  exportCompetitionDialog,
-  saveGlobalBackup,
-  handleSaveAs,
-  handleExport,
-  handleImport,
-  showAbout,
-  startRemoteScoreServer,
-  stopRemoteScoreServer,
-  setCurrentCompetitionId,
-} = createMenuActions({ db, getMainWindow: () => mainWindow });
+const menuActions = createMenuActions({ db, getMainWindow: () => mainWindow });
+const { handleOpenFile, exportCompetitionDialog, setCurrentCompetitionId } = menuActions;
+const buildMenu = (language?: string): void =>
+  createMenu(
+    {
+      db,
+      getMainWindow: () => mainWindow,
+      getAutoUpdater: () => autoUpdater,
+      actions: menuActions,
+    },
+    language
+  );
 
 registerDbHandlers({ db, remoteServers, stopRemoteServer });
 registerFileHandlers({ db, getMainWindow: () => mainWindow });
@@ -725,7 +534,7 @@ ipcMain.handle('app:getVersionInfo', async () => {
 ipcMain.on('app:language-changed', (_, lang: string) => {
   setUiLanguage(lang);
   saveLanguageToFile(lang);
-  createMenu(lang);
+  buildMenu(lang);
   for (const { server } of remoteServers.values()) {
     server.setLanguage(lang);
   }

@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 38 | 313 |
+| `src/main/` | 39 | 316 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 124 |
 | `src/renderer/components/` | 44 | 209 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **220** | **1843** |
+| **Total** | **221** | **1846** |
 
-Unitaires : 211 fichiers, 1808 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 212 fichiers, 1811 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2222,6 +2222,16 @@ Unitaires : 211 fichiers, 1808 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **mainWindowRef**
   - renvoie null par défaut puis la fenêtre définie
   - renvoie null si la fenêtre est détruite
+
+</details>
+
+<details>
+<summary><code>src/main/menu.test.ts</code> — 3 tests</summary>
+
+- **createMenu (#1341)**
+  - construit un menu avec plusieurs sections
+  - Ctrl+S force la sauvegarde et notifie le renderer
+  - échec de sauvegarde : signale autosave:failed
 
 </details>
 
