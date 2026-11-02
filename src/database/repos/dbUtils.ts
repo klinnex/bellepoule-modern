@@ -2,6 +2,8 @@
  * Utilitaires partagés par DatabaseManager et les dépôts par domaine (#1242).
  */
 
+import { logger, LogCategory } from '../../shared/services/logger';
+
 // Champs texte d'un tireur normalisés avant stockage (#1147)
 export const FENCER_TEXT_FIELDS = new Set([
   'lastName',
@@ -21,7 +23,7 @@ export function safeJsonParse<T = any>(raw: unknown, fallback: T, context = ''):
   try {
     return JSON.parse(raw) as T;
   } catch {
-    console.error(`DB: JSON invalide ignoré${context ? ` (${context})` : ''}`);
+    logger.error(LogCategory.DATABASE, `DB: JSON invalide ignoré${context ? ` (${context})` : ''}`);
     return fallback;
   }
 }
