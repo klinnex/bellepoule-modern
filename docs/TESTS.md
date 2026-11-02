@@ -97,16 +97,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 31 | 296 |
 | `src/renderer/services/` | 4 | 22 |
-| `src/renderer/hooks/` | 24 | 115 |
+| `src/renderer/hooks/` | 25 | 120 |
 | `src/renderer/components/` | 44 | 209 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 11 | 57 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **211** | **1817** |
+| **Total** | **212** | **1822** |
 
-Unitaires : 202 fichiers, 1782 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 203 fichiers, 1787 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3003,6 +3003,18 @@ Unitaires : 202 fichiers, 1782 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - charge le thème sauvegardé au montage
   - isLight vrai en mode clair
   - expose 3 thèmes disponibles
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useUndoStack.test.tsx</code> — 5 tests</summary>
+
+- **useUndoStack**
+  - restaure les états dans l’ordre inverse
+  - borne la pile
+  - refuse l’annulation hors fenêtre
+  - lock masque l’annulation jusqu’à la prochaine action locale
+  - vide la pile au changement de portée
 
 </details>
 
