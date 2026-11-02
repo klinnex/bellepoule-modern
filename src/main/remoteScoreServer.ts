@@ -67,7 +67,7 @@ import {
 import { sanitizeAnnouncement } from './remote/announcement';
 import * as slots from './remote/arenaSlots';
 import { applySmartMatchOrder, isMatchPlayable } from './remote/matchOrder';
-import { createPublicParser } from './remote/publicDto';
+import { createHttpStack, startCleanupTimer, isAllowedOrigin } from './remote/serverSetup';
 import {
   buildPage,
   sendStored,
@@ -825,41 +825,19 @@ export class RemoteScoreServer {
     this.port = port;
     this.host = host;
     this.useHttps = !!tlsOptions;
-    this.app = express();
-    this.server = tlsOptions
-      ? createHttpsServer({ cert: tlsOptions.cert, key: tlsOptions.key }, this.app)
-      : createHttpServer(this.app);
-    // Limiter CORS au réseau local (localhost + LAN) pour la sécurité
-    this.io = new SocketIOServer(this.server, {
-      // 1 Mo : select_match peut transporter les photos base64 des tireurs
-      maxHttpBufferSize: 1e6,
-      parser: createPublicParser(() => this.sessionShowPhotos), // sans données personnelles (#1194)
-      // Origine vérifiée à la poignée de main (WebSocket n'est pas soumis au CORS navigateur)
-      allowRequest: (req, callback) => {
-        callback(null, this.isAllowedOrigin(req.headers.origin, req.headers.host));
-      },
-      cors: {
-        origin: (origin, callback) => {
-          // Autoriser les requêtes sans origin (ex. Electron, curl) et le réseau local
-          if (!origin) return callback(null, true);
-          callback(null, isLocalNetworkOrigin(origin));
-        },
-        methods: ['GET', 'POST'],
-      },
-    });
+    const stack = createHttpStack(tlsOptions, () => this.sessionShowPhotos);
+    this.app = stack.app;
+    this.server = stack.server;
+    this.io = stack.io;
 
-    // Purge périodique des maps de rate-limiting/debounce (évite la croissance non bornée)
-    this.cleanupInterval = setInterval(() => {
-      const now = Date.now();
-      this.loginGuard.purge(now);
-      purgeExpiredTokens(this.trainerTokens, now);
-      purgeExpiredTokens(this.checkinTokens, now);
-      for (const tokens of this.arenaTokens.values()) purgeExpiredTokens(tokens, now);
-      this.scoreLimiter.purge(now);
-      for (const [key, ts] of this.scoreUpdateDebounce) {
-        if (now - ts > 60_000) this.scoreUpdateDebounce.delete(key);
-      }
-    }, 5 * 60_000);
+    this.cleanupInterval = startCleanupTimer({
+      loginGuard: this.loginGuard,
+      scoreLimiter: this.scoreLimiter,
+      trainerTokens: this.trainerTokens,
+      checkinTokens: this.checkinTokens,
+      arenaTokens: this.arenaTokens,
+      scoreUpdateDebounce: this.scoreUpdateDebounce,
+    });
 
     // Charger le client socket.io AVANT le HTML (injection inline dans loadHtmlFiles)
     this.loadSocketIoClient();
@@ -977,18 +955,8 @@ export class RemoteScoreServer {
   private static normalizeIp = normalizeIp;
   private static isLoopbackAddress = isLoopbackAddress;
 
-  /** Origine acceptée : même hôte que la page ou réseau local. Bloque les pages web tierces
-   *  (CSRF, WebSocket cross-site). Origin absent accepté : le polling Socket.IO (GET même
-   *  origine) ne l'envoie pas, et un client hors navigateur peut de toute façon le forger. */
-  private isAllowedOrigin(origin: string | undefined, host: string | undefined): boolean {
-    if (!origin) return true;
-    try {
-      if (host && new URL(origin).host === host) return true;
-    } catch {
-      return false;
-    }
-    return isLocalNetworkOrigin(origin);
-  }
+  /** Origine acceptée : même hôte que la page ou réseau local (voir remote/serverSetup.ts). */
+  private isAllowedOrigin = isAllowedOrigin;
 
   /** Requête émise depuis la machine hôte (loopback uniquement, sans X-Forwarded-For). */
   private isLoopbackRequest(req: express.Request): boolean {
