@@ -97,16 +97,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 28 | 282 |
 | `src/renderer/services/` | 4 | 22 |
-| `src/renderer/hooks/` | 26 | 123 |
+| `src/renderer/hooks/` | 26 | 124 |
 | `src/renderer/components/` | 44 | 209 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 47 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **208** | **1801** |
+| **Total** | **208** | **1802** |
 
-Unitaires : 199 fichiers, 1766 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 199 fichiers, 1767 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2957,10 +2957,11 @@ Unitaires : 199 fichiers, 1766 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useTableauUndo.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/hooks/useTableauUndo.test.tsx</code> — 4 tests</summary>
 
 - **useTableauUndo**
   - restaure les matchs enregistrés
+  - isole l’instantané des mutations en place
   - refuse l’annulation après transmission d’une piste
   - refuse l’annulation après les résultats finaux
 

@@ -10,7 +10,12 @@ import { useUndoStack } from './useUndoStack';
 
 const WINDOW_MS = 5 * 60 * 1000;
 
-export function useTableauUndo<M, R, A extends unknown[], B extends unknown[]>(opts: {
+export function useTableauUndo<
+  M extends object,
+  R,
+  A extends unknown[],
+  B extends unknown[],
+>(opts: {
   scopeKey?: string;
   onMatchesChange: (matches: M[]) => void;
   onComplete?: (results: R) => void;
@@ -51,7 +56,8 @@ export function useTableauUndo<M, R, A extends unknown[], B extends unknown[]>(o
   };
 
   return {
-    record: stack.record,
+    // Copie par match : propagateWinners mute les objets du tableau en place
+    record: (matches: M[]) => stack.record(matches.map(m => ({ ...m }))),
     canUndo: stack.canUndo,
     undo,
     onMatchArenaChange: arena,
