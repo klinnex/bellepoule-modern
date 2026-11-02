@@ -6,6 +6,7 @@
 import { RemoteSession, ArenaMatch } from '../../shared/types/remote';
 import { Weapon } from '../../shared/types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 type S = RemoteScoreServer;
 
@@ -83,7 +84,10 @@ export async function startSession(
         }
       : null;
   ctx.applyCompetitionSettings(competition);
-  console.log(`[RemoteScoreServer] Type d'arme de la compétition: ${ctx.sessionWeapon}`);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] Type d'arme de la compétition: ${ctx.sessionWeapon}`
+  );
 
   // Auto-detect number of strips from pool count if not specified or too small.
   // Ne pas ajuster pour une session DE pure (uniquement des matchs tableau) car le nombre de
@@ -95,7 +99,8 @@ export async function startSession(
     matchesFromRenderer.every((m: any) => m.isTableau || m.__poolFencers);
   if (!isDeOnlySession && strips <= 0) {
     const actualStrips = poolCount > 0 ? poolCount : 1;
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] Strips invalide (${strips}), ajustement automatique: ${actualStrips} (basé sur ${poolCount} poules)`
     );
     strips = actualStrips;
@@ -110,7 +115,8 @@ export async function startSession(
   }
   const maxPoolStrip = Math.max(0, ...poolStripMap.values());
   if (maxPoolStrip > strips) {
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] Nombre d'arènes étendu de ${strips} à ${maxPoolStrip} (piste assignée à une poule)`
     );
     strips = maxPoolStrip;
@@ -127,7 +133,10 @@ export async function startSession(
   let allMatches: any[];
   const poolNumberMap = new Map<string, number>();
   if (matchesFromRenderer && matchesFromRenderer.length > 0) {
-    console.log(`[RemoteScoreServer] ${matchesFromRenderer.length} matchs reçus du renderer`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] ${matchesFromRenderer.length} matchs reçus du renderer`
+    );
 
     // Extraire les marqueurs d'ordre des tireurs injectés par le renderer (__poolFencers)
     // Nécessaire car l'ordre FIE (ex: 4 tireurs: [1,4],[2,3],...) ne permet pas de reconstruire
@@ -146,11 +155,13 @@ export async function startSession(
     for (const [poolId, fencers] of fencerOrderMap) {
       if (fencers && fencers.length > 0) {
         ctx.poolFencersCache.set(poolId, fencers);
-        console.log(
+        logger.info(
+          LogCategory.NETWORK,
           `[RemoteScoreServer] Cache tireurs pre-rempli pour pool ${poolId}: ${fencers.length} tireurs`
         );
       } else {
-        console.warn(
+        logger.warn(
+          LogCategory.NETWORK,
           `[RemoteScoreServer] Marqueur __poolFencers vide pour pool ${poolId}, fallback DB`
         );
       }
@@ -164,27 +175,43 @@ export async function startSession(
             m.fencerB
           : true // Tous les matchs de poule, y compris finished (nécessaires pour la grille)
     );
-    console.log(`[RemoteScoreServer] ${allMatches.length} matchs après filtrage`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] ${allMatches.length} matchs après filtrage`
+    );
   } else {
     // Récupérer les matchs en attente depuis la DB
-    console.log('[RemoteScoreServer] Pas de matches reçus, recherche dans la DB...');
+    logger.info(
+      LogCategory.NETWORK,
+      '[RemoteScoreServer] Pas de matches reçus, recherche dans la DB...'
+    );
     const pendingMatches = ctx.db.getPendingMatches(competitionId);
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] ${pendingMatches.length} matchs en attente trouvés pour la compétition ${competitionId}`
     );
 
     // Si pas de matchs trouvés via getPendingMatches (phases), essayer de récupérer via pool_fencers
     allMatches = pendingMatches;
     if (pendingMatches.length === 0) {
-      console.log('[RemoteScoreServer] Tentative de récupération des matchs via pool_fencers...');
+      logger.info(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] Tentative de récupération des matchs via pool_fencers...'
+      );
       allMatches = ctx.db.getAllPendingMatchesFromPools(competitionId);
-      console.log(`[RemoteScoreServer] ${allMatches.length} matchs trouvés via fallback`);
+      logger.info(
+        LogCategory.NETWORK,
+        `[RemoteScoreServer] ${allMatches.length} matchs trouvés via fallback`
+      );
     }
   }
 
   // Stocker les matches pour pouvoir les utiliser pour charger le match suivant
   ctx.sessionMatches = allMatches;
-  console.log(`[RemoteScoreServer] ${ctx.sessionMatches.length} matches stockés en mémoire`);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] ${ctx.sessionMatches.length} matches stockés en mémoire`
+  );
 
   // Grouper les matches par pool
   const matchesByPool = new Map<string, any[]>();
@@ -196,7 +223,8 @@ export async function startSession(
     }
     matchesByPool.get(poolId)!.push(match);
   }
-  console.log(
+  logger.info(
+    LogCategory.NETWORK,
     `[RemoteScoreServer] ${matchesByPool.size} pools trouvées:`,
     Array.from(matchesByPool.keys())
   );
@@ -228,7 +256,10 @@ export async function startSession(
   }
 
   // Assigner les matchs aux arènes par pool (Pool 1 -> Arena 1, Pool 2 -> Arena 2, etc.)
-  console.log(`[RemoteScoreServer] Assignation des matches par pool aux ${strips} arènes`);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] Assignation des matches par pool aux ${strips} arènes`
+  );
 
   // Trier les poules par numéro pour garantir Poule 1 → Arène 1, Poule 2 → Arène 2, etc.
   // poolNumberMap est peuplé par les marqueurs __poolFencers du renderer ;
@@ -277,7 +308,8 @@ export async function startSession(
       continue;
     }
 
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] Pool ${poolId} -> Arène ${arenaId}, ${poolMatches.length} matches`
     );
 
@@ -297,7 +329,8 @@ export async function startSession(
       // Piste déjà occupée par une autre poule → cette poule enchaîne ensuite (file)
       const queue = ctx.arenaMatchQueue.get(arenaId) || [];
       ctx.arenaMatchQueue.set(arenaId, [...queue, arenaMatch]);
-      console.log(
+      logger.info(
+        LogCategory.NETWORK,
         `[RemoteScoreServer] Pool ${poolId} mise en file sur l'arène ${arenaId} (piste partagée)`
       );
       continue;
@@ -309,7 +342,8 @@ export async function startSession(
     const firstMatchIndex = poolMatches.findIndex(m => m.id === firstMatch.id);
     ctx.arenaNextMatchIndex.set(arenaId, firstMatchIndex + 1);
 
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] Match ${firstMatch.id} (Pool ${poolId}) assigné à l'arène ${arenaId}`
     );
   }
@@ -321,7 +355,8 @@ export async function startSession(
     .sort((a: any, b: any) => (b.round || 0) - (a.round || 0));
 
   if (deMatches.length > 0) {
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] ${deMatches.length} matchs DE à distribuer sur ${strips} arènes`
     );
     const queuesByArena = new Map<string, ArenaMatch[]>();
@@ -355,14 +390,16 @@ export async function startSession(
           arenaId,
           queue.filter(m => m.id !== firstPlayable.id)
         );
-        console.log(
+        logger.info(
+          LogCategory.NETWORK,
           `[RemoteScoreServer] Match DE ${firstPlayable.id} chargé sur arène ${arenaId}, ${queue.length - 1} en file`
         );
       } else {
         // Arène occupée ou tous les matchs bloqués → tout en file
         const existing = ctx.arenaMatchQueue.get(arenaId) || [];
         ctx.arenaMatchQueue.set(arenaId, [...existing, ...queue]);
-        console.log(
+        logger.info(
+          LogCategory.NETWORK,
           `[RemoteScoreServer] ${queue.length} matchs DE mis en file sur arène ${arenaId}`
         );
       }
@@ -385,7 +422,10 @@ export async function startSession(
     startTime: new Date(),
   };
 
-  console.log(`[RemoteScoreServer] Session créée avec ${assignedMatchCount} matchs assignés`);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] Session créée avec ${assignedMatchCount} matchs assignés`
+  );
 
   return ctx.session;
 }

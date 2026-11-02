@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 type S = RemoteScoreServer;
 
@@ -41,35 +42,48 @@ export interface LifecycleContext {
 }
 
 export function startServer(ctx: LifecycleContext): Promise<void> {
-  console.log('[RemoteScoreServer] Démarrage du serveur...');
-  console.log(`[RemoteScoreServer] Port: ${ctx.port}`);
-  console.log(`[RemoteScoreServer] Interface: ${ctx.host}`);
-  console.log(
+  logger.info(LogCategory.NETWORK, '[RemoteScoreServer] Démarrage du serveur...');
+  logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Port: ${ctx.port}`);
+  logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Interface: ${ctx.host}`);
+  logger.info(
+    LogCategory.NETWORK,
     `[RemoteScoreServer] URL locale: ${ctx.useHttps ? 'https' : 'http'}://localhost:${ctx.port}`
   );
-  console.log(`[RemoteScoreServer] URL réseau: ${ctx.getServerUrl()}`);
+  logger.info(LogCategory.NETWORK, `[RemoteScoreServer] URL réseau: ${ctx.getServerUrl()}`);
 
   return new Promise((resolve, reject) => {
     ctx.server.once('error', (err: any) => {
-      console.error('[RemoteScoreServer] ERREUR DU SERVEUR:', err);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] ERREUR DU SERVEUR:', toError(err));
       if (err.code === 'EADDRINUSE') {
-        console.error(`[RemoteScoreServer] Le port ${ctx.port} est déjà utilisé!`);
+        logger.error(
+          LogCategory.NETWORK,
+          `[RemoteScoreServer] Le port ${ctx.port} est déjà utilisé!`
+        );
       }
       reject(err);
     });
 
     ctx.server.listen(ctx.port, ctx.host, () => {
       const url = ctx.getServerUrl();
-      console.log(`[RemoteScoreServer] ============================================`);
-      console.log(`[RemoteScoreServer] SERVEUR DÉMARRÉ AVEC SUCCÈS ✓`);
-      console.log(`[RemoteScoreServer] Port: ${ctx.port}`);
-      console.log(`[RemoteScoreServer] URL: ${url}`);
-      console.log(`[RemoteScoreServer] Arènes disponibles: ${ctx.arenaCount}`);
-      console.log(`[RemoteScoreServer] ============================================`);
-      console.log(`[RemoteScoreServer] Les arbitres peuvent se connecter sur: ${url}`);
+      logger.info(
+        LogCategory.NETWORK,
+        `[RemoteScoreServer] ============================================`
+      );
+      logger.info(LogCategory.NETWORK, `[RemoteScoreServer] SERVEUR DÉMARRÉ AVEC SUCCÈS ✓`);
+      logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Port: ${ctx.port}`);
+      logger.info(LogCategory.NETWORK, `[RemoteScoreServer] URL: ${url}`);
+      logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Arènes disponibles: ${ctx.arenaCount}`);
+      logger.info(
+        LogCategory.NETWORK,
+        `[RemoteScoreServer] ============================================`
+      );
+      logger.info(
+        LogCategory.NETWORK,
+        `[RemoteScoreServer] Les arbitres peuvent se connecter sur: ${url}`
+      );
       // Switch from one-shot 'once' error handler to persistent one for runtime errors
       ctx.server.on('error', (err: any) => {
-        console.error('[RemoteScoreServer] ERREUR DU SERVEUR:', err);
+        logger.error(LogCategory.NETWORK, '[RemoteScoreServer] ERREUR DU SERVEUR:', toError(err));
       });
       resolve();
     });
@@ -103,20 +117,24 @@ export function stopServer(ctx: LifecycleContext): void {
   if (ctx.server) {
     ctx.server.close();
     (ctx.server as any).closeAllConnections?.();
-    console.log('Remote score server stopped');
+    logger.info(LogCategory.NETWORK, 'Remote score server stopped');
   }
 }
 
 export function launchCompetition(ctx: LifecycleContext): void {
   if (!ctx.session) {
-    console.log('[RemoteScoreServer] launchCompetition: aucune session active');
+    logger.info(
+      LogCategory.NETWORK,
+      '[RemoteScoreServer] launchCompetition: aucune session active'
+    );
     return;
   }
 
   let launched = 0;
   for (const [arenaId, arena] of ctx.arenas) {
     if (arena.currentMatch && arena.currentMatch.status === 'not_started') {
-      console.log(
+      logger.info(
+        LogCategory.NETWORK,
         `[RemoteScoreServer] Lancement du match ${arena.currentMatch.id} sur arène ${arenaId}`
       );
       arena.currentMatch.status = 'ready';
@@ -124,7 +142,7 @@ export function launchCompetition(ctx: LifecycleContext): void {
       launched++;
     }
   }
-  console.log(`[RemoteScoreServer] ${launched} matchs lancés`);
+  logger.info(LogCategory.NETWORK, `[RemoteScoreServer] ${launched} matchs lancés`);
 }
 
 export function stopSession(ctx: LifecycleContext): void {

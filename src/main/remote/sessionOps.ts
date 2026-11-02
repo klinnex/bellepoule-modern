@@ -6,6 +6,7 @@
 import { MatchStatus, type Score } from '../../shared/types';
 import type { ArenaMatch, RemoteScoreUpdate, RemoteSession } from '../../shared/types/remote';
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 type S = RemoteScoreServer;
 
@@ -26,25 +27,35 @@ export async function createSession(
   competitionId: string,
   strips: number
 ): Promise<RemoteSession> {
-  console.log(
+  logger.info(
+    LogCategory.NETWORK,
     `[RemoteScoreServer] Création d'une session pour la compétition ${competitionId} avec ${strips} pistes...`
   );
 
   const competition = ctx.db.getCompetition(competitionId);
   if (!competition) {
-    console.error(`[RemoteScoreServer] ERREUR: Compétition ${competitionId} non trouvée`);
+    logger.error(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] ERREUR: Compétition ${competitionId} non trouvée`
+    );
     throw new Error('Compétition non trouvée');
   }
-  console.log(`[RemoteScoreServer] Compétition trouvée: ${competition.title}`);
+  logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Compétition trouvée: ${competition.title}`);
 
   // Le nombre de pistes est déjà défini côté client en fonction du nombre de poules
   // On l'utilise directement pour configurer les arènes
-  console.log(`[RemoteScoreServer] Configuration du nombre d'arènes: ${strips}`);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] Configuration du nombre d'arènes: ${strips}`
+  );
   ctx.setArenaCount(strips);
 
   // Récupérer les matchs en attente et les assigner aux arènes
   const pendingMatches = ctx.db.getPendingMatches(competitionId);
-  console.log(`[RemoteScoreServer] ${pendingMatches.length} matchs en attente trouvés`);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] ${pendingMatches.length} matchs en attente trouvés`
+  );
 
   // Assigner les matchs en attente aux arènes
   pendingMatches.slice(0, strips).forEach((match, index) => {
@@ -61,7 +72,10 @@ export async function createSession(
       endTime: null,
     };
     ctx.assignMatchToArena(arenaId, arenaMatch);
-    console.log(`[RemoteScoreServer] Match ${match.id} assigné à l'arène ${arenaId}`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Match ${match.id} assigné à l'arène ${arenaId}`
+    );
   });
 
   const session: RemoteSession = {
@@ -76,8 +90,11 @@ export async function createSession(
     startTime: new Date(),
   };
 
-  console.log(`[RemoteScoreServer] Session créée avec succès ✓`);
-  console.log(`[RemoteScoreServer] Détails: ${strips} pistes, ${session.referees.length} arbitres`);
+  logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Session créée avec succès ✓`);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] Détails: ${strips} pistes, ${session.referees.length} arbitres`
+  );
   return session;
 }
 

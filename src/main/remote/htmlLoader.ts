@@ -5,6 +5,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 /** Pages servies depuis la mémoire (src/remote/*.html). */
 export const REMOTE_HTML_FILES = [
@@ -64,17 +65,25 @@ export function loadSocketIoClient(): string | null {
     try {
       if (fs.existsSync(candidate)) {
         const js = fs.readFileSync(candidate, 'utf-8');
-        console.log(`[RemoteScoreServer] Client socket.io chargé depuis: ${candidate}`);
+        logger.info(
+          LogCategory.NETWORK,
+          `[RemoteScoreServer] Client socket.io chargé depuis: ${candidate}`
+        );
         return js;
       }
     } catch (err) {
-      console.error(`[RemoteScoreServer] Erreur lecture client socket.io ${candidate}:`, err);
+      logger.error(
+        LogCategory.NETWORK,
+        `[RemoteScoreServer] Erreur lecture client socket.io ${candidate}:`,
+        toError(err)
+      );
     }
   }
 
-  console.error(
+  logger.error(
+    LogCategory.NETWORK,
     '[RemoteScoreServer] ERREUR: client socket.io introuvable! Chemins testés:',
-    candidates
+    toError(candidates)
   );
   return null;
 }
@@ -118,41 +127,49 @@ export function loadRemoteHtmlFiles(socketIoClientJs: string | null): {
         path.join(__dirname, '../../src/remote'), // fallback source sans webpack
       ];
 
-  console.log('[RemoteScoreServer] Chargement des fichiers HTML...');
+  logger.info(LogCategory.NETWORK, '[RemoteScoreServer] Chargement des fichiers HTML...');
 
   for (const basePath of possiblePaths) {
-    console.log(`[RemoteScoreServer] Essai chemin: ${basePath}`);
+    logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Essai chemin: ${basePath}`);
 
     try {
       if (fs.existsSync(basePath)) {
-        console.log(`[RemoteScoreServer] Chemin trouvé: ${basePath}`);
+        logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Chemin trouvé: ${basePath}`);
 
         for (const file of REMOTE_HTML_FILES) {
           const filePath = path.join(basePath, file);
           if (fs.existsSync(filePath)) {
             htmlFiles.set(file, fs.readFileSync(filePath, 'utf-8'));
-            console.log(`[RemoteScoreServer] Chargé: ${file}`);
+            logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Chargé: ${file}`);
           } else {
-            console.log(`[RemoteScoreServer] Fichier non trouvé: ${filePath}`);
+            logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Fichier non trouvé: ${filePath}`);
           }
         }
 
         // Si on a chargé au moins un fichier, on utilise ce chemin
         if (htmlFiles.size > 0) {
-          console.log(`[RemoteScoreServer] ${htmlFiles.size} fichiers chargés depuis: ${basePath}`);
+          logger.info(
+            LogCategory.NETWORK,
+            `[RemoteScoreServer] ${htmlFiles.size} fichiers chargés depuis: ${basePath}`
+          );
           remoteBasePath = basePath;
           break;
         }
       }
     } catch (err) {
-      console.error(`[RemoteScoreServer] Erreur avec chemin ${basePath}:`, err);
+      logger.error(
+        LogCategory.NETWORK,
+        `[RemoteScoreServer] Erreur avec chemin ${basePath}:`,
+        toError(err)
+      );
     }
   }
 
   if (htmlFiles.size === 0) {
-    console.error('[RemoteScoreServer] ERREUR: Aucun fichier HTML chargé!');
+    logger.error(LogCategory.NETWORK, '[RemoteScoreServer] ERREUR: Aucun fichier HTML chargé!');
   } else {
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] Chargement terminé: ${Array.from(htmlFiles.keys()).join(', ')}`
     );
   }
@@ -164,9 +181,13 @@ export function loadRemoteHtmlFiles(socketIoClientJs: string | null): {
       const updated = inlineSocketIoClient(content, socketIoClientJs);
       if (updated !== content) htmlFiles.set(name, updated);
     }
-    console.log('[RemoteScoreServer] Client socket.io injecté inline dans le HTML ✓');
+    logger.info(
+      LogCategory.NETWORK,
+      '[RemoteScoreServer] Client socket.io injecté inline dans le HTML ✓'
+    );
   } else {
-    console.error(
+    logger.error(
+      LogCategory.NETWORK,
       '[RemoteScoreServer] ATTENTION: client socket.io non chargé, fallback sur /bp-sio.js'
     );
   }
