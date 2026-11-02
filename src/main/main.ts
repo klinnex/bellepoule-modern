@@ -30,7 +30,13 @@ import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
 import { printHtmlSilently, printHtmlWithSystemDialog } from './printWindows';
 import { findAvailablePort, remoteServers, stopRemoteServer, usedPorts } from './remoteRegistry';
 import { applyActiveWave, setActiveWave } from './remote/activeWave';
-import { isAllowedExternalUrl, isAppUrl, isPermissionAllowed } from './windowSecurity';
+import {
+  allowsInlineStyles,
+  buildSessionCsp,
+  isAllowedExternalUrl,
+  isAppUrl,
+  isPermissionAllowed,
+} from './windowSecurity';
 import {
   assertAuthorizedPath,
   authorizePath,
@@ -241,19 +247,12 @@ function createWindow(initialLang?: string): void {
 
   // Security: Set CSP headers for all requests
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    // Fenêtre principale : style-src strict ; impression / PDF : 'unsafe-inline' (#1343)
+    const inline = allowsInlineStyles(details.webContentsId, mainWindow?.webContents.id);
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': [
-          "default-src 'self'; " +
-            "script-src 'self'; " +
-            "style-src 'self' 'unsafe-inline'; " +
-            "font-src 'self'; " +
-            "img-src 'self' data: blob:; " +
-            "media-src 'self' blob:; " +
-            "connect-src 'self' http://localhost:* https://api.github.com https://api.ffe.fr; " +
-            "frame-ancestors 'none';",
-        ],
+        'Content-Security-Policy': [buildSessionCsp(inline)],
         'X-Content-Type-Options': ['nosniff'],
         'X-Frame-Options': ['DENY'],
         'X-XSS-Protection': ['1; mode=block'],

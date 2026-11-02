@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { isAllowedExternalUrl, isAppUrl, isPermissionAllowed } from './windowSecurity';
+import {
+  allowsInlineStyles,
+  buildSessionCsp,
+  isAllowedExternalUrl,
+  isAppUrl,
+  isPermissionAllowed,
+} from './windowSecurity';
 
 const prod = { dev: false, rendererDir: '/opt/app/dist/renderer' };
 const dev = { dev: true, rendererDir: '/opt/app/dist/renderer' };
@@ -73,5 +79,22 @@ describe('configuration Electron (#1148)', () => {
   it('meta CSP du renderer sans unsafe-inline pour les styles (#1157)', () => {
     const html = readFileSync(join(__dirname, '../renderer/index.html'), 'utf8');
     expect(html).toMatch(/style-src 'self';/);
+  });
+});
+
+describe('CSP de session (#1343)', () => {
+  it('fenêtre principale : style-src strict', () => {
+    expect(buildSessionCsp(false)).toContain("style-src 'self';");
+    expect(buildSessionCsp(false)).not.toContain('unsafe-inline');
+  });
+  it('impression / PDF : unsafe-inline pour les styles seulement', () => {
+    const csp = buildSessionCsp(true);
+    expect(csp).toContain("style-src 'self' 'unsafe-inline';");
+    expect(csp).toContain("script-src 'self';");
+  });
+  it('seule la fenêtre principale est stricte', () => {
+    expect(allowsInlineStyles(1, 1)).toBe(false);
+    expect(allowsInlineStyles(2, 1)).toBe(true);
+    expect(allowsInlineStyles(undefined, 1)).toBe(true);
   });
 });

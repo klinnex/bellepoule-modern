@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 30 | 291 |
+| `src/main/` | 30 | 294 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 24 | 115 |
 | `src/renderer/components/` | 44 | 209 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **209** | **1805** |
+| **Total** | **209** | **1808** |
 
-Unitaires : 200 fichiers, 1770 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 200 fichiers, 1773 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2602,7 +2602,7 @@ Unitaires : 200 fichiers, 1770 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/windowSecurity.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/windowSecurity.test.ts</code> — 11 tests</summary>
 
 - **isAppUrl (#1148)**
   - prod : file:// du bundle uniquement
@@ -2616,6 +2616,10 @@ Unitaires : 200 fichiers, 1770 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - fuses : RunAsNode off, asar seul
   - meta CSP du renderer sans unsafe-inline pour les scripts
   - meta CSP du renderer sans unsafe-inline pour les styles (#1157)
+- **CSP de session (#1343)**
+  - fenêtre principale : style-src strict
+  - impression / PDF : unsafe-inline pour les styles seulement
+  - seule la fenêtre principale est stricte
 
 </details>
 
