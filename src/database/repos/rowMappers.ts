@@ -16,6 +16,7 @@ import {
   MatchEventType,
 } from '../../shared/types';
 import { safeJsonParse } from './dbUtils';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export function parseCompetitionRow(row: any): Competition {
   try {
@@ -38,7 +39,7 @@ export function parseCompetitionRow(row: any): Competition {
       try {
         settings = JSON.parse(row.settings as string);
       } catch (e) {
-        console.error('DB: Failed to parse settings JSON:', e);
+        logger.error(LogCategory.DATABASE, 'DB: Failed to parse settings JSON:', toError(e));
       }
     }
     return {
@@ -64,7 +65,7 @@ export function parseCompetitionRow(row: any): Competition {
       updatedAt: row.updated_at ? new Date(row.updated_at as string) : new Date(),
     };
   } catch (error) {
-    console.error('DB: Error parsing competition data:', error);
+    logger.error(LogCategory.DATABASE, 'DB: Error parsing competition data:', toError(error));
     throw error;
   }
 }
@@ -75,7 +76,14 @@ export function parseFencerRow(row: any): Fencer {
     try {
       poolStats = JSON.parse(row.pool_stats as string);
     } catch {
-      console.error('DB: Failed to parse pool_stats JSON for fencer', row.id);
+      logger.error(
+        LogCategory.DATABASE,
+        'DB: Failed to parse pool_stats JSON for fencer',
+        undefined,
+        {
+          fencerId: row.id,
+        }
+      );
     }
   }
   return {

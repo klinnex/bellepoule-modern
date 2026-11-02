@@ -309,6 +309,7 @@ export async function optimizeImage(
 // ============================================================================
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { logger, LogCategory } from './logger';
 
 export function useVirtualList<T>(items: T[], config: VirtualListConfig) {
   const [scrollTop, setScrollTop] = useState(0);
@@ -363,7 +364,7 @@ export class PerformanceMonitor {
   measure(name: string, startMark: string): number {
     const startTime = this.marks.get(startMark);
     if (!startTime) {
-      console.warn(`Mark ${startMark} not found`);
+      logger.warn(LogCategory.PERFORMANCE, `Mark ${startMark} not found`);
       return 0;
     }
 
