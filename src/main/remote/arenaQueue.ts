@@ -7,6 +7,7 @@ import { ArenaMatch } from '../../shared/types/remote';
 import { Match, MatchStatus } from '../../shared/types';
 import * as slots from './arenaSlots';
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 type S = RemoteScoreServer;
 
@@ -103,7 +104,8 @@ export function peekNextMatch(ctx: ArenaQueueContext, arenaId: string): ArenaMat
 export function loadNextMatch(ctx: ArenaQueueContext, arenaId: string): void {
   const arena = ctx.arenas.get(arenaId);
   if (!arena || !ctx.session) {
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] Impossible de charger le match suivant: arène ou session invalide`
     );
     return;
@@ -113,16 +115,20 @@ export function loadNextMatch(ctx: ArenaQueueContext, arenaId: string): void {
   const currentPoolId = ctx.arenaHomePoolId(arena);
   let completedPoolId: string | null = null;
 
-  console.log(
+  logger.info(
+    LogCategory.NETWORK,
     `[RemoteScoreServer] loadNextMatch: arena=${arenaId}, pool=${currentPoolId}, total=${ctx.sessionMatches.length}`
   );
 
   // Si pas de matches en mémoire, essayer la DB (sauf mode entraînement)
   if (ctx.sessionMatches.length === 0 && !ctx.isTrainingMode) {
-    console.log('[RemoteScoreServer] Pas de matches en mémoire, recherche dans la DB...');
+    logger.info(
+      LogCategory.NETWORK,
+      '[RemoteScoreServer] Pas de matches en mémoire, recherche dans la DB...'
+    );
     const pendingMatches = ctx.db.getPendingMatches(ctx.session.competitionId);
     if (pendingMatches.length === 0) {
-      console.log('[RemoteScoreServer] Pas de matches non plus en DB');
+      logger.info(LogCategory.NETWORK, '[RemoteScoreServer] Pas de matches non plus en DB');
       arena.currentMatch = null;
       arena.status = 'idle';
       ctx.updateArena(arenaId, { currentMatch: null, status: 'idle' });
@@ -158,7 +164,8 @@ export function loadNextMatch(ctx: ArenaQueueContext, arenaId: string): void {
       .applySmartMatchOrder(rawPoolMatches as Match[])
       .filter(m => m.status !== MatchStatus.FINISHED && ctx.isMatchPlayable(m));
 
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] ${poolMatches.length} matches en attente dans le pool ${currentPoolId} (ordre smart)`
     );
 
@@ -175,7 +182,8 @@ export function loadNextMatch(ctx: ArenaQueueContext, arenaId: string): void {
       );
     }
     if (nextMatch) {
-      console.log(
+      logger.info(
+        LogCategory.NETWORK,
         `[RemoteScoreServer] Chargement du match ${nextMatch.id} (pool ${currentPoolId}) sur arène ${arenaId}`
       );
 
@@ -195,7 +203,8 @@ export function loadNextMatch(ctx: ArenaQueueContext, arenaId: string): void {
       return;
     }
 
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] Plus de matches dans le pool ${currentPoolId} pour l'arène ${arenaId}`
     );
 
@@ -210,7 +219,7 @@ export function loadNextMatch(ctx: ArenaQueueContext, arenaId: string): void {
           completedPoolId = currentPoolId;
         }
       } catch (e) {
-        console.warn('[RemoteScoreServer] pool completion check failed:', e);
+        logger.warn(LogCategory.NETWORK, '[RemoteScoreServer] pool completion check failed:', e);
       }
   }
 
@@ -220,7 +229,8 @@ export function loadNextMatch(ctx: ArenaQueueContext, arenaId: string): void {
     const nextDeMatch = deQueue[0];
 
     ctx.arenaMatchQueue.set(arenaId, deQueue.slice(1));
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] Match DE suivant ${nextDeMatch.id} chargé depuis la file sur arène ${arenaId}`
     );
     ctx.assignMatchToArena(arenaId, nextDeMatch);
@@ -239,7 +249,7 @@ export function loadNextMatch(ctx: ArenaQueueContext, arenaId: string): void {
     ...(completedPoolId ? { poolComplete: true, completedPoolId } : {}),
   });
   ctx.persistArenaState(arenaId);
-  console.log(`[RemoteScoreServer] Arène ${arenaId} marquée comme vide`);
+  logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Arène ${arenaId} marquée comme vide`);
 }
 
 export function updateMatchArena(
@@ -349,7 +359,8 @@ export function updateMatchArena(
         isTableau: true,
         status: 'not_started',
       } as any);
-      console.log(
+      logger.info(
+        LogCategory.NETWORK,
         `[RemoteScoreServer] Match DE ${matchId} ajouté à sessionMatches depuis updateMatchArena`
       );
     }
@@ -374,7 +385,10 @@ export function updateMatchArena(
     ctx.updateArena(toArenaId, { status: toArenaObj.status });
   }
 
-  console.log(`[RemoteScoreServer] Match ${matchId} assigné à arena${toArena}`);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] Match ${matchId} assigné à arena${toArena}`
+  );
 }
 
 /**
@@ -636,7 +650,8 @@ export function refreshDeMatches(ctx: ArenaQueueContext, matchesFromRenderer: an
     }
   }
 
-  console.log(
+  logger.info(
+    LogCategory.NETWORK,
     `[RemoteScoreServer] refreshDeMatches: ${deMatches.length} matchs DE, ${pending.length} distribués`
   );
 

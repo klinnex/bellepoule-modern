@@ -6,6 +6,7 @@
 import { ArenaMatch } from '../../shared/types/remote';
 import { Weapon } from '../../shared/types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 type S = RemoteScoreServer;
 
@@ -37,12 +38,13 @@ export function assignMatchToArena(
   match: ArenaMatch,
   fromReferee = false
 ): void {
-  console.log(
+  logger.info(
+    LogCategory.NETWORK,
     `[RemoteScoreServer] assignMatchToArena called: arenaId=${arenaId}, matchId=${match.id}, fromReferee=${fromReferee}`
   );
   const arena = ctx.arenas.get(arenaId);
   if (!arena) {
-    console.error(`[RemoteScoreServer] ERREUR: Arène ${arenaId} n'existe pas!`);
+    logger.error(LogCategory.NETWORK, `[RemoteScoreServer] ERREUR: Arène ${arenaId} n'existe pas!`);
     return;
   }
 
@@ -68,7 +70,10 @@ export function assignMatchToArena(
   });
 
   ctx.persistArenaState(arenaId);
-  console.log(`[RemoteScoreServer] Match assigné avec succès à l'arène ${arenaId}`);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] Match assigné avec succès à l'arène ${arenaId}`
+  );
 }
 
 export function startArenaMatch(ctx: ArenaOpsContext, arenaId: string): void {
@@ -108,7 +113,8 @@ export function updateArenaScore(
 
   // Ignorer si le match est terminé
   if (arena.status === 'finished' || arena.currentMatch.status === 'finished') {
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] Match terminé, mise à jour du score ignorée pour arène ${arenaId}`
     );
     return;
@@ -137,7 +143,11 @@ export function updateArenaScore(
       });
     }
   } catch (e) {
-    console.warn('[RemoteScoreServer] logScoreChange (updateArenaScore) failed:', e);
+    logger.warn(
+      LogCategory.NETWORK,
+      '[RemoteScoreServer] logScoreChange (updateArenaScore) failed:',
+      e
+    );
   }
 
   // Envoyer la mise à jour via WebSocket
@@ -184,7 +194,8 @@ function checkAndAutoFinishMatch(
     (scoreA >= SCORE_LIMIT && previousScoreA < SCORE_LIMIT) ||
     (scoreB >= SCORE_LIMIT && previousScoreB < SCORE_LIMIT);
   if (justCrossed) {
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] Score limite (${SCORE_LIMIT}) atteint - notification arbitre pour l'arène ${arenaId}`
     );
     ctx.io.to(`arena:${arenaId}`).emit(`arena:${arenaId}:score_limit_reached`);

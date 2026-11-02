@@ -7,6 +7,7 @@ import { MatchStatus, FencerStatus, Score } from '../../shared/types';
 import type { BlackCardRecord } from './types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 type S = RemoteScoreServer;
 
@@ -102,7 +103,11 @@ export function cancelBlackCard(
   try {
     ctx.db.updateFencer(fencerId, { status, exclusionReason: null });
   } catch (e) {
-    console.error('[RemoteScoreServer] Erreur réintégration combattant:', e);
+    logger.error(
+      LogCategory.NETWORK,
+      '[RemoteScoreServer] Erreur réintégration combattant:',
+      toError(e)
+    );
     return { success: false, status: 500, error: 'reinstate_failed' };
   }
 
@@ -158,7 +163,8 @@ export function cancelBlackCard(
   }
 
   ctx.sessionBlackCards.delete(fencerId);
-  console.log(
+  logger.info(
+    LogCategory.NETWORK,
     `[RemoteScoreServer] Carton noir annulé : combattant ${fencerId} réintégré, match ${matchId} rouvert`
   );
 

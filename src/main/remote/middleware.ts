@@ -10,6 +10,7 @@ import { publicJson } from './publicDto';
 import { jsonCompression, sendStored } from './pageStore';
 import { isLoginPath } from './network';
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 type S = RemoteScoreServer;
 
@@ -24,7 +25,7 @@ export interface MiddlewareContext {
 }
 
 export function setupMiddleware(ctx: MiddlewareContext): void {
-  console.log('[RemoteScoreServer] Configuration du middleware...');
+  logger.info(LogCategory.NETWORK, '[RemoteScoreServer] Configuration du middleware...');
   // Limite de taille : les photos d'inscription (base64 ~700KB) sont le plus gros payload légitime.
   // Routes de connexion : 4 Ko suffisent (mot de passe seul).
   const smallJson = express.json({ limit: '4kb' });
@@ -92,39 +93,59 @@ export function setupMiddleware(ctx: MiddlewareContext): void {
     remotePath = '';
     const fs = require('fs');
     for (const p of possiblePaths) {
-      console.log(`[RemoteScoreServer] Vérification chemin: ${p}`);
+      logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Vérification chemin: ${p}`);
       if (fs.existsSync(p)) {
         remotePath = p;
-        console.log(`[RemoteScoreServer] Chemin valide trouvé: ${p}`);
+        logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Chemin valide trouvé: ${p}`);
         break;
       }
     }
 
     if (!remotePath) {
-      console.error('[RemoteScoreServer] ERREUR: Aucun chemin valide trouvé!');
-      console.error('[RemoteScoreServer] Chemins testés:', possiblePaths);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] ERREUR: Aucun chemin valide trouvé!');
+      logger.error(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] Chemins testés:',
+        toError(possiblePaths)
+      );
       // Utiliser le dernier chemin comme fallback
       remotePath = possiblePaths[possiblePaths.length - 1];
     }
   }
 
-  console.log('[RemoteScoreServer] Chemin des fichiers distants:', remotePath);
-  console.log('[RemoteScoreServer] NODE_ENV:', process.env.NODE_ENV || 'production');
-  console.log('[RemoteScoreServer] __dirname:', __dirname);
-  console.log('[RemoteScoreServer] process.resourcesPath:', process.resourcesPath);
+  logger.info(LogCategory.NETWORK, '[RemoteScoreServer] Chemin des fichiers distants:', remotePath);
+  logger.info(
+    LogCategory.NETWORK,
+    '[RemoteScoreServer] NODE_ENV:',
+    process.env.NODE_ENV || 'production'
+  );
+  logger.info(LogCategory.NETWORK, '[RemoteScoreServer] __dirname:', __dirname);
+  logger.info(
+    LogCategory.NETWORK,
+    '[RemoteScoreServer] process.resourcesPath:',
+    process.resourcesPath
+  );
 
   // Vérifier que le dossier existe
   try {
     const fs = require('fs');
     if (fs.existsSync(remotePath)) {
-      console.log('[RemoteScoreServer] Dossier distant trouvé ✓');
+      logger.info(LogCategory.NETWORK, '[RemoteScoreServer] Dossier distant trouvé ✓');
       const files = fs.readdirSync(remotePath);
-      console.log('[RemoteScoreServer] Fichiers disponibles:', files);
+      logger.info(LogCategory.NETWORK, '[RemoteScoreServer] Fichiers disponibles:', files);
     } else {
-      console.error('[RemoteScoreServer] ERREUR: Dossier distant non trouvé!', remotePath);
+      logger.error(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] ERREUR: Dossier distant non trouvé!',
+        toError(remotePath)
+      );
     }
   } catch (err) {
-    console.error('[RemoteScoreServer] ERREUR lors de la vérification du dossier:', err);
+    logger.error(
+      LogCategory.NETWORK,
+      '[RemoteScoreServer] ERREUR lors de la vérification du dossier:',
+      toError(err)
+    );
   }
 
   // Pages HTML : toujours via la mémoire (nonce CSP), jamais en fichier statique brut
@@ -155,7 +176,10 @@ export function setupMiddleware(ctx: MiddlewareContext): void {
   ctx.app.use(express.static(remotePath));
 
   ctx.app.use((req, res, next) => {
-    console.log(`[RemoteScoreServer] ${req.method} ${req.url} - ${new Date().toISOString()}`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] ${req.method} ${req.url} - ${new Date().toISOString()}`
+    );
     // Restreindre CORS au réseau local uniquement (même logique que Socket.IO)
     const origin = req.headers.origin;
     if (origin && isLocalNetworkOrigin(origin)) {
@@ -170,5 +194,5 @@ export function setupMiddleware(ctx: MiddlewareContext): void {
     }
     next();
   });
-  console.log('[RemoteScoreServer] Middleware configuré ✓');
+  logger.info(LogCategory.NETWORK, '[RemoteScoreServer] Middleware configuré ✓');
 }

@@ -6,6 +6,7 @@
 import type { ArenaUpdate } from '../../shared/types/remote';
 import { getSharedMainWindow } from '../mainWindowRef';
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 type S = RemoteScoreServer;
 
@@ -121,6 +122,10 @@ export function persistArenaState(ctx: ArenaBroadcastContext, arenaId: string): 
       status: arena.status,
     });
   } catch (err) {
-    console.error(`[RemoteScoreServer] Erreur persistance arène ${arenaId}:`, err);
+    logger.error(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Erreur persistance arène ${arenaId}:`,
+      toError(err)
+    );
   }
 }
