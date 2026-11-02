@@ -67,12 +67,22 @@ Colonne absente : clic droit sur l'en-tête des colonnes → cocher **Type**.
 1. Ouvrir le `.dmg` téléchargé
 2. Glisser **BellePoule Modern** dans **Applications**
 3. Premier lancement : l'app est signée ad-hoc, **non notarisée** → macOS la bloque.
-   - Réglages Système → **Confidentialité et sécurité** → **Ouvrir quand même**
-   - ou, dans le Terminal :
+   Le téléchargement par navigateur ajoute un attribut de quarantaine. Si macOS affiche
+   « BellePoule Modern est endommagé et ne peut pas être ouvert », l'option **Ouvrir quand même**
+   n'apparaît pas : il faut retirer la quarantaine dans le Terminal :
 
-     ```bash
-     xattr -cr "/Applications/BellePoule Modern.app"
-     ```
+   ```bash
+   xattr -cr "/Applications/BellePoule Modern.app"
+   ```
+
+   Puis lancer l'app normalement. À faire **après** avoir glissé l'app dans Applications
+   (pas depuis le DMG monté, en lecture seule).
+
+   Si le message persiste, re-signer localement :
+
+   ```bash
+   sudo codesign --force --deep --sign - "/Applications/BellePoule Modern.app"
+   ```
 
 ## 4. Changer de version (x64 → arm64)
 
