@@ -1125,10 +1125,10 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           role="dialog"
           aria-modal="true"
         >
-          <div className="modal-header" style={{ cursor: 'move' }}>
+          <div className="modal-header is-0430c2">
             <h3 className="modal-title">{t('poolView.quick_score')}</h3>
           </div>
-          <div className="modal-body" style={{ padding: '2rem' }}>
+          <div className="modal-body is-a48125">
             {/* Ligne unique avec les deux tireurs côte à côte */}
             <div style={SCORE_ROW}>
               {/* Tireur gauche (ligne dans la grille) */}
@@ -1266,12 +1266,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
             {/* Info égalité sabre laser */}
             {isLaserSabre && (
-              <p
-                className="text-sm text-muted"
-                style={{ textAlign: 'center', marginBottom: '1rem' }}
-              >
-                {t('poolView.tie_hint')}
-              </p>
+              <p className="text-sm text-muted is-b92227">{t('poolView.tie_hint')}</p>
             )}
 
             {/* Boutons spéciaux sur une ligne */}
