@@ -285,23 +285,11 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
   );
 
   return (
-    <div
-      className="referee-manager"
-      style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}
-    >
-      <h2
-        style={{
-          marginBottom: '1rem',
-          color: 'var(--color-text)',
-          borderBottom: '2px solid var(--color-border)',
-          paddingBottom: '0.5rem',
-        }}
-      >
-        {t('refereeManager.title')}
-      </h2>
+    <div className="referee-manager is-da3621">
+      <h2 className="is-5a6e65">{t('refereeManager.title')}</h2>
 
       {/* Onglets */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+      <div className="is-c6beb3">
         {(['referees', 'assignments', 'history', 'stats'] as const).map(tab => (
           <button
             key={tab}
@@ -330,26 +318,11 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
       {activeTab === 'referees' && (
         <div>
           {/* Formulaire ajout */}
-          <div
-            style={{
-              background: 'var(--color-surface-2)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '8px',
-              padding: '1rem',
-              marginBottom: '1.5rem',
-            }}
-          >
-            <h3 style={{ marginBottom: '0.75rem', fontSize: '1rem', color: 'var(--color-text)' }}>
+          <div className="is-2afd08">
+            <h3 className="is-29c898">
               {editingId ? 'Modifier un arbitre' : 'Ajouter un arbitre'}
             </h3>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                gap: '0.75rem',
-                marginBottom: '0.75rem',
-              }}
-            >
+            <div className="is-886621">
               <input
                 placeholder={t('refereeManager.ph_name')}
                 value={newReferee.name}
@@ -381,12 +354,8 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 style={INPUT}
               />
             </div>
-            {addError && (
-              <p style={{ color: '#dc2626', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                {addError}
-              </p>
-            )}
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {addError && <p className="is-72cabb">{addError}</p>}
+            <div className="is-52d632">
               <button
                 onClick={async () => {
                   if (!newReferee.name.trim()) {
@@ -444,15 +413,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     setAddError(e?.message ?? 'Erreur');
                   }
                 }}
-                style={{
-                  background: 'var(--color-primary)',
-                  color: 'white',
-                  border: 'none',
-                  padding: '0.5rem 1.25rem',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontWeight: '500',
-                }}
+                className="is-e1038a"
               >
                 {editingId ? '💾 Enregistrer' : '＋ Ajouter'}
               </button>
@@ -478,26 +439,18 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
           </div>
 
           {/* Import fichier Arbitres */}
-          <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="is-dd1407">
             <input
               ref={fileInputRef}
               type="file"
               accept=".txt,.csv"
-              style={{ display: 'none' }}
+              className="is-f2892a"
               onChange={handleImportFile}
             />
             <button
               onClick={() => fileInputRef.current?.click()}
               title={t('refereeManager.import_title')}
-              style={{
-                background: '#6d28d9',
-                color: 'white',
-                border: 'none',
-                padding: '0.5rem 1.25rem',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: '500',
-              }}
+              className="is-e1de04"
             >
               {t('refereeManager.import_btn')}
             </button>
@@ -558,9 +511,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
               <tbody>
                 {referees.map(ref => (
                   <tr key={ref.id} style={ROW_BORDER}>
-                    <td style={{ padding: '0.45rem 0.75rem', color: 'var(--color-text-muted)' }}>
-                      {ref.ref}
-                    </td>
+                    <td className="is-fde728">{ref.ref}</td>
                     <td style={TD_BOLD}>
                       {ref.firstName} {ref.lastName}
                     </td>
@@ -572,9 +523,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                       {(() => {
                         const presence = getRefereePresence(ref, matches);
                         return (
-                          <span
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-                          >
+                          <span className="is-15cd68">
                             <span style={{ color: PRESENCE_COLORS[presence], fontWeight: 600 }}>
                               {REFEREE_PRESENCE_LABELS[presence]}
                             </span>
@@ -604,12 +553,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                           });
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          fontSize: '1rem',
-                        }}
+                        className="is-54fefa"
                         title={t('actions.edit')}
                       >
                         ✏️
@@ -623,13 +567,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                             /* silencieux */
                           }
                         }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: '#ef4444',
-                          fontSize: '1rem',
-                        }}
+                        className="is-b6f00b"
                         title={t('actions.delete')}
                       >
                         🗑
@@ -700,17 +638,8 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
 
       {activeTab === 'history' && (
         <div>
-          <div style={{ marginBottom: '0.75rem', display: 'flex', justifyContent: 'flex-end' }}>
-            <button
-              onClick={loadHistory}
-              style={{
-                padding: '0.4rem 1rem',
-                borderRadius: '5px',
-                border: '1px solid var(--color-border-dark)',
-                cursor: 'pointer',
-                background: 'var(--color-surface)',
-              }}
-            >
+          <div className="is-0178f7">
+            <button onClick={loadHistory} className="is-1c376e">
               {t('refereeManager.refresh')}
             </button>
           </div>
@@ -742,7 +671,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                     <td style={TD}>#{row.matchNumber}</td>
                     <td style={TD}>{row.fencerAName}</td>
                     <td style={TD}>{row.fencerBName}</td>
-                    <td style={{ padding: '0.45rem 0.75rem', textAlign: 'center' }}>
+                    <td className="is-805c7a">
                       {row.scoreA !== null && row.scoreB !== null
                         ? `${row.scoreA} – ${row.scoreB}`
                         : '—'}
@@ -767,25 +696,9 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
       {activeTab === 'assignments' && (
         <>
           {/* Configuration */}
-          <div
-            style={{
-              background: 'var(--color-surface-2)',
-              padding: '1rem',
-              borderRadius: '8px',
-              marginBottom: '1.5rem',
-              border: '1px solid var(--color-border)',
-            }}
-          >
-            <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--color-text)' }}>
-              {t('refereeManager.rotation_config')}
-            </h3>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                gap: '1rem',
-              }}
-            >
+          <div className="is-4485f4">
+            <h3 className="is-a90b40">{t('refereeManager.rotation_config')}</h3>
+            <div className="is-1c64c7">
               <label style={FLEX_GAP}>
                 <input
                   type="checkbox"
@@ -832,58 +745,22 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
           </div>
 
           {/* Actions */}
-          <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem' }}>
-            <button
-              onClick={handleAutoAssign}
-              style={{
-                background: 'var(--color-primary)',
-                color: 'white',
-                border: 'none',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: '500',
-              }}
-            >
+          <div className="is-c79afc">
+            <button onClick={handleAutoAssign} className="is-493f4c">
               {t('refereeManager.auto_assign')}
             </button>
-            <button
-              onClick={() => setShowReport(!showReport)}
-              style={{
-                background: '#10b981',
-                color: 'white',
-                border: 'none',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: '500',
-              }}
-            >
+            <button onClick={() => setShowReport(!showReport)} className="is-212c2e">
               {showReport ? t('refereeManager.hide_report') : t('refereeManager.show_report')}
             </button>
           </div>
 
           {/* Rotation Report */}
           {showReport && (
-            <div
-              style={{
-                background: '#f0fdf4',
-                padding: '1rem',
-                borderRadius: '8px',
-                marginBottom: '1.5rem',
-                border: '1px solid #86efac',
-              }}
-            >
-              <h3 style={{ marginBottom: '1rem', color: '#166534' }}>
-                {t('refereeManager.rotation_report')}
-              </h3>
-              <table
-                style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--color-text)' }}
-              >
+            <div className="is-09ba80">
+              <h3 className="is-dc953f">{t('refereeManager.rotation_report')}</h3>
+              <table className="is-70851d">
                 <thead>
-                  <tr style={{ background: '#dcfce7' }}>
+                  <tr className="is-5da7b0">
                     {(
                       [
                         'col_referee',
@@ -923,18 +800,14 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                           background: row.needsRest ? '#fef9c3' : undefined,
                         }}
                       >
-                        <td style={{ padding: '0.5rem' }}>
+                        <td className="is-986a03">
                           {row.needsRest && (
                             <span title={t('refereeManager.rest_recommended')}>⚠️ </span>
                           )}
                           {row.refereeName}
                         </td>
-                        <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                          {row.matchesAssigned}
-                        </td>
-                        <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                          {row.consecutiveMatches}
-                        </td>
+                        <td className="is-748511">{row.matchesAssigned}</td>
+                        <td className="is-748511">{row.consecutiveMatches}</td>
                         <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                           <span
                             style={{
