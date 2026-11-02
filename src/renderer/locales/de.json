@@ -873,6 +873,8 @@
   "errors": {
     "server_not_started": "Server nicht gestartet",
     "invalid_url": "Ungültige URL — muss https zu einem öffentlichen Host sein",
+    "html_required": "HTML-Inhalt erforderlich",
+    "print_failed": "Druck fehlgeschlagen",
     "remote_not_started": "Der Fernserver ist für diesen Wettbewerb nicht gestartet",
     "remote_already_started": "Der Server ist für diesen Wettbewerb bereits gestartet",
     "training_not_started": "Trainingsserver nicht gestartet",
