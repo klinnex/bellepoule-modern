@@ -17,6 +17,7 @@ import {
   exportRankingCSV,
   exportResultsXMLFFE,
   exportDetailedStatsCSV,
+  type TableauMatchForXML,
 } from '../../shared/utils/multiFormatExport';
 
 import { computePoolStrips } from '../../shared/utils/poolStrips';
@@ -55,14 +56,17 @@ export interface FtpPublishConfig {
 }
 
 /** Destination du XML de résultats : fichier local, GREG, ou serveur FTP */
-export type XmlExportTarget = 'file' | 'greg' | { ftp: FtpPublishConfig };
+/** 'greg-auto' : publication GREG périodique (#1328), sans toast de succès */
+export type XmlExportTarget = 'file' | 'greg' | 'greg-auto' | { ftp: FtpPublishConfig };
 
 interface UseExportProps {
   competition: Competition;
   showToast: ReturnType<typeof useToast>['showToast'];
+  /** Matchs du tableau, joints au XML (phase de tableaux, #1328) */
+  tableauMatches?: TableauMatchForXML[];
 }
 
-export const useExport = ({ competition, showToast }: UseExportProps) => {
+export const useExport = ({ competition, showToast, tableauMatches }: UseExportProps) => {
   const poolTemplate = usePdfTemplateStore(s => s.templates.pool);
 
   // Helper pour télécharger un fichier
@@ -340,9 +344,19 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
       target: XmlExportTarget = 'file'
     ) => {
       try {
-        const xml = exportResultsXMLFFE(competition, poolRanking, finalResults, pools);
+        const xml = exportResultsXMLFFE(
+          competition,
+          poolRanking,
+          finalResults,
+          pools,
+          tableauMatches
+        );
         // Comme l'ancien BellePoule : une adresse escrime-info.com part toujours vers GREG (sans identifiant)
-        if (target === 'greg' || (typeof target === 'object' && isGregUrl(target.ftp.url))) {
+        if (
+          target === 'greg' ||
+          target === 'greg-auto' ||
+          (typeof target === 'object' && isGregUrl(target.ftp.url))
+        ) {
           const api = window.electronAPI?.greg;
           if (!api) throw new Error('Publication GREG indisponible dans cette version');
           const result = await api.publish({
@@ -350,8 +364,9 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
             xml: toNativeRootTag(xml, competition.isTeamEvent),
             fields: { ...buildGregFields(competition) },
           });
-          if (result.success) showToast('Résultats envoyés à GREG', 'success');
-          else
+          if (result.success) {
+            if (target !== 'greg-auto') showToast('Résultats envoyés à GREG', 'success');
+          } else
             showToast(
               `Échec de la publication GREG : ${result.error ?? 'erreur inconnue'}`,
               'error'
@@ -383,7 +398,7 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
         );
       }
     },
-    [competition, downloadFile, showToast]
+    [competition, downloadFile, showToast, tableauMatches]
   );
 
   // Export statistiques détaillées CSV

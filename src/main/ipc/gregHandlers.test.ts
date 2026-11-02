@@ -71,10 +71,10 @@ describe('publishToGreg (#1328)', () => {
     expect(result).toEqual({ success: true });
     expect(calls).toHaveLength(2);
     expect(calls[0].url).toBe(
-      'http://www.escrime-info.com/gregxml/Greg/envoyer.php?fichier=resultats_test.xml'
+      'https://www.escrime-info.com/gregxml/Greg/envoyer.php?fichier=resultats_test.xml'
     );
     expect(calls[1].url).toBe(
-      'http://www.escrime-info.com/gregxml/Greg/envoyer.php?fichier=./temp/resultats_test.xml&valide=1'
+      'https://www.escrime-info.com/gregxml/Greg/envoyer.php?fichier=./temp/resultats_test.xml&valide=1'
     );
     expect(calls[0].body.get('ficXML')).toBeInstanceOf(Blob);
     expect(calls[1].body.get('arme')).toBe('E');

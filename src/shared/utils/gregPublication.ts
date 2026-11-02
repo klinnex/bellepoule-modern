@@ -6,7 +6,7 @@
 
 import { Category, Competition, Gender, Weapon } from '../types';
 
-export const GREG_UPLOAD_URL = 'http://www.escrime-info.com/gregxml/Greg/envoyer.php';
+export const GREG_UPLOAD_URL = 'https://www.escrime-info.com/gregxml/Greg/envoyer.php';
 
 /** Niveau GREG « Autre » : la compétition n'a pas encore de champ niveau (voir #1328) */
 export const GREG_DEFAULT_LEVEL = 'X';

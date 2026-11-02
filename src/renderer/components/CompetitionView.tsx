@@ -3,6 +3,7 @@
  * Licensed under GPL-3.0
  */
 
+import { GregAutoPublish } from './remote/GregAutoPublishToggle';
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import {
   Competition,
@@ -511,6 +512,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   } = useExport({
     competition,
     showToast,
+    tableauMatches,
   });
 
   const poolPrepParams = useMemo(
@@ -2776,6 +2778,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           />
         )}
 
+        {currentPhase === 'remote' && (
+          <GregAutoPublish
+            publish={() => void exportResultsXML(overallRanking, finalResults, pools, 'greg-auto')}
+          />
+        )}
         <Suspense fallback={null}>
           <RemoteScoreManager
             competition={competition}

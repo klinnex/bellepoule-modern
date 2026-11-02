@@ -97,16 +97,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 26 | 278 |
 | `src/renderer/services/` | 4 | 22 |
-| `src/renderer/hooks/` | 22 | 111 |
-| `src/renderer/components/` | 42 | 205 |
+| `src/renderer/hooks/` | 23 | 112 |
+| `src/renderer/components/` | 43 | 207 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 47 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **199** | **1777** |
+| **Total** | **201** | **1780** |
 
-Unitaires : 190 fichiers, 1742 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 192 fichiers, 1745 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2782,6 +2782,14 @@ Unitaires : 190 fichiers, 1742 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/hooks/useGregAutoPublish.test.ts</code> — 1 test</summary>
+
+- **useGregAutoPublish**
+  - publie immédiatement puis toutes les 15 s, et s'arrête à OFF
+
+</details>
+
+<details>
 <summary><code>src/renderer/hooks/useHistory.test.tsx</code> — 7 tests</summary>
 
 - **useHistory**
@@ -3354,6 +3362,15 @@ Unitaires : 190 fichiers, 1742 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **plages de pages côté renderer (#1214)**
   - isValidPageRanges(%j) = %s _(each)_
   - pageRangesBeyond
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/GregAutoPublishToggle.test.tsx</code> — 2 tests</summary>
+
+- **GregAutoPublishToggle**
+  - affiche OFF puis bascule en ON au clic
+  - affiche ON quand actif
 
 </details>
 
