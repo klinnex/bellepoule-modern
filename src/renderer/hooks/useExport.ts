@@ -17,6 +17,7 @@ import {
   exportRankingCSV,
   exportResultsXMLFFE,
   exportDetailedStatsCSV,
+  type TableauMatchForXML,
 } from '../../shared/utils/multiFormatExport';
 
 import { computePoolStrips } from '../../shared/utils/poolStrips';
@@ -60,9 +61,11 @@ export type XmlExportTarget = 'file' | 'greg' | { ftp: FtpPublishConfig };
 interface UseExportProps {
   competition: Competition;
   showToast: ReturnType<typeof useToast>['showToast'];
+  /** Matchs du tableau, joints au XML (phase de tableaux, #1328) */
+  tableauMatches?: TableauMatchForXML[];
 }
 
-export const useExport = ({ competition, showToast }: UseExportProps) => {
+export const useExport = ({ competition, showToast, tableauMatches }: UseExportProps) => {
   const poolTemplate = usePdfTemplateStore(s => s.templates.pool);
 
   // Helper pour télécharger un fichier
@@ -340,7 +343,13 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
       target: XmlExportTarget = 'file'
     ) => {
       try {
-        const xml = exportResultsXMLFFE(competition, poolRanking, finalResults, pools);
+        const xml = exportResultsXMLFFE(
+          competition,
+          poolRanking,
+          finalResults,
+          pools,
+          tableauMatches
+        );
         // Comme l'ancien BellePoule : une adresse escrime-info.com part toujours vers GREG (sans identifiant)
         if (target === 'greg' || (typeof target === 'object' && isGregUrl(target.ftp.url))) {
           const api = window.electronAPI?.greg;
@@ -383,7 +392,7 @@ export const useExport = ({ competition, showToast }: UseExportProps) => {
         );
       }
     },
-    [competition, downloadFile, showToast]
+    [competition, downloadFile, showToast, tableauMatches]
   );
 
   // Export statistiques détaillées CSV

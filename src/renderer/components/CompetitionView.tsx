@@ -511,6 +511,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   } = useExport({
     competition,
     showToast,
+    tableauMatches,
   });
 
   const poolPrepParams = useMemo(
