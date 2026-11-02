@@ -1028,6 +1028,8 @@
     "fencers_count_other": "{{count}} 位劍手",
     "final_ranking": "最終排名",
     "full_export": "完整匯出",
+    "book_contents": "目錄",
+    "book_page": "頁",
     "generation_failed": "PDF 產生失敗",
     "global_stats": "整體統計",
     "in_progress": "進行中",

@@ -1028,6 +1028,8 @@
     "fencers_count_other": "{{count}} fencers",
     "final_ranking": "Final ranking",
     "full_export": "Full export",
+    "book_contents": "Contents",
+    "book_page": "Page",
     "generation_failed": "PDF generation failed",
     "global_stats": "Overall statistics",
     "in_progress": "In progress",

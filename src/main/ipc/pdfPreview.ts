@@ -10,6 +10,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { pathToFileURL } from 'url';
+import { registerCountPagesHandler } from '../pdfPageCount';
 
 export interface PdfPreviewResult {
   success: boolean;
@@ -120,5 +121,6 @@ export function registerPdfPreviewHandlers(ctx: PdfPreviewContext): PdfPreviewDe
   ipcMain.handle('file:previewPdf', (_e, html: string, title?: string) =>
     previewPdf(deps, html, typeof title === 'string' ? title : undefined)
   );
+  registerCountPagesHandler(ctx.render);
   return deps;
 }

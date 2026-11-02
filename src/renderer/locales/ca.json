@@ -1028,6 +1028,8 @@
     "fencers_count_other": "{{count}} tiradors",
     "final_ranking": "Classificació final",
     "full_export": "Exportació completa",
+    "book_contents": "Sumari",
+    "book_page": "Pàgina",
     "generation_failed": "Error en generar el PDF",
     "global_stats": "Estadístiques generals",
     "in_progress": "En curs",
