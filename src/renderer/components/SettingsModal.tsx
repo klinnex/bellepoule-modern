@@ -361,9 +361,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
       <div className="modal-overlay">
         <div
           ref={modalRef}
-          className="modal"
+          className="modal is-72fca9"
           onClick={e => e.stopPropagation()}
-          style={{ maxWidth: '500px' }}
           role="dialog"
           aria-modal="true"
         >
@@ -447,26 +446,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 }}
               >
                 {logo ? (
-                  <img
-                    src={logo}
-                    alt={t('settings.logo_title')}
-                    style={{
-                      maxHeight: '60px',
-                      maxWidth: '100%',
-                      objectFit: 'contain',
-                      display: 'block',
-                      margin: '0 auto 0.5rem',
-                    }}
-                  />
+                  <img src={logo} alt={t('settings.logo_title')} className="is-2f6bfd" />
                 ) : (
-                  <span
-                    style={{
-                      fontSize: '0.85rem',
-                      color: 'var(--text-muted, var(--color-text-light))',
-                    }}
-                  >
-                    {t('settings.logo_drop')}
-                  </span>
+                  <span className="is-fd4b7b">{t('settings.logo_drop')}</span>
                 )}
                 <span
                   style={{
@@ -483,26 +465,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                style={{ display: 'none' }}
+                className="is-f2892a"
                 onChange={handleFileChange}
               />
-              {logoError && (
-                <p
-                  style={{
-                    fontSize: '0.8rem',
-                    color: 'var(--danger, #ef4444)',
-                    marginTop: '0.25rem',
-                  }}
-                >
-                  {logoError}
-                </p>
-              )}
+              {logoError && <p className="is-bb6602">{logoError}</p>}
               {logo && (
-                <button
-                  className="btn btn-secondary"
-                  style={{ marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.25rem 0.75rem' }}
-                  onClick={handleRemoveLogo}
-                >
+                <button className="btn btn-secondary is-7b69a8" onClick={handleRemoveLogo}>
                   {t('settings.logo_remove')}
                 </button>
               )}
@@ -512,8 +480,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
               <label style={BOLD}>{t('settings.pdf_title')}</label>
               <p style={HINT}>{t('settings.pdf_hint')}</p>
               <button
-                className="btn btn-secondary"
-                style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
+                className="btn btn-secondary is-af623e"
                 onClick={() => setShowPdfEditor(true)}
               >
                 {t('pdfTemplate.openButton')}
@@ -636,15 +603,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
               <label style={BOLD}>{t('settings.tts_title')}</label>
               <p style={HINT}>{t('settings.tts_hint')}</p>
 
-              <label style={{ fontSize: '0.85rem' }}>{t('settings.tts_voice')}</label>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.5rem',
-                  alignItems: 'center',
-                  marginBottom: '0.5rem',
-                }}
-              >
+              <label className="is-933a8e">{t('settings.tts_voice')}</label>
+              <div className="is-98cce7">
                 <select
                   className="form-input form-select flex-1"
                   value={ttsConfig.voiceName ?? ''}
@@ -666,7 +626,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 </button>
               </div>
 
-              <label style={{ fontSize: '0.85rem' }}>
+              <label className="is-933a8e">
                 {t('settings.tts_rate', { rate: ttsConfig.rate.toFixed(1) })}
               </label>
               <input
@@ -676,13 +636,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 step="0.1"
                 value={ttsConfig.rate}
                 onChange={e => handleTtsRateChange(parseFloat(e.target.value))}
-                style={{ width: '100%', marginBottom: '0.5rem' }}
+                className="is-f9549b"
               />
 
-              <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem' }}>
-                {t('settings.tts_milestones')}
-              </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label className="is-fb413b">{t('settings.tts_milestones')}</label>
+              <div className="is-2b393c">
                 {TTS_THRESHOLDS.map(({ key, label }) => (
                   <label key={key} className="u-row cursor-pointer">
                     <input
