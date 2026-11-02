@@ -428,12 +428,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
 
   return (
     <div className="content">
-      <div
-        className="flex justify-between items-center mb-4"
-        style={{ position: 'relative', zIndex: 2 }}
-      >
+      <div className="flex justify-between items-center mb-4 is-279168">
         <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>
+          <h2 className="is-28d934">
             {fencers.length > 0
               ? t('fencerList.registered_count', { count: fencers.length })
               : t('fencerList.appel')}
@@ -468,27 +465,18 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               )}
               {onDeleteAllFencers && (
                 <button
-                  className="btn btn-danger"
+                  className="btn btn-danger is-83f1a0"
                   onClick={async () => {
                     if (await confirm(t('messages.confirm_delete_fencer'))) {
                       onDeleteAllFencers();
                     }
                   }}
                   title={t('fencerList.delete_all_title', { count: fencers.length })}
-                  style={{ padding: '0.4rem 0.6rem' }}
                 >
                   🗑️
                 </button>
               )}
-              <div
-                style={{
-                  width: '1px',
-                  height: '22px',
-                  background: 'var(--border-color, rgba(255,255,255,0.15))',
-                  margin: '0 0.125rem',
-                  flexShrink: 0,
-                }}
-              />
+              <div className="is-8ecdd8" />
             </>
           )}
           {customImport && !readOnly && (
@@ -506,23 +494,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                 {t('fencerList.import_menu')}
               </button>
               {importMenuOpen && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    marginTop: '4px',
-                    zIndex: 9999,
-                    background: 'var(--bg-secondary, #2a2a3e)',
-                    border: '1px solid var(--border-color, #444)',
-                    borderRadius: '6px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                    minWidth: '230px',
-                    padding: '4px 0',
-                    maxHeight: '60vh',
-                    overflowY: 'auto',
-                  }}
-                >
+                <div className="is-5f1ae4">
                   <button
                     className="btn btn-ghost"
                     style={MENU_ITEM}
@@ -604,34 +576,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                   {t('fencerList.columns_menu')}
                 </button>
                 {colMenuOpen && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      right: 0,
-                      marginTop: '4px',
-                      zIndex: 9999,
-                      background: 'var(--bg-secondary, #2a2a3e)',
-                      border: '1px solid var(--border-color, #444)',
-                      borderRadius: '6px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                      minWidth: '160px',
-                      padding: '4px 0',
-                    }}
-                  >
+                  <div className="is-a36aa5">
                     {COLUMNS.map(col => (
-                      <label
-                        key={col.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          padding: '6px 16px',
-                          cursor: 'pointer',
-                          fontSize: '0.875rem',
-                          color: 'var(--text-primary, #e2e8f0)',
-                        }}
-                      >
+                      <label key={col.id} className="is-80fd54">
                         <input
                           type="checkbox"
                           checked={!hiddenCols.has(col.id)}
@@ -647,20 +594,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         {columnLabels?.[col.id] ?? t(col.labelKey)}
                       </label>
                     ))}
-                    <div
-                      style={{ borderTop: '1px solid var(--border-color, #444)', margin: '4px 0' }}
-                    />
+                    <div className="is-a6ae95" />
                     <button
-                      className="btn btn-ghost"
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '6px 16px',
-                        borderRadius: 0,
-                        fontSize: '0.8rem',
-                        color: 'var(--text-muted, #94a3b8)',
-                      }}
+                      className="btn btn-ghost is-539e77"
                       onClick={() => setColOrder(COLUMNS.map(c => c.id))}
                     >
                       {t('fencerList.reset_order')}
@@ -677,23 +613,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                   {t('fencerList.export_menu')}
                 </button>
                 {exportMenuOpen && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      right: 0,
-                      marginTop: '4px',
-                      zIndex: 9999,
-                      background: 'var(--bg-secondary, #2a2a3e)',
-                      border: '1px solid var(--border-color, #444)',
-                      borderRadius: '6px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                      minWidth: '160px',
-                      padding: '4px 0',
-                      maxHeight: '60vh',
-                      overflowY: 'auto',
-                    }}
-                  >
+                  <div className="is-9a02fd">
                     <button
                       className="btn btn-ghost"
                       style={MENU_ITEM}
@@ -751,10 +671,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           )}
           {registerUrl && !readOnly && (
             <button
-              className="btn btn-secondary"
+              className="btn btn-secondary is-5c17a8"
               title={`Inscription tablette : ${registerUrl}`}
               onClick={() => setShowRegisterQR(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
             >
               <span>📱</span> {t('fencerList.qr_register')}
             </button>
@@ -769,78 +688,24 @@ const FencerListComponent: React.FC<FencerListProps> = ({
 
       {/* Modal QR code inscription distante */}
       {showRegisterQR && registerUrl && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}
-          onClick={() => setShowRegisterQR(false)}
-        >
-          <div
-            style={{
-              background: 'var(--surface, #1e293b)',
-              borderRadius: 16,
-              padding: '2rem',
-              textAlign: 'center',
-              maxWidth: 300,
-              width: '90%',
-              border: '1px solid var(--border-color, #334155)',
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <h3 style={{ marginBottom: '0.75rem', fontSize: '1.1rem', fontWeight: 700 }}>
-              {t('fencerList.register_title')}
-            </h3>
-            <p
-              style={{
-                fontSize: '0.8rem',
-                color: 'var(--text-muted, #94a3b8)',
-                marginBottom: '1rem',
-              }}
-            >
-              {t('fencerList.register_hint')}
-            </p>
+        <div className="is-dae1d9" onClick={() => setShowRegisterQR(false)}>
+          <div className="is-280b34" onClick={e => e.stopPropagation()}>
+            <h3 className="is-b1e24e">{t('fencerList.register_title')}</h3>
+            <p className="is-b54b26">{t('fencerList.register_hint')}</p>
             {registerQRDataUrl ? (
               <img
                 src={registerQRDataUrl}
                 alt={t('fencerList.register_qr_alt')}
                 width={220}
                 height={220}
-                style={{ borderRadius: 8 }}
+                className="is-76ed9a"
               />
             ) : (
-              <div
-                style={{
-                  width: 220,
-                  height: 220,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto',
-                }}
-              >
-                {t('fencerList.generating')}
-              </div>
+              <div className="is-bc2a5d">{t('fencerList.generating')}</div>
             )}
-            <code
-              style={{
-                display: 'block',
-                marginTop: '0.75rem',
-                fontSize: '0.7rem',
-                wordBreak: 'break-all',
-                color: 'var(--text-muted, #94a3b8)',
-              }}
-            >
-              {registerUrl}
-            </code>
+            <code className="is-0fcdb7">{registerUrl}</code>
             <button
-              className="btn btn-secondary"
-              style={{ marginTop: '1rem', width: '100%' }}
+              className="btn btn-secondary is-5d3107"
               onClick={() => setShowRegisterQR(false)}
             >
               {t('actions.close')}
@@ -849,27 +714,11 @@ const FencerListComponent: React.FC<FencerListProps> = ({
         </div>
       )}
 
-      {photoMessage && (
-        <div
-          className="alert alert-success mb-4"
-          style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
-        >
-          {photoMessage}
-        </div>
-      )}
+      {photoMessage && <div className="alert alert-success mb-4 is-a9c15e">{photoMessage}</div>}
 
       {fencers.length > 0 && (
         <div className="mb-4">
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-              fontSize: '0.75rem',
-              color: 'var(--text-muted, var(--color-text-light))',
-              marginBottom: '5px',
-            }}
-          >
+          <div className="is-1e3d23">
             <span>{t('fencerList.checkin')}</span>
             <span
               style={{
@@ -881,14 +730,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               {Math.round((checkedInCount / fencers.length) * 100)} %
             </span>
           </div>
-          <div
-            style={{
-              height: '8px',
-              background: 'var(--border-color, var(--color-border))',
-              borderRadius: '4px',
-              overflow: 'hidden',
-            }}
-          >
+          <div className="is-782800">
             <div
               style={{
                 height: '100%',
@@ -903,7 +745,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       )}
 
       {fencers.length > 0 && (
-        <div style={{ position: 'relative', marginBottom: '1rem' }}>
+        <div className="is-022f27">
           <span
             style={{
               position: 'absolute',
