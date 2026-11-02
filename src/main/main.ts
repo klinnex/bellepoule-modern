@@ -6,13 +6,13 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, screen } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as os from 'os';
 import { DatabaseManager } from '../database';
 import { AutoUpdater } from './autoUpdater';
 import { eventLoopMonitor } from './eventLoopMonitor';
 import { fmt, getL, getUiLanguage, setUiLanguage } from './menuLabels';
 import { registerDbHandlers } from './ipc/dbHandlers';
 import { registerFileHandlers } from './ipc/fileHandlers';
+import { registerWindowPrintHandlers } from './ipc/windowPrintHandlers';
 import { createMenuActions } from './menuActions';
 import { createMenu } from './menu';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
@@ -22,8 +22,6 @@ import { registerRemoteDisplayHandlers } from './ipc/remoteDisplayHandlers';
 import { registerRemoteSessionHandlers } from './ipc/remoteSessionHandlers';
 import { registerRemoteMatchHandlers } from './ipc/remoteMatchHandlers';
 import { registerRemoteServerHandlers } from './ipc/remoteServerHandlers';
-import { previewPdf, registerPdfPreviewHandlers } from './ipc/pdfPreview';
-import { registerPrintDialogHandlers } from './ipc/printDialog';
 import { registerWebhookHandlers } from './ipc/webhookHandlers';
 import { registerThemesHandlers } from './ipc/themesHandlers';
 import { registerCryptoHandlers } from './ipc/cryptoHandlers';
@@ -31,7 +29,6 @@ import { registerUpdaterHandlers } from './ipc/updaterHandlers';
 import { createDiagnosticDeps, registerDiagnosticHandlers } from './ipc/diagnosticHandlers';
 import { getVersionInfo } from './versionInfo';
 import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
-import { printHtmlSilently, printHtmlWithSystemDialog } from './printWindows';
 import { remoteServers, stopRemoteServer } from './remoteRegistry';
 import {
   allowsInlineStyles,
@@ -40,7 +37,6 @@ import {
   isAppUrl,
   isPermissionAllowed,
 } from './windowSecurity';
-import { assertAuthorizedPath, authorizePath } from './pathAuthorization';
 
 // Database instance
 const db = new DatabaseManager();
@@ -361,149 +357,7 @@ ipcMain.on('app:current-competition', (_, competitionId: unknown) => {
   setCurrentCompetitionId(typeof competitionId === 'string' ? competitionId : null);
 });
 
-// Window resize handler
-ipcMain.handle(
-  'window:setSize',
-  (_event, width: number, height: number, options?: { force?: boolean }) => {
-    if (!mainWindow || mainWindow.isDestroyed()) return;
-    const force = options?.force === true;
-    // Auto-fit : ne pas écraser une fenêtre maximisée / plein écran choisie par l'utilisateur
-    if (!force && (mainWindow.isMaximized() || mainWindow.isFullScreen())) return;
-    // Choix explicite (préréglage) : sortir du maximisé / plein écran sinon setSize est ignoré (#1034)
-    if (mainWindow.isFullScreen()) mainWindow.setFullScreen(false);
-    if (mainWindow.isMaximized()) mainWindow.unmaximize();
-    // Borner à la zone de travail de l'écran courant (un préréglage XL dépasse souvent l'écran)
-    const area = screen.getDisplayMatching(mainWindow.getBounds()).workArea;
-    const [minW, minH] = mainWindow.getMinimumSize();
-    const w = Math.round(Math.min(Math.max(width, minW || 800), area.width));
-    const h = Math.round(Math.min(Math.max(height, minH || 600), area.height));
-    const x = Math.round(area.x + (area.width - w) / 2);
-    const y = Math.round(area.y + (area.height - h) / 2);
-    mainWindow.setBounds({ x, y, width: w, height: h }, true);
-  }
-);
-
-// Print handler
-ipcMain.handle('window:print', async () => {
-  if (mainWindow) {
-    await mainWindow.webContents.print({ silent: false, printBackground: true });
-  }
-});
-
-// Print via hidden BrowserWindow — opens system print dialog on clean HTML
-ipcMain.handle('file:printHtml', async (_, html: string, opts?: { preview?: boolean }) => {
-  // Aperçu d'abord (#1214) ; l'impression se lance depuis la visionneuse
-  if (opts?.preview) return previewPdf(pdfPreviewDeps, html);
-  return printHtmlWithSystemDialog(html);
-});
-
-// Rendu HTML → buffer PDF via une fenêtre Electron cachée (partagé par export et aperçu)
-function renderHtmlToPdfBuffer(
-  html: string,
-  pdfOptions: Electron.PrintToPDFOptions = {
-    printBackground: true,
-    landscape: false,
-    pageSize: 'A4',
-    preferCSSPageSize: true,
-    margins: { top: 0, bottom: 0, left: 0, right: 0 },
-  }
-): Promise<Buffer> {
-  const tmpFile = path.join(os.tmpdir(), `bp-pdf-${Date.now()}.html`);
-  return fs.promises.writeFile(tmpFile, html, 'utf-8').then(
-    () =>
-      new Promise<Buffer>((resolve, reject) => {
-        const pdfWin = new BrowserWindow({
-          show: false,
-          width: 1200,
-          height: 1600,
-          webPreferences: { contextIsolation: true, nodeIntegration: false, javascript: false },
-        });
-        pdfWin.setMenu(null);
-        pdfWin.loadFile(tmpFile);
-
-        pdfWin.webContents.once('did-finish-load', () => {
-          setTimeout(() => {
-            pdfWin.webContents
-              .printToPDF(pdfOptions)
-              .then((data: Buffer) => {
-                pdfWin.destroy();
-                fs.promises.unlink(tmpFile).catch(() => {});
-                resolve(data);
-              })
-              .catch((err: Error) => {
-                pdfWin.destroy();
-                fs.promises.unlink(tmpFile).catch(() => {});
-                reject(err);
-              });
-          }, 800);
-        });
-
-        pdfWin.webContents.once('did-fail-load', () => {
-          pdfWin.destroy();
-          fs.promises.unlink(tmpFile).catch(() => {});
-          reject(new Error('Chargement HTML échoué'));
-        });
-      }),
-    e => Promise.reject(new Error(`Impossible de créer le fichier temporaire: ${e}`))
-  );
-}
-
-// PDF generation via hidden BrowserWindow (propre, sans menus d'application)
-ipcMain.handle('file:printHtmlToPDF', async (_, html: string, outputPath: string) => {
-  try {
-    const target = assertAuthorizedPath(outputPath, 'write', ['.pdf']);
-    const data = await renderHtmlToPdfBuffer(html);
-    await fs.promises.writeFile(target, data);
-    return { success: true, path: outputPath };
-  } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : String(e) };
-  }
-});
-
-// Aperçu avant impression (#1214) : visionneuse PDF interne, repli sur le lecteur externe de l'OS.
-const pdfPreviewDeps = registerPdfPreviewHandlers({
-  getMainWindow: () => mainWindow,
-  render: renderHtmlToPdfBuffer,
-  openExternal: p => shell.openPath(p),
-});
-
-registerPrintDialogHandlers({
-  chooseSavePath: async defaultName => {
-    const result = await dialog.showSaveDialog(mainWindow!, {
-      defaultPath: defaultName,
-      filters: [{ name: 'PDF', extensions: ['pdf'] }],
-    });
-    if (result.canceled || !result.filePath) return undefined;
-    authorizePath(result.filePath, 'write');
-    return result.filePath;
-  },
-  writeFile: (filePath, data) =>
-    fs.promises.writeFile(assertAuthorizedPath(filePath, 'write', ['.pdf']), data),
-  printWithSystemDialog: printHtmlWithSystemDialog,
-  listPrinters: async () =>
-    (await (mainWindow?.webContents.getPrintersAsync() ?? Promise.resolve([]))).map(p => ({
-      name: p.name,
-      displayName: p.displayName || p.name,
-      isDefault: !!(p as { isDefault?: boolean }).isDefault,
-    })),
-  renderPdf: renderHtmlToPdfBuffer,
-  printHtml: printHtmlSilently,
-});
-
-// Shell handlers
-// Lag de la boucle d'événements du main (#1154) ; `reset` ouvre une nouvelle fenêtre de mesure
-ipcMain.handle('perf:getEventLoopDelay', (_, reset?: boolean) =>
-  eventLoopMonitor.snapshot(reset === true)
-);
-
-ipcMain.handle('shell:openExternal', async (_, url: string) => {
-  // N'autoriser que les URLs https:// pour éviter les exploits via des schémas arbitraires
-  if (typeof url !== 'string' || !url.startsWith('https://')) {
-    console.warn('[shell:openExternal] URL rejetée (schéma non-https):', url);
-    return;
-  }
-  await shell.openExternal(url);
-});
+registerWindowPrintHandlers({ getMainWindow: () => mainWindow });
 
 registerRemoteServerHandlers({ db, getMainWindow: () => mainWindow });
 
