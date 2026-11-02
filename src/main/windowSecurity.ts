@@ -43,3 +43,28 @@ export function isPermissionAllowed(
   // Jamais de micro : seule la vidéo est utile (photo tireur)
   return !mediaTypes || mediaTypes.every(t => t === 'video');
 }
+
+/**
+ * CSP de l'en-tête de session (#1343). `style-src 'self'` stricte par défaut ;
+ * `'unsafe-inline'` réservé aux fenêtres d'impression / PDF (HTML avec <style>, JS désactivé).
+ */
+export function buildSessionCsp(allowInlineStyles: boolean): string {
+  return (
+    "default-src 'self'; " +
+    "script-src 'self'; " +
+    `style-src 'self'${allowInlineStyles ? " 'unsafe-inline'" : ''}; ` +
+    "font-src 'self'; " +
+    "img-src 'self' data: blob:; " +
+    "media-src 'self' blob:; " +
+    "connect-src 'self' http://localhost:* https://api.github.com https://api.ffe.fr; " +
+    "frame-ancestors 'none';"
+  );
+}
+
+/** Seule la fenêtre principale est servie en CSP stricte. */
+export function allowsInlineStyles(
+  webContentsId: number | undefined,
+  mainId: number | undefined
+): boolean {
+  return webContentsId === undefined || mainId === undefined || webContentsId !== mainId;
+}
