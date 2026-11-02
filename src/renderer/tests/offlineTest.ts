@@ -17,6 +17,7 @@ import {
   Category,
   Score,
 } from '../../shared/types';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export class OfflineTestSuite {
   private testResults: { test: string; status: 'pass' | 'fail'; error?: string }[] = [];
@@ -26,7 +27,7 @@ export class OfflineTestSuite {
     failed: number;
     results: { test: string; status: 'pass' | 'fail'; error?: string }[];
   }> {
-    console.log('[OfflineTests] Starting offline architecture tests...');
+    logger.info(LogCategory.UI, '[OfflineTests] Starting offline architecture tests...');
 
     this.testResults = [];
 
@@ -54,7 +55,10 @@ export class OfflineTestSuite {
     const passed = this.testResults.filter(r => r.status === 'pass').length;
     const failed = this.testResults.filter(r => r.status === 'fail').length;
 
-    console.log(`[OfflineTests] Tests completed: ${passed} passed, ${failed} failed`);
+    logger.info(
+      LogCategory.UI,
+      `[OfflineTests] Tests completed: ${passed} passed, ${failed} failed`
+    );
 
     return { passed, failed, results: this.testResults };
   }
@@ -243,12 +247,12 @@ export class OfflineTestSuite {
   private addTestResult(test: string, status: 'pass' | 'fail', error?: string): void {
     const result = { test, status, error };
     this.testResults.push(result);
-    console.log(`[OfflineTests] ${test}: ${status}${error ? ` - ${error}` : ''}`);
+    logger.info(LogCategory.UI, `[OfflineTests] ${test}: ${status}${error ? ` - ${error}` : ''}`);
   }
 
   // Network simulation tests
   async simulateOfflineScenario(): Promise<boolean> {
-    console.log('[OfflineTests] Simulating offline scenario...');
+    logger.info(LogCategory.UI, '[OfflineTests] Simulating offline scenario...');
 
     try {
       // Simulate going offline
@@ -269,23 +273,23 @@ export class OfflineTestSuite {
       const statusBefore = await offlineStorage.getSyncStatus();
 
       if (statusBefore.pendingActions > 0) {
-        console.log('[OfflineTests] ✅ Pending actions stored while offline');
+        logger.info(LogCategory.UI, '[OfflineTests] ✅ Pending actions stored while offline');
 
         // In a real scenario, when coming back online, sync would be triggered
-        console.log('[OfflineTests] ✅ Offline scenario simulation completed');
+        logger.info(LogCategory.UI, '[OfflineTests] ✅ Offline scenario simulation completed');
         return true;
       } else {
         throw new Error('Pending actions not stored');
       }
     } catch (error) {
-      console.error('[OfflineTests] ❌ Offline scenario failed:', error);
+      logger.error(LogCategory.UI, '[OfflineTests] ❌ Offline scenario failed:', toError(error));
       return false;
     }
   }
 
   // Performance test
   async performanceTest(): Promise<{ cacheTime: number; syncTime: number }> {
-    console.log('[OfflineTests] Running performance tests...');
+    logger.info(LogCategory.UI, '[OfflineTests] Running performance tests...');
 
     // Simplify performance test for now due to complex types
     const testFencers = Array.from({ length: 10 }, (_, i) => ({
@@ -314,7 +318,8 @@ export class OfflineTestSuite {
     // await offlineStorage.getCachedMatches(); // Skip for now
     const retrieveTime = performance.now() - retrieveStart;
 
-    console.log(
+    logger.info(
+      LogCategory.UI,
       `[OfflineTests] Performance: Cache ${cacheTime.toFixed(2)}ms, Retrieve ${retrieveTime.toFixed(2)}ms`
     );
 
