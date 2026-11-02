@@ -8,6 +8,7 @@
   "hardLocale": 0,
   "serverMessage": 0,
   "remoteUnescaped": 0,
+  "remoteHardLocale": 6,
   "lineExceptions": {
     "src/renderer/styles/design.css": 2087,
     "src/renderer/styles/main.css": 2997,
