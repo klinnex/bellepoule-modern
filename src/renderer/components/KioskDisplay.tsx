@@ -1011,11 +1011,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
                             ? `${match.fencerA.lastName} ${match.fencerA.firstName.charAt(0)}.`
                             : t('kiosk.tbd')}
                           {match.fencerA?.club && (
-                            <span
-                              style={{ fontSize: '0.8rem', color: '#64748b', marginLeft: '8px' }}
-                            >
-                              {match.fencerA.club}
-                            </span>
+                            <span className="is-5ccb82">{match.fencerA.club}</span>
                           )}
                         </span>
                         {isFinished && match.scoreA !== null && (
@@ -1032,16 +1028,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
                       </div>
 
                       {/* Séparateur */}
-                      <div
-                        style={{
-                          textAlign: 'center',
-                          fontSize: '0.75rem',
-                          color: '#475569',
-                          margin: '2px 0',
-                        }}
-                      >
-                        VS
-                      </div>
+                      <div className="is-8d619e">VS</div>
 
                       {/* Tireur B */}
                       <div
@@ -1071,11 +1058,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
                             ? `${match.fencerB.lastName} ${match.fencerB.firstName.charAt(0)}.`
                             : t('kiosk.tbd')}
                           {match.fencerB?.club && (
-                            <span
-                              style={{ fontSize: '0.8rem', color: '#64748b', marginLeft: '8px' }}
-                            >
-                              {match.fencerB.club}
-                            </span>
+                            <span className="is-5ccb82">{match.fencerB.club}</span>
                           )}
                         </span>
                         {isFinished && match.scoreB !== null && (
