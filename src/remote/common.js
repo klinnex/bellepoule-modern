@@ -57,6 +57,76 @@
   }
   html.raw = raw;
 
+  /**
+   * Polling poli (#1345) : `task` (async) est rappelée toutes les `base` ms, sauf
+   *  - onglet masqué (document.hidden) : aucune requête, reprise + exécution immédiate au retour ;
+   *  - échec (task renvoie false ou lève) : backoff exponentiel base*2^n plafonné à `max`,
+   *    retour à `base` dès le premier succès.
+   * Retourne { now(), stop() } ; now() force une exécution immédiate (bouton Actualiser).
+   * opts : { base, max, doc, setTimer, clearTimer } (les trois derniers pour les tests).
+   */
+  function bpPoll(task, opts) {
+    var o = opts || {};
+    var base = o.base || 5000;
+    var max = Math.max(o.max || base * 6, base);
+    var doc = o.doc || root.document;
+    var setT = o.setTimer || root.setTimeout.bind(root);
+    var clearT = o.clearTimer || root.clearTimeout.bind(root);
+    var timer = null;
+    var running = false;
+    var stopped = false;
+    var failures = 0;
+
+    function hidden() {
+      return !!(doc && doc.hidden);
+    }
+    function cancel() {
+      if (timer !== null) clearT(timer);
+      timer = null;
+    }
+    function schedule() {
+      cancel();
+      if (stopped || hidden()) return;
+      var delay = failures ? Math.min(max, base * Math.pow(2, failures)) : base;
+      timer = setT(run, delay);
+    }
+    function run() {
+      cancel();
+      if (stopped || running || hidden()) return Promise.resolve();
+      running = true;
+      return Promise.resolve()
+        .then(task)
+        .then(
+          function (ok) {
+            failures = ok === false ? failures + 1 : 0;
+          },
+          function () {
+            failures += 1;
+          }
+        )
+        .then(function () {
+          running = false;
+          schedule();
+        });
+    }
+    function onVisibility() {
+      if (hidden()) cancel();
+      else run();
+    }
+    if (doc && doc.addEventListener) doc.addEventListener('visibilitychange', onVisibility);
+    run();
+    return {
+      now: run,
+      stop: function () {
+        stopped = true;
+        cancel();
+        if (doc && doc.removeEventListener)
+          doc.removeEventListener('visibilitychange', onVisibility);
+      },
+    };
+  }
+
+  root.bpPoll = bpPoll;
   root.escHtml = escHtml;
   root.escapeHtml = escHtml;
   root.html = html;

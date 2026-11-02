@@ -95,18 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 28 | 282 |
+| `src/main/` | 31 | 296 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 124 |
 | `src/renderer/components/` | 44 | 209 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 9 | 47 |
+| `src/remote/` | 11 | 57 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **208** | **1802** |
+| **Total** | **213** | **1826** |
 
-Unitaires : 199 fichiers, 1767 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 204 fichiers, 1791 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2103,6 +2103,26 @@ Unitaires : 199 fichiers, 1767 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/ipc/cryptoHandlers.test.ts</code> — 4 tests</summary>
+
+- **registerCryptoHandlers (#1341)**
+  - enregistre les trois canaux crypto:\*
+  - protect / unprotect font l’aller-retour en base64
+  - renvoie null sans chiffrement disponible
+  - refuse les entrées non-chaîne
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/fileHandlers.test.ts</code> — 2 tests</summary>
+
+- **registerFileHandlers (#1341)**
+  - enregistre les canaux file:\* et dialog:\*
+  - refuse d’écrire un chemin non autorisé par une boîte de dialogue (#1146)
+
+</details>
+
+<details>
 <summary><code>src/main/ipc/ftpHandlers.test.ts</code> — 12 tests</summary>
 
 - **parseRemoteUrl (#1331)**
@@ -2195,6 +2215,19 @@ Unitaires : 199 fichiers, 1767 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/pendingUpdate.test.ts</code> — 6 tests</summary>
+
+- **pendingUpdate**
+  - relit un JSON valide
+  - rejette un chemin hors du dossier privé
+  - rejette un traversal de chemin
+  - rejette un JSON falsifié (champs manquants / invalide)
+  - rejette des droits trop larges
+  - nom aléatoire sans traversal
+
+</details>
+
+<details>
 <summary><code>src/main/printDialog.test.ts</code> — 20 tests</summary>
 
 - **parsePageRanges (#1214)**
@@ -2272,7 +2305,7 @@ Unitaires : 199 fichiers, 1767 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/csp.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/remote/csp.test.ts</code> — 7 tests</summary>
 
 - **CSP pages distantes (#1149)**
   - nonce aléatoire base64 de 16 octets
@@ -2281,7 +2314,6 @@ Unitaires : 199 fichiers, 1767 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - sendHtmlPage pose en-tête et nonce cohérents
   - %s : aucun handler inline ni javascript: _(each)_
   - app.js sans handler inline
-  - pages générées sans handler inline
   - chaque data-click statique cible une fonction définie dans la page
 
 </details>
@@ -2579,7 +2611,7 @@ Unitaires : 199 fichiers, 1767 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/windowSecurity.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/windowSecurity.test.ts</code> — 11 tests</summary>
 
 - **isAppUrl (#1148)**
   - prod : file:// du bundle uniquement
@@ -2593,6 +2625,10 @@ Unitaires : 199 fichiers, 1767 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - fuses : RunAsNode off, asar seul
   - meta CSP du renderer sans unsafe-inline pour les scripts
   - meta CSP du renderer sans unsafe-inline pour les styles (#1157)
+- **CSP de session (#1343)**
+  - fenêtre principale : style-src strict
+  - impression / PDF : unsafe-inline pour les styles seulement
+  - seule la fenêtre principale est stricte
 
 </details>
 
@@ -3743,11 +3779,36 @@ Unitaires : 199 fichiers, 1767 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/remote/remoteInlinePagesI18n.test.ts</code> — 3 tests</summary>
+
+- **%s (#1344)** _(each)_
+  - chargée en mémoire par le serveur
+  - charge i18n.js et common.js, langue active appliquée
+  - aucune locale fr-FR en dur
+
+</details>
+
+<details>
 <summary><code>src/remote/remotePagesXss.test.ts</code> — 2 tests</summary>
 
 - **rendu inerte des noms piégés (#1147)**
   - dashboard : classement, poules et matchs
   - ${page} : match en cours et annonce de carton
+
+</details>
+
+<details>
+<summary><code>src/remote/remotePolling.test.ts</code> — 7 tests</summary>
+
+- **bpPoll (#1345)**
+  - cadence nominale tant que tout réussit
+  - 0 requête onglet masqué, reprise immédiate à la réapparition
+  - démarré onglet masqué : aucune requête avant visibilité
+  - backoff exponentiel plafonné après erreur, retour à la cadence au succès
+  - une exception compte comme un échec
+- **pages résultats / journal : bpPoll, plus de setInterval (#1345)**
+  - %s _(each)_
+  - paramètres de cadence
 
 </details>
 

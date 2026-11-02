@@ -2667,6 +2667,9 @@
     "hint_pools": "Click “Generate pools” (at least 4 fencers checked in).",
     "hint_remote": "Start remote entry so referees can enter scores from a tablet (or enter them directly on this computer).",
     "hint_scores": "Open a pool and enter the score of one match.",
-    "hint_tableau": "Once the pools are over, move on to the direct elimination bracket."
+    "hint_tableau": "Once the pools are over, move on to the direct elimination bracket.",
+    "remote_explain": "Referees open the address shown on their tablet, enter hits match by match, and scores arrive here live.",
+    "remote_mock_arena": "Arena 1",
+    "remote_mock_validate": "Validate match"
   }
 }
