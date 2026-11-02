@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 30 | 292 |
+| `src/main/` | 31 | 294 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 24 | 115 |
 | `src/renderer/components/` | 44 | 209 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **208** | **1803** |
+| **Total** | **209** | **1805** |
 
-Unitaires : 199 fichiers, 1768 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 200 fichiers, 1770 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2110,6 +2110,15 @@ Unitaires : 199 fichiers, 1768 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - protect / unprotect font l’aller-retour en base64
   - renvoie null sans chiffrement disponible
   - refuse les entrées non-chaîne
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/fileHandlers.test.ts</code> — 2 tests</summary>
+
+- **registerFileHandlers (#1341)**
+  - enregistre les canaux file:\* et dialog:\*
+  - refuse d’écrire un chemin non autorisé par une boîte de dialogue (#1146)
 
 </details>
 
