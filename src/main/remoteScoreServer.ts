@@ -123,6 +123,18 @@ import {
 } from './remote/arenaQueue';
 import { createSession, updateMatchScore, type SessionOpsContext } from './remote/sessionOps';
 import {
+  setCheckinEnabled,
+  setCheckinPassword,
+  checkCheckinAuth,
+  checkinGuard,
+  setTrainerEnabled,
+  setTrainerPassword,
+  checkTrainerAuth,
+  trainerGuard,
+  type AccessGuardsContext,
+  type GuardRefusal,
+} from './remote/accessGuards';
+import {
   startServer,
   stopServer,
   notifyKioskData,
@@ -835,6 +847,19 @@ export class RemoteScoreServer {
     ));
   }
   private _sessionOpsCtx?: SessionOpsContext;
+
+  /** Contexte de accessGuards.ts (#1240) */
+  private get accessGuardsCtx(): AccessGuardsContext {
+    return (this._accessGuardsCtx ??= liveContext<AccessGuardsContext>(this, [
+      'checkinEnabled',
+      'checkinPassword',
+      'checkinTokens',
+      'trainerEnabled',
+      'trainerPassword',
+      'trainerTokens',
+    ]));
+  }
+  private _accessGuardsCtx?: AccessGuardsContext;
 
   /** Contexte de arenaOps.ts (#1240) */
   private get arenaOpsCtx(): ArenaOpsContext {
@@ -2085,69 +2110,37 @@ export class RemoteScoreServer {
   }
 
   public setCheckinEnabled(enabled: boolean): void {
-    this.checkinEnabled = enabled;
-    console.log(`[RemoteScoreServer] Appel distant ${enabled ? 'activé' : 'désactivé'}`);
+    return setCheckinEnabled(this.accessGuardsCtx, enabled);
   }
 
   public setCheckinPassword(password: string): void {
-    // Stocké hashé ; tout changement invalide les sessions ouvertes
-    this.assertPasswordStrength(password);
-    this.checkinPassword = password ? this.hashPassword(password) : null;
-    this.checkinTokens.clear();
-    console.log(`[RemoteScoreServer] Mot de passe appel ${password ? 'défini' : 'supprimé'}`);
+    return setCheckinPassword(this.accessGuardsCtx, password);
   }
 
   private checkCheckinAuth(cookieHeader: string | undefined): boolean {
-    if (!this.checkinPassword) return false;
-    const token = this.parseCookies(cookieHeader)['bp_checkin_token'];
-    return this.isTokenValid(this.checkinTokens, token);
+    return checkCheckinAuth(this.accessGuardsCtx, cookieHeader);
   }
 
   /** Refus d'accès à l'API d'appel, ou null si autorisé. */
-  private checkinGuard(
-    cookieHeader: string | undefined
-  ): { status: number; body: Record<string, unknown> } | null {
-    if (!this.checkinEnabled) {
-      return { status: 403, body: { closed: true, error: 'checkin_closed' } };
-    }
-    if (!this.checkinPassword) {
-      return { status: 403, body: { notConfigured: true, error: 'checkin_not_configured' } };
-    }
-    if (!this.checkCheckinAuth(cookieHeader)) {
-      return { status: 401, body: { unauthorized: true, error: 'auth_required' } };
-    }
-    return null;
+  private checkinGuard(cookieHeader: string | undefined): GuardRefusal {
+    return checkinGuard(this.accessGuardsCtx, cookieHeader);
   }
 
   public setTrainerEnabled(enabled: boolean): void {
-    this.trainerEnabled = enabled;
-    if (!enabled) this.trainerTokens.clear();
+    return setTrainerEnabled(this.accessGuardsCtx, enabled);
   }
 
   public setTrainerPassword(password: string): void {
-    this.assertPasswordStrength(password);
-    this.trainerPassword = password ? this.hashPassword(password) : null;
-    this.trainerTokens.clear();
-    console.log(`[RemoteScoreServer] Mot de passe formateurs ${password ? 'défini' : 'supprimé'}`);
+    return setTrainerPassword(this.accessGuardsCtx, password);
   }
 
   private checkTrainerAuth(cookieHeader: string | undefined): boolean {
-    if (!this.trainerPassword) return false;
-    const token = this.parseCookies(cookieHeader)['bp_trainer_token'];
-    return this.isTokenValid(this.trainerTokens, token);
+    return checkTrainerAuth(this.accessGuardsCtx, cookieHeader);
   }
 
   /** Refus d'accès à l'espace formateurs, ou null si autorisé. */
-  private trainerGuard(
-    cookieHeader: string | undefined
-  ): { status: number; body: Record<string, unknown> } | null {
-    if (!this.trainerEnabled || !this.trainerPassword) {
-      return { status: 403, body: { notConfigured: true, error: 'trainer_closed' } };
-    }
-    if (!this.checkTrainerAuth(cookieHeader)) {
-      return { status: 401, body: { unauthorized: true, error: 'auth_required' } };
-    }
-    return null;
+  private trainerGuard(cookieHeader: string | undefined): GuardRefusal {
+    return trainerGuard(this.accessGuardsCtx, cookieHeader);
   }
 
   /** Piste où l'arbitre officie actuellement (match assigné ou en cours). */
