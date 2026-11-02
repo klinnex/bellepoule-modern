@@ -177,6 +177,8 @@ import { isWebhookUrlSafe } from '../shared/services/notificationService';
 import { postWebhook } from './webhook';
 import { sendClientListToWindow } from './remoteRegistry';
 import { getSharedMainWindow } from './mainWindowRef';
+import { logger, LogCategory } from '../shared/services/logger';
+const NET = LogCategory.NETWORK;
 
 export type ArenaEventList = 'touchesA' | 'touchesB' | 'cardsA' | 'cardsB' | 'exits';
 
@@ -818,7 +820,7 @@ export class RemoteScoreServer {
     host: string = '0.0.0.0',
     tlsOptions?: { cert: string; key: string }
   ) {
-    console.log('[RemoteScoreServer] Initialisation du serveur de saisie distante...');
+    logger.info(NET, '[RemoteScoreServer] Initialisation du serveur de saisie distante...');
     this.db = db;
     // Écritures en base => « données modifiées » poussé aux kiosques (plus de polling, #1152)
     this.unsubscribeDb = db.onChange?.(() => this.notifyKioskData()) ?? null;
@@ -848,7 +850,7 @@ export class RemoteScoreServer {
     this.setupRoutes();
     this.setupSocketHandlers();
     this.initializeArenas();
-    console.log(`[RemoteScoreServer] Serveur initialisé avec ${this.arenaCount} arènes`);
+    logger.info(NET, `[RemoteScoreServer] Serveur initialisé avec ${this.arenaCount} arènes`);
   }
 
   // Client socket.io + pages HTML en mémoire (src/main/remote/htmlLoader.ts)
@@ -893,7 +895,7 @@ export class RemoteScoreServer {
     } else if (html) {
       sendHtmlPage(res, html);
     } else {
-      console.error(`[RemoteScoreServer] ERREUR: Fichier ${filename} non trouvé en mémoire`);
+      logger.error(NET, `[RemoteScoreServer] ERREUR: Fichier ${filename} non trouvé en mémoire`);
       res.status(500).send(`Erreur: fichier ${filename} non trouvé`);
     }
   }
@@ -1112,7 +1114,7 @@ export class RemoteScoreServer {
   private _routeCtx?: ApiRouteContext;
 
   private setupRoutes(): void {
-    console.log('[RemoteScoreServer] Configuration des routes...');
+    logger.info(NET, '[RemoteScoreServer] Configuration des routes...');
     registerApiRoutes(this.routeContext());
     registerPageRoutes(this.routeContext());
     registerRegistrationRoutes(this.routeContext());
@@ -1128,7 +1130,7 @@ export class RemoteScoreServer {
   static sanitizeAnnouncement = sanitizeAnnouncement;
 
   private handleDisconnect(socket: any): void {
-    console.log(`Client ${socket.id} disconnected`);
+    logger.info(NET, `Client ${socket.id} disconnected`);
   }
 
   private broadcastClientList(): void {
@@ -1369,12 +1371,12 @@ export class RemoteScoreServer {
     };
     this.arenas.set(arena.id, arena);
     this.arenaMatchQueue.set(arena.id, []);
-    console.log(`[RemoteScoreServer] Arène ${i} créée ✓`);
+    logger.info(NET, `[RemoteScoreServer] Arène ${i} créée ✓`);
   }
 
   private initializeArenas(arenaCount: number = 4): void {
     this.arenaCount = arenaCount;
-    console.log(`[RemoteScoreServer] Initialisation de ${arenaCount} arènes...`);
+    logger.info(NET, `[RemoteScoreServer] Initialisation de ${arenaCount} arènes...`);
     // Sauvegarder les mots de passe avant de vider la map
     const savedPasswords = new Map<string, string>();
     this.arenas.forEach((arena, id) => {
@@ -1392,7 +1394,7 @@ export class RemoteScoreServer {
       const arena = this.arenas.get(id);
       if (arena) arena.password = pwd;
     });
-    console.log(`[RemoteScoreServer] ${arenaCount} arènes initialisées avec succès ✓`);
+    logger.info(NET, `[RemoteScoreServer] ${arenaCount} arènes initialisées avec succès ✓`);
   }
 
   public resetPoolMatch(...args: Tail<Parameters<typeof resetPoolMatch>>): void {
@@ -1408,7 +1410,7 @@ export class RemoteScoreServer {
   }
 
   public setArenaCount(count: number): void {
-    console.log(`[RemoteScoreServer] Mise à jour du nombre d'arènes: ${count}`);
+    logger.info(NET, `[RemoteScoreServer] Mise à jour du nombre d'arènes: ${count}`);
     this.initializeArenas(count);
     this.io?.emit(
       'arenas:updated',
@@ -1733,7 +1735,7 @@ export class RemoteScoreServer {
 
   public setRegistrationEnabled(enabled: boolean): void {
     this.registrationEnabled = enabled;
-    console.log(`[RemoteScoreServer] Inscription distante ${enabled ? 'activée' : 'désactivée'}`);
+    logger.info(NET, `Inscription distante ${enabled ? 'activée' : 'désactivée'}`);
   }
 
   private checkRegistrationRateLimit(ip: string): boolean {
@@ -1965,9 +1967,7 @@ export class RemoteScoreServer {
     arena.password = password ? this.hashPassword(password) : undefined;
     // Invalider tous les tokens existants pour cette arène
     this.arenaTokens.delete(fullId);
-    console.log(
-      `[RemoteScoreServer] Mot de passe ${password ? 'défini' : 'supprimé'} pour ${fullId}`
-    );
+    logger.info(NET, `Mot de passe ${password ? 'défini' : 'supprimé'} pour ${fullId}`);
   }
 
   public assignRefereeToMatch(matchId: string, refereeId: string): void {

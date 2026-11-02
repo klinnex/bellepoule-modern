@@ -7,6 +7,7 @@ import type express from 'express';
 import type { Arena, ArenaMatch, OrgNote, RemoteSession } from '../../../shared/types/remote';
 import type { CustomScoringConfig } from '../../../shared/types';
 import type { MatchRouteContext } from './matchRoutes';
+import { logger, LogCategory, toError } from '../../../shared/services/logger';
 
 /** État et opérations utilisés par l'API configuration / session / arènes / poules. */
 export interface ApiRouteContext extends MatchRouteContext {
@@ -61,7 +62,10 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       res.setHeader('Cache-Control', 'no-store');
       res.send(ctx.socketIoClientJs);
     } else {
-      console.error('[RemoteScoreServer] /bp-sio.js demandé mais client non chargé');
+      logger.error(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] /bp-sio.js demandé mais client non chargé'
+      );
       res.status(500).send('// socket.io client not loaded');
     }
   });
@@ -92,7 +96,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       const pendingMatches = ctx.db.getPendingMatches(competitionId);
       res.json(pendingMatches);
     } catch (error) {
-      console.error('Error getting pending matches:', error);
+      logger.error(LogCategory.NETWORK, 'Error getting pending matches:', toError(error));
       res.status(500).json({ error: 'matches_fetch_failed' });
     }
   });
@@ -107,7 +111,8 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
   });
 
   ctx.app.get('/api/session', (req, res) => {
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       '[RemoteScoreServer] GET /api/session - Session:',
       ctx.session ? 'active' : 'inactive'
     );
@@ -144,7 +149,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       ctx.session = await ctx.createSession(competitionId, strips);
       res.json(ctx.session);
     } catch (error) {
-      console.error('Error starting session:', error);
+      logger.error(LogCategory.NETWORK, 'Error starting session:', toError(error));
       res.status(500).json({ error: 'session_start_failed' });
     }
   });
@@ -320,7 +325,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       const pools = ctx.db.getCompetitionPools(ctx.session.competitionId);
       res.json(pools);
     } catch (error) {
-      console.error('Error getting pools:', error);
+      logger.error(LogCategory.NETWORK, 'Error getting pools:', toError(error));
       res.status(500).json({ error: 'pools_fetch_failed' });
     }
   });
@@ -332,7 +337,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       const matches = ctx.db.getMatchesByPool(poolId);
       res.json(matches);
     } catch (error) {
-      console.error('Error getting pool matches:', error);
+      logger.error(LogCategory.NETWORK, 'Error getting pool matches:', toError(error));
       res.status(500).json({ error: 'matches_fetch_failed' });
     }
   });
@@ -347,7 +352,7 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
       );
       res.json(pending);
     } catch (error) {
-      console.error('Error getting pending matches:', error);
+      logger.error(LogCategory.NETWORK, 'Error getting pending matches:', toError(error));
       res.status(500).json({ error: 'matches_fetch_failed' });
     }
   });
