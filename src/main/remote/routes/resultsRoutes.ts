@@ -5,6 +5,7 @@
 
 import { FencerStatus, MatchStatus } from '../../../shared/types';
 import type { RouteContext } from './context';
+import { logger, LogCategory, toError } from '../../../shared/services/logger';
 
 /** Résultats, tableau, historique d'entraînement et journal des matchs. */
 export function registerResultsRoutes(ctx: RouteContext): void {
@@ -149,7 +150,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
         pools: poolResults,
       });
     } catch (error) {
-      console.error('[RemoteScoreServer] Erreur résultats:', error);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur résultats:', toError(error));
       res.status(500).json({ error: 'results_fetch_failed' });
     }
   });
@@ -297,7 +298,11 @@ export function registerResultsRoutes(ctx: RouteContext): void {
 
       res.json({ upcoming });
     } catch (error) {
-      console.error('[RemoteScoreServer] Erreur upcoming-matches:', error);
+      logger.error(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] Erreur upcoming-matches:',
+        toError(error)
+      );
       res.status(500).json({ error: 'internal' });
     }
   });
@@ -429,7 +434,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
 
       res.json({ tableSize, currentRound, rounds, finalResults });
     } catch (error) {
-      console.error('[RemoteScoreServer] Erreur /api/bracket:', error);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur /api/bracket:', toError(error));
       res.status(500).json({ error: 'internal' });
     }
   });

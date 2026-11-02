@@ -14,6 +14,7 @@ import type { BlackCardRecord } from '../types';
 import type { PoolRouteContext } from './poolRoutes';
 import { baseArenaId, matchesTakenBySiblings } from '../arenaSlots';
 import { getSharedMainWindow } from '../../mainWindowRef';
+import { logger, LogCategory, toError } from '../../../shared/services/logger';
 
 /** État et opérations utilisés par les routes de matchs des arènes. */
 export interface MatchRouteContext extends PoolRouteContext {
@@ -50,15 +51,15 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
   ctx.app.get('/api/arenas/:arenaId/matches', (req, res) => {
     try {
       const { arenaId } = req.params;
-      console.log(`[RemoteScoreServer] GET /api/arenas/${arenaId}/matches`);
+      logger.info(LogCategory.NETWORK, `[RemoteScoreServer] GET /api/arenas/${arenaId}/matches`);
 
       if (!ctx.session) {
-        console.log('[RemoteScoreServer] Pas de session active');
+        logger.info(LogCategory.NETWORK, '[RemoteScoreServer] Pas de session active');
         return res.status(404).json({ error: 'no_session' });
       }
 
       const competitionId = ctx.session.competitionId;
-      console.log(`[RemoteScoreServer] CompetitionId: ${competitionId}`);
+      logger.info(LogCategory.NETWORK, `[RemoteScoreServer] CompetitionId: ${competitionId}`);
 
       const arena = ctx.arenas.get(arenaId);
 
@@ -110,7 +111,8 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           };
         });
         const matches = [...guests, ...poolMatches];
-        console.log(
+        logger.info(
+          LogCategory.NETWORK,
           `[RemoteScoreServer] ${matches.length} matchs de pool non terminés pour arène ${arenaId} (pool ${currentPoolId})`
         );
         if (matches.length > 0) {
@@ -135,7 +137,8 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           inWave &&
           ctx.isMatchPlayable(arena.currentMatch)
         ) {
-          console.log(
+          logger.info(
+            LogCategory.NETWORK,
             `[RemoteScoreServer] Fallback match courant pour arène ${arenaId}: ${arena.currentMatch.id}`
           );
           const queueMatches = (ctx.arenaMatchQueue.get(arenaId) || [])
@@ -172,7 +175,8 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
       // File d'attente DE (currentMatch nul ou terminé)
       const arenaQueue = ctx.arenaMatchQueue.get(arenaId) || [];
       if (arenaQueue.length > 0) {
-        console.log(
+        logger.info(
+          LogCategory.NETWORK,
           `[RemoteScoreServer] ${arenaQueue.length} matchs en file DE pour arène ${arenaId}`
         );
         const queueMatches = arenaQueue
@@ -190,10 +194,17 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         return res.json({ matches: queueMatches, poolId: null, poolName: null });
       }
 
-      console.log(`[RemoteScoreServer] Aucun match disponible pour arène ${arenaId}`);
+      logger.info(
+        LogCategory.NETWORK,
+        `[RemoteScoreServer] Aucun match disponible pour arène ${arenaId}`
+      );
       res.json({ matches: [], poolId: null, poolName: null });
     } catch (error) {
-      console.error('[RemoteScoreServer] Erreur récupération matchs:', error);
+      logger.error(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] Erreur récupération matchs:',
+        toError(error)
+      );
       res.status(500).json({ error: 'matches_fetch_failed' });
     }
   });
@@ -252,8 +263,8 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         return res.status(400).json({ error: 'invalid_scores' });
       }
 
-      console.log(`[RemoteScoreServer] POST /api/matches/${matchId}/finish`);
-      console.log(`[RemoteScoreServer] Score final: ${scoreA}-${scoreB}`);
+      logger.info(LogCategory.NETWORK, `[RemoteScoreServer] POST /api/matches/${matchId}/finish`);
+      logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Score final: ${scoreA}-${scoreB}`);
 
       // Vérifier que le match existe (en DB ou en mémoire)
       const dbMatch = ctx.db.getMatch(matchId);
@@ -352,7 +363,8 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               poolId: dbMatch.poolId ?? null,
               isTableau: isTableauMatch,
             });
-            console.log(
+            logger.info(
+              LogCategory.NETWORK,
               `[RemoteScoreServer] Émission match:finished hors-arène pour ${matchId}: ${scoreA}-${scoreB}`
             );
           }
@@ -389,7 +401,8 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               poolId: sm?.poolId ?? null,
               isTableau: sm?.isTableau ?? false,
             });
-            console.log(
+            logger.info(
+              LogCategory.NETWORK,
               `[RemoteScoreServer] Émission match:finished hors-arène (mémoire) pour ${matchId}: ${scoreA}-${scoreB}`
             );
           }
@@ -423,7 +436,10 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               opponentName: ctx.formatFencerName(opponentObj),
               timestamp: Date.now(),
             });
-            console.log(`[RemoteScoreServer] Carton noir : combattant ${culpritId} exclu`);
+            logger.info(
+              LogCategory.NETWORK,
+              `[RemoteScoreServer] Carton noir : combattant ${culpritId} exclu`
+            );
             // Notifier le renderer pour mettre à jour le statut dans son store
             const mainWin = getSharedMainWindow();
             if (mainWin) {
@@ -450,7 +466,11 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
               });
             }
           } catch (e) {
-            console.error('[RemoteScoreServer] Erreur exclusion combattant:', e);
+            logger.error(
+              LogCategory.NETWORK,
+              '[RemoteScoreServer] Erreur exclusion combattant:',
+              toError(e)
+            );
           }
         }
       }
@@ -483,10 +503,13 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         }
       }
 
-      console.log(`[RemoteScoreServer] Match ${matchId} terminé et enregistré`);
+      logger.info(
+        LogCategory.NETWORK,
+        `[RemoteScoreServer] Match ${matchId} terminé et enregistré`
+      );
       res.json({ success: true, winner, requireSignature });
     } catch (error) {
-      console.error('[RemoteScoreServer] Erreur fin de match:', error);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur fin de match:', toError(error));
       res.status(500).json({ error: 'finish_failed' });
     }
   });
@@ -534,7 +557,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
 
       res.json({ success: true });
     } catch (error) {
-      console.error('Error updating score:', error);
+      logger.error(LogCategory.NETWORK, 'Error updating score:', toError(error));
       res.status(500).json({ error: 'score_update_failed' });
     }
   });
@@ -573,7 +596,10 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         // via Socket.IO en temps réel ; on les accepte sans traitement supplémentaire.
         results.push({ id: action.id, success: true });
       } catch (err) {
-        console.error('[RemoteScoreServer] Erreur sync action', action.id, err);
+        logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur sync action', undefined, [
+          action.id,
+          err,
+        ]);
         results.push({ id: action.id, success: false });
       }
     }

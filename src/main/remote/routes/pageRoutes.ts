@@ -5,6 +5,7 @@
 
 import { buildFencerSchedule, type ScheduleMatchInput } from '../fencerSchedule';
 import type { RouteContext, SessionMatch } from './context';
+import { logger, LogCategory, toError } from '../../../shared/services/logger';
 
 /** Pages HTML des arènes, écrans, tablettes et suivi public. */
 export function registerPageRoutes(ctx: RouteContext): void {
@@ -14,7 +15,7 @@ export function registerPageRoutes(ctx: RouteContext): void {
     if (!ctx.arenas.has(`arena${arenaId}`)) {
       return res.status(404).send('Arène non trouvée');
     }
-    console.log(`[RemoteScoreServer] Accès à l'arène ${arenaId}`);
+    logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Accès à l'arène ${arenaId}`);
     ctx.sendHtmlFromMemory('arena.html', res);
   });
 
@@ -24,14 +25,17 @@ export function registerPageRoutes(ctx: RouteContext): void {
     if (!ctx.arenas.has(`arena${arenaId}`)) {
       return res.status(404).send('Arène non trouvée');
     }
-    console.log(`[RemoteScoreServer] Accès à l'arène (arene) ${arenaId}`);
+    logger.info(LogCategory.NETWORK, `[RemoteScoreServer] Accès à l'arène (arene) ${arenaId}`);
     ctx.sendHtmlFromMemory('arena.html', res);
   });
 
   // Interface d'arbitrage - Dynamique (sans vérification d'existence)
   ctx.app.get('/arena:arenaId/referee', (req, res) => {
     const arenaId = req.params.arenaId;
-    console.log(`[RemoteScoreServer] Accès à l'interface arbitre pour l'arène ${arenaId}`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Accès à l'interface arbitre pour l'arène ${arenaId}`
+    );
     if (!ctx.checkArenaAuth(arenaId, req.headers.cookie)) {
       return res.redirect(
         302,
@@ -44,7 +48,10 @@ export function registerPageRoutes(ctx: RouteContext): void {
   // Alias /arene pour l'interface d'arbitrage (français)
   ctx.app.get('/arene:arenaId/referee', (req, res) => {
     const arenaId = req.params.arenaId;
-    console.log(`[RemoteScoreServer] Accès à l'interface arbitre pour l'arène ${arenaId} (arene)`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Accès à l'interface arbitre pour l'arène ${arenaId} (arene)`
+    );
     if (!ctx.checkArenaAuth(arenaId, req.headers.cookie)) {
       return res.redirect(
         302,
@@ -57,7 +64,8 @@ export function registerPageRoutes(ctx: RouteContext): void {
   // Alias /arbitre pour l'interface d'arbitrage
   ctx.app.get('/arbitre/:arenaId', (req, res) => {
     const arenaId = req.params.arenaId;
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] Accès à l'interface arbitre (alias /arbitre) pour l'arène ${arenaId}`
     );
     if (!ctx.checkArenaAuth(arenaId, req.headers.cookie)) {
@@ -72,7 +80,10 @@ export function registerPageRoutes(ctx: RouteContext): void {
   // Nouveau: Route /arbitre/areneX (format demandé par l'utilisateur)
   ctx.app.get('/arbitre/arene:arenaId', (req, res) => {
     const arenaId = req.params.arenaId;
-    console.log(`[RemoteScoreServer] Accès à l'interface arbitre /arbitre/arene${arenaId}`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Accès à l'interface arbitre /arbitre/arene${arenaId}`
+    );
     if (!ctx.checkArenaAuth(arenaId, req.headers.cookie)) {
       return res.redirect(
         302,
@@ -85,7 +96,10 @@ export function registerPageRoutes(ctx: RouteContext): void {
   // Route /areneX/arbitre (format français demandé)
   ctx.app.get('/arene:arenaId/arbitre', (req, res) => {
     const arenaId = req.params.arenaId;
-    console.log(`[RemoteScoreServer] Accès à l'interface arbitre /arene${arenaId}/arbitre`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Accès à l'interface arbitre /arene${arenaId}/arbitre`
+    );
     if (!ctx.checkArenaAuth(arenaId, req.headers.cookie)) {
       return res.redirect(
         302,
@@ -99,13 +113,19 @@ export function registerPageRoutes(ctx: RouteContext): void {
   // Routes distinctes des arènes individuelles ci-dessus (aucun chemin partagé),
   // même modèle d'authentification par arène (checkArenaAuth).
   ctx.app.get('/equipe:arenaId', (req, res) => {
-    console.log(`[RemoteScoreServer] Accès affichage équipe /equipe${req.params.arenaId}`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Accès affichage équipe /equipe${req.params.arenaId}`
+    );
     ctx.sendHtmlFromMemory('teamArena.html', res);
   });
 
   ctx.app.get('/equipe:arenaId/arbitre', (req, res) => {
     const arenaId = req.params.arenaId;
-    console.log(`[RemoteScoreServer] Accès arbitre équipe /equipe${arenaId}/arbitre`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Accès arbitre équipe /equipe${arenaId}/arbitre`
+    );
     if (!ctx.checkArenaAuth(arenaId, req.headers.cookie)) {
       return res.redirect(
         302,
@@ -122,24 +142,36 @@ export function registerPageRoutes(ctx: RouteContext): void {
 
   // Overlay de score pour streaming (OBS, vMix…) — lecture seule, aucune auth requise
   ctx.app.get('/arene:arenaId/overlay', (req, res) => {
-    console.log(`[RemoteScoreServer] Accès overlay /arene${req.params.arenaId}/overlay`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Accès overlay /arene${req.params.arenaId}/overlay`
+    );
     ctx.sendHtmlFromMemory('overlay.html', res);
   });
   ctx.app.get('/arena:arenaId/overlay', (req, res) => {
-    console.log(`[RemoteScoreServer] Accès overlay /arena${req.params.arenaId}/overlay`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Accès overlay /arena${req.params.arenaId}/overlay`
+    );
     ctx.sendHtmlFromMemory('overlay.html', res);
   });
 
   // Vue publique par arène (lecture seule, pas d'authentification requise)
   ctx.app.get('/arene:arenaId/public', (req, res) => {
     const arenaId = req.params.arenaId;
-    console.log(`[RemoteScoreServer] Accès vue publique /arene${arenaId}/public`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Accès vue publique /arene${arenaId}/public`
+    );
     ctx.sendHtmlFromMemory('public.html', res);
   });
 
   ctx.app.get('/arena:arenaId/public', (req, res) => {
     const arenaId = req.params.arenaId;
-    console.log(`[RemoteScoreServer] Accès vue publique /arena${arenaId}/public`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Accès vue publique /arena${arenaId}/public`
+    );
     ctx.sendHtmlFromMemory('public.html', res);
   });
 
@@ -186,7 +218,11 @@ export function registerPageRoutes(ctx: RouteContext): void {
       res.set('Cache-Control', 'no-store');
       res.json(schedule);
     } catch (err) {
-      console.error('[RemoteScoreServer] Erreur planning tireur:', err);
+      logger.error(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] Erreur planning tireur:',
+        toError(err)
+      );
       res.status(500).json({ error: 'internal' });
     }
   });
@@ -202,7 +238,10 @@ export function registerPageRoutes(ctx: RouteContext): void {
   // Vue de saisie de poule par arène
   ctx.app.get('/arene:arenaId/poule', (req, res) => {
     const arenaId = req.params.arenaId;
-    console.log(`[RemoteScoreServer] Accès à la vue poule /arene${arenaId}/poule`);
+    logger.info(
+      LogCategory.NETWORK,
+      `[RemoteScoreServer] Accès à la vue poule /arene${arenaId}/poule`
+    );
     if (!ctx.checkArenaAuth(arenaId, req.headers.cookie)) {
       return res.redirect(
         302,
@@ -214,7 +253,7 @@ export function registerPageRoutes(ctx: RouteContext): void {
 
   // Affichage kiosk grand écran public
   ctx.app.get('/kiosk', (req, res) => {
-    console.log('[RemoteScoreServer] Accès au mode kiosk');
+    logger.info(LogCategory.NETWORK, '[RemoteScoreServer] Accès au mode kiosk');
     ctx.sendHtmlFromMemory('kiosk.html', res);
   });
 
