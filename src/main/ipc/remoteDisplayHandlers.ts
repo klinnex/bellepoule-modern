@@ -6,6 +6,7 @@
 import { ipcMain, type BrowserWindow } from 'electron';
 import type { MatchSignatureRequest } from '../../shared/types/remote';
 import { remoteServers } from '../remoteRegistry';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export interface RemoteDisplayHandlersContext {
   getMainWindow(): BrowserWindow | null;
@@ -32,7 +33,7 @@ export function registerRemoteDisplayHandlers({
         entry.server.updateKioskViews(views);
         return { success: true };
       } catch (error) {
-        console.error('Error updating kioskViews:', error);
+        logger.error(LogCategory.NETWORK, 'Error updating kioskViews:', toError(error));
         return {
           success: false,
           error: error instanceof Error ? error.message : 'Erreur inconnue',
@@ -55,7 +56,7 @@ export function registerRemoteDisplayHandlers({
         entry.server.updateKioskTheme(variables);
         return { success: true };
       } catch (error) {
-        console.error('Error updating kiosk theme:', error);
+        logger.error(LogCategory.NETWORK, 'Error updating kiosk theme:', toError(error));
         return {
           success: false,
           error: error instanceof Error ? error.message : 'Erreur inconnue',
@@ -95,7 +96,7 @@ export function registerRemoteDisplayHandlers({
         entry.server.setArenaPassword(arenaId, password);
         return { success: true };
       } catch (error) {
-        console.error('Error setting arena password:', error);
+        logger.error(LogCategory.NETWORK, 'Error setting arena password:', toError(error));
         return {
           success: false,
           error: error instanceof Error ? error.message : 'Erreur inconnue',
@@ -117,7 +118,7 @@ export function registerRemoteDisplayHandlers({
       getMainWindow()?.webContents.send('kiosk:note', note);
       return { success: true };
     } catch (error) {
-      console.error('Error setting org note:', error);
+      logger.error(LogCategory.NETWORK, 'Error setting org note:', toError(error));
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }
   });
@@ -135,7 +136,7 @@ export function registerRemoteDisplayHandlers({
       getMainWindow()?.webContents.send('kiosk:note', null);
       return { success: true };
     } catch (error) {
-      console.error('Error clearing org note:', error);
+      logger.error(LogCategory.NETWORK, 'Error clearing org note:', toError(error));
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }
   });
@@ -147,7 +148,7 @@ export function registerRemoteDisplayHandlers({
       entry.server.acknowledgeDTCall(arenaId);
       return { success: true };
     } catch (error) {
-      console.error('Error acknowledging DT call:', error);
+      logger.error(LogCategory.NETWORK, 'Error acknowledging DT call:', toError(error));
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }
   });
@@ -163,7 +164,7 @@ export function registerRemoteDisplayHandlers({
         }
         return { success: true };
       } catch (error) {
-        console.error('Error requesting match signature:', error);
+        logger.error(LogCategory.NETWORK, 'Error requesting match signature:', toError(error));
         return {
           success: false,
           error: error instanceof Error ? error.message : 'Erreur inconnue',

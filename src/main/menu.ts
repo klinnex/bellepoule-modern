@@ -8,6 +8,7 @@ import type { DatabaseManager } from '../database';
 import type { AutoUpdater } from './autoUpdater';
 import { getL, setUiLanguage } from './menuLabels';
 import type { createMenuActions } from './menuActions';
+import { logger, LogCategory, toError } from '../shared/services/logger';
 
 export interface MenuContext {
   db: Pick<DatabaseManager, 'forceSave'>;
@@ -65,11 +66,11 @@ export function createMenu(
           click: () => {
             try {
               db.forceSave();
-              console.log('Sauvegarde manuelle effectuée');
+              logger.info(LogCategory.SYSTEM, 'Sauvegarde manuelle effectuée');
               getMainWindow()?.webContents.send('menu:save');
               void saveGlobalBackup();
             } catch (error) {
-              console.error('Échec sauvegarde manuelle:', error);
+              logger.error(LogCategory.SYSTEM, 'Échec sauvegarde manuelle:', toError(error));
               getMainWindow()?.webContents.send('autosave:failed');
             }
           },

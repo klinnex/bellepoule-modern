@@ -6,6 +6,7 @@ import { BrowserWindow, ipcMain } from 'electron';
 import type { DatabaseManager } from '../../database';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { Card } from '../../shared/types';
+import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export interface DbHandlersContext {
   db: DatabaseManager;
@@ -169,7 +170,7 @@ export function registerDbHandlers({
       db.forceSave();
       event.returnValue = true;
     } catch (e) {
-      console.error('[DB] Sync session state save failed', e);
+      logger.error(LogCategory.SYSTEM, '[DB] Sync session state save failed', toError(e));
       event.returnValue = false;
     }
   });
