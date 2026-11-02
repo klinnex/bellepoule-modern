@@ -17,6 +17,10 @@
  *                  distantes (src/remote) : risque XSS (#1147). Échapper avec escHtml
  *                  (/common.js) ou faire précéder un fragment HTML audité d'un commentaire
  *                  « html » (voir scripts/remote-escape-analysis.js).
+ *   - remoteHardLocale : locale `'fr-FR'` en dur dans les pages distantes (src/remote) ou
+ *                  `lang="fr"` figé / `'fr-FR'` dans les gabarits HTML de src/main/remote/*.ts
+ *                  (angle mort de l'AST : JS/HTML dans des template strings, #1344) → langue
+ *                  active (`document.documentElement.lang`)
  *   - inlineStyle : objets `style={{…}}` dans le JSX (renderer) → classes / tokens CSS (#1157)
  *   - fontSizePx : `fontSize` en px (nombre ou « 12px ») dans le TS/TSX du renderer → échelle
  *                  `var(--fs-*)` en rem (#1156)
@@ -45,21 +49,51 @@ const SOURCE_RE = /\.tsx?$/;
 const MAX_LINES = 1500;
 const LINE_RE = /\.(tsx?|html|js|css)$/;
 const EXCLUDE_RE = /(\.test\.tsx?$|\.spec\.tsx?$|\.d\.ts$|[\\/]__tests__[\\/]|[\\/]examples[\\/])/;
-const COUNTERS = ['jsxText', 'jsxAttr', 'any', 'console', 'inlineStyle', 'fontSizePx', 'hardLocale', 'serverMessage'];
+const COUNTERS = [
+  'jsxText',
+  'jsxAttr',
+  'any',
+  'console',
+  'inlineStyle',
+  'fontSizePx',
+  'hardLocale',
+  'serverMessage',
+];
 const I18N_ATTRS = new Set(['title', 'placeholder', 'aria-label', 'alt', 'label']);
 // Au moins deux lettres (latin + accents) : ignore ponctuation, symboles, chiffres.
 const WORDISH_RE = /\p{L}{2,}/u;
 // Sigles et formats identiques dans toutes les langues : pas de clé de traduction (#1158).
 const UNIVERSAL_TEXT = new Set([
-  'CSV', 'JSON', 'HTML', 'PDF', 'XML FFE', 'URL', 'IP', 'QR Code', 'VS', 'FRA',
-  'WEP', 'WPA / WPA2 / WPA3', 'Ctrl', 'Ctrl K', 'Esc', 'Quest', 'QP', 'Overlay', 'Webcam',
-  'Logo', 'min',
+  'CSV',
+  'JSON',
+  'HTML',
+  'PDF',
+  'XML FFE',
+  'URL',
+  'IP',
+  'QR Code',
+  'VS',
+  'FRA',
+  'WEP',
+  'WPA / WPA2 / WPA3',
+  'Ctrl',
+  'Ctrl K',
+  'Esc',
+  'Quest',
+  'QP',
+  'Overlay',
+  'Webcam',
+  'Logo',
+  'min',
 ]);
 const isTranslatable = text => {
   const raw = text.replace(/&[a-z]+;/g, ' ').trim();
   // URL ou chemin (`/lobby`) : pas du texte
   if (/^(https?:|\/)/.test(raw)) return false;
-  const norm = raw.replace(/[^\p{L}\p{N}/+#.\s-]/gu, ' ').replace(/\s+/g, ' ').trim();
+  const norm = raw
+    .replace(/[^\p{L}\p{N}/+#.\s-]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
   return WORDISH_RE.test(norm) && !UNIVERSAL_TEXT.has(norm.replace(/^\/ /, ''));
 };
 
@@ -74,7 +108,10 @@ function walk(dir) {
 }
 
 function isRenderer(file) {
-  return file.startsWith(path.join(SRC, 'renderer') + path.sep) || file.includes(`${path.sep}features${path.sep}`);
+  return (
+    file.startsWith(path.join(SRC, 'renderer') + path.sep) ||
+    file.includes(`${path.sep}features${path.sep}`)
+  );
 }
 
 function analyze(file) {
@@ -127,7 +164,8 @@ function analyze(file) {
       ts.isPropertyAssignment(node) &&
       /^['"]?fontSize['"]?$/.test(node.name.getText(sf)) &&
       (ts.isNumericLiteral(node.initializer) ||
-        (ts.isStringLiteralLike(node.initializer) && /^\s*[\d.]+px\s*$/.test(node.initializer.text)))
+        (ts.isStringLiteralLike(node.initializer) &&
+          /^\s*[\d.]+px\s*$/.test(node.initializer.text)))
     ) {
       hits.fontSizePx.push(at(node));
     }
@@ -178,6 +216,29 @@ function remoteFindings() {
   return out;
 }
 
+/** Locale fr en dur dans les pages distantes et les gabarits HTML du process principal (#1344) */
+function remoteLocaleFindings() {
+  const out = [];
+  const scan = (file, re) => {
+    const lines = [];
+    fs.readFileSync(file, 'utf8')
+      .split('\n')
+      .forEach((l, i) => {
+        if (re.test(l)) lines.push(i + 1);
+      });
+    if (lines.length)
+      out.push({ file: path.relative(ROOT, file).split(path.sep).join('/'), lines });
+  };
+  for (const name of fs.readdirSync(REMOTE_DIR).sort()) {
+    if (/\.(html|js)$/.test(name) && !REMOTE_SKIP.has(name))
+      scan(path.join(REMOTE_DIR, name), /['"]fr-FR['"]/);
+  }
+  for (const file of walk(path.join(SRC, 'main', 'remote')).sort()) {
+    scan(file, /['"]fr-FR['"]|<html\s+lang=["']fr["']/);
+  }
+  return out;
+}
+
 /** Longueur (lignes) des fichiers source de src/, hors tests et typages générés */
 function fileLengths() {
   const out = {};
@@ -207,7 +268,7 @@ function oversized() {
 function collect() {
   const totals = {};
   const details = {};
-  for (const key of [...COUNTERS, 'remoteUnescaped']) {
+  for (const key of [...COUNTERS, 'remoteUnescaped', 'remoteHardLocale']) {
     totals[key] = 0;
     details[key] = [];
   }
@@ -221,6 +282,8 @@ function collect() {
   }
   details.remoteUnescaped = remoteFindings();
   totals.remoteUnescaped = details.remoteUnescaped.reduce((n, f) => n + f.lines.length, 0);
+  details.remoteHardLocale = remoteLocaleFindings();
+  totals.remoteHardLocale = details.remoteHardLocale.reduce((n, f) => n + f.lines.length, 0);
   return { totals, details };
 }
 
@@ -236,7 +299,8 @@ function main() {
       process.exit(1);
     }
     const sorted = [...details[key]].sort((a, b) => b.lines.length - a.lines.length);
-    for (const { file, lines } of sorted) console.log(`${String(lines.length).padStart(4)}  ${file}:${lines.join(',')}`);
+    for (const { file, lines } of sorted)
+      console.log(`${String(lines.length).padStart(4)}  ${file}:${lines.join(',')}`);
     return;
   }
 
@@ -246,7 +310,9 @@ function main() {
     const next = {};
     for (const [key, value] of Object.entries(totals)) {
       if (baseline && baseline[key] !== undefined && value > baseline[key]) {
-        console.error(`✗ ${key}: ${value} > référence ${baseline[key]} — corriger plutôt que relever.`);
+        console.error(
+          `✗ ${key}: ${value} > référence ${baseline[key]} — corriger plutôt que relever.`
+        );
         process.exit(1);
       }
       next[key] = value;
@@ -255,7 +321,9 @@ function main() {
     const known = baseline && baseline.lineExceptions;
     for (const [f, n] of Object.entries(big)) {
       if (known && known[f] === undefined) {
-        console.error(`✗ ${f}: ${n} lignes > plafond ${MAX_LINES} — nouvelle exception interdite, découper le fichier.`);
+        console.error(
+          `✗ ${f}: ${n} lignes > plafond ${MAX_LINES} — nouvelle exception interdite, découper le fichier.`
+        );
         process.exit(1);
       }
       if (known && n > known[f]) {
@@ -281,7 +349,9 @@ function main() {
       failed = true;
       console.log(`✗ ${key}: ${value} (référence ${ref}, +${value - ref})`);
     } else if (value < ref) {
-      console.log(`↓ ${key}: ${value} (référence ${ref}) — lancer --update pour verrouiller le gain`);
+      console.log(
+        `↓ ${key}: ${value} (référence ${ref}) — lancer --update pour verrouiller le gain`
+      );
     } else {
       console.log(`✓ ${key}: ${value}`);
     }
@@ -298,7 +368,9 @@ function main() {
       failed = true;
       console.log(`✗ ${f}: ${n} lignes (référence ${ref}, +${n - ref})`);
     } else if (n < ref) {
-      console.log(`↓ ${f}: ${n} lignes (référence ${ref}) — lancer --update pour verrouiller le gain`);
+      console.log(
+        `↓ ${f}: ${n} lignes (référence ${ref}) — lancer --update pour verrouiller le gain`
+      );
     }
   }
   for (const f of Object.keys(exceptions)) {
@@ -307,7 +379,9 @@ function main() {
     }
   }
   if (failed) {
-    console.error('\nDette en hausse. Détail : node scripts/check-quality-ratchet.js --list <compteur>');
+    console.error(
+      '\nDette en hausse. Détail : node scripts/check-quality-ratchet.js --list <compteur>'
+    );
     process.exit(1);
   }
 }
