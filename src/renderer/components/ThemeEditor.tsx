@@ -676,9 +676,9 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
         {/* ── En-tête ── */}
         <div className="theme-editor-header">
           <div>
-            <h3 style={{ margin: 0 }}>{t('themeEditor.title')}</h3>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.2rem' }}>
-              {t('themeEditor.target')} <strong style={{ color: '#60a5fa' }}>{arenaLabel}</strong>
+            <h3 className="is-ff227d">{t('themeEditor.title')}</h3>
+            <div className="is-de2aa7">
+              {t('themeEditor.target')} <strong className="is-4017f8">{arenaLabel}</strong>
             </div>
           </div>
           <div className="u-row">
@@ -706,48 +706,19 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
           </div>
         </div>
 
-        {importError && (
-          <div
-            style={{
-              background: '#7f1d1d',
-              color: '#fca5a5',
-              padding: '0.4rem 1rem',
-              fontSize: '0.85rem',
-            }}
-          >
-            {importError}
-          </div>
-        )}
+        {importError && <div className="is-b265d1">{importError}</div>}
 
         <div className="theme-editor-body">
           {/* ── Panneau gauche : éditeur ── */}
           <div className="theme-editor-left">
             {/* Nom du thème */}
-            <div style={{ marginBottom: '0.75rem' }}>
-              <label
-                style={{
-                  fontSize: '0.8rem',
-                  color: '#94a3b8',
-                  display: 'block',
-                  marginBottom: '0.3rem',
-                }}
-              >
-                {t('themeEditor.name')}
-              </label>
+            <div className="is-b57afc">
+              <label className="is-15dcdc">{t('themeEditor.name')}</label>
               <input
                 type="text"
                 value={themeName}
                 onChange={e => setThemeName(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.4rem 0.6rem',
-                  borderRadius: '0.3rem',
-                  border: '1px solid #475569',
-                  background: '#0f172a',
-                  color: '#e2e8f0',
-                  boxSizing: 'border-box',
-                  fontSize: '0.9rem',
-                }}
+                className="is-ec082d"
               />
             </div>
 
@@ -768,51 +739,23 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
             <div className="theme-editor-vars">
               {/* Contrôles image + overlay — Arrière-plans arène et kiosque */}
               {activeGroup === 0 && (
-                <div
-                  style={{
-                    borderBottom: '1px solid #334155',
-                    paddingBottom: '0.75rem',
-                    marginBottom: '0.5rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
-                  }}
-                >
+                <div className="is-e23749">
                   <div className="var-row">
                     <label className="var-label">{t('themeEditor.bg_image')}</label>
-                    <div className="var-control" style={{ gap: '0.4rem', flexWrap: 'wrap' }}>
-                      <label
-                        style={{
-                          cursor: 'pointer',
-                          padding: '0.3rem 0.6rem',
-                          borderRadius: '0.3rem',
-                          border: '1px solid #475569',
-                          background: '#1e293b',
-                          color: '#94a3b8',
-                          fontSize: '0.8rem',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
+                    <div className="var-control is-e1bd73">
+                      <label className="is-6de70b">
                         {t('themeEditor.choose_image')}
                         <input
                           type="file"
                           accept="image/*"
-                          style={{ display: 'none' }}
+                          className="is-f2892a"
                           onChange={handleImageUpload}
                         />
                       </label>
                       {vars[bgVar]?.includes('url(') && (
                         <button
                           onClick={() => setVar(bgVar, activeDefaults[bgVar] ?? '')}
-                          style={{
-                            padding: '0.3rem 0.6rem',
-                            borderRadius: '0.3rem',
-                            border: '1px solid #475569',
-                            background: 'none',
-                            color: '#ef4444',
-                            fontSize: '0.8rem',
-                            cursor: 'pointer',
-                          }}
+                          className="is-29b2b2"
                         >
                           {t('themeEditor.remove')}
                         </button>
@@ -827,12 +770,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                           type="checkbox"
                           checked={overlayMode}
                           onChange={e => handleOverlayToggle(e.target.checked)}
-                          style={{
-                            width: 16,
-                            height: 16,
-                            cursor: 'pointer',
-                            accentColor: '#3b82f6',
-                          }}
+                          className="is-11cbaa"
                         />
                         <span
                           style={{ fontSize: '0.8rem', color: overlayMode ? '#60a5fa' : '#94a3b8' }}
@@ -859,57 +797,16 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
             {/* Thèmes sauvegardés */}
             {savedThemes.length > 0 && (
               <div className="mt-4">
-                <div
-                  style={{
-                    fontSize: '0.8rem',
-                    color: '#94a3b8',
-                    marginBottom: '0.4rem',
-                    fontWeight: 600,
-                  }}
-                >
-                  {t('themeEditor.saved')}
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.3rem',
-                    maxHeight: '120px',
-                    overflowY: 'auto',
-                  }}
-                >
+                <div className="is-e8cb78">{t('themeEditor.saved')}</div>
+                <div className="is-9400dc">
                   {savedThemes.map(theme => (
-                    <div
-                      key={theme.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.4rem',
-                        padding: '0.3rem 0.5rem',
-                        background: '#1e293b',
-                        borderRadius: '0.3rem',
-                      }}
-                    >
-                      <span
-                        style={{
-                          flex: 1,
-                          fontSize: '0.85rem',
-                          color: '#e2e8f0',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => handleLoadSaved(theme)}
-                      >
+                    <div key={theme.id} className="is-56f1de">
+                      <span className="is-a4e5ce" onClick={() => handleLoadSaved(theme)}>
                         {theme.name}
                       </span>
                       <button
                         onClick={() => handleDeleteSaved(theme.id)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#ef4444',
-                          cursor: 'pointer',
-                          fontSize: '0.9rem',
-                        }}
+                        className="is-811a2b"
                         title={t('actions.delete')}
                       >
                         ✕
@@ -923,17 +820,7 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
 
           {/* ── Panneau droit : preview ── */}
           <div className="theme-editor-right">
-            <div
-              style={{
-                fontSize: '0.8rem',
-                color: '#94a3b8',
-                marginBottom: '0.5rem',
-                fontWeight: 600,
-                textAlign: 'center',
-              }}
-            >
-              {t('themeEditor.live_preview')}
-            </div>
+            <div className="is-ebb691">{t('themeEditor.live_preview')}</div>
             {/* Conteneur externe : clips + ratio 16:9 fixe */}
             <div
               ref={previewOuterRef}
@@ -970,44 +857,11 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                   // ── Aperçu Kiosk ──
                   <>
                     {/* Barre de progression */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: 8,
-                        background: 'var(--k-progress)',
-                        borderRadius: '4px 4px 0 0',
-                      }}
-                    />
+                    <div className="is-d2f910" />
                     {/* En-tête kiosk */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        paddingTop: 16,
-                        flexShrink: 0,
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--k-accent)' }}
-                      >
-                        {t('themeEditor.provisional')}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '1.125rem',
-                          padding: '4px 16px',
-                          borderRadius: 20,
-                          background: 'var(--k-card-bg)',
-                          border: '1px solid var(--k-border)',
-                          color: 'var(--k-accent2)',
-                        }}
-                      >
-                        {t('themeEditor.sample_fencers')}
-                      </span>
+                    <div className="is-9630d8">
+                      <span className="is-d2b277">{t('themeEditor.provisional')}</span>
+                      <span className="is-79253d">{t('themeEditor.sample_fencers')}</span>
                     </div>
                     {/* Lignes de classement */}
                     {[
@@ -1068,15 +922,10 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
                         >
                           {row.rank}
                         </span>
-                        <span style={{ flex: 1, fontSize: '1.375rem', fontWeight: 600 }}>
-                          {row.name}{' '}
-                          <span style={{ fontSize: '1rem', color: 'var(--k-muted)' }}>
-                            · {row.club}
-                          </span>
+                        <span className="is-fc5e01">
+                          {row.name} <span className="is-cd4091">· {row.club}</span>
                         </span>
-                        <span style={{ fontSize: '1.25rem', color: '#10b981', fontWeight: 700 }}>
-                          {row.v}V
-                        </span>
+                        <span className="is-bdc612">{row.v}V</span>
                         <span
                           style={{
                             fontSize: '1.25rem',

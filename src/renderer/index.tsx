@@ -18,6 +18,7 @@ import './styles/training.css';
 import './styles/utilities.css';
 import './styles/components.css';
 import './styles/extracted.css';
+import './styles/extracted-2.css';
 /// <reference path="./types.d.ts" />
 
 // Log unhandled rejections so they appear in DevTools console and don't silently crash
