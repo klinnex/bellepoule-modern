@@ -4,8 +4,6 @@
  */
 
 import { FencerStatus, MatchStatus } from '../../../shared/types';
-import { sendHtmlPage } from '../csp';
-import { renderArenaJournalPage, renderCompetitionResultsPage } from '../htmlPages';
 import type { RouteContext } from './context';
 
 /** Résultats, tableau, historique d'entraînement et journal des matchs. */
@@ -443,8 +441,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
     if (!/^[A-Za-z0-9_-]{1,64}$/.test(competitionId)) {
       return res.status(400).send('Identifiant invalide');
     }
-    const html = renderCompetitionResultsPage(competitionId);
-    sendHtmlPage(res, html);
+    ctx.sendHtmlFromMemory('results.html', res);
   });
 
   // Journal du match en cours (tablette arbitre - lecture seule)
@@ -468,7 +465,6 @@ export function registerResultsRoutes(ctx: RouteContext): void {
     if (!/^\d{1,3}$/.test(arenaNum)) {
       return res.status(400).send('Numéro de piste invalide');
     }
-    const html = renderArenaJournalPage(arenaNum);
-    sendHtmlPage(res, html);
+    ctx.sendHtmlFromMemory('journal.html', res);
   });
 }

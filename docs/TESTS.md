@@ -95,18 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 31 | 294 |
+| `src/main/` | 31 | 296 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 24 | 115 |
 | `src/renderer/components/` | 44 | 209 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 9 | 47 |
+| `src/remote/` | 10 | 50 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **209** | **1805** |
+| **Total** | **210** | **1810** |
 
-Unitaires : 200 fichiers, 1770 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 201 fichiers, 1775 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2305,7 +2305,7 @@ Unitaires : 200 fichiers, 1770 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/csp.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/remote/csp.test.ts</code> — 7 tests</summary>
 
 - **CSP pages distantes (#1149)**
   - nonce aléatoire base64 de 16 octets
@@ -2314,7 +2314,6 @@ Unitaires : 200 fichiers, 1770 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - sendHtmlPage pose en-tête et nonce cohérents
   - %s : aucun handler inline ni javascript: _(each)_
   - app.js sans handler inline
-  - pages générées sans handler inline
   - chaque data-click statique cible une fonction définie dans la page
 
 </details>
@@ -2612,7 +2611,7 @@ Unitaires : 200 fichiers, 1770 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/windowSecurity.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/windowSecurity.test.ts</code> — 11 tests</summary>
 
 - **isAppUrl (#1148)**
   - prod : file:// du bundle uniquement
@@ -2626,6 +2625,10 @@ Unitaires : 200 fichiers, 1770 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - fuses : RunAsNode off, asar seul
   - meta CSP du renderer sans unsafe-inline pour les scripts
   - meta CSP du renderer sans unsafe-inline pour les styles (#1157)
+- **CSP de session (#1343)**
+  - fenêtre principale : style-src strict
+  - impression / PDF : unsafe-inline pour les styles seulement
+  - seule la fenêtre principale est stricte
 
 </details>
 
@@ -3749,6 +3752,16 @@ Unitaires : 200 fichiers, 1770 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - chaque raison a une clé et la valeur enregistrée reste en français
   - le texte français de la clé = valeur enregistrée
   - %s : toutes les raisons traduites _(each)_
+
+</details>
+
+<details>
+<summary><code>src/remote/remoteInlinePagesI18n.test.ts</code> — 3 tests</summary>
+
+- **%s (#1344)** _(each)_
+  - chargée en mémoire par le serveur
+  - charge i18n.js et common.js, langue active appliquée
+  - aucune locale fr-FR en dur
 
 </details>
 

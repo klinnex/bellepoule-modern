@@ -8,6 +8,7 @@
   "hardLocale": 0,
   "serverMessage": 0,
   "remoteUnescaped": 0,
+  "remoteHardLocale": 6,
   "lineExceptions": {
     "src/renderer/styles/design.css": 2087,
     "src/renderer/styles/main.css": 2997,
@@ -20,7 +21,7 @@
     "src/remote/arena.html": 2302,
     "src/remote/kiosk.html": 3488,
     "src/remote/referee.html": 4633,
-    "src/main/main.ts": 1917,
+    "src/main/main.ts": 1916,
     "src/main/remoteScoreServer.ts": 2705
   }
 }
