@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 39 | 316 |
+| `src/main/` | 40 | 319 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 124 |
 | `src/renderer/components/` | 44 | 209 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **221** | **1846** |
+| **Total** | **222** | **1849** |
 
-Unitaires : 212 fichiers, 1811 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 213 fichiers, 1814 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2213,6 +2213,16 @@ Unitaires : 212 fichiers, 1811 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **registerRemoteSettingsHandlers (#1341)**
   - enregistre les canaux de réglages
   - setCheckinEnabled : serveur absent
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/windowPrintHandlers.test.ts</code> — 3 tests</summary>
+
+- **registerWindowPrintHandlers (#1341)**
+  - enregistre les canaux fenêtre / impression / shell
+  - shell:openExternal : https uniquement
+  - sans fenêtre : setSize et print sont sans effet
 
 </details>
 
