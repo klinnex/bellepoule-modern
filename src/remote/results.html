@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="results.page_title">Résultats – BellePoule</title>
+    <script src="/common.js"></script>
+    <script src="/i18n.js"></script>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 1rem; }
+      header { text-align: center; padding: 1.5rem 0 1rem; }
+      header h1 { font-size: 1.5rem; color: #f8fafc; }
+      header p { color: #94a3b8; font-size: 0.875rem; margin-top: 0.25rem; }
+      .pool { background: #1e293b; border-radius: 10px; margin: 1rem 0; overflow: hidden; }
+      .pool-title { background: #3b82f6; color: white; padding: 0.6rem 1rem; font-weight: 600; font-size: 0.95rem; }
+      table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+      th { background: #0f172a; color: #94a3b8; padding: 0.5rem 0.75rem; text-align: left; font-weight: 500; }
+      td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #334155; }
+      tr:last-child td { border-bottom: none; }
+      tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
+      .rank { color: #94a3b8; width: 2rem; }
+      .name { font-weight: 600; }
+      .club { color: #94a3b8; font-size: 0.8rem; }
+      .num { text-align: center; }
+      .pos { color: #4ade80; }
+      .neg { color: #f87171; }
+      .loading { text-align: center; padding: 3rem; color: #94a3b8; }
+      .empty { text-align: center; color: #94a3b8; padding: 2rem; }
+      .error { background: #450a0a; color: #fca5a5; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+      .refresh { position: fixed; bottom: 1rem; right: 1rem; background: #3b82f6; color: white;
+        border: none; border-radius: 50%; width: 3rem; height: 3rem; font-size: 1.2rem;
+        cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
+    </style>
+  </head>
+  <body>
+    <div id="app"><div class="loading" data-i18n="results.loading">Chargement des résultats…</div></div>
+    <button class="refresh" id="refresh-btn" data-i18n-title="results.refresh" title="Actualiser">↻</button>
+    <script>
+      (function () {
+        const tk = (key, params) => (window.T ? window.T(key, params) : key);
+        const esc = window.escHtml;
+        // Identifiant lu dans l'URL /competition/:id/results (format validé côté serveur, #997)
+        const m = window.location.pathname.match(/^\/competition\/([A-Za-z0-9_-]{1,64})\/results/);
+        const competitionId = m ? m[1] : '';
+
+        async function load() {
+          try {
+            const r = await fetch('/api/competitions/' + encodeURIComponent(competitionId) + '/results-data');
+            if (!r.ok) throw new Error(tk('results.not_found'));
+            render(await r.json());
+            return true;
+          } catch (e) {
+            const app = document.getElementById('app');
+            app.textContent = '';
+            const errDiv = document.createElement('div');
+            errDiv.className = 'error';
+            errDiv.textContent = tk('results.error', { message: e.message });
+            app.appendChild(errDiv);
+            return false;
+          }
+        }
+
+        function render(data) {
+          const dateStr = data.competition.date
+            ? new Date(data.competition.date).toLocaleDateString(document.documentElement.lang || undefined, {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric',
+              })
+            : '';
+          let html =
+            '<header><h1>' + esc(data.competition.title) + '</h1>' +
+            (dateStr ? '<p>' + esc(dateStr) + '</p>' : '') + '</header>';
+          if (!data.pools || data.pools.length === 0) {
+            html += '<p class="empty">' + esc(tk('results.no_pools')) + '</p>';
+          } else {
+            for (const pool of data.pools) {
+              html +=
+                '<div class="pool"><div class="pool-title">' + esc(pool.name) + '</div><table>' +
+                '<thead><tr><th class="rank">#</th><th>' + esc(tk('results.col_fencer')) + '</th>' +
+                '<th class="num">' + esc(tk('results.col_victories')) + '</th>' +
+                '<th class="num">' + esc(tk('results.col_td')) + '</th>' +
+                '<th class="num">' + esc(tk('results.col_tr')) + '</th>' +
+                '<th class="num">' + esc(tk('results.col_index')) + '</th></tr></thead><tbody>';
+              pool.rankings.forEach((f, i) => {
+                const ind = f.index >= 0 ? '+' + f.index : '' + f.index;
+                const cls = f.index > 0 ? 'pos' : f.index < 0 ? 'neg' : '';
+                html +=
+                  '<tr><td class="rank">' + (i + 1) + '</td>' +
+                  '<td><span class="name">' + esc(f.lastName.toUpperCase()) + ' ' + esc(f.firstName) + '</span>' +
+                  (f.club ? ' <span class="club">(' + esc(f.club) + ')</span>' : '') + '</td>' +
+                  '<td class="num">' + esc(f.victories) + '</td>' +
+                  '<td class="num">' + esc(f.touchesFor) + '</td>' +
+                  '<td class="num">' + esc(f.touchesAgainst) + '</td>' +
+                  '<td class="num ' + cls + '">' + esc(ind) + '</td></tr>';
+              });
+              html += '</tbody></table></div>';
+            }
+          }
+          document.getElementById('app').innerHTML = html;
+        }
+
+        // Polling suspendu onglet masqué, backoff 30 s -> 2 min après erreur (#1345)
+        let poll = null;
+        document.getElementById('refresh-btn').addEventListener('click', () => poll && poll.now());
+        // Langue active (/api/config) appliquée avant le premier rendu
+        const ready = window.initRemoteI18n ? window.initRemoteI18n() : Promise.resolve();
+        ready.then(() => {
+          poll = window.bpPoll(load, { base: 30000, max: 120000 });
+        });
+      })();
+    </script>
+  </body>
+</html>

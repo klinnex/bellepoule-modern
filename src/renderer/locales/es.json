@@ -2667,6 +2667,9 @@
     "hint_pools": "Pulse «Generar poules» (mínimo 4 tiradores presentes).",
     "hint_remote": "Inicie la entrada remota para que los árbitros introduzcan los resultados desde una tableta (o introdúzcalos directamente en este equipo).",
     "hint_scores": "Abra una poule e introduzca el resultado de un asalto.",
-    "hint_tableau": "Terminadas las poules, pase al cuadro de eliminación directa."
+    "hint_tableau": "Terminadas las poules, pase al cuadro de eliminación directa.",
+    "remote_explain": "Los árbitros abren la dirección mostrada en su tableta, introducen los tocados partido a partido y los resultados llegan aquí en directo.",
+    "remote_mock_arena": "Pista 1",
+    "remote_mock_validate": "Validar el combate"
   }
 }

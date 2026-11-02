@@ -663,7 +663,122 @@
     box-shadow: 0 0 0 0.7rem rgba(59, 130, 246, 0);
   }
 }
+/* Maquette tablette arbitre (étape saisie distante) */
+.tour-mock {
+  display: flex;
+  justify-content: center;
+  margin: 0.5rem 0;
+}
+.tour-mock-tablet {
+  position: relative;
+  width: 11rem;
+  padding: 0.4rem;
+  border-radius: 0.7rem;
+  background: #111827;
+  color: #fff;
+  text-align: center;
+  font-size: 0.7rem;
+}
+.tour-mock-bar {
+  padding: 0.15rem;
+  border-radius: 0.3rem;
+  background: #1e40af;
+}
+.tour-mock-scores {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin: 0.4rem 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.tour-mock-vs {
+  font-size: 0.65rem;
+  opacity: 0.6;
+}
+.tour-mock-score::before {
+  content: '0';
+  animation: tour-mock-count-a 6s steps(1) infinite;
+}
+.tour-mock-score-b::before {
+  animation-name: tour-mock-count-b;
+}
+.tour-mock-btn {
+  padding: 0.25rem;
+  border-radius: 0.3rem;
+  background: #16a34a;
+  animation: tour-mock-btn 6s ease-in-out infinite;
+}
+.tour-mock-finger {
+  position: absolute;
+  right: 1.2rem;
+  bottom: 0.2rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  animation: tour-mock-tap 6s ease-in-out infinite;
+}
+@keyframes tour-mock-count-a {
+  0% {
+    content: '0';
+  }
+  20% {
+    content: '1';
+  }
+  40% {
+    content: '2';
+  }
+  60% {
+    content: '3';
+  }
+  80% {
+    content: '4';
+  }
+}
+@keyframes tour-mock-count-b {
+  0% {
+    content: '0';
+  }
+  35% {
+    content: '1';
+  }
+  65% {
+    content: '2';
+  }
+}
+@keyframes tour-mock-btn {
+  0%,
+  80% {
+    transform: scale(1);
+  }
+  90% {
+    transform: scale(0.93);
+    filter: brightness(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes tour-mock-tap {
+  0%,
+  70% {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+  85% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
+  .tour-mock-score::before,
+  .tour-mock-btn,
+  .tour-mock-finger,
   .guided-tour,
   .guided-tour-step.is-current .guided-tour-bullet,
   .guided-tour-step.is-done .guided-tour-bullet,
