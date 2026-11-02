@@ -873,6 +873,8 @@
   "errors": {
     "server_not_started": "Serveur non démarré",
     "invalid_url": "URL invalide — doit être https vers un hôte public",
+    "html_required": "Contenu HTML requis",
+    "print_failed": "Échec de l'impression",
     "remote_not_started": "Le serveur distant n'est pas démarré pour cette compétition",
     "remote_already_started": "Le serveur est déjà démarré pour cette compétition",
     "training_not_started": "Serveur entraînement non démarré",
