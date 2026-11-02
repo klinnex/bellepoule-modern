@@ -29,18 +29,7 @@ const ModernStatCard_: React.FC<StatCardProps> = ({ title, value, icon, trend, c
   const theme = colors[color];
 
   return (
-    <div
-      style={{
-        backgroundColor: 'white',
-        borderRadius: '16px',
-        padding: '24px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        border: '1px solid var(--color-bg)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-      }}
-    >
+    <div className="is-88fce2">
       <div
         style={{
           width: '56px',
@@ -56,19 +45,10 @@ const ModernStatCard_: React.FC<StatCardProps> = ({ title, value, icon, trend, c
         {icon}
       </div>
       <div className="flex-1">
-        <p style={{ margin: 0, color: 'var(--color-text-light)', fontSize: '0.875rem' }}>{title}</p>
-        <h3
-          style={{
-            margin: '4px 0 0 0',
-            fontSize: '1.75rem',
-            fontWeight: '700',
-            color: 'var(--color-text)',
-          }}
-        >
-          {value}
-        </h3>
+        <p className="is-42620a">{title}</p>
+        <h3 className="is-57bffa">{value}</h3>
         {trend && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+          <div className="is-b52e93">
             <span
               style={{
                 color: trend.isPositive ? '#10b981' : '#ef4444',
@@ -78,9 +58,7 @@ const ModernStatCard_: React.FC<StatCardProps> = ({ title, value, icon, trend, c
             >
               {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
             </span>
-            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
-              {t('dashboardCards.vs_last_month')}
-            </span>
+            <span className="is-99ac94">{t('dashboardCards.vs_last_month')}</span>
           </div>
         )}
       </div>
@@ -100,22 +78,11 @@ interface TimelineItem {
 
 const ActivityTimeline_: React.FC<{ items: TimelineItem[] }> = ({ items }) => {
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="is-f8d354">
       {items.map((item, index) => (
-        <div key={item.id} style={{ display: 'flex', gap: '16px', position: 'relative' }}>
+        <div key={item.id} className="is-c3cda5">
           {/* Line */}
-          {index < items.length - 1 && (
-            <div
-              style={{
-                position: 'absolute',
-                left: '20px',
-                top: '40px',
-                bottom: '-20px',
-                width: '2px',
-                backgroundColor: 'var(--color-border)',
-              }}
-            />
-          )}
+          {index < items.length - 1 && <div className="is-2cd34f" />}
 
           {/* Icon */}
           <div
@@ -136,25 +103,10 @@ const ActivityTimeline_: React.FC<{ items: TimelineItem[] }> = ({ items }) => {
           </div>
 
           {/* Content */}
-          <div style={{ flex: 1, paddingBottom: '24px' }}>
-            <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
-              {item.time}
-            </p>
-            <h4
-              style={{
-                margin: '4px 0',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: 'var(--color-text)',
-              }}
-            >
-              {item.title}
-            </h4>
-            {item.description && (
-              <p style={{ margin: 0, color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>
-                {item.description}
-              </p>
-            )}
+          <div className="is-22a122">
+            <p className="is-61926d">{item.time}</p>
+            <h4 className="is-ce741b">{item.title}</h4>
+            {item.description && <p className="is-375b4e">{item.description}</p>}
           </div>
         </div>
       ))}
@@ -182,13 +134,7 @@ const Sparkline_: React.FC<{
 
   return (
     <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ height, width: '100%' }}>
-      <polyline
-        fill="none"
-        stroke={color}
-        strokeWidth="3"
-        points={points}
-        style={{ transition: 'all 0.3s ease' }}
-      />
+      <polyline fill="none" stroke={color} strokeWidth="3" points={points} className="is-e1acc6" />
       <polygon fill={`${color}20`} stroke="none" points={`0,100 ${points} 100,100`} />
     </svg>
   );
@@ -209,12 +155,10 @@ const ComparisonBar_: React.FC<{
   const percentB = (valueB / total) * 100;
 
   return (
-    <div style={{ marginBottom: '16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--color-text)' }}>
-          {label}
-        </span>
-        <div style={{ display: 'flex', gap: '16px', fontSize: '0.8125rem' }}>
+    <div className="is-045aac">
+      <div className="is-91b3c5">
+        <span className="is-2979d7">{label}</span>
+        <div className="is-708424">
           <span style={{ color: colorA }}>
             {labelA}: {valueA}
           </span>
@@ -223,15 +167,7 @@ const ComparisonBar_: React.FC<{
           </span>
         </div>
       </div>
-      <div
-        style={{
-          height: '24px',
-          backgroundColor: 'var(--color-bg)',
-          borderRadius: '12px',
-          overflow: 'hidden',
-          display: 'flex',
-        }}
-      >
+      <div className="is-6892de">
         <div
           style={{
             width: `${percentA}%`,
@@ -327,51 +263,19 @@ const LeaderboardItem_: React.FC<{
       </div>
 
       {avatar ? (
-        <img
-          src={avatar}
-          alt={name}
-          style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-        />
+        <img src={avatar} alt={name} className="is-20acb1" />
       ) : (
-        <div
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            backgroundColor: 'var(--color-border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1rem',
-          }}
-        >
-          {name.charAt(0)}
-        </div>
+        <div className="is-a3b6ba">{name.charAt(0)}</div>
       )}
 
       <div className="flex-1">
-        <span style={{ fontWeight: '600', color: 'var(--color-text)' }}>{name}</span>
-        {isCurrentUser && (
-          <span
-            style={{
-              marginLeft: '8px',
-              fontSize: '0.75rem',
-              color: 'var(--color-primary)',
-              fontWeight: '500',
-            }}
-          >
-            {t('dashboardCards.you')}
-          </span>
-        )}
+        <span className="is-394059">{name}</span>
+        {isCurrentUser && <span className="is-2a1677">{t('dashboardCards.you')}</span>}
       </div>
 
-      <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--color-text)' }}>
-          {score}
-        </span>
-        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginLeft: '4px' }}>
-          {t('dashboardCards.pts')}
-        </span>
+      <div className="is-13cbe0">
+        <span className="is-5cfc6b">{score}</span>
+        <span className="is-165cf2">{t('dashboardCards.pts')}</span>
       </div>
     </div>
   );
@@ -386,34 +290,9 @@ const EmptyState_: React.FC<{
   onAction?: () => void;
 }> = ({ icon, title, description, actionLabel, onAction }) => {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '48px 24px',
-        textAlign: 'center',
-      }}
-    >
-      <div
-        style={{
-          width: '120px',
-          height: '120px',
-          borderRadius: '50%',
-          backgroundColor: 'var(--color-bg)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '3.75rem',
-          marginBottom: '24px',
-        }}
-      >
-        {icon}
-      </div>
-      <h3 style={{ margin: '0 0 8px 0', fontSize: '1.25rem', color: 'var(--color-text)' }}>
-        {title}
-      </h3>
+    <div className="is-2e1bdd">
+      <div className="is-b0a337">{icon}</div>
+      <h3 className="is-a646e7">{title}</h3>
       <p
         style={{
           margin: '0 0 24px 0',
