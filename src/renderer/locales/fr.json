@@ -1028,6 +1028,8 @@
     "fencers_count_other": "{{count}} tireurs",
     "final_ranking": "Classement final",
     "full_export": "Export complet",
+    "book_contents": "Sommaire",
+    "book_page": "Page",
     "generation_failed": "Échec de la génération PDF",
     "global_stats": "Statistiques globales",
     "in_progress": "En cours",

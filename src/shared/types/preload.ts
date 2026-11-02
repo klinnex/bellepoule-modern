@@ -987,6 +987,8 @@ export interface FileAPI {
     html: string,
     outputPath: string
   ) => Promise<{ success: boolean; path?: string; error?: string }>;
+  /** Pages du HTML rendu en PDF (sommaire du dossier de compétition) */
+  countHtmlPages: (html: string) => Promise<{ success: boolean; pages?: number; error?: string }>;
   previewPdf: (
     html: string,
     title?: string

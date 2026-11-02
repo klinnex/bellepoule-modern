@@ -448,6 +448,12 @@ const electronApi = {
       }
       return ipcRenderer.invoke('file:printHtmlToPDF', html, outputPath);
     },
+    countHtmlPages: (html: string) => {
+      if (!html || typeof html !== 'string') {
+        throw new Error('HTML content is required');
+      }
+      return ipcRenderer.invoke('file:countHtmlPages', html);
+    },
     exportPhotos: (competitionId: string, filepath: string) => {
       if (!competitionId || typeof competitionId !== 'string') {
         throw new Error('Competition ID is required and must be a string');

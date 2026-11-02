@@ -1028,6 +1028,8 @@
     "fencers_count_other": "{{count}} Fechter",
     "final_ranking": "Endrangliste",
     "full_export": "Vollständiger Export",
+    "book_contents": "Inhalt",
+    "book_page": "Seite",
     "generation_failed": "PDF-Erstellung fehlgeschlagen",
     "global_stats": "Gesamtstatistik",
     "in_progress": "Läuft",

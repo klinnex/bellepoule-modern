@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 41 | 596 |
+| `src/shared/utils/` | 42 | 600 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 26 | 278 |
+| `src/main/` | 27 | 280 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 23 | 112 |
 | `src/renderer/components/` | 43 | 207 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **201** | **1780** |
+| **Total** | **203** | **1786** |
 
-Unitaires : 192 fichiers, 1745 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 194 fichiers, 1751 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -622,6 +622,17 @@ Unitaires : 192 fichiers, 1745 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - includes ranking table headers
   - renders fencer row in final results
   - renders pool ranking row
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/pdfExport/bookToc.test.ts</code> — 4 tests</summary>
+
+- **bookToc**
+  - pages de départ après garde + sommaire
+  - échappe le HTML
+  - sommaire avec numéros de page
+  - sans comptage : pas de numéros
 
 </details>
 
@@ -2150,6 +2161,15 @@ Unitaires : 192 fichiers, 1745 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **validation fencers.json (#1146)**
   - accepte une liste valide
   - refuse non-tableau, éléments mal formés, champs trop longs
+
+</details>
+
+<details>
+<summary><code>src/main/pdfPageCount.test.ts</code> — 2 tests</summary>
+
+- **countPdfPages**
+  - compte les pages et ignore /Pages
+  - 0 si aucun objet page
 
 </details>
 
