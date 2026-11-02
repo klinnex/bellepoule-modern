@@ -29,6 +29,7 @@ import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
 import { useModalResize } from '../hooks/useModalResize';
 import { useStateGroup } from '../hooks/useStateGroup';
+import { useTableauUndo } from '../hooks/useTableauUndo';
 import { useBracketZoomPan } from './tableau/useBracketZoomPan';
 import { useColumnMeasures } from '../hooks/useColumnMeasures';
 import {
@@ -228,12 +229,12 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   matches,
   onMatchesChange,
   maxScore = 15,
-  onComplete,
+  onComplete: onCompleteProp,
   thirdPlaceMatch = false,
   playAllPositions = false,
   arenaCount = 4,
-  onMatchArenaChange,
-  onMatchRefereeChange,
+  onMatchArenaChange: onMatchArenaChangeProp,
+  onMatchRefereeChange: onMatchRefereeChangeProp,
   competitionId,
   consolationBrackets: consolationBracketsprop = [],
   onConsolationBracketsChange,
@@ -247,6 +248,22 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   const { confirm } = useConfirm();
   const tableauTemplate = usePdfTemplateStore(s => s.templates.tableau);
   const [tableauSize, setTableauSize] = useState<number>(0);
+
+  const notifyArenaDiff = (updated: TableauMatch[]) =>
+    updated.forEach(m => {
+      const orig = matches.find(o => o.id === m.id);
+      if (orig && orig.arena !== m.arena)
+        onMatchArenaChange?.(m.id, orig.arena ?? null, m.arena ?? null);
+    });
+  // Annulation des placements à risque (#1301), verrouillée après transmission
+  const undo = useTableauUndo({
+    scopeKey: competitionId,
+    onMatchesChange,
+    onComplete: onCompleteProp,
+    onMatchArenaChange: onMatchArenaChangeProp,
+    onMatchRefereeChange: onMatchRefereeChangeProp,
+  });
+  const { onComplete, onMatchArenaChange, onMatchRefereeChange } = undo;
   // États de la modale de score regroupés (#1241)
   const {
     editingMatch,
@@ -501,12 +518,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       // Génération initiale : distribution complète.
       const updated = distributeArenasRoundRobin(matches);
       onMatchesChange(updated);
-      updated.forEach(m => {
-        const orig = matches.find(o => o.id === m.id);
-        if (orig && orig.arena !== m.arena) {
-          onMatchArenaChange?.(m.id, orig.arena ?? null, m.arena ?? null);
-        }
-      });
+      notifyArenaDiff(updated);
     } else if (playable.length > prev) {
       // Nouveau tour débloqué (ex. SF après QF) : assigner les pistes uniquement aux
       // matchs qui n'en ont pas encore, sans écraser les affectations manuelles.
@@ -524,12 +536,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           return m;
         });
         onMatchesChange(updated);
-        updated.forEach(m => {
-          const orig = matches.find(o => o.id === m.id);
-          if (orig && orig.arena !== m.arena) {
-            onMatchArenaChange?.(m.id, orig.arena ?? null, m.arena ?? null);
-          }
-        });
+        notifyArenaDiff(updated);
       }
     }
   }, [playableMatchCount]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -540,12 +547,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       if (enabled && arenaCount > 0) {
         const updated = distributeArenasRoundRobin(matches);
         onMatchesChange(updated);
-        updated.forEach(m => {
-          const orig = matches.find(o => o.id === m.id);
-          if (orig && orig.arena !== m.arena) {
-            onMatchArenaChange?.(m.id, orig.arena ?? null, m.arena ?? null);
-          }
-        });
+        notifyArenaDiff(updated);
       } else if (!enabled) {
         // Désactivation : vider les assignations des matchs non encore joués
         const updated = matches.map(m => (!m.winner ? { ...m, arena: null as number | null } : m));
@@ -561,11 +563,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   const handleBulkDeassign = useCallback(() => {
     const updated = matches.map(m => ({ ...m, arena: null as number | null }));
     onMatchesChange(updated);
-    matches.forEach(m => {
-      if (m.arena != null) {
-        onMatchArenaChange?.(m.id, m.arena, null);
-      }
-    });
+    notifyArenaDiff(updated);
   }, [matches, onMatchesChange, onMatchArenaChange]);
 
   useEffect(() => {
@@ -1028,6 +1026,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     const match = matches.find(m => m.id === editingMatch);
     if (!match) return;
 
+    undo.record(matches);
     // Dans un tableau à élimination directe, l'adversaire gagne dans tous les cas
     const winner: Fencer | null = opponentWinner(match);
 
@@ -1222,6 +1221,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         onAutoAssignToggle={handleAutoAssignToggle}
         onBulkDeassign={handleBulkDeassign}
         onAutoFillScores={handleAutoFillScores}
+        onUndo={undo.canUndo && !readOnly ? undo.undo : undefined}
         viewMode={viewMode}
         onViewModeToggle={() => setViewMode(viewMode === 'full' ? 'pending' : 'full')}
         pyramidViewMode={pyramidViewMode}

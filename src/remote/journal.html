@@ -109,7 +109,7 @@
               status.textContent = data.matchId ? tk('journal.no_events') : '';
               table.style.display = 'none';
               baseTs = null;
-              return;
+              return true;
             }
 
             baseTs = data.events[0].timestamp;
@@ -133,8 +133,10 @@
             document.getElementById('last-update').textContent = tk('journal.updated', {
               time: new Date().toLocaleTimeString(loc()),
             });
+            return true;
           } catch (err) {
             document.getElementById('status').textContent = tk('journal.conn_error');
+            return false;
           }
         }
 
@@ -143,8 +145,8 @@
         ready.then(() => {
           document.title = tk('journal.page_title', { n: arenaNum });
           document.getElementById('title').textContent = tk('journal.title', { n: arenaNum });
-          refresh();
-          setInterval(refresh, 5000);
+          // Polling suspendu onglet masqué, backoff 5 s -> 30 s après erreur (#1345)
+          window.bpPoll(refresh, { base: 5000, max: 30000 });
         });
       })();
     </script>

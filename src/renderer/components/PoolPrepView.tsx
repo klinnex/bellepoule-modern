@@ -18,7 +18,7 @@ import {
   optimizePoolConflicts,
 } from '../../shared/utils/poolOptimizer';
 import PoolMatchOrderModal from './pool/PoolMatchOrderModal';
-import { appendHistory } from './poolPrepHistory';
+import { useUndoStack } from '../hooks/useUndoStack';
 import { useTranslation } from '../hooks/useTranslation';
 
 const HINT_DISMISSED_KEY = 'bp_poolprep_hint_dismissed';
@@ -66,12 +66,11 @@ export interface PoolPrepLaunchAction {
   action: () => void;
 }
 
-interface PoolStateHistory {
+interface PoolStateSnapshot {
   pools: Pool[];
   poolCount: number;
   minFencersPerPool: number;
   maxFencersPerPool: number;
-  timestamp: number;
 }
 
 const PoolPrepView: React.FC<PoolPrepViewProps> = ({
@@ -118,13 +117,6 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   // Empêche la réinitialisation si initialPools arrive en retard (async restore)
   const hasInitialized = useRef(false);
 
-  // Initialisation de l'historique au premier setPools non vide
-  const historyInitialized = useRef(false);
-
-  // Historique des modifications pour la fonction restore
-  const [history, setHistory] = useState<PoolStateHistory[]>([]);
-  const [currentHistoryIndex, setCurrentHistoryIndex] = useState<number>(-1);
-  const [timeSinceLastChange, setTimeSinceLastChange] = useState<number>(0);
   const [showMatchOrderModal, setShowMatchOrderModal] = useState(false);
   const [hintDismissed, setHintDismissed] = useState<boolean>(() => {
     try {
@@ -143,81 +135,33 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   };
   const RESTORE_WINDOW_MINUTES = 5;
 
-  // Décompte uniquement quand la barre d'annulation est affichée et dans la fenêtre de restauration
-  const undoBarActive = currentHistoryIndex > 0;
-  useEffect(() => {
-    if (!undoBarActive) return;
-    const windowSec = RESTORE_WINDOW_MINUTES * 60;
-    const interval = setInterval(() => {
-      const lastChange = history[currentHistoryIndex]?.timestamp || Date.now();
-      const elapsed = Math.floor((Date.now() - lastChange) / 1000);
-      setTimeSinceLastChange(elapsed);
-      if (elapsed >= windowSec) clearInterval(interval);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [undoBarActive, history, currentHistoryIndex]);
+  // Pile d'annulation réutilisable (#1301)
+  const undoStack = useUndoStack<PoolStateSnapshot>({
+    windowMs: RESTORE_WINDOW_MINUTES * 60 * 1000,
+  });
+  const timeSinceLastChange = undoStack.elapsedSec;
 
-  // Initialisation de l'historique à la première génération de poules
-  useEffect(() => {
-    if (pools.length > 0 && !historyInitialized.current) {
-      historyInitialized.current = true;
-      const initialState: PoolStateHistory = {
-        pools: structuredClone(pools),
-        poolCount,
-        minFencersPerPool,
-        maxFencersPerPool,
-        timestamp: Date.now(),
-      };
-      setHistory([initialState]);
-      setCurrentHistoryIndex(0);
-    }
-  }, [pools]);
-
-  // Sauvegarder l'état actuel dans l'historique
+  // Sauvegarder l'état actuel (avant action) dans la pile d'annulation
   const saveToHistory = () => {
-    const now = Date.now();
-    const newState: PoolStateHistory = {
+    undoStack.record({
       pools: structuredClone(pools),
       poolCount,
       minFencersPerPool,
       maxFencersPerPool,
-      timestamp: now,
-    };
-
-    const filteredHistory = appendHistory(
-      history,
-      currentHistoryIndex,
-      newState,
-      RESTORE_WINDOW_MINUTES * 60 * 1000
-    );
-
-    setHistory(filteredHistory);
-    setCurrentHistoryIndex(filteredHistory.length - 1);
-    setTimeSinceLastChange(0);
+    });
   };
 
   // Restaurer l'état précédent
   const handleRestore = () => {
-    if (currentHistoryIndex > 0) {
-      const previousState = history[currentHistoryIndex - 1];
-      setPools(previousState.pools);
-      setPoolCount(previousState.poolCount);
-      setMinFencersPerPool(previousState.minFencersPerPool);
-      setMaxFencersPerPool(previousState.maxFencersPerPool);
-      setCurrentHistoryIndex(currentHistoryIndex - 1);
-      setTimeSinceLastChange(0);
-    }
+    const previousState = undoStack.undo();
+    if (!previousState) return;
+    setPools(previousState.pools);
+    setPoolCount(previousState.poolCount);
+    setMinFencersPerPool(previousState.minFencersPerPool);
+    setMaxFencersPerPool(previousState.maxFencersPerPool);
   };
 
-  const canRestore = (): boolean => {
-    if (currentHistoryIndex <= 0) return false;
-
-    const previousState = history[currentHistoryIndex - 1];
-    if (!previousState) return false;
-
-    const elapsed = Date.now() - previousState.timestamp;
-    return elapsed <= RESTORE_WINDOW_MINUTES * 60 * 1000;
-  };
+  const canRestore = (): boolean => undoStack.canUndo;
 
   const formatElapsedTime = (seconds: number): string => {
     if (seconds < 60) return `${seconds}s`;
@@ -279,18 +223,8 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   useEffect(() => {
     if (initialPools && initialPools.length > 0 && !hasInitialized.current) {
       hasInitialized.current = true;
-      historyInitialized.current = true;
       setPools(initialPools);
       setPoolCount(initialPools.length);
-      const initialState: PoolStateHistory = {
-        pools: structuredClone(initialPools),
-        poolCount: initialPools.length,
-        minFencersPerPool,
-        maxFencersPerPool,
-        timestamp: Date.now(),
-      };
-      setHistory([initialState]);
-      setCurrentHistoryIndex(0);
     } else if (fencers.length > 0 && pools.length === 0 && !hasInitialized.current) {
       hasInitialized.current = true;
       const optimalCount = calculateOptimalPoolCount(
@@ -529,7 +463,11 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const launchDisabled =
     poolCount > 0 && (pools.length === 0 || pools.some(p => p.fencers.length < 3));
   const launchLabel = poolCount === 0 ? t('pools.prep_skip_pools') : t('pools.prep_launch');
-  const handleLaunch = () => (poolCount === 0 ? onSkipPools?.() : onPoolsConfirm(pools));
+  const handleLaunch = () => {
+    // Poules transmises (écrans distants / sync) : annulation refusée (#1301)
+    undoStack.lock();
+    return poolCount === 0 ? onSkipPools?.() : onPoolsConfirm(pools);
+  };
   const handleLaunchRef = useRef(handleLaunch);
   useEffect(() => {
     handleLaunchRef.current = handleLaunch;
