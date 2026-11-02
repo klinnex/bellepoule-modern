@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import { app, BrowserWindow, ipcMain, dialog, Menu, shell, safeStorage, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, Menu, shell, screen } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -21,6 +21,9 @@ import { setSharedMainWindow } from './mainWindowRef';
 import { previewPdf, registerPdfPreviewHandlers } from './ipc/pdfPreview';
 import { registerPrintDialogHandlers } from './ipc/printDialog';
 import { registerWebhookHandlers } from './ipc/webhookHandlers';
+import { registerThemesHandlers } from './ipc/themesHandlers';
+import { registerCryptoHandlers } from './ipc/cryptoHandlers';
+import { registerUpdaterHandlers } from './ipc/updaterHandlers';
 import { createDiagnosticDeps, registerDiagnosticHandlers } from './ipc/diagnosticHandlers';
 import { getVersionInfo } from './versionInfo';
 import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
@@ -1518,54 +1521,6 @@ ipcMain.handle(
   }
 );
 
-// ── Bibliothèque de thèmes (persistante dans userData) ──────────────────────
-
-function getThemesFilePath(): string {
-  return path.join(app.getPath('userData'), 'themes.json');
-}
-
-function readThemesFile(): unknown[] {
-  try {
-    const raw = fs.readFileSync(getThemesFilePath(), 'utf-8');
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeThemesFile(themes: unknown[]): void {
-  fs.writeFileSync(getThemesFilePath(), JSON.stringify(themes, null, 2), 'utf-8');
-}
-
-ipcMain.handle('themes:list', () => {
-  return readThemesFile();
-});
-
-ipcMain.handle('themes:save', (_, theme: unknown) => {
-  try {
-    const themes = readThemesFile() as any[];
-    const t = theme as { id: string };
-    const idx = themes.findIndex((x: any) => x.id === t.id);
-    if (idx >= 0) themes[idx] = t;
-    else themes.push(t);
-    writeThemesFile(themes);
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
-  }
-});
-
-ipcMain.handle('themes:delete', (_, id: string) => {
-  try {
-    const themes = readThemesFile() as any[];
-    writeThemesFile(themes.filter((x: any) => x.id !== id));
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Erreur' };
-  }
-});
-
 ipcMain.handle(
   'remote:setArenaPassword',
   async (_, competitionId: string, arenaId: string, password: string) => {
@@ -1652,6 +1607,9 @@ ipcMain.handle(
 );
 
 registerWebhookHandlers();
+registerThemesHandlers();
+registerCryptoHandlers();
+registerUpdaterHandlers({ getAutoUpdater: () => autoUpdater });
 
 registerDiagnosticHandlers(createDiagnosticDeps({ getWindow: () => mainWindow, getVersionInfo }));
 
@@ -1919,71 +1877,6 @@ ipcMain.on('app:language-changed', (_, lang: string) => {
   for (const { server } of remoteServers.values()) {
     server.setLanguage(lang);
   }
-});
-
-// AutoUpdater handlers
-ipcMain.handle('updater:check', async () => {
-  if (autoUpdater) {
-    return await autoUpdater.checkForUpdates();
-  }
-  return null;
-});
-
-ipcMain.handle('updater:setSilentMode', async (_, enabled: boolean) => {
-  if (autoUpdater) {
-    autoUpdater.setSilentMode(enabled);
-    return { success: true, silent: enabled };
-  }
-  return { success: false, error: 'updater_unavailable' };
-});
-
-ipcMain.handle('updater:getSilentMode', async () => {
-  if (autoUpdater) {
-    return { silent: autoUpdater.isSilentMode() };
-  }
-  return { silent: false };
-});
-
-ipcMain.handle('updater:hasPendingUpdate', async () => {
-  if (autoUpdater) {
-    return { hasPending: autoUpdater.hasPendingUpdate() };
-  }
-  return { hasPending: false };
-});
-
-ipcMain.handle('updater:getPendingUpdateInfo', async () => {
-  if (autoUpdater) {
-    return autoUpdater.getPendingUpdateInfo();
-  }
-  return null;
-});
-
-ipcMain.handle('updater:installPendingUpdate', async () => {
-  if (autoUpdater) {
-    await autoUpdater.checkAndInstallPendingUpdate();
-    return { success: true };
-  }
-  return { success: false, error: 'updater_unavailable' };
-});
-
-// ============================================================================
-// safeStorage : chiffrement OS (Keychain/DPAPI/libsecret) pour secrets locaux
-// (ex. clé de synchronisation cloud). Renvoie une chaîne base64.
-// ============================================================================
-ipcMain.handle('crypto:isAvailable', async () => {
-  return safeStorage.isEncryptionAvailable();
-});
-
-ipcMain.handle('crypto:protect', async (_, plaintext: string) => {
-  if (typeof plaintext !== 'string') throw new Error('plaintext must be a string');
-  if (!safeStorage.isEncryptionAvailable()) return null;
-  return safeStorage.encryptString(plaintext).toString('base64');
-});
-
-ipcMain.handle('crypto:unprotect', async (_, ciphertextB64: string) => {
-  if (typeof ciphertextB64 !== 'string') throw new Error('ciphertext must be a string');
-  if (!safeStorage.isEncryptionAvailable()) return null;
-  return safeStorage.decryptString(Buffer.from(ciphertextB64, 'base64'));
 });
 
 // ============================================================================
