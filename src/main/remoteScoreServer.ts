@@ -121,6 +121,15 @@ import {
   refreshDeMatches,
   type ArenaQueueContext,
 } from './remote/arenaQueue';
+import { createSession, updateMatchScore, type SessionOpsContext } from './remote/sessionOps';
+import {
+  startServer,
+  stopServer,
+  notifyKioskData,
+  launchCompetition,
+  stopSession,
+  type LifecycleContext,
+} from './remote/lifecycle';
 import {
   broadcastArenaUpdate,
   persistArenaState,
@@ -781,6 +790,51 @@ export class RemoteScoreServer {
     ));
   }
   private _arenaBroadcastCtx?: ArenaBroadcastContext;
+
+  /** Contexte de lifecycle.ts (#1240) */
+  private get lifecycleCtx(): LifecycleContext {
+    return (this._lifecycleCtx ??= liveContext<LifecycleContext>(
+      this,
+      [
+        'arenaCount',
+        'arenaEventBuffer',
+        'arenaMatchQueue',
+        'arenaNextMatchIndex',
+        'arenaTokens',
+        'arenas',
+        'cleanupInterval',
+        'demoPlayer',
+        'host',
+        'io',
+        'isTrainingMode',
+        'kioskDataTimer',
+        'poolFencersCache',
+        'poolMatchArenaOverrides',
+        'poolSignaturesCache',
+        'port',
+        'server',
+        'session',
+        'sessionMatchScores',
+        'sessionMatches',
+        'sessionPoolArenas',
+        'trainingCustomRules',
+        'unsubscribeDb',
+        'useHttps',
+      ],
+      ['clearArenaCombatState', 'getServerUrl', 'notifyKioskData', 'stopSession', 'updateArena']
+    ));
+  }
+  private _lifecycleCtx?: LifecycleContext;
+
+  /** Contexte de sessionOps.ts (#1240) */
+  private get sessionOpsCtx(): SessionOpsContext {
+    return (this._sessionOpsCtx ??= liveContext<SessionOpsContext>(
+      this,
+      ['arenas', 'db', 'sessionMatchScores', 'sessionMatches'],
+      ['assignMatchToArena', 'loadSessionReferees', 'setArenaCount', 'updateArenaScore']
+    ));
+  }
+  private _sessionOpsCtx?: SessionOpsContext;
 
   /** Contexte de arenaOps.ts (#1240) */
   private get arenaOpsCtx(): ArenaOpsContext {
@@ -1618,61 +1672,7 @@ export class RemoteScoreServer {
   }
 
   private async createSession(competitionId: string, strips: number): Promise<RemoteSession> {
-    console.log(
-      `[RemoteScoreServer] Création d'une session pour la compétition ${competitionId} avec ${strips} pistes...`
-    );
-
-    const competition = this.db.getCompetition(competitionId);
-    if (!competition) {
-      console.error(`[RemoteScoreServer] ERREUR: Compétition ${competitionId} non trouvée`);
-      throw new Error('Compétition non trouvée');
-    }
-    console.log(`[RemoteScoreServer] Compétition trouvée: ${competition.title}`);
-
-    // Le nombre de pistes est déjà défini côté client en fonction du nombre de poules
-    // On l'utilise directement pour configurer les arènes
-    console.log(`[RemoteScoreServer] Configuration du nombre d'arènes: ${strips}`);
-    this.setArenaCount(strips);
-
-    // Récupérer les matchs en attente et les assigner aux arènes
-    const pendingMatches = this.db.getPendingMatches(competitionId);
-    console.log(`[RemoteScoreServer] ${pendingMatches.length} matchs en attente trouvés`);
-
-    // Assigner les matchs en attente aux arènes
-    pendingMatches.slice(0, strips).forEach((match, index) => {
-      const arenaId = `arena${index + 1}`;
-      const arenaMatch: ArenaMatch = {
-        id: match.id,
-        poolId: match.poolId || '',
-        fencerA: match.fencerA!,
-        fencerB: match.fencerB!,
-        scoreA: match.scoreA?.value ?? 0,
-        scoreB: match.scoreB?.value ?? 0,
-        status: match.status === 'in_progress' ? 'in_progress' : 'pending',
-        startTime: match.status === 'in_progress' ? new Date() : null,
-        endTime: null,
-      };
-      this.assignMatchToArena(arenaId, arenaMatch);
-      console.log(`[RemoteScoreServer] Match ${match.id} assigné à l'arène ${arenaId}`);
-    });
-
-    const session: RemoteSession = {
-      competitionId,
-      strips: Array.from({ length: strips }, (_, i) => ({
-        number: i + 1,
-        status: pendingMatches[i] ? 'occupied' : 'available',
-      })),
-      referees: this.loadSessionReferees(competitionId),
-      activeMatches: [],
-      isRunning: true,
-      startTime: new Date(),
-    };
-
-    console.log(`[RemoteScoreServer] Session créée avec succès ✓`);
-    console.log(
-      `[RemoteScoreServer] Détails: ${strips} pistes, ${session.referees.length} arbitres`
-    );
-    return session;
+    return createSession(this.sessionOpsCtx, competitionId, strips);
   }
 
   private formatFencerName(f: any): string {
@@ -1776,50 +1776,7 @@ export class RemoteScoreServer {
   }
 
   private async updateMatchScore(matchId: string, update: RemoteScoreUpdate): Promise<void> {
-    const scoreA: Score = {
-      value: update.scoreA,
-      isVictory: update.winner === 'A',
-      isAbstention: update.specialStatus === 'abandon' && update.winner !== 'A',
-      isExclusion: update.specialStatus === 'exclusion' && update.winner !== 'A',
-      isForfait: update.specialStatus === 'forfait' && update.winner !== 'A',
-    };
-
-    const scoreB: Score = {
-      value: update.scoreB,
-      isVictory: update.winner === 'B',
-      isAbstention: update.specialStatus === 'abandon' && update.winner !== 'B',
-      isExclusion: update.specialStatus === 'exclusion' && update.winner !== 'B',
-      isForfait: update.specialStatus === 'forfait' && update.winner !== 'B',
-    };
-
-    const dbMatch = this.db.getMatch(matchId);
-    if (dbMatch) {
-      // Match en base de données : mise à jour directe
-      this.db.updateMatch(matchId, {
-        scoreA,
-        scoreB,
-        status: update.status === 'finished' ? MatchStatus.FINISHED : MatchStatus.IN_PROGRESS,
-      });
-    } else {
-      // Match en mémoire uniquement (poule non persistée) : mettre à jour via Socket.IO
-      const inMemory = this.sessionMatches.find((m: any) => m.id === matchId);
-      if (!inMemory) {
-        throw new Error('Match non trouvé');
-      }
-      // Synchroniser les scores dans l'arène en mémoire
-      for (const [arenaId, arena] of this.arenas) {
-        if (arena.currentMatch?.id === matchId) {
-          this.updateArenaScore(arenaId, update.scoreA, update.scoreB);
-          break;
-        }
-      }
-      // Stocker dans sessionMatchScores pour cohérence
-      this.sessionMatchScores.set(matchId, {
-        scoreA,
-        scoreB,
-        status: update.status === 'finished' ? MatchStatus.FINISHED : MatchStatus.IN_PROGRESS,
-      });
-    }
+    return updateMatchScore(this.sessionOpsCtx, matchId, update);
   }
 
   private broadcastMessage(message: WebSocketMessage): void {
@@ -2261,70 +2218,16 @@ export class RemoteScoreServer {
   }
 
   public start(): Promise<void> {
-    console.log('[RemoteScoreServer] Démarrage du serveur...');
-    console.log(`[RemoteScoreServer] Port: ${this.port}`);
-    console.log(`[RemoteScoreServer] Interface: ${this.host}`);
-    console.log(
-      `[RemoteScoreServer] URL locale: ${this.useHttps ? 'https' : 'http'}://localhost:${this.port}`
-    );
-    console.log(`[RemoteScoreServer] URL réseau: ${this.getServerUrl()}`);
-
-    return new Promise((resolve, reject) => {
-      this.server.once('error', (err: any) => {
-        console.error('[RemoteScoreServer] ERREUR DU SERVEUR:', err);
-        if (err.code === 'EADDRINUSE') {
-          console.error(`[RemoteScoreServer] Le port ${this.port} est déjà utilisé!`);
-        }
-        reject(err);
-      });
-
-      this.server.listen(this.port, this.host, () => {
-        const url = this.getServerUrl();
-        console.log(`[RemoteScoreServer] ============================================`);
-        console.log(`[RemoteScoreServer] SERVEUR DÉMARRÉ AVEC SUCCÈS ✓`);
-        console.log(`[RemoteScoreServer] Port: ${this.port}`);
-        console.log(`[RemoteScoreServer] URL: ${url}`);
-        console.log(`[RemoteScoreServer] Arènes disponibles: ${this.arenaCount}`);
-        console.log(`[RemoteScoreServer] ============================================`);
-        console.log(`[RemoteScoreServer] Les arbitres peuvent se connecter sur: ${url}`);
-        // Switch from one-shot 'once' error handler to persistent one for runtime errors
-        this.server.on('error', (err: any) => {
-          console.error('[RemoteScoreServer] ERREUR DU SERVEUR:', err);
-        });
-        resolve();
-      });
-    });
+    return startServer(this.lifecycleCtx);
   }
 
   /** Signale aux kiosques que les données ont changé (regroupé sur 300 ms) */
   public notifyKioskData(): void {
-    if (this.kioskDataTimer || !this.io) return;
-    this.kioskDataTimer = setTimeout(() => {
-      this.kioskDataTimer = null;
-      this.io?.emit('kiosk:data');
-    }, 300);
+    return notifyKioskData(this.lifecycleCtx);
   }
 
   public stop(): void {
-    this.unsubscribeDb?.();
-    this.unsubscribeDb = null;
-    if (this.kioskDataTimer) {
-      clearTimeout(this.kioskDataTimer);
-      this.kioskDataTimer = null;
-    }
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
-    }
-    this.stopSession();
-    // server.close() seul laisse vivre les sockets/connexions keep-alive ouvertes :
-    // les tablettes restaient connectées après l'arrêt (#1009).
-    this.io?.disconnectSockets?.(true);
-    if (this.server) {
-      this.server.close();
-      (this.server as any).closeAllConnections?.();
-      console.log('Remote score server stopped');
-    }
+    return stopServer(this.lifecycleCtx);
   }
 
   public async startSession(
@@ -2334,43 +2237,11 @@ export class RemoteScoreServer {
   }
 
   public launchCompetition(): void {
-    if (!this.session) {
-      console.log('[RemoteScoreServer] launchCompetition: aucune session active');
-      return;
-    }
-
-    let launched = 0;
-    for (const [arenaId, arena] of this.arenas) {
-      if (arena.currentMatch && arena.currentMatch.status === 'not_started') {
-        console.log(
-          `[RemoteScoreServer] Lancement du match ${arena.currentMatch.id} sur arène ${arenaId}`
-        );
-        arena.currentMatch.status = 'ready';
-        this.updateArena(arenaId, { status: 'ready', currentMatch: arena.currentMatch });
-        launched++;
-      }
-    }
-    console.log(`[RemoteScoreServer] ${launched} matchs lancés`);
+    return launchCompetition(this.lifecycleCtx);
   }
 
   public stopSession(): void {
-    this.demoPlayer?.stop();
-    this.demoPlayer = null;
-    this.isTrainingMode = false;
-    this.trainingCustomRules = null;
-    this.session = null;
-    this.notifyKioskData();
-    this.sessionMatches = [];
-    this.sessionPoolArenas = new Map();
-    this.arenaMatchQueue.clear();
-    this.arenaNextMatchIndex.clear();
-    this.poolMatchArenaOverrides.clear();
-    this.poolFencersCache.clear();
-    this.poolSignaturesCache.clear();
-    this.sessionMatchScores.clear();
-    this.arenaTokens.clear();
-    this.arenaEventBuffer.clear();
-    this.clearArenaCombatState();
+    return stopSession(this.lifecycleCtx);
   }
 
   public async startTrainingSession(
