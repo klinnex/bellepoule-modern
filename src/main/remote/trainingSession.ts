@@ -5,6 +5,7 @@
  */
 import type { RemoteSession, ArenaMatch } from '../../shared/types/remote';
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 type S = RemoteScoreServer;
 
@@ -100,7 +101,8 @@ export async function startTrainingSession(
   for (let i = 1; i <= effectiveStrips; i++) {
     ctx.assignMatchToArena(`arena${i}`, ctx.createTrainingMatch());
   }
-  console.log(
+  logger.info(
+    LogCategory.NETWORK,
     `[RemoteScoreServer] Session entraînement démarrée: ${effectiveStrips} pistes, arme=${weapon}`
   );
   return ctx.session;

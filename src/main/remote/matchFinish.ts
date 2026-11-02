@@ -7,6 +7,7 @@ import { MatchStatus } from '../../shared/types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { ArenaEventList } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 type S = RemoteScoreServer;
 
@@ -160,7 +161,8 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
       ctx.sendDiag(
         `[finishArenaMatch] persistance secondaire échouée (non bloquant): ${(e as Error)?.message}`
       );
-      console.warn(
+      logger.warn(
+        LogCategory.NETWORK,
         '[RemoteScoreServer] Persistance secondaire (timing/cartons/touches) échouée:',
         e
       );
@@ -302,7 +304,11 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
         });
       }
     } catch (e) {
-      console.warn('[RemoteScoreServer] logScoreChange (finishArenaMatch) failed:', e);
+      logger.warn(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] logScoreChange (finishArenaMatch) failed:',
+        e
+      );
     }
 
   // Émettre l'event pour le renderer (pour sauvegarder le score dans les pools)
@@ -321,7 +327,8 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
         if (dbM?.scoreA?.isVictory) winnerForRenderer = 'A';
         else if (dbM?.scoreB?.isVictory) winnerForRenderer = 'B';
       } catch (err) {
-        console.warn(
+        logger.warn(
+          LogCategory.NETWORK,
           `[RemoteScoreServer] Lecture DB échouée pour le vainqueur du match ${finishedMatch.id}:`,
           err
         );
@@ -341,7 +348,8 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
       poolId: finishedMatch.poolId,
       isTableau: finishedMatch.isTableau ?? false,
     });
-    console.log(
+    logger.info(
+      LogCategory.NETWORK,
       `[RemoteScoreServer] Émission match:finished pour ${finishedMatch.id}: ${finishedMatch.scoreA}-${finishedMatch.scoreB}`
     );
   }

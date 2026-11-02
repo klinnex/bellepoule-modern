@@ -8,6 +8,7 @@ import { relayCumul, relayWinnerSide } from '../../features/teams/utils/teamRela
 import { createCard, getAvailableReasons } from '../../shared/utils/cardSystem';
 import { normalizeIp, isLoopbackAddress } from './network';
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 type S = RemoteScoreServer;
 
@@ -54,7 +55,7 @@ export interface SocketHandlersContext {
 
 export function setupSocketHandlers(ctx: SocketHandlersContext): void {
   ctx.io.on('connection', (socket: any) => {
-    console.log('Client connected:', socket.id);
+    logger.info(LogCategory.NETWORK, 'Client connected:', socket.id);
 
     // Toute exception d'un handler reste locale : sans ce garde, une donnée nulle
     // (ex. `join_arena` null) remonte en uncaughtException et gèle l'app (#993).
@@ -70,7 +71,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
         }
       });
     socket.on('error', (err: Error) => {
-      console.error('Socket.IO error', socket.id, err?.message);
+      logger.error(LogCategory.NETWORK, 'Socket.IO error', undefined, [socket.id, err?.message]);
     });
 
     // Plafond de connexions simultanées par IP
@@ -110,7 +111,8 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
     // Gestion des arènes
     socket.on('join_arena', (data: { arenaId: string; role?: string; lastSeen?: number }) => {
       if (!data || typeof data.arenaId !== 'string' || !data.arenaId) return;
-      console.log(
+      logger.info(
+        LogCategory.NETWORK,
         `Client ${socket.id} joining arena ${data.arenaId} as ${data.role || 'spectator'}`
       );
       if (data.role === 'referee') {
@@ -438,7 +440,7 @@ export function setupSocketHandlers(ctx: SocketHandlersContext): void {
     });
 
     socket.on('disconnect', () => {
-      console.log('Client disconnected:', socket.id);
+      logger.info(LogCategory.NETWORK, 'Client disconnected:', socket.id);
       ctx.connectedClients.delete(socket.id);
       ctx.broadcastClientList();
       ctx.handleDisconnect(socket);

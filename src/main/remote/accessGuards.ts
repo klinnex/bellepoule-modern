@@ -5,6 +5,7 @@
  */
 import { assertPasswordStrength, hashPassword, isTokenValid, parseCookies } from './auth';
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 type S = RemoteScoreServer;
 
@@ -23,7 +24,10 @@ export type GuardRefusal = { status: number; body: Record<string, unknown> } | n
 
 export function setCheckinEnabled(ctx: AccessGuardsContext, enabled: boolean): void {
   ctx.checkinEnabled = enabled;
-  console.log(`[RemoteScoreServer] Appel distant ${enabled ? 'activé' : 'désactivé'}`);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] Appel distant ${enabled ? 'activé' : 'désactivé'}`
+  );
 }
 
 export function setCheckinPassword(ctx: AccessGuardsContext, password: string): void {
@@ -31,7 +35,10 @@ export function setCheckinPassword(ctx: AccessGuardsContext, password: string): 
   assertPasswordStrength(password);
   ctx.checkinPassword = password ? hashPassword(password) : null;
   ctx.checkinTokens.clear();
-  console.log(`[RemoteScoreServer] Mot de passe appel ${password ? 'défini' : 'supprimé'}`);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] Mot de passe appel ${password ? 'défini' : 'supprimé'}`
+  );
 }
 
 export function checkCheckinAuth(ctx: AccessGuardsContext, cookieHeader?: string): boolean {
@@ -62,7 +69,10 @@ export function setTrainerPassword(ctx: AccessGuardsContext, password: string): 
   assertPasswordStrength(password);
   ctx.trainerPassword = password ? hashPassword(password) : null;
   ctx.trainerTokens.clear();
-  console.log(`[RemoteScoreServer] Mot de passe formateurs ${password ? 'défini' : 'supprimé'}`);
+  logger.info(
+    LogCategory.NETWORK,
+    `[RemoteScoreServer] Mot de passe formateurs ${password ? 'défini' : 'supprimé'}`
+  );
 }
 
 export function checkTrainerAuth(ctx: AccessGuardsContext, cookieHeader?: string): boolean {
