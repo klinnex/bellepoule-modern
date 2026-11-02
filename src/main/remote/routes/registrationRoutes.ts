@@ -6,6 +6,7 @@
 import type express from 'express';
 import type { Arena } from '../../../shared/types/remote';
 import type { RouteContext } from './context';
+import { getSharedMainWindow } from '../../mainWindowRef';
 
 type Guard = (cookieHeader: string | undefined) => {
   status: number;
@@ -122,7 +123,7 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
         `[RemoteScoreServer] Inscription tireur: ${fencerData.lastName} ${fencerData.firstName} (id=${newFencer.id})`
       );
       // Liste d'appel de l'organisateur rafraîchie en direct (#986)
-      const mainWin = (global as any).mainWindow;
+      const mainWin = getSharedMainWindow();
       if (mainWin && !mainWin.isDestroyed?.()) {
         mainWin.webContents.send('remote:checkin_updated', {
           kind: 'fencer',
@@ -332,7 +333,7 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
       return res.status(500).json({ error: 'update_failed' });
     }
 
-    const mainWin = (global as any).mainWindow;
+    const mainWin = getSharedMainWindow();
     if (mainWin && !mainWin.isDestroyed?.()) {
       mainWin.webContents.send('remote:checkin_updated', {
         kind: kind === 'fencers' ? 'fencer' : 'referee',

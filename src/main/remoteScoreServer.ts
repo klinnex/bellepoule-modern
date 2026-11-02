@@ -40,7 +40,7 @@ import {
   localIPv4Address,
   normalizeIp,
 } from './remote/network';
-import type { BlackCardRecord, TeamArenaState } from './remote/types';
+import type { BlackCardRecord, SessionMatch, TeamArenaState } from './remote/types';
 import type { PhaseEtaSummary, RouteContext } from './remote/routes/context';
 import {
   LoginGuard,
@@ -145,6 +145,7 @@ import { getUiLanguage } from './menuLabels';
 import { isWebhookUrlSafe } from '../shared/services/notificationService';
 import { postWebhook } from './webhook';
 import { sendClientListToWindow } from './remoteRegistry';
+import { getSharedMainWindow } from './mainWindowRef';
 
 export type ArenaEventList = 'touchesA' | 'touchesB' | 'cardsA' | 'cardsB' | 'exits';
 
@@ -171,7 +172,7 @@ export class RemoteScoreServer {
   private sessionTableMaxScore: number | null = null;
   private sessionRestSeconds: number = 0; // Repos entre périodes (escrime olympique, 0 = désactivé)
   private sessionModernRules = false; // Règles armes modernes (E/F/S ou formule personnalisée, #1125)
-  private sessionMatches: any[] = []; // Matches passés depuis le renderer
+  private sessionMatches: SessionMatch[] = []; // Matches passés depuis le renderer
   /** Tournoi des rapières : seuls les matchs de la vague active sont proposés aux tablettes (#1118). `null` = pas de filtre. */
   private activeWaveMatchIds: Set<string> | null = null;
   /** Rapières : vagues terminées, plus aucun match de poule proposé aux tablettes (#1118) */
@@ -1781,9 +1782,7 @@ export class RemoteScoreServer {
 
   private broadcastMessage(message: WebSocketMessage): void {
     // Envoyer à la fenêtre principale
-    if ((global as any).mainWindow) {
-      (global as any).mainWindow.webContents.send('remote:websocket_message', message);
-    }
+    getSharedMainWindow()?.webContents.send('remote:websocket_message', message);
   }
 
   private createArena(i: number): void {
@@ -1839,9 +1838,9 @@ export class RemoteScoreServer {
 
     const fencers = this.poolFencersCache.get(poolId) ?? this.db.getPoolFencers(poolId);
     const poolMatches = this.sessionMatches
-      .filter((m: any) => !m.isTableau && (m.poolId ?? m.pool?.id) === poolId)
-      .sort((a: any, b: any) => (a.number || 0) - (b.number || 0))
-      .map((m: any) => {
+      .filter(m => !m.isTableau && (m.poolId ?? m.pool?.id) === poolId)
+      .sort((a, b) => (a.number || 0) - (b.number || 0))
+      .map(m => {
         const u = this.sessionMatchScores.get(m.id);
         return u ? { ...m, ...u } : m;
       });
@@ -1865,9 +1864,9 @@ export class RemoteScoreServer {
       status: MatchStatus.FINISHED,
     });
 
-    const matchIdx = (this.sessionMatches as any[]).findIndex((m: any) => m.id === matchId);
+    const matchIdx = this.sessionMatches.findIndex(m => m.id === matchId);
     if (matchIdx >= 0) {
-      (this.sessionMatches as any[])[matchIdx].status = MatchStatus.FINISHED;
+      this.sessionMatches[matchIdx].status = MatchStatus.FINISHED;
     }
 
     // Si le match est actif sur une arène, la marquer terminée
@@ -1890,15 +1889,15 @@ export class RemoteScoreServer {
 
     this.io.emit('match:finished', { matchId });
 
-    const match = matchIdx >= 0 ? (this.sessionMatches as any[])[matchIdx] : null;
+    const match = matchIdx >= 0 ? this.sessionMatches[matchIdx] : null;
     const poolId = match?.poolId ?? match?.pool?.id;
     if (!poolId) return;
 
     const fencers = this.poolFencersCache.get(poolId) ?? this.db.getPoolFencers(poolId);
-    const poolMatches = (this.sessionMatches as any[])
-      .filter((m: any) => !m.isTableau && (m.poolId ?? m.pool?.id) === poolId)
-      .sort((a: any, b: any) => (a.number || 0) - (b.number || 0))
-      .map((m: any) => {
+    const poolMatches = this.sessionMatches
+      .filter(m => !m.isTableau && (m.poolId ?? m.pool?.id) === poolId)
+      .sort((a, b) => (a.number || 0) - (b.number || 0))
+      .map(m => {
         const u = this.sessionMatchScores.get(m.id);
         return u ? { ...m, ...u } : m;
       });
@@ -2041,7 +2040,7 @@ export class RemoteScoreServer {
   // (les console.log serveur ne sont pas visibles dans l'app packagée).
   private sendDiag(msg: string): void {
     try {
-      const w = (global as any).mainWindow;
+      const w = getSharedMainWindow();
       if (w) w.webContents.send('remote:diag', msg);
     } catch {
       /* non bloquant */
@@ -2220,12 +2219,7 @@ export class RemoteScoreServer {
     this.io.to(`arena:${arenaId}`).emit(`arena:${arenaId}:update`, payload);
     this.notifyKioskData();
 
-    if ((global as any).mainWindow) {
-      (global as any).mainWindow.webContents.send('arena:update', {
-        arenaId,
-        update: payload,
-      });
-    }
+    getSharedMainWindow()?.webContents.send('arena:update', { arenaId, update: payload });
   }
 
   private persistArenaState(arenaId: string): void {
@@ -2684,7 +2678,7 @@ export class RemoteScoreServer {
     if (!this.session) return;
 
     // Mettre à jour sessionMatches
-    const idx = this.sessionMatches.findIndex((m: any) => m.id === matchId);
+    const idx = this.sessionMatches.findIndex(m => m.id === matchId);
     if (idx >= 0) {
       this.sessionMatches[idx] = { ...this.sessionMatches[idx], refereeId };
     }

@@ -6,6 +6,7 @@
 import { ArenaMatch } from '../../shared/types/remote';
 import { sanitizeAnnouncement } from './announcement';
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import { getSharedMainWindow } from '../mainWindowRef';
 
 type S = RemoteScoreServer;
 
@@ -159,7 +160,7 @@ export function handleArenaControl(
       }
       break;
     case 'dt_call': {
-      const mainWin = (global as any).mainWindow;
+      const mainWin = getSharedMainWindow();
       if (mainWin) {
         mainWin.webContents.send('remote:dt_call', {
           arenaId: data.arenaId,
@@ -172,7 +173,7 @@ export function handleArenaControl(
       break;
     }
     case 'dt_cancel': {
-      const mainWin = (global as any).mainWindow;
+      const mainWin = getSharedMainWindow();
       if (mainWin) {
         mainWin.webContents.send('remote:dt_cancel', { arenaId: data.arenaId });
       }
@@ -371,7 +372,7 @@ export function handleArenaControl(
         ...(resolvedRef ? { referee: resolvedRef } : {}),
       };
       // Application organisateur : sinon son état en mémoire réécrit l'ancien arbitre (#977)
-      const mainWin = (global as any).mainWindow;
+      const mainWin = getSharedMainWindow();
       if (mainWin && !mainWin.isDestroyed?.()) {
         mainWin.webContents.send('remote:referee_changed', {
           matchId: data.matchId,

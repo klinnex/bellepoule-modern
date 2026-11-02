@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 27 | 280 |
+| `src/main/` | 28 | 282 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 24 | 115 |
 | `src/renderer/components/` | 44 | 209 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **205** | **1791** |
+| **Total** | **206** | **1793** |
 
-Unitaires : 196 fichiers, 1756 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 197 fichiers, 1758 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2138,6 +2138,15 @@ Unitaires : 196 fichiers, 1756 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - envoie le fichier puis valide le formulaire, dans cet ordre
   - s'arrête à la première étape en erreur HTTP
   - remonte une erreur réseau sans lever d'exception
+
+</details>
+
+<details>
+<summary><code>src/main/mainWindowRef.test.ts</code> — 2 tests</summary>
+
+- **mainWindowRef**
+  - renvoie null par défaut puis la fenêtre définie
+  - renvoie null si la fenêtre est détruite
 
 </details>
 

@@ -6,6 +6,18 @@
 
 import { CardReason, FencerStatus, Weapon } from '../../shared/types';
 
+/** Match transmis par le renderer (poules ou tableau) ; champs optionnels selon l'origine. */
+export interface SessionMatch {
+  id: string;
+  status: string;
+  poolId?: string;
+  pool?: { id: string };
+  isTableau?: boolean;
+  number?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- champs libres issus du renderer
+  [key: string]: any;
+}
+
 /** Carton noir distribué depuis une tablette (annulable depuis la sélection des matchs) */
 export interface BlackCardRecord {
   fencerId: string;

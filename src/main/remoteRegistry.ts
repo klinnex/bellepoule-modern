@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 import type { RemoteScoreServer } from './remoteScoreServer';
+import { getSharedMainWindow } from './mainWindowRef';
 
 // Remote score servers — one per competition (key = competitionId)
 export const remoteServers = new Map<
@@ -38,7 +39,7 @@ export function stopRemoteServer(competitionId: string): boolean {
 
 /** Pousse la liste des clients à la fenêtre, avec l'id de compétition du serveur émetteur (#1292) */
 export function sendClientListToWindow(server: RemoteScoreServer, clients: unknown[]): void {
-  const mainWin = (global as any).mainWindow;
+  const mainWin = getSharedMainWindow();
   if (!mainWin) return;
   const owner = [...remoteServers].find(([, e]) => e.server === server)?.[0] ?? null;
   mainWin.webContents.send('remote:clientListUpdate', clients, owner);

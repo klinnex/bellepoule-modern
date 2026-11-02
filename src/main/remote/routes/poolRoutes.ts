@@ -9,6 +9,7 @@ import type { Server as SocketIOServer } from 'socket.io';
 import { MatchStatus, Weapon, type Score } from '../../../shared/types';
 import type { RegistrationRouteContext } from './registrationRoutes';
 import { baseArenaId } from '../arenaSlots';
+import { getSharedMainWindow } from '../../mainWindowRef';
 
 /** Tireur d'une poule tel que transmis par le renderer. */
 export type PoolFencer = Record<string, unknown> & { id: string };
@@ -230,7 +231,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
         if (existingLog.length > 0) {
           const lastEntry = existingLog[existingLog.length - 1];
           if (lastEntry.ipAddress && lastEntry.ipAddress !== clientIp) {
-            const mainWin = (global as any).mainWindow;
+            const mainWin = getSharedMainWindow();
             if (mainWin) {
               mainWin.webContents.send('score:ip-conflict', {
                 matchId,
@@ -307,7 +308,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       }
 
       // Notifier le renderer de la mise à jour du score (pour affichage dans le tableau poule)
-      const mainWindow = (global as any).mainWindow;
+      const mainWindow = getSharedMainWindow();
       if (mainWindow) {
         mainWindow.webContents.send('match:finished', {
           matchId,
@@ -395,7 +396,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
         }
       }
 
-      const mainWin = (global as any).mainWindow;
+      const mainWin = getSharedMainWindow();
       if (mainWin) {
         const sigs = ctx.poolSignaturesCache.get(poolId)!;
         const poolFencers = ctx.poolFencersCache.get(poolId) ?? ctx.db.getPoolFencers(poolId);
@@ -530,7 +531,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
     try {
       ctx.db.saveDEMatchSignature(matchId, fencerId, signatureData);
 
-      const mainWin = (global as any).mainWindow;
+      const mainWin = getSharedMainWindow();
       if (mainWin) {
         mainWin.webContents.send('tableau:signature:updated', { matchId, fencerId });
       }
