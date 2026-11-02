@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 31 | 296 |
+| `src/main/` | 32 | 299 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 24 | 115 |
 | `src/renderer/components/` | 44 | 209 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **210** | **1810** |
+| **Total** | **211** | **1813** |
 
-Unitaires : 201 fichiers, 1775 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 202 fichiers, 1778 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2158,6 +2158,16 @@ Unitaires : 201 fichiers, 1775 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - envoie le fichier puis valide le formulaire, dans cet ordre
   - s'arrête à la première étape en erreur HTTP
   - remonte une erreur réseau sans lever d'exception
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/remoteServerHandlers.test.ts</code> — 3 tests</summary>
+
+- **registerRemoteServerHandlers (#1341)**
+  - enregistre les canaux de cycle de vie du serveur
+  - getServerInfo / stopServer : serveur absent
+  - getNetworkInterfaces propose toujours 0.0.0.0
 
 </details>
 
