@@ -1,0 +1,188 @@
+/**
+ * BellePoule Modern — styles extraits des `style={{…}}` statiques (#1300)
+ * Classes `is-<hash>` générées : une classe par jeu de déclarations (dédupliqué).
+ * Le sélecteur doublé garde la priorité de l'ancien style inline sur les règles de composants.
+ * Licensed under GPL-3.0
+ */
+
+.is-ff227d.is-ff227d {
+  margin: 0;
+}
+
+.is-de2aa7.is-de2aa7 {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-top: 0.2rem;
+}
+
+.is-4017f8.is-4017f8 {
+  color: #60a5fa;
+}
+
+.is-b265d1.is-b265d1 {
+  background: #7f1d1d;
+  color: #fca5a5;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+}
+
+.is-b57afc.is-b57afc {
+  margin-bottom: 0.75rem;
+}
+
+.is-15dcdc.is-15dcdc {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.is-ec082d.is-ec082d {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.3rem;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: #e2e8f0;
+  box-sizing: border-box;
+  font-size: 0.9rem;
+}
+
+.is-e23749.is-e23749 {
+  border-bottom: 1px solid #334155;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.is-e1bd73.is-e1bd73 {
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.is-6de70b.is-6de70b {
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.3rem;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.is-29b2b2.is-29b2b2 {
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.3rem;
+  border: 1px solid #475569;
+  background: none;
+  color: #ef4444;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.is-11cbaa.is-11cbaa {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.is-e8cb78.is-e8cb78 {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+
+.is-9400dc.is-9400dc {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.is-56f1de.is-56f1de {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  background: #1e293b;
+  border-radius: 0.3rem;
+}
+
+.is-a4e5ce.is-a4e5ce {
+  flex: 1;
+  font-size: 0.85rem;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.is-811a2b.is-811a2b {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.is-ebb691.is-ebb691 {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.is-d2f910.is-d2f910 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: var(--k-progress);
+  border-radius: 4px 4px 0 0;
+}
+
+.is-9630d8.is-9630d8 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  flex-shrink: 0;
+}
+
+.is-d2b277.is-d2b277 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--k-accent);
+}
+
+.is-79253d.is-79253d {
+  font-size: 1.125rem;
+  padding: 4px 16px;
+  border-radius: 20px;
+  background: var(--k-card-bg);
+  border: 1px solid var(--k-border);
+  color: var(--k-accent2);
+}
+
+.is-fc5e01.is-fc5e01 {
+  flex: 1;
+  font-size: 1.375rem;
+  font-weight: 600;
+}
+
+.is-cd4091.is-cd4091 {
+  font-size: 1rem;
+  color: var(--k-muted);
+}
+
+.is-bdc612.is-bdc612 {
+  font-size: 1.25rem;
+  color: #10b981;
+  font-weight: 700;
+}
