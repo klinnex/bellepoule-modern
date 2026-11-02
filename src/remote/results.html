@@ -49,6 +49,7 @@
             const r = await fetch('/api/competitions/' + encodeURIComponent(competitionId) + '/results-data');
             if (!r.ok) throw new Error(tk('results.not_found'));
             render(await r.json());
+            return true;
           } catch (e) {
             const app = document.getElementById('app');
             app.textContent = '';
@@ -56,6 +57,7 @@
             errDiv.className = 'error';
             errDiv.textContent = tk('results.error', { message: e.message });
             app.appendChild(errDiv);
+            return false;
           }
         }
 
@@ -99,12 +101,13 @@
           document.getElementById('app').innerHTML = html;
         }
 
-        document.getElementById('refresh-btn').addEventListener('click', load);
+        // Polling suspendu onglet masqué, backoff 30 s -> 2 min après erreur (#1345)
+        let poll = null;
+        document.getElementById('refresh-btn').addEventListener('click', () => poll && poll.now());
         // Langue active (/api/config) appliquée avant le premier rendu
         const ready = window.initRemoteI18n ? window.initRemoteI18n() : Promise.resolve();
         ready.then(() => {
-          load();
-          setInterval(load, 30000);
+          poll = window.bpPoll(load, { base: 30000, max: 120000 });
         });
       })();
     </script>

@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 24 | 115 |
 | `src/renderer/components/` | 44 | 209 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 10 | 50 |
+| `src/remote/` | 11 | 57 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **210** | **1810** |
+| **Total** | **211** | **1817** |
 
-Unitaires : 201 fichiers, 1775 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 202 fichiers, 1782 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3771,6 +3771,21 @@ Unitaires : 201 fichiers, 1775 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **rendu inerte des noms piégés (#1147)**
   - dashboard : classement, poules et matchs
   - ${page} : match en cours et annonce de carton
+
+</details>
+
+<details>
+<summary><code>src/remote/remotePolling.test.ts</code> — 7 tests</summary>
+
+- **bpPoll (#1345)**
+  - cadence nominale tant que tout réussit
+  - 0 requête onglet masqué, reprise immédiate à la réapparition
+  - démarré onglet masqué : aucune requête avant visibilité
+  - backoff exponentiel plafonné après erreur, retour à la cadence au succès
+  - une exception compte comme un échec
+- **pages résultats / journal : bpPoll, plus de setInterval (#1345)**
+  - %s _(each)_
+  - paramètres de cadence
 
 </details>
 
