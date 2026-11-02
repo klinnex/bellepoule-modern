@@ -5,6 +5,8 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useStateGroup } from '../hooks/useStateGroup';
+import { useArenaThemes } from './remote/useArenaThemes';
 import { createPortal } from 'react-dom';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import { Competition, FencerStatus, Pool } from '../../shared/types';
@@ -218,46 +220,69 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     selectedInterface,
     setSelectedInterface,
   } = useRemoteNetworkSettings(competition.id);
-  // pendingCount : valeur affichée (modifiée par +/−, non encore appliquée)
-  const [pendingCount, setPendingCount] = useState<number | null>(null);
-  // committedCount : valeur appliquée au serveur ou confirmée par l'utilisateur
-  const [committedCount, setCommittedCount] = useState<number | null>(null);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [activeQR, setActiveQR] = useState<{ url: string; label: string } | null>(null);
-  const [arenaPasswords, setArenaPasswords] = useState<Record<string, string>>({});
-  const [checkinPassword, setCheckinPassword] = useState('');
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [showPhotos, setShowPhotos] = useState(false);
-  const [cardAnnounce, setCardAnnounce] = useState(false);
-  const [displayTheme, setDisplayTheme] = useState<'dark' | 'light' | 'neon' | 'unicorn'>('dark');
-  const [arenaWallpaper, setArenaWallpaper] = useState<string | null>(null);
-  const [kioskViews, setKioskViews] = useState({
-    poules: true,
-    classement: true,
-    direct: true,
-    suivants: true,
+  // Compteurs d'arènes, QR, mots de passe par arène et affichage des écrans (#1241)
+  const {
+    // pendingCount : valeur affichée (modifiée par +/−, non encore appliquée)
+    pendingCount,
+    setPendingCount,
+    // committedCount : valeur appliquée au serveur ou confirmée par l'utilisateur
+    committedCount,
+    setCommittedCount,
+    copiedIndex,
+    setCopiedIndex,
+    activeQR,
+    setActiveQR,
+    arenaPasswords,
+    setArenaPasswords,
+    checkinPassword,
+    setCheckinPassword,
+    qrDataUrl,
+    setQrDataUrl,
+    showPhotos,
+    setShowPhotos,
+    cardAnnounce,
+    setCardAnnounce,
+  } = useStateGroup({
+    pendingCount: null as number | null,
+    committedCount: null as number | null,
+    copiedIndex: null as number | null,
+    activeQR: null as { url: string; label: string } | null,
+    arenaPasswords: {} as Record<string, string>,
+    checkinPassword: '',
+    qrDataUrl: null as string | null,
+    showPhotos: false,
+    cardAnnounce: false,
   });
-  // Thèmes par arène : arenaId → { theme, customTheme?, screenThemes }
-  const [arenaThemes, setArenaThemes] = useState<
-    Record<
-      string,
-      {
-        theme: DisplayTheme;
-        customTheme?: CustomTheme;
-        screenThemes: Partial<Record<'public' | 'referee' | 'pool', CustomTheme>>;
-      }
-    >
-  >({});
-  // Onglet de type d'écran sélectionné par arène
-  const [arenaScreenTab, setArenaScreenTab] = useState<
-    Record<string, 'arena' | 'public' | 'referee' | 'pool'>
-  >({});
-  // Éditeur de thème (arène + type d'écran)
-  const [themeEditorTarget, setThemeEditorTarget] = useState<string | null>(null);
-  const [themeEditorScreenType, setThemeEditorScreenType] = useState<
-    'arena' | 'public' | 'referee' | 'pool'
-  >('arena');
-  const [showArenaQrModal, setShowArenaQrModal] = useState(false);
+  // Thèmes, kiosque et éditeur de thème : état et actions (#1241)
+  const {
+    displayTheme,
+    setDisplayTheme,
+    arenaWallpaper,
+    setArenaWallpaper,
+    kioskViews,
+    setKioskViews,
+    arenaThemes,
+    setArenaThemes,
+    arenaScreenTab,
+    setArenaScreenTab,
+    themeEditorTarget,
+    setThemeEditorTarget,
+    themeEditorScreenType,
+    setThemeEditorScreenType,
+    showArenaQrModal,
+    setShowArenaQrModal,
+    savedThemes,
+    setSavedThemes,
+    globalThemeSection,
+    setGlobalThemeSection,
+    globalThemeId,
+    setGlobalThemeId,
+    handleArenaThemeChange,
+    handleArenaScreenThemeChange,
+    handleClearArenaThemeOverride,
+    handleClearArenaScreenTheme,
+    refreshSavedThemes,
+  } = useArenaThemes({ competitionId: competition.id, hasSession: !!session });
   const {
     kioskTheme,
     kioskPreset,
@@ -270,13 +295,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     const result = await applyKioskPresetRaw(preset, !!session);
     if (!result?.success) showToast(ipcErrorText(t, result, 'Erreur thème kiosk'), 'error');
   };
-  // Thèmes sauvegardés (depuis IPC)
-  const [savedThemes, setSavedThemes] = useState<CustomTheme[]>([]);
-  // Sélecteur de thème global
-  const [globalThemeSection, setGlobalThemeSection] = useState<
-    'arena' | 'kiosk' | 'public' | 'referee' | 'pool'
-  >('arena');
-  const [globalThemeId, setGlobalThemeId] = useState('');
 
   useEffect(() => {
     if (!activeQR) {
@@ -607,8 +625,19 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   };
 
   // Mot de passe commun : appliqué à toutes les pistes, y compris celles ajoutées ensuite (#988)
-  const [commonArenaPassword, setCommonArenaPassword] = useState('');
-  const [appliedCommonPassword, setAppliedCommonPassword] = useState<string | null>(null);
+  // Mots de passe : commun aux pistes, appliqué (#988), et espace formateurs (#989)
+  const {
+    commonArenaPassword,
+    setCommonArenaPassword,
+    appliedCommonPassword,
+    setAppliedCommonPassword,
+    trainerPassword,
+    setTrainerPassword,
+  } = useStateGroup({
+    commonArenaPassword: '',
+    appliedCommonPassword: null as string | null,
+    trainerPassword: '',
+  });
 
   const applyCommonArenaPassword = async (pwd: string, numbers: number[]): Promise<boolean> => {
     for (const n of numbers) {
@@ -659,7 +688,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
 
   // Espace formateurs (#989) : ouvert si l'option de compétition est cochée
   const trainerEnabled = competition.settings?.trainerCommentsEnabled === true;
-  const [trainerPassword, setTrainerPassword] = useState('');
   useEffect(() => {
     if (!session) return;
     window.electronAPI.remote.setTrainerEnabled?.(competition.id, trainerEnabled).catch(() => {});
@@ -733,112 +761,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       setTimeout(() => setCopiedIndex(null), 2000);
     }
   }, []);
-
-  // Appliquer un thème (prédéfini ou custom) à une arène — affichage principal
-  const handleArenaThemeChange = useCallback(
-    async (arenaId: string, theme: DisplayTheme, customTheme?: CustomTheme) => {
-      setArenaThemes(prev => ({
-        ...prev,
-        [arenaId]: { ...(prev[arenaId] ?? { screenThemes: {} }), theme, customTheme },
-      }));
-      if (session) {
-        await window.electronAPI.remote.updateArenaTheme(
-          competition.id,
-          arenaId,
-          theme,
-          customTheme
-        );
-      }
-    },
-    [session]
-  );
-
-  // Appliquer un thème custom à un type d'écran spécifique d'une arène
-  const handleArenaScreenThemeChange = useCallback(
-    async (
-      arenaId: string,
-      screenType: 'public' | 'referee' | 'pool',
-      customTheme?: CustomTheme
-    ) => {
-      setArenaThemes(prev => {
-        const existing = prev[arenaId] ?? { theme: 'dark' as DisplayTheme, screenThemes: {} };
-        return {
-          ...prev,
-          [arenaId]: {
-            ...existing,
-            screenThemes: { ...existing.screenThemes, [screenType]: customTheme },
-          },
-        };
-      });
-      if (session) {
-        await window.electronAPI.remote.updateArenaScreenTheme(
-          competition.id,
-          arenaId,
-          screenType,
-          customTheme
-        );
-      }
-    },
-    [session]
-  );
-
-  // Supprimer le verrou de thème d'une arène (retour au thème global)
-  const handleClearArenaThemeOverride = useCallback(
-    async (arenaId: string) => {
-      setArenaThemes(prev => {
-        const next = { ...prev };
-        delete next[arenaId];
-        return next;
-      });
-      if (session) {
-        await window.electronAPI.remote.clearArenaThemeOverride(competition.id, arenaId);
-      }
-    },
-    [session, competition.id]
-  );
-
-  // Supprimer le verrou de thème d'écran d'une arène
-  const handleClearArenaScreenTheme = useCallback(
-    async (arenaId: string, screenType: 'public' | 'referee' | 'pool') => {
-      await handleArenaScreenThemeChange(arenaId, screenType, undefined);
-    },
-    [handleArenaScreenThemeChange]
-  );
-
-  // Charger tous les thèmes depuis l'app (+ migration one-shot depuis localStorage)
-  const refreshSavedThemes = useCallback(() => {
-    window.electronAPI.themes
-      .list()
-      .then(setSavedThemes)
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    const MIGRATION_KEY = 'bp-themes-migrated-v1';
-    if (!localStorage.getItem(MIGRATION_KEY)) {
-      try {
-        const raw = localStorage.getItem('bellepoule-custom-themes');
-        if (raw) {
-          const old: CustomTheme[] = JSON.parse(raw);
-          Promise.all(
-            old.map(t =>
-              window.electronAPI.themes.save({ ...t, targetType: t.targetType ?? 'arena' })
-            )
-          )
-            .then(() => {
-              localStorage.setItem(MIGRATION_KEY, '1');
-              refreshSavedThemes();
-            })
-            .catch(() => {});
-        } else {
-          localStorage.setItem(MIGRATION_KEY, '1');
-        }
-      } catch {
-        localStorage.setItem(MIGRATION_KEY, '1');
-      }
-    }
-    refreshSavedThemes();
-  }, [refreshSavedThemes]);
 
   // Appliquer un thème sauvegardé globalement (toutes les arènes, un type d'écran)
   const handleGlobalThemeApply = useCallback(async () => {
