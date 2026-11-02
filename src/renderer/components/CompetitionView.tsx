@@ -4,6 +4,14 @@
  */
 
 import { GregAutoPublish } from './remote/GregAutoPublishToggle';
+import { useStateGroup } from '../hooks/useStateGroup';
+import { usePrintShortcut } from '../hooks/usePrintShortcut';
+import {
+  CV_REMOTE_INIT,
+  CV_PLANNING_INIT,
+  CV_SPLIT_INIT,
+  CV_DATA_INIT,
+} from './competition/competitionViewState';
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import {
   Competition,
@@ -24,7 +32,6 @@ import { RankingImportResult } from '../../shared/utils/fileParser';
 import FencerList from './FencerList';
 import {
   TableauMatch,
-  FinalResult,
   propagateWinners,
   ConsolationBracket,
   isBracketComplete,
@@ -73,8 +80,6 @@ import {
 import {
   createRapieresSession,
   emptyRapieresTeamInfo,
-  RapieresLegacyState,
-  RapieresSession,
   RapieresTeamInfo,
 } from '../../features/rapieres/rapieres.types';
 import {
@@ -87,6 +92,7 @@ import {
   waveMatchOrder,
 } from '../../features/rapieres/rapieresCalculations';
 import RapieresTeamModal from '../../features/rapieres/RapieresTeamModal';
+import { useRapieresSessionState } from '../../features/rapieres/useRapieresSessionState';
 import RapieresImportModal from '../../features/rapieres/RapieresImportModal';
 import { useRapieresTeams } from '../../features/rapieres/useRapieresTeams';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
@@ -301,82 +307,80 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     filepath: string;
     content: string;
   } | null>(null);
-  const [isRemoteActive, setIsRemoteActive] = useState(false);
-  const [remoteServerUrl, setRemoteServerUrl] = useState<string | null>(null);
-  const [remoteArenaCount, setRemoteArenaCount] = useState<number>(1);
+  const {
+    isRemoteActive,
+    setIsRemoteActive,
+    remoteServerUrl,
+    setRemoteServerUrl,
+    remoteArenaCount,
+    setRemoteArenaCount,
+  } = useStateGroup(CV_REMOTE_INIT);
   useEffect(() => {
     onRemoteServerChange?.(remoteServerUrl, remoteArenaCount);
   }, [remoteServerUrl, remoteArenaCount]);
-  const [arenaStates, setArenaStates] = useState<Arena[]>([]);
-  const [tableauMatches, setTableauMatches] = useState<TableauMatch[]>([]);
-  const [consolationBrackets, setConsolationBrackets] = useState<ConsolationBracket[]>([]);
+  const {
+    arenaStates,
+    setArenaStates,
+    tableauMatches,
+    setTableauMatches,
+    consolationBrackets,
+    setConsolationBrackets,
+    finalResults,
+    setFinalResults,
+    appelFencers,
+    setAppelFencers,
+    appelVisibleColumns,
+    setAppelVisibleColumns,
+    setTableauEditUnlocked,
+    referees,
+    setReferees,
+  } = useStateGroup(CV_DATA_INIT);
   // Refs pour connaître la présence d'un match dans le tableau/consolante de façon synchrone
   // (mises à jour distantes : éviter le warning "Match non trouvé" côté poule pour les matchs DE)
   const tableauMatchesRef = useRef<TableauMatch[]>([]);
   const consolationBracketsRef = useRef<ConsolationBracket[]>([]);
   tableauMatchesRef.current = tableauMatches;
   consolationBracketsRef.current = consolationBrackets;
-  const [finalResults, setFinalResults] = useState<FinalResult[]>([]);
-  const [appelFencers, setAppelFencers] = useState<Fencer[]>([]);
-  const [appelVisibleColumns, setAppelVisibleColumns] = useState<string[]>([]);
   const handleAppelStateChange = useCallback((f: Fencer[], cols: string[]) => {
     setAppelFencers(f);
     setAppelVisibleColumns(cols);
   }, []);
-  const [tableauEditUnlocked, setTableauEditUnlocked] = useState(false);
-  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  const [referees, setReferees] = useState<Referee[]>([]);
 
-  // Tournoi des rapières : composition des équipes et vagues (état de session)
-  const [rapieresState, setRapieresState] = useState<
-    RapieresSession | RapieresLegacyState | undefined
-  >(undefined);
-  const rapieres: RapieresSession =
-    rapieresState?.version === 2 ? rapieresState : createRapieresSession();
-  const updateRapieres = useCallback(
-    (patch: Partial<RapieresSession>) =>
-      setRapieresState(prev => ({
-        ...(prev?.version === 2 ? prev : createRapieresSession()),
-        ...patch,
-      })),
-    []
-  );
-  const setRapieresTeam = useCallback(
-    (id: string, info: RapieresTeamInfo) =>
-      setRapieresState(prev => {
-        const base = prev?.version === 2 ? prev : createRapieresSession();
-        return { ...base, teams: { ...base.teams, [id]: info } };
-      }),
-    []
-  );
-  // Fenêtre d'équipe : null = fermée, {} = ajout, { fencer } = modification
-  const [rapieresTeamModal, setRapieresTeamModal] = useState<{ fencer?: Fencer } | null>(null);
+  // Tournoi des rapières : état de session et fenêtre d'équipe (#1241)
+  const {
+    rapieresState,
+    setRapieresState,
+    rapieresTeamModal,
+    setRapieresTeamModal,
+    rapieres,
+    updateRapieres,
+    setRapieresTeam,
+  } = useRapieresSessionState();
+  // Préparation des poules et classement (#1241)
+  const {
+    minFencersPerPool,
+    setMinFencersPerPool,
+    maxFencersPerPool,
+    setMaxFencersPerPool,
+    rankingChanged,
+    setRankingChanged,
+    rankingValidated,
+    setRankingValidated,
+    skipPoolPhase,
+    setSkipPoolPhase,
+  } = useStateGroup(CV_PLANNING_INIT);
 
-  // Paramètres de préparation des poules (persistés entre les phases)
-  const [minFencersPerPool, setMinFencersPerPool] = useState<number>(5);
-  const [maxFencersPerPool, setMaxFencersPerPool] = useState<number>(7);
-
-  // Flag pour indiquer si le classement a changé (nécessite régénération du tableau)
-  const [rankingChanged, setRankingChanged] = useState(false);
-
-  // Flag pour indiquer si le classement a été validé (débloque l'onglet Tableau)
-  const [rankingValidated, setRankingValidated] = useState(false);
-
-  // Flag pour indiquer que la phase de poules est sautée (0 poules configurées)
-  const [skipPoolPhase, setSkipPoolPhase] = useState(false);
-
-  // Mode compétition couplée : groupe actif ('M' | 'F' | null)
-  const [activeSplitGroup, setActiveSplitGroup] = useState<string | null>(null);
-  // État des tableaux par groupe (pour conserver les matchs quand on bascule)
-  // Groupe en attente de création de compétition séparée (saisie du nom)
-  const [pendingSplitOffGroup, setPendingSplitOffGroup] = useState<string | null>(null);
-  const [splitOffInProgress, setSplitOffInProgress] = useState(false);
-  const [splitTableauStates, setSplitTableauStates] = useState<
-    Record<
-      string,
-      { matches: TableauMatch[]; consolation: ConsolationBracket[]; results: FinalResult[] }
-    >
-  >({});
+  // Compétition couplée (#1241)
+  const {
+    activeSplitGroup,
+    setActiveSplitGroup,
+    pendingSplitOffGroup,
+    setPendingSplitOffGroup,
+    splitOffInProgress,
+    setSplitOffInProgress,
+    splitTableauStates,
+    setSplitTableauStates,
+  } = useStateGroup(CV_SPLIT_INIT);
 
   // Hooks personnalisés
   const {
@@ -1243,18 +1247,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   };
 
   // Ctrl+P / Cmd+P → imprimer les feuilles de poule (le tableau gère son propre raccourci)
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
-        if (currentPhase === 'pools' && pools.length > 0) {
-          e.preventDefault();
-          handlePrintAllPoolsPDF();
-        }
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [currentPhase, pools, currentPoolRound, isRemoteActive, remoteServerUrl, remoteArenaCount]);
+  usePrintShortcut(currentPhase === 'pools' && pools.length > 0, handlePrintAllPoolsPDF);
 
   const handleImportFencers = async (importedFencers: Partial<Fencer>[]) => {
     await bulkAddFencers(importedFencers as any);

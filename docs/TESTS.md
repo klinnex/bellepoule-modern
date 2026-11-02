@@ -97,16 +97,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 27 | 280 |
 | `src/renderer/services/` | 4 | 22 |
-| `src/renderer/hooks/` | 23 | 112 |
-| `src/renderer/components/` | 43 | 207 |
+| `src/renderer/hooks/` | 24 | 115 |
+| `src/renderer/components/` | 44 | 209 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 9 | 47 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **203** | **1786** |
+| **Total** | **205** | **1791** |
 
-Unitaires : 194 fichiers, 1751 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 196 fichiers, 1756 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2918,6 +2918,16 @@ Unitaires : 194 fichiers, 1751 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/hooks/usePrintShortcut.test.tsx</code> — 3 tests</summary>
+
+- **usePrintShortcut**
+  - déclenche onPrint sur Ctrl+P quand activé
+  - ignore le raccourci quand désactivé
+  - se désabonne au démontage
+
+</details>
+
+<details>
 <summary><code>src/renderer/hooks/useRemoteNetworkSettings.test.tsx</code> — 3 tests</summary>
 
 - **useRemoteNetworkSettings**
@@ -3349,6 +3359,15 @@ Unitaires : 194 fichiers, 1751 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **PoolSpecialStatusModal**
   - médical : titre et choix du tireur
   - Annuler appelle onCancel ; tireur absent affiché « — »
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/pool/usePoolReferees.test.tsx</code> — 2 tests</summary>
+
+- **usePoolReferees**
+  - bascule la sélection sans dépasser maxRefereesPerPool
+  - enregistre l’affectation et notifie le parent
 
 </details>
 

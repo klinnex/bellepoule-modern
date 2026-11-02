@@ -29,6 +29,7 @@ import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
 import { useModalResize } from '../hooks/useModalResize';
 import { useStateGroup } from '../hooks/useStateGroup';
+import { useBracketZoomPan } from './tableau/useBracketZoomPan';
 import { useColumnMeasures } from '../hooks/useColumnMeasures';
 import {
   SCORE_EDIT_INIT,
@@ -263,11 +264,38 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     victoryB,
     setVictoryB,
   } = useStateGroup(SCORE_EDIT_INIT);
-  const [viewMode, setViewMode] = useState<'full' | 'pending'>('full');
-  const [pendingOrder, setPendingOrder] = useState<'asc' | 'desc'>('desc');
-  const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
-  // Vue arbre : tours compactés un par un, sans effet sur les autres (#1133)
-  const [collapsedRounds, setCollapsedRounds] = useState<Set<number>>(new Set());
+  // Vue du tableau (mode, ordre, tours repliés, zoom/pan, arbitres de compétition) regroupée (#1241)
+  const {
+    viewMode,
+    setViewMode,
+    pendingOrder,
+    setPendingOrder,
+    expandedRounds,
+    setExpandedRounds,
+    // Vue arbre : tours compactés un par un, sans effet sur les autres (#1133)
+    collapsedRounds,
+    setCollapsedRounds,
+    competitionReferees,
+    setCompetitionReferees,
+    pyramidViewMode,
+    setPyramidViewMode,
+    autoAssignArenas,
+    setAutoAssignArenas,
+  } = useStateGroup({
+    viewMode: 'full' as 'full' | 'pending',
+    pendingOrder: 'desc' as 'asc' | 'desc',
+    expandedRounds: new Set<number>(),
+    collapsedRounds: new Set<number>(),
+    competitionReferees: [] as Array<{
+      id: string;
+      firstName: string;
+      lastName: string;
+      club?: string;
+      status?: string;
+    }>,
+    pyramidViewMode: false,
+    autoAssignArenas: false,
+  });
   // Modales arène / arbitre / signatures regroupées (#1241)
   const {
     showArenaModal,
@@ -283,15 +311,6 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     selectedMatchConsolationBracketId,
     setSelectedMatchConsolationBracketId,
   } = useStateGroup(ASSIGN_MODALS_INIT);
-  const [competitionReferees, setCompetitionReferees] = useState<
-    Array<{ id: string; firstName: string; lastName: string; club?: string; status?: string }>
-  >([]);
-  const [pyramidViewMode, setPyramidViewMode] = useState<boolean>(false);
-  // Zoom / pan state (vue bracket full uniquement)
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const isPanningRef = useRef(false);
-  const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
   // Mesures des colonnes pour les connecteurs SVG (#1241)
   const { colRefs, bracketWrapRef, colMeasures } = useColumnMeasures(
     viewMode === 'full' && !pyramidViewMode,
@@ -308,12 +327,18 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     selectedRounds,
     setSelectedRounds,
   } = useStateGroup(PDF_DIALOG_INIT);
-  const [autoAssignArenas, setAutoAssignArenas] = useState(false);
-  // Remet à zéro le zoom/pan si on change de mode
-  useEffect(() => {
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
-  }, [viewMode, pyramidViewMode]);
+  // Zoom et déplacement de la vue bracket (#1241)
+  const {
+    zoom,
+    setZoom,
+    pan,
+    setPan,
+    isPanningRef,
+    scrollAreaRef,
+    handleBracketMouseDown,
+    handleBracketMouseMove,
+    handleBracketMouseUp,
+  } = useBracketZoomPan({ viewMode, pyramidViewMode });
 
   // Charge les arbitres de la compétition (montage + ouverture de la modale)
   const openRefereeModal = useCallback(
@@ -339,45 +364,6 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     },
     [competitionId]
   );
-
-  // Listener natif non-passif : le onWheel React est passif, preventDefault y est ignoré
-  // et la page entière défilait au lieu du tableau.
-  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const el = scrollAreaRef.current;
-    if (!el || viewMode !== 'full' || pyramidViewMode) return;
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const dx = e.shiftKey && e.deltaX === 0 ? e.deltaY : e.deltaX;
-      const dy = e.shiftKey && e.deltaX === 0 ? 0 : e.deltaY;
-      setPan(p => ({ x: p.x - dx, y: p.y - dy }));
-    };
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
-  }, [viewMode, pyramidViewMode]);
-
-  const handleBracketMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.button !== 0 || viewMode !== 'full' || pyramidViewMode) return;
-      // Only pan on background (not on match cards)
-      if ((e.target as HTMLElement).closest('.match-card')) return;
-      isPanningRef.current = true;
-      panStartRef.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
-    },
-    [viewMode, pyramidViewMode, pan]
-  );
-
-  const handleBracketMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isPanningRef.current) return;
-    setPan({
-      x: panStartRef.current.panX + (e.clientX - panStartRef.current.x),
-      y: panStartRef.current.panY + (e.clientY - panStartRef.current.y),
-    });
-  }, []);
-
-  const handleBracketMouseUp = useCallback(() => {
-    isPanningRef.current = false;
-  }, []);
 
   // Tours repliés (#1115) : le plus grand tour déplié sert de première colonne
   // visuelle ; les cases se resserrent et les liaisons des tours repliés disparaissent.

@@ -7,6 +7,9 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Funnel } from 'lucide-react';
 import { useModalResize } from '../hooks/useModalResize';
+import { useStateGroup } from '../hooks/useStateGroup';
+import { POOL_SCORE_INPUT_INIT, POOL_DIALOGS_INIT } from './pool/poolViewState';
+import { usePoolReferees } from './pool/usePoolReferees';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import Modal from './common/Modal';
 import {
@@ -160,18 +163,51 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   const { isColumnVisible, toggleColumn, getVisibleColumns } = useColumnVisibility();
   const poolTemplate = usePdfTemplateStore(s => s.templates.pool);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [editingMatch, setEditingMatch] = useState<number | null>(null);
-  const [isMatchInverted, setIsMatchInverted] = useState(false);
-  // Statut spécial en attente de désignation du combattant (abandon/forfait/exclusion)
-  const [pendingSpecialStatus, setPendingSpecialStatus] = useState<PoolSpecialStatus | null>(null);
-  const [showColumnMenu, setShowColumnMenu] = useState(false);
+  // Saisie du score regroupée (modale + cellule inline) (#1241)
+  const {
+    editingMatch,
+    setEditingMatch,
+    isMatchInverted,
+    setIsMatchInverted,
+    editScoreA,
+    setEditScoreA,
+    editScoreB,
+    setEditScoreB,
+    victoryA,
+    setVictoryA,
+    victoryB,
+    setVictoryB,
+    setMatchesUpdateTrigger,
+    keyboardFocusField,
+    setKeyboardFocusField,
+    inlineEditCell,
+    setInlineEditCell,
+    inlineSingleScore,
+    setInlineSingleScore,
+    cellScoreBuffer,
+    setCellScoreBuffer,
+  } = useStateGroup(POOL_SCORE_INPUT_INIT);
+  // Modales et statut spécial en attente de désignation (abandon/forfait/exclusion) (#1241)
+  const {
+    showColumnMenu,
+    setShowColumnMenu,
+    showPoolConfetti,
+    setShowPoolConfetti,
+    showAddFencerModal,
+    setShowAddFencerModal,
+    auditMatchId,
+    setAuditMatchId,
+    showFinishedLog,
+    setShowFinishedLog,
+    pendingSpecialStatus,
+    setPendingSpecialStatus,
+  } = useStateGroup(POOL_DIALOGS_INIT);
   // Options d'export PDF / impression de la feuille de poule (persistées localement)
-  const [pdfHideStatColumns, setPdfHideStatColumns] = useState(
-    () => localStorage.getItem('bellepoule-pool-pdf-hide-stats') === 'true'
-  );
-  const [pdfLandscape, setPdfLandscape] = useState(
-    () => localStorage.getItem('bellepoule-pool-pdf-landscape') === 'true'
-  );
+  const { pdfHideStatColumns, setPdfHideStatColumns, pdfLandscape, setPdfLandscape } =
+    useStateGroup({
+      pdfHideStatColumns: localStorage.getItem('bellepoule-pool-pdf-hide-stats') === 'true',
+      pdfLandscape: localStorage.getItem('bellepoule-pool-pdf-landscape') === 'true',
+    });
   const togglePdfHideStatColumns = () => {
     const next = !pdfHideStatColumns;
     setPdfHideStatColumns(next);
@@ -183,34 +219,32 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     localStorage.setItem('bellepoule-pool-pdf-landscape', String(next));
   };
 
-  const [editScoreA, setEditScoreA] = useState('');
-  const [editScoreB, setEditScoreB] = useState('');
-  const [victoryA, setVictoryA] = useState(false);
-  const [victoryB, setVictoryB] = useState(false);
-  const [matchesUpdateTrigger, setMatchesUpdateTrigger] = useState(0);
-  const [keyboardFocusField, setKeyboardFocusField] = useState<'A' | 'B'>('A');
   const [signedFencerIds, setSignedFencerIds] = useState<string[]>([]);
   const [matchArenaOverrides, setMatchArenaOverrides] = useState<Map<string, number>>(new Map());
-  const [showRefereeModal, setShowRefereeModal] = useState(false);
-  const [competitionReferees, setCompetitionReferees] = useState<Referee[]>([]);
-  const [isLoadingReferees, setIsLoadingReferees] = useState(false);
-  const [assignedReferees, setAssignedReferees] = useState<Referee[]>(pool.referees ?? []);
-  // Sélection en cours dans la modale (mode multi-arbitres)
-  const [pendingRefereeIds, setPendingRefereeIds] = useState<string[]>([]);
+  // Désignation des arbitres de la poule (modale + affectation) (#1241)
+  const {
+    showRefereeModal,
+    competitionReferees,
+    isLoadingReferees,
+    pendingRefereeIds,
+    assignedReferees,
+    openRefereeModal,
+    closeRefereeModal,
+    handleAssignReferee,
+    togglePendingReferee,
+    confirmPendingReferees,
+  } = usePoolReferees({
+    poolId: pool.id,
+    initialReferees: pool.referees ?? [],
+    competitionId,
+    maxRefereesPerPool,
+    onRefereeAssigned,
+  });
   const isMultiReferee = maxRefereesPerPool > 1;
   const assignedReferee = assignedReferees[0] ?? null;
   const [hoveredFencerIds, setHoveredFencerIds] = useState<Set<string>>(new Set());
   const quickMouseScoring = localStorage.getItem('bellepoule-quick-mouse-scoring') === 'true';
   const simplifiedInputMode = localStorage.getItem('bellepoule-simplified-input-mode') === 'true';
-  const [inlineEditCell, setInlineEditCell] = useState<{
-    key: string;
-    rowId: string;
-    colId: string;
-    matchIndex: number;
-    inverted: boolean;
-  } | null>(null);
-  const [inlineSingleScore, setInlineSingleScore] = useState('');
-  const [cellScoreBuffer, setCellScoreBuffer] = useState<Record<string, number>>({});
 
   const defaultArena = (pool.strip != null && pool.strip > 0 ? pool.strip : pool.number) ?? 1;
 
@@ -235,65 +269,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     },
     [onMatchArenaChange]
   );
-
-  const openRefereeModal = useCallback(() => {
-    setPendingRefereeIds(assignedReferees.map(r => r.id));
-    setShowRefereeModal(true);
-    if (competitionId) {
-      setIsLoadingReferees(true);
-      window.electronAPI.db
-        .getRefereesByCompetition(competitionId)
-        .then(refs =>
-          // Arbitres non pointés masqués, sauf ceux déjà assignés (#977)
-          setCompetitionReferees(
-            refs.filter(
-              r => r.status !== 'unavailable' || assignedReferees.some(a => a.id === r.id)
-            )
-          )
-        )
-        .finally(() => setIsLoadingReferees(false));
-    }
-  }, [competitionId, assignedReferees]);
-
-  const closeRefereeModal = useCallback(() => setShowRefereeModal(false), []);
-
-  const applyReferees = useCallback(
-    (referees: Referee[]) => {
-      window.electronAPI.db.updatePoolReferees(
-        pool.id,
-        referees.map(r => r.id)
-      );
-      setAssignedReferees(referees);
-      setShowRefereeModal(false);
-      onRefereeAssigned?.(pool.id, referees);
-    },
-    [pool.id, onRefereeAssigned]
-  );
-
-  const handleAssignReferee = useCallback(
-    (referee: Referee | null) => {
-      applyReferees(referee ? [referee] : []);
-    },
-    [applyReferees]
-  );
-
-  const togglePendingReferee = useCallback(
-    (refereeId: string) => {
-      setPendingRefereeIds(prev => {
-        if (prev.includes(refereeId)) return prev.filter(id => id !== refereeId);
-        if (prev.length >= maxRefereesPerPool) return prev;
-        return [...prev, refereeId];
-      });
-    },
-    [maxRefereesPerPool]
-  );
-
-  const confirmPendingReferees = useCallback(() => {
-    const byId = new Map(
-      [...competitionReferees, ...assignedReferees].map(r => [r.id, r] as const)
-    );
-    applyReferees(pendingRefereeIds.map(id => byId.get(id)).filter((r): r is Referee => !!r));
-  }, [competitionReferees, assignedReferees, pendingRefereeIds, applyReferees]);
 
   const { addAction, undo, redo, canUndo, canRedo } = useHistory();
 
@@ -342,10 +317,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     [pool, onMatchReset, onScoreUpdate, addAction]
   );
 
-  const [showPoolConfetti, setShowPoolConfetti] = useState(false);
-  const [showAddFencerModal, setShowAddFencerModal] = useState(false);
-  const [auditMatchId, setAuditMatchId] = useState<string | null>(null);
-  const [showFinishedLog, setShowFinishedLog] = useState(false);
   const prevIsComplete = useRef(pool.isComplete);
 
   useEffect(() => {
