@@ -24,6 +24,8 @@ export const REMOTE_HTML_FILES = [
   'checkin.html',
   'trainer.html',
   'matchs.html',
+  'results.html',
+  'journal.html',
   'tireur.html',
   'teamArena.html',
   'teamReferee.html',

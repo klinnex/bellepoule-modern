@@ -95,18 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 29 | 288 |
+| `src/main/` | 29 | 287 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 24 | 115 |
 | `src/renderer/components/` | 44 | 209 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 9 | 47 |
+| `src/remote/` | 11 | 57 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **207** | **1799** |
+| **Total** | **209** | **1808** |
 
-Unitaires : 198 fichiers, 1764 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 200 fichiers, 1773 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2285,7 +2285,7 @@ Unitaires : 198 fichiers, 1764 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/csp.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/remote/csp.test.ts</code> — 7 tests</summary>
 
 - **CSP pages distantes (#1149)**
   - nonce aléatoire base64 de 16 octets
@@ -2294,7 +2294,6 @@ Unitaires : 198 fichiers, 1764 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - sendHtmlPage pose en-tête et nonce cohérents
   - %s : aucun handler inline ni javascript: _(each)_
   - app.js sans handler inline
-  - pages générées sans handler inline
   - chaque data-click statique cible une fonction définie dans la page
 
 </details>
@@ -3733,11 +3732,36 @@ Unitaires : 198 fichiers, 1764 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/remote/remoteInlinePagesI18n.test.ts</code> — 3 tests</summary>
+
+- **%s (#1344)** _(each)_
+  - chargée en mémoire par le serveur
+  - charge i18n.js et common.js, langue active appliquée
+  - aucune locale fr-FR en dur
+
+</details>
+
+<details>
 <summary><code>src/remote/remotePagesXss.test.ts</code> — 2 tests</summary>
 
 - **rendu inerte des noms piégés (#1147)**
   - dashboard : classement, poules et matchs
   - ${page} : match en cours et annonce de carton
+
+</details>
+
+<details>
+<summary><code>src/remote/remotePolling.test.ts</code> — 7 tests</summary>
+
+- **bpPoll (#1345)**
+  - cadence nominale tant que tout réussit
+  - 0 requête onglet masqué, reprise immédiate à la réapparition
+  - démarré onglet masqué : aucune requête avant visibilité
+  - backoff exponentiel plafonné après erreur, retour à la cadence au succès
+  - une exception compte comme un échec
+- **pages résultats / journal : bpPoll, plus de setInterval (#1345)**
+  - %s _(each)_
+  - paramètres de cadence
 
 </details>
 
