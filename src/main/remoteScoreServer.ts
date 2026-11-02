@@ -1033,179 +1033,123 @@ export class RemoteScoreServer {
     return setupMiddleware(this.middlewareCtx);
   }
 
-  /** État exposé aux modules de routes (src/main/remote/routes/), en accesseurs. */
-  private routeContext(): RouteContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    return {
-      get app() {
-        return self.app;
-      },
-      get db() {
-        return self.db;
-      },
-      get session() {
-        return self.session;
-      },
-      get isTrainingMode() {
-        return self.isTrainingMode;
-      },
-      get arenas() {
-        return self.arenas;
-      },
-      get sessionPoolArenas() {
-        return self.sessionPoolArenas;
-      },
-      get sessionMatches() {
-        return self.sessionMatches;
-      },
-      get sessionMatchScores() {
-        return self.sessionMatchScores;
-      },
-      get trainingHistory() {
-        return self.trainingHistory;
-      },
-      sendHtmlFromMemory: (filename, res) => self.sendHtmlFromMemory(filename, res),
-      checkArenaAuth: (arenaId, cookie) => self.checkArenaAuth(arenaId, cookie),
-      hasAnyValidToken: cookie => self.hasAnyValidToken(cookie),
-      computePhaseEta: () => self.computePhaseEta(),
-    };
+  /**
+   * État exposé aux modules de routes (src/main/remote/routes/), en accesseurs : un seul contexte
+   * pour tous les modules (chacun n'utilise que la partie de son interface).
+   */
+  private routeContext(): ApiRouteContext {
+    return (this._routeCtx ??= Object.assign(
+      liveContext<ApiRouteContext>(
+        this,
+        [
+          'app',
+          'db',
+          'session',
+          'isTrainingMode',
+          'arenas',
+          'sessionPoolArenas',
+          'sessionMatches',
+          'sessionMatchScores',
+          'trainingHistory',
+          'registrationEnabled',
+          'checkinEnabled',
+          'checkinPassword',
+          'checkinTokens',
+          'trainerEnabled',
+          'trainerPassword',
+          'trainerTokens',
+          'io',
+          'arenaTokens',
+          'poolFencersCache',
+          'poolSignaturesCache',
+          'arenaMatchQueue',
+          'poolMatchArenaOverrides',
+          'sessionBlackCardEnabled',
+          'sessionBlackCards',
+          'port',
+          'currentLang',
+          'socketIoClientJs',
+          'sessionWeapon',
+          'sessionCustomScoring',
+          'sessionModernRules',
+          'sessionKioskViews',
+          'orgNote',
+          'sessionLogo',
+          'sessionWallpaper',
+          'trainingCustomRules',
+          'ttsConfig',
+          'arenaCards',
+          'arenaTouches',
+          'arenaSuddenDeath',
+          'arenaWaitingOvertime',
+          'requireArenaAuth',
+          'requireLoopback',
+        ],
+        [
+          'sendHtmlFromMemory',
+          'checkArenaAuth',
+          'hasAnyValidToken',
+          'computePhaseEta',
+          'getClientIp',
+          'checkRegistrationRateLimit',
+          'checkLoginAllowed',
+          'recordLoginFailure',
+          'recordLoginSuccess',
+          'checkCheckinAuth',
+          'checkTrainerAuth',
+          'checkinGuard',
+          'trainerGuard',
+          'findArenaOfReferee',
+          'arenaMatchLabel',
+          'checkScoreRateLimit',
+          'resolveReferee',
+          'broadcastDashboardUpdate',
+          'applySmartMatchOrder',
+          'arenaHomePoolId',
+          'broadcastMessage',
+          'cancelBlackCard',
+          'finishArenaMatch',
+          'formatFencerName',
+          'getArenaBlackCards',
+          'guestQueue',
+          'isInActiveWave',
+          'claimArenaSlot',
+          'isMatchPlayable',
+          'isPendingMatch',
+          'resolvePoolReferee',
+          'restorableStatus',
+          'sendDiag',
+          'updateMatchScore',
+          'assignMatchToArena',
+          'createSession',
+          'getAllArenas',
+          'getArena',
+          'getLocalIPAddress',
+          'getServerUrl',
+          'pauseArenaMatch',
+          'startArenaMatch',
+          'stopSession',
+          'toPublicArena',
+          'updateArenaScore',
+        ]
+      ),
+      {
+        sendLoginLimited,
+        verifyPassword: verifyPasswordAsync,
+        issueToken,
+        isArenaMatchOpened: (a: string) => this.arenaRefereeSelected.get(a) === true,
+      }
+    ));
   }
-
-  /** Contexte des routes inscription / appel / formateurs : état + auth (accesseurs). */
-  private registrationRouteContext(): RegistrationRouteContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    return Object.defineProperties(this.routeContext(), {
-      registrationEnabled: { get: () => self.registrationEnabled },
-      checkinEnabled: { get: () => self.checkinEnabled },
-      checkinPassword: { get: () => self.checkinPassword },
-      checkinTokens: { get: () => self.checkinTokens },
-      trainerEnabled: { get: () => self.trainerEnabled },
-      trainerPassword: { get: () => self.trainerPassword },
-      trainerTokens: { get: () => self.trainerTokens },
-      getClientIp: { value: (req: express.Request) => self.getClientIp(req) },
-      checkRegistrationRateLimit: { value: (ip: string) => self.checkRegistrationRateLimit(ip) },
-      checkLoginAllowed: {
-        value: (ip: string, target: string) => self.checkLoginAllowed(ip, target),
-      },
-      sendLoginLimited: { value: sendLoginLimited },
-      verifyPassword: { value: verifyPasswordAsync },
-      issueToken: { value: issueToken },
-      recordLoginFailure: {
-        value: (ip: string, target: string) => self.recordLoginFailure(ip, target),
-      },
-      recordLoginSuccess: { value: (ip: string) => self.recordLoginSuccess(ip) },
-      checkCheckinAuth: { value: (cookie: string | undefined) => self.checkCheckinAuth(cookie) },
-      checkTrainerAuth: { value: (cookie: string | undefined) => self.checkTrainerAuth(cookie) },
-      checkinGuard: { value: (cookie: string | undefined) => self.checkinGuard(cookie) },
-      trainerGuard: { value: (cookie: string | undefined) => self.trainerGuard(cookie) },
-      findArenaOfReferee: { value: (refereeId: string) => self.findArenaOfReferee(refereeId) },
-      arenaMatchLabel: { value: (arena: Arena) => self.arenaMatchLabel(arena) },
-    }) as RegistrationRouteContext;
-  }
-
-  /** Contexte des routes de poule : contexte inscription + état des poules (accesseurs). */
-  private poolRouteContext(): PoolRouteContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    return Object.defineProperties(this.registrationRouteContext(), {
-      io: { get: () => self.io },
-      arenaTokens: { get: () => self.arenaTokens },
-      poolFencersCache: { get: () => self.poolFencersCache },
-      poolSignaturesCache: { get: () => self.poolSignaturesCache },
-      checkScoreRateLimit: { value: (ip: string) => self.checkScoreRateLimit(ip) },
-      resolveReferee: { value: (id?: string | null) => self.resolveReferee(id) },
-      broadcastDashboardUpdate: { value: () => self.broadcastDashboardUpdate() },
-    }) as PoolRouteContext;
-  }
-
-  /** Contexte des routes de matchs : contexte poules + files, cartons noirs (accesseurs). */
-  private matchRouteContext(): MatchRouteContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    return Object.defineProperties(this.poolRouteContext(), {
-      arenaMatchQueue: { get: () => self.arenaMatchQueue },
-      poolMatchArenaOverrides: { get: () => self.poolMatchArenaOverrides },
-      sessionBlackCardEnabled: { get: () => self.sessionBlackCardEnabled },
-      sessionBlackCards: { get: () => self.sessionBlackCards },
-      applySmartMatchOrder: { value: (m: Match[]) => self.applySmartMatchOrder(m) },
-      arenaHomePoolId: { value: (a: Arena) => self.arenaHomePoolId(a) },
-      broadcastMessage: { value: (msg: WebSocketMessage) => self.broadcastMessage(msg) },
-      cancelBlackCard: { value: (a: string, f: string) => self.cancelBlackCard(a, f) },
-      finishArenaMatch: { value: (a: string) => self.finishArenaMatch(a) },
-      formatFencerName: { value: (f: unknown) => self.formatFencerName(f) },
-      getArenaBlackCards: { value: (a: string) => self.getArenaBlackCards(a) },
-      guestQueue: { value: (a: string) => self.guestQueue(a) },
-      isInActiveWave: { value: (m: { id: string }) => self.isInActiveWave(m) },
-      isArenaMatchOpened: { value: (a: string) => self.arenaRefereeSelected.get(a) === true },
-      claimArenaSlot: { value: (a: string, k: string, c?: string) => self.claimArenaSlot(a, k, c) },
-      isMatchPlayable: { value: (m: Match | ArenaMatch) => self.isMatchPlayable(m) },
-      isPendingMatch: { value: (m: ArenaMatch) => self.isPendingMatch(m) },
-      resolvePoolReferee: { value: (id?: string | null) => self.resolvePoolReferee(id) },
-      restorableStatus: { value: (st: FencerStatus | undefined) => self.restorableStatus(st) },
-      sendDiag: { value: (msg: string) => self.sendDiag(msg) },
-      updateMatchScore: {
-        value: (id: string, u: RemoteScoreUpdate) => self.updateMatchScore(id, u),
-      },
-    }) as MatchRouteContext;
-  }
-
-  /** Contexte de l'API : contexte matchs + configuration de session (accesseurs). */
-  private apiRouteContext(): ApiRouteContext {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
-    return Object.defineProperties(this.matchRouteContext(), {
-      session: {
-        get: () => self.session,
-        set: (value: RemoteSession | null) => {
-          self.session = value;
-        },
-      },
-      port: { get: () => self.port },
-      currentLang: { get: () => self.currentLang },
-      socketIoClientJs: { get: () => self.socketIoClientJs },
-      sessionWeapon: { get: () => self.sessionWeapon },
-      sessionCustomScoring: { get: () => self.sessionCustomScoring },
-      sessionModernRules: { get: () => self.sessionModernRules },
-      sessionKioskViews: { get: () => self.sessionKioskViews },
-      orgNote: { get: () => self.orgNote },
-      sessionLogo: { get: () => self.sessionLogo },
-      sessionWallpaper: { get: () => self.sessionWallpaper },
-      trainingCustomRules: { get: () => self.trainingCustomRules },
-      ttsConfig: { get: () => self.ttsConfig },
-      arenaCards: { get: () => self.arenaCards },
-      arenaTouches: { get: () => self.arenaTouches },
-      arenaSuddenDeath: { get: () => self.arenaSuddenDeath },
-      arenaWaitingOvertime: { get: () => self.arenaWaitingOvertime },
-      requireArenaAuth: { get: () => self.requireArenaAuth },
-      requireLoopback: { get: () => self.requireLoopback },
-      assignMatchToArena: {
-        value: (a: string, m: ArenaMatch, fromReferee?: boolean) =>
-          self.assignMatchToArena(a, m, fromReferee),
-      },
-      createSession: { value: (c: string, n: number) => self.createSession(c, n) },
-      getAllArenas: { value: () => self.getAllArenas() },
-      getArena: { value: (a: string) => self.getArena(a) },
-      getLocalIPAddress: { value: () => self.getLocalIPAddress() },
-      getServerUrl: { value: () => self.getServerUrl() },
-      pauseArenaMatch: { value: (a: string) => self.pauseArenaMatch(a) },
-      startArenaMatch: { value: (a: string) => self.startArenaMatch(a) },
-      stopSession: { value: () => self.stopSession() },
-      toPublicArena: { value: (a: Arena) => self.toPublicArena(a) },
-      updateArenaScore: {
-        value: (a: string, sa: number, sb: number) => self.updateArenaScore(a, sa, sb),
-      },
-    }) as ApiRouteContext;
-  }
+  private _routeCtx?: ApiRouteContext;
 
   private setupRoutes(): void {
     console.log('[RemoteScoreServer] Configuration des routes...');
-    registerApiRoutes(this.apiRouteContext());
+    registerApiRoutes(this.routeContext());
     registerPageRoutes(this.routeContext());
-    registerRegistrationRoutes(this.registrationRouteContext());
-    registerPoolRoutes(this.poolRouteContext());
-    registerMatchRoutes(this.matchRouteContext());
+    registerRegistrationRoutes(this.routeContext());
+    registerPoolRoutes(this.routeContext());
+    registerMatchRoutes(this.routeContext());
     registerResultsRoutes(this.routeContext());
   }
 
