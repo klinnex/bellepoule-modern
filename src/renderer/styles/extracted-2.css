@@ -666,3 +666,140 @@
   margin: 0;
   font-size: 1.125rem;
 }
+
+.is-4a973e.is-4a973e {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 1rem;
+}
+
+.is-97f568.is-97f568 {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.is-2fd56d.is-2fd56d {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.is-3ac18f.is-3ac18f {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: #1e1b4b;
+  border-radius: 0.5rem;
+  border: 1px solid #3730a3;
+}
+
+.is-4b4d3f.is-4b4d3f {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.is-50199d.is-50199d {
+  font-size: 0.6rem;
+  opacity: 0.7;
+}
+
+.is-3718e4.is-3718e4 {
+  flex: 1;
+  height: 8px;
+  background: #312e81;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.is-c3d23c.is-c3d23c {
+  width: 20px;
+  font-size: 0.72rem;
+  color: #c7d2fe;
+  text-align: right;
+}
+
+.is-e21653.is-e21653 {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.is-24ec95.is-24ec95 {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  margin-right: 0.25rem;
+}
+
+.is-d109ae.is-d109ae {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.is-5e330c.is-5e330c {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.is-7d15ad.is-7d15ad {
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-text-light);
+}
+
+.is-0a0298.is-0a0298 {
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.is-420b32.is-420b32 {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.is-1c37da.is-1c37da {
+  background: var(--color-surface-2);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.is-122ec1.is-122ec1 {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.is-2d37af.is-2d37af {
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.is-631a7e.is-631a7e {
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text-light);
+  font-family: monospace;
+}
+
+.is-9ff583.is-9ff583 {
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text-light);
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.is-e3b51e.is-e3b51e {
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text);
+}
