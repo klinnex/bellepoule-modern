@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 34 | 303 |
+| `src/main/` | 35 | 305 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 124 |
 | `src/renderer/components/` | 44 | 209 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **216** | **1833** |
+| **Total** | **217** | **1835** |
 
-Unitaires : 207 fichiers, 1798 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 208 fichiers, 1800 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2158,6 +2158,15 @@ Unitaires : 207 fichiers, 1798 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - envoie le fichier puis valide le formulaire, dans cet ordre
   - s'arrête à la première étape en erreur HTTP
   - remonte une erreur réseau sans lever d'exception
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/remoteDisplayHandlers.test.ts</code> — 2 tests</summary>
+
+- **registerRemoteDisplayHandlers (#1341)**
+  - enregistre les canaux écrans / notes / signature
+  - clearOrgNote : serveur absent
 
 </details>
 
