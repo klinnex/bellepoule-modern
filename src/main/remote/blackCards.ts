@@ -6,6 +6,7 @@
 import { MatchStatus, FencerStatus, Score } from '../../shared/types';
 import type { BlackCardRecord } from './types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
+import { getSharedMainWindow } from '../mainWindowRef';
 
 type S = RemoteScoreServer;
 
@@ -161,7 +162,7 @@ export function cancelBlackCard(
     `[RemoteScoreServer] Carton noir annulé : combattant ${fencerId} réintégré, match ${matchId} rouvert`
   );
 
-  const mainWin = (global as any).mainWindow;
+  const mainWin = getSharedMainWindow();
   if (mainWin) {
     mainWin.webContents.send('remote:fencer_reinstated', {
       fencerId,

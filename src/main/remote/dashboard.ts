@@ -3,6 +3,7 @@
  * Extrait de RemoteScoreServer : l'état reste dans le serveur, exposé par accesseurs (contexte).
  * Licensed under GPL-3.0
  */
+import type { SessionMatch } from './types';
 import { estimatePhaseEta } from '../../shared/utils/phaseEta';
 import type { PhaseEtaSummary } from './routes/context';
 import type { RemoteScoreServer } from '../remoteScoreServer';
@@ -117,7 +118,7 @@ export function computePhaseEta(ctx: DashboardContext): PhaseEtaSummary {
   if (tableau.length > 0) {
     phase = 'tableau';
     // Petite finale (3) jouée avec la finale (2)
-    const roundOf = (m: { round?: unknown }) => (Number(m.round) === 3 ? 2 : Number(m.round) || 0);
+    const roundOf = (m: SessionMatch) => (Number(m.round) === 3 ? 2 : Number(m.round) || 0);
     round = Math.max(...tableau.map(roundOf)) || null;
     remaining = tableau.filter(m => roundOf(m) === (round ?? 0));
   } else {

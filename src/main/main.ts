@@ -17,6 +17,7 @@ import { eventLoopMonitor } from './eventLoopMonitor';
 import { fmt, getL, getUiLanguage, setUiLanguage } from './menuLabels';
 import { registerDbHandlers } from './ipc/dbHandlers';
 import { registerTrainingHandlers } from './ipc/trainingHandlers';
+import { setSharedMainWindow } from './mainWindowRef';
 import { previewPdf, registerPdfPreviewHandlers } from './ipc/pdfPreview';
 import { registerPrintDialogHandlers } from './ipc/printDialog';
 import { registerWebhookHandlers } from './ipc/webhookHandlers';
@@ -1071,8 +1072,7 @@ ipcMain.handle(
       } catch {
         /* config TTS optionnelle */
       }
-
-      (global as any).mainWindow = mainWindow;
+      setSharedMainWindow(mainWindow);
 
       return {
         success: true,

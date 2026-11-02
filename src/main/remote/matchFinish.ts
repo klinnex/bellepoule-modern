@@ -6,6 +6,7 @@
 import { MatchStatus } from '../../shared/types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { ArenaEventList } from '../remoteScoreServer';
+import { getSharedMainWindow } from '../mainWindowRef';
 
 type S = RemoteScoreServer;
 
@@ -305,7 +306,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     }
 
   // Émettre l'event pour le renderer (pour sauvegarder le score dans les pools)
-  const mainWindow = (global as any).mainWindow;
+  const mainWindow = getSharedMainWindow();
   if (mainWindow && !ctx.isTrainingMode) {
     // Dériver le vainqueur depuis la DB pour gérer le cas tirage au sort (scores égaux)
     let winnerForRenderer: 'A' | 'B' | null =

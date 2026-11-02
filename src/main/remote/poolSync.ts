@@ -4,6 +4,7 @@
  * notification des tablettes d'arène qui affichent une poule modifiée.
  * Licensed under GPL-3.0
  */
+import type { SessionMatch } from './types';
 import { MatchStatus } from '../../shared/types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 
@@ -66,7 +67,7 @@ export function syncPoolMatches(
         m =>
           m.isTableau || (m.poolId || m.pool?.id || `pool-${m.poolNumber || m.number}`) !== poolId
       ),
-      ...matches,
+      ...(matches as SessionMatch[]),
     ];
     updatedPoolIds.add(poolId);
   }

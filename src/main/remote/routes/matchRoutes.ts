@@ -13,6 +13,7 @@ import type {
 import type { BlackCardRecord } from '../types';
 import type { PoolRouteContext } from './poolRoutes';
 import { baseArenaId, matchesTakenBySiblings } from '../arenaSlots';
+import { getSharedMainWindow } from '../../mainWindowRef';
 
 /** État et opérations utilisés par les routes de matchs des arènes. */
 export interface MatchRouteContext extends PoolRouteContext {
@@ -340,7 +341,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         } else {
           // Match non trouvé dans une arène active : notifier quand même le renderer
           // (cas où l'arbitre soumet depuis referee.html mais l'arène a déjà changé)
-          const mainWin = (global as any).mainWindow;
+          const mainWin = getSharedMainWindow();
           if (mainWin) {
             const isTableauMatch = !dbMatch.poolId;
             mainWin.webContents.send('match:finished', {
@@ -377,7 +378,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
         }
         if (!arenaFoundForInMemory) {
           // Match en mémoire non trouvé dans une arène : notifier quand même le renderer
-          const mainWin = (global as any).mainWindow;
+          const mainWin = getSharedMainWindow();
           if (mainWin) {
             const sm = ctx.sessionMatches.find((m: any) => m.id === matchId);
             mainWin.webContents.send('match:finished', {
@@ -424,7 +425,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
             });
             console.log(`[RemoteScoreServer] Carton noir : combattant ${culpritId} exclu`);
             // Notifier le renderer pour mettre à jour le statut dans son store
-            const mainWin = (global as any).mainWindow;
+            const mainWin = getSharedMainWindow();
             if (mainWin) {
               mainWin.webContents.send('remote:fencer_excluded', {
                 fencerId: culpritId,

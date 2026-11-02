@@ -10,6 +10,7 @@ import type { DatabaseManager } from '../../database';
 import { ensureCert } from '../certManager';
 import { RemoteScoreServer } from '../remoteScoreServer';
 import { findAvailablePort, remoteServers, usedPorts } from '../remoteRegistry';
+import { setSharedMainWindow } from '../mainWindowRef';
 
 const TRAINING_ID = '__training__';
 
@@ -59,7 +60,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
         } catch {
           /* optionnel */
         }
-        (global as any).mainWindow = getMainWindow();
+        setSharedMainWindow(getMainWindow());
         return {
           success: true,
           serverInfo: {
