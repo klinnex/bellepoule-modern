@@ -56,7 +56,8 @@ export interface FtpPublishConfig {
 }
 
 /** Destination du XML de résultats : fichier local, GREG, ou serveur FTP */
-export type XmlExportTarget = 'file' | 'greg' | { ftp: FtpPublishConfig };
+/** 'greg-auto' : publication GREG périodique (#1328), sans toast de succès */
+export type XmlExportTarget = 'file' | 'greg' | 'greg-auto' | { ftp: FtpPublishConfig };
 
 interface UseExportProps {
   competition: Competition;
@@ -351,7 +352,11 @@ export const useExport = ({ competition, showToast, tableauMatches }: UseExportP
           tableauMatches
         );
         // Comme l'ancien BellePoule : une adresse escrime-info.com part toujours vers GREG (sans identifiant)
-        if (target === 'greg' || (typeof target === 'object' && isGregUrl(target.ftp.url))) {
+        if (
+          target === 'greg' ||
+          target === 'greg-auto' ||
+          (typeof target === 'object' && isGregUrl(target.ftp.url))
+        ) {
           const api = window.electronAPI?.greg;
           if (!api) throw new Error('Publication GREG indisponible dans cette version');
           const result = await api.publish({
@@ -359,8 +364,9 @@ export const useExport = ({ competition, showToast, tableauMatches }: UseExportP
             xml: toNativeRootTag(xml, competition.isTeamEvent),
             fields: { ...buildGregFields(competition) },
           });
-          if (result.success) showToast('Résultats envoyés à GREG', 'success');
-          else
+          if (result.success) {
+            if (target !== 'greg-auto') showToast('Résultats envoyés à GREG', 'success');
+          } else
             showToast(
               `Échec de la publication GREG : ${result.error ?? 'erreur inconnue'}`,
               'error'
