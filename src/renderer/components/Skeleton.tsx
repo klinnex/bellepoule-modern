@@ -41,23 +41,13 @@ const Skeleton_: React.FC<SkeletonProps> = ({
 // Competition Card Skeleton
 const CompetitionCardSkeleton_: React.FC = () => {
   return (
-    <div
-      style={{
-        padding: '20px',
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        border: '1px solid var(--color-border)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-      }}
-    >
+    <div className="is-c2432b">
       <div className="u-row-between">
         <Skeleton width="60%" height="24px" />
         <Skeleton width="80px" height="20px" borderRadius="12px" />
       </div>
       <Skeleton width="40%" height="16px" />
-      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+      <div className="is-1acd33">
         <Skeleton width="100px" height="32px" borderRadius="6px" />
         <Skeleton width="100px" height="32px" borderRadius="6px" />
       </div>
@@ -68,26 +58,12 @@ const CompetitionCardSkeleton_: React.FC = () => {
 // Pool View Skeleton
 const PoolViewSkeleton_: React.FC = () => {
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ marginBottom: '24px' }}>
+    <div className="is-f8d354">
+      <div className="is-8d7033">
         <Skeleton width="200px" height="32px" style={{ marginBottom: '16px' }} />
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-            gap: '20px',
-          }}
-        >
+        <div className="is-f38ad5">
           {[1, 2, 3, 4].map(i => (
-            <div
-              key={i}
-              style={{
-                padding: '16px',
-                backgroundColor: 'white',
-                borderRadius: '8px',
-                border: '1px solid var(--color-border)',
-              }}
-            >
+            <div key={i} className="is-7cfc05">
               <Skeleton width="50%" height="20px" style={{ marginBottom: '12px' }} />
               {[1, 2, 3].map(j => (
                 <div
@@ -135,17 +111,7 @@ const TableRowSkeleton_: React.FC<{ columns?: number }> = ({ columns = 5 }) => {
 // Stats Card Skeleton
 const StatsCardSkeleton_: React.FC = () => {
   return (
-    <div
-      style={{
-        padding: '20px',
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        border: '1px solid var(--color-border)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-      }}
-    >
+    <div className="is-0ae110">
       <Skeleton width="48px" height="48px" borderRadius="12px" />
       <div className="flex-1">
         <Skeleton width="60%" height="16px" style={{ marginBottom: '8px' }} />
@@ -158,40 +124,19 @@ const StatsCardSkeleton_: React.FC = () => {
 // Competition View Skeleton (header + nav + content, pendant le lazy-load de CompetitionView)
 const CompetitionViewSkeleton_: React.FC = () => {
   return (
-    <div style={{ padding: '1.5rem' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem',
-        }}
-      >
+    <div className="is-07f002">
+      <div className="is-b69013">
         <Skeleton width="280px" height="28px" />
         <Skeleton width="120px" height="32px" borderRadius="6px" />
       </div>
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+      <div className="is-c6beb3">
         {[1, 2, 3, 4].map(i => (
           <Skeleton key={i} width="110px" height="36px" borderRadius="6px" />
         ))}
       </div>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: '1rem',
-        }}
-      >
+      <div className="is-5a67a8">
         {[1, 2, 3, 4, 5, 6].map(i => (
-          <div
-            key={i}
-            style={{
-              padding: '1rem',
-              backgroundColor: 'white',
-              borderRadius: '8px',
-              border: '1px solid var(--color-border)',
-            }}
-          >
+          <div key={i} className="is-1f7187">
             <Skeleton width="60%" height="18px" style={{ marginBottom: '0.75rem' }} />
             <Skeleton width="100%" height="14px" className="mb-2" />
             <Skeleton width="80%" height="14px" />
