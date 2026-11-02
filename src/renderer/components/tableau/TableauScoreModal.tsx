@@ -90,48 +90,23 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
     <div className="modal-overlay" ref={trapRef}>
       <div
         ref={modalRef}
-        className="modal resizable"
-        style={{
-          maxWidth: '900px',
-          width: '95%',
-          minHeight: '400px',
-        }}
+        className="modal resizable is-240625"
         onClick={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
-        <div className="modal-header" style={{ cursor: 'move' }}>
+        <div className="modal-header is-0430c2">
           <h3 className="modal-title">
             {t('tableauScore.quick_entry', { round: getRoundName(match.round) })}
           </h3>
         </div>
-        <div className="modal-body" style={{ padding: '2rem' }}>
+        <div className="modal-body is-a48125">
           {/* Ligne unique avec les deux tireurs côte à côte */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '1.5rem',
-              marginBottom: '1.5rem',
-            }}
-          >
+          <div className="is-cef216">
             {/* Tireur A */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-end',
-                flex: 1,
-                minWidth: '200px',
-              }}
-            >
-              <div style={{ fontSize: '1.5rem', fontWeight: 600, textAlign: 'right' }}>
-                {match.fencerA?.lastName}
-              </div>
-              <div
-                style={{ fontSize: '1rem', color: 'var(--color-text-light)', textAlign: 'right' }}
-              >
+            <div className="is-b3689a">
+              <div className="is-29ee32">{match.fencerA?.lastName}</div>
+              <div className="is-bd17c2">
                 {match.fencerA?.firstName} {match.fencerA?.club && `(${match.fencerA.club})`}
               </div>
             </div>
@@ -179,11 +154,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
             />
 
             {/* Séparateur */}
-            <span
-              style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--color-text-muted)' }}
-            >
-              :
-            </span>
+            <span className="is-42b7f2">:</span>
 
             {/* Input Score B */}
             <input
@@ -227,21 +198,9 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
             />
 
             {/* Tireur B */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                flex: 1,
-                minWidth: '200px',
-              }}
-            >
-              <div style={{ fontSize: '1.5rem', fontWeight: 600, textAlign: 'left' }}>
-                {match.fencerB?.lastName}
-              </div>
-              <div
-                style={{ fontSize: '1rem', color: 'var(--color-text-light)', textAlign: 'left' }}
-              >
+            <div className="is-d0c392">
+              <div className="is-0b536f">{match.fencerB?.lastName}</div>
+              <div className="is-2415dc">
                 {match.fencerB?.firstName} {match.fencerB?.club && `(${match.fencerB.club})`}
               </div>
             </div>
@@ -249,10 +208,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
 
           {/* Info score max */}
           {!isUnlimitedScore && maxScore > 0 && (
-            <p
-              className="text-sm text-muted"
-              style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1rem' }}
-            >
+            <p className="text-sm text-muted is-89a4cc">
               {t('tableauScore.max_score', { n: maxScore })}
             </p>
           )}
@@ -295,70 +251,37 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
 
           {/* Boutons spéciaux sur une ligne */}
           {!pendingStatus ? (
-            <div
-              style={{
-                display: 'flex',
-                gap: '0.5rem',
-                justifyContent: 'center',
-                borderTop: '1px solid var(--color-border)',
-                paddingTop: '1rem',
-                marginTop: '1rem',
-              }}
-            >
+            <div className="is-4e4f08">
               <button
-                className="btn btn-warning"
+                className="btn btn-warning is-d1e548"
                 onClick={() => setPendingStatus('abandon')}
-                style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
               >
                 <MedicalCrossIcon /> {t('tableauScore.abandon')}
               </button>
               <button
-                className="btn btn-warning"
+                className="btn btn-warning is-d1e548"
                 onClick={() => setPendingStatus('forfait')}
-                style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
               >
                 📋 {t('tableauScore.forfait')}
               </button>
               <button
-                className="btn btn-danger"
+                className="btn btn-danger is-d1e548"
                 onClick={() => setPendingStatus('exclusion')}
-                style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
               >
                 🚫 {t('tableauScore.exclusion')}
               </button>
               {onMatchCancel && (
-                <button
-                  className="btn btn-secondary"
-                  onClick={onMatchCancel}
-                  style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
-                >
+                <button className="btn btn-secondary is-d1e548" onClick={onMatchCancel}>
                   ⏸ {t('tableau.cancel_match')}
                 </button>
               )}
             </div>
           ) : (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-                alignItems: 'center',
-                borderTop: '1px solid var(--color-border)',
-                paddingTop: '1rem',
-                marginTop: '1rem',
-              }}
-            >
-              <p style={{ fontWeight: 600, margin: 0 }}>
+            <div className="is-e2a8c5">
+              <p className="is-cfe518">
                 {t(STATUS_LABELS[pendingStatus])} — {t(STATUS_ACTION[pendingStatus])}
               </p>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.5rem',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center',
-                }}
-              >
+              <div className="is-027866">
                 <button
                   className="btn btn-danger"
                   disabled={!match.fencerA}
@@ -380,10 +303,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
             </div>
           )}
         </div>
-        <div
-          className="modal-footer"
-          style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}
-        >
+        <div className="modal-footer is-40a237">
           <button className="btn btn-secondary" onClick={onClose}>
             {t('actions.cancel')}
           </button>

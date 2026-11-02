@@ -32,15 +32,7 @@ const TableauPendingSectionComponent: React.FC<TableauPendingSectionProps> = ({
       : translateStatic('pdf.round_table', { n: round });
 
   return (
-    <div
-      style={{
-        background: 'var(--tableau-panel, white)',
-        borderRadius: '8px',
-        marginBottom: '0.5rem',
-        overflow: 'hidden',
-        border: '1px solid var(--tableau-border, var(--color-border))',
-      }}
-    >
+    <div className="is-9c78b6">
       <div
         onClick={() => onToggle(round)}
         style={{
