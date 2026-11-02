@@ -15,13 +15,13 @@
     "src/renderer/components/CompetitionView.tsx": 3100,
     "src/renderer/components/PoolView.tsx": 1799,
     "src/renderer/components/RemoteScoreManager.tsx": 1951,
-    "src/renderer/components/TableauView.tsx": 1579,
+    "src/renderer/components/TableauView.tsx": 1570,
     "src/renderer/components/ThemeEditor.tsx": 1512,
     "src/renderer/components/wiki/wikiData.ts": 2035,
     "src/remote/arena.html": 2302,
     "src/remote/kiosk.html": 3488,
     "src/remote/referee.html": 4633,
-    "src/main/main.ts": 1795,
+    "src/main/main.ts": 1629,
     "src/main/remoteScoreServer.ts": 2705
   }
 }
