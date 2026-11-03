@@ -15,7 +15,8 @@
     "training": "Entrenamiento",
     "tools": "Herramientas",
     "wifi_qr": "Código QR WiFi",
-    "tv_remote": "Mando de TV"
+    "tv_remote": "Mando de TV",
+    "guided_tour": "Recorrido guiado"
   },
   "menu": {
     "new_competition": "Nueva Competición",
@@ -2670,6 +2671,7 @@
   "tour": {
     "title": "Primera competición",
     "skip": "Omitir el recorrido",
+    "back": "Atrás",
     "close": "Terminar",
     "finished_title": "¡Bien hecho, recorrido terminado!",
     "finished_hint": "Ya conoce el desarrollo de una competición. Puede relanzar esta guía desde los ajustes.",
@@ -2679,13 +2681,15 @@
     "step_remote": "Activar la entrada remota",
     "step_scores": "Introducir los resultados",
     "step_tableau": "Iniciar el cuadro",
+    "step_edit": "Editar un partido",
     "hint_fencers": "Importe un archivo o añada los tiradores a mano en la pestaña Lista.",
     "hint_checkin": "Marque los tiradores presentes (clic en la fila del tirador).",
     "hint_pools": "Pulse «Generar poules» (mínimo 4 tiradores presentes).",
     "hint_remote": "Inicie la entrada remota para que los árbitros introduzcan los resultados desde una tableta (o introdúzcalos directamente en este equipo).",
     "hint_scores": "Abra una poule e introduzca el resultado de un asalto.",
     "hint_tableau": "Terminadas las poules, pase al cuadro de eliminación directa.",
-    "remote_explain": "Los árbitros abren la dirección mostrada en su tableta, introducen los tocados partido a partido y los resultados llegan aquí en directo.",
+    "hint_edit": "Cada partido del cuadro es editable: haga clic para introducir el resultado y use los botones luminosos para asignar una pista y un árbitro. En «Opciones» hay una asignación automática de pistas.",
+    "remote_explain": "Los árbitros escanean el código QR «Árbitro» en su tableta, introducen los tocados partido a partido y los resultados llegan aquí en directo.",
     "remote_mock_arena": "Pista 1",
     "remote_mock_validate": "Validar el combate"
   }

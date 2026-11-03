@@ -18,8 +18,10 @@ import {
   Wrench,
   Wifi,
   Tv2,
+  Sparkles,
 } from 'lucide-react';
 import { Competition, PhaseType } from '../shared/types';
+import { restartGuidedTour } from './components/guidedTourFlags';
 import type { CompetitionCreateData } from '../shared/types/preload';
 import { logger, LogCategory } from '@shared/services/logger';
 import CompetitionList from './components/CompetitionList';
@@ -688,6 +690,15 @@ const AppContent: React.FC = () => {
                       }}
                     >
                       <Tv2 size={15} /> {t('app.tv_remote')}
+                    </button>
+                    <button
+                      className="comp-header-dropdown-item tools-menu-item"
+                      onClick={() => {
+                        restartGuidedTour();
+                        setShowToolsMenu(false);
+                      }}
+                    >
+                      <Sparkles size={15} /> {t('app.guided_tour')}
                     </button>
                   </div>
                 )}
