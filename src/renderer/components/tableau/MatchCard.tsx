@@ -114,6 +114,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
           {onArenaClick && (
             <button
               className={`match-badge-btn ${match.arena ? 'match-badge-btn--active' : ''}`}
+              data-tour="match-arena"
               onClick={handleArenaClick}
               title={
                 match.arena
@@ -127,6 +128,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
           {onRefereeClick && (
             <button
               className={`match-badge-btn ${matchReferees.length > 0 ? 'match-badge-btn--active' : ''}`}
+              data-tour="match-referee"
               onClick={handleRefereeClick}
               title={
                 matchReferees.length > 0

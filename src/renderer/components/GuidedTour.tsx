@@ -8,6 +8,7 @@ import { Check, X, Sparkles } from 'lucide-react';
 import { MatchStatus } from '../../shared/types';
 import {
   TOUR_RESTART_EVENT,
+  TOUR_STEP_HALOS,
   TOUR_STEP_PHASE,
   TOUR_STEPS,
   TourState,
@@ -19,7 +20,11 @@ import {
   writeTourFlag,
 } from './guidedTourFlags';
 
-interface GuidedTourProps extends Omit<TourState, 'poolsCount' | 'finishedPoolMatches'> {
+interface GuidedTourProps extends Omit<
+  TourState,
+  'poolsCount' | 'finishedPoolMatches' | 'tableauFinishedMatches'
+> {
+  tableauFinishedMatches?: number;
   pools: Array<{ matches: Array<{ status: MatchStatus }> }>;
   t: (key: string, params?: { [key: string]: string | number }) => string;
   /** Phase à mettre en évidence dans la navigation (null = aucune) */
@@ -42,6 +47,48 @@ const RemoteMockup: React.FC<{ t: GuidedTourProps['t'] }> = ({ t }) => (
   </div>
 );
 
+const HALO_CLASS = 'tour-halo';
+const HALO_GREEN_CLASS = 'tour-halo-green';
+
+/** Entoure d'un halo pulsé les boutons utiles à l'étape (suit les changements du DOM) */
+function useTourHalos(step: TourStepId | null): void {
+  useEffect(() => {
+    if (!step) return;
+    const halos = TOUR_STEP_HALOS[step];
+    if (halos.length === 0) return;
+    const marked = new Set<Element>();
+    const apply = () => {
+      const wanted = new Set<Element>();
+      for (const h of halos) {
+        const found = h.first
+          ? [document.querySelector(h.selector)].filter((e): e is Element => e !== null)
+          : Array.from(document.querySelectorAll(h.selector));
+        for (const el of found) {
+          wanted.add(el);
+          if (!marked.has(el)) {
+            el.classList.add(HALO_CLASS);
+            if (h.green) el.classList.add(HALO_GREEN_CLASS);
+            marked.add(el);
+          }
+        }
+      }
+      marked.forEach(el => {
+        if (!wanted.has(el)) {
+          el.classList.remove(HALO_CLASS, HALO_GREEN_CLASS);
+          marked.delete(el);
+        }
+      });
+    };
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      marked.forEach(el => el.classList.remove(HALO_CLASS, HALO_GREEN_CLASS));
+    };
+  }, [step]);
+}
+
 const GuidedTour: React.FC<GuidedTourProps> = ({
   t,
   onHighlightPhase,
@@ -49,6 +96,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
   checkedInCount,
   pools,
   tableauMatchesCount,
+  tableauFinishedMatches = 0,
   remoteActive,
 }) => {
   const [flag, setFlag] = useState<TourFlag | null>(() => {
@@ -68,6 +116,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
       0
     ),
     tableauMatchesCount,
+    tableauFinishedMatches,
     remoteActive,
   };
 
@@ -78,13 +127,23 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
     return () => window.removeEventListener(TOUR_RESTART_EVENT, restart);
   }, []);
 
-  const current = currentTourStep(state);
+  const reached = currentTourStep(state);
   const active = flag === 'active';
+
+  // Retour manuel : valable tant que la progression réelle (reached) ne change pas
+  const [back, setBack] = useState<{ base: TourStepId | null; step: TourStepId } | null>(null);
+  const current = back && back.base === reached ? back.step : reached;
+  const currentIndex = current ? TOUR_STEPS.indexOf(current) : TOUR_STEPS.length;
+  const goBack = () => {
+    if (currentIndex > 0) setBack({ base: reached, step: TOUR_STEPS[currentIndex - 1] });
+  };
 
   useEffect(() => {
     onHighlightPhase(active && current ? TOUR_STEP_PHASE[current] : null);
     return () => onHighlightPhase(null);
   }, [active, current, onHighlightPhase]);
+
+  useTourHalos(active ? current : null);
 
   const close = useCallback(() => {
     writeTourFlag('done');
@@ -94,7 +153,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
   if (!active) return null;
 
   const doneCount = TOUR_STEPS.filter(s => tourStepDone(s, state)).length;
-  const finished = current === null;
+  const finished = reached === null && current === null;
 
   return (
     <aside className="guided-tour" role="status" aria-live="polite" aria-label={t('tour.title')}>
@@ -144,9 +203,19 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
         max={TOUR_STEPS.length}
         aria-hidden="true"
       />
-      <button type="button" className="btn btn-secondary guided-tour-action" onClick={close}>
-        {finished ? t('tour.close') : t('tour.skip')}
-      </button>
+      <div className="guided-tour-actions">
+        <button
+          type="button"
+          className="btn btn-secondary guided-tour-action guided-tour-back"
+          onClick={goBack}
+          disabled={currentIndex === 0}
+        >
+          {t('tour.back')}
+        </button>
+        <button type="button" className="btn btn-secondary guided-tour-action" onClick={close}>
+          {finished ? t('tour.close') : t('tour.skip')}
+        </button>
+      </div>
     </aside>
   );
 };

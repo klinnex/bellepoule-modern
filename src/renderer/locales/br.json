@@ -15,7 +15,8 @@
     "training": "Stummañ",
     "tools": "Ostilhoù",
     "wifi_qr": "Kod QR WiFi",
-    "tv_remote": "Pellurzhier TV"
+    "tv_remote": "Pellurzhier TV",
+    "guided_tour": "Hentad heñchet"
   },
   "menu": {
     "new_competition": "Nevezompetañ",
@@ -2665,6 +2666,7 @@
   "tour": {
     "title": "Kentañ kevezadenn",
     "skip": "Lezel ar rakstur a-gostez",
+    "back": "Distro",
     "close": "Echuiñ",
     "finished_title": "Mat-tre, echu eo ar rakstur!",
     "finished_hint": "Anavezet hoc'h eus bremañ penaos ez a ur gevezadenn en-dro. Adloc'hit ar sturier-mañ eus an arventennoù.",
@@ -2674,13 +2676,15 @@
     "step_remote": "Gweredekaat an enrollañ a-bell",
     "step_scores": "Enankañ ar skoreoù",
     "step_tableau": "Loc'hañ an daolenn",
+    "step_edit": "Kemmañ ur stourm",
     "hint_fencers": "Enporzhiit ur restr pe ouzhpennit an tennerien dre zorn en ivinell Pointañ.",
     "hint_checkin": "Pointit an tennerien a zo er-maez (klik war linenn an tenner).",
     "hint_pools": "Klikit war « Krouiñ ar poulennoù » (da nebeutañ 4 tenner pointet).",
     "hint_remote": "Lañsit an enrollañ a-bell evit ma enrollo an arbitrerien ar skoreoù gant un tablezenn (pe enrollit anezho war ar post-mañ).",
     "hint_scores": "Digorit ur boulenn hag enankit skor un emgann.",
     "hint_tableau": "Pa vez echu ar poulennoù, kit d'an daolenn dilemel war-eeun.",
-    "remote_explain": "An abiterien a zigor ar chomlec'h diskouezet war o zablezenn, enskrivañ a reont ar stokadoù emgann dre emgann, hag ar skorioù a zeu amañ war-eeun.",
+    "hint_edit": "Pep stourm eus an daolenn a c'hall bezañ kemmet: klikit warnañ evit enskrivañ ar skor, ha implijit ar bouton sklaer evit regañ ur pistenn hag un abiter. Er « Dibarzhioù » ez eus ur reiñ emgefreek a bistennoù.",
+    "remote_explain": "An abiterien a skan ar c'hod QR « Abiter » war o zablezenn, enskrivañ a reont ar stokadoù emgann dre emgann, hag ar skorioù a zeu amañ war-eeun.",
     "remote_mock_arena": "Arenenn 1",
     "remote_mock_validate": "Kadarnaat an emgann"
   }

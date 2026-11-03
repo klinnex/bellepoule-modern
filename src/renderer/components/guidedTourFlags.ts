@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-export type TourStepId = 'fencers' | 'checkin' | 'pools' | 'remote' | 'scores' | 'tableau';
+export type TourStepId = 'fencers' | 'checkin' | 'pools' | 'remote' | 'scores' | 'tableau' | 'edit';
 
 /** Phase de navigation à mettre en évidence pour chaque étape */
 export const TOUR_STEP_PHASE: Record<TourStepId, string> = {
@@ -13,6 +13,7 @@ export const TOUR_STEP_PHASE: Record<TourStepId, string> = {
   remote: 'remote',
   scores: 'pools',
   tableau: 'tableau',
+  edit: 'tableau',
 };
 
 export const TOUR_STEPS: TourStepId[] = [
@@ -22,6 +23,7 @@ export const TOUR_STEPS: TourStepId[] = [
   'remote',
   'scores',
   'tableau',
+  'edit',
 ];
 
 export const TOUR_STORAGE_KEY = 'bellepoule-guided-tour';
@@ -35,6 +37,8 @@ export interface TourState {
   poolsCount: number;
   finishedPoolMatches: number;
   tableauMatchesCount: number;
+  /** Matchs de tableau (hors exempts) dont le score est saisi */
+  tableauFinishedMatches: number;
   /** Saisie distante démarrée (serveur tablettes actif) */
   remoteActive: boolean;
 }
@@ -55,8 +59,35 @@ export function tourStepDone(step: TourStepId, s: TourState): boolean {
       return s.finishedPoolMatches > 0;
     case 'tableau':
       return s.tableauMatchesCount > 0;
+    case 'edit':
+      return s.tableauFinishedMatches > 0;
   }
 }
+
+/** Boutons à entourer d'un halo pulsé pour chaque étape (attributs data-tour) */
+export interface TourHalo {
+  selector: string;
+  /** true = seul le premier élément trouvé est entouré */
+  first?: boolean;
+  /** halo vert (action de validation) au lieu de bleu */
+  green?: boolean;
+}
+
+export const TOUR_STEP_HALOS: Record<TourStepId, TourHalo[]> = {
+  fencers: [{ selector: '[data-tour="add-fencer"]' }, { selector: '[data-tour="import"]' }],
+  checkin: [
+    { selector: '[data-tour="check-in-all"]' },
+    { selector: '[data-tour="check-in"]', first: true },
+  ],
+  pools: [{ selector: '[data-tour="generate-pools"]', green: true }],
+  remote: [],
+  scores: [{ selector: '[data-tour="pool-cell"]', first: true }],
+  tableau: [{ selector: '[data-tour="view-ranking"]' }, { selector: '[data-tour="go-tableau"]' }],
+  edit: [
+    { selector: '[data-tour="match-arena"]', first: true },
+    { selector: '[data-tour="match-referee"]', first: true },
+  ],
+};
 
 /** Première étape non validée (étapes validées dans l'ordre), ou null si tout est fait */
 export function currentTourStep(s: TourState): TourStepId | null {

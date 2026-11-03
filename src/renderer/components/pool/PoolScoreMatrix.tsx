@@ -193,6 +193,7 @@ const ScoreCell = React.memo<ScoreCellProps>(
       <div
         ref={cellRef}
         className={`pool-cell ${cellClass} ${isFlashing ? 'pool-cell-flash' : ''}`}
+        data-tour={!score && !isLocked ? 'pool-cell' : undefined}
         onClick={() => !isLocked && onCellClick(rowFencer, colFencer)}
         onKeyDown={e => {
           if (!isLocked && (e.key === 'Enter' || e.key === ' ')) {

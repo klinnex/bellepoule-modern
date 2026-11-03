@@ -36,6 +36,9 @@ interface TableauMatchItem {
   winner: unknown;
   fencerA: unknown;
   fencerB: unknown;
+  isBye?: boolean;
+  scoreA?: unknown;
+  scoreB?: unknown;
 }
 
 interface PoolsNextAction {
@@ -107,6 +110,9 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
           checkedInCount={getCheckedInFencers().length}
           pools={pools}
           tableauMatchesCount={tableauMatches.length}
+          tableauFinishedMatches={
+            tableauMatches.filter(m => !m.isBye && m.scoreA != null && m.scoreB != null).length
+          }
           remoteActive={remoteActive}
         />
       )}
@@ -177,6 +183,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
               >
                 <button
                   className="btn btn-primary btn-icon-label"
+                  data-tour="generate-pools"
                   onClick={handleGeneratePools}
                   disabled={getCheckedInFencers().length < 4}
                   title={
@@ -218,7 +225,11 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
               message={t('competitionNav.next_step_hint')}
               position="bottom"
             >
-              <button className="btn btn-primary" onClick={poolsNextAction.action}>
+              <button
+                className="btn btn-primary"
+                data-tour="view-ranking"
+                onClick={poolsNextAction.action}
+              >
                 {poolsNextAction.label}
               </button>
             </CoachMark>

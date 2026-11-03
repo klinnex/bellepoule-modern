@@ -778,7 +778,12 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                       : t('poolRanking.create_women')}
                   </button>
                 ) : (
-                  <button key={g} className="btn btn-primary" onClick={() => onGoToTableau?.(g)}>
+                  <button
+                    key={g}
+                    className="btn btn-primary"
+                    data-tour="go-tableau"
+                    onClick={() => onGoToTableau?.(g)}
+                  >
                     {g === Gender.MALE
                       ? t('poolRanking.tableau_men')
                       : t('poolRanking.tableau_women')}
@@ -786,7 +791,11 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                 )
               )
             ) : (
-              <button className="btn btn-primary" onClick={() => onGoToTableau?.()}>
+              <button
+                className="btn btn-primary"
+                data-tour="go-tableau"
+                onClick={() => onGoToTableau?.()}
+              >
                 {poolWinnersOnly
                   ? t('poolRanking.go_tableau_winners', { n: poolWinnerIds?.size ?? '?' })
                   : t('poolRanking.go_tableau')}

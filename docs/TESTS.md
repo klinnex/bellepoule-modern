@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 41 | 325 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 45 | 211 |
+| `src/renderer/components/` | 45 | 214 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 13 | 67 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **226** | **1870** |
+| **Total** | **226** | **1873** |
 
-Unitaires : 217 fichiers, 1835 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 217 fichiers, 1838 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3295,7 +3295,7 @@ Unitaires : 217 fichiers, 1835 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 9 tests</summary>
 
 - **GuidedTour**
   - se propose une fois sur une compétition vide
@@ -3304,6 +3304,9 @@ Unitaires : 217 fichiers, 1835 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - se relance depuis les paramètres
   - propose la saisie distante après la génération des poules
   - met en évidence la phase de l’étape en cours
+  - revient à l’étape précédente avec le bouton Retour
+  - entoure d’un halo les boutons utiles de l’étape
+  - propose l’édition d’un match de tableau en dernière étape
 
 </details>
 

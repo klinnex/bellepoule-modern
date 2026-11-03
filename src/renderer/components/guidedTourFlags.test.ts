@@ -15,6 +15,7 @@ const empty: TourState = {
   poolsCount: 0,
   finishedPoolMatches: 0,
   tableauMatchesCount: 0,
+  tableauFinishedMatches: 0,
   remoteActive: false,
 };
 
@@ -43,16 +44,17 @@ describe('guidedTour', () => {
   });
 
   it('retourne null quand toutes les étapes sont faites', () => {
-    expect(
-      currentTourStep({
-        fencersCount: 8,
-        checkedInCount: 8,
-        poolsCount: 2,
-        finishedPoolMatches: 5,
-        tableauMatchesCount: 7,
-        remoteActive: false,
-      })
-    ).toBeNull();
+    const full = {
+      fencersCount: 8,
+      checkedInCount: 8,
+      poolsCount: 2,
+      finishedPoolMatches: 5,
+      tableauMatchesCount: 7,
+      tableauFinishedMatches: 0,
+      remoteActive: false,
+    };
+    expect(currentTourStep(full)).toBe('edit');
+    expect(currentTourStep({ ...full, tableauFinishedMatches: 1 })).toBeNull();
   });
 
   it('mémorise le drapeau et ignore les valeurs invalides', () => {
