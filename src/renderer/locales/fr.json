@@ -15,7 +15,8 @@
     "training": "Entraînement",
     "tools": "Outils",
     "wifi_qr": "QR Code WiFi",
-    "tv_remote": "Télécommande TV"
+    "tv_remote": "Télécommande TV",
+    "guided_tour": "Parcours guidé"
   },
   "menu": {
     "new_competition": "Nouvelle compétition",
@@ -2666,6 +2667,7 @@
   "tour": {
     "title": "Première compétition",
     "skip": "Passer le parcours",
+    "back": "Retour",
     "close": "Terminer",
     "finished_title": "Bravo, parcours terminé !",
     "finished_hint": "Vous connaissez maintenant le déroulé d'une compétition. Relancez ce guide depuis les paramètres.",
@@ -2675,13 +2677,15 @@
     "step_remote": "Activer la saisie distante",
     "step_scores": "Saisir les scores",
     "step_tableau": "Lancer le tableau",
+    "step_edit": "Modifier un match",
     "hint_fencers": "Importez un fichier ou ajoutez les tireurs à la main dans l'onglet Appel.",
     "hint_checkin": "Pointez les tireurs présents (clic sur la ligne du tireur).",
     "hint_pools": "Cliquez sur « Générer les poules » (4 tireurs pointés minimum).",
     "hint_remote": "Démarrez la saisie distante pour que les arbitres saisissent les scores sur tablette (ou saisissez-les directement sur ce poste).",
     "hint_scores": "Ouvrez une poule et saisissez le score d'un match.",
     "hint_tableau": "Une fois les poules terminées, passez au tableau d'élimination directe.",
-    "remote_explain": "Les arbitres ouvrent l'adresse affichée sur leur tablette, saisissent les touches match par match, et les scores arrivent ici en direct.",
+    "hint_edit": "Chaque match du tableau est modifiable : cliquez dessus pour saisir le score, et utilisez les boutons lumineux pour attribuer une piste et un arbitre. Dans les « Options », une auto-assignation des pistes est disponible.",
+    "remote_explain": "Les arbitres scannent le QR Code \"Arbitre\" sur leur tablette, saisissent les touches match par match, et les scores arrivent ici en direct.",
     "remote_mock_arena": "Arène 1",
     "remote_mock_validate": "Valider le match"
   }

@@ -15,7 +15,8 @@
     "training": "Entrenament",
     "tools": "Eines",
     "wifi_qr": "Codi QR WiFi",
-    "tv_remote": "Comandament de TV"
+    "tv_remote": "Comandament de TV",
+    "guided_tour": "Recorregut guiat"
   },
   "menu": {
     "new_competition": "Nova Competició",
@@ -2666,6 +2667,7 @@
   "tour": {
     "title": "Primera competició",
     "skip": "Omet el recorregut",
+    "back": "Enrere",
     "close": "Acaba",
     "finished_title": "Molt bé, recorregut acabat!",
     "finished_hint": "Ja coneixeu el desenvolupament d'una competició. Podeu rellançar aquesta guia des dels paràmetres.",
@@ -2675,13 +2677,15 @@
     "step_remote": "Activar l'entrada remota",
     "step_scores": "Introduir els resultats",
     "step_tableau": "Iniciar el quadre",
+    "step_edit": "Editar un partit",
     "hint_fencers": "Importeu un fitxer o afegiu els tiradors a mà a la pestanya Llista.",
     "hint_checkin": "Marqueu els tiradors presents (clic a la fila del tirador).",
     "hint_pools": "Premeu «Generar poules» (mínim 4 tiradors presents).",
     "hint_remote": "Inicieu l'entrada remota perquè els àrbitres introdueixin els resultats des d'una tauleta (o introduïu-los directament en aquest ordinador).",
     "hint_scores": "Obriu una poule i introduïu el resultat d'un assalt.",
     "hint_tableau": "Acabades les poules, passeu al quadre d'eliminació directa.",
-    "remote_explain": "Els àrbitres obren l'adreça mostrada a la tauleta, introdueixen els tocs partit a partit i els resultats arriben aquí en directe.",
+    "hint_edit": "Cada partit del quadre és editable: feu clic per introduir el resultat i useu els botons lluminosos per assignar una pista i un àrbitre. A «Opcions» hi ha una assignació automàtica de pistes.",
+    "remote_explain": "Els àrbitres escanegen el codi QR «Àrbitre» a la tauleta, introdueixen els tocs partit a partit i els resultats arriben aquí en directe.",
     "remote_mock_arena": "Pista 1",
     "remote_mock_validate": "Validar l'assalt"
   }
