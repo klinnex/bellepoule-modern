@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 42 | 600 |
+| `src/shared/utils/` | 42 | 601 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -95,18 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 41 | 323 |
+| `src/main/` | 41 | 325 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 124 |
-| `src/renderer/components/` | 44 | 212 |
+| `src/renderer/components/` | 45 | 214 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 11 | 57 |
+| `src/remote/` | 12 | 62 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **223** | **1856** |
+| **Total** | **225** | **1866** |
 
-Unitaires : 214 fichiers, 1821 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 216 fichiers, 1831 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -626,13 +626,14 @@ Unitaires : 214 fichiers, 1821 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/bookToc.test.ts</code> — 4 tests</summary>
+<summary><code>src/shared/utils/pdfExport/bookToc.test.ts</code> — 5 tests</summary>
 
 - **bookToc**
   - pages de départ après garde + sommaire
   - échappe le HTML
   - sommaire avec numéros de page
   - sans comptage : pas de numéros
+  - ordre et inclusion des sections
 
 </details>
 
@@ -2452,11 +2453,13 @@ Unitaires : 214 fichiers, 1821 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/i18nBundle.test.ts</code> — 3 tests</summary>
+<summary><code>src/main/remote/i18nBundle.test.ts</code> — 5 tests</summary>
 
 - **i18n des pages distantes découpé par langue (#1213)**
   - /i18n.js = langues puis moteur ; T() traduit dans la langue configurée
   - chaque langue a les mêmes clés que le français
+  - modules js/ extraits des pages servis en /js/\<nom\>.js (#1401)
+  - src/remote/js/kioskEta.js est bien servi
   - fichiers communs : absents ignorés, i18n.js concaténé
 
 </details>
@@ -3171,6 +3174,15 @@ Unitaires : 214 fichiers, 1821 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/BookSectionsModal.test.tsx</code> — 2 tests</summary>
+
+- **moveItem**
+  - déplace vers le haut et le bas
+  - borne aux extrémités
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/ChangePoolModal.test.tsx</code> — 3 tests</summary>
 
 - **ChangePoolModal**
@@ -3801,6 +3813,18 @@ Unitaires : 214 fichiers, 1821 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - des codes sont bien émis
   - chaque code est traduit (%s) _(each)_
   - errorText : traduction paramétrée, texte brut, repli
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskEta.test.ts</code> — 5 tests</summary>
+
+- **kioskEta.js**
+  - libellé de phase : finale, tableau, poules, défaut
+  - affiche le bandeau quand il reste des matchs
+  - masque sans eta, sans match restant, sur erreur ou si désactivé
+  - la case à cocher persiste l’option et rafraîchit
+  - kiosk.html charge le module en script externe (CSP) sans code ETA inline
 
 </details>
 

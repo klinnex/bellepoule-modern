@@ -13,7 +13,7 @@ import { TableauMatchForPDF, generateTableauHTML, getTableauRoundName } from './
 import { generateRankingHTML } from './rankingPdf';
 import { FinalResultForPDF, generateResultsHTML } from './resultsPdf';
 import { generateAppelHTML } from './appelPdf';
-import { buildBookFrontHTML, escHtml } from './bookToc';
+import { buildBookFrontHTML, escHtml, orderBookSections, type BookSectionKind } from './bookToc';
 
 // ─── Export complet compétition ───────────────────────────────────────────────
 
@@ -48,6 +48,8 @@ export interface FullCompetitionExportData {
   poolSignatures?: Record<string, Record<string, string>>;
   /** Signatures des matchs de tableau : matchId → { A, B } data URL PNG */
   tableauSignatures?: Record<string, { A?: string; B?: string }>;
+  /** Types de sections inclus, dans l'ordre d'impression (#1325) ; défaut : tout, ordre d'origine */
+  sectionOrder?: BookSectionKind[];
 }
 
 export async function exportFullCompetitionPDF(data: FullCompetitionExportData): Promise<void> {
@@ -66,13 +68,12 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
     template,
     poolSignatures,
     tableauSignatures,
+    sectionOrder,
   } = data;
 
-  const sections: string[] = [];
-  const titles: string[] = [];
-  const add = (title: string, html: string) => {
-    titles.push(title);
-    sections.push(html);
+  const items: { kind: BookSectionKind; title: string; html: string }[] = [];
+  const add = (kind: BookSectionKind, title: string, html: string) => {
+    items.push({ kind, title, html });
   };
 
   const appelCols = appelVisibleColumns ?? [
@@ -94,6 +95,7 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
   appelRounds.forEach((roundFencers, i) => {
     const title = `${pdfT('appel_sheet', "Feuille d'appel")} — ${pdfT('round_n', 'Tour {{n}}', { n: i + 1 })}`;
     add(
+      'appel',
       title,
       generateAppelHTML(
         byRanking(roundFencers),
@@ -114,6 +116,7 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
         ? `${pdfT('round_n', 'Tour {{n}}', { n: appelRounds.length + 1 })} — `
         : '';
     add(
+      'appel',
       `${pdfT('appel_sheet', "Feuille d'appel")}${roundLabel ? ` — ${roundLabel.replace(/ — $/, '')}` : ''}`,
       generateAppelHTML(
         appelFencerList,
@@ -128,6 +131,7 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
 
   for (const pool of pools) {
     add(
+      'pools',
       pdfT('pool_n', 'Poule {{n}}', { n: pool.number }),
       generatePoolHTML(
         pool,
@@ -158,6 +162,7 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
         ]
       : ['rank', 'lastName', 'firstName', 'club', 'victories', 'ratio', 'td', 'tr', 'index'];
     add(
+      'ranking',
       pdfT('provisional_ranking', 'Classement provisoire'),
       generateRankingHTML(
         overallRanking,
@@ -175,6 +180,7 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
     const roundMatches = tableauMatches.filter(m => m.round === round && !m.isBye);
     if (roundMatches.length === 0) continue;
     add(
+      'tableau',
       getTableauRoundName(round),
       generateTableauHTML(
         roundMatches,
@@ -194,6 +200,7 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
       const roundMatches = bracket.matches.filter(m => m.round === round && !m.isBye);
       if (roundMatches.length === 0) continue;
       add(
+        'consolation',
         `${bracket.name} — ${getTableauRoundName(round)}`,
         generateTableauHTML(
           roundMatches,
@@ -210,6 +217,7 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
 
   if (finalResults.length > 0) {
     add(
+      'results',
       pdfT('final_ranking', 'Classement final'),
       generateResultsHTML(
         finalResults,
@@ -220,6 +228,9 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
     );
   }
 
+  const chosen = orderBookSections(items, sectionOrder);
+  const sections = chosen.map(i => i.html);
+  const titles = chosen.map(i => i.title);
   if (sections.length === 0) throw new Error(pdfT('no_data', 'Aucune donnée à exporter'));
 
   // Sommaire avec numéros de page réels (#1325) : pages de chaque section comptées par un rendu,
