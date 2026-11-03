@@ -16,6 +16,8 @@ import { statusCode, finalRankLabel, poolEliminatedAt } from '../../shared/utils
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import type { ConsolationBracket, TableauMatch } from './tableau/tableauTypes';
 import { logger, LogCategory } from '@shared/services/logger';
+import BookSectionsModal from './BookSectionsModal';
+import type { BookSectionKind } from '../../shared/utils/pdfExport/bookToc';
 
 interface FinalResult {
   rank: number;
@@ -294,6 +296,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   const rankingTemplate = usePdfTemplateStore(s => s.templates.ranking);
   const [isExportingFull, setIsExportingFull] = React.useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = React.useState(false);
+  const [isBookModalOpen, setIsBookModalOpen] = React.useState(false);
   const exportMenuRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -441,7 +444,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     showToast('Export XML réussi !', 'success');
   };
 
-  const exportFullPDF = async () => {
+  const exportFullPDF = async (sectionOrder?: BookSectionKind[]) => {
     setIsExportingFull(true);
     try {
       const api = (window as any).electronAPI;
@@ -574,6 +577,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         template: rankingTemplate,
         poolSignatures,
         tableauSignatures,
+        sectionOrder,
       });
     } catch (e) {
       showToast((e as Error).message, 'error');
@@ -830,7 +834,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 style={RV_STYLES.dropdownItem}
                 onClick={() => {
                   setIsExportMenuOpen(false);
-                  exportFullPDF();
+                  setIsBookModalOpen(true);
                 }}
               >
                 {t('results.export_pdf_full_signed')}
@@ -853,6 +857,15 @@ const ResultsView: React.FC<ResultsViewProps> = ({
 
       {/* Légende */}
       <div style={RV_STYLES.legend}>{t('resultsView.legend')}</div>
+      {isBookModalOpen && (
+        <BookSectionsModal
+          onClose={() => setIsBookModalOpen(false)}
+          onConfirm={order => {
+            setIsBookModalOpen(false);
+            void exportFullPDF(order);
+          }}
+        />
+      )}
     </div>
   );
 };
