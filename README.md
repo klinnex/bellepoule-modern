@@ -341,7 +341,7 @@ Mêmes formats, publiés en pré-release à chaque push sur `dev`.
 3. Glisser l'application dans le dossier Applications
 4. Accepter les permissions demandées
 
-Apple Silicon (M1+, MacBook Neo) : prendre le `.dmg` **arm64** ; Intel : **x64** (guide : [docs/MAC_VERSION.md](docs/MAC_VERSION.md)) (natif, sans Rosetta). App signée ad-hoc, non notarisée : au 1er lancement, Réglages Système → Confidentialité et sécurité → « Ouvrir quand même » (ou `xattr -cr "/Applications/BellePoule Modern.app"`).
+Apple Silicon (M1+, MacBook Neo) : prendre le `.dmg` **arm64** ; Intel : **x64** (guide : [docs/MAC_VERSION.md](docs/MAC_VERSION.md)) (natif, sans Rosetta). App signée ad-hoc, non notarisée : au 1er lancement, si macOS affiche « endommagé », exécuter `xattr -cr "/Applications/BellePoule Modern.app"` (guide : [docs/MAC_VERSION.md](docs/MAC_VERSION.md)).
 
 #### **Linux**
 
