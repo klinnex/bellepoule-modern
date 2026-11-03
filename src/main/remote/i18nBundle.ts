@@ -30,6 +30,15 @@ export function readRemoteSharedFiles(remoteDir: string): Array<[string, string]
     const filePath = path.join(remoteDir, file);
     if (fs.existsSync(filePath)) out.push([file, fs.readFileSync(filePath, 'utf-8')]);
   }
+  // Modules extraits des pages (#1401) : src/remote/js/*.js → /js/<nom>.js
+  const jsDir = path.join(remoteDir, 'js');
+  if (fs.existsSync(jsDir)) {
+    const names = fs
+      .readdirSync(jsDir)
+      .filter(n => n.endsWith('.js'))
+      .sort();
+    for (const n of names) out.push([`js/${n}`, fs.readFileSync(path.join(jsDir, n), 'utf-8')]);
+  }
   const i18n = buildRemoteI18nSource(remoteDir);
   if (i18n) out.push(['i18n.js', i18n]);
   return out;
