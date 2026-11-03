@@ -245,6 +245,9 @@
     "book_kind_tableau": "Brackets",
     "book_kind_consolation": "Consolation brackets",
     "book_kind_results": "Final ranking",
+    "book_kind_teamPools": "Team pools",
+    "book_kind_teamTableau": "Team bracket",
+    "book_kind_teamRanking": "Team ranking",
     "export_pdf_full_unsigned": "📄 Full PDF without signatures",
     "export_pdf_full_unsigned_title": "Pools and direct elimination tableaux, without fencer signatures"
   },
@@ -576,6 +579,7 @@
     "waitingPrevious": "Waiting for previous results…",
     "confirmRegenerate": "Matches already exist. Delete and regenerate?",
     "pdfExport": "Export PDF",
+    "pdfBook": "PDF book",
     "pdfError": "PDF export failed",
     "loading": "Loading…",
     "teamCount": "{{count}} teams",

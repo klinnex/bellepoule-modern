@@ -390,6 +390,9 @@
     "book_kind_tableau": "Tableaus",
     "book_kind_consolation": "Trostrunden",
     "book_kind_results": "Endrangliste",
+    "book_kind_teamPools": "Mannschaftsgruppen",
+    "book_kind_teamTableau": "Mannschafts-Tableau",
+    "book_kind_teamRanking": "Mannschaftsrangliste",
     "export_pdf_full_unsigned": "📄 Vollständiges PDF ohne Unterschriften",
     "export_pdf_full_unsigned_title": "Pools und K.-o.-Tableaus, ohne Unterschriften der Fechter"
   },
@@ -576,6 +579,7 @@
     "waitingPrevious": "Warten auf vorherige Ergebnisse…",
     "confirmRegenerate": "Es gibt bereits Begegnungen. Löschen und neu erstellen?",
     "pdfExport": "PDF exportieren",
+    "pdfBook": "PDF-Mappe",
     "pdfError": "PDF-Export fehlgeschlagen",
     "loading": "Wird geladen…",
     "teamCount": "{{count}} Mannschaften",

@@ -245,6 +245,9 @@
     "book_kind_tableau": "淘汰賽表",
     "book_kind_consolation": "安慰賽表",
     "book_kind_results": "最終排名",
+    "book_kind_teamPools": "團體小組賽",
+    "book_kind_teamTableau": "團體淘汰賽表",
+    "book_kind_teamRanking": "團體排名",
     "export_pdf_full_unsigned": "📄 完整 PDF（不含簽名）",
     "export_pdf_full_unsigned_title": "小組賽及淘汰賽表，不含劍手簽名"
   },
@@ -576,6 +579,7 @@
     "waitingPrevious": "等待前一輪結果…",
     "confirmRegenerate": "已有對賽。刪除並重新產生？",
     "pdfExport": "匯出 PDF",
+    "pdfBook": "PDF 文件",
     "pdfError": "PDF 匯出失敗",
     "loading": "載入中…",
     "teamCount": "{{count}} 隊",
