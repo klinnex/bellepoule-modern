@@ -1705,7 +1705,6 @@
     "csv_excel": "CSV Excel",
     "send_ffe": "📡 Enviar a la FFE",
     "greg_auto_title": "📡 Automatic GREG publishing",
-    "greg_auto_desc": "Sends the competition status to GREG every 15 seconds.",
     "publish_greg": "🌐 Publicar en GREG",
     "ftp_section": "Servidor FTP",
     "ftp_url": "Dirección del servidor (ftp://, ftps://, http:// o https://)",

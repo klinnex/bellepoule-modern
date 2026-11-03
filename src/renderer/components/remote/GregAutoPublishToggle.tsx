@@ -14,7 +14,7 @@ interface Props {
 const GregAutoPublishToggle: React.FC<Props> = ({ on, onChange }) => {
   const { t } = useTranslation();
   return (
-    <div className="rsm-greg-auto">
+    <div className="rsm-greg-auto remote-score-manager">
       <button
         type="button"
         role="switch"
@@ -24,14 +24,16 @@ const GregAutoPublishToggle: React.FC<Props> = ({ on, onChange }) => {
       >
         {on ? 'ON' : 'OFF'} · {t('exportCenter.greg_auto_title')}
       </button>
-      <small>{t('exportCenter.greg_auto_desc')}</small>
     </div>
   );
 };
 
 /** Bouton + minuteur : `publish` est appelé tout de suite puis toutes les 15 s tant que ON. */
-export const GregAutoPublish: React.FC<{ publish: () => void }> = ({ publish }) => {
-  const [on, setOn] = useGregAutoPublish(publish);
+export const GregAutoPublish: React.FC<{ publish: () => void; competitionId?: string }> = ({
+  publish,
+  competitionId,
+}) => {
+  const [on, setOn] = useGregAutoPublish(publish, competitionId);
   return <GregAutoPublishToggle on={on} onChange={setOn} />;
 };
 

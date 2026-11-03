@@ -468,12 +468,20 @@ export function exportResultsXMLFFE(
     const rounds = Array.from(new Set(tableauMatches.map(m => m.round))).sort((a, b) => b - a);
     lines.push(`   <SuiteDeTableaux ID="0" Titre="Place n°1" NbDeTableaux="${rounds.length}">`);
     for (const round of rounds) {
-      const matchesOfRound = tableauMatches.filter(m => m.round === round && !m.isBye);
+      const matchesOfRound = tableauMatches.filter(m => m.round === round);
       lines.push(
         `    <Tableau ID="A${round}" Titre="${escapeXml(TABLEAU_TITLES[round] || `Tableau de ${round}`)}" Taille="${round}">`
       );
       matchesOfRound.forEach((m, idx) => {
-        if (!m.fencerA || !m.fencerB) return;
+        // Exempt (#1328) : le vainqueur par exempt est placé dans sa case, qualifié sans adversaire
+        if (!m.fencerA || !m.fencerB) {
+          const solo = m.fencerA ?? m.fencerB;
+          if (!solo) return;
+          lines.push(`     <Match ID="${idx + 1}">`);
+          lines.push(`      <Tireur REF="${solo.ref}" Score="0" Statut="Q"/>`);
+          lines.push(`     </Match>`);
+          return;
+        }
         const stA = (m.scoreA ?? 0) > (m.scoreB ?? 0) ? 'V' : 'D';
         const stB = stA === 'V' ? 'D' : 'V';
         lines.push(`     <Match ID="${idx + 1}">`);
