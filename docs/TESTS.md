@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 42 | 602 |
+| `src/shared/utils/` | 42 | 604 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **226** | **1873** |
+| **Total** | **226** | **1875** |
 
-Unitaires : 217 fichiers, 1838 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 217 fichiers, 1840 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -704,7 +704,7 @@ Unitaires : 217 fichiers, 1838 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/teamPdf.test.ts</code> — 10 tests</summary>
+<summary><code>src/shared/utils/pdfExport/teamPdf.test.ts</code> — 12 tests</summary>
 
 - **teamPdf**
   - groupTeamPools : regroupe par numéro de poule
@@ -717,6 +717,8 @@ Unitaires : 217 fichiers, 1838 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - HTML classement : rangs et tireurs titulaires
   - export : passe par savePDF (dialogue + impression HTML)
   - export sans rencontre : erreur explicite
+  - dossier équipes : sommaire + sections choisies dans l ordre
+  - dossier équipes sans donnée : erreur explicite
 
 </details>
 

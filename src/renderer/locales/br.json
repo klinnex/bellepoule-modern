@@ -245,6 +245,9 @@
     "book_kind_tableau": "Taolennoù",
     "book_kind_consolation": "Taolennoù diskouezañ",
     "book_kind_results": "Renkadur diwezhañ",
+    "book_kind_teamPools": "Poules ekipoù",
+    "book_kind_teamTableau": "Taolenn ekipoù",
+    "book_kind_teamRanking": "Renkadur ekipoù",
     "export_pdf_full_unsigned": "📄 PDF klok hep sinadur",
     "export_pdf_full_unsigned_title": "Poulloù ha taolennoù dilezel war-eeun, hep sinadur ar gleizeidi"
   },
@@ -576,6 +579,7 @@
     "waitingPrevious": "O c'hortoz an disoc'hoù a-raok…",
     "confirmRegenerate": "Emgavioù zo dija. Dilemel hag adkrouiñ ?",
     "pdfExport": "Ezporzhiañ PDF",
+    "pdfBook": "Teul PDF",
     "pdfError": "C’hwitet eo an ezporzhiañ PDF",
     "loading": "O kargañ…",
     "teamCount": "{{count}} skipailh",

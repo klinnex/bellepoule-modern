@@ -10,6 +10,7 @@ import {
   generateTeamTableauHTML,
   generateTeamRankingHTML,
   exportTeamPoolsToPDF,
+  exportTeamBookToPDF,
 } from './teamPdf';
 import { placeRankedTeamsInTable } from '../../../features/teams/utils/teamCalculations';
 import type { TeamMatchRow, TeamRow } from '../../../features/teams/types/team.types';
@@ -178,5 +179,29 @@ describe('teamPdf', () => {
 
   it('export sans rencontre : erreur explicite', async () => {
     await expect(exportTeamPoolsToPDF(opts([]), [])).rejects.toThrow('Aucune rencontre');
+  });
+
+  it('dossier équipes : sommaire + sections choisies dans l ordre', async () => {
+    vi.stubGlobal('localStorage', { getItem: () => null });
+    const printHtmlToPDF = vi.fn().mockResolvedValue({ success: true });
+    (globalThis as any).window = {
+      electronAPI: {
+        dialog: { saveFile: vi.fn().mockResolvedValue({ filePath: '/tmp/x.pdf' }) },
+        file: { printHtmlToPDF },
+      },
+    };
+    const teams = ['A', 'B'].map(team);
+    await exportTeamBookToPDF(opts(teams), [match('A', 'B')], teams, [], ['teamRanking']);
+    const html = printHtmlToPDF.mock.calls[0][0] as string;
+    expect(html).toContain('Sommaire');
+    expect(html).toContain('Classement équipes');
+    expect(html).not.toContain('Poules équipes —');
+    vi.unstubAllGlobals();
+  });
+
+  it('dossier équipes sans donnée : erreur explicite', async () => {
+    vi.stubGlobal('localStorage', { getItem: () => null });
+    await expect(exportTeamBookToPDF(opts([]), [], [], [])).rejects.toThrow('Aucune donnée');
+    vi.unstubAllGlobals();
   });
 });

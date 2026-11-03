@@ -245,6 +245,9 @@
     "book_kind_tableau": "Quadres",
     "book_kind_consolation": "Quadres de consolació",
     "book_kind_results": "Classificació final",
+    "book_kind_teamPools": "Poules per equips",
+    "book_kind_teamTableau": "Quadre per equips",
+    "book_kind_teamRanking": "Classificació per equips",
     "export_pdf_full_unsigned": "📄 PDF complet sense signatures",
     "export_pdf_full_unsigned_title": "Poules i quadres d'eliminació directa, sense les signatures dels tiradors"
   },
@@ -576,6 +579,7 @@
     "waitingPrevious": "Esperant els resultats anteriors…",
     "confirmRegenerate": "Ja hi ha encontres. Eliminar i regenerar?",
     "pdfExport": "Exporta PDF",
+    "pdfBook": "Dossier PDF",
     "pdfError": "Error en exportar el PDF",
     "loading": "Carregant…",
     "teamCount": "{{count}} equips",
