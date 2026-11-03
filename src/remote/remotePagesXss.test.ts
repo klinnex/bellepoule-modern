@@ -30,9 +30,13 @@ function fakeSocket(handlers: Record<string, Handler>) {
 async function loadPage(file: string, url: string) {
   const read = (name: string) => fs.readFileSync(path.join(REMOTE_DIR, name), 'utf8');
   let html = read(file);
-  html = html.replace(/<script src="\/(common|i18n)\.js"><\/script>/g, (_m, name: string) => {
-    return `<script>${read(`${name}.js`)}</script>`;
-  });
+  html = html.replace(
+    /<script src="\/((?:js\/)?[A-Za-z0-9]+)\.js"><\/script>/g,
+    (m, name: string) => {
+      if (!/^(common|i18n|js\/)/.test(name)) return m;
+      return `<script>${read(`${name}.js`)}</script>`;
+    }
+  );
   html = html.replace(/<script src="[^"]*"><\/script>/g, '');
   const handlers: Record<string, Handler> = {};
   const dom = new JSDOM(html, {

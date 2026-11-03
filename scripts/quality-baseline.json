@@ -17,7 +17,7 @@
     "src/renderer/components/RemoteScoreManager.tsx": 1951,
     "src/renderer/components/TableauView.tsx": 1570,
     "src/renderer/components/wiki/wikiData.ts": 2035,
-    "src/remote/arena.html": 2302,
+    "src/remote/arena.html": 2258,
     "src/remote/kiosk.html": 3439,
     "src/remote/referee.html": 4633,
     "src/main/remoteScoreServer.ts": 2001
