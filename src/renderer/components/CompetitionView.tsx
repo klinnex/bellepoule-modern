@@ -2770,9 +2770,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             stats={rapieresStats}
           />
         )}
-
         {currentPhase === 'remote' && (
           <GregAutoPublish
+            competitionId={competition.id}
             publish={() => void exportResultsXML(overallRanking, finalResults, pools, 'greg-auto')}
           />
         )}

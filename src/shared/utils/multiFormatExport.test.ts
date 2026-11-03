@@ -261,6 +261,19 @@ describe('exportResultsXMLFFE', () => {
     expect(xml).toContain('<Match');
   });
 
+  it('inclut les exempts du 1er tour dans leurs cases (#1328)', () => {
+    const f1 = { ref: 1 };
+    const f2 = { ref: 2 };
+    const f3 = { ref: 3 };
+    const tableauMatches = [
+      { round: 4, fencerA: f1, fencerB: null, scoreA: null, scoreB: null, isBye: true },
+      { round: 4, fencerA: f2, fencerB: f3, scoreA: 15, scoreB: 10, isBye: false },
+    ];
+    const xml = exportResultsXMLFFE(makeCompetition(), [], [], undefined, tableauMatches);
+    expect(xml).toContain('<Match ID="1">\n      <Tireur REF="1" Score="0" Statut="Q"/>');
+    expect(xml).toContain('<Match ID="2">');
+  });
+
   it('includes elimination bracket when tableauMatches provided', () => {
     const f1 = makeFencer('f1', 1, { ref: 1 });
     const f2 = makeFencer('f2', 2, { ref: 2 });

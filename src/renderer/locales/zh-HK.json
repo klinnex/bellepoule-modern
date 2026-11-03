@@ -1721,7 +1721,6 @@
     "csv_excel": "Excel CSV",
     "send_ffe": "📡 傳送至 FFE",
     "greg_auto_title": "📡 Automatic GREG publishing",
-    "greg_auto_desc": "Sends the competition status to GREG every 15 seconds.",
     "publish_greg": "🌐 發布至 GREG",
     "ftp_section": "FTP 伺服器",
     "ftp_url": "伺服器位址（ftp://、ftps://、http:// 或 https://）",

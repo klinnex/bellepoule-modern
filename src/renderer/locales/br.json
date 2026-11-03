@@ -1721,7 +1721,6 @@
     "csv_excel": "CSV Excel",
     "send_ffe": "📡 Kas d'an FFE",
     "greg_auto_title": "📡 Automatic GREG publishing",
-    "greg_auto_desc": "Sends the competition status to GREG every 15 seconds.",
     "publish_greg": "🌐 Embann war GREG",
     "ftp_section": "Servijer FTP",
     "ftp_url": "Chomlec'h ar servijer (ftp://, ftps://, http:// pe https://)",

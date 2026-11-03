@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 42 | 603 |
+| `src/shared/utils/` | 42 | 604 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -97,16 +97,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 41 | 325 |
 | `src/renderer/services/` | 4 | 22 |
-| `src/renderer/hooks/` | 26 | 124 |
+| `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 45 | 214 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 13 | 67 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **226** | **1873** |
+| **Total** | **226** | **1875** |
 
-Unitaires : 217 fichiers, 1838 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 217 fichiers, 1840 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -570,7 +570,7 @@ Unitaires : 217 fichiers, 1838 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 44 tests</summary>
+<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 45 tests</summary>
 
 - **exportRankingCSV**
   - includes header row
@@ -592,6 +592,7 @@ Unitaires : 217 fichiers, 1838 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - uses CompetitionIndividuelle root tag
   - uses CompetitionParEquipe root tag for team events
   - includes pool phase when pools provided
+  - inclut les exempts du 1er tour dans leurs cases (#1328)
   - includes elimination bracket when tableauMatches provided
   - maps ABANDONED to A
   - maps EXCLUDED to X
@@ -2949,10 +2950,11 @@ Unitaires : 217 fichiers, 1838 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useGregAutoPublish.test.ts</code> — 1 test</summary>
+<summary><code>src/renderer/hooks/useGregAutoPublish.test.ts</code> — 2 tests</summary>
 
 - **useGregAutoPublish**
   - publie immédiatement puis toutes les 15 s, et s'arrête à OFF
+  - mémorise l'état ON/OFF par compétition
 
 </details>
 
