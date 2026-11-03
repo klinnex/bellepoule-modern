@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 124 |
 | `src/renderer/components/` | 45 | 214 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 12 | 62 |
+| `src/remote/` | 13 | 67 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **225** | **1866** |
+| **Total** | **226** | **1871** |
 
-Unitaires : 216 fichiers, 1831 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 217 fichiers, 1836 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3813,6 +3813,18 @@ Unitaires : 216 fichiers, 1831 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - des codes sont bien émis
   - chaque code est traduit (%s) _(each)_
   - errorText : traduction paramétrée, texte brut, repli
+
+</details>
+
+<details>
+<summary><code>src/remote/js/arenaDisplayUtils.test.ts</code> — 5 tests</summary>
+
+- **arenaDisplayUtils.js**
+  - bannière : texte seul, jamais interprété comme HTML
+  - id d’arène depuis le chemin
+  - thèmes valides, repli sur dark, mémorisation
+  - thème personnalisé : variables et overlay, nettoyé au retour
+  - arena.html charge le module avant le script de page
 
 </details>
 
