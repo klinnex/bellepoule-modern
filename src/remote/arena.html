@@ -7,6 +7,7 @@
     <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
+    <script src="/js/arenaDisplayUtils.js"></script>
     <style>
 
       /* Police 7 segments — style radio-réveil LCD (embarquée en base64) */
@@ -1517,19 +1518,7 @@
     </main>
 
     <script>
-      // Bannière d'annonce : texte seul, jamais innerHTML (noms de tireurs non fiables, #995)
-      function setBannerLines(banner, line1, line2) {
-        banner.replaceChildren();
-        const d1 = document.createElement('div');
-        d1.textContent = line1;
-        banner.appendChild(d1);
-        if (line2) {
-          const d2 = document.createElement('div');
-          d2.style.cssText = 'font-size:0.65em;font-weight:600;margin-top:0.25em;opacity:0.9;';
-          d2.textContent = line2;
-          banner.appendChild(d2);
-        }
-      }
+      const { setBannerLines, arenaIdFromPath, applyArenaTheme } = window.BPArenaUtils;
       class ArenaDisplay {
         constructor() {
           this.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
@@ -1555,9 +1544,7 @@
         }
 
         getArenaId() {
-          const path = window.location.pathname;
-          const match = path.match(/arene(\d+)/i) || path.match(/arena(\d+)/i);
-          return match ? `arena${match[1]}` : 'arena1';
+          return arenaIdFromPath(window.location.pathname);
         }
 
         arenaNumberFromId() {
@@ -1586,39 +1573,8 @@
         }
 
         applyTheme(theme, customTheme) {
-          if (theme === 'custom' && customTheme) {
-            this.theme = 'custom';
-            this.currentCustomTheme = customTheme;
-            document.documentElement.setAttribute('data-theme', 'custom');
-            this.applyCustomTheme(customTheme);
-          } else {
-            const valid = ['dark', 'light', 'neon', 'unicorn'];
-            this.theme = valid.includes(theme) ? theme : 'dark';
-            document.documentElement.setAttribute('data-theme', this.theme);
-            document.documentElement.removeAttribute('data-overlay');
-            // Supprimer le style custom si présent
-            const existing = document.getElementById('custom-theme-style');
-            if (existing) existing.remove();
-          }
-          localStorage.setItem('displayTheme', this.theme);
-        }
-
-        applyCustomTheme(customTheme) {
-          let styleEl = document.getElementById('custom-theme-style');
-          if (!styleEl) {
-            styleEl = document.createElement('style');
-            styleEl.id = 'custom-theme-style';
-            document.head.appendChild(styleEl);
-          }
-          const vars = Object.entries(customTheme.variables || {})
-            .map(([k, v]) => `  ${k}: ${v};`)
-            .join('\n');
-          styleEl.textContent = `[data-theme="custom"] {\n${vars}\n}`;
-          if (customTheme.overlayMode) {
-            document.documentElement.setAttribute('data-overlay', 'true');
-          } else {
-            document.documentElement.removeAttribute('data-overlay');
-          }
+          this.theme = applyArenaTheme(document, localStorage, theme, customTheme);
+          this.currentCustomTheme = this.theme === 'custom' ? customTheme : this.currentCustomTheme;
         }
 
         setupHeaderAutoHide() {
