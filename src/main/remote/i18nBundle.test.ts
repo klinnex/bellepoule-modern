@@ -41,6 +41,23 @@ describe('i18n des pages distantes découpé par langue (#1213)', () => {
     }
   });
 
+  it('modules js/ extraits des pages servis en /js/<nom>.js (#1401)', () => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bp-remote-'));
+    fs.mkdirSync(path.join(dir, 'js'));
+    fs.writeFileSync(path.join(dir, 'js', 'b.js'), 'B');
+    fs.writeFileSync(path.join(dir, 'js', 'a.js'), 'A');
+    fs.writeFileSync(path.join(dir, 'js', 'a.test.ts'), 'ignoré');
+    expect(readRemoteSharedFiles(dir)).toEqual([
+      ['js/a.js', 'A'],
+      ['js/b.js', 'B'],
+    ]);
+  });
+
+  it('src/remote/js/kioskEta.js est bien servi', () => {
+    const names = readRemoteSharedFiles(path.join(ROOT, 'src/remote')).map(([n]) => n);
+    expect(names).toContain('js/kioskEta.js');
+  });
+
   it('fichiers communs : absents ignorés, i18n.js concaténé', () => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bp-remote-'));
     fs.writeFileSync(path.join(dir, 'common.js'), 'c');
