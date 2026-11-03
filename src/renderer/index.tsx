@@ -15,6 +15,7 @@ import './styles/tokens.css';
 import './styles/pool.css';
 import './styles/tableau.css';
 import './styles/training.css';
+import './styles/book.css';
 import './styles/utilities.css';
 import './styles/components.css';
 import './styles/extracted.css';

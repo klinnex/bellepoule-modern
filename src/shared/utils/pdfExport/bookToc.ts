@@ -69,3 +69,28 @@ ${rows}
 </ol></div>
 </body></html>`;
 }
+
+/** Types de sections du dossier, dans l'ordre par défaut (#1325) */
+export const BOOK_SECTION_KINDS = [
+  'appel',
+  'pools',
+  'ranking',
+  'tableau',
+  'consolation',
+  'results',
+] as const;
+export type BookSectionKind = (typeof BOOK_SECTION_KINDS)[number];
+
+/**
+ * Applique le choix de l'utilisateur : `order` liste les types inclus, dans l'ordre voulu.
+ * Les sections d'un même type gardent leur ordre relatif. Sans `order` : tout, ordre d'origine.
+ */
+export function orderBookSections<T extends { kind: BookSectionKind }>(
+  items: T[],
+  order?: BookSectionKind[]
+): T[] {
+  if (!order) return items;
+  const out: T[] = [];
+  for (const kind of order) out.push(...items.filter(i => i.kind === kind));
+  return out;
+}
