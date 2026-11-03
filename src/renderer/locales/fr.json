@@ -244,6 +244,9 @@
     "book_kind_tableau": "Tableaux",
     "book_kind_consolation": "Tableaux de consolation",
     "book_kind_results": "Classement final",
+    "book_kind_teamPools": "Poules équipes",
+    "book_kind_teamTableau": "Tableau équipes",
+    "book_kind_teamRanking": "Classement équipes",
     "export_pdf_full_unsigned": "📄 PDF complet sans signature",
     "export_pdf_full_unsigned_title": "Poules et tableaux d'élimination directe, sans les signatures des combattants"
   },
@@ -575,6 +578,7 @@
     "waitingPrevious": "En attente des résultats précédents…",
     "confirmRegenerate": "Des matchs existent déjà. Supprimer et régénérer ?",
     "pdfExport": "Exporter PDF",
+    "pdfBook": "Dossier PDF",
     "pdfError": "Échec de l’export PDF",
     "loading": "Chargement…",
     "teamCount": "{{count}} équipes",

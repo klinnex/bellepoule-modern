@@ -79,7 +79,10 @@ export const BOOK_SECTION_KINDS = [
   'consolation',
   'results',
 ] as const;
-export type BookSectionKind = (typeof BOOK_SECTION_KINDS)[number];
+/** Sections du dossier équipes (Sabre Laser / relais) */
+export const TEAM_BOOK_SECTION_KINDS = ['teamPools', 'teamTableau', 'teamRanking'] as const;
+export type BookSectionKind =
+  (typeof BOOK_SECTION_KINDS)[number] | (typeof TEAM_BOOK_SECTION_KINDS)[number];
 
 /**
  * Applique le choix de l'utilisateur : `order` liste les types inclus, dans l'ordre voulu.

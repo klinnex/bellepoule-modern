@@ -244,6 +244,9 @@
     "book_kind_tableau": "Cuadros",
     "book_kind_consolation": "Cuadros de consolación",
     "book_kind_results": "Clasificación final",
+    "book_kind_teamPools": "Poules por equipos",
+    "book_kind_teamTableau": "Cuadro por equipos",
+    "book_kind_teamRanking": "Clasificación por equipos",
     "export_pdf_full_unsigned": "📄 PDF completo sin firmas",
     "export_pdf_full_unsigned_title": "Poules y cuadros de eliminación directa, sin las firmas de los tiradores"
   },
@@ -575,6 +578,7 @@
     "waitingPrevious": "Esperando resultados anteriores…",
     "confirmRegenerate": "Ya existen encuentros. ¿Eliminar y regenerar?",
     "pdfExport": "Exportar PDF",
+    "pdfBook": "Dossier PDF",
     "pdfError": "Error al exportar el PDF",
     "loading": "Cargando…",
     "teamCount": "{{count}} equipos",

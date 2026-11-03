@@ -9,6 +9,8 @@ import Modal from './common/Modal';
 import { BOOK_SECTION_KINDS, type BookSectionKind } from '../../shared/utils/pdfExport/bookToc';
 
 interface BookSectionsModalProps {
+  /** Types proposés (défaut : sections du dossier individuel) */
+  kinds?: readonly BookSectionKind[];
   onClose: () => void;
   /** Types inclus, dans l'ordre choisi */
   onConfirm: (order: BookSectionKind[]) => void;
@@ -23,10 +25,14 @@ export function moveItem<T>(list: T[], index: number, delta: number): T[] {
   return next;
 }
 
-const BookSectionsModal: React.FC<BookSectionsModalProps> = ({ onClose, onConfirm }) => {
+const BookSectionsModal: React.FC<BookSectionsModalProps> = ({
+  kinds = BOOK_SECTION_KINDS,
+  onClose,
+  onConfirm,
+}) => {
   const { t } = useTranslation();
-  const [order, setOrder] = React.useState<BookSectionKind[]>([...BOOK_SECTION_KINDS]);
-  const [included, setIncluded] = React.useState<Set<BookSectionKind>>(new Set(BOOK_SECTION_KINDS));
+  const [order, setOrder] = React.useState<BookSectionKind[]>([...kinds]);
+  const [included, setIncluded] = React.useState<Set<BookSectionKind>>(new Set(kinds));
 
   const toggle = (kind: BookSectionKind) =>
     setIncluded(prev => {

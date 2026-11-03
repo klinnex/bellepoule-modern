@@ -13,22 +13,10 @@ import { TableauMatchForPDF, generateTableauHTML, getTableauRoundName } from './
 import { generateRankingHTML } from './rankingPdf';
 import { FinalResultForPDF, generateResultsHTML } from './resultsPdf';
 import { generateAppelHTML } from './appelPdf';
-import { buildBookFrontHTML, escHtml, orderBookSections, type BookSectionKind } from './bookToc';
+import type { BookSectionKind } from './bookToc';
+import { exportBookPDF, extractBodyContent, extractStyleContent } from './bookPdf';
 
 // ─── Export complet compétition ───────────────────────────────────────────────
-
-function extractBodyContent(html: string): string {
-  const m = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(html);
-  return m ? m[1].trim() : '';
-}
-
-function extractStyleContent(html: string): string {
-  const re = /<style[^>]*>([\s\S]*?)<\/style>/gi;
-  const parts: string[] = [];
-  let m;
-  while ((m = re.exec(html)) !== null) parts.push(m[1]);
-  return parts.join('\n');
-}
 
 export interface FullCompetitionExportData {
   fencers: Fencer[];
@@ -228,65 +216,14 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
     );
   }
 
-  const chosen = orderBookSections(items, sectionOrder);
-  const sections = chosen.map(i => i.html);
-  const titles = chosen.map(i => i.title);
-  if (sections.length === 0) throw new Error(pdfT('no_data', 'Aucune donnée à exporter'));
-
-  // Sommaire avec numéros de page réels (#1325) : pages de chaque section comptées par un rendu,
-  // puis page de garde (1) + sommaire (1) en tête ; repli sur un sommaire sans numéros.
-  const api = (window as unknown as { electronAPI?: Window['electronAPI'] }).electronAPI;
-  const countPages = api?.file?.countHtmlPages;
-  let pageCounts: number[] | undefined;
-  if (countPages) {
-    try {
-      pageCounts = [];
-      for (const html of sections) {
-        const r = await countPages(html);
-        if (!r?.success || !r.pages) throw new Error('count');
-        pageCounts.push(r.pages);
-      }
-    } catch {
-      pageCounts = undefined;
-    }
-  }
-  const bookTitle = `${pdfT('full_export', 'Export complet')} — ${competitionTitle}`;
-  const front = buildBookFrontHTML({
+  await exportBookPDF({
+    items,
+    sectionOrder,
     competitionTitle,
-    toc: titles.map(title => ({ title })),
-    pageCounts,
-    labels: {
-      contents: pdfT('book_contents', 'Sommaire'),
-      page: pdfT('book_page', 'Page'),
-    },
+    bookTitle: `${pdfT('full_export', 'Export complet')} — ${competitionTitle}`,
+    filename: 'export-PDF_full.pdf',
     logo,
   });
-  sections.unshift(front);
-
-  const allStyles = sections.map(extractStyleContent).join('\n');
-  const allBodies = sections
-    .map(
-      (html, i) =>
-        (i === 0 ? '' : '<div class="full-export-break"></div>\n') + extractBodyContent(html)
-    )
-    .join('\n');
-
-  const combined = `<!DOCTYPE html>
-<html lang="${pdfLang()}">
-<head>
-  <meta charset="UTF-8">
-  <title>${escHtml(bookTitle)}</title>
-  <style>
-    ${allStyles}
-    .full-export-break { break-before: page; }
-  </style>
-</head>
-<body>
-${allBodies}
-</body>
-</html>`;
-
-  await savePDF(combined, `export-PDF_full.pdf`);
 }
 
 // ─── Export poules + tableaux sans signature ───────────────────────────────────
