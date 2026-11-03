@@ -448,6 +448,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               {notCheckedInCount > 0 && onCheckInAll && (
                 <button
                   className="btn btn-secondary"
+                  data-tour="check-in-all"
                   onClick={onCheckInAll}
                   title={t('fencerList.check_in_all_title', { count: notCheckedInCount })}
                 >
@@ -488,6 +489,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             <div ref={importMenuRef} style={DROPDOWN_WRAP}>
               <button
                 className="btn btn-secondary"
+                data-tour="import"
                 onClick={() => setImportMenuOpen(o => !o)}
                 title={t('actions.import')}
               >
@@ -679,7 +681,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             </button>
           )}
           {!readOnly && (
-            <button className="btn btn-primary" onClick={onAddFencer}>
+            <button className="btn btn-primary" data-tour="add-fencer" onClick={onAddFencer}>
               + {t('fencer.add')}
             </button>
           )}
@@ -795,19 +797,21 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                   >
                     <button
                       className="btn btn-secondary"
+                      data-tour="import"
                       onClick={() => handleImportFencers('fff')}
                     >
                       {t('fencerList.empty_import_fff')}
                     </button>
                     <button
                       className="btn btn-secondary"
+                      data-tour="import"
                       onClick={() => handleImportFencers('xml')}
                     >
                       {t('fencerList.empty_import_xml')}
                     </button>
                   </CoachMark>
                 )}
-                <button className="btn btn-primary" onClick={onAddFencer}>
+                <button className="btn btn-primary" data-tour="add-fencer" onClick={onAddFencer}>
                   + {t('fencer.add')}
                 </button>
               </div>
@@ -992,6 +996,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                           </button>
                           <button
                             className={`btn btn-sm ${fencer.status === FencerStatus.CHECKED_IN ? 'btn-secondary' : 'btn-primary'}`}
+                            data-tour="check-in"
                             onClick={() => onCheckIn(fencer.id)}
                             style={SMALL_BTN}
                           >

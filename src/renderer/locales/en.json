@@ -15,7 +15,8 @@
     "training": "Training",
     "tools": "Tools",
     "wifi_qr": "WiFi QR code",
-    "tv_remote": "TV remote"
+    "tv_remote": "TV remote",
+    "guided_tour": "Guided tour"
   },
   "menu": {
     "new_competition": "New Competition",
@@ -2655,6 +2656,7 @@
   "tour": {
     "title": "First competition",
     "skip": "Skip the tour",
+    "back": "Back",
     "close": "Finish",
     "finished_title": "Well done, tour complete!",
     "finished_hint": "You now know how a competition runs. Restart this guide from the settings.",
@@ -2664,13 +2666,15 @@
     "step_remote": "Enable remote entry",
     "step_scores": "Enter the scores",
     "step_tableau": "Start the bracket",
+    "step_edit": "Edit a match",
     "hint_fencers": "Import a file or add fencers by hand in the Check-in tab.",
     "hint_checkin": "Check in the fencers who are present (click the fencer's row).",
     "hint_pools": "Click “Generate pools” (at least 4 fencers checked in).",
     "hint_remote": "Start remote entry so referees can enter scores from a tablet (or enter them directly on this computer).",
     "hint_scores": "Open a pool and enter the score of one match.",
     "hint_tableau": "Once the pools are over, move on to the direct elimination bracket.",
-    "remote_explain": "Referees open the address shown on their tablet, enter hits match by match, and scores arrive here live.",
+    "hint_edit": "Every bracket match is editable: click it to enter the score, and use the glowing buttons to assign a strip and a referee. In \"Options\", automatic strip assignment is available.",
+    "remote_explain": "Referees scan the \"Referee\" QR Code on their tablet, enter hits match by match, and scores arrive here live.",
     "remote_mock_arena": "Arena 1",
     "remote_mock_validate": "Validate match"
   }

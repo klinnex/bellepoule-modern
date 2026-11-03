@@ -44,7 +44,8 @@
     "training": "Training",
     "tools": "Werkzeuge",
     "wifi_qr": "WLAN-QR-Code",
-    "tv_remote": "TV-Fernbedienung"
+    "tv_remote": "TV-Fernbedienung",
+    "guided_tour": "Geführte Tour"
   },
   "cardGroups": {
     "GROUP_1": "Gruppe 1 (Weiß → Gelb → Gelb)",
@@ -2655,6 +2656,7 @@
   "tour": {
     "title": "Erstes Turnier",
     "skip": "Rundgang überspringen",
+    "back": "Zurück",
     "close": "Beenden",
     "finished_title": "Geschafft, Rundgang beendet!",
     "finished_hint": "Sie kennen jetzt den Ablauf eines Turniers. Starten Sie diese Anleitung jederzeit in den Einstellungen neu.",
@@ -2664,13 +2666,15 @@
     "step_remote": "Ferneingabe aktivieren",
     "step_scores": "Ergebnisse eingeben",
     "step_tableau": "Tableau starten",
+    "step_edit": "Ein Gefecht bearbeiten",
     "hint_fencers": "Importieren Sie eine Datei oder fügen Sie Fechter im Tab Anwesenheit von Hand hinzu.",
     "hint_checkin": "Haken Sie die anwesenden Fechter ab (Klick auf die Zeile des Fechters).",
     "hint_pools": "Klicken Sie auf „Gruppen erzeugen“ (mindestens 4 anwesende Fechter).",
     "hint_remote": "Starten Sie die Ferneingabe, damit die Schiedsrichter die Ergebnisse per Tablet eingeben können (oder geben Sie sie direkt an diesem Rechner ein).",
     "hint_scores": "Öffnen Sie eine Gruppe und tragen Sie das Ergebnis eines Gefechts ein.",
     "hint_tableau": "Nach den Gruppen geht es weiter zum K.-o.-Tableau.",
-    "remote_explain": "Die Kampfrichter öffnen die angezeigte Adresse auf ihrem Tablet, erfassen die Treffer Gefecht für Gefecht, und die Ergebnisse erscheinen hier live.",
+    "hint_edit": "Jedes Tableau-Gefecht ist bearbeitbar: Klicken Sie darauf, um das Ergebnis einzugeben, und weisen Sie mit den leuchtenden Schaltflächen eine Bahn und einen Kampfrichter zu. Unter „Optionen“ gibt es eine automatische Bahnzuweisung.",
+    "remote_explain": "Die Kampfrichter scannen den QR-Code „Kampfrichter“ auf ihrem Tablet, erfassen die Treffer Gefecht für Gefecht, und die Ergebnisse erscheinen hier live.",
     "remote_mock_arena": "Bahn 1",
     "remote_mock_validate": "Gefecht bestätigen"
   }
