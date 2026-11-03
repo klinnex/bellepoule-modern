@@ -3434,55 +3434,6 @@
         );
       });
     </script>
-    <script>
-      // Fin estimée de la phase en cours (#1077) — option désactivable (kioskShowEta)
-      (function () {
-        const box = document.getElementById('kiosk-eta');
-        const cb = document.getElementById('cb-eta');
-        const enabled = () => localStorage.getItem('kioskShowEta') !== '0';
-        if (cb) {
-          cb.checked = enabled();
-          cb.addEventListener('change', () => {
-            localStorage.setItem('kioskShowEta', cb.checked ? '1' : '0');
-            refresh();
-          });
-        }
-        function etaPhaseLabel(T, eta) {
-          if (eta.phase === 'tableau' && eta.round) {
-            return eta.round === 2
-              ? T('dashboard.eta_final')
-              : T('dashboard.eta_tableau', { n: eta.round });
-          }
-          return eta.phase === 'pools' ? T('dashboard.eta_pools') : T('dashboard.eta');
-        }
-        async function refresh() {
-          if (!enabled()) {
-            box.hidden = true;
-            return;
-          }
-          try {
-            const res = await fetch('/api/public/eta', { cache: 'no-store' });
-            const { eta } = await res.json();
-            if (!eta || !eta.remainingMatches) {
-              box.hidden = true;
-              return;
-            }
-            const T = window.T || (k => k);
-            document.getElementById('kiosk-eta-label').textContent = etaPhaseLabel(T, eta);
-            document.getElementById('kiosk-eta-time').textContent = new Date(
-              eta.finishAt
-            ).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('kiosk-eta-detail').textContent =
-              '· ' + T('dashboard.eta_remaining', { count: eta.remainingMatches });
-            box.hidden = false;
-          } catch (e) {
-            box.hidden = true;
-          }
-        }
-        // Premier affichage après le chargement de la langue (initRemoteI18n)
-        setTimeout(refresh, 2000);
-        window.kioskRefreshEta = refresh; // appelé à chaque événement de données (plus de polling)
-      })();
-    </script>
+    <script src="/js/kioskEta.js"></script>
   </body>
 </html>
