@@ -8,6 +8,7 @@
     />
     <title data-i18n="referee.title">Arbitrage - Arène BellePoule</title>
     <script src="/common.js"></script>
+    <script src="/js/timerFormat.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
@@ -1507,7 +1508,7 @@
             >
               Repos
             </button>
-            <div class="timer-display" id="timer-display">03:00</div>
+            <div class="timer-display" id="timer-display">03:00<span class="timer-tenths">.0</span></div>
           </div>
           <div
             id="sudden-death-label"
@@ -3402,12 +3403,15 @@
           this.broadcastTimerUpdate();
 
           this._ttsAnnouncedSeconds = new Set();
+          const endAt = Date.now() + this._timerTenths * 100; // tick 100 ms sans dérive (#1416)
           this.timerInterval = setInterval(() => {
-            if (this.timerSeconds > 0) {
-              this.timerSeconds--;
+            if (this._timerTenths > 0) {
+              const prevSeconds = this.timerSeconds;
+              this._timerTenths = Math.max(0, Math.round((endAt - Date.now()) / 100));
               this.updateTimerDisplay();
-              this.broadcastTimerUpdate();
-              this.ttsCheckAnnounce();
+              const secChanged = this.timerSeconds !== prevSeconds; // diffusion : 1/s puis 10/s sous 10 s
+              if (secChanged || this._timerTenths <= 100) this.broadcastTimerUpdate();
+              if (secChanged) this.ttsCheckAnnounce();
 
               if (this.timerSeconds === 0) {
                 this.stopTimer();
@@ -3757,13 +3761,8 @@
         }
 
         updateTimerDisplay() {
-          const minutes = Math.floor(this.timerSeconds / 60);
-          const seconds = this.timerSeconds % 60;
-          const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
           const timerEl = document.getElementById('timer-display');
-          timerEl.textContent = display;
-
+          window.BPTimer.renderTimer(timerEl, this._timerTenths / 10, { alwaysTenths: true });
           // Classes visuelles
           timerEl.className = 'timer-display';
           if (this.timerRunning) {
@@ -3787,7 +3786,7 @@
           this.socket.emit('arena_control', {
             arenaId: this.arenaId,
             action: this.timerRunning ? 'update_timer' : 'pause_timer',
-            time: this.timerSeconds,
+            time: this._timerTenths / 10,
             timerStatus: this.timerRunning ? 'running' : 'paused',
             suddenDeath: this.isSuddenDeath,
             overtimeType: this.overtimeType,
@@ -4559,11 +4558,12 @@
         if (open) refereeApp.socket?.emit('arena_control', { arenaId: refereeApp.arenaId, action: 'release_match' });
         setTimeout(() => window.location.reload(), open ? 200 : 0);
       }
+      window.BPTimer.withTenths(RefereeApp.prototype);
       document.addEventListener('DOMContentLoaded', async () => {
         try {
           await window.initRemoteI18n();
           document.title = window.T('referee.title');
-          refereeApp = new RefereeApp(await window.bpClaimArenaSlot(RefereeApp.prototype.getArenaId()));
+          refereeApp =new RefereeApp(await window.bpClaimArenaSlot(RefereeApp.prototype.getArenaId()));
           window.refereeApp = refereeApp; // résolu par la délégation data-click (common.js)
         } catch (e) {
           console.error('[RefereeApp] Erreur init:', e);

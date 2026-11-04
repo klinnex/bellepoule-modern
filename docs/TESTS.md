@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 45 | 214 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 13 | 67 |
+| `src/remote/` | 14 | 72 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **226** | **1875** |
+| **Total** | **227** | **1880** |
 
-Unitaires : 217 fichiers, 1840 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 218 fichiers, 1845 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3841,6 +3841,18 @@ Unitaires : 217 fichiers, 1840 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - masque sans eta, sans match restant, sur erreur ou si désactivé
   - la case à cocher persiste l’option et rafraîchit
   - kiosk.html charge le module en script externe (CSP) sans code ETA inline
+
+</details>
+
+<details>
+<summary><code>src/remote/js/timerFormat.test.ts</code> — 5 tests</summary>
+
+- **timerFormat.js**
+  - arbitre : dixième toujours affiché
+  - pause : le dixième n'est pas arrondi à la seconde
+  - écrans : dixièmes seulement dans les 10 dernières secondes
+  - valeurs invalides ou négatives : 00:00
+  - renderTimer : texte + span dixième
 
 </details>
 
