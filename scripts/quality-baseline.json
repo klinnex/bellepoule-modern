@@ -11,10 +11,10 @@
   "remoteHardLocale": 6,
   "lineExceptions": {
     "src/renderer/styles/design.css": 2087,
-    "src/renderer/styles/main.css": 2997,
+    "src/renderer/styles/main.css": 2994,
     "src/renderer/components/CompetitionView.tsx": 3100,
     "src/renderer/components/PoolView.tsx": 1794,
-    "src/renderer/components/RemoteScoreManager.tsx": 1951,
+    "src/renderer/components/RemoteScoreManager.tsx": 1945,
     "src/renderer/components/TableauView.tsx": 1570,
     "src/renderer/components/wiki/wikiData.ts": 2035,
     "src/remote/arena.html": 2256,

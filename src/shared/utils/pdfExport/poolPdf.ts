@@ -9,6 +9,8 @@ import { calculateFencerQuestStats } from '../poolCalculations';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
 import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
 import { getActiveLocale } from '../localeFormat';
+import { extractBodyContent, extractStyleContent } from './bookPdf';
+import { escHtml } from './bookToc';
 
 export interface PoolExportOptions {
   title?: string;
@@ -520,8 +522,11 @@ export async function exportMultiplePoolsToPDF(
   stripQrs?: Record<string, PoolStripQr>
 ): Promise<void> {
   if (pools.length === 0) throw new Error(pdfT('no_pool_export', 'Aucune poule à exporter'));
+  // Un seul PDF pour toutes les poules (#1413) : corps concaténés, saut de page entre feuilles
+  const pages: string[] = [];
+  const styles = new Set<string>();
   for (const pool of pools) {
-    await exportPoolToPDF(
+    const html = await buildPoolExportHTML(
       pool,
       {
         title: `${title} - ${pdfT('pool_n', 'Poule {{n}}', { n: pool.number })}`,
@@ -532,7 +537,37 @@ export async function exportMultiplePoolsToPDF(
       },
       template
     );
+    const style = extractStyleContent(html);
+    if (style) styles.add(style);
+    pages.push(extractBodyContent(html));
   }
+  const body = pages
+    .map((b, i) => (i === 0 ? '' : '<div class="pools-export-break"></div>\n') + b)
+    .join('\n');
+  const combined = `<!DOCTYPE html>
+<html lang="${pdfLang()}">
+<head>
+  <meta charset="UTF-8">
+  <title>${escHtml(title)}</title>
+  <style>
+    ${[...styles].join('\n')}
+    .pools-export-break { break-before: page; }
+  </style>
+</head>
+<body>
+${body}
+</body>
+</html>`;
+  await savePDF(combined, allPoolsFileName(competitionName));
+}
+
+/** Nom par défaut du PDF regroupant toutes les poules : « <compétition>-poules.pdf » (#1413) */
+export function allPoolsFileName(competitionName?: string): string {
+  const safe = (competitionName ?? '')
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return `${safe || 'competition'}-poules.pdf`;
 }
 
 // ─── Impression Poule (dialogue d'impression natif) ───────────────────────────
