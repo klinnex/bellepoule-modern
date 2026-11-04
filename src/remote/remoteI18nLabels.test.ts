@@ -17,7 +17,7 @@ describe('kiosk.html : noms de poule traduits (#1213)', () => {
     expect(read('js/kioskRender.js')).toContain("tk('kiosk.pool_n', { n: pool.number })");
   });
   it('prochains matchs : regroupement par numéro de poule traduit', () => {
-    expect(html).toContain("tk('kiosk.pool_n', { n: m.poolNumber })");
+    expect(read('js/kioskLists.js')).toContain("tk('kiosk.pool_n', { n: m.poolNumber })");
   });
 });
 
