@@ -1295,6 +1295,7 @@
     "never_met": "N'en deus ket en em gannet an daou gleizeier-mañ biskoazh er c'hevezadeg-mañ."
   },
   "fencerList": {
+    "col_nationality": "Broadelezh",
     "import_menu": "📥 Enporzhiañ ▾",
     "import_xml_bp": "Enporzhiañ XML (BellePoule)",
     "import_fff": "Enporzhiañ roll FFE (.fff)",
@@ -2598,6 +2599,12 @@
     "matches_other": "{{count}} emgann"
   },
   "addFencer": {
+    "nationality_list": "Roll ar broadelezhioù",
+    "add": "Ouzhpennañ",
+    "add_and_close": "Ouzhpennañ ha serriñ",
+    "handedness": "Dorn",
+    "right": "Dorn dehou",
+    "left": "Dorn kleiz",
     "last_name_ph": "LE GALL",
     "first_name_ph": "Yann",
     "club_ph": "CE KEMPER",

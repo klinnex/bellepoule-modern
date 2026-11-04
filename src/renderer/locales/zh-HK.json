@@ -1295,6 +1295,7 @@
     "never_met": "這兩名劍手在本賽事中從未對賽。"
   },
   "fencerList": {
+    "col_nationality": "國籍",
     "import_menu": "📥 匯入 ▾",
     "import_xml_bp": "匯入 XML（BellePoule）",
     "import_fff": "匯入 FFE 名單（.fff）",
@@ -2598,6 +2599,12 @@
     "matches_other": "{{count}} 場比賽"
   },
   "addFencer": {
+    "nationality_list": "國籍清單",
+    "add": "新增",
+    "add_and_close": "新增並關閉",
+    "handedness": "慣用手",
+    "right": "右手",
+    "left": "左手",
     "last_name_ph": "陳",
     "first_name_ph": "大文",
     "club_ph": "香港劍擊會",

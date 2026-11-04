@@ -1295,6 +1295,7 @@
     "never_met": "Diese beiden Fechter sind in diesem Wettkampf nie aufeinandergetroffen."
   },
   "fencerList": {
+    "col_nationality": "Nationalität",
     "import_menu": "📥 Importieren ▾",
     "import_xml_bp": "XML importieren (BellePoule)",
     "import_fff": "FFE-Liste importieren (.fff)",
@@ -2598,6 +2599,12 @@
     "matches_other": "{{count}} Gefechte"
   },
   "addFencer": {
+    "nationality_list": "Nationalitätenliste",
+    "add": "Hinzufügen",
+    "add_and_close": "Hinzufügen und schließen",
+    "handedness": "Händigkeit",
+    "right": "Rechtshänder",
+    "left": "Linkshänder",
     "last_name_ph": "MÜLLER",
     "first_name_ph": "Hans",
     "club_ph": "FC BERLIN",

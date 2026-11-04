@@ -1295,6 +1295,7 @@
     "never_met": "Estos dos tiradores nunca se han enfrentado en esta competición."
   },
   "fencerList": {
+    "col_nationality": "Nacionalidad",
     "import_menu": "📥 Importar ▾",
     "import_xml_bp": "Importar XML (BellePoule)",
     "import_fff": "Importar lista FFE (.fff)",
@@ -2598,6 +2599,12 @@
     "matches_other": "{{count}} combates"
   },
   "addFencer": {
+    "nationality_list": "Lista de nacionalidades",
+    "add": "Añadir",
+    "add_and_close": "Añadir y cerrar",
+    "handedness": "Lateralidad",
+    "right": "Diestro",
+    "left": "Zurdo",
     "last_name_ph": "GARCÍA",
     "first_name_ph": "Juan",
     "club_ph": "CE MADRID",

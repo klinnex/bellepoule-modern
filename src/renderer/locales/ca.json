@@ -1295,6 +1295,7 @@
     "never_met": "Aquests dos tiradors no s'han enfrontat mai en aquesta competició."
   },
   "fencerList": {
+    "col_nationality": "Nacionalitat",
     "import_menu": "📥 Importa ▾",
     "import_xml_bp": "Importa XML (BellePoule)",
     "import_fff": "Importa llista FFE (.fff)",
@@ -2598,6 +2599,12 @@
     "matches_other": "{{count}} combats"
   },
   "addFencer": {
+    "nationality_list": "Llista de nacionalitats",
+    "add": "Afegeix",
+    "add_and_close": "Afegeix i tanca",
+    "handedness": "Lateralitat",
+    "right": "Dretà",
+    "left": "Esquerrà",
     "last_name_ph": "PUIG",
     "first_name_ph": "Joan",
     "club_ph": "CE BARCELONA",

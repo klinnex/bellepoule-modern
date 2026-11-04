@@ -1295,6 +1295,7 @@
     "never_met": "Ces deux tireurs ne se sont jamais affrontés dans cette compétition."
   },
   "fencerList": {
+    "col_nationality": "Nationalité",
     "import_menu": "📥 Importer ▾",
     "import_xml_bp": "Importer XML (BellePoule)",
     "import_fff": "Importer liste FFE (.fff)",
@@ -2598,6 +2599,12 @@
     "matches_other": "{{count}} matchs"
   },
   "addFencer": {
+    "nationality_list": "Liste des nationalités",
+    "add": "Ajouter",
+    "add_and_close": "Ajouter et fermer",
+    "handedness": "Latéralité",
+    "right": "Droitier",
+    "left": "Gaucher",
     "last_name_ph": "DUPONT",
     "first_name_ph": "Jean",
     "club_ph": "PARIS USM",
