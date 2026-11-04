@@ -560,17 +560,54 @@ button.pv-pill {
   border: 2px solid #f97316;
 }
 
-.pv-view-group {
-  display: flex;
-  gap: var(--space-1);
+.pv-view-switch {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  width: 4.25rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-border);
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
-.pv-view-group .pv-icon-btn:first-child {
-  border-radius: 4px 0 0 4px;
+.pv-view-switch-icon {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1;
 }
 
-.pv-view-group .pv-icon-btn:last-child {
-  border-radius: 0 4px 4px 0;
+.pv-view-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  border-radius: 999px;
+  background: var(--color-primary);
+  opacity: 0.85;
+  transition: transform 0.25s ease;
+}
+
+.pv-view-switch.is-matches .pv-view-switch-thumb {
+  transform: translateX(calc(100% + 0px));
+}
+
+.pv-view-switch:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-view-switch-thumb {
+    transition: none;
+  }
 }
 
 .pv-col-menu-label {

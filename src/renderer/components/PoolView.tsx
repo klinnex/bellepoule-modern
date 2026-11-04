@@ -1645,24 +1645,23 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 </div>
               )}
             </div>
-            <div className="pv-view-group">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`pv-icon-btn${viewMode === 'grid' ? ' is-active' : ''}`}
-                title={t('poolView.grid_view')}
-                aria-label={t('poolView.grid_view')}
-              >
+            <button
+              type="button"
+              role="switch"
+              aria-checked={viewMode === 'matches'}
+              aria-label={t('poolView.matches_view')}
+              onClick={() => setViewMode(viewMode === 'grid' ? 'matches' : 'grid')}
+              className={`pv-view-switch${viewMode === 'matches' ? ' is-matches' : ''}`}
+              title={viewMode === 'grid' ? t('poolView.matches_view') : t('poolView.grid_view')}
+            >
+              <span className="pv-view-switch-icon" aria-hidden="true">
                 📊
-              </button>
-              <button
-                onClick={() => setViewMode('matches')}
-                className={`pv-icon-btn${viewMode === 'matches' ? ' is-active' : ''}`}
-                title={t('poolView.matches_view')}
-                aria-label={t('poolView.matches_view')}
-              >
+              </span>
+              <span className="pv-view-switch-icon" aria-hidden="true">
                 ⚔️
-              </button>
-            </div>
+              </span>
+              <span className="pv-view-switch-thumb" aria-hidden="true" />
+            </button>
           </div>
         </div>
         <div className="card-body pv-body">
