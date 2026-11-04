@@ -10,6 +10,7 @@
     <script src="/js/kioskBracketUtils.js"></script>
     <script src="/js/kioskConfig.js"></script>
     <script src="/js/kioskRender.js"></script>
+    <script src="/js/kioskLists.js"></script>
     <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts.css" />
     <style>
@@ -2088,190 +2089,29 @@
       function renderFinalRanking() {
         const el = document.getElementById('final-ranking-body');
         if (!el) return;
-
-        const data = state.bracketData;
-        // Classement final de l'application : places réelles, sans ex æquo (#1013)
-        if (data?.finalResults?.length) {
-          renderFinalTable(
-            el,
-            [...data.finalResults].sort((a, b) => a.rank - b.rank)
-          );
-          return;
-        }
-        if (!data?.rounds?.length) {
-          el.innerHTML =
-            '<div class="final-ranking-not-done">' +
-            escHtml(tk('kiosk.not_finished_long')) +
-            '</div>';
+        const { ranked } = KioskLists.computeFinalRanking(state.bracketData, sortBySeed);
+        if (!ranked) {
+          el.innerHTML = KioskLists.notDoneHtml(tk, escHtml);
           document.getElementById('final-badge').textContent = '—';
           return;
         }
-
-        const finaleRound = data.rounds.find(r => r.round === 2);
-        const pfRound = data.rounds.find(r => r.round === 3);
-        const finaleMatch = finaleRound?.matches?.[0];
-        const pfMatch = pfRound?.matches?.[0];
-
-        if (!finaleMatch?.winnerId) {
-          el.innerHTML =
-            '<div class="final-ranking-not-done">' +
-            escHtml(tk('kiosk.not_finished_long')) +
-            '</div>';
-          document.getElementById('final-badge').textContent = '—';
-          return;
-        }
-
-        // Build ranked list: top 4 from finale/petite finale, then losers of each earlier round
-        const ranked = [];
-
-        const winner1 =
-          finaleMatch.winnerId === finaleMatch.fencerA?.id
-            ? finaleMatch.fencerA
-            : finaleMatch.fencerB;
-        const winner2 =
-          finaleMatch.winnerId === finaleMatch.fencerA?.id
-            ? finaleMatch.fencerB
-            : finaleMatch.fencerA;
-        if (winner1) ranked.push({ rank: 1, fencer: winner1 });
-        if (winner2) ranked.push({ rank: 2, fencer: winner2 });
-
-        if (pfMatch?.winnerId) {
-          const winner3 =
-            pfMatch.winnerId === pfMatch.fencerA?.id ? pfMatch.fencerA : pfMatch.fencerB;
-          const winner4 =
-            pfMatch.winnerId === pfMatch.fencerA?.id ? pfMatch.fencerB : pfMatch.fencerA;
-          if (winner3) ranked.push({ rank: 3, fencer: winner3 });
-          if (winner4) ranked.push({ rank: 4, fencer: winner4 });
-        } else {
-          // Petite finale not yet played: both semi-final losers share 3rd
-          const sfRound = data.rounds.find(r => r.round === 4);
-          if (sfRound) {
-            const sfLosers = [];
-            sfRound.matches.forEach(m => {
-              const loser =
-                m.winnerId === m.fencerA?.id ? m.fencerB : m.winnerId ? m.fencerA : null;
-              if (loser) sfLosers.push(loser);
-            });
-            sortBySeed(sfLosers).forEach((f, i) => ranked.push({ rank: 3 + i, fencer: f }));
-          }
-        }
-
-        // Add losers from earlier rounds (round 4 and beyond)
-        const seen = new Set(ranked.map(r => r.fencer.id));
-        const mainRounds = data.rounds
-          .filter(r => r.round !== 2 && r.round !== 3)
-          .sort((a, b) => a.round - b.round); // ascending: 4, 8, 16, ...
-
-        let currentRank = ranked.length > 0 ? Math.max(...ranked.map(r => r.rank)) + 1 : 5;
-        for (const round of mainRounds) {
-          const losers = [];
-          for (const m of round.matches) {
-            if (!m.isBye && m.winnerId) {
-              const loser = m.winnerId === m.fencerA?.id ? m.fencerB : m.fencerA;
-              if (loser && !seen.has(loser.id)) {
-                seen.add(loser.id);
-                losers.push(loser);
-              }
-            }
-          }
-          // Places distinctes, comme l'application : départage par classement de poules
-          sortBySeed(losers).forEach(f => ranked.push({ rank: currentRank++, fencer: f }));
-        }
-
-        renderFinalTable(el, ranked);
-      }
-
-      function renderFinalTable(el, ranked) {
-        const rankLabel = r => (r <= 4 ? ['🥇', '🥈', '🥉', '4️⃣'][r - 1] : r + 'e');
         document.getElementById('final-badge').textContent = tk('kiosk.count_fencers', {
           count: ranked.length,
         });
-
-        el.innerHTML = `<div class="ranking-scroll-wrapper" style="flex:1">
-          <table class="ranking-table">
-            <thead>
-              <tr>
-                <th style="width:60px">${escHtml(tk('kiosk.col_rank'))}</th>
-                <th>${escHtml(tk('kiosk.col_fencer'))}</th>
-                <th>${escHtml(tk('kiosk.col_club'))}</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${ranked
-                .map(
-                  ({ rank, fencer }) => `<tr class="${rank === 1 ? 'top-row' : ''}">
-                <td><span class="rank-medal">${escHtml(rankLabel(rank))}</span></td>
-                <td style="font-weight:600;font-size:1.1rem">${escHtml(fencer.lastName + ' ' + (fencer.firstName || ''))}</td>
-                <td style="color:#64748b">${escHtml(fencer.club || '—')}</td>
-              </tr>`
-                )
-                .join('')}
-            </tbody>
-          </table>
-        </div>`;
+        el.innerHTML = KioskLists.finalTableHtml(ranked, tk, escHtml);
       }
 
       // ─── Rendu Matchs suivants ───────────────────────────────────────────────
       function renderSuivants() {
-        const container = document.getElementById('suivants-container');
         const matches = state.upcomingData;
-
         const pending = matches.filter(m => m.status !== 'finished');
         document.getElementById('suivants-badge').textContent =
           tk('kiosk.count_matches', { count: pending.length });
-
-        if (!matches || matches.length === 0) {
-          container.innerHTML =
-            '<div class="no-data"><div class="no-data-icon">📋</div><h3>' +
-            escHtml(tk('kiosk.no_next')) +
-            '</h3><p>' +
-            escHtml(tk('kiosk.no_next_done')) +
-            '</p></div>';
-          return;
-        }
-
-        // Grouper par pool
-        const byPool = new Map();
-        for (const m of matches) {
-          const key = m.poolNumber ? tk('kiosk.pool_n', { n: m.poolNumber }) : m.poolName || tk('kiosk.no_pool');
-          if (!byPool.has(key)) byPool.set(key, []);
-          byPool.get(key).push(m);
-        }
-
-        let html = '';
-        for (const [poolName, poolMatches] of byPool) {
-          html += `<div class="suivants-pool-header">${escHtml(poolName)}</div>`;
-          for (const m of poolMatches) {
-            const nameA = m.fencerA
-              ? escHtml(m.fencerA.lastName) +
-                (m.fencerA.firstName ? ' ' + escHtml(m.fencerA.firstName[0]) + '.' : '')
-              : '?';
-            const clubA = m.fencerA?.club
-              ? `<span class="fclub">${escHtml(m.fencerA.club)}</span>`
-              : '';
-            const nameB = m.fencerB
-              ? escHtml(m.fencerB.lastName) +
-                (m.fencerB.firstName ? ' ' + escHtml(m.fencerB.firstName[0]) + '.' : '')
-              : '?';
-            const clubB = m.fencerB?.club
-              ? `<span class="fclub">${escHtml(m.fencerB.club)}</span>`
-              : '';
-            const isOngoing = m.status === 'in_progress';
-            const statusLabel = isOngoing
-              ? m.arenaName
-                ? escHtml(m.arenaName)
-                : escHtml(tk('kiosk.status_ongoing'))
-              : escHtml(tk('kiosk.status_upcoming'));
-            html += `<div class="suivants-row${isOngoing ? ' ongoing' : ''}">
-              <span class="suivants-num">${escHtml(m.number || '')}</span>
-              <span class="suivants-fencer">${/* html */ nameA}${/* html */ clubA}</span>
-              <span class="suivants-vs">vs</span>
-              <span class="suivants-fencer">${/* html */ nameB}${/* html */ clubB}</span>
-              <span class="suivants-status${isOngoing ? ' en-cours' : ''}">${/* html */ statusLabel}</span>
-            </div>`;
-          }
-        }
-        container.innerHTML = html;
+        document.getElementById('suivants-container').innerHTML = KioskLists.suivantsHtml(
+          matches,
+          tk,
+          escHtml
+        );
       }
 
       // ─── Rendu Arènes ────────────────────────────────────────────────────────

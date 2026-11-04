@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 46 | 228 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 21 | 124 |
+| `src/remote/` | 22 | 134 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **237** | **1970** |
+| **Total** | **238** | **1980** |
 
-Unitaires : 228 fichiers, 1935 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 229 fichiers, 1945 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3980,6 +3980,24 @@ Unitaires : 228 fichiers, 1935 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - masque sans eta, sans match restant, sur erreur ou si désactivé
   - la case à cocher persiste l’option et rafraîchit
   - kiosk.html charge le module en script externe (CSP) sans code ETA inline
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskLists.test.ts</code> — 10 tests</summary>
+
+- **kioskLists.js computeFinalRanking**
+  - finalResults de l’application prioritaires, triés par place
+  - non terminé : pas de tableau ou finale sans vainqueur
+  - finale + petite finale + perdants des tours précédents
+  - sans petite finale : perdants de demi-finale classés 3e et 4e par tête de série
+  - byes ignorés dans les tours principaux
+- **kioskLists.js HTML**
+  - rankLabel : médailles puis rang
+  - finalTableHtml : ligne de tête et échappement
+  - notDoneHtml
+  - suivantsHtml : vide, regroupement par poule, en cours, initiales, échappement
+  - kiosk.html charge le module
 
 </details>
 
