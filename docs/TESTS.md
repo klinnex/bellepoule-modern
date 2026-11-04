@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 46 | 228 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 18 | 100 |
+| `src/remote/` | 19 | 109 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **234** | **1945** |
+| **Total** | **235** | **1954** |
 
-Unitaires : 225 fichiers, 1910 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 226 fichiers, 1919 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3905,6 +3905,22 @@ Unitaires : 225 fichiers, 1910 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - coinFlipPlan : vainqueur A = vert 3600, B = rouge 3780, noms par défaut
   - showRemoteMessage : texte seul (pas de HTML interprété), masqué après la durée
   - showIdentifyOverlay : étiquette échappée, masqué après 5 s par défaut
+  - arena.html charge le module
+
+</details>
+
+<details>
+<summary><code>src/remote/js/arenaRender.test.ts</code> — 9 tests</summary>
+
+- **arenaRender.js**
+  - updateStatusBadge : libellé + classe, statut inconnu = badge vide
+  - scoreValue : nombre, objet, nul
+  - updateMatchDisplay : sans inversion B à gauche ; avec, A à gauche
+  - cardsHtml : valeurs inconnues ignorées, lettres, échappement
+  - updateCardsDisplay : inversion échange les côtés
+  - timerClasses : statut + alerte
+  - updateTimerDisplay : délègue le rendu puis pose les classes
+  - suddenDeathFlags + bannières
   - arena.html charge le module
 
 </details>

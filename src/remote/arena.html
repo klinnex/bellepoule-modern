@@ -10,6 +10,7 @@
     <script src="/js/arenaDisplayUtils.js"></script>
     <script src="/js/timerFormat.js"></script>
     <script src="/js/arenaOverlays.js"></script>
+    <script src="/js/arenaRender.js"></script>
     <style>
 
       /* Police 7 segments — style radio-réveil LCD (embarquée en base64) */
@@ -1877,132 +1878,27 @@
         }
 
         updateStatusBadge() {
-          const badge = document.getElementById('match-status');
-          badge.className = 'match-status-badge';
-
-          switch (this.matchStatus) {
-            case 'idle':
-            case 'not_started':
-              badge.textContent = window.T('arena.status_waiting');
-              badge.classList.add('status-waiting');
-              break;
-            case 'ready':
-              badge.textContent = window.T('arena.status_next');
-              badge.classList.add('status-waiting');
-              break;
-            case 'in_progress':
-              badge.textContent = window.T('arena.status_in_progress');
-              badge.classList.add('status-progress');
-              break;
-            case 'finished':
-              badge.textContent = window.T('arena.status_finished');
-              badge.classList.add('status-finished');
-              break;
-          }
+          BPArenaRender.updateStatusBadge(document, window.T, this.matchStatus);
         }
 
         updateMatchDisplay() {
-          if (!this.currentMatch) return;
-
-          const fA = this.currentMatch.fencerA || {};
-          const fB = this.currentMatch.fencerB || {};
-          const left  = this.inversionEnabled ? fA : fB;
-          const right = this.inversionEnabled ? fB : fA;
-
-          document.getElementById('fencer-a-name').textContent =
-            `${left.lastName || ''} ${left.firstName || ''}`.trim() || '-';
-          document.getElementById('fencer-a-club').textContent = left.club || '';
-
-          document.getElementById('fencer-b-name').textContent =
-            `${right.lastName || ''} ${right.firstName || ''}`.trim() || '-';
-          document.getElementById('fencer-b-club').textContent = right.club || '';
-
-          const sA = this.currentMatch.scoreA;
-          const sB = this.currentMatch.scoreB;
-          const valA = (typeof sA === 'object' ? (sA?.value ?? 0) : sA) ?? 0;
-          const valB = (typeof sB === 'object' ? (sB?.value ?? 0) : sB) ?? 0;
-          document.getElementById('score-a').textContent = this.inversionEnabled ? valA : valB;
-          document.getElementById('score-b').textContent = this.inversionEnabled ? valB : valA;
-
-          this.applyInversionColors();
+          BPArenaRender.updateMatchDisplay(document, this.currentMatch, this.inversionEnabled);
         }
 
         applyInversionColors() {
-          const inv = this.inversionEnabled;
-          const dispA = document.getElementById('fencer-a-display');
-          const dispB = document.getElementById('fencer-b-display');
-          if (dispA) dispA.className = `fencer-display ${inv ? 'green-side' : 'red-side'}`;
-          if (dispB) dispB.className = `fencer-display ${inv ? 'red-side' : 'green-side'}`;
-          const badgeA = document.getElementById('color-badge-a');
-          const badgeB = document.getElementById('color-badge-b');
-          if (badgeA) badgeA.className = `color-badge ${inv ? 'green' : 'red'}`;
-          if (badgeB) badgeB.className = `color-badge ${inv ? 'red' : 'green'}`;
-          const scoreA = document.getElementById('score-a');
-          const scoreB = document.getElementById('score-b');
-          if (scoreA) { scoreA.className = scoreA.className.replace(/\b(green|red)\b/, inv ? 'green' : 'red'); }
-          if (scoreB) { scoreB.className = scoreB.className.replace(/\b(green|red)\b/, inv ? 'red' : 'green'); }
+          BPArenaRender.applyInversionColors(document, this.inversionEnabled);
         }
 
         updateCardsDisplay() {
-          const renderCards = cards =>
-            cards
-              .filter(card => ['white', 'yellow', 'red', 'black', 'p-red', 'p-black'].includes(card))
-              .map(
-                card =>
-                  `<div class="card card-${escHtml(card)}">${card.startsWith('p-') ? 'P' : card === 'white' ? 'B' : card === 'yellow' ? 'J' : card === 'black' ? 'N' : 'R'}</div>`
-              )
-              .join('');
-
-          document.getElementById('fencer-a-cards').innerHTML = renderCards(this.inversionEnabled ? this.cardsA : this.cardsB);
-          document.getElementById('fencer-b-cards').innerHTML = renderCards(this.inversionEnabled ? this.cardsB : this.cardsA);
+          BPArenaRender.updateCardsDisplay(document, escHtml, this.cardsA, this.cardsB, this.inversionEnabled);
         }
 
         updateTimerDisplay(timerStatus) {
-          const timerEl = document.getElementById('timer-display');
-          // Dixièmes pour les 10 dernières secondes (#1416)
-          window.BPTimer.renderTimer(timerEl, this.timerSeconds);
-
-          // Reset classes
-          timerEl.className = 'timer-display';
-
-          // Status classes
-          if (timerStatus === 'running') {
-            timerEl.classList.add('running');
-          } else if (timerStatus === 'paused') {
-            timerEl.classList.add('paused');
-          }
-
-          // Time warning classes
-          if (this.timerSeconds <= 10) {
-            timerEl.classList.add('danger');
-          } else if (this.timerSeconds <= 30) {
-            timerEl.classList.add('warning');
-          }
+          BPArenaRender.updateTimerDisplay(document, window.BPTimer, this.timerSeconds, timerStatus);
         }
 
         updateSuddenDeathBanner() {
-          const banner = document.getElementById('sudden-death-banner');
-          const msBanner = document.getElementById('mort-subite-banner');
-
-          const isSupplementary = this.isSuddenDeath &&
-            (this.overtimeType === 'supplementary' || this.overtimeType === 'challenger_supplementary');
-          const isChallengerSD = this.isSuddenDeath &&
-            (this.overtimeType === 'challenger' || this.overtimeType === 'challenger_supplementary');
-
-          if (banner) {
-            if (isSupplementary) {
-              banner.classList.add('active');
-            } else {
-              banner.classList.remove('active');
-            }
-          }
-          if (msBanner) {
-            if (isChallengerSD) {
-              msBanner.classList.add('active');
-            } else {
-              msBanner.classList.remove('active');
-            }
-          }
+          BPArenaRender.updateSuddenDeathBanner(document, this.isSuddenDeath, this.overtimeType);
         }
 
         updateWaitingOvertimeBanner() {
