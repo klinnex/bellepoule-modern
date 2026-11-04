@@ -1295,6 +1295,7 @@
     "never_met": "These two fencers have never met in this competition."
   },
   "fencerList": {
+    "col_nationality": "Nationality",
     "import_menu": "📥 Import ▾",
     "import_xml_bp": "Import XML (BellePoule)",
     "import_fff": "Import FFE list (.fff)",
@@ -2270,6 +2271,7 @@
     "who_abandon": "Which fencer withdraws for medical reasons?",
     "who_forfait": "Which fencer forfeits?",
     "who_exclusion": "Which fencer is excluded?",
+    "black_card_question": "Black card?",
     "tie_hint": "Tie: pick the winner or draw lots",
     "coin_flip": "Draw lots"
   },

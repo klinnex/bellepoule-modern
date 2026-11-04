@@ -1295,6 +1295,7 @@
     "never_met": "Aquests dos tiradors no s'han enfrontat mai en aquesta competició."
   },
   "fencerList": {
+    "col_nationality": "Nacionalitat",
     "import_menu": "📥 Importa ▾",
     "import_xml_bp": "Importa XML (BellePoule)",
     "import_fff": "Importa llista FFE (.fff)",
@@ -2270,6 +2271,7 @@
     "who_abandon": "Quin tirador es retira per motius mèdics?",
     "who_forfait": "Quin tirador declara forfait?",
     "who_exclusion": "Quin tirador és exclòs?",
+    "black_card_question": "Targeta negra?",
     "tie_hint": "Empat: tria el guanyador o fes un sorteig",
     "coin_flip": "Sorteig"
   },

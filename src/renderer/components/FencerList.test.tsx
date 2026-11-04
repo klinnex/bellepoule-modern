@@ -57,6 +57,23 @@ describe('FencerList', () => {
     expect(screen.getByText('Martin')).toBeInTheDocument();
   });
 
+  it('colonne nationalité masquée par défaut, affichable avec drapeau', () => {
+    const { unmount } = render(
+      <FencerList fencers={[fencer('1', 'Dupont')]} onCheckIn={vi.fn()} onAddFencer={vi.fn()} />
+    );
+    expect(screen.queryByText('fencerList.col_nationality')).toBeNull();
+    unmount();
+    render(
+      <FencerList
+        fencers={[fencer('1', 'Dupont')]}
+        onCheckIn={vi.fn()}
+        onAddFencer={vi.fn()}
+        hiddenColumns={[]}
+      />
+    );
+    expect(screen.getByText(/FRA/)).toBeInTheDocument();
+  });
+
   it('le bouton ajouter déclenche onAddFencer', () => {
     const { onAddFencer } = setup();
     fireEvent.click(screen.getByRole('button', { name: /fencer\.add/ }));
