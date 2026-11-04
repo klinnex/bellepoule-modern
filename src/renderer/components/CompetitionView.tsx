@@ -102,7 +102,7 @@ import RapieresRankingPanel, {
 } from '../../features/rapieres/RapieresRankingPanel';
 import { QRCodeShare } from './QRCodeShare';
 import { computePoolStrips } from '../../shared/utils/poolStrips';
-import { checkInStatusUpdate } from '../../shared/utils/forfeit';
+import { checkInStatusUpdate, specialStatusPatch } from '../../shared/utils/forfeit';
 import KioskScoreEntry from './competition/KioskScoreEntry';
 import { ScoreAuditLog } from './ScoreAuditLog';
 import { RefereeManagerComponent } from './RefereeManager';
@@ -2107,18 +2107,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             window.electronAPI.remote.resetPoolMatch(competition.id, match.id).catch(() => {});
           }
         }}
-        onFencerStatusChange={(fencerId, status) => {
+        onFencerStatusChange={(fencerId, status, blackCard) => {
           if (status === 'abandon' || status === 'forfait' || status === 'exclusion') {
             handleFencerForfeit(fencerId, status);
             // Liste d'appel : statut aligné avec la saisie manuelle du score
-            updateFencer(fencerId, {
-              status:
-                status === 'abandon'
-                  ? FencerStatus.ABANDONED
-                  : status === 'forfait'
-                    ? FencerStatus.FORFAIT
-                    : FencerStatus.EXCLUDED,
-            });
+            updateFencer(fencerId, specialStatusPatch(status, blackCard));
           }
         }}
         assignedFencerIds={assignedPoolFencerIds}
@@ -2706,6 +2699,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               maxRefereesPerMatch={maxRefereesPerMatch}
               autoFillReferees={autoFillReferees}
               isLaserSabre={isLaserSabre}
+              onBlackCard={id => updateFencer(id, specialStatusPatch('exclusion', true))}
               onComplete={results => {
                 setFinalResults(results);
                 setTableauEditUnlocked(false);

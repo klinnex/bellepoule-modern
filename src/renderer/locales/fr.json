@@ -2271,6 +2271,7 @@
     "who_abandon": "Quel tireur sort pour raison médicale ?",
     "who_forfait": "Quel tireur déclare forfait ?",
     "who_exclusion": "Quel tireur est exclu ?",
+    "black_card_question": "Carton noir ?",
     "tie_hint": "Égalité : désignez le vainqueur ou lancez un tirage au sort",
     "coin_flip": "Tirage au sort"
   },
