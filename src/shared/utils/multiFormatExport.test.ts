@@ -311,6 +311,51 @@ describe('exportResultsXMLFFE', () => {
     const xml = exportResultsXMLFFE(makeCompetition(), [makeRanking(f)], []);
     expect(xml).toContain('Statut="E"');
   });
+
+  describe('carton noir (#1418)', () => {
+    const f1 = makeFencer('f1', 1, { lastName: 'Un' });
+    const f2 = makeFencer('f2', 2, { lastName: 'Deux' });
+    const f3 = makeFencer('f3', 3, { lastName: 'Trois' });
+    const ranking = [
+      makeRanking(f1, { rank: 1 }),
+      makeRanking(f2, { rank: 2 }),
+      makeRanking(f3, { rank: 3 }),
+    ];
+    const finals = [
+      { rank: 1, fencer: f1 },
+      { rank: 2, fencer: f2 },
+      { rank: 3, fencer: f3 },
+    ];
+    const rankOf = (xml: string, lastName: string) =>
+      new RegExp(`Classement="([^"]*)"[^>]*Nom="${lastName}"`).exec(xml)?.[1];
+
+    it('rang vide (NULL) pour le carton noir, les suivants remontent', () => {
+      const carded = {
+        ...f2,
+        status: FencerStatus.EXCLUDED,
+        exclusionReason: 'black_card' as const,
+      };
+      const xml = exportResultsXMLFFE(makeCompetition(), ranking, finals, undefined, undefined, [
+        f1,
+        carded,
+        f3,
+      ]);
+      expect(rankOf(xml, 'Un')).toBe('1');
+      expect(rankOf(xml, 'Trois')).toBe('2');
+      expect(rankOf(xml, 'Deux')).toBe('');
+    });
+
+    it('exclusion simple : rang conservé', () => {
+      const out = { ...f2, status: FencerStatus.EXCLUDED };
+      const xml = exportResultsXMLFFE(makeCompetition(), ranking, finals, undefined, undefined, [
+        f1,
+        out,
+        f3,
+      ]);
+      expect(rankOf(xml, 'Deux')).toBe('2');
+      expect(rankOf(xml, 'Trois')).toBe('3');
+    });
+  });
 });
 
 // ============================================================================

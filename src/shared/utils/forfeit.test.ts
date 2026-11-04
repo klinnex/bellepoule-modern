@@ -146,3 +146,11 @@ describe('specialStatusPatch (#1418)', () => {
     });
   });
 });
+
+describe('finalRankLabel carton noir (#1418)', () => {
+  it('rang null : « - »', () => {
+    expect(
+      finalRankLabel(null, { status: FencerStatus.EXCLUDED, exclusionReason: 'black_card' })
+    ).toBe('-');
+  });
+});
