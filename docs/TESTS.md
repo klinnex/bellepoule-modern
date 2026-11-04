@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 42 | 604 |
+| `src/shared/utils/` | 42 | 606 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **226** | **1875** |
+| **Total** | **226** | **1877** |
 
-Unitaires : 217 fichiers, 1840 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 217 fichiers, 1842 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -650,13 +650,16 @@ Unitaires : 217 fichiers, 1840 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 6 tests</summary>
+<summary><code>src/shared/utils/pdfExport/poolPdf.test.ts</code> — 8 tests</summary>
 
 - **generatePoolHTML – options export (#932)**
   - affiche les colonnes statistiques par défaut
   - masque V, V/M, TD, TR, Ind et Rg avec hideStatColumns
   - conserve les colonnes non statistiques (club) avec hideStatColumns
   - applique le format paysage
+- **exportMultiplePoolsToPDF – un seul PDF (#1413)**
+  - nom par défaut « \<compétition\>-poules.pdf », caractères interdits remplacés
+  - toutes les poules dans un seul fichier, une seule boîte de dialogue
 - **generatePoolHTML – couleurs du modèle (#992)**
   - la surcharge de couleurs suit le CSS de base (sinon écrasée)
   - couleur invalide ignorée (injection CSS)
