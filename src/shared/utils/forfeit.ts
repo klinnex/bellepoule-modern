@@ -68,10 +68,11 @@ export function poolEliminatedAt(fencer: Pick<Fencer, 'status'>): string {
  * sans numéro. Sortie pendant le tableau : numéro conservé.
  */
 export function finalRankLabel(
-  rank: number,
+  rank: number | null,
   fencer: Pick<Fencer, 'status' | 'exclusionReason'>,
   eliminatedAt?: string
 ): string {
+  if (rank === null) return '-'; // carton noir : classement perdu (#1418)
   if (!eliminatedAt?.startsWith('Poules')) return String(rank);
   if (isDns(fencer)) return 'DNS';
   if (isOut(fencer.status)) return 'DNF';

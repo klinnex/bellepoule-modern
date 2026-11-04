@@ -13,6 +13,7 @@ import {
   MatchEventEntry,
 } from '../types';
 import { getActiveLocale } from './localeFormat';
+import { applyBlackCardRanking } from './blackCardRanking';
 
 /**
  * Export results as HTML web page
@@ -297,11 +298,30 @@ export function exportResultsXMLFFE(
   poolRanking: PoolRanking[],
   finalResults: any[],
   pools?: Pool[],
-  tableauMatches?: TableauMatchForXML[]
+  tableauMatches?: TableauMatchForXML[],
+  fencers?: Fencer[]
 ): string {
-  const finalRankMap = new Map<string, number>();
-  for (const r of finalResults) {
-    if (r.fencer?.id) finalRankMap.set(r.fencer.id, r.rank);
+  // Carton noir (#1418) : rang NULL (attribut vide), les suivants remontent, ex aequo départagés
+  // par le rang de poules. `fencers` (liste courante) rafraîchit statut / motif des instantanés.
+  const live = new Map((fencers ?? []).map(f => [f.id, f]));
+  const fresh = (f: Fencer): Fencer => {
+    const l = live.get(f.id);
+    return l ? { ...f, status: l.status, exclusionReason: l.exclusionReason } : f;
+  };
+  const inFinal = new Set(finalResults.map(r => r.fencer?.id));
+  const finalRankMap = new Map<string, number | null>();
+  for (const r of applyBlackCardRanking(
+    [
+      ...finalResults
+        .filter(r => r.fencer?.id)
+        .map(r => ({ rank: r.rank, fencer: fresh(r.fencer) })),
+      ...poolRanking
+        .filter(r => !inFinal.has(r.fencer.id))
+        .map(r => ({ rank: r.rank, fencer: fresh(r.fencer) })),
+    ],
+    new Map(poolRanking.map(r => [r.fencer.id, r.rank]))
+  )) {
+    finalRankMap.set(r.fencer.id, r.rank);
   }
 
   const rootTag = competition.isTeamEvent ? 'CompetitionParEquipe' : 'CompetitionIndividuelle';
@@ -339,7 +359,7 @@ export function exportResultsXMLFFE(
   lines.push(' <Tireurs>');
   for (const r of poolRanking) {
     const f = r.fencer;
-    const finalRank = finalRankMap.get(f.id) ?? r.rank;
+    const finalRank = finalRankMap.get(f.id) ?? '';
     lines.push(
       `  <Tireur` +
         ` ID="${f.ref}"` +

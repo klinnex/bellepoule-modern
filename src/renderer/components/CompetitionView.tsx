@@ -517,6 +517,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     competition,
     showToast,
     tableauMatches,
+    fencers,
   });
 
   const poolPrepParams = useMemo(

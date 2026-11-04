@@ -64,9 +64,11 @@ interface UseExportProps {
   showToast: ReturnType<typeof useToast>['showToast'];
   /** Matchs du tableau, joints au XML (phase de tableaux, #1328) */
   tableauMatches?: TableauMatchForXML[];
+  /** Tireurs courants : statut / carton noir à jour pour le classement du XML (#1418) */
+  fencers?: Fencer[];
 }
 
-export const useExport = ({ competition, showToast, tableauMatches }: UseExportProps) => {
+export const useExport = ({ competition, showToast, tableauMatches, fencers }: UseExportProps) => {
   const poolTemplate = usePdfTemplateStore(s => s.templates.pool);
 
   // Helper pour télécharger un fichier
@@ -349,7 +351,8 @@ export const useExport = ({ competition, showToast, tableauMatches }: UseExportP
           poolRanking,
           finalResults,
           pools,
-          tableauMatches
+          tableauMatches,
+          fencers
         );
         // Comme l'ancien BellePoule : une adresse escrime-info.com part toujours vers GREG (sans identifiant)
         if (
@@ -398,7 +401,7 @@ export const useExport = ({ competition, showToast, tableauMatches }: UseExportP
         );
       }
     },
-    [competition, downloadFile, showToast, tableauMatches]
+    [competition, downloadFile, showToast, tableauMatches, fencers]
   );
 
   // Export statistiques détaillées CSV
