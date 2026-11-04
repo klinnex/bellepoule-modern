@@ -3949,7 +3949,7 @@ Unitaires : 222 fichiers, 1891 tests. E2E : 9 fichiers, 35 tests (comptage stati
 <details>
 <summary><code>src/remote/refereeOfflineQueue.test.ts</code> — 10 tests</summary>
 
-- extrait bien la classe depuis referee.html
+- la classe vit dans /js/offlineQueue.js, chargée par referee.html (#1401)
 - **OfflineQueueInline — chaos réseau**
   - rejoue dans l’ordre chronologique (pas dans l’ordre des UUID)
   - ne garde que le dernier score par match : un ancien score n’écrase jamais le récent
