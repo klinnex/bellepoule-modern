@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 41 | 325 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 46 | 225 |
+| `src/renderer/components/` | 46 | 228 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 13 | 67 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **229** | **1909** |
+| **Total** | **229** | **1912** |
 
-Unitaires : 220 fichiers, 1874 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 220 fichiers, 1877 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3268,7 +3268,7 @@ Unitaires : 220 fichiers, 1874 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **CompetitionView**
   - affiche la navigation des phases, appel actif et poules verrouillées
   - sans élimination directe, la phase tableau est absente
-  - « Générer les poules » désactivé sous 4 tireurs pointés
+  - « Préparer les poules » désactivé sous 4 tireurs pointés
   - génère les poules, les persiste en base et passe en préparation
   - restaure la phase sauvegardée (session) et permet de revenir en arrière
   - cliquer une phase désactivée ne change pas de phase
@@ -3343,7 +3343,7 @@ Unitaires : 220 fichiers, 1874 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 9 tests</summary>
+<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 12 tests</summary>
 
 - **GuidedTour**
   - se propose une fois sur une compétition vide
@@ -3355,6 +3355,9 @@ Unitaires : 220 fichiers, 1874 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - revient à l’étape précédente avec le bouton Retour
   - entoure d’un halo les boutons utiles de l’étape
   - propose l’édition d’un match de tableau en dernière étape
+  - Suivant avance d’une étape, Retour revient
+  - refaire l’action après Retour fait avancer de nouveau
+  - étape poules : explication glisser-déposer et halo sur Lancer quand la préparation est ouverte
 
 </details>
 

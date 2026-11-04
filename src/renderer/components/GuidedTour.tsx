@@ -8,6 +8,8 @@ import { Check, X, Sparkles } from 'lucide-react';
 import { MatchStatus } from '../../shared/types';
 import {
   TOUR_RESTART_EVENT,
+  TourHaloKey,
+  tourHaloKey,
   TOUR_STEP_HALOS,
   TOUR_STEP_PHASE,
   TOUR_STEPS,
@@ -29,7 +31,27 @@ interface GuidedTourProps extends Omit<
   t: (key: string, params?: { [key: string]: string | number }) => string;
   /** Phase à mettre en évidence dans la navigation (null = aucune) */
   onHighlightPhase: (phase: string | null) => void;
+  /** Onglet Préparation des poules ouvert (étape « Préparer et lancer les poules ») */
+  prepOpen?: boolean;
 }
+
+/** Maquette animée : un tireur glissé-déposé d'une poule à l'autre (décorative) */
+const DragMockup: React.FC<{ t: GuidedTourProps['t'] }> = ({ t }) => (
+  <div className="tour-drag" aria-hidden="true">
+    <div className="tour-drag-pool">
+      <span className="tour-drag-title">{t('tour.drag_mock_pool')} A</span>
+      <span className="tour-drag-fencer" />
+      <span className="tour-drag-fencer" />
+      <span className="tour-drag-fencer tour-drag-moving" />
+    </div>
+    <div className="tour-drag-pool">
+      <span className="tour-drag-title">{t('tour.drag_mock_pool')} B</span>
+      <span className="tour-drag-fencer" />
+      <span className="tour-drag-fencer" />
+      <span className="tour-drag-slot" />
+    </div>
+  </div>
+);
 
 /** Maquette animée de la tablette arbitre (décorative) */
 const RemoteMockup: React.FC<{ t: GuidedTourProps['t'] }> = ({ t }) => (
@@ -51,7 +73,7 @@ const HALO_CLASS = 'tour-halo';
 const HALO_GREEN_CLASS = 'tour-halo-green';
 
 /** Entoure d'un halo pulsé les boutons utiles à l'étape (suit les changements du DOM) */
-function useTourHalos(step: TourStepId | null): void {
+function useTourHalos(step: TourHaloKey | null): void {
   useEffect(() => {
     if (!step) return;
     const halos = TOUR_STEP_HALOS[step];
@@ -98,6 +120,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
   tableauMatchesCount,
   tableauFinishedMatches = 0,
   remoteActive,
+  prepOpen = false,
 }) => {
   const [flag, setFlag] = useState<TourFlag | null>(() => {
     const stored = readTourFlag();
@@ -130,12 +153,14 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
   const reached = currentTourStep(state);
   const active = flag === 'active';
 
-  // Retour manuel : valable tant que la progression réelle (reached) ne change pas
-  const [back, setBack] = useState<{ base: TourStepId | null; step: TourStepId } | null>(null);
-  const current = back && back.base === reached ? back.step : reached;
+  // Navigation manuelle (Retour / Suivant) : valable tant que l'état de la compétition ne change
+  // pas ; refaire l'action de l'étape (état modifié) ramène donc à la progression réelle.
+  const signature = `${JSON.stringify(state)}|${prepOpen}`;
+  const [manual, setManual] = useState<{ sig: string; step: TourStepId } | null>(null);
+  const current = manual && manual.sig === signature ? manual.step : reached;
   const currentIndex = current ? TOUR_STEPS.indexOf(current) : TOUR_STEPS.length;
   const goBack = () => {
-    if (currentIndex > 0) setBack({ base: reached, step: TOUR_STEPS[currentIndex - 1] });
+    if (currentIndex > 0) setManual({ sig: signature, step: TOUR_STEPS[currentIndex - 1] });
   };
 
   useEffect(() => {
@@ -143,12 +168,17 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
     return () => onHighlightPhase(null);
   }, [active, current, onHighlightPhase]);
 
-  useTourHalos(active ? current : null);
+  useTourHalos(active ? tourHaloKey(current, prepOpen) : null);
 
   const close = useCallback(() => {
     writeTourFlag('done');
     setFlag('done');
   }, []);
+  const lastStep = current === null || currentIndex === TOUR_STEPS.length - 1;
+  const goNext = () => {
+    if (lastStep) close();
+    else setManual({ sig: signature, step: TOUR_STEPS[currentIndex + 1] });
+  };
 
   if (!active) return null;
 
@@ -189,8 +219,16 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
         })}
       </ol>
       <p className="guided-tour-hint">
-        {finished ? t('tour.finished_hint') : t(`tour.hint_${current}`)}
+        {finished
+          ? t('tour.finished_hint')
+          : t(current === 'pools' && prepOpen ? 'tour.hint_launch' : `tour.hint_${current}`)}
       </p>
+      {current === 'pools' && prepOpen && (
+        <>
+          <DragMockup t={t} />
+          <p className="guided-tour-hint">{t('tour.prep_explain')}</p>
+        </>
+      )}
       {current === 'remote' && (
         <>
           <RemoteMockup t={t} />
@@ -212,8 +250,8 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
         >
           {t('tour.back')}
         </button>
-        <button type="button" className="btn btn-secondary guided-tour-action" onClick={close}>
-          {finished ? t('tour.close') : t('tour.skip')}
+        <button type="button" className="btn btn-secondary guided-tour-action" onClick={goNext}>
+          {lastStep ? t('tour.close') : t('tour.next')}
         </button>
       </div>
     </aside>
