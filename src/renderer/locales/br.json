@@ -2597,6 +2597,12 @@
     "matches_other": "{{count}} emgann"
   },
   "addFencer": {
+    "nationality_list": "Roll ar broadelezhioù",
+    "add": "Ouzhpennañ",
+    "add_and_close": "Ouzhpennañ ha serriñ",
+    "handedness": "Dorn",
+    "right": "Dorn dehou",
+    "left": "Dorn kleiz",
     "last_name_ph": "LE GALL",
     "first_name_ph": "Yann",
     "club_ph": "CE KEMPER",
