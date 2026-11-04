@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 46 | 228 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 19 | 109 |
+| `src/remote/` | 20 | 117 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **235** | **1955** |
+| **Total** | **236** | **1963** |
 
-Unitaires : 226 fichiers, 1920 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 227 fichiers, 1928 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3906,6 +3906,21 @@ Unitaires : 226 fichiers, 1920 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - coinFlipPlan : vainqueur A = vert 3600, B = rouge 3780, noms par défaut
   - showRemoteMessage : texte seul (pas de HTML interprété), masqué après la durée
   - showIdentifyOverlay : étiquette échappée, masqué après 5 s par défaut
+  - arena.html charge le module
+
+</details>
+
+<details>
+<summary><code>src/remote/js/arenaPanels.test.ts</code> — 8 tests</summary>
+
+- **arenaPanels.js**
+  - photoSrc : préfixe ajouté seulement si absent
+  - setPhoto : photo ou icône
+  - visibilityPlan(%s, photos=%s, cur=%s, next=%s) -\> %s _(each)_
+  - applyVisibility : pose les classes
+  - updatePhotoIntro : inversion et noms par défaut
+  - updateNextMatchPanel : arbitre affiché seulement si la fonction est active
+  - updateIdleNextMatchDisplay : aperçu ou numéro d’arène
   - arena.html charge le module
 
 </details>

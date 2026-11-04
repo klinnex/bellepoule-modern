@@ -11,6 +11,7 @@
     <script src="/js/timerFormat.js"></script>
     <script src="/js/arenaOverlays.js"></script>
     <script src="/js/arenaRender.js"></script>
+    <script src="/js/arenaPanels.js"></script>
     <style>
 
       /* Police 7 segments — style radio-réveil LCD (embarquée en base64) */
@@ -1907,170 +1908,42 @@
         }
 
         updateVisibility() {
-          const waitingScreen = document.getElementById('waiting-screen');
-          const matchDisplay = document.getElementById('match-display');
-          const photoIntro = document.getElementById('photo-intro');
-          const nextPanel = document.getElementById('next-match-panel');
-
-          if (this.matchStatus === 'idle' || this.matchStatus === 'not_started') {
-            waitingScreen.classList.remove('hidden');
-            matchDisplay.classList.remove('active');
-            photoIntro.classList.add('hidden');
-            nextPanel.classList.add('hidden');
+          const plan = BPArenaPanels.visibilityPlan(this.matchStatus, this.showPhotos, !!this.currentMatch, !!this.nextMatch);
+          BPArenaPanels.applyVisibility(document, plan);
+          if (plan.action === 'idle') {
             this.isSuddenDeath = false;
             this.overtimeType = null;
             this.waitingOvertime = false;
             this.updateWaitingOvertimeBanner();
             this.updateSuddenDeathBanner();
-            this.updateIdleNextMatchDisplay();
-          } else if (this.matchStatus === 'ready' && this.showPhotos && this.currentMatch) {
-            waitingScreen.classList.add('hidden');
-            matchDisplay.classList.remove('active');
-            photoIntro.classList.remove('hidden');
-            nextPanel.classList.add('hidden');
-            this.updatePhotoIntro();
-          } else if (this.matchStatus === 'in_progress') {
-            waitingScreen.classList.add('hidden');
-            photoIntro.classList.add('hidden');
-            matchDisplay.classList.add('active');
-            nextPanel.classList.add('hidden');
-          } else if (this.matchStatus === 'finished') {
-            photoIntro.classList.add('hidden');
-            if (this.nextMatch) {
-              waitingScreen.classList.add('hidden');
-              matchDisplay.classList.add('active');
-              this.updateNextMatchPanel();
-              nextPanel.classList.remove('hidden');
-            } else {
-              // Aucun match suivant : retour à l'écran idle (arène X)
-              waitingScreen.classList.remove('hidden');
-              matchDisplay.classList.remove('active');
-              nextPanel.classList.add('hidden');
-              this.updateIdleNextMatchDisplay();
-            }
-          } else {
-            // 'ready' sans photos : écran d'attente (combat pas encore démarré)
-            waitingScreen.classList.remove('hidden');
-            matchDisplay.classList.remove('active');
-            photoIntro.classList.add('hidden');
-            nextPanel.classList.add('hidden');
-            this.updateIdleNextMatchDisplay();
           }
+          if (plan.action === 'intro') this.updatePhotoIntro();
+          else if (plan.action === 'nextPanel') this.updateNextMatchPanel();
+          else if (plan.action === 'idle' || plan.action === 'idleDisplay') this.updateIdleNextMatchDisplay();
         }
 
         updateNextMatchPanel() {
-          if (!this.nextMatch) return;
-          const fA = this.nextMatch.fencerA || {};
-          const fB = this.nextMatch.fencerB || {};
-          const left  = this.inversionEnabled ? fA : fB;
-          const right = this.inversionEnabled ? fB : fA;
-
-          document.getElementById('next-name-a').textContent =
-            `${left.lastName || ''} ${left.firstName || ''}`.trim() || '-';
-          document.getElementById('next-name-b').textContent =
-            `${right.lastName || ''} ${right.firstName || ''}`.trim() || '-';
-
-          this.setNextFencerPhoto('a', left.photo);
-          this.setNextFencerPhoto('b', right.photo);
-
-          const refEl = document.getElementById('next-referee-name');
-          const refLabel = document.getElementById('next-referee-label');
-          const idleBanner = document.getElementById('idle-referee-banner');
-          const idleLabel = document.getElementById('idle-referee-label');
-          if (this.refereeFeatureEnabled && this.nextMatch.referee) {
-            const refName = this.nextMatch.referee.name;
-            if (refEl && refLabel) { refLabel.textContent = refName; refEl.classList.remove('hidden'); }
-            if (idleBanner && idleLabel) { idleLabel.textContent = refName; idleBanner.classList.remove('hidden'); }
-          } else {
-            if (refEl) refEl.classList.add('hidden');
-            if (idleBanner) idleBanner.classList.add('hidden');
-          }
+          BPArenaPanels.updateNextMatchPanel(document, this.nextMatch, this.inversionEnabled, this.refereeFeatureEnabled);
         }
 
-        setNextFencerPhoto(side, photoBase64) {
-          const img = document.getElementById(`next-photo-${side}`);
-          const icon = document.getElementById(`next-icon-${side}`);
-          if (photoBase64) {
-            img.src = photoBase64.startsWith('data:') ? photoBase64 : `data:image/jpeg;base64,${photoBase64}`;
-            img.style.display = 'block';
-            icon.style.display = 'none';
-          } else {
-            img.style.display = 'none';
-            icon.style.display = 'block';
-          }
+        setNextFencerPhoto(side, photo) {
+          BPArenaPanels.setPhoto(document, `next-photo-${side}`, `next-icon-${side}`, photo);
         }
 
         updatePhotoIntro() {
-          if (!this.currentMatch) return;
-          const fA = this.currentMatch.fencerA || {};
-          const fB = this.currentMatch.fencerB || {};
-
-          const left  = this.inversionEnabled ? fA : fB;
-          const right = this.inversionEnabled ? fB : fA;
-
-          document.getElementById('intro-name-a').textContent =
-            `${left.lastName || ''} ${left.firstName || ''}`.trim() || '-';
-          document.getElementById('intro-club-a').textContent = left.club || '';
-
-          document.getElementById('intro-name-b').textContent =
-            `${right.lastName || ''} ${right.firstName || ''}`.trim() || '-';
-          document.getElementById('intro-club-b').textContent = right.club || '';
-
-          this.setFencerPhoto('a', left.photo);
-          this.setFencerPhoto('b', right.photo);
+          BPArenaPanels.updatePhotoIntro(document, this.currentMatch, this.inversionEnabled);
         }
 
-        setFencerPhoto(side, photoBase64) {
-          const img = document.getElementById(`photo-${side}`);
-          const icon = document.getElementById(`default-icon-${side}`);
-          if (photoBase64) {
-            img.src = photoBase64.startsWith('data:') ? photoBase64 : `data:image/jpeg;base64,${photoBase64}`;
-            img.style.display = 'block';
-            icon.style.display = 'none';
-          } else {
-            img.style.display = 'none';
-            icon.style.display = 'block';
-          }
+        setFencerPhoto(side, photo) {
+          BPArenaPanels.setPhoto(document, `photo-${side}`, `default-icon-${side}`, photo);
         }
 
         updateIdleNextMatchDisplay() {
-          const preview = document.getElementById('next-idle-preview');
-          const idleNumber = document.getElementById('arena-idle-number');
-          const idleLabel = document.querySelector('.arena-idle-label');
-          if (this.nextMatch) {
-            const fA = this.nextMatch.fencerA || {};
-            const fB = this.nextMatch.fencerB || {};
-            const left  = this.inversionEnabled ? fA : fB;
-            const right = this.inversionEnabled ? fB : fA;
-            document.getElementById('idle-name-a').textContent =
-              `${left.lastName || ''} ${left.firstName || ''}`.trim() || '-';
-            document.getElementById('idle-club-a').textContent = left.club || '';
-            document.getElementById('idle-name-b').textContent =
-              `${right.lastName || ''} ${right.firstName || ''}`.trim() || '-';
-            document.getElementById('idle-club-b').textContent = right.club || '';
-            this.setIdleFencerPhoto('a', left.photo);
-            this.setIdleFencerPhoto('b', right.photo);
-            preview.classList.remove('hidden');
-            idleNumber.style.display = 'none';
-            if (idleLabel) idleLabel.style.display = 'none';
-          } else {
-            preview.classList.add('hidden');
-            idleNumber.style.display = '';
-            if (idleLabel) idleLabel.style.display = '';
-          }
+          BPArenaPanels.updateIdleNextMatchDisplay(document, this.nextMatch, this.inversionEnabled);
         }
 
-        setIdleFencerPhoto(side, photoBase64) {
-          const img = document.getElementById(`idle-photo-${side}`);
-          const icon = document.getElementById(`idle-icon-${side}`);
-          if (photoBase64) {
-            img.src = photoBase64.startsWith('data:') ? photoBase64 : `data:image/jpeg;base64,${photoBase64}`;
-            img.style.display = 'block';
-            icon.style.display = 'none';
-          } else {
-            img.style.display = 'none';
-            icon.style.display = 'block';
-          }
+        setIdleFencerPhoto(side, photo) {
+          BPArenaPanels.setPhoto(document, `idle-photo-${side}`, `idle-icon-${side}`, photo);
         }
       }
 
