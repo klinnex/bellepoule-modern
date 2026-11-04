@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 46 | 228 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 15 | 81 |
+| `src/remote/` | 16 | 86 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **231** | **1926** |
+| **Total** | **232** | **1931** |
 
-Unitaires : 222 fichiers, 1891 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 223 fichiers, 1896 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3920,6 +3920,18 @@ Unitaires : 222 fichiers, 1891 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - masque sans eta, sans match restant, sur erreur ou si désactivé
   - la case à cocher persiste l’option et rafraîchit
   - kiosk.html charge le module en script externe (CSP) sans code ETA inline
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeFaults.test.ts</code> — 5 tests</summary>
+
+- **refereeFaults.js**
+  - chaque groupe a une clé de libellé et des fautes avec key + fr
+  - clés de faute uniques et groupes olympiques 2-3
+  - cartons de passivité vs standard
+  - lastIndexWhere
+  - referee.html charge le module et ne redéfinit plus les constantes
 
 </details>
 

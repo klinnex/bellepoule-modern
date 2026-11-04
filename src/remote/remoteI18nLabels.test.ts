@@ -23,10 +23,11 @@ describe('kiosk.html : noms de poule traduits (#1213)', () => {
 
 describe('referee.html : raisons de carton avancé traduites (#1213)', () => {
   const html = read('referee.html');
-  const keys = [...html.matchAll(/\{ key: '(referee\.fault_[a-z]+_\d_\d{2})', fr: /g)].map(
+  const faults = read('js/refereeFaults.js'); // données extraites de referee.html (#1401)
+  const keys = [...faults.matchAll(/\{ key: '(referee\.fault_[a-z]+_\d_\d{2})', fr: /g)].map(
     m => m[1]
   );
-  const groupKeys = [...html.matchAll(/labelKey: '(referee\.fault_group_[a-z]+_\d)'/g)].map(
+  const groupKeys = [...faults.matchAll(/labelKey: '(referee\.fault_group_[a-z]+_\d)'/g)].map(
     m => m[1]
   );
 
@@ -39,7 +40,7 @@ describe('referee.html : raisons de carton avancé traduites (#1213)', () => {
 
   it('le texte français de la clé = valeur enregistrée', () => {
     const fr = loadLocale('fr');
-    for (const m of html.matchAll(/\{ key: '([^']+)', fr: (['"])(.*?)\2 \}/g)) {
+    for (const m of faults.matchAll(/\{ key: '([^']+)', fr: (['"])(.*?)\2 \}/g)) {
       expect(fr[m[1]]).toBe(m[3].replace(/\\"/g, '"'));
     }
   });
