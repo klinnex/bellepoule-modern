@@ -8,6 +8,7 @@
     <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/js/kioskBracketUtils.js"></script>
+    <script src="/js/kioskConfig.js"></script>
     <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts.css" />
     <style>
@@ -1676,26 +1677,14 @@
           : '';
 
         if (note.type === 'target_time' && note.targetTime) {
-          const [hh, mm] = note.targetTime.split(':').map(Number);
-          const fmtTime = String(hh).padStart(2, '0') + 'h' + String(mm).padStart(2, '0');
+          const { hh, mm, label: fmtTime } = KioskConfig.parseTargetTime(note.targetTime);
           document.getElementById('org-note-time').textContent =
             window.T('kiosk.resume_time', { prefix: note.countdownPrefix || window.T('kiosk.resume_at'), time: fmtTime });
 
           const computeCountdown = () => {
-            const now = new Date();
-            const target = new Date(now);
-            target.setHours(hh, mm, 0, 0);
-            if (target <= now) target.setDate(target.getDate() + 1);
-            const diffSec = Math.max(0, Math.floor((target.getTime() - now.getTime()) / 1000));
-            const m = Math.floor(diffSec / 60);
-            const s = diffSec % 60;
+            const diffSec = KioskConfig.secondsUntil(hh, mm, new Date());
             document.getElementById('org-note-countdown').textContent =
-              window.T('kiosk.countdown_prefix') +
-              ' ' +
-              m +
-              ' min ' +
-              String(s).padStart(2, '0') +
-              ' s';
+              KioskConfig.formatCountdown(window.T('kiosk.countdown_prefix'), diffSec);
             if (diffSec === 0) {
               clearInterval(_orgNoteInterval);
               overlay.classList.remove('visible');
@@ -1846,31 +1835,22 @@
       });
 
       // ─── Configuration locale des vues ───────────────────────────────────────
+      const localConfig = KioskConfig.createLocalConfig({
+        getItem: k => localStorage.getItem(k),
+        setItem: (k, v) => localStorage.setItem(k, v),
+      });
       function saveLocalViews() {
         const v = {};
         ALL_VIEWS.forEach(n => {
           v[n] = document.getElementById('cb-' + n).checked;
         });
-        localStorage.setItem('kioskViewsLocal', JSON.stringify(v));
+        localConfig.saveViews(v);
       }
-
-      function loadLocalViews() {
-        try {
-          const stored = localStorage.getItem('kioskViewsLocal');
-          if (stored) return JSON.parse(stored);
-        } catch {}
-        return null;
-      }
+      const loadLocalViews = () => localConfig.loadViews();
 
       // ─── Configuration locale du délai de rotation ───────────────────────────
-      function saveLocalRotation(sec) {
-        localStorage.setItem('kioskRotationSec', String(sec));
-      }
-
-      function loadLocalRotation() {
-        const v = parseInt(localStorage.getItem('kioskRotationSec'), 10);
-        return !isNaN(v) && v >= 3 ? v : 15;
-      }
+      const saveLocalRotation = sec => localConfig.saveRotation(sec);
+      const loadLocalRotation = () => localConfig.loadRotation();
 
       function applyLocalViews() {
         const enabled = ALL_VIEWS.filter(v => document.getElementById('cb-' + v).checked);
@@ -1915,13 +1895,8 @@
       });
 
       // Mode tableau DE
-      function saveLocalTableauMode(mode) {
-        localStorage.setItem('kioskTableauMode', mode);
-      }
-      function loadLocalTableauMode() {
-        const v = localStorage.getItem('kioskTableauMode');
-        return v === 'compact' || v === 'focus' || v === 'auto' || v === 'cinema' ? v : 'auto';
-      }
+      const saveLocalTableauMode = mode => localConfig.saveTableauMode(mode);
+      const loadLocalTableauMode = () => localConfig.loadTableauMode();
       function applyTableauMode(mode) {
         state.bracketDisplayMode = mode;
         document.querySelectorAll('input[name="tableau-mode"]').forEach(r => {
