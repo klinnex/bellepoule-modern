@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 46 | 228 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 20 | 117 |
+| `src/remote/` | 21 | 124 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **236** | **1963** |
+| **Total** | **237** | **1970** |
 
-Unitaires : 227 fichiers, 1928 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 228 fichiers, 1935 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3980,6 +3980,20 @@ Unitaires : 227 fichiers, 1928 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - masque sans eta, sans match restant, sur erreur ou si désactivé
   - la case à cocher persiste l’option et rafraîchit
   - kiosk.html charge le module en script externe (CSP) sans code ETA inline
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskRender.test.ts</code> — 7 tests</summary>
+
+- **kioskRender.js**
+  - isPoolComplete : indicateur serveur prioritaire, sinon matchs joués
+  - poolsHtml : message vide, sinon cartes avec rangs et statut
+  - poolsHtml : tout est échappé (XSS)
+  - rankingRowsHtml : attente, puis lignes avec indice signé
+  - formatBoutDuration
+  - trainingRowsHtml : vide, sinon ligne avec heure formatée et échappement
+  - kiosk.html charge le module
 
 </details>
 
