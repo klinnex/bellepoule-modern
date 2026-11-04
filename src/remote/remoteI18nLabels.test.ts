@@ -14,7 +14,7 @@ function loadLocale(lang: string): Record<string, string> {
 describe('kiosk.html : noms de poule traduits (#1213)', () => {
   const html = read('kiosk.html');
   it('cartes de poule : nom construit depuis le numéro', () => {
-    expect(html).toContain("tk('kiosk.pool_n', { n: pool.number })");
+    expect(read('js/kioskRender.js')).toContain("tk('kiosk.pool_n', { n: pool.number })");
   });
   it('prochains matchs : regroupement par numéro de poule traduit', () => {
     expect(html).toContain("tk('kiosk.pool_n', { n: m.poolNumber })");

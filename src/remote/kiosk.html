@@ -9,6 +9,7 @@
     <script src="/i18n.js"></script>
     <script src="/js/kioskBracketUtils.js"></script>
     <script src="/js/kioskConfig.js"></script>
+    <script src="/js/kioskRender.js"></script>
     <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts.css" />
     <style>
@@ -2050,62 +2051,11 @@
 
       // ─── Rendu Poules ────────────────────────────────────────────────────────
       function renderPools() {
-        const container = document.getElementById('pools-container');
         const pools = state.poolsData;
-
         document.getElementById('poules-badge').textContent = tk('kiosk.count_pools', {
           count: pools.length,
         });
-
-        if (!pools || pools.length === 0) {
-          container.innerHTML =
-            '<div class="no-data"><div class="no-data-icon">🤺</div><h3>' +
-            escHtml(tk('kiosk.no_pools')) +
-            '</h3><p>' +
-            escHtml(tk('kiosk.no_pools_hint')) +
-            '</p></div>';
-          return;
-        }
-
-        container.innerHTML = pools
-          .map(pool => {
-            const rankings = pool.rankings || [];
-            const expectedMatches = Math.max(0, rankings.length - 1);
-            const isComplete = typeof pool.isComplete === 'boolean' ? pool.isComplete // serveur : forfaits/abandons (#1144)
-              : rankings.length > 0 && rankings.every(r => (r.matchesPlayed || 0) >= expectedMatches);
-            const rows = rankings
-              .map((r, i) => {
-                const ind = (r.index >= 0 ? '+' : '') + (r.index || 0);
-                const rankClass = i < 3 ? ' rank-' + (i + 1) : '';
-                return `<tr>
-              <td class="rank-col${rankClass}">${i + 1}</td>
-              <td>
-                <span class="fencer-name">${escHtml(r.lastName)} ${escHtml(r.firstName || '')}</span><span class="fencer-club">${escHtml(r.club || '')}</span>
-              </td>
-              <td style="text-align:center;color:#94a3b8">${escHtml(r.matchesPlayed || 0)}</td>
-              <td class="victories">${escHtml(r.victories || 0)}</td>
-              <td class="ind" style="color:${r.index < 0 ? '#ef4444' : ''}">${escHtml(ind)}</td>
-              <td class="td">${escHtml(r.touchesFor || 0)}</td>
-            </tr>`;
-              })
-              .join('');
-
-            return `<div class="pool-card">
-            <div class="pool-card-header">
-              <h3>${escHtml(pool.number ? tk('kiosk.pool_n', { n: pool.number }) : pool.name || '')}</h3>
-              <span class="pool-pill ${isComplete ? '' : 'ongoing'}">${isComplete ? escHtml(tk('kiosk.status_finished')) : escHtml(tk('kiosk.status_ongoing'))}</span>
-            </div>
-            <table class="pool-table">
-              <thead>
-                <tr>
-                  <th>${escHtml(tk('kiosk.col_rank'))}</th><th>${escHtml(tk('kiosk.col_fencer'))}</th><th>M</th><th>V</th><th>${escHtml(tk('kiosk.col_index'))}</th><th>${escHtml(tk('kiosk.col_ts'))}</th>
-                </tr>
-              </thead>
-              <tbody>${/* html */ rows}</tbody>
-            </table>
-          </div>`;
-          })
-          .join('');
+        document.getElementById('pools-container').innerHTML = KioskRender.poolsHtml(pools, tk, escHtml);
       }
 
       // ─── Rendu Classement ────────────────────────────────────────────────────
@@ -2118,34 +2068,9 @@
           document.getElementById('classement-badge').textContent = tk('kiosk.count_bouts', {
             count: hist.length,
           });
-          if (!hist.length) {
-            tbody.innerHTML =
-              '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:3rem">' +
-              escHtml(tk('kiosk.no_finished_bout')) +
-              '</td></tr>';
-            return;
-          }
-          tbody.innerHTML = hist
-            .map(r => {
-              const dur =
-                r.durationSec > 0
-                  ? Math.floor(r.durationSec / 60) +
-                    ':' +
-                    String(r.durationSec % 60).padStart(2, '0')
-                  : '—';
-              const t = new Date(r.finishedAt).toLocaleTimeString('fr-FR', {
-                hour: '2-digit',
-                minute: '2-digit',
-              });
-              return `<tr>
-              <td style="color:#64748b;font-weight:700">P${escHtml(r.arenaNumber)}</td>
-              <td><div style="font-weight:600;font-size:1.1rem">${escHtml(r.scoreA)} — ${escHtml(r.scoreB)}</div></td>
-              <td style="color:#64748b;font-size:0.85rem">${escHtml(dur)}</td>
-              <td style="text-align:center;color:#94a3b8">${escHtml(t)}</td>
-              <td></td><td></td>
-            </tr>`;
-            })
-            .join('');
+          tbody.innerHTML = KioskRender.trainingRowsHtml(hist, tk, escHtml, iso =>
+            new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+          );
           return;
         }
 
@@ -2153,31 +2078,7 @@
         document.getElementById('classement-badge').textContent = tk('kiosk.count_fencers', {
           count: ranking.length,
         });
-
-        if (!ranking || ranking.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:3rem">' +
-            escHtml(tk('kiosk.waiting_results')) +
-            '</td></tr>';
-          return;
-        }
-
-        tbody.innerHTML = ranking
-          .map((r, i) => {
-            const ind = (r.index >= 0 ? '+' : '') + (r.index || 0);
-            const rankDisplay = `<span style="color:#64748b;font-weight:700">${i + 1}</span>`;
-            return `<tr>
-            <td>${/* html */ rankDisplay}</td>
-            <td>
-              <div style="font-weight:500">${escHtml(r.lastName)} ${escHtml(r.firstName || '')}</div>
-            </td>
-            <td style="color:#64748b;font-size:0.85rem">${escHtml(r.club || '—')}</td>
-            <td style="text-align:center;color:#10b981;font-weight:600">${escHtml(r.victories || 0)}</td>
-            <td style="text-align:center;color:${r.index < 0 ? '#ef4444' : '#60a5fa'}">${escHtml(ind)}</td>
-            <td style="text-align:center;color:#94a3b8">${escHtml(r.touchesFor || 0)}</td>
-          </tr>`;
-          })
-          .join('');
+        tbody.innerHTML = KioskRender.rankingRowsHtml(ranking, tk, escHtml);
       }
 
       // ─── Rendu Classement Final ──────────────────────────────────────────────
