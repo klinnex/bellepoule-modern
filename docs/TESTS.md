@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 46 | 228 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 14 | 72 |
+| `src/remote/` | 15 | 81 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **230** | **1917** |
+| **Total** | **231** | **1926** |
 
-Unitaires : 221 fichiers, 1882 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 222 fichiers, 1891 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3892,6 +3892,22 @@ Unitaires : 221 fichiers, 1882 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - thèmes valides, repli sur dark, mémorisation
   - thème personnalisé : variables et overlay, nettoyé au retour
   - arena.html charge le module avant le script de page
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskBracketUtils.test.ts</code> — 9 tests</summary>
+
+- **kioskBracketUtils.js**
+  - buildOverallRanking agrège les poules et trie victoires \> indice \> touches
+  - buildOverallRanking sans id : clé nom\_prénom
+  - sortBySeed ordonne selon le classement, inconnus en dernier
+  - getBracketRoundOrder : décroissant, petite finale en dernier
+  - getBracketDims : paliers de taille
+  - isFocusMode : forcé, interdit, auto selon le seuil
+  - buildCinemaFrames : ensemble puis plan par tour en cours, scan si trop haut
+  - buildCinemaFrames : aucun tour en cours -\> toutes les colonnes
+  - kiosk.html charge le module et ne redéfinit plus ces calculs
 
 </details>
 
