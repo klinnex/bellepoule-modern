@@ -135,7 +135,7 @@ async function main() {
     await click('text=✓ Tout pointer');
     await shot('04-appel');
 
-    await click('button:has-text("Générer les poules")');
+    await click('button:has-text("Préparer les poules")');
     await shot('05-preparation');
 
     await click('button:has-text("Lancer les poules")');

@@ -73,7 +73,15 @@ export interface TourHalo {
   green?: boolean;
 }
 
-export const TOUR_STEP_HALOS: Record<TourStepId, TourHalo[]> = {
+/** Clé de halos : une étape, ou l'onglet Préparation ouvert pendant l'étape des poules */
+export type TourHaloKey = TourStepId | 'launch';
+
+export function tourHaloKey(step: TourStepId | null, prepOpen: boolean): TourHaloKey | null {
+  return step === 'pools' && prepOpen ? 'launch' : step;
+}
+
+export const TOUR_STEP_HALOS: Record<TourHaloKey, TourHalo[]> = {
+  launch: [{ selector: '[data-tour="launch-pools"]', green: true }],
   fencers: [{ selector: '[data-tour="add-fencer"]' }, { selector: '[data-tour="import"]' }],
   checkin: [
     { selector: '[data-tour="check-in-all"]' },
