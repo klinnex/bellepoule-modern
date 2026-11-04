@@ -1,6 +1,6 @@
 # Traduction des pages distantes (plan, #1213)
 
-Les pages `src/remote/*.html` chargent `/i18n.js` (langues : **fr, en, de, es, ca, br, zh-HK**, comme l'application). La langue suit celle de l'application.
+Les pages `src/remote/*.html` chargent `/i18n.js` (langues : **fr, en, de, es, it, ca, br, zh-HK**, comme l'application). La langue suit celle de l'application.
 
 Traductions : un fichier par langue, `src/remote/i18n/<langue>.js` ; moteur (`T()`, `data-i18n*`) : `src/remote/i18n.js`. Le serveur distant sert `/i18n.js` = fichiers de langue + moteur concaténés (`src/main/remote/i18nBundle.ts`). Ajouter une langue = ajouter son fichier.
 

@@ -17,11 +17,12 @@ import frTranslations from '../locales/fr.json';
 import enTranslations from '../locales/en.json';
 import deTranslations from '../locales/de.json';
 import esTranslations from '../locales/es.json';
+import itTranslations from '../locales/it.json';
 import brTranslations from '../locales/br.json';
 import caTranslations from '../locales/ca.json';
 import zhHKTranslations from '../locales/zh-HK.json';
 
-export type Language = 'fr' | 'en' | 'br' | 'ca' | 'de' | 'es' | 'zh-HK';
+export type Language = 'fr' | 'en' | 'br' | 'ca' | 'de' | 'es' | 'it' | 'zh-HK';
 export type TranslationKey = string;
 export type Theme = 'light' | 'dark' | 'default';
 
@@ -104,6 +105,15 @@ const getFallbackTranslations = (language: Language): Translations => {
         loading: 'Cargando...',
       },
     },
+    it: {
+      app: { title: 'BellePoule Modern' },
+      menu: { new_competition: 'Nuova competizione' },
+      settings: { title: 'Impostazioni' },
+      messages: {
+        no_competitions: 'Nessuna competizione',
+        loading: 'Caricamento...',
+      },
+    },
     'zh-HK': {
       app: { title: 'BellePoule Modern' },
       menu: { new_competition: '新增比賽' },
@@ -122,6 +132,7 @@ const bundledTranslations: Record<Language, Translations> = {
   en: enTranslations as Translations,
   de: deTranslations as Translations,
   es: esTranslations as Translations,
+  it: itTranslations as Translations,
   br: brTranslations as Translations,
   ca: caTranslations as Translations,
   'zh-HK': zhHKTranslations as Translations,
@@ -259,11 +270,12 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
     availableLanguages: [
       { code: 'fr', name: 'Français', flag: '🇫🇷' },
       { code: 'en', name: 'English', flag: '🇺🇸' },
-      { code: 'br', name: 'Brezhoneg', flag: '🇫🇷' },
-      { code: 'ca', name: 'Català', flag: '🇪🇸' },
       { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
       { code: 'es', name: 'Español', flag: '🇪🇸' },
+      { code: 'it', name: 'Italiano', flag: '🇮🇹' },
       { code: 'zh-HK', name: '繁體中文', flag: '🇭🇰' },
+      { code: 'br', name: 'Brezhoneg', flag: '🇫🇷' },
+      { code: 'ca', name: 'Català', flag: '🇪🇸' },
     ],
     availableThemes: [
       { code: 'default', name: 'Default' },
