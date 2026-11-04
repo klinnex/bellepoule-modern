@@ -1295,6 +1295,7 @@
     "never_met": "這兩名劍手在本賽事中從未對賽。"
   },
   "fencerList": {
+    "col_nationality": "國籍",
     "import_menu": "📥 匯入 ▾",
     "import_xml_bp": "匯入 XML（BellePoule）",
     "import_fff": "匯入 FFE 名單（.fff）",

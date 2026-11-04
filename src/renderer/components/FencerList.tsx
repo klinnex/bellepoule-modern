@@ -16,9 +16,11 @@ import { isDns } from '../../shared/utils/forfeit';
 import { useConfirm } from './ConfirmDialog';
 import CoachMark from './CoachMark';
 import { useDebounce } from '../hooks/useDebounce';
+import { formatNationality } from '../../shared/utils/countries';
 import { MENU_ITEM, SMALL_BTN, W250, DROPDOWN_WRAP } from './fencerList.styles';
 
-type SortableCol = 'ref' | 'lastName' | 'firstName' | 'birthDate' | 'club' | 'ranking' | 'status';
+type SortableCol =
+  'ref' | 'lastName' | 'firstName' | 'birthDate' | 'club' | 'nationality' | 'ranking' | 'status';
 
 const COLUMNS = [
   { id: 'ref' as SortableCol, labelKey: 'fencerList.col_ref', width: '50px' },
@@ -26,6 +28,7 @@ const COLUMNS = [
   { id: 'firstName' as SortableCol, labelKey: 'fencerList.col_first_name' },
   { id: 'birthDate' as SortableCol, labelKey: 'fencerList.col_birth', width: '70px' },
   { id: 'club' as SortableCol, labelKey: 'fencerList.col_club' },
+  { id: 'nationality' as SortableCol, labelKey: 'fencerList.col_nationality', width: '110px' },
   { id: 'ranking' as SortableCol, labelKey: 'fencerList.col_ranking', width: '110px' },
   { id: 'status' as SortableCol, labelKey: 'fencerList.col_status', width: '90px' },
 ];
@@ -98,12 +101,20 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortableCol>('ranking');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [hiddenCols, setHiddenCols] = useState<Set<string>>(() => new Set(hiddenColumns ?? []));
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(
+    // Nationalité : colonne affichable, masquée par défaut (#1415)
+    () => new Set(hiddenColumns ?? ['nationality'])
+  );
   const [colOrder, setColOrder] = useState<SortableCol[]>(() => {
     try {
       const saved = localStorage.getItem('bellepoule-fencer-col-order');
       if (saved) {
-        const parsed = JSON.parse(saved) as SortableCol[];
+        const parsed = (JSON.parse(saved) as SortableCol[]).filter(id =>
+          COLUMNS.some(c => c.id === id)
+        );
+        // Colonne ajoutée depuis l'enregistrement (ex. nationalité) : insérée à sa place par défaut
+        if (!parsed.includes('nationality') && parsed.includes('club'))
+          parsed.splice(parsed.indexOf('club') + 1, 0, 'nationality');
         if (parsed.length === COLUMNS.length && COLUMNS.every(c => parsed.includes(c.id)))
           return parsed;
       }
@@ -208,6 +219,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             );
           case 'club':
             return dir * (a.club || '').localeCompare(b.club || '');
+          case 'nationality':
+            return dir * (a.nationality || '').localeCompare(b.nationality || '');
           case 'ranking':
             return dir * ((a.ranking ?? 99999) - (b.ranking ?? 99999));
           case 'status':
@@ -950,6 +963,12 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                           return (
                             <td key="club" className="text-sm text-muted">
                               {fencer.club || '-'}
+                            </td>
+                          );
+                        case 'nationality':
+                          return (
+                            <td key="nationality" className="text-sm text-muted">
+                              {formatNationality(fencer.nationality) || '-'}
                             </td>
                           );
                         case 'ranking':

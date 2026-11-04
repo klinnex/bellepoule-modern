@@ -1295,6 +1295,7 @@
     "never_met": "Ces deux tireurs ne se sont jamais affrontés dans cette compétition."
   },
   "fencerList": {
+    "col_nationality": "Nationalité",
     "import_menu": "📥 Importer ▾",
     "import_xml_bp": "Importer XML (BellePoule)",
     "import_fff": "Importer liste FFE (.fff)",

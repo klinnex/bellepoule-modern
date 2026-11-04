@@ -1295,6 +1295,7 @@
     "never_met": "Diese beiden Fechter sind in diesem Wettkampf nie aufeinandergetroffen."
   },
   "fencerList": {
+    "col_nationality": "Nationalität",
     "import_menu": "📥 Importieren ▾",
     "import_xml_bp": "XML importieren (BellePoule)",
     "import_fff": "FFE-Liste importieren (.fff)",
