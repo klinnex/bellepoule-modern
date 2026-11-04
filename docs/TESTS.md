@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 42 | 606 |
+| `src/shared/utils/` | 44 | 627 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -98,19 +98,37 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 41 | 325 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 45 | 214 |
+| `src/renderer/components/` | 46 | 228 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 14 | 72 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **227** | **1882** |
+| **Total** | **230** | **1917** |
 
-Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 221 fichiers, 1882 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
 ### `src/shared/utils/`
+
+<details>
+<summary><code>src/shared/utils/blackCardRanking.test.ts</code> — 10 tests</summary>
+
+- **isBlackCarded**
+  - exclusion avec motif black\_card uniquement
+- **applyBlackCardRanking**
+  - sans carton noir : liste inchangée
+  - le 2e exclu : 3e-\>2e, 4e-\>3e, 5e-\>4e, exclu en bas sans rang
+  - le vainqueur exclu : tous remontent
+  - le dernier exclu : les autres gardent leur rang
+  - ex aequo 3e derrière un exclu : départagés par le classement du tableau
+  - ex aequo 3e AU-DESSUS de l'exclu : inchangés
+  - plusieurs cartons noirs
+  - idempotent
+  - exclu simple (sans carton noir) : rang conservé
+
+</details>
 
 <details>
 <summary><code>src/shared/utils/bulkImport.test.ts</code> — 32 tests</summary>
@@ -261,6 +279,18 @@ Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - ne détecte pas de conflit si timestamps identiques
   - gère les listes vides
   - cas complexe avec tous types
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/countries.test.ts</code> — 5 tests</summary>
+
+- **countries**
+  - codes uniques et bien formés
+  - drapeau emoji depuis code CIO ou ISO2
+  - nom localisé et repli sur le code
+  - liste triée avec drapeaux
+  - formatNationality
 
 </details>
 
@@ -479,7 +509,7 @@ Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/forfeit.test.ts</code> — 16 tests</summary>
+<summary><code>src/shared/utils/forfeit.test.ts</code> — 19 tests</summary>
 
 - **hasStartedPoolMatch**
   - aucun match commencé
@@ -502,6 +532,11 @@ Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - DNS en poules (forfait ou médical)
   - DNF forfait/médical en poules
   - rang conservé pendant le tableau ou sans forfait
+- **specialStatusPatch (#1418)**
+  - médical / forfait : statut seul
+  - exclusion : carton noir seulement si confirmé
+- **finalRankLabel carton noir (#1418)**
+  - rang null : « - »
 
 </details>
 
@@ -570,7 +605,7 @@ Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 45 tests</summary>
+<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 47 tests</summary>
 
 - **exportRankingCSV**
   - includes header row
@@ -598,6 +633,9 @@ Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - maps EXCLUDED to X
   - maps FORFAIT to F
   - maps ELIMINATED to E
+  - **carton noir (#1418)**
+    - rang vide (NULL) pour le carton noir, les suivants remontent
+    - exclusion simple : rang conservé
 - **exportDetailedStatsCSV**
   - includes competition title in header
   - includes VMoy and DMoy columns
@@ -639,12 +677,13 @@ Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/pdfI18n.test.ts</code> — 4 tests</summary>
+<summary><code>src/shared/utils/pdfExport/pdfI18n.test.ts</code> — 5 tests</summary>
 
 - **pdfT**
   - sans traducteur : texte français, paramètres interpolés, lang fr
   - avec traducteur : langue active ; clé absente → repli français
   - chaque appel du code a sa clé dans fr.json, avec le même texte
+  - liste d’appel : colonne nationalité avec drapeau
   - PDF en anglais : aucun libellé français dans la liste d’appel et le classement
 
 </details>
@@ -3151,12 +3190,15 @@ Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/AddFencerModal.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/AddFencerModal.test.tsx</code> — 6 tests</summary>
 
 - **AddFencerModal**
   - ajoute un tireur avec nom en majuscules puis ferme
   - ne soumet pas sans nom/prénom
-  - le bouton annuler ferme la modale
+  - annuler efface les champs sans fermer la modale
+  - droitier par défaut, gaucher transmis
+  - Ajouter garde la modale ouverte et vide le formulaire
+  - la liste déroulante des nationalités sélectionne le code
 
 </details>
 
@@ -3226,7 +3268,7 @@ Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **CompetitionView**
   - affiche la navigation des phases, appel actif et poules verrouillées
   - sans élimination directe, la phase tableau est absente
-  - « Générer les poules » désactivé sous 4 tireurs pointés
+  - « Préparer les poules » désactivé sous 4 tireurs pointés
   - génère les poules, les persiste en base et passe en préparation
   - restaure la phase sauvegardée (session) et permet de revenir en arrière
   - cliquer une phase désactivée ne change pas de phase
@@ -3290,17 +3332,18 @@ Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/FencerList.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/FencerList.test.tsx</code> — 4 tests</summary>
 
 - **FencerList**
   - affiche les tireurs
   - filtre via la recherche (debounce)
+  - colonne nationalité masquée par défaut, affichable avec drapeau
   - le bouton ajouter déclenche onAddFencer
 
 </details>
 
 <details>
-<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 9 tests</summary>
+<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 12 tests</summary>
 
 - **GuidedTour**
   - se propose une fois sur une compétition vide
@@ -3312,6 +3355,9 @@ Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - revient à l’étape précédente avec le bouton Retour
   - entoure d’un halo les boutons utiles de l’étape
   - propose l’édition d’un match de tableau en dernière étape
+  - Suivant avance d’une étape, Retour revient
+  - refaire l’action après Retour fait avancer de nouveau
+  - étape poules : explication glisser-déposer et halo sur Lancer quand la préparation est ouverte
 
 </details>
 
@@ -3478,6 +3524,17 @@ Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/common/SpecialStatusPanel.test.tsx</code> — 4 tests</summary>
+
+- **SpecialStatusPanel**
+  - médical : confirme directement, sans question carton noir
+  - exclusion : question carton noir, Oui =\> blackCard true
+  - exclusion : Non =\> blackCard false
+  - tireur absent désactivé ; Annuler appelle onCancel
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/common/primitives.test.tsx</code> — 7 tests</summary>
 
 - **Modal**
@@ -3541,11 +3598,14 @@ Unitaires : 218 fichiers, 1847 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/pool/PoolSpecialStatusModal.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/pool/poolSpecialStatus.test.ts</code> — 5 tests</summary>
 
-- **PoolSpecialStatusModal**
-  - médical : titre et choix du tireur
-  - Annuler appelle onCancel ; tireur absent affiché « — »
+- **specialStatusOutcome**
+  - tireur de gauche exclu : B gagne, A à 0
+  - tireur de droite exclu, sans score : A gagne avec le score max
+  - affichage inversé : la gauche est B
+  - Sabre Laser forfait : garde ses points (max 14), adversaire à 15
+  - Sabre Laser exclusion : règle classique
 
 </details>
 

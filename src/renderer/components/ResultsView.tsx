@@ -9,6 +9,7 @@ import { Fencer, PoolRanking, Competition, FencerStatus } from '../../shared/typ
 import type { Pool } from '../../shared/types';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
+import { applyBlackCardRanking } from '../../shared/utils/blackCardRanking';
 import { exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import type { TableauMatchForPDF, FinalResultForPDF } from '../../shared/utils/pdfExport';
@@ -317,14 +318,14 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     };
   }, [isExportMenuOpen]);
 
-  const getMedalEmoji = (rank: number): string => {
+  const getMedalEmoji = (rank: number | null): string => {
     if (rank === 1) return '🥇';
     if (rank === 2) return '🥈';
     if (rank === 3) return '🥉';
     return '';
   };
 
-  const getRowStyle = (rank: number): React.CSSProperties => {
+  const getRowStyle = (rank: number | null): React.CSSProperties => {
     if (rank === 1) return { background: 'var(--color-gold-bg)', fontWeight: '600' };
     if (rank === 2) return { background: 'var(--color-silver-bg)', fontWeight: '500' };
     if (rank === 3) return { background: 'var(--color-bronze-bg)', fontWeight: '500' };
@@ -339,7 +340,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     return live ? { ...f, status: live.status, exclusionReason: live.exclusionReason } : f;
   };
 
-  const resultsToDisplay = (() => {
+  const baseResults = (() => {
     if (finalResults.length === 0) {
       return poolRanking.map((pr, idx) => {
         const fencer = freshFencer(pr.fencer);
@@ -359,6 +360,13 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       });
     return [...finalResults.map(r => ({ ...r, fencer: freshFencer(r.fencer) })), ...poolEliminated];
   })();
+
+  // Carton noir (#1418) : rang perdu (« - »), en bas de liste, les suivants remontent ;
+  // ex aequo départagés par le classement de composition du tableau (rang de poules)
+  const resultsToDisplay = applyBlackCardRanking(
+    baseResults,
+    new Map(poolRanking.map(pr => [pr.fencer.id, pr.rank]))
+  );
 
   // Export CSV
   const exportCSV = () => {
@@ -767,7 +775,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
             const text = resultsToDisplay
               .map(
                 r =>
-                  `${r.rank}. ${r.fencer.firstName} ${r.fencer.lastName} (${r.fencer.club || 'Sans club'})`
+                  `${r.rank ?? '-'}. ${r.fencer.firstName} ${r.fencer.lastName} (${r.fencer.club || 'Sans club'})`
               )
               .join('\n');
             navigator.clipboard.writeText(text);

@@ -68,10 +68,11 @@ export function poolEliminatedAt(fencer: Pick<Fencer, 'status'>): string {
  * sans numéro. Sortie pendant le tableau : numéro conservé.
  */
 export function finalRankLabel(
-  rank: number,
+  rank: number | null,
   fencer: Pick<Fencer, 'status' | 'exclusionReason'>,
   eliminatedAt?: string
 ): string {
+  if (rank === null) return '-'; // carton noir : classement perdu (#1418)
   if (!eliminatedAt?.startsWith('Poules')) return String(rank);
   if (isDns(fencer)) return 'DNS';
   if (isOut(fencer.status)) return 'DNF';
@@ -91,4 +92,17 @@ export function checkInStatusUpdate(
   if (status === FencerStatus.EXCLUDED) return { status };
   const exclusionReason = isOut(status) ? checkInForfeitReason(pools, fencerId) : null;
   return { status, exclusionReason };
+}
+
+/**
+ * Mise à jour du tireur pour un statut posé depuis un match (médical / forfait / exclusion).
+ * Exclusion : motif « carton noir » seulement si le DT l'a confirmé (#1418), sinon motif effacé.
+ */
+export function specialStatusPatch(
+  status: 'abandon' | 'forfait' | 'exclusion',
+  blackCard = false
+): Pick<Fencer, 'status'> & Partial<Pick<Fencer, 'exclusionReason'>> {
+  if (status === 'abandon') return { status: FencerStatus.ABANDONED };
+  if (status === 'forfait') return { status: FencerStatus.FORFAIT };
+  return { status: FencerStatus.EXCLUDED, exclusionReason: blackCard ? 'black_card' : null };
 }

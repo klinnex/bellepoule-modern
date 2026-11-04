@@ -606,6 +606,12 @@ const annotateSpecialStatus = (
   });
 };
 
+/** Finale jouée (vainqueur connu) et petite finale terminée si elle existe */
+export const isTableauDone = (matchList: TableauMatch[]): boolean => {
+  const third = matchList.find(m => m.round === 3);
+  return !!matchList.find(m => m.round === 2)?.winner && (!third || !!third.winner);
+};
+
 export const calculateFinalResults = (
   matchList: TableauMatch[],
   ranking: PoolRanking[],

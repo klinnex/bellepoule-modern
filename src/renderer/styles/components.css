@@ -630,12 +630,8 @@
   display: flex;
   gap: 0.4rem;
 }
-.guided-tour-actions .guided-tour-back {
-  flex: 0 0 33.33%;
-  width: auto;
-}
-.guided-tour-actions .guided-tour-action:not(.guided-tour-back) {
-  flex: 1;
+.guided-tour-actions .guided-tour-action {
+  flex: 1 1 50%;
   width: auto;
 }
 /* Halo pulsé sur les boutons utiles à l'étape en cours (bleu, ou vert pour valider) */
@@ -644,6 +640,77 @@
 }
 .tour-halo.tour-halo-green {
   animation-name: guided-tour-ring-green;
+}
+/* Case de poule de l'étape « Saisir les scores » : dégradé bleu vers blanc synchronisé au halo */
+.tour-halo[data-tour='pool-cell'] {
+  background-image: linear-gradient(135deg, #3b82f6, #dbeafe 55%, #ffffff) !important;
+  background-size: 250% 250%;
+  animation:
+    guided-tour-ring 1.8s ease-out infinite,
+    guided-tour-cell-fade 1.8s ease-in-out infinite;
+}
+@keyframes guided-tour-cell-fade {
+  0%,
+  100% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+}
+/* Maquette glisser-déposer (étape « Préparer et lancer les poules ») */
+.tour-drag {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+.tour-drag-pool {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border: 1px solid #93c5fd;
+  border-radius: 0.4rem;
+  background: #eff6ff;
+}
+.tour-drag-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.tour-drag-fencer,
+.tour-drag-slot {
+  height: 0.9rem;
+  border-radius: 0.25rem;
+  background: #60a5fa;
+}
+.tour-drag-slot {
+  border: 1px dashed #3b82f6;
+  background: transparent;
+}
+.tour-drag-moving {
+  background: #16a34a;
+  position: relative;
+  z-index: 1;
+  animation: guided-tour-drag 3s ease-in-out infinite;
+}
+@keyframes guided-tour-drag {
+  0%,
+  15% {
+    transform: translate(0, 0);
+    box-shadow: none;
+  }
+  45%,
+  70% {
+    transform: translate(calc(100% + 0.9rem), 1.15rem);
+    box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.35);
+  }
+  90%,
+  100% {
+    transform: translate(0, 0);
+    box-shadow: none;
+  }
 }
 @keyframes guided-tour-ring-green {
   0% {
@@ -810,7 +877,9 @@
   .guided-tour-step.is-current .guided-tour-bullet,
   .guided-tour-step.is-done .guided-tour-bullet,
   .phase-step.tour-highlight,
-  .tour-halo {
+  .tour-halo,
+  .tour-halo[data-tour='pool-cell'],
+  .tour-drag-moving {
     animation: none;
   }
 }

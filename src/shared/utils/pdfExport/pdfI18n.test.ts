@@ -98,6 +98,13 @@ describe('pdfT', () => {
     }
   });
 
+  it('liste d’appel : colonne nationalité avec drapeau', () => {
+    setPdfTranslator(translatorFor('en'), 'en');
+    const html = generateAppelHTML([fencer()], ['lastName', 'nationality'], 'Roll call');
+    expect(html).toContain('FRA');
+    expect(html).toContain('\u{1F1EB}\u{1F1F7}');
+  });
+
   it('PDF en anglais : aucun libellé français dans la liste d’appel et le classement', () => {
     setPdfTranslator(translatorFor('en'), 'en');
     const appel = generateAppelHTML(

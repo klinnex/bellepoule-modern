@@ -10,6 +10,7 @@ import { TableauMatch } from './tableauTypes';
 import { useTranslation } from '../../hooks/useTranslation';
 import { MedicalCrossIcon } from '../common/MedicalCrossIcon';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import SpecialStatusPanel from '../common/SpecialStatusPanel';
 import TiebreakerAnimation from '../TiebreakerAnimation';
 
 interface TableauScoreModalProps {
@@ -23,7 +24,11 @@ interface TableauScoreModalProps {
   modalRef: React.RefObject<HTMLDivElement | null>;
   onClose: () => void;
   onSubmit: () => void;
-  onSpecialStatus: (status: 'abandon' | 'forfait' | 'exclusion', fencerId: string) => void;
+  onSpecialStatus: (
+    status: 'abandon' | 'forfait' | 'exclusion',
+    fencerId: string,
+    blackCard?: boolean
+  ) => void;
   /** Annule le match (score effacé) — absent pour les barrages */
   onMatchCancel?: () => void;
   getRoundName: (round: number) => string;
@@ -33,18 +38,6 @@ interface TableauScoreModalProps {
   victoryB?: boolean;
   onVictoryChange?: (side: 'A' | 'B' | null) => void;
 }
-
-const STATUS_LABELS: Record<'abandon' | 'forfait' | 'exclusion', string> = {
-  abandon: 'tableauScore.abandon',
-  forfait: 'tableauScore.forfait',
-  exclusion: 'tableauScore.exclusion',
-};
-
-const STATUS_ACTION: Record<'abandon' | 'forfait' | 'exclusion', string> = {
-  abandon: 'tableauScore.who_abandon',
-  forfait: 'tableauScore.who_forfait',
-  exclusion: 'tableauScore.who_exclusion',
-};
 
 const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   match,
@@ -277,30 +270,15 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
               )}
             </div>
           ) : (
-            <div className="is-e2a8c5">
-              <p className="is-cfe518">
-                {t(STATUS_LABELS[pendingStatus])} — {t(STATUS_ACTION[pendingStatus])}
-              </p>
-              <div className="is-027866">
-                <button
-                  className="btn btn-danger"
-                  disabled={!match.fencerA}
-                  onClick={() => match.fencerA && onSpecialStatus(pendingStatus, match.fencerA.id)}
-                >
-                  {fencerName(match.fencerA) || '—'}
-                </button>
-                <button
-                  className="btn btn-danger"
-                  disabled={!match.fencerB}
-                  onClick={() => match.fencerB && onSpecialStatus(pendingStatus, match.fencerB.id)}
-                >
-                  {fencerName(match.fencerB) || '—'}
-                </button>
-                <button className="btn btn-secondary" onClick={() => setPendingStatus(null)}>
-                  {t('actions.cancel')}
-                </button>
-              </div>
-            </div>
+            <SpecialStatusPanel
+              status={pendingStatus}
+              fencers={[
+                match.fencerA ? { id: match.fencerA.id, name: fencerName(match.fencerA) } : null,
+                match.fencerB ? { id: match.fencerB.id, name: fencerName(match.fencerB) } : null,
+              ]}
+              onConfirm={(id, blackCard) => onSpecialStatus(pendingStatus, id, blackCard)}
+              onCancel={() => setPendingStatus(null)}
+            />
           )}
         </div>
         <div className="modal-footer is-40a237">

@@ -4,6 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import {
+  specialStatusPatch,
   hasStartedPoolMatch,
   checkInForfeitReason,
   checkInStatusUpdate,
@@ -125,5 +126,31 @@ describe('finalRankLabel', () => {
   it('rang conservé pendant le tableau ou sans forfait', () => {
     expect(finalRankLabel(5, f(FencerStatus.FORFAIT), 'Quarts de finale (forfait)')).toBe('5');
     expect(finalRankLabel(9, f(FencerStatus.CHECKED_IN), 'Poules')).toBe('9');
+  });
+});
+
+describe('specialStatusPatch (#1418)', () => {
+  it('médical / forfait : statut seul', () => {
+    expect(specialStatusPatch('abandon')).toEqual({ status: FencerStatus.ABANDONED });
+    expect(specialStatusPatch('forfait')).toEqual({ status: FencerStatus.FORFAIT });
+  });
+
+  it('exclusion : carton noir seulement si confirmé', () => {
+    expect(specialStatusPatch('exclusion', true)).toEqual({
+      status: FencerStatus.EXCLUDED,
+      exclusionReason: 'black_card',
+    });
+    expect(specialStatusPatch('exclusion')).toEqual({
+      status: FencerStatus.EXCLUDED,
+      exclusionReason: null,
+    });
+  });
+});
+
+describe('finalRankLabel carton noir (#1418)', () => {
+  it('rang null : « - »', () => {
+    expect(
+      finalRankLabel(null, { status: FencerStatus.EXCLUDED, exclusionReason: 'black_card' })
+    ).toBe('-');
   });
 });

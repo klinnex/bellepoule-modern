@@ -114,6 +114,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
             tableauMatches.filter(m => !m.isBye && m.scoreA != null && m.scoreB != null).length
           }
           remoteActive={remoteActive}
+          prepOpen={currentPhase === 'poolprep'}
         />
       )}
       {/* Navigation */}
@@ -210,6 +211,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
           {currentPhase === 'poolprep' && poolPrepLaunch && (
             <button
               className="btn btn-primary btn-icon-label"
+              data-tour="launch-pools"
               onClick={poolPrepLaunch.action}
               disabled={poolPrepLaunch.disabled}
               title={

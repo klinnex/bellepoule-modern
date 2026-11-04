@@ -8,6 +8,7 @@ import { Fencer } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
 import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
 import { getActiveLocale } from '../localeFormat';
+import { formatNationality } from '../countries';
 
 // ─── Export Liste d'Appel ──────────────────────────────────────────────────────
 
@@ -17,6 +18,7 @@ const APPEL_COL_HEADERS = (): Record<string, string> => ({
   firstName: pdfT('col_first_name', 'Prénom'),
   birthDate: pdfT('col_born', 'Né(e)'),
   club: pdfT('col_club', 'Club'),
+  nationality: pdfT('col_nation', 'Nation'),
   ranking: pdfT('col_ranking', 'Classement'),
   status: pdfT('col_status', 'Statut'),
 });
@@ -43,6 +45,8 @@ function getFencerCellValue(fencer: Fencer, col: string): string {
       return fencer.birthDate ? String(new Date(fencer.birthDate).getFullYear()) : '-';
     case 'club':
       return fencer.club || '-';
+    case 'nationality':
+      return formatNationality(fencer.nationality) || '-';
     case 'ranking':
       return fencer.ranking ? `#${fencer.ranking}` : '-';
     case 'status':

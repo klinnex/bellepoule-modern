@@ -21,7 +21,8 @@ import { statusCode, finalRankLabel } from '../forfeit';
 // ─── Export Résultats Finaux ───────────────────────────────────────────────────
 
 export interface FinalResultForPDF {
-  rank: number;
+  /** null : classement perdu (carton noir, #1418) */
+  rank: number | null;
   fencer: Fencer;
   eliminatedAt?: string;
 }
@@ -41,7 +42,7 @@ export function generateResultsHTML(
 
   const rows = results
     .map(r => {
-      const medal = medals[r.rank] ?? '';
+      const medal = medals[r.rank ?? 0] ?? '';
       const status =
         r.fencer.status === FencerStatus.ABANDONED || r.fencer.status === FencerStatus.FORFAIT
           ? ` <span style="color:#ef4444;font-size:8pt">(${statusCode(r.fencer.status)})</span>`

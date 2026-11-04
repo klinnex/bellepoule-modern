@@ -41,7 +41,7 @@ test.describe('Pool Management', () => {
     await page.locator('.fencer-checkbox').first().check();
 
     // Generate pools
-    await page.click('text=Générer les poules, text=Generate Pools');
+    await page.click('text=Préparer les poules, text=Prepare pools');
 
     // Verify pools were created
     await expect(page.locator('.pool')).toBeVisible();

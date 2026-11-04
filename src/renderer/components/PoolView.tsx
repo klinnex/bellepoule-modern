@@ -35,9 +35,12 @@ import Confetti from './Confetti';
 import AddFencerToPoolModal from './AddFencerToPoolModal';
 import { MatchAuditLog } from './MatchAuditLog';
 import { MedicalCrossIcon } from './common/MedicalCrossIcon';
-import PoolSpecialStatusModal, { type PoolSpecialStatus } from './pool/PoolSpecialStatusModal';
+import SpecialStatusPanel, {
+  type SpecialStatus as PoolSpecialStatus,
+  type SpecialStatusFencer,
+} from './common/SpecialStatusPanel';
 import { autoAssignReferees } from '../../shared/utils/refereeStats';
-import { LASER_FORFEIT_WINNER_SCORE } from '../../shared/utils/poolCalculations';
+import { specialStatusOutcome } from './pool/poolSpecialStatus';
 import {
   SPECIAL_BTN,
   ROW_BETWEEN,
@@ -89,7 +92,11 @@ interface PoolViewProps {
   onMatchReset?: (matchIndex: number) => void;
   onMatchCancel?: (matchIndex: number) => void;
   onFencerChangePool?: (fencer: Fencer) => void;
-  onFencerStatusChange?: (fencerId: string, status: 'abandon' | 'forfait' | 'exclusion') => void;
+  onFencerStatusChange?: (
+    fencerId: string,
+    status: 'abandon' | 'forfait' | 'exclusion',
+    blackCard?: boolean
+  ) => void;
   onFencerAdded?: (updatedPool: Pool) => void;
   assignedFencerIds?: ReadonlySet<string>;
   arenaCount?: number;
@@ -119,6 +126,15 @@ interface PoolViewProps {
 }
 
 type ViewMode = 'grid' | 'matches';
+
+const specialStatusFencers = (
+  left?: Fencer | null,
+  right?: Fencer | null
+): [SpecialStatusFencer | null, SpecialStatusFencer | null] => {
+  const toItem = (f?: Fencer | null) =>
+    f ? { id: f.id, name: `${f.lastName} ${f.firstName ?? ''}`.trim() } : null;
+  return [toItem(left), toItem(right)];
+};
 
 const PoolViewComponent: React.FC<PoolViewProps> = ({
   pool,
@@ -905,7 +921,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   };
 
   // Le référent a désigné le combattant concerné (côté affiché) dans la modale
-  const applySpecialStatus = (side: 'left' | 'right') => {
+  const applySpecialStatus = (side: 'left' | 'right', blackCard = false) => {
     const status = pendingSpecialStatus;
     if (status === null || editingMatch === null) {
       setPendingSpecialStatus(null);
@@ -913,59 +929,21 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     }
 
     const match = pool.matches[editingMatch];
-    // Respecter l'ordre d'affichage : le tireur affiché à gauche est "fencerLeft"
-    const fencerLeft = isMatchInverted ? match.fencerB : match.fencerA;
-    const fencerRight = isMatchInverted ? match.fencerA : match.fencerB;
-
-    // Sabre Laser (forfait/abandon) : le forfait perd en conservant les points qu'il
-    // vient de marquer, son adversaire obtient 15 points.
-    if (isLaserSabre && status !== 'exclusion') {
-      const leftForfeits = side === 'left';
-      const forfeiterPoints = Math.min(
-        parseInt(leftForfeits ? editScoreA : editScoreB, 10) || 0,
-        LASER_FORFEIT_WINNER_SCORE - 1
-      );
-      const leftScore = leftForfeits ? forfeiterPoints : LASER_FORFEIT_WINNER_SCORE;
-      const rightScore = leftForfeits ? LASER_FORFEIT_WINNER_SCORE : forfeiterPoints;
-      const winnerIsLeft = !leftForfeits;
-      const winner: 'A' | 'B' = isMatchInverted === winnerIsLeft ? 'B' : 'A';
-      onScoreUpdate(
-        editingMatch,
-        isMatchInverted ? rightScore : leftScore,
-        isMatchInverted ? leftScore : rightScore,
-        winner,
-        status
-      );
-      const forfeiter = leftForfeits ? fencerLeft : fencerRight;
-      if (onFencerStatusChange && forfeiter) {
-        onFencerStatusChange(forfeiter.id, status);
-      }
-    } else if (side === 'left') {
-      // Le tireur affiché à gauche abandonne
-      const winner: 'A' | 'B' = isMatchInverted ? 'A' : 'B';
-      onScoreUpdate(
-        editingMatch,
-        isMatchInverted ? match.scoreA?.value || maxScore : 0,
-        isMatchInverted ? 0 : match.scoreB?.value || maxScore,
-        winner,
-        status
-      );
-      if (onFencerStatusChange && fencerLeft) {
-        onFencerStatusChange(fencerLeft.id, status);
-      }
-    } else {
-      // Le tireur affiché à droite abandonne
-      const winner: 'A' | 'B' = isMatchInverted ? 'B' : 'A';
-      onScoreUpdate(
-        editingMatch,
-        isMatchInverted ? 0 : match.scoreA?.value || maxScore,
-        isMatchInverted ? match.scoreB?.value || maxScore : 0,
-        winner,
-        status
-      );
-      if (onFencerStatusChange && fencerRight) {
-        onFencerStatusChange(fencerRight.id, status);
-      }
+    const out = specialStatusOutcome({
+      side,
+      inverted: isMatchInverted,
+      status,
+      isLaserSabre,
+      editScoreLeft: editScoreA,
+      editScoreRight: editScoreB,
+      scoreA: match.scoreA?.value,
+      scoreB: match.scoreB?.value,
+      maxScore,
+    });
+    onScoreUpdate(editingMatch, out.scoreA, out.scoreB, out.winner, status);
+    const loserFencer = out.loser === 'A' ? match.fencerA : match.fencerB;
+    if (onFencerStatusChange && loserFencer) {
+      onFencerStatusChange(loserFencer.id, status, blackCard);
     }
 
     // Forcer la mise à jour de l'ordre des matchs
@@ -1269,43 +1247,61 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               <p className="text-sm text-muted is-b92227">{t('poolView.tie_hint')}</p>
             )}
 
+            {/* Choix du tireur concerné : même affichage que le tableau, sans pop-up (#1418) */}
+            {pendingSpecialStatus !== null && editingMatch !== null && (
+              <SpecialStatusPanel
+                status={pendingSpecialStatus}
+                fencers={specialStatusFencers(
+                  pool.matches[editingMatch][isMatchInverted ? 'fencerB' : 'fencerA'],
+                  pool.matches[editingMatch][isMatchInverted ? 'fencerA' : 'fencerB']
+                )}
+                onConfirm={(id, blackCard) => {
+                  const m = pool.matches[editingMatch];
+                  const leftId = (isMatchInverted ? m.fencerB : m.fencerA)?.id;
+                  applySpecialStatus(id === leftId ? 'left' : 'right', blackCard);
+                }}
+                onCancel={() => setPendingSpecialStatus(null)}
+              />
+            )}
             {/* Boutons spéciaux sur une ligne */}
-            <div style={SPECIAL_ROW}>
-              <button
-                className="btn btn-warning"
-                onClick={() => handleSpecialStatus('abandon')}
-                style={SPECIAL_BTN}
-              >
-                <MedicalCrossIcon /> {t('poolView.btn_abandon')}
-              </button>
-              <button
-                className="btn btn-warning"
-                onClick={() => handleSpecialStatus('forfait')}
-                style={SPECIAL_BTN}
-              >
-                {t('poolView.btn_forfeit')}
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={() => handleSpecialStatus('exclusion')}
-                style={SPECIAL_BTN}
-              >
-                {t('poolView.btn_exclusion')}
-              </button>
-              {onMatchCancel && editingMatch !== null && (
+            {pendingSpecialStatus === null && (
+              <div style={SPECIAL_ROW}>
                 <button
-                  className="btn btn-secondary"
-                  onClick={() => {
-                    if (editingMatch === null) return;
-                    onMatchCancel(editingMatch);
-                    closeAndResetScoreModal();
-                  }}
+                  className="btn btn-warning"
+                  onClick={() => handleSpecialStatus('abandon')}
                   style={SPECIAL_BTN}
                 >
-                  {t('poolView.btn_cancel_match')}
+                  <MedicalCrossIcon /> {t('poolView.btn_abandon')}
                 </button>
-              )}
-            </div>
+                <button
+                  className="btn btn-warning"
+                  onClick={() => handleSpecialStatus('forfait')}
+                  style={SPECIAL_BTN}
+                >
+                  {t('poolView.btn_forfeit')}
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => handleSpecialStatus('exclusion')}
+                  style={SPECIAL_BTN}
+                >
+                  {t('poolView.btn_exclusion')}
+                </button>
+                {onMatchCancel && editingMatch !== null && (
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      if (editingMatch === null) return;
+                      onMatchCancel(editingMatch);
+                      closeAndResetScoreModal();
+                    }}
+                    style={SPECIAL_BTN}
+                  >
+                    {t('poolView.btn_cancel_match')}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           <div className="modal-footer" style={FOOTER_RIGHT}>
             <button
@@ -1689,15 +1685,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             />
           )}
           {renderScoreModal()}
-          {pendingSpecialStatus !== null && editingMatch !== null && (
-            <PoolSpecialStatusModal
-              status={pendingSpecialStatus}
-              fencerLeft={pool.matches[editingMatch][isMatchInverted ? 'fencerB' : 'fencerA']}
-              fencerRight={pool.matches[editingMatch][isMatchInverted ? 'fencerA' : 'fencerB']}
-              onPick={applySpecialStatus}
-              onCancel={() => setPendingSpecialStatus(null)}
-            />
-          )}
         </div>
       </div>
       {showAddFencerModal && competitionId && (
