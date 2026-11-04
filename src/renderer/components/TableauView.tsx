@@ -63,6 +63,7 @@ import {
   placeBarrageWinners,
   syncConsolationBrackets,
   calculateFinalResults,
+  isTableauDone,
   buildCombinedResults,
   calculateMatchVerticalPosition,
 } from './tableau/tableauCalculations';
@@ -87,6 +88,8 @@ interface TableauViewProps {
   onMatchesChange: (matches: TableauMatch[]) => void;
   maxScore?: number;
   onComplete?: (results: FinalResult[]) => void;
+  /** Exclusion avec carton noir confirmé par le DT (#1418) : le tireur perd son classement */
+  onBlackCard?: (fencerId: string) => void;
   thirdPlaceMatch?: boolean;
   playAllPositions?: boolean;
   arenaCount?: number;
@@ -230,6 +233,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   onMatchesChange,
   maxScore = 15,
   onComplete: onCompleteProp,
+  onBlackCard,
   thirdPlaceMatch = false,
   playAllPositions = false,
   arenaCount = 4,
@@ -777,10 +781,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     showToast(t('plural.scores_generated', { count: filledCount }), 'success');
 
     // Vérifier si le tableau est complet
-    const champion = updatedMatches.find(m => m.round === 2)?.winner;
-    const autoFillThirdPlace = updatedMatches.find(m => m.round === 3);
-    const autoFillThirdDone = !autoFillThirdPlace || !!autoFillThirdPlace.winner;
-    if (champion && autoFillThirdDone && onComplete) {
+    if (isTableauDone(updatedMatches) && onComplete) {
       const finalResults = calculateFinalResults(updatedMatches, ranking, tableauSize);
       onComplete(finalResults);
     }
@@ -874,10 +875,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     onMatchesChange(matchesCopy);
 
     // Vérifier si le tableau est complet (finale + petite finale si elle existe)
-    const champion = updatedMatches.find(m => m.round === 2)?.winner;
-    const thirdPlaceMatch = updatedMatches.find(m => m.round === 3);
-    const thirdPlaceDone = !thirdPlaceMatch || !!thirdPlaceMatch.winner;
-    if (champion && thirdPlaceDone && onComplete && !playAllPositions) {
+    if (isTableauDone(updatedMatches) && onComplete && !playAllPositions) {
       const finalResults = calculateFinalResults(updatedMatches, ranking, tableauSize);
       onComplete(finalResults);
     }
@@ -988,8 +986,13 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     return () => window.removeEventListener('keydown', handler);
   }, [handlePrintClick]);
 
-  const handleSpecialStatus = (status: 'abandon' | 'forfait' | 'exclusion', fencerId: string) => {
+  const handleSpecialStatus = (
+    status: 'abandon' | 'forfait' | 'exclusion',
+    fencerId: string,
+    blackCard = false
+  ) => {
     if (!editingMatch) return;
+    if (status === 'exclusion' && blackCard) onBlackCard?.(fencerId);
 
     // L'adversaire du tireur sélectionné (qui abandonne / forfait / est exclu) gagne
     const opponentWinner = (m: { fencerA?: Fencer | null; fencerB?: Fencer | null }) => {
@@ -1042,10 +1045,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     onMatchesChange([...updatedMatches]);
 
     // Vérifier si le tableau est complet après statut spécial
-    const specialChampion = updatedMatches.find(m => m.round === 2)?.winner;
-    const specialThirdPlace = updatedMatches.find(m => m.round === 3);
-    const specialThirdDone = !specialThirdPlace || !!specialThirdPlace.winner;
-    if (specialChampion && specialThirdDone && onComplete) {
+    if (isTableauDone(updatedMatches) && onComplete) {
       onComplete(calculateFinalResults(updatedMatches, ranking, tableauSize));
     }
 

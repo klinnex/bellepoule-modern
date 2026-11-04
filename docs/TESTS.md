@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 42 | 606 |
+| `src/shared/utils/` | 42 | 608 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 41 | 325 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 45 | 214 |
+| `src/renderer/components/` | 46 | 221 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 13 | 67 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **226** | **1877** |
+| **Total** | **227** | **1886** |
 
-Unitaires : 217 fichiers, 1842 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 218 fichiers, 1851 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -479,7 +479,7 @@ Unitaires : 217 fichiers, 1842 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/forfeit.test.ts</code> — 16 tests</summary>
+<summary><code>src/shared/utils/forfeit.test.ts</code> — 18 tests</summary>
 
 - **hasStartedPoolMatch**
   - aucun match commencé
@@ -502,6 +502,9 @@ Unitaires : 217 fichiers, 1842 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - DNS en poules (forfait ou médical)
   - DNF forfait/médical en poules
   - rang conservé pendant le tableau ou sans forfait
+- **specialStatusPatch (#1418)**
+  - médical / forfait : statut seul
+  - exclusion : carton noir seulement si confirmé
 
 </details>
 
@@ -3478,6 +3481,17 @@ Unitaires : 217 fichiers, 1842 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/common/SpecialStatusPanel.test.tsx</code> — 4 tests</summary>
+
+- **SpecialStatusPanel**
+  - médical : confirme directement, sans question carton noir
+  - exclusion : question carton noir, Oui =\> blackCard true
+  - exclusion : Non =\> blackCard false
+  - tireur absent désactivé ; Annuler appelle onCancel
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/common/primitives.test.tsx</code> — 7 tests</summary>
 
 - **Modal**
@@ -3541,11 +3555,14 @@ Unitaires : 217 fichiers, 1842 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/pool/PoolSpecialStatusModal.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/pool/poolSpecialStatus.test.ts</code> — 5 tests</summary>
 
-- **PoolSpecialStatusModal**
-  - médical : titre et choix du tireur
-  - Annuler appelle onCancel ; tireur absent affiché « — »
+- **specialStatusOutcome**
+  - tireur de gauche exclu : B gagne, A à 0
+  - tireur de droite exclu, sans score : A gagne avec le score max
+  - affichage inversé : la gauche est B
+  - Sabre Laser forfait : garde ses points (max 14), adversaire à 15
+  - Sabre Laser exclusion : règle classique
 
 </details>
 

@@ -2270,6 +2270,7 @@
     "who_abandon": "Welcher Fechter scheidet aus medizinischen Gründen aus?",
     "who_forfait": "Welcher Fechter tritt nicht an?",
     "who_exclusion": "Welcher Fechter wird ausgeschlossen?",
+    "black_card_question": "Schwarze Karte?",
     "tie_hint": "Gleichstand: Sieger wählen oder auslosen",
     "coin_flip": "Auslosen"
   },

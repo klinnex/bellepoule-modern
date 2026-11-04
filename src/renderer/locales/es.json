@@ -2270,6 +2270,7 @@
     "who_abandon": "¿Qué tirador se retira por motivos médicos?",
     "who_forfait": "¿Qué tirador declara forfait?",
     "who_exclusion": "¿Qué tirador es excluido?",
+    "black_card_question": "¿Tarjeta negra?",
     "tie_hint": "Empate: elija al vencedor o haga un sorteo",
     "coin_flip": "Sorteo"
   },
