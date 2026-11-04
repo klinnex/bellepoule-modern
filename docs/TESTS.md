@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 41 | 325 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 45 | 214 |
+| `src/renderer/components/` | 45 | 216 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 13 | 67 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **226** | **1877** |
+| **Total** | **226** | **1879** |
 
-Unitaires : 217 fichiers, 1842 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 217 fichiers, 1844 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3151,12 +3151,14 @@ Unitaires : 217 fichiers, 1842 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/AddFencerModal.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/AddFencerModal.test.tsx</code> — 5 tests</summary>
 
 - **AddFencerModal**
   - ajoute un tireur avec nom en majuscules puis ferme
   - ne soumet pas sans nom/prénom
-  - le bouton annuler ferme la modale
+  - annuler efface les champs sans fermer la modale
+  - droitier par défaut, gaucher transmis
+  - Ajouter garde la modale ouverte et vide le formulaire
 
 </details>
 

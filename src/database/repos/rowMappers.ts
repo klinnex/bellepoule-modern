@@ -99,6 +99,7 @@ export function parseFencerRow(row: any): Fencer {
     license: row.license as string,
     ranking: row.ranking as number,
     status: row.status as FencerStatus,
+    handedness: row.handedness === 'L' ? 'L' : 'R',
     exclusionReason: (row.exclusion_reason as ExclusionReason) || undefined,
     seedNumber: row.seed_number as number,
     finalRanking: row.final_ranking as number,

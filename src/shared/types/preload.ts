@@ -81,6 +81,7 @@ export interface FencerUpdateData {
   ranking?: number;
   status?: string;
   photo?: string;
+  handedness?: 'R' | 'L';
   exclusionReason?: 'black_card' | 'dns' | null;
 }
 
