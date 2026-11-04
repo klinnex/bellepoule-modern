@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 43 | 611 |
+| `src/shared/utils/` | 43 | 612 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 41 | 325 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 45 | 217 |
+| `src/renderer/components/` | 45 | 218 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 13 | 67 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **227** | **1885** |
+| **Total** | **227** | **1887** |
 
-Unitaires : 218 fichiers, 1850 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 218 fichiers, 1852 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -651,12 +651,13 @@ Unitaires : 218 fichiers, 1850 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/pdfI18n.test.ts</code> — 4 tests</summary>
+<summary><code>src/shared/utils/pdfExport/pdfI18n.test.ts</code> — 5 tests</summary>
 
 - **pdfT**
   - sans traducteur : texte français, paramètres interpolés, lang fr
   - avec traducteur : langue active ; clé absente → repli français
   - chaque appel du code a sa clé dans fr.json, avec le même texte
+  - liste d’appel : colonne nationalité avec drapeau
   - PDF en anglais : aucun libellé français dans la liste d’appel et le classement
 
 </details>
@@ -3305,11 +3306,12 @@ Unitaires : 218 fichiers, 1850 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/FencerList.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/FencerList.test.tsx</code> — 4 tests</summary>
 
 - **FencerList**
   - affiche les tireurs
   - filtre via la recherche (debounce)
+  - colonne nationalité masquée par défaut, affichable avec drapeau
   - le bouton ajouter déclenche onAddFencer
 
 </details>
