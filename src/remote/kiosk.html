@@ -7,6 +7,7 @@
     <script src="/socket.io.min.js"></script>
     <script src="/common.js"></script>
     <script src="/i18n.js"></script>
+    <script src="/js/kioskBracketUtils.js"></script>
     <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts.css" />
     <style>
@@ -2069,34 +2070,7 @@
 
       // ─── Classement général (agrégation des poules) ──────────────────────────
       function buildOverallRanking() {
-        const map = new Map();
-        for (const pool of state.poolsData) {
-          for (const r of pool.rankings || []) {
-            const key = r.id || r.lastName + '_' + r.firstName;
-            if (!map.has(key)) {
-              map.set(key, {
-                ...r,
-                victories: 0,
-                index: 0,
-                touchesFor: 0,
-                touchesAgainst: 0,
-                matchCount: 0,
-              });
-            }
-            const entry = map.get(key);
-            entry.victories += r.victories || 0;
-            entry.index += r.index || 0;
-            entry.touchesFor += r.touchesFor || 0;
-            entry.touchesAgainst += r.touchesAgainst || 0;
-            entry.matchCount += r.matchCount || 0;
-          }
-        }
-
-        state.overallRanking = Array.from(map.values()).sort((a, b) => {
-          if (b.victories !== a.victories) return b.victories - a.victories;
-          if (b.index !== a.index) return b.index - a.index;
-          return b.touchesFor - a.touchesFor;
-        });
+        state.overallRanking = KioskBracket.buildOverallRanking(state.poolsData);
       }
 
       // ─── Rendu Poules ────────────────────────────────────────────────────────
@@ -2233,12 +2207,7 @@
 
       // ─── Rendu Classement Final ──────────────────────────────────────────────
       // Ordre du classement général des poules (meilleur classé d'abord)
-      function sortBySeed(fencers) {
-        const seed = new Map(
-          (state.overallRanking || []).map((r, i) => [r.fencerId ?? r.fencer?.id ?? r.id, i])
-        );
-        return [...fencers].sort((a, b) => (seed.get(a.id) ?? 9999) - (seed.get(b.id) ?? 9999));
-      }
+      const sortBySeed = fencers => KioskBracket.sortBySeed(fencers, state.overallRanking);
 
       function renderFinalRanking() {
         const el = document.getElementById('final-ranking-body');
@@ -2571,7 +2540,6 @@
       }
 
       // ─── Focus-round mode (grands tableaux T32+) ────────────────────────
-      const FOCUS_THRESHOLD = 16; // nbre de matchs en 1er round au-delà duquel on bascule
 
       const focusState = {
         rounds: [],
@@ -2593,17 +2561,7 @@
         scanFrac: 0.55, // part du temps consacrée au défilement vertical d'un round
       };
 
-      function isFocusMode(data) {
-        if (!data?.rounds?.length) return false;
-        if (state.bracketDisplayMode === 'focus') return true;
-        if (state.bracketDisplayMode === 'compact') return false;
-        if (state.bracketDisplayMode === 'cinema') return false;
-        // auto: focus si premier round > seuil
-        const orderedRounds = getBracketRoundOrder(data.rounds);
-        if (!orderedRounds.length) return false;
-        const firstMatchCount = orderedRounds[0].round / 2;
-        return firstMatchCount > FOCUS_THRESHOLD;
-      }
+      const isFocusMode = data => KioskBracket.isFocusMode(data, state.bracketDisplayMode);
 
       function startFocusMode(data) {
         document.getElementById('bracket-outer').style.display = 'none';
@@ -2660,61 +2618,8 @@
       }
 
       // ─── Mode ciné : pan-zoom automatique sur le tableau complet ───────────
-      function clampNum(v, lo, hi) {
-        return Math.max(lo, Math.min(hi, v));
-      }
 
-      function buildCinemaFrames(L, vw, vh) {
-        const frames = [];
-        const overviewScale = Math.min(vw / L.totalW, vh / L.innerH) * 0.95;
-
-        // 1. Vue d'ensemble du tableau entier
-        frames.push({
-          tx: (vw - L.totalW * overviewScale) / 2,
-          ty: (vh - L.innerH * overviewScale) / 2,
-          scale: overviewScale,
-          transMs: 1200,
-          holdMs: cinemaState.overviewMs,
-        });
-
-        // 2. Un (ou deux) plan(s) par round actif : zoom lisible + scan vertical.
-        // Une phase dont tous les matchs sont joués est ignorée (#1139).
-        const activeCols = [];
-        (L.orderedRounds || []).forEach((rd, ci) => {
-          const ongoing = rd.matches.some(
-            m => !m.isBye && m.fencerA && m.fencerB && m.status !== 'finished'
-          );
-          if (ongoing) activeCols.push(ci);
-        });
-        if (activeCols.length === 0) L.colX.forEach((_, ci) => activeCols.push(ci));
-        for (const i of activeCols) {
-          const colCenterX = L.colX[i] + L.cardW / 2;
-          // Largeur de colonne visée ~ 32% de la largeur écran
-          const sc = clampNum((vw * 0.32) / L.cardW, overviewScale * 1.25, 1.5);
-          const tx = vw / 2 - colCenterX * sc;
-          const contentH = L.innerH * sc;
-          const scanMs = Math.round(cinemaState.roundMs * cinemaState.scanFrac);
-          const holdMs = Math.round((cinemaState.roundMs - scanMs) / 2);
-
-          if (contentH <= vh) {
-            // Tout le round tient à l'écran : simple centrage
-            frames.push({
-              tx,
-              ty: (vh - contentH) / 2,
-              scale: sc,
-              transMs: 1100,
-              holdMs: cinemaState.roundMs,
-            });
-          } else {
-            // Scan vertical haut -> bas
-            const tyTop = 0;
-            const tyBottom = vh - contentH;
-            frames.push({ tx, ty: tyTop, scale: sc, transMs: 1100, holdMs });
-            frames.push({ tx, ty: tyBottom, scale: sc, transMs: scanMs, holdMs });
-          }
-        }
-        return frames;
-      }
+      const buildCinemaFrames = (L, vw, vh) => KioskBracket.buildCinemaFrames(L, vw, vh, cinemaState);
 
       function applyCinemaFrame(f) {
         const inner = document.getElementById('bracket-inner');
@@ -2948,13 +2853,7 @@
 
       // ─── Bracket d'élimination directe ──────────────────────────────────────
 
-      function getBracketDims(data) {
-        const n = data.rounds.length > 0 ? data.rounds[0].round : 8;
-        if (n <= 8) return { cardW: 210, cardH: 66, colGap: 70, rowGap: 10 };
-        if (n <= 16) return { cardW: 188, cardH: 60, colGap: 62, rowGap: 8 };
-        if (n <= 32) return { cardW: 158, cardH: 52, colGap: 54, rowGap: 6 };
-        return { cardW: 130, cardH: 44, colGap: 46, rowGap: 4 };
-      }
+      const getBracketDims = KioskBracket.getBracketDims;
 
       async function fetchBracket() {
         try {
@@ -2994,12 +2893,7 @@
         outer.scrollTo({ left: targetLeft, behavior: 'smooth' });
       }
 
-      function getBracketRoundOrder(rounds) {
-        // Rounds principaux (hors petite finale round=3) triés décroissants, puis petite finale à la fin
-        const main = rounds.filter(r => r.round !== 3).sort((a, b) => b.round - a.round);
-        const pf = rounds.find(r => r.round === 3);
-        return pf ? [...main, pf] : main;
-      }
+      const getBracketRoundOrder = KioskBracket.getBracketRoundOrder;
 
       function renderBracket() {
         const container = document.getElementById('bracket-inner');
