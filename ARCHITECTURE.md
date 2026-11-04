@@ -71,7 +71,7 @@ bellepoule-modern/
 │   │   ├── hooks/                # 19 hooks (useAppState, usePoolManagement, useHistory, ...)
 │   │   ├── contexts/             # TranslationContext
 │   │   ├── services/             # offlineStorage, offlineSync
-│   │   ├── locales/              # fr, en, br, ca, de, es, zh-HK
+│   │   ├── locales/              # fr, en, br, ca, de, es, it, zh-HK
 │   │   ├── styles/, assets/
 │   │   └── sw.js                 # Service worker
 │   │

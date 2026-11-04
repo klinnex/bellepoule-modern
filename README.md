@@ -128,6 +128,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 - 🇪🇸 **Català (Catalan)** _(Nouveau !)_
 - 🇩🇪 **Deutsch (Allemand)** _(Nouveau !)_
 - 🇪🇸 **Español (Espagnol)**
+- 🇮🇹 **Italiano (Italien)** _(Nouveau !)_
 - 🇭🇰 **繁體中文 (Chinois traditionnel – Hong Kong)** _(Nouveau !)_
 
 ## 🎯 Caractéristiques principales
@@ -135,7 +136,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 - **🗂️ Base de données SQLite** pour stocker toutes les données de compétition
 - **🌐 Interface moderne** avec design épuré et responsive
 - **📱 Gestion en temps réel** des scores et arènes
-- **🏊 Support multilingue** (français, anglais, breton, catalan, allemand, espagnol, chinois traditionnel HK)
+- **🏊 Support multilingue** (français, anglais, breton, catalan, allemand, espagnol, italien, chinois traditionnel HK)
 - **👨‍⚖️ Gestion des arbitres** avec assignation automatique et rotation
 - **🔔 Webhooks** Discord/Slack
 - **🖥️ Tableau de bord Live** pour affichage public en temps réel

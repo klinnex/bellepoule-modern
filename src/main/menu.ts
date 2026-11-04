@@ -1,5 +1,5 @@
 /**
- * BellePoule Modern - Menu natif de l'application (i18n fr/en/de/zh-HK)
+ * BellePoule Modern - Menu natif de l'application (i18n fr/en/de/it/zh-HK)
  * (extrait de main.ts, #1341).
  * Licensed under GPL-3.0
  */
