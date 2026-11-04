@@ -79,4 +79,20 @@ describe('AddFencerModal', () => {
     expect(onClose).not.toHaveBeenCalled();
     expect(input.value).toBe('');
   });
+
+  it('la liste déroulante des nationalités sélectionne le code', () => {
+    const { onAdd, container } = setup();
+    fireEvent.click(screen.getByLabelText('addFencer.nationality_list', { selector: 'button' }));
+    fireEvent.change(screen.getByLabelText('addFencer.nationality_list', { selector: 'select' }), {
+      target: { value: 'GER' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('addFencer.last_name_ph'), {
+      target: { value: 'a' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('addFencer.first_name_ph'), {
+      target: { value: 'b' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
+    expect(onAdd.mock.calls[0][0].nationality).toBe('GER');
+  });
 });

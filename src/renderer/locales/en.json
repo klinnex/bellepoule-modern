@@ -2597,6 +2597,7 @@
     "matches_other": "{{count}} bouts"
   },
   "addFencer": {
+    "nationality_list": "Nationality list",
     "add": "Add",
     "add_and_close": "Add and close",
     "handedness": "Handedness",

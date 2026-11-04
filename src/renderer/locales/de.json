@@ -2597,6 +2597,7 @@
     "matches_other": "{{count}} Gefechte"
   },
   "addFencer": {
+    "nationality_list": "Nationalitätenliste",
     "add": "Hinzufügen",
     "add_and_close": "Hinzufügen und schließen",
     "handedness": "Händigkeit",

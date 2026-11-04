@@ -2597,6 +2597,7 @@
     "matches_other": "{{count}} emgann"
   },
   "addFencer": {
+    "nationality_list": "Roll ar broadelezhioù",
     "add": "Ouzhpennañ",
     "add_and_close": "Ouzhpennañ ha serriñ",
     "handedness": "Dorn",
