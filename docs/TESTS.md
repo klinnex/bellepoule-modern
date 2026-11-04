@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 43 | 614 |
+| `src/shared/utils/` | 44 | 627 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -104,13 +104,31 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **228** | **1899** |
+| **Total** | **229** | **1912** |
 
-Unitaires : 219 fichiers, 1864 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 220 fichiers, 1877 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
 ### `src/shared/utils/`
+
+<details>
+<summary><code>src/shared/utils/blackCardRanking.test.ts</code> — 10 tests</summary>
+
+- **isBlackCarded**
+  - exclusion avec motif black\_card uniquement
+- **applyBlackCardRanking**
+  - sans carton noir : liste inchangée
+  - le 2e exclu : 3e-\>2e, 4e-\>3e, 5e-\>4e, exclu en bas sans rang
+  - le vainqueur exclu : tous remontent
+  - le dernier exclu : les autres gardent leur rang
+  - ex aequo 3e derrière un exclu : départagés par le classement du tableau
+  - ex aequo 3e AU-DESSUS de l'exclu : inchangés
+  - plusieurs cartons noirs
+  - idempotent
+  - exclu simple (sans carton noir) : rang conservé
+
+</details>
 
 <details>
 <summary><code>src/shared/utils/bulkImport.test.ts</code> — 32 tests</summary>
@@ -491,7 +509,7 @@ Unitaires : 219 fichiers, 1864 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/forfeit.test.ts</code> — 18 tests</summary>
+<summary><code>src/shared/utils/forfeit.test.ts</code> — 19 tests</summary>
 
 - **hasStartedPoolMatch**
   - aucun match commencé
@@ -517,6 +535,8 @@ Unitaires : 219 fichiers, 1864 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **specialStatusPatch (#1418)**
   - médical / forfait : statut seul
   - exclusion : carton noir seulement si confirmé
+- **finalRankLabel carton noir (#1418)**
+  - rang null : « - »
 
 </details>
 
@@ -585,7 +605,7 @@ Unitaires : 219 fichiers, 1864 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 45 tests</summary>
+<summary><code>src/shared/utils/multiFormatExport.test.ts</code> — 47 tests</summary>
 
 - **exportRankingCSV**
   - includes header row
@@ -613,6 +633,9 @@ Unitaires : 219 fichiers, 1864 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - maps EXCLUDED to X
   - maps FORFAIT to F
   - maps ELIMINATED to E
+  - **carton noir (#1418)**
+    - rang vide (NULL) pour le carton noir, les suivants remontent
+    - exclusion simple : rang conservé
 - **exportDetailedStatsCSV**
   - includes competition title in header
   - includes VMoy and DMoy columns
