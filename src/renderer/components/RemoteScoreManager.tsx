@@ -1433,16 +1433,15 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 </div>
                 <div className="arena-url-row">
                   <span className="arena-url-label">{t('rsm.screen_referee')}</span>
-                  <code className="arena-url-value">{arena.refereeUrl}</code>
                   <button
-                    className="btn-copy"
+                    className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.refereeUrl, arena.number * 10)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 ? '✓' : '📋'}
+                    {copiedIndex === arena.number * 10 ? '✓' : `📋 ${t('rsm.copy_url')}`}
                   </button>
                   <button
-                    className="btn-qr"
+                    className="btn-qr btn-wide"
                     onClick={() =>
                       setActiveQR({
                         url: arena.refereeUrl,
@@ -1454,21 +1453,20 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     }
                     title={t('rsm.qr_code')}
                   >
-                    📱
+                    📱 {t('rsm.qr_code')}
                   </button>
                 </div>
                 <div className="arena-url-row">
                   <span className="arena-url-label">{t('rsm.screen_display')}</span>
-                  <code className="arena-url-value">{arena.displayUrl}</code>
                   <button
-                    className="btn-copy"
+                    className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.displayUrl, arena.number * 10 + 1)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 1 ? '✓' : '📋'}
+                    {copiedIndex === arena.number * 10 + 1 ? '✓' : `📋 ${t('rsm.copy_url')}`}
                   </button>
                   <button
-                    className="btn-qr"
+                    className="btn-qr btn-wide"
                     onClick={() =>
                       setActiveQR({
                         url: arena.displayUrl,
@@ -1480,21 +1478,20 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     }
                     title={t('rsm.qr_code')}
                   >
-                    📱
+                    📱 {t('rsm.qr_code')}
                   </button>
                 </div>
                 <div className="arena-url-row">
                   <span className="arena-url-label">{t('rsm.screen_pool')}</span>
-                  <code className="arena-url-value">{arena.poolUrl}</code>
                   <button
-                    className="btn-copy"
+                    className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.poolUrl, arena.number * 10 + 2)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 2 ? '✓' : '📋'}
+                    {copiedIndex === arena.number * 10 + 2 ? '✓' : `📋 ${t('rsm.copy_url')}`}
                   </button>
                   <button
-                    className="btn-qr"
+                    className="btn-qr btn-wide"
                     onClick={() =>
                       setActiveQR({
                         url: arena.poolUrl,
@@ -1506,23 +1503,22 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     }
                     title={t('rsm.qr_code')}
                   >
-                    📱
+                    📱 {t('rsm.qr_code')}
                   </button>
                 </div>
                 <div className="arena-url-row">
                   <span className="arena-url-label" title={t('rsm.matches_title')}>
                     {t('rsm.matches')}
                   </span>
-                  <code className="arena-url-value">{arena.matchOrderUrl}</code>
                   <button
-                    className="btn-copy"
+                    className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.matchOrderUrl, arena.number * 10 + 5)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 5 ? '✓' : '📋'}
+                    {copiedIndex === arena.number * 10 + 5 ? '✓' : `📋 ${t('rsm.copy_url')}`}
                   </button>
                   <button
-                    className="btn-qr"
+                    className="btn-qr btn-wide"
                     onClick={() =>
                       setActiveQR({
                         url: arena.matchOrderUrl,
@@ -1534,21 +1530,20 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     }
                     title={t('rsm.qr_code')}
                   >
-                    📱
+                    📱 {t('rsm.qr_code')}
                   </button>
                 </div>
                 <div className="arena-url-row">
                   <span className="arena-url-label">{t('rsm.screen_public')}</span>
-                  <code className="arena-url-value">{arena.publicUrl}</code>
                   <button
-                    className="btn-copy"
+                    className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.publicUrl, arena.number * 10 + 3)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 3 ? '✓' : '📋'}
+                    {copiedIndex === arena.number * 10 + 3 ? '✓' : `📋 ${t('rsm.copy_url')}`}
                   </button>
                   <button
-                    className="btn-qr"
+                    className="btn-qr btn-wide"
                     onClick={() =>
                       setActiveQR({
                         url: arena.publicUrl,
@@ -1560,23 +1555,22 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     }
                     title={t('rsm.qr_code')}
                   >
-                    📱
+                    📱 {t('rsm.qr_code')}
                   </button>
                 </div>
                 <div className="arena-url-row">
                   <span className="arena-url-label" title={t('rsm.overlay_title')}>
                     🎥 Overlay
                   </span>
-                  <code className="arena-url-value">{arena.overlayUrl}</code>
                   <button
-                    className="btn-copy"
+                    className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.overlayUrl, arena.number * 10 + 4)}
                     title={t('rsm.overlay_copy_title')}
                   >
-                    {copiedIndex === arena.number * 10 + 4 ? '✓' : '📋'}
+                    {copiedIndex === arena.number * 10 + 4 ? '✓' : `📋 ${t('rsm.copy_url')}`}
                   </button>
                   <button
-                    className="btn-qr"
+                    className="btn-qr btn-wide"
                     onClick={() =>
                       setActiveQR({
                         url: arena.overlayUrl,
@@ -1588,7 +1582,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     }
                     title={t('rsm.qr_code')}
                   >
-                    📱
+                    📱 {t('rsm.qr_code')}
                   </button>
                 </div>
                 <div className="arena-url-row">
