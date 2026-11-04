@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 46 | 228 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 17 | 93 |
+| `src/remote/` | 18 | 100 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **233** | **1938** |
+| **Total** | **234** | **1945** |
 
-Unitaires : 224 fichiers, 1903 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 225 fichiers, 1910 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3922,6 +3922,20 @@ Unitaires : 224 fichiers, 1903 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - buildCinemaFrames : ensemble puis plan par tour en cours, scan si trop haut
   - buildCinemaFrames : aucun tour en cours -\> toutes les colonnes
   - kiosk.html charge le module et ne redéfinit plus ces calculs
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskConfig.test.ts</code> — 7 tests</summary>
+
+- **kioskConfig.js**
+  - rotation : défaut 15, minimum 3, valeur sauvegardée
+  - mode du tableau : valeurs connues seulement, sinon auto
+  - vues : aller-retour, JSON invalide ou absent -\> null
+  - parseTargetTime
+  - secondsUntil : même jour, lendemain si passée
+  - formatCountdown
+  - kiosk.html charge le module
 
 </details>
 
