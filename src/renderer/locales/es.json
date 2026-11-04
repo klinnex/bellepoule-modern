@@ -2597,6 +2597,7 @@
     "matches_other": "{{count}} combates"
   },
   "addFencer": {
+    "nationality_list": "Lista de nacionalidades",
     "add": "Añadir",
     "add_and_close": "Añadir y cerrar",
     "handedness": "Lateralidad",

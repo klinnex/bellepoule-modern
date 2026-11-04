@@ -2597,6 +2597,7 @@
     "matches_other": "{{count}} combats"
   },
   "addFencer": {
+    "nationality_list": "Llista de nacionalitats",
     "add": "Afegeix",
     "add_and_close": "Afegeix i tanca",
     "handedness": "Lateralitat",

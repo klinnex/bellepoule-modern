@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 42 | 606 |
+| `src/shared/utils/` | 43 | 611 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 41 | 325 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 45 | 216 |
+| `src/renderer/components/` | 45 | 217 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 13 | 67 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **226** | **1879** |
+| **Total** | **227** | **1885** |
 
-Unitaires : 217 fichiers, 1844 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 218 fichiers, 1850 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -261,6 +261,18 @@ Unitaires : 217 fichiers, 1844 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - ne détecte pas de conflit si timestamps identiques
   - gère les listes vides
   - cas complexe avec tous types
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/countries.test.ts</code> — 5 tests</summary>
+
+- **countries**
+  - codes uniques et bien formés
+  - drapeau emoji depuis code CIO ou ISO2
+  - nom localisé et repli sur le code
+  - liste triée avec drapeaux
+  - formatNationality
 
 </details>
 
@@ -3151,7 +3163,7 @@ Unitaires : 217 fichiers, 1844 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/AddFencerModal.test.tsx</code> — 5 tests</summary>
+<summary><code>src/renderer/components/AddFencerModal.test.tsx</code> — 6 tests</summary>
 
 - **AddFencerModal**
   - ajoute un tireur avec nom en majuscules puis ferme
@@ -3159,6 +3171,7 @@ Unitaires : 217 fichiers, 1844 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - annuler efface les champs sans fermer la modale
   - droitier par défaut, gaucher transmis
   - Ajouter garde la modale ouverte et vide le formulaire
+  - la liste déroulante des nationalités sélectionne le code
 
 </details>
 

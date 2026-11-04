@@ -8,6 +8,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { Fencer, Gender, FencerStatus } from '../../shared/types';
 import { useToast } from './Toast';
 import FencerPhoto from './FencerPhoto';
+import NationalityPicker from './common/NationalityPicker';
 import { useTranslation } from '../contexts/TranslationContext';
 
 interface AddFencerModalProps {
@@ -170,14 +171,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
               </div>
               <div className="form-group">
                 <label className="form-label">{t('fencer.nationality')}</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="FRA"
-                  value={nationality}
-                  onChange={e => setNationality(e.target.value.toUpperCase())}
-                  maxLength={3}
-                />
+                <NationalityPicker value={nationality} onChange={setNationality} />
               </div>
             </div>
 
