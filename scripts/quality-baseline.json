@@ -19,7 +19,7 @@
     "src/renderer/components/wiki/wikiData.ts": 2035,
     "src/remote/arena.html": 2256,
     "src/remote/kiosk.html": 3333,
-    "src/remote/referee.html": 4487,
+    "src/remote/referee.html": 4396,
     "src/main/remoteScoreServer.ts": 2001
   }
 }
