@@ -95,7 +95,7 @@ export function createSplashWindow(): void {
 
 // IPC: splash confirms language choice
 ipcMain.once('splash:confirm', (_event, lang: string) => {
-  const validLangs = ['fr', 'en', 'de', 'es', 'zh-HK', 'br', 'ca'];
+  const validLangs = ['fr', 'en', 'de', 'es', 'it', 'zh-HK', 'br', 'ca'];
   const confirmed = validLangs.includes(lang) ? lang : 'fr';
   saveLanguageToFile(confirmed);
   setUiLanguage(confirmed);

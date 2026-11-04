@@ -119,7 +119,7 @@ Renderer Process (src/renderer/)
 ├── hooks/                   # 19 custom hooks
 ├── contexts/                # TranslationContext (i18n)
 ├── services/                # offlineStorage.ts, offlineSync.ts
-├── locales/                 # i18n: fr, en, br (Breton), ca (Catalan), de (Deutsch), es (Español), zh-HK
+├── locales/                 # i18n: fr, en, br (Breton), ca (Catalan), de (Deutsch), es (Español), it (Italiano), zh-HK
 ├── styles/                  # CSS files
 └── sw.js                    # Service worker (offline support)
 

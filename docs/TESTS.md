@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 44 | 627 |
+| `src/shared/utils/` | 44 | 628 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **236** | **1962** |
+| **Total** | **236** | **1963** |
 
-Unitaires : 227 fichiers, 1927 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 227 fichiers, 1928 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -574,7 +574,7 @@ Unitaires : 227 fichiers, 1927 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/localeFormat.test.ts</code> — 8 tests</summary>
+<summary><code>src/shared/utils/localeFormat.test.ts</code> — 9 tests</summary>
 
 - **formats selon la langue active (#1160)**
   - français par défaut
@@ -582,6 +582,7 @@ Unitaires : 227 fichiers, 1927 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - allemand : date à points, virgule décimale
   - cantonais (zh-HK) : date et heure localisées
   - langue inconnue : étiquette transmise telle quelle
+  - italien : it-IT
 - **pluriels (Intl.PluralRules, #1160)**
   - 0 / 1 / 2 en français (0 est singulier) et en anglais
   - cantonais : une seule forme
