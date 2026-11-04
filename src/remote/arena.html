@@ -9,6 +9,7 @@
     <script src="/socket.io.min.js"></script>
     <script src="/js/arenaDisplayUtils.js"></script>
     <script src="/js/timerFormat.js"></script>
+    <script src="/js/arenaOverlays.js"></script>
     <style>
 
       /* Police 7 segments — style radio-réveil LCD (embarquée en base64) */
@@ -1689,37 +1690,11 @@
         }
 
         showIdentifyOverlay(label, durationMs) {
-          let ov = document.getElementById('bp-identify-overlay');
-          if (!ov) {
-            ov = document.createElement('div');
-            ov.id = 'bp-identify-overlay';
-            ov.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;pointer-events:none;animation:bp-identify-blink 0.5s ease-in-out infinite alternate;';
-            const style = document.createElement('style');
-            style.textContent = '@keyframes bp-identify-blink{from{background:rgba(59,130,246,0.55)}to{background:rgba(139,92,246,0.65)}}';
-            document.head.appendChild(style);
-            document.body.appendChild(ov);
-          }
-          ov.innerHTML = '<div style="background:rgba(0,0,0,0.85);border:3px solid #3b82f6;border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">'
-            + '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">📺 ' + escHtml(label) + '</div>'
-            + '<div style="font-size:1rem;color:#94a3b8;">' + escHtml(window.T('kiosk.identify')) + '</div>'
-            + '</div>';
-          ov.style.display = 'flex';
-          clearTimeout(ov._t);
-          ov._t = setTimeout(() => { ov.style.display = 'none'; }, durationMs ?? 5000);
+          BPArenaOverlays.showIdentifyOverlay({ doc: document, T: window.T, esc: escHtml }, label, durationMs);
         }
 
         showRemoteMessage(text, duration) {
-          let banner = document.getElementById('remote-msg-banner');
-          if (!banner) {
-            banner = document.createElement('div');
-            banner.id = 'remote-msg-banner';
-            banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.82);color:#fff;font-size:1.3rem;padding:0.7rem 1.2rem;text-align:center;z-index:9999;pointer-events:none;transition:opacity 0.4s;';
-            document.body.appendChild(banner);
-          }
-          banner.textContent = text;
-          banner.style.opacity = '1';
-          clearTimeout(banner._hideTimer);
-          banner._hideTimer = setTimeout(() => { banner.style.opacity = '0'; }, duration);
+          BPArenaOverlays.showRemoteMessage(document, text, duration);
         }
 
         applyWallpaper(wallpaper) {
@@ -1729,59 +1704,38 @@
         }
 
         showCoinFlipAnimation(winner, fencerA, fencerB) {
-          const overlay  = document.getElementById('coin-flip-overlay');
-          const coin     = document.getElementById('coin-3d');
+          const overlay = document.getElementById('coin-flip-overlay');
+          const coin = document.getElementById('coin-3d');
           const nameGreen = document.getElementById('coin-name-green');
-          const nameRed   = document.getElementById('coin-name-red');
-          const result   = document.getElementById('coin-result');
+          const nameRed = document.getElementById('coin-name-red');
+          const result = document.getElementById('coin-result');
           if (!overlay || !coin || !nameGreen || !nameRed || !result) return;
-
-          // fencerA est TOUJOURS VERT, fencerB est TOUJOURS ROUGE
-          // (l'inversion ne change que la position gauche/droite, pas la couleur)
-          const nameGreenStr = fencerA ? `${fencerA.lastName || ''} ${fencerA.firstName || ''}`.trim() || 'VERT'  : 'VERT';
-          const nameRedStr   = fencerB ? `${fencerB.lastName || ''} ${fencerB.firstName || ''}`.trim() || 'ROUGE' : 'ROUGE';
-          nameGreen.textContent = nameGreenStr;
-          nameRed.textContent   = nameRedStr;
-
-          // Réinitialiser l'état visuel
+          const plan = BPArenaOverlays.coinFlipPlan(winner, fencerA, fencerB);
+          nameGreen.textContent = plan.nameGreen;
+          nameRed.textContent = plan.nameRed;
           result.className = 'hidden';
           result.textContent = '';
           coin.style.transition = 'none';
-          coin.style.transform  = 'rotateY(0deg)';
-
-          // Afficher l'overlay
+          coin.style.transform = 'rotateY(0deg)';
           overlay.classList.remove('hidden');
-
-          // winner 'A' = fencerA (VERT) → face verte (3600°)
-          // winner 'B' = fencerB (ROUGE) → face rouge (3780°)
-          const isGreenWinner = winner === 'A';
-          const finalDeg = isGreenWinner ? 3600 : 3780;
-
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               coin.style.transition = 'transform 3.5s cubic-bezier(0.33, 1, 0.68, 1)';
-              coin.style.transform  = `rotateY(${finalDeg}deg)`;
+              coin.style.transform = `rotateY(${plan.finalDeg}deg)`;
             });
           });
-
-          // Afficher le résultat après l'animation
           setTimeout(() => {
-            const winnerName = isGreenWinner ? nameGreenStr : nameRedStr;
-            const colorClass  = isGreenWinner ? 'winner-green' : 'winner-red';
-            const colorLabel  = isGreenWinner ? 'VERT' : 'ROUGE';
-            result.textContent = `🏆 ${winnerName} gagne ! (${colorLabel})`;
-            result.className   = colorClass;
+            result.textContent = plan.resultText;
+            result.className = plan.resultClass;
           }, 3600);
-
         }
 
         showExitAnnouncement(ann) {
           const banner = document.getElementById('card-announcement-banner');
           if (!banner) return;
-          const line1 = `🚪 Sortie d'arène — ${ann.fencerName}`;
-          const line2 = `+${ann.points} pts pour l'adversaire`;
+          const { line1, line2, className } = BPArenaOverlays.exitAnnouncement(ann);
           setBannerLines(banner, line1, line2);
-          banner.className = 'card-announcement-banner visible card-exit';
+          banner.className = className;
           if (this._cardAnnouncementTimer) clearTimeout(this._cardAnnouncementTimer);
           this._cardAnnouncementTimer = setTimeout(() => {
             banner.className = 'card-announcement-banner';
@@ -1791,22 +1745,9 @@
         showCardAnnouncement(ann) {
           const banner = document.getElementById('card-announcement-banner');
           if (!banner) return;
-
-          const typeLabel = ann.cardType === 'white' ? 'BLANC' : ann.cardType === 'yellow' ? 'JAUNE' : ann.cardType === 'red' ? 'ROUGE' : 'NOIR';
-          let line1, line2;
-
-          if (ann.isRevalorisation) {
-            const fromLabel = ann.fromCard === 'white' ? 'blanc' : ann.fromCard === 'yellow' ? 'jaune' : ann.fromCard;
-            line1 = `⚠️ Revalorisation 2ème ${fromLabel} → ${typeLabel} — ${ann.fencerName}`;
-          } else {
-            line1 = `Carton ${typeLabel} — ${ann.fencerName}`;
-          }
-          line2 = ann.reason || null;
-
+          const { line1, line2, className } = BPArenaOverlays.cardAnnouncement(ann);
           setBannerLines(banner, line1, line2);
-          const cardClass = ['white', 'yellow', 'red', 'black'].includes(ann.cardType) ? ann.cardType : 'yellow';
-          banner.className = `card-announcement-banner visible card-${cardClass}`;
-
+          banner.className = className;
           if (this._cardAnnouncementTimer) clearTimeout(this._cardAnnouncementTimer);
           this._cardAnnouncementTimer = setTimeout(() => {
             banner.className = 'card-announcement-banner';

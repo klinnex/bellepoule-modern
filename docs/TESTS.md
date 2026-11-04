@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 46 | 228 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 16 | 86 |
+| `src/remote/` | 17 | 93 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **232** | **1931** |
+| **Total** | **233** | **1938** |
 
-Unitaires : 223 fichiers, 1896 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 224 fichiers, 1903 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3892,6 +3892,20 @@ Unitaires : 223 fichiers, 1896 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - thèmes valides, repli sur dark, mémorisation
   - thème personnalisé : variables et overlay, nettoyé au retour
   - arena.html charge le module avant le script de page
+
+</details>
+
+<details>
+<summary><code>src/remote/js/arenaOverlays.test.ts</code> — 7 tests</summary>
+
+- **arenaOverlays.js**
+  - cardAnnouncement : carton simple
+  - cardAnnouncement : revalorisation, type inconnu -\> NOIR / classe jaune
+  - exitAnnouncement
+  - coinFlipPlan : vainqueur A = vert 3600, B = rouge 3780, noms par défaut
+  - showRemoteMessage : texte seul (pas de HTML interprété), masqué après la durée
+  - showIdentifyOverlay : étiquette échappée, masqué après 5 s par défaut
+  - arena.html charge le module
 
 </details>
 
