@@ -2597,6 +2597,11 @@
     "matches_other": "{{count}} combats"
   },
   "addFencer": {
+    "add": "Afegeix",
+    "add_and_close": "Afegeix i tanca",
+    "handedness": "Lateralitat",
+    "right": "Dretà",
+    "left": "Esquerrà",
     "last_name_ph": "PUIG",
     "first_name_ph": "Joan",
     "club_ph": "CE BARCELONA",

@@ -198,6 +198,7 @@ export interface Fencer extends BaseEntity {
   club?: string; // Club
   license?: string; // Numéro de licence
   ranking?: number; // Classement
+  handedness?: 'R' | 'L'; // Latéralité : droitier (R, défaut) ou gaucher (L)
   status: FencerStatus; // Statut dans la compétition
   exclusionReason?: ExclusionReason | null; // Motif d'exclusion ou de forfait (rapport fédéral)
   seedNumber?: number; // Tête de série

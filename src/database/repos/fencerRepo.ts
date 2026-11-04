@@ -23,8 +23,8 @@ export class FencerRepo {
     const ref = fencer.ref || maxRef + 1;
     try {
       this.sql.run(
-        `INSERT INTO fencers (id, competition_id, ref, last_name, first_name, birth_date, gender, nationality, club, region, license, ranking, status, photo, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO fencers (id, competition_id, ref, last_name, first_name, birth_date, gender, nationality, club, region, license, ranking, status, photo, handedness, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           competitionId,
@@ -40,6 +40,7 @@ export class FencerRepo {
           fencer.ranking || null,
           fencer.status || 'N',
           fencer.photo || null,
+          fencer.handedness === 'L' ? 'L' : 'R',
           now,
           now,
         ]
@@ -164,6 +165,7 @@ export class FencerRepo {
       ranking: 'ranking',
       status: 'status',
       photo: 'photo',
+      handedness: 'handedness',
       seedNumber: 'seed_number',
       finalRanking: 'final_ranking',
       exclusionReason: 'exclusion_reason',

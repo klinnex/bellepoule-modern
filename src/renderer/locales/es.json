@@ -2597,6 +2597,11 @@
     "matches_other": "{{count}} combates"
   },
   "addFencer": {
+    "add": "Añadir",
+    "add_and_close": "Añadir y cerrar",
+    "handedness": "Lateralidad",
+    "right": "Diestro",
+    "left": "Zurdo",
     "last_name_ph": "GARCÍA",
     "first_name_ph": "Juan",
     "club_ph": "CE MADRID",

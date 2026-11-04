@@ -36,6 +36,7 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
       : null;
   const [gender, setGender] = useState<Gender>(lockedGender ?? Gender.MALE);
   const [nationality, setNationality] = useState('FRA');
+  const [handedness, setHandedness] = useState<'R' | 'L'>('R');
   const [photo, setPhoto] = useState<string | undefined>();
 
   const buildFencer = (): Partial<Fencer> => ({
@@ -47,10 +48,12 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
     ranking: ranking ? parseInt(ranking, 10) : undefined,
     gender,
     nationality,
+    handedness,
     status: FencerStatus.NOT_CHECKED_IN,
     photo,
   });
 
+  // Efface les champs saisis (Annuler / Ajouter) ; le sexe imposé par la compétition est conservé
   const resetForm = () => {
     setLastName('');
     setFirstName('');
@@ -58,8 +61,9 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
     setRegion('');
     setLicense('');
     setRanking('');
-    setGender(Gender.MALE);
+    setGender(lockedGender ?? Gender.MALE);
     setNationality('FRA');
+    setHandedness('R');
     setPhoto(undefined);
   };
 
@@ -222,17 +226,45 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
                 min="1"
               />
             </div>
+
+            <div className="form-group">
+              <label className="form-label" id="add-fencer-handedness">
+                {t('addFencer.handedness')}
+              </label>
+              <div className="u-row" role="radiogroup" aria-labelledby="add-fencer-handedness">
+                <label>
+                  <input
+                    type="radio"
+                    name="handedness"
+                    value="R"
+                    checked={handedness === 'R'}
+                    onChange={() => setHandedness('R')}
+                  />{' '}
+                  {t('addFencer.right')}
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="handedness"
+                    value="L"
+                    checked={handedness === 'L'}
+                    onChange={() => setHandedness('L')}
+                  />{' '}
+                  {t('addFencer.left')}
+                </label>
+              </div>
+            </div>
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <button type="button" className="btn btn-secondary" onClick={resetForm}>
               {t('actions.cancel')}
             </button>
             <button type="button" className="btn btn-secondary" onClick={handleSaveAndAdd}>
-              {t('actions.save_and_add')}
+              {t('addFencer.add')}
             </button>
             <button type="submit" className="btn btn-primary">
-              {t('actions.save')}
+              {t('addFencer.add_and_close')}
             </button>
           </div>
         </form>

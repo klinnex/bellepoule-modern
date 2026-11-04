@@ -2597,6 +2597,11 @@
     "matches_other": "{{count}} bouts"
   },
   "addFencer": {
+    "add": "Add",
+    "add_and_close": "Add and close",
+    "handedness": "Handedness",
+    "right": "Right-handed",
+    "left": "Left-handed",
     "last_name_ph": "SMITH",
     "first_name_ph": "John",
     "club_ph": "LONDON FC",
