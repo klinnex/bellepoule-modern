@@ -1,17 +1,15 @@
 /**
- * File hors-ligne de la tablette arbitre (classe OfflineQueueInline, inline dans
- * referee.html) : scénarios de coupure réseau (#1076).
- * La classe est extraite du HTML et exécutée sur IndexedDB simulé (fake-indexeddb).
+ * File hors-ligne de la tablette arbitre (classe OfflineQueueInline, /js/offlineQueue.js) : scénarios de coupure réseau (#1076).
+ * La classe est lue depuis le module et exécutée sur IndexedDB simulé (fake-indexeddb).
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
 import fs from 'fs';
 import path from 'path';
 
+const classSource = fs.readFileSync(path.join(__dirname, 'js', 'offlineQueue.js'), 'utf8');
 const html = fs.readFileSync(path.join(__dirname, 'referee.html'), 'utf8');
-const start = html.indexOf('class OfflineQueueInline {');
-const end = html.indexOf('// ────', start);
-const classSource = html.slice(start, end);
+const start = classSource.indexOf('class OfflineQueueInline {');
 
 interface Action {
   id: string;
@@ -60,8 +58,10 @@ beforeEach(() => {
   fetchMock = serverAccepting();
 });
 
-it('extrait bien la classe depuis referee.html', () => {
+it('la classe vit dans /js/offlineQueue.js, chargée par referee.html (#1401)', () => {
   expect(start).toBeGreaterThan(-1);
+  expect(html).toContain('<script src="/js/offlineQueue.js"></script>');
+  expect(html).not.toContain('class OfflineQueueInline');
   expect(classSource).toContain('async sync(endpoint)');
 });
 
@@ -140,9 +140,10 @@ describe('OfflineQueueInline — chaos réseau', () => {
 });
 
 describe('Badge de synchronisation (#1304)', () => {
-  const badgeState = new Function(
-    `${classSource}\nreturn OfflineQueueInline.badgeState;`
-  )() as (online: boolean, failed: boolean) => string;
+  const badgeState = new Function(`${classSource}\nreturn OfflineQueueInline.badgeState;`)() as (
+    online: boolean,
+    failed: boolean
+  ) => string;
 
   it('hors ligne prime sur un échec de synchronisation', () => {
     expect(badgeState(false, false)).toBe('offline');
