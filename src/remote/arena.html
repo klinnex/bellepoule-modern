@@ -8,6 +8,7 @@
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <script src="/js/arenaDisplayUtils.js"></script>
+    <script src="/js/timerFormat.js"></script>
     <style>
 
       /* Police 7 segments — style radio-réveil LCD (embarquée en base64) */
@@ -2016,12 +2017,9 @@
         }
 
         updateTimerDisplay(timerStatus) {
-          const minutes = Math.floor(this.timerSeconds / 60);
-          const seconds = this.timerSeconds % 60;
-          const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
           const timerEl = document.getElementById('timer-display');
-          timerEl.textContent = display;
+          // Dixièmes pour les 10 dernières secondes (#1416)
+          window.BPTimer.renderTimer(timerEl, this.timerSeconds);
 
           // Reset classes
           timerEl.className = 'timer-display';

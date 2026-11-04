@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="public.title">Vue Publique – BellePoule</title>
     <script src="/common.js"></script>
+    <script src="/js/timerFormat.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
@@ -1261,12 +1262,9 @@
         }
 
         updateTimerDisplay(timerStatus) {
-          const minutes = Math.floor(this.timerSeconds / 60);
-          const seconds = this.timerSeconds % 60;
-          const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
           const timerEl = document.getElementById('timer-display');
-          timerEl.textContent = display;
+          // Dixièmes pour les 10 dernières secondes (#1416)
+          window.BPTimer.renderTimer(timerEl, this.timerSeconds);
 
           timerEl.className = 'timer-display';
 
