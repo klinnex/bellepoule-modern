@@ -30,6 +30,7 @@ export const REMOTE_HTML_FILES = [
   'tireur.html',
   'teamArena.html',
   'teamReferee.html',
+  'demo.html',
 ] as const;
 
 /**

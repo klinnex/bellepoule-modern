@@ -1854,14 +1854,9 @@
       const saveLocalRotation = sec => localConfig.saveRotation(sec);
       const loadLocalRotation = () => localConfig.loadRotation();
 
-      // ?views=poules,classement : vues imposées par l'URL (écran dédié, ex. démo autonome)
-      const URL_VIEWS = (new URLSearchParams(window.location.search).get('views') || '')
-        .split(',')
-        .filter(v => ALL_VIEWS.includes(v));
-
       function applyLocalViews() {
         const enabled = ALL_VIEWS.filter(v => document.getElementById('cb-' + v).checked);
-        state.views = URL_VIEWS.length > 0 ? URL_VIEWS : enabled.length > 0 ? enabled : ALL_VIEWS.slice();
+        state.views = enabled.length > 0 ? enabled : ALL_VIEWS.slice();
         ALL_VIEWS.forEach(v => {
           const btn = document.getElementById('btn-' + v);
           if (btn) btn.style.display = state.views.includes(v) ? '' : 'none';
@@ -1979,21 +1974,7 @@
           applyLocalViews();
 
           // 2. Données poules + classements (ou historique entraînement)
-          if (competitionId === '__training__' && state.session.trainingCustomRules?.demo) {
-            // Démo autonome : poules simulées + historique des matchs
-            const [demoRes, histRes] = await Promise.all([
-              fetch('/api/demo/pools'),
-              fetch('/api/training/history'),
-            ]);
-            if (demoRes.ok) {
-              state.poolsData = (await demoRes.json()).pools || [];
-              renderPools();
-            }
-            if (histRes.ok) {
-              state.trainingHistory = (await histRes.json()).history || [];
-              renderRanking();
-            }
-          } else if (competitionId === '__training__') {
+          if (competitionId === '__training__') {
             const histRes = await fetch('/api/training/history');
             if (histRes.ok) {
               const histData = await histRes.json();

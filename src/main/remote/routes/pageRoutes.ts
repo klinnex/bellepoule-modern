@@ -257,6 +257,11 @@ export function registerPageRoutes(ctx: RouteContext): void {
     ctx.sendHtmlFromMemory('kiosk.html', res);
   });
 
+  // Démo autonome : affichage du tournoi fictif (poules, classements, tableau)
+  ctx.app.get('/demo', (_req, res) => {
+    ctx.sendHtmlFromMemory('demo.html', res);
+  });
+
   // Page d'attente sans arène assignée (lobby)
   ctx.app.get('/lobby', (_req, res) => {
     ctx.sendHtmlFromMemory('lobby.html', res);

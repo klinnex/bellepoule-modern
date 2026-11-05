@@ -2719,7 +2719,7 @@
   },
   "demo": {
     "button": "Demo autònoma",
-    "hint": "Combats de poule disputats automàticament en 2 pistes, amb pantalles de pista, tauleta d'àrbitre i visualització de poules (quiosc)",
+    "hint": "Torneig fictici en bucle en 2 pistes: poules, classificació, taula d'eliminació directa, classificació final. Pantalles de pista, tauleta d'àrbitre i visualització del torneig.",
     "started": "Demo iniciada: pantalles obertes, l'àrbitre virtual juga els combats",
     "choose_weapon": "Trieu l'arma:"
   }

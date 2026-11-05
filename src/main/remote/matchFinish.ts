@@ -182,7 +182,9 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
     });
     // Pré-charger le prochain match entraînement dans la file
     const queue = ctx.arenaMatchQueue.get(arenaId) ?? [];
-    ctx.arenaMatchQueue.set(arenaId, [...queue, ctx.createTrainingMatch()]);
+    // Démo : null entre deux phases (la piste se libère, l'arbitre virtuel la réoccupe)
+    const next = ctx.createTrainingMatch();
+    if (next) ctx.arenaMatchQueue.set(arenaId, [...queue, next]);
   }
 
   const nextMatch = ctx.peekNextMatch(arenaId);

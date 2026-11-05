@@ -49,7 +49,7 @@ Champ `action` de l'événement `arena_control` (`handleArenaControl`) :
 | `auth_error` | ✓ | `referee.html`, `teamReferee.html` |
 | `bracket:update` | ✓ | `kiosk.html` |
 | `eta:update` | ✓ | `dashboard.html` |
-| `kiosk:data` | ✓ | `kiosk.html` |
+| `kiosk:data` | ✓ | `demo.html`, `kiosk.html` |
 | `kiosk:note` | ✓ | — |
 | `logo:update` | ✓ | `kiosk.html` |
 | `match:finished` | ✓ | — |

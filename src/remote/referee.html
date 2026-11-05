@@ -11,6 +11,7 @@
     <script src="/js/timerFormat.js"></script>
     <script src="/js/offlineQueue.js"></script>
     <script src="/js/refereeFaults.js"></script>
+    <script src="/js/refereeDemoMirror.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
@@ -97,16 +98,6 @@
       .sync-badge.offline { background: #b45309; }
       .sync-badge.failed { background: #b91c1c; cursor: pointer; }
 
-      /* Démo autonome : tablette miroir pilotée par l'arbitre virtuel (lecture seule) */
-      body.demo-mirror #active-match, body.demo-mirror #next-matches-screen { pointer-events: none; }
-      .demo-mirror-banner { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 3000;
-        background: rgba(17, 24, 39, 0.85); color: #fff; padding: 6px 14px; border-radius: 999px; font-size: 0.85rem; }
-      .score-btn.demo-tap { animation: demo-tap 0.35s ease-out; }
-      @keyframes demo-tap {
-        0% { transform: scale(1); filter: brightness(1); }
-        40% { transform: scale(0.88); filter: brightness(1.6); box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.35); }
-        100% { transform: scale(1); filter: brightness(1); }
-      }
       @keyframes pulse {
         0%,
         100% {
@@ -1703,19 +1694,12 @@
         const vars = Object.entries(variables).map(([k, v]) => `  ${k}: ${v};`).join('\n');
         styleEl.textContent = `:root {\n${vars}\n}`;
       }
-
       // escHtml : helper partagé (/common.js)
     </script>
     <script>
       class RefereeApp {
         constructor(slotArenaId) {
           this.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
-          // Démo autonome (?demo=1) : miroir de l'arbitre virtuel, aucune action envoyée au serveur
-          this.demoMirror = new URLSearchParams(window.location.search).get('demo') === '1';
-          if (this.demoMirror) {
-            const rawEmit = this.socket.emit.bind(this.socket);
-            this.socket.emit = (event, ...args) => (event === 'arena_control' ? this.socket : rawEmit(event, ...args));
-          }
           this.baseArenaId = this.getArenaId();
           this.arenaId = slotArenaId || this.baseArenaId;
           this.arenaNumber = this.arenaNumberFromId();
@@ -1797,13 +1781,6 @@
           this.setupBatteryMonitor();
           this.applyBlackCardSetting();
           this.showNextMatchesScreen();
-          if (this.demoMirror) {
-            document.body.classList.add('demo-mirror');
-            const banner = document.createElement('div');
-            banner.className = 'demo-mirror-banner';
-            banner.textContent = window.T('referee.demo_banner');
-            document.body.appendChild(banner);
-          }
           // Détecter l'arme de la compétition pour la mort subite Laser Sabre
           fetch('/api/session')
             .then(r => (r.ok ? r.json() : null))
@@ -2195,13 +2172,11 @@
 
           // Signature renvoyée depuis le poste DT (match de tableau non signé)
           this.socket.on(`arena:${this.arenaId}:sign_request`, req => {
-            if (this.demoMirror) return;
             if (!req?.match?.id || !req.match.fencerA?.id || !req.match.fencerB?.id) return;
             this.openMatchSignature(req.match, req.scoreA ?? 0, req.scoreB ?? 0);
           });
 
           this.socket.on(`arena:${this.arenaId}:score_limit_reached`, () => {
-            if (this.demoMirror) return;
             this.showFinishModal();
           });
 
@@ -3954,11 +3929,6 @@
             this.trainingCustomRules = data.trainingCustomRules;
           }
 
-          if (this.demoMirror) {
-            this.mirrorDemoUpdate(data);
-            return;
-          }
-
           if (data.cardAnnounce !== undefined) {
             this.cardAnnounceEnabled = data.cardAnnounce;
           }
@@ -4068,63 +4038,6 @@
             this.showNextMatchesScreen();
             this.showNotification(window.T('referee.next_available'));
           }
-        }
-
-        // Démo autonome : reflète l'arène pilotée par le serveur comme si un arbitre tenait la tablette
-        mirrorDemoUpdate(data) {
-          const m = data.match;
-          if (data.status === 'idle' || !m || !m.id) {
-            if (this.currentMatch) {
-              this.stopTimer();
-              this._clearActiveMatch();
-              document.getElementById('active-match').classList.remove('visible');
-            }
-            this.showNextMatchesScreen();
-            return;
-          }
-          const num = v => (typeof v === 'object' && v !== null ? (v.value ?? 0) : (v ?? 0));
-          if (!this.currentMatch || this.currentMatch.id !== m.id) {
-            this.stopTimer();
-            const match = {
-              id: m.id, poolId: m.poolId,
-              fencerA: data.fencerA || m.fencerA, fencerB: data.fencerB || m.fencerB,
-              scoreA: { value: 0 }, scoreB: { value: 0 }, status: 'not_started',
-            };
-            const idx = this.matches.findIndex(x => x.id === match.id);
-            if (idx >= 0) this.matches[idx] = match; else this.matches.push(match);
-            this.matchStatus = 'not_started';
-            this.selectMatch(match.id);
-          }
-          const a = num(data.scoreA ?? m.scoreA);
-          const b = num(data.scoreB ?? m.scoreB);
-          if (data.status === 'in_progress' && this.matchStatus !== 'in_progress') {
-            this.matchStatus = 'in_progress';
-            this.startTimer();
-            this.showNotification(window.T('referee.match_started'));
-          }
-          if (a > this.scoreA) this.demoTap('A', a - this.scoreA);
-          if (b > this.scoreB) this.demoTap('B', b - this.scoreB);
-          this.scoreA = a;
-          this.scoreB = b;
-          if (data.status === 'finished' && this.matchStatus !== 'finished') {
-            this.stopTimer();
-            this.matchStatus = 'finished';
-            this.showNotification(window.T('referee.demo_match_finished'));
-          }
-          this.updateScores();
-          this.updateMatchStatus();
-          this.updateControlButtons();
-        }
-
-        // Démo : anime l'appui sur le bouton de score du tireur (côté écran selon l'inversion)
-        demoTap(fencer, points) {
-          const side = this.swapped ? fencer : (fencer === 'A' ? 'B' : 'A');
-          const id = `btn-plus-${points}-${side.toLowerCase()}`;
-          const btn = document.getElementById(id) || document.getElementById(`btn-plus-1-${side.toLowerCase()}`);
-          if (!btn) return;
-          btn.classList.remove('demo-tap');
-          void btn.offsetWidth; // relance l'animation
-          btn.classList.add('demo-tap');
         }
 
         _clearActiveMatch() {
@@ -4408,7 +4321,7 @@
         if (open) refereeApp.socket?.emit('arena_control', { arenaId: refereeApp.arenaId, action: 'release_match' });
         setTimeout(() => window.location.reload(), open ? 200 : 0);
       }
-      window.BPTimer.withTenths(RefereeApp.prototype);
+      window.BPTimer.withTenths(RefereeApp.prototype); window.BPDemoMirror.install(RefereeApp.prototype); // démo autonome (?demo=1)
       document.addEventListener('DOMContentLoaded', async () => {
         try {
           await window.initRemoteI18n();

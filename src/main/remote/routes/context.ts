@@ -8,7 +8,7 @@ import type express from 'express';
 import type { DatabaseManager } from '../../../database';
 import type { Arena, RemoteSession } from '../../../shared/types/remote';
 import type { ScheduleMatchInput } from '../fencerSchedule';
-import type { DemoPoolView } from '../demoMode';
+import type { DemoPlayer } from '../demoMode';
 
 /** Match de session tel que transmis par le renderer (forme libre, champs usuels typés). */
 export type SessionMatch = ScheduleMatchInput & Record<string, unknown>;
@@ -49,7 +49,8 @@ export interface RouteContext {
   >;
   readonly trainingHistory: TrainingRecord[];
   /** Poules de la démo autonome (null hors démo) */
-  readonly demoPools: DemoPoolView[] | null;
+  /** Arbitre virtuel de la démo autonome (null hors démo) */
+  readonly demoPlayer: DemoPlayer | null;
   sendHtmlFromMemory(filename: string, res: express.Response): void;
   checkArenaAuth(arenaId: string, cookieHeader: string | undefined): boolean;
   hasAnyValidToken(cookieHeader: string | undefined): boolean;

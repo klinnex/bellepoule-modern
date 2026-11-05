@@ -6,6 +6,7 @@
 import type { RemoteSession, ArenaMatch } from '../../shared/types/remote';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
+import { DemoPlayer } from './demoMode';
 
 type S = RemoteScoreServer;
 
@@ -37,6 +38,14 @@ export interface TrainingSessionContext {
   sessionWeapon: S['sessionWeapon'];
   trainingCustomRules: S['trainingCustomRules'];
   trainingHistory: S['trainingHistory'];
+  // Démo autonome : services pilotés par l'arbitre virtuel (DemoPlayerHost)
+  readonly arenas: S['arenas'];
+  demoPlayer: S['demoPlayer'];
+  readonly startArenaMatch: S['startArenaMatch'];
+  readonly updateArenaScore: S['updateArenaScore'];
+  readonly finishArenaMatch: S['finishArenaMatch'];
+  readonly getScoreLimit: S['getScoreLimit'];
+  readonly broadcastArenaUpdate: S['broadcastArenaUpdate'];
 }
 
 export async function startTrainingSession(
@@ -52,6 +61,13 @@ export async function startTrainingSession(
   }
 ): Promise<RemoteSession> {
   if (ctx.session) throw new Error('Session déjà active');
+  // Démo : l'arbitre virtuel est armé avant l'assignation des premiers matchs
+  if (customRules?.demo) {
+    ctx.demoPlayer = new DemoPlayer(ctx, Date.now(), {
+      weapon,
+      allowedZones: customRules.allowedZones ?? [],
+    });
+  }
   const effectiveStrips = Math.max(1, Math.min(strips, 20));
   ctx.isTrainingMode = true;
   ctx.trainingHistory = [];
@@ -77,8 +93,7 @@ export async function startTrainingSession(
   ctx.sessionBlackCardEnabled = false;
   ctx.sessionBlackCards.clear();
   ctx.sessionKioskViews = {
-    // Démo : poules simulées affichées (voir DemoPools)
-    poules: customRules?.demo === true,
+    poules: false,
     classement: true,
     direct: true,
     suivants: false,
@@ -102,8 +117,10 @@ export async function startTrainingSession(
     startTime: new Date(),
   };
   for (let i = 1; i <= effectiveStrips; i++) {
-    ctx.assignMatchToArena(`arena${i}`, ctx.createTrainingMatch());
+    const match = ctx.createTrainingMatch();
+    if (match) ctx.assignMatchToArena(`arena${i}`, match);
   }
+  ctx.demoPlayer?.start();
   logger.info(
     LogCategory.NETWORK,
     `[RemoteScoreServer] Session entraînement démarrée: ${effectiveStrips} pistes, arme=${weapon}`

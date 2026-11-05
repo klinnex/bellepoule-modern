@@ -2719,7 +2719,7 @@
   },
   "demo": {
     "button": "Demo autonoma",
-    "hint": "Assalti di girone disputati automaticamente su 2 pedane, con schermi di pedana, tablet arbitro e visualizzazione dei gironi (chiosco)",
+    "hint": "Torneo fittizio in loop su 2 pedane: gironi, classifica, tabellone a eliminazione diretta, classifica finale. Schermi di pedana, tablet arbitro e visualizzazione del torneo.",
     "started": "Demo avviata: schermi aperti, l'arbitro virtuale gioca gli assalti",
     "choose_weapon": "Scegli l'arma:"
   }

@@ -2719,7 +2719,7 @@
   },
   "demo": {
     "button": "Démo autonome",
-    "hint": "Matchs de poule joués automatiquement sur 2 pistes, avec écrans de piste, tablette arbitre et affichage des poules (kiosque)",
+    "hint": "Tournoi fictif joué en boucle sur 2 pistes : poules, classement, tableau d'élimination directe, classement final. Écrans de piste, tablette arbitre et affichage du tournoi.",
     "started": "Démo lancée : écrans ouverts, l'arbitre virtuel joue les matchs",
     "choose_weapon": "Choisissez l'arme :"
   }
