@@ -95,18 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 42 | 335 |
+| `src/main/` | 43 | 338 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 47 | 236 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 22 | 134 |
+| `src/remote/` | 23 | 137 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **240** | **1998** |
+| **Total** | **242** | **2004** |
 
-Unitaires : 231 fichiers, 1963 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 233 fichiers, 1969 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2128,7 +2128,7 @@ Unitaires : 231 fichiers, 1963 tests. E2E : 9 fichiers, 35 tests (comptage stati
 <summary><code>src/main/demoScreensLayout.test.ts</code> — 5 tests</summary>
 
 - **demoScreens**
-  - liste arènes, tablette arbitre et affichage des poules
+  - liste arènes, tablette arbitre et affichage du tournoi
   - borne le nombre d’écrans d’arène entre 1 et 2
 - **tileLayout**
   - vide si aucun écran
@@ -2465,7 +2465,7 @@ Unitaires : 231 fichiers, 1963 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/demoMode.test.ts</code> — 16 tests</summary>
+<summary><code>src/main/remote/demoMode.test.ts</code> — 13 tests</summary>
 
 - **touchPoints**
   - compte 1 point par touche hors Laser
@@ -2481,14 +2481,24 @@ Unitaires : 231 fichiers, 1963 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - Laser restreint à la zone C : chaque touche vaut 5 points
   - ignore les arènes sans match
   - pilote l’arbitrage à intervalle régulier et s’arrête sur demande
-- **DemoPools**
-  - distribue tous les duels des poules, chacun une seule fois
-  - classe les tireurs selon les résultats et marque la poule terminée
-  - ignore un résultat inconnu et relance un tour quand la file est vide
 - **DemoPlayer + poules**
   - enregistre le score final dans la poule à la fin du match
 - **DemoPlayer chrono**
   - diffuse le temps restant des matchs en cours
+
+</details>
+
+<details>
+<summary><code>src/main/remote/demoTournament.test.ts</code> — 6 tests</summary>
+
+- **bracketSeedOrder**
+  - place 1 et 2 aux extrémités du tableau
+- **DemoTournament**
+  - distribue chaque duel de poule une seule fois, puis passe au classement
+  - matrice : duels en cours signalés jusqu’au score
+  - enchaîne classement → tableau → classement final → nouveau tournoi
+  - ignore un score inconnu
+  - classement de poule : V/M puis indice
 
 </details>
 
@@ -4051,6 +4061,16 @@ Unitaires : 231 fichiers, 1963 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - formatBoutDuration
   - trainingRowsHtml : vide, sinon ligne avec heure formatée et échappement
   - kiosk.html charge le module
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeDemoMirror.test.ts</code> — 3 tests</summary>
+
+- **tablette arbitre miroir (démo autonome)**
+  - ouvre seule le match de la piste puis suit le démarrage et les scores
+  - piste libérée : retour à la liste
+  - hors démo, les méthodes d’origine sont appelées
 
 </details>
 

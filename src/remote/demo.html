@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="demo.page_title">Démo - BellePoule Modern</title>
+    <script src="/socket.io.min.js"></script>
+    <script src="/common.js"></script>
+    <script src="/i18n.js"></script>
+    <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/fonts.css" />
+    <style>
+      /* Démo autonome : poules (matrice remplie au fil des matchs), classement, tableau, classement final */
+      :root {
+        --bg: #0f172a;
+        --panel: #111c33;
+        --line: #23304d;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #fbbf24;
+        --win: #22c55e;
+        --lose: #ef4444;
+        --live: #38bdf8;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: 'Inter', system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem 0.5rem;
+      }
+      h1 { margin: 0; font-size: 1.6rem; color: var(--accent); }
+      .sub { color: var(--muted); font-size: 0.9rem; }
+      .countdown {
+        font-variant-numeric: tabular-nums;
+        background: rgba(251, 191, 36, 0.12);
+        color: var(--accent);
+        border-radius: 999px;
+        padding: 0.3rem 0.9rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      main { padding: 0.5rem 1.5rem 1.5rem; }
+      .grid { display: flex; flex-wrap: wrap; gap: 1rem; }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .card h2 { margin: 0; padding: 0.6rem 0.9rem; font-size: 1.05rem; border-bottom: 1px solid var(--line); }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { padding: 0.35rem 0.5rem; text-align: center; border-bottom: 1px solid var(--line); }
+      th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
+      td.name { text-align: left; white-space: nowrap; }
+      td.name small { display: block; color: var(--muted); font-size: 0.72rem; }
+      .matrix td.cell { width: 2.6rem; border-left: 1px solid var(--line); font-weight: 700; }
+      .matrix td.self { background: #334155; }
+      .matrix td.v { color: var(--win); }
+      .matrix td.d { color: var(--lose); }
+      .matrix td.live { color: var(--live); animation: pulse 1s infinite alternate; }
+      .matrix td.cell.fresh { animation: flash 1.2s ease-out; }
+      @keyframes pulse { from { opacity: 0.35; } to { opacity: 1; } }
+      @keyframes flash { from { background: rgba(251, 191, 36, 0.45); } to { background: transparent; } }
+      .ranking { max-width: 900px; }
+      .ranking td.rank { font-weight: 700; color: var(--accent); width: 4.5rem; white-space: nowrap; }
+      .ranking tr.out td { opacity: 0.45; }
+      .tag { font-size: 0.72rem; padding: 0.1rem 0.5rem; border-radius: 999px; }
+      .tag.q { background: rgba(34, 197, 94, 0.15); color: var(--win); }
+      .tag.e { background: rgba(239, 68, 68, 0.15); color: var(--lose); }
+      .medal { font-size: 1.2rem; }
+      .bracket { display: flex; gap: 2rem; align-items: stretch; }
+      .round { display: flex; flex-direction: column; justify-content: space-around; gap: 1rem; min-width: 230px; }
+      .round h3 { margin: 0 0 0.25rem; font-size: 0.9rem; color: var(--muted); text-align: center; }
+      .bout { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+      .bout.playing { border-color: var(--live); box-shadow: 0 0 0 1px var(--live); }
+      .side { display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.4rem 0.7rem; }
+      .side + .side { border-top: 1px solid var(--line); }
+      .side .seed { color: var(--muted); font-size: 0.75rem; margin-right: 0.35rem; }
+      .side.win { font-weight: 700; color: var(--win); }
+      .side.lose { opacity: 0.5; }
+      .side .score { font-variant-numeric: tabular-nums; font-weight: 700; }
+      .empty { color: var(--muted); padding: 3rem; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1 id="phase-title" data-i18n="demo.title">Démo</h1>
+        <div class="sub" id="cycle"></div>
+      </div>
+      <div class="countdown" id="countdown" hidden></div>
+    </header>
+    <main id="content"><div class="empty" data-i18n="demo.waiting">En attente de la démo…</div></main>
+
+    <script>
+      (function () {
+        'use strict';
+        const esc = window.escHtml;
+        const tk = (key, params) => (window.T ? window.T(key, params) : key);
+        let state = null;
+        let fetchedAt = 0;
+        let lastResults = new Set();
+        let freshResults = new Set();
+
+        const fullName = f => (f ? `${f.lastName} ${f.firstName}`.trim() : '');
+        const signed = n => (n > 0 ? `+${n}` : String(n));
+
+        function poolMatrixHtml(pool) {
+          const byPair = new Map();
+          for (const r of pool.results) {
+            byPair.set(`${r.a}|${r.b}`, { mine: r.scoreA, theirs: r.scoreB, key: `${r.a}|${r.b}` });
+            byPair.set(`${r.b}|${r.a}`, { mine: r.scoreB, theirs: r.scoreA, key: `${r.a}|${r.b}` });
+          }
+          const live = new Set();
+          for (const k of pool.playing) {
+            const [a, b] = k.split('|');
+            live.add(`${a}|${b}`);
+            live.add(`${b}|${a}`);
+          }
+          const rankOf = new Map(pool.rankings.map((r, i) => [r.id, { rank: i + 1, ...r }]));
+          const rowsHtml = pool.fencers
+            .map((f, i) => {
+              const cellsHtml = pool.fencers
+                .map((g, j) => {
+                  if (i === j) return '<td class="cell self"></td>';
+                  const res = byPair.get(`${f.id}|${g.id}`);
+                  if (res) {
+                    const win = res.mine > res.theirs;
+                    const cls = `cell ${win ? 'v' : 'd'}${freshResults.has(res.key) ? ' fresh' : ''}`;
+                    return `<td class="${cls}">${win ? 'V' : 'D'}${Number(res.mine)}</td>`;
+                  }
+                  if (live.has(`${f.id}|${g.id}`)) return '<td class="cell live">⚔</td>';
+                  return '<td class="cell"></td>';
+                })
+                .join('');
+              const r = rankOf.get(f.id);
+              const played = r && r.matchesPlayed > 0;
+              return `<tr>
+              <td>${i + 1}</td>
+              <td class="name">${esc(fullName(f))}<small>${esc(f.club)}</small></td>
+              ${cellsHtml}
+              <td>${played ? Number(r.victories) : ''}</td>
+              <td>${played ? Number(r.touchesFor) : ''}</td>
+              <td>${played ? Number(r.touchesAgainst) : ''}</td>
+              <td>${played ? esc(signed(r.index)) : ''}</td>
+              <td>${played ? Number(r.rank) : ''}</td>
+            </tr>`;
+            })
+            .join('');
+          const headsHtml = pool.fencers.map((_, j) => `<th>${j + 1}</th>`).join('');
+          return `<section class="card matrix">
+            <h2>${tk('demo.pool_n', { n: pool.number })}</h2>
+            <table>
+              <thead><tr><th></th><th>${tk('demo.col_fencer')}</th>${headsHtml}
+                <th>V</th><th>${tk('demo.col_td')}</th><th>${tk('demo.col_tr')}</th>
+                <th>${tk('demo.col_index')}</th><th>${tk('demo.col_rank')}</th></tr></thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+          </section>`;
+        }
+
+        function rankingHtml(rows, opts) {
+          const MEDALS = ['🥇', '🥈', '🥉', '🥉'];
+          const bodyHtml = rows
+            .map((r, i) => {
+              const out = opts.qualified != null && i >= opts.qualified;
+              const tagHtml =
+                opts.qualified == null
+                  ? ''
+                  : out
+                    ? `<span class="tag e">${tk('demo.eliminated')}</span>`
+                    : `<span class="tag q">${tk('demo.qualified')}</span>`;
+              const medalHtml = opts.medals && i < 4 ? `<span class="medal">${esc(MEDALS[i])}</span> ` : '';
+              return `<tr class="${out ? 'out' : ''}">
+              <td class="rank">${medalHtml}${Number(r.rank)}</td>
+              <td class="name">${esc(fullName(r.fencer))}<small>${esc(r.fencer.club)}</small></td>
+              <td>${Number(r.victories)}/${Number(r.matchesPlayed)}</td>
+              <td>${esc(signed(r.index))}</td>
+              <td>${Number(r.touchesFor)}</td>
+              <td>${tagHtml}</td>
+            </tr>`;
+            })
+            .join('');
+          return `<section class="card ranking">
+            <table>
+              <thead><tr><th>${tk('demo.col_rank')}</th><th>${tk('demo.col_fencer')}</th>
+                <th>V/M</th><th>${tk('demo.col_index')}</th><th>${tk('demo.col_td')}</th><th></th></tr></thead>
+              <tbody>${bodyHtml}</tbody>
+            </table>
+          </section>`;
+        }
+
+        function roundTitle(size) {
+          if (size === 1) return tk('demo.round_final');
+          if (size === 2) return tk('demo.round_semi');
+          return tk('demo.round_n', { n: size * 2 });
+        }
+
+        function sideHtml(f, seed, score, cls) {
+          return `<div class="side ${cls || ''}">
+            <span><span class="seed">${seed == null ? '' : Number(seed)}</span>${f ? esc(fullName(f)) : '—'}</span>
+            <span class="score">${score == null ? '' : Number(score)}</span>
+          </div>`;
+        }
+
+        function bracketHtml(rounds) {
+          // Tours à venir affichés vides pour montrer tout le tableau dès le premier tour
+          const all = rounds.slice();
+          while (all.length && all[all.length - 1].length > 1) {
+            all.push(Array.from({ length: all[all.length - 1].length / 2 }, () => null));
+          }
+          const colsHtml = all
+            .map(round => {
+              const boutsHtml = round
+                .map(m => {
+                  if (!m) {
+                    const emptyHtml = sideHtml(null);
+                    return `<div class="bout">${emptyHtml}${emptyHtml}</div>`;
+                  }
+                  const done = m.status === 'done';
+                  const aCls = done ? (m.winner === 'A' ? 'win' : 'lose') : '';
+                  const bCls = done ? (m.winner === 'B' ? 'win' : 'lose') : '';
+                  const boutCls = m.status === 'playing' ? 'playing' : '';
+                  const aHtml = sideHtml(m.a, m.seedA, m.scoreA, aCls);
+                  const bHtml = sideHtml(m.b, m.seedB, m.scoreB, bCls);
+                  return `<div class="bout ${boutCls}">${aHtml}${bHtml}</div>`;
+                })
+                .join('');
+              return `<div class="round"><h3>${esc(roundTitle(round.length))}</h3>${boutsHtml}</div>`;
+            })
+            .join('');
+          return `<div class="bracket">${colsHtml}</div>`;
+        }
+
+        function render() {
+          const content = document.getElementById('content');
+          if (!state) {
+            content.innerHTML = `<div class="empty">${tk('demo.waiting')}</div>`;
+            return;
+          }
+          document.getElementById('phase-title').textContent = tk(`demo.phase_${state.phase}`);
+          document.getElementById('cycle').textContent = tk('demo.cycle', { n: state.cycle });
+          let bodyHtml;
+          if (state.phase === 'pools') {
+            bodyHtml = `<div class="grid">${state.pools.map(poolMatrixHtml).join('')}</div>`;
+          } else if (state.phase === 'pool_ranking') {
+            bodyHtml = rankingHtml(state.poolRanking, { qualified: Math.min(8, state.poolRanking.length) });
+          } else if (state.phase === 'tableau') {
+            bodyHtml = bracketHtml(state.tableau);
+          } else {
+            bodyHtml = rankingHtml(state.finalRanking, { medals: true });
+          }
+          content.innerHTML = bodyHtml;
+          renderCountdown();
+        }
+
+        function renderCountdown() {
+          const el = document.getElementById('countdown');
+          if (!state || state.remainingMs == null) {
+            el.hidden = true;
+            return;
+          }
+          const s = Math.max(0, Math.ceil((state.remainingMs - (Date.now() - fetchedAt)) / 1000));
+          el.hidden = false;
+          el.textContent = tk(state.phase === 'pool_ranking' ? 'demo.next_tableau' : 'demo.next_cycle', { s });
+        }
+
+        let refreshTimer = null;
+        let retryAttempt = 0;
+        async function refresh() {
+          refreshTimer = null;
+          try {
+            const res = await fetch('/api/demo/state');
+            if (!res.ok) throw new Error(String(res.status));
+            const next = await res.json();
+            const keys = new Set(next.pools.flatMap(p => p.results.map(r => `${r.a}|${r.b}`)));
+            freshResults = new Set([...keys].filter(k => !lastResults.has(k)));
+            if (state && state.cycle !== next.cycle) freshResults = new Set();
+            lastResults = keys;
+            state = next;
+            fetchedAt = Date.now();
+            retryAttempt = 0;
+            render();
+          } catch {
+            state = null;
+            render();
+            // Démo pas encore lancée : nouvel essai avec backoff
+            const delay = Math.min(30000, 1000 * 2 ** retryAttempt++) * (0.75 + Math.random() / 2);
+            refreshTimer = setTimeout(refresh, delay);
+          }
+        }
+        function scheduleRefresh() {
+          if (refreshTimer) return;
+          refreshTimer = setTimeout(refresh, 300);
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+          await window.initRemoteI18n();
+          // Mises à jour poussées par le serveur (chaque point, fin de match, changement de phase)
+          const socket = io();
+          socket.on('kiosk:data', scheduleRefresh);
+          socket.on('connect', scheduleRefresh);
+          // Compte à rebours local (aucune requête)
+          setInterval(() => {
+            if (document.hidden) return;
+            renderCountdown();
+          }, 500);
+          refresh();
+        });
+      })();
+    </script>
+  </body>
+</html>

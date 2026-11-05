@@ -2005,15 +2005,13 @@ describe('mode démo (session d’entraînement)', () => {
 
     const history = srv.getTrainingHistory();
     expect(history.length).toBeGreaterThanOrEqual(2);
-    // Démo : matchs de poule en 5 touches
+    // Démo : poules en 5 touches, puis tableau d'élimination directe en 15
+    expect(Math.max(history[0].scoreA, history[0].scoreB)).toBe(5);
     for (const record of history) {
-      expect(Math.max(record.scoreA, record.scoreB)).toBe(5);
+      expect([5, 15]).toContain(Math.max(record.scoreA, record.scoreB));
     }
-    // Les résultats alimentent les poules simulées (vue poules du kiosque)
-    const played = (srv.demoPools ?? [])
-      .flatMap(p => p.rankings)
-      .reduce((n, r) => n + r.matchesPlayed, 0);
-    expect(played).toBeGreaterThan(0);
+    // Poules terminées → tableau joué sur les pistes, sans action humaine
+    expect(history.some(r => Math.max(r.scoreA, r.scoreB) === 15)).toBe(true);
 
     srv.stopSession();
     const remaining = srv.getTrainingHistory().length;

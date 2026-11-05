@@ -2719,7 +2719,7 @@
   },
   "demo": {
     "button": "Autonome Demo",
-    "hint": "Poolgefechte automatisch auf 2 Bahnen, mit Bahnanzeigen, Kampfrichter-Tablet und Poolanzeige (Kiosk)",
+    "hint": "Fiktives Turnier in Endlosschleife auf 2 Bahnen: Pools, Rangliste, Direktausscheidung, Endrangliste. Bahnanzeigen, Kampfrichter-Tablet und Turnieranzeige.",
     "started": "Demo gestartet: Bildschirme geöffnet, der virtuelle Kampfrichter führt die Gefechte",
     "choose_weapon": "Waffe wählen:"
   }

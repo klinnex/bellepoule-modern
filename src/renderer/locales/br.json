@@ -2719,7 +2719,7 @@
   },
   "demo": {
     "button": "Diskouezadenn emren",
-    "hint": "Krogadoù poull c'hoariet ent emgefre war 2 dachenn, gant skrammoù tachenn, tabletenn ar varner ha diskwel ar poulloù (kiosk)",
+    "hint": "Tournamant faos c'hoariet en-dro war 2 dachenn : poulloù, renkadur, taolenn dilemel war-eeun, renkadur diwezhañ. Skrammoù tachenn, tabletenn ar varner ha diskwel an tournamant.",
     "started": "Diskouezadenn loc'het : skrammoù digor, ar barner galloudel a c'hoari ar c'hrogadoù",
     "choose_weapon": "Dibabit an arm :"
   }

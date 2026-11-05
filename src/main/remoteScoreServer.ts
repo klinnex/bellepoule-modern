@@ -111,7 +111,7 @@ import {
   createTrainingMatch,
   type TrainingSessionContext,
 } from './remote/trainingSession';
-import { DemoPlayer, type DemoPoolView } from './remote/demoMode';
+import type { DemoPlayer } from './remote/demoMode';
 import { finishArenaMatch, type MatchFinishContext } from './remote/matchFinish';
 import {
   peekNextMatch,
@@ -250,8 +250,7 @@ export class RemoteScoreServer {
     matchDurationSeconds: number;
     allowedZones: string[];
     disableSuddenDeath: boolean;
-    /** Démo autonome (arbitre virtuel + poules simulées) */
-    demo?: boolean;
+    demo?: boolean; // démo autonome (arbitre virtuel)
   } | null = null;
   private sessionLogo: string | null = null; // Logo organisateur (base64) pour kiosk et affichages publics
   private sessionWallpaper: string | null = null; // Fond d'écran (base64) affiché sur les arènes en attente
@@ -484,8 +483,20 @@ export class RemoteScoreServer {
         'sessionWeapon',
         'trainingCustomRules',
         'trainingHistory',
+        'arenas',
+        'demoPlayer',
       ],
-      ['assignMatchToArena', 'createTrainingMatch', 'notifyKioskData', 'setArenaCount']
+      [
+        'assignMatchToArena',
+        'createTrainingMatch',
+        'notifyKioskData',
+        'setArenaCount',
+        'startArenaMatch',
+        'updateArenaScore',
+        'finishArenaMatch',
+        'getScoreLimit',
+        'broadcastArenaUpdate',
+      ]
     ));
   }
   private _trainingSessionCtx?: TrainingSessionContext;
@@ -1023,7 +1034,7 @@ export class RemoteScoreServer {
           'sessionMatches',
           'sessionMatchScores',
           'trainingHistory',
-          'demoPools',
+          'demoPlayer',
           'registrationEnabled',
           'checkinEnabled',
           'checkinPassword',
@@ -1789,44 +1800,11 @@ export class RemoteScoreServer {
   public async startTrainingSession(
     ...args: Tail<Parameters<typeof startTrainingSession>>
   ): Promise<RemoteSession> {
-    const [, weapon, customRules] = args;
-    // Démo : l'arbitre virtuel est armé avant l'assignation des premiers matchs
-    if (customRules?.demo) {
-      this.demoPlayer = new DemoPlayer(
-        {
-          arenas: () => this.arenas,
-          startArenaMatch: id => this.startArenaMatch(id),
-          updateArenaScore: (id, a, b) => this.updateArenaScore(id, a, b),
-          finishArenaMatch: id => this.finishArenaMatch(id),
-          getScoreLimit: m => this.getScoreLimit(m),
-          updateArenaTimer: (id, seconds) => {
-            const arena = this.arenas.get(id);
-            if (!arena) return;
-            this.broadcastArenaUpdate(id, {
-              arenaId: id,
-              match: arena.currentMatch,
-              time: seconds,
-              timerStatus: 'running',
-              status: arena.status,
-            });
-          },
-          matchSeconds: () => this.trainingCustomRules?.matchDurationSeconds ?? 180,
-        },
-        Date.now(),
-        { weapon, allowedZones: customRules.allowedZones ?? [] }
-      );
-    }
-    const session = await startTrainingSession(this.trainingSessionCtx, ...args);
-    this.demoPlayer?.start();
-    return session;
+    return startTrainingSession(this.trainingSessionCtx, ...args);
   }
 
-  /** Poules de la démo autonome (kiosque), null hors démo */
-  get demoPools(): DemoPoolView[] | null {
-    return this.demoPlayer?.poolsView() ?? null;
-  }
-
-  private createTrainingMatch(): ArenaMatch {
+  /** En démo, null tant qu'aucun duel n'est jouable */
+  private createTrainingMatch(): ArenaMatch | null {
     return this.demoPlayer ? this.demoPlayer.createMatch() : createTrainingMatch();
   }
 

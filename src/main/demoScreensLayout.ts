@@ -16,14 +16,15 @@ export interface Rect {
   height: number;
 }
 
-/** Écrans montrés par la démo : affichage de chaque arène (max 2), tablette arène 1, poules (kiosque). */
+/** Écrans montrés par la démo : affichage de chaque arène (max 2), tablette arène 1, affichage du tournoi
+ * (poules → classement → tableau → classement final, en boucle). */
 export function demoScreens(serverUrl: string, strips: number): DemoScreen[] {
   const base = serverUrl.replace(/\/+$/, '');
   const arenas = Math.max(1, Math.min(strips, 2));
   const list: DemoScreen[] = [];
   for (let i = 1; i <= arenas; i++) list.push({ title: `Arène ${i}`, url: `${base}/arene${i}` });
   list.push({ title: 'Tablette arbitre — Arène 1', url: `${base}/arene1/arbitre?demo=1` });
-  list.push({ title: 'Affichage des poules', url: `${base}/kiosk?views=poules` });
+  list.push({ title: 'Affichage du tournoi', url: `${base}/demo` });
   return list;
 }
 
