@@ -2719,7 +2719,8 @@
   },
   "demo": {
     "button": "Autonome Demo",
-    "hint": "Gefechte werden automatisch auf 2 Bahnen ausgetragen, mit Bahnanzeigen, Kampfrichter-Tablet und Kiosk",
-    "started": "Demo gestartet: Bildschirme geöffnet, der virtuelle Kampfrichter führt die Gefechte"
+    "hint": "Poolgefechte automatisch auf 2 Bahnen, mit Bahnanzeigen, Kampfrichter-Tablet und Poolanzeige (Kiosk)",
+    "started": "Demo gestartet: Bildschirme geöffnet, der virtuelle Kampfrichter führt die Gefechte",
+    "choose_weapon": "Waffe wählen:"
   }
 }

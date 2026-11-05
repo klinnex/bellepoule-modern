@@ -161,6 +161,13 @@ export function registerResultsRoutes(ctx: RouteContext): void {
     res.json({ history: ctx.trainingHistory });
   });
 
+  // API : poules simulées par la démo autonome (vue poules du kiosque)
+  ctx.app.get('/api/demo/pools', (_req, res) => {
+    const pools = ctx.demoPools;
+    if (!ctx.isTrainingMode || !pools) return res.status(404).json({ error: 'not_training' });
+    res.json({ pools });
+  });
+
   // API : matchs à venir dans l'ordre de passage (kiosk vue suivants)
   ctx.app.get('/api/session/upcoming-matches', (req, res) => {
     if (!ctx.session) {

@@ -2719,7 +2719,8 @@
   },
   "demo": {
     "button": "Démo autonome",
-    "hint": "Matchs joués automatiquement sur 2 arènes, avec écrans d'arène, tablette arbitre et kiosque",
-    "started": "Démo lancée : écrans ouverts, l'arbitre virtuel joue les matchs"
+    "hint": "Matchs de poule joués automatiquement sur 2 pistes, avec écrans de piste, tablette arbitre et affichage des poules (kiosque)",
+    "started": "Démo lancée : écrans ouverts, l'arbitre virtuel joue les matchs",
+    "choose_weapon": "Choisissez l'arme :"
   }
 }

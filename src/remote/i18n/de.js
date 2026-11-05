@@ -167,6 +167,8 @@
   'referee.sigs_saved': '✅ Unterschriften gespeichert',
   'referee.closed_by_app': '⚠️ Gefecht in der Hauptanwendung abgeschlossen',
   'referee.match_resume_hint': '↩ Gefecht läuft — tippen zum Fortsetzen',
+  'referee.demo_banner': '🤖 Demo — virtueller Kampfrichter',
+  'referee.demo_match_finished': '🏁 Gefecht beendet — nächstes Gefecht…',
   'referee.next_after': '⏭️ Nächstes Gefecht nach diesem verfügbar',
   'referee.next_available': '⏭️ Nächstes Gefecht verfügbar!',
   'referee.referee_updated': '✅ Kampfrichter aktualisiert',

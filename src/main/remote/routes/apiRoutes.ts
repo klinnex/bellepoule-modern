@@ -30,6 +30,8 @@ export interface ApiRouteContext extends MatchRouteContext {
     matchDurationSeconds: number;
     allowedZones: string[];
     disableSuddenDeath: boolean;
+    /** Démo autonome (arbitre virtuel + poules simulées) */
+    demo?: boolean;
   } | null;
   readonly ttsConfig: { voiceName: string | null; rate: number; announce: Record<string, boolean> };
   readonly arenaCards: Map<string, { cardsA: string[]; cardsB: string[] }>;

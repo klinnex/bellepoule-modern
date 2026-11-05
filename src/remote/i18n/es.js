@@ -167,6 +167,8 @@
   'referee.sigs_saved': '✅ Firmas guardadas',
   'referee.closed_by_app': '⚠️ Combate cerrado desde la aplicación principal',
   'referee.match_resume_hint': '↩ Combate en curso — pulse para reanudar',
+  'referee.demo_banner': '🤖 Demo — árbitro virtual',
+  'referee.demo_match_finished': '🏁 Combate terminado — siguiente combate…',
   'referee.next_after': '⏭️ Próximo combate disponible tras este combate',
   'referee.next_available': '⏭️ ¡Siguiente combate disponible!',
   'referee.referee_updated': '✅ Árbitro actualizado',

@@ -167,6 +167,8 @@
   'referee.sigs_saved': '✅ Sinadurioù enrollet',
   'referee.closed_by_app': '⚠️ Emgann serret diouzh an arload pennañ',
   'referee.match_resume_hint': '↩ Emgann o vont en-dro — pouezit evit adkregiñ',
+  'referee.demo_banner': '🤖 Diskouezadenn — barner galloudel',
+  'referee.demo_match_finished': '🏁 Emgann echu — emgann da-heul…',
   'referee.next_after': '⏭️ Emgann da-heul hegerz goude an emgann-mañ',
   'referee.next_available': '⏭️ Emgann da-heul hegerz!',
   'referee.referee_updated': '✅ Arbitr hizivaet',

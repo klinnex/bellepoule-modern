@@ -166,6 +166,8 @@
   'referee.sigs_saved': '✅ 簽名已儲存',
   'referee.closed_by_app': '⚠️ 比賽已由主程式結束',
   'referee.match_resume_hint': '↩ 比賽進行中 — 點擊繼續',
+  'referee.demo_banner': '🤖 示範 — 虛擬裁判',
+  'referee.demo_match_finished': '🏁 比賽結束 — 下一場…',
   'referee.next_after': '⏭️ 本場結束後可進行下一場',
   'referee.next_available': '⏭️ 下一場比賽已可進行！',
   'referee.referee_updated': '✅ 裁判已更新',

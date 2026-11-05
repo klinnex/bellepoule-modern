@@ -29,6 +29,7 @@ import CompetitionList from './components/CompetitionList';
 /** Démo autonome : nombre d'arènes jouées par l'arbitre virtuel */
 const DEMO_STRIPS = 2;
 
+const DemoLauncherModal = React.lazy(() => import('./components/training/DemoLauncherModal'));
 const CompetitionView = React.lazy(() => import('./components/CompetitionView'));
 const CommandPalette = React.lazy(() => import('./components/CommandPalette'));
 const NewCompetitionModal = React.lazy(() => import('./components/NewCompetitionModal'));
@@ -87,6 +88,7 @@ const AppContent: React.FC = () => {
   const [remoteServerUrl, setRemoteServerUrl] = useState<string | null>(null);
   const [remoteArenaCount, setRemoteArenaCount] = useState<number>(1);
   const [showTrainingModal, setShowTrainingModal] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
   const [trainingActive, setTrainingActive] = useState(false);
   const [showTrainingPanel, setShowTrainingPanel] = useState(false);
   const [trainingServerUrl, setTrainingServerUrl] = useState('');
@@ -498,16 +500,26 @@ const AppContent: React.FC = () => {
       await training.openDemoScreens?.(trainingStrips || DEMO_STRIPS);
       return;
     }
-    const ok = await handleLaunchTraining(Weapon.EPEE, DEMO_STRIPS, {
-      matchDurationSeconds: 180,
-      allowedZones: [],
-      disableSuddenDeath: false,
-      demo: true,
-    });
-    if (!ok) return;
-    const res = await training.openDemoScreens?.(DEMO_STRIPS);
-    if (res?.success) showToast(t('demo.started'), 'success');
-  }, [handleLaunchTraining, trainingActive, trainingStrips, showToast, t]);
+    setShowDemoModal(true);
+  }, [trainingActive, trainingStrips]);
+
+  const handleLaunchDemo = useCallback(
+    async (weapon: Weapon) => {
+      const training = window.electronAPI?.training;
+      if (!training) return;
+      const ok = await handleLaunchTraining(weapon, DEMO_STRIPS, {
+        matchDurationSeconds: 180,
+        allowedZones: [],
+        disableSuddenDeath: false,
+        demo: true,
+      });
+      if (!ok) return;
+      const res = await training.openDemoScreens?.(DEMO_STRIPS);
+      setShowDemoModal(false);
+      if (res?.success) showToast(t('demo.started'), 'success');
+    },
+    [handleLaunchTraining, showToast, t]
+  );
 
   const handleStopTraining = useCallback(async () => {
     if (!window.electronAPI?.training) return;
@@ -1069,6 +1081,16 @@ const AppContent: React.FC = () => {
             <TrainingLauncherModal
               onClose={() => setShowTrainingModal(false)}
               onLaunch={handleLaunchTraining}
+              isLoading={trainingLaunching}
+            />
+          </Suspense>
+        )}
+
+        {showDemoModal && (
+          <Suspense fallback={null}>
+            <DemoLauncherModal
+              onClose={() => setShowDemoModal(false)}
+              onLaunch={weapon => void handleLaunchDemo(weapon)}
               isLoading={trainingLaunching}
             />
           </Suspense>

@@ -2719,7 +2719,8 @@
   },
   "demo": {
     "button": "Diskouezadenn emren",
-    "hint": "Krogadoù c'hoariet ent emgefre war 2 dachenn, gant skrammoù tachenn, tabletenn ar varner hag ar c'hiosk",
-    "started": "Diskouezadenn loc'het : skrammoù digor, ar barner galloudel a c'hoari ar c'hrogadoù"
+    "hint": "Krogadoù poull c'hoariet ent emgefre war 2 dachenn, gant skrammoù tachenn, tabletenn ar varner ha diskwel ar poulloù (kiosk)",
+    "started": "Diskouezadenn loc'het : skrammoù digor, ar barner galloudel a c'hoari ar c'hrogadoù",
+    "choose_weapon": "Dibabit an arm :"
   }
 }

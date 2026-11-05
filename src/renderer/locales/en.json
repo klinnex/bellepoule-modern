@@ -2719,7 +2719,8 @@
   },
   "demo": {
     "button": "Autonomous demo",
-    "hint": "Matches played automatically on 2 arenas, with arena screens, referee tablet and kiosk",
-    "started": "Demo started: screens opened, the virtual referee plays the matches"
+    "hint": "Pool bouts played automatically on 2 strips, with strip screens, referee tablet and pool display (kiosk)",
+    "started": "Demo started: screens opened, the virtual referee plays the matches",
+    "choose_weapon": "Choose the weapon:"
   }
 }

@@ -167,6 +167,8 @@
   'referee.sigs_saved': '✅ Signatures desades',
   'referee.closed_by_app': "⚠️ Combat tancat des de l'aplicació principal",
   'referee.match_resume_hint': '↩ Combat en curs — premeu per reprendre',
+  'referee.demo_banner': '🤖 Demo — àrbitre virtual',
+  'referee.demo_match_finished': '🏁 Combat acabat — següent combat…',
   'referee.next_after': "⏭️ Proper combat disponible després d'aquest",
   'referee.next_available': '⏭️ Següent combat disponible!',
   'referee.referee_updated': '✅ Àrbitre actualitzat',

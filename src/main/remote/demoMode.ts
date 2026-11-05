@@ -67,6 +67,10 @@ export interface DemoPlayerHost {
   updateArenaScore(arenaId: string, scoreA: number, scoreB: number): void;
   finishArenaMatch(arenaId: string): void;
   getScoreLimit(match: ArenaMatch): number;
+  /** Diffuse le chrono restant (s) d'un match en cours : écrans d'arène animés comme avec un arbitre */
+  updateArenaTimer?(arenaId: string, remainingSeconds: number): void;
+  /** Durée d'un match (s), 180 par défaut */
+  matchSeconds?: () => number;
 }
 
 export type DemoAction =
@@ -129,6 +133,169 @@ function createDemoFencer(id: string, rng: () => number): ArenaMatch['fencerA'] 
   } as ArenaMatch['fencerA'];
 }
 
+/** Ligne de classement d'une poule de démo (même forme que /results-data pour le kiosque). */
+export interface DemoPoolRanking {
+  id: string;
+  lastName: string;
+  firstName: string;
+  club: string;
+  matchesPlayed: number;
+  victories: number;
+  touchesFor: number;
+  touchesAgainst: number;
+  index: number;
+}
+
+export interface DemoPoolView {
+  id: string;
+  number: number;
+  name: string;
+  isComplete: boolean;
+  rankings: DemoPoolRanking[];
+}
+
+/** Nombre de poules et de tireurs par poule simulés par la démo. */
+export const DEMO_POOL_COUNT = 2;
+export const DEMO_POOL_SIZE = 5;
+
+interface DemoPool {
+  id: string;
+  number: number;
+  fencers: ArenaMatch['fencerA'][];
+  /** Matchs joués : clé `idA|idB` → scores */
+  results: Map<string, { a: string; b: string; scoreA: number; scoreB: number }>;
+  total: number;
+}
+
+/**
+ * Poules fictives de la démo : tireurs tirés au sort, matchs en tourniquet (toutes poules
+ * entrelacées) et classement recalculé à chaque résultat. Quand tous les matchs sont distribués,
+ * un nouveau tour de poules est tiré (la démo tourne sans fin).
+ */
+export class DemoPools {
+  private pools: DemoPool[] = [];
+  private queue: { pool: DemoPool; a: number; b: number }[] = [];
+  /** Match en cours → poule et identifiants des tireurs */
+  private readonly pending = new Map<string, { pool: DemoPool; a: string; b: string }>();
+  private round = 0;
+
+  constructor(private readonly rng: () => number) {}
+
+  /** Prochain duel (nouveau tour de poules si la file est vide). */
+  next(matchId: string): { fencerA: ArenaMatch['fencerA']; fencerB: ArenaMatch['fencerB'] } {
+    if (this.queue.length === 0) this.newRound();
+    const { pool, a, b } = this.queue.shift()!;
+    const fencerA = pool.fencers[a];
+    const fencerB = pool.fencers[b];
+    this.pending.set(matchId, { pool, a: fencerA.id, b: fencerB.id });
+    // Copies : l'arène peut modifier le match sans toucher la poule
+    return { fencerA: { ...fencerA }, fencerB: { ...fencerB } };
+  }
+
+  /** Enregistre le score final d'un duel distribué par `next`. */
+  record(matchId: string, scoreA: number, scoreB: number): void {
+    const p = this.pending.get(matchId);
+    if (!p) return;
+    this.pending.delete(matchId);
+    p.pool.results.set(`${p.a}|${p.b}`, { a: p.a, b: p.b, scoreA, scoreB });
+  }
+
+  view(): DemoPoolView[] {
+    return this.pools.map(pool => {
+      const rows = new Map<string, DemoPoolRanking>(
+        pool.fencers.map(f => [
+          f.id,
+          {
+            id: f.id,
+            lastName: f.lastName,
+            firstName: f.firstName ?? '',
+            club: f.club ?? '',
+            matchesPlayed: 0,
+            victories: 0,
+            touchesFor: 0,
+            touchesAgainst: 0,
+            index: 0,
+          },
+        ])
+      );
+      for (const r of pool.results.values()) {
+        const ra = rows.get(r.a)!;
+        const rb = rows.get(r.b)!;
+        ra.matchesPlayed++;
+        rb.matchesPlayed++;
+        ra.touchesFor += r.scoreA;
+        ra.touchesAgainst += r.scoreB;
+        rb.touchesFor += r.scoreB;
+        rb.touchesAgainst += r.scoreA;
+        if (r.scoreA > r.scoreB) ra.victories++;
+        else if (r.scoreB > r.scoreA) rb.victories++;
+      }
+      const rankings = [...rows.values()].map(r => ({
+        ...r,
+        index: r.touchesFor - r.touchesAgainst,
+      }));
+      rankings.sort(
+        (x, y) =>
+          (y.matchesPlayed ? y.victories / y.matchesPlayed : 0) -
+            (x.matchesPlayed ? x.victories / x.matchesPlayed : 0) ||
+          y.index - x.index ||
+          y.touchesFor - x.touchesFor
+      );
+      return {
+        id: pool.id,
+        number: pool.number,
+        name: `Poule ${pool.number}`,
+        isComplete: pool.results.size >= pool.total,
+        rankings,
+      };
+    });
+  }
+
+  private newRound(): void {
+    this.round++;
+    const used = new Set<string>();
+    this.pools = Array.from({ length: DEMO_POOL_COUNT }, (_, p) => {
+      const fencers = Array.from({ length: DEMO_POOL_SIZE }, (_, i) => {
+        let f: ArenaMatch['fencerA'];
+        let key: string;
+        let tries = 0;
+        do {
+          f = createDemoFencer(`demo-r${this.round}-p${p + 1}-${i + 1}`, this.rng);
+          key = `${f.firstName}|${f.lastName}`;
+        } while (used.has(key) && ++tries < 20);
+        used.add(key);
+        return f;
+      });
+      const n = fencers.length;
+      return {
+        id: `demo-pool-${this.round}-${p + 1}`,
+        number: p + 1,
+        fencers,
+        results: new Map(),
+        total: (n * (n - 1)) / 2,
+      };
+    });
+    // Tourniquet : chaque poule fournit ses duels dans l'ordre, poules entrelacées
+    const perPool = this.pools.map(pool => {
+      const pairs: { pool: DemoPool; a: number; b: number }[] = [];
+      for (let i = 0; i < pool.fencers.length; i++) {
+        for (let j = i + 1; j < pool.fencers.length; j++) pairs.push({ pool, a: i, b: j });
+      }
+      // Ordre mélangé pour éviter qu'un tireur enchaîne tous ses matchs
+      for (let k = pairs.length - 1; k > 0; k--) {
+        const r = Math.floor(this.rng() * (k + 1));
+        [pairs[k], pairs[r]] = [pairs[r], pairs[k]];
+      }
+      return pairs;
+    });
+    const longest = Math.max(...perPool.map(p => p.length));
+    this.queue = [];
+    for (let i = 0; i < longest; i++) {
+      for (const pairs of perPool) if (pairs[i]) this.queue.push(pairs[i]);
+    }
+  }
+}
+
 /**
  * Lanceur de la démo : génère les matchs aléatoires et pilote les arènes à intervalle régulier.
  * Le minuteur n'est pas armé à la construction : appeler `start()`.
@@ -137,6 +304,10 @@ export class DemoPlayer {
   private readonly rng: () => number;
   private timer: ReturnType<typeof setInterval> | null = null;
   private matchCount = 0;
+  private readonly demoPools: DemoPools;
+  /** Arène → match chronométré et instant de début (ms) */
+  private readonly started = new Map<string, { matchId: string; at: number }>();
+  private now: () => number = Date.now;
 
   constructor(
     private readonly host: DemoPlayerHost,
@@ -144,21 +315,29 @@ export class DemoPlayer {
     private readonly profile: DemoWeaponProfile = { weapon: Weapon.EPEE, allowedZones: [] }
   ) {
     this.rng = createRng(seed);
+    this.demoPools = new DemoPools(this.rng);
+  }
+
+  /** Classements des poules de démo (vue kiosque). */
+  poolsView(): DemoPoolView[] {
+    return this.demoPools.view();
   }
 
   get running(): boolean {
     return this.timer !== null;
   }
 
-  /** Match aléatoire à assigner à une arène (tireurs et club tirés au sort). */
+  /** Prochain duel des poules de démo, à assigner à une arène. */
   createMatch(): ArenaMatch {
     this.matchCount++;
     const suffix = Math.floor(this.rng() * 1e9).toString(36);
+    const id = `demo-${this.matchCount}-${suffix}`;
+    const { fencerA, fencerB } = this.demoPools.next(id);
     return {
-      id: `demo-${this.matchCount}-${suffix}`,
+      id,
       poolId: '__training__',
-      fencerA: createDemoFencer(`demo-${this.matchCount}-A`, this.rng),
-      fencerB: createDemoFencer(`demo-${this.matchCount}-B`, this.rng),
+      fencerA,
+      fencerB,
       scoreA: 0,
       scoreB: 0,
       status: 'not_started',
@@ -193,14 +372,32 @@ export class DemoPlayer {
       );
       if (action.kind === 'start') {
         this.host.startArenaMatch(arenaId);
+        this.started.set(arenaId, { matchId: match.id, at: this.now() });
       } else if (action.kind === 'point') {
         const points = touchPoints(this.profile, this.rng);
         const scoreA = match.scoreA + (action.side === 'A' ? points : 0);
         const scoreB = match.scoreB + (action.side === 'B' ? points : 0);
         this.host.updateArenaScore(arenaId, scoreA, scoreB);
       } else if (action.kind === 'finish') {
+        this.demoPools.record(match.id, match.scoreA, match.scoreB);
         this.host.finishArenaMatch(arenaId);
+        this.started.delete(arenaId);
+        continue;
       }
+      this.tickTimer(arenaId, arena.status, match.id);
     }
+  }
+
+  /** Horloge injectable (tests). */
+  setClock(now: () => number): void {
+    this.now = now;
+  }
+
+  private tickTimer(arenaId: string, status: string, matchId: string): void {
+    const s = this.started.get(arenaId);
+    if (!this.host.updateArenaTimer || status !== 'in_progress' || s?.matchId !== matchId) return;
+    const total = this.host.matchSeconds?.() ?? 180;
+    const remaining = Math.max(0, total - Math.floor((this.now() - s.at) / 1000));
+    this.host.updateArenaTimer(arenaId, remaining);
   }
 }
