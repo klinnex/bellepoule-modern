@@ -74,3 +74,44 @@ describe('HyperspaceCrawl', () => {
     expect(screen.getByTestId('hyperspace-crawl')).toBeInTheDocument();
   });
 });
+
+describe('playBladeMarch', () => {
+  it('programme un swish + un clang par note de la marche', async () => {
+    const { playBladeMarch, IMPERIAL_MARCH, BLADE_PARTIALS } = await import('./crawlMusic');
+    const param = () => ({
+      value: 0,
+      setValueAtTime: vi.fn(),
+      linearRampToValueAtTime: vi.fn(),
+      exponentialRampToValueAtTime: vi.fn(),
+    });
+    const node = () => ({
+      connect: vi.fn(),
+      start: vi.fn(),
+      stop: vi.fn(),
+      gain: param(),
+      frequency: param(),
+      detune: param(),
+      pan: param(),
+      Q: param(),
+      buffer: null as unknown,
+      type: '',
+    });
+    const counts = { osc: 0, noise: 0 };
+    const ctx = {
+      currentTime: 0,
+      sampleRate: 44100,
+      destination: {},
+      createGain: node,
+      createBiquadFilter: node,
+      createStereoPanner: node,
+      createConvolver: node,
+      createDynamicsCompressor: node,
+      createOscillator: () => (counts.osc++, node()),
+      createBufferSource: () => (counts.noise++, node()),
+      createBuffer: (_c: number, len: number) => ({ getChannelData: () => new Float32Array(len) }),
+    };
+    playBladeMarch(ctx as unknown as AudioContext, 0);
+    expect(counts.noise).toBe(IMPERIAL_MARCH.length * 2);
+    expect(counts.osc).toBe(IMPERIAL_MARCH.length * BLADE_PARTIALS.length);
+  });
+});

@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 42 | 335 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 47 | 235 |
+| `src/renderer/components/` | 47 | 236 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 22 | 134 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **240** | **1997** |
+| **Total** | **240** | **1998** |
 
-Unitaires : 231 fichiers, 1962 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 231 fichiers, 1963 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3384,7 +3384,7 @@ Unitaires : 231 fichiers, 1962 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/HyperspaceCrawl.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/components/HyperspaceCrawl.test.tsx</code> — 8 tests</summary>
 
 - **toRoman**
   - convertit en chiffres romains
@@ -3396,6 +3396,8 @@ Unitaires : 231 fichiers, 1962 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - clic ferme
   - Échap ferme le crawl sans fermer la modale À propos
   - Entrée sur le numéro de build lance le crawl
+- **playBladeMarch**
+  - programme un swish + un clang par note de la marche
 
 </details>
 
