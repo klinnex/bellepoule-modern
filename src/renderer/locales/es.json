@@ -2716,5 +2716,10 @@
     "remote_explain": "Los árbitros escanean el código QR «Árbitro» en su tableta, introducen los tocados partido a partido y los resultados llegan aquí en directo.",
     "remote_mock_arena": "Pista 1",
     "remote_mock_validate": "Validar el combate"
+  },
+  "demo": {
+    "button": "Demo autónoma",
+    "hint": "Asaltos disputados automáticamente en 2 pistas, con pantallas de pista, tableta de árbitro y quiosco",
+    "started": "Demo iniciada: pantallas abiertas, el árbitro virtual juega los asaltos"
   }
 }

@@ -2716,5 +2716,10 @@
     "remote_explain": "Die Kampfrichter scannen den QR-Code „Kampfrichter“ auf ihrem Tablet, erfassen die Treffer Gefecht für Gefecht, und die Ergebnisse erscheinen hier live.",
     "remote_mock_arena": "Bahn 1",
     "remote_mock_validate": "Gefecht bestätigen"
+  },
+  "demo": {
+    "button": "Autonome Demo",
+    "hint": "Gefechte werden automatisch auf 2 Bahnen ausgetragen, mit Bahnanzeigen, Kampfrichter-Tablet und Kiosk",
+    "started": "Demo gestartet: Bildschirme geöffnet, der virtuelle Kampfrichter führt die Gefechte"
   }
 }

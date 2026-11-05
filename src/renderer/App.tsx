@@ -19,12 +19,16 @@ import {
   Wifi,
   Tv2,
   Sparkles,
+  PlayCircle,
 } from 'lucide-react';
-import { Competition, PhaseType } from '../shared/types';
+import { Competition, PhaseType, Weapon } from '../shared/types';
 import { restartGuidedTour } from './components/guidedTourFlags';
 import type { CompetitionCreateData } from '../shared/types/preload';
 import { logger, LogCategory } from '@shared/services/logger';
 import CompetitionList from './components/CompetitionList';
+/** Démo autonome : nombre d'arènes jouées par l'arbitre virtuel */
+const DEMO_STRIPS = 2;
+
 const CompetitionView = React.lazy(() => import('./components/CompetitionView'));
 const CommandPalette = React.lazy(() => import('./components/CommandPalette'));
 const NewCompetitionModal = React.lazy(() => import('./components/NewCompetitionModal'));
@@ -449,14 +453,14 @@ const AppContent: React.FC = () => {
   );
 
   const handleLaunchTraining = useCallback(
-    async (weapon: string, strips: number, customRules?: any, host?: string) => {
-      if (!window.electronAPI?.training) return;
+    async (weapon: string, strips: number, customRules?: any, host?: string): Promise<boolean> => {
+      if (!window.electronAPI?.training) return false;
       setTrainingLaunching(true);
       try {
         const startRes = await window.electronAPI.training.startServer(undefined, host);
         if (!startRes.success || !startRes.serverInfo) {
           showToast(ipcErrorText(t, startRes, 'Impossible de démarrer le serveur'), 'error');
-          return;
+          return false;
         }
         const sessionRes = await window.electronAPI.training.startSession(
           strips,
@@ -466,7 +470,7 @@ const AppContent: React.FC = () => {
         if (!sessionRes.success) {
           await window.electronAPI.training.stopServer();
           showToast(ipcErrorText(t, sessionRes, 'Impossible de démarrer la session'), 'error');
-          return;
+          return false;
         }
         setTrainingServerUrl(startRes.serverInfo.url);
         setTrainingStrips(strips);
@@ -474,14 +478,36 @@ const AppContent: React.FC = () => {
         setTrainingActive(true);
         setShowTrainingPanel(true);
         setShowTrainingModal(false);
+        return true;
       } catch (err) {
         showToast("Erreur lors du lancement de l'entraînement", 'error');
+        return false;
       } finally {
         setTrainingLaunching(false);
       }
     },
     [showToast, t]
   );
+
+  // Démo autonome : entraînement en mode démo (arbitre virtuel) + écrans distants ouverts
+  const handleStartDemo = useCallback(async () => {
+    const training = window.electronAPI?.training;
+    if (!training) return;
+    if (trainingActive) {
+      // Entraînement déjà lancé : on se contente d'ouvrir les écrans
+      await training.openDemoScreens?.(trainingStrips || DEMO_STRIPS);
+      return;
+    }
+    const ok = await handleLaunchTraining(Weapon.EPEE, DEMO_STRIPS, {
+      matchDurationSeconds: 180,
+      allowedZones: [],
+      disableSuddenDeath: false,
+      demo: true,
+    });
+    if (!ok) return;
+    const res = await training.openDemoScreens?.(DEMO_STRIPS);
+    if (res?.success) showToast(t('demo.started'), 'success');
+  }, [handleLaunchTraining, trainingActive, trainingStrips, showToast, t]);
 
   const handleStopTraining = useCallback(async () => {
     if (!window.electronAPI?.training) return;
@@ -699,6 +725,16 @@ const AppContent: React.FC = () => {
                       }}
                     >
                       <Sparkles size={15} /> {t('app.guided_tour')}
+                    </button>
+                    <button
+                      className="comp-header-dropdown-item tools-menu-item"
+                      onClick={() => {
+                        setShowToolsMenu(false);
+                        void handleStartDemo();
+                      }}
+                      title={t('demo.hint')}
+                    >
+                      <PlayCircle size={15} /> {t('demo.button')}
                     </button>
                   </div>
                 )}
@@ -918,6 +954,7 @@ const AppContent: React.FC = () => {
                 onDelete={handleDeleteCompetition}
                 onExport={handleExportCompetition}
                 onNewCompetition={() => setShowNewCompetitionModal(true)}
+                onStartDemo={window.electronAPI?.training ? handleStartDemo : undefined}
                 onOpenFile={
                   window.electronAPI?.file?.openDialog
                     ? () => void window.electronAPI.file.openDialog()

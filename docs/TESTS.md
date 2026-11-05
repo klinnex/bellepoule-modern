@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 41 | 325 |
+| `src/main/` | 42 | 330 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 47 | 235 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **239** | **1987** |
+| **Total** | **240** | **1992** |
 
-Unitaires : 230 fichiers, 1952 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 231 fichiers, 1957 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2121,6 +2121,19 @@ Unitaires : 230 fichiers, 1952 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **certManager**
   - buildAltNames : localhost, loopback et IPv4 externes uniquement
   - ensureCert génère un certificat avec SAN réels, puis le réutilise
+
+</details>
+
+<details>
+<summary><code>src/main/demoScreensLayout.test.ts</code> — 5 tests</summary>
+
+- **demoScreens**
+  - liste arènes, tablette arbitre et kiosque
+  - borne le nombre d’écrans d’arène entre 1 et 2
+- **tileLayout**
+  - vide si aucun écran
+  - une fenêtre occupe toute la zone
+  - mosaïque 2 colonnes
 
 </details>
 

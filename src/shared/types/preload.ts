@@ -1192,6 +1192,10 @@ export interface TrainingAPI {
     };
     error?: string;
   }>;
+  /** Démo autonome : ouvre les écrans arène / tablette arbitre / kiosque du serveur d'entraînement */
+  openDemoScreens: (
+    strips: number
+  ) => Promise<{ success: boolean; count?: number; error?: string }>;
 }
 
 /** Boîte d'impression intégrée (#1214) */
