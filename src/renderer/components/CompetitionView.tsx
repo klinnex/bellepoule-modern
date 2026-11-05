@@ -819,7 +819,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       .catch(() => {});
     let unlisten: (() => void) | undefined;
     if (window.electronAPI.onRemoteArenaUpdate) {
-      unlisten = window.electronAPI.onRemoteArenaUpdate((data: any) => {
+      unlisten = window.electronAPI.onRemoteArenaUpdate(data => {
         setArenaStates(prev => {
           const idx = prev.findIndex((a: Arena) => a.id === data.arenaId);
           if (idx === -1) return prev;
