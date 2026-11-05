@@ -2703,5 +2703,10 @@
     "remote_explain": "Gli arbitri scansionano il QR Code \"Arbitro\" sul loro tablet, inseriscono i tocchi incontro per incontro e i punteggi arrivano qui in diretta.",
     "remote_mock_arena": "Arena 1",
     "remote_mock_validate": "Convalida l'incontro"
+  },
+  "demo": {
+    "button": "Demo autonoma",
+    "hint": "Assalti disputati automaticamente su 2 pedane, con schermi di pedana, tablet arbitro e chiosco",
+    "started": "Demo avviata: schermi aperti, l'arbitro virtuale gioca gli assalti"
   }
 }

@@ -2703,5 +2703,10 @@
     "remote_explain": "An abiterien a skan ar c'hod QR « Abiter » war o zablezenn, enskrivañ a reont ar stokadoù emgann dre emgann, hag ar skorioù a zeu amañ war-eeun.",
     "remote_mock_arena": "Arenenn 1",
     "remote_mock_validate": "Kadarnaat an emgann"
+  },
+  "demo": {
+    "button": "Diskouezadenn emren",
+    "hint": "Krogadoù c'hoariet ent emgefre war 2 dachenn, gant skrammoù tachenn, tabletenn ar varner hag ar c'hiosk",
+    "started": "Diskouezadenn loc'het : skrammoù digor, ar barner galloudel a c'hoari ar c'hrogadoù"
   }
 }

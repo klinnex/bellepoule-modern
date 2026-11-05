@@ -798,6 +798,7 @@ const electronApi = {
     getSession: () => ipcRenderer.invoke('training:getSession'),
     getArenas: () => ipcRenderer.invoke('training:getArenas'),
     getServerInfo: () => ipcRenderer.invoke('training:getServerInfo'),
+    openDemoScreens: (strips: number) => ipcRenderer.invoke('training:openDemoScreens', strips),
   },
 
   // Remote event listeners (for real-time updates)

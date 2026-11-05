@@ -11,6 +11,7 @@ import { ensureCert } from '../certManager';
 import { RemoteScoreServer } from '../remoteScoreServer';
 import { findAvailablePort, remoteServers, usedPorts } from '../remoteRegistry';
 import { setSharedMainWindow } from '../mainWindowRef';
+import { closeDemoScreens, openDemoScreens } from '../demoScreens';
 
 const TRAINING_ID = '__training__';
 
@@ -84,6 +85,7 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
     try {
       const entry = remoteServers.get(TRAINING_ID);
       if (!entry) return { success: false, error: 'training_not_started' };
+      closeDemoScreens();
       entry.server.stop();
       usedPorts.delete(entry.port);
       remoteServers.delete(TRAINING_ID);
@@ -165,6 +167,24 @@ export function registerTrainingHandlers({ db, getMainWindow }: TrainingHandlers
           certFingerprint: entry.certFingerprint,
         },
       };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+    }
+  });
+
+  // Démo autonome : écrans arène / tablette / kiosque sur le serveur d'entraînement en cours
+  // (URL lue côté main : le renderer ne choisit pas l'adresse chargée)
+  ipcMain.handle('training:openDemoScreens', async (_event, strips: number) => {
+    try {
+      const entry = remoteServers.get(TRAINING_ID);
+      if (!entry) return { success: false, error: 'training_not_started' };
+      const count = openDemoScreens(entry.server.getServerUrl(), Number(strips) || 1);
+      // Fermer la fenêtre principale ferme aussi les écrans (sinon l'app resterait ouverte)
+      const main = getMainWindow();
+      if (main && !main.listeners('closed').includes(closeDemoScreens)) {
+        main.once('closed', closeDemoScreens);
+      }
+      return { success: true, count };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }

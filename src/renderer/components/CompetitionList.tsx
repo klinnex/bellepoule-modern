@@ -11,6 +11,7 @@ import {
   LayoutGrid,
   Medal,
   Plus,
+  PlayCircle,
   Sparkles,
   Swords,
   Trophy,
@@ -35,6 +36,8 @@ interface CompetitionListProps {
   onNewCompetition: () => void;
   /** Ouvre un fichier compétition existant (absent hors Electron) */
   onOpenFile?: () => void;
+  /** Démo autonome : matchs joués seuls + écrans distants (absent hors Electron) */
+  onStartDemo?: () => void;
 }
 
 const CompetitionListComponent: React.FC<CompetitionListProps> = ({
@@ -45,6 +48,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   onExport,
   onNewCompetition,
   onOpenFile,
+  onStartDemo,
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
@@ -273,6 +277,17 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             <Sparkles size={16} />
             {t('competitionList.guided_start')}
           </button>
+          {onStartDemo && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon-label"
+              onClick={onStartDemo}
+              title={t('demo.hint')}
+            >
+              <PlayCircle size={16} />
+              {t('demo.button')}
+            </button>
+          )}
 
           <p style={{ color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>
             {t('competitionList.tip_1')} <kbd>?</kbd> {t('competitionList.tip_2')} <kbd>Ctrl</kbd>+
@@ -297,6 +312,17 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
       <div className="flex justify-between items-center mb-4">
         <h1 className="page-title">{t('app.title')}</h1>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
+          {onStartDemo && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-lg btn-icon-label"
+              onClick={onStartDemo}
+              title={t('demo.hint')}
+            >
+              <PlayCircle size={18} />
+              {t('demo.button')}
+            </button>
+          )}
           {onOpenFile && (
             <button
               className="btn btn-secondary btn-lg btn-icon-label"

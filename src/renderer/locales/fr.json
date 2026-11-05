@@ -2703,5 +2703,10 @@
     "remote_explain": "Les arbitres scannent le QR Code \"Arbitre\" sur leur tablette, saisissent les touches match par match, et les scores arrivent ici en direct.",
     "remote_mock_arena": "Arène 1",
     "remote_mock_validate": "Valider le match"
+  },
+  "demo": {
+    "button": "Démo autonome",
+    "hint": "Matchs joués automatiquement sur 2 arènes, avec écrans d'arène, tablette arbitre et kiosque",
+    "started": "Démo lancée : écrans ouverts, l'arbitre virtuel joue les matchs"
   }
 }
