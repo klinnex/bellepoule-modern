@@ -168,6 +168,8 @@
   'referee.sigs_saved': '✅ Signatures saved',
   'referee.closed_by_app': '⚠️ Match closed from the main application',
   'referee.match_resume_hint': '↩ Match in progress — tap to resume',
+  'referee.demo_banner': '🤖 Demo — virtual referee',
+  'referee.demo_match_finished': '🏁 Match over — next match…',
   'referee.next_after': '⏭️ Next match available after this one',
   'referee.next_available': '⏭️ Next match available!',
   'referee.referee_updated': '✅ Referee updated',

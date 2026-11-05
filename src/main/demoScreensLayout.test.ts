@@ -2,13 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { demoScreens, tileLayout } from './demoScreensLayout';
 
 describe('demoScreens', () => {
-  it('liste arènes, tablette arbitre et kiosque', () => {
+  it('liste arènes, tablette arbitre et affichage des poules', () => {
     const urls = demoScreens('http://192.168.1.2:8066/', 2).map(s => s.url);
     expect(urls).toEqual([
       'http://192.168.1.2:8066/arene1',
       'http://192.168.1.2:8066/arene2',
-      'http://192.168.1.2:8066/arene1/arbitre',
-      'http://192.168.1.2:8066/kiosk',
+      'http://192.168.1.2:8066/arene1/arbitre?demo=1',
+      'http://192.168.1.2:8066/kiosk?views=poules',
     ]);
   });
 

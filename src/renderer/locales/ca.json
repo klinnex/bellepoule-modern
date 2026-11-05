@@ -2719,7 +2719,8 @@
   },
   "demo": {
     "button": "Demo autònoma",
-    "hint": "Combats disputats automàticament en 2 pistes, amb pantalles de pista, tauleta d'àrbitre i quiosc",
-    "started": "Demo iniciada: pantalles obertes, l'àrbitre virtual juga els combats"
+    "hint": "Combats de poule disputats automàticament en 2 pistes, amb pantalles de pista, tauleta d'àrbitre i visualització de poules (quiosc)",
+    "started": "Demo iniciada: pantalles obertes, l'àrbitre virtual juga els combats",
+    "choose_weapon": "Trieu l'arma:"
   }
 }

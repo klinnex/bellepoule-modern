@@ -60,7 +60,8 @@ export async function startTrainingSession(
   const duration = customRules?.matchDurationSeconds ?? 180;
   ctx.sessionPoolTimerSeconds = duration;
   ctx.sessionTableTimerSeconds = duration;
-  ctx.sessionPoolMaxScore = null;
+  // Démo : poules en 5 touches (le Laser garde sa limite de 15, voir getScoreLimit)
+  ctx.sessionPoolMaxScore = customRules?.demo ? 5 : null;
   ctx.sessionTableMaxScore = null;
   ctx.sessionRestSeconds = 0;
   ctx.sessionModernRules = ['E', 'F', 'S'].includes(weapon ?? '');
@@ -68,6 +69,7 @@ export async function startTrainingSession(
     matchDurationSeconds: duration,
     allowedZones: customRules?.allowedZones ?? [],
     disableSuddenDeath: customRules?.disableSuddenDeath ?? false,
+    ...(customRules?.demo ? { demo: true } : {}),
   };
   ctx.sessionShowPhotos = false;
   ctx.sessionCardAnnounce = false;
@@ -75,7 +77,8 @@ export async function startTrainingSession(
   ctx.sessionBlackCardEnabled = false;
   ctx.sessionBlackCards.clear();
   ctx.sessionKioskViews = {
-    poules: false,
+    // Démo : poules simulées affichées (voir DemoPools)
+    poules: customRules?.demo === true,
     classement: true,
     direct: true,
     suivants: false,

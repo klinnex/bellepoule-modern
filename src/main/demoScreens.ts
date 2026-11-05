@@ -1,5 +1,5 @@
 /**
- * BellePoule Modern - Démo autonome : fenêtres d'écrans distants (arènes, tablette arbitre, kiosque)
+ * BellePoule Modern - Démo autonome : fenêtres d'écrans distants (arènes, tablette arbitre, poules)
  * ouvertes sur le serveur d'entraînement en mode démo. L'arbitre virtuel (remote/demoMode.ts)
  * joue les matchs ; ces fenêtres montrent donc la saisie distante en action, sans tablette.
  * Licensed under GPL-3.0

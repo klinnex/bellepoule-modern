@@ -111,7 +111,7 @@ import {
   createTrainingMatch,
   type TrainingSessionContext,
 } from './remote/trainingSession';
-import { DemoPlayer } from './remote/demoMode';
+import { DemoPlayer, type DemoPoolView } from './remote/demoMode';
 import { finishArenaMatch, type MatchFinishContext } from './remote/matchFinish';
 import {
   peekNextMatch,
@@ -250,6 +250,8 @@ export class RemoteScoreServer {
     matchDurationSeconds: number;
     allowedZones: string[];
     disableSuddenDeath: boolean;
+    /** Démo autonome (arbitre virtuel + poules simulées) */
+    demo?: boolean;
   } | null = null;
   private sessionLogo: string | null = null; // Logo organisateur (base64) pour kiosk et affichages publics
   private sessionWallpaper: string | null = null; // Fond d'écran (base64) affiché sur les arènes en attente
@@ -1021,6 +1023,7 @@ export class RemoteScoreServer {
           'sessionMatches',
           'sessionMatchScores',
           'trainingHistory',
+          'demoPools',
           'registrationEnabled',
           'checkinEnabled',
           'checkinPassword',
@@ -1796,6 +1799,18 @@ export class RemoteScoreServer {
           updateArenaScore: (id, a, b) => this.updateArenaScore(id, a, b),
           finishArenaMatch: id => this.finishArenaMatch(id),
           getScoreLimit: m => this.getScoreLimit(m),
+          updateArenaTimer: (id, seconds) => {
+            const arena = this.arenas.get(id);
+            if (!arena) return;
+            this.broadcastArenaUpdate(id, {
+              arenaId: id,
+              match: arena.currentMatch,
+              time: seconds,
+              timerStatus: 'running',
+              status: arena.status,
+            });
+          },
+          matchSeconds: () => this.trainingCustomRules?.matchDurationSeconds ?? 180,
         },
         Date.now(),
         { weapon, allowedZones: customRules.allowedZones ?? [] }
@@ -1804,6 +1819,11 @@ export class RemoteScoreServer {
     const session = await startTrainingSession(this.trainingSessionCtx, ...args);
     this.demoPlayer?.start();
     return session;
+  }
+
+  /** Poules de la démo autonome (kiosque), null hors démo */
+  get demoPools(): DemoPoolView[] | null {
+    return this.demoPlayer?.poolsView() ?? null;
   }
 
   private createTrainingMatch(): ArenaMatch {

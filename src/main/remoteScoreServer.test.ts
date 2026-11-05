@@ -2005,9 +2005,15 @@ describe('mode démo (session d’entraînement)', () => {
 
     const history = srv.getTrainingHistory();
     expect(history.length).toBeGreaterThanOrEqual(2);
+    // Démo : matchs de poule en 5 touches
     for (const record of history) {
-      expect(Math.max(record.scoreA, record.scoreB)).toBe(15);
+      expect(Math.max(record.scoreA, record.scoreB)).toBe(5);
     }
+    // Les résultats alimentent les poules simulées (vue poules du kiosque)
+    const played = (srv.demoPools ?? [])
+      .flatMap(p => p.rankings)
+      .reduce((n, r) => n + r.matchesPlayed, 0);
+    expect(played).toBeGreaterThan(0);
 
     srv.stopSession();
     const remaining = srv.getTrainingHistory().length;

@@ -168,6 +168,8 @@
   'referee.sigs_saved': '✅ Signatures enregistrées',
   'referee.closed_by_app': "⚠️ Match clôturé depuis l'application principale",
   'referee.match_resume_hint': '↩ Match en cours — appuyez pour reprendre',
+  'referee.demo_banner': '🤖 Démo — arbitre virtuel',
+  'referee.demo_match_finished': '🏁 Match terminé — match suivant…',
   'referee.next_after': '⏭️ Prochain match disponible après ce match',
   'referee.next_available': '⏭️ Match suivant disponible !',
   'referee.referee_updated': '✅ Arbitre mis à jour',

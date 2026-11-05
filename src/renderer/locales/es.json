@@ -2719,7 +2719,8 @@
   },
   "demo": {
     "button": "Demo autónoma",
-    "hint": "Asaltos disputados automáticamente en 2 pistas, con pantallas de pista, tableta de árbitro y quiosco",
-    "started": "Demo iniciada: pantallas abiertas, el árbitro virtual juega los asaltos"
+    "hint": "Asaltos de poule disputados automáticamente en 2 pistas, con pantallas de pista, tableta de árbitro y visualización de poules (quiosco)",
+    "started": "Demo iniciada: pantallas abiertas, el árbitro virtual juega los asaltos",
+    "choose_weapon": "Elija el arma:"
   }
 }

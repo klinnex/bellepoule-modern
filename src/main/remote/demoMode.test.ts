@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
+  DEMO_POOL_COUNT,
+  DEMO_POOL_SIZE,
   DemoPlayer,
+  DemoPools,
   decideDemoAction,
   touchPoints,
   type DemoArenaView,
@@ -8,6 +11,7 @@ import {
 } from './demoMode';
 import type { ArenaMatch } from '../../shared/types/remote';
 import { Weapon } from '../../shared/types';
+import { createRng } from '../../shared/utils/tournamentSimulator';
 
 const constantRng = (value: number) => () => value;
 
@@ -163,5 +167,114 @@ describe('DemoPlayer', () => {
     expect(host.startArenaMatch.mock.calls.length + host.updateArenaScore.mock.calls.length).toBe(
       callsAfterStop
     );
+  });
+});
+
+describe('DemoPools', () => {
+  const totalMatches = DEMO_POOL_COUNT * ((DEMO_POOL_SIZE * (DEMO_POOL_SIZE - 1)) / 2);
+
+  it('distribue tous les duels des poules, chacun une seule fois', () => {
+    const pools = new DemoPools(createRng(42));
+    const seen = new Set<string>();
+    for (let i = 0; i < totalMatches; i++) {
+      const { fencerA, fencerB } = pools.next(`m${i}`);
+      expect(fencerA.id).not.toBe(fencerB.id);
+      const key = [fencerA.id, fencerB.id].sort().join('|');
+      expect(seen.has(key)).toBe(false);
+      seen.add(key);
+    }
+    expect(seen.size).toBe(totalMatches);
+    expect(pools.view()).toHaveLength(DEMO_POOL_COUNT);
+  });
+
+  it('classe les tireurs selon les résultats et marque la poule terminée', () => {
+    const pools = new DemoPools(createRng(7));
+    for (let i = 0; i < totalMatches; i++) {
+      pools.next(`m${i}`);
+      pools.record(`m${i}`, 5, 2);
+    }
+    const view = pools.view();
+    for (const pool of view) {
+      expect(pool.isComplete).toBe(true);
+      expect(pool.rankings).toHaveLength(DEMO_POOL_SIZE);
+      const played = pool.rankings.reduce((n, r) => n + r.matchesPlayed, 0);
+      expect(played).toBe(DEMO_POOL_SIZE * (DEMO_POOL_SIZE - 1));
+      const [first] = pool.rankings;
+      expect(first.index).toBe(first.touchesFor - first.touchesAgainst);
+      for (let k = 1; k < pool.rankings.length; k++) {
+        const prev = pool.rankings[k - 1];
+        const cur = pool.rankings[k];
+        expect(prev.victories / prev.matchesPlayed).toBeGreaterThanOrEqual(
+          cur.victories / cur.matchesPlayed
+        );
+      }
+    }
+  });
+
+  it('ignore un résultat inconnu et relance un tour quand la file est vide', () => {
+    const pools = new DemoPools(createRng(3));
+    pools.record('inconnu', 5, 0);
+    for (let i = 0; i < totalMatches; i++) pools.next(`m${i}`);
+    const firstRound = pools.view().map(p => p.id);
+    pools.next('suivant');
+    expect(pools.view().map(p => p.id)).not.toEqual(firstRound);
+  });
+});
+
+describe('DemoPlayer + poules', () => {
+  it('enregistre le score final dans la poule à la fin du match', () => {
+    const arenas = new Map<string, DemoArenaView>();
+    const finished: string[] = [];
+    const player = new DemoPlayer(
+      {
+        arenas: () => arenas,
+        startArenaMatch: () => undefined,
+        updateArenaScore: () => undefined,
+        finishArenaMatch: id => finished.push(id),
+        getScoreLimit: () => 5,
+      },
+      1
+    );
+    const match = player.createMatch();
+    match.scoreA = 5;
+    match.scoreB = 3;
+    arenas.set('arena1', { status: 'in_progress', currentMatch: match });
+    player.tick();
+    expect(finished).toEqual(['arena1']);
+    const rows = player.poolsView().flatMap(p => p.rankings);
+    expect(rows.find(r => r.id === match.fencerA.id)?.victories).toBe(1);
+    expect(rows.find(r => r.id === match.fencerB.id)?.touchesFor).toBe(3);
+  });
+});
+
+describe('DemoPlayer chrono', () => {
+  it('diffuse le temps restant des matchs en cours', () => {
+    const arenas = new Map<string, DemoArenaView>();
+    const timers: [string, number][] = [];
+    const player = new DemoPlayer(
+      {
+        arenas: () => arenas,
+        startArenaMatch: id => {
+          arenas.get(id)!.status = 'in_progress';
+        },
+        updateArenaScore: () => undefined,
+        finishArenaMatch: () => undefined,
+        getScoreLimit: () => 5,
+        updateArenaTimer: (id, s) => timers.push([id, s]),
+        matchSeconds: () => 60,
+      },
+      1
+    );
+    let now = 1_000_000;
+    player.setClock(() => now);
+    arenas.set('arena1', { status: 'ready', currentMatch: player.createMatch() });
+    player.tick(); // démarrage : chrono plein
+    expect(timers).toEqual([['arena1', 60]]);
+    now += 12_500;
+    player.tick();
+    expect(timers[timers.length - 1]).toEqual(['arena1', 48]);
+    now += 120_000;
+    player.tick();
+    expect(timers[timers.length - 1]).toEqual(['arena1', 0]);
   });
 });

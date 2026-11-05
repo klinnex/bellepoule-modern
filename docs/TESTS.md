@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 5 | 27 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 42 | 330 |
+| `src/main/` | 42 | 335 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 47 | 236 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **240** | **1993** |
+| **Total** | **240** | **1998** |
 
-Unitaires : 231 fichiers, 1958 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 231 fichiers, 1963 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2128,7 +2128,7 @@ Unitaires : 231 fichiers, 1958 tests. E2E : 9 fichiers, 35 tests (comptage stati
 <summary><code>src/main/demoScreensLayout.test.ts</code> — 5 tests</summary>
 
 - **demoScreens**
-  - liste arènes, tablette arbitre et kiosque
+  - liste arènes, tablette arbitre et affichage des poules
   - borne le nombre d’écrans d’arène entre 1 et 2
 - **tileLayout**
   - vide si aucun écran
@@ -2465,7 +2465,7 @@ Unitaires : 231 fichiers, 1958 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/demoMode.test.ts</code> — 11 tests</summary>
+<summary><code>src/main/remote/demoMode.test.ts</code> — 16 tests</summary>
 
 - **touchPoints**
   - compte 1 point par touche hors Laser
@@ -2481,6 +2481,14 @@ Unitaires : 231 fichiers, 1958 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - Laser restreint à la zone C : chaque touche vaut 5 points
   - ignore les arènes sans match
   - pilote l’arbitrage à intervalle régulier et s’arrête sur demande
+- **DemoPools**
+  - distribue tous les duels des poules, chacun une seule fois
+  - classe les tireurs selon les résultats et marque la poule terminée
+  - ignore un résultat inconnu et relance un tour quand la file est vide
+- **DemoPlayer + poules**
+  - enregistre le score final dans la poule à la fin du match
+- **DemoPlayer chrono**
+  - diffuse le temps restant des matchs en cours
 
 </details>
 

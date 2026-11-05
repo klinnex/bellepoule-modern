@@ -163,6 +163,8 @@
   'referee.sigs_saved': '✅ Firme registrate',
   'referee.closed_by_app': '⚠️ Incontro chiuso dall\'applicazione principale',
   'referee.match_resume_hint': '↩ Incontro in corso — premi per riprendere',
+  'referee.demo_banner': '🤖 Demo — arbitro virtuale',
+  'referee.demo_match_finished': '🏁 Incontro terminato — prossimo incontro…',
   'referee.next_after': '⏭️ Prossimo incontro disponibile dopo questo incontro',
   'referee.next_available': '⏭️ Incontro successivo disponibile!',
   'referee.referee_updated': '✅ Arbitro aggiornato',
