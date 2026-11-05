@@ -55,6 +55,7 @@
   'referee.cancel': '取消',
   'referee.black_card_confirm': '⬛ 確認淘汰',
   'referee.coin_flip_winner': '抽籤 — 勝者：',
+  'referee.priority_applies': '優先時間：若無擊中，抽中的劍手獲勝',
   'referee.pool_complete': '小組賽結束',
   'referee.pool_complete_sub': '所有比賽已完成',
   'referee.sig_title': '✍️ 選手簽名',

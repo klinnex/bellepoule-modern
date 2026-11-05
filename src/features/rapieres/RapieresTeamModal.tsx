@@ -47,6 +47,8 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
       ? [{ ...initial.info.fencers[0] }, { ...initial.info.fencers[1] }]
       : [emptyFencer(), emptyFencer()]
   );
+  const [club, setClub] = useState(initial?.info.club ?? '');
+  const [region, setRegion] = useState(initial?.info.region ?? '');
   const [error, setError] = useState(false);
 
   const setFencer = (i: 0 | 1, patch: Partial<RapieresFencer>) =>
@@ -75,7 +77,17 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
       lastName: f.lastName.trim(),
     })) as [RapieresFencer, RapieresFencer];
     if (!name.trim() || clean.some(f => !f.lastName)) return null;
-    return { name: name.trim(), info: { level, fencers: clean } };
+    const club_ = club.trim();
+    const region_ = region.trim();
+    return {
+      name: name.trim(),
+      info: {
+        level,
+        fencers: clean,
+        ...(club_ ? { club: club_ } : {}),
+        ...(region_ ? { region: region_ } : {}),
+      },
+    };
   };
 
   const submit = async (e: React.FormEvent, keepOpen = false) => {
@@ -147,6 +159,32 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="rapieres-team-club">
+                  {t('rapieres.club')}
+                </label>
+                <input
+                  id="rapieres-team-club"
+                  type="text"
+                  className="form-input"
+                  value={club}
+                  onChange={e => setClub(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="rapieres-team-region">
+                  {t('rapieres.region')}
+                </label>
+                <input
+                  id="rapieres-team-region"
+                  type="text"
+                  className="form-input"
+                  value={region}
+                  onChange={e => setRegion(e.target.value)}
+                />
               </div>
             </div>
             {([0, 1] as const).map(i => (

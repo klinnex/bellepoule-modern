@@ -422,6 +422,7 @@ export class RemoteScoreServer {
         'arenaWaitingOvertime',
         'db',
         'io',
+        'sessionMatchScores',
         'isTrainingMode',
         'scoreUpdateDebounce',
         'session',

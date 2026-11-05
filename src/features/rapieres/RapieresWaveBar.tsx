@@ -5,10 +5,11 @@
  * Licensed under GPL-3.0
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import type { Pool } from '../../shared/types';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
 import { canLaunchNextWave, isWaveComplete, waveCount } from './rapieresCalculations';
+import RapieresWavePrintDialog from './RapieresWavePrintDialog';
 
 interface RapieresWaveBarProps {
   pools: Pool[];
@@ -19,6 +20,8 @@ interface RapieresWaveBarProps {
   onResumeWaves: () => void;
   /** Imprime les feuilles de match de la vague active (même rendu que les feuilles du tableau) */
   onPrintWaveSheets?: () => void;
+  /** Imprime les feuilles d'un intervalle de vagues (impression anticipée, #1441) */
+  onPrintWaveRange?: (from: number, to: number) => void;
 }
 
 const RapieresWaveBar: React.FC<RapieresWaveBarProps> = ({
@@ -29,8 +32,10 @@ const RapieresWaveBar: React.FC<RapieresWaveBarProps> = ({
   onEndWaves,
   onResumeWaves,
   onPrintWaveSheets,
+  onPrintWaveRange,
 }) => {
   const { t } = useTranslation();
+  const [showRangeDialog, setShowRangeDialog] = useState(false);
   const total = waveCount(pools);
   const next = launchedWave + 1;
   const canLaunch = canLaunchNextWave(pools, launchedWave);
@@ -85,12 +90,32 @@ const RapieresWaveBar: React.FC<RapieresWaveBarProps> = ({
               {t('rapieres.print_wave_sheets')}
             </button>
           )}
+          {onPrintWaveRange && total > 0 && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setShowRangeDialog(true)}
+            >
+              {t('rapieres.print_wave_range')}
+            </button>
+          )}
           {launchedWave > 0 && !allDone && (
             <button type="button" className="btn btn-warning" onClick={onEndWaves}>
               {t('rapieres.end_waves')}
             </button>
           )}
         </>
+      )}
+      {showRangeDialog && onPrintWaveRange && (
+        <RapieresWavePrintDialog
+          total={total}
+          defaultFrom={launchedWave + 1}
+          onClose={() => setShowRangeDialog(false)}
+          onConfirm={(from, to) => {
+            setShowRangeDialog(false);
+            onPrintWaveRange(from, to);
+          }}
+        />
       )}
       {launchedWave > 0 && !wavesEnded && !allDone && (
         <span

@@ -33,6 +33,8 @@ export interface TableauSheetOptions {
   badge?: string;
   /** Nom du fichier PDF (défaut : tableau-elimination.pdf) */
   fileName?: string;
+  /** Flux continu : pas de saut de page entre feuilles, une feuille qui ne tient pas bascule (#1441) */
+  continuous?: boolean;
 }
 
 /** Matchs réels (non-exempts, deux tireurs assignés). */
@@ -215,7 +217,8 @@ export function generateTableauHTML(
         : '';
 
       const isLast = pageIdx === pages.length - 1;
-      return `<div class="page${isLast ? '' : ' page-break'}">${pageHeaderHTML}${sectionHeader}${cards}</div>`;
+      const breakAfter = !isLast && !options?.continuous;
+      return `<div class="page${breakAfter ? ' page-break' : ''}">${pageHeaderHTML}${sectionHeader}${cards}</div>`;
     })
     .join('');
 

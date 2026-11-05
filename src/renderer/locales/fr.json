@@ -757,7 +757,12 @@
     "cell_defeat": "défaite",
     "not_fenced_title": "Match non disputé",
     "cell_vs": "contre",
-    "cell_enter": "saisir le score"
+    "cell_enter": "saisir le score",
+    "victory_input_placeholder": "Saisie rapide, ex. V4-4",
+    "priority_draw": "Tirage minute prioritaire",
+    "priority_holder": "Prioritaire : {{name}}",
+    "tie_choose_winner": "Quel est le vainqueur ?",
+    "tie_none": "Aucun"
   },
   "presentation": {
     "no_club": "Pas de club",
@@ -887,7 +892,19 @@
     "filter_level_all": "Tous niveaux",
     "filter_gender_all": "Tous sexes",
     "gender_mixed": "Mixte",
-    "pool": "Poule"
+    "pool": "Poule",
+    "tableau_mode_title": "Quel mode de tableau voulez-vous engager ?",
+    "tableau_mode_normal": "Tableau normal",
+    "tableau_mode_third": "Tableau avec 3è place",
+    "tableau_mode_semis": "Demi-finales",
+    "semis_unavailable": "Demi-finales impossibles avec ce nombre de poules (1 à 4 poules).",
+    "club": "Club",
+    "region": "Région",
+    "print_wave_range": "Choix des vagues à imprimer",
+    "print_wave_range_title": "Vagues à imprimer",
+    "print_wave_from": "Vague de départ",
+    "print_wave_to": "Vague de fin",
+    "wave_n": "Vague {{n}}"
   },
   "errors": {
     "server_not_started": "Serveur non démarré",
@@ -2276,7 +2293,8 @@
     "who_exclusion": "Quel tireur est exclu ?",
     "black_card_question": "Carton noir ?",
     "tie_hint": "Égalité : désignez le vainqueur ou lancez un tirage au sort",
-    "coin_flip": "Tirage au sort"
+    "coin_flip": "Tirage au sort",
+    "victory_input_placeholder": "Saisie rapide, ex. V4-4"
   },
   "addFencerPool": {
     "title": "Ajouter un tireur – Poule {{n}}",

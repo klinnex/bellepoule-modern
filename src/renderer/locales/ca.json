@@ -757,7 +757,12 @@
     "cell_defeat": "derrota",
     "not_fenced_title": "Combat no disputat",
     "cell_vs": "contra",
-    "cell_enter": "introduir el marcador"
+    "cell_enter": "introduir el marcador",
+    "victory_input_placeholder": "Entrada ràpida, p. ex. V4-4",
+    "priority_draw": "Sorteig minut prioritari",
+    "priority_holder": "Prioritari: {{name}}",
+    "tie_choose_winner": "Qui és el guanyador?",
+    "tie_none": "Cap"
   },
   "presentation": {
     "no_club": "Sense club",
@@ -887,7 +892,19 @@
     "filter_level_all": "Tots els nivells",
     "filter_gender_all": "Tots els sexes",
     "gender_mixed": "Mixt",
-    "pool": "Grup"
+    "pool": "Grup",
+    "tableau_mode_title": "Quin mode de quadre voleu fer servir?",
+    "tableau_mode_normal": "Quadre normal",
+    "tableau_mode_third": "Quadre amb 3r lloc",
+    "tableau_mode_semis": "Semifinals",
+    "semis_unavailable": "Semifinals impossibles amb aquest nombre de grups (1 a 4).",
+    "club": "Club",
+    "region": "Regió",
+    "print_wave_range": "Escollir tandes a imprimir",
+    "print_wave_range_title": "Tandes a imprimir",
+    "print_wave_from": "Tanda inicial",
+    "print_wave_to": "Tanda final",
+    "wave_n": "Tanda {{n}}"
   },
   "errors": {
     "server_not_started": "Servidor no iniciat",
@@ -2276,7 +2293,8 @@
     "who_exclusion": "Quin tirador és exclòs?",
     "black_card_question": "Targeta negra?",
     "tie_hint": "Empat: tria el guanyador o fes un sorteig",
-    "coin_flip": "Sorteig"
+    "coin_flip": "Sorteig",
+    "victory_input_placeholder": "Entrada ràpida, p. ex. V4-4"
   },
   "addFencerPool": {
     "title": "Afegir un tirador – Poule {{n}}",

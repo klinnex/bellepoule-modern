@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 45 | 630 |
+| `src/shared/utils/` | 45 | 633 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -92,7 +92,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 6 | 35 |
+| Feature `rapieres` (`src/features/rapieres/`) | 7 | 42 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
 | `src/main/` | 43 | 338 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **244** | **2014** |
+| **Total** | **245** | **2024** |
 
-Unitaires : 235 fichiers, 1979 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 236 fichiers, 1989 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -738,11 +738,12 @@ Unitaires : 235 fichiers, 1979 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/tableauPdf.test.ts</code> — 2 tests</summary>
+<summary><code>src/shared/utils/pdfExport/tableauPdf.test.ts</code> — 3 tests</summary>
 
 - **generateTableauHTML – feuilles d’arbitrage**
   - par défaut : sous-titre et pastille de l’élimination directe
   - options : sous-titre, pastille et libellé de tour personnalisés (feuilles de vague)
+  - flux continu (feuilles de vague, #1441) : pas de saut de page forcé entre pages de feuilles
 
 </details>
 
@@ -1117,11 +1118,14 @@ Unitaires : 235 fichiers, 1979 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/tieBreak.test.ts</code> — 2 tests</summary>
+<summary><code>src/shared/utils/tieBreak.test.ts</code> — 4 tests</summary>
 
 - **allowsVictoryTieBreak**
   - vrai pour laser, épée, fleuret, sabre et rapières
   - faux pour arme à la carte hors rapières
+- **parseVictoryScoreInput**
+  - lit V4-4 (V à gauche) et 4-V4 (V à droite)
+  - score sans V accepté ; saisie invalide refusée
 
 </details>
 
@@ -1777,7 +1781,7 @@ Unitaires : 235 fichiers, 1979 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresImport.test.ts</code> — 6 tests</summary>
+<summary><code>src/features/rapieres/rapieresImport.test.ts</code> — 7 tests</summary>
 
 - **rapieresImport (#1211)**
   - parseDelimited gère BOM, guillemets et CRLF
@@ -1786,6 +1790,8 @@ Unitaires : 235 fichiers, 1979 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - parseRapieresGender reconnaît homme/femme et variantes
   - parseRapieresTeams lit le sexe en R et W
   - parseRapieresTeams lit D/E/Q, T/U/V et Y, ignore l’en-tête et les lignes incomplètes
+- **rapieresImport : club de l’équipe (#1441)**
+  - club des deux tireurs (colonnes S et X) : distincts joints par « / », identiques une seule fois
 
 </details>
 
@@ -1796,6 +1802,19 @@ Unitaires : 235 fichiers, 1979 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - aligne les colonnes selon leur nature quand des colonnes sont masquées (#1279)
   - garde la mise en page par défaut sans kinds
   - reprend le style du classement après poules et colore l'indice (#1279)
+
+</details>
+
+<details>
+<summary><code>src/features/rapieres/rapieresSemifinals.test.ts</code> — 6 tests</summary>
+
+- **rapieresSemifinalists**
+  - 2 poules : croisement A1–B2 et B1–A2, ordre de tête de série
+  - 3 poules : 1res + meilleure 2e du général, ordre du général
+  - 4 poules : les 4 premiers de poule
+  - 1 poule : les 4 premières de la poule
+  - plus de 4 poules : pas de scénario
+  - équipe retirée : écartée, rangs de poule renumérotés
 
 </details>
 

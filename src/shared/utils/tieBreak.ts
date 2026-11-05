@@ -20,3 +20,27 @@ export function allowsVictoryTieBreak(
     weapon === Weapon.SABRE
   );
 }
+
+/** Saisie rapide d'un score à égalité : « V4-4 », « 4-V4 », « 4 - 4 » (#1442) */
+export interface VictoryScoreInput {
+  /** Score de gauche (affiché) et de droite */
+  left: number;
+  right: number;
+  victoryLeft: boolean;
+  victoryRight: boolean;
+}
+
+export function parseVictoryScoreInput(text: string): VictoryScoreInput | null {
+  const m = /^\s*(V?)\s*(\d{1,2})\s*[-–:/]\s*(V?)\s*(\d{1,2})\s*$/i.exec(text);
+  if (!m) return null;
+  const victoryLeft = m[1] !== '';
+  const victoryRight = m[3] !== '';
+  // Un seul V possible : deux V ou aucun V avec score inégal n'ont pas de sens ici
+  if (victoryLeft && victoryRight) return null;
+  return {
+    left: Number(m[2]),
+    right: Number(m[4]),
+    victoryLeft,
+    victoryRight,
+  };
+}

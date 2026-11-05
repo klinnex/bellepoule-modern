@@ -55,6 +55,7 @@
   'referee.cancel': 'Cancel·lar',
   'referee.black_card_confirm': "⬛ Confirmar l'eliminació",
   'referee.coin_flip_winner': 'Sorteig — Guanyador:',
+  'referee.priority_applies': 'Minut prioritari: guanya el tirador sorteig si no hi ha toc',
   'referee.pool_complete': 'POULE ACABADA',
   'referee.pool_complete_sub': 'Tots els combats han acabat',
   'referee.sig_title': '✍️ Signatura dels tiradors',

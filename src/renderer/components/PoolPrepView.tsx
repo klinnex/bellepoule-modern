@@ -56,6 +56,8 @@ interface PoolPrepViewProps {
    * Remplace la répartition serpentin et désactive les critères de séparation.
    */
   customDistribution?: (fencers: Fencer[], poolCount: number) => Fencer[][];
+  /** Rang de niveau (0 = plus faible) : ajoute la séparation « Niveau » qui répartit les niveaux (#1441) */
+  levelRankOf?: (fencer: Fencer) => number;
   /** Ordre des matchs spécifique (paires 1-indexées), ex. vagues des rapières */
   customMatchOrder?: (poolFencers: Fencer[]) => [number, number][];
 }
@@ -87,6 +89,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   onSettingsChange,
   onLaunchActionChange,
   customDistribution,
+  levelRankOf,
   customMatchOrder,
 }) => {
   const { t } = useTranslation();
@@ -100,7 +103,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const [dropTarget, setDropTarget] = useState<{ poolIndex: number; index: number } | null>(null);
 
   interface SeparationCriterion {
-    key: SeparationCriterionKey;
+    key: SeparationCriterionKey | 'byLevel';
     label: string;
     enabled: boolean;
   }
@@ -108,11 +111,14 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     { key: 'byClub', label: 'Club', enabled: !customDistribution },
     { key: 'byRegion', label: 'Région', enabled: !customDistribution },
     { key: 'byNation', label: 'Nation', enabled: false },
+    ...(levelRankOf ? [{ key: 'byLevel' as const, label: 'Niveau', enabled: false }] : []),
   ]);
   const [dragCriterionIdx, setDragCriterionIdx] = useState<number | null>(null);
 
   const getActiveCriteria = (criteria: SeparationCriterion[]): SeparationCriterionKey[] =>
-    criteria.filter(c => c.enabled).map(c => c.key);
+    criteria
+      .filter(c => c.enabled && c.key !== 'byLevel')
+      .map(c => c.key as SeparationCriterionKey);
 
   // Empêche la réinitialisation si initialPools arrive en retard (async restore)
   const hasInitialized = useRef(false);
@@ -174,9 +180,15 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const generatePools = (count: number, criteria: SeparationCriterion[]) => {
     if (fencers.length === 0 || count <= 0) return;
 
+    // Niveau activé : liste triée par niveau, la distribution en serpentin répartit les niveaux
+    const levelSpread = !!levelRankOf && criteria.some(c => c.key === 'byLevel' && c.enabled);
+    const ordered =
+      levelSpread && levelRankOf
+        ? [...fencers].sort((a, b) => levelRankOf(a) - levelRankOf(b))
+        : fencers;
     const distribution = customDistribution
       ? customDistribution(fencers, count)
-      : distributeFencersToPoolsSerpentine(fencers, count, getActiveCriteria(criteria));
+      : distributeFencersToPoolsSerpentine(ordered, count, getActiveCriteria(criteria));
 
     const generatedPools: Pool[] = distribution.map((poolFencers, index) => {
       const matchOrder = customMatchOrder
@@ -602,7 +614,11 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                       ⠿
                     </span>
                     <span className="is-d68a6d">{idx + 1}.</span>
-                    {t(CRITERION_LABEL[criterion.key])}
+                    {t(
+                      criterion.key === 'byLevel'
+                        ? 'rapieres.level'
+                        : CRITERION_LABEL[criterion.key]
+                    )}
                   </button>
                 ))}
               </div>

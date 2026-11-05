@@ -12,6 +12,7 @@ import { MedicalCrossIcon } from '../common/MedicalCrossIcon';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import SpecialStatusPanel from '../common/SpecialStatusPanel';
 import TiebreakerAnimation from '../TiebreakerAnimation';
+import { parseVictoryScoreInput } from '../../../shared/utils/tieBreak';
 
 interface TableauScoreModalProps {
   match: TableauMatch;
@@ -65,6 +66,17 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
     null
   );
   const [showCoinFlip, setShowCoinFlip] = useState(false);
+  const [victoryText, setVictoryText] = useState('');
+
+  /** Saisie rapide « V4-4 » : remplit les scores et le V (#1442) */
+  const handleVictoryText = (text: string) => {
+    setVictoryText(text);
+    const parsed = parseVictoryScoreInput(text);
+    if (!parsed) return;
+    setEditScoreA(String(parsed.left));
+    setEditScoreB(String(parsed.right));
+    onVictoryChange?.(parsed.victoryLeft ? 'A' : parsed.victoryRight ? 'B' : null);
+  };
 
   const fencerName = (f: TableauMatch['fencerA']) =>
     f ? `${f.lastName} ${f.firstName}`.trim() : '';
@@ -204,6 +216,18 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
             <p className="text-sm text-muted is-89a4cc">
               {t('tableauScore.max_score', { n: maxScore })}
             </p>
+          )}
+
+          {/* Saisie rapide d'une égalité : « V4-4 » (#1442) */}
+          {tieBreakByVictory && (
+            <input
+              type="text"
+              className="form-input"
+              value={victoryText}
+              placeholder={t('tableauScore.victory_input_placeholder')}
+              aria-label={t('tableauScore.victory_input_placeholder')}
+              onChange={e => handleVictoryText(e.target.value)}
+            />
           )}
 
           {/* Égalité Sabre Laser : vainqueur par V manuel ou tirage au sort */}

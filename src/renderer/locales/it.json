@@ -757,7 +757,12 @@
     "cell_defeat": "sconfitta",
     "not_fenced_title": "Incontro non disputato",
     "cell_vs": "contro",
-    "cell_enter": "inserisci il punteggio"
+    "cell_enter": "inserisci il punteggio",
+    "victory_input_placeholder": "Inserimento rapido, es. V4-4",
+    "priority_draw": "Sorteggio minuto prioritario",
+    "priority_holder": "Prioritario: {{name}}",
+    "tie_choose_winner": "Chi è il vincitore?",
+    "tie_none": "Nessuno"
   },
   "presentation": {
     "no_club": "Nessun club",
@@ -887,7 +892,19 @@
     "filter_level_all": "Tutti i livelli",
     "filter_gender_all": "Tutti i sessi",
     "gender_mixed": "Misto",
-    "pool": "Girone"
+    "pool": "Girone",
+    "tableau_mode_title": "Quale modalità di tabellone vuoi usare?",
+    "tableau_mode_normal": "Tabellone normale",
+    "tableau_mode_third": "Tabellone con 3° posto",
+    "tableau_mode_semis": "Semifinali",
+    "semis_unavailable": "Semifinali impossibili con questo numero di gironi (da 1 a 4).",
+    "club": "Società",
+    "region": "Regione",
+    "print_wave_range": "Scegli turni da stampare",
+    "print_wave_range_title": "Turni da stampare",
+    "print_wave_from": "Turno iniziale",
+    "print_wave_to": "Turno finale",
+    "wave_n": "Turno {{n}}"
   },
   "errors": {
     "server_not_started": "Server non avviato",
@@ -2276,7 +2293,8 @@
     "who_exclusion": "Quale schermidore è escluso?",
     "black_card_question": "Cartellino nero?",
     "tie_hint": "Parità: designa il vincitore o procedi al sorteggio",
-    "coin_flip": "Sorteggio"
+    "coin_flip": "Sorteggio",
+    "victory_input_placeholder": "Inserimento rapido, es. V4-4"
   },
   "addFencerPool": {
     "title": "Aggiungi uno schermidore – Girone {{n}}",

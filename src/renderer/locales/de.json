@@ -757,7 +757,12 @@
     "cell_defeat": "Niederlage",
     "not_fenced_title": "Gefecht nicht ausgetragen",
     "cell_vs": "gegen",
-    "cell_enter": "Ergebnis eingeben"
+    "cell_enter": "Ergebnis eingeben",
+    "victory_input_placeholder": "Schnelleingabe, z. B. V4-4",
+    "priority_draw": "Auslosung Prioritätsminute",
+    "priority_holder": "Priorität: {{name}}",
+    "tie_choose_winner": "Wer ist der Sieger?",
+    "tie_none": "Keiner"
   },
   "presentation": {
     "no_club": "Kein Verein",
@@ -887,7 +892,19 @@
     "filter_level_all": "Alle Stufen",
     "filter_gender_all": "Alle Geschlechter",
     "gender_mixed": "Gemischt",
-    "pool": "Gruppe"
+    "pool": "Gruppe",
+    "tableau_mode_title": "Welches Tableau-Format möchten Sie wählen?",
+    "tableau_mode_normal": "Normales Tableau",
+    "tableau_mode_third": "Tableau mit 3. Platz",
+    "tableau_mode_semis": "Halbfinale",
+    "semis_unavailable": "Halbfinale mit dieser Anzahl Gruppen nicht möglich (1 bis 4).",
+    "club": "Verein",
+    "region": "Region",
+    "print_wave_range": "Wellen zum Drucken wählen",
+    "print_wave_range_title": "Zu druckende Wellen",
+    "print_wave_from": "Erste Welle",
+    "print_wave_to": "Letzte Welle",
+    "wave_n": "Welle {{n}}"
   },
   "errors": {
     "server_not_started": "Server nicht gestartet",
@@ -2276,7 +2293,8 @@
     "who_exclusion": "Welcher Fechter wird ausgeschlossen?",
     "black_card_question": "Schwarze Karte?",
     "tie_hint": "Gleichstand: Sieger wählen oder auslosen",
-    "coin_flip": "Auslosen"
+    "coin_flip": "Auslosen",
+    "victory_input_placeholder": "Schnelleingabe, z. B. V4-4"
   },
   "addFencerPool": {
     "title": "Fechter hinzufügen – Pool {{n}}",

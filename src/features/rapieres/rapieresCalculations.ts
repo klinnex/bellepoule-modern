@@ -235,6 +235,51 @@ export function filterRapieresQualifiers(pools: Pool[], overall: PoolRanking[]):
   return overall.filter(r => qualified.has(r.fencer.id)).map((r, i) => ({ ...r, rank: i + 1 }));
 }
 
+/**
+ * Demi-finales (#1441) : les 4 équipes selon le nombre de poules, dans l'ordre de tête de série
+ * (1 contre 4, 2 contre 3). 2 poules : 1res contre 2es de l'autre poule ; 3 poules : 1res + meilleure
+ * 2e ; 4 poules : 1res ; 1 poule : 4 premières. Plus de 4 poules : pas de scénario (null).
+ */
+export function rapieresSemifinalists(pools: Pool[], overall: PoolRanking[]): PoolRanking[] | null {
+  const n = pools.length;
+  if (n === 0 || n > 4) return null;
+  // Équipes retirées écartées, rangs de poule renumérotés
+  const poolRankings = pools.map(p =>
+    (p.ranking?.length ? p.ranking : calculatePoolRanking(p))
+      .filter(r => !isWithdrawn(r.fencer))
+      .map((r, i) => ({ ...r, rank: i + 1 }))
+  );
+  const overallOf = new Map(overall.map(r => [r.fencer.id, r]));
+  const at = (ranking: PoolRanking[], rank: number) => ranking.find(r => r.rank === rank)?.fencer;
+  const overallRank = (id: string) => overallOf.get(id)?.rank ?? Infinity;
+
+  let picked: Fencer[];
+  if (n === 1) {
+    picked = poolRankings[0].filter(r => r.rank <= 4).map(r => r.fencer);
+  } else if (n === 2) {
+    const [a, b] = poolRankings;
+    // Croisement : A1–B2 et B1–A2 (ordre de tête de série 1, 2, 3, 4)
+    picked = [at(a, 1), at(b, 1), at(a, 2), at(b, 2)].filter((f): f is Fencer => !!f);
+    if (picked.length < 4) return null;
+    return picked
+      .map(f => overallOf.get(f.id))
+      .filter((r): r is PoolRanking => !!r)
+      .map((r, i) => ({ ...r, rank: i + 1 }));
+  } else {
+    const firsts = poolRankings.map(r => at(r, 1)).filter((f): f is Fencer => !!f);
+    picked = firsts;
+    if (n === 3) {
+      const seconds = poolRankings.map(r => at(r, 2)).filter((f): f is Fencer => !!f);
+      const best = [...seconds].sort((x, y) => overallRank(x.id) - overallRank(y.id))[0];
+      if (best) picked = [...picked, best];
+    }
+  }
+  if (picked.length < 4 || picked.some(f => !overallOf.has(f.id))) return null;
+  return [...picked]
+    .sort((x, y) => overallRank(x.id) - overallRank(y.id))
+    .map((f, i) => ({ ...overallOf.get(f.id)!, rank: i + 1 }));
+}
+
 // ─── Filtres de classement ───────────────────────────────────────────────────
 
 /**
