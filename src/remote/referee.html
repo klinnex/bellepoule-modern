@@ -891,6 +891,12 @@
       }
 
       /* Overlay confirmation tirage au sort */
+      /* Tireur prioritaire (minute prioritaire, armes olympiques, #1442) */
+      .fencer-display.priority-gold,
+      .priority-gold {
+        box-shadow: 0 0 0 4px #d4af37, 0 0 18px rgba(212, 175, 55, 0.75) !important;
+        border-color: #d4af37 !important;
+      }
       #coin-flip-confirm {
         position: fixed;
         inset: 0;
@@ -3186,11 +3192,22 @@
                 const _sdDisabled = this.trainingCustomRules && this.trainingCustomRules.disableSuddenDeath;
                 if (!_sdDisabled && this.scoreA === this.scoreB &&
                     (!this.isSuddenDeath || this.overtimeType === 'challenger')) {
-                  // Égalité : attente manuelle de l'arbitre pour lancer le temps supplémentaire
-                  this.prepareSuddenDeath();
+                  if (this.isModernFencing) {
+                    // Armes olympiques : minute prioritaire tirée AVANT la minute supplémentaire (#1442)
+                    this.priorityDrawPhase = true;
+                    this.prepareCoinFlip();
+                  } else {
+                    // Égalité : attente manuelle de l'arbitre pour lancer le temps supplémentaire
+                    this.prepareSuddenDeath();
+                  }
                 } else if (!_sdDisabled && this.isSuddenDeath && this.scoreA === this.scoreB) {
-                  // Fin du temps supplémentaire avec égalité → tirage au sort sur action de l'arbitre (#1136)
-                  this.prepareCoinFlip();
+                  if (this.isModernFencing) {
+                    // Olympique : pas de second tirage, le prioritaire gagne si aucune touche (#1442)
+                    this.showNotification(window.T('referee.priority_applies'));
+                  } else {
+                    // Fin du temps supplémentaire avec égalité → tirage au sort sur action de l'arbitre (#1136)
+                    this.prepareCoinFlip();
+                  }
                 } else {
                   this.showNotification(window.T('referee.time_up'));
                 }
@@ -3412,6 +3429,14 @@
           this.startTimer();
         }
 
+        applyPriorityFrame(side) {
+          ['A', 'B'].forEach(s => {
+            const name = document.getElementById(`fencer-${s.toLowerCase()}-name`);
+            const panel = name && (name.closest('.fencer-display') || name.parentElement);
+            if (panel) panel.classList.toggle('priority-gold', side === s);
+          });
+        }
+
         // Attente du tirage au sort : l'arbitre peut corriger le score avant de le lancer (#1136)
         prepareCoinFlip() {
           this.waitingCoinFlip = true;
@@ -3424,6 +3449,13 @@
           this.updateControlButtons();
           const winner = Math.random() < 0.5 ? 'A' : 'B';
           this.coinFlipWinner = winner;
+          if (this.priorityDrawPhase) {
+            // Minute prioritaire : cadre doré sur le tireur tiré, puis lancement de la minute supplémentaire
+            this.priorityDrawPhase = false;
+            this._prioFencerId = (winner === 'A' ? this.currentMatch?.fencerA?.id : this.currentMatch?.fencerB?.id) ?? null;
+            this.applyPriorityFrame(winner);
+            setTimeout(() => this.prepareSuddenDeath(), 4600);
+          }
 
           // Déclencher l'animation plein écran sur l'affichage de score
           this.socket.emit('arena_control', {
@@ -3820,6 +3852,11 @@
         }
 
         updateMatchStatus() {
+          // Cadre doré du tireur prioritaire effacé dès que le match change (#1442)
+          if (this._prioFencerId && ![this.currentMatch?.fencerA?.id, this.currentMatch?.fencerB?.id].includes(this._prioFencerId)) {
+            this._prioFencerId = null;
+            this.applyPriorityFrame(null);
+          }
           // badge supprimé — statut visible via boutons de contrôle et chronomètre
         }
 

@@ -757,7 +757,12 @@
     "cell_defeat": "defeat",
     "not_fenced_title": "Bout not fenced",
     "cell_vs": "vs",
-    "cell_enter": "enter the score"
+    "cell_enter": "enter the score",
+    "victory_input_placeholder": "Quick entry, e.g. V4-4",
+    "priority_draw": "Priority minute draw",
+    "priority_holder": "Priority: {{name}}",
+    "tie_choose_winner": "Who is the winner?",
+    "tie_none": "None"
   },
   "presentation": {
     "no_club": "No club",
@@ -847,13 +852,9 @@
     "wave_incomplete": "Enter every score of the current wave before starting the next one.",
     "all_waves_done": "All waves are finished.",
     "no_wave": "No wave started.",
-    "ranking_select": "Ranking",
     "ranking_teams": "Overall teams",
-    "ranking_level": "Level: {{level}}",
-    "ranking_category": "Fencers {{category}}",
     "gender": "Gender",
     "gender_unset": "Not set",
-    "ranking_gender": "{{gender}} fencers",
     "ranking_intermediate": "Intermediate ranking (after pools)",
     "ranking_intermediate_wave": "Intermediate ranking (wave {{n}})",
     "ranking_final": "Final ranking",
@@ -884,7 +885,26 @@
     "import_done": "{{n}} team(s) imported.",
     "import_skipped": "Skipped rows (incomplete): {{lines}}.",
     "import_found": "{{n}} team(s) found in the file",
-    "import_n": "Import {{n}} team(s)"
+    "import_n": "Import {{n}} team(s)",
+    "birth_date": "Birth date",
+    "team_category": "Team category: {{category}}",
+    "filter_category_all": "All age categories",
+    "filter_level_all": "All levels",
+    "filter_gender_all": "All genders",
+    "gender_mixed": "Mixed",
+    "pool": "Pool",
+    "tableau_mode_title": "Which bracket format do you want to run?",
+    "tableau_mode_normal": "Normal bracket",
+    "tableau_mode_third": "Bracket with 3rd place",
+    "tableau_mode_semis": "Semi-finals",
+    "semis_unavailable": "Semi-finals impossible with this number of pools (1 to 4).",
+    "club": "Club",
+    "region": "Region",
+    "print_wave_range": "Choose waves to print",
+    "print_wave_range_title": "Waves to print",
+    "print_wave_from": "From wave",
+    "print_wave_to": "To wave",
+    "wave_n": "Wave {{n}}"
   },
   "errors": {
     "server_not_started": "Server not started",
@@ -2273,7 +2293,8 @@
     "who_exclusion": "Which fencer is excluded?",
     "black_card_question": "Black card?",
     "tie_hint": "Tie: pick the winner or draw lots",
-    "coin_flip": "Draw lots"
+    "coin_flip": "Draw lots",
+    "victory_input_placeholder": "Quick entry, e.g. V4-4"
   },
   "addFencerPool": {
     "title": "Add a fencer – Pool {{n}}",

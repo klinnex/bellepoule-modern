@@ -116,7 +116,8 @@ interface TableauViewProps {
     status?: string;
   }>;
   /** Sabre Laser : une égalité est tranchée par V (manuel) ou tirage au sort */
-  isLaserSabre?: boolean;
+  /** Égalité tranchée par V (laser, olympique, rapières) */
+  tieBreakByVictory?: boolean;
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
@@ -245,7 +246,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   readOnly = false,
   maxRefereesPerMatch = 1,
   autoFillReferees,
-  isLaserSabre = false,
+  tieBreakByVictory = false,
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -828,7 +829,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     const scoreB = parseInt(editScoreB) || 0;
 
     // Validation : pas d'égalité hors Sabre Laser ; en Laser, l'égalité exige un vainqueur (V ou tirage)
-    const tieError = tieScoreError(scoreA, scoreB, victoryA || victoryB, isLaserSabre);
+    const tieError = tieScoreError(scoreA, scoreB, victoryA || victoryB, tieBreakByVictory);
     if (tieError) return showToast(t(tieError), 'error');
 
     if (!isUnlimitedScore && maxScore > 0) {
@@ -1422,7 +1423,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
               onSpecialStatus={handleSpecialStatus}
               onMatchCancel={match.round <= tableauSize ? handleMatchCancel : undefined}
               getRoundName={r => getRoundName(r, t)}
-              isLaserSabre={isLaserSabre}
+              tieBreakByVictory={tieBreakByVictory}
               victoryA={victoryA}
               victoryB={victoryB}
               onVictoryChange={side => {

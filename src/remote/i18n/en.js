@@ -56,6 +56,7 @@
   'referee.cancel': 'Cancel',
   'referee.black_card_confirm': '⬛ Confirm elimination',
   'referee.coin_flip_winner': 'Coin toss — Winner:',
+  'referee.priority_applies': 'Priority minute: the drawn fencer wins if no touch is scored',
   'referee.pool_complete': 'POOL COMPLETE',
   'referee.pool_complete_sub': 'All bouts are finished',
   'referee.sig_title': '✍️ Fencer signatures',

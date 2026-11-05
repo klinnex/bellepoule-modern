@@ -55,6 +55,7 @@
   'referee.cancel': 'Abbrechen',
   'referee.black_card_confirm': '⬛ Ausschluss bestätigen',
   'referee.coin_flip_winner': 'Losentscheid — Sieger:',
+  'referee.priority_applies': 'Prioritätsminute: Bei keinem Treffer gewinnt der ausgeloste Fechter',
   'referee.pool_complete': 'POULE BEENDET',
   'referee.pool_complete_sub': 'Alle Gefechte sind beendet',
   'referee.sig_title': '✍️ Unterschrift der Fechter',

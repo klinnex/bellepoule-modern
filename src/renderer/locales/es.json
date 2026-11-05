@@ -757,7 +757,12 @@
     "cell_defeat": "derrota",
     "not_fenced_title": "Combate no disputado",
     "cell_vs": "contra",
-    "cell_enter": "introducir el marcador"
+    "cell_enter": "introducir el marcador",
+    "victory_input_placeholder": "Entrada rápida, p. ej. V4-4",
+    "priority_draw": "Sorteo minuto prioritario",
+    "priority_holder": "Prioritario: {{name}}",
+    "tie_choose_winner": "¿Quién es el ganador?",
+    "tie_none": "Ninguno"
   },
   "presentation": {
     "no_club": "Sin club",
@@ -847,13 +852,9 @@
     "wave_incomplete": "Introduzca todos los resultados de la oleada en curso antes de lanzar la siguiente.",
     "all_waves_done": "Todas las oleadas han terminado.",
     "no_wave": "Ninguna oleada lanzada.",
-    "ranking_select": "Clasificación",
     "ranking_teams": "General equipos",
-    "ranking_level": "Nivel: {{level}}",
-    "ranking_category": "Tiradores {{category}}",
     "gender": "Sexo",
     "gender_unset": "Sin indicar",
-    "ranking_gender": "Tiradores {{gender}}",
     "ranking_intermediate": "Clasificación intermedia (fin de poules)",
     "ranking_intermediate_wave": "Clasificación intermedia (oleada {{n}})",
     "ranking_final": "Clasificación final",
@@ -884,7 +885,26 @@
     "import_done": "{{n}} equipo(s) importado(s).",
     "import_skipped": "Filas omitidas (incompletas): {{lines}}.",
     "import_found": "{{n}} equipo(s) encontrado(s) en el archivo",
-    "import_n": "Importar {{n}} equipo(s)"
+    "import_n": "Importar {{n}} equipo(s)",
+    "birth_date": "Fecha de nacimiento",
+    "team_category": "Categoría del equipo: {{category}}",
+    "filter_category_all": "Todas las categorías",
+    "filter_level_all": "Todos los niveles",
+    "filter_gender_all": "Todos los sexos",
+    "gender_mixed": "Mixto",
+    "pool": "Grupo",
+    "tableau_mode_title": "¿Qué modo de cuadro quiere usar?",
+    "tableau_mode_normal": "Cuadro normal",
+    "tableau_mode_third": "Cuadro con 3.er puesto",
+    "tableau_mode_semis": "Semifinales",
+    "semis_unavailable": "Semifinales imposibles con este número de grupos (1 a 4).",
+    "club": "Club",
+    "region": "Región",
+    "print_wave_range": "Elegir tandas a imprimir",
+    "print_wave_range_title": "Tandas a imprimir",
+    "print_wave_from": "Tanda inicial",
+    "print_wave_to": "Tanda final",
+    "wave_n": "Tanda {{n}}"
   },
   "errors": {
     "server_not_started": "Servidor no iniciado",
@@ -2273,7 +2293,8 @@
     "who_exclusion": "¿Qué tirador es excluido?",
     "black_card_question": "¿Tarjeta negra?",
     "tie_hint": "Empate: elija al vencedor o haga un sorteo",
-    "coin_flip": "Sorteo"
+    "coin_flip": "Sorteo",
+    "victory_input_placeholder": "Entrada rápida, p. ej. V4-4"
   },
   "addFencerPool": {
     "title": "Añadir un tirador – Poule {{n}}",

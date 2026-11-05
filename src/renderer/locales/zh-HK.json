@@ -757,7 +757,12 @@
     "cell_defeat": "負",
     "not_fenced_title": "未進行的比賽",
     "cell_vs": "對",
-    "cell_enter": "輸入比分"
+    "cell_enter": "輸入比分",
+    "victory_input_placeholder": "快速輸入，例如 V4-4",
+    "priority_draw": "優先時間抽籤",
+    "priority_holder": "優先：{{name}}",
+    "tie_choose_winner": "誰是勝者？",
+    "tie_none": "無"
   },
   "presentation": {
     "no_club": "沒有所屬會",
@@ -847,13 +852,9 @@
     "wave_incomplete": "開始下一輪前，請輸入本輪所有比分。",
     "all_waves_done": "所有輪次已完成。",
     "no_wave": "未開始任何輪次。",
-    "ranking_select": "排名",
     "ranking_teams": "隊伍總排名",
-    "ranking_level": "水平：{{level}}",
-    "ranking_category": "劍手 {{category}}",
     "gender": "性別",
     "gender_unset": "未填寫",
-    "ranking_gender": "{{gender}}劍手",
     "ranking_intermediate": "中期排名（分組賽後）",
     "ranking_intermediate_wave": "中期排名（第 {{n}} 輪）",
     "ranking_final": "最終排名",
@@ -884,7 +885,26 @@
     "import_done": "已匯入 {{n}} 隊。",
     "import_skipped": "已略過的列（不完整）：{{lines}}。",
     "import_found": "檔案中找到 {{n}} 支隊伍",
-    "import_n": "匯入 {{n}} 支隊伍"
+    "import_n": "匯入 {{n}} 支隊伍",
+    "birth_date": "出生日期",
+    "team_category": "隊伍組別：{{category}}",
+    "filter_category_all": "所有年齡組別",
+    "filter_level_all": "所有級別",
+    "filter_gender_all": "所有性別",
+    "gender_mixed": "混合",
+    "pool": "小組",
+    "tableau_mode_title": "要採用哪種賽程模式？",
+    "tableau_mode_normal": "普通賽程",
+    "tableau_mode_third": "含第3名賽",
+    "tableau_mode_semis": "半決賽",
+    "semis_unavailable": "此池數無法進行半決賽（1 至 4 池）。",
+    "club": "俱樂部",
+    "region": "地區",
+    "print_wave_range": "選擇要列印的輪次",
+    "print_wave_range_title": "要列印的輪次",
+    "print_wave_from": "起始輪次",
+    "print_wave_to": "結束輪次",
+    "wave_n": "第 {{n}} 輪"
   },
   "errors": {
     "server_not_started": "伺服器未啟動",
@@ -2273,7 +2293,8 @@
     "who_exclusion": "哪位劍手被取消資格？",
     "black_card_question": "黑牌？",
     "tie_hint": "同分：請選擇勝方或抽籤",
-    "coin_flip": "抽籤"
+    "coin_flip": "抽籤",
+    "victory_input_placeholder": "快速輸入，例如 V4-4"
   },
   "addFencerPool": {
     "title": "新增劍手 – 第 {{n}} 組",

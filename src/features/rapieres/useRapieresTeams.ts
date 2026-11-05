@@ -40,11 +40,12 @@ export function useRapieresTeams({
     skipped: number[];
   } | null>(null);
 
-  // Nom = nom d'équipe, prénom = noms des deux tireurs, club = niveau (affiché partout)
+  // Nom = nom d'équipe, prénom = noms des deux tireurs, club / région = séparations des poules (#1441)
   const rapieresFencerFields = (team: RapieresTeamDraft) => ({
     lastName: team.name,
     firstName: teamMembersLabel(team.info.fencers),
-    club: t(`rapieres.level_${team.info.level}`),
+    club: team.info.club ?? '',
+    region: team.info.region ?? '',
   });
 
   const newTeamFencer = (team: RapieresTeamDraft) =>

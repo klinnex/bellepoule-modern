@@ -77,14 +77,18 @@ import {
   isRapieresMode,
   resolveCompetitionSettings,
 } from '../../shared/utils/customFormulaSettings';
+import { allowsVictoryTieBreak } from '../../shared/utils/tieBreak';
 import {
   createRapieresSession,
   emptyRapieresTeamInfo,
+  RAPIERES_LEVELS,
+  RapieresTableauMode,
   RapieresTeamInfo,
 } from '../../features/rapieres/rapieres.types';
 import {
-  distributeByLevel,
   filterRapieresQualifiers,
+  rapieresPoolNumbers,
+  rapieresSemifinalists,
   mergeFinalRanking,
   RAPIERES_MAX_POOL_SIZE,
   waveMatchIds,
@@ -92,6 +96,7 @@ import {
   waveMatchOrder,
 } from '../../features/rapieres/rapieresCalculations';
 import RapieresTeamModal from '../../features/rapieres/RapieresTeamModal';
+import RapieresTableauModeDialog from '../../features/rapieres/RapieresTableauModeDialog';
 import { useRapieresSessionState } from '../../features/rapieres/useRapieresSessionState';
 import RapieresImportModal from '../../features/rapieres/RapieresImportModal';
 import { useRapieresTeams } from '../../features/rapieres/useRapieresTeams';
@@ -282,6 +287,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const poolWinnersOnly = effectiveSettings?.poolWinnersOnly ?? false;
   // Tournoi des rapières (#1118) : équipes = tireurs, poules en vagues
   const isRapieres = isRapieresMode(competition.weapon, competition.settings);
+  /** Égalité tranchée par un vainqueur désigné (#1442) */
+  const tieBreakByVictory = allowsVictoryTieBreak(competition.weapon, isRapieres);
   const postPoolSplitCriteria = competition.settings?.postPoolSplitCriteria;
   // Groupes déjà extraits dans une compétition séparée (genre → id compétition)
   const splitOffCompetitionIds = competition.settings?.splitOffCompetitionIds;
@@ -449,6 +456,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   }, [getCheckedInFencers, previousRoundRanking]);
   // Tour consulté (null = tour courant)
   const [viewedPoolRound, setViewedPoolRound] = useState<number | null>(null);
+  const [showRapieresTableauDialog, setShowRapieresTableauDialog] = useState(false);
   // Appel du tour courant : éliminés des tours précédents retirés (#1051)
   const currentAppelFencers = useMemo(
     () =>
@@ -1208,30 +1216,41 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     api?.setActiveWave?.(competition.id, ids, !!rapieres.wavesEnded)?.catch?.(() => undefined);
   }, [isRapieres, isRemoteActive, competition?.id, currentWaveMatchIds, rapieres.wavesEnded]);
 
+  // Impression des feuilles de match d'un intervalle de vagues (#1118, plage #1441).
+  // Flux continu : une feuille qui ne tient pas sur la page bascule sur la suivante.
+  const printWaves = useCallback(
+    async (from: number, to: number) => {
+      const sheets = [];
+      for (let wave = from; wave <= to; wave++) sheets.push(...waveSheetMatches(pools, wave));
+      if (sheets.length === 0) {
+        showToast(t('rapieres.print_wave_sheets_empty'), 'error');
+        return;
+      }
+      const label = from === to ? `Vague ${from}` : `Vagues ${from} à ${to}`;
+      try {
+        const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
+        const { printTableauHTML } = await import('../../shared/utils/pdfExport');
+        await printTableauHTML(
+          sheets,
+          3,
+          `${competition.title} — ${label}`,
+          logo,
+          usePdfTemplateStore.getState().templates.tableau,
+          undefined,
+          { subtitle: `Feuilles d'arbitrage — ${label}`, badge: 'V' + from, continuous: true }
+        );
+      } catch (e) {
+        showToast((e as Error).message, 'error');
+      }
+    },
+    [pools, competition.title, showToast, t]
+  );
+
   // Impression des feuilles de match de la vague active (même rendu que les feuilles du tableau) (#1118)
-  const handlePrintWaveSheets = useCallback(async () => {
-    const wave = rapieres.launchedWave;
-    const sheets = waveSheetMatches(pools, wave);
-    if (sheets.length === 0) {
-      showToast(t('rapieres.print_wave_sheets_empty'), 'error');
-      return;
-    }
-    try {
-      const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
-      const { printTableauHTML } = await import('../../shared/utils/pdfExport');
-      await printTableauHTML(
-        sheets,
-        3,
-        `${competition.title} — Vague ${wave}`,
-        logo,
-        usePdfTemplateStore.getState().templates.tableau,
-        undefined,
-        { subtitle: `Feuilles d'arbitrage — Vague ${wave}`, badge: 'V' + wave }
-      );
-    } catch (e) {
-      showToast((e as Error).message, 'error');
-    }
-  }, [pools, rapieres.launchedWave, competition.title, showToast, t]);
+  const handlePrintWaveSheets = useCallback(
+    () => printWaves(rapieres.launchedWave, rapieres.launchedWave),
+    [printWaves, rapieres.launchedWave]
+  );
 
   // Saisie distante active : QR de la piste sur chaque feuille de poule (#1037)
   const poolsRemoteInfo =
@@ -1401,9 +1420,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       handleThirdPlaceDecision(true);
       return;
     }
-    // Rapières : match pour la 3e place toujours tiré (#1118)
+    // Rapières : mode de tableau demandé à chaque passage au tableau (#1441)
     if (isRapieres) {
-      handleThirdPlaceDecision(true);
+      setShowRapieresTableauDialog(true);
       return;
     }
     // Formule personnalisée : 3ème place déjà choisie dans la formule (#1125)
@@ -1502,6 +1521,17 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     } finally {
       setSplitOffInProgress(false);
     }
+  };
+
+  /** Rapières : mode de tableau choisi dans la popup (#1441) */
+  const handleRapieresTableauMode = (mode: RapieresTableauMode) => {
+    if (mode === 'semis' && !rapieresSemifinalists(pools, overallRanking)) {
+      showToast(t('rapieres.semis_unavailable'), 'error');
+      return;
+    }
+    updateRapieres({ tableauMode: mode });
+    setShowRapieresTableauDialog(false);
+    handleThirdPlaceDecision(mode !== 'normal');
   };
 
   const handleThirdPlaceDecision = (shouldHaveThirdPlace: boolean) => {
@@ -1965,7 +1995,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     let ranking = overallRanking;
     if (isRapieres && pools.length > 0) {
       // Rapières : 1ers de poule, et 2es si 3 poules ou moins
-      ranking = filterRapieresQualifiers(pools, ranking);
+      ranking =
+        rapieres.tableauMode === 'semis'
+          ? (rapieresSemifinalists(pools, ranking) ?? [])
+          : filterRapieresQualifiers(pools, ranking);
     } else if (poolWinnersOnly && pools.length > 0) {
       ranking = filterPoolWinners(pools, ranking);
     } else if (customFormula) {
@@ -1987,6 +2020,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     overallRanking,
     pools,
     isRapieres,
+    rapieres.tableauMode,
     poolWinnersOnly,
     customFormula,
     postPoolSplitCriteria,
@@ -2068,12 +2102,13 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       <PoolView
         pool={pool}
         weapon={competition.weapon}
+        tieBreakByVictory={tieBreakByVictory}
         competitionName={competition.title}
         maxScore={poolMaxScore}
         competitionId={competition.id}
         maxRefereesPerPool={maxRefereesPerPool}
-        onScoreUpdate={(matchIndex, scoreA, scoreB, winner, specialStatus) => {
-          updateScore(poolIndex, matchIndex, scoreA, scoreB, winner, specialStatus);
+        onScoreUpdate={(matchIndex, scoreA, scoreB, winner, specialStatus, priority) => {
+          updateScore(poolIndex, matchIndex, scoreA, scoreB, winner, specialStatus, priority);
           if (winner) {
             const m = pool.matches[matchIndex];
             const nameA = m?.fencerA ? `${m.fencerA.lastName}` : 'A';
@@ -2303,8 +2338,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             maxFencersPerPool={isRapieres ? RAPIERES_MAX_POOL_SIZE : maxFencersPerPool}
             {...(isRapieres
               ? {
-                  customDistribution: (list: Fencer[], count: number) =>
-                    distributeByLevel(list, count, id => rapieres.teams[id]?.level),
+                  levelRankOf: (f: Fencer) =>
+                    RAPIERES_LEVELS.indexOf(rapieres.teams[f.id]?.level ?? 'beginner'),
                   customMatchOrder: waveMatchOrder,
                 }
               : {})}
@@ -2360,6 +2395,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                         <PoolView
                           pool={pool}
                           weapon={competition.weapon}
+                          tieBreakByVictory={tieBreakByVictory}
                           competitionName={competition.title}
                           maxScore={poolMaxScore}
                           competitionId={competition.id}
@@ -2395,6 +2431,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                     }}
                     onResumeWaves={() => updateRapieres({ wavesEnded: false })}
                     onPrintWaveSheets={handlePrintWaveSheets}
+                    onPrintWaveRange={printWaves}
                   />
                 )}
                 <div
@@ -2565,6 +2602,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             fencers={fencers}
             teams={rapieres.teams}
             stats={rapieresStats}
+            poolOf={rapieresPoolNumbers(pools)}
           />
         )}
 
@@ -2699,7 +2737,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               competitionId={competition.id}
               maxRefereesPerMatch={maxRefereesPerMatch}
               autoFillReferees={autoFillReferees}
-              isLaserSabre={isLaserSabre}
+              tieBreakByVictory={tieBreakByVictory}
               onBlackCard={id => updateFencer(id, specialStatusPatch('exclusion', true))}
               onComplete={results => {
                 setFinalResults(results);
@@ -2981,6 +3019,14 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           onImport={handleImportFencers}
           onImportRanking={handleImportRanking}
           onClose={() => setImportData(null)}
+        />
+      )}
+
+      {showRapieresTableauDialog && (
+        <RapieresTableauModeDialog
+          semisAvailable={!!rapieresSemifinalists(pools, overallRanking)}
+          onChoose={handleRapieresTableauMode}
+          onClose={() => setShowRapieresTableauDialog(false)}
         />
       )}
 

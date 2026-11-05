@@ -75,11 +75,15 @@ import {
   scoreInput,
 } from './poolView.styles';
 import { useTranslation } from '../hooks/useTranslation';
+import { parseVictoryScoreInput } from '../../shared/utils/tieBreak';
+import TiebreakerAnimation from './TiebreakerAnimation';
 
 interface PoolViewProps {
   pool: Pool;
   maxScore?: number;
   weapon?: Weapon;
+  /** Égalité tranchée par V (olympique, rapières, laser) — défaut : laser */
+  tieBreakByVictory?: boolean;
   competitionName?: string;
   competitionId?: string;
   onScoreUpdate: (
@@ -87,7 +91,8 @@ interface PoolViewProps {
     scoreA: number,
     scoreB: number,
     winnerOverride?: 'A' | 'B',
-    specialStatus?: 'abandon' | 'forfait' | 'exclusion'
+    specialStatus?: 'abandon' | 'forfait' | 'exclusion',
+    priority?: 'A' | 'B'
   ) => void;
   onMatchReset?: (matchIndex: number) => void;
   onMatchCancel?: (matchIndex: number) => void;
@@ -140,6 +145,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   pool,
   maxScore = 5,
   weapon,
+  tieBreakByVictory,
   competitionName,
   competitionId,
   onScoreUpdate,
@@ -344,6 +350,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   }, [pool.isComplete]);
 
   const isLaserSabre = weapon === Weapon.LASER;
+  const tieByVictory = tieBreakByVictory ?? isLaserSabre;
   const isLocked =
     pool.fencers.length > 0 &&
     signedFencerIds.filter(id => pool.fencers.some(f => f.id === id)).length >= pool.fencers.length;
@@ -365,6 +372,11 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
   const columnMenuRef = useRef<HTMLDivElement>(null);
   const handleScoreSubmitRef = useRef<() => void>(() => {});
+  // Égalité (armes olympiques, rapières) : minute prioritaire tirée et saisie rapide V (#1442)
+  const [priorityPick, setPriorityPick] = useState<'A' | 'B' | null>(null);
+  const [showTieChooser, setShowTieChooser] = useState(false);
+  const [showPriorityDraw, setShowPriorityDraw] = useState(false);
+  const [victoryText, setVictoryText] = useState('');
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -487,7 +499,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           setKeyboardFocusField(prev => (prev === 'A' ? 'B' : 'A'));
           return;
         }
-        if ((e.key === 'v' || e.key === 'V') && isLaserSabre && !inModalInput) {
+        if ((e.key === 'v' || e.key === 'V') && tieByVictory && !inModalInput) {
           e.preventDefault();
           if (keyboardFocusField === 'A') {
             setVictoryA(prev => !prev);
@@ -606,6 +618,55 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     setEditScoreB('');
     setVictoryA(false);
     setVictoryB(false);
+    setPriorityPick(null);
+    setShowTieChooser(false);
+    setShowPriorityDraw(false);
+    setVictoryText('');
+  };
+
+  /** Égalité tranchée : V, minute prioritaire, ou égalité sans vainqueur (« Aucun ») (#1442) */
+  const commitTie = (scoreA: number, scoreB: number, winner?: 'A' | 'B', priority?: 'A' | 'B') => {
+    if (editingMatch === null) return;
+    const matchIdx = editingMatch;
+    const match = pool.matches[matchIdx];
+    const prevScoreA = match?.scoreA?.value ?? null;
+    const prevScoreB = match?.scoreB?.value ?? null;
+    addAction({
+      type: 'UPDATE_SCORE',
+      description: `Score poule ${pool.number} match ${matchIdx + 1}`,
+      undo: () => {
+        if (prevScoreA !== null && prevScoreB !== null)
+          onScoreUpdate(matchIdx, prevScoreA, prevScoreB);
+      },
+      redo: () => {
+        onScoreUpdate(matchIdx, scoreA, scoreB, winner, undefined, priority);
+      },
+    });
+    onScoreUpdate(matchIdx, scoreA, scoreB, winner, undefined, priority);
+    setMatchesUpdateTrigger(prev => prev + 1);
+    closeAndResetScoreModal();
+  };
+
+  /** Choix du vainqueur à égalité (gauche / droite affichées, ou « Aucun ») */
+  const chooseTieWinner = (choice: 'left' | 'right' | 'none') => {
+    const sL = parseInt(editScoreA, 10) || 0;
+    const sR = parseInt(editScoreB, 10) || 0;
+    const scoreA = isMatchInverted ? sR : sL;
+    const scoreB = isMatchInverted ? sL : sR;
+    const winner: 'A' | 'B' | undefined =
+      choice === 'none' ? undefined : (choice === 'left') !== isMatchInverted ? 'A' : 'B';
+    commitTie(scoreA, scoreB, winner);
+  };
+
+  /** Saisie rapide « V4-4 » / « 4-V4 » : remplit les scores et le V affichés */
+  const handleVictoryText = (text: string) => {
+    setVictoryText(text);
+    const parsed = parseVictoryScoreInput(text);
+    if (!parsed) return;
+    setEditScoreA(String(parsed.left));
+    setEditScoreB(String(parsed.right));
+    setVictoryA(parsed.victoryLeft);
+    setVictoryB(parsed.victoryRight);
   };
 
   // Focus piégé + Échap sur la modale de score (clic extérieur : ne ferme pas, #1115)
@@ -662,7 +723,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const actualScoreB = inverted ? scoreLeft : scoreRight;
 
     if (actualScoreA === actualScoreB) {
-      if (isLaserSabre) {
+      if (tieByVictory) {
         openScoreModal(matchIndex, inverted);
       }
       return;
@@ -785,6 +846,11 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         return;
       }
       if (actualScoreA === actualScoreB && !isLaserSabre) {
+        // Olympique / rapières : l'égalité se tranche dans la fenêtre de saisie (V ou prioritaire)
+        if (tieByVictory) {
+          openScoreModal(matchIndex, inverted);
+          return;
+        }
         showToast(t('poolView.draw_impossible'), 'error');
         return;
       }
@@ -837,7 +903,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const matchIdx = editingMatch;
 
     if (actualScoreA === actualScoreB) {
-      if (isLaserSabre && (victoryA || victoryB)) {
+      if (tieByVictory && (victoryA || victoryB)) {
         // victoryA = victoire du tireur affiché à gauche (= fencerA si normal, fencerB si inversé)
         const winnerLeft = victoryA;
         const winner: 'A' | 'B' = isMatchInverted
@@ -884,6 +950,14 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           },
         });
         onScoreUpdate(editingMatch, actualScoreA, actualScoreB, winner);
+      } else if (tieByVictory) {
+        // Minute prioritaire tirée avant la minute supplémentaire : le prioritaire gagne sans touche
+        if (priorityPick) {
+          commitTie(actualScoreA, actualScoreB, undefined, priorityPick);
+        } else {
+          setShowTieChooser(true);
+        }
+        return;
       } else {
         showToast(t('poolView.draw_live'), 'error');
         return;
@@ -1107,6 +1181,59 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             <h3 className="modal-title">{t('poolView.quick_score')}</h3>
           </div>
           <div className="modal-body is-a48125">
+            {/* Égalité olympique / rapières : saisie rapide V4-4 et minute prioritaire (#1442) */}
+            {tieByVictory && !isLaserSabre && (
+              <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={victoryText}
+                  placeholder={t('poolView.victory_input_placeholder')}
+                  aria-label={t('poolView.victory_input_placeholder')}
+                  onChange={e => handleVictoryText(e.target.value)}
+                />
+                {editScoreA !== '' &&
+                  editScoreB !== '' &&
+                  (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0) &&
+                  !!pool.matches[editingMatch]?.fencerA &&
+                  !!pool.matches[editingMatch]?.fencerB && (
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        className="btn btn-warning"
+                        onClick={() => setShowPriorityDraw(true)}
+                      >
+                        🪙 {t('poolView.priority_draw')}
+                      </button>
+                      {priorityPick && (
+                        <span className="text-muted">
+                          {t('poolView.priority_holder', {
+                            name: (() => {
+                              const f =
+                                priorityPick === 'A'
+                                  ? pool.matches[editingMatch]?.fencerA
+                                  : pool.matches[editingMatch]?.fencerB;
+                              return f ? `${f.lastName} ${f.firstName}`.trim() : '';
+                            })(),
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  )}
+              </div>
+            )}
+            {showPriorityDraw &&
+              pool.matches[editingMatch]?.fencerA &&
+              pool.matches[editingMatch]?.fencerB && (
+                <TiebreakerAnimation
+                  fencerA={pool.matches[editingMatch]!.fencerA!}
+                  fencerB={pool.matches[editingMatch]!.fencerB!}
+                  onComplete={winner => {
+                    setPriorityPick(winner);
+                    setShowPriorityDraw(false);
+                  }}
+                />
+              )}
             {/* Ligne unique avec les deux tireurs côte à côte */}
             <div style={SCORE_ROW}>
               {/* Tireur gauche (ligne dans la grille) */}
@@ -1122,8 +1249,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 );
               })()}
 
-              {/* Bouton Victoire Sabre Laser A */}
-              {isLaserSabre && (
+              {/* Bouton Victoire (égalité) A */}
+              {tieByVictory && (
                 <button
                   type="button"
                   onClick={() => {
@@ -1214,8 +1341,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 }}
               />
 
-              {/* Bouton Victoire Sabre Laser B */}
-              {isLaserSabre && (
+              {/* Bouton Victoire (égalité) B */}
+              {tieByVictory && (
                 <button
                   type="button"
                   onClick={() => {
@@ -1303,20 +1430,48 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               </div>
             )}
           </div>
-          <div className="modal-footer" style={FOOTER_RIGHT}>
-            <button
-              className="btn btn-secondary"
-              onClick={() => {
-                setEditingMatch(null);
-                setIsMatchInverted(false);
-              }}
-            >
-              {t('actions.cancel')}
-            </button>
-            <button className="btn btn-primary" onClick={handleScoreSubmit}>
-              {t('actions.validate')}
-            </button>
-          </div>
+          {showTieChooser ? (
+            <div className="modal-footer" style={FOOTER_RIGHT}>
+              <span className="text-muted">{t('poolView.tie_choose_winner')}</span>
+              {(['left', 'right'] as const).map(side => {
+                // Gauche affichée = fencerB si la saisie est inversée
+                const f =
+                  (side === 'left') !== isMatchInverted
+                    ? pool.matches[editingMatch]?.fencerA
+                    : pool.matches[editingMatch]?.fencerB;
+                return (
+                  <button
+                    key={side}
+                    className="btn btn-primary"
+                    onClick={() => chooseTieWinner(side)}
+                  >
+                    V · {f ? `${f.lastName} ${f.firstName}`.trim() : ''}
+                  </button>
+                );
+              })}
+              <button className="btn btn-warning" onClick={() => chooseTieWinner('none')}>
+                {t('poolView.tie_none')}
+              </button>
+              <button className="btn btn-secondary" onClick={() => setShowTieChooser(false)}>
+                {t('actions.cancel')}
+              </button>
+            </div>
+          ) : (
+            <div className="modal-footer" style={FOOTER_RIGHT}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setEditingMatch(null);
+                  setIsMatchInverted(false);
+                }}
+              >
+                {t('actions.cancel')}
+              </button>
+              <button className="btn btn-primary" onClick={handleScoreSubmit}>
+                {t('actions.validate')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );

@@ -8,18 +8,21 @@
  */
 
 import { RapieresAgeCategory, RapieresFencer, RapieresGender } from './rapieres.types';
+import { rapieresCategoryFromBirthYear } from './rapieresAge';
 import { RapieresTeamDraft } from './RapieresTeamModal';
 
-/** Colonnes (index base 0) : D=3, E=4, Q=16, R=17, T=19, U=20, V=21, W=22, Y=24 */
+/** Colonnes (index base 0) : D=3, E=4, Q=16, R=17, S=18 (club), T=19, U=20, V=21, W=22, X=23 (club 2nd), Y=24 */
 const COL = {
   last1: 3,
   first1: 4,
   birth1: 16,
   gender1: 17,
+  club1: 18,
   last2: 19,
   first2: 20,
   birth2: 21,
   gender2: 22,
+  club2: 23,
   team: 24,
 };
 
@@ -97,9 +100,14 @@ export function parseBirthDate(value: string): Date | null {
   return null;
 }
 
+/** Date ISO AAAA-MM-JJ (date locale) */
+export function formatIsoDate(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 /**
- * Catégorie d'âge : âge atteint dans l'année civile de début de saison (saison du
- * 1er septembre au 31 août). M20 < 20 ans, Seniors 20-39, V1 40-49, V2 50-59, V3 60-69, V4 70+.
+ * Catégorie d'âge d'après une date de naissance (voir rapieresCategoryFromBirthYear).
  * Sans date valide : Seniors.
  */
 export function rapieresCategoryFromBirthDate(
@@ -107,14 +115,7 @@ export function rapieresCategoryFromBirthDate(
   refDate: Date = new Date()
 ): RapieresAgeCategory {
   if (!birth || isNaN(birth.getTime())) return 'SENIOR';
-  const seasonStart = refDate.getMonth() >= 8 ? refDate.getFullYear() : refDate.getFullYear() - 1;
-  const age = seasonStart - birth.getFullYear();
-  if (age < 20) return 'M20';
-  if (age < 40) return 'SENIOR';
-  if (age < 50) return 'V1';
-  if (age < 60) return 'V2';
-  if (age < 70) return 'V3';
-  return 'V4';
+  return rapieresCategoryFromBirthYear(birth.getFullYear(), refDate);
 }
 
 /** Équipes lues dans le contenu du fichier ; niveau par défaut « débutant » */
@@ -134,11 +135,15 @@ export function parseRapieresTeams(content: string, refDate?: Date): RapieresImp
       genderCol: number
     ): RapieresFencer => {
       const gender = parseRapieresGender(cell(r, genderCol));
+      const birthDate = parseBirthDate(cell(r, birth));
       return {
         lastName: cell(r, last),
         firstName: cell(r, first),
-        category: rapieresCategoryFromBirthDate(parseBirthDate(cell(r, birth)), refDate),
+        category: rapieresCategoryFromBirthDate(birthDate, refDate),
         ...(gender ? { gender } : {}),
+        ...(birthDate && !isNaN(birthDate.getTime())
+          ? { birthDate: formatIsoDate(birthDate) }
+          : {}),
       };
     };
     const f1 = fencer(COL.last1, COL.first1, COL.birth1, COL.gender1);
@@ -148,7 +153,15 @@ export function parseRapieresTeams(content: string, refDate?: Date): RapieresImp
       skipped.push(idx + 1);
       return;
     }
-    teams.push({ name, info: { level: 'beginner', fencers: [f1, f2] } });
+    // Club de l'équipe : clubs distincts des deux tireurs (« A / B » si différents)
+    const clubs = [cell(r, COL.club1), cell(r, COL.club2)].filter(
+      (c, i, a) => !!c && a.indexOf(c) === i
+    );
+    const club = clubs.join(' / ');
+    teams.push({
+      name,
+      info: { level: 'beginner', fencers: [f1, f2], ...(club ? { club } : {}) },
+    });
   });
   return { teams, skipped };
 }

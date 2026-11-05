@@ -55,6 +55,7 @@
   'referee.cancel': 'Nullañ',
   'referee.black_card_confirm': '⬛ Kadarnaat ar skarzhañ',
   'referee.coin_flip_winner': "Tennañ d'ar sord — Gounezer:",
+  'referee.priority_applies': "Miz priorelezh : an ebeshad lakaet a win ma n'eus touch ebet",
   'referee.pool_complete': 'POULL ECHUET',
   'referee.pool_complete_sub': 'Echu eo an holl emgannoù',
   'referee.sig_title': '✍️ Sinadur an emgannerien',

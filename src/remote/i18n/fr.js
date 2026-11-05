@@ -56,6 +56,7 @@
   'referee.cancel': 'Annuler',
   'referee.black_card_confirm': "⬛ Confirmer l'élimination",
   'referee.coin_flip_winner': 'Tirage au sort — Vainqueur :',
+  'referee.priority_applies': 'Minute prioritaire : le tireur tiré gagne si aucune touche',
   'referee.pool_complete': 'POULE TERMINÉE',
   'referee.pool_complete_sub': 'Tous les matchs sont terminés',
   'referee.sig_title': '✍️ Signature des combattants',

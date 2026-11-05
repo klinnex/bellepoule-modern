@@ -55,6 +55,7 @@
   'referee.cancel': 'Cancelar',
   'referee.black_card_confirm': '⬛ Confirmar la eliminación',
   'referee.coin_flip_winner': 'Sorteo — Ganador:',
+  'referee.priority_applies': 'Minuto prioritario: gana el tirador sorteado si no hay toque',
   'referee.pool_complete': 'POULE TERMINADA',
   'referee.pool_complete_sub': 'Todos los combates han terminado',
   'referee.sig_title': '✍️ Firma de los tiradores',

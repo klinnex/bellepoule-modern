@@ -27,6 +27,7 @@ export interface ArenaControlContext {
   readonly finishArenaMatch: S['finishArenaMatch'];
   readonly getArena: S['getArena'];
   readonly io: S['io'];
+  readonly sessionMatchScores: S['sessionMatchScores'];
   readonly isTrainingMode: S['isTrainingMode'];
   readonly loadNextMatch: S['loadNextMatch'];
   readonly pauseArenaMatch: S['pauseArenaMatch'];
@@ -152,6 +153,26 @@ export function handleArenaControl(
       break;
     case 'coin_flip':
       if (data.winner === 'A' || data.winner === 'B') {
+        // Minute prioritaire (#1442) : le tireur tiré gagne si l'égalité persiste à la fin
+        const matchId = arena.currentMatch?.id;
+        if (matchId) {
+          const prev = ctx.sessionMatchScores.get(matchId);
+          const side = (s: 'A' | 'B', old: unknown) => ({
+            value: 0,
+            isAbstention: false,
+            isExclusion: false,
+            isForfait: false,
+            ...((old as object) ?? {}),
+            isVictory: data.winner === s,
+            isPriority: data.winner === s,
+          });
+          ctx.sessionMatchScores.set(matchId, {
+            ...(prev ?? {}),
+            scoreA: side('A', prev?.scoreA),
+            scoreB: side('B', prev?.scoreB),
+            status: prev?.status ?? 'in_progress',
+          });
+        }
         ctx.io.to(`arena:${data.arenaId}`).emit(`arena:${data.arenaId}:coin_flip`, {
           winner: data.winner,
           fencerA: arena.currentMatch?.fencerA,

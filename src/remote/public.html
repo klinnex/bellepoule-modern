@@ -629,6 +629,12 @@
         animation: coinOverlayIn 0.4s ease-out;
       }
       #coin-flip-overlay.hidden { display: none; }
+      /* Tireur prioritaire (minute prioritaire, armes olympiques, #1442) */
+      .fencer-display.priority-gold,
+      .priority-gold {
+        box-shadow: 0 0 0 4px #d4af37, 0 0 18px rgba(212, 175, 55, 0.75) !important;
+        border-color: #d4af37 !important;
+      }
 
       .coin-flip-content {
         text-align: center;
@@ -1034,7 +1040,17 @@
           });
         }
 
+        applyPriorityFrame(side) {
+          ['A', 'B'].forEach(s => {
+            const name = document.getElementById(`fencer-${s.toLowerCase()}-name`);
+            const panel = name && (name.closest('.fencer-display') || name.parentElement);
+            if (panel) panel.classList.toggle('priority-gold', side === s);
+          });
+        }
+
         showCoinFlipAnimation(winner, fencerA, fencerB) {
+          this._prioFencerId = (winner === 'A' ? fencerA?.id : fencerB?.id) ?? null;
+          this.applyPriorityFrame(winner);
           const overlay   = document.getElementById('coin-flip-overlay');
           const coin      = document.getElementById('coin-3d');
           const nameGreen = document.getElementById('coin-name-green');
@@ -1120,6 +1136,14 @@
         }
 
         handleArenaUpdate(data) {
+          // Tireur prioritaire : cadre doré effacé dès que le match change (#1442)
+          if (this._prioFencerId && data.match !== undefined) {
+            const m = data.match;
+            if (!m || ![m.fencerA?.id, m.fencerB?.id].includes(this._prioFencerId)) {
+              this._prioFencerId = null;
+              this.applyPriorityFrame(null);
+            }
+          }
           if (data.screenThemes?.public) { applyScreenTheme(data.screenThemes.public.variables); }
 
           if (data.showPhotos !== undefined) {

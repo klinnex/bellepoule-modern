@@ -261,6 +261,8 @@ export interface Score {
   isAbstention: boolean; // A pour abstention/abandon
   isExclusion: boolean; // X pour exclusion (carton noir)
   isForfait: boolean; // F pour forfait
+  /** Tireur prioritaire : tirage au sort avant la minute supplémentaire (olympique, rapières, #1442) */
+  isPriority?: boolean;
 }
 
 // ============================================================================

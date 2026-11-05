@@ -51,6 +51,7 @@
   'referee.cancel': 'Annulla',
   'referee.black_card_confirm': '⬛ Conferma l\'eliminazione',
   'referee.coin_flip_winner': 'Sorteggio — Vincitore:',
+  'referee.priority_applies': "Minuto prioritario: vince il tiratore sorteggiato se non c'è stoccata",
   'referee.pool_complete': 'GIRONE TERMINATO',
   'referee.pool_complete_sub': 'Tutti gli incontri sono terminati',
   'referee.sig_title': '✍️ Firma degli schermidori',

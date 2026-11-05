@@ -11,11 +11,12 @@ import type { TableauMatchForPDF } from '../../shared/utils/pdfExport/tableauPdf
 import {
   RAPIERES_LEVELS,
   RapieresAgeCategory,
-  RapieresGender,
   RapieresFencer,
   RapieresLevel,
+  RapieresTeamGender,
   RapieresTeamInfo,
 } from './rapieres.types';
+import { rapieresTeamCategory, rapieresTeamGender } from './rapieresAge';
 
 export const RAPIERES_MAX_POOL_SIZE = 10;
 
@@ -234,54 +235,102 @@ export function filterRapieresQualifiers(pools: Pool[], overall: PoolRanking[]):
   return overall.filter(r => qualified.has(r.fencer.id)).map((r, i) => ({ ...r, rank: i + 1 }));
 }
 
+/**
+ * Demi-finales (#1441) : les 4 équipes selon le nombre de poules, dans l'ordre de tête de série
+ * (1 contre 4, 2 contre 3). 2 poules : 1res contre 2es de l'autre poule ; 3 poules : 1res + meilleure
+ * 2e ; 4 poules : 1res ; 1 poule : 4 premières. Plus de 4 poules : pas de scénario (null).
+ */
+export function rapieresSemifinalists(pools: Pool[], overall: PoolRanking[]): PoolRanking[] | null {
+  const n = pools.length;
+  if (n === 0 || n > 4) return null;
+  // Équipes retirées écartées, rangs de poule renumérotés
+  const poolRankings = pools.map(p =>
+    (p.ranking?.length ? p.ranking : calculatePoolRanking(p))
+      .filter(r => !isWithdrawn(r.fencer))
+      .map((r, i) => ({ ...r, rank: i + 1 }))
+  );
+  const overallOf = new Map(overall.map(r => [r.fencer.id, r]));
+  const at = (ranking: PoolRanking[], rank: number) => ranking.find(r => r.rank === rank)?.fencer;
+  const overallRank = (id: string) => overallOf.get(id)?.rank ?? Infinity;
+
+  let picked: Fencer[];
+  if (n === 1) {
+    picked = poolRankings[0].filter(r => r.rank <= 4).map(r => r.fencer);
+  } else if (n === 2) {
+    const [a, b] = poolRankings;
+    // Croisement : A1–B2 et B1–A2 (ordre de tête de série 1, 2, 3, 4)
+    picked = [at(a, 1), at(b, 1), at(a, 2), at(b, 2)].filter((f): f is Fencer => !!f);
+    if (picked.length < 4) return null;
+    return picked
+      .map(f => overallOf.get(f.id))
+      .filter((r): r is PoolRanking => !!r)
+      .map((r, i) => ({ ...r, rank: i + 1 }));
+  } else {
+    const firsts = poolRankings.map(r => at(r, 1)).filter((f): f is Fencer => !!f);
+    picked = firsts;
+    if (n === 3) {
+      const seconds = poolRankings.map(r => at(r, 2)).filter((f): f is Fencer => !!f);
+      const best = [...seconds].sort((x, y) => overallRank(x.id) - overallRank(y.id))[0];
+      if (best) picked = [...picked, best];
+    }
+  }
+  if (picked.length < 4 || picked.some(f => !overallOf.has(f.id))) return null;
+  return [...picked]
+    .sort((x, y) => overallRank(x.id) - overallRank(y.id))
+    .map((f, i) => ({ ...overallOf.get(f.id)!, rank: i + 1 }));
+}
+
 // ─── Filtres de classement ───────────────────────────────────────────────────
 
-export type RapieresRankingFilter =
-  | { kind: 'teams' }
-  | { kind: 'level'; level: RapieresLevel }
-  | { kind: 'category'; category: RapieresAgeCategory }
-  | { kind: 'gender'; gender: RapieresGender };
+/**
+ * Filtres cumulables sur les équipes (#1441) : catégorie d'équipe, niveau, sexe d'équipe.
+ * Un champ absent = pas de filtre sur ce critère.
+ */
+export interface RapieresRankingFilter {
+  category?: RapieresAgeCategory;
+  level?: RapieresLevel;
+  gender?: RapieresTeamGender;
+}
 
 export interface RapieresDisplayRow {
   rank: number;
   teamId: string;
-  /** Tireur concerné (classement individuel par catégorie d'âge), sinon absent */
-  fencerIndex?: 0 | 1;
 }
 
 /**
- * Applique un filtre à un classement d'équipes déjà ordonné (rangs recalculés dans le filtre,
- * ex æquo conservés). Par catégorie ou par sexe : un rang par tireur, avec le résultat de son équipe.
+ * Filtre un classement d'équipes déjà ordonné : seules les équipes correspondant à tous les
+ * critères actifs sont gardées, rangs recalculés (ex æquo conservés). Une équipe sans
+ * composition ne passe aucun filtre actif.
  */
 export function filterRanking(
   ranked: { teamId: string; rank: number }[],
   teams: Record<string, RapieresTeamInfo>,
-  filter: RapieresRankingFilter
+  filter: RapieresRankingFilter = {}
 ): RapieresDisplayRow[] {
-  const rows: (RapieresDisplayRow & { source: number })[] = [];
-  for (const r of ranked) {
+  const active = !!(filter.category || filter.level || filter.gender);
+  const kept = ranked.filter(r => {
     const team = teams[r.teamId];
-    if (filter.kind === 'teams') rows.push({ rank: 0, teamId: r.teamId, source: r.rank });
-    else if (!team) continue;
-    else if (filter.kind === 'level') {
-      if (team.level === filter.level) rows.push({ rank: 0, teamId: r.teamId, source: r.rank });
-    } else {
-      team.fencers.forEach((f, i) => {
-        if (
-          filter.kind === 'category' ? f.category === filter.category : f.gender === filter.gender
-        )
-          rows.push({ rank: 0, teamId: r.teamId, fencerIndex: i as 0 | 1, source: r.rank });
-      });
-    }
-  }
-  return rows.map((row, i) => ({
-    teamId: row.teamId,
-    ...(row.fencerIndex !== undefined ? { fencerIndex: row.fencerIndex } : {}),
-    rank:
-      i > 0 && rows[i - 1].source === row.source
-        ? rows.findIndex(x => x.source === row.source) + 1
-        : i + 1,
+    if (!team) return !active;
+    if (filter.category && rapieresTeamCategory(team) !== filter.category) return false;
+    if (filter.level && team.level !== filter.level) return false;
+    if (filter.gender && rapieresTeamGender(team) !== filter.gender) return false;
+    return true;
+  });
+  return kept.map((r, i) => ({
+    teamId: r.teamId,
+    // Ex æquo : même rang que le premier de leur groupe dans la liste filtrée
+    rank: i > 0 && kept[i - 1].rank === r.rank ? kept.findIndex(x => x.rank === r.rank) + 1 : i + 1,
   }));
+}
+
+/** Numéro de poule de chaque équipe (première poule trouvée) */
+export function rapieresPoolNumbers(
+  pools: { number: number; fencers: { id: string }[] }[]
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const pool of pools)
+    for (const f of pool.fencers) if (out[f.id] === undefined) out[f.id] = pool.number;
+  return out;
 }
 
 // ─── Classement final ────────────────────────────────────────────────────────

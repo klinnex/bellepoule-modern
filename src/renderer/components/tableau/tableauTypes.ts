@@ -86,10 +86,10 @@ export function tieScoreError(
   scoreA: number,
   scoreB: number,
   hasTieWinner: boolean,
-  isLaserSabre: boolean
+  tieBreakByVictory: boolean
 ): string | null {
   if (scoreA !== scoreB || hasTieWinner) return null;
-  return isLaserSabre ? 'tableauView.tie_need_winner' : 'tableauView.no_draw';
+  return tieBreakByVictory ? 'tableauView.tie_need_winner' : 'tableauView.no_draw';
 }
 
 /** Vainqueur d'un match saisi ; `victoryA`/`victoryB` (V manuel) départagent une égalité. */

@@ -12,6 +12,7 @@ import { MedicalCrossIcon } from '../common/MedicalCrossIcon';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import SpecialStatusPanel from '../common/SpecialStatusPanel';
 import TiebreakerAnimation from '../TiebreakerAnimation';
+import { parseVictoryScoreInput } from '../../../shared/utils/tieBreak';
 
 interface TableauScoreModalProps {
   match: TableauMatch;
@@ -32,8 +33,8 @@ interface TableauScoreModalProps {
   /** Annule le match (score effacé) — absent pour les barrages */
   onMatchCancel?: () => void;
   getRoundName: (round: number) => string;
-  /** Sabre Laser : une égalité se tranche par V (manuel) ou tirage au sort */
-  isLaserSabre?: boolean;
+  /** Égalité tranchée par V (manuel) ou tirage au sort : laser, olympique, rapières */
+  tieBreakByVictory?: boolean;
   victoryA?: boolean;
   victoryB?: boolean;
   onVictoryChange?: (side: 'A' | 'B' | null) => void;
@@ -53,7 +54,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   onSpecialStatus,
   onMatchCancel,
   getRoundName,
-  isLaserSabre = false,
+  tieBreakByVictory = false,
   victoryA = false,
   victoryB = false,
   onVictoryChange,
@@ -65,6 +66,17 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
     null
   );
   const [showCoinFlip, setShowCoinFlip] = useState(false);
+  const [victoryText, setVictoryText] = useState('');
+
+  /** Saisie rapide « V4-4 » : remplit les scores et le V (#1442) */
+  const handleVictoryText = (text: string) => {
+    setVictoryText(text);
+    const parsed = parseVictoryScoreInput(text);
+    if (!parsed) return;
+    setEditScoreA(String(parsed.left));
+    setEditScoreB(String(parsed.right));
+    onVictoryChange?.(parsed.victoryLeft ? 'A' : parsed.victoryRight ? 'B' : null);
+  };
 
   const fencerName = (f: TableauMatch['fencerA']) =>
     f ? `${f.lastName} ${f.firstName}`.trim() : '';
@@ -72,7 +84,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   // Égalité saisie (scores renseignés des deux côtés) : Sabre Laser uniquement
   const hasBothScores = editScoreA !== '' && editScoreB !== '';
   const isTie =
-    isLaserSabre &&
+    tieBreakByVictory &&
     hasBothScores &&
     (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0);
   const canDrawLots = isTie && !!match.fencerA && !!match.fencerB;
@@ -204,6 +216,18 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
             <p className="text-sm text-muted is-89a4cc">
               {t('tableauScore.max_score', { n: maxScore })}
             </p>
+          )}
+
+          {/* Saisie rapide d'une égalité : « V4-4 » (#1442) */}
+          {tieBreakByVictory && (
+            <input
+              type="text"
+              className="form-input"
+              value={victoryText}
+              placeholder={t('tableauScore.victory_input_placeholder')}
+              aria-label={t('tableauScore.victory_input_placeholder')}
+              onChange={e => handleVictoryText(e.target.value)}
+            />
           )}
 
           {/* Égalité Sabre Laser : vainqueur par V manuel ou tirage au sort */}

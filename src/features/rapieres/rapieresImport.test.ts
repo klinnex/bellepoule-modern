@@ -100,8 +100,8 @@ describe('rapieresImport (#1211)', () => {
         info: {
           level: 'beginner',
           fencers: [
-            { lastName: 'Dupont', firstName: 'Anne', category: 'SENIOR' },
-            { lastName: 'Martin', firstName: 'Paul', category: 'M20' },
+            { lastName: 'Dupont', firstName: 'Anne', category: 'SENIOR', birthDate: '1989-01-06' },
+            { lastName: 'Martin', firstName: 'Paul', category: 'M20', birthDate: '2008-06-14' },
           ],
         },
       },
@@ -111,10 +111,23 @@ describe('rapieresImport (#1211)', () => {
           level: 'beginner',
           fencers: [
             { lastName: 'Petit', firstName: 'Léa', category: 'SENIOR' },
-            { lastName: 'Roux', firstName: 'Max', category: 'V3' },
+            { lastName: 'Roux', firstName: 'Max', category: 'V3', birthDate: '1961-08-27' },
           ],
         },
       },
     ]);
+  });
+});
+
+describe('rapieresImport : club de l’équipe (#1441)', () => {
+  it('club des deux tireurs (colonnes S et X) : distincts joints par « / », identiques une seule fois', () => {
+    const csv = [
+      HEADER,
+      row({ 3: 'A', 4: 'a', 18: 'Escrime Nord', 19: 'B', 20: 'b', 23: 'Escrime Sud', 24: 'Mix' }),
+      row({ 3: 'C', 4: 'c', 18: 'Lame', 19: 'D', 20: 'd', 23: 'Lame', 24: 'Same' }),
+      row({ 3: 'E', 4: 'e', 19: 'F', 20: 'f', 24: 'Sans' }),
+    ].join('\r\n');
+    const { teams } = parseRapieresTeams(csv, REF);
+    expect(teams.map(t => t.info.club)).toEqual(['Escrime Nord / Escrime Sud', 'Lame', undefined]);
   });
 });
