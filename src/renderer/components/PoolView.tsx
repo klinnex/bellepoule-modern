@@ -1195,7 +1195,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 {editScoreA !== '' &&
                   editScoreB !== '' &&
                   (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0) &&
-                  editingMatch !== null &&
                   !!pool.matches[editingMatch]?.fencerA &&
                   !!pool.matches[editingMatch]?.fencerB && (
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -1224,7 +1223,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               </div>
             )}
             {showPriorityDraw &&
-              editingMatch !== null &&
               pool.matches[editingMatch]?.fencerA &&
               pool.matches[editingMatch]?.fencerB && (
                 <TiebreakerAnimation
@@ -1432,7 +1430,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               </div>
             )}
           </div>
-          {showTieChooser && editingMatch !== null ? (
+          {showTieChooser ? (
             <div className="modal-footer" style={FOOTER_RIGHT}>
               <span className="text-muted">{t('poolView.tie_choose_winner')}</span>
               {(['left', 'right'] as const).map(side => {
