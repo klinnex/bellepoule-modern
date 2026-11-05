@@ -492,21 +492,20 @@ const AppContent: React.FC = () => {
   );
 
   // Démo autonome : entraînement en mode démo (arbitre virtuel) + écrans distants ouverts
-  const handleStartDemo = useCallback(async () => {
-    const training = window.electronAPI?.training;
-    if (!training) return;
-    if (trainingActive) {
-      // Entraînement déjà lancé : on se contente d'ouvrir les écrans
-      await training.openDemoScreens?.(trainingStrips || DEMO_STRIPS);
-      return;
-    }
-    setShowDemoModal(true);
-  }, [trainingActive, trainingStrips]);
+  // Toujours proposer l'arme, même si un entraînement / une démo tourne déjà (relancé au choix)
+  const handleStartDemo = useCallback(() => {
+    if (window.electronAPI?.training) setShowDemoModal(true);
+  }, []);
 
   const handleLaunchDemo = useCallback(
     async (weapon: Weapon) => {
       const training = window.electronAPI?.training;
       if (!training) return;
+      if (trainingActive) {
+        // Session en cours : arrêtée (écrans de démo fermés) puis relancée avec l'arme choisie
+        await training.stopSession().catch(() => undefined);
+        await training.stopServer().catch(() => undefined);
+      }
       const ok = await handleLaunchTraining(weapon, DEMO_STRIPS, {
         matchDurationSeconds: 180,
         allowedZones: [],
@@ -518,7 +517,7 @@ const AppContent: React.FC = () => {
       setShowDemoModal(false);
       if (res?.success) showToast(t('demo.started'), 'success');
     },
-    [handleLaunchTraining, showToast, t]
+    [handleLaunchTraining, trainingActive, showToast, t]
   );
 
   const handleStopTraining = useCallback(async () => {
@@ -742,7 +741,7 @@ const AppContent: React.FC = () => {
                       className="comp-header-dropdown-item tools-menu-item"
                       onClick={() => {
                         setShowToolsMenu(false);
-                        void handleStartDemo();
+                        handleStartDemo();
                       }}
                       title={t('demo.hint')}
                     >
