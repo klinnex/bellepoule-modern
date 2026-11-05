@@ -14,6 +14,10 @@ interface Props {
   onDone: () => void;
 }
 
+// Logo du crawl : nom de marque, identique dans toutes les langues.
+const LOGO_TOP = 'BELLE';
+const LOGO_BOTTOM = 'POULE';
+
 /** Titres parodiques disponibles (clés about.crawl_title_N), choisis par build % N. */
 export const CRAWL_TITLE_COUNT = 7;
 
@@ -275,9 +279,9 @@ const HyperspaceCrawl: React.FC<Props> = ({ build, onDone }) => {
       <p className="bp-crawl-intro">{t('about.crawl_intro')}</p>
 
       <div className="bp-crawl-logo" aria-hidden="true">
-        BELLE
+        {LOGO_TOP}
         <br />
-        POULE
+        {LOGO_BOTTOM}
       </div>
 
       <div className="bp-crawl-stage">
