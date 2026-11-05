@@ -2,12 +2,13 @@
  * BellePoule Modern - Easter egg « Hyperespace » (double-clic sur le numéro de build)
  * Saut en hyperespace (canvas), « il y a bien longtemps… », logo, texte déroulant en
  * perspective dont l'épisode = numéro de build en chiffres romains, poule-faucon
- * poursuivie par un carton noir. Marche impériale en « cot-cot ». Clic / Échap : retour.
+ * poursuivie par un carton noir. Marche impériale en chocs de lames. Clic / Échap : retour.
  * Licensed under GPL-3.0
  */
 
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { playBladeMarch } from './crawlMusic';
 
 interface Props {
   build?: number;
@@ -53,50 +54,6 @@ export function toRoman(n: number | undefined): string {
     }
   }
   return out;
-}
-
-// Marche impériale jouée en « cot-cot » de poule. Chaque note = [fréquence Hz, départ s, durée s].
-const IMPERIAL_MARCH: [number, number, number][] = [
-  [392, 0.0, 0.45],
-  [392, 0.55, 0.45],
-  [392, 1.1, 0.45],
-  [311, 1.65, 0.33],
-  [466, 2.05, 0.13],
-  [392, 2.2, 0.45],
-  [311, 2.75, 0.33],
-  [466, 3.15, 0.13],
-  [392, 3.3, 0.6],
-  [587, 4.1, 0.45],
-  [587, 4.65, 0.45],
-  [587, 5.2, 0.45],
-  [622, 5.75, 0.33],
-  [466, 6.15, 0.13],
-  [370, 6.3, 0.45],
-  [311, 6.85, 0.33],
-  [466, 7.25, 0.13],
-  [392, 7.4, 0.6],
-];
-
-// Un « cot » : double chirp descendant accordé sur la note de la mélodie.
-function playCluck(ctx: AudioContext, freq: number, start: number, dur: number): void {
-  const t0 = ctx.currentTime + start;
-  [1, 0.82].forEach((mult, i) => {
-    const at = t0 + i * 0.07;
-    const f = freq * mult;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(f * 1.35, at);
-    osc.frequency.exponentialRampToValueAtTime(f, at + 0.05);
-    osc.frequency.exponentialRampToValueAtTime(f * 0.65, at + dur);
-    gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime(0.22, at + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, at + dur);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(at);
-    osc.stop(at + dur + 0.02);
-  });
 }
 
 // Souffle du saut en hyperespace : bruit blanc filtré, balayage passe-bande.
@@ -240,7 +197,7 @@ const HyperspaceCrawl: React.FC<Props> = ({ build, onDone }) => {
       if (!reduced) playWhoosh(audio);
       const ctx = audio;
       const offset = reduced ? 0 : LOGO_AT;
-      IMPERIAL_MARCH.forEach(([f, s, d]) => playCluck(ctx, f, s + offset, d));
+      playBladeMarch(ctx, offset);
     } catch {
       // AudioContext non disponible
     }
