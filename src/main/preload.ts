@@ -31,6 +31,8 @@ import type {
   MatchTimingData,
   MatchSnapshot,
   ArenaExitData,
+  RemoteArenaUpdateEvent,
+  RemoteMatchFinishedEvent,
 } from '../shared/types/preload';
 
 // Input validation functions
@@ -802,13 +804,13 @@ const electronApi = {
   },
 
   // Remote event listeners (for real-time updates)
-  onRemoteArenaUpdate: (callback: (data: any) => void) => {
-    const handler = (_: IpcRendererEvent, data: any) => callback(data);
+  onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => {
+    const handler = (_: IpcRendererEvent, data: RemoteArenaUpdateEvent) => callback(data);
     ipcRenderer.on('arena:update', handler);
     return () => ipcRenderer.removeListener('arena:update', handler);
   },
-  onRemoteMatchFinished: (callback: (data: any) => void) => {
-    const handler = (_: IpcRendererEvent, data: any) => {
+  onRemoteMatchFinished: (callback: (data: RemoteMatchFinishedEvent) => void) => {
+    const handler = (_: IpcRendererEvent, data: RemoteMatchFinishedEvent) => {
       // DIAGNOSTIC : confirmer que l'IPC match:finished atteint bien le renderer.
       console.warn(
         '[preload] IPC match:finished reçu',

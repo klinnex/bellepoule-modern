@@ -21,7 +21,7 @@ import {
   DirectEliminationTable,
   FencerCompetitionStats,
 } from '../types';
-import type { MatchSignatureRequest, RemoteSession, Arena } from './remote';
+import type { MatchSignatureRequest, RemoteSession, Arena, ArenaUpdate } from './remote';
 
 // Re-export Pool for preload
 export type { Pool, PoolSnapshot } from '../types';
@@ -233,11 +233,27 @@ export interface AbandonSnapshot {
   createdAt: string;
 }
 
+/** Évènement IPC `arena:update` (main → renderer). */
+export interface RemoteArenaUpdateEvent {
+  arenaId: string;
+  update?: Partial<ArenaUpdate>;
+}
+
+/** Évènement IPC `match:finished` (main → renderer). */
+export interface RemoteMatchFinishedEvent {
+  matchId: string;
+  scoreA: number;
+  scoreB: number;
+  winner?: 'A' | 'B';
+  poolId?: string;
+  isTableau?: boolean;
+}
+
 export interface SessionState {
   currentPhase?: number;
   selectedPool?: string;
   selectedTable?: string;
-  uiState?: Record<string, any>;
+  uiState?: Record<string, unknown>;
   lastSaveTime?: Date;
 }
 
@@ -1273,8 +1289,8 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   crypto: CryptoAPI;
   remote: RemoteServerAPI;
   training: TrainingAPI;
-  onRemoteArenaUpdate: (callback: (data: any) => void) => () => void;
-  onRemoteMatchFinished: (callback: (data: any) => void) => () => void;
+  onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => () => void;
+  onRemoteMatchFinished: (callback: (data: RemoteMatchFinishedEvent) => void) => () => void;
   onTrainingMatchFinished: (
     callback: (data: { record: TrainingMatchRecord | null }) => void
   ) => () => void;
