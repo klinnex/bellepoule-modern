@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 42 | 330 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 46 | 228 |
+| `src/renderer/components/` | 47 | 235 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 22 | 134 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **239** | **1985** |
+| **Total** | **240** | **1992** |
 
-Unitaires : 230 fichiers, 1950 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 231 fichiers, 1957 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3372,6 +3372,22 @@ Unitaires : 230 fichiers, 1950 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - Suivant avance d’une étape, Retour revient
   - refaire l’action après Retour fait avancer de nouveau
   - étape poules : explication glisser-déposer et halo sur Lancer quand la préparation est ouverte
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/HyperspaceCrawl.test.tsx</code> — 7 tests</summary>
+
+- **toRoman**
+  - convertit en chiffres romains
+  - retombe en chiffres arabes hors bornes
+- **warpSpeed**
+  - accélère au saut puis revient en croisière
+- **HyperspaceCrawl**
+  - affiche épisode romain, titre et build
+  - clic ferme
+  - Échap ferme le crawl sans fermer la modale À propos
+  - Entrée sur le numéro de build lance le crawl
 
 </details>
 

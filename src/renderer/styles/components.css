@@ -293,90 +293,248 @@
   }
 }
 
-/* AboutModal (easter egg) */
-/* Poule gauche miroir (face droite), avance vers centre */
-@keyframes bp-hen-left {
-  0%,
-  100% {
-    left: 5px;
-  }
-  38%,
-  58% {
-    left: 80px;
-  }
+/* AboutModal (easter egg « Hyperespace », HyperspaceCrawl.tsx) */
+.bp-crawl {
+  position: fixed;
+  inset: 0;
+  z-index: 13000;
+  overflow: hidden;
+  cursor: pointer;
+  background: #000008;
+  color: #ffe81f;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  user-select: none;
 }
-/* Poule droite naturelle (face gauche), avance vers centre */
-@keyframes bp-hen-right {
-  0%,
-  100% {
-    left: 221px;
-  }
-  38%,
-  58% {
-    left: 146px;
-  }
+.bp-crawl-stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
-/* Sabre bleu — tenu par la poule gauche, POINTE VERS LE HAUT
-       Au repos : quasi vertical (-85°), avance et se penche vers le centre (-62°) */
-@keyframes bp-saber-blue {
-  0%,
-  100% {
-    left: 49px;
-    transform: translateY(-50%) rotate(-85deg);
-    box-shadow:
-      0 0 8px 3px #39f,
-      0 0 2px 1px #9cf;
-  }
-  38%,
-  58% {
-    left: 124px;
-    transform: translateY(-50%) rotate(-62deg);
-    box-shadow:
-      0 0 20px 7px #39f,
-      0 0 5px 2px #9cf;
-  }
+.bp-crawl-intro {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  width: min(90vw, 34rem);
+  margin: 0;
+  transform: translateX(-50%);
+  color: #4bd5ee;
+  font-size: clamp(1.1rem, 2.4vw, 1.8rem);
+  line-height: 1.4;
+  opacity: 0;
+  animation: bp-crawl-fade 4s ease-in-out 2.4s forwards;
 }
-/* Sabre rouge — tenu par la poule droite, POINTE VERS LE HAUT
-       Au repos : quasi vertical (+85°), avance et se penche vers le centre (+62°) */
-@keyframes bp-saber-red {
-  0%,
-  100% {
-    left: 146px;
-    transform: translateY(-50%) rotate(85deg);
-    box-shadow:
-      0 0 8px 3px #f33,
-      0 0 2px 1px #f99;
-  }
-  38%,
-  58% {
-    left: 71px;
-    transform: translateY(-50%) rotate(62deg);
-    box-shadow:
-      0 0 20px 7px #f33,
-      0 0 5px 2px #f99;
-  }
+.bp-crawl-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  color: transparent;
+  -webkit-text-stroke: 3px #ffe81f;
+  font-size: clamp(3rem, 13vw, 10rem);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: 0.04em;
+  text-align: center;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(2.4);
+  animation: bp-crawl-logo 8s cubic-bezier(0.25, 0, 0.75, 1) 6.4s forwards;
 }
-/* Étincelles au point de croisement (~50% largeur, ~30% hauteur) */
-@keyframes bp-spark {
-  0%,
-  34%,
-  64%,
-  100% {
+.bp-crawl-stage {
+  position: absolute;
+  inset: 0;
+  perspective: 360px;
+  perspective-origin: 50% 30%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 40%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 40%);
+}
+.bp-crawl-plane {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(44rem, 88vw);
+  height: 100vh;
+  transform-origin: 50% 100%;
+  transform: translateX(-50%) rotateX(26deg);
+}
+.bp-crawl-text {
+  position: absolute;
+  top: 100%;
+  font-size: clamp(1.2rem, 3.2vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: justify;
+  animation: bp-crawl-scroll 36s linear 7.4s forwards;
+}
+.bp-crawl-text p {
+  margin: 0 0 1.4em;
+}
+.bp-crawl-episode {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.bp-crawl-title {
+  margin: 0 0 1em;
+  font-size: 1.5em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.bp-crawl-flyby {
+  position: absolute;
+  top: 70%;
+  left: -20vw;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  animation: bp-crawl-flyby 3.2s cubic-bezier(0.5, 0, 0.8, 1) 13.5s forwards;
+}
+.bp-crawl-hen {
+  order: 3;
+  font-size: 2.6rem;
+  transform: scaleX(-1) rotate(-12deg);
+  filter: drop-shadow(0 0 8px #4bd5ee);
+}
+.bp-crawl-bolt {
+  order: 2;
+  width: 46px;
+  height: 4px;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow:
+    0 0 6px 3px #f33,
+    0 0 14px 4px #f33;
+  animation: bp-crawl-pew 0.35s linear infinite;
+}
+.bp-crawl-card {
+  order: 1;
+  width: 22px;
+  height: 32px;
+  border-radius: 3px;
+  background: #111;
+  border: 1px solid #555;
+  box-shadow: 0 0 10px 2px #f33;
+  transform: rotate(18deg);
+}
+.bp-crawl-end {
+  position: absolute;
+  bottom: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: clamp(1.1rem, 3vw, 2rem);
+  font-weight: 700;
+  text-shadow: 0 0 12px rgba(255, 232, 31, 0.6);
+  opacity: 0;
+  animation: bp-crawl-fade-in 2s ease-out 38s forwards;
+}
+.bp-crawl-skip {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+@keyframes bp-crawl-fade {
+  0% {
     opacity: 0;
-    transform: translate(-50%, -180%) scale(0) rotate(0deg);
   }
-  44% {
+  15%,
+  80% {
     opacity: 1;
-    transform: translate(-50%, -180%) scale(1.6) rotate(15deg);
   }
-  52% {
-    opacity: 0.8;
-    transform: translate(-50%, -180%) scale(1.1) rotate(-10deg);
-  }
-  58% {
+  100% {
     opacity: 0;
-    transform: translate(-50%, -180%) scale(0.2) rotate(5deg);
   }
+}
+@keyframes bp-crawl-fade-in {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes bp-crawl-logo {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(2.4);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.02);
+  }
+}
+@keyframes bp-crawl-scroll {
+  to {
+    top: -260%;
+  }
+}
+@keyframes bp-crawl-flyby {
+  0% {
+    left: -20vw;
+    top: 72%;
+    transform: scale(0.5);
+  }
+  100% {
+    left: 115vw;
+    top: 12%;
+    transform: scale(1.4);
+  }
+}
+@keyframes bp-crawl-pew {
+  0% {
+    transform: translateX(-20px);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+}
+/* Mouvement réduit : écran fixe, texte lisible à plat */
+@media (prefers-reduced-motion: reduce) {
+  .bp-crawl-intro,
+  .bp-crawl-logo,
+  .bp-crawl-flyby {
+    display: none;
+  }
+  .bp-crawl-stage {
+    perspective: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+    overflow-y: auto;
+  }
+  .bp-crawl-plane {
+    position: static;
+    height: auto;
+    margin: 8vh auto 0;
+    transform: none;
+  }
+  .bp-crawl-text {
+    position: static;
+    animation: none;
+  }
+  .bp-crawl-end {
+    position: static;
+    margin-top: 1rem;
+    transform: none;
+    text-align: center;
+    opacity: 1;
+    animation: none;
+  }
+}
+/* Numéro de build : lueur de sabre laser au survol */
+.bp-build-badge:hover,
+.bp-build-badge:focus-visible {
+  outline: none;
+  color: #e6f7ff;
+  border-color: #4bd5ee;
+  box-shadow:
+    0 0 6px 1px #4bd5ee,
+    inset 0 0 4px #4bd5ee;
 }
 /* Pulsation subtile sur le numéro de build */
 @keyframes bp-build-pulse {
