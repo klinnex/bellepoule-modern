@@ -32,7 +32,12 @@ export interface RapieresFencer {
   lastName: string;
   category: RapieresAgeCategory;
   gender?: RapieresGender;
+  /** Date de naissance AAAA-MM-JJ (saisie ou import) : sert à la catégorie d'équipe */
+  birthDate?: string;
 }
+
+/** Sexe d'une équipe : deux hommes « M », deux femmes « F », un homme et une femme « MIXED » */
+export type RapieresTeamGender = 'M' | 'F' | 'MIXED';
 
 /** Composition d'une équipe (tireur de la compétition portant le nom d'équipe) */
 export interface RapieresTeamInfo {

@@ -100,8 +100,8 @@ describe('rapieresImport (#1211)', () => {
         info: {
           level: 'beginner',
           fencers: [
-            { lastName: 'Dupont', firstName: 'Anne', category: 'SENIOR' },
-            { lastName: 'Martin', firstName: 'Paul', category: 'M20' },
+            { lastName: 'Dupont', firstName: 'Anne', category: 'SENIOR', birthDate: '1989-01-06' },
+            { lastName: 'Martin', firstName: 'Paul', category: 'M20', birthDate: '2008-06-14' },
           ],
         },
       },
@@ -111,7 +111,7 @@ describe('rapieresImport (#1211)', () => {
           level: 'beginner',
           fencers: [
             { lastName: 'Petit', firstName: 'Léa', category: 'SENIOR' },
-            { lastName: 'Roux', firstName: 'Max', category: 'V3' },
+            { lastName: 'Roux', firstName: 'Max', category: 'V3', birthDate: '1961-08-27' },
           ],
         },
       },

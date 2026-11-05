@@ -4,6 +4,7 @@ import {
   canLaunchNextWave,
   distributeByLevel,
   filterRanking,
+  rapieresPoolNumbers,
   filterRapieresQualifiers,
   isWaveComplete,
   mergeFinalRanking,
@@ -254,18 +255,45 @@ describe('Tournoi des rapières (#1118)', () => {
       { teamId: 'y', rank: 2 },
     ];
 
-    it('filtres : niveau et catégorie d’âge (un rang par tireur)', () => {
-      expect(filterRanking(ranked, teams, { kind: 'level', level: 'beginner' })).toEqual([
+    it('filtre par niveau : équipes seules, rangs conservés (#1441)', () => {
+      expect(filterRanking(ranked, teams, { level: 'beginner' })).toEqual([
         { teamId: 'y', rank: 1 },
       ]);
-      expect(filterRanking(ranked, teams, { kind: 'category', category: 'M20' })).toEqual([
-        { teamId: 'x', fencerIndex: 0, rank: 1 },
-        { teamId: 'y', fencerIndex: 0, rank: 2 },
-        { teamId: 'y', fencerIndex: 1, rank: 2 },
+      expect(filterRanking(ranked, teams, {})).toEqual([
+        { teamId: 'x', rank: 1 },
+        { teamId: 'y', rank: 2 },
       ]);
     });
 
-    it('filtre par sexe : un rang par tireur, non renseignés exclus (#1211)', () => {
+    it('filtre par catégorie d’équipe (moyenne des années de naissance, #1441)', () => {
+      // Années relatives à l'année courante : âges moyens ≈ 33 ans (x) et ≈ 19 ans (y)
+      const Y = new Date().getFullYear();
+      const withDates: Record<string, RapieresTeamInfo> = {
+        x: {
+          level: 'beginner',
+          fencers: [
+            { firstName: 'A', lastName: 'x1', category: 'M20', birthDate: `${Y - 30}-03-01` },
+            { firstName: 'B', lastName: 'x2', category: 'V1', birthDate: `${Y - 36}-03-01` },
+          ],
+        },
+        y: {
+          level: 'beginner',
+          fencers: [
+            { firstName: 'A', lastName: 'y1', category: 'M20', birthDate: `${Y - 20}-03-01` },
+            { firstName: 'B', lastName: 'y2', category: 'M20', birthDate: `${Y - 19}-03-01` },
+          ],
+        },
+      };
+      // x : moyenne Y-33 → Seniors ; y : moyenne Y-19.5 → M20
+      expect(filterRanking(ranked, withDates, { category: 'SENIOR' })).toEqual([
+        { teamId: 'x', rank: 1 },
+      ]);
+      expect(filterRanking(ranked, withDates, { category: 'M20' })).toEqual([
+        { teamId: 'y', rank: 1 },
+      ]);
+    });
+
+    it('filtre par sexe d’équipe : M, F, mixte ; sexe incomplet exclu (#1441)', () => {
       const g: Record<string, RapieresTeamInfo> = {
         x: {
           level: 'expert',
@@ -282,13 +310,39 @@ describe('Tournoi des rapières (#1118)', () => {
           ],
         },
       };
-      expect(filterRanking(ranked, g, { kind: 'gender', gender: 'F' })).toEqual([
-        { teamId: 'x', fencerIndex: 0, rank: 1 },
-        { teamId: 'y', fencerIndex: 0, rank: 2 },
+      expect(filterRanking(ranked, g, { gender: 'MIXED' })).toEqual([{ teamId: 'x', rank: 1 }]);
+      expect(filterRanking(ranked, g, { gender: 'F' })).toEqual([]);
+      expect(filterRanking(ranked, g, { gender: 'M' })).toEqual([]);
+    });
+
+    it('filtres cumulables (niveau + sexe)', () => {
+      const g: Record<string, RapieresTeamInfo> = {
+        x: {
+          level: 'expert',
+          fencers: [
+            { firstName: 'A', lastName: 'x1', category: 'M20', gender: 'M' },
+            { firstName: 'B', lastName: 'x2', category: 'V1', gender: 'M' },
+          ],
+        },
+        y: {
+          level: 'expert',
+          fencers: [
+            { firstName: 'A', lastName: 'y1', category: 'M20', gender: 'M' },
+            { firstName: 'B', lastName: 'y2', category: 'M20', gender: 'M' },
+          ],
+        },
+      };
+      expect(filterRanking(ranked, g, { level: 'expert', gender: 'M' })).toEqual([
+        { teamId: 'x', rank: 1 },
+        { teamId: 'y', rank: 2 },
       ]);
-      expect(filterRanking(ranked, g, { kind: 'gender', gender: 'M' })).toEqual([
-        { teamId: 'x', fencerIndex: 1, rank: 1 },
-      ]);
+      expect(filterRanking(ranked, g, { level: 'beginner', gender: 'M' })).toEqual([]);
+    });
+
+    it('rapieresPoolNumbers : numéro de poule par équipe', () => {
+      const pool = (number: number, ids: string[]) =>
+        ({ number, fencers: ids.map(id => ({ id })) }) as never;
+      expect(rapieresPoolNumbers([pool(1, ['x']), pool(2, ['y'])])).toEqual({ x: 1, y: 2 });
     });
 
     it('final : tableau, puis non qualifiées, exclues en dernier', () => {

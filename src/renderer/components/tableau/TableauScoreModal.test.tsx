@@ -80,21 +80,21 @@ describe('TableauScoreModal', () => {
 
   describe('égalité Sabre Laser', () => {
     const laserSetup = (over: Partial<Record<string, any>> = {}) =>
-      setup({ isLaserSabre: true, editScoreA: '10', editScoreB: '10', ...over });
+      setup({ tieBreakByVictory: true, editScoreA: '10', editScoreB: '10', ...over });
 
     it('hors Laser : aucun bouton V ni tirage au sort, même en égalité', () => {
-      setup({ isLaserSabre: false, editScoreA: '10', editScoreB: '10' });
+      setup({ tieBreakByVictory: false, editScoreA: '10', editScoreB: '10' });
       expect(screen.queryByText(/V · /)).toBeNull();
       expect(screen.queryByText('Tirage au sort')).toBeNull();
     });
 
     it('Laser sans égalité : pas de bloc vainqueur', () => {
-      setup({ isLaserSabre: true, editScoreA: '10', editScoreB: '9' });
+      setup({ tieBreakByVictory: true, editScoreA: '10', editScoreB: '9' });
       expect(screen.queryByText(/V · /)).toBeNull();
     });
 
     it('Laser sans score saisi : pas de bloc vainqueur', () => {
-      setup({ isLaserSabre: true, editScoreA: '', editScoreB: '' });
+      setup({ tieBreakByVictory: true, editScoreA: '', editScoreB: '' });
       expect(screen.queryByText(/V · /)).toBeNull();
     });
 

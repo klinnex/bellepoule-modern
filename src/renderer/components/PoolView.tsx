@@ -80,6 +80,8 @@ interface PoolViewProps {
   pool: Pool;
   maxScore?: number;
   weapon?: Weapon;
+  /** Égalité tranchée par V (olympique, rapières, laser) — défaut : laser */
+  tieBreakByVictory?: boolean;
   competitionName?: string;
   competitionId?: string;
   onScoreUpdate: (
@@ -140,6 +142,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   pool,
   maxScore = 5,
   weapon,
+  tieBreakByVictory,
   competitionName,
   competitionId,
   onScoreUpdate,
@@ -344,6 +347,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   }, [pool.isComplete]);
 
   const isLaserSabre = weapon === Weapon.LASER;
+  const tieByVictory = tieBreakByVictory ?? isLaserSabre;
   const isLocked =
     pool.fencers.length > 0 &&
     signedFencerIds.filter(id => pool.fencers.some(f => f.id === id)).length >= pool.fencers.length;
@@ -487,7 +491,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           setKeyboardFocusField(prev => (prev === 'A' ? 'B' : 'A'));
           return;
         }
-        if ((e.key === 'v' || e.key === 'V') && isLaserSabre && !inModalInput) {
+        if ((e.key === 'v' || e.key === 'V') && tieByVictory && !inModalInput) {
           e.preventDefault();
           if (keyboardFocusField === 'A') {
             setVictoryA(prev => !prev);
@@ -662,7 +666,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const actualScoreB = inverted ? scoreLeft : scoreRight;
 
     if (actualScoreA === actualScoreB) {
-      if (isLaserSabre) {
+      if (tieByVictory) {
         openScoreModal(matchIndex, inverted);
       }
       return;
@@ -837,7 +841,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const matchIdx = editingMatch;
 
     if (actualScoreA === actualScoreB) {
-      if (isLaserSabre && (victoryA || victoryB)) {
+      if (tieByVictory && (victoryA || victoryB)) {
         // victoryA = victoire du tireur affiché à gauche (= fencerA si normal, fencerB si inversé)
         const winnerLeft = victoryA;
         const winner: 'A' | 'B' = isMatchInverted
@@ -1122,8 +1126,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 );
               })()}
 
-              {/* Bouton Victoire Sabre Laser A */}
-              {isLaserSabre && (
+              {/* Bouton Victoire (égalité) A */}
+              {tieByVictory && (
                 <button
                   type="button"
                   onClick={() => {
@@ -1214,8 +1218,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 }}
               />
 
-              {/* Bouton Victoire Sabre Laser B */}
-              {isLaserSabre && (
+              {/* Bouton Victoire (égalité) B */}
+              {tieByVictory && (
                 <button
                   type="button"
                   onClick={() => {

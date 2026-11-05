@@ -8,6 +8,11 @@ import React, { useState } from 'react';
 import { useFocusTrap } from '../../renderer/hooks/useFocusTrap';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
 import {
+  rapieresBirthYear,
+  rapieresCategoryFromBirthYear,
+  rapieresTeamCategory,
+} from './rapieresAge';
+import {
   RAPIERES_AGE_CATEGORIES,
   RAPIERES_GENDERS,
   RAPIERES_LEVELS,
@@ -50,6 +55,18 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
       next[i] = { ...next[i], ...patch };
       return next;
     });
+
+  /** Date de naissance saisie : la catégorie du tireur en découle (#1441) */
+  const setBirthDate = (i: 0 | 1, birthDate: string) => {
+    const year = rapieresBirthYear({ birthDate });
+    setFencer(i, {
+      birthDate: birthDate || undefined,
+      ...(year !== undefined ? { category: rapieresCategoryFromBirthYear(year) } : {}),
+    });
+  };
+  const teamCategory = fencers.some(f => f.birthDate)
+    ? rapieresTeamCategory({ level, fencers })
+    : null;
 
   const build = (): RapieresTeamDraft | null => {
     const clean = fencers.map(f => ({
@@ -138,7 +155,11 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
                   {t('rapieres.fencer_n', { n: String(i + 1) })}
                 </legend>
                 <div
-                  style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem' }}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                    gap: '1rem',
+                  }}
                 >
                   <div className="form-group">
                     <label className="form-label" htmlFor={`rapieres-f${i}-last`}>
@@ -165,12 +186,25 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
                     />
                   </div>
                   <div className="form-group">
+                    <label className="form-label" htmlFor={`rapieres-f${i}-birth`}>
+                      {t('rapieres.birth_date')}
+                    </label>
+                    <input
+                      id={`rapieres-f${i}-birth`}
+                      type="date"
+                      className="form-input"
+                      value={fencers[i].birthDate ?? ''}
+                      onChange={e => setBirthDate(i, e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
                     <label className="form-label" htmlFor={`rapieres-f${i}-cat`}>
                       {t('rapieres.category')}
                     </label>
                     <select
                       id={`rapieres-f${i}-cat`}
                       className="form-input"
+                      disabled={!!fencers[i].birthDate}
                       value={fencers[i].category}
                       onChange={e =>
                         setFencer(i, { category: e.target.value as RapieresAgeCategory })
@@ -206,6 +240,11 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
                 </div>
               </fieldset>
             ))}
+            {teamCategory && (
+              <p className="text-muted" style={{ margin: 0 }}>
+                {t('rapieres.team_category', { category: t(`rapieres.cat_${teamCategory}`) })}
+              </p>
+            )}
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>

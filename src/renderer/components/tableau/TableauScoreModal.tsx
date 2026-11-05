@@ -32,8 +32,8 @@ interface TableauScoreModalProps {
   /** Annule le match (score effacé) — absent pour les barrages */
   onMatchCancel?: () => void;
   getRoundName: (round: number) => string;
-  /** Sabre Laser : une égalité se tranche par V (manuel) ou tirage au sort */
-  isLaserSabre?: boolean;
+  /** Égalité tranchée par V (manuel) ou tirage au sort : laser, olympique, rapières */
+  tieBreakByVictory?: boolean;
   victoryA?: boolean;
   victoryB?: boolean;
   onVictoryChange?: (side: 'A' | 'B' | null) => void;
@@ -53,7 +53,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   onSpecialStatus,
   onMatchCancel,
   getRoundName,
-  isLaserSabre = false,
+  tieBreakByVictory = false,
   victoryA = false,
   victoryB = false,
   onVictoryChange,
@@ -72,7 +72,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   // Égalité saisie (scores renseignés des deux côtés) : Sabre Laser uniquement
   const hasBothScores = editScoreA !== '' && editScoreB !== '';
   const isTie =
-    isLaserSabre &&
+    tieBreakByVictory &&
     hasBothScores &&
     (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0);
   const canDrawLots = isTie && !!match.fencerA && !!match.fencerB;

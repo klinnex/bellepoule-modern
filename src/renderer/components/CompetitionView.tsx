@@ -77,6 +77,7 @@ import {
   isRapieresMode,
   resolveCompetitionSettings,
 } from '../../shared/utils/customFormulaSettings';
+import { allowsVictoryTieBreak } from '../../shared/utils/tieBreak';
 import {
   createRapieresSession,
   emptyRapieresTeamInfo,
@@ -85,6 +86,7 @@ import {
 import {
   distributeByLevel,
   filterRapieresQualifiers,
+  rapieresPoolNumbers,
   mergeFinalRanking,
   RAPIERES_MAX_POOL_SIZE,
   waveMatchIds,
@@ -282,6 +284,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const poolWinnersOnly = effectiveSettings?.poolWinnersOnly ?? false;
   // Tournoi des rapières (#1118) : équipes = tireurs, poules en vagues
   const isRapieres = isRapieresMode(competition.weapon, competition.settings);
+  /** Égalité tranchée par un vainqueur désigné (#1442) */
+  const tieBreakByVictory = allowsVictoryTieBreak(competition.weapon, isRapieres);
   const postPoolSplitCriteria = competition.settings?.postPoolSplitCriteria;
   // Groupes déjà extraits dans une compétition séparée (genre → id compétition)
   const splitOffCompetitionIds = competition.settings?.splitOffCompetitionIds;
@@ -2068,6 +2072,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       <PoolView
         pool={pool}
         weapon={competition.weapon}
+        tieBreakByVictory={tieBreakByVictory}
         competitionName={competition.title}
         maxScore={poolMaxScore}
         competitionId={competition.id}
@@ -2360,6 +2365,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                         <PoolView
                           pool={pool}
                           weapon={competition.weapon}
+                          tieBreakByVictory={tieBreakByVictory}
                           competitionName={competition.title}
                           maxScore={poolMaxScore}
                           competitionId={competition.id}
@@ -2565,6 +2571,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             fencers={fencers}
             teams={rapieres.teams}
             stats={rapieresStats}
+            poolOf={rapieresPoolNumbers(pools)}
           />
         )}
 
@@ -2699,7 +2706,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               competitionId={competition.id}
               maxRefereesPerMatch={maxRefereesPerMatch}
               autoFillReferees={autoFillReferees}
-              isLaserSabre={isLaserSabre}
+              tieBreakByVictory={tieBreakByVictory}
               onBlackCard={id => updateFencer(id, specialStatusPatch('exclusion', true))}
               onComplete={results => {
                 setFinalResults(results);
