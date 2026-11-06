@@ -13,6 +13,7 @@
     <script src="/js/refereeFaults.js"></script>
     <script src="/js/refereeTts.js"></script>
     <script src="/js/refereeControls.js"></script>
+    <script src="/js/refereeUpdate.js"></script>
     <script src="/js/refereeDemoMirror.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
@@ -3878,7 +3879,7 @@
 
         handleArenaUpdate(data) {
           if (data.screenThemes?.referee) { applyScreenTheme(data.screenThemes.referee.variables); }
-          if (this.rulesLoaded && typeof data.modernRules === 'boolean' && data.modernRules !== this.isModernFencing && !this.timerRunning && this.matchStatus !== 'in_progress') return window.location.reload(); // règles changées en propriétés (#1118)
+          if (BPRefereeUpdate.shouldReloadForRules(this, data)) return window.location.reload(); // règles changées en propriétés (#1118)
 
           if (data.timerDuration !== undefined && data.timerDuration > 0) {
             this.defaultTimerSeconds = data.timerDuration;
@@ -3912,94 +3913,51 @@
           }
           this.updateRefereeBar();
 
-          // Arène libérée par le serveur (match saisi depuis l'application principale)
-          if (data.status === 'idle') {
-            if (data.poolComplete) {
+          // Transitions de statut (plan pur : /js/refereeUpdate.js)
+          const plan = BPRefereeUpdate.planStatusTransition(
+            { currentMatchId: this.currentMatch?.id, matchStatus: this.matchStatus },
+            data
+          );
+          if (plan.hidePoolOverlay) this.hidePoolCompleteOverlay();
+          switch (plan.action) {
+            case 'poolComplete': // arène libérée, poule terminée
               this._clearActiveMatch();
               this.showPoolCompleteOverlay();
-              return;
-            }
-            if (this.matchStatus === 'in_progress') {
+              break;
+            case 'closedByApp': // match saisi depuis l'application principale
               this.showNotification(window.T('referee.closed_by_app'));
               this.stopTimer();
               setTimeout(() => {
                 this._clearActiveMatch();
                 this.showNextMatchesScreen();
               }, 2000);
-            } else {
+              break;
+            case 'idleClear':
               this._clearActiveMatch();
               this.showNextMatchesScreen();
-            }
-            return;
-          }
-
-          // Reconnexion pendant un match en cours — restaurer la liste de sélection
-          if (data.status === 'in_progress' && data.match && data.match.id) {
-            if (this.currentMatch && this.currentMatch.id === data.match.id) return;
-            if (this.matchStatus === 'in_progress') return;
-            const fencerA = data.fencerA || data.match.fencerA;
-            const fencerB = data.fencerB || data.match.fencerB;
-            const scoreAVal = typeof data.scoreA === 'object' ? (data.scoreA?.value ?? 0) : (data.scoreA ?? 0);
-            const scoreBVal = typeof data.scoreB === 'object' ? (data.scoreB?.value ?? 0) : (data.scoreB ?? 0);
-            const restored = {
-              id: data.match.id, poolId: data.match.poolId,
-              fencerA, fencerB,
-              scoreA: { value: scoreAVal }, scoreB: { value: scoreBVal },
-              status: 'in_progress',
-            };
-            const idx = this.matches.findIndex(m => m.id === restored.id);
-            if (idx >= 0) this.matches[idx] = restored; else this.matches.push(restored);
-            this.loadNextMatches();
-            this.showNextMatchesScreen();
-            this.showNotification(window.T('referee.match_resume_hint'));
-            return;
-          }
-
-          // Nouveau match prêt côté serveur (chargement automatique après fin de match)
-          if (data.status === 'ready' && data.match && data.match.id) {
-            this.hidePoolCompleteOverlay();
-            // Ignorer si c'est déjà notre match actuel
-            if (this.currentMatch && this.currentMatch.id === data.match.id) return;
-            // Notifier sans interrompre un match en cours
-            if (this.matchStatus === 'in_progress') {
+              break;
+            case 'resume': // reconnexion pendant un match en cours : restaurer la liste de sélection
+              BPRefereeUpdate.replaceOrPush(this.matches, plan.match);
+              this.loadNextMatches();
+              this.showNextMatchesScreen();
+              this.showNotification(window.T('referee.match_resume_hint'));
+              break;
+            case 'notifyNextAfter': // sans interrompre un match en cours
               this.showNotification(window.T('referee.next_after'));
-              return;
+              break;
+            case 'newMatch': {
+              BPRefereeUpdate.markReadyOrPush(this.matches, plan.match);
+              // Si l'arbitre avait un ancien match ouvert, fermer le panneau pour revenir à la liste
+              const activePanel = document.getElementById('active-match');
+              if (activePanel && activePanel.classList.contains('visible')) {
+                this._clearActiveMatch();
+              }
+              // Rafraîchir et afficher l'écran de sélection
+              this.loadNextMatches();
+              this.showNextMatchesScreen();
+              this.showNotification(window.T('referee.next_available'));
+              break;
             }
-
-            const fencerA = data.fencerA || data.match.fencerA;
-            const fencerB = data.fencerB || data.match.fencerB;
-
-            const newMatch = {
-              id: data.match.id,
-              poolId: data.match.poolId,
-              fencerA,
-              fencerB,
-              scoreA: { value: 0 },
-              scoreB: { value: 0 },
-              status: 'not_started',
-            };
-
-            // Mettre à jour ou ajouter dans la liste locale
-            const existingIndex = this.matches.findIndex(m => m.id === newMatch.id);
-            if (existingIndex >= 0) {
-              this.matches[existingIndex] = {
-                ...this.matches[existingIndex],
-                status: 'not_started',
-              };
-            } else {
-              this.matches.push(newMatch);
-            }
-
-            // Si l'arbitre avait un ancien match ouvert, fermer le panneau pour revenir à la liste
-            const activePanel = document.getElementById('active-match');
-            if (activePanel && activePanel.classList.contains('visible')) {
-              this._clearActiveMatch();
-            }
-
-            // Rafraîchir et afficher l'écran de sélection
-            this.loadNextMatches();
-            this.showNextMatchesScreen();
-            this.showNotification(window.T('referee.next_available'));
           }
         }
 
