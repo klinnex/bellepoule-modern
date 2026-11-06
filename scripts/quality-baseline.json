@@ -3,7 +3,7 @@
   "jsxAttr": 0,
   "any": 444,
   "console": 6,
-  "inlineStyle": 905,
+  "inlineStyle": 914,
   "fontSizePx": 0,
   "hardLocale": 0,
   "serverMessage": 0,
@@ -12,14 +12,14 @@
   "lineExceptions": {
     "src/renderer/styles/design.css": 2087,
     "src/renderer/styles/main.css": 2994,
-    "src/renderer/components/CompetitionView.tsx": 3095,
-    "src/renderer/components/PoolView.tsx": 1780,
+    "src/renderer/components/CompetitionView.tsx": 3141,
+    "src/renderer/components/PoolView.tsx": 1935,
     "src/renderer/components/RemoteScoreManager.tsx": 1945,
-    "src/renderer/components/TableauView.tsx": 1570,
+    "src/renderer/components/TableauView.tsx": 1571,
     "src/renderer/components/wiki/wikiData.ts": 2035,
-    "src/remote/arena.html": 1966,
+    "src/remote/arena.html": 1990,
     "src/remote/kiosk.html": 3049,
-    "src/remote/referee.html": 4396,
-    "src/main/remoteScoreServer.ts": 1999
+    "src/remote/referee.html": 4433,
+    "src/main/remoteScoreServer.ts": 2000
   }
 }
