@@ -16,12 +16,13 @@ interface TableauToolbarProps {
   onAutoAssignToggle: (enabled: boolean) => void;
   onBulkDeassign: () => void;
   onAutoFillScores: () => void;
+  /** Annulation discrète du dernier placement (#1301) : absent = masquée */
+  onUndo?: () => void;
   viewMode: 'full' | 'pending';
   onViewModeToggle: () => void;
   pyramidViewMode: boolean;
   onPyramidViewModeToggle: () => void;
   onPrintClick: () => void;
-  onPreviewClick: () => void;
   onExportPdfClick: () => void;
   onExportTreeClick: () => void;
   champion: Fencer | null | undefined;
@@ -35,12 +36,12 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
   onAutoAssignToggle,
   onBulkDeassign,
   onAutoFillScores,
+  onUndo,
   viewMode,
   onViewModeToggle,
   pyramidViewMode,
   onPyramidViewModeToggle,
   onPrintClick,
-  onPreviewClick,
   onExportPdfClick,
   onExportTreeClick,
   champion,
@@ -83,20 +84,33 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
 
       {/* Right: view toggles + FAB */}
       <div className="tt-right">
+        {onUndo && (
+          <button onClick={onUndo} className="tt-toggle" title={t('tableauToolbar.undo')}>
+            ↩ {t('tableauToolbar.undo')}
+          </button>
+        )}
         {/* View mode toggles — toujours visibles */}
         <button
           onClick={onViewModeToggle}
           className={`tt-toggle${viewMode === 'pending' ? ' is-active' : ''}`}
-          title={viewMode === 'full' ? 'Liste des matchs' : 'Tableau complet'}
+          title={
+            viewMode === 'full' ? t('tableauToolbar.match_list') : t('tableauToolbar.full_bracket')
+          }
         >
-          {viewMode === 'full' ? '📋 Liste des matchs' : '📊 Tableau'}
+          {viewMode === 'full'
+            ? `📋 ${t('tableauToolbar.match_list')}`
+            : `📊 ${t('tableauToolbar.bracket')}`}
         </button>
         <button
           onClick={onPyramidViewModeToggle}
           className={`tt-toggle${pyramidViewMode ? ' is-pyramid' : ''}`}
-          title={pyramidViewMode ? 'Vue tableau' : 'Vue pyramidale'}
+          title={
+            pyramidViewMode ? t('tableauToolbar.bracket_view') : t('tableauToolbar.pyramid_view')
+          }
         >
-          {pyramidViewMode ? '🔲 Tableau' : '🔺 Pyramide'}
+          {pyramidViewMode
+            ? `🔲 ${t('tableauToolbar.bracket')}`
+            : `🔺 ${t('tableauToolbar.pyramid')}`}
         </button>
 
         {/* FAB */}
@@ -141,13 +155,6 @@ const TableauToolbarComponent: React.FC<TableauToolbarProps> = ({
               <span className="tableau-fab-section-label">{t('tableauToolbar.export')}</span>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onPrintClick)}>
                 {t('tableauToolbar.print')}
-              </button>
-              <button
-                className="tableau-fab-item"
-                onClick={() => closeAndRun(onPreviewClick)}
-                title={t('tableauToolbar.preview_title')}
-              >
-                {t('tableauToolbar.preview')}
               </button>
               <button className="tableau-fab-item" onClick={() => closeAndRun(onExportPdfClick)}>
                 {t('tableauToolbar.export_pdf')}

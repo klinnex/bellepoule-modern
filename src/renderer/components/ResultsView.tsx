@@ -9,12 +9,16 @@ import { Fencer, PoolRanking, Competition, FencerStatus } from '../../shared/typ
 import type { Pool } from '../../shared/types';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
+import { applyBlackCardRanking } from '../../shared/utils/blackCardRanking';
 import { exportResultsXMLFFE } from '../../shared/utils/multiFormatExport';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import type { TableauMatchForPDF, FinalResultForPDF } from '../../shared/utils/pdfExport';
+import { statusCode, finalRankLabel, poolEliminatedAt } from '../../shared/utils/forfeit';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import type { ConsolationBracket, TableauMatch } from './tableau/tableauTypes';
 import { logger, LogCategory } from '@shared/services/logger';
+import BookSectionsModal from './BookSectionsModal';
+import type { BookSectionKind } from '../../shared/utils/pdfExport/bookToc';
 
 interface FinalResult {
   rank: number;
@@ -293,6 +297,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   const rankingTemplate = usePdfTemplateStore(s => s.templates.ranking);
   const [isExportingFull, setIsExportingFull] = React.useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = React.useState(false);
+  const [isBookModalOpen, setIsBookModalOpen] = React.useState(false);
   const exportMenuRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -313,14 +318,14 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     };
   }, [isExportMenuOpen]);
 
-  const getMedalEmoji = (rank: number): string => {
+  const getMedalEmoji = (rank: number | null): string => {
     if (rank === 1) return '🥇';
     if (rank === 2) return '🥈';
     if (rank === 3) return '🥉';
     return '';
   };
 
-  const getRowStyle = (rank: number): React.CSSProperties => {
+  const getRowStyle = (rank: number | null): React.CSSProperties => {
     if (rank === 1) return { background: 'var(--color-gold-bg)', fontWeight: '600' };
     if (rank === 2) return { background: 'var(--color-silver-bg)', fontWeight: '500' };
     if (rank === 3) return { background: 'var(--color-bronze-bg)', fontWeight: '500' };
@@ -335,45 +340,47 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     return live ? { ...f, status: live.status, exclusionReason: live.exclusionReason } : f;
   };
 
-  const resultsToDisplay = (() => {
+  const baseResults = (() => {
     if (finalResults.length === 0) {
-      return poolRanking.map((pr, idx) => ({
-        rank: idx + 1,
-        fencer: freshFencer(pr.fencer),
-        eliminatedAt: 'Poules' as const,
-      }));
+      return poolRanking.map((pr, idx) => {
+        const fencer = freshFencer(pr.fencer);
+        return { rank: idx + 1, fencer, eliminatedAt: poolEliminatedAt(fencer) };
+      });
     }
     const tableauIds = new Set(finalResults.map(r => r.fencer.id));
     const poolEliminated = poolRanking
       .filter(pr => !tableauIds.has(pr.fencer.id))
-      .map((pr, idx) => ({
-        rank: finalResults.length + idx + 1,
-        fencer: freshFencer(pr.fencer),
-        eliminatedAt: 'Poules' as const,
-      }));
+      .map((pr, idx) => {
+        const fencer = freshFencer(pr.fencer);
+        return {
+          rank: finalResults.length + idx + 1,
+          fencer,
+          eliminatedAt: poolEliminatedAt(fencer),
+        };
+      });
     return [...finalResults.map(r => ({ ...r, fencer: freshFencer(r.fencer) })), ...poolEliminated];
   })();
+
+  // Carton noir (#1418) : rang perdu (« - »), en bas de liste, les suivants remontent ;
+  // ex aequo départagés par le classement de composition du tableau (rang de poules)
+  const resultsToDisplay = applyBlackCardRanking(
+    baseResults,
+    new Map(poolRanking.map(pr => [pr.fencer.id, pr.rank]))
+  );
 
   // Export CSV
   const exportCSV = () => {
     const headers = ['Rang', 'Nom', 'Prénom', 'Club', 'Statut', 'Éliminé à'];
 
     const getStatusLabel = (fencer: Fencer) => {
-      switch (fencer.status) {
-        case FencerStatus.ABANDONED:
-          return 'A';
-        case FencerStatus.FORFAIT:
-          return 'F';
-        case FencerStatus.EXCLUDED:
-          return fencer.exclusionReason === 'black_card' ? 'X (carton noir)' : 'X';
-        default:
-          return '';
-      }
+      if (fencer.status === FencerStatus.EXCLUDED && fencer.exclusionReason === 'black_card')
+        return 'X (carton noir)';
+      return statusCode(fencer.status);
     };
 
     const rows = resultsToDisplay.map(r => {
       return [
-        r.rank,
+        finalRankLabel(r.rank, r.fencer, r.eliminatedAt),
         r.fencer.lastName,
         r.fencer.firstName,
         r.fencer.club || '',
@@ -407,6 +414,22 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     }
   };
 
+  // Impression : boîte d'impression intégrée avec aperçu (#1214)
+  const printResults = async () => {
+    try {
+      const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
+      const { printResultsHTML } = await import('../../shared/utils/pdfExport');
+      await printResultsHTML(
+        resultsToDisplay,
+        `Résultats — ${competition.title}`,
+        logo,
+        rankingTemplate
+      );
+    } catch (e) {
+      showToast((e as Error).message, 'error');
+    }
+  };
+
   // Export XML
   const exportXML = () => {
     const xmlContent = exportResultsXMLFFE(
@@ -429,7 +452,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     showToast('Export XML réussi !', 'success');
   };
 
-  const exportFullPDF = async () => {
+  const exportFullPDF = async (sectionOrder?: BookSectionKind[]) => {
     setIsExportingFull(true);
     try {
       const api = (window as any).electronAPI;
@@ -562,6 +585,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         template: rankingTemplate,
         poolSignatures,
         tableauSignatures,
+        sectionOrder,
       });
     } catch (e) {
       showToast((e as Error).message, 'error');
@@ -714,12 +738,13 @@ const ResultsView: React.FC<ResultsViewProps> = ({
               >
                 <td style={RV_STYLES.tdPad}>
                   <span style={RV_STYLES.tdMedalSpan}>{getMedalEmoji(result.rank)}</span>
-                  {result.rank}
+                  {finalRankLabel(result.rank, result.fencer, result.eliminatedAt)}
                 </td>
                 <td style={RV_STYLES.tdPad}>
                   {result.fencer.firstName} {result.fencer.lastName}
-                  {result.fencer.status === FencerStatus.ABANDONED && ' (A)'}
-                  {result.fencer.status === FencerStatus.FORFAIT && ' (F)'}
+                  {(result.fencer.status === FencerStatus.ABANDONED ||
+                    result.fencer.status === FencerStatus.FORFAIT) &&
+                    ` (${statusCode(result.fencer.status)})`}
                   {result.fencer.status === FencerStatus.EXCLUDED &&
                     (result.fencer.exclusionReason === 'black_card' ? (
                       <span
@@ -742,7 +767,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
 
       {/* Boutons d'export */}
       <div style={RV_STYLES.exportRow}>
-        <button onClick={() => window.electronAPI.print()} style={RV_STYLES.btnPrint}>
+        <button onClick={printResults} style={RV_STYLES.btnPrint}>
           {t('resultsView.print')}
         </button>
         <button
@@ -750,7 +775,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
             const text = resultsToDisplay
               .map(
                 r =>
-                  `${r.rank}. ${r.fencer.firstName} ${r.fencer.lastName} (${r.fencer.club || 'Sans club'})`
+                  `${r.rank ?? '-'}. ${r.fencer.firstName} ${r.fencer.lastName} (${r.fencer.club || 'Sans club'})`
               )
               .join('\n');
             navigator.clipboard.writeText(text);
@@ -817,7 +842,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 style={RV_STYLES.dropdownItem}
                 onClick={() => {
                   setIsExportMenuOpen(false);
-                  exportFullPDF();
+                  setIsBookModalOpen(true);
                 }}
               >
                 {t('results.export_pdf_full_signed')}
@@ -840,6 +865,15 @@ const ResultsView: React.FC<ResultsViewProps> = ({
 
       {/* Légende */}
       <div style={RV_STYLES.legend}>{t('resultsView.legend')}</div>
+      {isBookModalOpen && (
+        <BookSectionsModal
+          onClose={() => setIsBookModalOpen(false)}
+          onConfirm={order => {
+            setIsBookModalOpen(false);
+            void exportFullPDF(order);
+          }}
+        />
+      )}
     </div>
   );
 };

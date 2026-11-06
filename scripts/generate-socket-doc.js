@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Génère docs/SOCKET_EVENTS.md : contrat Socket.IO entre le serveur distant
- * (src/main/remoteScoreServer.ts) et les pages tablettes / écrans (src/remote/*.html).
+ * (src/main/remoteScoreServer.ts + modules src/main/remote/*.ts) et les pages tablettes / écrans (src/remote/*.html).
  *
  *   node scripts/generate-socket-doc.js          → réécrit docs/SOCKET_EVENTS.md
  *   node scripts/generate-socket-doc.js --check  → échoue (exit 1) si la doc n'est
@@ -18,6 +18,8 @@ const ts = require('typescript');
 
 const ROOT = path.join(__dirname, '..');
 const SERVER = path.join(ROOT, 'src', 'main', 'remoteScoreServer.ts');
+// Modules extraits du serveur (gestionnaires Socket.IO, arena_control…, #1240)
+const SERVER_MODULES_DIR = path.join(ROOT, 'src', 'main', 'remote');
 const REMOTE_DIR = path.join(ROOT, 'src', 'remote');
 const OUTPUT = path.join(ROOT, 'docs', 'SOCKET_EVENTS.md');
 // Événements du cycle de vie Socket.IO, documentés à part
@@ -32,12 +34,21 @@ function eventName(arg, sf) {
   return null;
 }
 
+function serverFiles() {
+  const modules = fs
+    .readdirSync(SERVER_MODULES_DIR)
+    .filter(f => f.endsWith('.ts') && !f.endsWith('.test.ts'))
+    .sort()
+    .map(f => path.join(SERVER_MODULES_DIR, f));
+  return [SERVER, ...modules];
+}
+
 function analyzeServer() {
-  const sf = ts.createSourceFile(SERVER, fs.readFileSync(SERVER, 'utf8'), ts.ScriptTarget.Latest, true);
   const listens = new Set();
   const emits = new Set();
   const arenaActions = new Set();
 
+  let sf;
   function visit(node, inArenaControl) {
     if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)) {
       const method = node.expression.name.text;
@@ -49,13 +60,17 @@ function analyzeServer() {
       }
     }
     let inside = inArenaControl;
-    if (ts.isMethodDeclaration(node) && node.name.getText(sf) === 'handleArenaControl') inside = true;
+    const isFn = ts.isMethodDeclaration(node) || ts.isFunctionDeclaration(node);
+    if (isFn && node.name && node.name.getText(sf) === 'handleArenaControl') inside = true;
     if (inside && ts.isCaseClause(node) && ts.isStringLiteral(node.expression)) {
       arenaActions.add(node.expression.text);
     }
     ts.forEachChild(node, child => visit(child, inside));
   }
-  visit(sf, false);
+  for (const file of serverFiles()) {
+    sf = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    visit(sf, false);
+  }
   return { listens, emits, arenaActions };
 }
 
@@ -103,7 +118,7 @@ function generate() {
 > Ne pas éditer à la main. La CI échoue (\`npm run check:socket-doc\`) s'il n'est
 > pas régénéré après ajout / suppression d'un événement.
 
-Serveur : \`src/main/remoteScoreServer.ts\` (Express 5 + Socket.IO, port 8066).
+Serveur : \`src/main/remoteScoreServer.ts\` + \`src/main/remote/*.ts\` (Express 5 + Socket.IO, port 8066).
 Clients : pages \`src/remote/*.html\`. \`{…}\` = segment dynamique (n° d'arène, de poule…).
 Guide fonctionnel : [ARBITRAGE.md](ARBITRAGE.md), [REMOTE_SCORE_GUIDE.md](../REMOTE_SCORE_GUIDE.md).
 

@@ -9,6 +9,8 @@ import type { Server as SocketIOServer } from 'socket.io';
 import { MatchStatus, Weapon, type Score } from '../../../shared/types';
 import type { RegistrationRouteContext } from './registrationRoutes';
 import { baseArenaId } from '../arenaSlots';
+import { getSharedMainWindow } from '../../mainWindowRef';
+import { logger, LogCategory, toError } from '../../../shared/services/logger';
 
 /** Tireur d'une poule tel que transmis par le renderer. */
 export type PoolFencer = Record<string, unknown> & { id: string };
@@ -120,7 +122,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
         keepForfeitPoints,
       });
     } catch (err) {
-      console.error('[RemoteScoreServer] Erreur pool-data:', err);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur pool-data:', toError(err));
       res.status(500).json({ error: 'internal' });
     }
   });
@@ -170,7 +172,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
 
       res.json({ poolName, matches });
     } catch (err) {
-      console.error('[RemoteScoreServer] Erreur pool-order:', err);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur pool-order:', toError(err));
       res.status(500).json({ error: 'internal' });
     }
   });
@@ -230,7 +232,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
         if (existingLog.length > 0) {
           const lastEntry = existingLog[existingLog.length - 1];
           if (lastEntry.ipAddress && lastEntry.ipAddress !== clientIp) {
-            const mainWin = (global as any).mainWindow;
+            const mainWin = getSharedMainWindow();
             if (mainWin) {
               mainWin.webContents.send('score:ip-conflict', {
                 matchId,
@@ -307,7 +309,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       }
 
       // Notifier le renderer de la mise à jour du score (pour affichage dans le tableau poule)
-      const mainWindow = (global as any).mainWindow;
+      const mainWindow = getSharedMainWindow();
       if (mainWindow) {
         mainWindow.webContents.send('match:finished', {
           matchId,
@@ -321,7 +323,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       ctx.broadcastDashboardUpdate();
       res.json({ success: true, isComplete });
     } catch (err) {
-      console.error('[RemoteScoreServer] Erreur score poule:', err);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur score poule:', toError(err));
       res.status(500).json({ error: 'score_save_failed' });
     }
   });
@@ -395,7 +397,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
         }
       }
 
-      const mainWin = (global as any).mainWindow;
+      const mainWin = getSharedMainWindow();
       if (mainWin) {
         const sigs = ctx.poolSignaturesCache.get(poolId)!;
         const poolFencers = ctx.poolFencersCache.get(poolId) ?? ctx.db.getPoolFencers(poolId);
@@ -408,7 +410,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
 
       res.json({ success: true });
     } catch (err) {
-      console.error('[RemoteScoreServer] Erreur signature:', err);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur signature:', toError(err));
       res.status(500).json({ error: 'signature_save_failed' });
     }
   });
@@ -440,7 +442,11 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       })();
       res.json({ poolId, poolName, fencers, matches });
     } catch (err) {
-      console.error('[RemoteScoreServer] Erreur /api/pools/:poolId/data:', err);
+      logger.error(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] Erreur /api/pools/:poolId/data:',
+        toError(err)
+      );
       res.status(500).json({ error: 'internal' });
     }
   });
@@ -490,7 +496,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
       await worker.terminate();
       res.json({ cells: results });
     } catch (err: any) {
-      console.error('[RemoteScoreServer] Erreur OCR:', err);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur OCR:', toError(err));
       res.status(500).json({ error: 'ocr_failed', detail: String(err?.message ?? '') });
     }
   });
@@ -530,14 +536,18 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
     try {
       ctx.db.saveDEMatchSignature(matchId, fencerId, signatureData);
 
-      const mainWin = (global as any).mainWindow;
+      const mainWin = getSharedMainWindow();
       if (mainWin) {
         mainWin.webContents.send('tableau:signature:updated', { matchId, fencerId });
       }
 
       res.json({ success: true });
     } catch (err) {
-      console.error('[RemoteScoreServer] Erreur signature tableau:', err);
+      logger.error(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] Erreur signature tableau:',
+        toError(err)
+      );
       res.status(500).json({ error: 'signature_save_failed' });
     }
   });

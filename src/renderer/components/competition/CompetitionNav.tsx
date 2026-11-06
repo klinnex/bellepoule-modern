@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -17,6 +17,7 @@ import {
 import { Competition, MatchStatus, QuestPhaseConfig, Fencer } from '../../../shared/types';
 import { Phase } from '../../hooks/useCompetitionSession';
 import CoachMark from '../CoachMark';
+import GuidedTour from '../GuidedTour';
 
 interface PhaseItem {
   id: string;
@@ -35,6 +36,9 @@ interface TableauMatchItem {
   winner: unknown;
   fencerA: unknown;
   fencerB: unknown;
+  isBye?: boolean;
+  scoreA?: unknown;
+  scoreB?: unknown;
 }
 
 interface PoolsNextAction {
@@ -68,6 +72,10 @@ interface CompetitionNavProps {
   onOpenPlanningAssistant?: () => void;
   /** Compétition par équipes : l'appel mène à la composition des équipes (#1085) */
   isTeamEvent?: boolean;
+  /** Compétition chargée : le parcours guidé (#1305) peut se proposer */
+  tourReady?: boolean;
+  /** Saisie distante active (étape « Saisie distante » du parcours guidé) */
+  remoteActive?: boolean;
 }
 
 const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
@@ -88,15 +96,33 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
   tableauMatches,
   onOpenPlanningAssistant,
   isTeamEvent = false,
+  tourReady = false,
+  remoteActive = false,
 }) => {
+  const [tourHighlightPhase, setTourHighlightPhase] = useState<string | null>(null);
   return (
     <>
+      {tourReady && !isTeamEvent && (
+        <GuidedTour
+          t={t}
+          onHighlightPhase={setTourHighlightPhase}
+          fencersCount={fencers.length}
+          checkedInCount={getCheckedInFencers().length}
+          pools={pools}
+          tableauMatchesCount={tableauMatches.length}
+          tableauFinishedMatches={
+            tableauMatches.filter(m => !m.isBye && m.scoreA != null && m.scoreB != null).length
+          }
+          remoteActive={remoteActive}
+          prepOpen={currentPhase === 'poolprep'}
+        />
+      )}
       {/* Navigation */}
       <div className="phase-nav" role="navigation" aria-label={competition.title}>
         {phases.map((phase, index) => (
           <React.Fragment key={phase.id}>
             <div
-              className={`phase-step ${currentPhase === phase.id ? 'phase-step-active' : ''} ${phase.disabled ? 'phase-step-disabled' : ''}`}
+              className={`phase-step ${currentPhase === phase.id ? 'phase-step-active' : ''} ${phase.disabled ? 'phase-step-disabled' : ''}${tourHighlightPhase === phase.id && currentPhase !== phase.id ? ' tour-highlight' : ''}`}
               role="button"
               tabIndex={phase.disabled ? -1 : 0}
               aria-current={currentPhase === phase.id ? 'step' : undefined}
@@ -153,11 +179,12 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
             (!questEnabled || questConfig?.hasPreliminaryPools) && (
               <CoachMark
                 id="generate-pools"
-                message="Cliquez ici après avoir pointé tous vos tireurs"
+                message={t('competitionNav.generate_hint')}
                 position="bottom"
               >
                 <button
                   className="btn btn-primary btn-icon-label"
+                  data-tour="generate-pools"
                   onClick={handleGeneratePools}
                   disabled={getCheckedInFencers().length < 4}
                   title={
@@ -184,6 +211,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
           {currentPhase === 'poolprep' && poolPrepLaunch && (
             <button
               className="btn btn-primary btn-icon-label"
+              data-tour="launch-pools"
               onClick={poolPrepLaunch.action}
               disabled={poolPrepLaunch.disabled}
               title={
@@ -196,10 +224,14 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
           {currentPhase === 'pools' && poolsNextAction && (
             <CoachMark
               id="pools-next-action"
-              message="Étape suivante une fois les poules terminées"
+              message={t('competitionNav.next_step_hint')}
               position="bottom"
             >
-              <button className="btn btn-primary" onClick={poolsNextAction.action}>
+              <button
+                className="btn btn-primary"
+                data-tour="view-ranking"
+                onClick={poolsNextAction.action}
+              >
                 {poolsNextAction.label}
               </button>
             </CoachMark>

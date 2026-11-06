@@ -8,24 +8,29 @@ import { useVirtualList } from '../../shared/services/performanceService';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import { Fencer, FencerStatus } from '../../shared/types';
 import EditFencerModal from './EditFencerModal';
+import { MedicalCrossIcon } from './common/MedicalCrossIcon';
 import { useTranslation } from '../hooks/useTranslation';
 import { exportFencersToTXT, exportFencersToFFF } from '../../shared/utils/fencerExport';
+import { isDns } from '../../shared/utils/forfeit';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import { useConfirm } from './ConfirmDialog';
 import CoachMark from './CoachMark';
 import { useDebounce } from '../hooks/useDebounce';
+import { formatNationality } from '../../shared/utils/countries';
 import { MENU_ITEM, SMALL_BTN, W250, DROPDOWN_WRAP } from './fencerList.styles';
 
-type SortableCol = 'ref' | 'lastName' | 'firstName' | 'birthDate' | 'club' | 'ranking' | 'status';
+type SortableCol =
+  'ref' | 'lastName' | 'firstName' | 'birthDate' | 'club' | 'nationality' | 'ranking' | 'status';
 
 const COLUMNS = [
-  { id: 'ref' as SortableCol, label: 'N°', width: '50px' },
-  { id: 'lastName' as SortableCol, label: 'Nom' },
-  { id: 'firstName' as SortableCol, label: 'Prénom' },
-  { id: 'birthDate' as SortableCol, label: 'Né(e)', width: '70px' },
-  { id: 'club' as SortableCol, label: 'Club' },
-  { id: 'ranking' as SortableCol, label: 'Classement', width: '110px' },
-  { id: 'status' as SortableCol, label: 'Statut', width: '90px' },
+  { id: 'ref' as SortableCol, labelKey: 'fencerList.col_ref', width: '50px' },
+  { id: 'lastName' as SortableCol, labelKey: 'fencerList.col_last_name' },
+  { id: 'firstName' as SortableCol, labelKey: 'fencerList.col_first_name' },
+  { id: 'birthDate' as SortableCol, labelKey: 'fencerList.col_birth', width: '70px' },
+  { id: 'club' as SortableCol, labelKey: 'fencerList.col_club' },
+  { id: 'nationality' as SortableCol, labelKey: 'fencerList.col_nationality', width: '110px' },
+  { id: 'ranking' as SortableCol, labelKey: 'fencerList.col_ranking', width: '110px' },
+  { id: 'status' as SortableCol, labelKey: 'fencerList.col_status', width: '90px' },
 ];
 
 interface FencerListProps {
@@ -41,11 +46,11 @@ interface FencerListProps {
   onSetFencerStatus?: (id: string, status: FencerStatus) => void;
   onImport?: (type: 'xml' | 'fff' | 'ranking') => void;
   onImportFFEConnect?: () => void;
+  /** Import spécifique remplaçant le menu d'import (ex : équipes du tournoi des rapières) */
+  customImport?: { label: string; onClick: () => void };
   onFencersImported?: () => void;
   /** URL de la page d'inscription distante (ex: http://192.168.x.x:8066/register) */
   registerUrl?: string;
-  /** Callback pour recharger la liste après inscription distante */
-  onFencersChanged?: () => void;
   /** Notifie le parent des tireurs triés/filtrés et des colonnes visibles actuels */
   onAppelStateChange?: (fencers: Fencer[], visibleColumns: string[]) => void;
   /** Consultation seule (appel d'un tour de poules terminé, #1051) */
@@ -71,9 +76,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   onSetFencerStatus,
   onImport,
   onImportFFEConnect,
+  customImport,
   onFencersImported,
   registerUrl,
-  onFencersChanged,
   onAppelStateChange,
   readOnly = false,
   columnLabels,
@@ -96,12 +101,20 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortableCol>('ranking');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [hiddenCols, setHiddenCols] = useState<Set<string>>(() => new Set(hiddenColumns ?? []));
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(
+    // Nationalité : colonne affichable, masquée par défaut (#1415)
+    () => new Set(hiddenColumns ?? ['nationality'])
+  );
   const [colOrder, setColOrder] = useState<SortableCol[]>(() => {
     try {
       const saved = localStorage.getItem('bellepoule-fencer-col-order');
       if (saved) {
-        const parsed = JSON.parse(saved) as SortableCol[];
+        const parsed = (JSON.parse(saved) as SortableCol[]).filter(id =>
+          COLUMNS.some(c => c.id === id)
+        );
+        // Colonne ajoutée depuis l'enregistrement (ex. nationalité) : insérée à sa place par défaut
+        if (!parsed.includes('nationality') && parsed.includes('club'))
+          parsed.splice(parsed.indexOf('club') + 1, 0, 'nationality');
         if (parsed.length === COLUMNS.length && COLUMNS.every(c => parsed.includes(c.id)))
           return parsed;
       }
@@ -152,13 +165,6 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       .then(setRegisterQRDataUrl)
       .catch(() => setRegisterQRDataUrl(null));
   }, [registerUrl]);
-
-  // Recharger la liste toutes les 5 s si le modal QR est ouvert (inscription en cours)
-  useEffect(() => {
-    if (!showRegisterQR || !onFencersChanged) return;
-    const id = setInterval(onFencersChanged, 5000);
-    return () => clearInterval(id);
-  }, [showRegisterQR, onFencersChanged]);
 
   useEffect(() => {
     localStorage.setItem('bellepoule-fencer-col-order', JSON.stringify(colOrder));
@@ -213,6 +219,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             );
           case 'club':
             return dir * (a.club || '').localeCompare(b.club || '');
+          case 'nationality':
+            return dir * (a.nationality || '').localeCompare(b.nationality || '');
           case 'ranking':
             return dir * ((a.ranking ?? 99999) - (b.ranking ?? 99999));
           case 'status':
@@ -261,7 +269,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       defaultPath: `tireurs.${extension}`,
       filters: [
         { name: filterName, extensions: [extension] },
-        { name: 'Tous les fichiers', extensions: ['*'] },
+        { name: t('fencerList.all_files'), extensions: ['*'] },
       ],
     });
 
@@ -295,11 +303,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           competitionId,
           result.filePath
         );
-        showPhotoMessage(
-          `${count} photo${count !== 1 ? 's' : ''} exportée${count !== 1 ? 's' : ''}`
-        );
+        showPhotoMessage(t('fencerList.photos_exported', { count }));
       } catch {
-        showPhotoMessage("Erreur lors de l'export");
+        showPhotoMessage(t('fencerList.export_error'));
       }
     }
   };
@@ -317,10 +323,10 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           result.filePath
         );
         showPhotoMessage(
-          `${matched}/${total} photo${total !== 1 ? 's' : ''} importée${total !== 1 ? 's' : ''}`
+          t('fencerList.photos_imported', { count: total, matched: String(matched) })
         );
       } catch {
-        showPhotoMessage("Erreur lors de l'import");
+        showPhotoMessage(t('fencerList.import_error'));
       }
     }
   };
@@ -338,11 +344,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           competitionId,
           result.filePath
         );
-        showPhotoMessage(
-          `${count} tireur${count !== 1 ? 's' : ''} exporté${count !== 1 ? 's' : ''} (.bpf)`
-        );
+        showPhotoMessage(t('fencerList.bpf_exported', { count }));
       } catch {
-        showPhotoMessage("Erreur lors de l'export .bpf");
+        showPhotoMessage(t('fencerList.bpf_export_error'));
       }
     }
   };
@@ -350,7 +354,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   const handleImportFencersArchive = async () => {
     if (!competitionId) return;
     const result = await window.electronAPI.dialog.openFile({
-      title: 'Importer tireurs + photos (.bpf)',
+      title: t('fencerList.import_bpf'),
       filters: [{ name: 'BellePoule Fencers', extensions: ['bpf'] }],
     });
     if (result && result.filePath) {
@@ -359,10 +363,12 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           competitionId,
           result.filePath
         );
-        showPhotoMessage(`${added} ajouté${added !== 1 ? 's' : ''}, ${updated} mis à jour (.bpf)`);
+        showPhotoMessage(
+          t('fencerList.bpf_imported', { added: String(added), updated: String(updated) })
+        );
         if (onFencersImported) onFencersImported();
       } catch {
-        showPhotoMessage("Erreur lors de l'import .bpf");
+        showPhotoMessage(t('fencerList.bpf_import_error'));
       }
     }
   };
@@ -415,8 +421,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       colOrder
         .map(id => COLUMNS.find(c => c.id === id)!)
         .filter(c => c && !hiddenCols.has(c.id))
-        .map(c => ({ ...c, label: columnLabels?.[c.id] ?? c.label })),
-    [colOrder, hiddenCols, columnLabels]
+        .map(c => ({ ...c, label: columnLabels?.[c.id] ?? t(c.labelKey) })),
+    [colOrder, hiddenCols, columnLabels, t]
   );
   const colSpanTotal = visibleCols.length + 1;
 
@@ -435,19 +441,17 @@ const FencerListComponent: React.FC<FencerListProps> = ({
 
   return (
     <div className="content">
-      <div
-        className="flex justify-between items-center mb-4"
-        style={{ position: 'relative', zIndex: 2 }}
-      >
+      <div className="flex justify-between items-center mb-4 is-279168">
         <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>
+          <h2 className="is-28d934">
             {fencers.length > 0
-              ? `${fencers.length} tireur${fencers.length > 1 ? 's' : ''} inscrit${fencers.length > 1 ? 's' : ''}`
-              : 'Appel'}
+              ? t('fencerList.registered_count', { count: fencers.length })
+              : t('fencerList.appel')}
           </h2>
           {fencers.length > 0 && (
             <p className="text-sm text-muted">
-              {`${checkedInCount} pointé${checkedInCount !== 1 ? 's' : ''} · ${notCheckedInCount} en attente`}
+              {t('fencerList.checked_in_count', { count: checkedInCount })} ·{' '}
+              {t('fencerList.waiting_count', { count: notCheckedInCount })}
             </p>
           )}
         </div>
@@ -457,8 +461,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               {notCheckedInCount > 0 && onCheckInAll && (
                 <button
                   className="btn btn-secondary"
+                  data-tour="check-in-all"
                   onClick={onCheckInAll}
-                  title={`Pointer les ${notCheckedInCount} tireurs non pointés`}
+                  title={t('fencerList.check_in_all_title', { count: notCheckedInCount })}
                 >
                   ✓ {t('actions.check_in_all')}
                 </button>
@@ -474,56 +479,37 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               )}
               {onDeleteAllFencers && (
                 <button
-                  className="btn btn-danger"
+                  className="btn btn-danger is-83f1a0"
                   onClick={async () => {
                     if (await confirm(t('messages.confirm_delete_fencer'))) {
                       onDeleteAllFencers();
                     }
                   }}
-                  title={`Supprimer les ${fencers.length} tireurs`}
-                  style={{ padding: '0.4rem 0.6rem' }}
+                  title={t('fencerList.delete_all_title', { count: fencers.length })}
                 >
                   🗑️
                 </button>
               )}
-              <div
-                style={{
-                  width: '1px',
-                  height: '22px',
-                  background: 'var(--border-color, rgba(255,255,255,0.15))',
-                  margin: '0 0.125rem',
-                  flexShrink: 0,
-                }}
-              />
+              <div className="is-8ecdd8" />
             </>
+          )}
+          {customImport && !readOnly && (
+            <button className="btn btn-secondary" onClick={customImport.onClick}>
+              {customImport.label}
+            </button>
           )}
           {onImport && !readOnly && (
             <div ref={importMenuRef} style={DROPDOWN_WRAP}>
               <button
                 className="btn btn-secondary"
+                data-tour="import"
                 onClick={() => setImportMenuOpen(o => !o)}
                 title={t('actions.import')}
               >
                 {t('fencerList.import_menu')}
               </button>
               {importMenuOpen && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    marginTop: '4px',
-                    zIndex: 9999,
-                    background: 'var(--bg-secondary, #2a2a3e)',
-                    border: '1px solid var(--border-color, #444)',
-                    borderRadius: '6px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                    minWidth: '230px',
-                    padding: '4px 0',
-                    maxHeight: '60vh',
-                    overflowY: 'auto',
-                  }}
-                >
+                <div className="is-5f1ae4">
                   <button
                     className="btn btn-ghost"
                     style={MENU_ITEM}
@@ -605,34 +591,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                   {t('fencerList.columns_menu')}
                 </button>
                 {colMenuOpen && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      right: 0,
-                      marginTop: '4px',
-                      zIndex: 9999,
-                      background: 'var(--bg-secondary, #2a2a3e)',
-                      border: '1px solid var(--border-color, #444)',
-                      borderRadius: '6px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                      minWidth: '160px',
-                      padding: '4px 0',
-                    }}
-                  >
+                  <div className="is-a36aa5">
                     {COLUMNS.map(col => (
-                      <label
-                        key={col.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          padding: '6px 16px',
-                          cursor: 'pointer',
-                          fontSize: '0.875rem',
-                          color: 'var(--text-primary, #e2e8f0)',
-                        }}
-                      >
+                      <label key={col.id} className="is-80fd54">
                         <input
                           type="checkbox"
                           checked={!hiddenCols.has(col.id)}
@@ -645,23 +606,12 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                             });
                           }}
                         />
-                        {columnLabels?.[col.id] ?? col.label}
+                        {columnLabels?.[col.id] ?? t(col.labelKey)}
                       </label>
                     ))}
-                    <div
-                      style={{ borderTop: '1px solid var(--border-color, #444)', margin: '4px 0' }}
-                    />
+                    <div className="is-a6ae95" />
                     <button
-                      className="btn btn-ghost"
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '6px 16px',
-                        borderRadius: 0,
-                        fontSize: '0.8rem',
-                        color: 'var(--text-muted, #94a3b8)',
-                      }}
+                      className="btn btn-ghost is-539e77"
                       onClick={() => setColOrder(COLUMNS.map(c => c.id))}
                     >
                       {t('fencerList.reset_order')}
@@ -678,23 +628,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                   {t('fencerList.export_menu')}
                 </button>
                 {exportMenuOpen && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      right: 0,
-                      marginTop: '4px',
-                      zIndex: 9999,
-                      background: 'var(--bg-secondary, #2a2a3e)',
-                      border: '1px solid var(--border-color, #444)',
-                      borderRadius: '6px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                      minWidth: '160px',
-                      padding: '4px 0',
-                      maxHeight: '60vh',
-                      overflowY: 'auto',
-                    }}
-                  >
+                  <div className="is-9a02fd">
                     <button
                       className="btn btn-ghost"
                       style={MENU_ITEM}
@@ -752,16 +686,15 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           )}
           {registerUrl && !readOnly && (
             <button
-              className="btn btn-secondary"
+              className="btn btn-secondary is-5c17a8"
               title={`Inscription tablette : ${registerUrl}`}
               onClick={() => setShowRegisterQR(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
             >
               <span>📱</span> {t('fencerList.qr_register')}
             </button>
           )}
           {!readOnly && (
-            <button className="btn btn-primary" onClick={onAddFencer}>
+            <button className="btn btn-primary" data-tour="add-fencer" onClick={onAddFencer}>
               + {t('fencer.add')}
             </button>
           )}
@@ -770,78 +703,24 @@ const FencerListComponent: React.FC<FencerListProps> = ({
 
       {/* Modal QR code inscription distante */}
       {showRegisterQR && registerUrl && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}
-          onClick={() => setShowRegisterQR(false)}
-        >
-          <div
-            style={{
-              background: 'var(--surface, #1e293b)',
-              borderRadius: 16,
-              padding: '2rem',
-              textAlign: 'center',
-              maxWidth: 300,
-              width: '90%',
-              border: '1px solid var(--border-color, #334155)',
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <h3 style={{ marginBottom: '0.75rem', fontSize: '1.1rem', fontWeight: 700 }}>
-              {t('fencerList.register_title')}
-            </h3>
-            <p
-              style={{
-                fontSize: '0.8rem',
-                color: 'var(--text-muted, #94a3b8)',
-                marginBottom: '1rem',
-              }}
-            >
-              {t('fencerList.register_hint')}
-            </p>
+        <div className="is-dae1d9" onClick={() => setShowRegisterQR(false)}>
+          <div className="is-280b34" onClick={e => e.stopPropagation()}>
+            <h3 className="is-b1e24e">{t('fencerList.register_title')}</h3>
+            <p className="is-b54b26">{t('fencerList.register_hint')}</p>
             {registerQRDataUrl ? (
               <img
                 src={registerQRDataUrl}
                 alt={t('fencerList.register_qr_alt')}
                 width={220}
                 height={220}
-                style={{ borderRadius: 8 }}
+                className="is-76ed9a"
               />
             ) : (
-              <div
-                style={{
-                  width: 220,
-                  height: 220,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto',
-                }}
-              >
-                {t('fencerList.generating')}
-              </div>
+              <div className="is-bc2a5d">{t('fencerList.generating')}</div>
             )}
-            <code
-              style={{
-                display: 'block',
-                marginTop: '0.75rem',
-                fontSize: '0.7rem',
-                wordBreak: 'break-all',
-                color: 'var(--text-muted, #94a3b8)',
-              }}
-            >
-              {registerUrl}
-            </code>
+            <code className="is-0fcdb7">{registerUrl}</code>
             <button
-              className="btn btn-secondary"
-              style={{ marginTop: '1rem', width: '100%' }}
+              className="btn btn-secondary is-5d3107"
               onClick={() => setShowRegisterQR(false)}
             >
               {t('actions.close')}
@@ -850,27 +729,11 @@ const FencerListComponent: React.FC<FencerListProps> = ({
         </div>
       )}
 
-      {photoMessage && (
-        <div
-          className="alert alert-success mb-4"
-          style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
-        >
-          {photoMessage}
-        </div>
-      )}
+      {photoMessage && <div className="alert alert-success mb-4 is-a9c15e">{photoMessage}</div>}
 
       {fencers.length > 0 && (
         <div className="mb-4">
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-              fontSize: '0.75rem',
-              color: 'var(--text-muted, var(--color-text-light))',
-              marginBottom: '5px',
-            }}
-          >
+          <div className="is-1e3d23">
             <span>{t('fencerList.checkin')}</span>
             <span
               style={{
@@ -882,14 +745,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               {Math.round((checkedInCount / fencers.length) * 100)} %
             </span>
           </div>
-          <div
-            style={{
-              height: '8px',
-              background: 'var(--border-color, var(--color-border))',
-              borderRadius: '4px',
-              overflow: 'hidden',
-            }}
-          >
+          <div className="is-782800">
             <div
               style={{
                 height: '100%',
@@ -904,7 +760,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       )}
 
       {fencers.length > 0 && (
-        <div style={{ position: 'relative', marginBottom: '1rem' }}>
+        <div className="is-022f27">
           <span
             style={{
               position: 'absolute',
@@ -949,24 +805,26 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                 {onImport && (
                   <CoachMark
                     id="import-fencers"
-                    message="Formats acceptés : XML BellePoule, liste FFE (.fff/.csv/.txt)"
+                    message={t('fencerList.import_formats_hint')}
                     position="bottom"
                   >
                     <button
                       className="btn btn-secondary"
+                      data-tour="import"
                       onClick={() => handleImportFencers('fff')}
                     >
                       {t('fencerList.empty_import_fff')}
                     </button>
                     <button
                       className="btn btn-secondary"
+                      data-tour="import"
                       onClick={() => handleImportFencers('xml')}
                     >
                       {t('fencerList.empty_import_xml')}
                     </button>
                   </CoachMark>
                 )}
-                <button className="btn btn-primary" onClick={onAddFencer}>
+                <button className="btn btn-primary" data-tour="add-fencer" onClick={onAddFencer}>
                   + {t('fencer.add')}
                 </button>
               </div>
@@ -1077,7 +935,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                     key={fencer.id}
                     onDoubleClick={readOnly ? undefined : () => openEdit(fencer)}
                     style={readOnly ? undefined : { cursor: 'pointer' }}
-                    title={readOnly ? undefined : 'Double-cliquer pour modifier'}
+                    title={readOnly ? undefined : t('fencerList.double_click_edit')}
                   >
                     {visibleCols.map(col => {
                       switch (col.id) {
@@ -1107,6 +965,12 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                               {fencer.club || '-'}
                             </td>
                           );
+                        case 'nationality':
+                          return (
+                            <td key="nationality" className="text-sm text-muted">
+                              {formatNationality(fencer.nationality) || '-'}
+                            </td>
+                          );
                         case 'ranking':
                           return (
                             <td key="ranking" className="text-sm">
@@ -1117,7 +981,13 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                           return (
                             <td key="status">
                               <span className={`badge ${statusLabels[fencer.status].color}`}>
-                                {statusLabels[fencer.status].label}
+                                {isDns(fencer)
+                                  ? t(
+                                      fencer.status === FencerStatus.ABANDONED
+                                        ? 'status.medical_dns'
+                                        : 'status.forfeit_dns'
+                                    )
+                                  : statusLabels[fencer.status].label}
                               </span>
                             </td>
                           );
@@ -1145,10 +1015,13 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                           </button>
                           <button
                             className={`btn btn-sm ${fencer.status === FencerStatus.CHECKED_IN ? 'btn-secondary' : 'btn-primary'}`}
+                            data-tour="check-in"
                             onClick={() => onCheckIn(fencer.id)}
                             style={SMALL_BTN}
                           >
-                            {fencer.status === FencerStatus.CHECKED_IN ? 'Annuler' : 'Pointer'}
+                            {fencer.status === FencerStatus.CHECKED_IN
+                              ? t('fencerList.uncheck')
+                              : t('fencerList.check')}
                           </button>
                           {onSetFencerStatus && fencer.status === FencerStatus.CHECKED_IN && (
                             <>
@@ -1166,7 +1039,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                 title={t('fencerList.abandon')}
                                 style={SMALL_BTN}
                               >
-                                🚶
+                                <MedicalCrossIcon />
                               </button>
                               <button
                                 className="btn btn-sm btn-warning"

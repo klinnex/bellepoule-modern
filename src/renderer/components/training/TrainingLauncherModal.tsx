@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { X, Swords, Minus, Plus, Clock, Zap, Network } from 'lucide-react';
+import { X, Swords, Minus, Plus, Clock, Zap, Network, Shuffle } from 'lucide-react';
 import { Weapon, TargetZone, ZONE_POINTS, ZONE_LABELS } from '../../../shared/types';
 import type { TrainingCustomRules } from '../../../shared/types/preload';
 
@@ -16,10 +16,10 @@ interface Props {
 }
 
 const WEAPON_LABELS: Record<string, string> = {
-  [Weapon.EPEE]: 'Épée',
-  [Weapon.FOIL]: 'Fleuret',
-  [Weapon.SABRE]: 'Sabre',
-  [Weapon.LASER]: 'Sabre Laser',
+  [Weapon.EPEE]: 'weapons.epee',
+  [Weapon.FOIL]: 'weapons.foil',
+  [Weapon.SABRE]: 'weapons.sabre',
+  [Weapon.LASER]: 'weapons.laser',
 };
 
 const ALL_ZONES: TargetZone[] = [TargetZone.ZONE_A, TargetZone.ZONE_B, TargetZone.ZONE_C];
@@ -49,6 +49,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
   const [matchDuration, setMatchDuration] = useState(180);
   const [allowedZones, setAllowedZones] = useState<TargetZone[]>([]);
   const [disableSuddenDeath, setDisableSuddenDeath] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
   const [networkInterfaces, setNetworkInterfaces] = useState<{ name: string; address: string }[]>([
     { name: 'Toutes les interfaces', address: ALL_INTERFACES },
   ]);
@@ -104,6 +105,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
         matchDurationSeconds: matchDuration,
         allowedZones: allowedZones.map(z => z as string),
         disableSuddenDeath,
+        demo: demoMode,
       },
       selectedInterface
     );
@@ -206,7 +208,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                     transition: 'all 0.15s',
                   }}
                 >
-                  {label}
+                  {t(label)}
                 </button>
               ))}
             </div>
@@ -342,7 +344,9 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
             >
               {networkInterfaces.map(iface => (
                 <option key={iface.address} value={iface.address}>
-                  {iface.name}
+                  {iface.address === ALL_INTERFACES
+                    ? t('trainingLauncher.all_interfaces')
+                    : iface.name}
                 </option>
               ))}
             </select>
@@ -478,6 +482,24 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                   </p>
                 )}
               </div>
+              {/* Mode démo */}
+              <div className="training-demo">
+                <label className="training-demo-toggle">
+                  <div
+                    className={`training-demo-switch${demoMode ? ' is-on' : ''}`}
+                    onClick={() => setDemoMode(v => !v)}
+                  >
+                    <div className="training-demo-knob" />
+                  </div>
+                  <span className="training-demo-label">
+                    <Shuffle size={14} />
+                    {t('trainingLauncher.demo_mode')}
+                  </span>
+                </label>
+                {demoMode && (
+                  <p className="training-demo-hint">{t('trainingLauncher.demo_mode_hint')}</p>
+                )}
+              </div>
             </>
           )}
 
@@ -486,7 +508,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               {t('actions.cancel')}
             </button>
             <button type="submit" className="btn btn-primary" disabled={isLoading}>
-              {isLoading ? 'Démarrage…' : 'Lancer'}
+              {isLoading ? t('trainingLauncher.starting') : t('trainingLauncher.launch')}
             </button>
           </div>
         </form>

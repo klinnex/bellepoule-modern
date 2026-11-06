@@ -1,0 +1,22 @@
+/* Dossier PDF : choix des sections (#1325) */
+.book-sections-hint {
+  color: var(--color-text-light);
+  font-size: 0.875rem;
+}
+.book-sections-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.book-sections-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+.book-sections-label {
+  flex: 1;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}

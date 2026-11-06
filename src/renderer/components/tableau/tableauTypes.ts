@@ -64,6 +64,62 @@ export function resolveWinnerFromScores(match: TableauMatch): void {
 }
 
 /**
+ * Vainqueur d'un match saisi à la main. Hors égalité, le score décide. En égalité
+ * (Sabre Laser), seul le vainqueur désigné (V manuel ou tirage au sort) compte.
+ */
+export function resolveTableauWinner(
+  fencerA: Fencer | null,
+  fencerB: Fencer | null,
+  scoreA: number,
+  scoreB: number,
+  tieWinner: 'A' | 'B' | null
+): Fencer | null {
+  if (scoreA > scoreB) return fencerA;
+  if (scoreB > scoreA) return fencerB;
+  if (tieWinner === 'A') return fencerA;
+  if (tieWinner === 'B') return fencerB;
+  return null;
+}
+
+/** Clé i18n de l'erreur de score à la saisie (égalité), ou null si le score est valide. */
+export function tieScoreError(
+  scoreA: number,
+  scoreB: number,
+  hasTieWinner: boolean,
+  tieBreakByVictory: boolean
+): string | null {
+  if (scoreA !== scoreB || hasTieWinner) return null;
+  return tieBreakByVictory ? 'tableauView.tie_need_winner' : 'tableauView.no_draw';
+}
+
+/** Vainqueur d'un match saisi ; `victoryA`/`victoryB` (V manuel) départagent une égalité. */
+export function resolveMatchWinner(
+  match: TableauMatch | undefined,
+  scoreA: number,
+  scoreB: number,
+  victoryA: boolean,
+  victoryB: boolean
+): Fencer | null {
+  const tieWinner = victoryA ? 'A' : victoryB ? 'B' : null;
+  return resolveTableauWinner(
+    match?.fencerA ?? null,
+    match?.fencerB ?? null,
+    scoreA,
+    scoreB,
+    tieWinner
+  );
+}
+
+/** Vainqueurs V d'un match à égalité déjà tranchée, restaurés à l'ouverture de la modale. */
+export function tieVictoryOf(match: TableauMatch): { a: boolean; b: boolean } {
+  const tieResolved = match.scoreA != null && match.scoreA === match.scoreB;
+  return {
+    a: tieResolved && !!match.winner && match.winner.id === match.fencerA?.id,
+    b: tieResolved && !!match.winner && match.winner.id === match.fencerB?.id,
+  };
+}
+
+/**
  * Déduit le premier tour du tableau principal à partir des matchs existants.
  * Source de vérité robuste face à un `size` absent (0), périmé (restauration de
  * session avant que `tableauSize` ne soit recalculé) ou trop grand (round de

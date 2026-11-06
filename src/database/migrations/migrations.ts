@@ -605,4 +605,15 @@ export const ALL_MIGRATIONS: Migration[] = [
       db.run(`CREATE INDEX IF NOT EXISTS idx_team_bout_cards_match ON team_bout_cards(match_id)`);
     },
   },
+  {
+    version: 20,
+    description: 'Latéralité des tireurs (droitier R par défaut / gaucher L, #1415)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE fencers ADD COLUMN handedness TEXT NOT NULL DEFAULT 'R'`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
 ];

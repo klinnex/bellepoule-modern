@@ -36,6 +36,11 @@ import {
 import { createCard } from '../../shared/utils/cardSystem';
 import TeamPoolView, { CardTarget } from './TeamPoolView';
 import TeamTableauView from './TeamTableauView';
+import BookSectionsModal from './BookSectionsModal';
+import {
+  TEAM_BOOK_SECTION_KINDS,
+  type BookSectionKind,
+} from '../../shared/utils/pdfExport/bookToc';
 import { useConfirm } from './ConfirmDialog';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
@@ -80,6 +85,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
   const [matches, setMatches] = useState<TeamMatchRow[]>([]);
   const [tableauMatches, setTableauMatches] = useState<TeamMatchRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isBookModalOpen, setIsBookModalOpen] = useState(false);
 
   // Création équipe
   const [newTeamName, setNewTeamName] = useState('');
@@ -514,6 +520,16 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
     }
   };
 
+  const handleExportBook = async (order: BookSectionKind[]) => {
+    try {
+      const pdf = await import('../../shared/utils/pdfExport/teamPdf');
+      const opts = { title: competition.title, teams, fencerName, isLaserArena };
+      await pdf.exportTeamBookToPDF(opts, matches, rankedTeamsForBracket, tableauMatches, order);
+    } catch (e) {
+      showToast(`${t('teams.pdfError')} : ${(e as Error).message}`, 'error');
+    }
+  };
+
   const toolbarButtons = (
     <>
       {view === 'teams' && teams.length >= 2 && (
@@ -530,6 +546,14 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
           className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
         >
           ↓ {t('teams.pdfExport')}
+        </button>
+      )}
+      {(matches.length > 0 || rankedTeamsForBracket.length > 0) && (
+        <button
+          onClick={() => setIsBookModalOpen(true)}
+          className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
+        >
+          ↓ {t('teams.pdfBook')}
         </button>
       )}
     </>
@@ -1046,6 +1070,16 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
         <div className="flex items-center gap-2">{toolbarButtons}</div>
       </div>
       {content}
+      {isBookModalOpen && (
+        <BookSectionsModal
+          kinds={TEAM_BOOK_SECTION_KINDS}
+          onClose={() => setIsBookModalOpen(false)}
+          onConfirm={order => {
+            setIsBookModalOpen(false);
+            void handleExportBook(order);
+          }}
+        />
+      )}
     </div>
   );
 };

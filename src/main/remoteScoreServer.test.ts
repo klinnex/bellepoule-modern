@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock fs avant l'import du module
 vi.mock('fs', () => ({
@@ -51,6 +51,7 @@ const mockDb = {
 import express from 'express';
 import { createServer } from 'http';
 import { RemoteScoreServer } from './remoteScoreServer';
+import { setUiLanguage } from './menuLabels';
 
 // Helpers pour simuler request / response Express
 function makeReq(overrides: Record<string, any> = {}): any {
@@ -91,6 +92,16 @@ describe('RemoteScoreServer', () => {
   describe('démarrage du serveur', () => {
     it('construit une instance sans erreur', () => {
       expect(server).toBeInstanceOf(RemoteScoreServer);
+    });
+
+    it("reprend la langue de l'application dès la création (#1213)", () => {
+      setUiLanguage('de');
+      try {
+        const srv = new RemoteScoreServer(mockDb as any, 8066);
+        expect((srv as any).currentLang).toBe('de');
+      } finally {
+        setUiLanguage('fr');
+      }
     });
 
     it('getServerUrl retourne une URL avec le bon port', () => {
@@ -1965,5 +1976,68 @@ describe('RemoteScoreServer', () => {
       expect(saved.scoreA).toMatchObject({ value: 3, isVictory: false, isForfait: false });
       expect(saved.scoreB).toMatchObject({ value: 5, isVictory: true, isAbstention: false });
     });
+  });
+});
+
+describe('mode démo (session d’entraînement)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('joue seule les matchs de chaque arène jusqu’à la fin et alimente l’historique', async () => {
+    const srv = new RemoteScoreServer(mockDb as any, 8068);
+    await srv.startTrainingSession(2, 'E', {
+      matchDurationSeconds: 180,
+      allowedZones: [],
+      disableSuddenDeath: false,
+      demo: true,
+    });
+
+    // Chaque arène a déjà un match fictif assigné, sans action humaine
+    const arena1 = srv.getArena('arena1');
+    expect(arena1?.currentMatch?.fencerA.id).toMatch(/^demo-/);
+
+    vi.advanceTimersByTime(600_000);
+
+    const history = srv.getTrainingHistory();
+    expect(history.length).toBeGreaterThanOrEqual(2);
+    // Démo : poules en 5 touches, puis tableau d'élimination directe en 15
+    expect(Math.max(history[0].scoreA, history[0].scoreB)).toBe(5);
+    for (const record of history) {
+      expect([5, 15]).toContain(Math.max(record.scoreA, record.scoreB));
+    }
+    // Poules terminées → tableau joué sur les pistes, sans action humaine
+    expect(history.some(r => Math.max(r.scoreA, r.scoreB) === 15)).toBe(true);
+
+    srv.stopSession();
+    const remaining = srv.getTrainingHistory().length;
+    vi.advanceTimersByTime(600_000);
+    expect(srv.getTrainingHistory().length).toBe(remaining);
+  });
+
+  it('simule l’arme choisie : Laser restreint à la zone C → scores par tranches de 5', async () => {
+    const srv = new RemoteScoreServer(mockDb as any, 8069);
+    await srv.startTrainingSession(1, 'L', {
+      matchDurationSeconds: 180,
+      allowedZones: ['C'],
+      disableSuddenDeath: false,
+      demo: true,
+    });
+
+    vi.advanceTimersByTime(600_000);
+
+    const history = srv.getTrainingHistory();
+    expect(history.length).toBeGreaterThanOrEqual(1);
+    for (const record of history) {
+      expect(record.weapon).toBe('L');
+      expect(record.scoreA % 5).toBe(0);
+      expect(record.scoreB % 5).toBe(0);
+      expect(Math.max(record.scoreA, record.scoreB)).toBe(15);
+    }
+    srv.stopSession();
   });
 });

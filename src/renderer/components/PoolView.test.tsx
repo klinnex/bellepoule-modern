@@ -75,7 +75,7 @@ describe('PoolView - saisie simplifiée : suppression au survol', () => {
     const onMatchReset = vi.fn();
     render(<PoolView pool={testPool} onScoreUpdate={vi.fn()} onMatchReset={onMatchReset} />);
 
-    const cell = screen.getByLabelText(/Dupont F contre Martin F/i);
+    const cell = screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i);
     fireEvent.mouseEnter(cell);
     fireEvent.keyDown(document, { key: 'Delete' });
 
@@ -97,7 +97,7 @@ describe('PoolView - saisie simplifiée : suppression au survol', () => {
     const onMatchReset = vi.fn();
     render(<PoolView pool={testPool} onScoreUpdate={vi.fn()} onMatchReset={onMatchReset} />);
 
-    const cell = screen.getByLabelText(/Dupont F contre Martin F/i);
+    const cell = screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i);
     fireEvent.mouseEnter(cell);
     fireEvent.keyDown(document, { key: 'Delete' });
 
@@ -124,7 +124,7 @@ describe("PoolView - saisie simplifiée : correction d'un score enregistré (#10
   it('préremplit la case avec le score enregistré', () => {
     render(<PoolView pool={testPool} onScoreUpdate={vi.fn()} />);
 
-    fireEvent.click(screen.getByLabelText(/Martin F contre Dupont F/i));
+    fireEvent.click(screen.getByLabelText(/Martin F poolView.cell_vs Dupont F/i));
 
     expect(screen.getByRole('spinbutton')).toHaveValue(2);
   });
@@ -133,7 +133,7 @@ describe("PoolView - saisie simplifiée : correction d'un score enregistré (#10
     const onScoreUpdate = vi.fn();
     render(<PoolView pool={testPool} onScoreUpdate={onScoreUpdate} />);
 
-    fireEvent.click(screen.getByLabelText(/Martin F contre Dupont F/i));
+    fireEvent.click(screen.getByLabelText(/Martin F poolView.cell_vs Dupont F/i));
     const input = screen.getByRole('spinbutton');
     fireEvent.change(input, { target: { value: '3' } });
     fireEvent.keyDown(input, { key: 'Enter' });
@@ -159,7 +159,7 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
   };
   const enterBoth = (first: string, second: string) => {
-    fireEvent.click(screen.getByLabelText(/Dupont F contre Martin F/i));
+    fireEvent.click(screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i));
     typeScore(first);
     typeScore(second);
   };
@@ -180,14 +180,18 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
   it('matrice : affiche victoire/défaite dans les cases du match terminé', () => {
     render(<PoolView pool={testPool} onScoreUpdate={vi.fn()} />);
 
-    expect(screen.getByLabelText(/Dupont F contre Martin F : victoire 5/i)).toHaveTextContent('V5');
-    expect(screen.getByLabelText(/Martin F contre Dupont F : défaite 2/i)).toHaveTextContent('2');
+    expect(
+      screen.getByLabelText(/Dupont F poolView.cell_vs Martin F : poolView.cell_victory 5/i)
+    ).toHaveTextContent('V5');
+    expect(
+      screen.getByLabelText(/Martin F poolView.cell_vs Dupont F : poolView.cell_defeat 2/i)
+    ).toHaveTextContent('2');
   });
 
   it('matrice : case non saisie proposée à la saisie', () => {
     render(<PoolView pool={pendingPool} onScoreUpdate={vi.fn()} />);
 
-    expect(screen.getAllByLabelText(/saisir le score/i)).toHaveLength(2);
+    expect(screen.getAllByLabelText(/poolView.cell_enter/i)).toHaveLength(2);
   });
 
   it("en-tête : indique l'avancement puis « Terminée » selon pool.isComplete", () => {
@@ -202,7 +206,7 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
     const onScoreUpdate = vi.fn();
     render(<PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} />);
 
-    fireEvent.click(screen.getByLabelText(/Dupont F contre Martin F/i));
+    fireEvent.click(screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i));
     typeScore('5');
     expect(onScoreUpdate).not.toHaveBeenCalled();
 
@@ -248,7 +252,7 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
     render(<PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} />);
 
     expect(await screen.findByText('poolView.locked')).toBeInTheDocument();
-    fireEvent.click(screen.getAllByLabelText(/saisir le score/i)[0]);
+    fireEvent.click(screen.getAllByLabelText(/poolView.cell_enter/i)[0]);
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
   });
 

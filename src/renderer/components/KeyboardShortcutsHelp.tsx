@@ -20,10 +20,9 @@ const SHORTCUTS: Shortcut[] = [
   { key: 'Esc', descriptionKey: 'shortcuts.close_modal', category: 'global' },
 
   // Navigation
-  { key: 'Ctrl + 1', descriptionKey: 'shortcuts.go_pools', category: 'navigation' },
-  { key: 'Ctrl + 2', descriptionKey: 'shortcuts.go_tableau', category: 'navigation' },
-  { key: 'Ctrl + 3', descriptionKey: 'shortcuts.go_results', category: 'navigation' },
   { key: 'Tab', descriptionKey: 'shortcuts.nav_fields', category: 'navigation' },
+  { key: 'Ctrl + →', descriptionKey: 'shortcuts.next_phase', category: 'navigation' },
+  { key: 'Ctrl + T', descriptionKey: 'shortcuts.add_fencer', category: 'navigation' },
 
   // Actions
   { key: 'Ctrl + S', descriptionKey: 'shortcuts.save', category: 'actions' },
@@ -33,9 +32,7 @@ const SHORTCUTS: Shortcut[] = [
   { key: 'Ctrl + P', descriptionKey: 'shortcuts.print_sheets', category: 'actions' },
 
   // Competition
-  { key: 'F5', descriptionKey: 'shortcuts.refresh_data', category: 'competition' },
-  { key: 'Space', descriptionKey: 'shortcuts.timer', category: 'competition' },
-  { key: '↑ ↓', descriptionKey: 'shortcuts.nav_list', category: 'competition' },
+  { key: 'N', descriptionKey: 'shortcuts.next_match', category: 'competition' },
   { key: 'Enter', descriptionKey: 'shortcuts.validate', category: 'competition' },
 ];
 

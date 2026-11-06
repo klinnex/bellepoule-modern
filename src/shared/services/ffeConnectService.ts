@@ -46,7 +46,9 @@ export class FFEConnectService {
       const parsed = new URL(base);
       if (parsed.protocol !== 'https:') throw new Error("HTTPS requis pour l'API FFE");
     } catch (e) {
-      throw new Error(`URL API FFE invalide: ${e instanceof Error ? e.message : e}`);
+      throw new Error(`URL API FFE invalide: ${e instanceof Error ? e.message : e}`, {
+        cause: e,
+      });
     }
     this.baseUrl = base;
   }

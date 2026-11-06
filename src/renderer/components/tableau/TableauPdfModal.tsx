@@ -13,7 +13,7 @@ import { TableauMatch } from './tableauTypes';
 import { getRoundName } from './tableauCalculations';
 
 interface TableauPdfModalProps {
-  pdfMode: 'print' | 'pdf' | 'preview';
+  pdfMode: 'print' | 'pdf';
   matches: TableauMatch[];
   pdfMatchesPerPage: number;
   setPdfMatchesPerPage: (n: number) => void;
@@ -75,20 +75,15 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
+        className="modal is-2c8110"
         onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '400px' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="tableau-pdf-title"
       >
         <div className="modal-header">
           <h3 className="modal-title" id="tableau-pdf-title">
-            {pdfMode === 'print'
-              ? t('tableauPdf.print')
-              : pdfMode === 'preview'
-                ? t('tableauPdf.preview')
-                : t('tableauPdf.export')}{' '}
+            {pdfMode === 'print' ? t('tableauPdf.print') : t('tableauPdf.export')}{' '}
             {t('tableauPdf.sheets')}
           </h3>
           <button className="btn-close" onClick={onClose}>
@@ -127,27 +122,11 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
           <label style={{ ...PDF_STYLES.pdfModalLabel, marginTop: '1rem' }}>
             {t('tableauPdf.phases')}
           </label>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.4rem',
-              marginBottom: '0.75rem',
-            }}
-          >
+          <div className="is-682752">
             {[...new Set(matches.filter(m => m.fencerA && m.fencerB && !m.isBye).map(m => m.round))]
               .sort((a, b) => b - a)
               .map(round => (
-                <label
-                  key={round}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                  }}
-                >
+                <label key={round} className="is-fcbedc">
                   <input
                     type="checkbox"
                     checked={selectedRounds.has(round)}
@@ -159,7 +138,7 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
                     }}
                   />
                   {getRoundName(round)}
-                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
+                  <span className="is-99ac94">
                     (
                     {t('tableauPdf.matches', {
                       count: matches.filter(
@@ -192,11 +171,7 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
             onClick={onExport}
             disabled={selectedRounds.size === 0}
           >
-            {pdfMode === 'print'
-              ? '🖨️ Imprimer'
-              : pdfMode === 'preview'
-                ? '👁️ Aperçu'
-                : '📄 Générer PDF'}
+            {pdfMode === 'print' ? t('tableauPdf.do_print') : t('tableauPdf.do_generate')}
           </button>
         </div>
       </div>

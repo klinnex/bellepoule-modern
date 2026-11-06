@@ -157,6 +157,7 @@ export enum PhaseType {
 }
 
 export enum Category {
+  U9 = 'U9', // M9
   U11 = 'U11', // M11
   U13 = 'U13', // M13
   U15 = 'U15', // M15
@@ -183,7 +184,8 @@ export interface BaseEntity {
 // Fencer (Tireur)
 // ============================================================================
 
-export type ExclusionReason = 'black_card';
+// black_card : exclusion (carton noir) ; dns : forfait à l'appel, aucun match de poule commencé (#1256)
+export type ExclusionReason = 'black_card' | 'dns';
 
 export interface Fencer extends BaseEntity {
   ref: number; // Numéro de référence unique dans la compétition
@@ -196,8 +198,9 @@ export interface Fencer extends BaseEntity {
   club?: string; // Club
   license?: string; // Numéro de licence
   ranking?: number; // Classement
+  handedness?: 'R' | 'L'; // Latéralité : droitier (R, défaut) ou gaucher (L)
   status: FencerStatus; // Statut dans la compétition
-  exclusionReason?: ExclusionReason | null; // Motif d'exclusion (rapport fédéral)
+  exclusionReason?: ExclusionReason | null; // Motif d'exclusion ou de forfait (rapport fédéral)
   seedNumber?: number; // Tête de série
   initialRanking?: number; // Classement initial
   finalRanking?: number; // Classement final
@@ -258,6 +261,8 @@ export interface Score {
   isAbstention: boolean; // A pour abstention/abandon
   isExclusion: boolean; // X pour exclusion (carton noir)
   isForfait: boolean; // F pour forfait
+  /** Tireur prioritaire : tirage au sort avant la minute supplémentaire (olympique, rapières, #1442) */
+  isPriority?: boolean;
 }
 
 // ============================================================================
@@ -696,7 +701,7 @@ export interface AppState {
 }
 
 export interface UISettings {
-  language: 'fr' | 'en' | 'de' | 'es' | 'br' | 'ca' | 'zh-HK';
+  language: 'fr' | 'en' | 'de' | 'es' | 'it' | 'br' | 'ca' | 'zh-HK';
   theme: 'light' | 'dark' | 'system';
   fontSize: 'small' | 'medium' | 'large';
   showTips: boolean;

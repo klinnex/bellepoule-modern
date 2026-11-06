@@ -17,6 +17,8 @@ import {
 } from '../../../features/teams/utils/laserArenaCalculations';
 import { savePDF, BASE_CSS, pdfLang, pdfT } from './core';
 import { getActiveLocale } from '../localeFormat';
+import { exportBookPDF, type BookItem } from './bookPdf';
+import type { BookSectionKind } from './bookToc';
 
 export interface TeamPdfOptions {
   title: string;
@@ -383,4 +385,41 @@ export async function exportTeamRankingToPDF(
     generateTeamRankingHTML(opts, rankedTeams, tableauMatches),
     'classement-equipes.pdf'
   );
+}
+
+/** Dossier équipes : page de garde, sommaire, poules, tableau, classement (#1325) */
+export async function exportTeamBookToPDF(
+  opts: TeamPdfOptions,
+  matches: TeamMatchRow[],
+  rankedTeams: TeamRow[],
+  tableauMatches: TeamMatchRow[],
+  sectionOrder?: BookSectionKind[]
+): Promise<void> {
+  const items: BookItem[] = [];
+  if (matches.length > 0)
+    items.push({
+      kind: 'teamPools',
+      title: pdfT('team_pools_title', 'Poules équipes'),
+      html: generateTeamPoolsHTML(opts, matches),
+    });
+  if (rankedTeams.length >= 2 && tableauMatches.length > 0)
+    items.push({
+      kind: 'teamTableau',
+      title: pdfT('team_tableau_title', 'Tableau équipes'),
+      html: generateTeamTableauHTML(opts, rankedTeams, tableauMatches),
+    });
+  if (rankedTeams.length > 0)
+    items.push({
+      kind: 'teamRanking',
+      title: pdfT('team_ranking_title', 'Classement équipes'),
+      html: generateTeamRankingHTML(opts, rankedTeams, tableauMatches),
+    });
+  await exportBookPDF({
+    items,
+    sectionOrder,
+    competitionTitle: opts.title,
+    bookTitle: `${pdfT('full_export', 'Export complet')} — ${opts.title}`,
+    filename: 'dossier-equipes.pdf',
+    logo: localStorage.getItem('bellepoule-logo') ?? undefined,
+  });
 }

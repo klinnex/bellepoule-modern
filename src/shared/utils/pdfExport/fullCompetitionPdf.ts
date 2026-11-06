@@ -13,21 +13,10 @@ import { TableauMatchForPDF, generateTableauHTML, getTableauRoundName } from './
 import { generateRankingHTML } from './rankingPdf';
 import { FinalResultForPDF, generateResultsHTML } from './resultsPdf';
 import { generateAppelHTML } from './appelPdf';
+import type { BookSectionKind } from './bookToc';
+import { exportBookPDF, extractBodyContent, extractStyleContent } from './bookPdf';
 
 // ─── Export complet compétition ───────────────────────────────────────────────
-
-function extractBodyContent(html: string): string {
-  const m = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(html);
-  return m ? m[1].trim() : '';
-}
-
-function extractStyleContent(html: string): string {
-  const re = /<style[^>]*>([\s\S]*?)<\/style>/gi;
-  const parts: string[] = [];
-  let m;
-  while ((m = re.exec(html)) !== null) parts.push(m[1]);
-  return parts.join('\n');
-}
 
 export interface FullCompetitionExportData {
   fencers: Fencer[];
@@ -47,6 +36,8 @@ export interface FullCompetitionExportData {
   poolSignatures?: Record<string, Record<string, string>>;
   /** Signatures des matchs de tableau : matchId → { A, B } data URL PNG */
   tableauSignatures?: Record<string, { A?: string; B?: string }>;
+  /** Types de sections inclus, dans l'ordre d'impression (#1325) ; défaut : tout, ordre d'origine */
+  sectionOrder?: BookSectionKind[];
 }
 
 export async function exportFullCompetitionPDF(data: FullCompetitionExportData): Promise<void> {
@@ -65,9 +56,13 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
     template,
     poolSignatures,
     tableauSignatures,
+    sectionOrder,
   } = data;
 
-  const sections: string[] = [];
+  const items: { kind: BookSectionKind; title: string; html: string }[] = [];
+  const add = (kind: BookSectionKind, title: string, html: string) => {
+    items.push({ kind, title, html });
+  };
 
   const appelCols = appelVisibleColumns ?? [
     'ref',
@@ -86,11 +81,14 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
   // Plusieurs tours : une feuille d'appel par tour terminé, puis celle du tour courant
   const appelRounds = appelHistory.filter(r => r.length > 0);
   appelRounds.forEach((roundFencers, i) => {
-    sections.push(
+    const title = `${pdfT('appel_sheet', "Feuille d'appel")} — ${pdfT('round_n', 'Tour {{n}}', { n: i + 1 })}`;
+    add(
+      'appel',
+      title,
       generateAppelHTML(
         byRanking(roundFencers),
         appelCols,
-        `${pdfT('appel_sheet', "Feuille d'appel")} — ${pdfT('round_n', 'Tour {{n}}', { n: i + 1 })} — ${competitionTitle}`,
+        `${title} — ${competitionTitle}`,
         competitionTitle,
         logo,
         undefined
@@ -105,7 +103,9 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
       appelRounds.length > 0
         ? `${pdfT('round_n', 'Tour {{n}}', { n: appelRounds.length + 1 })} — `
         : '';
-    sections.push(
+    add(
+      'appel',
+      `${pdfT('appel_sheet', "Feuille d'appel")}${roundLabel ? ` — ${roundLabel.replace(/ — $/, '')}` : ''}`,
       generateAppelHTML(
         appelFencerList,
         appelCols,
@@ -118,7 +118,9 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
   }
 
   for (const pool of pools) {
-    sections.push(
+    add(
+      'pools',
+      pdfT('pool_n', 'Poule {{n}}', { n: pool.number }),
       generatePoolHTML(
         pool,
         {
@@ -147,7 +149,9 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
           'index',
         ]
       : ['rank', 'lastName', 'firstName', 'club', 'victories', 'ratio', 'td', 'tr', 'index'];
-    sections.push(
+    add(
+      'ranking',
+      pdfT('provisional_ranking', 'Classement provisoire'),
       generateRankingHTML(
         overallRanking,
         `${pdfT('provisional_ranking', 'Classement provisoire')} — ${competitionTitle}`,
@@ -163,7 +167,9 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
   for (const round of rounds) {
     const roundMatches = tableauMatches.filter(m => m.round === round && !m.isBye);
     if (roundMatches.length === 0) continue;
-    sections.push(
+    add(
+      'tableau',
+      getTableauRoundName(round),
       generateTableauHTML(
         roundMatches,
         MAX_MATCHES_PER_PAGE_TABLEAU,
@@ -181,7 +187,9 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
     for (const round of bRounds) {
       const roundMatches = bracket.matches.filter(m => m.round === round && !m.isBye);
       if (roundMatches.length === 0) continue;
-      sections.push(
+      add(
+        'consolation',
+        `${bracket.name} — ${getTableauRoundName(round)}`,
         generateTableauHTML(
           roundMatches,
           MAX_MATCHES_PER_PAGE_TABLEAU,
@@ -196,7 +204,9 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
   }
 
   if (finalResults.length > 0) {
-    sections.push(
+    add(
+      'results',
+      pdfT('final_ranking', 'Classement final'),
       generateResultsHTML(
         finalResults,
         `${pdfT('final_ranking', 'Classement final')} — ${competitionTitle}`,
@@ -206,32 +216,14 @@ export async function exportFullCompetitionPDF(data: FullCompetitionExportData):
     );
   }
 
-  if (sections.length === 0) throw new Error(pdfT('no_data', 'Aucune donnée à exporter'));
-
-  const allStyles = sections.map(extractStyleContent).join('\n');
-  const allBodies = sections
-    .map(
-      (html, i) =>
-        (i === 0 ? '' : '<div class="full-export-break"></div>\n') + extractBodyContent(html)
-    )
-    .join('\n');
-
-  const combined = `<!DOCTYPE html>
-<html lang="${pdfLang()}">
-<head>
-  <meta charset="UTF-8">
-  <title>${pdfT('full_export', 'Export complet')} — ${competitionTitle}</title>
-  <style>
-    ${allStyles}
-    .full-export-break { break-before: page; }
-  </style>
-</head>
-<body>
-${allBodies}
-</body>
-</html>`;
-
-  await savePDF(combined, `export-PDF_full.pdf`);
+  await exportBookPDF({
+    items,
+    sectionOrder,
+    competitionTitle,
+    bookTitle: `${pdfT('full_export', 'Export complet')} — ${competitionTitle}`,
+    filename: 'export-PDF_full.pdf',
+    logo,
+  });
 }
 
 // ─── Export poules + tableaux sans signature ───────────────────────────────────

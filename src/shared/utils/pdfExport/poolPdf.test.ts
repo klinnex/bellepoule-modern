@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { generatePoolHTML } from './poolPdf';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { generatePoolHTML, exportMultiplePoolsToPDF, allPoolsFileName } from './poolPdf';
 import { buildDefaultTemplate } from '../../types/pdfTemplate.types';
 import { MatchStatus, type Pool, type Fencer, type Match } from '../../types';
 
@@ -45,6 +45,33 @@ describe('generatePoolHTML – options export (#932)', () => {
   it('applique le format paysage', () => {
     expect(generatePoolHTML(makePool(), { landscape: true })).toContain('size: A4 landscape');
     expect(generatePoolHTML(makePool(), {})).not.toContain('size: A4 landscape');
+  });
+});
+
+describe('exportMultiplePoolsToPDF – un seul PDF (#1413)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('nom par défaut « <compétition>-poules.pdf », caractères interdits remplacés', () => {
+    expect(allPoolsFileName('Open de Paris')).toBe('Open de Paris-poules.pdf');
+    expect(allPoolsFileName('A/B:C')).toBe('A_B_C-poules.pdf');
+    expect(allPoolsFileName()).toBe('competition-poules.pdf');
+  });
+
+  it('toutes les poules dans un seul fichier, une seule boîte de dialogue', async () => {
+    const saveFile = vi.fn().mockResolvedValue({ filePath: '/tmp/x.pdf' });
+    const printHtmlToPDF = vi.fn().mockResolvedValue({ success: true });
+    vi.stubGlobal('window', { electronAPI: { dialog: { saveFile }, file: { printHtmlToPDF } } });
+    const p1 = makePool();
+    const p2 = { ...makePool(), id: 'p2', number: 2 } as Pool;
+    await exportMultiplePoolsToPDF([p1, p2], 'T', undefined, undefined, 'Open');
+    expect(saveFile).toHaveBeenCalledTimes(1);
+    expect(saveFile.mock.calls[0][0].defaultPath).toBe('Open-poules.pdf');
+    expect(printHtmlToPDF).toHaveBeenCalledTimes(1);
+    const html = printHtmlToPDF.mock.calls[0][0] as string;
+    expect(html).toContain('pools-export-break');
+    expect(html.match(/<!DOCTYPE html>/g)).toHaveLength(1);
   });
 });
 

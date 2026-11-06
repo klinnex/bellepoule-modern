@@ -21,10 +21,23 @@ import {
   isBracketComplete,
   TableauSpecialStatus,
   resetTableauMatch,
+  resolveMatchWinner,
+  tieScoreError,
+  tieVictoryOf,
 } from './tableau/tableauTypes';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
 import { useModalResize } from '../hooks/useModalResize';
+import { useStateGroup } from '../hooks/useStateGroup';
+import { useTableauUndo } from '../hooks/useTableauUndo';
+import { useBracketZoomPan } from './tableau/useBracketZoomPan';
+import { useColumnMeasures } from '../hooks/useColumnMeasures';
+import {
+  SCORE_EDIT_INIT,
+  ASSIGN_MODALS_INIT,
+  PDF_DIALOG_INIT,
+  loadDESignatures,
+} from './tableau/tableauDialogState';
 import Bracket from './Bracket';
 // pdfExport (jsPDF) chargé à la demande ; seule la constante reste en import statique léger
 import { MAX_MATCHES_PER_PAGE_TABLEAU } from '../../shared/utils/pdfConstants';
@@ -50,6 +63,7 @@ import {
   placeBarrageWinners,
   syncConsolationBrackets,
   calculateFinalResults,
+  isTableauDone,
   buildCombinedResults,
   calculateMatchVerticalPosition,
 } from './tableau/tableauCalculations';
@@ -74,6 +88,8 @@ interface TableauViewProps {
   onMatchesChange: (matches: TableauMatch[]) => void;
   maxScore?: number;
   onComplete?: (results: FinalResult[]) => void;
+  /** Exclusion avec carton noir confirmé par le DT (#1418) : le tireur perd son classement */
+  onBlackCard?: (fencerId: string) => void;
   thirdPlaceMatch?: boolean;
   playAllPositions?: boolean;
   arenaCount?: number;
@@ -99,6 +115,9 @@ interface TableauViewProps {
     club?: string;
     status?: string;
   }>;
+  /** Sabre Laser : une égalité est tranchée par V (manuel) ou tirage au sort */
+  /** Égalité tranchée par V (laser, olympique, rapières) */
+  tieBreakByVictory?: boolean;
 }
 
 // ─── Static style constants ───────────────────────────────────────────────────
@@ -214,91 +233,134 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   matches,
   onMatchesChange,
   maxScore = 15,
-  onComplete,
+  onComplete: onCompleteProp,
+  onBlackCard,
   thirdPlaceMatch = false,
   playAllPositions = false,
   arenaCount = 4,
-  onMatchArenaChange,
-  onMatchRefereeChange,
+  onMatchArenaChange: onMatchArenaChangeProp,
+  onMatchRefereeChange: onMatchRefereeChangeProp,
   competitionId,
   consolationBrackets: consolationBracketsprop = [],
   onConsolationBracketsChange,
   readOnly = false,
   maxRefereesPerMatch = 1,
   autoFillReferees,
+  tieBreakByVictory = false,
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const tableauTemplate = usePdfTemplateStore(s => s.templates.tableau);
   const [tableauSize, setTableauSize] = useState<number>(0);
-  const [editingMatch, setEditingMatch] = useState<string | null>(null);
-  const [editingConsolationId, setEditingConsolationId] = useState<string | null>(null);
-  const [showScoreModal, setShowScoreModal] = useState(false);
-  const [editScoreA, setEditScoreA] = useState<string>('');
-  const [editScoreB, setEditScoreB] = useState<string>('');
-  const [victoryA, setVictoryA] = useState(false);
-  const [victoryB, setVictoryB] = useState(false);
-  const [viewMode, setViewMode] = useState<'full' | 'pending'>('full');
-  const [pendingOrder, setPendingOrder] = useState<'asc' | 'desc'>('desc');
-  const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
-  // Vue arbre : tours compactés un par un, sans effet sur les autres (#1133)
-  const [collapsedRounds, setCollapsedRounds] = useState<Set<number>>(new Set());
-  const [showArenaModal, setShowArenaModal] = useState(false);
-  const [selectedMatchForArena, setSelectedMatchForArena] = useState<string | null>(null);
-  const [showRefereeModal, setShowRefereeModal] = useState(false);
-  const [signaturesMatch, setSignaturesMatch] = useState<TableauMatch | null>(null);
-  const [selectedMatchForReferee, setSelectedMatchForReferee] = useState<string | null>(null);
-  const [competitionReferees, setCompetitionReferees] = useState<
-    Array<{ id: string; firstName: string; lastName: string; club?: string; status?: string }>
-  >([]);
-  const [selectedMatchConsolationBracketId, setSelectedMatchConsolationBracketId] = useState<
-    string | null
-  >(null);
-  const [pyramidViewMode, setPyramidViewMode] = useState<boolean>(false);
-  // Zoom / pan state (vue bracket full uniquement)
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const isPanningRef = useRef(false);
-  const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
-  // SVG connector measures
-  const colRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
-  const bracketWrapRef = useRef<HTMLDivElement | null>(null);
-  const [colMeasures, setColMeasures] = useState<Map<number, { left: number; width: number }>>(
-    new Map()
-  );
-  const [showPdfModal, setShowPdfModal] = useState(false);
-  const [pdfMode, setPdfMode] = useState<'print' | 'pdf' | 'preview'>('pdf');
-  const [pdfMatchesPerPage, setPdfMatchesPerPage] = useState<number>(MAX_MATCHES_PER_PAGE_TABLEAU);
-  const [selectedRounds, setSelectedRounds] = useState<Set<number>>(new Set());
-  const [autoAssignArenas, setAutoAssignArenas] = useState(false);
-  // Mesure les positions des colonnes pour les connecteurs SVG
-  useLayoutEffect(() => {
-    if (viewMode !== 'full' || pyramidViewMode || !bracketWrapRef.current) return;
-    const wrapLeft = bracketWrapRef.current.getBoundingClientRect().left;
-    const measures = new Map<number, { left: number; width: number }>();
-    colRefs.current.forEach((el, round) => {
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        measures.set(round, { left: rect.left - wrapLeft, width: rect.width });
-      }
-    });
-    // Updater fonctionnel : retourne prev si valeurs identiques → évite re-render inutile
-    setColMeasures(prev => {
-      if (prev.size !== measures.size) return measures;
-      for (const [round, { left, width }] of measures) {
-        const p = prev.get(round);
-        if (!p || p.left !== left || p.width !== width) return measures;
-      }
-      return prev;
-    });
-  }, [viewMode, pyramidViewMode, tableauSize, collapsedRounds]);
 
-  // Remet à zéro le zoom/pan si on change de mode
-  useEffect(() => {
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
-  }, [viewMode, pyramidViewMode]);
+  const notifyArenaDiff = (updated: TableauMatch[]) =>
+    updated.forEach(m => {
+      const orig = matches.find(o => o.id === m.id);
+      if (orig && orig.arena !== m.arena)
+        onMatchArenaChange?.(m.id, orig.arena ?? null, m.arena ?? null);
+    });
+  // Annulation des placements à risque (#1301), verrouillée après transmission
+  const undo = useTableauUndo({
+    scopeKey: competitionId,
+    onMatchesChange,
+    onComplete: onCompleteProp,
+    onMatchArenaChange: onMatchArenaChangeProp,
+    onMatchRefereeChange: onMatchRefereeChangeProp,
+  });
+  const { onComplete, onMatchArenaChange, onMatchRefereeChange } = undo;
+  // États de la modale de score regroupés (#1241)
+  const {
+    editingMatch,
+    setEditingMatch,
+    editingConsolationId,
+    setEditingConsolationId,
+    showScoreModal,
+    setShowScoreModal,
+    editScoreA,
+    setEditScoreA,
+    editScoreB,
+    setEditScoreB,
+    victoryA,
+    setVictoryA,
+    victoryB,
+    setVictoryB,
+  } = useStateGroup(SCORE_EDIT_INIT);
+  // Vue du tableau (mode, ordre, tours repliés, zoom/pan, arbitres de compétition) regroupée (#1241)
+  const {
+    viewMode,
+    setViewMode,
+    pendingOrder,
+    setPendingOrder,
+    expandedRounds,
+    setExpandedRounds,
+    // Vue arbre : tours compactés un par un, sans effet sur les autres (#1133)
+    collapsedRounds,
+    setCollapsedRounds,
+    competitionReferees,
+    setCompetitionReferees,
+    pyramidViewMode,
+    setPyramidViewMode,
+    autoAssignArenas,
+    setAutoAssignArenas,
+  } = useStateGroup({
+    viewMode: 'full' as 'full' | 'pending',
+    pendingOrder: 'desc' as 'asc' | 'desc',
+    expandedRounds: new Set<number>(),
+    collapsedRounds: new Set<number>(),
+    competitionReferees: [] as Array<{
+      id: string;
+      firstName: string;
+      lastName: string;
+      club?: string;
+      status?: string;
+    }>,
+    pyramidViewMode: false,
+    autoAssignArenas: false,
+  });
+  // Modales arène / arbitre / signatures regroupées (#1241)
+  const {
+    showArenaModal,
+    setShowArenaModal,
+    selectedMatchForArena,
+    setSelectedMatchForArena,
+    showRefereeModal,
+    setShowRefereeModal,
+    signaturesMatch,
+    setSignaturesMatch,
+    selectedMatchForReferee,
+    setSelectedMatchForReferee,
+    selectedMatchConsolationBracketId,
+    setSelectedMatchConsolationBracketId,
+  } = useStateGroup(ASSIGN_MODALS_INIT);
+  // Mesures des colonnes pour les connecteurs SVG (#1241)
+  const { colRefs, bracketWrapRef, colMeasures } = useColumnMeasures(
+    viewMode === 'full' && !pyramidViewMode,
+    [tableauSize, collapsedRounds]
+  );
+  // Options de la modale PDF/impression regroupées (#1241)
+  const {
+    showPdfModal,
+    setShowPdfModal,
+    pdfMode,
+    setPdfMode,
+    pdfMatchesPerPage,
+    setPdfMatchesPerPage,
+    selectedRounds,
+    setSelectedRounds,
+  } = useStateGroup(PDF_DIALOG_INIT);
+  // Zoom et déplacement de la vue bracket (#1241)
+  const {
+    zoom,
+    setZoom,
+    pan,
+    setPan,
+    isPanningRef,
+    scrollAreaRef,
+    handleBracketMouseDown,
+    handleBracketMouseMove,
+    handleBracketMouseUp,
+  } = useBracketZoomPan({ viewMode, pyramidViewMode });
 
   // Charge les arbitres de la compétition (montage + ouverture de la modale)
   const openRefereeModal = useCallback(
@@ -324,45 +386,6 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     },
     [competitionId]
   );
-
-  // Listener natif non-passif : le onWheel React est passif, preventDefault y est ignoré
-  // et la page entière défilait au lieu du tableau.
-  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const el = scrollAreaRef.current;
-    if (!el || viewMode !== 'full' || pyramidViewMode) return;
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const dx = e.shiftKey && e.deltaX === 0 ? e.deltaY : e.deltaX;
-      const dy = e.shiftKey && e.deltaX === 0 ? 0 : e.deltaY;
-      setPan(p => ({ x: p.x - dx, y: p.y - dy }));
-    };
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
-  }, [viewMode, pyramidViewMode]);
-
-  const handleBracketMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.button !== 0 || viewMode !== 'full' || pyramidViewMode) return;
-      // Only pan on background (not on match cards)
-      if ((e.target as HTMLElement).closest('.match-card')) return;
-      isPanningRef.current = true;
-      panStartRef.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
-    },
-    [viewMode, pyramidViewMode, pan]
-  );
-
-  const handleBracketMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isPanningRef.current) return;
-    setPan({
-      x: panStartRef.current.panX + (e.clientX - panStartRef.current.x),
-      y: panStartRef.current.panY + (e.clientY - panStartRef.current.y),
-    });
-  }, []);
-
-  const handleBracketMouseUp = useCallback(() => {
-    isPanningRef.current = false;
-  }, []);
 
   // Tours repliés (#1115) : le plus grand tour déplié sert de première colonne
   // visuelle ; les cases se resserrent et les liaisons des tours repliés disparaissent.
@@ -500,12 +523,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       // Génération initiale : distribution complète.
       const updated = distributeArenasRoundRobin(matches);
       onMatchesChange(updated);
-      updated.forEach(m => {
-        const orig = matches.find(o => o.id === m.id);
-        if (orig && orig.arena !== m.arena) {
-          onMatchArenaChange?.(m.id, orig.arena ?? null, m.arena ?? null);
-        }
-      });
+      notifyArenaDiff(updated);
     } else if (playable.length > prev) {
       // Nouveau tour débloqué (ex. SF après QF) : assigner les pistes uniquement aux
       // matchs qui n'en ont pas encore, sans écraser les affectations manuelles.
@@ -523,12 +541,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           return m;
         });
         onMatchesChange(updated);
-        updated.forEach(m => {
-          const orig = matches.find(o => o.id === m.id);
-          if (orig && orig.arena !== m.arena) {
-            onMatchArenaChange?.(m.id, orig.arena ?? null, m.arena ?? null);
-          }
-        });
+        notifyArenaDiff(updated);
       }
     }
   }, [playableMatchCount]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -539,12 +552,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       if (enabled && arenaCount > 0) {
         const updated = distributeArenasRoundRobin(matches);
         onMatchesChange(updated);
-        updated.forEach(m => {
-          const orig = matches.find(o => o.id === m.id);
-          if (orig && orig.arena !== m.arena) {
-            onMatchArenaChange?.(m.id, orig.arena ?? null, m.arena ?? null);
-          }
-        });
+        notifyArenaDiff(updated);
       } else if (!enabled) {
         // Désactivation : vider les assignations des matchs non encore joués
         const updated = matches.map(m => (!m.winner ? { ...m, arena: null as number | null } : m));
@@ -560,11 +568,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   const handleBulkDeassign = useCallback(() => {
     const updated = matches.map(m => ({ ...m, arena: null as number | null }));
     onMatchesChange(updated);
-    matches.forEach(m => {
-      if (m.arena != null) {
-        onMatchArenaChange?.(m.id, m.arena, null);
-      }
-    });
+    notifyArenaDiff(updated);
   }, [matches, onMatchesChange, onMatchArenaChange]);
 
   useEffect(() => {
@@ -716,9 +720,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   const handleAutoFillScores = async () => {
     if (readOnly) return;
     // window.confirm natif casse le focus clavier sous Electron/Windows
-    const confirmed = await confirm(
-      'Remplir automatiquement tous les scores des matchs non terminés ?\n\nLes scores seront générés aléatoirement pour les tests.'
-    );
+    const confirmed = await confirm(t('poolView.autofill_confirm'));
 
     if (!confirmed) return;
 
@@ -780,10 +782,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     showToast(t('plural.scores_generated', { count: filledCount }), 'success');
 
     // Vérifier si le tableau est complet
-    const champion = updatedMatches.find(m => m.round === 2)?.winner;
-    const autoFillThirdPlace = updatedMatches.find(m => m.round === 3);
-    const autoFillThirdDone = !autoFillThirdPlace || !!autoFillThirdPlace.winner;
-    if (champion && autoFillThirdDone && onComplete) {
+    if (isTableauDone(updatedMatches) && onComplete) {
       const finalResults = calculateFinalResults(updatedMatches, ranking, tableauSize);
       onComplete(finalResults);
     }
@@ -812,21 +811,30 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     );
   };
 
+  // Ferme la modale de score et remet le formulaire à zéro
+  const closeScoreModal = () => {
+    setShowScoreModal(false);
+    setEditingMatch(null);
+    setEditingConsolationId(null);
+    setEditScoreA('');
+    setEditScoreB('');
+    setVictoryA(false);
+    setVictoryB(false);
+  };
+
   const handleScoreSubmit = () => {
     if (!editingMatch) return;
 
     const scoreA = parseInt(editScoreA) || 0;
     const scoreB = parseInt(editScoreB) || 0;
 
-    // Validation
-    if (scoreA === scoreB && !victoryA && !victoryB) {
-      showToast('Les scores ne peuvent pas être égaux en élimination directe', 'error');
-      return;
-    }
+    // Validation : pas d'égalité hors Sabre Laser ; en Laser, l'égalité exige un vainqueur (V ou tirage)
+    const tieError = tieScoreError(scoreA, scoreB, victoryA || victoryB, tieBreakByVictory);
+    if (tieError) return showToast(t(tieError), 'error');
 
     if (!isUnlimitedScore && maxScore > 0) {
       if (scoreA > maxScore || scoreB > maxScore) {
-        showToast(`Le score ne peut pas dépasser ${maxScore}`, 'error');
+        showToast(t('tableauView.max_score', { max: maxScore }), 'error');
         return;
       }
     }
@@ -836,34 +844,16 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       const bracket = consolationBrackets.find(b => b.id === editingConsolationId);
       if (bracket) {
         const match = bracket.matches.find(m => m.id === editingMatch);
-        let winner: Fencer | null = null;
-        if (victoryA) winner = match?.fencerA || null;
-        else if (victoryB) winner = match?.fencerB || null;
-        else if (scoreA > scoreB) winner = match?.fencerA || null;
-        else if (scoreB > scoreA) winner = match?.fencerB || null;
+        const winner = resolveMatchWinner(match, scoreA, scoreB, victoryA, victoryB);
         updateConsolationMatch(editingConsolationId, editingMatch, scoreA, scoreB, winner);
       }
-      setShowScoreModal(false);
-      setEditingMatch(null);
-      setEditingConsolationId(null);
-      setEditScoreA('');
-      setEditScoreB('');
-      setVictoryA(false);
-      setVictoryB(false);
+      closeScoreModal();
       return;
     }
 
-    // Déterminer le vainqueur
-    let winner: Fencer | null = null;
-    if (victoryA) {
-      winner = matches.find(m => m.id === editingMatch)?.fencerA || null;
-    } else if (victoryB) {
-      winner = matches.find(m => m.id === editingMatch)?.fencerB || null;
-    } else if (scoreA > scoreB) {
-      winner = matches.find(m => m.id === editingMatch)?.fencerA || null;
-    } else if (scoreB > scoreA) {
-      winner = matches.find(m => m.id === editingMatch)?.fencerB || null;
-    }
+    undo.record(matches);
+    const editedMatch = matches.find(m => m.id === editingMatch);
+    const winner = resolveMatchWinner(editedMatch, scoreA, scoreB, victoryA, victoryB);
 
     const updatedMatches = matches.map(match => {
       if (match.id === editingMatch) {
@@ -886,20 +876,12 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     onMatchesChange(matchesCopy);
 
     // Vérifier si le tableau est complet (finale + petite finale si elle existe)
-    const champion = updatedMatches.find(m => m.round === 2)?.winner;
-    const thirdPlaceMatch = updatedMatches.find(m => m.round === 3);
-    const thirdPlaceDone = !thirdPlaceMatch || !!thirdPlaceMatch.winner;
-    if (champion && thirdPlaceDone && onComplete && !playAllPositions) {
+    if (isTableauDone(updatedMatches) && onComplete && !playAllPositions) {
       const finalResults = calculateFinalResults(updatedMatches, ranking, tableauSize);
       onComplete(finalResults);
     }
 
-    setShowScoreModal(false);
-    setEditingMatch(null);
-    setEditScoreA('');
-    setEditScoreB('');
-    setVictoryA(false);
-    setVictoryB(false);
+    closeScoreModal();
   };
 
   // Annulation d'un match (#1115) : score effacé, vainqueur retiré du tour suivant
@@ -909,7 +891,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
       const bracket = consolationBrackets.find(b => b.id === editingConsolationId);
       const reset = bracket ? resetTableauMatch(bracket.matches, editingMatch) : null;
       if (!bracket || !reset) {
-        showToast('Impossible : le match suivant a déjà été joué', 'error');
+        showToast(t('tableauView.next_played'), 'error');
         return;
       }
       setConsolationBrackets(prev =>
@@ -922,18 +904,13 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     } else {
       const reset = resetTableauMatch(matches, editingMatch);
       if (!reset) {
-        showToast('Impossible : le match suivant a déjà été joué', 'error');
+        showToast(t('tableauView.next_played'), 'error');
         return;
       }
+      undo.record(matches);
       onMatchesChange(reset);
     }
-    setShowScoreModal(false);
-    setEditingMatch(null);
-    setEditingConsolationId(null);
-    setEditScoreA('');
-    setEditScoreB('');
-    setVictoryA(false);
-    setVictoryB(false);
+    closeScoreModal();
   };
 
   const openScoreModal = (match: TableauMatch, consolationId?: string) => {
@@ -941,8 +918,9 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     setEditingConsolationId(consolationId ?? null);
     setEditScoreA(match.scoreA?.toString() || '');
     setEditScoreB(match.scoreB?.toString() || '');
-    setVictoryA(false);
-    setVictoryB(false);
+    const tie = tieVictoryOf(match);
+    setVictoryA(tie.a);
+    setVictoryB(tie.b);
     setShowScoreModal(true);
   };
 
@@ -956,44 +934,11 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     const title = `Tableau de ${tableauSize}${roundLabel ? ` — ${roundLabel}` : ''}`;
     const logo = localStorage.getItem('bellepoule-logo') ?? undefined;
     try {
-      // Récupérer les signatures des combattants (saisies sur tablette)
-      let signatures: Record<string, { A?: string; B?: string }> | undefined;
-      try {
-        const api = (window as any).electronAPI;
-        const ids = filteredMatches.map(m => m.id).filter(Boolean);
-        const rows = (await api?.db?.getDEMatchSignaturesByMatchIds?.(ids)) ?? [];
-        if (rows.length > 0) {
-          signatures = {};
-          for (const row of rows) {
-            const match = filteredMatches.find(m => m.id === row.matchId);
-            if (!match) continue;
-            const slot =
-              match.fencerA?.id === row.fencerId
-                ? 'A'
-                : match.fencerB?.id === row.fencerId
-                  ? 'B'
-                  : null;
-            if (!slot) continue;
-            (signatures[row.matchId] ??= {})[slot] = row.signatureData;
-          }
-        }
-      } catch {
-        /* signatures optionnelles */
-      }
+      const signatures = await loadDESignatures(filteredMatches);
 
-      const { printTableauHTML, exportTableauToPDF, previewTableauHTML } =
-        await import('../../shared/utils/pdfExport');
+      const { printTableauHTML, exportTableauToPDF } = await import('../../shared/utils/pdfExport');
       if (pdfMode === 'print') {
         await printTableauHTML(filteredMatches, perPage, title, logo, tableauTemplate, signatures);
-      } else if (pdfMode === 'preview') {
-        await previewTableauHTML(
-          filteredMatches,
-          perPage,
-          title,
-          logo,
-          tableauTemplate,
-          signatures
-        );
       } else {
         await exportTableauToPDF(
           filteredMatches,
@@ -1030,15 +975,6 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     setShowPdfModal(true);
   }, [matches]);
 
-  const handlePreviewClick = useCallback(() => {
-    setPdfMode('preview');
-    const rounds = [
-      ...new Set(matches.filter(m => m.fencerA && m.fencerB && !m.isBye).map(m => m.round)),
-    ].sort((a, b) => b - a);
-    setSelectedRounds(new Set(rounds));
-    setShowPdfModal(true);
-  }, [matches]);
-
   // Ctrl+P / Cmd+P → imprimer les feuilles de match du tableau
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -1051,8 +987,13 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     return () => window.removeEventListener('keydown', handler);
   }, [handlePrintClick]);
 
-  const handleSpecialStatus = (status: 'abandon' | 'forfait' | 'exclusion', fencerId: string) => {
+  const handleSpecialStatus = (
+    status: 'abandon' | 'forfait' | 'exclusion',
+    fencerId: string,
+    blackCard = false
+  ) => {
     if (!editingMatch) return;
+    if (status === 'exclusion' && blackCard) onBlackCard?.(fencerId);
 
     // L'adversaire du tireur sélectionné (qui abandonne / forfait / est exclu) gagne
     const opponentWinner = (m: { fencerA?: Fencer | null; fencerB?: Fencer | null }) => {
@@ -1085,6 +1026,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     const match = matches.find(m => m.id === editingMatch);
     if (!match) return;
 
+    undo.record(matches);
     // Dans un tableau à élimination directe, l'adversaire gagne dans tous les cas
     const winner: Fencer | null = opponentWinner(match);
 
@@ -1104,19 +1046,11 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     onMatchesChange([...updatedMatches]);
 
     // Vérifier si le tableau est complet après statut spécial
-    const specialChampion = updatedMatches.find(m => m.round === 2)?.winner;
-    const specialThirdPlace = updatedMatches.find(m => m.round === 3);
-    const specialThirdDone = !specialThirdPlace || !!specialThirdPlace.winner;
-    if (specialChampion && specialThirdDone && onComplete) {
+    if (isTableauDone(updatedMatches) && onComplete) {
       onComplete(calculateFinalResults(updatedMatches, ranking, tableauSize));
     }
 
-    setShowScoreModal(false);
-    setEditingMatch(null);
-    setEditScoreA('');
-    setEditScoreB('');
-    setVictoryA(false);
-    setVictoryB(false);
+    closeScoreModal();
   };
 
   // Rang de sortie de poules affiché sur les cartes (#1119)
@@ -1173,7 +1107,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           <span style={TV_STYLES.roundHeaderChevron} aria-hidden="true">
             {isExpanded ? '▼' : '▶'}
           </span>
-          {getRoundName(round)}
+          {getRoundName(round, t)}
         </button>
         {isExpanded && (
           <div
@@ -1279,12 +1213,12 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         onAutoAssignToggle={handleAutoAssignToggle}
         onBulkDeassign={handleBulkDeassign}
         onAutoFillScores={handleAutoFillScores}
+        onUndo={undo.canUndo && !readOnly ? undo.undo : undefined}
         viewMode={viewMode}
         onViewModeToggle={() => setViewMode(viewMode === 'full' ? 'pending' : 'full')}
         pyramidViewMode={pyramidViewMode}
         onPyramidViewModeToggle={() => setPyramidViewMode(!pyramidViewMode)}
         onPrintClick={handlePrintClick}
-        onPreviewClick={handlePreviewClick}
         onExportPdfClick={() => {
           setPdfMode('pdf');
           const rounds = [
@@ -1353,9 +1287,9 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
                 <button
                   onClick={() => setPendingOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))}
                   style={TV_STYLES.pendingOrderBtn}
-                  title={pendingOrder === 'asc' ? 'Affichage croissant' : 'Affichage décroissant'}
+                  title={t(`tableauView.order_${pendingOrder}_title`)}
                 >
-                  {pendingOrder === 'asc' ? '🔼 Croissant' : '🔽 Décroissant'}
+                  {t(`tableauView.order_${pendingOrder}`)}
                 </button>
               </div>
               {pendingViewRounds.map(round => (
@@ -1488,7 +1422,14 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
               onSubmit={handleScoreSubmit}
               onSpecialStatus={handleSpecialStatus}
               onMatchCancel={match.round <= tableauSize ? handleMatchCancel : undefined}
-              getRoundName={getRoundName}
+              getRoundName={r => getRoundName(r, t)}
+              tieBreakByVictory={tieBreakByVictory}
+              victoryA={victoryA}
+              victoryB={victoryB}
+              onVictoryChange={side => {
+                setVictoryA(side === 'A');
+                setVictoryB(side === 'B');
+              }}
             />
           );
         })()}

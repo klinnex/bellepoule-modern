@@ -4,7 +4,7 @@
 > Ne pas éditer à la main. La CI échoue (`npm run check:socket-doc`) s'il n'est
 > pas régénéré après ajout / suppression d'un événement.
 
-Serveur : `src/main/remoteScoreServer.ts` (Express 5 + Socket.IO, port 8066).
+Serveur : `src/main/remoteScoreServer.ts` + `src/main/remote/*.ts` (Express 5 + Socket.IO, port 8066).
 Clients : pages `src/remote/*.html`. `{…}` = segment dynamique (n° d'arène, de poule…).
 Guide fonctionnel : [ARBITRAGE.md](ARBITRAGE.md), [REMOTE_SCORE_GUIDE.md](../REMOTE_SCORE_GUIDE.md).
 
@@ -49,7 +49,7 @@ Champ `action` de l'événement `arena_control` (`handleArenaControl`) :
 | `auth_error` | ✓ | `referee.html`, `teamReferee.html` |
 | `bracket:update` | ✓ | `kiosk.html` |
 | `eta:update` | ✓ | `dashboard.html` |
-| `kiosk:data` | ✓ | `kiosk.html` |
+| `kiosk:data` | ✓ | `demo.html`, `kiosk.html` |
 | `kiosk:note` | ✓ | — |
 | `logo:update` | ✓ | `kiosk.html` |
 | `match:finished` | ✓ | — |

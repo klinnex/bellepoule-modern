@@ -455,7 +455,7 @@
 | Plateforme | Version Minimum | Statut |
 |------------|-----------------|--------|
 | Windows | 10 (64-bit) | ✅ Supporté |
-| macOS | 10.15 (Catalina) | ✅ Supporté |
+| macOS | 12 (Monterey), arm64 natif | ✅ Supporté |
 | Linux x64 | Ubuntu 20.04+ | ✅ Supporté |
 | Linux ARM64 | Raspberry Pi 4+ | ✅ Supporté |
 

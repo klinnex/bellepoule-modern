@@ -6,6 +6,8 @@
 import type express from 'express';
 import type { Arena } from '../../../shared/types/remote';
 import type { RouteContext } from './context';
+import { getSharedMainWindow } from '../../mainWindowRef';
+import { logger, LogCategory, toError } from '../../../shared/services/logger';
 
 type Guard = (cookieHeader: string | undefined) => {
   status: number;
@@ -118,11 +120,12 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
       };
 
       const newFencer = ctx.db.addFencer(competitionId, fencerData as any);
-      console.log(
+      logger.info(
+        LogCategory.NETWORK,
         `[RemoteScoreServer] Inscription tireur: ${fencerData.lastName} ${fencerData.firstName} (id=${newFencer.id})`
       );
       // Liste d'appel de l'organisateur rafraîchie en direct (#986)
-      const mainWin = (global as any).mainWindow;
+      const mainWin = getSharedMainWindow();
       if (mainWin && !mainWin.isDestroyed?.()) {
         mainWin.webContents.send('remote:checkin_updated', {
           kind: 'fencer',
@@ -132,7 +135,11 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
       }
       res.json({ success: true, fencerRef: newFencer.ref, fencerId: newFencer.id });
     } catch (err) {
-      console.error('[RemoteScoreServer] Erreur inscription tireur:', err);
+      logger.error(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] Erreur inscription tireur:',
+        toError(err)
+      );
       res.status(500).json({ error: 'registration_failed' });
     }
   });
@@ -236,7 +243,11 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
       );
       res.json({ success: true, comment: saved });
     } catch (err) {
-      console.error('[RemoteScoreServer] Erreur commentaire formateur:', err);
+      logger.error(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] Erreur commentaire formateur:',
+        toError(err)
+      );
       res.status(500).json({ error: 'save_failed' });
     }
   });
@@ -328,11 +339,11 @@ export function registerRegistrationRoutes(ctx: RegistrationRouteContext): void 
         ctx.db.updateReferee(id, { status: present ? 'available' : 'unavailable' });
       }
     } catch (err) {
-      console.error('[RemoteScoreServer] Erreur appel distant:', err);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur appel distant:', toError(err));
       return res.status(500).json({ error: 'update_failed' });
     }
 
-    const mainWin = (global as any).mainWindow;
+    const mainWin = getSharedMainWindow();
     if (mainWin && !mainWin.isDestroyed?.()) {
       mainWin.webContents.send('remote:checkin_updated', {
         kind: kind === 'fencers' ? 'fencer' : 'referee',

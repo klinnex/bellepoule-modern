@@ -152,8 +152,6 @@ function parseTXTLine(line: string, lineNumber: number): Partial<Fencer> | null 
   let gender = Gender.MIXED;
   const nationality = '';
   const club = '';
-  let birthDate: Date | undefined;
-  let ranking: number | undefined;
 
   // Essayer de détecter le sexe
   for (let i = 2; i < bestParts.length; i++) {
@@ -174,8 +172,6 @@ function parseTXTLine(line: string, lineNumber: number): Partial<Fencer> | null 
     gender,
     nationality: nationality || 'FRA', // Default France if not specified
     club: club || undefined,
-    birthDate,
-    ranking,
     status: FencerStatus.NOT_CHECKED_IN,
   };
 

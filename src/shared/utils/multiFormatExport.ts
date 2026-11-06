@@ -13,6 +13,7 @@ import {
   MatchEventEntry,
 } from '../types';
 import { getActiveLocale } from './localeFormat';
+import { applyBlackCardRanking } from './blackCardRanking';
 
 /**
  * Export results as HTML web page
@@ -205,7 +206,7 @@ export function exportRankingCSV(
   const getStatusLabel = (status: FencerStatus) => {
     switch (status) {
       case FencerStatus.ABANDONED:
-        return 'A';
+        return 'MED';
       case FencerStatus.FORFAIT:
         return 'F';
       case FencerStatus.EXCLUDED:
@@ -248,6 +249,7 @@ export interface TableauMatchForXML {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
+  U9: 'M9',
   U11: 'M11',
   U13: 'M13',
   U15: 'M15',
@@ -296,11 +298,30 @@ export function exportResultsXMLFFE(
   poolRanking: PoolRanking[],
   finalResults: any[],
   pools?: Pool[],
-  tableauMatches?: TableauMatchForXML[]
+  tableauMatches?: TableauMatchForXML[],
+  fencers?: Fencer[]
 ): string {
-  const finalRankMap = new Map<string, number>();
-  for (const r of finalResults) {
-    if (r.fencer?.id) finalRankMap.set(r.fencer.id, r.rank);
+  // Carton noir (#1418) : rang NULL (attribut vide), les suivants remontent, ex aequo départagés
+  // par le rang de poules. `fencers` (liste courante) rafraîchit statut / motif des instantanés.
+  const live = new Map((fencers ?? []).map(f => [f.id, f]));
+  const fresh = (f: Fencer): Fencer => {
+    const l = live.get(f.id);
+    return l ? { ...f, status: l.status, exclusionReason: l.exclusionReason } : f;
+  };
+  const inFinal = new Set(finalResults.map(r => r.fencer?.id));
+  const finalRankMap = new Map<string, number | null>();
+  for (const r of applyBlackCardRanking(
+    [
+      ...finalResults
+        .filter(r => r.fencer?.id)
+        .map(r => ({ rank: r.rank, fencer: fresh(r.fencer) })),
+      ...poolRanking
+        .filter(r => !inFinal.has(r.fencer.id))
+        .map(r => ({ rank: r.rank, fencer: fresh(r.fencer) })),
+    ],
+    new Map(poolRanking.map(r => [r.fencer.id, r.rank]))
+  )) {
+    finalRankMap.set(r.fencer.id, r.rank);
   }
 
   const rootTag = competition.isTeamEvent ? 'CompetitionParEquipe' : 'CompetitionIndividuelle';
@@ -338,7 +359,7 @@ export function exportResultsXMLFFE(
   lines.push(' <Tireurs>');
   for (const r of poolRanking) {
     const f = r.fencer;
-    const finalRank = finalRankMap.get(f.id) ?? r.rank;
+    const finalRank = finalRankMap.get(f.id) ?? '';
     lines.push(
       `  <Tireur` +
         ` ID="${f.ref}"` +
@@ -467,12 +488,20 @@ export function exportResultsXMLFFE(
     const rounds = Array.from(new Set(tableauMatches.map(m => m.round))).sort((a, b) => b - a);
     lines.push(`   <SuiteDeTableaux ID="0" Titre="Place n°1" NbDeTableaux="${rounds.length}">`);
     for (const round of rounds) {
-      const matchesOfRound = tableauMatches.filter(m => m.round === round && !m.isBye);
+      const matchesOfRound = tableauMatches.filter(m => m.round === round);
       lines.push(
         `    <Tableau ID="A${round}" Titre="${escapeXml(TABLEAU_TITLES[round] || `Tableau de ${round}`)}" Taille="${round}">`
       );
       matchesOfRound.forEach((m, idx) => {
-        if (!m.fencerA || !m.fencerB) return;
+        // Exempt (#1328) : le vainqueur par exempt est placé dans sa case, qualifié sans adversaire
+        if (!m.fencerA || !m.fencerB) {
+          const solo = m.fencerA ?? m.fencerB;
+          if (!solo) return;
+          lines.push(`     <Match ID="${idx + 1}">`);
+          lines.push(`      <Tireur REF="${solo.ref}" Score="0" Statut="Q"/>`);
+          lines.push(`     </Match>`);
+          return;
+        }
         const stA = (m.scoreA ?? 0) > (m.scoreB ?? 0) ? 'V' : 'D';
         const stB = stA === 'V' ? 'D' : 'V';
         lines.push(`     <Match ID="${idx + 1}">`);

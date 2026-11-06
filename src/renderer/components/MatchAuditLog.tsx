@@ -285,20 +285,12 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
   ]);
 
   const content = (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem' }}>
+    <div className="is-4a973e">
       {/* Heatmap zones Laser Sabre (visible quand matchId et données disponibles) */}
       {/* Sélection du match / de l'arbitre (vue compétition) */}
       {competitionMode && (
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <label
-            style={{
-              fontSize: '0.8rem',
-              color: 'var(--color-text-light)',
-              display: 'flex',
-              gap: '0.4rem',
-              alignItems: 'center',
-            }}
-          >
+        <div className="is-97f568">
+          <label className="is-2fd56d">
             {t('matchAudit.referee')}
             <select
               aria-label={t('matchAudit.filter_referee')}
@@ -314,15 +306,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
               ))}
             </select>
           </label>
-          <label
-            style={{
-              fontSize: '0.8rem',
-              color: 'var(--color-text-light)',
-              display: 'flex',
-              gap: '0.4rem',
-              alignItems: 'center',
-            }}
-          >
+          <label className="is-2fd56d">
             {t('matchAudit.match')}
             <select
               aria-label={t('matchAudit.select_match')}
@@ -342,16 +326,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
       )}
 
       {singleMatch && zoneStats && (
-        <div
-          style={{
-            display: 'flex',
-            gap: '1rem',
-            padding: '0.75rem',
-            background: '#1e1b4b',
-            borderRadius: '0.5rem',
-            border: '1px solid #3730a3',
-          }}
-        >
+        <div className="is-3ac18f">
           {(['A', 'B'] as const).map(side => {
             const s = zoneStats[side];
             const total = s.A + s.B + s.C;
@@ -378,15 +353,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                   const count = s[z];
                   const pct = total > 0 ? (count / total) * 100 : 0;
                   return (
-                    <div
-                      key={z}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.4rem',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
+                    <div key={z} className="is-4b4d3f">
                       <span
                         style={{
                           width: '28px',
@@ -395,17 +362,9 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                           fontWeight: 700,
                         }}
                       >
-                        {z} <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>{ZONE_PTS[z]}</span>
+                        {z} <span className="is-50199d">{ZONE_PTS[z]}</span>
                       </span>
-                      <div
-                        style={{
-                          flex: 1,
-                          height: '8px',
-                          background: '#312e81',
-                          borderRadius: '4px',
-                          overflow: 'hidden',
-                        }}
-                      >
+                      <div className="is-3718e4">
                         <div
                           style={{
                             width: `${pct}%`,
@@ -416,16 +375,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                           }}
                         />
                       </div>
-                      <span
-                        style={{
-                          width: '20px',
-                          fontSize: '0.72rem',
-                          color: '#c7d2fe',
-                          textAlign: 'right',
-                        }}
-                      >
-                        {count}
-                      </span>
+                      <span className="is-c3d23c">{count}</span>
                     </div>
                   );
                 })}
@@ -436,12 +386,8 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
       )}
 
       {/* Filtres */}
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span
-          style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', marginRight: '0.25rem' }}
-        >
-          {t('matchAudit.filter')}
-        </span>
+      <div className="is-e21653">
+        <span className="is-24ec95">{t('matchAudit.filter')}</span>
         {ALL_TYPES.map(t => {
           const active = filterTypes.length === 0 || filterTypes.includes(t);
           return (
@@ -463,9 +409,7 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
             </button>
           );
         })}
-        <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-          {t('matchAudit.events', { count: filtered.length })}
-        </span>
+        <span className="is-d109ae">{t('matchAudit.events', { count: filtered.length })}</span>
         <button
           onClick={() => setRefereeView(v => !v)}
           style={{
@@ -523,84 +467,21 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
       )}
 
       {/* Tableau */}
-      <div style={{ overflowY: 'auto', flex: 1 }}>
+      <div className="is-5e330c">
         {isLoading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-light)' }}>
-            {t('matchAudit.loading')}
-          </div>
+          <div className="is-7d15ad">{t('matchAudit.loading')}</div>
         ) : refereeView ? (
           refereeLastActions.length === 0 ? (
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '3rem',
-                color: 'var(--color-text-muted)',
-                fontSize: '0.875rem',
-              }}
-            >
-              {t('matchAudit.no_score')}
-            </div>
+            <div className="is-0a0298">{t('matchAudit.no_score')}</div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+            <table className="is-420b32">
               <thead>
-                <tr
-                  style={{
-                    background: 'var(--color-surface-2)',
-                    borderBottom: '2px solid var(--color-border)',
-                  }}
-                >
-                  <th
-                    style={{
-                      padding: '0.5rem 0.75rem',
-                      textAlign: 'left',
-                      fontWeight: '600',
-                      color: 'var(--color-text-light)',
-                    }}
-                  >
-                    {t('matchAudit.col_referee')}
-                  </th>
-                  <th
-                    style={{
-                      padding: '0.5rem 0.75rem',
-                      textAlign: 'left',
-                      fontWeight: '600',
-                      color: 'var(--color-text-light)',
-                    }}
-                  >
-                    IP
-                  </th>
-                  <th
-                    style={{
-                      padding: '0.5rem 0.75rem',
-                      textAlign: 'left',
-                      fontWeight: '600',
-                      color: 'var(--color-text-light)',
-                    }}
-                  >
-                    {t('matchAudit.col_last')}
-                  </th>
-                  {showMatchColumn && (
-                    <th
-                      style={{
-                        padding: '0.5rem 0.75rem',
-                        textAlign: 'left',
-                        fontWeight: '600',
-                        color: 'var(--color-text-light)',
-                      }}
-                    >
-                      {t('matchAudit.col_match')}
-                    </th>
-                  )}
-                  <th
-                    style={{
-                      padding: '0.5rem 0.75rem',
-                      textAlign: 'left',
-                      fontWeight: '600',
-                      color: 'var(--color-text-light)',
-                    }}
-                  >
-                    {t('matchAudit.col_score')}
-                  </th>
+                <tr className="is-1c37da">
+                  <th className="is-122ec1">{t('matchAudit.col_referee')}</th>
+                  <th className="is-122ec1">IP</th>
+                  <th className="is-122ec1">{t('matchAudit.col_last')}</th>
+                  {showMatchColumn && <th className="is-122ec1">{t('matchAudit.col_match')}</th>}
+                  <th className="is-122ec1">{t('matchAudit.col_score')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -612,56 +493,20 @@ const MatchAuditLogComponent: React.FC<MatchAuditLogProps> = ({
                       background: i % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-2)',
                     }}
                   >
-                    <td
-                      style={{
-                        padding: '0.5rem 0.75rem',
-                        fontWeight: '600',
-                        color: 'var(--color-text)',
-                      }}
-                    >
-                      {label}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem 0.75rem',
-                        color: 'var(--color-text-light)',
-                        fontFamily: 'monospace',
-                      }}
-                    >
-                      {entry.ipAddress ?? '—'}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem 0.75rem',
-                        color: 'var(--color-text-light)',
-                        fontFamily: 'monospace',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {formatTimestamp(entry.timestamp, baseTs)}
-                    </td>
+                    <td className="is-2d37af">{label}</td>
+                    <td className="is-631a7e">{entry.ipAddress ?? '—'}</td>
+                    <td className="is-9ff583">{formatTimestamp(entry.timestamp, baseTs)}</td>
                     {showMatchColumn && (
-                      <td style={{ padding: '0.5rem 0.75rem', color: 'var(--color-text)' }}>
-                        {matchLabelOf(entry.matchId)}
-                      </td>
+                      <td className="is-e3b51e">{matchLabelOf(entry.matchId)}</td>
                     )}
-                    <td style={{ padding: '0.5rem 0.75rem', color: 'var(--color-text)' }}>
-                      {describeMatchEvent(entry)}
-                    </td>
+                    <td className="is-e3b51e">{describeMatchEvent(entry)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )
         ) : filtered.length === 0 ? (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '3rem',
-              color: 'var(--color-text-muted)',
-              fontSize: '0.875rem',
-            }}
-          >
+          <div className="is-0a0298">
             {competitionMode && !selectedMatchId
               ? 'Aucun événement enregistré.'
               : 'Aucun événement enregistré pour ce match.'}

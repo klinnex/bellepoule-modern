@@ -16,12 +16,21 @@ Merci pour votre soutien ! / Thank you for your support!
 
 | Public | Document |
 |---|---|
+| Aperçu | **[Captures d'écran des menus](docs/SCREENSHOTS.md)** |
 | Organisateur | [Manuel utilisateur](USER_MANUAL.md) · [Installation](INSTALLATION.md) · [Saisie distante](REMOTE_SCORE_GUIDE.md) · [Démarrage express](REMOTE_SCORE_GUIDE.md#démarrage-express) |
 | Arbitre | **[Interface d'arbitrage](docs/ARBITRAGE.md)** · **[Scénarios de match](docs/SCENARIOS_MATCH.md)** |
 | Équipes | [Compétitions par équipes](docs/TEAM_COMPETITIONS.md) |
 | Exports | [Guide export PDF](docs/USER_GUIDE_PDF_EXPORT.md) · [Formats de fichiers](FILE_FORMATS.md) |
 | Développeur | [Architecture](ARCHITECTURE.md) · **[Stack technique et versions](docs/STACK_TECHNIQUE.md)** · [Guide de développement](DEVELOPMENT_GUIDE.md) · [Contribuer](CONTRIBUTING.md) |
 | Divers | [Dépannage](TROUBLESHOOTING.md) · [Mises à jour](UPDATE_SYSTEM.md) · [Sécurité saisie distante](docs/SECURITE_SAISIE_DISTANTE.md) · [Politique de sécurité](SECURITY.md) · [Index complet](docs/README.md) |
+
+### 📸 **Captures d'écran**
+
+| Poules | Tableau |
+|---|---|
+| [![Poules](docs/screenshots/06-poules.png)](docs/SCREENSHOTS.md#poules) | [![Tableau](docs/screenshots/08-tableau.png)](docs/SCREENSHOTS.md#tableau) |
+
+Tous les menus : **[docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)**.
 
 ### 🔧 **Installation**
 
@@ -119,6 +128,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 - 🇪🇸 **Català (Catalan)** _(Nouveau !)_
 - 🇩🇪 **Deutsch (Allemand)** _(Nouveau !)_
 - 🇪🇸 **Español (Espagnol)**
+- 🇮🇹 **Italiano (Italien)** _(Nouveau !)_
 - 🇭🇰 **繁體中文 (Chinois traditionnel – Hong Kong)** _(Nouveau !)_
 
 ## 🎯 Caractéristiques principales
@@ -126,7 +136,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 - **🗂️ Base de données SQLite** pour stocker toutes les données de compétition
 - **🌐 Interface moderne** avec design épuré et responsive
 - **📱 Gestion en temps réel** des scores et arènes
-- **🏊 Support multilingue** (français, anglais, breton, catalan, allemand, espagnol, chinois traditionnel HK)
+- **🏊 Support multilingue** (français, anglais, breton, catalan, allemand, espagnol, italien, chinois traditionnel HK)
 - **👨‍⚖️ Gestion des arbitres** avec assignation automatique et rotation
 - **🔔 Webhooks** Discord/Slack
 - **🖥️ Tableau de bord Live** pour affichage public en temps réel
@@ -199,7 +209,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 ### 🖥️ **Tableau de Bord Live**
 
-- 📺 **Affichage Public** (`/dashboard.html`, `/kiosk`) - Interface optimisée pour écrans géants
+- 📺 **Affichage Public** (`/kiosk`, `/areneN/public`) - Interface optimisée pour écrans géants
 - 🔴 **Matchs en Direct** - Suivi en temps réel des scores avec animations
 - 📊 **3 Vues Disponibles** : Poules / Tableau / Classement Final
 - 📱 **Design Responsive** - Adapté pour tous les écrans
@@ -267,7 +277,7 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 ### **Configuration minimale**
 
-- **OS** : Windows 10+, macOS 10.15+, Linux (Ubuntu 20.04+)
+- **OS** : Windows 10+, macOS 12+ (Apple Silicon natif arm64), Linux (Ubuntu 20.04+)
 - **RAM** : 4 Go minimum (8 Go recommandé)
 - **Stockage** : 500 Mo d'espace disque
 - **Réseau** : Connexion internet pour les fonctionnalités réseau (optionnel)
@@ -285,13 +295,13 @@ D'après l'analyse du code et les demandes utilisateurs, les prochaines mises à
 
 ## 🔧 **Technologies**
 
-- **Electron 44.5** (Node 22) : application de bureau multi-plateforme
+- **Electron 45** (Node 24) : application de bureau multi-plateforme
 - **React 19.3** + **Zustand 5** : interface et état
 - **TypeScript 6.0** (strict) + **Webpack 5**
 - **SQLite** via **better-sqlite3 13**
 - **Express 5** + **Socket.IO 4.8** : serveur temps réel des tablettes
 - **jsPDF 4** : génération PDF
-- **Vitest 4** + **Playwright 1.63** : tests
+- **Vitest 5** + **Playwright 1.64** : tests
 
 Liste complète et versions : [docs/STACK_TECHNIQUE.md](docs/STACK_TECHNIQUE.md).
 - **safeStorage (OS)** : chiffrement des secrets locaux
@@ -307,7 +317,7 @@ Liste complète et versions : [docs/STACK_TECHNIQUE.md](docs/STACK_TECHNIQUE.md)
 | Plateforme | Fichiers |
 |---|---|
 | **Windows** x64 | `BellePoule Modern-<version>-setup.exe` (installeur), `-portable.exe` |
-| **macOS** x64 / arm64 | `BellePoule Modern-<version>-<arch>.dmg` / `.zip` |
+| **macOS** x64 / arm64 | `BellePoule-Modern-<version>-mac-<arch>.dmg` — quelle version ? → [docs/MAC_VERSION.md](docs/MAC_VERSION.md) |
 | **Linux** x64 | `BellePoule Modern-<version>-<arch>.AppImage` / `.deb` / `.rpm` |
 
 ### 🧪 **Version de Développement** (Tests)
@@ -331,6 +341,8 @@ Mêmes formats, publiés en pré-release à chaque push sur `dev`.
 2. Double-cliquer pour monter l'image disque
 3. Glisser l'application dans le dossier Applications
 4. Accepter les permissions demandées
+
+Apple Silicon (M1+, MacBook Neo) : prendre le `.dmg` **arm64** ; Intel : **x64** (guide : [docs/MAC_VERSION.md](docs/MAC_VERSION.md)) (natif, sans Rosetta). App signée ad-hoc, non notarisée : au 1er lancement, si macOS affiche « endommagé », exécuter `xattr -cr "/Applications/BellePoule Modern.app"` (guide : [docs/MAC_VERSION.md](docs/MAC_VERSION.md)).
 
 #### **Linux**
 

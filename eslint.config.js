@@ -1,4 +1,4 @@
-// ESLint flat config (ESLint 9). Remplace .eslintrc.json (déprécié).
+// ESLint flat config (ESLint 9+). Remplace .eslintrc.json (déprécié).
 const js = require('@eslint/js');
 const tseslint = require('@typescript-eslint/eslint-plugin');
 const tsparser = require('@typescript-eslint/parser');
@@ -42,7 +42,8 @@ module.exports = [
       prettier,
     },
     settings: {
-      react: { version: 'detect' },
+      // Version explicite : 'detect' appelle context.getFilename(), retiré d'ESLint 10.
+      react: { version: require('react/package.json').version },
     },
     rules: {
       ...tseslint.configs.recommended.rules,
@@ -53,9 +54,18 @@ module.exports = [
       'react/prop-types': 'off',
       'react/no-unescaped-entities': 'off',
       'react-hooks/exhaustive-deps': 'warn',
+      // Règles React Compiler ajoutées par eslint-plugin-react-hooks 7 : dette existante,
+      // signalée en avertissement le temps de la résorber.
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/static-components': 'warn',
+      'react-hooks/immutability': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/preserve-manual-memoization': 'warn',
+      'react-hooks/purity': 'warn',
+      'react-hooks/globals': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'none' },

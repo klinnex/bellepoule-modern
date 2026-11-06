@@ -10,6 +10,7 @@ const BCP47: Record<string, string> = {
   en: 'en-GB',
   de: 'de-DE',
   es: 'es-ES',
+  it: 'it-IT',
   ca: 'ca-ES',
   br: 'br-FR',
   'zh-HK': 'zh-HK',

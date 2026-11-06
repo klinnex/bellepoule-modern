@@ -4,6 +4,11 @@
  * Licensed under GPL-3.0
  */
 
+/** Normalise une valeur capturée (catch) en Error pour logger.error/warn. */
+export function toError(value: unknown): Error {
+  return value instanceof Error ? value : new Error(String(value));
+}
+
 export enum LogLevel {
   DEBUG = 0,
   INFO = 1,

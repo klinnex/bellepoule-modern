@@ -29,7 +29,14 @@ describe('ipcErrorText (#1159)', () => {
 
   it('chaque code renvoyé par le process principal a sa clé errors.* (fr)', () => {
     const root = path.join(__dirname, '..', '..', 'main');
-    const files = ['main.ts', 'ipc/trainingHandlers.ts', 'ipc/dbHandlers.ts'];
+    // main.ts + tous les handlers IPC extraits (ipc/*.ts, hors tests)
+    const files = [
+      'main.ts',
+      ...fs
+        .readdirSync(path.join(root, 'ipc'))
+        .filter(f => f.endsWith('.ts') && !f.endsWith('.test.ts'))
+        .map(f => `ipc/${f}`),
+    ];
     const codes = new Set<string>();
     for (const f of files) {
       const src = fs.readFileSync(path.join(root, f), 'utf8');

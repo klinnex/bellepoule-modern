@@ -44,9 +44,55 @@ describe('AddFencerModal', () => {
     expect(onAdd).not.toHaveBeenCalled();
   });
 
-  it('le bouton annuler ferme la modale', () => {
+  it('annuler efface les champs sans fermer la modale', () => {
     const { onClose } = setup();
+    const input = screen.getByPlaceholderText('addFencer.last_name_ph') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'dupont' } });
     fireEvent.click(screen.getByText('actions.cancel'));
-    expect(onClose).toHaveBeenCalled();
+    expect(input.value).toBe('');
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('droitier par défaut, gaucher transmis', () => {
+    const { onAdd, container } = setup();
+    fireEvent.change(screen.getByPlaceholderText('addFencer.last_name_ph'), {
+      target: { value: 'a' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('addFencer.first_name_ph'), {
+      target: { value: 'b' },
+    });
+    expect((screen.getByLabelText(/addFencer.right/) as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(screen.getByLabelText(/addFencer.left/));
+    fireEvent.submit(container.querySelector('form')!);
+    expect(onAdd.mock.calls[0][0].handedness).toBe('L');
+  });
+
+  it('Ajouter garde la modale ouverte et vide le formulaire', () => {
+    const { onAdd, onClose } = setup();
+    const input = screen.getByPlaceholderText('addFencer.last_name_ph') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'a' } });
+    fireEvent.change(screen.getByPlaceholderText('addFencer.first_name_ph'), {
+      target: { value: 'b' },
+    });
+    fireEvent.click(screen.getByText('addFencer.add'));
+    expect(onAdd).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(input.value).toBe('');
+  });
+
+  it('la liste déroulante des nationalités sélectionne le code', () => {
+    const { onAdd, container } = setup();
+    fireEvent.click(screen.getByLabelText('addFencer.nationality_list', { selector: 'button' }));
+    fireEvent.change(screen.getByLabelText('addFencer.nationality_list', { selector: 'select' }), {
+      target: { value: 'GER' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('addFencer.last_name_ph'), {
+      target: { value: 'a' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('addFencer.first_name_ph'), {
+      target: { value: 'b' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
+    expect(onAdd.mock.calls[0][0].nationality).toBe('GER');
   });
 });

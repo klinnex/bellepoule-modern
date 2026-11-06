@@ -130,10 +130,10 @@ describe('exportRankingCSV', () => {
     expect(csv).toContain(';X;');
   });
 
-  it('marks ABANDONED fencer with A', () => {
+  it('marks ABANDONED fencer with MED (médical, #1256)', () => {
     const f = makeFencer('f1', 1, { status: FencerStatus.ABANDONED });
     const csv = exportRankingCSV([makeRanking(f)]);
-    expect(csv).toContain(';A;');
+    expect(csv).toContain(';MED;');
   });
 
   it('normal fencer has empty status cell', () => {
@@ -261,6 +261,19 @@ describe('exportResultsXMLFFE', () => {
     expect(xml).toContain('<Match');
   });
 
+  it('inclut les exempts du 1er tour dans leurs cases (#1328)', () => {
+    const f1 = { ref: 1 };
+    const f2 = { ref: 2 };
+    const f3 = { ref: 3 };
+    const tableauMatches = [
+      { round: 4, fencerA: f1, fencerB: null, scoreA: null, scoreB: null, isBye: true },
+      { round: 4, fencerA: f2, fencerB: f3, scoreA: 15, scoreB: 10, isBye: false },
+    ];
+    const xml = exportResultsXMLFFE(makeCompetition(), [], [], undefined, tableauMatches);
+    expect(xml).toContain('<Match ID="1">\n      <Tireur REF="1" Score="0" Statut="Q"/>');
+    expect(xml).toContain('<Match ID="2">');
+  });
+
   it('includes elimination bracket when tableauMatches provided', () => {
     const f1 = makeFencer('f1', 1, { ref: 1 });
     const f2 = makeFencer('f2', 2, { ref: 2 });
@@ -297,6 +310,51 @@ describe('exportResultsXMLFFE', () => {
     const f = makeFencer('f1', 1, { status: FencerStatus.ELIMINATED });
     const xml = exportResultsXMLFFE(makeCompetition(), [makeRanking(f)], []);
     expect(xml).toContain('Statut="E"');
+  });
+
+  describe('carton noir (#1418)', () => {
+    const f1 = makeFencer('f1', 1, { lastName: 'Un' });
+    const f2 = makeFencer('f2', 2, { lastName: 'Deux' });
+    const f3 = makeFencer('f3', 3, { lastName: 'Trois' });
+    const ranking = [
+      makeRanking(f1, { rank: 1 }),
+      makeRanking(f2, { rank: 2 }),
+      makeRanking(f3, { rank: 3 }),
+    ];
+    const finals = [
+      { rank: 1, fencer: f1 },
+      { rank: 2, fencer: f2 },
+      { rank: 3, fencer: f3 },
+    ];
+    const rankOf = (xml: string, lastName: string) =>
+      new RegExp(`Classement="([^"]*)"[^>]*Nom="${lastName}"`).exec(xml)?.[1];
+
+    it('rang vide (NULL) pour le carton noir, les suivants remontent', () => {
+      const carded = {
+        ...f2,
+        status: FencerStatus.EXCLUDED,
+        exclusionReason: 'black_card' as const,
+      };
+      const xml = exportResultsXMLFFE(makeCompetition(), ranking, finals, undefined, undefined, [
+        f1,
+        carded,
+        f3,
+      ]);
+      expect(rankOf(xml, 'Un')).toBe('1');
+      expect(rankOf(xml, 'Trois')).toBe('2');
+      expect(rankOf(xml, 'Deux')).toBe('');
+    });
+
+    it('exclusion simple : rang conservé', () => {
+      const out = { ...f2, status: FencerStatus.EXCLUDED };
+      const xml = exportResultsXMLFFE(makeCompetition(), ranking, finals, undefined, undefined, [
+        f1,
+        out,
+        f3,
+      ]);
+      expect(rankOf(xml, 'Deux')).toBe('2');
+      expect(rankOf(xml, 'Trois')).toBe('3');
+    });
   });
 });
 

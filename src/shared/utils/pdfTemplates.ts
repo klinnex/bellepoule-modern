@@ -8,6 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Pool, Match, MatchStatus, Fencer } from '../types';
 import { getActiveLocale } from './localeFormat';
+import { logger, LogCategory, toError } from '../services/logger';
 
 // Constantes locales
 const DIMENSIONS = {
@@ -328,9 +329,10 @@ export class SimplePdfTemplateManager {
         `poule-${pool.number}-${this.currentTemplate.id}-${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
     } catch (error) {
-      console.error("Erreur lors de l'export avec template:", error);
+      logger.error(LogCategory.BUSINESS, "Erreur lors de l'export avec template:", toError(error));
       throw new Error(
-        `Échec de l'export: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+        `Échec de l'export: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+        { cause: error }
       );
     }
   }
@@ -348,7 +350,7 @@ export class SimplePdfTemplateManager {
 
       let scoreV = '';
       let scoreP = '';
-      let status = '';
+      let status: string;
 
       if (match.status === MatchStatus.FINISHED && match.scoreA && match.scoreB) {
         scoreV = match.scoreA.value?.toString() || '';

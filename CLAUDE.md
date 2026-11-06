@@ -24,6 +24,7 @@ Give answer. Stop.
 - Réponds majoritairement en **diff unifié** quand on parle de modification de fichier
 - Si aucun changement nécessaire → réponds **uniquement** "OK – à jour" ou "Aucun changement"
 - Jamais plus de 450 lignes de diff par réponse
+- HTML : jamais de nettoyage par regex (`replace(/<script…/)`) → jsdom (scripts/tests) ou `escHtml` (remote). Sinon alerte CodeQL `js/incomplete-multi-character-sanitization`
 - Préfère Haiku 4.5 ou Sonnet 4.6 pour les tâches de doc (beaucoup moins cher)
 
 ## Documentation des tests – règle absolue
@@ -82,6 +83,7 @@ npm run check:bundle-size # Bundle budget (CI)
 npm run check:tests-doc # docs/TESTS.md à jour (CI)
 npm run docs:tests      # Régénère docs/TESTS.md (inventaire des tests)
 npm run docs:api        # TypeDoc API docs
+npm run docs:screenshots # Captures docs/screenshots (après build ; xvfb-run -a sous Linux)
 npm run analyze         # Webpack bundle analyzer (opens browser)
 npm run test:e2e        # Playwright E2E tests
 npm run e2e:debug       # Playwright debug mode
@@ -100,7 +102,7 @@ Main Process (src/main/)
 ├── preload.ts               # Secure IPC bridge (contextIsolation: true)
 ├── splash-preload.ts / splash.html  # Splash screen
 ├── remoteScoreServer.ts     # Express 5 + Socket.IO for tablets/screens (port 8066, HTTP or HTTPS)
-├── remote/                  # Extraits du serveur distant : network, types, htmlPages, fencerSchedule, auth (mots de passe, jetons, limites), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
+├── remote/                  # Extraits du serveur distant : network, types, fencerSchedule, auth (mots de passe, jetons, limites), socketHandlers, arenaControl (arena_control), middleware, sessionStart, matchFinish, arenaQueue, sessionSettings, blackCards, dashboard (contexte typé S['membre']), routes/ (api, pages, inscription, poules, matchs, résultats + contextes typés)
 ├── certManager.ts           # Self-signed TLS certificate (selfsigned)
 ├── autoUpdater.ts           # Auto-update (GitHub Releases)
 └── updateIntegrity.ts       # SHA-256 + trusted URL checks for updates
@@ -117,7 +119,7 @@ Renderer Process (src/renderer/)
 ├── hooks/                   # 19 custom hooks
 ├── contexts/                # TranslationContext (i18n)
 ├── services/                # offlineStorage.ts, offlineSync.ts
-├── locales/                 # i18n: fr, en, br (Breton), ca (Catalan), de (Deutsch), es (Español), zh-HK
+├── locales/                 # i18n: fr, en, br (Breton), ca (Catalan), de (Deutsch), es (Español), it (Italiano), zh-HK
 ├── styles/                  # CSS files
 └── sw.js                    # Service worker (offline support)
 
@@ -182,7 +184,7 @@ Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
 ├── kiosk.html / dashboard.html / lobby.html
 ├── login.html / checkin.html / register.html / trainer.html
 ├── app.js
-├── i18n.js                  # Client-side i18n for remote interfaces
+├── i18n.js + i18n/<lang>.js # Client-side i18n for remote interfaces (moteur + une langue par fichier, servis concaténés en /i18n.js)
 ├── common.js                # escHtml / html`` partagés : toute donnée dynamique passe par escHtml avant innerHTML (cliquet remoteUnescaped)
 ├── styles.css
 ├── sw.js                    # Service worker for offline tablet support
@@ -190,8 +192,9 @@ Remote Assets (src/remote/) — vanilla HTML/JS served by remoteScoreServer
 
 Database (src/database/)
 ├── index.ts             # DatabaseManager class (better-sqlite3), file <userData>/bellepoule.db
+├── repos/              # Dépôts par domaine (session, competition, fencer, match, pool, referee, team, signature) composés par DatabaseManager ; rowMappers.ts, sqlExecutor.ts
 ├── validation.ts        # Input validation
-└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 19 versions)
+└── migrations/          # Schema migrations (index.ts runner + migrations.ts, 20 versions)
 ```
 
 ### Key Patterns
@@ -236,7 +239,7 @@ enum Weapon { EPEE = 'E', FOIL = 'F', SABRE = 'S', LASER = 'L', CUSTOM = 'C' }
 
 enum Gender { MALE, FEMALE, MIXED }
 
-enum Category { U11, U13, U15, U17, U20, SENIOR, V1, V2, V3, V4 }
+enum Category { U9, U11, U13, U15, U17, U20, SENIOR, V1, V2, V3, V4 }
 
 enum FencerStatus {
   QUALIFIED, ELIMINATED, ABANDONED, EXCLUDED,
@@ -268,7 +271,7 @@ Core interfaces: `Fencer`, `Referee`, `Competition`, `Pool`, `Match`, `PoolRanki
 - Pool calculations include special "Quest Points" system for Laser Sabre weapon
 - Only native/runtime modules are in `dependencies` (better-sqlite3, lucide-react, selfsigned); everything else (React, Express, Socket.IO, `@types/*`) is a devDependency bundled by Webpack. Versions: `docs/STACK_TECHNIQUE.md`
 - Window: 1400×900, min 1024×768; CSP enforced (no inline scripts)
-- Electron 44.5; React 19.3; TypeScript 6.0; Express 5; Socket.IO 4.8; better-sqlite3 13 (Node 22); Vitest 4; Playwright 1.63
+- Electron 45; React 19.3; TypeScript 6.0; Express 5; Socket.IO 4.8; better-sqlite3 13 (Node 22 CI, Node 24 Electron); Vitest 5; Playwright 1.64
 
 ## Git Conventions
 

@@ -11,7 +11,8 @@ import {
   LayoutGrid,
   Medal,
   Plus,
-  Swords,
+  PlayCircle,
+  Sparkles,
   Trophy,
   Users,
 } from 'lucide-react';
@@ -22,9 +23,8 @@ import { usePagination } from '../hooks/usePagination';
 import { CompetitionCardSkeleton } from './Skeleton';
 import { useConfirm } from './ConfirmDialog';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
-
-const OPEN_FILE_LABEL = 'Ouvrir…';
-const OPEN_FILE_TITLE = 'Ouvrir un fichier .bpm, .db ou .cotcot';
+import { restartGuidedTour } from './guidedTourFlags';
+import { BrandLogo } from './common/BrandLogo';
 
 interface CompetitionListProps {
   competitions: Competition[];
@@ -36,6 +36,8 @@ interface CompetitionListProps {
   onNewCompetition: () => void;
   /** Ouvre un fichier compétition existant (absent hors Electron) */
   onOpenFile?: () => void;
+  /** Démo autonome : matchs joués seuls + écrans distants (absent hors Electron) */
+  onStartDemo?: () => void;
 }
 
 const CompetitionListComponent: React.FC<CompetitionListProps> = ({
@@ -46,6 +48,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   onExport,
   onNewCompetition,
   onOpenFile,
+  onStartDemo,
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
@@ -130,13 +133,12 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           }}
         >
           <div className="text-center">
-            <Swords
-              size={56}
-              strokeWidth={1.5}
-              color="var(--color-primary)"
+            <span
+              style={{ color: 'var(--color-primary)', display: 'inline-block' }}
               aria-hidden="true"
-              className="mb-4"
-            />
+            >
+              <BrandLogo size={72} className="mb-4" />
+            </span>
             <h1
               style={{
                 fontSize: '1.75rem',
@@ -254,13 +256,37 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                 className="btn btn-secondary btn-lg btn-icon-label"
                 onClick={onOpenFile}
                 style={{ padding: '0.75rem 1.5rem' }}
-                title={OPEN_FILE_TITLE}
+                title={t('competitionList.open_file_title')}
               >
                 <FolderOpen size={18} />
-                {OPEN_FILE_LABEL}
+                {t('competitionList.open_file')}
               </button>
             )}
           </div>
+
+          {/* Parcours guidé (#1305) : réactivé même s'il a déjà été fermé */}
+          <button
+            type="button"
+            className="btn btn-secondary btn-icon-label"
+            onClick={() => {
+              restartGuidedTour();
+              onNewCompetition();
+            }}
+          >
+            <Sparkles size={16} />
+            {t('competitionList.guided_start')}
+          </button>
+          {onStartDemo && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon-label"
+              onClick={onStartDemo}
+              title={t('demo.hint')}
+            >
+              <PlayCircle size={16} />
+              {t('demo.button')}
+            </button>
+          )}
 
           <p style={{ color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>
             {t('competitionList.tip_1')} <kbd>?</kbd> {t('competitionList.tip_2')} <kbd>Ctrl</kbd>+
@@ -285,14 +311,25 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
       <div className="flex justify-between items-center mb-4">
         <h1 className="page-title">{t('app.title')}</h1>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
+          {onStartDemo && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-lg btn-icon-label"
+              onClick={onStartDemo}
+              title={t('demo.hint')}
+            >
+              <PlayCircle size={18} />
+              {t('demo.button')}
+            </button>
+          )}
           {onOpenFile && (
             <button
               className="btn btn-secondary btn-lg btn-icon-label"
               onClick={onOpenFile}
-              title={OPEN_FILE_TITLE}
+              title={t('competitionList.open_file_title')}
             >
               <FolderOpen size={18} />
-              {OPEN_FILE_LABEL}
+              {t('competitionList.open_file')}
             </button>
           )}
           <button className="btn btn-primary btn-lg" onClick={onNewCompetition}>

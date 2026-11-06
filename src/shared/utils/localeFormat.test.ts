@@ -47,7 +47,11 @@ describe('formats selon la langue active (#1160)', () => {
   });
 
   it('langue inconnue : étiquette transmise telle quelle', () => {
-    expect(toBcp47('it')).toBe('it');
+    expect(toBcp47('pt')).toBe('pt');
+  });
+
+  it('italien : it-IT', () => {
+    expect(toBcp47('it')).toBe('it-IT');
   });
 });
 

@@ -4,14 +4,15 @@
  * Licensed under GPL-3.0
  */
 
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
 
 // DIAGNOSTIC inconditionnel : affiche les sondes serveur dans la console renderer.
-ipcRenderer.on('remote:diag', (_: any, msg: string) => {
+ipcRenderer.on('remote:diag', (_: IpcRendererEvent, msg: string) => {
   console.warn('[DIAG serveur]', msg);
 });
 import type {
   ElectronAPI,
+  UpdateInfo,
   CompetitionCreateData,
   CompetitionUpdateData,
   FencerCreateData,
@@ -31,6 +32,8 @@ import type {
   MatchTimingData,
   MatchSnapshot,
   ArenaExitData,
+  RemoteArenaUpdateEvent,
+  RemoteMatchFinishedEvent,
 } from '../shared/types/preload';
 
 // Input validation functions
@@ -75,7 +78,11 @@ const validateMatchData = (match: MatchCreateData): void => {
 
 // Expose protected methods that allow the renderer process
 // to use the ipcRenderer without exposing the entire object
-contextBridge.exposeInMainWorld('electronAPI', {
+// Fenêtre d'impression intégrée enregistrée par le renderer (#1214)
+type PrintRequestHandler = (html: string) => Promise<{ success: boolean; error?: string }>;
+let printRequestHandler: PrintRequestHandler | null = null;
+
+const electronApi = {
   // Database operations with validation
   db: {
     // Competitions
@@ -423,7 +430,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
       if (!html || typeof html !== 'string') {
         throw new Error('HTML content is required');
       }
-      return ipcRenderer.invoke('file:printHtml', html);
+      // Boîte d'impression intégrée (#1214), toujours active ; sinon aperçu PDF
+      if (printRequestHandler) return printRequestHandler(html);
+      return ipcRenderer.invoke('file:printHtml', html, { preview: true });
+    },
+    previewPdf: (html: string, title?: string) => {
+      if (!html || typeof html !== 'string') {
+        throw new Error('HTML content is required');
+      }
+      // Aperçu dans la boîte d'impression intégrée (#1214) : plus de fichier temporaire
+      if (printRequestHandler) return printRequestHandler(html);
+      return ipcRenderer.invoke('file:previewPdf', html, title);
     },
     printHtmlToPDF: (html: string, outputPath: string) => {
       if (!html || typeof html !== 'string') {
@@ -434,11 +451,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
       }
       return ipcRenderer.invoke('file:printHtmlToPDF', html, outputPath);
     },
-    previewHtmlAsPDF: (html: string) => {
+    countHtmlPages: (html: string) => {
       if (!html || typeof html !== 'string') {
         throw new Error('HTML content is required');
       }
-      return ipcRenderer.invoke('file:previewHtmlAsPDF', html);
+      return ipcRenderer.invoke('file:countHtmlPages', html);
     },
     exportPhotos: (competitionId: string, filepath: string) => {
       if (!competitionId || typeof competitionId !== 'string') {
@@ -523,6 +540,31 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onAutosaveFailed: (callback: () => void) => ipcRenderer.on('autosave:failed', callback),
   onDbReady: (callback: () => void) => ipcRenderer.once('db:ready', callback),
 
+  // Boîte d'impression intégrée (#1214)
+  printDialog: {
+    getPrinters: () => ipcRenderer.invoke('print:getPrinters'),
+    render: (html: string, settings?: Record<string, unknown>) => {
+      if (!html || typeof html !== 'string') throw new Error('HTML content is required');
+      return ipcRenderer.invoke('print:render', html, settings);
+    },
+    execute: (html: string, settings?: Record<string, unknown>) => {
+      if (!html || typeof html !== 'string') throw new Error('HTML content is required');
+      return ipcRenderer.invoke('print:execute', html, settings);
+    },
+    savePdf: (html: string, settings?: Record<string, unknown>, title?: string) => {
+      if (!html || typeof html !== 'string') throw new Error('HTML content is required');
+      return ipcRenderer.invoke('print:savePdf', html, settings, title);
+    },
+    systemDialog: (html: string) => {
+      if (!html || typeof html !== 'string') throw new Error('HTML content is required');
+      return ipcRenderer.invoke('print:systemDialog', html);
+    },
+    /** Le renderer enregistre la fenêtre d'impression qui traite les demandes `file.printHtml` */
+    setHandler: (handler: PrintRequestHandler | null) => {
+      printRequestHandler = typeof handler === 'function' ? handler : null;
+    },
+  },
+
   // Utility functions
   print: () => ipcRenderer.invoke('window:print'),
   setWindowSize: (width: number, height: number, options?: { force?: boolean }) =>
@@ -545,6 +587,36 @@ contextBridge.exposeInMainWorld('electronAPI', {
     hasPendingUpdate: () => ipcRenderer.invoke('updater:hasPendingUpdate'),
     getPendingUpdateInfo: () => ipcRenderer.invoke('updater:getPendingUpdateInfo'),
     installPendingUpdate: () => ipcRenderer.invoke('updater:installPendingUpdate'),
+    downloadAndInstall: () => ipcRenderer.invoke('updater:downloadAndInstall'),
+    getAutoCheck: () => ipcRenderer.invoke('updater:getAutoCheck'),
+    setAutoCheck: (enabled: boolean) => {
+      if (typeof enabled !== 'boolean') {
+        throw new Error('Enabled must be a boolean');
+      }
+      return ipcRenderer.invoke('updater:setAutoCheck', enabled);
+    },
+    getChannel: () => ipcRenderer.invoke('updater:getChannel'),
+    setChannel: (channel: 'stable' | 'dev') => {
+      if (channel !== 'stable' && channel !== 'dev') {
+        throw new Error('Invalid channel');
+      }
+      return ipcRenderer.invoke('updater:setChannel', channel);
+    },
+  },
+
+  // Rapport de diagnostic (fichier JSON, sans port réseau) (#1326)
+  diagnostic: {
+    exportReport: () => ipcRenderer.invoke('diagnostic:exportReport'),
+  },
+
+  // Publication des résultats sur GREG (escrime-info.com), envoi fait par le main (#1328)
+  greg: {
+    publish: (request: unknown) => ipcRenderer.invoke('greg:publish', request),
+  },
+
+  // Connecteur FTP/FTPS : dépôt du fichier de résultats (#1331)
+  ftp: {
+    publish: (request: unknown) => ipcRenderer.invoke('ftp:publish', request),
   },
 
   // Chiffrement OS (safeStorage) pour secrets locaux
@@ -574,7 +646,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       strips: number,
       matches?: any[],
       showPhotos?: boolean,
-      kioskViews?: { poules: boolean; classement: boolean; direct: boolean; suivants: boolean },
+      kioskViews?: Record<string, boolean>,
       cardAnnounce?: boolean
     ) =>
       ipcRenderer.invoke(
@@ -599,15 +671,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('remote:updateCardAnnounce', competitionId, value),
     updateTheme: (competitionId: string, theme: string) =>
       ipcRenderer.invoke('remote:updateTheme', competitionId, theme),
-    updateKioskViews: (
-      competitionId: string,
-      views: {
-        poules: boolean;
-        classement: boolean;
-        direct: boolean;
-        suivants: boolean;
-      }
-    ) => ipcRenderer.invoke('remote:updateKioskViews', competitionId, views),
+    updateKioskViews: (competitionId: string, views: Record<string, boolean>) =>
+      ipcRenderer.invoke('remote:updateKioskViews', competitionId, views),
     updateMatchArena: (
       competitionId: string,
       matchId: string,
@@ -665,6 +730,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         customTheme
       ),
     setWebhookUrl: (url: string | null) => ipcRenderer.invoke('remote:setWebhookUrl', url),
+    testWebhook: (url: string) => ipcRenderer.invoke('remote:testWebhook', url),
     updateLogo: (logo: string | null) => ipcRenderer.invoke('remote:updateLogo', logo),
     setTtsConfig: (config: unknown) => ipcRenderer.invoke('remote:setTtsConfig', config),
     setWallpaper: (competitionId: string, wallpaper: string | null) =>
@@ -725,8 +791,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('remote:sendClientCommand', competitionId, socketId, command),
     broadcastCommand: (competitionId: string, command: any) =>
       ipcRenderer.invoke('remote:broadcastCommand', competitionId, command),
-    onClientListUpdate: (cb: (clients: any[]) => void) => {
-      const handler = (_: any, clients: any[]) => cb(clients);
+    onClientListUpdate: (cb: (clients: any[], competitionId?: string | null) => void) => {
+      const handler = (_: IpcRendererEvent, clients: any[], competitionId?: string | null) =>
+        cb(clients, competitionId);
       ipcRenderer.on('remote:clientListUpdate', handler);
       return () => ipcRenderer.removeListener('remote:clientListUpdate', handler);
     },
@@ -749,16 +816,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getSession: () => ipcRenderer.invoke('training:getSession'),
     getArenas: () => ipcRenderer.invoke('training:getArenas'),
     getServerInfo: () => ipcRenderer.invoke('training:getServerInfo'),
+    openDemoScreens: (strips: number) => ipcRenderer.invoke('training:openDemoScreens', strips),
   },
 
   // Remote event listeners (for real-time updates)
-  onRemoteArenaUpdate: (callback: (data: any) => void) => {
-    const handler = (_: any, data: any) => callback(data);
+  onUpdateAvailable: (callback: (info: UpdateInfo) => void) => {
+    const handler = (_: IpcRendererEvent, info: UpdateInfo) => callback(info);
+    ipcRenderer.on('update:available', handler);
+    return () => ipcRenderer.removeListener('update:available', handler);
+  },
+  onUpdateProgress: (callback: (data: { progress: number }) => void) => {
+    const handler = (_: IpcRendererEvent, data: { progress: number }) => callback(data);
+    ipcRenderer.on('update:progress', handler);
+    return () => ipcRenderer.removeListener('update:progress', handler);
+  },
+  onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => {
+    const handler = (_: IpcRendererEvent, data: RemoteArenaUpdateEvent) => callback(data);
     ipcRenderer.on('arena:update', handler);
     return () => ipcRenderer.removeListener('arena:update', handler);
   },
-  onRemoteMatchFinished: (callback: (data: any) => void) => {
-    const handler = (_: any, data: any) => {
+  onRemoteMatchFinished: (callback: (data: RemoteMatchFinishedEvent) => void) => {
+    const handler = (_: IpcRendererEvent, data: RemoteMatchFinishedEvent) => {
       // DIAGNOSTIC : confirmer que l'IPC match:finished atteint bien le renderer.
       console.warn(
         '[preload] IPC match:finished reçu',
@@ -774,14 +852,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('match:finished', handler);
   },
   onTrainingMatchFinished: (callback: (data: any) => void) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('training:match_finished', handler);
     return () => ipcRenderer.removeListener('training:match_finished', handler);
+  },
+  onCompetitionEvent: (
+    callback: (event: { type: 'fencers:changed'; competitionId?: string }) => void
+  ) => {
+    const handler = (
+      _: IpcRendererEvent,
+      data: { type: 'fencers:changed'; competitionId?: string }
+    ) => callback(data);
+    ipcRenderer.on('competition:event', handler);
+    return () => ipcRenderer.removeListener('competition:event', handler);
   },
   onRemoteFencerExcluded: (
     callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void
   ) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('remote:fencer_excluded', handler);
     return () => ipcRenderer.removeListener('remote:fencer_excluded', handler);
   },
@@ -794,24 +882,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
       scoreB: number;
     }) => void
   ) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('remote:fencer_reinstated', handler);
     return () => ipcRenderer.removeListener('remote:fencer_reinstated', handler);
   },
   onRemoteCheckinUpdated: (
     callback: (data: { kind: 'fencer' | 'referee'; id: string; present: boolean }) => void
   ) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('remote:checkin_updated', handler);
     return () => ipcRenderer.removeListener('remote:checkin_updated', handler);
   },
   onRemoteRefereeChanged: (callback: (data: { matchId: string; refereeId: string }) => void) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('remote:referee_changed', handler);
     return () => ipcRenderer.removeListener('remote:referee_changed', handler);
   },
   onKioskNoteUpdate: (callback: (note: any) => void) => {
-    const handler = (_: any, note: any) => callback(note);
+    const handler = (_: IpcRendererEvent, note: any) => callback(note);
     ipcRenderer.on('kiosk:note', handler);
     return () => ipcRenderer.removeListener('kiosk:note', handler);
   },
@@ -826,18 +914,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
       fencerName?: string | null;
     }) => void
   ) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('remote:dt_call', handler);
     return () => ipcRenderer.removeListener('remote:dt_call', handler);
   },
   onDTCallCancel: (callback: (data: { arenaId: string }) => void) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('remote:dt_cancel', handler);
     return () => ipcRenderer.removeListener('remote:dt_cancel', handler);
   },
 
   onScoreIpConflict: (callback: (data: any) => void) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('score:ip-conflict', handler);
     return () => ipcRenderer.removeListener('score:ip-conflict', handler);
   },
@@ -845,21 +933,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onPoolSignatureUpdated: (
     callback: (data: { poolId: string; signedFencerIds: string[]; totalFencers: number }) => void
   ) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('pool:signature:updated', handler);
     return () => ipcRenderer.removeListener('pool:signature:updated', handler);
   },
 
   onTableauSignatureUpdated: (callback: (data: { matchId: string; fencerId: string }) => void) => {
-    const handler = (_: any, data: any) => callback(data);
+    const handler = (_: IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on('tableau:signature:updated', handler);
     return () => ipcRenderer.removeListener('tableau:signature:updated', handler);
   },
 
   getLogo: () => ipcRenderer.invoke('app:getLogo'),
+  getLogos: () => ipcRenderer.invoke('app:getLogos'),
+  saveLogos: (logos: { id: string; name: string; data: string }[]) =>
+    ipcRenderer.invoke('app:saveLogos', logos),
   getTtsConfig: () => ipcRenderer.invoke('app:getTtsConfig'),
   onLogoLoaded: (callback: (logo: string | null) => void) => {
-    const handler = (_: any, logo: string | null) => callback(logo);
+    const handler = (_: IpcRendererEvent, logo: string | null) => callback(logo);
     ipcRenderer.on('app:logoLoaded', handler);
     return () => ipcRenderer.removeListener('app:logoLoaded', handler);
   },
@@ -882,7 +973,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const arg = process.argv.find(a => a.startsWith('--initial-lang='));
     return arg ? arg.slice('--initial-lang='.length) : null;
   })(),
-});
+} satisfies ElectronAPI;
+
+contextBridge.exposeInMainWorld('electronAPI', electronApi);
 
 // Type declarations for the renderer
 declare global {

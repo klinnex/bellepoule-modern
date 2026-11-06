@@ -5,12 +5,37 @@
  */
 
 import { PoolRanking, Weapon } from '../../types';
+import { statusCode } from '../forfeit';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
-import { formatQuestPerMatch, isDnf } from '../poolCalculations';
+import {
+  savePDF,
+  printHTML,
+  buildCssOverrides,
+  assembleBody,
+  BASE_CSS,
+  pdfLang,
+  pdfT,
+} from './core';
+import { formatQuestPerMatch, isDnf, isDnsRanking } from '../poolCalculations';
 import { getActiveLocale } from '../localeFormat';
 
 // ─── Export Classement Général ───────────────────────────────────────────────
+
+/** Style du tableau de classement, partagé avec le classement du tournoi des rapières (#1279) */
+export const RANKING_TABLE_CSS = `
+table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+th {
+  background: var(--navy); color: var(--white);
+  font-size: 8pt; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; padding: 2.5mm 3mm; text-align: center;
+}
+td { padding: 2mm 3mm; border-bottom: 1px solid var(--gray-light); vertical-align: middle; overflow-wrap: anywhere; }
+tr:nth-child(even) td { background: var(--gray-xlight); }
+tr:nth-child(1) td, tr:nth-child(2) td, tr:nth-child(3) td { font-size: 9.5pt; }
+tr:nth-child(1) td:first-child { color: #d97706; font-size: 11pt; }
+tr:nth-child(2) td:first-child { color: #6b7280; font-size: 11pt; }
+tr:nth-child(3) td:first-child { color: #92400e; font-size: 11pt; }
+`;
 
 export function generateRankingHTML(
   ranking: PoolRanking[],
@@ -18,7 +43,8 @@ export function generateRankingHTML(
   isLaserSabre: boolean,
   visibleColumns: string[],
   logoBase64?: string,
-  template?: PdfTemplate
+  template?: PdfTemplate,
+  nameLabels?: { lastName: string; firstName: string }
 ): string {
   const vis = (col: string) => visibleColumns.includes(col);
   const now = new Date().toLocaleDateString(getActiveLocale(), {
@@ -31,13 +57,11 @@ export function generateRankingHTML(
     .map(r => {
       const ratio = r.matchesPlayed > 0 ? (r.victories / r.matchesPlayed).toFixed(2) : '0.00';
       const idx = r.index >= 0 ? `+${r.index}` : `${r.index}`;
-      const abandoned =
-        (r.fencer as any).status === 'ABANDONED'
-          ? ' <span style="color:#ef4444;font-size:8pt">(A)</span>'
-          : '';
+      const code = statusCode(r.fencer.status);
+      const abandoned = code ? ` <span style="color:#ef4444;font-size:8pt">(${code})</span>` : '';
       return `
 <tr>
-  ${vis('rank') ? `<td style="text-align:center;font-weight:700;color:var(--navy)">${isDnf(r) ? pdfT('dnf', 'DNF') : r.rank}</td>` : ''}
+  ${vis('rank') ? `<td style="text-align:center;font-weight:700;color:var(--navy)">${isDnsRanking(r) ? pdfT('dns', 'DNS') : isDnf(r) ? pdfT('dnf', 'DNF') : r.rank}</td>` : ''}
   ${vis('lastName') ? `<td style="font-weight:600">${r.fencer.lastName.toUpperCase()}${abandoned}</td>` : ''}
   ${vis('firstName') ? `<td>${r.fencer.firstName ?? ''}</td>` : ''}
   ${vis('club') ? `<td style="color:var(--gray-dark)">${r.fencer.club ?? ''}</td>` : ''}
@@ -56,8 +80,8 @@ export function generateRankingHTML(
 
   const headers = [
     th('rank', pdfT('col_rank', 'Rg'), 'width:10mm'),
-    th('lastName', pdfT('col_last_name', 'Nom'), 'text-align:left'),
-    th('firstName', pdfT('col_first_name', 'Prénom'), 'text-align:left'),
+    th('lastName', nameLabels?.lastName ?? pdfT('col_last_name', 'Nom'), 'text-align:left'),
+    th('firstName', nameLabels?.firstName ?? pdfT('col_first_name', 'Prénom'), 'text-align:left'),
     th('club', pdfT('col_club', 'Club'), 'text-align:left'),
     th('victories', pdfT('col_v', 'V')),
     th('ratio', pdfT('col_ratio', 'V/M')),
@@ -106,18 +130,7 @@ export function generateRankingHTML(
   <style>
     ${BASE_CSS}
     ${cssOverrides}
-    table { width: 100%; border-collapse: collapse; font-size: 9pt; }
-    th {
-      background: var(--navy); color: var(--white);
-      font-size: 8pt; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.8px; padding: 2.5mm 3mm; text-align: center;
-    }
-    td { padding: 2mm 3mm; border-bottom: 1px solid var(--gray-light); vertical-align: middle; }
-    tr:nth-child(even) td { background: var(--gray-xlight); }
-    tr:nth-child(1) td, tr:nth-child(2) td, tr:nth-child(3) td { font-size: 9.5pt; }
-    tr:nth-child(1) td:first-child { color: #d97706; font-size: 11pt; }
-    tr:nth-child(2) td:first-child { color: #6b7280; font-size: 11pt; }
-    tr:nth-child(3) td:first-child { color: #92400e; font-size: 11pt; }
+    ${RANKING_TABLE_CSS}
   </style>
 </head>
 <body>
@@ -126,14 +139,15 @@ ${body}
 </html>`;
 }
 
-export async function exportRankingToPDF(
+function buildRankingHTML(
   ranking: PoolRanking[],
   title: string = pdfT('ranking_title', 'Classement Général'),
   weapon?: Weapon,
   visibleColumns?: string[],
   logoBase64?: string,
-  template?: PdfTemplate
-): Promise<void> {
+  template?: PdfTemplate,
+  nameLabels?: { lastName: string; firstName: string }
+): string {
   if (ranking.length === 0)
     throw new Error(pdfT('ranking_empty', 'Aucun tireur dans le classement'));
   const isLaserSabre = weapon === 'L' || weapon === ('LASER' as any);
@@ -149,6 +163,18 @@ export async function exportRankingToPDF(
     'quest',
     'index',
   ];
-  const html = generateRankingHTML(ranking, title, isLaserSabre, cols, logoBase64, template);
-  await savePDF(html, 'classement-general.pdf');
+  return generateRankingHTML(ranking, title, isLaserSabre, cols, logoBase64, template, nameLabels);
+}
+
+export async function exportRankingToPDF(
+  ...args: Parameters<typeof buildRankingHTML>
+): Promise<void> {
+  await savePDF(buildRankingHTML(...args), 'classement-general.pdf');
+}
+
+/** Impression du classement (boîte d'impression intégrée avec aperçu, #1214) */
+export async function printRankingHTML(
+  ...args: Parameters<typeof buildRankingHTML>
+): Promise<void> {
+  await printHTML(buildRankingHTML(...args));
 }

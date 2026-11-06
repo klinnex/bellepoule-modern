@@ -164,7 +164,7 @@
     <div class="wrap">
       <h1 data-i18n="trainer.title">🎓 Espace formateurs — arbitrage</h1>
 
-      <div id="state-message" class="card message">Chargement…</div>
+      <div id="state-message" class="card message" data-i18n="remote.loading">Chargement…</div>
 
       <div id="login-view" class="card hidden">
         <form id="login-form">
@@ -283,7 +283,7 @@
             who.appendChild(sub);
             const badge = document.createElement('span');
             badge.className = 'badge' + (r.inMatch ? ' live' : '');
-            badge.textContent = r.inMatch ? 'En match' : 'Libre';
+            badge.textContent = r.inMatch ? tk('trainer.badge_live') : tk('trainer.badge_free');
             li.appendChild(who);
             li.appendChild(badge);
             li.addEventListener('click', () => openReferee(r));

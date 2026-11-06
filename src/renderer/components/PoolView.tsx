@@ -7,6 +7,10 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Funnel } from 'lucide-react';
 import { useModalResize } from '../hooks/useModalResize';
+import { useStateGroup } from '../hooks/useStateGroup';
+import { POOL_SCORE_INPUT_INIT, POOL_DIALOGS_INIT } from './pool/poolViewState';
+import { usePoolReferees } from './pool/usePoolReferees';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import Modal from './common/Modal';
 import {
   Pool,
@@ -30,8 +34,13 @@ import PoolMatchList from './pool/PoolMatchList';
 import Confetti from './Confetti';
 import AddFencerToPoolModal from './AddFencerToPoolModal';
 import { MatchAuditLog } from './MatchAuditLog';
+import { MedicalCrossIcon } from './common/MedicalCrossIcon';
+import SpecialStatusPanel, {
+  type SpecialStatus as PoolSpecialStatus,
+  type SpecialStatusFencer,
+} from './common/SpecialStatusPanel';
 import { autoAssignReferees } from '../../shared/utils/refereeStats';
-import { LASER_FORFEIT_WINNER_SCORE } from '../../shared/utils/poolCalculations';
+import { specialStatusOutcome } from './pool/poolSpecialStatus';
 import {
   SPECIAL_BTN,
   ROW_BETWEEN,
@@ -66,11 +75,15 @@ import {
   scoreInput,
 } from './poolView.styles';
 import { useTranslation } from '../hooks/useTranslation';
+import { parseVictoryScoreInput } from '../../shared/utils/tieBreak';
+import TiebreakerAnimation from './TiebreakerAnimation';
 
 interface PoolViewProps {
   pool: Pool;
   maxScore?: number;
   weapon?: Weapon;
+  /** Égalité tranchée par V (olympique, rapières, laser) — défaut : laser */
+  tieBreakByVictory?: boolean;
   competitionName?: string;
   competitionId?: string;
   onScoreUpdate: (
@@ -78,12 +91,17 @@ interface PoolViewProps {
     scoreA: number,
     scoreB: number,
     winnerOverride?: 'A' | 'B',
-    specialStatus?: 'abandon' | 'forfait' | 'exclusion'
+    specialStatus?: 'abandon' | 'forfait' | 'exclusion',
+    priority?: 'A' | 'B'
   ) => void;
   onMatchReset?: (matchIndex: number) => void;
   onMatchCancel?: (matchIndex: number) => void;
   onFencerChangePool?: (fencer: Fencer) => void;
-  onFencerStatusChange?: (fencerId: string, status: 'abandon' | 'forfait' | 'exclusion') => void;
+  onFencerStatusChange?: (
+    fencerId: string,
+    status: 'abandon' | 'forfait' | 'exclusion',
+    blackCard?: boolean
+  ) => void;
   onFencerAdded?: (updatedPool: Pool) => void;
   assignedFencerIds?: ReadonlySet<string>;
   arenaCount?: number;
@@ -114,10 +132,20 @@ interface PoolViewProps {
 
 type ViewMode = 'grid' | 'matches';
 
+const specialStatusFencers = (
+  left?: Fencer | null,
+  right?: Fencer | null
+): [SpecialStatusFencer | null, SpecialStatusFencer | null] => {
+  const toItem = (f?: Fencer | null) =>
+    f ? { id: f.id, name: `${f.lastName} ${f.firstName ?? ''}`.trim() } : null;
+  return [toItem(left), toItem(right)];
+};
+
 const PoolViewComponent: React.FC<PoolViewProps> = ({
   pool,
   maxScore = 5,
   weapon,
+  tieBreakByVictory,
   competitionName,
   competitionId,
   onScoreUpdate,
@@ -157,20 +185,51 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   const { isColumnVisible, toggleColumn, getVisibleColumns } = useColumnVisibility();
   const poolTemplate = usePdfTemplateStore(s => s.templates.pool);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [editingMatch, setEditingMatch] = useState<number | null>(null);
-  const [isMatchInverted, setIsMatchInverted] = useState(false);
-  // Statut spécial en attente de désignation du combattant (abandon/forfait/exclusion)
-  const [pendingSpecialStatus, setPendingSpecialStatus] = useState<
-    'abandon' | 'forfait' | 'exclusion' | null
-  >(null);
-  const [showColumnMenu, setShowColumnMenu] = useState(false);
+  // Saisie du score regroupée (modale + cellule inline) (#1241)
+  const {
+    editingMatch,
+    setEditingMatch,
+    isMatchInverted,
+    setIsMatchInverted,
+    editScoreA,
+    setEditScoreA,
+    editScoreB,
+    setEditScoreB,
+    victoryA,
+    setVictoryA,
+    victoryB,
+    setVictoryB,
+    setMatchesUpdateTrigger,
+    keyboardFocusField,
+    setKeyboardFocusField,
+    inlineEditCell,
+    setInlineEditCell,
+    inlineSingleScore,
+    setInlineSingleScore,
+    cellScoreBuffer,
+    setCellScoreBuffer,
+  } = useStateGroup(POOL_SCORE_INPUT_INIT);
+  // Modales et statut spécial en attente de désignation (abandon/forfait/exclusion) (#1241)
+  const {
+    showColumnMenu,
+    setShowColumnMenu,
+    showPoolConfetti,
+    setShowPoolConfetti,
+    showAddFencerModal,
+    setShowAddFencerModal,
+    auditMatchId,
+    setAuditMatchId,
+    showFinishedLog,
+    setShowFinishedLog,
+    pendingSpecialStatus,
+    setPendingSpecialStatus,
+  } = useStateGroup(POOL_DIALOGS_INIT);
   // Options d'export PDF / impression de la feuille de poule (persistées localement)
-  const [pdfHideStatColumns, setPdfHideStatColumns] = useState(
-    () => localStorage.getItem('bellepoule-pool-pdf-hide-stats') === 'true'
-  );
-  const [pdfLandscape, setPdfLandscape] = useState(
-    () => localStorage.getItem('bellepoule-pool-pdf-landscape') === 'true'
-  );
+  const { pdfHideStatColumns, setPdfHideStatColumns, pdfLandscape, setPdfLandscape } =
+    useStateGroup({
+      pdfHideStatColumns: localStorage.getItem('bellepoule-pool-pdf-hide-stats') === 'true',
+      pdfLandscape: localStorage.getItem('bellepoule-pool-pdf-landscape') === 'true',
+    });
   const togglePdfHideStatColumns = () => {
     const next = !pdfHideStatColumns;
     setPdfHideStatColumns(next);
@@ -182,34 +241,32 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     localStorage.setItem('bellepoule-pool-pdf-landscape', String(next));
   };
 
-  const [editScoreA, setEditScoreA] = useState('');
-  const [editScoreB, setEditScoreB] = useState('');
-  const [victoryA, setVictoryA] = useState(false);
-  const [victoryB, setVictoryB] = useState(false);
-  const [matchesUpdateTrigger, setMatchesUpdateTrigger] = useState(0);
-  const [keyboardFocusField, setKeyboardFocusField] = useState<'A' | 'B'>('A');
   const [signedFencerIds, setSignedFencerIds] = useState<string[]>([]);
   const [matchArenaOverrides, setMatchArenaOverrides] = useState<Map<string, number>>(new Map());
-  const [showRefereeModal, setShowRefereeModal] = useState(false);
-  const [competitionReferees, setCompetitionReferees] = useState<Referee[]>([]);
-  const [isLoadingReferees, setIsLoadingReferees] = useState(false);
-  const [assignedReferees, setAssignedReferees] = useState<Referee[]>(pool.referees ?? []);
-  // Sélection en cours dans la modale (mode multi-arbitres)
-  const [pendingRefereeIds, setPendingRefereeIds] = useState<string[]>([]);
+  // Désignation des arbitres de la poule (modale + affectation) (#1241)
+  const {
+    showRefereeModal,
+    competitionReferees,
+    isLoadingReferees,
+    pendingRefereeIds,
+    assignedReferees,
+    openRefereeModal,
+    closeRefereeModal,
+    handleAssignReferee,
+    togglePendingReferee,
+    confirmPendingReferees,
+  } = usePoolReferees({
+    poolId: pool.id,
+    initialReferees: pool.referees ?? [],
+    competitionId,
+    maxRefereesPerPool,
+    onRefereeAssigned,
+  });
   const isMultiReferee = maxRefereesPerPool > 1;
   const assignedReferee = assignedReferees[0] ?? null;
   const [hoveredFencerIds, setHoveredFencerIds] = useState<Set<string>>(new Set());
   const quickMouseScoring = localStorage.getItem('bellepoule-quick-mouse-scoring') === 'true';
   const simplifiedInputMode = localStorage.getItem('bellepoule-simplified-input-mode') === 'true';
-  const [inlineEditCell, setInlineEditCell] = useState<{
-    key: string;
-    rowId: string;
-    colId: string;
-    matchIndex: number;
-    inverted: boolean;
-  } | null>(null);
-  const [inlineSingleScore, setInlineSingleScore] = useState('');
-  const [cellScoreBuffer, setCellScoreBuffer] = useState<Record<string, number>>({});
 
   const defaultArena = (pool.strip != null && pool.strip > 0 ? pool.strip : pool.number) ?? 1;
 
@@ -234,65 +291,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     },
     [onMatchArenaChange]
   );
-
-  const openRefereeModal = useCallback(() => {
-    setPendingRefereeIds(assignedReferees.map(r => r.id));
-    setShowRefereeModal(true);
-    if (competitionId) {
-      setIsLoadingReferees(true);
-      window.electronAPI.db
-        .getRefereesByCompetition(competitionId)
-        .then(refs =>
-          // Arbitres non pointés masqués, sauf ceux déjà assignés (#977)
-          setCompetitionReferees(
-            refs.filter(
-              r => r.status !== 'unavailable' || assignedReferees.some(a => a.id === r.id)
-            )
-          )
-        )
-        .finally(() => setIsLoadingReferees(false));
-    }
-  }, [competitionId, assignedReferees]);
-
-  const closeRefereeModal = useCallback(() => setShowRefereeModal(false), []);
-
-  const applyReferees = useCallback(
-    (referees: Referee[]) => {
-      window.electronAPI.db.updatePoolReferees(
-        pool.id,
-        referees.map(r => r.id)
-      );
-      setAssignedReferees(referees);
-      setShowRefereeModal(false);
-      onRefereeAssigned?.(pool.id, referees);
-    },
-    [pool.id, onRefereeAssigned]
-  );
-
-  const handleAssignReferee = useCallback(
-    (referee: Referee | null) => {
-      applyReferees(referee ? [referee] : []);
-    },
-    [applyReferees]
-  );
-
-  const togglePendingReferee = useCallback(
-    (refereeId: string) => {
-      setPendingRefereeIds(prev => {
-        if (prev.includes(refereeId)) return prev.filter(id => id !== refereeId);
-        if (prev.length >= maxRefereesPerPool) return prev;
-        return [...prev, refereeId];
-      });
-    },
-    [maxRefereesPerPool]
-  );
-
-  const confirmPendingReferees = useCallback(() => {
-    const byId = new Map(
-      [...competitionReferees, ...assignedReferees].map(r => [r.id, r] as const)
-    );
-    applyReferees(pendingRefereeIds.map(id => byId.get(id)).filter((r): r is Referee => !!r));
-  }, [competitionReferees, assignedReferees, pendingRefereeIds, applyReferees]);
 
   const { addAction, undo, redo, canUndo, canRedo } = useHistory();
 
@@ -341,10 +339,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     [pool, onMatchReset, onScoreUpdate, addAction]
   );
 
-  const [showPoolConfetti, setShowPoolConfetti] = useState(false);
-  const [showAddFencerModal, setShowAddFencerModal] = useState(false);
-  const [auditMatchId, setAuditMatchId] = useState<string | null>(null);
-  const [showFinishedLog, setShowFinishedLog] = useState(false);
   const prevIsComplete = useRef(pool.isComplete);
 
   useEffect(() => {
@@ -356,6 +350,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   }, [pool.isComplete]);
 
   const isLaserSabre = weapon === Weapon.LASER;
+  const tieByVictory = tieBreakByVictory ?? isLaserSabre;
   const isLocked =
     pool.fencers.length > 0 &&
     signedFencerIds.filter(id => pool.fencers.some(f => f.id === id)).length >= pool.fencers.length;
@@ -377,6 +372,11 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
   const columnMenuRef = useRef<HTMLDivElement>(null);
   const handleScoreSubmitRef = useRef<() => void>(() => {});
+  // Égalité (armes olympiques, rapières) : minute prioritaire tirée et saisie rapide V (#1442)
+  const [priorityPick, setPriorityPick] = useState<'A' | 'B' | null>(null);
+  const [showTieChooser, setShowTieChooser] = useState(false);
+  const [showPriorityDraw, setShowPriorityDraw] = useState(false);
+  const [victoryText, setVictoryText] = useState('');
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -499,7 +499,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           setKeyboardFocusField(prev => (prev === 'A' ? 'B' : 'A'));
           return;
         }
-        if ((e.key === 'v' || e.key === 'V') && isLaserSabre && !inModalInput) {
+        if ((e.key === 'v' || e.key === 'V') && tieByVictory && !inModalInput) {
           e.preventDefault();
           if (keyboardFocusField === 'A') {
             setVictoryA(prev => !prev);
@@ -611,6 +611,67 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     minHeight: 300,
   });
 
+  const closeAndResetScoreModal = () => {
+    setEditingMatch(null);
+    setIsMatchInverted(false);
+    setEditScoreA('');
+    setEditScoreB('');
+    setVictoryA(false);
+    setVictoryB(false);
+    setPriorityPick(null);
+    setShowTieChooser(false);
+    setShowPriorityDraw(false);
+    setVictoryText('');
+  };
+
+  /** Égalité tranchée : V, minute prioritaire, ou égalité sans vainqueur (« Aucun ») (#1442) */
+  const commitTie = (scoreA: number, scoreB: number, winner?: 'A' | 'B', priority?: 'A' | 'B') => {
+    if (editingMatch === null) return;
+    const matchIdx = editingMatch;
+    const match = pool.matches[matchIdx];
+    const prevScoreA = match?.scoreA?.value ?? null;
+    const prevScoreB = match?.scoreB?.value ?? null;
+    addAction({
+      type: 'UPDATE_SCORE',
+      description: `Score poule ${pool.number} match ${matchIdx + 1}`,
+      undo: () => {
+        if (prevScoreA !== null && prevScoreB !== null)
+          onScoreUpdate(matchIdx, prevScoreA, prevScoreB);
+      },
+      redo: () => {
+        onScoreUpdate(matchIdx, scoreA, scoreB, winner, undefined, priority);
+      },
+    });
+    onScoreUpdate(matchIdx, scoreA, scoreB, winner, undefined, priority);
+    setMatchesUpdateTrigger(prev => prev + 1);
+    closeAndResetScoreModal();
+  };
+
+  /** Choix du vainqueur à égalité (gauche / droite affichées, ou « Aucun ») */
+  const chooseTieWinner = (choice: 'left' | 'right' | 'none') => {
+    const sL = parseInt(editScoreA, 10) || 0;
+    const sR = parseInt(editScoreB, 10) || 0;
+    const scoreA = isMatchInverted ? sR : sL;
+    const scoreB = isMatchInverted ? sL : sR;
+    const winner: 'A' | 'B' | undefined =
+      choice === 'none' ? undefined : (choice === 'left') !== isMatchInverted ? 'A' : 'B';
+    commitTie(scoreA, scoreB, winner);
+  };
+
+  /** Saisie rapide « V4-4 » / « 4-V4 » : remplit les scores et le V affichés */
+  const handleVictoryText = (text: string) => {
+    setVictoryText(text);
+    const parsed = parseVictoryScoreInput(text);
+    if (!parsed) return;
+    setEditScoreA(String(parsed.left));
+    setEditScoreB(String(parsed.right));
+    setVictoryA(parsed.victoryLeft);
+    setVictoryB(parsed.victoryRight);
+  };
+
+  // Focus piégé + Échap sur la modale de score (clic extérieur : ne ferme pas, #1115)
+  const scoreTrapRef = useFocusTrap<HTMLDivElement>(editingMatch !== null, closeAndResetScoreModal);
+
   const openScoreModal = (matchIndex: number, inverted = false) => {
     const match = pool.matches[matchIndex];
     setEditingMatch(matchIndex);
@@ -662,7 +723,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const actualScoreB = inverted ? scoreLeft : scoreRight;
 
     if (actualScoreA === actualScoreB) {
-      if (isLaserSabre) {
+      if (tieByVictory) {
         openScoreModal(matchIndex, inverted);
       }
       return;
@@ -781,11 +842,16 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
       const effectiveMax = maxScore || pool.matches[matchIndex]?.maxScore || 0;
       if (effectiveMax > 0 && (actualScoreA > effectiveMax || actualScoreB > effectiveMax)) {
-        showToast(`Score maximum : ${effectiveMax}`, 'error');
+        showToast(t('poolView.max_score', { max: effectiveMax }), 'error');
         return;
       }
       if (actualScoreA === actualScoreB && !isLaserSabre) {
-        showToast('Match nul impossible !', 'error');
+        // Olympique / rapières : l'égalité se tranche dans la fenêtre de saisie (V ou prioritaire)
+        if (tieByVictory) {
+          openScoreModal(matchIndex, inverted);
+          return;
+        }
+        showToast(t('poolView.draw_impossible'), 'error');
         return;
       }
 
@@ -815,11 +881,11 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const effectiveMax = maxScore || pool.matches[editingMatch]?.maxScore || 0;
     if (effectiveMax > 0) {
       if (scoreLeft > effectiveMax) {
-        showToast(`Le score du tireur A ne peut pas dépasser ${effectiveMax}`, 'error');
+        showToast(t('poolView.max_score_a', { max: effectiveMax }), 'error');
         return;
       }
       if (scoreRight > effectiveMax) {
-        showToast(`Le score du tireur B ne peut pas dépasser ${effectiveMax}`, 'error');
+        showToast(t('poolView.max_score_b', { max: effectiveMax }), 'error');
         return;
       }
     }
@@ -837,7 +903,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const matchIdx = editingMatch;
 
     if (actualScoreA === actualScoreB) {
-      if (isLaserSabre && (victoryA || victoryB)) {
+      if (tieByVictory && (victoryA || victoryB)) {
         // victoryA = victoire du tireur affiché à gauche (= fencerA si normal, fencerB si inversé)
         const winnerLeft = victoryA;
         const winner: 'A' | 'B' = isMatchInverted
@@ -860,7 +926,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         });
         onScoreUpdate(editingMatch, actualScoreA, actualScoreB, winner);
       } else if (isLaserSabre) {
-        showToast('Match nul : cliquez sur V pour attribuer la victoire', 'warning');
+        showToast(t('poolView.draw_laser'), 'warning');
         return;
       } else if (victoryA || victoryB) {
         // Tirage au sort déjà décidé (ex: résultat importé depuis une tablette arbitre)
@@ -884,11 +950,16 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
           },
         });
         onScoreUpdate(editingMatch, actualScoreA, actualScoreB, winner);
+      } else if (tieByVictory) {
+        // Minute prioritaire tirée avant la minute supplémentaire : le prioritaire gagne sans touche
+        if (priorityPick) {
+          commitTie(actualScoreA, actualScoreB, undefined, priorityPick);
+        } else {
+          setShowTieChooser(true);
+        }
+        return;
       } else {
-        showToast(
-          "Match nul impossible ! En match en direct, la mort subite de 30s s'applique automatiquement",
-          'error'
-        );
+        showToast(t('poolView.draw_live'), 'error');
         return;
       }
     } else {
@@ -910,12 +981,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     setMatchesUpdateTrigger(prev => prev + 1);
 
     // Fermer le modal immédiatement après la mise à jour
-    setEditingMatch(null);
-    setIsMatchInverted(false);
-    setEditScoreA('');
-    setEditScoreB('');
-    setVictoryA(false);
-    setVictoryB(false);
+    closeAndResetScoreModal();
   };
 
   // Mettre à jour la ref avec la fonction actuelle
@@ -923,13 +989,13 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
   // Ouvre la modale « Quel est le combattant … ? ». Les erreurs arrivent : on
   // ne déclenche rien tant que le référent n'a pas désigné un combattant.
-  const handleSpecialStatus = (status: 'abandon' | 'forfait' | 'exclusion') => {
+  const handleSpecialStatus = (status: PoolSpecialStatus) => {
     if (editingMatch === null) return;
     setPendingSpecialStatus(status);
   };
 
   // Le référent a désigné le combattant concerné (côté affiché) dans la modale
-  const applySpecialStatus = (side: 'left' | 'right') => {
+  const applySpecialStatus = (side: 'left' | 'right', blackCard = false) => {
     const status = pendingSpecialStatus;
     if (status === null || editingMatch === null) {
       setPendingSpecialStatus(null);
@@ -937,59 +1003,21 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     }
 
     const match = pool.matches[editingMatch];
-    // Respecter l'ordre d'affichage : le tireur affiché à gauche est "fencerLeft"
-    const fencerLeft = isMatchInverted ? match.fencerB : match.fencerA;
-    const fencerRight = isMatchInverted ? match.fencerA : match.fencerB;
-
-    // Sabre Laser (forfait/abandon) : le forfait perd en conservant les points qu'il
-    // vient de marquer, son adversaire obtient 15 points.
-    if (isLaserSabre && status !== 'exclusion') {
-      const leftForfeits = side === 'left';
-      const forfeiterPoints = Math.min(
-        parseInt(leftForfeits ? editScoreA : editScoreB, 10) || 0,
-        LASER_FORFEIT_WINNER_SCORE - 1
-      );
-      const leftScore = leftForfeits ? forfeiterPoints : LASER_FORFEIT_WINNER_SCORE;
-      const rightScore = leftForfeits ? LASER_FORFEIT_WINNER_SCORE : forfeiterPoints;
-      const winnerIsLeft = !leftForfeits;
-      const winner: 'A' | 'B' = isMatchInverted === winnerIsLeft ? 'B' : 'A';
-      onScoreUpdate(
-        editingMatch,
-        isMatchInverted ? rightScore : leftScore,
-        isMatchInverted ? leftScore : rightScore,
-        winner,
-        status
-      );
-      const forfeiter = leftForfeits ? fencerLeft : fencerRight;
-      if (onFencerStatusChange && forfeiter) {
-        onFencerStatusChange(forfeiter.id, status);
-      }
-    } else if (side === 'left') {
-      // Le tireur affiché à gauche abandonne
-      const winner: 'A' | 'B' = isMatchInverted ? 'A' : 'B';
-      onScoreUpdate(
-        editingMatch,
-        isMatchInverted ? match.scoreA?.value || maxScore : 0,
-        isMatchInverted ? 0 : match.scoreB?.value || maxScore,
-        winner,
-        status
-      );
-      if (onFencerStatusChange && fencerLeft) {
-        onFencerStatusChange(fencerLeft.id, status);
-      }
-    } else {
-      // Le tireur affiché à droite abandonne
-      const winner: 'A' | 'B' = isMatchInverted ? 'B' : 'A';
-      onScoreUpdate(
-        editingMatch,
-        isMatchInverted ? 0 : match.scoreA?.value || maxScore,
-        isMatchInverted ? match.scoreB?.value || maxScore : 0,
-        winner,
-        status
-      );
-      if (onFencerStatusChange && fencerRight) {
-        onFencerStatusChange(fencerRight.id, status);
-      }
+    const out = specialStatusOutcome({
+      side,
+      inverted: isMatchInverted,
+      status,
+      isLaserSabre,
+      editScoreLeft: editScoreA,
+      editScoreRight: editScoreB,
+      scoreA: match.scoreA?.value,
+      scoreB: match.scoreB?.value,
+      maxScore,
+    });
+    onScoreUpdate(editingMatch, out.scoreA, out.scoreB, out.winner, status);
+    const loserFencer = out.loser === 'A' ? match.fencerA : match.fencerB;
+    if (onFencerStatusChange && loserFencer) {
+      onFencerStatusChange(loserFencer.id, status, blackCard);
     }
 
     // Forcer la mise à jour de l'ordre des matchs
@@ -997,12 +1025,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
     // Fermer les modales immédiatement après la mise à jour
     setPendingSpecialStatus(null);
-    setEditingMatch(null);
-    setIsMatchInverted(false);
-    setEditScoreA('');
-    setEditScoreB('');
-    setVictoryA(false);
-    setVictoryB(false);
+    closeAndResetScoreModal();
   };
 
   const finishedCount = useMemo(
@@ -1033,19 +1056,18 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     };
   };
 
+  const errorText = (e: unknown) => (e instanceof Error ? e.message : t('poolView.unknown_error'));
+
   // Export PDF function
   const handleExportPDF = async () => {
     try {
       const options = await buildPoolPrintOptions();
       const { exportPoolToPDF } = await import('../../shared/utils/pdfExport');
       await exportPoolToPDF(pool, options, poolTemplate);
-      showToast(`Export PDF de la poule ${pool.number} généré avec succès`, 'success');
+      showToast(t('poolView.pdf_done', { n: pool.number }), 'success');
     } catch (error) {
       logger.error(LogCategory.UI, "Erreur lors de l'export PDF", error as Error);
-      showToast(
-        `Erreur lors de la génération du PDF: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
-        'error'
-      );
+      showToast(t('poolView.pdf_error', { error: errorText(error) }), 'error');
     }
   };
 
@@ -1057,36 +1079,16 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       await printPoolHTML(pool, options, poolTemplate);
     } catch (error) {
       logger.error(LogCategory.UI, "Erreur lors de l'impression de la poule", error as Error);
-      showToast(
-        `Erreur lors de l'impression: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
-        'error'
-      );
-    }
-  };
-
-  // Aperçu avant impression : ouvre le PDF dans le lecteur par défaut de l'OS
-  // (utile sur Windows 11, où la boîte de dialogue d'impression native n'affiche pas d'aperçu)
-  const handlePreviewPool = async () => {
-    try {
-      const options = await buildPoolPrintOptions();
-      const { previewPoolHTML } = await import('../../shared/utils/pdfExport');
-      await previewPoolHTML(pool, options, poolTemplate);
-    } catch (error) {
-      logger.error(LogCategory.UI, "Erreur lors de l'aperçu de la poule", error as Error);
-      showToast(
-        `Erreur lors de la génération de l'aperçu: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
-        'error'
-      );
+      showToast(t('poolView.print_error', { error: errorText(error) }), 'error');
     }
   };
 
   // Fonction pour remplir automatiquement tous les scores de la poule (pour les tests)
   const handleAutoFillScores = async () => {
     const confirmed = await confirm({
-      message:
-        'Remplir automatiquement tous les scores des matchs non terminés ?\n\nLes scores seront générés aléatoirement pour les tests.',
-      confirmLabel: 'Remplir',
-      cancelLabel: 'Annuler',
+      message: t('poolView.autofill_confirm'),
+      confirmLabel: t('poolView.autofill_ok'),
+      cancelLabel: t('actions.cancel'),
     });
 
     if (!confirmed) return;
@@ -1096,7 +1098,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
       .filter(({ match }) => match.status !== MatchStatus.FINISHED);
 
     if (pendingMatches.length === 0) {
-      showToast('Tous les matchs sont déjà terminés', 'info');
+      showToast(t('poolView.all_finished'), 'info');
       return;
     }
 
@@ -1166,17 +1168,72 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
     return (
       // Clic hors de la fenêtre : ne ferme pas (#1115)
-      <div className="modal-overlay">
+      <div className="modal-overlay" ref={scoreTrapRef}>
         <div
           ref={modalRef}
           className="modal resizable"
           style={SCORE_MODAL}
           onClick={e => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
         >
-          <div className="modal-header" style={{ cursor: 'move' }}>
+          <div className="modal-header is-0430c2">
             <h3 className="modal-title">{t('poolView.quick_score')}</h3>
           </div>
-          <div className="modal-body" style={{ padding: '2rem' }}>
+          <div className="modal-body is-a48125">
+            {/* Égalité olympique / rapières : saisie rapide V4-4 et minute prioritaire (#1442) */}
+            {tieByVictory && !isLaserSabre && (
+              <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={victoryText}
+                  placeholder={t('poolView.victory_input_placeholder')}
+                  aria-label={t('poolView.victory_input_placeholder')}
+                  onChange={e => handleVictoryText(e.target.value)}
+                />
+                {editScoreA !== '' &&
+                  editScoreB !== '' &&
+                  (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0) &&
+                  !!pool.matches[editingMatch]?.fencerA &&
+                  !!pool.matches[editingMatch]?.fencerB && (
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        className="btn btn-warning"
+                        onClick={() => setShowPriorityDraw(true)}
+                      >
+                        🪙 {t('poolView.priority_draw')}
+                      </button>
+                      {priorityPick && (
+                        <span className="text-muted">
+                          {t('poolView.priority_holder', {
+                            name: (() => {
+                              const f =
+                                priorityPick === 'A'
+                                  ? pool.matches[editingMatch]?.fencerA
+                                  : pool.matches[editingMatch]?.fencerB;
+                              return f ? `${f.lastName} ${f.firstName}`.trim() : '';
+                            })(),
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  )}
+              </div>
+            )}
+            {showPriorityDraw &&
+              pool.matches[editingMatch]?.fencerA &&
+              pool.matches[editingMatch]?.fencerB && (
+                <TiebreakerAnimation
+                  fencerA={pool.matches[editingMatch]!.fencerA!}
+                  fencerB={pool.matches[editingMatch]!.fencerB!}
+                  onComplete={winner => {
+                    setPriorityPick(winner);
+                    setShowPriorityDraw(false);
+                  }}
+                />
+              )}
             {/* Ligne unique avec les deux tireurs côte à côte */}
             <div style={SCORE_ROW}>
               {/* Tireur gauche (ligne dans la grille) */}
@@ -1192,8 +1249,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 );
               })()}
 
-              {/* Bouton Victoire Sabre Laser A */}
-              {isLaserSabre && (
+              {/* Bouton Victoire (égalité) A */}
+              {tieByVictory && (
                 <button
                   type="button"
                   onClick={() => {
@@ -1284,8 +1341,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 }}
               />
 
-              {/* Bouton Victoire Sabre Laser B */}
-              {isLaserSabre && (
+              {/* Bouton Victoire (égalité) B */}
+              {tieByVictory && (
                 <button
                   type="button"
                   onClick={() => {
@@ -1314,71 +1371,107 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
             {/* Info égalité sabre laser */}
             {isLaserSabre && (
-              <p
-                className="text-sm text-muted"
-                style={{ textAlign: 'center', marginBottom: '1rem' }}
-              >
-                {t('poolView.tie_hint')}
-              </p>
+              <p className="text-sm text-muted is-b92227">{t('poolView.tie_hint')}</p>
             )}
 
+            {/* Choix du tireur concerné : même affichage que le tableau, sans pop-up (#1418) */}
+            {pendingSpecialStatus !== null && editingMatch !== null && (
+              <SpecialStatusPanel
+                status={pendingSpecialStatus}
+                fencers={specialStatusFencers(
+                  pool.matches[editingMatch][isMatchInverted ? 'fencerB' : 'fencerA'],
+                  pool.matches[editingMatch][isMatchInverted ? 'fencerA' : 'fencerB']
+                )}
+                onConfirm={(id, blackCard) => {
+                  const m = pool.matches[editingMatch];
+                  const leftId = (isMatchInverted ? m.fencerB : m.fencerA)?.id;
+                  applySpecialStatus(id === leftId ? 'left' : 'right', blackCard);
+                }}
+                onCancel={() => setPendingSpecialStatus(null)}
+              />
+            )}
             {/* Boutons spéciaux sur une ligne */}
-            <div style={SPECIAL_ROW}>
-              <button
-                className="btn btn-warning"
-                onClick={() => handleSpecialStatus('abandon')}
-                style={SPECIAL_BTN}
-              >
-                {t('poolView.btn_abandon')}
-              </button>
-              <button
-                className="btn btn-warning"
-                onClick={() => handleSpecialStatus('forfait')}
-                style={SPECIAL_BTN}
-              >
-                {t('poolView.btn_forfeit')}
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={() => handleSpecialStatus('exclusion')}
-                style={SPECIAL_BTN}
-              >
-                {t('poolView.btn_exclusion')}
-              </button>
-              {onMatchCancel && editingMatch !== null && (
+            {pendingSpecialStatus === null && (
+              <div style={SPECIAL_ROW}>
                 <button
-                  className="btn btn-secondary"
-                  onClick={() => {
-                    if (editingMatch === null) return;
-                    onMatchCancel(editingMatch);
-                    setEditingMatch(null);
-                    setIsMatchInverted(false);
-                    setEditScoreA('');
-                    setEditScoreB('');
-                    setVictoryA(false);
-                    setVictoryB(false);
-                  }}
+                  className="btn btn-warning"
+                  onClick={() => handleSpecialStatus('abandon')}
                   style={SPECIAL_BTN}
                 >
-                  {t('poolView.btn_cancel_match')}
+                  <MedicalCrossIcon /> {t('poolView.btn_abandon')}
                 </button>
-              )}
+                <button
+                  className="btn btn-warning"
+                  onClick={() => handleSpecialStatus('forfait')}
+                  style={SPECIAL_BTN}
+                >
+                  {t('poolView.btn_forfeit')}
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => handleSpecialStatus('exclusion')}
+                  style={SPECIAL_BTN}
+                >
+                  {t('poolView.btn_exclusion')}
+                </button>
+                {onMatchCancel && editingMatch !== null && (
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      if (editingMatch === null) return;
+                      onMatchCancel(editingMatch);
+                      closeAndResetScoreModal();
+                    }}
+                    style={SPECIAL_BTN}
+                  >
+                    {t('poolView.btn_cancel_match')}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+          {showTieChooser ? (
+            <div className="modal-footer" style={FOOTER_RIGHT}>
+              <span className="text-muted">{t('poolView.tie_choose_winner')}</span>
+              {(['left', 'right'] as const).map(side => {
+                // Gauche affichée = fencerB si la saisie est inversée
+                const f =
+                  (side === 'left') !== isMatchInverted
+                    ? pool.matches[editingMatch]?.fencerA
+                    : pool.matches[editingMatch]?.fencerB;
+                return (
+                  <button
+                    key={side}
+                    className="btn btn-primary"
+                    onClick={() => chooseTieWinner(side)}
+                  >
+                    V · {f ? `${f.lastName} ${f.firstName}`.trim() : ''}
+                  </button>
+                );
+              })}
+              <button className="btn btn-warning" onClick={() => chooseTieWinner('none')}>
+                {t('poolView.tie_none')}
+              </button>
+              <button className="btn btn-secondary" onClick={() => setShowTieChooser(false)}>
+                {t('actions.cancel')}
+              </button>
             </div>
-          </div>
-          <div className="modal-footer" style={FOOTER_RIGHT}>
-            <button
-              className="btn btn-secondary"
-              onClick={() => {
-                setEditingMatch(null);
-                setIsMatchInverted(false);
-              }}
-            >
-              {t('actions.cancel')}
-            </button>
-            <button className="btn btn-primary" onClick={handleScoreSubmit}>
-              {t('actions.validate')}
-            </button>
-          </div>
+          ) : (
+            <div className="modal-footer" style={FOOTER_RIGHT}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setEditingMatch(null);
+                  setIsMatchInverted(false);
+                }}
+              >
+                {t('actions.cancel')}
+              </button>
+              <button className="btn btn-primary" onClick={handleScoreSubmit}>
+                {t('actions.validate')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1386,68 +1479,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
   // Modale de désignation du combattant pour abandon / forfait / exclusion.
   // Un bouton par combattant + un bouton Annuler (les erreurs, ça arrive).
-  const renderSpecialStatusModal = () => {
-    if (pendingSpecialStatus === null || editingMatch === null) return null;
-
-    const match = pool.matches[editingMatch];
-    const fencerLeft = isMatchInverted ? match.fencerB : match.fencerA;
-    const fencerRight = isMatchInverted ? match.fencerA : match.fencerB;
-
-    const statusLabel =
-      pendingSpecialStatus === 'abandon'
-        ? t('poolView.st_abandon')
-        : pendingSpecialStatus === 'forfait'
-          ? t('poolView.st_forfeit')
-          : t('poolView.st_excluded');
-    const statusHint =
-      pendingSpecialStatus === 'abandon'
-        ? t('poolView.hint_loses')
-        : pendingSpecialStatus === 'forfait'
-          ? t('poolView.hint_loses')
-          : t('poolView.hint_excluded');
-
-    const fencerName = (f?: typeof fencerLeft) =>
-      f ? `${f.lastName} ${f.firstName ?? ''}`.trim() : '—';
-
-    return (
-      <Modal
-        title={t('poolView.which_fencer', { status: statusLabel })}
-        onClose={() => setPendingSpecialStatus(null)}
-        size="sm"
-        elevated
-        footer={
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => setPendingSpecialStatus(null)}
-          >
-            {t('actions.cancel')}
-          </button>
-        }
-      >
-        <p style={MUTED_HINT}>{statusHint}</p>
-        <div style={COL_GAP}>
-          <button
-            type="button"
-            className="btn btn-warning"
-            onClick={() => applySpecialStatus('left')}
-            style={STATUS_BTN}
-          >
-            {fencerName(fencerLeft)}
-          </button>
-          <button
-            type="button"
-            className="btn btn-warning"
-            onClick={() => applySpecialStatus('right')}
-            style={STATUS_BTN}
-          >
-            {fencerName(fencerRight)}
-          </button>
-        </div>
-      </Modal>
-    );
-  };
-
   // Render Grid View
   const renderGridView = () => (
     <>
@@ -1619,7 +1650,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 <span
                   title={
                     allSigned
-                      ? 'Tous les combattants ont signé — PDF disponible'
+                      ? t('poolView.all_signed')
                       : t('plural.signatures', { signed, count: total })
                   }
                   className={`pv-pill${allSigned ? ' is-done' : noneSigned ? '' : ' is-partial'}`}
@@ -1632,17 +1663,20 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               onClick={openRefereeModal}
               title={
                 assignedReferees.length > 0
-                  ? `${assignedReferees.length > 1 ? 'Arbitres' : 'Arbitre'} : ${assignedReferees.map(r => `${r.lastName} ${r.firstName}`).join(', ')}`
+                  ? t('poolView.referees_title', {
+                      count: assignedReferees.length,
+                      list: assignedReferees.map(r => `${r.lastName} ${r.firstName}`).join(', '),
+                    })
                   : isMultiReferee
-                    ? 'Assigner des arbitres'
-                    : 'Assigner un arbitre'
+                    ? t('poolView.assign_referees')
+                    : t('poolView.assign_referee')
               }
               className={`pv-pill${assignedReferee ? ' is-assigned' : ''}`}
             >
               🧑‍⚖️{' '}
               {assignedReferees.length > 0
                 ? assignedReferees.map(r => r.lastName).join(' / ')
-                : '+Arbitre'}
+                : t('poolView.add_referee')}
             </button>
           </div>
           <div className="pv-toolbar">
@@ -1679,14 +1713,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               aria-label={t('poolView.print_aria')}
             >
               🖨️
-            </button>
-            <button
-              onClick={handlePreviewPool}
-              className="pv-icon-btn is-violet"
-              title={t('poolView.preview_title')}
-              aria-label={t('poolView.preview_aria')}
-            >
-              👁️
             </button>
             <button
               onClick={handleExportPDF}
@@ -1743,7 +1769,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                         onChange={() => toggleColumn('pool', col.id, pool.id)}
                         className="cursor-pointer"
                       />
-                      {col.label}
+                      {t(`poolColumns.col_${col.id}`)}
                     </label>
                   ))}
                   <div className="pv-col-menu-section" style={COL_MENU_HEADER}>
@@ -1770,24 +1796,23 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 </div>
               )}
             </div>
-            <div className="pv-view-group">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`pv-icon-btn${viewMode === 'grid' ? ' is-active' : ''}`}
-                title={t('poolView.grid_view')}
-                aria-label={t('poolView.grid_view')}
-              >
+            <button
+              type="button"
+              role="switch"
+              aria-checked={viewMode === 'matches'}
+              aria-label={t('poolView.matches_view')}
+              onClick={() => setViewMode(viewMode === 'grid' ? 'matches' : 'grid')}
+              className={`pv-view-switch${viewMode === 'matches' ? ' is-matches' : ''}`}
+              title={viewMode === 'grid' ? t('poolView.matches_view') : t('poolView.grid_view')}
+            >
+              <span className="pv-view-switch-icon" aria-hidden="true">
                 📊
-              </button>
-              <button
-                onClick={() => setViewMode('matches')}
-                className={`pv-icon-btn${viewMode === 'matches' ? ' is-active' : ''}`}
-                title={t('poolView.matches_view')}
-                aria-label={t('poolView.matches_view')}
-              >
+              </span>
+              <span className="pv-view-switch-icon" aria-hidden="true">
                 ⚔️
-              </button>
-            </div>
+              </span>
+              <span className="pv-view-switch-thumb" aria-hidden="true" />
+            </button>
           </div>
         </div>
         <div className="card-body pv-body">
@@ -1815,7 +1840,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             />
           )}
           {renderScoreModal()}
-          {renderSpecialStatusModal()}
         </div>
       </div>
       {showAddFencerModal && competitionId && (

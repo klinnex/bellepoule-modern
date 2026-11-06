@@ -7,13 +7,13 @@ import { RankingCriterion, RankingCriterionId } from '../../../shared/types';
 import { translateStatic } from '../../contexts/TranslationContext';
 
 const CRITERION_LABELS: Record<RankingCriterionId, string> = {
-  vm_ratio: 'V/M (ratio victoires)',
-  index: 'Indice (TD − TR)',
-  touches_scored: 'Touches données',
-  touches_received: 'Touches reçues',
-  direct_bout: 'Confrontation directe',
-  initial_ranking: 'Classement initial',
-  custom_points: 'Points personnalisés',
+  vm_ratio: 'rankingCriteria.vm_ratio',
+  index: 'rankingCriteria.index',
+  touches_scored: 'rankingCriteria.touches_scored',
+  touches_received: 'rankingCriteria.touches_received',
+  direct_bout: 'rankingCriteria.direct_bout',
+  initial_ranking: 'rankingCriteria.initial_ranking',
+  custom_points: 'rankingCriteria.custom_points',
 };
 
 interface Props {
@@ -101,7 +101,9 @@ const RankingCriteriaEditor_: React.FC<Props> = ({ criteria, onChange, readOnly 
             </div>
 
             {/* Label */}
-            <span className="criterion-label">{CRITERION_LABELS[criterion.id]}</span>
+            <span className="criterion-label">
+              {translateStatic(CRITERION_LABELS[criterion.id])}
+            </span>
 
             {/* Direction */}
             {!readOnly && criterion.enabled && (
@@ -109,7 +111,9 @@ const RankingCriteriaEditor_: React.FC<Props> = ({ criteria, onChange, readOnly 
                 type="button"
                 className="btn-direction"
                 onClick={() => toggleDirection(index)}
-                title={criterion.direction === 'desc' ? 'Décroissant' : 'Croissant'}
+                title={translateStatic(
+                  criterion.direction === 'desc' ? 'rankingCriteria.desc' : 'rankingCriteria.asc'
+                )}
               >
                 {criterion.direction === 'desc' ? '↓' : '↑'}
               </button>
@@ -119,7 +123,9 @@ const RankingCriteriaEditor_: React.FC<Props> = ({ criteria, onChange, readOnly 
             {!readOnly && (
               <label
                 className="criterion-toggle"
-                title={criterion.enabled ? 'Désactiver' : 'Activer'}
+                title={translateStatic(
+                  criterion.enabled ? 'rankingCriteria.disable' : 'rankingCriteria.enable'
+                )}
               >
                 <input
                   type="checkbox"

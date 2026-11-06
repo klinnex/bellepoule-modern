@@ -7,6 +7,7 @@
 import type express from 'express';
 import { randomBytes, scrypt, scryptSync, timingSafeEqual } from 'crypto';
 import { PASSWORD_MIN_LENGTH } from './network';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 // Sessions : durée de vie serveur + plafond par arène / appel
 export const TOKEN_TTL_MS = 8 * 3600_000;
@@ -219,7 +220,7 @@ export class LoginGuard {
       );
       f.lockedUntil = now + lockMs;
       const msg = `[Sécurité] ${f.fails} échecs de connexion depuis ${ip} (cible ${target}) — bloqué ${Math.round(lockMs / 1000)} s`;
-      console.warn(`[RemoteScoreServer] ${msg}`);
+      logger.warn(LogCategory.NETWORK, `[RemoteScoreServer] ${msg}`);
       this.onLockout(msg);
     }
     // Réinsertion en fin de Map (ordre = récence) + plafond mémoire

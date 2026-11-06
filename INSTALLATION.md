@@ -6,7 +6,7 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 
 ### Minimum Requirements
 
-- **Operating System**: Windows 10+, macOS 10.14+, or Linux (Ubuntu 18.04+)
+- **Operating System**: Windows 10+, macOS 12+, or Linux (Ubuntu 18.04+)
 - **RAM**: 4 GB minimum, 8 GB recommended
 - **Storage**: 500 MB free space
 - **Network**: Internet connection for updates and remote scoring
@@ -43,7 +43,7 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
 
 #### macOS
 
-1. Pick the `.dmg` matching your Mac (`x64` Intel, `arm64` Apple Silicon) and open it
+1. Pick the `.dmg` matching your Mac (`x64` Intel, `arm64` Apple Silicon — how to tell: [docs/MAC_VERSION.md](docs/MAC_VERSION.md)) and open it
 2. Drag BellePoule Modern to your Applications folder
 3. Right-click the app and select "Open" (first time only to bypass Gatekeeper)
 4. Launch from Applications folder

@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { addNonces, buildPageCsp, generateNonce, sendHtmlPage } from './csp';
-import { renderArenaJournalPage, renderCompetitionResultsPage } from './htmlPages';
 
 const remoteDir = join(__dirname, '../../remote');
 const pages = readdirSync(remoteDir).filter(f => f.endsWith('.html'));
@@ -60,12 +59,6 @@ describe('CSP pages distantes (#1149)', () => {
 
   it('app.js sans handler inline', () => {
     expect(readFileSync(join(remoteDir, 'app.js'), 'utf8')).not.toMatch(INLINE_HANDLER);
-  });
-
-  it('pages générées sans handler inline', () => {
-    for (const html of [renderCompetitionResultsPage('abc'), renderArenaJournalPage('1')]) {
-      expect(html).not.toMatch(INLINE_HANDLER);
-    }
   });
 
   it('chaque data-click statique cible une fonction définie dans la page', () => {

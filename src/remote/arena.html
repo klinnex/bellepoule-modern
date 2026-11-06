@@ -3,10 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arène BellePoule</title>
+    <title data-i18n="arena.title">Arène BellePoule</title>
     <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
+    <script src="/js/arenaDisplayUtils.js"></script>
+    <script src="/js/timerFormat.js"></script>
+    <script src="/js/arenaOverlays.js"></script>
+    <script src="/js/arenaRender.js"></script>
+    <script src="/js/arenaPanels.js"></script>
     <style>
 
       /* Police 7 segments — style radio-réveil LCD (embarquée en base64) */
@@ -1184,6 +1189,12 @@
         animation: coinOverlayIn 0.4s ease-out;
       }
       #coin-flip-overlay.hidden { display: none; }
+      /* Tireur prioritaire (minute prioritaire, armes olympiques, #1442) */
+      .fencer-display.priority-gold,
+      .priority-gold {
+        box-shadow: 0 0 0 4px #d4af37, 0 0 18px rgba(212, 175, 55, 0.75) !important;
+        border-color: #d4af37 !important;
+      }
 
       .coin-flip-content {
         text-align: center;
@@ -1314,16 +1325,16 @@
     <!-- Overlay tirage au sort (pièce 3D) -->
     <div id="coin-flip-overlay" class="hidden">
       <div class="coin-flip-content">
-        <div class="coin-flip-title">Tirage au sort</div>
-        <div class="coin-flip-subtitle">Égalité persistante — fin du temps supplémentaire</div>
+        <div class="coin-flip-title" data-i18n="arena.coin_title">Tirage au sort</div>
+        <div class="coin-flip-subtitle" data-i18n="arena.coin_subtitle">Égalité persistante — fin du temps supplémentaire</div>
         <div class="coin-scene">
           <div class="coin" id="coin-3d">
             <div class="coin-face coin-front">
-              <span class="coin-face-label">VERT</span>
+              <span class="coin-face-label" data-i18n="arena.coin_green">VERT</span>
               <span class="coin-face-name" id="coin-name-green">—</span>
             </div>
             <div class="coin-face coin-back">
-              <span class="coin-face-label">ROUGE</span>
+              <span class="coin-face-label" data-i18n="arena.coin_red">ROUGE</span>
               <span class="coin-face-name" id="coin-name-red">—</span>
             </div>
           </div>
@@ -1335,13 +1346,13 @@
     <div id="card-announcement-banner" class="card-announcement-banner"></div>
 
     <div class="arena-number-strip">
-      <span class="arena-word-label">Arène</span> <span id="arena-strip-number">1</span>
+      <span class="arena-word-label" data-i18n="remote.arena">Arène</span> <span id="arena-strip-number">1</span>
     </div>
 
     <header class="header">
       <div class="arena-title">
         <span aria-hidden="true">⚔️</span>
-        <span><span class="arena-word-label">Arène</span> <span id="arena-number">1</span></span>
+        <span><span class="arena-word-label" data-i18n="remote.arena">Arène</span> <span id="arena-number">1</span></span>
       </div>
       <div class="status-section">
         <div class="inversion-toggle">
@@ -1361,7 +1372,7 @@
       <div class="waiting-screen" id="waiting-screen">
         <!-- Aperçu prochain combat (visible quand nextMatch disponible) -->
         <div class="next-idle-preview hidden" id="next-idle-preview">
-          <div class="next-idle-label">⚔ Prochain combat</div>
+          <div class="next-idle-label" data-i18n="arena.next_fight">⚔ Prochain combat</div>
           <div class="next-idle-fighters">
             <!-- Tireur A (Vert) -->
             <div class="photo-card photo-card-a">
@@ -1400,7 +1411,7 @@
               <div class="intro-fencer-club" id="idle-club-b"></div>
             </div>
           </div>
-          <div class="idle-referee-banner hidden" id="idle-referee-banner">⚖️ Arbitre : <span id="idle-referee-label"></span></div>
+          <div class="idle-referee-banner hidden" id="idle-referee-banner"><span data-i18n="referee.referee_label">⚖️ Arbitre :</span> <span id="idle-referee-label"></span></div>
         </div>
         <!-- Grand numéro (visible quand pas de nextMatch) -->
         <div class="arena-idle-number" id="arena-idle-number">1</div>
@@ -1453,7 +1464,7 @@
       <div class="match-display" id="match-display">
         <div class="fencers-row">
           <!-- Tireur A (Rouge) -->
-          <div id="fencer-a-display" class="fencer-display red-side" role="region" aria-label="Tireur rouge">
+          <div id="fencer-a-display" class="fencer-display red-side" role="region" aria-label="Tireur rouge" data-i18n-aria-label="arena.fencer_red">
             <div id="color-badge-a" class="color-badge red" aria-hidden="true"></div>
             <div class="fencer-name" id="fencer-a-name">-</div>
             <div class="fencer-club" id="fencer-a-club">-</div>
@@ -1465,7 +1476,7 @@
           <div class="vs-divider" aria-hidden="true">VS</div>
 
           <!-- Tireur B (Vert) -->
-          <div id="fencer-b-display" class="fencer-display green-side" role="region" aria-label="Tireur vert">
+          <div id="fencer-b-display" class="fencer-display green-side" role="region" aria-label="Tireur vert" data-i18n-aria-label="arena.fencer_green">
             <div id="color-badge-b" class="color-badge green" aria-hidden="true"></div>
             <div class="fencer-name" id="fencer-b-name">-</div>
             <div class="fencer-club" id="fencer-b-club">-</div>
@@ -1476,16 +1487,16 @@
 
         <!-- Chronomètre -->
         <div class="timer-section">
-          <div class="mort-subite-banner" id="mort-subite-banner">⚡ MORT SUBITE</div>
-          <div class="timer-display" id="timer-display" role="timer" aria-label="Temps restant">03:00</div>
-          <div class="waiting-overtime-banner" id="waiting-overtime-banner">⚖️ ÉGALITÉ – attente arbitre</div>
-          <div class="sudden-death-banner" id="sudden-death-banner">⏱ 30s SUPPLEMENTAIRE</div>
-          <div class="timer-label">Temps restant</div>
+          <div class="mort-subite-banner" id="mort-subite-banner" data-i18n="referee.sudden_death">⚡ MORT SUBITE</div>
+          <div class="timer-display" id="timer-display" role="timer" aria-label="Temps restant" data-i18n-aria-label="arena.time_left">03:00</div>
+          <div class="waiting-overtime-banner" id="waiting-overtime-banner" data-i18n="arena.waiting_overtime">⚖️ ÉGALITÉ – attente arbitre</div>
+          <div class="sudden-death-banner" id="sudden-death-banner" data-i18n="referee.supplementary_time">⏱ 30s SUPPLEMENTAIRE</div>
+          <div class="timer-label" data-i18n="arena.time_left">Temps restant</div>
         </div>
 
         <!-- Prochain combat (affiché quand status=finished et nextMatch disponible) -->
         <div class="next-match-panel hidden" id="next-match-panel">
-          <div class="next-match-label">⚔ Prochain</div>
+          <div class="next-match-label" data-i18n="arena.next_short">⚔ Prochain</div>
           <div class="next-match-fighters">
             <div class="next-fighter next-fighter-a">
               <div class="next-photo-wrap">
@@ -1517,19 +1528,7 @@
     </main>
 
     <script>
-      // Bannière d'annonce : texte seul, jamais innerHTML (noms de tireurs non fiables, #995)
-      function setBannerLines(banner, line1, line2) {
-        banner.replaceChildren();
-        const d1 = document.createElement('div');
-        d1.textContent = line1;
-        banner.appendChild(d1);
-        if (line2) {
-          const d2 = document.createElement('div');
-          d2.style.cssText = 'font-size:0.65em;font-weight:600;margin-top:0.25em;opacity:0.9;';
-          d2.textContent = line2;
-          banner.appendChild(d2);
-        }
-      }
+      const { setBannerLines, arenaIdFromPath, applyArenaTheme } = window.BPArenaUtils;
       class ArenaDisplay {
         constructor() {
           this.socket = io({ reconnection: true, reconnectionDelay: 200, reconnectionDelayMax: 5000, randomizationFactor: 0.5 });
@@ -1555,9 +1554,7 @@
         }
 
         getArenaId() {
-          const path = window.location.pathname;
-          const match = path.match(/arene(\d+)/i) || path.match(/arena(\d+)/i);
-          return match ? `arena${match[1]}` : 'arena1';
+          return arenaIdFromPath(window.location.pathname);
         }
 
         arenaNumberFromId() {
@@ -1579,46 +1576,15 @@
                 document.querySelectorAll('.arena-word-label').forEach(el => (el.textContent = window.T('remote.piste')));
                 // Temps supplémentaire d'une minute en escrime olympique (#1027)
                 const banner = document.getElementById('sudden-death-banner');
-                if (banner) banner.textContent = '⏱ 1 MIN SUPPLÉMENTAIRE';
+                if (banner) banner.textContent = window.T('arena.supplementary_1min');
               }
             })
             .catch(() => {});
         }
 
         applyTheme(theme, customTheme) {
-          if (theme === 'custom' && customTheme) {
-            this.theme = 'custom';
-            this.currentCustomTheme = customTheme;
-            document.documentElement.setAttribute('data-theme', 'custom');
-            this.applyCustomTheme(customTheme);
-          } else {
-            const valid = ['dark', 'light', 'neon', 'unicorn'];
-            this.theme = valid.includes(theme) ? theme : 'dark';
-            document.documentElement.setAttribute('data-theme', this.theme);
-            document.documentElement.removeAttribute('data-overlay');
-            // Supprimer le style custom si présent
-            const existing = document.getElementById('custom-theme-style');
-            if (existing) existing.remove();
-          }
-          localStorage.setItem('displayTheme', this.theme);
-        }
-
-        applyCustomTheme(customTheme) {
-          let styleEl = document.getElementById('custom-theme-style');
-          if (!styleEl) {
-            styleEl = document.createElement('style');
-            styleEl.id = 'custom-theme-style';
-            document.head.appendChild(styleEl);
-          }
-          const vars = Object.entries(customTheme.variables || {})
-            .map(([k, v]) => `  ${k}: ${v};`)
-            .join('\n');
-          styleEl.textContent = `[data-theme="custom"] {\n${vars}\n}`;
-          if (customTheme.overlayMode) {
-            document.documentElement.setAttribute('data-overlay', 'true');
-          } else {
-            document.documentElement.removeAttribute('data-overlay');
-          }
+          this.theme = applyArenaTheme(document, localStorage, theme, customTheme);
+          this.currentCustomTheme = this.theme === 'custom' ? customTheme : this.currentCustomTheme;
         }
 
         setupHeaderAutoHide() {
@@ -1732,37 +1698,11 @@
         }
 
         showIdentifyOverlay(label, durationMs) {
-          let ov = document.getElementById('bp-identify-overlay');
-          if (!ov) {
-            ov = document.createElement('div');
-            ov.id = 'bp-identify-overlay';
-            ov.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;pointer-events:none;animation:bp-identify-blink 0.5s ease-in-out infinite alternate;';
-            const style = document.createElement('style');
-            style.textContent = '@keyframes bp-identify-blink{from{background:rgba(59,130,246,0.55)}to{background:rgba(139,92,246,0.65)}}';
-            document.head.appendChild(style);
-            document.body.appendChild(ov);
-          }
-          ov.innerHTML = '<div style="background:rgba(0,0,0,0.85);border:3px solid #3b82f6;border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">'
-            + '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">📺 ' + escHtml(label) + '</div>'
-            + '<div style="font-size:1rem;color:#94a3b8;">Identification écran</div>'
-            + '</div>';
-          ov.style.display = 'flex';
-          clearTimeout(ov._t);
-          ov._t = setTimeout(() => { ov.style.display = 'none'; }, durationMs ?? 5000);
+          BPArenaOverlays.showIdentifyOverlay({ doc: document, T: window.T, esc: escHtml }, label, durationMs);
         }
 
         showRemoteMessage(text, duration) {
-          let banner = document.getElementById('remote-msg-banner');
-          if (!banner) {
-            banner = document.createElement('div');
-            banner.id = 'remote-msg-banner';
-            banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.82);color:#fff;font-size:1.3rem;padding:0.7rem 1.2rem;text-align:center;z-index:9999;pointer-events:none;transition:opacity 0.4s;';
-            document.body.appendChild(banner);
-          }
-          banner.textContent = text;
-          banner.style.opacity = '1';
-          clearTimeout(banner._hideTimer);
-          banner._hideTimer = setTimeout(() => { banner.style.opacity = '0'; }, duration);
+          BPArenaOverlays.showRemoteMessage(document, text, duration);
         }
 
         applyWallpaper(wallpaper) {
@@ -1771,60 +1711,49 @@
           ws.style.backgroundImage = wallpaper ? `url(${wallpaper})` : '';
         }
 
+        applyPriorityFrame(side) {
+          ['A', 'B'].forEach(s => {
+            const name = document.getElementById(`fencer-${s.toLowerCase()}-name`);
+            const panel = name && (name.closest('.fencer-display') || name.parentElement);
+            if (panel) panel.classList.toggle('priority-gold', side === s);
+          });
+        }
+
         showCoinFlipAnimation(winner, fencerA, fencerB) {
-          const overlay  = document.getElementById('coin-flip-overlay');
-          const coin     = document.getElementById('coin-3d');
+          this._prioFencerId = (winner === 'A' ? fencerA?.id : fencerB?.id) ?? null;
+          this.applyPriorityFrame(winner);
+          const overlay = document.getElementById('coin-flip-overlay');
+          const coin = document.getElementById('coin-3d');
           const nameGreen = document.getElementById('coin-name-green');
-          const nameRed   = document.getElementById('coin-name-red');
-          const result   = document.getElementById('coin-result');
+          const nameRed = document.getElementById('coin-name-red');
+          const result = document.getElementById('coin-result');
           if (!overlay || !coin || !nameGreen || !nameRed || !result) return;
-
-          // fencerA est TOUJOURS VERT, fencerB est TOUJOURS ROUGE
-          // (l'inversion ne change que la position gauche/droite, pas la couleur)
-          const nameGreenStr = fencerA ? `${fencerA.lastName || ''} ${fencerA.firstName || ''}`.trim() || 'VERT'  : 'VERT';
-          const nameRedStr   = fencerB ? `${fencerB.lastName || ''} ${fencerB.firstName || ''}`.trim() || 'ROUGE' : 'ROUGE';
-          nameGreen.textContent = nameGreenStr;
-          nameRed.textContent   = nameRedStr;
-
-          // Réinitialiser l'état visuel
+          const plan = BPArenaOverlays.coinFlipPlan(winner, fencerA, fencerB);
+          nameGreen.textContent = plan.nameGreen;
+          nameRed.textContent = plan.nameRed;
           result.className = 'hidden';
           result.textContent = '';
           coin.style.transition = 'none';
-          coin.style.transform  = 'rotateY(0deg)';
-
-          // Afficher l'overlay
+          coin.style.transform = 'rotateY(0deg)';
           overlay.classList.remove('hidden');
-
-          // winner 'A' = fencerA (VERT) → face verte (3600°)
-          // winner 'B' = fencerB (ROUGE) → face rouge (3780°)
-          const isGreenWinner = winner === 'A';
-          const finalDeg = isGreenWinner ? 3600 : 3780;
-
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               coin.style.transition = 'transform 3.5s cubic-bezier(0.33, 1, 0.68, 1)';
-              coin.style.transform  = `rotateY(${finalDeg}deg)`;
+              coin.style.transform = `rotateY(${plan.finalDeg}deg)`;
             });
           });
-
-          // Afficher le résultat après l'animation
           setTimeout(() => {
-            const winnerName = isGreenWinner ? nameGreenStr : nameRedStr;
-            const colorClass  = isGreenWinner ? 'winner-green' : 'winner-red';
-            const colorLabel  = isGreenWinner ? 'VERT' : 'ROUGE';
-            result.textContent = `🏆 ${winnerName} gagne ! (${colorLabel})`;
-            result.className   = colorClass;
+            result.textContent = plan.resultText;
+            result.className = plan.resultClass;
           }, 3600);
-
         }
 
         showExitAnnouncement(ann) {
           const banner = document.getElementById('card-announcement-banner');
           if (!banner) return;
-          const line1 = `🚪 Sortie d'arène — ${ann.fencerName}`;
-          const line2 = `+${ann.points} pts pour l'adversaire`;
+          const { line1, line2, className } = BPArenaOverlays.exitAnnouncement(ann);
           setBannerLines(banner, line1, line2);
-          banner.className = 'card-announcement-banner visible card-exit';
+          banner.className = className;
           if (this._cardAnnouncementTimer) clearTimeout(this._cardAnnouncementTimer);
           this._cardAnnouncementTimer = setTimeout(() => {
             banner.className = 'card-announcement-banner';
@@ -1834,22 +1763,9 @@
         showCardAnnouncement(ann) {
           const banner = document.getElementById('card-announcement-banner');
           if (!banner) return;
-
-          const typeLabel = ann.cardType === 'white' ? 'BLANC' : ann.cardType === 'yellow' ? 'JAUNE' : ann.cardType === 'red' ? 'ROUGE' : 'NOIR';
-          let line1, line2;
-
-          if (ann.isRevalorisation) {
-            const fromLabel = ann.fromCard === 'white' ? 'blanc' : ann.fromCard === 'yellow' ? 'jaune' : ann.fromCard;
-            line1 = `⚠️ Revalorisation 2ème ${fromLabel} → ${typeLabel} — ${ann.fencerName}`;
-          } else {
-            line1 = `Carton ${typeLabel} — ${ann.fencerName}`;
-          }
-          line2 = ann.reason || null;
-
+          const { line1, line2, className } = BPArenaOverlays.cardAnnouncement(ann);
           setBannerLines(banner, line1, line2);
-          const cardClass = ['white', 'yellow', 'red', 'black'].includes(ann.cardType) ? ann.cardType : 'yellow';
-          banner.className = `card-announcement-banner visible card-${cardClass}`;
-
+          banner.className = className;
           if (this._cardAnnouncementTimer) clearTimeout(this._cardAnnouncementTimer);
           this._cardAnnouncementTimer = setTimeout(() => {
             banner.className = 'card-announcement-banner';
@@ -1870,6 +1786,14 @@
         }
 
         handleArenaUpdate(data) {
+          // Tireur prioritaire : cadre doré effacé dès que le match change (#1442)
+          if (this._prioFencerId && data.match !== undefined) {
+            const m = data.match;
+            if (!m || ![m.fencerA?.id, m.fencerB?.id].includes(this._prioFencerId)) {
+              this._prioFencerId = null;
+              this.applyPriorityFrame(null);
+            }
+          }
           // Mise à jour du thème visuel
           if (data.theme) {
             const themeChanged = data.theme !== this.theme;
@@ -1979,135 +1903,27 @@
         }
 
         updateStatusBadge() {
-          const badge = document.getElementById('match-status');
-          badge.className = 'match-status-badge';
-
-          switch (this.matchStatus) {
-            case 'idle':
-            case 'not_started':
-              badge.textContent = window.T('arena.status_waiting');
-              badge.classList.add('status-waiting');
-              break;
-            case 'ready':
-              badge.textContent = window.T('arena.status_next');
-              badge.classList.add('status-waiting');
-              break;
-            case 'in_progress':
-              badge.textContent = window.T('arena.status_in_progress');
-              badge.classList.add('status-progress');
-              break;
-            case 'finished':
-              badge.textContent = window.T('arena.status_finished');
-              badge.classList.add('status-finished');
-              break;
-          }
+          BPArenaRender.updateStatusBadge(document, window.T, this.matchStatus);
         }
 
         updateMatchDisplay() {
-          if (!this.currentMatch) return;
-
-          const fA = this.currentMatch.fencerA || {};
-          const fB = this.currentMatch.fencerB || {};
-          const left  = this.inversionEnabled ? fA : fB;
-          const right = this.inversionEnabled ? fB : fA;
-
-          document.getElementById('fencer-a-name').textContent =
-            `${left.lastName || ''} ${left.firstName || ''}`.trim() || '-';
-          document.getElementById('fencer-a-club').textContent = left.club || '';
-
-          document.getElementById('fencer-b-name').textContent =
-            `${right.lastName || ''} ${right.firstName || ''}`.trim() || '-';
-          document.getElementById('fencer-b-club').textContent = right.club || '';
-
-          const sA = this.currentMatch.scoreA;
-          const sB = this.currentMatch.scoreB;
-          const valA = (typeof sA === 'object' ? (sA?.value ?? 0) : sA) ?? 0;
-          const valB = (typeof sB === 'object' ? (sB?.value ?? 0) : sB) ?? 0;
-          document.getElementById('score-a').textContent = this.inversionEnabled ? valA : valB;
-          document.getElementById('score-b').textContent = this.inversionEnabled ? valB : valA;
-
-          this.applyInversionColors();
+          BPArenaRender.updateMatchDisplay(document, this.currentMatch, this.inversionEnabled);
         }
 
         applyInversionColors() {
-          const inv = this.inversionEnabled;
-          const dispA = document.getElementById('fencer-a-display');
-          const dispB = document.getElementById('fencer-b-display');
-          if (dispA) dispA.className = `fencer-display ${inv ? 'green-side' : 'red-side'}`;
-          if (dispB) dispB.className = `fencer-display ${inv ? 'red-side' : 'green-side'}`;
-          const badgeA = document.getElementById('color-badge-a');
-          const badgeB = document.getElementById('color-badge-b');
-          if (badgeA) badgeA.className = `color-badge ${inv ? 'green' : 'red'}`;
-          if (badgeB) badgeB.className = `color-badge ${inv ? 'red' : 'green'}`;
-          const scoreA = document.getElementById('score-a');
-          const scoreB = document.getElementById('score-b');
-          if (scoreA) { scoreA.className = scoreA.className.replace(/\b(green|red)\b/, inv ? 'green' : 'red'); }
-          if (scoreB) { scoreB.className = scoreB.className.replace(/\b(green|red)\b/, inv ? 'red' : 'green'); }
+          BPArenaRender.applyInversionColors(document, this.inversionEnabled);
         }
 
         updateCardsDisplay() {
-          const renderCards = cards =>
-            cards
-              .filter(card => ['white', 'yellow', 'red', 'black', 'p-red', 'p-black'].includes(card))
-              .map(
-                card =>
-                  `<div class="card card-${escHtml(card)}">${card.startsWith('p-') ? 'P' : card === 'white' ? 'B' : card === 'yellow' ? 'J' : card === 'black' ? 'N' : 'R'}</div>`
-              )
-              .join('');
-
-          document.getElementById('fencer-a-cards').innerHTML = renderCards(this.inversionEnabled ? this.cardsA : this.cardsB);
-          document.getElementById('fencer-b-cards').innerHTML = renderCards(this.inversionEnabled ? this.cardsB : this.cardsA);
+          BPArenaRender.updateCardsDisplay(document, escHtml, this.cardsA, this.cardsB, this.inversionEnabled);
         }
 
         updateTimerDisplay(timerStatus) {
-          const minutes = Math.floor(this.timerSeconds / 60);
-          const seconds = this.timerSeconds % 60;
-          const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-          const timerEl = document.getElementById('timer-display');
-          timerEl.textContent = display;
-
-          // Reset classes
-          timerEl.className = 'timer-display';
-
-          // Status classes
-          if (timerStatus === 'running') {
-            timerEl.classList.add('running');
-          } else if (timerStatus === 'paused') {
-            timerEl.classList.add('paused');
-          }
-
-          // Time warning classes
-          if (this.timerSeconds <= 10) {
-            timerEl.classList.add('danger');
-          } else if (this.timerSeconds <= 30) {
-            timerEl.classList.add('warning');
-          }
+          BPArenaRender.updateTimerDisplay(document, window.BPTimer, this.timerSeconds, timerStatus);
         }
 
         updateSuddenDeathBanner() {
-          const banner = document.getElementById('sudden-death-banner');
-          const msBanner = document.getElementById('mort-subite-banner');
-
-          const isSupplementary = this.isSuddenDeath &&
-            (this.overtimeType === 'supplementary' || this.overtimeType === 'challenger_supplementary');
-          const isChallengerSD = this.isSuddenDeath &&
-            (this.overtimeType === 'challenger' || this.overtimeType === 'challenger_supplementary');
-
-          if (banner) {
-            if (isSupplementary) {
-              banner.classList.add('active');
-            } else {
-              banner.classList.remove('active');
-            }
-          }
-          if (msBanner) {
-            if (isChallengerSD) {
-              msBanner.classList.add('active');
-            } else {
-              msBanner.classList.remove('active');
-            }
-          }
+          BPArenaRender.updateSuddenDeathBanner(document, this.isSuddenDeath, this.overtimeType);
         }
 
         updateWaitingOvertimeBanner() {
@@ -2116,170 +1932,42 @@
         }
 
         updateVisibility() {
-          const waitingScreen = document.getElementById('waiting-screen');
-          const matchDisplay = document.getElementById('match-display');
-          const photoIntro = document.getElementById('photo-intro');
-          const nextPanel = document.getElementById('next-match-panel');
-
-          if (this.matchStatus === 'idle' || this.matchStatus === 'not_started') {
-            waitingScreen.classList.remove('hidden');
-            matchDisplay.classList.remove('active');
-            photoIntro.classList.add('hidden');
-            nextPanel.classList.add('hidden');
+          const plan = BPArenaPanels.visibilityPlan(this.matchStatus, this.showPhotos, !!this.currentMatch, !!this.nextMatch);
+          BPArenaPanels.applyVisibility(document, plan);
+          if (plan.action === 'idle') {
             this.isSuddenDeath = false;
             this.overtimeType = null;
             this.waitingOvertime = false;
             this.updateWaitingOvertimeBanner();
             this.updateSuddenDeathBanner();
-            this.updateIdleNextMatchDisplay();
-          } else if (this.matchStatus === 'ready' && this.showPhotos && this.currentMatch) {
-            waitingScreen.classList.add('hidden');
-            matchDisplay.classList.remove('active');
-            photoIntro.classList.remove('hidden');
-            nextPanel.classList.add('hidden');
-            this.updatePhotoIntro();
-          } else if (this.matchStatus === 'in_progress') {
-            waitingScreen.classList.add('hidden');
-            photoIntro.classList.add('hidden');
-            matchDisplay.classList.add('active');
-            nextPanel.classList.add('hidden');
-          } else if (this.matchStatus === 'finished') {
-            photoIntro.classList.add('hidden');
-            if (this.nextMatch) {
-              waitingScreen.classList.add('hidden');
-              matchDisplay.classList.add('active');
-              this.updateNextMatchPanel();
-              nextPanel.classList.remove('hidden');
-            } else {
-              // Aucun match suivant : retour à l'écran idle (arène X)
-              waitingScreen.classList.remove('hidden');
-              matchDisplay.classList.remove('active');
-              nextPanel.classList.add('hidden');
-              this.updateIdleNextMatchDisplay();
-            }
-          } else {
-            // 'ready' sans photos : écran d'attente (combat pas encore démarré)
-            waitingScreen.classList.remove('hidden');
-            matchDisplay.classList.remove('active');
-            photoIntro.classList.add('hidden');
-            nextPanel.classList.add('hidden');
-            this.updateIdleNextMatchDisplay();
           }
+          if (plan.action === 'intro') this.updatePhotoIntro();
+          else if (plan.action === 'nextPanel') this.updateNextMatchPanel();
+          else if (plan.action === 'idle' || plan.action === 'idleDisplay') this.updateIdleNextMatchDisplay();
         }
 
         updateNextMatchPanel() {
-          if (!this.nextMatch) return;
-          const fA = this.nextMatch.fencerA || {};
-          const fB = this.nextMatch.fencerB || {};
-          const left  = this.inversionEnabled ? fA : fB;
-          const right = this.inversionEnabled ? fB : fA;
-
-          document.getElementById('next-name-a').textContent =
-            `${left.lastName || ''} ${left.firstName || ''}`.trim() || '-';
-          document.getElementById('next-name-b').textContent =
-            `${right.lastName || ''} ${right.firstName || ''}`.trim() || '-';
-
-          this.setNextFencerPhoto('a', left.photo);
-          this.setNextFencerPhoto('b', right.photo);
-
-          const refEl = document.getElementById('next-referee-name');
-          const refLabel = document.getElementById('next-referee-label');
-          const idleBanner = document.getElementById('idle-referee-banner');
-          const idleLabel = document.getElementById('idle-referee-label');
-          if (this.refereeFeatureEnabled && this.nextMatch.referee) {
-            const refName = this.nextMatch.referee.name;
-            if (refEl && refLabel) { refLabel.textContent = refName; refEl.classList.remove('hidden'); }
-            if (idleBanner && idleLabel) { idleLabel.textContent = refName; idleBanner.classList.remove('hidden'); }
-          } else {
-            if (refEl) refEl.classList.add('hidden');
-            if (idleBanner) idleBanner.classList.add('hidden');
-          }
+          BPArenaPanels.updateNextMatchPanel(document, this.nextMatch, this.inversionEnabled, this.refereeFeatureEnabled);
         }
 
-        setNextFencerPhoto(side, photoBase64) {
-          const img = document.getElementById(`next-photo-${side}`);
-          const icon = document.getElementById(`next-icon-${side}`);
-          if (photoBase64) {
-            img.src = photoBase64.startsWith('data:') ? photoBase64 : `data:image/jpeg;base64,${photoBase64}`;
-            img.style.display = 'block';
-            icon.style.display = 'none';
-          } else {
-            img.style.display = 'none';
-            icon.style.display = 'block';
-          }
+        setNextFencerPhoto(side, photo) {
+          BPArenaPanels.setPhoto(document, `next-photo-${side}`, `next-icon-${side}`, photo);
         }
 
         updatePhotoIntro() {
-          if (!this.currentMatch) return;
-          const fA = this.currentMatch.fencerA || {};
-          const fB = this.currentMatch.fencerB || {};
-
-          const left  = this.inversionEnabled ? fA : fB;
-          const right = this.inversionEnabled ? fB : fA;
-
-          document.getElementById('intro-name-a').textContent =
-            `${left.lastName || ''} ${left.firstName || ''}`.trim() || '-';
-          document.getElementById('intro-club-a').textContent = left.club || '';
-
-          document.getElementById('intro-name-b').textContent =
-            `${right.lastName || ''} ${right.firstName || ''}`.trim() || '-';
-          document.getElementById('intro-club-b').textContent = right.club || '';
-
-          this.setFencerPhoto('a', left.photo);
-          this.setFencerPhoto('b', right.photo);
+          BPArenaPanels.updatePhotoIntro(document, this.currentMatch, this.inversionEnabled);
         }
 
-        setFencerPhoto(side, photoBase64) {
-          const img = document.getElementById(`photo-${side}`);
-          const icon = document.getElementById(`default-icon-${side}`);
-          if (photoBase64) {
-            img.src = photoBase64.startsWith('data:') ? photoBase64 : `data:image/jpeg;base64,${photoBase64}`;
-            img.style.display = 'block';
-            icon.style.display = 'none';
-          } else {
-            img.style.display = 'none';
-            icon.style.display = 'block';
-          }
+        setFencerPhoto(side, photo) {
+          BPArenaPanels.setPhoto(document, `photo-${side}`, `default-icon-${side}`, photo);
         }
 
         updateIdleNextMatchDisplay() {
-          const preview = document.getElementById('next-idle-preview');
-          const idleNumber = document.getElementById('arena-idle-number');
-          const idleLabel = document.querySelector('.arena-idle-label');
-          if (this.nextMatch) {
-            const fA = this.nextMatch.fencerA || {};
-            const fB = this.nextMatch.fencerB || {};
-            const left  = this.inversionEnabled ? fA : fB;
-            const right = this.inversionEnabled ? fB : fA;
-            document.getElementById('idle-name-a').textContent =
-              `${left.lastName || ''} ${left.firstName || ''}`.trim() || '-';
-            document.getElementById('idle-club-a').textContent = left.club || '';
-            document.getElementById('idle-name-b').textContent =
-              `${right.lastName || ''} ${right.firstName || ''}`.trim() || '-';
-            document.getElementById('idle-club-b').textContent = right.club || '';
-            this.setIdleFencerPhoto('a', left.photo);
-            this.setIdleFencerPhoto('b', right.photo);
-            preview.classList.remove('hidden');
-            idleNumber.style.display = 'none';
-            if (idleLabel) idleLabel.style.display = 'none';
-          } else {
-            preview.classList.add('hidden');
-            idleNumber.style.display = '';
-            if (idleLabel) idleLabel.style.display = '';
-          }
+          BPArenaPanels.updateIdleNextMatchDisplay(document, this.nextMatch, this.inversionEnabled);
         }
 
-        setIdleFencerPhoto(side, photoBase64) {
-          const img = document.getElementById(`idle-photo-${side}`);
-          const icon = document.getElementById(`idle-icon-${side}`);
-          if (photoBase64) {
-            img.src = photoBase64.startsWith('data:') ? photoBase64 : `data:image/jpeg;base64,${photoBase64}`;
-            img.style.display = 'block';
-            icon.style.display = 'none';
-          } else {
-            img.style.display = 'none';
-            icon.style.display = 'block';
-          }
+        setIdleFencerPhoto(side, photo) {
+          BPArenaPanels.setPhoto(document, `idle-photo-${side}`, `idle-icon-${side}`, photo);
         }
       }
 

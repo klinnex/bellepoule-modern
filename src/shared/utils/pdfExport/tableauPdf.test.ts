@@ -41,4 +41,14 @@ describe('generateTableauHTML – feuilles d’arbitrage', () => {
     expect(html).toContain('Vague 2 — Poule 1');
     expect(html).not.toContain('Élimination directe');
   });
+
+  it('flux continu (feuilles de vague, #1441) : pas de saut de page forcé entre pages de feuilles', () => {
+    const matches = [1, 2, 3, 4].map(i => match(`m${i}`, 0, 'Vague 1 — Poule 1'));
+    const forced = generateTableauHTML(matches, 2, 'Test');
+    const flow = generateTableauHTML(matches, 2, 'Test', undefined, undefined, false, undefined, {
+      continuous: true,
+    });
+    expect(forced).toContain('class="page page-break"');
+    expect(flow).not.toContain('class="page page-break"');
+  });
 });

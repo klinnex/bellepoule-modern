@@ -4,6 +4,8 @@
  * Licensed under GPL-3.0
  */
 
+import { logger, LogCategory, toError } from '../services/logger';
+
 export interface ErrorLogEntry {
   id: string;
   timestamp: Date;
@@ -40,7 +42,7 @@ export function getErrorLogs(): ErrorLogEntry[] {
       }));
     }
   } catch (error) {
-    console.error('Failed to load error logs:', error);
+    logger.error(LogCategory.SYSTEM, 'Failed to load error logs', toError(error));
   }
   return [];
 }
@@ -54,7 +56,7 @@ function saveErrorLogs(logs: ErrorLogEntry[]): void {
     const trimmed = logs.slice(-MAX_LOGS);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
   } catch (error) {
-    console.error('Failed to save error logs:', error);
+    logger.error(LogCategory.SYSTEM, 'Failed to save error logs', toError(error));
   }
 }
 
@@ -84,7 +86,7 @@ export function logError(
 
   // Also log to console in development
   if (process.env.NODE_ENV === 'development') {
-    console.error('[ErrorLogger]', entry);
+    logger.error(LogCategory.SYSTEM, '[ErrorLogger]', undefined, entry);
   }
 
   // Send to external service if configured
@@ -115,7 +117,7 @@ export function logWarning(
   saveErrorLogs(logs);
 
   if (process.env.NODE_ENV === 'development') {
-    console.warn('[ErrorLogger]', entry);
+    logger.warn(LogCategory.SYSTEM, '[ErrorLogger]', entry);
   }
 }
 
@@ -223,7 +225,12 @@ function sendToErrorService(entry: ErrorLogEntry): void {
       }),
     }).catch(err => {
       // Ne pas bloquer si l'envoi échoue
-      console.warn('Failed to send error to external service:', err);
+      logger.warn(
+        LogCategory.SYSTEM,
+        'Failed to send error to external service',
+        undefined,
+        toError(err)
+      );
     });
   }
 

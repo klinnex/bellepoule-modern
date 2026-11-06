@@ -8,6 +8,7 @@ import { Competition, PoolRanking } from '../../shared/types';
 import { calculateOverallRankingQuest } from '../../shared/utils/poolCalculations';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
+import { formatDate } from '../../shared/utils/localeFormat';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -386,7 +387,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
                         <div>
                           <div className="font-medium text-gray-900">{c.competitionTitle}</div>
                           <div className="text-xs text-gray-500">
-                            {new Date(c.competitionDate).toLocaleDateString()} ·{' '}
+                            {formatDate(c.competitionDate)} ·{' '}
                             {t('season.fencers_count', { count: c.fencerCount })}
                           </div>
                         </div>
@@ -419,9 +420,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
                           <div>
                             <div className="font-medium text-gray-900">{c.title}</div>
                             <div className="text-xs text-gray-500">
-                              {c.date instanceof Date
-                                ? c.date.toLocaleDateString()
-                                : String(c.date ?? '')}
+                              {c.date instanceof Date ? formatDate(c.date) : String(c.date ?? '')}
                               {!hasPools && (
                                 <span className="text-yellow-600 ml-2">{t('season.no_pool')}</span>
                               )}

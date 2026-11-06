@@ -27,32 +27,33 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
   const [visible, setVisible] = useState(propVisible || false);
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
 
   useEffect(() => {
+    const api = window.electronAPI;
     // Écouter les événements de mise à jour depuis le processus principal
-    const handleUpdateAvailable = (_event: any, info: UpdateInfo) => {
+    const offAvailable = api?.onUpdateAvailable?.(info => {
       setUpdateInfo(info);
-      if (!dismissed) {
-        setVisible(true);
-      }
-    };
-
-    // @ts-ignore
-    if (window.electronAPI?.onUpdateAvailable) {
-      // @ts-ignore
-      window.electronAPI.onUpdateAvailable(handleUpdateAvailable);
-    }
-
+      if (!dismissed) setVisible(true);
+    });
+    const offProgress = api?.onUpdateProgress?.(({ progress: p }) => setProgress(p));
     return () => {
-      // Nettoyage des écouteurs
+      offAvailable?.();
+      offProgress?.();
     };
   }, [dismissed]);
 
-  const handleDownload = () => {
-    // Ouvre directement vers la dernière release (pas l'historique complet)
-    window.open('https://github.com/klinnex/bellepoule-modern/releases/latest', '_blank');
+  // Téléchargement + vérification + installation dans l'app (sans navigateur)
+  const handleDownload = async () => {
     showToast(t('updateNotif.redirect'), 'info');
-    setVisible(false);
+    try {
+      const res = await window.electronAPI?.updater?.downloadAndInstall?.();
+      if (res && !res.success && res.error !== 'no_asset') {
+        showToast(t('updateNotif.failed'), 'error');
+      }
+    } catch {
+      showToast(t('updateNotif.failed'), 'error');
+    }
   };
 
   const handleDismiss = () => {
@@ -85,6 +86,11 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
             {t('updateNotif.version')} <strong>v{updateInfo.latestVersion}</strong>{' '}
             {`(Build #${updateInfo.latestBuild})`}
           </p>
+          {progress !== null && progress < 100 && (
+            <p className="update-notification-multiple">
+              {t('updateNotif.progress', { n: progress })}
+            </p>
+          )}
           {updateInfo.latestBuild - updateInfo.currentBuild > 1 && (
             <p className="update-notification-multiple">
               {t('updateNotif.behind', { n: updateInfo.latestBuild - updateInfo.currentBuild })}
@@ -108,87 +114,3 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
 };
 
 export default React.memo(UpdateNotification);
-
-/* Styles à ajouter dans le fichier CSS global */
-export const updateNotificationStyles = `
-.update-notification {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-  max-width: 400px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  animation: slideInRight 0.3s ease-out;
-}
-
-.update-notification-content {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  gap: 12px;
-  color: white;
-}
-
-.update-notification-icon {
-  font-size: 24px;
-  flex-shrink: 0;
-}
-
-.update-notification-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.update-notification-text h4 {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.update-notification-text p {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.update-notification-multiple {
-  color: #ffd700 !important;
-  font-weight: 600;
-}
-
-.update-notification-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.btn-sm {
-  padding: 4px 8px;
-  font-size: 12px;
-}
-
-.btn-ghost {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-}
-
-.btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-`;

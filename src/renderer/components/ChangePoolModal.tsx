@@ -77,70 +77,26 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
           dragRef.current = false;
           setDragOverIndex(null);
         }}
-        style={{
-          padding: '1rem',
-          background: 'var(--color-bg)',
-          borderRadius: '8px',
-          marginBottom: '1rem',
-          textAlign: 'center',
-          cursor: 'grab',
-          userSelect: 'none',
-        }}
+        className="is-7cf33e"
       >
-        <div
-          style={{
-            fontSize: '0.875rem',
-            color: 'var(--color-text-light)',
-            marginBottom: '0.25rem',
-          }}
-        >
-          {t('changePool.drag')}
-        </div>
-        <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>
+        <div className="is-b78876">{t('changePool.drag')}</div>
+        <div className="is-28d934">
           {fencer.firstName} {fencer.lastName}
         </div>
         <div className="u-hint">{t('changePool.current', { n: currentPool.number })}</div>
       </div>
 
       {hasPlayedMatches && (
-        <div
-          style={{
-            padding: '0.75rem',
-            background: '#fef3c7',
-            borderRadius: '6px',
-            marginBottom: '1rem',
-            color: '#92400e',
-            fontSize: '0.875rem',
-          }}
-        >
+        <div className="is-54d420">
           ⚠️ <strong>{t('changePool.warning')}</strong> {t('changePool.warning_text')}
         </div>
       )}
 
       <div className="mb-4">
-        <label
-          style={{
-            display: 'block',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-            marginBottom: '0.5rem',
-          }}
-        >
-          {t('changePool.move_to')}
-        </label>
+        <label className="is-3729e5">{t('changePool.move_to')}</label>
 
         {otherPools.length === 0 ? (
-          <div
-            style={{
-              padding: '1rem',
-              textAlign: 'center',
-              color: 'var(--color-text-light)',
-              background: 'var(--color-surface-2)',
-              borderRadius: '6px',
-            }}
-          >
-            {t('changePool.none')}
-          </div>
+          <div className="is-4cae44">{t('changePool.none')}</div>
         ) : (
           <div className="u-stack-2">
             {otherPools.map(({ pool, index }) => {
@@ -178,42 +134,20 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
                 >
                   <div className="u-row-between">
                     <div>
-                      <span style={{ fontWeight: '600' }}>
+                      <span className="is-5c05f4">
                         {t('changePool.pool_n', { n: pool.number })}
                       </span>
-                      <span
-                        style={{
-                          marginLeft: '0.5rem',
-                          fontSize: '0.875rem',
-                          color: 'var(--color-text-light)',
-                        }}
-                      >
+                      <span className="is-6fb711">
                         {t('changePool.fencers_n', { n: pool.fencers.length })}
                       </span>
                     </div>
                     {matchesPlayed > 0 && (
-                      <span
-                        style={{
-                          fontSize: '0.75rem',
-                          padding: '0.125rem 0.5rem',
-                          background: '#fef3c7',
-                          color: '#92400e',
-                          borderRadius: '4px',
-                        }}
-                      >
+                      <span className="is-944a97">
                         {t('changePool.played', { count: matchesPlayed })}
                       </span>
                     )}
                   </div>
-                  <div
-                    style={{
-                      fontSize: '0.75rem',
-                      color: 'var(--color-text-muted)',
-                      marginTop: '0.25rem',
-                    }}
-                  >
-                    {pool.fencers.map(f => f.lastName).join(', ')}
-                  </div>
+                  <div className="is-c68991">{pool.fencers.map(f => f.lastName).join(', ')}</div>
                 </div>
               );
             })}
@@ -221,19 +155,7 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
         )}
       </div>
 
-      {selectedPoolIndex !== null && (
-        <div
-          style={{
-            padding: '0.75rem',
-            background: '#f0fdf4',
-            borderRadius: '6px',
-            color: '#166534',
-            fontSize: '0.875rem',
-          }}
-        >
-          {t('changePool.recalc')}
-        </div>
-      )}
+      {selectedPoolIndex !== null && <div className="is-7f4465">{t('changePool.recalc')}</div>}
     </Modal>
   );
 };

@@ -13,6 +13,7 @@ import {
   CompetitionSettings,
   PoolPhaseConfig,
 } from '../types';
+import { logger, LogCategory, toError } from '../services/logger';
 
 export interface TournamentTemplate {
   id: string;
@@ -235,7 +236,7 @@ export function getCustomTemplates(): TournamentTemplate[] {
       return JSON.parse(stored);
     }
   } catch (error) {
-    console.error('Failed to load custom templates:', error);
+    logger.error(LogCategory.BUSINESS, 'Failed to load custom templates:', toError(error));
   }
   return [];
 }
@@ -262,7 +263,7 @@ export function saveCustomTemplate(template: TournamentTemplate): boolean {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
     return true;
   } catch (error) {
-    console.error('Failed to save custom template:', error);
+    logger.error(LogCategory.BUSINESS, 'Failed to save custom template:', toError(error));
     return false;
   }
 }
@@ -277,7 +278,7 @@ export function deleteCustomTemplate(templateId: string): boolean {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
     return true;
   } catch (error) {
-    console.error('Failed to delete custom template:', error);
+    logger.error(LogCategory.BUSINESS, 'Failed to delete custom template:', toError(error));
     return false;
   }
 }
@@ -324,7 +325,7 @@ export function importTemplates(jsonContent: string): TournamentTemplate[] {
 
     return customTemplates;
   } catch (error) {
-    console.error('Failed to import templates:', error);
+    logger.error(LogCategory.BUSINESS, 'Failed to import templates:', toError(error));
     return [];
   }
 }

@@ -4,9 +4,8 @@
  */
 
 import { FencerStatus, MatchStatus } from '../../../shared/types';
-import { sendHtmlPage } from '../csp';
-import { renderArenaJournalPage, renderCompetitionResultsPage } from '../htmlPages';
 import type { RouteContext } from './context';
+import { logger, LogCategory, toError } from '../../../shared/services/logger';
 
 /** Résultats, tableau, historique d'entraînement et journal des matchs. */
 export function registerResultsRoutes(ctx: RouteContext): void {
@@ -151,7 +150,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
         pools: poolResults,
       });
     } catch (error) {
-      console.error('[RemoteScoreServer] Erreur résultats:', error);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur résultats:', toError(error));
       res.status(500).json({ error: 'results_fetch_failed' });
     }
   });
@@ -160,6 +159,13 @@ export function registerResultsRoutes(ctx: RouteContext): void {
   ctx.app.get('/api/training/history', (req, res) => {
     if (!ctx.isTrainingMode) return res.status(404).json({ error: 'not_training' });
     res.json({ history: ctx.trainingHistory });
+  });
+
+  // API : tournoi de la démo autonome (page /demo : poules, classements, tableau)
+  ctx.app.get('/api/demo/state', (_req, res) => {
+    const state = ctx.demoPlayer?.tournamentState();
+    if (!ctx.isTrainingMode || !state) return res.status(404).json({ error: 'not_training' });
+    res.json(state);
   });
 
   // API : matchs à venir dans l'ordre de passage (kiosk vue suivants)
@@ -299,7 +305,11 @@ export function registerResultsRoutes(ctx: RouteContext): void {
 
       res.json({ upcoming });
     } catch (error) {
-      console.error('[RemoteScoreServer] Erreur upcoming-matches:', error);
+      logger.error(
+        LogCategory.NETWORK,
+        '[RemoteScoreServer] Erreur upcoming-matches:',
+        toError(error)
+      );
       res.status(500).json({ error: 'internal' });
     }
   });
@@ -431,7 +441,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
 
       res.json({ tableSize, currentRound, rounds, finalResults });
     } catch (error) {
-      console.error('[RemoteScoreServer] Erreur /api/bracket:', error);
+      logger.error(LogCategory.NETWORK, '[RemoteScoreServer] Erreur /api/bracket:', toError(error));
       res.status(500).json({ error: 'internal' });
     }
   });
@@ -443,8 +453,7 @@ export function registerResultsRoutes(ctx: RouteContext): void {
     if (!/^[A-Za-z0-9_-]{1,64}$/.test(competitionId)) {
       return res.status(400).send('Identifiant invalide');
     }
-    const html = renderCompetitionResultsPage(competitionId);
-    sendHtmlPage(res, html);
+    ctx.sendHtmlFromMemory('results.html', res);
   });
 
   // Journal du match en cours (tablette arbitre - lecture seule)
@@ -468,7 +477,6 @@ export function registerResultsRoutes(ctx: RouteContext): void {
     if (!/^\d{1,3}$/.test(arenaNum)) {
       return res.status(400).send('Numéro de piste invalide');
     }
-    const html = renderArenaJournalPage(arenaNum);
-    sendHtmlPage(res, html);
+    ctx.sendHtmlFromMemory('journal.html', res);
   });
 }

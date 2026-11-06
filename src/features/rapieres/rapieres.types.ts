@@ -22,16 +22,31 @@ export const RAPIERES_AGE_CATEGORIES: RapieresAgeCategory[] = [
   'HANDI',
 ];
 
+/** Sexe d'un tireur (absent = non renseigné) */
+export type RapieresGender = 'M' | 'F';
+
+export const RAPIERES_GENDERS: RapieresGender[] = ['M', 'F'];
+
 export interface RapieresFencer {
   firstName: string;
   lastName: string;
   category: RapieresAgeCategory;
+  gender?: RapieresGender;
+  /** Date de naissance AAAA-MM-JJ (saisie ou import) : sert à la catégorie d'équipe */
+  birthDate?: string;
 }
+
+/** Sexe d'une équipe : deux hommes « M », deux femmes « F », un homme et une femme « MIXED » */
+export type RapieresTeamGender = 'M' | 'F' | 'MIXED';
 
 /** Composition d'une équipe (tireur de la compétition portant le nom d'équipe) */
 export interface RapieresTeamInfo {
   level: RapieresLevel;
   fencers: [RapieresFencer, RapieresFencer];
+  /** Club de l'équipe (import : clubs des deux tireurs) — séparation en préparation des poules */
+  club?: string;
+  /** Région de l'équipe (saisie manuelle) — séparation en préparation des poules */
+  region?: string;
 }
 
 export interface RapieresSession {
@@ -42,7 +57,12 @@ export interface RapieresSession {
   launchedWave: number;
   /** Vagues arrêtées avant leur terme par le DT : passage au classement */
   wavesEnded: boolean;
+  /** Mode de tableau choisi au passage au tableau (#1441) */
+  tableauMode?: RapieresTableauMode;
 }
+
+/** Tableau normal, avec match pour la 3e place, ou demi-finales (4 équipes, 3e place tirée) */
+export type RapieresTableauMode = 'normal' | 'third' | 'semis';
 
 /** État de la première version (vue dédiée), migré à l'ouverture */
 export interface RapieresLegacyState {
@@ -55,6 +75,15 @@ export interface RapieresLegacyState {
     status?: 'not_checked_in' | 'checked_in' | 'abandoned' | 'forfait' | 'excluded';
   }[];
 }
+
+/** Composition vide (équipe sans composition enregistrée) */
+export const emptyRapieresTeamInfo = (): RapieresTeamInfo => ({
+  level: 'beginner',
+  fencers: [
+    { lastName: '', firstName: '', category: 'SENIOR' },
+    { lastName: '', firstName: '', category: 'SENIOR' },
+  ],
+});
 
 export const createRapieresSession = (): RapieresSession => ({
   version: 2,

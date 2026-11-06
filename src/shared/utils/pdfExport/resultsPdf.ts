@@ -6,13 +6,23 @@
 
 import { Fencer, FencerStatus } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
-import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
+import {
+  savePDF,
+  printHTML,
+  buildCssOverrides,
+  assembleBody,
+  BASE_CSS,
+  pdfLang,
+  pdfT,
+} from './core';
 import { getActiveLocale } from '../localeFormat';
+import { statusCode, finalRankLabel } from '../forfeit';
 
 // ─── Export Résultats Finaux ───────────────────────────────────────────────────
 
 export interface FinalResultForPDF {
-  rank: number;
+  /** null : classement perdu (carton noir, #1418) */
+  rank: number | null;
   fencer: Fencer;
   eliminatedAt?: string;
 }
@@ -32,20 +42,18 @@ export function generateResultsHTML(
 
   const rows = results
     .map(r => {
-      const medal = medals[r.rank] ?? '';
+      const medal = medals[r.rank ?? 0] ?? '';
       const status =
-        r.fencer.status === FencerStatus.ABANDONED
-          ? ' <span style="color:#ef4444;font-size:8pt">(A)</span>'
-          : r.fencer.status === FencerStatus.FORFAIT
-            ? ' <span style="color:#ef4444;font-size:8pt">(F)</span>'
-            : r.fencer.status === FencerStatus.EXCLUDED
-              ? r.fencer.exclusionReason === 'black_card'
-                ? ` <span title="${pdfT('black_card', 'Carton noir')}" style="display:inline-block;width:7pt;height:10pt;margin-left:4pt;background:#000;border-radius:1pt;vertical-align:-1pt"></span>`
-                : ' <span style="color:#ef4444;font-size:8pt">(X)</span>'
-              : '';
+        r.fencer.status === FencerStatus.ABANDONED || r.fencer.status === FencerStatus.FORFAIT
+          ? ` <span style="color:#ef4444;font-size:8pt">(${statusCode(r.fencer.status)})</span>`
+          : r.fencer.status === FencerStatus.EXCLUDED
+            ? r.fencer.exclusionReason === 'black_card'
+              ? ` <span title="${pdfT('black_card', 'Carton noir')}" style="display:inline-block;width:7pt;height:10pt;margin-left:4pt;background:#000;border-radius:1pt;vertical-align:-1pt"></span>`
+              : ' <span style="color:#ef4444;font-size:8pt">(X)</span>'
+            : '';
       return `
 <tr>
-  <td style="text-align:center;font-weight:700;color:var(--navy)">${medal} ${r.rank}</td>
+  <td style="text-align:center;font-weight:700;color:var(--navy)">${medal} ${finalRankLabel(r.rank, r.fencer, r.eliminatedAt)}</td>
   <td style="font-weight:600">${r.fencer.lastName.toUpperCase()}${status}</td>
   <td>${r.fencer.firstName ?? ''}</td>
   <td style="color:var(--gray-dark)">${r.fencer.club ?? ''}</td>
@@ -68,7 +76,8 @@ export function generateResultsHTML(
     <div class="doc-header-badge" style="font-size:11pt">RF</div>
   </div>`,
     'gold-bar': `  <div class="gold-bar"></div>`,
-    'results-table': `
+    // Même id que le modèle « ranking » (sinon la table disparaît, #1214)
+    'ranking-table': `
   <table>
     <thead>
       <tr>
@@ -88,7 +97,7 @@ export function generateResultsHTML(
   </div>`,
   };
 
-  const defaultOrder = ['header', 'gold-bar', 'results-table', 'footer'];
+  const defaultOrder = ['header', 'gold-bar', 'ranking-table', 'footer'];
   const body = assembleBody(sections, template, defaultOrder);
 
   return `<!DOCTYPE html>
@@ -127,4 +136,15 @@ export async function exportResultsToPDF(
   if (results.length === 0) throw new Error(pdfT('results_empty', 'Aucun résultat à exporter'));
   const html = generateResultsHTML(results, title, logoBase64, template);
   await savePDF(html, 'resultats-finaux.pdf');
+}
+
+/** Impression des résultats finaux (boîte d'impression intégrée avec aperçu, #1214) */
+export async function printResultsHTML(
+  results: FinalResultForPDF[],
+  title: string = pdfT('results_title', 'Résultats Finaux'),
+  logoBase64?: string,
+  template?: PdfTemplate
+): Promise<void> {
+  if (results.length === 0) throw new Error(pdfT('results_empty', 'Aucun résultat à exporter'));
+  await printHTML(generateResultsHTML(results, title, logoBase64, template));
 }

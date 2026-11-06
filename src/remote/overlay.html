@@ -421,7 +421,7 @@
         const arenaId     = getArenaId();
         const arenaNumber = arenaId.replace('arena', '');
 
-        document.getElementById('phase-label').textContent = 'Piste ' + arenaNumber;
+        document.getElementById('phase-label').textContent = (window.T ? window.T('remote.piste') : 'Piste') + ' ' + arenaNumber;
 
         /* ── État ── */
         let scoreA    = 0, scoreB    = 0;
@@ -430,7 +430,7 @@
         let timerStat = 'paused';
         let isSuddenDeath = false;
         let matchStatus   = 'idle';
-        let phaseLabel    = 'Piste ' + arenaNumber;
+        let phaseLabel    = (window.T ? window.T('remote.piste') : 'Piste') + ' ' + arenaNumber;
         let swapped       = params.get('swap') === '1';
         let currentFencerA = {}, currentFencerB = {};
 

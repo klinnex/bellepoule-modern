@@ -107,9 +107,31 @@ accompagnés de `npm run version:bump -- major`.
 - Paquet `stable` → ne voit que les releases stables.
 - Paquet `dev` (ou exécution locale) → voit aussi les pré-releases dev.
 
-Le canal vient de `version.json` (`channel`), figé au packaging.
+Le canal vient de `version.json` (`channel`), figé au packaging, sauf choix utilisateur
+dans Préférences → Mises à jour → Canal (`channel` dans `updater-settings.json`).
+Passer de dev à stable ne rétrograde pas : seul un build plus récent est proposé.
 Comme `main` reprend le build de `dev`, un testeur en `1.2.0-dev.1410` ne se voit pas proposer
 `1.2.0 (Build #1402)`, plus ancien.
+
+Vérification au démarrage (+5 s) puis toutes les 12 h, désactivable dans
+Préférences → Mises à jour (`<userData>/updater-settings.json`, clé `autoCheck`).
+Le menu Aide → Vérifier les mises à jour reste toujours actif.
+Nouveau build détecté → bannière dans l'app + téléchargement en arrière-plan (`autoDownload`),
+installation proposée à la fin. Version déjà téléchargée → pas de nouveau téléchargement.
+
+Installation intégrée (bannière « Installer » ou menu) : aucun passage par le navigateur.
+Asset choisi par `src/main/updateAssets.ts` (plateforme + arch + mode), téléchargé dans
+`userData/pending-update`, vérifié par SHA-256 (digest GitHub), puis :
+
+| Mode détecté | Action |
+|---|---|
+| AppImage (`APPIMAGE`) | remplacement du fichier en place + relance |
+| Windows portable (`PORTABLE_EXECUTABLE_FILE`) | nouvel exe copié à côté sous le nom de l'asset (l'exe courant est verrouillé par son lanceur) + relance ; ancien exe supprimé au lancement suivant |
+| Windows installé | `-setup.exe` NSIS ouvert via ShellExecute (UAC si Program Files) |
+| macOS | ouverture du `.dmg` de la bonne arch |
+| Linux deb/rpm | remis au gestionnaire de logiciels |
+
+Repli sur la page des versions GitHub uniquement si aucun asset ne correspond.
 
 ## 6. Référence `scripts/version.js`
 

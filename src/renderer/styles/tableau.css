@@ -129,3 +129,25 @@
     min-height: var(--touch-target);
   }
 }
+
+/* ── Égalité Sabre Laser : vainqueur par V ou tirage au sort (TableauScoreModal) ── */
+.tableau-tie {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.tableau-tie-hint {
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+.tableau-tie-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}

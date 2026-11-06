@@ -352,6 +352,13 @@ export function isDnf(ranking: { fencer: { status?: FencerStatus } }): boolean {
   );
 }
 
+/** Forfait / médical déclaré à l'appel sans match de poule commencé : rang remplacé par « DNS » */
+export function isDnsRanking(ranking: {
+  fencer: { status?: FencerStatus; exclusionReason?: string | null };
+}): boolean {
+  return isDnf(ranking) && ranking.fencer.exclusionReason === 'dns';
+}
+
 /** Statuts classés d'office en fin de classement (forfait, abandon, carton noir) */
 function isForfeitStatus(status: FencerStatus | undefined): boolean {
   return (

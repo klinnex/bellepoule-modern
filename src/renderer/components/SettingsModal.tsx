@@ -3,10 +3,10 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useFocusTrap } from '../hooks/useFocusTrap';
-import { HINT, SECTION_DIVIDER, BOLD, SMALL_BTN } from './settingsModal.styles';
+import { HINT, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
 import type { Language } from '../contexts/TranslationContext';
 import LanguageSelector from './LanguageSelector';
 import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
@@ -14,6 +14,7 @@ import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
 import { logger, LogCategory } from '@shared/services/logger';
 import { isWebhookUrlSafe } from '@shared/services/notificationService';
+import { restartGuidedTour } from './guidedTourFlags';
 import {
   UI_SCALES,
   loadUiScale,
@@ -21,8 +22,21 @@ import {
   saveUiScale,
   type UiScale,
 } from '../services/uiScale';
+import {
+  LOGO_STORAGE_KEY,
+  LOGO_LIBRARY_MAX,
+  type LogoEntry,
+  loadLogoLibrary,
+  saveLogoLibraryLocal,
+  sanitizeLogoLibrary,
+  ensureActiveInLibrary,
+  addLogo,
+  renameLogo,
+  removeLogo,
+  newLogoId,
+  logoNameFromFile,
+} from '../services/logoLibrary';
 
-const LOGO_STORAGE_KEY = 'bellepoule-logo';
 const WEBHOOK_STORAGE_KEY = 'bellepoule-webhook-url';
 const AUDIT_LOG_KEY = 'bellepoule-audit-log-enabled';
 const TTS_CONFIG_KEY = 'bellepoule-tts-config';
@@ -51,6 +65,121 @@ const TTS_THRESHOLDS: { key: string; label: string }[] = [
   { key: 'countdown', label: 'settings.tts_countdown' },
   { key: '0', label: 'settings.tts_m0' },
 ];
+
+// Organisation des paramètres : sections (onglets) → réglages.
+// `keys` = clés de traduction parcourues par la recherche.
+type SettingsSectionId =
+  'display' | 'scoring' | 'documents' | 'referee' | 'notifications' | 'system';
+type SettingsItemId =
+  | 'language'
+  | 'pseudo'
+  | 'theme'
+  | 'text_size'
+  | 'animations'
+  | 'quick_mouse'
+  | 'simplified'
+  | 'audit'
+  | 'logo'
+  | 'pdf'
+  | 'tts'
+  | 'webhook'
+  | 'updates'
+  | 'tour';
+
+interface SettingsSectionDef {
+  id: SettingsSectionId;
+  icon: string;
+  labelKey: string;
+  items: { id: SettingsItemId; keys: string[] }[];
+}
+
+const SETTINGS_SECTIONS: SettingsSectionDef[] = [
+  {
+    id: 'display',
+    icon: '🎨',
+    labelKey: 'settings.section_display',
+    items: [
+      { id: 'language', keys: ['settings.language'] },
+      { id: 'theme', keys: ['settings.theme'] },
+      { id: 'text_size', keys: ['settings.text_size'] },
+      { id: 'animations', keys: ['settings.animations_title', 'settings.animations_hint'] },
+      { id: 'pseudo', keys: ['settings.pseudo_locale', 'settings.pseudo_locale_hint'] },
+    ],
+  },
+  {
+    id: 'scoring',
+    icon: '✏️',
+    labelKey: 'settings.section_scoring',
+    items: [
+      { id: 'quick_mouse', keys: ['settings.quick_mouse_title', 'settings.quick_mouse_hint'] },
+      { id: 'simplified', keys: ['settings.simplified_title', 'settings.simplified_hint'] },
+      { id: 'audit', keys: ['settings.audit_title', 'settings.audit_hint'] },
+    ],
+  },
+  {
+    id: 'documents',
+    icon: '📄',
+    labelKey: 'settings.section_documents',
+    items: [
+      { id: 'logo', keys: ['settings.logo_title', 'settings.logo_hint'] },
+      { id: 'pdf', keys: ['settings.pdf_title', 'settings.pdf_hint'] },
+    ],
+  },
+  {
+    id: 'referee',
+    icon: '🔊',
+    labelKey: 'settings.section_referee',
+    items: [
+      {
+        id: 'tts',
+        keys: [
+          'settings.tts_title',
+          'settings.tts_hint',
+          'settings.tts_voice',
+          'settings.tts_milestones',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'notifications',
+    icon: '🔔',
+    labelKey: 'settings.section_notifications',
+    items: [{ id: 'webhook', keys: ['settings.webhook_title', 'settings.webhook_hint'] }],
+  },
+  {
+    id: 'system',
+    icon: '⚙️',
+    labelKey: 'settings.section_system',
+    items: [
+      {
+        id: 'updates',
+        keys: ['settings.updates_title', 'settings.updates_hint', 'settings.updates_channel'],
+      },
+      { id: 'tour', keys: ['settings.tour_title', 'settings.tour_hint'] },
+    ],
+  },
+];
+
+const SECTION_STORAGE_KEY = 'bellepoule-settings-section';
+
+function loadActiveSection(): SettingsSectionId {
+  try {
+    const saved = localStorage.getItem(SECTION_STORAGE_KEY);
+    if (saved && SETTINGS_SECTIONS.some(s => s.id === saved)) return saved as SettingsSectionId;
+  } catch {
+    /* stockage indisponible */
+  }
+  return 'display';
+}
+
+// Minuscules sans accents : « theme » trouve « Thème »
+function normalizeSearch(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
 
 function loadTtsConfig(): TtsConfig {
   try {
@@ -114,6 +243,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     theme: theme,
   });
   const [logo, setLogo] = useState<string | null>(() => localStorage.getItem(LOGO_STORAGE_KEY));
+  const [logos, setLogos] = useState<LogoEntry[]>(() =>
+    ensureActiveInLibrary(loadLogoLibrary(), localStorage.getItem(LOGO_STORAGE_KEY))
+  );
   const [isDragging, setIsDragging] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -133,6 +265,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
 
   const [uiScale, setUiScale] = useState<UiScale>(() => loadUiScale());
   const [confettiDisabled, setConfettiDisabled] = useState<boolean>(() => isConfettiDisabled());
+  // Vérification auto des mises à jour : préférence stockée côté main (lue avant le 1er check)
+  const [updateAutoCheck, setUpdateAutoCheck] = useState<boolean>(true);
+  const [updateChannel, setUpdateChannel] = useState<'stable' | 'dev' | null>(null);
+  useEffect(() => {
+    const updater = window.electronAPI?.updater;
+    updater
+      ?.getAutoCheck?.()
+      .then(r => setUpdateAutoCheck(r.enabled))
+      .catch(() => {
+        // updater indisponible (dev / tests)
+      });
+    updater
+      ?.getChannel?.()
+      .then(r => setUpdateChannel(r.channel))
+      .catch(() => {
+        // updater indisponible (dev / tests)
+      });
+  }, []);
   const [webhookUrl, setWebhookUrl] = useState<string>(
     () => localStorage.getItem(WEBHOOK_STORAGE_KEY) ?? ''
   );
@@ -161,6 +311,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
       });
     }
     const api = (window as any).electronAPI;
+    // Bibliothèque persistée (logos.json) : fusion avec la copie locale
+    api
+      ?.getLogos?.()
+      .then((raw: unknown) => {
+        const disk = sanitizeLogoLibrary(raw);
+        if (disk.length === 0) return;
+        setLogos(prev => {
+          const ids = new Set(disk.map(l => l.id));
+          const merged = sanitizeLogoLibrary([...disk, ...prev.filter(l => !ids.has(l.id))]);
+          const withActive = ensureActiveInLibrary(merged, localStorage.getItem(LOGO_STORAGE_KEY));
+          saveLogoLibraryLocal(withActive);
+          return withActive;
+        });
+      })
+      .catch(() => {
+        /* bibliothèque optionnelle */
+      });
     const unsub = api?.onLogoLoaded?.((persisted: string | null) => {
       if (persisted && !localStorage.getItem(LOGO_STORAGE_KEY)) {
         setLogo(persisted);
@@ -226,33 +393,57 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     setSettings(prev => ({ ...prev, theme: newTheme }));
   };
 
-  const applyLogo = useCallback(async (file: File) => {
-    setLogoError(null);
-    if (file.size > 5 * 1024 * 1024) {
-      setLogoError('Image trop grande (max 5 Mo)');
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      setLogoError('Fichier non supporté — choisissez une image');
-      return;
-    }
-    try {
-      const base64 = await resizeLogo(file);
-      setLogo(base64);
-      localStorage.setItem(LOGO_STORAGE_KEY, base64);
-      const api = (window as any).electronAPI;
-      if (api?.remote?.updateLogo)
-        api.remote.updateLogo(base64).catch((err: unknown) => {
-          logger.warn(
-            LogCategory.NETWORK,
-            'Échec mise à jour logo remote',
-            err instanceof Error ? err : undefined
-          );
-        });
-    } catch {
-      setLogoError("Impossible de lire l'image");
-    }
+  // Logo actif : localStorage (PDF/kiosque) + logo.dat + serveurs distants
+  const setActiveLogo = useCallback((data: string | null) => {
+    setLogo(data);
+    if (data) localStorage.setItem(LOGO_STORAGE_KEY, data);
+    else localStorage.removeItem(LOGO_STORAGE_KEY);
+    const api = (window as any).electronAPI;
+    if (api?.remote?.updateLogo)
+      api.remote.updateLogo(data).catch((err: unknown) => {
+        logger.warn(
+          LogCategory.NETWORK,
+          'Échec mise à jour logo remote',
+          err instanceof Error ? err : undefined
+        );
+      });
   }, []);
+
+  const persistLogos = useCallback((next: LogoEntry[]) => {
+    setLogos(next);
+    saveLogoLibraryLocal(next);
+    (window as any).electronAPI?.saveLogos?.(next)?.catch?.(() => {
+      /* persistance disque indisponible */
+    });
+  }, []);
+
+  const applyLogo = useCallback(
+    async (file: File) => {
+      setLogoError(null);
+      if (logos.length >= LOGO_LIBRARY_MAX) {
+        setLogoError(t('settings.logo_limit', { max: LOGO_LIBRARY_MAX }));
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setLogoError('Image trop grande (max 5 Mo)');
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        setLogoError('Fichier non supporté — choisissez une image');
+        return;
+      }
+      try {
+        const base64 = await resizeLogo(file);
+        persistLogos(
+          addLogo(logos, { id: newLogoId(), name: logoNameFromFile(file.name), data: base64 })
+        );
+        setActiveLogo(base64);
+      } catch {
+        setLogoError("Impossible de lire l'image");
+      }
+    },
+    [logos, persistLogos, setActiveLogo, t]
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -270,18 +461,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     [applyLogo]
   );
 
-  const handleRemoveLogo = () => {
-    setLogo(null);
-    localStorage.removeItem(LOGO_STORAGE_KEY);
-    const api = (window as any).electronAPI;
-    if (api?.remote?.updateLogo)
-      api.remote.updateLogo(null).catch((err: unknown) => {
-        logger.warn(
-          LogCategory.NETWORK,
-          'Échec suppression logo remote',
-          err instanceof Error ? err : undefined
-        );
-      });
+  const handleDeleteLogo = (id: string) => {
+    const res = removeLogo(logos, id, logo);
+    persistLogos(res.list);
+    if (res.nextActive !== logo) setActiveLogo(res.nextActive);
+  };
+
+  const handleRenameLogo = (id: string, name: string) => {
+    persistLogos(renameLogo(logos, id, name));
   };
 
   const handleWebhookUrlChange = (url: string) => {
@@ -304,19 +491,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     setWebhookTestStatus('testing');
     setWebhookTestMessage('');
     try {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: '✅ BellePoule Modern — test de notification webhook',
-          username: 'BellePoule',
-        }),
-      });
+      // Envoi côté main : la CSP du renderer bloque les hôtes externes (#1269)
+      const res = await window.electronAPI?.remote?.testWebhook?.(webhookUrl.trim());
+      if (!res?.success) throw new Error(res?.error ?? 'failed');
       setWebhookTestStatus('success');
       setWebhookTestMessage(t('settings.webhook_success'));
-    } catch {
+    } catch (e) {
       setWebhookTestStatus('error');
-      setWebhookTestMessage(t('settings.webhook_failed'));
+      const detail =
+        e instanceof Error && e.message.startsWith('http_') ? ` (HTTP ${e.message.slice(5)})` : '';
+      setWebhookTestMessage(t('settings.webhook_failed') + detail);
     }
   };
 
@@ -333,6 +517,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   const handleConfettiDisabledChange = (disabled: boolean) => {
     setConfettiDisabled(disabled);
     localStorage.setItem(CONFETTI_DISABLED_KEY, String(disabled));
+  };
+
+  const handleUpdateAutoCheckChange = (enabled: boolean) => {
+    setUpdateAutoCheck(enabled);
+    window.electronAPI?.updater?.setAutoCheck?.(enabled).catch(() => {
+      setUpdateAutoCheck(!enabled);
+    });
+  };
+
+  const handleUpdateChannelChange = (channel: 'stable' | 'dev') => {
+    const previous = updateChannel;
+    setUpdateChannel(channel);
+    window.electronAPI?.updater?.setChannel?.(channel).catch(() => {
+      setUpdateChannel(previous);
+    });
   };
 
   // Taille du texte : appliquée et enregistrée immédiatement (#1156)
@@ -357,26 +556,46 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     onClose();
   };
 
-  return (
-    <>
-      {/* Clic extérieur sans effet : fermeture via ✕ / Échap (#1033) */}
-      <div className="modal-overlay">
-        <div
-          ref={modalRef}
-          className="modal"
-          onClick={e => e.stopPropagation()}
-          style={{ maxWidth: '500px' }}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="modal-header">
-            <h2 className="modal-title">{t('settings.title')}</h2>
-            <button className="btn-close" onClick={onClose} aria-label={t('common.close')}>
-              &times;
-            </button>
-          </div>
+  // Navigation par section + recherche transversale
+  const [activeSection, setActiveSection] = useState<SettingsSectionId>(() => loadActiveSection());
+  const [query, setQuery] = useState('');
+  const normalizedQuery = normalizeSearch(query.trim());
+  const searching = normalizedQuery.length > 0;
 
-          <div className="modal-body">
+  const visibleSections = useMemo(() => {
+    if (!searching) {
+      const section = SETTINGS_SECTIONS.find(s => s.id === activeSection) ?? SETTINGS_SECTIONS[0];
+      return [{ section, items: section.items }];
+    }
+    return SETTINGS_SECTIONS.map(section => {
+      const sectionLabel = t(section.labelKey);
+      const items = section.items.filter(item =>
+        normalizeSearch([sectionLabel, ...item.keys.map(k => t(k))].join(' ')).includes(
+          normalizedQuery
+        )
+      );
+      return { section, items };
+    }).filter(entry => entry.items.length > 0);
+  }, [searching, activeSection, normalizedQuery, t]);
+
+  const matchCount = (id: SettingsSectionId): number =>
+    visibleSections.find(entry => entry.section.id === id)?.items.length ?? 0;
+
+  const selectSection = (id: SettingsSectionId) => {
+    setQuery('');
+    setActiveSection(id);
+    try {
+      localStorage.setItem(SECTION_STORAGE_KEY, id);
+    } catch {
+      /* stockage indisponible */
+    }
+  };
+
+  const renderItem = (id: SettingsItemId): React.ReactNode => {
+    switch (id) {
+      case 'language':
+        return (
+          <>
             <div className="form-group">
               <LanguageSelector
                 showLabel={true}
@@ -384,7 +603,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 onLanguageChange={handleLanguageChange}
               />
             </div>
-
+          </>
+        );
+      case 'pseudo':
+        return (
+          <>
             <div className="form-group">
               <label className="u-row">
                 <input
@@ -396,7 +619,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
               </label>
               <p style={HINT}>{t('settings.pseudo_locale_hint')}</p>
             </div>
-
+          </>
+        );
+      case 'theme':
+        return (
+          <>
             <div className="form-group">
               <label>{t('settings.theme')}</label>
               <select
@@ -409,7 +636,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 <option value="dark">{t('settings.theme_dark')}</option>
               </select>
             </div>
-
+          </>
+        );
+      case 'text_size':
+        return (
+          <>
             <div className="form-group">
               <label htmlFor="settings-ui-scale">{t('settings.text_size')}</label>
               <select
@@ -425,8 +656,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 ))}
               </select>
             </div>
-
-            {/* Logo organisateur */}
+          </>
+        );
+      case 'logo':
+        return (
+          <>
             <div className="form-group">
               <label>{t('settings.logo_title')}</label>
               <p style={HINT}>{t('settings.logo_hint')}</p>
@@ -448,34 +682,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   transition: 'border-color 0.15s, background 0.15s',
                 }}
               >
-                {logo ? (
-                  <img
-                    src={logo}
-                    alt={t('settings.logo_title')}
-                    style={{
-                      maxHeight: '60px',
-                      maxWidth: '100%',
-                      objectFit: 'contain',
-                      display: 'block',
-                      margin: '0 auto 0.5rem',
-                    }}
-                  />
-                ) : (
-                  <span
-                    style={{
-                      fontSize: '0.85rem',
-                      color: 'var(--text-muted, var(--color-text-light))',
-                    }}
-                  >
-                    {t('settings.logo_drop')}
-                  </span>
-                )}
+                <span className="is-fd4b7b">{t('settings.logo_drop')}</span>
                 <span
                   style={{
                     fontSize: '0.75rem',
                     color: 'var(--text-muted, var(--color-text-muted))',
                     display: 'block',
-                    marginTop: logo ? '0' : '0.25rem',
+                    marginTop: '0.25rem',
                   }}
                 >
                   {t('settings.logo_formats')}
@@ -485,45 +698,90 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                style={{ display: 'none' }}
+                className="is-f2892a"
                 onChange={handleFileChange}
               />
-              {logoError && (
-                <p
-                  style={{
-                    fontSize: '0.8rem',
-                    color: 'var(--danger, #ef4444)',
-                    marginTop: '0.25rem',
-                  }}
-                >
-                  {logoError}
-                </p>
+              {logoError && <p className="is-bb6602">{logoError}</p>}
+              {logos.length > 0 && (
+                <ul aria-label={t('settings.logo_library')} className="logo-library">
+                  {logos.map(l => {
+                    const isActive = l.data === logo;
+                    return (
+                      <li key={l.id} className={`logo-library-item${isActive ? ' is-active' : ''}`}>
+                        <img src={l.data} alt={l.name} className="logo-library-thumb" />
+                        <input
+                          type="text"
+                          defaultValue={l.name}
+                          aria-label={t('settings.logo_name')}
+                          maxLength={80}
+                          onBlur={e => handleRenameLogo(l.id, e.target.value)}
+                          className="logo-library-name"
+                        />
+                        {isActive ? (
+                          <span className="logo-library-active">{t('settings.logo_active')}</span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            style={SMALL_BTN}
+                            onClick={() => setActiveLogo(l.data)}
+                          >
+                            {t('settings.logo_use')}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          style={SMALL_BTN}
+                          aria-label={`${t('settings.logo_delete')} ${l.name}`}
+                          onClick={() => handleDeleteLogo(l.id)}
+                        >
+                          {t('settings.logo_delete')}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
               )}
               {logo && (
-                <button
-                  className="btn btn-secondary"
-                  style={{ marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.25rem 0.75rem' }}
-                  onClick={handleRemoveLogo}
-                >
-                  {t('settings.logo_remove')}
+                <button className="btn btn-secondary is-7b69a8" onClick={() => setActiveLogo(null)}>
+                  {t('settings.logo_none')}
                 </button>
               )}
             </div>
-            {/* PDF Templates */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'pdf':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.pdf_title')}</label>
               <p style={HINT}>{t('settings.pdf_hint')}</p>
               <button
-                className="btn btn-secondary"
-                style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
+                className="btn btn-secondary is-af623e"
                 onClick={() => setShowPdfEditor(true)}
               >
                 {t('pdfTemplate.openButton')}
               </button>
             </div>
-
-            {/* Saisie rapide souris */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'tour':
+        return (
+          <>
+            <div className="form-group">
+              <label style={BOLD}>{t('settings.tour_title')}</label>
+              <p style={HINT}>{t('settings.tour_hint')}</p>
+              <button type="button" className="btn btn-secondary" onClick={restartGuidedTour}>
+                {t('settings.tour_restart')}
+              </button>
+            </div>
+          </>
+        );
+      case 'quick_mouse':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.quick_mouse_title')}</label>
               <p style={HINT}>{t('settings.quick_mouse_hint')}</p>
               <label className="u-row cursor-pointer">
@@ -532,12 +790,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   checked={quickMouseScoring}
                   onChange={e => handleQuickMouseScoringChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>{t('settings.quick_mouse_enable')}</span>
+                <span style={TOGGLE_LABEL}>{t('settings.quick_mouse_enable')}</span>
               </label>
             </div>
-
-            {/* Mode de saisie simplifiée */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'simplified':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.simplified_title')}</label>
               <p style={HINT}>{t('settings.simplified_hint')}</p>
               <label className="u-row cursor-pointer">
@@ -546,12 +807,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   checked={simplifiedInputMode}
                   onChange={e => handleSimplifiedInputModeChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>{t('settings.simplified_enable')}</span>
+                <span style={TOGGLE_LABEL}>{t('settings.simplified_enable')}</span>
               </label>
             </div>
-
-            {/* Journal des scores */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'audit':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.audit_title')}</label>
               <p style={HINT}>{t('settings.audit_hint')}</p>
               <label className="u-row cursor-pointer">
@@ -560,12 +824,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   checked={auditLogEnabled}
                   onChange={e => handleAuditLogChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>{t('settings.audit_enable')}</span>
+                <span style={TOGGLE_LABEL}>{t('settings.audit_enable')}</span>
               </label>
             </div>
-
-            {/* Animations */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'animations':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.animations_title')}</label>
               <p style={HINT}>{t('settings.animations_hint')}</p>
               <label className="u-row cursor-pointer">
@@ -574,12 +841,49 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   checked={confettiDisabled}
                   onChange={e => handleConfettiDisabledChange(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.875rem' }}>{t('settings.animations_disable')}</span>
+                <span style={TOGGLE_LABEL}>{t('settings.animations_disable')}</span>
               </label>
             </div>
-
-            {/* Notifications webhook */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'updates':
+        return (
+          <>
+            <div className="form-group">
+              <label style={BOLD}>{t('settings.updates_title')}</label>
+              <p style={HINT}>{t('settings.updates_hint')}</p>
+              <label className="u-row cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={updateAutoCheck}
+                  onChange={e => handleUpdateAutoCheckChange(e.target.checked)}
+                />
+                <span style={TOGGLE_LABEL}>{t('settings.updates_enable')}</span>
+              </label>
+            </div>
+            {updateChannel && (
+              <div className="form-group">
+                <label htmlFor="update-channel" style={BOLD}>
+                  {t('settings.updates_channel')}
+                </label>
+                <p style={HINT}>{t('settings.updates_channel_hint')}</p>
+                <select
+                  id="update-channel"
+                  className="form-input form-select"
+                  value={updateChannel}
+                  onChange={e => handleUpdateChannelChange(e.target.value as 'stable' | 'dev')}
+                >
+                  <option value="stable">{t('settings.updates_channel_stable')}</option>
+                  <option value="dev">{t('settings.updates_channel_dev')}</option>
+                </select>
+              </div>
+            )}
+          </>
+        );
+      case 'webhook':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.webhook_title')}</label>
               <p style={HINT}>{t('settings.webhook_hint')}</p>
               <input
@@ -623,21 +927,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 </p>
               )}
             </div>
-
-            {/* Tableau arbitrage — minuteur vocal (TTS) */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'tts':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.tts_title')}</label>
               <p style={HINT}>{t('settings.tts_hint')}</p>
 
-              <label style={{ fontSize: '0.85rem' }}>{t('settings.tts_voice')}</label>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.5rem',
-                  alignItems: 'center',
-                  marginBottom: '0.5rem',
-                }}
-              >
+              <label className="is-933a8e">{t('settings.tts_voice')}</label>
+              <div className="is-98cce7">
                 <select
                   className="form-input form-select flex-1"
                   value={ttsConfig.voiceName ?? ''}
@@ -659,7 +959,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 </button>
               </div>
 
-              <label style={{ fontSize: '0.85rem' }}>
+              <label className="is-933a8e">
                 {t('settings.tts_rate', { rate: ttsConfig.rate.toFixed(1) })}
               </label>
               <input
@@ -669,13 +969,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 step="0.1"
                 value={ttsConfig.rate}
                 onChange={e => handleTtsRateChange(parseFloat(e.target.value))}
-                style={{ width: '100%', marginBottom: '0.5rem' }}
+                className="is-f9549b"
               />
 
-              <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem' }}>
-                {t('settings.tts_milestones')}
-              </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label className="is-fb413b">{t('settings.tts_milestones')}</label>
+              <div className="is-2b393c">
                 {TTS_THRESHOLDS.map(({ key, label }) => (
                   <label key={key} className="u-row cursor-pointer">
                     <input
@@ -683,8 +981,82 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                       checked={ttsConfig.announce[key] !== false}
                       onChange={e => handleTtsThresholdToggle(key, e.target.checked)}
                     />
-                    <span style={{ fontSize: '0.875rem' }}>{t(label)}</span>
+                    <span style={TOGGLE_LABEL}>{t(label)}</span>
                   </label>
+                ))}
+              </div>
+            </div>
+          </>
+        );
+    }
+  };
+
+  return (
+    <>
+      {/* Clic extérieur sans effet : fermeture via ✕ / Échap (#1033) */}
+      <div className="modal-overlay">
+        <div
+          ref={modalRef}
+          className="modal settings-modal"
+          onClick={e => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="modal-header">
+            <h2 className="modal-title">{t('settings.title')}</h2>
+            <button className="btn-close" onClick={onClose} aria-label={t('common.close')}>
+              &times;
+            </button>
+          </div>
+
+          <div className="modal-body settings-body">
+            <input
+              type="search"
+              className="form-input settings-search"
+              placeholder={t('settings.search_placeholder')}
+              aria-label={t('settings.search_placeholder')}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+            />
+            <div className="settings-layout">
+              <nav className="settings-nav" role="tablist" aria-orientation="vertical">
+                {SETTINGS_SECTIONS.map(section => {
+                  const count = matchCount(section.id);
+                  const selected = !searching && section.id === activeSection;
+                  return (
+                    <button
+                      key={section.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      className={`settings-nav-item${selected ? ' is-active' : ''}`}
+                      disabled={searching && count === 0}
+                      onClick={() => selectSection(section.id)}
+                    >
+                      <span aria-hidden="true">{section.icon}</span>
+                      <span className="settings-nav-label">{t(section.labelKey)}</span>
+                      {searching && count > 0 && (
+                        <span className="settings-nav-count">{count}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+              <div className="settings-panel" role="tabpanel">
+                {visibleSections.length === 0 && (
+                  <p className="settings-empty">{t('settings.search_empty')}</p>
+                )}
+                {visibleSections.map(({ section, items }) => (
+                  <section key={section.id} className="settings-section">
+                    <h3 className="settings-section-title">
+                      <span aria-hidden="true">{section.icon}</span> {t(section.labelKey)}
+                    </h3>
+                    {items.map(item => (
+                      <div key={item.id} className="settings-item">
+                        {renderItem(item.id)}
+                      </div>
+                    ))}
+                  </section>
                 ))}
               </div>
             </div>

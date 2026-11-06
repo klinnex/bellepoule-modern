@@ -1,6 +1,6 @@
 // Lag de la boucle d'événements du process principal (#1154, étape 4 : mesurer avant de déplacer).
 // Le main héberge l'UI, les IPC `db:*` et le serveur distant : tout blocage s'y répercute sur les tablettes.
-import { monitorEventLoopDelay, type IntervalHistogram } from 'perf_hooks';
+import { monitorEventLoopDelay, type ELDHistogram } from 'perf_hooks';
 
 export interface EventLoopDelaySnapshot {
   /** Échantillons collectés depuis le dernier reset */
@@ -14,7 +14,7 @@ export interface EventLoopDelaySnapshot {
 const NS_PER_MS = 1e6;
 
 export class EventLoopMonitor {
-  private histogram: IntervalHistogram;
+  private histogram: ELDHistogram;
   private running = false;
 
   constructor(resolutionMs = 10) {

@@ -39,6 +39,7 @@ function weaponLabel(w: string): string {
 
 function categoryLabel(c: string): string {
   const MAP: Record<string, string> = {
+    U9: 'M9',
     U11: 'M11',
     U13: 'M13',
     U15: 'M15',

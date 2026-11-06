@@ -12,6 +12,7 @@ import {
   Pool,
   PoolSnapshot,
   Referee,
+  Score,
   RefereeComment,
   CompetitionSettings,
   ImportResult,
@@ -20,7 +21,7 @@ import {
   DirectEliminationTable,
   FencerCompetitionStats,
 } from '../types';
-import type { MatchSignatureRequest } from './remote';
+import type { MatchSignatureRequest, RemoteSession, Arena, ArenaUpdate } from './remote';
 
 // Re-export Pool for preload
 export type { Pool, PoolSnapshot } from '../types';
@@ -80,7 +81,8 @@ export interface FencerUpdateData {
   ranking?: number;
   status?: string;
   photo?: string;
-  exclusionReason?: 'black_card' | null;
+  handedness?: 'R' | 'L';
+  exclusionReason?: 'black_card' | 'dns' | null;
 }
 
 export interface MatchCreateData {
@@ -231,11 +233,27 @@ export interface AbandonSnapshot {
   createdAt: string;
 }
 
+/** Évènement IPC `arena:update` (main → renderer). */
+export interface RemoteArenaUpdateEvent {
+  arenaId: string;
+  update?: Partial<ArenaUpdate>;
+}
+
+/** Évènement IPC `match:finished` (main → renderer). */
+export interface RemoteMatchFinishedEvent {
+  matchId: string;
+  scoreA: number;
+  scoreB: number;
+  winner?: 'A' | 'B';
+  poolId?: string;
+  isTableau?: boolean;
+}
+
 export interface SessionState {
   currentPhase?: number;
   selectedPool?: string;
   selectedTable?: string;
-  uiState?: Record<string, any>;
+  uiState?: Record<string, unknown>;
   lastSaveTime?: Date;
 }
 
@@ -337,6 +355,18 @@ export interface UpdaterAPI {
   hasPendingUpdate: () => Promise<{ hasPending: boolean }>;
   getPendingUpdateInfo: () => Promise<{ version: string; path: string } | null>;
   installPendingUpdate: () => Promise<{ success: boolean; error?: string }>;
+  /** Télécharge, vérifie (SHA-256) puis propose l'installation, sans navigateur */
+  downloadAndInstall: () => Promise<{ success: boolean; error?: string }>;
+  /** Vérification automatique au démarrage + périodique (préférence persistée) */
+  getAutoCheck: () => Promise<{ enabled: boolean }>;
+  setAutoCheck: (
+    enabled: boolean
+  ) => Promise<{ success: boolean; enabled?: boolean; error?: string }>;
+  /** Canal : stable (releases main) ou dev (pré-releases incluses) */
+  getChannel: () => Promise<{ channel: 'stable' | 'dev' }>;
+  setChannel: (
+    channel: 'stable' | 'dev'
+  ) => Promise<{ success: boolean; channel?: 'stable' | 'dev'; error?: string }>;
 }
 
 // ============================================================================
@@ -404,23 +434,23 @@ export interface RemoteServerAPI {
   startSession: (
     competitionId: string,
     strips: number,
-    matches?: any[],
+    matches?: unknown[],
     showPhotos?: boolean,
     kioskViews?: Record<string, boolean>,
     cardAnnounce?: boolean
-  ) => Promise<{ success: boolean; session?: any; error?: string }>;
+  ) => Promise<{ success: boolean; session?: RemoteSession; error?: string }>;
   stopSession: (competitionId: string) => Promise<{ success: boolean; error?: string }>;
   launchCompetition: (competitionId: string) => Promise<{ success: boolean; error?: string }>;
   getSession: (
     competitionId: string
-  ) => Promise<{ success: boolean; session?: any; error?: string }>;
+  ) => Promise<{ success: boolean; session?: RemoteSession; error?: string }>;
   getArenas: (
     competitionId: string
-  ) => Promise<{ success: boolean; arenas?: any[]; error?: string }>;
+  ) => Promise<{ success: boolean; arenas?: Arena[]; error?: string }>;
   updateStripCount: (
     competitionId: string,
     count: number
-  ) => Promise<{ success: boolean; session?: any; error?: string }>;
+  ) => Promise<{ success: boolean; session?: RemoteSession; error?: string }>;
   updateShowPhotos: (
     competitionId: string,
     value: boolean
@@ -439,7 +469,7 @@ export interface RemoteServerAPI {
   ) => Promise<{ success: boolean; error?: string }>;
   updatePoolFencers: (
     competitionId: string,
-    updates: Array<{ poolId: string; fencers: any[] }>
+    updates: Array<{ poolId: string; fencers: Fencer[] }>
   ) => Promise<{ success: boolean; error?: string }>;
   /**
    * Tournoi des rapières : matchs de la vague active proposés aux tablettes (`null` : tous) ;
@@ -452,7 +482,7 @@ export interface RemoteServerAPI {
   ) => Promise<{ success: boolean; error?: string }>;
   syncPoolMatches: (
     competitionId: string,
-    poolsData: Array<{ poolId: string; matches: any[] }>
+    poolsData: Array<{ poolId: string; matches: unknown[] }>
   ) => Promise<{ success: boolean; error?: string }>;
   /** Réassigne les poules aux pistes pendant une session active (#1037) */
   assignPools: (
@@ -461,13 +491,13 @@ export interface RemoteServerAPI {
       poolId: string;
       poolNumber?: number;
       strip?: number | null;
-      fencers?: any[];
-      matches: any[];
+      fencers?: Fencer[];
+      matches: unknown[];
     }>
   ) => Promise<{ success: boolean; error?: string }>;
   refreshDeMatches: (
     competitionId: string,
-    matches: any[]
+    matches: unknown[]
   ) => Promise<{ success: boolean; error?: string }>;
   setArenaPassword: (
     competitionId: string,
@@ -508,6 +538,7 @@ export interface RemoteServerAPI {
     customTheme?: import('../types/remote').CustomTheme
   ) => Promise<{ success: boolean; error?: string }>;
   setWebhookUrl: (url: string | null) => Promise<{ success: boolean; error?: string }>;
+  testWebhook: (url: string) => Promise<{ success: boolean; status?: number; error?: string }>;
   updateLogo: (logo: string | null) => Promise<{ success: boolean; error?: string }>;
   setTtsConfig: (config: TtsConfig) => Promise<{ success: boolean; error?: string }>;
   setWallpaper: (
@@ -581,7 +612,9 @@ export interface RemoteServerAPI {
     competitionId: string,
     command: TVCommand
   ) => Promise<{ success: boolean; error?: string }>;
-  onClientListUpdate: (cb: (clients: ConnectedClient[]) => void) => () => void;
+  onClientListUpdate: (
+    cb: (clients: ConnectedClient[], competitionId?: string | null) => void
+  ) => () => void;
   renameClient: (
     competitionId: string,
     socketId: string,
@@ -630,8 +663,8 @@ export interface DatabaseAPI {
     position: number;
     fencerAId?: string | null;
     fencerBId?: string | null;
-    scoreA?: any | null;
-    scoreB?: any | null;
+    scoreA?: Partial<Score> | null;
+    scoreB?: Partial<Score> | null;
     status?: string;
     maxScore?: number;
     isBye?: boolean;
@@ -644,8 +677,8 @@ export interface DatabaseAPI {
       position: number;
       fencerAId?: string | null;
       fencerBId?: string | null;
-      scoreA?: any | null;
-      scoreB?: any | null;
+      scoreA?: Partial<Score> | null;
+      scoreB?: Partial<Score> | null;
       status?: string;
       maxScore?: number;
       isBye?: boolean;
@@ -983,7 +1016,12 @@ export interface FileAPI {
     html: string,
     outputPath: string
   ) => Promise<{ success: boolean; path?: string; error?: string }>;
-  previewHtmlAsPDF: (html: string) => Promise<{ success: boolean; path?: string; error?: string }>;
+  /** Pages du HTML rendu en PDF (sommaire du dossier de compétition) */
+  countHtmlPages: (html: string) => Promise<{ success: boolean; pages?: number; error?: string }>;
+  previewPdf: (
+    html: string,
+    title?: string
+  ) => Promise<{ success: boolean; path?: string; error?: string }>;
   exportPhotos: (competitionId: string, filepath: string) => Promise<{ count: number }>;
   importPhotos: (
     competitionId: string,
@@ -1078,10 +1116,10 @@ export interface ScoreAuditEntry {
   poolId: string | null;
   matchNumber: number | null;
   poolNumber: number | null;
-  previousScoreA: any | null;
-  previousScoreB: any | null;
-  newScoreA: any;
-  newScoreB: any;
+  previousScoreA: Partial<Score> | null;
+  previousScoreB: Partial<Score> | null;
+  newScoreA: Partial<Score> | null;
+  newScoreB: Partial<Score> | null;
   changedBy: string;
   changedAt: string; // ISO 8601
   reason: string | null;
@@ -1130,6 +1168,8 @@ export interface TrainingCustomRules {
   matchDurationSeconds: number;
   allowedZones: string[];
   disableSuddenDeath: boolean;
+  /** Mode démo : matchs aléatoires joués automatiquement */
+  demo?: boolean;
 }
 
 export interface TrainingMatchRecord {
@@ -1164,11 +1204,11 @@ export interface TrainingAPI {
     strips: number,
     weapon: string,
     customRules?: TrainingCustomRules
-  ) => Promise<{ success: boolean; session?: any; error?: string }>;
+  ) => Promise<{ success: boolean; session?: RemoteSession; error?: string }>;
   stopSession: () => Promise<{ success: boolean; error?: string }>;
   getHistory: () => Promise<{ success: boolean; history: TrainingMatchRecord[]; error?: string }>;
-  getSession: () => Promise<{ success: boolean; session: any | null; error?: string }>;
-  getArenas: () => Promise<{ success: boolean; arenas: any[]; error?: string }>;
+  getSession: () => Promise<{ success: boolean; session: RemoteSession | null; error?: string }>;
+  getArenas: () => Promise<{ success: boolean; arenas: Arena[]; error?: string }>;
   getServerInfo: () => Promise<{
     success: boolean;
     serverInfo?: {
@@ -1180,18 +1220,91 @@ export interface TrainingAPI {
     };
     error?: string;
   }>;
+  /** Démo autonome : ouvre les écrans arène / tablette arbitre / kiosque du serveur d'entraînement */
+  openDemoScreens: (
+    strips: number
+  ) => Promise<{ success: boolean; count?: number; error?: string }>;
+}
+
+/** Boîte d'impression intégrée (#1214) */
+export interface PrintDialogSettings {
+  printer: string;
+  copies: number;
+  /** Plages « 1-3, 5 », vide = toutes */
+  pages: string;
+  orientation: 'auto' | 'portrait' | 'landscape';
+  paperSize: 'auto' | 'A3' | 'A4' | 'A5' | 'Letter' | 'Legal';
+  color: boolean;
+  duplex: 'simplex' | 'shortEdge' | 'longEdge';
+  margins: 'default' | 'none' | 'minimum';
+  /** Échelle en % (10-200) */
+  scale: number;
+}
+
+/** Rapport de diagnostic exporté en JSON (#1326) */
+export interface DiagnosticAPI {
+  exportReport: () => Promise<{ success: boolean; cancelled?: boolean; error?: string }>;
+}
+
+/** Publication GREG (escrime-info.com) : fichier XML + champs du formulaire (#1328) */
+export interface GregAPI {
+  publish: (request: {
+    fileName: string;
+    xml: string;
+    fields: Record<string, string>;
+  }) => Promise<{ success: boolean; error?: string }>;
+}
+
+/** Connecteur FTP/FTPS : dépôt du fichier de résultats (#1331) */
+export interface FtpAPI {
+  publish: (request: {
+    fileName: string;
+    xml: string;
+    url: string;
+    user: string;
+    password: string;
+  }) => Promise<{ success: boolean; error?: string }>;
+}
+
+export interface PrintDialogAPI {
+  getPrinters: () => Promise<{ name: string; displayName: string; isDefault: boolean }[]>;
+  render: (
+    html: string,
+    settings?: Partial<PrintDialogSettings>
+  ) => Promise<{ success: boolean; data?: Uint8Array; error?: string }>;
+  execute: (
+    html: string,
+    settings?: Partial<PrintDialogSettings>
+  ) => Promise<{ success: boolean; error?: string }>;
+  savePdf: (
+    html: string,
+    settings?: Partial<PrintDialogSettings>,
+    title?: string
+  ) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>;
+  /** Boîte d'impression native du système (secours) */
+  systemDialog: (html: string) => Promise<{ success: boolean; error?: string }>;
+  /** Enregistre la fenêtre qui traite les demandes `file.printHtml` (null = désenregistrer) */
+  setHandler: (
+    handler: ((html: string) => Promise<{ success: boolean; error?: string }>) | null
+  ) => void;
 }
 
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
+  printDialog: PrintDialogAPI;
   db: DatabaseAPI;
   file: FileAPI;
   dialog: DialogAPI;
   updater: UpdaterAPI;
+  diagnostic: DiagnosticAPI;
+  greg: GregAPI;
+  ftp: FtpAPI;
   crypto: CryptoAPI;
   remote: RemoteServerAPI;
   training: TrainingAPI;
-  onRemoteArenaUpdate: (callback: (data: any) => void) => () => void;
-  onRemoteMatchFinished: (callback: (data: any) => void) => () => void;
+  onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
+  onUpdateProgress: (callback: (data: { progress: number }) => void) => () => void;
+  onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => () => void;
+  onRemoteMatchFinished: (callback: (data: RemoteMatchFinishedEvent) => void) => () => void;
   onTrainingMatchFinished: (
     callback: (data: { record: TrainingMatchRecord | null }) => void
   ) => () => void;
@@ -1201,6 +1314,10 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   /** Arbitre changé depuis une tablette (#977) */
   onRemoteRefereeChanged?: (
     callback: (data: { matchId: string; refereeId: string }) => void
+  ) => () => void;
+  /** Bus d'événements de données main → renderer (#1298) */
+  onCompetitionEvent: (
+    callback: (event: { type: 'fencers:changed'; competitionId?: string }) => void
   ) => () => void;
   onRemoteFencerExcluded: (
     callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void
@@ -1240,6 +1357,10 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   notifyLanguageChanged: (lang: string) => void;
   initialLanguage: string | null;
   getLogo: () => Promise<string | null>;
+  getLogos: () => Promise<{ id: string; name: string; data: string }[]>;
+  saveLogos: (
+    logos: { id: string; name: string; data: string }[]
+  ) => Promise<{ success: boolean; error?: string }>;
   getTtsConfig: () => Promise<TtsConfig | null>;
   onLogoLoaded: (callback: (logo: string | null) => void) => () => void;
   themes: {

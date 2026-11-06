@@ -147,11 +147,11 @@ describe('CompetitionView', () => {
     expect(within(nav).queryByText('🏆')).toBeNull();
   });
 
-  it('« Générer les poules » désactivé sous 4 tireurs pointés', async () => {
+  it('« Préparer les poules » désactivé sous 4 tireurs pointés', async () => {
     mockElectronAPI([fencer(1), fencer(2), fencer(3), fencer(4, FencerStatus.NOT_CHECKED_IN)]);
     renderView();
     await screen.findByText('Nom1');
-    const btn = screen.getByRole('button', { name: /Générer les poules/ });
+    const btn = screen.getByRole('button', { name: /Préparer les poules/ });
     expect(btn).toBeDisabled();
   });
 
@@ -159,7 +159,7 @@ describe('CompetitionView', () => {
     const calls = mockElectronAPI(Array.from({ length: 10 }, (_, i) => fencer(i + 1)));
     renderView();
     await screen.findByText('Nom1');
-    const btn = screen.getByRole('button', { name: /Générer les poules/ });
+    const btn = screen.getByRole('button', { name: /Préparer les poules/ });
     expect(btn).toBeEnabled();
     fireEvent.click(btn);
     await waitFor(() => expect(calls.createPool?.length).toBeGreaterThan(0));
@@ -248,7 +248,7 @@ describe('CompetitionView', () => {
       expect(l.some(x => /Tableau équipes/.test(x))).toBe(true);
       expect(l.some(x => /Classement équipes/.test(x))).toBe(true);
       expect(l.some(x => /Préparation/.test(x))).toBe(false);
-      expect(screen.queryByRole('button', { name: /Générer les poules/ })).toBeNull();
+      expect(screen.queryByRole('button', { name: /Préparer les poules/ })).toBeNull();
     });
 
     it('« Composer les équipes » ouvre la phase équipes intégrée (sans modale)', async () => {

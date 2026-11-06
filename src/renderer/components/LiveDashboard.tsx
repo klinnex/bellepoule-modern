@@ -55,6 +55,22 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
     [pools]
   );
 
+  // Heure de début observée par match en cours (le modèle Match ne porte pas d'heure de début réelle)
+  const [startedAt, setStartedAt] = useState<Record<string, number>>({});
+  useEffect(() => {
+    setStartedAt(prev => {
+      const next: Record<string, number> = {};
+      let changed = false;
+      for (const m of matchesInProgress) {
+        const known = prev[m.id];
+        next[m.id] = known ?? (m.startTime ? new Date(m.startTime).getTime() : Date.now());
+        if (known === undefined) changed = true;
+      }
+      return changed || Object.keys(prev).length !== Object.keys(next).length ? next : prev;
+    });
+  }, [matchesInProgress]);
+  const nowMs = currentTime.getTime();
+
   // Get completed matches
   const completedMatches = useMemo(
     () => pools.flatMap(pool => pool.matches.filter(m => m.status === MatchStatus.FINISHED)),
@@ -80,13 +96,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
   const isLaserSabre = weapon === Weapon.LASER;
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-      }}
-    >
+    <div className="is-b477c3">
       {/* Header */}
       <header
         style={{
@@ -234,7 +244,15 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
                   }}
                 >
                   {matchesInProgress.map((match, idx) => (
-                    <LiveMatchCard key={match.id} match={match} index={idx} />
+                    <LiveMatchCard
+                      key={match.id}
+                      match={match}
+                      index={idx}
+                      elapsed={Math.max(
+                        0,
+                        Math.floor((nowMs - (startedAt[match.id] ?? nowMs)) / 1000)
+                      )}
+                    />
                   ))}
                 </div>
               </div>
@@ -293,14 +311,12 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
 };
 
 // Live Match Card Component
-const LiveMatchCard_: React.FC<{ match: Match; index: number }> = ({ match, index }) => {
+const LiveMatchCard_: React.FC<{ match: Match; index: number; elapsed: number }> = ({
+  match,
+  index,
+  elapsed,
+}) => {
   const { t } = useTranslation();
-  const [elapsed, setElapsed] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => setElapsed(e => e + 1), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const formatElapsed = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

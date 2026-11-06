@@ -189,16 +189,8 @@ export const VoiceScoreController: React.FC<{
   }, [isListening, processCommand]);
 
   return (
-    <div
-      style={{
-        padding: '20px',
-        backgroundColor: 'white',
-        borderRadius: '16px',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        maxWidth: '400px',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+    <div className="is-ff0352">
+      <div className="is-4b133d">
         <div
           style={{
             width: '48px',
@@ -216,7 +208,7 @@ export const VoiceScoreController: React.FC<{
           🎤
         </div>
         <div>
-          <h3 style={{ margin: 0, fontSize: '1.125rem' }}>{t('voice.title')}</h3>
+          <h3 className="is-175b6f">{t('voice.title')}</h3>
           <p
             style={{ margin: '4px 0 0 0', color: 'var(--color-text-light)', fontSize: '0.875rem' }}
           >

@@ -7,6 +7,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import vm from 'vm';
+import { buildRemoteI18nSource } from '../main/remote/i18nBundle';
 
 const ROOT = path.join(__dirname, '..', '..');
 
@@ -31,7 +32,7 @@ function loadI18n(lang: string) {
     document: { querySelectorAll: () => [], documentElement: {} },
     fetch: async () => ({ json: async () => ({ lang }) }),
   };
-  vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'src/remote/i18n.js'), 'utf8'), sandbox);
+  vm.runInNewContext(buildRemoteI18nSource(path.join(ROOT, 'src/remote'))!, sandbox);
   return win as {
     T: (k: string, p?: Record<string, unknown>) => string;
     errorText: (body: unknown, fallback?: string) => string;

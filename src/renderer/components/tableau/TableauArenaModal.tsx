@@ -55,9 +55,8 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={modalRef}
-        className="modal"
+        className="modal is-2c8110"
         onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '400px' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="tableau-arena-title"
@@ -87,9 +86,8 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
               return (
                 <button
                   key={arenaNum}
-                  className={`btn ${currentArena === arenaNum ? 'btn-primary' : 'btn-secondary'}`}
+                  className={`btn ${currentArena === arenaNum ? 'btn-primary' : 'btn-secondary'} is-0b9519`}
                   onClick={() => onAssign(arenaNum)}
-                  style={{ padding: '0.75rem', position: 'relative' }}
                 >
                   {t('tableauSignatures.strip_n', { n: arenaNum })}
                   {queueCount > 0 && (

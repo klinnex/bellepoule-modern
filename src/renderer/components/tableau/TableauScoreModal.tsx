@@ -8,6 +8,11 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TableauMatch } from './tableauTypes';
 import { useTranslation } from '../../hooks/useTranslation';
+import { MedicalCrossIcon } from '../common/MedicalCrossIcon';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
+import SpecialStatusPanel from '../common/SpecialStatusPanel';
+import TiebreakerAnimation from '../TiebreakerAnimation';
+import { parseVictoryScoreInput } from '../../../shared/utils/tieBreak';
 
 interface TableauScoreModalProps {
   match: TableauMatch;
@@ -20,23 +25,20 @@ interface TableauScoreModalProps {
   modalRef: React.RefObject<HTMLDivElement | null>;
   onClose: () => void;
   onSubmit: () => void;
-  onSpecialStatus: (status: 'abandon' | 'forfait' | 'exclusion', fencerId: string) => void;
+  onSpecialStatus: (
+    status: 'abandon' | 'forfait' | 'exclusion',
+    fencerId: string,
+    blackCard?: boolean
+  ) => void;
   /** Annule le match (score effacé) — absent pour les barrages */
   onMatchCancel?: () => void;
   getRoundName: (round: number) => string;
+  /** Égalité tranchée par V (manuel) ou tirage au sort : laser, olympique, rapières */
+  tieBreakByVictory?: boolean;
+  victoryA?: boolean;
+  victoryB?: boolean;
+  onVictoryChange?: (side: 'A' | 'B' | null) => void;
 }
-
-const STATUS_LABELS: Record<'abandon' | 'forfait' | 'exclusion', string> = {
-  abandon: 'tableauScore.abandon',
-  forfait: 'tableauScore.forfait',
-  exclusion: 'tableauScore.exclusion',
-};
-
-const STATUS_ACTION: Record<'abandon' | 'forfait' | 'exclusion', string> = {
-  abandon: 'tableauScore.who_abandon',
-  forfait: 'tableauScore.who_forfait',
-  exclusion: 'tableauScore.who_exclusion',
-};
 
 const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   match,
@@ -52,63 +54,64 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
   onSpecialStatus,
   onMatchCancel,
   getRoundName,
+  tieBreakByVictory = false,
+  victoryA = false,
+  victoryB = false,
+  onVictoryChange,
 }) => {
   const { t } = useTranslation();
+  // Focus piégé + Échap sur l'overlay (le ref du dialogue reste réservé au redimensionnement)
+  const trapRef = useFocusTrap<HTMLDivElement>(true, onClose);
   const [pendingStatus, setPendingStatus] = useState<'abandon' | 'forfait' | 'exclusion' | null>(
     null
   );
+  const [showCoinFlip, setShowCoinFlip] = useState(false);
+  const [victoryText, setVictoryText] = useState('');
+
+  /** Saisie rapide « V4-4 » : remplit les scores et le V (#1442) */
+  const handleVictoryText = (text: string) => {
+    setVictoryText(text);
+    const parsed = parseVictoryScoreInput(text);
+    if (!parsed) return;
+    setEditScoreA(String(parsed.left));
+    setEditScoreB(String(parsed.right));
+    onVictoryChange?.(parsed.victoryLeft ? 'A' : parsed.victoryRight ? 'B' : null);
+  };
 
   const fencerName = (f: TableauMatch['fencerA']) =>
     f ? `${f.lastName} ${f.firstName}`.trim() : '';
 
+  // Égalité saisie (scores renseignés des deux côtés) : Sabre Laser uniquement
+  const hasBothScores = editScoreA !== '' && editScoreB !== '';
+  const isTie =
+    tieBreakByVictory &&
+    hasBothScores &&
+    (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0);
+  const canDrawLots = isTie && !!match.fencerA && !!match.fencerB;
+
   // Portail sur body : échappe aux ancêtres transformés (animations de phase)
   return createPortal(
     // Clic hors de la fenêtre : ne ferme pas (#1115)
-    <div className="modal-overlay">
+    <div className="modal-overlay" ref={trapRef}>
       <div
         ref={modalRef}
-        className="modal resizable"
-        style={{
-          maxWidth: '900px',
-          width: '95%',
-          minHeight: '400px',
-        }}
+        className="modal resizable is-240625"
         onClick={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
-        <div className="modal-header" style={{ cursor: 'move' }}>
+        <div className="modal-header is-0430c2">
           <h3 className="modal-title">
             {t('tableauScore.quick_entry', { round: getRoundName(match.round) })}
           </h3>
         </div>
-        <div className="modal-body" style={{ padding: '2rem' }}>
+        <div className="modal-body is-a48125">
           {/* Ligne unique avec les deux tireurs côte à côte */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '1.5rem',
-              marginBottom: '1.5rem',
-            }}
-          >
+          <div className="is-cef216">
             {/* Tireur A */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-end',
-                flex: 1,
-                minWidth: '200px',
-              }}
-            >
-              <div style={{ fontSize: '1.5rem', fontWeight: 600, textAlign: 'right' }}>
-                {match.fencerA?.lastName}
-              </div>
-              <div
-                style={{ fontSize: '1rem', color: 'var(--color-text-light)', textAlign: 'right' }}
-              >
+            <div className="is-b3689a">
+              <div className="is-29ee32">{match.fencerA?.lastName}</div>
+              <div className="is-bd17c2">
                 {match.fencerA?.firstName} {match.fencerA?.club && `(${match.fencerA.club})`}
               </div>
             </div>
@@ -156,11 +159,7 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
             />
 
             {/* Séparateur */}
-            <span
-              style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--color-text-muted)' }}
-            >
-              :
-            </span>
+            <span className="is-42b7f2">:</span>
 
             {/* Input Score B */}
             <input
@@ -204,21 +203,9 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
             />
 
             {/* Tireur B */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                flex: 1,
-                minWidth: '200px',
-              }}
-            >
-              <div style={{ fontSize: '1.5rem', fontWeight: 600, textAlign: 'left' }}>
-                {match.fencerB?.lastName}
-              </div>
-              <div
-                style={{ fontSize: '1rem', color: 'var(--color-text-light)', textAlign: 'left' }}
-              >
+            <div className="is-d0c392">
+              <div className="is-0b536f">{match.fencerB?.lastName}</div>
+              <div className="is-2415dc">
                 {match.fencerB?.firstName} {match.fencerB?.club && `(${match.fencerB.club})`}
               </div>
             </div>
@@ -226,105 +213,99 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
 
           {/* Info score max */}
           {!isUnlimitedScore && maxScore > 0 && (
-            <p
-              className="text-sm text-muted"
-              style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1rem' }}
-            >
+            <p className="text-sm text-muted is-89a4cc">
               {t('tableauScore.max_score', { n: maxScore })}
             </p>
           )}
 
+          {/* Saisie rapide d'une égalité : « V4-4 » (#1442) */}
+          {tieBreakByVictory && (
+            <input
+              type="text"
+              className="form-input"
+              value={victoryText}
+              placeholder={t('tableauScore.victory_input_placeholder')}
+              aria-label={t('tableauScore.victory_input_placeholder')}
+              onChange={e => handleVictoryText(e.target.value)}
+            />
+          )}
+
+          {/* Égalité Sabre Laser : vainqueur par V manuel ou tirage au sort */}
+          {isTie && (
+            <div className="tableau-tie">
+              <p className="tableau-tie-hint">{t('tableauScore.tie_hint')}</p>
+              <div className="tableau-tie-actions">
+                <button
+                  type="button"
+                  className={victoryA ? 'btn btn-primary' : 'btn btn-secondary'}
+                  aria-pressed={victoryA}
+                  disabled={!match.fencerA}
+                  onClick={() => onVictoryChange?.(victoryA ? null : 'A')}
+                >
+                  V · {match.fencerA?.lastName}
+                </button>
+                {canDrawLots && (
+                  <button
+                    type="button"
+                    className="btn btn-warning"
+                    onClick={() => setShowCoinFlip(true)}
+                  >
+                    🪙 {t('tableauScore.coin_flip')}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className={victoryB ? 'btn btn-primary' : 'btn btn-secondary'}
+                  aria-pressed={victoryB}
+                  disabled={!match.fencerB}
+                  onClick={() => onVictoryChange?.(victoryB ? null : 'B')}
+                >
+                  V · {match.fencerB?.lastName}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Boutons spéciaux sur une ligne */}
           {!pendingStatus ? (
-            <div
-              style={{
-                display: 'flex',
-                gap: '0.5rem',
-                justifyContent: 'center',
-                borderTop: '1px solid var(--color-border)',
-                paddingTop: '1rem',
-                marginTop: '1rem',
-              }}
-            >
+            <div className="is-4e4f08">
               <button
-                className="btn btn-warning"
+                className="btn btn-warning is-d1e548"
                 onClick={() => setPendingStatus('abandon')}
-                style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
               >
-                🚴 {t('tableauScore.abandon')}
+                <MedicalCrossIcon /> {t('tableauScore.abandon')}
               </button>
               <button
-                className="btn btn-warning"
+                className="btn btn-warning is-d1e548"
                 onClick={() => setPendingStatus('forfait')}
-                style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
               >
                 📋 {t('tableauScore.forfait')}
               </button>
               <button
-                className="btn btn-danger"
+                className="btn btn-danger is-d1e548"
                 onClick={() => setPendingStatus('exclusion')}
-                style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
               >
                 🚫 {t('tableauScore.exclusion')}
               </button>
               {onMatchCancel && (
-                <button
-                  className="btn btn-secondary"
-                  onClick={onMatchCancel}
-                  style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
-                >
+                <button className="btn btn-secondary is-d1e548" onClick={onMatchCancel}>
                   ⏸ {t('tableau.cancel_match')}
                 </button>
               )}
             </div>
           ) : (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-                alignItems: 'center',
-                borderTop: '1px solid var(--color-border)',
-                paddingTop: '1rem',
-                marginTop: '1rem',
-              }}
-            >
-              <p style={{ fontWeight: 600, margin: 0 }}>
-                {t(STATUS_LABELS[pendingStatus])} — {t(STATUS_ACTION[pendingStatus])}
-              </p>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.5rem',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center',
-                }}
-              >
-                <button
-                  className="btn btn-danger"
-                  disabled={!match.fencerA}
-                  onClick={() => match.fencerA && onSpecialStatus(pendingStatus, match.fencerA.id)}
-                >
-                  {fencerName(match.fencerA) || '—'}
-                </button>
-                <button
-                  className="btn btn-danger"
-                  disabled={!match.fencerB}
-                  onClick={() => match.fencerB && onSpecialStatus(pendingStatus, match.fencerB.id)}
-                >
-                  {fencerName(match.fencerB) || '—'}
-                </button>
-                <button className="btn btn-secondary" onClick={() => setPendingStatus(null)}>
-                  {t('actions.cancel')}
-                </button>
-              </div>
-            </div>
+            <SpecialStatusPanel
+              status={pendingStatus}
+              fencers={[
+                match.fencerA ? { id: match.fencerA.id, name: fencerName(match.fencerA) } : null,
+                match.fencerB ? { id: match.fencerB.id, name: fencerName(match.fencerB) } : null,
+              ]}
+              onConfirm={(id, blackCard) => onSpecialStatus(pendingStatus, id, blackCard)}
+              onCancel={() => setPendingStatus(null)}
+            />
           )}
         </div>
-        <div
-          className="modal-footer"
-          style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}
-        >
+        <div className="modal-footer is-40a237">
           <button className="btn btn-secondary" onClick={onClose}>
             {t('actions.cancel')}
           </button>
@@ -333,6 +314,16 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
           </button>
         </div>
       </div>
+      {showCoinFlip && canDrawLots && (
+        <TiebreakerAnimation
+          fencerA={match.fencerA!}
+          fencerB={match.fencerB!}
+          onComplete={winner => {
+            setShowCoinFlip(false);
+            onVictoryChange?.(winner);
+          }}
+        />
+      )}
     </div>,
     document.body
   );

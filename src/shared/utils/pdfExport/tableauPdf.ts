@@ -33,6 +33,8 @@ export interface TableauSheetOptions {
   badge?: string;
   /** Nom du fichier PDF (défaut : tableau-elimination.pdf) */
   fileName?: string;
+  /** Flux continu : pas de saut de page entre feuilles, une feuille qui ne tient pas bascule (#1441) */
+  continuous?: boolean;
 }
 
 /** Matchs réels (non-exempts, deux tireurs assignés). */
@@ -215,7 +217,8 @@ export function generateTableauHTML(
         : '';
 
       const isLast = pageIdx === pages.length - 1;
-      return `<div class="page${isLast ? '' : ' page-break'}">${pageHeaderHTML}${sectionHeader}${cards}</div>`;
+      const breakAfter = !isLast && !options?.continuous;
+      return `<div class="page${breakAfter ? ' page-break' : ''}">${pageHeaderHTML}${sectionHeader}${cards}</div>`;
     })
     .join('');
 
@@ -445,45 +448,5 @@ export async function printTableauHTML(
   const res = await api.file.printHtml(html);
   if (!res?.success) {
     throw new Error(res?.error ?? pdfT('print_failed', "Échec de l'impression"));
-  }
-}
-
-// Aperçu avant impression : génère un PDF et l'ouvre dans le lecteur par défaut de l'OS
-// (contourne l'absence d'aperçu dans la boîte de dialogue d'impression native de Windows 11)
-export async function previewTableauHTML(
-  matches: TableauMatchForPDF[],
-  matchesPerPage: number,
-  title: string = pdfT('tableau_title', 'Tableau Élimination Directe'),
-  logoBase64?: string,
-  template?: PdfTemplate,
-  signatures?: Record<string, { A?: string; B?: string }>,
-  options?: TableauSheetOptions
-): Promise<void> {
-  const real = realMatches(matches);
-  if (real.length === 0) {
-    throw new Error(
-      pdfT(
-        'tableau_no_match_print',
-        'Aucun match à imprimer (tous sont des exempts ou sans tireurs assignés)'
-      )
-    );
-  }
-  const html = generateTableauHTML(
-    matches,
-    matchesPerPage,
-    title,
-    logoBase64,
-    template,
-    false,
-    signatures,
-    options
-  );
-  const api = (window as any).electronAPI;
-  if (!api?.file?.previewHtmlAsPDF) {
-    throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
-  }
-  const res = await api.file.previewHtmlAsPDF(html);
-  if (!res?.success) {
-    throw new Error(res?.error ?? pdfT('preview_failed', "Échec de la génération de l'aperçu"));
   }
 }

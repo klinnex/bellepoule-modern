@@ -9,7 +9,12 @@ import { getActiveLocale } from '@shared/utils/localeFormat';
 let api: ReturnType<typeof useTranslation>;
 function Probe() {
   api = useTranslation();
-  return <span data-testid="lang">{api.language}</span>;
+  return (
+    <>
+      <span data-testid="lang">{api.language}</span>
+      <span data-testid="locale">{getActiveLocale()}</span>
+    </>
+  );
 }
 
 async function mount(lang: Language) {
@@ -32,6 +37,13 @@ describe('TranslationContext : langue active (#1160)', () => {
     await act(() => api.changeLanguage('zh-HK'));
     expect(document.documentElement.lang).toBe('zh-HK');
     expect(getActiveLocale()).toBe('zh-HK');
+  });
+
+  it('enfants rendus avec la nouvelle langue (date des cartes, #1213)', async () => {
+    await mount('fr');
+    expect(screen.getByTestId('locale').textContent).toBe('fr-FR');
+    await act(() => api.changeLanguage('en'));
+    expect(screen.getByTestId('locale').textContent).toBe('en-GB');
   });
 
   it('paramètre 0 interpolé (plus remplacé par le gabarit)', async () => {

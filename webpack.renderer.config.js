@@ -79,7 +79,7 @@ module.exports = (env = {}) => ({
       '@renderer': path.resolve(__dirname, 'src/renderer'),
       // Build navigateur de uuid : la cible electron-renderer résout la variante
       // « node » (require('crypto')), indisponible avec contextIsolation
-      uuid$: path.resolve(__dirname, 'node_modules/uuid/dist/cjs-browser/index.js'),
+      uuid$: path.resolve(__dirname, 'node_modules/uuid/dist/index.js'),
     },
   },
   stats: {
@@ -139,6 +139,11 @@ module.exports = (env = {}) => ({
           // On le copie dans dist/remote → servi en statique par le serveur distant.
           from: 'node_modules/socket.io/client-dist/socket.io.min.js',
           to: '../remote/socket.io.min.js',
+        },
+        {
+          // pdf.js (aperçu de la boîte d'impression, #1214) : chargé à la demande, hors bundle
+          from: 'node_modules/pdfjs-dist/build/{pdf.min.mjs,pdf.worker.min.mjs}',
+          to: 'pdfjs/[name][ext]',
         },
         {
           from: 'src/main/splash.html',

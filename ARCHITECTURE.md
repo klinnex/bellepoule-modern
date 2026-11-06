@@ -10,9 +10,9 @@ Application **Electron** (poste organisateur) + **serveur web embarqué** (table
 écrans, spectateurs sur le réseau local).
 
 ```
-┌──────────────────────────── Poste organisateur (Electron 44) ────────────────────────────┐
+┌──────────────────────────── Poste organisateur (Electron 45) ────────────────────────────┐
 │                                                                                          │
-│  Renderer (React 19 + Zustand)          Preload (contextBridge)        Main (Node 22)    │
+│  Renderer (React 19 + Zustand)          Preload (contextBridge)        Main (Node 24)    │
 │  ┌───────────────────────────┐   IPC   ┌──────────────────┐   IPC   ┌──────────────────┐ │
 │  │ App.tsx, CompetitionView  │◀──────▶│ window.electronAPI│◀──────▶│ main.ts          │ │
 │  │ PoolView, TableauView ... │         │ db/file/dialog/  │         │ menus, fenêtres, │ │
@@ -71,7 +71,7 @@ bellepoule-modern/
 │   │   ├── hooks/                # 19 hooks (useAppState, usePoolManagement, useHistory, ...)
 │   │   ├── contexts/             # TranslationContext
 │   │   ├── services/             # offlineStorage, offlineSync
-│   │   ├── locales/              # fr, en, br, ca, de, es, zh-HK
+│   │   ├── locales/              # fr, en, br, ca, de, es, it, zh-HK
 │   │   ├── styles/, assets/
 │   │   └── sw.js                 # Service worker
 │   │

@@ -363,8 +363,8 @@ const FormulaBuilder_: React.FC<Props> = ({
                   />
                   <small>
                     {restTimeSeconds === 0
-                      ? '0 = bouton « Repos » désactivé'
-                      : 'Bouton « Repos » de la tablette arbitre, quand le chrono arrive à 00:00'}
+                      ? t('formulaBuilder.rest_off')
+                      : t('formulaBuilder.rest_on')}
                   </small>
                 </>
               )}

@@ -157,7 +157,9 @@ export const usePoolManagement = ({
       scoreA: number,
       scoreB: number,
       winnerOverride?: 'A' | 'B',
-      specialStatus?: 'abandon' | 'forfait' | 'exclusion'
+      specialStatus?: 'abandon' | 'forfait' | 'exclusion',
+      /** Égalité sans V : le tireur prioritaire (tirage avant la minute supplémentaire) gagne (#1442) */
+      priority?: 'A' | 'B'
     ) => {
       setPools(prevPools => {
         const updatedPools = [...prevPools];
@@ -165,8 +167,13 @@ export const usePoolManagement = ({
         const match = { ...pool.matches[matchIndex] };
 
         // Mettre à jour les scores avec la structure Score
-        const isVictoryA = winnerOverride === 'A' || (!winnerOverride && scoreA > scoreB);
-        const isVictoryB = winnerOverride === 'B' || (!winnerOverride && scoreB > scoreA);
+        const priorityWins = !winnerOverride && scoreA === scoreB && !!priority;
+        const isVictoryA =
+          winnerOverride === 'A' ||
+          (priorityWins ? priority === 'A' : !winnerOverride && scoreA > scoreB);
+        const isVictoryB =
+          winnerOverride === 'B' ||
+          (priorityWins ? priority === 'B' : !winnerOverride && scoreB > scoreA);
 
         // Le statut spécial (abandon/forfait/exclusion) s'applique au perdant
         const specialOnA = !!specialStatus && !isVictoryA;
@@ -178,6 +185,7 @@ export const usePoolManagement = ({
           isAbstention: specialOnA && specialStatus === 'abandon',
           isExclusion: specialOnA && specialStatus === 'exclusion',
           isForfait: specialOnA && specialStatus === 'forfait',
+          ...(priorityWins && priority === 'A' ? { isPriority: true } : {}),
         };
 
         match.scoreB = {
@@ -186,6 +194,7 @@ export const usePoolManagement = ({
           isAbstention: specialOnB && specialStatus === 'abandon',
           isExclusion: specialOnB && specialStatus === 'exclusion',
           isForfait: specialOnB && specialStatus === 'forfait',
+          ...(priorityWins && priority === 'B' ? { isPriority: true } : {}),
         };
 
         // Mettre à jour le statut

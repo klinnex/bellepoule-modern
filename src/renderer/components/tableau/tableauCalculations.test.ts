@@ -83,7 +83,7 @@ describe('calculateFinalResults - abandon / forfait / exclusion (#1012)', () => 
     const results = calculateFinalResults(matches, ranking, 4);
     const by = (id: string) => results.find(r => r.fencer.id === id)!.eliminatedAt;
     expect(by(b.id)).toBe('Vainqueur');
-    expect(by(a.id)).toBe('Finale (abandon)');
+    expect(by(a.id)).toBe('Finale (médical)');
     expect(by(d.id)).toMatch(/\(forfait\)$/);
     expect(by(c.id)).not.toMatch(/\(/);
   });

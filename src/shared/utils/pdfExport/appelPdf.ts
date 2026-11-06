@@ -8,6 +8,7 @@ import { Fencer } from '../../types';
 import type { PdfTemplate } from '../../types/pdfTemplate.types';
 import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
 import { getActiveLocale } from '../localeFormat';
+import { formatNationality } from '../countries';
 
 // ─── Export Liste d'Appel ──────────────────────────────────────────────────────
 
@@ -17,6 +18,7 @@ const APPEL_COL_HEADERS = (): Record<string, string> => ({
   firstName: pdfT('col_first_name', 'Prénom'),
   birthDate: pdfT('col_born', 'Né(e)'),
   club: pdfT('col_club', 'Club'),
+  nationality: pdfT('col_nation', 'Nation'),
   ranking: pdfT('col_ranking', 'Classement'),
   status: pdfT('col_status', 'Statut'),
 });
@@ -24,7 +26,7 @@ const APPEL_COL_HEADERS = (): Record<string, string> => ({
 const APPEL_STATUS_LABELS = (): Record<string, string> => ({
   Q: pdfT('status_qualified', 'Qualifié'),
   E: pdfT('status_eliminated', 'Éliminé'),
-  A: pdfT('status_abandoned', 'Abandon'),
+  A: pdfT('status_abandoned', 'Médical'),
   X: pdfT('status_excluded', 'Exclu'),
   N: pdfT('status_not_checked_in', 'Non pointé'),
   P: pdfT('status_checked_in', 'Pointé'),
@@ -43,6 +45,8 @@ function getFencerCellValue(fencer: Fencer, col: string): string {
       return fencer.birthDate ? String(new Date(fencer.birthDate).getFullYear()) : '-';
     case 'club':
       return fencer.club || '-';
+    case 'nationality':
+      return formatNationality(fencer.nationality) || '-';
     case 'ranking':
       return fencer.ranking ? `#${fencer.ranking}` : '-';
     case 'status':

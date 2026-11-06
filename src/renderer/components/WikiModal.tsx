@@ -58,16 +58,7 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.5)',
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-      }}
+      className="is-3e6e9e"
       onClick={e => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -77,39 +68,11 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
         role="dialog"
         aria-modal="true"
         aria-label={t('wiki.title')}
-        style={{
-          background: 'var(--color-surface, #fff)',
-          borderRadius: 12,
-          width: '100%',
-          maxWidth: 900,
-          height: '80vh',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
-          overflow: 'hidden',
-        }}
+        className="is-72bdc9"
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            padding: '1rem 1.25rem',
-            borderBottom: '1px solid var(--color-border)',
-            flexShrink: 0,
-          }}
-        >
-          <span style={{ fontSize: '1.4rem' }}>📖</span>
-          <h1
-            style={{
-              fontSize: '1.1rem',
-              fontWeight: 700,
-              flex: 1,
-              color: 'var(--color-text)',
-            }}
-          >
-            {t('wiki.title')}
-          </h1>
+        <div className="is-cb0277">
+          <span className="is-444c6c">📖</span>
+          <h1 className="is-34f232">{t('wiki.title')}</h1>
           <input
             type="search"
             placeholder={SEARCH_PLACEHOLDER[lang]}
@@ -117,59 +80,22 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
             onChange={e => {
               setQuery(e.target.value);
             }}
-            style={{
-              border: '1px solid var(--color-border)',
-              borderRadius: 8,
-              padding: '0.4rem 0.75rem',
-              fontSize: '0.875rem',
-              width: 200,
-              background: 'var(--color-bg)',
-            }}
+            className="is-3cf363"
           />
-          <button
-            onClick={onClose}
-            aria-label={t('actions.close')}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '1.2rem',
-              color: 'var(--color-text-light)',
-              padding: '0.25rem',
-              borderRadius: 4,
-              lineHeight: 1,
-            }}
-          >
+          <button onClick={onClose} aria-label={t('actions.close')} className="is-c10a3c">
             ✕
           </button>
         </div>
 
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          <nav
-            style={{
-              width: 200,
-              flexShrink: 0,
-              borderRight: '1px solid var(--color-border)',
-              overflowY: 'auto',
-              padding: '0.75rem 0',
-            }}
-          >
+        <div className="is-9b1e11">
+          <nav className="is-7665df">
             {categories.map(cat => {
               const catArticles = filteredArticles.filter(a => a.category === cat);
               if (catArticles.length === 0) return null;
               const catLabel = CATEGORY_LABELS[cat];
               return (
                 <div key={cat} className="mb-2">
-                  <div
-                    style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      color: 'var(--color-text-light)',
-                      padding: '0.25rem 1rem',
-                    }}
-                  >
+                  <div className="is-8236e8">
                     {catLabel.icon} {catLabel[lang]}
                   </div>
                   {catArticles.map(article => (
@@ -194,35 +120,18 @@ const WikiModal: React.FC<Props> = ({ onClose }) => {
                       }}
                     >
                       <span className="flex-shrink-0">{article.icon}</span>
-                      <span
-                        style={{
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {getTitle(article, lang)}
-                      </span>
+                      <span className="is-9f529b">{getTitle(article, lang)}</span>
                     </button>
                   ))}
                 </div>
               );
             })}
             {filteredArticles.length === 0 && (
-              <div
-                style={{
-                  padding: '1rem',
-                  color: 'var(--color-text-light)',
-                  fontSize: '0.875rem',
-                  textAlign: 'center',
-                }}
-              >
-                {NO_RESULTS_LABEL[lang]}
-              </div>
+              <div className="is-95d09e">{NO_RESULTS_LABEL[lang]}</div>
             )}
           </nav>
 
-          <article style={{ flex: 1, overflowY: 'auto', padding: '1.25rem 1.5rem' }}>
+          <article className="is-88019c">
             <h1
               style={{
                 fontSize: '1.4rem',

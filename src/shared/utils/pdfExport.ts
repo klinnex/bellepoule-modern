@@ -15,18 +15,12 @@ export {
   exportMultiplePoolsToPDF,
   printPoolHTML,
   printMultiplePoolsHTML,
-  previewPoolHTML,
 } from './pdfExport/poolPdf';
 
 // ─── Tableau Élimination Directe ─────────────────────────────────────────────
 export type { TableauMatchForPDF } from './pdfExport/tableauPdf';
 export { MAX_MATCHES_PER_PAGE_TABLEAU } from './pdfConstants';
-export {
-  generateTableauHTML,
-  exportTableauToPDF,
-  printTableauHTML,
-  previewTableauHTML,
-} from './pdfExport/tableauPdf';
+export { generateTableauHTML, exportTableauToPDF, printTableauHTML } from './pdfExport/tableauPdf';
 
 // ─── Arbre (Bracket Tree) ─────────────────────────────────────────────────────
 export {
@@ -37,11 +31,11 @@ export {
 } from './pdfExport/bracketTreePdf';
 
 // ─── Classement Général ───────────────────────────────────────────────────────
-export { generateRankingHTML, exportRankingToPDF } from './pdfExport/rankingPdf';
+export { generateRankingHTML, exportRankingToPDF, printRankingHTML } from './pdfExport/rankingPdf';
 
 // ─── Résultats Finaux ─────────────────────────────────────────────────────────
 export type { FinalResultForPDF } from './pdfExport/resultsPdf';
-export { exportResultsToPDF } from './pdfExport/resultsPdf';
+export { exportResultsToPDF, printResultsHTML } from './pdfExport/resultsPdf';
 
 // ─── Liste d'Appel ────────────────────────────────────────────────────────────
 export { exportAppelToPDF } from './pdfExport/appelPdf';
