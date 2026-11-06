@@ -1340,6 +1340,10 @@
   color: var(--color-primary);
 }
 
+.header-title .brand-logo-wrap {
+  display: inline-flex;
+}
+
 .brand-logo-laser {
   stroke: var(--color-laser, #ef4444);
 }
