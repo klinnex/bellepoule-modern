@@ -62,6 +62,7 @@ export function handleArenaControl(
     touchesB?: string[];
     suddenDeath?: boolean;
     winner?: 'A' | 'B';
+    priority?: boolean;
     overtimeType?: string | null;
     isVoluntary?: boolean;
     matchId?: string;
@@ -143,7 +144,8 @@ export function handleArenaControl(
       ctx.broadcastArenaUpdate(data.arenaId, {
         arenaId: data.arenaId,
         match: arena.currentMatch,
-        time: 0,
+        // Minute prioritaire (#1442) : chrono déjà remis à 1:00, prêt à lancer
+        time: typeof data.time === 'number' && data.time >= 0 && data.time <= 600 ? data.time : 0,
         timerStatus: 'paused',
         suddenDeath: false,
         overtimeType: null,
@@ -175,6 +177,7 @@ export function handleArenaControl(
         }
         ctx.io.to(`arena:${data.arenaId}`).emit(`arena:${data.arenaId}:coin_flip`, {
           winner: data.winner,
+          priority: data.priority === true, // tirage du prioritaire : animation cadre doré (#1442)
           fencerA: arena.currentMatch?.fencerA,
           fencerB: arena.currentMatch?.fencerB,
         });

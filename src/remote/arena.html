@@ -9,6 +9,7 @@
     <script src="/socket.io.min.js"></script>
     <script src="/js/arenaDisplayUtils.js"></script>
     <script src="/js/timerFormat.js"></script>
+    <script src="/js/priorityDraw.js"></script>
     <script src="/js/arenaOverlays.js"></script>
     <script src="/js/arenaRender.js"></script>
     <script src="/js/arenaPanels.js"></script>
@@ -1690,6 +1691,12 @@
           });
 
           this.socket.on(`arena:${this.arenaId}:coin_flip`, data => {
+            if (data.priority) {
+              // Minute prioritaire (#1442) : cadre doré qui alterne ~3 s puis se fixe, sans vainqueur
+              this._prioFencerId = (data.winner === 'A' ? data.fencerA?.id : data.fencerB?.id) ?? null;
+              window.BPPriorityDraw.animatePriorityDraw(side => this.applyPriorityFrame(side), data.winner);
+              return;
+            }
             this.showCoinFlipAnimation(data.winner, data.fencerA, data.fencerB);
           });
 

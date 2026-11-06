@@ -9,6 +9,7 @@
     <title data-i18n="referee.title">Arbitrage - Arène BellePoule</title>
     <script src="/common.js"></script>
     <script src="/js/timerFormat.js"></script>
+    <script src="/js/priorityDraw.js"></script>
     <script src="/js/offlineQueue.js"></script>
     <script src="/js/refereeFaults.js"></script>
     <script src="/js/refereeDemoMirror.js"></script>
@@ -3396,6 +3397,21 @@
           );
         }
 
+        // Minute prioritaire tirée (#1442) : chrono remis à 1:00, l'arbitre lance quand il veut
+        preparePriorityMinute() {
+          this.timerSeconds = this.overtimeSeconds();
+          this.waitingOvertimeStart = true;
+          this.updateTimerDisplay();
+          this.updateControlButtons();
+          this.socket.emit('arena_control', {
+            arenaId: this.arenaId,
+            action: 'waiting_overtime',
+            time: this.overtimeSeconds(),
+            timerStatus: 'paused',
+          });
+          this.showNotification(window.T('referee.tie_launch', { label: this.overtimeLabel() }));
+        }
+
         // Durée du temps supplémentaire : 1 min en escrime olympique, 30 s au Sabre Laser (#1027)
         overtimeSeconds() {
           return this.isModernFencing ? 60 : 30;
@@ -3453,14 +3469,24 @@
           this.waitingCoinFlip = false;
           this.updateControlButtons();
           const winner = Math.random() < 0.5 ? 'A' : 'B';
-          this.coinFlipWinner = winner;
           if (this.priorityDrawPhase) {
-            // Minute prioritaire : cadre doré sur le tireur tiré, puis lancement de la minute supplémentaire
+            // Minute prioritaire (#1442) : pas de vainqueur désigné ici. Le cadre doré passe
+            // d'un tireur à l'autre ~3 s puis se fixe ; le chrono est remis à 1:00, prêt à lancer.
             this.priorityDrawPhase = false;
             this._prioFencerId = (winner === 'A' ? this.currentMatch?.fencerA?.id : this.currentMatch?.fencerB?.id) ?? null;
-            this.applyPriorityFrame(winner);
-            setTimeout(() => this.prepareSuddenDeath(), 4600);
+            this.socket.emit('arena_control', { arenaId: this.arenaId, action: 'coin_flip', winner, priority: true });
+            this.showNotification(window.T('referee.coin_anim'));
+            this._priorityAnimating = true;
+            this.updateControlButtons();
+            window.BPPriorityDraw.animatePriorityDraw(side => this.applyPriorityFrame(side), winner, {
+              onDone: () => {
+                this._priorityAnimating = false;
+                this.preparePriorityMinute();
+              },
+            });
+            return;
           }
+          this.coinFlipWinner = winner;
 
           // Déclencher l'animation plein écran sur l'affichage de score
           this.socket.emit('arena_control', {
@@ -3869,6 +3895,13 @@
           const startBtn = document.getElementById('btn-start');
           const finishBtn = document.getElementById('btn-finish');
 
+          // Tirage du prioritaire en cours (#1442) : rien à lancer
+          if (this._priorityAnimating) {
+            startBtn.disabled = true;
+            if (finishBtn) finishBtn.disabled = true;
+            return;
+          }
+
           // État d'attente : l'arbitre doit déclencher manuellement les 30s
           if (this.waitingOvertimeStart) {
             startBtn.disabled = false;
@@ -3924,6 +3957,7 @@
         }
 
         handleStartPauseClick() {
+          if (this._priorityAnimating) return;
           if (this.waitingOvertimeStart) {
             this.launchSuddenDeath();
             return;
