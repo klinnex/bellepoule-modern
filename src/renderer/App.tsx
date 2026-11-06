@@ -26,6 +26,7 @@ import { restartGuidedTour } from './components/guidedTourFlags';
 import type { CompetitionCreateData } from '../shared/types/preload';
 import { logger, LogCategory } from '@shared/services/logger';
 import CompetitionList from './components/CompetitionList';
+import { BrandLogo } from './components/common/BrandLogo';
 /** Démo autonome : nombre d'arènes jouées par l'arbitre virtuel */
 const DEMO_STRIPS = 2;
 
@@ -584,7 +585,9 @@ const AppContent: React.FC = () => {
       <div className="app">
         <header className="header">
           <div className="header-title">
-            <Swords size={22} strokeWidth={1.75} />
+            <span className="brand-logo-wrap" aria-hidden="true">
+              <BrandLogo size={30} />
+            </span>
             {t('app.title')}
           </div>
           {/* Ctrl+K hint — clickable (inutile tant qu'il n'y a rien à chercher) */}
