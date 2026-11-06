@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 24 | 143 |
+| `src/remote/` | 25 | 149 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **256** | **2108** |
+| **Total** | **257** | **2115** |
 
-Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 248 fichiers, 2080 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4264,6 +4264,19 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - formatBoutDuration
   - trainingRowsHtml : vide, sinon ligne avec heure formatée et échappement
   - kiosk.html charge le module
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskTiming.test.ts</code> — 6 tests</summary>
+
+- **kioskTiming.js**
+  - retryDelay : exponentiel plafonné à 30 s, jitter ±25 %
+  - nextView : circulaire, première vue si inconnue
+  - progressPct : plafonné à 100
+  - createAutoScroller : délai 2 s, défilement 20 s, retour début après 3 s
+  - createAutoScroller : rien à défiler -\> pas de nouvelle image
+  - kiosk.html charge le module et n’a plus la logique inline
 
 </details>
 

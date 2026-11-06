@@ -20,8 +20,8 @@ describe('kiosk.html sans polling HTTP (#1152)', () => {
     expect(html).toContain("addEventListener('online', resyncAll)");
   });
   it('backoff exponentiel avec jitter sur échec', () => {
-    expect(html).toMatch(/Math\.min\(30000, 1000 \* 2 \*\* retryAttempt\)/);
-    expect(html).toContain('Math.random()');
+    // calcul extrait en /js/kioskTiming.js (#1401), testé dans js/kioskTiming.test.ts
+    expect(html).toContain('KioskTiming.retryDelay(retryAttempt, Math.random())');
   });
   it('timers d’animation suspendus quand la page est masquée', () => {
     expect((html.match(/if \(document\.hidden\) return;/g) ?? []).length).toBeGreaterThanOrEqual(2);
