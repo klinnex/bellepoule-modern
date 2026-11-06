@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 33 | 214 |
+| `src/remote/` | 34 | 224 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **266** | **2192** |
+| **Total** | **267** | **2202** |
 
-Unitaires : 257 fichiers, 2157 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 258 fichiers, 2167 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4427,6 +4427,24 @@ Unitaires : 257 fichiers, 2157 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **refereeScoring.js mort subite challenger**
   - shouldTriggerChallenger
   - challengerExit : sous 10 -\> retour supplémentaire ou fin de mort subite
+  - referee.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeTimer.test.ts</code> — 10 tests</summary>
+
+- **refereeTimer.js timerTick**
+  - même dixième : ni affichage complet ni diffusion
+  - changement de seconde : diffusion et annonce
+  - sous 10 s : diffusion à chaque dixième, sans annonce
+  - au-dessus de 10 s : dixième seul ne diffuse pas
+  - fin : plancher à 0, finished
+- **refereeTimer.js timeUpAction**
+  - repos terminé
+  - égalité en temps normal : attente (classique) ou tirage prioritaire (olympique)
+  - égalité en temps supplémentaire : tirage au sort (classique) ou prioritaire (olympique)
+  - pas d’égalité ou mort subite désactivée : temps écoulé
   - referee.html charge le module et délègue
 
 </details>

@@ -16,6 +16,7 @@
     <script src="/js/refereeUpdate.js"></script>
     <script src="/js/refereeScoring.js"></script>
     <script src="/js/refereeCards.js"></script>
+    <script src="/js/refereeTimer.js"></script>
     <script src="/js/refereeDemoMirror.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
@@ -3099,48 +3100,40 @@
           this.broadcastTimerUpdate();
 
           this._ttsAnnouncedSeconds = new Set();
-          const endAt = Date.now() + this._timerCs * 10; let lastTenth = Math.floor(this._timerCs / 10); // tick 10 ms sans dérive (#1416)
+          const endAt = Date.now() + this._timerCs * 10;
+          let lastTenth = Math.floor(this._timerCs / 10); // tick 10 ms sans dérive (#1416)
           this.timerInterval = setInterval(() => {
-            if (this._timerCs > 0) {
-              const prevSeconds = this.timerSeconds;
-              this._timerCs = Math.max(0, Math.round((endAt - Date.now()) / 10));
-              const secChanged = this.timerSeconds !== prevSeconds; // diffusion : 1/s puis 10/s sous 10 s
-              const tenthChanged = lastTenth !== (lastTenth = Math.floor(this._timerCs / 10)); // affichage complet 10/s
-              if (tenthChanged || this._timerCs === 0) this.updateTimerDisplay();
-              else window.BPTimer.renderTimer(document.getElementById('timer-display'), this._timerCs / 100, { alwaysTenths: true });
-              if (secChanged || (tenthChanged && this._timerCs <= 1000)) this.broadcastTimerUpdate();
-              if (secChanged) this.ttsCheckAnnounce();
+            if (this._timerCs <= 0) return;
+            const t = BPRefereeTimer.timerTick(endAt, Date.now(), this._timerCs, lastTenth);
+            this._timerCs = t.cs;
+            lastTenth = t.lastTenth;
+            if (t.fullRender) this.updateTimerDisplay();
+            else window.BPTimer.renderTimer(document.getElementById('timer-display'), this._timerCs / 100, { alwaysTenths: true });
+            if (t.broadcast) this.broadcastTimerUpdate();
+            if (t.announce) this.ttsCheckAnnounce();
+            if (!t.finished) return;
 
-              if (this.timerSeconds === 0) {
-                this.stopTimer();
-                if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
-                if (this.isResting) {
-                  this.endRest();
-                  return;
-                }
-                const _sdDisabled = this.trainingCustomRules && this.trainingCustomRules.disableSuddenDeath;
-                if (!_sdDisabled && this.scoreA === this.scoreB &&
-                    (!this.isSuddenDeath || this.overtimeType === 'challenger')) {
-                  if (this.isModernFencing) {
-                    // Armes olympiques : minute prioritaire tirée AVANT la minute supplémentaire (#1442)
-                    this.priorityDrawPhase = true;
-                    this.prepareCoinFlip();
-                  } else {
-                    // Égalité : attente manuelle de l'arbitre pour lancer le temps supplémentaire
-                    this.prepareSuddenDeath();
-                  }
-                } else if (!_sdDisabled && this.isSuddenDeath && this.scoreA === this.scoreB) {
-                  if (this.isModernFencing) {
-                    // Olympique : pas de second tirage, le prioritaire gagne si aucune touche (#1442)
-                    this.showNotification(window.T('referee.priority_applies'));
-                  } else {
-                    // Fin du temps supplémentaire avec égalité → tirage au sort sur action de l'arbitre (#1136)
-                    this.prepareCoinFlip();
-                  }
-                } else {
-                  this.showNotification(window.T('referee.time_up'));
-                }
-              }
+            this.stopTimer();
+            if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+            switch (BPRefereeTimer.timeUpAction(this)) {
+              case 'endRest':
+                this.endRest();
+                break;
+              case 'priorityDraw': // minute prioritaire tirée AVANT la minute supplémentaire (#1442)
+                this.priorityDrawPhase = true;
+                this.prepareCoinFlip();
+                break;
+              case 'suddenDeath': // égalité : attente manuelle de l'arbitre pour le temps supplémentaire
+                this.prepareSuddenDeath();
+                break;
+              case 'priorityApplies':
+                this.showNotification(window.T('referee.priority_applies'));
+                break;
+              case 'coinFlip': // fin du temps supplémentaire avec égalité (#1136)
+                this.prepareCoinFlip();
+                break;
+              default:
+                this.showNotification(window.T('referee.time_up'));
             }
           }, 10);
         }
