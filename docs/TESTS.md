@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 45 | 634 |
+| `src/shared/utils/` | 45 | 635 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 48 | 385 |
+| `src/main/` | 48 | 386 |
 | `src/renderer/services/` | 6 | 34 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 50 | 252 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **256** | **2110** |
+| **Total** | **256** | **2112** |
 
-Unitaires : 247 fichiers, 2075 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 247 fichiers, 2077 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -295,7 +295,7 @@ Unitaires : 247 fichiers, 2075 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 9 tests</summary>
+<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 10 tests</summary>
 
 - **customFormulaSettings (#1125)**
   - dérive score max, chrono, tours et 3e place de la formule
@@ -307,6 +307,7 @@ Unitaires : 247 fichiers, 2075 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - règles armes modernes choisies dans la formule : repos dérivé (défaut 60 s)
   - usesModernRules : E/F/S toujours, CUSTOM selon la formule, Laser jamais
   - usesModernRules : rapières en armes modernes par défaut, Sabre Laser si choisi (#1118)
+  - resolveCompetitionSettings : rapières respecte thirdPlaceMatch du mode « Tableau normal » (#1441)
 
 </details>
 
@@ -2692,7 +2693,7 @@ Unitaires : 247 fichiers, 2075 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 103 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 104 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -2763,6 +2764,7 @@ Unitaires : 247 fichiers, 2075 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - mode expert : tous les arbitres affichés
     - match en file d'attente : arbitre porté
   - **annulation carton noir depuis la tablette**
+    - égalité finale : le tireur prioritaire tiré (coin\_flip) gagne (#1442)
     - liste le carton noir de l'arène
     - annule : réintègre le combattant, rouvre le match avec son score et rend ses matchs jouables
     - refuse l'annulation d'un carton noir en tableau
