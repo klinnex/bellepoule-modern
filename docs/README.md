@@ -18,6 +18,7 @@
 | [GUIDE_PHOTOS.md](GUIDE_PHOTOS.md) | Photos des tireurs |
 | [USER_GUIDE_PDF_EXPORT.md](USER_GUIDE_PDF_EXPORT.md) | Exports PDF |
 | [../UPDATE_SYSTEM.md](../UPDATE_SYSTEM.md) | Mises à jour automatiques |
+| [COMMANDES.md](COMMANDES.md) | Palette Ctrl+K : commandes `/update`, `/remote start`, `/phase`… |
 | [../TROUBLESHOOTING.md](../TROUBLESHOOTING.md) | Dépannage |
 
 ## Saisie distante et arbitrage

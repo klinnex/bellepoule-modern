@@ -81,4 +81,37 @@ describe('CommandPalette', () => {
     fireEvent.click(screen.getByText('menu.new_competition'));
     expect(props.onNewCompetition).toHaveBeenCalled();
   });
+
+  it('« / » affiche les commandes et Entrée exécute', () => {
+    const onRunCommand = vi.fn();
+    setup({ onRunCommand });
+    const input = screen.getByLabelText('commandPalette.search_aria');
+    fireEvent.change(input, { target: { value: '/remote st' } });
+    expect(screen.getByText('/remote start')).toBeInTheDocument();
+    expect(screen.queryByText('Coupe Alpha')).not.toBeInTheDocument();
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onRunCommand).toHaveBeenCalledWith('/remote start');
+  });
+
+  it('commande à argument : Entrée complète puis exécute', () => {
+    const onRunCommand = vi.fn();
+    setup({ onRunCommand });
+    const input = screen.getByLabelText('commandPalette.search_aria') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '/them' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onRunCommand).not.toHaveBeenCalled();
+    expect(input.value).toBe('/theme ');
+    fireEvent.change(input, { target: { value: '/theme dark' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onRunCommand).toHaveBeenCalledWith('/theme dark');
+  });
+
+  it('commande inconnue : Entrée la transmet telle quelle', () => {
+    const onRunCommand = vi.fn();
+    setup({ onRunCommand });
+    const input = screen.getByLabelText('commandPalette.search_aria');
+    fireEvent.change(input, { target: { value: '/zzz' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onRunCommand).toHaveBeenCalledWith('/zzz');
+  });
 });

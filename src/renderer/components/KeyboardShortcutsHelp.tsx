@@ -6,11 +6,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../contexts/TranslationContext';
+import { SLASH_COMMANDS, SHOW_SHORTCUTS_EVENT } from '../services/slashCommands';
 
 interface Shortcut {
   key: string;
   descriptionKey: string;
-  category: 'navigation' | 'actions' | 'competition' | 'global';
+  category: 'navigation' | 'actions' | 'competition' | 'global' | 'commands';
 }
 
 const SHORTCUTS: Shortcut[] = [
@@ -34,6 +35,13 @@ const SHORTCUTS: Shortcut[] = [
   // Competition
   { key: 'N', descriptionKey: 'shortcuts.next_match', category: 'competition' },
   { key: 'Enter', descriptionKey: 'shortcuts.validate', category: 'competition' },
+
+  // Commandes « / » de la palette Ctrl+K (docs/COMMANDES.md)
+  ...SLASH_COMMANDS.map(c => ({
+    key: c.usage,
+    descriptionKey: c.descriptionKey,
+    category: 'commands' as const,
+  })),
 ];
 
 export const KeyboardShortcutsHelp: React.FC = () => {
@@ -60,8 +68,16 @@ export const KeyboardShortcutsHelp: React.FC = () => {
       }
     };
 
+    const show = () => {
+      setActiveCategory('commands');
+      setIsOpen(true);
+    };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener(SHOW_SHORTCUTS_EVENT, show);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener(SHOW_SHORTCUTS_EVENT, show);
+    };
   }, []);
 
   if (!isOpen) return null;
@@ -72,6 +88,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
     { id: 'navigation', label: t('shortcuts.category_navigation'), icon: '🧭' },
     { id: 'actions', label: t('shortcuts.category_actions'), icon: '⚡' },
     { id: 'competition', label: t('shortcuts.category_competition'), icon: '🤺' },
+    { id: 'commands', label: t('shortcuts.category_commands'), icon: '⌘' },
   ];
 
   const filteredShortcuts =

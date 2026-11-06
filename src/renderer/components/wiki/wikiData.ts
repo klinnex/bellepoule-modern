@@ -39,7 +39,7 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'kbd',
           shortcuts: [
-            { key: 'Ctrl+K', desc: 'Palette de commandes (recherche rapide)' },
+            { key: 'Ctrl+K', desc: 'Palette : recherche + commandes « / »' },
             { key: '?', desc: 'Aide des raccourcis clavier' },
             { key: 'Ctrl+N', desc: 'Nouvelle compétition' },
             { key: 'Échap', desc: 'Fermer une fenêtre / Annuler' },
@@ -47,7 +47,7 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'tip',
-          text: 'Utilisez Ctrl+K pour naviguer rapidement entre les compétitions ouvertes, accéder aux paramètres ou créer une nouvelle compétition.',
+          text: 'Ctrl+K : naviguer entre compétitions ou taper une commande « / » (/update quiet, /remote start… /help).',
         },
       ],
       en: [
@@ -71,7 +71,7 @@ export const ARTICLES: WikiArticle[] = [
         {
           type: 'kbd',
           shortcuts: [
-            { key: 'Ctrl+K', desc: 'Command palette (quick search)' },
+            { key: 'Ctrl+K', desc: 'Palette: search + « / » commands' },
             { key: '?', desc: 'Keyboard shortcuts help' },
             { key: 'Ctrl+N', desc: 'New competition' },
             { key: 'Esc', desc: 'Close window / Cancel' },
@@ -79,7 +79,7 @@ export const ARTICLES: WikiArticle[] = [
         },
         {
           type: 'tip',
-          text: 'Use Ctrl+K to quickly navigate between open competitions, access settings, or create a new competition.',
+          text: 'Ctrl+K: switch competitions or type a « / » command (/update quiet, /remote start… /help).',
         },
       ],
       de: [

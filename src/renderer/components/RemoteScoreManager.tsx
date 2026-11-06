@@ -21,6 +21,7 @@ import { ConnectedScreensPanel } from './remote/ConnectedScreensPanel';
 import { useRemoteNetworkSettings } from '../hooks/useRemoteNetworkSettings';
 import { useTranslation } from '../hooks/useTranslation';
 import { ipcErrorText } from '../services/ipcError';
+import { useRemoteCommand } from '../hooks/useRemoteCommand';
 import { useKioskTheme, type KioskPreset } from '../hooks/useKioskTheme';
 
 interface RemoteScoreManagerProps {
@@ -605,7 +606,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     setIsLoading(true);
     try {
       const result = await window.electronAPI.remote.stopServer(competition.id);
-
       if (result.success) {
         setSession(null);
         showToast('Saisie distante arrêtée', 'success');
@@ -620,9 +620,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       setIsLoading(false);
     }
   };
+  useRemoteCommand(isRemoteActive, onStartRemote, handleStopRemote); // palette « /remote »
 
-  // Mot de passe commun : appliqué à toutes les pistes, y compris celles ajoutées ensuite (#988)
-  // Mots de passe : commun aux pistes, appliqué (#988), et espace formateurs (#989)
+  // Mots de passe : commun aux pistes, y compris celles ajoutées ensuite (#988), et formateurs (#989)
   const {
     commonArenaPassword,
     setCommonArenaPassword,
