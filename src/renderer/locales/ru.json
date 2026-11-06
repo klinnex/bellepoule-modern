@@ -976,7 +976,8 @@
     "html_load_failed": "Не удалось загрузить HTML",
     "port_in_use": "Порт {{port}} уже используется",
     "temp_file_failed": "Не удалось создать временный файл: {{detail}}",
-    "invalid_proxy": "Недопустимый прокси"
+    "invalid_proxy": "Недопустимый прокси",
+    "invalid_directory": "Недопустимая папка"
   },
   "properties": {
     "one_round": "1 раунд",

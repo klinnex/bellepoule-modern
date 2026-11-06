@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 30 | 189 |
+| `src/remote/` | 32 | 206 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **263** | **2167** |
+| **Total** | **265** | **2184** |
 
-Unitaires : 254 fichiers, 2132 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 256 fichiers, 2149 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4398,6 +4398,24 @@ Unitaires : 254 fichiers, 2132 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/remote/js/refereeScoring.test.ts</code> — 9 tests</summary>
+
+- **refereeScoring.js zones**
+  - activeCustomZones : standard, pool/tableau, zones tronquées à 3
+  - slotPoints et zoneLetter : standard puis personnalisé
+- **refereeScoring.js validateAddScore**
+  - cas simples
+  - mort subite challenger : seulement +5
+  - entraînement : zones autorisées
+  - vibrationMs
+- **refereeScoring.js mort subite challenger**
+  - shouldTriggerChallenger
+  - challengerExit : sous 10 -\> retour supplémentaire ou fin de mort subite
+  - referee.html charge le module et délègue
+
+</details>
+
+<details>
 <summary><code>src/remote/js/refereeTts.test.ts</code> — 6 tests</summary>
 
 - **refereeTts.js**
@@ -4406,6 +4424,21 @@ Unitaires : 254 fichiers, 2132 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - mergeTtsConfig : champs valides seulement, announce fusionné
   - announceKey : paliers
   - announcementFor : phrase, chiffres, repli numérique, palier coupé, rien
+  - referee.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeUpdate.test.ts</code> — 8 tests</summary>
+
+- **refereeUpdate.js**
+  - scoreValue : nombre, objet, absent
+  - shouldReloadForRules : seulement règles chargées, différentes et hors match
+  - idle : poule terminée, fermé par l’appli, ou simple nettoyage
+  - in\_progress : reprise avec scores (nombre ou objet), ignorée si déjà connu
+  - in\_progress : tireurs du match en repli
+  - ready : nouveau match, déjà courant, ou match en cours
+  - replaceOrPush et markReadyOrPush
   - referee.html charge le module et délègue
 
 </details>

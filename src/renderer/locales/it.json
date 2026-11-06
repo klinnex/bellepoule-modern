@@ -976,7 +976,8 @@
     "html_load_failed": "Caricamento HTML non riuscito",
     "port_in_use": "La porta {{port}} è già in uso",
     "temp_file_failed": "Impossibile creare il file temporaneo: {{detail}}",
-    "invalid_proxy": "Proxy non valido"
+    "invalid_proxy": "Proxy non valido",
+    "invalid_directory": "Cartella non valida"
   },
   "properties": {
     "one_round": "1 turno",

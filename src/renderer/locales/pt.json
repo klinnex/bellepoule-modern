@@ -976,7 +976,8 @@
     "html_load_failed": "Falha ao carregar o HTML",
     "port_in_use": "A porta {{port}} já está em uso",
     "temp_file_failed": "Não foi possível criar o ficheiro temporário: {{detail}}",
-    "invalid_proxy": "Proxy inválido"
+    "invalid_proxy": "Proxy inválido",
+    "invalid_directory": "Pasta inválida"
   },
   "properties": {
     "one_round": "1 ronda",

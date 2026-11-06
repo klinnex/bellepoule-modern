@@ -976,7 +976,8 @@
     "html_load_failed": "Ha fallat la càrrega HTML",
     "port_in_use": "El port {{port}} ja està en ús",
     "temp_file_failed": "No s'ha pogut crear el fitxer temporal: {{detail}}",
-    "invalid_proxy": "Proxy no vàlid"
+    "invalid_proxy": "Proxy no vàlid",
+    "invalid_directory": "Carpeta no vàlida"
   },
   "properties": {
     "one_round": "1 ronda",
