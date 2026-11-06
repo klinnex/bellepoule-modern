@@ -15,6 +15,8 @@ export interface UpdaterSettings {
   autoCheck: boolean;
   /** Canal choisi par l'utilisateur ; absent = canal figé au packaging (version.json) */
   channel?: UpdateChannel;
+  /** Ancien exe portable à supprimer au prochain lancement (verrouillé tant qu'il tourne) */
+  cleanupExe?: string;
 }
 
 const isChannel = (v: unknown): v is UpdateChannel => v === 'stable' || v === 'dev';
@@ -37,6 +39,7 @@ export function readUpdaterSettings(userDataDir: string): UpdaterSettings {
     return {
       autoCheck: typeof raw?.autoCheck === 'boolean' ? raw.autoCheck : DEFAULTS.autoCheck,
       ...(isChannel(raw?.channel) ? { channel: raw.channel } : {}),
+      ...(typeof raw?.cleanupExe === 'string' ? { cleanupExe: raw.cleanupExe } : {}),
     };
   } catch {
     return { ...DEFAULTS };
@@ -51,6 +54,7 @@ export function writeUpdaterSettings(userDataDir: string, settings: UpdaterSetti
       {
         autoCheck: settings.autoCheck === true,
         ...(isChannel(settings.channel) ? { channel: settings.channel } : {}),
+        ...(typeof settings.cleanupExe === 'string' ? { cleanupExe: settings.cleanupExe } : {}),
       },
       null,
       2

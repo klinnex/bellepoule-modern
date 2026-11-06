@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 42 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 47 | 363 |
+| `src/main/` | 47 | 368 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 49 | 243 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **251** | **2056** |
+| **Total** | **251** | **2061** |
 
-Unitaires : 242 fichiers, 2021 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 242 fichiers, 2026 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2814,7 +2814,7 @@ Unitaires : 242 fichiers, 2021 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/updateAssets.test.ts</code> — 12 tests</summary>
+<summary><code>src/main/updateAssets.test.ts</code> — 16 tests</summary>
 
 - **detectInstallKind**
   - AppImage sous Linux
@@ -2831,6 +2831,12 @@ Unitaires : 242 fichiers, 2021 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **replaceExecutableInPlace**
   - remplace le fichier cible (${platform})
   - false si le dossier n’existe pas
+- **portableSideBySidePath**
+  - nom de l’asset dans le dossier de l’exe courant
+  - même nom que l’exe courant ou fichier existant → suffixe
+  - nom d’asset hostile ou absent neutralisé
+- **isSafePortableCleanup**
+  - uniquement un autre .exe du même dossier
 
 </details>
 
@@ -2863,7 +2869,7 @@ Unitaires : 242 fichiers, 2021 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/updaterSettings.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/updaterSettings.test.ts</code> — 6 tests</summary>
 
 - **updaterSettings**
   - vérification auto activée par défaut
@@ -2871,6 +2877,7 @@ Unitaires : 242 fichiers, 2021 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - JSON invalide → défaut
   - persiste le canal choisi, ignore une valeur invalide
   - resolveChannel : choix utilisateur prioritaire sur le paquet
+  - conserve cleanupExe (ancien exe portable à supprimer)
 
 </details>
 
