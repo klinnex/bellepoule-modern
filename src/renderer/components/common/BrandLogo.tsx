@@ -6,6 +6,9 @@
 
 import React, { useId } from 'react';
 
+/** Nom de marque : identique dans toutes les langues. */
+const BRAND_NAME = 'BellePoule Modern';
+
 interface BrandLogoProps {
   size?: number;
   className?: string;
@@ -53,7 +56,7 @@ const Laser: React.FC<{ glowId: string }> = ({ glowId }) => (
       y1="-16"
       x2="0"
       y2="-29.5"
-      style={{ stroke: 'var(--color-laser, #ef4444)' }}
+      className="brand-logo-laser"
       strokeWidth="4.2"
       filter={`url(#${glowId})`}
     />
@@ -70,7 +73,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({ size = 64, className }) =>
       height={size}
       viewBox="0 0 64 64"
       role="img"
-      aria-label="BellePoule Modern"
+      aria-label={BRAND_NAME}
       data-testid="brand-logo"
       fill="none"
       stroke="currentColor"
