@@ -17,6 +17,7 @@ import {
   writePendingUpdate,
 } from './pendingUpdate';
 import { parseSha256Digest, isTrustedDownloadUrl, verifyFileSha256 } from './updateIntegrity';
+import { parseReleaseBuild, pickLatestRelease } from './updateReleases';
 import {
   cleanupReplacedExecutable,
   detectInstallKind,
@@ -27,6 +28,11 @@ import {
 import { fmt, getL } from './menuLabels';
 import { readUpdaterSettings, writeUpdaterSettings, type UpdateChannel } from './updaterSettings';
 import { logger, LogCategory, toError } from '../shared/services/logger';
+
+/** Libellé unique par build (les builds dev partagent la même version X.Y.Z). */
+function pendingVersionLabel(info: { latestVersion: string; latestBuild: number }): string {
+  return `${info.latestVersion} (Build #${info.latestBuild})`;
+}
 
 const RELEASES_URL = 'https://github.com/klinnex/bellepoule-modern/releases/latest';
 
@@ -159,46 +165,7 @@ export class AutoUpdater {
 
       if (!release) return null;
 
-      // Extraire le numéro de build depuis plusieurs sources possibles
-      let latestBuild = 0;
-      const buildPatterns = [/Build #(\d+)/i, /build\.(\d+)/i, /#(\d+)/, /(\d+)(?:-|$)/];
-
-      // Chercher dans le nom de la release
-      for (const pattern of buildPatterns) {
-        const match = release.name?.match(pattern);
-        if (match) {
-          const parsed = parseInt(match[1]);
-          if (parsed > latestBuild) {
-            latestBuild = parsed;
-          }
-        }
-      }
-
-      // Si pas trouvé, chercher dans le tag_name
-      if (latestBuild === 0 && release.tag_name) {
-        for (const pattern of buildPatterns) {
-          const match = release.tag_name.match(pattern);
-          if (match) {
-            const parsed = parseInt(match[1]);
-            if (parsed > latestBuild) {
-              latestBuild = parsed;
-            }
-          }
-        }
-      }
-
-      // Si toujours pas trouvé, chercher dans le body
-      if (latestBuild === 0 && release.body) {
-        for (const pattern of buildPatterns) {
-          const match = release.body.match(pattern);
-          if (match) {
-            const parsed = parseInt(match[1]);
-            if (parsed > latestBuild) {
-              latestBuild = parsed;
-            }
-          }
-        }
-      }
+      const latestBuild = parseReleaseBuild(release);
 
       // Extraire la version depuis le tag_name ou le nom
       let latestVersion = currentInfo.version;
@@ -242,14 +209,9 @@ export class AutoUpdater {
         return await this.fetchLatestReleaseDirect();
       }
 
-      // Canal stable : releases non-prerelease uniquement ; canal dev : toutes
-      const filteredReleases = this.config.betaChannel
-        ? releases
-        : releases.filter((r: any) => !r.prerelease);
-
-      if (filteredReleases.length > 0) {
-        return filteredReleases[0];
-      }
+      // Build le plus élevé du canal (stable : hors pré-releases ; dev : toutes)
+      const best = pickLatestRelease(releases, this.config.betaChannel);
+      if (best) return best;
 
       // Canal stable sans release stable dans la liste : /latest (exclut les pré-releases)
       return await this.fetchLatestReleaseDirect();
@@ -512,7 +474,7 @@ export class AutoUpdater {
       // Déjà téléchargée et vérifiée : pas de nouveau téléchargement.
       // En fond, pas de nouvelle question (déjà posée au téléchargement / au démarrage).
       const pending = readPendingUpdate(app.getPath('userData'));
-      if (pending && pending.version === updateInfo.latestVersion) {
+      if (pending && pending.version === pendingVersionLabel(updateInfo)) {
         if (interactive) {
           this.promptForImmediateInstall(updateInfo, pending.path, pending.sha256);
         }
@@ -613,7 +575,7 @@ export class AutoUpdater {
     const response = dialog.showMessageBoxSync(this.mainWindow, {
       type: 'question',
       title: L.updReadyTitle,
-      message: fmt(L.updDownloaded, { version: updateInfo.latestVersion }),
+      message: fmt(L.updDownloaded, { version: pendingVersionLabel(updateInfo) }),
       detail: L.updInstallDetail,
       buttons: [L.updInstallNow, L.updLater],
       defaultId: 0,
@@ -720,7 +682,7 @@ export class AutoUpdater {
 
   private saveDownloadedUpdate(downloadPath: string, updateInfo: UpdateInfo, sha256: string): void {
     writePendingUpdate(app.getPath('userData'), {
-      version: updateInfo.latestVersion,
+      version: pendingVersionLabel(updateInfo),
       path: downloadPath,
       sha256,
       downloadedAt: new Date().toISOString(),
@@ -863,18 +825,17 @@ export class AutoUpdater {
   }
 
   async showUpdateDialog(): Promise<void> {
-    if (!this.updateInfo) {
-      const updateInfo = await this.checkForUpdates();
-      if (!updateInfo) {
-        dialog.showMessageBox(this.mainWindow!, {
-          type: 'info',
-          title: getL().updTitle,
-          message: getL().updNoRelease,
-          detail: getL().updNoReleaseDetail,
-          buttons: ['OK'],
-        });
-        return;
-      }
+    // Vérification manuelle : toujours interroger GitHub (pas de résultat en cache)
+    const updateInfo = await this.checkForUpdates();
+    if (!updateInfo) {
+      dialog.showMessageBox(this.mainWindow!, {
+        type: 'info',
+        title: getL().updTitle,
+        message: getL().updNoRelease,
+        detail: getL().updNoReleaseDetail,
+        buttons: ['OK'],
+      });
+      return;
     }
 
     if (this.updateInfo && this.updateInfo.hasUpdate) {
