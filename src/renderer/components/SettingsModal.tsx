@@ -22,8 +22,21 @@ import {
   saveUiScale,
   type UiScale,
 } from '../services/uiScale';
+import {
+  LOGO_STORAGE_KEY,
+  LOGO_LIBRARY_MAX,
+  type LogoEntry,
+  loadLogoLibrary,
+  saveLogoLibraryLocal,
+  sanitizeLogoLibrary,
+  ensureActiveInLibrary,
+  addLogo,
+  renameLogo,
+  removeLogo,
+  newLogoId,
+  logoNameFromFile,
+} from '../services/logoLibrary';
 
-const LOGO_STORAGE_KEY = 'bellepoule-logo';
 const WEBHOOK_STORAGE_KEY = 'bellepoule-webhook-url';
 const AUDIT_LOG_KEY = 'bellepoule-audit-log-enabled';
 const TTS_CONFIG_KEY = 'bellepoule-tts-config';
@@ -230,6 +243,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     theme: theme,
   });
   const [logo, setLogo] = useState<string | null>(() => localStorage.getItem(LOGO_STORAGE_KEY));
+  const [logos, setLogos] = useState<LogoEntry[]>(() =>
+    ensureActiveInLibrary(loadLogoLibrary(), localStorage.getItem(LOGO_STORAGE_KEY))
+  );
   const [isDragging, setIsDragging] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -295,6 +311,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
       });
     }
     const api = (window as any).electronAPI;
+    // Bibliothèque persistée (logos.json) : fusion avec la copie locale
+    api
+      ?.getLogos?.()
+      .then((raw: unknown) => {
+        const disk = sanitizeLogoLibrary(raw);
+        if (disk.length === 0) return;
+        setLogos(prev => {
+          const ids = new Set(disk.map(l => l.id));
+          const merged = sanitizeLogoLibrary([...disk, ...prev.filter(l => !ids.has(l.id))]);
+          const withActive = ensureActiveInLibrary(merged, localStorage.getItem(LOGO_STORAGE_KEY));
+          saveLogoLibraryLocal(withActive);
+          return withActive;
+        });
+      })
+      .catch(() => {
+        /* bibliothèque optionnelle */
+      });
     const unsub = api?.onLogoLoaded?.((persisted: string | null) => {
       if (persisted && !localStorage.getItem(LOGO_STORAGE_KEY)) {
         setLogo(persisted);
@@ -360,33 +393,57 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     setSettings(prev => ({ ...prev, theme: newTheme }));
   };
 
-  const applyLogo = useCallback(async (file: File) => {
-    setLogoError(null);
-    if (file.size > 5 * 1024 * 1024) {
-      setLogoError('Image trop grande (max 5 Mo)');
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      setLogoError('Fichier non supporté — choisissez une image');
-      return;
-    }
-    try {
-      const base64 = await resizeLogo(file);
-      setLogo(base64);
-      localStorage.setItem(LOGO_STORAGE_KEY, base64);
-      const api = (window as any).electronAPI;
-      if (api?.remote?.updateLogo)
-        api.remote.updateLogo(base64).catch((err: unknown) => {
-          logger.warn(
-            LogCategory.NETWORK,
-            'Échec mise à jour logo remote',
-            err instanceof Error ? err : undefined
-          );
-        });
-    } catch {
-      setLogoError("Impossible de lire l'image");
-    }
+  // Logo actif : localStorage (PDF/kiosque) + logo.dat + serveurs distants
+  const setActiveLogo = useCallback((data: string | null) => {
+    setLogo(data);
+    if (data) localStorage.setItem(LOGO_STORAGE_KEY, data);
+    else localStorage.removeItem(LOGO_STORAGE_KEY);
+    const api = (window as any).electronAPI;
+    if (api?.remote?.updateLogo)
+      api.remote.updateLogo(data).catch((err: unknown) => {
+        logger.warn(
+          LogCategory.NETWORK,
+          'Échec mise à jour logo remote',
+          err instanceof Error ? err : undefined
+        );
+      });
   }, []);
+
+  const persistLogos = useCallback((next: LogoEntry[]) => {
+    setLogos(next);
+    saveLogoLibraryLocal(next);
+    (window as any).electronAPI?.saveLogos?.(next)?.catch?.(() => {
+      /* persistance disque indisponible */
+    });
+  }, []);
+
+  const applyLogo = useCallback(
+    async (file: File) => {
+      setLogoError(null);
+      if (logos.length >= LOGO_LIBRARY_MAX) {
+        setLogoError(t('settings.logo_limit', { max: LOGO_LIBRARY_MAX }));
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setLogoError('Image trop grande (max 5 Mo)');
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        setLogoError('Fichier non supporté — choisissez une image');
+        return;
+      }
+      try {
+        const base64 = await resizeLogo(file);
+        persistLogos(
+          addLogo(logos, { id: newLogoId(), name: logoNameFromFile(file.name), data: base64 })
+        );
+        setActiveLogo(base64);
+      } catch {
+        setLogoError("Impossible de lire l'image");
+      }
+    },
+    [logos, persistLogos, setActiveLogo, t]
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -404,18 +461,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     [applyLogo]
   );
 
-  const handleRemoveLogo = () => {
-    setLogo(null);
-    localStorage.removeItem(LOGO_STORAGE_KEY);
-    const api = (window as any).electronAPI;
-    if (api?.remote?.updateLogo)
-      api.remote.updateLogo(null).catch((err: unknown) => {
-        logger.warn(
-          LogCategory.NETWORK,
-          'Échec suppression logo remote',
-          err instanceof Error ? err : undefined
-        );
-      });
+  const handleDeleteLogo = (id: string) => {
+    const res = removeLogo(logos, id, logo);
+    persistLogos(res.list);
+    if (res.nextActive !== logo) setActiveLogo(res.nextActive);
+  };
+
+  const handleRenameLogo = (id: string, name: string) => {
+    persistLogos(renameLogo(logos, id, name));
   };
 
   const handleWebhookUrlChange = (url: string) => {
@@ -629,17 +682,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   transition: 'border-color 0.15s, background 0.15s',
                 }}
               >
-                {logo ? (
-                  <img src={logo} alt={t('settings.logo_title')} className="is-2f6bfd" />
-                ) : (
-                  <span className="is-fd4b7b">{t('settings.logo_drop')}</span>
-                )}
+                <span className="is-fd4b7b">{t('settings.logo_drop')}</span>
                 <span
                   style={{
                     fontSize: '0.75rem',
                     color: 'var(--text-muted, var(--color-text-muted))',
                     display: 'block',
-                    marginTop: logo ? '0' : '0.25rem',
+                    marginTop: '0.25rem',
                   }}
                 >
                   {t('settings.logo_formats')}
@@ -653,9 +702,50 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 onChange={handleFileChange}
               />
               {logoError && <p className="is-bb6602">{logoError}</p>}
+              {logos.length > 0 && (
+                <ul aria-label={t('settings.logo_library')} className="logo-library">
+                  {logos.map(l => {
+                    const isActive = l.data === logo;
+                    return (
+                      <li key={l.id} className={`logo-library-item${isActive ? ' is-active' : ''}`}>
+                        <img src={l.data} alt={l.name} className="logo-library-thumb" />
+                        <input
+                          type="text"
+                          defaultValue={l.name}
+                          aria-label={t('settings.logo_name')}
+                          maxLength={80}
+                          onBlur={e => handleRenameLogo(l.id, e.target.value)}
+                          className="logo-library-name"
+                        />
+                        {isActive ? (
+                          <span className="logo-library-active">{t('settings.logo_active')}</span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            style={SMALL_BTN}
+                            onClick={() => setActiveLogo(l.data)}
+                          >
+                            {t('settings.logo_use')}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          style={SMALL_BTN}
+                          aria-label={`${t('settings.logo_delete')} ${l.name}`}
+                          onClick={() => handleDeleteLogo(l.id)}
+                        >
+                          {t('settings.logo_delete')}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
               {logo && (
-                <button className="btn btn-secondary is-7b69a8" onClick={handleRemoveLogo}>
-                  {t('settings.logo_remove')}
+                <button className="btn btn-secondary is-7b69a8" onClick={() => setActiveLogo(null)}>
+                  {t('settings.logo_none')}
                 </button>
               )}
             </div>

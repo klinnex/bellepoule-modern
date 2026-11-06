@@ -945,6 +945,9 @@ const electronApi = {
   },
 
   getLogo: () => ipcRenderer.invoke('app:getLogo'),
+  getLogos: () => ipcRenderer.invoke('app:getLogos'),
+  saveLogos: (logos: { id: string; name: string; data: string }[]) =>
+    ipcRenderer.invoke('app:saveLogos', logos),
   getTtsConfig: () => ipcRenderer.invoke('app:getTtsConfig'),
   onLogoLoaded: (callback: (logo: string | null) => void) => {
     const handler = (_: IpcRendererEvent, logo: string | null) => callback(logo);

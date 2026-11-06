@@ -1357,6 +1357,10 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   notifyLanguageChanged: (lang: string) => void;
   initialLanguage: string | null;
   getLogo: () => Promise<string | null>;
+  getLogos: () => Promise<{ id: string; name: string; data: string }[]>;
+  saveLogos: (
+    logos: { id: string; name: string; data: string }[]
+  ) => Promise<{ success: boolean; error?: string }>;
   getTtsConfig: () => Promise<TtsConfig | null>;
   onLogoLoaded: (callback: (logo: string | null) => void) => () => void;
   themes: {

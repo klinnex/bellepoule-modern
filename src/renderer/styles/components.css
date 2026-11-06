@@ -1147,4 +1147,34 @@
   .settings-nav-item {
     width: auto;
   }
+/* SettingsModal — bibliothèque de logos */
+.logo-library {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.logo-library-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem;
+  margin-bottom: 0.25rem;
+  border-radius: 6px;
+  border: 1px solid var(--border, var(--color-border-dark));
+}
+.logo-library-item.is-active {
+  border-color: var(--primary, var(--color-primary));
+}
+.logo-library-thumb {
+  height: 32px;
+  max-width: 96px;
+  object-fit: contain;
+}
+.logo-library-name {
+  flex: 1;
+  min-width: 0;
+}
+.logo-library-active {
+  font-weight: 600;
+  font-size: 0.8rem;
 }

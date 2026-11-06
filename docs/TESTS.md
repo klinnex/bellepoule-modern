@@ -95,8 +95,8 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 42 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 46 | 359 |
-| `src/renderer/services/` | 4 | 22 |
+| `src/main/` | 46 | 361 |
+| `src/renderer/services/` | 5 | 29 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 49 | 243 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **250** | **2052** |
+| **Total** | **251** | **2061** |
 
-Unitaires : 241 fichiers, 2017 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 242 fichiers, 2026 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2277,11 +2277,13 @@ Unitaires : 241 fichiers, 2017 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/ipc/remoteClientsHandlers.test.ts</code> — 2 tests</summary>
+<summary><code>src/main/ipc/remoteClientsHandlers.test.ts</code> — 4 tests</summary>
 
 - **registerRemoteClientsHandlers (#1341)**
   - enregistre les canaux clients et synthèse vocale
   - getConnectedClients : serveur absent → liste vide
+  - getLogos : fichier absent → liste vide
+  - saveLogos : entrée non tableau refusée
 
 </details>
 
@@ -2915,6 +2917,20 @@ Unitaires : 241 fichiers, 2017 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - code traduit, paramètres de la réponse interpolés
   - texte libre, code inconnu, absence d’erreur
   - chaque code renvoyé par le process principal a sa clé errors.\* (fr)
+
+</details>
+
+<details>
+<summary><code>src/renderer/services/logoLibrary.test.ts</code> — 7 tests</summary>
+
+- **logoLibrary**
+  - sanitize filtre les entrées invalides et doublons
+  - sanitize borne la taille
+  - ensureActiveInLibrary migre le logo actif hérité
+  - addLogo refuse au-delà du maximum
+  - renameLogo ignore un nom vide
+  - removeLogo bascule le logo actif
+  - logoNameFromFile retire l’extension
 
 </details>
 
