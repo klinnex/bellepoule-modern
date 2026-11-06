@@ -48,7 +48,7 @@ const Laser: React.FC<{ glowId: string }> = ({ glowId }) => (
       y1="-16"
       x2="0"
       y2="-29.5"
-      style={{ stroke: 'var(--color-laser, #22d3ee)' }}
+      style={{ stroke: 'var(--color-laser, #ef4444)' }}
       strokeWidth="4.2"
       filter={`url(#${glowId})`}
     />
