@@ -99,16 +99,29 @@
     const cls = ['timer-display'];
     if (timerStatus === 'running') cls.push('running');
     else if (timerStatus === 'paused') cls.push('paused');
-    if (timerSeconds <= 0) cls.push('expired'); // 00:00 : rouge fixe sans clignotement (#1416)
-    else if (timerSeconds <= 10) cls.push('danger');
+    if (timerSeconds <= 10) cls.push('danger');
     else if (timerSeconds <= 30) cls.push('warning');
+    if (timerSeconds <= 0) cls.push('expired'); // 00:00 : rouge fixe sans clignotement (#1416)
     return cls;
+  }
+
+  /** Chrono interpolé localement : dixièmes/centièmes qui s'écoulent sous 10 s (#1416) */
+  function smoothTimerView(doc, timerLib) {
+    let status;
+    const st = timerLib.createSmoothTimer(t => updateTimerDisplay(doc, timerLib, t, status));
+    return {
+      update(timeSec, timerStatus) {
+        status = timerStatus;
+        st.update(timeSec, timerStatus);
+      },
+    };
   }
 
   function updateTimerDisplay(doc, timerLib, timerSeconds, timerStatus) {
     const el = doc.getElementById('timer-display');
     timerLib.renderTimer(el, timerSeconds); // dixièmes sur les 10 dernières secondes (#1416)
     el.className = timerClasses(timerSeconds, timerStatus).join(' ');
+    el.style.animation = timerSeconds <= 0 ? 'none' : ''; // pas de clignotement à 00:00 (#1416)
   }
 
   /** Quelles bannières de mort subite afficher */
@@ -139,6 +152,7 @@
     cardsHtml,
     updateCardsDisplay,
     timerClasses,
+    smoothTimerView,
     updateTimerDisplay,
     suddenDeathFlags,
     updateSuddenDeathBanner,

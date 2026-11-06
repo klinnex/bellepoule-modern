@@ -8,8 +8,7 @@
     />
     <title data-i18n="referee.title">Arbitrage - Arène BellePoule</title>
     <script src="/common.js"></script>
-    <script src="/js/timerFormat.js"></script>
-    <script src="/js/priorityDraw.js"></script>
+    <script src="/js/timerFormat.js"></script><script src="/js/priorityDraw.js"></script>
     <script src="/js/offlineQueue.js"></script>
     <script src="/js/refereeFaults.js"></script>
     <script src="/js/refereeDemoMirror.js"></script>
@@ -3173,16 +3172,13 @@
           this.broadcastTimerUpdate();
 
           this._ttsAnnouncedSeconds = new Set();
-          const endAt = Date.now() + this._timerCs * 10; // tick 10 ms sans dérive : centièmes réels (#1416)
-          let lastTenth = Math.floor(this._timerCs / 10);
+          const endAt = Date.now() + this._timerCs * 10; let lastTenth = Math.floor(this._timerCs / 10); // tick 10 ms sans dérive (#1416)
           this.timerInterval = setInterval(() => {
             if (this._timerCs > 0) {
               const prevSeconds = this.timerSeconds;
               this._timerCs = Math.max(0, Math.round((endAt - Date.now()) / 10));
               const secChanged = this.timerSeconds !== prevSeconds; // diffusion : 1/s puis 10/s sous 10 s
-              const tenth = Math.floor(this._timerCs / 10);
-              const tenthChanged = tenth !== lastTenth;
-              lastTenth = tenth;
+              const tenthChanged = lastTenth !== (lastTenth = Math.floor(this._timerCs / 10)); // affichage complet 10/s
               if (tenthChanged || this._timerCs === 0) this.updateTimerDisplay();
               else window.BPTimer.renderTimer(document.getElementById('timer-display'), this._timerCs / 100, { alwaysTenths: true });
               if (secChanged || (tenthChanged && this._timerCs <= 1000)) this.broadcastTimerUpdate();
@@ -3397,21 +3393,6 @@
           );
         }
 
-        // Minute prioritaire tirée (#1442) : chrono remis à 1:00, l'arbitre lance quand il veut
-        preparePriorityMinute() {
-          this.timerSeconds = this.overtimeSeconds();
-          this.waitingOvertimeStart = true;
-          this.updateTimerDisplay();
-          this.updateControlButtons();
-          this.socket.emit('arena_control', {
-            arenaId: this.arenaId,
-            action: 'waiting_overtime',
-            time: this.overtimeSeconds(),
-            timerStatus: 'paused',
-          });
-          this.showNotification(window.T('referee.tie_launch', { label: this.overtimeLabel() }));
-        }
-
         // Durée du temps supplémentaire : 1 min en escrime olympique, 30 s au Sabre Laser (#1027)
         overtimeSeconds() {
           return this.isModernFencing ? 60 : 30;
@@ -3469,23 +3450,7 @@
           this.waitingCoinFlip = false;
           this.updateControlButtons();
           const winner = Math.random() < 0.5 ? 'A' : 'B';
-          if (this.priorityDrawPhase) {
-            // Minute prioritaire (#1442) : pas de vainqueur désigné ici. Le cadre doré passe
-            // d'un tireur à l'autre ~3 s puis se fixe ; le chrono est remis à 1:00, prêt à lancer.
-            this.priorityDrawPhase = false;
-            this._prioFencerId = (winner === 'A' ? this.currentMatch?.fencerA?.id : this.currentMatch?.fencerB?.id) ?? null;
-            this.socket.emit('arena_control', { arenaId: this.arenaId, action: 'coin_flip', winner, priority: true });
-            this.showNotification(window.T('referee.coin_anim'));
-            this._priorityAnimating = true;
-            this.updateControlButtons();
-            window.BPPriorityDraw.animatePriorityDraw(side => this.applyPriorityFrame(side), winner, {
-              onDone: () => {
-                this._priorityAnimating = false;
-                this.preparePriorityMinute();
-              },
-            });
-            return;
-          }
+          if (this.priorityDrawPhase) return this.startPriorityDraw(winner); // minute prioritaire (#1442)
           this.coinFlipWinner = winner;
 
           // Déclencher l'animation plein écran sur l'affichage de score
@@ -3896,11 +3861,7 @@
           const finishBtn = document.getElementById('btn-finish');
 
           // Tirage du prioritaire en cours (#1442) : rien à lancer
-          if (this._priorityAnimating) {
-            startBtn.disabled = true;
-            if (finishBtn) finishBtn.disabled = true;
-            return;
-          }
+          if (this._priorityAnimating) return void [startBtn, finishBtn].forEach(b => b && (b.disabled = true));
 
           // État d'attente : l'arbitre doit déclencher manuellement les 30s
           if (this.waitingOvertimeStart) {
@@ -4397,7 +4358,7 @@
         if (open) refereeApp.socket?.emit('arena_control', { arenaId: refereeApp.arenaId, action: 'release_match' });
         setTimeout(() => window.location.reload(), open ? 200 : 0);
       }
-      window.BPTimer.withTenths(RefereeApp.prototype); window.BPDemoMirror.install(RefereeApp.prototype); // démo autonome (?demo=1)
+      window.BPTimer.withTenths(RefereeApp.prototype); window.BPPriorityDraw.installReferee(RefereeApp.prototype); window.BPDemoMirror.install(RefereeApp.prototype); // démo autonome (?demo=1)
       document.addEventListener('DOMContentLoaded', async () => {
         try {
           await window.initRemoteI18n();

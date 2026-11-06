@@ -419,12 +419,7 @@
         color: #ef4444;
         animation: timer-pulse 0.5s infinite;
       }
-
-      /* 00:00 : rouge fixe, sans clignotement (#1416) */
-      .timer-display.expired {
-        color: #ef4444;
-        animation: none;
-      }
+      .timer-display.expired { color: #ef4444; animation: none; } /* 00:00 : rouge fixe (#1416) */
 
       @keyframes timer-pulse {
         0%,
@@ -1043,12 +1038,7 @@
           });
 
           this.socket.on(`arena:${this.arenaId}:coin_flip`, data => {
-            if (data.priority) {
-              // Minute prioritaire (#1442) : cadre doré qui alterne ~3 s puis se fixe, sans vainqueur
-              this._prioFencerId = (data.winner === 'A' ? data.fencerA?.id : data.fencerB?.id) ?? null;
-              window.BPPriorityDraw.animatePriorityDraw(side => this.applyPriorityFrame(side), data.winner);
-              return;
-            }
+            if (data.priority) return window.BPPriorityDraw.fromEvent(this, data); // minute prioritaire (#1442)
             this.showCoinFlipAnimation(data.winner, data.fencerA, data.fencerB);
           });
         }

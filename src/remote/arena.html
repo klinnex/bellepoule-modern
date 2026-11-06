@@ -8,8 +8,7 @@
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <script src="/js/arenaDisplayUtils.js"></script>
-    <script src="/js/timerFormat.js"></script>
-    <script src="/js/priorityDraw.js"></script>
+    <script src="/js/timerFormat.js"></script><script src="/js/priorityDraw.js"></script>
     <script src="/js/arenaOverlays.js"></script>
     <script src="/js/arenaRender.js"></script>
     <script src="/js/arenaPanels.js"></script>
@@ -567,7 +566,6 @@
         flex: 1;
       }
 
-
       .fencer-display {
         text-align: center;
         padding: 0.3rem;
@@ -780,12 +778,6 @@
       .timer-display.danger {
         color: #ef4444;
         animation: timer-pulse 0.5s infinite;
-      }
-
-      /* 00:00 : rouge fixe, sans clignotement (#1416) */
-      .timer-display.expired {
-        color: #ef4444;
-        animation: none;
       }
 
       @keyframes timer-pulse {
@@ -1691,13 +1683,8 @@
           });
 
           this.socket.on(`arena:${this.arenaId}:coin_flip`, data => {
-            if (data.priority) {
-              // Minute prioritaire (#1442) : cadre doré qui alterne ~3 s puis se fixe, sans vainqueur
-              this._prioFencerId = (data.winner === 'A' ? data.fencerA?.id : data.fencerB?.id) ?? null;
-              window.BPPriorityDraw.animatePriorityDraw(side => this.applyPriorityFrame(side), data.winner);
-              return;
-            }
-            this.showCoinFlipAnimation(data.winner, data.fencerA, data.fencerB);
+            if (!data.priority) this.showCoinFlipAnimation(data.winner, data.fencerA, data.fencerB);
+            else window.BPPriorityDraw.fromEvent(this, data); // minute prioritaire (#1442)
           });
 
           this.socket.on('wallpaper:update', ({ wallpaper }) => {
@@ -1932,14 +1919,7 @@
         }
 
         updateTimerDisplay(timerStatus) {
-          // Interpolation locale : dixièmes/centièmes qui s'écoulent sous 10 s (#1416)
-          if (!this._smoothTimer) {
-            this._smoothTimer = window.BPTimer.createSmoothTimer(t =>
-              BPArenaRender.updateTimerDisplay(document, window.BPTimer, t, this._timerStatus)
-            );
-          }
-          this._timerStatus = timerStatus;
-          this._smoothTimer.update(this.timerSeconds, timerStatus);
+          (this._timerView ||= BPArenaRender.smoothTimerView(document, window.BPTimer)).update(this.timerSeconds, timerStatus);
         }
 
         updateSuddenDeathBanner() {

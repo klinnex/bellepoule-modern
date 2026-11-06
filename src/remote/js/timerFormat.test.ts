@@ -76,7 +76,11 @@ describe('timerFormat.js', () => {
 
   it('createSmoothTimer : pas d’animation au-dessus de 10 s', () => {
     const queue: Array<() => void> = [];
-    const st = createSmoothTimer(() => {}, { now: () => 0, raf: (cb: () => void) => queue.push(cb), caf: () => {} });
+    const st = createSmoothTimer(() => {}, {
+      now: () => 0,
+      raf: (cb: () => void) => queue.push(cb),
+      caf: () => {},
+    });
     st.update(45, 'running');
     expect(queue.length).toBe(0);
   });

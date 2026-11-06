@@ -8,6 +8,7 @@
   'use strict';
 
   const DURATION_MS = 3000;
+  const T = (k, p) => (root && root.T ? root.T(k, p) : k);
 
   /** Délais successifs (ms) : départ rapide, ralentissement progressif, total ≈ durationMs */
   function drawSchedule(durationMs) {
@@ -61,7 +62,52 @@
     };
   }
 
-  const api = { animatePriorityDraw, drawSchedule, DURATION_MS };
+  /**
+   * Écrans arène/public : événement coin_flip « priority » → mémorise le prioritaire et anime.
+   * @param {{_prioFencerId?: string|null, applyPriorityFrame: (side: 'A'|'B'|null) => void}} app
+   */
+  function fromEvent(app, data) {
+    const f = data.winner === 'A' ? data.fencerA : data.fencerB;
+    app._prioFencerId = (f && f.id) || null;
+    return animatePriorityDraw(side => app.applyPriorityFrame(side), data.winner);
+  }
+
+  /**
+   * Tablette arbitre : tirage du prioritaire sans désigner de vainqueur. Le cadre doré alterne
+   * ~3 s puis se fixe ; le chrono est remis à la durée de la minute supplémentaire, prêt à lancer.
+   */
+  function installReferee(proto) {
+    proto.startPriorityDraw = function (winner) {
+      this.priorityDrawPhase = false;
+      const f = this.currentMatch && (winner === 'A' ? this.currentMatch.fencerA : this.currentMatch.fencerB);
+      this._prioFencerId = (f && f.id) || null;
+      this.socket.emit('arena_control', { arenaId: this.arenaId, action: 'coin_flip', winner, priority: true });
+      this.showNotification(T('referee.coin_anim'));
+      this._priorityAnimating = true;
+      this.updateControlButtons();
+      animatePriorityDraw(side => this.applyPriorityFrame(side), winner, {
+        onDone: () => {
+          this._priorityAnimating = false;
+          this.preparePriorityMinute();
+        },
+      });
+    };
+    proto.preparePriorityMinute = function () {
+      this.timerSeconds = this.overtimeSeconds();
+      this.waitingOvertimeStart = true;
+      this.updateTimerDisplay();
+      this.updateControlButtons();
+      this.socket.emit('arena_control', {
+        arenaId: this.arenaId,
+        action: 'waiting_overtime',
+        time: this.overtimeSeconds(),
+        timerStatus: 'paused',
+      });
+      this.showNotification(T('referee.tie_launch', { label: this.overtimeLabel() }));
+    };
+  }
+
+  const api = { animatePriorityDraw, drawSchedule, fromEvent, installReferee, DURATION_MS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.BPPriorityDraw = api;
 })(typeof window !== 'undefined' ? window : undefined);
