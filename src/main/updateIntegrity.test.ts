@@ -6,6 +6,7 @@ import path from 'path';
 import {
   parseSha256Digest,
   isTrustedDownloadUrl,
+  toTrustedDownloadUrl,
   sha256File,
   verifyFileSha256,
 } from './updateIntegrity';
@@ -73,5 +74,32 @@ describe('sha256File / verifyFileSha256', () => {
   it('rejette un hash incorrect ou invalide', async () => {
     expect(await verifyFileSha256(file, HEX)).toBe(false);
     expect(await verifyFileSha256(file, 'zz')).toBe(false);
+  });
+});
+
+describe('toTrustedDownloadUrl', () => {
+  it('reconstruit l’URL sur l’hôte de confiance', () => {
+    expect(
+      toTrustedDownloadUrl(
+        'https://github.com/klinnex/bellepoule-modern/releases/download/v1/a.exe'
+      )
+    ).toBe('https://github.com/klinnex/bellepoule-modern/releases/download/v1/a.exe');
+    expect(toTrustedDownloadUrl('https://release-assets.githubusercontent.com/x?sig=1')).toBe(
+      'https://release-assets.githubusercontent.com/x?sig=1'
+    );
+  });
+
+  it('refuse autre hôte, http, port, identifiants', () => {
+    for (const bad of [
+      'https://evil.com/a.exe',
+      'http://github.com/a.exe',
+      'https://github.com:8443/a.exe',
+      'https://user:pw@github.com/a.exe',
+      'https://github.com.evil.com/a.exe',
+      'not a url',
+      42,
+    ]) {
+      expect(toTrustedDownloadUrl(bad)).toBeNull();
+    }
   });
 });

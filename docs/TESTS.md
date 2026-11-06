@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 42 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 48 | 380 |
+| `src/main/` | 48 | 382 |
 | `src/renderer/services/` | 5 | 29 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 50 | 249 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **254** | **2086** |
+| **Total** | **254** | **2088** |
 
-Unitaires : 245 fichiers, 2051 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 245 fichiers, 2053 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2863,7 +2863,7 @@ Unitaires : 245 fichiers, 2051 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/updateIntegrity.test.ts</code> — 7 tests</summary>
+<summary><code>src/main/updateIntegrity.test.ts</code> — 9 tests</summary>
 
 - **parseSha256Digest**
   - extrait le hash sha256
@@ -2875,6 +2875,9 @@ Unitaires : 245 fichiers, 2051 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - calcule le sha256
   - valide un hash correct
   - rejette un hash incorrect ou invalide
+- **toTrustedDownloadUrl**
+  - reconstruit l’URL sur l’hôte de confiance
+  - refuse autre hôte, http, port, identifiants
 
 </details>
 

@@ -8,7 +8,7 @@
 
 import fs from 'fs';
 import { net } from 'electron';
-import { isTrustedDownloadUrl } from './updateIntegrity';
+import { toTrustedDownloadUrl } from './updateIntegrity';
 
 const USER_AGENT = 'BellePoule-Modern';
 
@@ -66,7 +66,8 @@ export function downloadToFile(
   idleMs = 30000
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (!isTrustedDownloadUrl(url)) {
+    const safeUrl = toTrustedDownloadUrl(url);
+    if (!safeUrl) {
       reject(new Error(`URL de téléchargement non autorisée: ${url}`));
       return;
     }
@@ -86,10 +87,10 @@ export function downloadToFile(
       idle = setTimeout(() => fail(new Error('Download timeout')), idleMs);
     };
 
-    const req = net.request({ url, method: 'GET', redirect: 'manual' });
+    const req = net.request({ url: safeUrl, method: 'GET', redirect: 'manual' });
     req.setHeader('User-Agent', USER_AGENT);
     req.on('redirect', (_status, _method, redirectUrl) => {
-      if (!isTrustedDownloadUrl(redirectUrl)) {
+      if (!toTrustedDownloadUrl(redirectUrl)) {
         fail(new Error(`Redirection non autorisée: ${redirectUrl}`));
         return;
       }
