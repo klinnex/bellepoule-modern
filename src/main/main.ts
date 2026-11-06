@@ -33,6 +33,7 @@ import { getVersionInfo } from './versionInfo';
 import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
 import { remoteServers, stopRemoteServer } from './remoteRegistry';
 import { logger, LogCategory, toError } from '../shared/services/logger';
+import { handleAllWindowsClosed, shutdownDb } from './appLifecycle';
 
 // Database instance
 const db = new DatabaseManager();
@@ -264,21 +265,13 @@ app.whenReady().then(async () => {
   });
 });
 
-const shutdownDb = () => {
-  if (!db.isOpen()) return;
-  db.saveSync();
-  db.close();
-};
-
 app.on('window-all-closed', () => {
-  shutdownDb();
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  // macOS : la base reste ouverte (l'app vit dans le Dock, cf. appLifecycle.ts)
+  handleAllWindowsClosed(process.platform, db, () => app.quit());
 });
 
 app.on('before-quit', () => {
-  shutdownDb(); // no-op si déjà fermé
+  shutdownDb(db); // no-op si déjà fermé
 });
 
 // Promesses rejetées non gérées : journaliser sans terminer le processus (#1007)

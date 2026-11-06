@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 42 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 43 | 338 |
+| `src/main/` | 44 | 342 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 47 | 236 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **245** | **2024** |
+| **Total** | **246** | **2028** |
 
-Unitaires : 236 fichiers, 1989 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 237 fichiers, 1993 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2157,6 +2157,18 @@ Unitaires : 236 fichiers, 1989 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 ### `src/main/`
+
+<details>
+<summary><code>src/main/appLifecycle.test.ts</code> — 4 tests</summary>
+
+- **shutdownDb**
+  - checkpoint puis ferme une base ouverte
+  - ne fait rien si la base est déjà fermée
+- **handleAllWindowsClosed**
+  - macOS : la base reste ouverte et l’app ne quitte pas
+  - Windows / Linux : ferme la base puis quitte
+
+</details>
 
 <details>
 <summary><code>src/main/certManager.test.ts</code> — 2 tests</summary>
