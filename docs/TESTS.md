@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 48 | 386 |
+| `src/main/` | 49 | 389 |
 | `src/renderer/services/` | 6 | 34 |
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **257** | **2123** |
+| **Total** | **258** | **2126** |
 
-Unitaires : 248 fichiers, 2088 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 249 fichiers, 2091 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2235,6 +2235,16 @@ Unitaires : 248 fichiers, 2088 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - protect / unprotect font l’aller-retour en base64
   - renvoie null sans chiffrement disponible
   - refuse les entrées non-chaîne
+
+</details>
+
+<details>
+<summary><code>src/main/ipc/dbHandlers.test.ts</code> — 3 tests</summary>
+
+- **bus d’événements db (#1298)**
+  - emitCompetitionEvent diffuse aux fenêtres
+  - db:updateMatch et db:createMatch émettent matches:changed
+  - db:addFencer émet fencers:changed pour la compétition
 
 </details>
 
