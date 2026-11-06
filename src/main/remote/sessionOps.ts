@@ -7,6 +7,7 @@ import { MatchStatus, type Score } from '../../shared/types';
 import type { ArenaMatch, RemoteScoreUpdate, RemoteSession } from '../../shared/types/remote';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
+import { emitCompetitionEvent } from '../ipc/dbHandlers';
 
 type S = RemoteScoreServer;
 
@@ -127,6 +128,7 @@ export async function updateMatchScore(
       scoreB,
       status: update.status === 'finished' ? MatchStatus.FINISHED : MatchStatus.IN_PROGRESS,
     });
+    emitCompetitionEvent('matches:changed');
   } else {
     // Match en mémoire uniquement (poule non persistée) : mettre à jour via Socket.IO
     const inMemory = ctx.sessionMatches.find(m => m.id === matchId);

@@ -7,6 +7,7 @@ import { ArenaMatch } from '../../shared/types/remote';
 import { sanitizeAnnouncement } from './announcement';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
+import { emitCompetitionEvent } from '../ipc/dbHandlers';
 
 type S = RemoteScoreServer;
 
@@ -385,6 +386,7 @@ export function handleArenaControl(
       if (!data.matchId || !data.refereeId || !arena.currentMatch) break;
       if (arena.currentMatch.id !== data.matchId) break;
       ctx.db.updateMatch(data.matchId, { refereeId: data.refereeId });
+      emitCompetitionEvent('matches:changed', ctx.session?.competitionId);
       // Mettre à jour sessionMatches en mémoire
       const idx = ctx.sessionMatches.findIndex((m: any) => m.id === data.matchId);
       if (idx >= 0)
