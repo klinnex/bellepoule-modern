@@ -111,6 +111,20 @@ Le canal vient de `version.json` (`channel`), figé au packaging.
 Comme `main` reprend le build de `dev`, un testeur en `1.2.0-dev.1410` ne se voit pas proposer
 `1.2.0 (Build #1402)`, plus ancien.
 
+Installation intégrée (« Télécharger maintenant ») : aucun passage par le navigateur.
+Asset choisi par `src/main/updateAssets.ts` (plateforme + arch + mode), téléchargé dans
+`userData/pending-update`, vérifié par SHA-256 (digest GitHub), puis :
+
+| Mode détecté | Action |
+|---|---|
+| AppImage (`APPIMAGE`) | remplacement du fichier en place + relance |
+| Windows portable (`PORTABLE_EXECUTABLE_FILE`) | remplacement de l'exe (`.old` nettoyé au lancement suivant) + relance |
+| Windows installé | `-setup.exe` NSIS silencieux |
+| macOS | ouverture du `.dmg` de la bonne arch |
+| Linux deb/rpm | remis au gestionnaire de logiciels |
+
+Repli sur la page des versions GitHub uniquement si aucun asset ne correspond.
+
 ## 6. Référence `scripts/version.js`
 
 | Commande | Effet |
