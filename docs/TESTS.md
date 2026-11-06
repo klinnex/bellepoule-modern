@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 25 | 149 |
+| `src/remote/` | 26 | 158 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **257** | **2121** |
+| **Total** | **258** | **2130** |
 
-Unitaires : 248 fichiers, 2086 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 249 fichiers, 2095 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4197,6 +4197,22 @@ Unitaires : 248 fichiers, 2086 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - updateTimerDisplay : délègue le rendu puis pose les classes
   - suddenDeathFlags + bannières
   - arena.html charge le module
+
+</details>
+
+<details>
+<summary><code>src/remote/js/arenaUpdate.test.ts</code> — 9 tests</summary>
+
+- **arenaUpdate.js planArenaUpdate**
+  - message vide : bannières et visibilité seulement
+  - thème : appliqué si changé, ou personnalisé modifié
+  - tireur prioritaire : cadre effacé si le nouveau match ne le contient pas
+  - scores : respectent l’inversion, y compris celle du même message
+  - photos : intro seulement en statut ready avec photos
+  - statut finished : masque l’animation pile ou face
+  - prochain match : affichage d’attente selon le statut résultant
+  - mort subite : démarrage annule l’attente d’overtime
+  - arena.html charge le module et délègue
 
 </details>
 
