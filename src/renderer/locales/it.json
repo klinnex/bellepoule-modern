@@ -798,7 +798,6 @@
     "not_fenced_title": "Incontro non disputato",
     "cell_vs": "contro",
     "cell_enter": "inserisci il punteggio",
-    "victory_input_placeholder": "Inserimento rapido, es. V4-4",
     "priority_draw": "Sorteggio minuto prioritario",
     "priority_holder": "Prioritario: {{name}}",
     "tie_choose_winner": "Chi è il vincitore?",
@@ -936,6 +935,7 @@
     "tableau_mode_title": "Quale modalità di tabellone vuoi usare?",
     "tableau_mode_normal": "Tabellone normale",
     "tableau_mode_third": "Tabellone con 3° posto",
+    "tableau_mode_all": "Tabellone con tutti i posti disputati",
     "tableau_mode_semis": "Semifinali",
     "semis_unavailable": "Semifinali impossibili con questo numero di gironi (da 1 a 4).",
     "club": "Società",
@@ -2334,8 +2334,7 @@
     "who_exclusion": "Quale schermidore è escluso?",
     "black_card_question": "Cartellino nero?",
     "tie_hint": "Parità: designa il vincitore o procedi al sorteggio",
-    "coin_flip": "Sorteggio",
-    "victory_input_placeholder": "Inserimento rapido, es. V4-4"
+    "coin_flip": "Sorteggio"
   },
   "addFencerPool": {
     "title": "Aggiungi uno schermidore – Girone {{n}}",

@@ -798,7 +798,6 @@
     "not_fenced_title": "Match non disputé",
     "cell_vs": "contre",
     "cell_enter": "saisir le score",
-    "victory_input_placeholder": "Saisie rapide, ex. V4-4",
     "priority_draw": "Tirage minute prioritaire",
     "priority_holder": "Prioritaire : {{name}}",
     "tie_choose_winner": "Quel est le vainqueur ?",
@@ -936,6 +935,7 @@
     "tableau_mode_title": "Quel mode de tableau voulez-vous engager ?",
     "tableau_mode_normal": "Tableau normal",
     "tableau_mode_third": "Tableau avec 3è place",
+    "tableau_mode_all": "Tableau toutes places tirées",
     "tableau_mode_semis": "Demi-finales",
     "semis_unavailable": "Demi-finales impossibles avec ce nombre de poules (1 à 4 poules).",
     "club": "Club",
@@ -2334,8 +2334,7 @@
     "who_exclusion": "Quel tireur est exclu ?",
     "black_card_question": "Carton noir ?",
     "tie_hint": "Égalité : désignez le vainqueur ou lancez un tirage au sort",
-    "coin_flip": "Tirage au sort",
-    "victory_input_placeholder": "Saisie rapide, ex. V4-4"
+    "coin_flip": "Tirage au sort"
   },
   "addFencerPool": {
     "title": "Ajouter un tireur – Poule {{n}}",

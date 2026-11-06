@@ -8,7 +8,7 @@
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <script src="/js/arenaDisplayUtils.js"></script>
-    <script src="/js/timerFormat.js"></script>
+    <script src="/js/timerFormat.js"></script><script src="/js/priorityDraw.js"></script>
     <script src="/js/arenaOverlays.js"></script>
     <script src="/js/arenaRender.js"></script>
     <script src="/js/arenaPanels.js"></script>
@@ -565,7 +565,6 @@
         align-items: stretch;
         flex: 1;
       }
-
 
       .fencer-display {
         text-align: center;
@@ -1684,7 +1683,8 @@
           });
 
           this.socket.on(`arena:${this.arenaId}:coin_flip`, data => {
-            this.showCoinFlipAnimation(data.winner, data.fencerA, data.fencerB);
+            if (!data.priority) this.showCoinFlipAnimation(data.winner, data.fencerA, data.fencerB);
+            else window.BPPriorityDraw.fromEvent(this, data); // minute prioritaire (#1442)
           });
 
           this.socket.on('wallpaper:update', ({ wallpaper }) => {
@@ -1919,7 +1919,7 @@
         }
 
         updateTimerDisplay(timerStatus) {
-          BPArenaRender.updateTimerDisplay(document, window.BPTimer, this.timerSeconds, timerStatus);
+          (this._timerView ||= BPArenaRender.smoothTimerView(document, window.BPTimer)).update(this.timerSeconds, timerStatus);
         }
 
         updateSuddenDeathBanner() {

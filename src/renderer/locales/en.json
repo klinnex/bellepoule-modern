@@ -798,7 +798,6 @@
     "not_fenced_title": "Bout not fenced",
     "cell_vs": "vs",
     "cell_enter": "enter the score",
-    "victory_input_placeholder": "Quick entry, e.g. V4-4",
     "priority_draw": "Priority minute draw",
     "priority_holder": "Priority: {{name}}",
     "tie_choose_winner": "Who is the winner?",
@@ -936,6 +935,7 @@
     "tableau_mode_title": "Which bracket format do you want to run?",
     "tableau_mode_normal": "Normal bracket",
     "tableau_mode_third": "Bracket with 3rd place",
+    "tableau_mode_all": "Bracket with all places fenced",
     "tableau_mode_semis": "Semi-finals",
     "semis_unavailable": "Semi-finals impossible with this number of pools (1 to 4).",
     "club": "Club",
@@ -2334,8 +2334,7 @@
     "who_exclusion": "Which fencer is excluded?",
     "black_card_question": "Black card?",
     "tie_hint": "Tie: pick the winner or draw lots",
-    "coin_flip": "Draw lots",
-    "victory_input_placeholder": "Quick entry, e.g. V4-4"
+    "coin_flip": "Draw lots"
   },
   "addFencerPool": {
     "title": "Add a fencer – Pool {{n}}",

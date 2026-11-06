@@ -12,7 +12,6 @@ import { MedicalCrossIcon } from '../common/MedicalCrossIcon';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import SpecialStatusPanel from '../common/SpecialStatusPanel';
 import TiebreakerAnimation from '../TiebreakerAnimation';
-import { parseVictoryScoreInput } from '../../../shared/utils/tieBreak';
 
 interface TableauScoreModalProps {
   match: TableauMatch;
@@ -66,17 +65,6 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
     null
   );
   const [showCoinFlip, setShowCoinFlip] = useState(false);
-  const [victoryText, setVictoryText] = useState('');
-
-  /** Saisie rapide « V4-4 » : remplit les scores et le V (#1442) */
-  const handleVictoryText = (text: string) => {
-    setVictoryText(text);
-    const parsed = parseVictoryScoreInput(text);
-    if (!parsed) return;
-    setEditScoreA(String(parsed.left));
-    setEditScoreB(String(parsed.right));
-    onVictoryChange?.(parsed.victoryLeft ? 'A' : parsed.victoryRight ? 'B' : null);
-  };
 
   const fencerName = (f: TableauMatch['fencerA']) =>
     f ? `${f.lastName} ${f.firstName}`.trim() : '';
@@ -115,6 +103,20 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
                 {match.fencerA?.firstName} {match.fencerA?.club && `(${match.fencerA.club})`}
               </div>
             </div>
+
+            {/* Bouton Victoire A : comme en poules (#1442) */}
+            {tieBreakByVictory && (
+              <button
+                type="button"
+                className={`score-victory-btn${victoryA ? ' is-active' : ''}`}
+                aria-pressed={victoryA}
+                aria-label={`V · ${match.fencerA?.lastName ?? ''}`}
+                disabled={!match.fencerA}
+                onClick={() => onVictoryChange?.(victoryA ? null : 'A')}
+              >
+                V
+              </button>
+            )}
 
             {/* Input Score A */}
             <input
@@ -202,6 +204,20 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
               }}
             />
 
+            {/* Bouton Victoire B : comme en poules (#1442) */}
+            {tieBreakByVictory && (
+              <button
+                type="button"
+                className={`score-victory-btn${victoryB ? ' is-active' : ''}`}
+                aria-pressed={victoryB}
+                aria-label={`V · ${match.fencerB?.lastName ?? ''}`}
+                disabled={!match.fencerB}
+                onClick={() => onVictoryChange?.(victoryB ? null : 'B')}
+              >
+                V
+              </button>
+            )}
+
             {/* Tireur B */}
             <div className="is-d0c392">
               <div className="is-0b536f">{match.fencerB?.lastName}</div>
@@ -218,32 +234,11 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
             </p>
           )}
 
-          {/* Saisie rapide d'une égalité : « V4-4 » (#1442) */}
-          {tieBreakByVictory && (
-            <input
-              type="text"
-              className="form-input"
-              value={victoryText}
-              placeholder={t('tableauScore.victory_input_placeholder')}
-              aria-label={t('tableauScore.victory_input_placeholder')}
-              onChange={e => handleVictoryText(e.target.value)}
-            />
-          )}
-
           {/* Égalité Sabre Laser : vainqueur par V manuel ou tirage au sort */}
           {isTie && (
             <div className="tableau-tie">
               <p className="tableau-tie-hint">{t('tableauScore.tie_hint')}</p>
               <div className="tableau-tie-actions">
-                <button
-                  type="button"
-                  className={victoryA ? 'btn btn-primary' : 'btn btn-secondary'}
-                  aria-pressed={victoryA}
-                  disabled={!match.fencerA}
-                  onClick={() => onVictoryChange?.(victoryA ? null : 'A')}
-                >
-                  V · {match.fencerA?.lastName}
-                </button>
                 {canDrawLots && (
                   <button
                     type="button"
@@ -253,15 +248,6 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
                     🪙 {t('tableauScore.coin_flip')}
                   </button>
                 )}
-                <button
-                  type="button"
-                  className={victoryB ? 'btn btn-primary' : 'btn btn-secondary'}
-                  aria-pressed={victoryB}
-                  disabled={!match.fencerB}
-                  onClick={() => onVictoryChange?.(victoryB ? null : 'B')}
-                >
-                  V · {match.fencerB?.lastName}
-                </button>
               </div>
             </div>
           )}

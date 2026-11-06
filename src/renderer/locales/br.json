@@ -798,7 +798,6 @@
     "not_fenced_title": "Emgann n'eo ket bet c'hoariet",
     "cell_vs": "a-enep",
     "cell_enter": "enrollañ ar skor",
-    "victory_input_placeholder": "Enrollañ prim, dind. V4-4",
     "priority_draw": "Tennadenn ar miz priorelezh",
     "priority_holder": "Priorelezh : {{name}}",
     "tie_choose_winner": "Piv eo ar gounezer?",
@@ -936,6 +935,7 @@
     "tableau_mode_title": "Peseurt doare taolenn a fell deoc'h ?",
     "tableau_mode_normal": "Taolenn arre",
     "tableau_mode_third": "Taolenn gant 3vet plas",
+    "tableau_mode_all": "Taolenn gant an holl blasoù tennet",
     "tableau_mode_semis": "Hanterdiskoulmoù",
     "semis_unavailable": "Hanterdiskoulmoù n'int ket posupl gant an niver-mañ a strolladoù (1 da 4).",
     "club": "Klub",
@@ -2334,8 +2334,7 @@
     "who_exclusion": "Peseurt c'hoarier a vez skarzhet ?",
     "black_card_question": "Kartenn du ?",
     "tie_hint": "Kevatal : dibab ar wenner pe tennit ar sord",
-    "coin_flip": "Tennañ ar sord",
-    "victory_input_placeholder": "Enrollañ prim, dind. V4-4"
+    "coin_flip": "Tennañ ar sord"
   },
   "addFencerPool": {
     "title": "Ouzhpennañ ur c'hoarier – Poulenn {{n}}",

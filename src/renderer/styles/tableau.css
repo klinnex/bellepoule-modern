@@ -151,3 +151,25 @@
   flex-wrap: wrap;
   justify-content: center;
 }
+
+/* Bouton V (vainqueur désigné) à côté du score, comme en poules (#1442) */
+.score-victory-btn {
+  padding: 0.75rem 1rem;
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.score-victory-btn.is-active {
+  background: #22c55e;
+  color: white;
+}
+
+.score-victory-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

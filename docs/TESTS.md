@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 45 | 633 |
+| `src/shared/utils/` | 45 | 634 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -92,21 +92,21 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 7 | 42 |
+| Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
 | `src/main/` | 48 | 382 |
 | `src/renderer/services/` | 5 | 29 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 50 | 249 |
+| `src/renderer/components/` | 50 | 250 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 23 | 137 |
+| `src/remote/` | 24 | 143 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **254** | **2088** |
+| **Total** | **255** | **2100** |
 
-Unitaires : 245 fichiers, 2053 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 246 fichiers, 2065 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -738,12 +738,13 @@ Unitaires : 245 fichiers, 2053 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/pdfExport/tableauPdf.test.ts</code> — 3 tests</summary>
+<summary><code>src/shared/utils/pdfExport/tableauPdf.test.ts</code> — 4 tests</summary>
 
 - **generateTableauHTML – feuilles d’arbitrage**
   - par défaut : sous-titre et pastille de l’élimination directe
   - options : sous-titre, pastille et libellé de tour personnalisés (feuilles de vague)
   - flux continu (feuilles de vague, #1441) : pas de saut de page forcé entre pages de feuilles
+  - feuilles seules (vagues rapières, #1441) : ni bandeau titre ni pied de page
 
 </details>
 
@@ -800,7 +801,7 @@ Unitaires : 245 fichiers, 2053 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 42 tests</summary>
+<summary><code>src/shared/utils/poolCalculations.test.ts</code> — 44 tests</summary>
 
 - **generatePoolMatchOrder**
   - should generate correct match order for pool of 3 fencers
@@ -853,6 +854,9 @@ Unitaires : 245 fichiers, 2053 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - match terminé normal : non annulé
   - forfait ou abandon saisi sur un score : annulé
   - match non terminé : jamais annulé
+- **distributeFencersGroupedByLevel (rapières, #1441)**
+  - regroupe les mêmes niveaux dans les mêmes poules (tailles équilibrées)
+  - séparation club : clubs alternés à niveau égal
 
 </details>
 
@@ -1118,14 +1122,11 @@ Unitaires : 245 fichiers, 2053 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/tieBreak.test.ts</code> — 4 tests</summary>
+<summary><code>src/shared/utils/tieBreak.test.ts</code> — 2 tests</summary>
 
 - **allowsVictoryTieBreak**
   - vrai pour laser, épée, fleuret, sabre et rapières
   - faux pour arme à la carte hors rapières
-- **parseVictoryScoreInput**
-  - lit V4-4 (V à gauche) et 4-V4 (V à droite)
-  - score sans V accepté ; saisie invalide refusée
 
 </details>
 
@@ -1752,13 +1753,14 @@ Unitaires : 245 fichiers, 2053 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 17 tests</summary>
+<summary><code>src/features/rapieres/rapieresCalculations.test.ts</code> — 21 tests</summary>
 
 - **Tournoi des rapières (#1118)**
   - libellé des tireurs de l’équipe
   - **répartition**
     - regroupe par niveau, tailles équilibrées
   - **vagues**
+    - ${n} équipes (impair) : une équipe au repos par vague, la dernière d'abord
     - ${n} équipes : round-robin complet, toutes les équipes tirent à chaque vague
     - ordre des matchs de la poule suivant les vagues
     - vague suivante lancée seulement quand la précédente est saisie
@@ -1769,7 +1771,10 @@ Unitaires : 245 fichiers, 2053 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - exclut les matchs annulés et ceux d’une équipe retirée
     - reprend la piste de la poule
   - **qualification**
-    - 3 poules ou moins : 1ers et 2es ; au-delà : 1ers
+    - mode %s : toutes les équipes au tableau _(each)_
+    - mode semis : 4 équipes
+    - équipe retirée exclue
+    - réglages : petite finale sauf en normal, toutes places en « all »
   - **classements**
     - filtre par niveau : équipes seules, rangs conservés (#1441)
     - filtre par catégorie d’équipe (moyenne des années de naissance, #1441)
@@ -3903,7 +3908,7 @@ Unitaires : 245 fichiers, 2053 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 12 tests</summary>
+<summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 13 tests</summary>
 
 - **TableauScoreModal**
   - affiche le nom du tour et les tireurs
@@ -3916,6 +3921,7 @@ Unitaires : 245 fichiers, 2053 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - hors Laser : aucun bouton V ni tirage au sort, même en égalité
     - Laser sans égalité : pas de bloc vainqueur
     - Laser sans score saisi : pas de bloc vainqueur
+    - bouton V affiché à côté de chaque score, même sans égalité
     - égalité : V manuel pour chaque tireur
     - V déjà actif : un second clic le retire
     - tirage au sort : le résultat désigne le vainqueur
@@ -4245,6 +4251,16 @@ Unitaires : 245 fichiers, 2053 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/remote/js/priorityDraw.test.ts</code> — 3 tests</summary>
+
+- **priorityDraw.js**
+  - ralentit puis totalise ~3 s
+  - alterne puis se fixe sur le tiré (%s) _(each)_
+  - arbitre : tirage sans vainqueur, chrono remis à 1:00 prêt à lancer
+
+</details>
+
+<details>
 <summary><code>src/remote/js/refereeDemoMirror.test.ts</code> — 3 tests</summary>
 
 - **tablette arbitre miroir (démo autonome)**
@@ -4267,14 +4283,17 @@ Unitaires : 245 fichiers, 2053 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/remote/js/timerFormat.test.ts</code> — 5 tests</summary>
+<summary><code>src/remote/js/timerFormat.test.ts</code> — 8 tests</summary>
 
 - **timerFormat.js**
-  - arbitre : dixième toujours affiché
-  - pause : le dixième n'est pas arrondi à la seconde
-  - écrans : dixièmes seulement dans les 10 dernières secondes
+  - arbitre : dixièmes + centièmes toujours affichés
+  - pause : la fraction n'est pas arrondie à la seconde
+  - écrans : fraction seulement dans les 10 dernières secondes
   - valeurs invalides ou négatives : 00:00
-  - renderTimer : texte + span dixième
+  - renderTimer : texte + span fraction
+  - withTenths : timerSeconds arrondi sup. sur un stockage en centièmes
+  - createSmoothTimer : les centièmes s’écoulent entre deux diffusions
+  - createSmoothTimer : pas d’animation au-dessus de 10 s
 
 </details>
 

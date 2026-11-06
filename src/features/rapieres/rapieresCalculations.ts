@@ -14,6 +14,7 @@ import {
   RapieresFencer,
   RapieresLevel,
   RapieresTeamGender,
+  RapieresTableauMode,
   RapieresTeamInfo,
 } from './rapieres.types';
 import { rapieresTeamCategory, rapieresTeamGender } from './rapieresAge';
@@ -89,14 +90,36 @@ function maxMatching(teamIds: string[], remaining: Set<string>): Pair[] {
 }
 
 /**
+ * Nombre impair d'équipes (#1441) : une équipe au repos par vague, en commençant par la
+ * dernière de la liste puis en remontant. Méthode du cercle : vague w, repos de l'équipe
+ * r = n − w (0-indexée) ; i et j se rencontrent quand i + j ≡ 2r (mod n). n vagues de
+ * (n − 1) / 2 matchs, chaque paire une seule fois, aucune équipe ne tire deux fois.
+ */
+function scheduleOddWaves(teamIds: string[]): { teamAId: string; teamBId: string; wave: number }[] {
+  const n = teamIds.length;
+  const result: { teamAId: string; teamBId: string; wave: number }[] = [];
+  for (let wave = 1; wave <= n; wave++) {
+    const rest = n - wave;
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        if ((i + j) % n === (2 * rest) % n)
+          result.push({ teamAId: teamIds[i], teamBId: teamIds[j], wave });
+      }
+    }
+  }
+  return result;
+}
+
+/**
  * Calendrier en vagues d'une poule (round-robin : chaque équipe rencontre toutes les autres).
- * Chaque vague fait tirer toutes les équipes en même temps. Nombre impair : une équipe tire
- * deux fois dans la vague, jamais deux fois la même sur l'ensemble des vagues.
+ * Nombre pair : toutes les équipes tirent à chaque vague. Nombre impair : une équipe au repos
+ * par vague (dernière de la liste d'abord, #1441).
  * Les équipes les plus contraintes (paires restantes nombreuses) sont appariées en premier.
  */
 export function scheduleWaves(
   teamIds: string[]
 ): { teamAId: string; teamBId: string; wave: number }[] {
+  if (teamIds.length % 2 === 1) return scheduleOddWaves(teamIds);
   const remaining = new Set<string>();
   for (let i = 0; i < teamIds.length; i++)
     for (let j = i + 1; j < teamIds.length; j++) remaining.add(pairKey(teamIds[i], teamIds[j]));
@@ -216,23 +239,29 @@ export const canLaunchNextWave = (pools: Pool[], launchedWave: number): boolean 
 
 // ─── Qualification ───────────────────────────────────────────────────────────
 
-/** Qualifiés par poule : 1ers, et 2es aussi si 3 poules ou moins */
-export const qualifiersPerPool = (poolCount: number): number => (poolCount <= 3 ? 2 : 1);
-
 /**
- * Classement général réduit aux qualifiés pour le tableau (rangs recalculés),
- * équipes retirées exclues.
+ * Qualifiés pour le tableau selon le mode choisi (#1441) : demi-finales → les 4 équipes
+ * désignées ; tableau normal, avec 3e place ou toutes places tirées → toutes les équipes.
+ * Équipes retirées exclues, rangs recalculés.
  */
-export function filterRapieresQualifiers(pools: Pool[], overall: PoolRanking[]): PoolRanking[] {
-  const perPool = qualifiersPerPool(pools.length);
-  const qualified = new Set<string>();
-  for (const pool of pools) {
-    const ranking = pool.ranking?.length ? pool.ranking : calculatePoolRanking(pool);
-    ranking
-      .filter(r => !isWithdrawn(r.fencer) && r.rank <= perPool)
-      .forEach(r => qualified.add(r.fencer.id));
-  }
-  return overall.filter(r => qualified.has(r.fencer.id)).map((r, i) => ({ ...r, rank: i + 1 }));
+export function rapieresTableauQualifiers(
+  pools: Pool[],
+  overall: PoolRanking[],
+  mode: RapieresTableauMode | undefined
+): PoolRanking[] {
+  if (mode === 'semis') return rapieresSemifinalists(pools, overall) ?? [];
+  return overall.filter(r => !isWithdrawn(r.fencer)).map((r, i) => ({ ...r, rank: i + 1 }));
+}
+
+/** Réglages du tableau pour un mode : match pour la 3e place, toutes les places tirées */
+export function rapieresTableauSettings(mode: RapieresTableauMode): {
+  thirdPlaceMatch: boolean;
+  playAllPositions: boolean;
+} {
+  return {
+    thirdPlaceMatch: mode !== 'normal',
+    playAllPositions: mode === 'all',
+  };
 }
 
 /**

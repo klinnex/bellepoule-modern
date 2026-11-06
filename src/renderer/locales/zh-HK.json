@@ -798,7 +798,6 @@
     "not_fenced_title": "未進行的比賽",
     "cell_vs": "對",
     "cell_enter": "輸入比分",
-    "victory_input_placeholder": "快速輸入，例如 V4-4",
     "priority_draw": "優先時間抽籤",
     "priority_holder": "優先：{{name}}",
     "tie_choose_winner": "誰是勝者？",
@@ -936,6 +935,7 @@
     "tableau_mode_title": "要採用哪種賽程模式？",
     "tableau_mode_normal": "普通賽程",
     "tableau_mode_third": "含第3名賽",
+    "tableau_mode_all": "全部名次均需比賽的對陣表",
     "tableau_mode_semis": "半決賽",
     "semis_unavailable": "此池數無法進行半決賽（1 至 4 池）。",
     "club": "俱樂部",
@@ -2334,8 +2334,7 @@
     "who_exclusion": "哪位劍手被取消資格？",
     "black_card_question": "黑牌？",
     "tie_hint": "同分：請選擇勝方或抽籤",
-    "coin_flip": "抽籤",
-    "victory_input_placeholder": "快速輸入，例如 V4-4"
+    "coin_flip": "抽籤"
   },
   "addFencerPool": {
     "title": "新增劍手 – 第 {{n}} 組",

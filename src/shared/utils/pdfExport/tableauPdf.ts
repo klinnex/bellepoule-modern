@@ -35,6 +35,8 @@ export interface TableauSheetOptions {
   fileName?: string;
   /** Flux continu : pas de saut de page entre feuilles, une feuille qui ne tient pas bascule (#1441) */
   continuous?: boolean;
+  /** Feuilles seules : ni bandeau de titre ni pied de page (feuilles de vague des rapières, #1441) */
+  sheetsOnly?: boolean;
 }
 
 /** Matchs réels (non-exempts, deux tireurs assignés). */
@@ -186,7 +188,9 @@ export function generateTableauHTML(
   const effectiveTitle = template?.customTitle?.trim() || title;
   const cssOverrides = template ? buildCssOverrides(template) : '';
 
-  const pageHeaderHTML = `
+  const pageHeaderHTML = options?.sheetsOnly
+    ? ''
+    : `
   <div class="doc-header doc-header--compact">
     ${logoBase64 ? `<img class="doc-header-logo" src="${logoBase64}" alt="Logo" />` : ''}
     <div class="doc-header-left">
@@ -224,7 +228,9 @@ export function generateTableauHTML(
 
   const sections: Record<string, string> = {
     'match-cards': `  ${pagesHTML}`,
-    footer: `
+    footer: options?.sheetsOnly
+      ? ''
+      : `
   <div class="doc-footer">
     <span>BellePoule Modern</span>
     <span>${now}</span>
