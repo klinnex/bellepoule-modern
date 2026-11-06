@@ -2383,7 +2383,14 @@
     "redirect": "正在下載更新…",
     "later": "您可以稍後從「說明」選單更新",
     "progress": "下載中：{{n}}%（{{done}} / {{total}} MB）",
-    "failed": "更新下載失敗"
+    "failed": "更新下載失敗",
+    "noAsset": "此系統沒有可安裝的檔案：已在瀏覽器開啟版本頁面",
+    "busy": "已在下載中…",
+    "menuButton": "有可用更新",
+    "menuTitle": "有可用更新：v{{version}} — 按此安裝",
+    "menuUpToDate": "已是最新",
+    "menuUpToDateTitle": "已是最新版本 — 按此重新檢查",
+    "menuCheck": "檢查更新"
   },
   "analyticsCharts": {
     "no_data": "沒有資料",

@@ -6,9 +6,11 @@ import fs from 'fs';
 import path from 'path';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import UpdateNotification from '../UpdateNotification';
+import { frT } from '../../testUtils/i18nMock';
 import type { UpdateProgressEvent } from '../../../shared/types/preload';
 
-vi.mock('../Toast', () => ({ useToast: () => ({ showToast: vi.fn() }) }));
+const showToast = vi.hoisted(() => vi.fn());
+vi.mock('../Toast', () => ({ useToast: () => ({ showToast }) }));
 vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
 
 const INFO = {
@@ -27,6 +29,7 @@ describe('UpdateNotification — mise à jour intégrée', () => {
   let openSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    showToast.mockReset();
     downloadAndInstall = vi.fn().mockResolvedValue({ success: true });
     openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     (window as any).electronAPI = {
@@ -76,6 +79,38 @@ describe('UpdateNotification — mise à jour intégrée', () => {
     act(() => emitProgress({ progress: 55 }));
     expect(screen.getByText(/v1\.3\.0/)).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute('value', '55');
+  });
+
+  it('bouton désactivé + lame affichée pendant le téléchargement', async () => {
+    let finish: (v: unknown) => void = () => {};
+    downloadAndInstall.mockReturnValue(new Promise(r => (finish = r)));
+    render(<UpdateNotification />);
+    act(() => emitAvailable(INFO));
+    const btn = screen.getByRole('button', { name: /Installer/ });
+    await act(async () => {
+      fireEvent.click(btn);
+    });
+    expect(btn).toBeDisabled();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('value', '0');
+    fireEvent.click(btn);
+    expect(downloadAndInstall).toHaveBeenCalledTimes(1);
+    await act(async () => finish({ success: true }));
+    expect(btn).not.toBeDisabled();
+  });
+
+  it.each([
+    ['no_asset', 'updateNotif.noAsset', 'warning'],
+    ['busy', 'updateNotif.busy', 'info'],
+    ['updater_unavailable', 'updateNotif.failed', 'error'],
+  ])('erreur %s : message explicite (plus de clic muet)', async (error, key, type) => {
+    downloadAndInstall.mockResolvedValue({ success: false, error });
+    render(<UpdateNotification />);
+    act(() => emitAvailable(INFO));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Installer/ }));
+    });
+    const calls = showToast.mock.calls.map(c => [c[0], c[1]]);
+    expect(calls).toContainEqual([frT(key), type]);
   });
 
   it('ses styles sont dans une feuille chargée (components.css)', () => {

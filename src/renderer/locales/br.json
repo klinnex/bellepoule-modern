@@ -2383,7 +2383,14 @@
     "redirect": "O pellgargañ an hizivadur…",
     "later": "Hizivaat a c'hellot diwezhatoc'h dre al lañser Skoazell",
     "progress": "Pellgargañ : {{n}} % ({{done}} / {{total}} Mo)",
-    "failed": "C'hwitet eo pellgargañ an hizivadur"
+    "failed": "C'hwitet eo pellgargañ an hizivadur",
+    "noAsset": "Restr staliadus ebet evit ar reizhiad-mañ : pajenn an handelvoù digoret er merdeer",
+    "busy": "Pellgargañ war ar stern dija…",
+    "menuButton": "Hizivadur da gaout",
+    "menuTitle": "Hizivadur da gaout : v{{version}} — klikañ evit staliañ",
+    "menuUpToDate": "Hizivaet",
+    "menuUpToDateTitle": "Hizivaet — klikañ evit gwiriañ en-dro",
+    "menuCheck": "Gwiriañ an hizivadurioù"
   },
   "analyticsCharts": {
     "no_data": "Roadenn ebet",

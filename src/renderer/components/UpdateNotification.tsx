@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatNumber } from '../../shared/utils/localeFormat';
+import { SHOW_UPDATE_EVENT } from './UpdateMenuButton';
 
 const MB = 1024 * 1024;
 
@@ -32,6 +33,7 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
   const [dismissed, setDismissed] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [bytes, setBytes] = useState<{ done: number; total: number } | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     const api = window.electronAPI;
@@ -62,22 +64,42 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
       if (data.progress === 0) setDismissed(false);
       setVisible(true);
     });
+    // Bouton clignotant de l'en-tête : réaffiche la bannière même fermée
+    const onShow = (e: Event) => {
+      const info = (e as CustomEvent<UpdateInfo | undefined>).detail;
+      if (info) setUpdateInfo(info);
+      setDismissed(false);
+      setVisible(true);
+    };
+    window.addEventListener(SHOW_UPDATE_EVENT, onShow);
     return () => {
       offAvailable?.();
       offProgress?.();
+      window.removeEventListener(SHOW_UPDATE_EVENT, onShow);
     };
   }, [dismissed]);
 
   // Téléchargement + vérification + installation dans l'app (sans navigateur)
   const handleDownload = async () => {
+    if (busy) return;
+    setBusy(true);
+    // Retour visuel immédiat : la lame s'affiche avant le premier octet
+    setProgress(p => p ?? 0);
     showToast(t('updateNotif.redirect'), 'info');
     try {
       const res = await window.electronAPI?.updater?.downloadAndInstall?.();
-      if (res && !res.success && res.error !== 'no_asset') {
+      if (!res) {
         showToast(t('updateNotif.failed'), 'error');
+      } else if (!res.success) {
+        if (res.error === 'no_asset') showToast(t('updateNotif.noAsset'), 'warning');
+        else if (res.error === 'busy') showToast(t('updateNotif.busy'), 'info');
+        else showToast(t('updateNotif.failed'), 'error');
       }
     } catch {
       showToast(t('updateNotif.failed'), 'error');
+    } finally {
+      setBusy(false);
+      setProgress(null);
     }
   };
 
@@ -144,7 +166,12 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
           )}
         </div>
         <div className="update-notification-actions">
-          <button className="btn btn-primary btn-sm" onClick={handleDownload}>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={handleDownload}
+            disabled={busy}
+            aria-busy={busy}
+          >
             {t('updateNotif.download')}
           </button>
           <button className="btn btn-secondary btn-sm" onClick={handleViewRelease}>

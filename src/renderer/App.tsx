@@ -38,6 +38,7 @@ const AboutModal = React.lazy(() => import('./components/AboutModal'));
 const SettingsModal = React.lazy(() => import('./components/SettingsModal'));
 const DTCallNotification = React.lazy(() => import('./components/DTCallNotification'));
 const UpdateNotification = React.lazy(() => import('./components/UpdateNotification'));
+import UpdateMenuButton from './components/UpdateMenuButton';
 const KeyboardShortcutsHelp = React.lazy(() => import('./components/KeyboardShortcutsHelp'));
 const WikiModal = React.lazy(() => import('./components/WikiModal'));
 const WifiQRModal = React.lazy(() =>
@@ -620,6 +621,7 @@ const AppContent: React.FC = () => {
                 {t('menu.new_competition')}
               </button>
             )}
+            <UpdateMenuButton />
             <button
               className={`btn btn-icon-label ${trainingActive ? 'btn-danger' : 'btn-secondary'}`}
               onClick={() => {

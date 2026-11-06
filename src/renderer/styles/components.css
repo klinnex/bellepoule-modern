@@ -1393,3 +1393,32 @@
   background: var(--color-primary, #2563eb);
   color: #fff;
 }
+
+/* Bouton « Mise à jour » de l'en-tête : clignote tant qu'une mise à jour est disponible */
+@keyframes update-menu-blink {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(118, 75, 162, 0.6);
+  }
+  50% {
+    opacity: 0.45;
+    box-shadow: 0 0 0 6px rgba(118, 75, 162, 0);
+  }
+}
+
+.update-menu-button {
+  animation: update-menu-blink 1.2s ease-in-out infinite;
+}
+
+.update-menu-button:hover,
+.update-menu-button:focus-visible {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .update-menu-button {
+    animation: none;
+    outline: 2px solid currentColor;
+  }
+}

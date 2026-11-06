@@ -841,6 +841,8 @@ export class AutoUpdater {
   async downloadAndInstallFromUi(): Promise<{ success: boolean; error?: string }> {
     if (!this.updateInfo?.hasUpdate) await this.checkForUpdates();
     if (!this.updateInfo?.hasUpdate) return { success: false, error: 'no_update' };
+    // Téléchargement déjà lancé (clic précédent, menu Aide) : le signaler au lieu d'un retour muet
+    if (this.downloading) return { success: false, error: 'busy' };
     const handled = await this.autoDownloadUpdate(this.updateInfo, true);
     if (!handled) {
       shell.openExternal(releasePageUrl(this.updateInfo.latestBuild));
