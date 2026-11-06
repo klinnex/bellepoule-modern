@@ -976,7 +976,8 @@
     "html_load_failed": "HTML 載入失敗",
     "port_in_use": "連接埠 {{port}} 已被使用",
     "temp_file_failed": "無法建立暫存檔：{{detail}}",
-    "invalid_proxy": "代理伺服器無效"
+    "invalid_proxy": "代理伺服器無效",
+    "invalid_directory": "資料夾無效"
   },
   "properties": {
     "one_round": "1 輪",

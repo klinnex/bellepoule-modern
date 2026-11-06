@@ -976,7 +976,8 @@
     "html_load_failed": "Error al cargar el HTML",
     "port_in_use": "El puerto {{port}} ya está en uso",
     "temp_file_failed": "No se pudo crear el archivo temporal: {{detail}}",
-    "invalid_proxy": "Proxy no válido"
+    "invalid_proxy": "Proxy no válido",
+    "invalid_directory": "Carpeta no válida"
   },
   "properties": {
     "one_round": "1 ronda",

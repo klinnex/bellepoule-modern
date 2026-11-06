@@ -976,7 +976,8 @@
     "html_load_failed": "HTML loading failed",
     "port_in_use": "Port {{port}} is already in use",
     "temp_file_failed": "Could not create the temporary file: {{detail}}",
-    "invalid_proxy": "Invalid proxy"
+    "invalid_proxy": "Invalid proxy",
+    "invalid_directory": "Invalid folder"
   },
   "properties": {
     "one_round": "1 round",

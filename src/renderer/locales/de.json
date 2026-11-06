@@ -976,7 +976,8 @@
     "html_load_failed": "Laden des HTML fehlgeschlagen",
     "port_in_use": "Port {{port}} wird bereits verwendet",
     "temp_file_failed": "Temporäre Datei konnte nicht erstellt werden: {{detail}}",
-    "invalid_proxy": "Ungültiger Proxy"
+    "invalid_proxy": "Ungültiger Proxy",
+    "invalid_directory": "Ungültiger Ordner"
   },
   "properties": {
     "one_round": "1 Runde",
