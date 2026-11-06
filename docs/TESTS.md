@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 45 | 635 |
+| `src/shared/utils/` | 45 | 639 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -95,18 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 48 | 382 |
+| `src/main/` | 48 | 386 |
 | `src/renderer/services/` | 6 | 34 |
-| `src/renderer/hooks/` | 26 | 125 |
+| `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 24 | 143 |
+| `src/remote/` | 27 | 165 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **256** | **2108** |
+| **Total** | **259** | **2140** |
 
-Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 250 fichiers, 2105 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -283,7 +283,7 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/countries.test.ts</code> — 5 tests</summary>
+<summary><code>src/shared/utils/countries.test.ts</code> — 8 tests</summary>
 
 - **countries**
   - codes uniques et bien formés
@@ -291,11 +291,15 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - nom localisé et repli sur le code
   - liste triée avec drapeaux
   - formatNationality
+- **countries - drapeaux SVG et recherche**
+  - flagIso depuis CIO ou ISO2
+  - un SVG embarqué existe pour chaque pays
+  - findCountryIndex : premier pays commençant par la saisie
 
 </details>
 
 <details>
-<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 9 tests</summary>
+<summary><code>src/shared/utils/customFormulaSettings.test.ts</code> — 10 tests</summary>
 
 - **customFormulaSettings (#1125)**
   - dérive score max, chrono, tours et 3e place de la formule
@@ -307,6 +311,7 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - règles armes modernes choisies dans la formule : repos dérivé (défaut 60 s)
   - usesModernRules : E/F/S toujours, CUSTOM selon la formule, Laser jamais
   - usesModernRules : rapières en armes modernes par défaut, Sabre Laser si choisi (#1118)
+  - resolveCompetitionSettings : rapières respecte thirdPlaceMatch du mode « Tableau normal » (#1441)
 
 </details>
 
@@ -2424,11 +2429,12 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/pendingUpdate.test.ts</code> — 6 tests</summary>
+<summary><code>src/main/pendingUpdate.test.ts</code> — 7 tests</summary>
 
 - **pendingUpdate**
   - relit un JSON valide
   - rejette un chemin hors du dossier privé
+  - accepte un fichier dans le répertoire de téléchargement choisi (et lui seul)
   - rejette un traversal de chemin
   - rejette un JSON falsifié (champs manquants / invalide)
   - rejette des droits trop larges
@@ -2692,7 +2698,7 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 103 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 104 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -2763,6 +2769,7 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - mode expert : tous les arbitres affichés
     - match en file d'attente : arbitre porté
   - **annulation carton noir depuis la tablette**
+    - égalité finale : le tireur prioritaire tiré (coin\_flip) gagne (#1442)
     - liste le carton noir de l'arène
     - annule : réintègre le combattant, rouvre le match avec son score et rend ses matchs jouables
     - refuse l'annulation d'un carton noir en tableau
@@ -2900,7 +2907,7 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/updaterSettings.test.ts</code> — 6 tests</summary>
+<summary><code>src/main/updaterSettings.test.ts</code> — 8 tests</summary>
 
 - **updaterSettings**
   - vérification auto activée par défaut
@@ -2909,6 +2916,8 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - persiste le canal choisi, ignore une valeur invalide
   - resolveChannel : choix utilisateur prioritaire sur le paquet
   - conserve cleanupExe (ancien exe portable à supprimer)
+  - répertoire de téléchargement : persisté, absent par défaut
+  - isUsableDownloadDir : dossier absolu existant uniquement
 
 </details>
 
@@ -3084,10 +3093,11 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useCompetitionEvent.test.ts</code> — 3 tests</summary>
+<summary><code>src/renderer/hooks/useCompetitionEvent.test.ts</code> — 4 tests</summary>
 
 - **useCompetitionEvent**
   - appelle le callback pour la compétition concernée uniquement
+  - filtre par type : matches:changed n'active pas fencers:changed
   - se désabonne au démontage
   - ne plante pas sans electronAPI
 
@@ -3158,7 +3168,7 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 8 tests</summary>
 
 - **addFencer**
   - ajoute le tireur et notifie le parent
@@ -3173,6 +3183,8 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - supprime le tireur et notifie
 - **deleteAllFencers**
   - vide la liste et notifie
+- **bus fencers:changed (#1298)**
+  - recharge les tireurs une seule fois pour une rafale, et se désabonne
 
 </details>
 
@@ -4136,6 +4148,20 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/remote/js/arenaClient.test.ts</code> — 7 tests</summary>
+
+- **arenaClient.js**
+  - getOrCreateScreenId : créé une fois puis réutilisé
+  - dispatchServerCommand : refresh / navigate / ping
+  - identify : libellé commande \> mémorisé \> identifiant ; durée 5 s par défaut
+  - message : texte requis
+  - initialArenaUpdate : seulement avec un match et un tireur A
+  - isOlympicSession
+  - arena.html charge le module
+
+</details>
+
+<details>
 <summary><code>src/remote/js/arenaDisplayUtils.test.ts</code> — 5 tests</summary>
 
 - **arenaDisplayUtils.js**
@@ -4189,6 +4215,22 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - updateTimerDisplay : délègue le rendu puis pose les classes
   - suddenDeathFlags + bannières
   - arena.html charge le module
+
+</details>
+
+<details>
+<summary><code>src/remote/js/arenaUpdate.test.ts</code> — 9 tests</summary>
+
+- **arenaUpdate.js planArenaUpdate**
+  - message vide : bannières et visibilité seulement
+  - thème : appliqué si changé, ou personnalisé modifié
+  - tireur prioritaire : cadre effacé si le nouveau match ne le contient pas
+  - scores : respectent l’inversion, y compris celle du même message
+  - photos : intro seulement en statut ready avec photos
+  - statut finished : masque l’animation pile ou face
+  - prochain match : affichage d’attente selon le statut résultant
+  - mort subite : démarrage annule l’attente d’overtime
+  - arena.html charge le module et délègue
 
 </details>
 
@@ -4263,6 +4305,19 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - formatBoutDuration
   - trainingRowsHtml : vide, sinon ligne avec heure formatée et échappement
   - kiosk.html charge le module
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskTiming.test.ts</code> — 6 tests</summary>
+
+- **kioskTiming.js**
+  - retryDelay : exponentiel plafonné à 30 s, jitter ±25 %
+  - nextView : circulaire, première vue si inconnue
+  - progressPct : plafonné à 100
+  - createAutoScroller : délai 2 s, défilement 20 s, retour début après 3 s
+  - createAutoScroller : rien à défiler -\> pas de nouvelle image
+  - kiosk.html charge le module et n’a plus la logique inline
 
 </details>
 

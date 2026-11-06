@@ -388,6 +388,15 @@ export interface UpdaterAPI {
   setAutoCheck: (
     enabled: boolean
   ) => Promise<{ success: boolean; enabled?: boolean; error?: string }>;
+  /** Répertoire de téléchargement des mises à jour (défaut = dossier privé userData) */
+  getDownloadDir: () => Promise<{ dir: string; defaultDir: string; isDefault: boolean }>;
+  chooseDownloadDir: () => Promise<{
+    success: boolean;
+    dir?: string;
+    canceled?: boolean;
+    error?: string;
+  }>;
+  resetDownloadDir: () => Promise<{ success: boolean; dir?: string; error?: string }>;
   /** Canal : stable (releases main) ou dev (pré-releases incluses) */
   getChannel: () => Promise<{ channel: 'stable' | 'dev' }>;
   setChannel: (
@@ -1315,6 +1324,9 @@ export interface PrintDialogAPI {
   ) => void;
 }
 
+/** Types d'événements du bus de données main → renderer (#1298) */
+export type CompetitionEventType = 'fencers:changed' | 'matches:changed';
+
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
   printDialog: PrintDialogAPI;
   db: DatabaseAPI;
@@ -1344,7 +1356,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   ) => () => void;
   /** Bus d'événements de données main → renderer (#1298) */
   onCompetitionEvent: (
-    callback: (event: { type: 'fencers:changed'; competitionId?: string }) => void
+    callback: (event: { type: CompetitionEventType; competitionId?: string }) => void
   ) => () => void;
   onRemoteFencerExcluded: (
     callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void

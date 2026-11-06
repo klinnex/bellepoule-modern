@@ -79,9 +79,16 @@
   function installReferee(proto) {
     proto.startPriorityDraw = function (winner) {
       this.priorityDrawPhase = false;
-      const f = this.currentMatch && (winner === 'A' ? this.currentMatch.fencerA : this.currentMatch.fencerB);
+      const f =
+        this.currentMatch &&
+        (winner === 'A' ? this.currentMatch.fencerA : this.currentMatch.fencerB);
       this._prioFencerId = (f && f.id) || null;
-      this.socket.emit('arena_control', { arenaId: this.arenaId, action: 'coin_flip', winner, priority: true });
+      this.socket.emit('arena_control', {
+        arenaId: this.arenaId,
+        action: 'coin_flip',
+        winner,
+        priority: true,
+      });
       this.showNotification(T('referee.coin_anim'));
       this._priorityAnimating = true;
       this.updateControlButtons();
@@ -91,6 +98,18 @@
           this.preparePriorityMinute();
         },
       });
+    };
+    // Égalité finale : côté du tireur prioritaire tiré (gagne, #1442)
+    proto.priorityWinnerSide = function () {
+      const id = this._prioFencerId;
+      const m = this.currentMatch;
+      return id && m
+        ? m.fencerA && m.fencerA.id === id
+          ? 'A'
+          : m.fencerB && m.fencerB.id === id
+            ? 'B'
+            : undefined
+        : undefined;
     };
     proto.preparePriorityMinute = function () {
       this.timerSeconds = this.overtimeSeconds();

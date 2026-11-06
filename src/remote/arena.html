@@ -12,6 +12,8 @@
     <script src="/js/arenaOverlays.js"></script>
     <script src="/js/arenaRender.js"></script>
     <script src="/js/arenaPanels.js"></script>
+    <script src="/js/arenaUpdate.js"></script>
+    <script src="/js/arenaClient.js"></script>
     <style>
 
       /* Police 7 segments — style radio-réveil LCD (embarquée en base64) */
@@ -1571,7 +1573,7 @@
           fetch('/api/session')
             .then(r => (r.ok ? r.json() : null))
             .then(s => {
-              if (s && (['E', 'F', 'S'].includes(s.weapon) || s.modernRules === true)) {
+              if (ArenaClient.isOlympicSession(s)) {
                 document.querySelectorAll('.arena-word-label').forEach(el => (el.textContent = window.T('remote.piste')));
                 // Temps supplémentaire d'une minute en escrime olympique (#1027)
                 const banner = document.getElementById('sudden-death-banner');
@@ -1619,25 +1621,13 @@
           fetch(`/api/arenas/${this.arenaId}`)
             .then(res => res.json())
             .then(arena => {
-              if (arena && arena.currentMatch && arena.currentMatch.fencerA) {
-                this.handleArenaUpdate({
-                  currentMatch: arena.currentMatch,
-                  status: arena.status,
-                  scoreA: arena.scoreA,
-                  scoreB: arena.scoreB,
-                  fencerA: arena.fencerA,
-                  fencerB: arena.fencerB,
-                });
-              }
+              const initial = ArenaClient.initialArenaUpdate(arena);
+              if (initial) this.handleArenaUpdate(initial);
             })
             .catch(err => console.error('[Arena] Erreur récupération état initial:', err));
 
           // Identifiant persistant de cet écran (survit aux rechargements/reconnexions)
-          let _screenId = localStorage.getItem('bp_screen_id');
-          if (!_screenId) {
-            _screenId = 'scr_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-            localStorage.setItem('bp_screen_id', _screenId);
-          }
+          const _screenId = ArenaClient.getOrCreateScreenId(localStorage, Math.random, Date.now);
 
           this.socket.on('connect', () => {
             this.updateConnectionStatus(true);
@@ -1646,16 +1636,17 @@
           });
 
           this.socket.on('server:command', cmd => {
-            if (cmd.type === 'refresh') { location.reload(); return; }
-            if (cmd.type === 'navigate' && cmd.url) { location.href = cmd.url; return; }
-            if (cmd.type === 'ping') { this.socket.emit('client:pong'); return; }
-            if (cmd.type === 'identify') {
-              const lbl = cmd.screenLabel || localStorage.getItem('bp_screen_label') || _screenId;
-              if (cmd.screenLabel) localStorage.setItem('bp_screen_label', cmd.screenLabel);
-              this.showIdentifyOverlay(lbl, cmd.duration ?? 5000);
-              return;
-            }
-            if (cmd.type === 'message' && cmd.text) { this.showRemoteMessage(cmd.text, cmd.duration ?? 5000); }
+            ArenaClient.dispatchServerCommand(cmd, {
+              storage: localStorage,
+              screenId: _screenId,
+              actions: {
+                reload: () => location.reload(),
+                navigate: url => { location.href = url; },
+                pong: () => this.socket.emit('client:pong'),
+                identify: (label, ms) => this.showIdentifyOverlay(label, ms),
+                message: (text, ms) => this.showRemoteMessage(text, ms),
+              },
+            });
           });
 
           setInterval(() => { if (this.socket.connected) this.socket.emit('client:pong'); }, 30000);
@@ -1786,120 +1777,50 @@
         }
 
         handleArenaUpdate(data) {
-          // Tireur prioritaire : cadre doré effacé dès que le match change (#1442)
-          if (this._prioFencerId && data.match !== undefined) {
-            const m = data.match;
-            if (!m || ![m.fencerA?.id, m.fencerB?.id].includes(this._prioFencerId)) {
-              this._prioFencerId = null;
-              this.applyPriorityFrame(null);
+          // Plan pur (/js/arenaUpdate.js) : opérations ordonnées appliquées ici
+          const ops = ArenaUpdate.planArenaUpdate(
+            {
+              _prioFencerId: this._prioFencerId,
+              theme: this.theme,
+              currentCustomTheme: this.currentCustomTheme,
+              matchStatus: this.matchStatus,
+              showPhotos: this.showPhotos,
+              inversionEnabled: this.inversionEnabled,
+            },
+            data
+          );
+          for (const o of ops) {
+            switch (o.op) {
+              case 'set':
+                this[o.key] = o.value;
+                break;
+              case 'applyPriorityFrame':
+                this.applyPriorityFrame(o.side);
+                break;
+              case 'applyTheme':
+                this.applyTheme(o.theme, o.customTheme);
+                break;
+              case 'syncInversion': {
+                const cb = document.getElementById('inversion-checkbox');
+                if (cb) cb.checked = o.value;
+                localStorage.setItem('inversionEnabled', o.value);
+                break;
+              }
+              case 'hideCoinFlip': {
+                const overlay = document.getElementById('coin-flip-overlay');
+                if (overlay) overlay.classList.add('hidden');
+                break;
+              }
+              case 'score':
+                document.getElementById(o.id).textContent = o.value;
+                break;
+              case 'updateTimerDisplay':
+                this.updateTimerDisplay(o.timerStatus);
+                break;
+              default:
+                this[o.op]();
             }
           }
-          // Mise à jour du thème visuel
-          if (data.theme) {
-            const themeChanged = data.theme !== this.theme;
-            const customStr = JSON.stringify(data.customTheme || null);
-            const prevCustomStr = JSON.stringify(this.currentCustomTheme);
-            if (themeChanged || (data.theme === 'custom' && customStr !== prevCustomStr)) {
-              this.applyTheme(data.theme, data.customTheme);
-            }
-          }
-
-          // Mise à jour du réglage photos
-          if (data.showPhotos !== undefined) {
-            this.showPhotos = data.showPhotos;
-          }
-
-          // Mise à jour flag gestion arbitres
-          if (data.refereeFeatureEnabled !== undefined) {
-            this.refereeFeatureEnabled = data.refereeFeatureEnabled;
-          }
-
-          // Mise à jour état d'inversion (synchronisé avec le serveur)
-          if (data.swapped !== undefined) {
-            this.inversionEnabled = data.swapped;
-            const cb = document.getElementById('inversion-checkbox');
-            if (cb) cb.checked = data.swapped;
-            localStorage.setItem('inversionEnabled', data.swapped);
-            this.applyInversionColors();
-            this.updateMatchDisplay();
-            this.updateVisibility();
-            if (this.matchStatus === 'ready' && this.showPhotos) {
-              this.updatePhotoIntro();
-            }
-          }
-
-          // Mise à jour du statut
-          if (data.status) {
-            this.matchStatus = data.status;
-            this.updateStatusBadge();
-            if (data.status === 'finished') {
-              const overlay = document.getElementById('coin-flip-overlay');
-              if (overlay) overlay.classList.add('hidden');
-            }
-          }
-
-          // Mise à jour du match
-          if (data.match) {
-            this.currentMatch = data.match;
-            this.updateMatchDisplay();
-            if (this.matchStatus === 'ready' && this.showPhotos) {
-              this.updatePhotoIntro();
-            }
-          }
-
-          // Prochain combat
-          if ('nextMatch' in data) {
-            this.nextMatch = data.nextMatch || null;
-            if (this.matchStatus === 'idle' || this.matchStatus === 'not_started' ||
-                (this.matchStatus === 'ready' && !this.showPhotos)) {
-              this.updateIdleNextMatchDisplay();
-            }
-          }
-
-          // Mise à jour des scores (respecte l'inversion)
-          if (data.scoreA !== undefined) {
-            document.getElementById(this.inversionEnabled ? 'score-a' : 'score-b').textContent = data.scoreA;
-          }
-          if (data.scoreB !== undefined) {
-            document.getElementById(this.inversionEnabled ? 'score-b' : 'score-a').textContent = data.scoreB;
-          }
-
-          // Mise à jour des cartons
-          if (data.cardsA) {
-            this.cardsA = data.cardsA;
-            this.updateCardsDisplay();
-          }
-          if (data.cardsB) {
-            this.cardsB = data.cardsB;
-            this.updateCardsDisplay();
-          }
-
-          // Mise à jour du timer
-          if (data.time !== undefined) {
-            this.timerSeconds = data.time;
-            this.updateTimerDisplay(data.timerStatus);
-          }
-
-          // Mise à jour mort subite
-          if (data.suddenDeath !== undefined) {
-            this.isSuddenDeath = data.suddenDeath;
-          }
-          if (data.overtimeType !== undefined) {
-            this.overtimeType = data.overtimeType;
-          }
-          // Mise à jour état attente overtime
-          if (data.waitingOvertime !== undefined) {
-            this.waitingOvertime = data.waitingOvertime;
-          }
-          // Clear automatique quand le timer de mort subite démarre
-          if (data.suddenDeath) {
-            this.waitingOvertime = false;
-          }
-          this.updateWaitingOvertimeBanner();
-          this.updateSuddenDeathBanner();
-
-          // Afficher/masquer selon le statut
-          this.updateVisibility();
         }
 
         updateStatusBadge() {

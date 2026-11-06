@@ -1007,6 +1007,27 @@ describe('RemoteScoreServer', () => {
       }));
     }
 
+    it('égalité finale : le tireur prioritaire tiré (coin_flip) gagne (#1442)', async () => {
+      (server as any).sessionMatchScores.set('m1', {
+        scoreA: { value: 0, isVictory: false, isPriority: false },
+        scoreB: { value: 0, isVictory: true, isPriority: true },
+        status: 'in_progress',
+      });
+      const res = makeRes();
+      await findHandler('post', '/api/matches/:matchId/finish')(
+        makeReq({
+          method: 'POST',
+          params: { matchId: 'm1' },
+          body: { scoreA: 4, scoreB: 4 },
+        }),
+        res,
+        vi.fn()
+      );
+      const saved = (server as any).sessionMatchScores.get('m1');
+      expect(saved.scoreB.isVictory).toBe(true);
+      expect(saved.scoreA.isVictory).toBe(false);
+    });
+
     it("liste le carton noir de l'arène", async () => {
       await giveBlackCard();
       const res = makeRes();

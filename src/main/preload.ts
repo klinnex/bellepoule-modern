@@ -12,6 +12,7 @@ ipcRenderer.on('remote:diag', (_: IpcRendererEvent, msg: string) => {
 });
 import type {
   ElectronAPI,
+  CompetitionEventType,
   UpdateInfo,
   UpdateProgressEvent,
   ProxySettingsDTO,
@@ -597,6 +598,9 @@ const electronApi = {
       }
       return ipcRenderer.invoke('updater:setAutoCheck', enabled);
     },
+    getDownloadDir: () => ipcRenderer.invoke('updater:getDownloadDir'),
+    chooseDownloadDir: () => ipcRenderer.invoke('updater:chooseDownloadDir'),
+    resetDownloadDir: () => ipcRenderer.invoke('updater:resetDownloadDir'),
     getChannel: () => ipcRenderer.invoke('updater:getChannel'),
     setChannel: (channel: 'stable' | 'dev') => {
       if (channel !== 'stable' && channel !== 'dev') {
@@ -866,11 +870,11 @@ const electronApi = {
     return () => ipcRenderer.removeListener('training:match_finished', handler);
   },
   onCompetitionEvent: (
-    callback: (event: { type: 'fencers:changed'; competitionId?: string }) => void
+    callback: (event: { type: CompetitionEventType; competitionId?: string }) => void
   ) => {
     const handler = (
       _: IpcRendererEvent,
-      data: { type: 'fencers:changed'; competitionId?: string }
+      data: { type: CompetitionEventType; competitionId?: string }
     ) => callback(data);
     ipcRenderer.on('competition:event', handler);
     return () => ipcRenderer.removeListener('competition:event', handler);

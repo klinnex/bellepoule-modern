@@ -147,3 +147,38 @@ describe('deleteAllFencers', () => {
     expect(onUpdate.mock.calls[0][0].fencers).toHaveLength(0);
   });
 });
+
+describe('bus fencers:changed (#1298)', () => {
+  it('recharge les tireurs une seule fois pour une rafale, et se désabonne', async () => {
+    vi.useFakeTimers();
+    let handler: (e: any) => void = () => {};
+    const unsubscribe = vi.fn();
+    db.getFencersByCompetition = vi.fn(async () => [fencer('1'), fencer('2')]);
+    (window as any).electronAPI = {
+      db,
+      onCompetitionEvent: vi.fn((cb: (e: any) => void) => {
+        handler = cb;
+        return unsubscribe;
+      }),
+    };
+    const { result, unmount } = renderHook(() =>
+      useFencerManagement({
+        competition,
+        onUpdate: onUpdate as unknown as (c: Competition) => void,
+      })
+    );
+    act(() => {
+      handler({ type: 'fencers:changed', competitionId: 'c1' });
+      handler({ type: 'fencers:changed', competitionId: 'c1' });
+      handler({ type: 'fencers:changed', competitionId: 'other' });
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    expect(db.getFencersByCompetition).toHaveBeenCalledTimes(1);
+    expect(result.current.fencers).toHaveLength(2);
+    unmount();
+    expect(unsubscribe).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+});

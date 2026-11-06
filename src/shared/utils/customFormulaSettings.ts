@@ -95,13 +95,13 @@ export function resolveCompetitionSettings<T extends Partial<CompetitionSettings
 ): T {
   const formula = getActiveFormula(weapon, settings);
   const base = (settings ?? {}) as T;
-  // Rapières : un tour de poules en vagues, tableau des qualifiés avec match pour la 3e place
+  // Rapières : un tour de poules en vagues, tableau des qualifiés ; match pour la 3e place choisi
+  // par la popup de mode de tableau (thirdPlaceMatch conservé, #1441)
   if (isRapieresMode(weapon, settings))
     return {
       ...base,
       poolRounds: 1,
       hasDirectElimination: true,
-      thirdPlaceMatch: true,
       poolWinnersOnly: false,
     };
   return formula ? { ...base, ...deriveSettingsFromFormula(formula) } : base;
