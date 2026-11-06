@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 31 | 197 |
+| `src/remote/` | 32 | 206 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **264** | **2174** |
+| **Total** | **265** | **2183** |
 
-Unitaires : 255 fichiers, 2139 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 256 fichiers, 2148 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4393,6 +4393,24 @@ Unitaires : 255 fichiers, 2139 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - cartons de passivité vs standard
   - lastIndexWhere
   - referee.html charge le module et ne redéfinit plus les constantes
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeScoring.test.ts</code> — 9 tests</summary>
+
+- **refereeScoring.js zones**
+  - activeCustomZones : standard, pool/tableau, zones tronquées à 3
+  - slotPoints et zoneLetter : standard puis personnalisé
+- **refereeScoring.js validateAddScore**
+  - cas simples
+  - mort subite challenger : seulement +5
+  - entraînement : zones autorisées
+  - vibrationMs
+- **refereeScoring.js mort subite challenger**
+  - shouldTriggerChallenger
+  - challengerExit : sous 10 -\> retour supplémentaire ou fin de mort subite
+  - referee.html charge le module et délègue
 
 </details>
 
