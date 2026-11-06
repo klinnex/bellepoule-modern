@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 51 | 263 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 38 | 251 |
+| `src/remote/` | 38 | 254 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **273** | **2255** |
+| **Total** | **273** | **2258** |
 
-Unitaires : 264 fichiers, 2220 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 264 fichiers, 2223 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4421,8 +4421,12 @@ Unitaires : 264 fichiers, 2220 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/remote/js/priorityDraw.test.ts</code> — 3 tests</summary>
+<summary><code>src/remote/js/priorityDraw.test.ts</code> — 6 tests</summary>
 
+- **priorityDraw.js : cohérence public/arène/arbitre (#1442)**
+  - sideOf / isOtherMatch se basent sur les ids
+  - fromEvent : winnerId prime sur le côté diffusé
+  - refreshFrame : repeint le côté du prioritaire, sauf pendant l animation
 - **priorityDraw.js**
   - ralentit puis totalise ~3 s
   - alterne puis se fixe sur le tiré (%s) _(each)_

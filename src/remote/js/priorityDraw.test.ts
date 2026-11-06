@@ -5,7 +5,49 @@ import { describe, it, expect, vi } from 'vitest';
 import { createRequire } from 'module';
 
 const req = createRequire(import.meta.url);
-const { animatePriorityDraw, drawSchedule, installReferee } = req('./priorityDraw.js');
+const {
+  animatePriorityDraw,
+  drawSchedule,
+  installReferee,
+  fromEvent,
+  sideOf,
+  refreshFrame,
+  isOtherMatch,
+} = req('./priorityDraw.js');
+
+describe('priorityDraw.js : cohérence public/arène/arbitre (#1442)', () => {
+  const match = { fencerA: { id: 'x' }, fencerB: { id: 'y' } };
+
+  it('sideOf / isOtherMatch se basent sur les ids', () => {
+    expect(sideOf(match, 'y')).toBe('B');
+    expect(sideOf(match, 'z')).toBeNull();
+    expect(isOtherMatch(match, 'x')).toBe(false);
+    expect(isOtherMatch({ fencerA: { id: 'q' }, fencerB: { id: 'r' } }, 'x')).toBe(true);
+    expect(isOtherMatch({ fencerA: {}, fencerB: {} }, 'x')).toBe(false);
+    expect(isOtherMatch(null, 'x')).toBe(true);
+  });
+
+  it('fromEvent : winnerId prime sur le côté diffusé', () => {
+    const app: any = { currentMatch: match, applyPriorityFrame: () => {} };
+    fromEvent(app, { winner: 'A', winnerId: 'y', fencerA: match.fencerA, fencerB: match.fencerB });
+    expect(app._prioFencerId).toBe('y');
+    app._prioCancel();
+  });
+
+  it('refreshFrame : repeint le côté du prioritaire, sauf pendant l animation', () => {
+    const sides: string[] = [];
+    const app: any = {
+      currentMatch: match,
+      _prioFencerId: 'y',
+      applyPriorityFrame: (s: string) => sides.push(s),
+    };
+    refreshFrame(app);
+    expect(sides).toEqual(['B']);
+    app._prioAnimating = true;
+    refreshFrame(app);
+    expect(sides).toHaveLength(1);
+  });
+});
 
 function run(winner: 'A' | 'B') {
   const sides: Array<string | null> = [];

@@ -87,9 +87,48 @@
    * @param {{_prioFencerId?: string|null, applyPriorityFrame: (side: 'A'|'B'|null) => void}} app
    */
   function fromEvent(app, data) {
-    const f = data.winner === 'A' ? data.fencerA : data.fencerB;
-    app._prioFencerId = (f && f.id) || null;
-    return animatePriorityDraw(side => app.applyPriorityFrame(side), data.winner);
+    // Source de vérité = id du tireur prioritaire ; le côté A/B est recalculé sur le match local
+    const byId = data.winnerId ? sideOf(app.currentMatch, data.winnerId) : null;
+    const winner = byId || data.winner;
+    const f = winner === 'A' ? data.fencerA : data.fencerB;
+    app._prioFencerId = data.winnerId || (f && f.id) || null;
+    if (app._prioCancel) app._prioCancel();
+    app._prioAnimating = true;
+    app._prioCancel = animatePriorityDraw(side => app.applyPriorityFrame(side), winner, {
+      onDone: () => {
+        app._prioAnimating = false;
+        app._prioCancel = null;
+      },
+    });
+    return app._prioCancel;
+  }
+
+  /** Côté logique (A/B) du tireur `id` dans `match`, sinon null */
+  function sideOf(match, id) {
+    if (!id || !match) return null;
+    if (match.fencerA && match.fencerA.id === id) return 'A';
+    if (match.fencerB && match.fencerB.id === id) return 'B';
+    return null;
+  }
+
+  /**
+   * Repeint le cadre doré d'après le tireur prioritaire mémorisé (après tout rendu du match :
+   * lancement du chrono de la minute supplémentaire, inversion, etc., #1442).
+   */
+  function refreshFrame(app) {
+    if (app._prioAnimating || !app._prioFencerId) return;
+    const side = sideOf(app.currentMatch, app._prioFencerId);
+    if (side) app.applyPriorityFrame(side);
+  }
+
+  /** Le match diffusé n'est plus celui du tireur prioritaire (ids absents : on garde le cadre) */
+  function isOtherMatch(match, id) {
+    if (!id) return false;
+    if (!match) return true;
+    const a = match.fencerA && match.fencerA.id;
+    const b = match.fencerB && match.fencerB.id;
+    if (!a && !b) return false;
+    return a !== id && b !== id;
   }
 
   /**
@@ -107,6 +146,7 @@
         arenaId: this.arenaId,
         action: 'coin_flip',
         winner,
+        winnerId: this._prioFencerId,
         priority: true,
       });
       this.showNotification(T('referee.coin_anim'));
@@ -152,6 +192,9 @@
     animatePriorityDraw,
     drawSchedule,
     fromEvent,
+    sideOf,
+    refreshFrame,
+    isOtherMatch,
     installReferee,
     DURATION_MS,
   };
