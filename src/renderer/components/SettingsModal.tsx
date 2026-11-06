@@ -136,10 +136,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   const [confettiDisabled, setConfettiDisabled] = useState<boolean>(() => isConfettiDisabled());
   // Vérification auto des mises à jour : préférence stockée côté main (lue avant le 1er check)
   const [updateAutoCheck, setUpdateAutoCheck] = useState<boolean>(true);
+  const [updateChannel, setUpdateChannel] = useState<'stable' | 'dev' | null>(null);
   useEffect(() => {
-    window.electronAPI?.updater
+    const updater = window.electronAPI?.updater;
+    updater
       ?.getAutoCheck?.()
       .then(r => setUpdateAutoCheck(r.enabled))
+      .catch(() => {
+        // updater indisponible (dev / tests)
+      });
+    updater
+      ?.getChannel?.()
+      .then(r => setUpdateChannel(r.channel))
       .catch(() => {
         // updater indisponible (dev / tests)
       });
@@ -347,6 +355,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     setUpdateAutoCheck(enabled);
     window.electronAPI?.updater?.setAutoCheck?.(enabled).catch(() => {
       setUpdateAutoCheck(!enabled);
+    });
+  };
+
+  const handleUpdateChannelChange = (channel: 'stable' | 'dev') => {
+    const previous = updateChannel;
+    setUpdateChannel(channel);
+    window.electronAPI?.updater?.setChannel?.(channel).catch(() => {
+      setUpdateChannel(previous);
     });
   };
 
@@ -582,6 +598,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 <span style={TOGGLE_LABEL}>{t('settings.updates_enable')}</span>
               </label>
             </div>
+
+            {/* Canal de mise à jour */}
+            {updateChannel && (
+              <div className="form-group">
+                <label htmlFor="update-channel" style={BOLD}>
+                  {t('settings.updates_channel')}
+                </label>
+                <p style={HINT}>{t('settings.updates_channel_hint')}</p>
+                <select
+                  id="update-channel"
+                  className="form-input form-select"
+                  value={updateChannel}
+                  onChange={e => handleUpdateChannelChange(e.target.value as 'stable' | 'dev')}
+                >
+                  <option value="stable">{t('settings.updates_channel_stable')}</option>
+                  <option value="dev">{t('settings.updates_channel_dev')}</option>
+                </select>
+              </div>
+            )}
 
             {/* Notifications webhook */}
             <div className="form-group" style={SECTION_DIVIDER}>

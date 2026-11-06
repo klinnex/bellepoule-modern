@@ -30,6 +30,7 @@ import { registerCryptoHandlers } from './ipc/cryptoHandlers';
 import { registerUpdaterHandlers } from './ipc/updaterHandlers';
 import { createDiagnosticDeps, registerDiagnosticHandlers } from './ipc/diagnosticHandlers';
 import { getVersionInfo } from './versionInfo';
+import { readUpdaterSettings, resolveChannel } from './updaterSettings';
 import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
 import { remoteServers, stopRemoteServer } from './remoteRegistry';
 import { logger, LogCategory, toError } from '../shared/services/logger';
@@ -201,7 +202,10 @@ app.whenReady().then(async () => {
       autoInstall: false,
       checkInterval: 12,
       // Canal figé au packaging (docs/VERSIONING.md) : un build dev suit les pré-releases
-      betaChannel: getVersionInfo().channel !== 'stable',
+      // Choix utilisateur (Préférences), sinon canal figé au packaging (docs/VERSIONING.md)
+      betaChannel:
+        resolveChannel(readUpdaterSettings(app.getPath('userData')), getVersionInfo().channel) ===
+        'dev',
       silent: false,
       installOnQuit: false,
     });

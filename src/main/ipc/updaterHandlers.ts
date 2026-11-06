@@ -80,4 +80,17 @@ export function registerUpdaterHandlers({ getAutoUpdater }: UpdaterHandlersConte
     autoUpdater.setAutoCheck(enabled);
     return { success: true, enabled };
   });
+
+  ipcMain.handle('updater:getChannel', async () => {
+    const autoUpdater = getAutoUpdater();
+    return { channel: autoUpdater ? autoUpdater.getChannel() : 'stable' };
+  });
+
+  ipcMain.handle('updater:setChannel', async (_, channel: unknown) => {
+    if (channel !== 'stable' && channel !== 'dev') throw new Error('Invalid channel');
+    const autoUpdater = getAutoUpdater();
+    if (!autoUpdater) return { success: false, error: 'updater_unavailable' };
+    autoUpdater.setChannel(channel);
+    return { success: true, channel };
+  });
 }
