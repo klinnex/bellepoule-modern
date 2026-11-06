@@ -133,10 +133,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           }}
         >
           <div className="text-center">
-            <span
-              style={{ color: 'var(--color-primary)', display: 'inline-block' }}
-              aria-hidden="true"
-            >
+            <span className="brand-logo-wrap" aria-hidden="true">
               <BrandLogo size={72} className="mb-4" />
             </span>
             <h1

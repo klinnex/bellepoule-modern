@@ -1270,3 +1270,13 @@
     max-width: none;
   }
 }
+
+/* Logo de marque (BrandLogo) */
+.brand-logo-wrap {
+  display: inline-block;
+  color: var(--color-primary);
+}
+
+.brand-logo-laser {
+  stroke: var(--color-laser, #ef4444);
+}
