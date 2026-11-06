@@ -337,7 +337,15 @@
     "tts_m0": "« Temps ! » (fin)",
     "tour_title": "Parcours guidé",
     "tour_hint": "Un guide en 6 étapes pour votre première compétition (tireurs, pointage, poules, saisie distante, scores, tableau).",
-    "tour_restart": "Relancer le parcours guidé"
+    "tour_restart": "Relancer le parcours guidé",
+    "search_placeholder": "Rechercher un paramètre…",
+    "search_empty": "Aucun paramètre ne correspond.",
+    "section_display": "Affichage",
+    "section_scoring": "Saisie des scores",
+    "section_documents": "Documents & PDF",
+    "section_referee": "Arbitrage",
+    "section_notifications": "Notifications",
+    "section_system": "Système"
   },
   "actions": {
     "add": "Ajouter",

@@ -337,7 +337,15 @@
     "tts_m0": "「時間到！」（結束）",
     "tour_title": "導覽",
     "tour_hint": "首次比賽的 6 步驟指南（劍手、報到、小組、遠程輸入、比分、淘汰賽表）。",
-    "tour_restart": "重新啟動導覽"
+    "tour_restart": "重新啟動導覽",
+    "search_placeholder": "搜尋設定…",
+    "search_empty": "沒有相符的設定。",
+    "section_display": "顯示",
+    "section_scoring": "輸入分數",
+    "section_documents": "文件及 PDF",
+    "section_referee": "裁判",
+    "section_notifications": "通知",
+    "section_system": "系統"
   },
   "actions": {
     "add": "新增",

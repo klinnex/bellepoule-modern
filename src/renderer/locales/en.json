@@ -337,7 +337,15 @@
     "tts_m0": "\"Time!\" (end)",
     "tour_title": "Guided tour",
     "tour_hint": "A 6-step guide for your first competition (fencers, check-in, pools, remote entry, scores, bracket).",
-    "tour_restart": "Restart the guided tour"
+    "tour_restart": "Restart the guided tour",
+    "search_placeholder": "Search settings…",
+    "search_empty": "No matching setting.",
+    "section_display": "Display",
+    "section_scoring": "Score entry",
+    "section_documents": "Documents & PDF",
+    "section_referee": "Refereeing",
+    "section_notifications": "Notifications",
+    "section_system": "System"
   },
   "actions": {
     "add": "Add",
