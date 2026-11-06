@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 32 | 206 |
+| `src/remote/` | 33 | 214 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **265** | **2183** |
+| **Total** | **266** | **2191** |
 
-Unitaires : 256 fichiers, 2148 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 257 fichiers, 2156 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4353,6 +4353,22 @@ Unitaires : 256 fichiers, 2148 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - ralentit puis totalise ~3 s
   - alterne puis se fixe sur le tiré (%s) _(each)_
   - arbitre : tirage sans vainqueur, chrono remis à 1:00 prêt à lancer
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeCards.test.ts</code> — 8 tests</summary>
+
+- **refereeCards.js cartons**
+  - modernYellowOrRed : rouge si déjà jaune ou rouge
+  - cardFromGroup : classique (historique) et moderne
+  - cardEffect : classique +3 / +5, blanc, 2e blanc -\> jaune
+  - cardEffect : moderne, jaune sans point, rouge +1
+  - cardVibration
+- **refereeCards.js passivité**
+  - nextPassivityCard : rouge, noir, puis plus rien
+  - passivityWinner : score, puis classement initial, puis tirage
+  - referee.html charge le module et délègue
 
 </details>
 

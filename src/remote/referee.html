@@ -15,6 +15,7 @@
     <script src="/js/refereeControls.js"></script>
     <script src="/js/refereeUpdate.js"></script>
     <script src="/js/refereeScoring.js"></script>
+    <script src="/js/refereeCards.js"></script>
     <script src="/js/refereeDemoMirror.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
@@ -2433,37 +2434,22 @@
           if (this.matchStatus === 'finished') return;
 
           this.pushHistory('card');
-          if (navigator.vibrate) navigator.vibrate(cardType === 'red' ? [100,50,100] : cardType === 'yellow' ? 80 : 40);
+          if (navigator.vibrate) navigator.vibrate(BPRefereeCards.cardVibration(cardType));
 
           const ef = fencer; // caller already resolved via _effectiveFencer
           const cards = ef === 'A' ? this.cardsA : this.cardsB;
 
-          // Conversion 2ème blanc → jaune (chemin sans sélecteur de raison)
-          if (cardType === 'white') {
-            const whiteCount = cards.filter(c => c === 'white').length;
-            if (whiteCount >= 1) {
-              cardType = 'yellow';
-              this.showNotification(window.T('referee.second_white'));
-            }
-          }
-
-          cards.push(cardType);
-
-          if (this.isModernFencing) {
-            if (cardType === 'red') {
-              if (ef === 'A') this.scoreB += 1;
-              else this.scoreA += 1;
-              this.showNotification(window.T('referee.opp_plus1'));
-            }
-            // jaune = avertissement sans point en escrime moderne
-          } else if (cardType === 'yellow') {
-            if (ef === 'A') this.scoreB += 3;
-            else this.scoreA += 3;
-            this.showNotification(window.T('referee.opp_plus3'));
-          } else if (cardType === 'red') {
-            if (ef === 'A') this.scoreB += 5;
-            else this.scoreA += 5;
-            this.showNotification(window.T('referee.opp_plus5'));
+          const eff = BPRefereeCards.cardEffect({
+            cardType,
+            isModern: this.isModernFencing,
+            whiteCount: cards.filter(c => c === 'white').length,
+          });
+          if (eff.secondWhite) this.showNotification(window.T('referee.second_white'));
+          cards.push(eff.cardType);
+          if (eff.opponentPoints) {
+            if (ef === 'A') this.scoreB += eff.opponentPoints;
+            else this.scoreA += eff.opponentPoints;
+            this.showNotification(window.T(eff.notify));
           }
 
           this.updateScores();
@@ -2506,8 +2492,9 @@
         // Escrime olympique : un jaune devient rouge si le tireur a déjà un jaune ou un rouge
         // (un rouge reçu avant tout jaune transforme les jaunes suivants en rouges) (#1026)
         modernYellowOrRed(fencer) {
-          const cards = (fencer === 'A' ? this.cardsA : this.cardsB).filter(isStandardCard);
-          return cards.some(c => c === 'yellow' || c === 'red') ? 'red' : 'yellow';
+          return BPRefereeCards.modernYellowOrRed(
+            (fencer === 'A' ? this.cardsA : this.cardsB).filter(isStandardCard)
+          );
         }
 
         // Carton de passivité : décerné aux deux tireurs, hors cumul des cartons classiques.
@@ -2520,7 +2507,7 @@
           }
           if (this.matchStatus === 'finished') return;
           const given = this.cardsA.filter(c => PASSIVITY_CARDS.includes(c)).length;
-          if (given >= 2) return;
+          if (!BPRefereeCards.nextPassivityCard(given)) return;
           this.pushHistory('card');
           if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
           if (given === 0) {
@@ -2570,43 +2557,26 @@
         // P-noir : vainqueur = score le plus haut ; à égalité, le mieux classé au départ ;
         // sans classement, tirage au sort
         finishByPassivity() {
-          if (this.scoreA !== this.scoreB) {
-            this.confirmFinishWithCoinFlip(this.scoreA > this.scoreB ? 'A' : 'B', window.T('referee.reason_passivity'));
+          const r = BPRefereeCards.passivityWinner({
+            scoreA: this.scoreA,
+            scoreB: this.scoreB,
+            fencerA: this.currentMatch?.fencerA,
+            fencerB: this.currentMatch?.fencerB,
+          });
+          if (r.action === 'finish') {
+            this.confirmFinishWithCoinFlip(r.winner, window.T(r.reasonKey));
             return;
-          }
-          const rankOf = f => {
-            const r = Number(f?.initialRanking ?? f?.ranking);
-            return Number.isFinite(r) && r > 0 ? r : null;
-          };
-          const rA = rankOf(this.currentMatch?.fencerA);
-          const rB = rankOf(this.currentMatch?.fencerB);
-          if (rA !== null || rB !== null) {
-            const winner = rB === null || (rA !== null && rA < rB) ? 'A' : 'B';
-            if (rA !== rB) {
-              this.confirmFinishWithCoinFlip(winner, window.T('referee.reason_passivity_seed'));
-              return;
-            }
           }
           this.stopTimer();
           this.triggerTiebreaker();
         }
 
         determineCardFromGroup(group, fencer) {
-          if (this.isModernFencing) {
-            return group === 2 ? this.modernYellowOrRed(fencer) : 'red';
-          }
-          const history = fencer === 'A' ? this.faultHistoryA : this.faultHistoryB;
-          const count = history[group] || 0;
-          if (group === 1) {
-            if (count === 0) return 'white';
-            if (count === 1) return 'yellow';
-            return 'yellow'; // Groupe 1: après blanc et jaune, toujours jaune
-          }
-          if (group === 2) {
-            if (count === 0) return 'yellow'; // 1ère faute groupe 2 = jaune
-            return 'red'; // 2ème+ faute groupe 2 = rouge
-          }
-          return 'red'; // Groupe 3 : rouge direct
+          return BPRefereeCards.cardFromGroup(group, {
+            isModern: this.isModernFencing,
+            standardCards: (fencer === 'A' ? this.cardsA : this.cardsB).filter(isStandardCard),
+            history: fencer === 'A' ? this.faultHistoryA : this.faultHistoryB,
+          });
         }
 
         openReasonSelector(fencer, originalCardType) {
