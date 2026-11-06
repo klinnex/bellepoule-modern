@@ -127,4 +127,12 @@ describe('customFormulaSettings (#1125)', () => {
     f.ruleSet = 'modern';
     expect(usesModernRules(Weapon.CUSTOM, settings)).toBe(true);
   });
+
+  it('resolveCompetitionSettings : rapières respecte thirdPlaceMatch du mode « Tableau normal » (#1441)', () => {
+    const base = { specialMode: 'rapieres', thirdPlaceMatch: false } as CompetitionSettings;
+    expect(resolveCompetitionSettings(Weapon.CUSTOM, base).thirdPlaceMatch).toBe(false);
+    expect(
+      resolveCompetitionSettings(Weapon.CUSTOM, { ...base, thirdPlaceMatch: true }).thirdPlaceMatch
+    ).toBe(true);
+  });
 });
