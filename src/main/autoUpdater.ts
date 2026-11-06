@@ -8,7 +8,6 @@ import { app, dialog, shell, BrowserWindow } from 'electron';
 import https from 'https';
 import fs from 'fs';
 import path from 'path';
-import { spawn } from 'child_process';
 import {
   ensurePrivateDir,
   randomInstallerName,
@@ -768,11 +767,8 @@ export class AutoUpdater {
         this.launchWindowsInstaller(installerPath);
         return; // Quitter la fonction ici pour éviter le double timeout
       } else if (platform === 'darwin') {
-        // macOS: ouvrir le .dmg
-        spawn('open', [installerPath], {
-          detached: true,
-          stdio: 'ignore',
-        });
+        // macOS: ouvrir le .dmg (Finder)
+        void shell.openPath(installerPath);
       } else if (platform === 'linux') {
         if (/\.(deb|rpm)$/.test(installerPath)) {
           // Paquet : remis au gestionnaire de logiciels du système (droits admin requis)
@@ -795,48 +791,20 @@ export class AutoUpdater {
   }
 
   /**
-   * Installeur NSIS (electron-builder) : `/S` silencieux, `--updated` + `--force-run`
-   * relancent l'app après installation. Si le lancement direct échoue (élévation UAC
-   * requise pour une installation dans Program Files → exception ou EACCES), repli sur
-   * ShellExecute (`shell.openPath`) qui affiche la demande d'élévation Windows.
+   * Installeur NSIS (electron-builder) lancé via ShellExecute (`shell.openPath`) :
+   * Windows affiche la demande d'élévation UAC si l'app est dans Program Files.
+   * Pas d'exécution directe du fichier téléchargé (CodeQL js/command-line-injection).
    */
   private launchWindowsInstaller(installerPath: string): void {
-    const quitSoon = () => setTimeout(() => app.quit(), 3000);
-    const viaShell = (reason: string) => {
-      logger.warn(
-        LogCategory.SYSTEM,
-        `[AutoUpdater] Lancement direct impossible (${reason}), repli ShellExecute`
-      );
-      void shell.openPath(installerPath).then(err => {
-        if (err) {
-          logger.error(LogCategory.SYSTEM, `[AutoUpdater] ShellExecute : ${err}`);
-          this.reportInstallFailure(installerPath, getL().installLaunchErr, `${reason}\n${err}`);
-        } else {
-          logger.info(LogCategory.SYSTEM, '✅ Installateur Windows lancé (ShellExecute)');
-          quitSoon();
-        }
-      });
-    };
-
-    let installer: ReturnType<typeof spawn>;
-    try {
-      installer = spawn(installerPath, ['/S', '--updated', '--force-run'], {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true,
-      });
-    } catch (error) {
-      viaShell(toError(error).message);
-      return;
-    }
-    installer.on('error', (err: Error) => {
-      logger.error(LogCategory.SYSTEM, 'Installer launch error:', toError(err));
-      viaShell(err.message);
-    });
-    installer.on('spawn', () => {
+    void shell.openPath(installerPath).then(err => {
+      if (err) {
+        logger.error(LogCategory.SYSTEM, `[AutoUpdater] Lancement de l'installeur : ${err}`);
+        this.reportInstallFailure(installerPath, getL().installLaunchErr, err);
+        return;
+      }
       logger.info(LogCategory.SYSTEM, '✅ Installateur Windows lancé');
-      installer.unref();
-      quitSoon();
+      // Laisser l'installeur démarrer puis libérer les fichiers de l'application
+      setTimeout(() => app.quit(), 3000);
     });
   }
 
