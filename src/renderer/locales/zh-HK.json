@@ -309,6 +309,9 @@
     "animations_title": "動畫",
     "animations_hint": "小組賽結束時顯示煙花。",
     "animations_disable": "停用煙花",
+    "updates_title": "更新",
+    "updates_hint": "啟動時及每 12 小時檢查一次，在背景下載新版本並詢問是否安裝。「說明 → 檢查更新」選單仍然可用。",
+    "updates_enable": "自動檢查更新",
     "webhook_title": "Webhook 通知",
     "webhook_hint": "Discord／Slack／自訂網址（僅限 HTTPS）。",
     "webhook_remove": "移除",
@@ -2325,10 +2328,12 @@
     "title": "有可用更新！",
     "version": "版本",
     "behind": "您落後 {{n}} 個更新",
-    "download": "📥 下載",
+    "download": "📥 安裝",
     "notes": "📋 查看說明",
-    "redirect": "正在前往下載頁面…",
-    "later": "您可以稍後從「說明」選單更新"
+    "redirect": "正在下載更新…",
+    "later": "您可以稍後從「說明」選單更新",
+    "progress": "下載中：{{n}}%",
+    "failed": "更新下載失敗"
   },
   "analyticsCharts": {
     "no_data": "沒有資料",

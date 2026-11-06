@@ -25,6 +25,7 @@ import {
   type InstallKind,
 } from './updateAssets';
 import { fmt, getL } from './menuLabels';
+import { readUpdaterSettings, writeUpdaterSettings } from './updaterSettings';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 
 const RELEASES_URL = 'https://github.com/klinnex/bellepoule-modern/releases/latest';
@@ -60,6 +61,9 @@ export class AutoUpdater {
   private lastCheck: Date | null = null;
   private updateInfo: UpdateInfo | null = null;
   private downloading = false;
+  private autoCheck = true;
+  private startupTimer: NodeJS.Timeout | null = null;
+  private intervalTimer: NodeJS.Timeout | null = null;
   private readonly install: { kind: InstallKind; target: string | null } = detectInstallKind(
     process.platform,
     process.env
@@ -78,22 +82,44 @@ export class AutoUpdater {
     };
 
     cleanupReplacedExecutable(this.install.target);
-    this.setupAutoCheck();
+    this.autoCheck = readUpdaterSettings(app.getPath('userData')).autoCheck;
+    if (this.autoCheck) this.setupAutoCheck();
+    else logger.info(LogCategory.SYSTEM, '[AutoUpdater] Vérification automatique désactivée');
   }
 
   private setupAutoCheck(): void {
+    this.clearAutoCheck();
     // Vérifier les mises à jour au démarrage
-    setTimeout(() => {
+    this.startupTimer = setTimeout(() => {
       this.checkAndNotify();
     }, 5000); // 5 secondes après démarrage
 
     // Vérifier périodiquement
-    setInterval(
+    this.intervalTimer = setInterval(
       () => {
         this.checkAndNotify();
       },
       this.config.checkInterval * 60 * 60 * 1000
     );
+  }
+
+  private clearAutoCheck(): void {
+    if (this.startupTimer) clearTimeout(this.startupTimer);
+    if (this.intervalTimer) clearInterval(this.intervalTimer);
+    this.startupTimer = null;
+    this.intervalTimer = null;
+  }
+
+  /** Préférence « Vérifier automatiquement » (persistée). Le menu reste toujours actif. */
+  setAutoCheck(enabled: boolean): void {
+    this.autoCheck = enabled;
+    writeUpdaterSettings(app.getPath('userData'), { autoCheck: enabled });
+    if (enabled) this.setupAutoCheck();
+    else this.clearAutoCheck();
+  }
+
+  isAutoCheckEnabled(): boolean {
+    return this.autoCheck;
   }
 
   private async checkAndNotify(): Promise<void> {
@@ -463,6 +489,16 @@ export class AutoUpdater {
       if (!asset) {
         logger.info(LogCategory.SYSTEM, 'No suitable asset found for current platform');
         return false;
+      }
+
+      // Déjà téléchargée et vérifiée : pas de nouveau téléchargement.
+      // En fond, pas de nouvelle question (déjà posée au téléchargement / au démarrage).
+      const pending = readPendingUpdate(app.getPath('userData'));
+      if (pending && pending.version === updateInfo.latestVersion) {
+        if (interactive) {
+          this.promptForImmediateInstall(updateInfo, pending.path, pending.sha256);
+        }
+        return true;
       }
 
       // Intégrité : exiger une URL GitHub HTTPS et un SHA-256 publié par GitHub
@@ -870,6 +906,21 @@ export class AutoUpdater {
         // Rappeler plus tard
         break;
     }
+  }
+
+  /**
+   * Bouton « Installer » de la bannière : télécharge (ou reprend la version déjà
+   * téléchargée), vérifie puis propose l'installation. Repli sur GitHub si aucun asset.
+   */
+  async downloadAndInstallFromUi(): Promise<{ success: boolean; error?: string }> {
+    if (!this.updateInfo?.hasUpdate) await this.checkForUpdates();
+    if (!this.updateInfo?.hasUpdate) return { success: false, error: 'no_update' };
+    const handled = await this.autoDownloadUpdate(this.updateInfo, true);
+    if (!handled) {
+      shell.openExternal(this.updateInfo.downloadUrl || RELEASES_URL);
+      return { success: false, error: 'no_asset' };
+    }
+    return { success: true };
   }
 
   /** Téléchargement + installation intégrés (sans passer par le navigateur). */

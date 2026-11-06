@@ -61,4 +61,23 @@ export function registerUpdaterHandlers({ getAutoUpdater }: UpdaterHandlersConte
     }
     return { success: false, error: 'updater_unavailable' };
   });
+
+  ipcMain.handle('updater:downloadAndInstall', async () => {
+    const autoUpdater = getAutoUpdater();
+    if (autoUpdater) return await autoUpdater.downloadAndInstallFromUi();
+    return { success: false, error: 'updater_unavailable' };
+  });
+
+  ipcMain.handle('updater:getAutoCheck', async () => {
+    const autoUpdater = getAutoUpdater();
+    return { enabled: autoUpdater ? autoUpdater.isAutoCheckEnabled() : true };
+  });
+
+  ipcMain.handle('updater:setAutoCheck', async (_, enabled: unknown) => {
+    if (typeof enabled !== 'boolean') throw new Error('Enabled must be a boolean');
+    const autoUpdater = getAutoUpdater();
+    if (!autoUpdater) return { success: false, error: 'updater_unavailable' };
+    autoUpdater.setAutoCheck(enabled);
+    return { success: true, enabled };
+  });
 }

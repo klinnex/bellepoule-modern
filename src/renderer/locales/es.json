@@ -309,6 +309,9 @@
     "animations_title": "Animaciones",
     "animations_hint": "Fuegos artificiales al final de las poules.",
     "animations_disable": "Desactivar los fuegos artificiales",
+    "updates_title": "Actualizaciones",
+    "updates_hint": "Comprueba al iniciar y cada 12 h, descarga la nueva versión en segundo plano y propone instalarla. Ayuda → Buscar actualizaciones sigue disponible.",
+    "updates_enable": "Buscar actualizaciones automáticamente",
     "webhook_title": "Notificaciones webhook",
     "webhook_hint": "URL de Discord / Slack / personalizada (solo HTTPS).",
     "webhook_remove": "Eliminar",
@@ -2325,10 +2328,12 @@
     "title": "¡Actualización disponible!",
     "version": "Versión",
     "behind": "Tiene {{n}} actualizaciones de retraso",
-    "download": "📥 Descargar",
+    "download": "📥 Instalar",
     "notes": "📋 Ver notas",
-    "redirect": "Redirigiendo a la página de descarga…",
-    "later": "Podrá actualizar más tarde desde el menú Ayuda"
+    "redirect": "Descargando la actualización…",
+    "later": "Podrá actualizar más tarde desde el menú Ayuda",
+    "progress": "Descarga: {{n}} %",
+    "failed": "Error al descargar la actualización"
   },
   "analyticsCharts": {
     "no_data": "Sin datos",

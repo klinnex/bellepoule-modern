@@ -134,6 +134,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
 
   const [uiScale, setUiScale] = useState<UiScale>(() => loadUiScale());
   const [confettiDisabled, setConfettiDisabled] = useState<boolean>(() => isConfettiDisabled());
+  // Vérification auto des mises à jour : préférence stockée côté main (lue avant le 1er check)
+  const [updateAutoCheck, setUpdateAutoCheck] = useState<boolean>(true);
+  useEffect(() => {
+    window.electronAPI?.updater
+      ?.getAutoCheck?.()
+      .then(r => setUpdateAutoCheck(r.enabled))
+      .catch(() => {
+        // updater indisponible (dev / tests)
+      });
+  }, []);
   const [webhookUrl, setWebhookUrl] = useState<string>(
     () => localStorage.getItem(WEBHOOK_STORAGE_KEY) ?? ''
   );
@@ -331,6 +341,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   const handleConfettiDisabledChange = (disabled: boolean) => {
     setConfettiDisabled(disabled);
     localStorage.setItem(CONFETTI_DISABLED_KEY, String(disabled));
+  };
+
+  const handleUpdateAutoCheckChange = (enabled: boolean) => {
+    setUpdateAutoCheck(enabled);
+    window.electronAPI?.updater?.setAutoCheck?.(enabled).catch(() => {
+      setUpdateAutoCheck(!enabled);
+    });
   };
 
   // Taille du texte : appliquée et enregistrée immédiatement (#1156)
@@ -549,6 +566,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   onChange={e => handleConfettiDisabledChange(e.target.checked)}
                 />
                 <span style={TOGGLE_LABEL}>{t('settings.animations_disable')}</span>
+              </label>
+            </div>
+
+            {/* Mises à jour */}
+            <div className="form-group" style={SECTION_DIVIDER}>
+              <label style={BOLD}>{t('settings.updates_title')}</label>
+              <p style={HINT}>{t('settings.updates_hint')}</p>
+              <label className="u-row cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={updateAutoCheck}
+                  onChange={e => handleUpdateAutoCheckChange(e.target.checked)}
+                />
+                <span style={TOGGLE_LABEL}>{t('settings.updates_enable')}</span>
               </label>
             </div>
 

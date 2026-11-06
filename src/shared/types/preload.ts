@@ -355,6 +355,13 @@ export interface UpdaterAPI {
   hasPendingUpdate: () => Promise<{ hasPending: boolean }>;
   getPendingUpdateInfo: () => Promise<{ version: string; path: string } | null>;
   installPendingUpdate: () => Promise<{ success: boolean; error?: string }>;
+  /** Télécharge, vérifie (SHA-256) puis propose l'installation, sans navigateur */
+  downloadAndInstall: () => Promise<{ success: boolean; error?: string }>;
+  /** Vérification automatique au démarrage + périodique (préférence persistée) */
+  getAutoCheck: () => Promise<{ enabled: boolean }>;
+  setAutoCheck: (
+    enabled: boolean
+  ) => Promise<{ success: boolean; enabled?: boolean; error?: string }>;
 }
 
 // ============================================================================
@@ -1289,6 +1296,8 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   crypto: CryptoAPI;
   remote: RemoteServerAPI;
   training: TrainingAPI;
+  onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
+  onUpdateProgress: (callback: (data: { progress: number }) => void) => () => void;
   onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => () => void;
   onRemoteMatchFinished: (callback: (data: RemoteMatchFinishedEvent) => void) => () => void;
   onTrainingMatchFinished: (

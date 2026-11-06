@@ -309,6 +309,9 @@
     "animations_title": "Bevaatoù",
     "animations_hint": "Fuzeennoù diskouezet e fin ar poulloù.",
     "animations_disable": "Diweredekaat ar fuzeennoù",
+    "updates_title": "Hizivadurioù",
+    "updates_hint": "Gwiriañ a ra pa loc'h hag bep 12 eur, pellgargañ a ra ar stumm nevez en drekleur hag kinnig a ra e staliañ. Skoazell → Gwiriañ an hizivadurioù a chom atav hegerz.",
+    "updates_enable": "Gwiriañ an hizivadurioù ent emgefreek",
     "webhook_title": "Kemennoù webhook",
     "webhook_hint": "URL Discord / Slack / personelaet (HTTPS hepken).",
     "webhook_remove": "Dilemel",
@@ -2325,10 +2328,12 @@
     "title": "Hizivadur da gaout !",
     "version": "Stumm",
     "behind": "{{n}} hizivadur dale ho peus",
-    "download": "📥 Pellgargañ",
+    "download": "📥 Staliañ",
     "notes": "📋 Gwelet an notennoù",
-    "redirect": "O vont d'ar bajenn bellgargañ…",
-    "later": "Hizivaat a c'hellot diwezhatoc'h dre al lañser Skoazell"
+    "redirect": "O pellgargañ an hizivadur…",
+    "later": "Hizivaat a c'hellot diwezhatoc'h dre al lañser Skoazell",
+    "progress": "Pellgargañ : {{n}} %",
+    "failed": "C'hwitet eo pellgargañ an hizivadur"
   },
   "analyticsCharts": {
     "no_data": "Roadenn ebet",

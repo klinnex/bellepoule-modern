@@ -431,6 +431,9 @@
     "animations_title": "Animationen",
     "animations_hint": "Feuerwerk am Ende der Pools.",
     "animations_disable": "Feuerwerk deaktivieren",
+    "updates_title": "Updates",
+    "updates_hint": "Prüft beim Start und alle 12 Std., lädt die neue Version im Hintergrund herunter und bietet die Installation an. Hilfe → Updates prüfen bleibt immer verfügbar.",
+    "updates_enable": "Automatisch nach Updates suchen",
     "webhook_title": "Webhook-Benachrichtigungen",
     "webhook_hint": "Discord-/Slack-/eigene URL (nur HTTPS).",
     "webhook_remove": "Entfernen",
@@ -2325,10 +2328,12 @@
     "title": "Update verfügbar!",
     "version": "Version",
     "behind": "Sie sind {{n}} Updates im Rückstand",
-    "download": "📥 Herunterladen",
+    "download": "📥 Installieren",
     "notes": "📋 Hinweise ansehen",
-    "redirect": "Weiterleitung zur Download-Seite…",
-    "later": "Sie können später über das Hilfe-Menü aktualisieren"
+    "redirect": "Update wird heruntergeladen…",
+    "later": "Sie können später über das Hilfe-Menü aktualisieren",
+    "progress": "Download: {{n}} %",
+    "failed": "Download des Updates fehlgeschlagen"
   },
   "analyticsCharts": {
     "no_data": "Keine Daten",

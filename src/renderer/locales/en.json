@@ -309,6 +309,9 @@
     "animations_title": "Animations",
     "animations_hint": "Fireworks shown at the end of the pools.",
     "animations_disable": "Disable fireworks",
+    "updates_title": "Updates",
+    "updates_hint": "Checks at startup and every 12 h, downloads the new version in the background and offers to install it. Help → Check for Updates is always available.",
+    "updates_enable": "Check for updates automatically",
     "webhook_title": "Webhook notifications",
     "webhook_hint": "Discord / Slack / custom URL (HTTPS only).",
     "webhook_remove": "Remove",
@@ -2325,10 +2328,12 @@
     "title": "Update available!",
     "version": "Version",
     "behind": "You are {{n}} updates behind",
-    "download": "📥 Download",
+    "download": "📥 Install",
     "notes": "📋 View notes",
-    "redirect": "Redirecting to the download page…",
-    "later": "You can update later from the Help menu"
+    "redirect": "Downloading the update…",
+    "later": "You can update later from the Help menu",
+    "progress": "Downloading: {{n}}%",
+    "failed": "Update download failed"
   },
   "analyticsCharts": {
     "no_data": "No data",

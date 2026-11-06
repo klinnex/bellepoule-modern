@@ -309,6 +309,9 @@
     "animations_title": "Animazioni",
     "animations_hint": "Fuochi d'artificio mostrati al termine dei gironi.",
     "animations_disable": "Disattiva i fuochi d'artificio",
+    "updates_title": "Aggiornamenti",
+    "updates_hint": "Controlla all'avvio e ogni 12 h, scarica la nuova versione in background e propone l'installazione. Aiuto → Verifica aggiornamenti resta sempre disponibile.",
+    "updates_enable": "Controlla automaticamente gli aggiornamenti",
     "webhook_title": "Notifiche webhook",
     "webhook_hint": "URL Discord / Slack / personalizzato (solo HTTPS).",
     "webhook_remove": "Rimuovi",
@@ -2325,10 +2328,12 @@
     "title": "Aggiornamento disponibile!",
     "version": "Versione",
     "behind": "Hai {{n}} aggiornamenti di ritardo",
-    "download": "📥 Scarica",
+    "download": "📥 Installa",
     "notes": "📋 Vedi le note",
-    "redirect": "Reindirizzamento alla pagina di download…",
-    "later": "Potrai aggiornare più tardi dal menu Aiuto"
+    "redirect": "Download dell'aggiornamento…",
+    "later": "Potrai aggiornare più tardi dal menu Aiuto",
+    "progress": "Download: {{n}}%",
+    "failed": "Download dell'aggiornamento non riuscito"
   },
   "analyticsCharts": {
     "no_data": "Nessun dato",
