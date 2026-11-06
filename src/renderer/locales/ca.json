@@ -337,7 +337,15 @@
     "tts_m0": "«Temps!» (final)",
     "tour_title": "Recorregut guiat",
     "tour_hint": "Una guia de 6 passos per a la primera competició (tiradors, llista, poules, entrada remota, resultats, quadre).",
-    "tour_restart": "Rellançar el recorregut guiat"
+    "tour_restart": "Rellançar el recorregut guiat",
+    "search_placeholder": "Cerca un paràmetre…",
+    "search_empty": "Cap paràmetre coincideix.",
+    "section_display": "Visualització",
+    "section_scoring": "Introducció de puntuacions",
+    "section_documents": "Documents i PDF",
+    "section_referee": "Arbitratge",
+    "section_notifications": "Notificacions",
+    "section_system": "Sistema"
   },
   "actions": {
     "add": "Afegir",
