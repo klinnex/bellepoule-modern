@@ -286,6 +286,18 @@
     .confirm-btn:active { opacity: 0.75; }
     .confirm-btn:disabled { opacity: 0.5; cursor: default; }
 
+    .hide-next {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 11px;
+      color: #6b7a9a;
+      cursor: pointer;
+    }
+
+    .hide-next input { accent-color: #3B5BDB; cursor: pointer; }
+
     .loading-phrase {
       margin-top: 12px;
       font-size: 11px;
@@ -470,6 +482,10 @@
     <button class="confirm-btn" id="confirm-btn" onclick="enterApp()">
       Entrer · Enter
     </button>
+    <label class="hide-next">
+      <input type="checkbox" id="hide-next">
+      <span id="hide-next-label">Ne plus afficher au démarrage</span>
+    </label>
     <div class="loading-phrase" id="loading-phrase"></div>
   </div>
 
@@ -562,7 +578,20 @@
       ca: 'Carregant BellePoule',
     };
 
+    var HIDE_NEXT_LABELS = {
+      fr: 'Ne plus afficher au démarrage',
+      en: "Don't show at startup",
+      de: 'Beim Start nicht mehr anzeigen',
+      es: 'No mostrar al iniciar',
+      it: "Non mostrare più all'avvio",
+      'zh-HK': '啟動時不再顯示',
+      br: "Chom hep diskouez pa loc'h",
+      ca: "No mostrar més en iniciar",
+    };
+
     function updateConfirmLabel(lang) {
+      var hide = document.getElementById('hide-next-label');
+      if (hide) hide.textContent = HIDE_NEXT_LABELS[lang] || HIDE_NEXT_LABELS['en'];
       var btn = document.getElementById('confirm-btn');
       if (btn && !btn.disabled) btn.textContent = CONFIRM_LABELS[lang] || CONFIRM_LABELS['en'];
       var sub = document.getElementById('subtitle');
@@ -590,7 +619,8 @@
         phrase.classList.add('active');
       }
       if (window.splashAPI) {
-        window.splashAPI.confirm(selectedLang);
+        var hideNext = document.getElementById('hide-next');
+        window.splashAPI.confirm(selectedLang, !!(hideNext && hideNext.checked));
       }
     }
 

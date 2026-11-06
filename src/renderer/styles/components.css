@@ -1334,7 +1334,7 @@
   }
 }
 
-/* Logo d'accueil 4 armes (BrandLogo.tsx) */
+/* Logo de marque (BrandLogo) */
 .brand-logo-wrap {
   display: inline-block;
   color: var(--color-primary);

@@ -977,6 +977,15 @@ const electronApi = {
   // Notify main process of language change (to rebuild native menu)
   notifyLanguageChanged: (lang: string) => ipcRenderer.send('app:language-changed', lang),
 
+  // Écran de démarrage (splash) affiché ou non
+  splash: {
+    getEnabled: () => ipcRenderer.invoke('app:getSplashEnabled'),
+    setEnabled: (enabled: boolean) => {
+      if (typeof enabled !== 'boolean') throw new Error('Enabled must be a boolean');
+      return ipcRenderer.invoke('app:setSplashEnabled', enabled);
+    },
+  },
+
   // Language injected before renderer loads (avoids race with localStorage read)
   initialLanguage: (() => {
     const arg = process.argv.find(a => a.startsWith('--initial-lang='));

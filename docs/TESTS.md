@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 42 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 48 | 378 |
+| `src/main/` | 48 | 380 |
 | `src/renderer/services/` | 5 | 29 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 50 | 249 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **254** | **2084** |
+| **Total** | **254** | **2086** |
 
-Unitaires : 245 fichiers, 2049 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 245 fichiers, 2051 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2823,12 +2823,14 @@ Unitaires : 245 fichiers, 2049 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/splash.test.ts</code> — 4 tests</summary>
+<summary><code>src/main/splash.test.ts</code> — 6 tests</summary>
 
 - **splash : langue mémorisée (#1341)**
   - fr par défaut sans fichier
   - aller-retour de la langue enregistrée
   - fichier corrompu : repli sur fr
+  - splash activé par défaut
+  - désactivation du splash conserve la langue
   - closeSplash sans fenêtre appelle le rappel immédiatement
 
 </details>

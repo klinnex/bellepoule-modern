@@ -271,6 +271,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   // Vérification auto des mises à jour : préférence stockée côté main (lue avant le 1er check)
   const [updateAutoCheck, setUpdateAutoCheck] = useState<boolean>(true);
   const [updateChannel, setUpdateChannel] = useState<'stable' | 'dev' | null>(null);
+  // Écran de démarrage : préférence stockée côté main (lue avant la création des fenêtres)
+  const [splashEnabled, setSplashEnabledState] = useState<boolean>(true);
+  useEffect(() => {
+    window.electronAPI?.splash
+      ?.getEnabled?.()
+      .then(r => setSplashEnabledState(r.enabled))
+      .catch(() => {
+        // indisponible (dev / tests)
+      });
+  }, []);
   useEffect(() => {
     const updater = window.electronAPI?.updater;
     updater
@@ -520,6 +530,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   const handleConfettiDisabledChange = (disabled: boolean) => {
     setConfettiDisabled(disabled);
     localStorage.setItem(CONFETTI_DISABLED_KEY, String(disabled));
+  };
+
+  const handleSplashEnabledChange = (enabled: boolean) => {
+    setSplashEnabledState(enabled);
+    window.electronAPI?.splash?.setEnabled?.(enabled).catch(() => {
+      setSplashEnabledState(!enabled);
+    });
   };
 
   const handleUpdateAutoCheckChange = (enabled: boolean) => {
@@ -845,6 +862,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   onChange={e => handleConfettiDisabledChange(e.target.checked)}
                 />
                 <span style={TOGGLE_LABEL}>{t('settings.animations_disable')}</span>
+              </label>
+            </div>
+            <div className="form-group">
+              <label style={BOLD}>{t('settings.splash_title')}</label>
+              <p style={HINT}>{t('settings.splash_hint')}</p>
+              <label className="u-row cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={splashEnabled}
+                  onChange={e => handleSplashEnabledChange(e.target.checked)}
+                />
+                <span style={TOGGLE_LABEL}>{t('settings.splash_enable')}</span>
               </label>
             </div>
           </>

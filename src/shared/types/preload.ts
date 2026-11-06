@@ -1382,6 +1382,11 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
     callback: (data: { matchId: string; fencerId: string }) => void
   ) => () => void;
   notifyLanguageChanged: (lang: string) => void;
+  /** Écran de démarrage affiché ou non (préférence persistée côté main) */
+  splash?: {
+    getEnabled: () => Promise<{ enabled: boolean }>;
+    setEnabled: (enabled: boolean) => Promise<{ success: boolean; enabled?: boolean }>;
+  };
   initialLanguage: string | null;
   getLogo: () => Promise<string | null>;
   getLogos: () => Promise<{ id: string; name: string; data: string }[]>;

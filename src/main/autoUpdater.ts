@@ -267,18 +267,18 @@ export class AutoUpdater {
   }
 
   private async fetchLatestReleaseDirect(): Promise<any> {
-    const data = await getJson<any>(`${GITHUB_API}/releases/latest`);
+    const data = await getJson(`${GITHUB_API}/releases/latest`);
     return data ?? null;
   }
 
   private async fetchReleases(): Promise<any[]> {
-    const data = await getJson<any[]>(`${GITHUB_API}/releases`);
-    return data ?? [];
+    const data = await getJson(`${GITHUB_API}/releases`);
+    return Array.isArray(data) ? data : [];
   }
 
   private async fetchTags(): Promise<any[]> {
-    const data = await getJson<any[]>(`${GITHUB_API}/tags`);
-    return data ?? [];
+    const data = await getJson(`${GITHUB_API}/tags`);
+    return Array.isArray(data) ? data : [];
   }
 
   private getCurrentVersion(): { version: string; build: number } {

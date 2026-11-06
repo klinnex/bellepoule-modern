@@ -14,9 +14,9 @@ describe('ProxySettingsSection', () => {
   beforeEach(() => {
     set = vi.fn().mockResolvedValue({ success: true });
     test = vi.fn().mockResolvedValue({ ok: true, resolved: 'PROXY proxy:3128' });
-    (window as any).electronAPI = {
-      proxy: { get: vi.fn().mockResolvedValue({ mode: 'system' }), set, test },
-    };
+    Object.assign(window, {
+      electronAPI: { proxy: { get: vi.fn().mockResolvedValue({ mode: 'system' }), set, test } },
+    });
   });
 
   const renderReady = async () => {
