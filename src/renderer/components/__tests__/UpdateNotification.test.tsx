@@ -60,7 +60,7 @@ describe('UpdateNotification — mise à jour intégrée', () => {
     render(<UpdateNotification />);
     act(() => emitAvailable(INFO));
     act(() => emitProgress({ progress: 40 }));
-    expect(screen.getByText(/40 %/)).toBeInTheDocument();
+    expect(screen.getByText(/40,0 %/)).toBeInTheDocument();
   });
 
   it('téléchargement lancé depuis le menu : bannière + barre de progression sans update:available', () => {

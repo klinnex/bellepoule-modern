@@ -322,6 +322,22 @@
     "updates_channel_hint": "Stable: published releases (main). Dev: development builds, more frequent, less tested. Switching from dev to stable does not downgrade: the next newer stable release will be offered.",
     "updates_channel_stable": "Stable (main)",
     "updates_channel_dev": "Dev (pre-releases)",
+    "proxy_title": "Network proxy",
+    "proxy_hint": "Used for updates and the app's Internet access. The local referee server is never affected.",
+    "proxy_mode_system": "System proxy (recommended)",
+    "proxy_mode_direct": "No proxy (direct connection)",
+    "proxy_mode_manual": "Manual proxy",
+    "proxy_server": "Proxy server",
+    "proxy_server_placeholder": "proxy.club.org:3128 or socks5://10.0.0.1:1080",
+    "proxy_bypass": "Exclusions (comma-separated)",
+    "proxy_bypass_placeholder": "*.local, 192.168.0.0/16",
+    "proxy_apply": "Apply",
+    "proxy_test": "Test connection",
+    "proxy_testing": "Testing…",
+    "proxy_saved": "Proxy applied",
+    "proxy_invalid": "Invalid proxy address (expected: host:port, http://, https://, socks4:// or socks5://)",
+    "proxy_test_ok": "Connected to GitHub — route: {{route}}",
+    "proxy_test_fail": "Could not reach GitHub — route: {{route}}",
     "webhook_title": "Webhook notifications",
     "webhook_hint": "Discord / Slack / custom URL (HTTPS only).",
     "webhook_remove": "Remove",
@@ -944,7 +960,8 @@
     "competition_not_found": "Competition not found",
     "html_load_failed": "HTML loading failed",
     "port_in_use": "Port {{port}} is already in use",
-    "temp_file_failed": "Could not create the temporary file: {{detail}}"
+    "temp_file_failed": "Could not create the temporary file: {{detail}}",
+    "invalid_proxy": "Invalid proxy"
   },
   "properties": {
     "one_round": "1 round",
@@ -2350,7 +2367,7 @@
     "notes": "📋 View notes",
     "redirect": "Downloading the update…",
     "later": "You can update later from the Help menu",
-    "progress": "Downloading: {{n}}%",
+    "progress": "Downloading: {{n}}% ({{done}} / {{total}} MB)",
     "failed": "Update download failed"
   },
   "analyticsCharts": {

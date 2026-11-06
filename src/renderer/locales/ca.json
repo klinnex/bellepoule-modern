@@ -322,6 +322,22 @@
     "updates_channel_hint": "Estable: versions publicades (main). Dev: compilacions de desenvolupament, més freqüents, menys provades. Passar de dev a estable no instal·la una versió anterior: s'oferirà la propera versió estable més recent.",
     "updates_channel_stable": "Estable (main)",
     "updates_channel_dev": "Dev (prellançaments)",
+    "proxy_title": "Servidor intermediari (proxy)",
+    "proxy_hint": "S'utilitza per a les actualitzacions i l'accés a Internet de l'aplicació. El servidor d'arbitratge local no es veu mai afectat.",
+    "proxy_mode_system": "Proxy del sistema (recomanat)",
+    "proxy_mode_direct": "Sense proxy (connexió directa)",
+    "proxy_mode_manual": "Proxy manual",
+    "proxy_server": "Servidor proxy",
+    "proxy_server_placeholder": "proxy.club.cat:3128 o socks5://10.0.0.1:1080",
+    "proxy_bypass": "Exclusions (separades per comes)",
+    "proxy_bypass_placeholder": "*.local, 192.168.0.0/16",
+    "proxy_apply": "Aplica",
+    "proxy_test": "Prova la connexió",
+    "proxy_testing": "Provant…",
+    "proxy_saved": "Proxy aplicat",
+    "proxy_invalid": "Adreça de proxy no vàlida (s'espera: host:port, http://, https://, socks4:// o socks5://)",
+    "proxy_test_ok": "Connexió amb GitHub correcta — ruta: {{route}}",
+    "proxy_test_fail": "No s'ha pogut connectar amb GitHub — ruta: {{route}}",
     "webhook_title": "Notificacions webhook",
     "webhook_hint": "URL de Discord / Slack / personalitzada (només HTTPS).",
     "webhook_remove": "Elimina",
@@ -944,7 +960,8 @@
     "competition_not_found": "Competició no trobada",
     "html_load_failed": "Ha fallat la càrrega HTML",
     "port_in_use": "El port {{port}} ja està en ús",
-    "temp_file_failed": "No s'ha pogut crear el fitxer temporal: {{detail}}"
+    "temp_file_failed": "No s'ha pogut crear el fitxer temporal: {{detail}}",
+    "invalid_proxy": "Proxy no vàlid"
   },
   "properties": {
     "one_round": "1 ronda",
@@ -2350,7 +2367,7 @@
     "notes": "📋 Mostra les notes",
     "redirect": "S'està baixant l'actualització…",
     "later": "Podreu actualitzar més tard des del menú Ajuda",
-    "progress": "Baixada: {{n}} %",
+    "progress": "Baixada: {{n}} % ({{done}} / {{total}} MB)",
     "failed": "Error en baixar l'actualització"
   },
   "analyticsCharts": {

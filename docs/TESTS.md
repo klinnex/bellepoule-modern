@@ -95,18 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 42 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 47 | 370 |
+| `src/main/` | 48 | 378 |
 | `src/renderer/services/` | 5 | 29 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 49 | 245 |
+| `src/renderer/components/` | 50 | 249 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 23 | 137 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **252** | **2072** |
+| **Total** | **254** | **2084** |
 
-Unitaires : 243 fichiers, 2037 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 245 fichiers, 2049 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2462,6 +2462,24 @@ Unitaires : 243 fichiers, 2037 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/proxySettings.test.ts</code> — 8 tests</summary>
+
+- **normalizeProxyServer**
+  - hôte:port → http implicite
+  - schémas acceptés
+  - refuse identifiants, chemin, port absent/invalide, schéma inconnu
+- **normalizeBypass**
+  - nettoie la liste
+- **sanitizeProxySettings / toElectronProxyConfig**
+  - modes système et direct
+  - manuel : serveur + exclusions, machine locale toujours en direct
+  - manuel sans serveur valide ou mode inconnu → null
+- **persistance**
+  - défaut système ; relit ce qui est écrit ; fichier corrompu → défaut
+
+</details>
+
+<details>
 <summary><code>src/main/remote/activeWave.test.ts</code> — 4 tests</summary>
 
 - **applyActiveWave**
@@ -3686,6 +3704,17 @@ Unitaires : 243 fichiers, 2037 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - filtre par arbitre (saisie ou assignation)
 - **MatchAuditLog — replay (#1074)**
   - rejoue le match sélectionné événement par événement
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/__tests__/ProxySettingsSection.test.tsx</code> — 4 tests</summary>
+
+- **ProxySettingsSection**
+  - système / aucun : appliqué immédiatement
+  - manuel : serveur + exclusions envoyés au clic sur Appliquer
+  - refus du main → message d’adresse invalide
+  - test de connexion : route affichée
 
 </details>
 

@@ -322,6 +322,22 @@
     "updates_channel_hint": "穩定版：正式發佈版本（main）。開發版：開發組建，更新更頻密但測試較少。由開發版轉回穩定版不會降級：會在有較新的穩定版時提示安裝。",
     "updates_channel_stable": "穩定版（main）",
     "updates_channel_dev": "開發版（預覽版）",
+    "proxy_title": "網絡代理伺服器",
+    "proxy_hint": "用於更新及應用程式的互聯網連線。本機裁判伺服器不受影響。",
+    "proxy_mode_system": "系統代理伺服器（建議）",
+    "proxy_mode_direct": "不使用代理（直接連線）",
+    "proxy_mode_manual": "手動代理伺服器",
+    "proxy_server": "代理伺服器",
+    "proxy_server_placeholder": "proxy.club.hk:3128 或 socks5://10.0.0.1:1080",
+    "proxy_bypass": "例外（以逗號分隔）",
+    "proxy_bypass_placeholder": "*.local, 192.168.0.0/16",
+    "proxy_apply": "套用",
+    "proxy_test": "測試連線",
+    "proxy_testing": "測試中…",
+    "proxy_saved": "已套用代理伺服器",
+    "proxy_invalid": "代理伺服器地址無效（應為：主機:埠、http://、https://、socks4:// 或 socks5://）",
+    "proxy_test_ok": "已連線至 GitHub — 路由：{{route}}",
+    "proxy_test_fail": "無法連線至 GitHub — 路由：{{route}}",
     "webhook_title": "Webhook 通知",
     "webhook_hint": "Discord／Slack／自訂網址（僅限 HTTPS）。",
     "webhook_remove": "移除",
@@ -944,7 +960,8 @@
     "competition_not_found": "找不到比賽",
     "html_load_failed": "HTML 載入失敗",
     "port_in_use": "連接埠 {{port}} 已被使用",
-    "temp_file_failed": "無法建立暫存檔：{{detail}}"
+    "temp_file_failed": "無法建立暫存檔：{{detail}}",
+    "invalid_proxy": "代理伺服器無效"
   },
   "properties": {
     "one_round": "1 輪",
@@ -2350,7 +2367,7 @@
     "notes": "📋 查看說明",
     "redirect": "正在下載更新…",
     "later": "您可以稍後從「說明」選單更新",
-    "progress": "下載中：{{n}}%",
+    "progress": "下載中：{{n}}%（{{done}} / {{total}} MB）",
     "failed": "更新下載失敗"
   },
   "analyticsCharts": {

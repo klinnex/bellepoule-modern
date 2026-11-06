@@ -1343,3 +1343,26 @@
 .brand-logo-laser {
   stroke: var(--color-laser, #ef4444);
 }
+
+/* Paramètres → Proxy réseau (ProxySettingsSection.tsx) */
+.proxy-manual {
+  margin: var(--space-2, 8px) 0 0 var(--space-6, 24px);
+}
+
+.proxy-actions {
+  margin-top: var(--space-2, 8px);
+}
+
+.proxy-status {
+  min-height: 1.2em;
+  margin-top: var(--space-2, 8px);
+  font-size: var(--fs-sm);
+}
+
+.proxy-status--ok {
+  color: var(--success, #16a34a);
+}
+
+.proxy-status--error {
+  color: var(--danger, #ef4444);
+}

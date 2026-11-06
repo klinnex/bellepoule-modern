@@ -322,6 +322,22 @@
     "updates_channel_hint": "Stable : versions publiées (main). Dev : builds de développement, plus fréquents, moins testés. Passer de dev à stable n'installe pas d'ancienne version : la prochaine version stable plus récente sera proposée.",
     "updates_channel_stable": "Stable (main)",
     "updates_channel_dev": "Dev (pré-versions)",
+    "proxy_title": "Proxy réseau",
+    "proxy_hint": "Utilisé pour les mises à jour et les accès Internet de l'application. Le serveur d'arbitrage local n'est jamais concerné.",
+    "proxy_mode_system": "Proxy du système (recommandé)",
+    "proxy_mode_direct": "Aucun proxy (connexion directe)",
+    "proxy_mode_manual": "Proxy manuel",
+    "proxy_server": "Serveur proxy",
+    "proxy_server_placeholder": "proxy.club.fr:3128 ou socks5://10.0.0.1:1080",
+    "proxy_bypass": "Exclusions (séparées par des virgules)",
+    "proxy_bypass_placeholder": "*.local, 192.168.0.0/16",
+    "proxy_apply": "Appliquer",
+    "proxy_test": "Tester la connexion",
+    "proxy_testing": "Test…",
+    "proxy_saved": "Proxy appliqué",
+    "proxy_invalid": "Adresse de proxy invalide (attendu : hôte:port, http://, https://, socks4:// ou socks5://)",
+    "proxy_test_ok": "Connexion à GitHub réussie — route : {{route}}",
+    "proxy_test_fail": "Échec de la connexion à GitHub — route : {{route}}",
     "webhook_title": "Notifications webhook",
     "webhook_hint": "URL Discord / Slack / personnalisée (HTTPS uniquement).",
     "webhook_remove": "Supprimer",
@@ -944,7 +960,8 @@
     "competition_not_found": "Compétition introuvable",
     "html_load_failed": "Chargement HTML échoué",
     "port_in_use": "Le port {{port}} est déjà utilisé",
-    "temp_file_failed": "Impossible de créer le fichier temporaire : {{detail}}"
+    "temp_file_failed": "Impossible de créer le fichier temporaire : {{detail}}",
+    "invalid_proxy": "Proxy invalide"
   },
   "properties": {
     "one_round": "1 tour",
@@ -2350,7 +2367,7 @@
     "notes": "📋 Voir les notes",
     "redirect": "Téléchargement de la mise à jour…",
     "later": "Vous pourrez mettre à jour plus tard depuis le menu Aide",
-    "progress": "Téléchargement : {{n}} %",
+    "progress": "Téléchargement : {{n}} % ({{done}} / {{total}} Mo)",
     "failed": "Échec du téléchargement de la mise à jour"
   },
   "analyticsCharts": {

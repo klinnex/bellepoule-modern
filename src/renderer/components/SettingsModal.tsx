@@ -9,6 +9,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { HINT, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
 import type { Language } from '../contexts/TranslationContext';
 import LanguageSelector from './LanguageSelector';
+import ProxySettingsSection from './ProxySettingsSection';
 import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
 // Chargé à la demande : embarque jsPDF, lourd pour le bundle initial
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
@@ -84,6 +85,7 @@ type SettingsItemId =
   | 'tts'
   | 'webhook'
   | 'updates'
+  | 'proxy'
   | 'tour';
 
 interface SettingsSectionDef {
@@ -156,6 +158,7 @@ const SETTINGS_SECTIONS: SettingsSectionDef[] = [
         id: 'updates',
         keys: ['settings.updates_title', 'settings.updates_hint', 'settings.updates_channel'],
       },
+      { id: 'proxy', keys: ['settings.proxy_title', 'settings.proxy_hint'] },
       { id: 'tour', keys: ['settings.tour_title', 'settings.tour_hint'] },
     ],
   },
@@ -880,6 +883,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
             )}
           </>
         );
+      case 'proxy':
+        return <ProxySettingsSection />;
       case 'webhook':
         return (
           <>

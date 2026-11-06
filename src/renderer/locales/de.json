@@ -444,6 +444,22 @@
     "updates_channel_hint": "Stabil: veröffentlichte Versionen (main). Dev: Entwicklungs-Builds, häufiger, weniger getestet. Wechsel von Dev zu Stabil installiert keine ältere Version: die nächste neuere stabile Version wird angeboten.",
     "updates_channel_stable": "Stabil (main)",
     "updates_channel_dev": "Dev (Vorabversionen)",
+    "proxy_title": "Netzwerk-Proxy",
+    "proxy_hint": "Wird für Updates und den Internetzugriff der Anwendung verwendet. Der lokale Kampfrichter-Server ist nie betroffen.",
+    "proxy_mode_system": "System-Proxy (empfohlen)",
+    "proxy_mode_direct": "Kein Proxy (direkte Verbindung)",
+    "proxy_mode_manual": "Manueller Proxy",
+    "proxy_server": "Proxy-Server",
+    "proxy_server_placeholder": "proxy.verein.de:3128 oder socks5://10.0.0.1:1080",
+    "proxy_bypass": "Ausnahmen (durch Kommas getrennt)",
+    "proxy_bypass_placeholder": "*.local, 192.168.0.0/16",
+    "proxy_apply": "Anwenden",
+    "proxy_test": "Verbindung testen",
+    "proxy_testing": "Test…",
+    "proxy_saved": "Proxy angewendet",
+    "proxy_invalid": "Ungültige Proxy-Adresse (erwartet: host:port, http://, https://, socks4:// oder socks5://)",
+    "proxy_test_ok": "Verbindung zu GitHub erfolgreich — Route: {{route}}",
+    "proxy_test_fail": "GitHub nicht erreichbar — Route: {{route}}",
     "webhook_title": "Webhook-Benachrichtigungen",
     "webhook_hint": "Discord-/Slack-/eigene URL (nur HTTPS).",
     "webhook_remove": "Entfernen",
@@ -944,7 +960,8 @@
     "competition_not_found": "Wettbewerb nicht gefunden",
     "html_load_failed": "Laden des HTML fehlgeschlagen",
     "port_in_use": "Port {{port}} wird bereits verwendet",
-    "temp_file_failed": "Temporäre Datei konnte nicht erstellt werden: {{detail}}"
+    "temp_file_failed": "Temporäre Datei konnte nicht erstellt werden: {{detail}}",
+    "invalid_proxy": "Ungültiger Proxy"
   },
   "properties": {
     "one_round": "1 Runde",
@@ -2350,7 +2367,7 @@
     "notes": "📋 Hinweise ansehen",
     "redirect": "Update wird heruntergeladen…",
     "later": "Sie können später über das Hilfe-Menü aktualisieren",
-    "progress": "Download: {{n}} %",
+    "progress": "Download: {{n}} % ({{done}} / {{total}} MB)",
     "failed": "Download des Updates fehlgeschlagen"
   },
   "analyticsCharts": {

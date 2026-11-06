@@ -14,6 +14,7 @@ import type {
   ElectronAPI,
   UpdateInfo,
   UpdateProgressEvent,
+  ProxySettingsDTO,
   CompetitionCreateData,
   CompetitionUpdateData,
   FencerCreateData,
@@ -603,6 +604,13 @@ const electronApi = {
       }
       return ipcRenderer.invoke('updater:setChannel', channel);
     },
+  },
+
+  // Proxy réseau (Paramètres → Réseau)
+  proxy: {
+    get: () => ipcRenderer.invoke('proxy:get'),
+    set: (settings: ProxySettingsDTO) => ipcRenderer.invoke('proxy:set', settings),
+    test: () => ipcRenderer.invoke('proxy:test'),
   },
 
   // Rapport de diagnostic (fichier JSON, sans port réseau) (#1326)

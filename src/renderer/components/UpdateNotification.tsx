@@ -7,6 +7,9 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
+import { formatNumber } from '../../shared/utils/localeFormat';
+
+const MB = 1024 * 1024;
 
 interface UpdateNotificationProps {
   visible?: boolean;
@@ -28,6 +31,7 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
+  const [bytes, setBytes] = useState<{ done: number; total: number } | null>(null);
 
   useEffect(() => {
     const api = window.electronAPI;
@@ -39,6 +43,7 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
     // Téléchargement lancé (bannière, menu Aide ou fond) : bannière affichée avec le %
     const offProgress = api?.onUpdateProgress?.(data => {
       setProgress(data.progress);
+      if (data.total) setBytes({ done: data.downloaded ?? 0, total: data.total });
       if (data.latestVersion && data.latestBuild !== undefined) {
         const { latestVersion, latestBuild } = data;
         setUpdateInfo(
@@ -92,6 +97,16 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
     }
   };
 
+  // Progression au dixième de % + Mo téléchargés / total (langue active)
+  const progressLabel =
+    progress === null
+      ? ''
+      : t('updateNotif.progress', {
+          n: formatNumber(progress, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+          done: formatNumber((bytes?.done ?? 0) / MB, { maximumFractionDigits: 1 }),
+          total: formatNumber((bytes?.total ?? 0) / MB, { maximumFractionDigits: 1 }),
+        });
+
   if (!visible || !updateInfo || dismissed) {
     return null;
   }
@@ -108,17 +123,16 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
           </p>
           {progress !== null && progress < 100 && (
             <>
-              <p className="update-notification-multiple">
-                {t('updateNotif.progress', { n: progress })}
-              </p>
+              <p className="update-notification-multiple">{progressLabel}</p>
               {/* Sabre laser : la lame s'allume avec le pourcentage */}
               <div className="update-saber">
                 <span className="update-saber-hilt" aria-hidden="true" />
                 <progress
                   className="update-notification-progress"
                   max={100}
+                  // valeur au dixième : la lame avance en continu
                   value={progress}
-                  aria-label={t('updateNotif.progress', { n: progress })}
+                  aria-label={progressLabel}
                 />
               </div>
             </>
