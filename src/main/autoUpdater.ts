@@ -792,11 +792,9 @@ export class AutoUpdater {
           // Paquet : remis au gestionnaire de logiciels du système (droits admin requis)
           void shell.openPath(installerPath);
         } else {
-          fs.chmodSync(installerPath, '755');
-          spawn(installerPath, [], {
-            detached: true,
-            stdio: 'ignore',
-          });
+          // AppImage hors mode AppImage : pas d'exécution directe, affichage dans le dossier
+          fs.chmodSync(installerPath, 0o755);
+          shell.showItemInFolder(installerPath);
         }
       }
 
