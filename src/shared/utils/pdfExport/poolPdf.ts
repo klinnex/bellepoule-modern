@@ -513,16 +513,15 @@ export interface PoolStripQr {
   strip: number;
 }
 
-export async function exportMultiplePoolsToPDF(
+/** Fusionne toutes les poules en un seul document HTML (saut de page entre feuilles) — export PDF et impression (#1413) */
+async function buildCombinedPoolsHTML(
   pools: Pool[],
-  title: string = pdfT('pools_export_title', 'Export des Poules'),
+  title: string,
   logoBase64?: string,
   template?: PdfTemplate,
   competitionName?: string,
   stripQrs?: Record<string, PoolStripQr>
-): Promise<void> {
-  if (pools.length === 0) throw new Error(pdfT('no_pool_export', 'Aucune poule à exporter'));
-  // Un seul PDF pour toutes les poules (#1413) : corps concaténés, saut de page entre feuilles
+): Promise<string> {
   const pages: string[] = [];
   const styles = new Set<string>();
   for (const pool of pools) {
@@ -544,7 +543,7 @@ export async function exportMultiplePoolsToPDF(
   const body = pages
     .map((b, i) => (i === 0 ? '' : '<div class="pools-export-break"></div>\n') + b)
     .join('\n');
-  const combined = `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="${pdfLang()}">
 <head>
   <meta charset="UTF-8">
@@ -558,6 +557,26 @@ export async function exportMultiplePoolsToPDF(
 ${body}
 </body>
 </html>`;
+}
+
+export async function exportMultiplePoolsToPDF(
+  pools: Pool[],
+  title: string = pdfT('pools_export_title', 'Export des Poules'),
+  logoBase64?: string,
+  template?: PdfTemplate,
+  competitionName?: string,
+  stripQrs?: Record<string, PoolStripQr>
+): Promise<void> {
+  if (pools.length === 0) throw new Error(pdfT('no_pool_export', 'Aucune poule à exporter'));
+  // Un seul PDF pour toutes les poules (#1413)
+  const combined = await buildCombinedPoolsHTML(
+    pools,
+    title,
+    logoBase64,
+    template,
+    competitionName,
+    stripQrs
+  );
   await savePDF(combined, allPoolsFileName(competitionName));
 }
 
@@ -572,12 +591,7 @@ export function allPoolsFileName(competitionName?: string): string {
 
 // ─── Impression Poule (dialogue d'impression natif) ───────────────────────────
 
-export async function printPoolHTML(
-  pool: Pool,
-  options: PoolExportOptions = {},
-  template?: PdfTemplate
-): Promise<void> {
-  const html = await buildPoolExportHTML(pool, options, template);
+async function sendHtmlToPrint(html: string): Promise<void> {
   const api = (window as any).electronAPI;
   if (!api?.file?.printHtml) {
     throw new Error(pdfT('api_unavailable', 'API Electron non disponible'));
@@ -586,6 +600,15 @@ export async function printPoolHTML(
   if (!res?.success) {
     throw new Error(res?.error ?? pdfT('print_failed', "Échec de l'impression"));
   }
+}
+
+export async function printPoolHTML(
+  pool: Pool,
+  options: PoolExportOptions = {},
+  template?: PdfTemplate
+): Promise<void> {
+  const html = await buildPoolExportHTML(pool, options, template);
+  await sendHtmlToPrint(html);
 }
 
 export async function printMultiplePoolsHTML(
@@ -597,17 +620,14 @@ export async function printMultiplePoolsHTML(
   stripQrs?: Record<string, PoolStripQr>
 ): Promise<void> {
   if (pools.length === 0) throw new Error(pdfT('no_pool_print', 'Aucune poule à imprimer'));
-  for (const pool of pools) {
-    await printPoolHTML(
-      pool,
-      {
-        title: `${title} - ${pdfT('pool_n', 'Poule {{n}}', { n: pool.number })}`,
-        logoBase64,
-        competitionName,
-        stripQrUrl: stripQrs?.[pool.id]?.url,
-        stripNumber: stripQrs?.[pool.id]?.strip,
-      },
-      template
-    );
-  }
+  // Même mécanisme que l'export PDF (#1413) : un seul document, une seule fenêtre d'impression
+  const combined = await buildCombinedPoolsHTML(
+    pools,
+    title,
+    logoBase64,
+    template,
+    competitionName,
+    stripQrs
+  );
+  await sendHtmlToPrint(combined);
 }
