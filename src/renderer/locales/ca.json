@@ -2386,8 +2386,11 @@
     "failed": "Error en baixar l'actualització",
     "noAsset": "Cap fitxer instal·lable per a aquest sistema: pàgina de versions oberta al navegador",
     "busy": "Baixada ja en curs…",
-    "menuButton": "Actualització",
-    "menuTitle": "Actualització disponible: v{{version}} — feu clic per instal·lar"
+    "menuButton": "Actualització disponible",
+    "menuTitle": "Actualització disponible: v{{version}} — feu clic per instal·lar",
+    "menuUpToDate": "Actualitzat",
+    "menuUpToDateTitle": "Actualitzat — feu clic per tornar a comprovar",
+    "menuCheck": "Comprova les actualitzacions"
   },
   "analyticsCharts": {
     "no_data": "Sense dades",

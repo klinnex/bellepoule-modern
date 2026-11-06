@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 49 | 389 |
 | `src/renderer/services/` | 6 | 34 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 51 | 257 |
+| `src/renderer/components/` | 51 | 260 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 37 | 248 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **271** | **2231** |
+| **Total** | **271** | **2234** |
 
-Unitaires : 262 fichiers, 2196 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 262 fichiers, 2199 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3777,10 +3777,13 @@ Unitaires : 262 fichiers, 2196 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/__tests__/UpdateMenuButton.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/__tests__/UpdateMenuButton.test.tsx</code> — 6 tests</summary>
 
 - **UpdateMenuButton — bouton clignotant de l’en-tête**
-  - absent sans mise à jour, affiché (classe clignotante) dès update:available
+  - « À jour » après vérification ; clic → revérifie
+  - « Mise à jour dispo » clignotant dès update:available
+  - vérification au lancement désactivée : pas de requête, bouton « Vérifier »
+  - mise à jour trouvée au lancement : clic ouvre la bannière avec la version
   - clic : réaffiche la bannière fermée
   - animation de clignotement définie (et coupée si mouvement réduit)
 

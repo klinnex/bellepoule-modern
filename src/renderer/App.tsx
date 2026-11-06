@@ -599,7 +599,6 @@ const AppContent: React.FC = () => {
             </button>
           )}
           <div className="header-nav">
-            <UpdateMenuButton />
             {openCompetitions.length > 0 && view === 'competition' && (
               <button
                 className="btn btn-secondary btn-icon-label"
@@ -622,6 +621,7 @@ const AppContent: React.FC = () => {
                 {t('menu.new_competition')}
               </button>
             )}
+            <UpdateMenuButton />
             <button
               className={`btn btn-icon-label ${trainingActive ? 'btn-danger' : 'btn-secondary'}`}
               onClick={() => {

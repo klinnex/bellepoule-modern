@@ -2386,8 +2386,11 @@
     "failed": "Download dell'aggiornamento non riuscito",
     "noAsset": "Nessun file installabile per questo sistema: pagina delle versioni aperta nel browser",
     "busy": "Download già in corso…",
-    "menuButton": "Aggiornamento",
-    "menuTitle": "Aggiornamento disponibile: v{{version}} — clicca per installare"
+    "menuButton": "Aggiornamento disponibile",
+    "menuTitle": "Aggiornamento disponibile: v{{version}} — clicca per installare",
+    "menuUpToDate": "Aggiornato",
+    "menuUpToDateTitle": "Aggiornato — clicca per ricontrollare",
+    "menuCheck": "Verifica aggiornamenti"
   },
   "analyticsCharts": {
     "no_data": "Nessun dato",

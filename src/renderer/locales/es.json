@@ -2386,8 +2386,11 @@
     "failed": "Error al descargar la actualización",
     "noAsset": "Ningún archivo instalable para este sistema: página de versiones abierta en el navegador",
     "busy": "Descarga ya en curso…",
-    "menuButton": "Actualización",
-    "menuTitle": "Actualización disponible: v{{version}} — haga clic para instalar"
+    "menuButton": "Actualización disponible",
+    "menuTitle": "Actualización disponible: v{{version}} — haga clic para instalar",
+    "menuUpToDate": "Al día",
+    "menuUpToDateTitle": "Al día — haga clic para volver a comprobar",
+    "menuCheck": "Buscar actualizaciones"
   },
   "analyticsCharts": {
     "no_data": "Sin datos",

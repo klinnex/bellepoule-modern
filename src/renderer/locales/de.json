@@ -2386,8 +2386,11 @@
     "failed": "Download des Updates fehlgeschlagen",
     "noAsset": "Keine installierbare Datei für dieses System: Release-Seite im Browser geöffnet",
     "busy": "Download läuft bereits…",
-    "menuButton": "Update",
-    "menuTitle": "Update verfügbar: v{{version}} — zum Installieren klicken"
+    "menuButton": "Update verfügbar",
+    "menuTitle": "Update verfügbar: v{{version}} — zum Installieren klicken",
+    "menuUpToDate": "Aktuell",
+    "menuUpToDateTitle": "Aktuell — klicken, um erneut zu prüfen",
+    "menuCheck": "Nach Updates suchen"
   },
   "analyticsCharts": {
     "no_data": "Keine Daten",

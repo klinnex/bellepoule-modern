@@ -2386,8 +2386,11 @@
     "failed": "Update download failed",
     "noAsset": "No installable file for this system: releases page opened in the browser",
     "busy": "Download already in progress…",
-    "menuButton": "Update",
-    "menuTitle": "Update available: v{{version}} — click to install"
+    "menuButton": "Update available",
+    "menuTitle": "Update available: v{{version}} — click to install",
+    "menuUpToDate": "Up to date",
+    "menuUpToDateTitle": "Up to date — click to check again",
+    "menuCheck": "Check for updates"
   },
   "analyticsCharts": {
     "no_data": "No data",

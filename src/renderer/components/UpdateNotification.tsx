@@ -65,7 +65,9 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
       setVisible(true);
     });
     // Bouton clignotant de l'en-tête : réaffiche la bannière même fermée
-    const onShow = () => {
+    const onShow = (e: Event) => {
+      const info = (e as CustomEvent<UpdateInfo | undefined>).detail;
+      if (info) setUpdateInfo(info);
       setDismissed(false);
       setVisible(true);
     };

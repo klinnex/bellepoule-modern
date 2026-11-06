@@ -22,34 +22,77 @@ const INFO = {
 
 describe('UpdateMenuButton — bouton clignotant de l’en-tête', () => {
   let listeners: Array<(info: typeof INFO) => void>;
+  let check: ReturnType<typeof vi.fn>;
+  let getAutoCheck: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     listeners = [];
+    check = vi.fn().mockResolvedValue({ ...INFO, hasUpdate: false });
+    getAutoCheck = vi.fn().mockResolvedValue({ enabled: true });
     (window as unknown as { electronAPI: unknown }).electronAPI = {
       onUpdateAvailable: (cb: (info: typeof INFO) => void) => {
         listeners.push(cb);
         return () => {};
       },
       onUpdateProgress: () => () => {},
-      updater: { downloadAndInstall: vi.fn() },
+      updater: { downloadAndInstall: vi.fn(), check, getAutoCheck },
     };
   });
 
-  it('absent sans mise à jour, affiché (classe clignotante) dès update:available', () => {
-    render(<UpdateMenuButton />);
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  it('« À jour » après vérification ; clic → revérifie', async () => {
+    await act(async () => {
+      render(<UpdateMenuButton />);
+    });
+    const btn = screen.getByRole('button', { name: /À jour/ });
+    expect(btn).not.toHaveClass('update-menu-button');
+    await act(async () => {
+      fireEvent.click(btn);
+    });
+    expect(check).toHaveBeenCalledTimes(2);
+  });
+
+  it('« Mise à jour dispo » clignotant dès update:available', async () => {
+    await act(async () => {
+      render(<UpdateMenuButton />);
+    });
     act(() => listeners.forEach(l => l(INFO)));
     const btn = screen.getByRole('button', { name: /v1\.3\.0/ });
     expect(btn).toHaveClass('update-menu-button');
+    expect(btn).toHaveTextContent('Mise à jour dispo');
   });
 
-  it('clic : réaffiche la bannière fermée', () => {
-    render(
-      <>
-        <UpdateMenuButton />
-        <UpdateNotification />
-      </>
-    );
+  it('vérification au lancement désactivée : pas de requête, bouton « Vérifier »', async () => {
+    getAutoCheck.mockResolvedValue({ enabled: false });
+    await act(async () => {
+      render(<UpdateMenuButton />);
+    });
+    expect(check).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /Vérifier les mises à jour/ })).toBeInTheDocument();
+  });
+
+  it('mise à jour trouvée au lancement : clic ouvre la bannière avec la version', async () => {
+    check.mockResolvedValue(INFO);
+    await act(async () => {
+      render(
+        <>
+          <UpdateMenuButton />
+          <UpdateNotification />
+        </>
+      );
+    });
+    fireEvent.click(screen.getByRole('button', { name: /v1\.3\.0/ }));
+    expect(screen.getByRole('button', { name: /Installer/ })).toBeInTheDocument();
+  });
+
+  it('clic : réaffiche la bannière fermée', async () => {
+    await act(async () => {
+      render(
+        <>
+          <UpdateMenuButton />
+          <UpdateNotification />
+        </>
+      );
+    });
     act(() => listeners.forEach(l => l(INFO)));
     fireEvent.click(screen.getByRole('button', { name: '✖️' }));
     expect(screen.queryByRole('button', { name: /Installer/ })).not.toBeInTheDocument();

@@ -2386,8 +2386,11 @@
     "failed": "Échec du téléchargement de la mise à jour",
     "noAsset": "Aucun fichier installable pour ce système : page des versions ouverte dans le navigateur",
     "busy": "Téléchargement déjà en cours…",
-    "menuButton": "Mise à jour",
-    "menuTitle": "Mise à jour disponible : v{{version}} — cliquer pour installer"
+    "menuButton": "Mise à jour dispo",
+    "menuTitle": "Mise à jour disponible : v{{version}} — cliquer pour installer",
+    "menuUpToDate": "À jour",
+    "menuUpToDateTitle": "Version à jour — cliquer pour revérifier",
+    "menuCheck": "Vérifier les mises à jour"
   },
   "analyticsCharts": {
     "no_data": "Aucune donnée",
