@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 36 | 241 |
+| `src/remote/` | 37 | 248 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **269** | **2219** |
+| **Total** | **270** | **2226** |
 
-Unitaires : 260 fichiers, 2184 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 261 fichiers, 2191 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4257,6 +4257,20 @@ Unitaires : 260 fichiers, 2184 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - inversion : permutation des côtés et des couleurs
   - assigné (pas en cours) et score absent
   - XSS : noms, clubs et identifiants échappés
+  - kiosk.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskBracketRender.test.ts</code> — 7 tests</summary>
+
+- **kioskBracketRender.js**
+  - bracketBadge : joués / total, byes exclus
+  - géométrie : taille naturelle, centres des matchs, colonnes
+  - réduction à la hauteur disponible
+  - gabarit : cartes, vainqueur, score, arène, connecteurs, bandeau finale
+  - petite finale : pas de connecteur vers ou depuis le round 3
+  - XSS : noms et arène échappés, byes ignorés
   - kiosk.html charge le module et délègue
 
 </details>

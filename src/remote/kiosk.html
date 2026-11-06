@@ -14,6 +14,7 @@
     <script src="/js/kioskTiming.js"></script>
     <script src="/js/kioskData.js"></script>
     <script src="/js/kioskArenas.js"></script>
+    <script src="/js/kioskBracketRender.js"></script>
     <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts.css" />
     <style>
@@ -2487,13 +2488,7 @@
         }
 
         // Badge & subtitle communs
-        const pending = data.rounds.reduce(
-          (n, r) => n + r.matches.filter(m => m.status !== 'finished' && !m.isBye).length,
-          0
-        );
-        const total = data.rounds.reduce((n, r) => n + r.matches.filter(m => !m.isBye).length, 0);
-        document.getElementById('tableau-badge').textContent =
-          'T' + data.tableSize + ' · ' + (total - pending) + '/' + total;
+        document.getElementById('tableau-badge').textContent = KioskBracketRender.bracketBadge(data);
         const orderedForLabel = getBracketRoundOrder(data.rounds);
         document.getElementById('tableau-subtitle').textContent = data.currentRound
           ? orderedForLabel.find(r => r.round === data.currentRound)?.label ||
@@ -2526,174 +2521,27 @@
           return;
         }
 
-        const { cardW, cardH, colGap, rowGap } = getBracketDims(data);
-        const firstRound = orderedRounds[0].round; // ex: 16 pour T16
-        const cardSlot = cardH + rowGap;
-
-        // Hauteur totale = nombre de matchs dans le 1er round * cardSlot
-        const firstRoundMatchCount = firstRound / 2;
-        let totalH = firstRoundMatchCount * cardSlot;
-
-        // Adapter si trop grand pour la fenêtre.
         // En mode ciné : pas de réduction, on garde la taille naturelle (le zoom gère).
         const availH = cinema ? Infinity : Math.max(200, (window.innerHeight || 800) - 220);
-        let scale = 1;
-        if (totalH > availH) {
-          scale = availH / totalH;
-          totalH = availH;
-        }
-        const sCardW = Math.round(cardW * scale);
-        const sCardH = Math.round(cardH * scale);
-        const sColGap = Math.round(colGap * scale);
-        state.bracketScaledCardW = sCardW;
-        state.bracketScaledColGap = sColGap;
-
-        const totalW = orderedRounds.length * (sCardW + sColGap) + sColGap;
-        const labelH = 28;
-
-        // Fonction Y-center d'un match (pos 1-indexed, round = round value)
-        const yCenter = (pos, round) => ((2 * pos - 1) / round) * totalH;
-
-        let cardsHtml = '';
-        const connectors = []; // { x1, y1, x2, y2 }
-
-        for (let ci = 0; ci < orderedRounds.length; ci++) {
-          const rd = orderedRounds[ci];
-          const r = rd.round;
-          const colX = ci * (sCardW + sColGap) + sColGap / 2;
-          const isActive = r === data.currentRound;
-
-          for (const match of rd.matches) {
-            if (match.isBye) continue;
-            const p = match.position || 1;
-            const yc = yCenter(p, r);
-            const yTop = Math.round(yc - sCardH / 2);
-            const cls = [
-              'bracket-match',
-              match.status === 'live'
-                ? 'match--live'
-                : match.status === 'finished'
-                  ? 'match--finished'
-                  : 'match--pending',
-            ].join(' ');
-
-            const fA = match.fencerA;
-            const fB = match.fencerB;
-            const nameA = fA
-              ? escHtml(fA.lastName + (fA.firstName ? ' ' + fA.firstName[0] + '.' : ''))
-              : '?';
-            const nameB = fB
-              ? escHtml(fB.lastName + (fB.firstName ? ' ' + fB.firstName[0] + '.' : ''))
-              : r === 2
-                ? 'TBD'
-                : '?';
-            const winA = match.winnerId && fA && match.winnerId === fA.id;
-            const winB = match.winnerId && fB && match.winnerId === fB.id;
-            const sA = match.scoreA !== null && match.scoreA !== undefined ? match.scoreA : '';
-            const sB = match.scoreB !== null && match.scoreB !== undefined ? match.scoreB : '';
-
-            // Trophée finale
-            const isFinal = r === 2 && match.position === 1;
-            const winnerName = isFinal && winA ? nameA : isFinal && winB ? nameB : null;
-
-            const arenaHtml = match.arenaName
-              ? `<div class="bm-arena">${escHtml(match.arenaName)}</div>`
-              : '';
-            const fontSize = scale < 0.7 ? 'style="font-size:0.62rem"' : '';
-
-            cardsHtml += `<div class="${cls}" style="position:absolute;left:${escHtml(colX)}px;top:${escHtml(yTop)}px;width:${escHtml(sCardW)}px;height:${escHtml(sCardH)}px">
-              <div class="bm-row ${winA ? 'bm-winner' : winB ? 'bm-loser' : ''}" ${fontSize}>
-                <span class="bm-name">${/* html */ nameA}</span>
-                <span class="bm-score">${escHtml(sA)}</span>
-              </div>
-              <div class="bm-divider"></div>
-              ${arenaHtml}
-              <div class="bm-row ${winB ? 'bm-winner' : winA ? 'bm-loser' : ''}" ${fontSize}>
-                <span class="bm-name">${/* html */ nameB}</span>
-                <span class="bm-score">${escHtml(sB)}</span>
-              </div>
-            </div>`;
-
-            // Connecteurs SVG vers le round suivant (sauf petite finale)
-            if (ci < orderedRounds.length - 1) {
-              const nextRd = orderedRounds[ci + 1];
-              // Ne pas connecter si l'un des deux est la petite finale (round=3)
-              if (r !== 3 && nextRd.round !== 3) {
-                const nextP = Math.ceil(p / 2);
-                const nextYc = yCenter(nextP, nextRd.round);
-                connectors.push({
-                  x1: colX + sCardW,
-                  y1: Math.round(yc),
-                  x2: (ci + 1) * (sCardW + sColGap) + sColGap / 2,
-                  y2: Math.round(nextYc),
-                });
-              }
-            }
-          }
-        }
-
-        // Labels de round
-        let labelsHtml = '';
-        for (let ci = 0; ci < orderedRounds.length; ci++) {
-          const rd = orderedRounds[ci];
-          const colX = ci * (sCardW + sColGap) + sColGap / 2;
-          const isActive = rd.round === data.currentRound;
-          labelsHtml += `<div class="bracket-round-label${isActive ? ' active-round' : ''}" style="left:${escHtml(colX)}px;width:${escHtml(sCardW)}px">${escHtml(rd.label)}</div>`;
-        }
-
-        // Chemins SVG
-        const svgPaths = connectors
-          .map(c => {
-            const xMid = Math.round((c.x1 + c.x2) / 2);
-            return `<path d="M${escHtml(c.x1)},${escHtml(c.y1)} L${escHtml(xMid)},${escHtml(c.y1)} L${escHtml(xMid)},${escHtml(c.y2)} L${escHtml(c.x2)},${escHtml(c.y2)}" />`;
-          })
-          .join('');
-
-        // Chercher le vainqueur final
-        const finaleRound = orderedRounds.find(r => r.round === 2);
-        const finaleMatch = finaleRound?.matches?.[0];
-        let winnerBanner = '';
-        if (finaleMatch?.winnerId && (finaleMatch.fencerA || finaleMatch.fencerB)) {
-          const winner =
-            finaleMatch.winnerId === finaleMatch.fencerA?.id
-              ? finaleMatch.fencerA
-              : finaleMatch.fencerB;
-          if (winner) {
-            winnerBanner = `<div class="bracket-trophy-banner">🏆 ${escHtml(winner.lastName + ' ' + (winner.firstName || ''))}</div>`;
-          }
-        }
+        const { html, layout } = KioskBracketRender.buildCompactBracket(
+          data,
+          orderedRounds,
+          getBracketDims(data),
+          availH,
+          escHtml
+        );
+        state.bracketScaledCardW = layout.cardW;
+        state.bracketScaledColGap = layout.colGap;
 
         renderFinalRanking();
-        container.style.width = totalW + 'px';
+        container.style.width = layout.totalW + 'px';
         container.style.minWidth = '';
-        container.innerHTML = `
-          <div class="bracket-round-labels" style="width:${escHtml(totalW)}px;position:relative;height:${escHtml(labelH)}px;flex-shrink:0;margin-bottom:6px">
-            ${labelsHtml}
-          </div>
-          <div class="bracket-matches-layer" style="position:relative;width:${escHtml(totalW)}px;height:${escHtml(totalH)}px">
-            ${cardsHtml}
-            <svg class="bracket-svg" width="${escHtml(totalW)}" height="${escHtml(totalH)}"
-                 style="position:absolute;top:0;left:0;overflow:visible;pointer-events:none">
-              <g stroke="rgba(100,116,139,0.45)" stroke-width="1.5" fill="none">${/* html */ svgPaths}</g>
-            </svg>
-          </div>
-          ${/* html */ winnerBanner}`;
+        container.innerHTML = html;
 
         // Mode ciné : mémoriser la géométrie et lancer le pan-zoom auto.
         const outer = document.getElementById('bracket-outer');
         if (cinema) {
-          cinemaState.layout = {
-            orderedRounds,
-            colX: orderedRounds.map((rd, ci) => ci * (sCardW + sColGap) + sColGap / 2),
-            cardW: sCardW,
-            cardH: sCardH,
-            totalW,
-            totalH,
-            matchTop: labelH + 6, // décalage de la couche matchs sous les labels
-            innerH: labelH + 6 + totalH,
-            yCenter,
-            currentRound: data.currentRound,
-          };
+          cinemaState.layout = layout;
           outer.classList.add('cinema');
           startCinemaMode();
         } else {
