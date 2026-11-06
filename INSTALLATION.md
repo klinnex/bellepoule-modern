@@ -118,6 +118,21 @@ This guide covers how to download, install, and run BellePoule Modern on Windows
    npm run package:linux  # Linux (AppImage, deb, rpm)
    ```
 
+### Nix (flake)
+
+The repository ships a `flake.nix` that builds the app with Nix (Linux, `x86_64` and `aarch64`). Electron comes from nixpkgs, and `better-sqlite3` is recompiled against its headers.
+
+```bash
+nix run github:klinnex/bellepoule-modern          # run the app
+nix build github:klinnex/bellepoule-modern        # → ./result/bin/bellepoule-modern
+```
+
+For maintainers: the `nix-build` CI job builds the package on every push to `dev` and `main`. When `package-lock.json` changes, regenerate the npm hash in `flake.nix` (`npmDepsHash`):
+
+```bash
+nix run nixpkgs#prefetch-npm-deps -- package-lock.json
+```
+
 ### Development Environment Setup
 
 For contributors who want to develop BellePoule Modern:

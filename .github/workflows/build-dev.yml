@@ -65,6 +65,17 @@ jobs:
           npm run build:renderer
           node scripts/check-bundle-size.js
 
+  nix-build:
+    # Paquet Nix (flake.nix) : à chaque commit, vérifie que le paquet build
+    # (échoue si npmDepsHash ne correspond plus à package-lock.json)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - name: Build Nix package
+        run: nix build .#default --no-link --print-build-logs
+
   increment-version:
     runs-on: ubuntu-latest
     permissions:
