@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { generatePoolHTML, exportMultiplePoolsToPDF, allPoolsFileName } from './poolPdf';
+import {
+  generatePoolHTML,
+  exportMultiplePoolsToPDF,
+  printMultiplePoolsHTML,
+  allPoolsFileName,
+} from './poolPdf';
 import { buildDefaultTemplate } from '../../types/pdfTemplate.types';
 import { MatchStatus, type Pool, type Fencer, type Match } from '../../types';
 
@@ -70,6 +75,24 @@ describe('exportMultiplePoolsToPDF – un seul PDF (#1413)', () => {
     expect(saveFile.mock.calls[0][0].defaultPath).toBe('Open-poules.pdf');
     expect(printHtmlToPDF).toHaveBeenCalledTimes(1);
     const html = printHtmlToPDF.mock.calls[0][0] as string;
+    expect(html).toContain('pools-export-break');
+    expect(html.match(/<!DOCTYPE html>/g)).toHaveLength(1);
+  });
+});
+
+describe('printMultiplePoolsHTML – une seule fenêtre (#1413)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("toutes les feuilles dans un seul appel d'impression", async () => {
+    const printHtml = vi.fn().mockResolvedValue({ success: true });
+    vi.stubGlobal('window', { electronAPI: { file: { printHtml } } });
+    const p1 = makePool();
+    const p2 = { ...makePool(), id: 'p2', number: 2 } as Pool;
+    await printMultiplePoolsHTML([p1, p2], 'T', undefined, undefined, 'Open');
+    expect(printHtml).toHaveBeenCalledTimes(1);
+    const html = printHtml.mock.calls[0][0] as string;
     expect(html).toContain('pools-export-break');
     expect(html.match(/<!DOCTYPE html>/g)).toHaveLength(1);
   });
