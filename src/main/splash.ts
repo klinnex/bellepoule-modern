@@ -18,24 +18,47 @@ const MIN_SPLASH_MS = 0;
 // Language persistence file — read before renderer loads so splash can pre-select
 const LANG_FILE = () => path.join(app.getPath('userData'), 'bellepoule-language.json');
 
-export function readSavedLanguage(): string {
+interface SplashPrefs {
+  language?: string;
+  /** false = splash masqué au démarrage (langue mémorisée appliquée directement) */
+  showSplash?: boolean;
+}
+
+function readPrefs(): SplashPrefs {
   try {
-    const raw = fs.readFileSync(LANG_FILE(), 'utf-8');
-    const parsed = JSON.parse(raw) as { language?: string };
-    return parsed.language || 'fr';
+    const parsed = JSON.parse(fs.readFileSync(LANG_FILE(), 'utf-8')) as SplashPrefs;
+    return parsed && typeof parsed === 'object' ? parsed : {};
   } catch {
-    return 'fr';
+    return {};
   }
 }
 
-export function saveLanguageToFile(lang: string): void {
+function writePrefs(patch: SplashPrefs): void {
   try {
     const userDataPath = app.getPath('userData');
     if (!fs.existsSync(userDataPath)) fs.mkdirSync(userDataPath, { recursive: true });
-    fs.writeFileSync(LANG_FILE(), JSON.stringify({ language: lang }), 'utf-8');
+    fs.writeFileSync(LANG_FILE(), JSON.stringify({ ...readPrefs(), ...patch }), 'utf-8');
   } catch (e) {
-    logger.error(LogCategory.SYSTEM, 'Failed to save language preference:', toError(e));
+    logger.error(LogCategory.SYSTEM, 'Failed to save splash preferences:', toError(e));
   }
+}
+
+export function readSavedLanguage(): string {
+  const lang = readPrefs().language;
+  return typeof lang === 'string' && lang ? lang : 'fr';
+}
+
+export function saveLanguageToFile(lang: string): void {
+  writePrefs({ language: lang });
+}
+
+/** Splash affiché au démarrage ? (true par défaut) */
+export function isSplashEnabled(): boolean {
+  return readPrefs().showSplash !== false;
+}
+
+export function setSplashEnabled(enabled: boolean): void {
+  writePrefs({ showSplash: enabled });
 }
 
 // Promise that resolves when the user confirms a language in the splash screen
@@ -45,6 +68,13 @@ export const splashConfirmPromise = new Promise<string>(resolve => {
 });
 
 export function createSplashWindow(): void {
+  if (!isSplashEnabled()) {
+    // Splash désactivé : langue mémorisée appliquée directement
+    const lang = readSavedLanguage();
+    setUiLanguage(lang);
+    splashConfirmResolve?.(lang);
+    return;
+  }
   splashWindow = new BrowserWindow({
     width: 520,
     height: 480,
@@ -94,12 +124,21 @@ export function createSplashWindow(): void {
 }
 
 // IPC: splash confirms language choice
-ipcMain.once('splash:confirm', (_event, lang: string) => {
+ipcMain.once('splash:confirm', (_event, lang: string, hideNextTime?: unknown) => {
   const validLangs = ['fr', 'en', 'de', 'es', 'it', 'zh-HK', 'br', 'ca'];
   const confirmed = validLangs.includes(lang) ? lang : 'fr';
   saveLanguageToFile(confirmed);
+  if (hideNextTime === true) setSplashEnabled(false);
   setUiLanguage(confirmed);
   splashConfirmResolve?.(confirmed);
+});
+
+// IPC: préférence « afficher le splash au démarrage » (Paramètres)
+ipcMain.handle('app:getSplashEnabled', () => ({ enabled: isSplashEnabled() }));
+ipcMain.handle('app:setSplashEnabled', (_event, enabled: unknown) => {
+  if (typeof enabled !== 'boolean') throw new Error('Enabled must be a boolean');
+  setSplashEnabled(enabled);
+  return { success: true, enabled };
 });
 
 // IPC: user closes splash without confirming → quit
