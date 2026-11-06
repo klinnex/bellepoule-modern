@@ -1273,6 +1273,8 @@
     "apply_saved_theme": "Applica un tema salvato",
     "themes_option": "📦 Temi…",
     "copy_url": "Copia l'URL",
+    "copy_url_short": "URL",
+    "copied_short": "Copiato",
     "qr_code": "QR code",
     "qr_label": "Pedana {{number}} – {{screen}}",
     "matches": "Incontri",

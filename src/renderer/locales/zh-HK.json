@@ -1273,6 +1273,8 @@
     "apply_saved_theme": "套用已儲存的主題",
     "themes_option": "📦 主題…",
     "copy_url": "複製網址",
+    "copy_url_short": "URL",
+    "copied_short": "已複製",
     "qr_code": "QR 碼",
     "qr_label": "劍道 {{number}} – {{screen}}",
     "matches": "比賽",
