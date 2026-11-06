@@ -245,3 +245,38 @@ export function formatNationality(code: string | undefined | null): string {
   const flag = flagEmoji(code);
   return flag ? `${flag} ${code}` : code;
 }
+
+/** ISO alpha-2 minuscule (nom du fichier SVG du drapeau) ; '' si inconnu. */
+export function flagIso(code: string | undefined | null): string {
+  if (!code) return '';
+  const upper = code.trim().toUpperCase();
+  const iso2 = upper.length === 2 ? upper : BY_CODE.get(upper)?.iso2;
+  return iso2 && /^[A-Z]{2}$/.test(iso2) ? iso2.toLowerCase() : '';
+}
+
+function normalizeText(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+/**
+ * Index du premier pays dont le nom (ou le code) commence par `prefix`
+ * (insensible à la casse et aux accents) ; -1 si aucun. Recherche à partir de `from`.
+ */
+export function findCountryIndex(
+  list: readonly { code: string; name: string }[],
+  prefix: string,
+  from = 0
+): number {
+  const p = normalizeText(prefix.trim());
+  if (!p) return -1;
+  const n = list.length;
+  for (let k = 0; k < n; k++) {
+    const i = (from + k) % n;
+    if (normalizeText(list[i].name).startsWith(p)) return i;
+  }
+  for (let k = 0; k < n; k++) {
+    const i = (from + k) % n;
+    if (normalizeText(list[i].code).startsWith(p)) return i;
+  }
+  return -1;
+}

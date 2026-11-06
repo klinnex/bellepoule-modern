@@ -129,6 +129,11 @@ module.exports = (env = {}) => ({
           noErrorOnMissing: true,
         },
         {
+          // Drapeaux SVG (flag-icons, MIT) : les emoji drapeaux ne s'affichent pas sous Windows
+          from: 'src/renderer/assets/flags',
+          to: 'flags',
+        },
+        {
           from: 'src/remote',
           to: '../remote',
           noErrorOnMissing: true,

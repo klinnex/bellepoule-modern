@@ -598,6 +598,9 @@ const electronApi = {
       }
       return ipcRenderer.invoke('updater:setAutoCheck', enabled);
     },
+    getDownloadDir: () => ipcRenderer.invoke('updater:getDownloadDir'),
+    chooseDownloadDir: () => ipcRenderer.invoke('updater:chooseDownloadDir'),
+    resetDownloadDir: () => ipcRenderer.invoke('updater:resetDownloadDir'),
     getChannel: () => ipcRenderer.invoke('updater:getChannel'),
     setChannel: (channel: 'stable' | 'dev') => {
       if (channel !== 'stable' && channel !== 'dev') {
