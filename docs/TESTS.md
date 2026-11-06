@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 49 | 389 |
+| `src/main/` | 50 | 403 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 51 | 263 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **273** | **2258** |
+| **Total** | **274** | **2272** |
 
-Unitaires : 264 fichiers, 2223 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 265 fichiers, 2237 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2861,18 +2861,27 @@ Unitaires : 264 fichiers, 2223 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/updateAssets.test.ts</code> — 16 tests</summary>
+<summary><code>src/main/updateAssets.test.ts</code> — 24 tests</summary>
 
 - **detectInstallKind**
   - AppImage sous Linux
   - exe portable sous Windows
   - installeur par défaut
+- **detectInstallKind — macOS / paquets Linux**
+  - macOS : bundle .app dans un dossier inscriptible → macapp
+  - macOS : dossier en lecture seule (translocation) → installer
+  - Linux hors AppImage : deb sur Debian/Ubuntu, rpm sinon
+  - AppImage prioritaire sur le paquet
+  - macAppBundle
 - **selectUpdateAsset**
   - Windows installé → setup NSIS, jamais le portable
   - Windows portable → portable
   - macOS respecte l’architecture
   - Linux AppImage → AppImage de la bonne arch
   - Linux paquet → deb en priorité
+  - macOS .app inscriptible → zip de la bonne arch
+  - macOS .app sans zip publié → dmg
+  - Linux deb / rpm → format du système, sinon AppImage
   - accepte un asset sans arch
   - null si rien d’adapté
 - **replaceExecutableInPlace**
@@ -2903,6 +2912,20 @@ Unitaires : 264 fichiers, 2223 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **toTrustedDownloadUrl**
   - reconstruit l’URL sur l’hôte de confiance
   - refuse autre hôte, http, port, identifiants
+
+</details>
+
+<details>
+<summary><code>src/main/updateNativeInstall.test.ts</code> — 6 tests</summary>
+
+- **replaceMacAppBundle**
+  - remplace le bundle par celui de l’archive (ditto simulé)
+  - archive sans .app → erreur, bundle intact, pas de reste
+  - extraction en échec → bundle intact
+- **linuxPackageInstallCommand**
+  - deb : apt-get via pkexec, sinon dpkg
+  - rpm : dnf, zypper, puis rpm
+  - null sans pkexec ou chemin relatif
 
 </details>
 

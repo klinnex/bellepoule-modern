@@ -128,8 +128,9 @@ Asset choisi par `src/main/updateAssets.ts` (plateforme + arch + mode), téléch
 | AppImage (`APPIMAGE`) | remplacement du fichier en place + relance |
 | Windows portable (`PORTABLE_EXECUTABLE_FILE`) | nouvel exe copié à côté sous le nom de l'asset (l'exe courant est verrouillé par son lanceur) + relance ; ancien exe supprimé au lancement suivant |
 | Windows installé | `-setup.exe` NSIS ouvert via ShellExecute (UAC si Program Files) |
-| macOS | ouverture du `.dmg` de la bonne arch |
-| Linux deb/rpm | remis au gestionnaire de logiciels |
+| macOS, `.app` dans un dossier inscriptible | `.zip` extrait (`ditto`), bundle `.app` remplacé en place + relance (`src/main/updateNativeInstall.ts`) |
+| macOS, dossier en lecture seule (translocation) | ouverture du `.dmg` de la bonne arch |
+| Linux deb (`/etc/debian_version`) / rpm | paquet du format système installé via `pkexec` (apt-get / dpkg, dnf / zypper / rpm) + relance ; échec ou annulation → gestionnaire de logiciels. Pas de paquet publié (rpm arm64) → AppImage |
 
 Repli sur la page des versions GitHub uniquement si aucun asset ne correspond.
 
