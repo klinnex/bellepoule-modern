@@ -337,7 +337,15 @@
     "tts_m0": "«¡Tiempo!» (final)",
     "tour_title": "Recorrido guiado",
     "tour_hint": "Una guía de 6 pasos para su primera competición (tiradores, lista, poules, entrada remota, resultados, cuadro).",
-    "tour_restart": "Relanzar el recorrido guiado"
+    "tour_restart": "Relanzar el recorrido guiado",
+    "search_placeholder": "Buscar un ajuste…",
+    "search_empty": "Ningún ajuste coincide.",
+    "section_display": "Visualización",
+    "section_scoring": "Introducción de puntuaciones",
+    "section_documents": "Documentos y PDF",
+    "section_referee": "Arbitraje",
+    "section_notifications": "Notificaciones",
+    "section_system": "Sistema"
   },
   "actions": {
     "add": "Agregar",

@@ -337,7 +337,15 @@
     "tts_m0": "« Tempo! » (fine)",
     "tour_title": "Percorso guidato",
     "tour_hint": "Una guida in 6 passaggi per la tua prima competizione (schermidori, conferma presenze, gironi, inserimento remoto, punteggi, tabellone).",
-    "tour_restart": "Riavvia il percorso guidato"
+    "tour_restart": "Riavvia il percorso guidato",
+    "search_placeholder": "Cerca un'impostazione…",
+    "search_empty": "Nessuna impostazione corrispondente.",
+    "section_display": "Visualizzazione",
+    "section_scoring": "Inserimento punteggi",
+    "section_documents": "Documenti e PDF",
+    "section_referee": "Arbitraggio",
+    "section_notifications": "Notifiche",
+    "section_system": "Sistema"
   },
   "actions": {
     "add": "Aggiungi",

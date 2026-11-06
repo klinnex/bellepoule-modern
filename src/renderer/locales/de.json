@@ -459,7 +459,15 @@
     "tts_m0": "„Zeit!\" (Ende)",
     "tour_title": "Geführter Rundgang",
     "tour_hint": "Eine Anleitung in 6 Schritten für Ihr erstes Turnier (Fechter, Anwesenheit, Gruppen, Ferneingabe, Ergebnisse, Tableau).",
-    "tour_restart": "Geführten Rundgang neu starten"
+    "tour_restart": "Geführten Rundgang neu starten",
+    "search_placeholder": "Einstellungen durchsuchen…",
+    "search_empty": "Keine passende Einstellung.",
+    "section_display": "Anzeige",
+    "section_scoring": "Punkteingabe",
+    "section_documents": "Dokumente & PDF",
+    "section_referee": "Kampfrichter",
+    "section_notifications": "Benachrichtigungen",
+    "section_system": "System"
   },
   "shortcuts": {
     "category_actions": "Aktionen",

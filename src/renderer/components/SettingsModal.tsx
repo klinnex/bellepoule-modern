@@ -3,10 +3,10 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useFocusTrap } from '../hooks/useFocusTrap';
-import { HINT, SECTION_DIVIDER, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
+import { HINT, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
 import type { Language } from '../contexts/TranslationContext';
 import LanguageSelector from './LanguageSelector';
 import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
@@ -52,6 +52,121 @@ const TTS_THRESHOLDS: { key: string; label: string }[] = [
   { key: 'countdown', label: 'settings.tts_countdown' },
   { key: '0', label: 'settings.tts_m0' },
 ];
+
+// Organisation des paramètres : sections (onglets) → réglages.
+// `keys` = clés de traduction parcourues par la recherche.
+type SettingsSectionId =
+  'display' | 'scoring' | 'documents' | 'referee' | 'notifications' | 'system';
+type SettingsItemId =
+  | 'language'
+  | 'pseudo'
+  | 'theme'
+  | 'text_size'
+  | 'animations'
+  | 'quick_mouse'
+  | 'simplified'
+  | 'audit'
+  | 'logo'
+  | 'pdf'
+  | 'tts'
+  | 'webhook'
+  | 'updates'
+  | 'tour';
+
+interface SettingsSectionDef {
+  id: SettingsSectionId;
+  icon: string;
+  labelKey: string;
+  items: { id: SettingsItemId; keys: string[] }[];
+}
+
+const SETTINGS_SECTIONS: SettingsSectionDef[] = [
+  {
+    id: 'display',
+    icon: '🎨',
+    labelKey: 'settings.section_display',
+    items: [
+      { id: 'language', keys: ['settings.language'] },
+      { id: 'theme', keys: ['settings.theme'] },
+      { id: 'text_size', keys: ['settings.text_size'] },
+      { id: 'animations', keys: ['settings.animations_title', 'settings.animations_hint'] },
+      { id: 'pseudo', keys: ['settings.pseudo_locale', 'settings.pseudo_locale_hint'] },
+    ],
+  },
+  {
+    id: 'scoring',
+    icon: '✏️',
+    labelKey: 'settings.section_scoring',
+    items: [
+      { id: 'quick_mouse', keys: ['settings.quick_mouse_title', 'settings.quick_mouse_hint'] },
+      { id: 'simplified', keys: ['settings.simplified_title', 'settings.simplified_hint'] },
+      { id: 'audit', keys: ['settings.audit_title', 'settings.audit_hint'] },
+    ],
+  },
+  {
+    id: 'documents',
+    icon: '📄',
+    labelKey: 'settings.section_documents',
+    items: [
+      { id: 'logo', keys: ['settings.logo_title', 'settings.logo_hint'] },
+      { id: 'pdf', keys: ['settings.pdf_title', 'settings.pdf_hint'] },
+    ],
+  },
+  {
+    id: 'referee',
+    icon: '🔊',
+    labelKey: 'settings.section_referee',
+    items: [
+      {
+        id: 'tts',
+        keys: [
+          'settings.tts_title',
+          'settings.tts_hint',
+          'settings.tts_voice',
+          'settings.tts_milestones',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'notifications',
+    icon: '🔔',
+    labelKey: 'settings.section_notifications',
+    items: [{ id: 'webhook', keys: ['settings.webhook_title', 'settings.webhook_hint'] }],
+  },
+  {
+    id: 'system',
+    icon: '⚙️',
+    labelKey: 'settings.section_system',
+    items: [
+      {
+        id: 'updates',
+        keys: ['settings.updates_title', 'settings.updates_hint', 'settings.updates_channel'],
+      },
+      { id: 'tour', keys: ['settings.tour_title', 'settings.tour_hint'] },
+    ],
+  },
+];
+
+const SECTION_STORAGE_KEY = 'bellepoule-settings-section';
+
+function loadActiveSection(): SettingsSectionId {
+  try {
+    const saved = localStorage.getItem(SECTION_STORAGE_KEY);
+    if (saved && SETTINGS_SECTIONS.some(s => s.id === saved)) return saved as SettingsSectionId;
+  } catch {
+    /* stockage indisponible */
+  }
+  return 'display';
+}
+
+// Minuscules sans accents : « theme » trouve « Thème »
+function normalizeSearch(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
 
 function loadTtsConfig(): TtsConfig {
   try {
@@ -388,25 +503,46 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     onClose();
   };
 
-  return (
-    <>
-      {/* Clic extérieur sans effet : fermeture via ✕ / Échap (#1033) */}
-      <div className="modal-overlay">
-        <div
-          ref={modalRef}
-          className="modal is-72fca9"
-          onClick={e => e.stopPropagation()}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="modal-header">
-            <h2 className="modal-title">{t('settings.title')}</h2>
-            <button className="btn-close" onClick={onClose} aria-label={t('common.close')}>
-              &times;
-            </button>
-          </div>
+  // Navigation par section + recherche transversale
+  const [activeSection, setActiveSection] = useState<SettingsSectionId>(() => loadActiveSection());
+  const [query, setQuery] = useState('');
+  const normalizedQuery = normalizeSearch(query.trim());
+  const searching = normalizedQuery.length > 0;
 
-          <div className="modal-body">
+  const visibleSections = useMemo(() => {
+    if (!searching) {
+      const section = SETTINGS_SECTIONS.find(s => s.id === activeSection) ?? SETTINGS_SECTIONS[0];
+      return [{ section, items: section.items }];
+    }
+    return SETTINGS_SECTIONS.map(section => {
+      const sectionLabel = t(section.labelKey);
+      const items = section.items.filter(item =>
+        normalizeSearch([sectionLabel, ...item.keys.map(k => t(k))].join(' ')).includes(
+          normalizedQuery
+        )
+      );
+      return { section, items };
+    }).filter(entry => entry.items.length > 0);
+  }, [searching, activeSection, normalizedQuery, t]);
+
+  const matchCount = (id: SettingsSectionId): number =>
+    visibleSections.find(entry => entry.section.id === id)?.items.length ?? 0;
+
+  const selectSection = (id: SettingsSectionId) => {
+    setQuery('');
+    setActiveSection(id);
+    try {
+      localStorage.setItem(SECTION_STORAGE_KEY, id);
+    } catch {
+      /* stockage indisponible */
+    }
+  };
+
+  const renderItem = (id: SettingsItemId): React.ReactNode => {
+    switch (id) {
+      case 'language':
+        return (
+          <>
             <div className="form-group">
               <LanguageSelector
                 showLabel={true}
@@ -414,7 +550,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 onLanguageChange={handleLanguageChange}
               />
             </div>
-
+          </>
+        );
+      case 'pseudo':
+        return (
+          <>
             <div className="form-group">
               <label className="u-row">
                 <input
@@ -426,7 +566,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
               </label>
               <p style={HINT}>{t('settings.pseudo_locale_hint')}</p>
             </div>
-
+          </>
+        );
+      case 'theme':
+        return (
+          <>
             <div className="form-group">
               <label>{t('settings.theme')}</label>
               <select
@@ -439,7 +583,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 <option value="dark">{t('settings.theme_dark')}</option>
               </select>
             </div>
-
+          </>
+        );
+      case 'text_size':
+        return (
+          <>
             <div className="form-group">
               <label htmlFor="settings-ui-scale">{t('settings.text_size')}</label>
               <select
@@ -455,8 +603,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 ))}
               </select>
             </div>
-
-            {/* Logo organisateur */}
+          </>
+        );
+      case 'logo':
+        return (
+          <>
             <div className="form-group">
               <label>{t('settings.logo_title')}</label>
               <p style={HINT}>{t('settings.logo_hint')}</p>
@@ -508,8 +659,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 </button>
               )}
             </div>
-            {/* PDF Templates */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'pdf':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.pdf_title')}</label>
               <p style={HINT}>{t('settings.pdf_hint')}</p>
               <button
@@ -519,18 +674,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 {t('pdfTemplate.openButton')}
               </button>
             </div>
-
-            {/* Parcours guidé (#1305) */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'tour':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.tour_title')}</label>
               <p style={HINT}>{t('settings.tour_hint')}</p>
               <button type="button" className="btn btn-secondary" onClick={restartGuidedTour}>
                 {t('settings.tour_restart')}
               </button>
             </div>
-
-            {/* Saisie rapide souris */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'quick_mouse':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.quick_mouse_title')}</label>
               <p style={HINT}>{t('settings.quick_mouse_hint')}</p>
               <label className="u-row cursor-pointer">
@@ -542,9 +703,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 <span style={TOGGLE_LABEL}>{t('settings.quick_mouse_enable')}</span>
               </label>
             </div>
-
-            {/* Mode de saisie simplifiée */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'simplified':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.simplified_title')}</label>
               <p style={HINT}>{t('settings.simplified_hint')}</p>
               <label className="u-row cursor-pointer">
@@ -556,9 +720,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 <span style={TOGGLE_LABEL}>{t('settings.simplified_enable')}</span>
               </label>
             </div>
-
-            {/* Journal des scores */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'audit':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.audit_title')}</label>
               <p style={HINT}>{t('settings.audit_hint')}</p>
               <label className="u-row cursor-pointer">
@@ -570,9 +737,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 <span style={TOGGLE_LABEL}>{t('settings.audit_enable')}</span>
               </label>
             </div>
-
-            {/* Animations */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'animations':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.animations_title')}</label>
               <p style={HINT}>{t('settings.animations_hint')}</p>
               <label className="u-row cursor-pointer">
@@ -584,9 +754,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 <span style={TOGGLE_LABEL}>{t('settings.animations_disable')}</span>
               </label>
             </div>
-
-            {/* Mises à jour */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'updates':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.updates_title')}</label>
               <p style={HINT}>{t('settings.updates_hint')}</p>
               <label className="u-row cursor-pointer">
@@ -598,8 +771,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 <span style={TOGGLE_LABEL}>{t('settings.updates_enable')}</span>
               </label>
             </div>
-
-            {/* Canal de mise à jour */}
             {updateChannel && (
               <div className="form-group">
                 <label htmlFor="update-channel" style={BOLD}>
@@ -617,9 +788,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 </select>
               </div>
             )}
-
-            {/* Notifications webhook */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'webhook':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.webhook_title')}</label>
               <p style={HINT}>{t('settings.webhook_hint')}</p>
               <input
@@ -663,9 +837,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 </p>
               )}
             </div>
-
-            {/* Tableau arbitrage — minuteur vocal (TTS) */}
-            <div className="form-group" style={SECTION_DIVIDER}>
+          </>
+        );
+      case 'tts':
+        return (
+          <>
+            <div className="form-group">
               <label style={BOLD}>{t('settings.tts_title')}</label>
               <p style={HINT}>{t('settings.tts_hint')}</p>
 
@@ -716,6 +893,80 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                     />
                     <span style={TOGGLE_LABEL}>{t(label)}</span>
                   </label>
+                ))}
+              </div>
+            </div>
+          </>
+        );
+    }
+  };
+
+  return (
+    <>
+      {/* Clic extérieur sans effet : fermeture via ✕ / Échap (#1033) */}
+      <div className="modal-overlay">
+        <div
+          ref={modalRef}
+          className="modal settings-modal"
+          onClick={e => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="modal-header">
+            <h2 className="modal-title">{t('settings.title')}</h2>
+            <button className="btn-close" onClick={onClose} aria-label={t('common.close')}>
+              &times;
+            </button>
+          </div>
+
+          <div className="modal-body settings-body">
+            <input
+              type="search"
+              className="form-input settings-search"
+              placeholder={t('settings.search_placeholder')}
+              aria-label={t('settings.search_placeholder')}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+            />
+            <div className="settings-layout">
+              <nav className="settings-nav" role="tablist" aria-orientation="vertical">
+                {SETTINGS_SECTIONS.map(section => {
+                  const count = matchCount(section.id);
+                  const selected = !searching && section.id === activeSection;
+                  return (
+                    <button
+                      key={section.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      className={`settings-nav-item${selected ? ' is-active' : ''}`}
+                      disabled={searching && count === 0}
+                      onClick={() => selectSection(section.id)}
+                    >
+                      <span aria-hidden="true">{section.icon}</span>
+                      <span className="settings-nav-label">{t(section.labelKey)}</span>
+                      {searching && count > 0 && (
+                        <span className="settings-nav-count">{count}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+              <div className="settings-panel" role="tabpanel">
+                {visibleSections.length === 0 && (
+                  <p className="settings-empty">{t('settings.search_empty')}</p>
+                )}
+                {visibleSections.map(({ section, items }) => (
+                  <section key={section.id} className="settings-section">
+                    <h3 className="settings-section-title">
+                      <span aria-hidden="true">{section.icon}</span> {t(section.labelKey)}
+                    </h3>
+                    {items.map(item => (
+                      <div key={item.id} className="settings-item">
+                        {renderItem(item.id)}
+                      </div>
+                    ))}
+                  </section>
                 ))}
               </div>
             </div>

@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 46 | 359 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 48 | 238 |
+| `src/renderer/components/` | 49 | 243 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 23 | 137 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **249** | **2047** |
+| **Total** | **250** | **2052** |
 
-Unitaires : 240 fichiers, 2012 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 241 fichiers, 2017 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3579,6 +3579,18 @@ Unitaires : 240 fichiers, 2012 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - affiche un message si le serveur distant n’est pas démarré
   - bascule vers l’onglet pointage
   - le bouton Fermer déclenche onClose
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/SettingsModal.test.tsx</code> — 5 tests</summary>
+
+- **SettingsModal**
+  - affiche un onglet par section et seulement le contenu de l'onglet actif
+  - change d'onglet et mémorise le choix
+  - rouvre sur le dernier onglet utilisé
+  - la recherche filtre toutes les sections (insensible aux accents)
+  - affiche un message si aucun résultat
 
 </details>
 

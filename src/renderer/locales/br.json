@@ -337,7 +337,15 @@
     "tts_m0": "« Amzer ! » (fin)",
     "tour_title": "Rakstur sturiet",
     "tour_hint": "Ur sturier e 6 pazenn evit ho kentañ kevezadenn (tennerien, pointañ, poulennoù, enrollañ a-bell, skoreoù, taolenn).",
-    "tour_restart": "Adloc'hañ ar rakstur sturiet"
+    "tour_restart": "Adloc'hañ ar rakstur sturiet",
+    "search_placeholder": "Klask un arventenn…",
+    "search_empty": "Arventenn ebet o klotañ.",
+    "section_display": "Diskwel",
+    "section_scoring": "Enankañ ar skorioù",
+    "section_documents": "Teulioù & PDF",
+    "section_referee": "Breutaerezh",
+    "section_notifications": "Kemennoù",
+    "section_system": "Reizhiad"
   },
   "actions": {
     "add": "Ouzhpenn",
