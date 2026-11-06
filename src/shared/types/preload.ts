@@ -1315,6 +1315,9 @@ export interface PrintDialogAPI {
   ) => void;
 }
 
+/** Types d'événements du bus de données main → renderer (#1298) */
+export type CompetitionEventType = 'fencers:changed' | 'matches:changed';
+
 export interface ElectronAPI extends MenuAPI, UtilityAPI {
   printDialog: PrintDialogAPI;
   db: DatabaseAPI;
@@ -1344,7 +1347,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   ) => () => void;
   /** Bus d'événements de données main → renderer (#1298) */
   onCompetitionEvent: (
-    callback: (event: { type: 'fencers:changed'; competitionId?: string }) => void
+    callback: (event: { type: CompetitionEventType; competitionId?: string }) => void
   ) => () => void;
   onRemoteFencerExcluded: (
     callback: (data: { fencerId: string; matchId: string; reason?: 'black_card' }) => void

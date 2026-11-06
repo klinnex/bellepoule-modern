@@ -6,6 +6,7 @@ import { BrowserWindow, ipcMain } from 'electron';
 import type { DatabaseManager } from '../../database';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { Card } from '../../shared/types';
+import type { CompetitionEventType } from '../../shared/types/preload';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
 
 export interface DbHandlersContext {
@@ -15,7 +16,7 @@ export interface DbHandlersContext {
 }
 
 /** Diffuse un événement de données aux fenêtres du renderer (bus main → renderer, #1298). */
-export function emitCompetitionEvent(type: 'fencers:changed', competitionId?: string): void {
+export function emitCompetitionEvent(type: CompetitionEventType, competitionId?: string): void {
   for (const win of BrowserWindow.getAllWindows()) {
     if (!win.isDestroyed()) win.webContents.send('competition:event', { type, competitionId });
   }
@@ -92,7 +93,9 @@ export function registerDbHandlers({
 
   // Match handlers
   ipcMain.handle('db:createMatch', async (_, match, poolId) => {
-    return db.createMatch(match, poolId);
+    const created = db.createMatch(match, poolId);
+    emitCompetitionEvent('matches:changed');
+    return created;
   });
 
   ipcMain.handle('db:getMatch', async (_, id) => {
@@ -126,6 +129,7 @@ export function registerDbHandlers({
     } else {
       db.updateMatch(id, updates);
     }
+    emitCompetitionEvent('matches:changed');
 
     // Propager l'assignation d'arbitre au serveur distant
     if (updates.refereeId) {
@@ -140,13 +144,17 @@ export function registerDbHandlers({
   });
 
   ipcMain.handle('db:upsertTableauMatch', async (_, params) => {
-    return db.upsertTableauMatch(params);
+    const result = db.upsertTableauMatch(params);
+    emitCompetitionEvent('matches:changed');
+    return result;
   });
 
   ipcMain.handle(
     'db:upsertMultipleTableauMatches',
     async (_, competitionId: string, matches: any[]) => {
-      return db.upsertMultipleTableauMatches(competitionId, matches);
+      const result = db.upsertMultipleTableauMatches(competitionId, matches);
+      emitCompetitionEvent('matches:changed', competitionId);
+      return result;
     }
   );
 

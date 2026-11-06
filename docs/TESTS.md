@@ -97,16 +97,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 48 | 383 |
 | `src/renderer/services/` | 6 | 34 |
-| `src/renderer/hooks/` | 26 | 125 |
+| `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 24 | 143 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **256** | **2108** |
+| **Total** | **256** | **2111** |
 
-Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 247 fichiers, 2076 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3085,10 +3085,11 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useCompetitionEvent.test.ts</code> — 3 tests</summary>
+<summary><code>src/renderer/hooks/useCompetitionEvent.test.ts</code> — 4 tests</summary>
 
 - **useCompetitionEvent**
   - appelle le callback pour la compétition concernée uniquement
+  - filtre par type : matches:changed n'active pas fencers:changed
   - se désabonne au démontage
   - ne plante pas sans electronAPI
 
@@ -3159,7 +3160,7 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/hooks/useFencerManagement.test.tsx</code> — 8 tests</summary>
 
 - **addFencer**
   - ajoute le tireur et notifie le parent
@@ -3174,6 +3175,8 @@ Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - supprime le tireur et notifie
 - **deleteAllFencers**
   - vide la liste et notifie
+- **bus fencers:changed (#1298)**
+  - recharge les tireurs une seule fois pour une rafale, et se désabonne
 
 </details>
 

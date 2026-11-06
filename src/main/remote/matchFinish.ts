@@ -4,6 +4,7 @@
  * Licensed under GPL-3.0
  */
 import { MatchStatus } from '../../shared/types';
+import { emitCompetitionEvent } from '../ipc/dbHandlers';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import type { ArenaEventList } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
@@ -293,6 +294,7 @@ export function finishArenaMatch(ctx: MatchFinishContext, arenaId: string): void
           scoreB: scoreBObj,
           status: MatchStatus.FINISHED,
         });
+        emitCompetitionEvent('matches:changed', ctx.session?.competitionId);
         ctx.db.logScoreChange({
           matchId: effectiveDbId,
           arenaId,
