@@ -15,6 +15,7 @@ import type { PoolRouteContext } from './poolRoutes';
 import { baseArenaId, matchesTakenBySiblings } from '../arenaSlots';
 import { getSharedMainWindow } from '../../mainWindowRef';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
+import { emitCompetitionEvent } from '../../ipc/dbHandlers';
 
 /** État et opérations utilisés par les routes de matchs des arènes. */
 export interface MatchRouteContext extends PoolRouteContext {
@@ -337,6 +338,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           scoreB: scoreBObj,
           status: MatchStatus.FINISHED,
         });
+        emitCompetitionEvent('matches:changed', ctx.session?.competitionId);
         // Synchroniser sessionMatchScores pour que peekNextMatch/loadNextMatch
         // puisse filtrer ce match comme terminé (sinon il réapparaît comme "prochain")
         ctx.sessionMatchScores.set(matchId, {

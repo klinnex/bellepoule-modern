@@ -11,6 +11,8 @@
     <script src="/js/timerFormat.js"></script><script src="/js/priorityDraw.js"></script>
     <script src="/js/offlineQueue.js"></script>
     <script src="/js/refereeFaults.js"></script>
+    <script src="/js/refereeTts.js"></script>
+    <script src="/js/refereeControls.js"></script>
     <script src="/js/refereeDemoMirror.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
@@ -3220,15 +3222,15 @@
 
         // Repos (escrime olympique) : chrono à 00:00, met le temps de repos sans fin de match (#1134)
         canStartRest() {
-          return (
-            this.isModernFencing &&
-            this.restSeconds > 0 &&
-            !!this.currentMatch &&
-            this.matchStatus === 'in_progress' &&
-            this.timerSeconds === 0 &&
-            !this.timerRunning &&
-            !this.isResting
-          );
+          return BPRefereeControls.canStartRest({
+            isModernFencing: this.isModernFencing,
+            restSeconds: this.restSeconds,
+            hasMatch: !!this.currentMatch,
+            matchStatus: this.matchStatus,
+            timerSeconds: this.timerSeconds,
+            timerRunning: this.timerRunning,
+            isResting: this.isResting,
+          });
         }
 
         updateRestButton() {
@@ -3296,36 +3298,22 @@
           this.ttsEnabled = !this.ttsEnabled;
           const btn = document.getElementById('btn-tts-toggle');
           if (btn) btn.textContent = window.T(this.ttsEnabled ? 'referee.voice_on' : 'referee.voice_off');
-          if (this.ttsEnabled) {
-            const MSG = {
-              fr: 'Minuteur vocal activé', en: 'Voice timer enabled',
-              de: 'Sprachtimer aktiviert', 'zh-HK': '語音計時器已啟用', es: 'Temporizador por voz activado', ca: 'Temporitzador per veu activat', it: 'Timer vocale attivato', pt: 'Temporizador de voz ativado', ru: 'Голосовой таймер включён',
-            };
-            this.ttsSpeak(MSG[this.ttsLangCode()] || MSG.fr);
-          }
+          if (this.ttsEnabled) this.ttsSpeak(BPRefereeTts.enabledMessage(this.ttsLangCode()));
         }
 
         // Fusionne une config TTS partielle reçue du serveur dans la config locale
         applyTtsConfig(c) {
-          if (!c || typeof c !== 'object') return;
-          if (typeof c.voiceName === 'string' || c.voiceName === null) this.ttsConfig.voiceName = c.voiceName;
-          if (typeof c.rate === 'number' && c.rate > 0) this.ttsConfig.rate = c.rate;
-          if (c.announce && typeof c.announce === 'object') {
-            this.ttsConfig.announce = { ...this.ttsConfig.announce, ...c.announce };
-          }
+          BPRefereeTts.mergeTtsConfig(this.ttsConfig, c);
         }
 
-        // Code de langue normalisé pour le TTS (fr / en / de / es / pt / it / ru / ca / zh-HK ; br → fr, pas de voix bretonne)
+        // Code de langue normalisé pour le TTS (/js/refereeTts.js)
         ttsLangCode() {
-          const lang = (document.documentElement.lang || 'fr').toLowerCase();
-          const m = /^(de|en|es|pt|it|ru|ca)/.exec(lang); if (m) return m[1];
-          if (lang.startsWith('zh')) return 'zh-HK';
-          return 'fr';
+          return BPRefereeTts.ttsLangCode(document.documentElement.lang);
         }
 
         // Balise BCP-47 pour SpeechSynthesisUtterance.lang
         ttsBcp47(code) {
-          return { fr: 'fr-FR', en: 'en-GB', de: 'de-DE', es: 'es-ES', pt: 'pt-PT', it: 'it-IT', ru: 'ru-RU', ca: 'ca-ES', 'zh-HK': 'zh-HK' }[code] || 'fr-FR';
+          return BPRefereeTts.ttsBcp47(code);
         }
 
         ttsSpeak(text) {
@@ -3348,35 +3336,10 @@
           if (!this.ttsEnabled) return;
           const s = this.timerSeconds;
           if (this._ttsAnnouncedSeconds.has(s)) return;
-          const L = this.ttsLangCode();
-          const PHRASES = {
-            fr: { 60: 'Une minute', 30: 'Trente secondes', 10: 'Dix secondes', 0: 'Temps !' },
-            en: { 60: 'One minute', 30: 'Thirty seconds', 10: 'Ten seconds', 0: 'Time!' },
-            de: { 60: 'Eine Minute', 30: 'Dreißig Sekunden', 10: 'Zehn Sekunden', 0: 'Zeit!' },
-            es: { 60: 'Un minuto', 30: 'Treinta segundos', 10: 'Diez segundos', 0: '¡Tiempo!' }, ca: { 60: 'Un minut', 30: 'Trenta segons', 10: 'Deu segons', 0: 'Temps!' }, it: { 60: 'Un minuto', 30: 'Trenta secondi', 10: 'Dieci secondi', 0: 'Tempo!' }, pt: { 60: 'Um minuto', 30: 'Trinta segundos', 10: 'Dez segundos', 0: 'Tempo!' }, ru: { 60: 'Одна минута', 30: 'Тридцать секунд', 10: 'Десять секунд', 0: 'Время!' },
-            'zh-HK': { 60: '一分鐘', 30: '三十秒', 10: '十秒', 0: '時間！' },
-          };
-          const NUMS = {
-            fr: { 5: '5', 4: '4', 3: '3', 2: '2', 1: '1' },
-            en: { 5: '5', 4: '4', 3: '3', 2: '2', 1: '1' },
-            de: { 5: '5', 4: '4', 3: '3', 2: '2', 1: '1' },
-            'zh-HK': { 5: '五', 4: '四', 3: '三', 2: '二', 1: '一' },
-          };
-          const THRESHOLDS = { ...PHRASES[L], ...(NUMS[L] || NUMS.fr) };
-          // Quel palier (clé de config announce) correspond à cette seconde ?
-          const a = this.ttsConfig.announce || {};
-          let key = null;
-          if (s === 60) key = '60';
-          else if (s === 30) key = '30';
-          else if (s === 10) key = '10';
-          else if (s === 5) key = '5';
-          else if (s >= 1 && s <= 4) key = 'countdown';
-          else if (s === 0) key = '0';
-          if (key && a[key] === false) { this._ttsAnnouncedSeconds.add(s); return; }
-          if (s in THRESHOLDS) {
-            this._ttsAnnouncedSeconds.add(s);
-            this.ttsSpeak(THRESHOLDS[s]);
-          }
+          const ann = BPRefereeTts.announcementFor(s, this.ttsLangCode(), this.ttsConfig.announce);
+          if (!ann) return;
+          this._ttsAnnouncedSeconds.add(s);
+          if (ann.text) this.ttsSpeak(ann.text);
         }
 
         prepareSuddenDeath() {
@@ -3555,18 +3518,11 @@
           const timerEl = document.getElementById('timer-display');
           window.BPTimer.renderTimer(timerEl, this._timerCs / 100, { alwaysTenths: true });
           // Classes visuelles
-          timerEl.className = 'timer-display';
-          if (this.timerRunning) {
-            timerEl.classList.add('running');
-          } else if (this.timerSeconds < this.defaultTimerSeconds) {
-            timerEl.classList.add('paused');
-          }
-
-          if (this.timerSeconds <= 10) {
-            timerEl.classList.add('danger');
-          } else if (this.timerSeconds <= 30) {
-            timerEl.classList.add('warning');
-          }
+          timerEl.className = BPRefereeControls.timerClasses({
+            timerRunning: this.timerRunning,
+            timerSeconds: this.timerSeconds,
+            defaultTimerSeconds: this.defaultTimerSeconds,
+          }).join(' ');
 
           // Affichage mort subite (synchronise label + état boutons)
           this.updateSuddenDeathUI();
@@ -3859,59 +3815,29 @@
         updateControlButtons() {
           const startBtn = document.getElementById('btn-start');
           const finishBtn = document.getElementById('btn-finish');
+          const st = BPRefereeControls.controlButtonsState({
+            priorityAnimating: this._priorityAnimating,
+            waitingOvertimeStart: this.waitingOvertimeStart,
+            waitingCoinFlip: this.waitingCoinFlip,
+            scoreA: this.scoreA,
+            scoreB: this.scoreB,
+            matchStatus: this.matchStatus,
+            hasMatch: !!this.currentMatch,
+            timerRunning: this.timerRunning,
+            overtimeLabel: this.waitingOvertimeStart ? this.overtimeLabel() : '',
+          });
+          if (st.lockAll) return void [startBtn, finishBtn].forEach(b => b && (b.disabled = true));
 
-          // Tirage du prioritaire en cours (#1442) : rien à lancer
-          if (this._priorityAnimating) return void [startBtn, finishBtn].forEach(b => b && (b.disabled = true));
-
-          // État d'attente : l'arbitre doit déclencher manuellement les 30s
-          if (this.waitingOvertimeStart) {
-            startBtn.disabled = false;
-            startBtn.textContent = window.T('referee.launch_overtime', { label: this.overtimeLabel() });
-            startBtn.className = 'control-btn btn-launch-overtime';
-            if (finishBtn) finishBtn.disabled = false;
-            this.updateScoreButtons();
-            return;
-          }
-
-          // Fin du temps supplémentaire à égalité : tirage au sort manuel (#1136)
-          if (this.waitingCoinFlip && this.scoreA === this.scoreB) {
-            startBtn.disabled = false;
-            startBtn.textContent = window.T('referee.coin_btn');
-            startBtn.className = 'control-btn btn-launch-overtime';
-            if (finishBtn) finishBtn.disabled = false;
-            this.updateScoreButtons();
-            this.updateRestButton();
-            return;
-          }
-
-          // Réinitialiser les classes
-          startBtn.className = 'control-btn btn-start';
-
-          if (this.matchStatus === 'not_started') {
-            startBtn.disabled = !this.currentMatch;
-            startBtn.textContent = window.T('referee.start');
-            startBtn.className = 'control-btn btn-start';
-          } else if (this.matchStatus === 'in_progress') {
-            startBtn.disabled = false;
-            if (this.timerRunning) {
-              startBtn.textContent = window.T('referee.pause');
-              startBtn.className = 'control-btn btn-pause';
-            } else {
-              startBtn.textContent = window.T('referee.resume');
-              startBtn.className = 'control-btn btn-resume';
-            }
-          } else {
-            startBtn.disabled = true;
-            startBtn.textContent = window.T('referee.start');
-          }
-
-          finishBtn.disabled = this.matchStatus !== 'in_progress';
-          this.updateScoreButtons();
-          this.updateRestButton();
+          startBtn.disabled = st.start.disabled;
+          startBtn.textContent = window.T(st.start.key, st.start.params);
+          startBtn.className = st.start.className;
+          if (finishBtn) finishBtn.disabled = st.finishDisabled;
+          if (st.updateScoreButtons) this.updateScoreButtons();
+          if (st.updateRestButton) this.updateRestButton();
         }
 
         updateScoreButtons() {
-          const locked = this.matchStatus === 'not_started' || this.matchStatus === 'finished';
+          const locked = BPRefereeControls.scoreButtonsLocked(this.matchStatus);
           document.querySelectorAll('.score-btn, .card-btn').forEach(btn => {
             btn.disabled = locked;
           });

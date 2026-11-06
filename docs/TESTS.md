@@ -95,18 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 48 | 386 |
+| `src/main/` | 49 | 389 |
 | `src/renderer/services/` | 6 | 34 |
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 27 | 165 |
+| `src/remote/` | 30 | 189 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **259** | **2140** |
+| **Total** | **263** | **2167** |
 
-Unitaires : 250 fichiers, 2105 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 254 fichiers, 2132 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2240,6 +2240,16 @@ Unitaires : 250 fichiers, 2105 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/ipc/dbHandlers.test.ts</code> — 3 tests</summary>
+
+- **bus d’événements db (#1298)**
+  - emitCompetitionEvent diffuse aux fenêtres
+  - db:updateMatch et db:createMatch émettent matches:changed
+  - db:addFencer émet fencers:changed pour la compétition
+
+</details>
+
+<details>
 <summary><code>src/main/ipc/fileHandlers.test.ts</code> — 2 tests</summary>
 
 - **registerFileHandlers (#1341)**
@@ -4265,6 +4275,22 @@ Unitaires : 250 fichiers, 2105 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/remote/js/kioskData.test.ts</code> — 8 tests</summary>
+
+- **kioskData.js vues**
+  - viewDefault : final désactivé par défaut, les autres activés
+  - resolveViewChecks : local prioritaire, sinon serveur, sinon null
+- **kioskData.js loadKioskData**
+  - sans session : false, aucun autre appel
+  - compétition : poules, classement général fourni ou null, arènes, suivants
+  - classement général fourni par le serveur transmis
+  - entraînement : historique au lieu des poules
+  - erreur réseau propagée (reprise gérée par l’appelant)
+  - kiosk.html charge le module et délègue
+
+</details>
+
+<details>
 <summary><code>src/remote/js/kioskEta.test.ts</code> — 5 tests</summary>
 
 - **kioskEta.js**
@@ -4332,6 +4358,24 @@ Unitaires : 250 fichiers, 2105 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/remote/js/refereeControls.test.ts</code> — 10 tests</summary>
+
+- **refereeControls.js controlButtonsState**
+  - tirage du prioritaire : tout verrouillé
+  - attente du temps supplémentaire : libellé avec la durée, pas de bouton repos
+  - tirage au sort : seulement à égalité
+  - match non commencé : désactivé sans match
+  - en cours : pause / reprise, terminer actif
+  - terminé : démarrer désactivé
+- **refereeControls.js chrono et repos**
+  - timerClasses
+  - scoreButtonsLocked
+  - canStartRest : toutes les conditions requises
+  - referee.html charge le module et délègue
+
+</details>
+
+<details>
 <summary><code>src/remote/js/refereeDemoMirror.test.ts</code> — 3 tests</summary>
 
 - **tablette arbitre miroir (démo autonome)**
@@ -4350,6 +4394,19 @@ Unitaires : 250 fichiers, 2105 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - cartons de passivité vs standard
   - lastIndexWhere
   - referee.html charge le module et ne redéfinit plus les constantes
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeTts.test.ts</code> — 6 tests</summary>
+
+- **refereeTts.js**
+  - ttsLangCode : normalisation, br et inconnu -\> fr
+  - ttsBcp47 et message d’activation avec repli fr
+  - mergeTtsConfig : champs valides seulement, announce fusionné
+  - announceKey : paliers
+  - announcementFor : phrase, chiffres, repli numérique, palier coupé, rien
+  - referee.html charge le module et délègue
 
 </details>
 
