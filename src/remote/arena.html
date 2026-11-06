@@ -12,6 +12,7 @@
     <script src="/js/arenaOverlays.js"></script>
     <script src="/js/arenaRender.js"></script>
     <script src="/js/arenaPanels.js"></script>
+    <script src="/js/arenaUpdate.js"></script>
     <style>
 
       /* Police 7 segments — style radio-réveil LCD (embarquée en base64) */
@@ -1786,120 +1787,50 @@
         }
 
         handleArenaUpdate(data) {
-          // Tireur prioritaire : cadre doré effacé dès que le match change (#1442)
-          if (this._prioFencerId && data.match !== undefined) {
-            const m = data.match;
-            if (!m || ![m.fencerA?.id, m.fencerB?.id].includes(this._prioFencerId)) {
-              this._prioFencerId = null;
-              this.applyPriorityFrame(null);
+          // Plan pur (/js/arenaUpdate.js) : opérations ordonnées appliquées ici
+          const ops = ArenaUpdate.planArenaUpdate(
+            {
+              _prioFencerId: this._prioFencerId,
+              theme: this.theme,
+              currentCustomTheme: this.currentCustomTheme,
+              matchStatus: this.matchStatus,
+              showPhotos: this.showPhotos,
+              inversionEnabled: this.inversionEnabled,
+            },
+            data
+          );
+          for (const o of ops) {
+            switch (o.op) {
+              case 'set':
+                this[o.key] = o.value;
+                break;
+              case 'applyPriorityFrame':
+                this.applyPriorityFrame(o.side);
+                break;
+              case 'applyTheme':
+                this.applyTheme(o.theme, o.customTheme);
+                break;
+              case 'syncInversion': {
+                const cb = document.getElementById('inversion-checkbox');
+                if (cb) cb.checked = o.value;
+                localStorage.setItem('inversionEnabled', o.value);
+                break;
+              }
+              case 'hideCoinFlip': {
+                const overlay = document.getElementById('coin-flip-overlay');
+                if (overlay) overlay.classList.add('hidden');
+                break;
+              }
+              case 'score':
+                document.getElementById(o.id).textContent = o.value;
+                break;
+              case 'updateTimerDisplay':
+                this.updateTimerDisplay(o.timerStatus);
+                break;
+              default:
+                this[o.op]();
             }
           }
-          // Mise à jour du thème visuel
-          if (data.theme) {
-            const themeChanged = data.theme !== this.theme;
-            const customStr = JSON.stringify(data.customTheme || null);
-            const prevCustomStr = JSON.stringify(this.currentCustomTheme);
-            if (themeChanged || (data.theme === 'custom' && customStr !== prevCustomStr)) {
-              this.applyTheme(data.theme, data.customTheme);
-            }
-          }
-
-          // Mise à jour du réglage photos
-          if (data.showPhotos !== undefined) {
-            this.showPhotos = data.showPhotos;
-          }
-
-          // Mise à jour flag gestion arbitres
-          if (data.refereeFeatureEnabled !== undefined) {
-            this.refereeFeatureEnabled = data.refereeFeatureEnabled;
-          }
-
-          // Mise à jour état d'inversion (synchronisé avec le serveur)
-          if (data.swapped !== undefined) {
-            this.inversionEnabled = data.swapped;
-            const cb = document.getElementById('inversion-checkbox');
-            if (cb) cb.checked = data.swapped;
-            localStorage.setItem('inversionEnabled', data.swapped);
-            this.applyInversionColors();
-            this.updateMatchDisplay();
-            this.updateVisibility();
-            if (this.matchStatus === 'ready' && this.showPhotos) {
-              this.updatePhotoIntro();
-            }
-          }
-
-          // Mise à jour du statut
-          if (data.status) {
-            this.matchStatus = data.status;
-            this.updateStatusBadge();
-            if (data.status === 'finished') {
-              const overlay = document.getElementById('coin-flip-overlay');
-              if (overlay) overlay.classList.add('hidden');
-            }
-          }
-
-          // Mise à jour du match
-          if (data.match) {
-            this.currentMatch = data.match;
-            this.updateMatchDisplay();
-            if (this.matchStatus === 'ready' && this.showPhotos) {
-              this.updatePhotoIntro();
-            }
-          }
-
-          // Prochain combat
-          if ('nextMatch' in data) {
-            this.nextMatch = data.nextMatch || null;
-            if (this.matchStatus === 'idle' || this.matchStatus === 'not_started' ||
-                (this.matchStatus === 'ready' && !this.showPhotos)) {
-              this.updateIdleNextMatchDisplay();
-            }
-          }
-
-          // Mise à jour des scores (respecte l'inversion)
-          if (data.scoreA !== undefined) {
-            document.getElementById(this.inversionEnabled ? 'score-a' : 'score-b').textContent = data.scoreA;
-          }
-          if (data.scoreB !== undefined) {
-            document.getElementById(this.inversionEnabled ? 'score-b' : 'score-a').textContent = data.scoreB;
-          }
-
-          // Mise à jour des cartons
-          if (data.cardsA) {
-            this.cardsA = data.cardsA;
-            this.updateCardsDisplay();
-          }
-          if (data.cardsB) {
-            this.cardsB = data.cardsB;
-            this.updateCardsDisplay();
-          }
-
-          // Mise à jour du timer
-          if (data.time !== undefined) {
-            this.timerSeconds = data.time;
-            this.updateTimerDisplay(data.timerStatus);
-          }
-
-          // Mise à jour mort subite
-          if (data.suddenDeath !== undefined) {
-            this.isSuddenDeath = data.suddenDeath;
-          }
-          if (data.overtimeType !== undefined) {
-            this.overtimeType = data.overtimeType;
-          }
-          // Mise à jour état attente overtime
-          if (data.waitingOvertime !== undefined) {
-            this.waitingOvertime = data.waitingOvertime;
-          }
-          // Clear automatique quand le timer de mort subite démarre
-          if (data.suddenDeath) {
-            this.waitingOvertime = false;
-          }
-          this.updateWaitingOvertimeBanner();
-          this.updateSuddenDeathBanner();
-
-          // Afficher/masquer selon le statut
-          this.updateVisibility();
         }
 
         updateStatusBadge() {
