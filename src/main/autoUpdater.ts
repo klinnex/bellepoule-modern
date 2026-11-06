@@ -5,7 +5,6 @@
  */
 
 import { app, dialog, shell, BrowserWindow } from 'electron';
-import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import {
@@ -17,6 +16,7 @@ import {
 } from './pendingUpdate';
 import { parseSha256Digest, isTrustedDownloadUrl, verifyFileSha256 } from './updateIntegrity';
 import { parseReleaseBuild, pickLatestRelease } from './updateReleases';
+import { downloadToFile, getJson } from './updateHttp';
 import {
   cleanupReplacedExecutable,
   detectInstallKind,
@@ -33,6 +33,18 @@ import { logger, LogCategory, toError } from '../shared/services/logger';
 /** Libellé unique par build (les builds dev partagent la même version X.Y.Z). */
 function pendingVersionLabel(info: { latestVersion: string; latestBuild: number }): string {
   return `${info.latestVersion} (Build #${info.latestBuild})`;
+}
+
+const GITHUB_API = 'https://api.github.com/repos/klinnex/bellepoule-modern';
+
+/**
+ * Page de release reconstruite sur la base constante (jamais l'URL renvoyée par
+ * l'API : CodeQL js/client-side-unvalidated-url-redirection). Repli : liste des versions.
+ */
+function releasePageUrl(build: number): string {
+  return Number.isInteger(build) && build > 0
+    ? `https://github.com/klinnex/bellepoule-modern/releases?q=${build}`
+    : RELEASES_URL;
 }
 
 const RELEASES_URL = 'https://github.com/klinnex/bellepoule-modern/releases/latest';
@@ -265,132 +277,18 @@ export class AutoUpdater {
   }
 
   private async fetchLatestReleaseDirect(): Promise<any> {
-    return new Promise(resolve => {
-      const options = {
-        hostname: 'api.github.com',
-        path: '/repos/klinnex/bellepoule-modern/releases/latest',
-        method: 'GET',
-        headers: {
-          'User-Agent': 'BellePoule-Modern',
-          Accept: 'application/vnd.github.v3+json',
-        },
-      };
-
-      const req = https.request(options, res => {
-        let data = '';
-
-        res.on('data', chunk => {
-          data += chunk;
-        });
-
-        res.on('end', () => {
-          try {
-            if (res.statusCode === 200) {
-              const release = JSON.parse(data);
-              resolve(release);
-            } else {
-              resolve(null);
-            }
-          } catch (e) {
-            resolve(null);
-          }
-        });
-      });
-
-      req.on('error', () => resolve(null));
-      req.setTimeout(10000, () => {
-        req.destroy();
-        resolve(null);
-      });
-
-      req.end();
-    });
+    const data = await getJson(`${GITHUB_API}/releases/latest`);
+    return data ?? null;
   }
 
   private async fetchReleases(): Promise<any[]> {
-    return new Promise(resolve => {
-      const options = {
-        hostname: 'api.github.com',
-        path: '/repos/klinnex/bellepoule-modern/releases',
-        method: 'GET',
-        headers: {
-          'User-Agent': 'BellePoule-Modern',
-          Accept: 'application/vnd.github.v3+json',
-        },
-      };
-
-      const req = https.request(options, res => {
-        let data = '';
-
-        res.on('data', chunk => {
-          data += chunk;
-        });
-
-        res.on('end', () => {
-          try {
-            if (res.statusCode === 200) {
-              const releases = JSON.parse(data);
-              resolve(releases);
-            } else {
-              resolve([]);
-            }
-          } catch (e) {
-            resolve([]);
-          }
-        });
-      });
-
-      req.on('error', () => resolve([]));
-      req.setTimeout(10000, () => {
-        req.destroy();
-        resolve([]);
-      });
-
-      req.end();
-    });
+    const data = await getJson(`${GITHUB_API}/releases`);
+    return Array.isArray(data) ? data : [];
   }
 
   private async fetchTags(): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      const options = {
-        hostname: 'api.github.com',
-        path: '/repos/klinnex/bellepoule-modern/tags',
-        method: 'GET',
-        headers: {
-          'User-Agent': 'BellePoule-Modern',
-          Accept: 'application/vnd.github.v3+json',
-        },
-      };
-
-      const req = https.request(options, res => {
-        let data = '';
-
-        res.on('data', chunk => {
-          data += chunk;
-        });
-
-        res.on('end', () => {
-          try {
-            if (res.statusCode === 200) {
-              const tags = JSON.parse(data);
-              resolve(tags);
-            } else {
-              resolve([]);
-            }
-          } catch (e) {
-            resolve([]);
-          }
-        });
-      });
-
-      req.on('error', () => resolve([]));
-      req.setTimeout(10000, () => {
-        req.destroy();
-        resolve([]);
-      });
-
-      req.end();
-    });
+    const data = await getJson(`${GITHUB_API}/tags`);
+    return Array.isArray(data) ? data : [];
   }
 
   private getCurrentVersion(): { version: string; build: number } {
@@ -539,18 +437,34 @@ export class AutoUpdater {
         });
       }
 
-      // Télécharger le fichier avec suivi de progression
+      // Télécharger le fichier avec suivi de progression : barre des tâches
+      // (Windows/macOS/Linux Unity) + bannière de l'app, à chaque point de %.
+      // Envoi au dixième de %, au plus ~8 fois par seconde (+ toujours le 100 %)
+      let lastSent = -1;
+      let lastAt = 0;
+      this.setTaskbarProgress(2); // indéterminé jusqu'aux premiers octets
       const downloadPath = await this.downloadFile(
         asset.browser_download_url!,
         asset.name,
         (downloaded, total) => {
-          const progress = total > 0 ? Math.round((downloaded / total) * 100) : 0;
-          if (this.mainWindow && progress % 10 === 0) {
-            // Envoyer tous les 10%
-            this.mainWindow.webContents.send('update:progress', { progress, downloaded, total });
-          }
+          const progress = total > 0 ? Math.floor((downloaded / total) * 1000) / 10 : 0;
+          const now = Date.now();
+          const complete = total > 0 && downloaded >= total;
+          if (progress === lastSent || (!complete && now - lastAt < 120)) return;
+          lastSent = progress;
+          lastAt = now;
+          this.setTaskbarProgress(total > 0 ? downloaded / total : 2);
+          this.mainWindow?.webContents.send('update:progress', {
+            progress,
+            downloaded,
+            total,
+            latestVersion: updateInfo.latestVersion,
+            latestBuild: updateInfo.latestBuild,
+            currentBuild: updateInfo.currentBuild,
+          });
         }
       );
+      this.setTaskbarProgress(-1);
 
       if (downloadPath) {
         if (!(await verifyFileSha256(downloadPath, expectedSha256))) {
@@ -584,6 +498,7 @@ export class AutoUpdater {
       return true;
     } catch (error) {
       logger.error(LogCategory.SYSTEM, '❌ Auto download failed:', toError(error));
+      this.setTaskbarProgress(-1);
       if (this.mainWindow) {
         this.mainWindow.webContents.send('update:error', {
           message: getL().updAutoDownloadFailed,
@@ -596,6 +511,15 @@ export class AutoUpdater {
       return true;
     } finally {
       this.downloading = false;
+    }
+  }
+
+  /** Progression dans la barre des tâches : 0..1, 2 = indéterminé, -1 = masquée. */
+  private setTaskbarProgress(value: number): void {
+    try {
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) this.mainWindow.setProgressBar(value);
+    } catch {
+      // fenêtre fermée pendant le téléchargement
     }
   }
 
@@ -628,92 +552,17 @@ export class AutoUpdater {
     filename: string,
     onProgress?: (downloaded: number, total: number) => void
   ): Promise<string | null> {
-    return new Promise((resolve, reject) => {
-      if (!isTrustedDownloadUrl(url)) {
-        reject(new Error(`URL de téléchargement non autorisée: ${url}`));
-        return;
-      }
-
-      const downloadPath = path.join(
-        ensurePrivateDir(app.getPath('userData')),
-        randomInstallerName(filename)
-      );
-
-      // Supprimer l'ancien fichier s'il existe
-      if (fs.existsSync(downloadPath)) {
-        try {
-          fs.unlinkSync(downloadPath);
-        } catch (e) {
-          logger.warn(LogCategory.SYSTEM, 'Could not remove old update file:', e);
-        }
-      }
-
-      const file = fs.createWriteStream(downloadPath, { mode: 0o600 });
-      let downloadedBytes = 0;
-      let totalBytes = 0;
-
-      const request = https.get(url, { timeout: 30000 }, (response: any) => {
-        if ([301, 302, 303, 307, 308].includes(response.statusCode)) {
-          // Redirection - suivre le lien
-          file.close();
-          resolve(this.downloadFile(response.headers.location, filename, onProgress));
-          return;
-        }
-
-        if (response.statusCode !== 200) {
-          file.close();
-          fs.unlinkSync(downloadPath);
-          reject(new Error(`HTTP ${response.statusCode}: ${response.statusMessage}`));
-          return;
-        }
-
-        totalBytes = parseInt(response.headers['content-length'] || '0', 10);
-
-        response.on('data', (chunk: Buffer) => {
-          downloadedBytes += chunk.length;
-          if (onProgress && totalBytes > 0) {
-            onProgress(downloadedBytes, totalBytes);
-          }
-        });
-
-        response.pipe(file);
-
-        file.on('finish', () => {
-          file.close();
-          // Vérifier la taille du fichier téléchargé
-          const stats = fs.statSync(downloadPath);
-          if (totalBytes > 0 && stats.size !== totalBytes) {
-            fs.unlinkSync(downloadPath);
-            reject(new Error('Download incomplete - size mismatch'));
-            return;
-          }
-          logger.info(
-            LogCategory.SYSTEM,
-            `✅ Download completed: ${(stats.size / 1024 / 1024).toFixed(2)} MB`
-          );
-          resolve(downloadPath);
-        });
-      });
-
-      request.on('error', (err: Error) => {
-        file.close();
-        if (fs.existsSync(downloadPath)) {
-          fs.unlinkSync(downloadPath);
-        }
-        reject(err);
-      });
-
-      request.on('timeout', () => {
-        request.destroy();
-        file.close();
-        if (fs.existsSync(downloadPath)) {
-          fs.unlinkSync(downloadPath);
-        }
-        reject(new Error('Download timeout'));
-      });
-
-      request.setTimeout(30000);
-    });
+    const downloadPath = path.join(
+      ensurePrivateDir(app.getPath('userData')),
+      randomInstallerName(filename)
+    );
+    fs.rmSync(downloadPath, { force: true });
+    await downloadToFile(url, downloadPath, onProgress);
+    logger.info(
+      LogCategory.SYSTEM,
+      `✅ Download completed: ${(fs.statSync(downloadPath).size / 1024 / 1024).toFixed(2)} MB`
+    );
+    return downloadPath;
   }
 
   private saveDownloadedUpdate(
@@ -961,7 +810,7 @@ export class AutoUpdater {
     if (!this.updateInfo?.hasUpdate) return { success: false, error: 'no_update' };
     const handled = await this.autoDownloadUpdate(this.updateInfo, true);
     if (!handled) {
-      shell.openExternal(this.updateInfo.downloadUrl || RELEASES_URL);
+      shell.openExternal(releasePageUrl(this.updateInfo.latestBuild));
       return { success: false, error: 'no_asset' };
     }
     return { success: true };
@@ -981,7 +830,7 @@ export class AutoUpdater {
     const handled = await this.autoDownloadUpdate(this.updateInfo, true);
     if (!handled) {
       // Aucun binaire exploitable pour cette plateforme : repli sur la page des versions
-      shell.openExternal(this.updateInfo.downloadUrl || RELEASES_URL);
+      shell.openExternal(releasePageUrl(this.updateInfo.latestBuild));
     }
   }
 

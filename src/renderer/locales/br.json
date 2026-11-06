@@ -325,6 +325,22 @@
     "updates_channel_hint": "Stabil : stummoù embannet (main). Dev : stummoù diorren, aliesoc'h, nebeutoc'h amprouet. Tremen eus dev da stabil ne stal ket ur stumm koshoc'h : kinniget e vo ar stumm stabil nevesañ da zont.",
     "updates_channel_stable": "Stabil (main)",
     "updates_channel_dev": "Dev (rak-stummoù)",
+    "proxy_title": "Proksi ar rouedad",
+    "proxy_hint": "Implijet evit an hizivadurioù hag an tizh d'ar Genrouedad. Biken ne vez tizhet servijer ar vrokerezh lec'hel.",
+    "proxy_mode_system": "Proksi ar reizhiad (erbedet)",
+    "proxy_mode_direct": "Proksi ebet (kevreadur war-eeun)",
+    "proxy_mode_manual": "Proksi dre zorn",
+    "proxy_server": "Servijer proksi",
+    "proxy_server_placeholder": "proxy.klub.bzh:3128 pe socks5://10.0.0.1:1080",
+    "proxy_bypass": "Nemedennoù (dispartiet gant skejoù)",
+    "proxy_bypass_placeholder": "*.local, 192.168.0.0/16",
+    "proxy_apply": "Arloañ",
+    "proxy_test": "Amprouiñ ar c'hevreadur",
+    "proxy_testing": "Amprouiñ…",
+    "proxy_saved": "Proksi arloet",
+    "proxy_invalid": "Chomlec'h proksi direizh (gortozet : ostiz:porzh, http://, https://, socks4:// pe socks5://)",
+    "proxy_test_ok": "Kevreet ouzh GitHub — hent : {{route}}",
+    "proxy_test_fail": "N'eus ket bet tizhet GitHub — hent : {{route}}",
     "webhook_title": "Kemennoù webhook",
     "webhook_hint": "URL Discord / Slack / personelaet (HTTPS hepken).",
     "webhook_remove": "Dilemel",
@@ -947,7 +963,8 @@
     "competition_not_found": "Kenstrivadeg dianav",
     "html_load_failed": "C'hwitet eo bet kargañ an HTML",
     "port_in_use": "Implijet eo ar porzh {{port}} dija",
-    "temp_file_failed": "N'haller ket krouiñ ar restr padennek : {{detail}}"
+    "temp_file_failed": "N'haller ket krouiñ ar restr padennek : {{detail}}",
+    "invalid_proxy": "Proksi direizh"
   },
   "properties": {
     "one_round": "1 dro",
@@ -2352,7 +2369,7 @@
     "notes": "📋 Gwelet an notennoù",
     "redirect": "O pellgargañ an hizivadur…",
     "later": "Hizivaat a c'hellot diwezhatoc'h dre al lañser Skoazell",
-    "progress": "Pellgargañ : {{n}} %",
+    "progress": "Pellgargañ : {{n}} % ({{done}} / {{total}} Mo)",
     "failed": "C'hwitet eo pellgargañ an hizivadur"
   },
   "analyticsCharts": {

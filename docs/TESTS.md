@@ -95,18 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 47 | 372 |
+| `src/main/` | 48 | 382 |
 | `src/renderer/services/` | 5 | 29 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 49 | 245 |
+| `src/renderer/components/` | 50 | 250 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 24 | 143 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **253** | **2085** |
+| **Total** | **255** | **2100** |
 
-Unitaires : 244 fichiers, 2050 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 246 fichiers, 2065 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2467,6 +2467,24 @@ Unitaires : 244 fichiers, 2050 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/proxySettings.test.ts</code> — 8 tests</summary>
+
+- **normalizeProxyServer**
+  - hôte:port → http implicite
+  - schémas acceptés
+  - refuse identifiants, chemin, port absent/invalide, schéma inconnu
+- **normalizeBypass**
+  - nettoie la liste
+- **sanitizeProxySettings / toElectronProxyConfig**
+  - modes système et direct
+  - manuel : serveur + exclusions, machine locale toujours en direct
+  - manuel sans serveur valide ou mode inconnu → null
+- **persistance**
+  - défaut système ; relit ce qui est écrit ; fichier corrompu → défaut
+
+</details>
+
+<details>
 <summary><code>src/main/remote/activeWave.test.ts</code> — 4 tests</summary>
 
 - **applyActiveWave**
@@ -2850,7 +2868,7 @@ Unitaires : 244 fichiers, 2050 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/updateIntegrity.test.ts</code> — 7 tests</summary>
+<summary><code>src/main/updateIntegrity.test.ts</code> — 9 tests</summary>
 
 - **parseSha256Digest**
   - extrait le hash sha256
@@ -2862,6 +2880,9 @@ Unitaires : 244 fichiers, 2050 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - calcule le sha256
   - valide un hash correct
   - rejette un hash incorrect ou invalide
+- **toTrustedDownloadUrl**
+  - reconstruit l’URL sur l’hôte de confiance
+  - refuse autre hôte, http, port, identifiants
 
 </details>
 
@@ -3697,6 +3718,17 @@ Unitaires : 244 fichiers, 2050 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/__tests__/ProxySettingsSection.test.tsx</code> — 4 tests</summary>
+
+- **ProxySettingsSection**
+  - système / aucun : appliqué immédiatement
+  - manuel : serveur + exclusions envoyés au clic sur Appliquer
+  - refus du main → message d’adresse invalide
+  - test de connexion : route affichée
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/__tests__/ScoreAuditLog.test.tsx</code> — 2 tests</summary>
 
 - **ScoreAuditLog — colonne Arbitre (#1031)**
@@ -3707,11 +3739,12 @@ Unitaires : 244 fichiers, 2050 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/__tests__/UpdateNotification.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/__tests__/UpdateNotification.test.tsx</code> — 4 tests</summary>
 
 - **UpdateNotification — mise à jour intégrée**
   - s’affiche sur update:available et installe sans ouvrir le navigateur
   - affiche la progression du téléchargement
+  - téléchargement lancé depuis le menu : bannière + barre de progression sans update:available
   - ses styles sont dans une feuille chargée (components.css)
 
 </details>

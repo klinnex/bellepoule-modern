@@ -348,6 +348,32 @@ export interface UpdateInfo {
   releaseNotes: string;
 }
 
+/** Progression du téléchargement d'une mise à jour (`update:progress`) */
+export interface UpdateProgressEvent {
+  progress: number;
+  downloaded?: number;
+  total?: number;
+  latestVersion?: string;
+  latestBuild?: number;
+  currentBuild?: number;
+}
+
+/** Proxy réseau (Paramètres → Réseau) */
+export interface ProxySettingsDTO {
+  mode: 'system' | 'direct' | 'manual';
+  server?: string;
+  bypass?: string;
+}
+
+export interface ProxyAPI {
+  get: () => Promise<ProxySettingsDTO>;
+  set: (
+    settings: ProxySettingsDTO
+  ) => Promise<{ success: boolean; settings?: ProxySettingsDTO; error?: string }>;
+  /** Proxy résolu pour GitHub (« DIRECT », « PROXY hôte:port »…) + requête réelle */
+  test: () => Promise<{ ok: boolean; resolved: string }>;
+}
+
 export interface UpdaterAPI {
   check: () => Promise<UpdateInfo | null>;
   setSilentMode: (enabled: boolean) => Promise<{ success: boolean; silent: boolean }>;
@@ -1295,6 +1321,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   file: FileAPI;
   dialog: DialogAPI;
   updater: UpdaterAPI;
+  proxy: ProxyAPI;
   diagnostic: DiagnosticAPI;
   greg: GregAPI;
   ftp: FtpAPI;
@@ -1302,7 +1329,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   remote: RemoteServerAPI;
   training: TrainingAPI;
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
-  onUpdateProgress: (callback: (data: { progress: number }) => void) => () => void;
+  onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) => () => void;
   onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => () => void;
   onRemoteMatchFinished: (callback: (data: RemoteMatchFinishedEvent) => void) => () => void;
   onTrainingMatchFinished: (

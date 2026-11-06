@@ -13,6 +13,8 @@ ipcRenderer.on('remote:diag', (_: IpcRendererEvent, msg: string) => {
 import type {
   ElectronAPI,
   UpdateInfo,
+  UpdateProgressEvent,
+  ProxySettingsDTO,
   CompetitionCreateData,
   CompetitionUpdateData,
   FencerCreateData,
@@ -604,6 +606,13 @@ const electronApi = {
     },
   },
 
+  // Proxy réseau (Paramètres → Réseau)
+  proxy: {
+    get: () => ipcRenderer.invoke('proxy:get'),
+    set: (settings: ProxySettingsDTO) => ipcRenderer.invoke('proxy:set', settings),
+    test: () => ipcRenderer.invoke('proxy:test'),
+  },
+
   // Rapport de diagnostic (fichier JSON, sans port réseau) (#1326)
   diagnostic: {
     exportReport: () => ipcRenderer.invoke('diagnostic:exportReport'),
@@ -825,8 +834,8 @@ const electronApi = {
     ipcRenderer.on('update:available', handler);
     return () => ipcRenderer.removeListener('update:available', handler);
   },
-  onUpdateProgress: (callback: (data: { progress: number }) => void) => {
-    const handler = (_: IpcRendererEvent, data: { progress: number }) => callback(data);
+  onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) => {
+    const handler = (_: IpcRendererEvent, data: UpdateProgressEvent) => callback(data);
     ipcRenderer.on('update:progress', handler);
     return () => ipcRenderer.removeListener('update:progress', handler);
   },

@@ -31,6 +31,7 @@ import { registerUpdaterHandlers } from './ipc/updaterHandlers';
 import { createDiagnosticDeps, registerDiagnosticHandlers } from './ipc/diagnosticHandlers';
 import { getVersionInfo } from './versionInfo';
 import { readUpdaterSettings, resolveChannel } from './updaterSettings';
+import { applyStoredProxySettings, registerProxyHandlers } from './ipc/proxyHandlers';
 import './ipc/connectors'; // canaux de publication GREG et FTP (#1328, #1331)
 import { remoteServers, stopRemoteServer } from './remoteRegistry';
 import { logger, LogCategory, toError } from '../shared/services/logger';
@@ -104,6 +105,7 @@ registerWebhookHandlers();
 registerThemesHandlers();
 registerCryptoHandlers();
 registerUpdaterHandlers({ getAutoUpdater: () => autoUpdater });
+registerProxyHandlers();
 
 registerDiagnosticHandlers(createDiagnosticDeps({ getWindow: () => mainWindow, getVersionInfo }));
 
@@ -157,6 +159,8 @@ if (process.platform === 'linux' && process.env.BELLEPOULE_SW_RENDER === '1') {
 
 app.whenReady().then(async () => {
   eventLoopMonitor.start();
+  // Proxy réseau choisi dans les Paramètres, avant tout accès réseau
+  await applyStoredProxySettings();
   // Afficher le splash immédiatement pendant que tout le reste charge
   createSplashWindow();
 

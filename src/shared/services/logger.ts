@@ -93,21 +93,24 @@ class Logger {
     }
 
     if (this.config.enableConsole) {
-      const formatted = this.formatMessage(entry);
+      // Format fixe '%s' (pas de spécificateurs venus des données) et retours ligne
+      // neutralisés (pas de fausses lignes de log) : CodeQL js/tainted-format-string,
+      // js/log-injection.
+      const formatted = this.formatMessage(entry).replace(/[\r\n]+/g, ' ');
 
       switch (level) {
         case LogLevel.DEBUG:
-          console.debug(formatted, data || '');
+          console.debug('%s', formatted, data || '');
           break;
         case LogLevel.INFO:
-          console.info(formatted, data || '');
+          console.info('%s', formatted, data || '');
           break;
         case LogLevel.WARN:
-          console.warn(formatted, data || '', error || '');
+          console.warn('%s', formatted, data || '', error || '');
           break;
         case LogLevel.ERROR:
         case LogLevel.FATAL:
-          console.error(formatted, data || '', error || '');
+          console.error('%s', formatted, data || '', error || '');
           break;
       }
     }
