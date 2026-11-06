@@ -50,7 +50,7 @@ const BOOLEAN_KEYS: ReadonlySet<string> = new Set([
 ]);
 
 const ENUM_VALUES: Readonly<Record<string, readonly string[]>> = {
-  'bellepoule-language': ['fr', 'en', 'br', 'ca', 'de', 'es', 'it', 'zh-HK'],
+  'bellepoule-language': ['fr', 'en', 'br', 'ca', 'de', 'es', 'pt', 'it', 'ru', 'zh-HK'],
   'bellepoule-theme': ['default', 'light', 'dark'],
   'bellepoule-ui-scale': UI_SCALES.map(String),
 };

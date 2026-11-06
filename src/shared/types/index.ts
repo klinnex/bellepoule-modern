@@ -701,7 +701,7 @@ export interface AppState {
 }
 
 export interface UISettings {
-  language: 'fr' | 'en' | 'de' | 'es' | 'it' | 'br' | 'ca' | 'zh-HK';
+  language: 'fr' | 'en' | 'de' | 'es' | 'pt' | 'it' | 'ru' | 'br' | 'ca' | 'zh-HK';
   theme: 'light' | 'dark' | 'system';
   fontSize: 'small' | 'medium' | 'large';
   showTips: boolean;
