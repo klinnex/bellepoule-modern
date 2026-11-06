@@ -2385,7 +2385,9 @@
     "progress": "Baixada: {{n}} % ({{done}} / {{total}} MB)",
     "failed": "Error en baixar l'actualització",
     "noAsset": "Cap fitxer instal·lable per a aquest sistema: pàgina de versions oberta al navegador",
-    "busy": "Baixada ja en curs…"
+    "busy": "Baixada ja en curs…",
+    "menuButton": "Actualització",
+    "menuTitle": "Actualització disponible: v{{version}} — feu clic per instal·lar"
   },
   "analyticsCharts": {
     "no_data": "Sense dades",

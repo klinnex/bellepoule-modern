@@ -2385,7 +2385,9 @@
     "progress": "Descarga: {{n}} % ({{done}} / {{total}} MB)",
     "failed": "Error al descargar la actualización",
     "noAsset": "Ningún archivo instalable para este sistema: página de versiones abierta en el navegador",
-    "busy": "Descarga ya en curso…"
+    "busy": "Descarga ya en curso…",
+    "menuButton": "Actualización",
+    "menuTitle": "Actualización disponible: v{{version}} — haga clic para instalar"
   },
   "analyticsCharts": {
     "no_data": "Sin datos",

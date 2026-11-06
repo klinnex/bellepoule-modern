@@ -2385,7 +2385,9 @@
     "progress": "Pellgargañ : {{n}} % ({{done}} / {{total}} Mo)",
     "failed": "C'hwitet eo pellgargañ an hizivadur",
     "noAsset": "Restr staliadus ebet evit ar reizhiad-mañ : pajenn an handelvoù digoret er merdeer",
-    "busy": "Pellgargañ war ar stern dija…"
+    "busy": "Pellgargañ war ar stern dija…",
+    "menuButton": "Hizivadur",
+    "menuTitle": "Hizivadur da gaout : v{{version}} — klikañ evit staliañ"
   },
   "analyticsCharts": {
     "no_data": "Roadenn ebet",

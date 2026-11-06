@@ -2385,7 +2385,9 @@
     "progress": "A transferir: {{n}}% ({{done}} / {{total}} MB)",
     "failed": "Falha na transferência da atualização",
     "noAsset": "Nenhum ficheiro instalável para este sistema: página de versões aberta no navegador",
-    "busy": "Transferência já em curso…"
+    "busy": "Transferência já em curso…",
+    "menuButton": "Atualização",
+    "menuTitle": "Atualização disponível: v{{version}} — clique para instalar"
   },
   "analyticsCharts": {
     "no_data": "Sem dados",

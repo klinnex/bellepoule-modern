@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatNumber } from '../../shared/utils/localeFormat';
+import { SHOW_UPDATE_EVENT } from './UpdateMenuButton';
 
 const MB = 1024 * 1024;
 
@@ -63,9 +64,16 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
       if (data.progress === 0) setDismissed(false);
       setVisible(true);
     });
+    // Bouton clignotant de l'en-tête : réaffiche la bannière même fermée
+    const onShow = () => {
+      setDismissed(false);
+      setVisible(true);
+    };
+    window.addEventListener(SHOW_UPDATE_EVENT, onShow);
     return () => {
       offAvailable?.();
       offProgress?.();
+      window.removeEventListener(SHOW_UPDATE_EVENT, onShow);
     };
   }, [dismissed]);
 

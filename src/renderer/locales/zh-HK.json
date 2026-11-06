@@ -2385,7 +2385,9 @@
     "progress": "下載中：{{n}}%（{{done}} / {{total}} MB）",
     "failed": "更新下載失敗",
     "noAsset": "此系統沒有可安裝的檔案：已在瀏覽器開啟版本頁面",
-    "busy": "已在下載中…"
+    "busy": "已在下載中…",
+    "menuButton": "更新",
+    "menuTitle": "有可用更新：v{{version}} — 按此安裝"
   },
   "analyticsCharts": {
     "no_data": "沒有資料",
