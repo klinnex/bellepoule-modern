@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 48 | 382 |
+| `src/main/` | 48 | 383 |
 | `src/renderer/services/` | 6 | 34 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 50 | 252 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **256** | **2107** |
+| **Total** | **256** | **2108** |
 
-Unitaires : 247 fichiers, 2072 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 247 fichiers, 2073 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2691,7 +2691,7 @@ Unitaires : 247 fichiers, 2072 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 103 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 104 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -2762,6 +2762,7 @@ Unitaires : 247 fichiers, 2072 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - mode expert : tous les arbitres affichés
     - match en file d'attente : arbitre porté
   - **annulation carton noir depuis la tablette**
+    - égalité finale : le tireur prioritaire tiré (coin\_flip) gagne (#1442)
     - liste le carton noir de l'arène
     - annule : réintègre le combattant, rouvre le match avec son score et rend ses matchs jouables
     - refuse l'annulation d'un carton noir en tableau

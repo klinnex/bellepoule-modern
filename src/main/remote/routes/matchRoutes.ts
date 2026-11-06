@@ -284,6 +284,15 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
           ? blackCardFencer
           : null;
 
+      // Minute prioritaire (#1442) : égalité finale sans override → tireur prioritaire tiré
+      const prevScores = ctx.sessionMatchScores.get(matchId) as
+        { scoreA?: { isPriority?: boolean }; scoreB?: { isPriority?: boolean } } | undefined;
+      const priorityWinner: 'A' | 'B' | null = prevScores?.scoreA?.isPriority
+        ? 'A'
+        : prevScores?.scoreB?.isPriority
+          ? 'B'
+          : null;
+
       // Déterminer le vainqueur : carton noir → adversaire du fautif,
       // scores égaux + tirage au sort → utiliser winnerOverride
       const winner = blackCarded
@@ -296,7 +305,7 @@ export function registerMatchRoutes(ctx: MatchRouteContext): void {
             ? 'B'
             : winnerOverride === 'A' || winnerOverride === 'B'
               ? winnerOverride
-              : null;
+              : priorityWinner;
 
       // Arène du match (capturée avant que finishArenaMatch ne charge le match suivant)
       const blackCardArenaId = blackCarded
