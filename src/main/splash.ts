@@ -125,7 +125,7 @@ export function createSplashWindow(): void {
 
 // IPC: splash confirms language choice
 ipcMain.once('splash:confirm', (_event, lang: string, hideNextTime?: unknown) => {
-  const validLangs = ['fr', 'en', 'de', 'es', 'it', 'zh-HK', 'br', 'ca'];
+  const validLangs = ['fr', 'en', 'de', 'es', 'pt', 'it', 'ru', 'zh-HK', 'br', 'ca'];
   const confirmed = validLangs.includes(lang) ? lang : 'fr';
   saveLanguageToFile(confirmed);
   if (hideNextTime === true) setSplashEnabled(false);

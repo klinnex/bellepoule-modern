@@ -17,12 +17,14 @@ import frTranslations from '../locales/fr.json';
 import enTranslations from '../locales/en.json';
 import deTranslations from '../locales/de.json';
 import esTranslations from '../locales/es.json';
+import ptTranslations from '../locales/pt.json';
 import itTranslations from '../locales/it.json';
+import ruTranslations from '../locales/ru.json';
 import brTranslations from '../locales/br.json';
 import caTranslations from '../locales/ca.json';
 import zhHKTranslations from '../locales/zh-HK.json';
 
-export type Language = 'fr' | 'en' | 'br' | 'ca' | 'de' | 'es' | 'it' | 'zh-HK';
+export type Language = 'fr' | 'en' | 'br' | 'ca' | 'de' | 'es' | 'pt' | 'it' | 'ru' | 'zh-HK';
 export type TranslationKey = string;
 export type Theme = 'light' | 'dark' | 'default';
 
@@ -105,6 +107,15 @@ const getFallbackTranslations = (language: Language): Translations => {
         loading: 'Cargando...',
       },
     },
+    pt: {
+      app: { title: 'BellePoule Modern' },
+      menu: { new_competition: 'Nova competição' },
+      settings: { title: 'Definições' },
+      messages: {
+        no_competitions: 'Nenhuma competição',
+        loading: 'A carregar...',
+      },
+    },
     it: {
       app: { title: 'BellePoule Modern' },
       menu: { new_competition: 'Nuova competizione' },
@@ -112,6 +123,15 @@ const getFallbackTranslations = (language: Language): Translations => {
       messages: {
         no_competitions: 'Nessuna competizione',
         loading: 'Caricamento...',
+      },
+    },
+    ru: {
+      app: { title: 'BellePoule Modern' },
+      menu: { new_competition: 'Новое соревнование' },
+      settings: { title: 'Настройки' },
+      messages: {
+        no_competitions: 'Нет соревнований',
+        loading: 'Загрузка...',
       },
     },
     'zh-HK': {
@@ -132,7 +152,9 @@ const bundledTranslations: Record<Language, Translations> = {
   en: enTranslations as Translations,
   de: deTranslations as Translations,
   es: esTranslations as Translations,
+  pt: ptTranslations as Translations,
   it: itTranslations as Translations,
+  ru: ruTranslations as Translations,
   br: brTranslations as Translations,
   ca: caTranslations as Translations,
   'zh-HK': zhHKTranslations as Translations,
@@ -272,7 +294,9 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
       { code: 'en', name: 'English', flag: '🇺🇸' },
       { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
       { code: 'es', name: 'Español', flag: '🇪🇸' },
+      { code: 'pt', name: 'Português', flag: '🇵🇹' },
       { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+      { code: 'ru', name: 'Русский', flag: '🇷🇺' },
       { code: 'zh-HK', name: '繁體中文', flag: '🇭🇰' },
       { code: 'br', name: 'Brezhoneg', flag: '🇫🇷' },
       { code: 'ca', name: 'Català', flag: '🇪🇸' },

@@ -14,7 +14,9 @@
     'zh-HK': '語音計時器已啟用',
     es: 'Temporizador por voz activado',
     ca: 'Temporitzador per veu activat',
+    pt: 'Temporizador de voz ativado',
     it: 'Timer vocale attivato',
+    ru: 'Голосовой таймер включён',
   };
 
   const BCP47 = {
@@ -22,7 +24,9 @@
     en: 'en-GB',
     de: 'de-DE',
     es: 'es-ES',
+    pt: 'pt-PT',
     it: 'it-IT',
+    ru: 'ru-RU',
     ca: 'ca-ES',
     'zh-HK': 'zh-HK',
   };
@@ -33,7 +37,9 @@
     de: { 60: 'Eine Minute', 30: 'Dreißig Sekunden', 10: 'Zehn Sekunden', 0: 'Zeit!' },
     es: { 60: 'Un minuto', 30: 'Treinta segundos', 10: 'Diez segundos', 0: '¡Tiempo!' },
     ca: { 60: 'Un minut', 30: 'Trenta segons', 10: 'Deu segons', 0: 'Temps!' },
+    pt: { 60: 'Um minuto', 30: 'Trinta segundos', 10: 'Dez segundos', 0: 'Tempo!' },
     it: { 60: 'Un minuto', 30: 'Trenta secondi', 10: 'Dieci secondi', 0: 'Tempo!' },
+    ru: { 60: 'Одна минута', 30: 'Тридцать секунд', 10: 'Десять секунд', 0: 'Время!' },
     'zh-HK': { 60: '一分鐘', 30: '三十秒', 10: '十秒', 0: '時間！' },
   };
 
@@ -44,10 +50,10 @@
     'zh-HK': { 5: '五', 4: '四', 3: '三', 2: '二', 1: '一' },
   };
 
-  /** Code de langue normalisé (fr / en / de / es / it / ca / zh-HK ; br → fr, pas de voix bretonne) */
+  /** Code de langue normalisé (fr / en / de / es / pt / it / ru / ca / zh-HK ; br → fr, pas de voix bretonne) */
   function ttsLangCode(htmlLang) {
     const lang = (htmlLang || 'fr').toLowerCase();
-    const m = /^(de|en|es|it|ca)/.exec(lang);
+    const m = /^(de|en|es|pt|it|ru|ca)/.exec(lang);
     if (m) return m[1];
     if (lang.startsWith('zh')) return 'zh-HK';
     return 'fr';

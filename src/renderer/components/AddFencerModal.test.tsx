@@ -83,9 +83,7 @@ describe('AddFencerModal', () => {
   it('la liste déroulante des nationalités sélectionne le code', () => {
     const { onAdd, container } = setup();
     fireEvent.click(screen.getByLabelText('addFencer.nationality_list', { selector: 'button' }));
-    fireEvent.change(screen.getByLabelText('addFencer.nationality_list', { selector: 'select' }), {
-      target: { value: 'GER' },
-    });
+    fireEvent.click(container.querySelector('#nat-opt-GER')!);
     fireEvent.change(screen.getByPlaceholderText('addFencer.last_name_ph'), {
       target: { value: 'a' },
     });
