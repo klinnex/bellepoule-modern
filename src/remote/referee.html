@@ -11,6 +11,7 @@
     <script src="/js/timerFormat.js"></script><script src="/js/priorityDraw.js"></script>
     <script src="/js/offlineQueue.js"></script>
     <script src="/js/refereeFaults.js"></script>
+    <script src="/js/refereeTts.js"></script>
     <script src="/js/refereeDemoMirror.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
@@ -3296,36 +3297,22 @@
           this.ttsEnabled = !this.ttsEnabled;
           const btn = document.getElementById('btn-tts-toggle');
           if (btn) btn.textContent = window.T(this.ttsEnabled ? 'referee.voice_on' : 'referee.voice_off');
-          if (this.ttsEnabled) {
-            const MSG = {
-              fr: 'Minuteur vocal activé', en: 'Voice timer enabled',
-              de: 'Sprachtimer aktiviert', 'zh-HK': '語音計時器已啟用', es: 'Temporizador por voz activado', ca: 'Temporitzador per veu activat', it: 'Timer vocale attivato',
-            };
-            this.ttsSpeak(MSG[this.ttsLangCode()] || MSG.fr);
-          }
+          if (this.ttsEnabled) this.ttsSpeak(BPRefereeTts.enabledMessage(this.ttsLangCode()));
         }
 
         // Fusionne une config TTS partielle reçue du serveur dans la config locale
         applyTtsConfig(c) {
-          if (!c || typeof c !== 'object') return;
-          if (typeof c.voiceName === 'string' || c.voiceName === null) this.ttsConfig.voiceName = c.voiceName;
-          if (typeof c.rate === 'number' && c.rate > 0) this.ttsConfig.rate = c.rate;
-          if (c.announce && typeof c.announce === 'object') {
-            this.ttsConfig.announce = { ...this.ttsConfig.announce, ...c.announce };
-          }
+          BPRefereeTts.mergeTtsConfig(this.ttsConfig, c);
         }
 
-        // Code de langue normalisé pour le TTS (fr / en / de / es / it / ca / zh-HK ; br → fr, pas de voix bretonne)
+        // Code de langue normalisé pour le TTS (/js/refereeTts.js)
         ttsLangCode() {
-          const lang = (document.documentElement.lang || 'fr').toLowerCase();
-          const m = /^(de|en|es|it|ca)/.exec(lang); if (m) return m[1];
-          if (lang.startsWith('zh')) return 'zh-HK';
-          return 'fr';
+          return BPRefereeTts.ttsLangCode(document.documentElement.lang);
         }
 
         // Balise BCP-47 pour SpeechSynthesisUtterance.lang
         ttsBcp47(code) {
-          return { fr: 'fr-FR', en: 'en-GB', de: 'de-DE', es: 'es-ES', it: 'it-IT', ca: 'ca-ES', 'zh-HK': 'zh-HK' }[code] || 'fr-FR';
+          return BPRefereeTts.ttsBcp47(code);
         }
 
         ttsSpeak(text) {
@@ -3348,35 +3335,10 @@
           if (!this.ttsEnabled) return;
           const s = this.timerSeconds;
           if (this._ttsAnnouncedSeconds.has(s)) return;
-          const L = this.ttsLangCode();
-          const PHRASES = {
-            fr: { 60: 'Une minute', 30: 'Trente secondes', 10: 'Dix secondes', 0: 'Temps !' },
-            en: { 60: 'One minute', 30: 'Thirty seconds', 10: 'Ten seconds', 0: 'Time!' },
-            de: { 60: 'Eine Minute', 30: 'Dreißig Sekunden', 10: 'Zehn Sekunden', 0: 'Zeit!' },
-            es: { 60: 'Un minuto', 30: 'Treinta segundos', 10: 'Diez segundos', 0: '¡Tiempo!' }, ca: { 60: 'Un minut', 30: 'Trenta segons', 10: 'Deu segons', 0: 'Temps!' }, it: { 60: 'Un minuto', 30: 'Trenta secondi', 10: 'Dieci secondi', 0: 'Tempo!' },
-            'zh-HK': { 60: '一分鐘', 30: '三十秒', 10: '十秒', 0: '時間！' },
-          };
-          const NUMS = {
-            fr: { 5: '5', 4: '4', 3: '3', 2: '2', 1: '1' },
-            en: { 5: '5', 4: '4', 3: '3', 2: '2', 1: '1' },
-            de: { 5: '5', 4: '4', 3: '3', 2: '2', 1: '1' },
-            'zh-HK': { 5: '五', 4: '四', 3: '三', 2: '二', 1: '一' },
-          };
-          const THRESHOLDS = { ...PHRASES[L], ...(NUMS[L] || NUMS.fr) };
-          // Quel palier (clé de config announce) correspond à cette seconde ?
-          const a = this.ttsConfig.announce || {};
-          let key = null;
-          if (s === 60) key = '60';
-          else if (s === 30) key = '30';
-          else if (s === 10) key = '10';
-          else if (s === 5) key = '5';
-          else if (s >= 1 && s <= 4) key = 'countdown';
-          else if (s === 0) key = '0';
-          if (key && a[key] === false) { this._ttsAnnouncedSeconds.add(s); return; }
-          if (s in THRESHOLDS) {
-            this._ttsAnnouncedSeconds.add(s);
-            this.ttsSpeak(THRESHOLDS[s]);
-          }
+          const ann = BPRefereeTts.announcementFor(s, this.ttsLangCode(), this.ttsConfig.announce);
+          if (!ann) return;
+          this._ttsAnnouncedSeconds.add(s);
+          if (ann.text) this.ttsSpeak(ann.text);
         }
 
         prepareSuddenDeath() {
