@@ -2,6 +2,8 @@
 import '@testing-library/jest-dom';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import React from 'react';
+import fs from 'fs';
+import path from 'path';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import UpdateNotification from '../UpdateNotification';
 
@@ -58,5 +60,10 @@ describe('UpdateNotification — mise à jour intégrée', () => {
     act(() => emitAvailable(INFO));
     act(() => emitProgress({ progress: 40 }));
     expect(screen.getByText(/40 %/)).toBeInTheDocument();
+  });
+
+  it('ses styles sont dans une feuille chargée (components.css)', () => {
+    const css = fs.readFileSync(path.join(__dirname, '../../styles/components.css'), 'utf8');
+    expect(css).toMatch(/\.update-notification \{[^}]*position: fixed/);
   });
 });

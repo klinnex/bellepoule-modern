@@ -1180,3 +1180,93 @@
   font-weight: 600;
   font-size: 0.8rem;
 }
+
+/* Bannière de mise à jour (UpdateNotification.tsx) */
+.update-notification {
+  position: fixed;
+  top: var(--space-4, 16px);
+  right: var(--space-4, 16px);
+  z-index: 1000;
+  max-width: 420px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: update-notification-in 0.3s ease-out;
+}
+
+.update-notification-content {
+  display: flex;
+  align-items: center;
+  padding: var(--space-4, 16px);
+  gap: var(--space-3, 12px);
+  color: #fff;
+}
+
+.update-notification-icon {
+  font-size: var(--fs-2xl);
+  flex-shrink: 0;
+}
+
+.update-notification-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.update-notification-text h4 {
+  margin: 0 0 4px;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: #fff;
+}
+
+.update-notification-text p {
+  margin: 0;
+  font-size: var(--fs-sm);
+  opacity: 0.9;
+}
+
+.update-notification-multiple {
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.update-notification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.update-notification .btn-sm {
+  padding: 4px 8px;
+  font-size: var(--fs-xs);
+}
+
+.update-notification .btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.update-notification .btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes update-notification-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .update-notification {
+    left: var(--space-4, 16px);
+    max-width: none;
+  }
+}
