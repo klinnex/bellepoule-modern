@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 42 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 44 | 342 |
+| `src/main/` | 45 | 354 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 47 | 236 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **246** | **2028** |
+| **Total** | **247** | **2040** |
 
-Unitaires : 237 fichiers, 1993 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 238 fichiers, 2005 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2810,6 +2810,27 @@ Unitaires : 237 fichiers, 1993 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - aller-retour de la langue enregistrée
   - fichier corrompu : repli sur fr
   - closeSplash sans fenêtre appelle le rappel immédiatement
+
+</details>
+
+<details>
+<summary><code>src/main/updateAssets.test.ts</code> — 12 tests</summary>
+
+- **detectInstallKind**
+  - AppImage sous Linux
+  - exe portable sous Windows
+  - installeur par défaut
+- **selectUpdateAsset**
+  - Windows installé → setup NSIS, jamais le portable
+  - Windows portable → portable
+  - macOS respecte l’architecture
+  - Linux AppImage → AppImage de la bonne arch
+  - Linux paquet → deb en priorité
+  - accepte un asset sans arch
+  - null si rien d’adapté
+- **replaceExecutableInPlace**
+  - remplace le fichier cible (${platform})
+  - false si le dossier n’existe pas
 
 </details>
 

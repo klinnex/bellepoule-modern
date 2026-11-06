@@ -121,9 +121,9 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     updDownloadNow: '📥 Télécharger maintenant',
     updViewReleases: '🔗 Voir les versions',
     updDownloadTitle: '📥 Téléchargement',
-    updDownloadRedirect: 'Ouverture de la page de téléchargement…',
+    updDownloadRedirect: 'Téléchargement de la mise à jour en cours…',
     updDownloadDetail:
-      "Téléchargez la version correspondant à votre système et remplacez l'application actuelle.",
+      "La mise à jour est téléchargée et vérifiée (SHA-256) en arrière-plan. L'installation vous sera proposée à la fin.",
   },
   en: {
     file: 'File',
@@ -238,8 +238,9 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     updDownloadNow: '📥 Download now',
     updViewReleases: '🔗 View releases',
     updDownloadTitle: '📥 Download',
-    updDownloadRedirect: 'Opening the download page…',
-    updDownloadDetail: 'Download the version for your system and replace the current application.',
+    updDownloadRedirect: 'Downloading the update…',
+    updDownloadDetail:
+      'The update is downloaded and verified (SHA-256) in the background. You will be asked to install it when done.',
   },
   de: {
     file: 'Datei',
@@ -356,9 +357,9 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     updDownloadNow: '📥 Jetzt herunterladen',
     updViewReleases: '🔗 Versionen anzeigen',
     updDownloadTitle: '📥 Download',
-    updDownloadRedirect: 'Download-Seite wird geöffnet…',
+    updDownloadRedirect: 'Update wird heruntergeladen…',
     updDownloadDetail:
-      'Laden Sie die Version für Ihr System herunter und ersetzen Sie die aktuelle Anwendung.',
+      'Das Update wird im Hintergrund heruntergeladen und geprüft (SHA-256). Anschließend wird die Installation angeboten.',
   },
   it: {
     file: 'File',
@@ -473,9 +474,9 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     updDownloadNow: '📥 Scarica ora',
     updViewReleases: '🔗 Vedi le versioni',
     updDownloadTitle: '📥 Download',
-    updDownloadRedirect: 'Apertura della pagina di download…',
+    updDownloadRedirect: "Download dell'aggiornamento in corso…",
     updDownloadDetail:
-      "Scarica la versione corrispondente al tuo sistema e sostituisci l'applicazione attuale.",
+      "L'aggiornamento viene scaricato e verificato (SHA-256) in background. Al termine ti verrà proposta l'installazione.",
   },
   'zh-HK': {
     file: '檔案',
@@ -587,8 +588,8 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     updDownloadNow: '📥 立即下載',
     updViewReleases: '🔗 查看版本',
     updDownloadTitle: '📥 下載',
-    updDownloadRedirect: '正在開啟下載頁面…',
-    updDownloadDetail: '請下載適合您系統的版本並取代目前的應用程式。',
+    updDownloadRedirect: '正在下載更新…',
+    updDownloadDetail: '更新會在背景下載並驗證（SHA-256），完成後會詢問是否安裝。',
   },
 };
 

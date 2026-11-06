@@ -17,8 +17,17 @@ import {
   writePendingUpdate,
 } from './pendingUpdate';
 import { parseSha256Digest, isTrustedDownloadUrl, verifyFileSha256 } from './updateIntegrity';
+import {
+  cleanupReplacedExecutable,
+  detectInstallKind,
+  replaceExecutableInPlace,
+  selectUpdateAsset,
+  type InstallKind,
+} from './updateAssets';
 import { fmt, getL } from './menuLabels';
 import { logger, LogCategory, toError } from '../shared/services/logger';
+
+const RELEASES_URL = 'https://github.com/klinnex/bellepoule-modern/releases/latest';
 
 interface UpdateInfo {
   hasUpdate: boolean;
@@ -50,6 +59,11 @@ export class AutoUpdater {
   private config: AutoUpdaterConfig;
   private lastCheck: Date | null = null;
   private updateInfo: UpdateInfo | null = null;
+  private downloading = false;
+  private readonly install: { kind: InstallKind; target: string | null } = detectInstallKind(
+    process.platform,
+    process.env
+  );
 
   constructor(mainWindow: BrowserWindow, config: Partial<AutoUpdaterConfig> = {}) {
     this.mainWindow = mainWindow;
@@ -63,6 +77,7 @@ export class AutoUpdater {
       ...config,
     };
 
+    cleanupReplacedExecutable(this.install.target);
     this.setupAutoCheck();
   }
 
@@ -426,18 +441,28 @@ export class AutoUpdater {
 
     // Si autoDownload est activé, télécharger automatiquement
     if (this.config.autoDownload) {
-      this.autoDownloadUpdate(updateInfo);
+      void this.autoDownloadUpdate(updateInfo);
     }
   }
 
-  private async autoDownloadUpdate(updateInfo: UpdateInfo): Promise<void> {
+  /**
+   * Télécharge l'asset adapté, vérifie le SHA-256, puis propose l'installation.
+   * Retourne false si aucun asset exploitable (l'appelant peut alors ouvrir la page des versions).
+   */
+  private async autoDownloadUpdate(updateInfo: UpdateInfo, interactive = false): Promise<boolean> {
+    if (this.downloading) return true;
+    this.downloading = true;
     try {
-      const platform = this.getPlatform();
-      const asset = this.findAssetForPlatform(updateInfo.assets, platform);
+      const asset = selectUpdateAsset(
+        updateInfo.assets,
+        process.platform,
+        process.arch,
+        this.install.kind
+      );
 
       if (!asset) {
         logger.info(LogCategory.SYSTEM, 'No suitable asset found for current platform');
-        return;
+        return false;
       }
 
       // Intégrité : exiger une URL GitHub HTTPS et un SHA-256 publié par GitHub
@@ -447,7 +472,7 @@ export class AutoUpdater {
           LogCategory.SYSTEM,
           `[AutoUpdater] Téléchargement automatique ignoré : ${asset.name} sans URL de confiance ou empreinte SHA-256`
         );
-        return;
+        return false;
       }
 
       logger.info(
@@ -465,7 +490,7 @@ export class AutoUpdater {
 
       // Télécharger le fichier avec suivi de progression
       const downloadPath = await this.downloadFile(
-        asset.browser_download_url,
+        asset.browser_download_url!,
         asset.name,
         (downloaded, total) => {
           const progress = total > 0 ? Math.round((downloaded / total) * 100) : 0;
@@ -495,16 +520,17 @@ export class AutoUpdater {
           });
         }
 
-        // Sur Windows, proposer d'installer immédiatement (sauf en mode silencieux)
-        if (platform === 'windows' && !this.config.silent) {
+        // Proposer d'installer immédiatement (sauf en mode silencieux non interactif)
+        if (interactive || !this.config.silent) {
           this.promptForImmediateInstall(updateInfo, downloadPath, expectedSha256);
-        } else if (platform === 'windows' && this.config.silent) {
+        } else {
           logger.info(
             LogCategory.SYSTEM,
             '[AutoUpdater] Mode silencieux - installation différée au prochain redémarrage'
           );
         }
       }
+      return true;
     } catch (error) {
       logger.error(LogCategory.SYSTEM, '❌ Auto download failed:', toError(error));
       if (this.mainWindow) {
@@ -513,6 +539,12 @@ export class AutoUpdater {
           error: String(error),
         });
       }
+      if (interactive) {
+        dialog.showErrorBox(getL().updAutoDownloadFailed, String(error));
+      }
+      return true;
+    } finally {
+      this.downloading = false;
     }
   }
 
@@ -692,6 +724,25 @@ export class AutoUpdater {
     const platform = process.platform;
 
     try {
+      // AppImage / exe portable : remplacement du fichier puis relance, sans installeur
+      const { kind, target } = this.install;
+      if (
+        (kind === 'appimage' && installerPath.endsWith('.AppImage')) ||
+        (kind === 'portable' && installerPath.endsWith('.exe'))
+      ) {
+        if (target && replaceExecutableInPlace(installerPath, target, platform)) {
+          fs.rmSync(installerPath, { force: true });
+          logger.info(LogCategory.SYSTEM, `✅ Application remplacée en place : ${target}`);
+          app.relaunch({ execPath: target, args: [] });
+          app.quit();
+          return;
+        }
+        logger.warn(LogCategory.SYSTEM, `[AutoUpdater] Dossier non inscriptible : ${target}`);
+        shell.showItemInFolder(installerPath);
+        dialog.showErrorBox(getL().installErrTitle, getL().installLaunchErr);
+        return;
+      }
+
       if (platform === 'win32') {
         // Vérifier que c'est bien un fichier .exe valide
         if (!installerPath.endsWith('.exe')) {
@@ -737,12 +788,14 @@ export class AutoUpdater {
           stdio: 'ignore',
         });
       } else if (platform === 'linux') {
-        // Linux: rendre exécutable et lancer
-        fs.chmodSync(installerPath, '755');
-        spawn(installerPath, [], {
-          detached: true,
-          stdio: 'ignore',
-        });
+        if (/\.(deb|rpm)$/.test(installerPath)) {
+          // Paquet : remis au gestionnaire de logiciels du système (droits admin requis)
+          void shell.openPath(installerPath);
+        } else {
+          // AppImage hors mode AppImage : pas d'exécution directe, affichage dans le dossier
+          fs.chmodSync(installerPath, 0o755);
+          shell.showItemInFolder(installerPath);
+        }
       }
 
       // Quitter l'application pour permettre l'installation (macOS/Linux uniquement)
@@ -753,28 +806,6 @@ export class AutoUpdater {
       logger.error(LogCategory.SYSTEM, 'Failed to launch installer:', toError(error));
       dialog.showErrorBox(getL().installErrTitle, getL().installGenericErr);
     }
-  }
-
-  private getPlatform(): string {
-    const platform = process.platform;
-    const arch = process.arch;
-
-    if (platform === 'win32') return 'windows';
-    if (platform === 'darwin') return 'macos';
-    if (platform === 'linux') return 'linux';
-
-    return 'unknown';
-  }
-
-  private findAssetForPlatform(assets: any[], platform: string): any {
-    const patterns = {
-      windows: ['.exe'],
-      macos: ['.dmg'],
-      linux: ['.AppImage', '.deb', '.rpm'],
-    };
-
-    const extensions = patterns[platform as keyof typeof patterns] || [];
-    return assets.find((asset: any) => extensions.some(ext => asset.name.endsWith(ext)));
   }
 
   async showUpdateDialog(): Promise<void> {
@@ -833,7 +864,7 @@ export class AutoUpdater {
         this.downloadAndInstall();
         break;
       case 1: // Voir les releases
-        shell.openExternal('https://github.com/klinnex/bellepoule-modern/releases/latest');
+        shell.openExternal(RELEASES_URL);
         break;
       case 2: // Plus tard
         // Rappeler plus tard
@@ -841,36 +872,21 @@ export class AutoUpdater {
     }
   }
 
+  /** Téléchargement + installation intégrés (sans passer par le navigateur). */
   private async downloadAndInstall(): Promise<void> {
-    try {
-      const platform = this.getPlatform();
-      const asset = this.findAssetForPlatform(this.updateInfo!.assets, platform);
-
-      // Construire l'URL direct vers la release spécifique
-      let downloadUrl: string;
-      if (this.updateInfo!.downloadUrl) {
-        downloadUrl = this.updateInfo!.downloadUrl;
-      } else {
-        downloadUrl = 'https://github.com/klinnex/bellepoule-modern/releases/latest';
-      }
-
-      if (asset) {
-        // Ouvrir la page de la release spécifique
-        shell.openExternal(downloadUrl);
-
-        dialog.showMessageBox(this.mainWindow!, {
-          type: 'info',
-          title: getL().updDownloadTitle,
-          message: getL().updDownloadRedirect,
-          detail: getL().updDownloadDetail,
-          buttons: ['OK'],
-        });
-      } else {
-        shell.openExternal(downloadUrl);
-      }
-    } catch (error) {
-      logger.error(LogCategory.SYSTEM, 'Download failed:', toError(error));
-      shell.openExternal('https://github.com/klinnex/bellepoule-modern/releases/latest');
+    if (!this.updateInfo || !this.mainWindow) return;
+    const L = getL();
+    void dialog.showMessageBox(this.mainWindow, {
+      type: 'info',
+      title: L.updDownloadTitle,
+      message: L.updDownloadRedirect,
+      detail: L.updDownloadDetail,
+      buttons: ['OK'],
+    });
+    const handled = await this.autoDownloadUpdate(this.updateInfo, true);
+    if (!handled) {
+      // Aucun binaire exploitable pour cette plateforme : repli sur la page des versions
+      shell.openExternal(this.updateInfo.downloadUrl || RELEASES_URL);
     }
   }
 
