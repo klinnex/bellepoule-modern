@@ -1273,6 +1273,8 @@
     "apply_saved_theme": "Aplica un tema desat",
     "themes_option": "📦 Temes…",
     "copy_url": "Copia l'URL",
+    "copy_url_short": "URL",
+    "copied_short": "Copiat",
     "qr_code": "Codi QR",
     "qr_label": "Pista {{number}} – {{screen}}",
     "matches": "Combats",

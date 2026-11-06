@@ -1273,6 +1273,8 @@
     "apply_saved_theme": "Apply a saved theme",
     "themes_option": "📦 Themes…",
     "copy_url": "Copy URL",
+    "copy_url_short": "URL",
+    "copied_short": "Copied",
     "qr_code": "QR code",
     "qr_label": "Strip {{number}} – {{screen}}",
     "matches": "Bouts",

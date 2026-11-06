@@ -1273,6 +1273,8 @@
     "apply_saved_theme": "Arloañ un neuz enrollet",
     "themes_option": "📦 Neuzioù…",
     "copy_url": "Eilañ an URL",
+    "copy_url_short": "URL",
+    "copied_short": "Eilet",
     "qr_code": "Kod QR",
     "qr_label": "Tachenn {{number}} – {{screen}}",
     "matches": "Emgannoù",

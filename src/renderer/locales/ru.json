@@ -1273,6 +1273,8 @@
     "apply_saved_theme": "Применить сохранённую тему",
     "themes_option": "📦 Темы…",
     "copy_url": "Копировать URL",
+    "copy_url_short": "URL",
+    "copied_short": "Скопировано",
     "qr_code": "QR-код",
     "qr_label": "Дорожка {{number}} – {{screen}}",
     "matches": "Бои",
