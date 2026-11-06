@@ -12,6 +12,7 @@
     <script src="/js/kioskRender.js"></script>
     <script src="/js/kioskLists.js"></script>
     <script src="/js/kioskTiming.js"></script>
+    <script src="/js/kioskData.js"></script>
     <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts.css" />
     <style>
@@ -1909,77 +1910,52 @@
       // ─── Chargement des données ──────────────────────────────────────────────
       async function fetchData() {
         try {
-          // 1. Session
-          const sessRes = await fetch('/api/session');
-          if (!sessRes.ok) {
-            setStatus(false, tk('kiosk.no_session'));
-            return;
-          }
-          state.session = await sessRes.json();
-          const competitionId = state.session.competitionId;
+          const ok = await KioskData.loadKioskData(fetch, {
+            onSession: session => {
+              state.session = session;
+              document.getElementById('menu-competition-name').textContent =
+                session.competitionName || '';
 
-          document.getElementById('menu-competition-name').textContent =
-            state.session.competitionName || '';
+              // Note d'organisation
+              renderOrgNote(session.orgNote || null);
 
-          // Note d'organisation
-          renderOrgNote(state.session.orgNote || null);
-
-          // Appliquer les vues kiosk : localStorage en priorité, sinon config serveur
-          // 'final' (classement final) désactivé par défaut s'il n'est pas explicitement présent
-          const viewDefault = (src, v) => (v === 'final' ? src[v] === true : src[v] !== false);
-          const localViews = loadLocalViews();
-          if (localViews) {
-            // Restaurer l'état des checkboxes depuis localStorage
-            ALL_VIEWS.forEach(v => {
-              const cb = document.getElementById('cb-' + v);
-              if (cb) cb.checked = viewDefault(localViews, v);
-            });
-          } else if (state.session.kioskViews) {
-            // Initialiser les checkboxes depuis la config serveur (premier chargement)
-            const kv = state.session.kioskViews;
-            ALL_VIEWS.forEach(v => {
-              const cb = document.getElementById('cb-' + v);
-              if (cb) cb.checked = viewDefault(kv, v);
-            });
-          }
-          applyLocalViews();
-
-          // 2. Données poules + classements (ou historique entraînement)
-          if (competitionId === '__training__') {
-            const histRes = await fetch('/api/training/history');
-            if (histRes.ok) {
-              const histData = await histRes.json();
-              state.trainingHistory = histData.history || [];
-              renderRanking();
-            }
-          } else {
-            const poolsRes = await fetch('/api/competitions/' + competitionId + '/results-data');
-            if (poolsRes.ok) {
-              const data = await poolsRes.json();
-              state.poolsData = data.pools || [];
-              if (data.overallRanking && data.overallRanking.length > 0) {
-                state.overallRanking = data.overallRanking;
-              } else {
-                buildOverallRanking();
+              // Vues kiosk : localStorage en priorité, sinon config serveur
+              const checks = KioskData.resolveViewChecks(
+                ALL_VIEWS,
+                loadLocalViews(),
+                session.kioskViews
+              );
+              if (checks) {
+                ALL_VIEWS.forEach(v => {
+                  const cb = document.getElementById('cb-' + v);
+                  if (cb) cb.checked = checks[v];
+                });
               }
+              applyLocalViews();
+            },
+            onTraining: history => {
+              state.trainingHistory = history;
+              renderRanking();
+            },
+            onPools: (pools, overallRanking) => {
+              state.poolsData = pools;
+              if (overallRanking) state.overallRanking = overallRanking;
+              else buildOverallRanking();
               renderPools();
               renderRanking();
-            }
-          }
-
-          // 3. Arènes
-          const arenasRes = await fetch('/api/arenas');
-          if (arenasRes.ok) {
-            state.arenasData = await arenasRes.json();
-            renderArenas();
-          }
-
-          // 4. Matchs suivants
-          const suivantsRes = await fetch('/api/session/upcoming-matches');
-          if (suivantsRes.ok) {
-            const suivantsData = await suivantsRes.json();
-            state.upcomingData = suivantsData.upcoming || [];
-            renderSuivants();
+            },
+            onArenas: arenas => {
+              state.arenasData = arenas;
+              renderArenas();
+            },
+            onUpcoming: upcoming => {
+              state.upcomingData = upcoming;
+              renderSuivants();
+            },
+          });
+          if (!ok) {
+            setStatus(false, tk('kiosk.no_session'));
+            return;
           }
 
           state.lastUpdate = new Date();
