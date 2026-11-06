@@ -43,4 +43,10 @@ describe('updaterSettings', () => {
     expect(resolveChannel({ autoCheck: true, channel: 'dev' }, 'stable')).toBe('dev');
     expect(resolveChannel({ autoCheck: true, channel: 'stable' }, 'dev')).toBe('stable');
   });
+
+  it('conserve cleanupExe (ancien exe portable à supprimer)', () => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bp-upds-'));
+    writeUpdaterSettings(dir, { autoCheck: false, cleanupExe: 'D:\\bp\\old.exe' });
+    expect(readUpdaterSettings(dir)).toEqual({ autoCheck: false, cleanupExe: 'D:\\bp\\old.exe' });
+  });
 });

@@ -125,3 +125,43 @@ export function cleanupReplacedExecutable(target: string | null): void {
     }
   }
 }
+
+/**
+ * Exe portable Windows : le lanceur NSIS garde son propre .exe ouvert (lecture seule,
+ * sans partage suppression) tant que l'app tourne → impossible de le renommer ou
+ * l'écraser. La nouvelle version est donc copiée À CÔTÉ, sous le nom de l'asset
+ * (qui contient déjà la version), puis l'ancien exe est supprimé au lancement suivant.
+ *
+ * Chemin cible : même dossier que l'exe courant, nom = basename de l'asset (.exe).
+ * Collision avec l'exe courant ou un fichier existant → suffixe `-<n>`.
+ */
+export function portableSideBySidePath(
+  currentExe: string,
+  assetName: string | undefined,
+  exists: (p: string) => boolean
+): string {
+  const dir = path.win32.dirname(currentExe);
+  const raw = path.win32.basename(path.posix.basename(assetName || ''));
+  const safe = raw.replace(/[^\w.\-() ]/g, '_');
+  const base = safe.toLowerCase().endsWith('.exe')
+    ? safe.slice(0, -4)
+    : 'BellePoule-Modern-portable';
+  const same = (p: string) => p.toLowerCase() === currentExe.toLowerCase();
+  let candidate = path.win32.join(dir, `${base}.exe`);
+  for (let n = 2; same(candidate) || exists(candidate); n++) {
+    candidate = path.win32.join(dir, `${base}-${n}.exe`);
+  }
+  return candidate;
+}
+
+/**
+ * Ancien exe portable à supprimer : seulement un .exe du même dossier que l'exe
+ * courant, et pas l'exe courant lui-même.
+ */
+export function isSafePortableCleanup(previousExe: unknown, currentExe: string): boolean {
+  if (typeof previousExe !== 'string' || !previousExe.toLowerCase().endsWith('.exe')) return false;
+  if (previousExe.toLowerCase() === currentExe.toLowerCase()) return false;
+  return (
+    path.win32.dirname(previousExe).toLowerCase() === path.win32.dirname(currentExe).toLowerCase()
+  );
+}
