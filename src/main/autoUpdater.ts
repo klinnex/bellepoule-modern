@@ -37,6 +37,16 @@ function pendingVersionLabel(info: { latestVersion: string; latestBuild: number 
 
 const GITHUB_API = 'https://api.github.com/repos/klinnex/bellepoule-modern';
 
+/**
+ * Page de release reconstruite sur la base constante (jamais l'URL renvoyée par
+ * l'API : CodeQL js/client-side-unvalidated-url-redirection). Repli : liste des versions.
+ */
+function releasePageUrl(build: number): string {
+  return Number.isInteger(build) && build > 0
+    ? `https://github.com/klinnex/bellepoule-modern/releases?q=${build}`
+    : RELEASES_URL;
+}
+
 const RELEASES_URL = 'https://github.com/klinnex/bellepoule-modern/releases/latest';
 
 interface UpdateInfo {
@@ -800,7 +810,7 @@ export class AutoUpdater {
     if (!this.updateInfo?.hasUpdate) return { success: false, error: 'no_update' };
     const handled = await this.autoDownloadUpdate(this.updateInfo, true);
     if (!handled) {
-      shell.openExternal(this.updateInfo.downloadUrl || RELEASES_URL);
+      shell.openExternal(releasePageUrl(this.updateInfo.latestBuild));
       return { success: false, error: 'no_asset' };
     }
     return { success: true };
@@ -820,7 +830,7 @@ export class AutoUpdater {
     const handled = await this.autoDownloadUpdate(this.updateInfo, true);
     if (!handled) {
       // Aucun binaire exploitable pour cette plateforme : repli sur la page des versions
-      shell.openExternal(this.updateInfo.downloadUrl || RELEASES_URL);
+      shell.openExternal(releasePageUrl(this.updateInfo.latestBuild));
     }
   }
 
