@@ -8,6 +8,7 @@ import type { BlackCardRecord } from './types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { getSharedMainWindow } from '../mainWindowRef';
 import { logger, LogCategory, toError } from '../../shared/services/logger';
+import { emitCompetitionEvent } from '../ipc/dbHandlers';
 
 type S = RemoteScoreServer;
 
@@ -130,6 +131,7 @@ export function cancelBlackCard(
       scoreB: reopened(scoreB),
       status: MatchStatus.IN_PROGRESS,
     });
+    emitCompetitionEvent('matches:changed');
   }
   ctx.sessionMatchScores.set(matchId, {
     scoreA: reopened(scoreA),

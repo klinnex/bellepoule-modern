@@ -11,6 +11,7 @@ import type { RegistrationRouteContext } from './registrationRoutes';
 import { baseArenaId } from '../arenaSlots';
 import { getSharedMainWindow } from '../../mainWindowRef';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
+import { emitCompetitionEvent } from '../../ipc/dbHandlers';
 
 /** Tireur d'une poule tel que transmis par le renderer. */
 export type PoolFencer = Record<string, unknown> & { id: string };
@@ -257,6 +258,7 @@ export function registerPoolRoutes(ctx: PoolRouteContext): void {
         scoreB: scoreBObj,
         status: MatchStatus.FINISHED,
       });
+      emitCompetitionEvent('matches:changed', ctx.session?.competitionId);
 
       try {
         ctx.db.logScoreChange({
