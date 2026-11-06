@@ -107,6 +107,7 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
       "L'intégrité de la mise à jour n'a pas pu être vérifiée. Installation annulée.",
     installLaunchErr: "Impossible de lancer l'installateur. Veuillez installer manuellement.",
     installGenericErr: "Une erreur est survenue lors du lancement de l'installateur.",
+    installShowFile: 'Afficher le fichier',
     updTitle: 'Mises à jour',
     updNoRelease: 'Aucune version publiée disponible',
     updNoReleaseDetail:
@@ -224,6 +225,7 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
       'The integrity of the update could not be verified. Installation cancelled.',
     installLaunchErr: 'Could not start the installer. Please install manually.',
     installGenericErr: 'An error occurred while starting the installer.',
+    installShowFile: 'Show file',
     updTitle: 'Updates',
     updNoRelease: 'No published release available',
     updNoReleaseDetail:
@@ -343,6 +345,7 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     installLaunchErr:
       'Das Installationsprogramm konnte nicht gestartet werden. Bitte manuell installieren.',
     installGenericErr: 'Beim Starten des Installationsprogramms ist ein Fehler aufgetreten.',
+    installShowFile: 'Datei anzeigen',
     updTitle: 'Updates',
     updNoRelease: 'Keine veröffentlichte Version verfügbar',
     updNoReleaseDetail:
@@ -460,6 +463,7 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
       "Non è stato possibile verificare l'integrità dell'aggiornamento. Installazione annullata.",
     installLaunchErr: 'Impossibile avviare il programma di installazione. Installa manualmente.',
     installGenericErr: "Si è verificato un errore durante l'avvio del programma di installazione.",
+    installShowFile: 'Mostra file',
     updTitle: 'Aggiornamenti',
     updNoRelease: 'Nessuna versione pubblicata disponibile',
     updNoReleaseDetail:
@@ -576,6 +580,7 @@ export const MENU_LABELS: Record<MenuLang, Record<string, string>> = {
     installIntegrityErr: '無法驗證更新的完整性，已取消安裝。',
     installLaunchErr: '無法啟動安裝程式，請手動安裝。',
     installGenericErr: '啟動安裝程式時發生錯誤。',
+    installShowFile: '顯示檔案',
     updTitle: '更新',
     updNoRelease: '沒有已發佈的版本',
     updNoReleaseDetail: '目前沒有已發佈的版本。您已在使用最新的開發版本。',

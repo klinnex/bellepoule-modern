@@ -126,8 +126,8 @@ Asset choisi par `src/main/updateAssets.ts` (plateforme + arch + mode), téléch
 | Mode détecté | Action |
 |---|---|
 | AppImage (`APPIMAGE`) | remplacement du fichier en place + relance |
-| Windows portable (`PORTABLE_EXECUTABLE_FILE`) | remplacement de l'exe (`.old` nettoyé au lancement suivant) + relance |
-| Windows installé | `-setup.exe` NSIS silencieux |
+| Windows portable (`PORTABLE_EXECUTABLE_FILE`) | nouvel exe copié à côté sous le nom de l'asset (l'exe courant est verrouillé par son lanceur) + relance ; ancien exe supprimé au lancement suivant |
+| Windows installé | `-setup.exe` NSIS ouvert via ShellExecute (UAC si Program Files) |
 | macOS | ouverture du `.dmg` de la bonne arch |
 | Linux deb/rpm | remis au gestionnaire de logiciels |
 

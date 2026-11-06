@@ -18,6 +18,8 @@ export interface PendingUpdateData {
   path: string;
   sha256: string;
   downloadedAt: string;
+  /** Nom de l'asset GitHub (exe portable : nom du fichier installé à côté) */
+  assetName?: string;
 }
 
 /** Crée (si besoin) le sous-dossier privé et force le mode 0700. */
@@ -99,6 +101,7 @@ export function readPendingUpdate(userDataDir: string): PendingUpdateData | null
       path: raw.path,
       sha256: raw.sha256,
       downloadedAt: raw.downloadedAt,
+      ...(typeof raw.assetName === 'string' ? { assetName: raw.assetName } : {}),
     };
   } catch {
     return null;

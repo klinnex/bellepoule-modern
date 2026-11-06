@@ -8,7 +8,6 @@ import { app, dialog, shell, BrowserWindow } from 'electron';
 import https from 'https';
 import fs from 'fs';
 import path from 'path';
-import { spawn } from 'child_process';
 import {
   ensurePrivateDir,
   randomInstallerName,
@@ -21,6 +20,8 @@ import { parseReleaseBuild, pickLatestRelease } from './updateReleases';
 import {
   cleanupReplacedExecutable,
   detectInstallKind,
+  isSafePortableCleanup,
+  portableSideBySidePath,
   replaceExecutableInPlace,
   selectUpdateAsset,
   type InstallKind,
@@ -88,9 +89,38 @@ export class AutoUpdater {
     };
 
     cleanupReplacedExecutable(this.install.target);
+    this.cleanupPreviousPortable();
+    // Le lanceur de l'ancien exe peut mettre quelques secondes à se fermer
+    setTimeout(() => this.cleanupPreviousPortable(), 15000);
     this.autoCheck = readUpdaterSettings(app.getPath('userData')).autoCheck;
     if (this.autoCheck) this.setupAutoCheck();
     else logger.info(LogCategory.SYSTEM, '[AutoUpdater] Vérification automatique désactivée');
+  }
+
+  /** Supprime l'ancien exe portable remplacé lors de la mise à jour précédente. */
+  private cleanupPreviousPortable(): void {
+    if (this.install.kind !== 'portable' || !this.install.target) return;
+    const userData = app.getPath('userData');
+    const settings = readUpdaterSettings(userData);
+    if (!settings.cleanupExe) return;
+    const { cleanupExe, ...rest } = settings;
+    if (isSafePortableCleanup(cleanupExe, this.install.target)) {
+      try {
+        fs.rmSync(cleanupExe, { force: true });
+        logger.info(
+          LogCategory.SYSTEM,
+          `[AutoUpdater] Ancien exe portable supprimé : ${cleanupExe}`
+        );
+      } catch (e) {
+        logger.warn(
+          LogCategory.SYSTEM,
+          `[AutoUpdater] Ancien exe encore verrouillé : ${cleanupExe}`,
+          e
+        );
+        return; // nouvel essai plus tard
+      }
+    }
+    writeUpdaterSettings(userData, rest);
   }
 
   private setupAutoCheck(): void {
@@ -476,7 +506,12 @@ export class AutoUpdater {
       const pending = readPendingUpdate(app.getPath('userData'));
       if (pending && pending.version === pendingVersionLabel(updateInfo)) {
         if (interactive) {
-          this.promptForImmediateInstall(updateInfo, pending.path, pending.sha256);
+          this.promptForImmediateInstall(
+            updateInfo,
+            pending.path,
+            pending.sha256,
+            pending.assetName
+          );
         }
         return true;
       }
@@ -525,7 +560,7 @@ export class AutoUpdater {
         logger.info(LogCategory.SYSTEM, `✅ Mise à jour téléchargée et vérifiée: ${downloadPath}`);
 
         // Sauvegarder les informations pour l'installation au redémarrage
-        this.saveDownloadedUpdate(downloadPath, updateInfo, expectedSha256);
+        this.saveDownloadedUpdate(downloadPath, updateInfo, expectedSha256, asset.name);
 
         // Notifier l'utilisateur
         if (this.mainWindow) {
@@ -538,7 +573,7 @@ export class AutoUpdater {
 
         // Proposer d'installer immédiatement (sauf en mode silencieux non interactif)
         if (interactive || !this.config.silent) {
-          this.promptForImmediateInstall(updateInfo, downloadPath, expectedSha256);
+          this.promptForImmediateInstall(updateInfo, downloadPath, expectedSha256, asset.name);
         } else {
           logger.info(
             LogCategory.SYSTEM,
@@ -567,7 +602,8 @@ export class AutoUpdater {
   private promptForImmediateInstall(
     updateInfo: UpdateInfo,
     downloadPath: string,
-    expectedSha256: string
+    expectedSha256: string,
+    assetName?: string
   ): void {
     if (!this.mainWindow) return;
 
@@ -583,7 +619,7 @@ export class AutoUpdater {
     });
 
     if (response === 0) {
-      this.launchVerifiedInstaller(downloadPath, expectedSha256);
+      this.launchVerifiedInstaller(downloadPath, expectedSha256, assetName);
     }
   }
 
@@ -680,8 +716,14 @@ export class AutoUpdater {
     });
   }
 
-  private saveDownloadedUpdate(downloadPath: string, updateInfo: UpdateInfo, sha256: string): void {
+  private saveDownloadedUpdate(
+    downloadPath: string,
+    updateInfo: UpdateInfo,
+    sha256: string,
+    assetName: string
+  ): void {
     writePendingUpdate(app.getPath('userData'), {
+      assetName,
       version: pendingVersionLabel(updateInfo),
       path: downloadPath,
       sha256,
@@ -703,7 +745,11 @@ export class AutoUpdater {
           LogCategory.SYSTEM,
           `🔄 Installation de la mise à jour ${updateData.version}...`
         );
-        await this.launchVerifiedInstaller(updateData.path, updateData.sha256);
+        await this.launchVerifiedInstaller(
+          updateData.path,
+          updateData.sha256,
+          updateData.assetName
+        );
       }
     } catch (error) {
       logger.error(LogCategory.SYSTEM, 'Failed to install pending update:', toError(error));
@@ -714,7 +760,11 @@ export class AutoUpdater {
    * Revérifier l'empreinte SHA-256 juste avant le lancement
    * (défense en profondeur : dossier privé userData).
    */
-  private async launchVerifiedInstaller(installerPath: string, sha256: unknown): Promise<void> {
+  private async launchVerifiedInstaller(
+    installerPath: string,
+    sha256: unknown,
+    assetName?: string
+  ): Promise<void> {
     const valid =
       typeof sha256 === 'string' &&
       (await verifyFileSha256(installerPath, sha256).catch(() => false));
@@ -733,19 +783,31 @@ export class AutoUpdater {
       return;
     }
 
-    this.launchInstaller(installerPath);
+    this.launchInstaller(installerPath, assetName);
   }
 
-  private launchInstaller(installerPath: string): void {
+  private launchInstaller(installerPath: string, assetName?: string): void {
     const platform = process.platform;
 
     try {
-      // AppImage / exe portable : remplacement du fichier puis relance, sans installeur
       const { kind, target } = this.install;
-      if (
-        (kind === 'appimage' && installerPath.endsWith('.AppImage')) ||
-        (kind === 'portable' && installerPath.endsWith('.exe'))
-      ) {
+
+      // Exe portable : nouvelle version copiée à côté (l'exe courant est verrouillé
+      // par son lanceur), relance dessus, ancien exe supprimé au lancement suivant.
+      if (kind === 'portable' && target && installerPath.endsWith('.exe')) {
+        const newExe = portableSideBySidePath(target, assetName, p => fs.existsSync(p));
+        fs.copyFileSync(installerPath, newExe);
+        fs.rmSync(installerPath, { force: true });
+        const userData = app.getPath('userData');
+        writeUpdaterSettings(userData, { ...readUpdaterSettings(userData), cleanupExe: target });
+        logger.info(LogCategory.SYSTEM, `✅ Nouvelle version portable : ${newExe}`);
+        app.relaunch({ execPath: newExe, args: [] });
+        app.quit();
+        return;
+      }
+
+      // AppImage : remplacement du fichier en place puis relance, sans installeur
+      if (kind === 'appimage' && installerPath.endsWith('.AppImage')) {
         if (target && replaceExecutableInPlace(installerPath, target, platform)) {
           fs.rmSync(installerPath, { force: true });
           logger.info(LogCategory.SYSTEM, `✅ Application remplacée en place : ${target}`);
@@ -754,8 +816,7 @@ export class AutoUpdater {
           return;
         }
         logger.warn(LogCategory.SYSTEM, `[AutoUpdater] Dossier non inscriptible : ${target}`);
-        shell.showItemInFolder(installerPath);
-        dialog.showErrorBox(getL().installErrTitle, getL().installLaunchErr);
+        this.reportInstallFailure(installerPath, getL().installLaunchErr, `${target}`);
         return;
       }
 
@@ -766,43 +827,11 @@ export class AutoUpdater {
           return;
         }
 
-        // Windows: lancer le .exe avec options optimisées
-        // /VERYSILENT = aucune interface utilisateur
-        // /NORESTART = ne pas redémarrer automatiquement
-        // /CLOSEAPPLICATIONS = fermer l'app en cours
-        // /MERGETASKS = conserver les paramètres existants
-        const installer = spawn(
-          installerPath,
-          ['/VERYSILENT', '/NORESTART', '/CLOSEAPPLICATIONS', '/MERGETASKS=!desktopicon'],
-          {
-            detached: true,
-            stdio: 'ignore',
-            windowsHide: true, // Cacher la fenêtre console
-          }
-        );
-
-        // Gestion des erreurs du processus
-        installer.on('error', (err: Error) => {
-          logger.error(LogCategory.SYSTEM, 'Installer launch error:', toError(err));
-          dialog.showErrorBox(getL().installErrTitle, getL().installLaunchErr);
-        });
-
-        // Attendre que l'installateur démarre avant de quitter
-        installer.on('spawn', () => {
-          logger.info(LogCategory.SYSTEM, '✅ Installateur Windows lancé');
-          // Attendre 3 secondes pour que l'installateur prenne le relais
-          setTimeout(() => {
-            app.quit();
-          }, 3000);
-        });
-
+        this.launchWindowsInstaller(installerPath);
         return; // Quitter la fonction ici pour éviter le double timeout
       } else if (platform === 'darwin') {
-        // macOS: ouvrir le .dmg
-        spawn('open', [installerPath], {
-          detached: true,
-          stdio: 'ignore',
-        });
+        // macOS: ouvrir le .dmg (Finder)
+        void shell.openPath(installerPath);
       } else if (platform === 'linux') {
         if (/\.(deb|rpm)$/.test(installerPath)) {
           // Paquet : remis au gestionnaire de logiciels du système (droits admin requis)
@@ -820,8 +849,44 @@ export class AutoUpdater {
       }, 2000);
     } catch (error) {
       logger.error(LogCategory.SYSTEM, 'Failed to launch installer:', toError(error));
-      dialog.showErrorBox(getL().installErrTitle, getL().installGenericErr);
+      this.reportInstallFailure(installerPath, getL().installGenericErr, toError(error).message);
     }
+  }
+
+  /**
+   * Installeur NSIS (electron-builder) lancé via ShellExecute (`shell.openPath`) :
+   * Windows affiche la demande d'élévation UAC si l'app est dans Program Files.
+   * Pas d'exécution directe du fichier téléchargé (CodeQL js/command-line-injection).
+   */
+  private launchWindowsInstaller(installerPath: string): void {
+    void shell.openPath(installerPath).then(err => {
+      if (err) {
+        logger.error(LogCategory.SYSTEM, `[AutoUpdater] Lancement de l'installeur : ${err}`);
+        this.reportInstallFailure(installerPath, getL().installLaunchErr, err);
+        return;
+      }
+      logger.info(LogCategory.SYSTEM, '✅ Installateur Windows lancé');
+      // Laisser l'installeur démarrer puis libérer les fichiers de l'application
+      setTimeout(() => app.quit(), 3000);
+    });
+  }
+
+  /** Échec d'installation : message réel + accès direct au fichier téléchargé. */
+  private reportInstallFailure(installerPath: string, message: string, detail: string): void {
+    const L = getL();
+    const options = {
+      type: 'error' as const,
+      title: L.installErrTitle,
+      message,
+      detail,
+      buttons: [L.installShowFile, 'OK'],
+      defaultId: 0,
+      cancelId: 1,
+    };
+    const response = this.mainWindow
+      ? dialog.showMessageBoxSync(this.mainWindow, options)
+      : dialog.showMessageBoxSync(options);
+    if (response === 0) shell.showItemInFolder(installerPath);
   }
 
   async showUpdateDialog(): Promise<void> {

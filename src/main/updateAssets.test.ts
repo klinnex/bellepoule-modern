@@ -5,6 +5,8 @@ import path from 'path';
 import {
   cleanupReplacedExecutable,
   detectInstallKind,
+  isSafePortableCleanup,
+  portableSideBySidePath,
   replaceExecutableInPlace,
   selectUpdateAsset,
 } from './updateAssets';
@@ -109,5 +111,43 @@ describe('replaceExecutableInPlace', () => {
     const source = path.join(dir, 'dl.bin');
     fs.writeFileSync(source, 'new');
     expect(replaceExecutableInPlace(source, path.join(dir, 'nope', 'app'), 'linux')).toBe(false);
+  });
+});
+
+describe('portableSideBySidePath', () => {
+  const cur = 'D:\\Escrime\\BellePoule-Modern-1.2.1-win-x64-portable.exe';
+
+  it('nom de l’asset dans le dossier de l’exe courant', () => {
+    expect(
+      portableSideBySidePath(cur, 'BellePoule-Modern-1.2.2-win-x64-portable.exe', () => false)
+    ).toBe('D:\\Escrime\\BellePoule-Modern-1.2.2-win-x64-portable.exe');
+  });
+
+  it('même nom que l’exe courant ou fichier existant → suffixe', () => {
+    expect(
+      portableSideBySidePath(cur, 'BellePoule-Modern-1.2.1-win-x64-portable.exe', () => false)
+    ).toBe('D:\\Escrime\\BellePoule-Modern-1.2.1-win-x64-portable-2.exe');
+    const taken = new Set(['D:\\Escrime\\x.exe', 'D:\\Escrime\\x-2.exe']);
+    expect(portableSideBySidePath(cur, 'x.exe', p => taken.has(p))).toBe('D:\\Escrime\\x-3.exe');
+  });
+
+  it('nom d’asset hostile ou absent neutralisé', () => {
+    expect(portableSideBySidePath(cur, '..\\..\\Windows\\evil.exe', () => false)).toBe(
+      'D:\\Escrime\\evil.exe'
+    );
+    expect(portableSideBySidePath(cur, undefined, () => false)).toBe(
+      'D:\\Escrime\\BellePoule-Modern-portable.exe'
+    );
+  });
+});
+
+describe('isSafePortableCleanup', () => {
+  const cur = 'D:\\Escrime\\new.exe';
+  it('uniquement un autre .exe du même dossier', () => {
+    expect(isSafePortableCleanup('D:\\Escrime\\old.exe', cur)).toBe(true);
+    expect(isSafePortableCleanup('d:\\escrime\\NEW.EXE', cur)).toBe(false);
+    expect(isSafePortableCleanup('C:\\Windows\\old.exe', cur)).toBe(false);
+    expect(isSafePortableCleanup('D:\\Escrime\\data.db', cur)).toBe(false);
+    expect(isSafePortableCleanup(42, cur)).toBe(false);
   });
 });
