@@ -10,6 +10,7 @@ import { logger, LogCategory } from '@shared/services/logger';
 import { useToast } from '../components/Toast';
 import { importRankingFromFFF, RankingImportResult } from '../../shared/utils/fileParser';
 import { useTranslation } from './useTranslation';
+import { useCompetitionEvent } from './useCompetitionEvent';
 
 interface UseFencerManagementProps {
   competition: Competition;
@@ -44,6 +45,20 @@ export const useFencerManagement = ({ competition, onUpdate }: UseFencerManageme
       showToast('Erreur lors du chargement des tireurs', 'error');
     }
   }, [showToast]);
+
+  // Rechargement push (inscription distante, import…) : remplace tout poll (#1298).
+  // Regroupe les rafales d'événements (import en masse) en un seul rechargement.
+  const reloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useCompetitionEvent('fencers:changed', competition.id, () => {
+    if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
+    reloadTimerRef.current = setTimeout(() => void loadFencers(), 200);
+  });
+  useEffect(
+    () => () => {
+      if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
+    },
+    []
+  );
 
   // Ajouter un tireur
   const addFencer = useCallback(
