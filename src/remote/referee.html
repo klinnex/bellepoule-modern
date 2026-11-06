@@ -12,6 +12,7 @@
     <script src="/js/offlineQueue.js"></script>
     <script src="/js/refereeFaults.js"></script>
     <script src="/js/refereeTts.js"></script>
+    <script src="/js/refereeControls.js"></script>
     <script src="/js/refereeDemoMirror.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
@@ -3221,15 +3222,15 @@
 
         // Repos (escrime olympique) : chrono à 00:00, met le temps de repos sans fin de match (#1134)
         canStartRest() {
-          return (
-            this.isModernFencing &&
-            this.restSeconds > 0 &&
-            !!this.currentMatch &&
-            this.matchStatus === 'in_progress' &&
-            this.timerSeconds === 0 &&
-            !this.timerRunning &&
-            !this.isResting
-          );
+          return BPRefereeControls.canStartRest({
+            isModernFencing: this.isModernFencing,
+            restSeconds: this.restSeconds,
+            hasMatch: !!this.currentMatch,
+            matchStatus: this.matchStatus,
+            timerSeconds: this.timerSeconds,
+            timerRunning: this.timerRunning,
+            isResting: this.isResting,
+          });
         }
 
         updateRestButton() {
@@ -3517,18 +3518,11 @@
           const timerEl = document.getElementById('timer-display');
           window.BPTimer.renderTimer(timerEl, this._timerCs / 100, { alwaysTenths: true });
           // Classes visuelles
-          timerEl.className = 'timer-display';
-          if (this.timerRunning) {
-            timerEl.classList.add('running');
-          } else if (this.timerSeconds < this.defaultTimerSeconds) {
-            timerEl.classList.add('paused');
-          }
-
-          if (this.timerSeconds <= 10) {
-            timerEl.classList.add('danger');
-          } else if (this.timerSeconds <= 30) {
-            timerEl.classList.add('warning');
-          }
+          timerEl.className = BPRefereeControls.timerClasses({
+            timerRunning: this.timerRunning,
+            timerSeconds: this.timerSeconds,
+            defaultTimerSeconds: this.defaultTimerSeconds,
+          }).join(' ');
 
           // Affichage mort subite (synchronise label + état boutons)
           this.updateSuddenDeathUI();
@@ -3821,59 +3815,29 @@
         updateControlButtons() {
           const startBtn = document.getElementById('btn-start');
           const finishBtn = document.getElementById('btn-finish');
+          const st = BPRefereeControls.controlButtonsState({
+            priorityAnimating: this._priorityAnimating,
+            waitingOvertimeStart: this.waitingOvertimeStart,
+            waitingCoinFlip: this.waitingCoinFlip,
+            scoreA: this.scoreA,
+            scoreB: this.scoreB,
+            matchStatus: this.matchStatus,
+            hasMatch: !!this.currentMatch,
+            timerRunning: this.timerRunning,
+            overtimeLabel: this.waitingOvertimeStart ? this.overtimeLabel() : '',
+          });
+          if (st.lockAll) return void [startBtn, finishBtn].forEach(b => b && (b.disabled = true));
 
-          // Tirage du prioritaire en cours (#1442) : rien à lancer
-          if (this._priorityAnimating) return void [startBtn, finishBtn].forEach(b => b && (b.disabled = true));
-
-          // État d'attente : l'arbitre doit déclencher manuellement les 30s
-          if (this.waitingOvertimeStart) {
-            startBtn.disabled = false;
-            startBtn.textContent = window.T('referee.launch_overtime', { label: this.overtimeLabel() });
-            startBtn.className = 'control-btn btn-launch-overtime';
-            if (finishBtn) finishBtn.disabled = false;
-            this.updateScoreButtons();
-            return;
-          }
-
-          // Fin du temps supplémentaire à égalité : tirage au sort manuel (#1136)
-          if (this.waitingCoinFlip && this.scoreA === this.scoreB) {
-            startBtn.disabled = false;
-            startBtn.textContent = window.T('referee.coin_btn');
-            startBtn.className = 'control-btn btn-launch-overtime';
-            if (finishBtn) finishBtn.disabled = false;
-            this.updateScoreButtons();
-            this.updateRestButton();
-            return;
-          }
-
-          // Réinitialiser les classes
-          startBtn.className = 'control-btn btn-start';
-
-          if (this.matchStatus === 'not_started') {
-            startBtn.disabled = !this.currentMatch;
-            startBtn.textContent = window.T('referee.start');
-            startBtn.className = 'control-btn btn-start';
-          } else if (this.matchStatus === 'in_progress') {
-            startBtn.disabled = false;
-            if (this.timerRunning) {
-              startBtn.textContent = window.T('referee.pause');
-              startBtn.className = 'control-btn btn-pause';
-            } else {
-              startBtn.textContent = window.T('referee.resume');
-              startBtn.className = 'control-btn btn-resume';
-            }
-          } else {
-            startBtn.disabled = true;
-            startBtn.textContent = window.T('referee.start');
-          }
-
-          finishBtn.disabled = this.matchStatus !== 'in_progress';
-          this.updateScoreButtons();
-          this.updateRestButton();
+          startBtn.disabled = st.start.disabled;
+          startBtn.textContent = window.T(st.start.key, st.start.params);
+          startBtn.className = st.start.className;
+          if (finishBtn) finishBtn.disabled = st.finishDisabled;
+          if (st.updateScoreButtons) this.updateScoreButtons();
+          if (st.updateRestButton) this.updateRestButton();
         }
 
         updateScoreButtons() {
-          const locked = this.matchStatus === 'not_started' || this.matchStatus === 'finished';
+          const locked = BPRefereeControls.scoreButtonsLocked(this.matchStatus);
           document.querySelectorAll('.score-btn, .card-btn').forEach(btn => {
             btn.disabled = locked;
           });
