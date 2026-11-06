@@ -1,5 +1,5 @@
 /**
- * BellePoule Modern - Handlers IPC remote:* (clients connectés, commandes, synthèse vocale) et app:getTtsConfig / app:getLogo
+ * BellePoule Modern - Handlers IPC remote:* (clients connectés, commandes, synthèse vocale) et app:getTtsConfig / app:getLogo / app:getLogos / app:saveLogos
  * (extraits de main.ts, #1341).
  * Licensed under GPL-3.0
  */
@@ -123,6 +123,38 @@ export function registerRemoteClientsHandlers(): void {
       return await fs.promises.readFile(logoPath, 'utf-8');
     } catch {
       return null;
+    }
+  });
+
+  // Bibliothèque de logos (plusieurs logos, l'actif reste dans logo.dat)
+  ipcMain.handle('app:getLogos', async () => {
+    const libPath = path.join(app.getPath('userData'), 'logos.json');
+    try {
+      const parsed = JSON.parse(await fs.promises.readFile(libPath, 'utf-8'));
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+
+  ipcMain.handle('app:saveLogos', async (_, logos: unknown) => {
+    try {
+      if (!Array.isArray(logos) || logos.length > 50) return { success: false };
+      const clean = logos.filter(
+        (l): l is { id: string; name: string; data: string } =>
+          !!l &&
+          typeof l.id === 'string' &&
+          typeof l.name === 'string' &&
+          typeof l.data === 'string' &&
+          l.data.startsWith('data:image/')
+      );
+      const libPath = path.join(app.getPath('userData'), 'logos.json');
+      const tmp = `${libPath}.tmp`;
+      await fs.promises.writeFile(tmp, JSON.stringify(clean), 'utf-8');
+      await fs.promises.rename(tmp, libPath);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
     }
   });
 }

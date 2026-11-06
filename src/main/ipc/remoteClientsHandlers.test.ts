@@ -26,6 +26,8 @@ describe('registerRemoteClientsHandlers (#1341)', () => {
       'remote:setTtsConfig',
       'app:getTtsConfig',
       'app:getLogo',
+      'app:getLogos',
+      'app:saveLogos',
     ]) {
       expect(handlers.has(ch)).toBe(true);
     }
@@ -34,5 +36,13 @@ describe('registerRemoteClientsHandlers (#1341)', () => {
   it('getConnectedClients : serveur absent → liste vide', async () => {
     const res = await handlers.get('remote:getConnectedClients')!({}, 'inconnu');
     expect(res).toEqual({ success: true, clients: [] });
+  });
+
+  it('getLogos : fichier absent → liste vide', async () => {
+    expect(await handlers.get('app:getLogos')!({})).toEqual([]);
+  });
+
+  it('saveLogos : entrée non tableau refusée', async () => {
+    expect(await handlers.get('app:saveLogos')!({}, 'x')).toEqual({ success: false });
   });
 });
