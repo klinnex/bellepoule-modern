@@ -98,19 +98,26 @@ describe('TableauScoreModal', () => {
       expect(screen.queryByText(/V · /)).toBeNull();
     });
 
+    it('bouton V affiché à côté de chaque score, même sans égalité', () => {
+      laserSetup({ editScoreA: '', editScoreB: '' });
+      expect(screen.getByRole('button', { name: 'V · Dupont' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'V · Martin' })).toBeTruthy();
+      expect(screen.queryByPlaceholderText(/V4-4/)).toBeNull();
+    });
+
     it('égalité : V manuel pour chaque tireur', () => {
       const onVictoryChange = vi.fn();
       laserSetup({ onVictoryChange });
-      fireEvent.click(screen.getByText('V · Dupont'));
+      fireEvent.click(screen.getByRole('button', { name: 'V · Dupont' }));
       expect(onVictoryChange).toHaveBeenCalledWith('A');
-      fireEvent.click(screen.getByText('V · Martin'));
+      fireEvent.click(screen.getByRole('button', { name: 'V · Martin' }));
       expect(onVictoryChange).toHaveBeenCalledWith('B');
     });
 
     it('V déjà actif : un second clic le retire', () => {
       const onVictoryChange = vi.fn();
       laserSetup({ victoryA: true, onVictoryChange });
-      fireEvent.click(screen.getByText('V · Dupont'));
+      fireEvent.click(screen.getByRole('button', { name: 'V · Dupont' }));
       expect(onVictoryChange).toHaveBeenCalledWith(null);
     });
 

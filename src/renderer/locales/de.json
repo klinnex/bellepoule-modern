@@ -782,7 +782,6 @@
     "not_fenced_title": "Gefecht nicht ausgetragen",
     "cell_vs": "gegen",
     "cell_enter": "Ergebnis eingeben",
-    "victory_input_placeholder": "Schnelleingabe, z. B. V4-4",
     "priority_draw": "Auslosung Prioritätsminute",
     "priority_holder": "Priorität: {{name}}",
     "tie_choose_winner": "Wer ist der Sieger?",
@@ -2317,8 +2316,7 @@
     "who_exclusion": "Welcher Fechter wird ausgeschlossen?",
     "black_card_question": "Schwarze Karte?",
     "tie_hint": "Gleichstand: Sieger wählen oder auslosen",
-    "coin_flip": "Auslosen",
-    "victory_input_placeholder": "Schnelleingabe, z. B. V4-4"
+    "coin_flip": "Auslosen"
   },
   "addFencerPool": {
     "title": "Fechter hinzufügen – Pool {{n}}",

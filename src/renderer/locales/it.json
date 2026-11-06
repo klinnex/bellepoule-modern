@@ -782,7 +782,6 @@
     "not_fenced_title": "Incontro non disputato",
     "cell_vs": "contro",
     "cell_enter": "inserisci il punteggio",
-    "victory_input_placeholder": "Inserimento rapido, es. V4-4",
     "priority_draw": "Sorteggio minuto prioritario",
     "priority_holder": "Prioritario: {{name}}",
     "tie_choose_winner": "Chi è il vincitore?",
@@ -2317,8 +2316,7 @@
     "who_exclusion": "Quale schermidore è escluso?",
     "black_card_question": "Cartellino nero?",
     "tie_hint": "Parità: designa il vincitore o procedi al sorteggio",
-    "coin_flip": "Sorteggio",
-    "victory_input_placeholder": "Inserimento rapido, es. V4-4"
+    "coin_flip": "Sorteggio"
   },
   "addFencerPool": {
     "title": "Aggiungi uno schermidore – Girone {{n}}",
