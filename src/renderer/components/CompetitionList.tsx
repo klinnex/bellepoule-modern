@@ -13,7 +13,6 @@ import {
   Plus,
   PlayCircle,
   Sparkles,
-  Swords,
   Trophy,
   Users,
 } from 'lucide-react';
@@ -25,6 +24,7 @@ import { CompetitionCardSkeleton } from './Skeleton';
 import { useConfirm } from './ConfirmDialog';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 import { restartGuidedTour } from './guidedTourFlags';
+import { BrandLogo } from './common/BrandLogo';
 
 interface CompetitionListProps {
   competitions: Competition[];
@@ -133,13 +133,12 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           }}
         >
           <div className="text-center">
-            <Swords
-              size={56}
-              strokeWidth={1.5}
-              color="var(--color-primary)"
+            <span
+              style={{ color: 'var(--color-primary)', display: 'inline-block' }}
               aria-hidden="true"
-              className="mb-4"
-            />
+            >
+              <BrandLogo size={72} className="mb-4" />
+            </span>
             <h1
               style={{
                 fontSize: '1.75rem',
