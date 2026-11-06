@@ -3694,7 +3694,7 @@
                 scoreA: this.scoreA,
                 scoreB: this.scoreB,
                 cardsA: this.cardsA,
-                cardsB: this.cardsB,
+                cardsB: this.cardsB, winner: this.scoreA === this.scoreB ? this.priorityWinnerSide() : undefined, // prioritaire gagne (#1442)
               }),
             });
             const result = await resp.json().catch(() => ({}));
