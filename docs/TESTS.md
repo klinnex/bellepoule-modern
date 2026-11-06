@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 42 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 46 | 359 |
+| `src/main/` | 47 | 363 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 48 | 238 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **249** | **2047** |
+| **Total** | **250** | **2051** |
 
-Unitaires : 240 fichiers, 2012 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 241 fichiers, 2016 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2847,6 +2847,18 @@ Unitaires : 240 fichiers, 2012 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - calcule le sha256
   - valide un hash correct
   - rejette un hash incorrect ou invalide
+
+</details>
+
+<details>
+<summary><code>src/main/updateReleases.test.ts</code> — 4 tests</summary>
+
+- **parseReleaseBuild**
+  - lit le build dans le nom, sinon le tag, sinon le corps
+- **pickLatestRelease**
+  - canal dev : build le plus élevé, quel que soit l’ordre
+  - canal stable : ignore les pré-releases
+  - ignore les brouillons ; null si rien
 
 </details>
 
