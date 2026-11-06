@@ -370,7 +370,14 @@
     "section_documents": "Teulioù & PDF",
     "section_referee": "Breutaerezh",
     "section_notifications": "Kemennoù",
-    "section_system": "Reizhiad"
+    "section_system": "Reizhiad",
+    "backup_title": "Gwarediñ an arventennoù",
+    "backup_hint": "Ezporzhiañ an arventennoù (diskwel, enankañ, kontadur mouezh, webhook, patromoù PDF, logoioù) en ur restr JSON, pe o assav diwar ur seurt restr.",
+    "backup_export": "Ezporzhiañ (JSON)",
+    "backup_import": "Enporzhiañ (JSON)",
+    "backup_exported": "Arventennoù ezporzhiet.",
+    "backup_imported": "{{count}} arventenn enporzhiet.",
+    "backup_invalid": "Restr direizh : un ezporzhiadur arventennoù BellePoule a vez gortozet."
   },
   "actions": {
     "add": "Ouzhpenn",

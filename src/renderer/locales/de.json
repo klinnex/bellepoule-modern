@@ -492,7 +492,14 @@
     "section_documents": "Dokumente & PDF",
     "section_referee": "Kampfrichter",
     "section_notifications": "Benachrichtigungen",
-    "section_system": "System"
+    "section_system": "System",
+    "backup_title": "Einstellungen sichern",
+    "backup_hint": "Einstellungen (Anzeige, Eingabe, Sprach-Timer, Webhook, PDF-Vorlagen, Logos) als JSON-Datei exportieren oder daraus wiederherstellen.",
+    "backup_export": "Exportieren (JSON)",
+    "backup_import": "Importieren (JSON)",
+    "backup_exported": "Einstellungen exportiert.",
+    "backup_imported": "{{count}} Einstellung(en) importiert.",
+    "backup_invalid": "Ungültige Datei: BellePoule-Einstellungsexport erwartet."
   },
   "shortcuts": {
     "category_actions": "Aktionen",

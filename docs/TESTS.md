@@ -96,17 +96,17 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
 | `src/main/` | 48 | 382 |
-| `src/renderer/services/` | 5 | 29 |
+| `src/renderer/services/` | 6 | 34 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 50 | 250 |
+| `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 24 | 143 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **255** | **2100** |
+| **Total** | **256** | **2107** |
 
-Unitaires : 246 fichiers, 2065 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 247 fichiers, 2072 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3018,6 +3018,18 @@ Unitaires : 246 fichiers, 2065 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/services/settingsTransfer.test.ts</code> — 5 tests</summary>
+
+- **settingsTransfer**
+  - exporte uniquement les clés connues, logos compris
+  - aller-retour export → import restaure les valeurs
+  - rejette un JSON invalide ou un autre format
+  - ignore les clés inconnues et les valeurs invalides
+  - nom de fichier daté
+
+</details>
+
+<details>
 <summary><code>src/renderer/services/uiScale.test.ts</code> — 3 tests</summary>
 
 - **taille du texte de l’interface (#1156)**
@@ -3646,7 +3658,7 @@ Unitaires : 246 fichiers, 2065 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/SettingsModal.test.tsx</code> — 5 tests</summary>
+<summary><code>src/renderer/components/SettingsModal.test.tsx</code> — 7 tests</summary>
 
 - **SettingsModal**
   - affiche un onglet par section et seulement le contenu de l'onglet actif
@@ -3654,6 +3666,9 @@ Unitaires : 246 fichiers, 2065 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - rouvre sur le dernier onglet utilisé
   - la recherche filtre toutes les sections (insensible aux accents)
   - affiche un message si aucun résultat
+- **SettingsModal – export / import des paramètres**
+  - importe un fichier JSON (logo inclus) et met à jour le stockage
+  - signale un fichier invalide
 
 </details>
 

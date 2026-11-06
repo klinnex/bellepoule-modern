@@ -370,7 +370,14 @@
     "section_documents": "Documents & PDF",
     "section_referee": "Arbitrage",
     "section_notifications": "Notifications",
-    "section_system": "Système"
+    "section_system": "Système",
+    "backup_title": "Sauvegarde des paramètres",
+    "backup_hint": "Exporte les paramètres (affichage, saisie, minuteur vocal, webhook, modèles PDF, logos) dans un fichier JSON, ou les restaure depuis un tel fichier.",
+    "backup_export": "Exporter (JSON)",
+    "backup_import": "Importer (JSON)",
+    "backup_exported": "Paramètres exportés.",
+    "backup_imported": "{{count}} paramètre(s) importé(s).",
+    "backup_invalid": "Fichier invalide : export de paramètres BellePoule attendu."
   },
   "actions": {
     "add": "Ajouter",

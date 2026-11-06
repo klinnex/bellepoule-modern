@@ -37,6 +37,13 @@ import {
   newLogoId,
   logoNameFromFile,
 } from '../services/logoLibrary';
+import {
+  buildSettingsExport,
+  parseSettingsImport,
+  applySettingsValues,
+  settingsExportFileName,
+} from '../services/settingsTransfer';
+import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 
 const WEBHOOK_STORAGE_KEY = 'bellepoule-webhook-url';
 const AUDIT_LOG_KEY = 'bellepoule-audit-log-enabled';
@@ -86,6 +93,7 @@ type SettingsItemId =
   | 'webhook'
   | 'updates'
   | 'proxy'
+  | 'backup'
   | 'tour';
 
 interface SettingsSectionDef {
@@ -159,6 +167,7 @@ const SETTINGS_SECTIONS: SettingsSectionDef[] = [
         keys: ['settings.updates_title', 'settings.updates_hint', 'settings.updates_channel'],
       },
       { id: 'proxy', keys: ['settings.proxy_title', 'settings.proxy_hint'] },
+      { id: 'backup', keys: ['settings.backup_title', 'settings.backup_hint'] },
       { id: 'tour', keys: ['settings.tour_title', 'settings.tour_hint'] },
     ],
   },
@@ -565,6 +574,66 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     localStorage.setItem(SIMPLIFIED_INPUT_KEY, String(enabled));
   };
 
+  // Export / import JSON des paramètres (logos inclus)
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const [backupStatus, setBackupStatus] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  const handleExportSettings = () => {
+    const now = new Date();
+    const blob = new Blob([JSON.stringify(buildSettingsExport(localStorage, now), null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = settingsExportFileName(now);
+    a.click();
+    URL.revokeObjectURL(url);
+    setBackupStatus({ ok: true, msg: t('settings.backup_exported') });
+  };
+
+  const handleImportSettings = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const values = parseSettingsImport(await file.text());
+      applySettingsValues(values);
+      // Rafraîchit l'état local + propage (main, serveurs distants)
+      if (values['bellepoule-logos'] !== undefined) {
+        persistLogos(
+          ensureActiveInLibrary(loadLogoLibrary(), localStorage.getItem(LOGO_STORAGE_KEY))
+        );
+      }
+      if (values['bellepoule-logo'] !== undefined) setActiveLogo(values['bellepoule-logo']);
+      if (values['bellepoule-tts-config'] !== undefined) persistTtsConfig(loadTtsConfig());
+      if (values['bellepoule-webhook-url'] !== undefined)
+        handleWebhookUrlChange(values['bellepoule-webhook-url']);
+      setAuditLogEnabled(localStorage.getItem(AUDIT_LOG_KEY) !== 'false');
+      setQuickMouseScoring(localStorage.getItem(QUICK_MOUSE_KEY) === 'true');
+      setSimplifiedInputMode(localStorage.getItem(SIMPLIFIED_INPUT_KEY) === 'true');
+      setConfettiDisabled(isConfettiDisabled());
+      handleUiScaleChange(loadUiScale());
+      if (values['bellepoule-pdf-templates'] !== undefined)
+        await usePdfTemplateStore.persist?.rehydrate?.();
+      const lang = values['bellepoule-language'] as Language | undefined;
+      const th = values['bellepoule-theme'] as 'default' | 'light' | 'dark' | undefined;
+      if (lang) changeLanguage(lang);
+      if (th) changeTheme(th);
+      setSettings(prev => ({
+        ...prev,
+        ...(lang ? { language: lang } : {}),
+        ...(th ? { theme: th } : {}),
+      }));
+      setBackupStatus({
+        ok: true,
+        msg: t('settings.backup_imported', { count: Object.keys(values).length }),
+      });
+    } catch {
+      setBackupStatus({ ok: false, msg: t('settings.backup_invalid') });
+    }
+  };
+
   const handleSave = () => {
     if (settings.language !== language) {
       changeLanguage(settings.language);
@@ -914,6 +983,44 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
         );
       case 'proxy':
         return <ProxySettingsSection />;
+      case 'backup':
+        return (
+          <>
+            <div className="form-group">
+              <label style={BOLD}>{t('settings.backup_title')}</label>
+              <p style={HINT}>{t('settings.backup_hint')}</p>
+              <div className="u-row">
+                <button type="button" className="btn btn-secondary" onClick={handleExportSettings}>
+                  {t('settings.backup_export')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => importInputRef.current?.click()}
+                >
+                  {t('settings.backup_import')}
+                </button>
+                <input
+                  ref={importInputRef}
+                  type="file"
+                  accept="application/json,.json"
+                  hidden
+                  data-testid="settings-import-input"
+                  onChange={handleImportSettings}
+                />
+              </div>
+              {backupStatus && (
+                <p
+                  role="status"
+                  style={HINT}
+                  className={backupStatus.ok ? undefined : 'form-error'}
+                >
+                  {backupStatus.msg}
+                </p>
+              )}
+            </div>
+          </>
+        );
       case 'webhook':
         return (
           <>
