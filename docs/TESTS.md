@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 26 | 158 |
+| `src/remote/` | 27 | 165 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **258** | **2132** |
+| **Total** | **259** | **2139** |
 
-Unitaires : 249 fichiers, 2097 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 250 fichiers, 2104 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4143,6 +4143,20 @@ Unitaires : 249 fichiers, 2097 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - des codes sont bien émis
   - chaque code est traduit (%s) _(each)_
   - errorText : traduction paramétrée, texte brut, repli
+
+</details>
+
+<details>
+<summary><code>src/remote/js/arenaClient.test.ts</code> — 7 tests</summary>
+
+- **arenaClient.js**
+  - getOrCreateScreenId : créé une fois puis réutilisé
+  - dispatchServerCommand : refresh / navigate / ping
+  - identify : libellé commande \> mémorisé \> identifiant ; durée 5 s par défaut
+  - message : texte requis
+  - initialArenaUpdate : seulement avec un match et un tireur A
+  - isOlympicSession
+  - arena.html charge le module
 
 </details>
 
