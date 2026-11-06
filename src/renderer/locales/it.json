@@ -370,7 +370,14 @@
     "section_documents": "Documenti e PDF",
     "section_referee": "Arbitraggio",
     "section_notifications": "Notifiche",
-    "section_system": "Sistema"
+    "section_system": "Sistema",
+    "backup_title": "Backup delle impostazioni",
+    "backup_hint": "Esporta le impostazioni (visualizzazione, punteggio, timer vocale, webhook, modelli PDF, loghi) in un file JSON o ripristinale da tale file.",
+    "backup_export": "Esporta (JSON)",
+    "backup_import": "Importa (JSON)",
+    "backup_exported": "Impostazioni esportate.",
+    "backup_imported": "{{count}} impostazione/i importata/e.",
+    "backup_invalid": "File non valido: atteso un export delle impostazioni BellePoule."
   },
   "actions": {
     "add": "Aggiungi",

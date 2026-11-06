@@ -370,7 +370,14 @@
     "section_documents": "文件及 PDF",
     "section_referee": "裁判",
     "section_notifications": "通知",
-    "section_system": "系統"
+    "section_system": "系統",
+    "backup_title": "設定備份",
+    "backup_hint": "將設定（顯示、計分、語音計時、Webhook、PDF 範本、標誌）匯出為 JSON 檔案，或從該檔案還原。",
+    "backup_export": "匯出 (JSON)",
+    "backup_import": "匯入 (JSON)",
+    "backup_exported": "設定已匯出。",
+    "backup_imported": "已匯入 {{count}} 項設定。",
+    "backup_invalid": "檔案無效：需要 BellePoule 設定匯出檔。"
   },
   "actions": {
     "add": "新增",

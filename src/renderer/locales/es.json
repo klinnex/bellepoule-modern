@@ -370,7 +370,14 @@
     "section_documents": "Documentos y PDF",
     "section_referee": "Arbitraje",
     "section_notifications": "Notificaciones",
-    "section_system": "Sistema"
+    "section_system": "Sistema",
+    "backup_title": "Copia de los ajustes",
+    "backup_hint": "Exporta los ajustes (visualización, anotación, temporizador por voz, webhook, plantillas PDF, logotipos) a un archivo JSON, o los restaura desde dicho archivo.",
+    "backup_export": "Exportar (JSON)",
+    "backup_import": "Importar (JSON)",
+    "backup_exported": "Ajustes exportados.",
+    "backup_imported": "{{count}} ajuste(s) importado(s).",
+    "backup_invalid": "Archivo no válido: se espera una exportación de ajustes de BellePoule."
   },
   "actions": {
     "add": "Agregar",

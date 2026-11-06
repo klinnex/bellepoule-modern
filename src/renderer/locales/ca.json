@@ -370,7 +370,14 @@
     "section_documents": "Documents i PDF",
     "section_referee": "Arbitratge",
     "section_notifications": "Notificacions",
-    "section_system": "Sistema"
+    "section_system": "Sistema",
+    "backup_title": "Còpia de la configuració",
+    "backup_hint": "Exporta la configuració (visualització, puntuació, temporitzador de veu, webhook, plantilles PDF, logotips) a un fitxer JSON, o la restaura des d'aquest fitxer.",
+    "backup_export": "Exportar (JSON)",
+    "backup_import": "Importar (JSON)",
+    "backup_exported": "Configuració exportada.",
+    "backup_imported": "{{count}} paràmetre(s) importat(s).",
+    "backup_invalid": "Fitxer no vàlid: s'espera una exportació de configuració de BellePoule."
   },
   "actions": {
     "add": "Afegir",
