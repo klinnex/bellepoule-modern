@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 29 | 179 |
+| `src/remote/` | 30 | 189 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **262** | **2156** |
+| **Total** | **263** | **2166** |
 
-Unitaires : 253 fichiers, 2121 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 254 fichiers, 2131 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4353,6 +4353,24 @@ Unitaires : 253 fichiers, 2121 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - ralentit puis totalise ~3 s
   - alterne puis se fixe sur le tiré (%s) _(each)_
   - arbitre : tirage sans vainqueur, chrono remis à 1:00 prêt à lancer
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeControls.test.ts</code> — 10 tests</summary>
+
+- **refereeControls.js controlButtonsState**
+  - tirage du prioritaire : tout verrouillé
+  - attente du temps supplémentaire : libellé avec la durée, pas de bouton repos
+  - tirage au sort : seulement à égalité
+  - match non commencé : désactivé sans match
+  - en cours : pause / reprise, terminer actif
+  - terminé : démarrer désactivé
+- **refereeControls.js chrono et repos**
+  - timerClasses
+  - scoreButtonsLocked
+  - canStartRest : toutes les conditions requises
+  - referee.html charge le module et délègue
 
 </details>
 
