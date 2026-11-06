@@ -595,6 +595,13 @@ const electronApi = {
       }
       return ipcRenderer.invoke('updater:setAutoCheck', enabled);
     },
+    getChannel: () => ipcRenderer.invoke('updater:getChannel'),
+    setChannel: (channel: 'stable' | 'dev') => {
+      if (channel !== 'stable' && channel !== 'dev') {
+        throw new Error('Invalid channel');
+      }
+      return ipcRenderer.invoke('updater:setChannel', channel);
+    },
   },
 
   // Rapport de diagnostic (fichier JSON, sans port réseau) (#1326)

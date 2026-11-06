@@ -362,6 +362,11 @@ export interface UpdaterAPI {
   setAutoCheck: (
     enabled: boolean
   ) => Promise<{ success: boolean; enabled?: boolean; error?: string }>;
+  /** Canal : stable (releases main) ou dev (pré-releases incluses) */
+  getChannel: () => Promise<{ channel: 'stable' | 'dev' }>;
+  setChannel: (
+    channel: 'stable' | 'dev'
+  ) => Promise<{ success: boolean; channel?: 'stable' | 'dev'; error?: string }>;
 }
 
 // ============================================================================

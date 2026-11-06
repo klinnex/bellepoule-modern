@@ -107,7 +107,9 @@ accompagnés de `npm run version:bump -- major`.
 - Paquet `stable` → ne voit que les releases stables.
 - Paquet `dev` (ou exécution locale) → voit aussi les pré-releases dev.
 
-Le canal vient de `version.json` (`channel`), figé au packaging.
+Le canal vient de `version.json` (`channel`), figé au packaging, sauf choix utilisateur
+dans Préférences → Mises à jour → Canal (`channel` dans `updater-settings.json`).
+Passer de dev à stable ne rétrograde pas : seul un build plus récent est proposé.
 Comme `main` reprend le build de `dev`, un testeur en `1.2.0-dev.1410` ne se voit pas proposer
 `1.2.0 (Build #1402)`, plus ancien.
 

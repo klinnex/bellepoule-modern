@@ -25,7 +25,7 @@ import {
   type InstallKind,
 } from './updateAssets';
 import { fmt, getL } from './menuLabels';
-import { readUpdaterSettings, writeUpdaterSettings } from './updaterSettings';
+import { readUpdaterSettings, writeUpdaterSettings, type UpdateChannel } from './updaterSettings';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 
 const RELEASES_URL = 'https://github.com/klinnex/bellepoule-modern/releases/latest';
@@ -113,13 +113,32 @@ export class AutoUpdater {
   /** Préférence « Vérifier automatiquement » (persistée). Le menu reste toujours actif. */
   setAutoCheck(enabled: boolean): void {
     this.autoCheck = enabled;
-    writeUpdaterSettings(app.getPath('userData'), { autoCheck: enabled });
+    const current = readUpdaterSettings(app.getPath('userData'));
+    writeUpdaterSettings(app.getPath('userData'), { ...current, autoCheck: enabled });
     if (enabled) this.setupAutoCheck();
     else this.clearAutoCheck();
   }
 
   isAutoCheckEnabled(): boolean {
     return this.autoCheck;
+  }
+
+  /**
+   * Canal de mise à jour choisi par l'utilisateur (persisté).
+   * stable → releases `main` uniquement ; dev → pré-releases `dev` incluses.
+   * Pas de retour en arrière : seul un build plus récent que l'installé est proposé.
+   */
+  setChannel(channel: UpdateChannel): void {
+    const userData = app.getPath('userData');
+    writeUpdaterSettings(userData, { ...readUpdaterSettings(userData), channel });
+    this.config.betaChannel = channel === 'dev';
+    this.updateInfo = null;
+    logger.info(LogCategory.SYSTEM, `[AutoUpdater] Canal : ${channel}`);
+    if (this.autoCheck) void this.checkAndNotify();
+  }
+
+  getChannel(): UpdateChannel {
+    return this.config.betaChannel ? 'dev' : 'stable';
   }
 
   private async checkAndNotify(): Promise<void> {
@@ -223,8 +242,7 @@ export class AutoUpdater {
         return await this.fetchLatestReleaseDirect();
       }
 
-      // Si betaChannel est false, filtrer pour ne garder que les releases non-prerelease
-      // Mais si on est sur une version dev/beta, on veut quand même voir les更新
+      // Canal stable : releases non-prerelease uniquement ; canal dev : toutes
       const filteredReleases = this.config.betaChannel
         ? releases
         : releases.filter((r: any) => !r.prerelease);
@@ -233,8 +251,8 @@ export class AutoUpdater {
         return filteredReleases[0];
       }
 
-      // Si aucune release stable, retourner la première release (dev)
-      return releases[0];
+      // Canal stable sans release stable dans la liste : /latest (exclut les pré-releases)
+      return await this.fetchLatestReleaseDirect();
     } catch (error) {
       logger.error(LogCategory.SYSTEM, 'Failed to fetch release:', toError(error));
       // En cas d'erreur, essayer avec les tags comme fallback
