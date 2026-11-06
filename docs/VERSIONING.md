@@ -111,7 +111,13 @@ Le canal vient de `version.json` (`channel`), figé au packaging.
 Comme `main` reprend le build de `dev`, un testeur en `1.2.0-dev.1410` ne se voit pas proposer
 `1.2.0 (Build #1402)`, plus ancien.
 
-Installation intégrée (« Télécharger maintenant ») : aucun passage par le navigateur.
+Vérification au démarrage (+5 s) puis toutes les 12 h, désactivable dans
+Préférences → Mises à jour (`<userData>/updater-settings.json`, clé `autoCheck`).
+Le menu Aide → Vérifier les mises à jour reste toujours actif.
+Nouveau build détecté → bannière dans l'app + téléchargement en arrière-plan (`autoDownload`),
+installation proposée à la fin. Version déjà téléchargée → pas de nouveau téléchargement.
+
+Installation intégrée (bannière « Installer » ou menu) : aucun passage par le navigateur.
 Asset choisi par `src/main/updateAssets.ts` (plateforme + arch + mode), téléchargé dans
 `userData/pending-update`, vérifié par SHA-256 (digest GitHub), puis :
 

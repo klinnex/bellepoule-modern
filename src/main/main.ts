@@ -196,7 +196,8 @@ app.whenReady().then(async () => {
   // Initialize auto updater — dialog différé après affichage de la fenêtre
   if (mainWindow) {
     autoUpdater = new AutoUpdater(mainWindow, {
-      autoDownload: false,
+      // Téléchargement + vérification SHA-256 en fond, installation proposée à la fin
+      autoDownload: true,
       autoInstall: false,
       checkInterval: 12,
       // Canal figé au packaging (docs/VERSIONING.md) : un build dev suit les pré-releases

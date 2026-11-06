@@ -12,6 +12,7 @@ ipcRenderer.on('remote:diag', (_: IpcRendererEvent, msg: string) => {
 });
 import type {
   ElectronAPI,
+  UpdateInfo,
   CompetitionCreateData,
   CompetitionUpdateData,
   FencerCreateData,
@@ -586,6 +587,14 @@ const electronApi = {
     hasPendingUpdate: () => ipcRenderer.invoke('updater:hasPendingUpdate'),
     getPendingUpdateInfo: () => ipcRenderer.invoke('updater:getPendingUpdateInfo'),
     installPendingUpdate: () => ipcRenderer.invoke('updater:installPendingUpdate'),
+    downloadAndInstall: () => ipcRenderer.invoke('updater:downloadAndInstall'),
+    getAutoCheck: () => ipcRenderer.invoke('updater:getAutoCheck'),
+    setAutoCheck: (enabled: boolean) => {
+      if (typeof enabled !== 'boolean') {
+        throw new Error('Enabled must be a boolean');
+      }
+      return ipcRenderer.invoke('updater:setAutoCheck', enabled);
+    },
   },
 
   // Rapport de diagnostic (fichier JSON, sans port réseau) (#1326)
@@ -804,6 +813,16 @@ const electronApi = {
   },
 
   // Remote event listeners (for real-time updates)
+  onUpdateAvailable: (callback: (info: UpdateInfo) => void) => {
+    const handler = (_: IpcRendererEvent, info: UpdateInfo) => callback(info);
+    ipcRenderer.on('update:available', handler);
+    return () => ipcRenderer.removeListener('update:available', handler);
+  },
+  onUpdateProgress: (callback: (data: { progress: number }) => void) => {
+    const handler = (_: IpcRendererEvent, data: { progress: number }) => callback(data);
+    ipcRenderer.on('update:progress', handler);
+    return () => ipcRenderer.removeListener('update:progress', handler);
+  },
   onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => {
     const handler = (_: IpcRendererEvent, data: RemoteArenaUpdateEvent) => callback(data);
     ipcRenderer.on('arena:update', handler);

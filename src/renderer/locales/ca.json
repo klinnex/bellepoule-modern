@@ -309,6 +309,9 @@
     "animations_title": "Animacions",
     "animations_hint": "Focs artificials en acabar les poules.",
     "animations_disable": "Desactiva els focs artificials",
+    "updates_title": "Actualitzacions",
+    "updates_hint": "Comprova en iniciar i cada 12 h, baixa la nova versió en segon pla i proposa instal·lar-la. Ajuda → Cerca actualitzacions continua disponible.",
+    "updates_enable": "Cerca actualitzacions automàticament",
     "webhook_title": "Notificacions webhook",
     "webhook_hint": "URL de Discord / Slack / personalitzada (només HTTPS).",
     "webhook_remove": "Elimina",
@@ -2325,10 +2328,12 @@
     "title": "Actualització disponible!",
     "version": "Versió",
     "behind": "Teniu {{n}} actualitzacions de retard",
-    "download": "📥 Baixa",
+    "download": "📥 Instal·la",
     "notes": "📋 Mostra les notes",
-    "redirect": "Redirigint a la pàgina de baixada…",
-    "later": "Podreu actualitzar més tard des del menú Ajuda"
+    "redirect": "S'està baixant l'actualització…",
+    "later": "Podreu actualitzar més tard des del menú Ajuda",
+    "progress": "Baixada: {{n}} %",
+    "failed": "Error en baixar l'actualització"
   },
   "analyticsCharts": {
     "no_data": "Sense dades",

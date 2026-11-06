@@ -95,18 +95,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 42 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 45 | 354 |
+| `src/main/` | 46 | 357 |
 | `src/renderer/services/` | 4 | 22 |
 | `src/renderer/hooks/` | 26 | 125 |
-| `src/renderer/components/` | 47 | 236 |
+| `src/renderer/components/` | 48 | 238 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 23 | 137 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **247** | **2040** |
+| **Total** | **249** | **2045** |
 
-Unitaires : 238 fichiers, 2005 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 240 fichiers, 2010 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2851,6 +2851,16 @@ Unitaires : 238 fichiers, 2005 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/updaterSettings.test.ts</code> — 3 tests</summary>
+
+- **updaterSettings**
+  - vérification auto activée par défaut
+  - persiste la désactivation
+  - JSON invalide → défaut
+
+</details>
+
+<details>
 <summary><code>src/main/webhook.test.ts</code> — 6 tests</summary>
 
 - **webhook (#1269)**
@@ -3637,6 +3647,15 @@ Unitaires : 238 fichiers, 2005 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - affiche l'arbitre saisi, sinon le ou les arbitres assignés au match
 - **ScoreAuditLog — compacter / déplier (#1123)**
   - masque les entrées au-delà des premières en mode compact, puis les réaffiche
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/__tests__/UpdateNotification.test.tsx</code> — 2 tests</summary>
+
+- **UpdateNotification — mise à jour intégrée**
+  - s’affiche sur update:available et installe sans ouvrir le navigateur
+  - affiche la progression du téléchargement
 
 </details>
 

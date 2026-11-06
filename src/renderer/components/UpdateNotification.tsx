@@ -27,32 +27,33 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
   const [visible, setVisible] = useState(propVisible || false);
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
 
   useEffect(() => {
+    const api = window.electronAPI;
     // Écouter les événements de mise à jour depuis le processus principal
-    const handleUpdateAvailable = (_event: any, info: UpdateInfo) => {
+    const offAvailable = api?.onUpdateAvailable?.(info => {
       setUpdateInfo(info);
-      if (!dismissed) {
-        setVisible(true);
-      }
-    };
-
-    // @ts-ignore
-    if (window.electronAPI?.onUpdateAvailable) {
-      // @ts-ignore
-      window.electronAPI.onUpdateAvailable(handleUpdateAvailable);
-    }
-
+      if (!dismissed) setVisible(true);
+    });
+    const offProgress = api?.onUpdateProgress?.(({ progress: p }) => setProgress(p));
     return () => {
-      // Nettoyage des écouteurs
+      offAvailable?.();
+      offProgress?.();
     };
   }, [dismissed]);
 
-  const handleDownload = () => {
-    // Ouvre directement vers la dernière release (pas l'historique complet)
-    window.open('https://github.com/klinnex/bellepoule-modern/releases/latest', '_blank');
+  // Téléchargement + vérification + installation dans l'app (sans navigateur)
+  const handleDownload = async () => {
     showToast(t('updateNotif.redirect'), 'info');
-    setVisible(false);
+    try {
+      const res = await window.electronAPI?.updater?.downloadAndInstall?.();
+      if (res && !res.success && res.error !== 'no_asset') {
+        showToast(t('updateNotif.failed'), 'error');
+      }
+    } catch {
+      showToast(t('updateNotif.failed'), 'error');
+    }
   };
 
   const handleDismiss = () => {
@@ -85,6 +86,11 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
             {t('updateNotif.version')} <strong>v{updateInfo.latestVersion}</strong>{' '}
             {`(Build #${updateInfo.latestBuild})`}
           </p>
+          {progress !== null && progress < 100 && (
+            <p className="update-notification-multiple">
+              {t('updateNotif.progress', { n: progress })}
+            </p>
+          )}
           {updateInfo.latestBuild - updateInfo.currentBuild > 1 && (
             <p className="update-notification-multiple">
               {t('updateNotif.behind', { n: updateInfo.latestBuild - updateInfo.currentBuild })}
