@@ -388,6 +388,15 @@ export interface UpdaterAPI {
   setAutoCheck: (
     enabled: boolean
   ) => Promise<{ success: boolean; enabled?: boolean; error?: string }>;
+  /** Répertoire de téléchargement des mises à jour (défaut = dossier privé userData) */
+  getDownloadDir: () => Promise<{ dir: string; defaultDir: string; isDefault: boolean }>;
+  chooseDownloadDir: () => Promise<{
+    success: boolean;
+    dir?: string;
+    canceled?: boolean;
+    error?: string;
+  }>;
+  resetDownloadDir: () => Promise<{ success: boolean; dir?: string; error?: string }>;
   /** Canal : stable (releases main) ou dev (pré-releases incluses) */
   getChannel: () => Promise<{ channel: 'stable' | 'dev' }>;
   setChannel: (

@@ -279,6 +279,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   const [confettiDisabled, setConfettiDisabled] = useState<boolean>(() => isConfettiDisabled());
   // Vérification auto des mises à jour : préférence stockée côté main (lue avant le 1er check)
   const [updateAutoCheck, setUpdateAutoCheck] = useState<boolean>(true);
+  const [updateDir, setUpdateDir] = useState<{ dir: string; isDefault: boolean } | null>(null);
   const [updateChannel, setUpdateChannel] = useState<'stable' | 'dev' | null>(null);
   // Écran de démarrage : préférence stockée côté main (lue avant la création des fenêtres)
   const [splashEnabled, setSplashEnabledState] = useState<boolean>(true);
@@ -292,6 +293,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   }, []);
   useEffect(() => {
     const updater = window.electronAPI?.updater;
+    updater
+      ?.getDownloadDir?.()
+      .then(r => setUpdateDir({ dir: r.dir, isDefault: r.isDefault }))
+      .catch(() => {
+        // updater indisponible (dev / tests)
+      });
     updater
       ?.getAutoCheck?.()
       .then(r => setUpdateAutoCheck(r.enabled))
@@ -553,6 +560,30 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     window.electronAPI?.updater?.setAutoCheck?.(enabled).catch(() => {
       setUpdateAutoCheck(!enabled);
     });
+  };
+
+  const handleChooseUpdateDir = () => {
+    const updater = window.electronAPI?.updater;
+    updater
+      ?.chooseDownloadDir?.()
+      .then(r => {
+        if (r.success && r.dir) setUpdateDir({ dir: r.dir, isDefault: false });
+      })
+      .catch(() => {
+        // annulé / indisponible
+      });
+  };
+
+  const handleResetUpdateDir = () => {
+    const updater = window.electronAPI?.updater;
+    updater
+      ?.resetDownloadDir?.()
+      .then(r => {
+        if (r.success && r.dir) setUpdateDir({ dir: r.dir, isDefault: true });
+      })
+      .catch(() => {
+        // indisponible
+      });
   };
 
   const handleUpdateChannelChange = (channel: 'stable' | 'dev') => {
@@ -962,6 +993,34 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 <span style={TOGGLE_LABEL}>{t('settings.updates_enable')}</span>
               </label>
             </div>
+            {updateDir && (
+              <div className="form-group">
+                <label style={BOLD}>{t('settings.updates_dir')}</label>
+                <p style={HINT}>{t('settings.updates_dir_hint')}</p>
+                <p style={HINT} data-testid="update-dir-current">
+                  {updateDir.dir}
+                  {updateDir.isDefault ? ` (${t('settings.updates_dir_default')})` : ''}
+                </p>
+                <div className="u-row">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleChooseUpdateDir}
+                  >
+                    {t('settings.updates_dir_choose')}
+                  </button>
+                  {!updateDir.isDefault && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleResetUpdateDir}
+                    >
+                      {t('settings.updates_dir_reset')}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
             {updateChannel && (
               <div className="form-group">
                 <label htmlFor="update-channel" style={BOLD}>

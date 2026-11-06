@@ -16,7 +16,7 @@ import { isDns } from '../../shared/utils/forfeit';
 import { useConfirm } from './ConfirmDialog';
 import CoachMark from './CoachMark';
 import { useDebounce } from '../hooks/useDebounce';
-import { formatNationality } from '../../shared/utils/countries';
+import Flag from './common/Flag';
 import { MENU_ITEM, SMALL_BTN, W250, DROPDOWN_WRAP } from './fencerList.styles';
 
 type SortableCol =
@@ -977,7 +977,13 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         case 'nationality':
                           return (
                             <td key="nationality" className="text-sm text-muted">
-                              {formatNationality(fencer.nationality) || '-'}
+                              {fencer.nationality ? (
+                                <>
+                                  <Flag code={fencer.nationality} /> {fencer.nationality}
+                                </>
+                              ) : (
+                                '-'
+                              )}
                             </td>
                           );
                         case 'ranking':
