@@ -781,6 +781,12 @@
         animation: timer-pulse 0.5s infinite;
       }
 
+      /* 00:00 : rouge fixe, sans clignotement (#1416) */
+      .timer-display.expired {
+        color: #ef4444;
+        animation: none;
+      }
+
       @keyframes timer-pulse {
         0%,
         100% {
@@ -1919,7 +1925,14 @@
         }
 
         updateTimerDisplay(timerStatus) {
-          BPArenaRender.updateTimerDisplay(document, window.BPTimer, this.timerSeconds, timerStatus);
+          // Interpolation locale : dixièmes/centièmes qui s'écoulent sous 10 s (#1416)
+          if (!this._smoothTimer) {
+            this._smoothTimer = window.BPTimer.createSmoothTimer(t =>
+              BPArenaRender.updateTimerDisplay(document, window.BPTimer, t, this._timerStatus)
+            );
+          }
+          this._timerStatus = timerStatus;
+          this._smoothTimer.update(this.timerSeconds, timerStatus);
         }
 
         updateSuddenDeathBanner() {

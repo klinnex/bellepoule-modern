@@ -282,6 +282,7 @@
       }
       .timer-display.warning { color: #ff9500; text-shadow: 0 0 10px rgba(255,149,0,0.9); }
       .timer-display.danger  { color: #ff3b30; text-shadow: 0 0 10px rgba(255,59,48,0.9); animation: blink 0.8s step-end infinite; }
+      .timer-display.expired { color: #ff3b30; text-shadow: 0 0 10px rgba(255,59,48,0.9); animation: none; }
       .timer-display.running { /* default color is already set */ }
 
       @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
@@ -470,7 +471,8 @@
           elTimer.textContent = fmtTime(timerSec);
           elTimer.className = 'timer-display';
           if (timerStat === 'running') elTimer.classList.add('running');
-          if (timerSec <= 10)      elTimer.classList.add('danger');
+          if (timerSec <= 0)       elTimer.classList.add('expired'); // 00:00 : rouge fixe (#1416)
+          else if (timerSec <= 10) elTimer.classList.add('danger');
           else if (timerSec <= 30) elTimer.classList.add('warning');
         }
 

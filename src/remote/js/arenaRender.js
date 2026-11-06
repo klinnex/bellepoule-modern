@@ -94,12 +94,13 @@
     doc.getElementById('fencer-b-cards').innerHTML = cardsHtml(inv ? cardsB : cardsA, esc);
   }
 
-  /** Classes du chrono : état (running/paused) + alerte (danger ≤ 10 s, warning ≤ 30 s) */
+  /** Classes du chrono : état (running/paused) + alerte (expired = 0, danger ≤ 10 s, warning ≤ 30 s) */
   function timerClasses(timerSeconds, timerStatus) {
     const cls = ['timer-display'];
     if (timerStatus === 'running') cls.push('running');
     else if (timerStatus === 'paused') cls.push('paused');
-    if (timerSeconds <= 10) cls.push('danger');
+    if (timerSeconds <= 0) cls.push('expired'); // 00:00 : rouge fixe sans clignotement (#1416)
+    else if (timerSeconds <= 10) cls.push('danger');
     else if (timerSeconds <= 30) cls.push('warning');
     return cls;
   }

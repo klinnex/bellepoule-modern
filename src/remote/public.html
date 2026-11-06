@@ -419,6 +419,12 @@
         animation: timer-pulse 0.5s infinite;
       }
 
+      /* 00:00 : rouge fixe, sans clignotement (#1416) */
+      .timer-display.expired {
+        color: #ef4444;
+        animation: none;
+      }
+
       @keyframes timer-pulse {
         0%,
         100% {
@@ -1286,9 +1292,17 @@
         }
 
         updateTimerDisplay(timerStatus) {
+          // Interpolation locale : dixièmes/centièmes qui s'écoulent sous 10 s (#1416)
+          if (!this._smoothTimer) {
+            this._smoothTimer = window.BPTimer.createSmoothTimer(t => this.renderTimerAt(t, this._timerStatus));
+          }
+          this._timerStatus = timerStatus;
+          this._smoothTimer.update(this.timerSeconds, timerStatus);
+        }
+
+        renderTimerAt(timeSec, timerStatus) {
           const timerEl = document.getElementById('timer-display');
-          // Dixièmes pour les 10 dernières secondes (#1416)
-          window.BPTimer.renderTimer(timerEl, this.timerSeconds);
+          window.BPTimer.renderTimer(timerEl, timeSec);
 
           timerEl.className = 'timer-display';
 
@@ -1298,9 +1312,11 @@
             timerEl.classList.add('paused');
           }
 
-          if (this.timerSeconds <= 10) {
+          if (timeSec <= 0) {
+            timerEl.classList.add('expired'); // 00:00 : rouge fixe, sans clignotement (#1416)
+          } else if (timeSec <= 10) {
             timerEl.classList.add('danger');
-          } else if (this.timerSeconds <= 30) {
+          } else if (timeSec <= 30) {
             timerEl.classList.add('warning');
           }
         }

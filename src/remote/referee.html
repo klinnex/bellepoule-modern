@@ -1517,7 +1517,7 @@
             >
               Repos
             </button>
-            <div class="timer-display" id="timer-display">03:00<span class="timer-tenths">.0</span></div>
+            <div class="timer-display" id="timer-display">03:00<span class="timer-tenths">.00</span></div>
           </div>
           <div
             id="sudden-death-label"
@@ -3172,14 +3172,19 @@
           this.broadcastTimerUpdate();
 
           this._ttsAnnouncedSeconds = new Set();
-          const endAt = Date.now() + this._timerTenths * 100; // tick 100 ms sans dérive (#1416)
+          const endAt = Date.now() + this._timerCs * 10; // tick 10 ms sans dérive : centièmes réels (#1416)
+          let lastTenth = Math.floor(this._timerCs / 10);
           this.timerInterval = setInterval(() => {
-            if (this._timerTenths > 0) {
+            if (this._timerCs > 0) {
               const prevSeconds = this.timerSeconds;
-              this._timerTenths = Math.max(0, Math.round((endAt - Date.now()) / 100));
-              this.updateTimerDisplay();
+              this._timerCs = Math.max(0, Math.round((endAt - Date.now()) / 10));
               const secChanged = this.timerSeconds !== prevSeconds; // diffusion : 1/s puis 10/s sous 10 s
-              if (secChanged || this._timerTenths <= 100) this.broadcastTimerUpdate();
+              const tenth = Math.floor(this._timerCs / 10);
+              const tenthChanged = tenth !== lastTenth;
+              lastTenth = tenth;
+              if (tenthChanged || this._timerCs === 0) this.updateTimerDisplay();
+              else window.BPTimer.renderTimer(document.getElementById('timer-display'), this._timerCs / 100, { alwaysTenths: true });
+              if (secChanged || (tenthChanged && this._timerCs <= 1000)) this.broadcastTimerUpdate();
               if (secChanged) this.ttsCheckAnnounce();
 
               if (this.timerSeconds === 0) {
@@ -3213,7 +3218,7 @@
                 }
               }
             }
-          }, 1000);
+          }, 10);
         }
 
         // Repos (escrime olympique) : chrono à 00:00, met le temps de repos sans fin de match (#1134)
@@ -3557,7 +3562,7 @@
 
         updateTimerDisplay() {
           const timerEl = document.getElementById('timer-display');
-          window.BPTimer.renderTimer(timerEl, this._timerTenths / 10, { alwaysTenths: true });
+          window.BPTimer.renderTimer(timerEl, this._timerCs / 100, { alwaysTenths: true });
           // Classes visuelles
           timerEl.className = 'timer-display';
           if (this.timerRunning) {
@@ -3581,7 +3586,7 @@
           this.socket.emit('arena_control', {
             arenaId: this.arenaId,
             action: this.timerRunning ? 'update_timer' : 'pause_timer',
-            time: this._timerTenths / 10,
+            time: this._timerCs / 100,
             timerStatus: this.timerRunning ? 'running' : 'paused',
             suddenDeath: this.isSuddenDeath,
             overtimeType: this.overtimeType,
