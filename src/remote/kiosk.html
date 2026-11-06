@@ -11,6 +11,7 @@
     <script src="/js/kioskConfig.js"></script>
     <script src="/js/kioskRender.js"></script>
     <script src="/js/kioskLists.js"></script>
+    <script src="/js/kioskTiming.js"></script>
     <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts.css" />
     <style>
@@ -1711,14 +1712,12 @@
         state.progressTimer = setInterval(() => {
           if (document.hidden) return;
           const elapsed = Date.now() - state.progressStart;
-          const pct = Math.min(100, (elapsed / state.rotationMs) * 100);
+          const pct = KioskTiming.progressPct(elapsed, state.rotationMs);
           document.getElementById('progress-bar').style.width = pct + '%';
         }, 100);
 
         state.rotationTimer = setTimeout(() => {
-          const idx = state.views.indexOf(state.currentView);
-          const next = state.views[(idx + 1) % state.views.length];
-          switchView(next);
+          switchView(KioskTiming.nextView(state.views, state.currentView));
         }, state.rotationMs);
       }
 
@@ -1777,42 +1776,14 @@
       }
 
       // ─── Auto-scroll classement ──────────────────────────────────────────────
-      let scrollAnimFrame = null;
-      let scrollDelayTimer = null;
-
-      function stopAutoScroll() {
-        cancelAnimationFrame(scrollAnimFrame);
-        clearTimeout(scrollDelayTimer);
-      }
-
-      // Défilement vers le bas puis, s'il y a eu défilement, reprise du début après 3 s (#1036)
-      function startAutoScroll(wrapper) {
-        stopAutoScroll();
-        const duration = 20000; // ms pour parcourir tout le contenu
-        let start = null;
-
-        function step(now) {
-          if (start === null) start = now;
-          const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
-          if (maxScroll <= 0) return;
-
-          const progress = Math.min(1, (now - start) / duration);
-          wrapper.scrollTop = progress * maxScroll;
-
-          if (progress < 1) {
-            scrollAnimFrame = requestAnimationFrame(step);
-            return;
-          }
-          scrollDelayTimer = setTimeout(() => {
-            wrapper.scrollTop = 0;
-            startAutoScroll(wrapper);
-          }, 3000);
-        }
-
-        scrollDelayTimer = setTimeout(() => {
-          scrollAnimFrame = requestAnimationFrame(step);
-        }, 2000);
-      }
+      const autoScroller = KioskTiming.createAutoScroller({
+        raf: cb => requestAnimationFrame(cb),
+        caf: id => cancelAnimationFrame(id),
+        setTimeout: (cb, ms) => setTimeout(cb, ms),
+        clearTimeout: id => clearTimeout(id),
+      });
+      const stopAutoScroll = () => autoScroller.stop();
+      const startAutoScroll = wrapper => autoScroller.start(wrapper);
 
       // ─── Menu escamotable ────────────────────────────────────────────────────
       function showMenu() {
@@ -2025,7 +1996,7 @@
       let retryTimer = null;
       function scheduleRetry() {
         clearTimeout(retryTimer);
-        const delay = Math.min(30000, 1000 * 2 ** retryAttempt) * (0.75 + Math.random() * 0.5);
+        const delay = KioskTiming.retryDelay(retryAttempt, Math.random());
         retryAttempt = Math.min(retryAttempt + 1, 5);
         retryTimer = setTimeout(resyncAll, delay);
       }
