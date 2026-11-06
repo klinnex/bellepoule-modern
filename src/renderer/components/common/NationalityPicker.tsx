@@ -3,26 +3,84 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { flagEmoji, listCountries } from '../../../shared/utils/countries';
+import { findCountryIndex, listCountries } from '../../../shared/utils/countries';
+import Flag from './Flag';
 
 interface NationalityPickerProps {
   value: string;
   onChange: (code: string) => void;
 }
 
+const TYPEAHEAD_RESET_MS = 700;
+
 const NationalityPicker: React.FC<NationalityPickerProps> = ({ value, onChange }) => {
   const { t, language } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
   const locale = language || 'fr';
   const countries = useMemo(() => (open ? listCountries(locale) : []), [open, locale]);
-  const flag = flagEmoji(value);
+  const listRef = useRef<HTMLUListElement>(null);
+  const buffer = useRef({ text: '', at: 0 });
+
+  // À l'ouverture : focus sur la liste, pays courant sélectionné
+  useEffect(() => {
+    if (!open) return;
+    const idx = countries.findIndex(c => c.code === value);
+    setActive(idx >= 0 ? idx : 0);
+    listRef.current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    listRef.current?.children[active]?.scrollIntoView?.({ block: 'nearest' });
+  }, [active, open]);
+
+  const choose = (code: string) => {
+    onChange(code);
+    setOpen(false);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLUListElement>) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setOpen(false);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActive(a => Math.min(a + 1, countries.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActive(a => Math.max(a - 1, 0));
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      setActive(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      setActive(countries.length - 1);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (countries[active]) choose(countries[active].code);
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && e.key !== ' ') {
+      e.preventDefault();
+      const now = Date.now();
+      const b = buffer.current;
+      b.text = now - b.at > TYPEAHEAD_RESET_MS ? e.key : b.text + e.key;
+      b.at = now;
+      // Même lettre répétée : pays suivant ; sinon premier pays correspondant
+      const repeated = b.text.length > 1 && [...b.text].every(ch => ch === b.text[0]);
+      const idx = repeated
+        ? findCountryIndex(countries, b.text[0], active + 1)
+        : findCountryIndex(countries, b.text, 0);
+      if (idx >= 0) setActive(idx);
+    }
+  };
 
   return (
     <div>
       <div className="u-row">
-        {flag && <span aria-hidden="true">{flag}</span>}
+        <Flag code={value} />
         <input
           type="text"
           className="form-input"
@@ -44,22 +102,34 @@ const NationalityPicker: React.FC<NationalityPickerProps> = ({ value, onChange }
         </button>
       </div>
       {open && (
-        <select
-          className="form-input form-select"
-          size={8}
+        <ul
+          ref={listRef}
+          role="listbox"
+          tabIndex={0}
+          className="form-input nat-list"
           aria-label={t('addFencer.nationality_list')}
-          value={value}
-          onChange={e => {
-            onChange(e.target.value);
-            setOpen(false);
-          }}
+          aria-activedescendant={
+            countries[active] ? `nat-opt-${countries[active].code}` : undefined
+          }
+          onKeyDown={onKeyDown}
         >
-          {countries.map(c => (
-            <option key={c.code} value={c.code}>
-              {c.flag} {c.code} — {c.name}
-            </option>
+          {countries.map((c, i) => (
+            <li
+              key={c.code}
+              id={`nat-opt-${c.code}`}
+              role="option"
+              aria-selected={c.code === value}
+              onClick={() => choose(c.code)}
+              onMouseMove={() => active !== i && setActive(i)}
+              className={`u-row nat-option${i === active ? ' nat-option--active' : ''}`}
+            >
+              <Flag code={c.code} />
+              <span>
+                {c.code} — {c.name}
+              </span>
+            </li>
           ))}
-        </select>
+        </ul>
       )}
     </div>
   );
