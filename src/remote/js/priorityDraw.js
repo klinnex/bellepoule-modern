@@ -26,6 +26,26 @@
   }
 
   /**
+   * Côté logique (tireur A/B du match) → panneau affiché (#fencer-a-* / #fencer-b-*).
+   * Sans inversion, le panneau « a » (gauche, rouge) montre le tireur B ; inversé, le tireur A.
+   * Sans cette correspondance, le cadre doré tombait sur le mauvais tireur (#1442).
+   */
+  function frameDomSide(side, inverted) {
+    if (side !== 'A' && side !== 'B') return null;
+    return inverted ? side : side === 'A' ? 'B' : 'A';
+  }
+
+  /** Pose/retire le cadre doré sur les panneaux de `doc` pour un côté logique */
+  function paintPriorityFrame(doc, side, inverted) {
+    const dom = frameDomSide(side, inverted);
+    ['A', 'B'].forEach(s => {
+      const name = doc.getElementById(`fencer-${s.toLowerCase()}-name`);
+      const panel = name && (name.closest('.fencer-display') || name.parentElement);
+      if (panel) panel.classList.toggle('priority-gold', dom === s);
+    });
+  }
+
+  /**
    * @param {(side: 'A'|'B'|null) => void} apply pose le cadre doré sur un côté
    * @param {'A'|'B'} winner côté tiré (fixé à la fin)
    * @param {{durationMs?: number, setTimeout?: Function, onDone?: () => void}} [opts]
@@ -126,7 +146,15 @@
     };
   }
 
-  const api = { animatePriorityDraw, drawSchedule, fromEvent, installReferee, DURATION_MS };
+  const api = {
+    frameDomSide,
+    paintPriorityFrame,
+    animatePriorityDraw,
+    drawSchedule,
+    fromEvent,
+    installReferee,
+    DURATION_MS,
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.BPPriorityDraw = api;
 })(typeof window !== 'undefined' ? window : undefined);

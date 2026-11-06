@@ -38,7 +38,10 @@
   function applyInversionColors(doc, inv) {
     const setClass = (id, cls) => {
       const el = doc.getElementById(id);
-      if (el) el.className = cls;
+      if (!el) return;
+      // Le cadre doré du prioritaire survit au recalcul des classes (#1442)
+      const gold = el.classList && el.classList.contains('priority-gold');
+      el.className = gold ? `${cls} priority-gold` : cls;
     };
     setClass('fencer-a-display', `fencer-display ${inv ? 'green-side' : 'red-side'}`);
     setClass('fencer-b-display', `fencer-display ${inv ? 'red-side' : 'green-side'}`);

@@ -1703,11 +1703,8 @@
         }
 
         applyPriorityFrame(side) {
-          ['A', 'B'].forEach(s => {
-            const name = document.getElementById(`fencer-${s.toLowerCase()}-name`);
-            const panel = name && (name.closest('.fencer-display') || name.parentElement);
-            if (panel) panel.classList.toggle('priority-gold', side === s);
-          });
+          this._prioSide = side; // côté logique, repeint si l'inversion change
+          window.BPPriorityDraw.paintPriorityFrame(document, side, this.inversionEnabled);
         }
 
         showCoinFlipAnimation(winner, fencerA, fencerB) {
@@ -1804,6 +1801,7 @@
                 const cb = document.getElementById('inversion-checkbox');
                 if (cb) cb.checked = o.value;
                 localStorage.setItem('inversionEnabled', o.value);
+                if (this._prioSide) this.applyPriorityFrame(this._prioSide); // #1442
                 break;
               }
               case 'hideCoinFlip': {

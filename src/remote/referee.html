@@ -3040,6 +3040,7 @@
           }
 
           document.getElementById('btn-swap')?.classList.toggle('active', this.swapped);
+          if (this._prioSide) this.applyPriorityFrame(this._prioSide); // cadre doré suit l'inversion (#1442)
           this.updateScores();
           this.updateCardsDisplay();
         }
@@ -3314,11 +3315,8 @@
         }
 
         applyPriorityFrame(side) {
-          ['A', 'B'].forEach(s => {
-            const name = document.getElementById(`fencer-${s.toLowerCase()}-name`);
-            const panel = name && (name.closest('.fencer-display') || name.parentElement);
-            if (panel) panel.classList.toggle('priority-gold', side === s);
-          });
+          this._prioSide = side; // côté logique, repeint si l'inversion change
+          window.BPPriorityDraw.paintPriorityFrame(document, side, this.swapped);
         }
 
         // Attente du tirage au sort : l'arbitre peut corriger le score avant de le lancer (#1136)
@@ -3586,7 +3584,7 @@
 
             // Signature requise sur tablette après un match du tableau
             if (result.requireSignature && finishedMatch.fencerA?.id && finishedMatch.fencerB?.id) {
-              this.openMatchSignature(finishedMatch, this.scoreA, this.scoreB);
+              this.openMatchSignature(finishedMatch, this.scoreA, this.scoreB, result.winner);
             }
 
             // Afficher l'écran des prochains matchs
@@ -3618,12 +3616,12 @@
         }
 
         // ── Signature des combattants après un match du tableau ──
-        openMatchSignature(match, scoreA, scoreB) {
+        openMatchSignature(match, scoreA, scoreB, winner) {
           this.signMatch = match;
           const overlay = document.getElementById('match-sig-overlay');
           const fullName = f => `${(f.lastName || '').toUpperCase()} ${f.firstName || ''}`.trim();
-          const aWins = scoreA > scoreB;
-          const bWins = scoreB > scoreA;
+          const aWins = scoreA > scoreB || (scoreA === scoreB && winner === 'A'); // égalité : prioritaire (#1442)
+          const bWins = scoreB > scoreA || (scoreA === scoreB && winner === 'B');
           // Rappel du score et indication du vainqueur (V)
           document.getElementById('match-sig-score').textContent = `${scoreA} – ${scoreB}`;
           const vTag = win => (win ? '<span class="match-sig-victory">V</span> ' : '');

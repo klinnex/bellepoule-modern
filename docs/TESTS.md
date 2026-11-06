@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 51 | 260 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 37 | 248 |
+| `src/remote/` | 38 | 251 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **271** | **2234** |
+| **Total** | **272** | **2237** |
 
-Unitaires : 262 fichiers, 2199 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 263 fichiers, 2202 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4400,6 +4400,16 @@ Unitaires : 262 fichiers, 2199 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - ralentit puis totalise ~3 s
   - alterne puis se fixe sur le tiré (%s) _(each)_
   - arbitre : tirage sans vainqueur, chrono remis à 1:00 prêt à lancer
+
+</details>
+
+<details>
+<summary><code>src/remote/js/priorityFrame.test.ts</code> — 3 tests</summary>
+
+- **cadre doré du prioritaire (#1442)**
+  - correspondance côté logique vers panneau affiché
+  - le cadre est sur le panneau qui affiche le nom du prioritaire
+  - le cadre survit au recalcul des classes (updateMatchDisplay)
 
 </details>
 
