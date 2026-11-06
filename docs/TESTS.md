@@ -98,15 +98,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 49 | 389 |
 | `src/renderer/services/` | 6 | 34 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 50 | 252 |
+| `src/renderer/components/` | 50 | 254 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 37 | 248 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **270** | **2226** |
+| **Total** | **270** | **2228** |
 
-Unitaires : 261 fichiers, 2191 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 261 fichiers, 2193 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3777,12 +3777,14 @@ Unitaires : 261 fichiers, 2191 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/__tests__/UpdateNotification.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/__tests__/UpdateNotification.test.tsx</code> — 6 tests</summary>
 
 - **UpdateNotification — mise à jour intégrée**
   - s’affiche sur update:available et installe sans ouvrir le navigateur
   - affiche la progression du téléchargement
   - téléchargement lancé depuis le menu : bannière + barre de progression sans update:available
+  - bouton désactivé + lame affichée pendant le téléchargement
+  - erreur %s : message explicite (plus de clic muet) _(each)_
   - ses styles sont dans une feuille chargée (components.css)
 
 </details>

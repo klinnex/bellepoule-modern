@@ -2383,7 +2383,9 @@
     "redirect": "A transferir a atualização…",
     "later": "Pode atualizar mais tarde a partir do menu Ajuda",
     "progress": "A transferir: {{n}}% ({{done}} / {{total}} MB)",
-    "failed": "Falha na transferência da atualização"
+    "failed": "Falha na transferência da atualização",
+    "noAsset": "Nenhum ficheiro instalável para este sistema: página de versões aberta no navegador",
+    "busy": "Transferência já em curso…"
   },
   "analyticsCharts": {
     "no_data": "Sem dados",

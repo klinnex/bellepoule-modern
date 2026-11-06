@@ -2383,7 +2383,9 @@
     "redirect": "O pellgargañ an hizivadur…",
     "later": "Hizivaat a c'hellot diwezhatoc'h dre al lañser Skoazell",
     "progress": "Pellgargañ : {{n}} % ({{done}} / {{total}} Mo)",
-    "failed": "C'hwitet eo pellgargañ an hizivadur"
+    "failed": "C'hwitet eo pellgargañ an hizivadur",
+    "noAsset": "Restr staliadus ebet evit ar reizhiad-mañ : pajenn an handelvoù digoret er merdeer",
+    "busy": "Pellgargañ war ar stern dija…"
   },
   "analyticsCharts": {
     "no_data": "Roadenn ebet",

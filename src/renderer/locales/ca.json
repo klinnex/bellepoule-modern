@@ -2383,7 +2383,9 @@
     "redirect": "S'està baixant l'actualització…",
     "later": "Podreu actualitzar més tard des del menú Ajuda",
     "progress": "Baixada: {{n}} % ({{done}} / {{total}} MB)",
-    "failed": "Error en baixar l'actualització"
+    "failed": "Error en baixar l'actualització",
+    "noAsset": "Cap fitxer instal·lable per a aquest sistema: pàgina de versions oberta al navegador",
+    "busy": "Baixada ja en curs…"
   },
   "analyticsCharts": {
     "no_data": "Sense dades",

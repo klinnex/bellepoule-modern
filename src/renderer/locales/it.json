@@ -2383,7 +2383,9 @@
     "redirect": "Download dell'aggiornamento…",
     "later": "Potrai aggiornare più tardi dal menu Aiuto",
     "progress": "Download: {{n}}% ({{done}} / {{total}} MB)",
-    "failed": "Download dell'aggiornamento non riuscito"
+    "failed": "Download dell'aggiornamento non riuscito",
+    "noAsset": "Nessun file installabile per questo sistema: pagina delle versioni aperta nel browser",
+    "busy": "Download già in corso…"
   },
   "analyticsCharts": {
     "no_data": "Nessun dato",

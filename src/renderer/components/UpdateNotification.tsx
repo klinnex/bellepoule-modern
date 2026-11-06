@@ -32,6 +32,7 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
   const [dismissed, setDismissed] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [bytes, setBytes] = useState<{ done: number; total: number } | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     const api = window.electronAPI;
@@ -70,14 +71,25 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
 
   // Téléchargement + vérification + installation dans l'app (sans navigateur)
   const handleDownload = async () => {
+    if (busy) return;
+    setBusy(true);
+    // Retour visuel immédiat : la lame s'affiche avant le premier octet
+    setProgress(p => p ?? 0);
     showToast(t('updateNotif.redirect'), 'info');
     try {
       const res = await window.electronAPI?.updater?.downloadAndInstall?.();
-      if (res && !res.success && res.error !== 'no_asset') {
+      if (!res) {
         showToast(t('updateNotif.failed'), 'error');
+      } else if (!res.success) {
+        if (res.error === 'no_asset') showToast(t('updateNotif.noAsset'), 'warning');
+        else if (res.error === 'busy') showToast(t('updateNotif.busy'), 'info');
+        else showToast(t('updateNotif.failed'), 'error');
       }
     } catch {
       showToast(t('updateNotif.failed'), 'error');
+    } finally {
+      setBusy(false);
+      setProgress(null);
     }
   };
 
@@ -144,7 +156,12 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
           )}
         </div>
         <div className="update-notification-actions">
-          <button className="btn btn-primary btn-sm" onClick={handleDownload}>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={handleDownload}
+            disabled={busy}
+            aria-busy={busy}
+          >
             {t('updateNotif.download')}
           </button>
           <button className="btn btn-secondary btn-sm" onClick={handleViewRelease}>

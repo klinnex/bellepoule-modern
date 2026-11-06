@@ -2383,7 +2383,9 @@
     "redirect": "Descargando la actualización…",
     "later": "Podrá actualizar más tarde desde el menú Ayuda",
     "progress": "Descarga: {{n}} % ({{done}} / {{total}} MB)",
-    "failed": "Error al descargar la actualización"
+    "failed": "Error al descargar la actualización",
+    "noAsset": "Ningún archivo instalable para este sistema: página de versiones abierta en el navegador",
+    "busy": "Descarga ya en curso…"
   },
   "analyticsCharts": {
     "no_data": "Sin datos",

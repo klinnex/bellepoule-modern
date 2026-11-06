@@ -2383,7 +2383,9 @@
     "redirect": "Update wird heruntergeladen…",
     "later": "Sie können später über das Hilfe-Menü aktualisieren",
     "progress": "Download: {{n}} % ({{done}} / {{total}} MB)",
-    "failed": "Download des Updates fehlgeschlagen"
+    "failed": "Download des Updates fehlgeschlagen",
+    "noAsset": "Keine installierbare Datei für dieses System: Release-Seite im Browser geöffnet",
+    "busy": "Download läuft bereits…"
   },
   "analyticsCharts": {
     "no_data": "Keine Daten",
