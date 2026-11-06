@@ -58,6 +58,7 @@ import PrintDialogHost from './components/print/PrintDialogHost';
 import { ConfirmProvider, useConfirm } from './components/ConfirmDialog';
 import { TranslationProvider, useTranslation, Theme } from './contexts/TranslationContext';
 import { ipcErrorText } from './services/ipcError';
+import { executeSlashCommand, SHOW_SHORTCUTS_EVENT } from './services/slashCommands';
 import { ErrorBoundary, CompetitionErrorBoundary } from './components/ErrorBoundary';
 import { useAppState } from './hooks/useAppState';
 
@@ -77,7 +78,7 @@ const ThemeIcon: React.FC<{ theme: Theme }> = ({ theme }) => {
 };
 
 const AppContent: React.FC = () => {
-  const { t, isLoading: translationLoading, theme, changeTheme } = useTranslation();
+  const { t, isLoading: translationLoading, theme, changeTheme, changeLanguage } = useTranslation();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -369,6 +370,35 @@ const AppContent: React.FC = () => {
       await handleSelectCompetition(comp);
     },
     [handleSelectCompetition, showToast]
+  );
+
+  // Commandes « / » de la palette (docs/COMMANDES.md)
+  const handleRunCommand = useCallback(
+    (text: string) => {
+      setShowCommandPalette(false);
+      const competitionId = view === 'competition' ? activeTabId : null;
+      void executeSlashCommand(text, {
+        t,
+        competitions,
+        activeCompetitionId: competitionId ?? null,
+        openCompetition: id => void handleOpenCompetitionById(id),
+        goToPhase: phase => setRequestedPhase(phase),
+        newCompetition: () => setShowNewCompetitionModal(true),
+        openSettings: () => setShowSettingsModal(true),
+        openTraining: () => !trainingActive && setShowTrainingModal(true),
+        openWifi: () => setShowWifiQR(true),
+        openWiki: () => setShowWikiModal(true),
+        openAbout: () => setShowAboutModal(true),
+        openReport: () => setShowReportIssueModal(true),
+        openHelp: () => window.dispatchEvent(new Event(SHOW_SHORTCUTS_EVENT)),
+        setTheme: changeTheme,
+        setLanguage: lang => void changeLanguage(lang),
+      }).then(res => {
+        if (res.message) showToast(res.message, res.ok ? 'success' : 'error');
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [view, activeTabId, competitions, t, trainingActive, handleOpenCompetitionById]
   );
 
   // Ouvre (ou recharge) une compétition fusionnée depuis un .bpm (#1117)
@@ -1061,7 +1091,7 @@ const AppContent: React.FC = () => {
               onClose={() => setShowCommandPalette(false)}
               onSelectCompetition={id => {
                 setShowCommandPalette(false);
-                handleTabSwitch(id);
+                void handleOpenCompetitionById(id);
               }}
               onNewCompetition={() => {
                 setShowCommandPalette(false);
@@ -1071,6 +1101,7 @@ const AppContent: React.FC = () => {
                 setShowCommandPalette(false);
                 setShowSettingsModal(true);
               }}
+              onRunCommand={handleRunCommand}
             />
           </Suspense>
         )}

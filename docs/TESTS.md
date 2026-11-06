@@ -96,17 +96,17 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
 | `src/main/` | 49 | 389 |
-| `src/renderer/services/` | 6 | 34 |
+| `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 51 | 260 |
+| `src/renderer/components/` | 51 | 263 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 38 | 251 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **272** | **2238** |
+| **Total** | **273** | **2255** |
 
-Unitaires : 263 fichiers, 2203 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 264 fichiers, 2220 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3052,6 +3052,28 @@ Unitaires : 263 fichiers, 2203 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/services/slashCommands.test.ts</code> — 14 tests</summary>
+
+- **slashCommands – analyse**
+  - parse le nom et les arguments
+  - suggère par préfixe
+  - garde la suggestion quand l’argument est saisi
+  - résout la sélection : gabarit, saisie ou complétion
+  - toutes les commandes ont une description i18n
+- **slashCommands – exécution**
+  - /update quiet active le mode silencieux, /update quiet off le coupe
+  - /update vérifie et signale une version disponible
+  - /update channel et /update auto
+  - /remote start ouvre la phase et émet l’événement
+  - /remote exige une compétition ouverte
+  - /remote status donne l’URL
+  - /phase, /open, /theme, /lang
+  - commande inconnue → erreur
+  - une exception devient un message d’erreur
+
+</details>
+
+<details>
 <summary><code>src/renderer/services/uiScale.test.ts</code> — 3 tests</summary>
 
 - **taille du texte de l’interface (#1156)**
@@ -3462,7 +3484,7 @@ Unitaires : 263 fichiers, 2203 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/CommandPalette.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/CommandPalette.test.tsx</code> — 9 tests</summary>
 
 - **CommandPalette**
   - affiche les compétitions et les actions statiques
@@ -3471,6 +3493,9 @@ Unitaires : 263 fichiers, 2203 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - clic sur une compétition déclenche la sélection
   - Échap ferme la palette
   - clic sur l’action « nouvelle compétition »
+  - « / » affiche les commandes et Entrée exécute
+  - commande à argument : Entrée complète puis exécute
+  - commande inconnue : Entrée la transmet telle quelle
 
 </details>
 

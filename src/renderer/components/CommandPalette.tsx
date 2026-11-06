@@ -7,6 +7,13 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Competition } from '../../shared/types';
 import { useTranslation } from '../contexts/TranslationContext';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
+import {
+  matchSlashCommands,
+  resolveSelection,
+  usageBase,
+  usageHasArg,
+  type SlashCommandDef,
+} from '../services/slashCommands';
 
 interface Command {
   id: string;
@@ -23,6 +30,8 @@ interface CommandPaletteProps {
   onSelectCompetition: (id: string) => void;
   onNewCompetition: () => void;
   onOpenSettings: () => void;
+  /** Exécute une commande « / » (ex. « /remote start ») */
+  onRunCommand?: (text: string) => void;
 }
 
 const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -31,6 +40,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
   onSelectCompetition,
   onNewCompetition,
   onOpenSettings,
+  onRunCommand,
 }) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
@@ -76,8 +86,34 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
     return [...staticCommands, ...competitionCommands];
   }, [competitions, t, onClose, onNewCompetition, onOpenSettings, onSelectCompetition]);
 
+  const isSlash = query.trimStart().startsWith('/') && !!onRunCommand;
+
+  // Valider une commande « / » : exécuter, ou compléter si un argument manque
+  const runSlash = useCallback(
+    (def: SlashCommandDef | undefined) => {
+      if (!onRunCommand) return;
+      if (!def) {
+        onRunCommand(query);
+        return;
+      }
+      const text = resolveSelection(query, def);
+      if (text === null) setQuery(`${usageBase(def.usage)} `);
+      else onRunCommand(text);
+    },
+    [query, onRunCommand]
+  );
+
   // Mémoïsé pour éviter le recalcul à chaque changement de selectedIndex
   const filtered = useMemo(() => {
+    if (isSlash) {
+      return matchSlashCommands(query).map<Command>(def => ({
+        id: `slash-${def.usage}`,
+        label: def.usage,
+        description: t(def.descriptionKey),
+        icon: def.icon,
+        action: () => runSlash(def),
+      }));
+    }
     if (!query.trim()) return allCommands;
     const q = query.toLowerCase();
     return allCommands.filter(
@@ -86,7 +122,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
         cmd.description?.toLowerCase().includes(q) ||
         cmd.keywords?.some(k => k.includes(q))
     );
-  }, [query, allCommands]);
+  }, [query, allCommands, isSlash, runSlash, t]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -106,12 +142,18 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
         setSelectedIndex(i => Math.max(i - 1, 0));
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        filtered[selectedIndex]?.action();
+        if (isSlash && filtered.length === 0) runSlash(undefined);
+        else filtered[selectedIndex]?.action();
+      } else if (e.key === 'Tab' && isSlash && filtered[selectedIndex]) {
+        // Tab : compléter la commande sélectionnée
+        e.preventDefault();
+        const usage = filtered[selectedIndex].label;
+        setQuery(usageHasArg(usage) ? `${usageBase(usage)} ` : usage);
       } else if (e.key === 'Escape') {
         onClose();
       }
     },
-    [filtered, selectedIndex, onClose]
+    [filtered, selectedIndex, onClose, isSlash, runSlash]
   );
 
   useEffect(() => {
@@ -181,6 +223,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
           <span>
             <kbd>Esc</kbd> {t('commandPalette.close')}
           </span>
+          {onRunCommand && (
+            <span>
+              <kbd>/</kbd> {t('commandPalette.commands')}
+            </span>
+          )}
         </div>
       </div>
     </div>
