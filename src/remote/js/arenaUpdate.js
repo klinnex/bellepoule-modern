@@ -27,7 +27,9 @@
     // Tireur prioritaire : cadre doré effacé dès que le match change (#1442)
     if (st._prioFencerId && data.match !== undefined) {
       const m = data.match;
-      if (!m || ![m.fencerA?.id, m.fencerB?.id].includes(st._prioFencerId)) {
+      // ids absents du message : on garde le cadre (même règle que priorityDraw.isOtherMatch)
+      const ids = m ? [m.fencerA?.id, m.fencerB?.id] : [];
+      if (!m || (ids.some(Boolean) && !ids.includes(st._prioFencerId))) {
         set('_prioFencerId', null);
         ops.push({ op: 'applyPriorityFrame', side: null });
       }

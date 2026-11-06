@@ -955,6 +955,9 @@
                 document.getElementById('arena-word-label').textContent = pisteLabel;
                 const idleLabel = document.querySelector('.arena-idle-label');
                 if (idleLabel) idleLabel.textContent = pisteLabel;
+                // Temps supplémentaire d'une minute en escrime olympique (#1442)
+                const sdBanner = document.getElementById('sudden-death-banner');
+                if (sdBanner) { sdBanner.setAttribute('data-i18n', 'arena.supplementary_1min'); sdBanner.textContent = window.T('arena.supplementary_1min'); }
               }
             })
             .catch(() => {});
@@ -1140,7 +1143,7 @@
           // Tireur prioritaire : cadre doré effacé dès que le match change (#1442)
           if (this._prioFencerId && data.match !== undefined) {
             const m = data.match;
-            if (!m || ![m.fencerA?.id, m.fencerB?.id].includes(this._prioFencerId)) {
+            if (window.BPPriorityDraw.isOtherMatch(m, this._prioFencerId)) {
               this._prioFencerId = null;
               this.applyPriorityFrame(null);
             }
@@ -1270,6 +1273,7 @@
           const scoreB = document.getElementById('score-b');
           if (scoreA) { scoreA.className = scoreA.className.replace(/\b(green|red)\b/, inv ? 'green' : 'red'); }
           if (scoreB) { scoreB.className = scoreB.className.replace(/\b(green|red)\b/, inv ? 'red' : 'green'); }
+          window.BPPriorityDraw.refreshFrame(this); // className réécrit : le cadre doré reste sur le désigné (#1442)
         }
 
         updateCardsDisplay() {

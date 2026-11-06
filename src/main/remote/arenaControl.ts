@@ -64,6 +64,7 @@ export function handleArenaControl(
     suddenDeath?: boolean;
     winner?: 'A' | 'B';
     priority?: boolean;
+    winnerId?: string;
     overtimeType?: string | null;
     isVoluntary?: boolean;
     matchId?: string;
@@ -156,6 +157,12 @@ export function handleArenaControl(
       break;
     case 'coin_flip':
       if (data.winner === 'A' || data.winner === 'B') {
+        // Minute prioritaire : l'id du tireur prime sur le côté A/B (même source que la tablette arbitre)
+        if (data.priority === true && typeof data.winnerId === 'string') {
+          const cm = arena.currentMatch;
+          if (cm?.fencerA?.id === data.winnerId) data.winner = 'A';
+          else if (cm?.fencerB?.id === data.winnerId) data.winner = 'B';
+        }
         // Minute prioritaire (#1442) : le tireur tiré gagne si l'égalité persiste à la fin
         const matchId = arena.currentMatch?.id;
         if (matchId) {
@@ -178,6 +185,7 @@ export function handleArenaControl(
         }
         ctx.io.to(`arena:${data.arenaId}`).emit(`arena:${data.arenaId}:coin_flip`, {
           winner: data.winner,
+          winnerId: data.winnerId,
           priority: data.priority === true, // tirage du prioritaire : animation cadre doré (#1442)
           fencerA: arena.currentMatch?.fencerA,
           fencerB: arena.currentMatch?.fencerB,

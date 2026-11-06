@@ -1830,7 +1830,7 @@
         }
 
         applyInversionColors() {
-          BPArenaRender.applyInversionColors(document, this.inversionEnabled);
+          BPArenaRender.applyInversionColors(document, this.inversionEnabled); window.BPPriorityDraw.refreshFrame(this); // #1442
         }
 
         updateCardsDisplay() {
