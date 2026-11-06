@@ -1366,3 +1366,30 @@
 .proxy-status--error {
   color: var(--danger, #ef4444);
 }
+
+/* Sélecteur de nationalité (#1415) */
+.flag-img {
+  width: 20px;
+  height: 15px;
+  object-fit: contain;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.nat-list {
+  max-height: 200px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nat-option {
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.nat-option--active {
+  background: var(--color-primary, #2563eb);
+  color: #fff;
+}

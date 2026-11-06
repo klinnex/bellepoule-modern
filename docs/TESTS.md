@@ -81,7 +81,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 45 | 635 |
+| `src/shared/utils/` | 45 | 638 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -283,7 +283,7 @@ Unitaires : 247 fichiers, 2077 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/countries.test.ts</code> — 5 tests</summary>
+<summary><code>src/shared/utils/countries.test.ts</code> — 8 tests</summary>
 
 - **countries**
   - codes uniques et bien formés
@@ -291,6 +291,10 @@ Unitaires : 247 fichiers, 2077 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - nom localisé et repli sur le code
   - liste triée avec drapeaux
   - formatNationality
+- **countries - drapeaux SVG et recherche**
+  - flagIso depuis CIO ou ISO2
+  - un SVG embarqué existe pour chaque pays
+  - findCountryIndex : premier pays commençant par la saisie
 
 </details>
 
