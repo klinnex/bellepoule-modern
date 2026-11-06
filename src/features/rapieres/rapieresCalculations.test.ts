@@ -5,11 +5,11 @@ import {
   distributeByLevel,
   filterRanking,
   rapieresPoolNumbers,
-  filterRapieresQualifiers,
+  rapieresTableauQualifiers,
+  rapieresTableauSettings,
   isWaveComplete,
   mergeFinalRanking,
   poolMatchWaves,
-  qualifiersPerPool,
   scheduleWaves,
   teamMembersLabel,
   waveCount,
@@ -117,7 +117,26 @@ describe('Tournoi des rapières (#1118)', () => {
   });
 
   describe('vagues', () => {
-    for (const n of [2, 3, 4, 5, 6, 7, 9, 10]) {
+    for (const n of [3, 5, 7, 9]) {
+      it(`${n} équipes (impair) : une équipe au repos par vague, la dernière d'abord`, () => {
+        const teams = ids(n);
+        const bouts = scheduleWaves(teams);
+        expect(bouts).toHaveLength((n * (n - 1)) / 2);
+        expect(new Set(bouts.map(b => [b.teamAId, b.teamBId].sort().join('|'))).size).toBe(
+          bouts.length
+        );
+        expect(Math.max(...bouts.map(b => b.wave))).toBe(n);
+        for (let w = 1; w <= n; w++) {
+          const playing = bouts.filter(b => b.wave === w).flatMap(b => [b.teamAId, b.teamBId]);
+          expect(new Set(playing).size).toBe(playing.length); // personne ne tire deux fois
+          expect(playing).toHaveLength(n - 1);
+          const resting = teams.filter(id => !playing.includes(id));
+          expect(resting).toEqual([teams[n - w]]); // repos : dernière, puis en remontant
+        }
+      });
+    }
+
+    for (const n of [2, 4, 6, 10]) {
       it(`${n} équipes : round-robin complet, toutes les équipes tirent à chaque vague`, () => {
         const teams = ids(n);
         const bouts = scheduleWaves(teams);
@@ -215,9 +234,7 @@ describe('Tournoi des rapières (#1118)', () => {
   });
 
   describe('qualification', () => {
-    it('3 poules ou moins : 1ers et 2es ; au-delà : 1ers', () => {
-      expect(qualifiersPerPool(3)).toBe(2);
-      expect(qualifiersPerPool(4)).toBe(1);
+    const threePools = () => {
       const pools = [0, 1, 2].map(p =>
         makePool(
           [1, 2, 3, 4].map(i => fencer(`t${p * 4 + i}`)),
@@ -225,11 +242,52 @@ describe('Tournoi des rapières (#1118)', () => {
         )
       );
       pools.forEach(p => play(p));
-      const qualified = filterRapieresQualifiers(pools, calculateOverallRanking(pools));
-      expect(qualified.map(r => r.fencer.id).sort()).toEqual(
-        ['t1', 't2', 't5', 't6', 't9', 't10'].sort()
+      return pools;
+    };
+
+    it.each(['normal', 'third', 'all'] as const)(
+      'mode %s : toutes les équipes au tableau',
+      mode => {
+        const pools = threePools();
+        const qualified = rapieresTableauQualifiers(pools, calculateOverallRanking(pools), mode);
+        expect(qualified).toHaveLength(12);
+        expect(qualified.map(r => r.rank)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+      }
+    );
+
+    it('mode semis : 4 équipes', () => {
+      const pools = threePools();
+      expect(
+        rapieresTableauQualifiers(pools, calculateOverallRanking(pools), 'semis')
+      ).toHaveLength(4);
+    });
+
+    it('équipe retirée exclue', () => {
+      const pools = threePools();
+      pools[0].fencers[0].status = FencerStatus.FORFAIT;
+      const overall = calculateOverallRanking(pools).map(r =>
+        r.fencer.id === pools[0].fencers[0].id ? { ...r, fencer: pools[0].fencers[0] } : r
       );
-      expect(qualified.map(r => r.rank)).toEqual([1, 2, 3, 4, 5, 6]);
+      expect(rapieresTableauQualifiers(pools, overall, 'normal')).toHaveLength(11);
+    });
+
+    it('réglages : petite finale sauf en normal, toutes places en « all »', () => {
+      expect(rapieresTableauSettings('normal')).toEqual({
+        thirdPlaceMatch: false,
+        playAllPositions: false,
+      });
+      expect(rapieresTableauSettings('third')).toEqual({
+        thirdPlaceMatch: true,
+        playAllPositions: false,
+      });
+      expect(rapieresTableauSettings('all')).toEqual({
+        thirdPlaceMatch: true,
+        playAllPositions: true,
+      });
+      expect(rapieresTableauSettings('semis')).toEqual({
+        thirdPlaceMatch: true,
+        playAllPositions: false,
+      });
     });
   });
 

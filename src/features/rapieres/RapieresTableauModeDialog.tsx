@@ -1,6 +1,7 @@
 /**
  * BellePoule Modern - Tournoi des rapières : mode de tableau au passage au tableau (#1441)
- * « Tableau normal », « Tableau avec 3è place » ou « Demi-finales » (4 équipes, 3e place tirée).
+ * « Tableau normal », « Tableau avec 3è place », « Tableau toutes places tirées »
+ * ou « Demi-finales » (4 équipes, 3e place tirée).
  * Licensed under GPL-3.0
  */
 
@@ -41,6 +42,9 @@ const RapieresTableauModeDialog: React.FC<RapieresTableauModeDialogProps> = ({
           </button>
           <button type="button" className="btn btn-secondary" onClick={() => onChoose('third')}>
             {t('rapieres.tableau_mode_third')}
+          </button>
+          <button type="button" className="btn btn-secondary" onClick={() => onChoose('all')}>
+            {t('rapieres.tableau_mode_all')}
           </button>
           <button
             type="button"

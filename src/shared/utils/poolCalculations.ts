@@ -485,6 +485,58 @@ export function calculatePoolRanking(pool: Pool): PoolRanking[] {
  */
 export type SeparationCriterionKey = 'byClub' | 'byRegion' | 'byNation';
 
+/**
+ * Regroupement par niveau (tournoi des rapières, #1441) : les équipes de même niveau
+ * sont placées ensemble, poule après poule (tailles équilibrées). Avec `separateClubs`,
+ * les clubs alternent à l'intérieur d'un niveau pour limiter les rencontres d'un même club.
+ */
+export function distributeFencersGroupedByLevel(
+  fencers: Fencer[],
+  poolCount: number,
+  levelRankOf: (fencer: Fencer) => number,
+  separateClubs: boolean
+): Fencer[][] {
+  if (!Number.isInteger(poolCount) || poolCount < 1) return [];
+  const byLevel = new Map<number, Fencer[]>();
+  fencers.forEach(f => {
+    const lvl = levelRankOf(f);
+    byLevel.set(lvl, [...(byLevel.get(lvl) ?? []), f]);
+  });
+  const ordered: Fencer[] = [];
+  [...byLevel.keys()]
+    .sort((a, b) => a - b)
+    .forEach(lvl => {
+      const group = byLevel.get(lvl)!;
+      if (!separateClubs) {
+        ordered.push(...group);
+        return;
+      }
+      // Tourniquet par club : A1 B1 C1 A2 B2…
+      const byClub = new Map<string, Fencer[]>();
+      group.forEach(f => {
+        const key = (f.club ?? '').trim().toLowerCase();
+        byClub.set(key, [...(byClub.get(key) ?? []), f]);
+      });
+      const queues = [...byClub.values()].sort((a, b) => b.length - a.length);
+      while (queues.some(q => q.length > 0)) {
+        queues.forEach(q => {
+          const f = q.shift();
+          if (f) ordered.push(f);
+        });
+      }
+    });
+  const base = Math.floor(ordered.length / poolCount);
+  const extra = ordered.length % poolCount;
+  const pools: Fencer[][] = [];
+  let cursor = 0;
+  for (let i = 0; i < poolCount; i++) {
+    const size = base + (i < extra ? 1 : 0);
+    pools.push(ordered.slice(cursor, cursor + size));
+    cursor += size;
+  }
+  return pools;
+}
+
 export function distributeFencersToPoolsSerpentine(
   fencers: Fencer[],
   poolCount: number,

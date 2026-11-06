@@ -75,7 +75,6 @@ import {
   scoreInput,
 } from './poolView.styles';
 import { useTranslation } from '../hooks/useTranslation';
-import { parseVictoryScoreInput } from '../../shared/utils/tieBreak';
 import TiebreakerAnimation from './TiebreakerAnimation';
 
 interface PoolViewProps {
@@ -376,7 +375,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   const [priorityPick, setPriorityPick] = useState<'A' | 'B' | null>(null);
   const [showTieChooser, setShowTieChooser] = useState(false);
   const [showPriorityDraw, setShowPriorityDraw] = useState(false);
-  const [victoryText, setVictoryText] = useState('');
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -621,7 +619,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     setPriorityPick(null);
     setShowTieChooser(false);
     setShowPriorityDraw(false);
-    setVictoryText('');
   };
 
   /** Égalité tranchée : V, minute prioritaire, ou égalité sans vainqueur (« Aucun ») (#1442) */
@@ -656,17 +653,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
     const winner: 'A' | 'B' | undefined =
       choice === 'none' ? undefined : (choice === 'left') !== isMatchInverted ? 'A' : 'B';
     commitTie(scoreA, scoreB, winner);
-  };
-
-  /** Saisie rapide « V4-4 » / « 4-V4 » : remplit les scores et le V affichés */
-  const handleVictoryText = (text: string) => {
-    setVictoryText(text);
-    const parsed = parseVictoryScoreInput(text);
-    if (!parsed) return;
-    setEditScoreA(String(parsed.left));
-    setEditScoreB(String(parsed.right));
-    setVictoryA(parsed.victoryLeft);
-    setVictoryB(parsed.victoryRight);
   };
 
   // Focus piégé + Échap sur la modale de score (clic extérieur : ne ferme pas, #1115)
@@ -1181,17 +1167,9 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             <h3 className="modal-title">{t('poolView.quick_score')}</h3>
           </div>
           <div className="modal-body is-a48125">
-            {/* Égalité olympique / rapières : saisie rapide V4-4 et minute prioritaire (#1442) */}
+            {/* Égalité olympique / rapières : tirage du prioritaire (#1442) */}
             {tieByVictory && !isLaserSabre && (
               <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={victoryText}
-                  placeholder={t('poolView.victory_input_placeholder')}
-                  aria-label={t('poolView.victory_input_placeholder')}
-                  onChange={e => handleVictoryText(e.target.value)}
-                />
                 {editScoreA !== '' &&
                   editScoreB !== '' &&
                   (parseInt(editScoreA, 10) || 0) === (parseInt(editScoreB, 10) || 0) &&

@@ -87,6 +87,7 @@ describe('arenaRender.js', () => {
     expect(R.timerClasses(120, 'idle')).toEqual(['timer-display']);
     expect(R.timerClasses(25, 'running')).toEqual(['timer-display', 'running', 'warning']);
     expect(R.timerClasses(10, 'paused')).toEqual(['timer-display', 'paused', 'danger']);
+    expect(R.timerClasses(0, 'paused')).toEqual(['timer-display', 'paused', 'danger', 'expired']);
   });
 
   it('updateTimerDisplay : délègue le rendu puis pose les classes', () => {

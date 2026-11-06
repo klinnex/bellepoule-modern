@@ -17,6 +17,7 @@ import {
   isDnf,
   isDnsRanking,
   isMatchVoidedByForfeit,
+  distributeFencersGroupedByLevel,
 } from './poolCalculations';
 import { Fencer, FencerStatus, Match, MatchStatus, Pool, Score, Weapon, Gender } from '../types';
 
@@ -809,5 +810,38 @@ describe('isMatchVoidedByForfeit (#1144)', () => {
     expect(isMatchVoidedByForfeit(mk(sc({ isForfait: true }), sc(), MatchStatus.NOT_STARTED))).toBe(
       false
     );
+  });
+});
+
+describe('distributeFencersGroupedByLevel (rapières, #1441)', () => {
+  const team = (id: string, level: number, club: string) => ({
+    ...createMockFencer(id, Number(id.slice(1)), id),
+    club,
+    level,
+  });
+  const teams = [
+    team('t1', 2, 'A'),
+    team('t2', 0, 'A'),
+    team('t3', 1, 'B'),
+    team('t4', 0, 'A'),
+    team('t5', 2, 'C'),
+    team('t6', 1, 'B'),
+    team('t7', 0, 'B'),
+    team('t8', 1, 'C'),
+    team('t9', 2, 'A'),
+  ];
+  const levelOf = (f: Fencer) => (f as Fencer & { level: number }).level;
+
+  it('regroupe les mêmes niveaux dans les mêmes poules (tailles équilibrées)', () => {
+    const pools = distributeFencersGroupedByLevel(teams, 3, levelOf, false);
+    expect(pools.map(p => p.length)).toEqual([3, 3, 3]);
+    pools.forEach(p => expect(new Set(p.map(levelOf)).size).toBe(1));
+    expect(pools.map(p => levelOf(p[0]))).toEqual([0, 1, 2]);
+  });
+
+  it('séparation club : clubs alternés à niveau égal', () => {
+    const pools = distributeFencersGroupedByLevel(teams, 3, levelOf, true);
+    expect(pools[0].map(f => f.club)).toEqual(['A', 'B', 'A']);
+    expect(pools.flat()).toHaveLength(9);
   });
 });

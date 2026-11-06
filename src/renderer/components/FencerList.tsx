@@ -59,6 +59,8 @@ interface FencerListProps {
   columnLabels?: Partial<Record<SortableCol, string>>;
   /** Colonnes masquées au départ */
   hiddenColumns?: SortableCol[];
+  /** Valeurs de cellule remplacées (tri + affichage) : rapières → niveau, catégorie d'équipe (#1441) */
+  cellValues?: Partial<Record<SortableCol, (fencer: Fencer) => string>>;
   /** Édition gérée par le parent (fenêtre spécifique) au lieu de la fenêtre tireur */
   onEditRequest?: (fencer: Fencer) => void;
 }
@@ -83,6 +85,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   readOnly = false,
   columnLabels,
   hiddenColumns,
+  cellValues,
   onEditRequest,
 }) => {
   const { t } = useTranslation();
@@ -206,6 +209,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
         );
       })
       .sort((a, b) => {
+        const custom = cellValues?.[sortBy];
+        if (custom) return dir * custom(a).localeCompare(custom(b));
         switch (sortBy) {
           case 'ref':
             return dir * (a.ref - b.ref);
@@ -229,7 +234,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             return 0;
         }
       });
-  }, [fencers, debouncedSearchTerm, sortBy, sortOrder]);
+  }, [fencers, debouncedSearchTerm, sortBy, sortOrder, cellValues]);
 
   const VIRTUAL_THRESHOLD = 50;
   const ROW_HEIGHT = 52;
@@ -956,13 +961,17 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         case 'birthDate':
                           return (
                             <td key="birthDate" className="text-sm text-muted">
-                              {fencer.birthDate ? new Date(fencer.birthDate).getFullYear() : '-'}
+                              {cellValues?.birthDate
+                                ? cellValues.birthDate(fencer) || '-'
+                                : fencer.birthDate
+                                  ? new Date(fencer.birthDate).getFullYear()
+                                  : '-'}
                             </td>
                           );
                         case 'club':
                           return (
                             <td key="club" className="text-sm text-muted">
-                              {fencer.club || '-'}
+                              {(cellValues?.club ? cellValues.club(fencer) : fencer.club) || '-'}
                             </td>
                           );
                         case 'nationality':

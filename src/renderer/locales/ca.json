@@ -782,7 +782,6 @@
     "not_fenced_title": "Combat no disputat",
     "cell_vs": "contra",
     "cell_enter": "introduir el marcador",
-    "victory_input_placeholder": "Entrada ràpida, p. ex. V4-4",
     "priority_draw": "Sorteig minut prioritari",
     "priority_holder": "Prioritari: {{name}}",
     "tie_choose_winner": "Qui és el guanyador?",
@@ -920,6 +919,7 @@
     "tableau_mode_title": "Quin mode de quadre voleu fer servir?",
     "tableau_mode_normal": "Quadre normal",
     "tableau_mode_third": "Quadre amb 3r lloc",
+    "tableau_mode_all": "Quadre amb tots els llocs disputats",
     "tableau_mode_semis": "Semifinals",
     "semis_unavailable": "Semifinals impossibles amb aquest nombre de grups (1 a 4).",
     "club": "Club",
@@ -2317,8 +2317,7 @@
     "who_exclusion": "Quin tirador és exclòs?",
     "black_card_question": "Targeta negra?",
     "tie_hint": "Empat: tria el guanyador o fes un sorteig",
-    "coin_flip": "Sorteig",
-    "victory_input_placeholder": "Entrada ràpida, p. ex. V4-4"
+    "coin_flip": "Sorteig"
   },
   "addFencerPool": {
     "title": "Afegir un tirador – Poule {{n}}",

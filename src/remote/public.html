@@ -6,6 +6,7 @@
     <title data-i18n="public.title">Vue Publique – BellePoule</title>
     <script src="/common.js"></script>
     <script src="/js/timerFormat.js"></script>
+    <script src="/js/priorityDraw.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
@@ -418,6 +419,7 @@
         color: #ef4444;
         animation: timer-pulse 0.5s infinite;
       }
+      .timer-display.expired { color: #ef4444; animation: none; } /* 00:00 : rouge fixe (#1416) */
 
       @keyframes timer-pulse {
         0%,
@@ -1036,6 +1038,7 @@
           });
 
           this.socket.on(`arena:${this.arenaId}:coin_flip`, data => {
+            if (data.priority) return window.BPPriorityDraw.fromEvent(this, data); // minute prioritaire (#1442)
             this.showCoinFlipAnimation(data.winner, data.fencerA, data.fencerB);
           });
         }
@@ -1286,9 +1289,17 @@
         }
 
         updateTimerDisplay(timerStatus) {
+          // Interpolation locale : dixièmes/centièmes qui s'écoulent sous 10 s (#1416)
+          if (!this._smoothTimer) {
+            this._smoothTimer = window.BPTimer.createSmoothTimer(t => this.renderTimerAt(t, this._timerStatus));
+          }
+          this._timerStatus = timerStatus;
+          this._smoothTimer.update(this.timerSeconds, timerStatus);
+        }
+
+        renderTimerAt(timeSec, timerStatus) {
           const timerEl = document.getElementById('timer-display');
-          // Dixièmes pour les 10 dernières secondes (#1416)
-          window.BPTimer.renderTimer(timerEl, this.timerSeconds);
+          window.BPTimer.renderTimer(timerEl, timeSec);
 
           timerEl.className = 'timer-display';
 
@@ -1298,9 +1309,11 @@
             timerEl.classList.add('paused');
           }
 
-          if (this.timerSeconds <= 10) {
+          if (timeSec <= 0) {
+            timerEl.classList.add('expired'); // 00:00 : rouge fixe, sans clignotement (#1416)
+          } else if (timeSec <= 10) {
             timerEl.classList.add('danger');
-          } else if (this.timerSeconds <= 30) {
+          } else if (timeSec <= 30) {
             timerEl.classList.add('warning');
           }
         }
