@@ -13,6 +13,7 @@
     <script src="/js/arenaRender.js"></script>
     <script src="/js/arenaPanels.js"></script>
     <script src="/js/arenaUpdate.js"></script>
+    <script src="/js/arenaClient.js"></script>
     <style>
 
       /* Police 7 segments — style radio-réveil LCD (embarquée en base64) */
@@ -1572,7 +1573,7 @@
           fetch('/api/session')
             .then(r => (r.ok ? r.json() : null))
             .then(s => {
-              if (s && (['E', 'F', 'S'].includes(s.weapon) || s.modernRules === true)) {
+              if (ArenaClient.isOlympicSession(s)) {
                 document.querySelectorAll('.arena-word-label').forEach(el => (el.textContent = window.T('remote.piste')));
                 // Temps supplémentaire d'une minute en escrime olympique (#1027)
                 const banner = document.getElementById('sudden-death-banner');
@@ -1620,25 +1621,13 @@
           fetch(`/api/arenas/${this.arenaId}`)
             .then(res => res.json())
             .then(arena => {
-              if (arena && arena.currentMatch && arena.currentMatch.fencerA) {
-                this.handleArenaUpdate({
-                  currentMatch: arena.currentMatch,
-                  status: arena.status,
-                  scoreA: arena.scoreA,
-                  scoreB: arena.scoreB,
-                  fencerA: arena.fencerA,
-                  fencerB: arena.fencerB,
-                });
-              }
+              const initial = ArenaClient.initialArenaUpdate(arena);
+              if (initial) this.handleArenaUpdate(initial);
             })
             .catch(err => console.error('[Arena] Erreur récupération état initial:', err));
 
           // Identifiant persistant de cet écran (survit aux rechargements/reconnexions)
-          let _screenId = localStorage.getItem('bp_screen_id');
-          if (!_screenId) {
-            _screenId = 'scr_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-            localStorage.setItem('bp_screen_id', _screenId);
-          }
+          const _screenId = ArenaClient.getOrCreateScreenId(localStorage, Math.random, Date.now);
 
           this.socket.on('connect', () => {
             this.updateConnectionStatus(true);
@@ -1647,16 +1636,17 @@
           });
 
           this.socket.on('server:command', cmd => {
-            if (cmd.type === 'refresh') { location.reload(); return; }
-            if (cmd.type === 'navigate' && cmd.url) { location.href = cmd.url; return; }
-            if (cmd.type === 'ping') { this.socket.emit('client:pong'); return; }
-            if (cmd.type === 'identify') {
-              const lbl = cmd.screenLabel || localStorage.getItem('bp_screen_label') || _screenId;
-              if (cmd.screenLabel) localStorage.setItem('bp_screen_label', cmd.screenLabel);
-              this.showIdentifyOverlay(lbl, cmd.duration ?? 5000);
-              return;
-            }
-            if (cmd.type === 'message' && cmd.text) { this.showRemoteMessage(cmd.text, cmd.duration ?? 5000); }
+            ArenaClient.dispatchServerCommand(cmd, {
+              storage: localStorage,
+              screenId: _screenId,
+              actions: {
+                reload: () => location.reload(),
+                navigate: url => { location.href = url; },
+                pong: () => this.socket.emit('client:pong'),
+                identify: (label, ms) => this.showIdentifyOverlay(label, ms),
+                message: (text, ms) => this.showRemoteMessage(text, ms),
+              },
+            });
           });
 
           setInterval(() => { if (this.socket.connected) this.socket.emit('client:pong'); }, 30000);
