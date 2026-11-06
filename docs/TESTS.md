@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 27 | 165 |
+| `src/remote/` | 28 | 173 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **260** | **2142** |
+| **Total** | **261** | **2150** |
 
-Unitaires : 251 fichiers, 2107 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 252 fichiers, 2115 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4270,6 +4270,22 @@ Unitaires : 251 fichiers, 2107 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - secondsUntil : même jour, lendemain si passée
   - formatCountdown
   - kiosk.html charge le module
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskData.test.ts</code> — 8 tests</summary>
+
+- **kioskData.js vues**
+  - viewDefault : final désactivé par défaut, les autres activés
+  - resolveViewChecks : local prioritaire, sinon serveur, sinon null
+- **kioskData.js loadKioskData**
+  - sans session : false, aucun autre appel
+  - compétition : poules, classement général fourni ou null, arènes, suivants
+  - classement général fourni par le serveur transmis
+  - entraînement : historique au lieu des poules
+  - erreur réseau propagée (reprise gérée par l’appelant)
+  - kiosk.html charge le module et délègue
 
 </details>
 
