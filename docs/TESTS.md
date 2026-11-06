@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 35 | 232 |
+| `src/remote/` | 36 | 241 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **268** | **2209** |
+| **Total** | **269** | **2218** |
 
-Unitaires : 259 fichiers, 2174 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 260 fichiers, 2183 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4240,6 +4240,23 @@ Unitaires : 259 fichiers, 2174 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - prochain match : affichage d’attente selon le statut résultant
   - mort subite : démarrage annule l’attente d’overtime
   - arena.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/kioskArenas.test.ts</code> — 9 tests</summary>
+
+- **kioskArenas.js scores**
+  - detectScoreChanges : changement, slash à +3, rien sans historique
+  - detectScoreChanges : scores non numériques, piste sans match ou sans id
+  - snapshotScores : null sans match, pistes sans id ignorées
+- **kioskArenas.js gabarit**
+  - piste libre : en attente, aucun match
+  - match en cours : B rouge à gauche, A vert à droite
+  - inversion : permutation des côtés et des couleurs
+  - assigné (pas en cours) et score absent
+  - XSS : noms, clubs et identifiants échappés
+  - kiosk.html charge le module et délègue
 
 </details>
 
