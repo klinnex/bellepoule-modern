@@ -919,6 +919,7 @@
     "tableau_mode_title": "¿Qué modo de cuadro quiere usar?",
     "tableau_mode_normal": "Cuadro normal",
     "tableau_mode_third": "Cuadro con 3.er puesto",
+    "tableau_mode_all": "Cuadro con todos los puestos disputados",
     "tableau_mode_semis": "Semifinales",
     "semis_unavailable": "Semifinales imposibles con este número de grupos (1 a 4).",
     "club": "Club",

@@ -919,6 +919,7 @@
     "tableau_mode_title": "Welches Tableau-Format möchten Sie wählen?",
     "tableau_mode_normal": "Normales Tableau",
     "tableau_mode_third": "Tableau mit 3. Platz",
+    "tableau_mode_all": "Tableau mit allen Platzierungen",
     "tableau_mode_semis": "Halbfinale",
     "semis_unavailable": "Halbfinale mit dieser Anzahl Gruppen nicht möglich (1 bis 4).",
     "club": "Verein",

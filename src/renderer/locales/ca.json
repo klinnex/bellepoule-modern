@@ -919,6 +919,7 @@
     "tableau_mode_title": "Quin mode de quadre voleu fer servir?",
     "tableau_mode_normal": "Quadre normal",
     "tableau_mode_third": "Quadre amb 3r lloc",
+    "tableau_mode_all": "Quadre amb tots els llocs disputats",
     "tableau_mode_semis": "Semifinals",
     "semis_unavailable": "Semifinals impossibles amb aquest nombre de grups (1 a 4).",
     "club": "Club",

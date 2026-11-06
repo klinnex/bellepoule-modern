@@ -919,6 +919,7 @@
     "tableau_mode_title": "要採用哪種賽程模式？",
     "tableau_mode_normal": "普通賽程",
     "tableau_mode_third": "含第3名賽",
+    "tableau_mode_all": "全部名次均需比賽的對陣表",
     "tableau_mode_semis": "半決賽",
     "semis_unavailable": "此池數無法進行半決賽（1 至 4 池）。",
     "club": "俱樂部",

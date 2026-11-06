@@ -919,6 +919,7 @@
     "tableau_mode_title": "Quale modalità di tabellone vuoi usare?",
     "tableau_mode_normal": "Tabellone normale",
     "tableau_mode_third": "Tabellone con 3° posto",
+    "tableau_mode_all": "Tabellone con tutti i posti disputati",
     "tableau_mode_semis": "Semifinali",
     "semis_unavailable": "Semifinali impossibili con questo numero di gironi (da 1 a 4).",
     "club": "Società",

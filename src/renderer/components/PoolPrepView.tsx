@@ -9,6 +9,7 @@ import { Fencer, Pool, Match, MatchStatus } from '../../shared/types';
 import {
   calculateOptimalPoolCount,
   distributeFencersToPoolsSerpentine,
+  distributeFencersGroupedByLevel,
   generatePoolMatchOrder,
   SeparationCriterionKey,
 } from '../../shared/utils/poolCalculations';
@@ -56,8 +57,12 @@ interface PoolPrepViewProps {
    * Remplace la répartition serpentin et désactive les critères de séparation.
    */
   customDistribution?: (fencers: Fencer[], poolCount: number) => Fencer[][];
-  /** Rang de niveau (0 = plus faible) : ajoute la séparation « Niveau » qui répartit les niveaux (#1441) */
+  /** Rang de niveau (0 = plus faible) : ajoute le critère « Niveau » qui regroupe les mêmes niveaux (#1441) */
   levelRankOf?: (fencer: Fencer) => number;
+  /** Critères proposés (défaut : club, région, nation [+ niveau]) — rapières : club + niveau */
+  separationKeys?: Array<SeparationCriterionKey | 'byLevel'>;
+  /** Affichage d'une ligne (rapières : nom d'équipe + bulle niveau) */
+  fencerDisplay?: (fencer: Fencer) => { label: string; pill?: string; pillTitle?: string };
   /** Ordre des matchs spécifique (paires 1-indexées), ex. vagues des rapières */
   customMatchOrder?: (poolFencers: Fencer[]) => [number, number][];
 }
@@ -90,6 +95,8 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   onLaunchActionChange,
   customDistribution,
   levelRankOf,
+  separationKeys,
+  fencerDisplay,
   customMatchOrder,
 }) => {
   const { t } = useTranslation();
@@ -107,12 +114,14 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     label: string;
     enabled: boolean;
   }
-  const [separationCriteria, setSeparationCriteria] = useState<SeparationCriterion[]>([
-    { key: 'byClub', label: 'Club', enabled: !customDistribution },
-    { key: 'byRegion', label: 'Région', enabled: !customDistribution },
-    { key: 'byNation', label: 'Nation', enabled: false },
-    ...(levelRankOf ? [{ key: 'byLevel' as const, label: 'Niveau', enabled: false }] : []),
-  ]);
+  const [separationCriteria, setSeparationCriteria] = useState<SeparationCriterion[]>(() =>
+    [
+      { key: 'byClub' as const, label: 'Club', enabled: !customDistribution },
+      { key: 'byRegion' as const, label: 'Région', enabled: !customDistribution },
+      { key: 'byNation' as const, label: 'Nation', enabled: false },
+      ...(levelRankOf ? [{ key: 'byLevel' as const, label: 'Niveau', enabled: false }] : []),
+    ].filter(c => !separationKeys || separationKeys.includes(c.key))
+  );
   const [dragCriterionIdx, setDragCriterionIdx] = useState<number | null>(null);
 
   const getActiveCriteria = (criteria: SeparationCriterion[]): SeparationCriterionKey[] =>
@@ -180,15 +189,18 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   const generatePools = (count: number, criteria: SeparationCriterion[]) => {
     if (fencers.length === 0 || count <= 0) return;
 
-    // Niveau activé : liste triée par niveau, la distribution en serpentin répartit les niveaux
-    const levelSpread = !!levelRankOf && criteria.some(c => c.key === 'byLevel' && c.enabled);
-    const ordered =
-      levelSpread && levelRankOf
-        ? [...fencers].sort((a, b) => levelRankOf(a) - levelRankOf(b))
-        : fencers;
+    // Niveau activé : les équipes de même niveau sont regroupées dans les mêmes poules (#1441)
+    const levelGroup = !!levelRankOf && criteria.some(c => c.key === 'byLevel' && c.enabled);
     const distribution = customDistribution
       ? customDistribution(fencers, count)
-      : distributeFencersToPoolsSerpentine(ordered, count, getActiveCriteria(criteria));
+      : levelGroup && levelRankOf
+        ? distributeFencersGroupedByLevel(
+            fencers,
+            count,
+            levelRankOf,
+            getActiveCriteria(criteria).includes('byClub')
+          )
+        : distributeFencersToPoolsSerpentine(fencers, count, getActiveCriteria(criteria));
 
     const generatedPools: Pool[] = distribution.map((poolFencers, index) => {
       const matchOrder = customMatchOrder
@@ -794,6 +806,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                     const hasClubConflict = fencer.club
                       ? clubConflicts.has(fencer.club.trim())
                       : false;
+                    const display = fencerDisplay?.(fencer);
                     return (
                       <div
                         key={fencer.id}
@@ -819,7 +832,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                         <span className="pool-prep-drag-handle">⠿</span>
                         <span className="pool-prep-position">{fencerIndex + 1}</span>
                         <span className="is-b2764b">
-                          {fencer.firstName} {fencer.lastName.charAt(0)}.
+                          {display
+                            ? display.label
+                            : `${fencer.firstName} ${fencer.lastName.charAt(0)}.`}
                         </span>
                         {fencer.ranking != null && fencer.ranking > 0 && (
                           <span
@@ -829,7 +844,15 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                             #{fencer.ranking}
                           </span>
                         )}
-                        {fencer.club && (
+                        {display?.pill && (
+                          <span
+                            className={`pool-prep-club-pill${hasClubConflict ? ' conflict' : ''}`}
+                            title={display.pillTitle ?? display.pill}
+                          >
+                            {display.pill}
+                          </span>
+                        )}
+                        {!display && fencer.club && (
                           <span
                             className={`pool-prep-club-pill${hasClubConflict ? ' conflict' : ''}`}
                             title={

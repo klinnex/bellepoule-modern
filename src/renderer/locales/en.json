@@ -919,6 +919,7 @@
     "tableau_mode_title": "Which bracket format do you want to run?",
     "tableau_mode_normal": "Normal bracket",
     "tableau_mode_third": "Bracket with 3rd place",
+    "tableau_mode_all": "Bracket with all places fenced",
     "tableau_mode_semis": "Semi-finals",
     "semis_unavailable": "Semi-finals impossible with this number of pools (1 to 4).",
     "club": "Club",
