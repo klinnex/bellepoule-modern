@@ -95,7 +95,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 48 | 382 |
+| `src/main/` | 48 | 385 |
 | `src/renderer/services/` | 6 | 34 |
 | `src/renderer/hooks/` | 26 | 125 |
 | `src/renderer/components/` | 50 | 252 |
@@ -104,9 +104,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **256** | **2107** |
+| **Total** | **256** | **2110** |
 
-Unitaires : 247 fichiers, 2072 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 247 fichiers, 2075 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2423,11 +2423,12 @@ Unitaires : 247 fichiers, 2072 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/pendingUpdate.test.ts</code> — 6 tests</summary>
+<summary><code>src/main/pendingUpdate.test.ts</code> — 7 tests</summary>
 
 - **pendingUpdate**
   - relit un JSON valide
   - rejette un chemin hors du dossier privé
+  - accepte un fichier dans le répertoire de téléchargement choisi (et lui seul)
   - rejette un traversal de chemin
   - rejette un JSON falsifié (champs manquants / invalide)
   - rejette des droits trop larges
@@ -2899,7 +2900,7 @@ Unitaires : 247 fichiers, 2072 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/updaterSettings.test.ts</code> — 6 tests</summary>
+<summary><code>src/main/updaterSettings.test.ts</code> — 8 tests</summary>
 
 - **updaterSettings**
   - vérification auto activée par défaut
@@ -2908,6 +2909,8 @@ Unitaires : 247 fichiers, 2072 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - persiste le canal choisi, ignore une valeur invalide
   - resolveChannel : choix utilisateur prioritaire sur le paquet
   - conserve cleanupExe (ancien exe portable à supprimer)
+  - répertoire de téléchargement : persisté, absent par défaut
+  - isUsableDownloadDir : dossier absolu existant uniquement
 
 </details>
 
