@@ -5,6 +5,7 @@
  */
 
 import { app, dialog, shell, BrowserWindow } from 'electron';
+import { execFile } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import {
@@ -27,6 +28,7 @@ import {
   selectUpdateAsset,
   type InstallKind,
 } from './updateAssets';
+import { linuxPackageInstallCommand, replaceMacAppBundle } from './updateNativeInstall';
 import { fmt, getL } from './menuLabels';
 import {
   isUsableDownloadDir,
@@ -91,7 +93,19 @@ export class AutoUpdater {
   private intervalTimer: NodeJS.Timeout | null = null;
   private readonly install: { kind: InstallKind; target: string | null } = detectInstallKind(
     process.platform,
-    process.env
+    process.env,
+    {
+      execPath: process.execPath,
+      exists: p => fs.existsSync(p),
+      canWrite: dir => {
+        try {
+          fs.accessSync(dir, fs.constants.W_OK);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+    }
   );
 
   constructor(mainWindow: BrowserWindow, config: Partial<AutoUpdaterConfig> = {}) {
@@ -702,6 +716,25 @@ export class AutoUpdater {
         return;
       }
 
+      // macOS : bundle .app remplacé par celui du .zip, relance
+      if (kind === 'macapp' && target && installerPath.endsWith('.zip')) {
+        replaceMacAppBundle(installerPath, target);
+        fs.rmSync(installerPath, { force: true });
+        logger.info(LogCategory.SYSTEM, `✅ Application remplacée en place : ${target}`);
+        app.relaunch();
+        app.quit();
+        return;
+      }
+
+      // Linux deb/rpm : installation via pkexec (mot de passe admin), relance
+      if ((kind === 'deb' || kind === 'rpm') && installerPath.endsWith(`.${kind}`)) {
+        const command = linuxPackageInstallCommand(kind, installerPath, p => fs.existsSync(p));
+        if (command) {
+          this.launchLinuxPackageInstall(installerPath, command);
+          return;
+        }
+      }
+
       if (platform === 'win32') {
         // Vérifier que c'est bien un fichier .exe valide
         if (!installerPath.endsWith('.exe')) {
@@ -750,6 +783,29 @@ export class AutoUpdater {
       logger.info(LogCategory.SYSTEM, '✅ Installateur Windows lancé');
       // Laisser l'installeur démarrer puis libérer les fichiers de l'application
       setTimeout(() => app.quit(), 3000);
+    });
+  }
+
+  /**
+   * Paquet deb/rpm installé via pkexec. Succès → relance sur la version installée.
+   * Échec / annulation → repli sur le gestionnaire de logiciels du système.
+   */
+  private launchLinuxPackageInstall(
+    installerPath: string,
+    command: { cmd: string; args: string[] }
+  ): void {
+    execFile(command.cmd, command.args, error => {
+      if (error) {
+        logger.warn(LogCategory.SYSTEM, `[AutoUpdater] Installation du paquet : ${error.message}`);
+        void shell.openPath(installerPath).then(err => {
+          if (err) this.reportInstallFailure(installerPath, getL().installLaunchErr, err);
+        });
+        return;
+      }
+      fs.rmSync(installerPath, { force: true });
+      logger.info(LogCategory.SYSTEM, '✅ Paquet installé');
+      app.relaunch();
+      app.quit();
     });
   }
 

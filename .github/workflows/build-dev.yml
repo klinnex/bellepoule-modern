@@ -237,7 +237,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: macos-x64-dmg-dev
-          path: release/*-mac-x64.dmg
+          path: |
+            release/*-mac-x64.dmg
+            release/*-mac-x64.zip
           retention-days: 7
 
   build-macos-arm64:
@@ -311,7 +313,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: macos-arm64-dmg-dev
-          path: release/*-mac-arm64.dmg
+          path: |
+            release/*-mac-arm64.dmg
+            release/*-mac-arm64.zip
           retention-days: 7
 
   build-linux-x64:
@@ -353,11 +357,14 @@ jobs:
       - name: Build TypeScript and Webpack
         run: npm run build:ci
 
+      - name: Install rpm tooling
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
       - name: Package with Electron Builder
         run: |
           for i in 1 2 3; do
             echo "Attempt $i/3..."
-            npx electron-builder --linux AppImage --x64 && break
+            npx electron-builder --linux AppImage deb rpm --x64 && break
             [ $i -lt 3 ] && sleep 10
           done || exit 1
         env:
@@ -367,7 +374,10 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: linux-x64-appimage-dev
-          path: release/*.AppImage
+          path: |
+            release/*.AppImage
+            release/*.deb
+            release/*.rpm
           retention-days: 7
 
   build-linux-arm64:
@@ -414,7 +424,7 @@ jobs:
         run: |
           for i in 1 2 3; do
             echo "Attempt $i/3..."
-            npx electron-builder --linux AppImage --arm64 && break
+            npx electron-builder --linux AppImage deb --arm64 && break
             [ $i -lt 3 ] && sleep 10
           done || exit 1
         env:
@@ -424,7 +434,10 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: linux-arm64-appimage-dev
-          path: release/*.AppImage
+          path: |
+            release/*.AppImage
+            release/*.deb
+            release/*.rpm
           retention-days: 7
           if-no-files-found: warn
 
@@ -466,7 +479,7 @@ jobs:
           FULL_VERSION: ${{ needs.increment-version.outputs.full_version }}
           SHA: ${{ needs.increment-version.outputs.sha }}
         run: |
-          mapfile -t FILES < <(find builds -type f \( -name "*.exe" -o -name "*.dmg" -o -name "*.AppImage" \))
+          mapfile -t FILES < <(find builds -type f \( -name "*.exe" -o -name "*.dmg" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \))
           NOTES="## 🧪 Version de développement
 
           **Version** : \`${FULL_VERSION}\` • **Build** : \`#${{ needs.increment-version.outputs.build }}\`
@@ -481,8 +494,8 @@ jobs:
           | **Windows** | x64 | \`BellePoule-Modern-${FULL_VERSION}-win-x64-portable.exe\` |
           | **macOS** | x64 | \`BellePoule-Modern-${FULL_VERSION}-mac-x64.dmg\` |
           | **macOS** | ARM64 | \`BellePoule-Modern-${FULL_VERSION}-mac-arm64.dmg\` (Apple Silicon) |
-          | **Linux** | x64 | \`…-linux-x64.AppImage\` |
-          | **Linux** | ARM64 | \`…-linux-arm64.AppImage\` (Raspberry Pi…) |
+          | **Linux** | x64 | \`…-linux-x86_64.AppImage\`, \`.deb\`, \`.rpm\` |
+          | **Linux** | ARM64 | \`…-linux-arm64.AppImage\`, \`.deb\` (Raspberry Pi…) |
 
           ### ⚠️ Notes
           - Peut contenir des bugs ; ne pas utiliser en compétition officielle

@@ -5,13 +5,28 @@
  * Mode d'installation détecté au lancement :
  * - appimage : process.env.APPIMAGE → remplacement du fichier AppImage, relance
  * - portable : PORTABLE_EXECUTABLE_FILE (electron-builder) → remplacement de l'exe, relance
- * - installer : NSIS (Windows), DMG (macOS), deb/rpm (Linux)
+ * - macapp : bundle .app dans un dossier inscriptible → .zip extrait, bundle remplacé, relance
+ * - deb / rpm : Linux hors AppImage → paquet installé via pkexec, relance
+ * - installer : NSIS (Windows), DMG (macOS), autres cas
  */
 
 import fs from 'fs';
 import path from 'path';
 
-export type InstallKind = 'appimage' | 'portable' | 'installer';
+export type InstallKind = 'appimage' | 'portable' | 'macapp' | 'deb' | 'rpm' | 'installer';
+
+/** Sondes du système (injectées pour les tests). */
+export interface InstallProbe {
+  execPath?: string;
+  exists?: (p: string) => boolean;
+  canWrite?: (dir: string) => boolean;
+}
+
+/** Bundle `.app` contenant l'exécutable (`X.app/Contents/MacOS/bin`), sinon null. */
+export function macAppBundle(execPath: string): string | null {
+  const m = /^(\/.+?\.app)\/Contents\/MacOS\/[^/]+$/.exec(execPath);
+  return m ? m[1] : null;
+}
 
 export interface ReleaseAsset {
   name: string;
@@ -22,11 +37,25 @@ export interface ReleaseAsset {
 
 export function detectInstallKind(
   platform: NodeJS.Platform,
-  env: NodeJS.ProcessEnv
+  env: NodeJS.ProcessEnv,
+  probe: InstallProbe = {}
 ): { kind: InstallKind; target: string | null } {
   if (platform === 'linux' && env.APPIMAGE) return { kind: 'appimage', target: env.APPIMAGE };
   if (platform === 'win32' && env.PORTABLE_EXECUTABLE_FILE) {
     return { kind: 'portable', target: env.PORTABLE_EXECUTABLE_FILE };
+  }
+  if (platform === 'darwin' && probe.execPath && probe.canWrite) {
+    // App translocation / dossier en lecture seule → repli DMG
+    const bundle = macAppBundle(probe.execPath);
+    if (bundle && probe.canWrite(path.posix.dirname(bundle))) {
+      return { kind: 'macapp', target: bundle };
+    }
+  }
+  if (platform === 'linux' && probe.exists) {
+    if (probe.exists('/etc/debian_version') && probe.exists('/usr/bin/dpkg')) {
+      return { kind: 'deb', target: null };
+    }
+    if (probe.exists('/usr/bin/rpm')) return { kind: 'rpm', target: null };
   }
   return { kind: 'installer', target: null };
 }
@@ -42,9 +71,13 @@ function archTokens(arch: string): string[] {
 /** Préférences ordonnées (suffixes de nom) selon plateforme + mode d'installation. */
 function preferredSuffixes(platform: NodeJS.Platform, kind: InstallKind): string[] {
   if (platform === 'win32') return kind === 'portable' ? ['-portable.exe'] : ['-setup.exe', '.exe'];
-  if (platform === 'darwin') return ['.dmg'];
-  if (platform === 'linux')
-    return kind === 'appimage' ? ['.AppImage'] : ['.deb', '.rpm', '.AppImage'];
+  if (platform === 'darwin') return kind === 'macapp' ? ['.zip', '.dmg'] : ['.dmg'];
+  if (platform === 'linux') {
+    if (kind === 'appimage') return ['.AppImage'];
+    if (kind === 'deb') return ['.deb', '.AppImage'];
+    if (kind === 'rpm') return ['.rpm', '.AppImage'];
+    return ['.deb', '.rpm', '.AppImage'];
+  }
   return [];
 }
 
@@ -114,12 +147,12 @@ export function replaceExecutableInPlace(
   return true;
 }
 
-/** Nettoie les restes d'un remplacement précédent (`.old`, `.new`). */
+/** Nettoie les restes d'un remplacement précédent (`.old`, `.new`, fichier ou bundle). */
 export function cleanupReplacedExecutable(target: string | null): void {
   if (!target) return;
   for (const f of [`${target}.old`, `${target}.new`]) {
     try {
-      fs.rmSync(f, { force: true });
+      fs.rmSync(f, { force: true, recursive: true });
     } catch {
       // fichier encore verrouillé : retenté au prochain lancement
     }

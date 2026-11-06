@@ -196,7 +196,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: macos-x64-dmg
-          path: release/*.dmg
+          path: |
+            release/*.dmg
+            release/*.zip
           retention-days: 5
 
   build-macos-arm64:
@@ -268,7 +270,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: macos-arm64-dmg
-          path: release/*.dmg
+          path: |
+            release/*.dmg
+            release/*.zip
           retention-days: 5
 
   build-linux-x64:
@@ -308,8 +312,11 @@ jobs:
       - name: Build TypeScript and Webpack
         run: npm run build:ci
 
+      - name: Install rpm tooling
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
       - name: Package with Electron Builder
-        run: npx electron-builder --linux AppImage --x64
+        run: npx electron-builder --linux AppImage deb rpm --x64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -317,7 +324,10 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: linux-x64-appimage
-          path: release/*.AppImage
+          path: |
+            release/*.AppImage
+            release/*.deb
+            release/*.rpm
           retention-days: 5
 
   build-linux-arm64:
@@ -359,7 +369,7 @@ jobs:
         run: npm run build:ci
 
       - name: Package with Electron Builder
-        run: npx electron-builder --linux AppImage --arm64
+        run: npx electron-builder --linux AppImage deb --arm64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -367,7 +377,10 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: linux-arm64-appimage
-          path: release/*.AppImage
+          path: |
+            release/*.AppImage
+            release/*.deb
+            release/*.rpm
           retention-days: 5
           if-no-files-found: warn
 
@@ -415,8 +428,8 @@ jobs:
             | **Windows** | x64 | `BellePoule-Modern-${{ needs.version.outputs.version }}-win-x64-portable.exe` |
             | **macOS** | x64 | `BellePoule-Modern-${{ needs.version.outputs.version }}-mac-x64.dmg` |
             | **macOS** | ARM64 | `BellePoule-Modern-${{ needs.version.outputs.version }}-mac-arm64.dmg` (Apple Silicon) |
-            | **Linux** | x64 | `…-linux-x64.AppImage` |
-            | **Linux** | ARM64 | `…-linux-arm64.AppImage` (Raspberry Pi…) |
+            | **Linux** | x64 | `…-linux-x86_64.AppImage`, `.deb`, `.rpm` |
+            | **Linux** | ARM64 | `…-linux-arm64.AppImage`, `.deb` (Raspberry Pi…) |
 
             ### 📋 Voir la version
             Menu **Aide > À propos** ou **F1**
@@ -425,9 +438,14 @@ jobs:
           files: |
             builds/windows-exe/*.exe
             builds/macos-x64-dmg/*-x64.dmg
+            builds/macos-x64-dmg/*-x64.zip
             builds/macos-arm64-dmg/*-arm64.dmg
+            builds/macos-arm64-dmg/*-arm64.zip
             builds/linux-x64-appimage/*.AppImage
+            builds/linux-x64-appimage/*.deb
+            builds/linux-x64-appimage/*.rpm
             builds/linux-arm64-appimage/*.AppImage
+            builds/linux-arm64-appimage/*.deb
           fail_on_unmatched_files: false
           draft: false
           prerelease: false
