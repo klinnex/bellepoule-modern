@@ -754,8 +754,7 @@ export class AutoUpdater {
           return;
         }
         logger.warn(LogCategory.SYSTEM, `[AutoUpdater] Dossier non inscriptible : ${target}`);
-        shell.showItemInFolder(installerPath);
-        dialog.showErrorBox(getL().installErrTitle, getL().installLaunchErr);
+        this.reportInstallFailure(installerPath, getL().installLaunchErr, `${target}`);
         return;
       }
 
@@ -766,36 +765,7 @@ export class AutoUpdater {
           return;
         }
 
-        // Windows: lancer le .exe avec options optimisées
-        // /VERYSILENT = aucune interface utilisateur
-        // /NORESTART = ne pas redémarrer automatiquement
-        // /CLOSEAPPLICATIONS = fermer l'app en cours
-        // /MERGETASKS = conserver les paramètres existants
-        const installer = spawn(
-          installerPath,
-          ['/VERYSILENT', '/NORESTART', '/CLOSEAPPLICATIONS', '/MERGETASKS=!desktopicon'],
-          {
-            detached: true,
-            stdio: 'ignore',
-            windowsHide: true, // Cacher la fenêtre console
-          }
-        );
-
-        // Gestion des erreurs du processus
-        installer.on('error', (err: Error) => {
-          logger.error(LogCategory.SYSTEM, 'Installer launch error:', toError(err));
-          dialog.showErrorBox(getL().installErrTitle, getL().installLaunchErr);
-        });
-
-        // Attendre que l'installateur démarre avant de quitter
-        installer.on('spawn', () => {
-          logger.info(LogCategory.SYSTEM, '✅ Installateur Windows lancé');
-          // Attendre 3 secondes pour que l'installateur prenne le relais
-          setTimeout(() => {
-            app.quit();
-          }, 3000);
-        });
-
+        this.launchWindowsInstaller(installerPath);
         return; // Quitter la fonction ici pour éviter le double timeout
       } else if (platform === 'darwin') {
         // macOS: ouvrir le .dmg
@@ -820,8 +790,72 @@ export class AutoUpdater {
       }, 2000);
     } catch (error) {
       logger.error(LogCategory.SYSTEM, 'Failed to launch installer:', toError(error));
-      dialog.showErrorBox(getL().installErrTitle, getL().installGenericErr);
+      this.reportInstallFailure(installerPath, getL().installGenericErr, toError(error).message);
     }
+  }
+
+  /**
+   * Installeur NSIS (electron-builder) : `/S` silencieux, `--updated` + `--force-run`
+   * relancent l'app après installation. Si le lancement direct échoue (élévation UAC
+   * requise pour une installation dans Program Files → exception ou EACCES), repli sur
+   * ShellExecute (`shell.openPath`) qui affiche la demande d'élévation Windows.
+   */
+  private launchWindowsInstaller(installerPath: string): void {
+    const quitSoon = () => setTimeout(() => app.quit(), 3000);
+    const viaShell = (reason: string) => {
+      logger.warn(
+        LogCategory.SYSTEM,
+        `[AutoUpdater] Lancement direct impossible (${reason}), repli ShellExecute`
+      );
+      void shell.openPath(installerPath).then(err => {
+        if (err) {
+          logger.error(LogCategory.SYSTEM, `[AutoUpdater] ShellExecute : ${err}`);
+          this.reportInstallFailure(installerPath, getL().installLaunchErr, `${reason}\n${err}`);
+        } else {
+          logger.info(LogCategory.SYSTEM, '✅ Installateur Windows lancé (ShellExecute)');
+          quitSoon();
+        }
+      });
+    };
+
+    let installer: ReturnType<typeof spawn>;
+    try {
+      installer = spawn(installerPath, ['/S', '--updated', '--force-run'], {
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true,
+      });
+    } catch (error) {
+      viaShell(toError(error).message);
+      return;
+    }
+    installer.on('error', (err: Error) => {
+      logger.error(LogCategory.SYSTEM, 'Installer launch error:', toError(err));
+      viaShell(err.message);
+    });
+    installer.on('spawn', () => {
+      logger.info(LogCategory.SYSTEM, '✅ Installateur Windows lancé');
+      installer.unref();
+      quitSoon();
+    });
+  }
+
+  /** Échec d'installation : message réel + accès direct au fichier téléchargé. */
+  private reportInstallFailure(installerPath: string, message: string, detail: string): void {
+    const L = getL();
+    const options = {
+      type: 'error' as const,
+      title: L.installErrTitle,
+      message,
+      detail,
+      buttons: [L.installShowFile, 'OK'],
+      defaultId: 0,
+      cancelId: 1,
+    };
+    const response = this.mainWindow
+      ? dialog.showMessageBoxSync(this.mainWindow, options)
+      : dialog.showMessageBoxSync(options);
+    if (response === 0) shell.showItemInFolder(installerPath);
   }
 
   async showUpdateDialog(): Promise<void> {
