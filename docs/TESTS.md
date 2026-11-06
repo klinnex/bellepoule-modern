@@ -100,13 +100,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 50 | 252 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 34 | 224 |
+| `src/remote/` | 35 | 232 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **267** | **2201** |
+| **Total** | **268** | **2209** |
 
-Unitaires : 258 fichiers, 2166 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 259 fichiers, 2174 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4409,6 +4409,22 @@ Unitaires : 258 fichiers, 2166 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - cartons de passivité vs standard
   - lastIndexWhere
   - referee.html charge le module et ne redéfinit plus les constantes
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeLists.test.ts</code> — 8 tests</summary>
+
+- **refereeLists.js données**
+  - pendingMatches : à jouer ou en cours seulement, réponse vide tolérée
+  - mergeMatches : ajoute les absents sans doublon
+  - filterMatches : nom ou prénom, insensible à la casse, vide = tout
+- **refereeLists.js gabarit**
+  - liste vide : message de fin et liens signature / journal de l’arène
+  - numéro d’arène échappé
+  - cartes : noms, clubs, badge selon le statut, id en data-args
+  - tireur inconnu : « ? » ; XSS échappé (noms, clubs, id)
+  - referee.html charge le module et délègue
 
 </details>
 
