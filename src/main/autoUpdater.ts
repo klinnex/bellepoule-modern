@@ -8,6 +8,7 @@ import { app, dialog, shell, BrowserWindow } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import {
+  PENDING_UPDATE_DIR,
   ensurePrivateDir,
   randomInstallerName,
   readPendingUpdate,
@@ -27,7 +28,12 @@ import {
   type InstallKind,
 } from './updateAssets';
 import { fmt, getL } from './menuLabels';
-import { readUpdaterSettings, writeUpdaterSettings, type UpdateChannel } from './updaterSettings';
+import {
+  isUsableDownloadDir,
+  readUpdaterSettings,
+  writeUpdaterSettings,
+  type UpdateChannel,
+} from './updaterSettings';
 import { logger, LogCategory, toError } from '../shared/services/logger';
 
 /** Libellé unique par build (les builds dev partagent la même version X.Y.Z). */
@@ -91,7 +97,7 @@ export class AutoUpdater {
   constructor(mainWindow: BrowserWindow, config: Partial<AutoUpdaterConfig> = {}) {
     this.mainWindow = mainWindow;
     this.config = {
-      autoDownload: true,
+      autoDownload: false,
       autoInstall: false,
       checkInterval: 24, // Vérifier chaque jour
       betaChannel: false,
@@ -165,6 +171,36 @@ export class AutoUpdater {
     writeUpdaterSettings(app.getPath('userData'), { ...current, autoCheck: enabled });
     if (enabled) this.setupAutoCheck();
     else this.clearAutoCheck();
+  }
+
+  private customDownloadDir(): string | undefined {
+    const custom = readUpdaterSettings(app.getPath('userData')).downloadDir;
+    return isUsableDownloadDir(custom) ? custom : undefined;
+  }
+
+  /** Répertoire par défaut des téléchargements (privé, sous userData). */
+  getDefaultDownloadDir(): string {
+    return path.join(app.getPath('userData'), PENDING_UPDATE_DIR);
+  }
+
+  /** Répertoire effectif : choix utilisateur s'il est valide, sinon le défaut. */
+  getDownloadDir(): string {
+    const custom = this.customDownloadDir();
+    if (custom) return custom;
+    return ensurePrivateDir(app.getPath('userData'));
+  }
+
+  /** Choix du répertoire (null = retour au défaut). Retourne false si invalide. */
+  setDownloadDir(dir: string | null): boolean {
+    const userData = app.getPath('userData');
+    const { downloadDir: _old, ...rest } = readUpdaterSettings(userData);
+    if (dir === null) {
+      writeUpdaterSettings(userData, rest);
+      return true;
+    }
+    if (!isUsableDownloadDir(dir)) return false;
+    writeUpdaterSettings(userData, { ...rest, downloadDir: dir });
+    return true;
   }
 
   isAutoCheckEnabled(): boolean {
@@ -401,7 +437,7 @@ export class AutoUpdater {
 
       // Déjà téléchargée et vérifiée : pas de nouveau téléchargement.
       // En fond, pas de nouvelle question (déjà posée au téléchargement / au démarrage).
-      const pending = readPendingUpdate(app.getPath('userData'));
+      const pending = readPendingUpdate(app.getPath('userData'), this.customDownloadDir());
       if (pending && pending.version === pendingVersionLabel(updateInfo)) {
         if (interactive) {
           this.promptForImmediateInstall(
@@ -552,10 +588,7 @@ export class AutoUpdater {
     filename: string,
     onProgress?: (downloaded: number, total: number) => void
   ): Promise<string | null> {
-    const downloadPath = path.join(
-      ensurePrivateDir(app.getPath('userData')),
-      randomInstallerName(filename)
-    );
+    const downloadPath = path.join(this.getDownloadDir(), randomInstallerName(filename));
     fs.rmSync(downloadPath, { force: true });
     await downloadToFile(url, downloadPath, onProgress);
     logger.info(
@@ -586,7 +619,7 @@ export class AutoUpdater {
   async checkAndInstallPendingUpdate(): Promise<void> {
     try {
       const userData = app.getPath('userData');
-      const updateData = readPendingUpdate(userData);
+      const updateData = readPendingUpdate(userData, this.customDownloadDir());
       // Usage unique
       clearPendingUpdate(userData);
       if (updateData) {
@@ -869,14 +902,14 @@ export class AutoUpdater {
    * Vérifier s'il y a une mise à jour téléchargée en attente d'installation
    */
   hasPendingUpdate(): boolean {
-    return readPendingUpdate(app.getPath('userData')) !== null;
+    return readPendingUpdate(app.getPath('userData'), this.customDownloadDir()) !== null;
   }
 
   /**
    * Récupérer les informations de la mise à jour en attente
    */
   getPendingUpdateInfo(): { version: string; path: string } | null {
-    const data = readPendingUpdate(app.getPath('userData'));
+    const data = readPendingUpdate(app.getPath('userData'), this.customDownloadDir());
     return data ? { version: data.version, path: data.path } : null;
   }
 }
