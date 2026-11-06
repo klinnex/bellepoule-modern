@@ -539,18 +539,29 @@ export class AutoUpdater {
         });
       }
 
-      // Télécharger le fichier avec suivi de progression
+      // Télécharger le fichier avec suivi de progression : barre des tâches
+      // (Windows/macOS/Linux Unity) + bannière de l'app, à chaque point de %.
+      let lastProgress = -1;
+      this.setTaskbarProgress(2); // indéterminé jusqu'aux premiers octets
       const downloadPath = await this.downloadFile(
         asset.browser_download_url!,
         asset.name,
         (downloaded, total) => {
-          const progress = total > 0 ? Math.round((downloaded / total) * 100) : 0;
-          if (this.mainWindow && progress % 10 === 0) {
-            // Envoyer tous les 10%
-            this.mainWindow.webContents.send('update:progress', { progress, downloaded, total });
-          }
+          const progress = total > 0 ? Math.floor((downloaded / total) * 100) : 0;
+          if (progress === lastProgress) return;
+          lastProgress = progress;
+          this.setTaskbarProgress(total > 0 ? downloaded / total : 2);
+          this.mainWindow?.webContents.send('update:progress', {
+            progress,
+            downloaded,
+            total,
+            latestVersion: updateInfo.latestVersion,
+            latestBuild: updateInfo.latestBuild,
+            currentBuild: updateInfo.currentBuild,
+          });
         }
       );
+      this.setTaskbarProgress(-1);
 
       if (downloadPath) {
         if (!(await verifyFileSha256(downloadPath, expectedSha256))) {
@@ -584,6 +595,7 @@ export class AutoUpdater {
       return true;
     } catch (error) {
       logger.error(LogCategory.SYSTEM, '❌ Auto download failed:', toError(error));
+      this.setTaskbarProgress(-1);
       if (this.mainWindow) {
         this.mainWindow.webContents.send('update:error', {
           message: getL().updAutoDownloadFailed,
@@ -596,6 +608,15 @@ export class AutoUpdater {
       return true;
     } finally {
       this.downloading = false;
+    }
+  }
+
+  /** Progression dans la barre des tâches : 0..1, 2 = indéterminé, -1 = masquée. */
+  private setTaskbarProgress(value: number): void {
+    try {
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) this.mainWindow.setProgressBar(value);
+    } catch {
+      // fenêtre fermée pendant le téléchargement
     }
   }
 

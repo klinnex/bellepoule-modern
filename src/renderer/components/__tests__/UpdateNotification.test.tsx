@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import UpdateNotification from '../UpdateNotification';
+import type { UpdateProgressEvent } from '../../../shared/types/preload';
 
 vi.mock('../Toast', () => ({ useToast: () => ({ showToast: vi.fn() }) }));
 vi.mock('../../hooks/useTranslation', () => import('../../testUtils/i18nMock'));
@@ -21,7 +22,7 @@ const INFO = {
 
 describe('UpdateNotification — mise à jour intégrée', () => {
   let emitAvailable: (info: typeof INFO) => void;
-  let emitProgress: (d: { progress: number }) => void;
+  let emitProgress: (d: UpdateProgressEvent) => void;
   let downloadAndInstall: ReturnType<typeof vi.fn>;
   let openSpy: ReturnType<typeof vi.spyOn>;
 
@@ -60,6 +61,21 @@ describe('UpdateNotification — mise à jour intégrée', () => {
     act(() => emitAvailable(INFO));
     act(() => emitProgress({ progress: 40 }));
     expect(screen.getByText(/40 %/)).toBeInTheDocument();
+  });
+
+  it('téléchargement lancé depuis le menu : bannière + barre de progression sans update:available', () => {
+    render(<UpdateNotification />);
+    act(() =>
+      emitProgress({
+        progress: 0,
+        latestVersion: '1.3.0',
+        latestBuild: 12,
+        currentBuild: 10,
+      })
+    );
+    act(() => emitProgress({ progress: 55 }));
+    expect(screen.getByText(/v1\.3\.0/)).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('value', '55');
   });
 
   it('ses styles sont dans une feuille chargée (components.css)', () => {

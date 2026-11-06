@@ -348,6 +348,16 @@ export interface UpdateInfo {
   releaseNotes: string;
 }
 
+/** Progression du téléchargement d'une mise à jour (`update:progress`) */
+export interface UpdateProgressEvent {
+  progress: number;
+  downloaded?: number;
+  total?: number;
+  latestVersion?: string;
+  latestBuild?: number;
+  currentBuild?: number;
+}
+
 export interface UpdaterAPI {
   check: () => Promise<UpdateInfo | null>;
   setSilentMode: (enabled: boolean) => Promise<{ success: boolean; silent: boolean }>;
@@ -1302,7 +1312,7 @@ export interface ElectronAPI extends MenuAPI, UtilityAPI {
   remote: RemoteServerAPI;
   training: TrainingAPI;
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
-  onUpdateProgress: (callback: (data: { progress: number }) => void) => () => void;
+  onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) => () => void;
   onRemoteArenaUpdate: (callback: (data: RemoteArenaUpdateEvent) => void) => () => void;
   onRemoteMatchFinished: (callback: (data: RemoteMatchFinishedEvent) => void) => () => void;
   onTrainingMatchFinished: (

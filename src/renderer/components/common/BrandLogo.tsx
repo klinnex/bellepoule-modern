@@ -53,13 +53,16 @@ const Laser: React.FC<{ glowId: string }> = ({ glowId }) => (
       y1="-16"
       x2="0"
       y2="-29.5"
-      style={{ stroke: 'var(--color-laser, #ef4444)' }}
+      className="brand-logo-laser"
       strokeWidth="4.2"
       filter={`url(#${glowId})`}
     />
     <line x1="0" y1="-16" x2="0" y2="-29.5" stroke="#fff" strokeWidth="1.3" strokeOpacity="0.9" />
   </g>
 );
+
+/** Nom de marque (non traduit) */
+const BRAND_NAME = 'BellePoule Modern';
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({ size = 64, className }) => {
   const glowId = `bp-laser-glow-${useId().replace(/:/g, '')}`;
@@ -70,7 +73,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({ size = 64, className }) =>
       height={size}
       viewBox="0 0 64 64"
       role="img"
-      aria-label="BellePoule Modern"
+      aria-label={BRAND_NAME}
       data-testid="brand-logo"
       fill="none"
       stroke="currentColor"

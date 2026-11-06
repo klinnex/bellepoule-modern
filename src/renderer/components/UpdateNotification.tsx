@@ -36,7 +36,27 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
       setUpdateInfo(info);
       if (!dismissed) setVisible(true);
     });
-    const offProgress = api?.onUpdateProgress?.(({ progress: p }) => setProgress(p));
+    // Téléchargement lancé (bannière, menu Aide ou fond) : bannière affichée avec le %
+    const offProgress = api?.onUpdateProgress?.(data => {
+      setProgress(data.progress);
+      if (data.latestVersion && data.latestBuild !== undefined) {
+        const { latestVersion, latestBuild } = data;
+        setUpdateInfo(
+          prev =>
+            prev ?? {
+              hasUpdate: true,
+              currentBuild: data.currentBuild ?? 0,
+              latestBuild,
+              latestVersion,
+              downloadUrl: '',
+              releaseNotes: '',
+            }
+        );
+      }
+      // Nouveau téléchargement (0 %) : réafficher même si la bannière avait été fermée
+      if (data.progress === 0) setDismissed(false);
+      setVisible(true);
+    });
     return () => {
       offAvailable?.();
       offProgress?.();
@@ -87,9 +107,21 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
             {`(Build #${updateInfo.latestBuild})`}
           </p>
           {progress !== null && progress < 100 && (
-            <p className="update-notification-multiple">
-              {t('updateNotif.progress', { n: progress })}
-            </p>
+            <>
+              <p className="update-notification-multiple">
+                {t('updateNotif.progress', { n: progress })}
+              </p>
+              {/* Sabre laser : la lame s'allume avec le pourcentage */}
+              <div className="update-saber">
+                <span className="update-saber-hilt" aria-hidden="true" />
+                <progress
+                  className="update-notification-progress"
+                  max={100}
+                  value={progress}
+                  aria-label={t('updateNotif.progress', { n: progress })}
+                />
+              </div>
+            </>
           )}
           {updateInfo.latestBuild - updateInfo.currentBuild > 1 && (
             <p className="update-notification-multiple">

@@ -13,6 +13,7 @@ ipcRenderer.on('remote:diag', (_: IpcRendererEvent, msg: string) => {
 import type {
   ElectronAPI,
   UpdateInfo,
+  UpdateProgressEvent,
   CompetitionCreateData,
   CompetitionUpdateData,
   FencerCreateData,
@@ -825,8 +826,8 @@ const electronApi = {
     ipcRenderer.on('update:available', handler);
     return () => ipcRenderer.removeListener('update:available', handler);
   },
-  onUpdateProgress: (callback: (data: { progress: number }) => void) => {
-    const handler = (_: IpcRendererEvent, data: { progress: number }) => callback(data);
+  onUpdateProgress: (callback: (data: UpdateProgressEvent) => void) => {
+    const handler = (_: IpcRendererEvent, data: UpdateProgressEvent) => callback(data);
     ipcRenderer.on('update:progress', handler);
     return () => ipcRenderer.removeListener('update:progress', handler);
   },

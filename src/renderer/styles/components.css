@@ -1270,3 +1270,76 @@
     max-width: none;
   }
 }
+
+/* Barre de progression « sabre laser » : poignée + lame verte qui s'allume */
+.update-saber {
+  display: flex;
+  align-items: center;
+  margin-top: var(--space-2, 8px);
+}
+
+.update-saber-hilt {
+  flex-shrink: 0;
+  width: 30px;
+  height: 10px;
+  border-radius: 2px 0 0 2px;
+  background: repeating-linear-gradient(90deg, #c8ccd0 0 4px, #4a4f55 4px 6px);
+  border-right: 3px solid #1d1f22;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35);
+}
+
+.update-notification-progress {
+  appearance: none;
+  flex: 1;
+  height: 6px;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  background: transparent;
+  filter: drop-shadow(0 0 3px #39ff14) drop-shadow(0 0 6px #39ff14);
+  animation: update-saber-hum 0.12s infinite alternate;
+}
+
+.update-notification-progress::-webkit-progress-bar {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 0 4px 4px 0;
+}
+
+.update-notification-progress::-webkit-progress-value {
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(180deg, #39ff14 0%, #eaffea 45%, #eaffea 55%, #39ff14 100%);
+  transition: width 0.2s ease-out;
+}
+
+.update-notification-progress::-moz-progress-bar {
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(180deg, #39ff14 0%, #eaffea 45%, #eaffea 55%, #39ff14 100%);
+}
+
+@keyframes update-saber-hum {
+  from {
+    opacity: 0.92;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .update-notification-progress {
+    animation: none;
+  }
+
+  .update-notification-progress::-webkit-progress-value {
+    transition: none;
+  }
+}
+
+/* Logo d'accueil 4 armes (BrandLogo.tsx) */
+.brand-logo-wrap {
+  display: inline-block;
+  color: var(--color-primary);
+}
+
+.brand-logo-laser {
+  stroke: var(--color-laser, #ef4444);
+}
