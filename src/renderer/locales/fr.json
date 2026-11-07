@@ -1210,6 +1210,11 @@
     "col_department": "Département"
   },
   "rsm": {
+    "strip_plan": "Plan des pistes",
+    "strip_plan_unavailable": "{{count}} indisponible(s)",
+    "strip_plan_hint": "Cliquer sur une piste pour la déclarer indisponible (rouge) ; elle est alors exclue de la répartition automatique.",
+    "strip_plan_make_available": "Remettre la piste disponible",
+    "strip_plan_make_unavailable": "Déclarer la piste indisponible",
     "strip_start": "Piste de départ",
     "strip_end": "Piste de fin",
     "unsaved": "Modifications non sauvegardées",

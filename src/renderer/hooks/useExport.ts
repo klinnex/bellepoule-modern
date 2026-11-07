@@ -21,6 +21,7 @@ import {
 } from '../../shared/utils/multiFormatExport';
 
 import { computePoolStrips } from '../../shared/utils/poolStrips';
+import { useStripAvailability } from './useStripAvailability';
 import {
   buildGregFields,
   gregFileName,
@@ -42,7 +43,12 @@ export function buildStripQrs(
   remote?: PoolsRemoteInfo
 ): Record<string, PoolStripQr> | undefined {
   if (!remote?.serverUrl) return undefined;
-  const strips = computePoolStrips(pools, remote.arenaCount, remote.stripStart);
+  const strips = computePoolStrips(
+    pools,
+    remote.arenaCount,
+    remote.stripStart,
+    useStripAvailability.getState().unavailable
+  );
   const out: Record<string, PoolStripQr> = {};
   for (const [poolId, strip] of strips) {
     out[poolId] = { strip, url: `${remote.serverUrl}/arene${strip}/arbitre` };

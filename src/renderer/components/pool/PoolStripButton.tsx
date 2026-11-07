@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import Modal from '../common/Modal';
 import { useTranslation } from '../../hooks/useTranslation';
 import { stripNumbers } from '../../../shared/utils/stripRange';
+import { useStripAvailability } from '../../hooks/useStripAvailability';
 
 interface PoolStripButtonProps {
   poolNumber: number;
@@ -32,6 +33,7 @@ export const PoolStripButton: React.FC<PoolStripButtonProps> = ({
 }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const unavailable = useStripAvailability(s => s.unavailable);
   const pick = (value: number | undefined) => {
     onChange(value);
     setOpen(false);
@@ -42,7 +44,7 @@ export const PoolStripButton: React.FC<PoolStripButtonProps> = ({
         type="button"
         onClick={() => setOpen(true)}
         title={t('poolView.assign_strip')}
-        className={`pv-pill${strip != null ? ' is-assigned' : ''}`}
+        className={`pv-pill${strip != null ? ' is-assigned' : ''}${strip != null && unavailable.includes(strip) ? ' is-unavailable' : ''}`}
       >
         🏟 {strip != null ? t('poolView.strip_n', { n: strip }) : t('poolView.add_strip')}
       </button>
@@ -61,7 +63,7 @@ export const PoolStripButton: React.FC<PoolStripButtonProps> = ({
               <button
                 type="button"
                 key={n}
-                className={`btn ${strip === n ? 'btn-primary' : 'btn-secondary'}`}
+                className={`btn ${strip === n ? 'btn-primary' : 'btn-secondary'}${unavailable.includes(n) ? ' is-unavailable' : ''}`}
                 onClick={() => pick(n)}
               >
                 {n}

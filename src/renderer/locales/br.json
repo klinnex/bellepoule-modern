@@ -1210,6 +1210,11 @@
     "col_department": "Departamant"
   },
   "rsm": {
+    "strip_plan": "Plan ar pistennoù",
+    "strip_plan_unavailable": "{{count}} dihegerz",
+    "strip_plan_hint": "Klikañ war ur pistenn evit he merkañ dihegerz (ruz) ; ne vez ket implijet mui gant ar rannadur emgefreek.",
+    "strip_plan_make_available": "Lakaat ar pistenn da vezañ hegerz en-dro",
+    "strip_plan_make_unavailable": "Merkañ ar pistenn dihegerz",
     "strip_start": "Pistenn gentañ",
     "strip_end": "Pistenn diwezhañ",
     "unsaved": "Kemmoù n'int ket enrollet",
