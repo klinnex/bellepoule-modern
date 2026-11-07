@@ -67,6 +67,19 @@ describe('AddFencerModal', () => {
     expect(onAdd.mock.calls[0][0].handedness).toBe('L');
   });
 
+  it('département choisi dans la liste transmis (#1504)', () => {
+    const { onAdd, container } = setup();
+    fireEvent.change(screen.getByPlaceholderText('addFencer.last_name_ph'), {
+      target: { value: 'a' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('addFencer.first_name_ph'), {
+      target: { value: 'b' },
+    });
+    fireEvent.change(screen.getByLabelText('fencer.department'), { target: { value: '2A' } });
+    fireEvent.submit(container.querySelector('form')!);
+    expect(onAdd.mock.calls[0][0].department).toBe('2A');
+  });
+
   it('Ajouter garde la modale ouverte et vide le formulaire', () => {
     const { onAdd, onClose } = setup();
     const input = screen.getByPlaceholderText('addFencer.last_name_ph') as HTMLInputElement;

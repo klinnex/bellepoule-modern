@@ -9,6 +9,7 @@ import type { PdfTemplate } from '../../types/pdfTemplate.types';
 import { savePDF, buildCssOverrides, assembleBody, BASE_CSS, pdfLang, pdfT } from './core';
 import { getActiveLocale } from '../localeFormat';
 import { formatNationality } from '../countries';
+import { departmentLabel } from '../departments';
 
 // ─── Export Liste d'Appel ──────────────────────────────────────────────────────
 
@@ -19,6 +20,8 @@ const APPEL_COL_HEADERS = (): Record<string, string> => ({
   birthDate: pdfT('col_born', 'Né(e)'),
   club: pdfT('col_club', 'Club'),
   nationality: pdfT('col_nation', 'Nation'),
+  region: pdfT('col_region', 'Région'),
+  department: pdfT('col_department', 'Département'),
   ranking: pdfT('col_ranking', 'Classement'),
   status: pdfT('col_status', 'Statut'),
 });
@@ -47,6 +50,10 @@ function getFencerCellValue(fencer: Fencer, col: string): string {
       return fencer.club || '-';
     case 'nationality':
       return formatNationality(fencer.nationality) || '-';
+    case 'region':
+      return fencer.region || '-';
+    case 'department':
+      return departmentLabel(fencer.department) || '-';
     case 'ranking':
       return fencer.ranking ? `#${fencer.ranking}` : '-';
     case 'status':

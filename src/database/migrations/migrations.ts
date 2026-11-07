@@ -616,4 +616,15 @@ export const ALL_MIGRATIONS: Migration[] = [
       }
     },
   },
+  {
+    version: 21,
+    description: 'Département des tireurs (code 01…95, 2A, 2B, 971…, #1504)',
+    up(db) {
+      try {
+        db.run(`ALTER TABLE fencers ADD COLUMN department TEXT`);
+      } catch {
+        /* colonne déjà présente */
+      }
+    },
+  },
 ];

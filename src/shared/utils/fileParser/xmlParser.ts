@@ -44,6 +44,7 @@ export function parseXMLFile(content: string): ImportResult {
           gender,
           nationality: getName('Nation') || 'FRA',
           region: getName('Ligue') || undefined,
+          department: getName('Departement') || undefined,
           club: getName('Club') || undefined,
           license: getName('Licence') || undefined,
           ranking: parseInt(getName('Classement')) || undefined,
