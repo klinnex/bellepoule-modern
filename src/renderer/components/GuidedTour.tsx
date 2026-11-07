@@ -24,7 +24,7 @@ import {
 
 interface GuidedTourProps extends Omit<
   TourState,
-  'poolsCount' | 'finishedPoolMatches' | 'tableauFinishedMatches'
+  'poolsCount' | 'poolsLaunched' | 'finishedPoolMatches' | 'tableauFinishedMatches'
 > {
   tableauFinishedMatches?: number;
   pools: Array<{ matches: Array<{ status: MatchStatus }> }>;
@@ -33,6 +33,8 @@ interface GuidedTourProps extends Omit<
   onHighlightPhase: (phase: string | null) => void;
   /** Onglet Préparation des poules ouvert (étape « Préparer et lancer les poules ») */
   prepOpen?: boolean;
+  /** Poules lancées (étape « Préparer et lancer les poules ») */
+  poolsLaunched?: boolean;
 }
 
 /** Maquette animée : un tireur glissé-déposé d'une poule à l'autre (décorative) */
@@ -121,6 +123,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
   tableauFinishedMatches = 0,
   remoteActive,
   prepOpen = false,
+  poolsLaunched = false,
 }) => {
   const [flag, setFlag] = useState<TourFlag | null>(() => {
     const stored = readTourFlag();
@@ -134,6 +137,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
     fencersCount,
     checkedInCount,
     poolsCount: pools.length,
+    poolsLaunched,
     finishedPoolMatches: pools.reduce(
       (n, p) => n + p.matches.filter(m => m.status === MatchStatus.FINISHED).length,
       0

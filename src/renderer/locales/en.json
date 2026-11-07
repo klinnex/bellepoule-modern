@@ -130,7 +130,8 @@
     "teams": "Teams",
     "teampool": "Team pool",
     "teamtableau": "Team bracket",
-    "teamranking": "Team ranking"
+    "teamranking": "Team ranking",
+    "poolprep_locked_tooltip": "Prepare the pools first (Check-in tab)"
   },
   "pools": {
     "generate": "Generate Pools",
@@ -163,7 +164,6 @@
     "prep_single": "Single pool",
     "prep_suggested_title": "Suggested number of pools for {{min}} to {{max}} fencers per pool",
     "prep_suggested": "Suggested: {{n}}",
-    "prep_per_pool": "Fencers / pool",
     "prep_separation": "Separation",
     "prep_drag_priority": "(drag to set priority)",
     "prep_match_order_title": "Show the official FIE/FFE bout order by pool size",
@@ -200,7 +200,12 @@
     "prep_skip_pools": "Go to initial ranking",
     "prep_launch": "Launch pools",
     "prep_strip_duplicate": "Strip assigned to several pools",
-    "prep_strip_title": "Remote scoring strip"
+    "prep_strip_title": "Remote scoring strip",
+    "prep_min": "Min fencers",
+    "prep_max": "Max fencers",
+    "prep_relaunch": "Relaunch pools",
+    "prep_unplaced": "{{count}} fencer(s) added from check-in are not placed yet: click \"Re-prepare pools\" to include them.",
+    "relaunch_confirm": "Pool scores have already been entered: they will be lost. Continue?"
   },
   "ranking": {
     "rank": "Rank",
@@ -2315,7 +2320,8 @@
     "matches": "{{a}}/{{b}} bouts",
     "tableau": "{{a}}/{{b}} bracket",
     "generate_hint": "Click here once all your fencers are checked in",
-    "next_step_hint": "Next step once the pools are finished"
+    "next_step_hint": "Next step once the pools are finished",
+    "regenerate": "Re-prepare pools"
   },
   "offline": {
     "never": "Never",
@@ -2838,7 +2844,7 @@
     "skip": "Skip the tour",
     "next": "Next",
     "hint_launch": "In the preparation tab, check the split then click “Start pools”.",
-    "prep_explain": "In the preparation tab, a fencer can be dragged and dropped from one pool to another to adjust the split before starting the pools.",
+    "prep_explain": "Preparation page: drag and drop a fencer from one pool to another to adjust the split. Key actions: choose the number of pools, set the separation (club, region, nation), use “Optimize” to reduce conflicts, undo a change, then “Launch pools” to start.",
     "drag_mock_pool": "Pool",
     "back": "Back",
     "close": "Finish",
@@ -2847,7 +2853,7 @@
     "step_fencers": "Add the fencers",
     "step_checkin": "Check fencers in",
     "step_pools": "Prepare and start the pools",
-    "step_remote": "Enable remote entry",
+    "step_remote": "Enable remote entry (optional)",
     "step_scores": "Enter the scores",
     "step_tableau": "Start the bracket",
     "step_edit": "Edit a match",

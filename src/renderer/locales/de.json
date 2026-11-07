@@ -262,7 +262,8 @@
     "teams": "Mannschaften",
     "teampool": "Mannschaftsrunde",
     "teamtableau": "Mannschafts-K.-o.",
-    "teamranking": "Mannschaftswertung"
+    "teamranking": "Mannschaftswertung",
+    "poolprep_locked_tooltip": "Zuerst die Pools vorbereiten (Reiter Aufruf)"
   },
   "pools": {
     "change_pool": "Pool Wechseln",
@@ -295,7 +296,6 @@
     "prep_single": "Einzelner Pool",
     "prep_suggested_title": "Empfohlene Poolanzahl für {{min}} bis {{max}} Fechter pro Pool",
     "prep_suggested": "Empfohlen: {{n}}",
-    "prep_per_pool": "Fechter / Pool",
     "prep_separation": "Trennung",
     "prep_drag_priority": "(ziehen für Priorität)",
     "prep_match_order_title": "Offizielle FIE/FFE-Gefechtsreihenfolge nach Poolgröße anzeigen",
@@ -332,7 +332,12 @@
     "prep_skip_pools": "Zur Ausgangsrangliste",
     "prep_launch": "Pools starten",
     "prep_strip_duplicate": "Bahn mehreren Pools zugewiesen",
-    "prep_strip_title": "Bahn der Fernwertung"
+    "prep_strip_title": "Bahn der Fernwertung",
+    "prep_min": "Fechter Min",
+    "prep_max": "Fechter Max",
+    "prep_relaunch": "Pools neu starten",
+    "prep_unplaced": "{{count}} aus dem Aufruf hinzugefügte(r) Fechter noch nicht platziert: „Pools neu vorbereiten“ klicken, um sie aufzunehmen.",
+    "relaunch_confirm": "Es sind bereits Pool-Ergebnisse erfasst: sie gehen verloren. Fortfahren?"
   },
   "ranking": {
     "club": "Verein",
@@ -2315,7 +2320,8 @@
     "matches": "{{a}}/{{b}} Gefechte",
     "tableau": "{{a}}/{{b}} Tableau",
     "generate_hint": "Hier klicken, nachdem alle Fechter eingecheckt sind",
-    "next_step_hint": "Nächster Schritt nach Abschluss der Pools"
+    "next_step_hint": "Nächster Schritt nach Abschluss der Pools",
+    "regenerate": "Pools neu vorbereiten"
   },
   "offline": {
     "never": "Nie",
@@ -2838,7 +2844,7 @@
     "skip": "Rundgang überspringen",
     "next": "Weiter",
     "hint_launch": "Prüfen Sie in der Vorbereitung die Aufteilung und klicken Sie dann auf „Pools starten“.",
-    "prep_explain": "Im Tab Vorbereitung kann ein Fechter per Drag & Drop von einem Pool in einen anderen verschoben werden, um die Aufteilung vor dem Start anzupassen.",
+    "prep_explain": "Vorbereitungsseite: Fechter per Drag & Drop von einem Pool in einen anderen ziehen, um die Aufteilung anzupassen. Wichtige Aktionen: Anzahl der Pools wählen, Trennung (Verein, Region, Nation) einstellen, mit „Optimieren“ Konflikte verringern, Änderung rückgängig machen, dann „Pools starten“.",
     "drag_mock_pool": "Pool",
     "back": "Zurück",
     "close": "Beenden",
@@ -2847,7 +2853,7 @@
     "step_fencers": "Fechter hinzufügen",
     "step_checkin": "Anwesenheit prüfen",
     "step_pools": "Pools vorbereiten und starten",
-    "step_remote": "Ferneingabe aktivieren",
+    "step_remote": "Ferneingabe aktivieren (optional)",
     "step_scores": "Ergebnisse eingeben",
     "step_tableau": "Tableau starten",
     "step_edit": "Ein Gefecht bearbeiten",

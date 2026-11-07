@@ -130,7 +130,8 @@
     "teams": "Équipes",
     "teampool": "Poule équipes",
     "teamtableau": "Tableau équipes",
-    "teamranking": "Classement équipes"
+    "teamranking": "Classement équipes",
+    "poolprep_locked_tooltip": "Préparez d'abord les poules (onglet Appel)"
   },
   "pools": {
     "generate": "Générer les poules",
@@ -163,7 +164,6 @@
     "prep_single": "Poule unique",
     "prep_suggested_title": "Nombre de poules conseillé pour {{min}} à {{max}} tireurs par poule",
     "prep_suggested": "Conseillé : {{n}}",
-    "prep_per_pool": "Tireurs / poule",
     "prep_separation": "Séparation",
     "prep_drag_priority": "(glisser pour priorité)",
     "prep_match_order_title": "Afficher l'ordre officiel FIE/FFE des matchs par taille de poule",
@@ -200,7 +200,12 @@
     "prep_skip_pools": "Passer au classement initial",
     "prep_launch": "Lancer les poules",
     "prep_strip_duplicate": "Piste attribuée à plusieurs poules",
-    "prep_strip_title": "Piste de la saisie distante"
+    "prep_strip_title": "Piste de la saisie distante",
+    "prep_min": "Tireurs Min",
+    "prep_max": "Tireurs Max",
+    "prep_relaunch": "Relancer les poules",
+    "prep_unplaced": "{{count}} tireur(s) ajouté(s) depuis l'appel, non placé(s) : cliquez sur « Repréparer les poules » pour les intégrer.",
+    "relaunch_confirm": "Des scores de poules sont déjà saisis : ils seront perdus. Continuer ?"
   },
   "ranking": {
     "rank": "Rg",
@@ -2315,7 +2320,8 @@
     "matches": "{{a}}/{{b}} matchs",
     "tableau": "{{a}}/{{b}} tableau",
     "generate_hint": "Cliquez ici après avoir pointé tous vos tireurs",
-    "next_step_hint": "Étape suivante une fois les poules terminées"
+    "next_step_hint": "Étape suivante une fois les poules terminées",
+    "regenerate": "Repréparer les poules"
   },
   "offline": {
     "never": "Jamais",
@@ -2838,7 +2844,7 @@
     "skip": "Passer le parcours",
     "next": "Suivant",
     "hint_launch": "Dans la préparation, vérifiez la répartition puis cliquez sur « Lancer les poules ».",
-    "prep_explain": "Dans l'onglet Préparation, un tireur peut être glissé-déposé d'une poule à l'autre pour ajuster la répartition avant de lancer les poules.",
+    "prep_explain": "Page Préparation : glissez-déposez un tireur d'une poule à l'autre pour ajuster la répartition. Actions clés : choisir le nombre de poules, régler la séparation (club, région, nation), « Optimiser » pour réduire les conflits, annuler une modification, puis « Lancer les poules » pour démarrer.",
     "drag_mock_pool": "Poule",
     "back": "Retour",
     "close": "Terminer",
@@ -2847,7 +2853,7 @@
     "step_fencers": "Ajouter les tireurs",
     "step_checkin": "Faire le pointage",
     "step_pools": "Préparer et lancer les poules",
-    "step_remote": "Activer la saisie distante",
+    "step_remote": "Activer la saisie distante (optionnel)",
     "step_scores": "Saisir les scores",
     "step_tableau": "Lancer le tableau",
     "step_edit": "Modifier un match",

@@ -130,7 +130,8 @@
     "teams": "隊伍",
     "teampool": "團體小組賽",
     "teamtableau": "團體淘汰賽",
-    "teamranking": "團體排名"
+    "teamranking": "團體排名",
+    "poolprep_locked_tooltip": "請先準備小組（點名分頁）"
   },
   "pools": {
     "generate": "生成分組",
@@ -163,7 +164,6 @@
     "prep_single": "單一小組",
     "prep_suggested_title": "建議小組數（每組 {{min}} 至 {{max}} 名劍手）",
     "prep_suggested": "建議：{{n}}",
-    "prep_per_pool": "每組劍手",
     "prep_separation": "分隔",
     "prep_drag_priority": "（拖曳設定優先次序）",
     "prep_match_order_title": "按小組人數顯示 FIE／FFE 官方比賽次序",
@@ -200,7 +200,12 @@
     "prep_skip_pools": "前往初始排名",
     "prep_launch": "開始分組賽",
     "prep_strip_duplicate": "劍道已分配給多個分組",
-    "prep_strip_title": "遠端記分劍道"
+    "prep_strip_title": "遠端記分劍道",
+    "prep_min": "劍手最少",
+    "prep_max": "劍手最多",
+    "prep_relaunch": "重新開始分組賽",
+    "prep_unplaced": "有 {{count}} 名由點名新增的劍手尚未編入：按「重新準備小組」以加入。",
+    "relaunch_confirm": "已輸入小組賽比分，重新開始會遺失比分。是否繼續？"
   },
   "ranking": {
     "rank": "排名",
@@ -2315,7 +2320,8 @@
     "matches": "{{a}}/{{b}} 場",
     "tableau": "{{a}}/{{b}} 淘汰賽",
     "generate_hint": "所有選手報到後按此",
-    "next_step_hint": "分組賽完成後的下一步"
+    "next_step_hint": "分組賽完成後的下一步",
+    "regenerate": "重新準備小組"
   },
   "offline": {
     "never": "從未",
@@ -2838,7 +2844,7 @@
     "skip": "略過導覽",
     "next": "下一步",
     "hint_launch": "在準備頁檢查分組，然後按「開始小組賽」。",
-    "prep_explain": "在準備頁可將劍手由一個小組拖放到另一個小組，以在開始前調整分組。",
+    "prep_explain": "準備頁：將劍手由一個小組拖放到另一個小組以調整分組。主要操作：選擇小組數目、設定分隔（會、地區、國家）、按「優化」減少衝突、復原修改，然後按「開始分組賽」。",
     "drag_mock_pool": "小組",
     "back": "返回",
     "close": "完成",
@@ -2847,7 +2853,7 @@
     "step_fencers": "新增劍手",
     "step_checkin": "劍手報到",
     "step_pools": "準備並開始小組賽",
-    "step_remote": "啟用遠程輸入",
+    "step_remote": "啟用遠程輸入 （可選）",
     "step_scores": "輸入比分",
     "step_tableau": "開始淘汰賽表",
     "step_edit": "編輯比賽",

@@ -64,6 +64,8 @@ interface SessionState {
   consolationBrackets: ConsolationBracket[];
   currentPoolRound: number;
   skipPoolPhase: boolean;
+  /** Poules lancées au moins une fois (#1499) ; absent des anciennes sessions */
+  poolsLaunched?: boolean;
   remoteArenaCount?: number;
   remoteStripStart?: number;
   /** Tournoi des rapières : composition des équipes et vagues (#1118) */
@@ -93,6 +95,7 @@ interface UseCompetitionSessionProps {
   finalResults: FinalResult[];
   consolationBrackets: ConsolationBracket[];
   skipPoolPhase: boolean;
+  poolsLaunched?: boolean;
   remoteArenaCount: number;
   remoteStripStart?: number;
   rapieres?: RapieresSession | RapieresLegacyState;
@@ -128,6 +131,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
       consolationBrackets: p.consolationBrackets,
       currentPoolRound: p.currentPoolRound,
       skipPoolPhase: p.skipPoolPhase,
+      poolsLaunched: p.poolsLaunched,
       remoteArenaCount: p.remoteArenaCount,
       remoteStripStart: p.remoteStripStart,
       ...(p.rapieres ? { rapieres: p.rapieres } : {}),
@@ -172,6 +176,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
           consolationBrackets: typedState.consolationBrackets || [],
           currentPoolRound: typedState.uiState?.currentPoolRound || 1,
           skipPoolPhase: typedState.skipPoolPhase ?? false,
+          poolsLaunched: typedState.poolsLaunched,
           remoteArenaCount: typedState.remoteArenaCount,
           remoteStripStart: typedState.remoteStripStart,
           rapieres: typedState.rapieres,
@@ -215,6 +220,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
         consolationBrackets: p.consolationBrackets,
         currentPoolRound: p.currentPoolRound,
         skipPoolPhase: p.skipPoolPhase,
+        poolsLaunched: p.poolsLaunched,
         remoteArenaCount: p.remoteArenaCount,
         remoteStripStart: p.remoteStripStart,
         ...(p.rapieres ? { rapieres: p.rapieres } : {}),
@@ -257,6 +263,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
     props.finalResults,
     props.consolationBrackets,
     props.skipPoolPhase,
+    props.poolsLaunched,
     props.remoteArenaCount,
     props.remoteStripStart,
     props.rapieres,

@@ -130,7 +130,8 @@
     "teams": "Equipas",
     "teampool": "Poule de equipas",
     "teamtableau": "Quadro de equipas",
-    "teamranking": "Classificação de equipas"
+    "teamranking": "Classificação de equipas",
+    "poolprep_locked_tooltip": "Prepare primeiro as poules (separador Chamada)"
   },
   "pools": {
     "generate": "Gerar poules",
@@ -163,7 +164,6 @@
     "prep_single": "Poule única",
     "prep_suggested_title": "Número de poules sugerido para {{min}} a {{max}} esgrimistas por poule",
     "prep_suggested": "Sugerido: {{n}}",
-    "prep_per_pool": "Esgrimistas / poule",
     "prep_separation": "Separação",
     "prep_drag_priority": "(arraste para definir a prioridade)",
     "prep_match_order_title": "Mostrar a ordem oficial dos combates FIE/FFE segundo a dimensão da poule",
@@ -200,7 +200,12 @@
     "prep_skip_pools": "Ir para a classificação inicial",
     "prep_launch": "Lançar as poules",
     "prep_strip_duplicate": "Pista atribuída a várias poules",
-    "prep_strip_title": "Pista de pontuação remota"
+    "prep_strip_title": "Pista de pontuação remota",
+    "prep_min": "Esgrimistas mín.",
+    "prep_max": "Esgrimistas máx.",
+    "prep_relaunch": "Relançar as poules",
+    "prep_unplaced": "{{count}} esgrimista(s) adicionado(s) pela chamada ainda não colocado(s): clique em «Repreparar poules» para os incluir.",
+    "relaunch_confirm": "Já existem resultados de poules registados: serão perdidos. Continuar?"
   },
   "ranking": {
     "rank": "Lugar",
@@ -2315,7 +2320,8 @@
     "matches": "{{a}}/{{b}} combates",
     "tableau": "{{a}}/{{b}} quadro",
     "generate_hint": "Clique aqui quando todos os esgrimistas tiverem a presença registada",
-    "next_step_hint": "Passo seguinte quando as poules terminarem"
+    "next_step_hint": "Passo seguinte quando as poules terminarem",
+    "regenerate": "Repreparar poules"
   },
   "offline": {
     "never": "Nunca",
@@ -2838,7 +2844,7 @@
     "skip": "Saltar a visita",
     "next": "Seguinte",
     "hint_launch": "No separador de preparação, verifique a distribuição e clique em «Lançar as poules».",
-    "prep_explain": "No separador de preparação, pode arrastar e largar um esgrimista de uma poule para outra para ajustar a distribuição antes de iniciar as poules.",
+    "prep_explain": "Página de preparação: arraste e largue um esgrimista de uma poule para outra para ajustar a distribuição. Ações principais: escolher o número de poules, definir a separação (clube, região, nação), «Otimizar» para reduzir conflitos, anular uma alteração e depois «Lançar as poules».",
     "drag_mock_pool": "Poule",
     "back": "Voltar",
     "close": "Concluir",
@@ -2847,7 +2853,7 @@
     "step_fencers": "Adicionar os esgrimistas",
     "step_checkin": "Registar a presença dos esgrimistas",
     "step_pools": "Preparar e iniciar as poules",
-    "step_remote": "Ativar a pontuação remota",
+    "step_remote": "Ativar a pontuação remota (opcional)",
     "step_scores": "Introduzir os resultados",
     "step_tableau": "Iniciar o quadro",
     "step_edit": "Editar um combate",

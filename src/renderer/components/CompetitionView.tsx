@@ -54,6 +54,8 @@ import {
 import type { CompetitionCreateData, FencerCreateData } from '../../shared/types/preload';
 import ImportModal from './ImportModal';
 import PoolPrepView, { PoolPrepLaunchAction } from './PoolPrepView';
+import { inferPoolsLaunched, poolsHaveScores, poolTabLock } from './poolLaunchState';
+import { persistPools } from './poolPersistence';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
 import { useTranslation } from '../hooks/useTranslation';
@@ -530,6 +532,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     fencers,
   });
 
+  // Poules lancées au moins une fois (onglet Poules libéré, boutons « Relancer ») (#1499)
+  const [poolsLaunched, setPoolsLaunched] = useState(false);
+
   const poolPrepParams = useMemo(
     () => ({
       poolCount: pools.length,
@@ -556,6 +561,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     remoteStripStart,
     rapieres: isRapieres ? rapieresState : undefined,
     poolPrepParams,
+    poolsLaunched,
   });
 
   // Synchroniser le nombre d'arènes avec le nombre de poules
@@ -595,6 +601,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         setMaxFencersPerPool(restoredState.poolPrepParams.maxFencersPerPool);
       }
       if (restoredState.skipPoolPhase) setSkipPoolPhase(restoredState.skipPoolPhase);
+      setPoolsLaunched(
+        restoredState.poolsLaunched ??
+          inferPoolsLaunched(restoredPhase, restoredState.pools, restoredState.poolHistory)
+      );
       if (restoredState.remoteArenaCount != null)
         setRemoteArenaCount(restoredState.remoteArenaCount);
       setRemoteStripStart(restoredState.remoteStripStart ?? 1);
@@ -1069,37 +1079,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
 
   // Persister les poules générées dans les tables DB (pools, pool_fencers, matches)
   const persistPoolsToDB = useCallback(
-    async (generatedPools: typeof pools) => {
-      if (!window.electronAPI?.db) return;
-      try {
-        const phases = await window.electronAPI.db.getPhasesByCompetition(competition.id);
-        let poolPhase = phases.find(p => p.type === 'pool');
-        if (!poolPhase) {
-          poolPhase = await window.electronAPI.db.createPhase(competition.id, 'pool', 1, 'Poules');
-        }
-        await window.electronAPI.db.clearPoolsForPhase(poolPhase.id);
-        for (const pool of generatedPools) {
-          await window.electronAPI.db.createPool(poolPhase.id, pool.number, pool.id);
-          pool.fencers.forEach((fencer, pos) => {
-            window.electronAPI!.db!.addFencerToPool(pool.id, fencer.id, pos);
-          });
-          for (const match of pool.matches) {
-            await window.electronAPI.db.createMatch(
-              {
-                id: match.id,
-                number: match.number,
-                fencerAId: match.fencerA?.id,
-                fencerBId: match.fencerB?.id,
-                maxScore: match.maxScore,
-              },
-              pool.id
-            );
-          }
-        }
-      } catch (e) {
-        logger.error(LogCategory.DATABASE, 'persistPoolsToDB failed', e as Error);
-      }
-    },
+    (generatedPools: Pool[]) => persistPools(competition.id, generatedPools),
     [competition.id]
   );
 
@@ -1115,7 +1095,12 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     }
   };
 
+  /** Alerte « scores perdus » avant de régénérer des poules déjà saisies (#1499) */
+  const confirmScoresLoss = async (): Promise<boolean> =>
+    !poolsHaveScores(pools) || (await confirm(t('pools.relaunch_confirm')));
+
   const handleGeneratePools = async () => {
+    if (!(await confirmScoresLoss())) return;
     const newPools = generatePoolsHook(getSeededCheckedInFencers(), currentPoolRound);
     if (newPools) {
       resetRapieresWaves(newPools);
@@ -1607,6 +1592,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     }
     await updateFencers(updates);
     nextPoolRound(appelSnapshot);
+    setPoolsLaunched(false);
     setRankingValidated(false);
     setViewedPoolRound(null);
     setCurrentPhase('checkin');
@@ -1833,6 +1819,13 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     title: undefined as string | undefined,
   }));
 
+  const { prepLocked, poolsLocked } = poolTabLock({
+    pools,
+    poolHistory,
+    skipPoolPhase,
+    poolsLaunched,
+  });
+
   const phases = [
     {
       id: 'checkin',
@@ -1849,8 +1842,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             id: 'poolprep',
             label: t('phases.poolprep'),
             icon: '⚙️',
-            disabled: false,
-            title: undefined as string | undefined,
+            disabled: prepLocked,
+            title: prepLocked ? t('phases.poolprep_locked_tooltip') : undefined,
           },
           {
             id: 'pools',
@@ -1860,10 +1853,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                 ? t('phases.pools_round', { current: currentPoolRound, total: poolRounds })
                 : t('phases.pools'),
             icon: skipPoolPhase ? '⏭' : '🎯',
-            disabled: skipPoolPhase || (pools.length === 0 && poolHistory.length === 0),
+            disabled: skipPoolPhase || poolsLocked,
             title: skipPoolPhase
               ? t('phases.pools_skip_tooltip')
-              : pools.length === 0 && poolHistory.length === 0
+              : poolsLocked
                 ? t('phases.pools_locked_tooltip')
                 : (undefined as string | undefined),
           },
@@ -2231,6 +2224,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         isTeamEvent={isTeamEvent}
         tourReady={isLoaded}
         remoteActive={isRemoteActive}
+        poolsLaunched={poolsLaunched}
       />
 
       {/* Content — keyed pour animation de transition */}
@@ -2332,7 +2326,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             arenaCount={remoteArenaCount}
             stripStart={remoteStripStart}
             onStripChange={handlePoolStripChange}
+            poolsLaunched={poolsLaunched}
             onPoolsConfirm={async confirmedPools => {
+              if (!(await confirmScoresLoss())) return;
+              setPoolsLaunched(true);
               resetRapieresWaves(confirmedPools);
               setPools(confirmedPools);
               setSkipPoolPhase(false);
