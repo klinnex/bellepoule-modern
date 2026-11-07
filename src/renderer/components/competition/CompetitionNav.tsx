@@ -200,7 +200,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                       : undefined
                   }
                 >
-                  {t('competitionNav.generate')}
+                  {t(pools.length > 0 ? 'competitionNav.regenerate' : 'competitionNav.generate')}
                   {getCheckedInFencers().length < 4 && (
                     <span className="btn-count-hint">{getCheckedInFencers().length}/4</span>
                   )}
