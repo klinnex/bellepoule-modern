@@ -735,7 +735,8 @@
     "presentation": "Presentation mode",
     "kiosk_public": "Public kiosk",
     "properties": "Properties",
-    "actions_hint": "Comparison, analytics, QR sharing..."
+    "actions_hint": "Comparison, analytics, QR sharing...",
+    "remote_button": "Remote scoring / Strip"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} fencer",

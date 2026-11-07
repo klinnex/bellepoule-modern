@@ -735,7 +735,8 @@
     "presentation": "Präsentationsmodus",
     "kiosk_public": "Öffentlicher Kiosk",
     "properties": "Eigenschaften",
-    "actions_hint": "Vergleich, Analysen, QR-Teilen..."
+    "actions_hint": "Vergleich, Analysen, QR-Teilen...",
+    "remote_button": "Fernerfassung / Planche"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} Fechter",

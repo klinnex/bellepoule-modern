@@ -1909,13 +1909,6 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       disabled: isResultsLocked,
       title: undefined as string | undefined,
     },
-    {
-      id: 'remote',
-      label: t('phases.remote'),
-      icon: '📡',
-      disabled: false,
-      title: undefined as string | undefined,
-    },
     ...(auditLogEnabled
       ? [
           {
@@ -2215,6 +2208,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         setShowKioskDisplay={modals.setShowKioskDisplay}
         setShowPropertiesModal={modals.setShowPropertiesModal}
         setShowExportCenter={modals.setShowExportCenter}
+        onOpenRemote={() => setCurrentPhase('remote')}
       />
       <CompetitionNav
         competition={competition}

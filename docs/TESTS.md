@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 51 | 269 |
+| `src/renderer/components/` | 52 | 271 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **278** | **2312** |
+| **Total** | **279** | **2314** |
 
-Unitaires : 269 fichiers, 2277 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 270 fichiers, 2279 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3940,6 +3940,15 @@ Unitaires : 269 fichiers, 2277 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **Card**
   - en-tête, corps et pied
   - sans titre ni actions : pas d’en-tête
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competition/CompetitionHeader.test.tsx</code> — 2 tests</summary>
+
+- **CompetitionHeader - bouton saisie distante**
+  - affiche le bouton et ouvre la saisie distante au clic
+  - sans gestionnaire : pas de bouton
 
 </details>
 

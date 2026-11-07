@@ -735,7 +735,8 @@
     "presentation": "Режим презентации",
     "kiosk_public": "Публичный киоск",
     "properties": "Свойства",
-    "actions_hint": "Сравнение, аналитика, обмен через QR..."
+    "actions_hint": "Сравнение, аналитика, обмен через QR...",
+    "remote_button": "Удалённый ввод / Дорожка"
   },
   "poolView": {
     "fencers_count_suffix_one": "Фехтовальщиков: {{count}}",
