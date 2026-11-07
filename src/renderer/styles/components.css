@@ -1426,3 +1426,19 @@
     outline: 2px solid currentColor;
   }
 }
+
+/* Fenêtre des propriétés de compétition : groupes de champs (onglet Formule) */
+.properties-modal .settings-layout {
+  min-height: 420px;
+}
+.properties-group {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin: 0 0 1rem;
+}
+.properties-group legend {
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0 0.4rem;
+}

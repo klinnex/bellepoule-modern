@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 128 |
-| `src/renderer/components/` | 60 | 304 |
+| `src/renderer/components/` | 61 | 308 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **288** | **2352** |
+| **Total** | **289** | **2356** |
 
-Unitaires : 279 fichiers, 2317 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 280 fichiers, 2321 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3589,6 +3589,17 @@ Unitaires : 279 fichiers, 2317 tests. E2E : 9 fichiers, 35 tests (comptage stati
 
 - **CompetitionList (accueil vide)**
   - propose de créer une compétition avec le parcours guidé
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/CompetitionPropertiesModal.test.tsx</code> — 4 tests</summary>
+
+- **CompetitionPropertiesModal**
+  - affiche 4 onglets verticaux et seulement le contenu de l'onglet actif
+  - range scores, temps et cases à cocher dans des champs distincts de la formule
+  - place tours de poules et élimination directe dans Configuration
+  - enregistre les valeurs saisies dans les autres onglets
 
 </details>
 
