@@ -1214,6 +1214,8 @@
     "col_department": "Departamento"
   },
   "rsm": {
+    "strip_start": "Pista inicial",
+    "strip_end": "Pista final",
     "unsaved": "Alterações não guardadas",
     "save": "Guardar",
     "qr_export_title": "Exportar / imprimir os códigos QR das pistas",

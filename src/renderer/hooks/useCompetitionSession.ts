@@ -67,6 +67,7 @@ interface SessionState {
   /** Poules lancées au moins une fois (#1499) ; absent des anciennes sessions */
   poolsLaunched?: boolean;
   remoteArenaCount?: number;
+  remoteStripStart?: number;
   /** Tournoi des rapières : composition des équipes et vagues (#1118) */
   rapieres?: RapieresSession | RapieresLegacyState;
   poolPrepParams: {
@@ -96,6 +97,7 @@ interface UseCompetitionSessionProps {
   skipPoolPhase: boolean;
   poolsLaunched?: boolean;
   remoteArenaCount: number;
+  remoteStripStart?: number;
   rapieres?: RapieresSession | RapieresLegacyState;
   poolPrepParams: {
     poolCount: number;
@@ -131,6 +133,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
       skipPoolPhase: p.skipPoolPhase,
       poolsLaunched: p.poolsLaunched,
       remoteArenaCount: p.remoteArenaCount,
+      remoteStripStart: p.remoteStripStart,
       ...(p.rapieres ? { rapieres: p.rapieres } : {}),
       poolPrepParams: {
         poolCount: p.poolPrepParams?.poolCount || 0,
@@ -175,6 +178,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
           skipPoolPhase: typedState.skipPoolPhase ?? false,
           poolsLaunched: typedState.poolsLaunched,
           remoteArenaCount: typedState.remoteArenaCount,
+          remoteStripStart: typedState.remoteStripStart,
           rapieres: typedState.rapieres,
           poolPrepParams: typedState.poolPrepParams || {
             poolCount: 0,
@@ -218,6 +222,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
         skipPoolPhase: p.skipPoolPhase,
         poolsLaunched: p.poolsLaunched,
         remoteArenaCount: p.remoteArenaCount,
+        remoteStripStart: p.remoteStripStart,
         ...(p.rapieres ? { rapieres: p.rapieres } : {}),
         poolPrepParams: p.poolPrepParams,
         uiState: {
@@ -260,6 +265,7 @@ export const useCompetitionSession = (props: UseCompetitionSessionProps) => {
     props.skipPoolPhase,
     props.poolsLaunched,
     props.remoteArenaCount,
+    props.remoteStripStart,
     props.rapieres,
     props.poolPrepParams,
     saveState,

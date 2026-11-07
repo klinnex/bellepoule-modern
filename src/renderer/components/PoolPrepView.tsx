@@ -21,6 +21,7 @@ import {
 import PoolMatchOrderModal from './pool/PoolMatchOrderModal';
 import { useUndoStack } from '../hooks/useUndoStack';
 import { useTranslation } from '../hooks/useTranslation';
+import { stripNumbers } from '../../shared/utils/stripRange';
 
 const HINT_DISMISSED_KEY = 'bp_poolprep_hint_dismissed';
 
@@ -45,6 +46,8 @@ interface PoolPrepViewProps {
   expertMode?: boolean;
   /** Nombre de pistes de la saisie distante (choix de piste en mode expert) */
   arenaCount?: number;
+  /** Première piste de l'intervalle (1 par défaut) */
+  stripStart?: number;
   /** Piste modifiée : appliquée immédiatement si la poule est déjà lancée (#1037) */
   onStripChange?: (poolId: string, strip: number | undefined) => void;
   /** Poules déjà lancées une fois : le bouton devient « Relancer les poules » (#1499) */
@@ -90,6 +93,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   maxFencersPerPool: initialMax = 7,
   expertMode = false,
   arenaCount = 1,
+  stripStart = 1,
   onStripChange,
   poolsLaunched = false,
   onPoolsConfirm,
@@ -411,9 +415,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
       seen.add(p.strip);
     });
   }
-  const stripOptions = Array.from(
-    { length: Math.max(arenaCount, ...pools.map(p => p.strip ?? 0)) },
-    (_, i) => i + 1
+  const stripOptions = stripNumbers(
+    stripStart,
+    Math.max(arenaCount, ...pools.map(p => p.strip ?? 0))
   );
 
   const getFencerCountStats = () => {

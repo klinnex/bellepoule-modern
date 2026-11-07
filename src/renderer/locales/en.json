@@ -1214,6 +1214,8 @@
     "col_department": "Department"
   },
   "rsm": {
+    "strip_start": "First strip",
+    "strip_end": "Last strip",
     "unsaved": "Unsaved changes",
     "save": "Save",
     "qr_export_title": "Export / print strip QR codes",

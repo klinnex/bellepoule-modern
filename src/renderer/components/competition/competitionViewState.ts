@@ -10,6 +10,8 @@ export const CV_REMOTE_INIT = {
   isRemoteActive: false,
   remoteServerUrl: null as string | null,
   remoteArenaCount: 1,
+  /** Piste de départ de l'intervalle (remoteArenaCount = piste de fin) — #1501 */
+  remoteStripStart: 1,
 };
 
 export const CV_PLANNING_INIT = {

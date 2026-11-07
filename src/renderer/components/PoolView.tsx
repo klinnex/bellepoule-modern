@@ -104,7 +104,7 @@ interface PoolViewProps {
   ) => void;
   onFencerAdded?: (updatedPool: Pool) => void;
   assignedFencerIds?: ReadonlySet<string>;
-  arenaCount?: number;
+  stripRange?: { start: number; end: number };
   arenas?: Arena[];
   isRemoteActive?: boolean;
   remoteServerUrl?: string;
@@ -155,7 +155,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   onFencerStatusChange,
   onFencerAdded,
   assignedFencerIds,
-  arenaCount,
+  stripRange,
   arenas,
   isRemoteActive,
   remoteServerUrl,
@@ -1796,7 +1796,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               onMatchReset={onMatchReset ? handleMatchDelete : undefined}
               onShowMatchAudit={setAuditMatchId}
               defaultArena={defaultArena}
-              arenaCount={arenaCount}
+              stripRange={stripRange}
               arenas={arenas}
               isRemoteActive={isRemoteActive}
               matchArenaOverrides={matchArenaOverrides}

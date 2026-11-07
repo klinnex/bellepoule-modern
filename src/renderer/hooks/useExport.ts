@@ -33,14 +33,16 @@ import type { PoolStripQr } from '../../shared/utils/pdfExport';
 export interface PoolsRemoteInfo {
   serverUrl: string;
   arenaCount: number;
+  /** Première piste de l'intervalle (1 par défaut) */
+  stripStart?: number;
 }
 
-function buildStripQrs(
+export function buildStripQrs(
   pools: Pool[],
   remote?: PoolsRemoteInfo
 ): Record<string, PoolStripQr> | undefined {
   if (!remote?.serverUrl) return undefined;
-  const strips = computePoolStrips(pools, remote.arenaCount);
+  const strips = computePoolStrips(pools, remote.arenaCount, remote.stripStart);
   const out: Record<string, PoolStripQr> = {};
   for (const [poolId, strip] of strips) {
     out[poolId] = { strip, url: `${remote.serverUrl}/arene${strip}/arbitre` };

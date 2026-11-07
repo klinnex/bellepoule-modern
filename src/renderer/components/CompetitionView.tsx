@@ -62,7 +62,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useCompetitionSession, Phase, phaseFromNumber } from '../hooks/useCompetitionSession';
 import { useFencerManagement } from '../hooks/useFencerManagement';
 import { usePoolManagement } from '../hooks/usePoolManagement';
-import { useExport } from '../hooks/useExport';
+import { buildStripQrs, useExport } from '../hooks/useExport';
 import { useMenuEvents } from '../hooks/useMenuEvents';
 import { generateInitialRanking, filterPoolWinners } from '../../shared/utils/poolCalculations';
 import {
@@ -108,7 +108,6 @@ import RapieresRankingPanel, {
   RapieresTeamStats,
 } from '../../features/rapieres/RapieresRankingPanel';
 import { QRCodeShare } from './QRCodeShare';
-import { computePoolStrips } from '../../shared/utils/poolStrips';
 import { checkInStatusUpdate, specialStatusPatch } from '../../shared/utils/forfeit';
 import KioskScoreEntry from './competition/KioskScoreEntry';
 import { ScoreAuditLog } from './ScoreAuditLog';
@@ -323,6 +322,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     setRemoteServerUrl,
     remoteArenaCount,
     setRemoteArenaCount,
+    remoteStripStart,
+    setRemoteStripStart,
   } = useStateGroup(CV_REMOTE_INIT);
   useEffect(() => {
     onRemoteServerChange?.(remoteServerUrl, remoteArenaCount);
@@ -556,6 +557,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     consolationBrackets,
     skipPoolPhase,
     remoteArenaCount,
+    remoteStripStart,
     rapieres: isRapieres ? rapieresState : undefined,
     poolPrepParams,
     poolsLaunched,
@@ -565,14 +567,13 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   useEffect(() => {
     if (!isLoaded) return;
     if (pools.length > 0) {
-      if (!restoredState?.remoteArenaCount) {
-        setRemoteArenaCount(pools.length);
-      } else if (remoteArenaCount > pools.length) {
-        // Les poules ont rétréci depuis le dernier run : clamp pour éviter des arènes fantômes.
-        setRemoteArenaCount(pools.length);
+      // Si les poules ont rétréci depuis le dernier run : clamp pour éviter des arènes fantômes.
+      const maxStrip = remoteStripStart + pools.length - 1;
+      if (!restoredState?.remoteArenaCount || remoteArenaCount > maxStrip) {
+        setRemoteArenaCount(maxStrip);
       }
     }
-  }, [isLoaded, pools.length, remoteArenaCount]);
+  }, [isLoaded, pools.length, remoteArenaCount, remoteStripStart]);
 
   // Restaurer l'état au chargement
   useEffect(() => {
@@ -605,6 +606,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       );
       if (restoredState.remoteArenaCount != null)
         setRemoteArenaCount(restoredState.remoteArenaCount);
+      setRemoteStripStart(restoredState.remoteStripStart ?? 1);
       if (restoredState.rapieres) setRapieresState(restoredState.rapieres);
     }
   }, [restoredState, isLoaded]);
@@ -1246,7 +1248,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   // Saisie distante active : QR de la piste sur chaque feuille de poule (#1037)
   const poolsRemoteInfo =
     isRemoteActive && remoteServerUrl
-      ? { serverUrl: remoteServerUrl, arenaCount: remoteArenaCount }
+      ? { serverUrl: remoteServerUrl, arenaCount: remoteArenaCount, stripStart: remoteStripStart }
       : undefined;
 
   const handleExportAllPoolsPDF = () => {
@@ -2143,18 +2145,12 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           updatedPool.ranking = computePoolRanking(updatedPool);
           setPools(prev => prev.map(p => (p.id === updatedPool.id ? updatedPool : p)));
         }}
-        arenaCount={remoteArenaCount}
+        stripRange={{ start: remoteStripStart, end: remoteArenaCount }}
         arenas={arenaStates}
         isRemoteActive={isRemoteActive}
         remoteServerUrl={remoteServerUrl ?? undefined}
         cardScale={presetScale(poolCardSize)}
-        stripQr={(() => {
-          if (!poolsRemoteInfo) return undefined;
-          const strip = computePoolStrips(pools, poolsRemoteInfo.arenaCount).get(pool.id);
-          return strip
-            ? { strip, url: `${poolsRemoteInfo.serverUrl}/arene${strip}/arbitre` }
-            : undefined;
-        })()}
+        stripQr={buildStripQrs(pools, poolsRemoteInfo)?.[pool.id]}
         onMatchArenaChange={(matchId, oldArena, newArena, fencerA, fencerB) => {
           if (!isRemoteActive || !competition?.id) return;
           window.electronAPI.remote
@@ -2324,6 +2320,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             {...(isRapieres ? rapieresViewProps.poolPrep : {})}
             expertMode={expertMode}
             arenaCount={remoteArenaCount}
+            stripStart={remoteStripStart}
             onStripChange={(poolId, strip) => {
               // Poule déjà lancée : piste appliquée immédiatement (saisie distante, liens, QR) (#1037)
               const target = pools.find(p => p.id === poolId);
@@ -2714,6 +2711,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               thirdPlaceMatch={thirdPlaceMatch}
               playAllPositions={playAllPositions}
               arenaCount={remoteArenaCount}
+              stripStart={remoteStripStart}
               readOnly={finalResults.length > 0}
               competitionId={competition.id}
               maxRefereesPerMatch={maxRefereesPerMatch}
@@ -2797,7 +2795,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             tableauMatches={tableauMatches}
             consolationBrackets={consolationBrackets}
             initialStripCount={remoteArenaCount}
+            initialStripStart={remoteStripStart}
             onArenaCountChange={setRemoteArenaCount}
+            onStripStartChange={setRemoteStripStart}
             onStartRemote={() => setIsRemoteActive(true)}
             onStopRemote={() => {
               setIsRemoteActive(false);

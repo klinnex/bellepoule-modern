@@ -1214,6 +1214,8 @@
     "col_department": "Dipartimento"
   },
   "rsm": {
+    "strip_start": "Pedana iniziale",
+    "strip_end": "Pedana finale",
     "unsaved": "Modifiche non salvate",
     "save": "Salva",
     "qr_export_title": "Esporta / stampa i QR Code delle pedane",
