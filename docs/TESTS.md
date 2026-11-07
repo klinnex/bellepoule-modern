@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 417 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 128 |
-| `src/renderer/components/` | 61 | 309 |
+| `src/renderer/components/` | 61 | 311 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **290** | **2362** |
+| **Total** | **290** | **2364** |
 
-Unitaires : 281 fichiers, 2327 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 281 fichiers, 2329 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3597,12 +3597,15 @@ Unitaires : 281 fichiers, 2327 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/CompetitionList.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/CompetitionList.test.tsx</code> — 4 tests</summary>
 
 - **CompetitionList (accueil vide)**
   - propose de créer une compétition avec le parcours guidé
 - **CompetitionList (import accueil)**
   - bouton Importer (.bpm) appelle onImport ; absent sans onImport
+- **CompetitionList (export accueil)**
+  - bouton Exporter ouvre le choix de compétition puis appelle onExport avec l’identifiant
+  - pas de bouton Exporter sans compétition
 
 </details>
 

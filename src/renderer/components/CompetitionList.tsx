@@ -26,6 +26,7 @@ import { useConfirm } from './ConfirmDialog';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 import { restartGuidedTour } from './guidedTourFlags';
 import { BrandLogo } from './common/BrandLogo';
+import { CompetitionExportPicker } from './CompetitionExportPicker';
 
 interface CompetitionListProps {
   competitions: Competition[];
@@ -56,6 +57,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
+  const [showExportPicker, setShowExportPicker] = React.useState(false);
 
   const handleDelete = async (competition: Competition) => {
     const ok = await confirm({
@@ -346,6 +348,17 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
               {t('competitionList.import')}
             </button>
           )}
+          {onExport && competitions.length > 0 && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-lg btn-icon-label"
+              onClick={() => setShowExportPicker(true)}
+              title={t('competitionList.export_title')}
+            >
+              <Download size={18} />
+              {t('competitionList.export')}
+            </button>
+          )}
           {onOpenFile && (
             <button
               className="btn btn-secondary btn-lg btn-icon-label"
@@ -420,6 +433,17 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           </div>
         ))}
       </div>
+
+      {showExportPicker && onExport && (
+        <CompetitionExportPicker
+          competitions={competitions}
+          onPick={id => {
+            setShowExportPicker(false);
+            onExport(id);
+          }}
+          onClose={() => setShowExportPicker(false)}
+        />
+      )}
 
       {totalItems > pageSize && (
         <div

@@ -2141,6 +2141,9 @@
     "open_file_title": "開啟 .bpm、.db 或 .cotcot 檔案",
     "import": "匯入 (.bpm)",
     "import_title": "從 .bpm 檔案匯入比賽",
+    "export": "匯出 (.bpm)",
+    "export_title": "將比賽匯出為 .bpm 檔案",
+    "export_pick_title": "選擇要匯出的比賽",
     "guided_start": "第一次使用？透過導覽建立"
   },
   "trainingLauncher": {
