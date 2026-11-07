@@ -2506,13 +2506,12 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                         ▶
                       </button>
                     </div>
-                    {/* Largeur ajustée au contenu ; la taille de carte agit comme un zoom (#1124) */}
+                    {/* Largeur ajustée au contenu, plafonnée (#1502) ; la taille de carte agit comme un zoom (#1124) */}
                     <div style={{ width: '100%', overflowX: 'auto' }}>
                       <div
+                        className="pools-single-card"
                         style={{
-                          width: 'max-content',
-                          minWidth: 'min(100%, 480px)',
-                          margin: '0 auto',
+                          maxWidth: `${100 / presetScale(poolCardSize)}%`,
                           zoom: presetScale(poolCardSize),
                         }}
                       >
