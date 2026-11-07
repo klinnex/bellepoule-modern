@@ -771,16 +771,15 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       >
         {t('rsm.save')}
       </button>
-      {serverUrl && (
-        <button
-          className="btn btn-secondary"
-          onClick={() => setShowArenaQrModal(true)}
-          title={t('rsm.qr_export_title')}
-          style={RSM_STYLES.stripCountSave}
-        >
-          {t('rsm.qr_codes')}
-        </button>
-      )}
+      <button
+        className="btn btn-secondary"
+        onClick={() => setShowArenaQrModal(true)}
+        title={t('rsm.qr_export_title')}
+        style={RSM_STYLES.stripCountSave}
+        disabled={!isRemoteActive || !serverUrl}
+      >
+        {t('rsm.qr_codes')}
+      </button>
       {showArenaQrModal &&
         createPortal(
           <ArenaQrCodesModal
@@ -1668,16 +1667,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
 
       {/* ── Section : Écrans connectés (+ modale kiosk) ── */}
       <ConnectedScreensPanel competitionId={competition.id} isRemoteActive={isRemoteActive} />
-
-      <div className="remote-instructions">
-        <h5>{t('rsm.instructions_title')}</h5>
-        <ol>
-          <li>{t('rsm.instr_1')}</li>
-          <li>{t('rsm.instr_2')}</li>
-          <li>{t('rsm.instr_3')}</li>
-          <li>{t('rsm.instr_4')}</li>
-        </ol>
-      </div>
 
       {themeEditorTarget && (
         <ThemeEditor
