@@ -1349,7 +1349,10 @@
     "kiosk_theme_applied": "Тема киоска применена",
     "kiosk_theme_error": "Ошибка применения темы киоска",
     "generating": "Формирование…",
-    "close": "Закрыть"
+    "close": "Закрыть",
+    "mode_basic": "Базовый",
+    "mode_expert": "Эксперт",
+    "mode_tabs_label": "Режим отображения удалённого ввода"
   },
   "comparison": {
     "title": "⚔️ Сравнение очных встреч",

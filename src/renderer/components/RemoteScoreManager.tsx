@@ -23,6 +23,9 @@ import { useTranslation } from '../hooks/useTranslation';
 import { ipcErrorText } from '../services/ipcError';
 import { useRemoteCommand } from '../hooks/useRemoteCommand';
 import { DisplayOptionsPanel } from './remote/DisplayOptionsPanel';
+import { UrlCopyRow } from './remote/UrlCopyRow';
+import RemoteViewModeTabs from './remote/RemoteViewModeTabs';
+import { useRemoteViewMode } from './remote/remoteViewMode';
 import { useKioskTheme, type KioskPreset } from '../hooks/useKioskTheme';
 
 interface RemoteScoreManagerProps {
@@ -154,6 +157,8 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   initialStripCount,
   isVisible = false,
 }) => {
+  const [mode, setMode] = useRemoteViewMode(competition.id);
+  const isExpert = mode === 'expert';
   const { showToast } = useToast();
   const { t } = useTranslation();
   const [session, setSession] = useState<RemoteSession | null>(null);
@@ -1007,60 +1012,70 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
 
   return (
     <div className="remote-score-manager">
+      <RemoteViewModeTabs mode={mode} onChange={setMode} />
       <div className="remote-header">
         <div className="remote-status active rsm-hero">
           <span className="rsm-status-dot rsm-status-dot--on" aria-hidden="true" />
           <div style={{ flex: 1, minWidth: 0 }}>
             <h3 className="rsm-hero-title">{t('remote.active_title')}</h3>
-            <p className="rsm-hero-desc">
-              {t('rsm.server')} <strong>{serverUrl}</strong>
-            </p>
-            {certFingerprint ? (
-              <p
-                style={{
-                  fontSize: '0.75rem',
-                  color: '#94a3b8',
-                  margin: '0.25rem 0 0',
-                  wordBreak: 'break-all',
-                }}
-              >
-                {t('rsm.cert_fingerprint')}{' '}
-                <code style={{ fontSize: '0.7rem' }}>{certFingerprint}</code>
-              </p>
-            ) : (
-              serverUrl.startsWith('http://') && (
-                <p role="alert" style={RSM_STYLES.httpWarning}>
-                  {t('rsm.http_warning_active')}
+            {isExpert && (
+              <>
+                <p className="rsm-hero-desc">
+                  {t('rsm.server')} <strong>{serverUrl}</strong>
                 </p>
-              )
+                {certFingerprint ? (
+                  <p
+                    style={{
+                      fontSize: '0.75rem',
+                      color: '#94a3b8',
+                      margin: '0.25rem 0 0',
+                      wordBreak: 'break-all',
+                    }}
+                  >
+                    {t('rsm.cert_fingerprint')}{' '}
+                    <code style={{ fontSize: '0.7rem' }}>{certFingerprint}</code>
+                  </p>
+                ) : (
+                  serverUrl.startsWith('http://') && (
+                    <p role="alert" style={RSM_STYLES.httpWarning}>
+                      {t('rsm.http_warning_active')}
+                    </p>
+                  )
+                )}
+                <div style={RSM_STYLES.portActiveRow}>
+                  <label
+                    htmlFor={`remote-port-active-${competition.id}`}
+                    style={RSM_STYLES.portActiveLabel}
+                  >
+                    {t('rsm.port')}
+                  </label>
+                  <input
+                    id={`remote-port-active-${competition.id}`}
+                    type="number"
+                    min={1}
+                    max={65535}
+                    value={remotePort}
+                    onChange={e => handlePortChange(parseInt(e.target.value, 10))}
+                    style={RSM_STYLES.portActiveInput}
+                    disabled={isLoading}
+                  />
+                  <button
+                    className="btn-secondary"
+                    onClick={handleChangePort}
+                    disabled={isLoading}
+                    title={t('rsm.restart_port_title')}
+                    style={RSM_STYLES.portActiveBtn}
+                  >
+                    {t('rsm.reload')}
+                  </button>
+                </div>
+              </>
             )}
-            <div style={RSM_STYLES.portActiveRow}>
-              <label
-                htmlFor={`remote-port-active-${competition.id}`}
-                style={RSM_STYLES.portActiveLabel}
-              >
-                {t('rsm.port')}
-              </label>
-              <input
-                id={`remote-port-active-${competition.id}`}
-                type="number"
-                min={1}
-                max={65535}
-                value={remotePort}
-                onChange={e => handlePortChange(parseInt(e.target.value, 10))}
-                style={RSM_STYLES.portActiveInput}
-                disabled={isLoading}
-              />
-              <button
-                className="btn-secondary"
-                onClick={handleChangePort}
-                disabled={isLoading}
-                title={t('rsm.restart_port_title')}
-                style={RSM_STYLES.portActiveBtn}
-              >
-                {t('rsm.reload')}
-              </button>
-            </div>
+            {!isExpert && !certFingerprint && serverUrl.startsWith('http://') && (
+              <p role="alert" style={RSM_STYLES.httpWarning}>
+                {t('rsm.http_warning_active')}
+              </p>
+            )}
           </div>
         </div>
         <button
@@ -1112,19 +1127,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             </label>
           </div>
         </div>
-        <DisplayOptionsPanel
-          competitionId={competition.id}
-          displayTheme={displayTheme}
-          setDisplayTheme={setDisplayTheme}
-          arenaWallpaper={arenaWallpaper}
-          setArenaWallpaper={setArenaWallpaper}
-          kioskViews={kioskViews}
-          setKioskViews={setKioskViews}
-        />
-
-        {/* Note d'organisation */}
-        <OrgNotePanel competitionId={competition.id} />
-
         <div className="arena-url-row" style={{ marginBottom: '0.75rem' }}>
           <span className="arena-url-label">{t('rsm.common_pwd')}</span>
           <input
@@ -1480,87 +1482,114 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           })}
         </div>
 
-        {/* ── Thème global ── */}
-        {(() => {
-          const filteredForSection = savedThemes.filter(
-            t => (t.targetType ?? 'arena') === globalThemeSection
-          );
-          if (savedThemes.length === 0) return null;
-          return (
+        {isExpert && (
+          <>
+            {/* Note d'organisation */}
+            <OrgNotePanel competitionId={competition.id} />
+          </>
+        )}
+
+        {isExpert && (
+          <>
+            {/* ── Thème global ── */}
+            {(() => {
+              const filteredForSection = savedThemes.filter(
+                t => (t.targetType ?? 'arena') === globalThemeSection
+              );
+              if (savedThemes.length === 0) return null;
+              return (
+                <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
+                  <div className="arena-url-header">
+                    <strong>{t('rsm.global_theme')}</strong>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.5rem',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      marginTop: '0.25rem',
+                    }}
+                  >
+                    <select
+                      value={globalThemeSection}
+                      onChange={e => {
+                        setGlobalThemeSection(e.target.value as typeof globalThemeSection);
+                        setGlobalThemeId('');
+                      }}
+                      style={{
+                        padding: '0.35rem 0.5rem',
+                        borderRadius: '0.3rem',
+                        border: '1px solid #475569',
+                        background: '#1e293b',
+                        color: '#e2e8f0',
+                        fontSize: '0.85rem',
+                      }}
+                    >
+                      <option value="arena">{t('rsm.gt_arena')}</option>
+                      <option value="kiosk">{t('rsm.gt_kiosk')}</option>
+                      <option value="public">{t('rsm.gt_public')}</option>
+                      <option value="referee">{t('rsm.gt_referee')}</option>
+                      <option value="pool">{t('rsm.gt_pool')}</option>
+                    </select>
+                    <select
+                      value={globalThemeId}
+                      onChange={e => setGlobalThemeId(e.target.value)}
+                      style={{
+                        flex: 1,
+                        minWidth: 120,
+                        padding: '0.35rem 0.5rem',
+                        borderRadius: '0.3rem',
+                        border: '1px solid #475569',
+                        background: '#1e293b',
+                        color: '#e2e8f0',
+                        fontSize: '0.85rem',
+                      }}
+                    >
+                      <option value="">{t('rsm.choose_theme')}</option>
+                      {filteredForSection.map(t => (
+                        <option key={t.id} value={t.id}>
+                          {t.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      className="btn btn-primary"
+                      disabled={!globalThemeId}
+                      onClick={() => void handleGlobalThemeApply()}
+                      style={{ whiteSpace: 'nowrap' }}
+                    >
+                      {t('rsm.apply_all')}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+          </>
+        )}
+
+        {isExpert && (
+          <DisplayOptionsPanel
+            competitionId={competition.id}
+            displayTheme={displayTheme}
+            setDisplayTheme={setDisplayTheme}
+            arenaWallpaper={arenaWallpaper}
+            setArenaWallpaper={setArenaWallpaper}
+            kioskViews={kioskViews}
+            setKioskViews={setKioskViews}
+          />
+        )}
+
+        {isExpert && (
+          <>
             <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
               <div className="arena-url-header">
-                <strong>{t('rsm.global_theme')}</strong>
+                <strong>{t('rsm.overlay_card')}</strong>
               </div>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.5rem',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  marginTop: '0.25rem',
-                }}
-              >
-                <select
-                  value={globalThemeSection}
-                  onChange={e => {
-                    setGlobalThemeSection(e.target.value as typeof globalThemeSection);
-                    setGlobalThemeId('');
-                  }}
-                  style={{
-                    padding: '0.35rem 0.5rem',
-                    borderRadius: '0.3rem',
-                    border: '1px solid #475569',
-                    background: '#1e293b',
-                    color: '#e2e8f0',
-                    fontSize: '0.85rem',
-                  }}
-                >
-                  <option value="arena">{t('rsm.gt_arena')}</option>
-                  <option value="kiosk">{t('rsm.gt_kiosk')}</option>
-                  <option value="public">{t('rsm.gt_public')}</option>
-                  <option value="referee">{t('rsm.gt_referee')}</option>
-                  <option value="pool">{t('rsm.gt_pool')}</option>
-                </select>
-                <select
-                  value={globalThemeId}
-                  onChange={e => setGlobalThemeId(e.target.value)}
-                  style={{
-                    flex: 1,
-                    minWidth: 120,
-                    padding: '0.35rem 0.5rem',
-                    borderRadius: '0.3rem',
-                    border: '1px solid #475569',
-                    background: '#1e293b',
-                    color: '#e2e8f0',
-                    fontSize: '0.85rem',
-                  }}
-                >
-                  <option value="">{t('rsm.choose_theme')}</option>
-                  {filteredForSection.map(t => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  className="btn btn-primary"
-                  disabled={!globalThemeId}
-                  onClick={() => void handleGlobalThemeApply()}
-                  style={{ whiteSpace: 'nowrap' }}
-                >
-                  {t('rsm.apply_all')}
-                </button>
-              </div>
+              <OBSOverlayConfig serverUrl={serverUrl} arenaCount={arenaCount} />
             </div>
-          );
-        })()}
-
-        <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
-          <div className="arena-url-header">
-            <strong>{t('rsm.overlay_card')}</strong>
-          </div>
-          <OBSOverlayConfig serverUrl={serverUrl} arenaCount={arenaCount} />
-        </div>
+          </>
+        )}
 
         <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
           <div className="arena-url-header u-row-between">
@@ -1588,89 +1617,64 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
               </button>
             </div>
           </div>
-          <div className="arena-url-row">
-            <span className="arena-url-label">URL</span>
-            <code className="arena-url-value">{kioskUrl}</code>
-            <button
-              className="btn-copy"
-              onClick={() => copyToClipboard(kioskUrl, 999)}
-              title={t('rsm.copy_url')}
-            >
-              {copiedIndex === 999 ? t('rsm.copied_short') : '📋'}
-            </button>
-            <button
-              className="btn-qr"
-              onClick={() => setActiveQR({ url: kioskUrl, label: t('rsm.kiosk_qr') })}
-              title={t('rsm.qr_code')}
-            >
-              📱
-            </button>
-          </div>
+          <UrlCopyRow
+            url={kioskUrl}
+            id={999}
+            copiedIndex={copiedIndex}
+            onCopy={copyToClipboard}
+            onQr={() => setActiveQR({ url: kioskUrl, label: t('rsm.kiosk_qr') })}
+          />
         </div>
 
-        <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
-          <div className="arena-url-header">
-            <strong>{t('rsm.checkin_card')}</strong>
-          </div>
-          <div className="arena-url-row">
-            <span className="arena-url-label">URL</span>
-            <code className="arena-url-value">{checkinUrl}</code>
-            <button
-              className="btn-copy"
-              onClick={() => copyToClipboard(checkinUrl, 996)}
-              title={t('rsm.copy_url')}
-            >
-              {copiedIndex === 996 ? t('rsm.copied_short') : '📋'}
-            </button>
-            <button
-              className="btn-qr"
-              onClick={() => setActiveQR({ url: checkinUrl, label: t('rsm.checkin_qr') })}
-              title={t('rsm.qr_code')}
-            >
-              📱
-            </button>
-          </div>
-          <div className="arena-url-row">
-            <span className="arena-url-label">{t('rsm.pwd')}</span>
-            <input
-              type="password"
-              className="arena-password-input"
-              placeholder={t('rsm.checkin_pwd_placeholder')}
-              value={checkinPassword}
-              onChange={e => setCheckinPassword(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') applyCheckinPassword();
-              }}
-            />
-            <button className="btn-copy" title={t('rsm.set_pwd')} onClick={applyCheckinPassword}>
-              ✓
-            </button>
-          </div>
-        </div>
+        {isExpert && (
+          <>
+            <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
+              <div className="arena-url-header">
+                <strong>{t('rsm.checkin_card')}</strong>
+              </div>
+              <UrlCopyRow
+                url={checkinUrl}
+                id={996}
+                copiedIndex={copiedIndex}
+                onCopy={copyToClipboard}
+                onQr={() => setActiveQR({ url: checkinUrl, label: t('rsm.checkin_qr') })}
+              />
+              <div className="arena-url-row">
+                <span className="arena-url-label">{t('rsm.pwd')}</span>
+                <input
+                  type="password"
+                  className="arena-password-input"
+                  placeholder={t('rsm.checkin_pwd_placeholder')}
+                  value={checkinPassword}
+                  onChange={e => setCheckinPassword(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') applyCheckinPassword();
+                  }}
+                />
+                <button
+                  className="btn-copy"
+                  title={t('rsm.set_pwd')}
+                  onClick={applyCheckinPassword}
+                >
+                  ✓
+                </button>
+              </div>
+            </div>
+          </>
+        )}
 
         {trainerEnabled && (
           <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
             <div className="arena-url-header">
               <strong>{t('rsm.trainer_card')}</strong>
             </div>
-            <div className="arena-url-row">
-              <span className="arena-url-label">URL</span>
-              <code className="arena-url-value">{trainerUrl}</code>
-              <button
-                className="btn-copy"
-                onClick={() => copyToClipboard(trainerUrl, 995)}
-                title={t('rsm.copy_url')}
-              >
-                {copiedIndex === 995 ? t('rsm.copied_short') : '📋'}
-              </button>
-              <button
-                className="btn-qr"
-                onClick={() => setActiveQR({ url: trainerUrl, label: t('rsm.trainers') })}
-                title={t('rsm.qr_code')}
-              >
-                📱
-              </button>
-            </div>
+            <UrlCopyRow
+              url={trainerUrl}
+              id={995}
+              copiedIndex={copiedIndex}
+              onCopy={copyToClipboard}
+              onQr={() => setActiveQR({ url: trainerUrl, label: t('rsm.trainers') })}
+            />
             <div className="arena-url-row">
               <span className="arena-url-label">{t('rsm.pwd')}</span>
               <input
@@ -1695,29 +1699,22 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           </div>
         )}
 
-        <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
-          <div className="arena-url-header">
-            <strong>{t('rsm.lobby_card')}</strong>
-          </div>
-          <div className="arena-url-row">
-            <span className="arena-url-label">URL</span>
-            <code className="arena-url-value">{lobbyUrl}</code>
-            <button
-              className="btn-copy"
-              onClick={() => copyToClipboard(lobbyUrl, 997)}
-              title={t('rsm.copy_url')}
-            >
-              {copiedIndex === 997 ? t('rsm.copied_short') : '📋'}
-            </button>
-            <button
-              className="btn-qr"
-              onClick={() => setActiveQR({ url: lobbyUrl, label: t('rsm.lobby_qr') })}
-              title={t('rsm.qr_code')}
-            >
-              📱
-            </button>
-          </div>
-        </div>
+        {isExpert && (
+          <>
+            <div className="arena-url-card" style={RSM_STYLES.kioskCard}>
+              <div className="arena-url-header">
+                <strong>{t('rsm.lobby_card')}</strong>
+              </div>
+              <UrlCopyRow
+                url={lobbyUrl}
+                id={997}
+                copiedIndex={copiedIndex}
+                onCopy={copyToClipboard}
+                onQr={() => setActiveQR({ url: lobbyUrl, label: t('rsm.lobby_qr') })}
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── Section : Écrans connectés (+ modale kiosk) ── */}
