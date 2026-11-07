@@ -99,16 +99,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
-| `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 57 | 291 |
+| `src/renderer/hooks/` | 26 | 128 |
+| `src/renderer/components/` | 57 | 292 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **284** | **2334** |
+| **Total** | **284** | **2336** |
 
-Unitaires : 275 fichiers, 2299 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 275 fichiers, 2301 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3186,10 +3186,11 @@ Unitaires : 275 fichiers, 2299 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useColumnVisibility.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/hooks/useColumnVisibility.test.tsx</code> — 7 tests</summary>
 
 - **useColumnVisibility**
   - expose les colonnes par défaut visibles
+  - colonnes de poule par défaut : Victoires, Ratio V/M, Indice uniquement
   - toggleColumn masque puis réaffiche une colonne
   - setVisibleColumns remplace la liste
   - réglage par poule indépendant du défaut global
@@ -3957,8 +3958,10 @@ Unitaires : 275 fichiers, 2299 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/competition/CompetitionHeader.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/competition/CompetitionHeader.test.tsx</code> — 3 tests</summary>
 
+- **CompetitionHeader - bouton propriétés (#1505)**
+  - affiche le bouton directement dans le bandeau et ouvre les propriétés
 - **CompetitionHeader - bouton saisie distante**
   - affiche le bouton et ouvre la saisie distante au clic
   - sans gestionnaire : pas de bouton

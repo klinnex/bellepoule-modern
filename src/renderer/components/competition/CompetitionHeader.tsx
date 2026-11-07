@@ -148,6 +148,16 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
 
           {/* Stats + actions */}
           <div className="comp-header-right">
+            {/* Propriétés de la compétition — accès direct, à gauche des stats */}
+            <button
+              type="button"
+              className="comp-header-menu-btn"
+              onClick={() => setShowPropertiesModal(true)}
+              title={t('competitionHeader.properties')}
+              aria-label={t('competitionHeader.properties')}
+            >
+              <Settings size={18} />
+            </button>
             {expanded && (
               <div className="comp-header-stats">
                 <div className="comp-stat">
@@ -279,16 +289,6 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
                     }}
                   >
                     <Download size={14} /> {t('actions.export')}
-                  </button>
-                  <div className="comp-header-dropdown-sep" />
-                  <button
-                    className="comp-header-dropdown-item"
-                    onClick={() => {
-                      setShowPropertiesModal(true);
-                      setShowActionsMenu(false);
-                    }}
-                  >
-                    <Settings size={14} /> {t('competitionHeader.properties')}
                   </button>
                 </div>
               )}
