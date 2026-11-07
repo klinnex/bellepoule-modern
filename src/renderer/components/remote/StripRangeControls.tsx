@@ -3,7 +3,7 @@
  * Deux champs éditables, chacun avec ses boutons − et + (#1501).
  * Licensed under GPL-3.0
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { MAX_STRIP } from '../../../shared/utils/stripRange';
 import { useTranslation } from '../../hooks/useTranslation';
 
@@ -29,44 +29,58 @@ const Stepper: React.FC<{
   max: number;
   disabled?: boolean;
   onChange: (v: number) => void;
-}> = ({ label, value, min, max, disabled, onChange }) => (
-  <span style={STYLES.group}>
-    <span>{label}</span>
-    <button
-      type="button"
-      className="btn btn-secondary"
-      style={STYLES.btn}
-      aria-label={`${label} −`}
-      disabled={disabled || value <= min}
-      onClick={() => onChange(value - 1)}
-    >
-      −
-    </button>
-    <input
-      type="number"
-      aria-label={label}
-      style={STYLES.input}
-      min={min}
-      max={max}
-      value={value}
-      disabled={disabled}
-      onChange={e => {
-        const v = parseInt(e.target.value, 10);
-        if (Number.isFinite(v)) onChange(Math.max(min, Math.min(max, v)));
-      }}
-    />
-    <button
-      type="button"
-      className="btn btn-secondary"
-      style={STYLES.btn}
-      aria-label={`${label} +`}
-      disabled={disabled || value >= max}
-      onClick={() => onChange(value + 1)}
-    >
-      +
-    </button>
-  </span>
-);
+}> = ({ label, value, min, max, disabled, onChange }) => {
+  // Brouillon texte : permet d'effacer et de retaper le numéro au clavier
+  const [draft, setDraft] = useState(String(value));
+  const [prev, setPrev] = useState(value);
+  if (prev !== value) {
+    setPrev(value);
+    setDraft(String(value));
+  }
+  const commit = () => {
+    const v = parseInt(draft, 10);
+    if (Number.isFinite(v)) onChange(Math.max(min, Math.min(max, v)));
+    else setDraft(String(value));
+  };
+  return (
+    <span style={STYLES.group}>
+      <span>{label}</span>
+      <button
+        type="button"
+        className="btn btn-secondary"
+        style={STYLES.btn}
+        aria-label={`${label} −`}
+        disabled={disabled || value <= min}
+        onClick={() => onChange(value - 1)}
+      >
+        −
+      </button>
+      <input
+        type="text"
+        inputMode="numeric"
+        aria-label={label}
+        style={STYLES.input}
+        value={draft}
+        disabled={disabled}
+        onChange={e => setDraft(e.target.value.replace(/\D/g, ''))}
+        onBlur={commit}
+        onKeyDown={e => {
+          if (e.key === 'Enter') commit();
+        }}
+      />
+      <button
+        type="button"
+        className="btn btn-secondary"
+        style={STYLES.btn}
+        aria-label={`${label} +`}
+        disabled={disabled || value >= max}
+        onClick={() => onChange(value + 1)}
+      >
+        +
+      </button>
+    </span>
+  );
+};
 
 export const StripRangeControls: React.FC<StripRangeControlsProps> = ({
   start,
