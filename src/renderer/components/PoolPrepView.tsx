@@ -50,6 +50,8 @@ interface PoolPrepViewProps {
   stripStart?: number;
   /** Piste modifiée : appliquée immédiatement si la poule est déjà lancée (#1037) */
   onStripChange?: (poolId: string, strip: number | undefined) => void;
+  /** Poules déjà lancées une fois : le bouton devient « Relancer les poules » (#1499) */
+  poolsLaunched?: boolean;
   onPoolsConfirm: (pools: Pool[]) => void;
   onSkipPools?: () => void;
   onSettingsChange?: (min: number, max: number) => void;
@@ -93,6 +95,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   arenaCount = 1,
   stripStart = 1,
   onStripChange,
+  poolsLaunched = false,
   onPoolsConfirm,
   onSkipPools,
   onSettingsChange,
@@ -490,7 +493,13 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
   const launchDisabled =
     poolCount > 0 && (pools.length === 0 || pools.some(p => p.fencers.length < 3));
-  const launchLabel = poolCount === 0 ? t('pools.prep_skip_pools') : t('pools.prep_launch');
+  const launchLabel =
+    poolCount === 0
+      ? t('pools.prep_skip_pools')
+      : t(poolsLaunched ? 'pools.prep_relaunch' : 'pools.prep_launch');
+  // Tireurs ajoutés depuis l'appel après la préparation : placés seulement à la repréparation (#1499)
+  const placedIds = new Set(pools.flatMap(p => p.fencers.map(f => f.id)));
+  const unplacedCount = poolCount > 0 ? fencers.filter(f => !placedIds.has(f.id)).length : 0;
   const handleLaunch = () => {
     // Poules transmises (écrans distants / sync) : annulation refusée (#1301)
     undoStack.lock();
@@ -562,9 +571,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
           </div>
 
           {/* Min / Max fencers */}
-          <div>
-            <label className="is-4a41e7">{t('pools.prep_per_pool')}</label>
-            <div className="is-5c17a8">
+          <div className="pool-prep-minmax">
+            <div>
+              <label className="is-4a41e7">{t('pools.prep_min')}</label>
               <input
                 type="number"
                 value={minFencersPerPool}
@@ -573,7 +582,10 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 max={maxFencersPerPool}
                 className="is-e30a97"
               />
-              <span className="is-ab16fb">–</span>
+            </div>
+            <span className="pool-prep-minmax-sep" aria-hidden="true" />
+            <div>
+              <label className="is-4a41e7">{t('pools.prep_max')}</label>
               <input
                 type="number"
                 value={maxFencersPerPool}
@@ -685,6 +697,11 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
               {t('pools.prep_stats', { min: stats.min, max: stats.max, avg: stats.avg })}
             </span>
           </div>
+          {unplacedCount > 0 && (
+            <div className="pool-prep-unplaced" role="status">
+              {t('pools.prep_unplaced', { count: unplacedCount })}
+            </div>
+          )}
         </div>
 
         {/* Pools Grid */}
