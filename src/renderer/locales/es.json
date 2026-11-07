@@ -95,7 +95,8 @@
     "reactivate": "Reactivar",
     "points": "Puntos",
     "label": "tiradores",
-    "present_label": "registrados"
+    "present_label": "registrados",
+    "department": "Departamento"
   },
   "status": {
     "checked_in": "Registrado",
@@ -1201,7 +1202,8 @@
     "unassigned": "Sin asignar",
     "victory": "Victoria",
     "waiting_previous_round": "En espera de la ronda anterior",
-    "weapon": "Arma"
+    "weapon": "Arma",
+    "col_department": "Departamento"
   },
   "rsm": {
     "unsaved": "Cambios sin guardar",
@@ -1439,7 +1441,9 @@
     "bpf_exported_other": "{{count}} tiradores exportados (.bpf)",
     "bpf_export_error": "Error al exportar .bpf",
     "bpf_imported": "{{added}} añadido(s), {{updated}} actualizado(s) (.bpf)",
-    "bpf_import_error": "Error al importar .bpf"
+    "bpf_import_error": "Error al importar .bpf",
+    "col_region": "Región",
+    "col_department": "Departamento"
   },
   "questPhase": {
     "running_title": "Ronda Quest en curso",
@@ -2752,7 +2756,8 @@
     "last_name_ph": "GARCÍA",
     "first_name_ph": "Juan",
     "club_ph": "CE MADRID",
-    "region_ph": "Comunidad de Madrid"
+    "region_ph": "Comunidad de Madrid",
+    "department_choose": "— Ninguno —"
   },
   "keypad": {
     "aria": "Teclado numérico",

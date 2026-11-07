@@ -95,7 +95,8 @@
     "reactivate": "Adilhañ",
     "points": "Poentoù",
     "label": "klezeourion",
-    "present_label": "enrollet"
+    "present_label": "enrollet",
+    "department": "Departamant"
   },
   "status": {
     "checked_in": "Enrollañet",
@@ -1201,7 +1202,8 @@
     "unassigned": "Hep lec'hiadur",
     "victory": "Trec'h",
     "waiting_previous_round": "O c'hortoz an tro kent",
-    "weapon": "Arm"
+    "weapon": "Arm",
+    "col_department": "Departamant"
   },
   "rsm": {
     "unsaved": "Kemmoù n'int ket enrollet",
@@ -1439,7 +1441,9 @@
     "bpf_exported_other": "{{count}} klezeour ezporzhiet (.bpf)",
     "bpf_export_error": "Fazi en ezporzhiañ .bpf",
     "bpf_imported": "{{added}} ouzhpennet, {{updated}} hizivaet (.bpf)",
-    "bpf_import_error": "Fazi en enporzhiañ .bpf"
+    "bpf_import_error": "Fazi en enporzhiañ .bpf",
+    "col_region": "Rannvro",
+    "col_department": "Departamant"
   },
   "questPhase": {
     "running_title": "Tro Quest o vont en-dro",
@@ -2752,7 +2756,8 @@
     "last_name_ph": "LE GALL",
     "first_name_ph": "Yann",
     "club_ph": "CE KEMPER",
-    "region_ph": "Breizh"
+    "region_ph": "Breizh",
+    "department_choose": "— Hini ebet —"
   },
   "keypad": {
     "aria": "Klavier niverel",

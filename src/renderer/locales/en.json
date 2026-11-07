@@ -95,7 +95,8 @@
     "reactivate": "Reactivate",
     "points": "Points",
     "label": "fencers",
-    "present_label": "checked in"
+    "present_label": "checked in",
+    "department": "Department"
   },
   "status": {
     "checked_in": "Present",
@@ -1201,7 +1202,8 @@
     "unassigned": "Unassigned",
     "victory": "Victory",
     "waiting_previous_round": "Waiting for the previous round",
-    "weapon": "Weapon"
+    "weapon": "Weapon",
+    "col_department": "Department"
   },
   "rsm": {
     "unsaved": "Unsaved changes",
@@ -1439,7 +1441,9 @@
     "bpf_exported_other": "{{count}} fencers exported (.bpf)",
     "bpf_export_error": ".bpf export error",
     "bpf_imported": "{{added}} added, {{updated}} updated (.bpf)",
-    "bpf_import_error": ".bpf import error"
+    "bpf_import_error": ".bpf import error",
+    "col_region": "Region",
+    "col_department": "Department"
   },
   "questPhase": {
     "running_title": "Quest round in progress",
@@ -2752,7 +2756,8 @@
     "last_name_ph": "SMITH",
     "first_name_ph": "John",
     "club_ph": "LONDON FC",
-    "region_ph": "Greater London"
+    "region_ph": "Greater London",
+    "department_choose": "— None —"
   },
   "keypad": {
     "aria": "Numeric keypad",

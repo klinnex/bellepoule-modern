@@ -95,7 +95,8 @@
     "reactivate": "Reactivar",
     "points": "Punts",
     "label": "tiradors",
-    "present_label": "registrats"
+    "present_label": "registrats",
+    "department": "Departament"
   },
   "status": {
     "checked_in": "Registrat",
@@ -1201,7 +1202,8 @@
     "unassigned": "Sense assignar",
     "victory": "Victòria",
     "waiting_previous_round": "A l'espera de la ronda anterior",
-    "weapon": "Arma"
+    "weapon": "Arma",
+    "col_department": "Departament"
   },
   "rsm": {
     "unsaved": "Canvis sense desar",
@@ -1439,7 +1441,9 @@
     "bpf_exported_other": "{{count}} tiradors exportats (.bpf)",
     "bpf_export_error": "Error en l'exportació .bpf",
     "bpf_imported": "{{added}} afegit(s), {{updated}} actualitzat(s) (.bpf)",
-    "bpf_import_error": "Error en la importació .bpf"
+    "bpf_import_error": "Error en la importació .bpf",
+    "col_region": "Regió",
+    "col_department": "Departament"
   },
   "questPhase": {
     "running_title": "Ronda Quest en curs",
@@ -2752,7 +2756,8 @@
     "last_name_ph": "PUIG",
     "first_name_ph": "Joan",
     "club_ph": "CE BARCELONA",
-    "region_ph": "Catalunya"
+    "region_ph": "Catalunya",
+    "department_choose": "— Cap —"
   },
   "keypad": {
     "aria": "Teclat numèric",

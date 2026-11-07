@@ -195,6 +195,7 @@ export interface Fencer extends BaseEntity {
   gender: Gender; // Sexe
   nationality: string; // Nation (code ISO)
   region?: string; // Région
+  department?: string; // Département (code : 01…95, 2A, 2B, 971…, #1504)
   club?: string; // Club
   license?: string; // Numéro de licence
   ranking?: number; // Classement

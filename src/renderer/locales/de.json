@@ -143,7 +143,8 @@
     "present_label": "angemeldet",
     "ranking": "Rangliste",
     "reactivate": "Reaktivieren",
-    "uncheck": "Abmelden"
+    "uncheck": "Abmelden",
+    "department": "Departement"
   },
   "formula": {
     "add_classification": "Klasse hinzufügen",
@@ -1201,7 +1202,8 @@
     "unassigned": "Nicht zugewiesen",
     "victory": "Sieg",
     "waiting_previous_round": "Warten auf die vorherige Runde",
-    "weapon": "Waffe"
+    "weapon": "Waffe",
+    "col_department": "Departement"
   },
   "rsm": {
     "unsaved": "Nicht gespeicherte Änderungen",
@@ -1439,7 +1441,9 @@
     "bpf_exported_other": "{{count}} Fechter exportiert (.bpf)",
     "bpf_export_error": "Fehler beim .bpf-Export",
     "bpf_imported": "{{added}} hinzugefügt, {{updated}} aktualisiert (.bpf)",
-    "bpf_import_error": "Fehler beim .bpf-Import"
+    "bpf_import_error": "Fehler beim .bpf-Import",
+    "col_region": "Region",
+    "col_department": "Departement"
   },
   "questPhase": {
     "running_title": "Quest-Runde läuft",
@@ -2752,7 +2756,8 @@
     "last_name_ph": "MÜLLER",
     "first_name_ph": "Hans",
     "club_ph": "FC BERLIN",
-    "region_ph": "Berlin"
+    "region_ph": "Berlin",
+    "department_choose": "— Keines —"
   },
   "keypad": {
     "aria": "Ziffernblock",

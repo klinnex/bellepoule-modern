@@ -95,7 +95,8 @@
     "reactivate": "重新啟用",
     "points": "分數",
     "label": "劍手",
-    "present_label": "已報到"
+    "present_label": "已報到",
+    "department": "省份"
   },
   "status": {
     "checked_in": "已報到",
@@ -1201,7 +1202,8 @@
     "unassigned": "未分配",
     "victory": "勝",
     "waiting_previous_round": "等待上一輪",
-    "weapon": "劍種"
+    "weapon": "劍種",
+    "col_department": "省份"
   },
   "rsm": {
     "unsaved": "未儲存的變更",
@@ -1439,7 +1441,9 @@
     "bpf_exported_other": "已匯出 {{count}} 名選手（.bpf）",
     "bpf_export_error": "匯出 .bpf 時發生錯誤",
     "bpf_imported": "新增 {{added}}，更新 {{updated}}（.bpf）",
-    "bpf_import_error": "匯入 .bpf 時發生錯誤"
+    "bpf_import_error": "匯入 .bpf 時發生錯誤",
+    "col_region": "地區",
+    "col_department": "省份"
   },
   "questPhase": {
     "running_title": "Quest 回合進行中",
@@ -2752,7 +2756,8 @@
     "last_name_ph": "陳",
     "first_name_ph": "大文",
     "club_ph": "香港劍擊會",
-    "region_ph": "香港"
+    "region_ph": "香港",
+    "department_choose": "— 無 —"
   },
   "keypad": {
     "aria": "數字鍵盤",

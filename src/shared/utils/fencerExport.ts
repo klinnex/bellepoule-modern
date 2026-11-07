@@ -70,7 +70,7 @@ export function exportFencersToFFF(fencers: Fencer[]): string {
       fffField(fencer.club),
       fencer.ranking != null ? String(fencer.ranking) : '',
       '', // Nationalité (doublon)
-      '', // ?
+      fffField(fencer.department), // Département (#1504)
     ].join(',');
 
     // Section 3: Position,Statut

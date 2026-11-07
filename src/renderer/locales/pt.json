@@ -95,7 +95,8 @@
     "reactivate": "Reativar",
     "points": "Pontos",
     "label": "esgrimistas",
-    "present_label": "presentes"
+    "present_label": "presentes",
+    "department": "Departamento"
   },
   "status": {
     "checked_in": "Presente",
@@ -1201,7 +1202,8 @@
     "unassigned": "Não atribuído",
     "victory": "Vitória",
     "waiting_previous_round": "A aguardar a ronda anterior",
-    "weapon": "Arma"
+    "weapon": "Arma",
+    "col_department": "Departamento"
   },
   "rsm": {
     "unsaved": "Alterações não guardadas",
@@ -1439,7 +1441,9 @@
     "bpf_exported_other": "{{count}} esgrimistas exportados (.bpf)",
     "bpf_export_error": "Erro de exportação .bpf",
     "bpf_imported": "{{added}} adicionados, {{updated}} atualizados (.bpf)",
-    "bpf_import_error": "Erro de importação .bpf"
+    "bpf_import_error": "Erro de importação .bpf",
+    "col_region": "Região",
+    "col_department": "Departamento"
   },
   "questPhase": {
     "running_title": "Ronda Quest em curso",
@@ -2752,7 +2756,8 @@
     "last_name_ph": "SILVA",
     "first_name_ph": "João",
     "club_ph": "CLUBE DE LISBOA",
-    "region_ph": "Grande Lisboa"
+    "region_ph": "Grande Lisboa",
+    "department_choose": "— Nenhum —"
   },
   "keypad": {
     "aria": "Teclado numérico",
