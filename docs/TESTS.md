@@ -97,18 +97,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 50 | 403 |
+| `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
 | `src/renderer/components/` | 51 | 263 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 38 | 254 |
+| `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **274** | **2272** |
+| **Total** | **276** | **2294** |
 
-Unitaires : 265 fichiers, 2237 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 267 fichiers, 2259 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2712,6 +2712,26 @@ Unitaires : 265 fichiers, 2237 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/remote/trainingLobby.test.ts</code> — 12 tests</summary>
+
+- **TrainingLobby (#1500)**
+  - occupe une piste : un autre client est refusé
+  - liste : occupée pour les autres, « mine » pour le propriétaire
+  - libération après 3 minutes sans activité
+  - l'activité repousse l'expiration
+  - release : seulement par le propriétaire ; releaseAll libère tout
+  - changer de piste libère la précédente
+- **routes du lobby entraînement (#1500)**
+  - sert la page /entrainement-lobby
+  - hors entraînement : état vide, occupation refusée
+  - liste les pistes principales (sans sous-pistes) avec leur occupation
+  - piste occupée : 409 arena\_occupied pour un autre client
+  - validation : piste inconnue 404, client invalide 400
+  - release libère la piste (ou toutes sans numéro)
+
+</details>
+
+<details>
 <summary><code>src/main/remoteScoreServer.test.ts</code> — 104 tests</summary>
 
 - **RemoteScoreServer**
@@ -4538,6 +4558,24 @@ Unitaires : 265 fichiers, 2237 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - cartes : noms, clubs, badge selon le statut, id en data-args
   - tireur inconnu : « ? » ; XSS échappé (noms, clubs, id)
   - referee.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeLobby.test.ts</code> — 10 tests</summary>
+
+- **refereeLobby.js**
+  - arenaFromPath : /areneN/arbitre et /arenaN
+  - clientId : généré puis conservé dans le stockage
+  - clientId : stockage indisponible toléré
+  - createIdleTracker : expire après 3 minutes, l'activité repousse
+  - createIdleTracker : chrono en cours = actif (jamais d'expiration)
+  - install : hors entraînement, rien (pas de claim, pas de bouton)
+  - install : miroir de démo (?demo=1) ignoré
+  - install : piste occupée (409) → redirection vers le lobby
+- **referee.html et trainingLobby.html (#1500)**
+  - referee.html charge le module et lance install
+  - page lobby : pistes via l’API, lien vers l’arbitrage, i18n et common.js
 
 </details>
 
