@@ -22,6 +22,7 @@ import { useRemoteNetworkSettings } from '../hooks/useRemoteNetworkSettings';
 import { useTranslation } from '../hooks/useTranslation';
 import { ipcErrorText } from '../services/ipcError';
 import { useRemoteCommand } from '../hooks/useRemoteCommand';
+import { DisplayOptionsPanel } from './remote/DisplayOptionsPanel';
 import { useKioskTheme, type KioskPreset } from '../hooks/useKioskTheme';
 
 interface RemoteScoreManagerProps {
@@ -75,12 +76,6 @@ const RSM_STYLES = {
     minWidth: '1.5rem',
     textAlign: 'center' as const,
   } satisfies React.CSSProperties,
-  kioskViewsSection: { margin: '0.5rem 0' } satisfies React.CSSProperties,
-  kioskViewsTitle: {
-    fontSize: '0.875rem',
-    marginBottom: '0.25rem',
-    color: 'inherit',
-  } satisfies React.CSSProperties,
   interfaceRow: {
     display: 'flex',
     alignItems: 'center',
@@ -108,51 +103,6 @@ const RSM_STYLES = {
   } satisfies React.CSSProperties,
   portActiveInput: { width: '75px' } satisfies React.CSSProperties,
   portActiveBtn: { fontSize: '0.8rem', padding: '0.2rem 0.5rem' } satisfies React.CSSProperties,
-  themeSection: { margin: '0.5rem 0' } satisfies React.CSSProperties,
-  themeTitle: {
-    fontSize: '0.875rem',
-    marginBottom: '0.4rem',
-    color: 'inherit',
-  } satisfies React.CSSProperties,
-  themeRow: { display: 'flex', gap: '0.5rem' } satisfies React.CSSProperties,
-  wallpaperSection: { margin: '0.5rem 0' } satisfies React.CSSProperties,
-  wallpaperTitle: {
-    fontSize: '0.875rem',
-    marginBottom: '0.4rem',
-    color: 'inherit',
-  } satisfies React.CSSProperties,
-  wallpaperRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    flexWrap: 'wrap' as const,
-  } satisfies React.CSSProperties,
-  wallpaperImg: {
-    width: 80,
-    height: 45,
-    objectFit: 'cover' as const,
-    borderRadius: '0.25rem',
-    border: '1px solid #475569',
-  } satisfies React.CSSProperties,
-  wallpaperImportLabel: {
-    padding: '0.35rem 0.75rem',
-    borderRadius: '0.375rem',
-    border: '1px solid #475569',
-    background: 'transparent',
-    color: '#e2e8f0',
-    cursor: 'pointer',
-    fontSize: '0.8rem',
-  } satisfies React.CSSProperties,
-  wallpaperHiddenInput: { display: 'none' } satisfies React.CSSProperties,
-  wallpaperDeleteBtn: {
-    padding: '0.35rem 0.5rem',
-    borderRadius: '0.375rem',
-    border: '1px solid #475569',
-    background: 'transparent',
-    color: '#f87171',
-    cursor: 'pointer',
-    fontSize: '0.8rem',
-  } satisfies React.CSSProperties,
   pisteresumeSummary: {
     marginTop: '1rem',
     padding: '0.75rem',
@@ -1162,112 +1112,15 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             </label>
           </div>
         </div>
-        <div style={RSM_STYLES.themeSection}>
-          <div style={RSM_STYLES.themeTitle}>{t('rsm.display_theme')}</div>
-          <div style={RSM_STYLES.themeRow}>
-            {(
-              [
-                { value: 'dark', label: t('rsm.theme_dark'), icon: '🌙' },
-                { value: 'light', label: t('rsm.theme_light'), icon: '☀️' },
-                { value: 'neon', label: t('rsm.theme_neon'), icon: '⚡' },
-                { value: 'unicorn', label: 'Unicorn', icon: '🦄' },
-              ] as const
-            ).map(({ value, label, icon }) => (
-              <button
-                key={value}
-                onClick={async () => {
-                  setDisplayTheme(value);
-                  await window.electronAPI.remote.updateTheme(competition.id, value);
-                }}
-                style={{
-                  flex: 1,
-                  padding: '0.35rem 0.5rem',
-                  borderRadius: '0.375rem',
-                  border: `2px solid ${displayTheme === value ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                  background:
-                    displayTheme === value ? 'var(--color-primary-dark)' : 'var(--color-surface)',
-                  color: displayTheme === value ? '#fff' : 'var(--color-text)',
-                  cursor: 'pointer',
-                  fontWeight: displayTheme === value ? 700 : 400,
-                  fontSize: '0.8rem',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {icon} {label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div style={RSM_STYLES.wallpaperSection}>
-          <div style={RSM_STYLES.wallpaperTitle}>{t('rsm.wallpaper_title')}</div>
-          <div style={RSM_STYLES.wallpaperRow}>
-            {arenaWallpaper && (
-              <img
-                src={arenaWallpaper}
-                alt={t('rsm.wallpaper_alt')}
-                style={RSM_STYLES.wallpaperImg}
-              />
-            )}
-            <label style={RSM_STYLES.wallpaperImportLabel}>
-              {arenaWallpaper ? t('rsm.wallpaper_change') : t('rsm.wallpaper_import')}
-              <input
-                type="file"
-                accept="image/*"
-                style={RSM_STYLES.wallpaperHiddenInput}
-                onChange={async e => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const reader = new FileReader();
-                  reader.onload = async ev => {
-                    const base64 = ev.target?.result as string;
-                    setArenaWallpaper(base64);
-                    await window.electronAPI.remote.setWallpaper(competition.id, base64);
-                  };
-                  reader.readAsDataURL(file);
-                  e.target.value = '';
-                }}
-              />
-            </label>
-            {arenaWallpaper && (
-              <button
-                onClick={async () => {
-                  setArenaWallpaper(null);
-                  await window.electronAPI.remote.setWallpaper(competition.id, null);
-                }}
-                style={RSM_STYLES.wallpaperDeleteBtn}
-              >
-                {t('rsm.delete')}
-              </button>
-            )}
-          </div>
-        </div>
-        <div style={RSM_STYLES.kioskViewsSection}>
-          <div style={RSM_STYLES.kioskViewsTitle}>{t('rsm.kiosk_views')}</div>
-          <div className="rsm-pills">
-            {(
-              [
-                { key: 'poules', label: t('rsm.view_pools') },
-                { key: 'classement', label: t('rsm.view_ranking') },
-                { key: 'direct', label: t('rsm.view_live_matches') },
-              ] as const
-            ).map(({ key, label }) => (
-              <button
-                key={key}
-                type="button"
-                className={`rsm-pill${kioskViews[key] ? ' rsm-pill--on' : ''}`}
-                aria-pressed={kioskViews[key]}
-                onClick={async () => {
-                  const next = { ...kioskViews, [key]: !kioskViews[key] };
-                  setKioskViews(next);
-                  await window.electronAPI.remote.updateKioskViews(competition.id, next);
-                }}
-              >
-                {kioskViews[key] ? '✓ ' : ''}
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <DisplayOptionsPanel
+          competitionId={competition.id}
+          displayTheme={displayTheme}
+          setDisplayTheme={setDisplayTheme}
+          arenaWallpaper={arenaWallpaper}
+          setArenaWallpaper={setArenaWallpaper}
+          kioskViews={kioskViews}
+          setKioskViews={setKioskViews}
+        />
 
         {/* Note d'organisation */}
         <OrgNotePanel competitionId={competition.id} />
@@ -1438,7 +1291,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.refereeUrl, arena.number * 10)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 ? t('rsm.copied_short') : `📋 ${t('rsm.copy_url_short')}`}
+                    {copiedIndex === arena.number * 10
+                      ? t('rsm.copied_short')
+                      : `📋 ${t('rsm.copy_url_short')}`}
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1463,7 +1318,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.displayUrl, arena.number * 10 + 1)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 1 ? t('rsm.copied_short') : `📋 ${t('rsm.copy_url_short')}`}
+                    {copiedIndex === arena.number * 10 + 1
+                      ? t('rsm.copied_short')
+                      : `📋 ${t('rsm.copy_url_short')}`}
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1488,7 +1345,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.poolUrl, arena.number * 10 + 2)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 2 ? t('rsm.copied_short') : `📋 ${t('rsm.copy_url_short')}`}
+                    {copiedIndex === arena.number * 10 + 2
+                      ? t('rsm.copied_short')
+                      : `📋 ${t('rsm.copy_url_short')}`}
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1515,7 +1374,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.matchOrderUrl, arena.number * 10 + 5)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 5 ? t('rsm.copied_short') : `📋 ${t('rsm.copy_url_short')}`}
+                    {copiedIndex === arena.number * 10 + 5
+                      ? t('rsm.copied_short')
+                      : `📋 ${t('rsm.copy_url_short')}`}
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1540,7 +1401,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.publicUrl, arena.number * 10 + 3)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 3 ? t('rsm.copied_short') : `📋 ${t('rsm.copy_url_short')}`}
+                    {copiedIndex === arena.number * 10 + 3
+                      ? t('rsm.copied_short')
+                      : `📋 ${t('rsm.copy_url_short')}`}
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1567,7 +1430,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.overlayUrl, arena.number * 10 + 4)}
                     title={t('rsm.overlay_copy_title')}
                   >
-                    {copiedIndex === arena.number * 10 + 4 ? t('rsm.copied_short') : `📋 ${t('rsm.copy_url_short')}`}
+                    {copiedIndex === arena.number * 10 + 4
+                      ? t('rsm.copied_short')
+                      : `📋 ${t('rsm.copy_url_short')}`}
                   </button>
                   <button
                     className="btn-qr btn-wide"
