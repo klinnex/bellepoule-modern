@@ -94,3 +94,10 @@ describe('exportFencersToTXT', () => {
     expect(out).toContain('--- Fin de la liste (1 tireurs) ---');
   });
 });
+
+describe('exportFencersToFFF — département (#1504)', () => {
+  it('écrit le département après le classement', () => {
+    const out = exportFencersToFFF([makeFencer({ region: 'IDF', ranking: 3, department: '75' })]);
+    expect(out.split('\n')[1]).toContain(';,IDF,,3,,75;');
+  });
+});

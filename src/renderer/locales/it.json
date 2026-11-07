@@ -95,7 +95,8 @@
     "reactivate": "Riattiva",
     "points": "Punti",
     "label": "schermidori",
-    "present_label": "presenti"
+    "present_label": "presenti",
+    "department": "Dipartimento"
   },
   "status": {
     "checked_in": "Presente",
@@ -790,6 +791,8 @@
     "select_referee": "Seleziona l'arbitro per il girone {{n}}:",
     "max_score": "Punteggio massimo: {{max}}",
     "draw_impossible": "Pareggio impossibile!",
+    "inline_invalid": "Invalid input: number, V or W+digit",
+    "inline_win_tie_only": "W+digit is only for breaking a tie",
     "max_score_a": "Il punteggio dello schermidore A non può superare {{max}}",
     "max_score_b": "Il punteggio dello schermidore B non può superare {{max}}",
     "draw_laser": "Pareggio: clicca su V per assegnare la vittoria",
@@ -1202,7 +1205,8 @@
     "unassigned": "Non assegnati",
     "victory": "Vittoria",
     "waiting_previous_round": "In attesa del turno precedente",
-    "weapon": "Arma"
+    "weapon": "Arma",
+    "col_department": "Dipartimento"
   },
   "rsm": {
     "unsaved": "Modifiche non salvate",
@@ -1440,7 +1444,9 @@
     "bpf_exported_other": "{{count}} schermidori esportati (.bpf)",
     "bpf_export_error": "Errore durante l'esportazione .bpf",
     "bpf_imported": "{{added}} aggiunto/i, {{updated}} aggiornato/i (.bpf)",
-    "bpf_import_error": "Errore durante l'importazione .bpf"
+    "bpf_import_error": "Errore durante l'importazione .bpf",
+    "col_region": "Regione",
+    "col_department": "Dipartimento"
   },
   "questPhase": {
     "running_title": "Turno Quest in corso",
@@ -2753,7 +2759,8 @@
     "last_name_ph": "ROSSI",
     "first_name_ph": "Marco",
     "club_ph": "ROMA CS",
-    "region_ph": "Lazio"
+    "region_ph": "Lazio",
+    "department_choose": "— Nessuno —"
   },
   "keypad": {
     "aria": "Tastierino numerico",

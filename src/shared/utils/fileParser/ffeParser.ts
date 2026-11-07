@@ -6,6 +6,7 @@
 import { Fencer, FencerStatus, Gender } from '../../types';
 import { logger, LogCategory } from '../../services/logger';
 import { ImportResult } from './common';
+import { normalizeDepartment } from '../departments';
 
 /**
  * Parse un fichier FFE (.fff ou CSV) ou TXT simple
@@ -550,6 +551,7 @@ function parseFFELine(
   // Nettoyer les autres champs en fonction du format
   let nationality: string;
   let region: string | undefined;
+  let department: string | undefined;
   let club: string | undefined;
   let license: string | undefined;
   let ranking: number | undefined;
@@ -565,6 +567,7 @@ function parseFFELine(
       license = (parts[8] || '').trim() || undefined;
       region = (parts[9] || '').trim() || undefined;
       club = (parts[10] || '').trim() || undefined;
+      department = findDepartment(parts.slice(12, 14));
 
       // Le classement FFE est à l'index 11 (4e champ de section2: Licence,Ligue,Club,Classement,...)
       // NE PAS utiliser parts[14] (position séquentielle "1,t","2,t"...) comme classement
@@ -593,6 +596,7 @@ function parseFFELine(
       license = (parts[8] || '').trim() || undefined;
       region = (parts[9] || '').trim() || undefined;
       club = (parts[10] || '').trim() || undefined;
+      department = findDepartment(parts.slice(12, 14));
 
       // Classement à l'index 11 (4e champ section2: Licence,Ligue,Club,Classement,...)
       const rankingField11 = (parts[11] || '').trim();
@@ -656,9 +660,22 @@ function parseFFELine(
     birthDate,
     nationality,
     region,
+    department,
     club,
     license,
     ranking,
     status: FencerStatus.NOT_CHECKED_IN,
   };
+}
+
+/**
+ * Département (#1504) : premier champ après le classement qui est un code département
+ * valide (01…95, 2A, 2B, 971…). Une nationalité (lettres) n'est jamais prise pour un département.
+ */
+function findDepartment(fields: string[]): string | undefined {
+  for (const f of fields) {
+    const d = normalizeDepartment(f);
+    if (d) return d;
+  }
+  return undefined;
 }

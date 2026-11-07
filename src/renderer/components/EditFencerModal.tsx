@@ -9,6 +9,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { Fencer, Gender, FencerStatus } from '../../shared/types';
 import FencerPhoto from './FencerPhoto';
 import NationalityPicker from './common/NationalityPicker';
+import DepartmentPicker from './common/DepartmentPicker';
 
 interface EditFencerModalProps {
   fencer: Fencer;
@@ -24,6 +25,7 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
   const [gender, setGender] = useState<Gender>(fencer.gender);
   const [club, setClub] = useState(fencer.club || '');
   const [region, setRegion] = useState(fencer.region || '');
+  const [department, setDepartment] = useState(fencer.department || '');
   const [nationality, setNationality] = useState(fencer.nationality || 'FRA');
   const [license, setLicense] = useState(fencer.license || '');
   const [ranking, setRanking] = useState(fencer.ranking?.toString() || '');
@@ -39,6 +41,7 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
       gender,
       club: club || undefined,
       region: region || undefined,
+      department: department || undefined,
       nationality,
       license: license || undefined,
       ranking: ranking ? parseInt(ranking) : undefined,
@@ -156,22 +159,23 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
             </div>
 
             <div className="form-group">
-              <label className="form-label">{t('fencer.nationality')}</label>
-              <NationalityPicker value={nationality} onChange={setNationality} />
+              <label className="form-label" htmlFor="edit-fencer-department">
+                {t('fencer.department')}
+              </label>
+              <DepartmentPicker
+                id="edit-fencer-department"
+                value={department}
+                onChange={setDepartment}
+              />
             </div>
           </div>
 
-          <div className="u-grid-2">
-            <div className="form-group">
-              <label className="form-label">{t('editFencer.license_no')}</label>
-              <input
-                type="text"
-                className="form-input"
-                value={license}
-                onChange={e => setLicense(e.target.value)}
-              />
-            </div>
+          <div className="form-group">
+            <label className="form-label">{t('fencer.nationality')}</label>
+            <NationalityPicker value={nationality} onChange={setNationality} />
+          </div>
 
+          <div className="u-grid-2">
             <div className="form-group">
               <label className="form-label">{t('fencer.ranking')}</label>
               <input
@@ -181,6 +185,16 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
                 onChange={e => setRanking(e.target.value)}
                 min="1"
                 placeholder={t('editFencer.unranked')}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">{t('editFencer.license_no')}</label>
+              <input
+                type="text"
+                className="form-input"
+                value={license}
+                onChange={e => setLicense(e.target.value)}
               />
             </div>
           </div>

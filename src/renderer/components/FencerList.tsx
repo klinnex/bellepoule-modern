@@ -12,6 +12,7 @@ import { MedicalCrossIcon } from './common/MedicalCrossIcon';
 import { useTranslation } from '../hooks/useTranslation';
 import { exportFencersToTXT, exportFencersToFFF } from '../../shared/utils/fencerExport';
 import { isDns } from '../../shared/utils/forfeit';
+import { departmentLabel } from '../../shared/utils/departments';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import { useConfirm } from './ConfirmDialog';
 import CoachMark from './CoachMark';
@@ -20,7 +21,16 @@ import Flag from './common/Flag';
 import { MENU_ITEM, SMALL_BTN, W250, DROPDOWN_WRAP } from './fencerList.styles';
 
 type SortableCol =
-  'ref' | 'lastName' | 'firstName' | 'birthDate' | 'club' | 'nationality' | 'ranking' | 'status';
+  | 'ref'
+  | 'lastName'
+  | 'firstName'
+  | 'birthDate'
+  | 'club'
+  | 'nationality'
+  | 'region'
+  | 'department'
+  | 'ranking'
+  | 'status';
 
 const COLUMNS = [
   { id: 'ref' as SortableCol, labelKey: 'fencerList.col_ref', width: '50px' },
@@ -29,6 +39,8 @@ const COLUMNS = [
   { id: 'birthDate' as SortableCol, labelKey: 'fencerList.col_birth', width: '70px' },
   { id: 'club' as SortableCol, labelKey: 'fencerList.col_club' },
   { id: 'nationality' as SortableCol, labelKey: 'fencerList.col_nationality', width: '110px' },
+  { id: 'region' as SortableCol, labelKey: 'fencerList.col_region', width: '110px' },
+  { id: 'department' as SortableCol, labelKey: 'fencerList.col_department', width: '140px' },
   { id: 'ranking' as SortableCol, labelKey: 'fencerList.col_ranking', width: '110px' },
   { id: 'status' as SortableCol, labelKey: 'fencerList.col_status', width: '90px' },
 ];
@@ -105,8 +117,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   const [sortBy, setSortBy] = useState<SortableCol>('ranking');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(
-    // Nationalité : colonne affichable, masquée par défaut (#1415)
-    () => new Set(hiddenColumns ?? ['nationality'])
+    // Nationalité, région, département : colonnes affichables, masquées par défaut (#1415, #1504)
+    () => new Set(hiddenColumns ?? ['nationality', 'region', 'department'])
   );
   const [colOrder, setColOrder] = useState<SortableCol[]>(() => {
     try {
@@ -116,8 +128,10 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           COLUMNS.some(c => c.id === id)
         );
         // Colonne ajoutée depuis l'enregistrement (ex. nationalité) : insérée à sa place par défaut
-        if (!parsed.includes('nationality') && parsed.includes('club'))
-          parsed.splice(parsed.indexOf('club') + 1, 0, 'nationality');
+        for (const added of ['nationality', 'region', 'department'] as SortableCol[]) {
+          if (!parsed.includes(added) && parsed.includes('club'))
+            parsed.splice(parsed.indexOf('club') + 1 + (added === 'nationality' ? 0 : 1), 0, added);
+        }
         if (parsed.length === COLUMNS.length && COLUMNS.every(c => parsed.includes(c.id)))
           return parsed;
       }
@@ -226,6 +240,10 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             return dir * (a.club || '').localeCompare(b.club || '');
           case 'nationality':
             return dir * (a.nationality || '').localeCompare(b.nationality || '');
+          case 'region':
+            return dir * (a.region || '').localeCompare(b.region || '');
+          case 'department':
+            return dir * (a.department || '').localeCompare(b.department || '');
           case 'ranking':
             return dir * ((a.ranking ?? 99999) - (b.ranking ?? 99999));
           case 'status':
@@ -984,6 +1002,18 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                               ) : (
                                 '-'
                               )}
+                            </td>
+                          );
+                        case 'region':
+                          return (
+                            <td key="region" className="text-sm text-muted">
+                              {fencer.region || '-'}
+                            </td>
+                          );
+                        case 'department':
+                          return (
+                            <td key="department" className="text-sm text-muted">
+                              {departmentLabel(fencer.department) || '-'}
                             </td>
                           );
                         case 'ranking':

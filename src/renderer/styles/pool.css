@@ -674,3 +674,11 @@ button.pv-pill {
 .ranking-col-icon {
   vertical-align: middle;
 }
+
+/* Vue « poule unique » (#1502) : largeur au contenu mais plafonnée (max-width inline,
+   divisé par le zoom) ; la bande de puces de la vue match défile au lieu d'élargir la carte */
+.pools-single-card {
+  width: max-content;
+  min-width: min(100%, 480px);
+  margin: 0 auto;
+}

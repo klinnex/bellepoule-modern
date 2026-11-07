@@ -95,7 +95,8 @@
     "reactivate": "Восстановить",
     "points": "Очки",
     "label": "фехтовальщиков",
-    "present_label": "отмечено"
+    "present_label": "отмечено",
+    "department": "Департамент"
   },
   "status": {
     "checked_in": "Присутствует",
@@ -790,6 +791,8 @@
     "select_referee": "Выберите судью для пула {{n}}:",
     "max_score": "Максимальный счёт: {{max}}",
     "draw_impossible": "Ничья не допускается!",
+    "inline_invalid": "Invalid input: number, V or W+digit",
+    "inline_win_tie_only": "W+digit is only for breaking a tie",
     "max_score_a": "Счёт фехтовальщика A не может превышать {{max}}",
     "max_score_b": "Счёт фехтовальщика B не может превышать {{max}}",
     "draw_laser": "Ничья: нажмите П, чтобы присудить победу",
@@ -1202,7 +1205,8 @@
     "unassigned": "Не назначен",
     "victory": "Победа",
     "waiting_previous_round": "Ожидание предыдущего раунда",
-    "weapon": "Оружие"
+    "weapon": "Оружие",
+    "col_department": "Департамент"
   },
   "rsm": {
     "unsaved": "Несохранённые изменения",
@@ -1440,7 +1444,9 @@
     "bpf_exported_other": "Экспортировано фехтовальщиков: {{count}} (.bpf)",
     "bpf_export_error": "Ошибка экспорта .bpf",
     "bpf_imported": "Добавлено: {{added}}, обновлено: {{updated}} (.bpf)",
-    "bpf_import_error": "Ошибка импорта .bpf"
+    "bpf_import_error": "Ошибка импорта .bpf",
+    "col_region": "Регион",
+    "col_department": "Департамент"
   },
   "questPhase": {
     "running_title": "Раунд Quest идёт",
@@ -2753,7 +2759,8 @@
     "last_name_ph": "ИВАНОВ",
     "first_name_ph": "Иван",
     "club_ph": "ФК МОСКВА",
-    "region_ph": "Москва"
+    "region_ph": "Москва",
+    "department_choose": "— Нет —"
   },
   "keypad": {
     "aria": "Цифровая клавиатура",

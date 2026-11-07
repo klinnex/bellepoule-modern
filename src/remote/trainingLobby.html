@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="traininglobby.page_title">Lobby entraînement — BellePoule Modern</title>
+    <script src="/common.js"></script>
+    <script src="/i18n.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: #0f172a;
+        min-height: 100vh;
+        color: white;
+        padding: 2rem 1rem;
+      }
+      .container { max-width: 760px; margin: 0 auto; text-align: center; }
+      h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem; }
+      .subtitle { color: #94a3b8; margin-bottom: 0.5rem; }
+      .notice { color: #64748b; font-size: 0.85rem; margin-bottom: 1.75rem; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.85rem; }
+      .strip {
+        display: flex; flex-direction: column; gap: 0.35rem; align-items: center; justify-content: center;
+        min-height: 110px; padding: 1rem; border-radius: 0.9rem; text-decoration: none; color: #fff;
+        background: #1e293b; border: 2px solid #22c55e; font-weight: 700; font-size: 1.15rem;
+      }
+      .strip small { font-size: 0.8rem; font-weight: 600; color: #86efac; }
+      .strip.mine { border-color: #3b82f6; }
+      .strip.mine small { color: #93c5fd; }
+      .strip.occupied {
+        border-color: #475569; color: #64748b; cursor: not-allowed; pointer-events: none; opacity: 0.7;
+      }
+      .strip.occupied small { color: #f87171; }
+      .empty { color: #94a3b8; padding: 2rem 0; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 data-i18n="traininglobby.title">Lobby entraînement</h1>
+      <p class="subtitle" data-i18n="traininglobby.subtitle">Choisissez une piste pour arbitrer.</p>
+      <p class="notice" data-i18n="traininglobby.idle_notice">Une piste se libère après 3 minutes d'inactivité.</p>
+      <div id="strips" class="grid" aria-live="polite"></div>
+      <p id="empty" class="empty" style="display:none" data-i18n="traininglobby.none">Aucune piste.</p>
+    </div>
+
+    <script>
+      if (window.initRemoteI18n) window.initRemoteI18n();
+
+      // Identifiant propre à l'onglet (même clé que la tablette d'arbitrage)
+      let clientId = '';
+      try { clientId = sessionStorage.getItem('bp_training_client') || ''; } catch (_) {}
+      if (!/^[\w-]{8,64}$/.test(clientId)) {
+        clientId = 'c' + Math.random().toString(36).slice(2, 12) + Date.now().toString(36);
+        try { sessionStorage.setItem('bp_training_client', clientId); } catch (_) {}
+      }
+
+      // Retour au lobby = piste libérée
+      fetch('/api/training/lobby/release', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId }),
+      }).catch(() => {});
+
+      function render(data) {
+        const grid = document.getElementById('strips');
+        const empty = document.getElementById('empty');
+        const arenas = (data && data.training && data.arenas) || [];
+        empty.style.display = arenas.length ? 'none' : 'block';
+        grid.textContent = '';
+        for (const a of arenas) {
+          const el = document.createElement(a.occupied && !a.mine ? 'div' : 'a');
+          el.className = 'strip' + (a.occupied ? (a.mine ? ' mine' : ' occupied') : '');
+          if (el.tagName === 'A') el.href = '/arene' + encodeURIComponent(a.number) + '/arbitre';
+          if (a.occupied && !a.mine) el.setAttribute('aria-disabled', 'true');
+          const name = document.createElement('span');
+          name.textContent = window.T('traininglobby.arena', { n: a.number });
+          const state = document.createElement('small');
+          state.textContent = window.T(
+            a.occupied ? (a.mine ? 'traininglobby.mine' : 'traininglobby.occupied') : 'traininglobby.free'
+          );
+          el.append(name, state);
+          grid.appendChild(el);
+        }
+      }
+
+      window.bpPoll(
+        () =>
+          fetch('/api/training/lobby?client=' + encodeURIComponent(clientId))
+            .then(r => r.json())
+            .then(d => { render(d); return true; }),
+        { base: 3000, max: 15000 }
+      );
+    </script>
+  </body>
+</html>

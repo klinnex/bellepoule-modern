@@ -95,6 +95,7 @@ export function parseFencerRow(row: any): Fencer {
     gender: row.gender as Gender,
     nationality: row.nationality as string,
     region: row.region as string,
+    department: (row.department as string | null) || undefined,
     club: row.club as string,
     license: row.license as string,
     ranking: row.ranking as number,

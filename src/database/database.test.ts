@@ -245,16 +245,18 @@ describe('DatabaseManager', () => {
         firstName: 'Jean\t<b>',
         club: '<script>Club</script>',
         region: ' IDF ',
+        department: ' 75<> ',
         license: '12<3>',
       });
       const params = run.mock.calls.find(c => c.length >= 12)!;
       // id, competition_id, ref, last_name, first_name, birth_date, gender, nationality,
-      // club, region, license
+      // club, region, department, license
       expect(params[3]).toBe('img src=x onerror=1DUPONT');
       expect(params[4]).toBe('Jean b');
       expect(params[8]).toBe('scriptClub/script');
       expect(params[9]).toBe('IDF');
-      expect(params[10]).toBe('123');
+      expect(params[10]).toBe('75');
+      expect(params[11]).toBe('123');
     });
   });
 

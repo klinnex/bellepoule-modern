@@ -83,7 +83,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 45 | 640 |
+| `src/shared/utils/` | 47 | 652 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -97,18 +97,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 50 | 403 |
+| `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 53 | 267 |
+| `src/renderer/components/` | 53 | 273 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 38 | 254 |
+| `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **276** | **2276** |
+| **Total** | **280** | **2316** |
 
-Unitaires : 267 fichiers, 2241 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 271 fichiers, 2281 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -376,6 +376,16 @@ Unitaires : 267 fichiers, 2241 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/shared/utils/departments.test.ts</code> — 3 tests</summary>
+
+- **departments**
+  - codes uniques, Corse et outre-mer inclus
+  - normalise la saisie
+  - nom et libellé
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/errorLogger.test.ts</code> — 7 tests</summary>
 
 - **logError / getErrorLogs**
@@ -395,7 +405,7 @@ Unitaires : 267 fichiers, 2241 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/fencerExport.test.ts</code> — 11 tests</summary>
+<summary><code>src/shared/utils/fencerExport.test.ts</code> — 12 tests</summary>
 
 - **exportFencersToFFF**
   - commence par l’en-tête FFF standard
@@ -410,6 +420,8 @@ Unitaires : 267 fichiers, 2241 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - affiche le nom en majuscules et l’année de naissance
   - affiche le classement préfixé de # ou un tiret
   - clôt la liste par une ligne de fin
+- **exportFencersToFFF — département (#1504)**
+  - écrit le département après le classement
 
 </details>
 
@@ -451,7 +463,7 @@ Unitaires : 267 fichiers, 2241 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/fileParser.test.ts</code> — 43 tests</summary>
+<summary><code>src/shared/utils/fileParser.test.ts</code> — 45 tests</summary>
 
 - **parseSimpleTXTFile**
   - fichier vide → success=false, erreur
@@ -495,6 +507,8 @@ Unitaires : 267 fichiers, 2241 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - nom contenant « nom » / « x » (pas pris pour un en-tête)
   - fichier sans en-tête : premier tireur conservé
   - club contenant une virgule : champs non décalés
+  - département : aller-retour export/import FFF (#1504)
+  - département : lu après le classement, nationalité non confondue (#1504)
   - fichier FFE réel (Windows-1252, lignes de métadonnées)
   - decodeTextFile garde l’UTF-8 valide
   - .fff ouvert via « Importer XML » → parseur FFE
@@ -577,6 +591,19 @@ Unitaires : 267 fichiers, 2241 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - accepte le point-virgule (Excel FR) et les retours à la ligne dans une cellule
   - applique les traductions, garde l’ordre de la référence, ignore cellules vides et clés inconnues
   - refuse un CSV sans en-tête attendu
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/inlineScoreInput.test.ts</code> — 6 tests</summary>
+
+- **parseInlineScoreInput**
+  - vide
+  - score numérique
+  - V = score max (insensible à la casse)
+  - V sans score max = invalide
+  - W+chiffre = victoire de départage
+  - formats invalides
 
 </details>
 
@@ -2712,6 +2739,26 @@ Unitaires : 267 fichiers, 2241 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/remote/trainingLobby.test.ts</code> — 12 tests</summary>
+
+- **TrainingLobby (#1500)**
+  - occupe une piste : un autre client est refusé
+  - liste : occupée pour les autres, « mine » pour le propriétaire
+  - libération après 3 minutes sans activité
+  - l'activité repousse l'expiration
+  - release : seulement par le propriétaire ; releaseAll libère tout
+  - changer de piste libère la précédente
+- **routes du lobby entraînement (#1500)**
+  - sert la page /entrainement-lobby
+  - hors entraînement : état vide, occupation refusée
+  - liste les pistes principales (sans sous-pistes) avec leur occupation
+  - piste occupée : 409 arena\_occupied pour un autre client
+  - validation : piste inconnue 404, client invalide 400
+  - release libère la piste (ou toutes sans numéro)
+
+</details>
+
+<details>
 <summary><code>src/main/remoteScoreServer.test.ts</code> — 104 tests</summary>
 
 - **RemoteScoreServer**
@@ -3457,13 +3504,14 @@ Unitaires : 267 fichiers, 2241 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/AddFencerModal.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/AddFencerModal.test.tsx</code> — 7 tests</summary>
 
 - **AddFencerModal**
   - ajoute un tireur avec nom en majuscules puis ferme
   - ne soumet pas sans nom/prénom
   - annuler efface les champs sans fermer la modale
   - droitier par défaut, gaucher transmis
+  - département choisi dans la liste transmis (#1504)
   - Ajouter garde la modale ouverte et vide le formulaire
   - la liste déroulante des nationalités sélectionne le code
 
@@ -3699,7 +3747,7 @@ Unitaires : 267 fichiers, 2241 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolView.test.tsx</code> — 14 tests</summary>
+<summary><code>src/renderer/components/PoolView.test.tsx</code> — 19 tests</summary>
 
 - **PoolView - saisie simplifiée : suppression au survol**
   - survoler une case scorée puis appuyer sur Suppr efface le score du match
@@ -3714,6 +3762,11 @@ Unitaires : 267 fichiers, 2241 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - en-tête : indique l'avancement puis « Terminée » selon pool.isComplete
   - saisie des deux cases d'un match neuf : un seul onScoreUpdate avec les deux scores
   - refuse un match nul
+  - V = victoire au score maximum
+  - W+chiffre désigne le vainqueur d’une égalité (case saisie en premier)
+  - W+chiffre désigne le vainqueur d’une égalité (case miroir)
+  - W refusé hors égalité
+  - W refusé si le départage par victoire est inactif
   - refuse un score supérieur au maximum
   - bouton « Annuler ce résultat » : déclenche onMatchReset sans ouvrir la saisie
   - feuille signée par tous : bandeau de verrouillage et saisie bloquée
@@ -4556,6 +4609,24 @@ Unitaires : 267 fichiers, 2241 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - cartes : noms, clubs, badge selon le statut, id en data-args
   - tireur inconnu : « ? » ; XSS échappé (noms, clubs, id)
   - referee.html charge le module et délègue
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeLobby.test.ts</code> — 10 tests</summary>
+
+- **refereeLobby.js**
+  - arenaFromPath : /areneN/arbitre et /arenaN
+  - clientId : généré puis conservé dans le stockage
+  - clientId : stockage indisponible toléré
+  - createIdleTracker : expire après 3 minutes, l'activité repousse
+  - createIdleTracker : chrono en cours = actif (jamais d'expiration)
+  - install : hors entraînement, rien (pas de claim, pas de bouton)
+  - install : miroir de démo (?demo=1) ignoré
+  - install : piste occupée (409) → redirection vers le lobby
+- **referee.html et trainingLobby.html (#1500)**
+  - referee.html charge le module et lance install
+  - page lobby : pistes via l’API, lien vers l’arbitrage, i18n et common.js
 
 </details>
 
