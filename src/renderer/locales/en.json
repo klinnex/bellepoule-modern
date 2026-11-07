@@ -789,6 +789,8 @@
     "select_referee": "Select the referee for pool {{n}}:",
     "max_score": "Maximum score: {{max}}",
     "draw_impossible": "A draw is not allowed!",
+    "inline_invalid": "Invalid input: number, V or W+digit",
+    "inline_win_tie_only": "W+digit is only for breaking a tie",
     "max_score_a": "Fencer A's score cannot exceed {{max}}",
     "max_score_b": "Fencer B's score cannot exceed {{max}}",
     "draw_laser": "Draw: click V to award the victory",

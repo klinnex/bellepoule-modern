@@ -789,6 +789,8 @@
     "select_referee": "Seleccione el árbitro para la poule {{n}}:",
     "max_score": "Puntuación máxima: {{max}}",
     "draw_impossible": "¡Empate imposible!",
+    "inline_invalid": "Invalid input: number, V or W+digit",
+    "inline_win_tie_only": "W+digit is only for breaking a tie",
     "max_score_a": "La puntuación del tirador A no puede superar {{max}}",
     "max_score_b": "La puntuación del tirador B no puede superar {{max}}",
     "draw_laser": "Empate: haga clic en V para atribuir la victoria",
