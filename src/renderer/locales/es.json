@@ -1349,7 +1349,10 @@
     "kiosk_theme_applied": "Tema del quiosco aplicado",
     "kiosk_theme_error": "Error al aplicar el tema del quiosco",
     "generating": "Generando…",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "mode_basic": "Básico",
+    "mode_expert": "Experto",
+    "mode_tabs_label": "Modo de visualización de la entrada remota"
   },
   "comparison": {
     "title": "⚔️ Comparación cara a cara",

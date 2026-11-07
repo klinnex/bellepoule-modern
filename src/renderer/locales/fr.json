@@ -1349,7 +1349,10 @@
     "kiosk_theme_applied": "Thème kiosk appliqué",
     "kiosk_theme_error": "Erreur application thème kiosk",
     "generating": "Génération…",
-    "close": "Fermer"
+    "close": "Fermer",
+    "mode_basic": "Basique",
+    "mode_expert": "Expert",
+    "mode_tabs_label": "Mode d'affichage de la saisie distante"
   },
   "comparison": {
     "title": "⚔️ Comparaison Head-to-Head",

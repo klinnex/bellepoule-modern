@@ -32,3 +32,26 @@
 .comp-header-remote-btn:hover {
   background: rgba(255, 255, 255, 0.35);
 }
+
+/* Onglets Basique / Expert de la Saisie distante (#1414) */
+.rsm-mode-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.rsm-mode-tab {
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 400;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.rsm-mode-tab--active {
+  font-weight: 700;
+  background: var(--color-primary);
+  color: #fff;
+}

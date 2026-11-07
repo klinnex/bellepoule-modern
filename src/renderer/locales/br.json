@@ -1349,7 +1349,10 @@
     "kiosk_theme_applied": "Neuz ar c'hiosk arloet",
     "kiosk_theme_error": "Fazi o arloañ neuz ar c'hiosk",
     "generating": "O c'henel…",
-    "close": "Serriñ"
+    "close": "Serriñ",
+    "mode_basic": "Diazez",
+    "mode_expert": "Ampart",
+    "mode_tabs_label": "Mod diskwel an enrolladenn a-bell"
   },
   "comparison": {
     "title": "⚔️ Keñveriañ penn-ouzh-penn",

@@ -1349,7 +1349,10 @@
     "kiosk_theme_applied": "Kiosk theme applied",
     "kiosk_theme_error": "Error applying kiosk theme",
     "generating": "Generating…",
-    "close": "Close"
+    "close": "Close",
+    "mode_basic": "Basic",
+    "mode_expert": "Expert",
+    "mode_tabs_label": "Remote scoring display mode"
   },
   "comparison": {
     "title": "⚔️ Head-to-head comparison",
