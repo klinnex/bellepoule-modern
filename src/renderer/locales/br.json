@@ -130,7 +130,8 @@
     "teams": "Skipailhoù",
     "teampool": "Poull skipailhoù",
     "teamtableau": "Taolenn skipailhoù",
-    "teamranking": "Renkadur skipailhoù"
+    "teamranking": "Renkadur skipailhoù",
+    "poolprep_locked_tooltip": "Prientit ar poulennoù da gentañ (diretenn Galv)"
   },
   "pools": {
     "generate": "Genelañ ar poullou",
@@ -163,7 +164,6 @@
     "prep_single": "Poulenn unel",
     "prep_suggested_title": "Niver a boulennoù erbedet evit {{min}} da {{max}} kleizeier dre boulenn",
     "prep_suggested": "Erbedet : {{n}}",
-    "prep_per_pool": "Kleizeidi / poulenn",
     "prep_separation": "Disrannañ",
     "prep_drag_priority": "(riklañ evit ar renk)",
     "prep_match_order_title": "Diskouez urzh ofisiel FIE/FFE an emgannoù hervez ment ar boulenn",
@@ -200,7 +200,12 @@
     "prep_skip_pools": "Mont d’ar renkadur kentañ",
     "prep_launch": "Loc'hañ ar poulloù",
     "prep_strip_duplicate": "Leurenn roet da veur a boull",
-    "prep_strip_title": "Leurenn an enrollañ eus-pell"
+    "prep_strip_title": "Leurenn an enrollañ eus-pell",
+    "prep_min": "Kleizeidi Min",
+    "prep_max": "Kleizeidi Max",
+    "prep_relaunch": "Adloc'hañ ar poulloù",
+    "prep_unplaced": "{{count}} kleizeur(ez) ouzhpennet adalek ar c'halv n'eo ket lakaet c'hoazh: klikit war « Adprientiñ ar poulennoù » evit o lakaat.",
+    "relaunch_confirm": "Skoroù poulloù zo bet enskrivet dija: kolliñ a raint. Kenderc'hel ?"
   },
   "ranking": {
     "rank": "Renk",
@@ -2308,7 +2313,8 @@
     "matches": "{{a}}/{{b}} emgann",
     "tableau": "{{a}}/{{b}} taolenn",
     "generate_hint": "Klikit amañ goude bezañ merket hoc'h holl glezeourien",
-    "next_step_hint": "Pazenn da heul pa vo echu ar poulloù"
+    "next_step_hint": "Pazenn da heul pa vo echu ar poulloù",
+    "regenerate": "Adprientiñ ar poulennoù"
   },
   "offline": {
     "never": "Biken",

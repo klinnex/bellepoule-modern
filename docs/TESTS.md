@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 51 | 269 |
+| `src/renderer/components/` | 53 | 279 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **278** | **2312** |
+| **Total** | **280** | **2322** |
 
-Unitaires : 269 fichiers, 2277 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 271 fichiers, 2287 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3581,7 +3581,7 @@ Unitaires : 269 fichiers, 2277 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/CompetitionView.test.tsx</code> — 11 tests</summary>
+<summary><code>src/renderer/components/CompetitionView.test.tsx</code> — 12 tests</summary>
 
 - **CompetitionView**
   - affiche la navigation des phases, appel actif et poules verrouillées
@@ -3593,6 +3593,8 @@ Unitaires : 269 fichiers, 2277 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - plusieurs tours de poules : libellé « tour 1/2 »
   - l'appel se stabilise : plus aucun rendu une fois chargé
   - pointer un tireur met à jour son statut en base
+  - **accès aux étapes et relance (#1499)**
+    - Préparation grisée avant « Préparer », Poules grisée avant « Lancer »
   - **compétition par équipes (#1085)**
     - remplace poules/tableau individuels par les phases équipes
     - « Composer les équipes » ouvre la phase équipes intégrée (sans modale)
@@ -3743,6 +3745,16 @@ Unitaires : 269 fichiers, 2277 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - crée une compétition avec le titre saisi
   - génère un titre par défaut si vide
   - le bouton annuler ferme la modale
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 3 tests</summary>
+
+- **PoolPrepView (#1499)**
+  - titres Min / Max séparés au-dessus des deux champs
+  - le tireur ajouté depuis l'appel n'entre pas dans les poules avant la repréparation
+  - bouton « Lancer » puis « Relancer » une fois les poules lancées
 
 </details>
 
@@ -4008,6 +4020,21 @@ Unitaires : 269 fichiers, 2277 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **usePoolReferees**
   - bascule la sélection sans dépasser maxRefereesPerPool
   - enregistre l’affectation et notifie le parent
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/poolLaunchState.test.ts</code> — 6 tests</summary>
+
+- **poolsHaveScores**
+  - faux sans poule ou sans match saisi
+  - vrai dès qu'un match est saisi ou avancé
+- **inferPoolsLaunched (anciennes sessions)**
+  - faux en appel / préparation sans score
+  - vrai si phase postérieure, historique ou score saisi
+- **poolTabLock**
+  - tout verrouillé avant « Préparer les poules »
+  - Préparation libre une fois préparées, Poules libre une fois lancées
 
 </details>
 

@@ -130,7 +130,8 @@
     "teams": "Equips",
     "teampool": "Poule per equips",
     "teamtableau": "Quadre per equips",
-    "teamranking": "Classificació per equips"
+    "teamranking": "Classificació per equips",
+    "poolprep_locked_tooltip": "Prepareu primer les poules (pestanya Crida)"
   },
   "pools": {
     "generate": "Generar Poules",
@@ -163,7 +164,6 @@
     "prep_single": "Poule única",
     "prep_suggested_title": "Nombre de poules recomanat per a {{min}} a {{max}} tiradors per poule",
     "prep_suggested": "Recomanat: {{n}}",
-    "prep_per_pool": "Tiradors / poule",
     "prep_separation": "Separació",
     "prep_drag_priority": "(arrossega per prioritzar)",
     "prep_match_order_title": "Mostra l'ordre oficial FIE/FFE dels combats per mida de poule",
@@ -200,7 +200,12 @@
     "prep_skip_pools": "Anar a la classificació inicial",
     "prep_launch": "Llançar les poules",
     "prep_strip_duplicate": "Pista assignada a diverses poules",
-    "prep_strip_title": "Pista de la puntuació remota"
+    "prep_strip_title": "Pista de la puntuació remota",
+    "prep_min": "Tiradors mín.",
+    "prep_max": "Tiradors màx.",
+    "prep_relaunch": "Rellançar les poules",
+    "prep_unplaced": "{{count}} tirador(s) afegit(s) des de la llista de crida sense ubicar: feu clic a «Repreparar les poules» per incloure'ls.",
+    "relaunch_confirm": "Ja hi ha marcadors de poules introduïts: es perdran. Continuar?"
   },
   "ranking": {
     "rank": "Pos",
@@ -2308,7 +2313,8 @@
     "matches": "{{a}}/{{b}} combats",
     "tableau": "{{a}}/{{b}} quadre",
     "generate_hint": "Feu clic aquí després de marcar tots els tiradors",
-    "next_step_hint": "Pas següent un cop acabades les poules"
+    "next_step_hint": "Pas següent un cop acabades les poules",
+    "regenerate": "Repreparar les poules"
   },
   "offline": {
     "never": "Mai",

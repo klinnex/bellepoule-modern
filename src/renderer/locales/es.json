@@ -130,7 +130,8 @@
     "teams": "Equipos",
     "teampool": "Poule por equipos",
     "teamtableau": "Cuadro por equipos",
-    "teamranking": "Clasificación por equipos"
+    "teamranking": "Clasificación por equipos",
+    "poolprep_locked_tooltip": "Prepare primero las poules (pestaña Llamada)"
   },
   "pools": {
     "generate": "Generar Poules",
@@ -163,7 +164,6 @@
     "prep_single": "Poule única",
     "prep_suggested_title": "Número de poules aconsejado para {{min}} a {{max}} tiradores por poule",
     "prep_suggested": "Aconsejado: {{n}}",
-    "prep_per_pool": "Tiradores / poule",
     "prep_separation": "Separación",
     "prep_drag_priority": "(arrastrar para priorizar)",
     "prep_match_order_title": "Mostrar el orden oficial FIE/FFE de los combates por tamaño de poule",
@@ -200,7 +200,12 @@
     "prep_skip_pools": "Ir a la clasificación inicial",
     "prep_launch": "Lanzar las poules",
     "prep_strip_duplicate": "Pista asignada a varias poules",
-    "prep_strip_title": "Pista de la puntuación remota"
+    "prep_strip_title": "Pista de la puntuación remota",
+    "prep_min": "Tiradores mín.",
+    "prep_max": "Tiradores máx.",
+    "prep_relaunch": "Relanzar las poules",
+    "prep_unplaced": "{{count}} tirador(es) añadido(s) desde la lista de llamada sin ubicar: haga clic en «Reprepar las poules» para incluirlos.",
+    "relaunch_confirm": "Ya hay marcadores de poules introducidos: se perderán. ¿Continuar?"
   },
   "ranking": {
     "rank": "Pos",
@@ -2308,7 +2313,8 @@
     "matches": "{{a}}/{{b}} combates",
     "tableau": "{{a}}/{{b}} cuadro",
     "generate_hint": "Haga clic aquí después de marcar a todos sus tiradores",
-    "next_step_hint": "Paso siguiente una vez terminadas las poules"
+    "next_step_hint": "Paso siguiente una vez terminadas las poules",
+    "regenerate": "Reprepar las poules"
   },
   "offline": {
     "never": "Nunca",

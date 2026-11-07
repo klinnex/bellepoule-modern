@@ -130,7 +130,8 @@
     "teams": "Teams",
     "teampool": "Team pool",
     "teamtableau": "Team bracket",
-    "teamranking": "Team ranking"
+    "teamranking": "Team ranking",
+    "poolprep_locked_tooltip": "Prepare the pools first (Check-in tab)"
   },
   "pools": {
     "generate": "Generate Pools",
@@ -163,7 +164,6 @@
     "prep_single": "Single pool",
     "prep_suggested_title": "Suggested number of pools for {{min}} to {{max}} fencers per pool",
     "prep_suggested": "Suggested: {{n}}",
-    "prep_per_pool": "Fencers / pool",
     "prep_separation": "Separation",
     "prep_drag_priority": "(drag to set priority)",
     "prep_match_order_title": "Show the official FIE/FFE bout order by pool size",
@@ -200,7 +200,12 @@
     "prep_skip_pools": "Go to initial ranking",
     "prep_launch": "Launch pools",
     "prep_strip_duplicate": "Strip assigned to several pools",
-    "prep_strip_title": "Remote scoring strip"
+    "prep_strip_title": "Remote scoring strip",
+    "prep_min": "Min fencers",
+    "prep_max": "Max fencers",
+    "prep_relaunch": "Relaunch pools",
+    "prep_unplaced": "{{count}} fencer(s) added from check-in are not placed yet: click \"Re-prepare pools\" to include them.",
+    "relaunch_confirm": "Pool scores have already been entered: they will be lost. Continue?"
   },
   "ranking": {
     "rank": "Rank",
@@ -2308,7 +2313,8 @@
     "matches": "{{a}}/{{b}} bouts",
     "tableau": "{{a}}/{{b}} bracket",
     "generate_hint": "Click here once all your fencers are checked in",
-    "next_step_hint": "Next step once the pools are finished"
+    "next_step_hint": "Next step once the pools are finished",
+    "regenerate": "Re-prepare pools"
   },
   "offline": {
     "never": "Never",
