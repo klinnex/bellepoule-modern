@@ -6,9 +6,12 @@
 import { buildFencerSchedule, type ScheduleMatchInput } from '../fencerSchedule';
 import type { RouteContext, SessionMatch } from './context';
 import { logger, LogCategory, toError } from '../../../shared/services/logger';
+import { registerTrainingLobbyRoutes } from './trainingLobbyRoutes';
 
 /** Pages HTML des arènes, écrans, tablettes et suivi public. */
 export function registerPageRoutes(ctx: RouteContext): void {
+  registerTrainingLobbyRoutes(ctx); // lobby du mode entraînement (#1500)
+
   // Support both /arena1 and /arene1 formats
   ctx.app.get('/arena:arenaId', (req, res) => {
     const arenaId = req.params.arenaId;

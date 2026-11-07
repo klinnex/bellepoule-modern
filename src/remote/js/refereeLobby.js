@@ -1,0 +1,170 @@
+/**
+ * BellePoule Modern - Arbitre : lien avec le lobby du mode entraînement (#1500).
+ * Hors entraînement : aucun effet. En entraînement : occupe la piste, ajoute le bouton « Lobby »
+ * (à l'opposé de « Retour »), signale l'activité, libère la piste au retour lobby, à la
+ * fermeture de la page et après 3 minutes d'inactivité (retour forcé vers le lobby).
+ * Script classique : window.BPRefereeLobby. Servi en /js (CSP 'self').
+ * Licensed under GPL-3.0
+ */
+(function (root) {
+  'use strict';
+
+  var LOBBY_URL = '/entrainement-lobby';
+  var IDLE_MS = 3 * 60 * 1000;
+  var TOUCH_EVERY_MS = 30 * 1000;
+  var CLIENT_KEY = 'bp_training_client';
+
+  /** Identifiant propre à l'onglet (sessionStorage), conservé au rechargement */
+  function clientId(storage, rand) {
+    var id = null;
+    try {
+      id = storage.getItem(CLIENT_KEY);
+    } catch (_) {
+      /* stockage indisponible */
+    }
+    if (id && /^[\w-]{8,64}$/.test(id)) return id;
+    id = 'c' + (rand || Math.random)().toString(36).slice(2, 12) + Date.now().toString(36);
+    try {
+      storage.setItem(CLIENT_KEY, id);
+    } catch (_) {
+      /* stockage indisponible */
+    }
+    return id;
+  }
+
+  /** Numéro de piste de l'URL (/areneN/arbitre), null si absent */
+  function arenaFromPath(pathname) {
+    var m = /arene(\d+)/i.exec(pathname) || /arena(\d+)/i.exec(pathname);
+    return m ? Number(m[1]) : null;
+  }
+
+  /** Suivi d'inactivité : expire IDLE_MS après la dernière activité (ou si `busy()`) */
+  function createIdleTracker(now, idleMs, busy) {
+    var last = now();
+    return {
+      activity: function () {
+        last = now();
+      },
+      /** Vrai quand la piste doit être rendue (le chrono en cours compte comme activité) */
+      expired: function () {
+        if (busy && busy()) last = now();
+        return now() - last >= (idleMs || IDLE_MS);
+      },
+    };
+  }
+
+  function post(win, path, body, beacon) {
+    var json = JSON.stringify(body);
+    if (beacon && win.navigator && win.navigator.sendBeacon) {
+      return win.navigator.sendBeacon(path, new Blob([json], { type: 'application/json' }));
+    }
+    return win.fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: json,
+      keepalive: true,
+    });
+  }
+
+  /** Insère le bouton « Lobby » à gauche, « Retour » restant à droite */
+  function addButton(doc, onClick) {
+    var back = doc.getElementById('btn-back-to-list');
+    if (!back || !back.parentNode || doc.getElementById('btn-lobby')) return null;
+    var row = back.parentNode;
+    row.style.justifyContent = 'space-between';
+    var btn = doc.createElement('button');
+    btn.id = 'btn-lobby';
+    btn.type = 'button';
+    btn.setAttribute('style', back.getAttribute('style') || '');
+    btn.textContent = root.T ? root.T('referee.lobby') : '← Lobby';
+    btn.title = root.T ? root.T('referee.lobby_title') : 'Lobby';
+    btn.addEventListener('click', onClick);
+    row.insertBefore(btn, back);
+    return btn;
+  }
+
+  /**
+   * Démarre le lien lobby. `app()` renvoie l'instance RefereeApp (chrono en cours = actif).
+   * Résout `false` hors mode entraînement.
+   */
+  async function install(win, app) {
+    var doc = win.document;
+    var arena = arenaFromPath(win.location.pathname);
+    if (arena === null) return false;
+    // Miroir de démo (?demo=1) : simple spectateur, il ne prend jamais la piste
+    if (new URLSearchParams(win.location.search).get('demo') === '1') return false;
+    var info;
+    try {
+      info = await (await win.fetch('/api/training/lobby')).json();
+    } catch (_) {
+      return false;
+    }
+    if (!info || !info.training) return false;
+
+    var id = clientId(win.sessionStorage);
+    var body = { arena: arena, clientId: id };
+    var res = await post(win, '/api/training/lobby/claim', body);
+    if (res.status === 409) {
+      win.location.replace(LOBBY_URL + '?occupied=' + arena); // piste déjà tenue
+      return true;
+    }
+
+    var released = false;
+    function release(beacon) {
+      if (released) return;
+      released = true;
+      post(win, '/api/training/lobby/release', body, beacon);
+    }
+    function goLobby() {
+      release(false);
+      win.location.href = LOBBY_URL;
+    }
+
+    addButton(doc, goLobby);
+
+    var tracker = createIdleTracker(Date.now, info.idleMs || IDLE_MS, function () {
+      var a = app && app();
+      return !!(a && a.timerRunning);
+    });
+    var lastTouch = Date.now();
+    function onActivity() {
+      tracker.activity();
+      if (released || Date.now() - lastTouch >= TOUCH_EVERY_MS) {
+        released = false; // page restaurée après pagehide : on reprend la piste
+        lastTouch = Date.now();
+        post(win, '/api/training/lobby/claim', body);
+      }
+    }
+    ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) {
+      doc.addEventListener(ev, onActivity, { passive: true, capture: true });
+    });
+
+    // Chrono en cours sans interaction : on rafraîchit côté serveur, sinon retour forcé
+    win.setInterval(function () {
+      if (tracker.expired()) {
+        goLobby();
+        return;
+      }
+      var a = app && app();
+      if (a && a.timerRunning && Date.now() - lastTouch >= TOUCH_EVERY_MS) {
+        lastTouch = Date.now();
+        post(win, '/api/training/lobby/claim', body);
+      }
+    }, 5000);
+
+    win.addEventListener('pagehide', function () {
+      release(true);
+    });
+    return true;
+  }
+
+  var api = {
+    arenaFromPath: arenaFromPath,
+    clientId: clientId,
+    createIdleTracker: createIdleTracker,
+    install: install,
+    IDLE_MS: IDLE_MS,
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  if (root) root.BPRefereeLobby = api;
+})(typeof window !== 'undefined' ? window : undefined);

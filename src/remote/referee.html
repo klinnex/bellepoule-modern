@@ -18,7 +18,7 @@
     <script src="/js/refereeCards.js"></script>
     <script src="/js/refereeTimer.js"></script>
     <script src="/js/refereeLists.js"></script>
-    <script src="/js/refereeDemoMirror.js"></script>
+    <script src="/js/refereeDemoMirror.js"></script><script src="/js/refereeLobby.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
     <style>
@@ -4104,7 +4104,7 @@
           await window.initRemoteI18n();
           document.title = window.T('referee.title');
           refereeApp =new RefereeApp(await window.bpClaimArenaSlot(RefereeApp.prototype.getArenaId()));
-          window.refereeApp = refereeApp; // résolu par la délégation data-click (common.js)
+          window.refereeApp = refereeApp; window.BPRefereeLobby.install(window, () => refereeApp).catch(() => {}); // lobby entraînement (#1500) ; résolu par la délégation data-click (common.js)
         } catch (e) {
           console.error('[RefereeApp] Erreur init:', e);
           const dot = document.getElementById('status-dot');
