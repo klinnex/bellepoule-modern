@@ -29,7 +29,9 @@ describe('StripRangeControls', () => {
   it('modifie la piste de fin par saisie directe', () => {
     const onChange = vi.fn();
     render(<StripRangeControls start={5} end={8} onChange={onChange} />);
-    fireEvent.change(screen.getByLabelText('rsm.strip_end'), { target: { value: '10' } });
+    const input = screen.getByLabelText('rsm.strip_end');
+    fireEvent.change(input, { target: { value: '10' } });
+    fireEvent.blur(input);
     expect(onChange).toHaveBeenCalledWith(5, 10);
   });
 });

@@ -843,27 +843,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
               <StripPlanCard start={effectiveCommittedStart} end={effectiveCommitted} />
             </div>
 
-            {/* Options d'affichage */}
-            <div className="rsm-section">
-              <div className="rsm-section-label">{t('rsm.section_display')}</div>
-              <label className="rsm-toggle-row">
-                <input
-                  type="checkbox"
-                  checked={showPhotos}
-                  onChange={e => setShowPhotos(e.target.checked)}
-                />
-                {t('rsm.fighter_photos')}
-              </label>
-              <label className="rsm-toggle-row">
-                <input
-                  type="checkbox"
-                  checked={cardAnnounce}
-                  onChange={e => setCardAnnounce(e.target.checked)}
-                />
-                {t('rsm.card_banner')}
-              </label>
-            </div>
-
             {/* Vues kiosque — pills */}
             <div className="rsm-section rsm-section--full">
               <div className="rsm-section-label">{t('rsm.section_kiosk_views')}</div>
