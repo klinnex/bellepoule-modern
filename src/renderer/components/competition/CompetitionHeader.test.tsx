@@ -22,7 +22,7 @@ const competition = {
 
 const noop = () => {};
 
-function renderHeader(onOpenRemote?: () => void) {
+function renderHeader(onOpenRemote?: () => void, setShowPropertiesModal: () => void = noop) {
   return render(
     <CompetitionHeader
       competition={competition}
@@ -45,12 +45,21 @@ function renderHeader(onOpenRemote?: () => void) {
       setShowPresentation={noop}
       setShowKiosk={noop}
       setShowKioskDisplay={noop}
-      setShowPropertiesModal={noop}
+      setShowPropertiesModal={setShowPropertiesModal}
       setShowExportCenter={noop}
       onOpenRemote={onOpenRemote}
     />
   );
 }
+
+describe('CompetitionHeader - bouton propriétés (#1505)', () => {
+  it('affiche le bouton directement dans le bandeau et ouvre les propriétés', () => {
+    const setShow = vi.fn();
+    renderHeader(undefined, setShow);
+    fireEvent.click(screen.getByRole('button', { name: 'competitionHeader.properties' }));
+    expect(setShow).toHaveBeenCalledWith(true);
+  });
+});
 
 describe('CompetitionHeader - bouton saisie distante', () => {
   it('affiche le bouton et ouvre la saisie distante au clic', () => {
