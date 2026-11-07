@@ -28,6 +28,9 @@ import RemoteViewModeTabs from './remote/RemoteViewModeTabs';
 import { computePoolStrips } from '../../shared/utils/poolStrips';
 import { RSM_STYLES } from './remote/rsmStyles';
 import { StripRangeControls } from './remote/StripRangeControls';
+import { StripPlanCard } from './remote/StripPlanCard';
+import { buildSessionMatches } from './remote/sessionMatches';
+import { useStripAvailability } from '../hooks/useStripAvailability';
 import { MAX_STRIP, normalizeStripRange, stripNumbers } from '../../shared/utils/stripRange';
 import { useRemoteViewMode } from './remote/remoteViewMode';
 import { useKioskTheme, type KioskPreset } from '../hooks/useKioskTheme';
@@ -93,6 +96,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   const isExpert = mode === 'expert';
   const { showToast } = useToast();
   const { t } = useTranslation();
+  const unavailableStrips = useStripAvailability(s => s.unavailable);
   const [session, setSession] = useState<RemoteSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [serverUrl, setServerUrl] = useState<string>('');
@@ -236,7 +240,12 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     }
     if (layout === sessionPoolsLayoutRef.current) return;
     sessionPoolsLayoutRef.current = layout;
-    const stripMap = computePoolStrips(pools, effectiveCommitted, effectiveCommittedStart);
+    const stripMap = computePoolStrips(
+      pools,
+      effectiveCommitted,
+      effectiveCommittedStart,
+      unavailableStrips
+    );
     const poolsData = pools.map(pool => ({
       poolId: pool.id,
       poolNumber: pool.number,
@@ -389,28 +398,11 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
 
   const startSession = async (baseUrl: string, count: number) => {
     try {
-      // Prepend fencer-order markers so the server can rebuild poolFencersCache correctly.
-      // The FIE match order for 4-fencer pools starts with [1,4] not [1,2], so naively
-      // extracting fencers from match pairs produces the wrong order.
-      const sortedPools = [...pools].sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
-      const stripMap = computePoolStrips(pools, count, effectiveCommittedStart);
-      const poolMatches = sortedPools.flatMap(pool => [
-        {
-          __poolFencers: true,
-          poolId: pool.id,
-          poolNumber: pool.number,
-          strip: stripMap.get(pool.id) ?? pool.strip,
-          fencers: pool.fencers || [],
-        },
-        ...(pool.matches || []),
-      ]);
-      const deMatches = [
-        ...(tableauMatches || []),
-        ...(consolationBrackets || []).flatMap(b => b.matches || []),
-      ]
-        .filter(m => m.winner === null && m.fencerA && m.fencerB)
-        .map(m => ({ ...m, isTableau: true }));
-      const allMatches = [...poolMatches, ...deMatches];
+      const { poolMatches, deMatches, allMatches } = buildSessionMatches(
+        pools,
+        [...(tableauMatches || []), ...(consolationBrackets || []).flatMap(b => b.matches || [])],
+        computePoolStrips(pools, count, effectiveCommittedStart, unavailableStrips)
+      );
       logger.debug(LogCategory.UI, '[RemoteScoreManager] Passing matches to server', {
         pool: poolMatches.length,
         de: deMatches.length,
@@ -849,6 +841,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             <div className="rsm-section">
               <div className="rsm-section-label">{t('rsm.section_strips')}</div>
               <div className="rsm-strip-row">{stripCountControls}</div>
+              <StripPlanCard start={effectiveCommittedStart} end={effectiveCommitted} />
             </div>
 
             {/* Options d'affichage */}
@@ -1049,6 +1042,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
               {t('rsm.strips_n', { count: arenaCount - stripStart + 1 })}
             </div>
             <div className="rsm-strip-row">{stripCountControls}</div>
+            <StripPlanCard start={effectiveCommittedStart} end={effectiveCommitted} />
           </div>
           <div className="rsm-section">
             <div className="rsm-section-label">{t('rsm.section_display')}</div>

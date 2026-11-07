@@ -1215,6 +1215,11 @@
     "col_department": "Dipartimento"
   },
   "rsm": {
+    "strip_plan": "Piano delle pedane",
+    "strip_plan_unavailable": "{{count}} non disponibile/i",
+    "strip_plan_hint": "Clicca su una pedana per segnarla come non disponibile (rosso); viene così esclusa dall'assegnazione automatica.",
+    "strip_plan_make_available": "Rendi di nuovo disponibile la pedana",
+    "strip_plan_make_unavailable": "Segna la pedana come non disponibile",
     "strip_start": "Pedana iniziale",
     "strip_end": "Pedana finale",
     "unsaved": "Modifiche non salvate",

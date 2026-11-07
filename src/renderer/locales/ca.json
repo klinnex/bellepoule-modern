@@ -1215,6 +1215,11 @@
     "col_department": "Departament"
   },
   "rsm": {
+    "strip_plan": "Pla de pistes",
+    "strip_plan_unavailable": "{{count}} no disponible(s)",
+    "strip_plan_hint": "Fes clic en una pista per marcar-la com a no disponible (vermell); queda exclosa de l'assignació automàtica.",
+    "strip_plan_make_available": "Tornar a habilitar la pista",
+    "strip_plan_make_unavailable": "Marcar la pista com a no disponible",
     "strip_start": "Pista inicial",
     "strip_end": "Pista final",
     "unsaved": "Canvis sense desar",

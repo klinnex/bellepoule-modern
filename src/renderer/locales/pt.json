@@ -1215,6 +1215,11 @@
     "col_department": "Departamento"
   },
   "rsm": {
+    "strip_plan": "Plano das pistas",
+    "strip_plan_unavailable": "{{count}} indisponível(is)",
+    "strip_plan_hint": "Clique numa pista para a marcar como indisponível (vermelho); fica então excluída da atribuição automática.",
+    "strip_plan_make_available": "Tornar a pista disponível novamente",
+    "strip_plan_make_unavailable": "Marcar a pista como indisponível",
     "strip_start": "Pista inicial",
     "strip_end": "Pista final",
     "unsaved": "Alterações não guardadas",

@@ -5,11 +5,16 @@
  */
 import type { Dispatch, SetStateAction } from 'react';
 import type { Pool } from '../../shared/types';
+import { useEffect } from 'react';
+import { useStripAvailability } from './useStripAvailability';
 
 export function usePoolStripChange<P extends Pool>(
+  competitionId: string,
   pools: P[],
   setPools: Dispatch<SetStateAction<P[]>>
 ) {
+  // Pistes indisponibles de la compétition (plan des pistes, #1501)
+  useEffect(() => useStripAvailability.getState().load(competitionId), [competitionId]);
   return (poolId: string, strip: number | undefined) => {
     const target = pools.find(p => p.id === poolId);
     if (!target) return;

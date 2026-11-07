@@ -1215,6 +1215,11 @@
     "col_department": "Departement"
   },
   "rsm": {
+    "strip_plan": "Bahnplan",
+    "strip_plan_unavailable": "{{count}} nicht verfügbar",
+    "strip_plan_hint": "Auf eine Bahn klicken, um sie als nicht verfügbar (rot) zu markieren; sie wird dann von der automatischen Zuweisung ausgeschlossen.",
+    "strip_plan_make_available": "Bahn wieder verfügbar machen",
+    "strip_plan_make_unavailable": "Bahn als nicht verfügbar markieren",
     "strip_start": "Startbahn",
     "strip_end": "Endbahn",
     "unsaved": "Nicht gespeicherte Änderungen",

@@ -14,6 +14,7 @@ import './styles/design.css';
 import './styles/tokens.css';
 import './styles/pool.css';
 import './styles/tableau.css';
+import './styles/strips.css';
 import './styles/training.css';
 import './styles/remote-mode.css';
 import './styles/book.css';

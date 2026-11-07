@@ -70,6 +70,7 @@ import {
 import { autoAssignReferees } from '../../shared/utils/refereeStats';
 import { useTranslation } from '../hooks/useTranslation';
 import { stripAtIndex, stripNumbers } from '../../shared/utils/stripRange';
+import { useStripAvailability } from '../hooks/useStripAvailability';
 
 interface BracketMatch {
   id: string;
@@ -490,23 +491,21 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     minHeight: 300,
   });
 
+  const unavailableStrips = useStripAvailability(s => s.unavailable);
   const distributeArenasRoundRobin = useCallback(
-    (
-      matchList: TableauMatch[],
-      only: (m: TableauMatch) => boolean = () => true
-    ): TableauMatch[] => {
+    (matchList: TableauMatch[], only?: (m: TableauMatch) => boolean): TableauMatch[] => {
       if (arenaCount <= 0) return matchList;
       let arenaIdx = 0;
       return matchList.map(m => {
-        if (m.fencerA && m.fencerB && !m.isBye && !m.winner && only(m)) {
-          const arena = stripAtIndex(stripStart, arenaCount, arenaIdx);
+        if (m.fencerA && m.fencerB && !m.isBye && !m.winner && (!only || only(m))) {
+          const arena = stripAtIndex(stripStart, arenaCount, arenaIdx, unavailableStrips);
           arenaIdx++;
           return { ...m, arena };
         }
         return m;
       });
     },
-    [arenaCount, stripStart]
+    [arenaCount, stripStart, unavailableStrips]
   );
 
   // Nombre de matchs jouables (les deux tireurs connus) — utilisé comme signal de déclenchement

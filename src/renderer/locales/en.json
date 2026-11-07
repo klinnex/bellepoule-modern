@@ -1215,6 +1215,11 @@
     "col_department": "Department"
   },
   "rsm": {
+    "strip_plan": "Strip map",
+    "strip_plan_unavailable": "{{count}} unavailable",
+    "strip_plan_hint": "Click a strip to mark it unavailable (red); it is then excluded from automatic assignment.",
+    "strip_plan_make_available": "Make strip available again",
+    "strip_plan_make_unavailable": "Mark strip unavailable",
     "strip_start": "First strip",
     "strip_end": "Last strip",
     "unsaved": "Unsaved changes",

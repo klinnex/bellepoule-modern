@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 128 |
-| `src/renderer/components/` | 59 | 297 |
+| `src/renderer/components/` | 60 | 304 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **287** | **2345** |
+| **Total** | **288** | **2352** |
 
-Unitaires : 278 fichiers, 2310 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 279 fichiers, 2317 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4120,6 +4120,21 @@ Unitaires : 278 fichiers, 2310 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **GregAutoPublishToggle**
   - affiche OFF puis bascule en ON au clic
   - affiche ON quand actif
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/StripPlanCard.test.tsx</code> — 7 tests</summary>
+
+- **StripPlanCard**
+  - est replié par défaut puis affiche les pistes de l’intervalle
+  - passe une piste en indisponible (rouge) et la persiste
+  - recharge les pistes indisponibles d’une compétition
+- **répartition automatique avec pistes indisponibles**
+  - availableStrips exclut les indisponibles, sans jamais renvoyer une liste vide
+  - stripAtIndex tourne sur les pistes disponibles
+  - computePoolStrips saute les pistes indisponibles
+  - buildSessionMatches applique les pistes calculées
 
 </details>
 

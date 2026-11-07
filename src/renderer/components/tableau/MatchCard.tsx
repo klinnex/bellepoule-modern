@@ -1,6 +1,7 @@
 import React from 'react';
 import { TableauMatch } from './tableauTypes';
 import { translateStatic } from '../../contexts/TranslationContext';
+import { useStripAvailability } from '../../hooks/useStripAvailability';
 
 interface MatchCardProps {
   match: TableauMatch;
@@ -30,6 +31,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
   readOnly = false,
   seedRanks,
 }) => {
+  const arenaUnavailable = useStripAvailability(
+    s => !!match.arena && s.unavailable.includes(match.arena)
+  );
   const canEdit = !readOnly && !!(match.fencerA && match.fencerB && !match.isBye) && !!onMatchClick;
   const hasScore = match.scoreA !== null && match.scoreB !== null;
 
@@ -113,7 +117,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
         <div className="match-badges">
           {onArenaClick && (
             <button
-              className={`match-badge-btn ${match.arena ? 'match-badge-btn--active' : ''}`}
+              className={`match-badge-btn ${match.arena ? 'match-badge-btn--active' : ''}${arenaUnavailable ? ' is-unavailable' : ''}`}
               data-tour="match-arena"
               onClick={handleArenaClick}
               title={

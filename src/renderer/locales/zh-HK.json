@@ -1215,6 +1215,11 @@
     "col_department": "省份"
   },
   "rsm": {
+    "strip_plan": "劍道圖",
+    "strip_plan_unavailable": "{{count}} 條不可用",
+    "strip_plan_hint": "點擊劍道可標示為不可用（紅色），該劍道將不參與自動分配。",
+    "strip_plan_make_available": "恢復劍道可用",
+    "strip_plan_make_unavailable": "標示劍道不可用",
     "strip_start": "起始劍道",
     "strip_end": "結束劍道",
     "unsaved": "未儲存的變更",

@@ -2088,7 +2088,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       </div>
     ) : null;
 
-  const handlePoolStripChange = usePoolStripChange(pools, setPools);
+  const handlePoolStripChange = usePoolStripChange(competition.id, pools, setPools);
 
   const renderPoolCard = (pool: (typeof pools)[number], poolIndex: number) => (
     <div key={pool.id} style={{ minWidth: 0, overflow: 'auto' }}>
