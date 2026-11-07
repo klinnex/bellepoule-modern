@@ -14,6 +14,7 @@ import {
   PlayCircle,
   Sparkles,
   Trophy,
+  Upload,
   Users,
 } from 'lucide-react';
 import { Competition, Weapon, Gender, Category } from '../../shared/types';
@@ -36,6 +37,8 @@ interface CompetitionListProps {
   onNewCompetition: () => void;
   /** Ouvre un fichier compétition existant (absent hors Electron) */
   onOpenFile?: () => void;
+  /** Importe une compétition depuis un .bpm (absent hors Electron) */
+  onImport?: () => void;
   /** Démo autonome : matchs joués seuls + écrans distants (absent hors Electron) */
   onStartDemo?: () => void;
 }
@@ -48,6 +51,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   onExport,
   onNewCompetition,
   onOpenFile,
+  onImport,
   onStartDemo,
 }) => {
   const { t } = useTranslation();
@@ -259,6 +263,18 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                 {t('competitionList.open_file')}
               </button>
             )}
+            {onImport && (
+              <button
+                type="button"
+                className="btn btn-secondary btn-lg btn-icon-label"
+                onClick={onImport}
+                style={{ padding: '0.75rem 1.5rem' }}
+                title={t('competitionList.import_title')}
+              >
+                <Upload size={18} />
+                {t('competitionList.import')}
+              </button>
+            )}
           </div>
 
           {/* Parcours guidé (#1305) : réactivé même s'il a déjà été fermé */}
@@ -317,6 +333,17 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             >
               <PlayCircle size={18} />
               {t('demo.button')}
+            </button>
+          )}
+          {onImport && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-lg btn-icon-label"
+              onClick={onImport}
+              title={t('competitionList.import_title')}
+            >
+              <Upload size={18} />
+              {t('competitionList.import')}
             </button>
           )}
           {onOpenFile && (

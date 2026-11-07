@@ -2139,6 +2139,8 @@
     "per_page": "每頁 {{n}}",
     "open_file": "開啟…",
     "open_file_title": "開啟 .bpm、.db 或 .cotcot 檔案",
+    "import": "匯入 (.bpm)",
+    "import_title": "從 .bpm 檔案匯入比賽",
     "guided_start": "第一次使用？透過導覽建立"
   },
   "trainingLauncher": {

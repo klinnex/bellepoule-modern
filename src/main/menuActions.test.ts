@@ -1,9 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 
 const showSaveDialog = vi.fn();
+const showOpenDialog = vi.fn();
 
 vi.mock('electron', () => ({
-  dialog: { showSaveDialog: (...a: unknown[]) => showSaveDialog(...a), showErrorBox: vi.fn() },
+  dialog: {
+    showSaveDialog: (...a: unknown[]) => showSaveDialog(...a),
+    showOpenDialog: (...a: unknown[]) => showOpenDialog(...a),
+    showErrorBox: vi.fn(),
+  },
 }));
 
 import { createMenuActions } from './menuActions';
@@ -15,6 +20,7 @@ function setup(competition: { title: string } | null) {
     getCompetition: vi.fn(() => competition),
     exportCompetitionToFile: vi.fn(async () => {}),
     exportToFile: vi.fn(async () => {}),
+    mergeFromFile: vi.fn(async () => ['c9']),
   };
   const actions = createMenuActions({ db: db as never, getMainWindow: () => win });
   return { send, db, actions };
@@ -48,5 +54,25 @@ describe('createMenuActions (#1341)', () => {
     showSaveDialog.mockResolvedValue({ canceled: false, filePath: '/tmp/g.bpm' });
     await actions.handleSaveAs();
     expect(db.exportToFile).toHaveBeenCalledWith('/tmp/g.bpm');
+  });
+
+  it('import accueil : boîte limitée aux .bpm, fusion puis signalement du fichier ouvert', async () => {
+    const { db, send, actions } = setup(null);
+    showOpenDialog.mockResolvedValue({ canceled: false, filePaths: ['/tmp/in.bpm'] });
+    const res = await actions.importCompetitionDialog();
+    expect(showOpenDialog.mock.calls[0][1].filters).toEqual([
+      expect.objectContaining({ extensions: ['bpm'] }),
+    ]);
+    expect(db.mergeFromFile).toHaveBeenCalledWith('/tmp/in.bpm');
+    expect(send).toHaveBeenCalledWith('file:opened', '/tmp/in.bpm', ['c9']);
+    expect(res).toEqual({ success: true, competitionIds: ['c9'] });
+  });
+
+  it('import accueil annulé : rien fusionné', async () => {
+    const { db, send, actions } = setup(null);
+    showOpenDialog.mockResolvedValue({ canceled: true, filePaths: [] });
+    expect(await actions.importCompetitionDialog()).toEqual({ success: false, canceled: true });
+    expect(db.mergeFromFile).not.toHaveBeenCalled();
+    expect(send).not.toHaveBeenCalled();
   });
 });

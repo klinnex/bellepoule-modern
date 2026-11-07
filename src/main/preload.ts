@@ -420,6 +420,7 @@ const electronApi = {
     openDialog: () => ipcRenderer.invoke('file:openDialog'),
     exportCompetition: (competitionId: string) =>
       ipcRenderer.invoke('file:exportCompetition', competitionId),
+    importCompetition: () => ipcRenderer.invoke('file:importCompetition'),
     writeContent: (filepath: string, content: string) => {
       if (!filepath || typeof filepath !== 'string') {
         throw new Error('Filepath is required and must be a string');

@@ -60,7 +60,12 @@ const createWindow = (initialLang?: string): void =>
   });
 
 const menuActions = createMenuActions({ db, getMainWindow: () => mainWindow });
-const { handleOpenFile, exportCompetitionDialog, setCurrentCompetitionId } = menuActions;
+const {
+  handleOpenFile,
+  importCompetitionDialog,
+  exportCompetitionDialog,
+  setCurrentCompetitionId,
+} = menuActions;
 const buildMenu = (language?: string): void =>
   createMenu(
     {
@@ -79,6 +84,8 @@ registerFileHandlers({ db, getMainWindow: () => mainWindow });
 ipcMain.handle('file:openDialog', async () => {
   await handleOpenFile();
 });
+
+ipcMain.handle('file:importCompetition', async () => importCompetitionDialog());
 
 ipcMain.handle('file:exportCompetition', async (_, competitionId: string) => {
   if (!competitionId || typeof competitionId !== 'string') {

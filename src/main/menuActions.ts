@@ -61,6 +61,34 @@ export function createMenuActions({ db, getMainWindow }: MenuActionsContext) {
     }
   }
 
+  /**
+   * Import d'une compétition depuis un .bpm (bouton de l'écran d'accueil) :
+   * fusion dans la base active, même flux que « Ouvrir » pour un .bpm (#1117).
+   */
+  async function importCompetitionDialog(): Promise<{
+    success: boolean;
+    canceled?: boolean;
+    competitionIds?: string[];
+    error?: string;
+  }> {
+    const L = getL();
+    const result = await dialog.showOpenDialog(getMainWindow()!, {
+      title: L.openTitle,
+      filters: [{ name: L.filterBpm, extensions: ['bpm'] }],
+      properties: ['openFile'],
+    });
+    if (result.canceled || result.filePaths.length === 0) return { success: false, canceled: true };
+    const filepath = result.filePaths[0];
+    try {
+      const ids = await db.mergeFromFile(filepath);
+      getMainWindow()?.webContents.send('file:opened', filepath, ids);
+      return { success: true, competitionIds: ids };
+    } catch (error) {
+      dialog.showErrorBox(L.errTitle, `${L.openErr} ${error}`);
+      return { success: false, error: String(error) };
+    }
+  }
+
   // Compétition affichée dans le renderer : « Enregistrer sous » l'exporte seule (#1117)
   let currentCompetitionId: string | null = null;
 
@@ -202,6 +230,7 @@ export function createMenuActions({ db, getMainWindow }: MenuActionsContext) {
 
   return {
     handleOpenFile,
+    importCompetitionDialog,
     exportCompetitionDialog,
     saveGlobalBackup,
     handleSaveAs,
