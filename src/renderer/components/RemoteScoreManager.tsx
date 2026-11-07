@@ -804,24 +804,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         : selectedInterface;
     const networkPreview = `${useHttps ? 'https' : 'http'}://${previewHost}:${remotePort}`;
 
-    const kioskPills = (
-      [
-        { key: 'poules', label: t('rsm.view_pools') },
-        { key: 'classement', label: t('rsm.view_ranking') },
-        { key: 'direct', label: t('rsm.view_live') },
-        { key: 'suivants', label: t('rsm.view_next') },
-      ] as const
-    ).map(({ key, label }) => (
-      <button
-        key={key}
-        type="button"
-        className={`rsm-pill${kioskViews[key] ? ' rsm-pill--on' : ''}`}
-        onClick={() => setKioskViews(v => ({ ...v, [key]: !v[key] }))}
-      >
-        {kioskViews[key] ? '✓' : '○'} {label}
-      </button>
-    ));
-
     return (
       <div className="remote-score-manager">
         <div className="rsm-inactive">
@@ -841,12 +823,6 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
               <div className="rsm-section-label">{t('rsm.section_strips')}</div>
               <div className="rsm-strip-row">{stripCountControls}</div>
               <StripPlanCard start={effectiveCommittedStart} end={effectiveCommitted} />
-            </div>
-
-            {/* Vues kiosque — pills */}
-            <div className="rsm-section rsm-section--full">
-              <div className="rsm-section-label">{t('rsm.section_kiosk_views')}</div>
-              <div className="rsm-pills">{kioskPills}</div>
             </div>
 
             {/* Réseau */}
