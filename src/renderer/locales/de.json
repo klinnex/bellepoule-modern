@@ -1354,7 +1354,10 @@
     "kiosk_theme_applied": "Kiosk-Thema angewendet",
     "kiosk_theme_error": "Fehler beim Anwenden des Kiosk-Themas",
     "generating": "Wird erstellt…",
-    "close": "Schließen"
+    "close": "Schließen",
+    "mode_basic": "Basis",
+    "mode_expert": "Experte",
+    "mode_tabs_label": "Anzeigemodus der Fernerfassung"
   },
   "comparison": {
     "title": "⚔️ Direkter Vergleich",

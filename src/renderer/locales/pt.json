@@ -1354,7 +1354,10 @@
     "kiosk_theme_applied": "Tema do quiosque aplicado",
     "kiosk_theme_error": "Erro ao aplicar o tema do quiosque",
     "generating": "A gerar…",
-    "close": "Fechar"
+    "close": "Fechar",
+    "mode_basic": "Básico",
+    "mode_expert": "Especialista",
+    "mode_tabs_label": "Modo de exibição da entrada remota"
   },
   "comparison": {
     "title": "⚔️ Comparação frente a frente",

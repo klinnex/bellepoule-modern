@@ -1354,7 +1354,10 @@
     "kiosk_theme_applied": "已套用資訊站主題",
     "kiosk_theme_error": "套用資訊站主題時出錯",
     "generating": "產生中…",
-    "close": "關閉"
+    "close": "關閉",
+    "mode_basic": "基本",
+    "mode_expert": "專家",
+    "mode_tabs_label": "遠端記分顯示模式"
   },
   "comparison": {
     "title": "⚔️ 對賽比較",

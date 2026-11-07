@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 55 | 283 |
+| `src/renderer/components/` | 57 | 289 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **282** | **2326** |
+| **Total** | **284** | **2332** |
 
-Unitaires : 273 fichiers, 2291 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 275 fichiers, 2297 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4099,6 +4099,15 @@ Unitaires : 273 fichiers, 2291 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/remote/UrlCopyRow.test.tsx</code> — 2 tests</summary>
+
+- **UrlCopyRow**
+  - copie l’URL et ouvre le QR code
+  - affiche « Copié » sur la ligne copiée
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/remote/remotePanels.test.tsx</code> — 4 tests</summary>
 
 - **OrgNotePanel**
@@ -4107,6 +4116,18 @@ Unitaires : 273 fichiers, 2291 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - ne requête rien hors session distante
   - ignore la liste poussée par le serveur d'une autre compétition (#1292)
   - liste les écrans, renomme et envoie le mode kiosk
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/remoteViewMode.test.tsx</code> — 4 tests</summary>
+
+- **remoteViewMode**
+  - Basique par défaut
+  - mémorise le choix par compétition
+  - valeur inconnue : retombe sur Basique
+- **RemoteViewModeTabs**
+  - affiche deux onglets et signale le changement
 
 </details>
 

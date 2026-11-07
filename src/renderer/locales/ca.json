@@ -1354,7 +1354,10 @@
     "kiosk_theme_applied": "Tema del quiosc aplicat",
     "kiosk_theme_error": "Error en aplicar el tema del quiosc",
     "generating": "S'està generant…",
-    "close": "Tanca"
+    "close": "Tanca",
+    "mode_basic": "Bàsic",
+    "mode_expert": "Expert",
+    "mode_tabs_label": "Mode de visualització de l'entrada remota"
   },
   "comparison": {
     "title": "⚔️ Comparació cara a cara",

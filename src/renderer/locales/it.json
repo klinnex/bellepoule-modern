@@ -1354,7 +1354,10 @@
     "kiosk_theme_applied": "Tema kiosk applicato",
     "kiosk_theme_error": "Errore nell'applicazione del tema kiosk",
     "generating": "Generazione…",
-    "close": "Chiudi"
+    "close": "Chiudi",
+    "mode_basic": "Base",
+    "mode_expert": "Esperto",
+    "mode_tabs_label": "Modalità di visualizzazione dell'inserimento remoto"
   },
   "comparison": {
     "title": "⚔️ Confronto testa a testa",
