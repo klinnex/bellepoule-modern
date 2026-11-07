@@ -6,6 +6,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Funnel } from 'lucide-react';
+import { resolveInlineSubmit } from '../../shared/utils/inlineScoreInput';
 import { useModalResize } from '../hooks/useModalResize';
 import { useStateGroup } from '../hooks/useStateGroup';
 import { POOL_SCORE_INPUT_INIT, POOL_DIALOGS_INIT } from './pool/poolViewState';
@@ -371,6 +372,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
   const columnMenuRef = useRef<HTMLDivElement>(null);
   const handleScoreSubmitRef = useRef<() => void>(() => {});
+  // Saisie simplifiée : cases où « W+chiffre » a désigné le vainqueur d'une égalité
+  const tieWinnerCellsRef = useRef<Set<string>>(new Set());
   // Égalité (armes olympiques, rapières) : minute prioritaire tirée et saisie rapide V (#1442)
   const [priorityPick, setPriorityPick] = useState<'A' | 'B' | null>(null);
   const [showTieChooser, setShowTieChooser] = useState(false);
@@ -809,45 +812,30 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   const handleInlineSubmit = () => {
     if (!inlineEditCell) return;
     const { key, rowId, colId, matchIndex, inverted } = inlineEditCell;
-    const score = parseInt(inlineSingleScore, 10);
-
-    if (isNaN(score) || score < 0) {
-      openNextCell(key, new Set(), cellScoreBuffer);
-      return;
-    }
-
-    const mirrorKey = `${colId}-${rowId}`;
-    const newBuffer = { ...cellScoreBuffer, [key]: score };
-
-    // Match déjà enregistré : la case miroir reprend son score actuel (#1046)
-    const mirrorScore = newBuffer[mirrorKey] ?? getRecordedCellScore(matchIndex, inverted, true);
-
-    if (mirrorScore !== undefined) {
-      const actualScoreA = inverted ? mirrorScore : score;
-      const actualScoreB = inverted ? score : mirrorScore;
-
-      const effectiveMax = maxScore || pool.matches[matchIndex]?.maxScore || 0;
-      if (effectiveMax > 0 && (actualScoreA > effectiveMax || actualScoreB > effectiveMax)) {
-        showToast(t('poolView.max_score', { max: effectiveMax }), 'error');
-        return;
-      }
-      if (actualScoreA === actualScoreB && !isLaserSabre) {
-        // Olympique / rapières : l'égalité se tranche dans la fenêtre de saisie (V ou prioritaire)
-        if (tieByVictory) {
-          openScoreModal(matchIndex, inverted);
-          return;
-        }
-        showToast(t('poolView.draw_impossible'), 'error');
-        return;
-      }
-
-      const { [key]: _a, [mirrorKey]: _b, ...restBuffer } = newBuffer;
-      setCellScoreBuffer(restBuffer);
-      onScoreUpdate(matchIndex, actualScoreA, actualScoreB);
-      openNextCell(key, new Set([key, mirrorKey]), restBuffer);
+    const r = resolveInlineSubmit({
+      raw: inlineSingleScore,
+      maxScore: maxScore || pool.matches[matchIndex]?.maxScore || 0,
+      tieByVictory,
+      isLaserSabre,
+      key,
+      rowId,
+      colId,
+      inverted,
+      buffer: cellScoreBuffer,
+      recordedMirror: getRecordedCellScore(matchIndex, inverted, true), // #1046
+      winnerCells: tieWinnerCellsRef.current,
+    });
+    if (r.action === 'skip') openNextCell(key, new Set(), cellScoreBuffer);
+    else if (r.action === 'error') showToast(t(r.msgKey, { max: r.max ?? 0 }), 'error');
+    else if (r.action === 'modal') openScoreModal(matchIndex, inverted);
+    else if (r.action === 'buffer') {
+      setCellScoreBuffer(r.buffer);
+      openNextCell(key, new Set(), r.buffer);
     } else {
-      setCellScoreBuffer(newBuffer);
-      openNextCell(key, new Set(), newBuffer);
+      setCellScoreBuffer(r.restBuffer);
+      if (r.winner) onScoreUpdate(matchIndex, r.scoreA, r.scoreB, r.winner);
+      else onScoreUpdate(matchIndex, r.scoreA, r.scoreB);
+      openNextCell(key, new Set([key, r.mirrorKey]), r.restBuffer);
     }
   };
 

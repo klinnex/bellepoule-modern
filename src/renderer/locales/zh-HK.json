@@ -790,6 +790,8 @@
     "select_referee": "為小組 {{n}} 選擇裁判：",
     "max_score": "最高分數：{{max}}",
     "draw_impossible": "不可打和！",
+    "inline_invalid": "Invalid input: number, V or W+digit",
+    "inline_win_tie_only": "W+digit is only for breaking a tie",
     "max_score_a": "選手 A 的分數不可超過 {{max}}",
     "max_score_b": "選手 B 的分數不可超過 {{max}}",
     "draw_laser": "打和：按 V 判定勝方",

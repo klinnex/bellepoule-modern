@@ -790,6 +790,8 @@
     "select_referee": "Sélectionnez l'arbitre pour la poule {{n}} :",
     "max_score": "Score maximum : {{max}}",
     "draw_impossible": "Match nul impossible !",
+    "inline_invalid": "Saisie invalide : nombre, V ou W+chiffre",
+    "inline_win_tie_only": "W+chiffre : uniquement pour départager une égalité",
     "max_score_a": "Le score du tireur A ne peut pas dépasser {{max}}",
     "max_score_b": "Le score du tireur B ne peut pas dépasser {{max}}",
     "draw_laser": "Match nul : cliquez sur V pour attribuer la victoire",

@@ -169,8 +169,9 @@ const ScoreCell = React.memo<ScoreCellProps>(
         >
           <input
             ref={inputRef}
-            type="number"
-            min={0}
+            type="text"
+            inputMode="text"
+            maxLength={5}
             value={inlineSingleScore ?? ''}
             onChange={e => onInlineSingleScoreChange?.(e.target.value)}
             onKeyDown={e => {
