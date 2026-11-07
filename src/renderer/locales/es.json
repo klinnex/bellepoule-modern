@@ -734,7 +734,8 @@
     "presentation": "Modo presentación",
     "kiosk_public": "Quiosco público",
     "properties": "Propiedades",
-    "actions_hint": "Comparación, analíticas, compartir QR..."
+    "actions_hint": "Comparación, analíticas, compartir QR...",
+    "remote_button": "Entrada remota / Pista"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} tirador",

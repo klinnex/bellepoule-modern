@@ -16,6 +16,7 @@ import {
   ChevronUp,
   Trophy,
   Download,
+  Radio,
 } from 'lucide-react';
 import { Competition, MatchStatus } from '../../../shared/types';
 import Confetti from '../Confetti';
@@ -53,6 +54,8 @@ interface CompetitionHeaderProps {
   setShowKioskDisplay: React.Dispatch<React.SetStateAction<boolean>>;
   setShowPropertiesModal: React.Dispatch<React.SetStateAction<boolean>>;
   setShowExportCenter: React.Dispatch<React.SetStateAction<boolean>>;
+  /** Ouvre l'onglet Saisie distante / Piste (#1414) */
+  onOpenRemote?: () => void;
 }
 
 const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
@@ -78,6 +81,7 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
   setShowKioskDisplay,
   setShowPropertiesModal,
   setShowExportCenter,
+  onOpenRemote,
 }) => {
   const storageKey = `bellepoule-header-expanded-${competition.id}`;
   const [expanded, setExpanded] = useState(() => {
@@ -117,17 +121,29 @@ const CompetitionHeaderComponent: React.FC<CompetitionHeaderProps> = ({
               <span className="comp-header-pill">{genderLabel(competition.gender, t)}</span>
             </div>
             <h1 className="comp-header-title">{competition.title}</h1>
-            {expanded && (
-              <p className="comp-header-meta">
-                {new Date(competition.date).toLocaleDateString(toBcp47(language), {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-                {competition.location && ` · ${competition.location}`}
-              </p>
-            )}
+            <div className="comp-header-meta-row">
+              {expanded && (
+                <p className="comp-header-meta">
+                  {new Date(competition.date).toLocaleDateString(toBcp47(language), {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                  {competition.location && ` · ${competition.location}`}
+                </p>
+              )}
+              {onOpenRemote && (
+                <button
+                  type="button"
+                  className="comp-header-remote-btn"
+                  onClick={onOpenRemote}
+                  aria-current={currentPhase === 'remote' ? 'page' : undefined}
+                >
+                  <Radio size={14} /> {t('competitionHeader.remote_button')}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Stats + actions */}

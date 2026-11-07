@@ -734,7 +734,8 @@
     "presentation": "Mode presentació",
     "kiosk_public": "Quiosc públic",
     "properties": "Propietats",
-    "actions_hint": "Comparació, analítiques, compartir QR..."
+    "actions_hint": "Comparació, analítiques, compartir QR...",
+    "remote_button": "Entrada remota / Pista"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} tirador",

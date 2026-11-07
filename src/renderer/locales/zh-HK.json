@@ -734,7 +734,8 @@
     "presentation": "簡報模式",
     "kiosk_public": "公眾資訊站",
     "properties": "屬性",
-    "actions_hint": "比較、分析、QR 分享…"
+    "actions_hint": "比較、分析、QR 分享…",
+    "remote_button": "遠端記分 / 賽道"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} 位劍手",

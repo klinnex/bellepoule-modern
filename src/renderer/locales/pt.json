@@ -734,7 +734,8 @@
     "presentation": "Modo de apresentação",
     "kiosk_public": "Quiosque público",
     "properties": "Propriedades",
-    "actions_hint": "Comparação, análises, partilha por QR..."
+    "actions_hint": "Comparação, análises, partilha por QR...",
+    "remote_button": "Entrada remota / Pista"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} esgrimista",
