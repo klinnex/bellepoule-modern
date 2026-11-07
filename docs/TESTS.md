@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 52 | 271 |
+| `src/renderer/components/` | 53 | 273 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **279** | **2314** |
+| **Total** | **280** | **2316** |
 
-Unitaires : 270 fichiers, 2279 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 271 fichiers, 2281 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4050,6 +4050,15 @@ Unitaires : 270 fichiers, 2279 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **plages de pages côté renderer (#1214)**
   - isValidPageRanges(%j) = %s _(each)_
   - pageRangesBeyond
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/DisplayOptionsPanel.test.tsx</code> — 2 tests</summary>
+
+- **DisplayOptionsPanel**
+  - change le thème et le synchronise avec le serveur
+  - bascule une vue du kiosk
 
 </details>
 
