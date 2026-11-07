@@ -2224,6 +2224,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         isTeamEvent={isTeamEvent}
         tourReady={isLoaded}
         remoteActive={isRemoteActive}
+        poolsLaunched={poolsLaunched}
       />
 
       {/* Content — keyed pour animation de transition */}
