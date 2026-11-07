@@ -16,6 +16,8 @@ interface StripRangeControlsProps {
 
 const STYLES = {
   row: { display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' as const },
+  group: { display: 'flex', alignItems: 'center', gap: '0.4rem' },
+  range: { display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' as const },
   btn: { padding: '0.2rem 0.5rem', fontSize: '1rem' },
   input: { width: '3.2rem', textAlign: 'center' as const },
 } satisfies Record<string, React.CSSProperties>;
@@ -28,7 +30,7 @@ const Stepper: React.FC<{
   disabled?: boolean;
   onChange: (v: number) => void;
 }> = ({ label, value, min, max, disabled, onChange }) => (
-  <span style={STYLES.row}>
+  <span style={STYLES.group}>
     <span>{label}</span>
     <button
       type="button"
@@ -74,7 +76,7 @@ export const StripRangeControls: React.FC<StripRangeControlsProps> = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <div style={STYLES.row}>
+    <div style={STYLES.range}>
       <Stepper
         label={t('rsm.strip_start')}
         value={start}
