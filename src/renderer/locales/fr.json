@@ -740,7 +740,8 @@
     "presentation": "Mode Présentation",
     "kiosk_public": "Kiosque public",
     "properties": "Propriétés",
-    "actions_hint": "Comparaison, analytiques, partage QR..."
+    "actions_hint": "Comparaison, analytiques, partage QR...",
+    "remote_button": "Saisie distante / Piste"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} tireur",

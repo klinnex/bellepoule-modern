@@ -740,7 +740,8 @@
     "presentation": "Mod kinnig",
     "kiosk_public": "Kiosk foran",
     "properties": "Perzhioù",
-    "actions_hint": "Keñveriañ, dielfennañ, rannañ QR..."
+    "actions_hint": "Keñveriañ, dielfennañ, rannañ QR...",
+    "remote_button": "Enrolladenn a-bell / Pist"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} c'hleze",

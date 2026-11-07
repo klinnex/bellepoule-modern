@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 53 | 279 |
+| `src/renderer/components/` | 55 | 283 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **280** | **2322** |
+| **Total** | **282** | **2326** |
 
-Unitaires : 271 fichiers, 2287 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 273 fichiers, 2291 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3956,6 +3956,15 @@ Unitaires : 271 fichiers, 2287 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/competition/CompetitionHeader.test.tsx</code> — 2 tests</summary>
+
+- **CompetitionHeader - bouton saisie distante**
+  - affiche le bouton et ouvre la saisie distante au clic
+  - sans gestionnaire : pas de bouton
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/guidedTourFlags.test.ts</code> — 5 tests</summary>
 
 - **guidedTour**
@@ -4068,6 +4077,15 @@ Unitaires : 271 fichiers, 2287 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **plages de pages côté renderer (#1214)**
   - isValidPageRanges(%j) = %s _(each)_
   - pageRangesBeyond
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/DisplayOptionsPanel.test.tsx</code> — 2 tests</summary>
+
+- **DisplayOptionsPanel**
+  - change le thème et le synchronise avec le serveur
+  - bascule une vue du kiosk
 
 </details>
 

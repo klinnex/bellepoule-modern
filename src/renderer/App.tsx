@@ -7,7 +7,6 @@ import React, { useEffect, useCallback, useState, useRef, Suspense } from 'react
 import {
   Home,
   Plus,
-  Radio,
   Sun,
   Moon,
   Contrast,
@@ -672,18 +671,6 @@ const AppContent: React.FC = () => {
               <Swords size={15} />
               {t('app.training')}
             </button>
-            {view === 'competition' && currentCompetition && (
-              <button
-                className="btn btn-secondary btn-icon-label"
-                onClick={() => {
-                  setRequestedPhase('remote');
-                }}
-                title={t('phases.remote')}
-              >
-                <Radio size={15} />
-                {t('phases.remote')}
-              </button>
-            )}
             <button
               className="btn-theme-toggle"
               onClick={() => {

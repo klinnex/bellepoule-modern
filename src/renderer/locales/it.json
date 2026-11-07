@@ -740,7 +740,8 @@
     "presentation": "Modalità presentazione",
     "kiosk_public": "Kiosk pubblico",
     "properties": "Proprietà",
-    "actions_hint": "Confronto, analytics, condivisione QR..."
+    "actions_hint": "Confronto, analytics, condivisione QR...",
+    "remote_button": "Inserimento remoto / Pedana"
   },
   "poolView": {
     "fencers_count_suffix_one": "{{count}} schermidore",

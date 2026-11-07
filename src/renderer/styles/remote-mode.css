@@ -1,0 +1,34 @@
+/* Bandeau compétition : bouton Saisie distante / Piste à droite du lieu (#1414) */
+.comp-header-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.comp-header-meta-row .comp-header-meta {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.comp-header-remote-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-left: 0.5rem;
+  padding: 0.375rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.comp-header-remote-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
