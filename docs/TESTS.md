@@ -99,16 +99,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
-| `src/renderer/hooks/` | 26 | 127 |
+| `src/renderer/hooks/` | 26 | 128 |
 | `src/renderer/components/` | 55 | 279 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **282** | **2322** |
+| **Total** | **282** | **2323** |
 
-Unitaires : 273 fichiers, 2287 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 273 fichiers, 2288 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3186,10 +3186,11 @@ Unitaires : 273 fichiers, 2287 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useColumnVisibility.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/hooks/useColumnVisibility.test.tsx</code> — 7 tests</summary>
 
 - **useColumnVisibility**
   - expose les colonnes par défaut visibles
+  - colonnes de poule par défaut : Victoires, Ratio V/M, Indice uniquement
   - toggleColumn masque puis réaffiche une colonne
   - setVisibleColumns remplace la liste
   - réglage par poule indépendant du défaut global
