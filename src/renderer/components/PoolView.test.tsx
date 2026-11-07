@@ -126,7 +126,7 @@ describe("PoolView - saisie simplifiée : correction d'un score enregistré (#10
 
     fireEvent.click(screen.getByLabelText(/Martin F poolView.cell_vs Dupont F/i));
 
-    expect(screen.getByRole('spinbutton')).toHaveValue(2);
+    expect(screen.getByRole('textbox')).toHaveValue('2');
   });
 
   it("Entrée enregistre le nouveau score en gardant celui de l'adversaire", () => {
@@ -134,7 +134,7 @@ describe("PoolView - saisie simplifiée : correction d'un score enregistré (#10
     render(<PoolView pool={testPool} onScoreUpdate={onScoreUpdate} />);
 
     fireEvent.click(screen.getByLabelText(/Martin F poolView.cell_vs Dupont F/i));
-    const input = screen.getByRole('spinbutton');
+    const input = screen.getByRole('textbox');
     fireEvent.change(input, { target: { value: '3' } });
     fireEvent.keyDown(input, { key: 'Enter' });
 
@@ -154,7 +154,7 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
 
   // Après Entrée, la case miroir s'ouvre automatiquement : on saisit dans le champ ouvert.
   const typeScore = (value: string) => {
-    const input = screen.getByRole('spinbutton');
+    const input = screen.getByRole('textbox');
     fireEvent.change(input, { target: { value } });
     fireEvent.keyDown(input, { key: 'Enter' });
   };
@@ -224,6 +224,52 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
     expect(onScoreUpdate).not.toHaveBeenCalled();
   });
 
+  it('V = victoire au score maximum', () => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} />);
+
+    enterBoth('v', '3');
+
+    expect(onScoreUpdate).toHaveBeenCalledWith(0, 5, 3);
+  });
+
+  it('W+chiffre désigne le vainqueur d’une égalité (case saisie en premier)', () => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} tieBreakByVictory />);
+
+    enterBoth('W4', '4');
+
+    expect(onScoreUpdate).toHaveBeenCalledWith(0, 4, 4, 'A');
+  });
+
+  it('W+chiffre désigne le vainqueur d’une égalité (case miroir)', () => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} tieBreakByVictory />);
+
+    enterBoth('4', 'W4');
+
+    expect(onScoreUpdate).toHaveBeenCalledWith(0, 4, 4, 'B');
+  });
+
+  it('W refusé hors égalité', () => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} tieBreakByVictory />);
+
+    enterBoth('W4', '2');
+
+    expect(onScoreUpdate).not.toHaveBeenCalled();
+  });
+
+  it('W refusé si le départage par victoire est inactif', () => {
+    const onScoreUpdate = vi.fn();
+    render(<PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} />);
+
+    fireEvent.click(screen.getByLabelText(/Dupont F poolView.cell_vs Martin F/i));
+    typeScore('W4');
+
+    expect(onScoreUpdate).not.toHaveBeenCalled();
+  });
+
   it('refuse un score supérieur au maximum', () => {
     const onScoreUpdate = vi.fn();
     render(<PoolView pool={pendingPool} onScoreUpdate={onScoreUpdate} />);
@@ -240,7 +286,7 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
     fireEvent.click(screen.getAllByLabelText('poolMatrix.reset')[0]);
 
     expect(onMatchReset).toHaveBeenCalledTimes(1);
-    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
   it('feuille signée par tous : bandeau de verrouillage et saisie bloquée', async () => {
@@ -253,7 +299,7 @@ describe('PoolView - couverture saisie, matrice et statuts (#1084)', () => {
 
     expect(await screen.findByText('poolView.locked')).toBeInTheDocument();
     fireEvent.click(screen.getAllByLabelText(/poolView.cell_enter/i)[0]);
-    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
   it('tireur abandonné : case de la matrice marquée comme statut spécial', () => {

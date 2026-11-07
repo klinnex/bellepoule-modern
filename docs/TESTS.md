@@ -83,7 +83,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 45 | 640 |
+| `src/shared/utils/` | 46 | 646 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 51 | 263 |
+| `src/renderer/components/` | 51 | 268 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **276** | **2294** |
+| **Total** | **277** | **2305** |
 
-Unitaires : 267 fichiers, 2259 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 268 fichiers, 2270 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -577,6 +577,19 @@ Unitaires : 267 fichiers, 2259 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - accepte le point-virgule (Excel FR) et les retours à la ligne dans une cellule
   - applique les traductions, garde l’ordre de la référence, ignore cellules vides et clés inconnues
   - refuse un CSV sans en-tête attendu
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/inlineScoreInput.test.ts</code> — 6 tests</summary>
+
+- **parseInlineScoreInput**
+  - vide
+  - score numérique
+  - V = score max (insensible à la casse)
+  - V sans score max = invalide
+  - W+chiffre = victoire de départage
+  - formats invalides
 
 </details>
 
@@ -3719,7 +3732,7 @@ Unitaires : 267 fichiers, 2259 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/PoolView.test.tsx</code> — 14 tests</summary>
+<summary><code>src/renderer/components/PoolView.test.tsx</code> — 19 tests</summary>
 
 - **PoolView - saisie simplifiée : suppression au survol**
   - survoler une case scorée puis appuyer sur Suppr efface le score du match
@@ -3734,6 +3747,11 @@ Unitaires : 267 fichiers, 2259 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - en-tête : indique l'avancement puis « Terminée » selon pool.isComplete
   - saisie des deux cases d'un match neuf : un seul onScoreUpdate avec les deux scores
   - refuse un match nul
+  - V = victoire au score maximum
+  - W+chiffre désigne le vainqueur d’une égalité (case saisie en premier)
+  - W+chiffre désigne le vainqueur d’une égalité (case miroir)
+  - W refusé hors égalité
+  - W refusé si le départage par victoire est inactif
   - refuse un score supérieur au maximum
   - bouton « Annuler ce résultat » : déclenche onMatchReset sans ouvrir la saisie
   - feuille signée par tous : bandeau de verrouillage et saisie bloquée
