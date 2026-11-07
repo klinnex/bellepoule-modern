@@ -338,6 +338,20 @@ describe('issue #906 — import .fff', () => {
     expect(f.license).toBe('42');
   });
 
+  it('département : aller-retour export/import FFF (#1504)', () => {
+    const out = exportFencersToFFF([mk('Dupont', 'Jean', { region: 'IDF', department: '75' })]);
+    const f = parseFFEFile(out).fencers[0];
+    expect(f.department).toBe('75');
+    expect(f.region).toBe('IDF');
+  });
+
+  it('département : lu après le classement, nationalité non confondue (#1504)', () => {
+    const f = parseFFEFile('DUPONT,Jean,01/01/2000,M,FRA;,,;1,IDF,CE X,3,2a,;1,t').fencers[0];
+    expect(f.department).toBe('2A');
+    const g = parseFFEFile('DUPONT,Jean,01/01/2000,M,FRA;,,;1,IDF,CE X,3,FRA,;1,t').fencers[0];
+    expect(g.department).toBeUndefined();
+  });
+
   it('fichier FFE réel (Windows-1252, lignes de métadonnées)', () => {
     const text =
       'FFF;WIN;competition;;individuel\n28/09/2026;S;Seniors;;\nHÉLÈNE,Zoé,02/03/1995,F,FRA;,,;123456,ILE DE FRANCE,CE PARIS,12,t\n';

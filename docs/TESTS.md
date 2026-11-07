@@ -83,7 +83,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 46 | 646 |
+| `src/shared/utils/` | 47 | 652 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 51 | 268 |
+| `src/renderer/components/` | 51 | 269 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **277** | **2305** |
+| **Total** | **278** | **2312** |
 
-Unitaires : 268 fichiers, 2270 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 269 fichiers, 2277 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -376,6 +376,16 @@ Unitaires : 268 fichiers, 2270 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/shared/utils/departments.test.ts</code> — 3 tests</summary>
+
+- **departments**
+  - codes uniques, Corse et outre-mer inclus
+  - normalise la saisie
+  - nom et libellé
+
+</details>
+
+<details>
 <summary><code>src/shared/utils/errorLogger.test.ts</code> — 7 tests</summary>
 
 - **logError / getErrorLogs**
@@ -395,7 +405,7 @@ Unitaires : 268 fichiers, 2270 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/fencerExport.test.ts</code> — 11 tests</summary>
+<summary><code>src/shared/utils/fencerExport.test.ts</code> — 12 tests</summary>
 
 - **exportFencersToFFF**
   - commence par l’en-tête FFF standard
@@ -410,6 +420,8 @@ Unitaires : 268 fichiers, 2270 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - affiche le nom en majuscules et l’année de naissance
   - affiche le classement préfixé de # ou un tiret
   - clôt la liste par une ligne de fin
+- **exportFencersToFFF — département (#1504)**
+  - écrit le département après le classement
 
 </details>
 
@@ -451,7 +463,7 @@ Unitaires : 268 fichiers, 2270 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/fileParser.test.ts</code> — 43 tests</summary>
+<summary><code>src/shared/utils/fileParser.test.ts</code> — 45 tests</summary>
 
 - **parseSimpleTXTFile**
   - fichier vide → success=false, erreur
@@ -495,6 +507,8 @@ Unitaires : 268 fichiers, 2270 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - nom contenant « nom » / « x » (pas pris pour un en-tête)
   - fichier sans en-tête : premier tireur conservé
   - club contenant une virgule : champs non décalés
+  - département : aller-retour export/import FFF (#1504)
+  - département : lu après le classement, nationalité non confondue (#1504)
   - fichier FFE réel (Windows-1252, lignes de métadonnées)
   - decodeTextFile garde l’UTF-8 valide
   - .fff ouvert via « Importer XML » → parseur FFE
@@ -3490,13 +3504,14 @@ Unitaires : 268 fichiers, 2270 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/AddFencerModal.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/components/AddFencerModal.test.tsx</code> — 7 tests</summary>
 
 - **AddFencerModal**
   - ajoute un tireur avec nom en majuscules puis ferme
   - ne soumet pas sans nom/prénom
   - annuler efface les champs sans fermer la modale
   - droitier par défaut, gaucher transmis
+  - département choisi dans la liste transmis (#1504)
   - Ajouter garde la modale ouverte et vide le formulaire
   - la liste déroulante des nationalités sélectionne le code
 

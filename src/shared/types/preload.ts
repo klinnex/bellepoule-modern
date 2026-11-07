@@ -62,6 +62,7 @@ export interface FencerCreateData {
   gender: string;
   nationality: string;
   region?: string;
+  department?: string;
   club?: string;
   license?: string;
   ranking?: number;
@@ -76,6 +77,7 @@ export interface FencerUpdateData {
   gender?: string;
   nationality?: string;
   region?: string;
+  department?: string;
   club?: string;
   license?: string;
   ranking?: number;
