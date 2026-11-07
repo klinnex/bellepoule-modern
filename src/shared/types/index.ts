@@ -626,7 +626,7 @@ export interface CompetitionSettings {
   customFormula?: CustomFormulaConfig; // Formule à la carte (arme CUSTOM uniquement)
   specialMode?: CompetitionSpecialMode; // Mode spécial (arme CUSTOM) : tournoi des rapières (#1118)
   playAllPositions?: boolean; // Jouer toutes les places (tableaux de classement)
-  expertMode?: boolean; // Mode expert : édition avancée des pistes et arbitres
+  expertMode?: boolean; // Mode expert : édition avancée des pistes et arbitres (actif par défaut)
   maxRefereesPerPool?: number; // Nombre max d'arbitres par poule (mode expert)
   maxRefereesPerMatch?: number; // Nombre max d'arbitres par match DE (mode expert)
   // Modes spéciaux post-poules

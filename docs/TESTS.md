@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 56 | 282 |
+| `src/renderer/components/` | 57 | 284 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **284** | **2329** |
+| **Total** | **285** | **2331** |
 
-Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 276 fichiers, 2296 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4007,6 +4007,15 @@ Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - clic sur une cellule éditable déclenche onCellClick
   - ne déclenche pas onCellClick si verrouillé
   - rapières : cases de la vague en cours surlignées en violet (#1118)
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/pool/PoolStripButton.test.tsx</code> — 2 tests</summary>
+
+- **PoolStripButton**
+  - propose uniquement les pistes de l’intervalle et applique le choix
+  - permet de retirer la piste (automatique)
 
 </details>
 

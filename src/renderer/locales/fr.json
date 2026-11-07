@@ -739,6 +739,10 @@
     "remote_button": "Saisie distante / Piste"
   },
   "poolView": {
+    "assign_strip": "Assigner une piste",
+    "add_strip": "Piste",
+    "strip_n": "Piste {{n}}",
+    "select_strip": "Choisir la piste de la poule {{n}} (modifiable match par match en vue Match).",
     "fencers_count_suffix_one": "{{count}} tireur",
     "fencers_count_suffix_other": "{{count}} tireurs",
     "quick_score": "Saisie rapide du score",
@@ -769,7 +773,6 @@
     "autofill": "Remplir automatiquement les scores (test)",
     "print_title": "Imprimer la feuille de poule (Ctrl+P)",
     "print_aria": "Imprimer la feuille de poule",
-    "export_pdf": "Exporter la poule en PDF",
     "signatures_title": "Page signatures — arène {{arena}}",
     "signatures": "Page signatures",
     "add_fencer": "Ajouter un tireur à cette poule",
@@ -797,8 +800,6 @@
     "max_score_b": "Le score du tireur B ne peut pas dépasser {{max}}",
     "draw_laser": "Match nul : cliquez sur V pour attribuer la victoire",
     "draw_live": "Match nul impossible ! En match en direct, la mort subite de 30s s'applique automatiquement",
-    "pdf_done": "Export PDF de la poule {{n}} généré avec succès",
-    "pdf_error": "Erreur lors de la génération du PDF : {{error}}",
     "print_error": "Erreur lors de l'impression : {{error}}",
     "unknown_error": "Erreur inconnue",
     "autofill_confirm": "Remplir automatiquement tous les scores des matchs non terminés ?\n\nLes scores seront générés aléatoirement pour les tests.",

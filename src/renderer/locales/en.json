@@ -739,6 +739,10 @@
     "remote_button": "Remote scoring / Strip"
   },
   "poolView": {
+    "assign_strip": "Assign a strip",
+    "add_strip": "Strip",
+    "strip_n": "Strip {{n}}",
+    "select_strip": "Choose the strip for pool {{n}} (can be changed per match in Match view).",
     "fencers_count_suffix_one": "{{count}} fencer",
     "fencers_count_suffix_other": "{{count}} fencers",
     "quick_score": "Quick score entry",
@@ -769,7 +773,6 @@
     "autofill": "Fill in scores automatically (test)",
     "print_title": "Print the pool sheet (Ctrl+P)",
     "print_aria": "Print the pool sheet",
-    "export_pdf": "Export the pool as PDF",
     "signatures_title": "Signature page — arena {{arena}}",
     "signatures": "Signature page",
     "add_fencer": "Add a fencer to this pool",
@@ -797,8 +800,6 @@
     "max_score_b": "Fencer B's score cannot exceed {{max}}",
     "draw_laser": "Draw: click V to award the victory",
     "draw_live": "A draw is not allowed! In a live bout, the 30 s sudden death applies automatically",
-    "pdf_done": "PDF export of pool {{n}} generated",
-    "pdf_error": "Error generating the PDF: {{error}}",
     "print_error": "Printing error: {{error}}",
     "unknown_error": "Unknown error",
     "autofill_confirm": "Automatically fill in all scores of unfinished bouts?\n\nScores will be generated randomly for testing.",

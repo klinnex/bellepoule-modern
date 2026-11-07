@@ -739,6 +739,10 @@
     "remote_button": "Entrada remota / Pista"
   },
   "poolView": {
+    "assign_strip": "Assignar una pista",
+    "add_strip": "Pista",
+    "strip_n": "Pista {{n}}",
+    "select_strip": "Triar la pista de la poule {{n}} (modificable per combat a la vista de combats).",
     "fencers_count_suffix_one": "{{count}} tirador",
     "fencers_count_suffix_other": "{{count}} tiradors",
     "quick_score": "Entrada ràpida del resultat",
@@ -769,7 +773,6 @@
     "autofill": "Omple els resultats automàticament (prova)",
     "print_title": "Imprimeix el full de poule (Ctrl+P)",
     "print_aria": "Imprimeix el full de poule",
-    "export_pdf": "Exporta la poule en PDF",
     "signatures_title": "Pàgina de signatures — arena {{arena}}",
     "signatures": "Pàgina de signatures",
     "add_fencer": "Afegeix un tirador a aquesta poule",
@@ -797,8 +800,6 @@
     "max_score_b": "La puntuació del tirador B no pot superar {{max}}",
     "draw_laser": "Empat: feu clic a V per atribuir la victòria",
     "draw_live": "Empat impossible! En un combat en directe, la mort sobtada de 30 s s'aplica automàticament",
-    "pdf_done": "Exportació PDF de la poule {{n}} generada",
-    "pdf_error": "Error en generar el PDF: {{error}}",
     "print_error": "Error en imprimir: {{error}}",
     "unknown_error": "Error desconegut",
     "autofill_confirm": "Omplir automàticament tots els marcadors dels combats no acabats?\n\nEls marcadors es generaran aleatòriament per a proves.",

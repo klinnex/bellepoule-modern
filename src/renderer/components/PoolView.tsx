@@ -34,6 +34,7 @@ import PoolScoreMatrix from './pool/PoolScoreMatrix';
 import PoolMatchList from './pool/PoolMatchList';
 import Confetti from './Confetti';
 import AddFencerToPoolModal from './AddFencerToPoolModal';
+import { PoolStripButton } from './pool/PoolStripButton';
 import { MatchAuditLog } from './MatchAuditLog';
 import { MedicalCrossIcon } from './common/MedicalCrossIcon';
 import SpecialStatusPanel, {
@@ -105,6 +106,7 @@ interface PoolViewProps {
   onFencerAdded?: (updatedPool: Pool) => void;
   assignedFencerIds?: ReadonlySet<string>;
   stripRange?: { start: number; end: number };
+  onStripChange?: (poolId: string, strip: number | undefined) => void;
   arenas?: Arena[];
   isRemoteActive?: boolean;
   remoteServerUrl?: string;
@@ -156,6 +158,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   onFencerAdded,
   assignedFencerIds,
   stripRange,
+  onStripChange,
   arenas,
   isRemoteActive,
   remoteServerUrl,
@@ -1032,19 +1035,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
 
   const errorText = (e: unknown) => (e instanceof Error ? e.message : t('poolView.unknown_error'));
 
-  // Export PDF function
-  const handleExportPDF = async () => {
-    try {
-      const options = await buildPoolPrintOptions();
-      const { exportPoolToPDF } = await import('../../shared/utils/pdfExport');
-      await exportPoolToPDF(pool, options, poolTemplate);
-      showToast(t('poolView.pdf_done', { n: pool.number }), 'success');
-    } catch (error) {
-      logger.error(LogCategory.UI, "Erreur lors de l'export PDF", error as Error);
-      showToast(t('poolView.pdf_error', { error: errorText(error) }), 'error');
-    }
-  };
-
   // Impression directe de la feuille de poule (Ctrl+P / bouton 🖨️)
   const handlePrintPool = async () => {
     try {
@@ -1644,6 +1634,14 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 ? assignedReferees.map(r => r.lastName).join(' / ')
                 : t('poolView.add_referee')}
             </button>
+            {stripRange && onStripChange && (
+              <PoolStripButton
+                poolNumber={pool.number}
+                strip={pool.strip}
+                stripRange={stripRange}
+                onChange={strip => onStripChange(pool.id, strip)}
+              />
+            )}
           </div>
           <div className="pv-toolbar">
             <button
@@ -1679,14 +1677,6 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               aria-label={t('poolView.print_aria')}
             >
               🖨️
-            </button>
-            <button
-              onClick={handleExportPDF}
-              className="pv-icon-btn is-green"
-              title={t('poolView.export_pdf')}
-              aria-label={t('poolView.export_pdf')}
-            >
-              📄
             </button>
             {pool.isComplete && isRemoteActive && remoteServerUrl && (
               <button

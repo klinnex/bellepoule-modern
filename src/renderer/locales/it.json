@@ -739,6 +739,10 @@
     "remote_button": "Inserimento remoto / Pedana"
   },
   "poolView": {
+    "assign_strip": "Assegna una pedana",
+    "add_strip": "Pedana",
+    "strip_n": "Pedana {{n}}",
+    "select_strip": "Scegli la pedana del girone {{n}} (modificabile per singolo incontro nella vista incontri).",
     "fencers_count_suffix_one": "{{count}} schermidore",
     "fencers_count_suffix_other": "{{count}} schermidori",
     "quick_score": "Inserimento rapido del punteggio",
@@ -769,7 +773,6 @@
     "autofill": "Compila automaticamente i punteggi (test)",
     "print_title": "Stampa il foglio del girone (Ctrl+P)",
     "print_aria": "Stampa il foglio del girone",
-    "export_pdf": "Esporta il girone in PDF",
     "signatures_title": "Pagina firme — arena {{arena}}",
     "signatures": "Pagina firme",
     "add_fencer": "Aggiungi uno schermidore a questo girone",
@@ -797,8 +800,6 @@
     "max_score_b": "Il punteggio dello schermidore B non può superare {{max}}",
     "draw_laser": "Pareggio: clicca su V per assegnare la vittoria",
     "draw_live": "Pareggio impossibile! In un incontro dal vivo, la morte improvvisa di 30 s si applica automaticamente",
-    "pdf_done": "Esportazione PDF del girone {{n}} generata con successo",
-    "pdf_error": "Errore durante la generazione del PDF: {{error}}",
     "print_error": "Errore durante la stampa: {{error}}",
     "unknown_error": "Errore sconosciuto",
     "autofill_confirm": "Compilare automaticamente tutti i punteggi degli incontri non terminati?\n\nI punteggi saranno generati in modo casuale per i test.",

@@ -739,6 +739,10 @@
     "remote_button": "Entrada remota / Pista"
   },
   "poolView": {
+    "assign_strip": "Atribuir uma pista",
+    "add_strip": "Pista",
+    "strip_n": "Pista {{n}}",
+    "select_strip": "Escolher a pista da poule {{n}} (alterável por combate na vista de combates).",
     "fencers_count_suffix_one": "{{count}} esgrimista",
     "fencers_count_suffix_other": "{{count}} esgrimistas",
     "quick_score": "Introdução rápida de resultados",
@@ -769,7 +773,6 @@
     "autofill": "Preencher os resultados automaticamente (teste)",
     "print_title": "Imprimir a folha da poule (Ctrl+P)",
     "print_aria": "Imprimir a folha da poule",
-    "export_pdf": "Exportar a poule em PDF",
     "signatures_title": "Página de assinaturas — pista {{arena}}",
     "signatures": "Página de assinaturas",
     "add_fencer": "Adicionar um esgrimista a esta poule",
@@ -797,8 +800,6 @@
     "max_score_b": "O resultado do esgrimista B não pode exceder {{max}}",
     "draw_laser": "Empate: clique em V para atribuir a vitória",
     "draw_live": "Não são permitidos empates! Num combate em direto, a morte súbita de 30 s aplica-se automaticamente",
-    "pdf_done": "Exportação PDF da poule {{n}} gerada",
-    "pdf_error": "Erro ao gerar o PDF: {{error}}",
     "print_error": "Erro de impressão: {{error}}",
     "unknown_error": "Erro desconhecido",
     "autofill_confirm": "Preencher automaticamente todos os resultados dos combates não terminados?\n\nOs resultados serão gerados aleatoriamente para teste.",
