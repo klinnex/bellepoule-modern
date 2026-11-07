@@ -21,6 +21,13 @@ describe('useColumnVisibility', () => {
     expect(result.current.isColumnVisible('ranking', 'rank')).toBe(true);
   });
 
+  it('colonnes de poule par défaut : Victoires, Ratio V/M, Indice uniquement', () => {
+    const { result } = renderHook(() => useColumnVisibility());
+    expect(result.current.getVisibleColumns('pool')).toEqual(['victories', 'ratio', 'index']);
+    expect(result.current.isColumnVisible('pool', 'td')).toBe(false);
+    expect(result.current.isColumnVisible('pool', 'tr')).toBe(false);
+  });
+
   it('toggleColumn masque puis réaffiche une colonne', () => {
     const { result } = renderHook(() => useColumnVisibility());
     act(() => result.current.toggleColumn('pool', 'victories'));
@@ -38,11 +45,11 @@ describe('useColumnVisibility', () => {
 
   it('réglage par poule indépendant du défaut global', () => {
     const { result } = renderHook(() => useColumnVisibility());
-    act(() => result.current.toggleColumn('pool', 'td', 'poolX'));
-    // poolX : td masquée ; le défaut global reste inchangé
-    expect(result.current.isColumnVisible('pool', 'td', 'poolX')).toBe(false);
-    expect(result.current.isColumnVisible('pool', 'td')).toBe(true);
-    expect(result.current.isColumnVisible('pool', 'td', 'autrePool')).toBe(true);
+    act(() => result.current.toggleColumn('pool', 'ratio', 'poolX'));
+    // poolX : ratio masquée ; le défaut global reste inchangé
+    expect(result.current.isColumnVisible('pool', 'ratio', 'poolX')).toBe(false);
+    expect(result.current.isColumnVisible('pool', 'ratio')).toBe(true);
+    expect(result.current.isColumnVisible('pool', 'ratio', 'autrePool')).toBe(true);
   });
 
   it('setAllPoolColumns applique à tous et efface les réglages propres', () => {

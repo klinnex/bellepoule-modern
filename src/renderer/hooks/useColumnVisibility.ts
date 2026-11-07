@@ -57,8 +57,11 @@ interface VisibilityState {
   pools: Record<string, ColumnId[]>; // réglages indépendants par poule (clé = pool.id)
 }
 
+// Colonnes de poule affichées par défaut à la première utilisation (issue #1505)
+export const DEFAULT_POOL_COLUMNS: ColumnId[] = ['victories', 'ratio', 'index'];
+
 const DEFAULT_VISIBILITY: VisibilityState = {
-  pool: POOL_COLUMNS.map(c => c.id),
+  pool: DEFAULT_POOL_COLUMNS,
   ranking: RANKING_COLUMNS.map(c => c.id),
   pools: {},
 };

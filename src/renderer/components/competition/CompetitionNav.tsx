@@ -76,6 +76,7 @@ interface CompetitionNavProps {
   tourReady?: boolean;
   /** Saisie distante active (étape « Saisie distante » du parcours guidé) */
   remoteActive?: boolean;
+  poolsLaunched?: boolean;
 }
 
 const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
@@ -98,6 +99,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
   isTeamEvent = false,
   tourReady = false,
   remoteActive = false,
+  poolsLaunched = false,
 }) => {
   const [tourHighlightPhase, setTourHighlightPhase] = useState<string | null>(null);
   return (
@@ -114,6 +116,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
             tableauMatches.filter(m => !m.isBye && m.scoreA != null && m.scoreB != null).length
           }
           remoteActive={remoteActive}
+          poolsLaunched={poolsLaunched}
           prepOpen={currentPhase === 'poolprep'}
         />
       )}
@@ -200,7 +203,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                       : undefined
                   }
                 >
-                  {t('competitionNav.generate')}
+                  {t(pools.length > 0 ? 'competitionNav.regenerate' : 'competitionNav.generate')}
                   {getCheckedInFencers().length < 4 && (
                     <span className="btn-count-hint">{getCheckedInFencers().length}/4</span>
                   )}

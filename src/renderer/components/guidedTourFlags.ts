@@ -16,11 +16,12 @@ export const TOUR_STEP_PHASE: Record<TourStepId, string> = {
   edit: 'tableau',
 };
 
+/** La saisie distante (optionnelle) vient en premier */
 export const TOUR_STEPS: TourStepId[] = [
+  'remote',
   'fencers',
   'checkin',
   'pools',
-  'remote',
   'scores',
   'tableau',
   'edit',
@@ -35,6 +36,8 @@ export interface TourState {
   fencersCount: number;
   checkedInCount: number;
   poolsCount: number;
+  /** Poules lancées (clic sur « Lancer les poules » dans la préparation) */
+  poolsLaunched: boolean;
   finishedPoolMatches: number;
   tableauMatchesCount: number;
   /** Matchs de tableau (hors exempts) dont le score est saisi */
@@ -51,10 +54,11 @@ export function tourStepDone(step: TourStepId, s: TourState): boolean {
     case 'checkin':
       return s.checkedInCount > 0;
     case 'pools':
-      return s.poolsCount > 0;
+      // Validée au clic sur « Lancer les poules » (ou si la suite est déjà engagée)
+      return s.poolsLaunched || s.finishedPoolMatches > 0 || s.tableauMatchesCount > 0;
     case 'remote':
-      // Facultative : validée aussi si les scores sont saisis directement sur ce poste
-      return s.remoteActive || s.finishedPoolMatches > 0;
+      // Optionnelle : validée aussi dès que des tireurs existent (étape passée) ou des scores saisis
+      return s.remoteActive || s.fencersCount > 0 || s.finishedPoolMatches > 0;
     case 'scores':
       return s.finishedPoolMatches > 0;
     case 'tableau':

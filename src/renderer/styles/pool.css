@@ -682,3 +682,21 @@ button.pv-pill {
   min-width: min(100%, 480px);
   margin: 0 auto;
 }
+
+/* Préparation des poules : champs Min / Max (#1499) */
+.pool-prep-minmax {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+.pool-prep-minmax-sep {
+  align-self: stretch;
+  width: 1px;
+  background: var(--color-border-dark);
+}
+.pool-prep-unplaced {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-warning, #d97706);
+  font-size: 0.85rem;
+}

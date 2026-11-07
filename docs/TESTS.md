@@ -99,16 +99,16 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/database/` | 5 | 135 |
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
-| `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 56 | 282 |
+| `src/renderer/hooks/` | 26 | 128 |
+| `src/renderer/components/` | 58 | 295 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **284** | **2329** |
+| **Total** | **286** | **2343** |
 
-Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 277 fichiers, 2308 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3197,10 +3197,11 @@ Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/hooks/useColumnVisibility.test.tsx</code> — 6 tests</summary>
+<summary><code>src/renderer/hooks/useColumnVisibility.test.tsx</code> — 7 tests</summary>
 
 - **useColumnVisibility**
   - expose les colonnes par défaut visibles
+  - colonnes de poule par défaut : Victoires, Ratio V/M, Indice uniquement
   - toggleColumn masque puis réaffiche une colonne
   - setVisibleColumns remplace la liste
   - réglage par poule indépendant du défaut global
@@ -3592,7 +3593,7 @@ Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/CompetitionView.test.tsx</code> — 11 tests</summary>
+<summary><code>src/renderer/components/CompetitionView.test.tsx</code> — 12 tests</summary>
 
 - **CompetitionView**
   - affiche la navigation des phases, appel actif et poules verrouillées
@@ -3604,6 +3605,8 @@ Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - plusieurs tours de poules : libellé « tour 1/2 »
   - l'appel se stabilise : plus aucun rendu une fois chargé
   - pointer un tireur met à jour son statut en base
+  - **accès aux étapes et relance (#1499)**
+    - Préparation grisée avant « Préparer », Poules grisée avant « Lancer »
   - **compétition par équipes (#1085)**
     - remplace poules/tableau individuels par les phases équipes
     - « Composer les équipes » ouvre la phase équipes intégrée (sans modale)
@@ -3672,14 +3675,14 @@ Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 12 tests</summary>
+<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 13 tests</summary>
 
 - **GuidedTour**
   - se propose une fois sur une compétition vide
   - ne se propose pas sur une compétition déjà remplie
   - passer le parcours le masque et ne le refait pas apparaître
   - se relance depuis les paramètres
-  - propose la saisie distante après la génération des poules
+  - propose la saisie distante (optionnelle) en première étape
   - met en évidence la phase de l’étape en cours
   - revient à l’étape précédente avec le bouton Retour
   - entoure d’un halo les boutons utiles de l’étape
@@ -3687,6 +3690,7 @@ Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - Suivant avance d’une étape, Retour revient
   - refaire l’action après Retour fait avancer de nouveau
   - étape poules : explication glisser-déposer et halo sur Lancer quand la préparation est ouverte
+  - étape poules : validée seulement une fois les poules lancées
 
 </details>
 
@@ -3754,6 +3758,16 @@ Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - crée une compétition avec le titre saisi
   - génère un titre par défaut si vide
   - le bouton annuler ferme la modale
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/PoolPrepView.test.tsx</code> — 3 tests</summary>
+
+- **PoolPrepView (#1499)**
+  - titres Min / Max séparés au-dessus des deux champs
+  - le tireur ajouté depuis l'appel n'entre pas dans les poules avant la repréparation
+  - bouton « Lancer » puis « Relancer » une fois les poules lancées
 
 </details>
 
@@ -3955,8 +3969,10 @@ Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/competition/CompetitionHeader.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/competition/CompetitionHeader.test.tsx</code> — 3 tests</summary>
 
+- **CompetitionHeader - bouton propriétés (#1505)**
+  - affiche le bouton directement dans le bandeau et ouvre les propriétés
 - **CompetitionHeader - bouton saisie distante**
   - affiche le bouton et ouvre la saisie distante au clic
   - sans gestionnaire : pas de bouton
@@ -3964,12 +3980,13 @@ Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/guidedTourFlags.test.ts</code> — 5 tests</summary>
+<summary><code>src/renderer/components/guidedTourFlags.test.ts</code> — 6 tests</summary>
 
 - **guidedTour**
-  - commence par l’ajout des tireurs sur une compétition vide
+  - commence par la saisie distante (optionnelle) sur une compétition vide
   - valide les étapes selon l’état de la compétition
-  - la saisie distante est validée par le serveur actif ou par une saisie sur ce poste
+  - la saisie distante est validée par le serveur actif ou en passant à la suite
+  - l’étape poules n’est validée qu’au clic sur Lancer les poules
   - retourne null quand toutes les étapes sont faites
   - mémorise le drapeau et ignore les valeurs invalides
 
@@ -4028,6 +4045,21 @@ Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **usePoolReferees**
   - bascule la sélection sans dépasser maxRefereesPerPool
   - enregistre l’affectation et notifie le parent
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/poolLaunchState.test.ts</code> — 6 tests</summary>
+
+- **poolsHaveScores**
+  - faux sans poule ou sans match saisi
+  - vrai dès qu'un match est saisi ou avancé
+- **inferPoolsLaunched (anciennes sessions)**
+  - faux en appel / préparation sans score
+  - vrai si phase postérieure, historique ou score saisi
+- **poolTabLock**
+  - tout verrouillé avant « Préparer les poules »
+  - Préparation libre une fois préparées, Poules libre une fois lancées
 
 </details>
 
