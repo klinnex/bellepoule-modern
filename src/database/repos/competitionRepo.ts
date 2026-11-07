@@ -65,6 +65,8 @@ export class CompetitionRepo {
          )`,
         [id]
       );
+      // Matchs de tableau (table_id = compétition) : sans cela, un ré-import laisse des matchs obsolètes
+      this.sql.run('DELETE FROM matches WHERE table_id = ? AND round IS NOT NULL', [id]);
       this.sql.run('DELETE FROM fencers WHERE competition_id = ?', [id]);
       this.sql.run('DELETE FROM competitions WHERE id = ?', [id]);
     });

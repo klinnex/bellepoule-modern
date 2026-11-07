@@ -96,7 +96,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
-| `src/database/` | 5 | 135 |
+| `src/database/` | 6 | 138 |
 | `src/main/` | 51 | 417 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 128 |
@@ -106,9 +106,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **289** | **2359** |
+| **Total** | **290** | **2362** |
 
-Unitaires : 280 fichiers, 2324 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 281 fichiers, 2327 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2004,6 +2004,16 @@ Unitaires : 280 fichiers, 2324 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 ### `src/database/`
+
+<details>
+<summary><code>src/database/bpmSnapshot.test.ts</code> — 3 tests</summary>
+
+- **.bpm snapshot (DatabaseManager réel)**
+  - restitue à l’identique le contenu de chaque table de la compétition
+  - n’embarque aucune donnée d’une autre compétition
+  - ré-import remplace l’état existant : aucun match obsolète ne subsiste
+
+</details>
 
 <details>
 <summary><code>src/database/competitionArchive.test.ts</code> — 4 tests</summary>
