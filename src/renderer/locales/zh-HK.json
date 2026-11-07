@@ -744,6 +744,10 @@
     "remote_button": "遠端記分 / 賽道"
   },
   "poolView": {
+    "assign_strip": "指派劍道",
+    "add_strip": "劍道",
+    "strip_n": "劍道 {{n}}",
+    "select_strip": "選擇第 {{n}} 組的劍道（可在對戰檢視中逐場修改）。",
     "fencers_count_suffix_one": "{{count}} 位劍手",
     "fencers_count_suffix_other": "{{count}} 位劍手",
     "quick_score": "快速輸入分數",
@@ -774,7 +778,6 @@
     "autofill": "自動填寫分數（測試）",
     "print_title": "列印小組表（Ctrl+P）",
     "print_aria": "列印小組表",
-    "export_pdf": "匯出小組為 PDF",
     "signatures_title": "簽署頁 — 場地 {{arena}}",
     "signatures": "簽署頁",
     "add_fencer": "加入劍手至此小組",
@@ -802,8 +805,6 @@
     "max_score_b": "選手 B 的分數不可超過 {{max}}",
     "draw_laser": "打和：按 V 判定勝方",
     "draw_live": "不可打和！現場比賽會自動進行 30 秒驟死",
-    "pdf_done": "已產生第 {{n}} 組 PDF",
-    "pdf_error": "產生 PDF 時發生錯誤：{{error}}",
     "print_error": "列印時發生錯誤：{{error}}",
     "unknown_error": "未知錯誤",
     "autofill_confirm": "自動填寫所有未完成比賽的比分？\n\n比分會隨機產生，僅供測試。",

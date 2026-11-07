@@ -744,6 +744,10 @@
     "remote_button": "Entrada remota / Pista"
   },
   "poolView": {
+    "assign_strip": "Asignar una pista",
+    "add_strip": "Pista",
+    "strip_n": "Pista {{n}}",
+    "select_strip": "Elegir la pista de la poule {{n}} (modificable por combate en la vista de combates).",
     "fencers_count_suffix_one": "{{count}} tirador",
     "fencers_count_suffix_other": "{{count}} tiradores",
     "quick_score": "Entrada rápida del resultado",
@@ -774,7 +778,6 @@
     "autofill": "Rellenar los resultados automáticamente (prueba)",
     "print_title": "Imprimir la hoja de poule (Ctrl+P)",
     "print_aria": "Imprimir la hoja de poule",
-    "export_pdf": "Exportar la poule en PDF",
     "signatures_title": "Página de firmas — arena {{arena}}",
     "signatures": "Página de firmas",
     "add_fencer": "Añadir un tirador a esta poule",
@@ -802,8 +805,6 @@
     "max_score_b": "La puntuación del tirador B no puede superar {{max}}",
     "draw_laser": "Empate: haga clic en V para atribuir la victoria",
     "draw_live": "¡Empate imposible! En un combate en directo, la muerte súbita de 30 s se aplica automáticamente",
-    "pdf_done": "Exportación PDF de la poule {{n}} generada",
-    "pdf_error": "Error al generar el PDF: {{error}}",
     "print_error": "Error al imprimir: {{error}}",
     "unknown_error": "Error desconocido",
     "autofill_confirm": "¿Rellenar automáticamente todos los marcadores de los combates no terminados?\n\nLos marcadores se generarán aleatoriamente para pruebas.",

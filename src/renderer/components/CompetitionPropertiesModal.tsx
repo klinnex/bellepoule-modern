@@ -99,7 +99,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
   const [trainerCommentsEnabled, setTrainerCommentsEnabled] = useState(
     competition.settings?.trainerCommentsEnabled ?? false
   );
-  const [expertMode, setExpertMode] = useState(competition.settings?.expertMode ?? false);
+  const [expertMode, setExpertMode] = useState(competition.settings?.expertMode ?? true);
   const [poolWinnersOnly, setPoolWinnersOnly] = useState(
     competition.settings?.poolWinnersOnly ?? false
   );

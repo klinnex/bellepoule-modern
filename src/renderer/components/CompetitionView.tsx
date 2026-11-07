@@ -63,6 +63,7 @@ import { useCompetitionSession, Phase, phaseFromNumber } from '../hooks/useCompe
 import { useFencerManagement } from '../hooks/useFencerManagement';
 import { usePoolManagement } from '../hooks/usePoolManagement';
 import { buildStripQrs, useExport } from '../hooks/useExport';
+import { usePoolStripChange } from '../hooks/usePoolStripChange';
 import { useMenuEvents } from '../hooks/useMenuEvents';
 import { generateInitialRanking, filterPoolWinners } from '../../shared/utils/poolCalculations';
 import {
@@ -277,7 +278,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const poolMaxScore = effectiveSettings?.defaultPoolMaxScore ?? 21;
   const tableMaxScore = effectiveSettings?.defaultTableMaxScore ?? 0;
   const isLaserSabre = competition.weapon === Weapon.LASER;
-  const expertMode = competition.settings?.expertMode ?? false;
+  const expertMode = competition.settings?.expertMode ?? true; // actif par défaut (#1501)
   // Arbitres simultanés par poule (principal + assistant/vidéo) : mode expert uniquement
   const maxRefereesPerPool = expertMode
     ? Math.max(1, competition.settings?.maxRefereesPerPool ?? 1)
@@ -2087,6 +2088,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       </div>
     ) : null;
 
+  const handlePoolStripChange = usePoolStripChange(pools, setPools);
+
   const renderPoolCard = (pool: (typeof pools)[number], poolIndex: number) => (
     <div key={pool.id} style={{ minWidth: 0, overflow: 'auto' }}>
       <PoolView
@@ -2146,6 +2149,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           setPools(prev => prev.map(p => (p.id === updatedPool.id ? updatedPool : p)));
         }}
         stripRange={{ start: remoteStripStart, end: remoteArenaCount }}
+        onStripChange={handlePoolStripChange}
         arenas={arenaStates}
         isRemoteActive={isRemoteActive}
         remoteServerUrl={remoteServerUrl ?? undefined}
@@ -2321,14 +2325,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             expertMode={expertMode}
             arenaCount={remoteArenaCount}
             stripStart={remoteStripStart}
-            onStripChange={(poolId, strip) => {
-              // Poule déjà lancée : piste appliquée immédiatement (saisie distante, liens, QR) (#1037)
-              const target = pools.find(p => p.id === poolId);
-              if (!target) return;
-              const updated = { ...target, strip };
-              setPools(prev => prev.map(p => (p.id === poolId ? updated : p)));
-              window.electronAPI?.db?.updatePool(updated);
-            }}
+            onStripChange={handlePoolStripChange}
             poolsLaunched={poolsLaunched}
             onPoolsConfirm={async confirmedPools => {
               if (!(await confirmScoresLoss())) return;

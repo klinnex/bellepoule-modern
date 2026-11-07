@@ -744,6 +744,10 @@
     "remote_button": "Enrolladenn a-bell / Pist"
   },
   "poolView": {
+    "assign_strip": "Reiñ ur pistenn",
+    "add_strip": "Pistenn",
+    "strip_n": "Pistenn {{n}}",
+    "select_strip": "Dibab pistenn ar poull {{n}} (cheñchadus evit pep emgann e gwel an emgannoù).",
     "fencers_count_suffix_one": "{{count}} c'hleze",
     "fencers_count_suffix_other": "{{count}} c'hleze",
     "quick_score": "Enankañ buan ar skor",
@@ -774,7 +778,6 @@
     "autofill": "Leuniañ ar skorioù ent emgefre (amprouenn)",
     "print_title": "Moullañ follenn ar boulenn (Ctrl+P)",
     "print_aria": "Moullañ follenn ar boulenn",
-    "export_pdf": "Ezporzhiañ ar boulenn e PDF",
     "signatures_title": "Pajenn sinadurioù — arena {{arena}}",
     "signatures": "Pajenn sinadurioù",
     "add_fencer": "Ouzhpennañ ur c'hleizeier d'ar boulenn-mañ",
@@ -802,8 +805,6 @@
     "max_score_b": "Skor ar c'hlezeour B ne c'hall ket mont dreist {{max}}",
     "draw_laser": "Emgann par : klikit war V evit reiñ an trec'h",
     "draw_live": "Emgann par dibosupl ! En un emgann war-eeun e vez lakaet ar marv trumm 30 eilenn ent emgefreek",
-    "pdf_done": "Ezporzhiadur PDF ar poull {{n}} graet",
-    "pdf_error": "Fazi o krouiñ ar PDF : {{error}}",
     "print_error": "Fazi o voullañ : {{error}}",
     "unknown_error": "Fazi dianav",
     "autofill_confirm": "Leuniañ ent emgefreek holl skorioù an emgannoù n'int ket echu ?\n\nAr skorioù a vo krouet dre zegouezh evit an amprouennoù.",

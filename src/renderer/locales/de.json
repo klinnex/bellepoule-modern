@@ -744,6 +744,10 @@
     "remote_button": "Fernerfassung / Planche"
   },
   "poolView": {
+    "assign_strip": "Bahn zuweisen",
+    "add_strip": "Bahn",
+    "strip_n": "Bahn {{n}}",
+    "select_strip": "Bahn für Gruppe {{n}} wählen (pro Gefecht in der Gefechtsansicht änderbar).",
     "fencers_count_suffix_one": "{{count}} Fechter",
     "fencers_count_suffix_other": "{{count}} Fechter",
     "quick_score": "Schnelle Ergebniseingabe",
@@ -774,7 +778,6 @@
     "autofill": "Ergebnisse automatisch ausfüllen (Test)",
     "print_title": "Poolbogen drucken (Strg+P)",
     "print_aria": "Poolbogen drucken",
-    "export_pdf": "Pool als PDF exportieren",
     "signatures_title": "Unterschriftenseite — Arena {{arena}}",
     "signatures": "Unterschriftenseite",
     "add_fencer": "Fechter zu diesem Pool hinzufügen",
@@ -802,8 +805,6 @@
     "max_score_b": "Die Punktzahl von Fechter B darf {{max}} nicht überschreiten",
     "draw_laser": "Unentschieden: auf V klicken, um den Sieg zu vergeben",
     "draw_live": "Unentschieden nicht möglich! Im Live-Gefecht gilt automatisch der 30-s-Sudden-Death",
-    "pdf_done": "PDF-Export von Pool {{n}} erstellt",
-    "pdf_error": "Fehler beim Erstellen der PDF: {{error}}",
     "print_error": "Fehler beim Drucken: {{error}}",
     "unknown_error": "Unbekannter Fehler",
     "autofill_confirm": "Alle Ergebnisse nicht beendeter Gefechte automatisch ausfüllen?\n\nDie Ergebnisse werden zu Testzwecken zufällig erzeugt.",
