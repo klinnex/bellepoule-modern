@@ -1438,9 +1438,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.refereeUrl, arena.number * 10)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10
-                      ? t('rsm.copied_short')
-                      : `📋 ${t('rsm.copy_url_short')}`}
+                    {copiedIndex === arena.number * 10 ? t('rsm.copied_short') : `📋 ${t('rsm.copy_url_short')}`}
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1465,9 +1463,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.displayUrl, arena.number * 10 + 1)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 1
-                      ? t('rsm.copied_short')
-                      : `📋 ${t('rsm.copy_url_short')}`}
+                    {copiedIndex === arena.number * 10 + 1 ? t('rsm.copied_short') : `📋 ${t('rsm.copy_url_short')}`}
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1492,9 +1488,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.poolUrl, arena.number * 10 + 2)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 2
-                      ? t('rsm.copied_short')
-                      : `📋 ${t('rsm.copy_url_short')}`}
+                    {copiedIndex === arena.number * 10 + 2 ? t('rsm.copied_short') : `📋 ${t('rsm.copy_url_short')}`}
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1521,9 +1515,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.matchOrderUrl, arena.number * 10 + 5)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 5
-                      ? t('rsm.copied_short')
-                      : `📋 ${t('rsm.copy_url_short')}`}
+                    {copiedIndex === arena.number * 10 + 5 ? t('rsm.copied_short') : `📋 ${t('rsm.copy_url_short')}`}
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1548,9 +1540,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.publicUrl, arena.number * 10 + 3)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 3
-                      ? t('rsm.copied_short')
-                      : `📋 ${t('rsm.copy_url_short')}`}
+                    {copiedIndex === arena.number * 10 + 3 ? t('rsm.copied_short') : `📋 ${t('rsm.copy_url_short')}`}
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1577,9 +1567,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.overlayUrl, arena.number * 10 + 4)}
                     title={t('rsm.overlay_copy_title')}
                   >
-                    {copiedIndex === arena.number * 10 + 4
-                      ? t('rsm.copied_short')
-                      : `📋 ${t('rsm.copy_url_short')}`}
+                    {copiedIndex === arena.number * 10 + 4 ? t('rsm.copied_short') : `📋 ${t('rsm.copy_url_short')}`}
                   </button>
                   <button
                     className="btn-qr btn-wide"
