@@ -69,6 +69,7 @@ import {
 } from './tableau/tableauCalculations';
 import { autoAssignReferees } from '../../shared/utils/refereeStats';
 import { useTranslation } from '../hooks/useTranslation';
+import { stripAtIndex, stripNumbers } from '../../shared/utils/stripRange';
 
 interface BracketMatch {
   id: string;
@@ -93,6 +94,8 @@ interface TableauViewProps {
   thirdPlaceMatch?: boolean;
   playAllPositions?: boolean;
   arenaCount?: number;
+  /** Première piste de l'intervalle (1 par défaut) */
+  stripStart?: number;
   onMatchArenaChange?: (
     matchId: string,
     oldArena: number | null,
@@ -238,6 +241,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   thirdPlaceMatch = false,
   playAllPositions = false,
   arenaCount = 4,
+  stripStart = 1,
   onMatchArenaChange: onMatchArenaChangeProp,
   onMatchRefereeChange: onMatchRefereeChangeProp,
   competitionId,
@@ -487,19 +491,22 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   });
 
   const distributeArenasRoundRobin = useCallback(
-    (matchList: TableauMatch[]): TableauMatch[] => {
+    (
+      matchList: TableauMatch[],
+      only: (m: TableauMatch) => boolean = () => true
+    ): TableauMatch[] => {
       if (arenaCount <= 0) return matchList;
       let arenaIdx = 0;
       return matchList.map(m => {
-        if (m.fencerA && m.fencerB && !m.isBye && !m.winner) {
-          const arena = (arenaIdx % arenaCount) + 1;
+        if (m.fencerA && m.fencerB && !m.isBye && !m.winner && only(m)) {
+          const arena = stripAtIndex(stripStart, arenaCount, arenaIdx);
           arenaIdx++;
           return { ...m, arena };
         }
         return m;
       });
     },
-    [arenaCount]
+    [arenaCount, stripStart]
   );
 
   // Nombre de matchs jouables (les deux tireurs connus) — utilisé comme signal de déclenchement
@@ -527,19 +534,11 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     } else if (playable.length > prev) {
       // Nouveau tour débloqué (ex. SF après QF) : assigner les pistes uniquement aux
       // matchs qui n'en ont pas encore, sans écraser les affectations manuelles.
-      const unassigned = matches.filter(
+      const hasUnassigned = matches.some(
         m => m.fencerA && m.fencerB && !m.isBye && !m.winner && !m.arena
       );
-      if (unassigned.length > 0) {
-        let arenaIdx = 0;
-        const updated = matches.map(m => {
-          if (m.fencerA && m.fencerB && !m.isBye && !m.winner && !m.arena) {
-            const arena = (arenaIdx % arenaCount) + 1;
-            arenaIdx++;
-            return { ...m, arena };
-          }
-          return m;
-        });
+      if (hasUnassigned) {
+        const updated = distributeArenasRoundRobin(matches, m => !m.arena);
         onMatchesChange(updated);
         notifyArenaDiff(updated);
       }
@@ -1306,7 +1305,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
               <div style={TV_STYLES.summaryBox}>
                 <h4 style={TV_STYLES.summaryTitle}>{t('tableauView.strips_summary')}</h4>
                 <div style={TV_STYLES.summaryFlex}>
-                  {Array.from({ length: arenaCount }, (_, i) => i + 1).map(arenaNum => {
+                  {stripNumbers(stripStart, arenaCount).map(arenaNum => {
                     const arenaMatches = pendingMatches.filter(m => m.arena === arenaNum);
                     return (
                       <div
@@ -1501,6 +1500,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
               matches={matches}
               selectedMatchId={selectedMatchForArena}
               arenaCount={arenaCount}
+              stripStart={stripStart}
               currentArena={currentArena}
               onAssign={assignArena}
               onClose={closeModal}

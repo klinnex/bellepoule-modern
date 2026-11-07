@@ -1209,6 +1209,8 @@
     "col_department": "Departement"
   },
   "rsm": {
+    "strip_start": "Startbahn",
+    "strip_end": "Endbahn",
     "unsaved": "Nicht gespeicherte Änderungen",
     "save": "Speichern",
     "qr_export_title": "QR-Codes der Bahnen exportieren / drucken",

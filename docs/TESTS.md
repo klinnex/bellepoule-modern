@@ -83,7 +83,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 47 | 652 |
+| `src/shared/utils/` | 48 | 656 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 127 |
-| `src/renderer/components/` | 55 | 279 |
+| `src/renderer/components/` | 56 | 282 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **282** | **2322** |
+| **Total** | **284** | **2329** |
 
-Unitaires : 273 fichiers, 2287 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 275 fichiers, 2294 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1040,6 +1040,17 @@ Unitaires : 273 fichiers, 2287 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - extrait et renumérote le classement du groupe
   - prépare les données tireur avec le rang après poules et pointe les non-pointés
   - remappe les tireurs en conservant les stats de poule
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/stripRange.test.ts</code> — 4 tests</summary>
+
+- **stripRange (#1501)**
+  - liste les pistes de l’intervalle
+  - normalise les bornes invalides
+  - répartit en rotation sur l’intervalle
+  - computePoolStrips n’utilise que les pistes de l’intervalle
 
 </details>
 
@@ -4068,6 +4079,16 @@ Unitaires : 273 fichiers, 2287 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **GregAutoPublishToggle**
   - affiche OFF puis bascule en ON au clic
   - affiche ON quand actif
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/remote/StripRangeControls.test.tsx</code> — 3 tests</summary>
+
+- **StripRangeControls**
+  - incrémente la piste de départ sans dépasser la fin
+  - bloque le départ à la fin et la fin au départ
+  - modifie la piste de fin par saisie directe
 
 </details>
 

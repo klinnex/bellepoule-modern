@@ -1209,6 +1209,8 @@
     "col_department": "Departament"
   },
   "rsm": {
+    "strip_start": "Pista inicial",
+    "strip_end": "Pista final",
     "unsaved": "Canvis sense desar",
     "save": "Desa",
     "qr_export_title": "Exporta / imprimeix els codis QR de les pistes",

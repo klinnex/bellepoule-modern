@@ -9,6 +9,7 @@ import { Match, Fencer, FencerStatus } from '../../../shared/types';
 import { Arena } from '../../../shared/types/remote';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { isMatchVoidedByForfeit } from '../../../shared/utils/poolCalculations';
+import { stripNumbers } from '../../../shared/utils/stripRange';
 
 interface OrderedMatchEntry {
   match: Match;
@@ -29,7 +30,8 @@ interface PoolMatchListProps {
   onMatchReset?: (index: number) => void;
   onShowMatchAudit?: (matchId: string) => void;
   defaultArena?: number;
-  arenaCount?: number;
+  /** Intervalle de pistes (saisie distante) */
+  stripRange?: { start: number; end: number };
   arenas?: Arena[];
   isRemoteActive?: boolean;
   matchArenaOverrides?: Map<string, number>;
@@ -105,7 +107,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
   onMatchReset,
   onShowMatchAudit,
   defaultArena = 1,
-  arenaCount = 0,
+  stripRange,
   arenas = [],
   isRemoteActive = false,
   matchArenaOverrides,
@@ -114,6 +116,8 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
   onMatchArenaChange,
 }) => {
   const { t } = useTranslation();
+  const arenaCount = stripRange?.end ?? 0;
+  const stripStart = stripRange?.start ?? 1;
   const [showArenaModal, setShowArenaModal] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [highlightedMatchId, setHighlightedMatchId] = useState<string | null>(null);
@@ -428,7 +432,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                 >
                   {t('poolMatches.default_strip', { n: defaultArena })}
                 </button>
-                {Array.from({ length: arenaCount }, (_, i) => i + 1).map(arenaNum => {
+                {stripNumbers(stripStart, arenaCount).map(arenaNum => {
                   const arenaObj = arenas.find(a => a.number === arenaNum);
                   const isCurrentArena =
                     (matchArenaOverrides?.get(selectedMatch.id) ?? defaultArena) === arenaNum;

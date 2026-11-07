@@ -9,11 +9,14 @@ import { createPortal } from 'react-dom';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../hooks/useTranslation';
 import { TableauMatch } from './tableauTypes';
+import { stripNumbers } from '../../../shared/utils/stripRange';
 
 interface TableauArenaModalProps {
   matches: TableauMatch[];
   selectedMatchId: string;
   arenaCount: number;
+  /** Première piste de l'intervalle (1 par défaut) */
+  stripStart?: number;
   currentArena: number | null;
   onAssign: (arenaNum: number | null) => void;
   onClose: () => void;
@@ -44,6 +47,7 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
   matches,
   selectedMatchId,
   arenaCount,
+  stripStart = 1,
   currentArena,
   onAssign,
   onClose,
@@ -79,7 +83,7 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
             >
               -
             </button>
-            {Array.from({ length: arenaCount }, (_, i) => i + 1).map(arenaNum => {
+            {stripNumbers(stripStart, arenaCount).map(arenaNum => {
               const queueCount = matches.filter(
                 m => m.arena === arenaNum && m.id !== selectedMatchId && m.winner === null
               ).length;

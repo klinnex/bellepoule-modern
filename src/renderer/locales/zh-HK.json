@@ -1209,6 +1209,8 @@
     "col_department": "省份"
   },
   "rsm": {
+    "strip_start": "起始劍道",
+    "strip_end": "結束劍道",
     "unsaved": "未儲存的變更",
     "save": "儲存",
     "qr_export_title": "匯出／列印劍道 QR 碼",

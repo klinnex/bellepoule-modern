@@ -25,6 +25,10 @@ import { useRemoteCommand } from '../hooks/useRemoteCommand';
 import { DisplayOptionsPanel } from './remote/DisplayOptionsPanel';
 import { UrlCopyRow } from './remote/UrlCopyRow';
 import RemoteViewModeTabs from './remote/RemoteViewModeTabs';
+import { computePoolStrips } from '../../shared/utils/poolStrips';
+import { RSM_STYLES } from './remote/rsmStyles';
+import { StripRangeControls } from './remote/StripRangeControls';
+import { MAX_STRIP, normalizeStripRange, stripNumbers } from '../../shared/utils/stripRange';
 import { useRemoteViewMode } from './remote/remoteViewMode';
 import { useKioskTheme, type KioskPreset } from '../hooks/useKioskTheme';
 
@@ -34,12 +38,15 @@ interface RemoteScoreManagerProps {
   tableauMatches?: TableauMatch[];
   consolationBrackets?: ConsolationBracket[];
   onArenaCountChange?: (count: number) => void;
+  /** Piste de départ de l'intervalle (la piste de fin = nombre transmis à onArenaCountChange) */
+  onStripStartChange?: (start: number) => void;
   onStartRemote: () => void;
   onStopRemote: () => void;
   /** Serveur démarré et joignable (IPC utilisables) */
   onServerStarted?: (url: string) => void;
   isRemoteActive?: boolean;
   initialStripCount?: number;
+  initialStripStart?: number;
   isVisible?: boolean;
 }
 
@@ -54,83 +61,6 @@ interface RemoteSession {
   isRunning: boolean;
   startTime?: Date;
 }
-
-// ─── Static style constants ───────────────────────────────────────────────────
-
-const RSM_STYLES = {
-  httpWarning: {
-    fontSize: '0.78rem',
-    color: 'var(--warning-color, #f59e0b)',
-    margin: '0.25rem 0 0',
-    lineHeight: 1.4,
-  } satisfies React.CSSProperties,
-  stripCountControls: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  } satisfies React.CSSProperties,
-  stripCountBtn: { padding: '0.2rem 0.5rem', fontSize: '1rem' } satisfies React.CSSProperties,
-  stripCountSave: { padding: '0.2rem 0.6rem' } satisfies React.CSSProperties,
-  stripCountPending: {
-    color: 'var(--warning-color, orange)',
-    fontSize: '0.85rem',
-  } satisfies React.CSSProperties,
-  stripCountStrong: {
-    minWidth: '1.5rem',
-    textAlign: 'center' as const,
-  } satisfies React.CSSProperties,
-  interfaceRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    margin: '0.75rem 0',
-  } satisfies React.CSSProperties,
-  interfaceLabel: { whiteSpace: 'nowrap' as const } satisfies React.CSSProperties,
-  portRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    margin: '0.75rem 0',
-  } satisfies React.CSSProperties,
-  portInput: { width: '80px' } satisfies React.CSSProperties,
-  portHint: { fontSize: '0.8rem', opacity: 0.6 } satisfies React.CSSProperties,
-  portActiveRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    marginTop: '0.25rem',
-  } satisfies React.CSSProperties,
-  portActiveLabel: {
-    whiteSpace: 'nowrap' as const,
-    fontSize: '0.875rem',
-  } satisfies React.CSSProperties,
-  portActiveInput: { width: '75px' } satisfies React.CSSProperties,
-  portActiveBtn: { fontSize: '0.8rem', padding: '0.2rem 0.5rem' } satisfies React.CSSProperties,
-  pisteresumeSummary: {
-    marginTop: '1rem',
-    padding: '0.75rem',
-    background: 'var(--color-bg)',
-    borderRadius: '8px',
-  } satisfies React.CSSProperties,
-  pisteresumeFlex: {
-    display: 'flex',
-    flexWrap: 'wrap' as const,
-    gap: '0.5rem',
-  } satisfies React.CSSProperties,
-  qrSpinner: {
-    width: 220,
-    height: 220,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  } satisfies React.CSSProperties,
-  qrCode: {
-    fontSize: '0.75rem',
-    wordBreak: 'break-all' as const,
-    textAlign: 'center' as const,
-  } satisfies React.CSSProperties,
-  kioskCard: { marginTop: '1rem' } satisfies React.CSSProperties,
-} satisfies Record<string, React.CSSProperties>;
 
 /** Clé de synchro des matchs DE : id + arbitre(s) assigné(s) */
 function deMatchesKey(
@@ -150,11 +80,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   tableauMatches,
   consolationBrackets,
   onArenaCountChange,
+  onStripStartChange,
   onStartRemote,
   onStopRemote,
   onServerStarted,
   isRemoteActive = false,
   initialStripCount,
+  initialStripStart,
   isVisible = false,
 }) => {
   const [mode, setMode] = useRemoteViewMode(competition.id);
@@ -178,6 +110,10 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   // Compteurs d'arènes, QR, mots de passe par arène et affichage des écrans (#1241)
   const {
     // pendingCount : valeur affichée (modifiée par +/−, non encore appliquée)
+    pendingStart,
+    setPendingStart,
+    committedStart,
+    setCommittedStart,
     pendingCount,
     setPendingCount,
     // committedCount : valeur appliquée au serveur ou confirmée par l'utilisateur
@@ -198,6 +134,8 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     cardAnnounce,
     setCardAnnounce,
   } = useStateGroup({
+    pendingStart: null as number | null,
+    committedStart: null as number | null,
     pendingCount: null as number | null,
     committedCount: null as number | null,
     copiedIndex: null as number | null,
@@ -268,13 +206,24 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     const initial = lsSaved
       ? parseInt(lsSaved, 10)
       : (initialStripCount ?? (pools.length > 0 ? pools.length : 1));
-    setPendingCount(initial);
-    setCommittedCount(initial);
+    const startSaved = parseInt(
+      localStorage.getItem(`bellepoule-remote-strip-start-${competition.id}`) ?? '',
+      10
+    );
+    const initStart = Number.isFinite(startSaved) ? startSaved : (initialStripStart ?? 1);
+    const range = normalizeStripRange(initStart, Math.max(initial, initStart));
+    setPendingStart(range.start);
+    setCommittedStart(range.start);
+    setPendingCount(range.end);
+    setCommittedCount(range.end);
   }, [initialStripCount, pools.length, competition.id]);
 
   const effectivePending = pendingCount ?? pools.length ?? 1;
   const effectiveCommitted = committedCount ?? pools.length ?? 1;
-  const hasPendingChanges = effectivePending !== effectiveCommitted;
+  const effectivePendingStart = pendingStart ?? 1;
+  const effectiveCommittedStart = committedStart ?? 1;
+  const hasPendingChanges =
+    effectivePending !== effectiveCommitted || effectivePendingStart !== effectiveCommittedStart;
 
   // Poules générées après le démarrage de la saisie distante ou piste modifiée :
   // réassigner les poules aux pistes côté serveur (#1037)
@@ -287,10 +236,11 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     }
     if (layout === sessionPoolsLayoutRef.current) return;
     sessionPoolsLayoutRef.current = layout;
+    const stripMap = computePoolStrips(pools, effectiveCommitted, effectiveCommittedStart);
     const poolsData = pools.map(pool => ({
       poolId: pool.id,
       poolNumber: pool.number,
-      strip: pool.strip ?? null,
+      strip: stripMap.get(pool.id) ?? pool.strip ?? null,
       fencers: pool.fencers ?? [],
       matches: pool.matches ?? [],
     }));
@@ -443,12 +393,13 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
       // The FIE match order for 4-fencer pools starts with [1,4] not [1,2], so naively
       // extracting fencers from match pairs produces the wrong order.
       const sortedPools = [...pools].sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+      const stripMap = computePoolStrips(pools, count, effectiveCommittedStart);
       const poolMatches = sortedPools.flatMap(pool => [
         {
           __poolFencers: true,
           poolId: pool.id,
           poolNumber: pool.number,
-          strip: pool.strip,
+          strip: stripMap.get(pool.id) ?? pool.strip,
           fencers: pool.fencers || [],
         },
         ...(pool.matches || []),
@@ -504,9 +455,16 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     }
   };
 
+  const commitStart = (start: number) => {
+    setCommittedStart(start);
+    onStripStartChange?.(start);
+    localStorage.setItem(`bellepoule-remote-strip-start-${competition.id}`, String(start));
+  };
+
   const handleSaveStripCount = async () => {
     const newCount = effectivePending;
-    if (newCount < 1 || newCount > 20) return;
+    const newStart = effectivePendingStart;
+    if (newStart < 1 || newCount < newStart || newCount > MAX_STRIP) return;
 
     if (session) {
       // Serveur actif : appliquer via IPC
@@ -515,6 +473,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         if (result.success && result.session) {
           setSession(result.session);
           setCommittedCount(newCount);
+          commitStart(newStart);
           onArenaCountChange?.(newCount);
           localStorage.setItem(`bellepoule-remote-strips-${competition.id}`, String(newCount));
           showToast('Nombre de pistes mis à jour', 'success');
@@ -528,6 +487,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     } else {
       // Serveur non démarré : persister la préférence
       setCommittedCount(newCount);
+      commitStart(newStart);
       onArenaCountChange?.(newCount);
       localStorage.setItem(`bellepoule-remote-strips-${competition.id}`, String(newCount));
       showToast('Préférence sauvegardée', 'success');
@@ -626,7 +586,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   };
 
   const handleApplyCommonPassword = async () => {
-    const numbers = Array.from({ length: arenaCount }, (_, i) => i + 1);
+    const numbers = stripNumbers(effectiveCommittedStart, arenaCount);
     if (await applyCommonArenaPassword(commonArenaPassword, numbers)) {
       setAppliedCommonPassword(commonArenaPassword || null);
       showToast(
@@ -728,7 +688,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     } else {
       // public / referee / pool → appliquer à toutes les arènes pour ce type d'écran
       const count = session ? session.strips.length : effectiveCommitted;
-      for (let i = 1; i <= count; i++) {
+      for (const i of stripNumbers(effectiveCommittedStart, count)) {
         await window.electronAPI.remote.updateArenaScreenTheme(
           competition.id,
           `arena${i}`,
@@ -769,14 +729,15 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [arenaCount]);
 
-  const arenaUrls = Array.from({ length: arenaCount }, (_, i) => ({
-    number: i + 1,
-    refereeUrl: `${serverUrl}/arene${i + 1}/arbitre`,
-    displayUrl: `${serverUrl}/arene${i + 1}`,
-    poolUrl: `${serverUrl}/arene${i + 1}/poule`,
-    matchOrderUrl: `${serverUrl}/arene${i + 1}/matchs`,
-    publicUrl: `${serverUrl}/arene${i + 1}/public`,
-    overlayUrl: `${serverUrl}/arene${i + 1}/overlay`,
+  const stripStart = effectiveCommittedStart;
+  const arenaUrls = stripNumbers(stripStart, arenaCount).map(n => ({
+    number: n,
+    refereeUrl: `${serverUrl}/arene${n}/arbitre`,
+    displayUrl: `${serverUrl}/arene${n}`,
+    poolUrl: `${serverUrl}/arene${n}/poule`,
+    matchOrderUrl: `${serverUrl}/arene${n}/matchs`,
+    publicUrl: `${serverUrl}/arene${n}/public`,
+    overlayUrl: `${serverUrl}/arene${n}/overlay`,
   }));
 
   // QR personnels des tireurs engagés (#1078)
@@ -796,23 +757,15 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
   // Contrôles +/− communs aux deux vues (pending uniquement, sans appel IPC direct)
   const stripCountControls = (
     <div style={RSM_STYLES.stripCountControls}>
-      <button
-        className="btn btn-secondary"
-        onClick={() => setPendingCount(Math.max(1, effectivePending - 1))}
-        disabled={effectivePending <= 1 || isLoading}
-        style={RSM_STYLES.stripCountBtn}
-      >
-        −
-      </button>
-      <strong style={RSM_STYLES.stripCountStrong}>{effectivePending}</strong>
-      <button
-        className="btn btn-secondary"
-        onClick={() => setPendingCount(Math.min(20, effectivePending + 1))}
-        disabled={effectivePending >= 20 || isLoading}
-        style={RSM_STYLES.stripCountBtn}
-      >
-        +
-      </button>
+      <StripRangeControls
+        start={effectivePendingStart}
+        end={effectivePending}
+        disabled={isLoading}
+        onChange={(st, en) => {
+          setPendingStart(st);
+          setPendingCount(en);
+        }}
+      />
       {hasPendingChanges && (
         <span style={RSM_STYLES.stripCountPending} title={t('rsm.unsaved')}>
           ●
@@ -1092,7 +1045,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
         {/* Pistes et options : deux cartes sur une ligne, comme l'écran d'attente (#1006) */}
         <div className="rsm-sections">
           <div className="rsm-section">
-            <div className="rsm-section-label">{t('rsm.strips_n', { count: arenaCount })}</div>
+            <div className="rsm-section-label">
+              {t('rsm.strips_n', { count: arenaCount - stripStart + 1 })}
+            </div>
             <div className="rsm-strip-row">{stripCountControls}</div>
           </div>
           <div className="rsm-section">

@@ -1209,6 +1209,8 @@
     "col_department": "Departamant"
   },
   "rsm": {
+    "strip_start": "Pistenn gentañ",
+    "strip_end": "Pistenn diwezhañ",
     "unsaved": "Kemmoù n'int ket enrollet",
     "save": "Enrollañ",
     "qr_export_title": "Ezporzhiañ / moullañ kodoù QR an tachennoù",
