@@ -2139,6 +2139,8 @@
     "per_page": "{{n}} / pàgina",
     "open_file": "Obrir…",
     "open_file_title": "Obrir un fitxer .bpm, .db o .cotcot",
+    "import": "Importar (.bpm)",
+    "import_title": "Importa una competició des d'un fitxer .bpm",
     "guided_start": "Primera vegada? Crear amb el recorregut guiat"
   },
   "trainingLauncher": {

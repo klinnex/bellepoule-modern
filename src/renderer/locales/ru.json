@@ -2139,6 +2139,8 @@
     "per_page": "{{n}} / стр.",
     "open_file": "Открыть…",
     "open_file_title": "Открыть файл .bpm, .db или .cotcot",
+    "import": "Импорт (.bpm)",
+    "import_title": "Импорт соревнования из файла .bpm",
     "guided_start": "Впервые? Создайте с помощью обзорного тура"
   },
   "trainingLauncher": {

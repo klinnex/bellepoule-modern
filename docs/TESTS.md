@@ -97,18 +97,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 5 | 135 |
-| `src/main/` | 51 | 415 |
+| `src/main/` | 51 | 417 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 128 |
-| `src/renderer/components/` | 61 | 308 |
+| `src/renderer/components/` | 61 | 309 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **289** | **2356** |
+| **Total** | **289** | **2359** |
 
-Unitaires : 280 fichiers, 2321 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 280 fichiers, 2324 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2426,13 +2426,15 @@ Unitaires : 280 fichiers, 2321 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/menuActions.test.ts</code> — 4 tests</summary>
+<summary><code>src/main/menuActions.test.ts</code> — 6 tests</summary>
 
 - **createMenuActions (#1341)**
   - handleExport relaie le format au renderer
   - showAbout prévient le renderer
   - « Enregistrer sous » exporte la compétition courante, nom de fichier assaini
   - sans compétition courante : export global
+  - import accueil : boîte limitée aux .bpm, fusion puis signalement du fichier ouvert
+  - import accueil annulé : rien fusionné
 
 </details>
 
@@ -3585,10 +3587,12 @@ Unitaires : 280 fichiers, 2321 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/CompetitionList.test.tsx</code> — 1 test</summary>
+<summary><code>src/renderer/components/CompetitionList.test.tsx</code> — 2 tests</summary>
 
 - **CompetitionList (accueil vide)**
   - propose de créer une compétition avec le parcours guidé
+- **CompetitionList (import accueil)**
+  - bouton Importer (.bpm) appelle onImport ; absent sans onImport
 
 </details>
 

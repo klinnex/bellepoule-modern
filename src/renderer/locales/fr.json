@@ -2139,6 +2139,8 @@
     "per_page": "{{n}} / page",
     "open_file": "Ouvrir…",
     "open_file_title": "Ouvrir un fichier .bpm, .db ou .cotcot",
+    "import": "Importer (.bpm)",
+    "import_title": "Importer une compétition depuis un fichier .bpm",
     "guided_start": "Première fois ? Créer avec le parcours guidé"
   },
   "trainingLauncher": {

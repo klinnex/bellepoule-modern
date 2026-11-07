@@ -1047,6 +1047,13 @@ export interface FileAPI {
   exportCompetition: (
     competitionId: string
   ) => Promise<{ success: boolean; canceled?: boolean; path?: string; error?: string }>;
+  /** Importe une compétition depuis un .bpm (fusion dans la base active, écran d'accueil) */
+  importCompetition: () => Promise<{
+    success: boolean;
+    canceled?: boolean;
+    competitionIds?: string[];
+    error?: string;
+  }>;
   writeContent: (filepath: string, content: string) => Promise<void>;
   printHtml: (html: string) => Promise<{ success: boolean; error?: string }>;
   printHtmlToPDF: (
