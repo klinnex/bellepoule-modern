@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 415 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 128 |
-| `src/renderer/components/` | 57 | 290 |
+| `src/renderer/components/` | 57 | 292 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **284** | **2334** |
+| **Total** | **284** | **2336** |
 
-Unitaires : 275 fichiers, 2299 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 275 fichiers, 2301 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3664,14 +3664,14 @@ Unitaires : 275 fichiers, 2299 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 12 tests</summary>
+<summary><code>src/renderer/components/GuidedTour.test.tsx</code> — 13 tests</summary>
 
 - **GuidedTour**
   - se propose une fois sur une compétition vide
   - ne se propose pas sur une compétition déjà remplie
   - passer le parcours le masque et ne le refait pas apparaître
   - se relance depuis les paramètres
-  - propose la saisie distante après la génération des poules
+  - propose la saisie distante (optionnelle) en première étape
   - met en évidence la phase de l’étape en cours
   - revient à l’étape précédente avec le bouton Retour
   - entoure d’un halo les boutons utiles de l’étape
@@ -3679,6 +3679,7 @@ Unitaires : 275 fichiers, 2299 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - Suivant avance d’une étape, Retour revient
   - refaire l’action après Retour fait avancer de nouveau
   - étape poules : explication glisser-déposer et halo sur Lancer quand la préparation est ouverte
+  - étape poules : validée seulement une fois les poules lancées
 
 </details>
 
@@ -3968,12 +3969,13 @@ Unitaires : 275 fichiers, 2299 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/guidedTourFlags.test.ts</code> — 5 tests</summary>
+<summary><code>src/renderer/components/guidedTourFlags.test.ts</code> — 6 tests</summary>
 
 - **guidedTour**
-  - commence par l’ajout des tireurs sur une compétition vide
+  - commence par la saisie distante (optionnelle) sur une compétition vide
   - valide les étapes selon l’état de la compétition
-  - la saisie distante est validée par le serveur actif ou par une saisie sur ce poste
+  - la saisie distante est validée par le serveur actif ou en passant à la suite
+  - l’étape poules n’est validée qu’au clic sur Lancer les poules
   - retourne null quand toutes les étapes sont faites
   - mémorise le drapeau et ignore les valeurs invalides
 
