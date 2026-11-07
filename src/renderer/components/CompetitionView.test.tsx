@@ -175,6 +175,38 @@ describe('CompetitionView', () => {
     );
   });
 
+  describe('accès aux étapes et relance (#1499)', () => {
+    const steps = () => Array.from(document.querySelectorAll('.phase-step'));
+
+    it('Préparation grisée avant « Préparer », Poules grisée avant « Lancer »', async () => {
+      mockElectronAPI(Array.from({ length: 10 }, (_, i) => fencer(i + 1)));
+      renderView();
+      await screen.findByText('Nom1');
+      expect(steps()[1]).toHaveClass('phase-step-disabled');
+      expect(steps()[2]).toHaveClass('phase-step-disabled');
+
+      fireEvent.click(screen.getByRole('button', { name: /Préparer les poules/ }));
+      await waitFor(() => expect(steps()[1]).toHaveClass('phase-step-active'));
+      // Titres Min / Max au-dessus des deux champs
+      expect(screen.getByText('Tireurs Min')).toBeInTheDocument();
+      expect(screen.getByText('Tireurs Max')).toBeInTheDocument();
+      // Préparées mais pas lancées : Poules reste grisée
+      expect(steps()[2]).toHaveClass('phase-step-disabled');
+
+      fireEvent.click(await screen.findByRole('button', { name: /^Lancer les poules/ }));
+      await waitFor(() => expect(steps()[2]).toHaveClass('phase-step-active'));
+      // Déplacement libre ensuite
+      fireEvent.click(steps()[0]);
+      await waitFor(() => expect(steps()[0]).toHaveClass('phase-step-active'));
+      expect(steps()[1]).not.toHaveClass('phase-step-disabled');
+      expect(steps()[2]).not.toHaveClass('phase-step-disabled');
+      expect(screen.getByRole('button', { name: /Repréparer les poules/ })).toBeEnabled();
+
+      fireEvent.click(steps()[1]);
+      expect(await screen.findByRole('button', { name: /Relancer les poules/ })).toBeEnabled();
+    });
+  });
+
   it('restaure la phase sauvegardée (session) et permet de revenir en arrière', async () => {
     mockElectronAPI(
       [1, 2, 3, 4].map(n => fencer(n)),

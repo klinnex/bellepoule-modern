@@ -130,7 +130,8 @@
     "teams": "Squadre",
     "teampool": "Girone a squadre",
     "teamtableau": "Tabellone a squadre",
-    "teamranking": "Classifica a squadre"
+    "teamranking": "Classifica a squadre",
+    "poolprep_locked_tooltip": "Prepara prima i gironi (scheda Appello)"
   },
   "pools": {
     "generate": "Genera i gironi",
@@ -163,7 +164,6 @@
     "prep_single": "Girone unico",
     "prep_suggested_title": "Numero di gironi consigliato per {{min}}–{{max}} schermidori per girone",
     "prep_suggested": "Consigliato: {{n}}",
-    "prep_per_pool": "Schermidori / girone",
     "prep_separation": "Separazione",
     "prep_drag_priority": "(trascina per la priorità)",
     "prep_match_order_title": "Mostra l'ordine ufficiale FIE/FFE degli incontri per dimensione del girone",
@@ -200,7 +200,12 @@
     "prep_skip_pools": "Passa alla classifica iniziale",
     "prep_launch": "Avvia i gironi",
     "prep_strip_duplicate": "Pedana assegnata a più gironi",
-    "prep_strip_title": "Pedana dell'inserimento remoto"
+    "prep_strip_title": "Pedana dell'inserimento remoto",
+    "prep_min": "Schermidori Min",
+    "prep_max": "Schermidori Max",
+    "prep_relaunch": "Rilancia i gironi",
+    "prep_unplaced": "{{count}} schermidore/i aggiunto/i dall'appello non ancora assegnato/i: clicca su «Riprepara i gironi» per includerli.",
+    "relaunch_confirm": "Sono già stati inseriti punteggi di girone: andranno persi. Continuare?"
   },
   "ranking": {
     "rank": "Pos",
@@ -2312,7 +2317,8 @@
     "matches": "{{a}}/{{b}} incontri",
     "tableau": "{{a}}/{{b}} tabellone",
     "generate_hint": "Clicca qui dopo aver confermato la presenza di tutti i tuoi schermidori",
-    "next_step_hint": "Passaggio successivo una volta terminati i gironi"
+    "next_step_hint": "Passaggio successivo una volta terminati i gironi",
+    "regenerate": "Riprepara i gironi"
   },
   "offline": {
     "never": "Mai",
