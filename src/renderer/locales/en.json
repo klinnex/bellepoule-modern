@@ -2141,6 +2141,9 @@
     "open_file_title": "Open a .bpm, .db or .cotcot file",
     "import": "Import (.bpm)",
     "import_title": "Import a competition from a .bpm file",
+    "export": "Export (.bpm)",
+    "export_title": "Export a competition to a .bpm file",
+    "export_pick_title": "Choose the competition to export",
     "guided_start": "First time? Create with the guided tour"
   },
   "trainingLauncher": {
