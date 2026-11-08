@@ -22,13 +22,12 @@ export const CompetitionExportPicker: React.FC<CompetitionExportPickerProps> = (
   const { t } = useTranslation();
   return (
     <Modal title={t('competitionList.export_pick_title')} onClose={onClose} size="sm">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div className="competition-export-picker">
         {competitions.map(competition => (
           <button
             key={competition.id}
             type="button"
-            className="btn btn-secondary"
-            style={{ justifyContent: 'flex-start', textAlign: 'left' }}
+            className="btn btn-secondary competition-export-picker__item"
             onClick={() => onPick(competition.id)}
           >
             {competition.title}

@@ -1442,3 +1442,15 @@
   font-size: 0.9rem;
   padding: 0 0.4rem;
 }
+
+/* Choix de la compétition à exporter depuis l'accueil (CompetitionExportPicker) */
+.competition-export-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.competition-export-picker__item {
+  justify-content: flex-start;
+  text-align: left;
+}

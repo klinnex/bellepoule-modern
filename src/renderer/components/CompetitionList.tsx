@@ -270,7 +270,6 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                 type="button"
                 className="btn btn-secondary btn-lg btn-icon-label"
                 onClick={onImport}
-                style={{ padding: '0.75rem 1.5rem' }}
                 title={t('competitionList.import_title')}
               >
                 <Upload size={18} />
