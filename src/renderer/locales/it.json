@@ -1928,7 +1928,17 @@
     "history_other": "Cronologia sessione ({{count}} combattimenti)",
     "no_bout": "Nessun combattimento terminato",
     "settings": "Impostazioni",
-    "stop": "Arresta l'allenamento"
+    "stop": "Arresta l'allenamento",
+    "lobby": "Lobby",
+    "lobby_big": "Lobby allenamento (schermo grande)",
+    "print": "Stampa codici QR",
+    "print_title": "Stampa codici QR",
+    "print_kiosk": "Chiosco",
+    "print_referees": "Pedane arbitro",
+    "print_displays": "Pedane schermo",
+    "print_lobby": "Lobby",
+    "print_confirm": "Stampa",
+    "print_error": "Stampa non riuscita"
   },
   "poolMatches": {
     "not_fenced": "✕ Incontro non disputato",

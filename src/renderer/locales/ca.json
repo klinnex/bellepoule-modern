@@ -1928,7 +1928,17 @@
     "history_other": "Historial de la sessió ({{count}} combats)",
     "no_bout": "Cap combat acabat",
     "settings": "Configuració",
-    "stop": "Atura l'entrenament"
+    "stop": "Atura l'entrenament",
+    "lobby": "Lobby",
+    "lobby_big": "Lobby d'entrenament (pantalla gran)",
+    "print": "Imprimeix els codis QR",
+    "print_title": "Imprimeix els codis QR",
+    "print_kiosk": "Quiosc",
+    "print_referees": "Pistes d'àrbitre",
+    "print_displays": "Pistes de pantalla",
+    "print_lobby": "Lobby",
+    "print_confirm": "Imprimeix",
+    "print_error": "Error d'impressió"
   },
   "poolMatches": {
     "not_fenced": "✕ Combat no disputat",
