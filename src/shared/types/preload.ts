@@ -564,6 +564,10 @@ export interface RemoteServerAPI {
     competitionId: string,
     arenaId: string
   ) => Promise<{ success: boolean; error?: string }>;
+  setStripPlan: (
+    competitionId: string,
+    plan: { start: number; unavailable: number[] }
+  ) => Promise<{ success: boolean; error?: string }>;
   updateKioskTheme: (
     competitionId: string,
     variables: Record<string, string>

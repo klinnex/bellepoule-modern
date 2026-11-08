@@ -30,7 +30,7 @@ import { RSM_STYLES } from './remote/rsmStyles';
 import { StripRangeControls } from './remote/StripRangeControls';
 import { StripPlanCard } from './remote/StripPlanCard';
 import { buildSessionMatches } from './remote/sessionMatches';
-import { useStripAvailability } from '../hooks/useStripAvailability';
+import { useStripAvailability, useStripPlanSync } from '../hooks/useStripAvailability';
 import { MAX_STRIP, normalizeStripRange, stripNumbers } from '../../shared/utils/stripRange';
 import { useRemoteViewMode } from './remote/remoteViewMode';
 import { useKioskTheme, type KioskPreset } from '../hooks/useKioskTheme';
@@ -720,8 +720,8 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
     void applyCommonArenaPassword(appliedCommonPassword, added);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [arenaCount]);
-
   const stripStart = effectiveCommittedStart;
+  useStripPlanSync(competition.id, !!session, stripStart, unavailableStrips);
   const arenaUrls = stripNumbers(stripStart, arenaCount).map(n => ({
     number: n,
     refereeUrl: `${serverUrl}/arene${n}/arbitre`,

@@ -6,6 +6,7 @@
 import type { SessionMatch } from './types';
 import { estimatePhaseEta } from '../../shared/utils/phaseEta';
 import type { PhaseEtaSummary } from './routes/context';
+import { visibleArenas } from './stripPlan';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 
 type S = RemoteScoreServer;
@@ -20,6 +21,7 @@ export interface DashboardContext {
   readonly session: S['session'];
   readonly sessionMatchScores: S['sessionMatchScores'];
   readonly sessionMatches: S['sessionMatches'];
+  readonly stripPlan: S['stripPlan'];
 }
 
 export function buildDashboardSnapshot(ctx: DashboardContext): {
@@ -77,7 +79,7 @@ export function buildDashboardSnapshot(ctx: DashboardContext): {
 
   // Matchs en direct (arènes actives)
   const liveMatches: any[] = [];
-  for (const arena of ctx.arenas.values()) {
+  for (const arena of visibleArenas([...ctx.arenas.values()], ctx.stripPlan)) {
     if (arena.currentMatch && arena.status === 'in_progress') {
       const m = arena.currentMatch;
       liveMatches.push({

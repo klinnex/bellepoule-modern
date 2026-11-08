@@ -728,6 +728,8 @@ const electronApi = {
       ipcRenderer.invoke('remote:updateArenaTheme', competitionId, arenaId, theme, customTheme),
     clearArenaThemeOverride: (competitionId: string, arenaId: string) =>
       ipcRenderer.invoke('remote:clearArenaThemeOverride', competitionId, arenaId),
+    setStripPlan: (competitionId: string, plan: { start: number; unavailable: number[] }) =>
+      ipcRenderer.invoke('remote:setStripPlan', competitionId, plan),
     updateKioskTheme: (competitionId: string, variables: Record<string, string>) =>
       ipcRenderer.invoke('remote:updateKioskTheme', competitionId, variables),
     updateArenaScreenTheme: (

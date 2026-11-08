@@ -34,6 +34,7 @@ export interface ApiRouteContext extends MatchRouteContext {
     demo?: boolean;
   } | null;
   readonly ttsConfig: { voiceName: string | null; rate: number; announce: Record<string, boolean> };
+  readonly stripPlan: { start: number; unavailable: number[] };
   readonly arenaCards: Map<string, { cardsA: string[]; cardsB: string[] }>;
   readonly arenaTouches: Map<string, { touchesA: string[]; touchesB: string[] }>;
   readonly arenaSuddenDeath: Map<string, boolean>;
@@ -43,6 +44,7 @@ export interface ApiRouteContext extends MatchRouteContext {
   assignMatchToArena(arenaId: string, match: ArenaMatch, fromReferee?: boolean): void;
   createSession(competitionId: string, strips: number): Promise<RemoteSession>;
   getAllArenas(): Arena[];
+  getVisibleArenas(): Arena[];
   getArena(arenaId: string): Arena | null;
   getLocalIPAddress(): string;
   getServerUrl(): string;
@@ -177,7 +179,12 @@ export function registerApiRoutes(ctx: ApiRouteContext): void {
 
   // Arena routes
   ctx.app.get('/api/arenas', (req, res) => {
-    res.json(ctx.getAllArenas().map(a => ctx.toPublicArena(a)));
+    res.json(ctx.getVisibleArenas().map(a => ctx.toPublicArena(a)));
+  });
+
+  // Plan des pistes (intervalle + pistes indisponibles) pour tablettes et écrans (#1501)
+  ctx.app.get('/api/strip-plan', (req, res) => {
+    res.json(ctx.stripPlan);
   });
 
   ctx.app.get('/api/arenas/:arenaId', (req, res) => {

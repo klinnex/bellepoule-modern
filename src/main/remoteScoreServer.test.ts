@@ -323,6 +323,20 @@ describe('RemoteScoreServer', () => {
     });
   });
 
+  describe('plan des pistes partagé (#1501)', () => {
+    it('masque les arènes hors intervalle et diffuse le plan', () => {
+      const emit = vi.fn();
+      (server as any).io = { emit };
+      server.setArenaCount(8);
+      emit.mockClear();
+      server.setStripPlan({ start: 5, unavailable: [7, 6] });
+      expect(server.getVisibleArenas().map(a => a.number)).toEqual([5, 6, 7, 8]);
+      expect(emit).toHaveBeenCalledWith('strips:plan', { start: 5, unavailable: [6, 7] });
+      const [, list] = emit.mock.calls.find(c => c[0] === 'arenas:updated')!;
+      expect(list.map((a: { number: number }) => a.number)).toEqual([5, 6, 7, 8]);
+    });
+  });
+
   describe('kiosk:data (#1152)', () => {
     it('regroupe les notifications sur 300 ms', () => {
       vi.useFakeTimers();
