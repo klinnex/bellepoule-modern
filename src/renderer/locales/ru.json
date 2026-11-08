@@ -1928,7 +1928,17 @@
     "history_other": "История сессии (боёв: {{count}})",
     "no_bout": "Нет завершённых боёв",
     "settings": "Настройки",
-    "stop": "Остановить тренировку"
+    "stop": "Остановить тренировку",
+    "lobby": "Лобби",
+    "lobby_big": "Лобби тренировки (большой экран)",
+    "print": "Печать QR-кодов",
+    "print_title": "Печать QR-кодов",
+    "print_kiosk": "Киоск",
+    "print_referees": "Дорожки судей",
+    "print_displays": "Дорожки табло",
+    "print_lobby": "Лобби",
+    "print_confirm": "Печать",
+    "print_error": "Ошибка печати"
   },
   "poolMatches": {
     "not_fenced": "✕ Бой не проведён",

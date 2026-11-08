@@ -11,8 +11,10 @@ import {
   Check,
   Settings,
   Monitor,
+  Printer,
 } from 'lucide-react';
 import type { TrainingMatchRecord } from '../../../shared/types/preload';
+import TrainingPrintModal from './TrainingPrintModal';
 import { getActiveLocale } from '../../../shared/utils/localeFormat';
 
 const WEAPON_LABELS: Record<string, string> = {
@@ -114,18 +116,10 @@ const UrlRow: React.FC<UrlRowProps> = ({ label, url, qrDataUrl }) => {
           <button
             onClick={handleCopy}
             title={t('trainingPanel.copy_url')}
-            style={{
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              padding: '0.25rem',
-              color: copied ? '#16a34a' : 'var(--color-text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              flexShrink: 0,
-            }}
+            aria-label={t('trainingPanel.copy_url')}
+            className={`training-copy-btn${copied ? ' is-copied' : ''}`}
           >
-            {copied ? <Check size={13} /> : <Copy size={13} />}
+            {copied ? <Check size={20} /> : <Copy size={16} />}
           </button>
         </div>
       </div>
@@ -136,8 +130,10 @@ const UrlRow: React.FC<UrlRowProps> = ({ label, url, qrDataUrl }) => {
 // ── Bloc kiosk grand écran ───────────────────────────────────────────────────
 interface KioskBlockProps {
   kioskUrl: string;
+  title?: string;
+  label?: string;
 }
-const KioskBlock: React.FC<KioskBlockProps> = ({ kioskUrl }) => {
+const KioskBlock: React.FC<KioskBlockProps> = ({ kioskUrl, title, label }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
@@ -187,7 +183,7 @@ const KioskBlock: React.FC<KioskBlockProps> = ({ kioskUrl }) => {
             gap: '0.4rem',
           }}
         >
-          <Monitor size={13} /> {t('trainingPanel.kiosk_big')}
+          <Monitor size={13} /> {title ?? t('trainingPanel.kiosk_big')}
         </span>
         <div
           style={{
@@ -204,7 +200,7 @@ const KioskBlock: React.FC<KioskBlockProps> = ({ kioskUrl }) => {
       </button>
       {open && (
         <div style={{ padding: '0.5rem 0.75rem', borderTop: '1px solid var(--color-border)' }}>
-          <UrlRow label={t('trainingPanel.kiosk')} url={kioskUrl} qrDataUrl={qr} />
+          <UrlRow label={label ?? t('trainingPanel.kiosk')} url={kioskUrl} qrDataUrl={qr} />
         </div>
       )}
     </div>
@@ -323,6 +319,7 @@ const TrainingPanel: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const [history, setHistory] = useState<TrainingMatchRecord[]>([]);
+  const [printOpen, setPrintOpen] = useState(false);
 
   const refreshHistory = useCallback(async () => {
     const result = await window.electronAPI?.training?.getHistory();
@@ -443,6 +440,11 @@ const TrainingPanel: React.FC<Props> = ({
         >
           {/* Kiosk */}
           <KioskBlock kioskUrl={`${serverUrl}/kiosk`} />
+          <KioskBlock
+            kioskUrl={`${serverUrl}/entrainement-lobby`}
+            title={t('trainingPanel.lobby_big')}
+            label={t('trainingPanel.lobby')}
+          />
 
           {/* Pistes */}
           <div>
@@ -573,18 +575,35 @@ const TrainingPanel: React.FC<Props> = ({
             alignItems: 'center',
           }}
         >
-          <button
-            className="btn btn-secondary btn-icon-label"
-            onClick={onOpenSettings}
-            title={t('trainingPanel.settings')}
-          >
-            <Settings size={14} /> {t('trainingPanel.settings')}
-          </button>
+          <div className="training-footer-left">
+            <button
+              className="btn btn-secondary btn-icon-label"
+              onClick={onOpenSettings}
+              title={t('trainingPanel.settings')}
+            >
+              <Settings size={14} /> {t('trainingPanel.settings')}
+            </button>
+            <button
+              className="btn btn-secondary btn-icon-label"
+              onClick={() => setPrintOpen(true)}
+              title={t('trainingPanel.print')}
+              aria-label={t('trainingPanel.print')}
+            >
+              <Printer size={14} />
+            </button>
+          </div>
           <button className="btn btn-danger" onClick={onStop}>
             {t('trainingPanel.stop')}
           </button>
         </div>
       </div>
+      {printOpen && (
+        <TrainingPrintModal
+          serverUrl={serverUrl}
+          strips={strips}
+          onClose={() => setPrintOpen(false)}
+        />
+      )}
     </div>
   );
 };

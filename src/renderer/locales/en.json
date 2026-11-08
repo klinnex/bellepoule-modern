@@ -1928,7 +1928,17 @@
     "history_other": "Session history ({{count}} bouts)",
     "no_bout": "No finished bouts",
     "settings": "Settings",
-    "stop": "Stop training"
+    "stop": "Stop training",
+    "lobby": "Lobby",
+    "lobby_big": "Training lobby (big screen)",
+    "print": "Print QR codes",
+    "print_title": "Print QR codes",
+    "print_kiosk": "Kiosk",
+    "print_referees": "Referee strips",
+    "print_displays": "Display strips",
+    "print_lobby": "Lobby",
+    "print_confirm": "Print",
+    "print_error": "Printing failed"
   },
   "poolMatches": {
     "not_fenced": "✕ Bout not fenced",

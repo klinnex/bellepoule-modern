@@ -1928,7 +1928,17 @@
     "history_other": "本節紀錄（{{count}} 場）",
     "no_bout": "未有已完成的比賽",
     "settings": "設定",
-    "stop": "停止訓練"
+    "stop": "停止訓練",
+    "lobby": "大堂",
+    "lobby_big": "訓練大堂（大螢幕）",
+    "print": "列印 QR 碼",
+    "print_title": "列印 QR 碼",
+    "print_kiosk": "自助機",
+    "print_referees": "裁判劍道",
+    "print_displays": "顯示劍道",
+    "print_lobby": "大堂",
+    "print_confirm": "列印",
+    "print_error": "列印失敗"
   },
   "poolMatches": {
     "not_fenced": "✕ 比賽未進行",
