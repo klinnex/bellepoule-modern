@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 51 | 417 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 26 | 128 |
-| `src/renderer/components/` | 61 | 311 |
+| `src/renderer/components/` | 62 | 314 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **290** | **2364** |
+| **Total** | **291** | **2367** |
 
-Unitaires : 281 fichiers, 2329 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 282 fichiers, 2332 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4272,6 +4272,16 @@ Unitaires : 281 fichiers, 2329 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - le score décide hors égalité, un V éventuel est ignoré
   - en égalité, le vainqueur désigné (V ou tirage) gagne
   - en égalité sans vainqueur désigné, pas de vainqueur
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/training/TrainingPrintModal.test.ts</code> — 3 tests</summary>
+
+- **buildTrainingQrTargets (#1500)**
+  - liste kiosk, arbitres, affichages puis lobby
+  - respecte la sélection
+  - renvoie vide si rien de coché
 
 </details>
 

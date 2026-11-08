@@ -1928,7 +1928,17 @@
     "history_other": "Sitzungsverlauf ({{count}} Gefechte)",
     "no_bout": "Keine beendeten Gefechte",
     "settings": "Einstellungen",
-    "stop": "Training beenden"
+    "stop": "Training beenden",
+    "lobby": "Lobby",
+    "lobby_big": "Trainings-Lobby (Großbildschirm)",
+    "print": "QR-Codes drucken",
+    "print_title": "QR-Codes drucken",
+    "print_kiosk": "Kiosk",
+    "print_referees": "Kampfrichter-Bahnen",
+    "print_displays": "Anzeige-Bahnen",
+    "print_lobby": "Lobby",
+    "print_confirm": "Drucken",
+    "print_error": "Drucken fehlgeschlagen"
   },
   "poolMatches": {
     "not_fenced": "✕ Gefecht nicht ausgetragen",

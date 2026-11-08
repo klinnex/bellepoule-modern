@@ -1928,7 +1928,17 @@
     "history_other": "Istor an dalc'h ({{count}} emgann)",
     "no_bout": "Emgann echu ebet",
     "settings": "Arventennoù",
-    "stop": "Paouez an embregerezh"
+    "stop": "Paouez an embregerezh",
+    "lobby": "Lobby",
+    "lobby_big": "Lobby ar stummadur (skramm bras)",
+    "print": "Moullañ ar c'hodoù QR",
+    "print_title": "Moullañ ar c'hodoù QR",
+    "print_kiosk": "Kiosk",
+    "print_referees": "Pistennoù barnerien",
+    "print_displays": "Pistennoù skrammoù",
+    "print_lobby": "Lobby",
+    "print_confirm": "Moullañ",
+    "print_error": "C'hwitet eo ar moullañ"
   },
   "poolMatches": {
     "not_fenced": "✕ Emgann n'eo ket bet c'hoariet",
