@@ -1,5 +1,18 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
+// Mock d'Electron : évite de charger node_modules/electron (téléchargement du binaire en CI)
+vi.mock('electron', () => ({
+  app: { getAppPath: () => '/opt/app', getPath: () => '/tmp', isPackaged: false },
+  BrowserWindow: class {},
+  dialog: { showOpenDialog: vi.fn(), showSaveDialog: vi.fn(), showMessageBox: vi.fn() },
+  ipcMain: { handle: vi.fn(), on: vi.fn(), removeHandler: vi.fn() },
+  net: { request: vi.fn() },
+  safeStorage: { isEncryptionAvailable: () => false },
+  screen: { getAllDisplays: () => [], getPrimaryDisplay: () => ({}) },
+  session: { defaultSession: {} },
+  shell: { openExternal: vi.fn() },
+}));
+
 // Mock fs avant l'import du module
 vi.mock('fs', () => ({
   existsSync: vi.fn().mockReturnValue(false),
