@@ -115,6 +115,14 @@ export function useRapieresTeams({
     handleSaveRapieresTeam,
     handleImportRapieresTeams,
     handleDownloadRapieresTemplate,
+    /** Boutons d'import et de modèle de la liste des appels (props de FencerList) */
+    importButtons: {
+      customImport: { label: t('rapieres.import_teams'), onClick: handleImportRapieresTeams },
+      customImportTemplate: {
+        label: t('rapieres.download_template'),
+        onClick: handleDownloadRapieresTemplate,
+      },
+    },
     /** Props de la fenêtre de sélection (null = fermée) */
     rapieresImportModal: rapieresImport && {
       ...rapieresImport,
