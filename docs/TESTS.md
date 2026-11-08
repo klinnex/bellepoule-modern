@@ -83,7 +83,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 48 | 656 |
+| `src/shared/utils/` | 49 | 659 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -106,9 +106,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **293** | **2375** |
+| **Total** | **294** | **2378** |
 
-Unitaires : 284 fichiers, 2340 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 285 fichiers, 2343 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -515,6 +515,16 @@ Unitaires : 284 fichiers, 2340 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **issue #906 — lignes .fff avec champs omis**
   - tireur conservé : %s _(each)_
   - section personnelle incomplète : club et licence non décalés
+
+</details>
+
+<details>
+<summary><code>src/shared/utils/fileParser/fencerTemplate.test.ts</code> — 3 tests</summary>
+
+- **buildFencerImportTemplate**
+  - commence par un BOM UTF-8 et contient les colonnes attendues
+  - est relu par le parseur d'import avec tous les champs de l'exemple
+  - relit un champ entre guillemets contenant un séparateur (cas Excel)
 
 </details>
 

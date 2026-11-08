@@ -1275,8 +1275,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         filters: [{ name: 'XML BellePoule', extensions: ['xml', 'cotcot'] }],
       },
       fff: {
-        title: 'Importer une liste FFE (.fff, .csv, .txt)',
-        filters: [{ name: 'Fichiers FFE / TXT', extensions: ['fff', 'csv', 'txt'] }],
+        title: 'Importer une liste FFE (.fff, .csv, .txt, .xlsx)',
+        filters: [
+          { name: 'Fichiers FFE / CSV / Excel', extensions: ['fff', 'csv', 'txt', 'xlsx'] },
+        ],
       },
       ranking: {
         title: 'Importer un classement (FFF ou CSV : NOM, PRENOM, CLASSEMENT)',
@@ -1295,8 +1297,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       const content = result.content || '';
       const extension = filepath.split('.').pop()?.toLowerCase();
 
+      // TXT simple → parseur libre ; CSV/Excel → parseur FFE (modèle d'import : en-tête + colonnes)
       let format: string = type;
-      if (type === 'fff' && (extension === 'csv' || extension === 'txt')) {
+      if (type === 'fff' && extension === 'txt') {
         format = 'txt';
       }
 

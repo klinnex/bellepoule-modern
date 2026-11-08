@@ -13,6 +13,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { exportFencersToTXT, exportFencersToFFF } from '../../shared/utils/fencerExport';
 import { isDns } from '../../shared/utils/forfeit';
 import { departmentLabel } from '../../shared/utils/departments';
+import { buildFencerImportTemplate } from '../../shared/utils/fileParser';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import { useConfirm } from './ConfirmDialog';
 import CoachMark from './CoachMark';
@@ -302,6 +303,20 @@ const FencerListComponent: React.FC<FencerListProps> = ({
     }
   };
 
+  const handleDownloadImportTemplate = async () => {
+    const result = await window.electronAPI.dialog.saveFile({
+      title: t('fencerList.import_template'),
+      defaultPath: 'modele-import-tireurs.csv',
+      filters: [
+        { name: 'CSV', extensions: ['csv'] },
+        { name: t('fencerList.all_files'), extensions: ['*'] },
+      ],
+    });
+    if (result && !result.canceled && result.filePath) {
+      await window.electronAPI.file.writeContent(result.filePath, buildFencerImportTemplate());
+    }
+  };
+
   const handleImportFencers = (type: 'xml' | 'fff' | 'ranking') => {
     if (onImport) {
       onImport(type);
@@ -562,6 +577,16 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                     }}
                   >
                     {t('fencerList.import_ranking')}
+                  </button>
+                  <button
+                    className="btn btn-ghost"
+                    style={MENU_ITEM}
+                    onClick={() => {
+                      handleDownloadImportTemplate();
+                      setImportMenuOpen(false);
+                    }}
+                  >
+                    {t('fencerList.import_template')}
                   </button>
                   {onImportFFEConnect && (
                     <button

@@ -1396,6 +1396,7 @@
     "import_xml_bp": "Importar XML (BellePoule)",
     "import_fff": "Importar lista FFE (.fff)",
     "import_ranking": "Importar clasificación (FFF / CSV)",
+    "import_template": "Descargar plantilla de importación (CSV / Excel)",
     "import_ffe_connect": "🔗 Importar desde FFE Connect",
     "import_bpf": "Importar tiradores + fotos (.bpf)",
     "import_photos": "Importar fotos (.zip)",

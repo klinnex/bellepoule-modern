@@ -10,6 +10,7 @@ export { ImportResult } from './fileParser/common';
 export { parseSimpleTXTFile } from './fileParser/txtParser';
 export { parseFFEFile } from './fileParser/ffeParser';
 export { parseXMLFile } from './fileParser/xmlParser';
+export { buildFencerImportTemplate, FENCER_IMPORT_COLUMNS } from './fileParser/fencerTemplate';
 export {
   parseRankingFile,
   RankingImportResult,

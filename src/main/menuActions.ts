@@ -187,7 +187,7 @@ export function createMenuActions({ db, getMainWindow }: MenuActionsContext) {
         break;
       case 'fff':
         title = L.importFffTitle;
-        filters = [{ name: L.filterFfe, extensions: ['fff', 'csv', 'txt'] }];
+        filters = [{ name: L.filterFfe, extensions: ['fff', 'csv', 'txt', 'xlsx'] }];
         break;
       case 'ranking':
         title = L.importRankingTitle;
