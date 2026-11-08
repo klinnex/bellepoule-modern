@@ -32,7 +32,7 @@ export interface SessionSettingsContext {
   readonly connectedClients: S['connectedClients'];
   readonly createArena: S['createArena'];
   readonly db: S['db'];
-  readonly getAllArenas: S['getAllArenas'];
+  readonly getVisibleArenas: S['getVisibleArenas'];
   readonly io: S['io'];
   readonly isTrainingMode: S['isTrainingMode'];
   kioskThemeVariables: S['kioskThemeVariables'];
@@ -73,7 +73,7 @@ export function updateStripCount(
     ctx.arenaCount = newCount;
     ctx.io?.emit(
       'arenas:updated',
-      ctx.getAllArenas().map(a => ctx.toPublicArena(a))
+      ctx.getVisibleArenas().map(a => ctx.toPublicArena(a))
     );
   } else if (newCount < currentCount) {
     // Remove strips (only available ones)
@@ -111,7 +111,7 @@ export function updateStripCount(
     ctx.arenaCount = newCount;
     ctx.io?.emit(
       'arenas:updated',
-      ctx.getAllArenas().map(a => ctx.toPublicArena(a))
+      ctx.getVisibleArenas().map(a => ctx.toPublicArena(a))
     );
   }
 

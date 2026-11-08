@@ -118,6 +118,7 @@ import {
   loadNextMatch,
   updateMatchArena,
   assignPools,
+  isGuestMatch,
   refreshDeMatches,
   type ArenaQueueContext,
 } from './remote/arenaQueue';
@@ -154,6 +155,8 @@ import {
   getScoreLimit,
   updateArenaScore,
   type ArenaOpsContext,
+  updateArena,
+  resolveDbMatchId,
 } from './remote/arenaOps';
 import {
   updateStripCount,
@@ -171,6 +174,7 @@ import {
   type SessionSettingsContext,
 } from './remote/sessionSettings';
 import { getArenaBlackCards, cancelBlackCard, type BlackCardsContext } from './remote/blackCards';
+import { normalizeStripPlan, visibleArenas, type StripPlan } from './remote/stripPlan';
 import { buildDashboardSnapshot, computePhaseEta, type DashboardContext } from './remote/dashboard';
 import { getUiLanguage } from './menuLabels';
 import { isWebhookUrlSafe } from '../shared/services/notificationService';
@@ -231,6 +235,7 @@ export class RemoteScoreServer {
   private arenaThemeOverrides: Map<string, { theme: DisplayTheme; customTheme?: CustomTheme }> =
     new Map();
   private arenaScreenThemes: Map<string, Partial<Record<ThemeTargetType, CustomTheme>>> = new Map();
+  private stripPlan: StripPlan = { start: 1, unavailable: [] }; // Plan des pistes (#1501)
   private kioskThemeVariables: Record<string, string> | null = null; // Thème CSS vars pour le kiosk
   private orgNote: OrgNote | null = null; // Note d'organisation affichée sur le kiosk
   private isTrainingMode: boolean = false;
@@ -693,6 +698,7 @@ export class RemoteScoreServer {
         'arenas',
         'db',
         'io',
+        'session',
         'sessionMatches',
         'sessionPoolMaxScore',
         'sessionTableMaxScore',
@@ -784,7 +790,7 @@ export class RemoteScoreServer {
         'applyCompetitionSettings',
         'broadcastArenaUpdate',
         'createArena',
-        'getAllArenas',
+        'getVisibleArenas',
         'toPublicArena',
         'updateArenaTheme',
       ]
@@ -822,6 +828,7 @@ export class RemoteScoreServer {
         'session',
         'sessionMatchScores',
         'sessionMatches',
+        'stripPlan',
       ],
       ['computePhaseEta']
     ));
@@ -1108,6 +1115,8 @@ export class RemoteScoreServer {
           'assignMatchToArena',
           'createSession',
           'getAllArenas',
+          'getVisibleArenas',
+          'stripPlan',
           'getArena',
           'getLocalIPAddress',
           'getServerUrl',
@@ -1427,9 +1436,26 @@ export class RemoteScoreServer {
   public setArenaCount(count: number): void {
     logger.info(NET, `[RemoteScoreServer] Mise à jour du nombre d'arènes: ${count}`);
     this.initializeArenas(count);
+    this.emitArenas();
+  }
+
+  /** Arènes exposées aux écrans : hors intervalle masquées (#1501). */
+  public getVisibleArenas(): Arena[] {
+    return visibleArenas(this.getAllArenas(), this.stripPlan);
+  }
+
+  /** Met à jour le plan des pistes et le diffuse (tablettes, kiosque, tableau de bord). */
+  public setStripPlan(input: unknown): void {
+    this.stripPlan = normalizeStripPlan(input);
+    this.io?.emit('strips:plan', this.stripPlan);
+    this.emitArenas();
+    this.broadcastDashboardUpdate();
+  }
+
+  private emitArenas(): void {
     this.io?.emit(
       'arenas:updated',
-      this.getAllArenas().map(a => this.toPublicArena(a))
+      this.getVisibleArenas().map(a => this.toPublicArena(a))
     );
   }
 
@@ -1446,34 +1472,12 @@ export class RemoteScoreServer {
     return Array.from(this.arenas.values());
   }
 
-  public updateArena(arenaId: string, update: Partial<Arena>): void {
-    const arena = this.arenas.get(arenaId);
-    if (!arena) return;
-
-    Object.assign(arena, update);
-
-    // Diffuser la mise à jour via WebSocket
-    this.broadcastArenaUpdate(arenaId, {
-      arenaId,
-      match: arena.currentMatch,
-      scoreA: arena.currentMatch?.scoreA,
-      scoreB: arena.currentMatch?.scoreB,
-      status: arena.status,
-      fencerA: arena.currentMatch?.fencerA,
-      fencerB: arena.currentMatch?.fencerB,
-    });
+  public updateArena(...args: Tail<Parameters<typeof updateArena>>): void {
+    return updateArena(this.arenaOpsCtx, ...args);
   }
 
-  /** Id du match en base : `${competitionId}-${id}` pour un match de tableau s'il existe */
   private resolveDbMatchId(match: ArenaMatch): string {
-    if (match.poolId || !this.session) return match.id;
-    const composite = `${this.session.competitionId}-${match.id}`;
-    try {
-      if (this.db.getMatch(composite)) return composite;
-    } catch {
-      /* id non UUID / DB indisponible : id brut */
-    }
-    return match.id;
+    return resolveDbMatchId(this.arenaOpsCtx, match);
   }
 
   /**
@@ -1481,13 +1485,7 @@ export class RemoteScoreServer {
    * ne change pas la poule propre de la piste (activePoolId).
    */
   private isGuestMatch(arenaId: string, m: { id: string; poolId?: string }): boolean {
-    const home = this.arenas.get(arenaId)?.activePoolId;
-    return (
-      !!m.poolId &&
-      !!home &&
-      m.poolId !== home &&
-      this.poolMatchArenaOverrides.get(m.id) === arenaId
-    );
+    return isGuestMatch(this.arenaQueueCtx, arenaId, m);
   }
 
   /** Poule propre de la piste, même si un match réassigné d'une autre poule y est chargé */

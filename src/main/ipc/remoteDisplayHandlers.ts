@@ -65,6 +65,18 @@ export function registerRemoteDisplayHandlers({
     }
   );
 
+  ipcMain.handle('remote:setStripPlan', async (_, competitionId: string, plan: unknown) => {
+    try {
+      const entry = remoteServers.get(competitionId);
+      if (!entry) return { success: false, error: 'remote_not_started' };
+      entry.server.setStripPlan(plan);
+      return { success: true };
+    } catch (error) {
+      logger.error(LogCategory.NETWORK, 'Error setting strip plan:', toError(error));
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' };
+    }
+  });
+
   ipcMain.handle(
     'remote:updateArenaScreenTheme',
     async (_, competitionId: string, arenaId: string, targetType: string, customTheme?: any) => {

@@ -3,7 +3,7 @@
  * Extrait de RemoteScoreServer : l'état reste dans le serveur, exposé par accesseurs (contexte).
  * Licensed under GPL-3.0
  */
-import { ArenaMatch } from '../../shared/types/remote';
+import { Arena, ArenaMatch } from '../../shared/types/remote';
 import { Weapon } from '../../shared/types';
 import type { RemoteScoreServer } from '../remoteScoreServer';
 import { logger, LogCategory } from '../../shared/services/logger';
@@ -25,6 +25,7 @@ export interface ArenaOpsContext {
   readonly resolvePoolReferee: S['resolvePoolReferee'];
   readonly resolveReferee: S['resolveReferee'];
   readonly resolveTableauMatchReferees: S['resolveTableauMatchReferees'];
+  readonly session: S['session'];
   readonly sessionMatches: S['sessionMatches'];
   readonly sessionPoolMaxScore: S['sessionPoolMaxScore'];
   readonly sessionTableMaxScore: S['sessionTableMaxScore'];
@@ -200,4 +201,34 @@ function checkAndAutoFinishMatch(
     );
     ctx.io.to(`arena:${arenaId}`).emit(`arena:${arenaId}:score_limit_reached`);
   }
+}
+
+export function updateArena(ctx: ArenaOpsContext, arenaId: string, update: Partial<Arena>): void {
+  const arena = ctx.arenas.get(arenaId);
+  if (!arena) return;
+
+  Object.assign(arena, update);
+
+  // Diffuser la mise à jour via WebSocket
+  ctx.broadcastArenaUpdate(arenaId, {
+    arenaId,
+    match: arena.currentMatch,
+    scoreA: arena.currentMatch?.scoreA,
+    scoreB: arena.currentMatch?.scoreB,
+    status: arena.status,
+    fencerA: arena.currentMatch?.fencerA,
+    fencerB: arena.currentMatch?.fencerB,
+  });
+}
+
+/** Id du match en base : `${competitionId}-${id}` pour un match de tableau s'il existe */
+export function resolveDbMatchId(ctx: ArenaOpsContext, match: ArenaMatch): string {
+  if (match.poolId || !ctx.session) return match.id;
+  const composite = `${ctx.session.competitionId}-${match.id}`;
+  try {
+    if (ctx.db.getMatch(composite)) return composite;
+  } catch {
+    /* id non UUID / DB indisponible : id brut */
+  }
+  return match.id;
 }

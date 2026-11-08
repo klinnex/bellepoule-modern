@@ -97,18 +97,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 6 | 138 |
-| `src/main/` | 51 | 417 |
+| `src/main/` | 52 | 422 |
 | `src/renderer/services/` | 7 | 48 |
-| `src/renderer/hooks/` | 26 | 128 |
+| `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 62 | 314 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **291** | **2367** |
+| **Total** | **293** | **2375** |
 
-Unitaires : 282 fichiers, 2332 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 284 fichiers, 2340 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2762,6 +2762,18 @@ Unitaires : 282 fichiers, 2332 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/main/remote/stripPlan.test.ts</code> — 4 tests</summary>
+
+- **normalizeStripPlan**
+  - valeurs par défaut pour une entrée invalide
+  - trie, déduplique et filtre les pistes indisponibles
+- **visibleArenas**
+  - masque les arènes avant la piste de départ
+  - tout visible par défaut
+
+</details>
+
+<details>
 <summary><code>src/main/remote/trainingLobby.test.ts</code> — 12 tests</summary>
 
 - **TrainingLobby (#1500)**
@@ -2782,7 +2794,7 @@ Unitaires : 282 fichiers, 2332 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remoteScoreServer.test.ts</code> — 104 tests</summary>
+<summary><code>src/main/remoteScoreServer.test.ts</code> — 105 tests</summary>
 
 - **RemoteScoreServer**
   - **démarrage du serveur**
@@ -2808,6 +2820,8 @@ Unitaires : 282 fichiers, 2332 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - **persistArenaState**
     - n'appelle pas saveArenaState si pas de session
     - appelle saveArenaState si une session est active
+  - **plan des pistes partagé (#1501)**
+    - masque les arènes hors intervalle et diffuse le plan
   - **kiosk:data (#1152)**
     - regroupe les notifications sur 300 ms
     - s’abonne aux écritures de la base et se désabonne à l’arrêt
@@ -3473,6 +3487,16 @@ Unitaires : 282 fichiers, 2332 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - expose les valeurs initiales et accepte valeur ou fonction
   - garde des setters stables
   - gère les Set immuables
+
+</details>
+
+<details>
+<summary><code>src/renderer/hooks/useStripPlanSync.test.tsx</code> — 3 tests</summary>
+
+- **useStripPlanSync**
+  - envoie le plan quand la session est active
+  - ne fait rien sans session active
+  - renvoie le plan quand les pistes indisponibles changent
 
 </details>
 

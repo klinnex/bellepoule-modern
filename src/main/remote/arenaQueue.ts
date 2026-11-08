@@ -658,3 +658,14 @@ export function refreshDeMatches(ctx: ArenaQueueContext, matchesFromRenderer: an
   // Notifier le kiosk que le bracket a changé
   ctx.io.emit('bracket:update');
 }
+
+export function isGuestMatch(
+  ctx: ArenaQueueContext,
+  arenaId: string,
+  m: { id: string; poolId?: string }
+): boolean {
+  const home = ctx.arenas.get(arenaId)?.activePoolId;
+  return (
+    !!m.poolId && !!home && m.poolId !== home && ctx.poolMatchArenaOverrides.get(m.id) === arenaId
+  );
+}
