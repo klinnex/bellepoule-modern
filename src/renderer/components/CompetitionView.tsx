@@ -1123,7 +1123,12 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     updateFencer,
     setRapieresTeam,
   });
-  const { rapieresFencerFields, handleSaveRapieresTeam, handleImportRapieresTeams } = rapieresTeams;
+  const {
+    rapieresFencerFields,
+    handleSaveRapieresTeam,
+    handleImportRapieresTeams,
+    handleDownloadRapieresTemplate,
+  } = rapieresTeams;
 
   // Migration de la première version (vue dédiée) : équipes recréées comme tireurs
   const rapieresMigrating = useRef(false);
@@ -2263,6 +2268,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                   customImport: {
                     label: t('rapieres.import_teams'),
                     onClick: handleImportRapieresTeams,
+                  },
+                  customImportTemplate: {
+                    label: t('rapieres.download_template'),
+                    onClick: handleDownloadRapieresTemplate,
                   },
                 }
               : {})}

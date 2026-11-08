@@ -94,7 +94,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `pdfTemplates` (`src/features/pdfTemplates/`) | 1 | 6 |
 | Feature `penalties` (`src/features/penalties/`) | 3 | 36 |
 | Feature `pools` (`src/features/pools/`) | 3 | 32 |
-| Feature `rapieres` (`src/features/rapieres/`) | 7 | 46 |
+| Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 6 | 138 |
 | `src/main/` | 52 | 422 |
@@ -106,9 +106,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **294** | **2378** |
+| **Total** | **294** | **2381** |
 
-Unitaires : 285 fichiers, 2343 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 285 fichiers, 2346 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -1844,7 +1844,7 @@ Unitaires : 285 fichiers, 2343 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/features/rapieres/rapieresImport.test.ts</code> — 7 tests</summary>
+<summary><code>src/features/rapieres/rapieresImport.test.ts</code> — 10 tests</summary>
 
 - **rapieresImport (#1211)**
   - parseDelimited gère BOM, guillemets et CRLF
@@ -1855,6 +1855,10 @@ Unitaires : 285 fichiers, 2343 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - parseRapieresTeams lit D/E/Q, T/U/V et Y, ignore l’en-tête et les lignes incomplètes
 - **rapieresImport : club de l’équipe (#1441)**
   - club des deux tireurs (colonnes S et X) : distincts joints par « / », identiques une seule fois
+- **buildRapieresImportTemplate (modèle d'import des équipes)**
+  - commence par un BOM et reprend les 25 colonnes de l'export d'inscriptions
+  - est relu par l'import : une équipe d'exemple, colonnes correctement placées
+  - un modèle sans ligne d'exemple ne produit aucune équipe
 
 </details>
 

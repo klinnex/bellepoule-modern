@@ -61,6 +61,8 @@ interface FencerListProps {
   onImportFFEConnect?: () => void;
   /** Import spécifique remplaçant le menu d'import (ex : équipes du tournoi des rapières) */
   customImport?: { label: string; onClick: () => void };
+  /** Bouton « modèle » à côté de customImport (gabarit du fichier attendu) */
+  customImportTemplate?: { label: string; onClick: () => void };
   onFencersImported?: () => void;
   /** URL de la page d'inscription distante (ex: http://192.168.x.x:8066/register) */
   registerUrl?: string;
@@ -92,6 +94,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
   onImport,
   onImportFFEConnect,
   customImport,
+  customImportTemplate,
   onFencersImported,
   registerUrl,
   onAppelStateChange,
@@ -534,6 +537,11 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           {customImport && !readOnly && (
             <button className="btn btn-secondary" onClick={customImport.onClick}>
               {customImport.label}
+            </button>
+          )}
+          {customImportTemplate && !readOnly && (
+            <button className="btn btn-secondary" onClick={customImportTemplate.onClick}>
+              {customImportTemplate.label}
             </button>
           )}
           {onImport && !readOnly && (

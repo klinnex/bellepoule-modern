@@ -10,7 +10,7 @@ import { useToast } from '../../renderer/components/Toast';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
 import { RapieresTeamInfo } from './rapieres.types';
 import { teamMembersLabel } from './rapieresCalculations';
-import { parseRapieresTeams } from './rapieresImport';
+import { buildRapieresImportTemplate, parseRapieresTeams } from './rapieresImport';
 import { RapieresTeamDraft } from './RapieresTeamModal';
 
 type NewFencer = Omit<Fencer, 'id' | 'createdAt' | 'updatedAt'>;
@@ -87,6 +87,21 @@ export function useRapieresTeams({
     setRapieresImport({ filename, teams, skipped });
   };
 
+  // Modèle CSV attendu par l'import (mêmes colonnes que l'export d'inscriptions)
+  const handleDownloadRapieresTemplate = async () => {
+    const result = await window.electronAPI.dialog.saveFile({
+      title: t('rapieres.download_template'),
+      defaultPath: 'modele-import-equipes.csv',
+      filters: [
+        { name: 'CSV', extensions: ['csv'] },
+        { name: t('fencerList.all_files'), extensions: ['*'] },
+      ],
+    });
+    if (result && !result.canceled && result.filePath) {
+      await window.electronAPI.file.writeContent(result.filePath, buildRapieresImportTemplate());
+    }
+  };
+
   // Équipes cochées dans la fenêtre d'import : ajout groupé
   const confirmRapieresImport = async (teams: RapieresTeamDraft[]) => {
     if (teams.length === 0) return;
@@ -99,6 +114,7 @@ export function useRapieresTeams({
     rapieresFencerFields,
     handleSaveRapieresTeam,
     handleImportRapieresTeams,
+    handleDownloadRapieresTemplate,
     /** Props de la fenêtre de sélection (null = fermée) */
     rapieresImportModal: rapieresImport && {
       ...rapieresImport,
