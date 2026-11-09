@@ -6,6 +6,7 @@ import type {
   PdfElementConfig,
   PdfColorScheme,
 } from '../../shared/types/pdfTemplate.types';
+import { Button } from './common/Button';
 
 const LOGO_KEY = 'bellepoule-logo';
 
@@ -182,21 +183,16 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
               {t('pdfEditor.no_logo')}
             </div>
           )}
-          <button
-            className="btn btn-secondary"
-            style={SM}
-            onClick={() => logoInputRef.current?.click()}
-          >
+          <Button style={SM} onClick={() => logoInputRef.current?.click()}>
             {logo ? 'Changer' : 'Importer'}
-          </button>
+          </Button>
           {logo && (
-            <button
-              className="btn btn-secondary"
+            <Button
               style={{ fontSize: '0.8rem', color: 'var(--danger, #ef4444)' }}
               onClick={handleLogoRemove}
             >
               {t('actions.delete')}
-            </button>
+            </Button>
           )}
           <input
             ref={logoInputRef}
@@ -214,9 +210,9 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
         {/* Presets */}
         <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
           {COLOR_PRESETS.map(preset => (
-            <button
+            <Button
               key={preset.label}
-              className="btn btn-secondary"
+
               style={{ ...SM, display: 'flex', alignItems: 'center', gap: '0.35rem' }}
               onClick={() =>
                 onChange({
@@ -240,7 +236,7 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
                 />
               ))}
               {preset.label}
-            </button>
+            </Button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
@@ -341,15 +337,15 @@ const PdfTemplateEditor: React.FC<Props> = ({ template, onChange, onReset }) => 
 
       {/* Actions */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', paddingTop: '0.25rem' }}>
-        <button className="btn btn-secondary" style={SM} onClick={onReset}>
+        <Button style={SM} onClick={onReset}>
           {t('pdfTemplate.reset')}
-        </button>
-        <button className="btn btn-secondary" style={SM} onClick={handleExport}>
+        </Button>
+        <Button style={SM} onClick={handleExport}>
           {t('pdfTemplate.exportJson')}
-        </button>
-        <button className="btn btn-secondary" style={SM} onClick={handleImportClick}>
+        </Button>
+        <Button style={SM} onClick={handleImportClick}>
           {t('pdfTemplate.importJson')}
-        </button>
+        </Button>
         <input
           ref={fileInputRef}
           type="file"

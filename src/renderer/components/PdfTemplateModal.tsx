@@ -5,6 +5,7 @@ import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTem
 import PdfTemplateEditor from './PdfTemplateEditor';
 import PdfPreview from './PdfPreview';
 import type { PdfDocType, PdfTemplate } from '../../shared/types/pdfTemplate.types';
+import { Button } from './common/Button';
 
 interface Props {
   onClose: () => void;
@@ -42,14 +43,14 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
       >
         <div className="modal-header flex-shrink-0">
           <h2 className="modal-title">{t('pdfTemplate.modalTitle')}</h2>
-          <button
+          <Button
             aria-label={t('actions.close')}
-            className="btn btn-secondary"
+
             style={{ fontSize: '0.8rem', padding: '0.25rem 0.6rem' }}
             onClick={onClose}
           >
             ✕
-          </button>
+          </Button>
         </div>
 
         {/* Type selector */}
@@ -103,9 +104,9 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
         </div>
 
         <div className="modal-footer flex-shrink-0">
-          <button className="btn btn-primary" onClick={onClose}>
+          <Button variant="primary" onClick={onClose}>
             {t('actions.close') || 'Fermer'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

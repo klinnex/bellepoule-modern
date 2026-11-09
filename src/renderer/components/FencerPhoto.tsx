@@ -9,6 +9,7 @@ import { logger, LogCategory } from '@shared/services/logger';
 import PhotoBooth from './PhotoBooth';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
+import { Button } from './common/Button';
 
 interface FencerPhotoProps {
   photo?: string;
@@ -280,15 +281,15 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
               <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600 }}>
                 {t('fencerPhoto.take')}
               </h3>
-              <button
+              <Button
                 aria-label={t('actions.close')}
                 type="button"
-                className="btn btn-icon btn-secondary"
+                className="btn-icon"
                 onClick={() => setShowWebcam(false)}
                 style={{ padding: '0.25rem' }}
               >
                 ✕
-              </button>
+              </Button>
             </div>
             <PhotoBooth
               onConfirm={photoData => {

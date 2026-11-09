@@ -500,27 +500,23 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           {fencers.length > 0 && !readOnly && (
             <>
               {notCheckedInCount > 0 && onCheckInAll && (
-                <button
-                  className="btn btn-secondary"
+                <Button
                   data-tour="check-in-all"
                   onClick={onCheckInAll}
                   title={t('fencerList.check_in_all_title', { count: notCheckedInCount })}
                 >
                   ✓ {t('actions.check_in_all')}
-                </button>
+                </Button>
               )}
               {checkedInCount > 0 && onUncheckAll && (
-                <button
-                  className="btn btn-secondary"
-                  onClick={onUncheckAll}
-                  title={t('fencer.uncheck_all')}
-                >
+                <Button onClick={onUncheckAll} title={t('fencer.uncheck_all')}>
                   ✗ {t('actions.uncheck_all')}
-                </button>
+                </Button>
               )}
               {onDeleteAllFencers && (
-                <button
-                  className="btn btn-danger is-83f1a0"
+                <Button
+                  variant="danger"
+                  className="is-83f1a0"
                   onClick={async () => {
                     if (await confirm(t('messages.confirm_delete_fencer'))) {
                       onDeleteAllFencers();
@@ -529,35 +525,30 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                   title={t('fencerList.delete_all_title', { count: fencers.length })}
                 >
                   <Icon icon={Trash2} />
-                </button>
+                </Button>
               )}
               <div className="is-8ecdd8" />
             </>
           )}
           {customImport && !readOnly && (
-            <button className="btn btn-secondary" onClick={customImport.onClick}>
-              {customImport.label}
-            </button>
+            <Button onClick={customImport.onClick}>{customImport.label}</Button>
           )}
           {customImportTemplate && !readOnly && (
-            <button className="btn btn-secondary" onClick={customImportTemplate.onClick}>
-              {customImportTemplate.label}
-            </button>
+            <Button onClick={customImportTemplate.onClick}>{customImportTemplate.label}</Button>
           )}
           {onImport && !readOnly && (
             <div ref={importMenuRef} style={DROPDOWN_WRAP}>
-              <button
-                className="btn btn-secondary"
+              <Button
                 data-tour="import"
                 onClick={() => setImportMenuOpen(o => !o)}
                 title={t('actions.import')}
               >
                 {t('fencerList.import_menu')}
-              </button>
+              </Button>
               {importMenuOpen && (
                 <div className="is-5f1ae4">
-                  <button
-                    className="btn btn-ghost"
+                  <Button
+                    variant="ghost"
                     style={MENU_ITEM}
                     onClick={() => {
                       handleImportFencers('xml');
@@ -565,9 +556,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                     }}
                   >
                     {t('fencerList.import_xml_bp')}
-                  </button>
-                  <button
-                    className="btn btn-ghost"
+                  </Button>
+                  <Button
+                    variant="ghost"
                     style={MENU_ITEM}
                     onClick={() => {
                       handleImportFencers('fff');
@@ -575,9 +566,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                     }}
                   >
                     {t('fencerList.import_fff')}
-                  </button>
-                  <button
-                    className="btn btn-ghost"
+                  </Button>
+                  <Button
+                    variant="ghost"
                     style={MENU_ITEM}
                     onClick={() => {
                       handleImportFencers('ranking');
@@ -585,9 +576,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                     }}
                   >
                     {t('fencerList.import_ranking')}
-                  </button>
-                  <button
-                    className="btn btn-ghost"
+                  </Button>
+                  <Button
+                    variant="ghost"
                     style={MENU_ITEM}
                     onClick={() => {
                       handleDownloadImportTemplate();
@@ -595,10 +586,10 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                     }}
                   >
                     {t('fencerList.import_template')}
-                  </button>
+                  </Button>
                   {onImportFFEConnect && (
-                    <button
-                      className="btn btn-ghost"
+                    <Button
+                      variant="ghost"
                       style={MENU_ITEM}
                       onClick={() => {
                         onImportFFEConnect();
@@ -606,12 +597,12 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       }}
                     >
                       {t('fencerList.import_ffe_connect')}
-                    </button>
+                    </Button>
                   )}
                   {competitionId && (
                     <>
-                      <button
-                        className="btn btn-ghost"
+                      <Button
+                        variant="ghost"
                         style={MENU_ITEM}
                         onClick={() => {
                           handleImportFencersArchive();
@@ -619,9 +610,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         }}
                       >
                         {t('fencerList.import_bpf')}
-                      </button>
-                      <button
-                        className="btn btn-ghost"
+                      </Button>
+                      <Button
+                        variant="ghost"
                         style={MENU_ITEM}
                         onClick={() => {
                           handleImportPhotos();
@@ -629,7 +620,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                         }}
                       >
                         {t('fencerList.import_photos')}
-                      </button>
+                      </Button>
                     </>
                   )}
                 </div>
@@ -639,13 +630,12 @@ const FencerListComponent: React.FC<FencerListProps> = ({
           {fencers.length > 0 && (
             <>
               <div ref={colMenuRef} style={DROPDOWN_WRAP}>
-                <button
-                  className="btn btn-secondary"
+                <Button
                   onClick={() => setColMenuOpen(o => !o)}
                   title={t('fencerList.columns_title')}
                 >
                   {t('fencerList.columns_menu')}
-                </button>
+                </Button>
                 {colMenuOpen && (
                   <div className="is-a36aa5">
                     {COLUMNS.map(col => (
@@ -666,27 +656,24 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       </label>
                     ))}
                     <div className="is-a6ae95" />
-                    <button
-                      className="btn btn-ghost is-539e77"
+                    <Button
+                      variant="ghost"
+                      className="is-539e77"
                       onClick={() => setColOrder(COLUMNS.map(c => c.id))}
                     >
                       {t('fencerList.reset_order')}
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
               <div ref={exportMenuRef} style={DROPDOWN_WRAP}>
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setExportMenuOpen(o => !o)}
-                  title={t('actions.export')}
-                >
+                <Button onClick={() => setExportMenuOpen(o => !o)} title={t('actions.export')}>
                   {t('fencerList.export_menu')}
-                </button>
+                </Button>
                 {exportMenuOpen && (
                   <div className="is-9a02fd">
-                    <button
-                      className="btn btn-ghost"
+                    <Button
+                      variant="ghost"
                       style={MENU_ITEM}
                       onClick={() => {
                         handleExportPDF();
@@ -694,9 +681,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       }}
                     >
                       {t('fencerList.export_pdf_appel')}
-                    </button>
-                    <button
-                      className="btn btn-ghost"
+                    </Button>
+                    <Button
+                      variant="ghost"
                       style={MENU_ITEM}
                       onClick={() => {
                         handleExportFencers('txt');
@@ -704,9 +691,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       }}
                     >
                       {t('fencerList.export_txt')}
-                    </button>
-                    <button
-                      className="btn btn-ghost"
+                    </Button>
+                    <Button
+                      variant="ghost"
                       style={MENU_ITEM}
                       onClick={() => {
                         handleExportFencers('fff');
@@ -714,9 +701,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       }}
                     >
                       {t('fencerList.export_fff')}
-                    </button>
-                    <button
-                      className="btn btn-ghost"
+                    </Button>
+                    <Button
+                      variant="ghost"
                       style={MENU_ITEM}
                       onClick={() => {
                         handleExportFencersArchive();
@@ -724,9 +711,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       }}
                     >
                       {t('fencerList.export_bpf')}
-                    </button>
-                    <button
-                      className="btn btn-ghost"
+                    </Button>
+                    <Button
+                      variant="ghost"
                       style={MENU_ITEM}
                       onClick={() => {
                         handleExportPhotos();
@@ -734,25 +721,25 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                       }}
                     >
                       {t('fencerList.export_photos')}
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
             </>
           )}
           {registerUrl && !readOnly && (
-            <button
-              className="btn btn-secondary is-5c17a8"
+            <Button
+              className="is-5c17a8"
               title={`Inscription tablette : ${registerUrl}`}
               onClick={() => setShowRegisterQR(true)}
             >
               <Icon icon={QrCode} /> {t('fencerList.qr_register')}
-            </button>
+            </Button>
           )}
           {!readOnly && (
-            <button className="btn btn-primary" data-tour="add-fencer" onClick={onAddFencer}>
+            <Button variant="primary" data-tour="add-fencer" onClick={onAddFencer}>
               + {t('fencer.add')}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -775,12 +762,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               <div className="is-bc2a5d">{t('fencerList.generating')}</div>
             )}
             <code className="is-0fcdb7">{registerUrl}</code>
-            <button
-              className="btn btn-secondary is-5d3107"
-              onClick={() => setShowRegisterQR(false)}
-            >
+            <Button className="is-5d3107" onClick={() => setShowRegisterQR(false)}>
               {t('actions.close')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -864,20 +848,12 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                   message={t('fencerList.import_formats_hint')}
                   position="bottom"
                 >
-                  <button
-                    className="btn btn-secondary"
-                    data-tour="import"
-                    onClick={() => handleImportFencers('fff')}
-                  >
+                  <Button data-tour="import" onClick={() => handleImportFencers('fff')}>
                     {t('fencerList.empty_import_fff')}
-                  </button>
-                  <button
-                    className="btn btn-secondary"
-                    data-tour="import"
-                    onClick={() => handleImportFencers('xml')}
-                  >
+                  </Button>
+                  <Button data-tour="import" onClick={() => handleImportFencers('xml')}>
                     {t('fencerList.empty_import_xml')}
-                  </button>
+                  </Button>
                   <Button
                     variant="secondary"
                     title={t('fencerList.import_template')}
@@ -887,9 +863,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                   </Button>
                 </CoachMark>
               )}
-              <button className="btn btn-primary" data-tour="add-fencer" onClick={onAddFencer}>
+              <Button variant="primary" data-tour="add-fencer" onClick={onAddFencer}>
                 + {t('fencer.add')}
-              </button>
+              </Button>
             </div>
           </EmptyState>
         ) : (
@@ -1087,14 +1063,14 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                             alignItems: 'center',
                           }}
                         >
-                          <button
-                            className="btn btn-sm btn-secondary"
+                          <Button
+                            size="sm"
                             onClick={() => openEdit(fencer)}
                             title={t('actions.edit')}
                             style={SMALL_BTN}
                           >
                             <Icon icon={Pencil} />
-                          </button>
+                          </Button>
                           <button
                             className={`btn btn-sm ${fencer.status === FencerStatus.CHECKED_IN ? 'btn-secondary' : 'btn-primary'}`}
                             data-tour="check-in"
@@ -1107,8 +1083,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                           </button>
                           {onSetFencerStatus && fencer.status === FencerStatus.CHECKED_IN && (
                             <>
-                              <button
-                                className="btn btn-sm btn-warning"
+                              <Button
+                                variant="warning"
+                                size="sm"
                                 onClick={() =>
                                   handleSetFencerStatus(
                                     fencer.id,
@@ -1120,9 +1097,10 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                 style={SMALL_BTN}
                               >
                                 <MedicalCrossIcon />
-                              </button>
-                              <button
-                                className="btn btn-sm btn-warning"
+                              </Button>
+                              <Button
+                                variant="warning"
+                                size="sm"
                                 onClick={() =>
                                   handleSetFencerStatus(
                                     fencer.id,
@@ -1134,14 +1112,15 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                 style={SMALL_BTN}
                               >
                                 <Icon icon={ClipboardList} />
-                              </button>
+                              </Button>
                             </>
                           )}
                           {onSetFencerStatus &&
                             (fencer.status === FencerStatus.ABANDONED ||
                               fencer.status === FencerStatus.FORFAIT) && (
-                              <button
-                                className="btn btn-sm btn-success"
+                              <Button
+                                variant="success"
+                                size="sm"
                                 onClick={() =>
                                   handleSetFencerStatus(
                                     fencer.id,
@@ -1153,17 +1132,18 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                 style={SMALL_BTN}
                               >
                                 <Icon icon={RotateCcw} />
-                              </button>
+                              </Button>
                             )}
                           {onDeleteFencer && (
-                            <button
-                              className="btn btn-sm btn-danger"
+                            <Button
+                              variant="danger"
+                              size="sm"
                               onClick={() => handleDeleteFencer(fencer.id)}
                               title={t('actions.delete')}
                               style={SMALL_BTN}
                             >
                               <Icon icon={Trash2} />
-                            </button>
+                            </Button>
                           )}
                         </div>
                       )}

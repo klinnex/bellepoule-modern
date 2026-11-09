@@ -17,6 +17,7 @@ import {
   RankingImportResult,
   resolveFencerFileFormat,
 } from '../../shared/utils/fileParser';
+import { Button } from './common/Button';
 
 interface ImportModalProps {
   format: string;
@@ -109,11 +110,9 @@ const ImportModal: React.FC<ImportModalProps> = ({
       scroll
       footer={
         <>
-          <button className="btn btn-secondary" onClick={onClose}>
-            {t('actions.cancel')}
-          </button>
-          <button
-            className="btn btn-primary"
+          <Button onClick={onClose}>{t('actions.cancel')}</Button>
+          <Button
+            variant="primary"
             onClick={handleImport}
             disabled={
               isRankingImport
@@ -124,7 +123,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
             {isRankingImport
               ? t('importModal.update_n', { count: rankingResult?.updated || 0 })
               : t('importModal.import_n', { count: selectedFencers.size })}
-          </button>
+          </Button>
         </>
       }
     >
