@@ -96,10 +96,12 @@ class Logger {
       // Format fixe '%s' (pas de spécificateurs venus des données) et retours ligne
       // neutralisés (pas de fausses lignes de log) : CodeQL js/tainted-format-string,
       // js/log-injection.
-      const oneLine = (s: string): string => s.replace(/[\r\n]+/g, ' | ');
-      const formatted = oneLine(this.formatMessage(entry));
-      const shownData = typeof data === 'string' ? oneLine(data) : data || '';
-      const shownError = error ? oneLine(error.stack ?? `${error.name}: ${error.message}`) : '';
+      // replace() inline (pas via helper) : reconnu comme assainissement par CodeQL
+      const formatted = this.formatMessage(entry).replace(/[\r\n]+/g, ' ');
+      const shownData = typeof data === 'string' ? data.replace(/[\r\n]+/g, ' ') : data || '';
+      const shownError = error
+        ? (error.stack ?? `${error.name}: ${error.message}`).replace(/[\r\n]+/g, ' ')
+        : '';
 
       switch (level) {
         case LogLevel.DEBUG:
