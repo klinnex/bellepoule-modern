@@ -69,7 +69,7 @@
     .btn:disabled { opacity: .4; cursor: not-allowed; }
     .btn-primary   { background: var(--gold); color: var(--navy); }
     .btn-secondary { background: var(--border); color: var(--text); }
-    .btn-success   { background: var(--green); color: var(--color-surface); }
+    .btn-success   { background: var(--green); color: var(--color-white); }
     .btn-block { width: 100%; }
 
     /* ── Corners stage ── */
@@ -89,7 +89,7 @@
       width: 28px; height: 28px;
       border-radius: 50%;
       background: var(--gold);
-      border: 2px solid var(--color-surface);
+      border: 2px solid var(--color-white);
       cursor: grab;
       transform: translate(-50%, -50%);
       touch-action: none;
@@ -185,7 +185,7 @@
     /* ── Error toast ── */
     #toast {
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: var(--red); color: var(--color-surface); border-radius: 8px;
+      background: var(--red); color: var(--color-white); border-radius: 8px;
       padding: 10px 20px; font-size: 0.85rem; font-weight: 600;
       display: none; z-index: 9999; max-width: 90vw; text-align: center;
     }

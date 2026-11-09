@@ -24,7 +24,7 @@
         --pub-header-bg: rgba(0, 0, 0, 0.4);
         --pub-accent: var(--tw-amber-400);
         --pub-accent2: var(--blue-500);
-        --pub-text: var(--color-surface);
+        --pub-text: var(--color-white);
         --pub-muted: rgba(255,255,255,0.6);
         --pub-card-bg: rgba(255, 255, 255, 0.05);
         --pub-border: rgba(255, 255, 255, 0.1);
@@ -70,7 +70,7 @@
         background: var(--tw-amber-400); color: var(--c-1c1917); border-bottom: 4px solid var(--color-warning);
       }
       .card-announcement-banner.card-red {
-        background: var(--color-danger); color: var(--color-surface); border-bottom: 4px solid var(--color-danger-text);
+        background: var(--color-danger); color: var(--color-white); border-bottom: 4px solid var(--color-danger-text);
       }
       .card-announcement-banner.card-black {
         background: var(--tw-gray-900); color: var(--tw-gray-50); border-bottom: 4px solid var(--tw-gray-700);
@@ -389,7 +389,7 @@
         font-size: clamp(4rem, 13vw, 22vh);
         font-weight: 900;
         font-family: 'ArmadaBold', 'Courier New', monospace;
-        color: var(--color-surface);
+        color: var(--color-white);
         text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
         letter-spacing: 0.15em;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
@@ -438,7 +438,7 @@
         margin-top: 0.3rem;
         padding: 0.4rem 1.2rem;
         background: linear-gradient(135deg, var(--tw-orange-600), var(--tw-orange-400));
-        color: var(--color-surface);
+        color: var(--color-white);
         font-size: clamp(1.8rem, 5vw, 7vh);
         font-weight: 900;
         text-transform: uppercase;
@@ -457,7 +457,7 @@
         margin-top: 0.3rem;
         padding: 0.3rem 1rem;
         background: linear-gradient(135deg, var(--color-danger), var(--red-500));
-        color: var(--color-surface);
+        color: var(--color-white);
         font-size: clamp(1.5rem, 4vw, 6vh);
         font-weight: 900;
         text-transform: uppercase;
@@ -650,7 +650,7 @@
       .coin-flip-title {
         font-size: clamp(1.8rem, 5vw, 3.5rem);
         font-weight: 900;
-        color: var(--color-surface);
+        color: var(--color-white);
         letter-spacing: 0.08em;
         text-transform: uppercase;
       }
@@ -698,7 +698,7 @@
       .coin-face-name {
         font-size: clamp(1.2rem, 3vw, 2rem);
         font-weight: 700;
-        color: var(--color-surface);
+        color: var(--color-white);
         text-align: center;
         padding: 0 1rem;
         word-break: break-word;
@@ -990,7 +990,7 @@
             document.body.appendChild(ov);
           }
           ov.innerHTML = '<div style="background:rgba(0,0,0,0.85);border:3px solid var(--blue-500);border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">'
-            + '<div style="font-size:2.5rem;font-weight:900;color:var(--color-surface);margin-bottom:0.5rem;">📺 ' + escHtml(label) + '</div>'
+            + '<div style="font-size:2.5rem;font-weight:900;color:var(--color-white);margin-bottom:0.5rem;">📺 ' + escHtml(label) + '</div>'
             + '<div style="font-size:1rem;color:var(--slate-400);">' + escHtml(window.T('kiosk.identify')) + '</div>'
             + '</div>';
           ov.style.display = 'flex';
@@ -1022,7 +1022,7 @@
             }
             if (cmd.type === 'message' && cmd.text) {
               let b = document.getElementById('remote-msg-banner');
-              if (!b) { b = document.createElement('div'); b.id = 'remote-msg-banner'; b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.82);color:var(--color-surface);font-size:1.3rem;padding:0.7rem 1.2rem;text-align:center;z-index:9999;pointer-events:none;transition:opacity 0.4s;'; document.body.appendChild(b); }
+              if (!b) { b = document.createElement('div'); b.id = 'remote-msg-banner'; b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.82);color:var(--color-white);font-size:1.3rem;padding:0.7rem 1.2rem;text-align:center;z-index:9999;pointer-events:none;transition:opacity 0.4s;'; document.body.appendChild(b); }
               b.textContent = cmd.text; b.style.opacity = '1';
               clearTimeout(b._t); b._t = setTimeout(() => { b.style.opacity = '0'; }, cmd.duration ?? 5000);
             }

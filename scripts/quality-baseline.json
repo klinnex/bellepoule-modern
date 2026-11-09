@@ -12,9 +12,9 @@
   "unnamedButton": 0,
   "remoteUnescaped": 0,
   "remoteHardLocale": 5,
-  "remoteHardColor": 338,
+  "remoteHardColor": 188,
   "lineExceptions": {
-    "src/renderer/styles/design.css": 2045,
+    "src/renderer/styles/design.css": 2024,
     "src/renderer/styles/main.css": 2994,
     "src/renderer/components/CompetitionView.tsx": 3117,
     "src/renderer/components/PoolView.tsx": 1874,
