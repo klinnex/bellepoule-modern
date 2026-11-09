@@ -131,7 +131,11 @@
     "teampool": "Poule por equipos",
     "teamtableau": "Cuadro por equipos",
     "teamranking": "Clasificación por equipos",
-    "poolprep_locked_tooltip": "Prepare primero las poules (pestaña Llamada)"
+    "poolprep_locked_tooltip": "Prepare primero las poules (pestaña Llamada)",
+    "state_done": "hecho",
+    "state_current": "en curso",
+    "state_todo": "pendiente",
+    "state_blocked": "bloqueado"
   },
   "pools": {
     "generate": "Generar Poules",

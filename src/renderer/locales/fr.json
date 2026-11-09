@@ -131,7 +131,11 @@
     "teampool": "Poule équipes",
     "teamtableau": "Tableau équipes",
     "teamranking": "Classement équipes",
-    "poolprep_locked_tooltip": "Préparez d'abord les poules (onglet Appel)"
+    "poolprep_locked_tooltip": "Préparez d'abord les poules (onglet Appel)",
+    "state_done": "fait",
+    "state_current": "en cours",
+    "state_todo": "à faire",
+    "state_blocked": "bloqué"
   },
   "pools": {
     "generate": "Générer les poules",

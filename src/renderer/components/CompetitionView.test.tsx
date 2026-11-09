@@ -275,7 +275,7 @@ describe('CompetitionView', () => {
       renderView(teamComp());
       await screen.findByText('Nom1');
       const l = labels();
-      expect(l.some(x => /Équipes$/.test(x))).toBe(true);
+      expect(l.some(x => /Équipes(fait|en cours|à faire|bloqué)$/.test(x))).toBe(true);
       expect(l.some(x => /Poule équipes/.test(x))).toBe(true);
       expect(l.some(x => /Tableau équipes/.test(x))).toBe(true);
       expect(l.some(x => /Classement équipes/.test(x))).toBe(true);
@@ -290,7 +290,7 @@ describe('CompetitionView', () => {
       fireEvent.click(screen.getByRole('button', { name: /Composer les équipes/ }));
       await waitFor(() => expect(calls.getTeamsByCompetition?.length).toBeGreaterThan(0));
       const active = document.querySelector('.phase-step-active');
-      expect(active?.textContent).toMatch(/Équipes$/);
+      expect(active?.textContent).toMatch(/Équipes(fait|en cours|à faire|bloqué)$/);
       expect(document.querySelector('.fixed.inset-0')).toBeNull();
     });
   });

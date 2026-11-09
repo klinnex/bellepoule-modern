@@ -13,12 +13,15 @@ import {
   Trophy,
   ScrollText,
   CalendarClock,
+  Check,
+  Lock,
 } from 'lucide-react';
 import { Competition, MatchStatus, QuestPhaseConfig, Fencer } from '../../../shared/types';
 import { Phase } from '../../hooks/useCompetitionSession';
 import CoachMark from '../CoachMark';
 import GuidedTour from '../GuidedTour';
 import { usePhaseShortcuts } from './usePhaseShortcuts';
+import { phaseStepStates, nextBlockedReason } from './phaseStepper';
 
 interface PhaseItem {
   id: string;
@@ -104,6 +107,8 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
 }) => {
   const [tourHighlightPhase, setTourHighlightPhase] = useState<string | null>(null);
   usePhaseShortcuts(phases, currentPhase, id => setCurrentPhase(id as Phase));
+  const stepStates = phaseStepStates(phases, currentPhase);
+  const blockedReason = nextBlockedReason(phases, currentPhase);
   return (
     <>
       {tourReady && !isTeamEvent && (
@@ -127,7 +132,8 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
         {phases.map((phase, index) => (
           <React.Fragment key={phase.id}>
             <div
-              className={`phase-step ${currentPhase === phase.id ? 'phase-step-active' : ''} ${phase.disabled ? 'phase-step-disabled' : ''}${tourHighlightPhase === phase.id && currentPhase !== phase.id ? ' tour-highlight' : ''}`}
+              data-state={stepStates[index]}
+              className={`phase-step ${currentPhase === phase.id ? 'phase-step-active' : ''} ${phase.disabled ? 'phase-step-disabled' : ''}${stepStates[index] === 'done' ? ' phase-step-completed' : ''}${tourHighlightPhase === phase.id && currentPhase !== phase.id ? ' tour-highlight' : ''}`}
               role="button"
               tabIndex={phase.disabled ? -1 : 0}
               aria-current={currentPhase === phase.id ? 'step' : undefined}
@@ -140,12 +146,18 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                   setCurrentPhase(phase.id as Phase);
                 }
               }}
-              title={phase.title ?? (phase.disabled ? 'Section non disponible' : undefined)}
             >
               <span className="phase-step-number" aria-hidden="true">
-                {phase.icon}
+                {stepStates[index] === 'done' ? (
+                  <Check size={12} />
+                ) : stepStates[index] === 'blocked' ? (
+                  <Lock size={12} />
+                ) : (
+                  phase.icon
+                )}
               </span>
               <span>{phase.label}</span>
+              <span className="sr-only">{t(`phases.state_${stepStates[index]}`)}</span>
             </div>
             {index < phases.length - 1 && (
               <div
@@ -268,6 +280,13 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
           </button>
         </div>
       </div>
+
+      {blockedReason && (
+        <div className="phase-nav-reason" role="status">
+          <Lock size={13} aria-hidden="true" /> <strong>{blockedReason.label}</strong> :{' '}
+          {blockedReason.reason}
+        </div>
+      )}
 
       {/* Stats bar */}
       {(pools.length > 0 || tableauMatches.length > 0 || fencers.length > 0) && (

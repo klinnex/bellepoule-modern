@@ -131,7 +131,11 @@
     "teampool": "團體小組賽",
     "teamtableau": "團體淘汰賽",
     "teamranking": "團體排名",
-    "poolprep_locked_tooltip": "請先準備小組（點名分頁）"
+    "poolprep_locked_tooltip": "請先準備小組（點名分頁）",
+    "state_done": "已完成",
+    "state_current": "進行中",
+    "state_todo": "待辦",
+    "state_blocked": "已鎖定"
   },
   "pools": {
     "generate": "生成分組",
