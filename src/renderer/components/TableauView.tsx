@@ -73,6 +73,8 @@ import { autoAssignReferees } from '../../shared/utils/refereeStats';
 import { useTranslation } from '../hooks/useTranslation';
 import { stripAtIndex, stripNumbers } from '../../shared/utils/stripRange';
 import { useStripAvailability } from '../hooks/useStripAvailability';
+import { ChevronDown, ChevronRight, Trophy } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface BracketMatch {
   id: string;
@@ -1094,9 +1096,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     return (
       <div
         key={round}
-        ref={(el: HTMLDivElement | null) => {
-          colRefs.current.set(round, el);
-        }}
+        ref={(el: HTMLDivElement | null) => void colRefs.current.set(round, el)}
         style={TV_STYLES.roundCol}
       >
         <button
@@ -1106,7 +1106,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           aria-expanded={isExpanded}
         >
           <span style={TV_STYLES.roundHeaderChevron} aria-hidden="true">
-            {isExpanded ? '▼' : '▶'}
+            <Icon icon={isExpanded ? ChevronDown : ChevronRight} />
           </span>
           {getRoundName(round, t)}
         </button>
@@ -1150,7 +1150,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
   if (ranking.length === 0) {
     return (
       <div className="empty-state">
-        <div className="empty-state-icon">🏆</div>
+        <Icon icon={Trophy} size={24} className="empty-state-icon" />
         <h2 className="empty-state-title">{t('tableauView.empty_title')}</h2>
         <p className="empty-state-description">{t('tableauView.empty_hint')}</p>
       </div>

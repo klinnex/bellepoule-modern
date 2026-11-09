@@ -48,3 +48,42 @@
   vertical-align: middle;
   flex-shrink: 0;
 }
+
+/* Médailles et pastilles de carton (remplacent les emojis 🥇🥈🥉 🟨🟥, #1532) */
+.ui-icon.medal-gold {
+  color: #d4a017;
+}
+.ui-icon.medal-silver {
+  color: #8c96a3;
+}
+.ui-icon.medal-bronze {
+  color: #b87333;
+}
+.ui-icon.icon-fill {
+  fill: currentColor;
+}
+.ui-icon.icon-yellow {
+  color: #eab308;
+}
+.ui-icon.icon-red {
+  color: #dc2626;
+}
+.ui-icon.icon-black {
+  color: #1f2937;
+}
+.ui-icon.icon-white {
+  color: #ffffff;
+  stroke: #9ca3af;
+}
+@media (forced-colors: active) {
+  .ui-icon.medal-gold,
+  .ui-icon.medal-silver,
+  .ui-icon.medal-bronze,
+  .ui-icon.icon-yellow,
+  .ui-icon.icon-red,
+  .ui-icon.icon-black,
+  .ui-icon.icon-white {
+    color: CanvasText;
+    stroke: CanvasText;
+  }
+}
