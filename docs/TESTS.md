@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 77 | 381 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 43 | 284 |
+| `src/remote/` | 45 | 298 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **319** | **2492** |
+| **Total** | **321** | **2506** |
 
-Unitaires : 309 fichiers, 2453 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 311 fichiers, 2467 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4663,6 +4663,20 @@ Unitaires : 309 fichiers, 2453 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/remote/displayScale.test.ts</code> — 6 tests</summary>
+
+- **échelle typographique fluide (#1540)**
+  - tokens.css définit les tailles en clamp()
+  - overlay-config : aucune taille de police en px
+  - overlay-config : colonne latérale fluide
+- **mode contraste projecteur (#1540)**
+  - ?contrast=1 active la classe et mémorise
+  - stockage indisponible : le paramètre reste appliqué
+  - tokens.css : .theme-contrast sans couleur en dur
+
+</details>
+
+<details>
 <summary><code>src/remote/embeddedFonts.test.ts</code> — 5 tests</summary>
 
 - **Inter embarquée (#1153)**
@@ -4994,6 +5008,23 @@ Unitaires : 309 fichiers, 2453 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - cartons de passivité vs standard
   - lastIndexWhere
   - referee.html charge le module et ne redéfinit plus les constantes
+
+</details>
+
+<details>
+<summary><code>src/remote/js/refereeFeedback.test.ts</code> — 8 tests</summary>
+
+- **son optionnel**
+  - désactivé par défaut, bascule mémorisée, stockage cassé toléré
+  - beep : false sans WebAudio, true avec
+  - le bouton #btn-sound reflète l état (aria-pressed)
+- **bouton Annuler la touche temporaire**
+  - visible puis masqué après le délai, clic = annulation
+- **referee.html (#1539)**
+  - +1/+3/+5 ont un aria-label traduit (deux côtés)
+  - charge le module sans script inline et branche afterScore
+  - portrait et paysage : cibles tactiles \>= 44 px dans les deux orientations
+  - clés i18n présentes dans les dix langues
 
 </details>
 
