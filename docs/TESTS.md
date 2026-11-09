@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 74 | 370 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 43 | 283 |
+| `src/remote/` | 43 | 285 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **316** | **2480** |
+| **Total** | **316** | **2482** |
 
-Unitaires : 306 fichiers, 2441 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 306 fichiers, 2443 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5080,7 +5080,7 @@ Unitaires : 306 fichiers, 2441 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/remote/js/ui.test.ts</code> — 7 tests</summary>
+<summary><code>src/remote/js/ui.test.ts</code> — 9 tests</summary>
 
 - **ui.js**
   - bouton : variante inconnue -\> primary, libellé échappé
@@ -5090,6 +5090,8 @@ Unitaires : 306 fichiers, 2441 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - thème : enregistré \> préférence système ; stockage indisponible toléré
   - init : injecte la feuille une seule fois
   - la feuille des composants ne contient aucune couleur en dur
+  - pages simples chargent /js/ui.js avec data-bp-init (#1538)
+  - auto-init : data-bp-init applique le thème au chargement
 
 </details>
 
