@@ -398,7 +398,9 @@
     "backup_import": "Enporzhiañ (JSON)",
     "backup_exported": "Arventennoù ezporzhiet.",
     "backup_imported": "{{count}} arventenn enporzhiet.",
-    "backup_invalid": "Restr direizh : un ezporzhiadur arventennoù BellePoule a vez gortozet."
+    "backup_invalid": "Restr direizh : un ezporzhiadur arventennoù BellePoule a vez gortozet.",
+    "webhook_test": "Testiñ",
+    "webhook_testing": "O testiñ…"
   },
   "actions": {
     "undo": "Dizober",
@@ -2122,7 +2124,9 @@
     "qr_alt": "Kod QR Wi-Fi",
     "network": "Rouedad :",
     "open_short": "Digor",
-    "download": "💾 Pellgargañ"
+    "download": "💾 Pellgargañ",
+    "generate": "Krouiñ ar c'hod QR",
+    "generating": "O krouiñ…"
   },
   "touchReferee": {
     "strip": "Tachenn {{n}}",

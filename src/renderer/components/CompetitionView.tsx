@@ -127,6 +127,9 @@ import { useModalFlags } from '../hooks/useModalFlags';
 import { usePoolsViewSettings } from '../hooks/usePoolsViewSettings';
 import { MODAL_FLAGS } from './competition/modalFlags';
 import { Button } from './common/Button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Icon } from './common/Icon';
+import { SplitGroupTabs } from './competition/SplitGroupTabs';
 
 const PoolView = React.lazy(() => import('./PoolView'));
 const TableauView = React.lazy(() => import('./TableauView'));
@@ -2469,7 +2472,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                         title={t('competitionView.prev_pool')}
                         aria-label={t('competitionView.prev_pool')}
                       >
-                        ◀
+                        <Icon icon={ChevronLeft} />
                       </Button>
                       <select
                         className="form-input"
@@ -2490,7 +2493,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                         title={t('competitionView.next_pool')}
                         aria-label={t('competitionView.next_pool')}
                       >
-                        ▶
+                        <Icon icon={ChevronRight} />
                       </Button>
                     </div>
                     {/* Largeur ajustée au contenu, plafonnée (#1502) ; la taille de carte agit comme un zoom (#1124) */}
@@ -2632,35 +2635,11 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           >
             {/* Sélecteur de groupe pour compétition couplée */}
             {postPoolSplitCriteria && activeSplitGroup && splitGroups.length > 1 && (
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.5rem',
-                  padding: '0.75rem 1rem',
-                  borderBottom: '1px solid var(--color-border)',
-                  background: 'var(--color-surface-2)',
-                }}
-              >
-                {splitGroups.map(g => (
-                  <button
-                    key={g}
-                    onClick={() => handleSwitchSplitGroup(g)}
-                    style={{
-                      padding: '0.375rem 0.875rem',
-                      borderRadius: '6px',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontWeight: g === activeSplitGroup ? '700' : '400',
-                      background:
-                        g === activeSplitGroup ? 'var(--color-primary)' : 'var(--color-border)',
-                      color: g === activeSplitGroup ? 'white' : 'var(--color-text)',
-                      fontSize: '0.875rem',
-                    }}
-                  >
-                    {g === Gender.MALE ? '♂ Hommes' : g === Gender.FEMALE ? '♀ Femmes' : g}
-                  </button>
-                ))}
-              </div>
+              <SplitGroupTabs
+                groups={splitGroups}
+                active={activeSplitGroup}
+                onSelect={handleSwitchSplitGroup}
+              />
             )}
             {finalResults.length > 0 && (
               <div
@@ -2961,9 +2940,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         <SplitCompetitionModal
           groupLabel={
             pendingSplitOffGroup === Gender.FEMALE
-              ? '♀ Femmes'
+              ? t('genders.female')
               : pendingSplitOffGroup === Gender.MALE
-                ? '♂ Hommes'
+                ? t('genders.male')
                 : pendingSplitOffGroup
           }
           fencerCount={extractSplitGroupRanking(overallRanking, pendingSplitOffGroup).length}

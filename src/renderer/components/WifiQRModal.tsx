@@ -8,6 +8,8 @@ import { useTranslation } from '../hooks/useTranslation';
 import Modal from './common/Modal';
 import { logger, LogCategory } from '@shared/services/logger';
 import { Button } from './common/Button';
+import { Wifi } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 type SecurityType = 'WPA' | 'WEP' | 'nopass';
 
@@ -104,7 +106,13 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
             onClick={generate}
             disabled={isGenerating || !config.ssid.trim()}
           >
-            {isGenerating ? 'Génération...' : '📶 Générer le QR Code'}
+            {isGenerating ? (
+              t('wifiQr.generating')
+            ) : (
+              <>
+                <Icon icon={Wifi} /> {t('wifiQr.generate')}
+              </>
+            )}
           </Button>
         </>
       }

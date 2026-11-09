@@ -529,7 +529,9 @@
     "backup_import": "Importieren (JSON)",
     "backup_exported": "Einstellungen exportiert.",
     "backup_imported": "{{count}} Einstellung(en) importiert.",
-    "backup_invalid": "Ungültige Datei: BellePoule-Einstellungsexport erwartet."
+    "backup_invalid": "Ungültige Datei: BellePoule-Einstellungsexport erwartet.",
+    "webhook_test": "Testen",
+    "webhook_testing": "Teste…"
   },
   "shortcuts": {
     "category_actions": "Aktionen",
@@ -2122,7 +2124,9 @@
     "qr_alt": "WLAN-QR-Code",
     "network": "Netzwerk:",
     "open_short": "Offen",
-    "download": "💾 Herunterladen"
+    "download": "💾 Herunterladen",
+    "generate": "QR-Code erzeugen",
+    "generating": "Erzeuge…"
   },
   "touchReferee": {
     "strip": "Bahn {{n}}",
