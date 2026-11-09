@@ -1414,36 +1414,38 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   // Render Grid View
   const renderGridView = () => (
     <>
-      <PoolScoreMatrix
-        pool={pool}
-        isLaserSabre={isLaserSabre}
-        isVisible={isVisible}
-        toggleColumn={(context, columnId) => toggleColumn(context, columnId, pool.id)}
-        onCellClick={handleCellClick}
-        onFencerChangePool={onFencerChangePool}
-        isLocked={isLocked}
-        onMatchReset={
-          !isLocked && onMatchReset
-            ? (rowFencer, colFencer) => {
-                const matchIndex = getMatchIndex(rowFencer, colFencer);
-                if (matchIndex !== -1) handleMatchDelete(matchIndex);
-              }
-            : undefined
-        }
-        quickMouseScoring={quickMouseScoring}
-        highlightedFencerIds={hoveredFencerIds}
-        waveHighlightPairs={waveHighlightPairs}
-        onHoverCell={quickMouseScoring || simplifiedInputMode ? handleHoverCell : undefined}
-        onHoverLeave={quickMouseScoring || simplifiedInputMode ? handleHoverLeave : undefined}
-        onWheelScore={quickMouseScoring ? handleWheelScore : undefined}
-        simplifiedInputMode={simplifiedInputMode}
-        inlineEditKey={inlineEditCell?.key ?? null}
-        inlineSingleScore={inlineSingleScore}
-        cellScoreBuffer={cellScoreBuffer}
-        onInlineSingleScoreChange={setInlineSingleScore}
-        onInlineSubmit={handleInlineSubmit}
-        onInlineCancel={handleInlineCancel}
-      />
+      <div className="pool-matrix-scroll">
+        <PoolScoreMatrix
+          pool={pool}
+          isLaserSabre={isLaserSabre}
+          isVisible={isVisible}
+          toggleColumn={(context, columnId) => toggleColumn(context, columnId, pool.id)}
+          onCellClick={handleCellClick}
+          onFencerChangePool={onFencerChangePool}
+          isLocked={isLocked}
+          onMatchReset={
+            !isLocked && onMatchReset
+              ? (rowFencer, colFencer) => {
+                  const matchIndex = getMatchIndex(rowFencer, colFencer);
+                  if (matchIndex !== -1) handleMatchDelete(matchIndex);
+                }
+              : undefined
+          }
+          quickMouseScoring={quickMouseScoring}
+          highlightedFencerIds={hoveredFencerIds}
+          waveHighlightPairs={waveHighlightPairs}
+          onHoverCell={quickMouseScoring || simplifiedInputMode ? handleHoverCell : undefined}
+          onHoverLeave={quickMouseScoring || simplifiedInputMode ? handleHoverLeave : undefined}
+          onWheelScore={quickMouseScoring ? handleWheelScore : undefined}
+          simplifiedInputMode={simplifiedInputMode}
+          inlineEditKey={inlineEditCell?.key ?? null}
+          inlineSingleScore={inlineSingleScore}
+          cellScoreBuffer={cellScoreBuffer}
+          onInlineSingleScoreChange={setInlineSingleScore}
+          onInlineSubmit={handleInlineSubmit}
+          onInlineCancel={handleInlineCancel}
+        />
+      </div>
       {orderedMatches.finished.length > 0 && (
         <div className="mt-4">
           <button
