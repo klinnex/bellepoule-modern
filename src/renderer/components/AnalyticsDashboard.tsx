@@ -391,6 +391,7 @@ const AnalyticsDashboard_: React.FC<AnalyticsDashboardProps> = ({
             </button>
             {onClose && (
               <button
+                aria-label={t('actions.close')}
                 onClick={onClose}
                 className="text-gray-500 hover:text-gray-700 text-xl font-bold"
               >

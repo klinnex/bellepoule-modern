@@ -417,7 +417,15 @@
     "uncheck_all": "全部取消報到",
     "view": "查看",
     "default": "未指定",
-    "save_and_add": "儲存並新增"
+    "save_and_add": "儲存並新增",
+    "remove": "移除",
+    "move_up": "上移",
+    "move_down": "下移",
+    "increase": "增加",
+    "decrease": "減少",
+    "clear": "清除",
+    "no_selection": "無",
+    "navigate": "導航"
   },
   "messages": {
     "confirm_delete_fencer": "確定要刪除此劍手嗎？此操作不可復原。",

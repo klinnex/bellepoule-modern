@@ -157,6 +157,7 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
                       {t('formulaTemplate.export_json')}
                     </button>
                     <button
+                      aria-label={t('actions.delete')}
                       type="button"
                       className="btn btn-danger btn-sm"
                       onClick={() => handleDelete(entry.name)}

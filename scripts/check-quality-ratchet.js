@@ -62,7 +62,25 @@ const COUNTERS = [
   'serverMessage',
   'rawBtn',
   'emojiUi',
+  'unnamedButton',
 ];
+/**
+ * Un bouton a un nom accessible s'il a du texte visible (directement ou dans un élément
+ * enfant), une expression {…} (libellé calculé), ou un aria-label / aria-labelledby / title.
+ * Les icônes seules sans nom sont comptées (#1537).
+ */
+const NAMING_ATTRS = new Set(['aria-label', 'aria-labelledby', 'title']);
+const hasNamingAttr = attributes =>
+  attributes.properties.some(p => ts.isJsxAttribute(p) && NAMING_ATTRS.has(p.name.getText()));
+const hasAccessibleName = node => {
+  if (ts.isJsxExpression(node)) return !!node.expression;
+  if (ts.isJsxText(node)) return /[\p{L}\p{N}]/u.test(node.text);
+  if (ts.isJsxSelfClosingElement(node)) return hasNamingAttr(node.attributes);
+  if (ts.isJsxElement(node)) {
+    return hasNamingAttr(node.openingElement.attributes) || node.children.some(hasAccessibleName);
+  }
+  return false;
+};
 /** Emoji en tête d'un texte d'interface (icône de fortune) : à remplacer par une icône lucide (#1532) */
 const EMOJI_LEAD_RE = /^\s*\p{Extended_Pictographic}/u;
 const I18N_ATTRS = new Set(['title', 'placeholder', 'aria-label', 'alt', 'label']);
@@ -169,6 +187,19 @@ function analyze(file) {
       if (leadText !== null && EMOJI_LEAD_RE.test(leadText)) {
         hits.emojiUi.push(at(node));
       }
+    }
+    // Bouton sans nom accessible (icône seule sans aria-label / title) (#1537)
+    if (
+      renderer &&
+      ((ts.isJsxElement(node) &&
+        node.openingElement.tagName.getText(sf) === 'button' &&
+        !hasNamingAttr(node.openingElement.attributes) &&
+        !node.children.some(hasAccessibleName)) ||
+        (ts.isJsxSelfClosingElement(node) &&
+          node.tagName.getText(sf) === 'button' &&
+          !hasNamingAttr(node.attributes)))
+    ) {
+      hits.unnamedButton.push(at(node));
     }
     // Bouton stylé à la main (.btn) au lieu de la primitive <Button> (#1529)
     if (

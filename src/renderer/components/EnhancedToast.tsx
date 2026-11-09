@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { AlertTriangle, CheckCircle2, Info, Megaphone, XCircle } from 'lucide-react';
+import { translateStatic } from '../contexts/TranslationContext';
 
 export interface Toast {
   id: string;
@@ -209,6 +210,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
         )}
       </div>
       <button
+        aria-label={translateStatic('actions.close')}
         onClick={() => onRemove(toast.id)}
         style={{
           background: 'none',

@@ -143,6 +143,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
             </p>
           </div>
           <button
+            aria-label={t('actions.close')}
             onClick={() => setIsOpen(false)}
             style={{
               background: 'none',

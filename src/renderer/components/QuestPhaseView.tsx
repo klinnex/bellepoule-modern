@@ -262,6 +262,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     {f.lastName} {f.firstName?.charAt(0)}.
                   </span>
                   <button
+                    aria-label={t('actions.remove')}
                     onClick={() => removeCard(f.id)}
                     disabled={count === 0}
                     style={{
@@ -286,7 +287,11 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                   >
                     {count}
                   </span>
-                  <button onClick={() => addCard(f.id)} className="is-c67cf9">
+                  <button
+                    aria-label={t('actions.add')}
+                    onClick={() => addCard(f.id)}
+                    className="is-c67cf9"
+                  >
                     +
                   </button>
                 </div>
@@ -497,6 +502,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                 </span>
                 <div className="is-499f0c">
                   <button
+                    aria-label={t('actions.move_up')}
                     onClick={() => moveUp(index)}
                     disabled={index === 0}
                     style={{
@@ -512,6 +518,7 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
                     ↑
                   </button>
                   <button
+                    aria-label={t('actions.move_down')}
                     onClick={() => moveDown(index)}
                     disabled={index === schedule.length - 1}
                     style={{

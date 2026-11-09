@@ -252,6 +252,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
               {t('season.reset_season')}
             </button>
             <button
+              aria-label={t('actions.close')}
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 text-2xl px-1 leading-none"
             >

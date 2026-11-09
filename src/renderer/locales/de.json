@@ -26,7 +26,15 @@
     "validate": "Validieren",
     "view": "Anzeigen",
     "yes": "Ja",
-    "save_and_add": "Speichern und hinzufügen"
+    "save_and_add": "Speichern und hinzufügen",
+    "remove": "Entfernen",
+    "move_up": "Nach oben",
+    "move_down": "Nach unten",
+    "increase": "Erhöhen",
+    "decrease": "Verringern",
+    "clear": "Leeren",
+    "no_selection": "Keine",
+    "navigate": "Navigieren"
   },
   "app": {
     "back_to_list": "Zurück zur Wettbewerbliste",

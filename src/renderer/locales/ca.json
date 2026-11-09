@@ -417,7 +417,15 @@
     "uncheck_all": "Cancel·lar Tots",
     "view": "Veure",
     "default": "No especificat",
-    "save_and_add": "Desar i afegir"
+    "save_and_add": "Desar i afegir",
+    "remove": "Treure",
+    "move_up": "Pujar",
+    "move_down": "Baixar",
+    "increase": "Augmentar",
+    "decrease": "Disminuir",
+    "clear": "Esborrar",
+    "no_selection": "Cap",
+    "navigate": "Navegar"
   },
   "messages": {
     "confirm_delete_fencer": "Esteu segur que voleu eliminar aquest tirador? Aquesta acció és irreversible.",

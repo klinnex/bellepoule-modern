@@ -641,6 +641,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       {isEditing ? 'Fermer' : 'Gérer'}
                     </button>
                     <button
+                      aria-label={t('actions.delete')}
                       onClick={() => handleDeleteTeam(team.id)}
                       className="text-xs px-3 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50"
                     >
@@ -662,6 +663,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       </span>
                       {isEditing && (
                         <button
+                          aria-label={t('actions.remove')}
                           onClick={() => handleRemoveFencer(team.id, f.fencerId)}
                           className="text-red-400 hover:text-red-600 ml-1"
                         >
@@ -681,6 +683,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       </span>
                       {isEditing && (
                         <button
+                          aria-label={t('actions.remove')}
                           onClick={() => handleRemoveFencer(team.id, reserve.fencerId)}
                           className="text-red-400 hover:text-red-600 ml-1"
                         >

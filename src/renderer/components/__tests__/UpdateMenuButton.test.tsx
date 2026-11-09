@@ -94,7 +94,7 @@ describe('UpdateMenuButton — bouton clignotant de l’en-tête', () => {
       );
     });
     act(() => listeners.forEach(l => l(INFO)));
-    fireEvent.click(screen.getByRole('button', { name: '✖️' }));
+    fireEvent.click(screen.getByRole('button', { name: /actions\.close|Fermer/ }));
     expect(screen.queryByRole('button', { name: /Installer/ })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /v1\.3\.0/ }));

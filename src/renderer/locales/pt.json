@@ -417,7 +417,15 @@
     "uncheck_all": "Anular todas as presenças",
     "view": "Ver",
     "default": "Não especificado",
-    "save_and_add": "Guardar e adicionar"
+    "save_and_add": "Guardar e adicionar",
+    "remove": "Remover",
+    "move_up": "Subir",
+    "move_down": "Descer",
+    "increase": "Aumentar",
+    "decrease": "Diminuir",
+    "clear": "Limpar",
+    "no_selection": "Nenhum",
+    "navigate": "Navegar"
   },
   "messages": {
     "confirm_delete_fencer": "Tem a certeza de que pretende eliminar este esgrimista? Esta ação é irreversível.",
