@@ -215,6 +215,7 @@
   'arena.next_fight': '⚔ Следующий бой',
   'arena.next_short': '⚔ Далее',
   'arena.fencer_red': 'Красный фехтовальщик',
+  'kiosk.menu_label': 'Меню киоска',
   'arena.fencer_green': 'Зелёный фехтовальщик',
   'arena.time_left': 'Оставшееся время',
   'arena.waiting_overtime': '⚖️ НИЧЬЯ – ожидание судьи',

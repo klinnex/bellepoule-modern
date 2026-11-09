@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 77 | 381 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 43 | 284 |
+| `src/remote/` | 44 | 294 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **319** | **2492** |
+| **Total** | **320** | **2502** |
 
-Unitaires : 309 fichiers, 2453 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 310 fichiers, 2463 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4645,10 +4645,15 @@ Unitaires : 309 fichiers, 2453 tests. E2E : 10 fichiers, 39 tests (comptage stat
 ### `src/remote/`
 
 <details>
-<summary><code>src/remote/a11yPages.test.ts</code> — 1 test</summary>
+<summary><code>src/remote/a11yPages.test.ts</code> — 5 tests</summary>
 
 - **axe sur les pages distantes (#1537)**
   - ${page}.html : aucune violation
+- **repères et annonces des pages distantes (#1537)**
+  - kiosk : la navigation porte un nom accessible traduit
+  - referee : chaque tireur est une région nommée
+  - les scores de référence, arène et public sont annoncés (aria-live)
+  - clé kiosk.menu\_label présente dans toutes les langues
 
 </details>
 
@@ -4659,6 +4664,20 @@ Unitaires : 309 fichiers, 2453 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - envoie la clé de l'onglet (distincte entre onglets) et la sous-piste courante
   - deux onglets du même navigateur : deux clés différentes
   - refus, erreur réseau ou réponse invalide : piste ou sous-piste courante
+
+</details>
+
+<details>
+<summary><code>src/remote/displayScale.test.ts</code> — 6 tests</summary>
+
+- **échelle typographique fluide (#1540)**
+  - tokens.css définit les tailles en clamp()
+  - overlay-config : aucune taille de police en px
+  - overlay-config : colonne latérale fluide
+- **mode contraste projecteur (#1540)**
+  - ?contrast=1 active la classe et mémorise
+  - stockage indisponible : le paramètre reste appliqué
+  - tokens.css : .theme-contrast sans couleur en dur
 
 </details>
 

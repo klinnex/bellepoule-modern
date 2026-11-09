@@ -215,6 +215,7 @@
   'arena.next_fight': '⚔ Next bout',
   'arena.next_short': '⚔ Next',
   'arena.fencer_red': 'Red fencer',
+  'kiosk.menu_label': 'Kiosk menu',
   'arena.fencer_green': 'Green fencer',
   'arena.time_left': 'Time remaining',
   'arena.waiting_overtime': '⚖️ TIE – waiting for referee',

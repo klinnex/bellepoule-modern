@@ -209,6 +209,7 @@
   'arena.next_fight': '⚔ Prossimo combattimento',
   'arena.next_short': '⚔ Prossimo',
   'arena.fencer_red': 'Schermidore rosso',
+  'kiosk.menu_label': 'Menu del chiosco',
   'arena.fencer_green': 'Schermidore verde',
   'arena.time_left': 'Tempo rimanente',
   'arena.waiting_overtime': '⚖️ PARITÀ – attesa arbitro',

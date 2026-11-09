@@ -215,6 +215,7 @@
   'arena.next_fight': '⚔ Prochain combat',
   'arena.next_short': '⚔ Prochain',
   'arena.fencer_red': 'Tireur rouge',
+  'kiosk.menu_label': 'Menu du kiosque',
   'arena.fencer_green': 'Tireur vert',
   'arena.time_left': 'Temps restant',
   'arena.waiting_overtime': '⚖️ ÉGALITÉ – attente arbitre',

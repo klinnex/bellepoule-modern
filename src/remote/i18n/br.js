@@ -214,6 +214,7 @@
   'arena.next_fight': '⚔ Emgann da-heul',
   'arena.next_short': '⚔ Da-heul',
   'arena.fencer_red': 'Emganner ruz',
+  'kiosk.menu_label': 'Lañser ar gioskenn',
   'arena.fencer_green': 'Emganner gwer',
   'arena.time_left': 'Amzer a chom',
   'arena.waiting_overtime': "⚖️ PAR – o c'hortoz an arbitr",
