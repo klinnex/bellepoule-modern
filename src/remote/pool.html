@@ -7,14 +7,15 @@
     <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       :root {
-        --pool-bg: #1a1a2e;
+        --pool-bg: var(--c-1a1a2e);
         --pool-header-bg: rgba(0, 0, 0, 0.5);
-        --pool-accent: #6366f1;
-        --pool-accent2: #3b82f6;
-        --pool-text: #ffffff;
-        --pool-muted: #64748b;
+        --pool-accent: var(--tw-indigo-500);
+        --pool-accent2: var(--blue-500);
+        --pool-text: var(--color-surface);
+        --pool-muted: var(--slate-500);
         --pool-card-bg: rgba(255, 255, 255, 0.04);
         --pool-border: rgba(255, 255, 255, 0.08);
       }
@@ -29,7 +30,7 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         background: var(--pool-bg);
         min-height: 100vh;
-        color: #fff;
+        color: var(--color-surface);
         display: flex;
         flex-direction: column;
       }
@@ -55,7 +56,7 @@
       .header-title {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
       }
 
       .header-badge {
@@ -63,7 +64,7 @@
         padding: 0.2rem 0.6rem;
         border-radius: 1rem;
         background: rgba(99, 102, 241, 0.25);
-        color: #a5b4fc;
+        color: var(--tw-indigo-300);
         border: 1px solid rgba(99, 102, 241, 0.4);
         font-weight: 600;
       }
@@ -73,14 +74,14 @@
         padding: 0.3rem 0.7rem;
         border-radius: 1rem;
         background: rgba(239, 68, 68, 0.2);
-        color: #fca5a5;
+        color: var(--red-200);
         border: 1px solid rgba(239, 68, 68, 0.4);
         transition: all 0.3s;
       }
 
       .connection-badge.connected {
         background: rgba(34, 197, 94, 0.2);
-        color: #86efac;
+        color: var(--tw-green-300);
         border-color: rgba(34, 197, 94, 0.4);
       }
 
@@ -89,7 +90,7 @@
         padding: 0.3rem 0.8rem;
         border-radius: 0.5rem;
         background: rgba(255, 255, 255, 0.1);
-        color: #cbd5e1;
+        color: var(--tw-slate-300);
         border: 1px solid rgba(255, 255, 255, 0.2);
         cursor: pointer;
         white-space: nowrap;
@@ -111,7 +112,7 @@
         padding: 0.55rem 1.2rem;
         background: none;
         border: none;
-        color: #64748b;
+        color: var(--slate-500);
         font-size: 0.9rem;
         font-weight: 600;
         cursor: pointer;
@@ -124,12 +125,12 @@
       }
 
       .tab-btn:hover {
-        color: #94a3b8;
+        color: var(--slate-400);
       }
 
       .tab-btn.active {
-        color: #e2e8f0;
-        border-bottom-color: #3b82f6;
+        color: var(--tw-slate-200);
+        border-bottom-color: var(--blue-500);
       }
 
       /* ── Pool container ── */
@@ -175,7 +176,7 @@
         min-width: 52px;
         padding: 0.5rem 0;
         font-weight: 700;
-        color: #94a3b8;
+        color: var(--slate-400);
         font-size: 0.8rem;
       }
 
@@ -198,19 +199,19 @@
 
       .fencer-rank {
         font-weight: 700;
-        color: #94a3b8;
+        color: var(--slate-400);
         margin-right: 0.3rem;
         font-size: 0.8rem;
       }
 
       .fencer-lastname {
         font-weight: 700;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         font-size: 0.85rem;
       }
 
       .fencer-firstname {
-        color: #94a3b8;
+        color: var(--slate-400);
         font-size: 0.78rem;
         margin-left: 0.25rem;
       }
@@ -234,7 +235,7 @@
       /* Not played */
       table.pool-grid .score-cell.not-played {
         background: rgba(30, 41, 59, 0.5);
-        color: #475569;
+        color: var(--slate-600);
       }
 
       table.pool-grid .score-cell.not-played::after {
@@ -244,19 +245,19 @@
       /* Victory */
       table.pool-grid .score-cell.victory {
         background: rgba(21, 128, 61, 0.5);
-        color: #bbf7d0;
+        color: var(--tw-green-200);
       }
 
       /* Defeat */
       table.pool-grid .score-cell.defeat {
         background: rgba(185, 28, 28, 0.4);
-        color: #fecaca;
+        color: var(--tw-red-200);
       }
 
       /* Special (abandon / forfait / exclusion) */
       table.pool-grid .score-cell.special {
         background: rgba(100, 100, 100, 0.35);
-        color: #94a3b8;
+        color: var(--slate-400);
         font-size: 0.75rem;
       }
 
@@ -284,7 +285,7 @@
 
       .match-num {
         font-size: 0.75rem;
-        color: #64748b;
+        color: var(--slate-500);
         font-weight: 600;
         min-width: 28px;
         text-align: center;
@@ -301,18 +302,18 @@
       .match-fencer-name {
         flex: 1;
         font-weight: 600;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
       .match-fencer-name.winner {
-        color: #86efac;
+        color: var(--tw-green-300);
       }
 
       .match-score-sep {
-        color: #475569;
+        color: var(--slate-600);
         font-weight: 700;
         font-size: 0.85rem;
       }
@@ -325,15 +326,15 @@
       }
 
       .match-score.victory {
-        color: #86efac;
+        color: var(--tw-green-300);
       }
 
       .match-score.defeat {
-        color: #fca5a5;
+        color: var(--red-200);
       }
 
       .match-score.special {
-        color: #94a3b8;
+        color: var(--slate-400);
         font-size: 0.8rem;
       }
 
@@ -341,22 +342,22 @@
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: #475569;
+        background: var(--slate-600);
         flex-shrink: 0;
       }
 
       .match-status-dot.finished {
-        background: #22c55e;
+        background: var(--green-500);
       }
 
       .match-status-dot.pending {
-        background: #f59e0b;
+        background: var(--tw-amber-500);
       }
 
       /* Section labels */
       .section-label {
         font-size: 0.75rem;
-        color: #64748b;
+        color: var(--slate-500);
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.07em;
@@ -370,7 +371,7 @@
         align-items: center;
         height: 200px;
         font-size: 1.1rem;
-        color: #94a3b8;
+        color: var(--slate-400);
       }
 
       /* ── Boutons (réutilisés par la modale de signature) ── */
@@ -387,8 +388,8 @@
       .btn:hover { opacity: 0.85; }
       .btn:disabled { opacity: 0.4; cursor: default; }
 
-      .btn-primary { background: #2563eb; color: #fff; }
-      .btn-secondary { background: rgba(255, 255, 255, 0.12); color: #cbd5e1; }
+      .btn-primary { background: var(--blue-600); color: var(--color-surface); }
+      .btn-secondary { background: rgba(255, 255, 255, 0.12); color: var(--tw-slate-300); }
 
       /* ── FIN bandeau ── */
       .fin-overlay {
@@ -396,7 +397,7 @@
         position: sticky;
         top: 0;
         z-index: 50;
-        background: linear-gradient(90deg, #1e3a5f 0%, #0f172a 100%);
+        background: linear-gradient(90deg, var(--c-1e3a5f) 0%, var(--slate-900) 100%);
         padding: 0.5rem 1rem;
         align-items: center;
         justify-content: center;
@@ -409,7 +410,7 @@
       .fin-overlay h1 {
         font-size: 1rem;
         font-weight: 800;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         letter-spacing: 0.02em;
         margin: 0;
       }
@@ -426,7 +427,7 @@
         border-radius: 50%;
         border: 1px solid rgba(255, 255, 255, 0.2);
         background: rgba(99, 102, 241, 0.2);
-        color: #a5b4fc;
+        color: var(--tw-indigo-300);
         font-size: 0.85rem;
         cursor: pointer;
         flex-shrink: 0;
@@ -435,7 +436,7 @@
       }
       .sig-btn:hover:not(:disabled) {
         background: rgba(99, 102, 241, 0.45);
-        color: #fff;
+        color: var(--color-surface);
       }
       .sig-btn:disabled {
         opacity: 0.3;
@@ -444,11 +445,11 @@
       .sig-btn.signed {
         background: rgba(34, 197, 94, 0.2);
         border-color: rgba(34, 197, 94, 0.4);
-        color: #86efac;
+        color: var(--tw-green-300);
       }
       .sig-btn.signed:hover {
         background: rgba(34, 197, 94, 0.4);
-        color: #fff;
+        color: var(--color-surface);
       }
 
       table.pool-grid .sig-header {
@@ -478,7 +479,7 @@
       }
       .sig-modal-overlay.visible { display: flex; }
       .sig-modal {
-        background: #1e293b;
+        background: var(--slate-800);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 1rem;
         padding: 1.5rem;
@@ -491,25 +492,25 @@
       }
       .sig-modal h2 {
         font-size: 0.95rem;
-        color: #94a3b8;
+        color: var(--slate-400);
         text-align: center;
         font-weight: 500;
         margin: 0;
       }
       .sig-modal h2 strong {
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         display: block;
         font-size: 1.05rem;
         margin-top: 0.15rem;
       }
       .sig-instructions {
         font-size: 0.8rem;
-        color: #64748b;
+        color: var(--slate-500);
         text-align: center;
         margin: 0;
       }
       #sig-canvas {
-        background: #fff;
+        background: var(--color-surface);
         border-radius: 0.5rem;
         cursor: crosshair;
         touch-action: none;
@@ -559,7 +560,7 @@
     <div class="fin-overlay" id="fin-overlay">
       <span class="fin-icon">🏆</span>
       <h1 data-i18n="pool.finished">POULE TERMINÉE</h1>
-      <span style="color:#94a3b8;font-size:0.85rem;font-weight:500;" data-i18n="pool.signature_phase">— Phase de signature</span>
+      <span style="color:var(--slate-400);font-size:0.85rem;font-weight:500;" data-i18n="pool.signature_phase">— Phase de signature</span>
     </div>
 
     <!-- Modal signature -->
@@ -989,7 +990,7 @@
         sigCanvas.width = rect.width * window.devicePixelRatio;
         sigCanvas.height = rect.height * window.devicePixelRatio;
         sigCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
-        sigCtx.strokeStyle = '#1e293b';
+        sigCtx.strokeStyle = bpCssVar('--slate-800');
         sigCtx.lineWidth = 2.5;
         sigCtx.lineCap = 'round';
         sigCtx.lineJoin = 'round';
@@ -1029,7 +1030,7 @@
         sigOverlay.classList.add('visible');
         resizeCanvas();
         clearCanvas();
-        sigCtx.strokeStyle = '#1e293b';
+        sigCtx.strokeStyle = bpCssVar('--slate-800');
         sigCtx.lineWidth = 2.5;
         sigCtx.lineCap = 'round';
         sigCtx.lineJoin = 'round';

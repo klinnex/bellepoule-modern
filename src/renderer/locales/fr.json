@@ -209,7 +209,8 @@
     "prep_max": "Tireurs Max",
     "prep_relaunch": "Relancer les poules",
     "prep_unplaced": "{{count}} tireur(s) ajouté(s) depuis l'appel, non placé(s) : cliquez sur « Repréparer les poules » pour les intégrer.",
-    "relaunch_confirm": "Des scores de poules sont déjà saisis : ils seront perdus. Continuer ?"
+    "relaunch_confirm": "Des scores de poules sont déjà saisis : ils seront perdus. Continuer ?",
+    "prep_moved": "Tireur déplacé"
   },
   "ranking": {
     "rank": "Rg",
@@ -843,7 +844,8 @@
     "priority_draw": "Tirage minute prioritaire",
     "priority_holder": "Prioritaire : {{name}}",
     "tie_choose_winner": "Quel est le vainqueur ?",
-    "tie_none": "Aucun"
+    "tie_none": "Aucun",
+    "score_cleared": "Score effacé"
   },
   "presentation": {
     "no_club": "Pas de club",
@@ -1704,7 +1706,8 @@
     "ind": "Ind.",
     "fie_title": "Touches cumulées (règle FIE)",
     "touches_plus": "Touches+",
-    "touches_minus": "Touches-"
+    "touches_minus": "Touches-",
+    "fencer_removed": "Tireur retiré de l'équipe"
   },
   "formulaPhase": {
     "n_touches": "{{n}} touches",

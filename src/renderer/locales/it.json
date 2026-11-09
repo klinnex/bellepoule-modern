@@ -209,7 +209,8 @@
     "prep_max": "Schermidori Max",
     "prep_relaunch": "Rilancia i gironi",
     "prep_unplaced": "{{count}} schermidore/i aggiunto/i dall'appello non ancora assegnato/i: clicca su «Riprepara i gironi» per includerli.",
-    "relaunch_confirm": "Sono già stati inseriti punteggi di girone: andranno persi. Continuare?"
+    "relaunch_confirm": "Sono già stati inseriti punteggi di girone: andranno persi. Continuare?",
+    "prep_moved": "Schermidore spostato"
   },
   "ranking": {
     "rank": "Pos",
@@ -843,7 +844,8 @@
     "priority_draw": "Sorteggio minuto prioritario",
     "priority_holder": "Prioritario: {{name}}",
     "tie_choose_winner": "Chi è il vincitore?",
-    "tie_none": "Nessuno"
+    "tie_none": "Nessuno",
+    "score_cleared": "Punteggio cancellato"
   },
   "presentation": {
     "no_club": "Nessun club",
@@ -1704,7 +1706,8 @@
     "ind": "Ind.",
     "fie_title": "Tocchi cumulati (regola FIE)",
     "touches_plus": "Tocchi+",
-    "touches_minus": "Tocchi-"
+    "touches_minus": "Tocchi-",
+    "fencer_removed": "Schermidore rimosso dalla squadra"
   },
   "formulaPhase": {
     "n_touches": "{{n}} tocchi",

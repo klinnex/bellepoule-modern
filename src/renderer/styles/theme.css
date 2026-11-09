@@ -2,7 +2,7 @@
    THEME — palette sémantique, élévation, rayons (#1531)
    Importé après tokens.css. Source unique des alias sémantiques clair/sombre :
    les composants lisent --surface-*, --accent, --success… plutôt que des hex.
-   Les valeurs de base restent dans design.css (:root / .theme-dark).
+   Les valeurs de base restent dans design.css (:root) et tokens.css (un seul bloc .theme-dark).
    ============================================================ */
 
 :root {
@@ -39,17 +39,6 @@
   --radius-control: var(--radius);
   --radius-card: var(--radius-xl);
   --radius-modal: var(--radius-xl);
-}
-
-.theme-dark {
-  --success-soft: rgba(13, 148, 136, 0.2);
-  --success-on-soft: #2dd4bf;
-  --warning-soft: rgba(217, 119, 6, 0.2);
-  --warning-on-soft: #fcd34d;
-  --danger-soft: rgba(220, 38, 38, 0.2);
-  --danger-on-soft: #f87171;
-  --info-soft: rgba(59, 91, 219, 0.2);
-  --info-on-soft: #93c5fd;
 }
 
 /* Application de l'échelle aux surfaces principales */

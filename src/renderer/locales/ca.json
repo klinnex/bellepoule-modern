@@ -209,7 +209,8 @@
     "prep_max": "Tiradors màx.",
     "prep_relaunch": "Rellançar les poules",
     "prep_unplaced": "{{count}} tirador(s) afegit(s) des de la llista de crida sense ubicar: feu clic a «Repreparar les poules» per incloure'ls.",
-    "relaunch_confirm": "Ja hi ha marcadors de poules introduïts: es perdran. Continuar?"
+    "relaunch_confirm": "Ja hi ha marcadors de poules introduïts: es perdran. Continuar?",
+    "prep_moved": "Tirador mogut"
   },
   "ranking": {
     "rank": "Pos",
@@ -843,7 +844,8 @@
     "priority_draw": "Sorteig minut prioritari",
     "priority_holder": "Prioritari: {{name}}",
     "tie_choose_winner": "Qui és el guanyador?",
-    "tie_none": "Cap"
+    "tie_none": "Cap",
+    "score_cleared": "Resultat esborrat"
   },
   "presentation": {
     "no_club": "Sense club",
@@ -1704,7 +1706,8 @@
     "ind": "Ind.",
     "fie_title": "Tocats acumulats (regla FIE)",
     "touches_plus": "Tocats+",
-    "touches_minus": "Tocats-"
+    "touches_minus": "Tocats-",
+    "fencer_removed": "Tirador retirat de l'equip"
   },
   "formulaPhase": {
     "n_touches": "{{n}} tocats",

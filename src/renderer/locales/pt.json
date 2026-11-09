@@ -209,7 +209,8 @@
     "prep_max": "Esgrimistas máx.",
     "prep_relaunch": "Relançar as poules",
     "prep_unplaced": "{{count}} esgrimista(s) adicionado(s) pela chamada ainda não colocado(s): clique em «Repreparar poules» para os incluir.",
-    "relaunch_confirm": "Já existem resultados de poules registados: serão perdidos. Continuar?"
+    "relaunch_confirm": "Já existem resultados de poules registados: serão perdidos. Continuar?",
+    "prep_moved": "Esgrimista movido"
   },
   "ranking": {
     "rank": "Lugar",
@@ -843,7 +844,8 @@
     "priority_draw": "Sorteio do minuto de prioridade",
     "priority_holder": "Prioridade: {{name}}",
     "tie_choose_winner": "Quem é o vencedor?",
-    "tie_none": "Nenhum"
+    "tie_none": "Nenhum",
+    "score_cleared": "Resultado apagado"
   },
   "presentation": {
     "no_club": "Sem clube",
@@ -1704,7 +1706,8 @@
     "ind": "Índ.",
     "fie_title": "Toques acumulados (regra FIE)",
     "touches_plus": "Toques+",
-    "touches_minus": "Toques-"
+    "touches_minus": "Toques-",
+    "fencer_removed": "Esgrimista removido da equipa"
   },
   "formulaPhase": {
     "n_touches": "{{n}} toques",

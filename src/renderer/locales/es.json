@@ -209,7 +209,8 @@
     "prep_max": "Tiradores máx.",
     "prep_relaunch": "Relanzar las poules",
     "prep_unplaced": "{{count}} tirador(es) añadido(s) desde la lista de llamada sin ubicar: haga clic en «Reprepar las poules» para incluirlos.",
-    "relaunch_confirm": "Ya hay marcadores de poules introducidos: se perderán. ¿Continuar?"
+    "relaunch_confirm": "Ya hay marcadores de poules introducidos: se perderán. ¿Continuar?",
+    "prep_moved": "Tirador movido"
   },
   "ranking": {
     "rank": "Pos",
@@ -843,7 +844,8 @@
     "priority_draw": "Sorteo minuto prioritario",
     "priority_holder": "Prioritario: {{name}}",
     "tie_choose_winner": "¿Quién es el ganador?",
-    "tie_none": "Ninguno"
+    "tie_none": "Ninguno",
+    "score_cleared": "Resultado borrado"
   },
   "presentation": {
     "no_club": "Sin club",
@@ -1704,7 +1706,8 @@
     "ind": "Ind.",
     "fie_title": "Tocados acumulados (regla FIE)",
     "touches_plus": "Tocados+",
-    "touches_minus": "Tocados-"
+    "touches_minus": "Tocados-",
+    "fencer_removed": "Tirador retirado del equipo"
   },
   "formulaPhase": {
     "n_touches": "{{n}} tocados",

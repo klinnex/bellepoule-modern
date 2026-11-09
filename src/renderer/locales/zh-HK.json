@@ -209,7 +209,8 @@
     "prep_max": "劍手最多",
     "prep_relaunch": "重新開始分組賽",
     "prep_unplaced": "有 {{count}} 名由點名新增的劍手尚未編入：按「重新準備小組」以加入。",
-    "relaunch_confirm": "已輸入小組賽比分，重新開始會遺失比分。是否繼續？"
+    "relaunch_confirm": "已輸入小組賽比分，重新開始會遺失比分。是否繼續？",
+    "prep_moved": "已移動劍手"
   },
   "ranking": {
     "rank": "排名",
@@ -843,7 +844,8 @@
     "priority_draw": "優先時間抽籤",
     "priority_holder": "優先：{{name}}",
     "tie_choose_winner": "誰是勝者？",
-    "tie_none": "無"
+    "tie_none": "無",
+    "score_cleared": "已清除比分"
   },
   "presentation": {
     "no_club": "沒有所屬會",
@@ -1704,7 +1706,8 @@
     "ind": "指數",
     "fie_title": "累計擊中（FIE 規則）",
     "touches_plus": "擊中+",
-    "touches_minus": "被擊中-"
+    "touches_minus": "被擊中-",
+    "fencer_removed": "已將劍手移出隊伍"
   },
   "formulaPhase": {
     "n_touches": "{{n}} 劍",

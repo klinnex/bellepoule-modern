@@ -42,6 +42,7 @@
     <script src="/common.js"></script>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       /* ── Police 7 segments (embarquée, identique à arena.html) ── */
       @font-face {
@@ -56,48 +57,48 @@
       :root {
         --bg: transparent;
         --overlay-border: rgba(255,255,255,0.15);
-        --name-color: #ffffff;
+        --name-color: var(--color-surface);
         --club-color: rgba(255,255,255,0.75);
-        --score-a-color: #00e640;
-        --score-b-color: #ff2200;
+        --score-a-color: var(--c-00e640);
+        --score-b-color: var(--c-ff2200);
         --score-bg: rgba(0,0,0,0.65);
         --score-glow-a: rgba(0,230,64,0.7);
         --score-glow-b: rgba(255,34,0,0.7);
-        --timer-color: #ffaa00;
+        --timer-color: var(--c-ffaa00);
         --timer-bg: rgba(0,0,0,0.6);
         --timer-glow: rgba(255,170,0,0.8);
-        --card-white-bg: #f5f5f5; --card-white-fg: #333;
-        --card-yellow-bg: #ffc107; --card-yellow-fg: #333;
-        --card-red-bg:  #e53e3e; --card-red-fg: #fff;
-        --sd-color: #ff6b35;
+        --card-white-bg: var(--c-f5f5f5); --card-white-fg: var(--c-333333);
+        --card-yellow-bg: var(--c-ffc107); --card-yellow-fg: var(--c-333333);
+        --card-red-bg:  var(--c-e53e3e); --card-red-fg: var(--color-surface);
+        --sd-color: var(--c-ff6b35);
         --phase-color: rgba(255,255,255,0.55);
         --name-shadow: 0 2px 6px rgba(0,0,0,0.8);
         --panel-bg: rgba(0,0,0,0.60);
         --panel-border-radius: 12px;
       }
       [data-theme="dark"] {
-        --bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        --bg: linear-gradient(135deg, var(--brand-navy-900) 0%, var(--brand-navy-700) 100%);
       }
       [data-theme="neon"] {
-        --bg: #0a0a0a;
-        --score-a-color: #00ff88;
-        --score-b-color: #ff4444;
+        --bg: var(--c-0a0a0a);
+        --score-a-color: var(--c-00ff88);
+        --score-b-color: var(--c-ff4444);
         --score-glow-a: rgba(0,255,136,0.8);
         --score-glow-b: rgba(255,68,68,0.8);
-        --timer-color: #00ccff;
+        --timer-color: var(--c-00ccff);
         --timer-glow: rgba(0,204,255,0.9);
         --panel-bg: rgba(0,0,0,0.85);
         --overlay-border: rgba(0,204,255,0.3);
       }
       [data-theme="light"] {
-        --bg: linear-gradient(135deg, #e8edf5 0%, #c8d8f0 100%);
-        --name-color: #111827;
-        --club-color: #374151;
-        --score-a-color: #059669;
-        --score-b-color: #dc2626;
+        --bg: linear-gradient(135deg, var(--c-e8edf5) 0%, var(--c-c8d8f0) 100%);
+        --name-color: var(--tw-gray-900);
+        --club-color: var(--tw-gray-700);
+        --score-a-color: var(--tw-emerald-600);
+        --score-b-color: var(--color-danger);
         --score-glow-a: rgba(5,150,105,0.5);
         --score-glow-b: rgba(220,38,38,0.5);
-        --timer-color: #d97706;
+        --timer-color: var(--color-warning);
         --timer-glow: rgba(217,119,6,0.7);
         --score-bg: rgba(255,255,255,0.85);
         --timer-bg: rgba(255,255,255,0.85);
@@ -280,9 +281,9 @@
         line-height: 1;
         transition: color 0.3s;
       }
-      .timer-display.warning { color: #ff9500; text-shadow: 0 0 10px rgba(255,149,0,0.9); }
-      .timer-display.danger  { color: #ff3b30; text-shadow: 0 0 10px rgba(255,59,48,0.9); animation: blink 0.8s step-end infinite; }
-      .timer-display.expired { color: #ff3b30; text-shadow: 0 0 10px rgba(255,59,48,0.9); animation: none; }
+      .timer-display.warning { color: var(--c-ff9500); text-shadow: 0 0 10px rgba(255,149,0,0.9); }
+      .timer-display.danger  { color: var(--c-ff3b30); text-shadow: 0 0 10px rgba(255,59,48,0.9); animation: blink 0.8s step-end infinite; }
+      .timer-display.expired { color: var(--c-ff3b30); text-shadow: 0 0 10px rgba(255,59,48,0.9); animation: none; }
       .timer-display.running { /* default color is already set */ }
 
       @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
@@ -300,7 +301,7 @@
       .sd-badge {
         display: none;
         background: var(--sd-color);
-        color: #fff;
+        color: var(--color-surface);
         font-weight: 700;
         font-size: clamp(0.5rem, 0.8vw, 0.65rem);
         border-radius: 4px;
