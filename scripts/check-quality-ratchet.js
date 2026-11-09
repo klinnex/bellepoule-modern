@@ -61,7 +61,10 @@ const COUNTERS = [
   'hardLocale',
   'serverMessage',
   'rawBtn',
+  'emojiUi',
 ];
+/** Emoji en tête d'un texte d'interface (icône de fortune) : à remplacer par une icône lucide (#1532) */
+const EMOJI_LEAD_RE = /^\s*\p{Extended_Pictographic}/u;
 const I18N_ATTRS = new Set(['title', 'placeholder', 'aria-label', 'alt', 'label']);
 /** Texte statique d'un className JSX (littéral ou gabarit), sinon null */
 const jsxClassText = init => {
@@ -152,6 +155,20 @@ function analyze(file) {
     }
     if (renderer && ts.isJsxText(node) && isTranslatable(node.text)) {
       hits.jsxText.push(at(node));
+    }
+    // Emoji comme icône d'interface (texte JSX, littéral, gabarit) (#1532).
+    // Hors contenu éditorial (wiki) et texte de commandes slash : ce sont des contenus, pas des icônes.
+    const editorial = /[\\/]wiki[\\/]/.test(file) || file.endsWith('slashCommands.ts');
+    if (renderer && !editorial) {
+      const leadText =
+        ts.isJsxText(node) || ts.isStringLiteralLike(node)
+          ? node.text
+          : ts.isTemplateExpression(node)
+            ? node.head.text
+            : null;
+      if (leadText !== null && EMOJI_LEAD_RE.test(leadText)) {
+        hits.emojiUi.push(at(node));
+      }
     }
     // Bouton stylé à la main (.btn) au lieu de la primitive <Button> (#1529)
     if (

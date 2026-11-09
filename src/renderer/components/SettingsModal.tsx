@@ -11,6 +11,15 @@ import type { Language } from '../contexts/TranslationContext';
 import LanguageSelector from './LanguageSelector';
 import ProxySettingsSection from './ProxySettingsSection';
 import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
+import {
+  Bell,
+  FileText,
+  Palette,
+  PenLine,
+  Settings as SettingsIcon,
+  Volume2,
+  type LucideIcon,
+} from 'lucide-react';
 // Chargé à la demande : embarque jsPDF, lourd pour le bundle initial
 const PdfTemplateModal = React.lazy(() => import('./PdfTemplateModal'));
 import { logger, LogCategory } from '@shared/services/logger';
@@ -98,7 +107,7 @@ type SettingsItemId =
 
 interface SettingsSectionDef {
   id: SettingsSectionId;
-  icon: string;
+  icon: LucideIcon;
   labelKey: string;
   items: { id: SettingsItemId; keys: string[] }[];
 }
@@ -106,7 +115,7 @@ interface SettingsSectionDef {
 const SETTINGS_SECTIONS: SettingsSectionDef[] = [
   {
     id: 'display',
-    icon: '🎨',
+    icon: Palette,
     labelKey: 'settings.section_display',
     items: [
       { id: 'language', keys: ['settings.language'] },
@@ -118,7 +127,7 @@ const SETTINGS_SECTIONS: SettingsSectionDef[] = [
   },
   {
     id: 'scoring',
-    icon: '✏️',
+    icon: PenLine,
     labelKey: 'settings.section_scoring',
     items: [
       { id: 'quick_mouse', keys: ['settings.quick_mouse_title', 'settings.quick_mouse_hint'] },
@@ -128,7 +137,7 @@ const SETTINGS_SECTIONS: SettingsSectionDef[] = [
   },
   {
     id: 'documents',
-    icon: '📄',
+    icon: FileText,
     labelKey: 'settings.section_documents',
     items: [
       { id: 'logo', keys: ['settings.logo_title', 'settings.logo_hint'] },
@@ -137,7 +146,7 @@ const SETTINGS_SECTIONS: SettingsSectionDef[] = [
   },
   {
     id: 'referee',
-    icon: '🔊',
+    icon: Volume2,
     labelKey: 'settings.section_referee',
     items: [
       {
@@ -153,13 +162,13 @@ const SETTINGS_SECTIONS: SettingsSectionDef[] = [
   },
   {
     id: 'notifications',
-    icon: '🔔',
+    icon: Bell,
     labelKey: 'settings.section_notifications',
     items: [{ id: 'webhook', keys: ['settings.webhook_title', 'settings.webhook_hint'] }],
   },
   {
     id: 'system',
-    icon: '⚙️',
+    icon: SettingsIcon,
     labelKey: 'settings.section_system',
     items: [
       {
@@ -1233,7 +1242,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                       disabled={searching && count === 0}
                       onClick={() => selectSection(section.id)}
                     >
-                      <span aria-hidden="true">{section.icon}</span>
+                      <section.icon size={16} aria-hidden="true" />
                       <span className="settings-nav-label">{t(section.labelKey)}</span>
                       {searching && count > 0 && (
                         <span className="settings-nav-count">{count}</span>
@@ -1249,7 +1258,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 {visibleSections.map(({ section, items }) => (
                   <section key={section.id} className="settings-section">
                     <h3 className="settings-section-title">
-                      <span aria-hidden="true">{section.icon}</span> {t(section.labelKey)}
+                      <section.icon size={16} aria-hidden="true" /> {t(section.labelKey)}
                     </h3>
                     {items.map(item => (
                       <div key={item.id} className="settings-item">
