@@ -1436,6 +1436,7 @@
     "empty_desc": "Import a list or add fencers manually",
     "empty_import_fff": "📥 Import FFE (.fff)",
     "empty_import_xml": "📥 Import XML",
+    "empty_import_template": "📄 Sample file (CSV / Excel)",
     "no_result_title": "No results",
     "no_result_desc": "“{{term}}” matches no fencer",
     "actions": "Actions",

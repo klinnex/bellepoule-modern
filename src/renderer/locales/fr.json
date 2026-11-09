@@ -1436,6 +1436,7 @@
     "empty_desc": "Importez une liste ou ajoutez des tireurs manuellement",
     "empty_import_fff": "📥 Importer FFE (.fff)",
     "empty_import_xml": "📥 Importer XML",
+    "empty_import_template": "📄 Fichier d'exemple (CSV / Excel)",
     "no_result_title": "Aucun résultat",
     "no_result_desc": "« {{term}} » ne correspond à aucun tireur",
     "actions": "Actions",

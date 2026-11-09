@@ -874,6 +874,13 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                     >
                       {t('fencerList.empty_import_xml')}
                     </button>
+                    <button
+                      className="btn btn-secondary"
+                      title={t('fencerList.import_template')}
+                      onClick={handleDownloadImportTemplate}
+                    >
+                      {t('fencerList.empty_import_template')}
+                    </button>
                   </CoachMark>
                 )}
                 <button className="btn btn-primary" data-tour="add-fencer" onClick={onAddFencer}>
