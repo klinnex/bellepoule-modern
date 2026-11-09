@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import { Match, MatchMode, TargetZone } from '../types';
+import { MatchMode, TargetZone } from '../types';
 
 const CHALLENGER_THRESHOLD = 10;
 const SUDDEN_DEATH_DURATION = 30;

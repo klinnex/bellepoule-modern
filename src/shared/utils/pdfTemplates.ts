@@ -138,7 +138,7 @@ export class SimplePdfTemplateManager {
    * Applique le style du template au document PDF
    */
   applyTemplateStyles(doc: jsPDF): void {
-    const { colors, fonts } = this.currentTemplate;
+    const { colors } = this.currentTemplate;
 
     // Couleurs par défaut
     doc.setTextColor(colors.text);

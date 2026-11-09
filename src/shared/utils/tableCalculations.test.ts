@@ -10,7 +10,6 @@ import {
   generateSeedingChart,
   placeFencersInTable,
   createDirectEliminationTable,
-  calculateTableRanking,
   getRoundName,
   findNodeById,
   findNodeByMatch,
