@@ -15,7 +15,6 @@
     <script src="/js/arenaUpdate.js"></script>
     <script src="/js/arenaClient.js"></script>
     <style>
-
       /* Police 7 segments — style radio-réveil LCD (embarquée en base64) */
       @font-face {
         font-family: 'DSEG7Classic';
@@ -1320,6 +1319,7 @@
       body.colorblind .color-badge.red { background: linear-gradient(135deg, #f97316, #ea580c); }
       body.colorblind .score-big.green { text-shadow: 0 0 6px rgba(59, 130, 246, 0.95), 0 0 18px var(--score-green-glow); }
       body.colorblind .score-big.red { text-shadow: 0 0 6px rgba(249, 115, 22, 0.95), 0 0 18px var(--score-red-glow); }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; } }
     </style>
   </head>
   <body>
@@ -1344,7 +1344,7 @@
       </div>
     </div>
 
-    <div id="card-announcement-banner" class="card-announcement-banner"></div>
+    <div id="card-announcement-banner" class="card-announcement-banner" role="alert"></div>
 
     <div class="arena-number-strip">
       <span class="arena-word-label" data-i18n="remote.arena">Arène</span> <span id="arena-strip-number">1</span>

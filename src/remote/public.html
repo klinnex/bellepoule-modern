@@ -757,6 +757,7 @@
       body.colorblind .color-badge.red { background: linear-gradient(135deg, #f97316, #ea580c); }
       body.colorblind .score-big.green { color: #2563eb; text-shadow: 0 0 10px rgba(37, 99, 235, 0.7), 0 0 40px rgba(37, 99, 235, 0.4); }
       body.colorblind .score-big.red { color: #ea580c; text-shadow: 0 0 10px rgba(234, 88, 12, 0.7), 0 0 40px rgba(234, 88, 12, 0.4); }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; } }
     </style>
   </head>
   <body>
@@ -781,7 +782,7 @@
       </div>
     </div>
 
-    <div id="card-announcement-banner" class="card-announcement-banner"></div>
+    <div id="card-announcement-banner" class="card-announcement-banner" role="alert"></div>
 
     <div class="header">
       <div class="arena-title">
@@ -793,9 +794,9 @@
           <input type="checkbox" id="inversion-checkbox" />
           <label for="inversion-checkbox" data-i18n="arena.invert">⇄ Inverser</label>
         </div>
-        <div class="match-status-badge status-waiting" id="match-status" data-i18n="arena.waiting">En attente</div>
+        <div class="match-status-badge status-waiting" id="match-status" role="status" aria-live="polite" data-i18n="arena.waiting">En attente</div>
         <div class="connection-indicator">
-          <div id="connection-dot" class="connection-dot"></div>
+          <div id="connection-dot" class="connection-dot" aria-hidden="true"></div>
           <span id="connection-text" data-i18n="remote.connecting">Connexion...</span>
         </div>
       </div>
