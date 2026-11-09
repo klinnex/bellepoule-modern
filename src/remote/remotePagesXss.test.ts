@@ -29,15 +29,21 @@ function fakeSocket(handlers: Record<string, Handler>) {
 
 async function loadPage(file: string, url: string) {
   const read = (name: string) => fs.readFileSync(path.join(REMOTE_DIR, name), 'utf8');
-  let html = read(file);
-  html = html.replace(
-    /<script src="\/((?:js\/)?[A-Za-z0-9]+)\.js"><\/script>/g,
-    (m, name: string) => {
-      if (!/^(common|i18n|js\/)/.test(name)) return m;
-      return `<script>${read(`${name}.js`)}</script>`;
+  // Scripts externes : common / i18n / js/* intégrés inline, les autres retirés.
+  // Via jsdom (pas de regex sur le HTML : CodeQL js/bad-tag-filter, cf. CLAUDE.md)
+  const prep = new JSDOM(read(file));
+  for (const s of Array.from(prep.window.document.querySelectorAll('script[src]'))) {
+    const name = /^\/((?:js\/)?[A-Za-z0-9]+)\.js$/.exec(s.getAttribute('src') ?? '')?.[1];
+    if (name && /^(common|i18n|js\/)/.test(name)) {
+      const inline = prep.window.document.createElement('script');
+      // « </script » dans le code (commentaire de common.js) fermerait la balise inline
+      inline.textContent = read(`${name}.js`).split('</script').join('<\\/script');
+      s.replaceWith(inline);
+    } else {
+      s.remove();
     }
-  );
-  html = html.replace(/<script src="[^"]*"><\/script>/g, '');
+  }
+  const html = prep.serialize();
   const handlers: Record<string, Handler> = {};
   const dom = new JSDOM(html, {
     url,
