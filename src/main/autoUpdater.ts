@@ -516,34 +516,32 @@ export class AutoUpdater {
       );
       this.setTaskbarProgress(-1);
 
-      if (downloadPath) {
-        if (!(await verifyFileSha256(downloadPath, expectedSha256))) {
-          fs.unlinkSync(downloadPath);
-          throw new Error(`Empreinte SHA-256 invalide pour ${asset.name}`);
-        }
-        logger.info(LogCategory.SYSTEM, `✅ Mise à jour téléchargée et vérifiée: ${downloadPath}`);
+      if (!(await verifyFileSha256(downloadPath, expectedSha256))) {
+        fs.unlinkSync(downloadPath);
+        throw new Error(`Empreinte SHA-256 invalide pour ${asset.name}`);
+      }
+      logger.info(LogCategory.SYSTEM, `✅ Mise à jour téléchargée et vérifiée: ${downloadPath}`);
 
-        // Sauvegarder les informations pour l'installation au redémarrage
-        this.saveDownloadedUpdate(downloadPath, updateInfo, expectedSha256, asset.name);
+      // Sauvegarder les informations pour l'installation au redémarrage
+      this.saveDownloadedUpdate(downloadPath, updateInfo, expectedSha256, asset.name);
 
-        // Notifier l'utilisateur
-        if (this.mainWindow) {
-          this.mainWindow.webContents.send('update:downloaded', {
-            version: updateInfo.latestVersion,
-            path: downloadPath,
-            installOnQuit: true,
-          });
-        }
+      // Notifier l'utilisateur
+      if (this.mainWindow) {
+        this.mainWindow.webContents.send('update:downloaded', {
+          version: updateInfo.latestVersion,
+          path: downloadPath,
+          installOnQuit: true,
+        });
+      }
 
-        // Proposer d'installer immédiatement (sauf en mode silencieux non interactif)
-        if (interactive || !this.config.silent) {
-          this.promptForImmediateInstall(updateInfo, downloadPath, expectedSha256, asset.name);
-        } else {
-          logger.info(
-            LogCategory.SYSTEM,
-            '[AutoUpdater] Mode silencieux - installation différée au prochain redémarrage'
-          );
-        }
+      // Proposer d'installer immédiatement (sauf en mode silencieux non interactif)
+      if (interactive || !this.config.silent) {
+        this.promptForImmediateInstall(updateInfo, downloadPath, expectedSha256, asset.name);
+      } else {
+        logger.info(
+          LogCategory.SYSTEM,
+          '[AutoUpdater] Mode silencieux - installation différée au prochain redémarrage'
+        );
       }
       return true;
     } catch (error) {
@@ -601,7 +599,7 @@ export class AutoUpdater {
     url: string,
     filename: string,
     onProgress?: (downloaded: number, total: number) => void
-  ): Promise<string | null> {
+  ): Promise<string> {
     const downloadPath = path.join(this.getDownloadDir(), randomInstallerName(filename));
     fs.rmSync(downloadPath, { force: true });
     await downloadToFile(url, downloadPath, onProgress);
