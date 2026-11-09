@@ -66,7 +66,35 @@
     return applied;
   }
 
-  const api = { setBannerLines, arenaIdFromPath, applyCustomTheme, applyArenaTheme };
+  /**
+   * Thème d'écran poussé par l'organisateur (variables CSS sur :root) ; `variables` vide = retrait.
+   * Partagé par public, pool et referee (#1600).
+   */
+  function applyScreenTheme(doc, variables) {
+    let styleEl = doc.getElementById('screen-theme-style');
+    if (!variables) {
+      doc.documentElement.removeAttribute('data-screen-theme');
+      if (styleEl) styleEl.remove();
+      return;
+    }
+    if (!styleEl) {
+      styleEl = doc.createElement('style');
+      styleEl.id = 'screen-theme-style';
+      doc.head.appendChild(styleEl);
+    }
+    const vars = Object.entries(variables)
+      .map(([k, v]) => `  ${k}: ${v};`)
+      .join('\n');
+    styleEl.textContent = `:root {\n${vars}\n}`;
+  }
+
+  const api = {
+    setBannerLines,
+    arenaIdFromPath,
+    applyCustomTheme,
+    applyArenaTheme,
+    applyScreenTheme,
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.BPArenaUtils = api;
 })(typeof window !== 'undefined' ? window : undefined);
