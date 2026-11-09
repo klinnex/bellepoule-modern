@@ -107,7 +107,8 @@ const ToastItemComponent: React.FC<{
         maxWidth: '420px',
         transform: visible ? 'translateX(0)' : 'translateX(110%)',
         opacity: visible ? 1 : 0,
-        transition: 'transform 0.28s cubic-bezier(0.16,1,0.3,1), opacity 0.28s ease',
+        transition:
+          'transform var(--motion-base) var(--motion-ease), opacity var(--motion-base) ease',
         overflow: 'hidden',
         position: 'relative',
       }}
