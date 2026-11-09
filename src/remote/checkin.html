@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="checkin.page_title">Appel - BellePoule</title>
     <script src="/i18n.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       * {
         margin: 0;
@@ -15,9 +16,9 @@
 
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        background: var(--gradient-brand);
         min-height: 100vh;
-        color: #fff;
+        color: var(--color-white);
       }
 
       .wrap {
@@ -51,7 +52,7 @@
         border: 2px solid rgba(255, 255, 255, 0.25);
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.1);
-        color: #fff;
+        color: var(--color-white);
         font-size: 1rem;
         outline: none;
       }
@@ -71,13 +72,13 @@
         width: 100%;
         margin-top: 1rem;
         padding: 0.8rem;
-        background: #22c55e;
-        color: #fff;
+        background: var(--green-500);
+        color: var(--color-white);
         font-weight: 700;
       }
 
       .error {
-        color: #fca5a5;
+        color: var(--red-200);
         margin-top: 0.75rem;
         min-height: 1.2em;
         font-size: 0.9rem;
@@ -93,13 +94,13 @@
         flex: 1;
         padding: 0.6rem;
         background: rgba(255, 255, 255, 0.1);
-        color: #fff;
+        color: var(--color-white);
         font-weight: 600;
       }
 
       .tab.active {
-        background: #fff;
-        color: #1e3c72;
+        background: var(--color-white);
+        color: var(--brand-navy-900);
       }
 
       .counter {
@@ -140,11 +141,11 @@
         padding: 0.6rem 0.75rem;
         font-weight: 700;
         background: rgba(255, 255, 255, 0.15);
-        color: #fff;
+        color: var(--color-white);
       }
 
       .toggle.present {
-        background: #22c55e;
+        background: var(--green-500);
       }
 
       .toggle:disabled {
