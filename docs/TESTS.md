@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 74 | 370 |
+| `src/renderer/components/` | 75 | 374 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 42 | 277 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **315** | **2474** |
+| **Total** | **316** | **2478** |
 
-Unitaires : 305 fichiers, 2435 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 306 fichiers, 2439 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4055,6 +4055,17 @@ Unitaires : 305 fichiers, 2435 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **Icon**
   - est masquée aux lecteurs d’écran par défaut
   - expose un nom accessible avec label
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/common/OperationProgress.test.tsx</code> — 4 tests</summary>
+
+- **OperationProgress**
+  - opération rapide : aucune barre
+  - opération longue : barre affichée après 1 s puis retirée
+  - propage l’erreur de la tâche et retire la barre
+  - hors provider : exécute la tâche
 
 </details>
 

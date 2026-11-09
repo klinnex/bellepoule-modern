@@ -2934,5 +2934,10 @@
     "hint": "Mock tournament played in a loop on 2 strips: pools, ranking, direct elimination table, final ranking. Strip screens, referee tablet and tournament display.",
     "started": "Demo started: screens opened, the virtual referee plays the matches",
     "choose_weapon": "Choose the weapon:"
+  },
+  "operations": {
+    "import": "Import in progress…",
+    "export": "Export in progress…",
+    "sync": "Synchronisation in progress…"
   }
 }

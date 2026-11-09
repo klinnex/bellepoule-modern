@@ -2934,5 +2934,10 @@
     "hint": "Torneig fictici en bucle en 2 pistes: poules, classificació, taula d'eliminació directa, classificació final. Pantalles de pista, tauleta d'àrbitre i visualització del torneig.",
     "started": "Demo iniciada: pantalles obertes, l'àrbitre virtual juga els combats",
     "choose_weapon": "Trieu l'arma:"
+  },
+  "operations": {
+    "import": "Importació en curs…",
+    "export": "Exportació en curs…",
+    "sync": "Sincronització en curs…"
   }
 }
