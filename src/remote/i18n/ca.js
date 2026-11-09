@@ -219,6 +219,7 @@
   'arena.next_fight': '⚔ Proper combat',
   'arena.next_short': '⚔ Proper',
   'arena.fencer_red': 'Tirador vermell',
+  'kiosk.menu_label': 'Menú del quiosc',
   'arena.fencer_green': 'Tirador verd',
   'arena.time_left': 'Temps restant',
   'arena.waiting_overtime': "⚖️ EMPAT – esperant l'àrbitre",

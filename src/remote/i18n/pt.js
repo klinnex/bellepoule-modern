@@ -220,6 +220,7 @@
   'arena.next_fight': '⚔ Próximo combate',
   'arena.next_short': '⚔ Próximo',
   'arena.fencer_red': 'Esgrimista vermelho',
+  'kiosk.menu_label': 'Menu do quiosque',
   'arena.fencer_green': 'Esgrimista verde',
   'arena.time_left': 'Tempo restante',
   'arena.waiting_overtime': '⚖️ EMPATE – a aguardar o árbitro',
