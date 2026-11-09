@@ -1436,6 +1436,7 @@
     "empty_desc": "Importieren Sie eine Liste oder fügen Sie Fechter manuell hinzu",
     "empty_import_fff": "📥 FFE importieren (.fff)",
     "empty_import_xml": "📥 XML importieren",
+    "empty_import_template": "📄 Beispieldatei (CSV / Excel)",
     "no_result_title": "Keine Ergebnisse",
     "no_result_desc": "„{{term}}“ passt zu keinem Fechter",
     "actions": "Aktionen",

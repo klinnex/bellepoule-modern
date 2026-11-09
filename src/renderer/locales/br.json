@@ -1436,6 +1436,7 @@
     "empty_desc": "Enporzhiit ur roll pe ouzhpennit kleizeidi gant an dorn",
     "empty_import_fff": "📥 Enporzhiañ FFE (.fff)",
     "empty_import_xml": "📥 Enporzhiañ XML",
+    "empty_import_template": "📄 Restr skouer (CSV / Excel)",
     "no_result_title": "Disoc'h ebet",
     "no_result_desc": "« {{term}} » ne glot gant kleizeier ebet",
     "actions": "Oberoù",

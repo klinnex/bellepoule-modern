@@ -1436,6 +1436,7 @@
     "empty_desc": "Importe uma lista ou adicione esgrimistas manualmente",
     "empty_import_fff": "📥 Importar FFE (.fff)",
     "empty_import_xml": "📥 Importar XML",
+    "empty_import_template": "📄 Ficheiro de exemplo (CSV / Excel)",
     "no_result_title": "Sem resultados",
     "no_result_desc": "«{{term}}» não corresponde a nenhum esgrimista",
     "actions": "Ações",

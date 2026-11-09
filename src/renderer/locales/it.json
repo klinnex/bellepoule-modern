@@ -1436,6 +1436,7 @@
     "empty_desc": "Importa un elenco o aggiungi gli schermidori manualmente",
     "empty_import_fff": "📥 Importa FFE (.fff)",
     "empty_import_xml": "📥 Importa XML",
+    "empty_import_template": "📄 File di esempio (CSV / Excel)",
     "no_result_title": "Nessun risultato",
     "no_result_desc": "« {{term}} » non corrisponde ad alcuno schermidore",
     "actions": "Azioni",

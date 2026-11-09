@@ -1436,6 +1436,7 @@
     "empty_desc": "匯入名單或手動新增劍手",
     "empty_import_fff": "📥 匯入 FFE（.fff）",
     "empty_import_xml": "📥 匯入 XML",
+    "empty_import_template": "📄 範例檔案 (CSV / Excel)",
     "no_result_title": "沒有結果",
     "no_result_desc": "「{{term}}」沒有相符的劍手",
     "actions": "操作",
