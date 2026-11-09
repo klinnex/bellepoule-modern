@@ -13,6 +13,7 @@ import {
   CV_DATA_INIT,
 } from './competition/competitionViewState';
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
+import { PHASE_ICONS, PhaseEmptyIcon, TEAM_PHASE_ICONS } from './competition/phaseIcons';
 import {
   Competition,
   Fencer,
@@ -895,7 +896,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
       );
       applyRemoteScore(matchId, scoreA, scoreB, true, winnerOverride);
       fireWebhookNotif(
-        `✅ Match terminé — ${competition.title}`,
+        `Match terminé — ${competition.title}`,
         `Score : ${scoreA} – ${scoreB}${isTableau ? ' (tableau)' : ''}`
       );
     };
@@ -1817,7 +1818,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   const teamPhases = (Object.keys(TEAM_PHASE_VIEWS) as TeamPhase[]).map((id, i) => ({
     id,
     label: t(`phases.${id}`),
-    icon: ['👥', '🎯', '🏆', '🏁'][i],
+    icon: TEAM_PHASE_ICONS[i],
     disabled: false,
     title: undefined as string | undefined,
   }));
@@ -1833,7 +1834,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     {
       id: 'checkin',
       label: t('phases.checkin'),
-      icon: '📋',
+      icon: PHASE_ICONS.checkin,
       disabled: false,
       title: undefined as string | undefined,
     },
@@ -1844,7 +1845,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           {
             id: 'poolprep',
             label: t('phases.poolprep'),
-            icon: '⚙️',
+            icon: PHASE_ICONS.poolprep,
             disabled: prepLocked,
             title: prepLocked ? t('phases.poolprep_locked_tooltip') : undefined,
           },
@@ -1855,7 +1856,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               : poolRounds > 1
                 ? t('phases.pools_round', { current: currentPoolRound, total: poolRounds })
                 : t('phases.pools'),
-            icon: skipPoolPhase ? '⏭' : '🎯',
+            icon: skipPoolPhase ? PHASE_ICONS.skipPools : PHASE_ICONS.pools,
             disabled: skipPoolPhase || poolsLocked,
             title: skipPoolPhase
               ? t('phases.pools_skip_tooltip')
@@ -1870,7 +1871,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           {
             id: 'quest',
             label: 'Tour Quest',
-            icon: '⚔️',
+            icon: PHASE_ICONS.quest,
             disabled: false,
             title: undefined as string | undefined,
           },
@@ -1880,7 +1881,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     {
       id: 'ranking',
       label: t('phases.ranking'),
-      icon: '📊',
+      icon: PHASE_ICONS.ranking,
       disabled: questNoPool && !rankingValidated,
       title:
         questNoPool && !rankingValidated
@@ -1892,7 +1893,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           {
             id: 'tableau',
             label: t('phases.tableau'),
-            icon: '🏆',
+            icon: PHASE_ICONS.tableau,
             disabled: !isTableauUnlocked && finalResults.length === 0,
             title:
               !isTableauUnlocked && finalResults.length === 0
@@ -1904,7 +1905,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     {
       id: 'results',
       label: t('phases.results'),
-      icon: '🏁',
+      icon: PHASE_ICONS.results,
       disabled: isResultsLocked,
       title: undefined as string | undefined,
     },
@@ -1913,7 +1914,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           {
             id: 'logs',
             label: t('phases.logs'),
-            icon: '📜',
+            icon: PHASE_ICONS.logs,
             disabled: false,
             title: undefined as string | undefined,
           },
@@ -1924,7 +1925,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           {
             id: 'referees',
             label: t('phases.referees') || 'Arbitres',
-            icon: '🧑‍⚖️',
+            icon: PHASE_ICONS.referees,
             disabled: false,
             title: undefined as string | undefined,
           },
@@ -2110,7 +2111,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             const nameA = m?.fencerA ? `${m.fencerA.lastName}` : 'A';
             const nameB = m?.fencerB ? `${m.fencerB.lastName}` : 'B';
             fireWebhookNotif(
-              `✅ Match terminé — ${competition.title}`,
+              `Match terminé — ${competition.title}`,
               `${nameA} ${scoreA} – ${scoreB} ${nameB} (Poule ${pool.number})`
             );
           }
@@ -2384,7 +2385,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
               </div>
             ) : pools.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-state-icon">🎯</div>
+                <PhaseEmptyIcon />
                 <h2 className="empty-state-title">{t('competitionView.no_pools')}</h2>
                 <p className="empty-state-description">{t('competitionView.no_pools_hint')}</p>
                 <button className="btn btn-primary" onClick={() => setCurrentPhase('checkin')}>

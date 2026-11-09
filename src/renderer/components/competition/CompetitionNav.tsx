@@ -14,6 +14,8 @@ import {
   ScrollText,
   CalendarClock,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Icon } from '../common/Icon';
 import { Competition, MatchStatus, QuestPhaseConfig, Fencer } from '../../../shared/types';
 import { Phase } from '../../hooks/useCompetitionSession';
 import CoachMark from '../CoachMark';
@@ -23,7 +25,7 @@ import { usePhaseShortcuts } from './usePhaseShortcuts';
 interface PhaseItem {
   id: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   disabled: boolean;
   title?: string;
 }
@@ -143,7 +145,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
               title={phase.title ?? (phase.disabled ? 'Section non disponible' : undefined)}
             >
               <span className="phase-step-number" aria-hidden="true">
-                {phase.icon}
+                <Icon icon={phase.icon} />
               </span>
               <span>{phase.label}</span>
             </div>
