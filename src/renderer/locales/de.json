@@ -2199,7 +2199,9 @@
     "status_draft": "Entwurf",
     "status_in_progress": "Läuft",
     "status_completed": "Abgeschlossen",
-    "status_cancelled": "Abgesagt"
+    "status_cancelled": "Abgesagt",
+    "recent_title": "Zuletzt geöffnet",
+    "pin": "Anheften / lösen"
   },
   "trainingLauncher": {
     "title": "Trainingsmodus",

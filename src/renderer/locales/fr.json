@@ -2199,7 +2199,9 @@
     "status_draft": "Brouillon",
     "status_in_progress": "En cours",
     "status_completed": "Terminée",
-    "status_cancelled": "Annulée"
+    "status_cancelled": "Annulée",
+    "recent_title": "Récentes",
+    "pin": "Épingler / désépingler"
   },
   "trainingLauncher": {
     "title": "Mode Entraînement",

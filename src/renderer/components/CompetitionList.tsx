@@ -7,6 +7,7 @@ import React from 'react';
 import {
   ChevronRight,
   Download,
+  Pin,
   FolderOpen,
   LayoutGrid,
   Medal,
@@ -22,6 +23,15 @@ import { useTranslation } from '../hooks/useTranslation';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
 import { usePagination } from '../hooks/usePagination';
 import { filterCompetitions } from './competitionListSearch';
+import {
+  PINNED_KEY,
+  RECENT_KEY,
+  RECENT_MIN_COMPETITIONS,
+  pickRecent,
+  readIds,
+  recordOpen,
+  togglePinned,
+} from './competitionListRecent';
 import {
   applyFilters,
   availableValues,
@@ -114,6 +124,21 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     }
   };
   const filtersActive = hasActiveFilters(filters);
+  const [recentIds, setRecentIds] = React.useState(() => readIds(RECENT_KEY));
+  const [pinnedIds, setPinnedIds] = React.useState(() => readIds(PINNED_KEY));
+  const openCompetition = (competition: Competition) => {
+    setRecentIds(recordOpen(competition.id));
+    onSelect(competition);
+  };
+  const recentCompetitions = React.useMemo(
+    () => pickRecent(competitions, recentIds, pinnedIds),
+    [competitions, recentIds, pinnedIds]
+  );
+  const showRecent =
+    !query &&
+    !filtersActive &&
+    competitions.length >= RECENT_MIN_COMPETITIONS &&
+    recentCompetitions.length > 0;
   const {
     items: paginatedCompetitions,
     totalItems,
@@ -491,12 +516,33 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
         />
       )}
 
+      {showRecent && (
+        <section className="competition-recent" aria-label={t('competitionList.recent_title')}>
+          <h2 className="competition-recent-title">{t('competitionList.recent_title')}</h2>
+          <div className="competition-recent-list">
+            {recentCompetitions.map(c => (
+              <button
+                key={c.id}
+                type="button"
+                className="competition-recent-item"
+                style={{ '--card-accent': c.color || '#3B5BDB' } as React.CSSProperties}
+                onClick={() => openCompetition(c)}
+              >
+                {pinnedIds.includes(c.id) && <Pin size={14} aria-hidden="true" />}
+                <span className="competition-recent-name">{c.title}</span>
+                <span className="competition-recent-date">{formatDate(c.date)}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="competition-grid">
         {paginatedCompetitions.map(competition => (
           <div
             key={competition.id}
             className="card competition-card"
-            onClick={() => onSelect(competition)}
+            onClick={() => openCompetition(competition)}
             style={{ '--card-accent': competition.color || '#3B5BDB' } as React.CSSProperties}
           >
             <div className="comp-card-inner">
@@ -505,6 +551,21 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                   <h3 className="comp-card-title">{competition.title}</h3>
                   <p className="comp-card-date">{formatDate(competition.date)}</p>
                 </div>
+                <Button
+                  className="btn-icon comp-card-delete"
+                  onClick={e => {
+                    e.stopPropagation();
+                    setPinnedIds(togglePinned(competition.id));
+                  }}
+                  title={t('competitionList.pin')}
+                  aria-label={t('competitionList.pin')}
+                  aria-pressed={pinnedIds.includes(competition.id)}
+                >
+                  <Pin
+                    size={16}
+                    fill={pinnedIds.includes(competition.id) ? 'currentColor' : 'none'}
+                  />
+                </Button>
                 {onExport && (
                   <Button
                     className="btn-icon comp-card-delete"

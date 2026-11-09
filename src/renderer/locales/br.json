@@ -2199,7 +2199,9 @@
     "status_draft": "Brassilh",
     "status_in_progress": "O vont en-dro",
     "status_completed": "Echu",
-    "status_cancelled": "Nullet"
+    "status_cancelled": "Nullet",
+    "recent_title": "Nevez zo",
+    "pin": "Spilhennañ / dispilhennañ"
   },
   "trainingLauncher": {
     "title": "Mod embregerezh",

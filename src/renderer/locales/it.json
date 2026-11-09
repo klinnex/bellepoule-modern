@@ -2199,7 +2199,9 @@
     "status_draft": "Bozza",
     "status_in_progress": "In corso",
     "status_completed": "Terminata",
-    "status_cancelled": "Annullata"
+    "status_cancelled": "Annullata",
+    "recent_title": "Recenti",
+    "pin": "Fissa / sblocca"
   },
   "trainingLauncher": {
     "title": "Modalità allenamento",
