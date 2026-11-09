@@ -2939,5 +2939,10 @@
     "hint": "Tournamant faos c'hoariet en-dro war 2 dachenn : poulloù, renkadur, taolenn dilemel war-eeun, renkadur diwezhañ. Skrammoù tachenn, tabletenn ar varner ha diskwel an tournamant.",
     "started": "Diskouezadenn loc'het : skrammoù digor, ar barner galloudel a c'hoari ar c'hrogadoù",
     "choose_weapon": "Dibabit an arm :"
+  },
+  "operations": {
+    "import": "Enporzhiañ o vont en-dro…",
+    "export": "Ezporzhiañ o vont en-dro…",
+    "sync": "Goubredañ o vont en-dro…"
   }
 }

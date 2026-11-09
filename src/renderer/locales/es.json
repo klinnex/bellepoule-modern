@@ -2939,5 +2939,10 @@
     "hint": "Torneo ficticio en bucle en 2 pistas: poules, clasificación, cuadro de eliminación directa, clasificación final. Pantallas de pista, tableta de árbitro y visualización del torneo.",
     "started": "Demo iniciada: pantallas abiertas, el árbitro virtual juega los asaltos",
     "choose_weapon": "Elija el arma:"
+  },
+  "operations": {
+    "import": "Importación en curso…",
+    "export": "Exportación en curso…",
+    "sync": "Sincronización en curso…"
   }
 }

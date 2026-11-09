@@ -54,6 +54,7 @@ const TrainingLauncherModal = React.lazy(
 const TrainingPanel = React.lazy(() => import('./components/training/TrainingPanel'));
 import { CompetitionViewSkeleton } from './components/Skeleton';
 import { ToastProvider, useToast } from './components/Toast';
+import { OperationProvider, useOperation } from './components/common/OperationProgress';
 import PrintDialogHost from './components/print/PrintDialogHost';
 import { ConfirmProvider, useConfirm } from './components/ConfirmDialog';
 import { TranslationProvider, useTranslation, Theme } from './contexts/TranslationContext';
@@ -82,6 +83,7 @@ const ThemeIcon: React.FC<{ theme: Theme }> = ({ theme }) => {
 const AppContent: React.FC = () => {
   const { t, theme, changeTheme, changeLanguage } = useTranslation();
   const { showToast } = useToast();
+  const { runOperation } = useOperation();
   const { confirm } = useConfirm();
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
@@ -436,14 +438,16 @@ const AppContent: React.FC = () => {
   const handleExportCompetition = useCallback(
     async (id: string) => {
       try {
-        const res = await window.electronAPI?.file?.exportCompetition?.(id);
+        const res = await runOperation('export', async () =>
+          window.electronAPI?.file?.exportCompetition?.(id)
+        );
         if (res?.success) showToast('Compétition exportée', 'success');
       } catch (error) {
         logger.error(LogCategory.UI, 'Failed to export competition', error as Error);
         showToast("Échec de l'export de la compétition", 'error');
       }
     },
-    [showToast]
+    [showToast, runOperation]
   );
 
   const handleTabClose = useCallback(
@@ -1159,7 +1163,9 @@ const App: React.FC = () => {
     <TranslationProvider>
       <ToastProvider>
         <ConfirmProvider>
-          <AppContent />
+          <OperationProvider>
+            <AppContent />
+          </OperationProvider>
         </ConfirmProvider>
       </ToastProvider>
     </TranslationProvider>
