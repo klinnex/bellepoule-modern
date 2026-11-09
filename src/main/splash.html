@@ -501,7 +501,15 @@
       const norm = iconPath.replace(/\\/g, '/');
       iconPath = 'file://' + (norm.startsWith('/') ? '' : '/') + norm;
     }
-    if (iconEl && iconPath) iconEl.src = iconPath;
+    // Seul un fichier local est accepté (pas de javascript:, http:…) : CodeQL js/xss
+    let iconUrl = null;
+    try {
+      const u = iconPath ? new URL(iconPath) : null;
+      if (u && u.protocol === 'file:') iconUrl = u.href;
+    } catch {
+      /* chemin invalide : pas d'icône */
+    }
+    if (iconEl && iconUrl) iconEl.src = iconUrl;
 
     // Version + build + channel
     const version = params.get('version') || '?';
