@@ -2,8 +2,8 @@
 
 > ⚠️ Fichier **généré** par `npm run docs:tests` (`scripts/generate-tests-doc.js`).
 > Ne pas éditer à la main : modifier le script pour la partie fixe, les fichiers
-> de test pour l'inventaire. La CI échoue (`npm run check:tests-doc`) si ce
-> fichier n'est pas régénéré après ajout / suppression / renommage d'un test.
+> de test pour l'inventaire. Régénéré par la CI à chaque push sur `dev`
+> (commit `🔖 Dev Build`) : ne pas le committer dans les PR (évite les conflits).
 
 ## Contrôles qualité en CI
 
@@ -17,7 +17,6 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 |---|---|---|
 | Typage | `npm run type-check` | erreur TypeScript (`tsc --noEmit`, mode strict) |
 | i18n | `npm run check:i18n` | clé manquante / en trop vs `fr.json`, ou vs `src/remote/i18n/fr.js` pour les pages distantes (paramètres `{{x}}` compris) ; avertit sans échouer des libellés > 1,6x le français (`scripts/check-i18n-completeness.js`) |
-| Doc des tests | `npm run check:tests-doc` | `docs/TESTS.md` pas à jour vs fichiers de test |
 | Doc i18n | `npm run check:i18n-doc` | `docs/I18N.md` pas à jour, ou clé `data-i18n` d'une page distante absente de `src/remote/i18n.js` |
 | Doc Socket.IO | `npm run check:socket-doc` | `docs/SOCKET_EVENTS.md` pas à jour, ou événement émis par une page sans écouteur serveur |
 | Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
@@ -77,8 +76,8 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 ## Maintenir cette documentation
 
 1. Ajouter / modifier un test.
-2. `npm run docs:tests` → régénère ce fichier.
-3. Committer `docs/TESTS.md` avec le test.
+2. Ne pas committer `docs/TESTS.md` : la CI `build-dev.yml` le régénère au push sur
+   `dev` (`npm run docs:tests` reste utilisable en local pour consulter l'inventaire).
 
 ## Synthèse
 

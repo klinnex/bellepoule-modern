@@ -39,9 +39,6 @@ jobs:
       - name: i18n completeness
         run: npm run check:i18n
 
-      - name: Tests documentation up to date
-        run: npm run check:tests-doc
-
       - name: i18n documentation up to date
         run: npm run check:i18n-doc
 
