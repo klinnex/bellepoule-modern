@@ -32,7 +32,6 @@
         --ref-card-bg: rgba(255, 255, 255, 0.05);
         --ref-border: rgba(255, 255, 255, 0.1);
       }
-
       * {
         margin: 0;
         padding: 0;
@@ -275,7 +274,7 @@
       .score-buttons {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 0.35rem;
+        gap: 0.5rem;
       }
 
       .score-btn {
@@ -335,7 +334,7 @@
       .card-buttons {
         display: flex;
         justify-content: center;
-        gap: 0.35rem;
+        gap: 0.5rem;
         margin-top: 0.5rem;
       }
 
@@ -1341,6 +1340,7 @@
         0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79,70,229,0.5); }
         50% { transform: scale(1.03); box-shadow: 0 0 0 16px rgba(79,70,229,0); }
       }
+      .score-btn:focus-visible, .card-btn:focus-visible, .swap-btn:focus-visible, .modal-btn:focus-visible { outline: 3px solid #fbbf24; outline-offset: 2px; }
     </style>
   </head>
   <body>
@@ -1350,8 +1350,8 @@
         <span><span id="arena-label">Arène</span> <span id="arena-number">1</span></span>
       </h1>
       <div class="connection-status">
-        <button id="btn-swap" class="swap-btn" data-click="refereeApp.toggleSwap" data-i18n-title="referee.swap_colors" title="Inverser rouge/vert">⇄</button>
-        <button id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)">👁</button>
+        <button aria-label="Inverser rouge/vert" data-i18n-aria-label="referee.swap_colors" id="btn-swap" class="swap-btn" data-click="refereeApp.toggleSwap" data-i18n-title="referee.swap_colors" title="Inverser rouge/vert">⇄</button>
+        <button aria-label="Mode daltonien (vert → bleu)" data-i18n-aria-label="referee.colorblind" id="btn-colorblind" class="swap-btn" data-click="refereeApp.toggleColorblind" data-i18n-title="referee.colorblind" title="Mode daltonien (vert → bleu)">👁</button>
         <div id="status-dot" class="status-dot"></div>
         <span id="connection-text" data-i18n="remote.connecting">Connexion...</span>
         <span
@@ -1390,7 +1390,7 @@
       <!-- Match actif -->
       <div class="active-match" id="active-match">
         <div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem;">
-          <button
+          <button aria-label="Retour à la liste des matchs" data-i18n-aria-label="referee.back_title"
             id="btn-back-to-list"
             data-click="reloadIfIdle"
             style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);border-radius:0.5rem;color:#fff;font-weight:600;padding:0.35rem 0.85rem;font-size:0.85rem;cursor:pointer;"
@@ -1411,7 +1411,7 @@
               <button id="btn-plus-5-a" class="score-btn btn-plus-5">+5</button>
             </div>
             <div class="card-buttons">
-              <button
+              <button aria-label="Carton blanc" data-i18n-aria-label="referee.card_white"
                 id="btn-card-white-a"
                 class="card-btn card-btn-white"
                 data-i18n-title="referee.card_white"
@@ -1419,7 +1419,7 @@
               >
                 B
               </button>
-              <button
+              <button aria-label="Carton jaune (+3 adv)" data-i18n-aria-label="referee.card_yellow"
                 id="btn-card-yellow-a"
                 class="card-btn card-btn-yellow"
                 data-i18n-title="referee.card_yellow"
@@ -1427,7 +1427,7 @@
               >
                 J
               </button>
-              <button
+              <button aria-label="Carton rouge (+5 adv)" data-i18n-aria-label="referee.card_red"
                 id="btn-card-red-a"
                 class="card-btn card-btn-red"
                 data-i18n-title="referee.card_red"
@@ -1435,7 +1435,7 @@
               >
                 R
               </button>
-              <button
+              <button aria-label="Carton noir (exclusion)" data-i18n-aria-label="referee.black_card_btn"
                 id="btn-card-black-a"
                 class="card-btn card-btn-black"
                 title="Carton noir (exclusion)" data-i18n-title="referee.black_card_btn"
@@ -1461,7 +1461,7 @@
               <button id="btn-plus-5-b" class="score-btn btn-plus-5">+5</button>
             </div>
             <div class="card-buttons">
-              <button
+              <button aria-label="Carton blanc" data-i18n-aria-label="referee.card_white"
                 id="btn-card-white-b"
                 class="card-btn card-btn-white"
                 data-i18n-title="referee.card_white"
@@ -1469,7 +1469,7 @@
               >
                 B
               </button>
-              <button
+              <button aria-label="Carton jaune (+3 adv)" data-i18n-aria-label="referee.card_yellow"
                 id="btn-card-yellow-b"
                 class="card-btn card-btn-yellow"
                 data-i18n-title="referee.card_yellow"
@@ -1477,7 +1477,7 @@
               >
                 J
               </button>
-              <button
+              <button aria-label="Carton rouge (+5 adv)" data-i18n-aria-label="referee.card_red"
                 id="btn-card-red-b"
                 class="card-btn card-btn-red"
                 data-i18n-title="referee.card_red"
@@ -1485,7 +1485,7 @@
               >
                 R
               </button>
-              <button
+              <button aria-label="Carton noir (exclusion)" data-i18n-aria-label="referee.black_card_btn"
                 id="btn-card-black-b"
                 class="card-btn card-btn-black"
                 title="Carton noir (exclusion)" data-i18n-title="referee.black_card_btn"
@@ -1546,7 +1546,7 @@
             Tapez pour démarrer/pause - Appui long pour reset
           </div>
           <div style="display:flex;justify-content:center;margin-top:0.4rem;">
-            <button
+            <button aria-label="Minuteur vocal" data-i18n-aria-label="referee.voice_title"
               id="btn-tts-toggle"
               data-click="refereeApp.toggleTTS"
               title="Minuteur vocal" data-i18n-title="referee.voice_title" data-i18n="referee.voice_off"
