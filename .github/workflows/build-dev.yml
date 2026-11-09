@@ -58,12 +58,25 @@ jobs:
           node scripts/version.js next-build
           node scripts/version.js meta dev --github-output
 
+      # docs/TESTS.md est régénéré ici, jamais dans les PR : ses totaux
+      # provoquaient un conflit dès que deux PR ajoutaient des tests
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Regenerate tests documentation
+        run: |
+          npm ci --ignore-scripts
+          npm run docs:tests
+
       - name: Commit and push
         id: commit
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add version.json
+          git add version.json docs/TESTS.md
           git commit -m "🔖 Dev Build #${{ steps.version.outputs.build }}"
           for i in 1 2 3; do
             if git push origin HEAD:dev; then

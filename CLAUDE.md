@@ -29,9 +29,8 @@ Give answer. Stop.
 
 ## Documentation des tests – règle absolue
 - `docs/TESTS.md` est généré : ne jamais l'éditer à la main
-- Après tout ajout / suppression / renommage de test : `npm run docs:tests` puis committer `docs/TESTS.md`
+- **Ne jamais committer `docs/TESTS.md` dans une PR** : la CI `build-dev.yml` le régénère au push sur `dev` (commit `🔖 Dev Build`). Évite les conflits sur les totaux
 - Nouveau contrôle CI ou script de test → mettre à jour la partie fixe dans `scripts/generate-tests-doc.js`
-- CI échoue si doc pas à jour (`npm run check:tests-doc`)
 
 ## Mise à jour documentation – mode activé par défaut
 Quand on te demande (ou implique) de mettre à jour la doc :
@@ -80,7 +79,7 @@ npm run format:check    # Prettier validation
 npm run type-check      # TypeScript no-emit check
 npm run check:i18n      # Locale completeness (CI)
 npm run check:bundle-size # Bundle budget (CI)
-npm run check:tests-doc # docs/TESTS.md à jour (CI)
+npm run check:tests-doc # docs/TESTS.md à jour (local, hors CI)
 npm run docs:tests      # Régénère docs/TESTS.md (inventaire des tests)
 npm run docs:api        # TypeDoc API docs
 npm run docs:screenshots # Captures docs/screenshots (après build ; xvfb-run -a sous Linux)
