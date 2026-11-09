@@ -8,6 +8,7 @@ import React, { useState, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import Modal from './common/Modal';
 import { Fencer, Pool, MatchStatus } from '../../shared/types';
+import { Button } from './common/Button';
 
 interface ChangePoolModalProps {
   fencer: Fencer;
@@ -55,16 +56,10 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
       size="sm"
       footer={
         <>
-          <button className="btn btn-secondary" onClick={onClose}>
-            {t('actions.cancel')}
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={handleMove}
-            disabled={selectedPoolIndex === null}
-          >
+          <Button onClick={onClose}>{t('actions.cancel')}</Button>
+          <Button variant="primary" onClick={handleMove} disabled={selectedPoolIndex === null}>
             {t('changePool.move')}
-          </button>
+          </Button>
         </>
       }
     >

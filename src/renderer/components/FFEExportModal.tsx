@@ -9,6 +9,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { PoolRanking } from '../../shared/types';
 import { FFEConnectService, FFEResultEntry } from '@shared/services/ffeConnectService';
 import { useTranslation } from '../hooks/useTranslation';
+import { Button } from './common/Button';
 
 interface FFEExportModalProps {
   ranking: PoolRanking[];
@@ -81,13 +82,9 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
       >
         <div className="modal-header">
           <h2 className="modal-title">{t('ffeExport.title')}</h2>
-          <button
-            className="btn btn-icon btn-secondary"
-            onClick={onClose}
-            aria-label={t('actions.close')}
-          >
+          <Button className="btn-icon" onClick={onClose} aria-label={t('actions.close')}>
             ×
-          </button>
+          </Button>
         </div>
 
         <div className="modal-body">
@@ -153,16 +150,14 @@ const FFEExportModal: React.FC<FFEExportModalProps> = ({ ranking, onClose }) => 
           className="modal-footer"
           style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}
         >
-          <button className="btn btn-secondary" onClick={onClose}>
-            {t('actions.close')}
-          </button>
-          <button
-            className="btn btn-primary"
+          <Button onClick={onClose}>{t('actions.close')}</Button>
+          <Button
+            variant="primary"
             onClick={handleExport}
             disabled={sending || entries.length === 0 || !competitionCode.trim()}
           >
             {sending ? t('ffeExport.sending') : t('actions.export')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

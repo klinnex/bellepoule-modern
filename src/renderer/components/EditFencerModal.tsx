@@ -10,6 +10,7 @@ import { Fencer, Gender, FencerStatus } from '../../shared/types';
 import FencerPhoto from './FencerPhoto';
 import NationalityPicker from './common/NationalityPicker';
 import DepartmentPicker from './common/DepartmentPicker';
+import { Button } from './common/Button';
 
 interface EditFencerModalProps {
   fencer: Fencer;
@@ -200,12 +201,12 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <Button type="button" onClick={onClose}>
               {t('actions.cancel')}
-            </button>
-            <button type="submit" className="btn btn-primary">
+            </Button>
+            <Button type="submit" variant="primary">
               {t('editFencer.save')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
