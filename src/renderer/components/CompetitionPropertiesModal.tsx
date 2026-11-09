@@ -34,6 +34,7 @@ import {
   isRapieresMode,
 } from '../../shared/utils/customFormulaSettings';
 import { FormulaBuilder } from './formula/FormulaBuilder';
+import { Button } from './common/Button';
 
 interface CompetitionPropertiesModalProps {
   competition: Competition;
@@ -821,12 +822,12 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <Button type="button" onClick={onClose}>
               {t('actions.cancel')}
-            </button>
-            <button type="submit" className="btn btn-primary">
+            </Button>
+            <Button type="submit" variant="primary">
               {t('properties.save')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
