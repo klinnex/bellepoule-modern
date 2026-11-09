@@ -19,6 +19,7 @@ import {
   Tv2,
   Sparkles,
   PlayCircle,
+  HelpCircle,
 } from 'lucide-react';
 import { Competition, PhaseType, Weapon } from '../shared/types';
 import { restartGuidedTour } from './components/guidedTourFlags';
@@ -57,6 +58,8 @@ import PrintDialogHost from './components/print/PrintDialogHost';
 import { ConfirmProvider, useConfirm } from './components/ConfirmDialog';
 import { TranslationProvider, useTranslation, Theme } from './contexts/TranslationContext';
 import { ipcErrorText } from './services/ipcError';
+import { Button } from './components/common/Button';
+import { Tooltip } from './components/Tooltip';
 import { executeSlashCommand, SHOW_SHORTCUTS_EVENT } from './services/slashCommands';
 import { ErrorBoundary, CompetitionErrorBoundary } from './components/ErrorBoundary';
 import { useAppState } from './hooks/useAppState';
@@ -630,6 +633,17 @@ const AppContent: React.FC = () => {
               <kbd>Ctrl K</kbd>
             </button>
           )}
+          <Tooltip content={t('shortcuts.show_help')} position="bottom">
+            <Button
+              variant="secondary"
+              icon={<HelpCircle size={15} aria-hidden="true" />}
+              onClick={() =>
+                window.dispatchEvent(new CustomEvent(SHOW_SHORTCUTS_EVENT, { detail: 'all' }))
+              }
+              aria-label={t('shortcuts.show_help')}
+              aria-keyshortcuts="?"
+            />
+          </Tooltip>
           <div className="header-nav">
             {openCompetitions.length > 0 && view === 'competition' && (
               <button
