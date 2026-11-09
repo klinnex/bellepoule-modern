@@ -679,20 +679,20 @@ select:focus {
 }
 
 .badge-success {
-  background: rgba(13, 148, 136, 0.12);
-  color: #0d6e67;
+  background: var(--success-soft);
+  color: var(--success-on-soft);
 }
 .badge-warning {
-  background: rgba(217, 119, 6, 0.12);
-  color: #b45309;
+  background: var(--warning-soft);
+  color: var(--warning-on-soft);
 }
 .badge-danger {
-  background: rgba(220, 38, 38, 0.12);
-  color: #b91c1c;
+  background: var(--danger-soft);
+  color: var(--danger-on-soft);
 }
 .badge-info {
-  background: rgba(59, 91, 219, 0.12);
-  color: #2f4ac4;
+  background: var(--info-soft);
+  color: var(--info-on-soft);
 }
 
 /* ============================================================
@@ -868,22 +868,6 @@ select:focus {
 .theme-dark .tableau-fencer-winner {
   background: rgba(13, 148, 136, 0.2);
   color: #2dd4bf;
-}
-.theme-dark .badge-success {
-  background: rgba(13, 148, 136, 0.2);
-  color: #2dd4bf;
-}
-.theme-dark .badge-warning {
-  background: rgba(217, 119, 6, 0.2);
-  color: #fcd34d;
-}
-.theme-dark .badge-danger {
-  background: rgba(220, 38, 38, 0.2);
-  color: #f87171;
-}
-.theme-dark .badge-info {
-  background: rgba(59, 91, 219, 0.2);
-  color: #93c5fd;
 }
 .theme-dark .phase-step-completed {
   background: rgba(13, 148, 136, 0.15);
