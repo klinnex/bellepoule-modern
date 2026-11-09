@@ -29,35 +29,6 @@ describe('CompetitionList (accueil vide)', () => {
   });
 });
 
-describe('CompetitionList (import accueil)', () => {
-  it('bouton Importer (.bpm) appelle onImport ; absent sans onImport', () => {
-    const onImport = vi.fn();
-    const { unmount } = render(
-      <CompetitionList
-        competitions={[]}
-        isLoading={false}
-        onSelect={() => {}}
-        onDelete={() => {}}
-        onNewCompetition={() => {}}
-        onImport={onImport}
-      />
-    );
-    fireEvent.click(screen.getByText('competitionList.import'));
-    expect(onImport).toHaveBeenCalledTimes(1);
-    unmount();
-    render(
-      <CompetitionList
-        competitions={[]}
-        isLoading={false}
-        onSelect={() => {}}
-        onDelete={() => {}}
-        onNewCompetition={() => {}}
-      />
-    );
-    expect(screen.queryByText('competitionList.import')).toBeNull();
-  });
-});
-
 describe('CompetitionList (export accueil)', () => {
   const comp = (id: string, title: string) =>
     ({

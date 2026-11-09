@@ -1007,11 +1007,6 @@ const AppContent: React.FC = () => {
                     ? () => void window.electronAPI.file.openDialog()
                     : undefined
                 }
-                onImport={
-                  window.electronAPI?.file?.importCompetition
-                    ? () => void window.electronAPI.file.importCompetition()
-                    : undefined
-                }
               />
             </ErrorBoundary>
           )}

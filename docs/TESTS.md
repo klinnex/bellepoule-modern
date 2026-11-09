@@ -98,18 +98,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 6 | 138 |
-| `src/main/` | 53 | 426 |
+| `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 71 | 358 |
+| `src/renderer/components/` | 71 | 357 |
 | E2E Playwright (`e2e/`) | 9 | 36 |
 | `src/remote/` | 40 | 269 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 12 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **308** | **2447** |
+| **Total** | **308** | **2444** |
 
-Unitaires : 299 fichiers, 2411 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 299 fichiers, 2408 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2451,15 +2451,13 @@ Unitaires : 299 fichiers, 2411 tests. E2E : 9 fichiers, 36 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/menuActions.test.ts</code> — 6 tests</summary>
+<summary><code>src/main/menuActions.test.ts</code> — 4 tests</summary>
 
 - **createMenuActions (#1341)**
   - handleExport relaie le format au renderer
   - showAbout prévient le renderer
   - « Enregistrer sous » exporte la compétition courante, nom de fichier assaini
   - sans compétition courante : export global
-  - import accueil : boîte limitée aux .bpm, fusion puis signalement du fichier ouvert
-  - import accueil annulé : rien fusionné
 
 </details>
 
@@ -3657,12 +3655,10 @@ Unitaires : 299 fichiers, 2411 tests. E2E : 9 fichiers, 36 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/CompetitionList.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/CompetitionList.test.tsx</code> — 3 tests</summary>
 
 - **CompetitionList (accueil vide)**
   - propose de créer une compétition avec le parcours guidé
-- **CompetitionList (import accueil)**
-  - bouton Importer (.bpm) appelle onImport ; absent sans onImport
 - **CompetitionList (export accueil)**
   - bouton Exporter ouvre le choix de compétition puis appelle onExport avec l’identifiant
   - pas de bouton Exporter sans compétition
