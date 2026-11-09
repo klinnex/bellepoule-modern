@@ -391,6 +391,7 @@
     "backup_invalid": "Fitxer no vàlid: s'espera una exportació de configuració de BellePoule."
   },
   "actions": {
+    "undo": "Desfés",
     "add": "Afegir",
     "edit": "Editar",
     "delete": "Eliminar",

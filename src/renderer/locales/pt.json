@@ -391,6 +391,7 @@
     "backup_invalid": "Ficheiro inválido: é esperada uma exportação de definições do BellePoule."
   },
   "actions": {
+    "undo": "Desfazer",
     "add": "Adicionar",
     "edit": "Editar",
     "delete": "Eliminar",

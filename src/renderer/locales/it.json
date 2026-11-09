@@ -391,6 +391,7 @@
     "backup_invalid": "File non valido: atteso un export delle impostazioni BellePoule."
   },
   "actions": {
+    "undo": "Annulla",
     "add": "Aggiungi",
     "edit": "Modifica",
     "delete": "Elimina",

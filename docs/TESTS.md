@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 65 | 334 |
+| `src/renderer/components/` | 66 | 337 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **298** | **2403** |
+| **Total** | **299** | **2406** |
 
-Unitaires : 289 fichiers, 2368 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 290 fichiers, 2371 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3917,7 +3917,7 @@ Unitaires : 289 fichiers, 2368 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/Toast.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/components/Toast.test.tsx</code> — 8 tests</summary>
 
 - **ToastProvider / useToast**
   - rend les enfants
@@ -3928,6 +3928,8 @@ Unitaires : 289 fichiers, 2368 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - empile plusieurs toasts
 - **useToast hors provider**
   - fournit un showToast no-op sans planter
+- **Toast d’annulation (#1535)**
+  - le bouton Annuler appelle le callback et ferme le toast
 
 </details>
 
@@ -4014,6 +4016,15 @@ Unitaires : 289 fichiers, 2368 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **CollapseToggle**
   - compacte puis déplie le contenu
   - mémorise l'état entre deux montages
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/common/EmptyState.test.tsx</code> — 2 tests</summary>
+
+- **EmptyState**
+  - rend titre, description et déclenche l’action principale
+  - sans action : aucun bouton
 
 </details>
 
