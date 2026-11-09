@@ -160,6 +160,8 @@ self.addEventListener('sync', event => {
 });
 
 self.addEventListener('message', event => {
+  // Messages des seuls clients de même origine (CodeQL js/missing-origin-check)
+  if (event.origin !== self.location.origin) return;
   if (event.data?.type === 'QUEUE_ACTION') {
     queueAction({
       type: event.data.actionType,

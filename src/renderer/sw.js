@@ -290,14 +290,15 @@ async function getCacheStatus() {
 
 // Calculate total cache size
 async function calculateCacheSize() {
-  const caches = await Promise.all([
+  // Pas de « const caches » : masquerait l'API globale (TDZ → ReferenceError)
+  const openCaches = await Promise.all([
     caches.open(STATIC_CACHE),
     caches.open(DATA_CACHE)
   ]);
 
   let totalSize = 0;
   
-  for (const cache of caches) {
+  for (const cache of openCaches) {
     const keys = await cache.keys();
     for (const request of keys) {
       const response = await cache.match(request);
