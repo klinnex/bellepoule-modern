@@ -27,7 +27,6 @@
         --k-muted: #64748b;
         --k-progress: linear-gradient(90deg, #3b82f6, #8b5cf6);
       }
-
       /* ── Thème Néon (inspiré de l'affichage des pistes, #1036) ── */
       html[data-k-theme='neon'] {
         --k-bg: #0a0a0a;
@@ -1288,11 +1287,12 @@
         margin-top: 4px;
         flex-shrink: 0;
       }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; } }
     </style>
   </head>
   <body>
     <!-- Barre de progression rotation -->
-    <div id="progress-bar-container">
+    <div id="progress-bar-container" aria-hidden="true">
       <div id="progress-bar"></div>
     </div>
 
@@ -1304,7 +1304,7 @@
     </div>
 
     <!-- Overlay note d'organisation -->
-    <div id="org-note-overlay">
+    <div id="org-note-overlay" role="status" aria-live="polite">
       <div id="org-note-label" data-i18n="kiosk.pause">⏸ Pause</div>
       <div id="org-note-time"></div>
       <div id="org-note-countdown"></div>
@@ -1312,7 +1312,7 @@
     </div>
 
     <!-- Menu escamotable -->
-    <div id="kiosk-menu">
+    <div id="kiosk-menu" role="navigation">
       <div style="display: flex; align-items: center; flex: 1 1 0; min-width: 0">
         <img
           id="org-logo"
