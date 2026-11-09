@@ -158,14 +158,9 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
               <Button type="button" onClick={handleCancel}>
                 {pending.cancelLabel}
               </Button>
-              <button
-                ref={confirmBtnRef}
-                type="button"
-                className="btn btn-primary"
-                onClick={handleConfirm}
-              >
+              <Button ref={confirmBtnRef} type="button" variant="primary" onClick={handleConfirm}>
                 {pending.confirmLabel}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

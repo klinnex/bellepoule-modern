@@ -236,9 +236,10 @@ const FormulaBuilder_: React.FC<Props> = ({
           </Button>
           {onSpecialModeChange && !readOnly && (
             <div style={{ position: 'relative', display: 'inline-block' }}>
-              <button
+              <Button
                 type="button"
-                className={`btn btn-sm ${specialMode ? 'btn-primary' : 'btn-secondary'}`}
+                variant={specialMode ? 'primary' : 'secondary'}
+                size="sm"
                 aria-haspopup="menu"
                 aria-expanded={specialMenuOpen}
                 onClick={() => setSpecialMenuOpen(o => !o)}
@@ -247,7 +248,7 @@ const FormulaBuilder_: React.FC<Props> = ({
                   ? `${t('rapieres.special_modes')} : ${t(`rapieres.mode_${specialMode}`)}`
                   : t('rapieres.special_modes')}
                 {' ▾'}
-              </button>
+              </Button>
               {specialMenuOpen && (
                 <div
                   role="menu"

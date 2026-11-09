@@ -22,6 +22,7 @@ import {
   RapieresLevel,
   RapieresTeamInfo,
 } from './rapieres.types';
+import { Button } from '../../renderer/components/common/Button';
 
 export interface RapieresTeamDraft {
   name: string;
@@ -285,17 +286,17 @@ const RapieresTeamModal: React.FC<RapieresTeamModalProps> = ({ initial, onSave, 
             )}
           </div>
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <Button type="button" onClick={onClose}>
               {t('rapieres.cancel')}
-            </button>
+            </Button>
             {!initial && (
-              <button type="button" className="btn btn-secondary" onClick={e => submit(e, true)}>
+              <Button type="button" onClick={e => submit(e, true)}>
                 {t('rapieres.save_and_add')}
-              </button>
+              </Button>
             )}
-            <button type="submit" className="btn btn-primary">
+            <Button type="submit" variant="primary">
               {t('rapieres.save_team')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

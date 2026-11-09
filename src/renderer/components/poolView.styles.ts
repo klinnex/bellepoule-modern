@@ -49,6 +49,8 @@ export const REF_EMPTY: CSSProperties = {
 
 export const REF_BTN: CSSProperties = { padding: '0.75rem', fontSize: '0.875rem' };
 
+export const REF_PICK_BTN = { style: REF_BTN, className: 'pv-ref-btn' };
+
 export const FENCER_NAME: CSSProperties = { fontWeight: '600' };
 
 // Conteneur du bloc « prochain match » (le fond varie selon l'état)

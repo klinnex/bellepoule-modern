@@ -295,13 +295,14 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
             <Icon icon={Tv} size={20} />
           </span>
           <span className="is-683bfc">{t('xiaomi.title')}</span>
-          <button
-            className={`btn ${locked ? 'btn-primary' : 'btn-secondary'} is-c90036`}
+          <Button
+            variant={locked ? 'primary' : 'secondary'}
+            className="is-c90036"
             onClick={toggleLock}
             title={locked ? t('xiaomi.unlock_tooltip') : t('xiaomi.lock_tooltip')}
           >
             {locked ? t('xiaomi.locked_label') : t('xiaomi.lock_label')}
-          </button>
+          </Button>
           <Button className="is-c90036" onClick={fetchClients} title={t('xiaomi.refresh')}>
             ↻
           </Button>
@@ -529,8 +530,8 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
 
                   {/* Intervertir toggle (arena/lobby only) */}
                   {isArenaOrLobby(client) && (
-                    <button
-                      className={`btn ${inSwap ? 'btn-primary' : 'btn-secondary'}`}
+                    <Button
+                      variant={inSwap ? 'primary' : 'secondary'}
                       style={{
                         padding: '0.2rem 0.45rem',
                         fontSize: '0.75rem',
@@ -541,7 +542,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                       disabled={swapFull}
                     >
                       ⇄
-                    </button>
+                    </Button>
                   )}
                 </div>
               );

@@ -10,6 +10,7 @@ import { Arena } from '../../../shared/types/remote';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { isMatchVoidedByForfeit } from '../../../shared/utils/poolCalculations';
 import { stripNumbers } from '../../../shared/utils/stripRange';
+import { Button } from '../common/Button';
 
 interface OrderedMatchEntry {
   match: Match;
@@ -430,12 +431,13 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
             <div className="modal-body">
               <p className="u-hint mb-4">{t('poolMatches.select_strip')}</p>
               <div className="pml-arena-grid">
-                <button
-                  className={`btn is-full ${!matchArenaOverrides?.has(selectedMatch.id) ? 'btn-primary' : 'btn-secondary'}`}
+                <Button
+                  variant={!matchArenaOverrides?.has(selectedMatch.id) ? 'primary' : 'secondary'}
+                  className="is-full"
                   onClick={() => handleAssignArena(null)}
                 >
                   {t('poolMatches.default_strip', { n: defaultArena })}
-                </button>
+                </Button>
                 {stripNumbers(stripStart, arenaCount).map(arenaNum => {
                   const arenaObj = arenas.find(a => a.number === arenaNum);
                   const isCurrentArena =
@@ -448,14 +450,14 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                         : ''
                     : '';
                   return (
-                    <button
+                    <Button
                       key={arenaNum}
-                      className={`btn ${isCurrentArena ? 'btn-primary' : 'btn-secondary'}`}
+                      variant={isCurrentArena ? 'primary' : 'secondary'}
                       onClick={() => handleAssignArena(arenaNum)}
                     >
                       {t('poolMatches.strip_n', { n: arenaNum })}
                       {statusIcon}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>

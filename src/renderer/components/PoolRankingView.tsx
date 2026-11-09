@@ -441,12 +441,13 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
           </Button>
           <div className="is-4565f9" />
           {!isInSplitGroupTab && (
-            <button
-              className={`btn ${isEditing ? 'btn-primary' : 'btn-secondary'} is-22b62c`}
+            <Button
+              variant={isEditing ? 'primary' : 'secondary'}
+              className="is-22b62c"
               onClick={() => (isEditing ? saveChanges() : setIsEditing(true))}
             >
               {isEditing ? t('poolRanking.finish') : t('poolRanking.edit')}
-            </button>
+            </Button>
           )}
           <div className="relative" ref={columnMenuRef}>
             <Button
