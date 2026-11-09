@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 74 | 370 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 42 | 279 |
+| `src/remote/` | 43 | 284 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **315** | **2476** |
+| **Total** | **316** | **2481** |
 
-Unitaires : 305 fichiers, 2437 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 306 fichiers, 2442 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4719,6 +4719,18 @@ Unitaires : 305 fichiers, 2437 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - updateTimerDisplay : délègue le rendu puis pose les classes
   - suddenDeathFlags + bannières
   - arena.html charge le module
+
+</details>
+
+<details>
+<summary><code>src/remote/js/arenaScreen.test.ts</code> — 5 tests</summary>
+
+- **arenaScreen.js**
+  - pulseScore : classe seulement si le score change
+  - watchScores : un changement de texte déclenche la classe
+  - touche B : écran noir, toute touche le quitte
+  - touche B ignorée dans un champ de saisie
+  - arena.html charge le module et la feuille n'a pas de couleur en dur
 
 </details>
 
