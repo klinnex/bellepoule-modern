@@ -10,11 +10,13 @@ import {
   Pin,
   FolderOpen,
   LayoutGrid,
+  MapPin,
   Medal,
-  Plus,
   PlayCircle,
+  Plus,
   Search,
   Sparkles,
+  Trash2,
   Trophy,
   Users,
 } from 'lucide-react';
@@ -53,6 +55,7 @@ import EmptyState from './common/EmptyState';
 import { BrandLogo } from './common/BrandLogo';
 import { CompetitionExportPicker } from './CompetitionExportPicker';
 import { Button } from './common/Button';
+import { Icon } from './common/Icon';
 
 interface CompetitionListProps {
   competitions: Competition[];
@@ -587,7 +590,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                   }}
                   title={t('actions.delete')}
                 >
-                  🗑️
+                  <Icon icon={Trash2} />
                 </Button>
               </div>
 
@@ -596,7 +599,9 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                 <span className="comp-pill">{categoryLabel(competition.category, t)}</span>
                 <span className="comp-pill">{competition.gender}</span>
                 {competition.location && (
-                  <span className="comp-pill comp-pill-location">📍 {competition.location}</span>
+                  <span className="comp-pill comp-pill-location">
+                    <Icon icon={MapPin} /> {competition.location}
+                  </span>
                 )}
               </div>
 

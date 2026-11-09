@@ -7,6 +7,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../contexts/TranslationContext';
 import { SLASH_COMMANDS, SHOW_SHORTCUTS_EVENT } from '../services/slashCommands';
+import { Keyboard } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface Shortcut {
   key: string;
@@ -136,7 +138,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
         >
           <div>
             <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--color-text)' }}>
-              ⌨️ {t('shortcuts.title')}
+              <Icon icon={Keyboard} /> {t('shortcuts.title')}
             </h2>
             <p
               style={{

@@ -10,6 +10,8 @@ import PhotoBooth from './PhotoBooth';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { Button } from './common/Button';
+import { Camera } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface FencerPhotoProps {
   photo?: string;
@@ -242,7 +244,8 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
           title={t('fencerPhoto.webcam_title')}
           style={{ fontSize: '0.875rem' }}
         >
-          📷 <span style={{ fontSize: '0.6875rem', fontWeight: 500 }}>Webcam</span>
+          <Icon icon={Camera} />{' '}
+          <span style={{ fontSize: '0.6875rem', fontWeight: 500 }}>Webcam</span>
         </button>
       )}
 

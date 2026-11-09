@@ -5,6 +5,8 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { ArrowUpRight, ClipboardList } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface OBSOverlayConfigProps {
   serverUrl: string;
@@ -181,14 +183,14 @@ export const OBSOverlayConfig: React.FC<OBSOverlayConfigProps> = ({ serverUrl, a
         <div style={S.urlRow}>
           <code style={S.urlCode}>{overlayUrl}</code>
           <button style={S.copyBtn} onClick={copyUrl}>
-            {copied ? '✓' : '📋'}
+            {copied ? '✓' : <Icon icon={ClipboardList} />}
           </button>
           <button
             style={S.openBtn}
             onClick={() => window.open(overlayUrl, '_blank')}
             title={t('obsOverlay.open')}
           >
-            ↗
+            <Icon icon={ArrowUpRight} />
           </button>
         </div>
       </div>
@@ -199,7 +201,7 @@ export const OBSOverlayConfig: React.FC<OBSOverlayConfigProps> = ({ serverUrl, a
         <div style={S.urlRow}>
           <code style={S.urlCode}>{jsonUrl}</code>
           <button style={S.copyBtn} onClick={copyJson}>
-            {copiedJson ? '✓' : '📋'}
+            {copiedJson ? '✓' : <Icon icon={ClipboardList} />}
           </button>
         </div>
       </div>

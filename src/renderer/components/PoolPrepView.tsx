@@ -24,6 +24,8 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useToast } from './Toast';
 import { stripNumbers } from '../../shared/utils/stripRange';
 import { Button } from './common/Button';
+import { SkipForward, TriangleAlert } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 const HINT_DISMISSED_KEY = 'bp_poolprep_hint_dismissed';
 
@@ -727,7 +729,9 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
         >
           {poolCount === 0 ? (
             <div className="is-4019f6">
-              <div className="is-a4f6e6">⏭</div>
+              <div className="is-a4f6e6">
+                <Icon icon={SkipForward} />
+              </div>
               <div className="is-fa1333">{t('pools.prep_no_pool')}</div>
               <div className="is-27895a">{t('pools.prep_no_pool_hint')}</div>
             </div>
@@ -771,7 +775,8 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                         className="pool-prep-conflict-warning"
                         title={t('pools.prep_same_club', { list: formatConflicts(clubConflicts) })}
                       >
-                        ⚠ {topClubConflict[1]}× {shortClub(topClubConflict[0])}
+                        <Icon icon={TriangleAlert} /> {topClubConflict[1]}×{' '}
+                        {shortClub(topClubConflict[0])}
                         {clubConflicts.size > 1 && ` +${clubConflicts.size - 1}`}
                       </span>
                     )}

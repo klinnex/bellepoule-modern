@@ -219,6 +219,7 @@
   'arena.next_fight': '⚔ Nächstes Gefecht',
   'arena.next_short': '⚔ Nächstes',
   'arena.fencer_red': 'Fechter Rot',
+  'kiosk.menu_label': 'Kiosk-Menü',
   'arena.fencer_green': 'Fechter Grün',
   'arena.time_left': 'Verbleibende Zeit',
   'arena.waiting_overtime': '⚖️ GLEICHSTAND – Warten auf Kampfrichter',

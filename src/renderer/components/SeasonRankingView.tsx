@@ -9,6 +9,8 @@ import { calculateOverallRankingQuest } from '../../shared/utils/poolCalculation
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatDate } from '../../shared/utils/localeFormat';
+import { Download, Trophy } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -242,7 +244,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
               disabled={ranking.length === 0}
               className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-40"
             >
-              ⬇ CSV
+              <Icon icon={Download} /> CSV
             </button>
             <button
               onClick={() => setConfirmReset(true)}
@@ -280,7 +282,9 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
           ) : activeTab === 'ranking' ? (
             ranking.length === 0 ? (
               <div className="text-center text-gray-400 py-16">
-                <div className="text-4xl mb-3">🏆</div>
+                <div className="text-4xl mb-3">
+                  <Icon icon={Trophy} />
+                </div>
                 <p className="font-medium">{t('season.empty')}</p>
                 <p className="text-sm mt-1">{t('season.empty_hint')}</p>
               </div>

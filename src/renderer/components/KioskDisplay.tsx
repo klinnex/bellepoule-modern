@@ -16,6 +16,8 @@ import {
   formatRatio,
   formatIndex,
 } from '../../shared/utils/poolCalculations';
+import { ChartColumn, Medal, Pause, Trophy } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 type KioskView = 'pools' | 'ranking' | 'tableau';
 
@@ -714,7 +716,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
             if (hasPoolData) setCurrentView('pools');
           }}
         >
-          🏆 {t('kiosk.pools')}
+          <Icon icon={Trophy} /> {t('kiosk.pools')}
         </button>
         <button
           style={btnStyle(currentView === 'ranking', !hasRankingData)}
@@ -723,7 +725,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
             if (hasRankingData) setCurrentView('ranking');
           }}
         >
-          📊 {t('kiosk.ranking')}
+          <Icon icon={ChartColumn} /> {t('kiosk.ranking')}
         </button>
         <button
           style={btnStyle(currentView === 'tableau', !hasTableauData)}
@@ -732,7 +734,7 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
             if (hasTableauData) setCurrentView('tableau');
           }}
         >
-          🥇 {t('kiosk.tableau')}
+          <Icon icon={Medal} className="medal-gold" /> {t('kiosk.tableau')}
         </button>
         <div style={KIOSK_STYLES.menuFlex} />
         <span style={KIOSK_STYLES.menuEscHint}>{t('kiosk.esc_exit')}</span>
@@ -1082,14 +1084,18 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
             /* Tableau terminé – podium + classement */
             <div style={KIOSK_STYLES.finishedWrapper}>
               {/* Titre */}
-              <div style={KIOSK_STYLES.finishedTitle}>🏆 {t('kiosk.final_results')}</div>
+              <div style={KIOSK_STYLES.finishedTitle}>
+                <Icon icon={Trophy} /> {t('kiosk.final_results')}
+              </div>
 
               {/* Podium visuel */}
               {podium ? (
                 <div style={KIOSK_STYLES.podiumRow}>
                   {/* 2e place */}
                   <div style={KIOSK_STYLES.podiumCol}>
-                    <div style={KIOSK_STYLES.podiumMedal2}>🥈</div>
+                    <div style={KIOSK_STYLES.podiumMedal2}>
+                      <Icon icon={Medal} className="medal-silver" />
+                    </div>
                     <div style={KIOSK_STYLES.podiumName2}>
                       {podium.second ? `${podium.second.lastName} ${podium.second.firstName}` : '–'}
                     </div>
@@ -1100,7 +1106,9 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
                   </div>
                   {/* 1re place */}
                   <div style={KIOSK_STYLES.podiumCol}>
-                    <div style={KIOSK_STYLES.podiumMedal1}>🥇</div>
+                    <div style={KIOSK_STYLES.podiumMedal1}>
+                      <Icon icon={Medal} className="medal-gold" />
+                    </div>
                     <div style={KIOSK_STYLES.podiumName1}>
                       {podium.first.lastName} {podium.first.firstName}
                     </div>
@@ -1111,7 +1119,9 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
                   </div>
                   {/* 3e place */}
                   <div style={KIOSK_STYLES.podiumCol}>
-                    <div style={KIOSK_STYLES.podiumMedal3}>🥉</div>
+                    <div style={KIOSK_STYLES.podiumMedal3}>
+                      <Icon icon={Medal} className="medal-bronze" />
+                    </div>
                     <div style={KIOSK_STYLES.podiumName3}>
                       {podium.third ? `${podium.third.lastName} ${podium.third.firstName}` : '–'}
                     </div>
@@ -1175,7 +1185,9 @@ const KioskDisplay: React.FC<KioskDisplayProps> = ({
       {/* ===== OVERLAY NOTE D'ORGANISATION ===== */}
       {orgNote && (
         <div style={KIOSK_STYLES.orgNoteOverlay}>
-          <div style={KIOSK_STYLES.orgNotePauseLabel}>⏸ {t('remote_score.prefix_break')}</div>
+          <div style={KIOSK_STYLES.orgNotePauseLabel}>
+            <Icon icon={Pause} /> {t('remote_score.prefix_break')}
+          </div>
           {orgNote.type === 'target_time' && orgNote.targetTime && (
             <>
               <div style={KIOSK_STYLES.orgNoteResumeTime}>

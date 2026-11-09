@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { JSDOM } from 'jsdom';
 import axe from 'axe-core';
@@ -62,4 +62,40 @@ describe('axe sur les pages distantes (#1537)', () => {
       win.close();
     });
   }
+});
+
+describe('repères et annonces des pages distantes (#1537)', () => {
+  const doc = (page: string) =>
+    new JSDOM(readFileSync(join(__dirname, `${page}.html`), 'utf8')).window.document;
+
+  it('kiosk : la navigation porte un nom accessible traduit', () => {
+    const nav = doc('kiosk').querySelector('[role="navigation"]');
+    expect(nav?.getAttribute('aria-label')).toBeTruthy();
+    expect(nav?.getAttribute('data-i18n-aria-label')).toBe('kiosk.menu_label');
+  });
+
+  it('referee : chaque tireur est une région nommée', () => {
+    const d = doc('referee');
+    for (const id of ['fencer-a-box', 'fencer-b-box']) {
+      const el = d.getElementById(id);
+      expect(el?.getAttribute('role')).toBe('region');
+      expect(el?.getAttribute('aria-label')).toBeTruthy();
+    }
+  });
+
+  it('les scores de référence, arène et public sont annoncés (aria-live)', () => {
+    for (const page of ['referee', 'arena', 'public']) {
+      const d = doc(page);
+      for (const id of ['score-a', 'score-b']) {
+        expect(d.getElementById(id)?.getAttribute('aria-live'), `${page} ${id}`).toBe('polite');
+      }
+    }
+  });
+
+  it('clé kiosk.menu_label présente dans toutes les langues', () => {
+    const dir = join(__dirname, 'i18n');
+    for (const f of readdirSync(dir)) {
+      expect(readFileSync(join(dir, f), 'utf8'), f).toContain("'kiosk.menu_label'");
+    }
+  });
 });

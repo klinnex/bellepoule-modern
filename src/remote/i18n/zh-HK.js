@@ -219,6 +219,7 @@
   'arena.next_fight': '⚔ 下一場比賽',
   'arena.next_short': '⚔ 下一場',
   'arena.fencer_red': '紅方劍手',
+  'kiosk.menu_label': '展示屏選單',
   'arena.fencer_green': '綠方劍手',
   'arena.time_left': '剩餘時間',
   'arena.waiting_overtime': '⚖️ 平手 – 等待裁判',

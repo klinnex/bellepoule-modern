@@ -12,6 +12,8 @@ import { useDebounce } from '../hooks/useDebounce';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useTranslation } from '../hooks/useTranslation';
 import { Button } from './common/Button';
+import { TriangleAlert } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface AddFencerToPoolModalProps {
   pool: Pool;
@@ -162,7 +164,8 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
               fontSize: '0.875rem',
             }}
           >
-            ⚠️ <strong>{t('addFencerPool.rescue_title')}</strong> {t('addFencerPool.rescue_text')}
+            <Icon icon={TriangleAlert} /> <strong>{t('addFencerPool.rescue_title')}</strong>{' '}
+            {t('addFencerPool.rescue_text')}
           </div>
 
           <input

@@ -9,6 +9,8 @@ import type { MatchEventEntry } from '../../shared/types';
 import { buildMatchReplay, formatReplayOffset } from '../../shared/utils/matchReplay';
 import { describeMatchEvent } from '../../shared/utils/multiFormatExport';
 import { useTranslation } from '../contexts/TranslationContext';
+import { Pause, Play, SkipBack, SkipForward } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface MatchReplayProps {
   entries: MatchEventEntry[];
@@ -128,7 +130,7 @@ const MatchReplay: React.FC<MatchReplayProps> = ({ entries, nameA, nameB }) => {
           disabled={index === 0}
           aria-label={t('replay.previous')}
         >
-          ⏮
+          <Icon icon={SkipBack} />
         </button>
         <button
           style={btn}
@@ -138,7 +140,7 @@ const MatchReplay: React.FC<MatchReplayProps> = ({ entries, nameA, nameB }) => {
           }}
           aria-label={playing ? t('replay.pause') : t('replay.play')}
         >
-          {playing ? '⏸' : '▶'}
+          {playing ? <Icon icon={Pause} /> : <Icon icon={Play} />}
         </button>
         <button
           style={btn}
@@ -146,7 +148,7 @@ const MatchReplay: React.FC<MatchReplayProps> = ({ entries, nameA, nameB }) => {
           disabled={index === last}
           aria-label={t('replay.next')}
         >
-          ⏭
+          <Icon icon={SkipForward} />
         </button>
         <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
           {t('replay.event_n', { current: index + 1, total: frames.length })}
