@@ -14,6 +14,8 @@ interface EmptyStateProps {
   /** Action principale (ex. « Ajouter un tireur ») */
   actionLabel?: string;
   onAction?: () => void;
+  /** Actions supplémentaires (ex. boutons d'import) */
+  children?: ReactNode;
   className?: string;
 }
 
@@ -23,6 +25,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   description,
   actionLabel,
   onAction,
+  children,
   className,
 }) => (
   <div
@@ -41,6 +44,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         {actionLabel}
       </Button>
     )}
+    {children}
   </div>
 );
 

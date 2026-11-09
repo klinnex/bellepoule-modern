@@ -36,8 +36,4 @@ export const PHASE_ICONS = {
 export const TEAM_PHASE_ICONS: LucideIcon[] = [Users, Target, Trophy, Flag];
 
 /** Pictogramme des états vides de phase */
-export const PhaseEmptyIcon = () => (
-  <div className="empty-state-icon">
-    <Icon icon={Target} size={24} />
-  </div>
-);
+export const PhaseEmptyIcon = () => <Icon icon={Target} size={24} />;

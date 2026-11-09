@@ -31,4 +31,13 @@ describe('EmptyState', () => {
     render(<EmptyState title="Vide" />);
     expect(screen.queryByRole('button')).toBeNull();
   });
+
+  it('rend les actions supplémentaires (children)', () => {
+    render(
+      <EmptyState title="Vide">
+        <button>Importer</button>
+      </EmptyState>
+    );
+    expect(screen.getByText('Importer')).toBeInTheDocument();
+  });
 });
