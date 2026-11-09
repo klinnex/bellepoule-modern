@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 66 | 334 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 39 | 264 |
+| `src/remote/` | 40 | 269 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **299** | **2403** |
+| **Total** | **300** | **2408** |
 
-Unitaires : 290 fichiers, 2368 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 291 fichiers, 2373 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4967,6 +4967,18 @@ Unitaires : 290 fichiers, 2368 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **Badge de synchronisation (#1304)**
   - hors ligne prime sur un échec de synchronisation
   - en ligne : échec signalé, sinon état normal
+
+</details>
+
+<details>
+<summary><code>src/remote/refereeTouchErgonomics.test.ts</code> — 5 tests</summary>
+
+- **referee.html ergonomie tactile (#1539)**
+  - espace les cibles de score et de cartons d au moins 8 px
+  - donne un retour visuel à l appui sur les boutons de score et de contrôle
+  - rend le focus visible sur les contrôles de saisie
+  - garde le bouton Annuler plus grand que les sorties d arène
+  - annonce les scores aux lecteurs d écran
 
 </details>
 
