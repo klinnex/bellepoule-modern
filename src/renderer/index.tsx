@@ -22,6 +22,7 @@ import './styles/remote-mode.css';
 import './styles/book.css';
 import './styles/utilities.css';
 import './styles/components.css';
+import './styles/dashboard.css';
 import './styles/extracted.css';
 import './styles/extracted-2.css';
 import { logger, LogCategory, toError } from '../shared/services/logger';
