@@ -7,6 +7,7 @@ import React, { useState, useEffect, createContext, useContext, useCallback, use
 import { CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
 import { logger, LogCategory } from '@shared/services/logger';
 import { translateStatic } from '../contexts/TranslationContext';
+import { actionableMessage } from '../../shared/utils/actionableError';
 
 export type ToastType = 'info' | 'success' | 'warning' | 'error';
 
@@ -33,6 +34,8 @@ interface ToastContextType {
   showToast: (message: string, type?: ToastType, options?: ToastOptions) => void;
   /** Toast avec bouton « Annuler » (5 s) : action réversible sans confirmation modale (#1535) */
   showUndoToast: (message: string, onUndo: () => void, options?: ToastOptions) => void;
+  /** Toast d'erreur actionnable : « <échec> — <cause et étape suivante> » (#1535) */
+  showActionableError: (baseKey: string, error: unknown) => void;
 }
 
 export const UNDO_TOAST_DURATION = 5000;
@@ -232,12 +235,20 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     [showToast]
   );
 
+  const showActionableError = useCallback(
+    (baseKey: string, error: unknown) => {
+      logger.error(LogCategory.UI, baseKey, error instanceof Error ? error : undefined);
+      showToast(actionableMessage(translateStatic, translateStatic(baseKey), error), 'error');
+    },
+    [showToast]
+  );
+
   const removeToast = useCallback((id: number) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
   return (
-    <ToastContext.Provider value={{ showToast, showUndoToast }}>
+    <ToastContext.Provider value={{ showToast, showUndoToast, showActionableError }}>
       {children}
       <div
         role="status"
@@ -274,6 +285,9 @@ export const useToast = (): ToastContextType => {
       },
       showUndoToast: (message: string) => {
         logger.warn(LogCategory.UI, 'Toast used outside provider', { message });
+      },
+      showActionableError: (baseKey: string) => {
+        logger.warn(LogCategory.UI, 'Toast used outside provider', { baseKey });
       },
     };
   }

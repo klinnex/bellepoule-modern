@@ -83,7 +83,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 49 | 660 |
+| `src/shared/utils/` | 50 | 663 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -100,19 +100,30 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 77 | 381 |
+| `src/renderer/components/` | 77 | 382 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 43 | 284 |
+| `src/remote/` | 44 | 290 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **319** | **2492** |
+| **Total** | **321** | **2502** |
 
-Unitaires : 309 fichiers, 2453 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 311 fichiers, 2463 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
 ### `src/shared/utils/`
+
+<details>
+<summary><code>src/shared/utils/actionableError.test.ts</code> — 3 tests</summary>
+
+- **classifyError**
+  - %s -\> %s _(each)_
+  - chaque cause a une clé i18n errors.hint\_\*
+- **actionableMessage**
+  - compose base et conseil
+
+</details>
 
 <details>
 <summary><code>src/shared/utils/blackCardRanking.test.ts</code> — 10 tests</summary>
@@ -3940,7 +3951,7 @@ Unitaires : 309 fichiers, 2453 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/Toast.test.tsx</code> — 8 tests</summary>
+<summary><code>src/renderer/components/Toast.test.tsx</code> — 9 tests</summary>
 
 - **ToastProvider / useToast**
   - rend les enfants
@@ -3953,6 +3964,8 @@ Unitaires : 309 fichiers, 2453 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - fournit un showToast no-op sans planter
 - **Toast d’annulation (#1535)**
   - le bouton Annuler appelle le callback et ferme le toast
+- **Toast d’erreur actionnable (#1535)**
+  - affiche l’échec suivi de la cause et de l’étape suivante
 
 </details>
 
@@ -4659,6 +4672,20 @@ Unitaires : 309 fichiers, 2453 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - envoie la clé de l'onglet (distincte entre onglets) et la sous-piste courante
   - deux onglets du même navigateur : deux clés différentes
   - refus, erreur réseau ou réponse invalide : piste ou sous-piste courante
+
+</details>
+
+<details>
+<summary><code>src/remote/displayScale.test.ts</code> — 6 tests</summary>
+
+- **échelle typographique fluide (#1540)**
+  - tokens.css définit les tailles en clamp()
+  - overlay-config : aucune taille de police en px
+  - overlay-config : colonne latérale fluide
+- **mode contraste projecteur (#1540)**
+  - ?contrast=1 active la classe et mémorise
+  - stockage indisponible : le paramètre reste appliqué
+  - tokens.css : .theme-contrast sans couleur en dur
 
 </details>
 

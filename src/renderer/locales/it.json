@@ -459,7 +459,9 @@
     "info": "Informazione",
     "connection_lost": "Connessione persa",
     "connection_restored": "Connessione ripristinata",
-    "name_required": "Cognome e nome sono obbligatori"
+    "name_required": "Cognome e nome sono obbligatori",
+    "export_competition_failed": "Esportazione della competizione non riuscita",
+    "import_archive_failed": "Importazione dell'archivio non riuscita"
   },
   "time": {
     "minutes": "minuti",
@@ -1013,7 +1015,15 @@
     "port_in_use": "La porta {{port}} è già in uso",
     "temp_file_failed": "Impossibile creare il file temporaneo: {{detail}}",
     "invalid_proxy": "Proxy non valido",
-    "invalid_directory": "Cartella non valida"
+    "invalid_directory": "Cartella non valida",
+    "hint_file_missing": "file non trovato: verifica che non sia stato spostato o rinominato, poi riprova.",
+    "hint_permission": "accesso negato: scegli un'altra cartella o verifica i permessi di scrittura, poi riprova.",
+    "hint_file_busy": "file in uso da un altro programma: chiudilo (foglio di calcolo, PDF…), poi riprova.",
+    "hint_disk_full": "disco pieno: libera spazio o scegli un'altra posizione, poi riprova.",
+    "hint_network": "rete non disponibile: verifica la connessione Wi-Fi/Internet, poi riprova.",
+    "hint_invalid_format": "file illeggibile o in formato errato: verifica il tipo di file o riesportalo dalla sorgente.",
+    "hint_db_locked": "database occupato: attendi qualche secondo, poi riprova.",
+    "hint_unknown": "causa sconosciuta: riprova; se l'errore persiste, riavvia l'applicazione e controlla i log."
   },
   "properties": {
     "one_round": "1 turno",

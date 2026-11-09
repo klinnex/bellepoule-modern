@@ -459,7 +459,9 @@
     "info": "Información",
     "connection_lost": "Conexión perdida",
     "connection_restored": "Conexión restaurada",
-    "name_required": "El apellido y el nombre son obligatorios"
+    "name_required": "El apellido y el nombre son obligatorios",
+    "export_competition_failed": "Error al exportar la competición",
+    "import_archive_failed": "Error al importar el archivo"
   },
   "time": {
     "minutes": "minutos",
@@ -1013,7 +1015,15 @@
     "port_in_use": "El puerto {{port}} ya está en uso",
     "temp_file_failed": "No se pudo crear el archivo temporal: {{detail}}",
     "invalid_proxy": "Proxy no válido",
-    "invalid_directory": "Carpeta no válida"
+    "invalid_directory": "Carpeta no válida",
+    "hint_file_missing": "archivo no encontrado: compruebe que no se haya movido o renombrado e inténtelo de nuevo.",
+    "hint_permission": "acceso denegado: elija otra carpeta o compruebe los permisos de escritura e inténtelo de nuevo.",
+    "hint_file_busy": "archivo en uso por otro programa: ciérrelo (hoja de cálculo, PDF…) e inténtelo de nuevo.",
+    "hint_disk_full": "disco lleno: libere espacio o elija otra ubicación e inténtelo de nuevo.",
+    "hint_network": "red no disponible: compruebe la conexión Wi-Fi/Internet e inténtelo de nuevo.",
+    "hint_invalid_format": "archivo ilegible o con formato incorrecto: compruebe el tipo de archivo o expórtelo de nuevo desde su origen.",
+    "hint_db_locked": "base de datos ocupada: espere unos segundos e inténtelo de nuevo.",
+    "hint_unknown": "causa desconocida: inténtelo de nuevo; si el error persiste, reinicie la aplicación y consulte los registros."
   },
   "properties": {
     "one_round": "1 ronda",

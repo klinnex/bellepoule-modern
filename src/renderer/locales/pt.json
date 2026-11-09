@@ -459,7 +459,9 @@
     "info": "Informação",
     "connection_lost": "Ligação perdida",
     "connection_restored": "Ligação restabelecida",
-    "name_required": "O apelido e o nome próprio são obrigatórios"
+    "name_required": "O apelido e o nome próprio são obrigatórios",
+    "export_competition_failed": "Falha ao exportar a competição",
+    "import_archive_failed": "Falha ao importar o arquivo"
   },
   "time": {
     "minutes": "minutos",
@@ -1013,7 +1015,15 @@
     "port_in_use": "A porta {{port}} já está em uso",
     "temp_file_failed": "Não foi possível criar o ficheiro temporário: {{detail}}",
     "invalid_proxy": "Proxy inválido",
-    "invalid_directory": "Pasta inválida"
+    "invalid_directory": "Pasta inválida",
+    "hint_file_missing": "ficheiro não encontrado: verifique se não foi movido ou renomeado e tente novamente.",
+    "hint_permission": "acesso negado: escolha outra pasta ou verifique as permissões de escrita e tente novamente.",
+    "hint_file_busy": "ficheiro em uso por outro programa: feche-o (folha de cálculo, PDF…) e tente novamente.",
+    "hint_disk_full": "disco cheio: liberte espaço ou escolha outra localização e tente novamente.",
+    "hint_network": "rede indisponível: verifique a ligação Wi-Fi/Internet e tente novamente.",
+    "hint_invalid_format": "ficheiro ilegível ou com formato incorreto: verifique o tipo de ficheiro ou exporte-o novamente a partir da origem.",
+    "hint_db_locked": "base de dados ocupada: aguarde alguns segundos e tente novamente.",
+    "hint_unknown": "causa desconhecida: tente novamente; se o erro persistir, reinicie a aplicação e consulte os registos."
   },
   "properties": {
     "one_round": "1 ronda",

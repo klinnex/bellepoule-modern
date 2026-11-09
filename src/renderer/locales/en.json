@@ -459,7 +459,9 @@
     "info": "Information",
     "connection_lost": "Connection lost",
     "connection_restored": "Connection restored",
-    "name_required": "Last name and first name are required"
+    "name_required": "Last name and first name are required",
+    "export_competition_failed": "Competition export failed",
+    "import_archive_failed": "Archive import failed"
   },
   "time": {
     "minutes": "minutes",
@@ -1013,7 +1015,15 @@
     "port_in_use": "Port {{port}} is already in use",
     "temp_file_failed": "Could not create the temporary file: {{detail}}",
     "invalid_proxy": "Invalid proxy",
-    "invalid_directory": "Invalid folder"
+    "invalid_directory": "Invalid folder",
+    "hint_file_missing": "file not found: check it has not been moved or renamed, then try again.",
+    "hint_permission": "access denied: choose another folder or check write permissions, then try again.",
+    "hint_file_busy": "file in use by another program: close it (spreadsheet, PDF…), then try again.",
+    "hint_disk_full": "disk full: free up space or choose another location, then try again.",
+    "hint_network": "network unavailable: check your Wi-Fi/Internet connection, then try again.",
+    "hint_invalid_format": "unreadable or wrong-format file: check the file type, or export it again from its source.",
+    "hint_db_locked": "database busy: wait a few seconds, then try again.",
+    "hint_unknown": "unknown cause: try again; if the error persists, restart the application and check the logs."
   },
   "properties": {
     "one_round": "1 round",

@@ -219,7 +219,9 @@
     "no_competitions": "Keine Wettbewerbe.",
     "no_fencers": "Keine Fechter",
     "success": "Erfolg",
-    "warning": "Warnung"
+    "warning": "Warnung",
+    "export_competition_failed": "Export des Wettbewerbs fehlgeschlagen",
+    "import_archive_failed": "Import des Archivs fehlgeschlagen"
   },
   "pdfTemplate": {
     "colors": {
@@ -1013,7 +1015,15 @@
     "port_in_use": "Port {{port}} wird bereits verwendet",
     "temp_file_failed": "Temporäre Datei konnte nicht erstellt werden: {{detail}}",
     "invalid_proxy": "Ungültiger Proxy",
-    "invalid_directory": "Ungültiger Ordner"
+    "invalid_directory": "Ungültiger Ordner",
+    "hint_file_missing": "Datei nicht gefunden: Prüfen Sie, ob sie verschoben oder umbenannt wurde, und versuchen Sie es erneut.",
+    "hint_permission": "Zugriff verweigert: Wählen Sie einen anderen Ordner oder prüfen Sie die Schreibrechte und versuchen Sie es erneut.",
+    "hint_file_busy": "Datei wird von einem anderen Programm verwendet: Schließen Sie es (Tabellenkalkulation, PDF …) und versuchen Sie es erneut.",
+    "hint_disk_full": "Datenträger voll: Schaffen Sie Platz oder wählen Sie einen anderen Speicherort und versuchen Sie es erneut.",
+    "hint_network": "Netzwerk nicht verfügbar: Prüfen Sie die WLAN-/Internetverbindung und versuchen Sie es erneut.",
+    "hint_invalid_format": "Datei unlesbar oder falsches Format: Prüfen Sie den Dateityp oder exportieren Sie sie erneut aus der Quelle.",
+    "hint_db_locked": "Datenbank ausgelastet: Warten Sie einige Sekunden und versuchen Sie es erneut.",
+    "hint_unknown": "Ursache unbekannt: Versuchen Sie es erneut; bleibt der Fehler bestehen, starten Sie die Anwendung neu und prüfen Sie die Protokolle."
   },
   "properties": {
     "one_round": "1 Runde",

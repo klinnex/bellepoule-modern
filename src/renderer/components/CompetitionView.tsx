@@ -267,7 +267,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
   onRemoteServerChange,
   onOpenCompetition,
 }) => {
-  const { showToast } = useToast();
+  const { showToast, showActionableError } = useToast();
   const { confirm } = useConfirm();
   const { runOperation } = useOperation();
   const { t, language } = useTranslation();
@@ -1068,7 +1068,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           );
           loadFencers();
         } catch (err) {
-          logger.error(LogCategory.UI, 'Erreur import .bpf', err as Error);
+          showActionableError('messages.import_archive_failed', err);
         }
         return;
       }
@@ -2913,7 +2913,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                     const exporting = window.electronAPI.file.exportCompetition(competition.id);
                     void runOperation('export', () => exporting)
                       .then(r => r?.success && showToast('Compétition exportée', 'success'))
-                      .catch(() => showToast("Échec de l'export de la compétition", 'error'));
+                      .catch(err => showActionableError('messages.export_competition_failed', err));
                   }
                 : undefined
             }
