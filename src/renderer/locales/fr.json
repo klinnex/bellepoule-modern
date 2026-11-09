@@ -564,6 +564,8 @@
     "quick_search": "Recherche rapide",
     "close_modal": "Fermer la modale / Annuler",
     "nav_fields": "Navigation entre champs",
+    "nav_matrix": "Matrice de poule : flèches pour changer de case",
+    "activate_card": "Entrée / Espace : ouvrir la case ou la carte de match",
     "save": "Sauvegarder",
     "undo": "Annuler une saisie de poule",
     "redo": "Rétablir une saisie de poule",

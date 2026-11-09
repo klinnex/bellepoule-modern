@@ -564,6 +564,8 @@
     "quick_search": "Ricerca rapida",
     "close_modal": "Chiudi la finestra / Annulla",
     "nav_fields": "Navigazione tra i campi",
+    "nav_matrix": "Matrice del girone: frecce per spostarsi tra le caselle",
+    "activate_card": "Invio / Spazio: aprire la casella o la scheda dell'incontro",
     "save": "Salva",
     "undo": "Annulla un inserimento del girone",
     "redo": "Ripristina un inserimento del girone",

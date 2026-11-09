@@ -564,6 +564,8 @@
     "quick_search": "Cerca ràpida",
     "close_modal": "Tancar modal / Cancel·lar",
     "nav_fields": "Navegar entre camps",
+    "nav_matrix": "Matriu de poule: fletxes per moure's entre caselles",
+    "activate_card": "Intro / Espai: obrir la casella o la targeta de combat",
     "save": "Desar",
     "undo": "Desfer un marcador de poule",
     "redo": "Refer un marcador de poule",
