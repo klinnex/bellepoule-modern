@@ -97,7 +97,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 6 | 138 |
-| `src/main/` | 53 | 424 |
+| `src/main/` | 53 | 425 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 66 | 334 |
@@ -106,9 +106,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **299** | **2403** |
+| **Total** | **299** | **2404** |
 
-Unitaires : 290 fichiers, 2368 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 290 fichiers, 2369 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2695,13 +2695,14 @@ Unitaires : 290 fichiers, 2368 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/i18nBundle.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/remote/i18nBundle.test.ts</code> — 6 tests</summary>
 
 - **i18n des pages distantes découpé par langue (#1213)**
   - /i18n.js = langues puis moteur ; T() traduit dans la langue configurée
   - chaque langue a les mêmes clés que le français
   - modules js/ extraits des pages servis en /js/\<nom\>.js (#1401)
   - src/remote/js/kioskEta.js est bien servi
+  - tokens.css servi et styles.css sans couleur hexadécimale en dur (#1538)
   - fichiers communs : absents ignorés, i18n.js concaténé
 
 </details>

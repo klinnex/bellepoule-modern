@@ -1,4 +1,5 @@
 /* BellePoule Modern - Remote Referee Interface Styles */
+@import url('/tokens.css');
 * {
   margin: 0;
   padding: 0;
@@ -13,9 +14,9 @@ body {
     'Segoe UI',
     Roboto,
     sans-serif;
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   min-height: 100vh;
-  color: #1a202c;
+  color: var(--color-text);
   font-weight: 400;
 }
 
@@ -46,7 +47,7 @@ body {
 }
 
 .login-container {
-  background: white;
+  background: var(--color-surface);
   padding: 2.5rem 2rem;
   border-radius: 24px;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
@@ -57,21 +58,21 @@ body {
 }
 
 .login-container h1 {
-  color: #2563eb;
+  color: var(--color-primary);
   margin-bottom: 0.5rem;
   font-size: 2rem;
   font-weight: 700;
 }
 
 .login-container h1 {
-  color: #667eea;
+  color: var(--color-primary);
   margin-bottom: 0.5rem;
   font-size: 2.5rem;
   font-weight: 700;
 }
 
 .login-container h2 {
-  color: #666;
+  color: var(--color-text-light);
   margin-bottom: 2rem;
   font-weight: 400;
   font-size: 1.2rem;
@@ -86,13 +87,13 @@ body {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #555;
+  color: var(--color-text-light);
 }
 
 .form-group input {
   width: 100%;
   padding: 1rem;
-  border: 2px solid #e1e8ed;
+  border: 2px solid var(--color-border);
   border-radius: 10px;
   font-size: 1rem;
   transition: all 0.3s ease;
@@ -100,14 +101,14 @@ body {
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 /* Boutons */
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-on-primary);
   border: none;
   padding: 1rem 2rem;
   border-radius: 10px;
@@ -124,9 +125,9 @@ body {
 }
 
 .btn-secondary {
-  background: #f8f9fa;
-  color: #666;
-  border: 2px solid #e1e8ed;
+  background: var(--color-surface-2);
+  color: var(--color-text-light);
+  border: 2px solid var(--color-border);
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -136,9 +137,9 @@ body {
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #e9ecef;
-  border-color: #667eea;
-  color: #667eea;
+  background: var(--color-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 button:disabled {
@@ -149,11 +150,11 @@ button:disabled {
 /* Écran principal */
 #main-screen {
   flex-direction: column;
-  background: #f8f9fa;
+  background: var(--color-surface-2);
 }
 
 .app-header {
-  background: white;
+  background: var(--color-surface);
   padding: 1rem 2rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -162,13 +163,13 @@ button:disabled {
 }
 
 .header-left h1 {
-  color: #667eea;
+  color: var(--color-primary);
   font-size: 1.5rem;
   margin-bottom: 0.25rem;
 }
 
 .header-left span {
-  color: #666;
+  color: var(--color-text-light);
   font-size: 0.9rem;
 }
 
@@ -195,7 +196,7 @@ button:disabled {
 
 /* Section piste */
 .strip-info {
-  background: white;
+  background: var(--color-surface);
   padding: 1.5rem;
   border-radius: 15px;
   margin-bottom: 2rem;
@@ -203,18 +204,18 @@ button:disabled {
 }
 
 .strip-info h2 {
-  color: #667eea;
+  color: var(--color-primary);
   margin-bottom: 0.5rem;
 }
 
 .match-status {
-  color: #666;
+  color: var(--color-text-light);
   font-style: italic;
 }
 
 /* Section match */
 .match-section {
-  background: white;
+  background: var(--color-surface);
   padding: 2rem;
   border-radius: 15px;
   margin-bottom: 2rem;
@@ -228,7 +229,7 @@ button:disabled {
   gap: 2rem;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 2px solid #f1f3f4;
+  border-bottom: 2px solid var(--color-border);
 }
 
 .fencer {
@@ -236,20 +237,20 @@ button:disabled {
 }
 
 .fencer h3 {
-  color: #333;
+  color: var(--color-text);
   margin-bottom: 0.5rem;
   font-size: 1.3rem;
 }
 
 .club-info {
-  color: #666;
+  color: var(--color-text-light);
   font-size: 0.9rem;
 }
 
 .vs {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 /* Section score */
@@ -272,13 +273,13 @@ button:disabled {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #555;
+  color: var(--color-text-light);
 }
 
 .score-input input {
   width: 100%;
   padding: 1rem;
-  border: 2px solid #e1e8ed;
+  border: 2px solid var(--color-border);
   border-radius: 10px;
   font-size: 2rem;
   text-align: center;
@@ -288,19 +289,19 @@ button:disabled {
 
 .score-input input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .score-display {
   font-size: 2rem;
   font-weight: 700;
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 /* Statut spécial */
 .special-status {
-  background: #f8f9fa;
+  background: var(--color-surface-2);
   padding: 1rem;
   border-radius: 10px;
   margin-bottom: 2rem;
@@ -316,13 +317,13 @@ button:disabled {
 .special-options {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e1e8ed;
+  border-top: 1px solid var(--color-border);
 }
 
 .special-options select {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #e1e8ed;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   margin-bottom: 1rem;
 }
@@ -354,7 +355,7 @@ button:disabled {
 /* Sections des matchs */
 .next-matches-section,
 .completed-matches-section {
-  background: white;
+  background: var(--color-surface);
   padding: 1.5rem;
   border-radius: 15px;
   margin-bottom: 2rem;
@@ -363,7 +364,7 @@ button:disabled {
 
 .next-matches-section h3,
 .completed-matches-section h3 {
-  color: #667eea;
+  color: var(--color-primary);
   margin-bottom: 1rem;
 }
 
@@ -377,12 +378,12 @@ button:disabled {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid #f1f3f4;
+  border-bottom: 1px solid var(--color-border);
   transition: background 0.3s ease;
 }
 
 .match-item:hover {
-  background: #f8f9fa;
+  background: var(--color-surface-2);
 }
 
 .match-item:last-child {
@@ -395,13 +396,13 @@ button:disabled {
 
 .match-item-fencers {
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
   margin-bottom: 0.25rem;
 }
 
 .match-item-details {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--color-text-light);
 }
 
 .match-item-status {
@@ -409,13 +410,13 @@ button:disabled {
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
-  background: #e3f2fd;
-  color: #1976d2;
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
 }
 
 .no-matches {
   text-align: center;
-  color: #999;
+  color: var(--color-text-muted);
   font-style: italic;
   padding: 2rem;
 }
@@ -430,25 +431,25 @@ button:disabled {
 }
 
 .notification {
-  background: white;
+  background: var(--color-surface);
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   margin-bottom: 1rem;
   padding: 1rem;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--color-primary);
   animation: slideIn 0.3s ease;
 }
 
 .notification.success {
-  border-left-color: #4caf50;
+  border-left-color: var(--color-success);
 }
 
 .notification.error {
-  border-left-color: #f44336;
+  border-left-color: var(--color-danger);
 }
 
 .notification.warning {
-  border-left-color: #ff9800;
+  border-left-color: var(--color-warning);
 }
 
 @keyframes slideIn {
@@ -464,12 +465,12 @@ button:disabled {
 
 /* Messages d'erreur */
 .error-message {
-  background: #ffebee;
-  color: #c62828;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
   padding: 1rem;
   border-radius: 8px;
   margin-top: 1rem;
-  border-left: 4px solid #f44336;
+  border-left: 4px solid var(--color-danger);
 }
 
 .error-message.hidden {
