@@ -288,9 +288,8 @@
         touch-action: manipulation;
       }
 
-      .score-btn:active {
-        transform: scale(0.95);
-      }
+      .score-btn:active { transform: scale(0.95); filter: brightness(1.25); /* #1539 */ }
+      .control-btn:focus-visible { outline: 3px solid #fbbf24; outline-offset: 2px; }
 
       .btn-plus-1 {
         background: #3b82f6;
@@ -624,15 +623,12 @@
       .btn-undo {
         background: linear-gradient(135deg, #6366f1, #4f46e5);
         color: white;
-        font-size: 0.85rem;
+        font-size: 1rem;
         padding: 0.65rem 0.4rem;
-        min-height: 48px;
+        min-height: 56px; /* #1539 : correction en un appui, cible plus large que les sorties */
       }
 
-      .btn-undo:disabled {
-        background: #6b7280;
-        cursor: not-allowed;
-      }
+      .btn-undo:disabled { background: #6b7280; cursor: not-allowed; }
 
       .btn-dt-call {
         background: linear-gradient(135deg, #f97316, #ea580c);
@@ -771,9 +767,7 @@
         touch-action: manipulation;
       }
 
-      .control-btn:active {
-        transform: scale(0.98);
-      }
+      .control-btn:active { transform: scale(0.98); filter: brightness(1.2); }
 
       .btn-start {
         background: linear-gradient(135deg, #22c55e, #16a34a);
@@ -1404,7 +1398,7 @@
             <div class="fencer-name" id="fencer-a-name">-</div>
             <div class="fencer-club" id="fencer-a-club">-</div>
             <div class="cards-display" id="fencer-a-cards"></div>
-            <div class="score-display red-score" id="score-a">0</div>
+            <div class="score-display red-score" id="score-a" role="status" aria-live="polite">0</div>
             <div class="score-buttons">
               <button id="btn-plus-1-a" class="score-btn btn-plus-1">+1</button>
               <button id="btn-plus-3-a" class="score-btn btn-plus-3">+3</button>
@@ -1454,7 +1448,7 @@
             <div class="fencer-name" id="fencer-b-name">-</div>
             <div class="fencer-club" id="fencer-b-club">-</div>
             <div class="cards-display" id="fencer-b-cards"></div>
-            <div class="score-display green-score" id="score-b">0</div>
+            <div class="score-display green-score" id="score-b" role="status" aria-live="polite">0</div>
             <div class="score-buttons">
               <button id="btn-plus-1-b" class="score-btn btn-plus-1">+1</button>
               <button id="btn-plus-3-b" class="score-btn btn-plus-3">+3</button>
