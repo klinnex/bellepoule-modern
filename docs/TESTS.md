@@ -15,7 +15,7 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | Étape | Commande | Échoue si |
 |---|---|---|
 | Typage | `npm run type-check` | erreur TypeScript (`tsc --noEmit`, mode strict) |
-| i18n | `npm run check:i18n` | clé manquante / en trop vs `fr.json`, ou vs `src/remote/i18n/fr.js` pour les pages distantes (paramètres `{{x}}` compris) (`scripts/check-i18n-completeness.js`) |
+| i18n | `npm run check:i18n` | clé manquante / en trop vs `fr.json`, ou vs `src/remote/i18n/fr.js` pour les pages distantes (paramètres `{{x}}` compris) ; avertit sans échouer des libellés > 1,6x le français (`scripts/check-i18n-completeness.js`) |
 | Doc des tests | `npm run check:tests-doc` | `docs/TESTS.md` pas à jour vs fichiers de test |
 | Doc i18n | `npm run check:i18n-doc` | `docs/I18N.md` pas à jour, ou clé `data-i18n` d'une page distante absente de `src/remote/i18n.js` |
 | Doc Socket.IO | `npm run check:socket-doc` | `docs/SOCKET_EVENTS.md` pas à jour, ou événement émis par une page sans écouteur serveur |
@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 64 | 329 |
+| `src/renderer/components/` | 65 | 333 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **297** | **2398** |
+| **Total** | **298** | **2402** |
 
-Unitaires : 288 fichiers, 2363 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 289 fichiers, 2367 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4349,6 +4349,17 @@ Unitaires : 288 fichiers, 2363 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - le score décide hors égalité, un V éventuel est ignoré
   - en égalité, le vainqueur désigné (V ou tirage) gagne
   - en égalité sans vainqueur désigné, pas de vainqueur
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/tableau/useBracketZoomPan.test.ts</code> — 4 tests</summary>
+
+- **zoom mémorisé du tableau**
+  - renvoie 1 par défaut
+  - restitue le zoom par compétition
+  - ignore une valeur invalide ou hors bornes
+  - supprime l entrée quand le zoom revient à 1
 
 </details>
 

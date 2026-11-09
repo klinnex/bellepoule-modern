@@ -365,7 +365,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     handleBracketMouseDown,
     handleBracketMouseMove,
     handleBracketMouseUp,
-  } = useBracketZoomPan({ viewMode, pyramidViewMode });
+  } = useBracketZoomPan({ competitionId, viewMode, pyramidViewMode });
 
   // Charge les arbitres de la compétition (montage + ouverture de la modale)
   const openRefereeModal = useCallback(
