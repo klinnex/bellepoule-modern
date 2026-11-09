@@ -17,6 +17,7 @@ import { FormulaPhaseCard } from './FormulaPhaseCard';
 import { FormulaSimulationPreview } from './FormulaSimulationPreview';
 import { FormulaTemplateModal } from './FormulaTemplateModal';
 import { useTranslation } from '../../hooks/useTranslation';
+import { Button } from '../common/Button';
 
 interface Props {
   formula: CustomFormulaConfig;
@@ -184,52 +185,55 @@ const FormulaBuilder_: React.FC<Props> = ({
 
         {!readOnly && (
           <div className="formula-add-buttons">
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary btn-sm formula-add-btn pool-add"
+              size="sm"
+              className="formula-add-btn pool-add"
               onClick={addPoolRound}
               title={t('formula.add_pool_round')}
             >
               {t('formulaBuilder.pools_btn')}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="btn btn-secondary btn-sm formula-add-btn de-add"
+              size="sm"
+              className="formula-add-btn de-add"
               onClick={addDE}
               title={t('formulaBuilder.add_de_title')}
             >
               {t('formulaBuilder.de_btn')}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="btn btn-secondary btn-sm formula-add-btn class-add"
+              size="sm"
+              className="formula-add-btn class-add"
               onClick={addClassification}
               title={t('formulaBuilder.add_cls_title')}
             >
               {t('formulaBuilder.cls_btn')}
-            </button>
+            </Button>
           </div>
         )}
 
         <div className="formula-template-buttons">
           {!readOnly && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary btn-sm"
+              size="sm"
               onClick={() => setTemplateModal('save')}
               title={t('formula.save_template')}
             >
               {t('formulaBuilder.save_btn')}
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             type="button"
-            className="btn btn-secondary btn-sm"
+            size="sm"
             onClick={() => setTemplateModal('load')}
             title={t('formula.load_template')}
           >
             {t('formulaBuilder.load_btn')}
-          </button>
+          </Button>
           {onSpecialModeChange && !readOnly && (
             <div style={{ position: 'relative', display: 'inline-block' }}>
               <button
@@ -259,12 +263,13 @@ const FormulaBuilder_: React.FC<Props> = ({
                   }}
                 >
                   {[undefined, ...SPECIAL_MODES].map(mode => (
-                    <button
+                    <Button
                       key={mode ?? 'none'}
                       type="button"
                       role="menuitemradio"
                       aria-checked={specialMode === mode}
-                      className="btn btn-sm btn-ghost"
+                      variant="ghost"
+                      size="sm"
                       style={{
                         justifyContent: 'flex-start',
                         fontWeight: specialMode === mode ? 700 : 400,
@@ -275,7 +280,7 @@ const FormulaBuilder_: React.FC<Props> = ({
                       }}
                     >
                       {mode ? t(`rapieres.mode_${mode}`) : t('rapieres.mode_none')}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               )}

@@ -12,6 +12,7 @@ import { MedicalCrossIcon } from '../common/MedicalCrossIcon';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import SpecialStatusPanel from '../common/SpecialStatusPanel';
 import TiebreakerAnimation from '../TiebreakerAnimation';
+import { Button } from '../common/Button';
 
 interface TableauScoreModalProps {
   match: TableauMatch;
@@ -240,13 +241,9 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
               <p className="tableau-tie-hint">{t('tableauScore.tie_hint')}</p>
               <div className="tableau-tie-actions">
                 {canDrawLots && (
-                  <button
-                    type="button"
-                    className="btn btn-warning"
-                    onClick={() => setShowCoinFlip(true)}
-                  >
+                  <Button type="button" variant="warning" onClick={() => setShowCoinFlip(true)}>
                     🪙 {t('tableauScore.coin_flip')}
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -255,28 +252,31 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
           {/* Boutons spéciaux sur une ligne */}
           {!pendingStatus ? (
             <div className="is-4e4f08">
-              <button
-                className="btn btn-warning is-d1e548"
+              <Button
+                variant="warning"
+                className="is-d1e548"
                 onClick={() => setPendingStatus('abandon')}
               >
                 <MedicalCrossIcon /> {t('tableauScore.abandon')}
-              </button>
-              <button
-                className="btn btn-warning is-d1e548"
+              </Button>
+              <Button
+                variant="warning"
+                className="is-d1e548"
                 onClick={() => setPendingStatus('forfait')}
               >
                 📋 {t('tableauScore.forfait')}
-              </button>
-              <button
-                className="btn btn-danger is-d1e548"
+              </Button>
+              <Button
+                variant="danger"
+                className="is-d1e548"
                 onClick={() => setPendingStatus('exclusion')}
               >
                 🚫 {t('tableauScore.exclusion')}
-              </button>
+              </Button>
               {onMatchCancel && (
-                <button className="btn btn-secondary is-d1e548" onClick={onMatchCancel}>
+                <Button className="is-d1e548" onClick={onMatchCancel}>
                   ⏸ {t('tableau.cancel_match')}
-                </button>
+                </Button>
               )}
             </div>
           ) : (
@@ -292,12 +292,10 @@ const TableauScoreModalComponent: React.FC<TableauScoreModalProps> = ({
           )}
         </div>
         <div className="modal-footer is-40a237">
-          <button className="btn btn-secondary" onClick={onClose}>
-            {t('actions.cancel')}
-          </button>
-          <button className="btn btn-primary" onClick={onSubmit}>
+          <Button onClick={onClose}>{t('actions.cancel')}</Button>
+          <Button variant="primary" onClick={onSubmit}>
             {t('actions.validate')}
-          </button>
+          </Button>
         </div>
       </div>
       {showCoinFlip && canDrawLots && (

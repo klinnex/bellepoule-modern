@@ -11,6 +11,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import type { PrintDialogSettings } from '../../../shared/types/preload';
 import { loadPdfJs, type PdfDocument, type PdfLoadingTask } from './pdfjsLoader';
 import { isValidPageRanges, loadSettings, pageRangesBeyond, saveSettings } from './printSettings';
+import { Button } from '../common/Button';
 
 export interface PrintDialogResult {
   success: boolean;
@@ -247,18 +248,18 @@ const PrintDialog: React.FC<PrintDialogProps> = ({ html, onDone }) => {
       bodyClassName="print-dialog__body"
       footer={
         <>
-          <button className="btn btn-secondary" onClick={handleSystem} disabled={busy}>
+          <Button onClick={handleSystem} disabled={busy}>
             {t('print.system_dialog')}
-          </button>
-          <button className="btn btn-secondary" onClick={handleSavePdf} disabled={busy || !ready}>
+          </Button>
+          <Button onClick={handleSavePdf} disabled={busy || !ready}>
             {t('print.save_pdf')}
-          </button>
-          <button className="btn btn-secondary" onClick={cancel} disabled={busy}>
+          </Button>
+          <Button onClick={cancel} disabled={busy}>
             {t('actions.cancel')}
-          </button>
-          <button className="btn btn-primary" onClick={handlePrint} disabled={!canPrint}>
+          </Button>
+          <Button variant="primary" onClick={handlePrint} disabled={!canPrint}>
             {t('print.print')}
-          </button>
+          </Button>
         </>
       }
     >
@@ -271,19 +272,19 @@ const PrintDialog: React.FC<PrintDialogProps> = ({ html, onDone }) => {
                 : t('print.pages_count', { count: String(pageCount) })}
             </span>
             <span className="print-dialog__zoom">
-              <button
+              <Button
                 type="button"
-                className="btn btn-secondary"
+
                 aria-label={t('print.zoom_out')}
                 disabled={zoom === ZOOM_STEPS[0]}
                 onClick={() => setZoom(z => ZOOM_STEPS[Math.max(0, ZOOM_STEPS.indexOf(z) - 1)])}
               >
                 −
-              </button>
+              </Button>
               <span>{zoom}%</span>
-              <button
+              <Button
                 type="button"
-                className="btn btn-secondary"
+
                 aria-label={t('print.zoom_in')}
                 disabled={zoom === ZOOM_STEPS[ZOOM_STEPS.length - 1]}
                 onClick={() =>
@@ -293,7 +294,7 @@ const PrintDialog: React.FC<PrintDialogProps> = ({ html, onDone }) => {
                 }
               >
                 +
-              </button>
+              </Button>
             </span>
           </div>
           <div className="print-dialog__pages" ref={pagesRef} />

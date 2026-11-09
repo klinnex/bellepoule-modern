@@ -17,6 +17,7 @@ import {
   TableauFlowMatch,
 } from '../../../shared/services/tournamentFlow';
 import { getActiveLocale } from '../../../shared/utils/localeFormat';
+import { Button } from '../common/Button';
 
 interface PlanningAssistantProps {
   competition: Competition;
@@ -103,9 +104,9 @@ const PlanningAssistant: React.FC<PlanningAssistantProps> = ({
       elevated
       footer={
         <>
-          <button type="button" className="btn btn-primary" onClick={onClose}>
+          <Button type="button" variant="primary" onClick={onClose}>
             {t('actions.close')}
-          </button>
+          </Button>
         </>
       }
     >

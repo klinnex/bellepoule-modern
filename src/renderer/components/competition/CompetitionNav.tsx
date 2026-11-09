@@ -24,6 +24,7 @@ import CoachMark from '../CoachMark';
 import GuidedTour from '../GuidedTour';
 import { usePhaseShortcuts } from './usePhaseShortcuts';
 import { phaseStepStates, nextBlockedReason } from './phaseStepper';
+import { Button } from '../common/Button';
 
 interface PhaseItem {
   id: string;
@@ -171,29 +172,31 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
         ))}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           {currentPhase !== 'checkin' && (
-            <button className="btn btn-secondary btn-icon-label" onClick={handleGoBack}>
+            <Button className="btn-icon-label" onClick={handleGoBack}>
               <ChevronLeft size={15} /> {t('competitionNav.back')}
-            </button>
+            </Button>
           )}
           {currentPhase === 'checkin' &&
             !isTeamEvent &&
             questEnabled &&
             !questConfig?.hasPreliminaryPools && (
-              <button
-                className="btn btn-primary btn-icon-label"
+              <Button
+                variant="primary"
+                className="btn-icon-label"
                 onClick={() => setCurrentPhase('quest')}
                 disabled={getCheckedInFencers().length < 2}
               >
                 {t('competitionNav.quest')} <ChevronRight size={15} />
-              </button>
+              </Button>
             )}
           {currentPhase === 'checkin' && isTeamEvent && (
-            <button
-              className="btn btn-primary btn-icon-label"
+            <Button
+              variant="primary"
+              className="btn-icon-label"
               onClick={() => setCurrentPhase('teams')}
             >
               {t('teams.toCompose')} <ChevronRight size={15} />
-            </button>
+            </Button>
           )}
           {currentPhase === 'checkin' &&
             !isTeamEvent &&
@@ -203,8 +206,9 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                 message={t('competitionNav.generate_hint')}
                 position="bottom"
               >
-                <button
-                  className="btn btn-primary btn-icon-label"
+                <Button
+                  variant="primary"
+                  className="btn-icon-label"
                   data-tour="generate-pools"
                   onClick={handleGeneratePools}
                   disabled={getCheckedInFencers().length < 4}
@@ -226,12 +230,13 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                     <span className="btn-count-hint">{getCheckedInFencers().length}/4</span>
                   )}
                   <ChevronRight size={15} />
-                </button>
+                </Button>
               </CoachMark>
             )}
           {currentPhase === 'poolprep' && poolPrepLaunch && (
-            <button
-              className="btn btn-primary btn-icon-label"
+            <Button
+              variant="primary"
+              className="btn-icon-label"
               data-tour="launch-pools"
               onClick={poolPrepLaunch.action}
               disabled={poolPrepLaunch.disabled}
@@ -240,7 +245,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
               }
             >
               {poolPrepLaunch.label} <ChevronRight size={15} />
-            </button>
+            </Button>
           )}
           {currentPhase === 'pools' && poolsNextAction && (
             <CoachMark
@@ -248,20 +253,16 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
               message={t('competitionNav.next_step_hint')}
               position="bottom"
             >
-              <button
-                className="btn btn-primary"
-                data-tour="view-ranking"
-                onClick={poolsNextAction.action}
-              >
+              <Button variant="primary" data-tour="view-ranking" onClick={poolsNextAction.action}>
                 {poolsNextAction.label}
-              </button>
+              </Button>
             </CoachMark>
           )}
           {onOpenPlanningAssistant &&
             ((currentPhase === 'pools' && pools.length > 0) ||
               (currentPhase === 'tableau' && tableauMatches.length > 0)) && (
-              <button
-                className="btn btn-secondary btn-icon-label"
+              <Button
+                className="btn-icon-label"
                 onClick={onOpenPlanningAssistant}
                 title={
                   currentPhase === 'tableau'
@@ -271,7 +272,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                 style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
               >
                 <CalendarClock size={14} /> {t('competitionNav.planning')}
-              </button>
+              </Button>
             )}
           <button
             className={`btn btn-secondary btn-icon-label${currentPhase === 'logs' ? ' btn-active' : ''}`}

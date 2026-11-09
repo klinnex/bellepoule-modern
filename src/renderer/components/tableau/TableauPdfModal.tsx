@@ -11,6 +11,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { MAX_MATCHES_PER_PAGE_TABLEAU } from '../../../shared/utils/pdfConstants';
 import { TableauMatch } from './tableauTypes';
 import { getRoundName } from './tableauCalculations';
+import { Button } from '../common/Button';
 
 interface TableauPdfModalProps {
   pdfMode: 'print' | 'pdf';
@@ -163,16 +164,10 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
           })()}
         </div>
         <div className="modal-footer" style={PDF_STYLES.pdfModalFooter}>
-          <button className="btn btn-secondary" onClick={onClose}>
-            {t('actions.cancel')}
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={onExport}
-            disabled={selectedRounds.size === 0}
-          >
+          <Button onClick={onClose}>{t('actions.cancel')}</Button>
+          <Button variant="primary" onClick={onExport} disabled={selectedRounds.size === 0}>
             {pdfMode === 'print' ? t('tableauPdf.do_print') : t('tableauPdf.do_generate')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

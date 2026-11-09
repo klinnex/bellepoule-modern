@@ -9,6 +9,7 @@ import { createPortal } from 'react-dom';
 import { ConnectedClient, KioskScreenConfig } from '../../../shared/types/preload';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useToast } from '../Toast';
+import { Button } from '../common/Button';
 
 interface ConnectedScreensPanelProps {
   competitionId: string;
@@ -255,8 +256,9 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                  <button
-                    className="btn btn-primary flex-1"
+                  <Button
+                    variant="primary"
+                    className="flex-1"
                     onClick={async () => {
                       await window.electronAPI.remote.setClientKioskMode(
                         competitionId,
@@ -268,10 +270,8 @@ export const ConnectedScreensPanel: React.FC<ConnectedScreensPanelProps> = React
                     }}
                   >
                     {t('rsm.send_kiosk')}
-                  </button>
-                  <button className="btn btn-secondary" onClick={() => setKioskModal(null)}>
-                    {t('rsm.cancel')}
-                  </button>
+                  </Button>
+                  <Button onClick={() => setKioskModal(null)}>{t('rsm.cancel')}</Button>
                 </div>
               </div>
             </div>,

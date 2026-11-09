@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../hooks/useTranslation';
+import { Button } from '../common/Button';
 
 type RefereeInfo = { id: string; firstName: string; lastName: string };
 
@@ -124,9 +125,9 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
                 );
               })}
             {isMulti && referees.length > 0 && (
-              <button className="btn btn-primary" onClick={confirm} style={REF_BTN}>
+              <Button variant="primary" onClick={confirm} style={REF_BTN}>
                 {t('tableauReferee.validate', { n: pendingIds.length, max: maxReferees })}
-              </button>
+              </Button>
             )}
             {!isMulti &&
               referees.map(ref => (
