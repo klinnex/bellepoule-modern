@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Competition, FencerCompetitionStats, Weapon } from '../../../shared/types';
 import { TouchZoneHeatmap } from './TouchZoneHeatmap';
 import { useTranslation } from '../../hooks/useTranslation';

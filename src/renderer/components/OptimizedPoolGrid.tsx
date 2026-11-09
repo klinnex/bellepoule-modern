@@ -5,7 +5,7 @@
  */
 
 import React, { memo } from 'react';
-import { Fencer, Match, MatchStatus } from '../../shared/types';
+import { Fencer, Match } from '../../shared/types';
 import { translateStatic } from '../contexts/TranslationContext';
 
 interface PoolGridProps {
@@ -256,34 +256,6 @@ FencerRow.displayName = 'FencerRow';
 
 export const PoolGrid: React.FC<PoolGridProps> = memo(
   ({ fencers, matches, maxScore, onMatchClick }) => {
-    const createMatch = (fencerAId: string, fencerBId: string, index: number): Match => {
-      const fencerA = fencers.find(f => f.id === fencerAId);
-      const fencerB = fencers.find(f => f.id === fencerBId);
-
-      return {
-        id: `temp-${fencerAId}-${fencerBId}`,
-        number: index,
-        fencerA: fencerA || null,
-        fencerB: fencerB || null,
-        scoreA: null,
-        scoreB: null,
-        maxScore,
-        status: MatchStatus.NOT_STARTED,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-    };
-
-    const getMatchForCell = (fencerAId: string, fencerBId: string): Match | null => {
-      return (
-        matches.find(
-          match =>
-            (match.fencerA?.id === fencerAId && match.fencerB?.id === fencerBId) ||
-            (match.fencerB?.id === fencerAId && match.fencerA?.id === fencerBId)
-        ) || null
-      );
-    };
-
     return (
       <div style={{ overflowX: 'auto', backgroundColor: 'white', borderRadius: '8px' }}>
         <table

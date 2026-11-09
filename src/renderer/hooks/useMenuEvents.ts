@@ -108,7 +108,6 @@ export const useMenuEvents = ({
     if (!window.electronAPI) return;
 
     // Enregistrer les listeners
-    const removeListeners: (() => void)[] = [];
 
     if (window.electronAPI.onMenuCompetitionProperties) {
       window.electronAPI.onMenuCompetitionProperties(onShowProperties);

@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import {
   HINT,
@@ -13,7 +13,6 @@ import {
   FIELD_LABEL,
   MR,
   MB1,
-  MB15,
   SM,
   GRID2,
   FLEX1,
