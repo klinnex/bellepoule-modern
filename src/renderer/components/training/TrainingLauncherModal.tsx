@@ -3,6 +3,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { X, Swords, Minus, Plus, Clock, Zap, Network, Shuffle } from 'lucide-react';
 import { Weapon, TargetZone, ZONE_POINTS, ZONE_LABELS } from '../../../shared/types';
 import type { TrainingCustomRules } from '../../../shared/types/preload';
+import { Button } from '../common/Button';
 
 interface Props {
   onClose: () => void;
@@ -166,9 +167,9 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
           >
             <Swords size={18} /> {t('trainingLauncher.title')}
           </h2>
-          <button className="btn btn-icon" onClick={onClose} title={t('actions.close')}>
+          <Button variant="ghost" className="btn-icon" onClick={onClose} title={t('actions.close')}>
             <X size={16} />
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -227,15 +228,15 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               {t('trainingLauncher.strips')}
             </label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <button
+              <Button
                 aria-label={t('actions.decrease')}
                 type="button"
-                className="btn btn-secondary btn-icon"
+                className="btn-icon"
                 onClick={() => setStrips(s => Math.max(1, s - 1))}
                 disabled={strips <= 1}
               >
                 <Minus size={14} />
-              </button>
+              </Button>
               <span
                 style={{
                   fontSize: '1.5rem',
@@ -246,15 +247,15 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
               >
                 {strips}
               </span>
-              <button
+              <Button
                 aria-label={t('actions.increase')}
                 type="button"
-                className="btn btn-secondary btn-icon"
+                className="btn-icon"
                 onClick={() => setStrips(s => Math.min(20, s + 1))}
                 disabled={strips >= 20}
               >
                 <Plus size={14} />
-              </button>
+              </Button>
               <span
                 style={{
                   fontSize: '0.8125rem',
@@ -506,12 +507,12 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
           )}
 
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <Button type="button" onClick={onClose}>
               {t('actions.cancel')}
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading}>
+            </Button>
+            <Button type="submit" variant="primary" disabled={isLoading}>
               {isLoading ? t('trainingLauncher.starting') : t('trainingLauncher.launch')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

@@ -7,6 +7,7 @@ import { PlayCircle } from 'lucide-react';
 import { Weapon } from '../../../shared/types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { Button } from '../common/Button';
 
 /** Armes proposées par la démo (l'arbitre virtuel sait les jouer) */
 export const DEMO_WEAPONS: { weapon: Weapon; labelKey: string }[] = [
@@ -51,16 +52,17 @@ const DemoLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }) =>
           </p>
           <div className="u-grid-2">
             {DEMO_WEAPONS.map(({ weapon, labelKey }) => (
-              <button
+              <Button
                 key={weapon}
                 type="button"
-                className="btn btn-primary btn-icon-label"
+                variant="primary"
+                className="btn-icon-label"
                 disabled={isLoading}
                 onClick={() => onLaunch(weapon)}
               >
                 <PlayCircle size={16} />
                 {t(labelKey)}
-              </button>
+              </Button>
             ))}
           </div>
         </div>

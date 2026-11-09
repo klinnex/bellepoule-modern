@@ -16,6 +16,7 @@ import {
 import type { TrainingMatchRecord } from '../../../shared/types/preload';
 import TrainingPrintModal from './TrainingPrintModal';
 import { getActiveLocale } from '../../../shared/utils/localeFormat';
+import { Button } from '../common/Button';
 
 const WEAPON_LABELS: Record<string, string> = {
   E: 'weapons.epee',
@@ -576,25 +577,25 @@ const TrainingPanel: React.FC<Props> = ({
           }}
         >
           <div className="training-footer-left">
-            <button
-              className="btn btn-secondary btn-icon-label"
+            <Button
+              className="btn-icon-label"
               onClick={onOpenSettings}
               title={t('trainingPanel.settings')}
             >
               <Settings size={14} /> {t('trainingPanel.settings')}
-            </button>
-            <button
-              className="btn btn-secondary btn-icon-label"
+            </Button>
+            <Button
+              className="btn-icon-label"
               onClick={() => setPrintOpen(true)}
               title={t('trainingPanel.print')}
               aria-label={t('trainingPanel.print')}
             >
               <Printer size={14} />
-            </button>
+            </Button>
           </div>
-          <button className="btn btn-danger" onClick={onStop}>
+          <Button variant="danger" onClick={onStop}>
             {t('trainingPanel.stop')}
-          </button>
+          </Button>
         </div>
       </div>
       {printOpen && (

@@ -274,14 +274,14 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                 <CalendarClock size={14} /> {t('competitionNav.planning')}
               </Button>
             )}
-          <button
-            className={`btn btn-secondary btn-icon-label${currentPhase === 'logs' ? ' btn-active' : ''}`}
+          <Button
+            className={`btn-icon-label${currentPhase === 'logs' ? ' btn-active' : ''}`}
             onClick={() => setCurrentPhase(currentPhase === 'logs' ? 'checkin' : 'logs')}
             title={t('competitionNav.log_title')}
             style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
           >
             <ScrollText size={14} /> {t('competitionNav.log')}
-          </button>
+          </Button>
         </div>
       </div>
 

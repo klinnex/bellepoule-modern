@@ -58,14 +58,14 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
           style={{ display: 'flex', gap: '0.5rem', padding: '0.75rem 1.25rem 0', flexShrink: 0 }}
         >
           {DOC_TYPES.map(type => (
-            <button
+            <Button
               key={type}
-              className={`btn ${activeType === type ? 'btn-primary' : 'btn-secondary'}`}
+              variant={activeType === type ? 'primary' : 'secondary'}
               style={{ fontSize: '0.85rem' }}
               onClick={() => setActiveType(type)}
             >
               {t(`pdfTemplate.docType.${type}`)}
-            </button>
+            </Button>
           ))}
         </div>
 

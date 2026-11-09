@@ -88,13 +88,13 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
               : t('tableauReferee.hint_one')}
           </p>
           <div className="u-stack-2">
-            <button
-              className={`btn ${currentReferees.length === 0 ? 'btn-primary' : 'btn-secondary'}`}
+            <Button
+              variant={currentReferees.length === 0 ? 'primary' : 'secondary'}
               onClick={() => onAssign([])}
               style={REF_BTN}
             >
               {t('tableauReferee.none')}
-            </button>
+            </Button>
             {referees.length === 0 && (
               <p
                 style={{
@@ -111,9 +111,9 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
                 const order = pendingIds.indexOf(ref.id);
                 const selected = order >= 0;
                 return (
-                  <button
+                  <Button
                     key={ref.id}
-                    className={`btn ${selected ? 'btn-primary' : 'btn-secondary'}`}
+                    variant={selected ? 'primary' : 'secondary'}
                     onClick={() => toggle(ref.id)}
                     disabled={!selected && pendingIds.length >= maxReferees}
                     aria-pressed={selected}
@@ -121,7 +121,7 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
                   >
                     {selected ? `☑ ${order + 1}.` : '☐'} 🧑‍⚖️ {ref.lastName} {ref.firstName}
                     {ref.club && <span style={CLUB_SPAN}>({ref.club})</span>}
-                  </button>
+                  </Button>
                 );
               })}
             {isMulti && referees.length > 0 && (
@@ -131,9 +131,9 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
             )}
             {!isMulti &&
               referees.map(ref => (
-                <button
+                <Button
                   key={ref.id}
-                  className={`btn ${currentReferees[0]?.id === ref.id ? 'btn-primary' : 'btn-secondary'}`}
+                  variant={currentReferees[0]?.id === ref.id ? 'primary' : 'secondary'}
                   onClick={() =>
                     onAssign([{ id: ref.id, firstName: ref.firstName, lastName: ref.lastName }])
                   }
@@ -141,7 +141,7 @@ const TableauRefereeModal: React.FC<TableauRefereeModalProps> = ({
                 >
                   🧑‍⚖️ {ref.lastName} {ref.firstName}
                   {ref.club && <span style={CLUB_SPAN}>({ref.club})</span>}
-                </button>
+                </Button>
               ))}
           </div>
         </div>

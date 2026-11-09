@@ -25,6 +25,7 @@ import {
   printRapieresRanking,
   RapieresColumnKind,
 } from './rapieresPdf';
+import { Button } from '../../renderer/components/common/Button';
 
 const HIDDEN_KEY = 'bellepoule_rapieres_ranking_hidden_columns';
 
@@ -236,15 +237,15 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
           ))}
         </select>
         <div className="ranking-col-wrap">
-          <button
+          <Button
             type="button"
-            className={`btn btn-secondary ranking-col-btn${hidden.length > 0 ? ' ranking-col-btn-active' : ''}`}
+            className={`ranking-col-btn${hidden.length > 0 ? ' ranking-col-btn-active' : ''}`}
             title={t('poolRanking.columns_title')}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(o => !o)}
           >
             <Funnel size={15} /> {t('poolRanking.columns')}
-          </button>
+          </Button>
           {menuOpen && (
             <div className="ranking-col-menu">
               <div className="ranking-col-menu-title">{t('poolRanking.columns_shown')}</div>
@@ -261,22 +262,22 @@ const RapieresRankingPanel: React.FC<RapieresRankingPanelProps> = ({
             </div>
           )}
         </div>
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary"
+
           disabled={rows.length === 0}
           onClick={exportPdf}
         >
           {t('rapieres.export_pdf')}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="btn btn-secondary"
+
           disabled={rows.length === 0}
           onClick={print}
         >
           {t('rapieres.print')}
-        </button>
+        </Button>
       </div>
       {rows.length === 0 ? (
         <p className="text-muted">{t('rapieres.no_ranking')}</p>

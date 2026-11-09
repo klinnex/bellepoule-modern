@@ -7,6 +7,7 @@
 import React, { useState } from 'react';
 import { useFocusTrap } from '../../renderer/hooks/useFocusTrap';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
+import { Button } from '../../renderer/components/common/Button';
 
 interface RapieresWavePrintDialogProps {
   total: number;
@@ -84,17 +85,17 @@ const RapieresWavePrintDialog: React.FC<RapieresWavePrintDialogProps> = ({
           </div>
         </div>
         <div className="modal-footer">
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <Button type="button" onClick={onClose}>
             {t('rapieres.cancel')}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn btn-primary"
+            variant="primary"
             disabled={!valid}
             onClick={() => onConfirm(from, to)}
           >
             {t('rapieres.print')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

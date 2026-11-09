@@ -10,6 +10,7 @@ import type { Pool } from '../../shared/types';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
 import { canLaunchNextWave, isWaveComplete, waveCount } from './rapieresCalculations';
 import RapieresWavePrintDialog from './RapieresWavePrintDialog';
+import { Button } from '../../renderer/components/common/Button';
 
 interface RapieresWaveBarProps {
   pools: Pool[];
@@ -65,44 +66,44 @@ const RapieresWaveBar: React.FC<RapieresWaveBarProps> = ({
       {wavesEnded ? (
         <>
           <span className="text-muted">{t('rapieres.waves_ended')}</span>
-          <button type="button" className="btn btn-secondary btn-sm" onClick={onResumeWaves}>
+          <Button type="button" size="sm" onClick={onResumeWaves}>
             {t('rapieres.resume_waves')}
-          </button>
+          </Button>
         </>
       ) : (
         <>
           {launchedWave < total && (
-            <button
+            <Button
               type="button"
-              className="btn btn-primary"
+              variant="primary"
               disabled={!canLaunch}
               onClick={() => onLaunchWave(next)}
             >
               {t('rapieres.launch_wave', { n: String(next) })}
-            </button>
+            </Button>
           )}
           {launchedWave > 0 && launchedWave < total && !canLaunch && (
             <span className="text-muted">{t('rapieres.wave_incomplete')}</span>
           )}
           {allDone && <span className="text-muted">{t('rapieres.all_waves_done')}</span>}
           {launchedWave > 0 && onPrintWaveSheets && (
-            <button type="button" className="btn btn-secondary" onClick={onPrintWaveSheets}>
+            <Button type="button" onClick={onPrintWaveSheets}>
               {t('rapieres.print_wave_sheets')}
-            </button>
+            </Button>
           )}
           {onPrintWaveRange && total > 0 && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary"
+
               onClick={() => setShowRangeDialog(true)}
             >
               {t('rapieres.print_wave_range')}
-            </button>
+            </Button>
           )}
           {launchedWave > 0 && !allDone && (
-            <button type="button" className="btn btn-warning" onClick={onEndWaves}>
+            <Button type="button" variant="warning" onClick={onEndWaves}>
               {t('rapieres.end_waves')}
-            </button>
+            </Button>
           )}
         </>
       )}

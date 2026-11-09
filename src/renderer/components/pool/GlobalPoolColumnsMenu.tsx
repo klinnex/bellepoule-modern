@@ -10,6 +10,7 @@ import { createPortal } from 'react-dom';
 import { Funnel } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useColumnVisibility, POOL_COLUMNS, ColumnId } from '../../hooks/useColumnVisibility';
+import { Button } from '../common/Button';
 
 interface GlobalPoolColumnsMenuProps {
   isLaserSabre: boolean;
@@ -65,9 +66,9 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
 
   return (
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      <button
+      <Button
         ref={btnRef}
-        className="btn btn-secondary"
+
         onClick={() => setOpen(o => !o)}
         style={{
           display: 'inline-flex',
@@ -77,7 +78,7 @@ const GlobalPoolColumnsMenu: React.FC<GlobalPoolColumnsMenuProps> = ({ isLaserSa
         }}
       >
         <Funnel size={15} /> {t('poolColumns.button')}
-      </button>
+      </Button>
       {open &&
         createPortal(
           <div

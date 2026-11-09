@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../hooks/useTranslation';
 import { buildQrSheetsHTML, type QrCard } from '../ArenaQrCodesModal';
+import { Button } from '../common/Button';
 
 export interface TrainingQrSelection {
   kiosk: boolean;
@@ -146,12 +147,10 @@ const TrainingPrintModal: React.FC<Props> = ({ serverUrl, strips, onClose }) => 
           {error && <div role="alert">{error}</div>}
         </div>
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
-            {t('actions.cancel')}
-          </button>
-          <button className="btn btn-primary" onClick={handlePrint} disabled={busy || count === 0}>
+          <Button onClick={onClose}>{t('actions.cancel')}</Button>
+          <Button variant="primary" onClick={handlePrint} disabled={busy || count === 0}>
             {t('trainingPanel.print_confirm')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
