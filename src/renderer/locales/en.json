@@ -2289,6 +2289,7 @@
     "empty_hint": "Finish the pools first to generate the bracket",
     "zoom_in": "Zoom in",
     "zoom_reset": "Reset",
+    "minimap": "Bracket minimap",
     "zoom_out": "Zoom out",
     "strips_summary": "Strip summary",
     "strip_n": "Strip {{n}}",
