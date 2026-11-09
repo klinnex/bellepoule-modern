@@ -223,6 +223,8 @@ async function doBackgroundSync() {
 
 // Message handling from main thread
 self.addEventListener('message', (event) => {
+  // Messages des seuls clients de même origine (CodeQL js/missing-origin-check)
+  if (event.origin !== self.location.origin) return;
   const { type, payload } = event.data;
 
   switch (type) {
