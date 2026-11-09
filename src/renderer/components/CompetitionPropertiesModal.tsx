@@ -785,7 +785,7 @@ const CompetitionPropertiesModal: React.FC<CompetitionPropertiesModalProps> = ({
       >
         <div className="modal-header">
           <h2>{t('menu.competition_properties')}</h2>
-          <button className="btn-close" onClick={onClose}>
+          <button className="btn-close" aria-label={t('actions.close')} onClick={onClose}>
             ×
           </button>
         </div>

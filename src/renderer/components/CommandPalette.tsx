@@ -182,7 +182,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
             aria-label={t('commandPalette.search_aria')}
           />
           {query && (
-            <button className="command-palette-clear" onClick={() => setQuery('')}>
+            <button
+              aria-label={t('actions.clear')}
+              className="command-palette-clear"
+              onClick={() => setQuery('')}
+            >
               ✕
             </button>
           )}

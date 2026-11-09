@@ -77,6 +77,7 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
           <p style={ARENA_STYLES.arenaModalHint}>{t('tableauArena.hint')}</p>
           <div style={ARENA_STYLES.arenaModalGrid}>
             <button
+              aria-label={t('actions.no_selection')}
               className={`btn ${!currentArena ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => onAssign(null)}
               style={ARENA_STYLES.arenaModalNoArenaBtn}

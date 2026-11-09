@@ -224,6 +224,7 @@ const TeamPoolView: React.FC<Props> = ({
                             </div>
                           ) : (
                             <button
+                              aria-label={t('actions.add')}
                               onClick={() => onScoreBout(bout, 'A')}
                               disabled={done}
                               className="w-8 h-8 text-sm font-bold rounded-full bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-40 flex-shrink-0"
@@ -322,6 +323,7 @@ const TeamPoolView: React.FC<Props> = ({
                             </div>
                           ) : (
                             <button
+                              aria-label={t('actions.add')}
                               onClick={() => onScoreBout(bout, 'B')}
                               disabled={done}
                               className="w-8 h-8 text-sm font-bold rounded-full bg-blue-100 text-blue-800 hover:bg-blue-200 disabled:opacity-40 flex-shrink-0"

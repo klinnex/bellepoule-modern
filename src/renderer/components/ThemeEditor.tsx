@@ -700,7 +700,11 @@ const ThemeEditor: React.FC<ThemeEditorProps> = ({
             >
               {t('themeEditor.export')}
             </button>
-            <button className="theme-editor-btn close" onClick={onClose}>
+            <button
+              className="theme-editor-btn close"
+              aria-label={t('actions.close')}
+              onClick={onClose}
+            >
               ✕
             </button>
           </div>

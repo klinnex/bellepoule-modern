@@ -198,7 +198,7 @@ const FencerComparison_: React.FC<FencerComparisonProps> = ({
       >
         <div className="modal__header">
           <h2 className="modal__title">{t('comparison.title')}</h2>
-          <button className="modal__close" onClick={onClose}>
+          <button className="modal__close" aria-label={t('actions.close')} onClick={onClose}>
             ×
           </button>
         </div>

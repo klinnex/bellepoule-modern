@@ -281,6 +281,7 @@ export const FencerPhoto: React.FC<FencerPhotoProps> = ({
                 {t('fencerPhoto.take')}
               </h3>
               <button
+                aria-label={t('actions.close')}
                 type="button"
                 className="btn btn-icon btn-secondary"
                 onClick={() => setShowWebcam(false)}

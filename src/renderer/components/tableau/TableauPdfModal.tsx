@@ -86,7 +86,7 @@ const TableauPdfModal: React.FC<TableauPdfModalProps> = ({
             {pdfMode === 'print' ? t('tableauPdf.print') : t('tableauPdf.export')}{' '}
             {t('tableauPdf.sheets')}
           </h3>
-          <button className="btn-close" onClick={onClose}>
+          <button className="btn-close" aria-label={t('actions.close')} onClick={onClose}>
             ×
           </button>
         </div>

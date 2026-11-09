@@ -500,6 +500,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                   {/* Naviguer (tous types) */}
                   <div ref={openNav === client.socketId ? navRef : null} className="relative">
                     <button
+                      aria-label={t('actions.navigate')}
                       className="btn btn-secondary is-01ebbc"
                       onClick={() =>
                         setOpenNav(openNav === client.socketId ? null : client.socketId)

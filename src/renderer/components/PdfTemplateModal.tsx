@@ -43,6 +43,7 @@ const PdfTemplateModal: React.FC<Props> = ({ onClose }) => {
         <div className="modal-header flex-shrink-0">
           <h2 className="modal-title">{t('pdfTemplate.modalTitle')}</h2>
           <button
+            aria-label={t('actions.close')}
             className="btn btn-secondary"
             style={{ fontSize: '0.8rem', padding: '0.25rem 0.6rem' }}
             onClick={onClose}

@@ -64,7 +64,7 @@ const EditFencerModal: React.FC<EditFencerModalProps> = ({ fencer, onSave, onClo
       >
         <div className="modal-header">
           <h2>{t('editFencer.title')}</h2>
-          <button className="btn-close" onClick={onClose}>
+          <button className="btn-close" aria-label={t('actions.close')} onClick={onClose}>
             ×
           </button>
         </div>

@@ -417,7 +417,15 @@
     "uncheck_all": "Uncheck all",
     "view": "View",
     "default": "Not specified",
-    "save_and_add": "Save and add"
+    "save_and_add": "Save and add",
+    "remove": "Remove",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "increase": "Increase",
+    "decrease": "Decrease",
+    "clear": "Clear",
+    "no_selection": "None",
+    "navigate": "Navigate"
   },
   "messages": {
     "confirm_delete_fencer": "Are you sure you want to delete this fencer? This action is irreversible.",

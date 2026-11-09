@@ -531,6 +531,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             <div className="u-row">
               <div className="pool-prep-stepper">
                 <button
+                  aria-label={t('actions.decrease')}
                   className="pool-prep-stepper-btn"
                   onClick={() => handlePoolCountChange(poolCount - 1)}
                   disabled={poolCount <= 0}
@@ -539,6 +540,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 </button>
                 <span className="pool-prep-stepper-value">{poolCount}</span>
                 <button
+                  aria-label={t('actions.increase')}
                   className="pool-prep-stepper-btn"
                   onClick={() => handlePoolCountChange(poolCount + 1)}
                   disabled={poolCount >= Math.ceil(fencers.length / 3)}

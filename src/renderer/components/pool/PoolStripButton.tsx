@@ -53,6 +53,7 @@ export const PoolStripButton: React.FC<PoolStripButtonProps> = ({
           <p className="u-hint mb-4">{t('poolView.select_strip', { n: poolNumber })}</p>
           <div style={GRID}>
             <button
+              aria-label={t('actions.no_selection')}
               type="button"
               className={`btn ${strip == null ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => pick(undefined)}

@@ -83,7 +83,7 @@ export const HistoricalStats: React.FC<HistoricalStatsProps> = ({
       >
         <div className="modal-header flex-shrink-0">
           <h2 style={{ margin: 0 }}>{t('historicalStats.title', { name: fencerName })}</h2>
-          <button className="btn-close" onClick={onClose}>
+          <button className="btn-close" aria-label={t('actions.close')} onClick={onClose}>
             ×
           </button>
         </div>

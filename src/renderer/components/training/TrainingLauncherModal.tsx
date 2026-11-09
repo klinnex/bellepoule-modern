@@ -228,6 +228,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
             </label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <button
+                aria-label={t('actions.decrease')}
                 type="button"
                 className="btn btn-secondary btn-icon"
                 onClick={() => setStrips(s => Math.max(1, s - 1))}
@@ -246,6 +247,7 @@ const TrainingLauncherModal: React.FC<Props> = ({ onClose, onLaunch, isLoading }
                 {strips}
               </span>
               <button
+                aria-label={t('actions.increase')}
                 type="button"
                 className="btn btn-secondary btn-icon"
                 onClick={() => setStrips(s => Math.min(20, s + 1))}

@@ -419,7 +419,11 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
               <h3 className="modal-title" id="pool-arena-title">
                 {t('poolMatches.assign')}
               </h3>
-              <button className="btn-close" onClick={closeArenaModal}>
+              <button
+                className="btn-close"
+                aria-label={t('actions.close')}
+                onClick={closeArenaModal}
+              >
                 ×
               </button>
             </div>

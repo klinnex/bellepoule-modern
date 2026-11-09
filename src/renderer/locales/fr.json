@@ -417,7 +417,15 @@
     "uncheck_all": "Tout dépointer",
     "view": "Voir",
     "default": "Non spécifié",
-    "save_and_add": "Enregistrer et ajouter"
+    "save_and_add": "Enregistrer et ajouter",
+    "remove": "Retirer",
+    "move_up": "Monter",
+    "move_down": "Descendre",
+    "increase": "Augmenter",
+    "decrease": "Diminuer",
+    "clear": "Effacer",
+    "no_selection": "Aucun",
+    "navigate": "Naviguer"
   },
   "messages": {
     "confirm_delete_fencer": "Êtes-vous sûr de vouloir supprimer ce tireur ? Cette action est irréversible.",

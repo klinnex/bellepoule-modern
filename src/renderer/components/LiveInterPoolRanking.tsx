@@ -85,7 +85,7 @@ export const LiveInterPoolRanking: React.FC<LiveInterPoolRankingProps> = ({
             />
             <h2 style={{ margin: 0 }}>{t('liveInterPool.title')}</h2>
           </div>
-          <button className="btn-close" onClick={onClose}>
+          <button className="btn-close" aria-label={t('actions.close')} onClick={onClose}>
             ×
           </button>
         </div>

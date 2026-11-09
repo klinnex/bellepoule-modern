@@ -417,7 +417,15 @@
     "uncheck_all": "Annulla tutte le conferme",
     "view": "Vedi",
     "default": "Non specificato",
-    "save_and_add": "Salva e aggiungi"
+    "save_and_add": "Salva e aggiungi",
+    "remove": "Rimuovi",
+    "move_up": "Sposta su",
+    "move_down": "Sposta giù",
+    "increase": "Aumenta",
+    "decrease": "Diminuisci",
+    "clear": "Cancella",
+    "no_selection": "Nessuno",
+    "navigate": "Naviga"
   },
   "messages": {
     "confirm_delete_fencer": "Sei sicuro di voler eliminare questo schermidore? Questa azione è irreversibile.",

@@ -177,7 +177,11 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
           <button className="btn btn-secondary btn-sm" onClick={handleViewRelease}>
             {t('updateNotif.notes')}
           </button>
-          <button className="btn btn-ghost btn-sm" onClick={handleDismiss}>
+          <button
+            aria-label={t('actions.close')}
+            className="btn btn-ghost btn-sm"
+            onClick={handleDismiss}
+          >
             ✖️
           </button>
         </div>

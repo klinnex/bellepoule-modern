@@ -593,6 +593,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                           />
                           <div className="is-3710c2">
                             <button
+                              aria-label={t('actions.move_up')}
                               onClick={() => moveUp(index)}
                               disabled={index === 0}
                               className="pool-prep-btn-move"
@@ -601,6 +602,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                               ▲
                             </button>
                             <button
+                              aria-label={t('actions.move_down')}
                               onClick={() => moveDown(index)}
                               disabled={index === editedRanking.length - 1}
                               className="pool-prep-btn-move"
