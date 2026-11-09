@@ -24,15 +24,17 @@ export interface StoredPage extends StoredBody {
 /** Choisit l'encodage selon Accept-Encoding (q-values, `*`, q=0 = refusé). br > gzip. */
 export function negotiateEncoding(header: string | undefined): Encoding | null {
   if (!header) return null;
-  const q: Record<string, number> = {};
+  // Map (pas d'objet) : un en-tête « __proto__ » ou « toString » ne touche aucun prototype
+  // (CodeQL js/remote-property-injection)
+  const q = new Map<string, number>();
   for (const part of header.split(',')) {
     const [name, ...params] = part.trim().toLowerCase().split(';');
     if (!name) continue;
     const qp = params.map(p => p.trim()).find(p => p.startsWith('q='));
     const v = qp ? Number(qp.slice(2)) : 1;
-    q[name.trim()] = Number.isFinite(v) ? v : 1;
+    q.set(name.trim(), Number.isFinite(v) ? v : 1);
   }
-  const score = (e: string): number => (e in q ? q[e] : (q['*'] ?? 0));
+  const score = (e: string): number => q.get(e) ?? q.get('*') ?? 0;
   const br = score('br');
   const gz = Math.max(score('gzip'), score('x-gzip'));
   if (br > 0 && br >= gz) return 'br';
