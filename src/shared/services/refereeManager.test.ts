@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import RefereeManager from './refereeManager';
 import { Referee, Match, Pool, Gender, FencerStatus, MatchStatus } from '../types';
 

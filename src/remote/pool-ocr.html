@@ -742,7 +742,6 @@ function buildValidationUI() {
 $('btn-import').addEventListener('click', async () => {
   const inputs = $('val-table').querySelectorAll('input.score-input');
   const { fencers, matches } = S.poolData;
-  const n = fencers.length;
 
   // Parse all inputs into (matchId, scoreA, scoreB) pairs
   // Grid cell (row, col): row = fencerA, col = fencerB
@@ -751,7 +750,6 @@ $('btn-import').addEventListener('click', async () => {
 
   inputs.forEach(inp => {
     const row = +inp.dataset.row;
-    const col = +inp.dataset.col;
     const mid = inp.dataset.mid;
     if (!mid) return;
     const raw = inp.value.trim().toUpperCase();

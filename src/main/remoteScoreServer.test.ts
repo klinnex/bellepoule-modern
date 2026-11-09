@@ -61,7 +61,6 @@ const mockDb = {
   getSessionState: vi.fn().mockReturnValue(null),
 };
 
-import express from 'express';
 import { createServer } from 'http';
 import { RemoteScoreServer } from './remoteScoreServer';
 import { setUiLanguage } from './menuLabels';

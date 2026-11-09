@@ -12,7 +12,7 @@ import {
   calculateOverallRanking,
   calculateOverallRankingQuest,
 } from '../../shared/utils/poolCalculations';
-import { formatRatio, formatIndex, formatQuestPerMatch } from '../../shared/utils/poolCalculations';
+import { formatIndex, formatQuestPerMatch } from '../../shared/utils/poolCalculations';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 
 interface LiveInterPoolRankingProps {

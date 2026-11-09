@@ -26,8 +26,6 @@ import {
   Match,
   MatchStatus,
   FencerStatus,
-  Score,
-  Weapon,
 } from '../shared/types';
 import { DatabaseManager } from '../database';
 import {
@@ -47,7 +45,6 @@ import {
   isTokenValid,
   issueToken,
   parseCookies,
-  purgeExpiredTokens,
   sendLoginLimited,
   verifyPasswordAsync,
 } from './remote/auth';
@@ -74,12 +71,9 @@ import {
 } from './remote/pageStore';
 import { registerPageRoutes } from './remote/routes/pageRoutes';
 import { registerResultsRoutes } from './remote/routes/resultsRoutes';
-import {
-  registerRegistrationRoutes,
-  type RegistrationRouteContext,
-} from './remote/routes/registrationRoutes';
-import { registerPoolRoutes, type PoolRouteContext } from './remote/routes/poolRoutes';
-import { registerMatchRoutes, type MatchRouteContext } from './remote/routes/matchRoutes';
+import { registerRegistrationRoutes } from './remote/routes/registrationRoutes';
+import { registerPoolRoutes } from './remote/routes/poolRoutes';
+import { registerMatchRoutes } from './remote/routes/matchRoutes';
 import { registerApiRoutes, type ApiRouteContext } from './remote/routes/apiRoutes';
 import { readRemoteSharedFiles } from './remote/i18nBundle';
 

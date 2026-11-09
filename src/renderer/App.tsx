@@ -129,7 +129,6 @@ const AppContent: React.FC = () => {
     setRequestedPhase,
     loadCompetitions,
     handleUpdateCompetition,
-    handleBack,
     handleSettingsSave,
     handleTabSwitch,
   } = useAppState(showToast);

@@ -15,10 +15,7 @@ import {
   Score,
   RefereeComment,
   CompetitionSettings,
-  ImportResult,
-  ExportFormat,
   Phase,
-  DirectEliminationTable,
   FencerCompetitionStats,
 } from '../types';
 import type { MatchSignatureRequest, RemoteSession, Arena, ArenaUpdate } from './remote';
