@@ -614,9 +614,9 @@ select:focus {
 }
 
 .phase-step-completed {
-  background: rgba(13, 148, 136, 0.1);
-  color: var(--color-success);
-  border-color: rgba(13, 148, 136, 0.2);
+  background: var(--success-soft);
+  color: var(--success-on-soft);
+  border-color: var(--success);
 }
 
 .phase-step-disabled {
@@ -868,11 +868,6 @@ select:focus {
 .theme-dark .tableau-fencer-winner {
   background: rgba(13, 148, 136, 0.2);
   color: #2dd4bf;
-}
-.theme-dark .phase-step-completed {
-  background: rgba(13, 148, 136, 0.15);
-  color: #2dd4bf;
-  border-color: rgba(13, 148, 136, 0.25);
 }
 
 /* ============================================================
