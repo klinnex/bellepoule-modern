@@ -18,6 +18,7 @@ import { Competition, MatchStatus, QuestPhaseConfig, Fencer } from '../../../sha
 import { Phase } from '../../hooks/useCompetitionSession';
 import CoachMark from '../CoachMark';
 import GuidedTour from '../GuidedTour';
+import { usePhaseShortcuts } from './usePhaseShortcuts';
 
 interface PhaseItem {
   id: string;
@@ -102,6 +103,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
   poolsLaunched = false,
 }) => {
   const [tourHighlightPhase, setTourHighlightPhase] = useState<string | null>(null);
+  usePhaseShortcuts(phases, currentPhase, id => setCurrentPhase(id as Phase));
   return (
     <>
       {tourReady && !isTeamEvent && (
@@ -129,6 +131,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
               role="button"
               tabIndex={phase.disabled ? -1 : 0}
               aria-current={currentPhase === phase.id ? 'step' : undefined}
+              aria-keyshortcuts={index < 8 ? `Control+${index + 1}` : undefined}
               aria-disabled={phase.disabled || undefined}
               onClick={() => !phase.disabled && setCurrentPhase(phase.id as Phase)}
               onKeyDown={e => {
