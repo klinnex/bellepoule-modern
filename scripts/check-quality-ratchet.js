@@ -28,6 +28,8 @@
  *                  formatTime / formatNumber (langue active, #1160)
  *   - serverMessage : `error: '…'` en clair (texte avec espace) dans les réponses du process
  *                  principal (src/main) → code d'erreur stable traduit côté client (#1159)
+ *   - rawBtn     : `className` JSX contenant la classe `btn` écrite à la main dans le renderer
+ *                  → primitive `<Button variant=… size=…>` (common/Button.tsx, #1529)
  *
  * Plafond de longueur (#1155) : aucun fichier source de src/ (hors tests) ne dépasse
  * MAX_LINES lignes. Les fichiers déjà au-dessus sont listés dans `lineExceptions`
@@ -58,8 +60,21 @@ const COUNTERS = [
   'fontSizePx',
   'hardLocale',
   'serverMessage',
+  'rawBtn',
 ];
 const I18N_ATTRS = new Set(['title', 'placeholder', 'aria-label', 'alt', 'label']);
+/** Texte statique d'un className JSX (littéral ou gabarit), sinon null */
+const jsxClassText = init => {
+  if (!init) return null;
+  if (ts.isStringLiteral(init)) return init.text;
+  if (!ts.isJsxExpression(init) || !init.expression) return null;
+  const e = init.expression;
+  if (ts.isStringLiteralLike(e)) return e.text;
+  if (ts.isTemplateExpression(e)) {
+    return [e.head.text, ...e.templateSpans.map(s => s.literal.text)].join(' ');
+  }
+  return null;
+};
 // Au moins deux lettres (latin + accents) : ignore ponctuation, symboles, chiffres.
 const WORDISH_RE = /\p{L}{2,}/u;
 // Sigles et formats identiques dans toutes les langues : pas de clé de traduction (#1158).
@@ -137,6 +152,15 @@ function analyze(file) {
     }
     if (renderer && ts.isJsxText(node) && isTranslatable(node.text)) {
       hits.jsxText.push(at(node));
+    }
+    // Bouton stylé à la main (.btn) au lieu de la primitive <Button> (#1529)
+    if (
+      renderer &&
+      ts.isJsxAttribute(node) &&
+      node.name.getText(sf) === 'className' &&
+      (jsxClassText(node.initializer) || '').split(/\s+/).includes('btn')
+    ) {
+      hits.rawBtn.push(at(node));
     }
     if (
       renderer &&

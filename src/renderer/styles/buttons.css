@@ -1,0 +1,44 @@
+/**
+ * BellePoule Modern - Compléments des boutons (#1529)
+ * Étend les classes .btn-* de design.css pour la primitive <Button> :
+ * icône seule, état de chargement. Licensed under GPL-3.0
+ */
+
+/* Bouton icône seule : carré, nom accessible via aria-label */
+.btn-icon-only {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0.4375rem;
+}
+
+/* État de chargement : libellé conservé, spinner, pas de clic */
+.btn-loading {
+  cursor: progress;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: 0.4em;
+  vertical-align: -0.1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-spinner {
+    animation-duration: 2s;
+  }
+}

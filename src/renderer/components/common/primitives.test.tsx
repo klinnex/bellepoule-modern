@@ -69,6 +69,40 @@ describe('Button', () => {
     render(<Button icon={<span>*</span>}>Lbl</Button>);
     expect(screen.getByRole('button')).toHaveClass('btn-secondary', 'btn-icon-label');
   });
+
+  it('taille md acceptée', () => {
+    render(<Button size="md">Md</Button>);
+    expect(screen.getByRole('button')).toHaveClass('btn-md');
+  });
+
+  it('loading : désactivé, aria-busy, spinner masqué aux lecteurs, libellé conservé', () => {
+    const onClick = vi.fn();
+    const { container } = render(
+      <Button loading onClick={onClick}>
+        Enregistrer
+      </Button>
+    );
+    const btn = screen.getByRole('button', { name: 'Enregistrer' });
+    expect(btn).toBeDisabled();
+    expect(btn).toHaveAttribute('aria-busy', 'true');
+    expect(btn).toHaveClass('btn-loading');
+    expect(container.querySelector('.btn-spinner')).toHaveAttribute('aria-hidden', 'true');
+    fireEvent.click(btn);
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it('sans loading : ni aria-busy ni spinner', () => {
+    const { container } = render(<Button>Ok</Button>);
+    expect(screen.getByRole('button')).not.toHaveAttribute('aria-busy');
+    expect(container.querySelector('.btn-spinner')).toBeNull();
+  });
+
+  it('icône seule : classe btn-icon-only et nom accessible via aria-label', () => {
+    render(<Button icon={<span>*</span>} aria-label="Fermer" />);
+    const btn = screen.getByRole('button', { name: 'Fermer' });
+    expect(btn).toHaveClass('btn-icon-only');
+    expect(btn).not.toHaveClass('btn-icon-label');
+  });
 });
 
 describe('Card', () => {
