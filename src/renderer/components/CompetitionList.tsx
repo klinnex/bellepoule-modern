@@ -476,13 +476,9 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           );
         })}
         {filtersActive && (
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={() => setFilters(emptyFilters())}
-          >
+          <Button size="sm" onClick={() => setFilters(emptyFilters())}>
             {t('competitionList.filters_reset')}
-          </button>
+          </Button>
         )}
       </div>
       {visibleCompetitions.length === 0 && (
