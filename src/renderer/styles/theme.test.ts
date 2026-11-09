@@ -34,6 +34,18 @@ describe('theme.css : palette sémantique (#1531)', () => {
     }
   });
 
+  it('badges sémantiques migrés vers les tokens, sans variante sombre dédiée', () => {
+    const design = fs.readFileSync(path.join(__dirname, 'design.css'), 'utf8');
+    for (const t of SEMANTIC) {
+      expect(design).toMatch(
+        new RegExp(
+          `\\.badge-${t} \\{\\s*background: var\\(--${t}-soft\\);\\s*color: var\\(--${t}-on-soft\\);`
+        )
+      );
+      expect(design).not.toMatch(new RegExp(`\\.theme-dark \\.badge-${t}`));
+    }
+  });
+
   it("échelle d'élévation à 3 niveaux", () => {
     for (const n of [1, 2, 3]) expect(css).toMatch(new RegExp(`--elevation-${n}:`));
   });
