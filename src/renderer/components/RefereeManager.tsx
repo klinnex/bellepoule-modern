@@ -4,6 +4,8 @@
  * Licensed under GPL-3.0
  */
 
+import { Pencil, Trash2, TriangleAlert } from 'lucide-react';
+import { Icon } from './common/Icon';
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Referee, Match, Pool, Competition, MatchStatus } from '../../shared/types';
 import { RefereeManager, RefereeRotationConfig } from '../../shared/services/refereeManager';
@@ -194,7 +196,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
     const fencerBClub = match.fencerB?.club;
 
     if (referee.club && (fencerAClub === referee.club || fencerBClub === referee.club)) {
-      return `⚠️ Conflit: Arbitre du club ${referee.club}`;
+      return `Conflit : Arbitre du club ${referee.club}`;
     }
     return null;
   };
@@ -305,12 +307,12 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
             }}
           >
             {tab === 'referees'
-              ? '👥 Arbitres'
+              ? 'Arbitres'
               : tab === 'assignments'
-                ? '📋 Assignations'
+                ? 'Assignations'
                 : tab === 'history'
-                  ? '📜 Historique'
-                  : '📊 Statistiques'}
+                  ? 'Historique'
+                  : 'Statistiques'}
           </button>
         ))}
       </div>
@@ -415,7 +417,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 }}
                 className="is-e1038a"
               >
-                {editingId ? '💾 Enregistrer' : '＋ Ajouter'}
+                {editingId ? 'Enregistrer' : '＋ Ajouter'}
               </button>
               {editingId && (
                 <button
@@ -556,7 +558,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                         className="is-54fefa"
                         title={t('actions.edit')}
                       >
-                        ✏️
+                        <Icon icon={Pencil} />
                       </button>
                       <button
                         onClick={async () => {
@@ -570,7 +572,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                         className="is-b6f00b"
                         title={t('actions.delete')}
                       >
-                        🗑
+                        <Icon icon={Trash2} />
                       </button>
                     </td>
                   </tr>
@@ -802,7 +804,9 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                       >
                         <td className="is-986a03">
                           {row.needsRest && (
-                            <span title={t('refereeManager.rest_recommended')}>⚠️ </span>
+                            <span title={t('refereeManager.rest_recommended')}>
+                              <Icon icon={TriangleAlert} />{' '}
+                            </span>
                           )}
                           {row.refereeName}
                         </td>
