@@ -104,11 +104,11 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 40 | 269 |
 | `src/renderer/contexts/` | 1 | 4 |
-| `src/renderer/styles/` | 4 | 10 |
+| `src/renderer/styles/` | 4 | 12 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **305** | **2428** |
+| **Total** | **305** | **2430** |
 
-Unitaires : 296 fichiers, 2393 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 296 fichiers, 2395 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5121,13 +5121,15 @@ Unitaires : 296 fichiers, 2393 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/styles/theme.test.ts</code> — 4 tests</summary>
+<summary><code>src/renderer/styles/theme.test.ts</code> — 6 tests</summary>
 
 - **theme.css : palette sémantique (#1531)**
   - est importé après tokens.css
   - définit surfaces, accent et couleurs sémantiques
   - teintes douces redéfinies pour le thème sombre
   - échelle d'élévation à 3 niveaux
+  - micro-interactions basées sur les tokens de mouvement, reduced-motion global
+  - design.css : un seul bloc .theme-dark de variables, tableau inclus
 
 </details>
 

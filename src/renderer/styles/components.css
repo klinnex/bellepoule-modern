@@ -659,7 +659,7 @@
   color: var(--color-danger, #b91c1c);
   font-size: var(--fs-sm);
 }
-@media (max-width: 800px) {
+@media (max-width: 1024px) {
   .print-dialog {
     flex-direction: column;
   }

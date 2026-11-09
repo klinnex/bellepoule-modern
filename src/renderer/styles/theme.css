@@ -70,3 +70,41 @@
 .comp-header-dropdown {
   box-shadow: var(--elevation-2);
 }
+
+/* Micro-interactions (#1531) : durées/courbe via --motion-*, neutralisées par prefers-reduced-motion (design.css) */
+.btn,
+.form-input,
+.form-select {
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+/* Impulsion courte de validation : ajouter .confirm-pulse sur l élément validé */
+@keyframes confirm-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--success-soft);
+  }
+  100% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+
+.confirm-pulse {
+  animation: confirm-pulse var(--motion-base) var(--motion-ease) 2;
+}
+
+/* Coche animée : sur un SVG polyline/path, ajouter .check-draw */
+@keyframes check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.check-draw {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: check-draw var(--motion-base) var(--motion-ease) forwards;
+}
