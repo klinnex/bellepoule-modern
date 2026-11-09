@@ -20,6 +20,8 @@ import {
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 import EmptyState from './common/EmptyState';
 import { useTranslation } from '../hooks/useTranslation';
+import { Award, ChartColumn, Medal, Swords, Trophy } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface LiveDashboardProps {
   competition: Competition;
@@ -120,7 +122,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
             <h1
               style={{ margin: 0, fontSize: '2rem', color: 'var(--color-text)', fontWeight: '700' }}
             >
-              🏆 {competition.title}
+              <Icon icon={Trophy} /> {competition.title}
             </h1>
             <p
               style={{
@@ -219,9 +221,21 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
                   activeTab === tab ? '3px solid var(--color-primary)' : '3px solid transparent',
               }}
             >
-              {tab === 'pools' && '📊 Poules'}
-              {tab === 'tableau' && '⚔️ Tableau'}
-              {tab === 'ranking' && '🏅 Classement'}
+              {tab === 'pools' && (
+                <>
+                  <Icon icon={ChartColumn} /> {t('phases.pools')}
+                </>
+              )}
+              {tab === 'tableau' && (
+                <>
+                  <Icon icon={Swords} /> {t('phases.tableau')}
+                </>
+              )}
+              {tab === 'ranking' && (
+                <>
+                  <Icon icon={Award} /> {t('phases.ranking')}
+                </>
+              )}
             </button>
           ))}
         </div>
@@ -560,11 +574,17 @@ const FinalRankingView_: React.FC<{ results: any[] }> = ({ results }) => {
                 </td>
                 <td className="ld-final-td">{result.fencer?.club || '-'}</td>
                 <td className="ld-final-td ld-final-td--center">
-                  {result.round === 1
-                    ? '🥇 Finale'
-                    : result.round === 2
-                      ? '🥈 Demi'
-                      : `1/${result.round}`}
+                  {result.round === 1 ? (
+                    <>
+                      <Icon icon={Medal} className="medal-gold" /> {t('tableau.round_final')}
+                    </>
+                  ) : result.round === 2 ? (
+                    <>
+                      <Icon icon={Medal} className="medal-silver" /> {t('kiosk.round_semi')}
+                    </>
+                  ) : (
+                    `1/${result.round}`
+                  )}
                 </td>
               </tr>
             ))}

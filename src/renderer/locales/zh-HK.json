@@ -398,7 +398,9 @@
     "backup_import": "匯入 (JSON)",
     "backup_exported": "設定已匯出。",
     "backup_imported": "已匯入 {{count}} 項設定。",
-    "backup_invalid": "檔案無效：需要 BellePoule 設定匯出檔。"
+    "backup_invalid": "檔案無效：需要 BellePoule 設定匯出檔。",
+    "webhook_test": "測試",
+    "webhook_testing": "測試中…"
   },
   "actions": {
     "undo": "復原",
@@ -2122,7 +2124,9 @@
     "qr_alt": "Wi-Fi QR 碼",
     "network": "網絡：",
     "open_short": "開放",
-    "download": "💾 下載"
+    "download": "💾 下載",
+    "generate": "產生 QR 碼",
+    "generating": "產生中…"
   },
   "touchReferee": {
     "strip": "劍道 {{n}}",
