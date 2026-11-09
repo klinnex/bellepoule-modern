@@ -7,6 +7,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Fencer } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
+import { ChevronDown, ChevronRight, LayoutGrid, Triangle } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface BracketMatch {
   id: string;
@@ -360,7 +362,9 @@ const Bracket: React.FC<BracketProps> = ({
                   userSelect: 'none',
                 }}
               >
-                <span style={{ fontSize: '0.8rem' }}>{isExpanded ? '▼' : '▶'}</span>
+                <span style={{ fontSize: '0.8rem' }}>
+                  <Icon icon={isExpanded ? ChevronDown : ChevronRight} />
+                </span>
                 {roundName(round)}
               </div>
               {isExpanded && (
@@ -446,7 +450,7 @@ const Bracket: React.FC<BracketProps> = ({
           }}
           title={t('bracket.horizontal')}
         >
-          🔲 {t('bracket.horizontal')}
+          <Icon icon={LayoutGrid} /> {t('bracket.horizontal')}
         </button>
         <button
           onClick={() => setLayoutMode('pyramid')}
@@ -465,7 +469,7 @@ const Bracket: React.FC<BracketProps> = ({
           }}
           title={t('bracket.pyramid')}
         >
-          🔺 {t('bracket.pyramid')}
+          <Icon icon={Triangle} /> {t('bracket.pyramid')}
         </button>
       </div>
 

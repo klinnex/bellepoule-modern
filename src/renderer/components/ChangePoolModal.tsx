@@ -9,6 +9,8 @@ import { useTranslation } from '../hooks/useTranslation';
 import Modal from './common/Modal';
 import { Fencer, Pool, MatchStatus } from '../../shared/types';
 import { Button } from './common/Button';
+import { TriangleAlert } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 interface ChangePoolModalProps {
   fencer: Fencer;
@@ -83,7 +85,8 @@ const ChangePoolModalComponent: React.FC<ChangePoolModalProps> = ({
 
       {hasPlayedMatches && (
         <div className="is-54d420">
-          ⚠️ <strong>{t('changePool.warning')}</strong> {t('changePool.warning_text')}
+          <Icon icon={TriangleAlert} /> <strong>{t('changePool.warning')}</strong>{' '}
+          {t('changePool.warning_text')}
         </div>
       )}
 

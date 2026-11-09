@@ -19,6 +19,8 @@ import { determineTeamCardEscalation } from '../../features/teams/utils/teamCard
 import { CARD_REASON_LABELS, getAvailableReasons } from '../../shared/utils/cardSystem';
 import { useConfirm } from './ConfirmDialog';
 import { useTranslation } from '../contexts/TranslationContext';
+import { Flag, Radio, Swords, Undo2 } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 const CARD_BADGE: Record<string, string> = { WHITE: '⬜', YELLOW: '🟨', RED: '🟥', BLACK: '⬛' };
 const TEAM_CARD_BADGE: Record<string, string> = {
@@ -160,7 +162,7 @@ const TeamPoolView: React.FC<Props> = ({
                   title={t('teams.arenaTooltip')}
                   className="ml-4 text-xs px-3 py-1.5 rounded border border-gray-300 text-gray-600 hover:bg-gray-50"
                 >
-                  📡 {t('teams.arenaButton')}
+                  <Icon icon={Radio} /> {t('teams.arenaButton')}
                 </button>
               )}
               <button
@@ -250,7 +252,7 @@ const TeamPoolView: React.FC<Props> = ({
                             title={t('teams.addCard')}
                             className="text-[10px] text-gray-400 hover:text-gray-600 flex-shrink-0"
                           >
-                            🚩
+                            <Icon icon={Flag} />
                           </button>
                         </div>
                         {/* Score */}
@@ -276,7 +278,7 @@ const TeamPoolView: React.FC<Props> = ({
                               title={t('teams.doubleTooltip')}
                               className="mt-0.5 text-[10px] px-1.5 py-0.5 rounded border border-purple-300 text-purple-700 bg-purple-50 hover:bg-purple-100 disabled:opacity-40"
                             >
-                              ⚔ {t('teams.double')}
+                              <Icon icon={Swords} /> {t('teams.double')}
                             </button>
                           )}
                         </div>
@@ -294,7 +296,7 @@ const TeamPoolView: React.FC<Props> = ({
                             title={t('teams.addCard')}
                             className="text-[10px] text-gray-400 hover:text-gray-600 flex-shrink-0"
                           >
-                            🚩
+                            <Icon icon={Flag} />
                           </button>
                           {cardsB.map(c => (
                             <span key={c.id} title={CARD_REASON_LABELS[c.reason]}>
@@ -337,7 +339,7 @@ const TeamPoolView: React.FC<Props> = ({
                               className="w-6 h-6 text-xs rounded text-red-400 hover:text-red-600 flex-shrink-0"
                               title={t('teams.resetBout')}
                             >
-                              ↩
+                              <Icon icon={Undo2} />
                             </button>
                           )}
                         </div>
