@@ -6,7 +6,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { ButtonHTMLAttributes, ReactNode } from 'react';
+import React, { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'warning' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -33,17 +33,20 @@ interface ButtonIconOnlyProps extends ButtonBaseProps {
 
 export type ButtonProps = ButtonWithLabelProps | ButtonIconOnlyProps;
 
-export const Button: React.FC<ButtonProps> = ({
-  variant = 'secondary',
-  size,
-  icon,
-  loading = false,
-  className,
-  type = 'button',
-  children,
-  disabled,
-  ...rest
-}) => {
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  {
+    variant = 'secondary',
+    size,
+    icon,
+    loading = false,
+    className,
+    type = 'button',
+    children,
+    disabled,
+    ...rest
+  },
+  ref
+) {
   const iconOnly = !children && !!icon;
   const classes = [
     'btn',
@@ -58,6 +61,7 @@ export const Button: React.FC<ButtonProps> = ({
     .join(' ');
   return (
     <button
+      ref={ref}
       type={type}
       className={classes}
       disabled={disabled || loading}
@@ -69,6 +73,6 @@ export const Button: React.FC<ButtonProps> = ({
       {children}
     </button>
   );
-};
+});
 
 export default Button;

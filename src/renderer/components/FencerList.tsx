@@ -1071,8 +1071,11 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                           >
                             <Icon icon={Pencil} />
                           </Button>
-                          <button
-                            className={`btn btn-sm ${fencer.status === FencerStatus.CHECKED_IN ? 'btn-secondary' : 'btn-primary'}`}
+                          <Button
+                            variant={
+                              fencer.status === FencerStatus.CHECKED_IN ? 'secondary' : 'primary'
+                            }
+                            size="sm"
                             data-tour="check-in"
                             onClick={() => onCheckIn(fencer.id)}
                             style={SMALL_BTN}
@@ -1080,7 +1083,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                             {fencer.status === FencerStatus.CHECKED_IN
                               ? t('fencerList.uncheck')
                               : t('fencerList.check')}
-                          </button>
+                          </Button>
                           {onSetFencerStatus && fencer.status === FencerStatus.CHECKED_IN && (
                             <>
                               <Button

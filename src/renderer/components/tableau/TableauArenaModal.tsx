@@ -10,6 +10,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../hooks/useTranslation';
 import { TableauMatch } from './tableauTypes';
 import { stripNumbers } from '../../../shared/utils/stripRange';
+import { Button } from '../common/Button';
 
 interface TableauArenaModalProps {
   matches: TableauMatch[];
@@ -76,29 +77,30 @@ const TableauArenaModal: React.FC<TableauArenaModalProps> = ({
         <div className="modal-body" style={ARENA_STYLES.arenaModalBody}>
           <p style={ARENA_STYLES.arenaModalHint}>{t('tableauArena.hint')}</p>
           <div style={ARENA_STYLES.arenaModalGrid}>
-            <button
+            <Button
               aria-label={t('actions.no_selection')}
-              className={`btn ${!currentArena ? 'btn-primary' : 'btn-secondary'}`}
+              variant={!currentArena ? 'primary' : 'secondary'}
               onClick={() => onAssign(null)}
               style={ARENA_STYLES.arenaModalNoArenaBtn}
             >
               -
-            </button>
+            </Button>
             {stripNumbers(stripStart, arenaCount).map(arenaNum => {
               const queueCount = matches.filter(
                 m => m.arena === arenaNum && m.id !== selectedMatchId && m.winner === null
               ).length;
               return (
-                <button
+                <Button
                   key={arenaNum}
-                  className={`btn ${currentArena === arenaNum ? 'btn-primary' : 'btn-secondary'} is-0b9519`}
+                  variant={currentArena === arenaNum ? 'primary' : 'secondary'}
+                  className="is-0b9519"
                   onClick={() => onAssign(arenaNum)}
                 >
                   {t('tableauSignatures.strip_n', { n: arenaNum })}
                   {queueCount > 0 && (
                     <span style={ARENA_STYLES.arenaQueueHint}>(+{queueCount})</span>
                   )}
-                </button>
+                </Button>
               );
             })}
           </div>

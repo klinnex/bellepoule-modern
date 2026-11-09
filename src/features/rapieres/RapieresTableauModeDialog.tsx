@@ -9,6 +9,7 @@ import React from 'react';
 import { useFocusTrap } from '../../renderer/hooks/useFocusTrap';
 import { useTranslation } from '../../renderer/hooks/useTranslation';
 import type { RapieresTableauMode } from './rapieres.types';
+import { Button } from '../../renderer/components/common/Button';
 
 interface RapieresTableauModeDialogProps {
   /** Demi-finales possibles avec le nombre de poules (1 à 4) */
@@ -37,23 +38,23 @@ const RapieresTableauModeDialog: React.FC<RapieresTableauModeDialogProps> = ({
           <h2 className="modal-title">{t('rapieres.tableau_mode_title')}</h2>
         </div>
         <div className="modal-body" style={{ display: 'grid', gap: '0.75rem' }}>
-          <button type="button" className="btn btn-secondary" onClick={() => onChoose('normal')}>
+          <Button type="button" onClick={() => onChoose('normal')}>
             {t('rapieres.tableau_mode_normal')}
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={() => onChoose('third')}>
+          </Button>
+          <Button type="button" onClick={() => onChoose('third')}>
             {t('rapieres.tableau_mode_third')}
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={() => onChoose('all')}>
+          </Button>
+          <Button type="button" onClick={() => onChoose('all')}>
             {t('rapieres.tableau_mode_all')}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn btn-primary"
+            variant="primary"
             disabled={!semisAvailable}
             onClick={() => onChoose('semis')}
           >
             {t('rapieres.tableau_mode_semis')}
-          </button>
+          </Button>
           {!semisAvailable && (
             <p className="text-muted" style={{ margin: 0 }}>
               {t('rapieres.semis_unavailable')}
@@ -61,9 +62,9 @@ const RapieresTableauModeDialog: React.FC<RapieresTableauModeDialogProps> = ({
           )}
         </div>
         <div className="modal-footer">
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <Button type="button" onClick={onClose}>
             {t('rapieres.cancel')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

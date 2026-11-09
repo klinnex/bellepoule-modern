@@ -16,6 +16,7 @@ import {
 } from '../../renderer/components/importModal.styles';
 import { RapieresFencer } from './rapieres.types';
 import { RapieresTeamDraft } from './RapieresTeamModal';
+import { Button } from '../../renderer/components/common/Button';
 
 interface RapieresImportModalProps {
   filename: string;
@@ -77,16 +78,10 @@ const RapieresImportModal: React.FC<RapieresImportModalProps> = ({
       scroll
       footer={
         <>
-          <button className="btn btn-secondary" onClick={onClose}>
-            {t('actions.cancel')}
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={handleImport}
-            disabled={busy || selected.size === 0}
-          >
+          <Button onClick={onClose}>{t('actions.cancel')}</Button>
+          <Button variant="primary" onClick={handleImport} disabled={busy || selected.size === 0}>
             {t('rapieres.import_n', { n: String(selected.size) })}
-          </button>
+          </Button>
         </>
       }
     >
@@ -102,9 +97,9 @@ const RapieresImportModal: React.FC<RapieresImportModalProps> = ({
 
       <div className="rapieres-import-toolbar">
         <span>{t('rapieres.import_found', { n: String(teams.length) })}</span>
-        <button className="btn btn-secondary btn-sm" onClick={toggleAll}>
+        <Button size="sm" onClick={toggleAll}>
           {allSelected ? t('importModal.deselect_all') : t('importModal.select_all')}
-        </button>
+        </Button>
       </div>
 
       <div className="rapieres-import-table">

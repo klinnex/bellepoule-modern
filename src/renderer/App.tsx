@@ -668,8 +668,9 @@ const AppContent: React.FC = () => {
               </Button>
             )}
             <UpdateMenuButton />
-            <button
-              className={`btn btn-icon-label ${trainingActive ? 'btn-danger' : 'btn-secondary'}`}
+            <Button
+              variant={trainingActive ? 'danger' : 'secondary'}
+              className="btn-icon-label"
               onClick={() => {
                 if (!trainingActive) setShowTrainingModal(true);
                 else setShowTrainingPanel(v => !v);
@@ -684,7 +685,7 @@ const AppContent: React.FC = () => {
             >
               <Swords size={15} />
               {t('app.training')}
-            </button>
+            </Button>
             <button
               className="btn-theme-toggle"
               onClick={() => {
@@ -696,26 +697,27 @@ const AppContent: React.FC = () => {
             >
               <ThemeIcon theme={theme} />
             </button>
-            <button
-              className="btn btn-icon"
+            <Button
+              variant="ghost"
+              className="btn-icon"
               onClick={() => setShowWikiModal(true)}
               title={t('wiki.button_title')}
               aria-label={t('wiki.button_title')}
             >
               <BookOpen size={16} />
-            </button>
+            </Button>
             {view === 'competition' && currentCompetition && (
               <div ref={toolsMenuRef} className="relative">
-                <button
+                <Button
                   ref={toolsBtnRef}
-                  className="btn btn-secondary btn-icon-label"
+                  className="btn-icon-label"
                   onClick={() => setShowToolsMenu(v => !v)}
                   title={t('app.tools')}
                   aria-haspopup="true"
                   aria-expanded={showToolsMenu}
                 >
                   <Wrench size={15} /> {t('app.tools')}
-                </button>
+                </Button>
                 {showToolsMenu && (
                   <div
                     style={{

@@ -9,6 +9,7 @@ import Modal from '../common/Modal';
 import { useTranslation } from '../../hooks/useTranslation';
 import { stripNumbers } from '../../../shared/utils/stripRange';
 import { useStripAvailability } from '../../hooks/useStripAvailability';
+import { Button } from '../common/Button';
 
 interface PoolStripButtonProps {
   poolNumber: number;
@@ -52,23 +53,24 @@ export const PoolStripButton: React.FC<PoolStripButtonProps> = ({
         <Modal title={t('poolView.assign_strip')} onClose={() => setOpen(false)} size="sm">
           <p className="u-hint mb-4">{t('poolView.select_strip', { n: poolNumber })}</p>
           <div style={GRID}>
-            <button
+            <Button
               aria-label={t('actions.no_selection')}
               type="button"
-              className={`btn ${strip == null ? 'btn-primary' : 'btn-secondary'}`}
+              variant={strip == null ? 'primary' : 'secondary'}
               onClick={() => pick(undefined)}
             >
               –
-            </button>
+            </Button>
             {stripNumbers(stripRange.start, stripRange.end).map(n => (
-              <button
+              <Button
                 type="button"
                 key={n}
-                className={`btn ${strip === n ? 'btn-primary' : 'btn-secondary'}${unavailable.includes(n) ? ' is-unavailable' : ''}`}
+                variant={strip === n ? 'primary' : 'secondary'}
+                className={`${unavailable.includes(n) ? ' is-unavailable' : ''}`}
                 onClick={() => pick(n)}
               >
                 {n}
-              </button>
+              </Button>
             ))}
           </div>
         </Modal>

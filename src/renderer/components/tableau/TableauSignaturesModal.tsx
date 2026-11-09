@@ -11,6 +11,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useTranslation } from '../../contexts/TranslationContext';
 import { ipcErrorText } from '../../services/ipcError';
 import { TableauMatch } from './tableauTypes';
+import { Button } from '../common/Button';
 
 interface TableauSignaturesModalProps {
   match: TableauMatch;
@@ -226,13 +227,9 @@ const TableauSignaturesModal: React.FC<TableauSignaturesModalProps> = ({
                       </option>
                     ))}
                   </select>
-                  <button
-                    className="btn btn-primary"
-                    onClick={handleSend}
-                    disabled={!arenaId || sending}
-                  >
+                  <Button variant="primary" onClick={handleSend} disabled={!arenaId || sending}>
                     {sending ? 'Envoi…' : 'Envoyer'}
-                  </button>
+                  </Button>
                 </div>
               )}
               {sendState && (

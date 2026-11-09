@@ -30,7 +30,6 @@ import { Arena } from '../../shared/types/remote';
 import { logger, LogCategory } from '@shared/services/logger';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
-// pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import { useColumnVisibility, POOL_COLUMNS, ColumnId } from '../hooks/useColumnVisibility';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import { useHistory } from '../hooks/useHistory';
@@ -55,6 +54,7 @@ import {
   COL_GAP,
   REF_EMPTY,
   REF_BTN,
+  REF_PICK_BTN,
   FENCER_NAME,
   NEXT_MATCH_BOX,
   SCORE_ROW,
@@ -1810,13 +1810,13 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               : t('poolView.select_referee', { n: pool.number })}
           </p>
           <div style={COL_GAP}>
-            <button
-              className={`btn ${!assignedReferee ? 'btn-primary' : 'btn-secondary'}`}
+            <Button
+              variant={!assignedReferee ? 'primary' : 'secondary'}
               onClick={() => handleAssignReferee(null)}
               style={REF_BTN}
             >
               {t('poolView.no_referee')}
-            </button>
+            </Button>
             {isLoadingReferees && <p style={REF_EMPTY}>{t('poolView.loading_referees')}</p>}
             {!isLoadingReferees && competitionReferees.length === 0 && (
               <p style={REF_EMPTY}>{t('poolView.no_checked_referee')}</p>
@@ -1828,18 +1828,18 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 const selected = order >= 0;
                 const disabled = !selected && pendingRefereeIds.length >= maxRefereesPerPool;
                 return (
-                  <button
+                  <Button
                     key={ref.id}
                     onClick={() => togglePendingReferee(ref.id)}
                     disabled={disabled}
                     aria-pressed={selected}
-                    style={REF_BTN}
-                    className={`btn pv-ref-btn ${selected ? 'btn-primary' : 'btn-secondary'}`}
+                    variant={selected ? 'primary' : 'secondary'}
+                    {...REF_PICK_BTN}
                   >
                     {selected ? `☑ ${order + 1}.` : '☐'} <Icon icon={Gavel} /> {ref.lastName}{' '}
                     {ref.firstName}
                     {ref.club && <span className="pv-ref-club">({ref.club})</span>}
-                  </button>
+                  </Button>
                 );
               })}
             {!isLoadingReferees && isMultiReferee && competitionReferees.length > 0 && (
@@ -1853,15 +1853,15 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             {!isLoadingReferees &&
               !isMultiReferee &&
               competitionReferees.map(ref => (
-                <button
+                <Button
                   key={ref.id}
                   onClick={() => handleAssignReferee(ref)}
-                  style={REF_BTN}
-                  className={`btn pv-ref-btn ${assignedReferee?.id === ref.id ? 'btn-primary' : 'btn-secondary'}`}
+                  variant={assignedReferee?.id === ref.id ? 'primary' : 'secondary'}
+                  {...REF_PICK_BTN}
                 >
                   <Icon icon={Gavel} /> {ref.lastName} {ref.firstName}
                   {ref.club && <span className="pv-ref-club">({ref.club})</span>}
-                </button>
+                </Button>
               ))}
           </div>
         </Modal>
