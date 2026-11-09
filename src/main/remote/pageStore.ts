@@ -65,7 +65,7 @@ export function storeBody(content: string, type: string, cacheControl: string): 
   };
 }
 
-const INLINE_SCRIPT = /<script(\s[^>]*)?>([\s\S]*?)<\/script>/gi;
+const INLINE_SCRIPT = /<script(\s[^>]*)?>([\s\S]*?)<\/script\b[^>]*>/gi;
 
 /**
  * Extrait les <script> inline exécutables vers des assets `/_a/<hash>.js` (identiques d'une page à
