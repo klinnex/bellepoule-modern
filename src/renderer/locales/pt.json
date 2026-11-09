@@ -564,6 +564,8 @@
     "quick_search": "Pesquisa rápida",
     "close_modal": "Fechar janela / Cancelar",
     "nav_fields": "Navegar entre campos",
+    "nav_matrix": "Matriz de poule: setas para mover entre células",
+    "activate_card": "Enter / Espaço: abrir a célula ou o cartão de combate",
     "save": "Guardar",
     "undo": "Anular um resultado de poule",
     "redo": "Refazer um resultado de poule",

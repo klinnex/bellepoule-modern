@@ -860,7 +860,7 @@
             <div class="fencer-name" id="fencer-a-name">-</div>
             <div class="fencer-club" id="fencer-a-club">-</div>
             <div class="cards-container" id="fencer-a-cards"></div>
-            <div class="score-big red" id="score-a">0</div>
+            <div class="score-big red" id="score-a" role="status" aria-live="polite" aria-atomic="true">0</div>
           </div>
 
           <!-- VS -->
@@ -872,14 +872,14 @@
             <div class="fencer-name" id="fencer-b-name">-</div>
             <div class="fencer-club" id="fencer-b-club">-</div>
             <div class="cards-container" id="fencer-b-cards"></div>
-            <div class="score-big green" id="score-b">0</div>
+            <div class="score-big green" id="score-b" role="status" aria-live="polite" aria-atomic="true">0</div>
           </div>
         </div>
 
         <!-- Chronomètre -->
         <div class="timer-section">
           <div class="mort-subite-banner" id="mort-subite-banner" data-i18n="referee.sudden_death">⚡ MORT SUBITE</div>
-          <div class="timer-display" id="timer-display">03:00</div>
+          <div class="timer-display" id="timer-display" role="timer" aria-label="Temps restant" data-i18n-aria-label="arena.time_left">03:00</div>
           <div class="sudden-death-banner" id="sudden-death-banner" data-i18n="referee.supplementary_time">⏱ 30s SUPPLEMENTAIRE</div>
           <div class="timer-label" data-i18n="arena.time_left">Temps restant</div>
         </div>
