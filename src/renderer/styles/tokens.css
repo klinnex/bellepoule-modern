@@ -34,6 +34,18 @@
   --touch-target: 44px;
 }
 
+/* Densité d'affichage (#1541) : réglage « Densité » (Paramètres), attribut data-density sur <html>.
+   Standard = valeurs par défaut. Points de rupture de référence : 1024, 1280, 1440, 1920 px. */
+:root[data-density='comfortable'] {
+  --density-cell-y: 0.875rem;
+  --density-cell-x: 1.125rem;
+}
+
+:root[data-density='compact'] {
+  --density-cell-y: 0.3125rem;
+  --density-cell-x: 0.625rem;
+}
+
 /* Les tailles en rem suivent le réglage ; les tailles en px restent fixes (à migrer) */
 html {
   font-size: calc(16px * var(--ui-scale));
