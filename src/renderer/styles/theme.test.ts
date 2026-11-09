@@ -46,6 +46,15 @@ describe('theme.css : palette sémantique (#1531)', () => {
     }
   });
 
+  it('étapes terminées et badges de statut classement lisent les tokens sémantiques', () => {
+    const design = fs.readFileSync(path.join(__dirname, 'design.css'), 'utf8');
+    const main = fs.readFileSync(path.join(__dirname, 'main.css'), 'utf8');
+    expect(design).toMatch(/\.phase-step-completed \{[^}]*var\(--success-on-soft\)/);
+    expect(design).not.toMatch(/\.theme-dark \.phase-step-completed/);
+    expect(main).toMatch(/\.ranking-status-badge--abandon \{[^}]*var\(--warning-on-soft\)/);
+    expect(main).toMatch(/\.ranking-status-badge--exclu \{[^}]*var\(--danger-on-soft\)/);
+  });
+
   it("échelle d'élévation à 3 niveaux", () => {
     for (const n of [1, 2, 3]) expect(css).toMatch(new RegExp(`--elevation-${n}:`));
   });

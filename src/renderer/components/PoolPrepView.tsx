@@ -23,6 +23,7 @@ import { useUndoStack } from '../hooks/useUndoStack';
 import { useTranslation } from '../hooks/useTranslation';
 import { useToast } from './Toast';
 import { stripNumbers } from '../../shared/utils/stripRange';
+import { Button } from './common/Button';
 
 const HINT_DISMISSED_KEY = 'bp_poolprep_hint_dismissed';
 
@@ -553,17 +554,17 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                 </button>
               </div>
               {poolCount !== 1 && (
-                <button
-                  className="btn btn-secondary is-8ee77f"
+                <Button
+                  className="is-8ee77f"
                   onClick={() => handlePoolCountChange(1)}
                   title={t('pools.prep_single_title')}
                 >
                   {t('pools.prep_single')}
-                </button>
+                </Button>
               )}
               {poolCount > 0 && suggestedPoolCount > 0 && suggestedPoolCount !== poolCount && (
-                <button
-                  className="btn btn-secondary is-8ee77f"
+                <Button
+                  className="is-8ee77f"
                   onClick={() => handlePoolCountChange(suggestedPoolCount)}
                   title={t('pools.prep_suggested_title', {
                     min: minFencersPerPool,
@@ -571,7 +572,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                   })}
                 >
                   {t('pools.prep_suggested', { n: suggestedPoolCount })}
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -659,13 +660,13 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
             </div>
           )}
 
-          <button
-            className="btn btn-secondary is-e39735"
+          <Button
+            className="is-e39735"
             onClick={() => setShowMatchOrderModal(true)}
             title={t('pools.prep_match_order_title')}
           >
             {t('pools.prep_match_order')}
-          </button>
+          </Button>
 
           {conflictSummary.length > 0 && pools.length > 1 && (
             <div className="pool-prep-conflict-summary">
@@ -683,14 +684,14 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
                   <span className="is-bfc11c"> / min {c.min}</span>
                 </span>
               ))}
-              <button
-                className="btn btn-secondary is-8ee77f"
+              <Button
+                className="is-8ee77f"
                 onClick={handleOptimize}
                 disabled={!canOptimize}
                 title={canOptimize ? t('pools.prep_optimize_title') : t('pools.prep_optimize_min')}
               >
                 {t('pools.prep_optimize')}
-              </button>
+              </Button>
             </div>
           )}
 
@@ -920,8 +921,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
         {/* Footer */}
         <div className="pool-prep-footer is-045666">
           <div className="is-d06f59">
-            <button
-              className="btn btn-secondary"
+            <Button
               onClick={handleRestore}
               disabled={!canRestore()}
               style={{
@@ -931,7 +931,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
               }}
             >
               {t('pools.prep_undo')}
-            </button>
+            </Button>
             {canRestore() && (
               <div className="is-9a904f">
                 <div className="pool-prep-undo-bar">
@@ -962,13 +962,14 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
 
           {/* Bouton déjà présent dans la barre de navigation (#945) : pas de doublon */}
           {!onLaunchActionChange && (
-            <button
-              className="btn btn-primary is-be99a9"
+            <Button
+              variant="primary"
+              className="is-be99a9"
               onClick={handleLaunch}
               disabled={launchDisabled}
             >
               {launchLabel} →
-            </button>
+            </Button>
           )}
         </div>
       </div>
