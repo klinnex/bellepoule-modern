@@ -7,7 +7,7 @@
   "fontSizePx": 0,
   "hardLocale": 0,
   "serverMessage": 0,
-  "rawBtn": 319,
+  "rawBtn": 269,
   "emojiUi": 179,
   "unnamedButton": 0,
   "remoteUnescaped": 0,
@@ -16,7 +16,7 @@
   "lineExceptions": {
     "src/renderer/styles/design.css": 2085,
     "src/renderer/styles/main.css": 2994,
-    "src/renderer/components/CompetitionView.tsx": 3120,
+    "src/renderer/components/CompetitionView.tsx": 3117,
     "src/renderer/components/PoolView.tsx": 1883,
     "src/renderer/components/RemoteScoreManager.tsx": 1691,
     "src/renderer/components/TableauView.tsx": 1557,

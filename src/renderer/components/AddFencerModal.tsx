@@ -11,6 +11,7 @@ import FencerPhoto from './FencerPhoto';
 import NationalityPicker from './common/NationalityPicker';
 import DepartmentPicker from './common/DepartmentPicker';
 import { useTranslation } from '../contexts/TranslationContext';
+import { Button } from './common/Button';
 
 interface AddFencerModalProps {
   onClose: () => void;
@@ -267,15 +268,15 @@ const AddFencerModalComponent: React.FC<AddFencerModalProps> = ({
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={resetForm}>
+            <Button type="button" onClick={resetForm}>
               {t('actions.cancel')}
-            </button>
-            <button type="button" className="btn btn-secondary" onClick={handleSaveAndAdd}>
+            </Button>
+            <Button type="button" onClick={handleSaveAndAdd}>
               {t('addFencer.add')}
-            </button>
-            <button type="submit" className="btn btn-primary">
+            </Button>
+            <Button type="submit" variant="primary">
               {t('addFencer.add_and_close')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

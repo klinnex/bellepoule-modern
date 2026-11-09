@@ -102,14 +102,14 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 74 | 369 |
-| E2E Playwright (`e2e/`) | 10 | 38 |
+| E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 41 | 270 |
 | `src/renderer/contexts/` | 1 | 4 |
-| `src/renderer/styles/` | 4 | 13 |
+| `src/renderer/styles/` | 5 | 16 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **313** | **2461** |
+| **Total** | **314** | **2465** |
 
-Unitaires : 303 fichiers, 2423 tests. E2E : 10 fichiers, 38 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 304 fichiers, 2426 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4500,13 +4500,14 @@ Unitaires : 303 fichiers, 2423 tests. E2E : 10 fichiers, 38 tests (comptage stat
 ### E2E Playwright (`e2e/`)
 
 <details>
-<summary><code>e2e/accessibility.spec.ts</code> — 5 tests</summary>
+<summary><code>e2e/accessibility.spec.ts</code> — 6 tests</summary>
 
 - **Accessibility**
   - should have proper ARIA labels
   - should be keyboard navigable
   - should respect reduced motion preference
   - should pass axe color-contrast (${scheme})
+  - should pass axe color-contrast on modal (${scheme})
   - should have no critical axe violations
 
 </details>
@@ -5200,6 +5201,15 @@ Unitaires : 303 fichiers, 2423 tests. E2E : 10 fichiers, 38 tests (comptage stat
 ### `src/renderer/styles/`
 
 <details>
+<summary><code>src/renderer/styles/contrast.test.ts</code> — 2 tests</summary>
+
+- **contraste AA des teintes sémantiques (#1531)**
+  - thème clair
+  - thème sombre
+
+</details>
+
+<details>
 <summary><code>src/renderer/styles/stylesheets.test.ts</code> — 3 tests</summary>
 
 - **main.css / design.css**
@@ -5211,12 +5221,13 @@ Unitaires : 303 fichiers, 2423 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/styles/theme.test.ts</code> — 6 tests</summary>
+<summary><code>src/renderer/styles/theme.test.ts</code> — 7 tests</summary>
 
 - **theme.css : palette sémantique (#1531)**
   - est importé après tokens.css
   - définit surfaces, accent et couleurs sémantiques
   - teintes douces redéfinies pour le thème sombre
+  - badges sémantiques migrés vers les tokens, sans variante sombre dédiée
   - échelle d'élévation à 3 niveaux
   - micro-interactions basées sur les tokens de mouvement, reduced-motion global
   - tokens.css : un seul bloc .theme-dark de variables, tableau inclus

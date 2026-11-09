@@ -124,6 +124,7 @@ import { useColumnVisibility } from '../hooks/useColumnVisibility';
 import { useModalFlags } from '../hooks/useModalFlags';
 import { usePoolsViewSettings } from '../hooks/usePoolsViewSettings';
 import { MODAL_FLAGS } from './competition/modalFlags';
+import { Button } from './common/Button';
 
 const PoolView = React.lazy(() => import('./PoolView'));
 const TableauView = React.lazy(() => import('./TableauView'));
@@ -2388,9 +2389,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                 <PhaseEmptyIcon />
                 <h2 className="empty-state-title">{t('competitionView.no_pools')}</h2>
                 <p className="empty-state-description">{t('competitionView.no_pools_hint')}</p>
-                <button className="btn btn-primary" onClick={() => setCurrentPhase('checkin')}>
+                <Button variant="primary" onClick={() => setCurrentPhase('checkin')}>
                   {t('competitionView.back_checkin')}
-                </button>
+                </Button>
               </div>
             ) : (
               <>
@@ -2434,17 +2435,17 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                     <option value="grid">{t('competitionView.grid_view')}</option>
                     <option value="single">{t('competitionView.single_view')}</option>
                   </select>
-                  <button
-                    className="btn btn-primary"
+                  <Button
+                    variant="primary"
                     onClick={handlePrintAllPoolsPDF}
                     title={t('competitionView.print_title')}
                   >
                     {t('competitionView.print')}
-                  </button>
+                  </Button>
                   {pools.length > 1 && (
-                    <button className="btn btn-success" onClick={handleExportAllPoolsPDF}>
+                    <Button variant="success" onClick={handleExportAllPoolsPDF}>
                       {t('competitionView.export_all')}
-                    </button>
+                    </Button>
                   )}
                 </div>
                 {poolsViewMode === 'single' ? (
@@ -2458,8 +2459,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                         marginBottom: '1.5rem',
                       }}
                     >
-                      <button
-                        className="btn btn-secondary"
+                      <Button
                         onClick={() =>
                           setSinglePoolIndex(i => (i - 1 + pools.length) % pools.length)
                         }
@@ -2468,7 +2468,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                         aria-label={t('competitionView.prev_pool')}
                       >
                         ◀
-                      </button>
+                      </Button>
                       <select
                         className="form-input"
                         style={{ width: 'auto', fontWeight: 600, textAlign: 'center' }}
@@ -2482,15 +2482,14 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                           </option>
                         ))}
                       </select>
-                      <button
-                        className="btn btn-secondary"
+                      <Button
                         onClick={() => setSinglePoolIndex(i => (i + 1) % pools.length)}
                         disabled={pools.length <= 1}
                         title={t('competitionView.next_pool')}
                         aria-label={t('competitionView.next_pool')}
                       >
                         ▶
-                      </button>
+                      </Button>
                     </div>
                     {/* Largeur ajustée au contenu, plafonnée (#1502) ; la taille de carte agit comme un zoom (#1124) */}
                     <div style={{ width: '100%', overflowX: 'auto' }}>
@@ -3014,12 +3013,10 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
           <div style={CV_STYLES.thirdPlaceModal}>
             <h3 style={CV_STYLES.thirdPlaceTitle}>{t('competition.third_place_match_dialog')}</h3>
             <div style={CV_STYLES.thirdPlaceBtnRow}>
-              <button className="btn btn-secondary" onClick={() => handleThirdPlaceDecision(false)}>
-                {t('actions.no')}
-              </button>
-              <button className="btn btn-primary" onClick={() => handleThirdPlaceDecision(true)}>
+              <Button onClick={() => handleThirdPlaceDecision(false)}>{t('actions.no')}</Button>
+              <Button variant="primary" onClick={() => handleThirdPlaceDecision(true)}>
                 {t('actions.yes')}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

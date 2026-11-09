@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react';
 import { translateStatic } from '../contexts/TranslationContext';
+import { Button } from './common/Button';
 
 interface ConfirmOptions {
   message: string;
@@ -154,9 +155,9 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
               )}
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={handleCancel}>
+              <Button type="button" onClick={handleCancel}>
                 {pending.cancelLabel}
-              </button>
+              </Button>
               <button
                 ref={confirmBtnRef}
                 type="button"
