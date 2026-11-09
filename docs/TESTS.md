@@ -101,14 +101,14 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 70 | 352 |
-| E2E Playwright (`e2e/`) | 9 | 35 |
+| E2E Playwright (`e2e/`) | 9 | 36 |
 | `src/remote/` | 40 | 269 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 12 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **307** | **2439** |
+| **Total** | **307** | **2440** |
 
-Unitaires : 298 fichiers, 2404 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 298 fichiers, 2404 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4543,11 +4543,12 @@ Unitaires : 298 fichiers, 2404 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>e2e/visual.spec.ts</code> — 2 tests</summary>
+<summary><code>e2e/visual.spec.ts</code> — 3 tests</summary>
 
 - **Visual regression**
   - accueil (${scheme})
   - nouvelle compétition (${scheme})
+  - accueil sans débordement horizontal (${size.name})
 
 </details>
 
