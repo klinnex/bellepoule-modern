@@ -9,6 +9,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import Modal from './common/Modal';
 import { useToast } from './Toast';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
+import { Button } from './common/Button';
 
 interface ReportIssueModalProps {
   onClose: () => void;
@@ -118,12 +119,12 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <Button type="button" onClick={onClose}>
             {t('actions.cancel')}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn btn-primary"
+            variant="primary"
             onClick={handleSubmit}
             style={{
               background: issueType === 'bug' ? '#dc2626' : '#16a34a',
@@ -133,7 +134,7 @@ _Issue créée automatiquement depuis BellePoule Modern_`;
             }}
           >
             {t('reportIssue.create')}
-          </button>
+          </Button>
         </>
       }
     >

@@ -9,6 +9,7 @@ import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatNumber } from '../../shared/utils/localeFormat';
 import { SHOW_UPDATE_EVENT } from './UpdateMenuButton';
+import { Button } from './common/Button';
 
 const MB = 1024 * 1024;
 
@@ -166,24 +167,21 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
           )}
         </div>
         <div className="update-notification-actions">
-          <button
-            className="btn btn-primary btn-sm"
+          <Button
+            variant="primary"
+            size="sm"
             onClick={handleDownload}
             disabled={busy}
             aria-busy={busy}
           >
             {t('updateNotif.download')}
-          </button>
-          <button className="btn btn-secondary btn-sm" onClick={handleViewRelease}>
+          </Button>
+          <Button size="sm" onClick={handleViewRelease}>
             {t('updateNotif.notes')}
-          </button>
-          <button
-            aria-label={t('actions.close')}
-            className="btn btn-ghost btn-sm"
-            onClick={handleDismiss}
-          >
+          </Button>
+          <Button aria-label={t('actions.close')} variant="ghost" size="sm" onClick={handleDismiss}>
             ✖️
-          </button>
+          </Button>
         </div>
       </div>
     </div>

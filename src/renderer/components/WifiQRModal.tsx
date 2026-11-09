@@ -7,6 +7,7 @@ import React, { useState, useCallback, memo } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import Modal from './common/Modal';
 import { logger, LogCategory } from '@shared/services/logger';
+import { Button } from './common/Button';
 
 type SecurityType = 'WPA' | 'WEP' | 'nopass';
 
@@ -97,18 +98,14 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
       bodyClassName="wifi-qr-body"
       footer={
         <>
-          {qrDataUrl && (
-            <button className="btn btn-secondary" onClick={download}>
-              {t('wifiQr.download')}
-            </button>
-          )}
-          <button
-            className="btn btn-primary"
+          {qrDataUrl && <Button onClick={download}>{t('wifiQr.download')}</Button>}
+          <Button
+            variant="primary"
             onClick={generate}
             disabled={isGenerating || !config.ssid.trim()}
           >
             {isGenerating ? 'Génération...' : '📶 Générer le QR Code'}
-          </button>
+          </Button>
         </>
       }
     >

@@ -7,6 +7,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { findCountryIndex, listCountries } from '../../../shared/utils/countries';
 import Flag from './Flag';
+import { Button } from './Button';
 
 interface NationalityPickerProps {
   value: string;
@@ -89,9 +90,9 @@ const NationalityPicker: React.FC<NationalityPickerProps> = ({ value, onChange }
           onChange={e => onChange(e.target.value.toUpperCase())}
           maxLength={3}
         />
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary"
+
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-label={t('addFencer.nationality_list')}
@@ -99,7 +100,7 @@ const NationalityPicker: React.FC<NationalityPickerProps> = ({ value, onChange }
           onClick={() => setOpen(o => !o)}
         >
           ▾
-        </button>
+        </Button>
       </div>
       {open && (
         <ul

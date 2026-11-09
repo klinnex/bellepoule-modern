@@ -10,6 +10,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import type { ProxySettingsDTO } from '../../shared/types/preload';
 import { HINT, BOLD, SMALL_BTN, TOGGLE_LABEL } from './settingsModal.styles';
+import { Button } from './common/Button';
 
 type Mode = ProxySettingsDTO['mode'];
 type Status =
@@ -120,26 +121,21 @@ const ProxySettingsSection: React.FC = () => {
             spellCheck={false}
             onChange={e => setBypass(e.target.value)}
           />
-          <button
-            className="btn btn-primary"
+          <Button
+            variant="primary"
             style={SMALL_BTN}
             disabled={busy || !server.trim()}
             onClick={() => void save({ mode: 'manual', server, bypass })}
           >
             {t('settings.proxy_apply')}
-          </button>
+          </Button>
         </div>
       )}
 
       <div className="u-row proxy-actions">
-        <button
-          className="btn btn-secondary"
-          style={SMALL_BTN}
-          disabled={busy}
-          onClick={handleTest}
-        >
+        <Button style={SMALL_BTN} disabled={busy} onClick={handleTest}>
           {busy ? t('settings.proxy_testing') : t('settings.proxy_test')}
-        </button>
+        </Button>
       </div>
 
       <p className={`proxy-status proxy-status--${statusTone(status)}`} role="status">

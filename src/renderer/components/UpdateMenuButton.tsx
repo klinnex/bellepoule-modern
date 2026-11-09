@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, Download, RefreshCw } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import type { UpdateInfo } from '../../shared/types/preload';
+import { Button } from './common/Button';
 
 /** Événement fenêtre écouté par UpdateNotification pour se réafficher (detail : UpdateInfo). */
 export const SHOW_UPDATE_EVENT = 'bp:show-update';
@@ -54,22 +55,23 @@ const UpdateMenuButton: React.FC = () => {
   if (status === 'available' && info) {
     const title = t('updateNotif.menuTitle', { version: info.latestVersion });
     return (
-      <button
-        className="btn btn-primary btn-icon-label update-menu-button"
+      <Button
+        variant="primary"
+        className="btn-icon-label update-menu-button"
         onClick={() => window.dispatchEvent(new CustomEvent(SHOW_UPDATE_EVENT, { detail: info }))}
         title={title}
         aria-label={title}
       >
         <Download size={15} />
         {t('updateNotif.menuButton')}
-      </button>
+      </Button>
     );
   }
 
   const upToDate = status === 'uptodate';
   return (
-    <button
-      className="btn btn-secondary btn-icon-label"
+    <Button
+      className="btn-icon-label"
       onClick={() => void check()}
       disabled={status === 'checking'}
       aria-busy={status === 'checking'}
@@ -77,7 +79,7 @@ const UpdateMenuButton: React.FC = () => {
     >
       {upToDate ? <CheckCircle2 size={15} /> : <RefreshCw size={15} />}
       {upToDate ? t('updateNotif.menuUpToDate') : t('updateNotif.menuCheck')}
-    </button>
+    </Button>
   );
 };
 
