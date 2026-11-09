@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="fencer.page_title">Mon parcours – BellePoule</title>
     <script src="/i18n.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       :root {
-        --bg: #0f172a;
-        --card: #1e293b;
-        --text: #f1f5f9;
-        --muted: #94a3b8;
-        --accent: #fbbf24;
-        --win: #22c55e;
-        --loss: #ef4444;
+        --bg: var(--slate-900);
+        --card: var(--slate-800);
+        --text: var(--slate-100);
+        --muted: var(--slate-400);
+        --accent: var(--tw-amber-400);
+        --win: var(--green-500);
+        --loss: var(--red-500);
         --border: rgba(255, 255, 255, 0.08);
       }
       * {
@@ -72,7 +73,7 @@
       .now {
         display: inline-block;
         background: var(--accent);
-        color: #111;
+        color: var(--c-111111);
         font-weight: 700;
         border-radius: 999px;
         padding: 2px 10px;
@@ -123,7 +124,7 @@
       .tabs button.active {
         background: var(--accent);
         border-color: var(--accent);
-        color: #111;
+        color: var(--c-111111);
       }
       .footer {
         color: var(--muted);

@@ -6,13 +6,14 @@
     <title data-i18n="team.arena_page_title">Arène équipe — BellePoule</title>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       * { box-sizing: border-box; }
       body {
         margin: 0;
         font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        color: #fff;
+        background: linear-gradient(135deg, var(--brand-navy-900) 0%, var(--brand-navy-700) 100%);
+        color: var(--color-surface);
         min-height: 100vh;
         display: flex;
         flex-direction: column;
@@ -54,12 +55,12 @@
         font-weight: 800;
         font-variant-numeric: tabular-nums;
         letter-spacing: 0.05em;
-        color: #ffaa00;
+        color: var(--c-ffaa00);
         text-shadow: 0 0 20px rgba(255, 170, 0, 0.6);
       }
-      .timer.warning { color: #ff4444; text-shadow: 0 0 20px rgba(255, 68, 68, 0.7); }
+      .timer.warning { color: var(--c-ff4444); text-shadow: 0 0 20px rgba(255, 68, 68, 0.7); }
       .cards { margin-top: 1.5rem; font-size: 1.5rem; display: flex; justify-content: center; gap: 2rem; }
-      .match-complete { font-size: 2rem; font-weight: 800; color: #4ade80; margin-top: 1rem; }
+      .match-complete { font-size: 2rem; font-weight: 800; color: var(--tw-green-400); margin-top: 1rem; }
     </style>
   </head>
   <body>
