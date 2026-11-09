@@ -97,7 +97,7 @@
                   ({ rank, fencer }) => `<tr class="${rank === 1 ? 'top-row' : ''}">
                 <td><span class="rank-medal">${escHtml(rankLabel(rank))}</span></td>
                 <td style="font-weight:600;font-size:1.1rem">${escHtml(fencer.lastName + ' ' + (fencer.firstName || ''))}</td>
-                <td style="color:#64748b">${escHtml(fencer.club || '—')}</td>
+                <td style="color:var(--slate-500)">${escHtml(fencer.club || '—')}</td>
               </tr>`
                 )
                 .join('')}

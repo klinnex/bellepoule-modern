@@ -43,9 +43,9 @@
               <td>
                 <span class="fencer-name">${escHtml(r.lastName)} ${escHtml(r.firstName || '')}</span><span class="fencer-club">${escHtml(r.club || '')}</span>
               </td>
-              <td style="text-align:center;color:#94a3b8">${escHtml(r.matchesPlayed || 0)}</td>
+              <td style="text-align:center;color:var(--slate-400)">${escHtml(r.matchesPlayed || 0)}</td>
               <td class="victories">${escHtml(r.victories || 0)}</td>
-              <td class="ind" style="color:${r.index < 0 ? '#ef4444' : ''}">${escHtml(ind)}</td>
+              <td class="ind" style="color:${r.index < 0 ? 'var(--red-500)' : ''}">${escHtml(ind)}</td>
               <td class="td">${escHtml(r.touchesFor || 0)}</td>
             </tr>`;
           })
@@ -70,7 +70,7 @@
   }
 
   const emptyRow = msg =>
-    '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:3rem">' +
+    '<tr><td colspan="6" style="text-align:center;color:var(--slate-500);padding:3rem">' +
     msg +
     '</td></tr>';
 
@@ -80,16 +80,16 @@
     return ranking
       .map((r, i) => {
         const ind = signed(r.index);
-        const rankDisplay = `<span style="color:#64748b;font-weight:700">${i + 1}</span>`;
+        const rankDisplay = `<span style="color:var(--slate-500);font-weight:700">${i + 1}</span>`;
         return `<tr>
             <td>${/* html */ rankDisplay}</td>
             <td>
               <div style="font-weight:500">${escHtml(r.lastName)} ${escHtml(r.firstName || '')}</div>
             </td>
-            <td style="color:#64748b;font-size:0.85rem">${escHtml(r.club || '—')}</td>
-            <td style="text-align:center;color:#10b981;font-weight:600">${escHtml(r.victories || 0)}</td>
-            <td style="text-align:center;color:${r.index < 0 ? '#ef4444' : '#60a5fa'}">${escHtml(ind)}</td>
-            <td style="text-align:center;color:#94a3b8">${escHtml(r.touchesFor || 0)}</td>
+            <td style="color:var(--slate-500);font-size:0.85rem">${escHtml(r.club || '—')}</td>
+            <td style="text-align:center;color:var(--tw-emerald-500);font-weight:600">${escHtml(r.victories || 0)}</td>
+            <td style="text-align:center;color:${r.index < 0 ? 'var(--red-500)' : 'var(--tw-blue-400)'}">${escHtml(ind)}</td>
+            <td style="text-align:center;color:var(--slate-400)">${escHtml(r.touchesFor || 0)}</td>
           </tr>`;
       })
       .join('');
@@ -111,10 +111,10 @@
         const dur = formatBoutDuration(r.durationSec);
         const t = formatTime(r.finishedAt);
         return `<tr>
-              <td style="color:#64748b;font-weight:700">P${escHtml(r.arenaNumber)}</td>
+              <td style="color:var(--slate-500);font-weight:700">P${escHtml(r.arenaNumber)}</td>
               <td><div style="font-weight:600;font-size:1.1rem">${escHtml(r.scoreA)} — ${escHtml(r.scoreB)}</div></td>
-              <td style="color:#64748b;font-size:0.85rem">${escHtml(dur)}</td>
-              <td style="text-align:center;color:#94a3b8">${escHtml(t)}</td>
+              <td style="color:var(--slate-500);font-size:0.85rem">${escHtml(dur)}</td>
+              <td style="text-align:center;color:var(--slate-400)">${escHtml(t)}</td>
               <td></td><td></td>
             </tr>`;
       })
