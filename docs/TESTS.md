@@ -101,15 +101,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 73 | 363 |
+| `src/renderer/components/` | 73 | 364 |
 | E2E Playwright (`e2e/`) | 10 | 38 |
 | `src/remote/` | 41 | 270 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 13 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **312** | **2455** |
+| **Total** | **312** | **2456** |
 
-Unitaires : 302 fichiers, 2417 tests. E2E : 10 fichiers, 38 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 302 fichiers, 2418 tests. E2E : 10 fichiers, 38 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4038,11 +4038,12 @@ Unitaires : 302 fichiers, 2417 tests. E2E : 10 fichiers, 38 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/common/EmptyState.test.tsx</code> — 2 tests</summary>
+<summary><code>src/renderer/components/common/EmptyState.test.tsx</code> — 3 tests</summary>
 
 - **EmptyState**
   - rend titre, description et déclenche l’action principale
   - sans action : aucun bouton
+  - rend les actions supplémentaires (children)
 
 </details>
 

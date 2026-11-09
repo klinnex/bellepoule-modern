@@ -18,6 +18,7 @@ import {
   ROW_TEXT,
 } from './liveDashboard.styles';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
+import EmptyState from './common/EmptyState';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface LiveDashboardProps {
@@ -478,7 +479,7 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
   return (
     <div className="ld-card ld-card--roomy">
       {matches.length === 0 ? (
-        <p className="ld-empty ld-empty--plain">{t('liveDashboard.tableau_not_started')}</p>
+        <EmptyState title={t('liveDashboard.tableau_not_started')} />
       ) : (
         <div className="ld-rounds">
           {rounds.map(round => {

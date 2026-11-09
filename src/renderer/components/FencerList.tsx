@@ -6,6 +6,7 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { ClipboardList, Pencil, QrCode, RotateCcw, Search, Swords, Trash2 } from 'lucide-react';
 import { Icon } from './common/Icon';
+import EmptyState from './common/EmptyState';
 import { useVirtualList } from '../../shared/services/performanceService';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import { Fencer, FencerStatus } from '../../shared/types';
@@ -842,69 +843,62 @@ const FencerListComponent: React.FC<FencerListProps> = ({
       )}
 
       {filteredFencers.length === 0 ? (
-        <div className="empty-state">
-          {fencers.length === 0 ? (
-            <>
-              <div className="empty-state-icon">
-                <Icon icon={Swords} size={24} />
-              </div>
-              <h2 className="empty-state-title">{t('fencerList.empty_title')}</h2>
-              <p className="empty-state-description">{t('fencerList.empty_desc')}</p>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.75rem',
-                  justifyContent: 'center',
-                  flexWrap: 'wrap',
-                  marginTop: '1.25rem',
-                }}
-              >
-                {onImport && (
-                  <CoachMark
-                    id="import-fencers"
-                    message={t('fencerList.import_formats_hint')}
-                    position="bottom"
+        fencers.length === 0 ? (
+          <EmptyState
+            icon={<Icon icon={Swords} size={24} />}
+            title={t('fencerList.empty_title')}
+            description={t('fencerList.empty_desc')}
+          >
+            <div
+              style={{
+                display: 'flex',
+                gap: '0.75rem',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+                marginTop: '1.25rem',
+              }}
+            >
+              {onImport && (
+                <CoachMark
+                  id="import-fencers"
+                  message={t('fencerList.import_formats_hint')}
+                  position="bottom"
+                >
+                  <button
+                    className="btn btn-secondary"
+                    data-tour="import"
+                    onClick={() => handleImportFencers('fff')}
                   >
-                    <button
-                      className="btn btn-secondary"
-                      data-tour="import"
-                      onClick={() => handleImportFencers('fff')}
-                    >
-                      {t('fencerList.empty_import_fff')}
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      data-tour="import"
-                      onClick={() => handleImportFencers('xml')}
-                    >
-                      {t('fencerList.empty_import_xml')}
-                    </button>
-                    <Button
-                      variant="secondary"
-                      title={t('fencerList.import_template')}
-                      onClick={handleDownloadImportTemplate}
-                    >
-                      {t('fencerList.empty_import_template')}
-                    </Button>
-                  </CoachMark>
-                )}
-                <button className="btn btn-primary" data-tour="add-fencer" onClick={onAddFencer}>
-                  + {t('fencer.add')}
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="empty-state-icon">
-                <Icon icon={Search} size={24} />
-              </div>
-              <h2 className="empty-state-title">{t('fencerList.no_result_title')}</h2>
-              <p className="empty-state-description">
-                {t('fencerList.no_result_desc', { term: searchTerm })}
-              </p>
-            </>
-          )}
-        </div>
+                    {t('fencerList.empty_import_fff')}
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    data-tour="import"
+                    onClick={() => handleImportFencers('xml')}
+                  >
+                    {t('fencerList.empty_import_xml')}
+                  </button>
+                  <Button
+                    variant="secondary"
+                    title={t('fencerList.import_template')}
+                    onClick={handleDownloadImportTemplate}
+                  >
+                    {t('fencerList.empty_import_template')}
+                  </Button>
+                </CoachMark>
+              )}
+              <button className="btn btn-primary" data-tour="add-fencer" onClick={onAddFencer}>
+                + {t('fencer.add')}
+              </button>
+            </div>
+          </EmptyState>
+        ) : (
+          <EmptyState
+            icon={<Icon icon={Search} size={24} />}
+            title={t('fencerList.no_result_title')}
+            description={t('fencerList.no_result_desc', { term: searchTerm })}
+          />
+        )
       ) : (
         <div className="card">
           {useVirtual && (

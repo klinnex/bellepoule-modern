@@ -13,6 +13,7 @@ import {
   CV_DATA_INIT,
 } from './competition/competitionViewState';
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
+import EmptyState from './common/EmptyState';
 import { PHASE_ICONS, PhaseEmptyIcon, TEAM_PHASE_ICONS } from './competition/phaseIcons';
 import {
   Competition,
@@ -2384,14 +2385,13 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
                 </Suspense>
               </div>
             ) : pools.length === 0 ? (
-              <div className="empty-state">
-                <PhaseEmptyIcon />
-                <h2 className="empty-state-title">{t('competitionView.no_pools')}</h2>
-                <p className="empty-state-description">{t('competitionView.no_pools_hint')}</p>
-                <button className="btn btn-primary" onClick={() => setCurrentPhase('checkin')}>
-                  {t('competitionView.back_checkin')}
-                </button>
-              </div>
+              <EmptyState
+                icon={<PhaseEmptyIcon />}
+                title={t('competitionView.no_pools')}
+                description={t('competitionView.no_pools_hint')}
+                actionLabel={t('competitionView.back_checkin')}
+                onAction={() => setCurrentPhase('checkin')}
+              />
             ) : (
               <>
                 {isRapieres && (
