@@ -505,7 +505,7 @@
     let iconUrl = null;
     try {
       const u = iconPath ? new URL(iconPath) : null;
-      if (u && u.protocol === 'file:') iconUrl = u.href;
+      if (u && u.protocol === 'file:' && !u.host) iconUrl = u.href;
     } catch {
       /* chemin invalide : pas d'icône */
     }
