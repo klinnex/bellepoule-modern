@@ -25,7 +25,9 @@ describe('theme.css : palette sémantique (#1531)', () => {
   });
 
   it('teintes douces redéfinies pour le thème sombre', () => {
-    const dark = css.slice(css.indexOf('.theme-dark {'));
+    // Bloc sombre unique dans tokens.css (#1531)
+    const design = fs.readFileSync(path.join(__dirname, 'tokens.css'), 'utf8');
+    const dark = design.slice(design.indexOf('.theme-dark {'));
     for (const t of SEMANTIC) {
       expect(dark).toMatch(new RegExp(`--${t}-soft:`));
       expect(dark).toMatch(new RegExp(`--${t}-on-soft:`));
@@ -43,8 +45,8 @@ describe('theme.css : palette sémantique (#1531)', () => {
     expect(design).toMatch(/prefers-reduced-motion: reduce[\s\S]*animation-duration: 0\.01ms/);
   });
 
-  it('design.css : un seul bloc .theme-dark de variables, tableau inclus', () => {
-    const design = fs.readFileSync(path.join(__dirname, 'design.css'), 'utf8');
+  it('tokens.css : un seul bloc .theme-dark de variables, tableau inclus', () => {
+    const design = fs.readFileSync(path.join(__dirname, 'tokens.css'), 'utf8');
     expect(design.match(/^\.theme-dark \{/gm)).toHaveLength(1);
     expect(design).toMatch(/\.theme-dark \{[^}]*--tableau-bg:/);
   });
