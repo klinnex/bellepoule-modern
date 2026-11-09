@@ -19,8 +19,6 @@ import {
   checkChallengerSuddenDeath,
   isValidSuddenDeathTouch,
   getSuddenDeathOvertimeDuration,
-  drawWinner,
-  isSupplementaryTime,
 } from '../../shared/utils/suddenDeath';
 import TiebreakerAnimation from './TiebreakerAnimation';
 import { useMatchAuditStore } from '../../features/matchAuditLog/hooks/useMatchAuditStore';

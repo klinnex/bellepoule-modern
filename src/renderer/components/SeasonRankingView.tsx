@@ -324,7 +324,6 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {sortedRanking.map((e, i) => {
-                      const ind = e.totalTouchesScored - e.totalTouchesReceived;
                       return (
                         <tr key={e.fencerId} className="hover:bg-blue-50">
                           <td className="px-2 py-2 text-center font-bold text-gray-400">{i + 1}</td>

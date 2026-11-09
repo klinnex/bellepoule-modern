@@ -11,7 +11,6 @@ import {
   Match,
   MatchStatus,
   FencerStatus,
-  Weapon,
   PoolRanking,
   Score,
 } from '../../shared/types';

@@ -43,7 +43,6 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({ onClose }) => {
     }
 
     // Récupérer les infos système
-    const platform = navigator.platform || 'Unknown';
     const userAgent = navigator.userAgent || '';
     let os = 'Unknown';
 

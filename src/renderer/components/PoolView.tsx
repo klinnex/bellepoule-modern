@@ -13,15 +13,7 @@ import { POOL_SCORE_INPUT_INIT, POOL_DIALOGS_INIT } from './pool/poolViewState';
 import { usePoolReferees } from './pool/usePoolReferees';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import Modal from './common/Modal';
-import {
-  Pool,
-  Fencer,
-  MatchStatus,
-  Score,
-  Weapon,
-  FencerStatus,
-  Referee,
-} from '../../shared/types';
+import { Pool, Fencer, MatchStatus, Weapon, FencerStatus, Referee } from '../../shared/types';
 import { Arena } from '../../shared/types/remote';
 import { logger, LogCategory } from '@shared/services/logger';
 import { useToast } from './Toast';
@@ -62,8 +54,6 @@ import {
   SCORE_SEP,
   SPECIAL_ROW,
   FOOTER_RIGHT,
-  MUTED_HINT,
-  STATUS_BTN,
   LOG_TOGGLE,
   LOG_WRAP,
   LOG_ITEM,

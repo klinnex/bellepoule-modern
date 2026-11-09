@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
-import { Competition, Pool, Match, MatchStatus } from '../../shared/types';
+import { Competition, Pool, MatchStatus } from '../../shared/types';
 import { logger, LogCategory } from '@shared/services/logger';
 
 interface PresentationModeProps {
@@ -22,7 +22,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
 }) => {
   const { t } = useTranslation();
   const [currentPoolIndex, setCurrentPoolIndex] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [, setIsFullscreen] = useState(false);
 
   // Active le mode plein écran
   useEffect(() => {

@@ -7,7 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useExport } from './useExport';
-import { Fencer, Gender, FencerStatus, Competition, Weapon, Category } from '../../shared/types';
+import { Fencer, Gender, FencerStatus, Competition } from '../../shared/types';
 
 const fencer = (id: string): Fencer => ({
   id,

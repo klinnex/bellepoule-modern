@@ -13,7 +13,7 @@ import { ConfirmProvider, useConfirm } from './ConfirmDialog';
 // Composant exposant le résultat de confirm()
 const Harness: React.FC<{ options?: any }> = ({ options }) => {
   const { confirm } = useConfirm();
-  const [res, setRes] = useState<string>('');
+  const [, setRes] = useState<string>('');
   return (
     <button onClick={async () => setRes(String(await confirm(options ?? 'Continuer ?')))}>
       ask

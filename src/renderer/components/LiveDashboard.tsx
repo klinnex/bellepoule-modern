@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Competition, Pool, Match, MatchStatus, PoolRanking, Weapon } from '../../shared/types';
+import { Competition, Pool, Match, MatchStatus, Weapon } from '../../shared/types';
 import { formatIndex } from '../../shared/utils/poolCalculations';
 import {
   PANEL_TITLE,
@@ -40,7 +40,7 @@ export const LiveDashboard: React.FC<LiveDashboardProps> = ({
   const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState<'pools' | 'tableau' | 'ranking'>('pools');
-  const [refreshInterval, setRefreshInterval] = useState<number>(5000);
+  const [refreshInterval] = useState<number>(5000);
 
   useEffect(() => {
     const timer = setInterval(() => {

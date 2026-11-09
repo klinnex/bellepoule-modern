@@ -16,7 +16,7 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
-import { Competition, Weapon, Gender, Category } from '../../shared/types';
+import { Competition } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
 import { usePagination } from '../hooks/usePagination';
@@ -72,8 +72,6 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   );
   const {
     items: paginatedCompetitions,
-    page,
-    totalPages,
     totalItems,
     pageSize,
     hasNext,
