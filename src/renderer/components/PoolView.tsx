@@ -5,7 +5,19 @@
  */
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { Funnel } from 'lucide-react';
+import {
+  ChartColumn,
+  ClipboardList,
+  Coins,
+  Dices,
+  Funnel,
+  Gavel,
+  PenLine,
+  Plus,
+  Printer,
+  Swords,
+} from 'lucide-react';
+import { Icon } from './common/Icon';
 import { resolveInlineSubmit } from '../../shared/utils/inlineScoreInput';
 import { useModalResize } from '../hooks/useModalResize';
 import { useStateGroup } from '../hooks/useStateGroup';
@@ -1149,7 +1161,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                         className="btn btn-warning"
                         onClick={() => setShowPriorityDraw(true)}
                       >
-                        🪙 {t('poolView.priority_draw')}
+                        <Icon icon={Coins} /> {t('poolView.priority_draw')}
                       </button>
                       {priorityPick && (
                         <span className="text-muted">
@@ -1472,7 +1484,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   style={LOG_ITEM}
                   title={t('poolView.view_match_log')}
                 >
-                  📋 {match.fencerA?.lastName} {t('poolView.vs')} {match.fencerB?.lastName}
+                  <Icon icon={ClipboardList} /> {match.fencerA?.lastName} {t('poolView.vs')}{' '}
+                  {match.fencerB?.lastName}
                 </button>
               ))}
             </div>
@@ -1589,7 +1602,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   }
                   className={`pv-pill${allSigned ? ' is-done' : noneSigned ? '' : ' is-partial'}`}
                 >
-                  ✍️ {signed}/{total}
+                  <Icon icon={PenLine} /> {signed}/{total}
                 </span>
               );
             })()}
@@ -1607,7 +1620,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               }
               className={`pv-pill${assignedReferee ? ' is-assigned' : ''}`}
             >
-              🧑‍⚖️{' '}
+              <Icon icon={Gavel} />{' '}
               {assignedReferees.length > 0
                 ? assignedReferees.map(r => r.lastName).join(' / ')
                 : t('poolView.add_referee')}
@@ -1646,7 +1659,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               title={t('poolView.autofill')}
               aria-label={t('poolView.autofill')}
             >
-              🎲
+              <Icon icon={Dices} />
             </button>
             <button
               onClick={handlePrintPool}
@@ -1654,7 +1667,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               title={t('poolView.print_title')}
               aria-label={t('poolView.print_aria')}
             >
-              🖨️
+              <Icon icon={Printer} />
             </button>
             {pool.isComplete && isRemoteActive && remoteServerUrl && (
               <button
@@ -1670,7 +1683,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 title={t('poolView.signatures_title', { arena: defaultArena })}
                 aria-label={t('poolView.signatures')}
               >
-                ✍️
+                <Icon icon={PenLine} />
               </button>
             )}
             {competitionId && (
@@ -1680,7 +1693,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 title={t('poolView.add_fencer')}
                 aria-label={t('poolView.add_fencer')}
               >
-                ➕
+                <Icon icon={Plus} />
               </button>
             )}
             <div style={RELATIVE} ref={columnMenuRef}>
@@ -1740,10 +1753,10 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               title={viewMode === 'grid' ? t('poolView.matches_view') : t('poolView.grid_view')}
             >
               <span className="pv-view-switch-icon" aria-hidden="true">
-                📊
+                <Icon icon={ChartColumn} />
               </span>
               <span className="pv-view-switch-icon" aria-hidden="true">
-                ⚔️
+                <Icon icon={Swords} />
               </span>
               <span className="pv-view-switch-thumb" aria-hidden="true" />
             </button>
@@ -1832,7 +1845,8 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                     style={REF_BTN}
                     className={`btn pv-ref-btn ${selected ? 'btn-primary' : 'btn-secondary'}`}
                   >
-                    {selected ? `☑ ${order + 1}.` : '☐'} 🧑‍⚖️ {ref.lastName} {ref.firstName}
+                    {selected ? `☑ ${order + 1}.` : '☐'} <Icon icon={Gavel} /> {ref.lastName}{' '}
+                    {ref.firstName}
                     {ref.club && <span className="pv-ref-club">({ref.club})</span>}
                   </button>
                 );
@@ -1854,7 +1868,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   style={REF_BTN}
                   className={`btn pv-ref-btn ${assignedReferee?.id === ref.id ? 'btn-primary' : 'btn-secondary'}`}
                 >
-                  🧑‍⚖️ {ref.lastName} {ref.firstName}
+                  <Icon icon={Gavel} /> {ref.lastName} {ref.firstName}
                   {ref.club && <span className="pv-ref-club">({ref.club})</span>}
                 </button>
               ))}

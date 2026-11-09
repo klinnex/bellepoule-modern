@@ -16,6 +16,8 @@ import {
   Check,
   Lock,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Icon } from '../common/Icon';
 import { Competition, MatchStatus, QuestPhaseConfig, Fencer } from '../../../shared/types';
 import { Phase } from '../../hooks/useCompetitionSession';
 import CoachMark from '../CoachMark';
@@ -26,7 +28,7 @@ import { phaseStepStates, nextBlockedReason } from './phaseStepper';
 interface PhaseItem {
   id: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   disabled: boolean;
   title?: string;
 }
@@ -153,7 +155,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                 ) : stepStates[index] === 'blocked' ? (
                   <Lock size={12} />
                 ) : (
-                  phase.icon
+                  <Icon icon={phase.icon} />
                 )}
               </span>
               <span>{phase.label}</span>

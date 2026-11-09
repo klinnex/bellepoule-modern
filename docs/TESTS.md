@@ -101,15 +101,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 72 | 361 |
+| `src/renderer/components/` | 73 | 363 |
 | E2E Playwright (`e2e/`) | 9 | 36 |
 | `src/remote/` | 40 | 269 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 12 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **309** | **2448** |
+| **Total** | **310** | **2450** |
 
-Unitaires : 300 fichiers, 2412 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 301 fichiers, 2414 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4042,6 +4042,15 @@ Unitaires : 300 fichiers, 2412 tests. E2E : 9 fichiers, 36 tests (comptage stati
 - **EmptyState**
   - rend titre, description et déclenche l’action principale
   - sans action : aucun bouton
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/common/Icon.test.tsx</code> — 2 tests</summary>
+
+- **Icon**
+  - est masquée aux lecteurs d’écran par défaut
+  - expose un nom accessible avec label
 
 </details>
 
