@@ -30,3 +30,10 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* Barre collante : l'étape suivante reste visible quand le contenu défile */
+.phase-nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky, 200);
+}
