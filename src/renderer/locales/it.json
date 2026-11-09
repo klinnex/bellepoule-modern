@@ -1400,6 +1400,8 @@
     "never_met": "Questi due schermidori non si sono mai affrontati in questa competizione."
   },
   "fencerList": {
+    "undo": "Annulla",
+    "status_changed": "{{name}}: stato modificato",
     "col_nationality": "Nazionalità",
     "import_menu": "📥 Importa ▾",
     "import_xml_bp": "Importa XML (BellePoule)",

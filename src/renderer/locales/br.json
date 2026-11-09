@@ -1400,6 +1400,8 @@
     "never_met": "N'en deus ket en em gannet an daou gleizeier-mañ biskoazh er c'hevezadeg-mañ."
   },
   "fencerList": {
+    "undo": "Dizober",
+    "status_changed": "{{name}} : statud cheñchet",
     "col_nationality": "Broadelezh",
     "import_menu": "📥 Enporzhiañ ▾",
     "import_xml_bp": "Enporzhiañ XML (BellePoule)",

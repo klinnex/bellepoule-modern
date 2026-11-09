@@ -1400,6 +1400,8 @@
     "never_met": "Estes dois esgrimistas nunca se encontraram nesta competição."
   },
   "fencerList": {
+    "undo": "Anular",
+    "status_changed": "{{name}}: estado alterado",
     "col_nationality": "Nacionalidade",
     "import_menu": "📥 Importar ▾",
     "import_xml_bp": "Importar XML (BellePoule)",

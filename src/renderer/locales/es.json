@@ -1400,6 +1400,8 @@
     "never_met": "Estos dos tiradores nunca se han enfrentado en esta competición."
   },
   "fencerList": {
+    "undo": "Deshacer",
+    "status_changed": "{{name}}: estado modificado",
     "col_nationality": "Nacionalidad",
     "import_menu": "📥 Importar ▾",
     "import_xml_bp": "Importar XML (BellePoule)",

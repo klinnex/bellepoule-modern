@@ -16,6 +16,7 @@ import { departmentLabel } from '../../shared/utils/departments';
 import { buildFencerImportTemplate } from '../../shared/utils/fileParser';
 // pdfExport (jsPDF) chargé à la demande pour alléger le bundle initial
 import { useConfirm } from './ConfirmDialog';
+import { useToast } from './Toast';
 import CoachMark from './CoachMark';
 import { useDebounce } from '../hooks/useDebounce';
 import Flag from './common/Flag';
@@ -106,6 +107,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
+  const { showToast } = useToast();
 
   const statusLabels: Record<FencerStatus, { label: string; color: string }> = {
     [FencerStatus.CHECKED_IN]: { label: t('status.checked_in'), color: 'badge-success' },
@@ -425,22 +427,16 @@ const FencerListComponent: React.FC<FencerListProps> = ({
     }
   };
 
-  const handleSetFencerStatus = async (
-    id: string,
-    status: FencerStatus,
-    confirmationMessage?: string
-  ) => {
-    if (confirmationMessage) {
-      if (await confirm(confirmationMessage)) {
-        if (onSetFencerStatus) {
-          onSetFencerStatus(id, status);
-        }
-      }
-    } else {
-      if (onSetFencerStatus) {
-        onSetFencerStatus(id, status);
-      }
-    }
+  // Changement de statut réversible : pas de modale, toast avec « Annuler » (#1535)
+  const handleSetFencerStatus = (id: string, status: FencerStatus, name?: string) => {
+    if (!onSetFencerStatus) return;
+    const previous = fencers.find(f => f.id === id)?.status;
+    onSetFencerStatus(id, status);
+    if (previous === undefined || !name) return;
+    showToast(t('fencerList.status_changed', { name }), 'info', {
+      duration: 5000,
+      action: { label: t('fencerList.undo'), onClick: () => onSetFencerStatus(id, previous) },
+    });
   };
 
   const handleSort = useCallback(
@@ -1109,9 +1105,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                   handleSetFencerStatus(
                                     fencer.id,
                                     FencerStatus.ABANDONED,
-                                    t('messages.confirm_abandon', {
-                                      name: `${fencer.lastName} ${fencer.firstName}`,
-                                    })
+                                    `${fencer.lastName} ${fencer.firstName}`
                                   )
                                 }
                                 title={t('fencerList.abandon')}
@@ -1125,9 +1119,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                   handleSetFencerStatus(
                                     fencer.id,
                                     FencerStatus.FORFAIT,
-                                    t('messages.confirm_forfait', {
-                                      name: `${fencer.lastName} ${fencer.firstName}`,
-                                    })
+                                    `${fencer.lastName} ${fencer.firstName}`
                                   )
                                 }
                                 title={t('fencerList.forfeit')}
@@ -1146,9 +1138,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                   handleSetFencerStatus(
                                     fencer.id,
                                     FencerStatus.CHECKED_IN,
-                                    t('messages.confirm_reactivate', {
-                                      name: `${fencer.lastName} ${fencer.firstName}`,
-                                    })
+                                    `${fencer.lastName} ${fencer.firstName}`
                                   )
                                 }
                                 title={t('fencerList.reactivate')}

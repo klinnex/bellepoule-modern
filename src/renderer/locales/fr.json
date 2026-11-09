@@ -1400,6 +1400,8 @@
     "never_met": "Ces deux tireurs ne se sont jamais affrontés dans cette compétition."
   },
   "fencerList": {
+    "undo": "Annuler",
+    "status_changed": "{{name}} : statut modifié",
     "col_nationality": "Nationalité",
     "import_menu": "📥 Importer ▾",
     "import_xml_bp": "Importer XML (BellePoule)",

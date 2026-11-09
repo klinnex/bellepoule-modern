@@ -137,7 +137,10 @@ const ToastItemComponent: React.FC<{
           </div>
           {toast.action && (
             <button
-              onClick={toast.action.onClick}
+              onClick={() => {
+                toast.action?.onClick();
+                onRemove(toast.id);
+              }}
               style={{
                 marginTop: '6px',
                 padding: '4px 10px',
