@@ -21,6 +21,19 @@ import { useTranslation } from '../hooks/useTranslation';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
 import { usePagination } from '../hooks/usePagination';
 import { filterCompetitions } from './competitionListSearch';
+import {
+  applyFilters,
+  availableValues,
+  emptyFilters,
+  FILTER_GROUPS,
+  hasActiveFilters,
+  readSort,
+  SORT_OPTIONS,
+  sortCompetitions,
+  writeSort,
+  type CompetitionSort,
+  type FilterGroup,
+} from './competitionListFilters';
 import { CompetitionCardSkeleton } from './Skeleton';
 import { useConfirm } from './ConfirmDialog';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
@@ -66,10 +79,38 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
   };
   const [query, setQuery] = React.useState('');
   const searchRef = React.useRef<HTMLInputElement>(null);
+  const [filters, setFilters] = React.useState(emptyFilters);
+  const [sort, setSort] = React.useState<CompetitionSort>(readSort);
   const visibleCompetitions = React.useMemo(
-    () => filterCompetitions(competitions, query),
-    [competitions, query]
+    () => sortCompetitions(applyFilters(filterCompetitions(competitions, query), filters), sort),
+    [competitions, query, filters, sort]
   );
+  const toggleFilter = (group: FilterGroup, value: string) =>
+    setFilters(prev => ({
+      ...prev,
+      [group]: prev[group].includes(value)
+        ? prev[group].filter(v => v !== value)
+        : [...prev[group], value],
+    }));
+  const filterLabel = (group: FilterGroup, value: string): string => {
+    switch (group) {
+      case 'weapon': {
+        const key = (
+          { E: 'epee', F: 'foil', S: 'sabre', L: 'laser', C: 'custom' } as Record<string, string>
+        )[value];
+        return key ? t(`weapons.${key}`) : value;
+      }
+      case 'gender': {
+        const key = ({ M: 'male', F: 'female', X: 'mixed' } as Record<string, string>)[value];
+        return key ? t(`genders.${key}`) : value;
+      }
+      case 'category':
+        return categoryLabel(value, t);
+      default:
+        return t(`competitionList.status_${value}`);
+    }
+  };
+  const filtersActive = hasActiveFilters(filters);
   const {
     items: paginatedCompetitions,
     totalItems,
@@ -377,13 +418,64 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           placeholder={t('competitionList.search_placeholder')}
           aria-label={t('competitionList.search_aria')}
         />
-        {query && (
+        <select
+          className="form-select competition-sort"
+          value={sort}
+          onChange={e => {
+            const next = e.target.value as CompetitionSort;
+            setSort(next);
+            writeSort(next);
+          }}
+          aria-label={t('competitionList.sort_aria')}
+        >
+          {SORT_OPTIONS.map(o => (
+            <option key={o} value={o}>
+              {t(`competitionList.sort_${o}`)}
+            </option>
+          ))}
+        </select>
+        {(query || filtersActive) && (
           <span className="competition-search-count" aria-live="polite">
             {t('competitionList.search_count', {
               shown: visibleCompetitions.length,
               total: competitions.length,
             })}
           </span>
+        )}
+      </div>
+      <div className="competition-filters">
+        {FILTER_GROUPS.map(group => {
+          const values = availableValues(competitions, group);
+          if (values.length < 2) return null;
+          return (
+            <div
+              key={group}
+              className="competition-filter-group"
+              role="group"
+              aria-label={t(`competitionList.filter_${group}`)}
+            >
+              {values.map(v => (
+                <button
+                  key={v}
+                  type="button"
+                  className={`competition-chip${filters[group].includes(v) ? ' is-active' : ''}`}
+                  aria-pressed={filters[group].includes(v)}
+                  onClick={() => toggleFilter(group, v)}
+                >
+                  {filterLabel(group, v)}
+                </button>
+              ))}
+            </div>
+          );
+        })}
+        {filtersActive && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => setFilters(emptyFilters())}
+          >
+            {t('competitionList.filters_reset')}
+          </button>
         )}
       </div>
       {visibleCompetitions.length === 0 && (

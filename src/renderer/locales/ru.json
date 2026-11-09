@@ -2180,7 +2180,20 @@
     "search_aria": "Поиск соревнования",
     "search_placeholder": "Поиск по названию, месту или дате…",
     "search_empty": "Ни одно соревнование не соответствует запросу.",
-    "search_count": "{{shown}} из {{total}}"
+    "search_count": "{{shown}} из {{total}}",
+    "filter_weapon": "Фильтр по оружию",
+    "filter_gender": "Фильтр по полу",
+    "filter_category": "Фильтр по категории",
+    "filter_status": "Фильтр по статусу",
+    "filters_reset": "Сбросить фильтры",
+    "sort_aria": "Сортировка соревнований",
+    "sort_date_desc": "Дата (сначала новые)",
+    "sort_date_asc": "Дата (сначала старые)",
+    "sort_name_asc": "Название (А–Я)",
+    "status_draft": "Черновик",
+    "status_in_progress": "Идёт",
+    "status_completed": "Завершено",
+    "status_cancelled": "Отменено"
   },
   "trainingLauncher": {
     "title": "Режим тренировки",

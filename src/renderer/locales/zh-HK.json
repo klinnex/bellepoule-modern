@@ -2180,7 +2180,20 @@
     "search_aria": "搜尋比賽",
     "search_placeholder": "按名稱、地點或日期搜尋…",
     "search_empty": "沒有符合搜尋的比賽。",
-    "search_count": "{{shown}} / {{total}}"
+    "search_count": "{{shown}} / {{total}}",
+    "filter_weapon": "按武器篩選",
+    "filter_gender": "按性別篩選",
+    "filter_category": "按組別篩選",
+    "filter_status": "按狀態篩選",
+    "filters_reset": "重設篩選",
+    "sort_aria": "排序賽事",
+    "sort_date_desc": "日期（最新優先）",
+    "sort_date_asc": "日期（最舊優先）",
+    "sort_name_asc": "名稱（A 至 Z）",
+    "status_draft": "草稿",
+    "status_in_progress": "進行中",
+    "status_completed": "已完成",
+    "status_cancelled": "已取消"
   },
   "trainingLauncher": {
     "title": "訓練模式",

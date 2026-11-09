@@ -2180,7 +2180,20 @@
     "search_aria": "Wettkampf suchen",
     "search_placeholder": "Nach Name, Ort oder Datum suchen…",
     "search_empty": "Kein Wettkampf passt zur Suche.",
-    "search_count": "{{shown}} von {{total}}"
+    "search_count": "{{shown}} von {{total}}",
+    "filter_weapon": "Nach Waffe filtern",
+    "filter_gender": "Nach Geschlecht filtern",
+    "filter_category": "Nach Kategorie filtern",
+    "filter_status": "Nach Status filtern",
+    "filters_reset": "Filter zurücksetzen",
+    "sort_aria": "Wettbewerbe sortieren",
+    "sort_date_desc": "Datum (neueste zuerst)",
+    "sort_date_asc": "Datum (älteste zuerst)",
+    "sort_name_asc": "Name (A bis Z)",
+    "status_draft": "Entwurf",
+    "status_in_progress": "Läuft",
+    "status_completed": "Abgeschlossen",
+    "status_cancelled": "Abgesagt"
   },
   "trainingLauncher": {
     "title": "Trainingsmodus",

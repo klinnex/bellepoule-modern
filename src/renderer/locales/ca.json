@@ -2180,7 +2180,20 @@
     "search_aria": "Cerca una competició",
     "search_placeholder": "Cerca per nom, lloc o data…",
     "search_empty": "Cap competició no coincideix amb la cerca.",
-    "search_count": "{{shown}} de {{total}}"
+    "search_count": "{{shown}} de {{total}}",
+    "filter_weapon": "Filtra per arma",
+    "filter_gender": "Filtra per sexe",
+    "filter_category": "Filtra per categoria",
+    "filter_status": "Filtra per estat",
+    "filters_reset": "Reinicia els filtres",
+    "sort_aria": "Ordena les competicions",
+    "sort_date_desc": "Data (més recents primer)",
+    "sort_date_asc": "Data (més antigues primer)",
+    "sort_name_asc": "Nom (A a Z)",
+    "status_draft": "Esborrany",
+    "status_in_progress": "En curs",
+    "status_completed": "Finalitzada",
+    "status_cancelled": "Cancel·lada"
   },
   "trainingLauncher": {
     "title": "Mode entrenament",

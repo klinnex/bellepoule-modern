@@ -2180,7 +2180,20 @@
     "search_aria": "Buscar una competición",
     "search_placeholder": "Buscar por nombre, lugar o fecha…",
     "search_empty": "Ninguna competición coincide con la búsqueda.",
-    "search_count": "{{shown}} de {{total}}"
+    "search_count": "{{shown}} de {{total}}",
+    "filter_weapon": "Filtrar por arma",
+    "filter_gender": "Filtrar por sexo",
+    "filter_category": "Filtrar por categoría",
+    "filter_status": "Filtrar por estado",
+    "filters_reset": "Restablecer filtros",
+    "sort_aria": "Ordenar competiciones",
+    "sort_date_desc": "Fecha (recientes primero)",
+    "sort_date_asc": "Fecha (antiguas primero)",
+    "sort_name_asc": "Nombre (A a Z)",
+    "status_draft": "Borrador",
+    "status_in_progress": "En curso",
+    "status_completed": "Finalizada",
+    "status_cancelled": "Cancelada"
   },
   "trainingLauncher": {
     "title": "Modo entrenamiento",

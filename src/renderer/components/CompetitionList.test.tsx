@@ -73,3 +73,51 @@ describe('CompetitionList (export accueil)', () => {
     expect(screen.queryByText('competitionList.export')).toBeNull();
   });
 });
+
+describe('CompetitionList (filtres et tri #1534)', () => {
+  beforeEach(() => localStorage.clear());
+  const mk = (id: string, title: string, weapon: Weapon, date: string) =>
+    ({
+      id,
+      title,
+      date,
+      weapon,
+      category: Category.SENIOR,
+      gender: Gender.MALE,
+      status: 'draft',
+      fencers: [],
+      color: '#3B5BDB',
+    }) as unknown as Competition;
+  const renderList = () =>
+    render(
+      <CompetitionList
+        competitions={[
+          mk('a', 'Alpha', Weapon.EPEE, '2026-01-01'),
+          mk('b', 'Bravo', Weapon.FOIL, '2026-03-01'),
+        ]}
+        isLoading={false}
+        onSelect={() => {}}
+        onDelete={() => {}}
+        onNewCompetition={() => {}}
+      />
+    );
+
+  it('filtre par arme avec une puce, puis réinitialise', () => {
+    renderList();
+    fireEvent.click(screen.getByRole('button', { name: 'weapons.foil' }));
+    expect(screen.queryByText('Alpha')).toBeNull();
+    expect(screen.getByText('Bravo')).toBeTruthy();
+    fireEvent.click(screen.getByText('competitionList.filters_reset'));
+    expect(screen.getByText('Alpha')).toBeTruthy();
+  });
+
+  it('trie par nom et mémorise la préférence', () => {
+    renderList();
+    fireEvent.change(screen.getByLabelText('competitionList.sort_aria'), {
+      target: { value: 'name_asc' },
+    });
+    const titles = screen.getAllByRole('heading', { level: 3 }).map(h => h.textContent);
+    expect(titles).toEqual(['Alpha', 'Bravo']);
+    expect(localStorage.getItem('bellepoule-competition-sort')).toBe('name_asc');
+  });
+});

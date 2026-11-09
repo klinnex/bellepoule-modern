@@ -2180,7 +2180,20 @@
     "search_aria": "Search a competition",
     "search_placeholder": "Search by name, place or date…",
     "search_empty": "No competition matches the search.",
-    "search_count": "{{shown}} of {{total}}"
+    "search_count": "{{shown}} of {{total}}",
+    "filter_weapon": "Filter by weapon",
+    "filter_gender": "Filter by gender",
+    "filter_category": "Filter by category",
+    "filter_status": "Filter by status",
+    "filters_reset": "Reset filters",
+    "sort_aria": "Sort competitions",
+    "sort_date_desc": "Date (newest first)",
+    "sort_date_asc": "Date (oldest first)",
+    "sort_name_asc": "Name (A to Z)",
+    "status_draft": "Draft",
+    "status_in_progress": "In progress",
+    "status_completed": "Completed",
+    "status_cancelled": "Cancelled"
   },
   "trainingLauncher": {
     "title": "Training mode",
