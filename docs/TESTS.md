@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 425 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 68 | 342 |
+| `src/renderer/components/` | 69 | 348 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 40 | 269 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 3 | 6 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **304** | **2423** |
+| **Total** | **305** | **2429** |
 
-Unitaires : 295 fichiers, 2388 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 296 fichiers, 2394 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4329,12 +4329,13 @@ Unitaires : 295 fichiers, 2388 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 13 tests</summary>
+<summary><code>src/renderer/components/tableau/TableauScoreModal.test.tsx</code> — 14 tests</summary>
 
 - **TableauScoreModal**
   - affiche le nom du tour et les tireurs
   - saisir un score appelle setEditScoreA
   - Valider déclenche onSubmit
+  - saisie complète au clavier : score A, Tab, score B, Entrée valide (#1542)
   - bouton Médical : croix rouge médicale (#1256)
   - Échap ferme la modale
   - le clic hors de la fenêtre ne ferme pas (#1115)
@@ -4346,6 +4347,18 @@ Unitaires : 295 fichiers, 2388 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - égalité : V manuel pour chaque tireur
     - V déjà actif : un second clic le retire
     - tirage au sort : le résultat désigne le vainqueur
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/tableau/matchCardNav.test.ts</code> — 5 tests</summary>
+
+- **matchCardNav**
+  - isNavKey
+  - bas / haut restent dans la colonne
+  - droite : tour suivant le plus proche
+  - gauche : tour précédent
+  - bord : -1
 
 </details>
 

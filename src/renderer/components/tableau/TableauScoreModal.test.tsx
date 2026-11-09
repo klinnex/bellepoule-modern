@@ -60,6 +60,25 @@ describe('TableauScoreModal', () => {
     expect(props.onSubmit).toHaveBeenCalledTimes(1);
   });
 
+  it('saisie complète au clavier : score A, Tab, score B, Entrée valide (#1542)', () => {
+    const { props, utils } = setup();
+    const [a, b] = Array.from(
+      utils.baseElement.querySelectorAll<HTMLInputElement>('input[type="number"]')
+    );
+    expect(a).toHaveFocus();
+    fireEvent.change(a, { target: { value: '15' } });
+    fireEvent.keyDown(a, { key: 'Tab' });
+    expect(b).toHaveFocus();
+    fireEvent.change(b, { target: { value: '12' } });
+    fireEvent.keyDown(b, { key: 'Tab', shiftKey: true });
+    expect(a).toHaveFocus();
+    fireEvent.keyDown(a, { key: 'Tab' });
+    fireEvent.keyDown(b, { key: 'Enter' });
+    expect(props.setEditScoreA).toHaveBeenCalledWith('15');
+    expect(props.setEditScoreB).toHaveBeenCalledWith('12');
+    expect(props.onSubmit).toHaveBeenCalledTimes(1);
+  });
+
   it('bouton Médical : croix rouge médicale (#1256)', () => {
     setup();
     const btn = screen.getByText('Médical').closest('button')!;
