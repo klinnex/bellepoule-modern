@@ -55,24 +55,4 @@ describe('createMenuActions (#1341)', () => {
     await actions.handleSaveAs();
     expect(db.exportToFile).toHaveBeenCalledWith('/tmp/g.bpm');
   });
-
-  it('import accueil : boîte limitée aux .bpm, fusion puis signalement du fichier ouvert', async () => {
-    const { db, send, actions } = setup(null);
-    showOpenDialog.mockResolvedValue({ canceled: false, filePaths: ['/tmp/in.bpm'] });
-    const res = await actions.importCompetitionDialog();
-    expect(showOpenDialog.mock.calls[0][1].filters).toEqual([
-      expect.objectContaining({ extensions: ['bpm'] }),
-    ]);
-    expect(db.mergeFromFile).toHaveBeenCalledWith('/tmp/in.bpm');
-    expect(send).toHaveBeenCalledWith('file:opened', '/tmp/in.bpm', ['c9']);
-    expect(res).toEqual({ success: true, competitionIds: ['c9'] });
-  });
-
-  it('import accueil annulé : rien fusionné', async () => {
-    const { db, send, actions } = setup(null);
-    showOpenDialog.mockResolvedValue({ canceled: true, filePaths: [] });
-    expect(await actions.importCompetitionDialog()).toEqual({ success: false, canceled: true });
-    expect(db.mergeFromFile).not.toHaveBeenCalled();
-    expect(send).not.toHaveBeenCalled();
-  });
 });

@@ -2167,8 +2167,6 @@
     "per_page": "{{n}} / pagina",
     "open_file": "Apri…",
     "open_file_title": "Apri un file .bpm, .db o .cotcot",
-    "import": "Importa (.bpm)",
-    "import_title": "Importa una competizione da un file .bpm",
     "export": "Esporta (.bpm)",
     "export_title": "Esporta una competizione in un file .bpm",
     "export_pick_title": "Scegli la competizione da esportare",

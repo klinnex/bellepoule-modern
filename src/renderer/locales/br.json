@@ -2167,8 +2167,6 @@
     "per_page": "{{n}} / pajenn",
     "open_file": "Digeriñ…",
     "open_file_title": "Digeriñ ur restr .bpm, .db pe .cotcot",
-    "import": "Digeriñ (.bpm)",
-    "import_title": "Enporzhiañ ur genstrivadeg eus ur restr .bpm",
     "export": "Ezporzhiañ (.bpm)",
     "export_title": "Ezporzhiañ ur genstrivadeg e ur restr .bpm",
     "export_pick_title": "Dibab ar genstrivadeg da ezporzhiañ",
