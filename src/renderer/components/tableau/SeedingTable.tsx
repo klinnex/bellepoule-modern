@@ -38,7 +38,7 @@ const SeedingTable: React.FC<SeedingTableProps> = ({ ranking, tableauSize }) => 
                   {r.fencer.lastName} {r.fencer.firstName}
                 </span>
                 <span className="is-c2ff1b">
-                  {r.fencer.club && r.fencer.club}
+                  {r.fencer.club}
                   {r.fencer.birthDate && ` • ${new Date(r.fencer.birthDate).getFullYear()}`}
                   {r.fencer.ranking && ` • #${r.fencer.ranking}`}
                 </span>
