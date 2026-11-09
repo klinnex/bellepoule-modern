@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 67 | 338 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
-| `src/remote/` | 39 | 264 |
+| `src/remote/` | 40 | 269 |
 | `src/renderer/contexts/` | 1 | 4 |
-| `src/renderer/styles/` | 2 | 3 |
+| `src/renderer/styles/` | 3 | 6 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **301** | **2411** |
+| **Total** | **303** | **2419** |
 
-Unitaires : 292 fichiers, 2376 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 294 fichiers, 2384 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4994,6 +4994,18 @@ Unitaires : 292 fichiers, 2376 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/remote/refereeTouchErgonomics.test.ts</code> — 5 tests</summary>
+
+- **referee.html ergonomie tactile (#1539)**
+  - espace les cibles de score et de cartons d au moins 8 px
+  - donne un retour visuel à l appui sur les boutons de score et de contrôle
+  - rend le focus visible sur les contrôles de saisie
+  - garde le bouton Annuler plus grand que les sorties d arène
+  - annonce les scores aux lecteurs d écran
+
+</details>
+
+<details>
 <summary><code>src/remote/remoteEscapeAnalysis.test.ts</code> — 13 tests</summary>
 
 - **escHtml (/common.js)**
@@ -5093,6 +5105,16 @@ Unitaires : 292 fichiers, 2376 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **main.css / design.css**
   - index.tsx importe design.css après main.css
   - aucune déclaration de main.css écrasée par design.css
+
+</details>
+
+<details>
+<summary><code>src/renderer/styles/tokens.test.ts</code> — 3 tests</summary>
+
+- **tokens.css : mouvement et surfaces (#1531)**
+  - définit les tokens de mouvement
+  - surface translucide uniquement sous @supports backdrop-filter, repli opaque par défaut
+  - design.css neutralise les animations via prefers-reduced-motion
 
 </details>
 

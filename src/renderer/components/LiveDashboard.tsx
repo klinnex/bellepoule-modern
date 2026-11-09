@@ -413,35 +413,10 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
   const progress = pool.matches.length > 0 ? (completedCount / pool.matches.length) * 100 : 0;
 
   return (
-    <div
-      style={{
-        background: 'white',
-        borderRadius: '12px',
-        padding: '1.5rem',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem',
-        }}
-      >
-        <h3 style={{ margin: 0, color: 'var(--color-text)', fontSize: '1.25rem' }}>
-          {t('liveDashboard.pool', { n: pool.number })}
-        </h3>
-        <span
-          style={{
-            background: pool.isComplete ? '#d1fae5' : '#fef3c7',
-            color: pool.isComplete ? '#065f46' : '#92400e',
-            padding: '0.25rem 0.75rem',
-            borderRadius: '9999px',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-          }}
-        >
+    <div className="ld-card">
+      <div className="ld-pool-head">
+        <h3 className="ld-pool-title">{t('liveDashboard.pool', { n: pool.number })}</h3>
+        <span className={`ld-pool-badge${pool.isComplete ? ' ld-pool-badge--done' : ''}`}>
           {pool.isComplete ? '✓ Terminée' : `${Math.round(progress)}%`}
         </span>
       </div>
@@ -449,134 +424,47 @@ const PoolResultsCard_: React.FC<{ pool: Pool; isLaserSabre?: boolean }> = ({
       {pool.ranking.length > 0 ? (
         <table style={TABLE}>
           <thead>
-            <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
-              <th
-                style={{
-                  textAlign: 'left',
-                  padding: '0.5rem',
-                  color: 'var(--color-text-light)',
-                  fontSize: '0.875rem',
-                }}
-              >
-                {t('liveDashboard.rank')}
-              </th>
-              <th
-                style={{
-                  textAlign: 'left',
-                  padding: '0.5rem',
-                  color: 'var(--color-text-light)',
-                  fontSize: '0.875rem',
-                }}
-              >
-                {t('liveDashboard.fencer')}
-              </th>
-              <th
-                style={{
-                  textAlign: 'center',
-                  padding: '0.5rem',
-                  color: 'var(--color-text-light)',
-                  fontSize: '0.875rem',
-                }}
-              >
-                V
-              </th>
-              {isLaserSabre && (
-                <th
-                  style={{
-                    textAlign: 'center',
-                    padding: '0.5rem',
-                    color: '#7c3aed',
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  {t('liveDashboard.quest')}
-                </th>
-              )}
-              <th
-                style={{
-                  textAlign: 'center',
-                  padding: '0.5rem',
-                  color: 'var(--color-text-light)',
-                  fontSize: '0.875rem',
-                }}
-              >
-                {t('ranking.touches_scored')}
-              </th>
-              <th
-                style={{
-                  textAlign: 'center',
-                  padding: '0.5rem',
-                  color: 'var(--color-text-light)',
-                  fontSize: '0.875rem',
-                }}
-              >
-                {t('ranking.touches_received')}
-              </th>
-              <th
-                style={{
-                  textAlign: 'center',
-                  padding: '0.5rem',
-                  color: 'var(--color-text-light)',
-                  fontSize: '0.875rem',
-                }}
-              >
-                {t('liveDashboard.ind')}
-              </th>
+            <tr className="ld-head-row">
+              <th className="ld-th ld-th--left">{t('liveDashboard.rank')}</th>
+              <th className="ld-th ld-th--left">{t('liveDashboard.fencer')}</th>
+              <th className="ld-th">V</th>
+              {isLaserSabre && <th className="ld-th ld-th--quest">{t('liveDashboard.quest')}</th>}
+              <th className="ld-th">{t('ranking.touches_scored')}</th>
+              <th className="ld-th">{t('ranking.touches_received')}</th>
+              <th className="ld-th">{t('liveDashboard.ind')}</th>
             </tr>
           </thead>
           <tbody>
-            {pool.ranking.slice(0, 5).map((rank, idx) => (
-              <tr key={idx} style={{ borderBottom: '1px solid var(--color-bg)' }}>
-                <td
-                  style={{
-                    padding: '0.5rem',
-                    fontWeight: '700',
-                    color: idx < 3 ? '#f59e0b' : 'var(--color-text-light)',
-                  }}
-                >
-                  {idx + 1}
-                </td>
-                <td style={{ padding: '0.5rem' }}>
-                  <div style={{ fontWeight: '500', color: 'var(--color-text)' }}>
-                    {rank.fencer.firstName} {rank.fencer.lastName}
-                  </div>
-                </td>
-                <td style={{ padding: '0.5rem', textAlign: 'center', fontWeight: '600' }}>
-                  {rank.victories}
-                </td>
-                {isLaserSabre && (
-                  <td
-                    style={{
-                      padding: '0.5rem',
-                      textAlign: 'center',
-                      fontWeight: '600',
-                      color: '#7c3aed',
-                    }}
-                  >
-                    {rank.questPoints || 0}
+            {pool.ranking.slice(0, 5).map((rank, idx) => {
+              const index = rank.touchesScored - rank.touchesReceived;
+              return (
+                <tr key={idx} className="ld-row">
+                  <td className={`ld-td ld-td--rank${idx < 3 ? ' ld-td--rank-top' : ''}`}>
+                    {idx + 1}
                   </td>
-                )}
-                <td style={MONO_CELL}>{rank.touchesScored}</td>
-                <td style={MONO_CELL}>{rank.touchesReceived}</td>
-                <td
-                  style={{
-                    padding: '0.5rem',
-                    textAlign: 'center',
-                    fontFamily: 'monospace',
-                    fontWeight: '600',
-                    color: rank.touchesScored - rank.touchesReceived >= 0 ? '#059669' : '#DC2626',
-                  }}
-                >
-                  {formatIndex(rank.touchesScored - rank.touchesReceived)}
-                </td>
-              </tr>
-            ))}
+                  <td className="ld-td">
+                    <div className="ld-name">
+                      {rank.fencer.firstName} {rank.fencer.lastName}
+                    </div>
+                  </td>
+                  <td className="ld-td ld-td--center">{rank.victories}</td>
+                  {isLaserSabre && (
+                    <td className="ld-td ld-td--center ld-td--quest">{rank.questPoints || 0}</td>
+                  )}
+                  <td style={MONO_CELL}>{rank.touchesScored}</td>
+                  <td style={MONO_CELL}>{rank.touchesReceived}</td>
+                  <td
+                    className={`ld-td ld-td--center ld-td--index${index >= 0 ? '' : ' ld-td--index-neg'}`}
+                  >
+                    {formatIndex(index)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       ) : (
-        <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: '1rem' }}>
-          {t('liveDashboard.no_results')}
-        </p>
+        <p className="ld-empty">{t('liveDashboard.no_results')}</p>
       )}
     </div>
   );
@@ -588,99 +476,49 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
   const rounds = [128, 64, 32, 16, 8, 4, 2, 1];
 
   return (
-    <div
-      style={{
-        background: 'white',
-        borderRadius: '12px',
-        padding: '2rem',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-      }}
-    >
+    <div className="ld-card ld-card--roomy">
       {matches.length === 0 ? (
-        <p style={{ textAlign: 'center', color: 'var(--color-text-light)', fontSize: '1.1rem' }}>
-          {t('liveDashboard.tableau_not_started')}
-        </p>
+        <p className="ld-empty ld-empty--plain">{t('liveDashboard.tableau_not_started')}</p>
       ) : (
-        <div style={{ display: 'flex', gap: '2rem', overflowX: 'auto' }}>
+        <div className="ld-rounds">
           {rounds.map(round => {
             const roundMatches = matches.filter(m => m.round === round);
             if (roundMatches.length === 0) return null;
 
             return (
-              <div key={round} style={{ minWidth: '250px' }}>
-                <h4
-                  style={{
-                    textAlign: 'center',
-                    marginBottom: '1rem',
-                    color: 'var(--color-text)',
-                    fontSize: '0.875rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                  }}
-                >
+              <div key={round} className="ld-round">
+                <h4 className="ld-round-title">
                   {round === 1 ? 'Finale' : round === 2 ? 'Demi-finales' : `1/${round}`}
                 </h4>
                 <div className="u-stack-4">
-                  {roundMatches.map(match => (
-                    <div
-                      key={match.id}
-                      style={{
-                        background:
-                          match.status === MatchStatus.FINISHED
-                            ? '#f0fdf4'
-                            : 'var(--color-surface-2)',
-                        border: '1px solid',
-                        borderColor:
-                          match.status === MatchStatus.FINISHED ? '#86efac' : 'var(--color-border)',
-                        borderRadius: '8px',
-                        padding: '1rem',
-                      }}
-                    >
+                  {roundMatches.map(match => {
+                    const a = match.scoreA?.value;
+                    const b = match.scoreB?.value;
+                    const scored = a != null && b != null;
+                    return (
                       <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '0.5rem',
-                        }}
+                        key={match.id}
+                        className={`ld-match${match.status === MatchStatus.FINISHED ? ' ld-match--done' : ''}`}
                       >
-                        <span style={ROW_TEXT}>
-                          {match.fencerA?.firstName?.charAt(0)}. {match.fencerA?.lastName}
-                        </span>
-                        <span
-                          style={{
-                            fontWeight: '700',
-                            color:
-                              match.scoreA?.value != null &&
-                              match.scoreB?.value != null &&
-                              match.scoreA.value > match.scoreB.value
-                                ? '#16a34a'
-                                : '#1f2937',
-                          }}
-                        >
-                          {match.scoreA?.value ?? '-'}
-                        </span>
+                        <div className="ld-match-line ld-match-line--first">
+                          <span style={ROW_TEXT}>
+                            {match.fencerA?.firstName?.charAt(0)}. {match.fencerA?.lastName}
+                          </span>
+                          <span className={`ld-score${scored && a > b ? ' ld-score--win' : ''}`}>
+                            {a ?? '-'}
+                          </span>
+                        </div>
+                        <div className="ld-match-line">
+                          <span style={ROW_TEXT}>
+                            {match.fencerB?.firstName?.charAt(0)}. {match.fencerB?.lastName}
+                          </span>
+                          <span className={`ld-score${scored && b > a ? ' ld-score--win' : ''}`}>
+                            {b ?? '-'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="u-row-between">
-                        <span style={ROW_TEXT}>
-                          {match.fencerB?.firstName?.charAt(0)}. {match.fencerB?.lastName}
-                        </span>
-                        <span
-                          style={{
-                            fontWeight: '700',
-                            color:
-                              match.scoreA?.value != null &&
-                              match.scoreB?.value != null &&
-                              match.scoreB.value > match.scoreA.value
-                                ? '#16a34a'
-                                : '#1f2937',
-                          }}
-                        >
-                          {match.scoreB?.value ?? '-'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -695,89 +533,32 @@ const TableauView_: React.FC<{ matches: Match[] }> = ({ matches }) => {
 const FinalRankingView_: React.FC<{ results: any[] }> = ({ results }) => {
   const { t } = useTranslation();
   return (
-    <div
-      style={{
-        background: 'white',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-      }}
-    >
+    <div className="ld-card ld-card--flush">
       {results.length === 0 ? (
-        <p
-          style={{
-            textAlign: 'center',
-            color: 'var(--color-text-light)',
-            padding: '2rem',
-            fontSize: '1.1rem',
-          }}
-        >
-          {t('liveDashboard.not_finished')}
-        </p>
+        <p className="ld-empty ld-empty--roomy">{t('liveDashboard.not_finished')}</p>
       ) : (
         <table style={TABLE}>
           <thead>
-            <tr style={{ background: 'var(--color-bg)' }}>
-              <th
-                style={{
-                  padding: '1rem',
-                  textAlign: 'center',
-                  color: 'var(--color-text)',
-                  fontWeight: '600',
-                }}
-              >
-                {t('liveDashboard.rank')}
-              </th>
+            <tr className="ld-final-head">
+              <th className="ld-final-th">{t('liveDashboard.rank')}</th>
               <th style={TH}>{t('liveDashboard.fencer')}</th>
               <th style={TH}>{t('liveDashboard.club')}</th>
-              <th
-                style={{
-                  padding: '1rem',
-                  textAlign: 'center',
-                  color: 'var(--color-text)',
-                  fontWeight: '600',
-                }}
-              >
-                {t('liveDashboard.phase')}
-              </th>
+              <th className="ld-final-th">{t('liveDashboard.phase')}</th>
             </tr>
           </thead>
           <tbody>
             {results.map((result, idx) => (
-              <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <td style={{ padding: '1rem', textAlign: 'center' }}>
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '2rem',
-                      height: '2rem',
-                      borderRadius: '50%',
-                      background:
-                        idx === 0
-                          ? '#fbbf24'
-                          : idx === 1
-                            ? '#9ca3af'
-                            : idx === 2
-                              ? '#f59e0b'
-                              : '#f3f4f6',
-                      color: idx < 3 ? 'white' : 'var(--color-text-light)',
-                      fontWeight: '700',
-                    }}
-                  >
+              <tr key={idx} className="ld-final-row">
+                <td className="ld-final-td ld-final-td--center">
+                  <span className={`ld-medal${idx < 3 ? ` ld-medal--${idx + 1}` : ''}`}>
                     {idx + 1}
                   </span>
                 </td>
-                <td style={{ padding: '1rem', fontWeight: '500', color: 'var(--color-text)' }}>
+                <td className="ld-final-td ld-final-td--name">
                   {result.fencer?.firstName} {result.fencer?.lastName}
                 </td>
-                <td style={{ padding: '1rem', color: 'var(--color-text-light)' }}>
-                  {result.fencer?.club || '-'}
-                </td>
-                <td
-                  style={{ padding: '1rem', textAlign: 'center', color: 'var(--color-text-light)' }}
-                >
+                <td className="ld-final-td">{result.fencer?.club || '-'}</td>
+                <td className="ld-final-td ld-final-td--center">
                   {result.round === 1
                     ? '🥇 Finale'
                     : result.round === 2
