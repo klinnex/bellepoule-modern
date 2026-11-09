@@ -18,6 +18,7 @@ import { createDefaultCustomFormula } from '../../shared/utils/tournamentTemplat
 import { deriveSettingsFromFormula } from '../../shared/utils/customFormulaSettings';
 import { FormulaBuilder } from './formula/FormulaBuilder';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
+import { Button } from './common/Button';
 
 interface NewCompetitionModalProps {
   onClose: () => void;
@@ -326,12 +327,12 @@ const NewCompetitionModal: React.FC<NewCompetitionModalProps> = ({ onClose, onCr
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <Button type="button" onClick={onClose}>
               {t('actions.cancel')}
-            </button>
-            <button type="submit" className="btn btn-primary">
+            </Button>
+            <Button type="submit" variant="primary">
               {t('actions.add')} {t('competition.title').toLowerCase()}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

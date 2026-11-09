@@ -7,6 +7,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { logger, LogCategory } from '@shared/services/logger';
 import { useTranslation } from '../hooks/useTranslation';
+import { Button } from './common/Button';
 
 interface PhotoBoothProps {
   onConfirm: (photoData: string) => void;
@@ -184,12 +185,12 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
             📷
           </div>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <Button type="button" onClick={onClose}>
               {t('actions.cancel')}
-            </button>
-            <button type="button" className="btn btn-primary" onClick={startCamera}>
+            </Button>
+            <Button type="button" variant="primary" onClick={startCamera}>
               {t('photoBooth.start')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -226,24 +227,24 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
           )}
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-            <button
+            <Button
               type="button"
               onClick={capturePhoto}
               disabled={countdown > 0}
-              className="btn btn-primary flex-1"
+              variant="primary"
+              className="flex-1"
             >
               {countdown > 0 ? `${countdown}…` : t('photoBooth.capture')}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => {
                 stopCamera();
                 onClose();
               }}
-              className="btn btn-secondary"
             >
               {t('actions.cancel')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -260,12 +261,12 @@ export const PhotoBooth: React.FC<PhotoBoothProps> = ({ onConfirm, onClose }) =>
             }}
           />
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-            <button type="button" onClick={retake} className="btn btn-secondary">
+            <Button type="button" onClick={retake}>
               {t('photoBooth.retake')}
-            </button>
-            <button type="button" onClick={() => onConfirm(photo)} className="btn btn-primary">
+            </Button>
+            <Button type="button" onClick={() => onConfirm(photo)} variant="primary">
               {t('photoBooth.use')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
