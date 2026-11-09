@@ -102,14 +102,14 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 72 | 359 |
-| E2E Playwright (`e2e/`) | 9 | 36 |
+| E2E Playwright (`e2e/`) | 10 | 37 |
 | `src/remote/` | 40 | 269 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 12 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **309** | **2446** |
+| **Total** | **310** | **2447** |
 
-Unitaires : 300 fichiers, 2410 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 300 fichiers, 2410 tests. E2E : 10 fichiers, 37 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4515,6 +4515,14 @@ Unitaires : 300 fichiers, 2410 tests. E2E : 9 fichiers, 36 tests (comptage stati
   - should create a new competition
   - should display competition details
   - should delete a competition
+
+</details>
+
+<details>
+<summary><code>e2e/i18n-overflow.spec.ts</code> — 1 test</summary>
+
+- **i18n : pas de débordement de libellés**
+  - accueil ${lang}${pseudo ? ' (pseudo-localisation)' : ''}
 
 </details>
 
