@@ -558,7 +558,7 @@ select:focus {
    ============================================================ */
 
 .phase-nav {
-  padding: 0.625rem 1rem;
+  padding: var(--density-bar-y, 0.625rem) 1rem;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   display: flex;
@@ -588,7 +588,7 @@ select:focus {
 }
 
 .phase-step {
-  padding: 0.375rem 0.875rem;
+  padding: var(--density-step-y, 0.375rem) 0.875rem;
   border-radius: var(--radius-full);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -1544,7 +1544,7 @@ select:focus {
   align-items: center;
   gap: 0;
   padding: 0 1.25rem;
-  height: 36px;
+  height: var(--density-bar-h, 36px);
   background: var(--color-surface-2);
   border-bottom: 1px solid var(--color-border);
   font-size: 0.75rem;

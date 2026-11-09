@@ -1,0 +1,72 @@
+/* ============================================================
+   THEME — palette sémantique, élévation, rayons (#1531)
+   Importé après tokens.css. Source unique des alias sémantiques clair/sombre :
+   les composants lisent --surface-*, --accent, --success… plutôt que des hex.
+   Les valeurs de base restent dans design.css (:root / .theme-dark).
+   ============================================================ */
+
+:root {
+  /* Surfaces : 0 = fond d'application, 1 = cartes/modaux, 2 = zones en retrait */
+  --surface-0: var(--color-bg);
+  --surface-1: var(--color-surface);
+  --surface-2: var(--color-surface-2);
+
+  --accent: var(--color-primary);
+  --accent-hover: var(--color-primary-dark);
+  --accent-glow: var(--color-primary-glow);
+
+  --success: var(--color-success);
+  --warning: var(--color-warning);
+  --danger: var(--color-danger);
+  --info: var(--color-primary);
+
+  /* Teintes douces (badges, encadrés) : fond + texte lisible */
+  --success-soft: rgba(13, 148, 136, 0.12);
+  --success-on-soft: #0f766e;
+  --warning-soft: rgba(217, 119, 6, 0.12);
+  --warning-on-soft: #92400e;
+  --danger-soft: rgba(220, 38, 38, 0.1);
+  --danger-on-soft: #b91c1c;
+  --info-soft: rgba(59, 91, 219, 0.1);
+  --info-on-soft: #2f4ac4;
+
+  /* Élévation : 3 niveaux (carte, menu, modal) */
+  --elevation-1: var(--shadow);
+  --elevation-2: var(--shadow-md);
+  --elevation-3: var(--shadow-xl);
+
+  /* Rayons : contrôle, carte, modal */
+  --radius-control: var(--radius);
+  --radius-card: var(--radius-xl);
+  --radius-modal: var(--radius-xl);
+}
+
+.theme-dark {
+  --success-soft: rgba(13, 148, 136, 0.2);
+  --success-on-soft: #2dd4bf;
+  --warning-soft: rgba(217, 119, 6, 0.2);
+  --warning-on-soft: #fcd34d;
+  --danger-soft: rgba(220, 38, 38, 0.2);
+  --danger-on-soft: #f87171;
+  --info-soft: rgba(59, 91, 219, 0.2);
+  --info-on-soft: #93c5fd;
+}
+
+/* Application de l'échelle aux surfaces principales */
+.card {
+  box-shadow: var(--elevation-1);
+  border-radius: var(--radius-card);
+}
+
+.card:hover {
+  box-shadow: var(--elevation-2);
+}
+
+.modal {
+  box-shadow: var(--elevation-3);
+  border-radius: var(--radius-modal);
+}
+
+.comp-header-dropdown {
+  box-shadow: var(--elevation-2);
+}

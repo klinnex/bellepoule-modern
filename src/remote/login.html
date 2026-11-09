@@ -6,6 +6,7 @@
     <title data-i18n="login.page_title">Accès protégé - BellePoule</title>
     <script src="/common.js"></script>
     <script src="/i18n.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       * {
         margin: 0;
@@ -16,9 +17,9 @@
 
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        background: var(--gradient-brand);
         min-height: 100vh;
-        color: #fff;
+        color: var(--color-white);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -66,7 +67,7 @@
         border: 2px solid rgba(255, 255, 255, 0.25);
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.1);
-        color: #fff;
+        color: var(--color-white);
         font-size: 1rem;
         outline: none;
         transition: border-color 0.2s;
@@ -86,8 +87,8 @@
         padding: 0.85rem;
         border: none;
         border-radius: 8px;
-        background: #4caf50;
-        color: #fff;
+        background: var(--green-soft);
+        color: var(--color-white);
         font-size: 1rem;
         font-weight: 700;
         cursor: pointer;
@@ -95,7 +96,7 @@
       }
 
       button:hover {
-        background: #43a047;
+        background: var(--green-600);
       }
 
       button:active {
@@ -103,7 +104,7 @@
       }
 
       button:disabled {
-        background: #555;
+        background: var(--gray-700);
         cursor: not-allowed;
       }
 
@@ -115,7 +116,7 @@
         border: 1px solid rgba(244, 67, 54, 0.5);
         border-radius: 8px;
         font-size: 0.9rem;
-        color: #ff8a80;
+        color: var(--red-soft);
       }
 
       .error-msg.visible {
