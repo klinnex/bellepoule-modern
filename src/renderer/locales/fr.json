@@ -2289,6 +2289,7 @@
     "empty_hint": "Terminez d'abord les poules pour générer le tableau",
     "zoom_in": "Zoom avant",
     "zoom_reset": "Réinitialiser",
+    "minimap": "Minicarte du tableau",
     "zoom_out": "Zoom arrière",
     "strips_summary": "Résumé des pistes",
     "strip_n": "Piste {{n}}",

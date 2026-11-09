@@ -2289,6 +2289,7 @@
     "empty_hint": "Termina prima i gironi per generare il tabellone",
     "zoom_in": "Ingrandisci",
     "zoom_reset": "Reimposta",
+    "minimap": "Minimappa del tabellone",
     "zoom_out": "Riduci",
     "strips_summary": "Riepilogo delle pedane",
     "strip_n": "Pedana {{n}}",
