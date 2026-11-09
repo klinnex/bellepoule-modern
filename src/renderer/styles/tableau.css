@@ -1,4 +1,5 @@
-/* ============================================================
+/* =====================================================}
+
    TABLEAU ÉLIMINATOIRE (#1157) — remplace les style={{…}} de TableauToolbar / TableauView
    ============================================================ */
 
@@ -172,6 +173,24 @@
 .score-victory-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Carte de match : badges piste/arbitre centrés sur le séparateur, hors des scores (#1542) */
+.match-badges {
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.55;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.match-card:hover .match-badges,
+.match-card:focus-within .match-badges {
+  opacity: 1;
+}
+
+.match-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
 }
 
 /* Minimap du tableau (#1542) */

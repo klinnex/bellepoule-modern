@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 425 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 69 | 348 |
+| `src/renderer/components/` | 70 | 352 |
 | E2E Playwright (`e2e/`) | 9 | 36 |
 | `src/remote/` | 40 | 269 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 12 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **306** | **2436** |
+| **Total** | **307** | **2440** |
 
-Unitaires : 297 fichiers, 2400 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 298 fichiers, 2404 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4326,6 +4326,17 @@ Unitaires : 297 fichiers, 2400 tests. E2E : 9 fichiers, 36 tests (comptage stati
   - valeur inconnue : retombe sur Basique
 - **RemoteViewModeTabs**
   - affiche deux onglets et signale le changement
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/tableau/MatchCard.test.tsx</code> — 4 tests</summary>
+
+- **MatchCard clavier**
+  - Entrée sur la carte ouvre la saisie
+  - Espace ouvre aussi la saisie
+  - Entrée sur le bouton piste n'ouvre pas la saisie
+  - lecture seule : carte non focusable
 
 </details>
 
