@@ -1307,7 +1307,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             )}
 
             {/* Choix du tireur concerné : même affichage que le tableau, sans pop-up (#1418) */}
-            {pendingSpecialStatus !== null && editingMatch !== null && (
+            {pendingSpecialStatus !== null && (
               <SpecialStatusPanel
                 status={pendingSpecialStatus}
                 fencers={specialStatusFencers(
@@ -1346,7 +1346,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 >
                   {t('poolView.btn_exclusion')}
                 </button>
-                {onMatchCancel && editingMatch !== null && (
+                {onMatchCancel && (
                   <button
                     className="btn btn-secondary"
                     onClick={() => {
