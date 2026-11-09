@@ -3,7 +3,7 @@ import { Fencer, Pool, PoolSnapshot, Referee } from '../../shared/types';
 import type { SqlExecutor } from './sqlExecutor';
 import type { DatabaseManager } from '../index';
 import { parseFencerRow, parsePoolRefereeIds } from './rowMappers';
-import { logger, LogCategory, toError } from '../../shared/services/logger';
+import { logger, LogCategory } from '../../shared/services/logger';
 
 /** Poules : composition, arbitres, instantanés (#1242) */
 export class PoolRepo {
