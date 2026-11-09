@@ -13,7 +13,7 @@
   "remoteUnescaped": 0,
   "remoteHardLocale": 5,
   "lineExceptions": {
-    "src/renderer/styles/design.css": 2087,
+    "src/renderer/styles/design.css": 2085,
     "src/renderer/styles/main.css": 2994,
     "src/renderer/components/CompetitionView.tsx": 3119,
     "src/renderer/components/PoolView.tsx": 1891,

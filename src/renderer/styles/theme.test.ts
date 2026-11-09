@@ -35,4 +35,17 @@ describe('theme.css : palette sémantique (#1531)', () => {
   it("échelle d'élévation à 3 niveaux", () => {
     for (const n of [1, 2, 3]) expect(css).toMatch(new RegExp(`--elevation-${n}:`));
   });
+
+  it('micro-interactions basées sur les tokens de mouvement, reduced-motion global', () => {
+    expect(css).toMatch(/\.confirm-pulse \{[^}]*var\(--motion-base\)/);
+    expect(css).toMatch(/\.check-draw \{[^}]*var\(--motion-base\)/);
+    const design = fs.readFileSync(path.join(__dirname, 'design.css'), 'utf8');
+    expect(design).toMatch(/prefers-reduced-motion: reduce[\s\S]*animation-duration: 0\.01ms/);
+  });
+
+  it('design.css : un seul bloc .theme-dark de variables, tableau inclus', () => {
+    const design = fs.readFileSync(path.join(__dirname, 'design.css'), 'utf8');
+    expect(design.match(/^\.theme-dark \{/gm)).toHaveLength(1);
+    expect(design).toMatch(/\.theme-dark \{[^}]*--tableau-bg:/);
+  });
 });
