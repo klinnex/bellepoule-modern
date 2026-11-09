@@ -98,6 +98,21 @@ const MatchCard: React.FC<MatchCardProps> = ({
       className={`match-card ${canEdit ? 'match-card-clickable' : ''} ${isMatchComplete ? 'match-card-done' : ''}`}
       style={posStyle}
       onClick={() => canEdit && onMatchClick && onMatchClick(match)}
+      role={canEdit ? 'button' : undefined}
+      tabIndex={canEdit ? 0 : undefined}
+      aria-label={
+        canEdit
+          ? `${fencerName(match.fencerA)} ${translateStatic('poolView.cell_vs')} ${fencerName(match.fencerB)}${hasScore ? ` : ${match.scoreA}-${match.scoreB}` : ''}`
+          : undefined
+      }
+      onKeyDown={e => {
+        // Les boutons internes (piste, arbitre, signatures) gardent leur propre clavier
+        if (e.target !== e.currentTarget) return;
+        if (canEdit && onMatchClick && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onMatchClick(match);
+        }
+      }}
     >
       {/* Status dot */}
       <span
