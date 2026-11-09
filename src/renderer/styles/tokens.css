@@ -32,6 +32,55 @@
 
   /* Zone tactile minimale (WCAG 2.5.5) : tablettes arbitre, pavés numériques */
   --touch-target: 44px;
+
+  /* Mouvement (#1531) : deux durées, une seule courbe. Alias de --duration-* (design.css) */
+  --motion-fast: var(--duration-fast, 120ms);
+  --motion-base: var(--duration-base, 200ms);
+  --motion-ease: var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+
+  /* Surface translucide (menus) : opaque tant que backdrop-filter n'est pas supporté */
+  --surface-glass: var(--color-surface);
+}
+
+.theme-dark {
+  --surface-glass: var(--color-surface);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --surface-glass: rgba(255, 255, 255, 0.86);
+  }
+
+  .theme-dark {
+    --surface-glass: rgba(28, 27, 25, 0.86);
+  }
+
+  .comp-header-dropdown,
+  .theme-dark .comp-header-dropdown {
+    background: var(--surface-glass);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+  }
+}
+
+/* Menu déroulant : apparition courte (neutralisée par prefers-reduced-motion, design.css) */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.comp-header-dropdown {
+  animation: menu-in var(--motion-base) var(--motion-ease);
+}
+
+.comp-header-dropdown-item {
+  transition: background var(--motion-fast) var(--motion-ease);
 }
 
 /* Densité d'affichage (#1541) : réglage « Densité » (Paramètres), attribut data-density sur <html>.

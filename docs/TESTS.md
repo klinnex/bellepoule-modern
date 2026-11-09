@@ -104,11 +104,11 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
-| `src/renderer/styles/` | 2 | 3 |
+| `src/renderer/styles/` | 3 | 6 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **301** | **2411** |
+| **Total** | **302** | **2414** |
 
-Unitaires : 292 fichiers, 2376 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 293 fichiers, 2379 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5093,6 +5093,16 @@ Unitaires : 292 fichiers, 2376 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **main.css / design.css**
   - index.tsx importe design.css après main.css
   - aucune déclaration de main.css écrasée par design.css
+
+</details>
+
+<details>
+<summary><code>src/renderer/styles/tokens.test.ts</code> — 3 tests</summary>
+
+- **tokens.css : mouvement et surfaces (#1531)**
+  - définit les tokens de mouvement
+  - surface translucide uniquement sous @supports backdrop-filter, repli opaque par défaut
+  - design.css neutralise les animations via prefers-reduced-motion
 
 </details>
 
