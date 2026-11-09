@@ -209,7 +209,8 @@
     "prep_max": "Max fencers",
     "prep_relaunch": "Relaunch pools",
     "prep_unplaced": "{{count}} fencer(s) added from check-in are not placed yet: click \"Re-prepare pools\" to include them.",
-    "relaunch_confirm": "Pool scores have already been entered: they will be lost. Continue?"
+    "relaunch_confirm": "Pool scores have already been entered: they will be lost. Continue?",
+    "prep_moved": "Fencer moved"
   },
   "ranking": {
     "rank": "Rank",
@@ -843,7 +844,8 @@
     "priority_draw": "Priority minute draw",
     "priority_holder": "Priority: {{name}}",
     "tie_choose_winner": "Who is the winner?",
-    "tie_none": "None"
+    "tie_none": "None",
+    "score_cleared": "Score cleared"
   },
   "presentation": {
     "no_club": "No club",
@@ -1704,7 +1706,8 @@
     "ind": "Ind.",
     "fie_title": "Cumulative touches (FIE rule)",
     "touches_plus": "Touches+",
-    "touches_minus": "Touches-"
+    "touches_minus": "Touches-",
+    "fencer_removed": "Fencer removed from team"
   },
   "formulaPhase": {
     "n_touches": "{{n}} touches",

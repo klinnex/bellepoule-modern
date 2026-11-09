@@ -350,7 +350,8 @@
     "prep_max": "Fechter Max",
     "prep_relaunch": "Pools neu starten",
     "prep_unplaced": "{{count}} aus dem Aufruf hinzugefügte(r) Fechter noch nicht platziert: „Pools neu vorbereiten“ klicken, um sie aufzunehmen.",
-    "relaunch_confirm": "Es sind bereits Pool-Ergebnisse erfasst: sie gehen verloren. Fortfahren?"
+    "relaunch_confirm": "Es sind bereits Pool-Ergebnisse erfasst: sie gehen verloren. Fortfahren?",
+    "prep_moved": "Fechter verschoben"
   },
   "ranking": {
     "club": "Verein",
@@ -843,7 +844,8 @@
     "priority_draw": "Auslosung Prioritätsminute",
     "priority_holder": "Priorität: {{name}}",
     "tie_choose_winner": "Wer ist der Sieger?",
-    "tie_none": "Keiner"
+    "tie_none": "Keiner",
+    "score_cleared": "Ergebnis gelöscht"
   },
   "presentation": {
     "no_club": "Kein Verein",
@@ -1704,7 +1706,8 @@
     "ind": "Ind.",
     "fie_title": "Kumulierte Treffer (FIE-Regel)",
     "touches_plus": "Treffer+",
-    "touches_minus": "Treffer-"
+    "touches_minus": "Treffer-",
+    "fencer_removed": "Fechter aus dem Team entfernt"
   },
   "formulaPhase": {
     "n_touches": "{{n}} Treffer",

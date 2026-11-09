@@ -3719,7 +3719,7 @@ Unitaires : 302 fichiers, 2416 tests. E2E : 10 fichiers, 38 tests (comptage stat
   - utilise des libellés personnalisés
   - Échap annule le dialogue
 - **useConfirm hors provider**
-  - retombe sur window.confirm
+  - refuse sans appeler window.confirm
 - **prompt()**
   - résout la valeur saisie sur OK
   - Entrée valide la saisie
