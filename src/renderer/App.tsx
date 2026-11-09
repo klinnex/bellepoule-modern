@@ -645,8 +645,8 @@ const AppContent: React.FC = () => {
           </Tooltip>
           <div className="header-nav">
             {openCompetitions.length > 0 && view === 'competition' && (
-              <button
-                className="btn btn-secondary btn-icon-label"
+              <Button
+                className="btn-icon-label"
                 onClick={() => {
                   setView('home');
                   setActiveTabId(null);
@@ -655,16 +655,17 @@ const AppContent: React.FC = () => {
               >
                 <Home size={15} />
                 {t('app.home')}
-              </button>
+              </Button>
             )}
             {!isEmptyHome && (
-              <button
-                className="btn btn-primary btn-icon-label"
+              <Button
+                variant="primary"
+                className="btn-icon-label"
                 onClick={() => setShowNewCompetitionModal(true)}
               >
                 <Plus size={15} />
                 {t('menu.new_competition')}
-              </button>
+              </Button>
             )}
             <UpdateMenuButton />
             <button
@@ -786,14 +787,14 @@ const AppContent: React.FC = () => {
                 )}
               </div>
             )}
-            <button
-              className="btn btn-secondary btn-icon-label"
+            <Button
+              className="btn-icon-label"
               onClick={() => setShowSettingsModal(true)}
               title={t('settings.title')}
             >
               <Settings size={15} />
               {t('settings.title')}
-            </button>
+            </Button>
           </div>
         </header>
 

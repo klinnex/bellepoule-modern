@@ -11,6 +11,7 @@ import { useToast } from './Toast';
 import { useDebounce } from '../hooks/useDebounce';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useTranslation } from '../hooks/useTranslation';
+import { Button } from './common/Button';
 
 interface AddFencerToPoolModalProps {
   pool: Pool;
@@ -254,16 +255,10 @@ const AddFencerToPoolModalComponent: React.FC<AddFencerToPoolModalProps> = ({
         </div>
 
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
-            {t('actions.cancel')}
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={handleAdd}
-            disabled={!selectedFencer || isLoading}
-          >
+          <Button onClick={onClose}>{t('actions.cancel')}</Button>
+          <Button variant="primary" onClick={handleAdd} disabled={!selectedFencer || isLoading}>
             {isLoading ? t('addFencerPool.adding') : t('addFencerPool.add')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

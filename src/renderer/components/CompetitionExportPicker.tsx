@@ -7,6 +7,7 @@ import React from 'react';
 import { Competition } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import Modal from './common/Modal';
+import { Button } from './common/Button';
 
 interface CompetitionExportPickerProps {
   competitions: Competition[];
@@ -24,14 +25,14 @@ export const CompetitionExportPicker: React.FC<CompetitionExportPickerProps> = (
     <Modal title={t('competitionList.export_pick_title')} onClose={onClose} size="sm">
       <div className="competition-export-picker">
         {competitions.map(competition => (
-          <button
+          <Button
             key={competition.id}
             type="button"
-            className="btn btn-secondary competition-export-picker__item"
+            className="competition-export-picker__item"
             onClick={() => onPick(competition.id)}
           >
             {competition.title}
-          </button>
+          </Button>
         ))}
       </div>
     </Modal>

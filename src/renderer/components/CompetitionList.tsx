@@ -29,6 +29,7 @@ import { restartGuidedTour } from './guidedTourFlags';
 import EmptyState from './common/EmptyState';
 import { BrandLogo } from './common/BrandLogo';
 import { CompetitionExportPicker } from './CompetitionExportPicker';
+import { Button } from './common/Button';
 
 interface CompetitionListProps {
   competitions: Competition[];
@@ -263,31 +264,34 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           <div
             style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}
           >
-            <button
-              className="btn btn-primary btn-lg btn-icon-label"
+            <Button
+              variant="primary"
+              size="lg"
+              className="btn-icon-label"
               onClick={onNewCompetition}
               style={{ padding: '0.75rem 2rem' }}
             >
               <Plus size={18} />
               {t('menu.new_competition')}
-            </button>
+            </Button>
             {onOpenFile && (
-              <button
-                className="btn btn-secondary btn-lg btn-icon-label"
+              <Button
+                size="lg"
+                className="btn-icon-label"
                 onClick={onOpenFile}
                 style={{ padding: '0.75rem 1.5rem' }}
                 title={t('competitionList.open_file_title')}
               >
                 <FolderOpen size={18} />
                 {t('competitionList.open_file')}
-              </button>
+              </Button>
             )}
           </div>
 
           {/* Parcours guidé (#1305) : réactivé même s'il a déjà été fermé */}
-          <button
+          <Button
             type="button"
-            className="btn btn-secondary btn-icon-label"
+            className="btn-icon-label"
             onClick={() => {
               restartGuidedTour();
               onNewCompetition();
@@ -295,17 +299,17 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           >
             <Sparkles size={16} />
             {t('competitionList.guided_start')}
-          </button>
+          </Button>
           {onStartDemo && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary btn-icon-label"
+              className="btn-icon-label"
               onClick={onStartDemo}
               title={t('demo.hint')}
             >
               <PlayCircle size={16} />
               {t('demo.button')}
-            </button>
+            </Button>
           )}
 
           <p style={{ color: 'var(--color-text-light)', fontSize: '0.8125rem' }}>
@@ -332,40 +336,43 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
         <h1 className="page-title">{t('app.title')}</h1>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           {onStartDemo && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary btn-lg btn-icon-label"
+              size="lg"
+              className="btn-icon-label"
               onClick={onStartDemo}
               title={t('demo.hint')}
             >
               <PlayCircle size={18} />
               {t('demo.button')}
-            </button>
+            </Button>
           )}
           {onExport && competitions.length > 0 && (
-            <button
+            <Button
               type="button"
-              className="btn btn-secondary btn-lg btn-icon-label"
+              size="lg"
+              className="btn-icon-label"
               onClick={() => setShowExportPicker(true)}
               title={t('competitionList.export_title')}
             >
               <Download size={18} />
               {t('competitionList.export')}
-            </button>
+            </Button>
           )}
           {onOpenFile && (
-            <button
-              className="btn btn-secondary btn-lg btn-icon-label"
+            <Button
+              size="lg"
+              className="btn-icon-label"
               onClick={onOpenFile}
               title={t('competitionList.open_file_title')}
             >
               <FolderOpen size={18} />
               {t('competitionList.open_file')}
-            </button>
+            </Button>
           )}
-          <button className="btn btn-primary btn-lg" onClick={onNewCompetition}>
+          <Button variant="primary" size="lg" onClick={onNewCompetition}>
             + {t('menu.new_competition')}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -411,8 +418,8 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                   <p className="comp-card-date">{formatDate(competition.date)}</p>
                 </div>
                 {onExport && (
-                  <button
-                    className="btn btn-icon btn-secondary comp-card-delete"
+                  <Button
+                    className="btn-icon comp-card-delete"
                     onClick={e => {
                       e.stopPropagation();
                       onExport(competition.id);
@@ -421,10 +428,10 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                     aria-label={t('competition.export_bpm')}
                   >
                     <Download size={16} />
-                  </button>
+                  </Button>
                 )}
-                <button
-                  className="btn btn-icon btn-secondary comp-card-delete"
+                <Button
+                  className="btn-icon comp-card-delete"
                   onClick={e => {
                     e.stopPropagation();
                     void handleDelete(competition);
@@ -432,7 +439,7 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
                   title={t('actions.delete')}
                 >
                   🗑️
-                </button>
+                </Button>
               </div>
 
               <div className="comp-card-pills">
@@ -477,41 +484,41 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
             justifyContent: 'center',
           }}
         >
-          <button
-            className="btn btn-secondary btn-sm"
+          <Button
+            size="sm"
             onClick={goToFirst}
             disabled={!hasPrev}
             title={t('competitionList.first_page')}
           >
             «
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
+          </Button>
+          <Button
+            size="sm"
             onClick={goToPrev}
             disabled={!hasPrev}
             title={t('competitionList.prev_page')}
           >
             ‹
-          </button>
+          </Button>
           <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
             {startIndex + 1}–{endIndex} / {totalItems}
           </span>
-          <button
-            className="btn btn-secondary btn-sm"
+          <Button
+            size="sm"
             onClick={goToNext}
             disabled={!hasNext}
             title={t('competitionList.next_page')}
           >
             ›
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
+          </Button>
+          <Button
+            size="sm"
             onClick={goToLast}
             disabled={!hasNext}
             title={t('competitionList.last_page')}
           >
             »
-          </button>
+          </Button>
           <select
             className="form-select form-select-sm"
             value={pageSize}
