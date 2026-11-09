@@ -141,7 +141,11 @@
 
         const params = new URLSearchParams(window.location.search);
         const arenaParam = params.get('arena') || '';
-        const returnPath = params.get('return') || '/';
+        // Retour limité au même serveur : chemin relatif « /… » uniquement (pas de « // » ni « /\ »),
+        // préfixé par l'origine courante (CodeQL js/client-side-unvalidated-url-redirection)
+        const rawReturn = params.get('return') || '/';
+        const safePath = /^\/(?![\/\\])/.test(rawReturn) ? rawReturn : '/';
+        const returnPath = window.location.origin + safePath;
 
         const arenaNum = arenaParam.replace(/^arena/, '');
         if (arenaNum) {
