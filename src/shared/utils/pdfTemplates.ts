@@ -6,7 +6,7 @@
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Pool, Match, MatchStatus, Fencer } from '../types';
+import { Pool, Match, MatchStatus } from '../types';
 import { getActiveLocale } from './localeFormat';
 import { logger, LogCategory, toError } from '../services/logger';
 
