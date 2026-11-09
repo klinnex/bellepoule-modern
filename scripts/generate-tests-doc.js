@@ -99,7 +99,7 @@ function countTests(node) {
   return node.tests.length + node.children.reduce((s, c) => s + countTests(c), 0);
 }
 
-const escapeMd = s => s.replace(/\s+/g, ' ').replace(/([|<>*_`[\]])/g, '\\$1');
+const escapeMd = s => s.replace(/\s+/g, ' ').replace(/([\\|<>*_`[\]])/g, '\\$1');
 const flagSuffix = flags => {
   const shown = flags.filter(f => f !== 'concurrent');
   return shown.length ? ` _(${shown.join(', ')})_` : '';
