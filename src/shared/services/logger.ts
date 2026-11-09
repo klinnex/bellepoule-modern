@@ -98,7 +98,21 @@ class Logger {
       // js/log-injection.
       // replace() inline (pas via helper) : reconnu comme assainissement par CodeQL
       const formatted = this.formatMessage(entry).replace(/[\r\n]+/g, ' ');
-      const shownData = typeof data === 'string' ? data.replace(/[\r\n]+/g, ' ') : data || '';
+      // Objets aussi ramenés à une ligne (sinon CodeQL suit la donnée brute jusqu'à console.*)
+      let dataText = '';
+      if (data !== undefined && data !== null && data !== '') {
+        try {
+          dataText =
+            typeof data === 'string'
+              ? data
+              : data instanceof Error
+                ? (data.stack ?? `${data.name}: ${data.message}`)
+                : (JSON.stringify(data) ?? String(data));
+        } catch {
+          dataText = String(data); // référence circulaire
+        }
+      }
+      const shownData = dataText.replace(/[\r\n]+/g, ' ');
       const shownError = error
         ? (error.stack ?? `${error.name}: ${error.message}`).replace(/[\r\n]+/g, ' ')
         : '';
