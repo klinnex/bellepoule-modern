@@ -98,7 +98,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 6 | 138 |
 | `src/main/` | 53 | 425 |
-| `src/renderer/services/` | 7 | 48 |
+| `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 66 | 334 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
@@ -106,9 +106,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **299** | **2404** |
+| **Total** | **300** | **2407** |
 
-Unitaires : 290 fichiers, 2369 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 291 fichiers, 2372 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3203,6 +3203,16 @@ Unitaires : 290 fichiers, 2369 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - /phase, /open, /theme, /lang
   - commande inconnue → erreur
   - une exception devient un message d’erreur
+
+</details>
+
+<details>
+<summary><code>src/renderer/services/uiDensity.test.ts</code> — 3 tests</summary>
+
+- **densité d’affichage (#1541)**
+  - valeurs admises uniquement, standard par défaut
+  - enregistrement : attribut appliqué et relu au démarrage
+  - tokens.css : variables de densité compacte et confortable
 
 </details>
 

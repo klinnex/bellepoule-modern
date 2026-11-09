@@ -33,6 +33,13 @@ import {
   type UiScale,
 } from '../services/uiScale';
 import {
+  UI_DENSITIES,
+  loadUiDensity,
+  normalizeUiDensity,
+  saveUiDensity,
+  type UiDensity,
+} from '../services/uiDensity';
+import {
   LOGO_STORAGE_KEY,
   LOGO_LIBRARY_MAX,
   type LogoEntry,
@@ -92,6 +99,7 @@ type SettingsItemId =
   | 'pseudo'
   | 'theme'
   | 'text_size'
+  | 'density'
   | 'animations'
   | 'quick_mouse'
   | 'simplified'
@@ -121,6 +129,7 @@ const SETTINGS_SECTIONS: SettingsSectionDef[] = [
       { id: 'language', keys: ['settings.language'] },
       { id: 'theme', keys: ['settings.theme'] },
       { id: 'text_size', keys: ['settings.text_size'] },
+      { id: 'density', keys: ['settings.density'] },
       { id: 'animations', keys: ['settings.animations_title', 'settings.animations_hint'] },
       { id: 'pseudo', keys: ['settings.pseudo_locale', 'settings.pseudo_locale_hint'] },
     ],
@@ -285,6 +294,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
   );
 
   const [uiScale, setUiScale] = useState<UiScale>(() => loadUiScale());
+  const [uiDensity, setUiDensity] = useState<UiDensity>(() => loadUiDensity());
   const [confettiDisabled, setConfettiDisabled] = useState<boolean>(() => isConfettiDisabled());
   // Vérification auto des mises à jour : préférence stockée côté main (lue avant le 1er check)
   const [updateAutoCheck, setUpdateAutoCheck] = useState<boolean>(true);
@@ -609,6 +619,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
     saveUiScale(scale);
   };
 
+  // Densité d'affichage : appliquée et enregistrée immédiatement (#1541)
+  const handleUiDensityChange = (density: UiDensity) => {
+    setUiDensity(density);
+    saveUiDensity(density);
+  };
+
   const handleSimplifiedInputModeChange = (enabled: boolean) => {
     setSimplifiedInputMode(enabled);
     localStorage.setItem(SIMPLIFIED_INPUT_KEY, String(enabled));
@@ -654,6 +670,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
       setSimplifiedInputMode(localStorage.getItem(SIMPLIFIED_INPUT_KEY) === 'true');
       setConfettiDisabled(isConfettiDisabled());
       handleUiScaleChange(loadUiScale());
+      handleUiDensityChange(loadUiDensity());
       if (values['bellepoule-pdf-templates'] !== undefined)
         await usePdfTemplateStore.persist?.rehydrate?.();
       const lang = values['bellepoule-language'] as Language | undefined;
@@ -781,6 +798,26 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 {UI_SCALES.map(scale => (
                   <option key={scale} value={scale}>
                     {Math.round(scale * 100)} %
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
+        );
+      case 'density':
+        return (
+          <>
+            <div className="form-group">
+              <label htmlFor="settings-ui-density">{t('settings.density')}</label>
+              <select
+                id="settings-ui-density"
+                className="form-input form-select"
+                value={uiDensity}
+                onChange={e => handleUiDensityChange(normalizeUiDensity(e.target.value))}
+              >
+                {UI_DENSITIES.map(d => (
+                  <option key={d} value={d}>
+                    {t(`settings.density_${d}`)}
                   </option>
                 ))}
               </select>
