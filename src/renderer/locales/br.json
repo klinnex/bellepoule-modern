@@ -2183,7 +2183,20 @@
     "search_aria": "Klask ur strivadeg",
     "search_placeholder": "Klask dre anv, lec'h pe deiziad…",
     "search_empty": "Strivadeg ebet a glot ouzh ar c'hlask.",
-    "search_count": "{{shown}} eus {{total}}"
+    "search_count": "{{shown}} eus {{total}}",
+    "filter_weapon": "Silañ dre arm",
+    "filter_gender": "Silañ dre reiz",
+    "filter_category": "Silañ dre rummad",
+    "filter_status": "Silañ dre stad",
+    "filters_reset": "Adderaouekaat ar silioù",
+    "sort_aria": "Rummañ ar genstrivadegoù",
+    "sort_date_desc": "Deiziad (ar re nevez da gentañ)",
+    "sort_date_asc": "Deiziad (ar re gozh da gentañ)",
+    "sort_name_asc": "Anv (A da Z)",
+    "status_draft": "Brassilh",
+    "status_in_progress": "O vont en-dro",
+    "status_completed": "Echu",
+    "status_cancelled": "Nullet"
   },
   "trainingLauncher": {
     "title": "Mod embregerezh",

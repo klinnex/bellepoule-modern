@@ -101,15 +101,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 73 | 364 |
+| `src/renderer/components/` | 74 | 370 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 41 | 270 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **313** | **2461** |
+| **Total** | **314** | **2467** |
 
-Unitaires : 303 fichiers, 2422 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 304 fichiers, 2428 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3656,13 +3656,16 @@ Unitaires : 303 fichiers, 2422 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/CompetitionList.test.tsx</code> — 3 tests</summary>
+<summary><code>src/renderer/components/CompetitionList.test.tsx</code> — 5 tests</summary>
 
 - **CompetitionList (accueil vide)**
   - propose de créer une compétition avec le parcours guidé
 - **CompetitionList (export accueil)**
   - bouton Exporter ouvre le choix de compétition puis appelle onExport avec l’identifiant
   - pas de bouton Exporter sans compétition
+- **CompetitionList (filtres et tri #1534)**
+  - filtre par arme avec une puce, puis réinitialise
+  - trie par nom et mémorise la préférence
 
 </details>
 
@@ -4119,6 +4122,17 @@ Unitaires : 303 fichiers, 2422 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - Ctrl+→ / Ctrl+← passent à la phase accessible suivante / précédente
   - aux bornes, pas de cible
   - autres touches : pas de cible
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competitionListFilters.test.ts</code> — 4 tests</summary>
+
+- **competitionListFilters**
+  - filtre en ET entre groupes et OU dans un groupe
+  - liste les valeurs présentes
+  - trie par date et par nom sans muter la liste
+  - mémorise le tri
 
 </details>
 
