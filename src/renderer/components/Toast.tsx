@@ -31,7 +31,11 @@ interface ToastItem {
 
 interface ToastContextType {
   showToast: (message: string, type?: ToastType, options?: ToastOptions) => void;
+  /** Toast avec bouton « Annuler » (5 s) : action réversible sans confirmation modale (#1535) */
+  showUndoToast: (message: string, onUndo: () => void, options?: ToastOptions) => void;
 }
+
+export const UNDO_TOAST_DURATION = 5000;
 
 const ToastContext = createContext<ToastContextType | null>(null);
 
@@ -137,7 +141,10 @@ const ToastItemComponent: React.FC<{
           </div>
           {toast.action && (
             <button
-              onClick={toast.action.onClick}
+              onClick={() => {
+                toast.action?.onClick();
+                onRemove(toast.id);
+              }}
               style={{
                 marginTop: '6px',
                 padding: '4px 10px',
@@ -214,12 +221,22 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     []
   );
 
+  const showUndoToast = useCallback(
+    (message: string, onUndo: () => void, options?: ToastOptions) =>
+      showToast(message, 'info', {
+        duration: UNDO_TOAST_DURATION,
+        ...options,
+        action: { label: translateStatic('actions.undo'), onClick: onUndo },
+      }),
+    [showToast]
+  );
+
   const removeToast = useCallback((id: number) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, showUndoToast }}>
       {children}
       <div
         role="status"
@@ -252,6 +269,9 @@ export const useToast = (): ToastContextType => {
   if (!context) {
     return {
       showToast: (message: string) => {
+        logger.warn(LogCategory.UI, 'Toast used outside provider', { message });
+      },
+      showUndoToast: (message: string) => {
         logger.warn(LogCategory.UI, 'Toast used outside provider', { message });
       },
     };

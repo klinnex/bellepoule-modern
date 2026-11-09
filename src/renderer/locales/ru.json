@@ -285,6 +285,10 @@
     "language": "Язык",
     "theme": "Тема",
     "text_size": "Размер текста",
+    "density": "Плотность",
+    "density_comfortable": "Свободная",
+    "density_standard": "Стандартная",
+    "density_compact": "Компактная",
     "pool_rounds": "Раунды пулов",
     "has_direct_elimination": "Прямое выбывание",
     "default_pool_max_score": "Максимальный счёт пула по умолчанию",
@@ -391,6 +395,7 @@
     "backup_invalid": "Недопустимый файл: ожидается экспорт настроек BellePoule."
   },
   "actions": {
+    "undo": "Отменить",
     "add": "Добавить",
     "edit": "Изменить",
     "delete": "Удалить",
@@ -1400,6 +1405,8 @@
     "never_met": "Эти два фехтовальщика ещё не встречались в этом соревновании."
   },
   "fencerList": {
+    "undo": "Отменить",
+    "status_changed": "{{name}}: статус изменён",
     "col_nationality": "Гражданство",
     "import_menu": "📥 Импорт ▾",
     "import_xml_bp": "Импорт XML (BellePoule)",

@@ -651,11 +651,11 @@ select:focus {
   text-transform: uppercase;
   color: var(--color-text-muted);
   background: var(--color-surface-2);
-  padding: 0.625rem 0.875rem;
+  padding: var(--density-cell-y, 0.625rem) var(--density-cell-x, 0.875rem);
 }
 
 .table td {
-  padding: 0.625rem 0.875rem;
+  padding: var(--density-cell-y, 0.625rem) var(--density-cell-x, 0.875rem);
 }
 
 .table tbody tr {

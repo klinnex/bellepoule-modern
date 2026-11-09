@@ -13,6 +13,7 @@ vi.mock('../hooks/useTranslation', () => ({ useTranslation: () => ({ t: (k: stri
 vi.mock('./ConfirmDialog', () => ({ useConfirm: () => ({ confirm: vi.fn(async () => true) }) }));
 
 import FencerList from './FencerList';
+import { ToastProvider } from './Toast';
 import { Fencer, Gender, FencerStatus } from '../../shared/types';
 
 const fencer = (id: string, last: string): Fencer => ({
@@ -78,5 +79,24 @@ describe('FencerList', () => {
     const { onAddFencer } = setup();
     fireEvent.click(screen.getByRole('button', { name: /fencer\.add/ }));
     expect(onAddFencer).toHaveBeenCalled();
+  });
+
+  it('abandon : sans modale, toast Annuler qui restaure le statut', () => {
+    const onSetFencerStatus = vi.fn();
+    const f = { ...fencer('1', 'Dupont'), status: FencerStatus.CHECKED_IN };
+    render(
+      <ToastProvider>
+        <FencerList
+          fencers={[f]}
+          onCheckIn={vi.fn()}
+          onAddFencer={vi.fn()}
+          onSetFencerStatus={onSetFencerStatus}
+        />
+      </ToastProvider>
+    );
+    fireEvent.click(screen.getByTitle('fencerList.abandon'));
+    expect(onSetFencerStatus).toHaveBeenCalledWith('1', FencerStatus.ABANDONED);
+    fireEvent.click(screen.getByRole('button', { name: 'fencerList.undo' }));
+    expect(onSetFencerStatus).toHaveBeenLastCalledWith('1', FencerStatus.CHECKED_IN);
   });
 });

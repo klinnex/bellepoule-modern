@@ -1164,3 +1164,35 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* ============================================================
+   LIBELLÉS LONGS (#1543) : de/ru/br/ca/pt dépassent le français
+   ============================================================ */
+
+.btn {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.tab {
+  max-width: 16rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table th {
+  overflow-wrap: break-word;
+  hyphens: auto;
+  vertical-align: bottom;
+}
+
+.truncate-label {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

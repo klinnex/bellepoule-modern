@@ -285,6 +285,10 @@
     "language": "Language",
     "theme": "Theme",
     "text_size": "Text size",
+    "density": "Density",
+    "density_comfortable": "Comfortable",
+    "density_standard": "Standard",
+    "density_compact": "Compact",
     "pool_rounds": "Pool Rounds",
     "has_direct_elimination": "Direct Elimination",
     "default_pool_max_score": "Default Pool Max Score",
@@ -391,6 +395,7 @@
     "backup_invalid": "Invalid file: BellePoule settings export expected."
   },
   "actions": {
+    "undo": "Undo",
     "add": "Add",
     "edit": "Edit",
     "delete": "Delete",
@@ -1400,6 +1405,8 @@
     "never_met": "These two fencers have never met in this competition."
   },
   "fencerList": {
+    "undo": "Undo",
+    "status_changed": "{{name}}: status changed",
     "col_nationality": "Nationality",
     "import_menu": "📥 Import ▾",
     "import_xml_bp": "Import XML (BellePoule)",

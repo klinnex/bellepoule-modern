@@ -1,5 +1,6 @@
 {
   "actions": {
+    "undo": "Rückgängig",
     "add": "Hinzufügen",
     "back": "Zurück",
     "cancel": "Abbrechen",
@@ -420,6 +421,10 @@
     "save": "Speichern",
     "theme": "Thema",
     "text_size": "Textgröße",
+    "density": "Dichte",
+    "density_comfortable": "Komfortabel",
+    "density_standard": "Standard",
+    "density_compact": "Kompakt",
     "title": "Einstellungen",
     "pseudo_locale": "Übersetzungs-Debug",
     "pseudo_locale_hint": "Zeigt übersetzte Texte als [!! … !!] an: Text ohne diese Markierung ist nicht übersetzt.",
@@ -1400,6 +1405,8 @@
     "never_met": "Diese beiden Fechter sind in diesem Wettkampf nie aufeinandergetroffen."
   },
   "fencerList": {
+    "undo": "Rückgängig",
+    "status_changed": "{{name}}: Status geändert",
     "col_nationality": "Nationalität",
     "import_menu": "📥 Importieren ▾",
     "import_xml_bp": "XML importieren (BellePoule)",
