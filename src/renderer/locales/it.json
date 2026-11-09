@@ -135,7 +135,8 @@
     "state_done": "fatto",
     "state_current": "in corso",
     "state_todo": "da fare",
-    "state_blocked": "bloccato"
+    "state_blocked": "bloccato",
+    "unavailable": "Sezione non disponibile"
   },
   "pools": {
     "generate": "Genera i gironi",
@@ -580,7 +581,9 @@
     "next_phase": "Fase successiva",
     "add_fencer": "Aggiungi uno schermidore",
     "next_match": "Gironi: inserisci il prossimo incontro",
-    "category_commands": "Comandi"
+    "category_commands": "Comandi",
+    "goto_phase": "Vai alla fase n",
+    "prev_phase": "Fase precedente"
   },
   "wiki": {
     "button_title": "Documentazione",
@@ -2196,7 +2199,9 @@
     "status_draft": "Bozza",
     "status_in_progress": "In corso",
     "status_completed": "Terminata",
-    "status_cancelled": "Annullata"
+    "status_cancelled": "Annullata",
+    "recent_title": "Recenti",
+    "pin": "Fissa / sblocca"
   },
   "trainingLauncher": {
     "title": "Modalità allenamento",

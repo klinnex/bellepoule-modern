@@ -276,7 +276,8 @@
     "state_done": "erledigt",
     "state_current": "aktuell",
     "state_todo": "offen",
-    "state_blocked": "gesperrt"
+    "state_blocked": "gesperrt",
+    "unavailable": "Bereich nicht verfügbar"
   },
   "pools": {
     "change_pool": "Pool Wechseln",
@@ -554,7 +555,9 @@
     "next_phase": "Nächste Phase",
     "add_fencer": "Fechter hinzufügen",
     "next_match": "Pools: nächstes Gefecht eingeben",
-    "category_commands": "Befehle"
+    "category_commands": "Befehle",
+    "goto_phase": "Zu Phase n wechseln",
+    "prev_phase": "Vorherige Phase"
   },
   "wiki": {
     "button_title": "Dokumentation",
@@ -2196,7 +2199,9 @@
     "status_draft": "Entwurf",
     "status_in_progress": "Läuft",
     "status_completed": "Abgeschlossen",
-    "status_cancelled": "Abgesagt"
+    "status_cancelled": "Abgesagt",
+    "recent_title": "Zuletzt geöffnet",
+    "pin": "Anheften / lösen"
   },
   "trainingLauncher": {
     "title": "Trainingsmodus",
