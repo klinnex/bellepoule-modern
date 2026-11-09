@@ -10,6 +10,8 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { stripNumbers } from '../../../shared/utils/stripRange';
 import { useStripAvailability } from '../../hooks/useStripAvailability';
 import { Button } from '../common/Button';
+import { MapPin } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface PoolStripButtonProps {
   poolNumber: number;
@@ -47,7 +49,8 @@ export const PoolStripButton: React.FC<PoolStripButtonProps> = ({
         title={t('poolView.assign_strip')}
         className={`pv-pill${strip != null ? ' is-assigned' : ''}${strip != null && unavailable.includes(strip) ? ' is-unavailable' : ''}`}
       >
-        🏟 {strip != null ? t('poolView.strip_n', { n: strip }) : t('poolView.add_strip')}
+        <Icon icon={MapPin} />{' '}
+        {strip != null ? t('poolView.strip_n', { n: strip }) : t('poolView.add_strip')}
       </button>
       {open && (
         <Modal title={t('poolView.assign_strip')} onClose={() => setOpen(false)} size="sm">

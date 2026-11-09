@@ -11,6 +11,8 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { isMatchVoidedByForfeit } from '../../../shared/utils/poolCalculations';
 import { stripNumbers } from '../../../shared/utils/stripRange';
 import { Button } from '../common/Button';
+import { ClipboardList, Flag, MapPin, Pause, Swords, Trash2 } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface OrderedMatchEntry {
   match: Match;
@@ -95,7 +97,7 @@ const ArenaBadge: React.FC<ArenaBadgeProps> = ({
       className={className}
       style={scale !== 1 ? ({ '--badge-scale': scale } as React.CSSProperties) : undefined}
     >
-      🏟 {assignedArena}
+      <Icon icon={MapPin} /> {assignedArena}
     </button>
   );
 };
@@ -213,7 +215,9 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                   <div className="pml-name">{nextMatch.match.fencerA?.lastName}</div>
                   <div className="pml-firstname">{nextMatch.match.fencerA?.firstName}</div>
                 </div>
-                <div className="pml-vs">⚔</div>
+                <div className="pml-vs">
+                  <Icon icon={Swords} />
+                </div>
                 <div className="pml-side">
                   <div className="pml-name">{nextMatch.match.fencerB?.lastName}</div>
                   <div className="pml-firstname">{nextMatch.match.fencerB?.firstName}</div>
@@ -345,7 +349,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                       title={t('poolMatches.match_log')}
                       className="pml-icon-btn"
                     >
-                      📋
+                      <Icon icon={ClipboardList} />
                     </button>
                   )}
                   {!isAbandonMatch && !isLocked && onMatchReset && (
@@ -358,7 +362,7 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
                       className="pml-icon-btn is-danger"
                       style={{ opacity: isHighlighted ? 1 : 0 }}
                     >
-                      🗑
+                      <Icon icon={Trash2} />
                     </button>
                   )}
                 </div>
@@ -377,7 +381,9 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
           <div className="pml-list">
             {orderedMatches.cancelled.map(({ match, index }) => (
               <div key={index} className="pml-cancelled-row">
-                <span className="pml-cancelled-icon">⏸</span>
+                <span className="pml-cancelled-icon">
+                  <Icon icon={Pause} />
+                </span>
                 <span className="pml-cancelled-name">
                   {match.fencerA?.lastName} {t('poolMatches.vs')} {match.fencerB?.lastName}
                 </span>
@@ -399,7 +405,9 @@ const PoolMatchListComponent: React.FC<PoolMatchListProps> = ({
       {/* Poule terminée */}
       {orderedMatches.pending.length === 0 && orderedMatches.cancelled.length === 0 && (
         <div className="pml-done">
-          <div className="pml-done-icon">🏁</div>
+          <div className="pml-done-icon">
+            <Icon icon={Flag} />
+          </div>
           <div className="pml-done-title">{t('poolMatches.done')}</div>
           <div className="pml-done-sub">{t('poolMatches.done_sub')}</div>
         </div>

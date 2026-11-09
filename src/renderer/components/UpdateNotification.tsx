@@ -10,6 +10,8 @@ import { useTranslation } from '../hooks/useTranslation';
 import { formatNumber } from '../../shared/utils/localeFormat';
 import { SHOW_UPDATE_EVENT } from './UpdateMenuButton';
 import { Button } from './common/Button';
+import { Rocket, X } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 const MB = 1024 * 1024;
 
@@ -137,7 +139,9 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
   return (
     <div className="update-notification">
       <div className="update-notification-content">
-        <div className="update-notification-icon">🚀</div>
+        <div className="update-notification-icon">
+          <Icon icon={Rocket} />
+        </div>
         <div className="update-notification-text">
           <h4>{t('updateNotif.title')}</h4>
           <p>
@@ -180,7 +184,7 @@ const UpdateNotification: React.FC<UpdateNotificationProps> = ({ visible: propVi
             {t('updateNotif.notes')}
           </Button>
           <Button aria-label={t('actions.close')} variant="ghost" size="sm" onClick={handleDismiss}>
-            ✖️
+            <Icon icon={X} />
           </Button>
         </div>
       </div>

@@ -11,6 +11,8 @@ import MatchCard from './MatchCard';
 import { CollapseToggle } from '../common/CollapseToggle';
 import { translateStatic } from '../../contexts/TranslationContext';
 import { Button } from '../common/Button';
+import { Swords, Trophy } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface ConsolationBracketsSectionProps {
   consolationBrackets: ConsolationBracket[];
@@ -158,7 +160,9 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
                   collapsed={isCollapsed}
                   onToggle={() => toggleBracket(bracket.id)}
                 />
-                <h3 style={CONS_STYLES.consolationTitle}>🥋 {bracket.name}</h3>
+                <h3 style={CONS_STYLES.consolationTitle}>
+                  <Icon icon={Swords} /> {bracket.name}
+                </h3>
                 {bracket.isComplete && (
                   <span style={CONS_STYLES.consolationDoneBadge}>
                     {translateStatic('consolation.done')}
@@ -166,7 +170,7 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
                 )}
                 {finalM?.winner && (
                   <span style={CONS_STYLES.consolationWinnerBadge}>
-                    🏆 {finalM.winner.lastName} {finalM.winner.firstName}
+                    <Icon icon={Trophy} /> {finalM.winner.lastName} {finalM.winner.firstName}
                   </span>
                 )}
               </div>

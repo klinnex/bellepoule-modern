@@ -4,6 +4,8 @@
  */
 import React from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
+import { ClipboardList, Smartphone } from 'lucide-react';
+import { Icon } from '../common/Icon';
 
 interface Props {
   url: string;
@@ -21,10 +23,10 @@ export const UrlCopyRow: React.FC<Props> = ({ url, id, copiedIndex, onCopy, onQr
       <span className="arena-url-label">URL</span>
       <code className="arena-url-value">{url}</code>
       <button className="btn-copy" onClick={() => onCopy(url, id)} title={t('rsm.copy_url')}>
-        {copiedIndex === id ? t('rsm.copied_short') : '📋'}
+        {copiedIndex === id ? t('rsm.copied_short') : <Icon icon={ClipboardList} />}
       </button>
       <button className="btn-qr" onClick={onQr} title={t('rsm.qr_code')}>
-        📱
+        <Icon icon={Smartphone} />
       </button>
     </div>
   );
