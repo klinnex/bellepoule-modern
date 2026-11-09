@@ -20,6 +20,7 @@ import { useToast } from './Toast';
 import CoachMark from './CoachMark';
 import { useDebounce } from '../hooks/useDebounce';
 import Flag from './common/Flag';
+import { Button } from './common/Button';
 import { MENU_ITEM, SMALL_BTN, W250, DROPDOWN_WRAP } from './fencerList.styles';
 
 type SortableCol =
@@ -874,13 +875,13 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                     >
                       {t('fencerList.empty_import_xml')}
                     </button>
-                    <button
-                      className="btn btn-secondary"
+                    <Button
+                      variant="secondary"
                       title={t('fencerList.import_template')}
                       onClick={handleDownloadImportTemplate}
                     >
                       {t('fencerList.empty_import_template')}
-                    </button>
+                    </Button>
                   </CoachMark>
                 )}
                 <button className="btn btn-primary" data-tour="add-fencer" onClick={onAddFencer}>
