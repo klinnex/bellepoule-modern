@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { AlertTriangle, CheckCircle2, Info, Megaphone, XCircle } from 'lucide-react';
 
 export interface Toast {
   id: string;
@@ -148,24 +149,26 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
     }
   };
 
-  const getIcon = (): string => {
+  const ToastIcon = (() => {
     switch (toast.type) {
       case 'success':
-        return '✅';
+        return CheckCircle2;
       case 'error':
-        return '❌';
+        return XCircle;
       case 'warning':
-        return '⚠️';
+        return AlertTriangle;
       case 'info':
-        return 'ℹ️';
+        return Info;
       default:
-        return '📢';
+        return Megaphone;
     }
-  };
+  })();
 
   return (
     <div style={getToastStyle()}>
-      <div style={{ fontSize: '1.25rem', lineHeight: 1 }}>{getIcon()}</div>
+      <div style={{ fontSize: '1.25rem', lineHeight: 1 }} aria-hidden="true">
+        <ToastIcon size={20} />
+      </div>
       <div className="flex-1">
         <div
           style={{
