@@ -68,8 +68,10 @@ export const KeyboardShortcutsHelp: React.FC = () => {
       }
     };
 
-    const show = () => {
-      setActiveCategory('commands');
+    const show = (e: Event) => {
+      // detail : catégorie à afficher (« all » pour le bouton « ? » de l'en-tête)
+      const detail = (e as CustomEvent<string | undefined>).detail;
+      setActiveCategory(typeof detail === 'string' ? detail : 'commands');
       setIsOpen(true);
     };
     window.addEventListener('keydown', handleKeyDown);
