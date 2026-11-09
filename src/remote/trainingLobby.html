@@ -6,33 +6,34 @@
     <title data-i18n="traininglobby.page_title">Lobby entraînement — BellePoule Modern</title>
     <script src="/common.js"></script>
     <script src="/i18n.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
         font-family: 'Inter', system-ui, sans-serif;
-        background: #0f172a;
+        background: var(--slate-900);
         min-height: 100vh;
         color: white;
         padding: 2rem 1rem;
       }
       .container { max-width: 760px; margin: 0 auto; text-align: center; }
       h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem; }
-      .subtitle { color: #94a3b8; margin-bottom: 0.5rem; }
-      .notice { color: #64748b; font-size: 0.85rem; margin-bottom: 1.75rem; }
+      .subtitle { color: var(--slate-400); margin-bottom: 0.5rem; }
+      .notice { color: var(--slate-500); font-size: 0.85rem; margin-bottom: 1.75rem; }
       .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.85rem; }
       .strip {
         display: flex; flex-direction: column; gap: 0.35rem; align-items: center; justify-content: center;
-        min-height: 110px; padding: 1rem; border-radius: 0.9rem; text-decoration: none; color: #fff;
-        background: #1e293b; border: 2px solid #22c55e; font-weight: 700; font-size: 1.15rem;
+        min-height: 110px; padding: 1rem; border-radius: 0.9rem; text-decoration: none; color: var(--color-surface);
+        background: var(--slate-800); border: 2px solid var(--green-500); font-weight: 700; font-size: 1.15rem;
       }
-      .strip small { font-size: 0.8rem; font-weight: 600; color: #86efac; }
-      .strip.mine { border-color: #3b82f6; }
-      .strip.mine small { color: #93c5fd; }
+      .strip small { font-size: 0.8rem; font-weight: 600; color: var(--tw-green-300); }
+      .strip.mine { border-color: var(--blue-500); }
+      .strip.mine small { color: var(--tw-blue-300); }
       .strip.occupied {
-        border-color: #475569; color: #64748b; cursor: not-allowed; pointer-events: none; opacity: 0.7;
+        border-color: var(--slate-600); color: var(--slate-500); cursor: not-allowed; pointer-events: none; opacity: 0.7;
       }
-      .strip.occupied small { color: #f87171; }
-      .empty { color: #94a3b8; padding: 2rem 0; }
+      .strip.occupied small { color: var(--tw-red-400); }
+      .empty { color: var(--slate-400); padding: 2rem 0; }
     </style>
   </head>
   <body>

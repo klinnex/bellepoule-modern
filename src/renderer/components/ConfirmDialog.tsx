@@ -178,12 +178,8 @@ export const useConfirm = (): ConfirmContextType => {
   if (!context) {
     // Fallback si utilisé en dehors du provider
     return {
-      confirm: async (messageOrOptions: string | ConfirmOptions) => {
-        const msg =
-          typeof messageOrOptions === 'string' ? messageOrOptions : messageOrOptions.message;
-        // eslint-disable-next-line no-alert
-        return window.confirm(msg);
-      },
+      // Hors provider : aucune confirmation native (window.confirm) — l'action est refusée (#1535)
+      confirm: async () => false,
       // window.prompt() non supporté par Electron : annulation
       prompt: async () => null,
     };

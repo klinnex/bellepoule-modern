@@ -209,7 +209,8 @@
     "prep_max": "Kleizeidi Max",
     "prep_relaunch": "Adloc'hañ ar poulloù",
     "prep_unplaced": "{{count}} kleizeur(ez) ouzhpennet adalek ar c'halv n'eo ket lakaet c'hoazh: klikit war « Adprientiñ ar poulennoù » evit o lakaat.",
-    "relaunch_confirm": "Skoroù poulloù zo bet enskrivet dija: kolliñ a raint. Kenderc'hel ?"
+    "relaunch_confirm": "Skoroù poulloù zo bet enskrivet dija: kolliñ a raint. Kenderc'hel ?",
+    "prep_moved": "Ergerzher dilec'het"
   },
   "ranking": {
     "rank": "Renk",
@@ -843,7 +844,8 @@
     "priority_draw": "Tennadenn ar miz priorelezh",
     "priority_holder": "Priorelezh : {{name}}",
     "tie_choose_winner": "Piv eo ar gounezer?",
-    "tie_none": "Hini ebet"
+    "tie_none": "Hini ebet",
+    "score_cleared": "Skor dilamet"
   },
   "presentation": {
     "no_club": "Klub ebet",
@@ -1704,7 +1706,8 @@
     "ind": "Men.",
     "fie_title": "Taolioù berniet (reolenn FIE)",
     "touches_plus": "Taolioù+",
-    "touches_minus": "Taolioù-"
+    "touches_minus": "Taolioù-",
+    "fencer_removed": "Ergerzher lamet diouzh ar skipailh"
   },
   "formulaPhase": {
     "n_touches": "{{n}} taol",

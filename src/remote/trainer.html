@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="trainer.page_title">Formateurs - BellePoule</title>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       * {
         margin: 0;
@@ -14,9 +15,9 @@
 
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        background: linear-gradient(135deg, var(--brand-navy-900) 0%, var(--brand-navy-700) 100%);
         min-height: 100vh;
-        color: #fff;
+        color: var(--color-surface);
       }
 
       .wrap {
@@ -55,7 +56,7 @@
         border: 2px solid rgba(255, 255, 255, 0.25);
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.1);
-        color: #fff;
+        color: var(--color-surface);
         font-size: 1rem;
         font-family: inherit;
         outline: none;
@@ -81,19 +82,19 @@
       }
 
       .primary {
-        background: #22c55e;
-        color: #fff;
+        background: var(--green-500);
+        color: var(--color-surface);
         width: 100%;
         margin-top: 0.75rem;
       }
 
       .secondary {
         background: rgba(255, 255, 255, 0.15);
-        color: #fff;
+        color: var(--color-surface);
       }
 
       .error {
-        color: #fca5a5;
+        color: var(--red-200);
         margin-top: 0.5rem;
         min-height: 1.2em;
       }
@@ -140,12 +141,12 @@
       }
 
       .badge.live {
-        background: #f59e0b;
-        color: #111;
+        background: var(--tw-amber-500);
+        color: var(--c-111111);
       }
 
       .comment {
-        border-left: 3px solid #93c5fd;
+        border-left: 3px solid var(--tw-blue-300);
         padding: 0.5rem 0.75rem;
         margin-top: 0.5rem;
         background: rgba(255, 255, 255, 0.05);

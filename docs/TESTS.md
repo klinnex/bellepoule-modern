@@ -20,7 +20,7 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | Doc des tests | `npm run check:tests-doc` | `docs/TESTS.md` pas à jour vs fichiers de test |
 | Doc i18n | `npm run check:i18n-doc` | `docs/I18N.md` pas à jour, ou clé `data-i18n` d'une page distante absente de `src/remote/i18n.js` |
 | Doc Socket.IO | `npm run check:socket-doc` | `docs/SOCKET_EVENTS.md` pas à jour, ou événement émis par une page sans écouteur serveur |
-| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
+| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
 | Build Nix | `nix build .#default` (job `nix-build`) | le paquet `flake.nix` ne build pas : `npmDepsHash` périmé vs `package-lock.json`, dépendance native cassée, etc. |
 | Tests unitaires | `npm run test:run` | un test Vitest échoue |
 | Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1 MiB, total > 6 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
@@ -102,14 +102,14 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 73 | 363 |
-| E2E Playwright (`e2e/`) | 10 | 37 |
+| E2E Playwright (`e2e/`) | 10 | 38 |
 | `src/remote/` | 41 | 270 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 13 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **312** | **2454** |
+| **Total** | **312** | **2455** |
 
-Unitaires : 302 fichiers, 2417 tests. E2E : 10 fichiers, 37 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 302 fichiers, 2417 tests. E2E : 10 fichiers, 38 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3719,7 +3719,7 @@ Unitaires : 302 fichiers, 2417 tests. E2E : 10 fichiers, 37 tests (comptage stat
   - utilise des libellés personnalisés
   - Échap annule le dialogue
 - **useConfirm hors provider**
-  - retombe sur window.confirm
+  - refuse sans appeler window.confirm
 - **prompt()**
   - résout la valeur saisie sur OK
   - Entrée valide la saisie
@@ -4532,10 +4532,11 @@ Unitaires : 302 fichiers, 2417 tests. E2E : 10 fichiers, 37 tests (comptage stat
 </details>
 
 <details>
-<summary><code>e2e/i18n-overflow.spec.ts</code> — 1 test</summary>
+<summary><code>e2e/i18n-overflow.spec.ts</code> — 2 tests</summary>
 
 - **i18n : pas de débordement de libellés**
   - accueil ${lang}${pseudo ? ' (pseudo-localisation)' : ''}
+  - nouvelle compétition ${lang}${pseudo ? ' (pseudo-localisation)' : ''}
 
 </details>
 

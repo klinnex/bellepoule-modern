@@ -79,7 +79,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
   const boutCap = getLaserArenaBoutCap();
   const tableId = competition.id; // Un seul tableau équipes par compétition
   const { confirm } = useConfirm();
-  const { showToast } = useToast();
+  const { showToast, showUndoToast } = useToast();
   const { t } = useTranslation();
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [matches, setMatches] = useState<TeamMatchRow[]>([]);
@@ -286,9 +286,20 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
     await reload();
   };
 
-  const handleRemoveFencer = async (teamId: string, fencerId: string) => {
+  const handleRemoveFencer = async (
+    teamId: string,
+    fencerId: string,
+    teamOrder: number,
+    isReserve: boolean
+  ) => {
     await window.electronAPI.db.removeTeamFencer(teamId, fencerId);
     await reload();
+    // Retrait annulable sans confirmation modale (#1535)
+    showUndoToast(t('teamManager.fencer_removed'), () => {
+      void window.electronAPI.db
+        .upsertTeamFencer(teamId, fencerId, teamOrder, isReserve)
+        .then(reload);
+    });
   };
 
   // ── Générer poule (round-robin) ───────────────────────────────────────────────
@@ -664,7 +675,9 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       {isEditing && (
                         <button
                           aria-label={t('actions.remove')}
-                          onClick={() => handleRemoveFencer(team.id, f.fencerId)}
+                          onClick={() =>
+                            handleRemoveFencer(team.id, f.fencerId, f.teamOrder, false)
+                          }
                           className="text-red-400 hover:text-red-600 ml-1"
                         >
                           ✕
@@ -684,7 +697,9 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       {isEditing && (
                         <button
                           aria-label={t('actions.remove')}
-                          onClick={() => handleRemoveFencer(team.id, reserve.fencerId)}
+                          onClick={() =>
+                            handleRemoveFencer(team.id, reserve.fencerId, reserve.teamOrder, true)
+                          }
                           className="text-red-400 hover:text-red-600 ml-1"
                         >
                           ✕
