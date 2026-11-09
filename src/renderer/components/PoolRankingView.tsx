@@ -41,6 +41,7 @@ import {
   COMPACT_ROW_COUNT,
 } from './common/CollapseToggle';
 import { Button } from './common/Button';
+import { genderLabel } from './common/GenderLabel';
 
 interface PoolRankingViewProps {
   pools: Pool[];
@@ -501,7 +502,7 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
                 setSplitTab(g);
               }}
             >
-              {g === Gender.MALE ? '♂ Hommes' : g === Gender.FEMALE ? '♀ Femmes' : g}
+              {genderLabel(g, t)}
             </button>
           ))}
         </div>

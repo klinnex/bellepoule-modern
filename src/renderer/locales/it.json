@@ -398,7 +398,9 @@
     "backup_import": "Importa (JSON)",
     "backup_exported": "Impostazioni esportate.",
     "backup_imported": "{{count}} impostazione/i importata/e.",
-    "backup_invalid": "File non valido: atteso un export delle impostazioni BellePoule."
+    "backup_invalid": "File non valido: atteso un export delle impostazioni BellePoule.",
+    "webhook_test": "Prova",
+    "webhook_testing": "Test…"
   },
   "actions": {
     "undo": "Annulla",
@@ -2122,7 +2124,9 @@
     "qr_alt": "QR Code WiFi",
     "network": "Rete:",
     "open_short": "Aperta",
-    "download": "💾 Scarica"
+    "download": "💾 Scarica",
+    "generate": "Genera codice QR",
+    "generating": "Generazione…"
   },
   "touchReferee": {
     "strip": "Pedana {{n}}",

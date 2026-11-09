@@ -14,6 +14,7 @@ import { CONFETTI_DISABLED_KEY, isConfettiDisabled } from './Confetti';
 import {
   Bell,
   FileText,
+  Hourglass,
   Palette,
   PenLine,
   Settings as SettingsIcon,
@@ -61,6 +62,7 @@ import {
 } from '../services/settingsTransfer';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import { Button } from './common/Button';
+import { Icon } from './common/Icon';
 
 const WEBHOOK_STORAGE_KEY = 'bellepoule-webhook-url';
 const AUDIT_LOG_KEY = 'bellepoule-audit-log-enabled';
@@ -1143,7 +1145,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   onClick={handleTestWebhook}
                   disabled={!webhookUrl.trim() || webhookTestStatus === 'testing'}
                 >
-                  {webhookTestStatus === 'testing' ? '⏳ Test…' : '🔔 Tester'}
+                  {webhookTestStatus === 'testing' ? (
+                    <>
+                      <Icon icon={Hourglass} /> {t('settings.webhook_testing')}
+                    </>
+                  ) : (
+                    <>
+                      <Icon icon={Bell} /> {t('settings.webhook_test')}
+                    </>
+                  )}
                 </Button>
                 {webhookUrl && (
                   <Button style={SMALL_BTN} onClick={() => handleWebhookUrlChange('')}>
