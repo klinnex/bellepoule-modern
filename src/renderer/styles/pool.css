@@ -728,3 +728,17 @@ button.pv-pill {
   outline: 3px solid var(--color-primary);
   outline-offset: -3px;
 }
+
+/* Matrice de poule : défilement contrôlé, en-têtes et colonne des noms collants (#1541) */
+.pool-matrix-scroll {
+  max-width: 100%;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+/* Fenêtre étroite (≤ 1280 px) : cellules de la matrice resserrées */
+@media (max-width: 1280px) {
+  .pool-matrix-scroll .pool-cell {
+    padding-inline: 0.25rem;
+  }
+}

@@ -31,3 +31,8 @@ Pour lister les occurrences restantes :
 ```bash
 node scripts/check-quality-ratchet.js --list rawBtn
 ```
+
+## Points de rupture et matrices (#1541)
+
+Points de rupture communs : 1024, 1280, 1440, 1920 px (fenêtre minimale 1024). Les règles à 768 / 700 / 480 px ne servent qu'aux tablettes et restent sous la fenêtre minimale.
+Matrices et tableaux larges : conteneur `.table-scroll` (tables) ou `.pool-matrix-scroll` (matrice de poule) : défilement contrôlé, en-têtes et première colonne collants.
