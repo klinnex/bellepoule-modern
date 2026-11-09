@@ -4173,6 +4173,18 @@ Unitaires : 296 fichiers, 2395 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/pool/poolMatrixNav.test.ts</code> — 5 tests</summary>
+
+- **poolMatrixNav**
+  - reconnaît les flèches
+  - droite/gauche : saute la diagonale
+  - bas/haut : saute la diagonale
+  - bords : null
+  - touche non fléchée : null
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/pool/poolSpecialStatus.test.ts</code> — 5 tests</summary>
 
 - **specialStatusOutcome**
