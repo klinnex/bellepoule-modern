@@ -21,6 +21,7 @@ import { Competition, Weapon, Gender, Category } from '../../shared/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { categoryLabel } from '../../shared/utils/categoryLabel';
 import { usePagination } from '../hooks/usePagination';
+import { filterCompetitions } from './competitionListSearch';
 import { CompetitionCardSkeleton } from './Skeleton';
 import { useConfirm } from './ConfirmDialog';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
@@ -66,6 +67,12 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     });
     if (ok) onDelete(competition.id);
   };
+  const [query, setQuery] = React.useState('');
+  const searchRef = React.useRef<HTMLInputElement>(null);
+  const visibleCompetitions = React.useMemo(
+    () => filterCompetitions(competitions, query),
+    [competitions, query]
+  );
   const {
     items: paginatedCompetitions,
     page,
@@ -82,7 +89,20 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
     pageSizeOptions,
     startIndex,
     endIndex,
-  } = usePagination(competitions, { defaultPageSize: 20 });
+  } = usePagination(visibleCompetitions, { defaultPageSize: 20 });
+
+  // Raccourci « / » : place le curseur dans la recherche (hors champs de saisie)
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+      e.preventDefault();
+      searchRef.current?.focus();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   if (isLoading) {
     return (
@@ -373,6 +393,29 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
           </button>
         </div>
       </div>
+
+      <div className="competition-search">
+        <input
+          ref={searchRef}
+          type="search"
+          className="form-input competition-search-input"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder={t('competitionList.search_placeholder')}
+          aria-label={t('competitionList.search_aria')}
+        />
+        {query && (
+          <span className="competition-search-count" aria-live="polite">
+            {t('competitionList.search_count', {
+              shown: visibleCompetitions.length,
+              total: competitions.length,
+            })}
+          </span>
+        )}
+      </div>
+      {visibleCompetitions.length === 0 && (
+        <p className="competition-search-empty">{t('competitionList.search_empty')}</p>
+      )}
 
       <div className="competition-grid">
         {paginatedCompetitions.map(competition => (

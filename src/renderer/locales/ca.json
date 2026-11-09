@@ -2156,7 +2156,11 @@
     "export": "Exportar (.bpm)",
     "export_title": "Exporta una competició en un fitxer .bpm",
     "export_pick_title": "Tria la competició a exportar",
-    "guided_start": "Primera vegada? Crear amb el recorregut guiat"
+    "guided_start": "Primera vegada? Crear amb el recorregut guiat",
+    "search_aria": "Cerca una competició",
+    "search_placeholder": "Cerca per nom, lloc o data…",
+    "search_empty": "Cap competició no coincideix amb la cerca.",
+    "search_count": "{{shown}} de {{total}}"
   },
   "trainingLauncher": {
     "title": "Mode entrenament",
