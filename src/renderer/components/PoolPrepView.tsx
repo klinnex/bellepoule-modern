@@ -21,6 +21,7 @@ import {
 import PoolMatchOrderModal from './pool/PoolMatchOrderModal';
 import { useUndoStack } from '../hooks/useUndoStack';
 import { useTranslation } from '../hooks/useTranslation';
+import { useToast } from './Toast';
 import { stripNumbers } from '../../shared/utils/stripRange';
 
 const HINT_DISMISSED_KEY = 'bp_poolprep_hint_dismissed';
@@ -107,6 +108,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
   customMatchOrder,
 }) => {
   const { t } = useTranslation();
+  const { showUndoToast } = useToast();
   const [poolCount, setPoolCount] = useState<number>(0);
   const [minFencersPerPool, setMinFencersPerPool] = useState<number>(initialMin);
   const [maxFencersPerPool, setMaxFencersPerPool] = useState<number>(initialMax);
@@ -361,6 +363,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
           i === targetPoolIndex ? regenerateMatches({ ...p, fencers: newFencers }) : p
         )
       );
+      showUndoToast(t('pools.prep_moved'), handleRestore);
       return;
     }
 
@@ -379,6 +382,7 @@ const PoolPrepView: React.FC<PoolPrepViewProps> = ({
     });
 
     setPools(updatedPools);
+    showUndoToast(t('pools.prep_moved'), handleRestore);
   };
 
   // Échanges de tireurs entre poules pour atteindre le minimum de conflits

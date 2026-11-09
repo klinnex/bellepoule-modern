@@ -174,7 +174,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
   waveMatchIds,
 }) => {
   const { t } = useTranslation();
-  const { showToast } = useToast();
+  const { showToast, showUndoToast } = useToast();
   // Paires de la vague en cours, repérées par tireurs (cellules de la matrice)
   const waveHighlightPairs = useMemo(() => {
     if (!waveMatchIds?.size) return undefined;
@@ -326,22 +326,20 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               ? 'exclusion'
               : undefined;
 
+      const restore = () =>
+        prevScoreA?.value != null &&
+        prevScoreB?.value != null &&
+        onScoreUpdate(matchIndex, prevScoreA.value, prevScoreB.value, winner, specialStatus);
       addAction({
         type: 'DELETE_MATCH',
         description: `Suppression score poule ${pool.number} match ${matchIndex + 1}`,
-        undo: () => {
-          if (prevScoreA?.value != null && prevScoreB?.value != null) {
-            onScoreUpdate(matchIndex, prevScoreA.value, prevScoreB.value, winner, specialStatus);
-          }
-        },
-        redo: () => {
-          onMatchReset(matchIndex);
-        },
+        undo: restore,
+        redo: () => onMatchReset(matchIndex),
       });
-
       onMatchReset(matchIndex);
+      showUndoToast(t('poolView.score_cleared'), restore); // annulable sans modale (#1535)
     },
-    [pool, onMatchReset, onScoreUpdate, addAction]
+    [pool, onMatchReset, onScoreUpdate, addAction, showUndoToast, t]
   );
 
   const prevIsComplete = useRef(pool.isComplete);
