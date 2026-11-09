@@ -174,8 +174,7 @@ describe('RemoteScoreServer', () => {
         // Tester directement la logique de comparaison de mot de passe
         const arena = arenas.get('arena1');
         const password = 'wrong-password';
-        const passwordOk =
-          !!password && password.length === arena.password.length && password === arena.password;
+        const passwordOk = password.length === arena.password.length && password === arena.password;
         expect(passwordOk).toBe(false);
       }
     });

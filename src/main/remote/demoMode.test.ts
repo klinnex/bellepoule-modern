@@ -8,7 +8,6 @@ import {
 } from './demoMode';
 import type { ArenaMatch } from '../../shared/types/remote';
 import { Weapon } from '../../shared/types';
-import { createRng } from '../../shared/utils/tournamentSimulator';
 
 const constantRng = (value: number) => () => value;
 
