@@ -376,7 +376,13 @@ function main() {
     return;
   }
 
-  const baseline = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')) : null;
+  // Lecture directe (pas d'existsSync puis read : CodeQL js/file-system-race)
+  let baseline = null;
+  try {
+    baseline = JSON.parse(fs.readFileSync(BASELINE, 'utf8'));
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e;
+  }
 
   if (args.includes('--update')) {
     const next = {};

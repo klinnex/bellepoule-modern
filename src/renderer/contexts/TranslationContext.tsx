@@ -4,7 +4,14 @@
  * Licensed under GPL-3.0
  */
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useCallback,
+} from 'react';
 import { logger, LogCategory } from '@shared/services/logger';
 import {
   pseudoLocalize,
@@ -239,8 +246,10 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
   // des enfants, sinon ils formatent avec la langue précédente (#1213)
   setActiveLanguage(language);
 
-  // Attribut lang du document (lecteurs d'écran, césure, correcteur orthographique) (#1160)
-  useEffect(() => {
+  // Attribut lang du document (lecteurs d'écran, césure, correcteur orthographique) (#1160).
+  // useLayoutEffect : appliqué avec le commit, jamais un rendu « de » avec lang="fr"
+  // (langues chargées à la demande depuis b0b0889 : course en CI avec useEffect)
+  useLayoutEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = 'ltr';
   }, [language]);

@@ -421,8 +421,10 @@
 
         /* ── Extraction de l'arenaId depuis l'URL ou le query param ── */
         function getArenaId() {
-          const p = params.get('arena');
-          if (p) return p.startsWith('arena') ? p : 'arena' + p;
+          // ?arena=N ou arenaN uniquement (chiffres) : pas de chemin arbitraire dans fetch()
+          // (CodeQL js/client-side-request-forgery)
+          const p = /^(?:arena)?(\d+)$/.exec(params.get('arena') || '');
+          if (p) return 'arena' + p[1];
           const m = window.location.pathname.match(/arene(\d+)/i) || window.location.pathname.match(/arena(\d+)/i);
           return m ? 'arena' + m[1] : 'arena1';
         }
