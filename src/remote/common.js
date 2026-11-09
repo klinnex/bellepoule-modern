@@ -262,6 +262,18 @@
   }
   root.bpClaimArenaSlot = claimArenaSlot;
 
+  // Accessibilité : repli prefers-reduced-motion commun à toutes les pages distantes
+  // (écrans publics inclus) — neutralise animations et transitions.
+  if (typeof document !== 'undefined' && document.head) {
+    var rm = document.createElement('style');
+    rm.setAttribute('data-bp', 'reduced-motion');
+    rm.textContent =
+      '@media (prefers-reduced-motion: reduce){*,*::before,*::after{' +
+      'animation-duration:0.01ms !important;animation-iteration-count:1 !important;' +
+      'transition-duration:0.01ms !important;scroll-behavior:auto !important}}';
+    document.head.appendChild(rm);
+  }
+
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = { escHtml: escHtml, html: html, claimArenaSlot: claimArenaSlot };
   }

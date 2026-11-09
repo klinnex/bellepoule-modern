@@ -97,7 +97,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 6 | 138 |
-| `src/main/` | 52 | 422 |
+| `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 64 | 329 |
@@ -106,9 +106,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **296** | **2396** |
+| **Total** | **297** | **2398** |
 
-Unitaires : 287 fichiers, 2361 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 288 fichiers, 2363 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2740,6 +2740,15 @@ Unitaires : 287 fichiers, 2361 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - paquet sortant filtré, paquet source intact
   - photo diffusée quand l’affichage des photos est actif, jamais la licence
   - décodage côté client inchangé (format standard)
+
+</details>
+
+<details>
+<summary><code>src/main/remote/reducedMotion.test.ts</code> — 2 tests</summary>
+
+- **pages distantes — prefers-reduced-motion**
+  - common.js injecte le repli
+  - ${page}.html charge common.js
 
 </details>
 
