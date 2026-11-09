@@ -2156,7 +2156,11 @@
     "export": "Esporta (.bpm)",
     "export_title": "Esporta una competizione in un file .bpm",
     "export_pick_title": "Scegli la competizione da esportare",
-    "guided_start": "Prima volta? Crea con il percorso guidato"
+    "guided_start": "Prima volta? Crea con il percorso guidato",
+    "search_aria": "Cerca una competizione",
+    "search_placeholder": "Cerca per nome, luogo o data…",
+    "search_empty": "Nessuna competizione corrisponde alla ricerca.",
+    "search_count": "{{shown}} su {{total}}"
   },
   "trainingLauncher": {
     "title": "Modalità allenamento",

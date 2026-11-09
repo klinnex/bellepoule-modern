@@ -12,6 +12,7 @@ import './styles/main.css';
 import './styles/formula.css';
 import './styles/design.css';
 import './styles/buttons.css';
+import './styles/competition-list.css';
 import './styles/tokens.css';
 import './styles/pool.css';
 import './styles/tableau.css';

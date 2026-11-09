@@ -2156,7 +2156,11 @@
     "export": "匯出 (.bpm)",
     "export_title": "將比賽匯出為 .bpm 檔案",
     "export_pick_title": "選擇要匯出的比賽",
-    "guided_start": "第一次使用？透過導覽建立"
+    "guided_start": "第一次使用？透過導覽建立",
+    "search_aria": "搜尋比賽",
+    "search_placeholder": "按名稱、地點或日期搜尋…",
+    "search_empty": "沒有符合搜尋的比賽。",
+    "search_count": "{{shown}} / {{total}}"
   },
   "trainingLauncher": {
     "title": "訓練模式",
