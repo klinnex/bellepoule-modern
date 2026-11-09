@@ -131,7 +131,11 @@
     "teampool": "Poule de equipas",
     "teamtableau": "Quadro de equipas",
     "teamranking": "Classificação de equipas",
-    "poolprep_locked_tooltip": "Prepare primeiro as poules (separador Chamada)"
+    "poolprep_locked_tooltip": "Prepare primeiro as poules (separador Chamada)",
+    "state_done": "concluído",
+    "state_current": "em curso",
+    "state_todo": "por fazer",
+    "state_blocked": "bloqueado"
   },
   "pools": {
     "generate": "Gerar poules",
@@ -564,6 +568,8 @@
     "quick_search": "Pesquisa rápida",
     "close_modal": "Fechar janela / Cancelar",
     "nav_fields": "Navegar entre campos",
+    "nav_matrix": "Matriz de poule: setas para mover entre células",
+    "activate_card": "Enter / Espaço: abrir a célula ou o cartão de combate",
     "save": "Guardar",
     "undo": "Anular um resultado de poule",
     "redo": "Refazer um resultado de poule",

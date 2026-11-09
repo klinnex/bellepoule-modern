@@ -131,7 +131,11 @@
     "teampool": "Poule por equipos",
     "teamtableau": "Cuadro por equipos",
     "teamranking": "Clasificación por equipos",
-    "poolprep_locked_tooltip": "Prepare primero las poules (pestaña Llamada)"
+    "poolprep_locked_tooltip": "Prepare primero las poules (pestaña Llamada)",
+    "state_done": "hecho",
+    "state_current": "en curso",
+    "state_todo": "pendiente",
+    "state_blocked": "bloqueado"
   },
   "pools": {
     "generate": "Generar Poules",
@@ -564,6 +568,8 @@
     "quick_search": "Búsqueda rápida",
     "close_modal": "Cerrar modal / Cancelar",
     "nav_fields": "Navegar entre campos",
+    "nav_matrix": "Matriz de poule: flechas para moverse entre casillas",
+    "activate_card": "Intro / Espacio: abrir la casilla o la tarjeta de combate",
     "save": "Guardar",
     "undo": "Deshacer un marcador de poule",
     "redo": "Rehacer un marcador de poule",

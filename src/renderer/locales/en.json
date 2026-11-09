@@ -131,7 +131,11 @@
     "teampool": "Team pool",
     "teamtableau": "Team bracket",
     "teamranking": "Team ranking",
-    "poolprep_locked_tooltip": "Prepare the pools first (Check-in tab)"
+    "poolprep_locked_tooltip": "Prepare the pools first (Check-in tab)",
+    "state_done": "done",
+    "state_current": "in progress",
+    "state_todo": "to do",
+    "state_blocked": "blocked"
   },
   "pools": {
     "generate": "Generate Pools",
@@ -564,6 +568,8 @@
     "quick_search": "Quick search",
     "close_modal": "Close modal / Cancel",
     "nav_fields": "Navigate between fields",
+    "nav_matrix": "Pool matrix: arrow keys to move between cells",
+    "activate_card": "Enter / Space: open the cell or match card",
     "save": "Save",
     "undo": "Undo a pool score",
     "redo": "Redo a pool score",

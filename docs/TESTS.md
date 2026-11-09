@@ -84,7 +84,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 49 | 659 |
+| `src/shared/utils/` | 49 | 660 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -101,15 +101,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 72 | 359 |
+| `src/renderer/components/` | 73 | 363 |
 | E2E Playwright (`e2e/`) | 10 | 37 |
-| `src/remote/` | 40 | 269 |
+| `src/remote/` | 41 | 270 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 12 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **310** | **2447** |
+| **Total** | **312** | **2453** |
 
-Unitaires : 300 fichiers, 2410 tests. E2E : 10 fichiers, 37 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 302 fichiers, 2416 tests. E2E : 10 fichiers, 37 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -953,11 +953,12 @@ Unitaires : 300 fichiers, 2410 tests. E2E : 10 fichiers, 37 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/shared/utils/pseudoLocale.test.ts</code> — 5 tests</summary>
+<summary><code>src/shared/utils/pseudoLocale.test.ts</code> — 6 tests</summary>
 
 - **pseudoLocalize**
   - accentue les lettres et encadre la chaîne
   - préserve les paramètres {{nom}}
+  - allonge la chaîne d'environ 40 %
   - laisse intacts chiffres, accents et symboles
 - **isPseudoLocaleEnabled**
   - vrai uniquement si le drapeau vaut "1"
@@ -4097,6 +4098,18 @@ Unitaires : 300 fichiers, 2410 tests. E2E : 10 fichiers, 37 tests (comptage stat
 </details>
 
 <details>
+<summary><code>src/renderer/components/competition/phaseStepper.test.ts</code> — 4 tests</summary>
+
+- **phaseStepStates**
+  - marque fait, en cours, à faire et bloqué
+  - phase inconnue : rien de fait
+- **nextBlockedReason**
+  - renvoie le motif de la première phase bloquée suivante
+  - null si aucun motif connu après la phase courante
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/competition/usePhaseShortcuts.test.ts</code> — 5 tests</summary>
 
 - **phaseShortcutTarget**
@@ -4581,6 +4594,14 @@ Unitaires : 300 fichiers, 2410 tests. E2E : 10 fichiers, 37 tests (comptage stat
 </details>
 
 ### `src/remote/`
+
+<details>
+<summary><code>src/remote/a11yPages.test.ts</code> — 1 test</summary>
+
+- **axe sur les pages distantes (#1537)**
+  - ${page}.html : aucune violation
+
+</details>
 
 <details>
 <summary><code>src/remote/arenaSlotClient.test.ts</code> — 3 tests</summary>

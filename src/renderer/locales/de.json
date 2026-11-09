@@ -272,7 +272,11 @@
     "teampool": "Mannschaftsrunde",
     "teamtableau": "Mannschafts-K.-o.",
     "teamranking": "Mannschaftswertung",
-    "poolprep_locked_tooltip": "Zuerst die Pools vorbereiten (Reiter Aufruf)"
+    "poolprep_locked_tooltip": "Zuerst die Pools vorbereiten (Reiter Aufruf)",
+    "state_done": "erledigt",
+    "state_current": "aktuell",
+    "state_todo": "offen",
+    "state_blocked": "gesperrt"
   },
   "pools": {
     "change_pool": "Pool Wechseln",
@@ -534,6 +538,8 @@
     "close_modal": "Modal schließen / Abbrechen",
     "footer": "Drücken Sie ? um diese Hilfe jederzeit anzuzeigen",
     "nav_fields": "Zwischen Feldern navigieren",
+    "nav_matrix": "Pool-Matrix: Pfeiltasten zum Wechseln zwischen Zellen",
+    "activate_card": "Eingabe / Leertaste: Zelle oder Gefechtskarte öffnen",
     "new_competition": "Neuer Wettkampf",
     "print_sheets": "Poolblätter / Gefechtsblätter drucken",
     "quick_search": "Schnellsuche",

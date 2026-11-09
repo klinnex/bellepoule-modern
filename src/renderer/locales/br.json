@@ -131,7 +131,11 @@
     "teampool": "Poull skipailhoù",
     "teamtableau": "Taolenn skipailhoù",
     "teamranking": "Renkadur skipailhoù",
-    "poolprep_locked_tooltip": "Prientit ar poulennoù da gentañ (diretenn Galv)"
+    "poolprep_locked_tooltip": "Prientit ar poulennoù da gentañ (diretenn Galv)",
+    "state_done": "graet",
+    "state_current": "o vont en-dro",
+    "state_todo": "da ober",
+    "state_blocked": "stanket"
   },
   "pools": {
     "generate": "Genelañ ar poullou",
@@ -564,6 +568,8 @@
     "quick_search": "Klask tost",
     "close_modal": "Serriñ / Nullañ",
     "nav_fields": "Levenez etre maezioù",
+    "nav_matrix": "Matrisenn poule : biroù rakwel evit tremen etre kelc'hioù",
+    "activate_card": "Enter / Esaouenn : digeriñ ar gelc'h pe ar gartenn emgann",
     "save": "Enrollañ",
     "undo": "Dizober ur skor poull",
     "redo": "Adober ur skor poull",
