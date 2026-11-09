@@ -404,7 +404,15 @@
         if (params.get('swap') === '1') root.classList.add('swapped');
 
         /* Logo personnalisé dans le panneau central (?logo=https://...) */
-        const logoUrl = params.get('logo');
+        /* Seuls http(s) acceptés (pas de javascript:, data:…) : CodeQL js/xss */
+        const logoParam = params.get('logo');
+        let logoUrl = null;
+        try {
+          const u = logoParam ? new URL(logoParam, window.location.href) : null;
+          if (u && (u.protocol === 'http:' || u.protocol === 'https:')) logoUrl = u.href;
+        } catch {
+          /* URL invalide : pas de logo */
+        }
         if (logoUrl) {
           const logoEl = document.getElementById('center-logo');
           logoEl.src = logoUrl;
