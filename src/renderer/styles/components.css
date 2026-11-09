@@ -1454,3 +1454,41 @@
   justify-content: flex-start;
   text-align: left;
 }
+
+/* Tableaux à défilement contrôlé : en-têtes collants plutôt que débordement (#1541) */
+.table-scroll {
+  max-width: 100%;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.table-scroll .table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table-scroll .table th:first-child,
+.table-scroll .table td:first-child {
+  position: sticky;
+  left: 0;
+}
+
+.table-scroll .table th:first-child {
+  z-index: 2;
+}
+
+.table-scroll .table td:first-child {
+  background: var(--color-surface);
+  z-index: 1;
+}
+
+/* Fenêtre étroite (≤ 1280 px) : cellules resserrées d'un cran en densité standard */
+@media (max-width: 1280px) {
+  :root:not([data-density]) .table th,
+  :root:not([data-density]) .table td,
+  :root[data-density='standard'] .table th,
+  :root[data-density='standard'] .table td {
+    padding: 0.5rem 0.75rem;
+  }
+}
