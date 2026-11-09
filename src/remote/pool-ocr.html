@@ -4,18 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title data-i18n="ocr.page_title">Saisie par photo — BellePoule</title>
+  <link rel="stylesheet" href="/tokens.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --navy: #1a1a2e;
-      --navy2: #16213e;
-      --gold: #c9a227;
-      --green: #22c55e;
-      --red: #ef4444;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --border: #334155;
+      --navy: var(--c-1a1a2e);
+      --navy2: var(--c-16213e);
+      --gold: var(--c-c9a227);
+      --green: var(--green-500);
+      --red: var(--red-500);
+      --text: var(--tw-slate-200);
+      --muted: var(--slate-400);
+      --border: var(--slate-700);
       --btn-h: 48px;
     }
 
@@ -68,7 +69,7 @@
     .btn:disabled { opacity: .4; cursor: not-allowed; }
     .btn-primary   { background: var(--gold); color: var(--navy); }
     .btn-secondary { background: var(--border); color: var(--text); }
-    .btn-success   { background: var(--green); color: #fff; }
+    .btn-success   { background: var(--green); color: var(--color-surface); }
     .btn-block { width: 100%; }
 
     /* ── Corners stage ── */
@@ -88,7 +89,7 @@
       width: 28px; height: 28px;
       border-radius: 50%;
       background: var(--gold);
-      border: 2px solid #fff;
+      border: 2px solid var(--color-surface);
       cursor: grab;
       transform: translate(-50%, -50%);
       touch-action: none;
@@ -184,7 +185,7 @@
     /* ── Error toast ── */
     #toast {
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: var(--red); color: #fff; border-radius: 8px;
+      background: var(--red); color: var(--color-surface); border-radius: 8px;
       padding: 10px 20px; font-size: 0.85rem; font-weight: 600;
       display: none; z-index: 9999; max-width: 90vw; text-align: center;
     }
@@ -413,7 +414,7 @@ function drawOverlay() {
   ctx.restore();
 
   // Draw quad outline
-  ctx.strokeStyle = '#c9a227';
+  ctx.strokeStyle = bpCssVar('--c-c9a227');
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(tl.x, tl.y);
@@ -467,7 +468,7 @@ function showPoolSelector() {
         return;
       }
       const sel = document.createElement('select');
-      sel.style.cssText = 'background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:8px;font-size:.9rem;width:100%;margin-top:8px';
+      sel.style.cssText = 'background:var(--slate-800);color:var(--tw-slate-200);border:1px solid var(--slate-700);border-radius:6px;padding:8px;font-size:.9rem;width:100%;margin-top:8px';
       sel.innerHTML = '<option value="">' + tk('ocr.choose_pool') + '</option>';
       pools.forEach(p => {
         const label = p.name || tk('ocr.pool_n', { n: p.number || '?' });

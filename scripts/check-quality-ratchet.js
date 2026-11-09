@@ -21,6 +21,8 @@
  *                  `lang="fr"` figé / `'fr-FR'` dans les gabarits HTML de src/main/remote/*.ts
  *                  (angle mort de l'AST : JS/HTML dans des template strings, #1344) → langue
  *                  active (`document.documentElement.lang`)
+ *   - remoteHardColor : couleur hexadécimale (#rgb, #rrggbb, #rrggbbaa) en dur dans les pages
+ *                  distantes (src/remote, hors tokens.css) → `var(--…)` de /tokens.css (#1538)
  *   - inlineStyle : objets `style={{…}}` dans le JSX (renderer) → classes / tokens CSS (#1157)
  *   - fontSizePx : `fontSize` en px (nombre ou « 12px ») dans le TS/TSX du renderer → échelle
  *                  `var(--fs-*)` en rem (#1156)
@@ -311,6 +313,25 @@ function remoteLocaleFindings() {
   return out;
 }
 
+/** Couleurs hexadécimales en dur dans les pages distantes (hors tokens.css, #1538) */
+const HEX_RE = /(?<![\w&#/-])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/;
+function remoteColorFindings() {
+  const out = [];
+  for (const name of fs.readdirSync(REMOTE_DIR).sort()) {
+    if (!/\.(html|js|css)$/.test(name) || name === 'tokens.css') continue;
+    const lines = [];
+    fs.readFileSync(path.join(REMOTE_DIR, name), 'utf8')
+      .split('\n')
+      .forEach((l, i) => {
+        if (/^\s*(\/\/|\*|\/\*)/.test(l)) return;
+        const cut = l.search(/\s\/\/\s/);
+        if (HEX_RE.test(cut === -1 ? l : l.slice(0, cut))) lines.push(i + 1);
+      });
+    if (lines.length) out.push({ file: `src/remote/${name}`, lines });
+  }
+  return out;
+}
+
 /** Longueur (lignes) des fichiers source de src/, hors tests et typages générés */
 function fileLengths() {
   const out = {};
@@ -340,7 +361,7 @@ function oversized() {
 function collect() {
   const totals = {};
   const details = {};
-  for (const key of [...COUNTERS, 'remoteUnescaped', 'remoteHardLocale']) {
+  for (const key of [...COUNTERS, 'remoteUnescaped', 'remoteHardLocale', 'remoteHardColor']) {
     totals[key] = 0;
     details[key] = [];
   }
@@ -356,6 +377,8 @@ function collect() {
   totals.remoteUnescaped = details.remoteUnescaped.reduce((n, f) => n + f.lines.length, 0);
   details.remoteHardLocale = remoteLocaleFindings();
   totals.remoteHardLocale = details.remoteHardLocale.reduce((n, f) => n + f.lines.length, 0);
+  details.remoteHardColor = remoteColorFindings();
+  totals.remoteHardColor = details.remoteHardColor.reduce((n, f) => n + f.lines.length, 0);
   return { totals, details };
 }
 
