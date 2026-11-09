@@ -2289,6 +2289,7 @@
     "empty_hint": "Termine primeiro as poules para gerar o quadro",
     "zoom_in": "Aumentar zoom",
     "zoom_reset": "Repor",
+    "minimap": "Minimapa do quadro",
     "zoom_out": "Diminuir zoom",
     "strips_summary": "Resumo das pistas",
     "strip_n": "Pista {{n}}",

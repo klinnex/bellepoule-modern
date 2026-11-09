@@ -2289,6 +2289,7 @@
     "empty_hint": "Termine primero las poules para generar el cuadro",
     "zoom_in": "Acercar",
     "zoom_reset": "Restablecer",
+    "minimap": "Minimapa del cuadro",
     "zoom_out": "Alejar",
     "strips_summary": "Resumen de las pistas",
     "strip_n": "Pista {{n}}",

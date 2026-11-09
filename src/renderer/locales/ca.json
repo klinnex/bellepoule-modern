@@ -2289,6 +2289,7 @@
     "empty_hint": "Acabeu primer les poules per generar el quadre",
     "zoom_in": "Amplia",
     "zoom_reset": "Restableix",
+    "minimap": "Minimapa del quadre",
     "zoom_out": "Redueix",
     "strips_summary": "Resum de les pistes",
     "strip_n": "Pista {{n}}",
