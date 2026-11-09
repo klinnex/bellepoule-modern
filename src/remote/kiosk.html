@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="kiosk.page_title">Kiosk - BellePoule Modern</title>
     <script src="/socket.io.min.js"></script>
-    <script src="/common.js"></script>
+    <script src="/common.js"></script><link rel="stylesheet" href="/tokens.css" />
     <script src="/i18n.js"></script>
     <script src="/js/kioskBracketUtils.js"></script>
     <script src="/js/kioskConfig.js"></script>
@@ -19,27 +19,27 @@
     <link rel="stylesheet" href="/fonts.css" />
     <style>
       :root {
-        --k-bg: #0f172a;
-        --k-accent: #fbbf24;
-        --k-accent2: #3b82f6;
+        --k-bg: var(--slate-900);
+        --k-accent: var(--tw-amber-400);
+        --k-accent2: var(--blue-500);
         --k-card-bg: rgba(255, 255, 255, 0.04);
         --k-border: rgba(255, 255, 255, 0.08);
-        --k-muted: #64748b;
-        --k-progress: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        --k-muted: var(--slate-500);
+        --k-progress: linear-gradient(90deg, var(--blue-500), var(--tw-violet-500));
       }
       /* ── Thème Néon (inspiré de l'affichage des pistes, #1036) ── */
       html[data-k-theme='neon'] {
-        --k-bg: #0a0a0a;
-        --k-accent: #00ff88;
-        --k-accent2: #ff2244;
+        --k-bg: var(--c-0a0a0a);
+        --k-accent: var(--c-00ff88);
+        --k-accent2: var(--c-ff2244);
         --k-card-bg: rgba(0, 255, 136, 0.04);
         --k-border: rgba(0, 255, 136, 0.25);
-        --k-muted: #a0a0a0;
-        --k-progress: linear-gradient(90deg, #00ff88, #ff2244);
+        --k-muted: var(--c-a0a0a0);
+        --k-progress: linear-gradient(90deg, var(--c-00ff88), var(--c-ff2244));
       }
       html[data-k-theme='neon'] .view-title,
       html[data-k-theme='neon'] .focus-round-label {
-        color: #00ff88;
+        color: var(--c-00ff88);
         text-shadow:
           0 0 8px rgba(0, 255, 136, 0.8),
           0 0 18px rgba(0, 255, 136, 0.4);
@@ -52,7 +52,7 @@
       /* ── Thème Clair : inversion des couleurs du thème sombre, photos préservées ── */
       html[data-k-theme='light'] {
         filter: invert(1) hue-rotate(180deg);
-        background: #0f172a;
+        background: var(--slate-900);
       }
       html[data-k-theme='light'] img,
       html[data-k-theme='light'] video,
@@ -126,7 +126,7 @@
 
       .menu-competition {
         font-size: 0.875rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
         margin-left: 1rem;
       }
 
@@ -158,18 +158,18 @@
         align-items: center;
         gap: 0.5rem;
         font-size: 0.75rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
       }
 
       .status-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: #ef4444;
+        background: var(--red-500);
       }
 
       .status-dot.ok {
-        background: #10b981;
+        background: var(--tw-emerald-500);
         animation: pulse-dot 2s infinite;
       }
 
@@ -218,7 +218,7 @@
 
       .view-subtitle {
         font-size: 0.875rem;
-        color: #64748b;
+        color: var(--slate-500);
         margin-top: 0.25rem;
       }
 
@@ -227,7 +227,7 @@
         padding: 0.25rem 0.75rem;
         border-radius: 1rem;
         background: rgba(59, 130, 246, 0.2);
-        color: #93c5fd;
+        color: var(--tw-blue-300);
         border: 1px solid rgba(59, 130, 246, 0.3);
       }
 
@@ -266,12 +266,12 @@
         font-size: 0.7rem;
         padding: 0.2rem 0.6rem;
         border-radius: 1rem;
-        background: #10b981;
+        background: var(--tw-emerald-500);
         font-weight: 600;
       }
 
       .pool-pill.ongoing {
-        background: #f59e0b;
+        background: var(--tw-amber-500);
         animation: blink 1.5s ease infinite;
       }
 
@@ -296,7 +296,7 @@
         text-align: left;
         font-size: 0.7rem;
         font-weight: 600;
-        color: #64748b;
+        color: var(--slate-500);
         text-transform: uppercase;
         background: rgba(0, 0, 0, 0.2);
       }
@@ -318,10 +318,10 @@
         color: var(--k-accent);
       }
       .rank-2 {
-        color: #94a3b8;
+        color: var(--slate-400);
       }
       .rank-3 {
-        color: #b45309;
+        color: var(--tw-amber-700);
       }
 
       .fencer-name {
@@ -329,7 +329,7 @@
       }
       .fencer-club {
         font-size: 0.62rem;
-        color: #64748b;
+        color: var(--slate-500);
         display: inline;
         margin-left: 0.35em;
       }
@@ -339,16 +339,16 @@
 
       td.victories {
         text-align: center;
-        color: #10b981;
+        color: var(--tw-emerald-500);
         font-weight: 600;
       }
       td.ind {
         text-align: center;
-        color: #60a5fa;
+        color: var(--tw-blue-400);
       }
       td.td {
         text-align: center;
-        color: #94a3b8;
+        color: var(--slate-400);
       }
 
       /* Vue Classement */
@@ -379,7 +379,7 @@
         padding: 0.5rem 1rem;
         font-size: 0.75rem;
         font-weight: 700;
-        color: #64748b;
+        color: var(--slate-500);
         text-transform: uppercase;
         letter-spacing: 0.08em;
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -391,7 +391,7 @@
 
       .final-ranking-not-done {
         padding: 0.75rem 1.25rem;
-        color: #475569;
+        color: var(--slate-600);
         font-size: 0.9rem;
         font-style: italic;
       }
@@ -429,7 +429,7 @@
       }
       .podium-club {
         font-size: 0.72rem;
-        color: #64748b;
+        color: var(--slate-500);
       }
 
       .ranking-scroll-inner {
@@ -452,7 +452,7 @@
         text-align: left;
         font-size: 0.7rem;
         font-weight: 600;
-        color: #64748b;
+        color: var(--slate-500);
         text-transform: uppercase;
         background: rgba(15, 23, 42, 0.98);
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -512,7 +512,7 @@
 
       .arena-name {
         font-weight: 600;
-        color: #94a3b8;
+        color: var(--slate-400);
       }
 
       .arena-status-pill {
@@ -520,12 +520,12 @@
         padding: 0.2rem 0.6rem;
         border-radius: 1rem;
         background: rgba(100, 116, 139, 0.3);
-        color: #94a3b8;
+        color: var(--slate-400);
       }
 
       .arena-status-pill.in-progress {
         background: rgba(16, 185, 129, 0.2);
-        color: #10b981;
+        color: var(--tw-emerald-500);
         animation: blink 1.5s ease infinite;
       }
 
@@ -549,7 +549,7 @@
 
       .arena-fencer .fclub {
         font-size: 0.75rem;
-        color: #64748b;
+        color: var(--slate-500);
         margin-top: 0.25rem;
       }
 
@@ -569,16 +569,16 @@
       }
 
       .score-red {
-        color: #ef4444;
+        color: var(--red-500);
       }
       .score-green {
-        color: #10b981;
+        color: var(--tw-emerald-500);
       }
       .fencer-red {
-        --fencer-color: #ef4444;
+        --fencer-color: var(--red-500);
       }
       .fencer-green {
-        --fencer-color: #10b981;
+        --fencer-color: var(--tw-emerald-500);
       }
       .side-left {
         border-left: 3px solid var(--fencer-color);
@@ -592,13 +592,13 @@
       .arena-vs {
         font-size: 1rem;
         font-weight: 700;
-        color: #475569;
+        color: var(--slate-600);
       }
 
       .arena-idle {
         text-align: center;
         padding: 1.5rem;
-        color: #475569;
+        color: var(--slate-600);
         font-size: 0.875rem;
       }
 
@@ -619,7 +619,7 @@
         background: rgba(59, 130, 246, 0.12);
         font-size: 0.7rem;
         font-weight: 700;
-        color: #93c5fd;
+        color: var(--tw-blue-300);
         text-transform: uppercase;
         letter-spacing: 0.08em;
         border-bottom: 1px solid rgba(59, 130, 246, 0.15);
@@ -645,19 +645,19 @@
 
       .suivants-row.ongoing {
         background: rgba(16, 185, 129, 0.06);
-        border-left: 3px solid #10b981;
+        border-left: 3px solid var(--tw-emerald-500);
       }
 
       .suivants-num {
         font-size: 0.7rem;
         font-weight: 700;
-        color: #475569;
+        color: var(--slate-600);
         text-align: center;
       }
 
       .suivants-fencer {
         font-weight: 500;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -665,14 +665,14 @@
 
       .suivants-fencer .fclub {
         font-size: 0.68rem;
-        color: #64748b;
+        color: var(--slate-500);
         margin-left: 0.3em;
       }
 
       .suivants-vs {
         font-size: 0.75rem;
         font-weight: 700;
-        color: #475569;
+        color: var(--slate-600);
         flex-shrink: 0;
       }
 
@@ -681,14 +681,14 @@
         padding: 0.15rem 0.5rem;
         border-radius: 1rem;
         background: rgba(100, 116, 139, 0.2);
-        color: #94a3b8;
+        color: var(--slate-400);
         white-space: nowrap;
         justify-self: end;
       }
 
       .suivants-status.en-cours {
         background: rgba(16, 185, 129, 0.2);
-        color: #10b981;
+        color: var(--tw-emerald-500);
         animation: blink 1.5s ease infinite;
       }
 
@@ -699,7 +699,7 @@
         align-items: center;
         justify-content: center;
         flex: 1;
-        color: #475569;
+        color: var(--slate-600);
         text-align: center;
         gap: 0.75rem;
       }
@@ -709,7 +709,7 @@
       }
       .no-data h3 {
         font-size: 1.25rem;
-        color: #64748b;
+        color: var(--slate-500);
       }
 
       /* Scrollbar */
@@ -741,12 +741,12 @@
         }
         25% {
           transform: scale(1.35);
-          color: #fbbf24;
+          color: var(--tw-amber-400);
           filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.9));
         }
         65% {
           transform: scale(1.1);
-          color: #f59e0b;
+          color: var(--tw-amber-500);
           filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.4));
         }
         100% {
@@ -805,14 +805,14 @@
       }
 
       .settings-btn:hover {
-        background: #374151;
+        background: var(--tw-gray-700);
       }
 
       .settings-panel {
         position: absolute;
         top: calc(100% + 0.5rem);
         right: 0;
-        background: #1e293b;
+        background: var(--slate-800);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 0.75rem;
         padding: 0.75rem 1rem;
@@ -828,7 +828,7 @@
       .settings-title {
         font-size: 0.7rem;
         font-weight: 600;
-        color: #64748b;
+        color: var(--slate-500);
         text-transform: uppercase;
         margin-bottom: 0.5rem;
       }
@@ -840,12 +840,12 @@
         padding: 0.35rem 0;
         font-size: 0.875rem;
         cursor: pointer;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         user-select: none;
       }
 
       .settings-item input[type='checkbox'] {
-        accent-color: #3b82f6;
+        accent-color: var(--blue-500);
         width: 14px;
         height: 14px;
         cursor: pointer;
@@ -869,7 +869,7 @@
       }
       #org-note-label {
         font-size: clamp(2rem, 5vw, 4rem);
-        color: #64748b;
+        color: var(--slate-500);
         font-weight: 600;
         letter-spacing: 0.2em;
         text-transform: uppercase;
@@ -877,17 +877,17 @@
       #org-note-time {
         font-size: clamp(4rem, 14vw, 12rem);
         font-weight: 700;
-        color: #f1f5f9;
+        color: var(--slate-100);
       }
       #org-note-countdown {
         font-size: clamp(3rem, 10vw, 8rem);
         font-weight: 800;
-        color: #3b82f6;
+        color: var(--blue-500);
         font-variant-numeric: tabular-nums;
       }
       #org-note-message {
         font-size: clamp(2rem, 7vw, 6rem);
-        color: #94a3b8;
+        color: var(--slate-400);
         font-style: italic;
       }
       /* ── Vue Tableau d'élimination directe ─────────────────────────────── */
@@ -937,7 +937,7 @@
       }
       #cinema-minimap .mm-viewport {
         position: absolute;
-        border: 2px solid #fbbf24;
+        border: 2px solid var(--tw-amber-400);
         border-radius: 3px;
         box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
         transition: all var(--cinema-dur, 1.2s) cubic-bezier(0.4, 0, 0.2, 1);
@@ -966,7 +966,7 @@
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 0.75rem;
         padding: 0.4rem 0.9rem;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         font-size: 1rem;
         pointer-events: none;
       }
@@ -974,7 +974,7 @@
         display: none;
       }
       #kiosk-eta strong {
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         font-variant-numeric: tabular-nums;
       }
       #bracket-focus-header {
@@ -989,7 +989,7 @@
       .focus-round-label {
         font-size: 1rem;
         font-weight: 800;
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         letter-spacing: 0.04em;
       }
 
@@ -1010,7 +1010,7 @@
       }
 
       .focus-dot.active {
-        background: #fbbf24;
+        background: var(--tw-amber-400);
         transform: scale(1.4);
       }
 
@@ -1027,7 +1027,7 @@
         left: 0;
         top: 0;
         bottom: 0;
-        background: linear-gradient(90deg, #fbbf24, #f59e0b);
+        background: linear-gradient(90deg, var(--tw-amber-400), var(--tw-amber-500));
         width: 0%;
         transition: width 0.1s linear;
       }
@@ -1078,7 +1078,7 @@
         justify-content: center;
         font-size: 0.65rem;
         font-weight: 700;
-        color: #475569;
+        color: var(--slate-600);
         background: rgba(0, 0, 0, 0.2);
         flex-shrink: 0;
       }
@@ -1115,14 +1115,14 @@
 
       .focus-fencer-club {
         font-size: 0.7rem;
-        color: #64748b;
+        color: var(--slate-500);
         margin-left: 0.4em;
       }
 
       .focus-fencer-score {
         font-size: 1.4rem;
         font-weight: 900;
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         min-width: 1.8rem;
         text-align: right;
         flex-shrink: 0;
@@ -1141,7 +1141,7 @@
         align-items: center;
         justify-content: center;
         font-size: 0.62rem;
-        color: #475569;
+        color: var(--slate-600);
         background: rgba(0, 0, 0, 0.15);
         flex-shrink: 0;
         text-align: center;
@@ -1160,7 +1160,7 @@
         text-align: center;
         font-size: 0.62rem;
         font-weight: 700;
-        color: #64748b;
+        color: var(--slate-500);
         text-transform: uppercase;
         letter-spacing: 0.06em;
         padding: 0.2rem 0;
@@ -1171,7 +1171,7 @@
       }
 
       .bracket-round-label.active-round {
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         background: rgba(251, 191, 36, 0.08);
       }
 
@@ -1245,7 +1245,7 @@
       .bm-score {
         font-size: 0.88rem;
         font-weight: 900;
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         min-width: 1.1rem;
         text-align: right;
         flex-shrink: 0;
@@ -1259,7 +1259,7 @@
 
       .bm-arena {
         font-size: 0.55rem;
-        color: #475569;
+        color: var(--slate-600);
         text-align: center;
         padding: 0.05rem 0;
         flex-shrink: 0;
@@ -1283,7 +1283,7 @@
         border-radius: 0.4rem;
         font-size: 0.7rem;
         font-weight: 700;
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         margin-top: 4px;
         flex-shrink: 0;
       }
@@ -1408,7 +1408,7 @@
                 id="tableau-mode-auto"
                 value="auto"
                 checked
-                style="accent-color: #3b82f6; cursor: pointer"
+                style="accent-color: var(--blue-500); cursor: pointer"
               />
               <span data-i18n="kiosk.mode_auto">Auto</span>
             </label>
@@ -1418,7 +1418,7 @@
                 name="tableau-mode"
                 id="tableau-mode-compact"
                 value="compact"
-                style="accent-color: #3b82f6; cursor: pointer"
+                style="accent-color: var(--blue-500); cursor: pointer"
               />
               <span data-i18n="kiosk.mode_compact">Tableau complet</span>
             </label>
@@ -1428,7 +1428,7 @@
                 name="tableau-mode"
                 id="tableau-mode-focus"
                 value="focus"
-                style="accent-color: #3b82f6; cursor: pointer"
+                style="accent-color: var(--blue-500); cursor: pointer"
               />
               <span data-i18n="kiosk.order">Ordre de passage</span>
             </label>
@@ -1438,7 +1438,7 @@
                 name="tableau-mode"
                 id="tableau-mode-cinema"
                 value="cinema"
-                style="accent-color: #3b82f6; cursor: pointer"
+                style="accent-color: var(--blue-500); cursor: pointer"
               />
               <span data-i18n="kiosk.mode_cinema">Ciné (zoom auto)</span>
             </label>
@@ -1455,10 +1455,10 @@
                 value="15"
                 style="
                   width: 56px;
-                  background: #0f172a;
+                  background: var(--slate-900);
                   border: 1px solid rgba(255, 255, 255, 0.2);
                   border-radius: 0.4rem;
-                  color: #e2e8f0;
+                  color: var(--tw-slate-200);
                   padding: 0.2rem 0.4rem;
                   font-size: 0.875rem;
                 "
@@ -1530,7 +1530,7 @@
               <tr>
                 <td
                   colspan="6"
-                  style="text-align: center; color: #64748b; padding: 3rem"
+                  style="text-align: center; color: var(--slate-500); padding: 3rem"
                   data-i18n="kiosk.waiting_results"
                 >
                   En attente des résultats...
@@ -2267,7 +2267,7 @@
             const h = Math.max(1.5, L.cardH * mm);
             ctx.fillStyle =
               m.status === 'live'
-                ? '#22c55e'
+                ? bpCssVar('--green-500')
                 : m.status === 'finished'
                   ? 'rgba(148,163,184,0.7)'
                   : 'rgba(148,163,184,0.35)';
@@ -2620,11 +2620,11 @@
             document.body.appendChild(ov);
           }
           ov.innerHTML =
-            '<div style="background:rgba(0,0,0,0.85);border:3px solid #3b82f6;border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">' +
-            '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">📺 ' +
+            '<div style="background:rgba(0,0,0,0.85);border:3px solid var(--blue-500);border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">' +
+            '<div style="font-size:2.5rem;font-weight:900;color:var(--color-surface);margin-bottom:0.5rem;">📺 ' +
             escHtml(label) +
             '</div>' +
-            '<div style="font-size:1rem;color:#94a3b8;">' +
+            '<div style="font-size:1rem;color:var(--slate-400);">' +
             escHtml(tk('kiosk.identify')) +
             '</div>' +
             '</div>';
@@ -2718,7 +2718,7 @@
                 b = document.createElement('div');
                 b.id = 'remote-msg-banner';
                 b.style.cssText =
-                  'position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.82);color:#fff;font-size:1.3rem;padding:0.7rem 1.2rem;text-align:center;z-index:9999;pointer-events:none;transition:opacity 0.4s;';
+                  'position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.82);color:var(--color-surface);font-size:1.3rem;padding:0.7rem 1.2rem;text-align:center;z-index:9999;pointer-events:none;transition:opacity 0.4s;';
                 document.body.appendChild(b);
               }
               b.textContent = cmd.text;
