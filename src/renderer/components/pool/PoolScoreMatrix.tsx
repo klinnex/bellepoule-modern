@@ -8,6 +8,7 @@ import {
 } from '../../../shared/utils/poolCalculations';
 import { ColumnId } from '../../hooks/useColumnVisibility';
 import { useTranslation } from '../../hooks/useTranslation';
+import { findNeighbourCell, isArrowKey } from './poolMatrixNav';
 
 interface PoolScoreMatrixProps {
   pool: Pool;
@@ -201,6 +202,13 @@ const ScoreCell = React.memo<ScoreCellProps>(
             e.preventDefault();
             onCellClick(rowFencer, colFencer);
           }
+          if (isArrowKey(e.key)) {
+            const next = findNeighbourCell(e.currentTarget, e.key);
+            if (next) {
+              e.preventDefault();
+              next.focus();
+            }
+          }
         }}
         onMouseEnter={quickMouseScoring || simplifiedInputMode ? onHoverIn : undefined}
         onMouseLeave={quickMouseScoring || simplifiedInputMode ? onHoverOut : undefined}
@@ -393,7 +401,7 @@ const PoolScoreMatrix: React.FC<PoolScoreMatrixProps> = ({
 
   return (
     <div className="pool-grid">
-      <div className="pool-row">
+      <div className="pool-row pool-row-sticky">
         <div className="pool-cell pool-cell-header pool-cell-name"></div>
         {fencers.map((f, i) => {
           const colHighlighted = quickMouseScoring && !!highlightedFencerIds?.has(f.id);
