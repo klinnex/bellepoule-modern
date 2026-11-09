@@ -317,7 +317,14 @@ function remoteLocaleFindings() {
 const HEX_RE = /(?<![\w&#/-])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/;
 function remoteColorFindings() {
   const out = [];
-  for (const name of fs.readdirSync(REMOTE_DIR).sort()) {
+  const names = [
+    ...fs.readdirSync(REMOTE_DIR).sort(),
+    ...fs
+      .readdirSync(path.join(REMOTE_DIR, 'js'))
+      .sort()
+      .map(n => `js/${n}`),
+  ];
+  for (const name of names) {
     if (!/\.(html|js|css)$/.test(name) || name === 'tokens.css') continue;
     const lines = [];
     fs.readFileSync(path.join(REMOTE_DIR, name), 'utf8')

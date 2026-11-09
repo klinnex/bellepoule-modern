@@ -62,7 +62,7 @@
       banner = doc.createElement('div');
       banner.id = 'remote-msg-banner';
       banner.style.cssText =
-        'position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.82);color:#fff;font-size:1.3rem;padding:0.7rem 1.2rem;text-align:center;z-index:9999;pointer-events:none;transition:opacity 0.4s;';
+        'position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.82);color:var(--color-white);font-size:1.3rem;padding:0.7rem 1.2rem;text-align:center;z-index:9999;pointer-events:none;transition:opacity 0.4s;';
       doc.body.appendChild(banner);
     }
     banner.textContent = text;
@@ -92,11 +92,11 @@
       doc.body.appendChild(ov);
     }
     ov.innerHTML =
-      '<div style="background:rgba(0,0,0,0.85);border:3px solid #3b82f6;border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">' +
-      '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">📺 ' +
+      '<div style="background:rgba(0,0,0,0.85);border:3px solid var(--blue-500);border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">' +
+      '<div style="font-size:2.5rem;font-weight:900;color:var(--color-white);margin-bottom:0.5rem;">📺 ' +
       esc(label) +
       '</div>' +
-      '<div style="font-size:1rem;color:#94a3b8;">' +
+      '<div style="font-size:1rem;color:var(--slate-400);">' +
       esc(T('kiosk.identify')) +
       '</div>' +
       '</div>';

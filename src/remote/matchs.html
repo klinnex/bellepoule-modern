@@ -97,6 +97,7 @@
       }
     </style>
     <script src="/common.js"></script>
+    <script src="/js/ui.js"></script>
     <script src="/i18n.js"></script>
   </head>
   <body>
@@ -111,6 +112,8 @@
         // Traduction (src/remote/i18n.js) ; repli sur la clé si i18n.js absent
         const tk = (key, params) => (window.T ? window.T(key, params) : key);
         if (window.initRemoteI18n) window.initRemoteI18n();
+        // Composants et thème communs (/js/ui.js, #1538)
+        if (window.BPUI) window.BPUI.init(window);
 
         const m = window.location.pathname.match(/\/aren[ae](\d+)/);
         const arenaNumber = m ? m[1] : '1';
@@ -133,7 +136,7 @@
                   x.status === 'finished'
                     ? `${esc(x.scoreA)} – ${esc(x.scoreB)}`
                     : x.status === 'current'
-                      ? esc(tk('matchs.current'))
+                      ? window.BPUI.statusBadge('live', tk('matchs.current'))
                       : 'vs';
                 return `<li class="${esc(x.status)}"><span class="num">${esc(x.order)}</span><span class="a">${esc(x.fencerA)}</span><span class="score">${/* html */ score}</span><span class="b">${esc(x.fencerB)}</span></li>`;
               })

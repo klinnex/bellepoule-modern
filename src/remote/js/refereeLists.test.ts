@@ -74,9 +74,9 @@ describe('refereeLists.js gabarit', () => {
     expect(html).toContain('Dupont');
     expect(html).toContain('CE · CF');
     expect(html).toContain('[referee.status_in_progress]');
-    expect(html).toContain('background:#f59e0b');
+    expect(html).toContain('background:var(--tw-amber-500)');
     expect(html).toContain('[referee.status_to_play]');
-    expect(html).toContain('background:#3b82f6');
+    expect(html).toContain('background:var(--blue-500)');
     expect(html).toContain('data-click="refereeApp.selectMatchFromNextScreen"');
     expect(html).toContain('data-args="[&quot;m1&quot;]"');
   });

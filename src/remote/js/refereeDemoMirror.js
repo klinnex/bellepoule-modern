@@ -11,7 +11,7 @@
   const CSS = `
     body.demo-mirror #active-match, body.demo-mirror #next-matches-screen { pointer-events: none; }
     .demo-mirror-banner { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
-      z-index: 3000; background: rgba(17, 24, 39, 0.85); color: #fff; padding: 6px 14px;
+      z-index: 3000; background: rgba(17, 24, 39, 0.85); color: var(--color-white); padding: 6px 14px;
       border-radius: 999px; font-size: 0.85rem; }
     .score-btn.demo-tap { animation: demo-tap 0.35s ease-out; }
     @keyframes demo-tap {

@@ -49,7 +49,7 @@ describe('kioskRender.js', () => {
     expect(html).toContain('class="rank-col rank-1"');
     expect(html).toContain('pool-pill ongoing');
     expect(html).toContain('+4');
-    expect(html).toContain('color:#ef4444">-2');
+    expect(html).toContain('color:var(--red-500)">-2');
   });
 
   it('poolsHtml : tout est échappé (XSS)', () => {
@@ -73,7 +73,7 @@ describe('kioskRender.js', () => {
     );
     expect(html).toContain('>+0<');
     expect(html).toContain('—'); // club absent
-    expect(html).toContain('color:#60a5fa');
+    expect(html).toContain('color:var(--tw-blue-400)');
   });
 
   it('formatBoutDuration', () => {

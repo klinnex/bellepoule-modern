@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 74 | 370 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 41 | 270 |
+| `src/remote/` | 42 | 277 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **314** | **2467** |
+| **Total** | **315** | **2474** |
 
-Unitaires : 304 fichiers, 2428 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 305 fichiers, 2435 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5062,6 +5062,20 @@ Unitaires : 304 fichiers, 2428 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - withTenths : timerSeconds arrondi sup. sur un stockage en centièmes
   - createSmoothTimer : les centièmes s’écoulent entre deux diffusions
   - createSmoothTimer : pas d’animation au-dessus de 10 s
+
+</details>
+
+<details>
+<summary><code>src/remote/js/ui.test.ts</code> — 7 tests</summary>
+
+- **ui.js**
+  - bouton : variante inconnue -\> primary, libellé échappé
+  - badge de statut : classe selon le statut, repli pending, libellé échappé
+  - barre de score : parts proportionnelles, 50/50 sans point
+  - en-tête, carte, pied de page : titre échappé
+  - thème : enregistré \> préférence système ; stockage indisponible toléré
+  - init : injecte la feuille une seule fois
+  - la feuille des composants ne contient aucune couleur en dur
 
 </details>
 
