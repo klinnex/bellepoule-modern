@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import { Fencer, Match } from '../../../shared/types';
+import { Fencer } from '../../../shared/types';
 
 export enum CardType {
   WHITE = 'WHITE',

@@ -123,7 +123,6 @@ export function createDirectEliminationTable(
   const tableId = uuidv4();
 
   const nodes: TableNode[] = [];
-  const rounds = Math.log2(tableSize);
 
   // Créer tous les noeuds du tableau
   // Premier tour (feuilles)
@@ -328,47 +327,6 @@ function getNextMatchNumber(nodes: TableNode[]): number {
 // ============================================================================
 // Table Ranking
 // ============================================================================
-
-/**
- * Calcule les touches marquées par un tireur dans le tableau
- */
-function calculateTableTouchesScored(fencerId: string, table: DirectEliminationTable): number {
-  let touches = 0;
-
-  for (const node of table.nodes) {
-    if (!node.match || node.match.status !== MatchStatus.FINISHED) continue;
-
-    // Vérifier si le tireur a participé à ce match
-    if (node.fencerA?.id === fencerId) {
-      // Le tireur est fencerA
-      const scoreA = node.match.scoreA;
-      if (typeof scoreA === 'number') {
-        touches += scoreA;
-      } else if (scoreA && typeof scoreA === 'object' && 'value' in scoreA) {
-        touches += (scoreA.value as number) || 0;
-      }
-    } else if (node.fencerB?.id === fencerId) {
-      // Le tireur est fencerB
-      const scoreB = node.match.scoreB;
-      if (typeof scoreB === 'number') {
-        touches += scoreB;
-      } else if (scoreB && typeof scoreB === 'object' && 'value' in scoreB) {
-        touches += (scoreB.value as number) || 0;
-      }
-    }
-  }
-
-  return touches;
-}
-
-/**
- * Calcule le total des touches (poules + tableau) pour un tireur
- */
-function calculateTotalTouches(fencer: Fencer, table: DirectEliminationTable): number {
-  const poolTouches = fencer.poolStats?.touchesScored || 0;
-  const tableTouches = calculateTableTouchesScored(fencer.id, table);
-  return poolTouches + tableTouches;
-}
 
 /**
  * Calcule le classement final d'un tableau

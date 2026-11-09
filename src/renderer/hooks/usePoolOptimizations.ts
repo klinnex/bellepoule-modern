@@ -5,12 +5,8 @@
  */
 
 import { useMemo, useCallback, useState } from 'react';
-import { Pool, Fencer, Match, MatchStatus, Score, Weapon, PoolRanking } from '../../shared/types';
-import {
-  calculatePoolRanking,
-  formatRatio,
-  formatIndex,
-} from '../../shared/utils/poolCalculations';
+import { Pool, Fencer, Match, MatchStatus, Weapon, PoolRanking } from '../../shared/types';
+import { calculatePoolRanking } from '../../shared/utils/poolCalculations';
 
 // ============================================================================
 // Pool Calculation Hooks

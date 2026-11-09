@@ -211,7 +211,6 @@
         const tk = (key, params) => (window.T ? window.T(key, params) : key);
         if (window.initRemoteI18n) window.initRemoteI18n();
         const socket = io({ reconnection: true, reconnectionDelay: 300, reconnectionDelayMax: 5000 });
-        let localTimer = null;
         let lastState = null;
 
         socket.on('connect', () => {

@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  determineCardType,
-  createCard,
-  getCardsForFencer,
-  isFencerExcluded,
-} from '../../shared/utils/cardSystem';
+import { determineCardType, isFencerExcluded } from '../../shared/utils/cardSystem';
 import { Card, CardGroup, CardReason } from '../../shared/types';
 import { CardType } from './types/penalty.types';
 import {

@@ -3,7 +3,7 @@
  * Licensed under GPL-3.0
  */
 
-import { Fencer, Match, Score } from '../types';
+import { Fencer, Match } from '../types';
 
 export interface RemoteMatch extends Match {
   stripNumber: number;
