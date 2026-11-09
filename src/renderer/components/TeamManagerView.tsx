@@ -46,6 +46,8 @@ import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { ipcErrorText } from '../services/ipcError';
 import { Button } from './common/Button';
+import { TriangleAlert } from 'lucide-react';
+import { Icon } from './common/Icon';
 
 const LASER_ARENA_POOL_NUMBER_BY_LETTER: Record<string, number> = { A: 1, B: 2, C: 3 };
 
@@ -641,7 +643,8 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                       </span>
                     ) : (
                       <span className="ml-2 text-xs text-yellow-600 font-medium">
-                        ⚠ {t('plural.fencers_missing', { count: teamSize - mainFencers.length })}
+                        <Icon icon={TriangleAlert} />{' '}
+                        {t('plural.fencers_missing', { count: teamSize - mainFencers.length })}
                       </span>
                     )}
                   </div>
@@ -932,7 +935,11 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                   >
                     <td className="px-3 py-2 text-center font-bold text-gray-400">
                       {i + 1}
-                      {r.tied && <span className="text-yellow-500 ml-1">⚠</span>}
+                      {r.tied && (
+                        <span className="text-yellow-500 ml-1">
+                          <Icon icon={TriangleAlert} />
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-2 font-semibold text-gray-900">
                       {r.team.name}
