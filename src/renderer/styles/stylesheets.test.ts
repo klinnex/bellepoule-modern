@@ -67,3 +67,22 @@ describe('main.css / design.css', () => {
     expect(dead).toEqual([]);
   });
 });
+
+describe('palette sombre : source unique (#1531)', () => {
+  it('un seul bloc .theme-dark déclare des variables, hors @media / @supports', () => {
+    const blocks: string[] = [];
+    for (const f of fs.readdirSync(__dirname).filter(n => n.endsWith('.css'))) {
+      read(f).walkRules(rule => {
+        if (inKeyframes(rule) || context(rule) !== '') return;
+        if (!rule.selectors.map(norm).includes('.theme-dark')) return;
+        let hasVar = false;
+        rule.walkDecls(d => {
+          if (d.parent === rule && d.prop.startsWith('--')) hasVar = true;
+        });
+        if (hasVar) blocks.push(`${f}:${rule.source?.start?.line}`);
+      });
+    }
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0]).toMatch(/^tokens\.css:/);
+  });
+});

@@ -105,11 +105,11 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 10 | 38 |
 | `src/remote/` | 41 | 270 |
 | `src/renderer/contexts/` | 1 | 4 |
-| `src/renderer/styles/` | 4 | 12 |
+| `src/renderer/styles/` | 4 | 13 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **312** | **2454** |
+| **Total** | **312** | **2455** |
 
-Unitaires : 302 fichiers, 2416 tests. E2E : 10 fichiers, 38 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 302 fichiers, 2417 tests. E2E : 10 fichiers, 38 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5186,11 +5186,13 @@ Unitaires : 302 fichiers, 2416 tests. E2E : 10 fichiers, 38 tests (comptage stat
 ### `src/renderer/styles/`
 
 <details>
-<summary><code>src/renderer/styles/stylesheets.test.ts</code> — 2 tests</summary>
+<summary><code>src/renderer/styles/stylesheets.test.ts</code> — 3 tests</summary>
 
 - **main.css / design.css**
   - index.tsx importe design.css après main.css
   - aucune déclaration de main.css écrasée par design.css
+- **palette sombre : source unique (#1531)**
+  - un seul bloc .theme-dark déclare des variables, hors @media / @supports
 
 </details>
 
@@ -5203,7 +5205,7 @@ Unitaires : 302 fichiers, 2416 tests. E2E : 10 fichiers, 38 tests (comptage stat
   - teintes douces redéfinies pour le thème sombre
   - échelle d'élévation à 3 niveaux
   - micro-interactions basées sur les tokens de mouvement, reduced-motion global
-  - design.css : un seul bloc .theme-dark de variables, tableau inclus
+  - tokens.css : un seul bloc .theme-dark de variables, tableau inclus
 
 </details>
 
