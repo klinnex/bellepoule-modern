@@ -6,8 +6,6 @@
 
 import express from 'express';
 import { Server as SocketIOServer } from 'socket.io';
-import { createServer as createHttpServer } from 'http';
-import { createServer as createHttpsServer } from 'https';
 import path from 'path';
 import {
   RemoteSession,
@@ -40,7 +38,7 @@ import {
   normalizeIp,
 } from './remote/network';
 import type { BlackCardRecord, SessionMatch, TeamArenaState } from './remote/types';
-import type { PhaseEtaSummary, RouteContext } from './remote/routes/context';
+import type { PhaseEtaSummary } from './remote/routes/context';
 import {
   LoginGuard,
   MinuteRateLimiter,

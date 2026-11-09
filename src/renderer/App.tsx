@@ -80,7 +80,7 @@ const ThemeIcon: React.FC<{ theme: Theme }> = ({ theme }) => {
 };
 
 const AppContent: React.FC = () => {
-  const { t, isLoading: translationLoading, theme, changeTheme, changeLanguage } = useTranslation();
+  const { t, theme, changeTheme, changeLanguage } = useTranslation();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   const [showCommandPalette, setShowCommandPalette] = useState(false);

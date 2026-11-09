@@ -616,7 +616,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     // Robuste au double-invoke de React StrictMode : le ref de montage reste stable
     // entre les deux passes, contrairement à un booléen consommé au premier run.
     if (matches === mountMatchesRef.current) return;
-    if (readOnly || matches.length === 0 || !onComplete) return;
+    if (matches.length === 0 || !onComplete) return;
     const champion = matches.find(m => m.round === 2)?.winner;
     if (!champion) return;
     const thirdPlaceEntry = matches.find(m => m.round === 3);

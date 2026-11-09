@@ -795,7 +795,7 @@ $('btn-import').addEventListener('click', async () => {
   let ok = 0, fail = 0;
   const pid = S.poolData.poolId;
 
-  for (const { mid, scoreA, scoreB, victoryA } of toSubmit) {
+  for (const { mid, scoreA, scoreB } of toSubmit) {
     try {
       const r = await fetch(`/api/pools/${encodeURIComponent(pid)}/matches/${encodeURIComponent(mid)}/score`, {
         method: 'POST',
