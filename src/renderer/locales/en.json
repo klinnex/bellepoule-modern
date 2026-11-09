@@ -135,7 +135,8 @@
     "state_done": "done",
     "state_current": "in progress",
     "state_todo": "to do",
-    "state_blocked": "blocked"
+    "state_blocked": "blocked",
+    "unavailable": "Section unavailable"
   },
   "pools": {
     "generate": "Generate Pools",
@@ -580,7 +581,9 @@
     "next_phase": "Next phase",
     "add_fencer": "Add a fencer",
     "next_match": "Pools: enter the next bout",
-    "category_commands": "Commands"
+    "category_commands": "Commands",
+    "goto_phase": "Go to phase n",
+    "prev_phase": "Previous phase"
   },
   "formula": {
     "builder_title": "Formula builder",

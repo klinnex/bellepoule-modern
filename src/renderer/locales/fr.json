@@ -135,7 +135,8 @@
     "state_done": "fait",
     "state_current": "en cours",
     "state_todo": "à faire",
-    "state_blocked": "bloqué"
+    "state_blocked": "bloqué",
+    "unavailable": "Section non disponible"
   },
   "pools": {
     "generate": "Générer les poules",
@@ -580,7 +581,9 @@
     "next_phase": "Phase suivante",
     "add_fencer": "Ajouter un tireur",
     "next_match": "Poules : saisir le prochain match",
-    "category_commands": "Commandes"
+    "category_commands": "Commandes",
+    "goto_phase": "Aller à la phase n",
+    "prev_phase": "Phase précédente"
   },
   "wiki": {
     "button_title": "Documentation",

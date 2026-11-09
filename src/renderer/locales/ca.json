@@ -135,7 +135,8 @@
     "state_done": "fet",
     "state_current": "en curs",
     "state_todo": "per fer",
-    "state_blocked": "bloquejat"
+    "state_blocked": "bloquejat",
+    "unavailable": "Secció no disponible"
   },
   "pools": {
     "generate": "Generar Poules",
@@ -580,7 +581,9 @@
     "next_phase": "Fase següent",
     "add_fencer": "Afegir un tirador",
     "next_match": "Poules: introduir el següent combat",
-    "category_commands": "Ordres"
+    "category_commands": "Ordres",
+    "goto_phase": "Vés a la fase n",
+    "prev_phase": "Fase anterior"
   },
   "wiki": {
     "button_title": "Documentació",

@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 75 | 376 |
+| `src/renderer/components/` | 76 | 377 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 42 | 279 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **316** | **2482** |
+| **Total** | **317** | **2483** |
 
-Unitaires : 306 fichiers, 2443 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 307 fichiers, 2444 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3810,6 +3810,14 @@ Unitaires : 306 fichiers, 2443 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - affiche le fichier et la liste des tireurs parsés
   - importe les tireurs sélectionnés (tous par défaut) puis ferme
   - le bouton fermer déclenche onClose
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/KeyboardShortcutsHelp.test.tsx</code> — 1 test</summary>
+
+- **KeyboardShortcutsHelp (#1533)**
+  - documente la navigation entre phases : Ctrl + 1…8 et Ctrl + ←/→
 
 </details>
 
