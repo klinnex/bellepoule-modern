@@ -75,4 +75,20 @@ describe('ui.js', () => {
     expect(ui.CSS).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
     expect(ui.CSS).toContain('var(--color-primary)');
   });
+
+  it('pages simples chargent /js/ui.js avec data-bp-init (#1538)', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+    const pages = ['results', 'journal', 'login', 'lobby', 'pool', 'dashboard', 'pool-ocr'];
+    for (const n of pages) {
+      const html = fs.readFileSync(path.join(__dirname, '..', n + '.html'), 'utf8');
+      expect(html, n).toMatch(/<script src="\/js\/ui\.js" data-bp-init><\/script>/);
+    }
+  });
+
+  it('auto-init : data-bp-init applique le thème au chargement', () => {
+    const fs = require('fs');
+    const src = fs.readFileSync(require('path').join(__dirname, 'ui.js'), 'utf8');
+    expect(src).toContain("hasAttribute('data-bp-init')");
+  });
 });
