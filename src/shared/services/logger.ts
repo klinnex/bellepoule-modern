@@ -97,7 +97,7 @@ class Logger {
       // neutralisés (pas de fausses lignes de log) : CodeQL js/tainted-format-string,
       // js/log-injection.
       // replace() inline (pas via helper) : reconnu comme assainissement par CodeQL
-      const formatted = this.formatMessage(entry).replace(/[\r\n]+/g, ' ');
+      const formatted = this.formatMessage(entry).replace(/[\r\n]/g, ' ');
       // Objets aussi ramenés à une ligne (sinon CodeQL suit la donnée brute jusqu'à console.*)
       let dataText = '';
       if (data !== undefined && data !== null && data !== '') {
@@ -112,9 +112,9 @@ class Logger {
           dataText = String(data); // référence circulaire
         }
       }
-      const shownData = dataText.replace(/[\r\n]+/g, ' ');
+      const shownData = dataText.replace(/[\r\n]/g, ' ');
       const shownError = error
-        ? (error.stack ?? `${error.name}: ${error.message}`).replace(/[\r\n]+/g, ' ')
+        ? (error.stack ?? `${error.name}: ${error.message}`).replace(/[\r\n]/g, ' ')
         : '';
 
       switch (level) {
