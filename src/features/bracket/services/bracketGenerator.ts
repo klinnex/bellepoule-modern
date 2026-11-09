@@ -51,33 +51,7 @@ export class BracketGenerator {
       }
     }
 
-    // Assign fencers to first round
-    this.assignFencersToBracket(nodes, config.fencers, config.seededFencers, config.randomize);
-
     return nodes;
-  }
-
-  /**
-   * Assign fencers to bracket positions
-   */
-  private static assignFencersToBracket(
-    nodes: TableNode[],
-    fencers: Fencer[],
-    seededFencers?: Fencer[],
-    randomize?: boolean
-  ): void {
-    // Get first round nodes
-    const firstRoundNodes = nodes.filter(n => n.round === 1);
-
-    // Simple assignment: distribute fencers evenly
-    let fencerIndex = 0;
-
-    for (const node of firstRoundNodes) {
-      if (fencerIndex < fencers.length) {
-        // Assign to match if it exists, otherwise create placeholder
-        fencerIndex++;
-      }
-    }
   }
 
   /**
