@@ -14,7 +14,7 @@
   "remoteHardLocale": 5,
   "remoteHardColor": 338,
   "lineExceptions": {
-    "src/renderer/styles/design.css": 2029,
+    "src/renderer/styles/design.css": 2024,
     "src/renderer/styles/main.css": 2994,
     "src/renderer/components/CompetitionView.tsx": 3117,
     "src/renderer/components/PoolView.tsx": 1874,
