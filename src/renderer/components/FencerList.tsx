@@ -4,6 +4,8 @@
  */
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { ClipboardList, Pencil, QrCode, RotateCcw, Search, Swords, Trash2 } from 'lucide-react';
+import { Icon } from './common/Icon';
 import { useVirtualList } from '../../shared/services/performanceService';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import { Fencer, FencerStatus } from '../../shared/types';
@@ -525,7 +527,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                   }}
                   title={t('fencerList.delete_all_title', { count: fencers.length })}
                 >
-                  🗑️
+                  <Icon icon={Trash2} />
                 </button>
               )}
               <div className="is-8ecdd8" />
@@ -743,7 +745,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               title={`Inscription tablette : ${registerUrl}`}
               onClick={() => setShowRegisterQR(true)}
             >
-              <span>📱</span> {t('fencerList.qr_register')}
+              <Icon icon={QrCode} /> {t('fencerList.qr_register')}
             </button>
           )}
           {!readOnly && (
@@ -826,7 +828,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
               userSelect: 'none',
             }}
           >
-            🔍
+            <Icon icon={Search} />
           </span>
           <input
             type="text"
@@ -843,7 +845,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
         <div className="empty-state">
           {fencers.length === 0 ? (
             <>
-              <div className="empty-state-icon">🤺</div>
+              <div className="empty-state-icon">
+                <Icon icon={Swords} size={24} />
+              </div>
               <h2 className="empty-state-title">{t('fencerList.empty_title')}</h2>
               <p className="empty-state-description">{t('fencerList.empty_desc')}</p>
               <div
@@ -891,7 +895,9 @@ const FencerListComponent: React.FC<FencerListProps> = ({
             </>
           ) : (
             <>
-              <div className="empty-state-icon">🔍</div>
+              <div className="empty-state-icon">
+                <Icon icon={Search} size={24} />
+              </div>
               <h2 className="empty-state-title">{t('fencerList.no_result_title')}</h2>
               <p className="empty-state-description">
                 {t('fencerList.no_result_desc', { term: searchTerm })}
@@ -1093,7 +1099,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                             title={t('actions.edit')}
                             style={SMALL_BTN}
                           >
-                            ✏️
+                            <Icon icon={Pencil} />
                           </button>
                           <button
                             className={`btn btn-sm ${fencer.status === FencerStatus.CHECKED_IN ? 'btn-secondary' : 'btn-primary'}`}
@@ -1133,7 +1139,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                 title={t('fencerList.forfeit')}
                                 style={SMALL_BTN}
                               >
-                                📋
+                                <Icon icon={ClipboardList} />
                               </button>
                             </>
                           )}
@@ -1152,7 +1158,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                                 title={t('fencerList.reactivate')}
                                 style={SMALL_BTN}
                               >
-                                ✅
+                                <Icon icon={RotateCcw} />
                               </button>
                             )}
                           {onDeleteFencer && (
@@ -1162,7 +1168,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
                               title={t('actions.delete')}
                               style={SMALL_BTN}
                             >
-                              🗑️
+                              <Icon icon={Trash2} />
                             </button>
                           )}
                         </div>

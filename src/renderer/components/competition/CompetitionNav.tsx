@@ -148,6 +148,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                   setCurrentPhase(phase.id as Phase);
                 }
               }}
+              title={phase.title ?? (phase.disabled ? 'Section non disponible' : phase.label)}
             >
               <span className="phase-step-number" aria-hidden="true">
                 {stepStates[index] === 'done' ? (
@@ -158,7 +159,7 @@ const CompetitionNavComponent: React.FC<CompetitionNavProps> = ({
                   <Icon icon={phase.icon} />
                 )}
               </span>
-              <span>{phase.label}</span>
+              <span className="phase-step-label">{phase.label}</span>
               <span className="sr-only">{t(`phases.state_${stepStates[index]}`)}</span>
             </div>
             {index < phases.length - 1 && (

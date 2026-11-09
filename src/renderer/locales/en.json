@@ -568,6 +568,8 @@
     "quick_search": "Quick search",
     "close_modal": "Close modal / Cancel",
     "nav_fields": "Navigate between fields",
+    "nav_matrix": "Pool matrix: arrow keys to move between cells",
+    "activate_card": "Enter / Space: open the cell or match card",
     "save": "Save",
     "undo": "Undo a pool score",
     "redo": "Redo a pool score",

@@ -568,6 +568,8 @@
     "quick_search": "快速搜尋",
     "close_modal": "關閉視窗 / 取消",
     "nav_fields": "欄位間導航",
+    "nav_matrix": "小組矩陣：使用方向鍵在格子間移動",
+    "activate_card": "Enter / 空白鍵：開啟格子或比賽卡",
     "save": "儲存",
     "undo": "復原分組比分",
     "redo": "重做分組比分",
