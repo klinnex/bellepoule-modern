@@ -105,11 +105,11 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 41 | 270 |
 | `src/renderer/contexts/` | 1 | 4 |
-| `src/renderer/styles/` | 5 | 16 |
+| `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **314** | **2465** |
+| **Total** | **314** | **2466** |
 
-Unitaires : 304 fichiers, 2426 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 304 fichiers, 2427 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -5221,13 +5221,14 @@ Unitaires : 304 fichiers, 2426 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/styles/theme.test.ts</code> — 7 tests</summary>
+<summary><code>src/renderer/styles/theme.test.ts</code> — 8 tests</summary>
 
 - **theme.css : palette sémantique (#1531)**
   - est importé après tokens.css
   - définit surfaces, accent et couleurs sémantiques
   - teintes douces redéfinies pour le thème sombre
   - badges sémantiques migrés vers les tokens, sans variante sombre dédiée
+  - étapes terminées et badges de statut classement lisent les tokens sémantiques
   - échelle d'élévation à 3 niveaux
   - micro-interactions basées sur les tokens de mouvement, reduced-motion global
   - tokens.css : un seul bloc .theme-dark de variables, tableau inclus

@@ -21,6 +21,7 @@ import {
   tourStepDone,
   writeTourFlag,
 } from './guidedTourFlags';
+import { Button } from './common/Button';
 
 interface GuidedTourProps extends Omit<
   TourState,
@@ -246,17 +247,17 @@ const GuidedTour: React.FC<GuidedTourProps> = ({
         aria-hidden="true"
       />
       <div className="guided-tour-actions">
-        <button
+        <Button
           type="button"
-          className="btn btn-secondary guided-tour-action guided-tour-back"
+          className="guided-tour-action guided-tour-back"
           onClick={goBack}
           disabled={currentIndex === 0}
         >
           {t('tour.back')}
-        </button>
-        <button type="button" className="btn btn-secondary guided-tour-action" onClick={goNext}>
+        </Button>
+        <Button type="button" className="guided-tour-action" onClick={goNext}>
           {lastStep ? t('tour.close') : t('tour.next')}
-        </button>
+        </Button>
       </div>
     </aside>
   );

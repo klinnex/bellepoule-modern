@@ -40,6 +40,7 @@ import {
   useCollapsed,
   COMPACT_ROW_COUNT,
 } from './common/CollapseToggle';
+import { Button } from './common/Button';
 
 interface PoolRankingViewProps {
   pools: Pool[];
@@ -420,24 +421,24 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
         </div>
         <div className="is-5c17a8">
           {!isInitialRanking && pools.length > 0 && (
-            <button
-              className="btn btn-secondary is-22b62c"
+            <Button
+              className="is-22b62c"
               onClick={handleRecalculate}
               title={t('poolRanking.recalc_title')}
             >
               {t('poolRanking.recalc')}
-            </button>
+            </Button>
           )}
           <div className="is-4565f9" />
-          <button className="btn btn-secondary is-22b62c" onClick={() => handleExport('csv')}>
+          <Button className="is-22b62c" onClick={() => handleExport('csv')}>
             CSV
-          </button>
-          <button className="btn btn-secondary is-22b62c" onClick={handleExportPDF}>
+          </Button>
+          <Button className="is-22b62c" onClick={handleExportPDF}>
             PDF
-          </button>
-          <button className="btn btn-secondary is-22b62c" onClick={handlePrint}>
+          </Button>
+          <Button className="is-22b62c" onClick={handlePrint}>
             {t('poolRanking.print')}
-          </button>
+          </Button>
           <div className="is-4565f9" />
           {!isInSplitGroupTab && (
             <button
@@ -448,13 +449,13 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
             </button>
           )}
           <div className="relative" ref={columnMenuRef}>
-            <button
+            <Button
               onClick={() => setShowColumnMenu(!showColumnMenu)}
-              className="btn btn-secondary is-c0e18e"
+              className="is-c0e18e"
               title={t('poolRanking.columns_title')}
             >
               <Funnel size={14} className="ranking-col-icon" /> {t('poolRanking.columns')}
-            </button>
+            </Button>
             {showColumnMenu && (
               <div className="ranking-col-menu">
                 <div className="ranking-col-menu-title">{t('poolRanking.columns_shown')}</div>
@@ -767,46 +768,42 @@ const PoolRankingView: React.FC<PoolRankingViewProps> = ({
         </div>
         <div style={FLEX_GAP}>
           {nextRoundAction ? (
-            <button className="btn btn-primary" onClick={nextRoundAction.onClick}>
+            <Button variant="primary" onClick={nextRoundAction.onClick}>
               {nextRoundAction.label}
-            </button>
+            </Button>
           ) : hasDirectElimination ? (
             splitCriteria && splitGroups.length > 1 ? (
               splitGroups.map(g =>
                 g === Gender.FEMALE && onSplitOff ? (
-                  <button key={g} className="btn btn-primary" onClick={() => onSplitOff(g)}>
+                  <Button key={g} variant="primary" onClick={() => onSplitOff(g)}>
                     {splitOffGroups?.[g]
                       ? t('poolRanking.open_women')
                       : t('poolRanking.create_women')}
-                  </button>
+                  </Button>
                 ) : (
-                  <button
+                  <Button
                     key={g}
-                    className="btn btn-primary"
+                    variant="primary"
                     data-tour="go-tableau"
                     onClick={() => onGoToTableau?.(g)}
                   >
                     {g === Gender.MALE
                       ? t('poolRanking.tableau_men')
                       : t('poolRanking.tableau_women')}
-                  </button>
+                  </Button>
                 )
               )
             ) : (
-              <button
-                className="btn btn-primary"
-                data-tour="go-tableau"
-                onClick={() => onGoToTableau?.()}
-              >
+              <Button variant="primary" data-tour="go-tableau" onClick={() => onGoToTableau?.()}>
                 {poolWinnersOnly
                   ? t('poolRanking.go_tableau_winners', { n: poolWinnerIds?.size ?? '?' })
                   : t('poolRanking.go_tableau')}
-              </button>
+              </Button>
             )
           ) : (
-            <button className="btn btn-primary" onClick={onGoToResults}>
+            <Button variant="primary" onClick={onGoToResults}>
               {t('poolRanking.see_results')}
-            </button>
+            </Button>
           )}
         </div>
       </div>

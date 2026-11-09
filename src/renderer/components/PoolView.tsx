@@ -80,6 +80,7 @@ import {
 } from './poolView.styles';
 import { useTranslation } from '../hooks/useTranslation';
 import TiebreakerAnimation from './TiebreakerAnimation';
+import { Button } from './common/Button';
 
 interface PoolViewProps {
   pool: Pool;
@@ -1154,13 +1155,13 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                   !!pool.matches[editingMatch]?.fencerA &&
                   !!pool.matches[editingMatch]?.fencerB && (
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <button
+                      <Button
                         type="button"
-                        className="btn btn-warning"
+                        variant="warning"
                         onClick={() => setShowPriorityDraw(true)}
                       >
                         <Icon icon={Coins} /> {t('poolView.priority_draw')}
-                      </button>
+                      </Button>
                       {priorityPick && (
                         <span className="text-muted">
                           {t('poolView.priority_holder', {
@@ -1335,30 +1336,29 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
             {/* Boutons spéciaux sur une ligne */}
             {pendingSpecialStatus === null && (
               <div style={SPECIAL_ROW}>
-                <button
-                  className="btn btn-warning"
+                <Button
+                  variant="warning"
                   onClick={() => handleSpecialStatus('abandon')}
                   style={SPECIAL_BTN}
                 >
                   <MedicalCrossIcon /> {t('poolView.btn_abandon')}
-                </button>
-                <button
-                  className="btn btn-warning"
+                </Button>
+                <Button
+                  variant="warning"
                   onClick={() => handleSpecialStatus('forfait')}
                   style={SPECIAL_BTN}
                 >
                   {t('poolView.btn_forfeit')}
-                </button>
-                <button
-                  className="btn btn-danger"
+                </Button>
+                <Button
+                  variant="danger"
                   onClick={() => handleSpecialStatus('exclusion')}
                   style={SPECIAL_BTN}
                 >
                   {t('poolView.btn_exclusion')}
-                </button>
+                </Button>
                 {onMatchCancel && (
-                  <button
-                    className="btn btn-secondary"
+                  <Button
                     onClick={() => {
                       if (editingMatch === null) return;
                       onMatchCancel(editingMatch);
@@ -1367,7 +1367,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                     style={SPECIAL_BTN}
                   >
                     {t('poolView.btn_cancel_match')}
-                  </button>
+                  </Button>
                 )}
               </div>
             )}
@@ -1382,36 +1382,29 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                     ? pool.matches[editingMatch]?.fencerA
                     : pool.matches[editingMatch]?.fencerB;
                 return (
-                  <button
-                    key={side}
-                    className="btn btn-primary"
-                    onClick={() => chooseTieWinner(side)}
-                  >
+                  <Button key={side} variant="primary" onClick={() => chooseTieWinner(side)}>
                     V · {f ? `${f.lastName} ${f.firstName}`.trim() : ''}
-                  </button>
+                  </Button>
                 );
               })}
-              <button className="btn btn-warning" onClick={() => chooseTieWinner('none')}>
+              <Button variant="warning" onClick={() => chooseTieWinner('none')}>
                 {t('poolView.tie_none')}
-              </button>
-              <button className="btn btn-secondary" onClick={() => setShowTieChooser(false)}>
-                {t('actions.cancel')}
-              </button>
+              </Button>
+              <Button onClick={() => setShowTieChooser(false)}>{t('actions.cancel')}</Button>
             </div>
           ) : (
             <div className="modal-footer" style={FOOTER_RIGHT}>
-              <button
-                className="btn btn-secondary"
+              <Button
                 onClick={() => {
                   setEditingMatch(null);
                   setIsMatchInverted(false);
                 }}
               >
                 {t('actions.cancel')}
-              </button>
-              <button className="btn btn-primary" onClick={handleScoreSubmit}>
+              </Button>
+              <Button variant="primary" onClick={handleScoreSubmit}>
                 {t('actions.validate')}
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -1850,12 +1843,12 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 );
               })}
             {!isLoadingReferees && isMultiReferee && competitionReferees.length > 0 && (
-              <button className="btn btn-primary" onClick={confirmPendingReferees} style={REF_BTN}>
+              <Button variant="primary" onClick={confirmPendingReferees} style={REF_BTN}>
                 {t('poolView.validate_n', {
                   n: pendingRefereeIds.length,
                   max: maxRefereesPerPool,
                 })}
-              </button>
+              </Button>
             )}
             {!isLoadingReferees &&
               !isMultiReferee &&

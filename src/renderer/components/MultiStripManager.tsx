@@ -8,6 +8,7 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { Pool, Match, MatchStatus } from '../../shared/types';
+import { Button } from './common/Button';
 
 interface StripState {
   id: number;
@@ -203,8 +204,7 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                         {match.fencerA?.lastName ?? '?'} {t('multiStrip.vs')}{' '}
                         {match.fencerB?.lastName ?? '?'}
                       </div>
-                      <button
-                        className="btn btn-secondary"
+                      <Button
                         style={{
                           marginTop: '0.75rem',
                           width: '100%',
@@ -214,7 +214,7 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                         onClick={() => releaseStrip(strip.id)}
                       >
                         {t('multiStrip.free')}
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <div>
@@ -231,13 +231,13 @@ export const MultiStripManager: React.FC<MultiStripManagerProps> = ({
                             {pendingMatches[0].match.fencerA?.lastName ?? '?'} {t('multiStrip.vs')}{' '}
                             {pendingMatches[0].match.fencerB?.lastName ?? '?'}
                           </div>
-                          <button
-                            className="btn btn-primary"
+                          <Button
+                            variant="primary"
                             style={{ width: '100%', fontSize: '0.75rem', padding: '0.375rem' }}
                             onClick={() => assignNextMatch(strip.id)}
                           >
                             {t('multiStrip.assign_next')}
-                          </button>
+                          </Button>
                         </>
                       ) : (
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
