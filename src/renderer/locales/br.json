@@ -135,7 +135,8 @@
     "state_done": "graet",
     "state_current": "o vont en-dro",
     "state_todo": "da ober",
-    "state_blocked": "stanket"
+    "state_blocked": "stanket",
+    "unavailable": "Rann dizimplijus"
   },
   "pools": {
     "generate": "Genelañ ar poullou",
@@ -580,7 +581,9 @@
     "next_phase": "Prantad da heul",
     "add_fencer": "Ouzhpennañ ur c'hlezeour",
     "next_match": "Poulloù : enrollañ an emgann da heul",
-    "category_commands": "Urzhioù"
+    "category_commands": "Urzhioù",
+    "goto_phase": "Mont d'ar prantad n",
+    "prev_phase": "Prantad kent"
   },
   "wiki": {
     "button_title": "Teuliadur",
@@ -2196,7 +2199,9 @@
     "status_draft": "Brassilh",
     "status_in_progress": "O vont en-dro",
     "status_completed": "Echu",
-    "status_cancelled": "Nullet"
+    "status_cancelled": "Nullet",
+    "recent_title": "Nevez zo",
+    "pin": "Spilhennañ / dispilhennañ"
   },
   "trainingLauncher": {
     "title": "Mod embregerezh",

@@ -135,7 +135,8 @@
     "state_done": "已完成",
     "state_current": "進行中",
     "state_todo": "待辦",
-    "state_blocked": "已鎖定"
+    "state_blocked": "已鎖定",
+    "unavailable": "此部分暫不可用"
   },
   "pools": {
     "generate": "生成分組",
@@ -580,7 +581,9 @@
     "next_phase": "下一階段",
     "add_fencer": "新增選手",
     "next_match": "分組：輸入下一場",
-    "category_commands": "指令"
+    "category_commands": "指令",
+    "goto_phase": "跳至第 n 階段",
+    "prev_phase": "上一階段"
   },
   "wiki": {
     "button_title": "說明文件",
@@ -2196,7 +2199,9 @@
     "status_draft": "草稿",
     "status_in_progress": "進行中",
     "status_completed": "已完成",
-    "status_cancelled": "已取消"
+    "status_cancelled": "已取消",
+    "recent_title": "最近開啟",
+    "pin": "釘選 / 取消釘選"
   },
   "trainingLauncher": {
     "title": "訓練模式",

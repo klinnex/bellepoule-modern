@@ -121,3 +121,50 @@ describe('CompetitionList (filtres et tri #1534)', () => {
     expect(localStorage.getItem('bellepoule-competition-sort')).toBe('name_asc');
   });
 });
+
+describe('CompetitionList (récentes #1534)', () => {
+  beforeEach(() => localStorage.clear());
+  const many = ['a', 'b', 'c', 'd', 'e', 'f'].map(
+    id =>
+      ({
+        id,
+        title: `Comp ${id}`,
+        date: '2026-01-01',
+        weapon: Weapon.EPEE,
+        category: Category.SENIOR,
+        gender: Gender.MALE,
+        status: 'draft',
+        fencers: [],
+        color: '#3B5BDB',
+      }) as unknown as Competition
+  );
+  const list = (onSelect: () => void) => (
+    <CompetitionList
+      competitions={many}
+      isLoading={false}
+      onSelect={onSelect}
+      onDelete={() => {}}
+      onNewCompetition={() => {}}
+    />
+  );
+
+  it('affiche la section après une ouverture, et mémorise l’identifiant', () => {
+    const onSelect = vi.fn();
+    const { rerender } = render(list(onSelect));
+    expect(screen.queryByLabelText('competitionList.recent_title')).toBeNull();
+    fireEvent.click(screen.getByText('Comp c'));
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(localStorage.getItem('bellepoule-competition-recent') ?? '[]')).toEqual([
+      'c',
+    ]);
+    rerender(list(onSelect));
+    expect(screen.getByLabelText('competitionList.recent_title')).toBeTruthy();
+  });
+
+  it('épingler une carte la place dans la section', () => {
+    render(list(() => {}));
+    fireEvent.click(screen.getAllByRole('button', { name: 'competitionList.pin' })[1]);
+    const section = screen.getByLabelText('competitionList.recent_title');
+    expect(section.textContent).toContain('Comp b');
+  });
+});

@@ -6,6 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { Button } from './common/Button';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface SplitCompetitionModalProps {
   groupLabel: string;
@@ -25,6 +26,7 @@ const SplitCompetitionModal: React.FC<SplitCompetitionModalProps> = ({
   const { t } = useTranslation();
   const [title, setTitle] = useState(defaultTitle);
   const inputRef = useRef<HTMLInputElement>(null);
+  const trapRef = useFocusTrap<HTMLFormElement>(true, onCancel);
 
   useEffect(() => {
     inputRef.current?.select();
@@ -36,12 +38,9 @@ const SplitCompetitionModal: React.FC<SplitCompetitionModalProps> = ({
   };
 
   return (
-    <div
-      className="modal-overlay"
-      onClick={onCancel}
-      onKeyDown={e => e.key === 'Escape' && onCancel()}
-    >
+    <div className="modal-overlay" onClick={onCancel}>
       <form
+        ref={trapRef}
         className="modal"
         onClick={e => e.stopPropagation()}
         onSubmit={submit}

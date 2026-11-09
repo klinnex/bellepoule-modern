@@ -153,4 +153,16 @@
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.BPUI = api;
+  // Auto-initialisation : <script src="/js/ui.js" data-bp-init></script> (sans script inline)
+  if (
+    root &&
+    root.document &&
+    root.document.currentScript &&
+    root.document.currentScript.hasAttribute('data-bp-init')
+  ) {
+    const run = () => init(root);
+    if (root.document.readyState === 'loading')
+      root.document.addEventListener('DOMContentLoaded', run);
+    else run();
+  }
 })(typeof window !== 'undefined' ? window : undefined);
