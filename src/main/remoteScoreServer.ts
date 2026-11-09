@@ -34,7 +34,6 @@ import {
 import { DatabaseManager } from '../database';
 import {
   PASSWORD_MIN_LENGTH,
-  isLocalNetworkOrigin,
   isLoginPath,
   isLoopbackAddress,
   localIPv4Address,
