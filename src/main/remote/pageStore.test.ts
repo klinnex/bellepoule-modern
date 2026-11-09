@@ -53,6 +53,16 @@ describe('extractInlineScripts', () => {
     expect(out).toContain('<script type="application/json">{"a":1}</script>');
     expect(hasInlineScript).toBe(true); // le bloc JSON reste inline => repli nonce
   });
+  it('balise fermante tolérante : </script >, </SCRIPT foo> (CodeQL js/bad-tag-filter)', () => {
+    const assets = new Map<string, StoredBody>();
+    const { html: out } = extractInlineScripts(
+      '<script>var a=1;</script ><script>var b=2;</SCRIPT foo>',
+      assets
+    );
+    expect(assets.size).toBe(2);
+    expect(out).not.toContain('var a');
+    expect(out).not.toContain('var b');
+  });
   it('page sans inline restant', () => {
     const assets = new Map<string, StoredBody>();
     const page = buildPage('<html><script>alert(1)</script></html>', assets);

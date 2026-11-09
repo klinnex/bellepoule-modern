@@ -97,7 +97,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 6 | 138 |
-| `src/main/` | 53 | 425 |
+| `src/main/` | 53 | 426 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 71 | 358 |
@@ -106,9 +106,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 12 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **308** | **2446** |
+| **Total** | **308** | **2447** |
 
-Unitaires : 299 fichiers, 2410 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 299 fichiers, 2411 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2708,7 +2708,7 @@ Unitaires : 299 fichiers, 2410 tests. E2E : 9 fichiers, 36 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/pageStore.test.ts</code> — 8 tests</summary>
+<summary><code>src/main/remote/pageStore.test.ts</code> — 9 tests</summary>
 
 - **negotiateEncoding (#1151)**
   - préfère br puis gzip, respecte q et \*
@@ -2716,6 +2716,7 @@ Unitaires : 299 fichiers, 2410 tests. E2E : 9 fichiers, 36 tests (comptage stati
   - liste, faible, \*
 - **extractInlineScripts**
   - extrait, déduplique, garde src et JSON, conserve l’ordre
+  - balise fermante tolérante : \</script \>, \</SCRIPT foo\> (CodeQL js/bad-tag-filter)
   - page sans inline restant
 - **sendStored**
   - brotli, gzip ou identité selon Accept-Encoding
