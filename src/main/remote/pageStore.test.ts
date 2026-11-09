@@ -23,6 +23,9 @@ describe('negotiateEncoding (#1151)', () => {
     expect(negotiateEncoding('identity')).toBeNull();
     expect(negotiateEncoding('gzip;q=0')).toBeNull();
     expect(negotiateEncoding(undefined)).toBeNull();
+    // Noms hostiles : aucun effet sur un prototype (CodeQL js/remote-property-injection)
+    expect(negotiateEncoding('__proto__, toString, constructor')).toBeNull();
+    expect(negotiateEncoding('__proto__;q=1, gzip')).toBe('gzip');
   });
 });
 
