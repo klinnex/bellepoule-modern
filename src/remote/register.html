@@ -475,8 +475,9 @@
       return;
     }
 
-    // Sanitize: strip HTML tags
-    function strip(s) { return s.replace(/<[^>]*>/g, '').substring(0, 100); }
+    // Retire tout < et > (caractère par caractère : aucune balise ne peut se reformer,
+    // CodeQL js/incomplete-multi-character-sanitization). L'affichage reste échappé (escHtml).
+    function strip(s) { return s.replace(/[<>]/g, '').substring(0, 100); }
 
     const payload = {
       lastName: strip(lastName).toUpperCase(),
