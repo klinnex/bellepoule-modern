@@ -395,6 +395,7 @@
     "backup_invalid": "Restr direizh : un ezporzhiadur arventennoù BellePoule a vez gortozet."
   },
   "actions": {
+    "undo": "Dizober",
     "add": "Ouzhpenn",
     "edit": "Cheñch",
     "delete": "Dilemel",
@@ -1404,6 +1405,8 @@
     "never_met": "N'en deus ket en em gannet an daou gleizeier-mañ biskoazh er c'hevezadeg-mañ."
   },
   "fencerList": {
+    "undo": "Dizober",
+    "status_changed": "{{name}} : statud cheñchet",
     "col_nationality": "Broadelezh",
     "import_menu": "📥 Enporzhiañ ▾",
     "import_xml_bp": "Enporzhiañ XML (BellePoule)",

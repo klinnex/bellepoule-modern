@@ -395,6 +395,7 @@
     "backup_invalid": "Archivo no válido: se espera una exportación de ajustes de BellePoule."
   },
   "actions": {
+    "undo": "Deshacer",
     "add": "Agregar",
     "edit": "Editar",
     "delete": "Eliminar",
@@ -1404,6 +1405,8 @@
     "never_met": "Estos dos tiradores nunca se han enfrentado en esta competición."
   },
   "fencerList": {
+    "undo": "Deshacer",
+    "status_changed": "{{name}}: estado modificado",
     "col_nationality": "Nacionalidad",
     "import_menu": "📥 Importar ▾",
     "import_xml_bp": "Importar XML (BellePoule)",

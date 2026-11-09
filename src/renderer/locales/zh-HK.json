@@ -395,6 +395,7 @@
     "backup_invalid": "檔案無效：需要 BellePoule 設定匯出檔。"
   },
   "actions": {
+    "undo": "復原",
     "add": "新增",
     "edit": "編輯",
     "delete": "刪除",
@@ -1404,6 +1405,8 @@
     "never_met": "這兩名劍手在本賽事中從未對賽。"
   },
   "fencerList": {
+    "undo": "復原",
+    "status_changed": "{{name}}：狀態已更改",
     "col_nationality": "國籍",
     "import_menu": "📥 匯入 ▾",
     "import_xml_bp": "匯入 XML（BellePoule）",
