@@ -15,6 +15,7 @@ import './styles/design.css';
 import './styles/buttons.css';
 import './styles/competition-list.css';
 import './styles/tokens.css';
+import './styles/theme.css';
 import './styles/pool.css';
 import './styles/tableau.css';
 import './styles/strips.css';
