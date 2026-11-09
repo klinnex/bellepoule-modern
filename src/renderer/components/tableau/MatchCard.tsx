@@ -2,6 +2,7 @@ import React from 'react';
 import { TableauMatch } from './tableauTypes';
 import { translateStatic } from '../../contexts/TranslationContext';
 import { useStripAvailability } from '../../hooks/useStripAvailability';
+import { focusNeighbourCard, isNavKey } from './matchCardNav';
 
 interface MatchCardProps {
   match: TableauMatch;
@@ -111,6 +112,8 @@ const MatchCard: React.FC<MatchCardProps> = ({
         if (canEdit && onMatchClick && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault();
           onMatchClick(match);
+        } else if (isNavKey(e.key) && focusNeighbourCard(e.currentTarget, e.key)) {
+          e.preventDefault();
         }
       }}
     >
