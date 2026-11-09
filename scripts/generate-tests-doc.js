@@ -148,9 +148,10 @@ const STATIC_HEADER = `# Tests opérationnels
 
 ## Contrôles qualité en CI
 
-Job \`quality\` de \`.github/workflows/build-dev.yml\` (push sur \`dev\`) et
-\`.github/workflows/build.yml\` (push sur \`main\`). Les builds par plateforme
-dépendent de ce job. Le job \`nix-build\` (mêmes déclencheurs) build le paquet
+Workflow réutilisable \`.github/workflows/quality.yml\` (\`workflow_call\`), appelé par
+\`.github/workflows/pr-quality.yml\` (PR vers \`dev\`, à rendre requis dans la
+protection de branche), \`build-dev.yml\` (push sur \`dev\`) et \`build.yml\`
+(push sur \`main\`). Les builds par plateforme dépendent de ce job. Le job \`nix-build\` (mêmes déclencheurs) build le paquet
 Nix de \`flake.nix\`. Ce n'est pas une dépendance des builds par plateforme.
 
 | Étape | Commande | Échoue si |
