@@ -5,6 +5,9 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { Icon } from './common/Icon';
+import { CopyUrlLabel } from './remote/CopyUrlLabel';
+import { Camera, LockOpen, Moon, Pencil, Smartphone, Square, Sun, Zap } from 'lucide-react';
 import { useStateGroup } from '../hooks/useStateGroup';
 import { useArenaThemes } from './remote/useArenaThemes';
 import { createPortal } from 'react-dom';
@@ -902,7 +905,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
             onClick={onStartRemote}
             disabled={!portValid || isLoading}
           >
-            {isLoading ? <span className="rsm-spinner" /> : '⚡'}
+            {isLoading ? <span className="rsm-spinner" /> : <Icon icon={Zap} />}
             {t('rsm.start')}
           </button>
         </div>
@@ -983,7 +986,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           onClick={handleStopRemote}
           disabled={isLoading}
         >
-          {isLoading ? <span className="rsm-spinner" /> : '🛑'}
+          {isLoading ? <span className="rsm-spinner" /> : <Icon icon={Square} />}
           {t('rsm.stop')}
         </button>
       </div>
@@ -1097,9 +1100,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                   {screenTab === 'arena' ? (
                     <>
                       {[
-                        { value: 'dark' as const, icon: '🌙', title: t('rsm.theme_dark') },
-                        { value: 'light' as const, icon: '☀️', title: t('rsm.theme_light') },
-                        { value: 'neon' as const, icon: '⚡', title: t('rsm.theme_neon') },
+                        { value: 'dark' as const, icon: Moon, title: t('rsm.theme_dark') },
+                        { value: 'light' as const, icon: Sun, title: t('rsm.theme_light') },
+                        { value: 'neon' as const, icon: Zap, title: t('rsm.theme_neon') },
                       ].map(({ value, icon, title }) => (
                         <button
                           key={value}
@@ -1107,7 +1110,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                           className={`arena-theme-btn ${arenaTheme?.theme === value ? 'active' : ''}`}
                           onClick={() => handleArenaThemeChange(arenaId, value)}
                         >
-                          {icon}
+                          <Icon icon={icon} />
                         </button>
                       ))}
                       <button
@@ -1118,7 +1121,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                           setThemeEditorTarget(arenaId);
                         }}
                       >
-                        ✏️
+                        <Icon icon={Pencil} />
                       </button>
                       {arenaThemes[arenaId] && (
                         <button
@@ -1127,7 +1130,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                           style={{ color: '#f59e0b', borderColor: '#f59e0b' }}
                           onClick={() => void handleClearArenaThemeOverride(arenaId)}
                         >
-                          🔓
+                          <Icon icon={LockOpen} />
                         </button>
                       )}
                     </>
@@ -1141,7 +1144,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                           setThemeEditorTarget(arenaId);
                         }}
                       >
-                        ✏️ {arenaTheme?.screenThemes?.[screenTab] ? '●' : ''}
+                        <Icon icon={Pencil} /> {arenaTheme?.screenThemes?.[screenTab] ? '●' : ''}
                       </button>
                       {arenaTheme?.screenThemes?.[screenTab] && (
                         <button
@@ -1150,7 +1153,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                           style={{ color: '#f59e0b', borderColor: '#f59e0b' }}
                           onClick={() => void handleClearArenaScreenTheme(arenaId, screenTab)}
                         >
-                          🔓
+                          <Icon icon={LockOpen} />
                         </button>
                       )}
                     </>
@@ -1196,9 +1199,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.refereeUrl, arena.number * 10)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10
-                      ? t('rsm.copied_short')
-                      : `📋 ${t('rsm.copy_url_short')}`}
+                    <CopyUrlLabel copied={copiedIndex === arena.number * 10} t={t} />
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1213,7 +1214,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     }
                     title={t('rsm.qr_code')}
                   >
-                    📱 {t('rsm.qr_code')}
+                    <Icon icon={Smartphone} /> {t('rsm.qr_code')}
                   </button>
                 </div>
                 <div className="arena-url-row">
@@ -1223,9 +1224,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.displayUrl, arena.number * 10 + 1)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 1
-                      ? t('rsm.copied_short')
-                      : `📋 ${t('rsm.copy_url_short')}`}
+                    <CopyUrlLabel copied={copiedIndex === arena.number * 10 + 1} t={t} />
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1240,7 +1239,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     }
                     title={t('rsm.qr_code')}
                   >
-                    📱 {t('rsm.qr_code')}
+                    <Icon icon={Smartphone} /> {t('rsm.qr_code')}
                   </button>
                 </div>
                 <div className="arena-url-row">
@@ -1250,9 +1249,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.poolUrl, arena.number * 10 + 2)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 2
-                      ? t('rsm.copied_short')
-                      : `📋 ${t('rsm.copy_url_short')}`}
+                    <CopyUrlLabel copied={copiedIndex === arena.number * 10 + 2} t={t} />
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1267,7 +1264,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     }
                     title={t('rsm.qr_code')}
                   >
-                    📱 {t('rsm.qr_code')}
+                    <Icon icon={Smartphone} /> {t('rsm.qr_code')}
                   </button>
                 </div>
                 <div className="arena-url-row">
@@ -1279,9 +1276,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.matchOrderUrl, arena.number * 10 + 5)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 5
-                      ? t('rsm.copied_short')
-                      : `📋 ${t('rsm.copy_url_short')}`}
+                    <CopyUrlLabel copied={copiedIndex === arena.number * 10 + 5} t={t} />
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1296,7 +1291,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     }
                     title={t('rsm.qr_code')}
                   >
-                    📱 {t('rsm.qr_code')}
+                    <Icon icon={Smartphone} /> {t('rsm.qr_code')}
                   </button>
                 </div>
                 <div className="arena-url-row">
@@ -1306,9 +1301,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     onClick={() => copyToClipboard(arena.publicUrl, arena.number * 10 + 3)}
                     title={t('rsm.copy_url')}
                   >
-                    {copiedIndex === arena.number * 10 + 3
-                      ? t('rsm.copied_short')
-                      : `📋 ${t('rsm.copy_url_short')}`}
+                    <CopyUrlLabel copied={copiedIndex === arena.number * 10 + 3} t={t} />
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1323,21 +1316,19 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     }
                     title={t('rsm.qr_code')}
                   >
-                    📱 {t('rsm.qr_code')}
+                    <Icon icon={Smartphone} /> {t('rsm.qr_code')}
                   </button>
                 </div>
                 <div className="arena-url-row">
                   <span className="arena-url-label" title={t('rsm.overlay_title')}>
-                    🎥 Overlay
+                    <Icon icon={Camera} /> Overlay
                   </span>
                   <button
                     className="btn-copy btn-wide"
                     onClick={() => copyToClipboard(arena.overlayUrl, arena.number * 10 + 4)}
                     title={t('rsm.overlay_copy_title')}
                   >
-                    {copiedIndex === arena.number * 10 + 4
-                      ? t('rsm.copied_short')
-                      : `📋 ${t('rsm.copy_url_short')}`}
+                    <CopyUrlLabel copied={copiedIndex === arena.number * 10 + 4} t={t} />
                   </button>
                   <button
                     className="btn-qr btn-wide"
@@ -1352,7 +1343,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                     }
                     title={t('rsm.qr_code')}
                   >
-                    📱 {t('rsm.qr_code')}
+                    <Icon icon={Smartphone} /> {t('rsm.qr_code')}
                   </button>
                 </div>
                 <div className="arena-url-row">
