@@ -6,29 +6,30 @@
     <title data-i18n="results.page_title">Résultats – BellePoule</title>
     <script src="/common.js"></script>
     <script src="/i18n.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 1rem; }
+      body { font-family: system-ui, sans-serif; background: var(--slate-900); color: var(--tw-slate-200); padding: 1rem; }
       header { text-align: center; padding: 1.5rem 0 1rem; }
-      header h1 { font-size: 1.5rem; color: #f8fafc; }
-      header p { color: #94a3b8; font-size: 0.875rem; margin-top: 0.25rem; }
-      .pool { background: #1e293b; border-radius: 10px; margin: 1rem 0; overflow: hidden; }
-      .pool-title { background: #3b82f6; color: white; padding: 0.6rem 1rem; font-weight: 600; font-size: 0.95rem; }
+      header h1 { font-size: 1.5rem; color: var(--slate-50); }
+      header p { color: var(--slate-400); font-size: 0.875rem; margin-top: 0.25rem; }
+      .pool { background: var(--slate-800); border-radius: 10px; margin: 1rem 0; overflow: hidden; }
+      .pool-title { background: var(--blue-500); color: white; padding: 0.6rem 1rem; font-weight: 600; font-size: 0.95rem; }
       table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-      th { background: #0f172a; color: #94a3b8; padding: 0.5rem 0.75rem; text-align: left; font-weight: 500; }
-      td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #334155; }
+      th { background: var(--slate-900); color: var(--slate-400); padding: 0.5rem 0.75rem; text-align: left; font-weight: 500; }
+      td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--slate-700); }
       tr:last-child td { border-bottom: none; }
       tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
-      .rank { color: #94a3b8; width: 2rem; }
+      .rank { color: var(--slate-400); width: 2rem; }
       .name { font-weight: 600; }
-      .club { color: #94a3b8; font-size: 0.8rem; }
+      .club { color: var(--slate-400); font-size: 0.8rem; }
       .num { text-align: center; }
-      .pos { color: #4ade80; }
-      .neg { color: #f87171; }
-      .loading { text-align: center; padding: 3rem; color: #94a3b8; }
-      .empty { text-align: center; color: #94a3b8; padding: 2rem; }
-      .error { background: #450a0a; color: #fca5a5; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
-      .refresh { position: fixed; bottom: 1rem; right: 1rem; background: #3b82f6; color: white;
+      .pos { color: var(--tw-green-400); }
+      .neg { color: var(--tw-red-400); }
+      .loading { text-align: center; padding: 3rem; color: var(--slate-400); }
+      .empty { text-align: center; color: var(--slate-400); padding: 2rem; }
+      .error { background: var(--tw-red-950); color: var(--red-200); padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+      .refresh { position: fixed; bottom: 1rem; right: 1rem; background: var(--blue-500); color: white;
         border: none; border-radius: 50%; width: 3rem; height: 3rem; font-size: 1.2rem;
         cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
     </style>

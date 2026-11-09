@@ -262,6 +262,17 @@
   }
   root.bpClaimArenaSlot = claimArenaSlot;
 
+  /**
+   * Valeur résolue d'une variable de /tokens.css (#1538) : pour les API qui n'acceptent pas
+   * `var(--…)` (canvas `strokeStyle`, comparaisons JS). `fallback` si la variable est absente.
+   */
+  function cssVar(name, fallback) {
+    if (typeof document === 'undefined') return fallback || '';
+    var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback || '';
+  }
+  root.bpCssVar = cssVar;
+
   // Accessibilité : repli prefers-reduced-motion commun à toutes les pages distantes
   // (écrans publics inclus) — neutralise animations et transitions.
   if (typeof document !== 'undefined' && document.head) {

@@ -6,27 +6,28 @@
     <title data-i18n="journal.page_title">Journal – Piste</title>
     <script src="/common.js"></script>
     <script src="/i18n.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 1rem; font-size: 14px; }
+      body { font-family: system-ui, sans-serif; background: var(--slate-900); color: var(--tw-slate-200); padding: 1rem; font-size: 14px; }
       header { text-align: center; padding: 0.75rem 0 1rem; }
-      header h1 { font-size: 1.1rem; color: #f8fafc; }
-      #match-info { color: #94a3b8; font-size: 0.8rem; margin-top: 0.25rem; }
-      #status { text-align: center; color: #94a3b8; padding: 2rem; }
+      header h1 { font-size: 1.1rem; color: var(--slate-50); }
+      #match-info { color: var(--slate-400); font-size: 0.8rem; margin-top: 0.25rem; }
+      #status { text-align: center; color: var(--slate-400); padding: 2rem; }
       table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-      th { background: #1e293b; color: #94a3b8; padding: 0.45rem 0.6rem; text-align: left; font-weight: 600; position: sticky; top: 0; }
-      td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #1e293b; }
+      th { background: var(--slate-800); color: var(--slate-400); padding: 0.45rem 0.6rem; text-align: left; font-weight: 600; position: sticky; top: 0; }
+      td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--slate-800); }
       tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
       .badge { padding: 0.1rem 0.4rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; }
-      .badge-score_change { background: #4c1d95; color: #c4b5fd; }
-      .badge-touch { background: #1e3a5f; color: #93c5fd; }
-      .badge-card { background: #450a0a; color: #fca5a5; }
-      .badge-arena_exit { background: #451a03; color: #fcd34d; }
-      .side-a { color: #60a5fa; font-weight: 600; }
-      .side-b { color: #f87171; font-weight: 600; }
-      .side-none { color: #6b7280; }
-      .ts { font-family: monospace; color: #64748b; white-space: nowrap; }
-      #last-update { position: fixed; bottom: 0.5rem; right: 0.75rem; font-size: 0.7rem; color: #475569; }
+      .badge-score_change { background: var(--tw-violet-900); color: var(--tw-violet-300); }
+      .badge-touch { background: var(--c-1e3a5f); color: var(--tw-blue-300); }
+      .badge-card { background: var(--tw-red-950); color: var(--red-200); }
+      .badge-arena_exit { background: var(--tw-amber-950); color: var(--tw-amber-300); }
+      .side-a { color: var(--tw-blue-400); font-weight: 600; }
+      .side-b { color: var(--tw-red-400); font-weight: 600; }
+      .side-none { color: var(--tw-gray-500); }
+      .ts { font-family: monospace; color: var(--slate-500); white-space: nowrap; }
+      #last-update { position: fixed; bottom: 0.5rem; right: 0.75rem; font-size: 0.7rem; color: var(--slate-600); }
     </style>
   </head>
   <body>
