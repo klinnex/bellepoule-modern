@@ -34,7 +34,7 @@ const WifiQRModal_: React.FC<WifiQRModalProps> = ({ onClose }) => {
   const [error, setError] = useState<string>('');
 
   const buildWifiString = (cfg: WifiConfig): string => {
-    const escape = (s: string) => s.replace(/([\\;,":])/, '\\$1');
+    const escape = (s: string) => s.replace(/([\\;,":])/g, '\\$1');
     const parts: string[] = ['WIFI:'];
     parts.push(`T:${cfg.security};`);
     parts.push(`S:${escape(cfg.ssid)};`);
