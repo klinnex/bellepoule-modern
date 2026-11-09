@@ -40,7 +40,11 @@ interface UseBracketZoomPanOptions {
   pyramidViewMode: boolean;
 }
 
-export function useBracketZoomPan({ competitionId, viewMode, pyramidViewMode }: UseBracketZoomPanOptions) {
+export function useBracketZoomPan({
+  competitionId,
+  viewMode,
+  pyramidViewMode,
+}: UseBracketZoomPanOptions) {
   const { zoom, setZoom, pan, setPan } = useStateGroup({
     zoom: loadBracketZoom(competitionId),
     pan: { x: 0, y: 0 },
