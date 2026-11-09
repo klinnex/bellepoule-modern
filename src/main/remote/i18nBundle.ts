@@ -26,7 +26,7 @@ export function buildRemoteI18nSource(remoteDir: string): string | null {
 /** Fichiers communs servis depuis la mémoire : [nom, contenu] (fichiers absents ignorés) */
 export function readRemoteSharedFiles(remoteDir: string): Array<[string, string]> {
   const out: Array<[string, string]> = [];
-  for (const file of ['common.js', 'app.js', 'styles.css']) {
+  for (const file of ['common.js', 'app.js', 'tokens.css', 'styles.css']) {
     const filePath = path.join(remoteDir, file);
     if (fs.existsSync(filePath)) out.push([file, fs.readFileSync(filePath, 'utf-8')]);
   }

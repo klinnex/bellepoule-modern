@@ -58,6 +58,13 @@ describe('i18n des pages distantes découpé par langue (#1213)', () => {
     expect(names).toContain('js/kioskEta.js');
   });
 
+  it('tokens.css servi et styles.css sans couleur hexadécimale en dur (#1538)', () => {
+    const remote = path.join(ROOT, 'src/remote');
+    const files = Object.fromEntries(readRemoteSharedFiles(remote));
+    expect(files['tokens.css']).toContain('--color-primary');
+    expect(files['styles.css']).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+  });
+
   it('fichiers communs : absents ignorés, i18n.js concaténé', () => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bp-remote-'));
     fs.writeFileSync(path.join(dir, 'common.js'), 'c');
