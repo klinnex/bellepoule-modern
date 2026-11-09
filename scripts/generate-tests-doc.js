@@ -164,7 +164,7 @@ Nix de \`flake.nix\`. Ce n'est pas une dépendance des builds par plateforme.
 | Cliquet qualité | \`npm run check:quality\` | hausse du nombre de textes JSX en dur, \`any\`, \`console.*\`, \`style={{…}}\` (#1157), \`fontSize\` en px (#1156), locale \`'fr'\` en dur (#1160), messages d'erreur serveur en clair (#1159), ou couleur hexadécimale en dur dans les pages distantes \`src/remote\` (hors \`tokens.css\`, #1538), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs \`scripts/quality-baseline.json\` (\`--update\` pour verrouiller une baisse) |
 | Build Nix | \`nix build .#default\` (job \`nix-build\`) | le paquet \`flake.nix\` ne build pas : \`npmDepsHash\` périmé vs \`package-lock.json\`, dépendance native cassée, etc. |
 | Tests unitaires | \`npm run test:run\` | un test Vitest échoue |
-| Budget bundle | \`npm run build:renderer\` + \`node scripts/check-bundle-size.js\` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1 MiB, total > 6 MiB, ou aucun chunk à la demande (\`scripts/check-bundle-size.js\`) |
+| Budget bundle | \`npm run build:renderer\` + \`node scripts/check-bundle-size.js\` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1.25 MiB, total > 6 MiB, ou aucun chunk à la demande (\`scripts/check-bundle-size.js\`) |
 
 Hors CI (manuel) : \`npm run lint\`, \`npm run format:check\`, \`npm run test:coverage\`,
 \`npm run test:e2e\`.
