@@ -32,6 +32,7 @@ import {
   ROW_ALT,
 } from './refereeManager.styles';
 import { useTranslation } from '../hooks/useTranslation';
+import { Button } from './common/Button';
 
 const PRESENCE_COLORS: Record<RefereePresence, string> = {
   not_checked_in: '#9ca3af',
@@ -420,8 +421,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                 {editingId ? 'Enregistrer' : '＋ Ajouter'}
               </button>
               {editingId && (
-                <button
-                  className="btn btn-secondary"
+                <Button
                   onClick={() => {
                     setEditingId(null);
                     setAddError('');
@@ -435,7 +435,7 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                   }}
                 >
                   {t('actions.cancel')}
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -530,12 +530,9 @@ export const RefereeManagerComponent: React.FC<RefereeManagerProps> = ({
                               {REFEREE_PRESENCE_LABELS[presence]}
                             </span>
                             {presence !== 'busy' && (
-                              <button
-                                className="btn btn-secondary btn-sm"
-                                onClick={() => toggleRefereeCheckin(ref)}
-                              >
+                              <Button size="sm" onClick={() => toggleRefereeCheckin(ref)}>
                                 {ref.status === 'unavailable' ? 'Pointer' : 'Dépointer'}
-                              </button>
+                              </Button>
                             )}
                           </span>
                         );

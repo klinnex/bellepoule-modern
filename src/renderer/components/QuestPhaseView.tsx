@@ -34,6 +34,7 @@ import {
   CARD_TITLE,
   MUTED,
 } from './questPhaseView.styles';
+import { Button } from './common/Button';
 
 interface QuestPhaseViewProps {
   fencers: Fencer[];
@@ -218,9 +219,9 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
         <div className="is-4d99ac">
           <h2 className="is-28d934">{t('questPhase.running_title')}</h2>
           {allComplete && (
-            <button className="btn btn-primary" onClick={() => onQuestComplete(ranking ?? [])}>
+            <Button variant="primary" onClick={() => onQuestComplete(ranking ?? [])}>
               {t('questPhase.validate')}
-            </button>
+            </Button>
           )}
         </div>
 
@@ -467,13 +468,9 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
 
       {/* Actions de génération */}
       <div className="is-f0b24e">
-        <button
-          className="btn btn-secondary"
-          onClick={handleGenerate}
-          disabled={fencers.length < 2 || effectiveFights <= 0}
-        >
+        <Button onClick={handleGenerate} disabled={fencers.length < 2 || effectiveFights <= 0}>
           {schedule.length === 0 ? t('questPhase.generate') : t('questPhase.regenerate')}
-        </button>
+        </Button>
         {fencers.length < 2 && (
           <p style={{ ...smallText, color: '#dc2626', marginTop: '0.5rem' }}>
             {t('questPhase.need_two')}
@@ -567,9 +564,9 @@ const QuestPhaseView: React.FC<QuestPhaseViewProps> = ({
       {/* Bouton lancer */}
       {schedule.length > 0 && (
         <div className="is-2f47ea">
-          <button className="btn btn-primary is-1f9e99" onClick={handleLaunch}>
+          <Button variant="primary" className="is-1f9e99" onClick={handleLaunch}>
             {t('questPhase.launch')}
-          </button>
+          </Button>
         </div>
       )}
     </div>

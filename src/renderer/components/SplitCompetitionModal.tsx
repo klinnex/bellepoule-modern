@@ -5,6 +5,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { Button } from './common/Button';
 
 interface SplitCompetitionModalProps {
   groupLabel: string;
@@ -72,12 +73,12 @@ const SplitCompetitionModal: React.FC<SplitCompetitionModalProps> = ({
           </div>
         </div>
         <div className="modal-footer">
-          <button type="button" className="btn btn-secondary" onClick={onCancel}>
+          <Button type="button" onClick={onCancel}>
             {t('actions.cancel')}
-          </button>
-          <button type="submit" className="btn btn-primary" disabled={!title.trim()}>
+          </Button>
+          <Button type="submit" variant="primary" disabled={!title.trim()}>
             {t('splitCompetition.create')}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

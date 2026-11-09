@@ -15,6 +15,7 @@ import {
   useCollapsed,
   COMPACT_ROW_COUNT,
 } from './common/CollapseToggle';
+import { Button } from './common/Button';
 
 interface Props {
   competitionId: string;
@@ -270,18 +271,13 @@ const ScoreAuditLog_: React.FC<Props> = ({ competitionId, matchOptions }) => {
           }}
         />
 
-        <button className="btn btn-secondary" onClick={exportCsv} disabled={filtered.length === 0}>
+        <Button onClick={exportCsv} disabled={filtered.length === 0}>
           {t('scoreAudit.export_csv')}
-        </button>
+        </Button>
 
-        <button
-          className="btn btn-secondary"
-          onClick={load}
-          disabled={loading}
-          style={{ marginLeft: 'auto' }}
-        >
+        <Button onClick={load} disabled={loading} style={{ marginLeft: 'auto' }}>
           {loading ? '…' : '↻ Actualiser'}
-        </button>
+        </Button>
       </div>
 
       {filtered.length === 0 ? (

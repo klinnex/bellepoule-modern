@@ -10,6 +10,7 @@ import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { logger, LogCategory } from '@shared/services/logger';
 import { Competition } from '../../shared/types';
+import { Button } from './common/Button';
 
 type QRMode = 'results' | 'checkin';
 
@@ -169,9 +170,7 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({
                 <label className="form-label">{t('qrShare.url')}</label>
                 <div className="qrcode__url-input">
                   <input type="text" value={shareUrl} readOnly className="form-control" />
-                  <button className="btn btn-secondary" onClick={copyToClipboard}>
-                    {t('qrShare.copy')}
-                  </button>
+                  <Button onClick={copyToClipboard}>{t('qrShare.copy')}</Button>
                 </div>
               </div>
             )}
@@ -186,16 +185,10 @@ const QRCodeShare_: React.FC<QRCodeShareProps> = ({
         </div>
 
         <div className="modal__footer">
-          <button className="btn btn-secondary" onClick={onClose}>
-            {t('actions.close')}
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={downloadQRCode}
-            disabled={!qrCodeUrl || isGenerating}
-          >
+          <Button onClick={onClose}>{t('actions.close')}</Button>
+          <Button variant="primary" onClick={downloadQRCode} disabled={!qrCodeUrl || isGenerating}>
             {t('qrShare.download')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

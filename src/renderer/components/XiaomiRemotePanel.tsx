@@ -9,6 +9,7 @@ import { Icon } from './common/Icon';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useTranslation } from '../hooks/useTranslation';
 import type { ConnectedClient, TVCommand, KioskScreenConfig } from '@shared/types/preload';
+import { Button } from './common/Button';
 
 interface XiaomiRemotePanelProps {
   competitionId: string;
@@ -301,21 +302,17 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
           >
             {locked ? t('xiaomi.locked_label') : t('xiaomi.lock_label')}
           </button>
-          <button
-            className="btn btn-secondary is-c90036"
-            onClick={fetchClients}
-            title={t('xiaomi.refresh')}
-          >
+          <Button className="is-c90036" onClick={fetchClients} title={t('xiaomi.refresh')}>
             ↻
-          </button>
-          <button
-            className="btn btn-primary"
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => broadcastCmd({ type: 'refresh' })}
             disabled={locked}
             style={{ padding: '0.25rem 0.6rem', fontSize: '0.78rem', opacity: locked ? 0.4 : 1 }}
           >
             {t('xiaomi.refresh_all')}
-          </button>
+          </Button>
           <button className="btn-close" onClick={onClose} aria-label={t('actions.close')}>
             ×
           </button>
@@ -458,19 +455,19 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                     })()}
 
                   {/* Identifier */}
-                  <button
-                    className="btn btn-secondary is-8078b9"
+                  <Button
+                    className="is-8078b9"
                     onClick={() =>
                       window.electronAPI.remote.identifyClient(competitionId, client.socketId)
                     }
                     title={t('xiaomi.blink')}
                   >
                     {t('remote_score.identify_button')}
-                  </button>
+                  </Button>
 
                   {/* Renommer */}
-                  <button
-                    className="btn btn-secondary is-01ebbc"
+                  <Button
+                    className="is-01ebbc"
                     onClick={() => {
                       setRenameTarget(client.socketId);
                       setRenameValue(client.label ?? '');
@@ -478,11 +475,11 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                     title={t('xiaomi.rename')}
                   >
                     <Icon icon={Pencil} />
-                  </button>
+                  </Button>
 
                   {/* Mode kiosk */}
-                  <button
-                    className="btn btn-secondary is-01ebbc"
+                  <Button
+                    className="is-01ebbc"
                     onClick={() => {
                       setKioskTarget(client.socketId);
                       setKioskConfig(loadKioskConfig());
@@ -490,28 +487,28 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                     title={t('ui.configure_send_kiosk')}
                   >
                     <Icon icon={Monitor} />
-                  </button>
+                  </Button>
 
                   {/* Rafraîchir */}
-                  <button
-                    className="btn btn-secondary is-01ebbc"
+                  <Button
+                    className="is-01ebbc"
                     onClick={() => sendCmd(client.socketId, { type: 'refresh' })}
                     title={t('xiaomi.refresh')}
                   >
                     ↻
-                  </button>
+                  </Button>
 
                   {/* Naviguer (tous types) */}
                   <div ref={openNav === client.socketId ? navRef : null} className="relative">
-                    <button
+                    <Button
                       aria-label={t('actions.navigate')}
-                      className="btn btn-secondary is-01ebbc"
+                      className="is-01ebbc"
                       onClick={() =>
                         setOpenNav(openNav === client.socketId ? null : client.socketId)
                       }
                     >
                       ▾
-                    </button>
+                    </Button>
                     {openNav === client.socketId && (
                       <div className="is-4db2d1">
                         {allNavTargets.map(t => (
@@ -570,13 +567,13 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
               {swapSet.size === 1 && <span className="is-4cd15e"> {t('xiaomi.select_2nd')}</span>}
             </span>
             {canSwap && (
-              <button className="btn btn-primary is-6c53bb" onClick={confirmSwap}>
+              <Button variant="primary" className="is-6c53bb" onClick={confirmSwap}>
                 {t('actions.confirm')}
-              </button>
+              </Button>
             )}
-            <button className="btn btn-secondary is-e7eeed" onClick={() => setSwapSet(new Set())}>
+            <Button className="is-e7eeed" onClick={() => setSwapSet(new Set())}>
               {t('actions.cancel')}
-            </button>
+            </Button>
           </div>
         )}
 
@@ -627,13 +624,13 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
               <option value={30}>30s</option>
               <option value={60}>60s</option>
             </select>
-            <button
-              className="btn btn-primary"
+            <Button
+              variant="primary"
               style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
               onClick={sendMessage}
             >
               {t('xiaomi.send')}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -730,12 +727,10 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
               />
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <button className="btn btn-primary flex-1" onClick={sendKiosk}>
+              <Button variant="primary" className="flex-1" onClick={sendKiosk}>
                 {t('ui.send_kiosk')}
-              </button>
-              <button className="btn btn-secondary" onClick={() => setKioskTarget(null)}>
-                {t('actions.cancel')}
-              </button>
+              </Button>
+              <Button onClick={() => setKioskTarget(null)}>{t('actions.cancel')}</Button>
             </div>
           </div>
         </div>

@@ -60,6 +60,7 @@ import {
   settingsExportFileName,
 } from '../services/settingsTransfer';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
+import { Button } from './common/Button';
 
 const WEBHOOK_STORAGE_KEY = 'bellepoule-webhook-url';
 const AUDIT_LOG_KEY = 'bellepoule-audit-log-enabled';
@@ -886,33 +887,33 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                         {isActive ? (
                           <span className="logo-library-active">{t('settings.logo_active')}</span>
                         ) : (
-                          <button
+                          <Button
                             type="button"
-                            className="btn btn-secondary"
+
                             style={SMALL_BTN}
                             onClick={() => setActiveLogo(l.data)}
                           >
                             {t('settings.logo_use')}
-                          </button>
+                          </Button>
                         )}
-                        <button
+                        <Button
                           type="button"
-                          className="btn btn-secondary"
+
                           style={SMALL_BTN}
                           aria-label={`${t('settings.logo_delete')} ${l.name}`}
                           onClick={() => handleDeleteLogo(l.id)}
                         >
                           {t('settings.logo_delete')}
-                        </button>
+                        </Button>
                       </li>
                     );
                   })}
                 </ul>
               )}
               {logo && (
-                <button className="btn btn-secondary is-7b69a8" onClick={() => setActiveLogo(null)}>
+                <Button className="is-7b69a8" onClick={() => setActiveLogo(null)}>
                   {t('settings.logo_none')}
-                </button>
+                </Button>
               )}
             </div>
           </>
@@ -923,12 +924,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
             <div className="form-group">
               <label style={BOLD}>{t('settings.pdf_title')}</label>
               <p style={HINT}>{t('settings.pdf_hint')}</p>
-              <button
-                className="btn btn-secondary is-af623e"
-                onClick={() => setShowPdfEditor(true)}
-              >
+              <Button className="is-af623e" onClick={() => setShowPdfEditor(true)}>
                 {t('pdfTemplate.openButton')}
-              </button>
+              </Button>
             </div>
           </>
         );
@@ -938,9 +936,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
             <div className="form-group">
               <label style={BOLD}>{t('settings.tour_title')}</label>
               <p style={HINT}>{t('settings.tour_hint')}</p>
-              <button type="button" className="btn btn-secondary" onClick={restartGuidedTour}>
+              <Button type="button" onClick={restartGuidedTour}>
                 {t('settings.tour_restart')}
-              </button>
+              </Button>
             </div>
           </>
         );
@@ -1048,21 +1046,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                   {updateDir.isDefault ? ` (${t('settings.updates_dir_default')})` : ''}
                 </p>
                 <div className="u-row">
-                  <button
+                  <Button
                     type="button"
-                    className="btn btn-secondary"
+
                     onClick={handleChooseUpdateDir}
                   >
                     {t('settings.updates_dir_choose')}
-                  </button>
+                  </Button>
                   {!updateDir.isDefault && (
-                    <button
+                    <Button
                       type="button"
-                      className="btn btn-secondary"
+
                       onClick={handleResetUpdateDir}
                     >
                       {t('settings.updates_dir_reset')}
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -1095,16 +1093,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
               <label style={BOLD}>{t('settings.backup_title')}</label>
               <p style={HINT}>{t('settings.backup_hint')}</p>
               <div className="u-row">
-                <button type="button" className="btn btn-secondary" onClick={handleExportSettings}>
+                <Button type="button" onClick={handleExportSettings}>
                   {t('settings.backup_export')}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
-                  className="btn btn-secondary"
+
                   onClick={() => importInputRef.current?.click()}
                 >
                   {t('settings.backup_import')}
-                </button>
+                </Button>
                 <input
                   ref={importInputRef}
                   type="file"
@@ -1140,22 +1138,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                 onChange={e => handleWebhookUrlChange(e.target.value)}
               />
               <div className="u-row">
-                <button
-                  className="btn btn-secondary"
+                <Button
                   style={SMALL_BTN}
                   onClick={handleTestWebhook}
                   disabled={!webhookUrl.trim() || webhookTestStatus === 'testing'}
                 >
                   {webhookTestStatus === 'testing' ? '⏳ Test…' : '🔔 Tester'}
-                </button>
+                </Button>
                 {webhookUrl && (
-                  <button
-                    className="btn btn-secondary"
-                    style={SMALL_BTN}
-                    onClick={() => handleWebhookUrlChange('')}
-                  >
+                  <Button style={SMALL_BTN} onClick={() => handleWebhookUrlChange('')}>
                     {t('settings.webhook_remove')}
-                  </button>
+                  </Button>
                 )}
               </div>
               {webhookTestMessage && (
@@ -1196,13 +1189,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
                     </option>
                   ))}
                 </select>
-                <button
-                  className="btn btn-secondary"
-                  style={SMALL_BTN}
-                  onClick={handleTtsTestVoice}
-                >
+                <Button style={SMALL_BTN} onClick={handleTtsTestVoice}>
                   {t('settings.tts_test')}
-                </button>
+                </Button>
               </div>
 
               <label className="is-933a8e">
@@ -1309,12 +1298,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onSave }) => {
           </div>
 
           <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={onClose}>
-              {t('actions.cancel')}
-            </button>
-            <button className="btn btn-primary" onClick={handleSave}>
+            <Button onClick={onClose}>{t('actions.cancel')}</Button>
+            <Button variant="primary" onClick={handleSave}>
               {t('settings.save')}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

@@ -37,6 +37,7 @@ import { useStripAvailability, useStripPlanSync } from '../hooks/useStripAvailab
 import { MAX_STRIP, normalizeStripRange, stripNumbers } from '../../shared/utils/stripRange';
 import { useRemoteViewMode } from './remote/remoteViewMode';
 import { useKioskTheme, type KioskPreset } from '../hooks/useKioskTheme';
+import { Button } from './common/Button';
 
 interface RemoteScoreManagerProps {
   competition: Competition;
@@ -766,23 +767,22 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
           ●
         </span>
       )}
-      <button
-        className="btn btn-primary"
+      <Button
+        variant="primary"
         onClick={handleSaveStripCount}
         disabled={!hasPendingChanges || isLoading}
         style={RSM_STYLES.stripCountSave}
       >
         {t('rsm.save')}
-      </button>
-      <button
-        className="btn btn-secondary"
+      </Button>
+      <Button
         onClick={() => setShowArenaQrModal(true)}
         title={t('rsm.qr_export_title')}
         style={RSM_STYLES.stripCountSave}
         disabled={!isRemoteActive || !serverUrl}
       >
         {t('rsm.qr_codes')}
-      </button>
+      </Button>
       {showArenaQrModal &&
         createPortal(
           <ArenaQrCodesModal
@@ -1447,14 +1447,14 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                         </option>
                       ))}
                     </select>
-                    <button
-                      className="btn btn-primary"
+                    <Button
+                      variant="primary"
                       disabled={!globalThemeId}
                       onClick={() => void handleGlobalThemeApply()}
                       style={{ whiteSpace: 'nowrap' }}
                     >
                       {t('rsm.apply_all')}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               );
@@ -1586,9 +1586,9 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
               </button>
             </div>
             <div className="arena-url-row">
-              <button className="btn btn-secondary btn-sm" onClick={exportTrainerComments}>
+              <Button size="sm" onClick={exportTrainerComments}>
                 {t('rsm.trainer_pdf')}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -1677,9 +1677,7 @@ const RemoteScoreManager: React.FC<RemoteScoreManagerProps> = ({
                 <div style={RSM_STYLES.qrSpinner}>{t('rsm.generating')}</div>
               )}
               <code style={RSM_STYLES.qrCode}>{activeQR.url}</code>
-              <button className="btn btn-secondary" onClick={() => setActiveQR(null)}>
-                {t('rsm.close')}
-              </button>
+              <Button onClick={() => setActiveQR(null)}>{t('rsm.close')}</Button>
             </div>
           </div>,
           document.body

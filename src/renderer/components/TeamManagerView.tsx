@@ -45,6 +45,7 @@ import { useConfirm } from './ConfirmDialog';
 import { useToast } from './Toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { ipcErrorText } from '../services/ipcError';
+import { Button } from './common/Button';
 
 const LASER_ARENA_POOL_NUMBER_BY_LETTER: Record<string, number> = { A: 1, B: 2, C: 3 };
 
@@ -849,8 +850,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
         <div>
           {laserRankings.length > 0 && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
-              <button
-                className="btn btn-secondary"
+              <Button
                 style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
                 onClick={() => {
                   const header = 'Rang,Équipe,Club,V,D,Points+,Points-,Ratio,Égalité\n';
@@ -881,7 +881,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                 }}
               >
                 {t('teamManager.export_csv')}
-              </button>
+              </Button>
             </div>
           )}
           {laserRankings.length === 0 ? (
@@ -962,8 +962,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
         <div>
           {fieRankings.length > 0 && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
-              <button
-                className="btn btn-secondary"
+              <Button
                 style={{ fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
                 onClick={() => {
                   const header = 'Rang,Équipe,Club,V,D,RelaisG,RelaisP,Ind.,Touches+,Touches-\n';
@@ -993,7 +992,7 @@ export const TeamManagerView: React.FC<Props> = ({ competition, fencers, view, o
                 }}
               >
                 {t('teamManager.export_csv')}
-              </button>
+              </Button>
             </div>
           )}
           {fieRankings.length === 0 ? (

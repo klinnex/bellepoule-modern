@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
+import { Button } from './Button';
 
 export type SpecialStatus = 'abandon' | 'forfait' | 'exclusion';
 
@@ -59,15 +60,13 @@ const SpecialStatusPanel: React.FC<SpecialStatusPanelProps> = ({
           {t('tableauScore.black_card_question')} — {name}
         </p>
         <div className="is-027866">
-          <button className="btn btn-danger" onClick={() => onConfirm(excludedId, true)}>
+          <Button variant="danger" onClick={() => onConfirm(excludedId, true)}>
             {t('actions.yes')}
-          </button>
-          <button className="btn btn-warning" onClick={() => onConfirm(excludedId, false)}>
+          </Button>
+          <Button variant="warning" onClick={() => onConfirm(excludedId, false)}>
             {t('actions.no')}
-          </button>
-          <button className="btn btn-secondary" onClick={() => setExcludedId(null)}>
-            {t('actions.cancel')}
-          </button>
+          </Button>
+          <Button onClick={() => setExcludedId(null)}>{t('actions.cancel')}</Button>
         </div>
       </div>
     );
@@ -80,13 +79,11 @@ const SpecialStatusPanel: React.FC<SpecialStatusPanelProps> = ({
       </p>
       <div className="is-027866">
         {fencers.map((f, i) => (
-          <button key={i} className="btn btn-danger" disabled={!f} onClick={() => pick(f)}>
+          <Button key={i} variant="danger" disabled={!f} onClick={() => pick(f)}>
             {f?.name || '—'}
-          </button>
+          </Button>
         ))}
-        <button className="btn btn-secondary" onClick={onCancel}>
-          {t('actions.cancel')}
-        </button>
+        <Button onClick={onCancel}>{t('actions.cancel')}</Button>
       </div>
     </div>
   );
