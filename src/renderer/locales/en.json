@@ -131,7 +131,11 @@
     "teampool": "Team pool",
     "teamtableau": "Team bracket",
     "teamranking": "Team ranking",
-    "poolprep_locked_tooltip": "Prepare the pools first (Check-in tab)"
+    "poolprep_locked_tooltip": "Prepare the pools first (Check-in tab)",
+    "state_done": "done",
+    "state_current": "in progress",
+    "state_todo": "to do",
+    "state_blocked": "blocked"
   },
   "pools": {
     "generate": "Generate Pools",

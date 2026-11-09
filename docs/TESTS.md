@@ -101,15 +101,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 72 | 359 |
+| `src/renderer/components/` | 73 | 363 |
 | E2E Playwright (`e2e/`) | 9 | 36 |
 | `src/remote/` | 41 | 270 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 12 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **310** | **2448** |
+| **Total** | **311** | **2452** |
 
-Unitaires : 301 fichiers, 2412 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 302 fichiers, 2416 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4094,6 +4094,18 @@ Unitaires : 301 fichiers, 2412 tests. E2E : 9 fichiers, 36 tests (comptage stati
 - **CompetitionHeader - bouton saisie distante**
   - affiche le bouton et ouvre la saisie distante au clic
   - sans gestionnaire : pas de bouton
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competition/phaseStepper.test.ts</code> — 4 tests</summary>
+
+- **phaseStepStates**
+  - marque fait, en cours, à faire et bloqué
+  - phase inconnue : rien de fait
+- **nextBlockedReason**
+  - renvoie le motif de la première phase bloquée suivante
+  - null si aucun motif connu après la phase courante
 
 </details>
 

@@ -131,7 +131,11 @@
     "teampool": "Girone a squadre",
     "teamtableau": "Tabellone a squadre",
     "teamranking": "Classifica a squadre",
-    "poolprep_locked_tooltip": "Prepara prima i gironi (scheda Appello)"
+    "poolprep_locked_tooltip": "Prepara prima i gironi (scheda Appello)",
+    "state_done": "fatto",
+    "state_current": "in corso",
+    "state_todo": "da fare",
+    "state_blocked": "bloccato"
   },
   "pools": {
     "generate": "Genera i gironi",

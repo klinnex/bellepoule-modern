@@ -272,7 +272,11 @@
     "teampool": "Mannschaftsrunde",
     "teamtableau": "Mannschafts-K.-o.",
     "teamranking": "Mannschaftswertung",
-    "poolprep_locked_tooltip": "Zuerst die Pools vorbereiten (Reiter Aufruf)"
+    "poolprep_locked_tooltip": "Zuerst die Pools vorbereiten (Reiter Aufruf)",
+    "state_done": "erledigt",
+    "state_current": "aktuell",
+    "state_todo": "offen",
+    "state_blocked": "gesperrt"
   },
   "pools": {
     "change_pool": "Pool Wechseln",

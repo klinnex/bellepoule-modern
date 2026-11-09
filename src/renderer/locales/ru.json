@@ -131,7 +131,11 @@
     "teampool": "Командный пул",
     "teamtableau": "Командная таблица",
     "teamranking": "Командный рейтинг",
-    "poolprep_locked_tooltip": "Сначала подготовьте пулы (вкладка Отметка)"
+    "poolprep_locked_tooltip": "Сначала подготовьте пулы (вкладка Отметка)",
+    "state_done": "выполнено",
+    "state_current": "текущий",
+    "state_todo": "предстоит",
+    "state_blocked": "заблокировано"
   },
   "pools": {
     "generate": "Сформировать пулы",
