@@ -13,6 +13,7 @@ import './styles/main.css';
 import './styles/formula.css';
 import './styles/design.css';
 import './styles/phase-stepper.css';
+import './styles/operation-progress.css';
 import './styles/buttons.css';
 import './styles/competition-list.css';
 import './styles/tokens.css';

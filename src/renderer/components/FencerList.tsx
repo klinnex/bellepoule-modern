@@ -7,6 +7,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { ClipboardList, Pencil, QrCode, RotateCcw, Search, Swords, Trash2 } from 'lucide-react';
 import { Icon } from './common/Icon';
 import EmptyState from './common/EmptyState';
+import { useOperation } from './common/OperationProgress';
 import { useVirtualList } from '../../shared/services/performanceService';
 // qrcode chargé à la demande (génération du QR uniquement à l'affichage)
 import { Fencer, FencerStatus } from '../../shared/types';
@@ -111,6 +112,7 @@ const FencerListComponent: React.FC<FencerListProps> = ({
 }) => {
   const { t } = useTranslation();
   const { confirm } = useConfirm();
+  const { runOperation } = useOperation();
   const { showToast } = useToast();
 
   const statusLabels: Record<FencerStatus, { label: string; color: string }> = {
@@ -346,9 +348,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
     });
     if (result && !result.canceled && result.filePath) {
       try {
-        const { count } = await window.electronAPI.file.exportPhotos(
-          competitionId,
-          result.filePath
+        const { count } = await runOperation('export', () =>
+          window.electronAPI.file.exportPhotos(competitionId, result.filePath!)
         );
         showPhotoMessage(t('fencerList.photos_exported', { count }));
       } catch {
@@ -365,9 +366,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
     });
     if (result && result.filePath) {
       try {
-        const { matched, total } = await window.electronAPI.file.importPhotos(
-          competitionId,
-          result.filePath
+        const { matched, total } = await runOperation('import', () =>
+          window.electronAPI.file.importPhotos(competitionId, result.filePath)
         );
         showPhotoMessage(
           t('fencerList.photos_imported', { count: total, matched: String(matched) })
@@ -387,9 +387,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
     });
     if (result && !result.canceled && result.filePath) {
       try {
-        const { count } = await window.electronAPI.file.exportFencersArchive(
-          competitionId,
-          result.filePath
+        const { count } = await runOperation('export', () =>
+          window.electronAPI.file.exportFencersArchive(competitionId, result.filePath!)
         );
         showPhotoMessage(t('fencerList.bpf_exported', { count }));
       } catch {
@@ -406,9 +405,8 @@ const FencerListComponent: React.FC<FencerListProps> = ({
     });
     if (result && result.filePath) {
       try {
-        const { added, updated } = await window.electronAPI.file.importFencersArchive(
-          competitionId,
-          result.filePath
+        const { added, updated } = await runOperation('import', () =>
+          window.electronAPI.file.importFencersArchive(competitionId, result.filePath)
         );
         showPhotoMessage(
           t('fencerList.bpf_imported', { added: String(added), updated: String(updated) })

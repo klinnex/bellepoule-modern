@@ -14,6 +14,7 @@ import {
 } from './competition/competitionViewState';
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import EmptyState from './common/EmptyState';
+import { useOperation } from './common/OperationProgress';
 import { PHASE_ICONS, PhaseEmptyIcon, TEAM_PHASE_ICONS } from './competition/phaseIcons';
 import {
   Competition,
@@ -268,6 +269,7 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
 }) => {
   const { showToast } = useToast();
   const { confirm } = useConfirm();
+  const { runOperation } = useOperation();
   const { t, language } = useTranslation();
 
   // Settings avec valeurs par défaut (formule personnalisée prioritaire, #1125)
@@ -1031,9 +1033,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         filters: [{ name: 'BellePoule Fencers', extensions: ['bpf'] }],
       });
       if (result && !result.canceled && result.filePath) {
-        const { count } = await window.electronAPI.file.exportFencersArchive(
-          competition.id,
-          result.filePath
+        const { count } = await runOperation('export', () =>
+          window.electronAPI.file.exportFencersArchive(competition.id, result.filePath!)
         );
         showToast(
           `${count} tireur${count !== 1 ? 's' : ''} exporté${count !== 1 ? 's' : ''} (.bpf)`,
@@ -1048,9 +1049,8 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
         filters: [{ name: 'Archive ZIP', extensions: ['zip'] }],
       });
       if (result && !result.canceled && result.filePath) {
-        const { count } = await window.electronAPI.file.exportPhotos(
-          competition.id,
-          result.filePath
+        const { count } = await runOperation('export', () =>
+          window.electronAPI.file.exportPhotos(competition.id, result.filePath!)
         );
         showToast(
           `${count} photo${count !== 1 ? 's' : ''} exportée${count !== 1 ? 's' : ''}`,
@@ -1063,7 +1063,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
     onImport: async (format, filepath, content) => {
       if (format === 'fencers-bpf') {
         try {
-          await window.electronAPI.file.importFencersArchive(competition.id, filepath);
+          await runOperation('import', () =>
+            window.electronAPI.file.importFencersArchive(competition.id, filepath)
+          );
           loadFencers();
         } catch (err) {
           logger.error(LogCategory.UI, 'Erreur import .bpf', err as Error);
@@ -2908,11 +2910,9 @@ const CompetitionView: React.FC<CompetitionViewProps> = ({
             onExportCompetition={
               window.electronAPI?.file?.exportCompetition
                 ? () => {
-                    void window.electronAPI.file
-                      .exportCompetition(competition.id)
-                      .then(res => {
-                        if (res?.success) showToast('Compétition exportée', 'success');
-                      })
+                    const exporting = window.electronAPI.file.exportCompetition(competition.id);
+                    void runOperation('export', () => exporting)
+                      .then(r => r?.success && showToast('Compétition exportée', 'success'))
                       .catch(() => showToast("Échec de l'export de la compétition", 'error'));
                   }
                 : undefined

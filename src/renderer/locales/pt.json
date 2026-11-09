@@ -2939,5 +2939,10 @@
     "hint": "Torneio simulado disputado em ciclo em 2 pistas: poules, classificação, quadro de eliminação direta, classificação final. Ecrãs das pistas, tablet do árbitro e visualização do torneio.",
     "started": "Demonstração iniciada: ecrãs abertos, o árbitro virtual disputa os combates",
     "choose_weapon": "Escolha a arma:"
+  },
+  "operations": {
+    "import": "Importação em curso…",
+    "export": "Exportação em curso…",
+    "sync": "Sincronização em curso…"
   }
 }

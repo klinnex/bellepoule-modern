@@ -2939,5 +2939,10 @@
     "hint": "Fiktives Turnier in Endlosschleife auf 2 Bahnen: Pools, Rangliste, Direktausscheidung, Endrangliste. Bahnanzeigen, Kampfrichter-Tablet und Turnieranzeige.",
     "started": "Demo gestartet: Bildschirme geöffnet, der virtuelle Kampfrichter führt die Gefechte",
     "choose_weapon": "Waffe wählen:"
+  },
+  "operations": {
+    "import": "Import läuft…",
+    "export": "Export läuft…",
+    "sync": "Synchronisierung läuft…"
   }
 }
