@@ -13,9 +13,12 @@ import {
   Funnel,
   Gavel,
   PenLine,
+  Play,
   Plus,
   Printer,
+  Redo2,
   Swords,
+  Undo2,
 } from 'lucide-react';
 import { Icon } from './common/Icon';
 import { resolveInlineSubmit } from '../../shared/utils/inlineScoreInput';
@@ -24,7 +27,6 @@ import { useStateGroup } from '../hooks/useStateGroup';
 import { POOL_SCORE_INPUT_INIT, POOL_DIALOGS_INIT } from './pool/poolViewState';
 import { usePoolReferees } from './pool/usePoolReferees';
 import { useFocusTrap } from '../hooks/useFocusTrap';
-import Modal from './common/Modal';
 import { Pool, Fencer, MatchStatus, Weapon, FencerStatus, Referee } from '../../shared/types';
 import { Arena } from '../../shared/types/remote';
 import { logger, LogCategory } from '@shared/services/logger';
@@ -38,6 +40,7 @@ import PoolMatchList from './pool/PoolMatchList';
 import Confetti from './Confetti';
 import AddFencerToPoolModal from './AddFencerToPoolModal';
 import { PoolStripButton } from './pool/PoolStripButton';
+import { PoolRefereeModal } from './pool/PoolRefereeModal';
 import { MatchAuditLog } from './MatchAuditLog';
 import { MedicalCrossIcon } from './common/MedicalCrossIcon';
 import SpecialStatusPanel, {
@@ -51,10 +54,6 @@ import {
   ROW_BETWEEN,
   MATCH_LABEL,
   MATCH_CENTER,
-  COL_GAP,
-  REF_EMPTY,
-  REF_BTN,
-  REF_PICK_BTN,
   FENCER_NAME,
   NEXT_MATCH_BOX,
   SCORE_ROW,
@@ -1462,7 +1461,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
                 transform: showFinishedLog ? 'rotate(90deg)' : 'rotate(0deg)',
               }}
             >
-              ▶
+              <Icon icon={Play} />
             </span>
             {t('poolView.finished_log', { count: orderedMatches.finished.length })}
           </button>
@@ -1633,7 +1632,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               title={t('poolView.undo_title')}
               aria-label={t('poolView.undo_aria')}
             >
-              ↩
+              <Icon icon={Undo2} />
             </button>
             <button
               onClick={redo}
@@ -1642,7 +1641,7 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
               title={t('poolView.redo_title')}
               aria-label={t('poolView.redo_aria')}
             >
-              ↪
+              <Icon icon={Redo2} />
             </button>
             <button
               onClick={handleAutoFillScores}
@@ -1799,72 +1798,19 @@ const PoolViewComponent: React.FC<PoolViewProps> = ({
         </React.Suspense>
       )}
       {showRefereeModal && (
-        <Modal
-          title={isMultiReferee ? t('poolView.assign_referees') : t('poolView.assign_referee')}
+        <PoolRefereeModal
+          poolNumber={pool.number}
+          isMultiReferee={isMultiReferee}
+          maxRefereesPerPool={maxRefereesPerPool}
+          assignedReferee={assignedReferee}
+          competitionReferees={competitionReferees}
+          isLoadingReferees={isLoadingReferees}
+          pendingRefereeIds={pendingRefereeIds}
           onClose={closeRefereeModal}
-          size="sm"
-        >
-          <p className="u-hint mb-4">
-            {isMultiReferee
-              ? t('poolView.select_referees', { max: maxRefereesPerPool, n: pool.number })
-              : t('poolView.select_referee', { n: pool.number })}
-          </p>
-          <div style={COL_GAP}>
-            <Button
-              variant={!assignedReferee ? 'primary' : 'secondary'}
-              onClick={() => handleAssignReferee(null)}
-              style={REF_BTN}
-            >
-              {t('poolView.no_referee')}
-            </Button>
-            {isLoadingReferees && <p style={REF_EMPTY}>{t('poolView.loading_referees')}</p>}
-            {!isLoadingReferees && competitionReferees.length === 0 && (
-              <p style={REF_EMPTY}>{t('poolView.no_checked_referee')}</p>
-            )}
-            {!isLoadingReferees &&
-              isMultiReferee &&
-              competitionReferees.map(ref => {
-                const order = pendingRefereeIds.indexOf(ref.id);
-                const selected = order >= 0;
-                const disabled = !selected && pendingRefereeIds.length >= maxRefereesPerPool;
-                return (
-                  <Button
-                    key={ref.id}
-                    onClick={() => togglePendingReferee(ref.id)}
-                    disabled={disabled}
-                    aria-pressed={selected}
-                    variant={selected ? 'primary' : 'secondary'}
-                    {...REF_PICK_BTN}
-                  >
-                    {selected ? `☑ ${order + 1}.` : '☐'} <Icon icon={Gavel} /> {ref.lastName}{' '}
-                    {ref.firstName}
-                    {ref.club && <span className="pv-ref-club">({ref.club})</span>}
-                  </Button>
-                );
-              })}
-            {!isLoadingReferees && isMultiReferee && competitionReferees.length > 0 && (
-              <Button variant="primary" onClick={confirmPendingReferees} style={REF_BTN}>
-                {t('poolView.validate_n', {
-                  n: pendingRefereeIds.length,
-                  max: maxRefereesPerPool,
-                })}
-              </Button>
-            )}
-            {!isLoadingReferees &&
-              !isMultiReferee &&
-              competitionReferees.map(ref => (
-                <Button
-                  key={ref.id}
-                  onClick={() => handleAssignReferee(ref)}
-                  variant={assignedReferee?.id === ref.id ? 'primary' : 'secondary'}
-                  {...REF_PICK_BTN}
-                >
-                  <Icon icon={Gavel} /> {ref.lastName} {ref.firstName}
-                  {ref.club && <span className="pv-ref-club">({ref.club})</span>}
-                </Button>
-              ))}
-          </div>
-        </Modal>
+          onAssign={handleAssignReferee}
+          onToggle={togglePendingReferee}
+          onConfirm={confirmPendingReferees}
+        />
       )}
     </>
   );
