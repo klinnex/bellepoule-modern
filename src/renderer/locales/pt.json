@@ -285,6 +285,10 @@
     "language": "Idioma",
     "theme": "Tema",
     "text_size": "Tamanho do texto",
+    "density": "Densidade",
+    "density_comfortable": "Confortável",
+    "density_standard": "Padrão",
+    "density_compact": "Compacta",
     "pool_rounds": "Rondas de poules",
     "has_direct_elimination": "Eliminação direta",
     "default_pool_max_score": "Pontuação máxima predefinida das poules",
@@ -391,6 +395,7 @@
     "backup_invalid": "Ficheiro inválido: é esperada uma exportação de definições do BellePoule."
   },
   "actions": {
+    "undo": "Desfazer",
     "add": "Adicionar",
     "edit": "Editar",
     "delete": "Eliminar",
@@ -1400,6 +1405,8 @@
     "never_met": "Estes dois esgrimistas nunca se encontraram nesta competição."
   },
   "fencerList": {
+    "undo": "Anular",
+    "status_changed": "{{name}}: estado alterado",
     "col_nationality": "Nacionalidade",
     "import_menu": "📥 Importar ▾",
     "import_xml_bp": "Importar XML (BellePoule)",

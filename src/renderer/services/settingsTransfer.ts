@@ -5,6 +5,7 @@
  */
 
 import { UI_SCALES } from './uiScale';
+import { UI_DENSITIES } from './uiDensity';
 import { LOGO_STORAGE_KEY, LOGO_LIBRARY_KEY, sanitizeLogoLibrary } from './logoLibrary';
 
 export const SETTINGS_EXPORT_FORMAT = 'bellepoule-settings';
@@ -15,6 +16,7 @@ export const SETTINGS_TRANSFER_KEYS = [
   'bellepoule-language',
   'bellepoule-theme',
   'bellepoule-ui-scale',
+  'bellepoule-ui-density',
   'bellepoule-confetti-disabled',
   'bellepoule-audit-log-enabled',
   'bellepoule-quick-mouse-scoring',
@@ -53,6 +55,7 @@ const ENUM_VALUES: Readonly<Record<string, readonly string[]>> = {
   'bellepoule-language': ['fr', 'en', 'br', 'ca', 'de', 'es', 'pt', 'it', 'ru', 'zh-HK'],
   'bellepoule-theme': ['default', 'light', 'dark'],
   'bellepoule-ui-scale': UI_SCALES.map(String),
+  'bellepoule-ui-density': [...UI_DENSITIES],
 };
 
 const MAX_VALUE_LENGTH = 8 * 1024 * 1024;

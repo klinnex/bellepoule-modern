@@ -285,6 +285,10 @@
     "language": "Lingua",
     "theme": "Tema",
     "text_size": "Dimensione del testo",
+    "density": "Densità",
+    "density_comfortable": "Comoda",
+    "density_standard": "Standard",
+    "density_compact": "Compatta",
     "pool_rounds": "Turni di gironi",
     "has_direct_elimination": "Tabellone a eliminazione",
     "default_pool_max_score": "Punteggio massimo dei gironi",
@@ -391,6 +395,7 @@
     "backup_invalid": "File non valido: atteso un export delle impostazioni BellePoule."
   },
   "actions": {
+    "undo": "Annulla",
     "add": "Aggiungi",
     "edit": "Modifica",
     "delete": "Elimina",
@@ -1400,6 +1405,8 @@
     "never_met": "Questi due schermidori non si sono mai affrontati in questa competizione."
   },
   "fencerList": {
+    "undo": "Annulla",
+    "status_changed": "{{name}}: stato modificato",
     "col_nationality": "Nazionalità",
     "import_menu": "📥 Importa ▾",
     "import_xml_bp": "Importa XML (BellePoule)",
