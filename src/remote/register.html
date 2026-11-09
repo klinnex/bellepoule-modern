@@ -4,19 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title data-i18n="register.page_title">Inscription tireur</title>
+  <link rel="stylesheet" href="/tokens.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f172a;
-      --surface: #1e293b;
-      --border: #334155;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --text: #f1f5f9;
-      --text-muted: #94a3b8;
-      --danger: #ef4444;
-      --success: #22c55e;
+      --bg: var(--slate-900);
+      --surface: var(--slate-800);
+      --border: var(--slate-700);
+      --accent: var(--blue-500);
+      --accent-hover: var(--blue-600);
+      --text: var(--slate-100);
+      --text-muted: var(--slate-400);
+      --danger: var(--red-500);
+      --success: var(--green-500);
       --radius: 10px;
     }
 
@@ -118,7 +119,7 @@
       position: relative;
       width: 100%;
       aspect-ratio: 4/3;
-      background: #000;
+      background: var(--color-black);
       border-radius: 8px;
       overflow: hidden;
       display: none;
@@ -136,7 +137,7 @@
       border-radius: 8px;
       overflow: hidden;
       display: none;
-      background: #000;
+      background: var(--color-black);
     }
 
     #preview-area img {
@@ -169,11 +170,11 @@
 
     .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-    .btn-primary { background: var(--accent); color: #fff; width: 100%; }
+    .btn-primary { background: var(--accent); color: var(--color-white); width: 100%; }
     .btn-primary:not(:disabled):hover { background: var(--accent-hover); }
 
     .btn-secondary { background: var(--border); color: var(--text); flex: 1; }
-    .btn-secondary:not(:disabled):hover { background: #475569; }
+    .btn-secondary:not(:disabled):hover { background: var(--slate-600); }
 
     .btn-danger-outline {
       background: transparent;
@@ -195,7 +196,7 @@
       left: 50%;
       transform: translateX(-50%) translateY(120%);
       background: var(--success);
-      color: #fff;
+      color: var(--color-white);
       padding: 0.75rem 1.5rem;
       border-radius: 100px;
       font-weight: 600;
@@ -223,7 +224,7 @@
     .spinner {
       width: 20px; height: 20px;
       border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
+      border-top-color: var(--color-white);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
