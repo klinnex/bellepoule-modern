@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 52 | 422 |
 | `src/renderer/services/` | 7 | 48 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 62 | 314 |
+| `src/renderer/components/` | 64 | 329 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 2 | 3 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **294** | **2381** |
+| **Total** | **296** | **2396** |
 
-Unitaires : 285 fichiers, 2346 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 287 fichiers, 2361 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4019,7 +4019,7 @@ Unitaires : 285 fichiers, 2346 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/common/primitives.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/components/common/primitives.test.tsx</code> — 11 tests</summary>
 
 - **Modal**
   - rend titre, corps et pied ; le dialogue est nommé par son titre
@@ -4028,6 +4028,10 @@ Unitaires : 285 fichiers, 2346 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **Button**
   - variante, taille et type="button" par défaut
   - secondaire par défaut, icône + libellé
+  - taille md acceptée
+  - loading : désactivé, aria-busy, spinner masqué aux lecteurs, libellé conservé
+  - sans loading : ni aria-busy ni spinner
+  - icône seule : classe btn-icon-only et nom accessible via aria-label
 - **Card**
   - en-tête, corps et pied
   - sans titre ni actions : pas d’en-tête
@@ -4042,6 +4046,32 @@ Unitaires : 285 fichiers, 2346 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **CompetitionHeader - bouton saisie distante**
   - affiche le bouton et ouvre la saisie distante au clic
   - sans gestionnaire : pas de bouton
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competition/usePhaseShortcuts.test.ts</code> — 5 tests</summary>
+
+- **phaseShortcutTarget**
+  - Ctrl+n va à la phase de rang n
+  - ne cible pas une phase désactivée ni un rang absent
+  - Ctrl+→ / Ctrl+← passent à la phase accessible suivante / précédente
+  - aux bornes, pas de cible
+  - autres touches : pas de cible
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competitionListSearch.test.ts</code> — 6 tests</summary>
+
+- **normalizeSearchText**
+  - ignore la casse, les accents et les espaces multiples
+- **filterCompetitions**
+  - requête vide : liste inchangée
+  - cherche dans le nom sans tenir compte des accents ni de la casse
+  - cherche dans le lieu
+  - cherche dans la date (année)
+  - toutes les parties de la requête doivent correspondre
 
 </details>
 
