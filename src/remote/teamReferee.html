@@ -6,23 +6,24 @@
     <title data-i18n="team.referee_page_title">Arbitre équipe — BellePoule</title>
     <script src="/i18n.js"></script>
     <script src="/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
       body {
         margin: 0;
         font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-        background: #0f172a;
-        color: #f1f5f9;
+        background: var(--slate-900);
+        color: var(--slate-100);
         min-height: 100vh;
         display: flex;
         flex-direction: column;
       }
       header {
         padding: 0.75rem 1rem;
-        background: #1e293b;
+        background: var(--slate-800);
         text-align: center;
         font-size: 0.85rem;
-        color: #94a3b8;
+        color: var(--slate-400);
       }
       #waiting {
         flex: 1;
@@ -30,7 +31,7 @@
         align-items: center;
         justify-content: center;
         font-size: 1.1rem;
-        color: #64748b;
+        color: var(--slate-500);
         padding: 2rem;
         text-align: center;
       }
@@ -44,7 +45,7 @@
       .bout-info {
         text-align: center;
         font-size: 0.8rem;
-        color: #94a3b8;
+        color: var(--slate-400);
       }
       .teams {
         display: grid;
@@ -54,8 +55,8 @@
       }
       .team-col { text-align: center; }
       .team-name { font-weight: 700; font-size: 1rem; }
-      .fencer-name { font-size: 0.85rem; color: #cbd5e1; margin-top: 0.15rem; }
-      .vs { color: #64748b; font-weight: 700; }
+      .fencer-name { font-size: 0.85rem; color: var(--tw-slate-300); margin-top: 0.15rem; }
+      .vs { color: var(--slate-500); font-weight: 700; }
       .timer {
         text-align: center;
         font-variant-numeric: tabular-nums;
@@ -63,16 +64,16 @@
         font-weight: 700;
         letter-spacing: 0.05em;
       }
-      .timer.running { color: #4ade80; }
-      .timer.warning { color: #f87171; }
+      .timer.running { color: var(--tw-green-400); }
+      .timer.warning { color: var(--tw-red-400); }
       .timer-controls { display: flex; justify-content: center; gap: 0.5rem; }
       button {
         font-family: inherit;
         border: none;
         border-radius: 0.6rem;
         cursor: pointer;
-        color: #f1f5f9;
-        background: #334155;
+        color: var(--slate-100);
+        background: var(--slate-700);
         padding: 0.5rem 1rem;
         font-size: 0.9rem;
       }
@@ -85,52 +86,52 @@
         gap: 0.5rem;
       }
       .score { font-size: 3rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
-      .score-sep { font-size: 2rem; color: #475569; text-align: center; }
-      .cap { text-align: center; font-size: 0.75rem; color: #64748b; }
+      .score-sep { font-size: 2rem; color: var(--slate-600); text-align: center; }
+      .cap { text-align: center; font-size: 0.75rem; color: var(--slate-500); }
       .zone-row { display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap; }
       .zone-btn { flex: 1; min-width: 4.5rem; padding: 1.2rem 0.5rem; font-size: 1.3rem; font-weight: 700; }
-      .zone-A { background: #1d4ed8; }
-      .zone-B { background: #7c3aed; }
-      .zone-C { background: #be185d; }
-      .touch-btn { flex: 1; padding: 1.4rem; font-size: 1.6rem; font-weight: 700; background: #1d4ed8; }
+      .zone-A { background: var(--tw-blue-700); }
+      .zone-B { background: var(--tw-violet-600); }
+      .zone-C { background: var(--tw-pink-700); }
+      .touch-btn { flex: 1; padding: 1.4rem; font-size: 1.6rem; font-weight: 700; background: var(--tw-blue-700); }
       .actions-row { display: flex; gap: 0.5rem; }
       .advance-btn {
         flex: 1;
         padding: 1rem;
         font-size: 1.1rem;
         font-weight: 700;
-        background: #16a34a;
+        background: var(--tw-green-600);
       }
-      .advance-btn.ready { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.4); }
-      .reset-btn { background: #7f1d1d; }
+      .advance-btn.ready { background: var(--green-500); box-shadow: 0 0 0 3px rgba(34,197,94,0.4); }
+      .reset-btn { background: var(--tw-red-900); }
       .cards-section {
-        border-top: 1px solid #334155;
+        border-top: 1px solid var(--slate-700);
         padding-top: 0.6rem;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 0.6rem;
       }
       .cards-team { text-align: center; }
-      .cards-label { font-size: 0.7rem; color: #94a3b8; margin-bottom: 0.3rem; }
+      .cards-label { font-size: 0.7rem; color: var(--slate-400); margin-bottom: 0.3rem; }
       .card-buttons { display: flex; gap: 0.3rem; justify-content: center; }
-      .card-btn { padding: 0.35rem 0.5rem; font-size: 1rem; background: #1e293b; border: 1px solid #334155; }
+      .card-btn { padding: 0.35rem 0.5rem; font-size: 1rem; background: var(--slate-800); border: 1px solid var(--slate-700); }
       .cards-log { margin-top: 0.3rem; font-size: 0.9rem; }
       .reason-select {
         width: 100%;
         margin-bottom: 0.3rem;
         padding: 0.35rem;
         border-radius: 0.4rem;
-        background: #1e293b;
-        color: #f1f5f9;
-        border: 1px solid #334155;
+        background: var(--slate-800);
+        color: var(--slate-100);
+        border: 1px solid var(--slate-700);
         font-size: 0.8rem;
       }
-      .relay-live { text-align: center; font-size: 0.85rem; color: #cbd5e1; }
+      .relay-live { text-align: center; font-size: 0.85rem; color: var(--tw-slate-300); }
       .match-complete {
         text-align: center;
         font-size: 1rem;
         font-weight: 700;
-        color: #4ade80;
+        color: var(--tw-green-400);
         padding: 1rem;
       }
     </style>

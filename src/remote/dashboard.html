@@ -9,6 +9,7 @@
     <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts.css" />
     <script src="/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/tokens.css" />
     <style>
       * {
         margin: 0;
@@ -18,7 +19,7 @@
 
       body {
         font-family: 'Inter', sans-serif;
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        background: linear-gradient(135deg, var(--c-1a1a2e) 0%, var(--c-16213e) 50%, var(--c-0f3460) 100%);
         min-height: 100vh;
         color: white;
       }
@@ -44,7 +45,7 @@
       .header-left h1 {
         font-size: 1.75rem;
         font-weight: 700;
-        background: linear-gradient(90deg, #fbbf24, #f59e0b);
+        background: linear-gradient(90deg, var(--tw-amber-400), var(--tw-amber-500));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -52,7 +53,7 @@
 
       .header-left .competition-name {
         font-size: 1rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
         margin-top: 0.25rem;
       }
 
@@ -62,12 +63,12 @@
 
       .last-update {
         font-size: 0.875rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
       }
 
       .last-update .time {
         font-weight: 600;
-        color: #10b981;
+        color: var(--tw-emerald-500);
       }
 
       .connection-status {
@@ -81,11 +82,11 @@
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: #ef4444;
+        background: var(--red-500);
       }
 
       .status-dot.connected {
-        background: #10b981;
+        background: var(--tw-emerald-500);
         animation: pulse-dot 2s infinite;
       }
 
@@ -111,7 +112,7 @@
         background: rgba(255, 255, 255, 0.1);
         border: none;
         border-radius: 0.5rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
@@ -123,7 +124,7 @@
       }
 
       .tab-btn.active {
-        background: #3b82f6;
+        background: var(--blue-500);
         color: white;
       }
 
@@ -167,11 +168,11 @@
         font-size: 0.75rem;
         padding: 0.25rem 0.75rem;
         border-radius: 1rem;
-        background: #10b981;
+        background: var(--tw-emerald-500);
       }
 
       .pool-status.in-progress {
-        background: #f59e0b;
+        background: var(--tw-amber-500);
         animation: pulse 1s infinite;
       }
 
@@ -199,7 +200,7 @@
       .pool-table th {
         font-size: 0.75rem;
         font-weight: 600;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
         text-transform: uppercase;
         background: rgba(0, 0, 0, 0.2);
       }
@@ -219,13 +220,13 @@
       }
 
       .rank-1 {
-        color: #fbbf24;
+        color: var(--tw-amber-400);
       }
       .rank-2 {
-        color: #9ca3af;
+        color: var(--tw-gray-400);
       }
       .rank-3 {
-        color: #b45309;
+        color: var(--tw-amber-700);
       }
 
       .fencer-name {
@@ -233,7 +234,7 @@
       }
 
       .club {
-        color: #9ca3af;
+        color: var(--tw-gray-400);
         font-size: 0.75rem;
       }
 
@@ -244,18 +245,18 @@
       .victories {
         text-align: center;
         font-weight: 600;
-        color: #10b981;
+        color: var(--tw-emerald-500);
       }
 
       .quest {
         text-align: center;
         font-weight: 700;
-        color: #fbbf24;
+        color: var(--tw-amber-400);
       }
 
       .ind {
         text-align: center;
-        color: #60a5fa;
+        color: var(--tw-blue-400);
       }
 
       /* Overall Ranking */
@@ -293,7 +294,7 @@
       .overall-table th {
         font-size: 0.75rem;
         font-weight: 600;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
         text-transform: uppercase;
         background: rgba(0, 0, 0, 0.2);
       }
@@ -331,7 +332,7 @@
         background: rgba(255, 255, 255, 0.05);
         border-radius: 1rem;
         padding: 1.25rem;
-        border: 2px solid #10b981;
+        border: 2px solid var(--tw-emerald-500);
       }
 
       .match-header {
@@ -343,7 +344,7 @@
 
       .match-number {
         font-size: 0.875rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
       }
 
       .match-pool {
@@ -351,7 +352,7 @@
         padding: 0.25rem 0.75rem;
         background: rgba(16, 185, 129, 0.2);
         border-radius: 1rem;
-        color: #10b981;
+        color: var(--tw-emerald-500);
       }
 
       .match-score {
@@ -372,11 +373,11 @@
 
       .match-fencer .club {
         font-size: 0.875rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
       }
 
       .match-fencer.winner .name {
-        color: #10b981;
+        color: var(--tw-emerald-500);
       }
 
       .score-display {
@@ -386,23 +387,23 @@
       }
 
       .score-a {
-        color: #ef4444;
+        color: var(--red-500);
       }
       .score-b {
-        color: #10b981;
+        color: var(--tw-emerald-500);
       }
 
       .vs {
         font-size: 1.5rem;
         font-weight: 700;
-        color: #6b7280;
+        color: var(--tw-gray-500);
       }
 
       /* No Data */
       .no-data {
         text-align: center;
         padding: 4rem 2rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
       }
 
       .no-data-icon {
@@ -413,7 +414,7 @@
       .no-data h3 {
         font-size: 1.5rem;
         margin-bottom: 0.5rem;
-        color: #d1d5db;
+        color: var(--tw-gray-300);
       }
 
       /* Responsive */
@@ -455,7 +456,7 @@
         background: rgba(0, 0, 0, 0.5);
         border-radius: 2rem;
         font-size: 0.75rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -565,7 +566,7 @@
             </thead>
             <tbody id="ranking-body">
               <tr>
-                <td colspan="5" style="text-align: center; color: #9ca3af; padding: 2rem">
+                <td colspan="5" style="text-align: center; color: var(--tw-gray-400); padding: 2rem">
                   <span data-i18n="dashboard.ranking_waiting">En attente des résultats...</span>
                 </td>
               </tr>
@@ -736,7 +737,7 @@
         const tbody = document.getElementById('ranking-body');
         if (!data.rankings || data.rankings.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="5" style="text-align: center; color: #9ca3af; padding: 2rem;">' + escHtml(tr('dashboard.ranking_waiting')) + '</td></tr>';
+            '<tr><td colspan="5" style="text-align: center; color: var(--tw-gray-400); padding: 2rem;">' + escHtml(tr('dashboard.ranking_waiting')) + '</td></tr>';
           return;
         }
 
