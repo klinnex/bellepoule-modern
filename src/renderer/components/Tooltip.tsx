@@ -4,7 +4,7 @@
  * Licensed under GPL-3.0
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 
 interface TooltipProps {
   content: string;
@@ -19,6 +19,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   position = 'top',
   delay = 300,
 }) => {
+  const tooltipId = useId();
   const [isVisible, setIsVisible] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -191,13 +192,17 @@ export const Tooltip: React.FC<TooltipProps> = ({
         onMouseLeave={hideTooltip}
         onFocus={showTooltip}
         onBlur={hideTooltip}
+        onKeyDown={e => e.key === 'Escape' && hideTooltip()}
+        aria-describedby={isVisible ? tooltipId : undefined}
         style={{ display: 'inline-block' }}
       >
         {children}
       </div>
       {isVisible && (
         <>
-          <div style={getTooltipStyle()}>{content}</div>
+          <div id={tooltipId} role="tooltip" style={getTooltipStyle()}>
+            {content}
+          </div>
           <div style={getArrowStyle()} />
         </>
       )}

@@ -1,0 +1,189 @@
+/* LiveDashboard : cartes poules, tableau, classement final (#1530) */
+.ld-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.ld-card--roomy {
+  padding: 2rem;
+}
+.ld-card--flush {
+  padding: 0;
+  overflow: hidden;
+}
+.ld-empty {
+  text-align: center;
+  color: var(--color-text-light);
+  padding: 1rem;
+}
+.ld-empty--roomy {
+  padding: 2rem;
+  font-size: 1.1rem;
+}
+.ld-empty--plain {
+  padding: 0;
+  font-size: 1.1rem;
+}
+
+/* Carte de poule */
+.ld-pool-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.ld-pool-title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1.25rem;
+}
+.ld-pool-badge {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.ld-pool-badge--done {
+  background: #d1fae5;
+  color: #065f46;
+}
+.ld-head-row {
+  border-bottom: 2px solid var(--color-border);
+}
+.ld-th {
+  text-align: center;
+  padding: 0.5rem;
+  color: var(--color-text-light);
+  font-size: 0.875rem;
+}
+.ld-th--left {
+  text-align: left;
+}
+.ld-th--quest {
+  color: #7c3aed;
+}
+.ld-row {
+  border-bottom: 1px solid var(--color-bg);
+}
+.ld-td {
+  padding: 0.5rem;
+}
+.ld-td--center {
+  text-align: center;
+  font-weight: 600;
+}
+.ld-td--rank {
+  font-weight: 700;
+  color: var(--color-text-light);
+}
+.ld-td--rank-top {
+  color: #f59e0b;
+}
+.ld-td--quest {
+  color: #7c3aed;
+}
+.ld-td--index {
+  font-family: monospace;
+  color: #059669;
+}
+.ld-td--index-neg {
+  color: #dc2626;
+}
+.ld-name {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+/* Tableau */
+.ld-rounds {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+}
+.ld-round {
+  min-width: 250px;
+}
+.ld-round-title {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.ld-match {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+}
+.ld-match--done {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+.ld-match-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ld-match-line--first {
+  margin-bottom: 0.5rem;
+}
+.ld-score {
+  font-weight: 700;
+  color: #1f2937;
+}
+.ld-score--win {
+  color: #16a34a;
+}
+
+/* Classement final */
+.ld-final-head {
+  background: var(--color-bg);
+}
+.ld-final-th {
+  padding: 1rem;
+  text-align: center;
+  color: var(--color-text);
+  font-weight: 600;
+}
+.ld-final-row {
+  border-bottom: 1px solid var(--color-border);
+}
+.ld-final-td {
+  padding: 1rem;
+  color: var(--color-text-light);
+}
+.ld-final-td--center {
+  text-align: center;
+}
+.ld-final-td--name {
+  font-weight: 500;
+  color: var(--color-text);
+}
+.ld-medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: var(--color-text-light);
+  font-weight: 700;
+}
+.ld-medal--1 {
+  background: #fbbf24;
+  color: white;
+}
+.ld-medal--2 {
+  background: #9ca3af;
+  color: white;
+}
+.ld-medal--3 {
+  background: #f59e0b;
+  color: white;
+}

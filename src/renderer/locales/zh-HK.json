@@ -285,6 +285,10 @@
     "language": "語言",
     "theme": "主題",
     "text_size": "文字大小",
+    "density": "密度",
+    "density_comfortable": "寬鬆",
+    "density_standard": "標準",
+    "density_compact": "緊湊",
     "pool_rounds": "分組賽輪次",
     "has_direct_elimination": "直接淘汰賽",
     "default_pool_max_score": "分組賽最高分數",
@@ -391,6 +395,7 @@
     "backup_invalid": "檔案無效：需要 BellePoule 設定匯出檔。"
   },
   "actions": {
+    "undo": "復原",
     "add": "新增",
     "edit": "編輯",
     "delete": "刪除",
@@ -1400,6 +1405,8 @@
     "never_met": "這兩名劍手在本賽事中從未對賽。"
   },
   "fencerList": {
+    "undo": "復原",
+    "status_changed": "{{name}}：狀態已更改",
     "col_nationality": "國籍",
     "import_menu": "📥 匯入 ▾",
     "import_xml_bp": "匯入 XML（BellePoule）",

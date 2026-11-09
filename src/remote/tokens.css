@@ -1,0 +1,62 @@
+/* ============================================================
+   TOKENS PARTAGÉS — pages distantes (#1538)
+   Source unique des couleurs, rayons, ombres et typographie des pages servies
+   aux tablettes / écrans. Valeurs alignées sur src/renderer/styles/design.css.
+   Servi en /tokens.css ; les feuilles et pages distantes consomment var(--…)
+   et n'écrivent plus de couleur hexadécimale en dur.
+   ============================================================ */
+
+:root {
+  --color-bg: #f5f4f0;
+  --color-surface: #ffffff;
+  --color-surface-2: #fafaf8;
+  --color-border: #e8e4dc;
+  --color-border-dark: #cfc9bc;
+
+  --color-text: #1a1916;
+  --color-text-light: #7c7163;
+  --color-text-muted: #a89f91;
+
+  --color-primary: #3b5bdb;
+  --color-primary-dark: #2f4ac4;
+  --color-primary-light: #6b84e8;
+  --color-primary-glow: rgba(59, 91, 219, 0.18);
+  --color-on-primary: #ffffff;
+
+  --color-success: #0d9488;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-info-bg: #dbeafe;
+  --color-info-text: #1e40af;
+  --color-danger-bg: #fee2e2;
+  --color-danger-text: #991b1b;
+
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 3px rgba(26, 25, 22, 0.06), 0 1px 2px rgba(26, 25, 22, 0.04);
+  --shadow: 0 2px 8px rgba(26, 25, 22, 0.08), 0 1px 3px rgba(26, 25, 22, 0.06);
+  --shadow-lg: 0 12px 40px rgba(26, 25, 22, 0.14), 0 4px 12px rgba(26, 25, 22, 0.08);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.theme-dark {
+  --color-bg: #111110;
+  --color-surface: #1c1b19;
+  --color-surface-2: #242320;
+  --color-border: #2e2c27;
+  --color-border-dark: #3d3b34;
+  --color-text: #f5f3ef;
+  --color-text-light: #a39e93;
+  --color-text-muted: #6e6860;
+  --color-primary-glow: rgba(59, 91, 219, 0.25);
+  --color-info-bg: #1e3a8a;
+  --color-info-text: #dbeafe;
+  --color-danger-bg: #7f1d1d;
+  --color-danger-text: #fee2e2;
+}

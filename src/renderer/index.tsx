@@ -8,6 +8,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { applyUiScale, loadUiScale } from './services/uiScale';
+import { applyUiDensity, loadUiDensity } from './services/uiDensity';
 import './styles/main.css';
 import './styles/formula.css';
 import './styles/design.css';
@@ -22,6 +23,7 @@ import './styles/remote-mode.css';
 import './styles/book.css';
 import './styles/utilities.css';
 import './styles/components.css';
+import './styles/dashboard.css';
 import './styles/extracted.css';
 import './styles/extracted-2.css';
 import { logger, LogCategory, toError } from '../shared/services/logger';
@@ -39,6 +41,7 @@ window.addEventListener('error', event => {
 
 // Taille du texte choisie dans les paramètres (#1156), avant le premier rendu
 applyUiScale(loadUiScale());
+applyUiDensity(loadUiDensity());
 
 const container = document.getElementById('root');
 if (container) {

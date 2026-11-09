@@ -97,18 +97,18 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | Feature `rapieres` (`src/features/rapieres/`) | 7 | 49 |
 | Feature `teams` (`src/features/teams/`) | 7 | 53 |
 | `src/database/` | 6 | 138 |
-| `src/main/` | 53 | 424 |
-| `src/renderer/services/` | 7 | 48 |
+| `src/main/` | 53 | 425 |
+| `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 65 | 333 |
+| `src/renderer/components/` | 67 | 338 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 39 | 264 |
 | `src/renderer/contexts/` | 1 | 4 |
-| `src/renderer/styles/` | 2 | 3 |
+| `src/renderer/styles/` | 3 | 6 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **298** | **2402** |
+| **Total** | **302** | **2414** |
 
-Unitaires : 289 fichiers, 2367 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 293 fichiers, 2379 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -2695,13 +2695,14 @@ Unitaires : 289 fichiers, 2367 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/main/remote/i18nBundle.test.ts</code> — 5 tests</summary>
+<summary><code>src/main/remote/i18nBundle.test.ts</code> — 6 tests</summary>
 
 - **i18n des pages distantes découpé par langue (#1213)**
   - /i18n.js = langues puis moteur ; T() traduit dans la langue configurée
   - chaque langue a les mêmes clés que le français
   - modules js/ extraits des pages servis en /js/\<nom\>.js (#1401)
   - src/remote/js/kioskEta.js est bien servi
+  - tokens.css servi et styles.css sans couleur hexadécimale en dur (#1538)
   - fichiers communs : absents ignorés, i18n.js concaténé
 
 </details>
@@ -3202,6 +3203,16 @@ Unitaires : 289 fichiers, 2367 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - /phase, /open, /theme, /lang
   - commande inconnue → erreur
   - une exception devient un message d’erreur
+
+</details>
+
+<details>
+<summary><code>src/renderer/services/uiDensity.test.ts</code> — 3 tests</summary>
+
+- **densité d’affichage (#1541)**
+  - valeurs admises uniquement, standard par défaut
+  - enregistrement : attribut appliqué et relu au démarrage
+  - tokens.css : variables de densité compacte et confortable
 
 </details>
 
@@ -3739,13 +3750,14 @@ Unitaires : 289 fichiers, 2367 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/FencerList.test.tsx</code> — 4 tests</summary>
+<summary><code>src/renderer/components/FencerList.test.tsx</code> — 5 tests</summary>
 
 - **FencerList**
   - affiche les tireurs
   - filtre via la recherche (debounce)
   - colonne nationalité masquée par défaut, affichable avec drapeau
   - le bouton ajouter déclenche onAddFencer
+  - abandon : sans modale, toast Annuler qui restaure le statut
 
 </details>
 
@@ -3916,7 +3928,7 @@ Unitaires : 289 fichiers, 2367 tests. E2E : 9 fichiers, 35 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/renderer/components/Toast.test.tsx</code> — 7 tests</summary>
+<summary><code>src/renderer/components/Toast.test.tsx</code> — 8 tests</summary>
 
 - **ToastProvider / useToast**
   - rend les enfants
@@ -3927,6 +3939,16 @@ Unitaires : 289 fichiers, 2367 tests. E2E : 9 fichiers, 35 tests (comptage stati
   - empile plusieurs toasts
 - **useToast hors provider**
   - fournit un showToast no-op sans planter
+- **Toast d’annulation (#1535)**
+  - le bouton Annuler appelle le callback et ferme le toast
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/Tooltip.test.tsx</code> — 1 test</summary>
+
+- **Tooltip**
+  - apparaît au focus clavier avec role=tooltip et aria-describedby, se ferme avec Échap
 
 </details>
 
@@ -4013,6 +4035,15 @@ Unitaires : 289 fichiers, 2367 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **CollapseToggle**
   - compacte puis déplie le contenu
   - mémorise l'état entre deux montages
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/common/EmptyState.test.tsx</code> — 2 tests</summary>
+
+- **EmptyState**
+  - rend titre, description et déclenche l’action principale
+  - sans action : aucun bouton
 
 </details>
 
@@ -5062,6 +5093,16 @@ Unitaires : 289 fichiers, 2367 tests. E2E : 9 fichiers, 35 tests (comptage stati
 - **main.css / design.css**
   - index.tsx importe design.css après main.css
   - aucune déclaration de main.css écrasée par design.css
+
+</details>
+
+<details>
+<summary><code>src/renderer/styles/tokens.test.ts</code> — 3 tests</summary>
+
+- **tokens.css : mouvement et surfaces (#1531)**
+  - définit les tokens de mouvement
+  - surface translucide uniquement sous @supports backdrop-filter, repli opaque par défaut
+  - design.css neutralise les animations via prefers-reduced-motion
 
 </details>
 
