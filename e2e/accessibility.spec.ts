@@ -74,6 +74,23 @@ test.describe('Accessibility', () => {
     });
   }
 
+  // Modale « nouvelle compétition » : contraste AA en clair et sombre (#1531)
+  for (const scheme of ['light', 'dark'] as const) {
+    test(`should pass axe color-contrast on modal (${scheme})`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      await page.goto('/');
+      const create = page.locator('button.btn-primary.btn-icon-label').first();
+      test.skip(!(await create.isVisible().catch(() => false)), 'bouton absent');
+      await create.click();
+      await page.waitForSelector('[role="dialog"], .modal', { timeout: 5000 });
+      const results = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa'])
+        .withRules(['color-contrast'])
+        .analyze();
+      expect(results.violations.map(v => `${v.id}: ${v.nodes.length}`)).toEqual([]);
+    });
+  }
+
   test('should have no critical axe violations', async ({ page }) => {
     await page.goto('/');
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();

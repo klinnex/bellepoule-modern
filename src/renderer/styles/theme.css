@@ -22,7 +22,7 @@
 
   /* Teintes douces (badges, encadrés) : fond + texte lisible */
   --success-soft: rgba(13, 148, 136, 0.12);
-  --success-on-soft: #0f766e;
+  --success-on-soft: #115e59;
   --warning-soft: rgba(217, 119, 6, 0.12);
   --warning-on-soft: #92400e;
   --danger-soft: rgba(220, 38, 38, 0.1);
