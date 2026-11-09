@@ -67,6 +67,40 @@
   --brand-navy-700: #2a5298;
   --gradient-brand: linear-gradient(135deg, var(--brand-navy-900) 0%, var(--brand-navy-700) 100%);
 
+  /* Couleurs ajoutées par la migration des pages (#1538) */
+  --c-ff4444: #ff4444;
+  --c-ffaa00: #ffaa00;
+  --tw-green-400: #4ade80;
+  --tw-amber-400: #fbbf24;
+  --c-111111: #111111;
+  --tw-amber-500: #f59e0b;
+  --tw-blue-300: #93c5fd;
+  --c-111c33: #111c33;
+  --c-23304d: #23304d;
+  --tw-slate-200: #e2e8f0;
+  --tw-green-300: #86efac;
+  --tw-red-400: #f87171;
+  --c-16213e: #16213e;
+  --c-1a1a2e: #1a1a2e;
+  --c-c9a227: #c9a227;
+  --tw-red-950: #450a0a;
+  --c-1e3a5f: #1e3a5f;
+  --tw-amber-300: #fcd34d;
+  --tw-amber-950: #451a03;
+  --tw-blue-400: #60a5fa;
+  --tw-gray-500: #6b7280;
+  --tw-violet-300: #c4b5fd;
+  --tw-violet-900: #4c1d95;
+  --c-0f1117: #0f1117;
+  --c-1a1d27: #1a1d27;
+  --c-232636: #232636;
+  --c-4f8ef7: #4f8ef7;
+  --c-6fa3ff: #6fa3ff;
+  --c-7a7f99: #7a7f99;
+  --c-888888: #888888;
+  --c-aac4ff: #aac4ff;
+  --c-e8eaf0: #e8eaf0;
+
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 

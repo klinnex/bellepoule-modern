@@ -8,17 +8,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-i18n="overlay.config_page_title">Configurateur Overlay – BellePoule</title>
+  <link rel="stylesheet" href="/tokens.css" />
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #232636;
+      --bg: var(--c-0f1117);
+      --surface: var(--c-1a1d27);
+      --surface2: var(--c-232636);
       --border: rgba(255,255,255,0.08);
-      --accent: #4f8ef7;
-      --accent-hover: #6fa3ff;
-      --text: #e8eaf0;
-      --text-muted: #7a7f99;
-      --success: #22c55e;
+      --accent: var(--c-4f8ef7);
+      --accent-hover: var(--c-6fa3ff);
+      --text: var(--c-e8eaf0);
+      --text-muted: var(--c-7a7f99);
+      --success: var(--green-500);
       --radius: 10px;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -109,7 +110,7 @@
       user-select: none;
     }
     .chip input { display: none; }
-    .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .chip.active { background: var(--accent); border-color: var(--accent); color: var(--color-surface); }
 
     /* URL output */
     .url-box {
@@ -138,7 +139,7 @@
       transition: background 0.15s, transform 0.1s;
     }
     .btn:active { transform: scale(0.97); }
-    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary { background: var(--accent); color: var(--color-surface); }
     .btn-primary:hover { background: var(--accent-hover); }
     .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
@@ -179,19 +180,19 @@
       border-radius: 8px;
       overflow: hidden;
       border: 1px solid var(--border);
-      background-color: #888;
+      background-color: var(--c-888888);
       background-image:
-        linear-gradient(45deg, #555 25%, transparent 25%),
-        linear-gradient(-45deg, #555 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #555 75%),
-        linear-gradient(-45deg, transparent 75%, #555 75%);
+        linear-gradient(45deg, var(--gray-700) 25%, transparent 25%),
+        linear-gradient(-45deg, var(--gray-700) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, var(--gray-700) 75%),
+        linear-gradient(-45deg, transparent 75%, var(--gray-700) 75%);
       background-size: 16px 16px;
       background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
       /* La taille est gérée en JS via style.width/height — pas de max-width CSS */
     }
     .checkerboard.opaque-bg {
       background-image: none;
-      background-color: #111;
+      background-color: var(--c-111111);
     }
 
     iframe#preview {
@@ -219,7 +220,7 @@
       cursor: pointer;
       transition: all 0.15s;
     }
-    .arena-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .arena-pill.active { background: var(--accent); border-color: var(--accent); color: var(--color-surface); }
 
     /* Séparateur OBS */
     .obs-hint {
@@ -232,7 +233,7 @@
       padding: 10px 12px;
       font-size: 12px;
       line-height: 1.5;
-      color: #aac4ff;
+      color: var(--c-aac4ff);
     }
     .obs-hint .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
   </style>

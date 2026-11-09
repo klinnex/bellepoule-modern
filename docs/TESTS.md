@@ -20,7 +20,7 @@ Nix de `flake.nix`. Ce n'est pas une dépendance des builds par plateforme.
 | Doc des tests | `npm run check:tests-doc` | `docs/TESTS.md` pas à jour vs fichiers de test |
 | Doc i18n | `npm run check:i18n-doc` | `docs/I18N.md` pas à jour, ou clé `data-i18n` d'une page distante absente de `src/remote/i18n.js` |
 | Doc Socket.IO | `npm run check:socket-doc` | `docs/SOCKET_EVENTS.md` pas à jour, ou événement émis par une page sans écouteur serveur |
-| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
+| Cliquet qualité | `npm run check:quality` | hausse du nombre de textes JSX en dur, `any`, `console.*`, `style={{…}}` (#1157), `fontSize` en px (#1156), locale `'fr'` en dur (#1160), messages d'erreur serveur en clair (#1159), ou couleur hexadécimale en dur dans les pages distantes `src/remote` (hors `tokens.css`, #1538), ou fichier source > 1500 lignes (exceptions plafonnées, #1155) vs `scripts/quality-baseline.json` (`--update` pour verrouiller une baisse) |
 | Build Nix | `nix build .#default` (job `nix-build`) | le paquet `flake.nix` ne build pas : `npmDepsHash` périmé vs `package-lock.json`, dépendance native cassée, etc. |
 | Tests unitaires | `npm run test:run` | un test Vitest échoue |
 | Budget bundle | `npm run build:renderer` + `node scripts/check-bundle-size.js` | JS renderer : initial > 2.75 MiB, un chunk à la demande > 1 MiB, total > 6 MiB, ou aucun chunk à la demande (`scripts/check-bundle-size.js`) |
