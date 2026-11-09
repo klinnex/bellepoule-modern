@@ -42,3 +42,9 @@
     animation-duration: 2s;
   }
 }
+
+/* Icônes lucide (composant Icon) */
+.ui-icon {
+  vertical-align: middle;
+  flex-shrink: 0;
+}

@@ -101,15 +101,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 71 | 357 |
+| `src/renderer/components/` | 72 | 359 |
 | E2E Playwright (`e2e/`) | 9 | 36 |
-| `src/remote/` | 40 | 269 |
+| `src/remote/` | 41 | 270 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 12 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **308** | **2445** |
+| **Total** | **310** | **2448** |
 
-Unitaires : 299 fichiers, 2409 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 301 fichiers, 2412 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4047,6 +4047,15 @@ Unitaires : 299 fichiers, 2409 tests. E2E : 9 fichiers, 36 tests (comptage stati
 </details>
 
 <details>
+<summary><code>src/renderer/components/common/Icon.test.tsx</code> — 2 tests</summary>
+
+- **Icon**
+  - est masquée aux lecteurs d’écran par défaut
+  - expose un nom accessible avec label
+
+</details>
+
+<details>
 <summary><code>src/renderer/components/common/SpecialStatusPanel.test.tsx</code> — 4 tests</summary>
 
 - **SpecialStatusPanel**
@@ -4565,6 +4574,14 @@ Unitaires : 299 fichiers, 2409 tests. E2E : 9 fichiers, 36 tests (comptage stati
 </details>
 
 ### `src/remote/`
+
+<details>
+<summary><code>src/remote/a11yPages.test.ts</code> — 1 test</summary>
+
+- **axe sur les pages distantes (#1537)**
+  - ${page}.html : aucune violation
+
+</details>
 
 <details>
 <summary><code>src/remote/arenaSlotClient.test.ts</code> — 3 tests</summary>

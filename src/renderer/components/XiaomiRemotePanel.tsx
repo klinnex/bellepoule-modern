@@ -4,6 +4,8 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Lightbulb, Lock, Monitor, Pencil, Tv } from 'lucide-react';
+import { Icon } from './common/Icon';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useTranslation } from '../hooks/useTranslation';
 import type { ConnectedClient, TVCommand, KioskScreenConfig } from '@shared/types/preload';
@@ -44,9 +46,9 @@ function buildAssignRoles(
   t: (key: string, params?: { [key: string]: string | number }) => string
 ): { value: AssignRole; label: string }[] {
   return [
-    { value: 'affichage', label: `📺 ${t('remote_score.screen_type_display')}` },
-    { value: 'arbitre', label: `🤺 ${t('referee.arbitre')}` },
-    { value: 'kiosk', label: `🖥️ ${t('xiaomi.client_type_kiosk')}` },
+    { value: 'affichage', label: t('remote_score.screen_type_display') },
+    { value: 'arbitre', label: t('referee.arbitre') },
+    { value: 'kiosk', label: t('xiaomi.client_type_kiosk') },
   ];
 }
 
@@ -288,7 +290,9 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
       <div ref={modalRef} className="is-bd5ac6">
         {/* Header */}
         <div className="is-3e5b11">
-          <span className="is-199b90">📺</span>
+          <span className="is-199b90">
+            <Icon icon={Tv} size={20} />
+          </span>
           <span className="is-683bfc">{t('xiaomi.title')}</span>
           <button
             className={`btn ${locked ? 'btn-primary' : 'btn-secondary'} is-c90036`}
@@ -319,7 +323,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
 
         {/* Lobby URL hint */}
         <div className="is-b37067">
-          <span>💡</span>
+          <Icon icon={Lightbulb} />
           <span>
             {t('xiaomi.url_no_arena')} <strong>{base}/lobby</strong> {t('xiaomi.screens_waiting')}
           </span>
@@ -328,7 +332,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
         {/* Bandeau verrou */}
         {locked && (
           <div className="is-3f0040">
-            <span>🔒</span>
+            <Icon icon={Lock} />
             <span>{t('xiaomi.locked')}</span>
           </div>
         )}
@@ -473,7 +477,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                     }}
                     title={t('xiaomi.rename')}
                   >
-                    ✏️
+                    <Icon icon={Pencil} />
                   </button>
 
                   {/* Mode kiosk */}
@@ -485,7 +489,7 @@ const XiaomiRemotePanelComponent: React.FC<XiaomiRemotePanelProps> = ({
                     }}
                     title={t('ui.configure_send_kiosk')}
                   >
-                    🖥️
+                    <Icon icon={Monitor} />
                   </button>
 
                   {/* Rafraîchir */}
