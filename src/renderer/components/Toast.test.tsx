@@ -90,3 +90,23 @@ describe('useToast hors provider', () => {
     expect(() => fireEvent.click(screen.getByText('out'))).not.toThrow();
   });
 });
+
+describe('Toast d’annulation (#1535)', () => {
+  it('le bouton Annuler appelle le callback et ferme le toast', () => {
+    const onUndo = vi.fn();
+    const U: React.FC = () => {
+      const { showUndoToast } = useToast();
+      return <button onClick={() => showUndoToast('Supprimé', onUndo)}>undo-go</button>;
+    };
+    renderWithProvider(<U />);
+    act(() => {
+      fireEvent.click(screen.getByText('undo-go'));
+    });
+    const btn = screen.getByRole('alert').querySelectorAll('button')[0];
+    act(() => {
+      fireEvent.click(btn);
+    });
+    expect(onUndo).toHaveBeenCalledOnce();
+    expect(screen.queryByText('Supprimé')).toBeNull();
+  });
+});
