@@ -88,11 +88,17 @@
 :root[data-density='comfortable'] {
   --density-cell-y: 0.875rem;
   --density-cell-x: 1.125rem;
+  --density-bar-y: 0.875rem;
+  --density-step-y: 0.5rem;
+  --density-bar-h: 44px;
 }
 
 :root[data-density='compact'] {
   --density-cell-y: 0.3125rem;
   --density-cell-x: 0.625rem;
+  --density-bar-y: 0.375rem;
+  --density-step-y: 0.25rem;
+  --density-bar-h: 28px;
 }
 
 /* Les tailles en rem suivent le réglage ; les tailles en px restent fixes (à migrer) */
