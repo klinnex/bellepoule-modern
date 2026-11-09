@@ -84,7 +84,7 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 
 | Domaine | Fichiers | Tests |
 |---|---:|---:|
-| `src/shared/utils/` | 49 | 659 |
+| `src/shared/utils/` | 49 | 660 |
 | `src/shared/services/` | 8 | 92 |
 | Feature `analytics` (`src/features/analytics/`) | 2 | 12 |
 | Feature `bracket` (`src/features/bracket/`) | 2 | 26 |
@@ -107,9 +107,9 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 12 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **310** | **2447** |
+| **Total** | **310** | **2448** |
 
-Unitaires : 301 fichiers, 2411 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 301 fichiers, 2412 tests. E2E : 9 fichiers, 36 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -953,11 +953,12 @@ Unitaires : 301 fichiers, 2411 tests. E2E : 9 fichiers, 36 tests (comptage stati
 </details>
 
 <details>
-<summary><code>src/shared/utils/pseudoLocale.test.ts</code> — 5 tests</summary>
+<summary><code>src/shared/utils/pseudoLocale.test.ts</code> — 6 tests</summary>
 
 - **pseudoLocalize**
   - accentue les lettres et encadre la chaîne
   - préserve les paramètres {{nom}}
+  - allonge la chaîne d'environ 40 %
   - laisse intacts chiffres, accents et symboles
 - **isPseudoLocaleEnabled**
   - vrai uniquement si le drapeau vaut "1"
