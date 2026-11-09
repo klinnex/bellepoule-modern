@@ -2196,7 +2196,9 @@
     "status_draft": "Черновик",
     "status_in_progress": "Идёт",
     "status_completed": "Завершено",
-    "status_cancelled": "Отменено"
+    "status_cancelled": "Отменено",
+    "recent_title": "Недавние",
+    "pin": "Закрепить / открепить"
   },
   "trainingLauncher": {
     "title": "Режим тренировки",

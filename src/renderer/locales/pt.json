@@ -2196,7 +2196,9 @@
     "status_draft": "Rascunho",
     "status_in_progress": "Em curso",
     "status_completed": "Concluída",
-    "status_cancelled": "Cancelada"
+    "status_cancelled": "Cancelada",
+    "recent_title": "Recentes",
+    "pin": "Fixar / desafixar"
   },
   "trainingLauncher": {
     "title": "Modo de treino",

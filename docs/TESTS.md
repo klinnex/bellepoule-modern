@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 424 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 74 | 370 |
+| `src/renderer/components/` | 75 | 376 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
 | `src/remote/` | 42 | 277 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **315** | **2474** |
+| **Total** | **316** | **2480** |
 
-Unitaires : 305 fichiers, 2435 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 306 fichiers, 2441 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -3655,7 +3655,7 @@ Unitaires : 305 fichiers, 2435 tests. E2E : 10 fichiers, 39 tests (comptage stat
 </details>
 
 <details>
-<summary><code>src/renderer/components/CompetitionList.test.tsx</code> — 5 tests</summary>
+<summary><code>src/renderer/components/CompetitionList.test.tsx</code> — 7 tests</summary>
 
 - **CompetitionList (accueil vide)**
   - propose de créer une compétition avec le parcours guidé
@@ -3665,6 +3665,9 @@ Unitaires : 305 fichiers, 2435 tests. E2E : 10 fichiers, 39 tests (comptage stat
 - **CompetitionList (filtres et tri #1534)**
   - filtre par arme avec une puce, puis réinitialise
   - trie par nom et mémorise la préférence
+- **CompetitionList (récentes #1534)**
+  - affiche la section après une ouverture, et mémorise l’identifiant
+  - épingler une carte la place dans la section
 
 </details>
 
@@ -4132,6 +4135,17 @@ Unitaires : 305 fichiers, 2435 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - liste les valeurs présentes
   - trie par date et par nom sans muter la liste
   - mémorise le tri
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/competitionListRecent.test.ts</code> — 4 tests</summary>
+
+- **competitionListRecent**
+  - mémorise les ouvertures sans doublon, la plus récente en tête
+  - épingle puis désépingle
+  - épinglées d’abord, identifiants disparus ignorés, 5 au plus
+  - tolère un stockage corrompu
 
 </details>
 

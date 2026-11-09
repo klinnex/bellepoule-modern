@@ -2196,7 +2196,9 @@
     "status_draft": "草稿",
     "status_in_progress": "進行中",
     "status_completed": "已完成",
-    "status_cancelled": "已取消"
+    "status_cancelled": "已取消",
+    "recent_title": "最近開啟",
+    "pin": "釘選 / 取消釘選"
   },
   "trainingLauncher": {
     "title": "訓練模式",
