@@ -10,6 +10,7 @@ import { BASE_MATCH_HEIGHT } from './tableauCalculations';
 import MatchCard from './MatchCard';
 import { CollapseToggle } from '../common/CollapseToggle';
 import { translateStatic } from '../../contexts/TranslationContext';
+import { Button } from '../common/Button';
 
 interface ConsolationBracketsSectionProps {
   consolationBrackets: ConsolationBracket[];
@@ -118,16 +119,16 @@ const ConsolationBracketsSection: React.FC<ConsolationBracketsSectionProps> = ({
     <div style={CONS_STYLES.consolationSection}>
       {consolationBrackets.length > 1 && (
         <div style={CONS_STYLES.consolationToolbar}>
-          <button
+          <Button
             type="button"
-            className="btn btn-secondary"
+
             style={{ fontSize: '0.75rem' }}
             onClick={toggleAll}
           >
             {allCollapsed
               ? translateStatic('tableauView.expand_all')
               : translateStatic('tableauView.collapse_all')}
-          </button>
+          </Button>
         </div>
       )}
       {[...consolationBrackets]

@@ -14,6 +14,7 @@ import {
   saveCustomFormulaTemplate,
 } from '../../../shared/utils/tournamentTemplates';
 import { getActiveLocale } from '../../../shared/utils/localeFormat';
+import { Button } from '../common/Button';
 
 interface Props {
   mode: 'save' | 'load';
@@ -90,13 +91,9 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
           <h2 className="modal-title">
             {mode === 'save' ? t('formulaTemplate.save_title') : t('formulaTemplate.load_title')}
           </h2>
-          <button
-            className="btn btn-icon btn-secondary"
-            onClick={onClose}
-            aria-label={t('actions.close')}
-          >
+          <Button className="btn-icon" onClick={onClose} aria-label={t('actions.close')}>
             ✕
-          </button>
+          </Button>
         </div>
 
         <div className="modal-body">
@@ -113,9 +110,9 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
                   onKeyDown={e => e.key === 'Enter' && handleSave()}
                   autoFocus
                 />
-                <button type="button" className="btn btn-primary" onClick={handleSave}>
+                <Button type="button" variant="primary" onClick={handleSave}>
                   {t('formulaTemplate.save')}
-                </button>
+                </Button>
               </div>
               {error && <p className="form-error">{error}</p>}
             </div>
@@ -138,32 +135,34 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
                   </div>
                   <div className="template-entry-actions">
                     {mode === 'load' && (
-                      <button
+                      <Button
                         type="button"
-                        className="btn btn-primary btn-sm"
+                        variant="primary"
+                        size="sm"
                         onClick={() => {
                           onLoad(entry.formula);
                           onClose();
                         }}
                       >
                         {t('formulaTemplate.load')}
-                      </button>
+                      </Button>
                     )}
-                    <button
+                    <Button
                       type="button"
-                      className="btn btn-secondary btn-sm"
+                      size="sm"
                       onClick={() => handleExport(entry.formula, entry.name)}
                     >
                       {t('formulaTemplate.export_json')}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       aria-label={t('actions.delete')}
                       type="button"
-                      className="btn btn-danger btn-sm"
+                      variant="danger"
+                      size="sm"
                       onClick={() => handleDelete(entry.name)}
                     >
                       ✕
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))
@@ -179,13 +178,13 @@ const FormulaTemplateModal_: React.FC<Props> = ({ mode, currentFormula, onLoad, 
                 className="hidden"
                 onChange={handleImportFile}
               />
-              <button
+              <Button
                 type="button"
-                className="btn btn-secondary"
+
                 onClick={() => fileRef.current?.click()}
               >
                 {t('formulaTemplate.import_json')}
-              </button>
+              </Button>
               {error && <p className="form-error">{error}</p>}
             </div>
           )}

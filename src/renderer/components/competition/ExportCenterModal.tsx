@@ -12,6 +12,7 @@ import { Fencer, Pool, PoolRanking } from '../../../shared/types';
 import { FinalResult } from '../tableau/tableauTypes';
 import type { XmlExportTarget } from '../../hooks/useExport';
 import FtpPublishForm from './FtpPublishForm';
+import { Button } from '../common/Button';
 
 interface ExportCenterModalProps {
   fencers: Fencer[];
@@ -94,108 +95,68 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
       scroll
       footer={
         <>
-          <button type="button" className="btn btn-primary" onClick={onClose}>
+          <Button type="button" variant="primary" onClick={onClose}>
             {t('actions.close')}
-          </button>
+          </Button>
         </>
       }
     >
       {onExportCompetition && (
         <Section title={t('competition.export_section')}>
-          <button className="btn btn-secondary" onClick={onExportCompetition}>
-            {t('competition.save_progress_bpm')}
-          </button>
+          <Button onClick={onExportCompetition}>{t('competition.save_progress_bpm')}</Button>
         </Section>
       )}
 
       {fencers.length > 0 && (
         <Section title={t('exportCenter.fencers')}>
-          <button className="btn btn-secondary" onClick={() => exportFencersList(fencers, 'txt')}>
+          <Button onClick={() => exportFencersList(fencers, 'txt')}>
             {t('exportCenter.list_txt')}
-          </button>
-          <button className="btn btn-secondary" onClick={() => exportFencersList(fencers, 'fff')}>
+          </Button>
+          <Button onClick={() => exportFencersList(fencers, 'fff')}>
             {t('exportCenter.list_fff')}
-          </button>
+          </Button>
         </Section>
       )}
 
       {pools.length > 0 && (
         <Section title={t('exportCenter.pools')}>
-          <button
-            className="btn btn-secondary"
-            onClick={() => exportPoolsPDF(pools, currentPoolRound)}
-          >
+          <Button onClick={() => exportPoolsPDF(pools, currentPoolRound)}>
             {t('exportCenter.export_pdf')}
-          </button>
-          <button
-            className="btn btn-secondary"
-            onClick={() => printPoolsPDF(pools, currentPoolRound)}
-          >
+          </Button>
+          <Button onClick={() => printPoolsPDF(pools, currentPoolRound)}>
             {t('exportCenter.print')}
-          </button>
+          </Button>
         </Section>
       )}
 
       {tableauMatchesCount > 0 && (
         <Section title={t('exportCenter.tableau')}>
-          <button className="btn btn-secondary" onClick={onGoToTableau}>
-            {t('exportCenter.go_tableau')}
-          </button>
+          <Button onClick={onGoToTableau}>{t('exportCenter.go_tableau')}</Button>
         </Section>
       )}
 
       {overallRanking.length > 0 && (
         <Section title={t('exportCenter.ranking')}>
-          <button
-            className="btn btn-secondary"
-            onClick={() => exportRanking(overallRanking, 'csv', isLaserSabre)}
-          >
-            CSV
-          </button>
-          <button
-            className="btn btn-secondary"
-            onClick={() => exportRankingExcelCSV(overallRanking)}
-          >
+          <Button onClick={() => exportRanking(overallRanking, 'csv', isLaserSabre)}>CSV</Button>
+          <Button onClick={() => exportRankingExcelCSV(overallRanking)}>
             {t('exportCenter.csv_excel')}
-          </button>
-          <button
-            className="btn btn-secondary"
-            onClick={() => exportRanking(overallRanking, 'json', isLaserSabre)}
-          >
-            JSON
-          </button>
-          <button className="btn btn-secondary" onClick={onExportFFE}>
-            {t('exportCenter.send_ffe')}
-          </button>
+          </Button>
+          <Button onClick={() => exportRanking(overallRanking, 'json', isLaserSabre)}>JSON</Button>
+          <Button onClick={onExportFFE}>{t('exportCenter.send_ffe')}</Button>
         </Section>
       )}
 
       {finalResults.length > 0 && (
         <Section title={t('exportCenter.final_results')}>
-          <button className="btn btn-secondary" onClick={() => exportResults(finalResults, 'csv')}>
-            CSV
-          </button>
-          <button className="btn btn-secondary" onClick={() => exportResults(finalResults, 'json')}>
-            JSON
-          </button>
-          <button
-            className="btn btn-secondary"
-            onClick={() => exportResultsHTML(overallRanking, finalResults)}
-          >
-            HTML
-          </button>
-          <button
-            className="btn btn-secondary"
-            onClick={() => exportResultsXML(overallRanking, finalResults, pools)}
-          >
+          <Button onClick={() => exportResults(finalResults, 'csv')}>CSV</Button>
+          <Button onClick={() => exportResults(finalResults, 'json')}>JSON</Button>
+          <Button onClick={() => exportResultsHTML(overallRanking, finalResults)}>HTML</Button>
+          <Button onClick={() => exportResultsXML(overallRanking, finalResults, pools)}>
             XML FFE
-          </button>
-          <button
-            className="btn btn-secondary"
-            onClick={() => exportResultsXML(overallRanking, finalResults, pools, 'greg')}
-          >
+          </Button>
+          <Button onClick={() => exportResultsXML(overallRanking, finalResults, pools, 'greg')}>
             {t('exportCenter.publish_greg')}
-          </button>
+          </Button>
         </Section>
       )}
 
@@ -211,20 +172,15 @@ const ExportCenterModal: React.FC<ExportCenterModalProps> = ({
 
       {pools.length > 0 && overallRanking.length > 0 && (
         <Section title={t('exportCenter.stats')}>
-          <button
-            className="btn btn-secondary"
-            onClick={() => exportDetailedStats(pools, overallRanking)}
-          >
+          <Button onClick={() => exportDetailedStats(pools, overallRanking)}>
             {t('exportCenter.stats_csv')}
-          </button>
+          </Button>
         </Section>
       )}
 
       {finalResults.length > 0 && (
         <Section title={t('exportCenter.full')}>
-          <button className="btn btn-secondary" onClick={onGoToResults}>
-            {t('exportCenter.go_results')}
-          </button>
+          <Button onClick={onGoToResults}>{t('exportCenter.go_results')}</Button>
         </Section>
       )}
 

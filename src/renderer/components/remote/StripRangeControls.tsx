@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { MAX_STRIP } from '../../../shared/utils/stripRange';
 import { useTranslation } from '../../hooks/useTranslation';
+import { Button } from '../common/Button';
 
 interface StripRangeControlsProps {
   start: number;
@@ -45,16 +46,16 @@ const Stepper: React.FC<{
   return (
     <span style={STYLES.group}>
       <span>{label}</span>
-      <button
+      <Button
         type="button"
-        className="btn btn-secondary"
+
         style={STYLES.btn}
         aria-label={`${label} −`}
         disabled={disabled || value <= min}
         onClick={() => onChange(value - 1)}
       >
         −
-      </button>
+      </Button>
       <input
         type="text"
         inputMode="numeric"
@@ -68,16 +69,16 @@ const Stepper: React.FC<{
           if (e.key === 'Enter') commit();
         }}
       />
-      <button
+      <Button
         type="button"
-        className="btn btn-secondary"
+
         style={STYLES.btn}
         aria-label={`${label} +`}
         disabled={disabled || value >= max}
         onClick={() => onChange(value + 1)}
       >
         +
-      </button>
+      </Button>
     </span>
   );
 };
