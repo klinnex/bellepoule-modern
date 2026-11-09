@@ -5,9 +5,17 @@
 
 import type { Competition } from '../../shared/types';
 
+/** Diacritiques combinants (U+0300 à U+036F), ciblés par échappement pour rester lisibles */
+const COMBINING_MARKS = /[\u0300-\u036f]/g;
+
 /** Minuscules sans accents, espaces réduits : comparaison tolérante */
 export function normalizeSearchText(text: string): string {
-  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  return text
+    .normalize('NFD')
+    .replace(COMBINING_MARKS, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /** Compétitions dont le nom, le lieu ou la date contiennent toutes les parties de la requête */
