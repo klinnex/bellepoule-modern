@@ -1627,26 +1627,12 @@ select:focus {
 
 /* Arena / referee badges (top-right) */
 .match-badges {
-  /* Centré sur le séparateur entre les deux tireurs : ne recouvre jamais les scores (#1542) */
   position: absolute;
-  top: 50%;
+  top: 4px;
   right: 4px;
-  transform: translateY(-50%);
   display: flex;
   gap: 0.2rem;
   z-index: 1;
-  opacity: 0.55;
-  transition: opacity var(--duration-fast) ease;
-}
-
-.match-card:hover .match-badges,
-.match-card:focus-within .match-badges {
-  opacity: 1;
-}
-
-.match-card:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
 }
 
 .match-badge-btn {
