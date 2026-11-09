@@ -100,15 +100,15 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/main/` | 53 | 425 |
 | `src/renderer/services/` | 8 | 51 |
 | `src/renderer/hooks/` | 27 | 131 |
-| `src/renderer/components/` | 67 | 338 |
+| `src/renderer/components/` | 68 | 343 |
 | E2E Playwright (`e2e/`) | 9 | 35 |
 | `src/remote/` | 40 | 269 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 4 | 12 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **304** | **2425** |
+| **Total** | **305** | **2430** |
 
-Unitaires : 295 fichiers, 2390 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 296 fichiers, 2395 tests. E2E : 9 fichiers, 35 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4335,6 +4335,18 @@ Unitaires : 295 fichiers, 2390 tests. E2E : 9 fichiers, 35 tests (comptage stati
     - égalité : V manuel pour chaque tireur
     - V déjà actif : un second clic le retire
     - tirage au sort : le résultat désigne le vainqueur
+
+</details>
+
+<details>
+<summary><code>src/renderer/components/tableau/minimapGeometry.test.ts</code> — 5 tests</summary>
+
+- **minimapGeometry**
+  - entrées invalides : null
+  - rectangle visible à l'origine
+  - pan et zoom déplacent / réduisent le rectangle
+  - tout visible quand le bracket tient dans la vue
+  - clic minimap : centre la vue (aller-retour)
 
 </details>
 
