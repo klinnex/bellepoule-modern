@@ -135,7 +135,8 @@
     "state_done": "concluído",
     "state_current": "em curso",
     "state_todo": "por fazer",
-    "state_blocked": "bloqueado"
+    "state_blocked": "bloqueado",
+    "unavailable": "Secção indisponível"
   },
   "pools": {
     "generate": "Gerar poules",
@@ -580,7 +581,9 @@
     "next_phase": "Fase seguinte",
     "add_fencer": "Adicionar um esgrimista",
     "next_match": "Poules: introduzir o próximo combate",
-    "category_commands": "Comandos"
+    "category_commands": "Comandos",
+    "goto_phase": "Ir para a fase n",
+    "prev_phase": "Fase anterior"
   },
   "formula": {
     "builder_title": "Construtor de fórmulas",
@@ -2196,7 +2199,9 @@
     "status_draft": "Rascunho",
     "status_in_progress": "Em curso",
     "status_completed": "Concluída",
-    "status_cancelled": "Cancelada"
+    "status_cancelled": "Cancelada",
+    "recent_title": "Recentes",
+    "pin": "Fixar / desafixar"
   },
   "trainingLauncher": {
     "title": "Modo de treino",
