@@ -24,6 +24,8 @@ const SHORTCUTS: Shortcut[] = [
   { key: 'Tab', descriptionKey: 'shortcuts.nav_fields', category: 'navigation' },
   { key: '← ↑ → ↓', descriptionKey: 'shortcuts.nav_matrix', category: 'navigation' },
   { key: 'Enter / Space', descriptionKey: 'shortcuts.activate_card', category: 'navigation' },
+  { key: 'Ctrl + 1…8', descriptionKey: 'shortcuts.goto_phase', category: 'navigation' },
+  { key: 'Ctrl + ←', descriptionKey: 'shortcuts.prev_phase', category: 'navigation' },
   { key: 'Ctrl + →', descriptionKey: 'shortcuts.next_phase', category: 'navigation' },
   { key: 'Ctrl + T', descriptionKey: 'shortcuts.add_fencer', category: 'navigation' },
 
