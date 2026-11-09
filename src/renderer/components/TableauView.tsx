@@ -43,6 +43,8 @@ import Bracket from './Bracket';
 import { MAX_MATCHES_PER_PAGE_TABLEAU } from '../../shared/utils/pdfConstants';
 import { usePdfTemplateStore } from '../../features/pdfTemplates/hooks/usePdfTemplateStore';
 import MatchCard from './tableau/MatchCard';
+import BracketMinimap from './tableau/BracketMinimap';
+import BracketZoomControls from './tableau/BracketZoomControls';
 import SeedingTable from './tableau/SeedingTable';
 import TableauScoreModal from './tableau/TableauScoreModal';
 import TableauPendingSection from './tableau/TableauPendingSection';
@@ -354,6 +356,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
     selectedRounds,
     setSelectedRounds,
   } = useStateGroup(PDF_DIALOG_INIT);
+  const bracketContentRef = useRef<HTMLDivElement | null>(null);
   // Zoom et déplacement de la vue bracket (#1241)
   const {
     zoom,
@@ -1250,33 +1253,16 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
         onMouseLeave={handleBracketMouseUp}
       >
         {viewMode === 'full' && !pyramidViewMode && (
-          <div className="bracket-zoom-controls">
-            <button
-              className="bracket-zoom-btn"
-              onClick={() => setZoom(z => Math.min(2.5, parseFloat((z + 0.1).toFixed(2))))}
-              title={t('tableauView.zoom_in')}
-            >
-              +
-            </button>
-            <span className="bracket-zoom-level">{Math.round(zoom * 100)}%</span>
-            <button
-              className="bracket-zoom-btn"
-              onClick={() => {
-                setZoom(1);
-                setPan({ x: 0, y: 0 });
-              }}
-              title={t('tableauView.zoom_reset')}
-            >
-              ⊙
-            </button>
-            <button
-              className="bracket-zoom-btn"
-              onClick={() => setZoom(z => Math.max(0.3, parseFloat((z - 0.1).toFixed(2))))}
-              title={t('tableauView.zoom_out')}
-            >
-              −
-            </button>
-          </div>
+          <>
+            <BracketMinimap
+              viewportRef={scrollAreaRef}
+              contentRef={bracketContentRef}
+              zoom={zoom}
+              pan={pan}
+              onPan={setPan}
+            />
+            <BracketZoomControls zoom={zoom} setZoom={setZoom} setPan={setPan} />
+          </>
         )}
         {viewMode === 'pending' ? (
           pendingViewRounds.length > 0 ? (
@@ -1334,6 +1320,7 @@ const TableauViewComponent: React.FC<TableauViewProps> = ({
           <Bracket matches={convertToBracketMatches()} tableSize={tableauSize} />
         ) : (
           <div
+            ref={bracketContentRef}
             style={{
               transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
               transformOrigin: 'top left',

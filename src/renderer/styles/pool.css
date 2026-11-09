@@ -700,3 +700,31 @@ button.pv-pill {
   border: 1px solid var(--color-warning, #d97706);
   font-size: 0.85rem;
 }
+
+/* Matrice de poule : en-têtes collants + cellule active au clavier (#1542) */
+.pool-grid {
+  overflow: clip; /* clip (et non hidden) : garde les en-têtes collants fonctionnels */
+}
+
+.pool-row-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.pool-cell-name {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.pool-row-sticky .pool-cell-name {
+  z-index: 4;
+}
+
+.pool-cell[role='button']:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid var(--color-primary);
+  outline-offset: -3px;
+}

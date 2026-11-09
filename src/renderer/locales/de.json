@@ -2289,6 +2289,7 @@
     "empty_hint": "Beenden Sie zuerst die Pools, um das Tableau zu erstellen",
     "zoom_in": "Vergrößern",
     "zoom_reset": "Zurücksetzen",
+    "minimap": "Turnierbaum-Übersicht",
     "zoom_out": "Verkleinern",
     "strips_summary": "Bahnenübersicht",
     "strip_n": "Bahn {{n}}",
