@@ -16,7 +16,7 @@
     "src/renderer/styles/design.css": 2085,
     "src/renderer/styles/main.css": 2994,
     "src/renderer/components/CompetitionView.tsx": 3120,
-    "src/renderer/components/PoolView.tsx": 1881,
+    "src/renderer/components/PoolView.tsx": 1883,
     "src/renderer/components/RemoteScoreManager.tsx": 1691,
     "src/renderer/components/TableauView.tsx": 1570,
     "src/renderer/components/wiki/wikiData.ts": 2035,
