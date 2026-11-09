@@ -102,13 +102,13 @@ npx playwright test --project=chromium e2e/pools.spec.ts
 | `src/renderer/hooks/` | 27 | 131 |
 | `src/renderer/components/` | 74 | 370 |
 | E2E Playwright (`e2e/`) | 10 | 39 |
-| `src/remote/` | 42 | 277 |
+| `src/remote/` | 43 | 283 |
 | `src/renderer/contexts/` | 1 | 4 |
 | `src/renderer/styles/` | 5 | 17 |
 | `src/renderer/utils/` | 1 | 1 |
-| **Total** | **315** | **2474** |
+| **Total** | **316** | **2480** |
 
-Unitaires : 305 fichiers, 2435 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
+Unitaires : 306 fichiers, 2441 tests. E2E : 10 fichiers, 39 tests (comptage statique ; `it.each` / `describe.each` comptent pour 1).
 
 ## Inventaire détaillé
 
@@ -4626,6 +4626,20 @@ Unitaires : 305 fichiers, 2435 tests. E2E : 10 fichiers, 39 tests (comptage stat
   - envoie la clé de l'onglet (distincte entre onglets) et la sous-piste courante
   - deux onglets du même navigateur : deux clés différentes
   - refus, erreur réseau ou réponse invalide : piste ou sous-piste courante
+
+</details>
+
+<details>
+<summary><code>src/remote/displayScale.test.ts</code> — 6 tests</summary>
+
+- **échelle typographique fluide (#1540)**
+  - tokens.css définit les tailles en clamp()
+  - overlay-config : aucune taille de police en px
+  - overlay-config : colonne latérale fluide
+- **mode contraste projecteur (#1540)**
+  - ?contrast=1 active la classe et mémorise
+  - stockage indisponible : le paramètre reste appliqué
+  - tokens.css : .theme-contrast sans couleur en dur
 
 </details>
 

@@ -187,6 +187,14 @@
   --tw-pink-500: #ec4899;
   --tw-violet-800: #5b21b6;
 
+  /* Échelle typographique fluide (#1540) : de la tablette à l'écran de salle */
+  --fs-xs: clamp(0.75rem, 0.7rem + 0.2vw, 0.875rem);
+  --fs-sm: clamp(0.8125rem, 0.76rem + 0.25vw, 1rem);
+  --fs-md: clamp(0.9375rem, 0.85rem + 0.4vw, 1.25rem);
+  --fs-lg: clamp(1.125rem, 0.95rem + 0.8vw, 1.75rem);
+  --fs-xl: clamp(1.5rem, 1.1rem + 1.8vw, 3rem);
+  --fs-display: clamp(2.5rem, 1.5rem + 5vw, 8rem);
+
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -204,4 +212,18 @@
   --color-info-text: #dbeafe;
   --color-danger-bg: #7f1d1d;
   --color-danger-text: #fee2e2;
+}
+
+/* Mode contraste projecteur (#1540) : fond noir, texte blanc, bordures marquées */
+.theme-contrast {
+  --color-bg: var(--color-black);
+  --color-surface: var(--color-black);
+  --color-surface-2: var(--slate-900);
+  --color-border: var(--color-white);
+  --color-border-dark: var(--color-white);
+  --color-text: var(--color-white);
+  --color-text-light: var(--color-white);
+  --color-text-muted: var(--slate-100);
+  --color-primary: var(--tw-amber-400);
+  --color-on-primary: var(--color-black);
 }

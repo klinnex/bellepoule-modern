@@ -285,7 +285,43 @@
     document.head.appendChild(rm);
   }
 
+  /**
+   * Mode contraste projecteur (#1540) : `?contrast=1` l'active (mémorisé), `?contrast=0` le retire.
+   * Classe `theme-contrast` (tokens.css). Retourne l'état actif.
+   */
+  function applyContrast(doc, search, storage) {
+    var on = false;
+    var m = /[?&]contrast=([01])/.exec(search || '');
+    try {
+      if (m) {
+        if (storage) storage.setItem('bp_contrast', m[1]);
+        on = m[1] === '1';
+      } else if (storage) {
+        on = storage.getItem('bp_contrast') === '1';
+      }
+    } catch (e) {
+      on = !!(m && m[1] === '1');
+    }
+    doc.documentElement.classList.toggle('theme-contrast', on);
+    return on;
+  }
+  root.bpApplyContrast = applyContrast;
+  if (typeof document !== 'undefined' && typeof location !== 'undefined') {
+    var st = null;
+    try {
+      st = root.localStorage;
+    } catch (e) {
+      st = null;
+    }
+    applyContrast(document, location.search, st);
+  }
+
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { escHtml: escHtml, html: html, claimArenaSlot: claimArenaSlot };
+    module.exports = {
+      escHtml: escHtml,
+      html: html,
+      claimArenaSlot: claimArenaSlot,
+      applyContrast: applyContrast,
+    };
   }
 })(typeof window !== 'undefined' ? window : globalThis);
