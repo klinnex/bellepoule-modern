@@ -64,6 +64,7 @@
       td.name { text-align: left; white-space: nowrap; }
       td.name small { display: block; color: var(--muted); font-size: 0.72rem; }
       .matrix td.cell { width: 2.6rem; border-left: 1px solid var(--line); font-weight: 700; }
+      .matrix .vcol { border-left: 1px solid var(--line); }
       .matrix td.self { background: var(--slate-700); }
       .matrix td.v { color: var(--win); }
       .matrix td.d { color: var(--lose); }
@@ -149,7 +150,7 @@
               <td>${i + 1}</td>
               <td class="name">${esc(fullName(f))}<small>${esc(f.club)}</small></td>
               ${cellsHtml}
-              <td>${played ? Number(r.victories) : ''}</td>
+              <td class="vcol">${played ? Number(r.victories) : ''}</td>
               <td>${played ? Number(r.touchesFor) : ''}</td>
               <td>${played ? Number(r.touchesAgainst) : ''}</td>
               <td>${played ? esc(signed(r.index)) : ''}</td>
@@ -162,7 +163,7 @@
             <h2>${tk('demo.pool_n', { n: pool.number })}</h2>
             <table>
               <thead><tr><th></th><th>${tk('demo.col_fencer')}</th>${headsHtml}
-                <th>V</th><th>${tk('demo.col_td')}</th><th>${tk('demo.col_tr')}</th>
+                <th class="vcol">V</th><th>${tk('demo.col_td')}</th><th>${tk('demo.col_tr')}</th>
                 <th>${tk('demo.col_index')}</th><th>${tk('demo.col_rank')}</th></tr></thead>
               <tbody>${rowsHtml}</tbody>
             </table>
