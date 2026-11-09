@@ -424,9 +424,9 @@
           // ?arena=N ou arenaN uniquement (chiffres) : pas de chemin arbitraire dans fetch()
           // (CodeQL js/client-side-request-forgery)
           const p = /^(?:arena)?(\d+)$/.exec(params.get('arena') || '');
-          if (p) return 'arena' + p[1];
+          if (p) return 'arena' + Number(p[1]); // nombre : aucun caractère de chemin possible
           const m = window.location.pathname.match(/arene(\d+)/i) || window.location.pathname.match(/arena(\d+)/i);
-          return m ? 'arena' + m[1] : 'arena1';
+          return m ? 'arena' + Number(m[1]) : 'arena1';
         }
 
         const arenaId     = getArenaId();
