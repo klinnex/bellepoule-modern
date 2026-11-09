@@ -28,4 +28,26 @@ test.describe('Visual regression', () => {
       });
     });
   }
+  // Tailles de référence (#1541) : aucun débordement horizontal inattendu + capture par taille
+  const SIZES = [
+    { name: '1024x768', width: 1024, height: 768 },
+    { name: '1280x800', width: 1280, height: 800 },
+    { name: '1920x1080', width: 1920, height: 1080 },
+  ];
+
+  for (const size of SIZES) {
+    test(`accueil sans débordement horizontal (${size.name})`, async ({ page }) => {
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.goto('/');
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+      );
+      expect(overflow).toBeLessThanOrEqual(1);
+      await expect(page).toHaveScreenshot(`accueil-${size.name}.png`, {
+        animations: 'disabled',
+        maxDiffPixelRatio: 0.01,
+      });
+    });
+  }
 });
