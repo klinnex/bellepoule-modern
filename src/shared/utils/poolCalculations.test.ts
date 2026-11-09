@@ -19,7 +19,7 @@ import {
   isMatchVoidedByForfeit,
   distributeFencersGroupedByLevel,
 } from './poolCalculations';
-import { Fencer, FencerStatus, Match, MatchStatus, Pool, Score, Weapon, Gender } from '../types';
+import { Fencer, FencerStatus, Match, MatchStatus, Pool, Score, Gender } from '../types';
 
 // ============================================================================
 // Helper Functions for Tests

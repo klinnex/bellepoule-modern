@@ -55,11 +55,6 @@ function categoryLabel(c: string): string {
   return MAP[c] ?? c;
 }
 
-function fmt(seconds: number): string {
-  if (!seconds) return '—';
-  return `${Math.floor(seconds / 60)}min ${seconds % 60}s`;
-}
-
 function buildRefereeStats(matches: MatchWithReferee[]): RefereeStats[] {
   const map = new Map<string, { name: string; count: number }>();
   for (const m of matches) {
@@ -85,15 +80,6 @@ export function generatePostTournamentReportHTML(
   const totalMatches = matchesWithRefs.length;
 
   // Top 5 tireurs par victoires
-  const sorted = [...fencerStats]
-    .filter(f => f.matchesPlayed > 0)
-    .sort((a, b) => {
-      const vA = fencerStats.indexOf(a);
-      const vB = fencerStats.indexOf(b);
-      // Use victories from matchesPlayed — stored as field or derive from index position
-      return b.totalTouchPoints - a.totalTouchPoints || vA - vB;
-    });
-
   // Victories not directly in FencerCompetitionStats — sort by best indicator available
   const top5 = [...fencerStats]
     .filter(f => f.matchesPlayed > 0)
