@@ -158,7 +158,8 @@ function analyze(file) {
     }
     // Emoji comme icône d'interface (texte JSX, littéral, gabarit) (#1532).
     // Hors contenu éditorial (wiki) et texte de commandes slash : ce sont des contenus, pas des icônes.
-    if (renderer && !/[\\/]wiki[\\/]|slashCommands\.ts$/.test(file)) {
+    const editorial = /[\\/]wiki[\\/]/.test(file) || file.endsWith('slashCommands.ts');
+    if (renderer && !editorial) {
       const leadText =
         ts.isJsxText(node) || ts.isStringLiteralLike(node)
           ? node.text
