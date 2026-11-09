@@ -12,7 +12,7 @@
   "unnamedButton": 0,
   "remoteUnescaped": 0,
   "remoteHardLocale": 5,
-  "remoteHardColor": 499,
+  "remoteHardColor": 338,
   "lineExceptions": {
     "src/renderer/styles/design.css": 2045,
     "src/renderer/styles/main.css": 2994,

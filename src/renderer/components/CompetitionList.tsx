@@ -12,6 +12,7 @@ import {
   Medal,
   Plus,
   PlayCircle,
+  Search,
   Sparkles,
   Trophy,
   Users,
@@ -38,6 +39,7 @@ import { CompetitionCardSkeleton } from './Skeleton';
 import { useConfirm } from './ConfirmDialog';
 import { getActiveLocale } from '../../shared/utils/localeFormat';
 import { restartGuidedTour } from './guidedTourFlags';
+import EmptyState from './common/EmptyState';
 import { BrandLogo } from './common/BrandLogo';
 import { CompetitionExportPicker } from './CompetitionExportPicker';
 import { Button } from './common/Button';
@@ -482,7 +484,11 @@ const CompetitionListComponent: React.FC<CompetitionListProps> = ({
         )}
       </div>
       {visibleCompetitions.length === 0 && (
-        <p className="competition-search-empty">{t('competitionList.search_empty')}</p>
+        <EmptyState
+          icon={<Search size={24} />}
+          title={t('competitionList.search_empty')}
+          className="competition-search-empty"
+        />
       )}
 
       <div className="competition-grid">
