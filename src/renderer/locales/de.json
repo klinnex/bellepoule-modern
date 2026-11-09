@@ -1,5 +1,6 @@
 {
   "actions": {
+    "undo": "Rückgängig",
     "add": "Hinzufügen",
     "back": "Zurück",
     "cancel": "Abbrechen",

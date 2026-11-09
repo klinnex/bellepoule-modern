@@ -395,6 +395,7 @@
     "backup_invalid": "檔案無效：需要 BellePoule 設定匯出檔。"
   },
   "actions": {
+    "undo": "復原",
     "add": "新增",
     "edit": "編輯",
     "delete": "刪除",

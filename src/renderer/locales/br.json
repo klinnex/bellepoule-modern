@@ -395,6 +395,7 @@
     "backup_invalid": "Restr direizh : un ezporzhiadur arventennoù BellePoule a vez gortozet."
   },
   "actions": {
+    "undo": "Dizober",
     "add": "Ouzhpenn",
     "edit": "Cheñch",
     "delete": "Dilemel",
