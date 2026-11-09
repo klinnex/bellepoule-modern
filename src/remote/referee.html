@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title data-i18n="referee.title">Arbitrage - Arène BellePoule</title>
-    <script src="/common.js"></script>
+    <script src="/common.js"></script><link rel="stylesheet" href="/tokens.css" />
     <script src="/js/timerFormat.js"></script><script src="/js/priorityDraw.js"></script>
     <script src="/js/offlineQueue.js"></script>
     <script src="/js/refereeFaults.js"></script>
@@ -23,11 +23,11 @@
     <script src="/socket.io.min.js"></script>
     <style>
       :root {
-        --ref-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        --ref-bg: linear-gradient(135deg, var(--brand-navy-900) 0%, var(--brand-navy-700) 100%);
         --ref-header-bg: rgba(0, 0, 0, 0.3);
-        --ref-accent: #3b82f6;
-        --ref-accent2: #f59e0b;
-        --ref-text: #ffffff;
+        --ref-accent: var(--blue-500);
+        --ref-accent2: var(--tw-amber-500);
+        --ref-text: var(--color-white);
         --ref-muted: rgba(255,255,255,0.6);
         --ref-card-bg: rgba(255, 255, 255, 0.05);
         --ref-border: rgba(255, 255, 255, 0.1);
@@ -76,16 +76,16 @@
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: #f59e0b;
+        background: var(--tw-amber-500);
         animation: pulse 2s infinite;
       }
 
       .status-dot.disconnected {
-        background: #ef4444;
+        background: var(--red-500);
       }
 
       .status-dot.connected {
-        background: #22c55e;
+        background: var(--green-500);
       }
 
       .sync-badge {
@@ -96,13 +96,13 @@
         font-size: 1.15rem;
         font-weight: 700;
         text-align: center;
-        color: #fff;
+        color: var(--color-white);
         border: 0;
         width: 100%;
       }
-      .sync-badge.online { background: #15803d; }
-      .sync-badge.offline { background: #b45309; }
-      .sync-badge.failed { background: #b91c1c; cursor: pointer; }
+      .sync-badge.online { background: var(--tw-green-700); }
+      .sync-badge.offline { background: var(--tw-amber-700); }
+      .sync-badge.failed { background: var(--tw-red-700); cursor: pointer; }
 
       @keyframes pulse {
         0%,
@@ -124,7 +124,7 @@
         background: rgba(255, 255, 255, 0.95);
         border-radius: 1rem;
         padding: 0.75rem;
-        color: #1f2937;
+        color: var(--tw-gray-800);
         margin-bottom: 1rem;
         display: none;
       }
@@ -143,7 +143,7 @@
       }
 
       .fencer-box {
-        background: #f3f4f6;
+        background: var(--tw-gray-100);
         padding: 0.6rem;
         border-radius: 0.75rem;
         text-align: center;
@@ -154,13 +154,13 @@
       }
 
       .fencer-box.red-side {
-        border-color: #ef4444;
-        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border-color: var(--red-500);
+        background: linear-gradient(135deg, var(--tw-red-50) 0%, var(--color-danger-bg) 100%);
       }
 
       .fencer-box.green-side {
-        border-color: #22c55e;
-        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-color: var(--green-500);
+        background: linear-gradient(135deg, var(--tw-green-50) 0%, var(--tw-green-100) 100%);
       }
 
       .fencer-name {
@@ -174,7 +174,7 @@
 
       .fencer-club {
         font-size: 0.7rem;
-        color: #6b7280;
+        color: var(--tw-gray-500);
         margin-bottom: 0.2rem;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -203,40 +203,40 @@
       }
 
       .card-white {
-        background: #e5e7eb;
-        color: #374151;
-        border: 1px solid #9ca3af;
+        background: var(--tw-gray-200);
+        color: var(--tw-gray-700);
+        border: 1px solid var(--tw-gray-400);
       }
 
       .card-yellow {
-        background: #fbbf24;
-        color: #92400e;
-        border: 1px solid #d97706;
+        background: var(--tw-amber-400);
+        color: var(--tw-amber-800);
+        border: 1px solid var(--color-warning);
       }
 
       .card-red {
-        background: #ef4444;
+        background: var(--red-500);
         color: white;
-        border: 1px solid #dc2626;
+        border: 1px solid var(--color-danger);
       }
 
       .card-black {
-        background: #111;
+        background: var(--c-111111);
         color: white;
-        border: 1px solid #000;
+        border: 1px solid var(--color-black);
       }
 
       /* Cartons de passivité (escrime olympique, #1026) */
       .card-p-red {
-        background: #ef4444;
+        background: var(--red-500);
         color: white;
-        border: 2px dashed #7f1d1d;
+        border: 2px dashed var(--tw-red-900);
       }
 
       .card-p-black {
-        background: #111;
+        background: var(--c-111111);
         color: white;
-        border: 2px dashed #9ca3af;
+        border: 2px dashed var(--tw-gray-400);
       }
 
       /* Score principal */
@@ -250,11 +250,11 @@
       }
 
       .score-display.red-score {
-        color: #dc2626;
+        color: var(--color-danger);
       }
 
       .score-display.green-score {
-        color: #16a34a;
+        color: var(--tw-green-600);
       }
 
       .score-display.not-started {
@@ -289,20 +289,20 @@
       }
 
       .score-btn:active { transform: scale(0.95); filter: brightness(1.25); /* #1539 */ }
-      .control-btn:focus-visible { outline: 3px solid #fbbf24; outline-offset: 2px; }
+      .control-btn:focus-visible { outline: 3px solid var(--tw-amber-400); outline-offset: 2px; }
 
       .btn-plus-1 {
-        background: #3b82f6;
+        background: var(--blue-500);
         color: white;
       }
 
       .btn-plus-3 {
-        background: #8b5cf6;
+        background: var(--tw-violet-500);
         color: white;
       }
 
       .btn-plus-5 {
-        background: #ec4899;
+        background: var(--tw-pink-500);
         color: white;
       }
 
@@ -350,33 +350,33 @@
       }
 
       .card-btn-white {
-        background: #f3f4f6;
-        border-color: #9ca3af;
-        color: #374151;
+        background: var(--tw-gray-100);
+        border-color: var(--tw-gray-400);
+        color: var(--tw-gray-700);
       }
 
       .card-btn-yellow {
-        background: #fef3c7;
-        border-color: #fbbf24;
-        color: #92400e;
+        background: var(--tw-amber-100);
+        border-color: var(--tw-amber-400);
+        color: var(--tw-amber-800);
       }
 
       .card-btn-red {
-        background: #fee2e2;
-        border-color: #ef4444;
-        color: #991b1b;
+        background: var(--color-danger-bg);
+        border-color: var(--red-500);
+        color: var(--color-danger-text);
       }
 
       .card-btn-black {
-        background: #111;
-        border-color: #000;
-        color: #fff;
+        background: var(--c-111111);
+        border-color: var(--color-black);
+        color: var(--color-white);
       }
 
       .vs-divider {
         font-size: 1.5rem;
         font-weight: 700;
-        color: #f97316;
+        color: var(--tw-orange-500);
       }
 
       /* ── Modal sélecteur de raison ── */
@@ -395,14 +395,14 @@
       }
       .reason-selector-header {
         padding: 1rem 1.25rem 0.75rem;
-        background: #1f2937;
-        border-bottom: 2px solid #374151;
+        background: var(--tw-gray-800);
+        border-bottom: 2px solid var(--tw-gray-700);
         flex-shrink: 0;
       }
       .reason-selector-header h2 {
         font-size: 1.1rem;
         font-weight: 800;
-        color: #f9fafb;
+        color: var(--tw-gray-50);
         margin-bottom: 0.15rem;
       }
       .reason-card-preview {
@@ -413,16 +413,16 @@
         display: inline-block;
       }
       .reason-card-preview.card-white {
-        background: #e5e7eb;
-        color: #111827;
+        background: var(--tw-gray-200);
+        color: var(--tw-gray-900);
       }
       .reason-card-preview.card-yellow {
-        background: #fbbf24;
-        color: #1c1917;
+        background: var(--tw-amber-400);
+        color: var(--c-1c1917);
       }
       .reason-card-preview.card-red {
-        background: #dc2626;
-        color: #fff;
+        background: var(--color-danger);
+        color: var(--color-white);
       }
       .reason-selector-body {
         flex: 1;
@@ -432,7 +432,7 @@
       .reason-group-title {
         font-size: 0.75rem;
         font-weight: 700;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
         text-transform: uppercase;
         letter-spacing: 0.08em;
         margin: 0.75rem 0 0.4rem;
@@ -447,9 +447,9 @@
         padding: 0.65rem 0.85rem;
         margin-bottom: 0.35rem;
         border-radius: 0.4rem;
-        border: 1px solid #374151;
-        background: #111827;
-        color: #e5e7eb;
+        border: 1px solid var(--tw-gray-700);
+        background: var(--tw-gray-900);
+        color: var(--tw-gray-200);
         font-size: 0.88rem;
         cursor: pointer;
         transition:
@@ -459,35 +459,35 @@
       }
       .reason-btn:hover,
       .reason-btn:active {
-        background: #1e3a5f;
-        border-color: #3b82f6;
-        color: #fff;
+        background: var(--c-1e3a5f);
+        border-color: var(--blue-500);
+        color: var(--color-white);
       }
       .reason-selector-footer {
         padding: 0.75rem 1rem;
-        background: #1f2937;
-        border-top: 1px solid #374151;
+        background: var(--tw-gray-800);
+        border-top: 1px solid var(--tw-gray-700);
         flex-shrink: 0;
       }
       .reason-cancel-btn {
         width: 100%;
         padding: 0.75rem;
         border-radius: 0.5rem;
-        border: 2px solid #6b7280;
+        border: 2px solid var(--tw-gray-500);
         background: transparent;
-        color: #d1d5db;
+        color: var(--tw-gray-300);
         font-size: 1rem;
         font-weight: 700;
         cursor: pointer;
         touch-action: manipulation;
       }
       .reason-cancel-btn:hover {
-        background: #374151;
+        background: var(--tw-gray-700);
       }
 
       /* Chronomètre */
       .timer-section {
-        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        background: linear-gradient(135deg, var(--tw-gray-800) 0%, var(--tw-gray-900) 100%);
         border-radius: 1rem;
         padding: 0.75rem 1rem;
         text-align: center;
@@ -499,7 +499,7 @@
         font-size: 4rem;
         font-weight: 800;
         font-family: 'Courier New', Courier, monospace;
-        color: #fff;
+        color: var(--color-white);
         text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
         margin-bottom: 0.75rem;
         letter-spacing: 0.1em;
@@ -529,10 +529,10 @@
         justify-self: end;
         padding: 0.6rem 1rem;
         margin-bottom: 0.75rem;
-        border: 2px solid #38bdf8;
+        border: 2px solid var(--sky-400);
         border-radius: 0.75rem;
         background: rgba(56, 189, 248, 0.15);
-        color: #38bdf8;
+        color: var(--sky-400);
         font-weight: 800;
         font-size: 1rem;
         cursor: pointer;
@@ -544,8 +544,8 @@
       }
 
       .rest-btn.active {
-        background: #38bdf8;
-        color: #0f172a;
+        background: var(--sky-400);
+        color: var(--slate-900);
       }
 
       .timer-display:hover {
@@ -553,24 +553,24 @@
       }
 
       .timer-display.running {
-        color: #22c55e;
+        color: var(--green-500);
         text-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
-        border: 2px solid #22c55e;
+        border: 2px solid var(--green-500);
       }
 
       .timer-display.paused {
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         text-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
-        border: 2px solid #fbbf24;
+        border: 2px solid var(--tw-amber-400);
       }
 
       .timer-display.warning {
-        color: #fbbf24;
+        color: var(--tw-amber-400);
         animation: pulse-timer 1s infinite;
       }
 
       .timer-display.danger {
-        color: #ef4444;
+        color: var(--red-500);
         animation: pulse-timer 0.5s infinite;
       }
 
@@ -586,7 +586,7 @@
 
       .timer-hint {
         font-size: 0.75rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
         margin-top: 0.5rem;
       }
 
@@ -605,7 +605,7 @@
       }
 
       .btn-arena-exit-red {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
+        background: linear-gradient(135deg, var(--red-500), var(--color-danger));
         color: white;
         font-size: 0.8rem;
         padding: 0.65rem 0.4rem;
@@ -613,7 +613,7 @@
       }
 
       .btn-arena-exit-green {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+        background: linear-gradient(135deg, var(--green-500), var(--tw-green-600));
         color: white;
         font-size: 0.8rem;
         padding: 0.65rem 0.4rem;
@@ -621,17 +621,17 @@
       }
 
       .btn-undo {
-        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        background: linear-gradient(135deg, var(--tw-indigo-500), var(--tw-indigo-600));
         color: white;
         font-size: 1rem;
         padding: 0.65rem 0.4rem;
         min-height: 56px; /* #1539 : correction en un appui, cible plus large que les sorties */
       }
 
-      .btn-undo:disabled { background: #6b7280; cursor: not-allowed; }
+      .btn-undo:disabled { background: var(--tw-gray-500); cursor: not-allowed; }
 
       .btn-dt-call {
-        background: linear-gradient(135deg, #f97316, #ea580c);
+        background: linear-gradient(135deg, var(--tw-orange-500), var(--tw-orange-600));
         color: white;
         font-size: 0.85rem;
         padding: 0.65rem 0.4rem;
@@ -640,20 +640,20 @@
       }
 
       .btn-dt-call.dt-active {
-        background: linear-gradient(135deg, #6b7280, #4b5563);
+        background: linear-gradient(135deg, var(--tw-gray-500), var(--tw-gray-600));
         cursor: not-allowed;
         opacity: 0.85;
       }
 
       .btn-dt-call.dt-ack {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+        background: linear-gradient(135deg, var(--green-500), var(--tw-green-600));
         cursor: default;
       }
 
       .dt-icon-btn {
         background: none;
         border: 1.5px solid rgba(249, 115, 22, 0.6);
-        color: #f97316;
+        color: var(--tw-orange-500);
         border-radius: 50%;
         width: 34px;
         height: 34px;
@@ -669,14 +669,14 @@
       }
       .dt-icon-btn.dt-active {
         background: rgba(107, 114, 128, 0.35);
-        border-color: #6b7280;
-        color: #9ca3af;
+        border-color: var(--tw-gray-500);
+        color: var(--tw-gray-400);
         cursor: not-allowed;
       }
       .dt-icon-btn.dt-ack {
         background: rgba(34, 197, 94, 0.2);
-        border-color: #22c55e;
-        color: #22c55e;
+        border-color: var(--green-500);
+        color: var(--green-500);
       }
 
       .referee-bar {
@@ -732,7 +732,7 @@
         padding: 0.5rem;
         border-radius: 0.4rem;
         border: 1px solid rgba(255,255,255,0.3);
-        background: #1f2937;
+        background: var(--tw-gray-800);
         color: white;
         font-size: 0.9rem;
       }
@@ -770,17 +770,17 @@
       .control-btn:active { transform: scale(0.98); filter: brightness(1.2); }
 
       .btn-start {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+        background: linear-gradient(135deg, var(--green-500), var(--tw-green-600));
         color: white;
       }
 
       .btn-pause {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+        background: linear-gradient(135deg, var(--tw-amber-500), var(--color-warning));
         color: white;
       }
 
       .btn-launch-overtime {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+        background: linear-gradient(135deg, var(--tw-amber-500), var(--color-warning));
         color: white;
         font-weight: bold;
         animation: pulse-overtime 1s ease-in-out infinite;
@@ -792,17 +792,17 @@
       }
 
       .btn-resume {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+        background: linear-gradient(135deg, var(--green-500), var(--tw-green-600));
         color: white;
       }
 
       .btn-finish {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
+        background: linear-gradient(135deg, var(--red-500), var(--color-danger));
         color: white;
       }
 
       .btn-finish:disabled {
-        background: #6b7280;
+        background: var(--tw-gray-500);
         cursor: not-allowed;
       }
 
@@ -834,7 +834,7 @@
         padding: 1.5rem;
         max-width: 90%;
         width: 400px;
-        color: #1f2937;
+        color: var(--tw-gray-800);
         transform: scale(0.9);
         transition: all 0.3s;
       }
@@ -847,7 +847,7 @@
         font-size: 1.25rem;
         font-weight: 700;
         margin-bottom: 1rem;
-        color: #dc2626;
+        color: var(--color-danger);
       }
 
       .modal-body {
@@ -855,7 +855,7 @@
       }
 
       .final-score {
-        background: #f3f4f6;
+        background: var(--tw-gray-100);
         padding: 1rem;
         border-radius: 0.5rem;
         text-align: center;
@@ -881,12 +881,12 @@
       }
 
       .modal-btn-cancel {
-        background: #e5e7eb;
-        color: #374151;
+        background: var(--tw-gray-200);
+        color: var(--tw-gray-700);
       }
 
       .modal-btn-confirm {
-        background: #dc2626;
+        background: var(--color-danger);
         color: white;
       }
 
@@ -894,8 +894,8 @@
       /* Tireur prioritaire (minute prioritaire, armes olympiques, #1442) */
       .fencer-display.priority-gold,
       .priority-gold {
-        box-shadow: 0 0 0 4px #d4af37, 0 0 18px rgba(212, 175, 55, 0.75) !important;
-        border-color: #d4af37 !important;
+        box-shadow: 0 0 0 4px var(--c-d4af37), 0 0 18px rgba(212, 175, 55, 0.75) !important;
+        border-color: var(--c-d4af37) !important;
       }
       #coin-flip-confirm {
         position: fixed;
@@ -914,7 +914,7 @@
         visibility: visible;
       }
       .coin-flip-confirm-content {
-        background: #111827;
+        background: var(--tw-gray-900);
         border: 1px solid rgba(255,255,255,0.1);
         border-radius: 1rem;
         padding: 2rem 1.5rem;
@@ -930,7 +930,7 @@
       }
       .coin-flip-confirm-label {
         font-size: 1rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
         margin-bottom: 0.5rem;
       }
       .coin-flip-confirm-winner {
@@ -938,17 +938,17 @@
         font-weight: 800;
         margin-bottom: 0.25rem;
       }
-      .coin-flip-confirm-winner.winner-green { color: #22c55e; }
-      .coin-flip-confirm-winner.winner-red   { color: #ef4444; }
+      .coin-flip-confirm-winner.winner-green { color: var(--green-500); }
+      .coin-flip-confirm-winner.winner-red   { color: var(--red-500); }
       .coin-flip-confirm-color {
         font-size: 0.9rem;
-        color: #9ca3af;
+        color: var(--tw-gray-400);
         margin-bottom: 1.5rem;
       }
       .btn-confirm-coin-flip {
         width: 100%;
         padding: 1rem;
-        background: linear-gradient(135deg, #ef4444, #dc2626);
+        background: linear-gradient(135deg, var(--red-500), var(--color-danger));
         color: white;
         border: none;
         border-radius: 0.75rem;
@@ -957,7 +957,7 @@
         cursor: pointer;
         transition: background 0.2s;
       }
-      .btn-confirm-coin-flip:hover { background: #b91c1c; }
+      .btn-confirm-coin-flip:hover { background: var(--tw-red-700); }
 
       /* Notification */
       .notification {
@@ -965,7 +965,7 @@
         top: 1rem;
         right: 1rem;
         left: 1rem;
-        background: #22c55e;
+        background: var(--green-500);
         color: white;
         padding: 1rem;
         border-radius: 0.75rem;
@@ -982,7 +982,7 @@
       }
 
       .notification.error {
-        background: #ef4444;
+        background: var(--red-500);
       }
 
       /* Écran prochains matchs */
@@ -1041,7 +1041,7 @@
       .next-match-card:hover,
       .next-match-card:active {
         background: rgba(255, 255, 255, 0.22);
-        border-color: #22c55e;
+        border-color: var(--green-500);
         transform: translateY(-1px);
       }
 
@@ -1110,9 +1110,9 @@
       }
 
       .swap-btn {
-        background: #374151;
-        color: #e5e7eb;
-        border: 1px solid #4b5563;
+        background: var(--tw-gray-700);
+        color: var(--tw-gray-200);
+        border: 1px solid var(--tw-gray-600);
         border-radius: 0.4rem;
         padding: 0.25rem 0.65rem;
         font-size: 1rem;
@@ -1121,35 +1121,35 @@
         transition: background 0.15s, border-color 0.15s;
       }
       .swap-btn.active {
-        background: #5b21b6;
-        border-color: #7c3aed;
-        color: #fff;
+        background: var(--tw-violet-800);
+        border-color: var(--tw-violet-600);
+        color: var(--color-white);
       }
       /* Mode daltonien : vert remplacé par bleu (paire rouge/bleu lisible deutéranopie/protanopie) */
       body.colorblind .fencer-box.green-side {
-        border-color: #2563eb;
-        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border-color: var(--blue-600);
+        background: linear-gradient(135deg, var(--tw-blue-50) 0%, var(--color-info-bg) 100%);
       }
-      body.colorblind .fencer-box.red-side { border-color: #ea580c; }
-      body.colorblind .score-display.green-score { color: #2563eb; }
-      body.colorblind .score-display.red-score { color: #ea580c; }
+      body.colorblind .fencer-box.red-side { border-color: var(--tw-orange-600); }
+      body.colorblind .score-display.green-score { color: var(--blue-600); }
+      body.colorblind .score-display.red-score { color: var(--tw-orange-600); }
       body.colorblind .score-display.green-score.not-started { background-color: rgba(37, 99, 235, 0.12); }
       body.colorblind .score-display.red-score.not-started { background-color: rgba(234, 88, 12, 0.12); }
-      body.colorblind .coin-flip-confirm-winner.winner-green { color: #3b82f6; }
-      body.colorblind .coin-flip-confirm-winner.winner-red { color: #f97316; }
-      body.colorblind .btn-arena-exit-green { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-      body.colorblind .btn-arena-exit-red { background: linear-gradient(135deg, #f97316, #ea580c); }
+      body.colorblind .coin-flip-confirm-winner.winner-green { color: var(--blue-500); }
+      body.colorblind .coin-flip-confirm-winner.winner-red { color: var(--tw-orange-500); }
+      body.colorblind .btn-arena-exit-green { background: linear-gradient(135deg, var(--blue-500), var(--blue-600)); }
+      body.colorblind .btn-arena-exit-red { background: linear-gradient(135deg, var(--tw-orange-500), var(--tw-orange-600)); }
       @media (prefers-color-scheme: dark) {
-        body.colorblind .fencer-box.green-side { background: linear-gradient(135deg, #0a1a3b 0%, #10224c 100%); }
+        body.colorblind .fencer-box.green-side { background: linear-gradient(135deg, var(--c-0a1a3b) 0%, var(--c-10224c) 100%); }
       }
       @media (prefers-color-scheme: dark) {
-        .active-match { background: rgba(30,30,40,0.97); color: #f3f4f6; }
-        .fencer-box { background: #1f2937; color: #f9fafb; }
-        .fencer-box.red-side { background: linear-gradient(135deg, #3b0a0a 0%, #4c1010 100%); }
-        .fencer-box.green-side { background: linear-gradient(135deg, #0a2e1a 0%, #103d22 100%); }
-        .fencer-club { color: #9ca3af; }
-        .modal-content { background: #1f2937; color: #f3f4f6; }
-        .final-score { background: #111827; color: #f3f4f6; }
+        .active-match { background: rgba(30,30,40,0.97); color: var(--tw-gray-100); }
+        .fencer-box { background: var(--tw-gray-800); color: var(--tw-gray-50); }
+        .fencer-box.red-side { background: linear-gradient(135deg, var(--c-3b0a0a) 0%, var(--c-4c1010) 100%); }
+        .fencer-box.green-side { background: linear-gradient(135deg, var(--c-0a2e1a) 0%, var(--c-103d22) 100%); }
+        .fencer-club { color: var(--tw-gray-400); }
+        .modal-content { background: var(--tw-gray-800); color: var(--tw-gray-100); }
+        .final-score { background: var(--tw-gray-900); color: var(--tw-gray-100); }
         .next-matches-screen { background: rgba(0,0,0,0.5); }
       }
 
@@ -1166,7 +1166,7 @@
       }
       .match-sig-overlay.visible { display: flex; }
       .match-sig-box {
-        background: #1e293b;
+        background: var(--slate-800);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 1rem;
         padding: 1.5rem;
@@ -1180,13 +1180,13 @@
         margin: 0 0 0.25rem;
         text-align: center;
         font-size: 1.25rem;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
       }
       .match-sig-instructions {
         margin: 0 0 1rem;
         text-align: center;
         font-size: 0.85rem;
-        color: #94a3b8;
+        color: var(--slate-400);
       }
       .match-sig-score-recall {
         display: flex;
@@ -1199,12 +1199,12 @@
         font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.1em;
-        color: #64748b;
+        color: var(--slate-500);
       }
       .match-sig-score-value {
         font-size: 1.9rem;
         font-weight: 800;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         letter-spacing: 0.05em;
       }
       .match-sig-grid {
@@ -1222,13 +1222,13 @@
         padding: 0.5rem;
       }
       .match-sig-pad.winner {
-        border-color: #16a34a;
+        border-color: var(--tw-green-600);
         background: rgba(22, 163, 74, 0.08);
       }
       .match-sig-victory {
         display: inline-block;
-        background: #16a34a;
-        color: #fff;
+        background: var(--tw-green-600);
+        color: var(--color-white);
         font-weight: 800;
         border-radius: 0.35rem;
         padding: 0.05rem 0.45rem;
@@ -1236,20 +1236,20 @@
       }
       .match-sig-fencer {
         font-size: 0.95rem;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         display: flex;
         align-items: center;
         gap: 0.5rem;
       }
       .match-sig-letter {
-        background: #4f46e5;
-        color: #fff;
+        background: var(--tw-indigo-600);
+        color: var(--color-white);
         font-weight: 800;
         border-radius: 0.4rem;
         padding: 0.1rem 0.55rem;
       }
       .match-sig-canvas {
-        background: #fff;
+        background: var(--color-white);
         border-radius: 0.5rem;
         touch-action: none;
         cursor: crosshair;
@@ -1259,8 +1259,8 @@
       }
       .match-sig-clear {
         align-self: flex-start;
-        background: #334155;
-        color: #cbd5e1;
+        background: var(--slate-700);
+        color: var(--tw-slate-300);
         border: none;
         border-radius: 0.5rem;
         padding: 0.4rem 0.9rem;
@@ -1275,16 +1275,16 @@
       }
       .match-sig-skip {
         background: transparent;
-        color: #94a3b8;
-        border: 1px solid #475569;
+        color: var(--slate-400);
+        border: 1px solid var(--slate-600);
         border-radius: 0.6rem;
         padding: 0.7rem 1.3rem;
         font-size: 0.95rem;
         cursor: pointer;
       }
       .match-sig-validate {
-        background: #16a34a;
-        color: #fff;
+        background: var(--tw-green-600);
+        color: var(--color-white);
         border: none;
         border-radius: 0.6rem;
         padding: 0.7rem 1.5rem;
@@ -1300,7 +1300,7 @@
         position: fixed;
         inset: 0;
         z-index: 900;
-        background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+        background: linear-gradient(135deg, var(--slate-900) 0%, var(--c-1e3a5f) 100%);
         align-items: center;
         justify-content: center;
         flex-direction: column;
@@ -1312,29 +1312,29 @@
       .pco-title {
         font-size: 2rem;
         font-weight: 900;
-        color: #e2e8f0;
+        color: var(--tw-slate-200);
         margin-bottom: 0.5rem;
         letter-spacing: 0.04em;
       }
-      .pco-sub { color: #94a3b8; margin-bottom: 2.5rem; font-size: 1rem; }
+      .pco-sub { color: var(--slate-400); margin-bottom: 2.5rem; font-size: 1rem; }
       .pco-btn {
         font-size: 1.8rem;
         font-weight: 700;
         padding: 1.2rem 3rem;
-        background: #4f46e5;
-        color: #fff;
+        background: var(--tw-indigo-600);
+        color: var(--color-white);
         border: none;
         border-radius: 1rem;
         cursor: pointer;
         animation: pco-pulse 2s ease-in-out infinite;
         letter-spacing: 0.05em;
       }
-      .pco-btn:hover { background: #4338ca; }
+      .pco-btn:hover { background: var(--tw-indigo-700); }
       @keyframes pco-pulse {
         0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79,70,229,0.5); }
         50% { transform: scale(1.03); box-shadow: 0 0 0 16px rgba(79,70,229,0); }
       }
-      .score-btn:focus-visible, .card-btn:focus-visible, .swap-btn:focus-visible, .modal-btn:focus-visible { outline: 3px solid #fbbf24; outline-offset: 2px; }
+      .score-btn:focus-visible, .card-btn:focus-visible, .swap-btn:focus-visible, .modal-btn:focus-visible { outline: 3px solid var(--tw-amber-400); outline-offset: 2px; }
     </style>
   </head>
   <body>
@@ -1352,7 +1352,7 @@
           id="battery-badge"
           style="
             display: none;
-            background: #ef4444;
+            background: var(--red-500);
             padding: 0.15rem 0.45rem;
             border-radius: 1rem;
             font-size: 0.7rem;
@@ -1373,7 +1373,7 @@
           data-click="openJournal"
           title="Journal du match" data-i18n-title="referee.journal_title"
           aria-label="Journal" data-i18n-aria-label="referee.journal_label"
-          style="background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.4); color:#c4b5fd; border-radius:0.5rem; padding:0.3rem 0.6rem; font-size:1rem; cursor:pointer;"
+          style="background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.4); color:var(--tw-violet-300); border-radius:0.5rem; padding:0.3rem 0.6rem; font-size:1rem; cursor:pointer;"
         >📋</button>
       </div>
     </div>
@@ -1387,7 +1387,7 @@
           <button aria-label="Retour à la liste des matchs" data-i18n-aria-label="referee.back_title"
             id="btn-back-to-list"
             data-click="reloadIfIdle"
-            style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);border-radius:0.5rem;color:#fff;font-weight:600;padding:0.35rem 0.85rem;font-size:0.85rem;cursor:pointer;"
+            style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);border-radius:0.5rem;color:var(--color-white);font-weight:600;padding:0.35rem 0.85rem;font-size:0.85rem;cursor:pointer;"
             title="Retour à la liste des matchs"
             data-i18n="referee.back" data-i18n-title="referee.back_title"
           >← Retour</button>
@@ -1497,7 +1497,7 @@
             id="mort-subite-label"
             style="
               display: none;
-              color: #ea580c;
+              color: var(--tw-orange-600);
               font-weight: 900;
               font-size: 1.6rem;
               text-align: center;
@@ -1525,7 +1525,7 @@
             data-i18n="referee.supplementary_time"
             style="
               display: none;
-              color: #ef4444;
+              color: var(--red-500);
               font-weight: 900;
               font-size: 1.5rem;
               text-align: center;
@@ -1641,7 +1641,7 @@
         <div class="modal-body">
           <p data-i18n="referee.modal_confirm_text">Confirmez-vous la fin de ce match ?</p>
           <div class="final-score" id="final-score-display">0 - 0</div>
-          <p style="font-size: 0.875rem; color: #6b7280" data-i18n="referee.modal_note">
+          <p style="font-size: 0.875rem; color: var(--tw-gray-500)" data-i18n="referee.modal_note">
             Le score sera enregistré dans le tableau de poules.
           </p>
         </div>
@@ -1658,16 +1658,16 @@
 
     <!-- Overlay confirmation carton noir -->
     <div class="modal-overlay" id="black-card-modal">
-      <div class="modal-content" style="border:3px solid #111">
-        <div class="modal-title" style="background:#111;color:#fff" data-i18n="referee.black_card_title">⬛ Carton Noir</div>
+      <div class="modal-content" style="border:3px solid var(--c-111111)">
+        <div class="modal-title" style="background:var(--c-111111);color:var(--color-white)" data-i18n="referee.black_card_title">⬛ Carton Noir</div>
         <div class="modal-body">
           <p id="black-card-fencer-name" style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:0.5rem">—</p>
-          <p id="black-card-cause" style="text-align:center;color:#dc2626"><strong data-i18n="referee.black_card_direct">CARTON NOIR direct</strong></p>
-          <p style="text-align:center;font-size:0.875rem;color:#6b7280" data-i18n="referee.black_card_desc">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
+          <p id="black-card-cause" style="text-align:center;color:var(--color-danger)"><strong data-i18n="referee.black_card_direct">CARTON NOIR direct</strong></p>
+          <p style="text-align:center;font-size:0.875rem;color:var(--tw-gray-500)" data-i18n="referee.black_card_desc">Le combattant perd le combat et est exclu de la compétition. Le DT sera appelé automatiquement.</p>
         </div>
         <div class="modal-buttons">
           <button class="modal-btn modal-btn-cancel" data-click="refereeApp.cancelBlackCard" data-i18n="referee.cancel">Annuler</button>
-          <button class="modal-btn modal-btn-confirm" style="background:#111;color:#fff" data-click="refereeApp.confirmBlackCard" data-i18n="referee.black_card_confirm">⬛ Confirmer l'élimination</button>
+          <button class="modal-btn modal-btn-confirm" style="background:var(--c-111111);color:var(--color-white)" data-click="refereeApp.confirmBlackCard" data-i18n="referee.black_card_confirm">⬛ Confirmer l'élimination</button>
         </div>
       </div>
     </div>
@@ -2116,9 +2116,9 @@
             document.head.appendChild(style);
             document.body.appendChild(ov);
           }
-          ov.innerHTML = '<div style="background:rgba(0,0,0,0.85);border:3px solid #3b82f6;border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">'
-            + '<div style="font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">🤺 ' + escHtml(label) + '</div>'
-            + '<div style="font-size:1rem;color:#94a3b8;">' + escHtml(window.T('referee.identify')) + '</div>'
+          ov.innerHTML = '<div style="background:rgba(0,0,0,0.85);border:3px solid var(--blue-500);border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">'
+            + '<div style="font-size:2.5rem;font-weight:900;color:var(--color-white);margin-bottom:0.5rem;">🤺 ' + escHtml(label) + '</div>'
+            + '<div style="font-size:1rem;color:var(--slate-400);">' + escHtml(window.T('referee.identify')) + '</div>'
             + '</div>';
           ov.style.display = 'flex';
           clearTimeout(ov._t);
@@ -3635,7 +3635,7 @@
           canvas.width = rect.width * window.devicePixelRatio;
           canvas.height = rect.height * window.devicePixelRatio;
           ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-          ctx.strokeStyle = '#1e293b';
+          ctx.strokeStyle = bpCssVar('--slate-800');
           ctx.lineWidth = 2.5;
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
@@ -4006,7 +4006,7 @@
             return;
           }
           container.innerHTML = `
-            <div style="margin-bottom:1rem;padding:0.75rem;border:2px solid #111;border-radius:0.75rem;background:rgba(0,0,0,0.35);">
+            <div style="margin-bottom:1rem;padding:0.75rem;border:2px solid var(--c-111111);border-radius:0.75rem;background:rgba(0,0,0,0.35);">
               <div style="font-weight:700;margin-bottom:0.5rem;">${escHtml(window.T('referee.black_cards'))}</div>
               ${cards
                 .map(
@@ -4017,7 +4017,7 @@
                     <div style="font-size:0.8rem;opacity:0.75;">${escHtml(window.T('referee.against'))} ${escHtml(c.opponentName) || '?'}</div>
                   </div>
                   <button data-click="refereeApp.cancelBlackCardFromList" data-args="${escHtml(JSON.stringify([c.fencerId]))}"
-                    style="padding:0.6rem 1rem;border:none;border-radius:0.5rem;background:#f9fafb;color:#111;font-weight:700;font-size:0.9rem;cursor:pointer;">
+                    style="padding:0.6rem 1rem;border:none;border-radius:0.5rem;background:var(--tw-gray-50);color:var(--c-111111);font-weight:700;font-size:0.9rem;cursor:pointer;">
                     ${escHtml(window.T('referee.cancel_card'))}
                   </button>
                 </div>`
@@ -4131,7 +4131,7 @@
       <button class="pco-btn" data-click="refereeApp.goToSignature" data-i18n="referee.signature_btn">
         ✍️ SIGNATURE
       </button>
-      <button class="pco-btn" data-click="openJournal" data-i18n="referee.journal_btn" style="margin-top:1rem; background:#4c1d95; animation:none; font-size:1.2rem; padding:0.9rem 2rem;">
+      <button class="pco-btn" data-click="openJournal" data-i18n="referee.journal_btn" style="margin-top:1rem; background:var(--tw-violet-900); animation:none; font-size:1.2rem; padding:0.9rem 2rem;">
         📋 JOURNAL
       </button>
     </div>
