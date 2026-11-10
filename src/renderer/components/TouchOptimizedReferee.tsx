@@ -22,8 +22,9 @@ import {
 } from '../../shared/utils/suddenDeath';
 import TiebreakerAnimation from './TiebreakerAnimation';
 import { useMatchAuditStore } from '../../features/matchAuditLog/hooks/useMatchAuditStore';
-import { Mic } from 'lucide-react';
+import { ArrowUpRight, Layers, Mic } from 'lucide-react';
 import { Icon } from './common/Icon';
+import { CardIcon } from './common/CardIcon';
 
 interface TouchOptimizedRefereeProps {
   match: Match;
@@ -48,7 +49,7 @@ function chipFromEntry(
 ): {
   key: string;
   name: string;
-  delta: string;
+  delta: React.ReactNode;
   score: string;
   bg: string;
   border: string;
@@ -78,14 +79,7 @@ function chipFromEntry(
   }
 
   if (entry.eventType === 'card') {
-    const icon =
-      entry.cardType === 'yellow'
-        ? '🟨'
-        : entry.cardType === 'red'
-          ? '🟥'
-          : entry.cardType === 'black'
-            ? '⬛'
-            : '🃏';
+    const icon = entry.cardType ? <CardIcon type={entry.cardType} /> : <Icon icon={Layers} />;
     return {
       key: entry.id,
       name,
@@ -101,7 +95,7 @@ function chipFromEntry(
     return {
       key: entry.id,
       name,
-      delta: '↗',
+      delta: <Icon icon={ArrowUpRight} />,
       score: entry.exitType ?? 'sortie',
       bg: '#fef3c7',
       border: '#f59e0b',

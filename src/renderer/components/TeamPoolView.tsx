@@ -22,14 +22,8 @@ import { useConfirm } from './ConfirmDialog';
 import { useTranslation } from '../contexts/TranslationContext';
 import { Flag, Radio, Swords, Undo2 } from 'lucide-react';
 import { Icon } from './common/Icon';
+import { CardIcon } from './common/CardIcon';
 
-const CARD_BADGE: Record<string, string> = { WHITE: '⬜', YELLOW: '🟨', RED: '🟥', BLACK: '⬛' };
-const TEAM_CARD_BADGE: Record<string, string> = {
-  white: '⬜',
-  yellow: '🟨',
-  red: '🟥',
-  black: '⬛',
-};
 const TEAM_CARD_TYPES: Array<'white' | 'yellow' | 'red' | 'black'> = [
   'white',
   'yellow',
@@ -238,7 +232,7 @@ const TeamPoolView: React.FC<Props> = ({
                           <span className="text-sm font-medium truncate">{fa}</span>
                           {cardsA.map(c => (
                             <span key={c.id} title={CARD_REASON_LABELS[c.reason]}>
-                              {CARD_BADGE[c.type]}
+                              <CardIcon type={c.type} />
                             </span>
                           ))}
                           <TipButton
@@ -301,7 +295,7 @@ const TeamPoolView: React.FC<Props> = ({
                           </TipButton>
                           {cardsB.map(c => (
                             <span key={c.id} title={CARD_REASON_LABELS[c.reason]}>
-                              {CARD_BADGE[c.type]}
+                              <CardIcon type={c.type} />
                             </span>
                           ))}
                           <span className="text-sm font-medium truncate text-right">{fb}</span>
@@ -406,12 +400,12 @@ const TeamPoolView: React.FC<Props> = ({
                                   )}
                                   className={`px-1.5 py-0.5 rounded border hover:bg-gray-50 ${type === suggested ? 'border-blue-400 ring-1 ring-blue-300' : 'border-gray-200'}`}
                                 >
-                                  {TEAM_CARD_BADGE[type]}
+                                  <CardIcon type={type} />
                                 </TipButton>
                               ))}
                               {cards.map(c => (
                                 <span key={c.id} title={c.reason}>
-                                  {TEAM_CARD_BADGE[c.type]}
+                                  <CardIcon type={c.type} />
                                 </span>
                               ))}
                             </div>

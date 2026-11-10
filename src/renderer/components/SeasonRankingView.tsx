@@ -11,6 +11,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { formatDate } from '../../shared/utils/localeFormat';
 import { Download, Trophy } from 'lucide-react';
 import { Icon } from './common/Icon';
+import { CardIcon } from './common/CardIcon';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -206,7 +207,7 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
     c => (c.weapon === 'L' || (c as any).questEnabled) && !alreadyAdded.has(c.id)
   );
 
-  const Th: React.FC<{ k: keyof SeasonEntry; label: string; title?: string }> = ({
+  const Th: React.FC<{ k: keyof SeasonEntry; label: React.ReactNode; title?: string }> = ({
     k,
     label,
     title,
@@ -308,7 +309,11 @@ export const SeasonRankingView: React.FC<SeasonRankingViewProps> = ({
                       <Th k="totalQuestV3" label="V3" title={t('season.t_v3')} />
                       <Th k="totalQuestV2" label="V2" title={t('season.t_v2')} />
                       <Th k="totalQuestV1" label="V1" title={t('season.t_v1')} />
-                      <Th k="totalRedCards" label="🔴" title={t('season.t_red')} />
+                      <Th
+                        k="totalRedCards"
+                        label={<CardIcon type="red" label={t('season.t_red')} />}
+                        title={t('season.t_red')}
+                      />
                       <Th
                         k="totalTouchesScored"
                         label={t('ranking.touches_scored')}

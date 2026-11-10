@@ -140,13 +140,13 @@ export const VoiceScoreController: React.FC<{
 
       if (lang.start.test(lowerText)) {
         commands[1].action();
-        setLastCommand('▶ Démarré');
+        setLastCommand('Démarré');
       } else if (lang.pause.test(lowerText)) {
         commands[2].action();
-        setLastCommand('⏸ Pause');
+        setLastCommand('Pause');
       } else if (lang.finish.test(lowerText)) {
         commands[3].action();
-        setLastCommand('⏹ Terminé');
+        setLastCommand('Terminé');
       }
     },
     [commands]
