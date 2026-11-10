@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 
 const req = createRequire(import.meta.url);
-const { svg, hydrate, rank, names } = req('./icons.js');
+const { svg, hydrate, rank, card, names } = req('./icons.js');
 const remoteDir = path.join(__dirname, '..');
 
 describe('icons.js', () => {
@@ -63,6 +63,13 @@ describe('icons.js', () => {
     expect(rank(7, '')).toBe('7');
   });
 
+  it('card : pastille colorée par type, texte échappé si inconnu', () => {
+    expect(card('yellow')).toContain('--tw-amber-400');
+    expect(card('WHITE')).toContain('--tw-gray-400');
+    expect(card('<b>')).toBe('&lt;b&gt;');
+    expect(card(undefined)).toBe('');
+  });
+
   it('expose des noms sans doublon', () => {
     expect(new Set(names).size).toBe(names.length);
   });
@@ -72,7 +79,7 @@ describe('pages distantes', () => {
   const pages = fs.readdirSync(remoteDir).filter(f => f.endsWith('.html'));
   it.each(pages)('%s charge /js/icons.js dès qu’elle utilise une icône', page => {
     const text = fs.readFileSync(path.join(remoteDir, page), 'utf8');
-    if (/data-icon=|bpIcon\(|bpRank\(|BPIcons\./.test(text)) {
+    if (/data-icon=|bpIcon\(|bpRank\(|bpCard\(|BPIcons\./.test(text)) {
       expect(text).toContain('src="/js/icons.js"');
     }
   });

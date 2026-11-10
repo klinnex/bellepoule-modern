@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="demo.page_title">Démo - BellePoule Modern</title>
     <script src="/socket.io.min.js"></script>
-    <script src="/common.js"></script>
+    <script src="/common.js"></script><script src="/js/icons.js"></script>
     <script src="/i18n.js"></script>
     <link rel="preload" href="/fonts/Inter-latin-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts.css" />
@@ -140,7 +140,7 @@
                     const cls = `cell ${win ? 'v' : 'd'}${freshResults.has(res.key) ? ' fresh' : ''}`;
                     return `<td class="${cls}">${win ? 'V' : 'D'}${Number(res.mine)}</td>`;
                   }
-                  if (live.has(`${f.id}|${g.id}`)) return '<td class="cell live">⚔</td>';
+                  if (live.has(`${f.id}|${g.id}`)) return '<td class="cell live">' + bpIcon('swords') + '</td>';
                   return '<td class="cell"></td>';
                 })
                 .join('');
@@ -171,7 +171,7 @@
         }
 
         function rankingHtml(rows, opts) {
-          const MEDALS = ['🥇', '🥈', '🥉', '🥉'];
+          const MEDAL_RANKS = [1, 2, 3, 3]; // 2 bronzes (petite finale)
           const bodyHtml = rows
             .map((r, i) => {
               const out = opts.qualified != null && i >= opts.qualified;
@@ -181,7 +181,7 @@
                   : out
                     ? `<span class="tag e">${tk('demo.eliminated')}</span>`
                     : `<span class="tag q">${tk('demo.qualified')}</span>`;
-              const medalHtml = opts.medals && i < 4 ? `<span class="medal">${esc(MEDALS[i])}</span> ` : '';
+              const medalHtml = opts.medals && i < 4 ? `<span class="medal">${bpRank(MEDAL_RANKS[i])}</span> ` : '';
               return `<tr class="${out ? 'out' : ''}">
               <td class="rank">${medalHtml}${Number(r.rank)}</td>
               <td class="name">${esc(fullName(r.fencer))}<small>${esc(r.fencer.club)}</small></td>

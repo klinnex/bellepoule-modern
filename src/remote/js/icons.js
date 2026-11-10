@@ -83,6 +83,7 @@
       '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/>',
     check: '<path d="M20 6 9 17l-5-5"/>',
     club: '<path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/>',
+    copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
     // Pleines (fill = currentColor) : pastille d'état, carré, carton
     dot: '<circle cx="12" cy="12" r="6"/>',
     square: '<rect x="4" y="4" width="16" height="16" rx="3"/>',
@@ -105,7 +106,7 @@
   }
 
   /** Icône inconnue → chaîne vide (jamais de HTML construit depuis un nom arbitraire) */
-  function svg(name, cls) {
+  function svg(name, cls, style) {
     if (!Object.prototype.hasOwnProperty.call(PATHS, name)) return '';
     const filled = FILLED[name] === true;
     return (
@@ -120,7 +121,9 @@
       ' stroke-width="' +
       (filled ? '1.5' : '2') +
       '" stroke-linecap="round" stroke-linejoin="round"' +
-      ' style="vertical-align:-0.125em;flex:none" aria-hidden="true" focusable="false">' +
+      ' style="vertical-align:-0.125em;flex:none' +
+      (style ? ';' + esc(style) : '') +
+      '" aria-hidden="true" focusable="false">' +
       PATHS[name] +
       '</svg>'
     );
@@ -157,12 +160,27 @@
     return label;
   }
 
-  const api = { svg, hydrate, rank, names: Object.keys(PATHS) };
+  const CARD_STYLES = {
+    white: 'color:var(--tw-gray-100);stroke:var(--tw-gray-400)',
+    yellow: 'color:var(--tw-amber-400)',
+    red: 'color:var(--red-500)',
+    black: 'color:var(--c-111111);stroke:var(--tw-gray-400)',
+  };
+
+  /** Carton (white, yellow, red, black) en pastille colorée ; type inconnu : texte échappé */
+  function card(type) {
+    const key = String(type == null ? '' : type).toLowerCase();
+    if (!Object.prototype.hasOwnProperty.call(CARD_STYLES, key)) return esc(type);
+    return svg('card', 'bp-card-' + key, CARD_STYLES[key]);
+  }
+
+  const api = { svg, hydrate, rank, card, names: Object.keys(PATHS) };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) {
     root.BPIcons = api;
     root.bpIcon = svg;
     root.bpRank = rank;
+    root.bpCard = card;
     if (root.document) {
       if (root.document.readyState === 'loading') {
         root.document.addEventListener('DOMContentLoaded', () => hydrate());
