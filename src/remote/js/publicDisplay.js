@@ -4,7 +4,7 @@
  * Script classique chargé en <script src="/js/publicDisplay.js"> (CSP : pas de script inline).
  * Licensed under GPL-3.0
  */
-/* global bpSocket, escHtml */
+/* global bpIcon, bpSocket, escHtml */
 const { setBannerLines } = window.BPArenaUtils;
 const applyScreenTheme = variables => window.BPArenaUtils.applyScreenTheme(document, variables);
 
@@ -92,7 +92,9 @@ class PublicDisplay {
     }
     ov.innerHTML =
       '<div style="background:rgba(0,0,0,0.85);border:3px solid var(--blue-500);border-radius:1.5rem;padding:2rem 4rem;text-align:center;max-width:80vw;">' +
-      '<div style="font-size:2.5rem;font-weight:900;color:var(--color-white);margin-bottom:0.5rem;">📺 ' +
+      '<div style="font-size:2.5rem;font-weight:900;color:var(--color-white);margin-bottom:0.5rem;">' +
+      bpIcon('tv') +
+      ' ' +
       escHtml(label) +
       '</div>' +
       '<div style="font-size:1rem;color:var(--slate-400);">' +
@@ -228,7 +230,7 @@ class PublicDisplay {
       const winnerName = visualWinner === 'A' ? nameA : nameB;
       const colorClass = visualWinner === 'A' ? 'winner-red' : 'winner-green';
       const colorLabel = visualWinner === 'A' ? 'ROUGE' : 'VERT';
-      result.textContent = `🏆 ${winnerName} gagne ! (${colorLabel})`;
+      result.textContent = `${winnerName} gagne ! (${colorLabel})`;
       result.className = colorClass;
     }, 3600);
 
@@ -254,7 +256,7 @@ class PublicDisplay {
     if (ann.isRevalorisation) {
       const fromLabel =
         ann.fromCard === 'white' ? 'blanc' : ann.fromCard === 'yellow' ? 'jaune' : ann.fromCard;
-      line1 = `⚠️ Revalorisation 2ème ${fromLabel} → ${typeLabel} — ${ann.fencerName}`;
+      line1 = `Revalorisation 2ème ${fromLabel} → ${typeLabel} — ${ann.fencerName}`;
     } else {
       line1 = `Carton ${typeLabel} — ${ann.fencerName}`;
     }
